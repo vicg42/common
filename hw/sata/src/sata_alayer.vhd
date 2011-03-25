@@ -133,12 +133,9 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or i_irq or OR_reduce(sr_llrxd(2)) or sr_llrxd_en(2);
 --  end if;
 --end process tstout;
-p_out_tst(0)<=tst_val or tst_al_status.cmd_busy;
+p_out_tst(0)<=tst_val;
 p_out_tst(31 downto 1)<=(others=>'0');
 
-tst_al_status.cmd_name<=dbgtsf_type;
-tst_al_status.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
-tst_al_status.signature<=i_signature_det;
 
 end generate gen_dbg_on;
 
@@ -301,7 +298,7 @@ p_out_status.ATAError<=i_reg_shadow.error;
 --//Детектирование:
 p_out_status.SStatus(C_ASSTAT_DET_BIT_L+0)<=p_in_pl_status(C_PSTAT_DET_DEV_ON_BIT);      --//0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
 p_out_status.SStatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--//0/1 - Соединение с устройством не установлено/установлено (можно работать)
-p_out_status.SStatus(C_ASSTAT_SPD_BIT_L downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');
+p_out_status.SStatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');
 
 --//Cкорость соединения: "00"/"01"/"10" - не согласована/Gen1/Gen2
 p_out_status.SStatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)="01" else
@@ -480,8 +477,11 @@ end generate gen_sim_off;
 --Для удобства алализа  данных при моделироании
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
-rq_name: process(i_reg_shadow)
---  variable dbgtsf_type : string(1 to 23);
+tst_al_status.cmd_name<=dbgtsf_type;
+tst_al_status.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
+tst_al_status.signature<=i_signature_det;
+
+rq_name: process(i_reg_shadow,tst_al_status)
 begin
 
   if i_trn_atacommand='1' then
@@ -504,7 +504,7 @@ begin
     end if;
   end if;
 
-  if dbgtsf_type="NONE                   " then
+  if dbgtsf_type="NONE                   " and tst_al_status.cmd_busy='1' then
     tst_val<='1';
   else
     tst_val<='0';

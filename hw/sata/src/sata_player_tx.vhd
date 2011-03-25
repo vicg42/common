@@ -124,14 +124,8 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(1)<=tst_synch;
 --  end if;
 --end process ltstout;
-p_out_tst(0)<=tst_val or tst_pltx_status.suspend_en;
+p_out_tst(0)<=tst_val;
 p_out_tst(31 downto 1)<=(others=>'0');
-
-tst_pltx_status.req_name<=dbgtsf_type;
-tst_pltx_status.suspend_en<=i_suspend_en;
-tst_pltx_status.suspend_phold<=i_suspend_phold;
-tst_pltx_status.suspend_pholda<=i_suspend_pholda;
-tst_pltx_status.suspend_psof<=i_suspend_psof;
 
 end generate gen_dbg_on;
 
@@ -392,13 +386,18 @@ end generate gen_sim_off;
 --Для удобства алализа  данных при моделироании
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
-rq_name: process(p_in_txreq)
---  variable dbgtsf_type : string(1 to 7);
+tst_pltx_status.req_name<=dbgtsf_type;
+tst_pltx_status.suspend_en<=i_suspend_en;
+tst_pltx_status.suspend_phold<=i_suspend_phold;
+tst_pltx_status.suspend_pholda<=i_suspend_pholda;
+tst_pltx_status.suspend_psof<=i_suspend_psof;
+
+rq_name: process(p_in_txreq,tst_pltx_status)
 begin
 
   dbgtsf_type<=C_PNAME_STR(CONV_INTEGER(p_in_txreq));
 
-  if dbgtsf_type=C_PNAME_STR(C_TALIGN) then
+  if dbgtsf_type=C_PNAME_STR(C_TALIGN) and tst_pltx_status.suspend_en='1' then
     tst_val<='1';
   else
     tst_val<='0';

@@ -214,7 +214,7 @@ signal sr_llrxd_en                 : std_logic_vector(0 to 0);
 signal i_txfifo_pfull              : std_logic;--//подсинхреные сигналы статусов буферов Tx/Rx
 signal i_rxfifo_empty              : std_logic;
 
-
+signal tst_val                     : std_logic;
 signal tst_tl_ctrl                 : TSimTLCtrl;
 signal tst_tl_status               : TSimTLStatus;
 signal tst_fms_cs                  : std_logic_vector(4 downto 0);
@@ -241,9 +241,7 @@ begin
 
     tst_fms_cs_dly<=tst_fms_cs;
 
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or i_irq or
-                 tst_tl_status.rxfistype_err or
-                 tst_tl_ctrl.ata_command;
+    p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly) or i_irq;
   end if;
 end process tstout;
 
@@ -273,17 +271,6 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_tlayer_cs=
             CONV_STD_LOGIC_VECTOR(16#18#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RcvBIST else
             CONV_STD_LOGIC_VECTOR(16#19#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_BISTTrans1 else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_tlayer_cs=S_IDLE else
-
-
-tst_tl_ctrl.ata_command<=p_in_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT);
-tst_tl_ctrl.ata_control<=p_in_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT);
-tst_tl_ctrl.fpdma<=p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT);
-
-tst_tl_status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
-tst_tl_status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
-tst_tl_status.rxfislen_err<=i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT);
-tst_tl_status.txerr_crc_repeat<=i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT);
-tst_tl_status.usr_busy<=i_tl_status(C_TSTAT_USR_BUSY_BIT);
 
 end generate gen_dbg_on;
 
@@ -1617,6 +1604,40 @@ elsif p_in_clk'event and p_in_clk='1' then
 end if;
 end process lfsm;
 
+
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+tst_val<='0';
+end generate gen_sim_off;
+
+--//----------------------------------------
+--//Только для моделирования
+--//----------------------------------------
+--Для удобства алализа  данных при моделироании
+gen_sim_on : if strcmp(G_SIM,"ON") generate
+
+tst_tl_ctrl.ata_command<=p_in_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT);
+tst_tl_ctrl.ata_control<=p_in_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT);
+tst_tl_ctrl.fpdma<=p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT);
+
+tst_tl_status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
+tst_tl_status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
+tst_tl_status.rxfislen_err<=i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT);
+tst_tl_status.txerr_crc_repeat<=i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT);
+tst_tl_status.usr_busy<=i_tl_status(C_TSTAT_USR_BUSY_BIT);
+
+process(p_in_tl_ctrl,i_tl_status)
+begin
+
+  if tst_tl_status.rxfistype_err='1' or
+     tst_tl_ctrl.ata_command='1' then
+    tst_val<='1';
+  else
+    tst_val<='0';
+  end if;
+end process;
+
+end generate gen_sim_on;
 
 --END MAIN
 end behavioral;
