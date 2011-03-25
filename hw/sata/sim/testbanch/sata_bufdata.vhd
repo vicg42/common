@@ -85,7 +85,7 @@ signal i_txbuf_empty              : std_logic;
 
 type TCntValue is array (0 to 3) of integer;
 constant C_VALUE1                 : TCntValue :=(2,3,6,2);
-constant C_VALUE2                 : TCntValue :=(9,7,10,8);
+constant C_VALUE2                 : TCntValue :=(3,4,2,7);
 signal i_cntval                   : std_logic_vector(1 downto 0);
 
 signal i_rdcnt                    : integer;

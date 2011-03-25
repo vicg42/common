@@ -101,7 +101,7 @@ i_spctrl_spd(0)<='0';
 i_spctrl_spd(1)<='0';
 
 
-i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 11 us, '0' after 11.4 us;
+i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 9 us, '0' after 9.4 us;
 i_link_ctrl(0)(C_LCTRL_TRN_ESCAPE_BIT)<='0';
 i_link_ctrl(0)(C_LCTRL_TL_CHECK_ERR_BIT)<='0';
 i_link_ctrl(0)(C_LCTRL_TL_CHECK_DONE_BIT)<='1';
@@ -122,11 +122,11 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_link_txd_rd(0)='1' then
-      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#18#, i_sim_txd_cnt'length) then
+      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#0E#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='1';
         i_sim_txd_cnt<=i_sim_txd_cnt + 1;
 
-      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#19#, i_sim_txd_cnt'length) then
+      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#0F#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='0';
         i_sim_txd_cnt<=(others=>'0');
       else
@@ -147,8 +147,8 @@ i_link_txd_close(0)<=i_sim_txbuf_close;
 --i_link_txd_status(0).aempty<='0';
 --
 --//Вариант 1 - отложеная передача HOLD перед выдачей данных
-i_link_txd_status(0).empty<='0','1' after 12 us, '0' after 12.5 us;
-i_link_txd_status(0).aempty<='0','1' after 11.5 us, '0' after 12 us;
+i_link_txd_status(0).aempty<='0','1' after 9.772 us, '0' after 9.8 us;
+i_link_txd_status(0).empty<='1','1' after 9.772 us, '0' after 9.9 us;
 ------
 ------//Вариант 2 - нету отложеной передачи HOLD перед выдачей данных
 ----i_link_txd_status(0).empty<='0','1' after 11.8 us, '0' after 12.5 us;

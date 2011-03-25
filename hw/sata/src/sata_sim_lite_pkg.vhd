@@ -33,6 +33,7 @@ constant C_SIM_SATAHOST_TMR_ALIGN : integer:=12;--//Переиод отправки BURST ALIGN
 constant C_SIM_SECTOR_SIZE_DWORD  : integer:=32;                       --//Размер сеткора в Dword
 constant C_SIM_FR_DWORD_COUNT_MAX : integer:=C_SIM_SECTOR_SIZE_DWORD*2;--//max кол-во Dword в FISDATA между SOF и EOF, исключая FISTYPE и CRC
 
+
 --строковые имена примитивов - при моделировании облегчает контроль передоваемых/принимаемых примитивов
 type TString_SataArray21 is array (0 to 20) of string(1 to 7);
 constant C_PNAME_STR : TString_SataArray21:=
@@ -40,11 +41,11 @@ constant C_PNAME_STR : TString_SataArray21:=
 "ALIGN  ",
 "SOF    ",
 "EOF    ",
-"DMAT   ",
-"CONT   ",
 "SYNC   ",
-"HOLD   ",
 "HOLDA  ",
+"DMAT   ",
+"HOLD   ",
+"CONT   ",
 "X_RDY  ",
 "R_RDY  ",
 "R_IP   ",
@@ -104,6 +105,13 @@ txdmat      : std_logic;
 txerr_crc   : std_logic;
 txerr_idle  : std_logic;
 txerr_abort : std_logic;
+end record;
+
+type TSimLLRxP is record
+dmat: std_logic;
+hold: std_logic;
+xrdy: std_logic;
+cont: std_logic;
 end record;
 
 --//PHY Layer

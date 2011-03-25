@@ -442,14 +442,14 @@ begin
 
   --//Инициализируем команды которые будут отправлятся:
   cfgCmdPkt(0).usr_ctrl:=(others=>'0');
-  cfgCmdPkt(0).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--;
-  cfgCmdPkt(0).scount:=1;--//Кол-во секторов
+  cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
+  cfgCmdPkt(0).scount:=8;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);--//LBA
   cfgCmdPkt(0).loopback:='0';
 
   cfgCmdPkt(1).usr_ctrl:=(others=>'0');
   cfgCmdPkt(1).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
-  cfgCmdPkt(1).scount:=3;
+  cfgCmdPkt(1).scount:=10;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(1).loopback:='0';
 

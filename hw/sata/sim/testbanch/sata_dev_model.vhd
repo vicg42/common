@@ -153,6 +153,10 @@ signal tstdbuf_out                : std_logic_vector(31 downto 0):=(others=>'0')
 signal i_atacmd_scount   : std_logic_vector(15 downto 0):=(others=>'0');
 signal i_atacmd_dwcount : integer:=0;
 
+signal tst_dbuf_wused : std_logic;
+signal tst_dbuf_wen : std_logic;
+
+
 
 --MAIN
 begin
@@ -160,12 +164,16 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<=OR_reduce(i_crc_checking);
+p_out_tst(0)<=OR_reduce(i_crc_checking) or tst_dbuf_wused or tst_dbuf_wen;
 
 p_out_tst(1)<='0' when i_rcv_allname="ALIGN  " and i_rcv_name="ALIGN  " else i_usropt_out.dbuf.sync and i_usropt_in.rx.detect.prmtv.sof;
 p_out_tst(2)<='1' when i_rxprmtv_cnt(6)=5 or i_rxbuffer_cnt=7 else OR_reduce(tstdbuf_out);
 
 p_out_tst(31 downto 3)<=(others=>'0');
+
+tst_dbuf_wused<=i_usropt_in.dbuf.wused;
+tst_dbuf_wen<=i_usropt_in.dbuf.wen;
+
 
 
 --//#########################################
@@ -1270,26 +1278,29 @@ i_dbuf_status.tx.en<='0';
 
 sim_send2: process
 
-variable txsrcambler : std_logic_vector(31 downto 0):=(others=>'0');
-variable txcrc       : std_logic_vector(31 downto 0):=(others=>'0');
-variable txd         : TSimBufData;
-variable txd_out     : std_logic_vector(31 downto 0):=(others=>'0');--//Скремблировыные данные
-variable txfis_size  : integer:=0;
-variable txdata_size_byte : integer:=0;
-variable txcomp_cnt  : integer:=0;--//Счетчик по значению которого отправляем примитив COMP
+  variable txsrcambler : std_logic_vector(31 downto 0):=(others=>'0');
+  variable txcrc       : std_logic_vector(31 downto 0):=(others=>'0');
+  variable txd         : TSimBufData;
+  variable txd_out     : std_logic_vector(31 downto 0):=(others=>'0');--//Скремблировыные данные
+  variable txfis_size  : integer:=0;
+  variable txdata_size_byte : integer:=0;
+  variable txcomp_cnt  : integer:=0;--//Счетчик по значению которого отправляем примитив COMP
+  variable txcomp_cnt1 : integer:=0;
+  variable txcomp_cnt2 : integer:=0;
+  variable txcomp_cnt3 : integer:=0;
 
-variable usr_dwsize : integer:=0;
-variable dcnt  : integer:=0;
+  variable usr_dwsize : integer:=0;
+  variable dcnt  : integer:=0;
 
---variable fis_data          : TFIS_DATA;
-variable fis_d2h           : TFIS_D2H;
-variable fis_pioSetup      : TFIS_PIOSETUP;
-variable fis_dmaSetup      : TFIS_DMASETUP;
-variable fis_dmaActivate   : TFIS_DMA_Activate;
-variable fis_SetDeviceBits : TFIS_SetDeviceBits;
-variable fis_BISTActivate  : TFIS_BIST_Activate;
+  --variable fis_data          : TFIS_DATA;
+  variable fis_d2h           : TFIS_D2H;
+  variable fis_pioSetup      : TFIS_PIOSETUP;
+  variable fis_dmaSetup      : TFIS_DMASETUP;
+  variable fis_dmaActivate   : TFIS_DMA_Activate;
+  variable fis_SetDeviceBits : TFIS_SetDeviceBits;
+  variable fis_BISTActivate  : TFIS_BIST_Activate;
 
-variable usropt : TInUsrOpt;
+  variable usropt : TInUsrOpt;
 
   variable vusropt     : TOutUsrOpt;
   variable string_value : std_logic_vector(3 downto 0);
@@ -1513,69 +1524,240 @@ begin
       end if;
 --      write(GUI_line,string'("...."));writeline(output, GUI_line);
   end loop lwait_sof;
-  txcomp_cnt:=0;
-  write(GUI_line,string'("RCV DATA. Wait EOF ...."));writeline(output, GUI_line);
-  lrxd :while i_usropt_in.rx.detect.prmtv.eof='0' loop
-  --//Прием FIS_DATA
---      exit lrxd when i_usropt_in.rx.dname="WTRM   ";
-      if i_rxfis_dcnt=8 then
-        p_SetData(p_in_clk, C_PDAT_DMAT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+
+txcomp_cnt:=0;
+txcomp_cnt1:=0;
+txcomp_cnt2:=0;
+txcomp_cnt3:=0;
+write(GUI_line,string'("RCV DATA. Wait EOF ...."));writeline(output, GUI_line);
+
+--//-------------------------------------------------
+--//Моделируем отправку устройством примитива DMAT!!
+--//-------------------------------------------------
+lrxd :while i_usropt_in.rx.detect.prmtv.eof='0' and i_usropt_in.rx.dname/="SYNC   " loop
+--//Прием FIS_DATA
+if txcomp_cnt3>16#0C# then
+  write(GUI_line,string'("RCV DATA./SEND DMAT"));writeline(output, GUI_line);
+  p_SetData(p_in_clk, C_PDAT_DMAT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+
+else
+  if i_usropt_in.dbuf.wused='1' and i_usropt_in.dbuf.wen='0' then
+      txcomp_cnt1:=0;
+      txcomp_cnt2:=0;
+      if txcomp_cnt/=3 then
+          if txcomp_cnt=2 then
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+            write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD/CONT"));writeline(output, GUI_line);
+          else
+            p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+            write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD"));writeline(output, GUI_line);
+          end if;
+          txcomp_cnt:=txcomp_cnt + 1;
       else
-          if txcomp_cnt/=3 then
-              if txcomp_cnt=2 then
+          p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+      end if;
+
+  else
+
+      txcomp_cnt:=0;
+      if i_usropt_in.rx.dname="HOLD   " then
+          txcomp_cnt2:=0;
+          if txcomp_cnt1/=3 then
+              if txcomp_cnt1=2 then
                 p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-                txcomp_cnt:=txcomp_cnt + 1;
+                write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA/CONT"));writeline(output, GUI_line);
               else
-                p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-                txcomp_cnt:=txcomp_cnt + 1;
+                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+                write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA"));writeline(output, GUI_line);
               end if;
+              txcomp_cnt1:=txcomp_cnt1 + 1;
           else
               p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
           end if;
-
+      else
+          txcomp_cnt1:=0;
+          if txcomp_cnt2/=3 then
+              if txcomp_cnt2=2 then
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+              else
+                p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+              end if;
+              txcomp_cnt2:=txcomp_cnt2 + 1;
+          else
+              p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+          end if;
       end if;
-  end loop lrxd;
-  txcomp_cnt:=0;
-  --//Проверка CRC
-  write(GUI_line,string'("RCV EOF. CHECKING CRC..."));writeline(output, GUI_line);
-  if i_usropt_in.rx.fisdata=i_usropt_in.rx.crc_calc then
-    write(GUI_line,string'("CRC - OK. Wait SYNC..."));writeline(output, GUI_line);
-    while i_usropt_in.rx.dname/="SYNC   " loop
-        if txcomp_cnt/=3 then
-            if txcomp_cnt=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-              txcomp_cnt:=txcomp_cnt + 1;
-            else
-              p_SetData(p_in_clk, C_PDAT_R_OK, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-              txcomp_cnt:=txcomp_cnt + 1;
-            end if;
-        else
-            p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-        end if;
-        write(GUI_line,string'("..."));writeline(output, GUI_line);
-    end loop;
-    txcomp_cnt:=0;
-
-  else
-    write(GUI_line,string'("CRC - FAILED. Wait SYNC..."));writeline(output, GUI_line);
-    while i_usropt_in.rx.dname/="SYNC   " loop
-        if txcomp_cnt/=3 then
-            if txcomp_cnt=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-              txcomp_cnt:=txcomp_cnt + 1;
-            else
-              p_SetData(p_in_clk, C_PDAT_R_ERR, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-              txcomp_cnt:=txcomp_cnt + 1;
-            end if;
-        else
-            p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-        end if;
-        write(GUI_line,string'("..."));writeline(output, GUI_line);
-    end loop;
-    txcomp_cnt:=0;
-    p_SIM_STOP("Simulation Stopped. Recive FIS_DATA: CRC - ERR");
 
   end if;
+end if;
+  txcomp_cnt3:=txcomp_cnt3 + 1;
+
+end loop lrxd;
+
+----//-------------------------------------------------
+----//Моделируем отправку устройством примитива SYNC!!
+----//-------------------------------------------------
+--lrxd :while i_usropt_in.rx.detect.prmtv.eof='0' and i_usropt_in.rx.dname/="SYNC   " loop
+----//Прием FIS_DATA
+--if txcomp_cnt3>16#0C# then
+--  write(GUI_line,string'("RCV DATA./SEND SYNC"));writeline(output, GUI_line);
+--  p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--
+--else
+--  if i_usropt_in.dbuf.wused='1' and i_usropt_in.dbuf.wen='0' then
+--      txcomp_cnt1:=0;
+--      txcomp_cnt2:=0;
+--      if txcomp_cnt/=3 then
+--          if txcomp_cnt=2 then
+--            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--            write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD/CONT"));writeline(output, GUI_line);
+--          else
+--            p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--            write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD"));writeline(output, GUI_line);
+--          end if;
+--          txcomp_cnt:=txcomp_cnt + 1;
+--      else
+--          p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--      end if;
+--
+--  else
+--
+--      txcomp_cnt:=0;
+--      if i_usropt_in.rx.dname="HOLD   " then
+--          txcomp_cnt2:=0;
+--          if txcomp_cnt1/=3 then
+--              if txcomp_cnt1=2 then
+--                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--                write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA/CONT"));writeline(output, GUI_line);
+--              else
+--                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--                write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA"));writeline(output, GUI_line);
+--              end if;
+--              txcomp_cnt1:=txcomp_cnt1 + 1;
+--          else
+--              p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--          end if;
+--      else
+--          txcomp_cnt1:=0;
+--          if txcomp_cnt2/=3 then
+--              if txcomp_cnt2=2 then
+--                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--              else
+--                p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--              end if;
+--              txcomp_cnt2:=txcomp_cnt2 + 1;
+--          else
+--              p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--          end if;
+--      end if;
+--
+--  end if;
+--end if;
+--  txcomp_cnt3:=txcomp_cnt3 + 1;
+--
+--end loop lrxd;
+
+--//-------------------------------------------------
+--//Моделируем нормальный прием данных
+--//-------------------------------------------------
+--lrxd :while i_usropt_in.rx.detect.prmtv.eof='0' and i_usropt_in.rx.dname/="SYNC   " loop
+----//Прием FIS_DATA
+--  if i_usropt_in.dbuf.wused='1' and i_usropt_in.dbuf.wen='0' then
+--      txcomp_cnt1:=0;
+--      txcomp_cnt2:=0;
+--      if txcomp_cnt/=3 then
+--          if txcomp_cnt=2 then
+--            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--            write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD/CONT"));writeline(output, GUI_line);
+--          else
+--            p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--            write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD"));writeline(output, GUI_line);
+--          end if;
+--          txcomp_cnt:=txcomp_cnt + 1;
+--      else
+--          p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--      end if;
+--
+--  else
+--
+--      txcomp_cnt:=0;
+--      if i_usropt_in.rx.dname="HOLD   " then
+--          txcomp_cnt2:=0;
+--          if txcomp_cnt1/=3 then
+--              if txcomp_cnt1=2 then
+--                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--                write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA/CONT"));writeline(output, GUI_line);
+--              else
+--                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--                write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA"));writeline(output, GUI_line);
+--              end if;
+--              txcomp_cnt1:=txcomp_cnt1 + 1;
+--          else
+--              p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--          end if;
+--      else
+--          txcomp_cnt1:=0;
+--          if txcomp_cnt2/=3 then
+--              if txcomp_cnt2=2 then
+--                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--              else
+--                p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--              end if;
+--              txcomp_cnt2:=txcomp_cnt2 + 1;
+--          else
+--              p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--          end if;
+--      end if;
+--
+--  end if;
+--
+--end loop lrxd;
+txcomp_cnt:=0;
+--//Проверка CRC
+if i_usropt_in.rx.dname/="SYNC   " then
+    write(GUI_line,string'("RCV EOF. CHECKING CRC..."));writeline(output, GUI_line);
+    if i_usropt_in.rx.fisdata=i_usropt_in.rx.crc_calc then
+      write(GUI_line,string'("CRC - OK. Wait SYNC..."));writeline(output, GUI_line);
+      while i_usropt_in.rx.dname/="SYNC   " loop
+          if txcomp_cnt/=3 then
+              if txcomp_cnt=2 then
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+              else
+                p_SetData(p_in_clk, C_PDAT_R_OK, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+              end if;
+              txcomp_cnt:=txcomp_cnt + 1;
+          else
+              p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+          end if;
+          write(GUI_line,string'("..."));writeline(output, GUI_line);
+      end loop;
+      txcomp_cnt:=0;
+
+    else
+
+        write(GUI_line,string'("CRC - FAILED. Wait SYNC..."));writeline(output, GUI_line);
+        while i_usropt_in.rx.dname/="SYNC   " loop
+            if txcomp_cnt/=3 then
+                if txcomp_cnt=2 then
+                  p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+                else
+                  p_SetData(p_in_clk, C_PDAT_R_ERR, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+                end if;
+                txcomp_cnt:=txcomp_cnt + 1;
+            else
+                p_SetData(p_in_clk, i_usropt_in.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+            end if;
+            write(GUI_line,string'("..."));writeline(output, GUI_line);
+        end loop;
+        txcomp_cnt:=0;
+        p_SIM_STOP("Simulation Stopped. Recive FIS_DATA: CRC - ERR");
+
+    end if;
+
+else
+    write(GUI_line,string'("EROR!!! - RCV SYNC"));writeline(output, GUI_line);
+    p_SIM_STOP("Simulation Stopped. Recive FIS_DATA: Until rcv data, detected SYNC - ERR");
+end if;
 
 
   for i in 0 to 1 loop
