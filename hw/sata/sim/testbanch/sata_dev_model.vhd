@@ -247,16 +247,16 @@ i_usropt_in3.rx<=i_usropt_in.rx;
 --//#########################################
 --//Детектирование ошибок
 --//#########################################
---process
---begin
---    wait until p_in_ctrl.link_establish='1' and i_rxp_err_pcont='1';
---    ----//ОШИБКА!!! - передача данных без отправки примитва CONT
---    wait for 0.5 us;
---    --//Завершаем модеоирование.
---    p_SIM_STOP("Simulation of STOP: ERROR - i_rxp_err_pcont - Send Data Without primitiv CONT");
---
---    wait;
---end process;
+process
+begin
+    wait until p_in_ctrl.link_establish='1' and i_rxp_err_pcont='1';
+    ----//ОШИБКА!!! - передача данных без отправки примитва CONT
+    wait for 0.5 us;
+    --//Завершаем модеоирование.
+    p_SIM_STOP("Simulation of STOP: ERROR - i_rxp_err_pcont - Send Data Without primitiv CONT");
+
+    wait;
+end process;
 
 process
 begin
@@ -1855,7 +1855,7 @@ end if;
                       i_usropt_in, vusropt, i_usropt2_out);
 
     --//user DATA
-      for i in 0 to 7 loop
+      for i in 0 to 8 loop
         if i_rcv_name="HOLD   " then
             while i_rcv_name/="R_IP   " loop
                 if txcomp_cnt/=3 then
@@ -1929,7 +1929,7 @@ end if;
 --                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
 
     --//user DATA
-      for i in 8 to 9 loop
+      for i in 9 to 10 loop
         if i_rcv_name="HOLD   " then
             while i_rcv_name/="R_IP   " loop
                 if txcomp_cnt/=3 then
@@ -1992,7 +1992,7 @@ end if;
                       i_usropt_in, vusropt, i_usropt2_out);
 
     --//user DATA
-      for i in 10 to 15 loop
+      for i in 11 to 15 loop
         if i_rcv_name="HOLD   " then
             while i_rcv_name/="R_IP   " loop
                 if txcomp_cnt/=3 then

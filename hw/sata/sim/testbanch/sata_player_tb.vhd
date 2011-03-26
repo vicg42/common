@@ -208,7 +208,7 @@ p_in_rxd_status         => i_link_rxd_status(0),
 p_in_phy_rdy            => i_phy_status(0)(C_PSTAT_DET_ESTABLISH_ON_BIT),
 p_in_phy_sync           => i_phy_sync(0),
 
-p_in_phy_rxtype         => i_phy_rxtype(0)(C_TDATA_EN downto C_TSOF),
+p_in_phy_rxtype         => i_phy_rxtype(0)(C_TDATA_EN downto C_TSYNC),
 p_in_phy_rxd            => i_phy_rxd(0),
 
 p_out_phy_txd           => i_phy_txd(0),
