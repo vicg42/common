@@ -102,6 +102,9 @@ end sata_rocketio;
 
 architecture RTL of sata_rocketio is
 
+--//1 - только дл€ случа€ G_GTP_DBUS=8
+--//2 - дл€ всех других случаев. ¬ыравниваение по чЄтной границе. см Figure 7-15: Comma Alignment Boundaries ,
+--      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
 constant G_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
 
 signal i_rxenelecidleresetb            : std_logic;
