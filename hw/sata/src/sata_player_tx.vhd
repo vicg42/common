@@ -77,10 +77,7 @@ signal i_align_tmr                : std_logic_vector(10 downto 0);--
 signal i_align_txen               : std_logic;
 signal i_align_burst_cnt          : std_logic_vector(log2(C_ALIGN_BURST)-1 downto 0);
 
-signal i_suspend_en               : std_logic;
-signal i_suspend_psof             : std_logic;
-signal i_suspend_phold            : std_logic;
-signal i_suspend_pholda           : std_logic;
+signal i_suspend                  : std_logic_vector(C_THOLD downto C_TSOF);
 
 signal i_srambler_init            : std_logic;
 signal i_srambler_out             : std_logic_vector(31 downto 0);
@@ -209,43 +206,28 @@ p_in_rst     => p_in_rst
 lsuspend:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_suspend_en<='0';
-    i_suspend_psof<='0';
-    i_suspend_phold<='0';
-    i_suspend_pholda<='0';
+    i_suspend<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_sync='1' then
     --//
         if i_align_txen='1' then
             if i_align_burst_cnt=(i_align_burst_cnt'range =>'0') then
-                if CONV_INTEGER(p_in_txreq)=C_TSOF or
-                   CONV_INTEGER(p_in_txreq)=C_TEOF or
-                   CONV_INTEGER(p_in_txreq)=C_THOLD or
-                   CONV_INTEGER(p_in_txreq)=C_THOLDA then
+
                   --//Запрос на передачу примитива совпал с временем выдачи примитива ALIGN (BURST ALIGN)
                   --//В этом случае запрос на выдачу примитива откладываем на время выдачи (BURST ALIGN)
+                  --//т.е. будет отложеная передача примитива
+                  if    CONV_INTEGER(p_in_txreq)=C_THOLD  then i_suspend(C_THOLD)<='1';
+                  elsif CONV_INTEGER(p_in_txreq)=C_THOLDA then i_suspend(C_THOLDA)<='1';
+                  elsif CONV_INTEGER(p_in_txreq)=C_TSOF   then i_suspend(C_TSOF)<='1';
+                  elsif CONV_INTEGER(p_in_txreq)=C_TEOF   then i_suspend(C_TEOF)<='1';
 
-                  i_suspend_en<='1';
-
-                  if CONV_INTEGER(p_in_txreq)=C_THOLD then
-                    i_suspend_phold<='1';--//Отложеная передача примитива HOLD
-
-                  elsif CONV_INTEGER(p_in_txreq)=C_THOLDA then
-                    i_suspend_pholda<='1';--//Отложеная передача примитива HOLDA
-
-                  elsif CONV_INTEGER(p_in_txreq)=C_TSOF then
-                    i_suspend_psof<='1';--//1/0 - Отложеная передача примитива SOF/EOF
                   end if;
 
-                end if;
             end if;
 
         else
-          i_suspend_en<='0';
-          i_suspend_psof<='0';
-          i_suspend_phold<='0';
-          i_suspend_pholda<='0';
+          i_suspend<=(others=>'0');
 
         end if;
 
@@ -271,18 +253,18 @@ begin
       --//Передача ALIGN
           sr_txdata<=C_PDAT_ALIGN; sr_txdtype<=C_PDAT_TPRM;
 
-      elsif i_suspend_en='1' then
+      elsif i_suspend/=(i_suspend'range =>'0') then
       --//Передача отложеный примитив
-          if i_suspend_phold='1' then
+          if i_suspend(C_THOLD)='1' then
             sr_txdata<=C_PDAT_HOLD; sr_txdtype<=C_PDAT_TPRM;
 
-          elsif i_suspend_pholda='1' then
+          elsif i_suspend(C_THOLDA)='1' then
             sr_txdata<=C_PDAT_HOLDA; sr_txdtype<=C_PDAT_TPRM;
 
-          elsif i_suspend_psof='1' then
+          elsif i_suspend(C_TSOF)='1' then
             sr_txdata<=C_PDAT_SOF; sr_txdtype<=C_PDAT_TPRM;
 
-          else
+          else --if i_suspend(C_TEOF)='1' then
             sr_txdata<=C_PDAT_EOF; sr_txdtype<=C_PDAT_TPRM;
 
           end if;
@@ -376,28 +358,21 @@ p_out_gtp_txreset<='0';
 
 
 
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
-
---//----------------------------------------
---//Только для моделирования
---//----------------------------------------
---Для удобства алализа  данных при моделироании
+--//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 tst_pltx_status.req_name<=dbgtsf_type;
-tst_pltx_status.suspend_en<=i_suspend_en;
-tst_pltx_status.suspend_phold<=i_suspend_phold;
-tst_pltx_status.suspend_pholda<=i_suspend_pholda;
-tst_pltx_status.suspend_psof<=i_suspend_psof;
+tst_pltx_status.suspend_phold<=i_suspend(C_THOLD);
+tst_pltx_status.suspend_pholda<=i_suspend(C_THOLDA);
+tst_pltx_status.suspend_psof<=i_suspend(C_TSOF);
+tst_pltx_status.suspend_peof<=i_suspend(C_TEOF);
 
 rq_name: process(p_in_txreq,tst_pltx_status)
 begin
 
   dbgtsf_type<=C_PNAME_STR(CONV_INTEGER(p_in_txreq));
 
-  if dbgtsf_type=C_PNAME_STR(C_TALIGN) and tst_pltx_status.suspend_en='1' then
+  if dbgtsf_type=C_PNAME_STR(C_TALIGN) and tst_pltx_status.suspend_psof='1' then
     tst_val<='1';
   else
     tst_val<='0';
@@ -406,6 +381,9 @@ end process rq_name;
 
 end generate gen_sim_on;
 
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+tst_val<='0';
+end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

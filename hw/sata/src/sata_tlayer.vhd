@@ -1606,14 +1606,7 @@ end process lfsm;
 
 
 
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
-
---//----------------------------------------
---//Только для моделирования
---//----------------------------------------
---Для удобства алализа  данных при моделироании
+--//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 tst_tl_ctrl.ata_command<=p_in_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT);
@@ -1638,6 +1631,10 @@ begin
 end process;
 
 end generate gen_sim_on;
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+tst_val<='0';
+end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

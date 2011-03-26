@@ -467,14 +467,7 @@ i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 
 
 
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
-
---//----------------------------------------
---//Только для моделирования
---//----------------------------------------
---Для удобства алализа  данных при моделироании
+--//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 tst_al_status.cmd_name<=dbgtsf_type;
@@ -512,6 +505,10 @@ begin
 end process rq_name;
 
 end generate gen_sim_on;
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+tst_val<='0';
+end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

@@ -28,7 +28,7 @@ package sata_sim_lite_pkg is
 ---------------------------------------------------------
 --Константы
 ---------------------------------------------------------
-constant C_SIM_SATAHOST_TMR_ALIGN : integer:=12;--//Переиод отправки BURST ALIGN для sata_host.vhd
+constant C_SIM_SATAHOST_TMR_ALIGN : integer:=10;--//Переиод отправки BURST ALIGN для sata_host.vhd
 
 constant C_SIM_SECTOR_SIZE_DWORD  : integer:=32;                       --//Размер сеткора в Dword
 constant C_SIM_FR_DWORD_COUNT_MAX : integer:=C_SIM_SECTOR_SIZE_DWORD*2;--//max кол-во Dword в FISDATA между SOF и EOF, исключая FISTYPE и CRC
@@ -39,13 +39,13 @@ type TString_SataArray21 is array (0 to 20) of string(1 to 7);
 constant C_PNAME_STR : TString_SataArray21:=
 (
 "ALIGN  ",
+"SYNC   ",
 "SOF    ",
 "EOF    ",
-"SYNC   ",
 "HOLDA  ",
-"DMAT   ",
 "HOLD   ",
 "CONT   ",
+"DMAT   ",
 "X_RDY  ",
 "R_RDY  ",
 "R_IP   ",
@@ -128,10 +128,10 @@ end record;
 
 type TSimPLTxStatus is record
 req_name    : string(1 to 7);
-suspend_en     : std_logic;
+suspend_psof   : std_logic;
+suspend_peof   : std_logic;
 suspend_phold  : std_logic;
 suspend_pholda : std_logic;
-suspend_psof   : std_logic;
 end record;
 
 end sata_sim_lite_pkg;

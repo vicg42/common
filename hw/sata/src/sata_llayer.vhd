@@ -63,7 +63,7 @@ p_in_rxd_status         : in    TRxBufStatus;                 --//Структуры см. 
 --------------------------------------------------
 p_in_phy_rdy            : in    std_logic;
 
-p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSOF);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
+p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
 p_in_phy_rxd            : in    std_logic_vector(31 downto 0);
 
 p_out_phy_txd           : out   std_logic_vector(31 downto 0);
@@ -149,7 +149,7 @@ signal sr_rxdata_fst               : std_logic_vector(31 downto 0);
 type TDlySrD is array (0 to 1) of std_logic_vector(31 downto 0);
 signal i_rxd_out                   : std_logic_vector(31 downto 0);
 signal i_rxd_en_out                : std_logic;
-signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_TDMAT);--//флаги принятых примитивов
+signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_THOLD);--//флаги принятых примитивов
 signal i_return                    : std_logic;
 
 signal i_txd_en                    : std_logic;
@@ -622,7 +622,9 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       if p_in_phy_rdy='1' then
       --Связь с утройством установлена
+        if p_in_phy_sync='1' then
           fsm_llayer_cs <= S_L_IDLE;
+        end if;
       end if;
 
 --      --------------------------------------------
@@ -2344,14 +2346,7 @@ end if;
 end process lfsm;
 
 
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
-
---//----------------------------------------
---//Только для моделирования
---//----------------------------------------
---Для удобства алализа  данных при моделироании
+--//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 tst_ll_rxp.dmat<=i_rxp(C_TDMAT);
@@ -2389,6 +2384,10 @@ begin
 end process;
 
 end generate gen_sim_on;
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+tst_val<='0';
+end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

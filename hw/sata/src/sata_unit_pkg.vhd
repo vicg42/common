@@ -458,7 +458,7 @@ p_in_rxd_status         : in    TRxBufStatus;
 p_in_phy_rdy            : in    std_logic;
 p_in_phy_sync           : in    std_logic;
 
-p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSOF);
+p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);
 p_in_phy_rxd            : in    std_logic_vector(31 downto 0);
 
 p_out_phy_txd           : out   std_logic_vector(31 downto 0);

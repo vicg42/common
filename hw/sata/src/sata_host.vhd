@@ -576,7 +576,7 @@ p_in_rxd_status         => i_link_rxd_status(i),
 p_in_phy_rdy            => i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT),
 p_in_phy_sync           => i_phy_sync(i),
 
-p_in_phy_rxtype         => i_phy_rxtype(i)(C_TDATA_EN downto C_TSOF),
+p_in_phy_rxtype         => i_phy_rxtype(i)(C_TDATA_EN downto C_TSYNC),
 p_in_phy_rxd            => i_phy_rxd(i),
 
 p_out_phy_txd           => i_phy_txd(i),
