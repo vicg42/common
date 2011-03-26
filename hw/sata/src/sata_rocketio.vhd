@@ -165,9 +165,9 @@ TXRX_INVERT_1               =>       "00000",
 
 --------------------- TX Serial Line Rate settings ---------------------
 
-PLL_TXDIVSEL_OUT_0          =>       1,--уст. дел. частоты по умолчанию:2 for SATA GEN1 and 1 for SATA GEN2
+PLL_TXDIVSEL_OUT_0          =>       1,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 
-PLL_TXDIVSEL_OUT_1          =>       1,--уст. дел. частоты по умолчанию:2 for SATA GEN1 and 1 for SATA GEN2
+PLL_TXDIVSEL_OUT_1          =>       1,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 
 --------------------- TX Driver and OOB signalling --------------------
 
@@ -209,11 +209,11 @@ TERMINATION_OVRD            =>       FALSE,         --как в примере xapp870
 
 --------------------- RX Serial Line Rate Attributes ------------------
 
-PLL_RXDIVSEL_OUT_0          =>       1,
+PLL_RXDIVSEL_OUT_0          =>       1,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 PLL_SATA_0                  =>       FALSE,    --When FALSE, PLL_SATA allows TX SATA operations to work at
                                                --the SATA Generation 1 (1.5 Gb/s) or SATA Generation 2 (3 Gb/s) rate.
 
-PLL_RXDIVSEL_OUT_1          =>       1,
+PLL_RXDIVSEL_OUT_1          =>       1,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 PLL_SATA_1                  =>       FALSE,    --When FALSE, PLL_SATA allows TX SATA operations to work at
                                                --the SATA Generation 1 (1.5 Gb/s) or SATA Generation 2 (3 Gb/s) rate.
 
