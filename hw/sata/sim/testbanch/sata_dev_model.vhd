@@ -123,6 +123,7 @@ signal i_rxp_eof                  : std_logic;
 signal i_rxp_align                : std_logic;
 signal i_rxp_cont                 : std_logic;
 signal i_rxp_hold_cnt             : integer;
+signal i_rxp_holda_cnt            : integer;
 signal i_rxp_err_pcont            : std_logic;
 signal i_rxdw_cnt                 : integer:=0;
 signal i_rxfis_type_cheked        : std_logic;
@@ -155,6 +156,10 @@ signal i_atacmd_dwcount : integer:=0;
 
 signal tst_dbuf_wused : std_logic;
 signal tst_dbuf_wen : std_logic;
+signal tst_rxp_cont : std_logic:='0';
+signal rxd_without_pcont_cnt     : integer:=0;
+signal tst_rxd_without_pcont_cnt : integer:=0;
+signal tst_rxfis_en : std_logic;
 
 
 
@@ -164,10 +169,10 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<=OR_reduce(i_crc_checking) or tst_dbuf_wused or tst_dbuf_wen;
+p_out_tst(0)<=OR_reduce(i_crc_checking) or tst_dbuf_wused or tst_dbuf_wen or tst_rxp_cont or tst_rxfis_en;
 
 p_out_tst(1)<='0' when i_rcv_allname="ALIGN  " and i_rcv_name="ALIGN  " else i_usropt_out.dbuf.sync and i_usropt_in.rx.detect.prmtv.sof;
-p_out_tst(2)<='1' when i_rxprmtv_cnt(6)=5 or i_rxbuffer_cnt=7 else OR_reduce(tstdbuf_out);
+p_out_tst(2)<='1' when i_rxprmtv_cnt(6)=5 or i_rxbuffer_cnt=7 or tst_rxd_without_pcont_cnt=7 else OR_reduce(tstdbuf_out);
 
 p_out_tst(31 downto 3)<=(others=>'0');
 
@@ -247,16 +252,16 @@ i_usropt_in3.rx<=i_usropt_in.rx;
 --//#########################################
 --//Детектирование ошибок
 --//#########################################
-process
-begin
-    wait until p_in_ctrl.link_establish='1' and i_rxp_err_pcont='1';
-    ----//ОШИБКА!!! - передача данных без отправки примитва CONT
-    wait for 0.5 us;
-    --//Завершаем модеоирование.
-    p_SIM_STOP("Simulation of STOP: ERROR - i_rxp_err_pcont - Send Data Without primitiv CONT");
-
-    wait;
-end process;
+--process
+--begin
+--    wait until p_in_ctrl.link_establish='1' and i_rxp_err_pcont='1';
+--    ----//ОШИБКА!!! - передача данных без отправки примитва CONT
+--    wait for 1.0 us;
+--    --//Завершаем модеоирование.
+--    p_SIM_STOP("Simulation of STOP: ERROR - i_rxp_err_pcont - Send Data Without primitiv CONT");
+--
+--    wait;
+--end process;
 
 process
 begin
@@ -381,7 +386,7 @@ sim_rxerror: process(p_in_rst,p_in_clk)
 variable rxp_cont : std_logic;
 variable rxfis    : std_logic;
 variable rxfis_en : std_logic;
-variable rxd_without_pcont_cnt: integer:=0;
+--variable rxd_without_pcont_cnt: integer:=0;
 
 variable rxprmtv_cnt     : TPrmtvCnt;
 variable rxprmtv_det     : std_logic_vector(C_TALIGN to C_TDATA_EN):=(others=>'0');
@@ -394,16 +399,17 @@ if p_in_rst='1' then
   rxprmtv_cnt(i):=0;
   rxprmtv_det(i):='0';
   rxprmtv_err_cnt(i):='0';
-  rxd_without_pcont_cnt:=0;
-
   i_rxprmtv_err_cnt(i)<='0';
   i_rxprmtv_det(i)<='0';
   i_rxprmtv_cnt(i)<=0;
   end loop;
 
+--  rxd_without_pcont_cnt:=0;
+
   rxfis:='0';
   rxfis_en:='0';
 
+  i_rxp_holda_cnt<=0;
   i_rxp_hold_cnt<=0;
   i_rcv_allname<=C_PNAME_STR(C_TNONE);
   i_rxp_err_pcont<='0';
@@ -413,6 +419,10 @@ if p_in_rst='1' then
 
   i_rxfis_dcnt<=0;
   i_rxfis_dcnt_sync<=0;
+  tst_rxp_cont<='0';
+  tst_rxd_without_pcont_cnt<=0;
+  rxd_without_pcont_cnt<=0;
+  tst_rxfis_en<='0';
 
 elsif p_in_clk'event and p_in_clk='1' then
 
@@ -432,7 +442,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
     rxfis_en:='1';
     rxfis:='1';
 
@@ -447,7 +457,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
     rxfis_en:='0';
     rxfis:='0';
 
@@ -462,7 +472,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_CONT and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TCONT); rxp_cont:='1'; i_rxp_align<='0'; i_rxp_cont<='1';
     for i in C_TALIGN to C_TPMNAK loop
@@ -478,7 +488,7 @@ elsif p_in_clk'event and p_in_clk='1' then
     else
       rxprmtv_cnt(C_TCONT):=rxprmtv_cnt(C_TCONT) + 1;
     end if;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_SYNC and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TSYNC); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -491,7 +501,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
     rxfis_en:='0';
     rxfis:='0';
 
@@ -507,6 +517,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       rxprmtv_err_cnt(i):='0';
     end loop;
 
+    i_rxp_holda_cnt<=0;
     if rxfis='1' then
         if (i_rxp_hold_cnt=2 and rxp_cont='1') or i_rxp_hold_cnt>3 then
           rxfis_en:='1';
@@ -518,10 +529,10 @@ elsif p_in_clk'event and p_in_clk='1' then
       rxfis_en:='0';
       i_rxp_hold_cnt<=0;
     end if;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
     rxp_cont:='0';
 
-  elsif i_rxd=C_PDAT_HOLDA   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_THOLDA); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
+  elsif i_rxd=C_PDAT_HOLDA   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_THOLDA);  i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
       if i=C_THOLDA then
         rxprmtv_det(i):='1';
@@ -532,7 +543,21 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+
+    i_rxp_hold_cnt<=0;
+    if rxfis='1' then
+        if (i_rxp_holda_cnt=2 and rxp_cont='1') or i_rxp_holda_cnt>3 then
+          rxfis_en:='1';
+        else
+          rxfis_en:='0';
+          i_rxp_holda_cnt<=i_rxp_holda_cnt + 1;
+        end if;
+    else
+      rxfis_en:='0';
+      i_rxp_holda_cnt<=0;
+    end if;
+    rxd_without_pcont_cnt<=0;
+    rxp_cont:='0';
 
   elsif i_rxd=C_PDAT_X_RDY   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TX_RDY); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -545,7 +570,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_R_RDY   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TR_RDY); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -558,7 +583,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_R_IP    and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TR_IP); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -571,7 +596,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_R_OK    and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TR_OK); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -584,7 +609,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_R_ERR   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TR_ERR); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -597,7 +622,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_WTRM    and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TWTRM); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -610,7 +635,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_PMREQ_P and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TPMREQ_P); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -623,7 +648,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_PMREQ_S and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TPMREQ_S); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -636,7 +661,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_PMACK   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TPMACK); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -649,7 +674,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_PDAT_PMNAK   and i_rxcharisk=C_PDAT_TPRM then i_rcv_allname<=C_PNAME_STR(C_TPMNAK); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -662,7 +687,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       end if;
       rxprmtv_err_cnt(i):='0';
     end loop;
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxd=C_D10_2&C_D10_2&C_D10_2&C_D10_2 and i_rxcharisk=C_PDAT_TDATA then i_rcv_allname<=C_PNAME_STR(C_TD10_2); rxp_cont:='0'; i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -671,7 +696,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         rxprmtv_err_cnt(i):='0';
     end loop;
     i_rxp_err_pcont<='0';
-    rxd_without_pcont_cnt:=0;
+    rxd_without_pcont_cnt<=0;
 
   elsif i_rxcharisk=C_PDAT_TDATA then i_rcv_allname<=C_PNAME_STR(C_TDATA_EN);  i_rxp_align<='0'; i_rxp_cont<='0';
     for i in C_TALIGN to C_TPMNAK loop
@@ -683,19 +708,20 @@ elsif p_in_clk'event and p_in_clk='1' then
       if rxfis_en='1' then
       --//Прием FIS
          i_rxp_hold_cnt<=0;
+         i_rxp_holda_cnt<=0;
          i_rxp_err_pcont<='0';
 
       else
-          if rxp_cont='0' then
+          if tst_rxp_cont='0' then
             if rxd_without_pcont_cnt>=1 then
               i_rxp_err_pcont<='1'; --//ОШИБКА!!! - передача данных без отправки примитва CONT
             else
               i_rxp_err_pcont<='0';
-              rxd_without_pcont_cnt:=rxd_without_pcont_cnt + 1;
+              rxd_without_pcont_cnt<=rxd_without_pcont_cnt + 1;
             end if;
           else
             i_rxp_err_pcont<='0';
-            rxd_without_pcont_cnt:=0;
+            rxd_without_pcont_cnt<=0;
           end if;
       end if;
 
@@ -704,6 +730,10 @@ elsif p_in_clk'event and p_in_clk='1' then
   i_rxprmtv_err_cnt<=rxprmtv_err_cnt;
   i_rxprmtv_det<=rxprmtv_det;
   i_rxprmtv_cnt<=rxprmtv_cnt;
+
+  tst_rxfis_en<=rxfis_en;
+  tst_rxp_cont<=rxp_cont;
+  tst_rxd_without_pcont_cnt<=rxd_without_pcont_cnt;
 
   i_rxfis<=rxfis;
   if i_rxfis='1' then
@@ -721,6 +751,34 @@ elsif p_in_clk'event and p_in_clk='1' then
 end if;
 end process sim_rxerror;
 
+--process(p_in_rst,p_in_clk)
+--begin
+--if p_in_rst='1' then
+--elsif p_in_clk'event and p_in_clk='1' then
+--  if i_rxcharisk=C_PDAT_TDATA then
+--
+--      if i_rxfis='1' then
+--      --//Прием FIS
+--         i_rxp_hold_cnt<=0;
+--         i_rxp_err_pcont<='0';
+--
+--      else
+--          if tst_rxp_cont='0' then
+--            if rxd_without_pcont_cnt>=1 then
+--              i_rxp_err_pcont<='1'; --//ОШИБКА!!! - передача данных без отправки примитва CONT
+--            else
+--              i_rxp_err_pcont<='0';
+--              rxd_without_pcont_cnt<=rxd_without_pcont_cnt + 1;
+--            end if;
+--          else
+--            i_rxp_err_pcont<='0';
+--            rxd_without_pcont_cnt<=0;
+--          end if;
+--      end if;
+--
+--  end if;
+--end if;
+--end process;
 
 --//---------------------------------------
 --//Примем данных FIS

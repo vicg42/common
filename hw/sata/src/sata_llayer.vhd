@@ -792,35 +792,45 @@ elsif p_in_clk'event and p_in_clk='1' then
           --//Устройство присит приостановить передачу данных
           --//Передача данных НЕ ЗАКОНЧЕНА!!!
               i_txd_en<='0';
-              i_rxp<=(others=>'0');
+              if p_in_phy_rxtype(C_THOLD)='1' then
+                i_rxp(C_TCONT)<='0';
+                i_rxp(C_THOLD)<='1';
+              end if;
               fsm_llayer_cs <= S_LT_RcvrHold;
 
           else
 
-                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
-                i_txp_cnt<=(others=>'0');
-
-                if p_in_txd_close='1' then
-                --Передача данных ЗАКОНЧЕНА!!!
-                    if p_in_phy_txrdy_n='0' then
-                      i_rxp<=(others=>'0');
-                      fsm_llayer_cs <= S_LT_SendCRC;
-                    end if;
-
-                elsif p_in_txd_status.aempty='1' then
-                --Передача данных НЕ ЗАКОНЧЕНА!!!, буфер Tx почти пуст
-                --перходим к сигнализации устройству о приостановке передачи до появления данных
-                    i_txd_en<='0';
-                    i_rxp<=(others=>'0');
-                    fsm_llayer_cs <= S_LT_SendHold;
-
+              if CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 then
+              --//Принял некий примимив, но не SYNC, DMAT, HOLD
+                if p_in_phy_rxtype(C_TCONT)='1' then
+                  i_rxp(C_TCONT)<='1';
                 else
-
-                    if p_in_phy_txrdy_n='0' then
-                      i_txd_en<='1';
-                    end if;
-
+                  i_rxp<=(others=>'0');
                 end if;
+              end if;
+
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+
+              if p_in_txd_close='1' then
+              --Передача данных ЗАКОНЧЕНА!!!
+                  if p_in_phy_txrdy_n='0' then
+                    fsm_llayer_cs <= S_LT_SendCRC;
+                  end if;
+
+              elsif p_in_txd_status.aempty='1' then
+              --Передача данных НЕ ЗАКОНЧЕНА!!!, буфер Tx почти пуст
+              --перходим к сигнализации устройству о приостановке передачи до появления данных
+                  i_txd_en<='0';
+                  fsm_llayer_cs <= S_LT_SendHold;
+
+              else
+
+                  if p_in_phy_txrdy_n='0' then
+                    i_txd_en<='1';
+                  end if;
+
+              end if;
 
           end if;
 
@@ -914,8 +924,8 @@ elsif p_in_clk'event and p_in_clk='1' then
 
               i_rxp(C_TCONT)<='1';
 
-          elsif (CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0') or (i_rxp(C_TCONT)='1' and i_rxp(C_THOLD)='0') then
-          --//Принял некий примимив, но не SYNC, CONT, HOLD, DMAT
+          elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0' then
+          --//Принял некий примимив, но не SYNC, DMAT, CONT, HOLD
               if i_tmr>=CONV_STD_LOGIC_VECTOR(C_LL_TXDATA_RETURN_TMR, i_tmr'length) or p_in_txd_close='1' then
                   --//Переход к передаче данных
                   if p_in_phy_txrdy_n='0' then
@@ -1000,7 +1010,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           else
 
-              if i_tmr>=CONV_STD_LOGIC_VECTOR(C_LL_TXDATA_RETURN_TMR, i_tmr'length) then
+              if i_tmr>=CONV_STD_LOGIC_VECTOR(C_LL_TXDATA_RETURN_TMR, i_tmr'length) or p_in_txd_close='1' then
                   --//Переход к передаче данных
                   if p_in_phy_txrdy_n='0' then
 
@@ -1131,8 +1141,8 @@ elsif p_in_clk'event and p_in_clk='1' then
 
               i_rxp(C_TCONT)<='1';
 
-          elsif (CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0') or (i_rxp(C_TCONT)='1' and i_rxp(C_THOLD)='0') then
-          --//Принял некий примимив, но не SYNC, CONT, HOLD, DMAT
+          elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/=0 and p_in_phy_rxtype(C_THOLD)='0' then
+          --//Принял некий примимив, но не SYNC, DMAT, CONT, HOLD
               if p_in_phy_txrdy_n='0' then
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
                 i_txp_cnt<=(others=>'0');
@@ -1671,7 +1681,7 @@ elsif p_in_clk'event and p_in_clk='1' then
               fsm_llayer_cs <= S_LR_SendHold;
 
           elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 or i_rxp(C_TCONT)='1' then
-          --//Принял примимив отличный от выше перечисленых
+          --//Принял некий примимив, но не SYNC, C_TWTRM, EOF, C_THOLD
               if p_in_phy_txrdy_n='0' then
                 if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                   if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
@@ -1850,7 +1860,8 @@ elsif p_in_clk'event and p_in_clk='1' then
                 i_rxp(C_TCONT)<='1';
                 i_rcv_en<='0';
 
-            elsif (CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0') or (i_rxp(C_TCONT)='1' and i_rxp(C_THOLD)='0') then
+--            elsif (CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0') or (i_rxp(C_TCONT)='1' and i_rxp(C_THOLD)='0') then
+            elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0' then
             --//Принял некий примимив, но не SYNC, EOF, CONT, HOLD
                 if p_in_rxd_status.empty='1' then
                 --RXBUF готов к приему данных
@@ -1884,10 +1895,8 @@ elsif p_in_clk'event and p_in_clk='1' then
 
                 end if;
 
-                if i_rxp(C_TCONT)='0' then
-                  i_rxp<=(others=>'0');
-                  i_rcv_en<='1';
-                end if;
+                i_rxp<=(others=>'0');
+                i_rcv_en<='1';
 
             elsif p_in_phy_rxtype(C_THOLD)='1' or (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
             --//Устро-во синализирует что передача отложена

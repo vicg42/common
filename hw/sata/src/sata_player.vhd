@@ -64,6 +64,7 @@ p_out_phy_sync             : out   std_logic;
 --Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
 p_in_gtp_pll_lock          : in    std_logic;
+p_out_gtp_rst              : out   std_logic;
 
 --RocketIO Tranceiver
 p_out_gtp_txelecidle       : out   std_logic;
@@ -71,22 +72,15 @@ p_out_gtp_txcomstart       : out   std_logic;
 p_out_gtp_txcomtype        : out   std_logic;
 p_out_gtp_txdata           : out   std_logic_vector(15 downto 0);
 p_out_gtp_txcharisk        : out   std_logic_vector(1 downto 0);
-p_out_gtp_txreset          : out   std_logic;
-p_in_gtp_txbufstatus       : in    std_logic_vector(1 downto 0);
 
 --RocketIO Receiver
-p_out_gtp_rxbufreset       : out   std_logic;
+p_in_gtp_rxelecidle        : in    std_logic;
+p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
 p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
 p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
-p_in_gtp_rxbyterealigned   : in    std_logic;
-
-p_out_gtp_datawidth        : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -157,12 +151,10 @@ end generate gen_dbg_on;
 --//Логика управления
 --//----------------------------------
 gen_dbus16 : if G_GTP_DBUS=16 generate
-  p_out_gtp_datawidth<='1';
   i_synch<=i_cnt_sync(0);
 end generate gen_dbus16;
 
 gen_dbus8 : if G_GTP_DBUS=8 generate
-  p_out_gtp_datawidth<='0';
   i_synch<=AND_reduce(i_cnt_sync);
 end generate gen_dbus8;
 
@@ -217,13 +209,14 @@ p_out_d10_2_senddis    => i_d10_2_senddis,
 --------------------------------------------------
 p_in_gtp_pll_lock      => p_in_gtp_pll_lock,
 
+p_out_gtp_rst          => p_out_gtp_rst,
+
 p_out_gtp_txelecidle   => p_out_gtp_txelecidle,
 p_out_gtp_txcomstart   => p_out_gtp_txcomstart,
 p_out_gtp_txcomtype    => p_out_gtp_txcomtype,
 
 p_in_gtp_rxelecidle    => p_in_gtp_rxelecidle,
 p_in_gtp_rxstatus      => p_in_gtp_rxstatus,
-p_out_rxreset          => open,--p_out_rxreset,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -263,11 +256,8 @@ p_out_rdy_n            => p_out_phy_txrdy_n,
 --------------------------------------------------
 --RocketIO Transmiter
 --------------------------------------------------
---  p_in_gtp_pll_lock          => p_in_gtp_pll_lock,
 p_out_gtp_txdata       => p_out_gtp_txdata,
 p_out_gtp_txcharisk    => p_out_gtp_txcharisk,
-p_out_gtp_txreset      => p_out_gtp_txreset,
-p_in_gtp_txbufstatus   => p_in_gtp_txbufstatus,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -304,16 +294,11 @@ p_out_rxtype               => i_rxtype,
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
---  p_in_gtp_pll_lock          => p_in_gtp_pll_lock,
-p_out_gtp_rxbufreset       => p_out_gtp_rxbufreset,
 p_in_gtp_rxdata            => p_in_gtp_rxdata,
 p_in_gtp_rxcharisk         => p_in_gtp_rxcharisk,
-p_in_gtp_rxbufstatus       => p_in_gtp_rxbufstatus,
-p_in_gtp_rxelecidle        => p_in_gtp_rxelecidle,
 p_in_gtp_rxdisperr         => p_in_gtp_rxdisperr,
 p_in_gtp_rxnotintable      => p_in_gtp_rxnotintable,
 p_in_gtp_rxbyteisaligned   => p_in_gtp_rxbyteisaligned,
-p_in_gtp_rxbyterealigned   => p_in_gtp_rxbyterealigned,
 
 --------------------------------------------------
 --Технологические сигналы

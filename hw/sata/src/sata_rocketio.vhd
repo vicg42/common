@@ -36,7 +36,6 @@ port
 ---------------------------------------------------------------------------
 p_out_txn                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_txp                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-
 p_in_rxn                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_rxp                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
@@ -49,34 +48,24 @@ p_in_usrclk2                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 d
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
+p_in_txreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Сброс передатчика
 p_in_txelecidle                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
 p_in_txcomstart                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
 p_in_txcomtype                   : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
 p_in_txdata                      : in    TBus16_GtpCh;                                    --//поток данных для передатчика DUAL_GTP
 p_in_txcharisk                   : in    TBus02_GtpCh;                                    --//признак наличия упр.символов на порту txdata
-p_in_txreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Сброс передатчика
-p_out_txbufstatus                : out   TBus02_GtpCh;                                    --//состояние буфера передатчика
 
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
 p_in_rxreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Сброс приемника
-p_in_rxbufreset                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Индивидуальный сброс RXBUF приемника
+p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
+p_out_rxstatus                   : out   TBus03_GtpCh;                                    --//Тип обнаруженного OOB сигнала
 p_out_rxdata                     : out   TBus16_GtpCh;                                    --//поток данных от приемника DUAL_GTP
 p_out_rxcharisk                  : out   TBus02_GtpCh;                                    --//признак наличия упр.символов в rxdata
-p_out_rxbufstatus                : out   TBus03_GtpCh;                                    --//состояние буфера приемника
-p_out_rxstatus                   : out   TBus03_GtpCh;                                    --//Тип обнаруженного OOB сигнала
-p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
 p_out_rxdisperr                  : out   TBus02_GtpCh;                                    --//Ошибка паритета в принятом данном
-p_out_rxnotintable               : out   TBus02_GtpCh;                                    --//Какая-то ошибка связаная с декодером 8b/10b
+p_out_rxnotintable               : out   TBus02_GtpCh;                                    --//
 p_out_rxbyteisaligned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Данные выровнены по байтам
-p_out_rxbyterealigned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Что-то связаное с вырабнивание данных по байтам
-
----------------------------------------------------------------------------
---
----------------------------------------------------------------------------
-p_in_datawidth                   : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Задание размера шины rxdata/txdata DUAL_GTP
-                                                                                          --//'1'/'0' - 16/8Bit
 
 ----------------------------------------------------------------------------
 --System
@@ -105,7 +94,8 @@ architecture RTL of sata_rocketio is
 --//1 - только для случая G_GTP_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
 --      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-constant G_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
+constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
+constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GTP_DBUS, 8)), 1);
 
 signal i_rxenelecidleresetb            : std_logic;
 signal i_resetdone                     : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
@@ -227,7 +217,7 @@ PRBS_ERR_THRESHOLD_1        =>       x"00000008",
 
 ---------------- Comma Detection and Alignment Attributes -------------
 
-ALIGN_COMMA_WORD_0          =>       G_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
+ALIGN_COMMA_WORD_0          =>       C_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
 COMMA_10B_ENABLE_0          =>       "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
 COMMA_DOUBLE_0              =>       FALSE,       --
 DEC_MCOMMA_DETECT_0         =>       TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a negative 8B/10B comma
@@ -239,7 +229,7 @@ PCOMMA_10B_VALUE_0          =>       "0101111100",--K28.5 rd-
 PCOMMA_DETECT_0             =>       TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd-
 RX_SLIDE_MODE_0             =>       "PCS",       --как в примере xapp870
 
-ALIGN_COMMA_WORD_1          =>       G_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
+ALIGN_COMMA_WORD_1          =>       C_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
 COMMA_10B_ENABLE_1          =>       "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
 COMMA_DOUBLE_1              =>       FALSE,       --
 DEC_MCOMMA_DETECT_1         =>       TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a negative 8B/10B comma
@@ -418,8 +408,8 @@ RXCLKCORCNT1                    =>      open,
 --------------- Receive Ports - Comma Detection and Alignment --------------
 RXBYTEISALIGNED0                =>      p_out_rxbyteisaligned(0),
 RXBYTEISALIGNED1                =>      p_out_rxbyteisaligned(1),
-RXBYTEREALIGN0                  =>      p_out_rxbyterealigned(0),
-RXBYTEREALIGN1                  =>      p_out_rxbyterealigned(1),
+RXBYTEREALIGN0                  =>      open,
+RXBYTEREALIGN1                  =>      open,
 RXCOMMADET0                     =>      open,
 RXCOMMADET1                     =>      open,
 RXCOMMADETUSE0                  =>      '1',--1/0 use comma detection and alignment circuit/bypass the ciruit
@@ -440,8 +430,8 @@ RXPRBSERR1                      =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
 RXDATA0                         =>      p_out_rxdata(0),--i_rxdata(0),--
 RXDATA1                         =>      p_out_rxdata(1),--i_rxdata(1),--
-RXDATAWIDTH0                    =>      p_in_datawidth(0),
-RXDATAWIDTH1                    =>      p_in_datawidth(1),
+RXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
+RXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
 RXRECCLK0                       =>      open,
 RXRECCLK1                       =>      open,
 RXRESET0                        =>      p_in_rxreset(0),
@@ -468,10 +458,10 @@ RXN1                            =>      p_in_rxn(1),
 RXP0                            =>      p_in_rxp(0),
 RXP1                            =>      p_in_rxp(1),
 -------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0                     =>      p_in_rxbufreset(0),
-RXBUFRESET1                     =>      p_in_rxbufreset(1),
-RXBUFSTATUS0                    =>      p_out_rxbufstatus(0),--cм.стр.168  ug196.pdf
-RXBUFSTATUS1                    =>      p_out_rxbufstatus(1),
+RXBUFRESET0                     =>      '0',--p_in_rxbufreset(0),
+RXBUFRESET1                     =>      '0',--p_in_rxbufreset(1),
+RXBUFSTATUS0                    =>      open,--cм.стр.168  ug196.pdf
+RXBUFSTATUS1                    =>      open,--
 RXCHANISALIGNED0                =>      open,
 RXCHANISALIGNED1                =>      open,
 RXCHANREALIGN0                  =>      open,
@@ -535,13 +525,13 @@ TXKERR1                         =>      open,
 TXRUNDISP0                      =>      open,
 TXRUNDISP1                      =>      open,
 ------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-TXBUFSTATUS0                    =>      p_out_txbufstatus(0),--cм.стр.111  ug196.pdf
-TXBUFSTATUS1                    =>      p_out_txbufstatus(1),
+TXBUFSTATUS0                    =>      open,--cм.стр.111  ug196.pdf
+TXBUFSTATUS1                    =>      open,--
 ------------------ Transmit Ports - TX Data Path interface -----------------
 TXDATA0                         =>      p_in_txdata(0),--i_txdata(0),--
 TXDATA1                         =>      p_in_txdata(1),--i_txdata(1),--
-TXDATAWIDTH0                    =>      p_in_datawidth(0),
-TXDATAWIDTH1                    =>      p_in_datawidth(1),
+TXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
+TXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
 TXOUTCLK0                       =>      open,
 TXOUTCLK1                       =>      open,
 TXRESET0                        =>      p_in_txreset(0),

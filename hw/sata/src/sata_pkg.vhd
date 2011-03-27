@@ -489,6 +489,12 @@ pfull   : std_logic;--//prog full
 empty   : std_logic;--//empty
 end record;
 
+type TSpdCtrl is record
+change   : std_logic;
+sata_ver : std_logic_vector(1 downto 0);
+end record;
+
+type TSpdCtrl_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TSpdCtrl;
 
 type TPLStat_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 type TLLStat_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector(C_LLSTAT_LAST_BIT downto 0);

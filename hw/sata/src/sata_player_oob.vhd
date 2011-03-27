@@ -42,8 +42,6 @@ p_out_status           : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);--//
 p_in_primitive_det     : in    std_logic_vector(C_TPMNAK downto C_TALIGN);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
 p_out_d10_2_senddis    : out   std_logic;                    --//Запрещение передачи кода D10.2
 
---p_out_gtp_rxbufreset   : out   std_logic;
-
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
@@ -55,7 +53,8 @@ p_out_gtp_txcomtype    : out   std_logic;                    --//TX OOB type sel
 
 p_in_gtp_rxelecidle    : in    std_logic;                    --//RX electrical idle
 p_in_gtp_rxstatus      : in    std_logic_vector(2 downto 0); --//RX OOB type
-p_out_rxreset          : out   std_logic;                    --//GTP PCS reset
+
+p_out_gtp_rst          : out   std_logic;                    --//Сброс Tx/Rx PCM
 
 --------------------------------------------------
 --Технологические сигналы
@@ -72,7 +71,6 @@ p_in_rst               : in    std_logic
 end sata_player_oob;
 
 architecture behavioral of sata_player_oob is
-
 
 constant C_TIME_OUT     : integer := C_FSATA_WAITE_880us_75MHz;
 
@@ -91,9 +89,10 @@ S_HR_Ready
 );
 signal i_fsm_statecs: fsm_states;
 
-signal i_txelecidle             : std_logic;
-signal i_txcomstart             : std_logic;
-signal i_txcomtype              : std_logic;
+signal i_gtp_txelecidle         : std_logic;
+signal i_gtp_txcomstart         : std_logic;
+signal i_gtp_txcomtype          : std_logic;
+signal i_gtp_pcm_rst            : std_logic;
 
 signal i_timer_en               : std_logic;
 signal i_timer                  : std_logic_vector(23 downto 0);
@@ -104,6 +103,9 @@ signal i_d10_2_senddis          : std_logic;
 signal i_rx_prmt_cnt            : std_logic_vector(1 downto 0);
 
 
+signal tst_rxelecidle           : std_logic;
+signal tst_rxstatus             : std_logic_vector(p_in_gtp_rxstatus'range);
+signal tst_val                  : std_logic;
 signal tst_pl_ctrl              : TSimPLCtrl;
 signal tst_pl_status            : TSimPLStatus;
 signal tst_fms_cs               : std_logic_vector(3 downto 0);
@@ -124,15 +126,18 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
+    tst_rxelecidle<='0';
+    tst_rxstatus<=(others=>'0');
     tst_fms_cs_dly<=(others=>'0');
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
+    tst_rxelecidle<=p_in_gtp_rxelecidle;
+    tst_rxstatus<=p_in_gtp_rxstatus;
     tst_fms_cs_dly<=tst_fms_cs;
 
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or
-                  tst_pl_status.dev_detect or
-                  OR_reduce(tst_pl_ctrl.speed);
+    p_out_tst(0)<=tst_val or tst_rxelecidle or OR_reduce(tst_rxstatus) or
+                  OR_reduce(tst_fms_cs_dly);
   end if;
 end process ltstout;
 
@@ -148,14 +153,6 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when i_fsm_statecs=
             CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when i_fsm_statecs=S_HR_Ready else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);
 
-
-tst_pl_ctrl.speed<=p_in_ctrl(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L);
-
-tst_pl_status.dev_detect<=i_status(C_PSTAT_DET_DEV_ON_BIT);
-tst_pl_status.link_establish<=i_status(C_PSTAT_DET_ESTABLISH_ON_BIT);
-tst_pl_status.speed<=i_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L);
-tst_pl_status.rcv_comwake<=i_status(C_PSTAT_COMWAKE_RCV_BIT);
-
 end generate gen_dbg_on;
 
 
@@ -163,16 +160,15 @@ end generate gen_dbg_on;
 --//----------------------------------
 --//Связь с main PHY Layer
 --//----------------------------------
-p_out_rxreset<='0';
-
 p_out_d10_2_senddis<= i_d10_2_senddis;
 
 p_out_status<=i_status;
 
-p_out_gtp_txelecidle<= i_txelecidle;
-p_out_gtp_txcomstart<= i_txcomstart;
-p_out_gtp_txcomtype <= i_txcomtype;
+p_out_gtp_txelecidle<= i_gtp_txelecidle;
+p_out_gtp_txcomstart<= i_gtp_txcomstart;
+p_out_gtp_txcomtype <= i_gtp_txcomtype;
 
+p_out_gtp_rst<=i_gtp_pcm_rst;
 
 --//--------------------------------------------------
 --//timer-timeout
@@ -200,9 +196,10 @@ begin
   if p_in_rst='1' then
     i_fsm_statecs <= S_HR_COMRESET;
 
-    i_txcomstart<='0';
-    i_txcomtype <='0';
-    i_txelecidle<='1';
+    i_gtp_txcomstart<='0';
+    i_gtp_txcomtype <='0';
+    i_gtp_txelecidle<='1';
+    i_gtp_pcm_rst<='0';
 
     i_status<=(others=>'0');
     i_d10_2_senddis<='0';
@@ -219,19 +216,19 @@ begin
       --//-------------------------------
       when S_HR_COMRESET =>
 
-        i_txelecidle<='1';
+        i_gtp_txelecidle<='1';
         i_d10_2_senddis<='0';
         i_status<=(others=>'0');
 
         if p_in_gtp_pll_lock='1' then
-             i_txcomstart<='1';--//Запуск отправки сигналов COMRESET
-             i_txcomtype <='0';
+             i_gtp_txcomstart<='1';--//Запуск отправки сигналов COMRESET
+             i_gtp_txcomtype <='0';
              i_fsm_statecs <= S_HR_COMRESET_DONE;
         end if;
 
       when S_HR_COMRESET_DONE =>
 
-        i_txcomstart<='0';
+        i_gtp_txcomstart<='0';
 
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигналов COMRESET
@@ -264,13 +261,13 @@ begin
       --//-------------------------------
       when S_HR_COMWAKE =>
 
-          i_txcomstart<='1';--//Вкл. сигнал COMWAKE
-          i_txcomtype <='1';
+          i_gtp_txcomstart<='1';--//Вкл. сигнал COMWAKE
+          i_gtp_txcomtype <='1';
           i_fsm_statecs <= S_HR_COMWAKE_DONE;
 
       when S_HR_COMWAKE_DONE =>
 
-        i_txcomstart<='0';
+        i_gtp_txcomstart<='0';
 
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигналов COMWAKE
@@ -303,10 +300,11 @@ begin
       when S_HR_AwaitNoCOMWAKE =>
 
         if p_in_gtp_rxelecidle='0' and p_in_gtp_rxstatus(2 downto 0)="000" then
-            i_txelecidle<='0';
+            i_gtp_txelecidle<='0';
             i_timer_en<='0';
             --//Прерхожу к ожиданию приема от устройства ALING примитива, а сам
             --//в это время отпрапвляю D10.2 код
+            i_gtp_pcm_rst<='1';
             i_fsm_statecs <= S_HR_AwaitAlign;
         else
             if i_timer = CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_timer'length) then
@@ -322,6 +320,8 @@ begin
       --//Жду от устройства ALIGN примитив
       --//-------------------------------
       when S_HR_AwaitAlign =>
+
+        i_gtp_pcm_rst<='0';
 
         if p_in_gtp_rxelecidle='0' then
 
@@ -395,6 +395,32 @@ begin
   end if;
 end process lfsm;
 
+
+--//Только для моделирования (удобства алализа данных при моделироании)
+gen_sim_on : if strcmp(G_SIM,"ON") generate
+
+tst_pl_ctrl.speed<=p_in_ctrl(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L);
+
+tst_pl_status.dev_detect<=i_status(C_PSTAT_DET_DEV_ON_BIT);
+tst_pl_status.link_establish<=i_status(C_PSTAT_DET_ESTABLISH_ON_BIT);
+tst_pl_status.speed<=i_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L);
+tst_pl_status.rcv_comwake<=i_status(C_PSTAT_COMWAKE_RCV_BIT);
+
+process(tst_pl_ctrl,tst_pl_status)
+begin
+  if tst_pl_ctrl.speed(C_PCTRL_SPD_BIT_L)='1' or
+     tst_pl_status.link_establish='1' then
+    tst_val<='1';
+  else
+    tst_val<='0';
+  end if;
+end process;
+
+end generate gen_sim_on;
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+tst_val<='0';
+end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

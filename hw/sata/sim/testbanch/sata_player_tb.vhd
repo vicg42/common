@@ -46,18 +46,18 @@ signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 signal p_in_rst_inv               : std_logic;
 
-signal i_spctrl_link_establish    : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_spctrl_spd               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_spd_ctrl                 : TSpdCtrl_GtpCh;
+signal i_spd_out                  : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
-signal i_link_ctrl                 : TLLCtrl_GtpCh;
-signal i_link_status               : TLLStat_GtpCh;
-signal i_link_txd_close            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_txd                  : TBus32_GtpCh;
-signal i_link_txd_rd               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_txd_status           : TTxBufStatus_GtpCh;
-signal i_link_rxd                  : TBus32_GtpCh;
-signal i_link_rxd_wr               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_rxd_status           : TRxBufStatus_GtpCh;
+signal i_link_ctrl                : TLLCtrl_GtpCh;
+signal i_link_status              : TLLStat_GtpCh;
+signal i_link_txd_close           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_link_txd                 : TBus32_GtpCh;
+signal i_link_txd_rd              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_link_txd_status          : TTxBufStatus_GtpCh;
+signal i_link_rxd                 : TBus32_GtpCh;
+signal i_link_rxd_wr              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_link_rxd_status          : TRxBufStatus_GtpCh;
 
 signal i_phy_ctrl                 : TPLCtrl_GtpCh;
 signal i_phy_status               : TPLStat_GtpCh;
@@ -70,9 +70,9 @@ signal i_phy_rxd                  : TBus32_GtpCh;
 
 signal p_in_gtp_pll_lock          : std_logic;
 
-signal i_sata_dcm_clk150MHz       : std_logic;
-signal i_sata_dcm_clk300MHz       : std_logic;
-signal i_sata_dcm_clk75MHz        : std_logic;
+signal i_sata_dcm_clk             : std_logic;
+signal i_sata_dcm_clk2x           : std_logic;
+signal i_sata_dcm_clk2div         : std_logic;
 signal i_sata_dcm_lock            : std_logic;
 signal i_sata_dcm_rst             : std_logic;
 
@@ -97,8 +97,8 @@ begin
 
 i_phy_status(1)<=(others=>'0');
 
-i_spctrl_spd(0)<='0';
-i_spctrl_spd(1)<='0';
+i_spd_out(0)<='0';
+i_spd_out(1)<='0';
 
 
 i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 9 us, '0' after 9.4 us;
@@ -224,12 +224,12 @@ p_out_tst               => open,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               => i_sata_dcm_clk150MHz,
+p_in_clk               => i_sata_dcm_clk,
 p_in_rst               => p_in_rst
 );
 
 
-i_phy_ctrl(0)(C_PCTRL_SPD_BIT_L)<=i_spctrl_spd(0);
+i_phy_ctrl(0)(C_PCTRL_SPD_BIT_L)<=i_spd_out(0);
 i_phy_ctrl(0)(C_PCTRL_SPD_BIT_M)<='0';
 
 i_phy_ctrl(1)(C_PCTRL_SPD_BIT_L)<='0';
@@ -273,22 +273,15 @@ p_out_gtp_txcomstart       => open,
 p_out_gtp_txcomtype        => open,
 p_out_gtp_txdata           => i_sim_rxdata,
 p_out_gtp_txcharisk        => i_sim_rxcharisk,
-p_out_gtp_txreset          => open,
-p_in_gtp_txbufstatus       => "00",
 
 --RocketIO Receiver
-p_out_gtp_rxbufreset       => open,
+p_in_gtp_rxelecidle        => i_sim_rxelecidle,
+p_in_gtp_rxstatus          => i_sim_rxstatus,
 p_in_gtp_rxdata            => i_sim_txdata,
 p_in_gtp_rxcharisk         => i_sim_txcharisk,
-p_in_gtp_rxbufstatus       => "000",
-p_in_gtp_rxstatus          => i_sim_rxstatus,
-p_in_gtp_rxelecidle        => i_sim_rxelecidle,
 p_in_gtp_rxdisperr         => "00",
 p_in_gtp_rxnotintable      => "00",
 p_in_gtp_rxbyteisaligned   => '1',
-p_in_gtp_rxbyterealigned   => '0',
-
-p_out_gtp_datawidth        => open,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -299,12 +292,16 @@ p_out_tst               => open,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               => i_sata_dcm_clk150MHz,
+p_in_clk               => i_sata_dcm_clk,
 p_in_rst               => p_in_rst
 );
 
-i_spctrl_link_establish(0)<=i_phy_status(0)(C_PSTAT_DET_ESTABLISH_ON_BIT);
-i_spctrl_link_establish(1)<='0';
+
+i_spd_ctrl(0).change<='0';
+i_spd_ctrl(0).sata_ver<=(others=>'0');
+
+i_spd_ctrl(1).change<='0';
+i_spd_ctrl(1).sata_ver<=(others=>'0');
 
 m_speed_ctrl : sata_speed_ctrl
 generic map
@@ -320,18 +317,9 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cfg_sata_version   => "00",
-
---------------------------------------------------
---
---------------------------------------------------
-p_out_sata_version      => i_spctrl_spd,
-p_in_link_establish     => i_spctrl_link_establish,
-
-p_out_gtp_ch_rst        => open,
-p_out_gtp_rst           => open,
-
 p_in_usr_dcm_lock       => i_sata_dcm_lock,
+p_in_ctrl               => i_spd_ctrl,
+p_out_spd_ver           => i_spd_out,
 
 --------------------------------------------------
 --RocketIO
@@ -345,6 +333,9 @@ p_out_gtp_drpwe         => open,
 p_out_gtp_drpdi         => open,
 p_in_gtp_drpdo          => "0000000000000000",
 p_in_gtp_drprdy         => '1',
+
+p_out_gtp_ch_rst        => open,
+p_out_gtp_rst           => open,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -391,7 +382,7 @@ p_out_tst                  => open,
 ----------------------------
 --System
 ----------------------------
-p_in_clk                    => i_sata_dcm_clk150MHz,
+p_in_clk                    => i_sata_dcm_clk,
 p_in_rst                    => p_in_rst_inv
 );
 
@@ -399,9 +390,9 @@ p_in_rst                    => p_in_rst_inv
 m_sata_dcm : sata_dcm
 port map
 (
-p_out_dcm_gclk0     => open,--i_sata_dcm_clk150MHz,
-p_out_dcm_gclk2x    => i_sata_dcm_clk300MHz,
-p_out_dcm_gclkdv    => i_sata_dcm_clk75MHz,
+p_out_dcm_gclk0     => i_sata_dcm_clk,
+p_out_dcm_gclk2x    => i_sata_dcm_clk2x,
+p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 
 p_out_dcmlock       => i_sata_dcm_lock,
 
@@ -410,7 +401,7 @@ p_in_rst            => p_in_rst
 );
 
 
-i_sata_dcm_clk150MHz<=p_in_clk;
+i_sata_dcm_clk<=p_in_clk;
 
 clk_generator : process
 begin

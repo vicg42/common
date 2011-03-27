@@ -48,6 +48,7 @@ p_out_cmdfifo_dst_rdy_n   : out   std_logic;
 --------------------------------------------------
 --Ñâÿçü ñ Transport/Link/PHY Layer
 --------------------------------------------------
+p_out_spd_ctrl            : out   TSpdCtrl;
 p_out_tl_ctrl             : out   std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
 p_in_tl_status            : in    std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
 p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
@@ -440,6 +441,12 @@ begin
   end if;
 end process;
 
+
+--------------------------------------------------
+--Ñâÿçü ñ Speed Controller
+--------------------------------------------------
+p_out_spd_ctrl.change<='0';
+p_out_spd_ctrl.sata_ver<=(others=>'0');
 
 
 --------------------------------------------------

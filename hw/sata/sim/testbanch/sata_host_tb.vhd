@@ -48,9 +48,9 @@ signal p_in_rst                   : std_logic;
 
 signal g_gtp_refclk               : std_logic;
 
-signal i_sata_dcm_clk150MHz       : std_logic;
-signal i_sata_dcm_clk300MHz       : std_logic;
-signal i_sata_dcm_clk75MHz        : std_logic;
+signal i_sata_dcm_clk             : std_logic;
+signal i_sata_dcm_clk2x           : std_logic;
+signal i_sata_dcm_clk2div         : std_logic;
 signal i_sata_dcm_lock            : std_logic;
 signal i_sata_dcm_rst             : std_logic;
 
@@ -258,9 +258,9 @@ p_in_sata_rxp               => "11",
 --------------------------------------------------
 --Связь с USERAPP Layer
 --------------------------------------------------
-p_in_al_ctrl                => i_al_ctrl,
-p_out_al_status             => i_al_status,
-p_out_al_clkout             => i_al_clkout,
+p_out_usrfifo_clkout        => i_al_clkout,
+p_out_status                => i_al_status,
+p_in_ctrl                   => i_al_ctrl,
 
 --//Связь с CMDFIFO
 p_in_cmdfifo_dout           => ll_rcmdpkt_data,
@@ -291,6 +291,7 @@ p_out_tst                   => tst_sata_host_out,
 --//Моделирование
 p_out_sim_gtp_txdata        => i_sim_gtp_rxdata,
 p_out_sim_gtp_txcharisk     => i_sim_gtp_rxcharisk,
+p_out_sim_gtp_out           => open,
 p_in_sim_gtp_rxdata         => i_sim_gtp_txdata,
 p_in_sim_gtp_rxcharisk      => i_sim_gtp_txcharisk,
 p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus,
@@ -302,8 +303,9 @@ p_out_sim_clk               => i_sim_gtp_clk,
 ---------------------------------------------------------------------------
 --System
 ---------------------------------------------------------------------------
-p_in_sys_dcm_gclk0          => i_sata_dcm_clk75MHz,
-p_in_sys_dcm_gclk2x         => i_sata_dcm_clk150MHz,
+p_in_sys_dcm_gclk2div       => i_sata_dcm_clk2div,
+p_in_sys_dcm_gclk           => i_sata_dcm_clk,
+p_in_sys_dcm_gclk2x         => i_sata_dcm_clk2x,
 p_in_sys_dcm_lock           => i_sata_dcm_lock,
 p_out_sys_dcm_rst           => i_sata_dcm_rst,
 
@@ -353,9 +355,9 @@ p_in_rst                   => i_sim_gtp_rst(0)
 m_sata_dcm : sata_dcm
 port map
 (
-p_out_dcm_gclk0     => i_sata_dcm_clk150MHz,
-p_out_dcm_gclk2x    => i_sata_dcm_clk300MHz,
-p_out_dcm_gclkdv    => i_sata_dcm_clk75MHz,
+p_out_dcm_gclk0     => i_sata_dcm_clk,
+p_out_dcm_gclk2x    => i_sata_dcm_clk2x,
+p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 
 p_out_dcmlock       => i_sata_dcm_lock,
 

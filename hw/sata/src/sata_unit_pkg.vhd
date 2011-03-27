@@ -205,11 +205,8 @@ p_out_rdy_n            : out   std_logic;
 --------------------------------------------------
 --RocketIO Transmiter (Назначение портов см. sata_rocketio.vhd)
 --------------------------------------------------
---p_in_gtp_pll_lock          : in    std_logic;
 p_out_gtp_txdata       : out   std_logic_vector(15 downto 0);
 p_out_gtp_txcharisk    : out   std_logic_vector(1 downto 0);
-p_out_gtp_txreset      : out   std_logic;
-p_in_gtp_txbufstatus   : in    std_logic_vector(1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -243,16 +240,11 @@ p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
---p_in_gtp_pll_lock          : in    std_logic;
-p_out_gtp_rxbufreset       : out   std_logic;
 p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
 p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
-p_in_gtp_rxbyterealigned   : in    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -285,12 +277,11 @@ p_out_status           : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 p_in_primitive_det     : in    std_logic_vector(C_TPMNAK downto C_TALIGN);
 p_out_d10_2_senddis    : out   std_logic;
 
---p_out_gtp_rxbufreset   : out   std_logic;
-
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
 p_in_gtp_pll_lock      : in    std_logic;
+p_out_gtp_rst          : out   std_logic;
 
 p_out_gtp_txelecidle   : out   std_logic;
 p_out_gtp_txcomstart   : out   std_logic;
@@ -298,7 +289,6 @@ p_out_gtp_txcomtype    : out   std_logic;
 
 p_in_gtp_rxelecidle    : in    std_logic;
 p_in_gtp_rxstatus      : in    std_logic_vector(2 downto 0);
-p_out_rxreset          : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -337,6 +327,7 @@ p_out_cmdfifo_dst_rdy_n   : out   std_logic;
 --------------------------------------------------
 --Связь с Transport/Link/PHY Layer
 --------------------------------------------------
+p_out_spd_ctrl            : out   TSpdCtrl;
 p_out_tl_ctrl             : out   std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
 p_in_tl_status            : in    std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
 p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
@@ -507,6 +498,7 @@ p_out_phy_sync             : out   std_logic;
 --Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
 p_in_gtp_pll_lock          : in    std_logic;
+p_out_gtp_rst              : out   std_logic;
 
 --RocketIO Tranceiver
 p_out_gtp_txelecidle       : out   std_logic;
@@ -514,22 +506,15 @@ p_out_gtp_txcomstart       : out   std_logic;
 p_out_gtp_txcomtype        : out   std_logic;
 p_out_gtp_txdata           : out   std_logic_vector(15 downto 0);
 p_out_gtp_txcharisk        : out   std_logic_vector(1 downto 0);
-p_out_gtp_txreset          : out   std_logic;
-p_in_gtp_txbufstatus       : in    std_logic_vector(1 downto 0);
 
 --RocketIO Receiver
-p_out_gtp_rxbufreset       : out   std_logic;
+p_in_gtp_rxelecidle        : in    std_logic;
+p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
 p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
 p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
-p_in_gtp_rxbyterealigned   : in    std_logic;
-
-p_out_gtp_datawidth        : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -553,55 +538,45 @@ G_SIM      : string  := "OFF"
 );
 port
 (
----------------------------------------------------------------------------
+--------------------------------------------------
 --Driver
----------------------------------------------------------------------------
+--------------------------------------------------
 p_out_txn                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_txp                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-
 p_in_rxn                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_rxp                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --Clocking
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_usrclk                      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_usrclk2                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --Tranceiver
----------------------------------------------------------------------------
+--------------------------------------------------
+p_in_txreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txelecidle                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txcomstart                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txcomtype                   : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txdata                      : in    TBus16_GtpCh;
 p_in_txcharisk                   : in    TBus02_GtpCh;
-p_in_txreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_txbufstatus                : out   TBus02_GtpCh;
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --Receiver
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_rxreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxbufreset                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_rxstatus                   : out   TBus03_GtpCh;
 p_out_rxdata                     : out   TBus16_GtpCh;
 p_out_rxcharisk                  : out   TBus02_GtpCh;
-p_out_rxbufstatus                : out   TBus03_GtpCh;
-p_out_rxstatus                   : out   TBus03_GtpCh;
-p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_rxdisperr                  : out   TBus02_GtpCh;
 p_out_rxnotintable               : out   TBus02_GtpCh;
 p_out_rxbyteisaligned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_rxbyterealigned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
----------------------------------------------------------------------------
---
----------------------------------------------------------------------------
-p_in_datawidth                   : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-
-----------------------------------------------------------------------------
+--------------------------------------------------
 --System
-----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_drpclk                      : in    std_logic;
 p_in_drpaddr                     : in    std_logic_vector(6 downto 0);
 p_in_drpen                       : in    std_logic;
@@ -633,21 +608,12 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_cfg_sata_version   : in    std_logic_vector(1 downto 0);
-
---------------------------------------------------
---
---------------------------------------------------
-p_out_sata_version      : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_link_establish     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-
-p_out_gtp_ch_rst        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_gtp_rst           : out   std_logic;
-
+p_in_ctrl               : in    TSpdCtrl_GtpCh;
 p_in_usr_dcm_lock       : in    std_logic;
+p_out_spd_ver           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
---RocketIO
+--Связь с GTP
 --------------------------------------------------
 p_in_gtp_pll_lock       : in    std_logic;
 
@@ -659,11 +625,14 @@ p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
 p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
 p_in_gtp_drprdy         : in    std_logic;
 
+p_out_gtp_ch_rst        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_gtp_rst           : out   std_logic;
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                : in    std_logic_vector(31 downto 0);
-p_out_tst               : out   std_logic_vector(31 downto 0);
+p_in_tst               : in    std_logic_vector(31 downto 0);
+p_out_tst              : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
@@ -695,11 +664,11 @@ p_in_sata_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto
 p_in_sata_rxp               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
---Связь с APP Layer
+--Связь с USERAPP Layer
 --------------------------------------------------
-p_in_al_ctrl                : in    TALCtrl_GtpCh;
-p_out_al_status             : out   TALStatus_GtpCh;
-p_out_al_clkout             : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_usrfifo_clkout        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_status                : out   TALStatus_GtpCh;
+p_in_ctrl                   : in    TALCtrl_GtpCh;
 
 --//Связь с CMDFIFO
 p_in_cmdfifo_dout           : in    TBus16_GtpCh;                                   --//
@@ -729,6 +698,7 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --//Моделирование
 p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
 p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
+p_out_sim_gtp_out           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus16_GtpCh;
 p_in_sim_gtp_rxcharisk      : in    TBus02_GtpCh;
 p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
@@ -739,8 +709,9 @@ p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto
 ---------------------------------------------------------------------------
 --System
 ---------------------------------------------------------------------------
-p_in_sys_dcm_gclk0          : in    std_logic;
-p_in_sys_dcm_gclk2x         : in    std_logic;
+p_in_sys_dcm_gclk2div       : in    std_logic;--//dcm_clk0 /2
+p_in_sys_dcm_gclk           : in    std_logic;--//dcm_clk0
+p_in_sys_dcm_gclk2x         : in    std_logic;--//dcm_clk0 x 2
 p_in_sys_dcm_lock           : in    std_logic;
 p_out_sys_dcm_rst           : out   std_logic;
 

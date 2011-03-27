@@ -49,11 +49,8 @@ p_out_rdy_n            : out   std_logic;                    --//Готов к загрузк
 --------------------------------------------------
 --RocketIO Transmiter (Назначение портов см. sata_rocketio.vhd)
 --------------------------------------------------
---p_in_gtp_pll_lock          : in    std_logic;
 p_out_gtp_txdata       : out   std_logic_vector(15 downto 0);
 p_out_gtp_txcharisk    : out   std_logic_vector(1 downto 0);
-p_out_gtp_txreset      : out   std_logic;
-p_in_gtp_txbufstatus   : in    std_logic_vector(1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -353,8 +350,6 @@ p_out_gtp_txdata<=sr_txdata(15 downto 0);--sr_ddly2(2);
 p_out_gtp_txcharisk<=sr_txdtype(1 downto 0);--sr_tdly2(2);
 
 end generate gen_dbus16;
-
-p_out_gtp_txreset<='0';
 
 
 

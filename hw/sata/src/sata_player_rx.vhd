@@ -44,16 +44,11 @@ p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
---p_in_gtp_pll_lock          : in    std_logic;
-p_out_gtp_rxbufreset       : out   std_logic;
 p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
 p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
-p_in_gtp_rxbyterealigned   : in    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -74,6 +69,8 @@ architecture behavioral of sata_player_rx is
 signal i_rxdata                  : std_logic_vector(31 downto 0);
 signal i_rxdtype                 : std_logic_vector(3 downto 0);
 
+signal i_rcv_error               : std_logic;
+
 type TSrDataW8 is array (0 to 2) of std_logic_vector(7 downto 0);
 signal sr_rxdata                 : TSrDataW8;
 
@@ -82,6 +79,12 @@ signal sr_rxdtype                : TSrDtypeW8;
 
 signal dbgrcv_type               : string(1 to 7);
 signal tst_val                   : std_logic;
+signal tst_rcv_error             : std_logic;
+signal tst_rcv_err_notintable    : std_logic;
+signal tst_rcv_err_disperr       : std_logic;
+signal tst_rcv_err_byteisaligned : std_logic;
+
+
 
 --MAIN
 begin
@@ -95,21 +98,23 @@ p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(31 downto 2)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    for i in 0 to C_VSACL_MATRIX_COUNT-1 loop
---    p_out_tst(0)<=OR_reduce(dbg_sr_pix(i)(6));
---    end loop;
---
---    p_out_tst(1)<=tst_synch;
---
---  end if;
---end process ltstout;
-p_out_tst(0)<=tst_val;
+ltstout:process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    tst_rcv_error<='0';
+    tst_rcv_err_notintable<='0';
+    tst_rcv_err_disperr<='0';
+    tst_rcv_err_byteisaligned<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    tst_rcv_error<=i_rcv_error;
+    tst_rcv_err_notintable<=OR_reduce(p_in_gtp_rxnotintable);
+    tst_rcv_err_disperr<=OR_reduce(p_in_gtp_rxdisperr);
+    tst_rcv_err_byteisaligned<=p_in_gtp_rxbyteisaligned;
+
+  end if;
+end process ltstout;
+p_out_tst(0)<=tst_val or
+              tst_rcv_error or tst_rcv_err_notintable or tst_rcv_err_disperr or tst_rcv_err_byteisaligned;
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
@@ -118,6 +123,8 @@ end generate gen_dbg_on;
 --//-----------------------------------
 --//Логика работы
 --//-----------------------------------
+i_rcv_error<=OR_reduce(p_in_gtp_rxnotintable) or OR_reduce(p_in_gtp_rxdisperr) or not p_in_gtp_rxbyteisaligned;
+
 --p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM and p_in_gtp_rxbyteisaligned='1' else '0';
 p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM else '0';
 p_out_rxtype(C_TSOF)     <='1' when i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM else '0';
@@ -195,8 +202,6 @@ end process lsr_rxd;
 
 end generate gen_dbus16;
 
-
-p_out_gtp_rxbufreset<='0';
 
 
 
