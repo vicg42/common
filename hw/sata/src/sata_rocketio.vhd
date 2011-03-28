@@ -115,7 +115,7 @@ i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
 
 
 --GTP_DUAL Instance
-m_gtp_dual_i : GTP_DUAL
+m_gtp : GTP_DUAL
 generic map
 (
 
