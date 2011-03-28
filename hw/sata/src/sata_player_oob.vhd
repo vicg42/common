@@ -28,6 +28,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_oob is
 generic
 (
+G_GTP_DBUS : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -70,8 +71,6 @@ end sata_player_oob;
 
 architecture behavioral of sata_player_oob is
 
-constant C_TIME_OUT     : integer := C_FSATA_WAITE_880us_75MHz;
-
 type fsm_states is
 (
 S_HR_COMRESET,
@@ -93,7 +92,8 @@ signal i_gtp_txcomtype          : std_logic;
 signal i_gtp_pcm_rst            : std_logic;
 
 signal i_timer_en               : std_logic;
-signal i_timer                  : std_logic_vector(23 downto 0);
+signal i_timer                  : std_logic_vector(19 downto 0);
+signal i_timeout                : std_logic_vector(i_timer'range);
 
 signal i_status                 : std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
@@ -184,6 +184,16 @@ begin
   end if;
 end process ltimeout;
 
+gen_gtp8: if G_GTP_DBUS=8 generate
+i_timeout<=CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_300MHz, i_timeout'length) when p_in_ctrl(C_PCTRL_SPD_BIT_L)=C_FSATA_GEN2 else
+           CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_150MHz, i_timeout'length);
+end generate gen_gtp8;
+
+gen_gtp16: if G_GTP_DBUS=16 generate
+i_timeout<=CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_150MHz, i_timeout'length) when p_in_ctrl(C_PCTRL_SPD_BIT_L)=C_FSATA_GEN2 else
+           CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_75MHz, i_timeout'length);
+end generate gen_gtp16;
+
 
 --//--------------------------------------------------
 --//Автомат управления:
@@ -245,7 +255,7 @@ begin
             i_fsm_statecs <= S_HR_COMWAKE;
 
         else
-          if i_timer = CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_timer'length) then
+          if i_timer=i_timeout then
               i_timer_en<='0';
               i_fsm_statecs <= S_HR_COMRESET;
           end if;
@@ -283,7 +293,7 @@ begin
             i_status(C_PSTAT_COMWAKE_RCV_BIT)<='1';
             i_fsm_statecs <= S_HR_AwaitNoCOMWAKE;
         else
-          if i_timer = CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_timer'length) then
+          if i_timer=i_timeout then
               i_fsm_statecs <= S_HR_COMRESET;
               i_timer_en<='0';
           end if;
@@ -303,7 +313,7 @@ begin
             i_gtp_pcm_rst<='1';
             i_fsm_statecs <= S_HR_AwaitAlign;
         else
-            if i_timer = CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_timer'length) then
+            if i_timer=i_timeout then
               i_fsm_statecs <= S_HR_COMRESET;
               i_timer_en<='0';
             else
@@ -325,10 +335,10 @@ begin
                 --Принял ALIGN Primitive
                 i_d10_2_senddis<='1';--Как только сигнал установится в '1'
                                      --начнется отправка ALIGN Primitive
-                i_timer_en <= '0';
+                i_timer_en<='0';
                 i_fsm_statecs <= S_HR_SendAlign;
             else
-                if i_timer = CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_timer'length) then
+                if i_timer=i_timeout then
                   i_timer_en<='0';
                   i_fsm_statecs <= S_HR_COMRESET;
                 else
@@ -347,10 +357,10 @@ begin
 
         if p_in_gtp_rxelecidle='0' then
 
-            if p_in_primitive_det(C_TALIGN) = '1' then
+            if p_in_primitive_det(C_TALIGN)='1' then
               i_rx_prmt_cnt<=(others=>'0');
 
-            elsif CONV_INTEGER(p_in_primitive_det) /= 0 then
+            elsif CONV_INTEGER(p_in_primitive_det)/=0 then
 
               if (i_rx_prmt_cnt=CONV_STD_LOGIC_VECTOR(3-1, i_rx_prmt_cnt'length)) then
                 --Если принял вподряд 3 НЕ AILGN примитива, то

@@ -264,6 +264,7 @@ end component;
 component sata_player_oob
 generic
 (
+G_GTP_DBUS : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );

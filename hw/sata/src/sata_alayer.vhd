@@ -315,9 +315,6 @@ end process;
 
 
 --//Собираем отчет:
---//Обноружена ошибка:
-p_out_status.err_detect<=i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT) or i_serr_p_err or i_serr_c_err or i_serr_i_err;
-
 --//ATA:
 p_out_status.ATAStatus<=i_reg_shadow.status;
 p_out_status.ATAError<=i_reg_shadow.error;
@@ -349,7 +346,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     sr_usr_status_busy<=i_usr_status(C_AUSER_BUSY_BIT)&sr_usr_status_busy(0 to 3);
 
-    if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and i_serr_p_err='0' and i_serr_c_err='0' then
+    if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and i_serr_p_err='0' and i_serr_c_err='0' and i_serr_i_err='0' then
       if sr_usr_status_busy(3)='0' and sr_usr_status_busy(4)='1' then
         i_signature_det<='1';
       end if;
@@ -382,9 +379,6 @@ begin
 
     if i_err_clr='1' then
       p_out_status.SError<=(others=>'0');
-      i_serr_i_err<='0';
-      i_serr_p_err<='0';
-      i_serr_c_err<='0';
 
     else
 
@@ -497,7 +491,7 @@ end process;
 --Связь с Speed Controller
 --------------------------------------------------
 p_out_spd_ctrl.change<=(i_usrmode(C_USRCMD_SET_SATA1) or i_usrmode(C_USRCMD_SET_SATA2)) and i_reg_shadow_wr_done;
-p_out_spd_ctrl.sata_ver(0)<='1' when  i_usrmode(C_USRCMD_SET_SATA1)='1' else '0';
+p_out_spd_ctrl.sata_ver(0)<=C_FSATA_GEN1 when  i_usrmode(C_USRCMD_SET_SATA1)='1' else C_FSATA_GEN2;
 p_out_spd_ctrl.sata_ver(1)<='0';
 
 
@@ -514,7 +508,7 @@ p_out_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)<=i_usrmode(C_USRCMD_FPDMA_W) or i_usrmode
 
 p_out_reg_shadow<=i_reg_shadow;
 
-p_out_reg_dma.fpdma.dir<=C_DIR_H2D when i_usrmode(C_USRCMD_FPDMA_W) else C_DIR_D2H;
+p_out_reg_dma.fpdma.dir<=C_DIR_H2D when i_usrmode(C_USRCMD_FPDMA_W)='1' else C_DIR_D2H;
 p_out_reg_dma.fpdma.addr_l<=(others=>'0');
 p_out_reg_dma.fpdma.addr_m<=(others=>'0');
 p_out_reg_dma.fpdma.offset<=(others=>'0');

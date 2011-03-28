@@ -275,6 +275,7 @@ constant C_PSTAT_COMWAKE_RCV_BIT         : integer:=C_PRxSTAT_LAST_BIT + 5;--//0
 constant C_PLSTAT_LAST_BIT               : integer:=C_PSTAT_COMWAKE_RCV_BIT;
 
 
+--//sata_player_tx.vhd
 --//Отправка примитива ALIGN
 constant C_ALIGN_TMR                     : integer:=256;--//Таймер отправки примимтива ALIGN (только четные значения!!!)
 constant C_ALIGN_BURST                   : integer:=2;  --//Кол-во отправляемых примитивов за один раз (только четные значения!!!)
@@ -284,13 +285,17 @@ constant C_SECTOR_SIZE_BYTE              : integer:=512;
 --max кол-во Dword в FISDATA между SOF и EOF, исключая FISTYPE и CRC
 constant C_FR_DWORD_COUNT_MAX            : integer:=2048;
 
---Константы для модуля sata_player_oob.vhdl
---constant C_WAITE_880us                   : integer:=16#4075A#;--=880us на 300MHz
-constant C_FSATA_WAITE_880us_75MHz       : integer:=10#66000#;--=880us на 75MHz
+--//sata_player_oob.vhd
+--//Значения timeout на разных частотах
+constant C_OOB_TIMEOUT_75MHz             : integer:=10#66000#; --=880us на 75MHz
+constant C_OOB_TIMEOUT_150MHz            : integer:=10#132000#;--=880us на 150MHz
+constant C_OOB_TIMEOUT_300MHz            : integer:=10#264000#;--=880us на 300MHz
 
---Версии спецификации SATA
-constant C_FSATA_GEN1 : std_logic:='0';
-constant C_FSATA_GEN2 : std_logic:='1';
+--//Версии спецификации SATA
+--//ВАЖНО: изменив эти константы, нужно будет руками править файлы sata_spd_ctrl.vhd sata_host.vhd
+constant C_FSATA_GEN2 : std_logic:='0';
+constant C_FSATA_GEN1 : std_logic:='1';
+
 
 --тип символа в 8b/10b
 constant C_CHAR_K: std_logic:='1';
@@ -489,7 +494,6 @@ end record;
 
 --//
 type TALStatus is record
-err_detect: std_logic;
 ATAStatus : std_logic_vector(7 downto 0);
 ATAError  : std_logic_vector(7 downto 0);
 SStatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);

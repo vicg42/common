@@ -193,6 +193,7 @@ i_resynch<=i_rxtype(C_TALIGN);
 m_phy_oob : sata_player_oob
 generic map
 (
+G_GTP_DBUS => G_GTP_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
