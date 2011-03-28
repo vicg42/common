@@ -432,6 +432,7 @@ if p_in_rst='1' then
 
 elsif p_in_clk'event and p_in_clk='1' then
 --if clk_en='1' then
+if p_in_phy_sync='1' then
 
   case fsm_llayer_cs is
 
@@ -478,7 +479,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-          if p_in_phy_sync='1' then
+--          --//if p_in_phy_sync='1' then
             i_rcv_work<='0';
             i_txr_ip<='0';
 
@@ -531,7 +532,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;
 
-          end if;--//if p_in_phy_sync='1' then
+--          --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_L_IDLE =>
 
@@ -546,7 +547,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+--        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';
 
@@ -592,7 +593,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+--        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_L_SyncEscape =>
 
@@ -622,9 +623,9 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       if p_in_phy_rdy='1' then
       --Связь с утройством установлена
-        if p_in_phy_sync='1' then
+--        --//if p_in_phy_sync='1' then
           fsm_llayer_cs <= S_L_IDLE;
-        end if;
+--        end if;
       end if;
 
 --      --------------------------------------------
@@ -659,7 +660,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+--        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TX_RDY)='1' then
           --//Уст-во готово к передаче данных
@@ -712,7 +713,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+--        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_H_SendChkRdy =>
 
@@ -727,7 +728,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';--//Инициализация модулей CRC,Scrambler
 
@@ -748,7 +749,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_SendSOF =>
 
@@ -763,7 +764,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
@@ -834,7 +835,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if; --//if p_in_phy_rdy='0' then
       --//when S_LT_SendData =>
 
@@ -848,7 +849,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
@@ -1040,7 +1041,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_SendHold =>
 
@@ -1055,7 +1056,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
@@ -1205,7 +1206,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--if p_in_phy_rdy='0' then
       --//when S_LT_RcvrHold =>
 
@@ -1220,7 +1221,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TSYNC)='1' then
           --//Уст-во переывает текущую транзакию
@@ -1247,7 +1248,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_SendCRC =>
 
@@ -1261,7 +1262,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           i_status(C_LSTAT_TxDMAT)<='0';
 
@@ -1282,7 +1283,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_SendEOF =>
 
@@ -1296,7 +1297,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TSYNC)='1' then
           --//Уст-во переывает текущую транзакию
@@ -1358,7 +1359,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_Wait =>
 
@@ -1379,7 +1380,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TCONT)='1' then
           --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
@@ -1472,7 +1473,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LR_RcvWaitFifo =>
 
@@ -1486,7 +1487,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';--//Инициализация модулей CRC,Scrambler
 
@@ -1577,7 +1578,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LR_RcvChkRdy =>
 
@@ -1591,7 +1592,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           i_status(C_LSTAT_RxSTART)<='0';
 
@@ -1777,7 +1778,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LR_RcvData =>
 
@@ -1791,7 +1792,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-          if p_in_phy_sync='1' then
+          --//if p_in_phy_sync='1' then
 
             if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
             --//Транспортный уровень хочет прервать текущую операцию
@@ -1860,7 +1861,6 @@ elsif p_in_clk'event and p_in_clk='1' then
                 i_rxp(C_TCONT)<='1';
                 i_rcv_en<='0';
 
---            elsif (CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0') or (i_rxp(C_TCONT)='1' and i_rxp(C_THOLD)='0') then
             elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0' then
             --//Принял некий примимив, но не SYNC, EOF, CONT, HOLD
                 if p_in_rxd_status.empty='1' then
@@ -1979,7 +1979,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;
 
-          end if;--//if p_in_phy_sync='1' then
+          --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LR_Hold =>
 
@@ -1994,7 +1994,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-          if p_in_phy_sync='1' then
+          --//if p_in_phy_sync='1' then
 
             if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
             --//Транспортный уровень хочет прервать текущую операцию
@@ -2121,7 +2121,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;
 
-          end if;--//if p_in_phy_sync='1' then
+          --//end if;--//if p_in_phy_sync='1' then
       end if;--if p_in_phy_rdy='0' then
       --//when S_LR_SendHold =>
 
@@ -2135,7 +2135,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
             i_rcv_work<='0';
 
@@ -2178,7 +2178,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;--//if p_in_phy_txrdy_n='0' then
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LR_RcvEOF =>
 
@@ -2192,7 +2192,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
             if p_in_phy_rxtype(C_TSYNC)='1' then
             --//Уст-во переывает текущую транзакию
@@ -2249,7 +2249,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LR_GoodCRC =>
 
@@ -2263,7 +2263,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
             --//Жду от устройства примитив SYNC
             if p_in_phy_rxtype(C_TSYNC)='1' then
@@ -2297,7 +2297,7 @@ elsif p_in_clk'event and p_in_clk='1' then
                 end if;
             end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//f p_in_phy_rdy='0' then
       --//when S_LR_GoodEnd =>
 
@@ -2311,7 +2311,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
             if p_in_phy_rxtype(C_TSYNC)='1' then
 
@@ -2344,13 +2344,13 @@ elsif p_in_clk'event and p_in_clk='1' then
                 end if;
             end if;
 
-        end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//f p_in_phy_rdy='0' then
       --//when S_LR_BadEnd =>
 
 
   end case;
---end if;
+end if;
 end if;
 end process lfsm;
 
