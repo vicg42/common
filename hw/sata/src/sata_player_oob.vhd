@@ -65,7 +65,7 @@ p_out_tst              : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;--
+p_in_clk               : in    std_logic;
 p_in_rst               : in    std_logic
 );
 end sata_player_oob;
