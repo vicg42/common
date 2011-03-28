@@ -443,73 +443,73 @@ begin
   i_txdata_ctrl<='0'; --//0/1 - Счетчик/Random DATA
 
   --//Инициализируем команды которые будут отправлятся:
-  cfgCmdPkt(0).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
   cfgCmdPkt(0).scount:=8;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);--//LBA
   cfgCmdPkt(0).loopback:='0';
 
-  cfgCmdPkt(1).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(1).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
   cfgCmdPkt(1).scount:=10;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(1).loopback:='0';
 
-  cfgCmdPkt(2).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(2).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(2).scount:=3;
   cfgCmdPkt(2).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(2).loopback:='0';
 
-  cfgCmdPkt(3).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(3).command:=C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;
   cfgCmdPkt(3).scount:=3;
   cfgCmdPkt(3).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(3).loopback:='0';
 
-  cfgCmdPkt(4).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(4).command:=C_ATA_CMD_WRITE_DMA_EXT;
   cfgCmdPkt(4).scount:=1;
   cfgCmdPkt(4).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(4).loopback:='0';
 
-  cfgCmdPkt(5).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(5).command:=C_ATA_CMD_READ_DMA_EXT;
   cfgCmdPkt(5).scount:=1;
   cfgCmdPkt(5).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(5).loopback:='0';
 
-  cfgCmdPkt(6).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(6).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(6).scount:=1;
   cfgCmdPkt(6).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(6).loopback:='0';
 
-  cfgCmdPkt(7).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(7).command:=C_ATA_CMD_READ_SECTORS_EXT;
   cfgCmdPkt(7).scount:=1;
   cfgCmdPkt(7).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(7).loopback:='0';
 
-  cfgCmdPkt(8).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(8).command:=C_ATA_CMD_WRITE_DMA_EXT;--;
   cfgCmdPkt(8).scount:=3;
   cfgCmdPkt(8).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(8).loopback:='0';
 
-  cfgCmdPkt(9).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(9).command:=C_ATA_CMD_READ_DMA_EXT;
   cfgCmdPkt(9).scount:=2;
   cfgCmdPkt(9).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(9).loopback:='0';
 
-  cfgCmdPkt(10).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(10).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(10).scount:=4;
   cfgCmdPkt(10).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(10).loopback:='0';
 
-  cfgCmdPkt(11).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(11).command:=C_ATA_CMD_READ_SECTORS_EXT;
   cfgCmdPkt(11).scount:=3;
   cfgCmdPkt(11).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
@@ -539,7 +539,7 @@ begin
 
   write(GUI_line,string'("NEW ATA COMMAND 1."));writeline(output, GUI_line);
 
-  i_al_ctrl(0)(C_ACTRL_ATA_COMMAND_WR_BIT)<='1';--//Сигнализируем Application Layer что будем отправлять АТА command
+--  i_al_ctrl(0)(C_ACTRL_ATA_COMMAND_WR_BIT)<='1';--//Сигнализируем Application Layer что будем отправлять АТА command
 
 
   --//Заполняем CmdPkt
@@ -705,7 +705,8 @@ end process ldly;
 
 --//Первое WORD CmdPkt не записываем. Это необходимо Только для отладки модуля sata_host.vhd
 --//Т.к. первое WORD является управлением для UsrApplication Layer
-i_cmdbuf_wr<=sr_usr_cmd_wr and i_usr_cmd_wr;
+--i_cmdbuf_wr<=sr_usr_cmd_wr and i_usr_cmd_wr;
+i_cmdbuf_wr<=i_usr_cmd_wr;
 
 
 ltxcmd:process

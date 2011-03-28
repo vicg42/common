@@ -80,6 +80,11 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 signal i_cmdfifo_dcnt              : std_logic_vector(3 downto 0);
 signal i_cmdfifo_rd_done           : std_logic;
 
+signal i_usrctrl                   : std_logic_vector(15 downto 0);
+signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT);
+signal i_usrmode                   : std_logic_vector(0 to C_USRCMD_COUNT-1);
+signal i_err_clr                   : std_logic;
+
 signal i_reg_shadow_addr           : std_logic_vector(i_cmdfifo_dcnt'range);
 signal i_reg_shadow_din            : std_logic_vector(15 downto 0);
 signal i_reg_shadow_wr             : std_logic;
@@ -96,6 +101,7 @@ signal i_scount_byte               : std_logic_vector(i_scount'length + log2(CI_
 signal i_link_establish_dly        : std_logic_vector(1 downto 0);
 signal i_link_establish_change     : std_logic;
 
+signal i_serr_i_err                : std_logic;
 signal i_serr_p_err                : std_logic;
 signal i_serr_c_err                : std_logic;
 
@@ -141,6 +147,26 @@ p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
 
+--//-----------------------------
+--//Инициализация
+--//-----------------------------
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_err_clr<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    i_err_clr<=p_in_ctrl(C_ACTRL_ERR_CLR_BIT);
+  end if;
+end process;
+
+--//Декодирование режима работы:
+i_usrmode_sel<=i_usrctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT);
+
+gen_usrmode : for i in 0 to C_USRCMD_COUNT-1 generate
+i_usrmode(i)<='1' when i_usrmode_sel=CONV_STD_LOGIC_VECTOR(i, i_usrmode'length) else '0';
+end generate gen_usrmode;
+
+
 
 --------------------------------------------------
 --Связь с USR APP Layer
@@ -178,6 +204,8 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
 
+    i_usrctrl<=(others=>'0');
+
     i_reg_shadow.command<=(others=>'0');
     i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
     i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT)<='1';
@@ -197,7 +225,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if p_in_ctrl(C_ACTRL_ERR_CLR_BIT)='1' then
+    if i_err_clr='1' then
       i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT)<='0';
 
     elsif i_trn_atacommand='1' then
@@ -247,7 +275,10 @@ begin
 
     elsif i_reg_shadow_wr='1' then
     --//Записть данных в регистры Хостом
-      if    i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_reg_shadow_addr'length) then
+      if    i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_reg_shadow_addr'length) then
+          i_usrctrl<=i_reg_shadow_din(15 downto 0);
+
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_reg_shadow_addr'length) then
           i_reg_shadow.scount <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.scount_exp <= i_reg_shadow_din(15 downto 8);
 
@@ -269,14 +300,11 @@ begin
 
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_reg_shadow_addr'length) then
           i_reg_shadow.command <= i_reg_shadow_din(7 downto 0);
-
+          i_reg_shadow.control <= i_reg_shadow_din(15 downto 8);
           i_reg_shadow.device(C_REG_ATA_DEVICE_LBA_BIT)<='1';--Уст.режим адресации LBA
 
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_reg_shadow_addr'length) then
           i_reg_shadow.device <= i_reg_shadow_din(7 downto 0);
-
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_DEV_CONTROL, i_reg_shadow_addr'length) then
-          i_reg_shadow.control <= i_reg_shadow_din(7 downto 0);
 
       end if;
 
@@ -288,7 +316,7 @@ end process;
 
 --//Собираем отчет:
 --//Обноружена ошибка:
-p_out_status.err_detect<=i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT) or i_serr_p_err or i_serr_c_err;
+p_out_status.err_detect<=i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT) or i_serr_p_err or i_serr_c_err or i_serr_i_err;
 
 --//ATA:
 p_out_status.ATAStatus<=i_reg_shadow.status;
@@ -342,6 +370,7 @@ begin
     i_link_establish_dly<=(others=>'0');
     i_link_establish_change<='0';
 
+    i_serr_i_err<='0';
     i_serr_p_err<='0';
     i_serr_c_err<='0';
 
@@ -351,8 +380,12 @@ begin
     i_link_establish_dly(1)<=i_link_establish_dly(0);
     i_link_establish_change<=i_link_establish_dly(1) and not i_link_establish_dly(0);
 
-    if p_in_ctrl(C_ACTRL_ERR_CLR_BIT)='1' then
+    if i_err_clr='1' then
       p_out_status.SError<=(others=>'0');
+      i_serr_i_err<='0';
+      i_serr_p_err<='0';
+      i_serr_c_err<='0';
+
     else
 
       --//###################################
@@ -368,7 +401,7 @@ begin
       end if;
 
       --//Ошибка связи или целостности данных(CRC error)
-      if i_link_establish_change='1' or
+      if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') or
          p_in_ll_status(C_LSTAT_RxERR_CRC)='1' or
          (p_in_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)='1' and p_in_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT)='1') or
          (p_in_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)='0' and p_in_ll_status(C_LSTAT_TxERR_CRC)='1') then
@@ -382,6 +415,12 @@ begin
 
       p_out_status.SError(C_ASERR_C_ERR_BIT)<='1';
       i_serr_c_err<='1';
+      end if;
+
+      --//Ошибки декодирования
+      if p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' or p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+      p_out_status.SError(C_ASERR_I_ERR_BIT)<='1';
+      i_serr_i_err<='1';
       end if;
 
 
@@ -414,13 +453,23 @@ begin
 
       --//PHY Layer:
       --//Связь с утройством оборвана
-      if i_link_establish_change='1' then
+      if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') then
       p_out_status.SError(C_ASERR_N_DIAG_BIT)<='1';
       end if;
 
       --//(От устройства был принят сигнал COMWAKE)
       if p_in_pl_status(C_PSTAT_COMWAKE_RCV_BIT)='1' then
       p_out_status.SError(C_ASERR_W_DIAG_BIT)<='1';
+      end if;
+
+      --//Disparity Error
+      if p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
+      p_out_status.SError(C_ASERR_D_DIAG_BIT)<='1';
+      end if;
+
+      --//10b to 8b Decode error
+      if p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+      p_out_status.SError(C_ASERR_B_DIAG_BIT)<='1';
       end if;
 
     end if;
@@ -442,27 +491,30 @@ begin
 end process;
 
 
+
+
 --------------------------------------------------
 --Связь с Speed Controller
 --------------------------------------------------
-p_out_spd_ctrl.change<='0';
-p_out_spd_ctrl.sata_ver<=(others=>'0');
+p_out_spd_ctrl.change<=(i_usrmode(C_USRCMD_SET_SATA1) or i_usrmode(C_USRCMD_SET_SATA2)) and i_reg_shadow_wr_done;
+p_out_spd_ctrl.sata_ver(0)<='1' when  i_usrmode(C_USRCMD_SET_SATA1)='1' else '0';
+p_out_spd_ctrl.sata_ver(1)<='0';
 
 
 --------------------------------------------------
 --Связь с Transport Layer
 --------------------------------------------------
 --//Управление Transport уровнем
-i_trn_atacommand<=p_in_ctrl(C_ACTRL_ATA_COMMAND_WR_BIT) and i_reg_shadow_wr_done;
-i_trn_atacontrol<=p_in_ctrl(C_ACTRL_ATA_CONTROL_WR_BIT) and i_reg_shadow_wr_done;
+i_trn_atacommand<=i_usrmode(C_USRCMD_ATACOMMAND) and i_reg_shadow_wr_done;
+i_trn_atacontrol<=i_usrmode(C_USRCMD_ATACONTROL) and i_reg_shadow_wr_done;
 
 p_out_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT)<=i_trn_atacommand;
 p_out_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT)<=i_trn_atacontrol;
-p_out_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)<=p_in_ctrl(C_ACTRL_FPDMA_ON_BIT) and p_in_ctrl(C_ACTRL_FPDMA_WR_BIT);
+p_out_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)<=i_usrmode(C_USRCMD_FPDMA_W) or i_usrmode(C_USRCMD_FPDMA_R);
 
 p_out_reg_shadow<=i_reg_shadow;
 
-p_out_reg_dma.fpdma.dir<=p_in_ctrl(C_ACTRL_FPDMA_DIR_BIT);
+p_out_reg_dma.fpdma.dir<=C_DIR_H2D when i_usrmode(C_USRCMD_FPDMA_W) else C_DIR_D2H;
 p_out_reg_dma.fpdma.addr_l<=(others=>'0');
 p_out_reg_dma.fpdma.addr_m<=(others=>'0');
 p_out_reg_dma.fpdma.offset<=(others=>'0');

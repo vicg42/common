@@ -54,6 +54,26 @@ constant C_SATA_HOST_MODULE_2_CH_COUNT : TInt_SataArray06:=(0,0,0,0,1,2);
 --//Размер командного пакета в WORD
 constant C_USRAPP_CMDPKT_SIZE_WORD        : integer:=10#07#;
 
+--//User CMD Pkt :
+--//Поле UsrCtrl/Map:
+constant C_CMDPKT_USRHDD_NUM_L_BIT        : integer:=0;
+constant C_CMDPKT_USRHDD_NUM_M_BIT        : integer:=7;
+constant C_CMDPKT_USRMODE_SW_BIT          : integer:=8;
+constant C_CMDPKT_USRMODE_HW_BIT          : integer:=9;
+constant C_CMDPKT_USRMODE_TSTR_BIT        : integer:=10;
+constant C_CMDPKT_USRMODE_TSTW_BIT        : integer:=11;
+constant C_CMDPKT_USRCMD_L_BIT            : integer:=12;
+constant C_CMDPKT_USRCMD_M_BIT            : integer:=14;
+
+--//C_CMDPKT_USRCMD/Map:
+constant C_USRCMD_ATACONTROL              : integer:=0;
+constant C_USRCMD_ATACOMMAND              : integer:=1;
+constant C_USRCMD_FPDMA_W                 : integer:=2;
+constant C_USRCMD_FPDMA_R                 : integer:=3;
+constant C_USRCMD_SET_SATA1               : integer:=4;
+constant C_USRCMD_SET_SATA2               : integer:=5;
+constant C_USRCMD_COUNT                   : integer:=C_USRCMD_SET_SATA2+1;
+
 
 --//-------------------------------------------------
 --//Application Layer
@@ -90,24 +110,19 @@ constant C_REG_ATA_ERROR_ABRT_BIT        : integer:=2;--command aborted
 
 
 --//Register / Adress Map:
-constant C_ALREG_FEATURE                  : integer:=16#000000#;
-constant C_ALREG_LBA_LOW                  : integer:=16#000001#;
-constant C_ALREG_LBA_MID                  : integer:=16#000002#;
-constant C_ALREG_LBA_HIGH                 : integer:=16#000003#;
-constant C_ALREG_SECTOR_COUNT             : integer:=16#000004#;
-constant C_ALREG_COMMAND                  : integer:=16#000005#;
-constant C_ALREG_DEV_CONTROL              : integer:=16#000006#;
+constant C_ALREG_USRCTRL                  : integer:=16#000000#;
+constant C_ALREG_FEATURE                  : integer:=16#000001#;
+constant C_ALREG_LBA_LOW                  : integer:=16#000002#;
+constant C_ALREG_LBA_MID                  : integer:=16#000003#;
+constant C_ALREG_LBA_HIGH                 : integer:=16#000004#;
+constant C_ALREG_SECTOR_COUNT             : integer:=16#000005#;
+constant C_ALREG_COMMAND                  : integer:=16#000006#;-- + C_ALREG_DEV_CONTROL
 constant C_ALREG_DEVICE                   : integer:=16#000007#;
 
 
 --//Управление/Map:
 constant C_ACTRL_ERR_CLR_BIT              : integer:=0;--//Сброс ошибок SError
-constant C_ACTRL_FPDMA_ON_BIT             : integer:=1;--//Вкл. протокол Fisrt-part DMA
-constant C_ACTRL_FPDMA_DIR_BIT            : integer:=2;--//Направление транзакции протокола Fisrt-part DMA
-constant C_ACTRL_FPDMA_WR_BIT             : integer:=4;--//Выполнить Fisrt-part DMA
-constant C_ACTRL_ATA_COMMAND_WR_BIT       : integer:=5;--//Выполнить АТА команду
-constant C_ACTRL_ATA_CONTROL_WR_BIT       : integer:=6;--//Выполнить АТА управление(DEVICE_CONTROL)
-constant C_ALCTRL_LAST_BIT                : integer:=C_ACTRL_ATA_CONTROL_WR_BIT;
+constant C_ALCTRL_LAST_BIT                : integer:=C_ACTRL_ERR_CLR_BIT;
 
 --//Статусы/Map:
 --//Поле - SStatus/Map:
@@ -130,11 +145,11 @@ constant C_ASSTAT_DET_LINK_ESTABLISH     : integer:=3;
 --//Поле - SError/Map:
 --//Более подробно см. d1532v3r4b ATA-ATAPI-7.pdf п.п.19.2.2
 constant C_ASERR_I_ERR_BIT               : integer:=0;
-constant C_ASERR_M_ERR_BIT               : integer:=1;
-constant C_ASERR_T_ERR_BIT               : integer:=8;
+--constant C_ASERR_M_ERR_BIT               : integer:=1;
+--constant C_ASERR_T_ERR_BIT               : integer:=8;
 constant C_ASERR_C_ERR_BIT               : integer:=9;
 constant C_ASERR_P_ERR_BIT               : integer:=10;
-constant C_ASERR_E_ERR_BIT               : integer:=11;
+--constant C_ASERR_E_ERR_BIT               : integer:=11;
 
 constant C_ASERR_N_DIAG_BIT              : integer:=16;
 constant C_ASERR_I_DIAG_BIT              : integer:=17;
@@ -152,8 +167,6 @@ constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_RESERV_BIT;
 
 --//Поле - User/Map:
 constant C_AUSER_BUSY_BIT                : integer:=0;
---constant C_AUSER_RX_ERR_BIT             : integer:=1;
---constant C_AUSER_TX_ERR_BIT             : integer:=2;
 constant C_AUSER_RESERV_BIT              : integer:=1;
 constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_RESERV_BIT;
 
@@ -415,6 +428,7 @@ scount_exp   : std_logic_vector(7 downto 0);
 command      : std_logic_vector(7 downto 0);
 reserv       : std_logic_vector(7 downto 0);
 end record;
+
 
 --//
 type TRegHold is record
