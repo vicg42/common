@@ -40,6 +40,7 @@ port
 --------------------------------------------------
 p_out_rxd                  : out   std_logic_vector(31 downto 0);               --//Принятые данные
 p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);--//Тип данных
+p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
 
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
@@ -69,13 +70,18 @@ architecture behavioral of sata_player_rx is
 signal i_rxdata                  : std_logic_vector(31 downto 0);
 signal i_rxdtype                 : std_logic_vector(3 downto 0);
 
-signal i_rcv_error               : std_logic;
+signal i_rcv_error               : std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
 
 type TSrDataW8 is array (0 to 2) of std_logic_vector(7 downto 0);
 signal sr_rxdata                 : TSrDataW8;
 
 type TSrDtypeW8 is array (0 to 2) of std_logic;
 signal sr_rxdtype                : TSrDtypeW8;
+signal sr_gtp_rxdisperr          : TSrDtypeW8;
+signal sr_gtp_rxnotintable       : TSrDtypeW8;
+
+signal i_gtp_rxdisperr           : std_logic_vector(3 downto 0);
+signal i_gtp_rxnotintable        : std_logic_vector(3 downto 0);
 
 signal dbgrcv_type               : string(1 to 7);
 signal tst_val                   : std_logic;
@@ -106,9 +112,9 @@ begin
     tst_rcv_err_disperr<='0';
     tst_rcv_err_byteisaligned<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    tst_rcv_error<=i_rcv_error;
-    tst_rcv_err_notintable<=OR_reduce(p_in_gtp_rxnotintable);
-    tst_rcv_err_disperr<=OR_reduce(p_in_gtp_rxdisperr);
+    tst_rcv_error<=OR_reduce(i_rcv_error);
+    tst_rcv_err_disperr<=i_rcv_error(C_PRxSTAT_ERR_DISP_BIT);
+    tst_rcv_err_notintable<=i_rcv_error(C_PRxSTAT_ERR_NOTINTABLE_BIT);
     tst_rcv_err_byteisaligned<=p_in_gtp_rxbyteisaligned;
 
   end if;
@@ -123,7 +129,9 @@ end generate gen_dbg_on;
 --//-----------------------------------
 --//Логика работы
 --//-----------------------------------
-i_rcv_error<=OR_reduce(p_in_gtp_rxnotintable) or OR_reduce(p_in_gtp_rxdisperr) or not p_in_gtp_rxbyteisaligned;
+i_rcv_error(C_PRxSTAT_ERR_DISP_BIT)<=OR_reduce(i_gtp_rxdisperr);
+i_rcv_error(C_PRxSTAT_ERR_NOTINTABLE_BIT)<=OR_reduce(i_gtp_rxnotintable);-- or not p_in_gtp_rxbyteisaligned;
+p_out_rxerr<=i_rcv_error;
 
 --p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM and p_in_gtp_rxbyteisaligned='1' else '0';
 p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM else '0';
@@ -146,7 +154,6 @@ p_out_rxtype(C_TPMACK)   <='1' when i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT
 p_out_rxtype(C_TPMNAK)   <='1' when i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM else '0';
 p_out_rxtype(C_TDATA_EN) <='1' when i_rxdtype=C_PDAT_TDATA else '0';
 
-
 p_out_rxd<=i_rxdata;
 
 
@@ -157,18 +164,26 @@ gen_dbus8 : if G_GTP_DBUS=8 generate
 i_rxdata<=p_in_gtp_rxdata(7 downto 0) & sr_rxdata(0) & sr_rxdata(1) & sr_rxdata(2);
 i_rxdtype<=p_in_gtp_rxcharisk(0) & sr_rxdtype(0) & sr_rxdtype(1) & sr_rxdtype(2);
 
+i_gtp_rxdisperr<=p_in_gtp_rxdisperr(0) & sr_gtp_rxdisperr(0) & sr_gtp_rxdisperr(1) & sr_gtp_rxdisperr(2);
+i_gtp_rxnotintable<=p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(0) & sr_gtp_rxnotintable(1) & sr_gtp_rxnotintable(2);
+
 lsr_rxd:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     for i in 0 to 2 loop
       sr_rxdata(i)<=(others=>'0');
       sr_rxdtype(i)<='0';
+      sr_gtp_rxdisperr(i)<='0';
+      sr_gtp_rxnotintable(i)<='0';
     end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
 
       sr_rxdata<=p_in_gtp_rxdata(7 downto 0) & sr_rxdata(0 to 1);
       sr_rxdtype<=p_in_gtp_rxcharisk(0) & sr_rxdtype(0 to 1);
+
+      sr_gtp_rxdisperr<=p_in_gtp_rxdisperr(0) & sr_gtp_rxdisperr(0 to 1);
+      sr_gtp_rxnotintable<=p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(0 to 1);
 
   end if;
 end process lsr_rxd;
@@ -182,12 +197,17 @@ gen_dbus16 : if G_GTP_DBUS=16 generate
 i_rxdata<=p_in_gtp_rxdata(15 downto 8) & p_in_gtp_rxdata(7 downto 0) & sr_rxdata(1) & sr_rxdata(0);
 i_rxdtype<=p_in_gtp_rxcharisk(1) & p_in_gtp_rxcharisk(0) & sr_rxdtype(1) & sr_rxdtype(0);
 
+i_gtp_rxdisperr<=p_in_gtp_rxdisperr(1) & p_in_gtp_rxdisperr(0) & sr_gtp_rxdisperr(1) & sr_gtp_rxdisperr(0);
+i_gtp_rxnotintable<=p_in_gtp_rxnotintable(1) & p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(1) & sr_gtp_rxnotintable(0);
+
 lsr_rxd:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     for i in 0 to 2 loop
       sr_rxdata(i)<=(others=>'0');
       sr_rxdtype(i)<='0';
+      sr_gtp_rxdisperr(i)<='0';
+      sr_gtp_rxnotintable(i)<='0';
     end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -196,6 +216,11 @@ begin
       sr_rxdata(1)<=p_in_gtp_rxdata(15 downto 8);
       sr_rxdtype(0)<=p_in_gtp_rxcharisk(0);
       sr_rxdtype(1)<=p_in_gtp_rxcharisk(1);
+
+      sr_gtp_rxdisperr(0)<=p_in_gtp_rxdisperr(0);
+      sr_gtp_rxdisperr(1)<=p_in_gtp_rxdisperr(1);
+      sr_gtp_rxnotintable(0)<=p_in_gtp_rxnotintable(0);
+      sr_gtp_rxnotintable(1)<=p_in_gtp_rxnotintable(1);
 
   end if;
 end process lsr_rxd;

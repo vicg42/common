@@ -205,7 +205,7 @@ p_in_rxd_status         => i_link_rxd_status(0),
 --------------------------------------------------
 --Связь с Phy Layer
 --------------------------------------------------
-p_in_phy_rdy            => i_phy_status(0)(C_PSTAT_DET_ESTABLISH_ON_BIT),
+p_in_phy_status         => i_phy_status(0),
 p_in_phy_sync           => i_phy_sync(0),
 
 p_in_phy_rxtype         => i_phy_rxtype(0)(C_TDATA_EN downto C_TSYNC),
@@ -265,7 +265,7 @@ p_out_phy_sync             => i_phy_sync(0),
 --------------------------------------------------
 --Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
-p_in_gtp_pll_lock          => '1',
+p_out_gtp_rst              => open,
 
 --RocketIO Tranceiver
 p_out_gtp_txelecidle       => open,

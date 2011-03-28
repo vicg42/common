@@ -45,8 +45,6 @@ p_out_d10_2_senddis    : out   std_logic;                    --//Запрещение пере
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_in_gtp_pll_lock      : in    std_logic;                    --//GTP PLL is locked
-
 p_out_gtp_txelecidle   : out   std_logic;                    --//TX electircal idel
 p_out_gtp_txcomstart   : out   std_logic;                    --//TX OOB enable
 p_out_gtp_txcomtype    : out   std_logic;                    --//TX OOB type select
@@ -220,11 +218,9 @@ begin
         i_d10_2_senddis<='0';
         i_status<=(others=>'0');
 
-        if p_in_gtp_pll_lock='1' then
-             i_gtp_txcomstart<='1';--//Запуск отправки сигналов COMRESET
-             i_gtp_txcomtype <='0';
-             i_fsm_statecs <= S_HR_COMRESET_DONE;
-        end if;
+        i_gtp_txcomstart<='1';--//Запуск отправки сигналов COMRESET
+        i_gtp_txcomtype <='0';
+        i_fsm_statecs <= S_HR_COMRESET_DONE;
 
       when S_HR_COMRESET_DONE =>
 

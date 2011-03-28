@@ -63,7 +63,6 @@ p_out_phy_sync             : out   std_logic;
 --------------------------------------------------
 --Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
-p_in_gtp_pll_lock          : in    std_logic;
 p_out_gtp_rst              : out   std_logic;
 
 --RocketIO Tranceiver
@@ -98,6 +97,9 @@ end sata_player;
 
 architecture behavioral of sata_player is
 
+signal i_oob_status             : std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+
+signal i_rxerr                  : std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
 signal i_rxtype                 : std_logic_vector(C_TDATA_EN downto C_TALIGN);
 signal i_d10_2_senddis          : std_logic;
 
@@ -162,6 +164,8 @@ end generate gen_dbus8;
 p_out_phy_sync<=i_synch;
 p_out_phy_rxtype(C_TDATA_EN downto C_TALIGN)<=i_rxtype(C_TDATA_EN downto C_TALIGN);
 
+p_out_status(C_PRxSTAT_LAST_BIT downto C_PRxSTAT_ERR_DISP_BIT)<=i_rxerr;
+p_out_status(C_PLSTAT_LAST_BIT downto C_PSTAT_DET_DEV_ON_BIT)<=i_oob_status(C_PLSTAT_LAST_BIT downto C_PSTAT_DET_DEV_ON_BIT);
 
 --//----------------------------------
 --//Синхронизация
@@ -183,7 +187,6 @@ end process lsync_cnt;
 i_resynch<=i_rxtype(C_TALIGN);
 
 
-
 --//----------------------------------
 --//Модуль установки соединения
 --//----------------------------------
@@ -199,7 +202,7 @@ port map
 --
 --------------------------------------------------
 p_in_ctrl              => p_in_ctrl,
-p_out_status           => p_out_status,
+p_out_status           => i_oob_status,
 
 p_in_primitive_det     => i_rxtype(C_TPMNAK downto C_TALIGN),
 p_out_d10_2_senddis    => i_d10_2_senddis,
@@ -207,8 +210,6 @@ p_out_d10_2_senddis    => i_d10_2_senddis,
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_in_gtp_pll_lock      => p_in_gtp_pll_lock,
-
 p_out_gtp_rst          => p_out_gtp_rst,
 
 p_out_gtp_txelecidle   => p_out_gtp_txelecidle,
@@ -290,6 +291,7 @@ port map
 --------------------------------------------------
 p_out_rxd                  => p_out_phy_rxdata,
 p_out_rxtype               => i_rxtype,
+p_out_rxerr                => i_rxerr,
 
 --------------------------------------------------
 --RocketIO Receiver

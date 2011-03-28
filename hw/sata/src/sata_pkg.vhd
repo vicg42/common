@@ -242,19 +242,24 @@ constant C_LL_TXDATA_RETURN_TMR          : integer:=20;
 --//-------------------------------------------------
 --//PHY Layer
 --//-------------------------------------------------
+--//PHY Layer /Reciver
+--//Статусы/Map:
+constant C_PRxSTAT_ERR_DISP_BIT          : integer:=0;--//Ошибка - received with a disparity error.
+constant C_PRxSTAT_ERR_NOTINTABLE_BIT    : integer:=1;--//Ошибка - indicates that RXDATA is the result of an illegal 8B/10B code
+constant C_PRxSTAT_LAST_BIT              : integer:=C_PRxSTAT_ERR_NOTINTABLE_BIT;
+
 --//Управление/Map:
 constant C_PCTRL_SPD_BIT_L               : integer:=0;
 constant C_PCTRL_SPD_BIT_M               : integer:=1;
 constant C_PLCTRL_LAST_BIT               : integer:=C_PCTRL_SPD_BIT_M;
 
 --//Статусы/Map:
-constant C_PSTAT_DET_DEV_ON_BIT          : integer:=0;--//Детектирование: 0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
-constant C_PSTAT_DET_ESTABLISH_ON_BIT    : integer:=1;--//Детектирование: 0/1 - Соединение с устройством не установлено/установлено (можно работать)
-constant C_PSTAT_SPD_BIT_L               : integer:=2;--//Cкорость соединения: "00"/"01"/"10" -  не согласована/Gen1/Gen2
-constant C_PSTAT_SPD_BIT_M               : integer:=3;
-constant C_PSTAT_COMWAKE_RCV_BIT         : integer:=4;--//0/1 - Сигнал COMWAKE от устойства не принят/принят
+constant C_PSTAT_DET_DEV_ON_BIT          : integer:=C_PRxSTAT_LAST_BIT + 1;--//Детектирование: 0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
+constant C_PSTAT_DET_ESTABLISH_ON_BIT    : integer:=C_PRxSTAT_LAST_BIT + 2;--//Детектирование: 0/1 - Соединение с устройством не установлено/установлено (можно работать)
+constant C_PSTAT_SPD_BIT_L               : integer:=C_PRxSTAT_LAST_BIT + 3;--//Cкорость соединения: "00"/"01"/"10" -  не согласована/Gen1/Gen2
+constant C_PSTAT_SPD_BIT_M               : integer:=C_PRxSTAT_LAST_BIT + 4;
+constant C_PSTAT_COMWAKE_RCV_BIT         : integer:=C_PRxSTAT_LAST_BIT + 5;--//0/1 - Сигнал COMWAKE от устойства не принят/принят
 constant C_PLSTAT_LAST_BIT               : integer:=C_PSTAT_COMWAKE_RCV_BIT;
-
 
 
 --//Отправка примитива ALIGN

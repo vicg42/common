@@ -545,7 +545,7 @@ p_in_rxd_status         => i_link_rxd_status(i),
 --------------------------------------------------
 --Ñâÿçü ñ Phy Layer
 --------------------------------------------------
-p_in_phy_rdy            => i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT),
+p_in_phy_status         => i_phy_status(i),
 p_in_phy_sync           => i_phy_sync(i),
 
 p_in_phy_rxtype         => i_phy_rxtype(i)(C_TDATA_EN downto C_TSYNC),
@@ -598,7 +598,6 @@ p_out_phy_sync             => i_phy_sync(i),
 --------------------------------------------------
 --Ñâÿçü ñ RocketIO
 --------------------------------------------------
-p_in_gtp_pll_lock          => i_gtp_PLLLKDET,
 p_out_gtp_rst              => i_phy_gtp_ch_rst(i),
 
 --RocketIO Tranceiver

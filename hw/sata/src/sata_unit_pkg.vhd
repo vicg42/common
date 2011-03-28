@@ -236,6 +236,7 @@ port
 --------------------------------------------------
 p_out_rxd                  : out   std_logic_vector(31 downto 0);
 p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
 
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
@@ -280,7 +281,6 @@ p_out_d10_2_senddis    : out   std_logic;
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_in_gtp_pll_lock      : in    std_logic;
 p_out_gtp_rst          : out   std_logic;
 
 p_out_gtp_txelecidle   : out   std_logic;
@@ -446,7 +446,7 @@ p_in_rxd_status         : in    TRxBufStatus;
 --------------------------------------------------
 --Связь с Phy Layer
 --------------------------------------------------
-p_in_phy_rdy            : in    std_logic;
+p_in_phy_status         : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 p_in_phy_sync           : in    std_logic;
 
 p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);
@@ -497,7 +497,6 @@ p_out_phy_sync             : out   std_logic;
 --------------------------------------------------
 --Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
-p_in_gtp_pll_lock          : in    std_logic;
 p_out_gtp_rst              : out   std_logic;
 
 --RocketIO Tranceiver
