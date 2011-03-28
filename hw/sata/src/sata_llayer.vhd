@@ -479,7 +479,7 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
---          --//if p_in_phy_sync='1' then
+          --//if p_in_phy_sync='1' then
             i_rcv_work<='0';
             i_txr_ip<='0';
 
@@ -532,7 +532,7 @@ if p_in_phy_sync='1' then
 
             end if;
 
---          --//end if;--//if p_in_phy_sync='1' then
+          --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_L_IDLE =>
 
@@ -547,7 +547,7 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
---        --//if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';
 
@@ -593,7 +593,7 @@ if p_in_phy_sync='1' then
 
           end if;
 
---        --//end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_L_SyncEscape =>
 
@@ -623,9 +623,9 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_rdy='1' then
       --Связь с утройством установлена
---        --//if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
           fsm_llayer_cs <= S_L_IDLE;
---        end if;
+        --//end if;--//if p_in_phy_sync='1' then
       end if;
 
 --      --------------------------------------------
@@ -660,7 +660,7 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
---        --//if p_in_phy_sync='1' then
+        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TX_RDY)='1' then
           --//Уст-во готово к передаче данных
@@ -713,7 +713,7 @@ if p_in_phy_sync='1' then
 
           end if;
 
---        --//end if;--//if p_in_phy_sync='1' then
+        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_rdy='0' then
       --//when S_LT_H_SendChkRdy =>
 
