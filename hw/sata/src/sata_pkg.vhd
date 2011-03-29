@@ -235,17 +235,15 @@ constant C_LLCTRL_LAST_BIT                 : integer:=C_LCTRL_TL_CHECK_DONE_BIT;
 
 --//Статусы/Map:
 constant C_LSTAT_RxOK                     : integer:=0;--//Прием пакета - ОК
-constant C_LSTAT_RxDMAT                   : integer:=1;--//Прием пакета - Принял примитив DMA - Terminate
-constant C_LSTAT_RxSTART                  : integer:=2;--//Прием пакета - Link Layer обнаружил SOF - начал прием данных
-constant C_LSTAT_RxDONE                   : integer:=3;--//Прием пакета - Link Layer завершил прием данных и перешел в исходное состояние
-constant C_LSTAT_RxERR_CRC                : integer:=4;--//Прием пакета - ошибка: CRC
-constant C_LSTAT_RxERR_IDLE               : integer:=5;--//Прием пакета - ошибка: Принял примитив которого не ожидал
-constant C_LSTAT_RxERR_ABORT              : integer:=6;--//Прием пакета - ошибка: Принял примитив SYNC
-constant C_LSTAT_TxOK                     : integer:=7;--//Отправка пакета - ОК
-constant C_LSTAT_TxDMAT                   : integer:=8;--//Отправка пакета - Принял примитив DMA - Terminate
-constant C_LSTAT_TxERR_CRC                : integer:=9;--//Отправка пакета - ошибка: CRC
-constant C_LSTAT_TxERR_IDLE               : integer:=10;--//Отправка пакета - ошибка: Принял примитив которого не ожидал
-constant C_LSTAT_TxERR_ABORT              : integer:=11;--//Отправка пакета - ошибка: Принял примитив SYNC
+constant C_LSTAT_RxSTART                  : integer:=1;--//Прием пакета - Link Layer обнаружил SOF - начал прием данных
+constant C_LSTAT_RxERR_CRC                : integer:=2;--//Прием пакета - ошибка: CRC
+constant C_LSTAT_RxERR_IDLE               : integer:=3;--//Прием пакета - ошибка: Принял примитив которого не ожидал
+constant C_LSTAT_RxERR_ABORT              : integer:=4;--//Прием пакета - ошибка: Принял примитив SYNC
+constant C_LSTAT_TxOK                     : integer:=5;--//Отправка пакета - ОК
+constant C_LSTAT_TxDMAT                   : integer:=6;--//Отправка пакета - Принял примитив DMA - Terminate
+constant C_LSTAT_TxERR_CRC                : integer:=7;--//Отправка пакета - ошибка: CRC
+constant C_LSTAT_TxERR_IDLE               : integer:=8;--//Отправка пакета - ошибка: Принял примитив которого не ожидал
+constant C_LSTAT_TxERR_ABORT              : integer:=9;--//Отправка пакета - ошибка: Принял примитив SYNC
 constant C_LLSTAT_LAST_BIT                : integer:=C_LSTAT_TxERR_ABORT;
 
 --//Задержка возврашения к передаче данных их состояния S_LT_SendHold автомата управления Link Layer

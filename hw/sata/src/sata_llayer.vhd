@@ -459,8 +459,6 @@ if p_in_phy_sync='1' then
     --------------------------------------------
     when S_L_IDLE =>
 
-      i_status(C_LSTAT_RxDONE)<='0';
-
       i_status(C_LSTAT_RxOK)<='0';
       i_status(C_LSTAT_RxERR_CRC)<='0';
       i_status(C_LSTAT_RxERR_IDLE)<='0';
@@ -2274,7 +2272,6 @@ if p_in_phy_sync='1' then
                 end if;
 
                 i_txp_cnt<=(others=>'0');
-                i_status(C_LSTAT_RxDONE)<='1';--//Информ. Транспорный уровень
                 fsm_llayer_cs <= S_L_IDLE;
 
             else
@@ -2321,7 +2318,6 @@ if p_in_phy_sync='1' then
                 end if;
 
                 i_txp_cnt<=(others=>'0');
-                i_status(C_LSTAT_RxDONE)<='1';--//Информ. Транспорный уровень
                 fsm_llayer_cs <= S_L_IDLE;
 
             else
@@ -2367,9 +2363,7 @@ tst_ll_ctrl.tl_check_err<=p_in_ctrl(C_LCTRL_TL_CHECK_ERR_BIT);
 tst_ll_ctrl.tl_check_done<=p_in_ctrl(C_LCTRL_TL_CHECK_DONE_BIT);
 
 tst_ll_status.rxok<=i_status(C_LSTAT_RxOK);
-tst_ll_status.rxdmat<=i_status(C_LSTAT_RxDMAT);
 tst_ll_status.rxstart<=i_status(C_LSTAT_RxSTART);
-tst_ll_status.rxdone<=i_status(C_LSTAT_RxDONE);
 tst_ll_status.rxerr_crc<=i_status(C_LSTAT_RxERR_CRC);
 tst_ll_status.rxerr_idle<=i_status(C_LSTAT_RxERR_IDLE);
 tst_ll_status.rxerr_abort<=i_status(C_LSTAT_RxERR_ABORT);

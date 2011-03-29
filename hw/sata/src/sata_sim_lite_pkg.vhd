@@ -94,9 +94,7 @@ end record;
 
 type TSimLLStatus is record
 rxok        : std_logic;
-rxdmat      : std_logic;
 rxstart     : std_logic;
-rxdone      : std_logic;
 rxerr_crc   : std_logic;
 rxerr_idle  : std_logic;
 rxerr_abort : std_logic;

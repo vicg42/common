@@ -113,8 +113,11 @@ signal i_signature_det             : std_logic;
 signal tst_al_status               : TSimALStatus;
 signal dbgtsf_type                 : string(1 to 23);
 signal tst_val                     : std_logic;
---signal tst_fms_cs                  : std_logic_vector(4 downto 0);
---signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
+--signal tst_err_det                 : std_logic;
+--signal tst_err_ata                 : std_logic;
+--signal tst_serr_p_err              : std_logic;
+--signal tst_serr_c_err              : std_logic;
+--signal tst_serr_i_err              : std_logic;
 
 
 --MAIN
@@ -128,20 +131,46 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---tstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
---    p_out_tst(31 downto 1)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
+tstout:process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+--    tst_err_det<='0';
+--    tst_err_ata<='0';
+--    tst_serr_p_err<='0';
+--    tst_serr_c_err<='0';
+--    tst_serr_i_err<='0';
+    p_out_tst(31 downto 0)<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+
+--    if i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT)='1' or i_serr_p_err='1' or i_serr_c_err='1' or i_serr_i_err='1' then
+--      tst_err_det<='1';
+--      if i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT)='1' then
+--        tst_err_ata<='1';
+--      end if;
 --
---    tst_fms_cs_dly<=tst_fms_cs;
+--      if i_serr_p_err='1' then
+--        tst_serr_p_err<='1';
+--      end if;
 --
---    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or i_irq or OR_reduce(sr_llrxd(2)) or sr_llrxd_en(2);
---  end if;
---end process tstout;
-p_out_tst(0)<=tst_val;
-p_out_tst(31 downto 1)<=(others=>'0');
+--      if i_serr_c_err='1' then
+--        tst_serr_c_err<='1';
+--      end if;
+--
+--      if i_serr_i_err='1' then
+--        tst_serr_i_err<='1';
+--      end if;
+--    else
+--      tst_err_det<='0';
+--      tst_err_ata<='0';
+--      tst_serr_p_err<='0';
+--      tst_serr_c_err<='0';
+--      tst_serr_i_err<='0';
+--    end if;
+
+    p_out_tst(0)<=tst_val;-- and (tst_err_ata nor (tst_serr_p_err and tst_serr_c_err and tst_serr_i_err));
+  end if;
+end process tstout;
+--p_out_tst(31 downto 1)<=(others=>'0');
 
 end generate gen_dbg_on;
 
@@ -411,7 +440,8 @@ begin
       end if;
 
       --//Ошибки декодирования
-      if p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' or p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+      --//ВАЖНО: сигнализируем только после установления соединения с устройством!!!
+      if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and (p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' or p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1') then
       p_out_status.SError(C_ASERR_I_ERR_BIT)<='1';
       i_serr_i_err<='1';
       end if;
@@ -456,12 +486,12 @@ begin
       end if;
 
       --//Disparity Error
-      if p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
+      if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
       p_out_status.SError(C_ASERR_D_DIAG_BIT)<='1';
       end if;
 
       --//10b to 8b Decode error
-      if p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+      if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
       p_out_status.SError(C_ASERR_B_DIAG_BIT)<='1';
       end if;
 

@@ -1223,13 +1223,6 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
---          if p_in_ll_status(C_LSTAT_RxDMAT)='1' then
---          --//ABORT!!!
---          --//Link Layer сигнализирует о приеме примитива DMAT
---              i_fdcnt<=(others=>'0');
---              i_fdata_txd_en<='0';
---              fsm_tlayer_cs<=S_HT_PIOEnd;
-
           if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
           --//Прием данных завершен
               i_rxd_en<='0';

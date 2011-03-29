@@ -101,8 +101,6 @@ signal i_d10_2_senddis          : std_logic;
 signal i_rx_prmt_cnt            : std_logic_vector(1 downto 0);
 
 
-signal tst_rxelecidle           : std_logic;
-signal tst_rxstatus             : std_logic_vector(p_in_gtp_rxstatus'range);
 signal tst_val                  : std_logic;
 signal tst_pl_ctrl              : TSimPLCtrl;
 signal tst_pl_status            : TSimPLStatus;
@@ -245,7 +243,6 @@ begin
 
         if p_in_gtp_rxelecidle='1' and p_in_gtp_rxstatus = "100" then
             --Обнаружил сигнал COMINIT
-            i_status(C_PSTAT_DET_DEV_ON_BIT)<='1';
             i_timer_en<='0';
             i_fsm_statecs <= S_HR_COMWAKE;
 
@@ -306,6 +303,7 @@ begin
             --//Прерхожу к ожиданию приема от устройства ALING примитива, а сам
             --//в это время отпрапвляю D10.2 код
             i_gtp_pcm_rst<='1';
+            i_status(C_PSTAT_DET_DEV_ON_BIT)<='1';
             i_fsm_statecs <= S_HR_AwaitAlign;
         else
             if i_timer=i_timeout then
