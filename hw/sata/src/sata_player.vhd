@@ -112,6 +112,7 @@ signal tst_player_oob_out       : std_logic_vector(31 downto 0);
 signal tst_player_rcv_out       : std_logic_vector(31 downto 0);
 signal tst_player_tsf_out       : std_logic_vector(31 downto 0);
 signal tst_rcv_aperiod          : std_logic_vector(10 downto 0);
+signal tst_rxtype               : std_logic_vector(i_rxtype'range);
 
 
 
@@ -131,9 +132,12 @@ begin
   if p_in_rst='1' then
     p_out_tst(31 downto 3)<=(others=>'0');
     tst_rcv_aperiod<=(others=>'0');
+    tst_rxtype<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
-    p_out_tst(0)<=OR_reduce(tst_rcv_aperiod) or OR_reduce(tst_player_oob_out) or OR_reduce(tst_player_rcv_out) or OR_reduce(tst_player_tsf_out);
+    tst_rxtype<=i_rxtype;
+    p_out_tst(0)<=OR_reduce(tst_rcv_aperiod) or OR_reduce(tst_rxtype) or
+                  OR_reduce(tst_player_oob_out) or OR_reduce(tst_player_rcv_out) or OR_reduce(tst_player_tsf_out);
 
     if i_resynch='1' then
       tst_rcv_aperiod<=(others=>'0');

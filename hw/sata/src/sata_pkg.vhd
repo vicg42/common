@@ -347,7 +347,7 @@ constant C_PDAT_TPRM   : std_logic_vector(3 downto 0):=C_CHAR_D&C_CHAR_D&C_CHAR_
 constant C_PDAT_TDATA  : std_logic_vector(3 downto 0):=C_CHAR_D&C_CHAR_D&C_CHAR_D&C_CHAR_D;
 
 
---//номера примитивов
+--//Ќомера примитивов
 --//ћодуль приема --- это номер бита на порту p_out_rxtype
 --//ћодуль передачи - это номер примитивов
 constant C_TALIGN   : integer:=0;

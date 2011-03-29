@@ -143,7 +143,6 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(0)<=tst_val;
 p_out_tst(31 downto 1)<=(others=>'0');
 
-
 end generate gen_dbg_on;
 
 
@@ -559,9 +558,6 @@ end process rq_name;
 
 end generate gen_sim_on;
 
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

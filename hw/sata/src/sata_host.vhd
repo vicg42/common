@@ -83,11 +83,13 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --//Моделирование
 p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
 p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
-p_out_sim_gtp_out           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus16_GtpCh;
 p_in_sim_gtp_rxcharisk      : in    TBus02_GtpCh;
 p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxdisperr      : in    TBus02_GtpCh;
+p_in_sim_gtp_rxnotintable   : in    TBus02_GtpCh;
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
@@ -100,9 +102,9 @@ p_in_sys_dcm_gclk2x         : in    std_logic;--//dcm_clk0 x 2
 p_in_sys_dcm_lock           : in    std_logic;
 p_out_sys_dcm_rst           : out   std_logic;
 
+p_in_gtp_drpclk             : in    std_logic;--//
 p_out_gtp_refclk            : out   std_logic;--//выход порта REFCLKOUT модуля GTP_DUAL/sata_rocketio.vhdl
-p_in_g_gtp_refclk           : in    std_logic;--//сигнлал p_out_gtp_refclk пропущенный через глобальный буфер
-p_in_clk                    : in    std_logic;--//CLKIN для модуля RocketIO(GTP)
+p_in_gtp_refclk             : in    std_logic;--//CLKIN для модуля RocketIO(GTP)
 p_in_rst                    : in    std_logic
 );
 end sata_host;
@@ -150,7 +152,6 @@ signal i_gtp_ch_rst                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downt
 signal i_gtp_PLLLKDET              : std_logic;
 signal i_gtp_glob_reset            : std_logic;
 
-signal i_gtp_drpclk                : std_logic;
 signal i_gtp_drpaddr               : std_logic_vector(6 downto 0);
 signal i_gtp_drpen                 : std_logic;
 signal i_gtp_drpwe                 : std_logic;
@@ -201,14 +202,14 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-tstout:process(p_in_rst,p_in_clk)
+tstout:process(p_in_rst,p_in_gtp_drpclk)
 begin
   if p_in_rst='1' then
     tst_out<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif p_in_gtp_drpclk'event and p_in_gtp_drpclk='1' then
     tst_out<=OR_reduce(tst_spctrl_out) or
              OR_reduce(tst_player_out(0)) or
-             OR_reduce(tst_llayer_out(0)) or
+             OR_reduce(tst_llayer_out(0)) or OR_reduce(tst_llayer_out(1)) or
              OR_reduce(tst_tlayer_out(0)) or
              OR_reduce(tst_alayer_out(0));
 
@@ -247,15 +248,14 @@ port map
 --
 --------------------------------------------------
 p_in_ctrl               => i_spd_ctrl,
-p_in_usr_dcm_lock       => p_in_sys_dcm_lock,
 p_out_spd_ver           => i_spd_out,
+
+p_in_gtp_pll_lock       => i_gtp_PLLLKDET,
+p_in_usr_dcm_lock       => p_in_sys_dcm_lock,
 
 --------------------------------------------------
 --RocketIO
 --------------------------------------------------
-p_in_gtp_pll_lock       => i_gtp_PLLLKDET,
-
-p_out_gtp_drpclk        => i_gtp_drpclk,
 p_out_gtp_drpaddr       => i_gtp_drpaddr,
 p_out_gtp_drpen         => i_gtp_drpen,
 p_out_gtp_drpwe         => i_gtp_drpwe,
@@ -275,7 +275,7 @@ p_out_tst               => tst_spctrl_out,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk                => p_in_g_gtp_refclk, --//(150MHz)
+p_in_clk                => p_in_gtp_drpclk,
 p_in_rst                => p_in_rst
 );
 
@@ -317,7 +317,6 @@ gen_sim_on: if strcmp(G_SIM,"ON") generate
 p_out_sim_gtp_txdata(1) <= (others=>'0');
 p_out_sim_gtp_txcharisk(1) <= (others=>'0');
 
-p_out_sim_gtp_out(1)<='0';
 p_out_sim_rst(1) <= i_sata_module_rst(1);
 p_out_sim_clk(1) <= '0';
 
@@ -338,20 +337,14 @@ p_out_sim_clk(i) <= g_gtp_usrclk2(i);
 
 p_out_sim_gtp_txdata(i)   <= i_gtp_txdata(i);
 p_out_sim_gtp_txcharisk(i)<= i_gtp_txcharisk(i);
-p_out_sim_gtp_out(i)      <= i_gtp_txelecidle(i) or i_gtp_txcomstart(i) or i_gtp_txcomtype(i) or i_gtp_ch_rst(i);
 
 i_gtp_rxelecidle(i)       <= p_in_sim_gtp_rxelecidle(i);
 i_gtp_rxstatus(i)         <= p_in_sim_gtp_rxstatus(i);
 i_gtp_rxdata(i)           <= p_in_sim_gtp_rxdata(i);
 i_gtp_rxcharisk(i)        <= p_in_sim_gtp_rxcharisk(i);
-
-i_gtp_rxdisperr(0)        <= (others=>'0');
-i_gtp_rxnotintable(0)     <= (others=>'0');
-i_gtp_rxbyteisaligned(0)  <= '0';
-
-i_gtp_rxdisperr(1)        <= (others=>'0');
-i_gtp_rxnotintable(1)     <= (others=>'0');
-i_gtp_rxbyteisaligned(1)  <= '0';
+i_gtp_rxdisperr(i)        <= p_in_sim_gtp_rxdisperr(i);
+i_gtp_rxnotintable(i)     <= p_in_sim_gtp_rxnotintable(i);
+i_gtp_rxbyteisaligned(i)  <= p_in_sim_gtp_rxbyteisaligned(i);
 
 end generate gen_sim_on;
 
@@ -521,7 +514,6 @@ p_in_rst                  => i_sata_module_rst(i)
 m_llayer : sata_llayer
 generic map
 (
---G_GTP_DBUS => G_GTP_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
@@ -647,55 +639,55 @@ port map
 --------------------------------------------------
 --Driver
 --------------------------------------------------
-p_out_txn                        => p_out_sata_txn,
-p_out_txp                        => p_out_sata_txp,
-p_in_rxn                         => p_in_sata_rxn,
-p_in_rxp                         => p_in_sata_rxp,
+p_out_txn              => p_out_sata_txn,
+p_out_txp              => p_out_sata_txp,
+p_in_rxn               => p_in_sata_rxn,
+p_in_rxp               => p_in_sata_rxp,
 
 --------------------------------------------------
 --Clocking
 --------------------------------------------------
-p_in_usrclk                      => g_gtp_usrclk,
-p_in_usrclk2                     => g_gtp_usrclk2,
+p_in_usrclk            => g_gtp_usrclk,
+p_in_usrclk2           => g_gtp_usrclk2,
 
 --------------------------------------------------
 --Tranceiver
 --------------------------------------------------
-p_in_txreset                     => i_gtp_ch_rst,
-p_in_txelecidle                  => i_gtp_txelecidle,
-p_in_txcomstart                  => i_gtp_txcomstart,
-p_in_txcomtype                   => i_gtp_txcomtype,
-p_in_txdata                      => i_gtp_txdata,
-p_in_txcharisk                   => i_gtp_txcharisk,
+p_in_txreset           => i_gtp_ch_rst,
+p_in_txelecidle        => i_gtp_txelecidle,
+p_in_txcomstart        => i_gtp_txcomstart,
+p_in_txcomtype         => i_gtp_txcomtype,
+p_in_txdata            => i_gtp_txdata,
+p_in_txcharisk         => i_gtp_txcharisk,
 
 --------------------------------------------------
 --Receiver
 --------------------------------------------------
-p_in_rxreset                     => i_gtp_ch_rst,
-p_out_rxelecidle                 => i_gtp_rxelecidle,
-p_out_rxstatus                   => i_gtp_rxstatus,
-p_out_rxdata                     => i_gtp_rxdata,
-p_out_rxcharisk                  => i_gtp_rxcharisk,
-p_out_rxdisperr                  => i_gtp_rxdisperr,
-p_out_rxnotintable               => i_gtp_rxnotintable,
-p_out_rxbyteisaligned            => i_gtp_rxbyteisaligned,
+p_in_rxreset           => i_gtp_ch_rst,
+p_out_rxelecidle       => i_gtp_rxelecidle,
+p_out_rxstatus         => i_gtp_rxstatus,
+p_out_rxdata           => i_gtp_rxdata,
+p_out_rxcharisk        => i_gtp_rxcharisk,
+p_out_rxdisperr        => i_gtp_rxdisperr,
+p_out_rxnotintable     => i_gtp_rxnotintable,
+p_out_rxbyteisaligned  => i_gtp_rxbyteisaligned,
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_drpclk                      => i_gtp_drpclk,
-p_in_drpaddr                     => i_gtp_drpaddr,
-p_in_drpen                       => i_gtp_drpen,
-p_in_drpwe                       => i_gtp_drpwe,
-p_in_drpdi                       => i_gtp_drpdi,
-p_out_drpdo                      => i_gtp_drpdo,
-p_out_drprdy                     => i_gtp_drprdy,
+p_in_drpclk            => p_in_gtp_drpclk,
+p_in_drpaddr           => i_gtp_drpaddr,
+p_in_drpen             => i_gtp_drpen,
+p_in_drpwe             => i_gtp_drpwe,
+p_in_drpdi             => i_gtp_drpdi,
+p_out_drpdo            => i_gtp_drpdo,
+p_out_drprdy           => i_gtp_drprdy,
 
-p_out_plllock                    => i_gtp_PLLLKDET,
-p_out_refclkout                  => p_out_gtp_refclk,
+p_out_plllock          => i_gtp_PLLLKDET,
+p_out_refclkout        => p_out_gtp_refclk,
 
-p_in_refclkin                    => p_in_clk,
-p_in_rst                         => i_gtp_glob_reset
+p_in_refclkin          => p_in_gtp_refclk,
+p_in_rst               => i_gtp_glob_reset
 
 );
 
@@ -713,7 +705,7 @@ i_gtp_drprdy <='1';
 
 i_gtp_PLLLKDET <= not p_in_rst;
 
-p_out_gtp_refclk <=p_in_clk;
+p_out_gtp_refclk <=p_in_gtp_refclk;
 
 end generate gen_sim_on;
 

@@ -124,18 +124,13 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    tst_rxelecidle<='0';
-    tst_rxstatus<=(others=>'0');
     tst_fms_cs_dly<=(others=>'0');
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
-    tst_rxelecidle<=p_in_gtp_rxelecidle;
-    tst_rxstatus<=p_in_gtp_rxstatus;
     tst_fms_cs_dly<=tst_fms_cs;
+    p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly);
 
-    p_out_tst(0)<=tst_val or tst_rxelecidle or OR_reduce(tst_rxstatus) or
-                  OR_reduce(tst_fms_cs_dly);
   end if;
 end process ltstout;
 
@@ -148,7 +143,7 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when i_fsm_statecs=
             CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when i_fsm_statecs=S_HR_AwaitNoCOMWAKE else
             CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when i_fsm_statecs=S_HR_AwaitAlign else
             CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when i_fsm_statecs=S_HR_SendAlign else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when i_fsm_statecs=S_HR_Ready else
+            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when i_fsm_statecs=S_HR_Ready else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);
 
 end generate gen_dbg_on;
@@ -424,9 +419,6 @@ end process;
 
 end generate gen_sim_on;
 
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

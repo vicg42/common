@@ -6,8 +6,10 @@
 -- Module Name : sata_player_rx
 --
 -- Назначение/Описание :
---   1. Обнаружение в данных от приемника RocketIO примитивов SATA и пользовательских данных,
---      выдача соответствующего флага на порту p_out_rxtype
+--   1. Обнаружение в данных приемника RocketIO примитивов SATA и пользовательских данных,
+--      выдача соответствующего флага на порт p_out_rxtype
+--   2. Обнаружение ошибок приема данных
+--      выдача соответствующего флага на порт p_out_rxerr
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -38,9 +40,9 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
-p_out_rxd                  : out   std_logic_vector(31 downto 0);               --//Принятые данные
-p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);--//Тип данных
-p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
+p_out_rxd                  : out   std_logic_vector(31 downto 0);                --//Принятые данные
+p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN); --//константы см. sata_pkg поле --//Номера примитивов
+p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);--//константы см. sata_pkg поле --//PHY Layer /Reciver /Статусы/Map:
 
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
@@ -88,7 +90,6 @@ signal tst_val                   : std_logic;
 signal tst_rcv_error             : std_logic;
 signal tst_rcv_err_notintable    : std_logic;
 signal tst_rcv_err_disperr       : std_logic;
-signal tst_rcv_err_byteisaligned : std_logic;
 
 
 
@@ -99,8 +100,7 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(0)<=tst_val;
-p_out_tst(31 downto 1)<=(others=>'0');
+p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
@@ -110,17 +110,16 @@ begin
     tst_rcv_error<='0';
     tst_rcv_err_notintable<='0';
     tst_rcv_err_disperr<='0';
-    tst_rcv_err_byteisaligned<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
-    tst_rcv_error<=OR_reduce(i_rcv_error);
+    tst_rcv_error<=OR_reduce(i_rcv_error) or not p_in_gtp_rxbyteisaligned;
     tst_rcv_err_disperr<=i_rcv_error(C_PRxSTAT_ERR_DISP_BIT);
     tst_rcv_err_notintable<=i_rcv_error(C_PRxSTAT_ERR_NOTINTABLE_BIT);
-    tst_rcv_err_byteisaligned<=p_in_gtp_rxbyteisaligned;
 
   end if;
 end process ltstout;
-p_out_tst(0)<=tst_val or
-              tst_rcv_error or tst_rcv_err_notintable or tst_rcv_err_disperr or tst_rcv_err_byteisaligned;
+p_out_tst(0)<=tst_val or tst_rcv_error or
+              tst_rcv_err_notintable or tst_rcv_err_disperr;
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
@@ -130,11 +129,10 @@ end generate gen_dbg_on;
 --//Логика работы
 --//-----------------------------------
 i_rcv_error(C_PRxSTAT_ERR_DISP_BIT)<=OR_reduce(i_gtp_rxdisperr);
-i_rcv_error(C_PRxSTAT_ERR_NOTINTABLE_BIT)<=OR_reduce(i_gtp_rxnotintable);-- or not p_in_gtp_rxbyteisaligned;
+i_rcv_error(C_PRxSTAT_ERR_NOTINTABLE_BIT)<=OR_reduce(i_gtp_rxnotintable);
 p_out_rxerr<=i_rcv_error;
 
---p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM and p_in_gtp_rxbyteisaligned='1' else '0';
-p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM else '0';
+p_out_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM and p_in_gtp_rxbyteisaligned='1' else '0';
 p_out_rxtype(C_TSOF)     <='1' when i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM else '0';
 p_out_rxtype(C_TEOF)     <='1' when i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM else '0';
 p_out_rxtype(C_TDMAT)    <='1' when i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM else '0';
@@ -229,45 +227,34 @@ end generate gen_dbus16;
 
 
 
-
-
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
-
---//----------------------------------------
---//Только для моделирования
---//----------------------------------------
---Для удобства алализа  данных при моделироании
+--//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 rcv_name: process(p_in_clk)
---  variable dbgrcv_type : string(1 to 7);
 begin
 if p_in_clk'event and p_in_clk='1' then
-  if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TALIGN);
-  elsif i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TSOF);
-  elsif i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TEOF);
-  elsif i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TDMAT);
-  elsif i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TCONT);
-  elsif i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TSYNC);
-  elsif i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_THOLD);
-  elsif i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_THOLDA);
-  elsif i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TX_RDY);
-  elsif i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TR_RDY);
-  elsif i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TR_IP);
-  elsif i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TR_OK);
-  elsif i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TR_ERR);
-  elsif i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TWTRM);
-  elsif i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TPMREQ_P);
-  elsif i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TPMREQ_S);
-  elsif i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TPMACK);
-  elsif i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM then dbgrcv_type<=C_PNAME_STR(C_TPMNAK);
-  elsif                              i_rxdtype=C_PDAT_TDATA then dbgrcv_type<=C_PNAME_STR(C_TDATA_EN);
---  else dbgrcv_type<=C_PNAME_STR(C_TNONE);
+  if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TALIGN);
+  elsif i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TSOF);
+  elsif i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TEOF);
+  elsif i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TDMAT);
+  elsif i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TCONT);
+  elsif i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TSYNC);
+  elsif i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_THOLD);
+  elsif i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_THOLDA);
+  elsif i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TX_RDY);
+  elsif i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TR_RDY);
+  elsif i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TR_IP);
+  elsif i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TR_OK);
+  elsif i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TR_ERR);
+  elsif i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TWTRM);
+  elsif i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TPMREQ_P);
+  elsif i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TPMREQ_S);
+  elsif i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TPMACK);
+  elsif i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM  then dbgrcv_type<=C_PNAME_STR(C_TPMNAK);
+  elsif                             i_rxdtype=C_PDAT_TDATA then dbgrcv_type<=C_PNAME_STR(C_TDATA_EN);
   end if;
 
-  if dbgrcv_type=C_PNAME_STR(C_TDATA_EN) then
+  if dbgrcv_type=C_PNAME_STR(C_TDATA_EN) and p_in_gtp_rxbyteisaligned='1' then
     tst_val<='1';
   else
     tst_val<='0';

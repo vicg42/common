@@ -403,6 +403,9 @@ p_in_gtp_rxcharisk          : in    std_logic_vector(1 downto 0);
 
 p_out_gtp_rxstatus          : out   std_logic_vector(2 downto 0);
 p_out_gtp_rxelecidle        : out   std_logic;
+p_out_gtp_rxdisperr         : out   std_logic_vector(1 downto 0);
+p_out_gtp_rxnotintable      : out   std_logic_vector(1 downto 0);
+p_out_gtp_rxbyteisaligned   : out   std_logic;
 
 p_in_ctrl                   : in    TSataDevCtrl;
 

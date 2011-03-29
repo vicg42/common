@@ -40,13 +40,14 @@ end sata_host_tb;
 
 architecture behavior of sata_host_tb is
 
-constant i_sataclk_period : TIME := 6.6 ns; --150MHz
-constant i_usrclk_period  : TIME := 6.6*8 ns;
+constant C_SATACLK_PERIOD : TIME := 6.6 ns; --150MHz
+constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
 
 signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 
-signal g_gtp_refclk               : std_logic;
+signal i_gtp_refclk_out           : std_logic;
+signal g_gtp_refclk_out           : std_logic;
 
 signal i_sata_dcm_clk             : std_logic;
 signal i_sata_dcm_clk2x           : std_logic;
@@ -62,6 +63,9 @@ signal i_sim_gtp_txdata           : TBus16_GtpCh;
 signal i_sim_gtp_txcharisk        : TBus02_GtpCh;
 signal i_sim_gtp_rxdata           : TBus16_GtpCh;
 signal i_sim_gtp_rxcharisk        : TBus02_GtpCh;
+signal i_sim_gtp_rxdisperr        : TBus02_GtpCh;
+signal i_sim_gtp_rxnotintable     : TBus02_GtpCh;
+signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 
 signal i_al_ctrl                  : TALCtrl_GtpCh;
@@ -291,14 +295,15 @@ p_out_tst                   => tst_sata_host_out,
 --//Моделирование
 p_out_sim_gtp_txdata        => i_sim_gtp_rxdata,
 p_out_sim_gtp_txcharisk     => i_sim_gtp_rxcharisk,
-p_out_sim_gtp_out           => open,
 p_in_sim_gtp_rxdata         => i_sim_gtp_txdata,
 p_in_sim_gtp_rxcharisk      => i_sim_gtp_txcharisk,
 p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus,
 p_in_sim_gtp_rxelecidle     => i_sim_gtp_rxelecidle,
+p_in_sim_gtp_rxdisperr      => i_sim_gtp_rxdisperr,
+p_in_sim_gtp_rxnotintable   => i_sim_gtp_rxnotintable,
+p_in_sim_gtp_rxbyteisaligned=> i_sim_gtp_rxbyteisaligned,
 p_out_sim_rst               => i_sim_gtp_rst,
 p_out_sim_clk               => i_sim_gtp_clk,
-
 
 ---------------------------------------------------------------------------
 --System
@@ -309,9 +314,9 @@ p_in_sys_dcm_gclk2x         => i_sata_dcm_clk2x,
 p_in_sys_dcm_lock           => i_sata_dcm_lock,
 p_out_sys_dcm_rst           => i_sata_dcm_rst,
 
-p_out_gtp_refclk            => g_gtp_refclk,
-p_in_g_gtp_refclk           => g_gtp_refclk,
-p_in_clk                    => p_in_clk,
+p_in_gtp_drpclk             => g_gtp_refclk_out,
+p_out_gtp_refclk            => i_gtp_refclk_out,
+p_in_gtp_refclk             => p_in_clk,
 p_in_rst                    => p_in_rst
 );
 
@@ -335,6 +340,9 @@ p_in_gtp_rxcharisk          => i_sim_gtp_rxcharisk(0),
 
 p_out_gtp_rxstatus          => i_sim_gtp_rxstatus(0),
 p_out_gtp_rxelecidle        => i_sim_gtp_rxelecidle(0),
+p_out_gtp_rxdisperr         => i_sim_gtp_rxdisperr(0),
+p_out_gtp_rxnotintable      => i_sim_gtp_rxnotintable(0),
+p_out_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned(0),
 
 p_in_ctrl                   => i_satadev_ctrl(0),
 
@@ -351,6 +359,14 @@ p_in_clk                   => i_sim_gtp_clk(0),
 p_in_rst                   => i_sim_gtp_rst(0)
 );
 
+i_sim_gtp_rxelecidle(1)<='0';
+i_sim_gtp_rxstatus(1)<=(others=>'0');
+i_sim_gtp_rxdata(1)<=(others=>'0');
+i_sim_gtp_rxcharisk(1)<=(others=>'0');
+i_sim_gtp_rxdisperr(1)<=(others=>'0');
+i_sim_gtp_rxnotintable(1)<=(others=>'0');
+i_sim_gtp_rxbyteisaligned(1)<='0';
+
 
 m_sata_dcm : sata_dcm
 port map
@@ -361,26 +377,28 @@ p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 
 p_out_dcmlock       => i_sata_dcm_lock,
 
-p_in_clk            => g_gtp_refclk,
+p_in_clk            => g_gtp_refclk_out,
 p_in_rst            => i_sata_dcm_rst
 );
+
+ibufg_hdd : BUFG port map (I => i_gtp_refclk_out, O => g_gtp_refclk_out);
 
 p_in_rst<='1','0' after 1 us;
 
 gen_clk_sata : process
 begin
   p_in_clk<='0';
-  wait for i_sataclk_period/2;
+  wait for C_SATACLK_PERIOD/2;
   p_in_clk<='1';
-  wait for i_sataclk_period/2;
+  wait for C_SATACLK_PERIOD/2;
 end process;
 
 gen_clk_usr : process
 begin
   i_usr_clk<='0';
-  wait for i_usrclk_period/2;
+  wait for C_USRCLK_PERIOD/2;
   i_usr_clk<='1';
-  wait for i_usrclk_period/2;
+  wait for C_USRCLK_PERIOD/2;
 end process;
 
 

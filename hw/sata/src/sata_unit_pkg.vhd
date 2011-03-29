@@ -423,7 +423,6 @@ end component;
 component sata_llayer
 generic
 (
---G_GTP_DBUS : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -541,62 +540,61 @@ port
 --------------------------------------------------
 --Driver
 --------------------------------------------------
-p_out_txn                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_txp                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxn                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxp                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_txn              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_txp              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_rxp               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Clocking
 --------------------------------------------------
-p_in_usrclk                      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_usrclk2                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_usrclk            : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_usrclk2           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Tranceiver
 --------------------------------------------------
-p_in_txreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txelecidle                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txcomstart                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txcomtype                   : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txdata                      : in    TBus16_GtpCh;
-p_in_txcharisk                   : in    TBus02_GtpCh;
+p_in_txreset           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_txelecidle        : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_txcomstart        : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_txcomtype         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_txdata            : in    TBus16_GtpCh;
+p_in_txcharisk         : in    TBus02_GtpCh;
 
 --------------------------------------------------
 --Receiver
 --------------------------------------------------
-p_in_rxreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_rxstatus                   : out   TBus03_GtpCh;
-p_out_rxdata                     : out   TBus16_GtpCh;
-p_out_rxcharisk                  : out   TBus02_GtpCh;
-p_out_rxdisperr                  : out   TBus02_GtpCh;
-p_out_rxnotintable               : out   TBus02_GtpCh;
-p_out_rxbyteisaligned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_rxreset           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_rxelecidle       : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_rxstatus         : out   TBus03_GtpCh;
+p_out_rxdata           : out   TBus16_GtpCh;
+p_out_rxcharisk        : out   TBus02_GtpCh;
+p_out_rxdisperr        : out   TBus02_GtpCh;
+p_out_rxnotintable     : out   TBus02_GtpCh;
+p_out_rxbyteisaligned  : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_drpclk                      : in    std_logic;
-p_in_drpaddr                     : in    std_logic_vector(6 downto 0);
-p_in_drpen                       : in    std_logic;
-p_in_drpwe                       : in    std_logic;
-p_in_drpdi                       : in    std_logic_vector(15 downto 0);
-p_out_drpdo                      : out   std_logic_vector(15 downto 0);
-p_out_drprdy                     : out   std_logic;
+p_in_drpclk            : in    std_logic;
+p_in_drpaddr           : in    std_logic_vector(6 downto 0);
+p_in_drpen             : in    std_logic;
+p_in_drpwe             : in    std_logic;
+p_in_drpdi             : in    std_logic_vector(15 downto 0);
+p_out_drpdo            : out   std_logic_vector(15 downto 0);
+p_out_drprdy           : out   std_logic;
 
-p_out_plllock                    : out   std_logic;
-p_out_refclkout                  : out   std_logic;
+p_out_plllock          : out   std_logic;
+p_out_refclkout        : out   std_logic;
 
-p_in_refclkin                    : in    std_logic;
-p_in_rst                         : in    std_logic
+p_in_refclkin          : in    std_logic;
+p_in_rst               : in    std_logic
 );
 end component;
 
 component sata_speed_ctrl
 generic
 (
---G_SPEED_SATA           : string  :="ALL";
 G_SATA_MODULE_MAXCOUNT : integer := 1;
 G_SATA_MODULE_IDX      : integer := 0;
 G_GTP_CH_COUNT         : integer := 2;
@@ -609,15 +607,14 @@ port
 --
 --------------------------------------------------
 p_in_ctrl               : in    TSpdCtrl_GtpCh;
-p_in_usr_dcm_lock       : in    std_logic;
 p_out_spd_ver           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+p_in_gtp_pll_lock       : in    std_logic;
+p_in_usr_dcm_lock       : in    std_logic;
 
 --------------------------------------------------
 --Связь с GTP
 --------------------------------------------------
-p_in_gtp_pll_lock       : in    std_logic;
-
-p_out_gtp_drpclk        : out   std_logic;
 p_out_gtp_drpaddr       : out   std_logic_vector(6 downto 0);
 p_out_gtp_drpen         : out   std_logic;
 p_out_gtp_drpwe         : out   std_logic;
@@ -631,8 +628,8 @@ p_out_gtp_rst           : out   std_logic;
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst               : in    std_logic_vector(31 downto 0);
-p_out_tst              : out   std_logic_vector(31 downto 0);
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
@@ -698,26 +695,28 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --//Моделирование
 p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
 p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
-p_out_sim_gtp_out           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus16_GtpCh;
 p_in_sim_gtp_rxcharisk      : in    TBus02_GtpCh;
 p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxdisperr      : in    TBus02_GtpCh;
+p_in_sim_gtp_rxnotintable   : in    TBus02_GtpCh;
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 ---------------------------------------------------------------------------
 --System
 ---------------------------------------------------------------------------
-p_in_sys_dcm_gclk2div       : in    std_logic;--//dcm_clk0 /2
-p_in_sys_dcm_gclk           : in    std_logic;--//dcm_clk0
-p_in_sys_dcm_gclk2x         : in    std_logic;--//dcm_clk0 x 2
+p_in_sys_dcm_gclk2div       : in    std_logic;
+p_in_sys_dcm_gclk           : in    std_logic;
+p_in_sys_dcm_gclk2x         : in    std_logic;
 p_in_sys_dcm_lock           : in    std_logic;
 p_out_sys_dcm_rst           : out   std_logic;
 
-p_out_gtp_refclk            : out   std_logic;--//выход порта REFCLKOUT модуля GTP_DUAL/sata_rocketio.vhdl
-p_in_g_gtp_refclk           : in    std_logic;--//сигнлал p_out_gtp_refclk пропущенный через глобальный буфер
-p_in_clk                    : in    std_logic;--//CLKIN для модуля RocketIO(GTP)
+p_in_gtp_drpclk             : in    std_logic;
+p_out_gtp_refclk            : out   std_logic;
+p_in_gtp_refclk             : in    std_logic;
 p_in_rst                    : in    std_logic
 );
 end component;

@@ -37,7 +37,6 @@ use work.sata_sim_lite_pkg.all;
 entity sata_llayer is
 generic
 (
---G_GTP_DBUS : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -195,7 +194,6 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
-
     p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly);
   end if;
 end process ltstout;
@@ -2354,6 +2352,7 @@ end if;
 end process lfsm;
 
 
+
 --//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
@@ -2392,10 +2391,6 @@ begin
 end process;
 
 end generate gen_sim_on;
-
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-tst_val<='0';
-end generate gen_sim_off;
 
 --END MAIN
 end behavioral;

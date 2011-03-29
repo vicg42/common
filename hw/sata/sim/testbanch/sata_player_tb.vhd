@@ -181,7 +181,6 @@ i_link_rxd_status(1).empty<='1';
 m_llayer : sata_llayer
 generic map
 (
---G_GTP_DBUS => G_GTP_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
@@ -317,16 +316,15 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_usr_dcm_lock       => i_sata_dcm_lock,
 p_in_ctrl               => i_spd_ctrl,
 p_out_spd_ver           => i_spd_out,
+
+p_in_usr_dcm_lock       => i_sata_dcm_lock,
+p_in_gtp_pll_lock       => '1',
 
 --------------------------------------------------
 --RocketIO
 --------------------------------------------------
-p_in_gtp_pll_lock       => '1',
-
-p_out_gtp_drpclk        => open,
 p_out_gtp_drpaddr       => open,
 p_out_gtp_drpen         => open,
 p_out_gtp_drpwe         => open,

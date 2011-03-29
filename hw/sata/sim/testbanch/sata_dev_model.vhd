@@ -48,6 +48,9 @@ p_in_gtp_rxcharisk          : in    std_logic_vector(1 downto 0);
 
 p_out_gtp_rxstatus          : out   std_logic_vector(2 downto 0);
 p_out_gtp_rxelecidle        : out   std_logic;
+p_out_gtp_rxdisperr         : out   std_logic_vector(1 downto 0);
+p_out_gtp_rxnotintable      : out   std_logic_vector(1 downto 0);
+p_out_gtp_rxbyteisaligned   : out   std_logic;
 
 p_in_ctrl                   : in    TSataDevCtrl;
 
@@ -186,6 +189,13 @@ tst_dbuf_wen<=i_usropt_in.dbuf.wen;
 --//#########################################
 p_out_gtp_rxelecidle <='0','1' after 1 us, '0' after 4.5 us;
 p_out_gtp_rxstatus <="001","100" after 2.5 us, "101" after 3.0 us, "010" after 4.0 us, "000" after 4.5 us;
+
+--//#########################################
+--//Ошибки приема данных
+--//#########################################
+p_out_gtp_rxdisperr<=(others=>'0');
+p_out_gtp_rxnotintable<=(others=>'0');
+p_out_gtp_rxbyteisaligned<='1';
 
 
 --//#########################################
