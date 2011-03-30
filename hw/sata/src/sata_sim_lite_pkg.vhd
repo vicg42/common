@@ -81,7 +81,6 @@ txfh2d_en        : std_logic;
 rxfistype_err    : std_logic;
 rxfislen_err     : std_logic;
 txerr_crc_repeat : std_logic;
-usr_busy         : std_logic;
 end record;
 
 --//Link Layer

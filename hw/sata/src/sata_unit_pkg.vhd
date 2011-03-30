@@ -300,6 +300,7 @@ p_out_tst              : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_tmrclk            : in    std_logic;
 p_in_clk               : in    std_logic;
 p_in_rst               : in    std_logic
 );
@@ -524,6 +525,7 @@ p_out_tst                  : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_tmrclk            : in    std_logic;
 p_in_clk               : in    std_logic;
 p_in_rst               : in    std_logic
 );
@@ -607,7 +609,7 @@ port
 --
 --------------------------------------------------
 p_in_ctrl               : in    TSpdCtrl_GtpCh;
-p_out_spd_ver           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_spd_ver           : out   TSpdCtrl_GtpCh;
 
 p_in_gtp_pll_lock       : in    std_logic;
 p_in_usr_dcm_lock       : in    std_logic;

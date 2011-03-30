@@ -46,8 +46,10 @@ signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 signal p_in_rst_inv               : std_logic;
 
+signal i_sata_module_rst           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
 signal i_spd_ctrl                 : TSpdCtrl_GtpCh;
-signal i_spd_out                  : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_spd_out                  : TSpdCtrl_GtpCh;
 
 signal i_link_ctrl                : TLLCtrl_GtpCh;
 signal i_link_status              : TLLStat_GtpCh;
@@ -97,8 +99,6 @@ begin
 
 i_phy_status(1)<=(others=>'0');
 
-i_spd_out(0)<='0';
-i_spd_out(1)<='0';
 
 
 i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 9 us, '0' after 9.4 us;
@@ -178,6 +178,9 @@ i_link_rxd_status(1).pfull<='1';
 i_link_rxd_status(1).empty<='1';
 
 
+i_sata_module_rst(0)<=not i_sata_dcm_lock;
+i_sata_module_rst(0)<='0';
+
 m_llayer : sata_llayer
 generic map
 (
@@ -224,15 +227,12 @@ p_out_tst               => open,
 --System
 --------------------------------------------------
 p_in_clk               => i_sata_dcm_clk,
-p_in_rst               => p_in_rst
+p_in_rst               => i_sata_module_rst(0)
 );
 
 
-i_phy_ctrl(0)(C_PCTRL_SPD_BIT_L)<=i_spd_out(0);
-i_phy_ctrl(0)(C_PCTRL_SPD_BIT_M)<='0';
-
-i_phy_ctrl(1)(C_PCTRL_SPD_BIT_L)<='0';
-i_phy_ctrl(1)(C_PCTRL_SPD_BIT_M)<='0';
+i_phy_ctrl(0)(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L)<=i_spd_out(0).sata_ver;
+i_phy_ctrl(1)(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L)<=(others=>'0');
 
 m_player : sata_player
 generic map
@@ -291,8 +291,9 @@ p_out_tst               => open,
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_tmrclk            => i_sata_dcm_clk2div,
 p_in_clk               => i_sata_dcm_clk,
-p_in_rst               => p_in_rst
+p_in_rst               => i_sata_module_rst(0)
 );
 
 

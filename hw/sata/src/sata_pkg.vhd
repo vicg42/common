@@ -181,11 +181,10 @@ constant C_TCTRL_RCONTROL_WR_BIT         : integer:=16#02#;
 constant C_TLCTRL_LAST_BIT               : integer:=C_TCTRL_RCONTROL_WR_BIT;
 
 --//Статусы/Map:
-constant C_TSTAT_USR_BUSY_BIT            : integer:=0;
-constant C_TSTAT_RxFISTYPE_ERR_BIT       : integer:=1;--//Transport Layer не смог определить тип принятого пакета
-constant C_TSTAT_RxFISLEN_ERR_BIT        : integer:=2;--//
-constant C_TSTAT_TxERR_CRC_REPEAT_BIT    : integer:=3;--//Было сделано несколько попыток отправить FIS_H2D, но каждый раз получал от Link Layer C_LSTAT_TxERR_CRC
-constant C_TSTAT_TxFISHOST2DEV_BIT       : integer:=4;--//Сигнализируем что идет передача FIS_HOST2DEV
+constant C_TSTAT_RxFISTYPE_ERR_BIT       : integer:=0;--//Transport Layer не смог определить тип принятого пакета
+constant C_TSTAT_RxFISLEN_ERR_BIT        : integer:=1;--//
+constant C_TSTAT_TxERR_CRC_REPEAT_BIT    : integer:=2;--//Было сделано несколько попыток отправить FIS_H2D, но каждый раз получал от Link Layer C_LSTAT_TxERR_CRC
+constant C_TSTAT_TxFISHOST2DEV_BIT       : integer:=3;--//Сигнализируем что идет передача FIS_HOST2DEV
 constant C_TLSTAT_LAST_BIT               : integer:=C_TSTAT_TxFISHOST2DEV_BIT;
 
 --//FIS Type:
@@ -284,15 +283,13 @@ constant C_SECTOR_SIZE_BYTE              : integer:=512;
 constant C_FR_DWORD_COUNT_MAX            : integer:=2048;
 
 --//sata_player_oob.vhd
---//Значения timeout на разных частотах
-constant C_OOB_TIMEOUT_75MHz             : integer:=10#66000#; --=880us на 75MHz
-constant C_OOB_TIMEOUT_150MHz            : integer:=10#132000#;--=880us на 150MHz
-constant C_OOB_TIMEOUT_300MHz            : integer:=10#264000#;--=880us на 300MHz
+constant C_OOB_TIMEOUT                   : integer:=10#66000#; --=880us на 75MHz
 
 --//Версии спецификации SATA
 --//ВАЖНО: изменив эти константы, нужно будет руками править файлы sata_spd_ctrl.vhd sata_host.vhd
-constant C_FSATA_GEN2 : std_logic:='0';
-constant C_FSATA_GEN1 : std_logic:='1';
+constant C_FSATA_GEN1 : integer:=0;
+constant C_FSATA_GEN2 : integer:=1;
+constant C_FSATA_GEN_COUNT : integer:=2;
 
 
 --тип символа в 8b/10b
@@ -512,7 +509,7 @@ end record;
 
 type TSpdCtrl is record
 change   : std_logic;
-sata_ver : std_logic_vector(1 downto 0);
+sata_ver : std_logic_vector(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L);
 end record;
 
 type TSpdCtrl_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TSpdCtrl;

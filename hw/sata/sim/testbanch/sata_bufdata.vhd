@@ -47,6 +47,8 @@ p_in_rclk    : in    std_logic;
 p_out_status : out   TSimDBufStatus;
 p_in_ctrl    : in    TSimDBufCtrl;
 
+p_out_simbuf : out   TSimBufData;
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
@@ -161,7 +163,7 @@ p_out_status.tx.empty<='0';--i_txbuf_empty;
 p_out_status.tx.done<='0';
 p_out_status.tx.en<=i_txbuf_ren;
 
-
+p_out_simbuf<=i_dbuf;
 
 --//Чтение данных из RxFIFO и запись в i_dbuf
 lwrite:process

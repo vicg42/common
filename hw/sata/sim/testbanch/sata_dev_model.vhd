@@ -154,6 +154,8 @@ signal i_dbuf_status              : TSimDBufStatus;
 signal i_dbuf_wr                  : std_logic:='0';
 signal tstdbuf_out                : std_logic_vector(31 downto 0):=(others=>'0');
 
+signal i_sim_dbuf                 : TSimBufData;
+
 signal i_atacmd_scount   : std_logic_vector(15 downto 0):=(others=>'0');
 signal i_atacmd_dwcount : integer:=0;
 
@@ -187,8 +189,8 @@ tst_dbuf_wen<=i_usropt_in.dbuf.wen;
 --//#########################################
 --//OOB signaling
 --//#########################################
-p_out_gtp_rxelecidle <='0','1' after 1 us, '0' after 4.5 us;
-p_out_gtp_rxstatus <="001","100" after 2.5 us, "101" after 3.0 us, "010" after 4.0 us, "000" after 4.5 us;
+p_out_gtp_rxelecidle <='0','1' after 1 us, '0' after 5.5 us;
+p_out_gtp_rxstatus <="001","100" after 2.5 us, "101" after 3.0 us, "010" after 5.0 us, "000" after 5.5 us;
 
 --//#########################################
 --//ќшибки приема данных
@@ -224,7 +226,7 @@ i_usropt_in.rx.detect.error.pcont<=i_rxp_err_pcont;
 i_usropt_in.rx.detect.error.fistype<=i_rxfistype_error;
 i_usropt_in.rx.detect.error.prmvt_count<=OR_reduce(i_rxprmtv_err_cnt);
 
-i_usropt_in.rx.bufdata<=i_rxbuffer;
+i_usropt_in.rx.bufdata<=i_rxbuffer when p_in_ctrl.dbuf_ruse='0' else i_sim_dbuf;
 i_usropt_in.loopback<=p_in_ctrl.loopback;
 
 i_usropt_in.dbuf.trnsize<=0;
@@ -235,7 +237,7 @@ i_usropt_in.dbuf.wen<=i_dbuf_status.rx.en;--//управление записью данных в dbuf
 i_usropt_in.dbuf.wdone<=i_dbuf_status.rx.done;--//сигнализаци€ о завершении вычитки данных
 i_usropt_in.dbuf.wdone_clr<='0';
 
-i_usropt_in.dbuf.rused<=p_in_ctrl.dbuf_ruse;--;
+i_usropt_in.dbuf.rused<='0';--p_in_ctrl.dbuf_ruse;--;
 i_usropt_in.dbuf.rstart<='0';
 i_usropt_in.dbuf.rdone<='0';
 i_usropt_in.dbuf.rdone_clr<='0';
@@ -1095,6 +1097,7 @@ p_in_rclk    => p_in_clk,
 p_out_status => i_dbuf_status,
 p_in_ctrl    => i_dbuf_ctrl,
 
+p_out_simbuf => i_sim_dbuf,
 --------------------------------------------------
 --“ехнологические сигналы
 --------------------------------------------------

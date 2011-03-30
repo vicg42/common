@@ -1610,7 +1610,6 @@ tst_tl_status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
 tst_tl_status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
 tst_tl_status.rxfislen_err<=i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT);
 tst_tl_status.txerr_crc_repeat<=i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT);
-tst_tl_status.usr_busy<=i_tl_status(C_TSTAT_USR_BUSY_BIT);
 
 process(p_in_tl_ctrl,i_tl_status)
 begin

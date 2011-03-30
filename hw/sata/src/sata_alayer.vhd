@@ -520,8 +520,7 @@ end process;
 --Ñâÿçü ñ Speed Controller
 --------------------------------------------------
 p_out_spd_ctrl.change<=(i_usrmode(C_USRCMD_SET_SATA1) or i_usrmode(C_USRCMD_SET_SATA2)) and i_reg_shadow_wr_done;
-p_out_spd_ctrl.sata_ver(0)<=C_FSATA_GEN1 when  i_usrmode(C_USRCMD_SET_SATA1)='1' else C_FSATA_GEN2;
-p_out_spd_ctrl.sata_ver(1)<='0';
+p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, p_out_spd_ctrl.sata_ver'length) when  i_usrmode(C_USRCMD_SET_SATA1)='1' else CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata_ver'length);
 
 
 --------------------------------------------------

@@ -53,7 +53,7 @@ port
 --
 --------------------------------------------------
 p_in_ctrl               : in    TSpdCtrl_GtpCh;
-p_out_spd_ver           : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);--//Выбор типа SATA: Generation 2 (3Gb/s)/ Generation 1 (1.5Gb/s)
+p_out_spd_ver           : out   TSpdCtrl_GtpCh;--//Выбор типа SATA: Generation 2 (3Gb/s)/ Generation 1 (1.5Gb/s)
 
 p_in_gtp_pll_lock       : in    std_logic;
 p_in_usr_dcm_lock       : in    std_logic;
@@ -102,6 +102,13 @@ constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(6 downto 0):=CONV_STD_LOGIC
 
 constant C_AREG_PLL_TXDIVSEL_OUT  : TBus07_GtpCh:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
 constant C_AREG_PLL_RXDIVSEL_OUT  : TBus07_GtpCh:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
+
+type TRegValue is array (0 to C_FSATA_GEN_COUNT-1) of std_logic;
+constant C_VAL_PLL_DIVSEL_OUT  : TRegValue:=
+(
+'1',--//Значения для программирования SATA-I
+'0' --//Значения для программирования SATA-II
+);
 
 constant C_REG_PLL_RXDIVSEL       : std_logic:='0';
 constant C_REG_PLL_TXDIVSEL       : std_logic:='1';
@@ -152,8 +159,7 @@ signal i_tmr_en                 : std_logic;
 
 signal i_spd_change             : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 signal i_spd_change_save        : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_spd_ver                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_spd_ver_out            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_spd_ver_out            : TSpdCtrl_GtpCh;
 
 signal i_gtp_drp_addr           : std_logic_vector(6 downto 0);
 signal i_gtp_drp_en             : std_logic;
@@ -236,7 +242,6 @@ i_gtp_drprdy      <= p_in_gtp_drprdy;
 --//----------------------------------
 gen_ch : for i in 0 to C_GTP_CH_COUNT_MAX-1 generate
   i_spd_change(i)<=p_in_ctrl(i).change;
-  i_spd_ver(i)<='0' when p_in_ctrl(i).sata_ver="00" else '1';
 end generate gen_ch;
 
 --//
@@ -273,8 +278,11 @@ begin
     i_gtp_ch_rst<=(others=>'0');
     i_gtp_rst<='0';
 
-    i_spd_change_save<=(others=>'0');
-    i_spd_ver_out<=(others=>'0');
+    for i in 0 to C_GTP_CH_COUNT_MAX-1 loop
+    i_spd_change_save(i)<='0';
+    i_spd_ver_out(i).change<='0';
+    i_spd_ver_out(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_COUNT-1, i_spd_ver_out(i).sata_ver'length);
+    end loop;
     i_tmr_en<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -512,14 +520,22 @@ begin
           i_gtp_drp_addr<=C_AREG_PLL_RXDIVSEL_OUT(0);
 
           i_gtp_drp_di(1 downto 0) <= i_gtp_drp_rdval(0)(1 downto 0);
-          i_gtp_drp_di(2)          <= i_spd_ver(0);
+          for i in 0 to C_FSATA_GEN_COUNT-1 loop
+            if p_in_ctrl(0).sata_ver=CONV_STD_LOGIC_VECTOR(i, p_in_ctrl(0).sata_ver'length) then
+              i_gtp_drp_di(2)<=C_VAL_PLL_DIVSEL_OUT(i);
+            end if;
+          end loop;
           i_gtp_drp_di(15 downto 3)<= i_gtp_drp_rdval(0)(15 downto 3);
 
         else
           i_gtp_drp_addr<=C_AREG_PLL_TXDIVSEL_OUT(0);
 
           i_gtp_drp_di(14 downto 0)<= i_gtp_drp_rdval(0)(14 downto 0);
-          i_gtp_drp_di(15)         <= i_spd_ver(0);
+          for i in 0 to C_FSATA_GEN_COUNT-1 loop
+            if p_in_ctrl(0).sata_ver=CONV_STD_LOGIC_VECTOR(i, p_in_ctrl(0).sata_ver'length) then
+              i_gtp_drp_di(15)<=C_VAL_PLL_DIVSEL_OUT(i);
+            end if;
+          end loop;
         end if;
 
         i_gtp_drp_en <= '1';
@@ -552,14 +568,22 @@ begin
         if i_gtp_drp_regsel=C_REG_PLL_RXDIVSEL then
           i_gtp_drp_addr <= C_AREG_PLL_RXDIVSEL_OUT(1);
 
-          i_gtp_drp_di(0)          <= i_spd_ver(1);
+          for i in 0 to C_FSATA_GEN_COUNT-1 loop
+            if p_in_ctrl(1).sata_ver=CONV_STD_LOGIC_VECTOR(i, p_in_ctrl(0).sata_ver'length) then
+              i_gtp_drp_di(0)<=C_VAL_PLL_DIVSEL_OUT(i);
+            end if;
+          end loop;
           i_gtp_drp_di(15 downto 1)<= i_gtp_drp_rdval(1)(15 downto 1);
 
         else
           i_gtp_drp_addr<=C_AREG_PLL_TXDIVSEL_OUT(1);
 
           i_gtp_drp_di(3 downto 0) <= i_gtp_drp_rdval(1)(3 downto 0);
-          i_gtp_drp_di(4)          <= i_spd_ver(1);
+          for i in 0 to C_FSATA_GEN_COUNT-1 loop
+            if p_in_ctrl(1).sata_ver=CONV_STD_LOGIC_VECTOR(i, p_in_ctrl(0).sata_ver'length) then
+              i_gtp_drp_di(4)<=C_VAL_PLL_DIVSEL_OUT(i);
+            end if;
+          end loop;
           i_gtp_drp_di(15 downto 5)<= i_gtp_drp_rdval(1)(15 downto 5);
         end if;
 
@@ -630,7 +654,9 @@ begin
 
       when S_GTP_CH_RESET_DONE =>
         i_gtp_ch_rst<=(others=>'0');
-        i_spd_ver_out<=i_spd_ver;
+        for i in 0 to C_GTP_CH_COUNT_MAX-1 loop
+        i_spd_ver_out(i).sata_ver<=p_in_ctrl(i).sata_ver;
+        end loop;
         fsm_state_cs <= S_IDLE_SPDCFG;
 
     end case;

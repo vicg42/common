@@ -114,7 +114,8 @@ architecture behavioral of sata_host is
 signal i_sata_module_rst           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 signal i_spd_ctrl                  : TSpdCtrl_GtpCh;
-signal i_spd_out                   : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_spd_out                   : TSpdCtrl_GtpCh;
+signal i_spdclk_sel                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 signal i_spd_gtp_ch_rst            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 signal i_reg_dma                   : TRegDMA_GtpCh;
@@ -349,8 +350,7 @@ i_gtp_rxbyteisaligned(i)  <= p_in_sim_gtp_rxbyteisaligned(i);
 end generate gen_sim_on;
 
 
-i_phy_ctrl(i)(C_PCTRL_SPD_BIT_L)<=i_spd_out(i);
-i_phy_ctrl(i)(C_PCTRL_SPD_BIT_M)<='0';
+i_phy_ctrl(i)<=i_spd_out(i).sata_ver;
 
 --//Сброс канала GTP
 i_gtp_ch_rst(i)<=i_phy_gtp_ch_rst(i) or i_spd_gtp_ch_rst(i);
@@ -363,13 +363,14 @@ i_sata_module_rst(i)<=i_spd_gtp_ch_rst(i) or not p_in_sys_dcm_lock;
 --//Тактовая частота для тактирования Cmd/Rx/TxBUF - usrapp_layer
 p_out_usrfifo_clkout(i)<=g_gtp_usrclk2(i);
 
+i_spdclk_sel(i)<='0' when i_spd_out(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, i_spd_out(i).sata_ver'length) else '1';
 
 --//Выбор тактовых частот для работы SATA-I/II
 gen_gtp_w8 : if G_GTP_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
-S  => i_spd_out(i),
+S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
@@ -381,7 +382,7 @@ gen_gtp_w16 : if G_GTP_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
-S  => i_spd_out(i),
+S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
@@ -389,7 +390,7 @@ O  => g_gtp_usrclk2(i)
 m_bufg_usrclk : BUFGMUX_CTRL
 port map
 (
-S  => i_spd_out(i),
+S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
 O  => g_gtp_usrclk(i)
@@ -617,6 +618,7 @@ p_out_tst                  => tst_player_out(i),
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_tmrclk             => p_in_sys_dcm_gclk2div,
 p_in_clk                => g_gtp_usrclk2(i),
 p_in_rst                => i_sata_module_rst(i)
 );

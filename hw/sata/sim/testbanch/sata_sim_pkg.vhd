@@ -33,7 +33,7 @@ package sata_sim_pkg is
 ---------------------------------------------------------
 --Константы
 ---------------------------------------------------------
-constant C_SIM_COUNT              : integer:=6;--//Кол-во проходов симуляции
+constant C_SIM_COUNT              : integer:=4;--//Кол-во проходов симуляции
 
 constant C_SIM_SATADEV_TMR_ALIGN  : integer:=48;--//Переиод отправки BURST ALIGN для sata_dev_model.vhd
 
@@ -439,6 +439,8 @@ p_in_rclk    : in    std_logic;
 
 p_out_status : out   TSimDBufStatus;
 p_in_ctrl    : in    TSimDBufCtrl;
+
+p_out_simbuf : out   TSimBufData;
 
 --------------------------------------------------
 --Технологические сигналы
