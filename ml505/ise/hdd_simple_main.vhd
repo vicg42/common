@@ -414,11 +414,11 @@ i_satah_sim_gtp_rxdisperr(i)<=(others=>'0');
 i_satah_sim_gtp_rxnotintable(i)<=(others=>'0');
 i_satah_sim_gtp_rxbyteisaligned(i)<='0';
 
-i_satah_ctrl(i)<=(others=>'0');
 end generate gen_gtpch;
 
 
-
+i_satah_ctrl(0)(C_ACTRL_ERR_CLR_BIT)<=pin_in_btn_C;--//—брос регистра ошибок
+i_satah_ctrl(1)<=(others=>'0');
 
 
 --//----------------------------------
@@ -444,14 +444,14 @@ pin_out_led_S<='0';
 pin_out_led_W<='0';
 
 pin_out_led(0)<=i_satah_status(0).Usr(C_AUSER_BUSY_BIT);
-pin_out_led(1)<=i_satah_status(0).ATAError(C_REG_ATA_STATUS_ERR_BIT) or
+pin_out_led(1)<=i_satah_status(0).ATAStatus(C_REG_ATA_STATUS_ERR_BIT) or
                 i_satah_status(0).SError(C_ASERR_I_ERR_BIT) or
                 i_satah_status(0).SError(C_ASERR_C_ERR_BIT) or
                 i_satah_status(0).SError(C_ASERR_P_ERR_BIT);
 pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 
-pin_out_led(4)<=i_satah_status(0).ATAError(C_REG_ATA_STATUS_ERR_BIT);
+pin_out_led(4)<=i_satah_status(0).ATAStatus(C_REG_ATA_STATUS_ERR_BIT);
 pin_out_led(5)<=i_satah_status(0).SError(C_ASERR_C_ERR_BIT);
 pin_out_led(6)<=i_satah_status(0).SError(C_ASERR_P_ERR_BIT);
 pin_out_led(7)<=i_satah_status(0).SError(C_ASERR_I_ERR_BIT);
