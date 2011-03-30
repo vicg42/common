@@ -1486,7 +1486,23 @@ if p_in_phy_sync='1' then
 
           i_init_work<='0';--//Инициализация модулей CRC,Scrambler
 
-          if p_in_phy_rxtype(C_TCONT)='1' then
+          if p_in_phy_rxtype(C_TSOF)='1' then
+          --//FRAME START
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                end if;
+              end if;
+
+              i_rxp<=(others=>'0');
+              i_txp_cnt<=(others=>'0');
+              i_rcv_en<='1';
+              i_status(C_LSTAT_RxSTART)<='1';--//Информ. Транспорный уровень
+              fsm_llayer_cs <= S_LR_RcvData;
+
+          elsif p_in_phy_rxtype(C_TCONT)='1' then
           --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
               if p_in_phy_txrdy_n='0' then
                 if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
@@ -1503,22 +1519,6 @@ if p_in_phy_sync='1' then
               end if;
 
               i_rxp(C_TCONT)<='1';
-
-          elsif p_in_phy_rxtype(C_TSOF)='1' then
-          --//FRAME START
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
-              i_txp_cnt<=(others=>'0');
-              i_rcv_en<='1';
-              i_status(C_LSTAT_RxSTART)<='1';--//Информ. Транспорный уровень
-              fsm_llayer_cs <= S_LR_RcvData;
 
           elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_TX_RDY)='0' then
           --//ERROR!!! - Принял ошибочный примитив для этого сотояния автомата
