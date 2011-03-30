@@ -286,8 +286,8 @@ begin
 
     elsif p_in_reg_update.fd2h='1'then
     --//Обновление регистров по приему FIS_DEV2HOST
+    --//ВАЖНО: Если оба бита BSY и DRQ ='0', то обновление не делаем - в соответвии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 10.3.5.3
       if i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT)='1' or i_reg_shadow.status(C_REG_ATA_STATUS_DRQ_BIT)='1' then
-      --//Если не оба бита BSY и DRQ ='0', то обновление не делаем - в соответвии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 10.3.5.3
         i_reg_shadow.status <= p_in_reg_hold.status;
         i_reg_shadow.error <= p_in_reg_hold.error;
         i_reg_shadow.device <= p_in_reg_hold.device;
