@@ -306,11 +306,10 @@ i_spd_ctrl(1).sata_ver<=(others=>'0');
 m_speed_ctrl : sata_speed_ctrl
 generic map
 (
-G_SATA_MODULE_MAXCOUNT     => 2,
-G_SATA_MODULE_IDX          => 0,
-G_GTP_CH_COUNT             => 2,
-G_DBG                      => G_DBG,
-G_SIM                      => G_SIM
+G_SATAH_COUNT_MAX => 1,
+G_SATAH_NUM       => 0,
+G_DBG             => G_DBG,
+G_SIM             => G_SIM
 )
 port map
 (

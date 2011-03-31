@@ -24,27 +24,57 @@ package sata_pkg is
 ---------------------------------------------------------
 --Типы
 ---------------------------------------------------------
-type TInt_SataArray02 is array (0 to 1) of integer;
-type TInt_SataArray03 is array (0 to 2) of integer;
-type TInt_SataArray04 is array (0 to 3) of integer;
-type TInt_SataArray05 is array (0 to 4) of integer;
-type TInt_SataArray06 is array (0 to 5) of integer;
+type T08Sata is array (0 to 7) of integer;
+type T08SataSel is array (0 to 1) of T08Sata;
+type T8x08SataSel is array (0 to 7) of T08SataSel;
 
 ---------------------------------------------------------
 --Константы
 ---------------------------------------------------------
-constant C_GTP_CH_COUNT_MAX      : integer:=2;
-constant C_DUAL_GTP_COUNT_MAX    : integer:=3;
-constant C_SATA_COUNT_MAX        : integer:=C_DUAL_GTP_COUNT_MAX*C_GTP_CH_COUNT_MAX;
+constant C_GTP_CH_COUNT_MAX      : integer:=2;--//2/1 - для DUAL_GTP/GTX
+constant C_GTP_COUNT_MAX         : integer:=4;
+constant C_SATA_COUNT_MAX        : integer:=C_GTP_COUNT_MAX*C_GTP_CH_COUNT_MAX;--//Произведение не должно быть более 8!!!!
 
---//Кол-во модулей sata_host.vhd в зависимости от параметра:generic:G_HDD_COUNT (модуля sata_dsn.vhd)
-constant C_SATA_HOST_MODULE_COUNT  : TInt_SataArray06:=(1,1,2,2,3,3);
---//Кол-во используемх каналов sata в модуле sata_host.vhd с определенным индексом
---//(G_SATA_MODULE_xx_СH_COUNT - где хх - индекс модуля sata_host.vhd)
---//в зависимости от параметра:generic:G_HDD_COUNT (модуля sata_dsn.vhd)
-constant C_SATA_HOST_MODULE_0_CH_COUNT : TInt_SataArray06:=(1,2,2,2,2,2);
-constant C_SATA_HOST_MODULE_1_CH_COUNT : TInt_SataArray06:=(0,0,1,2,2,2);
-constant C_SATA_HOST_MODULE_2_CH_COUNT : TInt_SataArray06:=(0,0,0,0,1,2);
+--//Назначаем общее кол-во модулей GTP:
+---------------------------------------------------------------------------
+--//G_HDD_COUNT - значения:               | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+---------------------------------------------------------------------------
+constant C_DUALGTP_COUNT      : T08Sata:=(  1,  1,  2,  2,  3,  3,  4,  4 );--//Для DUAL_GTP
+constant C_GTX_COUNT          : T08Sata:=(  1,  2,  3,  4,  5,  6,  7,  8 );--//Для GTP
+constant C_GTP_TOTAL_SEL      : T08SataSel:=(C_GTX_COUNT, C_DUALGTP_COUNT);
+
+constant C_SATAHOST_COUNT_MAX : T08Sata:=C_GTP_TOTAL_SEL(C_GTP_CH_COUNT_MAX-1);
+constant C_SATAHOST_MAIN_NUM  : integer:=0; --//определяем индекс модуля от которого будем брать частоту для тактирования DCM
+
+--//Кол-во используемх каналов в модуле sata_host.vhd
+--//если используется DUAL_GTP(Virtex5)
+constant C_DUALGTP0_CH : T08Sata:=(1,2,2,2,2,2,2,2);
+constant C_DUALGTP1_CH : T08Sata:=(0,0,1,2,2,2,2,2);
+constant C_DUALGTP2_CH : T08Sata:=(0,0,0,0,1,2,2,2);
+constant C_DUALGTP3_CH : T08Sata:=(0,0,0,0,0,0,1,2);
+constant C_DUALGTP4_CH : T08Sata:=(0,0,0,0,0,0,0,0);
+constant C_DUALGTP5_CH : T08Sata:=(0,0,0,0,0,0,0,0);
+constant C_DUALGTP6_CH : T08Sata:=(0,0,0,0,0,0,0,0);
+constant C_DUALGTP7_CH : T08Sata:=(0,0,0,0,0,0,0,0);
+--//если используется GTX(Virtex6)
+constant C_GTX0_CH : T08Sata:=(1,1,1,1,1,1,1,1);
+constant C_GTX1_CH : T08Sata:=(0,1,1,1,1,1,1,1);
+constant C_GTX2_CH : T08Sata:=(0,0,1,1,1,1,1,1);
+constant C_GTX3_CH : T08Sata:=(0,0,0,1,1,1,1,1);
+constant C_GTX4_CH : T08Sata:=(0,0,0,0,1,1,1,1);
+constant C_GTX5_CH : T08Sata:=(0,0,0,0,0,1,1,1);
+constant C_GTX6_CH : T08Sata:=(0,0,0,0,0,0,1,1);
+constant C_GTX7_CH : T08Sata:=(0,0,0,0,0,0,0,1);
+
+constant C_GTP0_CH_COUNT : T08SataSel:=(C_GTX0_CH, C_DUALGTP0_CH);
+constant C_GTP1_CH_COUNT : T08SataSel:=(C_GTX1_CH, C_DUALGTP1_CH);
+constant C_GTP2_CH_COUNT : T08SataSel:=(C_GTX2_CH, C_DUALGTP2_CH);
+constant C_GTP3_CH_COUNT : T08SataSel:=(C_GTX3_CH, C_DUALGTP3_CH);
+constant C_GTP4_CH_COUNT : T08SataSel:=(C_GTX4_CH, C_DUALGTP4_CH);
+constant C_GTP5_CH_COUNT : T08SataSel:=(C_GTX5_CH, C_DUALGTP5_CH);
+constant C_GTP6_CH_COUNT : T08SataSel:=(C_GTX6_CH, C_DUALGTP6_CH);
+constant C_GTP7_CH_COUNT : T08SataSel:=(C_GTX7_CH, C_DUALGTP7_CH);
+
 
 
 
@@ -371,46 +401,21 @@ constant C_TNONE    : integer:=20;
 ---------------------------------------------------------
 --Типы
 ---------------------------------------------------------
-type TBus32_Array4 is array (0 to 3) of std_logic_vector(31 downto 0);
-
 type TBus02_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (1 downto 0);
 type TBus03_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (2 downto 0);
-type TBus04_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (3 downto 0);
-type TBus05_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (4 downto 0);
-type TBus06_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (5 downto 0);
+--type TBus04_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (3 downto 0);
+--type TBus05_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (4 downto 0);
+--type TBus06_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (5 downto 0);
 type TBus07_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (6 downto 0);
 type TBus08_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (7 downto 0);
-type TBus09_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (8 downto 0);
-type TBus10_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (9 downto 0);
-type TBus11_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (10 downto 0);
+--type TBus09_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (8 downto 0);
+--type TBus10_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (9 downto 0);
+--type TBus11_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (10 downto 0);
 type TBus16_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (15 downto 0);
-type TBus19_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (18 downto 0);
+--type TBus19_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (18 downto 0);
 type TBus21_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (20 downto 0);
 type TBus32_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (31 downto 0);
-type TBus48_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (47 downto 0);
-
-type TBus01_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (0 downto 0);
-type TBus02_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (1 downto 0);
-type TBus04_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (3 downto 0);
-type TBus06_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (5 downto 0);
-type TBus08_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (7 downto 0);
-type TBus16_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (15 downto 0);
-type TBus32_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (31 downto 0);
-type TBus36_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (35 downto 0);
-type TBus48_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (47 downto 0);
-
-type TBus16_GtpDualCountGtpCh  is array (0 to C_DUAL_GTP_COUNT_MAX-1) of TBus16_GtpCh;
-type TBus32_GtpDualCountGtpCh  is array (0 to C_DUAL_GTP_COUNT_MAX-1) of TBus32_GtpCh;
-type TBus48_GtpDualCountGtpCh  is array (0 to C_DUAL_GTP_COUNT_MAX-1) of TBus48_GtpCh;
-
-type TBus2_SataCount  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(1 downto 0);
-type TBus3_SataCount  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(2 downto 0);
-type TBus4_SataCount  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(3 downto 0);
-type TBus8_SataCount  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(7 downto 0);
-type TBus16_SataCount is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(15 downto 0);
-type TBus32_SataCount is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(31 downto 0);
-type TBus48_SataCount is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(47 downto 0);
-
+--type TBus48_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (47 downto 0);
 
 --//
 type TUsrCmdPkt is record
@@ -497,12 +502,14 @@ Usr       : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 end record;
 
 type TTxBufStatus is record
+full    : std_logic;--//full
 pfull   : std_logic;--//prog full
 aempty  : std_logic;--//almost empty
 empty   : std_logic;--//empty
 end record;
 
 type TRxBufStatus is record
+full    : std_logic;--//full
 pfull   : std_logic;--//prog full
 empty   : std_logic;--//empty
 end record;
@@ -532,6 +539,49 @@ type TRegShadow_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TRegShadow;
 type TRegShadowUpdate_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TRegShadowUpdate;
 type TALStatus_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TALStatus;
 
+
+type TALCtrlGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TALCtrl_GtpCh;
+type TALStatusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TALStatus_GtpCh;
+type TTxBufStatusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TTxBufStatus_GtpCh;
+type TRxBufStatusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TRxBufStatus_GtpCh;
+
+type TBusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+type TBus02GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus02_GtpCh;
+type TBus03GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus03_GtpCh;
+type TBus16GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus16_GtpCh;
+type TBus32GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus32_GtpCh;
+
+
+
+type TBus32_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(31 downto 0);
+type TBus16_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(15 downto 0);
+type TBus02_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(1 downto 0);
+type TBus03_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(2 downto 0);
+type TALCtrl_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
+type TALStatus_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TALStatus;
+type TTxBufStatus_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TTxBufStatus;
+type TRxBufStatus_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TRxBufStatus;
+
+--type TBus01_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (0 downto 0);
+--type TBus02_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (1 downto 0);
+--type TBus04_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (3 downto 0);
+--type TBus06_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (5 downto 0);
+--type TBus08_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (7 downto 0);
+--type TBus16_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (15 downto 0);
+--type TBus32_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (31 downto 0);
+--type TBus36_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (35 downto 0);
+--type TBus48_GtpDualCount is array (0 to C_DUAL_GTP_COUNT_MAX-1) of std_logic_vector (47 downto 0);
+--
+--type TBus16_GtpDualCountGtpCh  is array (0 to C_DUAL_GTP_COUNT_MAX-1) of TBus16_GtpCh;
+--type TBus32_GtpDualCountGtpCh  is array (0 to C_DUAL_GTP_COUNT_MAX-1) of TBus32_GtpCh;
+--type TBus48_GtpDualCountGtpCh  is array (0 to C_DUAL_GTP_COUNT_MAX-1) of TBus48_GtpCh;
+
+--type TBus2_SataCountMax  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(1 downto 0);
+--type TBus3_SataCountMax  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(2 downto 0);
+--type TBus4_SataCountMax  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(3 downto 0);
+--type TBus8_SataCountMax  is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(7 downto 0);
+--
+--type TBus48_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(47 downto 0);
 
 ---------------------------------------------------------
 --Прототипы функций

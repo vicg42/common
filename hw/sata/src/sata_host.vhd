@@ -31,18 +31,18 @@ use work.sata_sim_lite_pkg.all;
 entity sata_host is
 generic
 (
-G_SATA_MODULE_MAXCOUNT : integer := 1;    --//кол-во модуле sata_host в иерархии модул€ sata_dsn.vhd / (дипозон: 1...3)
-G_SATA_MODULE_IDX      : integer := 0;    --//индекс модул€ sata_host в иерархии модул€ sata_dsn.vhd / (дипозон: 0...G_SATA_MODULE_MAXCOUNT-1)
-G_SATA_MODULE_CH_COUNT : integer := 1;    --// ол-во портов SATA используемых в модуле sata_host.vhd / (дипозон: 1...2)
-G_GTP_DBUS             : integer := 16;   --//
-G_DBG                  : string  := "OFF";--//¬ боевом проекте об€зательно должно быть "OFF" - отладка через ChipScoupe
-G_SIM                  : string  := "OFF" --//¬ боевом проекте об€зательно должно быть "OFF" - моделирование
+G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
+G_SATAH_NUM       : integer:=0;    --//индекс модул€ sata_host
+G_SATAH_CH_COUNT  : integer:=1;    --// ол-во портов SATA используемых в модуле.(2/1
+G_GTP_DBUS        : integer:=16;   --//
+G_DBG             : string :="OFF";--//
+G_SIM             : string :="OFF" --//¬ боевом проекте об€зательно должно быть "OFF" - моделирование
 );
 port
 (
----------------------------------------------------------------------------
+--------------------------------------------------
 --Sata Driver
----------------------------------------------------------------------------
+--------------------------------------------------
 p_out_sata_txn              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sata_txp              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_sata_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
@@ -71,15 +71,15 @@ p_out_rxbuf_din             : out   TBus32_GtpCh;                               
 p_out_rxbuf_wd              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_rxbuf_status           : in    TRxBufStatus_GtpCh;
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --“ехнологические сигналы
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_tst                    : in    std_logic_vector(31 downto 0);
 p_out_tst                   : out   std_logic_vector(31 downto 0);
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --ћоделирование/ќтладка - в рабочем проекте не используетс€
----------------------------------------------------------------------------
+--------------------------------------------------
 --//ћоделирование
 p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
 p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
@@ -93,9 +93,9 @@ p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto
 p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --System
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_sys_dcm_gclk2div       : in    std_logic;--//dcm_clk0 /2
 p_in_sys_dcm_gclk           : in    std_logic;--//dcm_clk0
 p_in_sys_dcm_gclk2x         : in    std_logic;--//dcm_clk0 x 2
@@ -225,23 +225,24 @@ end generate gen_dbg_on;
 
 
 
---//-----------------------------
+--//#############################
 --//»нициализаци€
---//-----------------------------
+--//#############################
 p_out_sys_dcm_rst<=not i_gtp_PLLLKDET;
 
 i_gtp_glob_reset <= p_in_rst or i_gtp_rst;
 
 
+--//#############################
 --//ћодуль программировани€ регистров GTP
+--//#############################
 m_speed_ctrl : sata_speed_ctrl
 generic map
 (
-G_SATA_MODULE_MAXCOUNT => G_SATA_MODULE_MAXCOUNT,
-G_SATA_MODULE_IDX      => G_SATA_MODULE_IDX,
-G_GTP_CH_COUNT         => G_SATA_MODULE_CH_COUNT,
-G_DBG                  => G_DBG,
-G_SIM                  => G_SIM
+G_SATAH_COUNT_MAX => G_SATAH_COUNT_MAX,
+G_SATAH_NUM       => G_SATAH_NUM,
+G_DBG             => G_DBG,
+G_SIM             => G_SIM
 )
 port map
 (
@@ -281,7 +282,11 @@ p_in_rst                => p_in_rst
 );
 
 
-gen_ch_count1 : if G_SATA_MODULE_CH_COUNT=1 generate
+
+--//###########################################################################
+--//–азмножение модулей управлени€ SATA соответствующего канала GTP (RocketIO)
+--//###########################################################################
+gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
 
 p_out_usrfifo_clkout(1)<='0';
 
@@ -313,6 +318,7 @@ i_gtp_txcomtype(1) <='0';
 i_gtp_txdata(1)    <=i_gtp_txdata(0);
 i_gtp_txcharisk(1) <=i_gtp_txcharisk(0);
 
+-- ћоделирование
 gen_sim_on: if strcmp(G_SIM,"ON") generate
 
 p_out_sim_gtp_txdata(1) <= (others=>'0');
@@ -326,8 +332,7 @@ end generate gen_sim_on;
 end generate gen_ch_count1;
 
 
---//"–азмножение" модулей управлени€ SATA соответствующего канала DUAL_GTP (RocketIO)
-gen_ch: for i in 0 to G_SATA_MODULE_CH_COUNT-1 generate
+gen_ch: for i in 0 to G_SATAH_CH_COUNT-1 generate
 
 -- ћоделирование
 p_out_sim_rst(i) <= i_sata_module_rst(i);
@@ -627,6 +632,9 @@ end generate gen_ch;
 
 
 
+--//############################
+--//GTP (RocketIO)
+--//############################
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
 begin
 

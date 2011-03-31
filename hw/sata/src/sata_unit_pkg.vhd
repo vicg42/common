@@ -597,11 +597,11 @@ end component;
 component sata_speed_ctrl
 generic
 (
-G_SATA_MODULE_MAXCOUNT : integer := 1;
-G_SATA_MODULE_IDX      : integer := 0;
-G_GTP_CH_COUNT         : integer := 2;
-G_DBG                  : string  := "OFF";
-G_SIM                  : string  := "OFF"
+G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
+G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
+G_DBG             : string :="OFF";--//
+G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
+
 );
 port
 (
@@ -645,18 +645,18 @@ end component;
 component sata_host
 generic
 (
-G_SATA_MODULE_MAXCOUNT   : integer   := 1;    --//кол-во модуле sata_host в иерархии модуля sata_dsn.vhd / (дипозон: 1...3)
-G_SATA_MODULE_IDX        : integer   := 0;    --//индекс модуля sata_host в иерархии модуля sata_dsn.vhd / (дипозон: 0...G_SATA_MODULE_MAXCOUNT-1)
-G_SATA_MODULE_CH_COUNT   : integer   := 1;    --//Кол-во портов SATA используемых в модуле sata_host.vhd / (дипозон: 1...2)
-G_GTP_DBUS               : integer   := 16;   --//
-G_DBG                    : string    := "OFF";--//В боевом проекте обязательно должно быть "OFF" - отладка через ChipScoupe
-G_SIM                    : string    := "OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
+G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
+G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
+G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
+G_GTP_DBUS        : integer:=16;   --//
+G_DBG             : string :="OFF";--//
+G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
 port
 (
----------------------------------------------------------------------------
+--------------------------------------------------
 --Sata Driver
----------------------------------------------------------------------------
+--------------------------------------------------
 p_out_sata_txn              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sata_txp              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_sata_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
@@ -685,15 +685,15 @@ p_out_rxbuf_din             : out   TBus32_GtpCh;                               
 p_out_rxbuf_wd              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_rxbuf_status           : in    TRxBufStatus_GtpCh;
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --Технологические сигналы
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_tst                    : in    std_logic_vector(31 downto 0);
 p_out_tst                   : out   std_logic_vector(31 downto 0);
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
----------------------------------------------------------------------------
+--------------------------------------------------
 --//Моделирование
 p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
 p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
@@ -707,9 +707,9 @@ p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto
 p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --System
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_sys_dcm_gclk2div       : in    std_logic;
 p_in_sys_dcm_gclk           : in    std_logic;
 p_in_sys_dcm_gclk2x         : in    std_logic;
@@ -720,6 +720,300 @@ p_in_gtp_drpclk             : in    std_logic;
 p_out_gtp_refclk            : out   std_logic;
 p_in_gtp_refclk             : in    std_logic;
 p_in_rst                    : in    std_logic
+);
+end component;
+
+
+component sata_connector
+generic
+(
+G_SATAH_CH_COUNT : integer:=1;
+G_DBG            : string :="OFF";
+G_SIM            : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--Связь с модулем sata_raid.vhd
+--------------------------------------------------
+p_in_uap_clk            : in    std_logic;
+
+--//CMDFIFO
+p_in_uap_cxd            : in    TBus16_GtpCh;
+p_in_uap_cxd_sof_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd_eof_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd_src_rdy_n  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--//TXFIFO
+p_in_uap_txd            : in    TBus32_GtpCh;
+p_in_uap_txd_wr         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--//RXFIFO
+p_out_uap_rxd           : out   TBus32_GtpCh;
+p_in_uap_rxd_rd         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--------------------------------------------------
+--Связь с модулем sata_host.vhd
+--------------------------------------------------
+p_in_sh_clk             : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--//CMDFIFO
+p_out_sh_cxd            : out   TBus16_GtpCh;
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--//TXFIFO
+p_out_sh_txd            : out   TBus32_GtpCh;
+p_in_sh_txd_rd          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--//RXFIFO
+p_in_sh_rxd             : in    TBus32_GtpCh;
+p_in_sh_rxd_wr          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+
+--------------------------------------------------
+--//Статусы
+--------------------------------------------------
+p_out_txbuf_status      : out   TTxBufStatus_GtpCh;
+p_out_rxbuf_status      : out   TRxBufStatus_GtpCh;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_rst                : in    std_logic
+);
+end component;
+
+component sata_raid_ctrl
+generic
+(
+G_HDD_COUNT : integer:=1;
+G_DBG       : string :="OFF";
+G_SIM       : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--Связь с модулем dsn_hdd.vhd
+--------------------------------------------------
+p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+
+p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
+p_out_usr_cxd_rd        : out   std_logic;
+p_in_usr_cxbuf_empty    : in    std_logic;
+
+--------------------------------------------------
+--Связь с модулями sata_host.vhd
+--------------------------------------------------
+p_out_sh_cxd            : out   std_logic_vector(15 downto 0);
+p_out_sh_cxd_sof_n      : out   std_logic;
+p_out_sh_cxd_eof_n      : out   std_logic;
+p_out_sh_cxd_src_rdy_n  : out   std_logic;
+p_out_sh_mask           : out   std_logic_vector(7 downto 0);
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
+);
+end component;
+
+
+component sata_raid_dmux
+generic
+(
+G_HDD_COUNT : integer:=1;
+G_DBG       : string :="OFF";
+G_SIM       : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--Связь с модулем dsn_hdd.vhd
+--------------------------------------------------
+--//Связь с TxFIFO
+p_in_usr_txd            : in    std_logic_vector(31 downto 0);
+p_out_usr_txd_rd        : out   std_logic;
+p_in_usr_txbuf_empty    : in    std_logic;
+
+--//Связь с RxFIFO
+p_out_usr_rxd           : out   std_logic_vector(31 downto 0);
+p_out_usr_rxd_wr        : out   std_logic;
+
+--------------------------------------------------
+--Связь с модулями sata_host.vhd
+--------------------------------------------------
+p_out_sh_tx_dst_adr     : out   std_logic_vector(2 downto 0);
+p_out_sh_txd            : out   std_logic_vector(31 downto 0);
+p_out_sh_txd_wr         : out   std_logic;
+--p_in_sh_txbuf_full      : in    std_logic;
+
+p_out_sh_rx_src_adr     : out   std_logic_vector(2 downto 0);
+p_in_sh_rxd             : in    std_logic_vector(31 downto 0);
+p_out_sh_rxd_rd         : out   std_logic;
+p_in_sh_rxbuf_empty     : in    std_logic;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
+);
+end component;
+
+
+component sata_raid
+generic
+(
+G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
+G_DBG       : string :="OFF";
+G_SIM       : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--Связь с модулем dsn_hdd.vhd
+--------------------------------------------------
+p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+
+--//Связь с CMDFIFO
+p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
+p_out_usr_cxd_rd        : out   std_logic;
+p_in_usr_cxbuf_empty    : in    std_logic;
+
+--//Связь с TxFIFO
+p_in_usr_txd            : in    std_logic_vector(31 downto 0);
+p_out_usr_txd_rd        : out   std_logic;
+p_in_usr_txbuf_empty    : in    std_logic;
+
+--//Связь с RxFIFO
+p_out_usr_rxd           : out   std_logic_vector(31 downto 0);
+p_out_usr_rxd_wr        : out   std_logic;
+
+--------------------------------------------------
+--Связь с модулями sata_host.vhd
+--------------------------------------------------
+p_in_uap_status         : in    TALStatus_SataCountMax;
+p_out_uap_ctrl          : out   TALCtrl_SataCountMax;
+
+p_out_uap_cxd           : out   TBus16_SataCountMax;
+p_out_uap_cxd_sof_n     : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_uap_cxd_eof_n     : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_uap_cxd_src_rdy_n : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+
+p_out_uap_txd           : out   TBus32_SataCountMax;
+p_out_uap_txd_wr        : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+
+p_in_uap_rxd            : in    TBus32_SataCountMax;
+p_out_uap_rxd_rd        : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+
+p_in_uap_txbuf_status   : in    TTxBufStatus_SataCountMax;
+p_in_uap_rxbuf_status   : in    TRxBufStatus_SataCountMax;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+
+p_in_sh_tst             : in    TBus32_SataCountMax;
+p_out_sh_tst            : out   TBus32_SataCountMax;
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
+);
+end component;
+
+
+
+
+component dsn_raid_main
+generic
+(
+G_HDD_COUNT     : integer:=2;
+G_GTP_DBUS      : integer:=16;
+G_DBG           : string :="OFF";
+G_SIM           : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--Sata Driver
+--------------------------------------------------
+p_out_sata_txn              : out   std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp              : out   std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn               : in    std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp               : in    std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+
+p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+
+--------------------------------------------------
+--Связь с модулем dsn_hdd.vhd
+--------------------------------------------------
+p_in_usr_ctrl               : in    std_logic_vector(31 downto 0);
+
+--//Связь с CMDFIFO
+p_in_usr_cxd                : in    std_logic_vector(15 downto 0);
+p_out_usr_cxd_rd            : out   std_logic;
+p_in_usr_cxbuf_empty        : in    std_logic;
+
+--//Связь с TxFIFO
+p_in_usr_txd                : in    std_logic_vector(31 downto 0);
+p_out_usr_txd_rd            : out   std_logic;
+p_in_usr_txbuf_empty        : in    std_logic;
+
+--//Связь с RxFIFO
+p_out_usr_rxd               : out   std_logic_vector(31 downto 0);
+p_out_usr_rxd_wr            : out   std_logic;
+
+
+--------------------------------------------------
+--Моделирование/Отладка - в рабочем проекте не используется
+--------------------------------------------------
+p_out_sim_gtp_txdata        : out   TBus16_SataCountMax;
+p_out_sim_gtp_txcharisk     : out   TBus02_SataCountMax;
+p_in_sim_gtp_rxdata         : in    TBus16_SataCountMax;
+p_in_sim_gtp_rxcharisk      : in    TBus02_SataCountMax;
+p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
+p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxdisperr      : in    TBus02_SataCountMax;
+p_in_sim_gtp_rxnotintable   : in    TBus02_SataCountMax;
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_gtp_sim_rst           : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_gtp_sim_clk           : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
 );
 end component;
 

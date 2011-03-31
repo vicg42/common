@@ -27,6 +27,7 @@ vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo.vhd"
 vcom -93 "../../core_gen/sata_rxfifo.vhd"
 vcom -93 "../../core_gen/sata_txfifo.vhd"
+vcom -93 "../../core_gen/sata_cmdfifo.vhd"
 
 vcom -93 "../../src/sata_pkg.vhd"
 vcom -93 "../../src/sata_sim_lite_pkg.vhd"
@@ -50,8 +51,16 @@ vcom -93 "../../src/sata_alayer.vhd"
 
 vcom -93 "../../src/sata_host.vhd"
 
+vcom -93 "../../src/sata_connector.vhd"
+vcom -93 "../../src/sata_raid_dmux.vhd"
+vcom -93 "../../src/sata_raid_ctrl.vhd"
+vcom -93 "../../src/sata_raid.vhd"
+
+vcom -93 "../../src/dsn_raid_main.vhd"
+
 vcom -93 "../testbanch/sata_sim_pkg.vhd"
 vcom -93 "../testbanch/sata_bufdata.vhd"
 vcom -93 "../testbanch/sata_dev_model.vhd"
 vcom -93 "../testbanch/sata_player_tb.vhd"
 vcom -93 "../testbanch/sata_host_tb.vhd"
+vcom -93 "../testbanch/dsn_raid_main_tb.vhd"

@@ -242,12 +242,12 @@ i_rxbuf_status(1).empty<='0';
 m_sata_host : sata_host
 generic map
 (
-G_SATA_MODULE_MAXCOUNT   => 1,    --//кол-во модуле sata_host в иерархии модуля sata_dsn.vhd / (дипозон: 1...3)
-G_SATA_MODULE_IDX        => 0,    --//индекс модуля sata_host в иерархии модуля sata_dsn.vhd / (дипозон: 0...G_SATA_MODULE_MAXCOUNT-1)
-G_SATA_MODULE_CH_COUNT   => 1,    --//Кол-во портов SATA используемых в модуле sata_host.vhd / (дипозон: 1...2)
-G_GTP_DBUS               => G_GTP_DBUS,
-G_DBG                    => G_DBG,
-G_SIM                    => G_SIM
+G_SATAH_COUNT_MAX => 1,
+G_SATAH_NUM       => 0,
+G_SATAH_CH_COUNT  => 1,
+G_GTP_DBUS        => G_GTP_DBUS,
+G_DBG             => G_DBG,
+G_SIM             => G_SIM
 )
 port map
 (

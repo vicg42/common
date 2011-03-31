@@ -41,11 +41,10 @@ use work.sata_pkg.all;
 entity sata_speed_ctrl is
 generic
 (
-G_SATA_MODULE_MAXCOUNT : integer := 1;    --//Описание см. generic/sata_host.vhd
-G_SATA_MODULE_IDX      : integer := 0;    --//Описание см. generic/sata_host.vhd
-G_GTP_CH_COUNT         : integer := 2;    --//Описание см. generic/sata_host.vhd
-G_DBG                  : string  := "OFF";
-G_SIM                  : string  := "OFF" --//Описание см. generic/sata_host.vhd
+G_SATAH_COUNT_MAX : integer:=1;
+G_SATAH_NUM       : integer:=0;
+G_DBG             : string :="OFF";
+G_SIM             : string :="OFF"
 );
 port
 (
@@ -87,8 +86,8 @@ end sata_speed_ctrl;
 
 architecture behavioral of sata_speed_ctrl is
 
-constant C_SATA_MODULE_MAXCOUNT : integer :=G_SATA_MODULE_MAXCOUNT;
-constant C_SATA_MODULE_IDX      : integer :=G_SATA_MODULE_IDX;
+constant C_SATAH_COUNT_MAX : integer :=G_SATAH_COUNT_MAX;
+constant C_SATAH_NUM      : integer :=G_SATAH_NUM;
 
 --//Адреса регистров GTP
 --//более подробно см.Appendix D/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
@@ -291,7 +290,7 @@ begin
 
       when S_IDLE =>
 
---        if C_SATA_MODULE_MAXCOUNT=1 then
+--        if C_SATAH_COUNT_MAX=1 then
 --        --//Используется только один компонент DUAL_GTP,то
 --        --//изменять регистр REFCLK_SEL не имеет смысла.
 --        --//Переходим к процессу установления соединения
@@ -336,11 +335,11 @@ begin
 --
 --        i_gtp_drp_addr<=C_AREG_REFCLK_SEL;
 --
---        if C_SATA_MODULE_IDX=0 then
+--        if C_SATAH_NUM=0 then
 --          --//Если общее кол-во модуле sata_host.vhd=1,то перепрограммирование блока Clock Muxing
 --          --//не требуется
 --
---          if   C_SATA_MODULE_MAXCOUNT=3 then
+--          if   C_SATAH_COUNT_MAX=3 then
 --            --//Если общее кол-во модуле sata_host.vhd=3,то
 --            --// модуля sata_host.vhd с индексом 0
 --            --//настраиваем так, чтобы входная частота подоваемая на DUAL_GTP модуля sata_host.vhd/IDX=0
@@ -351,7 +350,7 @@ begin
 --            i_gtp_drp_di(8)          <= '1';                               --//CLKNORTH_SEL
 --            i_gtp_drp_di(15 downto 9)<= i_gtp_drp_rdval(0)(15 downto 9);
 --
---          elsif C_SATA_MODULE_MAXCOUNT=2 then
+--          elsif C_SATAH_COUNT_MAX=2 then
 --            --//Если общее кол-во модуле sata_host.vhd=2,то модуль sata_host.vhd с индексом 0
 --            --//настраиваем так, чтобы входная частота подоваемая на DUAL_GTP модуля sata_host.vhd/IDX=0
 --            --//передовалась на вывод CLKOUTSOUTH блока Clock Muxing
@@ -363,7 +362,7 @@ begin
 --
 --          end if;
 --
---        elsif C_SATA_MODULE_IDX=1 then
+--        elsif C_SATAH_NUM=1 then
 --        --//Если модуль sata_host.vhd/IDX=1,то
 --        --//тактирование компонента DUAL_GTP берем с линии CLKINSOUTH блока Clock Muxing
 --        --//см. ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf/Appendix F/Figure F-1
@@ -371,7 +370,7 @@ begin
 --          i_gtp_drp_di(6 downto 4) <= "100";
 --          i_gtp_drp_di(15 downto 7)<= i_gtp_drp_rdval(0)(15 downto 7);
 --
---        elsif C_SATA_MODULE_IDX=2 then
+--        elsif C_SATAH_NUM=2 then
 --        --//Если модуль sata_host.vhd/IDX=2,то
 --        --//тактирование компонента DUAL_GTP берем с линии CLKOUTNORTH блока Clock Muxing
 --        --//см. ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf/Appendix F/Figure F-1
