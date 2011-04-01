@@ -379,7 +379,7 @@ begin
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
-  cfgCmdPkt(0).scount:=8;--//Кол-во секторов
+  cfgCmdPkt(0).scount:=2;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);--//LBA
   cfgCmdPkt(0).loopback:='1';
 

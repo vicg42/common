@@ -103,10 +103,13 @@ sw_work  : std_logic;
 hw       : std_logic;
 hw_work  : std_logic;
 tst      : std_logic;
+tst_wr   : std_logic;
 tst_work : std_logic;
 stop     : std_logic;
+raid     : std_logic;
 end record;
 signal i_usrmode                   : TUserMode;
+signal i_sh_num                    : std_logic_vector(2 downto 0);
 
 signal i_lba_cnt                   : std_logic_vector(47 downto 0);
 
@@ -195,8 +198,8 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr_glob_busy<=OR_reduce(i_usr_status.ch_busy) & sr_glob_busy(0 to 0);
-    sr_glob_err<=OR_reduce(i_usr_status.ch_err) & sr_glob_err(0 to 0);
+    sr_glob_busy<=i_usr_status.glob_busy & sr_glob_busy(0 to 0);
+    sr_glob_err<=i_usr_status.glob_err & sr_glob_err(0 to 0);
 
     i_sh_det.cmddone<=not sr_glob_busy(0) and sr_glob_busy(1);
     i_sh_det.err<=sr_glob_err(0) and not sr_glob_err(1);
@@ -273,7 +276,7 @@ begin
 end process;
 
 --//Отправка команды в модуль sata_host.vhd
-i_sh_cmd_start<=i_cmdfifo_rd_done;
+i_sh_cmd_start<=i_cmdfifo_rd_done and (not i_usrmode.hw_work or not i_usrmode.tst_work);
 
 process(p_in_rst,p_in_clk)
 begin
@@ -349,13 +352,120 @@ p_out_sh_cxd_sof_n<=not i_sh_cxd_sof;
 p_out_sh_cxd_eof_n<=not i_sh_cxd_eof;
 p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
 
-
 p_out_sh_mask<=i_sh_mask;
 
 
 
-
+--//------------------------------------------
+--//Декодирование режима работы
+--//------------------------------------------
 i_sh_mask<=i_cmdpkt.ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT);
+
+--//Варианты RAID
+gen_hddcount_0 : if (G_HDD_COUNT-1)=0  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+i_usrmode.raid<='0';
+end generate gen_hddcount_0;
+
+gen_hddcount_1 : if (G_HDD_COUNT-1)=1  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) else '0';
+end generate gen_hddcount_1;
+
+gen_hddcount_2 : if (G_HDD_COUNT-1)=2  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#02#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) else '0';
+end generate gen_hddcount_2;
+
+gen_hddcount_3 : if (G_HDD_COUNT-1)=3  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#02#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#03#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) else '0';
+end generate gen_hddcount_3;
+
+gen_hddcount_4 : if (G_HDD_COUNT-1)=4  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#02#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#03#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#04#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#10#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) else '0';
+end generate gen_hddcount_4;
+
+gen_hddcount_5 : if (G_HDD_COUNT-1)=5  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#02#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#03#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#04#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#10#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#05#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#20#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#3F#, i_sh_mask'length) else '0';
+end generate gen_hddcount_5;
+
+gen_hddcount_6 : if (G_HDD_COUNT-1)=6  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#02#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#03#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#04#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#10#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#05#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#20#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#06#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#40#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#3F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#7F#, i_sh_mask'length) else '0';
+end generate gen_hddcount_6;
+
+gen_hddcount_7 : if (G_HDD_COUNT-1)=7  generate
+i_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#01#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#02#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#03#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#04#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#10#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#05#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#20#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#06#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#40#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#07#, i_sh_num'length) when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#80#, i_sh_mask'length) else
+          CONV_STD_LOGIC_VECTOR(16#00#, i_sh_num'length);
+
+i_usrmode.raid<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#3F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#7F#, i_sh_mask'length) or
+                         i_sh_mask=CONV_STD_LOGIC_VECTOR(16#FF#, i_sh_mask'length) else '0';
+end generate gen_hddcount_7;
+
+
 
 --//Флаги соотв. режижимов
 i_usrmode.sw<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_SW_BIT);
@@ -370,6 +480,7 @@ begin
     i_usrmode.sw_work<='0';
     i_usrmode.hw_work<='0';
     i_usrmode.tst_work<='0';
+    i_usrmode.tst_wr<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -380,25 +491,23 @@ begin
       i_usrmode.sw_work<='1';
     end if;
 
---    --//Работа в HW режиме
---    if i_hw_mode_stop='1' or i_all_mode_stop_err='1' then
---      i_hw_mode_work<='0';
---    elsif i_usrmode.hw='1' and i_cmdfifo_rd_done='1' then
---      i_hw_mode_work<='1';
---    end if;
+    --//Работа в HW режиме
+    if (i_usrmode.stop='1' and i_cmdfifo_rd_done='1') or i_sh_det.err='1' then
+      i_usrmode.hw_work<='0';
+    elsif i_usrmode.hw='1' and i_cmdfifo_rd_done='1' then
+      i_usrmode.hw_work<='1';
+    end if;
 
---    --//Работа в режиме Тестирования
---    if i_hw_mode_stop='1' or i_sw_mode_stop='1' or i_all_mode_stop_err='1' then
---      i_test_mode_work<='0';
---      i_test_mode_wr<='0';
---    elsif i_usrmode.tst='1' and i_cmdfifo_rd_done='1' then
---      i_test_mode_work<='1';
---      i_test_mode_wr<=i_flag_test_wr;
---    end if;
+    --//Работа в режиме Тестирования
+    if (i_usrmode.stop='1' and i_cmdfifo_rd_done='1') or i_sh_det.err='1' then
+      i_usrmode.tst_work<='0';
+      i_usrmode.tst_wr<='0';
+    elsif i_usrmode.tst='1' and i_cmdfifo_rd_done='1' then
+      i_usrmode.tst_work<='1';
+      i_usrmode.tst_wr<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_TSTW_BIT);
+    end if;
   end if;
 end process;
-
-
 
 --//Cчетчик адреса LBA
 process(p_in_rst,p_in_clk)
@@ -408,7 +517,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if (i_usrmode.sw='1' and i_cmdfifo_rd_done='1') then-- or i_hw_mode_start='1' then
+    if (i_usrmode.sw='1' or i_usrmode.hw='1' or i_usrmode.tst='1') and i_cmdfifo_rd_done='1' then
       i_lba_cnt<=i_cmdpkt.lba;
 
     elsif i_sh_det.cmddone='1' then
@@ -423,70 +532,153 @@ end process;
 
 
 
-----//Варианты RAID
---gen_raidon_0 : if (G_HDD_COUNT-1)=0  generate
---i_raid_on<='0';
---end generate gen_raidon_0;
+
+----//-----------------------------
+----//:TX / Перемещение данных из буфера Хоста(TxBUF,TxStreamBuf)или модуля Тестирования в
+----//     Tx буфер(а) Транспортного уровня
+----//-----------------------------
+--p_out_host_txbuf_rd   <=i_tx_src_rd when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_HOST_BUF, i_tx_src_adr'length) else '0';
+--p_out_stream_txbuf_rd <=i_tx_src_rd when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_STREAM_BUF, i_tx_src_adr'length) else '0';
 --
---gen_raidon_1 : if (G_HDD_COUNT-1)=1  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) else '0';
---end generate gen_raidon_1;
+----//Выбор сигнала Empty соотв. буфера Хоста для формирования сигнала пермещения данных Host->TransportLayer
+--i_tx_scr_empty<='0'                      when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_TEST_MODULE, i_tx_src_adr'length) else
+--                p_in_host_txbuf_empty    when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_HOST_BUF, i_tx_src_adr'length) else
+--                p_in_stream_txbuf_empty  when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_STREAM_BUF, i_tx_src_adr'length) else
+--                '1';
 --
---gen_raidon_2 : if (G_HDD_COUNT-1)=2  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) else '0';
---end generate gen_raidon_2;
+----//Выбор источника данных для Tx буфера Трансп. уровня
+----i_tx_dst_din<=i_test_data            when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_TEST_MODULE, i_tx_src_adr'length) else
+--i_tx_dst_din<=p_in_host_txbuf_dout   when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_HOST_BUF, i_tx_src_adr'length) else
+--              p_in_stream_txbuf_dout when i_tx_src_adr=CONV_STD_LOGIC_VECTOR(C_STREAM_BUF, i_tx_src_adr'length) else
+--              (others=>'0');
 --
---gen_raidon_3 : if (G_HDD_COUNT-1)=3  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) else '0';
---end generate gen_raidon_3;
+----//Формируем сигнал разрешения пермещения данных Host->TransportLayer
+--process(rst,clk)
+--  variable tmp_tx_claster_done: std_logic;
+--begin
+--  if rst='1' then
+--    i_tx_operation_en<='0';
+--    i_tx_claster_done<='0';
+--    i_tx_claster_incr<='0';
 --
---gen_raidon_4 : if (G_HDD_COUNT-1)=4  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) else '0';
---end generate gen_raidon_4;
+--  elsif clk'event and clk='1' then
 --
---gen_raidon_5 : if (G_HDD_COUNT-1)=5  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#3F#, i_sh_mask'length) else '0';
---end generate gen_raidon_5;
+--    tmp_tx_claster_done:='0';
 --
---gen_raidon_6 : if (G_HDD_COUNT-1)=6  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#3F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#7F#, i_sh_mask'length) else '0';
---end generate gen_raidon_6;
+--    if i_goto_idle='1' then
+--    --//
+--      i_tx_operation_en<='0';
 --
---gen_raidon_7 : if (G_HDD_COUNT-1)=7  generate
---i_raid_on<='1' when i_sh_mask=CONV_STD_LOGIC_VECTOR(16#03#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#07#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#0F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#1F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#3F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#7F#, i_sh_mask'length) or
---                    i_sh_mask=CONV_STD_LOGIC_VECTOR(16#FF#, i_sh_mask'length) else '0';
---end generate gen_raidon_7;
+--    elsif i_usrmode.raid='0' and i_trn_start_operation='1' then
+--    --//Режим работы с одним HDD
+--      i_tx_operation_en<='1';
+--
+--    elsif i_usrmode.raid='1' then
+--    --//Режим работы с RAID
+--      if (i_trn_start_operation='1' or i_tx_claster_next='1') then
+--        i_tx_operation_en<='1';
+--      else
+--        if i_tx_operation_en='1' and i_tx_src_rd='1' and i_tx_claster_dcnt_cmp=i_claster_size_cmp then
+--          i_tx_operation_en<='0';
+--          tmp_tx_claster_done:='1';
+--        end if;
+--      end if;
+--    end if;
+--
+--    i_tx_claster_done<=tmp_tx_claster_done;
+--    i_tx_claster_incr<=i_tx_claster_done;
+--
+--  end if;
+--end process;
+--
+----//Счетчик Кластера Tx данных
+--LB_TX_CLASTE_DCNT:process(rst,clk)
+--begin
+--  if rst='1' then
+--    i_tx_claster_dcnt<=CONV_STD_LOGIC_VECTOR(16#01#, i_tx_claster_dcnt'length);
+--
+--  elsif clk'event and clk='1' then
+--    if i_tx_operation_en='0' then
+--      i_tx_claster_dcnt<=CONV_STD_LOGIC_VECTOR(16#01#, i_tx_claster_dcnt'length);
+--
+--    elsif i_usrmode.raid='1' and i_tx_src_rd='1' then
+--       i_tx_claster_dcnt<=i_tx_claster_dcnt+1;
+--    end if;
+--  end if;
+--end process LB_TX_CLASTE_DCNT;
+--
+--
+----//Определяем откуда читать Tx данные
+--LB_TX_SRC_ADR:process(rst,clk)
+--begin
+--  if rst='1' then
+--    i_tx_src_adr<=(others=>'0');
+--
+--  elsif clk'event and clk='1' then
+--    if i_trn_set_adr='1' then
+--      --//Выбираем источник данных
+--      if    i_flag_test_write='1' then i_tx_src_adr<=CONV_STD_LOGIC_VECTOR(C_TEST_MODULE, i_tx_src_adr'length);
+--      elsif i_flag_sw_on='1'      then i_tx_src_adr<=CONV_STD_LOGIC_VECTOR(C_HOST_BUF, i_tx_src_adr'length);
+--      elsif i_flag_hw_on='1'      then i_tx_src_adr<=CONV_STD_LOGIC_VECTOR(C_STREAM_BUF, i_tx_src_adr'length);
+--      else
+--        i_tx_src_adr<=(others=>'0');
+--      end if;
+--    end if;
+--  end if;
+--end process LB_TX_SRC_ADR;
+--
+----//Определяем куда записывать Tx данные
+--LB_TX_DST_ADR:process(rst,clk)
+--  variable var_tx_claster_new : std_logic;
+--  variable var_tx_raid_wd_done: std_logic;
+--begin
+--  if rst='1' then
+--    i_tx_dst_adr<=(others=>'0');
+--    i_tx_claster_next<='0';
+--    i_tx_raid_wd_done<='0';
+--
+--  elsif clk'event and clk='1' then
+--
+--    if i_trn_set_adr='1' then
+--      if i_usrmode.raid='0' then
+--        i_tx_dst_adr<=i_sata_num_ch;--//Режим работы с одним HDD: загружаем номер соотв. канала SATA
+--      else
+--        i_tx_dst_adr<=(others=>'0');--//Режим работы с RAID: всегда начинаем с SATA-CH0
+--      end if;
+--    else
+--      if i_tx_claster_incr='1' then
+--      --//инкримент адреса диска RAID
+--        if i_tx_dst_adr=i_raid_hdd_count then
+--          i_tx_dst_adr<=i_tx_dst_adr;
+--        else
+--          i_tx_dst_adr<=i_tx_dst_adr+1;
+--        end if;
+--      end if;
+--    end if;
+--
+--    var_tx_claster_new :='0';
+--    var_tx_raid_wd_done:='0';
+--
+--    --//Сигнализируем что перемещение данных для всех дисков RAID выполнено
+--    if i_tx_claster_incr='1' and i_tx_dst_adr=i_raid_hdd_count then
+--      var_tx_raid_wd_done:='1';
+--    end if;
+--
+--    --//Сигнализируем начать перемещение данных для следующего диска RAID
+--    if i_tx_claster_incr='1' and i_tx_dst_adr/=i_raid_hdd_count then
+--      var_tx_claster_new:='1';
+--    end if;
+--
+--    i_tx_claster_next<=var_tx_claster_new;
+--    i_tx_raid_wd_done<=var_tx_raid_wd_done;
+--
+--  end if;
+--end process LB_TX_DST_ADR;
+
+
+
 
 --END MAIN
 end behavioral;
 
 
-
---i_sh_cxdout<=i_cmdpkt.feature                                                when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_sh_cmdcnt'length) else
---              i_lba_cnt(8*(3+1)-1 downto 8*3)&i_lba_cnt(8*(0+1)-1 downto 8*0) when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_sh_cmdcnt'length) else
---              i_lba_cnt(8*(4+1)-1 downto 8*4)&i_lba_cnt(8*(1+1)-1 downto 8*1) when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_sh_cmdcnt'length) else
---              i_lba_cnt(8*(5+1)-1 downto 8*5)&i_lba_cnt(8*(2+1)-1 downto 8*2) when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_sh_cmdcnt'length) else
---              i_cmdpkt.scount                                                 when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_sh_cmdcnt'length) else
---              i_cmdpkt.control & i_cmdpkt.command                             when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length) else
---              i_cmdpkt.reserv & i_cmdpkt.device                               when i_sh_cmdcnt_en='1' and i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_sh_cmdcnt'length) else
---              i_cmdpkt.ctrl;
