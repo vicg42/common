@@ -172,7 +172,7 @@ constant C_ASSTAT_DET_DEVICE             : integer:=1;
 constant C_ASSTAT_DET_LINK_ESTABLISH     : integer:=3;
 
 
---//Поле - SError/Map:
+--//Поле - SError/Map :
 --//Более подробно см. d1532v3r4b ATA-ATAPI-7.pdf п.п.19.2.2
 constant C_ASERR_I_ERR_BIT               : integer:=0;
 constant C_ASERR_M_ERR_BIT               : integer:=1;
