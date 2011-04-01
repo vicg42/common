@@ -90,7 +90,7 @@ constant C_CMDPKT_USRHDD_NUM_L_BIT        : integer:=0;
 constant C_CMDPKT_USRHDD_NUM_M_BIT        : integer:=7;
 constant C_CMDPKT_USRMODE_SW_BIT          : integer:=8;
 constant C_CMDPKT_USRMODE_HW_BIT          : integer:=9;
-constant C_CMDPKT_USRMODE_TSTR_BIT        : integer:=10;
+constant C_CMDPKT_USRMODE_TST_BIT         : integer:=10;
 constant C_CMDPKT_USRMODE_TSTW_BIT        : integer:=11;
 constant C_CMDPKT_USRCMD_L_BIT            : integer:=12;
 constant C_CMDPKT_USRCMD_M_BIT            : integer:=14;
@@ -172,7 +172,7 @@ constant C_ASSTAT_DET_DEVICE             : integer:=1;
 constant C_ASSTAT_DET_LINK_ESTABLISH     : integer:=3;
 
 
---//Поле - SError/Map :
+--//Поле - SError/Map:
 --//Более подробно см. d1532v3r4b ATA-ATAPI-7.pdf п.п.19.2.2
 constant C_ASERR_I_ERR_BIT               : integer:=0;
 constant C_ASERR_M_ERR_BIT               : integer:=1;
@@ -429,17 +429,12 @@ type TBus32_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (31 d
 --//
 type TUsrCmdPkt is record
 ctrl         : std_logic_vector(15 downto 0);
-feature      : std_logic_vector(7 downto 0);
-feature_exp  : std_logic_vector(7 downto 0);
-lba_low      : std_logic_vector(7 downto 0);
-lba_low_exp  : std_logic_vector(7 downto 0);
-lba_mid      : std_logic_vector(7 downto 0);
-lba_mid_exp  : std_logic_vector(7 downto 0);
-lba_high     : std_logic_vector(7 downto 0);
-lba_high_exp : std_logic_vector(7 downto 0);
-scount       : std_logic_vector(7 downto 0);
-scount_exp   : std_logic_vector(7 downto 0);
+feature      : std_logic_vector(15 downto 0);
+lba          : std_logic_vector(47 downto 0);
+scount       : std_logic_vector(15 downto 0);
 command      : std_logic_vector(7 downto 0);
+control      : std_logic_vector(7 downto 0);
+device       : std_logic_vector(7 downto 0);
 reserv       : std_logic_vector(7 downto 0);
 end record;
 

@@ -114,11 +114,7 @@ signal i_signature_det             : std_logic;
 signal tst_al_status               : TSimALStatus;
 signal dbgtsf_type                 : string(1 to 23);
 signal tst_val                     : std_logic;
---signal tst_err_det                 : std_logic;
---signal tst_err_ata                 : std_logic;
---signal tst_serr_p_err              : std_logic;
---signal tst_serr_c_err              : std_logic;
---signal tst_serr_i_err              : std_logic;
+
 
 
 --MAIN
@@ -135,39 +131,8 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 tstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
---    tst_err_det<='0';
---    tst_err_ata<='0';
---    tst_serr_p_err<='0';
---    tst_serr_c_err<='0';
---    tst_serr_i_err<='0';
     p_out_tst(31 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-
---    if i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT)='1' or i_serr_p_err='1' or i_serr_c_err='1' or i_serr_i_err='1' then
---      tst_err_det<='1';
---      if i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT)='1' then
---        tst_err_ata<='1';
---      end if;
---
---      if i_serr_p_err='1' then
---        tst_serr_p_err<='1';
---      end if;
---
---      if i_serr_c_err='1' then
---        tst_serr_c_err<='1';
---      end if;
---
---      if i_serr_i_err='1' then
---        tst_serr_i_err<='1';
---      end if;
---    else
---      tst_err_det<='0';
---      tst_err_ata<='0';
---      tst_serr_p_err<='0';
---      tst_serr_c_err<='0';
---      tst_serr_i_err<='0';
---    end if;
-
     p_out_tst(0)<=tst_val;-- and (tst_err_ata nor (tst_serr_p_err and tst_serr_c_err and tst_serr_i_err));
   end if;
 end process tstout;

@@ -123,15 +123,16 @@ port map
 (
 din        => i_usr_cxdin,
 wr_en      => i_usr_cxd_wr,
-wr_clk     => p_in_clk,
+--wr_clk     => p_in_clk,
 
 dout       => i_usr_cxdout,
 rd_en      => i_usr_cxd_rd,
-rd_clk     => p_in_clk,
+--rd_clk     => p_in_clk,
 
 full       => open,
 empty      => i_usr_cxbuf_empty,
 
+clk        => p_in_clk,
 rst        => p_in_rst
 );
 
@@ -373,6 +374,9 @@ begin
   i_txdata_select<='1'; --//0/1 - Счетчик/Random DATA
 
   --//Инициализируем команды которые будут отправлятся:
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='1';
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
   cfgCmdPkt(0).scount:=8;--//Кол-во секторов
@@ -583,7 +587,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr_cmdbusy<=(others=>'1');--i_al_status(0).Usr(C_AUSER_BUSY_BIT)& sr_cmdbusy(0 to 0);
+    sr_cmdbusy<=i_usr_raid_status.glob_busy & sr_cmdbusy(0 to 0);
 
     if i_cmddone_det_clr='1' then
       i_cmddone_det<='0';
@@ -613,7 +617,7 @@ begin
 end process;
 
 i_satadev_ctrl.loopback<=i_loopback;
-i_satadev_ctrl.link_establish<='0';-- when i_al_status(0).SStatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASSTAT_DET_BIT_M-C_ASSTAT_DET_BIT_L+1) else '0';
+i_satadev_ctrl.link_establish<=i_usr_raid_status.glob_drdy;-- when i_al_status(0).SStatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASSTAT_DET_BIT_M-C_ASSTAT_DET_BIT_L+1) else '0';
 i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl.dbuf_ruse<='1';
 

@@ -86,60 +86,61 @@ end component;
 component sata_cmdfifo
 port
 (
-din        : IN std_logic_VECTOR(15 downto 0);
-wr_en      : IN std_logic;
-wr_clk     : IN std_logic;
+din        : in std_logic_vector(15 downto 0);
+wr_en      : in std_logic;
+--wr_clk     : in std_logic;
 
-dout       : OUT std_logic_VECTOR(15 downto 0);
-rd_en      : IN std_logic;
-rd_clk     : IN std_logic;
+dout       : out std_logic_vector(15 downto 0);
+rd_en      : in std_logic;
+--rd_clk     : in std_logic;
 
-full       : OUT std_logic;
-empty      : OUT std_logic;
+full       : out std_logic;
+empty      : out std_logic;
 
-rst        : IN std_logic
+clk        : in std_logic;
+rst        : in std_logic
 );
 end component;
 
 component sata_txfifo
 port
 (
-din         : IN std_logic_VECTOR(31 downto 0);
-wr_en       : IN std_logic;
-wr_clk      : IN std_logic;
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+wr_clk      : in std_logic;
 
-dout        : OUT std_logic_VECTOR(31 downto 0);
-rd_en       : IN std_logic;
-rd_clk      : IN std_logic;
+dout        : out std_logic_vector(31 downto 0);
+rd_en       : in std_logic;
+rd_clk      : in std_logic;
 
-full        : OUT std_logic;
-prog_full   : OUT std_logic;
---almost_full : OUT std_logic;
-empty       : OUT std_logic;
-almost_empty: OUT std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
+--almost_full : out std_logic;
+empty       : out std_logic;
+almost_empty: out std_logic;
 
-rst         : IN std_logic
+rst         : in std_logic
 );
 end component;
 
 component sata_rxfifo
 port
 (
-din        : IN std_logic_VECTOR(31 downto 0);
-wr_en      : IN std_logic;
-wr_clk     : IN std_logic;
+din        : in std_logic_vector(31 downto 0);
+wr_en      : in std_logic;
+wr_clk     : in std_logic;
 
-dout       : OUT std_logic_VECTOR(31 downto 0);
-rd_en      : IN std_logic;
-rd_clk     : IN std_logic;
+dout       : out std_logic_vector(31 downto 0);
+rd_en      : in std_logic;
+rd_clk     : in std_logic;
 
-full        : OUT std_logic;
-prog_full   : OUT std_logic;
---almost_full : OUT std_logic;
-empty       : OUT std_logic;
---almost_empty: OUT std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
+--almost_full : out std_logic;
+empty       : out std_logic;
+--almost_empty: out std_logic;
 
-rst        : IN std_logic
+rst        : in std_logic
 );
 end component;
 
