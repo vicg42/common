@@ -54,6 +54,8 @@ p_out_gtp_rxbyteisaligned   : out   std_logic;
 
 p_in_ctrl                   : in    TSataDevCtrl;
 
+p_out_status                : out   TSataDevStatus;
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
@@ -203,6 +205,20 @@ p_out_gtp_rxbyteisaligned<='1';
 --//#########################################
 --//Инициализация
 --//#########################################
+p_out_status.rcv_allname  <=i_rcv_allname;
+p_out_status.rcv_name     <=i_rcv_name;
+p_out_status.rcv_cont     <=i_rxp_cont;
+p_out_status.rcv_align    <=i_rxp_align;
+p_out_status.rcv_error.pcont<=i_rxp_err_pcont;
+p_out_status.rcv_error.fistype<=i_rxfistype_error;
+p_out_status.rcv_error.prmvt_count<=OR_reduce(i_rxprmtv_err_cnt);
+p_out_status.rcv_rcvfis   <=i_rxfis;
+p_out_status.fistype      <=i_rxfistype;
+p_out_status.rcv_dwcount  <=i_rxdw_cnt;
+p_out_status.rcv_fisdata  <=i_rxd_out;
+p_out_status.rcv_crc_calc <=sr_rxcrc_calc(1);
+
+
 i_usropt_in.gtp_dbus<=G_GTP_DBUS;
 i_usropt_in.console_on<=1;
 

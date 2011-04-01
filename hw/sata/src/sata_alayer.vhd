@@ -84,6 +84,7 @@ signal i_usrctrl                   : std_logic_vector(15 downto 0);
 signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT);
 signal i_usrmode                   : std_logic_vector(0 to C_USRCMD_COUNT-1);
 signal i_err_clr                   : std_logic;
+signal i_sstatus                   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 
 signal i_reg_shadow_addr           : std_logic_vector(i_cmdfifo_dcnt'range);
 signal i_reg_shadow_din            : std_logic_vector(15 downto 0);
@@ -350,18 +351,20 @@ p_out_status.ATAError<=i_reg_shadow.error;
 
 --//SATA Status:
 --//Детектирование:
-p_out_status.SStatus(C_ASSTAT_DET_BIT_L+0)<=p_in_pl_status(C_PSTAT_DET_DEV_ON_BIT);      --//0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
-p_out_status.SStatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--//0/1 - Соединение с устройством не установлено/установлено (можно работать)
-p_out_status.SStatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');
+p_out_status.SStatus<=i_sstatus;
+
+i_sstatus(C_ASSTAT_DET_BIT_L+0)<=p_in_pl_status(C_PSTAT_DET_DEV_ON_BIT);      --//0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
+i_sstatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--//0/1 - Соединение с устройством не установлено/установлено (можно работать)
+i_sstatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');
 
 --//Cкорость соединения: "00"/"01"/"10" - не согласована/Gen1/Gen2
-p_out_status.SStatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)="01" else
+i_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)="01" else
                                                                     "0010" when p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)="10" else
                                                                     "0000";
 
-p_out_status.SStatus(C_ASSTAT_IPM_BIT_L)<=i_signature_det;--//Интрефейс в активном состоянии. Сигнатура от устройства получена
+i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_signature_det;--//Интрефейс в активном состоянии. Сигнатура от устройства получена
 
-p_out_status.SStatus(C_ALSSTAT_LAST_BIT downto C_ASSTAT_IPM_BIT_L+1)<=(others=>'0');
+i_sstatus(C_ALSSTAT_LAST_BIT downto C_ASSTAT_IPM_BIT_L+1)<=(others=>'0');
 
 --//Обнаружение сигнатуры:
 p_out_status.Usr<=i_usr_status;
@@ -386,6 +389,7 @@ begin
 end process;
 
 
+
 --//SATA Error:
 process(p_in_rst,p_in_clk)
 begin
@@ -405,8 +409,25 @@ begin
     i_link_establish_dly(1)<=i_link_establish_dly(0);
     i_link_establish_change<=i_link_establish_dly(1) and not i_link_establish_dly(0);
 
+    p_out_status.SError(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)<=i_sstatus(C_ASSTAT_DET_BIT_L+2 downto C_ASSTAT_DET_BIT_L);
+    p_out_status.SError(C_ASERR_SPD_M_BIT downto C_ASERR_SPD_L_BIT)<=i_sstatus(C_ASSTAT_SPD_BIT_L+2 downto C_ASSTAT_SPD_BIT_L);
+    p_out_status.SError(C_ASERR_IPM_M_BIT downto C_ASERR_IPM_L_BIT)<=i_sstatus(C_ASSTAT_IPM_BIT_L+2 downto C_ASSTAT_IPM_BIT_L);
+
     if i_err_clr='1' then
-      p_out_status.SError<=(others=>'0');
+--      p_out_status.SError<=(others=>'0');
+      p_out_status.SError(C_ASERR_P_ERR_BIT)<='0';
+      p_out_status.SError(C_ASERR_C_ERR_BIT)<='0';
+      p_out_status.SError(C_ASERR_I_ERR_BIT)<='0';
+
+      p_out_status.SError(C_ASERR_F_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_T_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_S_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_C_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_H_DIAG_BIT)<='0';--//CRC ERROR on send FIS
+      p_out_status.SError(C_ASERR_N_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_W_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_D_DIAG_BIT)<='0';
+      p_out_status.SError(C_ASERR_B_DIAG_BIT)<='0';
 
     else
 

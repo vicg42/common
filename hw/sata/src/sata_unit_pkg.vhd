@@ -18,6 +18,7 @@ use ieee.std_logic_arith.all;
 
 use work.vicg_common_pkg.all;
 use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
 
 package sata_unit_pkg is
 
@@ -802,6 +803,7 @@ port
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+p_out_usr_status        : out   TUsrStatus;
 
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_out_usr_cxd_rd        : out   std_logic;
@@ -810,6 +812,9 @@ p_in_usr_cxbuf_empty    : in    std_logic;
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
+p_in_sh_status          : in    TALStatus_SataCountMax;
+p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
+
 p_out_sh_cxd            : out   std_logic_vector(15 downto 0);
 p_out_sh_cxd_sof_n      : out   std_logic;
 p_out_sh_cxd_eof_n      : out   std_logic;
@@ -893,6 +898,7 @@ port
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+p_out_usr_status        : out   TUsrStatus;
 
 --//Связь с CMDFIFO
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
@@ -972,6 +978,7 @@ p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl               : in    std_logic_vector(31 downto 0);
+p_out_usr_status            : out   TUsrStatus;
 
 --//Связь с CMDFIFO
 p_in_usr_cxd                : in    std_logic_vector(15 downto 0);

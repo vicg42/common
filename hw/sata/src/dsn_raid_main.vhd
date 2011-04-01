@@ -24,6 +24,7 @@ use unisim.vcomponents.all;
 use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
 
 entity dsn_raid_main is
 generic
@@ -49,6 +50,7 @@ p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl               : in    std_logic_vector(31 downto 0);
+p_out_usr_status            : out   TUsrStatus;
 
 --//Связь с CMDFIFO
 p_in_usr_cxd                : in    std_logic_vector(15 downto 0);
@@ -218,6 +220,7 @@ port map
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl           => p_in_usr_ctrl,
+p_out_usr_status        => p_out_usr_status,
 
 --//cmdbuf
 p_in_usr_cxd            => p_in_usr_cxd,

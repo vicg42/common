@@ -6,7 +6,7 @@ vlib work
 do update_comp.do
 
 vsim -t 1ps   -lib work dsn_raid_main_tb
-#do sata_host_tb_wave.do
+do dsn_raid_main_tb_wave.do
 view wave
 view structure
 view signals

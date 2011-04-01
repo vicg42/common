@@ -345,6 +345,7 @@ p_out_gtp_rxnotintable      => i_sim_gtp_rxnotintable(0),
 p_out_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned(0),
 
 p_in_ctrl                   => i_satadev_ctrl(0),
+p_out_status                => open,
 
 --------------------------------------------------
 --Технологические сигналы

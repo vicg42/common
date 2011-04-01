@@ -24,6 +24,7 @@ use unisim.vcomponents.all;
 use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
 
 entity sata_raid is
 generic
@@ -38,6 +39,7 @@ port
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+p_out_usr_status        : out   TUsrStatus;
 
 --//Связь с CMDFIFO
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
@@ -148,6 +150,7 @@ port map
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl           => p_in_usr_ctrl,
+p_out_usr_status        => p_out_usr_status,
 
 --//Связь с CMDFIFO
 p_in_usr_cxd            => p_in_usr_cxd,
@@ -157,6 +160,9 @@ p_in_usr_cxbuf_empty    => p_in_usr_cxbuf_empty,
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
+p_in_sh_status          => p_in_uap_status,
+p_out_sh_ctrl           => p_out_uap_ctrl,
+
 p_out_sh_cxd            => i_sh_cxd,
 p_out_sh_cxd_sof_n      => i_sh_cxd_sof_n,
 p_out_sh_cxd_eof_n      => i_sh_cxd_eof_n,

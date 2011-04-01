@@ -179,6 +179,20 @@ end record;
 
 
 
+type TSataDevStatus is record
+rcv_allname  : string(1 to 7);
+rcv_name     : string(1 to 7);
+rcv_cont     : std_logic;
+rcv_align    : std_logic;
+rcv_error    : TRxDetError;
+rcv_rcvfis   : std_logic;
+fistype      : TFISDet;
+rcv_dwcount  : integer;
+rcv_fisdata  : std_logic_vector(31 downto 0);
+rcv_crc_calc : std_logic_vector(31 downto 0);
+end record;
+
+
 
 
 ---------------------------------------------------------
@@ -408,6 +422,7 @@ p_out_gtp_rxnotintable      : out   std_logic_vector(1 downto 0);
 p_out_gtp_rxbyteisaligned   : out   std_logic;
 
 p_in_ctrl                   : in    TSataDevCtrl;
+p_out_status                : out   TSataDevStatus;
 
 --------------------------------------------------
 --Технологические сигналы

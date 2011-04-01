@@ -30,6 +30,7 @@ vcom -93 "../../core_gen/sata_txfifo.vhd"
 vcom -93 "../../core_gen/sata_cmdfifo.vhd"
 
 vcom -93 "../../src/sata_pkg.vhd"
+vcom -93 "../../src/sata_raid_pkg.vhd"
 vcom -93 "../../src/sata_sim_lite_pkg.vhd"
 vcom -93 "../../src/sata_unit_pkg.vhd"
 
