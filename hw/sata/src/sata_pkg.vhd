@@ -416,6 +416,7 @@ constant C_TNONE    : integer:=20;
 ---------------------------------------------------------
 type TBus02_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (1 downto 0);
 type TBus03_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (2 downto 0);
+type TBus04_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (3 downto 0);
 type TBus07_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (6 downto 0);
 type TBus08_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (7 downto 0);
 type TBus16_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (15 downto 0);
@@ -548,6 +549,7 @@ type TRxBufStatusGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufS
 type TBusGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 type TBus02GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus02_GtpCh;
 type TBus03GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus03_GtpCh;
+type TBus04GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus04_GtpCh;
 type TBus16GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus16_GtpCh;
 type TBus32GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus32_GtpCh;
 
@@ -556,6 +558,7 @@ type TBus32_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3
 type TBus16_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(15 downto 0);
 type TBus02_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(1 downto 0);
 type TBus03_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(2 downto 0);
+type TBus04_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3 downto 0);
 type TALCtrl_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
 type TALStatus_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
 type TTxBufStatus_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;

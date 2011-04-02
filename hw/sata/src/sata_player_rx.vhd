@@ -47,10 +47,10 @@ p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0)
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
-p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
+p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
+p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
 
 --------------------------------------------------

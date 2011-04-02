@@ -69,16 +69,16 @@ p_out_gtp_rst              : out   std_logic;
 p_out_gtp_txelecidle       : out   std_logic;
 p_out_gtp_txcomstart       : out   std_logic;
 p_out_gtp_txcomtype        : out   std_logic;
-p_out_gtp_txdata           : out   std_logic_vector(15 downto 0);
-p_out_gtp_txcharisk        : out   std_logic_vector(1 downto 0);
+p_out_gtp_txdata           : out   std_logic_vector(31 downto 0);
+p_out_gtp_txcharisk        : out   std_logic_vector(3 downto 0);
 
 --RocketIO Receiver
 p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
+p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
+p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
 
 --------------------------------------------------

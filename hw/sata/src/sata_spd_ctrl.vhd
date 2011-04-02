@@ -60,7 +60,7 @@ p_in_usr_dcm_lock       : in    std_logic;
 --------------------------------------------------
 --Связь с GTP
 --------------------------------------------------
-p_out_gtp_drpaddr       : out   std_logic_vector(6 downto 0);
+p_out_gtp_drpaddr       : out   std_logic_vector(7 downto 0);
 p_out_gtp_drpen         : out   std_logic;
 p_out_gtp_drpwe         : out   std_logic;
 p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
@@ -87,20 +87,22 @@ end sata_speed_ctrl;
 architecture behavioral of sata_speed_ctrl is
 
 constant C_SATAH_COUNT_MAX : integer :=G_SATAH_COUNT_MAX;
-constant C_SATAH_NUM      : integer :=G_SATAH_NUM;
+constant C_SATAH_NUM       : integer :=G_SATAH_NUM;
 
 --//Адреса регистров GTP
 --//более подробно см.Appendix D/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-constant C_AREG_REFCLK_SEL        : std_logic_vector(6 downto 0):=CONV_STD_LOGIC_VECTOR(16#04#, 7);
+constant C_AREG_REFCLK_SEL        : std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#04#, p_out_gtp_drpaddr'length);
 
-constant C_AREG_PLL_TXDIVSEL_OUT_0: std_logic_vector(6 downto 0):=CONV_STD_LOGIC_VECTOR(16#45#, 7);--//Канал 0
-constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(6 downto 0):=CONV_STD_LOGIC_VECTOR(16#05#, 7);--//Канал 1
+constant C_AREG_PLL_TXDIVSEL_OUT_0: std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#45#, p_out_gtp_drpaddr'length);--//Канал 0
+constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#05#, p_out_gtp_drpaddr'length);--//Канал 1
 
-constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(6 downto 0):=CONV_STD_LOGIC_VECTOR(16#46#, 7);--//Канал 0
-constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(6 downto 0):=CONV_STD_LOGIC_VECTOR(16#0A#, 7);--//Канал 1
+constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#46#, p_out_gtp_drpaddr'length);--//Канал 0
+constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#0A#, p_out_gtp_drpaddr'length);--//Канал 1
 
-constant C_AREG_PLL_TXDIVSEL_OUT  : TBus07_GtpCh:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
-constant C_AREG_PLL_RXDIVSEL_OUT  : TBus07_GtpCh:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
+type TBusADRP_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (p_out_gtp_drpaddr'range);
+
+constant C_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GtpCh:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
+constant C_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GtpCh:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
 
 type TRegValue is array (0 to C_FSATA_GEN_COUNT-1) of std_logic;
 constant C_VAL_PLL_DIVSEL_OUT  : TRegValue:=
@@ -160,7 +162,7 @@ signal i_spd_change             : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0
 signal i_spd_change_save        : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 signal i_spd_ver_out            : TSpdCtrl_GtpCh;
 
-signal i_gtp_drp_addr           : std_logic_vector(6 downto 0);
+signal i_gtp_drp_addr           : std_logic_vector(p_out_gtp_drpaddr'range);
 signal i_gtp_drp_en             : std_logic;
 signal i_gtp_drp_we             : std_logic;
 signal i_gtp_drp_di             : std_logic_vector(15 downto 0);

@@ -59,12 +59,12 @@ signal i_sim_gtp_clk              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto
 signal i_sim_gtp_rst              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 signal i_sim_gtp_rxelecidle       : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 signal i_sim_gtp_rxstatus         : TBus03_GtpCh;
-signal i_sim_gtp_txdata           : TBus16_GtpCh;
-signal i_sim_gtp_txcharisk        : TBus02_GtpCh;
-signal i_sim_gtp_rxdata           : TBus16_GtpCh;
-signal i_sim_gtp_rxcharisk        : TBus02_GtpCh;
-signal i_sim_gtp_rxdisperr        : TBus02_GtpCh;
-signal i_sim_gtp_rxnotintable     : TBus02_GtpCh;
+signal i_sim_gtp_txdata           : TBus32_GtpCh;
+signal i_sim_gtp_txcharisk        : TBus04_GtpCh;
+signal i_sim_gtp_rxdata           : TBus32_GtpCh;
+signal i_sim_gtp_rxcharisk        : TBus04_GtpCh;
+signal i_sim_gtp_rxdisperr        : TBus04_GtpCh;
+signal i_sim_gtp_rxnotintable     : TBus04_GtpCh;
 signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 

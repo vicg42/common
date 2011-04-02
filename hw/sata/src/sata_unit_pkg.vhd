@@ -188,8 +188,8 @@ p_out_rdy_n            : out   std_logic;
 --------------------------------------------------
 --RocketIO Transmiter (Назначение портов см. sata_rocketio.vhd)
 --------------------------------------------------
-p_out_gtp_txdata       : out   std_logic_vector(15 downto 0);
-p_out_gtp_txcharisk    : out   std_logic_vector(1 downto 0);
+p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
+p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -224,10 +224,10 @@ p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0)
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
 --------------------------------------------------
-p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
+p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
+p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
 
 --------------------------------------------------
@@ -487,16 +487,16 @@ p_out_gtp_rst              : out   std_logic;
 p_out_gtp_txelecidle       : out   std_logic;
 p_out_gtp_txcomstart       : out   std_logic;
 p_out_gtp_txcomtype        : out   std_logic;
-p_out_gtp_txdata           : out   std_logic_vector(15 downto 0);
-p_out_gtp_txcharisk        : out   std_logic_vector(1 downto 0);
+p_out_gtp_txdata           : out   std_logic_vector(31 downto 0);
+p_out_gtp_txcharisk        : out   std_logic_vector(3 downto 0);
 
 --RocketIO Receiver
 p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxdata            : in    std_logic_vector(15 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(1 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(1 downto 0);
+p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
+p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
+p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
 
 --------------------------------------------------
@@ -543,8 +543,8 @@ p_in_txreset           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txelecidle        : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txcomstart        : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_in_txcomtype         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txdata            : in    TBus16_GtpCh;
-p_in_txcharisk         : in    TBus02_GtpCh;
+p_in_txdata            : in    TBus32_GtpCh;
+p_in_txcharisk         : in    TBus04_GtpCh;
 
 --------------------------------------------------
 --Receiver
@@ -552,17 +552,17 @@ p_in_txcharisk         : in    TBus02_GtpCh;
 p_in_rxreset           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_rxelecidle       : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_rxstatus         : out   TBus03_GtpCh;
-p_out_rxdata           : out   TBus16_GtpCh;
-p_out_rxcharisk        : out   TBus02_GtpCh;
-p_out_rxdisperr        : out   TBus02_GtpCh;
-p_out_rxnotintable     : out   TBus02_GtpCh;
+p_out_rxdata           : out   TBus32_GtpCh;
+p_out_rxcharisk        : out   TBus04_GtpCh;
+p_out_rxdisperr        : out   TBus04_GtpCh;
+p_out_rxnotintable     : out   TBus04_GtpCh;
 p_out_rxbyteisaligned  : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
 p_in_drpclk            : in    std_logic;
-p_in_drpaddr           : in    std_logic_vector(6 downto 0);
+p_in_drpaddr           : in    std_logic_vector(7 downto 0);
 p_in_drpen             : in    std_logic;
 p_in_drpwe             : in    std_logic;
 p_in_drpdi             : in    std_logic_vector(15 downto 0);
@@ -600,7 +600,7 @@ p_in_usr_dcm_lock       : in    std_logic;
 --------------------------------------------------
 --Связь с GTP
 --------------------------------------------------
-p_out_gtp_drpaddr       : out   std_logic_vector(6 downto 0);
+p_out_gtp_drpaddr       : out   std_logic_vector(7 downto 0);
 p_out_gtp_drpen         : out   std_logic;
 p_out_gtp_drpwe         : out   std_logic;
 p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
@@ -678,14 +678,14 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 --//Моделирование
-p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
-p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
-p_in_sim_gtp_rxdata         : in    TBus16_GtpCh;
-p_in_sim_gtp_rxcharisk      : in    TBus02_GtpCh;
+p_out_sim_gtp_txdata        : out   TBus32_GtpCh;
+p_out_sim_gtp_txcharisk     : out   TBus04_GtpCh;
+p_in_sim_gtp_rxdata         : in    TBus32_GtpCh;
+p_in_sim_gtp_rxcharisk      : in    TBus04_GtpCh;
 p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus02_GtpCh;
-p_in_sim_gtp_rxnotintable   : in    TBus02_GtpCh;
+p_in_sim_gtp_rxdisperr      : in    TBus04_GtpCh;
+p_in_sim_gtp_rxnotintable   : in    TBus04_GtpCh;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
@@ -1016,14 +1016,14 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        : out   TBus16_SataCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus02_SataCountMax;
-p_in_sim_gtp_rxdata         : in    TBus16_SataCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus02_SataCountMax;
+p_out_sim_gtp_txdata        : out   TBus32_SataCountMax;
+p_out_sim_gtp_txcharisk     : out   TBus04_SataCountMax;
+p_in_sim_gtp_rxdata         : in    TBus32_SataCountMax;
+p_in_sim_gtp_rxcharisk      : in    TBus04_SataCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus02_SataCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus02_SataCountMax;
+p_in_sim_gtp_rxdisperr      : in    TBus04_SataCountMax;
+p_in_sim_gtp_rxnotintable   : in    TBus04_SataCountMax;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);

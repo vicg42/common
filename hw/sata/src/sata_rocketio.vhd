@@ -61,10 +61,10 @@ p_in_txcharisk                   : in    TBus02_GtpCh;                          
 p_in_rxreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Сброс приемника
 p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
 p_out_rxstatus                   : out   TBus03_GtpCh;                                    --//Тип обнаруженного OOB сигнала
-p_out_rxdata                     : out   TBus16_GtpCh;                                    --//поток данных от приемника DUAL_GTP
-p_out_rxcharisk                  : out   TBus02_GtpCh;                                    --//признак наличия упр.символов в rxdata
-p_out_rxdisperr                  : out   TBus02_GtpCh;                                    --//Ошибка паритета в принятом данном
-p_out_rxnotintable               : out   TBus02_GtpCh;                                    --//
+p_out_rxdata                     : out   TBus32_GtpCh;                                    --//поток данных от приемника DUAL_GTP
+p_out_rxcharisk                  : out   TBus04_GtpCh;                                    --//признак наличия упр.символов в rxdata
+p_out_rxdisperr                  : out   TBus04_GtpCh;                                    --//Ошибка паритета в принятом данном
+p_out_rxnotintable               : out   TBus04_GtpCh;                                    --//
 p_out_rxbyteisaligned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Данные выровнены по байтам
 
 ----------------------------------------------------------------------------
@@ -72,7 +72,7 @@ p_out_rxbyteisaligned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 d
 ----------------------------------------------------------------------------
 --Порт динамическаго конфигурирования DUAL_GTP
 p_in_drpclk                      : in    std_logic;
-p_in_drpaddr                     : in    std_logic_vector(6 downto 0);
+p_in_drpaddr                     : in    std_logic_vector(7 downto 0);
 p_in_drpen                       : in    std_logic;
 p_in_drpwe                       : in    std_logic;
 p_in_drpdi                       : in    std_logic_vector(15 downto 0);
@@ -112,6 +112,14 @@ i_rxelecidlereset(0)<=i_rxelecidle(0) and i_resetdone(0);
 i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
 
 i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
+
+
+gen_null : for i in 0 to C_GTP_CH_COUNT_MAX-1 generate
+p_out_rxdata(i)(31 downto 16)<=(others=>'0');
+p_out_rxcharisk(i)(3 downto 2)<=(others=>'0');
+p_out_rxdisperr(i)(3 downto 2)<=(others=>'0');
+p_out_rxnotintable(i)(3 downto 2)<=(others=>'0');
+end generate gen_null;
 
 
 --GTP_DUAL Instance
@@ -383,14 +391,14 @@ TXPOWERDOWN1                    =>      "00",
 ----------------------- Receive Ports - 8b10b Decoder ----------------------
 RXCHARISCOMMA0                  =>      open,
 RXCHARISCOMMA1                  =>      open,
-RXCHARISK0                      =>      p_out_rxcharisk(0),--i_rxcharisk(0),--
-RXCHARISK1                      =>      p_out_rxcharisk(1),--i_rxcharisk(1),--
+RXCHARISK0                      =>      p_out_rxcharisk(0)(1 downto 0),
+RXCHARISK1                      =>      p_out_rxcharisk(1)(1 downto 0),
 RXDEC8B10BUSE0                  =>      '1',--Разрешение или пропуск 8B/10B decoder (0/1-bypassed/enabled)
 RXDEC8B10BUSE1                  =>      '1',
-RXDISPERR0                      =>      p_out_rxdisperr(0),
-RXDISPERR1                      =>      p_out_rxdisperr(1),
-RXNOTINTABLE0                   =>      p_out_rxnotintable(0),
-RXNOTINTABLE1                   =>      p_out_rxnotintable(1),
+RXDISPERR0                      =>      p_out_rxdisperr(0)(1 downto 0),
+RXDISPERR1                      =>      p_out_rxdisperr(1)(1 downto 0),
+RXNOTINTABLE0                   =>      p_out_rxnotintable(0)(1 downto 0),
+RXNOTINTABLE1                   =>      p_out_rxnotintable(1)(1 downto 0),
 RXRUNDISP0                      =>      open,
 RXRUNDISP1                      =>      open,
 ------------------- Receive Ports - Channel Bonding Ports ------------------
@@ -428,8 +436,8 @@ RXENPRBSTST1                    =>      "00",
 RXPRBSERR0                      =>      open,
 RXPRBSERR1                      =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
-RXDATA0                         =>      p_out_rxdata(0),--i_rxdata(0),--
-RXDATA1                         =>      p_out_rxdata(1),--i_rxdata(1),--
+RXDATA0                         =>      p_out_rxdata(0)(15 downto 0),
+RXDATA1                         =>      p_out_rxdata(1)(15 downto 0),
 RXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
 RXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
 RXRECCLK0                       =>      open,
@@ -487,7 +495,7 @@ RXVALID1                        =>      open,
 RXPOLARITY0                     =>      '0',--0/1 Not inverted RXP is positive, and RXN is negative/Inverted
 RXPOLARITY1                     =>      '0',
 ------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
-DADDR                           =>      p_in_drpaddr,
+DADDR                           =>      p_in_drpaddr(6 downto 0),
 DCLK                            =>      p_in_drpclk,
 DEN                             =>      p_in_drpen,
 DI                              =>      p_in_drpdi,
@@ -516,8 +524,8 @@ TXCHARDISPMODE0                 =>      "00",
 TXCHARDISPMODE1                 =>      "00",
 TXCHARDISPVAL0                  =>      "00",
 TXCHARDISPVAL1                  =>      "00",
-TXCHARISK0                      =>      p_in_txcharisk(0),--i_txcharisk(0),--
-TXCHARISK1                      =>      p_in_txcharisk(1),--i_txcharisk(1),--
+TXCHARISK0                      =>      p_in_txcharisk(0)(1 downto 0),
+TXCHARISK1                      =>      p_in_txcharisk(1)(1 downto 0),
 TXENC8B10BUSE0                  =>      '1',--0/1 8B/10B encoder bypassed/enabled(when enabled INTDATAWIDTH must be 1)
 TXENC8B10BUSE1                  =>      '1',--
 TXKERR0                         =>      open,
@@ -528,8 +536,8 @@ TXRUNDISP1                      =>      open,
 TXBUFSTATUS0                    =>      open,--cм.стр.111  ug196.pdf
 TXBUFSTATUS1                    =>      open,--
 ------------------ Transmit Ports - TX Data Path interface -----------------
-TXDATA0                         =>      p_in_txdata(0),--i_txdata(0),--
-TXDATA1                         =>      p_in_txdata(1),--i_txdata(1),--
+TXDATA0                         =>      p_in_txdata(0)(15 downto 0),
+TXDATA1                         =>      p_in_txdata(1)(15 downto 0),
 TXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
 TXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
 TXOUTCLK0                       =>      open,

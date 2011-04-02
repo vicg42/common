@@ -81,14 +81,14 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 --//Моделирование
-p_out_sim_gtp_txdata        : out   TBus16_GtpCh;
-p_out_sim_gtp_txcharisk     : out   TBus02_GtpCh;
-p_in_sim_gtp_rxdata         : in    TBus16_GtpCh;
-p_in_sim_gtp_rxcharisk      : in    TBus02_GtpCh;
+p_out_sim_gtp_txdata        : out   TBus32_GtpCh;
+p_out_sim_gtp_txcharisk     : out   TBus04_GtpCh;
+p_in_sim_gtp_rxdata         : in    TBus32_GtpCh;
+p_in_sim_gtp_rxcharisk      : in    TBus04_GtpCh;
 p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus02_GtpCh;
-p_in_sim_gtp_rxnotintable   : in    TBus02_GtpCh;
+p_in_sim_gtp_rxdisperr      : in    TBus04_GtpCh;
+p_in_sim_gtp_rxnotintable   : in    TBus04_GtpCh;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
@@ -153,7 +153,7 @@ signal i_gtp_ch_rst                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downt
 signal i_gtp_PLLLKDET              : std_logic;
 signal i_gtp_glob_reset            : std_logic;
 
-signal i_gtp_drpaddr               : std_logic_vector(6 downto 0);
+signal i_gtp_drpaddr               : std_logic_vector(7 downto 0);
 signal i_gtp_drpen                 : std_logic;
 signal i_gtp_drpwe                 : std_logic;
 signal i_gtp_drpdi                 : std_logic_vector(15 downto 0);
@@ -165,17 +165,17 @@ signal g_gtp_usrclk2               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downt
 
 signal i_gtp_rxstatus              : TBus03_GtpCh;
 signal i_gtp_rxelecidle            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
-signal i_gtp_rxdata                : TBus16_GtpCh;
-signal i_gtp_rxcharisk             : TBus02_GtpCh;
-signal i_gtp_rxdisperr             : TBus02_GtpCh;
-signal i_gtp_rxnotintable          : TBus02_GtpCh;
+signal i_gtp_rxdata                : TBus32_GtpCh;
+signal i_gtp_rxcharisk             : TBus04_GtpCh;
+signal i_gtp_rxdisperr             : TBus04_GtpCh;
+signal i_gtp_rxnotintable          : TBus04_GtpCh;
 signal i_gtp_rxbyteisaligned       : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
 
 signal i_gtp_txelecidle            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
 signal i_gtp_txcomstart            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
 signal i_gtp_txcomtype             : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
-signal i_gtp_txdata                : TBus16_GtpCh;
-signal i_gtp_txcharisk             : TBus02_GtpCh;
+signal i_gtp_txdata                : TBus32_GtpCh;
+signal i_gtp_txcharisk             : TBus04_GtpCh;
 
 
 

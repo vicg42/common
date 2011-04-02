@@ -214,8 +214,8 @@ procedure p_SetDW(
   constant p_in_d    : in    std_logic_vector(31 downto 0);
   constant p_in_dt   : in    std_logic;
 
-  signal p_out_d     : out   std_logic_vector(15 downto 0);
-  signal p_out_dt    : out   std_logic_vector(1 downto 0);
+  signal p_out_d     : out   std_logic_vector(31 downto 0);
+  signal p_out_dt    : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt : in    TInUsrOpt;
   variable vp_in_usropt : in   TOutUsrOpt;
@@ -229,8 +229,8 @@ procedure p_SetData(
   constant p_in_d      : in    std_logic_vector(31 downto 0);
   constant p_in_dt     : in    std_logic;
 
-  signal   p_out_d     : out   std_logic_vector(15 downto 0);
-  signal   p_out_dt    : out   std_logic_vector(1 downto 0);
+  signal   p_out_d     : out   std_logic_vector(31 downto 0);
+  signal   p_out_dt    : out   std_logic_vector(3 downto 0);
 
   signal   p_in_usropt : in    TInUsrOpt;
   variable vp_in_usropt: in    TOutUsrOpt;
@@ -241,8 +241,8 @@ procedure p_SetData(
 procedure p_SetSYNC(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -255,8 +255,8 @@ procedure p_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -266,8 +266,8 @@ procedure p_SendFIS(
 procedure p_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -277,8 +277,8 @@ procedure p_GetFIS(
 procedure p_ATAPIO_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -288,8 +288,8 @@ procedure p_ATAPIO_READ(
 procedure p_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -299,8 +299,8 @@ procedure p_ATAPIO_WRITE(
 procedure p_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -310,8 +310,8 @@ procedure p_ATADMA_READ(
 procedure p_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -321,8 +321,8 @@ procedure p_ATADMA_WRITE(
 procedure p_COMMAND_ACTIVATE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -346,8 +346,8 @@ procedure p_BUF_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -357,8 +357,8 @@ procedure p_BUF_SendFIS(
 procedure p_BUF_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -368,8 +368,8 @@ procedure p_BUF_GetFIS(
 procedure p_BUF_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -379,8 +379,8 @@ procedure p_BUF_ATADMA_READ(
 procedure p_BUF_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -390,8 +390,8 @@ procedure p_BUF_ATADMA_WRITE(
 procedure p_BUF_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -409,16 +409,16 @@ port
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata            : out   std_logic_vector(15 downto 0);
-p_out_gtp_txcharisk         : out   std_logic_vector(1 downto 0);
+p_out_gtp_txdata            : out   std_logic_vector(31 downto 0);
+p_out_gtp_txcharisk         : out   std_logic_vector(3 downto 0);
 
-p_in_gtp_rxdata             : in    std_logic_vector(15 downto 0);
-p_in_gtp_rxcharisk          : in    std_logic_vector(1 downto 0);
+p_in_gtp_rxdata             : in    std_logic_vector(31 downto 0);
+p_in_gtp_rxcharisk          : in    std_logic_vector(3 downto 0);
 
 p_out_gtp_rxstatus          : out   std_logic_vector(2 downto 0);
 p_out_gtp_rxelecidle        : out   std_logic;
-p_out_gtp_rxdisperr         : out   std_logic_vector(1 downto 0);
-p_out_gtp_rxnotintable      : out   std_logic_vector(1 downto 0);
+p_out_gtp_rxdisperr         : out   std_logic_vector(3 downto 0);
+p_out_gtp_rxnotintable      : out   std_logic_vector(3 downto 0);
 p_out_gtp_rxbyteisaligned   : out   std_logic;
 
 p_in_ctrl                   : in    TSataDevCtrl;
@@ -538,8 +538,8 @@ procedure p_SetDW(
   constant p_in_d    : in    std_logic_vector(31 downto 0);
   constant p_in_dt   : in    std_logic;
 
-  signal p_out_d     : out   std_logic_vector(15 downto 0);
-  signal p_out_dt    : out   std_logic_vector(1 downto 0);
+  signal p_out_d     : out   std_logic_vector(31 downto 0);
+  signal p_out_dt    : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt : in    TInUsrOpt;
   variable vp_in_usropt: in   TOutUsrOpt;
@@ -559,6 +559,12 @@ procedure p_SetDW(
 
   variable byteout1  : std_logic_vector(7 downto 0);
   variable tbyteout1 : std_logic;
+
+  variable byteout2  : std_logic_vector(7 downto 0);
+  variable tbyteout2 : std_logic;
+
+  variable byteout3  : std_logic_vector(7 downto 0);
+  variable tbyteout3 : std_logic;
 
   variable dbuf      : TSimDBufCtrl;
 
@@ -617,6 +623,11 @@ while state /= bs_done loop
              end if;
              dbuf.sync:='1';
 
+              byteout2 :=(others=>'0');
+              tbyteout2:='0';
+              byteout3 :=(others=>'0');
+              tbyteout3:='0';
+
              n_state := bs_byte1;
 
         when bs_byte1 =>
@@ -645,6 +656,10 @@ while state /= bs_done loop
                 n_state := bs_done;
              end if;
 
+              byteout2 :=(others=>'0');
+              tbyteout2:='0';
+              byteout3 :=(others=>'0');
+              tbyteout3:='0';
 
         when bs_byte2 =>
 
@@ -652,6 +667,11 @@ while state /= bs_done loop
               tbyteout :=C_CHAR_D;
               byteout1 :=(others=>'0');
               tbyteout1:='0';
+
+              byteout2 :=(others=>'0');
+              tbyteout2:='0';
+              byteout3 :=(others=>'0');
+              tbyteout3:='0';
 
               n_state := bs_byte3;
 
@@ -661,6 +681,11 @@ while state /= bs_done loop
               tbyteout :=C_CHAR_D;
               byteout1 :=(others=>'0');
               tbyteout1:='0';
+
+              byteout2 :=(others=>'0');
+              tbyteout2:='0';
+              byteout3 :=(others=>'0');
+              tbyteout3:='0';
 
               n_state := bs_done;
 
@@ -674,6 +699,11 @@ while state /= bs_done loop
     p_out_dt(0) <= tbyteout;
     p_out_d(15 downto 8) <= byteout1;
     p_out_dt(1) <= tbyteout1;
+
+    p_out_d(23 downto 16) <= byteout2;
+    p_out_dt(2) <= tbyteout2;
+    p_out_d(31 downto 24) <= byteout3;
+    p_out_dt(3) <= tbyteout3;
 
 --      p_out_usropt.dbuf<=dbuf;
 
@@ -710,8 +740,8 @@ procedure p_SetData(
   constant p_in_d      : in    std_logic_vector(31 downto 0);
   constant p_in_dt     : in    std_logic;
 
-  signal   p_out_d     : out   std_logic_vector(15 downto 0);
-  signal   p_out_dt    : out   std_logic_vector(1 downto 0);
+  signal   p_out_d     : out   std_logic_vector(31 downto 0);
+  signal   p_out_dt    : out   std_logic_vector(3 downto 0);
 
   signal   p_in_usropt : in    TInUsrOpt;
   variable vp_in_usropt: in    TOutUsrOpt;
@@ -748,8 +778,8 @@ end;--//procedure p_SetData
 procedure p_SetSYNC(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -806,8 +836,8 @@ procedure p_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1004,8 +1034,8 @@ end;--//procedure p_SendFIS
 procedure p_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1175,8 +1205,8 @@ end;--//procedure p_GetFIS
 procedure p_ATAPIO_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1339,8 +1369,8 @@ end;--//procedure p_ATAPIO_READ
 procedure p_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1481,8 +1511,8 @@ end;--//procedure p_ATAPIO_WRITE
 procedure p_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1643,8 +1673,8 @@ end;--//procedure p_ATADMA_READ
 procedure p_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1803,8 +1833,8 @@ end;--//procedure p_ATADMA_WRITE
 procedure p_COMMAND_ACTIVATE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1932,8 +1962,8 @@ end;--//procedure p_CMDPKT_WRITE
 procedure p_BUF_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2125,8 +2155,8 @@ procedure p_BUF_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2322,8 +2352,8 @@ end;--//procedure p_BUF_SendFIS
 procedure p_BUF_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2475,8 +2505,8 @@ end;--//procedure p_BUF_ATADMA_READ
 procedure p_BUF_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2659,8 +2689,8 @@ end;--//procedure p_BUF_ATADMA_WRITE
 procedure p_BUF_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(15 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(1 downto 0);
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt

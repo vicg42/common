@@ -69,14 +69,14 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        : out   TBus16_SataCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus02_SataCountMax;
-p_in_sim_gtp_rxdata         : in    TBus16_SataCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus02_SataCountMax;
+p_out_sim_gtp_txdata        : out   TBus32_SataCountMax;
+p_out_sim_gtp_txcharisk     : out   TBus04_SataCountMax;
+p_in_sim_gtp_rxdata         : in    TBus32_SataCountMax;
+p_in_sim_gtp_rxcharisk      : in    TBus04_SataCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus02_SataCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus02_SataCountMax;
+p_in_sim_gtp_rxdisperr      : in    TBus04_SataCountMax;
+p_in_sim_gtp_rxnotintable   : in    TBus04_SataCountMax;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -161,14 +161,14 @@ signal i_uap_rxd_rd                : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0
 signal i_uap_txbuf_status          : TTxBufStatus_SataCountMax;
 signal i_uap_rxbuf_status          : TRxBufStatus_SataCountMax;
 
-signal i_sim_gtp_txdata            : TBus16GtpCh_SataCountMax;
-signal i_sim_gtp_txcharisk         : TBus02GtpCh_SataCountMax;
-signal i_sim_gtp_rxdata            : TBus16GtpCh_SataCountMax;
-signal i_sim_gtp_rxcharisk         : TBus02GtpCh_SataCountMax;
+signal i_sim_gtp_txdata            : TBus32GtpCh_SataCountMax;
+signal i_sim_gtp_txcharisk         : TBus04GtpCh_SataCountMax;
+signal i_sim_gtp_rxdata            : TBus32GtpCh_SataCountMax;
+signal i_sim_gtp_rxcharisk         : TBus04GtpCh_SataCountMax;
 signal i_sim_gtp_rxstatus          : TBus03GtpCh_SataCountMax;
 signal i_sim_gtp_rxelecidle        : TBusGtpCh_SataCountMax;
-signal i_sim_gtp_rxdisperr         : TBus02GtpCh_SataCountMax;
-signal i_sim_gtp_rxnotintable      : TBus02GtpCh_SataCountMax;
+signal i_sim_gtp_rxdisperr         : TBus04GtpCh_SataCountMax;
+signal i_sim_gtp_rxnotintable      : TBus04GtpCh_SataCountMax;
 signal i_sim_gtp_rxbyteisaligned   : TBusGtpCh_SataCountMax;
 signal i_sim_gtp_rst               : TBusGtpCh_SataCountMax;
 signal i_sim_gtp_clk               : TBusGtpCh_SataCountMax;
