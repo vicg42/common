@@ -85,6 +85,7 @@ signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_USRCMD_M_BIT down
 signal i_usrmode                   : std_logic_vector(0 to C_USRCMD_COUNT-1);
 signal i_err_clr                   : std_logic;
 signal i_sstatus                   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
+signal i_spd_ver                   : std_logic_vector(C_PSTAT_SPD_BIT_M-C_PSTAT_SPD_BIT_L downto 0);
 
 signal i_reg_shadow_addr           : std_logic_vector(i_cmdfifo_dcnt'range);
 signal i_reg_shadow_din            : std_logic_vector(15 downto 0);
@@ -109,7 +110,7 @@ signal i_serr_c_err                : std_logic;
 signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 
 signal sr_usr_status_busy          : std_logic_vector(0 to 4);
-signal i_signature_det             : std_logic;
+--signal i_signature_det             : std_logic;
 
 signal tst_al_status               : TSimALStatus;
 signal dbgtsf_type                 : string(1 to 23);
@@ -323,35 +324,37 @@ i_sstatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--
 i_sstatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');
 
 --//Cкорость соединения: "00"/"01"/"10" - не согласована/Gen1/Gen2
-i_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)="01" else
-                                                                    "0010" when p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)="10" else
-                                                                    "0000";
+i_spd_ver<=p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L);
+i_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when i_spd_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, i_spd_ver'length) else
+                                                         "0010" when i_spd_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, i_spd_ver'length) else
+                                                         "0000";
 
-i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_signature_det;--//Интрефейс в активном состоянии. Сигнатура от устройства получена
+i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);--//Интрефейс в активном состоянии. Сигнатура от устройства получена
+--i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_signature_det;--//Интрефейс в активном состоянии. Сигнатура от устройства получена
 
 i_sstatus(C_ALSSTAT_LAST_BIT downto C_ASSTAT_IPM_BIT_L+1)<=(others=>'0');
 
 --//Обнаружение сигнатуры:
 p_out_status.Usr<=i_usr_status;
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    sr_usr_status_busy<=(others=>'0');
-    i_signature_det<='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-    sr_usr_status_busy<=i_usr_status(C_AUSER_BUSY_BIT)&sr_usr_status_busy(0 to 3);
-
-    if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and i_serr_p_err='0' and i_serr_c_err='0' and i_serr_i_err='0' then
-      if sr_usr_status_busy(3)='0' and sr_usr_status_busy(4)='1' then
-        i_signature_det<='1';
-      end if;
-    else
-      i_signature_det<='0';
-    end if;
-
-  end if;
-end process;
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    sr_usr_status_busy<=(others=>'0');
+--    i_signature_det<='0';
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    sr_usr_status_busy<=i_usr_status(C_AUSER_BUSY_BIT)&sr_usr_status_busy(0 to 3);
+--
+--    if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and i_serr_p_err='0' and i_serr_c_err='0' and i_serr_i_err='0' then
+--      if sr_usr_status_busy(3)='0' and sr_usr_status_busy(4)='1' then
+--        i_signature_det<='1';
+--      end if;
+--    else
+--      i_signature_det<='0';
+--    end if;
+--
+--  end if;
+--end process;
 
 
 
@@ -539,7 +542,8 @@ gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 tst_al_status.cmd_name<=dbgtsf_type;
 tst_al_status.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
-tst_al_status.signature<=i_signature_det;
+tst_al_status.signature<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);
+--tst_al_status.signature<=i_signature_det;
 
 rq_name: process(i_reg_shadow,tst_al_status)
 begin

@@ -38,6 +38,11 @@ glob_usr : std_logic_vector(31 downto 0);
 ch_usr   : TBus32_SataCountMax;
 end record;
 
+type TRaid is record
+used     : std_logic;
+hddcount : std_logic_vector(2 downto 0);
+end record;
+
 
 
 

@@ -75,6 +75,7 @@ signal i_usr_rxdin                : std_logic_vector(31 downto 0);
 signal i_usr_rxdout               : std_logic_vector(31 downto 0);
 signal i_usr_rxd_wr               : std_logic;
 signal i_usr_rxd_rd               : std_logic;
+signal i_usr_rxbuf_full           : std_logic;
 signal i_usr_rxbuf_empty          : std_logic;
 
 
@@ -169,7 +170,7 @@ rd_en      => i_usr_rxd_rd,
 rd_clk     => p_in_clk,
 
 full        => open,
-prog_full   => open,
+prog_full   => i_usr_rxbuf_full,
 --almost_full => open,
 empty       => i_usr_rxbuf_empty,
 --almost_empty=> open,
@@ -224,7 +225,7 @@ p_in_usr_txbuf_empty        => i_usr_txbuf_empty,
 --//Связь с RxFIFO
 p_out_usr_rxd               => i_usr_rxdin,
 p_out_usr_rxd_wr            => i_usr_rxd_wr,
-
+p_in_usr_rxbuf_full         => i_usr_rxbuf_full,
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется

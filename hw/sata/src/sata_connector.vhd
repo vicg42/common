@@ -57,6 +57,7 @@ p_in_uap_rxd_rd         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
 p_in_sh_clk             : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_sh_status          : in    TALStatus_GtpCh;
 
 --//CMDFIFO
 p_out_sh_cxd            : out   TBus16_GtpCh;
@@ -91,6 +92,8 @@ p_in_rst                : in    std_logic
 end sata_connector;
 
 architecture behavioral of sata_connector is
+
+signal i_buf_rst              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 
 --MAIN
 begin
@@ -143,6 +146,8 @@ end generate gen_ch0_only;
 
 gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
 
+i_buf_rst(i)<=not p_in_sh_status(i).SStatus(C_ASSTAT_DET_BIT_L+1);--//Link Establish
+
 --//----------------------------
 --//Согласующие буфера:
 --//----------------------------
@@ -194,7 +199,7 @@ len_out                => open,
 len_err_out            => open,
 
 -- Reset
-areset_in              => p_in_rst
+areset_in              => i_buf_rst(i)
 );
 
 m_txbuf : sata_txfifo
@@ -214,7 +219,7 @@ prog_full   => p_out_txbuf_status(i).pfull,
 empty       => p_out_txbuf_status(i).empty,
 almost_empty=> p_out_txbuf_status(i).aempty,
 
-rst        => p_in_rst
+rst        => i_buf_rst(i)
 );
 
 m_rxbuf : sata_rxfifo
@@ -234,7 +239,7 @@ prog_full   => p_out_rxbuf_status(i).pfull,
 empty       => p_out_rxbuf_status(i).empty,
 --almost_empty=> i_rxbuf_aempty(0),
 
-rst        => p_in_rst
+rst        => i_buf_rst(i)
 );
 end generate gen_ch;
 

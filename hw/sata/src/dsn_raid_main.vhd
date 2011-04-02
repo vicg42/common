@@ -65,7 +65,7 @@ p_in_usr_txbuf_empty        : in    std_logic;
 --//Связь с RxFIFO
 p_out_usr_rxd               : out   std_logic_vector(31 downto 0);
 p_out_usr_rxd_wr            : out   std_logic;
-
+p_in_usr_rxbuf_full         : in    std_logic;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -235,26 +235,27 @@ p_in_usr_txbuf_empty    => p_in_usr_txbuf_empty,
 --//rxbuf
 p_out_usr_rxd           => p_out_usr_rxd,
 p_out_usr_rxd_wr        => p_out_usr_rxd_wr,
+p_in_usr_rxbuf_full     => p_in_usr_rxbuf_full,
 
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_in_uap_status         => i_uap_status,
-p_out_uap_ctrl          => i_uap_ctrl,
+p_in_sh_status          => i_uap_status,
+p_out_sh_ctrl           => i_uap_ctrl,
 --/cmdbuf
-p_out_uap_cxd           => i_uap_cxd,
-p_out_uap_cxd_sof_n     => i_uap_cxd_sof_n,
-p_out_uap_cxd_eof_n     => i_uap_cxd_eof_n,
-p_out_uap_cxd_src_rdy_n => i_uap_cxd_src_rdy_n,
+p_out_sh_cxd            => i_uap_cxd,
+p_out_sh_cxd_sof_n      => i_uap_cxd_sof_n,
+p_out_sh_cxd_eof_n      => i_uap_cxd_eof_n,
+p_out_sh_cxd_src_rdy_n  => i_uap_cxd_src_rdy_n,
 --/txbuf
-p_out_uap_txd           => i_uap_txd,
-p_out_uap_txd_wr        => i_uap_txd_wr,
+p_out_sh_txd            => i_uap_txd,
+p_out_sh_txd_wr         => i_uap_txd_wr,
 --/rxbuf
-p_in_uap_rxd            => i_uap_rxd,
-p_out_uap_rxd_rd        => i_uap_rxd_rd,
+p_in_sh_rxd             => i_uap_rxd,
+p_out_sh_rxd_rd         => i_uap_rxd_rd,
 --/bufstatus
-p_in_uap_txbuf_status   => i_uap_txbuf_status,
-p_in_uap_rxbuf_status   => i_uap_rxbuf_status,
+p_in_sh_txbuf_status    => i_uap_txbuf_status,
+p_in_sh_rxbuf_status    => i_uap_rxbuf_status,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -375,6 +376,7 @@ p_in_uap_rxd_rd         => i_u_rxd_rd(sh_idx),
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
 p_in_sh_clk             => i_sh_clkout(sh_idx),
+p_in_sh_status          => i_sh_status(sh_idx),
 
 --//CMDFIFO
 p_out_sh_cxd            => i_sh_cxd(sh_idx),

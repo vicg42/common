@@ -758,6 +758,7 @@ p_in_uap_rxd_rd         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
 p_in_sh_clk             : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_sh_status          : in    TALStatus_GtpCh;
 
 --//CMDFIFO
 p_out_sh_cxd            : out   TBus16_GtpCh;
@@ -806,9 +807,20 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
+--//cmd
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_out_usr_cxd_rd        : out   std_logic;
 p_in_usr_cxbuf_empty    : in    std_logic;
+
+--//txfifo
+p_in_usr_txd            : in    std_logic_vector(31 downto 0);
+p_out_usr_txd_rd        : out   std_logic;
+p_in_usr_txbuf_empty    : in    std_logic;
+
+--//rxfifo
+p_out_usr_rxd           : out   std_logic_vector(31 downto 0);
+p_out_usr_rxd_wr        : out   std_logic;
+p_in_usr_rxbuf_full     : in    std_logic;
 
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
@@ -816,11 +828,24 @@ p_in_usr_cxbuf_empty    : in    std_logic;
 p_in_sh_status          : in    TALStatus_SataCountMax;
 p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
 
+p_in_raid               : in    TRaid;
+p_in_sh_num             : in    std_logic_vector(2 downto 0);
+p_out_sh_mask           : out   std_logic_vector(G_HDD_COUNT-1 downto 0);
+
 p_out_sh_cxd            : out   std_logic_vector(15 downto 0);
 p_out_sh_cxd_sof_n      : out   std_logic;
 p_out_sh_cxd_eof_n      : out   std_logic;
 p_out_sh_cxd_src_rdy_n  : out   std_logic;
-p_out_sh_mask           : out   std_logic_vector(7 downto 0);
+
+p_out_sh_hdd            : out   std_logic_vector(2 downto 0);
+
+p_out_sh_txd            : out   std_logic_vector(31 downto 0);
+p_out_sh_txd_wr         : out   std_logic;
+p_in_sh_txbuf_full      : in    std_logic;
+
+p_in_sh_rxd             : in    std_logic_vector(31 downto 0);
+p_out_sh_rxd_rd         : out   std_logic;
+p_in_sh_rxbuf_empty     : in    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -837,7 +862,7 @@ p_in_rst                : in    std_logic
 end component;
 
 
-component sata_raid_dmux
+component sata_raid_decoder
 generic
 (
 G_HDD_COUNT : integer:=1;
@@ -849,27 +874,41 @@ port
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
---//Связь с TxFIFO
-p_in_usr_txd            : in    std_logic_vector(31 downto 0);
-p_out_usr_txd_rd        : out   std_logic;
-p_in_usr_txbuf_empty    : in    std_logic;
+p_out_raid              : out   TRaid;
+p_out_sh_num            : out   std_logic_vector(2 downto 0);
+p_in_sh_mask            : in    std_logic_vector(G_HDD_COUNT-1 downto 0);
 
---//Связь с RxFIFO
+p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
+p_in_usr_cxd_sof_n      : in    std_logic;
+p_in_usr_cxd_eof_n      : in    std_logic;
+p_in_usr_cxd_src_rdy_n  : in    std_logic;
+
+p_in_sh_hdd             : in    std_logic_vector(2 downto 0);
+
+p_in_usr_txd            : in    std_logic_vector(31 downto 0);
+p_in_usr_txd_wr         : in    std_logic;
+p_out_usr_txbuf_full    : out   std_logic;
+
 p_out_usr_rxd           : out   std_logic_vector(31 downto 0);
-p_out_usr_rxd_wr        : out   std_logic;
+p_in_usr_rxd_rd         : in    std_logic;
+p_out_usr_rxbuf_empty   : out   std_logic;
 
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_out_sh_tx_dst_adr     : out   std_logic_vector(2 downto 0);
-p_out_sh_txd            : out   std_logic_vector(31 downto 0);
-p_out_sh_txd_wr         : out   std_logic;
---p_in_sh_txbuf_full      : in    std_logic;
+p_out_sh_cxd            : out   TBus16_SataCountMax;
+p_out_sh_cxd_sof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
 
-p_out_sh_rx_src_adr     : out   std_logic_vector(2 downto 0);
-p_in_sh_rxd             : in    std_logic_vector(31 downto 0);
-p_out_sh_rxd_rd         : out   std_logic;
-p_in_sh_rxbuf_empty     : in    std_logic;
+p_out_sh_txd            : out   TBus32_SataCountMax;
+p_out_sh_txd_wr         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+
+p_in_sh_rxd             : in    TBus32_SataCountMax;
+p_out_sh_rxd_rd         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+
+p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
+p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -901,39 +940,40 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
---//Связь с CMDFIFO
+--//cmd
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_out_usr_cxd_rd        : out   std_logic;
 p_in_usr_cxbuf_empty    : in    std_logic;
 
---//Связь с TxFIFO
+--//txfifo
 p_in_usr_txd            : in    std_logic_vector(31 downto 0);
 p_out_usr_txd_rd        : out   std_logic;
 p_in_usr_txbuf_empty    : in    std_logic;
 
---//Связь с RxFIFO
+--//rxfifo
 p_out_usr_rxd           : out   std_logic_vector(31 downto 0);
 p_out_usr_rxd_wr        : out   std_logic;
+p_in_usr_rxbuf_full     : in    std_logic;
 
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_in_uap_status         : in    TALStatus_SataCountMax;
-p_out_uap_ctrl          : out   TALCtrl_SataCountMax;
+p_in_sh_status          : in    TALStatus_SataCountMax;
+p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
 
-p_out_uap_cxd           : out   TBus16_SataCountMax;
-p_out_uap_cxd_sof_n     : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_uap_cxd_eof_n     : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_uap_cxd_src_rdy_n : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd            : out   TBus16_SataCountMax;
+p_out_sh_cxd_sof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
 
-p_out_uap_txd           : out   TBus32_SataCountMax;
-p_out_uap_txd_wr        : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_txd            : out   TBus32_SataCountMax;
+p_out_sh_txd_wr         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
 
-p_in_uap_rxd            : in    TBus32_SataCountMax;
-p_out_uap_rxd_rd        : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_in_sh_rxd             : in    TBus32_SataCountMax;
+p_out_sh_rxd_rd         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
 
-p_in_uap_txbuf_status   : in    TTxBufStatus_SataCountMax;
-p_in_uap_rxbuf_status   : in    TRxBufStatus_SataCountMax;
+p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
+p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -994,7 +1034,7 @@ p_in_usr_txbuf_empty        : in    std_logic;
 --//Связь с RxFIFO
 p_out_usr_rxd               : out   std_logic_vector(31 downto 0);
 p_out_usr_rxd_wr            : out   std_logic;
-
+p_in_usr_rxbuf_full         : in    std_logic;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
