@@ -83,25 +83,6 @@ len_err_out:            out std_logic
 );
 end component;
 
---component sata_cmdfifo
---port
---(
---din        : in std_logic_vector(15 downto 0);
---wr_en      : in std_logic;
-----wr_clk     : in std_logic;
---
---dout       : out std_logic_vector(15 downto 0);
---rd_en      : in std_logic;
-----rd_clk     : in std_logic;
---
---full       : out std_logic;
---empty      : out std_logic;
---
---clk        : in std_logic;
---rst        : in std_logic
---);
---end component;
-
 component sata_txfifo
 port
 (

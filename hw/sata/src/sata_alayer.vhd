@@ -110,7 +110,6 @@ signal i_serr_c_err                : std_logic;
 signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 
 signal sr_usr_status_busy          : std_logic_vector(0 to 4);
---signal i_signature_det             : std_logic;
 
 signal tst_al_status               : TSimALStatus;
 signal dbgtsf_type                 : string(1 to 23);
@@ -134,7 +133,7 @@ begin
   if p_in_rst='1' then
     p_out_tst(31 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-    p_out_tst(0)<=tst_val;-- and (tst_err_ata nor (tst_serr_p_err and tst_serr_c_err and tst_serr_i_err));
+    p_out_tst(0)<=tst_val;
   end if;
 end process tstout;
 --p_out_tst(31 downto 1)<=(others=>'0');
@@ -330,32 +329,8 @@ i_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when i_spd_ver=C
                                                          "0000";
 
 i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);--//Интрефейс в активном состоянии. Сигнатура от устройства получена
---i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_signature_det;--//Интрефейс в активном состоянии. Сигнатура от устройства получена
 
 i_sstatus(C_ALSSTAT_LAST_BIT downto C_ASSTAT_IPM_BIT_L+1)<=(others=>'0');
-
---//Обнаружение сигнатуры:
-p_out_status.Usr<=i_usr_status;
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    sr_usr_status_busy<=(others=>'0');
---    i_signature_det<='0';
---
---  elsif p_in_clk'event and p_in_clk='1' then
---    sr_usr_status_busy<=i_usr_status(C_AUSER_BUSY_BIT)&sr_usr_status_busy(0 to 3);
---
---    if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and i_serr_p_err='0' and i_serr_c_err='0' and i_serr_i_err='0' then
---      if sr_usr_status_busy(3)='0' and sr_usr_status_busy(4)='1' then
---        i_signature_det<='1';
---      end if;
---    else
---      i_signature_det<='0';
---    end if;
---
---  end if;
---end process;
-
 
 
 --//SATA Error:
@@ -382,7 +357,7 @@ begin
     p_out_status.SError(C_ASERR_IPM_M_BIT downto C_ASERR_IPM_L_BIT)<=i_sstatus(C_ASSTAT_IPM_BIT_L+2 downto C_ASSTAT_IPM_BIT_L);
 
     if i_err_clr='1' then
---      p_out_status.SError<=(others=>'0');
+
       p_out_status.SError(C_ASERR_P_ERR_BIT)<='0';
       p_out_status.SError(C_ASERR_C_ERR_BIT)<='0';
       p_out_status.SError(C_ASERR_I_ERR_BIT)<='0';
@@ -543,7 +518,6 @@ gen_sim_on : if strcmp(G_SIM,"ON") generate
 tst_al_status.cmd_name<=dbgtsf_type;
 tst_al_status.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
 tst_al_status.signature<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);
---tst_al_status.signature<=i_signature_det;
 
 rq_name: process(i_reg_shadow,tst_al_status)
 begin

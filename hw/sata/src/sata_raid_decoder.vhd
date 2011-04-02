@@ -199,16 +199,16 @@ end generate gen_hddcount1;
 --//----------------------------------
 gen_hddcount2 : if G_HDD_COUNT=2  generate
 p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(1).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(1).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(1).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(1).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(1);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else (others=>'0');
+               p_in_sh_rxd(1);
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length);
 
 end generate gen_hddcount2;
 
@@ -219,19 +219,19 @@ end generate gen_hddcount2;
 gen_hddcount3 : if G_HDD_COUNT=3  generate
 p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(2).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(2).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(2).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(2).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                p_in_sh_rxd(1) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(2);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else (others=>'0');
+               p_in_sh_rxd(2);
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#02#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#02#, p_out_sh_num'length);
 
 end generate gen_hddcount3;
 
@@ -243,22 +243,22 @@ gen_hddcount4 : if G_HDD_COUNT=4  generate
 p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(3).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(3).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(2).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(3).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(3).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                p_in_sh_rxd(1) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                p_in_sh_rxd(2) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(3);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else (others=>'0');
+               p_in_sh_rxd(3);
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#02#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#03#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#03#, p_out_sh_num'length);
 
 end generate gen_hddcount4;
 
@@ -271,26 +271,26 @@ p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LO
                       p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(4).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(4).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(2).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(3).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(4).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(4).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                p_in_sh_rxd(1) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                p_in_sh_rxd(2) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
                p_in_sh_rxd(3) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(4);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else (others=>'0');
+               p_in_sh_rxd(4);
 
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#02#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#03#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#04#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#16#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#04#, p_out_sh_num'length);
 
 end generate gen_hddcount5;
 
@@ -304,28 +304,28 @@ p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LO
                       p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(5).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(5).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(2).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(3).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(4).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(5).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(5).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                p_in_sh_rxd(1) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
                p_in_sh_rxd(2) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
                p_in_sh_rxd(3) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
                p_in_sh_rxd(4) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(5);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length);-- else (others=>'0');
+               p_in_sh_rxd(5);
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#02#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#03#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#04#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#16#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#05#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#20#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#05#, p_out_sh_num'length);
 
 end generate gen_hddcount6;
 
@@ -340,7 +340,7 @@ p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LO
                       p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(5).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(6).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(6).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -348,7 +348,7 @@ p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_L
                        p_in_sh_rxbuf_status(3).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(4).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(5).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(6).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(6).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                p_in_sh_rxd(1) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -356,7 +356,7 @@ p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_i
                p_in_sh_rxd(3) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
                p_in_sh_rxd(4) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
                p_in_sh_rxd(5) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(6);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length);-- else (others=>'0');
+               p_in_sh_rxd(6);
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
@@ -364,7 +364,7 @@ p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_ma
               CONV_STD_LOGIC_VECTOR(16#03#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#08#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#04#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#16#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#05#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#20#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#06#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#40#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#06#, p_out_sh_num'length);
 
 end generate gen_hddcount7;
 
@@ -380,7 +380,7 @@ p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LO
                       p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(5).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
                       p_in_sh_txbuf_status(6).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(7).pfull;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
+                      p_in_sh_txbuf_status(7).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -389,7 +389,7 @@ p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_L
                        p_in_sh_rxbuf_status(4).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(5).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(6).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
-                       p_in_sh_rxbuf_status(7).empty;-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#07#, p_in_sh_hdd'length) else '1';
+                       p_in_sh_rxbuf_status(7).empty;
 
 p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                p_in_sh_rxd(1) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -398,8 +398,7 @@ p_out_usr_rxd<=p_in_sh_rxd(0) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_i
                p_in_sh_rxd(4) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
                p_in_sh_rxd(5) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
                p_in_sh_rxd(6) when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
-               p_in_sh_rxd(7);-- when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#07#, p_in_sh_hdd'length);-- else (others=>'0');
-
+               p_in_sh_rxd(7);
 
 p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#01#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_mask'length) else
@@ -408,7 +407,7 @@ p_out_sh_num<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_sh_num'length) when p_in_sh_ma
               CONV_STD_LOGIC_VECTOR(16#04#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#16#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#05#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#20#, p_in_sh_mask'length) else
               CONV_STD_LOGIC_VECTOR(16#06#, p_out_sh_num'length) when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#40#, p_in_sh_mask'length) else
-              CONV_STD_LOGIC_VECTOR(16#07#, p_out_sh_num'length);-- when p_in_sh_mask=CONV_STD_LOGIC_VECTOR(16#80#, p_in_sh_mask'length) else
+              CONV_STD_LOGIC_VECTOR(16#07#, p_out_sh_num'length);
 
 end generate gen_hddcount8;
 
