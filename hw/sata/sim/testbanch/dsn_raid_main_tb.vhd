@@ -60,10 +60,7 @@ signal p_in_usr_ctrl              : std_logic_vector(31 downto 0);
 signal i_usr_raid_status          : TUsrStatus;
 
 signal i_usr_cxdin                : std_logic_vector(15 downto 0);
-signal i_usr_cxdout               : std_logic_vector(15 downto 0);
 signal i_usr_cxd_wr               : std_logic;
-signal i_usr_cxd_rd               : std_logic;
-signal i_usr_cxbuf_empty          : std_logic;
 
 signal i_usr_txdin                : std_logic_vector(31 downto 0);
 signal i_usr_txdout               : std_logic_vector(31 downto 0);
@@ -118,24 +115,6 @@ signal i_satadev_ctrl             : TSataDevCtrl;
 --Main
 begin
 
-
-m_cxbuf : sata_cmdfifo
-port map
-(
-din        => i_usr_cxdin,
-wr_en      => i_usr_cxd_wr,
---wr_clk     => p_in_clk,
-
-dout       => i_usr_cxdout,
-rd_en      => i_usr_cxd_rd,
---rd_clk     => p_in_clk,
-
-full       => open,
-empty      => i_usr_cxbuf_empty,
-
-clk        => p_in_clk,
-rst        => p_in_rst
-);
 
 
 m_txbuf : sata_txfifo
@@ -212,17 +191,16 @@ p_in_sata_refclk            => i_sata_refclk,
 p_in_usr_ctrl               => p_in_usr_ctrl,
 p_out_usr_status            => i_usr_raid_status,
 
---//Ñâÿçü ñ CMDFIFO
-p_in_usr_cxd                => i_usr_cxdout,
-p_out_usr_cxd_rd            => i_usr_cxd_rd,
-p_in_usr_cxbuf_empty        => i_usr_cxbuf_empty,
+--//cmdpkt
+p_in_usr_cxd                => i_usr_cxdin,
+p_in_usr_cxd_wr             => i_usr_cxd_wr,
 
---//Ñâÿçü ñ TxFIFO
+--//txfifo
 p_in_usr_txd                => i_usr_txdout,
 p_out_usr_txd_rd            => i_usr_txd_rd,
 p_in_usr_txbuf_empty        => i_usr_txbuf_empty,
 
---//Ñâÿçü ñ RxFIFO
+--//rxfifo
 p_out_usr_rxd               => i_usr_rxdin,
 p_out_usr_rxd_wr            => i_usr_rxd_wr,
 p_in_usr_rxbuf_full         => i_usr_rxbuf_full,

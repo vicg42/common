@@ -52,17 +52,16 @@ p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD
 p_in_usr_ctrl               : in    std_logic_vector(31 downto 0);
 p_out_usr_status            : out   TUsrStatus;
 
---//Ñâÿçü ñ CMDFIFO
+--//cmdpkt
 p_in_usr_cxd                : in    std_logic_vector(15 downto 0);
-p_out_usr_cxd_rd            : out   std_logic;
-p_in_usr_cxbuf_empty        : in    std_logic;
+p_in_usr_cxd_wr             : in    std_logic;
 
---//Ñâÿçü ñ TxFIFO
+--//txfifo
 p_in_usr_txd                : in    std_logic_vector(31 downto 0);
 p_out_usr_txd_rd            : out   std_logic;
 p_in_usr_txbuf_empty        : in    std_logic;
 
---//Ñâÿçü ñ RxFIFO
+--//rxfifo
 p_out_usr_rxd               : out   std_logic_vector(31 downto 0);
 p_out_usr_rxd_wr            : out   std_logic;
 p_in_usr_rxbuf_full         : in    std_logic;
@@ -222,10 +221,9 @@ port map
 p_in_usr_ctrl           => p_in_usr_ctrl,
 p_out_usr_status        => p_out_usr_status,
 
---//cmdbuf
+--//cmdpkt
 p_in_usr_cxd            => p_in_usr_cxd,
-p_out_usr_cxd_rd        => p_out_usr_cxd_rd,
-p_in_usr_cxbuf_empty    => p_in_usr_cxbuf_empty,
+p_in_usr_cxd_wr         => p_in_usr_cxd_wr,
 
 --//txbuf
 p_in_usr_txd            => p_in_usr_txd,

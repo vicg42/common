@@ -42,10 +42,9 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
---//cmd
+--//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
-p_out_usr_cxd_rd        : out   std_logic;
-p_in_usr_cxbuf_empty    : in    std_logic;
+p_in_usr_cxd_wr         : in    std_logic;
 
 --//txfifo
 p_in_usr_txd            : in    std_logic_vector(31 downto 0);
@@ -110,14 +109,13 @@ err     : std_logic;
 end record;
 signal i_sh_det                    : TShDetect;
 
-signal i_cmdfifo_rd                : std_logic;
-signal i_cmdfifo_dcnt              : std_logic_vector(3 downto 0);
-signal i_cmdfifo_rd_done           : std_logic;
 signal i_cmdpkt                    : TUsrCmdPkt;
+signal i_cmdpkt_cnt                : std_logic_vector(3 downto 0);--//счетчик данных принимаемого командного пакета
+signal i_cmdpkt_get_done           : std_logic;                   --//Прием cmd пакета завершен
 
 --signal i_sh_mask                   : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_sh_cmd_start              : std_logic;
-signal i_sh_cmdcnt                 : std_logic_vector(i_cmdfifo_dcnt'range);
+signal i_sh_cmdcnt                 : std_logic_vector(i_cmdpkt_cnt'range);
 signal i_sh_cmdcnt_en              : std_logic;
 signal i_sh_cxdout                 : std_logic_vector(p_in_usr_cxd'range);
 signal i_sh_cxd_sof                : std_logic;
@@ -251,35 +249,31 @@ end process;
 --//------------------------------------------
 --//Прием/обработка командного пакета
 --//------------------------------------------
-i_cmdfifo_rd<=not p_in_usr_cxbuf_empty;-- and not i_cmdfifo_rd_dis;
-
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_cmdfifo_dcnt<=(others=>'0');
-    i_cmdfifo_rd_done<='0';
---    i_cmdfifo_rd_dis<='0';
+    i_cmdpkt_cnt<=(others=>'0');
+    i_cmdpkt_get_done<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_cmdfifo_rd='1' then
-      if i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cmdfifo_dcnt'length) then
-        i_cmdfifo_dcnt<=(others=>'0');
+    if p_in_usr_cxd_wr='1' then
+      if i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cmdpkt_cnt'length) then
+        i_cmdpkt_cnt<=(others=>'0');
       else
-        i_cmdfifo_dcnt<=i_cmdfifo_dcnt + 1;
+        i_cmdpkt_cnt<=i_cmdpkt_cnt + 1;
       end if;
 
-      if i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cmdfifo_dcnt'length) then
-        i_cmdfifo_rd_done<='1';
---        i_cmdfifo_rd_dis<='1';
+      if i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cmdpkt_cnt'length) then
+        i_cmdpkt_get_done<='1';
       end if;
     else
-      i_cmdfifo_rd_done<='0';
+      i_cmdpkt_get_done<='0';
     end if;
 
   end if;
 end process;
 
---//Чтение командного пакета
+--//Прием командного пакета
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -293,29 +287,29 @@ begin
     i_cmdpkt.reserv<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_cmdfifo_rd='1' then
-      if    i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_cmdfifo_dcnt'length)      then i_cmdpkt.ctrl<=p_in_usr_cxd;
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_cmdfifo_dcnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_cmdfifo_dcnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd(7 downto 0);
-                                                                                                   i_cmdpkt.lba(8*(3+1)-1 downto 8*3)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_cmdfifo_dcnt'length)      then i_cmdpkt.lba(8*(1+1)-1 downto 8*1)<=p_in_usr_cxd(7 downto 0);
-                                                                                                   i_cmdpkt.lba(8*(4+1)-1 downto 8*4)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_cmdfifo_dcnt'length)     then i_cmdpkt.lba(8*(2+1)-1 downto 8*2)<=p_in_usr_cxd(7 downto 0);
-                                                                                                   i_cmdpkt.lba(8*(5+1)-1 downto 8*5)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_cmdfifo_dcnt'length) then i_cmdpkt.scount<=p_in_usr_cxd;
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_cmdfifo_dcnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
-                                                                                                   i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_cmdfifo_dcnt'length)       then i_cmdpkt.device<=p_in_usr_cxd(7 downto 0);
-                                                                                                   i_cmdpkt.reserv<=p_in_usr_cxd(15 downto 8);
+    if p_in_usr_cxd_wr='1' then
+      if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_cmdpkt_cnt'length)      then i_cmdpkt.ctrl<=p_in_usr_cxd;
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_cmdpkt_cnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd(7 downto 0);
+                                                                                               i_cmdpkt.lba(8*(3+1)-1 downto 8*3)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(1+1)-1 downto 8*1)<=p_in_usr_cxd(7 downto 0);
+                                                                                               i_cmdpkt.lba(8*(4+1)-1 downto 8*4)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_cmdpkt_cnt'length)     then i_cmdpkt.lba(8*(2+1)-1 downto 8*2)<=p_in_usr_cxd(7 downto 0);
+                                                                                               i_cmdpkt.lba(8*(5+1)-1 downto 8*5)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_cmdpkt_cnt'length) then i_cmdpkt.scount<=p_in_usr_cxd;
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_cmdpkt_cnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
+                                                                                               i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_cmdpkt_cnt'length)       then i_cmdpkt.device<=p_in_usr_cxd(7 downto 0);
+                                                                                               i_cmdpkt.reserv<=p_in_usr_cxd(15 downto 8);
       end if;
     end if;
 
   end if;
 end process;
 
---//Отправка команды в модуль sata_host.vhd
---i_sh_cmd_start<=i_cmdfifo_rd_done and (not i_usrmode.hw_work or not i_usrmode.tst_work);
-i_sh_cmd_start<=i_cmdfifo_rd_done and not i_usrmode.hw_work;
+--//Отправка командного пакета в модуль sata_host.vhd
+--i_sh_cmd_start<=i_cmdpkt_get_done and (not i_usrmode.hw_work or not i_usrmode.tst_work);
+i_sh_cmd_start<=i_cmdpkt_get_done and not i_usrmode.hw_work;
 
 process(p_in_rst,p_in_clk)
 begin
@@ -384,8 +378,6 @@ begin
 end process;
 
 
-p_out_usr_cxd_rd<=i_cmdfifo_rd;
-
 p_out_sh_mask<=i_cmdpkt.ctrl(G_HDD_COUNT+C_CMDPKT_USRHDD_NUM_L_BIT-1 downto C_CMDPKT_USRHDD_NUM_L_BIT);
 
 p_out_sh_cxd<=i_sh_cxdout;
@@ -422,22 +414,22 @@ begin
 --    --//Работа в SW режиме
 --    if i_sh_det.cmddone='1' or i_sh_det.err='1' then
 --      i_usrmode.sw_work<='0';
---    elsif i_usrmode.sw='1' and i_cmdfifo_rd_done='1' then
+--    elsif i_usrmode.sw='1' and i_cmdpkt_get_done='1' then
 --      i_usrmode.sw_work<='1';
 --    end if;
 
     --//Работа в HW режиме
-    if (i_usrmode.stop='1' and i_cmdfifo_rd_done='1') or i_sh_det.err='1' then
+    if (i_usrmode.stop='1' and i_cmdpkt_get_done='1') or i_sh_det.err='1' then
       i_usrmode.hw_work<='0';
-    elsif i_usrmode.hw='1' and i_cmdfifo_rd_done='1' then
+    elsif i_usrmode.hw='1' and i_cmdpkt_get_done='1' then
       i_usrmode.hw_work<='1';
     end if;
 
 --    --//Работа в режиме Тестирования
---    if (i_usrmode.stop='1' and i_cmdfifo_rd_done='1') or i_sh_det.err='1' then
+--    if (i_usrmode.stop='1' and i_cmdpkt_get_done='1') or i_sh_det.err='1' then
 --      i_usrmode.tst_work<='0';
 --      i_usrmode.tst_wr<='0';
---    elsif i_usrmode.tst='1' and i_cmdfifo_rd_done='1' then
+--    elsif i_usrmode.tst='1' and i_cmdpkt_get_done='1' then
 --      i_usrmode.tst_work<='1';
 --      i_usrmode.tst_wr<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_TSTW_BIT);
 --    end if;
@@ -452,8 +444,8 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
---    if (i_usrmode.sw='1' or i_usrmode.hw='1' or i_usrmode.tst='1') and i_cmdfifo_rd_done='1' then
-    if (i_usrmode.sw='1' or i_usrmode.hw='1') and i_cmdfifo_rd_done='1' then
+--    if (i_usrmode.sw='1' or i_usrmode.hw='1' or i_usrmode.tst='1') and i_cmdpkt_get_done='1' then
+    if (i_usrmode.sw='1' or i_usrmode.hw='1') and i_cmdpkt_get_done='1' then
       i_lba_cnt<=i_cmdpkt.lba;
 
     elsif i_sh_det.cmddone='1' then

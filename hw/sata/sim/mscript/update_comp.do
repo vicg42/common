@@ -53,7 +53,7 @@ vcom -93 "../../src/sata_alayer.vhd"
 vcom -93 "../../src/sata_host.vhd"
 
 vcom -93 "../../src/sata_connector.vhd"
-vcom -93 "../../src/sata_raid_dmux.vhd"
+vcom -93 "../../src/sata_raid_decoder.vhd"
 vcom -93 "../../src/sata_raid_ctrl.vhd"
 vcom -93 "../../src/sata_raid.vhd"
 

@@ -83,24 +83,24 @@ len_err_out:            out std_logic
 );
 end component;
 
-component sata_cmdfifo
-port
-(
-din        : in std_logic_vector(15 downto 0);
-wr_en      : in std_logic;
---wr_clk     : in std_logic;
-
-dout       : out std_logic_vector(15 downto 0);
-rd_en      : in std_logic;
---rd_clk     : in std_logic;
-
-full       : out std_logic;
-empty      : out std_logic;
-
-clk        : in std_logic;
-rst        : in std_logic
-);
-end component;
+--component sata_cmdfifo
+--port
+--(
+--din        : in std_logic_vector(15 downto 0);
+--wr_en      : in std_logic;
+----wr_clk     : in std_logic;
+--
+--dout       : out std_logic_vector(15 downto 0);
+--rd_en      : in std_logic;
+----rd_clk     : in std_logic;
+--
+--full       : out std_logic;
+--empty      : out std_logic;
+--
+--clk        : in std_logic;
+--rst        : in std_logic
+--);
+--end component;
 
 component sata_txfifo
 port
@@ -807,10 +807,9 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
---//cmd
+--//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
-p_out_usr_cxd_rd        : out   std_logic;
-p_in_usr_cxbuf_empty    : in    std_logic;
+p_in_usr_cxd_wr         : in    std_logic;
 
 --//txfifo
 p_in_usr_txd            : in    std_logic_vector(31 downto 0);
@@ -940,10 +939,9 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
---//cmd
+--//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
-p_out_usr_cxd_rd        : out   std_logic;
-p_in_usr_cxbuf_empty    : in    std_logic;
+p_in_usr_cxd_wr         : in    std_logic;
 
 --//txfifo
 p_in_usr_txd            : in    std_logic_vector(31 downto 0);
@@ -994,7 +992,6 @@ end component;
 
 
 
-
 component dsn_raid_main
 generic
 (
@@ -1021,17 +1018,16 @@ p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD
 p_in_usr_ctrl               : in    std_logic_vector(31 downto 0);
 p_out_usr_status            : out   TUsrStatus;
 
---//Ñâÿçü ñ CMDFIFO
+--//cmdpkt
 p_in_usr_cxd                : in    std_logic_vector(15 downto 0);
-p_out_usr_cxd_rd            : out   std_logic;
-p_in_usr_cxbuf_empty        : in    std_logic;
+p_in_usr_cxd_wr             : in    std_logic;
 
---//Ñâÿçü ñ TxFIFO
+--//txfifo
 p_in_usr_txd                : in    std_logic_vector(31 downto 0);
 p_out_usr_txd_rd            : out   std_logic;
 p_in_usr_txbuf_empty        : in    std_logic;
 
---//Ñâÿçü ñ RxFIFO
+--//rxfifo
 p_out_usr_rxd               : out   std_logic_vector(31 downto 0);
 p_out_usr_rxd_wr            : out   std_logic;
 p_in_usr_rxbuf_full         : in    std_logic;
