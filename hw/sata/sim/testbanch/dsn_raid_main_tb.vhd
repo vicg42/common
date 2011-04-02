@@ -175,9 +175,9 @@ G_SIM             => G_SIM
 )
 port map
 (
----------------------------------------------------------------------------
+--------------------------------------------------
 --Sata Driver
----------------------------------------------------------------------------
+--------------------------------------------------
 p_out_sata_txn              => i_sata_txn,
 p_out_sata_txp              => i_sata_txp,
 p_in_sata_rxn               => i_sata_rxn,
@@ -324,7 +324,7 @@ variable cmddone_det: std_logic:='0';
 
 
 variable string_value : std_logic_vector(3 downto 0);
-variable GUI_line  : LINE;--Строка дл_ вывода в ModelSim
+variable GUI_line  : LINE;--Строка для вывода в ModelSim
 
 begin
 
@@ -581,7 +581,7 @@ end process lcmddone;
 
 
 process
-variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
+variable GUI_line : LINE;--Строка для вывода в ModelSim
 begin
 
   i_satadev_ctrl.atacmd_done<='0';
@@ -596,16 +596,18 @@ begin
 end process;
 
 i_satadev_ctrl.loopback<=i_loopback;
-i_satadev_ctrl.link_establish<=i_usr_raid_status.glob_drdy;-- when i_al_status(0).SStatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASSTAT_DET_BIT_M-C_ASSTAT_DET_BIT_L+1) else '0';
+i_satadev_ctrl.link_establish<=i_usr_raid_status.glob_drdy;
 i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl.dbuf_ruse<='1';
+
+
 
 
 --//########################################
 --//Запись данных в CmdBUF
 --//########################################
 ltxcmd:process
-variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
+variable GUI_line : LINE;--Строка для вывода в ModelSim
 begin
 
   ltxcmdloop:while true loop
@@ -639,7 +641,7 @@ end process ltxcmd;
 ltxd:process
 variable dcnt      : integer;
 variable srcambler : std_logic_vector(31 downto 0):=(others=>'0');
-variable GUI_line  : LINE;--Строка дл_ вывода в ModelSim
+variable GUI_line  : LINE;--Строка для вывода в ModelSim
 begin
 
   i_usr_txdin<=(others=>'0');
@@ -705,7 +707,7 @@ end process ltxd;
 --//########################################
 lrxd:process
 variable dcnt : integer:=0;
-variable GUI_line  : LINE;--Строка дл_ вывода в ModelSim
+variable GUI_line  : LINE;--Строка для вывода в ModelSim
 begin
 
   i_usr_rxd_rd<='0';
