@@ -81,12 +81,12 @@ signal i_sim_gtp_txcharisk        : TBus02_SataCountMax;
 signal i_sim_gtp_rxdata           : TBus16_SataCountMax;
 signal i_sim_gtp_rxcharisk        : TBus02_SataCountMax;
 signal i_sim_gtp_rxstatus         : TBus03_SataCountMax;
-signal i_sim_gtp_rxelecidle       : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_rxelecidle       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_sim_gtp_rxdisperr        : TBus02_SataCountMax;
 signal i_sim_gtp_rxnotintable     : TBus02_SataCountMax;
-signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rst              : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_clk              : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 
 
@@ -106,7 +106,7 @@ signal i_rxdata_rdstart           : std_logic:='0';
 signal i_rxdata_rddone            : std_logic:='0';
 signal i_tstdata_dwsize           : integer:=0;
 
-type TSataDevStatusSataCount is array (0 to C_SATA_COUNT_MAX-1) of TSataDevStatus;
+type TSataDevStatusSataCount is array (0 to C_HDD_COUNT_MAX-1) of TSataDevStatus;
 signal i_satadev_status           : TSataDevStatusSataCount;
 signal i_satadev_ctrl             : TSataDevCtrl;
 

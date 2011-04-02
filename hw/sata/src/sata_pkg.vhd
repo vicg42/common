@@ -32,8 +32,9 @@ type T8x08SataSel is array (0 to 7) of T08SataSel;
 --Константы
 ---------------------------------------------------------
 constant C_GTP_CH_COUNT_MAX      : integer:=2;--//2/1 - для DUAL_GTP/GTX
-constant C_GTP_COUNT_MAX         : integer:=4;
-constant C_SATA_COUNT_MAX        : integer:=C_GTP_COUNT_MAX*C_GTP_CH_COUNT_MAX;--//Произведение не должно быть более 8!!!!
+
+--//Определяем мах кол-во HDD:
+constant C_HDD_COUNT_MAX         : integer:=8;--//
 
 --//Назначаем общее кол-во модулей GTP:
 ---------------------------------------------------------------------------
@@ -539,27 +540,26 @@ type TRegShadowUpdate_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TRegShadowUp
 type TALStatus_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TALStatus;
 
 
-type TALCtrlGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TALCtrl_GtpCh;
-type TALStatusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TALStatus_GtpCh;
-type TTxBufStatusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TTxBufStatus_GtpCh;
-type TRxBufStatusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TRxBufStatus_GtpCh;
+type TALCtrlGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALCtrl_GtpCh;
+type TALStatusGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus_GtpCh;
+type TTxBufStatusGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus_GtpCh;
+type TRxBufStatusGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus_GtpCh;
 
-type TBusGtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-type TBus02GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus02_GtpCh;
-type TBus03GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus03_GtpCh;
-type TBus16GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus16_GtpCh;
-type TBus32GtpCh_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TBus32_GtpCh;
+type TBusGtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+type TBus02GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus02_GtpCh;
+type TBus03GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus03_GtpCh;
+type TBus16GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus16_GtpCh;
+type TBus32GtpCh_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus32_GtpCh;
 
 
-
-type TBus32_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(31 downto 0);
-type TBus16_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(15 downto 0);
-type TBus02_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(1 downto 0);
-type TBus03_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(2 downto 0);
-type TALCtrl_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
-type TALStatus_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TALStatus;
-type TTxBufStatus_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TTxBufStatus;
-type TRxBufStatus_SataCountMax is array (0 to C_SATA_COUNT_MAX-1) of TRxBufStatus;
+type TBus32_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(31 downto 0);
+type TBus16_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(15 downto 0);
+type TBus02_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(1 downto 0);
+type TBus03_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(2 downto 0);
+type TALCtrl_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
+type TALStatus_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
+type TTxBufStatus_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;
+type TRxBufStatus_SataCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus;
 
 
 ---------------------------------------------------------

@@ -186,7 +186,7 @@ begin
     i_usr_status.glob_drdy<='0';
     i_usr_status.glob_err<='0';
     i_usr_status.glob_usr<=(others=>'0');
-    for i in 0 to C_SATA_COUNT_MAX-1 loop
+    for i in 0 to C_HDD_COUNT_MAX-1 loop
       i_usr_status.ch_usr(i)<=(others=>'0');
       i_usr_status.ch_busy(i)<='1';
       i_usr_status.ch_drdy(i)<='0';

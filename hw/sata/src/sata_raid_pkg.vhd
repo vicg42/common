@@ -24,15 +24,15 @@ package sata_raid_pkg is
 
 
 --//
-type TUsrSErrorSataCountMax is array (0 to C_SATA_COUNT_MAX-1) of std_logic_vector(C_ALSERR_LAST_BIT downto 0);
+type TUsrSErrorSataCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALSERR_LAST_BIT downto 0);
 
 type TUsrStatus is record
 glob_busy: std_logic;
 glob_drdy: std_logic;
 glob_err : std_logic;
-ch_busy  : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-ch_drdy  : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-ch_err   : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+ch_busy  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+ch_drdy  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+ch_err   : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 SError   : TUsrSErrorSataCountMax;
 glob_usr : std_logic_vector(31 downto 0);
 ch_usr   : TBus32_SataCountMax;

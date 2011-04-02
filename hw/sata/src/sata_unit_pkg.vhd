@@ -877,15 +877,15 @@ p_out_usr_rxbuf_empty   : out   std_logic;
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
 p_out_sh_cxd            : out   TBus16_SataCountMax;
-p_out_sh_cxd_sof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_sh_cxd_eof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_sof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 p_out_sh_txd            : out   TBus32_SataCountMax;
-p_out_sh_txd_wr         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_txd_wr         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 p_in_sh_rxd             : in    TBus32_SataCountMax;
-p_out_sh_rxd_rd         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_rxd_rd         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
 p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
@@ -941,15 +941,15 @@ p_in_sh_status          : in    TALStatus_SataCountMax;
 p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
 
 p_out_sh_cxd            : out   TBus16_SataCountMax;
-p_out_sh_cxd_sof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_sh_cxd_eof_n      : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_sof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 p_out_sh_txd            : out   TBus32_SataCountMax;
-p_out_sh_txd_wr         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_txd_wr         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 p_in_sh_rxd             : in    TBus32_SataCountMax;
-p_out_sh_rxd_rd         : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_out_sh_rxd_rd         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
 p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
@@ -1021,12 +1021,12 @@ p_out_sim_gtp_txcharisk     : out   TBus02_SataCountMax;
 p_in_sim_gtp_rxdata         : in    TBus16_SataCountMax;
 p_in_sim_gtp_rxcharisk      : in    TBus02_SataCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdisperr      : in    TBus02_SataCountMax;
 p_in_sim_gtp_rxnotintable   : in    TBus02_SataCountMax;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_rst           : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_clk           : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы

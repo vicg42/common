@@ -74,12 +74,12 @@ p_out_sim_gtp_txcharisk     : out   TBus02_SataCountMax;
 p_in_sim_gtp_rxdata         : in    TBus16_SataCountMax;
 p_in_sim_gtp_rxcharisk      : in    TBus02_SataCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdisperr      : in    TBus02_SataCountMax;
 p_in_sim_gtp_rxnotintable   : in    TBus02_SataCountMax;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_rst           : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_clk           : out   std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -149,15 +149,15 @@ signal i_uap_status                : TALStatus_SataCountMax;
 signal i_uap_ctrl                  : TALCtrl_SataCountMax;
 
 signal i_uap_cxd                   : TBus16_SataCountMax;
-signal i_uap_cxd_sof_n             : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-signal i_uap_cxd_eof_n             : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
-signal i_uap_cxd_src_rdy_n         : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+signal i_uap_cxd_sof_n             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_uap_cxd_eof_n             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_uap_cxd_src_rdy_n         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal i_uap_txd                   : TBus32_SataCountMax;
-signal i_uap_txd_wr                : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+signal i_uap_txd_wr                : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal i_uap_rxd                   : TBus32_SataCountMax;
-signal i_uap_rxd_rd                : std_logic_vector(C_SATA_COUNT_MAX-1 downto 0);
+signal i_uap_rxd_rd                : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_uap_txbuf_status          : TTxBufStatus_SataCountMax;
 signal i_uap_rxbuf_status          : TRxBufStatus_SataCountMax;
 
