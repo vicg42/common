@@ -47,7 +47,7 @@ p_in_txd               : in    std_logic_vector(31 downto 0);--//Данные для пере
 p_out_rdy_n            : out   std_logic;                    --//Готов к загрузке данных для передачи
 
 --------------------------------------------------
---RocketIO Transmiter (Назначение портов см. sata_rocketio.vhd)
+--RocketIO Transmiter (Назначение портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);

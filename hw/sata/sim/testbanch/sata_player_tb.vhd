@@ -265,7 +265,7 @@ p_out_phy_rxdata           => i_phy_rxd(0),
 p_out_phy_sync             => i_phy_sync(0),
 
 --------------------------------------------------
---Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
+--Связь с RocketIO (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_out_gtp_rst              => open,
 

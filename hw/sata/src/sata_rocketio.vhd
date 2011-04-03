@@ -3,10 +3,10 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 11/25/2008
--- Module Name : sata_rocketio
+-- Module Name : sata_player_gt
 --
 -- Назначение/Описание :
---   1. Связь компонента GTP_DUAL с более высоким уровнем (в проекте)
+--   1. Связь компонента GT(gig tx/rx) c sata_host.vhd
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -23,71 +23,75 @@ use unisim.vcomponents.all;
 use work.vicg_common_pkg.all;
 use work.sata_pkg.all;
 
-entity sata_rocketio is
+entity sata_player_gt is
 generic
 (
-G_GTP_DBUS             : integer   := 16;   --//
-G_SIM                  : string    := "OFF"
+G_GTP_DBUS : integer := 16;
+G_SIM      : string  := "OFF"
 );
 port
 (
 ---------------------------------------------------------------------------
---Driver(Сигналы подоваемые на разъем)
+--Usr Cfg
 ---------------------------------------------------------------------------
-p_out_txn                        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_out_txp                        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_rxn                         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_rxp                         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_spd               : in    TSpdCtrl_GTCH;
+p_in_sys_dcm_gclk2div  : in    std_logic;--//dcm_clk0 /2
+p_in_sys_dcm_gclk      : in    std_logic;--//dcm_clk0
+p_in_sys_dcm_gclk2x    : in    std_logic;--//dcm_clk0 x 2
+
+p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование модулей sata_host.vhd
 
 ---------------------------------------------------------------------------
---Clocking
+--Driver(Сигналы подоваемые на разъем)
 ---------------------------------------------------------------------------
-p_in_usrclk                      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование RX/TX интерфейса DUAL_GTP
-p_in_usrclk2                     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование тактирование остальных модулей (RX/TX)DUAL_GTP
+p_out_txn              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_txp              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxn               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
-p_in_txreset                     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
-p_in_txelecidle                  : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
-p_in_txcomstart                  : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
-p_in_txcomtype                   : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
-p_in_txdata                      : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
-p_in_txcharisk                   : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
+p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
+p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
+p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
+p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
+p_in_txdata            : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
+p_in_txcharisk         : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
 
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
-p_in_rxreset                     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс приемника
-p_out_rxelecidle                 : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
-p_out_rxstatus                   : out   TBus03_GTCH;                                    --//Тип обнаруженного OOB сигнала
-p_out_rxdata                     : out   TBus32_GTCH;                                    --//поток данных от приемника DUAL_GTP
-p_out_rxcharisk                  : out   TBus04_GTCH;                                    --//признак наличия упр.символов в rxdata
-p_out_rxdisperr                  : out   TBus04_GTCH;                                    --//Ошибка паритета в принятом данном
-p_out_rxnotintable               : out   TBus04_GTCH;                                    --//
-p_out_rxbyteisaligned            : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);  --//Данные выровнены по байтам
+p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс приемника
+p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
+p_out_rxstatus         : out   TBus03_GTCH;                                    --//Тип обнаруженного OOB сигнала
+p_out_rxdata           : out   TBus32_GTCH;                                    --//поток данных от приемника DUAL_GTP
+p_out_rxcharisk        : out   TBus04_GTCH;                                    --//признак наличия упр.символов в rxdata
+p_out_rxdisperr        : out   TBus04_GTCH;                                    --//Ошибка паритета в принятом данном
+p_out_rxnotintable     : out   TBus04_GTCH;                                    --//
+p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);  --//Данные выровнены по байтам
 
 ----------------------------------------------------------------------------
 --System
 ----------------------------------------------------------------------------
 --Порт динамическаго конфигурирования DUAL_GTP
-p_in_drpclk                      : in    std_logic;
-p_in_drpaddr                     : in    std_logic_vector(7 downto 0);
-p_in_drpen                       : in    std_logic;
-p_in_drpwe                       : in    std_logic;
-p_in_drpdi                       : in    std_logic_vector(15 downto 0);
-p_out_drpdo                      : out   std_logic_vector(15 downto 0);
-p_out_drprdy                     : out   std_logic;
+p_in_drpclk            : in    std_logic;
+p_in_drpaddr           : in    std_logic_vector(7 downto 0);
+p_in_drpen             : in    std_logic;
+p_in_drpwe             : in    std_logic;
+p_in_drpdi             : in    std_logic_vector(15 downto 0);
+p_out_drpdo            : out   std_logic_vector(15 downto 0);
+p_out_drprdy           : out   std_logic;
 
-p_out_plllock                    : out   std_logic;--//Захват частоты PLL DUAL_GTP
-p_out_refclkout                  : out   std_logic;--//Фактически дублирование p_in_refclkin. см. стр.68. ug196.pdf
+p_out_plllock          : out   std_logic;--//Захват частоты PLL DUAL_GTP
+p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclkin. см. стр.68. ug196.pdf
 
-p_in_refclkin                    : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
-p_in_rst                         : in    std_logic
+p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
+p_in_rst               : in    std_logic
 );
-end sata_rocketio;
+end sata_player_gt;
 
-architecture RTL of sata_rocketio is
+architecture RTL of sata_player_gt is
 
 --//1 - только для случая G_GTP_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
@@ -95,21 +99,20 @@ architecture RTL of sata_rocketio is
 constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
 constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GTP_DBUS, 8)), 1);
 
+signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
 signal i_rxenelecidleresetb        : std_logic;
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
+attribute keep : string;
+attribute keep of g_gtp_usrclk : signal is "true";
+
 --MAIN
 begin
-
-p_out_rxelecidle<=i_rxelecidle;
-
-
-i_rxelecidlereset(0)<=i_rxelecidle(0) and i_resetdone(0);
-i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
-
-i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
 
 
 gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
@@ -120,8 +123,59 @@ p_out_rxnotintable(i)(3 downto 2)<=(others=>'0');
 end generate gen_null;
 
 
---GTP_DUAL Instance
-m_gtp : GTP_DUAL
+gen_ch : for i in 0 to C_GTCH_COUNT_MAX-1 generate
+
+i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
+
+--//Выбор тактовых частот для работы SATA-I/II
+gen_gtp_w8 : if G_GTP_DBUS=8 generate
+m_bufg_usrclk2 : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk2(i)
+);
+g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
+end generate gen_gtp_w8;
+
+gen_gtp_w16 : if G_GTP_DBUS=16 generate
+m_bufg_usrclk2 : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk2(i)
+);
+m_bufg_usrclk : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk(i)
+);
+end generate gen_gtp_w16;
+
+p_out_usrclk2(i)<=g_gtp_usrclk2(i);
+
+end generate gen_ch;
+
+
+
+--//###########################
+--//Gig Tx/Rx
+--//###########################
+p_out_rxelecidle<=i_rxelecidle;
+
+i_rxelecidlereset(0)<=i_rxelecidle(0) and i_resetdone(0);
+i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
+
+i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
+
+m_gt : GTP_DUAL
 generic map
 (
 
@@ -442,10 +496,10 @@ RXRECCLK0                       =>      open,
 RXRECCLK1                       =>      open,
 RXRESET0                        =>      p_in_rxreset(0),
 RXRESET1                        =>      p_in_rxreset(1),
-RXUSRCLK0                       =>      p_in_usrclk(0),
-RXUSRCLK1                       =>      p_in_usrclk(1),
-RXUSRCLK20                      =>      p_in_usrclk2(0),
-RXUSRCLK21                      =>      p_in_usrclk2(1),
+RXUSRCLK0                       =>      g_gtp_usrclk(0),
+RXUSRCLK1                       =>      g_gtp_usrclk(1),
+RXUSRCLK20                      =>      g_gtp_usrclk2(0),
+RXUSRCLK21                      =>      g_gtp_usrclk2(1),
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
 RXCDRRESET0                     =>      p_in_rxreset(0),
 RXCDRRESET1                     =>      p_in_rxreset(1),
@@ -542,10 +596,10 @@ TXOUTCLK0                       =>      open,
 TXOUTCLK1                       =>      open,
 TXRESET0                        =>      p_in_txreset(0),
 TXRESET1                        =>      p_in_txreset(1),
-TXUSRCLK0                       =>      p_in_usrclk(0),
-TXUSRCLK1                       =>      p_in_usrclk(1),
-TXUSRCLK20                      =>      p_in_usrclk2(0),
-TXUSRCLK21                      =>      p_in_usrclk2(1),
+TXUSRCLK0                       =>      g_gtp_usrclk(0),
+TXUSRCLK1                       =>      g_gtp_usrclk(1),
+TXUSRCLK20                      =>      g_gtp_usrclk2(0),
+TXUSRCLK21                      =>      g_gtp_usrclk2(1),
 --------------- Transmit Ports - TX Driver and OOB signalling --------------
 TXBUFDIFFCTRL0                  =>      "001",--strength of the pre-drivers.Table 6-17. ug196.pdf
 TXBUFDIFFCTRL1                  =>      "001",

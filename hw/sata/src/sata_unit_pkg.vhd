@@ -186,7 +186,7 @@ p_in_txd               : in    std_logic_vector(31 downto 0);
 p_out_rdy_n            : out   std_logic;
 
 --------------------------------------------------
---RocketIO Transmiter (Назначение портов см. sata_rocketio.vhd)
+--RocketIO Transmiter (Назначение портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
@@ -222,7 +222,7 @@ p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
 p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
 
 --------------------------------------------------
---RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
+--RocketIO Receiver (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
 p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
@@ -479,7 +479,7 @@ p_out_phy_rxdata           : out   std_logic_vector(31 downto 0);
 p_out_phy_sync             : out   std_logic;
 
 --------------------------------------------------
---Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
+--Связь с RocketIO (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_out_gtp_rst              : out   std_logic;
 
@@ -514,7 +514,7 @@ p_in_rst               : in    std_logic
 );
 end component;
 
-component sata_rocketio
+component sata_player_gtsim
 generic
 (
 G_GTP_DBUS : integer := 16;
@@ -522,6 +522,49 @@ G_SIM      : string  := "OFF"
 );
 port
 (
+---------------------------------------------------------------------------
+--Usr Cfg
+---------------------------------------------------------------------------
+p_in_spd               : in    TSpdCtrl_GTCH;
+p_in_sys_dcm_gclk2div  : in    std_logic;
+p_in_sys_dcm_gclk      : in    std_logic;
+p_in_sys_dcm_gclk2x    : in    std_logic;
+
+p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+----------------------------------------------------------------------------
+--System
+----------------------------------------------------------------------------
+--Порт динамическаго конфигурирования DUAL_GTP
+p_out_drpdo            : out   std_logic_vector(15 downto 0);
+p_out_drprdy           : out   std_logic;
+
+p_out_plllock          : out   std_logic;
+p_out_refclkout        : out   std_logic;
+
+p_in_refclkin          : in    std_logic;
+p_in_rst               : in    std_logic
+);
+end component;
+
+component sata_player_gt
+generic
+(
+G_GTP_DBUS : integer := 16;
+G_SIM      : string  := "OFF"
+);
+port
+(
+---------------------------------------------------------------------------
+--Usr Cfg
+---------------------------------------------------------------------------
+p_in_spd               : in    TSpdCtrl_GTCH;
+p_in_sys_dcm_gclk2div  : in    std_logic;
+p_in_sys_dcm_gclk      : in    std_logic;
+p_in_sys_dcm_gclk2x    : in    std_logic;
+
+p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
 --------------------------------------------------
 --Driver
 --------------------------------------------------
@@ -529,12 +572,6 @@ p_out_txn              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_txp              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_rxn               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-
---------------------------------------------------
---Clocking
---------------------------------------------------
-p_in_usrclk            : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_usrclk2           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Tranceiver

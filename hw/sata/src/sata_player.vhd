@@ -61,7 +61,7 @@ p_out_phy_rxdata           : out   std_logic_vector(31 downto 0);
 p_out_phy_sync             : out   std_logic;
 
 --------------------------------------------------
---Связь с RocketIO (Описание портов см. sata_rocketio.vhd)
+--Связь с RocketIO (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_out_gtp_rst              : out   std_logic;
 

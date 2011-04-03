@@ -103,7 +103,7 @@ p_in_sys_dcm_lock           : in    std_logic;
 p_out_sys_dcm_rst           : out   std_logic;
 
 p_in_gtp_drpclk             : in    std_logic;--//
-p_out_gtp_refclk            : out   std_logic;--//выход порта REFCLKOUT модуля GTP_DUAL/sata_rocketio.vhdl
+p_out_gtp_refclk            : out   std_logic;--//выход порта REFCLKOUT модуля GTP_DUAL/sata_player_gt.vhdl
 p_in_gtp_refclk             : in    std_logic;--//CLKIN для модуля RocketIO(GTP)
 p_in_rst                    : in    std_logic
 );
@@ -115,7 +115,6 @@ signal i_sata_module_rst           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 
 signal i_spd_ctrl                  : TSpdCtrl_GTCH;
 signal i_spd_out                   : TSpdCtrl_GTCH;
-signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_spd_gtp_ch_rst            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_reg_dma                   : TRegDMA_GTCH;
@@ -160,7 +159,6 @@ signal i_gtp_drpdi                 : std_logic_vector(15 downto 0);
 signal i_gtp_drpdo                 : std_logic_vector(15 downto 0);
 signal i_gtp_drprdy                : std_logic;
 
-signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_gtp_rxstatus              : TBus03_GTCH;
@@ -185,10 +183,6 @@ signal tst_llayer_out              : TBus32_GTCH;
 signal tst_player_out              : TBus32_GTCH;
 signal tst_spctrl_out              : std_logic_vector(31 downto 0);
 signal tst_out                     : std_logic;
-
-
-attribute keep : string;
-attribute keep of g_gtp_usrclk : signal is "true";
 
 
 
@@ -310,8 +304,6 @@ i_spd_ctrl(1).change<='0';
 i_spd_ctrl(1).sata_ver<=(others=>'0');
 
 --//Связь с DUAL_GTP
-g_gtp_usrclk(1)    <=g_gtp_usrclk(0);
-g_gtp_usrclk2(1)   <=g_gtp_usrclk2(0);
 i_gtp_txelecidle(1)<='0';
 i_gtp_txcomstart(1)<='0';
 i_gtp_txcomtype(1) <='0';
@@ -367,41 +359,6 @@ i_sata_module_rst(i)<=i_spd_gtp_ch_rst(i) or not p_in_sys_dcm_lock;
 
 --//Тактовая частота для тактирования Cmd/Rx/TxBUF - usrapp_layer
 p_out_usrfifo_clkout(i)<=g_gtp_usrclk2(i);
-
-i_spdclk_sel(i)<='0' when i_spd_out(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, i_spd_out(i).sata_ver'length) else '1';
-
---//Выбор тактовых частот для работы SATA-I/II
-gen_gtp_w8 : if G_GTP_DBUS=8 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
-g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
-end generate gen_gtp_w8;
-
-gen_gtp_w16 : if G_GTP_DBUS=16 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
-m_bufg_usrclk : BUFGMUX_CTRL
-port map
-(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk(i)
-);
-end generate gen_gtp_w16;
-
 
 --//Implemention Layers:
 m_alayer : sata_alayer
@@ -638,7 +595,7 @@ end generate gen_ch;
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
 begin
 
-m_rocketio : sata_rocketio
+m_gt : sata_player_gt
 generic map
 (
 G_GTP_DBUS => G_GTP_DBUS,
@@ -647,18 +604,22 @@ G_SIM      => G_SIM
 port map
 (
 --------------------------------------------------
+--
+--------------------------------------------------
+p_in_spd               => i_spd_out,
+p_in_sys_dcm_gclk2div  => p_in_sys_dcm_gclk2div,
+p_in_sys_dcm_gclk      => p_in_sys_dcm_gclk,
+p_in_sys_dcm_gclk2x    => p_in_sys_dcm_gclk2x,
+
+p_out_usrclk2          => g_gtp_usrclk2,
+
+--------------------------------------------------
 --Driver
 --------------------------------------------------
 p_out_txn              => p_out_sata_txn,
 p_out_txp              => p_out_sata_txp,
 p_in_rxn               => p_in_sata_rxn,
 p_in_rxp               => p_in_sata_rxp,
-
---------------------------------------------------
---Clocking
---------------------------------------------------
-p_in_usrclk            => g_gtp_usrclk,
-p_in_usrclk2           => g_gtp_usrclk2,
 
 --------------------------------------------------
 --Tranceiver
@@ -698,7 +659,6 @@ p_out_refclkout        => p_out_gtp_refclk,
 
 p_in_refclkin          => p_in_gtp_refclk,
 p_in_rst               => i_gtp_glob_reset
-
 );
 
 end generate gen_sim_off;
@@ -710,12 +670,37 @@ end generate gen_sim_off;
 ---##############################
 gen_sim_on: if strcmp(G_SIM,"ON") generate
 
-i_gtp_drpdo  <="1000"&"0000"&"0000"&"0100";
-i_gtp_drprdy <='1';
+m_gt_sim : sata_player_gtsim
+generic map
+(
+G_GTP_DBUS => G_GTP_DBUS,
+G_SIM      => G_SIM
+)
+port map
+(
+--------------------------------------------------
+--
+--------------------------------------------------
+p_in_spd               => i_spd_out,
+p_in_sys_dcm_gclk2div  => p_in_sys_dcm_gclk2div,
+p_in_sys_dcm_gclk      => p_in_sys_dcm_gclk,
+p_in_sys_dcm_gclk2x    => p_in_sys_dcm_gclk2x,
 
-i_gtp_PLLLKDET <= not p_in_rst;
+p_out_usrclk2          => g_gtp_usrclk2,
 
-p_out_gtp_refclk <=p_in_gtp_refclk;
+---------------------------------------------------
+--System
+---------------------------------------------------
+--Порт динамическаго конфигурирования DUAL_GTP
+p_out_drpdo            => i_gtp_drpdo,
+p_out_drprdy           => i_gtp_drprdy,
+
+p_out_plllock          => i_gtp_PLLLKDET,
+p_out_refclkout        => p_out_gtp_refclk,
+
+p_in_refclkin          => p_in_gtp_refclk,
+p_in_rst               => i_gtp_glob_reset
+);
 
 end generate gen_sim_on;
 

@@ -35,13 +35,14 @@ vcom -93 "../../src/sata_sim_lite_pkg.vhd"
 vcom -93 "../../src/sata_unit_pkg.vhd"
 
 vcom -93 "../../src/sata_dcm.vhd"
-vcom -93 "../../src/sata_rocketio.vhd"
 
 vcom -93 "../../src/sata_scrambler.vhd"
 vcom -93 "../../src/sata_crc.vhd"
 
 vcom -93 "../../src/sata_spd_ctrl.vhd"
 
+vcom -93 "../../src/sata_rocketio.vhd"
+vcom -93 "../../src/sata_player_gtsim.vhd"
 vcom -93 "../../src/sata_player_oob.vhd"
 vcom -93 "../../src/sata_player_rx.vhd"
 vcom -93 "../../src/sata_player_tx.vhd"

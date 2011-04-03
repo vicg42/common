@@ -45,7 +45,7 @@ p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
 p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);--//константы см. sata_pkg поле --//PHY Layer /Reciver /Статусы/Map:
 
 --------------------------------------------------
---RocketIO Receiver (Описание портов см. sata_rocketio.vhd)
+--RocketIO Receiver (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
 p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
 p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
