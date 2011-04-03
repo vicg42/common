@@ -49,11 +49,11 @@ signal i_sata_clk                 : std_logic;
 signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 
-signal i_sata_txn                 : std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-signal i_sata_txp                 : std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-signal i_sata_rxn                 : std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-signal i_sata_rxp                 : std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-signal i_sata_refclk              : std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_txn                 : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_txp                 : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_rxn                 : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_rxp                 : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_refclk              : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
 signal p_in_usr_ctrl              : std_logic_vector(31 downto 0);
 
@@ -76,14 +76,14 @@ signal i_usr_rxbuf_full           : std_logic;
 signal i_usr_rxbuf_empty          : std_logic;
 
 
-signal i_sim_gtp_txdata           : TBus32_SataCountMax;
-signal i_sim_gtp_txcharisk        : TBus04_SataCountMax;
-signal i_sim_gtp_rxdata           : TBus32_SataCountMax;
-signal i_sim_gtp_rxcharisk        : TBus04_SataCountMax;
-signal i_sim_gtp_rxstatus         : TBus03_SataCountMax;
+signal i_sim_gtp_txdata           : TBus32_SHCountMax;
+signal i_sim_gtp_txcharisk        : TBus04_SHCountMax;
+signal i_sim_gtp_rxdata           : TBus32_SHCountMax;
+signal i_sim_gtp_rxcharisk        : TBus04_SHCountMax;
+signal i_sim_gtp_rxstatus         : TBus03_SHCountMax;
 signal i_sim_gtp_rxelecidle       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxdisperr        : TBus04_SataCountMax;
-signal i_sim_gtp_rxnotintable     : TBus04_SataCountMax;
+signal i_sim_gtp_rxdisperr        : TBus04_SHCountMax;
+signal i_sim_gtp_rxnotintable     : TBus04_SHCountMax;
 signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_sim_gtp_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_sim_gtp_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -158,7 +158,7 @@ rst        => p_in_rst
 );
 
 
-gen_sata_drv : for i in 0 to (C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 generate
+gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 generate
 i_sata_rxn<=(others=>'0');
 i_sata_rxp<=(others=>'1');
 i_sata_refclk(i)<=i_sata_clk;

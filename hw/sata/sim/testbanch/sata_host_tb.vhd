@@ -55,22 +55,22 @@ signal i_sata_dcm_clk2div         : std_logic;
 signal i_sata_dcm_lock            : std_logic;
 signal i_sata_dcm_rst             : std_logic;
 
-signal i_sim_gtp_clk              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rst              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxelecidle       : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxstatus         : TBus03_GtpCh;
-signal i_sim_gtp_txdata           : TBus32_GtpCh;
-signal i_sim_gtp_txcharisk        : TBus04_GtpCh;
-signal i_sim_gtp_rxdata           : TBus32_GtpCh;
-signal i_sim_gtp_rxcharisk        : TBus04_GtpCh;
-signal i_sim_gtp_rxdisperr        : TBus04_GtpCh;
-signal i_sim_gtp_rxnotintable     : TBus04_GtpCh;
-signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_clk              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_rxelecidle       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gtp_rxstatus         : TBus03_GTCH;
+signal i_sim_gtp_txdata           : TBus32_GTCH;
+signal i_sim_gtp_txcharisk        : TBus04_GTCH;
+signal i_sim_gtp_rxdata           : TBus32_GTCH;
+signal i_sim_gtp_rxcharisk        : TBus04_GTCH;
+signal i_sim_gtp_rxdisperr        : TBus04_GTCH;
+signal i_sim_gtp_rxnotintable     : TBus04_GTCH;
+signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
-signal i_al_ctrl                  : TALCtrl_GtpCh;
-signal i_al_status                : TALStatus_GtpCh;
-signal i_al_clkout                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_al_ctrl                  : TALCtrl_GTCH;
+signal i_al_status                : TALStatus_GTCH;
+signal i_al_clkout                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_cmdbuf_din               : std_logic_vector(15 downto 0);
 signal i_cmdbuf_wr                : std_logic;
@@ -85,21 +85,21 @@ signal ll_wcmdpkt_dst_rdy_n       : std_logic;
 signal ll_wcmdpkt_sof_n           : std_logic;
 signal ll_wcmdpkt_eof_n           : std_logic;
 
-signal ll_rcmdpkt_data            : TBus16_GtpCh;
-signal ll_rcmdpkt_sof_n           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):=(others=>'0');
-signal ll_rcmdpkt_eof_n           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):=(others=>'0');
-signal ll_rcmdpkt_src_rdy_n       : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):=(others=>'0');
-signal ll_rcmdpkt_dst_rdy_n       : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):=(others=>'0');
+signal ll_rcmdpkt_data            : TBus16_GTCH;
+signal ll_rcmdpkt_sof_n           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
+signal ll_rcmdpkt_eof_n           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
+signal ll_rcmdpkt_src_rdy_n       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
+signal ll_rcmdpkt_dst_rdy_n       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
 
 
-signal i_txbuf_dout               : TBus32_GtpCh;
-signal i_txbuf_rd                 : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_txbuf_status             : TTxBufStatus_GtpCh;
-signal i_txbuf_full               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_txbuf_dout               : TBus32_GTCH;
+signal i_txbuf_rd                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txbuf_status             : TTxBufStatus_GTCH;
+signal i_txbuf_full               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal i_rxbuf_din                : TBus32_GtpCh;
-signal i_rxbuf_wd                 : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_rxbuf_status             : TRxBufStatus_GtpCh;
+signal i_rxbuf_din                : TBus32_GTCH;
+signal i_rxbuf_wd                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxbuf_status             : TRxBufStatus_GTCH;
 
 
 signal i_usr_clk                  : std_logic;
@@ -126,7 +126,7 @@ signal i_data_rdstart             : std_logic:='0';
 signal i_data_rddone              : std_logic:='0';
 signal i_tstdata_dwsize           : integer:=0;
 
-signal i_satadev_ctrl             : TSataDevCtrl_GtpCh;
+signal i_satadev_ctrl             : TSataDevCtrl_GTCH;
 
 
 

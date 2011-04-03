@@ -40,43 +40,43 @@ port
 p_in_uap_clk            : in    std_logic;
 
 --//CMDFIFO
-p_in_uap_cxd            : in    TBus16_GtpCh;
-p_in_uap_cxd_sof_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_uap_cxd_eof_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_uap_cxd_src_rdy_n  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd            : in    TBus16_GTCH;
+p_in_uap_cxd_sof_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd_eof_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd_src_rdy_n  : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//TXFIFO
-p_in_uap_txd            : in    TBus32_GtpCh;
-p_in_uap_txd_wr         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_uap_txd            : in    TBus32_GTCH;
+p_in_uap_txd_wr         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//RXFIFO
-p_out_uap_rxd           : out   TBus32_GtpCh;
-p_in_uap_rxd_rd         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_uap_rxd           : out   TBus32_GTCH;
+p_in_uap_rxd_rd         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
-p_in_sh_clk             : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sh_status          : in    TALStatus_GtpCh;
+p_in_sh_clk             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sh_status          : in    TALStatus_GTCH;
 
 --//CMDFIFO
-p_out_sh_cxd            : out   TBus16_GtpCh;
-p_out_sh_cxd_eof_n      : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sh_cxd            : out   TBus16_GTCH;
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//TXFIFO
-p_out_sh_txd            : out   TBus32_GtpCh;
-p_in_sh_txd_rd          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sh_txd            : out   TBus32_GTCH;
+p_in_sh_txd_rd          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//RXFIFO
-p_in_sh_rxd             : in    TBus32_GtpCh;
-p_in_sh_rxd_wr          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_sh_rxd             : in    TBus32_GTCH;
+p_in_sh_rxd_wr          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --//Статусы
 --------------------------------------------------
-p_out_txbuf_status      : out   TTxBufStatus_GtpCh;
-p_out_rxbuf_status      : out   TRxBufStatus_GtpCh;
+p_out_txbuf_status      : out   TTxBufStatus_GTCH;
+p_out_rxbuf_status      : out   TRxBufStatus_GTCH;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -93,7 +93,7 @@ end sata_connector;
 
 architecture behavioral of sata_connector is
 
-signal i_buf_rst              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_buf_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --MAIN
 begin
@@ -122,24 +122,24 @@ end generate gen_dbg_on;
 
 
 
-gen_ch0_only : if C_GTP_CH_COUNT_MAX=2 and G_SATAH_CH_COUNT=1 generate
+gen_ch0_only : if C_GTCH_COUNT_MAX=2 and G_SATAH_CH_COUNT=1 generate
 --//CMDFIFO
-p_out_sh_cxd(C_GTP_CH_COUNT_MAX-1)<=(others=>'0');
-p_out_sh_cxd_eof_n(C_GTP_CH_COUNT_MAX-1)<='0';
-p_out_sh_cxd_src_rdy_n(C_GTP_CH_COUNT_MAX-1)<='0';
+p_out_sh_cxd(C_GTCH_COUNT_MAX-1)<=(others=>'0');
+p_out_sh_cxd_eof_n(C_GTCH_COUNT_MAX-1)<='0';
+p_out_sh_cxd_src_rdy_n(C_GTCH_COUNT_MAX-1)<='0';
 
 --//TXFIFO
-p_out_sh_txd(C_GTP_CH_COUNT_MAX-1)<=(others=>'0');
+p_out_sh_txd(C_GTCH_COUNT_MAX-1)<=(others=>'0');
 
 --//Статусы
-p_out_txbuf_status(C_GTP_CH_COUNT_MAX-1).full<='0';
-p_out_txbuf_status(C_GTP_CH_COUNT_MAX-1).pfull<='0';
-p_out_txbuf_status(C_GTP_CH_COUNT_MAX-1).empty<='0';
-p_out_txbuf_status(C_GTP_CH_COUNT_MAX-1).aempty<='0';
+p_out_txbuf_status(C_GTCH_COUNT_MAX-1).full<='0';
+p_out_txbuf_status(C_GTCH_COUNT_MAX-1).pfull<='0';
+p_out_txbuf_status(C_GTCH_COUNT_MAX-1).empty<='0';
+p_out_txbuf_status(C_GTCH_COUNT_MAX-1).aempty<='0';
 
-p_out_rxbuf_status(C_GTP_CH_COUNT_MAX-1).full<='0';
-p_out_rxbuf_status(C_GTP_CH_COUNT_MAX-1).pfull<='0';
-p_out_rxbuf_status(C_GTP_CH_COUNT_MAX-1).empty<='0';
+p_out_rxbuf_status(C_GTCH_COUNT_MAX-1).full<='0';
+p_out_rxbuf_status(C_GTCH_COUNT_MAX-1).pfull<='0';
+p_out_rxbuf_status(C_GTCH_COUNT_MAX-1).empty<='0';
 
 end generate gen_ch0_only;
 

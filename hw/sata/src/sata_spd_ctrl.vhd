@@ -51,8 +51,8 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl               : in    TSpdCtrl_GtpCh;
-p_out_spd_ver           : out   TSpdCtrl_GtpCh;--//Выбор типа SATA: Generation 2 (3Gb/s)/ Generation 1 (1.5Gb/s)
+p_in_ctrl               : in    TSpdCtrl_GTCH;
+p_out_spd_ver           : out   TSpdCtrl_GTCH;--//Выбор типа SATA: Generation 2 (3Gb/s)/ Generation 1 (1.5Gb/s)
 
 p_in_gtp_pll_lock       : in    std_logic;
 p_in_usr_dcm_lock       : in    std_logic;
@@ -67,7 +67,7 @@ p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
 p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
 p_in_gtp_drprdy         : in    std_logic;
 
-p_out_gtp_ch_rst        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);--//Сброс соотв. GTP
+p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--//Сброс соотв. GTP
 p_out_gtp_rst           : out   std_logic;                                      --//Полный сброс GTP.
 
 --------------------------------------------------
@@ -99,10 +99,10 @@ constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gtp_drpaddr'range):=C
 constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#46#, p_out_gtp_drpaddr'length);--//Канал 0
 constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gtp_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#0A#, p_out_gtp_drpaddr'length);--//Канал 1
 
-type TBusADRP_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of std_logic_vector (p_out_gtp_drpaddr'range);
+type TBusADRP_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (p_out_gtp_drpaddr'range);
 
-constant C_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GtpCh:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
-constant C_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GtpCh:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
+constant C_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
+constant C_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
 
 type TRegValue is array (0 to C_FSATA_GEN_COUNT-1) of std_logic;
 constant C_VAL_PLL_DIVSEL_OUT  : TRegValue:=
@@ -158,9 +158,9 @@ signal fsm_state_cs: fsm_state;
 signal i_tmr                    : std_logic_vector(4 downto 0);
 signal i_tmr_en                 : std_logic;
 
-signal i_spd_change             : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_spd_change_save        : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_spd_ver_out            : TSpdCtrl_GtpCh;
+signal i_spd_change             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_spd_change_save        : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_spd_ver_out            : TSpdCtrl_GTCH;
 
 signal i_gtp_drp_addr           : std_logic_vector(p_out_gtp_drpaddr'range);
 signal i_gtp_drp_en             : std_logic;
@@ -169,10 +169,10 @@ signal i_gtp_drp_di             : std_logic_vector(15 downto 0);
 signal i_gtp_drpdo              : std_logic_vector(15 downto 0);
 signal i_gtp_drprdy             : std_logic;
 signal i_gtp_drp_regsel         : std_logic;--//0/1 - выбор регистров канала GTP PLL_RXDIVSEL/PLL_TXDIVSEL
-signal i_gtp_drp_rdval          : TBus16_GtpCh;
+signal i_gtp_drp_rdval          : TBus16_GTCH;
 
 signal i_gtp_rst                : std_logic;
-signal i_gtp_ch_rst             : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_gtp_ch_rst             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal tst_fms_cs               : std_logic_vector(4 downto 0);
 signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
@@ -241,7 +241,7 @@ i_gtp_drprdy      <= p_in_gtp_drprdy;
 --//----------------------------------
 --//Логика управления
 --//----------------------------------
-gen_ch : for i in 0 to C_GTP_CH_COUNT_MAX-1 generate
+gen_ch : for i in 0 to C_GTCH_COUNT_MAX-1 generate
   i_spd_change(i)<=p_in_ctrl(i).change;
 end generate gen_ch;
 
@@ -279,7 +279,7 @@ begin
     i_gtp_ch_rst<=(others=>'0');
     i_gtp_rst<='0';
 
-    for i in 0 to C_GTP_CH_COUNT_MAX-1 loop
+    for i in 0 to C_GTCH_COUNT_MAX-1 loop
     i_spd_change_save(i)<='0';
     i_spd_ver_out(i).change<='0';
     i_spd_ver_out(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_COUNT-1, i_spd_ver_out(i).sata_ver'length);
@@ -655,7 +655,7 @@ begin
 
       when S_GTP_CH_RESET_DONE =>
         i_gtp_ch_rst<=(others=>'0');
-        for i in 0 to C_GTP_CH_COUNT_MAX-1 loop
+        for i in 0 to C_GTCH_COUNT_MAX-1 loop
         i_spd_ver_out(i).sata_ver<=p_in_ctrl(i).sata_ver;
         end loop;
         fsm_state_cs <= S_IDLE_SPDCFG;

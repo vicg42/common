@@ -43,33 +43,33 @@ port
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
-p_out_sata_txn              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sata_txp              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sata_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sata_rxp               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sata_txn              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sata_txp              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sata_rxn               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sata_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Связь с USERAPP Layer
 --------------------------------------------------
-p_out_usrfifo_clkout        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_status                : out   TALStatus_GtpCh;
-p_in_ctrl                   : in    TALCtrl_GtpCh;
+p_out_usrfifo_clkout        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_status                : out   TALStatus_GTCH;
+p_in_ctrl                   : in    TALCtrl_GTCH;
 
 --//Связь с CMDFIFO
-p_in_cmdfifo_dout           : in    TBus16_GtpCh;                                   --//
-p_in_cmdfifo_eof_n          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_cmdfifo_src_rdy_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_cmdfifo_dout           : in    TBus16_GTCH;                                   --//
+p_in_cmdfifo_eof_n          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_cmdfifo_src_rdy_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//Связь с TXFIFO
-p_in_txbuf_dout             : in    TBus32_GtpCh;                                   --//
-p_out_txbuf_rd              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txbuf_status           : in    TTxBufStatus_GtpCh;
+p_in_txbuf_dout             : in    TBus32_GTCH;                                   --//
+p_out_txbuf_rd              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_txbuf_status           : in    TTxBufStatus_GTCH;
 
 --//Связь с RXFIFO
-p_out_rxbuf_din             : out   TBus32_GtpCh;                                   --//
-p_out_rxbuf_wd              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxbuf_status           : in    TRxBufStatus_GtpCh;
+p_out_rxbuf_din             : out   TBus32_GTCH;                                   --//
+p_out_rxbuf_wd              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -81,17 +81,17 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 --//Моделирование
-p_out_sim_gtp_txdata        : out   TBus32_GtpCh;
-p_out_sim_gtp_txcharisk     : out   TBus04_GtpCh;
-p_in_sim_gtp_rxdata         : in    TBus32_GtpCh;
-p_in_sim_gtp_rxcharisk      : in    TBus04_GtpCh;
-p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_GtpCh;
-p_in_sim_gtp_rxnotintable   : in    TBus04_GtpCh;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sim_gtp_txdata        : out   TBus32_GTCH;
+p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
+p_in_sim_gtp_rxdata         : in    TBus32_GTCH;
+p_in_sim_gtp_rxcharisk      : in    TBus04_GTCH;
+p_in_sim_gtp_rxstatus       : in    TBus03_GTCH;
+p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxdisperr      : in    TBus04_GTCH;
+p_in_sim_gtp_rxnotintable   : in    TBus04_GTCH;
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sim_rst               : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sim_clk               : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System
@@ -111,44 +111,44 @@ end sata_host;
 
 architecture behavioral of sata_host is
 
-signal i_sata_module_rst           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_sata_module_rst           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal i_spd_ctrl                  : TSpdCtrl_GtpCh;
-signal i_spd_out                   : TSpdCtrl_GtpCh;
-signal i_spdclk_sel                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_spd_gtp_ch_rst            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_spd_ctrl                  : TSpdCtrl_GTCH;
+signal i_spd_out                   : TSpdCtrl_GTCH;
+signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_spd_gtp_ch_rst            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal i_reg_dma                   : TRegDMA_GtpCh;
-signal i_reg_shadow                : TRegShadow_GtpCh;
-signal i_reg_hold                  : TRegHold_GtpCh;
-signal i_reg_update                : TRegShadowUpdate_GtpCh;
+signal i_reg_dma                   : TRegDMA_GTCH;
+signal i_reg_shadow                : TRegShadow_GTCH;
+signal i_reg_hold                  : TRegHold_GTCH;
+signal i_reg_update                : TRegShadowUpdate_GTCH;
 
-signal i_tr_ctrl                   : TTLCtrl_GtpCh;
-signal i_tr_status                 : TTLStat_GtpCh;
+signal i_tr_ctrl                   : TTLCtrl_GTCH;
+signal i_tr_status                 : TTLStat_GTCH;
 
-signal i_link_ctrl                 : TLLCtrl_GtpCh;
-signal i_link_status               : TLLStat_GtpCh;
-signal i_link_txd_close            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_txd                  : TBus32_GtpCh;
-signal i_link_txd_rd               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_txd_status           : TTxBufStatus_GtpCh;
-signal i_link_rxd                  : TBus32_GtpCh;
-signal i_link_rxd_wr               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_rxd_status           : TRxBufStatus_GtpCh;
+signal i_link_ctrl                 : TLLCtrl_GTCH;
+signal i_link_status               : TLLStat_GTCH;
+signal i_link_txd_close            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_link_txd                  : TBus32_GTCH;
+signal i_link_txd_rd               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_link_txd_status           : TTxBufStatus_GTCH;
+signal i_link_rxd                  : TBus32_GTCH;
+signal i_link_rxd_wr               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_link_rxd_status           : TRxBufStatus_GTCH;
 
-signal i_phy_rxtype                : TBus21_GtpCh;
-signal i_phy_txreq                 : TBus08_GtpCh;
-signal i_phy_txrdy_n               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_phy_sync                  : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_phy_txd                   : TBus32_GtpCh;
-signal i_phy_rxd                   : TBus32_GtpCh;
-signal i_phy_rxd_en                : TBus03_GtpCh;
-signal i_phy_ctrl                  : TPLCtrl_GtpCh;
-signal i_phy_status                : TPLStat_GtpCh;
-signal i_phy_gtp_ch_rst            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_phy_rxtype                : TBus21_GTCH;
+signal i_phy_txreq                 : TBus08_GTCH;
+signal i_phy_txrdy_n               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_phy_sync                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_phy_txd                   : TBus32_GTCH;
+signal i_phy_rxd                   : TBus32_GTCH;
+signal i_phy_rxd_en                : TBus03_GTCH;
+signal i_phy_ctrl                  : TPLCtrl_GTCH;
+signal i_phy_status                : TPLStat_GTCH;
+signal i_phy_gtp_ch_rst            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_gtp_rst                   : std_logic;
-signal i_gtp_ch_rst                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_gtp_ch_rst                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_gtp_PLLLKDET              : std_logic;
 signal i_gtp_glob_reset            : std_logic;
@@ -160,29 +160,29 @@ signal i_gtp_drpdi                 : std_logic_vector(15 downto 0);
 signal i_gtp_drpdo                 : std_logic_vector(15 downto 0);
 signal i_gtp_drprdy                : std_logic;
 
-signal g_gtp_usrclk                : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal g_gtp_usrclk2               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal i_gtp_rxstatus              : TBus03_GtpCh;
-signal i_gtp_rxelecidle            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
-signal i_gtp_rxdata                : TBus32_GtpCh;
-signal i_gtp_rxcharisk             : TBus04_GtpCh;
-signal i_gtp_rxdisperr             : TBus04_GtpCh;
-signal i_gtp_rxnotintable          : TBus04_GtpCh;
-signal i_gtp_rxbyteisaligned       : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
+signal i_gtp_rxstatus              : TBus03_GTCH;
+signal i_gtp_rxelecidle            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):="00";
+signal i_gtp_rxdata                : TBus32_GTCH;
+signal i_gtp_rxcharisk             : TBus04_GTCH;
+signal i_gtp_rxdisperr             : TBus04_GTCH;
+signal i_gtp_rxnotintable          : TBus04_GTCH;
+signal i_gtp_rxbyteisaligned       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):="00";
 
-signal i_gtp_txelecidle            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
-signal i_gtp_txcomstart            : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
-signal i_gtp_txcomtype             : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0):="00";
-signal i_gtp_txdata                : TBus32_GtpCh;
-signal i_gtp_txcharisk             : TBus04_GtpCh;
+signal i_gtp_txelecidle            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):="00";
+signal i_gtp_txcomstart            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):="00";
+signal i_gtp_txcomtype             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):="00";
+signal i_gtp_txdata                : TBus32_GTCH;
+signal i_gtp_txcharisk             : TBus04_GTCH;
 
 
 
-signal tst_alayer_out              : TBus32_GtpCh;
-signal tst_tlayer_out              : TBus32_GtpCh;
-signal tst_llayer_out              : TBus32_GtpCh;
-signal tst_player_out              : TBus32_GtpCh;
+signal tst_alayer_out              : TBus32_GTCH;
+signal tst_tlayer_out              : TBus32_GTCH;
+signal tst_llayer_out              : TBus32_GTCH;
+signal tst_player_out              : TBus32_GTCH;
 signal tst_spctrl_out              : std_logic_vector(31 downto 0);
 signal tst_out                     : std_logic;
 

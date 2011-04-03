@@ -46,29 +46,29 @@ signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 signal p_in_rst_inv               : std_logic;
 
-signal i_sata_module_rst           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_sata_module_rst           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal i_spd_ctrl                 : TSpdCtrl_GtpCh;
-signal i_spd_out                  : TSpdCtrl_GtpCh;
+signal i_spd_ctrl                 : TSpdCtrl_GTCH;
+signal i_spd_out                  : TSpdCtrl_GTCH;
 
-signal i_link_ctrl                : TLLCtrl_GtpCh;
-signal i_link_status              : TLLStat_GtpCh;
-signal i_link_txd_close           : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_txd                 : TBus32_GtpCh;
-signal i_link_txd_rd              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_txd_status          : TTxBufStatus_GtpCh;
-signal i_link_rxd                 : TBus32_GtpCh;
-signal i_link_rxd_wr              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_link_rxd_status          : TRxBufStatus_GtpCh;
+signal i_link_ctrl                : TLLCtrl_GTCH;
+signal i_link_status              : TLLStat_GTCH;
+signal i_link_txd_close           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_link_txd                 : TBus32_GTCH;
+signal i_link_txd_rd              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_link_txd_status          : TTxBufStatus_GTCH;
+signal i_link_rxd                 : TBus32_GTCH;
+signal i_link_rxd_wr              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_link_rxd_status          : TRxBufStatus_GTCH;
 
-signal i_phy_ctrl                 : TPLCtrl_GtpCh;
-signal i_phy_status               : TPLStat_GtpCh;
-signal i_phy_rxtype               : TBus21_GtpCh;
-signal i_phy_txreq                : TBus08_GtpCh;
-signal i_phy_txrdy_n              : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_phy_sync                 : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);--: TBus02_GtpCh;
-signal i_phy_txd                  : TBus32_GtpCh;
-signal i_phy_rxd                  : TBus32_GtpCh;
+signal i_phy_ctrl                 : TPLCtrl_GTCH;
+signal i_phy_status               : TPLStat_GTCH;
+signal i_phy_rxtype               : TBus21_GTCH;
+signal i_phy_txreq                : TBus08_GTCH;
+signal i_phy_txrdy_n              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_phy_sync                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--: TBus02_GTCH;
+signal i_phy_txd                  : TBus32_GTCH;
+signal i_phy_rxd                  : TBus32_GTCH;
 
 signal p_in_gtp_pll_lock          : std_logic;
 

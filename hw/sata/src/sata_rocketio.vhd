@@ -34,38 +34,38 @@ port
 ---------------------------------------------------------------------------
 --Driver(Сигналы подоваемые на разъем)
 ---------------------------------------------------------------------------
-p_out_txn                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_txp                        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxn                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxp                         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_txn                        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_txp                        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxn                         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxp                         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 ---------------------------------------------------------------------------
 --Clocking
 ---------------------------------------------------------------------------
-p_in_usrclk                      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Тактирование RX/TX интерфейса DUAL_GTP
-p_in_usrclk2                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Тактирование тактирование остальных модулей (RX/TX)DUAL_GTP
+p_in_usrclk                      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование RX/TX интерфейса DUAL_GTP
+p_in_usrclk2                     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование тактирование остальных модулей (RX/TX)DUAL_GTP
 
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
-p_in_txreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Сброс передатчика
-p_in_txelecidle                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
-p_in_txcomstart                  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
-p_in_txcomtype                   : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
-p_in_txdata                      : in    TBus16_GtpCh;                                    --//поток данных для передатчика DUAL_GTP
-p_in_txcharisk                   : in    TBus02_GtpCh;                                    --//признак наличия упр.символов на порту txdata
+p_in_txreset                     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
+p_in_txelecidle                  : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
+p_in_txcomstart                  : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
+p_in_txcomtype                   : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
+p_in_txdata                      : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
+p_in_txcharisk                   : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
 
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
-p_in_rxreset                     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Сброс приемника
-p_out_rxelecidle                 : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
-p_out_rxstatus                   : out   TBus03_GtpCh;                                    --//Тип обнаруженного OOB сигнала
-p_out_rxdata                     : out   TBus32_GtpCh;                                    --//поток данных от приемника DUAL_GTP
-p_out_rxcharisk                  : out   TBus04_GtpCh;                                    --//признак наличия упр.символов в rxdata
-p_out_rxdisperr                  : out   TBus04_GtpCh;                                    --//Ошибка паритета в принятом данном
-p_out_rxnotintable               : out   TBus04_GtpCh;                                    --//
-p_out_rxbyteisaligned            : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0); --//Данные выровнены по байтам
+p_in_rxreset                     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс приемника
+p_out_rxelecidle                 : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
+p_out_rxstatus                   : out   TBus03_GTCH;                                    --//Тип обнаруженного OOB сигнала
+p_out_rxdata                     : out   TBus32_GTCH;                                    --//поток данных от приемника DUAL_GTP
+p_out_rxcharisk                  : out   TBus04_GTCH;                                    --//признак наличия упр.символов в rxdata
+p_out_rxdisperr                  : out   TBus04_GTCH;                                    --//Ошибка паритета в принятом данном
+p_out_rxnotintable               : out   TBus04_GTCH;                                    --//
+p_out_rxbyteisaligned            : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);  --//Данные выровнены по байтам
 
 ----------------------------------------------------------------------------
 --System
@@ -85,8 +85,6 @@ p_out_refclkout                  : out   std_logic;--//Фактически дублирование p
 p_in_refclkin                    : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
 p_in_rst                         : in    std_logic
 );
-
-
 end sata_rocketio;
 
 architecture RTL of sata_rocketio is
@@ -97,10 +95,10 @@ architecture RTL of sata_rocketio is
 constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
 constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GTP_DBUS, 8)), 1);
 
-signal i_rxenelecidleresetb            : std_logic;
-signal i_resetdone                     : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_rxelecidle                    : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-signal i_rxelecidlereset               : std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+signal i_rxenelecidleresetb        : std_logic;
+signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --MAIN
 begin
@@ -114,7 +112,7 @@ i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
 i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
 
 
-gen_null : for i in 0 to C_GTP_CH_COUNT_MAX-1 generate
+gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
 p_out_rxdata(i)(31 downto 16)<=(others=>'0');
 p_out_rxcharisk(i)(3 downto 2)<=(others=>'0');
 p_out_rxdisperr(i)(3 downto 2)<=(others=>'0');

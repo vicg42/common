@@ -59,8 +59,8 @@ p_in_usr_rxbuf_full     : in    std_logic;
 --------------------------------------------------
 --Связь с модулям sata_raid_decoder.vhd
 --------------------------------------------------
-p_in_sh_status          : in    TALStatus_SataCountMax;
-p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
+p_in_sh_status          : in    TALStatus_SHCountMax;
+p_out_sh_ctrl           : out   TALCtrl_SHCountMax;
 
 p_in_raid               : in    TRaid;
 p_in_sh_num             : in    std_logic_vector(2 downto 0);

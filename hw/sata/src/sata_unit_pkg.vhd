@@ -525,38 +525,38 @@ port
 --------------------------------------------------
 --Driver
 --------------------------------------------------
-p_out_txn              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_txp              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxp               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_txn              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_txp              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxn               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Clocking
 --------------------------------------------------
-p_in_usrclk            : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_usrclk2           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_usrclk            : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_usrclk2           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Tranceiver
 --------------------------------------------------
-p_in_txreset           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txelecidle        : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txcomstart        : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txcomtype         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txdata            : in    TBus32_GtpCh;
-p_in_txcharisk         : in    TBus04_GtpCh;
+p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_txdata            : in    TBus32_GTCH;
+p_in_txcharisk         : in    TBus04_GTCH;
 
 --------------------------------------------------
 --Receiver
 --------------------------------------------------
-p_in_rxreset           : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_rxelecidle       : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_rxstatus         : out   TBus03_GtpCh;
-p_out_rxdata           : out   TBus32_GtpCh;
-p_out_rxcharisk        : out   TBus04_GtpCh;
-p_out_rxdisperr        : out   TBus04_GtpCh;
-p_out_rxnotintable     : out   TBus04_GtpCh;
-p_out_rxbyteisaligned  : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_rxstatus         : out   TBus03_GTCH;
+p_out_rxdata           : out   TBus32_GTCH;
+p_out_rxcharisk        : out   TBus04_GTCH;
+p_out_rxdisperr        : out   TBus04_GTCH;
+p_out_rxnotintable     : out   TBus04_GTCH;
+p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System
@@ -591,8 +591,8 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl               : in    TSpdCtrl_GtpCh;
-p_out_spd_ver           : out   TSpdCtrl_GtpCh;
+p_in_ctrl               : in    TSpdCtrl_GTCH;
+p_out_spd_ver           : out   TSpdCtrl_GTCH;
 
 p_in_gtp_pll_lock       : in    std_logic;
 p_in_usr_dcm_lock       : in    std_logic;
@@ -607,7 +607,7 @@ p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
 p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
 p_in_gtp_drprdy         : in    std_logic;
 
-p_out_gtp_ch_rst        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_gtp_rst           : out   std_logic;
 
 --------------------------------------------------
@@ -640,33 +640,33 @@ port
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
-p_out_sata_txn              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sata_txp              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sata_rxn               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sata_rxp               : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sata_txn              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sata_txp              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sata_rxn               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sata_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Связь с USERAPP Layer
 --------------------------------------------------
-p_out_usrfifo_clkout        : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_status                : out   TALStatus_GtpCh;
-p_in_ctrl                   : in    TALCtrl_GtpCh;
+p_out_usrfifo_clkout        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_status                : out   TALStatus_GTCH;
+p_in_ctrl                   : in    TALCtrl_GTCH;
 
 --//Связь с CMDFIFO
-p_in_cmdfifo_dout           : in    TBus16_GtpCh;                                   --//
-p_in_cmdfifo_eof_n          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_cmdfifo_src_rdy_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_cmdfifo_dout           : in    TBus16_GTCH;                                   --//
+p_in_cmdfifo_eof_n          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_cmdfifo_src_rdy_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//Связь с TXFIFO
-p_in_txbuf_dout             : in    TBus32_GtpCh;                                   --//
-p_out_txbuf_rd              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_txbuf_status           : in    TTxBufStatus_GtpCh;
+p_in_txbuf_dout             : in    TBus32_GTCH;                                   --//
+p_out_txbuf_rd              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_txbuf_status           : in    TTxBufStatus_GTCH;
 
 --//Связь с RXFIFO
-p_out_rxbuf_din             : out   TBus32_GtpCh;                                   --//
-p_out_rxbuf_wd              : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_rxbuf_status           : in    TRxBufStatus_GtpCh;
+p_out_rxbuf_din             : out   TBus32_GTCH;                                   --//
+p_out_rxbuf_wd              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -678,17 +678,17 @@ p_out_tst                   : out   std_logic_vector(31 downto 0);
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 --//Моделирование
-p_out_sim_gtp_txdata        : out   TBus32_GtpCh;
-p_out_sim_gtp_txcharisk     : out   TBus04_GtpCh;
-p_in_sim_gtp_rxdata         : in    TBus32_GtpCh;
-p_in_sim_gtp_rxcharisk      : in    TBus04_GtpCh;
-p_in_sim_gtp_rxstatus       : in    TBus03_GtpCh;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_GtpCh;
-p_in_sim_gtp_rxnotintable   : in    TBus04_GtpCh;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sim_rst               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sim_clk               : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sim_gtp_txdata        : out   TBus32_GTCH;
+p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
+p_in_sim_gtp_rxdata         : in    TBus32_GTCH;
+p_in_sim_gtp_rxcharisk      : in    TBus04_GTCH;
+p_in_sim_gtp_rxstatus       : in    TBus03_GTCH;
+p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sim_gtp_rxdisperr      : in    TBus04_GTCH;
+p_in_sim_gtp_rxnotintable   : in    TBus04_GTCH;
+p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sim_rst               : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sim_clk               : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System
@@ -722,43 +722,43 @@ port
 p_in_uap_clk            : in    std_logic;
 
 --//CMDFIFO
-p_in_uap_cxd            : in    TBus16_GtpCh;
-p_in_uap_cxd_sof_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_uap_cxd_eof_n      : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_uap_cxd_src_rdy_n  : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd            : in    TBus16_GTCH;
+p_in_uap_cxd_sof_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd_eof_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_uap_cxd_src_rdy_n  : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//TXFIFO
-p_in_uap_txd            : in    TBus32_GtpCh;
-p_in_uap_txd_wr         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_uap_txd            : in    TBus32_GTCH;
+p_in_uap_txd_wr         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//RXFIFO
-p_out_uap_rxd           : out   TBus32_GtpCh;
-p_in_uap_rxd_rd         : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_uap_rxd           : out   TBus32_GTCH;
+p_in_uap_rxd_rd         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
-p_in_sh_clk             : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_in_sh_status          : in    TALStatus_GtpCh;
+p_in_sh_clk             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sh_status          : in    TALStatus_GTCH;
 
 --//CMDFIFO
-p_out_sh_cxd            : out   TBus16_GtpCh;
-p_out_sh_cxd_eof_n      : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
-p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sh_cxd            : out   TBus16_GTCH;
+p_out_sh_cxd_eof_n      : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//TXFIFO
-p_out_sh_txd            : out   TBus32_GtpCh;
-p_in_sh_txd_rd          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_out_sh_txd            : out   TBus32_GTCH;
+p_in_sh_txd_rd          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//RXFIFO
-p_in_sh_rxd             : in    TBus32_GtpCh;
-p_in_sh_rxd_wr          : in    std_logic_vector(C_GTP_CH_COUNT_MAX-1 downto 0);
+p_in_sh_rxd             : in    TBus32_GTCH;
+p_in_sh_rxd_wr          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --//Статусы
 --------------------------------------------------
-p_out_txbuf_status      : out   TTxBufStatus_GtpCh;
-p_out_rxbuf_status      : out   TRxBufStatus_GtpCh;
+p_out_txbuf_status      : out   TTxBufStatus_GTCH;
+p_out_rxbuf_status      : out   TRxBufStatus_GTCH;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -805,8 +805,8 @@ p_in_usr_rxbuf_full     : in    std_logic;
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_in_sh_status          : in    TALStatus_SataCountMax;
-p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
+p_in_sh_status          : in    TALStatus_SHCountMax;
+p_out_sh_ctrl           : out   TALCtrl_SHCountMax;
 
 p_in_raid               : in    TRaid;
 p_in_sh_num             : in    std_logic_vector(2 downto 0);
@@ -876,19 +876,19 @@ p_out_usr_rxbuf_empty   : out   std_logic;
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_out_sh_cxd            : out   TBus16_SataCountMax;
+p_out_sh_cxd            : out   TBus16_SHCountMax;
 p_out_sh_cxd_sof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_sh_cxd_eof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_out_sh_txd            : out   TBus32_SataCountMax;
+p_out_sh_txd            : out   TBus32_SHCountMax;
 p_out_sh_txd_wr         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_in_sh_rxd             : in    TBus32_SataCountMax;
+p_in_sh_rxd             : in    TBus32_SHCountMax;
 p_out_sh_rxd_rd         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
-p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
+p_in_sh_txbuf_status    : in    TTxBufStatus_SHCountMax;
+p_in_sh_rxbuf_status    : in    TRxBufStatus_SHCountMax;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -937,22 +937,22 @@ p_in_usr_rxbuf_full     : in    std_logic;
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_in_sh_status          : in    TALStatus_SataCountMax;
-p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
+p_in_sh_status          : in    TALStatus_SHCountMax;
+p_out_sh_ctrl           : out   TALCtrl_SHCountMax;
 
-p_out_sh_cxd            : out   TBus16_SataCountMax;
+p_out_sh_cxd            : out   TBus16_SHCountMax;
 p_out_sh_cxd_sof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_sh_cxd_eof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_out_sh_txd            : out   TBus32_SataCountMax;
+p_out_sh_txd            : out   TBus32_SHCountMax;
 p_out_sh_txd_wr         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_in_sh_rxd             : in    TBus32_SataCountMax;
+p_in_sh_rxd             : in    TBus32_SHCountMax;
 p_out_sh_rxd_rd         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
-p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
+p_in_sh_txbuf_status    : in    TTxBufStatus_SHCountMax;
+p_in_sh_rxbuf_status    : in    TRxBufStatus_SHCountMax;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -960,8 +960,8 @@ p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
 
-p_in_sh_tst             : in    TBus32_SataCountMax;
-p_out_sh_tst            : out   TBus32_SataCountMax;
+p_in_sh_tst             : in    TBus32_SHCountMax;
+p_out_sh_tst            : out   TBus32_SHCountMax;
 
 --------------------------------------------------
 --System
@@ -986,12 +986,12 @@ port
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
-p_out_sata_txn              : out   std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_out_sata_txp              : out   std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxn               : in    std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxp               : in    std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txn              : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp              : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
@@ -1016,14 +1016,14 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        : out   TBus32_SataCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus04_SataCountMax;
-p_in_sim_gtp_rxdata         : in    TBus32_SataCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus04_SataCountMax;
-p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
+p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
+p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
+p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
+p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
+p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_SataCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus04_SataCountMax;
+p_in_sim_gtp_rxdisperr      : in    TBus04_SHCountMax;
+p_in_sim_gtp_rxnotintable   : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);

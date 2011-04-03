@@ -58,22 +58,22 @@ p_in_usr_rxbuf_full     : in    std_logic;
 --------------------------------------------------
 --Связь с модулями sata_host.vhd
 --------------------------------------------------
-p_in_sh_status          : in    TALStatus_SataCountMax;
-p_out_sh_ctrl           : out   TALCtrl_SataCountMax;
+p_in_sh_status          : in    TALStatus_SHCountMax;
+p_out_sh_ctrl           : out   TALCtrl_SHCountMax;
 
-p_out_sh_cxd            : out   TBus16_SataCountMax;
+p_out_sh_cxd            : out   TBus16_SHCountMax;
 p_out_sh_cxd_sof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_sh_cxd_eof_n      : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_sh_cxd_src_rdy_n  : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_out_sh_txd            : out   TBus32_SataCountMax;
+p_out_sh_txd            : out   TBus32_SHCountMax;
 p_out_sh_txd_wr         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_in_sh_rxd             : in    TBus32_SataCountMax;
+p_in_sh_rxd             : in    TBus32_SHCountMax;
 p_out_sh_rxd_rd         : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-p_in_sh_txbuf_status    : in    TTxBufStatus_SataCountMax;
-p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
+p_in_sh_txbuf_status    : in    TTxBufStatus_SHCountMax;
+p_in_sh_rxbuf_status    : in    TRxBufStatus_SHCountMax;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -81,8 +81,8 @@ p_in_sh_rxbuf_status    : in    TRxBufStatus_SataCountMax;
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
 
-p_in_sh_tst             : in    TBus32_SataCountMax;
-p_out_sh_tst            : out   TBus32_SataCountMax;
+p_in_sh_tst             : in    TBus32_SHCountMax;
+p_out_sh_tst            : out   TBus32_SHCountMax;
 
 --------------------------------------------------
 --System

@@ -39,12 +39,12 @@ port
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
-p_out_sata_txn              : out   std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_out_sata_txp              : out   std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxn               : in    std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxp               : in    std_logic_vector((C_GTP_CH_COUNT_MAX*C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txn              : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp              : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-p_in_sata_refclk            : in    std_logic_vector((C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
@@ -69,14 +69,14 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        : out   TBus32_SataCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus04_SataCountMax;
-p_in_sim_gtp_rxdata         : in    TBus32_SataCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus04_SataCountMax;
-p_in_sim_gtp_rxstatus       : in    TBus03_SataCountMax;
+p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
+p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
+p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
+p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
+p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
 p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_SataCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus04_SataCountMax;
+p_in_sim_gtp_rxdisperr      : in    TBus04_SHCountMax;
+p_in_sim_gtp_rxnotintable   : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -98,21 +98,21 @@ end dsn_raid_main;
 architecture behavioral of dsn_raid_main is
 
 --//Определяет какое кол-во каналов использеустся конкретным модуем sata_host.vhd в зависиости от G_HDD_COUNT
---//Где C_SATAHOST_CH_COUNT=(индекс модуля sata_host)(мах количество каналов в одном GTP)(количество sata в raid)
-constant C_SATAHOST_CH_COUNT : T8x08SataSel:=(
-C_GTP0_CH_COUNT,
-C_GTP1_CH_COUNT,
-C_GTP2_CH_COUNT,
-C_GTP3_CH_COUNT,
-C_GTP4_CH_COUNT,
-C_GTP5_CH_COUNT,
-C_GTP6_CH_COUNT,
-C_GTP7_CH_COUNT
+--//Где C_SH_CH_COUNT=(индекс модуля sata_host)(мах количество каналов в одном GTP)(количество sata в raid)
+constant C_SH_CH_COUNT : T8x08SHCountSel:=(
+C_GT0_CH_COUNT,
+C_GT1_CH_COUNT,
+C_GT2_CH_COUNT,
+C_GT3_CH_COUNT,
+C_GT4_CH_COUNT,
+C_GT5_CH_COUNT,
+C_GT6_CH_COUNT,
+C_GT7_CH_COUNT
 );
 
 
-signal i_sh_gtp_refclkout          : std_logic_vector(C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
-signal i_sh_dcm_rst                : std_logic_vector(C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+signal i_sh_gtp_refclkout          : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+signal i_sh_dcm_rst                : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal g_sh_dcm_clkin              : std_logic;
 signal g_sh_dcm_clk2div            : std_logic;
 signal g_sh_dcm_clk                : std_logic;
@@ -120,61 +120,61 @@ signal g_sh_dcm_clk2x              : std_logic;
 signal i_sh_dcm_lock               : std_logic;
 
 
-signal i_sh_status                 : TALStatusGtpCh_SataCountMax;
-signal i_sh_ctrl                   : TALCtrlGtpCh_SataCountMax;
+signal i_sh_status                 : TALStatusGTCH_SHCountMax;
+signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
 --//cmdfifo
-signal i_u_cxd                     : TBus16GtpCh_SataCountMax;
-signal i_u_cxd_sof_n               : TBusGtpCh_SataCountMax;
-signal i_u_cxd_eof_n               : TBusGtpCh_SataCountMax;
-signal i_u_cxd_src_rdy_n           : TBusGtpCh_SataCountMax;
-signal i_sh_cxd                    : TBus16GtpCh_SataCountMax;
-signal i_sh_cxd_eof_n              : TBusGtpCh_SataCountMax;
-signal i_sh_cxd_src_rdy_n          : TBusGtpCh_SataCountMax;
+signal i_u_cxd                     : TBus16GTCH_SHCountMax;
+signal i_u_cxd_sof_n               : TBusGTCH_SHCountMax;
+signal i_u_cxd_eof_n               : TBusGTCH_SHCountMax;
+signal i_u_cxd_src_rdy_n           : TBusGTCH_SHCountMax;
+signal i_sh_cxd                    : TBus16GTCH_SHCountMax;
+signal i_sh_cxd_eof_n              : TBusGTCH_SHCountMax;
+signal i_sh_cxd_src_rdy_n          : TBusGTCH_SHCountMax;
 --//txfifo
-signal i_u_txd                     : TBus32GtpCh_SataCountMax;
-signal i_u_txd_wr                  : TBusGtpCh_SataCountMax;
-signal i_sh_txd                    : TBus32GtpCh_SataCountMax;
-signal i_sh_txd_rd                 : TBusGtpCh_SataCountMax;
+signal i_u_txd                     : TBus32GTCH_SHCountMax;
+signal i_u_txd_wr                  : TBusGTCH_SHCountMax;
+signal i_sh_txd                    : TBus32GTCH_SHCountMax;
+signal i_sh_txd_rd                 : TBusGTCH_SHCountMax;
 --//rxfifo
-signal i_u_rxd                     : TBus32GtpCh_SataCountMax;
-signal i_u_rxd_rd                  : TBusGtpCh_SataCountMax;
-signal i_sh_rxd                    : TBus32GtpCh_SataCountMax;
-signal i_sh_rxd_wr                 : TBusGtpCh_SataCountMax;
+signal i_u_rxd                     : TBus32GTCH_SHCountMax;
+signal i_u_rxd_rd                  : TBusGTCH_SHCountMax;
+signal i_sh_rxd                    : TBus32GTCH_SHCountMax;
+signal i_sh_rxd_wr                 : TBusGTCH_SHCountMax;
 --//stausfifo
-signal i_txbuf_status              : TTxBufStatusGtpCh_SataCountMax;
-signal i_rxbuf_status              : TRxBufStatusGtpCh_SataCountMax;
+signal i_txbuf_status              : TTxBufStatusGTCH_SHCountMax;
+signal i_rxbuf_status              : TRxBufStatusGTCH_SHCountMax;
 
-signal i_sh_clkout                 : TBusGtpCh_SataCountMax;
-signal i_uap_status                : TALStatus_SataCountMax;
-signal i_uap_ctrl                  : TALCtrl_SataCountMax;
+signal i_sh_clkout                 : TBusGTCH_SHCountMax;
+signal i_uap_status                : TALStatus_SHCountMax;
+signal i_uap_ctrl                  : TALCtrl_SHCountMax;
 
-signal i_uap_cxd                   : TBus16_SataCountMax;
+signal i_uap_cxd                   : TBus16_SHCountMax;
 signal i_uap_cxd_sof_n             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_uap_cxd_eof_n             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_uap_cxd_src_rdy_n         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_uap_txd                   : TBus32_SataCountMax;
+signal i_uap_txd                   : TBus32_SHCountMax;
 signal i_uap_txd_wr                : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_uap_rxd                   : TBus32_SataCountMax;
+signal i_uap_rxd                   : TBus32_SHCountMax;
 signal i_uap_rxd_rd                : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_uap_txbuf_status          : TTxBufStatus_SataCountMax;
-signal i_uap_rxbuf_status          : TRxBufStatus_SataCountMax;
+signal i_uap_txbuf_status          : TTxBufStatus_SHCountMax;
+signal i_uap_rxbuf_status          : TRxBufStatus_SHCountMax;
 
-signal i_sim_gtp_txdata            : TBus32GtpCh_SataCountMax;
-signal i_sim_gtp_txcharisk         : TBus04GtpCh_SataCountMax;
-signal i_sim_gtp_rxdata            : TBus32GtpCh_SataCountMax;
-signal i_sim_gtp_rxcharisk         : TBus04GtpCh_SataCountMax;
-signal i_sim_gtp_rxstatus          : TBus03GtpCh_SataCountMax;
-signal i_sim_gtp_rxelecidle        : TBusGtpCh_SataCountMax;
-signal i_sim_gtp_rxdisperr         : TBus04GtpCh_SataCountMax;
-signal i_sim_gtp_rxnotintable      : TBus04GtpCh_SataCountMax;
-signal i_sim_gtp_rxbyteisaligned   : TBusGtpCh_SataCountMax;
-signal i_sim_gtp_rst               : TBusGtpCh_SataCountMax;
-signal i_sim_gtp_clk               : TBusGtpCh_SataCountMax;
+signal i_sim_gtp_txdata            : TBus32GTCH_SHCountMax;
+signal i_sim_gtp_txcharisk         : TBus04GTCH_SHCountMax;
+signal i_sim_gtp_rxdata            : TBus32GTCH_SHCountMax;
+signal i_sim_gtp_rxcharisk         : TBus04GTCH_SHCountMax;
+signal i_sim_gtp_rxstatus          : TBus03GTCH_SHCountMax;
+signal i_sim_gtp_rxelecidle        : TBusGTCH_SHCountMax;
+signal i_sim_gtp_rxdisperr         : TBus04GTCH_SHCountMax;
+signal i_sim_gtp_rxnotintable      : TBus04GTCH_SHCountMax;
+signal i_sim_gtp_rxbyteisaligned   : TBusGTCH_SHCountMax;
+signal i_sim_gtp_rst               : TBusGTCH_SHCountMax;
+signal i_sim_gtp_clk               : TBusGTCH_SHCountMax;
 
-signal tst_sh_in                   : TBus32_SataCountMax;
-signal tst_sh_out                  : TBus32_SataCountMax;
+signal tst_sh_in                   : TBus32_SHCountMax;
+signal tst_sh_out                  : TBus32_SHCountMax;
 
 
 --MAIN
@@ -276,7 +276,7 @@ p_in_rst                => p_in_rst
 --//#############################################
 --//Генерация частот для модулей sata_host.vhd
 --//#############################################
-bufg_sata : BUFG port map (I => i_sh_gtp_refclkout(C_SATAHOST_MAIN_NUM), O => g_sh_dcm_clkin);
+bufg_sata : BUFG port map (I => i_sh_gtp_refclkout(C_SH_MAIN_NUM), O => g_sh_dcm_clkin);
 
 m_dcm_sata : sata_dcm
 port map
@@ -288,54 +288,54 @@ p_out_dcm_gclkdv => g_sh_dcm_clk2div,
 p_out_dcmlock    => i_sh_dcm_lock,
 
 p_in_clk         => g_sh_dcm_clkin, --//150MHz
-p_in_rst         => i_sh_dcm_rst(C_SATAHOST_MAIN_NUM)
+p_in_rst         => i_sh_dcm_rst(C_SH_MAIN_NUM)
 );
 
 
 --//#############################################
 --//Размножение модулей sata_host.vhd
 --//#############################################
-gen_satah : for sh_idx in 0 to C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1)-1 generate
+gen_satah : for sh_idx in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 
 --//сигналы для связи с sata_raid.vhd
-gen_satah_ch : for ch_idx in 0 to C_GTP_CH_COUNT_MAX-1 generate
+gen_satah_ch : for ch_idx in 0 to C_GTCH_COUNT_MAX-1 generate
 
 --//статусы и управление модулем sata_host.vhd
-i_uap_status(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_sh_status(sh_idx)(ch_idx);
-i_sh_ctrl(sh_idx)(ch_idx)<=i_uap_ctrl(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
+i_uap_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sh_status(sh_idx)(ch_idx);
+i_sh_ctrl(sh_idx)(ch_idx)<=i_uap_ctrl(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 
 --//cmdbuf
-i_u_cxd(sh_idx)(ch_idx)<=i_uap_cxd(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_u_cxd_sof_n(sh_idx)(ch_idx)<=i_uap_cxd_sof_n(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_u_cxd_eof_n(sh_idx)(ch_idx)<=i_uap_cxd_eof_n(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_u_cxd_src_rdy_n(sh_idx)(ch_idx)<=i_uap_cxd_src_rdy_n(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
+i_u_cxd(sh_idx)(ch_idx)<=i_uap_cxd(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_u_cxd_sof_n(sh_idx)(ch_idx)<=i_uap_cxd_sof_n(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_u_cxd_eof_n(sh_idx)(ch_idx)<=i_uap_cxd_eof_n(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_u_cxd_src_rdy_n(sh_idx)(ch_idx)<=i_uap_cxd_src_rdy_n(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 
 --//txbuf
-i_u_txd(sh_idx)(ch_idx)<=i_uap_txd(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_u_txd_wr(sh_idx)(ch_idx)<=i_uap_txd_wr(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
+i_u_txd(sh_idx)(ch_idx)<=i_uap_txd(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_u_txd_wr(sh_idx)(ch_idx)<=i_uap_txd_wr(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 
 --//rxbuf
-i_uap_rxd(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_u_rxd(sh_idx)(ch_idx);
-i_u_rxd_rd(sh_idx)(ch_idx)<=i_uap_rxd_rd(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
+i_uap_rxd(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_u_rxd(sh_idx)(ch_idx);
+i_u_rxd_rd(sh_idx)(ch_idx)<=i_uap_rxd_rd(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 
 --//bufstatus
-i_uap_txbuf_status(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_txbuf_status(sh_idx)(ch_idx);
-i_uap_rxbuf_status(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_rxbuf_status(sh_idx)(ch_idx);
+i_uap_txbuf_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_txbuf_status(sh_idx)(ch_idx);
+i_uap_rxbuf_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_rxbuf_status(sh_idx)(ch_idx);
 
 --//Моделирование
-p_out_gtp_sim_rst(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_rst(sh_idx)(ch_idx);
-p_out_gtp_sim_clk(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_clk(sh_idx)(ch_idx);
+p_out_gtp_sim_rst(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_rst(sh_idx)(ch_idx);
+p_out_gtp_sim_clk(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_clk(sh_idx)(ch_idx);
 
-p_out_sim_gtp_txdata(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txdata(sh_idx)(ch_idx);
-p_out_sim_gtp_txcharisk(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txcharisk(sh_idx)(ch_idx);
+p_out_sim_gtp_txdata(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txdata(sh_idx)(ch_idx);
+p_out_sim_gtp_txcharisk(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txcharisk(sh_idx)(ch_idx);
 
-i_sim_gtp_rxdata(sh_idx)(ch_idx)<=p_in_sim_gtp_rxdata(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_sim_gtp_rxcharisk(sh_idx)(ch_idx)<=p_in_sim_gtp_rxcharisk(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_sim_gtp_rxstatus(sh_idx)(ch_idx)<=p_in_sim_gtp_rxstatus(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_sim_gtp_rxelecidle(sh_idx)(ch_idx)<=p_in_sim_gtp_rxelecidle(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_sim_gtp_rxdisperr(sh_idx)(ch_idx)<=p_in_sim_gtp_rxdisperr(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_sim_gtp_rxnotintable(sh_idx)(ch_idx)<=p_in_sim_gtp_rxnotintable(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
-i_sim_gtp_rxbyteisaligned(sh_idx)(ch_idx)<=p_in_sim_gtp_rxbyteisaligned(C_GTP_CH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxdata(sh_idx)(ch_idx)<=p_in_sim_gtp_rxdata(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxcharisk(sh_idx)(ch_idx)<=p_in_sim_gtp_rxcharisk(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxstatus(sh_idx)(ch_idx)<=p_in_sim_gtp_rxstatus(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxelecidle(sh_idx)(ch_idx)<=p_in_sim_gtp_rxelecidle(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxdisperr(sh_idx)(ch_idx)<=p_in_sim_gtp_rxdisperr(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxnotintable(sh_idx)(ch_idx)<=p_in_sim_gtp_rxnotintable(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_sim_gtp_rxbyteisaligned(sh_idx)(ch_idx)<=p_in_sim_gtp_rxbyteisaligned(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 
 end generate gen_satah_ch;
 
@@ -345,7 +345,7 @@ end generate gen_satah_ch;
 m_satah_buf : sata_connector
 generic map
 (
-G_SATAH_CH_COUNT  => C_SATAHOST_CH_COUNT(sh_idx)(C_GTP_CH_COUNT_MAX-1)(G_HDD_COUNT-1),
+G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
 G_DBG             => G_DBG,
 G_SIM             => G_SIM
 )
@@ -412,9 +412,9 @@ p_in_rst                => p_in_rst
 m_satah : sata_host
 generic map
 (
-G_SATAH_COUNT_MAX => C_SATAHOST_COUNT_MAX(G_HDD_COUNT-1),
+G_SATAH_COUNT_MAX => C_SH_COUNT_MAX(G_HDD_COUNT-1),
 G_SATAH_NUM       => sh_idx,
-G_SATAH_CH_COUNT  => C_SATAHOST_CH_COUNT(sh_idx)(C_GTP_CH_COUNT_MAX-1)(G_HDD_COUNT-1),
+G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
 G_GTP_DBUS        => G_GTP_DBUS,
 G_DBG             => G_DBG,
 G_SIM             => G_SIM
@@ -424,10 +424,10 @@ port map
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
-p_out_sata_txn              => p_out_sata_txn(((C_GTP_CH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTP_CH_COUNT_MAX*sh_idx)),
-p_out_sata_txp              => p_out_sata_txp(((C_GTP_CH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTP_CH_COUNT_MAX*sh_idx)),
-p_in_sata_rxn               => p_in_sata_rxn(((C_GTP_CH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTP_CH_COUNT_MAX*sh_idx)),
-p_in_sata_rxp               => p_in_sata_rxp(((C_GTP_CH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTP_CH_COUNT_MAX*sh_idx)),
+p_out_sata_txn              => p_out_sata_txn(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_out_sata_txp              => p_out_sata_txp(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_in_sata_rxn               => p_in_sata_rxn(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_in_sata_rxp               => p_in_sata_rxp(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
 
 --------------------------------------------------
 --Связь с USERAPP Layer

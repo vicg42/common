@@ -161,7 +161,7 @@ link_establish : std_logic;
 dbuf_wuse   : std_logic;
 dbuf_ruse   : std_logic;
 end record;
-type TSataDevCtrl_GtpCh is array (0 to C_GTP_CH_COUNT_MAX-1) of TSataDevCtrl;
+type TSataDevCtrl_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSataDevCtrl;
 
 
 
