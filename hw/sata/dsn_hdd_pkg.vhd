@@ -26,18 +26,18 @@ port
 (
 din         : in std_logic_vector(31 downto 0);
 wr_en       : in std_logic;
-wr_clk      : in std_logic;
+--wr_clk      : in std_logic;
 
 dout        : out std_logic_vector(31 downto 0);
 rd_en       : in std_logic;
-rd_clk      : in std_logic;
+--rd_clk      : in std_logic;
 
 full        : out std_logic;
-prog_full   : out std_logic;
---almost_full : out std_logic;
+almost_full : out std_logic;
 empty       : out std_logic;
-almost_empty: out std_logic;
+prog_full   : out std_logic;
 
+clk         : in std_logic;
 rst         : in std_logic
 );
 end component;
@@ -47,18 +47,17 @@ port
 (
 din         : in std_logic_vector(31 downto 0);
 wr_en       : in std_logic;
-wr_clk      : in std_logic;
+--wr_clk      : in std_logic;
 
 dout        : out std_logic_vector(31 downto 0);
 rd_en       : in std_logic;
-rd_clk      : in std_logic;
+--rd_clk      : in std_logic;
 
 full        : out std_logic;
-prog_full   : out std_logic;
---almost_full : out std_logic;
+almost_full : out std_logic;
 empty       : out std_logic;
-almost_empty: out std_logic;
 
+clk         : in std_logic;
 rst         : in std_logic
 );
 end component;
@@ -73,9 +72,9 @@ G_SIM                  : string:="OFF"
 );
 port
 (
--------------------------------
+--------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
--------------------------------
+--------------------------------------------------
 p_in_cfg_clk              : in   std_logic;                      --//
 
 p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
@@ -91,16 +90,19 @@ p_in_cfg_rd               : in   std_logic;                      --//
 p_in_cfg_done             : in   std_logic;                      --//
 p_in_cfg_rst              : in   std_logic;
 
--------------------------------
+--------------------------------------------------
 -- STATUS модуля DSN_HDD.VHD
--------------------------------
+--------------------------------------------------
 p_out_hdd_rdy             : out  std_logic;                      --//
 p_out_hdd_error           : out  std_logic;                      --//
 p_out_hdd_busy            : out  std_logic;                      --//
 
--------------------------------
+--------------------------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
--------------------------------
+--------------------------------------------------
+p_out_rambuf_adr          : out  std_logic_vector(31 downto 0);  --//
+p_out_rambuf_ctrl         : out  std_logic_vector(31 downto 0);  --//
+
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
@@ -119,11 +121,11 @@ p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
 
 p_in_sata_refclk          : in    std_logic;
 
----------------------------------------------------------------------------
+--------------------------------------------------
 --Технологический порт
----------------------------------------------------------------------------
+--------------------------------------------------
 p_in_tst                 : in    std_logic_vector(31 downto 0);
-p_out_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst                : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется

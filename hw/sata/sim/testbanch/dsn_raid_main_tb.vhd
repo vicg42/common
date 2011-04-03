@@ -212,7 +212,6 @@ p_out_sim_gtp_txdata        => i_sim_gtp_rxdata,
 p_out_sim_gtp_txcharisk     => i_sim_gtp_rxcharisk,
 p_in_sim_gtp_rxdata         => i_sim_gtp_txdata,
 p_in_sim_gtp_rxcharisk      => i_sim_gtp_txcharisk,
-
 p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus,
 p_in_sim_gtp_rxelecidle     => i_sim_gtp_rxelecidle,
 p_in_sim_gtp_rxdisperr      => i_sim_gtp_rxdisperr,

@@ -27,6 +27,7 @@ use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
 use work.sata_raid_pkg.all;
+use work.dsn_hdd_pkg.all;
 
 entity dsn_hdd is
 generic
@@ -66,6 +67,9 @@ p_out_hdd_busy            : out  std_logic;                      --//
 -------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
 -------------------------------
+p_out_rambuf_adr          : out  std_logic_vector(31 downto 0);  --//
+p_out_rambuf_ctrl         : out  std_logic_vector(31 downto 0);  --//
+
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
@@ -88,7 +92,7 @@ p_in_sata_refclk          : in    std_logic;
 --Технологический порт
 ---------------------------------------------------------------------------
 p_in_tst                 : in    std_logic_vector(31 downto 0);
-p_out_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst                : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -140,10 +144,19 @@ signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0);
 signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
 --signal h_reg_satah_status               : std_logic_vector(15 downto 0);
 
+signal i_cfg_bufrst                     : std_logic;
+
+signal i_sata_gt_refclk                 : std_logic_vector(0 downto 0);
 signal i_sh_ctrl                        : std_logic_vector(31 downto 0);
 signal i_sh_status                      : TUsrStatus;
 
 signal i_sh_cmd_wr                      : std_logic;
+signal i_sh_txd                         : std_logic_vector(31 downto 0);
+signal i_sh_txd_rd                      : std_logic;
+signal i_sh_txbuf_empty                 : std_logic;
+signal i_sh_rxd                         : std_logic_vector(31 downto 0);
+signal i_sh_rxd_wr                      : std_logic;
+signal i_sh_rxbuf_full                  : std_logic;
 
 signal i_sh_sim_gtp_txdata              : TBus32_SHCountMax;
 signal i_sh_sim_gtp_txcharisk           : TBus04_SHCountMax;
@@ -163,6 +176,39 @@ signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 
 --MAIN
 begin
+
+--//----------------------------------
+--//Технологические сигналы
+--//----------------------------------
+gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+p_out_tst(31 downto 8)<=(others=>'0');
+end generate gen_dbg_off;
+
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
+--ltstout:process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    tst_fms_cs_dly<=(others=>'0');
+--    p_out_tst(31 downto 1)<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+--    tst_fms_cs_dly<=tst_fms_cs;
+--    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
+--  end if;
+--end process ltstout;
+p_out_tst(8)<=OR_reduce(tst_hdd_out) or OR_reduce(i_sh_status.SError(0));
+p_out_tst(31 downto 9)<=(others=>'0');
+end generate gen_dbg_on;
+p_out_tst(0)<=i_sh_status.ch_drdy(0);
+p_out_tst(1)<=i_sh_status.ch_drdy(1);
+p_out_tst(2)<=i_sh_status.ch_err(0);
+p_out_tst(3)<=i_sh_status.ch_err(1);
+p_out_tst(4)<='0';
+p_out_tst(5)<='0';
+p_out_tst(6)<='0';
+p_out_tst(7)<='0';
+
+
 
 --//--------------------------------------------------
 --//Конфигурирование модуля DSN_HDD.VHD
@@ -247,23 +293,23 @@ end process;
 i_sh_ctrl<=EXT(h_reg_ctrl_l, i_sh_ctrl'length);
 
 i_cfg_bufrst<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_BUFRST_BIT);--//Сброс всех буферов --//add 2010.08.18
-i_cfg_buf_ovflow_disable_det<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT);--//add 2010.10.03
+--i_cfg_buf_ovflow_disable_det<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT);--//add 2010.10.03
 
 
 --//add 2010.10.03
 --//Настройка/Управление RAM буфером
-p_out_cfg_hdd_ramadr(15 downto 0)<=h_reg_rambuf_adr(15 downto 0);
-p_out_cfg_hdd_ramadr(31 downto 16)<=h_reg_rambuf_adr(31 downto 16);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_START_BIT)<=i_satadsn_status_module(C_STATUS_MODULE_STREAM_ON_BIT);
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_RST_BIT)<=i_cfg_bufrst;
-p_out_cfg_hdd_rambuf(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT)<=i_hw_stopsyn;
-p_out_cfg_hdd_rambuf(31 downto C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT+1)<=(others=>'0');
+p_out_rambuf_adr(15 downto 0)<=h_reg_rambuf_adr(15 downto 0);
+p_out_rambuf_adr(31 downto 16)<=h_reg_rambuf_adr(31 downto 16);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_START_BIT)<='0';--i_satadsn_status_module(C_STATUS_MODULE_STREAM_ON_BIT);
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RST_BIT)<=i_cfg_bufrst;
+p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT)<='0';--i_hw_stopsyn;
+p_out_rambuf_ctrl(31 downto C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT+1)<=(others=>'0');
 
 
 
@@ -277,46 +323,41 @@ din         => p_in_hdd_txd,
 wr_en       => p_in_hdd_txd_wr,
 --wr_clk      => ,
 
-dout        => i_hdd_txd,
-rd_en       => i_hdd_txd_rd,
+dout        => i_sh_txd,
+rd_en       => i_sh_txd_rd,
 --rd_clk      => ,
 
 full        => open,
-prog_full   => p_out_hdd_txbuf_full,
---almost_full => open,
-empty       i_hdd_txbuf_empty,
---almost_empty=> open,
+almost_full => p_out_hdd_txbuf_full,
+empty       => i_sh_txbuf_empty,
+prog_full   => open,
 
 clk         => p_in_cfg_clk,
 rst         => p_in_rst
 );
-
-p_out_hdd_txbuf_empty<=i_hdd_txbuf_empty;
 
 m_rxfifo : hdd_rxfifo
 port map
 (
-din         => i_hdd_rxd,
-wr_en       => i_hdd_rxd_wr,
+din         => i_sh_rxd,
+wr_en       => i_sh_rxd_wr,
 --wr_clk      => ,
 
 dout        => p_out_hdd_rxd,
-rd_en       => p_out_hdd_rxd_rd,
+rd_en       => p_in_hdd_rxd_rd,
 --rd_clk      => ,
 
-full        => p_out_hdd_rxbuf_full,
---prog_full   => i_hdd_rxbuf_full,
-almost_full => i_hdd_rxbuf_full,
+full        => open,
+almost_full => i_sh_rxbuf_full,
 empty       => p_out_hdd_rxbuf_empty,
---almost_empty=> open,
 
 clk         => p_in_cfg_clk,
 rst         => p_in_rst
 );
 
---i_hdd_cmd<=p_in_cfg_txdata;
+--i_sh_cmd<=p_in_cfg_txdata;
 i_sh_cmd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
---i_hdd_cmd_rdy<=p_in_cfg_done when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
+--i_sh_cmd_rdy<=p_in_cfg_done when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
 
 --h_reg_satah_status(7 downto 0)<=EXT(i_sh_status.ch_drdy, 8);
 --h_reg_satah_status(15 downto 8)<=EXT(i_sh_status.ch_err, 8);
@@ -341,10 +382,10 @@ port map
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
-p_out_sata_txn              => pin_out_sata_txn,
-p_out_sata_txp              => pin_out_sata_txp,
-p_in_sata_rxn               => pin_in_sata_rxn,
-p_in_sata_rxp               => pin_in_sata_rxp,
+p_out_sata_txn              => p_out_sata_txn,
+p_out_sata_txp              => p_out_sata_txp,
+p_in_sata_rxn               => p_in_sata_rxn,
+p_in_sata_rxp               => p_in_sata_rxp,
 
 p_in_sata_refclk            => i_sata_gt_refclk,
 
@@ -356,17 +397,17 @@ p_out_usr_status            => i_sh_status,
 
 --//cmdpkt
 p_in_usr_cxd                => p_in_cfg_txdata,
-p_in_usr_cxd_wr             => i_hdd_cmd_wr,
+p_in_usr_cxd_wr             => i_sh_cmd_wr,
 
 --//txfifo
-p_in_usr_txd                => i_hdd_txd,
-p_out_usr_txd_rd            => i_hdd_txd_rd,
-p_in_usr_txbuf_empty        => i_hdd_txbuf_empty,
+p_in_usr_txd                => i_sh_txd,
+p_out_usr_txd_rd            => i_sh_txd_rd,
+p_in_usr_txbuf_empty        => i_sh_txbuf_empty,
 
 --//rxfifo
-p_out_usr_rxd               => i_hdd_rxd,
-p_out_usr_rxd_wr            => i_hdd_rxd_wr,
-p_in_usr_rxbuf_full         => i_hdd_rxbuf_full,
+p_out_usr_rxd               => i_sh_rxd,
+p_out_usr_rxd_wr            => i_sh_rxd_wr,
+p_in_usr_rxbuf_full         => i_sh_rxbuf_full,
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -387,7 +428,7 @@ p_out_gtp_sim_clk           => i_sh_sim_gtp_sim_clk,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                    => "00000000000000000000000000000000",--tst_hdd_in,
-p_out_tst                   => p_out_tst,--tst_hdd_out,
+p_out_tst                   => tst_hdd_out,
 --------------------------------------------------
 --System
 --------------------------------------------------
