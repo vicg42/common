@@ -27,7 +27,6 @@ vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo.vhd"
 vcom -93 "../../core_gen/sata_rxfifo.vhd"
 vcom -93 "../../core_gen/sata_txfifo.vhd"
-vcom -93 "../../core_gen/sata_cmdfifo.vhd"
 
 vcom -93 "../../src/sata_pkg.vhd"
 vcom -93 "../../src/sata_raid_pkg.vhd"
@@ -41,8 +40,8 @@ vcom -93 "../../src/sata_crc.vhd"
 
 vcom -93 "../../src/sata_spd_ctrl.vhd"
 
-vcom -93 "../../src/sata_rocketio.vhd"
 vcom -93 "../../src/sata_player_gtsim.vhd"
+vcom -93 "../../src/sata_player_gt.vhd"
 vcom -93 "../../src/sata_player_oob.vhd"
 vcom -93 "../../src/sata_player_rx.vhd"
 vcom -93 "../../src/sata_player_tx.vhd"

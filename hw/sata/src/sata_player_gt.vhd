@@ -6,7 +6,7 @@
 -- Module Name : sata_player_gt
 --
 -- Назначение/Описание :
---   1. Связь компонента GT(gig tx/rx) c sata_host.vhd
+--   1. Связь компонента DUAL_GTP(gig tx/rx) c sata_host.vhd
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -99,20 +99,21 @@ architecture RTL of sata_player_gt is
 constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
 constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GTP_DBUS, 8)), 1);
 
-signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-
 signal i_rxenelecidleresetb        : std_logic;
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 attribute keep : string;
 attribute keep of g_gtp_usrclk : signal is "true";
 
 --MAIN
 begin
+
 
 
 gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
@@ -631,6 +632,7 @@ TXCOMTYPE0                      =>      p_in_txcomtype(0),
 TXCOMTYPE1                      =>      p_in_txcomtype(1)
 
 );
+
 
 --END MAIN
 end RTL;

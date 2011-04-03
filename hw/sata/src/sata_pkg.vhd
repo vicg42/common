@@ -24,6 +24,7 @@ package sata_pkg is
 ---------------------------------------------------------
 --Типы
 ---------------------------------------------------------
+type T04GTCHCount is array (0 to 3) of integer;
 type T08SHCount is array (0 to 7) of integer;
 type T08SHCountSel is array (0 to 1) of T08SHCount;
 type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
@@ -31,7 +32,14 @@ type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
 ---------------------------------------------------------
 --Константы
 ---------------------------------------------------------
-constant C_GTCH_COUNT_MAX    : integer:=2;--//2/1 - для DUAL_GTP/GTX
+--//0 - "V5_GTP"
+--//1 - "V5_GTX"
+--//2 - "V6_GTX"
+--//3 - "S6_GTP"
+constant C_FPGA_TYPE         : integer:=0;
+constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
+
+constant C_GTCH_COUNT_MAX    : integer:=C_GTCH_COUNT_MAX_SEL(C_FPGA_TYPE);
 
 --//Определяем мах кол-во HDD:
 constant C_HDD_COUNT_MAX     : integer:=8;--//
