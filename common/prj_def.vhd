@@ -366,7 +366,6 @@ constant C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT : integer:=16#03#;--//Кол-во масок для
 
 constant C_FLTR_VARIANT_DWIDTH            : integer :=8;
 Type TEthFmask is array (0 to (2*C_DSN_SWT_FMASK_MAX_COUNT)-1) of std_logic_vector(C_FLTR_VARIANT_DWIDTH-1 downto 0);
-
 --Маска фильтрации (7...0), где
 -- 3..0 - тип пакета
 -- 7..4 - подтип пакета
@@ -385,43 +384,15 @@ constant C_DSN_HDD_REG_STATUS_SATA0_L        : integer:=16#005#;
 constant C_DSN_HDD_REG_STATUS_SATA0_M        : integer:=16#006#;
 constant C_DSN_HDD_REG_STATUS_SATA1_L        : integer:=16#007#;
 constant C_DSN_HDD_REG_STATUS_SATA1_M        : integer:=16#008#;
-constant C_DSN_HDD_REG_STATUS_SATA2_L        : integer:=16#009#;
-constant C_DSN_HDD_REG_STATUS_SATA2_M        : integer:=16#00A#;
-constant C_DSN_HDD_REG_STATUS_SATA3_L        : integer:=16#00B#;
-constant C_DSN_HDD_REG_STATUS_SATA3_M        : integer:=16#00C#;
-constant C_DSN_HDD_REG_STATUS_SATA4_L        : integer:=16#00D#;
-constant C_DSN_HDD_REG_STATUS_SATA4_M        : integer:=16#00E#;
-constant C_DSN_HDD_REG_STATUS_SATA5_L        : integer:=16#00F#;
-constant C_DSN_HDD_REG_STATUS_SATA5_M        : integer:=16#010#;
-
-constant C_DSN_HDD_REG_LBA_BPOINT_LSB        : integer:=16#011#;
-constant C_DSN_HDD_REG_LBA_BPOINT_MID        : integer:=16#012#;
-constant C_DSN_HDD_REG_LBA_BPOINT_MSB        : integer:=16#013#;
-
-constant C_DSN_HDD_REG_TEST_TCMD_L           : integer:=16#016#;
-constant C_DSN_HDD_REG_TEST_TCMD_M           : integer:=16#017#;
-constant C_DSN_HDD_REG_TEST_TWORK_L          : integer:=16#018#;
-constant C_DSN_HDD_REG_TEST_TWORK_M          : integer:=16#019#;
-constant C_DSN_HDD_REG_TEST_TDLY_L           : integer:=16#01B#;
-constant C_DSN_HDD_REG_TEST_TDLY_M           : integer:=16#01C#;
 
 constant C_DSN_HDD_REG_CMDFIFO               : integer:=16#01E#;
 
-constant C_DSN_HDD_REG_STATUS_M              : integer:=16#01F#;--//Добавлено 2010.09.08
-
 constant C_DSN_HDD_REG_RBUF_ADR_L            : integer:=16#020#;--//add 2010.10.03
 constant C_DSN_HDD_REG_RBUF_ADR_M            : integer:=16#021#;--//add 2010.10.03
---constant C_DSN_HDD_REG_RBUF_SIZE_L           : integer:=16#022#;--//add 2010.10.03
---constant C_DSN_HDD_REG_RBUF_SIZE_M           : integer:=16#023#;--//add 2010.10.03
---constant C_DSN_HDD_REG_RBUF_LEVEL            : integer:=16#024#;--//add 2010.10.03
---constant C_DSN_HDD_REG_RBUF_FIFO_SIZE        : integer:=16#025#;--//add 2010.10.03
 constant C_DSN_HDD_REG_RBUF_CTRL             : integer:=16#026#;--//add 2010.10.03
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_CTRL_L / Bit Map:
---//номера битом должны соответствовать номерам констант в sata_pkg.vhd/C_FSATA_REG_CTRL0_xxx
-constant C_DSN_HDD_REG_CTRLL_SATA_VER_LSB_BIT : integer:=0; --//C_FSATA_REG_CTRL0_SATA_VER_LSB_BIT
-constant C_DSN_HDD_REG_CTRLL_SATA_VER_MSB_BIT : integer:=1; --//C_FSATA_REG_CTRL0_SATA_VER_MSB_BIT
 constant C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT : integer:=2;
 constant C_DSN_HDD_REG_CTRLL_BUFRST_BIT       : integer:=3; --//
 constant C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT      : integer:=6; --//индекс этого бита нельзя менять, т.к. он привязан к управлению сбросом
@@ -455,9 +426,6 @@ constant C_DSN_HDD_REG_TST0_LAST_BIT         : integer:=16#007#;
 --//Register C_DSN_HDD_REG_TST1 / Bit Map:
 constant C_DSN_HDD_REG_TST1_LAST_BIT         : integer:=16#007#;
 
---//Добавлено 2010.09.08
---//Register C_DSN_HDD_REG_STATUS_M / Bit Map:
-constant C_DSN_HDD_REG_STATUSM_HDDBUF_OVERFLOW_BIT : integer:=0;
 ---------------
 
 
