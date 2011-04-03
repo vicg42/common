@@ -1013,10 +1013,10 @@ end component;
 component dsn_raid_main
 generic
 (
-G_HDD_COUNT     : integer:=2;
-G_GTP_DBUS      : integer:=16;
-G_DBG           : string :="OFF";
-G_SIM           : string :="OFF"
+G_HDD_COUNT : integer:=2;
+G_GTP_DBUS  : integer:=16;
+G_DBG       : string :="OFF";
+G_SIM       : string :="OFF"
 );
 port
 (

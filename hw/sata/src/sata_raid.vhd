@@ -140,6 +140,9 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_on;
 
+gen_sh_tst_out : for i in 0 to C_HDD_COUNT_MAX-1 generate
+p_out_sh_tst(i)<=(others=>'0');
+end generate gen_sh_tst_out;
 
 --//модуль управления
 m_ctrl : sata_raid_ctrl
