@@ -130,8 +130,8 @@ signal i_satadev_ctrl             : TSataDevCtrl_GTCH;
 
 
 
-signal tst_sata_host_in           : std_logic_vector(31 downto 0);
-signal tst_sata_host_out          : std_logic_vector(31 downto 0);
+signal tst_sata_host_in           : TBus32_GTCH;--std_logic_vector(31 downto 0);
+signal tst_sata_host_out          : TBus32_GTCH;--std_logic_vector(31 downto 0);
 signal tst_data_cnt               : std_logic_vector(31 downto 0);
 
 
@@ -403,9 +403,10 @@ begin
 end process;
 
 
-tst_sata_host_in(0)<=ll_wcmdpkt_dst_rdy_n;
-tst_sata_host_in(31 downto 1)<=(others=>'0');
-
+tst_sata_host_in(0)(0)<=ll_wcmdpkt_dst_rdy_n;
+tst_sata_host_in(0)(31 downto 1)<=(others=>'0');
+tst_sata_host_in(1)(0)<=ll_wcmdpkt_dst_rdy_n;
+tst_sata_host_in(1)(31 downto 1)<=(others=>'0');
 
 
 --//########################################
