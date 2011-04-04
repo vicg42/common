@@ -22,9 +22,9 @@ package prj_cfg is
 constant C_BOARD_USE                         : string:="ML505";
 
 --//”правление использованием модулей проекта:
-constant C_USE_TRACK                         : string:="ON";
-constant C_USE_ETH                           : string:="ON";
-constant C_USE_HDD                           : string:="OFF";
+constant C_USE_TRACK                         : string:="OFF";
+constant C_USE_ETH                           : string:="OFF";
+constant C_USE_HDD                           : string:="ON";
 
 constant C_DBG_HDD                           : string:="OFF";
 
