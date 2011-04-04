@@ -121,12 +121,12 @@ architecture behavioral of dsn_hdd is
 component mclk_gtp_wrap
 port
 (
-p_out_sata_txn            : out   std_logic_vector(1 downto 0);
-p_out_sata_txp            : out   std_logic_vector(1 downto 0);
-p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
-p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
-clkin  : in    std_logic;
-clkout : out   std_logic
+p_out_txn : out   std_logic_vector(1 downto 0);
+p_out_txp : out   std_logic_vector(1 downto 0);
+p_in_rxn  : in    std_logic_vector(1 downto 0);
+p_in_rxp  : in    std_logic_vector(1 downto 0);
+clkin     : in    std_logic;
+clkout    : out   std_logic
 );
 end component;
 
@@ -136,13 +136,8 @@ signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
 signal h_reg_ctrl_l                     : std_logic_vector(C_DSN_HDD_REG_CTRLL_LAST_BIT downto 0);
 signal h_reg_tst0                       : std_logic_vector(C_DSN_HDD_REG_TST0_LAST_BIT downto 0);
 signal h_reg_tst1                       : std_logic_vector(C_DSN_HDD_REG_TST1_LAST_BIT downto 0);
-
 signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0);
---signal h_reg_rambuf_size                : std_logic_vector(31 downto 0);
---signal h_reg_rambuf_level               : std_logic_vector(15 downto 0);
---signal h_reg_rambuf_fifo_size           : std_logic_vector(15 downto 0);
 signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
---signal h_reg_satah_status               : std_logic_vector(15 downto 0);
 
 signal i_cfg_bufrst                     : std_logic;
 
@@ -281,10 +276,6 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA1_L, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(1)(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA1_M, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(1)(31 downto 16);
 
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_LBA_BPOINT_LSB, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_satadsn_status_lba_break_point(15 downto 0);
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_LBA_BPOINT_MID, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_satadsn_status_lba_break_point(31 downto 16);
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_LBA_BPOINT_MSB, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_satadsn_status_lba_break_point(47 downto 32);
-
         end if;
     end if;
   end if;
@@ -312,9 +303,22 @@ p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT)<='0';--i_hw_stopsyn;
 p_out_rambuf_ctrl(31 downto C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT+1)<=(others=>'0');
 
 
+--//Статусы модуля
+p_out_hdd_rdy  <=i_sh_status.glob_drdy;
+p_out_hdd_error<=i_sh_status.glob_err;
+p_out_hdd_busy <=i_sh_status.glob_busy;
 
+
+--//Статусы модуля
+--i_sh_cmd<=p_in_cfg_txdata;
+i_sh_cmd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
+--i_sh_cmd_rdy<=p_in_cfg_done when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
+
+
+--//############################
+--//USE - ON (использовать в проекте)
+--//############################
 gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
-begin
 
 m_txfifo : hdd_txfifo
 port map
@@ -355,16 +359,6 @@ clk         => p_in_cfg_clk,
 rst         => p_in_rst
 );
 
---i_sh_cmd<=p_in_cfg_txdata;
-i_sh_cmd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
---i_sh_cmd_rdy<=p_in_cfg_done when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
-
---h_reg_satah_status(7 downto 0)<=EXT(i_sh_status.ch_drdy, 8);
---h_reg_satah_status(15 downto 8)<=EXT(i_sh_status.ch_err, 8);
-
-p_out_hdd_rdy  <=i_sh_status.glob_drdy;
-p_out_hdd_error<=i_sh_status.glob_err;
-p_out_hdd_busy <=i_sh_status.glob_busy;
 
 i_sata_gt_refclk(0)<=p_in_sata_refclk;
 
@@ -462,6 +456,60 @@ p_out_gtp_sim_clk           <= i_sh_sim_gtp_sim_clk;
 
 end generate gen_use_on;
 
+
+
+
+--//############################
+--//USE - OFF (выбросить из проекта)
+--//############################
+gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
+
+m_sata_gt : mclk_gtp_wrap
+port map
+(
+p_out_txn => p_out_sata_txn,
+p_out_txp => p_out_sata_txp,
+p_in_rxn  => p_in_sata_rxn,
+p_in_rxp  => p_in_sata_rxp,
+clkin     => p_in_sata_refclk,
+clkout    => i_sata_gt_refclk(0)
+);
+
+gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
+p_out_sim_gtp_txdata(i)    <=(others=>'0');
+p_out_sim_gtp_txcharisk(i) <=(others=>'0');
+p_out_gtp_sim_rst(i)       <='0';
+p_out_gtp_sim_clk(i)       <='0';
+
+i_sh_status.ch_busy(i)<='0';
+i_sh_status.ch_drdy(i)<='0';
+i_sh_status.ch_err(i)<='0';
+i_sh_status.SError(i)<=(others=>'0');
+i_sh_status.ch_usr(i)<=(others=>'0');
+
+end generate gen_satah;
+
+i_sh_status.glob_busy<='0';
+i_sh_status.glob_drdy<='0';
+i_sh_status.glob_err <='0';
+i_sh_status.glob_usr <=(others=>'0');
+
+p_out_hdd_txbuf_full<=i_sh_cmd_wr;
+
+process(p_in_rst,i_sata_gt_refclk(0))
+begin
+  if p_in_rst='1' then
+    i_sh_rxd<=(others=>'0');
+
+  elsif i_sata_gt_refclk(0)'event and i_sata_gt_refclk(0)='1' then
+    i_sh_rxd<=EXT(p_in_cfg_txdata, i_sh_rxd'length);
+  end if;
+end process;
+
+p_out_hdd_rxd <=i_sh_rxd;
+p_out_hdd_rxbuf_empty<=i_sh_cmd_wr;
+
+end generate gen_use_off;
 
 --END MAIN
 end behavioral;
