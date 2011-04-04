@@ -397,7 +397,7 @@ architecture virtex5_only of mclk_gtp_wrap is
 
 begin
 
-    m_gtp_dual_tst : GTP_DUAL
+    m_gt : GTP_DUAL
         generic map (
             -- synthesis translate_off
             SIM_RECEIVER_DETECT_PASS0  =>   TRUE,
