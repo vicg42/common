@@ -24,13 +24,14 @@ use unisim.vcomponents.all;
 library work;
 
 entity mclk_gtp_wrap is
-    port(
-        p_out_txn            : out   std_logic_vector(1 downto 0);
-        p_out_txp            : out   std_logic_vector(1 downto 0);
-        p_in_rxn             : in    std_logic_vector(1 downto 0);
-        p_in_rxp             : in    std_logic_vector(1 downto 0);
-        clkin  : in    std_logic;
-        clkout : out   std_logic);
+port(
+p_out_txn : out   std_logic_vector(1 downto 0);
+p_out_txp : out   std_logic_vector(1 downto 0);
+p_in_rxn  : in    std_logic_vector(1 downto 0);
+p_in_rxp  : in    std_logic_vector(1 downto 0);
+clkin     : in    std_logic;
+clkout    : out   std_logic
+);
 end entity;
 
 architecture virtex5_only of mclk_gtp_wrap is
