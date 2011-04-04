@@ -26,7 +26,7 @@ constant C_USE_TRACK                         : string:="OFF";
 constant C_USE_ETH                           : string:="OFF";
 constant C_USE_HDD                           : string:="ON";
 
-constant C_DBG_HDD                           : string:="OFF";
+constant C_DBG_HDD                           : string:="ON";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller

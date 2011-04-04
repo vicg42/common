@@ -37,7 +37,6 @@ use UNISIM.vcomponents.all;
 entity hdd_simple_main is
 generic
 (
-G_DBG        : string:="OFF";
 G_SIM        : string:="OFF"
 );
 port
