@@ -369,7 +369,7 @@ p_out_hdd_busy <=i_sh_status.glob_busy;
 i_sata_gt_refclk(0)<=p_in_sata_refclk;
 
 --//SATA
-m_dsn_raid : dsn_raid_main
+m_dsn_sata : dsn_raid_main
 generic map
 (
 G_HDD_COUNT => G_HDD_COUNT,
