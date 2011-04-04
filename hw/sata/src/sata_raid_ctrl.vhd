@@ -134,7 +134,8 @@ signal i_lba_cnt                   : std_logic_vector(i_cmdpkt.lba'range);
 signal i_trn_dcount_byte           : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
 signal i_trn_dcount_dw             : std_logic_vector(i_trn_dcount_byte'range);
 
-signal i_sh_bufadr                 : std_logic_vector(p_in_sh_num'range);
+signal i_sh_hddcnt_ld              : std_logic_vector(p_in_sh_num'range);
+signal i_sh_hddcnt                 : std_logic_vector(p_in_sh_num'range);
 signal i_sh_trn_en                 : std_logic;
 signal i_sh_trn_den                : std_logic;
 signal i_sh_txd_wr                 : std_logic;
@@ -428,7 +429,7 @@ end process;
 --//-----------------------------
 --//Запись/Чтение буферов модулей sata_host
 --//-----------------------------
-p_out_sh_hdd<=i_sh_bufadr;
+p_out_sh_hdd<=i_sh_hddcnt;
 
 --//запись в TxBUF sata_host
 p_out_sh_txd<=p_in_usr_txd;
@@ -512,7 +513,27 @@ begin
 end process;
 
 
---//Назначаем номер HDD для атомарной транзакции
+--//Счетчик hdd RAID
+gen_sh_bufadr_ld : for i in 0 to i_sh_hddcnt'high generate
+--//Если работаем с одним HDD: загружаем номер соотв. HDD
+--//Если работаем с      RAID: загружаем 0 (т.е. всегда начинаем с sata_host=0)
+i_sh_hddcnt_ld(i)<=p_in_sh_num(i) and not p_in_raid.used;
+end generate gen_sh_bufadr_ld;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_sh_hddcnt<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_sh_cmd_start='1' then
+      i_sh_hddcnt<=i_sh_hddcnt_ld;
+    elsif sr_raid_atrn_done(2)='1' then
+      i_sh_hddcnt<=i_sh_hddcnt+1;
+    end if;
+  end if;
+end process;
+
+
 process(p_in_rst,p_in_clk)
   variable raid_atrn_next: std_logic;
   variable raid_trn_tx_done: std_logic;
@@ -521,34 +542,21 @@ begin
     raid_atrn_next:='0';
     raid_trn_tx_done:='0';
 
-    i_sh_bufadr<=(others=>'0');
     i_raid_atrn_next<='0';
     i_raid_trn_done<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if i_sh_cmd_start='1' then
-      --//Если работаем с одним HDD: загружаем номер соотв. HDD
-      --//Если работаем с      RAID: загружаем 0 (т.е. всегда начинаем с sata_host=0)
-      for i in 0 to i_sh_bufadr'high loop
-        i_sh_bufadr(i)<=p_in_sh_num(i) and not p_in_raid.used;
-      end loop;
-    else
-      if sr_raid_atrn_done(2)='1' then
-        i_sh_bufadr<=i_sh_bufadr+1;--//инкримент адреса диска RAID
-      end if;
-    end if;
-
     raid_atrn_next:='0';
     raid_trn_tx_done:='0';
 
     --//Сигнал начать следующую атормарную транзакцию RAID
-    if sr_raid_atrn_done(2)='1' and i_sh_bufadr/=p_in_raid.hddcount then
+    if sr_raid_atrn_done(2)='1' and i_sh_hddcnt/=p_in_raid.hddcount then
       raid_atrn_next:='1';
     end if;
 
     --//Тразакция перемещения данных выполнена (только для RAID)
-    if sr_raid_atrn_done(2)='1' and i_sh_bufadr=p_in_raid.hddcount then
+    if sr_raid_atrn_done(2)='1' and i_sh_hddcnt=p_in_raid.hddcount then
       raid_trn_tx_done:='1';
     end if;
 
