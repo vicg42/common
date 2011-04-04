@@ -63,7 +63,7 @@ vcom -93 "../../src/sata_raid.vhd"
 
 vcom -93 "../../src/dsn_raid_main.vhd"
 
-vcom -93 "../../../../../prj_def/prj_def.vhd"
+vcom -93 "../../../../veresk_m/prj_def.vhd"
 vcom -93 "../../dsn_hdd_pkg.vhd"
 vcom -93 "../../dsn_hdd.vhd"
 

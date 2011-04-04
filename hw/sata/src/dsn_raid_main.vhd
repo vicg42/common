@@ -173,8 +173,11 @@ signal i_sim_gtp_rxbyteisaligned   : TBusGTCH_SHCountMax;
 signal i_sim_gtp_rst               : TBusGTCH_SHCountMax;
 signal i_sim_gtp_clk               : TBusGTCH_SHCountMax;
 
-signal tst_sh_in                   : TBus32_SHCountMax;
-signal tst_sh_out                  : TBus32_SHCountMax;
+signal tst_sh_in                   : TBus32GTCH_SHCountMax;--TBus32_SHCountMax;
+signal tst_sh_out                  : TBus32GTCH_SHCountMax;--TBus32_SHCountMax;
+
+signal i_uap_tst_sh_in             : TBus32_SHCountMax;
+signal i_uap_tst_sh_out            : TBus32_SHCountMax;
 
 signal tst_raid_ctrl               : std_logic_vector(31 downto 0);
 
@@ -264,8 +267,8 @@ p_in_sh_rxbuf_status    => i_uap_rxbuf_status,
 p_in_tst                => p_in_tst,
 p_out_tst               => tst_raid_ctrl,
 
-p_in_sh_tst             => tst_sh_out,
-p_out_sh_tst            => tst_sh_in,
+p_in_sh_tst             => i_uap_tst_sh_out,
+p_out_sh_tst            => i_uap_tst_sh_in,
 
 --------------------------------------------------
 --System
@@ -324,6 +327,9 @@ i_u_rxd_rd(sh_idx)(ch_idx)<=i_uap_rxd_rd(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 --//bufstatus
 i_uap_txbuf_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_txbuf_status(sh_idx)(ch_idx);
 i_uap_rxbuf_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_rxbuf_status(sh_idx)(ch_idx);
+
+tst_sh_in(sh_idx)(ch_idx)<=i_uap_tst_sh_in(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_uap_tst_sh_out(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=tst_sh_out(sh_idx)(ch_idx);
 
 --//Моделирование
 p_out_gtp_sim_rst(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_rst(sh_idx)(ch_idx);

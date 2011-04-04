@@ -708,8 +708,8 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                    : in    std_logic_vector(31 downto 0);
-p_out_tst                   : out   std_logic_vector(31 downto 0);
+p_in_tst                    : in    TBus32_GTCH;
+p_out_tst                   : out   TBus32_GTCH;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -869,6 +869,9 @@ p_in_sh_rxbuf_empty     : in    std_logic;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+
+p_in_sh_tst             : in    TBus32_SHCountMax;
+p_out_sh_tst            : out   TBus32_SHCountMax;
 
 --------------------------------------------------
 --System

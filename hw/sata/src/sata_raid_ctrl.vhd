@@ -87,6 +87,9 @@ p_in_sh_rxbuf_empty     : in    std_logic;
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
 
+p_in_sh_tst             : in    TBus32_SHCountMax;
+p_out_sh_tst            : out   TBus32_SHCountMax;
+
 --------------------------------------------------
 --System
 --------------------------------------------------
@@ -173,10 +176,14 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
 --  end if;
 --end process ltstout;
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(0)<=p_in_sh_tst(0)(0) or p_in_sh_tst(1)(0);
+p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
 
+gen_sh_tst_out : for i in 0 to C_HDD_COUNT_MAX-1 generate
+p_out_sh_tst(i)<=(others=>'0');
+end generate gen_sh_tst_out;
 
 --//----------------------------------
 --//Формирую отчеты

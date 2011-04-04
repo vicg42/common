@@ -178,7 +178,7 @@ signal i_tl_status                 : std_logic_vector(C_TLSTAT_LAST_BIT downto 0
 
 signal i_irq                       : std_logic;
 
---signal i_firq_bit                  : std_logic;
+signal i_firq_bit                  : std_logic;
 signal i_fdir_bit                  : std_logic;--//Прием/Передача FISDATA
 signal i_fpiosetup                 : std_logic;--//Сигнализация о приеме FIS_PIOSETUP
 signal i_fdone                     : std_logic;--//
@@ -240,7 +240,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly) or i_irq;
+    p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly) or i_irq or i_firq_bit;
 
   end if;
 end process tstout;
@@ -381,7 +381,7 @@ if p_in_rst='1' then
   i_irq<='0';
 
 --  i_ftxd<=(others=>'0');
---  i_firq_bit<='0';
+  i_firq_bit<='0';
   i_fdir_bit<='0';
   i_fpiosetup<='0';
   i_fdone<='0';
@@ -809,7 +809,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
               i_fdir_bit<=sr_llrxd(0)(C_FIS_DIR_BIT+8);
---              i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
+                i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
               if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_IRQ_ON then
                 i_irq<='1';
               end if;
@@ -897,7 +897,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         --//Прием содержимого FIS
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
---              i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
+                i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
               if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_IRQ_ON then
                 i_irq<='1';
               end if;
@@ -1059,7 +1059,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
               i_fdir_bit<=sr_llrxd(0)(C_FIS_DIR_BIT+8);
---              i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
+                i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
               if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_IRQ_ON then
                 i_irq<='1';
               end if;

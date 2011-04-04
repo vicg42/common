@@ -74,8 +74,8 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                    : in    std_logic_vector(31 downto 0);
-p_out_tst                   : out   std_logic_vector(31 downto 0);
+p_in_tst                    : in    TBus32_GTCH;
+p_out_tst                   : out   TBus32_GTCH;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -182,41 +182,12 @@ signal tst_tlayer_out              : TBus32_GTCH;
 signal tst_llayer_out              : TBus32_GTCH;
 signal tst_player_out              : TBus32_GTCH;
 signal tst_spctrl_out              : std_logic_vector(31 downto 0);
-signal tst_out                     : std_logic;
+signal tst_out                     : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
 
 --MAIN
 begin
-
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
-gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
-end generate gen_dbg_off;
-
-gen_dbg_on : if strcmp(G_DBG,"ON") generate
-tstout:process(p_in_rst,p_in_gtp_drpclk)
-begin
-  if p_in_rst='1' then
-    tst_out<='0';
-  elsif p_in_gtp_drpclk'event and p_in_gtp_drpclk='1' then
-    tst_out<=OR_reduce(tst_spctrl_out) or
-             OR_reduce(tst_player_out(0)) or
-             OR_reduce(tst_llayer_out(0)) or OR_reduce(tst_llayer_out(1)) or
-             OR_reduce(tst_tlayer_out(0)) or
-             OR_reduce(tst_alayer_out(0));
-
-  end if;
-end process tstout;
-
-p_out_tst(0)<=tst_out;
-p_out_tst(1)<=i_link_txd_close(0);
-p_out_tst(31 downto 2)<=(others=>'0');
-
-end generate gen_dbg_on;
-
 
 
 --//#############################
@@ -265,7 +236,7 @@ p_out_gtp_rst           => i_gtp_rst,
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                => p_in_tst,
+p_in_tst                => p_in_tst(0),
 p_out_tst               => tst_spctrl_out,
 
 --------------------------------------------------
@@ -309,6 +280,8 @@ i_gtp_txcomtype(1) <='0';
 i_gtp_txdata(1)    <=i_gtp_txdata(0);
 i_gtp_txcharisk(1) <=i_gtp_txcharisk(0);
 
+p_out_tst(1)(31 downto 0)<=(others=>'0');
+
 -- Моделирование
 gen_sim_on: if strcmp(G_SIM,"ON") generate
 
@@ -324,6 +297,34 @@ end generate gen_ch_count1;
 
 
 gen_ch: for i in 0 to G_SATAH_CH_COUNT-1 generate
+
+--//----------------------------------
+--//Технологические сигналы
+--//----------------------------------
+gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+p_out_tst(i)(31 downto 0)<=(others=>'0');
+end generate gen_dbg_off;
+
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
+tstout:process(p_in_rst,p_in_gtp_drpclk)
+begin
+  if p_in_rst='1' then
+    tst_out(i)<='0';
+  elsif p_in_gtp_drpclk'event and p_in_gtp_drpclk='1' then
+    tst_out(i)<=OR_reduce(tst_spctrl_out) or
+                OR_reduce(tst_player_out(i)) or
+                OR_reduce(tst_llayer_out(i)) or
+                OR_reduce(tst_tlayer_out(i)) or
+                OR_reduce(tst_alayer_out(i));
+
+  end if;
+end process tstout;
+
+p_out_tst(i)(0)<=tst_out(i);
+p_out_tst(i)(1)<=i_link_txd_close(i);
+p_out_tst(i)(31 downto 2)<=(others=>'0');
+
+end generate gen_dbg_on;
 
 -- Моделирование
 p_out_sim_rst(i) <= i_sata_module_rst(i);
@@ -398,7 +399,7 @@ p_in_reg_update           => i_reg_update(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  => p_in_tst,
+p_in_tst                  => p_in_tst(i),
 p_out_tst                 => tst_alayer_out(i),
 
 --------------------------------------------------
@@ -463,7 +464,7 @@ p_in_pl_status            => i_phy_status(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  => p_in_tst,
+p_in_tst                  => p_in_tst(i),
 p_out_tst                 => tst_tlayer_out(i),
 
 --------------------------------------------------
@@ -512,7 +513,7 @@ p_in_phy_txrdy_n        => i_phy_txrdy_n(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                => p_in_tst,
+p_in_tst                => p_in_tst(i),
 p_out_tst               => tst_llayer_out(i),
 
 --------------------------------------------------
@@ -573,7 +574,7 @@ p_in_gtp_rxbyteisaligned   => i_gtp_rxbyteisaligned(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   => p_in_tst,
+p_in_tst                   => p_in_tst(i),
 p_out_tst                  => tst_player_out(i),
 
 --------------------------------------------------

@@ -114,6 +114,9 @@ signal i_sh_rxd                    : std_logic_vector(31 downto 0);
 signal i_sh_rxd_rd                 : std_logic;
 signal i_sh_rxbuf_empty            : std_logic;
 
+signal tst_sata_raid_ctrl_out      : std_logic_vector(31 downto 0);
+signal tst_sata_raid_recoder_out   : std_logic_vector(31 downto 0);
+
 
 --MAIN
 begin
@@ -137,12 +140,12 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
 --  end if;
 --end process ltstout;
-p_out_tst(31 downto 0)<=(others=>'0');
+
+p_out_tst(0)<=tst_sata_raid_ctrl_out(0);
+p_out_tst(1)<=tst_sata_raid_recoder_out(0);
+p_out_tst(31 downto 2)<=(others=>'0');
 end generate gen_dbg_on;
 
-gen_sh_tst_out : for i in 0 to C_HDD_COUNT_MAX-1 generate
-p_out_sh_tst(i)<=(others=>'0');
-end generate gen_sh_tst_out;
 
 --//модуль управления
 m_ctrl : sata_raid_ctrl
@@ -203,7 +206,10 @@ p_in_sh_rxbuf_empty     => i_sh_rxbuf_empty,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => open,
+p_out_tst               => tst_sata_raid_ctrl_out,
+
+p_in_sh_tst             => p_in_sh_tst,
+p_out_sh_tst            => p_out_sh_tst,
 
 --------------------------------------------------
 --System
@@ -266,7 +272,7 @@ p_in_sh_rxbuf_status    => p_in_sh_rxbuf_status,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => open,
+p_out_tst               => tst_sata_raid_recoder_out,
 
 --------------------------------------------------
 --System
