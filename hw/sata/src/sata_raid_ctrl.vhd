@@ -108,6 +108,7 @@ cmddone : std_logic;
 err     : std_logic;
 end record;
 signal i_sh_det                    : TShDetect;
+signal sr_sh_cmddone               : std_logic_vector(0 to 1);
 
 signal i_cmdpkt                    : TUsrCmdPkt;
 signal i_cmdpkt_cnt                : std_logic_vector(3 downto 0);--//счетчик данных принимаемого командного пакета
@@ -125,11 +126,13 @@ type TUserMode is record
 sw       : std_logic;
 hw       : std_logic;
 hw_work  : std_logic;
+lbaend   : std_logic;
 stop     : std_logic;
 end record;
 signal i_usrmode                   : TUserMode;
 
 signal i_lba_cnt                   : std_logic_vector(i_cmdpkt.lba'range);
+signal i_lba_end                   : std_logic_vector(i_cmdpkt.lba'range);
 
 signal i_trn_dcount_byte           : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
 signal i_trn_dcount_dw             : std_logic_vector(i_trn_dcount_byte'range);
@@ -228,6 +231,8 @@ begin
     i_sh_det.cmddone<='0';
     i_sh_det.err<='0';
 
+    sr_sh_cmddone<=(others=>'0');
+
   elsif p_in_clk'event and p_in_clk='1' then
 
     sr_glob_busy<=i_usr_status.glob_busy & sr_glob_busy(0 to 0);
@@ -235,6 +240,9 @@ begin
 
     i_sh_det.cmddone<=not sr_glob_busy(0) and sr_glob_busy(1);
     i_sh_det.err<=sr_glob_err(0) and not sr_glob_err(1);
+
+
+    sr_sh_cmddone<=i_sh_det.cmddone & sr_sh_cmddone(0 to 0);
   end if;
 end process;
 
@@ -304,7 +312,8 @@ begin
 end process;
 
 --//Отправка командного пакета в модуль sata_host.vhd
-i_sh_cmd_start<=i_cmdpkt_get_done and not i_usrmode.hw_work;
+i_sh_cmd_start<=(i_cmdpkt_get_done and not i_usrmode.hw_work and not i_usrmode.lbaend) or
+                (sr_sh_cmddone(1) and i_usrmode.hw_work);
 
 process(p_in_rst,p_in_clk)
 begin
@@ -388,6 +397,7 @@ p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
 --//------------------------------------------
 i_usrmode.sw<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_SW_BIT);
 i_usrmode.hw<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_HW_BIT);
+i_usrmode.lbaend<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_LBAEND_BIT);
 i_usrmode.stop<=not(i_cmdpkt.ctrl(C_CMDPKT_USRMODE_SW_BIT) or i_cmdpkt.ctrl(C_CMDPKT_USRMODE_HW_BIT));
 
 process(p_in_rst,p_in_clk)
@@ -397,7 +407,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     --//Работа в HW режиме
-    if (i_usrmode.stop='1' and i_cmdpkt_get_done='1') or i_sh_det.err='1' then
+    if (i_usrmode.stop='1' and i_cmdpkt_get_done='1') or i_sh_det.err='1' or (i_lba_cnt>=i_lba_end and sr_sh_cmddone(0)='1') then
       i_usrmode.hw_work<='0';
     elsif i_usrmode.hw='1' and i_cmdpkt_get_done='1' then
       i_usrmode.hw_work<='1';
@@ -419,6 +429,22 @@ begin
 
     elsif i_sh_det.cmddone='1' then
       i_lba_cnt<=i_lba_cnt + EXT(i_cmdpkt.scount, i_lba_cnt'length);
+    end if;
+
+  end if;
+end process;
+
+--//Set LBA End
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_lba_end<=(others=>'0');
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_usrmode.lbaend='1' and i_cmdpkt_get_done='1' then
+      i_lba_end<=i_cmdpkt.lba;
+
     end if;
 
   end if;

@@ -146,7 +146,7 @@ end generate gen_ch0_only;
 
 gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
 
-i_buf_rst(i)<=not p_in_sh_status(i).SStatus(C_ASSTAT_DET_BIT_L+1);--//Link Establish
+i_buf_rst(i)<=not p_in_sh_status(i).SError(C_ASERR_DET_L_BIT+1);--//Link Establish
 
 --//----------------------------
 --//Согласующие буфера:

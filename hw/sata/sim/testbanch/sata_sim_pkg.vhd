@@ -1280,6 +1280,7 @@ while scount/=atacmd_scount loop
   --Reg: Status
   txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
   txd(0)(8*2+C_REG_ATA_STATUS_DRQ_BIT) :='1';--Status
+  txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
   --Reg: Error
   txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -1303,10 +1304,12 @@ while scount/=atacmd_scount loop
   --Reg: E_Status
   if scount=atacmd_scount-1 then
     txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';
+    txd(3)(8*3+C_REG_ATA_STATUS_DRDY_BIT):='1';
   else
     --//Для случая когда atacmd_scount>1
-    txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';--E_Status
     txd(3)(8*3+C_REG_ATA_STATUS_BUSY_BIT):='1';--E_Status
+    txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';--E_Status
+    txd(3)(8*3+C_REG_ATA_STATUS_DRDY_BIT):='1';
   end if;
 
   --Reg: Transfer Count
@@ -1441,6 +1444,7 @@ while scount/=atacmd_scount loop
   --Reg: Status
   txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
   txd(0)(8*2+C_REG_ATA_STATUS_DRQ_BIT) :='1';--Status
+  txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
   --Reg: Error
   txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -1464,10 +1468,12 @@ while scount/=atacmd_scount loop
   --Reg: E_Status
   if scount=atacmd_scount-1 then
     txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';
+    txd(3)(8*3+C_REG_ATA_STATUS_DRDY_BIT):='1';
   else
     --//Для случая когда atacmd_scount>1
-    txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';--E_Status
     txd(3)(8*3+C_REG_ATA_STATUS_BUSY_BIT):='1';--E_Status
+    txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';--E_Status
+    txd(3)(8*3+C_REG_ATA_STATUS_DRDY_BIT):='1';
   end if;
 
   --Reg: Transfer Count
@@ -1630,6 +1636,7 @@ txd(0)(C_FIS_INT_BIT+8):='1';
 
 --Reg: Status
 txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
+txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
 --Reg: Error
 txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -1791,6 +1798,7 @@ txd(0)(C_FIS_INT_BIT+8):='1';
 
 --Reg: Status
 txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
+txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
 --Reg: Error
 txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -2463,6 +2471,7 @@ txd(0)(C_FIS_INT_BIT+8):='1';
 
 --Reg: Status
 txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
+txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
 --Reg: Error
 txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -2646,6 +2655,7 @@ txd(0)(C_FIS_INT_BIT+8):='1';
 
 --Reg: Status
 txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
+txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
 --Reg: Error
 txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -2774,6 +2784,7 @@ while scount/=atacmd_scount loop
   --Reg: Status
   txd(0)(8*2+C_REG_ATA_STATUS_BUSY_BIT):='0';
   txd(0)(8*2+C_REG_ATA_STATUS_DRQ_BIT) :='1';--Status
+  txd(0)(8*2+C_REG_ATA_STATUS_DRDY_BIT):='1';
 
   --Reg: Error
   txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
@@ -2797,10 +2808,12 @@ while scount/=atacmd_scount loop
   --Reg: E_Status
   if scount=atacmd_scount-1 then
     txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';
+    txd(3)(8*3+C_REG_ATA_STATUS_DRDY_BIT):='1';
   else
     --//Для случая когда atacmd_scount>1
-    txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';--E_Status
     txd(3)(8*3+C_REG_ATA_STATUS_BUSY_BIT):='1';--E_Status
+    txd(3)(8*3+C_REG_ATA_STATUS_DRQ_BIT) :='0';--E_Status
+    txd(3)(8*3+C_REG_ATA_STATUS_DRDY_BIT):='1';
   end if;
 
   --Reg: Transfer Count

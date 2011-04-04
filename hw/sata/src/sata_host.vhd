@@ -286,7 +286,6 @@ p_out_usrfifo_clkout(1)<='0';
 
 p_out_status(1).ATAStatus<=(others=>'0');
 p_out_status(1).ATAError<=(others=>'0');
-p_out_status(1).SStatus<=(others=>'0');
 p_out_status(1).SError<=(others=>'0');
 p_out_status(1).Usr<=(others=>'0');
 

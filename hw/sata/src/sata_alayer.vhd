@@ -316,8 +316,6 @@ p_out_status.ATAError<=i_reg_shadow.error;
 
 --//SATA Status:
 --//Детектирование:
-p_out_status.SStatus<=i_sstatus;
-
 i_sstatus(C_ASSTAT_DET_BIT_L+0)<=p_in_pl_status(C_PSTAT_DET_DEV_ON_BIT);      --//0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
 i_sstatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--//0/1 - Соединение с устройством не установлено/установлено (можно работать)
 i_sstatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');

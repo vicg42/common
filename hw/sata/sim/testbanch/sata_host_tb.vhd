@@ -702,7 +702,7 @@ begin
 end process;
 
 i_satadev_ctrl(0).loopback<=i_loopback;
-i_satadev_ctrl(0).link_establish<='1' when i_al_status(0).SStatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASSTAT_DET_BIT_M-C_ASSTAT_DET_BIT_L+1) else '0';
+i_satadev_ctrl(0).link_establish<='1' when i_al_status(0).SError(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASERR_DET_M_BIT-C_ASERR_DET_L_BIT+1) else '0';
 i_satadev_ctrl(0).dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl(0).dbuf_ruse<='1';
 

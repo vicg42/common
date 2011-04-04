@@ -104,7 +104,7 @@ constant C_CMDPKT_USRHDD_NUM_L_BIT        : integer:=0;
 constant C_CMDPKT_USRHDD_NUM_M_BIT        : integer:=7;
 constant C_CMDPKT_USRMODE_SW_BIT          : integer:=8;
 constant C_CMDPKT_USRMODE_HW_BIT          : integer:=9;
-constant C_CMDPKT_USRMODE_TST_BIT         : integer:=10;
+constant C_CMDPKT_USRMODE_LBAEND_BIT      : integer:=10;
 constant C_CMDPKT_USRMODE_TSTW_BIT        : integer:=11;
 constant C_CMDPKT_USRCMD_L_BIT            : integer:=12;
 constant C_CMDPKT_USRCMD_M_BIT            : integer:=14;
@@ -507,7 +507,7 @@ end record;
 type TALStatus is record
 ATAStatus : std_logic_vector(7 downto 0);
 ATAError  : std_logic_vector(7 downto 0);
-SStatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
+--SStatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 SError    : std_logic_vector(C_ALSERR_LAST_BIT downto 0);
 Usr       : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 end record;
