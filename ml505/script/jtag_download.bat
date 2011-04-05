@@ -1,0 +1,1 @@
+C:\Xilinx\ISE_DS\ISE\bin\nt\impact -batch D:\Work\Linkos\veresk_m\ml505\script\jtag_download.cmd
