@@ -5,8 +5,8 @@
 -- Create Date : 25.11.2008 18:38
 -- Module Name : vscaler_main_tb
 --
--- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
---    РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚С‹
+-- Назначение/Описание :
+--    Проверка работы
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -40,19 +40,19 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 component vcoldemosaic_main
 generic(
-G_DOUT_WIDTH  : integer:=32;  --//Р’РѕР·РјРѕР¶РЅС‹Рµ Р·РЅР°С‡РµРЅРёСЏ 32, 8
+G_DOUT_WIDTH  : integer:=32;  --//Возможные значения 32, 8
 G_SIM : string:="OFF"
 );
 port
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_bypass            : in    std_logic;
 p_in_cfg_colorfst          : in    std_logic_vector(1 downto 0);
 p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);
 p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);
-p_in_cfg_init              : in    std_logic;                    --//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ. РЎР±СЂРѕСЃ СЃС‡РµС‚С‡РёРєР° Р°РґСЂРµСЃР° BRAM
+p_in_cfg_init              : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
 
 --//--------------------------
 --//Upstream Port
@@ -69,7 +69,7 @@ p_out_dwnp_wd              : out   std_logic;
 p_in_dwnp_rdy_n            : in    std_logic;
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_out_tst                  : out   std_logic_vector(31 downto 0);
 
@@ -164,7 +164,7 @@ G_SIM => "ON"
 port map
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_bypass            => p_in_cfg_bypass,
 p_in_cfg_colorfst          => p_in_cfg_colorfst,
@@ -187,7 +187,7 @@ p_out_dwnp_wd              => p_out_dwnp_wd,
 p_in_dwnp_rdy_n            => p_in_dwnp_rdy_n,
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_out_tst                  => open,
 
@@ -233,20 +233,20 @@ p_in_rst<='1','0' after 1 us;
 
 
 --//----------------------------------------------------------
---//РќР°СЃС‚СЂРѕР№РєР° С‚РµСЃС‚РёСЂРѕРІР°РЅРёСЏ
+--//Настройка тестирования
 --//----------------------------------------------------------
-p_in_cfg_bypass<='0';--//0/1 - СЂР°Р·СЂРµС€РµРЅРёРµ СЂР°Р±РѕС‚С‹ Р±Р»РѕРєР°/1 bypss
+p_in_cfg_bypass<='0';--//0/1 - разрешение работы блока/1 bypss
 p_in_cfg_colorfst<=CONV_STD_LOGIC_VECTOR(16#01#, p_in_cfg_colorfst'length); --//0/1/2 - R/G/B
 
---//РљРѕРЅС„РёРіСѓСЂРёСЂСѓРµРј РіРµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚СЂРѕРІС‹С… РґР°РЅРЅС‹С…:
-usr_cfg_pix_count<=CONV_STD_LOGIC_VECTOR(10#08#, p_in_cfg_pix_count'length); --РўРµСЃС‚РѕРІС‹Р№ РєР°РґСЂ: SIZE-X
-usr_cfg_row_count<=CONV_STD_LOGIC_VECTOR(10#08#, p_in_cfg_pix_count'length); --РўРµСЃС‚РѕРІС‹Р№ РєР°РґСЂ: SIZE-Y
-usr_cfg_fr_count <=CONV_STD_LOGIC_VECTOR(16#08#, usr_cfg_fr_count'length);   --РљРѕР»-РІРѕ С‚РµСЃС‚РѕРІС‹С… РєРѕРґСЂРѕРІ
+--//Конфигурируем генератор тестровых данных:
+usr_cfg_pix_count<=CONV_STD_LOGIC_VECTOR(10#08#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-X
+usr_cfg_row_count<=CONV_STD_LOGIC_VECTOR(10#08#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-Y
+usr_cfg_fr_count <=CONV_STD_LOGIC_VECTOR(16#08#, usr_cfg_fr_count'length);   --Кол-во тестовых кодров
 
-tst_mnl_row_pause<=CONV_STD_LOGIC_VECTOR(16#00#, tst_mnl_row_pause'length);  --//РџР°СѓР·Р° РјРµР¶РґСѓ СЃС‚СЂРѕРєР°РјРё
-tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_fr_pause'length);   --//РџР°СѓР·Р° РјРµР¶РґСѓ РєР°РґСЂР°РјРё
+tst_mnl_row_pause<=CONV_STD_LOGIC_VECTOR(16#00#, tst_mnl_row_pause'length);  --//Пауза между строками
+tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_fr_pause'length);   --//Пауза между кадрами
 
---// 1/0 Р“РµРЅРµСЂРёСЂРѕРІР°С‚СЊ/РќР• Р“РЅРµРЅРµСЂРёСЂРѕРІР°С‚СЊ waveform РґР»СЏ СЃРёРіРЅР°Р»Р° p_in_dwnp_rdy_n
+--// 1/0 Генерировать/НЕ Гненерировать waveform для сигнала p_in_dwnp_rdy_n
 mnl_use_gen_dwnp_rdy<='1';
 
 
@@ -258,14 +258,14 @@ mnl_use_gen_dwnp_rdy<='1';
 --//----------------------------------------------------------
 gen_w8 : if G_DOUT_WIDTH=8 generate
 begin
-p_in_cfg_pix_count<="00"&usr_cfg_pix_count(15 downto 2);   --//РљРѕР»-РІРѕ РїРёРєСЃРµР»РµР№
-p_in_cfg_row_count<=usr_cfg_row_count;   --//РљРѕР»-РІРѕ СЃС‚СЂРѕРє
+p_in_cfg_pix_count<="00"&usr_cfg_pix_count(15 downto 2);   --//Кол-во пикселей
+p_in_cfg_row_count<=usr_cfg_row_count;   --//Кол-во строк
 end generate gen_w8;
 
 gen_w32 : if G_DOUT_WIDTH=32 generate
 begin
-p_in_cfg_pix_count<=usr_cfg_pix_count;   --//РљРѕР»-РІРѕ РїРёРєСЃРµР»РµР№
-p_in_cfg_row_count<=usr_cfg_row_count;   --//РљРѕР»-РІРѕ СЃС‚СЂРѕРє
+p_in_cfg_pix_count<=usr_cfg_pix_count;   --//Кол-во пикселей
+p_in_cfg_row_count<=usr_cfg_row_count;   --//Кол-во строк
 end generate gen_w32;
 
 
@@ -274,7 +274,7 @@ mnl_write_testdata<='0','1' after 2.5 us;
 --p_in_dwnp_rdy_n<=i_dwnp_rdy_n when mnl_use_gen_dwnp_rdy='1' else '0';
 p_in_dwnp_rdy_n<=i_srambler_out(0)when mnl_use_gen_dwnp_rdy='1' else '0';
 
---//Р“РµРЅРµСЂР°С‚РѕСЂ СЃРёРіРЅР°Р»Р° p_in_dwnp_rdy_n
+--//Генератор сигнала p_in_dwnp_rdy_n
 process(p_in_rst,p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -286,10 +286,10 @@ begin
   end if;
 end process;
 
---//Р“РµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚РѕРІС‹С… РґР°РЅРЅС‹С…
+--//Генератор тестовых данных
 p_in_upp_wd<=not i_fifoin_full and i_upp_wd_en and not i_upp_wd_stop and not i_upp_frpause and not i_upp_rowpause;
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
 
@@ -376,14 +376,14 @@ begin
 end process;
 
 
---//Р’С‹РІРѕРґ СЂРµР·СѓР»СЊС‚Р°С‚Р° РІ РєРѕРЅСЃРѕР»СЊ ModelSim:
+--//Вывод результата в консоль ModelSim:
 gen0_w8 : if G_DOUT_WIDTH=8 generate
 begin
 
 i_printf_vec<=p_out_dwnp_data;
 
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
     tst_dwnp_pix<=(others=>'0');
@@ -394,21 +394,21 @@ begin
     if p_out_dwnp_wd='1' and p_in_dwnp_rdy_n='0' then
         if tst_dwnp_pix=(tst_dwnp_pix'range=>'0') then
           write(GUI_line, string'("Result: Frame("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_fr)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_fr)));--//Выдаем число в DEC
           write(GUI_line, string'(")"));
 
           write(GUI_line, string'("Line("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row)));--//Выдаем число в DEC
           write(GUI_line, string'(") "));
         end if;
 
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(7 downto 0))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(7 downto 0))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(15 downto 8))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(15 downto 8))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(23 downto 16))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(23 downto 16))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(31 downto 24))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(31 downto 24))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
         if tst_dwnp_pix=((p_in_cfg_pix_count(13 downto 0)&"00")-1) then
@@ -419,7 +419,7 @@ begin
           else
             tst_dwnp_row<=tst_dwnp_row+1;
           end if;
-          writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+          writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
         else
           tst_dwnp_pix<=tst_dwnp_pix+1;
         end if;
@@ -436,7 +436,7 @@ begin
 i_printf_vec<=p_out_dwnp_data;
 
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
     tst_dwnp_pix<=(others=>'0');
@@ -447,49 +447,49 @@ begin
     if p_out_dwnp_wd='1' and p_in_dwnp_rdy_n='0' then
         if tst_dwnp_pix=(tst_dwnp_pix'range=>'0') then
           write(GUI_line, string'("Result: Frame("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_fr)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_fr)));--//Выдаем число в DEC
           write(GUI_line, string'(")"));
 
           write(GUI_line, string'("Line("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row)));--//Выдаем число в DEC
           write(GUI_line, string'(") "));
 
         end if;
 
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(7 downto 0))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(7 downto 0))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(15 downto 8))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(15 downto 8))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(23 downto 16))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(23 downto 16))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(31 downto 24))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
-        write(GUI_line, string'(","));
-
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(39 downto 32))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
-        write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(47 downto 40))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
-        write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(55 downto 48))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
-        write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(63 downto 56))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(31 downto 24))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(71 downto 64))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(39 downto 32))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(79 downto 72))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(47 downto 40))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(87 downto 80))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(55 downto 48))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(95 downto 88))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(63 downto 56))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(103 downto 96))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(71 downto 64))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(111 downto 104))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(79 downto 72))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(119 downto 112))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(87 downto 80))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
-        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(127 downto 120))));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(95 downto 88))));--//Выдаем число в DEC
+        write(GUI_line, string'(","));
+
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(103 downto 96))));--//Выдаем число в DEC
+        write(GUI_line, string'(","));
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(111 downto 104))));--//Выдаем число в DEC
+        write(GUI_line, string'(","));
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(119 downto 112))));--//Выдаем число в DEC
+        write(GUI_line, string'(","));
+        write(GUI_line, itoa(CONV_INTEGER(i_printf_vec(127 downto 120))));--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
 --        if tst_dwnp_pix=((p_in_cfg_pix_count(13 downto 0)&"00")-1) then
@@ -501,7 +501,7 @@ begin
           else
             tst_dwnp_row<=tst_dwnp_row+1;
           end if;
-          writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+          writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
         else
           tst_dwnp_pix<=tst_dwnp_pix+1;
         end if;

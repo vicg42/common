@@ -5,33 +5,33 @@
 -- Create Date : 2010.07
 -- Module Name : vscaler_main
 --
--- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
---  РњРѕРґСѓР»СЊ РїСЂРёРЅРёРјР°РµС‚ РІС…РѕРґРЅРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ (Upstream Port),
---  РїСЂРѕРёР·РІРѕРґРёС‚ РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёРµ(РЈРїСЂР°РІР»РµРЅРёРµ/РљРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ) Рё
---  РІС‹РґР°РµС‚ РїСЂРµРѕР±СЂР°Р·РѕРІРЅРѕРµ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РІ РІС‹С…РѕРґРЅРѕР№ РїРѕСЂС‚ (Downstream Port)
+-- Назначение/Описание :
+--  Модуль принимает входное изображения (Upstream Port),
+--  производит масштабирование(Управление/Конфигурирование) и
+--  выдает преобразовное изображение в выходной порт (Downstream Port)
 --
---  Upstream Port(Р’С…. РґР°РЅРЅС‹Рµ)
---  Downstream Port(Р’С‹С…. РґР°РЅРЅС‹Рµ)
+--  Upstream Port(Вх. данные)
+--  Downstream Port(Вых. данные)
 --
---  РљСЂР°РµРІС‹Рµ СЌС„РµРєС‚С‹ С‚РѕР»СЊРєРѕ РІ СЃР»СѓС‡Р°Рµ СѓРІРµР»РёС‡РµРЅРёСЏ СЃРѕ СЃРіР»Р°Р¶РёРІР°РЅРёРµРј:
---                 x2 - РїРµСЂРІС‹Р№ Рё РїРѕСЃР»РµРґРЅРёР№ РїРёРєСЃРµР»СЏ РІ СЃС‚СЂРѕРєРµ + РїРµСЂРІР°СЏ Рё РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєРё РєР°РґСЂР°
---                 x2 - РїРµСЂРІС‹С… 2-Р° Рё РїРѕСЃР»РµРґРЅРёС… 2-Р° РїРёРєСЃРµР»СЏ РІ СЃС‚СЂРѕРєРµ + РїРµСЂРІС‹Рµ 2-Рµ Рё РїРѕСЃР»РµРґРЅРёРµ 2-Рµ СЃС‚СЂРѕРєРё РєР°РґСЂР°
+--  Краевые эфекты только в случае увеличения со сглаживанием:
+--                 x2 - первый и последний пикселя в строке + первая и последняя строки кадра
+--                 x2 - первых 2-а и последних 2-а пикселя в строке + первые 2-е и последние 2-е строки кадра
 --
---  РќР°С‚СЂРѕР№РєР° СЂР°Р±РѕС‚С‹ РјРѕРґСѓР»СЏ:
---  1. Р’С‹Р±СЂР°С‚СЊ СЂРµР¶РёРј СЂР°Р±РѕС‚С‹ РјРѕРґСѓР»СЏ. РџРѕСЂС‚ p_in_cfg_color
---  2. РќР°Р·РЅР°С‡РёС‚СЊ СЂР°Р·РјРµСЂ РІС…РѕРґРЅРѕРіРѕ РєР°РґСЂР° РїРѕСЂС‚С‹ p_in_cfg_pix_count/p_in_cfg_row_count
---  3. Р’С‹Р±РѕСЂ С‚РёРїР° СЃРіР»Р°Р¶РёРІР°РЅРёСЏ (Р‘РёР»РёРЅРµР№РЅР°СЏ РёРЅС‚РµСЂРїРѕР»СЏС†РёСЏ/ Р”СѓР±Р»РёСЂРѕРІР°РЅРёРµ РїРёРєСЃРµР»)
---     РїРѕСЂС‚ p_in_cfg_zoom_type
---  4. Р’С‹Р±РѕСЂ РњР°СЃС€С‚Р°Р±Р° РїРѕСЂС‚ p_in_cfg_zoom - UP: x2,x4; DOWN: x2,x4 РёР»Рё Bypass: 1:1
+--  Натройка работы модуля:
+--  1. Выбрать режим работы модуля. Порт p_in_cfg_color
+--  2. Назначить размер входного кадра порты p_in_cfg_pix_count/p_in_cfg_row_count
+--  3. Выбор типа сглаживания (Билинейная интерполяция/ Дублирование пиксел)
+--     порт p_in_cfg_zoom_type
+--  4. Выбор Масштаба порт p_in_cfg_zoom - UP: x2,x4; DOWN: x2,x4 или Bypass: 1:1
 --
---  Р¤РѕСЂРјР°С‚ РІС…РѕРґРЅС‹С…/РІС‹С…РѕРґРЅС‹С… РґР°РЅРЅС‹С…:
+--  Формат входных/выходных данных:
 --  Frame - Gray                              Frame - Color
 --    p_in_upp_data(7...0) ----- Pix(N)         p_in_upp_data(7...0) ----- R
 --    p_in_upp_data(15...8) ---- Pix(N+1)       p_in_upp_data(15...8) ---- G
 --    p_in_upp_data(23...16) --- Pix(N+2)       p_in_upp_data(23...16) --- B
 --    p_in_upp_data(31...24) --- Pix(N+3)       p_in_upp_data(31...24) --- 0xFF
 --
---  РРЅС‚РµСЂРїРѕР»СЏС†РёСЏ:
+--  Интерполяция:
 --  ZoomUp x2:          ZoomUp x4:
 --  01 02 01            01 02 03 04 03 02 01
 --  02 04 02  x  1/4    02 04 06 08 06 04 02
@@ -41,23 +41,23 @@
 --                      02 04 06 08 06 04 02
 --                      01 02 03 04 03 02 01
 --
--- Р’РђР–РќРћ!!!: Р—РЅР°С‡Р°С‡РµРЅРёСЏ РїРѕРґРѕРІР°РµРјС‹Рµ РЅР° p_in_cfg_pix_count
---           РѕР±СЂР°Р±Р°С‚С‹РІР°РµРјС‹Р№ РєР°РґСЂ (Gray), p_in_cfg_pix_count = (РљРѕР»-РІРѕ РїРёРєСЃРµР» РІ СЃС‚СЂРѕРєРµ РІС…РѕРґРЅРѕРіРѕ РєР°РґСЂР°) /4
---           РѕР±СЂР°Р±Р°С‚С‹РІР°РµРјС‹Р№ РєР°РґСЂ (Color), p_in_cfg_pix_count = (РљРѕР»-РІРѕ РїРёРєСЃРµР» РІ СЃС‚СЂРѕРєРµ РІС…РѕРґРЅРѕРіРѕ РєР°РґСЂР°)
+-- ВАЖНО!!!: Значачения подоваемые на p_in_cfg_pix_count
+--           обрабатываемый кадр (Gray), p_in_cfg_pix_count = (Кол-во пиксел в строке входного кадра) /4
+--           обрабатываемый кадр (Color), p_in_cfg_pix_count = (Кол-во пиксел в строке входного кадра)
 --
 -- Revision:
--- Revision 0.01 - File Created (Р РµР°Р»РёР·Р°С†РёСЏ РРЅС‚РµСЂРїРѕР»СЏС†РёРё Р¶РµР»Р°РµС‚ Р»СѓС‡С€РµРіРѕ!!!!)
+-- Revision 0.01 - File Created (Реализация Интерполяции желает лучшего!!!!)
 -- Revision 2.00 - add 30.11.10
---                 РџСЂРµРґРµР»Р°Р» РїСЂРѕРµРєС‚. Р—Р° РѕСЃРЅРѕРІСѓ РІР·СЏС‚Р° rev 0.01, РЅРѕ РґРѕСЂР°Р±РѕС‚Р°РЅР° СЃ
---                 СѓС‡РµС‚РѕРј РїСЂРёРјРµСЂР° РѕС‚ Xilix s3esk_video_line_stores.pdf (СЃРј. РєР°РєР°Р»РѕРі ..\Scaler\doc)
---                 Р”РѕР±Р°РІРёР» СЂР°Р±РѕС‚Сѓ СЃ С†РІРµС‚РѕРј.
+--                 Пределал проект. За основу взята rev 0.01, но доработана с
+--                 учетом примера от Xilix s3esk_video_line_stores.pdf (см. какалог ..\Scaler\doc)
+--                 Добавил работу с цветом.
 -- Revision 3.00 - add 04.02.2011 13:02:27
---                 РџРµСЂРµРґРµР»Р°РЅР° РІС‹РґР°С‡Р° РєСЂР°РµРІС‹С… СЌС„РµРєС‚РѕРІ. РўРµРїРµСЂСЊ:
---                 x2 - РїРµСЂРІС‹Р№ Рё РїРѕСЃР»РµРґРЅРёР№ РїРёРєСЃРµР»СЏ РІ СЃС‚СЂРѕРєРµ + РїРµСЂРІС‹СЏ Рё РїРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєРё РєР°РґСЂР°
---                 x2 - РїРµСЂРІС‹С… 2-Р° Рё РїРѕСЃР»РµРґРЅРёС… 2-Р° РїРёРєСЃРµР»СЏ РІ СЃС‚СЂРѕРєРµ + РїРµСЂРІС‹Рµ 2-Рµ Рё РїРѕСЃР»РµРґРЅРёРµ 2-Рµ СЃС‚СЂРѕРєРё РєР°РґСЂР°
---                 Р° СЂР°РЅСЊС€Рµ Р±С‹Р»Рѕ:
---                 x2 - РїРµСЂРІС‹С… 2-Р° РїРёРєСЃРµР»СЏ РІ СЃС‚СЂРѕРєРµ + 2-Рµ РїРµСЂРІС‹Рµ СЃС‚СЂРѕРєРё
---                 x4 - РїРµСЂРІС‹С… 4-Рµ РїРёРєСЃРµР»СЏ РІ СЃС‚СЂРѕРєРµ + 4-Рµ РїРµСЂРІС‹Рµ СЃС‚СЂРѕРєРё
+--                 Переделана выдача краевых эфектов. Теперь:
+--                 x2 - первый и последний пикселя в строке + первыя и последняя строки кадра
+--                 x2 - первых 2-а и последних 2-а пикселя в строке + первые 2-е и последние 2-е строки кадра
+--                 а раньше было:
+--                 x2 - первых 2-а пикселя в строке + 2-е первые строки
+--                 x4 - первых 4-е пикселя в строке + 4-е первые строки
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -74,54 +74,54 @@ use work.vicg_common_pkg.all;
 
 entity vscaler_main is
 generic(
-G_USE_COLOR : string:="OFF"  --//Р•СЃР»Рё "OFF", С‚Рѕ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РїРѕСЂС‚Р° p_in_cfg_color Р—РђРџР Р•Р©Р•РќРћ!!!,С‚.Рµ
-                             --//РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ p_in_cfg_color='0'
-                             --//РљСЂРѕРјРµ С‚РѕРіРѕ Р РµР¶РёРј "ON" РёСЃРїРѕР»СЊР·СѓС‚ Р±РѕР»СЊС€Рµ СЂРµСЃСѓСЂСЃРѕРІ FPGA С‡РµРј СЂРµР¶РёРј "OFF"
+G_USE_COLOR : string:="OFF"  --//Если "OFF", то использование порта p_in_cfg_color ЗАПРЕЩЕНО!!!,т.е
+                             --//должен быть p_in_cfg_color='0'
+                             --//Кроме того Режим "ON" использут больше ресурсов FPGA чем режим "OFF"
 );
 port
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
---//РљРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ
-p_in_cfg_color             : in    std_logic;                    --//1 - СЂР°Р±РѕС‚Р° СЃ С†РІРµС‚РЅС‹Рј РєР°РґСЂРѕРј.
-p_in_cfg_zoom_type         : in    std_logic;                    --//0/1 - РРЅС‚РєСЂРїРѕР»СЏС†РёСЏ/ РґСѓР±Р»РёСЂРѕРІР°РЅРёРµ
+--//Конфигурирование
+p_in_cfg_color             : in    std_logic;                    --//1 - работа с цветным кадром.
+p_in_cfg_zoom_type         : in    std_logic;                    --//0/1 - Инткрполяция/ дублирование
 p_in_cfg_zoom              : in    std_logic_vector(3 downto 0); --//(3 downto 2): 0/1/2 - bypass/ZoomDown/ZoomUp
                                                                  --//(1 downto 0): 1/2 - x2/x4
 p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);--//
 p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);--//
-p_in_cfg_init              : in    std_logic;                    --//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ. РЎР±СЂРѕСЃ СЃС‡РµС‚С‡РёРєР° Р°РґСЂРµСЃР° BRAM
+p_in_cfg_init              : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
 
---//РЎС‚Р°С‚СѓСЃ
-p_out_cfg_zoom_done        : out   std_logic;                    --//РњР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёРµ РІС‹РїРѕР»РЅРµРЅРѕ
+--//Статус
+p_out_cfg_zoom_done        : out   std_logic;                    --//Масштабирование выполнено
 
---//Р”РѕСЃС‚СѓРї Рє RAM РєРѕСЌС„РёС†РёРµРЅС‚РѕРІ
-p_in_cfg_acoe              : in    std_logic_vector(8 downto 0); --//РђРґСЂРµСЃ COERAM
-p_in_cfg_acoe_ld           : in    std_logic;                    --//РЈСЃС‚Р°РЅРѕРІРєР° Р°РґСЂРµСЃР°
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);--//Р”Р°РЅРЅС‹Рµ
+--//Доступ к RAM коэфициентов
+p_in_cfg_acoe              : in    std_logic_vector(8 downto 0); --//Адрес COERAM
+p_in_cfg_acoe_ld           : in    std_logic;                    --//Установка адреса
+p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);--//Данные
 p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;                    --//Р—Р°РїРёСЃСЊ РІ COERAM
-p_in_cfg_dcoe_rd           : in    std_logic;                    --//Р§С‚РµРЅРёРµ РёР· COERAM
+p_in_cfg_dcoe_wr           : in    std_logic;                    --//Запись в COERAM
+p_in_cfg_dcoe_rd           : in    std_logic;                    --//Чтение из COERAM
 p_in_cfg_coe_wrclk         : in    std_logic;
 
 --//--------------------------
---//Upstream Port (РЎРІСЏР·СЊ СЃ РёСЃС‚РѕС‡РЅРёРєРѕРј РґР°РЅРЅС‹С…)
+--//Upstream Port (Связь с источником данных)
 --//--------------------------
 --p_in_upp_clk               : in    std_logic;
 p_in_upp_data              : in    std_logic_vector(31 downto 0);
 p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;                    --//0/1 - РњРѕРґСѓР»СЊ РіРѕС‚РѕРІ РїСЂРёРЅРёРјР°С‚СЊ РІС…. РґР°РЅРЅС‹Рµ/ РќРµ РіРѕС‚РѕРІ Рє РїСЂРёРµРјСѓ РІС…. РґР°РЅРЅС‹С…
+p_out_upp_rdy_n            : out   std_logic;                    --//0/1 - Модуль готов принимать вх. данные/ Не готов к приему вх. данных
 
 --//--------------------------
---//Downstream Port (РЎРІСЏР·СЊ СЃ РїСЂРёРµРјРЅРёРєРѕРј РґР°РЅРЅС‹С…)
+--//Downstream Port (Связь с приемником данных)
 --//--------------------------
 --p_in_dwnp_clk              : in    std_logic;
 p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
 p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;                    --//0/1 - РџСЂРёРЅРёРјР°СЋС‰Р°СЏ СЃС‚РѕСЂРѕРЅР° РіРѕС‚РѕРІР° Рє РїСЂРёРµРјСѓ РґР°РЅРЅС‹С…/ РќР• РіРѕС‚РѕРІР°
+p_in_dwnp_rdy_n            : in    std_logic;                    --//0/1 - Принимающая сторона готова к приему данных/ НЕ готова
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
 p_out_tst                  : out   std_logic_vector(31 downto 0);
@@ -334,7 +334,7 @@ begin
 
 
 --//----------------------------------
---//РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёРµ СЃРёРіРЅР°Р»С‹
+--//Технологические сигналы
 --//----------------------------------
 process(p_in_rst,p_in_clk)
 begin
@@ -357,13 +357,13 @@ p_out_cfg_zoom_done<='0';--i_zoom_work_done_out;
 
 
 --//----------------------------------------------
---//РЎРІСЏР·СЊ СЃ Upstream Port
+--//Связь с Upstream Port
 --//----------------------------------------------
 p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out when i_cfg_bypass='0' else p_in_dwnp_rdy_n;
 
 
 --//-----------------------------
---//Р’С‹РІРѕРґ СЂРµР·СѓР»СЊС‚Р°С‚Р°
+--//Вывод результата
 --//-----------------------------
 --add 2010.11.10
 p_out_dwnp_data <=EXT(i_result_out, p_out_dwnp_data'length) when i_cfg_bypass='0' else p_in_upp_data;
@@ -372,7 +372,7 @@ p_out_dwnp_wd   <=i_result_en_out when i_cfg_bypass='0' else p_in_upp_wd;
 
 
 --//-----------------------------
---//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ
+--//Инициализация
 --//-----------------------------
 i_zoom_up_on  <=p_in_cfg_zoom(3);
 i_zoom_dwn_on <=p_in_cfg_zoom(2);
@@ -387,7 +387,7 @@ i_zoom_cnt_init<="11" when i_zoom_up_on='1' and i_zoom_size_x4='1' else
                  "01" when i_zoom_up_on='1' and i_zoom_size_x2='1' else
                  "00";
 
---//РЎС‡РµС‚С‡РёРє Р±Р°Р№С‚. РќРµРѕР±С…РѕРґРёРј РґР»СЏ РѕРїСЂРµРґРµРЅРµРЅРёСЏ Р±Р°Р№С‚Р° РІ РІС…РѕРґРЅРѕРј DW
+--//Счетчик байт. Необходим для опреденения байта в входном DW
 --i_byte_cnt_init<="11" when p_in_cfg_color='0' else (others=>'0');
 i_byte_cnt_init(0)<=not p_in_cfg_color;
 i_byte_cnt_init(1)<=not p_in_cfg_color;
@@ -396,9 +396,9 @@ i_byte_cnt_init(1)<=not p_in_cfg_color;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//RAM РЎС‚СЂРѕРє РІРёРґРµРѕ РёРЅС„РѕСЂРјР°С†РёРё
+--//RAM Строк видео информации
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Р—Р°РїРёСЃСЊ РґР°РЅРЅС‹С… РІ Р±СѓС„РµСЂР°(BRAM) СЃС‚СЂРѕРє
+--//Запись данных в буфера(BRAM) строк
 --tmp_lbuf_ena<=p_in_upp_wd;
 --//add 04.02.2011 13:02:27
 tmp_lbuf_ena<=(p_in_upp_wd and not i_add_row_en1) or (i_add_row_en1 and i_add_row_en2 and not OR_reduce(i_zoom_cnt_row) and not OR_reduce(i_zoom_cnt_pix) and not OR_reduce(i_byte_cnt));
@@ -408,11 +408,11 @@ i_lbuf_ena(0)<=tmp_lbuf_ena and not p_in_dwnp_rdy_n;
 i_lbuf_enb   <=tmp_lbuf_enb and not p_in_dwnp_rdy_n;
 
 
---//Р‘СѓС„РµСЂР° СЃС‚СЂРѕРє:
---//lineN : РўРµРєСѓС‰Р°СЏ СЃС‚СЂРѕРєР°
+--//Буфера строк:
+--//lineN : Текущая строка
 i_lbufs_douta(0)<=p_in_upp_data;
 
---//lineN-1 : РџСЂРµРґС‹РґСѓС‰Р°СЏ СЃС‚СЂРѕРєР°
+--//lineN-1 : Предыдущая строка
 m_buf0 : vscale_bram
 port map
 (
@@ -435,7 +435,7 @@ clkb => p_in_clk,
 rstb => p_in_rst
 );
 
---//lineN-2 : РџСЂРµРґС‹РґСѓС‰Р°СЏ СЃС‚СЂРѕРєР°
+--//lineN-2 : Предыдущая строка
 m_buf1 : vscale_bram
 port map
 (
@@ -458,7 +458,7 @@ clkb => p_in_clk,
 rstb => p_in_rst
 );
 
---//lineN-3 : РџСЂРµРґС‹РґСѓС‰Р°СЏ СЃС‚СЂРѕРєР°
+--//lineN-3 : Предыдущая строка
 m_buf2 : vscale_bram
 port map
 (
@@ -482,9 +482,9 @@ rstb => p_in_rst
 );
 
 --//------------------------------
---//RAM РљРѕСЌС„РёС†РёРµРЅС‚РѕРІ
+--//RAM Коэфициентов
 --//------------------------------
---//Р—Р°РїРёСЃСЊ РєРѕРµС„РёС†РёРµРЅС‚РѕРІ
+--//Запись коефициентов
 i_coebuf_wr(0)<=p_in_cfg_dcoe_wr;
 process(p_in_rst,p_in_cfg_coe_wrclk)
 begin
@@ -500,7 +500,7 @@ begin
   end if;
 end process;
 
---//Р§С‚РµРЅРёРµ РєРѕРµС„РёС†РёРµРЅС‚РѕРІ
+--//Чтение коефициентов
 i_coebuf_rd<=not p_in_dwnp_rdy_n and not p_in_cfg_dcoe_wr;
 
 i_coebuf_aread(4)<=i_zoom_up_on and i_zoom_size_x4;
@@ -527,9 +527,9 @@ clkb => p_in_clk,
 rstb => p_in_rst
 );
 
---//Р•СЃР»Рё СЂРµР¶РёРј ZoomUp СЃРѕ СЃРіР»Р°Р¶РёРІР°РЅРёРµРј, С‚Рѕ i_coebuf_dout<=tmp_coebuf_dout;
---//Р•СЃР»Рё СЂРµР¶РёРј ZoomDown СЃРѕ СЃРіР»Р°Р¶РёРІР°РЅРёРµРј, С‚Рѕ i_coebuf_dout<=CONV_STD_LOGIC_VECTOR(16#01010101#, 32);
---//Р•СЃР»Рё СЂРµР¶РёРј ZoomUp/Down СЃ РґСѓР±Р»РёСЂРѕРІР°РЅРёРµРј, С‚Рѕ i_coebuf_dout<=CONV_STD_LOGIC_VECTOR(16#00000001#, 32);
+--//Если режим ZoomUp со сглаживанием, то i_coebuf_dout<=tmp_coebuf_dout;
+--//Если режим ZoomDown со сглаживанием, то i_coebuf_dout<=CONV_STD_LOGIC_VECTOR(16#01010101#, 32);
+--//Если режим ZoomUp/Down с дублированием, то i_coebuf_dout<=CONV_STD_LOGIC_VECTOR(16#00000001#, 32);
 
 i_coebuf_dout(0) <=tmp_coebuf_dout(0) or ((p_in_cfg_zoom_type and i_zoom_up_on) or i_zoom_dwn_on);
 gen1_coe : for x in 1 to 7 generate
@@ -553,7 +553,7 @@ end generate gen4_coe;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//РЈРїСЂР°РІР»РµРЅРёРµ РїСЂРёРµРјРѕРј РґР°РЅРЅС‹С… СЃ Upstream Port
+--//Управление приемом данных с Upstream Port
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 process(p_in_rst,p_in_clk)
 begin
@@ -575,16 +575,16 @@ begin
       i_lbufs_adra<=(others=>'0');
 
     else
-        --//РћР±СЂР°Р±РѕС‚РєР° РєР°РґСЂР° Р’РљР›.
+        --//Обработка кадра ВКЛ.
         if p_in_dwnp_rdy_n='0' then
 
           --//----------------------------------------------
-          --//РћР±СЂР°Р±РѕС‚РєР° РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С…
+          --//Обработка входных данных
           --//----------------------------------------------
             if p_in_upp_wd='1' then
-              --//РџСЂРёРµРј РЅРѕРІРѕРіРѕ РІС…РѕРґРЅРѕРіРѕ DWORD
-              i_upp_rdy_n_out<='1';--//Р—Р°РїСЂРµС‰Р°РµРј Р·Р°РїРёСЃСЊ РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С… РІ Р±СѓС„РµСЂ СЃС‚СЂРѕРєРё РЅР°
-                                   --//РІСЂРµРјСЏ РѕР±СЂР°Р±РѕС‚РєРё
+              --//Прием нового входного DWORD
+              i_upp_rdy_n_out<='1';--//Запрещаем запись входных данных в буфер строки на
+                                   --//время обработки
 
               i_zoom_cnt_pix<=i_zoom_cnt_pix + i_zoom_up_on;
               i_byte_cnt<=i_byte_cnt + (not p_in_cfg_color and i_zoom_dwn_on);
@@ -592,7 +592,7 @@ begin
             else
               if i_upp_rdy_n_out='1' then
 
-                --//РћР±СЂР°Р±РѕС‚РєР° РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С…
+                --//Обработка входных данных
                 if i_add_row_en1='0' and i_add_row_en2='0' then--//add 04.02.2011 13:02:27
 
                     if i_zoom_cnt_pix=i_zoom_cnt_init then
@@ -618,8 +618,8 @@ begin
                             if i_row_cnt=p_in_cfg_row_count-1 then
                               --//add 04.02.2011 13:02:27
                               if i_zoom_up_on='1' and p_in_cfg_zoom_type='0' and i_add_row_en1='0' then
-                              --//РџРµСЂРµС…РѕРґ Рє РІС‹РІРѕРґСѓ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЃС‚СЂРѕРє.
-                              --//РўРѕР»СЊРєРѕ РґР»СЏ СЂРµР¶РёРјР° СѓРІРµР»РёС‡РµРЅРёСЏ СЃРѕ СЃРіР»Р°Р¶РёРІР°РЅРёРµРј!!!
+                              --//Переход к выводу дополнительных строк.
+                              --//Только для режима увеличения со сглаживанием!!!
                                 i_add_row_en1<='1';
                               else
                                 i_upp_rdy_n_out<='0';
@@ -650,7 +650,7 @@ begin
 
                         end if;
                       else
-                        i_byte_cnt<=i_byte_cnt + (not p_in_cfg_color);--//Р’РµРґРµРј РїРѕРґСЃС‡РµС‚ Р±Р°Р№С‚ РІС…РѕРґРЅРѕРіРѕ DWORD
+                        i_byte_cnt<=i_byte_cnt + (not p_in_cfg_color);--//Ведем подсчет байт входного DWORD
                       end if;
 
                     else
@@ -659,11 +659,11 @@ begin
 
                 --//add 04.02.2011 13:02:27
                 --//----------------------------------------------
-                --//Р’С‹РІРѕРґ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЃС‚СЂРѕРє (РєСЂР°РµРІС‹Рµ СЌС„РµСЂРєС‚С‹)
-                --//РўРѕР»СЊРєРѕ РґР»СЏ СЂРµР¶РёРјР° СѓРІРµР»РёС‡РµРЅРёСЏ СЃРѕ СЃРіР»Р°Р¶РёРІР°РЅРёРµРј!!!
+                --//Вывод дополнительных строк (краевые эферкты)
+                --//Только для режима увеличения со сглаживанием!!!
                 --//----------------------------------------------
                 elsif i_add_row_en1='1' and i_add_row_en2='0' then
-                --//Р“РѕС‚РѕРІРёРјСЃСЏ Рє РІС‹РІРѕРґСѓ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЃС‚СЂРѕРє
+                --//Готовимся к выводу дополнительных строк
                   i_add_row_en2<='1';
 
                 elsif i_add_row_en1='1' and i_add_row_en2='1' then
@@ -683,9 +683,9 @@ begin
                         if i_pix_cnt=p_in_cfg_pix_count-1 then
                           i_pix_cnt<=(others=>'0');
 
-                          --//Р—Р°РІРµСЂС€РµРЅРёРµ РІС‹РІРѕРґР° РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹С… СЃС‚СЂРѕРє!
+                          --//Завершение вывода дополнительных строк!
                           if i_zoom_up_on='1' and p_in_cfg_zoom_type='0' and ((i_zoom_size_x2='1' and i_zoom_cnt_row=CONV_STD_LOGIC_VECTOR(10#00#, i_zoom_cnt_row'length)) or (i_zoom_size_x4='1' and i_zoom_cnt_row=CONV_STD_LOGIC_VECTOR(10#01#, i_zoom_cnt_row'length)) ) then
-                          --//РІС‹РІРѕРґРёРј РѕРґРЅСѓ РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅСѓСЋ СЃС‚СЂРѕРєРё
+                          --//выводим одну дополнительную строки
                             i_zoom_cnt_row<=(others=>'0');
                             i_row_cnt<=(others=>'0');
                             i_add_row_en1<='0';
@@ -701,7 +701,7 @@ begin
 
                         end if;
                       else
-                        i_byte_cnt<=i_byte_cnt + (not p_in_cfg_color);--//Р’РµРґРµРј РїРѕРґСЃС‡РµС‚ Р±Р°Р№С‚ РІС…РѕРґРЅРѕРіРѕ DWORD
+                        i_byte_cnt<=i_byte_cnt + (not p_in_cfg_color);--//Ведем подсчет байт входного DWORD
                       end if;
 
                     else
@@ -722,10 +722,10 @@ end process;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Р›РёРЅРёРё Р·Р°РґРµСЂР¶РµРє
+--//Линии задержек
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --//add 04.02.2011 13:02:27
---//РЈРїСЂР°РІР»РµРЅРёРµ РІС‹РґР°С‡РµР№ РІС‹С…РѕРґРЅС‹С… РґР°РЅРЅС‹С…
+--//Управление выдачей выходных данных
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -779,14 +779,14 @@ sr_result_byte_fst_d<=sr_result_byte_fst_dly(0) when i_zoom_up_on='1' and i_zoom
 --//----------------
 
 
---//Р“РѕС‚РѕРІРёРј СЃРёРіРЅР°Р»С‹ РґР»СЏ Р»РёРЅРёРё Р·Р°РґРµСЂР¶РєРё:
---//РЎС‡РµС‚С‡РёРє Р±Р°Р№С‚ СЂРµР·СѓР»СЊС‚Р°С‚ (РЅРµРѕР±С…РѕРґРёРј РїСЂРё СЂР°Р±РѕС‚Рµ СЃ Gray Image)
+--//Готовим сигналы для линии задержки:
+--//Счетчик байт результат (необходим при работе с Gray Image)
 sr_result_byte_fst<=i_byte_cnt(0) & i_zoom_cnt_pix(0) when p_in_cfg_color='0' and i_zoom_up_on='1'  and i_zoom_size_x2='1' else
                     i_zoom_cnt_pix                    when p_in_cfg_color='0' and i_zoom_up_on='1'  and i_zoom_size_x4='1' else
                     i_pix_cnt(0) & i_byte_cnt(1)      when p_in_cfg_color='0' and i_zoom_dwn_on='1' and i_zoom_size_x2='1' else
                     i_pix_cnt(1) & i_pix_cnt(0);--       when p_in_cfg_color='0' and i_zoom_dwn_on='1' and i_zoom_size_x4='1' else
 
---//Р Р°Р·СЂРµС€РµРЅРёРµ РЎС‡РµС‚С‡РёРєР° Р±Р°Р№С‚ СЂРµР·СѓР»СЊС‚Р°С‚ (РЅРµРѕР±С…РѕРґРёРј РїСЂРё СЂР°Р±РѕС‚Рµ СЃ Gray Image)
+--//Разрешение Счетчика байт результат (необходим при работе с Gray Image)
 sr_result_byte_en_fst<=(not p_in_cfg_color and
                          (  i_zoom_up_on or
                            (i_zoom_dwn_on and i_zoom_size_x2 and i_row_cnt(0) and i_byte_cnt(0)) or
@@ -794,7 +794,7 @@ sr_result_byte_en_fst<=(not p_in_cfg_color and
                           )
                         );
 
---Р Р°Р·СЂРµС€РµРЅРёРµ РІС‹РґР°С‡Рё СЂРµР·СѓР»СЊС‚Р°С‚Р°
+--Разрешение выдачи результата
 sr_result_en_fst<=(not p_in_cfg_color and
                     (
                       (i_zoom_up_on  and sr_result_byte_fst(1) and sr_result_byte_fst(0)) or
@@ -810,7 +810,7 @@ sr_result_en_fst<=(not p_in_cfg_color and
                   );
 
 
---//Р»РёРЅРёРё Р·Р°РґРµСЂР¶РєРё
+--//линии задержки
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -826,14 +826,14 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dwnp_rdy_n='0' then
 
-        --//РљРѕР»-РІРѕ С‚Р°РєС‚РѕРІ Р·Р°РґРµСЂР¶РєРё = РєРѕР»-РІСѓ РѕРїРµСЂР°С†РёР№ РІС‹С‡РёСЃР»РµРЅРёР№:
-        --//Р’ РѕР±С‰РµРј СЃР»СѓС‡Р°Рµ РјРѕР¶РµС‚ РјРµРЅСЏС‚СЊСЃСЏ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ РєРѕР»-РІР° РѕРїРµСЂР°С†РёР№ РІС‹С‡РёСЃР»РµРЅРёР№
+        --//Кол-во тактов задержки = кол-ву операций вычислений:
+        --//В общем случае может меняться в зависимости от кол-ва операций вычислений
         sr_result_en<=sr_result_en_fst_d & sr_result_en(0 to 6);
 
         sr_result_byte_en<=sr_result_byte_en_fst_d & sr_result_byte_en(0 to 6);
         sr_result_byte<=sr_result_byte_fst_d & sr_result_byte(0 to 6);
 
-        --//Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ Рё РІС‹РґР°С‡Р° СЂРµР·СѓР»СЊС‚Р°С‚Р°
+        --//Формирование и выдача результата
   --        sr_result_en2(0)<=sr_result_en(6) & sr_result_en2(0 to 1);
         sr_result_en2(0)<=sr_result_en(6);
         sr_result_en2(1)<=sr_result_en2(0);
@@ -845,7 +845,7 @@ end process;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РјР°С‚СЂРёС†С‹ РІС‹С‡РёСЃР»РµРЅРёР№
+--//Формирование матрицы вычислений
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 sr_byteline_ld(0)<=tmp_lbuf_ena or (tmp_lbuf_enb and i_zoom_up_on);
 sr_byteline_en(0)<=not p_in_cfg_color and ((i_zoom_up_on and not OR_reduce(i_zoom_cnt_pix)) or (i_zoom_dwn_on and OR_reduce(i_byte_cnt)));
@@ -884,7 +884,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
   if p_in_dwnp_rdy_n='0' then
       if sr_byteline_ld(0)='1' then
-      --//Р—Р°РіСЂСѓР·РєР° РЅРѕРІРѕРіРѕ DW РґР»СЏ РјР°С‚СЂРёС†С‹ РІС‹С‡РёСЃР»РµРЅРёР№
+      --//Загрузка нового DW для матрицы вычислений
         for y in 0 to C_VSACL_CALC_LINE_COUNT-1 loop
           for i in 0 to C_VSACL_CALC_LINE_COUNT-1 loop
             sr_byteline(y)(i)<=i_lbufs_dout(y)(8*(i+1)-1 downto 8*i);
@@ -892,15 +892,15 @@ begin
         end loop;
       else
         if sr_byteline_en(0)='1' then
-          --//Р·Р°РєР°С‡РєР° Р±Р°Р№С‚ РІ РјР°С‚СЂРёС†Сѓ РІС‹С‡РёСЃР»РµРЅРёР№ (РЎРґРІРёРі Р±Р°Р№С‚ DW)
+          --//закачка байт в матрицу вычислений (Сдвиг байт DW)
           for y in 0 to 2 loop
             sr_byteline(y)<="00000000"&sr_byteline(y)(3 downto 1);
           end loop;
         end if;
       end if;
 
-      --//РЎРґРІРёРіРѕРІС‹Р№ СЂРµРіРёСЃС‚СЂ РЅР° 3-Рё С‚РѕС‡РєРё
-      --//РќРµРѕР±С…РѕРґРёРј РґР»СЏ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ РјР°С‚СЂРёС†С‹ РІС‹С‡РёСЃР»РµРЅРёР№
+      --//Сдвиговый регистр на 3-и точки
+      --//Необходим для формирования матрицы вычислений
       for y in 0 to C_VSACL_CALC_LINE_COUNT-1 loop
         if sr_byteline_ld(0)='1' or sr_byteline_en(0)='1' then
           sr_byteline_dly(y)<=sr_byteline_dlyfst(y) & sr_byteline_dly(y)(0 to 1);
@@ -913,17 +913,17 @@ end process;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Р’С‹С‡РёСЃР»РµРЅРёСЏ
+--//Вычисления
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_mcalc : for i in 0 to C_VSACL_MATRIX_COUNT-1 generate
 
---//РњР°С‚СЂРёС†Р° РІС‹С‡РёСЃР»РµРЅРёР№
+--//Матрица вычислений
 gen_matrix : for x in 0 to C_VSACL_CALC_LINE_COUNT-1 generate
 begin
---//РіРґРµ - i_matrix(i)(РРЅРґРµРєСЃ СЃС‚СЂРѕРєРё)(РРЅРґРµРєСЃ РџРёРєСЃРµР»СЏ)
---// i=0 - РѕР±СЂР°Р±РѕС‚РєР° R РєРѕРјРїРѕРЅРµРЅС‚Р° С†РІРµС‚РЅРѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РёР»Рё РґР»СЏ С‡РµСЂРЅРѕ/Р±РµР»РѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
---// i=1 - РѕР±СЂР°Р±РѕС‚РєР° G РєРѕРјРїРѕРЅРµРЅС‚Р° С†РІРµС‚РЅРѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
---// i=2 - РѕР±СЂР°Р±РѕС‚РєР° B РєРѕРјРїРѕРЅРµРЅС‚Р° С†РІРµС‚РЅРѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+--//где - i_matrix(i)(Индекс строки)(Индекс Пикселя)
+--// i=0 - обработка R компонента цветного изображения или для черно/белого изображения
+--// i=1 - обработка G компонента цветного изображения
+--// i=2 - обработка B компонента цветного изображения
 i_matrix(i)(x)(0)<=sr_byteline(x)(i);
 i_matrix(i)(x)(1)<=sr_byteline_dly(x)(0)(8*(i+1)-1 downto 8*i);
 i_matrix(i)(x)(2)<=sr_byteline_dly(x)(1)(8*(i+1)-1 downto 8*i);
@@ -931,11 +931,11 @@ i_matrix(i)(x)(3)<=sr_byteline_dly(x)(2)(8*(i+1)-1 downto 8*i);
 end generate gen_matrix;
 
 
---//Р’С‹С‡РёСЃР»РµРЅРёСЏ
+--//Вычисления
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    --//РЈРјРЅРѕР¶РµРЅРёРµ РЅР° РєРѕСЌС„.
+    --//Умножение на коэф.
     i_pix0_line0_mult(i)<=(others=>'0');
     i_pix1_line0_mult(i)<=(others=>'0');
     i_pix2_line0_dly(i)<=(others=>'0');
@@ -956,7 +956,7 @@ begin
     i_pix2_line3_dly(i)<=(others=>'0');
     i_pix3_line3_dly(i)<=(others=>'0');
 
-    --//РЎСѓРјРјРјС‹
+    --//Сумммы
     i_pix01_sum_line0(i)<=(others=>'0');
     i_pix01_sum_line1(i)<=(others=>'0');
     i_pix01_sum_line2(i)<=(others=>'0');
@@ -994,7 +994,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
   if p_in_dwnp_rdy_n='0' then
 
-    --//РЈРјРЅРѕР¶РµРЅРёРµ РЅР° РєРѕСЌС„.
+    --//Умножение на коэф.
     --//dly0
     i_pix0_line0_mult(i)<=i_matrix(i)(0)(0)(7 downto 0)*i_coebuf_dout(7 downto 0);
     i_pix1_line0_mult(i)<=i_matrix(i)(0)(1)(7 downto 0)*i_coebuf_dout(15 downto 8);
@@ -1018,7 +1018,7 @@ begin
 
     dbg_sr_pix(i)(0)<=i_matrix(i)(0)(0);
 
-    --//РЎСѓРјРјРјС‹
+    --//Сумммы
     --//dly1
     i_pix01_sum_line0(i)<=EXT(i_pix0_line0_mult(i), i_pix01_sum_line0(i)'length) + EXT(i_pix1_line0_mult(i), i_pix01_sum_line0(i)'length);--//mult + mult
     i_pix01_sum_line1(i)<=EXT(i_pix0_line1_mult(i), i_pix01_sum_line1(i)'length) + EXT(i_pix1_line1_mult(i), i_pix01_sum_line1(i)'length);--//mult + mult
@@ -1056,8 +1056,8 @@ begin
 
     dbg_sr_pix(i)(4)<=dbg_sr_pix(i)(3);
 
-    --//Р РµР·СѓР»СЊС‚Р°С‚:
-    --//1. Р’С‹Р±РѕСЂ СЂРµР·СѓР»СЊС‚РёСЂСѓСЋС‰РµР№ СЃСѓРјРјС‹
+    --//Результат:
+    --//1. Выбор результирующей суммы
     --//dly5
     if (p_in_cfg_zoom_type='0' and i_zoom_dwn_on='1' and i_zoom_size_x4='1') then
       i_mcalc_result_sum(i)<=EXT(i_pix0123_line0123_sum(i), i_mcalc_result_sum(i)'length);
@@ -1067,18 +1067,18 @@ begin
 
     dbg_sr_pix(i)(5)<=dbg_sr_pix(i)(4);
 
-    --//2. Р”РµР»РµРЅРёРµ
+    --//2. Деление
     --//dly6
     if   (i_zoom_up_on='1'  and i_zoom_size_x2='1' and p_in_cfg_zoom_type='0') or
          (i_zoom_dwn_on='1' and i_zoom_size_x2='1' and p_in_cfg_zoom_type='0') then
-      --//Р”РµР»РµРЅРёРµ РЅР° 4
-      --//(РІ СЃР»СѓС‡Р°Рµ СЂРµР¶РёРјР° СѓРјРµРЅСЊС€РµРЅРёСЏ - СЃСЂРµРґРЅРµРµ Р°СЂРёС„РјРµС‚РёС‡РµСЃРєРѕРµ)
+      --//Деление на 4
+      --//(в случае режима уменьшения - среднее арифметическое)
       i_mcalc_result(i)<="00"&i_mcalc_result_sum(i)(15 downto 2);
 
     elsif (i_zoom_up_on='1'  and i_zoom_size_x4='1' and p_in_cfg_zoom_type='0') or
           (i_zoom_dwn_on='1' and i_zoom_size_x4='1' and p_in_cfg_zoom_type='0') then
-      --//Р”РµР»РµРЅРёРµ РЅР° 16
-      --//(РІ СЃР»СѓС‡Р°Рµ СЂРµР¶РёРјР° СѓРјРµРЅСЊС€РµРЅРёСЏ - СЃСЂРµРґРЅРµРµ Р°СЂРёС„РјРµС‚РёС‡РµСЃРєРѕРµ)
+      --//Деление на 16
+      --//(в случае режима уменьшения - среднее арифметическое)
       i_mcalc_result(i)<="0000"&i_mcalc_result_sum(i)(15 downto 4);
 
     else
@@ -1098,7 +1098,7 @@ end generate gen_mcalc;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ СЂРµР·СѓР»СЊС‚Р°С‚Р°
+--//Формирование результата
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 process(p_in_rst,p_in_clk)
 begin

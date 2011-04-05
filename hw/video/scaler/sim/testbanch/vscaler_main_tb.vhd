@@ -5,8 +5,8 @@
 -- Create Date : 25.11.2008 18:38
 -- Module Name : vscaler_main_tb
 --
--- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
---    РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚С‹
+-- Назначение/Описание :
+--    Проверка работы
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -46,7 +46,7 @@ G_USE_COLOR : string:="OFF"  --//
 port
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_color             : in    std_logic;
 p_in_cfg_zoom_type         : in    std_logic;
@@ -80,7 +80,7 @@ p_out_dwnp_wd              : out   std_logic;
 p_in_dwnp_rdy_n            : in    std_logic;
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
 p_out_tst                  : out   std_logic_vector(31 downto 0);
@@ -216,7 +216,7 @@ G_USE_COLOR => G_USE_COLOR
 port map
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_color             => p_in_cfg_color,
 p_in_cfg_zoom_type         => p_in_cfg_zoom_type,
@@ -250,7 +250,7 @@ p_out_dwnp_wd              => p_out_dwnp_wd,
 p_in_dwnp_rdy_n            => p_in_dwnp_rdy_n,
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_in_tst_ctrl              => "00000000000000000000000000000000",
 p_out_tst                  => open,
@@ -304,37 +304,37 @@ p_in_cfg_coe_wrclk <=p_in_clk;
 
 
 --//----------------------------------------------------------
---//РќР°СЃС‚СЂРѕР№РєР° С‚РµСЃС‚РёСЂРѕРІР°РЅРёСЏ
+--//Настройка тестирования
 --//----------------------------------------------------------
 p_in_cfg_init<='0';
 
---//РљРѕРЅС„РёРіСѓСЂРёСЂСѓРµРј СЂР°Р±РѕС‚Сѓ РјРѕРґСѓР»СЏ vscaler_main.vhd:
-p_in_cfg_zoom_type<='0';--//0/1 - РРЅС‚РєСЂРїРѕР»СЏС†РёСЏ/1 РґСѓР»РёСЂРѕРІР°РЅРёРµ
---//Р Р°Р·РјРµСЂ - РЈРІРµР»РёС‡РµРЅРёРµ/РЈРјРµРЅСЊС€РµРЅРёРµ
+--//Конфигурируем работу модуля vscaler_main.vhd:
+p_in_cfg_zoom_type<='0';--//0/1 - Инткрполяция/1 дулирование
+--//Размер - Увеличение/Уменьшение
 i_zoom_size_x2<='1';
 i_zoom_size_x4<='0';
---//РЈРІРµР»РёС‡РµРЅРёРµ/РЈРјРµРЅСЊС€РµРЅРёРµ
+--//Увеличение/Уменьшение
 i_zoom_up_on  <='1';
 i_zoom_dwn_on <='0';
 
---//РљРѕРЅС„РёРіСѓСЂРёСЂСѓРµРј РіРµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚СЂРѕРІС‹С… РґР°РЅРЅС‹С…:
-usr_cfg_pix_count<=CONV_STD_LOGIC_VECTOR(10#24#, p_in_cfg_pix_count'length); --РўРµСЃС‚РѕРІС‹Р№ РєР°РґСЂ: SIZE-X
-usr_cfg_row_count<=CONV_STD_LOGIC_VECTOR(10#16#, p_in_cfg_pix_count'length); --РўРµСЃС‚РѕРІС‹Р№ РєР°РґСЂ: SIZE-Y
-usr_cfg_fr_count <=CONV_STD_LOGIC_VECTOR(16#01#, usr_cfg_fr_count'length);   --РљРѕР»-РІРѕ С‚РµСЃС‚РѕРІС‹С… РєРѕРґСЂРѕРІ
+--//Конфигурируем генератор тестровых данных:
+usr_cfg_pix_count<=CONV_STD_LOGIC_VECTOR(10#24#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-X
+usr_cfg_row_count<=CONV_STD_LOGIC_VECTOR(10#16#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-Y
+usr_cfg_fr_count <=CONV_STD_LOGIC_VECTOR(16#01#, usr_cfg_fr_count'length);   --Кол-во тестовых кодров
 
-tst_mnl_row_pause<=CONV_STD_LOGIC_VECTOR(16#00#, tst_mnl_row_pause'length);  --//РџР°СѓР·Р° РјРµР¶РґСѓ СЃС‚СЂРѕРєР°РјРё
-tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_fr_pause'length);   --//РџР°СѓР·Р° РјРµР¶РґСѓ РєР°РґСЂР°РјРё
+tst_mnl_row_pause<=CONV_STD_LOGIC_VECTOR(16#00#, tst_mnl_row_pause'length);  --//Пауза между строками
+tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_fr_pause'length);   --//Пауза между кадрами
 
---// 1/0 Р“РµРЅРµСЂРёСЂРѕРІР°С‚СЊ/РќР• Р“РЅРµРЅРµСЂРёСЂРѕРІР°С‚СЊ waveform РґР»СЏ СЃРёРіРЅР°Р»Р° p_in_dwnp_rdy_n
+--// 1/0 Генерировать/НЕ Гненерировать waveform для сигнала p_in_dwnp_rdy_n
 mnl_use_gen_dwnp_rdy<='0';
 
 
 
 
---//РљРѕР»-РІРѕ Р·Р°РіСЂСѓР¶Р°РµРјС‹С… РєРѕСЌС„РёС†РёРµРЅС‚РѕРІ РІ BRAM
+--//Кол-во загружаемых коэфициентов в BRAM
 tst_mnl_coe_count <=CONV_STD_LOGIC_VECTOR(10#222#, tst_mnl_coe_count'length); --//
 
---// 0/1 РСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РєРѕСЌС„. Р·Р°РїРёСЃР°РЅС‹Рµ РїРѕСѓРјРѕР»С‡Р°РЅРёСЋ РІ COERAM / РџРµСЂРµР·Р°РїРёСЃСЊ COERAM РєРѕСЌС„РёС†РёРµРЅС‚Р°РјРё РёР· TestBanch
+--// 0/1 Использовать коэф. записаные поумолчанию в COERAM / Перезапись COERAM коэфициентами из TestBanch
 mnl_write_coedata_ctrl<='0';
 
 
@@ -346,16 +346,16 @@ mnl_write_coedata_ctrl<='0';
 --//----------------------------------------------------------
 color_off : if strcmp(G_USE_COLOR,"OFF") generate
 begin
-p_in_cfg_color<='0';--//0/1 - РІС…РѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ Gray/Color
-p_in_cfg_pix_count<="00"&usr_cfg_pix_count(15 downto 2);   --//РљРѕР»-РІРѕ РїРёРєСЃРµР»РµР№
-p_in_cfg_row_count<=usr_cfg_row_count;   --//РљРѕР»-РІРѕ СЃС‚СЂРѕРє
+p_in_cfg_color<='0';--//0/1 - входные данные Gray/Color
+p_in_cfg_pix_count<="00"&usr_cfg_pix_count(15 downto 2);   --//Кол-во пикселей
+p_in_cfg_row_count<=usr_cfg_row_count;   --//Кол-во строк
 end generate color_off;
 
 color_on : if strcmp(G_USE_COLOR,"ON") generate
 begin
-p_in_cfg_color<='1';--//0/1 - РІС…РѕРґРЅС‹Рµ РґР°РЅРЅС‹Рµ Gray/Color
-p_in_cfg_pix_count<=usr_cfg_pix_count;   --//РљРѕР»-РІРѕ РїРёРєСЃРµР»РµР№
-p_in_cfg_row_count<=usr_cfg_row_count;   --//РљРѕР»-РІРѕ СЃС‚СЂРѕРє
+p_in_cfg_color<='1';--//0/1 - входные данные Gray/Color
+p_in_cfg_pix_count<=usr_cfg_pix_count;   --//Кол-во пикселей
+p_in_cfg_row_count<=usr_cfg_row_count;   --//Кол-во строк
 end generate color_on;
 
 
@@ -375,7 +375,7 @@ mnl_write_testdata<='0','1' after 2.5 us;
 --p_in_dwnp_rdy_n<=i_dwnp_rdy_n when mnl_use_gen_dwnp_rdy='1' else '0';
 p_in_dwnp_rdy_n<=i_srambler_out(0)when mnl_use_gen_dwnp_rdy='1' else '0';
 
---//Р“РµРЅРµСЂР°С‚РѕСЂ СЃРёРіРЅР°Р»Р° p_in_dwnp_rdy_n
+--//Генератор сигнала p_in_dwnp_rdy_n
 process(p_in_rst,p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -387,13 +387,13 @@ begin
   end if;
 end process;
 
---//Р“РµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚РѕРІС‹С… РґР°РЅРЅС‹С…
+--//Генератор тестовых данных
 adr_image_out(7 downto 0)<=tst_row_count(4 downto 0)&tst_pix_count(2 downto 0);
 tst_image_out<=IMAGE_TST00(CONV_INTEGER(adr_image_out));
 
 p_in_upp_wd<=not i_fifoin_full and i_upp_wd_en and not i_upp_wd_stop and not i_upp_frpause and not i_upp_rowpause;
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
 
@@ -482,7 +482,7 @@ end process;
 
 
 
---//Р’С‹РІРѕРґ СЂРµР·СѓР»СЊС‚Р°С‚Р° РІ РєРѕРЅСЃРѕР»СЊ ModelSim:
+--//Вывод результата в консоль ModelSim:
 tst_dwnp_pix_max<=((usr_cfg_pix_count(14 downto 0)&'0'))  when i_zoom_up_on='1'  and i_zoom_size_x2='1' else
 
                   ((usr_cfg_pix_count(13 downto 0)&"00")) when i_zoom_up_on='1'  and i_zoom_size_x4='1' else
@@ -504,7 +504,7 @@ tst_dwnp_row_max<=((usr_cfg_row_count(14 downto 0)&'0'))  when i_zoom_up_on='1' 
                   (others=>'0');
 
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
     tst_dwnp_pix<=(others=>'0');
@@ -516,34 +516,34 @@ begin
     if p_out_dwnp_wd='1' and p_in_dwnp_rdy_n='0' then
         if dsize_out='0' then
           write(GUI_line, string'("Result Size: Pix("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_pix_max)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_pix_max)));--//Выдаем число в DEC
           write(GUI_line, string'(") x Line("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row_max)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row_max)));--//Выдаем число в DEC
           write(GUI_line, string'(")"));
-          writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+          writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
           dsize_out<='1';
         end if;
 
         if tst_dwnp_pix=(tst_dwnp_pix'range=>'0') then
           write(GUI_line, string'("Result: Frame("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_fr)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_fr)));--//Выдаем число в DEC
           write(GUI_line, string'(")"));
 
           write(GUI_line, string'("Line("));
-          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row)));--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+          write(GUI_line, itoa(CONV_INTEGER(tst_dwnp_row)));--//Выдаем число в DEC
           write(GUI_line, string'(") "));
         end if;
 
-        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(7 downto 0))) );--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(7 downto 0))) );--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
-        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(15 downto 8))) );--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(15 downto 8))) );--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
-        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(23 downto 16))) );--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(23 downto 16))) );--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
-        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(31 downto 24))) );--//Р’С‹РґР°РµРј С‡РёСЃР»Рѕ РІ DEC
+        write(GUI_line, itoa(CONV_INTEGER(p_out_dwnp_data(31 downto 24))) );--//Выдаем число в DEC
         write(GUI_line, string'(","));
 
         if tst_dwnp_pix=(tst_dwnp_pix_max - EXT(tst_incr, tst_dwnp_pix'length)) then
@@ -554,7 +554,7 @@ begin
           else
             tst_dwnp_row<=tst_dwnp_row+1;
           end if;
-          writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+          writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
         else
           tst_dwnp_pix<=tst_dwnp_pix + EXT(tst_incr, tst_dwnp_pix'length);
         end if;

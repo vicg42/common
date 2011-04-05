@@ -5,8 +5,8 @@
 -- Create Date : 2010.07
 -- Module Name : vgamma_main
 --
--- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
---  Р—Р°РїРёСЃСЊ/Р§С‚РµРЅРёРµ СЂРµРіРёСЃС‚СЂРѕРІ СѓСЃС‚СЂРѕР№СЃС‚РІ
+-- Назначение/Описание :
+--  Запись/Чтение регистров устройств
 --
 --
 -- Revision:
@@ -30,7 +30,7 @@ entity vgamma_main is
 port
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_color             : in    std_logic;
 
@@ -60,7 +60,7 @@ p_out_dwnp_wd              : out   std_logic;
 p_in_dwnp_rdy_n            : in    std_logic;
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_out_tst                  : out   std_logic_vector(31 downto 0);
 
@@ -179,7 +179,7 @@ signal i_bufcolb_hout                    : std_logic_vector(15 downto 0);
 begin
 
 --//----------------------------------
---//РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёРµ СЃРёРіРЅР°Р»С‹
+--//Технологические сигналы
 --//----------------------------------
 --process(p_in_rst,p_in_clk)
 --begin
@@ -196,7 +196,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 
 
 --//-----------------------------
---//Р’С‹РІРѕРґ СЂРµР·СѓР»СЊС‚Р°С‚Р°
+--//Вывод результата
 --//-----------------------------
 p_out_dwnp_data <=i_gray_out when p_in_cfg_color='0' else i_color_out;
 p_out_dwnp_wd   <=i_dwnp_wd;
@@ -218,7 +218,7 @@ end process;
 --//------------------------------------------------------
 --//RAM
 --//------------------------------------------------------
---//Р—Р°РїРёСЃСЊ РґР°РЅРЅС‹С… РІ Р±СѓС„РµСЂР° СЃС‚СЂРѕРє
+--//Запись данных в буфера строк
 process(p_in_rst,p_in_cfg_coe_wrclk)
 begin
   if p_in_rst='1' then
@@ -249,7 +249,7 @@ begin
 m_ram : vgamma_bram_gray
 port map
 (
---//Р·Р°РїРёСЃСЊ
+--//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufgray_hout(16*(i+1)-1 downto 16*i),
@@ -258,7 +258,7 @@ wea  => i_bufgray_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//С‡С‚РЅРёРµ
+--//чтние
 addrb=> p_in_upp_data(8*(i+1)-1 downto 8*i),
 dinb => "00000000",
 doutb=> i_gray_out(8*(i+1)-1 downto 8*i),
@@ -272,7 +272,7 @@ end generate gen_gamma_gray;
 m_gamma_rcol : vgamma_bram_rcol
 port map
 (
---//Р·Р°РїРёСЃСЊ
+--//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufcolr_hout(15 downto 0),
@@ -281,7 +281,7 @@ wea  => i_bufcolr_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//С‡С‚РЅРёРµ
+--//чтние
 addrb=> p_in_upp_data(7 downto 0),
 dinb => "00000000",
 doutb=> i_color_out(7 downto 0),
@@ -294,7 +294,7 @@ rstb => p_in_rst
 m_gamma_gcol : vgamma_bram_gcol
 port map
 (
---//Р·Р°РїРёСЃСЊ
+--//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufcolg_hout(15 downto 0),
@@ -303,7 +303,7 @@ wea  => i_bufcolg_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//С‡С‚РЅРёРµ
+--//чтние
 addrb=> p_in_upp_data(15 downto 8),
 dinb => "00000000",
 doutb=> i_color_out(15 downto 8),
@@ -316,7 +316,7 @@ rstb => p_in_rst
 m_gamma_bcol : vgamma_bram_bcol
 port map
 (
---//Р·Р°РїРёСЃСЊ
+--//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufcolb_hout(15 downto 0),
@@ -325,7 +325,7 @@ wea  => i_bufcolb_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//С‡С‚РЅРёРµ
+--//чтние
 addrb=> p_in_upp_data(23 downto 16),
 dinb => "00000000",
 doutb=> i_color_out(23 downto 16),

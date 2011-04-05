@@ -5,8 +5,8 @@
 -- Create Date : 25.11.2008 18:38
 -- Module Name : vgamma_main_tb
 --
--- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
---    РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚С‹
+-- Назначение/Описание :
+--    Проверка работы
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -39,7 +39,7 @@ component vgamma_main
 port
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_color             : in    std_logic;
 
@@ -69,7 +69,7 @@ p_out_dwnp_wd              : out   std_logic;
 p_in_dwnp_rdy_n            : in    std_logic;
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_out_tst                  : out   std_logic_vector(7 downto 0);
 
@@ -143,7 +143,7 @@ m_vgamma: vgamma_main
 port map
 (
 -------------------------------
--- РЈРїСЂР°РІР»РµРЅРёРµ
+-- Управление
 -------------------------------
 p_in_cfg_color             => p_in_cfg_color,
 
@@ -171,7 +171,7 @@ p_out_dwnp_wd              => p_out_dwnp_wd,
 p_in_dwnp_rdy_n            => p_in_dwnp_rdy_n,
 
 -------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№
+--Технологический
 -------------------------------
 p_out_tst                  => open,
 
@@ -198,10 +198,10 @@ p_in_rst<='1','0' after 1 us;
 p_in_cfg_color<='0';--//0/1 - Gray/Color
 
 
---//РљРѕРЅС„РёРіСѓСЂРёСЂСѓРµРј РіРµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚СЂРѕРІС‹С… РґР°РЅРЅС‹С…:
-tst_mnl_pix_count  <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_pix_count'length);  --//РљРѕР»-РІРѕ РїРёРєСЃРµР»РµР№
-tst_mnl_row_count  <=CONV_STD_LOGIC_VECTOR(16#02#, tst_mnl_row_count'length);  --//РљРѕР»-РІРѕ СЃС‚СЂРѕРє
-tst_mnl_puase_count<=CONV_STD_LOGIC_VECTOR(16#0#, tst_mnl_puase_count'length); --//РџР°СѓР·Р° РјРµР¶РґСѓ СЃС‚СЂРѕРєР°РјРё
+--//Конфигурируем генератор тестровых данных:
+tst_mnl_pix_count  <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_pix_count'length);  --//Кол-во пикселей
+tst_mnl_row_count  <=CONV_STD_LOGIC_VECTOR(16#02#, tst_mnl_row_count'length);  --//Кол-во строк
+tst_mnl_puase_count<=CONV_STD_LOGIC_VECTOR(16#0#, tst_mnl_puase_count'length); --//Пауза между строками
 
 mnl_write_testdata<='0','1' after 2.5 us;
 
@@ -213,7 +213,7 @@ mnl_write_testdata<='0','1' after 2.5 us;
 --//03 - RAM COLOR BLUE
 p_in_cfg_coeram_num<=CONV_STD_LOGIC_VECTOR(10#00#, p_in_cfg_coeram_num'length);
 
---//Р—Р°РіСЂСѓР·РєР° BRAM РєРѕСЌС„РёС†РёРµРЅС‚Р°РјРё
+--//Загрузка BRAM коэфициентами
 tst_mnl_coe_count <=CONV_STD_LOGIC_VECTOR(10#128#, tst_mnl_coe_count'length); --//
 
 mnl_write_coedata <='0','1' after 1.5 us;
@@ -241,9 +241,9 @@ mnl_dwnp_rdy_n<='0',
                 '1' after 4.0 us, '0' after 4.0678 us;
 
 
---//Р“РµРЅРµСЂР°С‚РѕСЂ С‚РµСЃС‚РѕРІС‹С… РґР°РЅРЅС‹С…
+--//Генератор тестовых данных
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
     tst_stop<='0';
@@ -297,7 +297,7 @@ begin
 --          hwrite(GUI_line, tst_dwnp_count);
 --          write(GUI_line, string'(") : 0x"));
 --          hwrite(GUI_line, tst_data_out);
---          writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+--          writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
 
         end if;
       else
@@ -310,9 +310,9 @@ begin
 end process;
 
 
---//Р—Р°РїРёСЃСЊ РєРѕСЌС„РёС†РёРµРЅС‚РѕРІ РІ RAM РјРѕРґСѓР»СЏ
+--//Запись коэфициентов в RAM модуля
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
   variable var_trig : std_logic;
 begin
   if p_in_rst='1' then
@@ -341,7 +341,7 @@ begin
         hwrite(GUI_line, tst_coe_count);
         write(GUI_line, string'(") : 0x"));
         hwrite(GUI_line, p_in_cfg_dcoe);
-        writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+        writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
       end if;
 
     end if;
@@ -351,7 +351,7 @@ end process;
 
 
 process(p_in_rst,p_in_clk)
-  variable GUI_line : LINE;--РЎС‚СЂРѕРєР° РґР»_ РІС‹РІРѕРґР° РІ ModelSim
+  variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
   if p_in_rst='1' then
     tst_dwnp_count<=(others=>'0');
@@ -364,7 +364,7 @@ begin
         hwrite(GUI_line, tst_dwnp_count);
         write(GUI_line, string'(") : 0x"));
         hwrite(GUI_line, p_out_dwnp_data);
-        writeline(output, GUI_line);--Р’С‹РІРѕРґРёРј СЃС‚СЂРѕРєСѓ GUI_line РІ ModelSim
+        writeline(output, GUI_line);--Выводим строку GUI_line в ModelSim
 
     end if;
 
