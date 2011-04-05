@@ -3,9 +3,10 @@
 ##
 
 vcom "../../../../lib/vicg/vicg_common_pkg.vhd"
+vcom "../../../../lib/vicg/core_gen/sim_fifo_v00.vhd"
 
-vcom "../../core_gen/vcoldemosaic_fifo.vhd"
 vcom "../../core_gen/vcoldemosaic_bram.vhd"
+#vcom "../../vcoldemosaic_main_rev2xx.vhd"
 vcom "../../vcoldemosaic_main_rev3xx.vhd"
 
 vcom "../testbanch/vcoldemosaic_main_tb.vhd"

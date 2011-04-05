@@ -93,7 +93,7 @@ p_in_rst            : in    std_logic
 );
 end component;
 
-component vscale_fifo
+component sim_fifo_v00
 port (
 din        : IN  std_logic_VECTOR(31 downto 0);
 wr_en      : IN  std_logic;
@@ -262,7 +262,7 @@ p_in_clk            => p_in_clk,
 p_in_rst            => p_in_rst
 );
 
-m_fifo_in : vscale_fifo
+m_fifo_in : sim_fifo_v00
 port map
 (
 din         => tst_image_out,--tst_data_out,--
@@ -390,6 +390,7 @@ end process;
 --//Генератор тестовых данных
 adr_image_out(7 downto 0)<=tst_row_count(4 downto 0)&tst_pix_count(2 downto 0);
 tst_image_out<=IMAGE_TST00(CONV_INTEGER(adr_image_out));
+--tst_image_out<=(others=>'0');--IMAGE_TST00(CONV_INTEGER(adr_image_out));
 
 p_in_upp_wd<=not i_fifoin_full and i_upp_wd_en and not i_upp_wd_stop and not i_upp_frpause and not i_upp_rowpause;
 process(p_in_rst,p_in_clk)

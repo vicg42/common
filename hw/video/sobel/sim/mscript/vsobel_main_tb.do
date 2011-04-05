@@ -10,5 +10,5 @@ do vsobel_main_tb_wave.do
 view wave
 view structure
 view signals
-run 7us
+run 1000ns
 

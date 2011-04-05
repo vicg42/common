@@ -3,11 +3,12 @@
 ##
 
 vcom "../../../../lib/vicg/vicg_common_pkg.vhd"
+vcom "../../../../lib/vicg/core_gen/sim_fifo_v00.vhd"
 vcom "../../../../lib/vicg/test_im_pkg.vhd"
 
-vcom "../../core_gen/vsobel_fifo.vhd"
 vcom "../../core_gen/vsobel_bram.vhd"
 vcom "../../core_gen/vsobel_sub.vhd"
-vcom "../../vsobel_main.vhd"
+#vcom "../../vsobel_main_rev2xx.vhd"
+vcom "../../vsobel_main_rev3xx.vhd"
 
 vcom "../testbanch/vsobel_main_tb.vhd"

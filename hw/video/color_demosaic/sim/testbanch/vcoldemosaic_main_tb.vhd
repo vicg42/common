@@ -81,7 +81,7 @@ p_in_rst            : in    std_logic
 );
 end component;
 
-component vcoldemosaic_fifo
+component sim_fifo_v00
 port (
 din        : IN  std_logic_VECTOR(31 downto 0);
 wr_en      : IN  std_logic;
@@ -198,7 +198,7 @@ p_in_clk            => p_in_clk,
 p_in_rst            => p_in_rst
 );
 
-m_fifo_in : vcoldemosaic_fifo
+m_fifo_in : sim_fifo_v00
 port map
 (
 din         => tst_data_out,

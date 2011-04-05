@@ -10,5 +10,5 @@ do vscaler_main_tb_wave.do
 view wave
 view structure
 view signals
-run 6us
+run 1000ns
 
