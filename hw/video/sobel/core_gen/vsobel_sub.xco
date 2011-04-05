@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 12.3
-# Date: Mon Dec 06 08:06:52 2010
+# Xilinx Core Generator version 13.1
+# Date: Tue Apr 05 06:14:50 2011
 #
 ##############################################################
 #
@@ -32,7 +32,7 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT Adder_Subtracter family Xilinx,_Inc. 11.0
+SELECT Adder_Subtracter xilinx.com:ip:c_addsub:11.0
 # END Select
 # BEGIN Parameters
 CSET a_type=Signed
@@ -62,5 +62,8 @@ CSET sset=false
 CSET sync_ce_priority=Sync_Overrides_CE
 CSET sync_ctrl_priority=Reset_Overrides_Set
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2011-02-03T22:05:48.000Z
+# END Extra information
 GENERATE
-# CRC: 805c82f7
+# CRC: 567f64e8
