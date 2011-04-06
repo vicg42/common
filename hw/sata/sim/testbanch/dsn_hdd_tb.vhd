@@ -344,24 +344,36 @@ begin
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);--//LBA
   cfgCmdPkt(0).loopback:='1';
 
+  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
+  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='1';
+  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(1).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--;
-  cfgCmdPkt(1).scount:=8;
+  cfgCmdPkt(1).scount:=2;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(1).loopback:='1';
 
+  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
+  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='0';
+  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(2).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(2).scount:=3;
   cfgCmdPkt(2).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(2).loopback:='1';
 
+  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
+  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='0';
+  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(3).command:=C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
   cfgCmdPkt(3).scount:=3;
   cfgCmdPkt(3).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(3).loopback:='1';
 
+  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
+  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='0';
+  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
   cfgCmdPkt(4).command:=C_ATA_CMD_WRITE_DMA_EXT;
   cfgCmdPkt(4).scount:=1;
@@ -725,12 +737,17 @@ begin
 
               wait until p_in_clk'event and p_in_clk='1';
                   i_usr_rxd_rd<='1';
+                  --//если FIFO - FIRST WORD
+                  i_rxdata(dcnt)<=i_usr_rxd;
+                  dcnt:=dcnt + 1;
+
               wait until p_in_clk'event and p_in_clk='1';
                   i_usr_rxd_rd<='0';
 
-              wait until p_in_clk'event and p_in_clk='1';
-                  i_rxdata(dcnt)<=i_usr_rxd;
-                  dcnt:=dcnt + 1;
+--              --//если FIFO - STANDART
+--              wait until p_in_clk'event and p_in_clk='1';
+--                  i_rxdata(dcnt)<=i_usr_rxd;
+--                  dcnt:=dcnt + 1;
           else
               wait until p_in_clk'event and p_in_clk='1';
                   i_usr_rxd_rd<='0';

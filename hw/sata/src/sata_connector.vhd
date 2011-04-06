@@ -123,6 +123,8 @@ end generate gen_dbg_on;
 
 
 gen_ch0_only : if C_GTCH_COUNT_MAX=2 and G_SATAH_CH_COUNT=1 generate
+p_out_uap_rxd(C_GTCH_COUNT_MAX-1)<=(others=>'0');
+
 --//CMDFIFO
 p_out_sh_cxd(C_GTCH_COUNT_MAX-1)<=(others=>'0');
 p_out_sh_cxd_eof_n(C_GTCH_COUNT_MAX-1)<='0';

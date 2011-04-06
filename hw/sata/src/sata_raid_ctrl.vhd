@@ -475,7 +475,16 @@ p_out_usr_txd_rd<=i_sh_txd_wr;
 
 --//чтение из RxBUF sata_host
 p_out_usr_rxd<=p_in_sh_rxd;
-p_out_usr_rxd_wr<=i_sh_rxd_rd;
+--p_out_usr_rxd_wr<=i_sh_rxd_rd;--//sata_rxfifo - FIRST WORD
+
+--//sata_rxfifo - SATANDART FIFO (Добавляем задержку т.к.
+--//данные на выходе появляюся после отработки 1clk сигнала rd)
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    p_out_usr_rxd_wr<=i_sh_rxd_rd;
+  end if;
+end process;
 
 i_sh_rxd_rd<=i_sh_trn_en and not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty;
 
