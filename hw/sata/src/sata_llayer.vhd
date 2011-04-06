@@ -61,14 +61,14 @@ p_in_rxd_status         : in    TRxBufStatus;                 --//Структуры см. 
 --Связь с Phy Layer
 --------------------------------------------------
 p_in_phy_status         : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
-p_in_phy_sync           : in    std_logic;
+p_in_phy_sync           : in    std_logic;                  --//синхронизация от phy уровня
 
 p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
 p_in_phy_rxd            : in    std_logic_vector(31 downto 0);
 
-p_out_phy_txd           : out   std_logic_vector(31 downto 0);
-p_out_phy_txreq         : out   std_logic_vector(7 downto 0);
-p_in_phy_txrdy_n        : in    std_logic;
+p_out_phy_txd           : out   std_logic_vector(31 downto 0);--//Tx -  пользовательские данные(скремблированые)
+p_out_phy_txreq         : out   std_logic_vector(7 downto 0);--//запрос на передачу премитива/данных
+p_in_phy_txrdy_n        : in    std_logic;                   --//Статус передатчика 1/0 - идет передача примита ALIGN/готов к передаче
 
 --------------------------------------------------
 --Технологические сигналы
@@ -163,6 +163,11 @@ signal i_trn_term                  : std_logic;--//Закрываю транзакцию передачи 
                                                --//Для передоваемого FRAME подставляю CRC,EOF
 
 signal i_tmr                       : std_logic_vector(7 downto 0);--//timer
+
+signal sr_phy_txrdy_n              : std_logic_vector(0 to 0);
+signal i_txp_cnt_clr               : std_logic;
+signal i_txp_retransmit_en         : std_logic;
+signal i_txp_retransmit_dis        : std_logic;
 
 signal i_tl_check_done             : std_logic;--//Обнаружил сигнал завершения проверки Transport Layer
 signal i_tl_check_ok               : std_logic;--//Результат проверки принятых данных Transport Layer
@@ -402,6 +407,31 @@ p_in_rst      => p_in_rst
 --//Реализует управление согласно спецификации SATA
 --//(см. пп 9.6 Serial ATA Specification v2.5 (2005-10-27).pdf)
 --//#########################################
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+      if p_in_phy_sync='1' then
+        sr_phy_txrdy_n(0)<=p_in_phy_txrdy_n;
+      end if;
+  end if;
+end process;
+i_txp_cnt_clr<=p_in_phy_txrdy_n and not sr_phy_txrdy_n(0);
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_txp_retransmit_en<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_txp_retransmit_dis='1' then
+      i_txp_retransmit_en<='0';
+    elsif fsm_llayer_cs=S_L_IDLE then
+      if p_in_phy_txrdy_n='0' and sr_phy_txrdy_n(0)='1' then
+        i_txp_retransmit_en<='1';
+      end if;
+    end if;
+  end if;
+end process;
+
 lfsm:process(p_in_rst,p_in_clk)
 begin
 
@@ -416,7 +446,7 @@ if p_in_rst='1' then
   i_txreq<=(others=>'0');
   i_txp_cnt<=(others=>'0');
   i_txd_en<='0';
-
+  i_txp_retransmit_dis<='0';
   i_txr_ip<='0';
 
   i_rxp<=(others=>'0');
@@ -492,6 +522,16 @@ if p_in_phy_sync='1' then
                   else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                   end if;
+                else
+                  --//Реализую retransmit SYNC после отправки ALIGN
+                  if i_txp_retransmit_en='1' then
+                    if i_txp_cnt_clr='1' then
+                      i_txp_cnt<=(others=>'0');
+                    else
+                      i_txp_cnt<=i_txp_cnt+1;
+                    end if;
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+                  end if;
                 end if;
 
                 i_rxp(C_TX_RDY)<='1';
@@ -507,6 +547,7 @@ if p_in_phy_sync='1' then
                   end if;
                 end if;
 
+                i_txp_retransmit_dis<='1';
                 i_txp_cnt<=(others=>'0');
                 fsm_llayer_cs <= S_LT_H_SendChkRdy;
 
@@ -521,7 +562,19 @@ if p_in_phy_sync='1' then
                       i_txp_cnt<=i_txp_cnt+1;
                     end if;
                   else
+                    i_txp_retransmit_dis<='0';
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                  end if;
+                else
+                  --//Реализую retransmit SYNC после отправки ALIGN
+                  --//(см. пп 9.4.5.2 Serial ATA Specification v2.5 (2005-10-27).pdf)
+                  if i_txp_retransmit_en='1' then
+                    if i_txp_cnt_clr='1' then
+                      i_txp_cnt<=(others=>'0');
+                    else
+                      i_txp_cnt<=i_txp_cnt+1;
+                    end if;
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
                   end if;
                 end if;
 
@@ -1391,6 +1444,14 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
+              else
+                --//Реализую retransmit SYNC после отправки ALIGN
+                if i_txp_cnt_clr='1' then
+                  i_txp_cnt<=(others=>'0');
+                else
+                  i_txp_cnt<=i_txp_cnt+1;
+                end if;
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
               end if;
 
               i_rxp(C_TCONT)<='1';
@@ -1405,6 +1466,7 @@ if p_in_phy_sync='1' then
                 end if;
               end if;
 
+              i_txp_retransmit_dis<='1';
               i_rxp<=(others=>'0');
               i_txp_cnt<=(others=>'0');
               i_status(C_LSTAT_RxERR_IDLE)<='1';--//Информ. Транспорный уровень
@@ -1424,6 +1486,7 @@ if p_in_phy_sync='1' then
                         end if;
                       end if;
 
+                      i_txp_retransmit_dis<='1';
                       i_txp_cnt<=(others=>'0');
                       i_init_work<='1';--//Инициализация модулей CRC,Scrambler
                       fsm_llayer_cs <= S_LR_RcvChkRdy;
@@ -1444,6 +1507,14 @@ if p_in_phy_sync='1' then
 
                   end if;--//if p_in_rxd_status.empty='1' then
 
+              else
+                --//Реализую retransmit SYNC после отправки ALIGN
+                if i_txp_cnt_clr='1' then
+                  i_txp_cnt<=(others=>'0');
+                else
+                  i_txp_cnt<=i_txp_cnt+1;
+                end if;
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
               end if;--//if p_in_phy_txrdy_n='0' then
 
               if p_in_phy_rxtype(C_TX_RDY)='1' then
@@ -1464,6 +1535,14 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
+              else
+                --//Реализую retransmit SYNC после отправки ALIGN
+                if i_txp_cnt_clr='1' then
+                  i_txp_cnt<=(others=>'0');
+                else
+                  i_txp_cnt<=i_txp_cnt+1;
+                end if;
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
               end if;
 
           end if;
