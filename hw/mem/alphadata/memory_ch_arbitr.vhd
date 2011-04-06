@@ -12,8 +12,6 @@
 --
 -- Revision:
 -- Revision 0.01 - File Created
--- Revision 0.02 - add 11.02.2011 11:17:56
---                 добавил моделирование чтения данных из контролера memproy_ctrl.vhd
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -32,12 +30,11 @@ use work.memory_ctrl_pkg.all;
 
 entity memory_ch_arbitr is
 generic(
---G_CH0_USE     : string:="ON";
---G_CH1_USE     : string:="ON";
---G_CH2_USE     : string:="ON";
---G_CH3_USE     : string:="ON"
-G_CH_COUNT    : integer:=4;
-G_SIM         : string:="OFF"
+--G_CH0_USE            : string:="ON";
+--G_CH1_USE            : string:="ON";
+--G_CH2_USE            : string:="ON";
+--G_CH3_USE            : string:="ON"
+G_CH_COUNT           : integer:=4
 );
 port
 (
@@ -199,14 +196,6 @@ signal i_mem_rd_out                      : std_logic;
 signal i_mem_wr_out                      : std_logic;
 signal i_mem_term_out                    : std_logic;
 
-signal i_mem_dout                        : std_logic_vector(p_in_mem_dout'range);
-signal i_mem_wf                          : std_logic;
-signal i_mem_wpf                         : std_logic;
-signal i_mem_re                          : std_logic;
-signal i_mem_rpe                         : std_logic;
-
-signal sim_mem_read_cntdly               : std_logic_vector(3 downto 0);
-signal sim_mem_read_dly                  : std_logic;
 
 signal tst_mem_ce                        : std_logic;
 signal tst_mem_cw                        : std_logic;
@@ -281,30 +270,30 @@ p_out_ch1_en<=i_ch_req_en(1);
 p_out_ch2_en<=i_ch_req_en(2);
 p_out_ch3_en<=i_ch_req_en(3);
 
-p_out_ch0_wf  <=i_mem_wf;
-p_out_ch0_wpf <=i_mem_wpf;
-p_out_ch0_re  <=i_mem_re;
-p_out_ch0_rpe <=i_mem_rpe;
+p_out_ch0_wf  <=p_in_mem_wf;
+p_out_ch0_wpf <=p_in_mem_wpf;
+p_out_ch0_re  <=p_in_mem_re;
+p_out_ch0_rpe <=p_in_mem_rpe;
 
-p_out_ch1_wf  <=i_mem_wf;
-p_out_ch1_wpf <=i_mem_wpf;
-p_out_ch1_re  <=i_mem_re;
-p_out_ch1_rpe <=i_mem_rpe;
+p_out_ch1_wf  <=p_in_mem_wf;
+p_out_ch1_wpf <=p_in_mem_wpf;
+p_out_ch1_re  <=p_in_mem_re;
+p_out_ch1_rpe <=p_in_mem_rpe;
 
-p_out_ch2_wf  <=i_mem_wf;
-p_out_ch2_wpf <=i_mem_wpf;
-p_out_ch2_re  <=i_mem_re;
-p_out_ch2_rpe <=i_mem_rpe;
+p_out_ch2_wf  <=p_in_mem_wf;
+p_out_ch2_wpf <=p_in_mem_wpf;
+p_out_ch2_re  <=p_in_mem_re;
+p_out_ch2_rpe <=p_in_mem_rpe;
 
-p_out_ch3_wf  <=i_mem_wf;
-p_out_ch3_wpf <=i_mem_wpf;
-p_out_ch3_re  <=i_mem_re;
-p_out_ch3_rpe <=i_mem_rpe;
+p_out_ch3_wf  <=p_in_mem_wf;
+p_out_ch3_wpf <=p_in_mem_wpf;
+p_out_ch3_re  <=p_in_mem_re;
+p_out_ch3_rpe <=p_in_mem_rpe;
 
-p_out_ch0_dout <=i_mem_dout;
-p_out_ch1_dout <=i_mem_dout;
-p_out_ch2_dout <=i_mem_dout;
-p_out_ch3_dout <=i_mem_dout;
+p_out_ch0_dout <=p_in_mem_dout;
+p_out_ch1_dout <=p_in_mem_dout;
+p_out_ch2_dout <=p_in_mem_dout;
+p_out_ch3_dout <=p_in_mem_dout;
 
 
 
@@ -393,10 +382,10 @@ p_out_mem_bank1h(p_out_mem_bank1h'length-1 downto C_MEM_BANK_MSB_BIT+1)<=(others
 
 
 
-i_mem_ce_out   <= OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
-i_mem_rd_out   <= OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
-i_mem_wr_out   <= OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
-i_mem_term_out <= OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
+i_mem_ce_out    <= OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
+i_mem_rd_out    <= OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
+i_mem_wr_out    <= OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
+i_mem_term_out  <= OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
 
 
 
@@ -511,81 +500,6 @@ begin
     end case;
   end if;
 end process;
-
-
-
-
-
-
---//add 11.02.2011 11:17:56
-gen_sim_off : if strcmp(G_SIM,"OFF") generate
-begin
-  i_mem_dout<=p_in_mem_dout;
-  i_mem_wf <=p_in_mem_wf;
-  i_mem_wpf<=p_in_mem_wpf;
-  i_mem_re <=p_in_mem_re;
-  i_mem_rpe<=p_in_mem_rpe;
-
-end generate gen_sim_off;
-
---//Моделирование чтения данных из контролера memproy_ctrl.vhd
-gen_sim_on : if strcmp(G_SIM,"ON") generate
-begin
-
-i_mem_wf <='0';
-i_mem_wpf<='0';
-i_mem_rpe<='0';
-
-process(p_in_rst,p_in_clk)
-  variable var_sim_mem_read: std_logic;
-  variable var_sim_mem_dout: std_logic_vector(7 downto 0);
-begin
-  if p_in_rst='1' then
-    var_sim_mem_dout:=(others=>'0');
-
-    sim_mem_read_cntdly<=(others=>'0');
-    sim_mem_read_dly<='0';
-
-    i_mem_re <='1';
-    i_mem_dout<=(others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-    var_sim_mem_read:='0';
-
-    if i_mem_ce_out='1' and i_mem_cw_out='0' then
-      sim_mem_read_dly<='1';
-    else
-      if sim_mem_read_dly='1' then
-        if sim_mem_read_cntdly="1100" then
-          sim_mem_read_cntdly<=(others=>'0');
-          sim_mem_read_dly<='0';
-          var_sim_mem_read:='1';
-        else
-          sim_mem_read_cntdly<=sim_mem_read_cntdly+1;
-        end if;
-      end if;
-    end if;
-
-    if var_sim_mem_read='1' then
-      i_mem_re <='0';
-    elsif i_mem_term_out='1' then
-      i_mem_re <='1';
-    end if;
-
-    if i_mem_re='0' and i_mem_rd_out='1' then
-      var_sim_mem_dout:=var_sim_mem_dout+4;
-    end if;
-
-    i_mem_dout(7 downto 0)  <=var_sim_mem_dout;
-    i_mem_dout(15 downto 8) <=var_sim_mem_dout+1;
-    i_mem_dout(23 downto 16)<=var_sim_mem_dout+2;
-    i_mem_dout(31 downto 24)<=var_sim_mem_dout+3;
-
-  end if;
-end process;
-
-end generate gen_sim_on;
-
 
 --END MAIN
 end behavioral;

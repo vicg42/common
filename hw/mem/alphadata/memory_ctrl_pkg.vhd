@@ -79,27 +79,6 @@ type data_vector_t is array(natural range <>) of std_logic_vector(max_data_width
 type tag_vector_t is array(natural range <>) of std_logic_vector(tag_width - 1 downto 0);
 
 
---component memory_ctrl_dcm
---generic
---(
-----G_CLKIN_PERIOD   : float;
-----G_CLKDV_DIVIDE   : float;
---G_CLKFX_MULTIPLY : integer;
---G_CLKFX_DIVIDE   : integer
---);
---port(
---p_out_dcm_gclk0     : out   std_logic;
---p_out_dcm_gclk2x    : out   std_logic;
---p_out_dcm_gclkdv    : out   std_logic;
---p_out_dcm_gclkfx    : out   std_logic;
---
---p_out_dcmlock       : out   std_logic;
---
---p_in_clk            : in    std_logic;
---p_in_rst            : in    std_logic
---);
---end component;
-
 component memory_ctrl_pll
 port
 (
@@ -184,12 +163,11 @@ end component;
 
 component memory_ch_arbitr
 generic(
---G_CH0_USE     : string:="ON";
---G_CH1_USE     : string:="ON";
---G_CH2_USE     : string:="ON";
---G_CH3_USE     : string:="ON"
-G_CH_COUNT    : integer:=4;
-G_SIM         : string:="OFF"
+--G_CH0_USE            : string:="ON";
+--G_CH1_USE            : string:="ON";
+--G_CH2_USE            : string:="ON";
+--G_CH3_USE            : string:="ON"
+G_CH_COUNT           : integer:=4
 );
 port
 (
