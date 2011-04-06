@@ -631,7 +631,13 @@ signal i_mem_arb1_wpf                   : std_logic;
 signal i_mem_arb1_re                    : std_logic;
 signal i_mem_arb1_rpe                   : std_logic;
 signal i_mem_arb1_tst_out               : std_logic_vector(31 downto 0);
-
+signal i_mem_arb1_dout_tmp              : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_mem_arb1_wf_tmp                : std_logic;
+signal i_mem_arb1_wpf_tmp               : std_logic;
+signal i_mem_arb1_re_tmp                : std_logic;
+signal i_mem_arb1_rpe_tmp               : std_logic;
+signal i_mem_arb1_read_dly_cnt          : std_logic_vector(3 downto 0);
+signal i_mem_arb1_read_dly              : std_logic;
 
 --
 -- If the synthesizer replicates an asynchronous reset signal due high fanout,
@@ -2068,12 +2074,80 @@ end process;
 --***********************************************************
 --Модуль Контроллера памяти - memory_ctrl.vhd
 --***********************************************************
+LB_SIM_ON : if f_strcmp(G_SIM,"ON") generate
+begin
+
+  i_mem_arb1_wf <='0';
+  i_mem_arb1_wpf<='0';
+  i_mem_arb1_rpe<='0';
+
+  process(i_host_rst_n, g_usr_highclk)
+    variable var_mem_arb1_read: std_logic;
+    variable var_mem_arb1_dout_sim: std_logic_vector(7 downto 0);
+  begin
+    if i_host_rst_n='0' then
+      i_mem_arb1_read_dly_cnt<=(others=>'0');
+      i_mem_arb1_read_dly<='0';
+      i_mem_arb1_re <='1';
+      i_mem_arb1_dout<=(others=>'0');
+      var_mem_arb1_dout_sim:=(others=>'0');
+
+    elsif g_usr_highclk'event and g_usr_highclk='1' then
+      var_mem_arb1_read:='0';
+
+      if i_mem_arb1_ce='1' and i_mem_arb1_cw='0' then
+        i_mem_arb1_read_dly<='1';
+      else
+        if i_mem_arb1_read_dly='1' then
+          if i_mem_arb1_read_dly_cnt="1100" then
+            i_mem_arb1_read_dly_cnt<=(others=>'0');
+            i_mem_arb1_read_dly<='0';
+            var_mem_arb1_read:='1';
+          else
+            i_mem_arb1_read_dly_cnt<=i_mem_arb1_read_dly_cnt+1;
+          end if;
+        end if;
+      end if;
+
+      if var_mem_arb1_read='1' then
+        i_mem_arb1_re <='0';
+      elsif i_mem_arb1_term='1' then
+        i_mem_arb1_re <='1';
+      end if;
+
+      if i_vctrl_vrd_done='1' and i_mem_arb1_cw='0' then
+        i_mem_arb1_dout<=(others=>'0');
+        var_mem_arb1_dout_sim:=(others=>'0');
+
+      elsif i_mem_arb1_re='0' and i_mem_arb1_rd='1' then
+        var_mem_arb1_dout_sim:=var_mem_arb1_dout_sim+4;
+      end if;
+
+      i_mem_arb1_dout(7 downto 0)  <=var_mem_arb1_dout_sim;
+      i_mem_arb1_dout(15 downto 8) <=var_mem_arb1_dout_sim+1;
+      i_mem_arb1_dout(23 downto 16)<=var_mem_arb1_dout_sim+2;
+      i_mem_arb1_dout(31 downto 24)<=var_mem_arb1_dout_sim+3;
+
+    end if;
+  end process;
+
+end generate LB_SIM_ON;
+
+LB_SIM_OFF : if f_strcmp(G_SIM,"OFF") generate
+begin
+  i_mem_arb1_dout<=i_mem_arb1_dout_tmp;
+  i_mem_arb1_wf <=i_mem_arb1_wf_tmp;
+  i_mem_arb1_wpf<=i_mem_arb1_wpf_tmp;
+  i_mem_arb1_re <=i_mem_arb1_re_tmp;
+  i_mem_arb1_rpe<=i_mem_arb1_rpe_tmp;
+end generate LB_SIM_OFF;
+
+
 --//Арбитр канала 1 контроллера памяти
 m_mem_arb_ch1 : memory_ch_arbitr
 generic map(
 --G_CH_COUNT => selval(10#03#,10#02#, strcmp(C_USE_HDD,"ON")) --3
-G_CH_COUNT => selval2(10#04#,10#03#,10#03#,10#02#, strcmp(C_USE_HDD,"ON"),strcmp(C_USE_TRACK,"ON")),
-G_SIM => G_SIM
+G_CH_COUNT => selval2(10#04#,10#03#,10#03#,10#02#, strcmp(C_USE_HDD,"ON"),strcmp(C_USE_TRACK,"ON"))
 )
 port map
 (
@@ -2292,12 +2366,12 @@ usr0_wr        => i_mem_arb1_wr,
 usr0_adr       => i_mem_arb1_adr,
 usr0_be        => i_mem_arb1_be,
 usr0_din       => i_mem_arb1_din,
-usr0_dout      => i_mem_arb1_dout,
+usr0_dout      => i_mem_arb1_dout_tmp,
 --TX/RXBUF STATUS
-usr0_wf        => i_mem_arb1_wf,
-usr0_wpf       => i_mem_arb1_wpf,
-usr0_re        => i_mem_arb1_re,
-usr0_rpe       => i_mem_arb1_rpe,
+usr0_wf        => i_mem_arb1_wf_tmp,
+usr0_wpf       => i_mem_arb1_wpf_tmp,
+usr0_re        => i_mem_arb1_re_tmp,
+usr0_rpe       => i_mem_arb1_rpe_tmp,
 
 -----------------------------
 -- User channel 1
