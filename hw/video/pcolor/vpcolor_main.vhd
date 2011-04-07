@@ -28,16 +28,12 @@
 -- Revision 0.01 - File Created
 -- Revision 0.02 - add 10.02.2011 15:42:10
 --                 Поменял порядок цветовых каналов в выходных данных, потому что было неправильно
---                 Теперь:
---                    (7..0)  =B
---                    (15..8) =G
---                    (23..16)=R
---                    (31..24)=0xFF (прозрачность - альфа канал)
---                 а раньше было:
---                    (7..0)  =R
---                    (15..8) =G
---                    (23..16)=B
---                    (31..24)=0xFF (прозрачность - альфа канал)
+--                 Поменял порядок цветовых каналов в выходных данных, потому что было неправильно
+--                 Теперь:                                         а раньше было:
+--                    (7..0)  =B                                   (7..0)  =R
+--                    (15..8) =G                                   (15..8) =G
+--                    (23..16)=R                                   (23..16)=B
+--                    (31..24)=0xFF (прозрачность - альфа канал)   (31..24)=0xFF
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -48,47 +44,44 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
---library work;
---use work.vicg_common_pkg.all;
---use work.prj_def.all;
-
 entity vpcolor_main is
 port
 (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass            : in    std_logic;                    --//0/1 - Upstream Port -> Downstream Port Обрабатывать/Не обрабатывать
+p_in_cfg_bypass     : in    std_logic;                    --//0/1 - Upstream Port -> Downstream Port Обрабатывать/Не обрабатывать
 
-p_in_cfg_coeram_num        : in    std_logic_vector(1 downto 0);
-p_in_cfg_acoe              : in    std_logic_vector(6 downto 0);
-p_in_cfg_acoe_ld           : in    std_logic;
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;
-p_in_cfg_dcoe_rd           : in    std_logic;
-p_in_cfg_coe_wrclk         : in    std_logic;
+p_in_cfg_coeram_num : in    std_logic_vector(1 downto 0);
+p_in_cfg_acoe       : in    std_logic_vector(6 downto 0);
+p_in_cfg_acoe_ld    : in    std_logic;
+p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
+p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
+p_in_cfg_dcoe_wr    : in    std_logic;
+p_in_cfg_dcoe_rd    : in    std_logic;
+p_in_cfg_coe_wrclk  : in    std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;                    --//Запись данных в модуль vpcolor_main.vhd
-p_out_upp_rdy_n            : out   std_logic;                    --//0 - Модуль vpcolor_main.vhd готов к приему данных
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;                    --//Запись данных в модуль vpcolor_main.vhd
+p_out_upp_rdy_n     : out   std_logic;                    --//0 - Модуль vpcolor_main.vhd готов к приему данных
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;                    --//Запись данных в приемник
-p_in_dwnp_rdy_n            : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;                    --//Запись данных в приемник
+p_in_dwnp_rdy_n     : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -124,58 +117,58 @@ end component;
 
 component vpcolor_gbram
 port (
-addra: IN  std_logic_VECTOR(6 downto 0);
-dina : IN  std_logic_VECTOR(15 downto 0);
-douta: OUT std_logic_VECTOR(15 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(6 downto 0);
+dina : in  std_logic_vector(15 downto 0);
+douta: out std_logic_vector(15 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(7 downto 0);
-dinb : IN  std_logic_VECTOR(7 downto 0);
-doutb: OUT std_logic_VECTOR(7 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(7 downto 0);
+doutb: out std_logic_vector(7 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
 component vpcolor_bbram
 port (
-addra: IN  std_logic_VECTOR(6 downto 0);
-dina : IN  std_logic_VECTOR(15 downto 0);
-douta: OUT std_logic_VECTOR(15 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(6 downto 0);
+dina : in  std_logic_vector(15 downto 0);
+douta: out std_logic_vector(15 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(7 downto 0);
-dinb : IN  std_logic_VECTOR(7 downto 0);
-doutb: OUT std_logic_VECTOR(7 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(7 downto 0);
+doutb: out std_logic_vector(7 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
 component vpcolor_fifo
 port (
-din        : IN  std_logic_VECTOR(31 downto 0);
-wr_en      : IN  std_logic;
+din        : in  std_logic_vector(31 downto 0);
+wr_en      : in  std_logic;
 
-dout       : OUT std_logic_VECTOR(31 downto 0);
-rd_en      : IN  std_logic;
+dout       : out std_logic_vector(31 downto 0);
+rd_en      : in  std_logic;
 
-empty      : OUT std_logic;
-full       : OUT std_logic;
-almost_full: OUT std_logic;
+empty      : out std_logic;
+full       : out std_logic;
+almost_full: out std_logic;
 
-clk        : IN  std_logic;
-rst        : IN  std_logic
+clk        : in  std_logic;
+rst        : in  std_logic
 );
 end component;
 

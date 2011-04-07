@@ -6,8 +6,17 @@
 -- Module Name : vgamma_main
 --
 -- Назначение/Описание :
---  Запись/Чтение регистров устройств
+--  p_in_cfg_color='1' - Color Image:
+--  (7..0)  =B
+--  (15..8) =G
+--  (23..16)=R
+--  (31..24)=0xFF (прозрачность - альфа канал)
 --
+--  p_in_cfg_color='0' - Gray Image:
+--  (7..0)  =Gray(PixN)
+--  (15..8) =Gray(PixN+1)
+--  (23..16)=Gray(PixN+2)
+--  (31..24)=Gray(PixN+3)
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -22,47 +31,44 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
---library work;
---use work.vicg_common_pkg.all;
---use work.prj_def.all;
-
 entity vgamma_main is
 port
 (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_color             : in    std_logic;
+p_in_cfg_color      : in    std_logic;
 
-p_in_cfg_coeram_num        : in    std_logic_vector(1 downto 0);
-p_in_cfg_acoe              : in    std_logic_vector(6 downto 0);
-p_in_cfg_acoe_ld           : in    std_logic;
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;
-p_in_cfg_dcoe_rd           : in    std_logic;
-p_in_cfg_coe_wrclk         : in    std_logic;
+p_in_cfg_coeram_num : in    std_logic_vector(1 downto 0);
+p_in_cfg_acoe       : in    std_logic_vector(6 downto 0);
+p_in_cfg_acoe_ld    : in    std_logic;
+p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
+p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
+p_in_cfg_dcoe_wr    : in    std_logic;
+p_in_cfg_dcoe_rd    : in    std_logic;
+p_in_cfg_coe_wrclk  : in    std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -78,85 +84,83 @@ constant dly : time := 1 ps;
 
 component vgamma_bram_gray
 port (
-addra: IN  std_logic_VECTOR(6 downto 0);
-dina : IN  std_logic_VECTOR(15 downto 0);
-douta: OUT std_logic_VECTOR(15 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(6 downto 0);
+dina : in  std_logic_vector(15 downto 0);
+douta: out std_logic_vector(15 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(7 downto 0);
-dinb : IN  std_logic_VECTOR(7 downto 0);
-doutb: OUT std_logic_VECTOR(7 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(7 downto 0);
+doutb: out std_logic_vector(7 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
 component vgamma_bram_rcol
 port (
-addra: IN  std_logic_VECTOR(6 downto 0);
-dina : IN  std_logic_VECTOR(15 downto 0);
-douta: OUT std_logic_VECTOR(15 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(6 downto 0);
+dina : in  std_logic_vector(15 downto 0);
+douta: out std_logic_vector(15 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(7 downto 0);
-dinb : IN  std_logic_VECTOR(7 downto 0);
-doutb: OUT std_logic_VECTOR(7 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(7 downto 0);
+doutb: out std_logic_vector(7 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
 component vgamma_bram_gcol
 port (
-addra: IN  std_logic_VECTOR(6 downto 0);
-dina : IN  std_logic_VECTOR(15 downto 0);
-douta: OUT std_logic_VECTOR(15 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(6 downto 0);
+dina : in  std_logic_vector(15 downto 0);
+douta: out std_logic_vector(15 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(7 downto 0);
-dinb : IN  std_logic_VECTOR(7 downto 0);
-doutb: OUT std_logic_VECTOR(7 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(7 downto 0);
+doutb: out std_logic_vector(7 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
 component vgamma_bram_bcol
 port (
-addra: IN  std_logic_VECTOR(6 downto 0);
-dina : IN  std_logic_VECTOR(15 downto 0);
-douta: OUT std_logic_VECTOR(15 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(6 downto 0);
+dina : in  std_logic_vector(15 downto 0);
+douta: out std_logic_vector(15 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(7 downto 0);
-dinb : IN  std_logic_VECTOR(7 downto 0);
-doutb: OUT std_logic_VECTOR(7 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(7 downto 0);
+dinb : in  std_logic_vector(7 downto 0);
+doutb: out std_logic_vector(7 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
-
---signal i_clk                             : std_logic;
 
 signal i_dwnp_wd                         : std_logic;
 
@@ -208,9 +212,7 @@ begin
   if p_in_rst='1' then
     i_dwnp_wd<='0';
   elsif p_in_clk'event and p_in_clk='1' then
---  if i_dwnp_rdy_n='0' then
     i_dwnp_wd<=p_in_upp_wd;
---  end if;
   end if;
 end process;
 
@@ -249,7 +251,7 @@ begin
 m_ram : vgamma_bram_gray
 port map
 (
---//запись
+--//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufgray_hout(16*(i+1)-1 downto 16*i),
@@ -258,11 +260,11 @@ wea  => i_bufgray_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//чтние
+--//read
 addrb=> p_in_upp_data(8*(i+1)-1 downto 8*i),
 dinb => "00000000",
 doutb=> i_gray_out(8*(i+1)-1 downto 8*i),
-enb  => '1',
+enb  => p_in_upp_wd,
 web  => "0",
 clkb => p_in_clk,
 rstb => p_in_rst
@@ -272,7 +274,7 @@ end generate gen_gamma_gray;
 m_gamma_rcol : vgamma_bram_rcol
 port map
 (
---//запись
+--//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufcolr_hout(15 downto 0),
@@ -281,11 +283,11 @@ wea  => i_bufcolr_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//чтние
-addrb=> p_in_upp_data(7 downto 0),
+--//read
+addrb=> p_in_upp_data(23 downto 16),
 dinb => "00000000",
-doutb=> i_color_out(7 downto 0),
-enb  => '1',
+doutb=> i_color_out(23 downto 16),
+enb  => p_in_upp_wd,
 web  => "0",
 clkb => p_in_clk,
 rstb => p_in_rst
@@ -294,7 +296,7 @@ rstb => p_in_rst
 m_gamma_gcol : vgamma_bram_gcol
 port map
 (
---//запись
+--//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufcolg_hout(15 downto 0),
@@ -303,11 +305,11 @@ wea  => i_bufcolg_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//чтние
+--//read
 addrb=> p_in_upp_data(15 downto 8),
 dinb => "00000000",
 doutb=> i_color_out(15 downto 8),
-enb  => '1',
+enb  => p_in_upp_wd,
 web  => "0",
 clkb => p_in_clk,
 rstb => p_in_rst
@@ -316,7 +318,7 @@ rstb => p_in_rst
 m_gamma_bcol : vgamma_bram_bcol
 port map
 (
---//запись
+--//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
 douta=> i_bufcolb_hout(15 downto 0),
@@ -325,18 +327,18 @@ wea  => i_bufcolb_wr,
 clka => p_in_cfg_coe_wrclk,
 rsta => p_in_rst,
 
---//чтние
-addrb=> p_in_upp_data(23 downto 16),
+--//read
+addrb=> p_in_upp_data(7 downto 0),
 dinb => "00000000",
-doutb=> i_color_out(23 downto 16),
-enb  => '1',
+doutb=> i_color_out(7 downto 0),
+enb  => p_in_upp_wd,
 web  => "0",
 clkb => p_in_clk,
 rstb => p_in_rst
 );
 
 
-i_color_out(31 downto 24)<=(others=>'0');
+i_color_out(31 downto 24)<=(others=>'1');
 
 --END MAIN
 end behavioral;

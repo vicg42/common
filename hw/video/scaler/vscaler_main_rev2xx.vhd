@@ -79,47 +79,47 @@ port
 -- Управление
 -------------------------------
 --//Конфигурирование
-p_in_cfg_color             : in    std_logic;                    --//1 - работа с цветным кадром.
-p_in_cfg_zoom_type         : in    std_logic;                    --//0/1 - Инткрполяция/ дублирование
-p_in_cfg_zoom              : in    std_logic_vector(3 downto 0); --//(3 downto 2): 0/1/2 - bypass/ZoomDown/ZoomUp
-                                                                 --//(1 downto 0): 1/2 - x2/x4
-p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);--//
-p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);--//
-p_in_cfg_init              : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
+p_in_cfg_color      : in    std_logic;                    --//1 - работа с цветным кадром.
+p_in_cfg_zoom_type  : in    std_logic;                    --//0/1 - Инткрполяция/ дублирование
+p_in_cfg_zoom       : in    std_logic_vector(3 downto 0); --//(3 downto 2): 0/1/2 - bypass/ZoomDown/ZoomUp
+                                                          --//(1 downto 0): 1/2 - x2/x4
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--//
+p_in_cfg_row_count  : in    std_logic_vector(15 downto 0);--//
+p_in_cfg_init       : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
 
 --//Статус
-p_out_cfg_zoom_done        : out   std_logic;                    --//Масштабирование выполнено
+p_out_cfg_zoom_done : out   std_logic;                    --//Масштабирование выполнено
 
 --//Доступ к RAM коэфициентов
-p_in_cfg_acoe              : in    std_logic_vector(8 downto 0); --//Адрес COERAM
-p_in_cfg_acoe_ld           : in    std_logic;                    --//Установка адреса
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);--//Данные
-p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;                    --//Запись в COERAM
-p_in_cfg_dcoe_rd           : in    std_logic;                    --//Чтение из COERAM
-p_in_cfg_coe_wrclk         : in    std_logic;
+p_in_cfg_acoe       : in    std_logic_vector(8 downto 0); --//Адрес COERAM
+p_in_cfg_acoe_ld    : in    std_logic;                    --//Установка адреса
+p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);--//Данные
+p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
+p_in_cfg_dcoe_wr    : in    std_logic;                    --//Запись в COERAM
+p_in_cfg_dcoe_rd    : in    std_logic;                    --//Чтение из COERAM
+p_in_cfg_coe_wrclk  : in    std_logic;
 
 --//--------------------------
 --//Upstream Port (Связь с источником данных)
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;                    --//0/1 - Модуль готов принимать вх. данные/ Не готов к приему вх. данных
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;                    --//0/1 - Модуль готов принимать вх. данные/ Не готов к приему вх. данных
 
 --//--------------------------
 --//Downstream Port (Связь с приемником данных)
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;                    --//0/1 - Принимающая сторона готова к приему данных/ НЕ готова
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;                    --//0/1 - Принимающая сторона готова к приему данных/ НЕ готова
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -340,7 +340,7 @@ p_out_cfg_zoom_done<='0';--i_zoom_work_done_out;
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
-p_out_upp_rdy_n <=i_upp_rdy_n_out or OR_reduce(i_zoom_cnt_row) or p_in_dwnp_rdy_n when i_cfg_bypass='0' else p_in_dwnp_rdy_n;
+p_out_upp_rdy_n <=p_in_dwnp_rdy_n or OR_reduce(i_zoom_cnt_row) or i_upp_rdy_n_out;-- when i_cfg_bypass='0' else p_in_dwnp_rdy_n;
 
 
 --//-----------------------------

@@ -99,48 +99,48 @@ port
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass            : in    std_logic;                    --//0/1 - Upstream Port -> Downstream Port Обрабатывать/Не обрабатывать
-p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);--//Кол-во пиксел/4 т.к p_in_upp_data=32bit
-p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);--//Кол-во строк (опционально)
-p_in_cfg_ctrl              : in    std_logic_vector(1 downto 0); --//бит0 - 1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
-                                                                 --//бит1 - 1/0 - (1 - dx,dy делятся на 2. Только для Никифорова),(0 - нет делений)
-p_in_cfg_init              : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
+p_in_cfg_bypass    : in    std_logic;                    --//0/1 - Upstream Port -> Downstream Port Обрабатывать/Не обрабатывать
+p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);--//Кол-во пиксел/4 т.к p_in_upp_data=32bit
+p_in_cfg_row_count : in    std_logic_vector(15 downto 0);--//Кол-во строк (опционально)
+p_in_cfg_ctrl      : in    std_logic_vector(1 downto 0); --//бит0 - 1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
+                                                         --//бит1 - 1/0 - (1 - dx,dy делятся на 2. Только для Никифорова),(0 - нет делений)
+p_in_cfg_init      : in    std_logic;                    --//Инициализация. Сброс счетчика адреса BRAM
 
 --//--------------------------
 --//Upstream Port (входные данные)
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;                    --//Запись данных в модуль vsobel_main.vhd
-p_out_upp_rdy_n            : out   std_logic;                    --//0 - Модуль vsobel_main.vhd готов к приему данных
+--p_in_upp_clk       : in    std_logic;
+p_in_upp_data      : in    std_logic_vector(31 downto 0);
+p_in_upp_wd        : in    std_logic;                    --//Запись данных в модуль vsobel_main.vhd
+p_out_upp_rdy_n    : out   std_logic;                    --//0 - Модуль vsobel_main.vhd готов к приему данных
 
 --//--------------------------
 --//Downstream Port (результат)
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
-p_out_dwnp_wd              : out   std_logic;                    --//Запись данных в приемник
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
+--p_in_dwnp_clk      : in    std_logic;
+p_in_dwnp_rdy_n    : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
+p_out_dwnp_wd      : out   std_logic;                    --//Запись данных в приемник
+p_out_dwnp_data    : out   std_logic_vector(31 downto 0);
 
-p_out_dwnp_grad            : out   std_logic_vector(31 downto 0);--//Градиент яркости
+p_out_dwnp_grad    : out   std_logic_vector(31 downto 0);--//Градиент яркости
 
-p_out_dwnp_dxm             : out   std_logic_vector((8*4)-1 downto 0); --//dX - модуль
-p_out_dwnp_dym             : out   std_logic_vector((8*4)-1 downto 0); --//dY - модуль
+p_out_dwnp_dxm     : out   std_logic_vector((8*4)-1 downto 0); --//dX - модуль
+p_out_dwnp_dym     : out   std_logic_vector((8*4)-1 downto 0); --//dY - модуль
 
-p_out_dwnp_dxs             : out   std_logic_vector((11*4)-1 downto 0);--//dX - знаковое значение(бит 10)
-p_out_dwnp_dys             : out   std_logic_vector((11*4)-1 downto 0);--//dY - знаковое значение(бит 10)
+p_out_dwnp_dxs     : out   std_logic_vector((11*4)-1 downto 0);--//dX - знаковое значение(бит 10)
+p_out_dwnp_dys     : out   std_logic_vector((11*4)-1 downto 0);--//dY - знаковое значение(бит 10)
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst           : in    std_logic_vector(31 downto 0);
+p_out_tst          : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk           : in    std_logic;
+p_in_rst           : in    std_logic
 );
 end vsobel_main;
 
@@ -159,23 +159,23 @@ end component;
 component vsobel_bram
 port
 (
---//WRITE FIRST
-addra: IN  std_logic_VECTOR(9 downto 0);
-dina : IN  std_logic_VECTOR(31 downto 0);
-douta: OUT std_logic_VECTOR(31 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+--//write first
+addra: in  std_logic_vector(9 downto 0);
+dina : in  std_logic_vector(31 downto 0);
+douta: out std_logic_vector(31 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
---//READ FIRST
-addrb: IN  std_logic_VECTOR(9 downto 0);
-dinb : IN  std_logic_VECTOR(31 downto 0);
-doutb: OUT std_logic_VECTOR(31 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+--//read first
+addrb: in  std_logic_vector(9 downto 0);
+dinb : in  std_logic_vector(31 downto 0);
+doutb: out std_logic_vector(31 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
@@ -579,7 +579,7 @@ i_byte_cnt_init<="11";
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
-p_out_upp_rdy_n <=i_upp_rdy_n_out or p_in_dwnp_rdy_n when p_in_cfg_bypass='0' else p_in_dwnp_rdy_n;
+p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;-- when p_in_cfg_bypass='0' else p_in_dwnp_rdy_n;
 
 --//-----------------------------
 --//Вывод результата
