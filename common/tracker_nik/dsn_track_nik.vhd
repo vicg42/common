@@ -71,60 +71,60 @@ p_in_cfg_done         : in   std_logic;                     --//
 -- Статусы и выходные данные
 -------------------------------
 --//Статусы
-p_out_trc_hirq              : out   std_logic;                    --//Хост: Прерывание - Можно забирать данные обработки
-p_out_trc_hdrdy             : out   std_logic;                    --//Хост: Флаг есть данные
-p_out_trc_hfrmrk            : out   std_logic_vector(31 downto 0);--//Хост: Маркер обработаного кадра
-p_in_trc_hrddone            : in    std_logic;                    --//Хост: Подтверждение вычитки данных обработки
+p_out_trc_hirq        : out   std_logic;                    --//Хост: Прерывание - Можно забирать данные обработки
+p_out_trc_hdrdy       : out   std_logic;                    --//Хост: Флаг есть данные
+p_out_trc_hfrmrk      : out   std_logic_vector(31 downto 0);--//Хост: Маркер обработаного кадра
+p_in_trc_hrddone      : in    std_logic;                    --//Хост: Подтверждение вычитки данных обработки
 
-p_out_trc_bufo_dout         : out   std_logic_vector(31 downto 0);--//Буфер результата обработки
-p_in_trc_bufo_rd            : in    std_logic;                    --//Чтение буфера
-p_out_trc_bufo_empty        : out   std_logic;                    --//Статус буфера
+p_out_trc_bufo_dout   : out   std_logic_vector(31 downto 0);--//Буфер результата обработки
+p_in_trc_bufo_rd      : in    std_logic;                    --//Чтение буфера
+p_out_trc_bufo_empty  : out   std_logic;                    --//Статус буфера
 
-p_out_trc_busy              : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//захват видеобуфера
+p_out_trc_busy        : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//захват видеобуфера
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
-p_in_vctrl_vrdprms         : in    TReaderVCHParams;            --//Параметры видеоканалов
-p_in_vctrl_vfrrdy          : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Сигналы готовности кадра видеоканалов
-p_in_vctrl_vbuf            : in    TVfrBufs;                    --//Номера видеобуферов
-p_in_vctrl_vrowmrk         : in    TVMrks;                      --//Макреры строк видеоканалов
+p_in_vctrl_vrdprms    : in    TReaderVCHParams;            --//Параметры видеоканалов
+p_in_vctrl_vfrrdy     : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Сигналы готовности кадра видеоканалов
+p_in_vctrl_vbuf       : in    TVfrBufs;                    --//Номера видеобуферов
+p_in_vctrl_vrowmrk    : in    TVMrks;                      --//Макреры строк видеоканалов
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en             : in    std_logic;                    --//Разрешение арбитра
+p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
+p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk         : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end dsn_track_nik;
 
@@ -142,65 +142,65 @@ port
 -------------------------------
 -- Управление
 -------------------------------
-p_in_prm_trc               : in    TTrcNikParam;    --//Параметры слежения
-p_in_prm_vch               : in    TReaderVCHParam; --//Параметры видеоканала
+p_in_prm_trc         : in    TTrcNikParam;    --//Параметры слежения
+p_in_prm_vch         : in    TReaderVCHParam; --//Параметры видеоканала
 
-p_in_ctrl                  : in    std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
-p_out_status               : out   std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
-p_out_hbuf_dsize           : out   std_logic_vector(15 downto 0);
-p_out_ebout                : out   TTrcNikEBOs;
+p_in_ctrl            : in    std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
+p_out_status         : out   std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
+p_out_hbuf_dsize     : out   std_logic_vector(15 downto 0);
+p_out_ebout          : out   TTrcNikEBOs;
 
 --//--------------------------
 --//
 --//--------------------------
-p_in_mem_dout              : in    std_logic_vector(31 downto 0); --//
-p_in_mem_dout_en           : in    std_logic;                     --//
-p_out_mem_dout_rdy_n       : out   std_logic;                     --//Модуль готов к приему данных с p_in_mem_dout
+p_in_mem_dout        : in    std_logic_vector(31 downto 0); --//
+p_in_mem_dout_en     : in    std_logic;                     --//
+p_out_mem_dout_rdy_n : out   std_logic;                     --//Модуль готов к приему данных с p_in_mem_dout
 
-p_out_mem_din              : out   std_logic_vector(31 downto 0); --//
-p_in_mem_din_en            : in    std_logic;                     --//
-p_out_mem_din_rdy_n        : out   std_logic;                     --//У Модуля есть данные для выдачи в p_out_mem_din
+p_out_mem_din        : out   std_logic_vector(31 downto 0); --//
+p_in_mem_din_en      : in    std_logic;                     --//
+p_out_mem_din_rdy_n  : out   std_logic;                     --//У Модуля есть данные для выдачи в p_out_mem_din
 
 --//--------------------------
 --//Запись данных в буфер ХОСТА
 --//--------------------------
-p_out_hirq                 : out   std_logic;                     --//
+p_out_hirq           : out   std_logic;                     --//
 
-p_out_hbuf_din             : out   std_logic_vector(31 downto 0); --//
-p_out_hbuf_wr              : out   std_logic;                     --//
-p_in_hbuf_wrrdy_n          : in    std_logic;                     --//
-p_in_hbuf_empty            : in    std_logic;                     --//
+p_out_hbuf_din       : out   std_logic_vector(31 downto 0); --//
+p_out_hbuf_wr        : out   std_logic;                     --//
+p_in_hbuf_wrrdy_n    : in    std_logic;                     --//
+p_in_hbuf_empty      : in    std_logic;                     --//
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst             : in    std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk             : in    std_logic;
+p_in_rst             : in    std_logic
 );
 end component;
 
 component trc_nik_bufout
 port (
-din       : IN std_logic_VECTOR(31 downto 0);
-wr_en     : IN std_logic;
-wr_clk    : IN std_logic;
+din       : in std_logic_vector(31 downto 0);
+wr_en     : in std_logic;
+wr_clk    : in std_logic;
 
-dout      : OUT std_logic_VECTOR(31 downto 0);
-rd_en     : IN std_logic;
-rd_clk    : IN std_logic;
+dout      : out std_logic_vector(31 downto 0);
+rd_en     : in std_logic;
+rd_clk    : in std_logic;
 
-empty     : OUT std_logic;
-full      : OUT std_logic;
-prog_full : OUT std_logic;
+empty     : out std_logic;
+full      : out std_logic;
+prog_full : out std_logic;
 
---clk       : IN std_logic;
-rst       : IN std_logic
+--clk       : in std_logic;
+rst       : in std_logic
 );
 end component;
 

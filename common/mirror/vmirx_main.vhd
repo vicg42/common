@@ -45,32 +45,32 @@ port
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_mirx              : in    std_logic;                    --//1/0 - Вкл./Выкл отзеркаливание строки видеоданных
-p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);--//Кол-во пиксел/4 т.к p_in_upp_data=32bit
+p_in_cfg_mirx       : in    std_logic;                    --//1/0 - Вкл./Выкл отзеркаливание строки видеоданных
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--//Кол-во пиксел/4 т.к p_in_upp_data=32bit
 
-p_out_cfg_mirx_done        : out   std_logic;                    --//Обработка завершена.
+p_out_cfg_mirx_done : out   std_logic;                    --//Обработка завершена.
 
 --//--------------------------
 --//Upstream Port (входные данные)
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;                    --//Запись данных в модуль vmirx_main.vhd
-p_out_upp_rdy_n            : out   std_logic;                    --//0 - Модуль vmirx_main.vhd готов к приему данных
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;                    --//Запись данных в модуль vmirx_main.vhd
+p_out_upp_rdy_n     : out   std_logic;                    --//0 - Модуль vmirx_main.vhd готов к приему данных
 
 --//--------------------------
 --//Downstream Port (результат)
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;                    --//Запись данных в приемник
-p_in_dwnp_rdy_n            : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;                    --//Запись данных в приемник
+p_in_dwnp_rdy_n     : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -87,21 +87,21 @@ constant dly : time := 1 ps;
 component vmirx_bram
 port
 (
-addra: IN  std_logic_VECTOR(9 downto 0);
-dina : IN  std_logic_VECTOR(31 downto 0);
-douta: OUT std_logic_VECTOR(31 downto 0);
-ena  : IN  std_logic;
-wea  : IN  std_logic_VECTOR(0 downto 0);
-clka : IN  std_logic;
-rsta : IN  std_logic;
+addra: in  std_logic_vector(9 downto 0);
+dina : in  std_logic_vector(31 downto 0);
+douta: out std_logic_vector(31 downto 0);
+ena  : in  std_logic;
+wea  : in  std_logic_vector(0 downto 0);
+clka : in  std_logic;
+rsta : in  std_logic;
 
-addrb: IN  std_logic_VECTOR(9 downto 0);
-dinb : IN  std_logic_VECTOR(31 downto 0);
-doutb: OUT std_logic_VECTOR(31 downto 0);
-enb  : IN  std_logic;
-web  : IN  std_logic_VECTOR(0 downto 0);
-clkb : IN  std_logic;
-rstb : IN  std_logic
+addrb: in  std_logic_vector(9 downto 0);
+dinb : in  std_logic_vector(31 downto 0);
+doutb: out std_logic_vector(31 downto 0);
+enb  : in  std_logic;
+web  : in  std_logic_vector(0 downto 0);
+clkb : in  std_logic;
+rstb : in  std_logic
 );
 end component;
 
@@ -112,10 +112,10 @@ signal i_upp_wd                          : std_logic;
 
 type fsm_state is
 (
-  S_WRITE_BUFLINE,
-  S_READ_BUFLINE_SOF,
-  S_READ_BUFLINE,
-  S_READ_BUFLINE_EOF
+S_WRITE_BUFLINE,
+S_READ_BUFLINE_SOF,
+S_READ_BUFLINE,
+S_READ_BUFLINE_EOF
 );
 signal fsm_state_cs: fsm_state;
 

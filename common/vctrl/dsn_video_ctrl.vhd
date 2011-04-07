@@ -66,100 +66,100 @@ p_in_cfg_done         : in   std_logic;                      --//
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_in_vctrl_hrdchsel        : in    std_logic_vector(3 downto 0);   --//Номер видео канала который будет читать ХОСТ
-p_in_vctrl_hrdstart        : in    std_logic;                      --//Начало чтенения видеоканала
-p_in_vctrl_hrddone         : in    std_logic;                      --//Подтверждение вычетки данных видеоканала
-p_out_vctrl_hirq           : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
-p_out_vctrl_hdrdy          : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
-p_out_vctrl_hfrmrk         : out   std_logic_vector(31 downto 0);  --//
+p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --//Номер видео канала который будет читать ХОСТ
+p_in_vctrl_hrdstart   : in    std_logic;                      --//Начало чтенения видеоканала
+p_in_vctrl_hrddone    : in    std_logic;                      --//Подтверждение вычетки данных видеоканала
+p_out_vctrl_hirq      : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);  --//
 
 -------------------------------
 -- STATUS модуля dsn_video_ctrl.vhd
 -------------------------------
-p_out_vctrl_modrdy         : out   std_logic;                      --//
-p_out_vctrl_moderr         : out   std_logic;                      --//
-p_out_vctrl_rd_done        : out   std_logic;                      --//
+p_out_vctrl_modrdy    : out   std_logic;                      --//
+p_out_vctrl_moderr    : out   std_logic;                      --//
+p_out_vctrl_rd_done   : out   std_logic;                      --//
 
-p_out_vctrl_vrdprm         : out   TReaderVCHParams;               --//Параметры видеоканалов
-p_out_vctrl_vfrrdy         : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
-p_out_vctrl_vrowmrk        : out   TVMrks;                         --//Маркер времени принятой строки
+p_out_vctrl_vrdprm    : out   TReaderVCHParams;               --//Параметры видеоканалов
+p_out_vctrl_vfrrdy    : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
+p_out_vctrl_vrowmrk   : out   TVMrks;                         --//Маркер времени принятой строки
 
 --//--------------------------
 --//Связь с модулем слежения
 --//--------------------------
-p_in_trc_busy              : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
-p_out_trc_vbuf             : out   TVfrBufs;                       --//Номера видео буферов с готовыми кадрами
+p_in_trc_busy         : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
+p_out_trc_vbuf        : out   TVfrBufs;                       --//Номера видео буферов с готовыми кадрами
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_vbuf_clk             : out   std_logic;                      --//
+p_out_vbuf_clk        : out   std_logic;                      --//
 
-p_in_vbufin_rdy            : in    std_logic;                      --//Связь в буфером входной видеоинформации
-p_in_vbufin_dout           : in    std_logic_vector(31 downto 0);  --//
-p_out_vbufin_dout_rd       : out   std_logic;                      --//
-p_in_vbufin_empty          : in    std_logic;                      --//
-p_in_vbufin_full           : in    std_logic;                      --//
-p_in_vbufin_pfull          : in    std_logic;                      --//
+p_in_vbufin_rdy       : in    std_logic;                      --//Связь в буфером входной видеоинформации
+p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);  --//
+p_out_vbufin_dout_rd  : out   std_logic;                      --//
+p_in_vbufin_empty     : in    std_logic;                      --//
+p_in_vbufin_full      : in    std_logic;                      --//
+p_in_vbufin_pfull     : in    std_logic;                      --//
 
-p_out_vbufout_din          : out   std_logic_vector(31 downto 0);  --//Связь с буферов видео данных для ХОСТА
-p_out_vbufout_din_wd       : out   std_logic;                      --//
-p_in_vbufout_empty         : in    std_logic;                      --//
-p_in_vbufout_full          : in    std_logic;                      --//
+p_out_vbufout_din     : out   std_logic_vector(31 downto 0);  --//Связь с буферов видео данных для ХОСТА
+p_out_vbufout_din_wd  : out   std_logic;                      --//
+p_in_vbufout_empty    : in    std_logic;                      --//
+p_in_vbufout_full     : in    std_logic;                      --//
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
 --//CH WRITE
-p_out_memarb_wrreq         : out   std_logic;
-p_in_memarb_wren           : in    std_logic;
+p_out_memarb_wrreq    : out   std_logic;
+p_in_memarb_wren      : in    std_logic;
 
-p_out_memwr_bank1h         : out   std_logic_vector(15 downto 0);
-p_out_memwr_ce             : out   std_logic;
-p_out_memwr_cw             : out   std_logic;
-p_out_memwr_rd             : out   std_logic;
-p_out_memwr_wr             : out   std_logic;
-p_out_memwr_term           : out   std_logic;
-p_out_memwr_adr            : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_memwr_be             : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_memwr_din            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_memwr_dout            : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_memwr_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_memwr_ce        : out   std_logic;
+p_out_memwr_cw        : out   std_logic;
+p_out_memwr_rd        : out   std_logic;
+p_out_memwr_wr        : out   std_logic;
+p_out_memwr_term      : out   std_logic;
+p_out_memwr_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_memwr_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_memwr_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_memwr_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_memwr_wf              : in    std_logic;
-p_in_memwr_wpf             : in    std_logic;
-p_in_memwr_re              : in    std_logic;
-p_in_memwr_rpe             : in    std_logic;
+p_in_memwr_wf         : in    std_logic;
+p_in_memwr_wpf        : in    std_logic;
+p_in_memwr_re         : in    std_logic;
+p_in_memwr_rpe        : in    std_logic;
 
 --//CH READ
-p_out_memarb_rdreq         : out   std_logic;
-p_in_memarb_rden           : in    std_logic;
+p_out_memarb_rdreq    : out   std_logic;
+p_in_memarb_rden      : in    std_logic;
 
-p_out_memrd_bank1h         : out   std_logic_vector(15 downto 0);
-p_out_memrd_ce             : out   std_logic;
-p_out_memrd_cw             : out   std_logic;
-p_out_memrd_rd             : out   std_logic;
-p_out_memrd_wr             : out   std_logic;
-p_out_memrd_term           : out   std_logic;
-p_out_memrd_adr            : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_memrd_be             : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_memrd_din            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_memrd_dout            : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_memrd_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_memrd_ce        : out   std_logic;
+p_out_memrd_cw        : out   std_logic;
+p_out_memrd_rd        : out   std_logic;
+p_out_memrd_wr        : out   std_logic;
+p_out_memrd_term      : out   std_logic;
+p_out_memrd_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_memrd_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_memrd_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_memrd_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_memrd_wf              : in    std_logic;
-p_in_memrd_wpf             : in    std_logic;
-p_in_memrd_re              : in    std_logic;
-p_in_memrd_rpe             : in    std_logic;
+p_in_memrd_wf         : in    std_logic;
+p_in_memrd_wpf        : in    std_logic;
+p_in_memrd_re         : in    std_logic;
+p_in_memrd_rpe        : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk                   : in    std_logic;
-p_in_rst                   : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end dsn_video_ctrl;
 
@@ -186,62 +186,62 @@ port
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_load              : in    std_logic;
-p_in_cfg_mem_trn_len       : in    std_logic_vector(7 downto 0);
-p_in_cfg_prm_vch           : in    TWriterVCHParams;
-p_in_cfg_set_idle_vch      : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_cfg_load         : in    std_logic;
+p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);
+p_in_cfg_prm_vch      : in    TWriterVCHParams;
+p_in_cfg_set_idle_vch : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
 
-p_in_vfr_buf               : in    TVfrBufs;
+p_in_vfr_buf          : in    TVfrBufs;
 
 --//Статусы
-p_out_vfr_rdy              : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vrow_mrk             : out   TVMrks;--
+p_out_vfr_rdy         : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vrow_mrk        : out   TVMrks;--
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_out_upp_data_rd          : out   std_logic;
-p_in_upp_data_rdy          : in    std_logic;
-p_in_upp_buf_empty         : in    std_logic;
-p_in_upp_buf_full          : in    std_logic;
-p_in_upp_buf_pfull         : in    std_logic;
+p_in_upp_data         : in    std_logic_vector(31 downto 0);
+p_out_upp_data_rd     : out   std_logic;
+p_in_upp_data_rdy     : in    std_logic;
+p_in_upp_buf_empty    : in    std_logic;
+p_in_upp_buf_full     : in    std_logic;
+p_in_upp_buf_pfull    : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;
-p_in_memarb_en             : in    std_logic;
+p_out_memarb_req      : out   std_logic;
+p_in_memarb_en        : in    std_logic;
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk         : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end component;
 
@@ -262,72 +262,72 @@ port
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_mem_trn_len       : in    std_logic_vector(7 downto 0);
-p_in_cfg_prm_vch           : in    TReaderVCHParams;
+p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
+p_in_cfg_prm_vch     : in    TReaderVCHParams;
 
-p_in_hrd_chsel             : in    std_logic_vector(3 downto 0);
-p_in_hrd_start             : in    std_logic;
-p_in_hrd_done              : in    std_logic;
+p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);
+p_in_hrd_start       : in    std_logic;
+p_in_hrd_done        : in    std_logic;
 
-p_in_vfr_buf               : in    TVfrBufs;
-p_in_vfr_nrow              : in    std_logic;
+p_in_vfr_buf         : in    TVfrBufs;
+p_in_vfr_nrow        : in    std_logic;
 
 --//Статусы
-p_out_vch_fr_new           : out   std_logic;
-p_out_vch_rd_done          : out   std_logic;
-p_out_vch                  : out   std_logic_vector(3 downto 0);
-p_out_vch_color_fst        : out   std_logic_vector(1 downto 0);
-p_out_vch_color            : out   std_logic;
-p_out_vch_pcolor           : out   std_logic;
-p_out_vch_active_pix       : out   std_logic_vector(15 downto 0);
-p_out_vch_active_row       : out   std_logic_vector(15 downto 0);
-p_out_vch_zoom             : out   std_logic_vector(3 downto 0);
-p_out_vch_zoom_type        : out   std_logic;
-p_out_vch_mirx             : out   std_logic;
+p_out_vch_fr_new     : out   std_logic;
+p_out_vch_rd_done    : out   std_logic;
+p_out_vch            : out   std_logic_vector(3 downto 0);
+p_out_vch_color_fst  : out   std_logic_vector(1 downto 0);
+p_out_vch_color      : out   std_logic;
+p_out_vch_pcolor     : out   std_logic;
+p_out_vch_active_pix : out   std_logic_vector(15 downto 0);
+p_out_vch_active_row : out   std_logic_vector(15 downto 0);
+p_out_vch_zoom       : out   std_logic_vector(3 downto 0);
+p_out_vch_zoom_type  : out   std_logic;
+p_out_vch_mirx       : out   std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_out_upp_data             : out   std_logic_vector(31 downto 0);
-p_out_upp_data_wd          : out   std_logic;
-p_in_upp_buf_empty         : in    std_logic;
-p_in_upp_buf_full          : in    std_logic;
+p_out_upp_data       : out   std_logic_vector(31 downto 0);
+p_out_upp_data_wd    : out   std_logic;
+p_in_upp_buf_empty   : in    std_logic;
+p_in_upp_buf_full    : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;
-p_in_memarb_en             : in    std_logic;
+p_out_memarb_req     : out   std_logic;
+p_in_memarb_en       : in    std_logic;
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_ce         : out   std_logic;
+p_out_mem_cw         : out   std_logic;
+p_out_mem_rd         : out   std_logic;
+p_out_mem_wr         : out   std_logic;
+p_out_mem_term       : out   std_logic;
+p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf          : in    std_logic;
+p_in_mem_wpf         : in    std_logic;
+p_in_mem_re          : in    std_logic;
+p_in_mem_rpe         : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk        : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst             : in    std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk             : in    std_logic;
+p_in_rst             : in    std_logic
 );
 end component;
 
@@ -336,32 +336,32 @@ port (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_mirx              : in    std_logic;
-p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);
+p_in_cfg_mirx       : in    std_logic;
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);
 
-p_out_cfg_mirx_done        : out   std_logic;
+p_out_cfg_mirx_done : out   std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -374,45 +374,46 @@ end component;
 component vcoldemosaic_main
 generic(
 G_DOUT_WIDTH : integer:=32;
-G_SIM : string:="OFF"
+G_SIM        : string :="OFF"
 );
 port
 (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass            : in    std_logic;
-p_in_cfg_colorfst          : in    std_logic_vector(1 downto 0);
-p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);
-p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);
-p_in_cfg_init              : in    std_logic;
+p_in_cfg_bypass    : in    std_logic;
+p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0);
+p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
+p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
+p_in_cfg_init      : in    std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;
+--p_in_upp_clk       : in    std_logic;
+p_in_upp_data      : in    std_logic_vector(31 downto 0);
+p_in_upp_wd        : in    std_logic;
+p_out_upp_rdy_n    : out   std_logic;
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(127 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;
+--p_in_dwnp_clk      : in    std_logic;
+p_out_dwnp_data    : out   std_logic_vector(127 downto 0);
+p_out_dwnp_wd      : out   std_logic;
+p_in_dwnp_rdy_n    : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst           : in    std_logic_vector(31 downto 0);
+p_out_tst          : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk           : in    std_logic;
+p_in_rst           : in    std_logic
 );
 end component;
 
@@ -426,46 +427,46 @@ port
 -- Управление
 -------------------------------
 --//Конфигурирование
-p_in_cfg_color             : in    std_logic;
-p_in_cfg_zoom_type         : in    std_logic;
-p_in_cfg_zoom              : in    std_logic_vector(3 downto 0);
-p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);
-p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);
-p_in_cfg_init              : in    std_logic;
+p_in_cfg_color      : in    std_logic;
+p_in_cfg_zoom_type  : in    std_logic;
+p_in_cfg_zoom       : in    std_logic_vector(3 downto 0);
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);
+p_in_cfg_row_count  : in    std_logic_vector(15 downto 0);
+p_in_cfg_init       : in    std_logic;
 
 --//Статус
-p_out_cfg_zoom_done        : out   std_logic;
+p_out_cfg_zoom_done : out   std_logic;
 
 --//Доступ к RAM коэфициентов
-p_in_cfg_acoe              : in    std_logic_vector(8 downto 0);
-p_in_cfg_acoe_ld           : in    std_logic;
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;
-p_in_cfg_dcoe_rd           : in    std_logic;
-p_in_cfg_coe_wrclk         : in    std_logic;
+p_in_cfg_acoe       : in    std_logic_vector(8 downto 0);
+p_in_cfg_acoe_ld    : in    std_logic;
+p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
+p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
+p_in_cfg_dcoe_wr    : in    std_logic;
+p_in_cfg_dcoe_rd    : in    std_logic;
+p_in_cfg_coe_wrclk  : in    std_logic;
 
 --//--------------------------
 --//Upstream Port (Связь с источником данных)
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 --//--------------------------
 --//Downstream Port (Связь с приемником данных)
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -481,37 +482,38 @@ port
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass            : in    std_logic;
+p_in_cfg_bypass     : in    std_logic;
 
-p_in_cfg_coeram_num        : in    std_logic_vector(1 downto 0);
-p_in_cfg_acoe              : in    std_logic_vector(6 downto 0);
-p_in_cfg_acoe_ld           : in    std_logic;
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;
-p_in_cfg_dcoe_rd           : in    std_logic;
-p_in_cfg_coe_wrclk         : in    std_logic;
+p_in_cfg_coeram_num : in    std_logic_vector(1 downto 0);
+p_in_cfg_acoe       : in    std_logic_vector(6 downto 0);
+p_in_cfg_acoe_ld    : in    std_logic;
+p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
+p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
+p_in_cfg_dcoe_wr    : in    std_logic;
+p_in_cfg_dcoe_rd    : in    std_logic;
+p_in_cfg_coe_wrclk  : in    std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -527,37 +529,38 @@ port
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_color             : in    std_logic;
+p_in_cfg_color      : in    std_logic;
 
-p_in_cfg_coeram_num        : in    std_logic_vector(1 downto 0);
-p_in_cfg_acoe              : in    std_logic_vector(6 downto 0);
-p_in_cfg_acoe_ld           : in    std_logic;
-p_in_cfg_dcoe              : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe             : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr           : in    std_logic;
-p_in_cfg_dcoe_rd           : in    std_logic;
-p_in_cfg_coe_wrclk         : in    std_logic;
+p_in_cfg_coeram_num : in    std_logic_vector(1 downto 0);
+p_in_cfg_acoe       : in    std_logic_vector(6 downto 0);
+p_in_cfg_acoe_ld    : in    std_logic;
+p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
+p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
+p_in_cfg_dcoe_wr    : in    std_logic;
+p_in_cfg_dcoe_rd    : in    std_logic;
+p_in_cfg_coe_wrclk  : in    std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk               : in    std_logic;
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_in_upp_wd                : in    std_logic;
-p_out_upp_rdy_n            : out   std_logic;
+--p_in_upp_clk        : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_in_upp_wd         : in    std_logic;
+p_out_upp_rdy_n     : out   std_logic;
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk              : in    std_logic;
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd              : out   std_logic;
-p_in_dwnp_rdy_n            : in    std_logic;
+--p_in_dwnp_clk       : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wd       : out   std_logic;
+p_in_dwnp_rdy_n     : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -566,56 +569,6 @@ p_in_clk            : in    std_logic;
 p_in_rst            : in    std_logic
 );
 end component;
-
---component vsobel_main
---generic(
---G_DOUT_WIDTH : integer:=32;
---G_SIM : string:="OFF"
---);
---port
---(
----------------------------------
----- Управление
----------------------------------
---p_in_cfg_bypass            : in    std_logic;
---p_in_cfg_pix_count         : in    std_logic_vector(15 downto 0);
---p_in_cfg_row_count         : in    std_logic_vector(15 downto 0);
---p_in_cfg_ctrl              : in    std_logic_vector(1 downto 0);
---p_in_cfg_init              : in    std_logic;
---
-----//--------------------------
-----//Upstream Port
-----//--------------------------
-----p_in_upp_clk               : in    std_logic;
---p_in_upp_data              : in    std_logic_vector(31 downto 0);
---p_in_upp_wd                : in    std_logic;
---p_out_upp_rdy_n            : out   std_logic;
---
-----//--------------------------
-----//Downstream Port
-----//--------------------------
-----p_in_dwnp_clk              : in    std_logic;
---p_in_dwnp_rdy_n            : in    std_logic;
---p_out_dwnp_wd              : out   std_logic;
---p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
---
---p_out_dwnp_dx              : out   std_logic_vector(31 downto 0);
---p_out_dwnp_dy              : out   std_logic_vector(31 downto 0);
---p_out_dwnp_grad            : out   std_logic_vector(31 downto 0);
---
----------------------------------
-----Технологический
----------------------------------
---p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
---p_out_tst                  : out   std_logic_vector(31 downto 0);
---
----------------------------------
-----System
----------------------------------
---p_in_clk            : in    std_logic;
---p_in_rst            : in    std_logic
---);
---end component;
 
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
@@ -723,9 +676,6 @@ signal i_vgamma_rdy_n                    : std_logic;
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
 signal tst_vreader_out                   : std_logic_vector(31 downto 0);
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
-
---signal tst_vsobel_out                    : std_logic_vector(31 downto 0);
---signal tst_vsobel_grad                   : std_logic_vector(7 downto 0);
 
 type TVfrSkipTst is array (0 to 3) of std_logic_vector(3 downto 0);
 signal tst_vfrskip_rd                    : TVfrSkipTst;
@@ -1427,62 +1377,62 @@ port map
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_load              => vclk_vprm_set,
-p_in_cfg_mem_trn_len       => i_vprm.mem_wd_trn_len,
-p_in_cfg_prm_vch           => i_wrprm_vch,
-p_in_cfg_set_idle_vch      => vclk_set_idle_vch,
+p_in_cfg_load         => vclk_vprm_set,
+p_in_cfg_mem_trn_len  => i_vprm.mem_wd_trn_len,
+p_in_cfg_prm_vch      => i_wrprm_vch,
+p_in_cfg_set_idle_vch => vclk_set_idle_vch,
 
-p_in_vfr_buf               => i_vbuf_wr,
+p_in_vfr_buf          => i_vbuf_wr,
 
 --//Статусы
-p_out_vfr_rdy              => i_vwrite_vfr_rdy_out,
-p_out_vrow_mrk             => i_vwrite_vrow_mrk,
+p_out_vfr_rdy         => i_vwrite_vfr_rdy_out,
+p_out_vrow_mrk        => i_vwrite_vrow_mrk,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => p_in_vbufin_dout,
-p_out_upp_data_rd          => p_out_vbufin_dout_rd,
-p_in_upp_data_rdy          => p_in_vbufin_rdy,
-p_in_upp_buf_empty         => p_in_vbufin_empty,
-p_in_upp_buf_full          => p_in_vbufin_full,
-p_in_upp_buf_pfull         => p_in_vbufin_pfull,
+p_in_upp_data         => p_in_vbufin_dout,
+p_out_upp_data_rd     => p_out_vbufin_dout_rd,
+p_in_upp_data_rdy     => p_in_vbufin_rdy,
+p_in_upp_buf_empty    => p_in_vbufin_empty,
+p_in_upp_buf_full     => p_in_vbufin_full,
+p_in_upp_buf_pfull    => p_in_vbufin_pfull,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_mem_clk              => open,
+p_out_mem_clk         => open,
 
-p_out_memarb_req           => p_out_memarb_wrreq,
-p_in_memarb_en             => p_in_memarb_wren,
+p_out_memarb_req      => p_out_memarb_wrreq,
+p_in_memarb_en        => p_in_memarb_wren,
 
-p_out_mem_bank1h           => p_out_memwr_bank1h,
-p_out_mem_ce               => p_out_memwr_ce,
-p_out_mem_cw               => p_out_memwr_cw,
-p_out_mem_rd               => p_out_memwr_rd,
-p_out_mem_wr               => p_out_memwr_wr,
-p_out_mem_term             => p_out_memwr_term,
-p_out_mem_adr              => p_out_memwr_adr,
-p_out_mem_be               => p_out_memwr_be,
-p_out_mem_din              => p_out_memwr_din,
-p_in_mem_dout              => "00000000000000000000000000000000",
+p_out_mem_bank1h      => p_out_memwr_bank1h,
+p_out_mem_ce          => p_out_memwr_ce,
+p_out_mem_cw          => p_out_memwr_cw,
+p_out_mem_rd          => p_out_memwr_rd,
+p_out_mem_wr          => p_out_memwr_wr,
+p_out_mem_term        => p_out_memwr_term,
+p_out_mem_adr         => p_out_memwr_adr,
+p_out_mem_be          => p_out_memwr_be,
+p_out_mem_din         => p_out_memwr_din,
+p_in_mem_dout         => "00000000000000000000000000000000",
 
-p_in_mem_wf                => p_in_memwr_wf,
-p_in_mem_wpf               => p_in_memwr_wpf,
-p_in_mem_re                => p_in_memwr_re,
-p_in_mem_rpe               => p_in_memwr_rpe,
+p_in_mem_wf           => p_in_memwr_wf,
+p_in_mem_wpf          => p_in_memwr_wpf,
+p_in_mem_re           => p_in_memwr_re,
+p_in_mem_rpe          => p_in_memwr_rpe,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              => "00000000000000000000000000000000",
-p_out_tst                  => tst_vwriter_out,
+p_in_tst              => "00000000000000000000000000000000",
+p_out_tst             => tst_vwriter_out,
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
+p_in_clk              => p_in_clk,
+p_in_rst              => p_in_rst
 );
 
 
@@ -1506,77 +1456,72 @@ port map
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_mem_trn_len       => i_vprm.mem_rd_trn_len,
-p_in_cfg_prm_vch           => i_rdprm_vch,
+p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
+p_in_cfg_prm_vch      => i_rdprm_vch,
 
-p_in_hrd_chsel             => p_in_vctrl_hrdchsel,
-p_in_hrd_start             => p_in_vctrl_hrdstart,
-p_in_hrd_done              => p_in_vctrl_hrddone,
+p_in_hrd_chsel        => p_in_vctrl_hrdchsel,
+p_in_hrd_start        => p_in_vctrl_hrdstart,
+p_in_hrd_done         => p_in_vctrl_hrddone,
 
-p_in_vfr_buf              => i_vbuf_rd,
-p_in_vfr_nrow             => i_vreader_rq_next_line,
+p_in_vfr_buf          => i_vbuf_rd,
+p_in_vfr_nrow         => i_vreader_rq_next_line,
 
 --//Статусы
-p_out_vch_fr_new           => i_vreader_fr_new,
-p_out_vch_rd_done          => i_vreader_rd_done,
-p_out_vch                  => i_vreader_vch_num_out,
-p_out_vch_color_fst        => i_vreader_color_fst_out,
-p_out_vch_color            => i_vreader_color_out,
-p_out_vch_pcolor           => i_vreader_pcolor_out,
-p_out_vch_active_pix       => i_vreader_active_pix_out,
-p_out_vch_active_row       => i_vreader_active_row_out,
-p_out_vch_zoom             => i_vreader_zoom_out,
-p_out_vch_zoom_type        => i_vreader_zoom_type_out,
-p_out_vch_mirx             => i_vreader_mirx_out,
+p_out_vch_fr_new      => i_vreader_fr_new,
+p_out_vch_rd_done     => i_vreader_rd_done,
+p_out_vch             => i_vreader_vch_num_out,
+p_out_vch_color_fst   => i_vreader_color_fst_out,
+p_out_vch_color       => i_vreader_color_out,
+p_out_vch_pcolor      => i_vreader_pcolor_out,
+p_out_vch_active_pix  => i_vreader_active_pix_out,
+p_out_vch_active_row  => i_vreader_active_row_out,
+p_out_vch_zoom        => i_vreader_zoom_out,
+p_out_vch_zoom_type   => i_vreader_zoom_type_out,
+p_out_vch_mirx        => i_vreader_mirx_out,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_out_upp_data             => i_vreader_dout,
-p_out_upp_data_wd          => i_vreader_dout_en,
-p_in_upp_buf_empty         => '0',
-p_in_upp_buf_full          => i_vmir_rdy_n,
-
---p_out_upp_data             => p_out_vbufout_din,--
---p_out_upp_data_wd          => p_out_vbufout_din_wd,--
---p_in_upp_buf_empty         => '0',
---p_in_upp_buf_full          => p_in_vbufout_full,--
+p_out_upp_data        => i_vreader_dout,
+p_out_upp_data_wd     => i_vreader_dout_en,
+p_in_upp_buf_empty    => '0',
+p_in_upp_buf_full     => i_vmir_rdy_n,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_mem_clk              => open,
+p_out_mem_clk         => open,
 
-p_out_memarb_req           => p_out_memarb_rdreq,
-p_in_memarb_en             => p_in_memarb_rden,
+p_out_memarb_req      => p_out_memarb_rdreq,
+p_in_memarb_en        => p_in_memarb_rden,
 
-p_out_mem_bank1h           => p_out_memrd_bank1h,
-p_out_mem_ce               => p_out_memrd_ce,
-p_out_mem_cw               => p_out_memrd_cw,
-p_out_mem_rd               => p_out_memrd_rd,
-p_out_mem_wr               => p_out_memrd_wr,
-p_out_mem_term             => p_out_memrd_term,
-p_out_mem_adr              => p_out_memrd_adr,
-p_out_mem_be               => p_out_memrd_be,
-p_out_mem_din              => p_out_memrd_din,
-p_in_mem_dout              => p_in_memrd_dout,
+p_out_mem_bank1h      => p_out_memrd_bank1h,
+p_out_mem_ce          => p_out_memrd_ce,
+p_out_mem_cw          => p_out_memrd_cw,
+p_out_mem_rd          => p_out_memrd_rd,
+p_out_mem_wr          => p_out_memrd_wr,
+p_out_mem_term        => p_out_memrd_term,
+p_out_mem_adr         => p_out_memrd_adr,
+p_out_mem_be          => p_out_memrd_be,
+p_out_mem_din         => p_out_memrd_din,
+p_in_mem_dout         => p_in_memrd_dout,
 
-p_in_mem_wf                => p_in_memrd_wf,
-p_in_mem_wpf               => p_in_memrd_wpf,
-p_in_mem_re                => p_in_memrd_re,
-p_in_mem_rpe               => p_in_memrd_rpe,
+p_in_mem_wf           => p_in_memrd_wf,
+p_in_mem_wpf          => p_in_memrd_wpf,
+p_in_mem_re           => p_in_memrd_re,
+p_in_mem_rpe          => p_in_memrd_rpe,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              => tst_ctrl(31 downto 0),--"00000000000000000000000000000000",
-p_out_tst                  => tst_vreader_out,
+p_in_tst              => tst_ctrl(31 downto 0),--"00000000000000000000000000000000",
+p_out_tst             => tst_vreader_out,
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
+p_in_clk              => p_in_clk,
+p_in_rst              => p_in_rst
 );
 
 
@@ -1589,30 +1534,30 @@ port map (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_mirx              => i_vreader_mirx_out,
-p_in_cfg_pix_count         => i_vreader_active_pix_out,
+p_in_cfg_mirx       => i_vreader_mirx_out,
+p_in_cfg_pix_count  => i_vreader_active_pix_out,
 
-p_out_cfg_mirx_done        => i_vreader_rq_next_line,
+p_out_cfg_mirx_done => i_vreader_rq_next_line,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => i_vreader_dout,
-p_in_upp_wd                => i_vreader_dout_en,
-p_out_upp_rdy_n            => i_vmir_rdy_n,
+p_in_upp_data       => i_vreader_dout,
+p_in_upp_wd         => i_vreader_dout_en,
+p_out_upp_rdy_n     => i_vmir_rdy_n,
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
-p_out_dwnp_data            => i_vmir_dout,
-p_out_dwnp_wd              => i_vmir_dout_en,
-p_in_dwnp_rdy_n            => i_vcoldemasc_rdy_n,
+p_out_dwnp_data     => i_vmir_dout,
+p_out_dwnp_wd       => i_vmir_dout_en,
+p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   => "00000000000000000000000000000000",
-p_out_tst                  => open,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => open,
 
 -------------------------------
 --System
@@ -1632,36 +1577,37 @@ i_vcoldemasc_bypass<=not i_vreader_color_out;
 m_vcoldemosaic : vcoldemosaic_main
 generic map(
 G_DOUT_WIDTH => 8,
-G_SIM => G_SIM
+G_SIM        => G_SIM
 )
 port map (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass            => i_vcoldemasc_bypass,
-p_in_cfg_colorfst          => i_vreader_color_fst_out,
-p_in_cfg_pix_count         => i_vreader_active_pix_out,
-p_in_cfg_row_count         => i_vreader_active_row_out,
-p_in_cfg_init              => i_vreader_fr_new,
+p_in_cfg_bypass     => i_vcoldemasc_bypass,
+p_in_cfg_colorfst   => i_vreader_color_fst_out,
+p_in_cfg_pix_count  => i_vreader_active_pix_out,
+p_in_cfg_row_count  => i_vreader_active_row_out,
+p_in_cfg_init       => i_vreader_fr_new,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => i_vmir_dout,
-p_in_upp_wd                => i_vmir_dout_en,
-p_out_upp_rdy_n            => i_vcoldemasc_rdy_n,
+p_in_upp_data       => i_vmir_dout,
+p_in_upp_wd         => i_vmir_dout_en,
+p_out_upp_rdy_n     => i_vcoldemasc_rdy_n,
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
-p_out_dwnp_data            => i_vcoldemasc_dout,
-p_out_dwnp_wd              => i_vcoldemasc_dout_en,
-p_in_dwnp_rdy_n            => i_vscale_rdy_n,
+p_out_dwnp_data     => i_vcoldemasc_dout,
+p_out_dwnp_wd       => i_vcoldemasc_dout_en,
+p_in_dwnp_rdy_n     => i_vscale_rdy_n,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  => open,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => open,
 
 -------------------------------
 --System
@@ -1707,42 +1653,42 @@ port map
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_color             => i_vreader_color_out,
-p_in_cfg_zoom_type         => i_vreader_zoom_type_out,
-p_in_cfg_zoom              => i_vreader_zoom_out,
-p_in_cfg_pix_count         => i_vscale_pix_count,--i_vreader_active_pix_out,
-p_in_cfg_row_count         => i_vscale_row_count,--i_vreader_active_row_out,
-p_in_cfg_init              => i_vreader_fr_new,
+p_in_cfg_color      => i_vreader_color_out,
+p_in_cfg_zoom_type  => i_vreader_zoom_type_out,
+p_in_cfg_zoom       => i_vreader_zoom_out,
+p_in_cfg_pix_count  => i_vscale_pix_count,--i_vreader_active_pix_out,
+p_in_cfg_row_count  => i_vscale_row_count,--i_vreader_active_row_out,
+p_in_cfg_init       => i_vreader_fr_new,
 
-p_out_cfg_zoom_done        => open,
+p_out_cfg_zoom_done => open,
 
-p_in_cfg_acoe              => i_vscale_coe_adr,
-p_in_cfg_acoe_ld           => i_vscale_coe_adr_ld,
-p_in_cfg_dcoe              => i_vscale_coe_din,
-p_out_cfg_dcoe             => i_vscale_coe_dout,
-p_in_cfg_dcoe_wr           => i_vscale_coe_wr,
-p_in_cfg_dcoe_rd           => i_vscale_coe_rd,
-p_in_cfg_coe_wrclk         => p_in_host_clk,
+p_in_cfg_acoe       => i_vscale_coe_adr,
+p_in_cfg_acoe_ld    => i_vscale_coe_adr_ld,
+p_in_cfg_dcoe       => i_vscale_coe_din,
+p_out_cfg_dcoe      => i_vscale_coe_dout,
+p_in_cfg_dcoe_wr    => i_vscale_coe_wr,
+p_in_cfg_dcoe_rd    => i_vscale_coe_rd,
+p_in_cfg_coe_wrclk  => p_in_host_clk,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => i_vcoldemasc_dout(31 downto 0),
-p_in_upp_wd                => i_vcoldemasc_dout_en,
-p_out_upp_rdy_n            => i_vscale_rdy_n,
+p_in_upp_data       => i_vcoldemasc_dout(31 downto 0),
+p_in_upp_wd         => i_vcoldemasc_dout_en,
+p_out_upp_rdy_n     => i_vscale_rdy_n,
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
-p_out_dwnp_data            => i_vscale_dout,
-p_out_dwnp_wd              => i_vscale_dout_en,
-p_in_dwnp_rdy_n            => i_vpcolor_rdy_n,
+p_out_dwnp_data     => i_vscale_dout,
+p_out_dwnp_wd       => i_vscale_dout_en,
+p_in_dwnp_rdy_n     => i_vpcolor_rdy_n,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              => "00000000000000000000000000000000",
-p_out_tst                  => open,--i_vscale_tst_out,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => open,--i_vscale_tst_out,
 
 -------------------------------
 --System
@@ -1788,35 +1734,36 @@ port map
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_bypass            => i_vpcolor_bypass,
+p_in_cfg_bypass     => i_vpcolor_bypass,
 
-p_in_cfg_coeram_num        => i_vpcolor_coe_ramnum(1 downto 0),
-p_in_cfg_acoe              => i_vpcolor_coe_adr,
-p_in_cfg_acoe_ld           => i_vpcolor_coe_adr_ld,
-p_in_cfg_dcoe              => i_vpcolor_coe_din,
-p_out_cfg_dcoe             => i_vpcolor_coe_dout,
-p_in_cfg_dcoe_wr           => i_vpcolor_coe_wr,
-p_in_cfg_dcoe_rd           => i_vpcolor_coe_rd,
-p_in_cfg_coe_wrclk         => p_in_host_clk,
+p_in_cfg_coeram_num => i_vpcolor_coe_ramnum(1 downto 0),
+p_in_cfg_acoe       => i_vpcolor_coe_adr,
+p_in_cfg_acoe_ld    => i_vpcolor_coe_adr_ld,
+p_in_cfg_dcoe       => i_vpcolor_coe_din,
+p_out_cfg_dcoe      => i_vpcolor_coe_dout,
+p_in_cfg_dcoe_wr    => i_vpcolor_coe_wr,
+p_in_cfg_dcoe_rd    => i_vpcolor_coe_rd,
+p_in_cfg_coe_wrclk  => p_in_host_clk,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => i_vscale_dout,
-p_in_upp_wd                => i_vscale_dout_en,
-p_out_upp_rdy_n            => i_vpcolor_rdy_n,
+p_in_upp_data       => i_vscale_dout,
+p_in_upp_wd         => i_vscale_dout_en,
+p_out_upp_rdy_n     => i_vpcolor_rdy_n,
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
-p_out_dwnp_data            => i_vpcolor_dout,
-p_out_dwnp_wd              => i_vpcolor_dout_en,
-p_in_dwnp_rdy_n            => i_vgamma_rdy_n,
+p_out_dwnp_data     => i_vpcolor_dout,
+p_out_dwnp_wd       => i_vpcolor_dout_en,
+p_in_dwnp_rdy_n     => i_vgamma_rdy_n,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  => open,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => open,
 
 -------------------------------
 --System
@@ -1863,34 +1810,36 @@ port map
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_color             => i_vgamma_color,
+p_in_cfg_color      => i_vgamma_color,
 
-p_in_cfg_coeram_num        => i_vgamma_coe_ramnum(1 downto 0),
-p_in_cfg_acoe              => i_vgamma_coe_adr,
-p_in_cfg_acoe_ld           => i_vgamma_coe_adr_ld,
-p_in_cfg_dcoe              => i_vgamma_coe_din,
-p_out_cfg_dcoe             => i_vgamma_coe_dout,
-p_in_cfg_dcoe_wr           => i_vgamma_coe_wr,
-p_in_cfg_dcoe_rd           => i_vgamma_coe_rd,
-p_in_cfg_coe_wrclk         => p_in_host_clk,
+p_in_cfg_coeram_num => i_vgamma_coe_ramnum(1 downto 0),
+p_in_cfg_acoe       => i_vgamma_coe_adr,
+p_in_cfg_acoe_ld    => i_vgamma_coe_adr_ld,
+p_in_cfg_dcoe       => i_vgamma_coe_din,
+p_out_cfg_dcoe      => i_vgamma_coe_dout,
+p_in_cfg_dcoe_wr    => i_vgamma_coe_wr,
+p_in_cfg_dcoe_rd    => i_vgamma_coe_rd,
+p_in_cfg_coe_wrclk  => p_in_host_clk,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => i_vpcolor_dout,
-p_in_upp_wd                => i_vpcolor_dout_en,
-p_out_upp_rdy_n            => i_vgamma_rdy_n,
+p_in_upp_data       => i_vpcolor_dout,
+p_in_upp_wd         => i_vpcolor_dout_en,
+p_out_upp_rdy_n     => i_vgamma_rdy_n,
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
-p_out_dwnp_data            => p_out_vbufout_din,
-p_out_dwnp_wd              => p_out_vbufout_din_wd,--tst_vbufout_din_wd,--
-p_in_dwnp_rdy_n            => p_in_vbufout_full,
+p_out_dwnp_data     => p_out_vbufout_din,
+p_out_dwnp_wd       => p_out_vbufout_din_wd,--tst_vbufout_din_wd,--
+p_in_dwnp_rdy_n     => p_in_vbufout_full,
+
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  => open,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => open,
 
 -------------------------------
 --System

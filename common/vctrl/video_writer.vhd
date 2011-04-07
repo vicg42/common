@@ -49,62 +49,62 @@ port
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_load              : in    std_logic;                   --//Загрузка параметров записи
-p_in_cfg_mem_trn_len       : in    std_logic_vector(7 downto 0);--//Размер одиночной транзакции MEM_WR
-p_in_cfg_prm_vch           : in    TWriterVCHParams;            --//Параметры записи видео каналов
-p_in_cfg_set_idle_vch      : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_cfg_load         : in    std_logic;                   --//Загрузка параметров записи
+p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);--//Размер одиночной транзакции MEM_WR
+p_in_cfg_prm_vch      : in    TWriterVCHParams;            --//Параметры записи видео каналов
+p_in_cfg_set_idle_vch : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
 
-p_in_vfr_buf               : in    TVfrBufs;                    --//Номер буфера где будет формироваться текущий кадр
+p_in_vfr_buf          : in    TVfrBufs;                    --//Номер буфера где будет формироваться текущий кадр
 
 --//Статусы
-p_out_vfr_rdy              : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
-p_out_vrow_mrk             : out   TVMrks;                      --//Маркер строки
+p_out_vfr_rdy         : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
+p_out_vrow_mrk        : out   TVMrks;                      --//Маркер строки
 
 --//--------------------------
 --//Upstream Port (Связь с буфером видеопакетов)
 --//--------------------------
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_out_upp_data_rd          : out   std_logic;
-p_in_upp_data_rdy          : in    std_logic;
-p_in_upp_buf_empty         : in    std_logic;
-p_in_upp_buf_full          : in    std_logic;
-p_in_upp_buf_pfull         : in    std_logic;
+p_in_upp_data         : in    std_logic_vector(31 downto 0);
+p_out_upp_data_rd     : out   std_logic;
+p_in_upp_data_rdy     : in    std_logic;
+p_in_upp_buf_empty    : in    std_logic;
+p_in_upp_buf_full     : in    std_logic;
+p_in_upp_buf_pfull    : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en             : in    std_logic;                    --//Разрешение арбитра
+p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
+p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk         : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end video_writer;
 
@@ -115,17 +115,17 @@ constant dly : time := 1 ps;
 
 type fsm_state is
 (
-  S_IDLE,
-  S_PKT_HEADER_READ,
-  S_MEM_CTRL_SEL_BANK,
-  S_MEM_CALC_REMAIN_SIZE,
-  S_MEM_TRN_LEN_CALC,
-  S_MEM_SET_ADR,
-  S_MEM_WAIT_RQ_EN,
-  S_MEM_SET_ADR_DONE,
-  S_MEM_TRN,
-  S_MEM_TRN_END,
-  S_EXIT
+S_IDLE,
+S_PKT_HEADER_READ,
+S_MEM_CTRL_SEL_BANK,
+S_MEM_CALC_REMAIN_SIZE,
+S_MEM_TRN_LEN_CALC,
+S_MEM_SET_ADR,
+S_MEM_WAIT_RQ_EN,
+S_MEM_SET_ADR_DONE,
+S_MEM_TRN,
+S_MEM_TRN_END,
+S_EXIT
 );
 signal fsm_state_cs: fsm_state;
 
@@ -245,12 +245,12 @@ begin
     end if;
   end if;
 end process;
-tst_dbg_dcount<=p_in_tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_DCOUNT_BIT);
+tst_dbg_dcount<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_DCOUNT_BIT);
 i_upp_data<=p_in_upp_data when tst_dbg_dcount='0' else tst_dcount;
 
 ----//для отладки обработки видео.
 ----//Запрещение записи любого кадра в VFRBUF
---tst_dbg_pictire<=p_in_tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_PICTURE_BIT);
+--tst_dbg_pictire<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 
 
 --//----------------------------------------------

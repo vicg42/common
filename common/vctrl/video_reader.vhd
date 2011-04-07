@@ -47,72 +47,72 @@ port
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_mem_trn_len       : in    std_logic_vector(7 downto 0);
-p_in_cfg_prm_vch           : in    TReaderVCHParams;
+p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
+p_in_cfg_prm_vch     : in    TReaderVCHParams;
 
-p_in_hrd_chsel             : in    std_logic_vector(3 downto 0);--//Хост: номер видеоканала выбраного для чтения
-p_in_hrd_start             : in    std_logic;                   --//Хост: Запуск чтения кадра
-p_in_hrd_done              : in    std_logic;                   --//Хост: Подтверждение вычитки кадра
+p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);--//Хост: номер видеоканала выбраного для чтения
+p_in_hrd_start       : in    std_logic;                   --//Хост: Запуск чтения кадра
+p_in_hrd_done        : in    std_logic;                   --//Хост: Подтверждение вычитки кадра
 
-p_in_vfr_buf               : in    TVfrBufs;                    --//Номер видеобувера с готовым кадром для соответствующего видеоканала
-p_in_vfr_nrow              : in    std_logic;                   --//Разрешение чтения следующей строки
+p_in_vfr_buf         : in    TVfrBufs;                    --//Номер видеобувера с готовым кадром для соответствующего видеоканала
+p_in_vfr_nrow        : in    std_logic;                   --//Разрешение чтения следующей строки
 
 --//Статусы
-p_out_vch_fr_new           : out   std_logic;
-p_out_vch_rd_done          : out   std_logic;
-p_out_vch                  : out   std_logic_vector(3 downto 0);
-p_out_vch_color_fst        : out   std_logic_vector(1 downto 0);
-p_out_vch_color            : out   std_logic;
-p_out_vch_pcolor           : out   std_logic;
-p_out_vch_active_pix       : out   std_logic_vector(15 downto 0);
-p_out_vch_active_row       : out   std_logic_vector(15 downto 0);
-p_out_vch_zoom             : out   std_logic_vector(3 downto 0);
-p_out_vch_zoom_type        : out   std_logic;
-p_out_vch_mirx             : out   std_logic;
+p_out_vch_fr_new     : out   std_logic;
+p_out_vch_rd_done    : out   std_logic;
+p_out_vch            : out   std_logic_vector(3 downto 0);
+p_out_vch_color_fst  : out   std_logic_vector(1 downto 0);
+p_out_vch_color      : out   std_logic;
+p_out_vch_pcolor     : out   std_logic;
+p_out_vch_active_pix : out   std_logic_vector(15 downto 0);
+p_out_vch_active_row : out   std_logic_vector(15 downto 0);
+p_out_vch_zoom       : out   std_logic_vector(3 downto 0);
+p_out_vch_zoom_type  : out   std_logic;
+p_out_vch_mirx       : out   std_logic;
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_out_upp_data             : out   std_logic_vector(31 downto 0);
-p_out_upp_data_wd          : out   std_logic;
-p_in_upp_buf_empty         : in    std_logic;
-p_in_upp_buf_full          : in    std_logic;
+p_out_upp_data       : out   std_logic_vector(31 downto 0);
+p_out_upp_data_wd    : out   std_logic;
+p_in_upp_buf_empty   : in    std_logic;
+p_in_upp_buf_full    : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en             : in    std_logic;                    --//Разрешение арбитра
+p_out_memarb_req     : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
+p_in_memarb_en       : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_ce         : out   std_logic;
+p_out_mem_cw         : out   std_logic;
+p_out_mem_rd         : out   std_logic;
+p_out_mem_wr         : out   std_logic;
+p_out_mem_term       : out   std_logic;
+p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf          : in    std_logic;
+p_in_mem_wpf         : in    std_logic;
+p_in_mem_re          : in    std_logic;
+p_in_mem_rpe         : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk        : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst             : in    std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk             : in    std_logic;
+p_in_rst             : in    std_logic
 );
 end video_reader;
 
@@ -123,15 +123,15 @@ constant dly : time := 1 ps;
 
 type fsm_state is
 (
-  S_IDLE,
-  S_LD_PRMS,
-  S_ROW_FINED0,
-  S_ROW_FINED1,
-  S_MEM_SET_ADR,
-  S_MEM_START,
-  S_MEM_RD,
-  S_ROW_NXT,
-  S_WAIT_HOST_ACK
+S_IDLE,
+S_LD_PRMS,
+S_ROW_FINED0,
+S_ROW_FINED1,
+S_MEM_SET_ADR,
+S_MEM_START,
+S_MEM_RD,
+S_ROW_NXT,
+S_WAIT_HOST_ACK
 );
 signal fsm_state_cs: fsm_state;
 
@@ -200,8 +200,8 @@ begin
 p_out_tst(31 downto 0)<=(others=>'0');
 
 
-tst_dbg_rdTBUF<=p_in_tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
-tst_dbg_rdEBUF<=p_in_tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
+tst_dbg_rdTBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
+tst_dbg_rdEBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
 
 --//----------------------------------------------
 --//Статусы
@@ -566,7 +566,7 @@ p_out_mem_clk              => p_out_mem_clk,
 -------------------------------
 --System
 -------------------------------
-p_in_tst                   => p_in_tst_ctrl,
+p_in_tst                   => p_in_tst,
 p_out_tst                  => open,--tst_mem_ctrl_ch_wr_out,
 
 p_in_clk            => p_in_clk,

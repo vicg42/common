@@ -62,60 +62,60 @@ p_in_cfg_done         : in   std_logic;                     --//
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_out_trc_hirq             : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
-p_out_trc_hdrdy            : out   std_logic; --//Флаг есть данные
-p_out_trc_hfrmrk           : out   std_logic_vector(31 downto 0);--//
-p_in_trc_hrddone           : in    std_logic; --//Подтверждение вычитки данных обработки
+p_out_trc_hirq        : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
+p_out_trc_hdrdy       : out   std_logic; --//Флаг есть данные
+p_out_trc_hfrmrk      : out   std_logic_vector(31 downto 0);--//
+p_in_trc_hrddone      : in    std_logic; --//Подтверждение вычитки данных обработки
 
-p_out_trc_bufo_dout        : out   std_logic_vector(31 downto 0);
-p_in_trc_bufo_rd           : in    std_logic;
-p_out_trc_bufo_empty       : out   std_logic;
+p_out_trc_bufo_dout   : out   std_logic_vector(31 downto 0);
+p_in_trc_bufo_rd      : in    std_logic;
+p_out_trc_bufo_empty  : out   std_logic;
 
-p_out_trc_busy             : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+p_out_trc_busy        : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
-p_in_vctrl_vrdprms         : in    TReaderVCHParams;
-p_in_vctrl_vfrrdy          : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_in_vctrl_vbuf            : in    TVfrBufs;
-p_in_vctrl_vrowmrk         : in    TVMrks;
+p_in_vctrl_vrdprms    : in    TReaderVCHParams;
+p_in_vctrl_vfrrdy     : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_vctrl_vbuf       : in    TVfrBufs;
+p_in_vctrl_vrowmrk    : in    TVMrks;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;
-p_in_memarb_en             : in    std_logic;
+p_out_memarb_req      : out   std_logic;
+p_in_memarb_en        : in    std_logic;
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk         : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end component;
 
@@ -573,100 +573,100 @@ p_in_cfg_done         : in   std_logic;                      --//
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_in_vctrl_hrdchsel        : in    std_logic_vector(3 downto 0);   --//
-p_in_vctrl_hrdstart        : in    std_logic;                      --//
-p_in_vctrl_hrddone         : in    std_logic;                      --//
-p_out_vctrl_hirq           : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);   --//
-p_out_vctrl_hdrdy          : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);   --//
-p_out_vctrl_hfrmrk         : out   std_logic_vector(31 downto 0);  --//
+p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --//Номер видео канала который будет читать ХОСТ
+p_in_vctrl_hrdstart   : in    std_logic;                      --//Начало чтенения видеоканала
+p_in_vctrl_hrddone    : in    std_logic;                      --//Подтверждение вычетки данных видеоканала
+p_out_vctrl_hirq      : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);  --//
 
 -------------------------------
 -- STATUS модуля dsn_video_ctrl.vhd
 -------------------------------
-p_out_vctrl_modrdy         : out   std_logic;                      --//
-p_out_vctrl_moderr         : out   std_logic;                      --//
-p_out_vctrl_rd_done        : out   std_logic;                      --//
+p_out_vctrl_modrdy    : out   std_logic;                      --//
+p_out_vctrl_moderr    : out   std_logic;                      --//
+p_out_vctrl_rd_done   : out   std_logic;                      --//
 
-p_out_vctrl_vrdprm         : out   TReaderVCHParams;
-p_out_vctrl_vfrrdy         : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vctrl_vrowmrk        : out   TVMrks;
+p_out_vctrl_vrdprm    : out   TReaderVCHParams;               --//Параметры видеоканалов
+p_out_vctrl_vfrrdy    : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
+p_out_vctrl_vrowmrk   : out   TVMrks;                         --//Маркер времени принятой строки
 
 --//--------------------------
 --//Связь с модулем слежения
 --//--------------------------
-p_in_trc_busy              : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
-p_out_trc_vbuf             : out   TVfrBufs;
+p_in_trc_busy         : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
+p_out_trc_vbuf        : out   TVfrBufs;                       --//Номера видео буферов с готовыми кадрами
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_vbuf_clk             : out   std_logic;                      --//
+p_out_vbuf_clk        : out   std_logic;                      --//
 
-p_in_vbufin_rdy            : in    std_logic;                      --//
-p_in_vbufin_dout           : in    std_logic_vector(31 downto 0);  --//
-p_out_vbufin_dout_rd       : out   std_logic;                      --//
-p_in_vbufin_empty          : in    std_logic;                      --//
-p_in_vbufin_full           : in    std_logic;                      --//
-p_in_vbufin_pfull          : in    std_logic;                      --//
+p_in_vbufin_rdy       : in    std_logic;                      --//Связь в буфером входной видеоинформации
+p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);  --//
+p_out_vbufin_dout_rd  : out   std_logic;                      --//
+p_in_vbufin_empty     : in    std_logic;                      --//
+p_in_vbufin_full      : in    std_logic;                      --//
+p_in_vbufin_pfull     : in    std_logic;                      --//
 
-p_out_vbufout_din          : out   std_logic_vector(31 downto 0);  --//
-p_out_vbufout_din_wd       : out   std_logic;                      --//
-p_in_vbufout_empty         : in    std_logic;                      --//
-p_in_vbufout_full          : in    std_logic;                      --//
+p_out_vbufout_din     : out   std_logic_vector(31 downto 0);  --//Связь с буферов видео данных для ХОСТА
+p_out_vbufout_din_wd  : out   std_logic;                      --//
+p_in_vbufout_empty    : in    std_logic;                      --//
+p_in_vbufout_full     : in    std_logic;                      --//
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
 --//CH WRITE
-p_out_memarb_wrreq         : out   std_logic;
-p_in_memarb_wren           : in    std_logic;
+p_out_memarb_wrreq    : out   std_logic;
+p_in_memarb_wren      : in    std_logic;
 
-p_out_memwr_bank1h         : out   std_logic_vector(15 downto 0);
-p_out_memwr_ce             : out   std_logic;
-p_out_memwr_cw             : out   std_logic;
-p_out_memwr_rd             : out   std_logic;
-p_out_memwr_wr             : out   std_logic;
-p_out_memwr_term           : out   std_logic;
-p_out_memwr_adr            : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_memwr_be             : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_memwr_din            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_memwr_dout            : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_memwr_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_memwr_ce        : out   std_logic;
+p_out_memwr_cw        : out   std_logic;
+p_out_memwr_rd        : out   std_logic;
+p_out_memwr_wr        : out   std_logic;
+p_out_memwr_term      : out   std_logic;
+p_out_memwr_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_memwr_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_memwr_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_memwr_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_memwr_wf              : in    std_logic;
-p_in_memwr_wpf             : in    std_logic;
-p_in_memwr_re              : in    std_logic;
-p_in_memwr_rpe             : in    std_logic;
+p_in_memwr_wf         : in    std_logic;
+p_in_memwr_wpf        : in    std_logic;
+p_in_memwr_re         : in    std_logic;
+p_in_memwr_rpe        : in    std_logic;
 
 --//CH READ
-p_out_memarb_rdreq         : out   std_logic;
-p_in_memarb_rden           : in    std_logic;
+p_out_memarb_rdreq    : out   std_logic;
+p_in_memarb_rden      : in    std_logic;
 
-p_out_memrd_bank1h         : out   std_logic_vector(15 downto 0);
-p_out_memrd_ce             : out   std_logic;
-p_out_memrd_cw             : out   std_logic;
-p_out_memrd_rd             : out   std_logic;
-p_out_memrd_wr             : out   std_logic;
-p_out_memrd_term           : out   std_logic;
-p_out_memrd_adr            : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_memrd_be             : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_memrd_din            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_memrd_dout            : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_memrd_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_memrd_ce        : out   std_logic;
+p_out_memrd_cw        : out   std_logic;
+p_out_memrd_rd        : out   std_logic;
+p_out_memrd_wr        : out   std_logic;
+p_out_memrd_term      : out   std_logic;
+p_out_memrd_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_memrd_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_memrd_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_memrd_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_memrd_wf              : in    std_logic;
-p_in_memrd_wpf             : in    std_logic;
-p_in_memrd_re              : in    std_logic;
-p_in_memrd_rpe             : in    std_logic;
+p_in_memrd_wf         : in    std_logic;
+p_in_memrd_wpf        : in    std_logic;
+p_in_memrd_re         : in    std_logic;
+p_in_memrd_rpe        : in    std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk                   : in    std_logic;
-p_in_rst                   : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end component;
 
