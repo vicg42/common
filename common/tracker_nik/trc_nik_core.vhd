@@ -487,30 +487,30 @@ port map (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_cfg_mirx              => p_in_prm_vch.fr_mirror.pix,
-p_in_cfg_pix_count         => p_in_prm_vch.fr_size.activ.pix,
+p_in_cfg_mirx       => p_in_prm_vch.fr_mirror.pix,
+p_in_cfg_pix_count  => p_in_prm_vch.fr_size.activ.pix,
 
-p_out_cfg_mirx_done        => i_vmirx_done,
+p_out_cfg_mirx_done => i_vmirx_done,
 
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data              => p_in_mem_dout,
-p_in_upp_wd                => p_in_mem_dout_en,
-p_out_upp_rdy_n            => p_out_mem_dout_rdy_n,
+p_in_upp_data       => p_in_mem_dout,
+p_in_upp_wd         => p_in_mem_dout_en,
+p_out_upp_rdy_n     => p_out_mem_dout_rdy_n,
 
 --//--------------------------
 --//Downstream Port
 --//--------------------------
-p_out_dwnp_data            => i_vmir_dout,
-p_out_dwnp_wd              => i_vmir_dout_en,
-p_in_dwnp_rdy_n            => i_vcoldemasc_rdy_n,
+p_out_dwnp_data     => i_vmir_dout,
+p_out_dwnp_wd       => i_vmir_dout_en,
+p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   => "00000000000000000000000000000000",
-p_out_tst                  => open,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => open,
 
 -------------------------------
 --System
