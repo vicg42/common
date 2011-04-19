@@ -63,6 +63,7 @@ vcom -93 "../testbanch/prj_cfg_sim.vhd"
 vcom -93 "../../../common/veresk_m/prj_def.vhd"
 vcom -93 "../../../common/hw/lib/vicg/v5/gtp_drp_ctrl.vhd"
 vcom -93 "../../../common/hw/lib/vicg/v5/gtp_prog_clkmux.vhd"
+vcom -93 "../../../common/hw/lib/vicg/v5/mclk_gtp_wrap.vhd"
 
 
 ##-------------------------------
