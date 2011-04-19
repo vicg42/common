@@ -30,6 +30,12 @@
 --                 Добавил generic - G_DOUT_WIDTH + и соответствующие изменения в связи с этим
 --                 Изменил управление Буферами строк и логику формирования матрц вычислений.
 --                 Теперь сделано по примеру от Xilix s3esk_video_line_stores.pdf (см. какалог ..\Sobel\doc)
+-- Revision 2.01 - add 19.04.2011 10:59:55
+--                 Поменял порядок цветовых каналов в выходных данных, (чтобы было как в vcoldemosaic_main_rev3xx.vhd)
+--                 Теперь:(7..0)  =B                                 а раньше было:(7..0)  =R
+--                        (15..8) =G                                               (15..8) =G
+--                        (23..16)=R                                               (23..16)=B
+--                        (31..24)=0xFF (прозрачность - альфа канал)               (31..24)=0xFF (прозрачность - альфа канал)
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -299,7 +305,6 @@ begin
 --//Связь с Upstream Port
 --//----------------------------------------------
 p_out_upp_rdy_n <= p_in_dwnp_rdy_n;
---p_out_upp_rdy_n <=i_upp_rdy_n_out or p_in_dwnp_rdy_n when p_in_cfg_bypass='0' else p_in_dwnp_rdy_n;
 
 
 --//-----------------------------
@@ -375,14 +380,12 @@ begin
 
       --//Кол-во тактов задержки = кол-ву операций вычислений:
       --//В общем случае может меняться в зависимости от кол-ва операций вычислений
---      sr_result_en<=(p_in_upp_wd or OR_reduce(i_byte_cnt)) & sr_result_en(0 to 3);
       sr_result_en<=p_in_upp_wd & sr_result_en(0 to 3);
 
   end if;--//if p_in_dwnp_rdy_n='0' then
   end if;
 end process;
 
---sr_byteline_en(0)<=OR_reduce(i_byte_cnt);
 sr_byteline_ld(0)<=p_in_upp_wd;
 
 
@@ -505,7 +508,7 @@ i_byte_cnt_init<="11";
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
-p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;--  when p_in_cfg_bypass='0' else p_in_dwnp_rdy_n;
+p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;
 
 
 --//-----------------------------
@@ -526,7 +529,6 @@ begin
     tmp_lbufs_awrite<=(others=>'0');
     i_byte_cnt<=(others=>'0');
     i_pix_cnt<=(others=>'0');
---    i_row_cnt<=(others=>'0');
     i_row_evod<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -871,9 +873,9 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dwnp_rdy_n='0' then
 
-        i_result_out(i)(7 downto 0)<=i_pix_result(i)(7 downto 0);--//R
+        i_result_out(i)(7 downto 0)<=i_pix_result(i)(23 downto 16);--//B
         i_result_out(i)(15 downto 8)<=i_pix_result(i)(15 downto 8);--//G
-        i_result_out(i)(23 downto 16)<=i_pix_result(i)(23 downto 16);--//B
+        i_result_out(i)(23 downto 16)<=i_pix_result(i)(7 downto 0);--//R
 
         sr_pix(i)(3)<=sr_pix(i)(2);
 

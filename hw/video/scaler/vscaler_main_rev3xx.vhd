@@ -346,8 +346,6 @@ begin
     p_out_tst(i)<=OR_reduce(dbg_sr_pix(i)(6));
     end loop;
 
---    p_out_tst(C_VSACL_MATRIX_COUNT)<=tst_synch;
-
   end if;
 end process;
 --p_out_tst(31 downto 0)<=(others=>'0');
@@ -359,7 +357,7 @@ p_out_cfg_zoom_done<='0';--i_zoom_work_done_out;
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
-p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;-- when i_cfg_bypass='0' else p_in_dwnp_rdy_n;
+p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;
 
 
 --//-----------------------------
@@ -744,7 +742,6 @@ begin
 
         if i_zoom_up_on='1' and p_in_cfg_zoom_type='0' then
             if (i_pix_cnt=p_in_cfg_pix_count-1 and i_zoom_cnt_pix=i_zoom_cnt_init and i_byte_cnt=i_byte_cnt_init) and i_zoom_cnt_row(0)=i_zoom_size_x4 then
-                  --((i_zoom_size_x2='1' and i_zoom_cnt_row(0)='0') or (i_zoom_size_x4='1' and i_zoom_cnt_row(0)='1')) then
               g_result_en<='1';
             end if;
         end if;
@@ -790,25 +787,24 @@ sr_result_byte_fst<=i_byte_cnt(0) & i_zoom_cnt_pix(0) when p_in_cfg_color='0' an
 sr_result_byte_en_fst<=(not p_in_cfg_color and
                          (  i_zoom_up_on or
                            (i_zoom_dwn_on and i_zoom_size_x2 and i_row_cnt(0) and i_byte_cnt(0)) or
-                           (i_zoom_dwn_on and i_zoom_size_x4 and i_row_cnt(1) and i_row_cnt(0) and i_byte_cnt(1) and i_byte_cnt(0))
+                           (i_zoom_dwn_on and i_zoom_size_x4 and AND_reduce(i_row_cnt(1 downto 0)) and AND_reduce(i_byte_cnt) )
                           )
                         );
 
 --Разрешение выдачи результата
 sr_result_en_fst<=(not p_in_cfg_color and
                     (
-                      (i_zoom_up_on  and sr_result_byte_fst(1) and sr_result_byte_fst(0)) or
-                      (i_zoom_dwn_on and sr_result_byte_fst(1) and sr_result_byte_fst(0) and sr_result_byte_en_fst)
+                      (i_zoom_up_on  and AND_reduce(sr_result_byte_fst)) or
+                      (i_zoom_dwn_on and AND_reduce(sr_result_byte_fst) and sr_result_byte_en_fst)
                     )
                   ) or
                   (   p_in_cfg_color and
                       (
                         (i_zoom_up_on  and (tmp_lbuf_ena or tmp_lbuf_enb or OR_reduce(i_zoom_cnt_pix))) or
                         (i_zoom_dwn_on and i_zoom_size_x2 and i_row_cnt(0) and i_pix_cnt(0) and tmp_lbuf_ena) or
-                        (i_zoom_dwn_on and i_zoom_size_x4 and i_row_cnt(1) and i_row_cnt(0) and i_pix_cnt(1) and i_pix_cnt(0) and tmp_lbuf_ena)
+                        (i_zoom_dwn_on and i_zoom_size_x4 and AND_reduce(i_row_cnt(1 downto 0)) and AND_reduce(i_pix_cnt(1 downto 0)) and tmp_lbuf_ena)
                       )
                   );
-
 
 --//линии задержки
 process(p_in_rst,p_in_clk)
@@ -834,8 +830,7 @@ begin
         sr_result_byte<=sr_result_byte_fst_d & sr_result_byte(0 to 6);
 
         --//Формирование и выдача результата
-  --        sr_result_en2(0)<=sr_result_en(6) & sr_result_en2(0 to 1);
-        sr_result_en2(0)<=sr_result_en(6);
+          sr_result_en2(0)<=sr_result_en(6);
         sr_result_en2(1)<=sr_result_en2(0);
 
     end if;--//if p_in_dwnp_rdy_n='0' then

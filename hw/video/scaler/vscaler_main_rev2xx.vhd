@@ -209,7 +209,7 @@ signal i_cfg_bypass                      : std_logic;
 signal i_zoom_size                       : std_logic_vector(1 downto 0);
 signal i_zoom_size_x2                    : std_logic;
 signal i_zoom_size_x4                    : std_logic;
-signal i_zoom_work_done_out              : std_logic;
+--signal i_zoom_work_done_out              : std_logic;
 
 signal i_zoom_cnt_init                   : std_logic_vector(1 downto 0);
 signal i_zoom_cnt_pix                    : std_logic_vector(1 downto 0);
@@ -325,8 +325,6 @@ begin
     for i in 0 to C_VSACL_MATRIX_COUNT-1 loop
     p_out_tst(0)<=OR_reduce(dbg_sr_pix(i)(6));
     end loop;
---
---    p_out_tst(1)<='0';
 
   end if;
 end process;
@@ -340,7 +338,7 @@ p_out_cfg_zoom_done<='0';--i_zoom_work_done_out;
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
-p_out_upp_rdy_n <=p_in_dwnp_rdy_n or OR_reduce(i_zoom_cnt_row) or i_upp_rdy_n_out;-- when i_cfg_bypass='0' else p_in_dwnp_rdy_n;
+p_out_upp_rdy_n <=p_in_dwnp_rdy_n or OR_reduce(i_zoom_cnt_row) or i_upp_rdy_n_out;
 
 
 --//-----------------------------
@@ -394,7 +392,7 @@ m_buf0 : vscale_bram
 port map
 (
 --//READ FIRST
-addra=> i_lbufs_adra,
+addra=> i_lbufs_adra(9 downto 0),
 dina => p_in_upp_data,
 douta=> i_lbufs_douta(1),
 ena  => i_lbuf_ena(0),
@@ -403,7 +401,7 @@ clka => p_in_clk,
 rsta => p_in_rst,
 
 --//WRITE FIRST
-addrb=> i_lbufs_adra,--"0000000000",
+addrb=> i_lbufs_adra(9 downto 0),
 dinb => "00000000000000000000000000000000",
 doutb=> i_lbufs_doutb(1),
 enb  => i_lbuf_enb,
@@ -417,7 +415,7 @@ m_buf1 : vscale_bram
 port map
 (
 --//READ FIRST
-addra=> i_lbufs_adra,
+addra=> i_lbufs_adra(9 downto 0),
 dina => i_lbufs_douta(1),
 douta=> i_lbufs_douta(2),
 ena  => i_lbuf_ena(0),
@@ -426,7 +424,7 @@ clka => p_in_clk,
 rsta => p_in_rst,
 
 --//WRITE FIRST
-addrb=> i_lbufs_adra,--"0000000000",
+addrb=> i_lbufs_adra(9 downto 0),
 dinb => "00000000000000000000000000000000",
 doutb=> i_lbufs_doutb(2),
 enb  => i_lbuf_enb,
@@ -440,7 +438,7 @@ m_buf2 : vscale_bram
 port map
 (
 --//READ FIRST
-addra=> i_lbufs_adra,
+addra=> i_lbufs_adra(9 downto 0),
 dina => i_lbufs_douta(2),
 douta=> i_lbufs_douta(3),
 ena  => i_lbuf_ena(0),
@@ -449,7 +447,7 @@ clka => p_in_clk,
 rsta => p_in_rst,
 
 --//WRITE FIRST
-addrb=> i_lbufs_adra,--"0000000000",
+addrb=> i_lbufs_adra(9 downto 0),
 dinb => "00000000000000000000000000000000",
 doutb=> i_lbufs_doutb(3),
 enb  => i_lbuf_enb,
@@ -731,7 +729,6 @@ begin
       sr_result_byte<=sr_result_byte_fst & sr_result_byte(0 to 6);
 
       --//Формирование и выдача результата
---      sr_result_en2(0)<=sr_result_en(6) & sr_result_en2(0 to 1);
       sr_result_en2(0)<=sr_result_en(6);
       sr_result_en2(1)<=sr_result_en2(0);
 

@@ -324,17 +324,17 @@ begin
 --process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
---    p_out_tst(7 downto 0)<=(others=>'0');
+--    p_out_tst(31 downto 0)<=(others=>'0');
 --  elsif p_in_clk'event and p_in_clk='1' then
 ----    for i in 0 to G_DOUT_WIDTH/8-1 loop
 ----      p_out_tst(1)<=OR_reduce(i_mult_01_div_rem(i)) or i_mult_div_rem_result(i)(7);
 ----      p_out_tst(2)<=OR_reduce(i_mult_02_div_rem(i));
 ----    end loop;
 --
---    p_out_tst(0)<=OR_reduce(i_byte_cnt);-- or OR_reduce(i_pix_cnt) or OR_reduce(i_row_cnt) or i_result_pix;
+--    p_out_tst(0)<=OR_reduce(i_byte_cnt);
 --  end if;
 --end process;
-p_out_tst(7 downto 0)<=(others=>'0');
+p_out_tst(31 downto 0)<=(others=>'0');
 
 
 --//-----------------------------
@@ -429,8 +429,7 @@ i_upp_wd<=p_in_upp_wd;
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
---p_out_upp_rdy_n <= p_in_dwnp_rdy_n;
-p_out_upp_rdy_n <= p_in_dwnp_rdy_n or i_add_row_en1;-- when p_in_cfg_bypass='0' else p_in_dwnp_rdy_n;--//add 30.01.2011 9:44:22
+p_out_upp_rdy_n <= p_in_dwnp_rdy_n or i_add_row_en1;
 
 --//-----------------------------
 --//Вывод результата
@@ -664,7 +663,7 @@ i_byte_cnt_init<="11";
 --//----------------------------------------------
 --//Связь с Upstream Port
 --//----------------------------------------------
-p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;-- when p_in_cfg_bypass='0' else p_in_dwnp_rdy_n;--//add 30.01.2011 9:44:22
+p_out_upp_rdy_n <=p_in_dwnp_rdy_n or i_upp_rdy_n_out;
 
 --//-----------------------------
 --//Вывод результата
@@ -1025,7 +1024,6 @@ begin
     i_sum_pix0_line1_x2(i)<=i_matrix(i)(1)(0)&'0';
     i_sum_pix2_line1_x2(i)<=i_matrix(i)(1)(2)&'0';
 
---    sr_pix(i)(0)<=i_matrix(i)(2)(2);
     sr_pix(i)(0)<=i_matrix(i)(1)(1);--//add 20.01.2011 18:59:43
                                     --//Теперь на выходной порт выдается вместе с общитаным пикселем и
                                     --//его реальная яркость
@@ -1112,9 +1110,6 @@ begin
     end if;
       i_delt_ys_dly0(i)(i_delt_ys(i)'length-2 downto 0)<=i_delt_ys(i)(i_delt_ys(i)'length-2 downto 0);
 
---    i_delt_xs_dly0(i)<=i_delt_xs(i);
---    i_delt_ys_dly0(i)<=i_delt_ys(i);
-
     sr_pix(i)(4)<=sr_pix(i)(3);
 
 
@@ -1125,7 +1120,6 @@ begin
       --//Точная апроксимация формулы вычисления градиента (dx^2 + dy^2)^0.5
       --//i_mult_01/128  +  i_mult_02/32
       tmp_grad_out(i)<=i_mult_01_div(i) + i_mult_02_div(i);
---      i_mult_div_rem_result(i)<=('0'&i_mult_01_div_rem(i)) + ('0'&i_mult_02_div_rem(i)&"00");
     else
       --//Грубая апроксимация формулы вычисления градиента (dx^2 + dy^2)^0.5
       tmp_grad_out(i)<=EXT(i_delt_xm_dly0(i), tmp_grad_out(i)'length) + EXT(i_delt_ym_dly0(i), tmp_grad_out(i)'length);--//add 2010.11.10
