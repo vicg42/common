@@ -42,11 +42,11 @@
 -- All rights reserved.
 
 ------------------------------------------------------------------------
--- Description:  This is the VHDL instantiation of a Virtex-5 GTP    
+-- Description:  This is the VHDL instantiation of a Virtex-5 GTP
 --               RocketIO tile for the Embedded Ethernet MAC.
 --
---               Two GTP's must be instantiated regardless of how many  
---               GTPs are used in the MGT tile. 
+--               Two GTP's must be instantiated regardless of how many
+--               GTPs are used in the MGT tile.
 ------------------------------------------------------------------------
 
 library ieee;
@@ -59,35 +59,37 @@ use UNISIM.Vcomponents.ALL;
 
 entity GTP_dual_1000X is
    port (
+          p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
+
           RESETDONE_0           : out   std_logic;
-          ENMCOMMAALIGN_0       : in    std_logic; 
-          ENPCOMMAALIGN_0       : in    std_logic; 
-          LOOPBACK_0            : in    std_logic; 
+          ENMCOMMAALIGN_0       : in    std_logic;
+          ENPCOMMAALIGN_0       : in    std_logic;
+          LOOPBACK_0            : in    std_logic;
           RXUSRCLK_0            : in    std_logic;
           RXUSRCLK2_0           : in    std_logic;
-          RXRESET_0             : in    std_logic;          
-          TXCHARDISPMODE_0      : in    std_logic; 
-          TXCHARDISPVAL_0       : in    std_logic; 
-          TXCHARISK_0           : in    std_logic; 
-          TXDATA_0              : in    std_logic_vector (7 downto 0); 
-          TXUSRCLK_0            : in    std_logic; 
-          TXUSRCLK2_0           : in    std_logic; 
-          TXRESET_0             : in    std_logic; 
-          RXCHARISCOMMA_0       : out   std_logic; 
+          RXRESET_0             : in    std_logic;
+          TXCHARDISPMODE_0      : in    std_logic;
+          TXCHARDISPVAL_0       : in    std_logic;
+          TXCHARISK_0           : in    std_logic;
+          TXDATA_0              : in    std_logic_vector (7 downto 0);
+          TXUSRCLK_0            : in    std_logic;
+          TXUSRCLK2_0           : in    std_logic;
+          TXRESET_0             : in    std_logic;
+          RXCHARISCOMMA_0       : out   std_logic;
           RXCHARISK_0           : out   std_logic;
-          RXCLKCORCNT_0         : out   std_logic_vector (2 downto 0);           
-          RXDATA_0              : out   std_logic_vector (7 downto 0); 
-          RXDISPERR_0           : out   std_logic; 
+          RXCLKCORCNT_0         : out   std_logic_vector (2 downto 0);
+          RXDATA_0              : out   std_logic_vector (7 downto 0);
+          RXDISPERR_0           : out   std_logic;
           RXNOTINTABLE_0        : out   std_logic;
-          RXRUNDISP_0           : out   std_logic; 
+          RXRUNDISP_0           : out   std_logic;
           RXBUFERR_0            : out   std_logic;
-          TXBUFERR_0            : out   std_logic; 
-          PLLLKDET_0            : out   std_logic; 
-          TXOUTCLK_0            : out   std_logic; 
+          TXBUFERR_0            : out   std_logic;
+          PLLLKDET_0            : out   std_logic;
+          TXOUTCLK_0            : out   std_logic;
           RXELECIDLE_0    	: out   std_logic;
-          TX1N_0                : out   std_logic; 
+          TX1N_0                : out   std_logic;
           TX1P_0                : out   std_logic;
-          RX1N_0                : in    std_logic; 
+          RX1N_0                : in    std_logic;
           RX1P_0                : in    std_logic;
 
           TX1N_1_UNUSED         : out   std_logic;
@@ -141,7 +143,7 @@ architecture structural of GTP_dual_1000X is
   );
   port
   (
-
+    p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
     --_________________________________________________________________________
     --_________________________________________________________________________
     --TILE0  (Location)
@@ -236,13 +238,13 @@ architecture structural of GTP_dual_1000X is
    signal GND_BUS               : std_logic_vector (55 downto 0);
    signal PLLLOCK               : std_logic;
 
-            
-   signal RXNOTINTABLE_0_INT    : std_logic;   
+
+   signal RXNOTINTABLE_0_INT    : std_logic;
    signal RXDATA_0_INT          : std_logic_vector (7 downto 0);
-   signal RXCHARISK_0_INT       : std_logic;   
+   signal RXCHARISK_0_INT       : std_logic;
    signal RXDISPERR_0_INT       : std_logic;
    signal RXRUNDISP_0_INT       : std_logic;
-         
+
    signal RXBUFSTATUS_float0    : std_logic_vector(1 downto 0);
    signal TXBUFSTATUS_float0    : std_logic;
    signal gt_txoutclk1_0        : std_logic;
@@ -262,15 +264,15 @@ begin
    GND_BUS(55 downto 0) <= (others => '0');
 
    ----------------------------------------------------------------------
-   -- Wait for both PLL's to lock   
+   -- Wait for both PLL's to lock
    ----------------------------------------------------------------------
 
-   
+
    PLLLKDET_0        <=   PLLLOCK;
 
 
    ----------------------------------------------------------------------
-   -- Wire internal signals to outputs   
+   -- Wire internal signals to outputs
    ----------------------------------------------------------------------
 
    RXNOTINTABLE_0  <=   RXNOTINTABLE_0_INT;
@@ -280,8 +282,8 @@ begin
    RESETDONE_0          <= resetdone0_i;
    RXELECIDLE_0         <= rxelecidle0_i;
 
-  
- 
+
+
 
    REFCLKOUT <= refclk_out;
 
@@ -296,7 +298,7 @@ begin
        reset_r <= reset_r(2 downto 0) & PMARESET;
      end if;
    end process;
-  
+
    pma_reset_i <= reset_r(3);
 
    ----------------------------------------------------------------------
@@ -309,8 +311,10 @@ begin
     generic map (
         WRAPPER_SIM_GTPRESET_SPEEDUP   => 1,
         WRAPPER_SIM_PLL_PERDIV2        => x"190"
-    )    
+    )
     port map (
+        p_in_drp_ctrl        => p_in_drp_ctrl,
+
         ------------------- Shared Ports - Tile and PLL Ports --------------------
         TILE0_CLKIN_IN                 => CLK_DS,
         TILE0_GTPRESET_IN              => pma_reset_i,
@@ -343,7 +347,7 @@ begin
         ----- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
         TILE0_RXELECIDLE0_OUT          => rxelecidle0_i,
         TILE0_RXN0_IN                  => RX1N_0,
-        TILE0_RXP0_IN                  => RX1P_0,       
+        TILE0_RXP0_IN                  => RX1P_0,
         ------------- ResetDone Ports --------------------------------------------
         TILE0_RESETDONE0_OUT           => resetdone0_i,
         -------------- Transmit Ports - 8b10b Encoder Control Ports --------------
@@ -351,7 +355,7 @@ begin
         TILE0_TXCHARDISPVAL0_IN        => TXCHARDISPVAL_0,
         TILE0_TXCHARISK0_IN            => TXCHARISK_0,
         ----------- Transmit Ports - TX Buffering and Phase Alignment ------------
-        TILE0_TXBUFSTATUS0_OUT(1)      => TXBUFERR_0, 
+        TILE0_TXBUFSTATUS0_OUT(1)      => TXBUFERR_0,
         TILE0_TXBUFSTATUS0_OUT(0)      => TXBUFSTATUS_float0,
         ---------------- Transmit Ports - TX Data Path interface -----------------
         TILE0_TXDATA0_IN               => TXDATA_0,
@@ -380,7 +384,7 @@ begin
         TILE0_RXBUFSTATUS1_OUT         => open,
         TILE0_RXELECIDLE1_OUT          => open,
         TILE0_RXN1_IN                  => RX1N_1_UNUSED,
-        TILE0_RXP1_IN                  => RX1P_1_UNUSED,       
+        TILE0_RXP1_IN                  => RX1P_1_UNUSED,
         TILE0_RESETDONE1_OUT           => open,
         TILE0_TXCHARDISPMODE1_IN       => '0',
         TILE0_TXCHARDISPVAL1_IN        => '0',
@@ -392,10 +396,10 @@ begin
         TILE0_TXUSRCLK1_IN             => '0',
         TILE0_TXUSRCLK21_IN            => '0',
         TILE0_TXN1_OUT                 => TX1N_1_UNUSED,
-        TILE0_TXP1_OUT                 => TX1P_1_UNUSED	
+        TILE0_TXP1_OUT                 => TX1P_1_UNUSED
    );
 
-                       
+
    -------------------------------------------------------------------------------
    -- EMAC0 to GTP logic shim
    -------------------------------------------------------------------------------

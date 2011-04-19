@@ -41,14 +41,14 @@
 -- All rights reserved.
 
 -------------------------------------------------------------------------------
--- Description:  This is the EMAC block level VHDL design for the Virtex-5 
+-- Description:  This is the EMAC block level VHDL design for the Virtex-5
 --               Embedded Ethernet MAC Example Design.  It is intended that
 --               this example design can be quickly adapted and downloaded onto
 --               an FPGA to provide a real hardware test environment.
 --
 --               The block level:
 --
---               * instantiates all clock management logic required (BUFGs, 
+--               * instantiates all clock management logic required (BUFGs,
 --                 DCMs) to operate the EMAC and its example design;
 --
 --               * instantiates appropriate PHY interface modules (GMII, MII,
@@ -75,9 +75,12 @@ use ieee.std_logic_1164.all;
 -------------------------------------------------------------------------------
 entity emac_core_block is
    port(
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+
       -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
-      CLK125_OUT                      : out std_logic;                 
+      CLK125_OUT                      : out std_logic;
       -- 125MHz clock input from BUFG
       CLK125                          : in  std_logic;
 
@@ -113,7 +116,7 @@ entity emac_core_block is
       -- EMAC0 Interrupt
       EMAC0ANINTERRUPT                : out std_logic;
 
- 
+
       -- Clock Signals - EMAC0
       -- 1000BASE-X PCS/PMA Interface - EMAC0
       TXP_0                           : out std_logic;
@@ -129,11 +132,11 @@ entity emac_core_block is
       RXN_1_UNUSED                    : in  std_logic;
       RXP_1_UNUSED                    : in  std_logic;
 
-      -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs 
+      -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
       CLK_DS                          : in  std_logic;
 
-        
-        
+
+
       -- Asynchronous Reset
       RESET                           : in  std_logic
    );
@@ -221,39 +224,41 @@ architecture TOP_LEVEL of emac_core_block is
   end component;
 
 
-         
+
   -- Component Declaration for the RocketIO wrapper
     component GTP_dual_1000X
    port (
+          p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
+
           RESETDONE_0           : out   std_logic;
-          ENMCOMMAALIGN_0       : in    std_logic; 
-          ENPCOMMAALIGN_0       : in    std_logic; 
-          LOOPBACK_0            : in    std_logic; 
+          ENMCOMMAALIGN_0       : in    std_logic;
+          ENPCOMMAALIGN_0       : in    std_logic;
+          LOOPBACK_0            : in    std_logic;
           RXUSRCLK_0            : in    std_logic;
           RXUSRCLK2_0           : in    std_logic;
-          RXRESET_0             : in    std_logic;          
-          TXCHARDISPMODE_0      : in    std_logic; 
-          TXCHARDISPVAL_0       : in    std_logic; 
-          TXCHARISK_0           : in    std_logic; 
-          TXDATA_0              : in    std_logic_vector (7 downto 0); 
-          TXUSRCLK_0            : in    std_logic; 
-          TXUSRCLK2_0           : in    std_logic; 
-          TXRESET_0             : in    std_logic; 
-          RXCHARISCOMMA_0       : out   std_logic; 
+          RXRESET_0             : in    std_logic;
+          TXCHARDISPMODE_0      : in    std_logic;
+          TXCHARDISPVAL_0       : in    std_logic;
+          TXCHARISK_0           : in    std_logic;
+          TXDATA_0              : in    std_logic_vector (7 downto 0);
+          TXUSRCLK_0            : in    std_logic;
+          TXUSRCLK2_0           : in    std_logic;
+          TXRESET_0             : in    std_logic;
+          RXCHARISCOMMA_0       : out   std_logic;
           RXCHARISK_0           : out   std_logic;
-          RXCLKCORCNT_0         : out   std_logic_vector (2 downto 0);           
-          RXDATA_0              : out   std_logic_vector (7 downto 0); 
-          RXDISPERR_0           : out   std_logic; 
+          RXCLKCORCNT_0         : out   std_logic_vector (2 downto 0);
+          RXDATA_0              : out   std_logic_vector (7 downto 0);
+          RXDISPERR_0           : out   std_logic;
           RXNOTINTABLE_0        : out   std_logic;
-          RXRUNDISP_0           : out   std_logic; 
+          RXRUNDISP_0           : out   std_logic;
           RXBUFERR_0            : out   std_logic;
-          TXBUFERR_0            : out   std_logic; 
-          PLLLKDET_0            : out   std_logic; 
-          TXOUTCLK_0            : out   std_logic; 
+          TXBUFERR_0            : out   std_logic;
+          PLLLKDET_0            : out   std_logic;
+          TXOUTCLK_0            : out   std_logic;
           RXELECIDLE_0    	: out   std_logic;
-          TX1N_0                : out   std_logic; 
+          TX1N_0                : out   std_logic;
           TX1P_0                : out   std_logic;
-          RX1N_0                : in    std_logic; 
+          RX1N_0                : in    std_logic;
           RX1P_0                : in    std_logic;
 
           TX1N_1_UNUSED         : out   std_logic;
@@ -270,7 +275,7 @@ architecture TOP_LEVEL of emac_core_block is
   end component;
 
 
- 
+
 
 -------------------------------------------------------------------------------
 -- Signal Declarations
@@ -323,15 +328,15 @@ architecture TOP_LEVEL of emac_core_block is
 
 
     signal usrclk2                        : std_logic;
-   
+
     signal refclkout                      : std_logic;
-    signal dcm_locked_gtp                 : std_logic;  
-    signal plllock_0_i                    : std_logic;     
+    signal dcm_locked_gtp                 : std_logic;
+    signal plllock_0_i                    : std_logic;
 
 
 
 -------------------------------------------------------------------------------
--- Attribute Declarations 
+-- Attribute Declarations
 -------------------------------------------------------------------------------
 
   attribute ASYNC_REG : string;
@@ -367,16 +372,19 @@ begin
     -- The reset pulse is now several clock cycles in duration
     reset_i <= reset_r(3);
 
- 
-   
+
+
     ---------------------------------------------------------------------------
     -- Instantiate RocketIO tile for SGMII or 1000BASE-X PCS/PMA Physical I/F
     ---------------------------------------------------------------------------
 
+    p_out_gtp_plllkdet  <= plllock_0_i;
 
     --EMAC0-only instance
     GTP_DUAL_1000X_inst : GTP_dual_1000X
       PORT MAP (
+         p_in_drp_ctrl         => p_in_drp_ctrl,
+
          RESETDONE_0           =>   RESETDONE_0,
          ENMCOMMAALIGN_0       =>   encommaalign_0_i,
          ENPCOMMAALIGN_0       =>   encommaalign_0_i,
@@ -390,7 +398,7 @@ begin
          TXDATA_0              =>   mgt_tx_data_0_r,
          TXUSRCLK_0            =>   usrclk2,
          TXUSRCLK2_0           =>   usrclk2,
-         TXRESET_0             =>   mgt_tx_reset_0_i,                                   
+         TXRESET_0             =>   mgt_tx_reset_0_i,
          RXCHARISCOMMA_0       =>   rxchariscomma_0_i,
          RXCHARISK_0           =>   rxcharisk_0_i,
          RXCLKCORCNT_0         =>   rxclkcorcnt_0_i,
@@ -398,7 +406,7 @@ begin
          RXDISPERR_0           =>   rxdisperr_0_i,
          RXNOTINTABLE_0        =>   rxnotintable_0_i,
          RXRUNDISP_0           =>   rxrundisp_0_i,
-         RXBUFERR_0            =>   rxbuferr_0_i,         
+         RXBUFERR_0            =>   rxbuferr_0_i,
          TXBUFERR_0            =>   txbuferr_0_i,
          PLLLKDET_0            =>   plllock_0_i,
          RXELECIDLE_0	       =>   elecidle_0_i,
@@ -424,7 +432,7 @@ begin
 
 
     ---------------------------------------------------------------------------
-    -- Generate the buffer status input to the EMAC0 from the buffer error 
+    -- Generate the buffer status input to the EMAC0 from the buffer error
     -- output of the transceiver
     ---------------------------------------------------------------------------
     rxbufstatus_0_i(1) <= rxbuferr_0_i;
@@ -481,7 +489,7 @@ begin
     CLK125_OUT                <= refclkout;
 
 
- 
+
 
     --------------------------------------------------------------------------
     -- Instantiate the EMAC Wrapper (emac_core.vhd)
@@ -490,7 +498,7 @@ begin
     port map (
         -- Client Receiver Interface - EMAC0
         EMAC0CLIENTRXCLIENTCLKOUT       => rx_client_clk_out_0_i,
-        CLIENTEMAC0RXCLIENTCLKIN        => rx_client_clk_in_0_i, 
+        CLIENTEMAC0RXCLIENTCLKIN        => rx_client_clk_in_0_i,
         EMAC0CLIENTRXD                  => EMAC0CLIENTRXD,
         EMAC0CLIENTRXDVLD               => EMAC0CLIENTRXDVLD,
         EMAC0CLIENTRXDVLDMSW            => open,
@@ -559,9 +567,9 @@ begin
         RESET                           => reset_i
         );
 
-  
- 
 
 
- 
+
+
+
 end TOP_LEVEL;

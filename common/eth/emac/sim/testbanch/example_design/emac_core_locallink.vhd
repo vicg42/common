@@ -155,6 +155,9 @@ architecture TOP_LEVEL of emac_core_locallink is
   -- Component Declaration for the main EMAC wrapper
   component emac_core_block is
    port(
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+
       -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
       CLK125_OUT                      : out std_logic;
@@ -328,7 +331,7 @@ architecture TOP_LEVEL of emac_core_locallink is
 begin
 
 
-      p_out_gtp_plllkdet <='0';
+--      p_out_gtp_plllkdet <='0';
       p_out_ust_tst      <=(others=>'0');
 
     ---------------------------------------------------------------------------
@@ -341,6 +344,9 @@ begin
     --------------------------------------------------------------------------
     v5_emac_block : emac_core_block
     port map (
+      p_in_drp_ctrl                   => p_in_drp_ctrl,
+      p_out_gtp_plllkdet              => p_out_gtp_plllkdet,
+
           -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
       CLK125_OUT                      => CLK125_OUT,

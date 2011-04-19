@@ -111,14 +111,6 @@ end dsn_host;
 
 architecture behavioral of dsn_host is
 
-component mclk_gtp_wrap
-port
-(
-clkin  : in    std_logic;
-clkout : out   std_logic
-);
-end component;
-
 component lbus_connector_32bit_tst
 generic
 (

@@ -3,15 +3,15 @@
 --$RCSfile: rocketio_wrapper_gtp_vhdl_vhd.ejava,v $
 --$Revision: 1.3 $
 -------------------------------------------------------------------------------
---   ____  ____ 
---  /   /\/   / 
--- /___/  \  /    Vendor: Xilinx 
--- \   \   \/     Version : 1.8 
---  \   \         Application : GTP Wizard 
+--   ____  ____
+--  /   /\/   /
+-- /___/  \  /    Vendor: Xilinx
+-- \   \   \/     Version : 1.8
+--  \   \         Application : GTP Wizard
 --  /   /         Filename : rocketio_wrapper.vhd
 -- /___/   /\     Timestamp : 02/08/2005 09:12:43
--- \   \  /  \ 
---  \___\/\___\ 
+-- \   \  /  \
+--  \___\/\___\
 --
 --
 -- Module ROCKETIO_WRAPPER (a GTP Wrapper)
@@ -35,7 +35,8 @@ generic
 );
 port
 (
-    
+    p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
+
     --_________________________________________________________________________
     --_________________________________________________________________________
     --TILE0  (Location)
@@ -136,28 +137,30 @@ architecture RTL of ROCKETIO_WRAPPER_GTP is
     signal  tied_to_ground_i                :   std_logic;
     signal  tied_to_ground_vec_i            :   std_logic_vector(63 downto 0);
     signal  tied_to_vcc_i                   :   std_logic;
-    
+
 
 
 
 --*************************** Component Declarations **************************
 
-component ROCKETIO_WRAPPER_GTP_TILE 
+component ROCKETIO_WRAPPER_GTP_TILE
 generic
 (
     -- Simulation attributes
     TILE_SIM_GTPRESET_SPEEDUP    : integer   := 0; -- Set to 1 to speed up sim reset
-    TILE_SIM_PLL_PERDIV2         : bit_vector:= x"190"; -- Set to the VCO Unit Interval time 
+    TILE_SIM_PLL_PERDIV2         : bit_vector:= x"190"; -- Set to the VCO Unit Interval time
 
     -- Channel bonding attributes
     TILE_CHAN_BOND_MODE_0        : string    := "OFF";  -- "MASTER", "SLAVE", or "OFF"
     TILE_CHAN_BOND_LEVEL_0       : integer   := 0;     -- 0 to 7. See UG for details
-    
+
     TILE_CHAN_BOND_MODE_1        : string    := "OFF";  -- "MASTER", "SLAVE", or "OFF"
     TILE_CHAN_BOND_LEVEL_1       : integer   := 0      -- 0 to 7. See UG for details
 );
-port 
-(   
+port
+(
+    p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
+
     ------------------------ Loopback and Powerdown Ports ----------------------
     LOOPBACK0_IN                            : in   std_logic_vector(2 downto 0);
     LOOPBACK1_IN                            : in   std_logic_vector(2 downto 0);
@@ -245,13 +248,13 @@ end component;
 
 --********************************* Main Body of Code**************************
 
-begin                       
+begin
 
     tied_to_ground_i                    <= '0';
     tied_to_ground_vec_i(63 downto 0)   <= (others => '0');
     tied_to_vcc_i                       <= '1';
 
-    --------------------------- Tile Instances  -------------------------------   
+    --------------------------- Tile Instances  -------------------------------
 
 
     --_________________________________________________________________________
@@ -268,12 +271,14 @@ begin
         -- Channel bonding attributes
         TILE_CHAN_BOND_MODE_0        => "OFF",
         TILE_CHAN_BOND_LEVEL_0       => 0,
-    
+
         TILE_CHAN_BOND_MODE_1        => "OFF",
         TILE_CHAN_BOND_LEVEL_1       => 0
     )
     port map
     (
+        p_in_drp_ctrl         => p_in_drp_ctrl,
+
         ------------------------ Loopback and Powerdown Ports ----------------------
         LOOPBACK0_IN                    =>      TILE0_LOOPBACK0_IN,
         LOOPBACK1_IN                    =>      TILE0_LOOPBACK1_IN,
@@ -355,6 +360,6 @@ begin
 
     );
 
-    
-     
+
+
 end RTL;

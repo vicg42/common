@@ -3,15 +3,15 @@
 --$RCSfile: rocketio_wrapper_gtp_vhdl_tile_vhd.ejava,v $
 --$Revision: 1.3 $
 -------------------------------------------------------------------------------
---   __  __ 
---  /   /\/   / 
--- /__/  \   /    Vendor: Xilinx 
+--   __  __
+--  /   /\/   /
+-- /__/  \   /    Vendor: Xilinx
 -- \   \   \/     Version : 1.8
---  \   \         Application : GTP Wizard 
+--  \   \         Application : GTP Wizard
 --  /   /         Filename : rocketio_wrapper_gtp_vhdl_tile.vhd
 -- /__/   /\      Timestamp : 02/08/2005 09:12:43
--- \   \  /  \ 
---  \__\/\__\ 
+-- \   \  /  \
+--  \__\/\__\
 --
 --
 -- Module ROCKETIO_WRAPPER_GTP_VHDL_TILE (a GTP Tile Wrapper)
@@ -30,17 +30,19 @@ generic
 (
     -- Simulation attributes
     TILE_SIM_GTPRESET_SPEEDUP    : integer   := 0; -- Set to 1 to speed up sim reset
-    TILE_SIM_PLL_PERDIV2         : bit_vector:= x"190"; -- Set to the VCO Unit Interval time 
+    TILE_SIM_PLL_PERDIV2         : bit_vector:= x"190"; -- Set to the VCO Unit Interval time
 
     -- Channel bonding attributes
     TILE_CHAN_BOND_MODE_0        : string    := "OFF";  -- "MASTER", "SLAVE", or "OFF"
     TILE_CHAN_BOND_LEVEL_0       : integer   := 0;     -- 0 to 7. See UG for details
-    
+
     TILE_CHAN_BOND_MODE_1        : string    := "OFF";  -- "MASTER", "SLAVE", or "OFF"
     TILE_CHAN_BOND_LEVEL_1       : integer   := 0      -- 0 to 7. See UG for details
 );
-port 
+port
 (
+    p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
+
     ------------------------ Loopback and Powerdown Ports ----------------------
     LOOPBACK0_IN                            : in   std_logic_vector(2 downto 0);
     LOOPBACK1_IN                            : in   std_logic_vector(2 downto 0);
@@ -125,7 +127,7 @@ port
 end ROCKETIO_WRAPPER_GTP_TILE;
 
 architecture RTL of ROCKETIO_WRAPPER_GTP_TILE is
-    
+
 --**************************** Signal Declarations ****************************
 
     -- ground and tied_to_vcc_i signals
@@ -134,10 +136,10 @@ architecture RTL of ROCKETIO_WRAPPER_GTP_TILE is
     signal  tied_to_vcc_i                   :   std_logic;
     signal  tied_to_vcc_vec_i               :   std_logic_vector(63 downto 0);
 
-   
+
 
     -- RX Datapath signals
-    signal rxdata0_i                        :   std_logic_vector(15 downto 0);      
+    signal rxdata0_i                        :   std_logic_vector(15 downto 0);
     signal rxchariscomma0_float_i           :   std_logic;
     signal rxcharisk0_float_i               :   std_logic;
     signal rxdisperr0_float_i               :   std_logic;
@@ -151,10 +153,10 @@ architecture RTL of ROCKETIO_WRAPPER_GTP_TILE is
     signal loopback0_i                      :   std_logic_vector(2 downto 0);
     signal rxelecidle0_i                    :   std_logic;
     signal resetdone0_i                     :   std_logic;
-   
+
 
     -- RX Datapath signals
-    signal rxdata1_i                        :   std_logic_vector(15 downto 0);      
+    signal rxdata1_i                        :   std_logic_vector(15 downto 0);
     signal rxchariscomma1_float_i           :   std_logic;
     signal rxcharisk1_float_i               :   std_logic;
     signal rxdisperr1_float_i               :   std_logic;
@@ -171,42 +173,42 @@ architecture RTL of ROCKETIO_WRAPPER_GTP_TILE is
 
 
 --******************************** Main Body of Code***************************
-                       
-begin                      
 
-    ---------------------------  Static signal Assignments ---------------------   
+begin
+
+    ---------------------------  Static signal Assignments ---------------------
 
     tied_to_ground_i                    <= '0';
     tied_to_ground_vec_i(63 downto 0)   <= (others => '0');
     tied_to_vcc_i                       <= '1';
     tied_to_vcc_vec_i(63 downto 0)      <= (others => '1');
-     
-    
 
-    -------------------  GTP Datapath byte mapping  -----------------    
-    
+
+
+    -------------------  GTP Datapath byte mapping  -----------------
+
     RXDATA0_OUT    <=   rxdata0_i(7 downto 0);
-    
-    txdata0_i    <=   (tied_to_ground_vec_i(7 downto 0) & TXDATA0_IN);    
-    
+
+    txdata0_i    <=   (tied_to_ground_vec_i(7 downto 0) & TXDATA0_IN);
+
     RXDATA1_OUT    <=   rxdata1_i(7 downto 0);
-    
-    txdata1_i    <=   (tied_to_ground_vec_i(7 downto 0) & TXDATA1_IN);    
+
+    txdata1_i    <=   (tied_to_ground_vec_i(7 downto 0) & TXDATA1_IN);
 
 
 
 
     ---------------------------  Electrical Idle Reset Circuit  ---------------
-    
+
     RXELECIDLE0_OUT            <=   rxelecidle0_i;
     RESETDONE0_OUT             <=   resetdone0_i;
     loopback0_i                <=   LOOPBACK0_IN;
     RXELECIDLE1_OUT            <=   rxelecidle1_i;
     RESETDONE1_OUT             <=   resetdone1_i;
     loopback1_i                <=   LOOPBACK1_IN;
-    
 
-    ----------------------------- GTP_DUAL Instance  --------------------------   
+
+    ----------------------------- GTP_DUAL Instance  --------------------------
 
     gtp_dual_i:GTP_DUAL
     generic map
@@ -222,35 +224,35 @@ begin
 
         -------------------------- Tile and PLL Attributes ---------------------
 
-        CLK25_DIVIDER               =>       5, 
+        CLK25_DIVIDER               =>       5,
         CLKINDC_B                   =>       TRUE,
         OOB_CLK_DIVIDER             =>       4,
         OVERSAMPLE_MODE             =>       FALSE,
         PLL_DIVSEL_FB               =>       2,
         PLL_DIVSEL_REF              =>       1,
         PLL_TXDIVSEL_COMM_OUT       =>       1,
-        TX_SYNC_FILTERB             =>       1,   
+        TX_SYNC_FILTERB             =>       1,
 
 
         --____________________ Transmit Interface Attributes ___________________
 
-        ------------------- TX Buffering and Phase Alignment -------------------   
+        ------------------- TX Buffering and Phase Alignment -------------------
 
         TX_BUFFER_USE_0             =>       TRUE,
         TX_XCLK_SEL_0               =>       "TXOUT",
-        TXRX_INVERT_0               =>       "00000",        
+        TXRX_INVERT_0               =>       "00000",
 
         TX_BUFFER_USE_1             =>       TRUE,
         TX_XCLK_SEL_1               =>       "TXOUT",
-        TXRX_INVERT_1               =>       "00000",        
+        TXRX_INVERT_1               =>       "00000",
 
-        --------------------- TX Serial Line Rate settings ---------------------   
+        --------------------- TX Serial Line Rate settings ---------------------
 
         PLL_TXDIVSEL_OUT_0          =>       2,
 
         PLL_TXDIVSEL_OUT_1          =>       2,
 
-        --------------------- TX Driver and OOB signalling --------------------  
+        --------------------- TX Driver and OOB signalling --------------------
 
         TX_DIFF_BOOST_0             =>       TRUE,
 
@@ -263,7 +265,7 @@ begin
         COM_BURST_VAL_1             =>       "1111",
         --_______________________ Receive Interface Attributes ________________
 
-        ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------  
+        ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------
 
         AC_CAP_DIS_0                =>       TRUE,
         OOBDETECT_THRESHOLD_0       =>       "001",
@@ -277,7 +279,7 @@ begin
         AC_CAP_DIS_1                =>       TRUE,
         OOBDETECT_THRESHOLD_1       =>       "001",
         PMA_CDR_SCAN_1              =>       x"6c07640",
-        PMA_RX_CFG_1                =>       x"09f0088",  
+        PMA_RX_CFG_1                =>       x"09f0088",
         RCV_TERM_GND_1              =>       FALSE,
         RCV_TERM_MID_1              =>       FALSE,
         RCV_TERM_VTTRX_1            =>       FALSE,
@@ -287,7 +289,7 @@ begin
         TERMINATION_CTRL            =>       "10100",
         TERMINATION_OVRD            =>       FALSE,
 
-        --------------------- RX Serial Line Rate Attributes ------------------   
+        --------------------- RX Serial Line Rate Attributes ------------------
 
         PLL_RXDIVSEL_OUT_0          =>       2,
         PLL_SATA_0                  =>       TRUE,
@@ -295,13 +297,13 @@ begin
         PLL_RXDIVSEL_OUT_1          =>       2,
         PLL_SATA_1                  =>       TRUE,
 
-        ----------------------- PRBS Detection Attributes ---------------------  
+        ----------------------- PRBS Detection Attributes ---------------------
 
         PRBS_ERR_THRESHOLD_0        =>       x"00000001",
 
         PRBS_ERR_THRESHOLD_1        =>       x"00000001",
 
-        ---------------- Comma Detection and Alignment Attributes -------------  
+        ---------------- Comma Detection and Alignment Attributes -------------
 
         ALIGN_COMMA_WORD_0          =>       1,
         COMMA_10B_ENABLE_0          =>       "0001111111",
@@ -327,7 +329,7 @@ begin
         PCOMMA_DETECT_1             =>       TRUE,
         RX_SLIDE_MODE_1             =>       "PCS",
 
-        ------------------ RX Loss-of-sync State Machine Attributes -----------  
+        ------------------ RX Loss-of-sync State Machine Attributes -----------
 
         RX_LOSS_OF_SYNC_FSM_0       =>       FALSE,
         RX_LOS_INVALID_INCR_0       =>       8,
@@ -337,15 +339,15 @@ begin
         RX_LOS_INVALID_INCR_1       =>       8,
         RX_LOS_THRESHOLD_1          =>       128,
 
-        -------------- RX Elastic Buffer and Phase alignment Attributes -------   
+        -------------- RX Elastic Buffer and Phase alignment Attributes -------
 
         RX_BUFFER_USE_0             =>       TRUE,
         RX_XCLK_SEL_0               =>       "RXREC",
 
         RX_BUFFER_USE_1             =>       TRUE,
-        RX_XCLK_SEL_1               =>       "RXREC",                   
+        RX_XCLK_SEL_1               =>       "RXREC",
 
-        ------------------------ Clock Correction Attributes ------------------   
+        ------------------------ Clock Correction Attributes ------------------
 
         CLK_CORRECT_USE_0           =>       TRUE,
         CLK_COR_ADJ_LEN_0           =>       2,
@@ -391,7 +393,7 @@ begin
         CLK_COR_SEQ_2_USE_1         =>       TRUE,
         RX_DECODE_SEQ_MATCH_1       =>       TRUE,
 
-        ------------------------ Channel Bonding Attributes -------------------   
+        ------------------------ Channel Bonding Attributes -------------------
 
         CHAN_BOND_1_MAX_SKEW_0      =>       7,
         CHAN_BOND_2_MAX_SKEW_0      =>       7,
@@ -407,10 +409,10 @@ begin
         CHAN_BOND_SEQ_2_3_0         =>       "0000000000",
         CHAN_BOND_SEQ_2_4_0         =>       "0000000000",
         CHAN_BOND_SEQ_2_ENABLE_0    =>       "0000",
-        CHAN_BOND_SEQ_2_USE_0       =>       FALSE,  
+        CHAN_BOND_SEQ_2_USE_0       =>       FALSE,
         CHAN_BOND_SEQ_LEN_0         =>       1,
-        PCI_EXPRESS_MODE_0          =>       FALSE,   
-     
+        PCI_EXPRESS_MODE_0          =>       FALSE,
+
         CHAN_BOND_1_MAX_SKEW_1      =>       7,
         CHAN_BOND_2_MAX_SKEW_1      =>       7,
         CHAN_BOND_LEVEL_1           =>       TILE_CHAN_BOND_LEVEL_1,
@@ -425,7 +427,7 @@ begin
         CHAN_BOND_SEQ_2_3_1         =>       "0000000000",
         CHAN_BOND_SEQ_2_4_1         =>       "0000000000",
         CHAN_BOND_SEQ_2_ENABLE_1    =>       "0000",
-        CHAN_BOND_SEQ_2_USE_1       =>       FALSE,  
+        CHAN_BOND_SEQ_2_USE_1       =>       FALSE,
         CHAN_BOND_SEQ_LEN_1         =>       1,
         PCI_EXPRESS_MODE_1          =>       FALSE,
 
@@ -456,8 +458,8 @@ begin
         TRANS_TIME_FROM_P2_1        =>       x"0060",
         TRANS_TIME_NON_P2_1         =>       x"0025",
         TRANS_TIME_TO_P2_1          =>       x"0100"
-    ) 
-    port map 
+    )
+    port map
     (
         ------------------------ Loopback and Powerdown Ports ----------------------
         LOOPBACK0                       =>      loopback0_i,
