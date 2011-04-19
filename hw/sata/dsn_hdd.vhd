@@ -119,6 +119,9 @@ end dsn_hdd;
 architecture behavioral of dsn_hdd is
 
 component mclk_gtp_wrap
+generic(
+G_SIM     : string:="OFF"
+);
 port
 (
 p_out_txn : out   std_logic_vector(1 downto 0);
@@ -465,6 +468,9 @@ end generate gen_use_on;
 gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
 m_sata_gt : mclk_gtp_wrap
+generic map(
+G_SIM => G_SIM
+)
 port map
 (
 p_out_txn => p_out_sata_txn,

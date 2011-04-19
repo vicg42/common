@@ -22,8 +22,13 @@ library unisim;
 use unisim.vcomponents.all;
 
 library work;
+use work.vicg_common_pkg.all;
 
 entity mclk_gtp_wrap is
+generic
+(
+G_SIM     : string:="OFF"
+);
 port(
 p_out_txn : out   std_logic_vector(1 downto 0);
 p_out_txp : out   std_logic_vector(1 downto 0);
@@ -397,6 +402,16 @@ architecture virtex5_only of mclk_gtp_wrap is
 
 begin
 
+gen_sim_on : if strcmp(G_SIM,"ON") generate
+p_out_txn<=p_in_rxn;
+p_out_txp<=p_in_rxp;
+
+clkout<=clkin;
+end generate gen_sim_on;
+
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+
     m_gt : GTP_DUAL
         generic map (
             -- synthesis translate_off
@@ -756,5 +771,8 @@ begin
             TXUSRCLK20                 =>      '0',
             TXUSRCLK21                 =>      '0',
             GTPTEST                    =>      "0000");
+
+end generate gen_sim_off;
+
 
 end architecture;
