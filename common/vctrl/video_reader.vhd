@@ -152,9 +152,8 @@ signal i_vfr_color                   : std_logic;
 signal i_vfr_color_fst               : std_logic_vector(1 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
 signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
+signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'high downto 0);
 signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'high downto 0);
-signal i_vfr_active_row_cnt          : std_logic_vector(i_vfr_row_cnt'high downto 0);
-signal i_vfr_subsampling             : std_logic_vector(1 downto 0);
 signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT downto 0);
@@ -249,8 +248,7 @@ begin
     i_vfr_mirror.row<='0';
     i_vfr_row_cnt<=(others=>'0');
     i_vfr_active_row<=(others=>'0');
-    i_vfr_active_row_cnt<=(others=>'0');
-    i_vfr_subsampling<=(others=>'0');
+    i_vfr_skip_row<=(others=>'0');
     i_vfr_zoom<=(others=>'0');
     i_vfr_zoom_type<='0';
 
@@ -321,21 +319,7 @@ begin
             --//--------------------------
             --//Инициализируем размер транзакции чтения
             --//(Должен быть равен размеру одной строки)
-            if p_in_cfg_prm_vch(i).fr_subsampling="10" then
-              --//Прореживание по Пикселям - ЕСТЬ / берем каждый 4-ый пиксель и каждую 4-ю строку
-                i_mem_dlen_rq<="00"&p_in_cfg_prm_vch(i).fr_size.activ.pix(p_in_cfg_prm_vch(i).fr_size.activ.pix'length-1 downto 2);
-            elsif p_in_cfg_prm_vch(i).fr_subsampling="01" then
-              --//Прореживание по Пикселям - ЕСТЬ / берем каждый 2-ый пиксель и каждую 2-ю строку
-                i_mem_dlen_rq<='0'&p_in_cfg_prm_vch(i).fr_size.activ.pix(p_in_cfg_prm_vch(i).fr_size.activ.pix'length-1 downto 1);
-            else
-              --//Прореживание по Пикселям - НЕТ
-              i_mem_dlen_rq<=p_in_cfg_prm_vch(i).fr_size.activ.pix;
-            end if;
-
-            --//--------------------------
-            --//Прореживание:
-            --//--------------------------
-            i_vfr_subsampling<=p_in_cfg_prm_vch(i).fr_subsampling;
+            i_mem_dlen_rq<=p_in_cfg_prm_vch(i).fr_size.activ.pix;
 
             --//--------------------------
             --//Строки:
@@ -345,10 +329,10 @@ begin
             --//Инициализируем счетчик строк
             if p_in_cfg_prm_vch(i).fr_mirror.row='0' then
               i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
-              i_vfr_active_row_cnt<=(others=>'0');
+              i_vfr_skip_row<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
             else
-              i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_row_cnt'high downto 0) + p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
-              i_vfr_active_row_cnt<=p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_row_cnt'high downto 0)-1;
+              i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0) + p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_row_cnt'high downto 0);
+              i_vfr_skip_row<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
             end if;
 
           end if;
@@ -370,6 +354,8 @@ begin
           --//Отзеркаливание по Y - РАЗРЕШЕНО
           --//Инициализируем счетчик строк
           i_vfr_row_cnt<=i_vfr_row_cnt-1;
+        else
+          i_vfr_active_row<=i_vfr_active_row - 1;
         end if;
 
         fsm_state_cs <= S_ROW_FINED1;
@@ -379,69 +365,17 @@ begin
       --//------------------------------------
       when S_ROW_FINED1 =>
 
-        if i_vfr_subsampling="00" then
-        --//Без прореживания
-          fsm_state_cs <= S_MEM_SET_ADR;
-
-        elsif i_vfr_subsampling="01" then
-        --//Прореживание x2
-          if i_vfr_active_row_cnt(0)='1' then
-            --//Нашел строку:
-            fsm_state_cs <= S_MEM_SET_ADR;
-          else
-            --//поиск строки:
-            if i_vfr_mirror.row='1' then
-              if i_vfr_active_row_cnt=(i_vfr_active_row_cnt'range =>'0') then
-                  fsm_state_cs <= S_WAIT_HOST_ACK;
-              else
-                i_vfr_active_row_cnt<=i_vfr_active_row_cnt-1;
-                i_vfr_row_cnt<=i_vfr_row_cnt-1;
-              end if;
-            else
-              i_vfr_row_cnt<=i_vfr_row_cnt+1;
-              i_vfr_active_row_cnt<=i_vfr_active_row_cnt+1;
-            end if;
-          end if;
-
-        elsif i_vfr_subsampling="10" then
-        --//Прореживание x4
-          if i_vfr_active_row_cnt(1 downto 0)="11" then
-            --//Нашел строку:
-            fsm_state_cs <= S_MEM_SET_ADR;
-          else
-            --//поиск строки:
-            if i_vfr_mirror.row='1' then
-              if i_vfr_active_row_cnt=(i_vfr_active_row_cnt'range =>'0') then
-                  fsm_state_cs <= S_WAIT_HOST_ACK;
-              else
-                i_vfr_active_row_cnt<=i_vfr_active_row_cnt-1;
-                i_vfr_row_cnt<=i_vfr_row_cnt-1;
-              end if;
-            else
-              i_vfr_row_cnt<=i_vfr_row_cnt+1;
-              i_vfr_active_row_cnt<=i_vfr_active_row_cnt+1;
-            end if;
-          end if;
-
-        end if;
+        fsm_state_cs <= S_MEM_SET_ADR;
 
       --//------------------------------------
       --//Запускаем операцию чтения ОЗУ
       --//------------------------------------
       when S_MEM_SET_ADR =>
 
-        if tst_dbg_rdTBUF='1' or tst_dbg_rdEBUF='1' then
-
-            i_mem_ptr(i_mem_ptr'high downto G_MEM_VROW_MSB_BIT+1)<=(others=>'0');
-            i_mem_ptr(G_MEM_VROW_MSB_BIT downto G_MEM_VROW_LSB_BIT)<=i_vfr_active_row_cnt(G_MEM_VROW_MSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
-
-        else
-            i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_MSB_BIT+1)<=(others=>'0');
-            i_mem_ptr(G_MEM_VCH_MSB_BIT downto G_MEM_VCH_LSB_BIT)<=i_vch_num(G_MEM_VCH_MSB_BIT-G_MEM_VCH_LSB_BIT downto 0);
-            i_mem_ptr(G_MEM_VFRAME_MSB_BIT downto G_MEM_VFRAME_LSB_BIT)<=i_vfr_buf;
-            i_mem_ptr(G_MEM_VROW_MSB_BIT downto G_MEM_VROW_LSB_BIT)<=i_vfr_row_cnt(G_MEM_VROW_MSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
-
-        end if;
+        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_MSB_BIT+1)<=(others=>'0');
+        i_mem_ptr(G_MEM_VCH_MSB_BIT downto G_MEM_VCH_LSB_BIT)<=i_vch_num(G_MEM_VCH_MSB_BIT-G_MEM_VCH_LSB_BIT downto 0);
+        i_mem_ptr(G_MEM_VFRAME_MSB_BIT downto G_MEM_VFRAME_LSB_BIT)<=i_vfr_buf;
+        i_mem_ptr(G_MEM_VROW_MSB_BIT downto G_MEM_VROW_LSB_BIT)<=i_vfr_row_cnt(G_MEM_VROW_MSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
 
         fsm_state_cs <= S_MEM_START;
 
@@ -474,16 +408,14 @@ begin
 
         if p_in_vfr_nrow='1' then
 
-          if (i_vfr_mirror.row='0' and i_vfr_active_row_cnt=(i_vfr_active_row-1)) or
-             (i_vfr_mirror.row='1' and i_vfr_active_row_cnt=(i_vfr_active_row_cnt'range =>'0'))then
+          if (i_vfr_mirror.row='0' and i_vfr_row_cnt=(i_vfr_skip_row + i_vfr_active_row)) or
+             (i_vfr_mirror.row='1' and i_vfr_row_cnt=i_vfr_skip_row)then
               fsm_state_cs <= S_WAIT_HOST_ACK;
           else
 
             if i_vfr_mirror.row='1' then
-              i_vfr_active_row_cnt<=i_vfr_active_row_cnt-1;
               i_vfr_row_cnt<=i_vfr_row_cnt-1;
             else
-              i_vfr_active_row_cnt<=i_vfr_active_row_cnt+1;
               i_vfr_row_cnt<=i_vfr_row_cnt+1;
             end if;
 
