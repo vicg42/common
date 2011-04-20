@@ -134,7 +134,7 @@ end process;
 --
 ----------------------------------------------------------------------------
 --//Программируемая задержка
-LB_DATA : for i in 0 to 7 generate
+gen_data : for i in 0 to 7 generate
   m_upp_data_sr : SRL16E
   generic map (
   INIT => X"0000"
@@ -150,7 +150,7 @@ LB_DATA : for i in 0 to 7 generate
   CE  => enable,
   CLK => p_in_clk
   );
-end generate LB_DATA;
+end generate gen_data;
 
 process(p_in_rst,p_in_clk)
 begin

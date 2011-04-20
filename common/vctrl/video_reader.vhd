@@ -520,57 +520,57 @@ port map
 -------------------------------
 -- Êîíôèãóğèğîâàíèå
 -------------------------------
-p_in_cfg_mem_adr           => i_mem_adr,
-p_in_cfg_mem_trn_len       => i_mem_trn_len,
-p_in_cfg_mem_dlen_rq       => i_mem_dlen_rq,
-p_in_cfg_mem_wr            => i_mem_dir,
-p_in_cfg_mem_start         => i_mem_start,
-p_out_cfg_mem_done         => i_mem_done,
+p_in_cfg_mem_adr     => i_mem_adr,
+p_in_cfg_mem_trn_len => i_mem_trn_len,
+p_in_cfg_mem_dlen_rq => i_mem_dlen_rq,
+p_in_cfg_mem_wr      => i_mem_dir,
+p_in_cfg_mem_start   => i_mem_start,
+p_out_cfg_mem_done   => i_mem_done,
 
 --//Ñòàòóñû
-p_out_memarb_req           => p_out_memarb_req,
-p_in_memarb_en             => p_in_memarb_en,
+p_out_memarb_req     => p_out_memarb_req,
+p_in_memarb_en       => p_in_memarb_en,
 
 -------------------------------
 -- Ñâÿçü ñ ïîëüçîâàòåëüñêèìè áóôåğàìè
 -------------------------------
-p_in_usr_txbuf_dout        => "00000000000000000000000000000000",
-p_out_usr_txbuf_rd         => open,
-p_in_usr_txbuf_empty       => '0',
+p_in_usr_txbuf_dout  => "00000000000000000000000000000000",
+p_out_usr_txbuf_rd   => open,
+p_in_usr_txbuf_empty => '0',
 
-p_out_usr_rxbuf_din        => p_out_upp_data,
-p_out_usr_rxbuf_wd         => p_out_upp_data_wd,
-p_in_usr_rxbuf_full        => p_in_upp_buf_full,
+p_out_usr_rxbuf_din  => p_out_upp_data,
+p_out_usr_rxbuf_wd   => p_out_upp_data_wd,
+p_in_usr_rxbuf_full  => p_in_upp_buf_full,
 
 ---------------------------------
 -- Ñâÿçü ñ memory_ctrl.vhd
 ---------------------------------
-p_out_mem_bank1h           => p_out_mem_bank1h,
-p_out_mem_ce               => p_out_mem_ce,
-p_out_mem_cw               => p_out_mem_cw,
-p_out_mem_rd               => p_out_mem_rd,
-p_out_mem_wr               => p_out_mem_wr,
-p_out_mem_term             => p_out_mem_term,
-p_out_mem_adr              => p_out_mem_adr,
-p_out_mem_be               => p_out_mem_be,
-p_out_mem_din              => p_out_mem_din,
-p_in_mem_dout              => p_in_mem_dout,
+p_out_mem_bank1h     => p_out_mem_bank1h,
+p_out_mem_ce         => p_out_mem_ce,
+p_out_mem_cw         => p_out_mem_cw,
+p_out_mem_rd         => p_out_mem_rd,
+p_out_mem_wr         => p_out_mem_wr,
+p_out_mem_term       => p_out_mem_term,
+p_out_mem_adr        => p_out_mem_adr,
+p_out_mem_be         => p_out_mem_be,
+p_out_mem_din        => p_out_mem_din,
+p_in_mem_dout        => p_in_mem_dout,
 
-p_in_mem_wf                => p_in_mem_wf,
-p_in_mem_wpf               => p_in_mem_wpf,
-p_in_mem_re                => p_in_mem_re,
-p_in_mem_rpe               => p_in_mem_rpe,
+p_in_mem_wf          => p_in_mem_wf,
+p_in_mem_wpf         => p_in_mem_wpf,
+p_in_mem_re          => p_in_mem_re,
+p_in_mem_rpe         => p_in_mem_rpe,
 
-p_out_mem_clk              => p_out_mem_clk,
+p_out_mem_clk        => p_out_mem_clk,
 
 -------------------------------
 --System
 -------------------------------
-p_in_tst                   => p_in_tst,
-p_out_tst                  => open,--tst_mem_ctrl_ch_wr_out,
+p_in_tst             => p_in_tst,
+p_out_tst            => open,--tst_mem_ctrl_ch_wr_out,
 
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
+p_in_clk             => p_in_clk,
+p_in_rst             => p_in_rst
 );
 
 

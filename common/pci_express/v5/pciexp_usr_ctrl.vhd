@@ -442,8 +442,8 @@ i_irq_src_set(C_HIRQ_PCIEXP_DMA_WR)<=i_irq_src_en(C_HIRQ_PCIEXP_DMA_WR) and i_dm
 i_irq_src_set(C_HIRQ_PCIEXP_DMA_RD)<=i_irq_src_en(C_HIRQ_PCIEXP_DMA_RD) and i_dmatotal_mrd_done and i_dma_mrd_done_del;
 
 --//от пользовательских устройств
-LB_IRQ_CH: for i in C_HIRQ_PCIEXP_DMA_RD+1 to C_HIRQ_COUNT - 1 generate
-begin
+gen_irq_ch: for i in C_HIRQ_PCIEXP_DMA_RD+1 to C_HIRQ_COUNT - 1 generate
+
 i_irq_src_set(i)<=i_irq_src_en(i) and i_irq_src_set_edge(i);
 
 --//Выделяю передний фронт из сигнала установки прерывания от соотв. источника
@@ -459,7 +459,7 @@ begin
       i_irq_src_set_edge(i)<=not tmp_irq_src_set_del1(i) and tmp_irq_src_set_del0(i);
   end if;
 end process;
-end generate LB_IRQ_CH;
+end generate gen_irq_ch;
 
 
 
@@ -1360,10 +1360,9 @@ p_out_dev_din <= i_dev_din;
 --//Настройка модуля контроллера памяти (memory_ctrl.vhd)
 p_out_mem_ctl_reg <= memctl_reg;
 
-LB_MEM_MODE : for i in 0 to C_MEMCTRL_CFG_MODE_REG_COUNT-1 generate
-begin
+gen_mem_mode : for i in 0 to C_MEMCTRL_CFG_MODE_REG_COUNT-1 generate
   p_out_mem_mode_reg((32* (i + 1)) - 23 downto  32* i)<=mode_reg(10* (i + 1) - 1 downto 10 * i);
-end generate LB_MEM_MODE;
+end generate gen_mem_mode;
 p_out_mem_mode_reg(p_out_mem_mode_reg'high downto (C_MEMCTRL_CFG_MODE_REG_COUNT*32))<=(others=>'0');
 
 
@@ -1385,16 +1384,15 @@ p_out_mem_din     <= i_mem_din;
 p_out_usr_tst(31 downto 0)  <=v_reg_tst0;
 p_out_usr_tst(63 downto 32) <=v_reg_tst1;
 
---LB_DBG_OFF : if strcmp(G_DBG,"OFF") generate
---begin
+--gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+--
   p_out_usr_tst(125 downto 64)<=(others=>'0');
   p_out_usr_tst(126)<=dbg_rdareg_err;
   p_out_usr_tst(127)<=dbg_rdrgctrl_err;
---end generate LB_DBG_OFF;
+--end generate gen_dbg_off;
 
 
---LB_DBG_ON : if strcmp(G_DBG,"ON") generate
---begin
+--gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --
 --v_reg_tst2_rd(0)<=OR_reduce(tst_mem_adr);
 --v_reg_tst2_rd(1)<=OR_reduce(tst_trn_data_cnt);
@@ -1493,7 +1491,7 @@ p_out_usr_tst(63 downto 32) <=v_reg_tst1;
 -- end if;
 --end process;
 --
---end generate LB_DBG_ON;
+--end generate gen_dbg_on;
 
 --END MAIN
 end behavioral;

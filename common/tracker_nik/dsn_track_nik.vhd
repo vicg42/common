@@ -217,22 +217,22 @@ signal g_trc_prm                     : TGTrcNikParam;
 
 type fsm_state is
 (
-  S_IDLE,
-  S_LD_PRMS,
-  S_ROW_FINED0,
-  S_ROW_FINED1,
-  S_ROW_FINED2,
-  S_MEM_SET_ADR,
-  S_MEM_START,
-  S_MEM_RD,
-  S_ROW_NXT,
-  S_WAIT_DRDY,
-  S_MEM_STARTW1,
-  S_MEM_WD1,
-  S_MEM_STARTW2,
-  S_MEM_WD2,
-  S_EXIT_CHK,
-  S_WAIT_HOST_ACK
+S_IDLE,
+S_LD_PRMS,
+S_ROW_FINED0,
+S_ROW_FINED1,
+S_ROW_FINED2,
+S_MEM_SET_ADR,
+S_MEM_START,
+S_MEM_RD,
+S_ROW_NXT,
+S_WAIT_DRDY,
+S_MEM_STARTW1,
+S_MEM_WD1,
+S_MEM_STARTW2,
+S_MEM_WD2,
+S_EXIT_CHK,
+S_WAIT_HOST_ACK
 );
 signal fsm_state_cs: fsm_state;
 
@@ -477,8 +477,8 @@ i_vch_num<=h_reg_ctrl(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT downto C_DSN_TRCNIK_REG_C
 
 
 
-LB_MOD_USE_ON : if strcmp(G_MODULE_USE,"ON") generate
-begin
+gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
+
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
@@ -1346,13 +1346,12 @@ rst         => p_in_rst
 p_out_trc_bufo_dout<=(others=>'0');
 p_out_trc_bufo_empty<='0';
 
-end generate LB_MOD_USE_ON;
+end generate gen_use_on;
 
 
 
 
-LB_MOD_USE_OFF : if strcmp(G_MODULE_USE,"OFF") generate
-begin
+gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
 p_out_mem_clk <= p_in_clk;
 
@@ -1380,7 +1379,7 @@ p_out_trc_bufo_empty<='0';
 
 p_out_trc_busy<=(others=>'0');
 
-end generate LB_MOD_USE_OFF;
+end generate gen_use_off;
 
 --END MAIN
 end behavioral;

@@ -301,10 +301,9 @@ i_usr_ll_src_rdy_n <=not (i_tx_work and not p_in_usr_txbuf_empty);
 --i_usr_ll_rem_in(0) <='0';--not i_usr_ll_eof_n;--i_usr_ll_eof_n;--not i_usr_ll_eof_n;--
 --i_usr_ll_rem_in(1) <='0';--not i_usr_ll_eof_n;--'0';--
 
-LB_REM : for i in 0 to G_WR_REM_WIDTH-1 generate
-begin
+gen_rem : for i in 0 to G_WR_REM_WIDTH-1 generate
 i_usr_ll_rem_in(i) <='1';
-end generate LB_REM;
+end generate gen_rem;
 
 
 --i_pkt_marker<=EXT(i_pkt_marker_fsm, G_WR_DWIDTH);
@@ -314,10 +313,9 @@ i_pkt_marker(23 downto 16)<="11000010";
 i_pkt_marker(31 downto 24)<="11000100";
 
 
-LB_USER_TXBUF : for i in 0 to G_WR_DWIDTH-1 generate
-begin
+gen_usr_txbuf : for i in 0 to G_WR_DWIDTH-1 generate
 i_usr_ll_data(i) <=p_in_usr_txdata(i) when i_tx_usrdata_en='1' else i_pkt_marker(i);
-end generate LB_USER_TXBUF;
+end generate gen_usr_txbuf;
 
 
 

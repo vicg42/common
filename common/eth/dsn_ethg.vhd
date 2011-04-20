@@ -337,8 +337,7 @@ h_reg_ctrl(31 downto 16)<=(others=>'0');
 
 
 
-LB_MOD_USE_ON : if strcmp(G_MODULE_USE,"ON") generate
-begin
+gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 
   p_out_eth_rdy         <=p_in_sfp_sd;
   p_out_eth_error       <='0';
@@ -466,10 +465,9 @@ begin
   p_in_rst                        => p_in_rst
   );
 
-end generate LB_MOD_USE_ON;
+end generate gen_use_on;
 
-LB_MOD_USE_OFF : if strcmp(G_MODULE_USE,"OFF") generate
-begin
+gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
   p_out_eth_rdy         <=p_in_sfp_sd;
   p_out_eth_error       <='0';
@@ -594,7 +592,7 @@ begin
   );
 
 
-end generate LB_MOD_USE_OFF;
+end generate gen_use_off;
 
 --END MAIN
 end behavioral;

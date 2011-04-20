@@ -393,10 +393,9 @@ len_err_out            => open
 );
 
 --//
-LB_LL_RXBUF : for i in 0 to 7 generate
-begin
+gen_ll_rxbuf : for i in 0 to 7 generate
 rx_ll_data(i) <= rx_ll_data_tmp(i);
-end generate LB_LL_RXBUF;
+end generate gen_ll_rxbuf;
 
 
 --//--------------------------------
@@ -530,10 +529,9 @@ p_in_rst               => p_in_rst
 --//------------------------------------
 p_out_pause_req <=i_pause_req;
 
-LB_PAUSE_VAL : for i in 0 to 15 generate
-begin
+gen_pause_val : for i in 0 to 15 generate
 p_out_pause_val(i) <=i_pause_val;
-end generate LB_PAUSE_VAL;
+end generate gen_pause_val;
 
 i_pause_req<='0';
 i_pause_val<='0';

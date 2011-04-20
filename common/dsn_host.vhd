@@ -333,28 +333,16 @@ begin
 --//---------------------------------------------------
 --//Рабочий вариант (Только PCI-Express)
 --//---------------------------------------------------
-LB_HOST_SIM_OFF : if strcmp(G_SIM_HOST,"OFF") generate
-begin
-
-----m_bufgmux_i : BUFG port map (I=>i_out_host_clk,O=>p_out_host_clk);
---m_bufgmux_i : BUFGMUX_CTRL
---port map
---(
---S  => '0',--i_pciexp_glob_ctrl(C_HREG_GCTRL0_LBUS_SEL_BIT), -- Clock select input
---I0 => i_pciexp_host_clk_out, -- S=0 - PCI_Express
---I1 => lclk,                  -- S=1 - Local Bus
---O  => p_out_host_clk         --
---);
+gen_sim_off : if strcmp(G_SIM_HOST,"OFF") generate
 
 p_out_usr_tst        <= i_pciexp_out_usr_tst;
 p_out_glob_ctrl      <= i_pciexp_glob_ctrl;
 
 --//связь с модулем memory_ctrl.vhd
 p_out_mem_ctl_reg    <= i_pciexp_mem_ctl_reg;
-LB_MEM_MODE : for i in 0 to C_MEMCTRL_CFG_MODE_REG_COUNT-1 generate
-begin
+gen_mem_mode : for i in 0 to C_MEMCTRL_CFG_MODE_REG_COUNT-1 generate
   p_out_mem_mode_reg((32* (i + 1)) - 23 downto  32* i)<=i_pciexp_mem_mode_reg(10* (i + 1) - 1 downto 10 * i);
-end generate LB_MEM_MODE;
+end generate gen_mem_mode;
 p_out_mem_mode_reg(511 downto (C_MEMCTRL_CFG_MODE_REG_COUNT*32))<=(others=>'0');
 
 p_out_mem_bank1h      <= i_pciexp_mem_bank1h;
@@ -391,7 +379,7 @@ port map
 p_out_usr_tst              => i_pciexp_out_usr_tst,
 p_in_usr_tst               => p_in_usr_tst,
 
-p_out_host_clk_out         => p_out_host_clk,--i_pciexp_host_clk_out,
+p_out_host_clk_out         => p_out_host_clk,
 p_out_glob_ctrl            => i_pciexp_glob_ctrl,
 
 p_out_dev_ctrl             => i_pciexp_dev_ctrl,
@@ -470,14 +458,13 @@ clk        => lclk,
 p_in_rst_n => p_in_rst_n
 );
 
-end generate LB_HOST_SIM_OFF;
+end generate gen_sim_off;
 
 
 --//---------------------------------------------------
 --//Вариант для моделирования (Моделирование через LocalBus)
 --//---------------------------------------------------
-LB_HOST_SIM_ON : if strcmp(G_SIM_HOST,"ON") generate
-begin
+gen_sim_on : if strcmp(G_SIM_HOST,"ON") generate
 
 p_out_module_rdy <= not p_in_rst_n;
 
@@ -588,7 +575,7 @@ clk        => lclk,
 p_in_rst_n => p_in_rst_n
 );
 
-end generate LB_HOST_SIM_ON;
+end generate gen_sim_on;
 
 
 

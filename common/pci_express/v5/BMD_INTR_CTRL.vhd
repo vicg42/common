@@ -149,8 +149,7 @@ p_out_cfg_interrupt_n        <= AND_reduce(i_cfg_interrupt_n(C_HIRQ_COUNT - 1 do
 p_out_cfg_interrupt_assert_n <= AND_reduce(i_cfg_interrupt_assert_n(C_HIRQ_COUNT - 1 downto 0));
 
 --//”правление работой соответствующего канала прерывани€
-LB_CH: for i in 0 to C_HIRQ_COUNT - 1 generate
-begin
+gen_ch: for i in 0 to C_HIRQ_COUNT - 1 generate
 
 --//Ќазначаем флаг гашени€ перывани€ дл€ выбраного канала перерывани€
 i_irq_src_clr(i)<=p_in_irq_clr when p_in_irq_src_adr(C_HIRQ_COUNT - 1 downto 0)=i else '0';
@@ -183,7 +182,7 @@ p_in_clk             => p_in_clk,
 p_in_rst_n           => p_in_rst_n
 );
 
-end generate LB_CH;
+end generate gen_ch;
 
 --END MAIN
 end behavioral;

@@ -833,40 +833,40 @@ port map
 -------------------------------
 --Связь с Хостом
 -------------------------------
-p_in_host_clk         => g_host_clk,
+p_in_host_clk        => g_host_clk,
 
-p_out_module_rdy      => i_cfgdev_module_rdy,
-p_out_module_error    => open,
+p_out_module_rdy     => i_cfgdev_module_rdy,
+p_out_module_error   => open,
 
-p_out_host_rxbuf_rdy  => i_host_devcfg_rxbuf_rdy,
-p_out_host_rxdata     => i_host_devcfg_rxdata,
-p_in_host_rd          => i_host_devcfg_rd,
+p_out_host_rxbuf_rdy => i_host_devcfg_rxbuf_rdy,
+p_out_host_rxdata    => i_host_devcfg_rxdata,
+p_in_host_rd         => i_host_devcfg_rd,
 
-p_out_host_txbuf_rdy  => i_host_devcfg_txbuf_rdy,
-p_in_host_txdata      => i_host_devcfg_txdata,
-p_in_host_wd          => i_host_devcfg_wd,
-p_in_host_txdata_rdy  => i_dev_txdata_rdy_mask(C_HREG_TXDATA_RDY_CFGDEV_BIT),
+p_out_host_txbuf_rdy => i_host_devcfg_txbuf_rdy,
+p_in_host_txdata     => i_host_devcfg_txdata,
+p_in_host_wd         => i_host_devcfg_wd,
+p_in_host_txdata_rdy => i_dev_txdata_rdy_mask(C_HREG_TXDATA_RDY_CFGDEV_BIT),
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr         => i_cfgdev_devadr,
-p_out_cfg_adr         => i_cfgdev_adr,
-p_out_cfg_adr_ld      => i_cfgdev_adr_ld,
-p_out_cfg_adr_fifo    => i_cfgdev_adr_fifo,
-p_out_cfg_wd          => i_cfgdev_wd,
-p_out_cfg_rd          => i_cfgdev_rd,
-p_out_cfg_txdata      => i_cfgdev_txdata,
-p_in_cfg_rxdata       => i_cfgdev_rxdata,
+p_out_dev_adr        => i_cfgdev_devadr,
+p_out_cfg_adr        => i_cfgdev_adr,
+p_out_cfg_adr_ld     => i_cfgdev_adr_ld,
+p_out_cfg_adr_fifo   => i_cfgdev_adr_fifo,
+p_out_cfg_wd         => i_cfgdev_wd,
+p_out_cfg_rd         => i_cfgdev_rd,
+p_out_cfg_txdata     => i_cfgdev_txdata,
+p_in_cfg_rxdata      => i_cfgdev_rxdata,
 
-p_out_cfg_done        => i_cfgdev_done,
-p_out_cfg_rx_set_irq  => i_cfgdev_rx_hirq,
-p_in_cfg_clk          => g_host_clk,
+p_out_cfg_done       => i_cfgdev_done,
+p_out_cfg_rx_set_irq => i_cfgdev_rx_hirq,
+p_in_cfg_clk         => g_host_clk,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst             => open,--i_cfgdev_tst_out,
+p_out_tst            => open,--i_cfgdev_tst_out,
 
 -------------------------------
 --System
@@ -885,12 +885,11 @@ i_cfgdev_rxdata<=i_hdd_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(
                  (others=>'0');
 --                 i_trc_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRACK, i_cfgdev_devadr'length) else
 
-LB_CFG_DEV : for i in 0 to C_CFGDEV_COUNT-1 generate
-begin
+gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
 i_dev_cfg_wd(i)   <=i_cfgdev_wd   when i_cfgdev_devadr=i else '0';
 i_dev_cfg_rd(i)   <=i_cfgdev_rd   when i_cfgdev_devadr=i else '0';
 i_dev_cfg_done(i) <=i_cfgdev_done when i_cfgdev_devadr=i else '0';
-end generate LB_CFG_DEV;
+end generate gen_cfg_dev;
 
 
 --***********************************************************
@@ -902,28 +901,28 @@ port map
 -------------------------------
 -- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
 -------------------------------
-p_in_host_clk         => g_host_clk,
+p_in_host_clk     => g_host_clk,
 
-p_in_cfg_adr          => i_cfgdev_adr,
-p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
+p_in_cfg_adr      => i_cfgdev_adr,
+p_in_cfg_adr_ld   => i_cfgdev_adr_ld,
+p_in_cfg_adr_fifo => i_cfgdev_adr_fifo,
 
-p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_TMR),
+p_in_cfg_txdata   => i_cfgdev_txdata,
+p_in_cfg_wd       => i_dev_cfg_wd(C_CFGDEV_TMR),
 
-p_out_cfg_rxdata      => i_tmr_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_TMR),
+p_out_cfg_rxdata  => i_tmr_cfg_rxdata,
+p_in_cfg_rd       => i_dev_cfg_rd(C_CFGDEV_TMR),
 
-p_in_cfg_done         => i_dev_cfg_wd(C_CFGDEV_TMR),
+p_in_cfg_done     => i_dev_cfg_wd(C_CFGDEV_TMR),
 
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
 -------------------------------
-p_in_tmr_clk          => g_pciexp_gtp_refclkout,
-p_out_tmr_rdy         => open,
-p_out_tmr_error       => open,
+p_in_tmr_clk      => g_pciexp_gtp_refclkout,
+p_out_tmr_rdy     => open,
+p_out_tmr_error   => open,
 
-p_out_tmr_irq         => i_tmr_hirq,
+p_out_tmr_irq     => i_tmr_hirq,
 
 -------------------------------
 --System
@@ -1228,111 +1227,111 @@ port map
 -------------------------------
 -- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
 -------------------------------
-p_in_host_clk         => g_host_clk,
+p_in_host_clk        => g_host_clk,
 
-p_in_cfg_adr          => i_cfgdev_adr,
-p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
+p_in_cfg_adr         => i_cfgdev_adr,
+p_in_cfg_adr_ld      => i_cfgdev_adr_ld,
+p_in_cfg_adr_fifo    => i_cfgdev_adr_fifo,
 
-p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_VCTRL),
+p_in_cfg_txdata      => i_cfgdev_txdata,
+p_in_cfg_wd          => i_dev_cfg_wd(C_CFGDEV_VCTRL),
 
-p_out_cfg_rxdata      => i_vctrl_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_VCTRL),
+p_out_cfg_rxdata     => i_vctrl_cfg_rxdata,
+p_in_cfg_rd          => i_dev_cfg_rd(C_CFGDEV_VCTRL),
 
-p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_VCTRL),
+p_in_cfg_done        => i_dev_cfg_done(C_CFGDEV_VCTRL),
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_in_vctrl_hrdchsel        => i_host_rdevctrl_vchsel,
-p_in_vctrl_hrdstart        => i_vctrl_hrd_start,
-p_in_vctrl_hrddone         => i_vctrl_hrd_done,
-p_out_vctrl_hirq           => i_vctrl_hirq,
-p_out_vctrl_hdrdy          => i_vctrl_hrdy,
-p_out_vctrl_hfrmrk         => i_vctrl_hfrmrk,
+p_in_vctrl_hrdchsel  => i_host_rdevctrl_vchsel,
+p_in_vctrl_hrdstart  => i_vctrl_hrd_start,
+p_in_vctrl_hrddone   => i_vctrl_hrd_done,
+p_out_vctrl_hirq     => i_vctrl_hirq,
+p_out_vctrl_hdrdy    => i_vctrl_hrdy,
+p_out_vctrl_hfrmrk   => i_vctrl_hfrmrk,
 
 -------------------------------
 -- STATUS модуля dsn_video_ctrl.vhd
 -------------------------------
-p_out_vctrl_modrdy         => open,--i_vctrl_module_rdy,
-p_out_vctrl_moderr         => open,--i_vctrl_module_error,
-p_out_vctrl_rd_done        => i_vctrl_vrd_done,
+p_out_vctrl_modrdy   => open,--i_vctrl_module_rdy,
+p_out_vctrl_moderr   => open,--i_vctrl_module_error,
+p_out_vctrl_rd_done  => i_vctrl_vrd_done,
 
-p_out_vctrl_vrdprm         => i_vctrl_vrdprms,
-p_out_vctrl_vfrrdy         => i_vctrl_vfrdy,
-p_out_vctrl_vrowmrk        => i_vctrl_vrowmrk,
+p_out_vctrl_vrdprm   => i_vctrl_vrdprms,
+p_out_vctrl_vfrrdy   => i_vctrl_vfrdy,
+p_out_vctrl_vrowmrk  => i_vctrl_vrowmrk,
 
 -------------------------------
 -- Связь с модулем слежения
 -------------------------------
-p_in_trc_busy              => i_trc_busy,
-p_out_trc_vbuf             => i_trc_vbufs,
+p_in_trc_busy        => i_trc_busy,
+p_out_trc_vbuf       => i_trc_vbufs,
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_vbuf_clk             => g_vctrl_swt_bufclk,
+p_out_vbuf_clk       => g_vctrl_swt_bufclk,
 
-p_in_vbufin_rdy            => i_vctrl_vbufin_rdy,
-p_in_vbufin_dout           => i_vctrl_vbufin_dout,
-p_out_vbufin_dout_rd       => i_vctrl_vbufin_rd,
-p_in_vbufin_empty          => i_vctrl_vbufin_empty,
-p_in_vbufin_full           => i_vctrl_vbufin_full,
-p_in_vbufin_pfull          => i_vctrl_vbufin_pfull,
+p_in_vbufin_rdy      => i_vctrl_vbufin_rdy,
+p_in_vbufin_dout     => i_vctrl_vbufin_dout,
+p_out_vbufin_dout_rd => i_vctrl_vbufin_rd,
+p_in_vbufin_empty    => i_vctrl_vbufin_empty,
+p_in_vbufin_full     => i_vctrl_vbufin_full,
+p_in_vbufin_pfull    => i_vctrl_vbufin_pfull,
 
-p_out_vbufout_din          => i_vctrl_vbufout_din,
-p_out_vbufout_din_wd       => i_vctrl_vbufout_wd,
-p_in_vbufout_empty         => i_vctrl_vbufout_empty,
-p_in_vbufout_full          => i_vctrl_vbufout_full,
+p_out_vbufout_din    => i_vctrl_vbufout_din,
+p_out_vbufout_din_wd => i_vctrl_vbufout_wd,
+p_in_vbufout_empty   => i_vctrl_vbufout_empty,
+p_in_vbufout_full    => i_vctrl_vbufout_full,
 
 -----------------------------------
 ---- Связь с memory_ctrl.vhd
 -----------------------------------
 --//CH WRITE
-p_out_memarb_wrreq         => i_vctrlwr_memarb_req,
-p_in_memarb_wren           => i_vctrlwr_memarb_en,
+p_out_memarb_wrreq   => i_vctrlwr_memarb_req,
+p_in_memarb_wren     => i_vctrlwr_memarb_en,
 
-p_out_memwr_bank1h         => i_vctrlwr_mem_bank1h,
-p_out_memwr_ce             => i_vctrlwr_mem_ce,
-p_out_memwr_cw             => i_vctrlwr_mem_cw,
-p_out_memwr_rd             => i_vctrlwr_mem_rd,
-p_out_memwr_wr             => i_vctrlwr_mem_wr,
-p_out_memwr_term           => i_vctrlwr_mem_term,
-p_out_memwr_adr            => i_vctrlwr_mem_adr,
-p_out_memwr_be             => i_vctrlwr_mem_be,
-p_out_memwr_din            => i_vctrlwr_mem_din,
-p_in_memwr_dout            => i_vctrlwr_mem_dout,
+p_out_memwr_bank1h   => i_vctrlwr_mem_bank1h,
+p_out_memwr_ce       => i_vctrlwr_mem_ce,
+p_out_memwr_cw       => i_vctrlwr_mem_cw,
+p_out_memwr_rd       => i_vctrlwr_mem_rd,
+p_out_memwr_wr       => i_vctrlwr_mem_wr,
+p_out_memwr_term     => i_vctrlwr_mem_term,
+p_out_memwr_adr      => i_vctrlwr_mem_adr,
+p_out_memwr_be       => i_vctrlwr_mem_be,
+p_out_memwr_din      => i_vctrlwr_mem_din,
+p_in_memwr_dout      => i_vctrlwr_mem_dout,
 
-p_in_memwr_wf              => i_vctrlwr_mem_wf,
-p_in_memwr_wpf             => i_vctrlwr_mem_wpf,
-p_in_memwr_re              => i_vctrlwr_mem_re,
-p_in_memwr_rpe             => i_vctrlwr_mem_rpe,
+p_in_memwr_wf        => i_vctrlwr_mem_wf,
+p_in_memwr_wpf       => i_vctrlwr_mem_wpf,
+p_in_memwr_re        => i_vctrlwr_mem_re,
+p_in_memwr_rpe       => i_vctrlwr_mem_rpe,
 
 --//CH READ
-p_out_memarb_rdreq         => i_vctrlrd_memarb_req,
-p_in_memarb_rden           => i_vctrlrd_memarb_en,
+p_out_memarb_rdreq   => i_vctrlrd_memarb_req,
+p_in_memarb_rden     => i_vctrlrd_memarb_en,
 
-p_out_memrd_bank1h         => i_vctrlrd_mem_bank1h,
-p_out_memrd_ce             => i_vctrlrd_mem_ce,
-p_out_memrd_cw             => i_vctrlrd_mem_cw,
-p_out_memrd_rd             => i_vctrlrd_mem_rd,
-p_out_memrd_wr             => i_vctrlrd_mem_wr,
-p_out_memrd_term           => i_vctrlrd_mem_term,
-p_out_memrd_adr            => i_vctrlrd_mem_adr,
-p_out_memrd_be             => i_vctrlrd_mem_be,
-p_out_memrd_din            => i_vctrlrd_mem_din,
-p_in_memrd_dout            => i_vctrlrd_mem_dout,
+p_out_memrd_bank1h   => i_vctrlrd_mem_bank1h,
+p_out_memrd_ce       => i_vctrlrd_mem_ce,
+p_out_memrd_cw       => i_vctrlrd_mem_cw,
+p_out_memrd_rd       => i_vctrlrd_mem_rd,
+p_out_memrd_wr       => i_vctrlrd_mem_wr,
+p_out_memrd_term     => i_vctrlrd_mem_term,
+p_out_memrd_adr      => i_vctrlrd_mem_adr,
+p_out_memrd_be       => i_vctrlrd_mem_be,
+p_out_memrd_din      => i_vctrlrd_mem_din,
+p_in_memrd_dout      => i_vctrlrd_mem_dout,
 
-p_in_memrd_wf              => i_vctrlrd_mem_wf,
-p_in_memrd_wpf             => i_vctrlrd_mem_wpf,
-p_in_memrd_re              => i_vctrlrd_mem_re,
-p_in_memrd_rpe             => i_vctrlrd_mem_rpe,
+p_in_memrd_wf        => i_vctrlrd_mem_wf,
+p_in_memrd_wpf       => i_vctrlrd_mem_wpf,
+p_in_memrd_re        => i_vctrlrd_mem_re,
+p_in_memrd_rpe       => i_vctrlrd_mem_rpe,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  => i_vctrl_tst_out,
+p_out_tst            => i_vctrl_tst_out,
 
 -------------------------------
 --System
@@ -1455,69 +1454,69 @@ port map
 -------------------------------
 -- Управление от Хоста
 -------------------------------
-p_in_host_clk         => g_host_clk,
+p_in_host_clk        => g_host_clk,
 
-p_in_cfg_adr          => i_cfgdev_adr,
-p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
+p_in_cfg_adr         => i_cfgdev_adr,
+p_in_cfg_adr_ld      => i_cfgdev_adr_ld,
+p_in_cfg_adr_fifo    => i_cfgdev_adr_fifo,
 
-p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_TRACK_NIK),
+p_in_cfg_txdata      => i_cfgdev_txdata,
+p_in_cfg_wd          => i_dev_cfg_wd(C_CFGDEV_TRACK_NIK),
 
-p_out_cfg_rxdata      => i_trcnik_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_TRACK_NIK),
+p_out_cfg_rxdata     => i_trcnik_cfg_rxdata,
+p_in_cfg_rd          => i_dev_cfg_rd(C_CFGDEV_TRACK_NIK),
 
-p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_TRACK_NIK),
+p_in_cfg_done        => i_dev_cfg_done(C_CFGDEV_TRACK_NIK),
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_out_trc_hirq           => i_trcnik_hirq,
-p_out_trc_hdrdy          => i_trcnik_hdrdy,
-p_out_trc_hfrmrk         => i_trcnik_hfrmrk,
-p_in_trc_hrddone         => i_trcnik_hrd_done,
+p_out_trc_hirq       => i_trcnik_hirq,
+p_out_trc_hdrdy      => i_trcnik_hdrdy,
+p_out_trc_hfrmrk     => i_trcnik_hfrmrk,
+p_in_trc_hrddone     => i_trcnik_hrd_done,
 
-p_out_trc_bufo_dout      => i_host_trcbufo_dout,
-p_in_trc_bufo_rd         => i_host_trcbufo_rd,
-p_out_trc_bufo_empty     => i_trcbufo_empty,
+p_out_trc_bufo_dout  => i_host_trcbufo_dout,
+p_in_trc_bufo_rd     => i_host_trcbufo_rd,
+p_out_trc_bufo_empty => i_trcbufo_empty,
 
-p_out_trc_busy           => i_trc_busy,
+p_out_trc_busy       => i_trc_busy,
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
-p_in_vctrl_vrdprms       => i_vctrl_vrdprms,
-p_in_vctrl_vfrrdy        => i_vctrl_vfrdy,
-p_in_vctrl_vbuf          => i_trc_vbufs,
-p_in_vctrl_vrowmrk       => i_vctrl_vrowmrk,
+p_in_vctrl_vrdprms   => i_vctrl_vrdprms,
+p_in_vctrl_vfrrdy    => i_vctrl_vfrdy,
+p_in_vctrl_vbuf      => i_trc_vbufs,
+p_in_vctrl_vrowmrk   => i_vctrl_vrowmrk,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req         => i_trc_memarb_req,
-p_in_memarb_en           => i_trc_memarb_en,
+p_out_memarb_req     => i_trc_memarb_req,
+p_in_memarb_en       => i_trc_memarb_en,
 
-p_out_mem_bank1h         => i_trc_mem_bank1h,
-p_out_mem_ce             => i_trc_mem_ce,
-p_out_mem_cw             => i_trc_mem_cw,
-p_out_mem_rd             => i_trc_mem_rd,
-p_out_mem_wr             => i_trc_mem_wr,
-p_out_mem_term           => i_trc_mem_term,
-p_out_mem_adr            => i_trc_mem_adr,
-p_out_mem_be             => i_trc_mem_be,
-p_out_mem_din            => i_trc_mem_din,
-p_in_mem_dout            => i_trc_mem_dout,
+p_out_mem_bank1h     => i_trc_mem_bank1h,
+p_out_mem_ce         => i_trc_mem_ce,
+p_out_mem_cw         => i_trc_mem_cw,
+p_out_mem_rd         => i_trc_mem_rd,
+p_out_mem_wr         => i_trc_mem_wr,
+p_out_mem_term       => i_trc_mem_term,
+p_out_mem_adr        => i_trc_mem_adr,
+p_out_mem_be         => i_trc_mem_be,
+p_out_mem_din        => i_trc_mem_din,
+p_in_mem_dout        => i_trc_mem_dout,
 
-p_in_mem_wf              => i_trc_mem_wf,
-p_in_mem_wpf             => i_trc_mem_wpf,
-p_in_mem_re              => i_trc_mem_re,
-p_in_mem_rpe             => i_trc_mem_rpe,
+p_in_mem_wf          => i_trc_mem_wf,
+p_in_mem_wpf         => i_trc_mem_wpf,
+p_in_mem_re          => i_trc_mem_re,
+p_in_mem_rpe         => i_trc_mem_rpe,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                 => "00000000000000000000000000000000",
-p_out_tst                => i_trc_tst_out,
+p_in_tst             => "00000000000000000000000000000000",
+p_out_tst            => i_trc_tst_out,
 
 -------------------------------
 --System
@@ -1660,60 +1659,60 @@ port map
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_ramadr            => i_hdd_ramadr_cfg,
-p_in_cfg_rambuf            => i_hdd_rambuf_cfg,
+p_in_cfg_ramadr     => i_hdd_ramadr_cfg,
+p_in_cfg_rambuf     => i_hdd_rambuf_cfg,
 
 --//Статусы
-p_out_sts_rdy              => i_hdd_rambuf_rdy,
-p_out_sts_err              => i_hdd_rambuf_err,
+p_out_sts_rdy       => i_hdd_rambuf_rdy,
+p_out_sts_err       => i_hdd_rambuf_err,
 
 --//--------------------------
 --//Upstream Port(Связь с буфером источника данных)
 --//--------------------------
-p_in_upp_data              => i_hdd_swt_buf_dout,
-p_out_upp_data_rd          => i_hdd_swt_buf_rd,
-p_in_upp_buf_empty         => i_hdd_swt_buf_empty,
-p_in_upp_buf_full          => i_hdd_swt_buf_full,
-p_in_upp_buf_pfull         => i_hdd_swt_buf_pfull,
+p_in_upp_data       => i_hdd_swt_buf_dout,
+p_out_upp_data_rd   => i_hdd_swt_buf_rd,
+p_in_upp_buf_empty  => i_hdd_swt_buf_empty,
+p_in_upp_buf_full   => i_hdd_swt_buf_full,
+p_in_upp_buf_pfull  => i_hdd_swt_buf_pfull,
 
 --//--------------------------
 --//Downstream Port(Связь с буфером приемника данных)
 --//--------------------------
-p_out_dwnp_data            => i_hdd_buf_din,
-p_out_dwnp_data_wd         => i_hdd_buf_wd,
-p_in_dwnp_buf_empty        => i_hdd_buf_empty,
-p_in_dwnp_buf_full         => i_hdd_buf_full,
-p_in_dwnp_buf_pfull        => i_hdd_buf_pfull,
+p_out_dwnp_data     => i_hdd_buf_din,
+p_out_dwnp_data_wd  => i_hdd_buf_wd,
+p_in_dwnp_buf_empty => i_hdd_buf_empty,
+p_in_dwnp_buf_full  => i_hdd_buf_full,
+p_in_dwnp_buf_pfull => i_hdd_buf_pfull,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           => i_hdd_memarb_req,
-p_in_memarb_en             => i_hdd_memarb_en,
+p_out_memarb_req    => i_hdd_memarb_req,
+p_in_memarb_en      => i_hdd_memarb_en,
 
-p_out_mem_bank1h           => i_hdd_mem_bank1h,
-p_out_mem_ce               => i_hdd_mem_ce,
-p_out_mem_cw               => i_hdd_mem_cw,
-p_out_mem_rd               => i_hdd_mem_rd,
-p_out_mem_wr               => i_hdd_mem_wr,
-p_out_mem_term             => i_hdd_mem_term,
-p_out_mem_adr              => i_hdd_mem_adr,
-p_out_mem_be               => i_hdd_mem_be,
-p_out_mem_din              => i_hdd_mem_din,
-p_in_mem_dout              => i_hdd_mem_dout,
+p_out_mem_bank1h    => i_hdd_mem_bank1h,
+p_out_mem_ce        => i_hdd_mem_ce,
+p_out_mem_cw        => i_hdd_mem_cw,
+p_out_mem_rd        => i_hdd_mem_rd,
+p_out_mem_wr        => i_hdd_mem_wr,
+p_out_mem_term      => i_hdd_mem_term,
+p_out_mem_adr       => i_hdd_mem_adr,
+p_out_mem_be        => i_hdd_mem_be,
+p_out_mem_din       => i_hdd_mem_din,
+p_in_mem_dout       => i_hdd_mem_dout,
 
-p_in_mem_wf                => i_hdd_mem_wf,
-p_in_mem_wpf               => i_hdd_mem_wpf,
-p_in_mem_re                => i_hdd_mem_re,
-p_in_mem_rpe               => i_hdd_mem_rpe,
+p_in_mem_wf         => i_hdd_mem_wf,
+p_in_mem_wpf        => i_hdd_mem_wpf,
+p_in_mem_re         => i_hdd_mem_re,
+p_in_mem_rpe        => i_hdd_mem_rpe,
 
-p_out_mem_clk              => open,
+p_out_mem_clk       => open,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => "00000000000000000000000000000000",
-p_out_tst                  => i_hdd_rambuf_tst_out,
+p_in_tst            => "00000000000000000000000000000000",
+p_out_tst           => i_hdd_rambuf_tst_out,
 
 -------------------------------
 --System
@@ -2074,8 +2073,7 @@ end process;
 --***********************************************************
 --Модуль Контроллера памяти - memory_ctrl.vhd
 --***********************************************************
-LB_SIM_ON : if f_strcmp(G_SIM,"ON") generate
-begin
+gen_sim_on : if f_strcmp(G_SIM,"ON") generate
 
   i_mem_arb1_wf <='0';
   i_mem_arb1_wpf<='0';
@@ -2131,16 +2129,15 @@ begin
     end if;
   end process;
 
-end generate LB_SIM_ON;
+end generate gen_sim_on;
 
-LB_SIM_OFF : if f_strcmp(G_SIM,"OFF") generate
-begin
+gen_sim_off : if f_strcmp(G_SIM,"OFF") generate
   i_mem_arb1_dout<=i_mem_arb1_dout_tmp;
   i_mem_arb1_wf <=i_mem_arb1_wf_tmp;
   i_mem_arb1_wpf<=i_mem_arb1_wpf_tmp;
   i_mem_arb1_re <=i_mem_arb1_re_tmp;
   i_mem_arb1_rpe<=i_mem_arb1_rpe_tmp;
-end generate LB_SIM_OFF;
+end generate gen_sim_off;
 
 
 --//Арбитр канала 1 контроллера памяти

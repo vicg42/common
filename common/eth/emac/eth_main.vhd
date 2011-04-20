@@ -480,10 +480,9 @@ i_emac0_rx_ll_fifo_status<=i_emac0_rx_ll_fifo_status_tmp;
 --//Модули приема/передачи данных
 --//*********************************************************************
 --//Прием данных ETH
-LB_SET_PTRN : for i in 0 to 15 generate
-begin
+gen_set_ptrn : for i in 0 to 15 generate
 i_usr0_mac_pattern(i)<=p_in_usr0_mac_pattern(8*(i+1)-1 downto 8*i);
-end generate LB_SET_PTRN;
+end generate gen_set_ptrn;
 
 i_usr0_rxpattern_param(C_PKT_MARKER_PATTERN_SIZE_MSB_BIT downto C_PKT_MARKER_PATTERN_SIZE_LSB_BIT)<=p_in_usr0_ctrl(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT);
 i_usr0_rxpattern_param(15 downto C_PKT_MARKER_PATTERN_SIZE_MSB_BIT+1)<=(others=>'0');

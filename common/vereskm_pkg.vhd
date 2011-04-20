@@ -27,8 +27,8 @@ package vereskm_pkg is
 
 component dsn_track_nik
 generic(
-G_SIM             : string:="OFF";
-G_MODULE_USE      : string:="ON";
+G_SIM                : string:="OFF";
+G_MODULE_USE         : string:="ON";
 
 G_MEM_BANK_MSB_BIT   : integer:=29;
 G_MEM_BANK_LSB_BIT   : integer:=28;
@@ -45,84 +45,84 @@ port
 -------------------------------
 -- Управление от Хоста
 -------------------------------
-p_in_host_clk         : in   std_logic;
+p_in_host_clk        : in   std_logic;
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);  --//
-p_in_cfg_adr_ld       : in   std_logic;                     --//
-p_in_cfg_adr_fifo     : in   std_logic;                     --//
+p_in_cfg_adr         : in   std_logic_vector(7 downto 0);  --//
+p_in_cfg_adr_ld      : in   std_logic;                     --//
+p_in_cfg_adr_fifo    : in   std_logic;                     --//
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0); --//
-p_in_cfg_wd           : in   std_logic;                     --//
+p_in_cfg_txdata      : in   std_logic_vector(15 downto 0); --//
+p_in_cfg_wd          : in   std_logic;                     --//
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0); --//
-p_in_cfg_rd           : in   std_logic;                     --//
+p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0); --//
+p_in_cfg_rd          : in   std_logic;                     --//
 
-p_in_cfg_done         : in   std_logic;                     --//
+p_in_cfg_done        : in   std_logic;                     --//
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_out_trc_hirq        : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
-p_out_trc_hdrdy       : out   std_logic; --//Флаг есть данные
-p_out_trc_hfrmrk      : out   std_logic_vector(31 downto 0);--//
-p_in_trc_hrddone      : in    std_logic; --//Подтверждение вычитки данных обработки
+p_out_trc_hirq       : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
+p_out_trc_hdrdy      : out   std_logic; --//Флаг есть данные
+p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);--//
+p_in_trc_hrddone     : in    std_logic; --//Подтверждение вычитки данных обработки
 
-p_out_trc_bufo_dout   : out   std_logic_vector(31 downto 0);
-p_in_trc_bufo_rd      : in    std_logic;
-p_out_trc_bufo_empty  : out   std_logic;
+p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
+p_in_trc_bufo_rd     : in    std_logic;
+p_out_trc_bufo_empty : out   std_logic;
 
-p_out_trc_busy        : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
-p_in_vctrl_vrdprms    : in    TReaderVCHParams;
-p_in_vctrl_vfrrdy     : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_in_vctrl_vbuf       : in    TVfrBufs;
-p_in_vctrl_vrowmrk    : in    TVMrks;
+p_in_vctrl_vrdprms   : in    TReaderVCHParams;
+p_in_vctrl_vfrrdy    : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_vctrl_vbuf      : in    TVfrBufs;
+p_in_vctrl_vrowmrk   : in    TVMrks;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req      : out   std_logic;
-p_in_memarb_en        : in    std_logic;
+p_out_memarb_req     : out   std_logic;
+p_in_memarb_en       : in    std_logic;
 
-p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
-p_out_mem_ce          : out   std_logic;
-p_out_mem_cw          : out   std_logic;
-p_out_mem_rd          : out   std_logic;
-p_out_mem_wr          : out   std_logic;
-p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_ce         : out   std_logic;
+p_out_mem_cw         : out   std_logic;
+p_out_mem_rd         : out   std_logic;
+p_out_mem_wr         : out   std_logic;
+p_out_mem_term       : out   std_logic;
+p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf           : in    std_logic;
-p_in_mem_wpf          : in    std_logic;
-p_in_mem_re           : in    std_logic;
-p_in_mem_rpe          : in    std_logic;
+p_in_mem_wf          : in    std_logic;
+p_in_mem_wpf         : in    std_logic;
+p_in_mem_re          : in    std_logic;
+p_in_mem_rpe         : in    std_logic;
 
-p_out_mem_clk         : out   std_logic;
+p_out_mem_clk        : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              : in    std_logic_vector(31 downto 0);
-p_out_tst             : out   std_logic_vector(31 downto 0);
+p_in_tst             : in    std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk              : in    std_logic;
-p_in_rst              : in    std_logic
+p_in_clk             : in    std_logic;
+p_in_rst             : in    std_logic
 );
 end component;
 
 component dsn_track
 generic(
-G_SIM             : string:="OFF";
-G_MODULE_USE      : string:="ON";
+G_SIM                : string:="OFF";
+G_MODULE_USE         : string:="ON";
 
 G_MEM_BANK_MSB_BIT   : integer:=29;
 G_MEM_BANK_LSB_BIT   : integer:=28;
@@ -139,77 +139,77 @@ port
 -------------------------------
 -- Управление от Хоста
 -------------------------------
-p_in_host_clk         : in   std_logic;
+p_in_host_clk        : in   std_logic;
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);  --//
-p_in_cfg_adr_ld       : in   std_logic;                     --//
-p_in_cfg_adr_fifo     : in   std_logic;                     --//
+p_in_cfg_adr         : in   std_logic_vector(7 downto 0);  --//
+p_in_cfg_adr_ld      : in   std_logic;                     --//
+p_in_cfg_adr_fifo    : in   std_logic;                     --//
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0); --//
-p_in_cfg_wd           : in   std_logic;                     --//
+p_in_cfg_txdata      : in   std_logic_vector(15 downto 0); --//
+p_in_cfg_wd          : in   std_logic;                     --//
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0); --//
-p_in_cfg_rd           : in   std_logic;                     --//
+p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0); --//
+p_in_cfg_rd          : in   std_logic;                     --//
 
-p_in_cfg_done         : in   std_logic;                     --//
+p_in_cfg_done        : in   std_logic;                     --//
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_out_trc_hirq             : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
-p_out_trc_hdrdy            : out   std_logic; --//Флаг есть данные
-p_out_trc_hfrmrk           : out   std_logic_vector(31 downto 0);--//
-p_in_trc_hrddone           : in    std_logic; --//Подтверждение вычитки данных обработки
+p_out_trc_hirq       : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
+p_out_trc_hdrdy      : out   std_logic; --//Флаг есть данные
+p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);--//
+p_in_trc_hrddone     : in    std_logic; --//Подтверждение вычитки данных обработки
 
-p_out_trc_bufo_dout        : out   std_logic_vector(31 downto 0);
-p_in_trc_bufo_rd           : in    std_logic;
-p_out_trc_bufo_empty       : out   std_logic;
+p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
+p_in_trc_bufo_rd     : in    std_logic;
+p_out_trc_bufo_empty : out   std_logic;
 
-p_out_trc_busy              : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
-p_in_vctrl_vrdprms         : in    TReaderVCHParams;
-p_in_vctrl_vfrrdy          : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_in_vctrl_vbuf            : in    TVfrBufs;
-p_in_vctrl_vrowmrk         : in    TVMrks;
+p_in_vctrl_vrdprms   : in    TReaderVCHParams;
+p_in_vctrl_vfrrdy    : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_vctrl_vbuf      : in    TVfrBufs;
+p_in_vctrl_vrowmrk   : in    TVMrks;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;
-p_in_memarb_en             : in    std_logic;
+p_out_memarb_req     : out   std_logic;
+p_in_memarb_en       : in    std_logic;
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_ce         : out   std_logic;
+p_out_mem_cw         : out   std_logic;
+p_out_mem_rd         : out   std_logic;
+p_out_mem_wr         : out   std_logic;
+p_out_mem_term       : out   std_logic;
+p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf          : in    std_logic;
+p_in_mem_wpf         : in    std_logic;
+p_in_mem_re          : in    std_logic;
+p_in_mem_rpe         : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk        : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst             : in    std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk             : in    std_logic;
+p_in_rst             : in    std_logic
 );
 end component;
 
@@ -225,60 +225,60 @@ port
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_ramadr            : in    std_logic_vector(31 downto 0);
-p_in_cfg_rambuf            : in    std_logic_vector(31 downto 0);
+p_in_cfg_ramadr     : in    std_logic_vector(31 downto 0);
+p_in_cfg_rambuf     : in    std_logic_vector(31 downto 0);
 
 --//Статусы
-p_out_sts_rdy              : out   std_logic;
-p_out_sts_err              : out   std_logic;
+p_out_sts_rdy       : out   std_logic;
+p_out_sts_err       : out   std_logic;
 
 --//--------------------------
 --//Upstream Port(Связь с буфером источника данных)
 --//--------------------------
-p_in_upp_data              : in    std_logic_vector(31 downto 0);
-p_out_upp_data_rd          : out   std_logic;
-p_in_upp_buf_empty         : in    std_logic;
-p_in_upp_buf_full          : in    std_logic;
-p_in_upp_buf_pfull         : in    std_logic;
+p_in_upp_data       : in    std_logic_vector(31 downto 0);
+p_out_upp_data_rd   : out   std_logic;
+p_in_upp_buf_empty  : in    std_logic;
+p_in_upp_buf_full   : in    std_logic;
+p_in_upp_buf_pfull  : in    std_logic;
 
 --//--------------------------
 --//Downstream Port(Связь с буфером приемника данных)
 --//--------------------------
-p_out_dwnp_data            : out   std_logic_vector(31 downto 0);
-p_out_dwnp_data_wd         : out   std_logic;
-p_in_dwnp_buf_empty        : in    std_logic;
-p_in_dwnp_buf_full         : in    std_logic;
-p_in_dwnp_buf_pfull        : in    std_logic;
+p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
+p_out_dwnp_data_wd  : out   std_logic;
+p_in_dwnp_buf_empty : in    std_logic;
+p_in_dwnp_buf_full  : in    std_logic;
+p_in_dwnp_buf_pfull : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;
-p_in_memarb_en             : in    std_logic;
+p_out_memarb_req    : out   std_logic;
+p_in_memarb_en      : in    std_logic;
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_mem_ce        : out   std_logic;
+p_out_mem_cw        : out   std_logic;
+p_out_mem_rd        : out   std_logic;
+p_out_mem_wr        : out   std_logic;
+p_out_mem_term      : out   std_logic;
+p_out_mem_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf         : in    std_logic;
+p_in_mem_wpf        : in    std_logic;
+p_in_mem_re         : in    std_logic;
+p_in_mem_rpe        : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk       : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -719,73 +719,11 @@ p_out_tst           : out   std_logic_vector(31 downto 0);
 -------------------------------
 p_in_tmrclk  : in    std_logic;  --//
 
-p_in_clk     : in   std_logic;  --//
+p_in_clk     : in    std_logic;  --//
 p_in_rst     : in    std_logic
 );
 end component;
 
---component dsn_video_processing
---generic
---(
---G_MODULE_USE           : string:="ON" --//"ON" - тело модуля используется /"OFF" - тело модуля выбрасывается из проекта
---);
---port
---(
----------------------------------
----- Конфигурирование модуля dsn_track.vhd (host_clk domain)
----------------------------------
---p_in_host_clk         : in   std_logic;                      --//
---
---p_in_cfg_adr          : in   std_logic_vector(7 downto 0);  --//
---p_in_cfg_adr_ld       : in   std_logic;                     --//
---p_in_cfg_adr_fifo     : in   std_logic;                     --//
---
---p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
---p_in_cfg_wd           : in   std_logic;                      --//
---
---p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
---p_in_cfg_rd           : in   std_logic;                      --//
---
---p_in_cfg_done         : in   std_logic;                      --//
---
----------------------------------
----- STATUS модуля dsn_video_processing.vhd
----------------------------------
---p_out_vproc_data_rdy  : out  std_logic;                      --//
---
------------------------------------
----- Связь с memory_ctrl.vhd
------------------------------------
---p_out_mem_clk              : out   std_logic;
---
---p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
---p_out_mem_ce               : out   std_logic;
---p_out_mem_cw               : out   std_logic;
---p_out_mem_rd               : out   std_logic;
---p_out_mem_wr               : out   std_logic;
---p_out_mem_term             : out   std_logic;
---p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
---p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
---p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
---p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
---
---p_in_mem_wf                : in    std_logic;
---p_in_mem_wpf               : in    std_logic;
---p_in_mem_re                : in    std_logic;
---p_in_mem_rpe               : in    std_logic;
---
----------------------------------
-----Технологический
----------------------------------
---p_out_tst                  : out   std_logic_vector(31 downto 0);
---
----------------------------------
-----System
----------------------------------
---p_in_clk            : in    std_logic;                      --//
---p_in_rst            : in    std_logic
---);
---end component;
 
 
 end vereskm_pkg;
