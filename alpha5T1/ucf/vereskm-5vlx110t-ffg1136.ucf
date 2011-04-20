@@ -84,7 +84,7 @@ NET "pin_in_eth0_clk_n" LOC = "C8";
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
 ###НЕ ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="OFF";)
-#INST "m_ethg/LB_MOD_USE_OFF.m_gtp_dual_clk/gtp_dual_i"  LOC = "GTP_DUAL_X0Y7";
+#INST "m_ethg/gen_use_off.m_gtp_dual_clk/gtp_dual_i"  LOC = "GTP_DUAL_X0Y7";
 
 ###ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="ON";)
 INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y7";
@@ -94,7 +94,7 @@ INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = 
 #--------------------------------------------------------------------------
 # EMAC0 Clocking
 # 125MHz clock input from BUFG
-NET "m_ethg/LB_MOD_USE_ON.m_eth_main/m_emac_core_main/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
+NET "m_ethg/gen_use_on.m_eth_main/m_emac_core_main/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
 TIMEGRP  "emac_core_gtp_clk"            = "mac0_clk_gtp";
 TIMESPEC "TS_emac_core_gtp_clk"         = PERIOD "emac_core_gtp_clk" 7700 ps HIGH 50 %;
 
@@ -151,29 +151,29 @@ INST "ibuf_pciexp_gtp_refclk"               DIFF_TERM = "TRUE" ;
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y0;# PCIe Lanes 1, 2
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 3, 4
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 5, 6
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 7, 8
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y0;# PCIe Lanes 1, 2
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 3, 4
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 5, 6
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 7, 8
 
 # BlockRAM placement
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X3Y11;
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X3Y10;
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X3Y9;
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X3Y8;
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_retry/generate_sdp.ram_sdp_inst"      LOC = RAMB36_X2Y8;
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X3Y11;
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X3Y10;
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X3Y9;
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X3Y8;
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_retry/generate_sdp.ram_sdp_inst"      LOC = RAMB36_X2Y8;
 
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk_if/ll_bridge/tx_bridge/tx_bridge/shift_pipe1"                 LOC = "SLICE_X102Y50";
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk_if/ll_bridge/rx_bridge/arb_inst/completion_available"         LOC = "SLICE_X102Y49";
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk_if/cf_bridge/management_interface/mgmt_rdata_d1_3"            LOC = "SLICE_X102Y48";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk_if/ll_bridge/tx_bridge/tx_bridge/shift_pipe1"                 LOC = "SLICE_X102Y50";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk_if/ll_bridge/rx_bridge/arb_inst/completion_available"         LOC = "SLICE_X102Y49";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk_if/cf_bridge/management_interface/mgmt_rdata_d1_3"            LOC = "SLICE_X102Y48";
 
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/clocking_i/use_pll.pll_adv_i"                                 LOC = PLL_ADV_X0Y2;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/clocking_i/use_pll.pll_adv_i"                                 LOC = PLL_ADV_X0Y2;
 
 #--------------------------------------------------------------------------
 #Временные ограничения
 #--------------------------------------------------------------------------
-NET "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out[0]" TNM_NET = "MGTCLK";##//if PCIe Lines>1
-#NET "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";##//if PCIe Lines==1
+NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out[0]" TNM_NET = "MGTCLK";##//if PCIe Lines>1
+#NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";##//if PCIe Lines==1
 TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 
 NET "i_pciexp_gtp_refclkin" PERIOD = 10ns;
@@ -198,8 +198,8 @@ INST "ibufds_gtp_hdd_clkin"   DIFF_TERM = "TRUE" ;
 #--------------------------------------------------------------------------
 #INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 
-###НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
-INST "m_hdd/LB_MOD_USE_OFF.m_gtp_dual_clk/m_gt"  LOC=GTP_DUAL_X0Y4;
+####НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
+#INST "m_hdd/gen_use_off.m_sata_gt/m_gt"  LOC=GTP_DUAL_X0Y4;
 
 ###ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
 #INST "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/LB_ROCKETIO_ON.m_sata_rocketio_i/m_gtp_dual_i"      LOC=GTP_DUAL_X0Y4;
