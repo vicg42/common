@@ -3516,8 +3516,7 @@ ramclko    => ramclk);
 
 
 --//32BIT
-  LB_LBUS_32BIT : if C_FHOST_DBUS=32 generate
-  begin
+  gen_lbus_32bit : if C_FHOST_DBUS=32 generate
 
   arb_0 : locbus_arb
       generic map(
@@ -3564,12 +3563,11 @@ ramclko    => ramclk);
           lready_l    => lready_l,
           lbterm_l    => lbterm_l);
 
-  --//Конец блока "LB_LBUS_32BIT"
-  end generate LB_LBUS_32BIT;
+  --//Конец блока "gen_lbus_32bit"
+  end generate gen_lbus_32bit;
 
 --//64BIT
-  LB_LBUS_64BIT : if C_FHOST_DBUS=64 generate
-  begin
+  gen_lbus_64bit : if C_FHOST_DBUS=64 generate
     agent_ds : locbus_agent_mux64
         port map(
             lclk        => lclk,
@@ -3615,8 +3613,8 @@ ramclko    => ramclk);
             lready_l    => lready_l,
             lbterm_l    => lbterm_l);
 
-  --//Конец блока "LB_LBUS_64BIT"
-  end generate LB_LBUS_64BIT;
+  --//Конец блока "gen_lbus_64bit"
+  end generate gen_lbus_64bit;
 
 end behav;
 
