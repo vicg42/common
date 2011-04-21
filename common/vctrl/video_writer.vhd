@@ -138,8 +138,6 @@ row : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
 end record;
 signal i_vfr_zone_skip             : TWFrXYParam;
 signal i_vfr_zone_active           : TWFrXYParam;
-signal i_vfr_subsampling           : std_logic_vector(1 downto 0);--//необходим для режима прореживания
-signal i_vfr_actzone_row_cnt       : std_logic_vector(1 downto 0);--//необходим для режима прореживания
 signal i_vfr_row_mrk               : TVMrks;
 signal tmp_vfr_row_mrk_low         : std_logic_vector(15 downto 0);
 
@@ -159,14 +157,7 @@ signal i_vfr_row                   : std_logic_vector(15 downto 0);
 signal i_vch_num                   : std_logic_vector(3 downto 0);
 signal i_vfr_vld                   : std_logic;
 signal i_vfr_row_en                : std_logic;
-signal i_vfr_actzone_row           : std_logic;
-signal i_vfr_actzone_row_en        : std_logic;
-Type TRowCntVCH is array (0 to C_DSN_VCTRL_VCH_MAX_COUNT-1) of std_logic_vector(1 downto 0);
-signal i_vfr_actzone_row_cnts       : TRowCntVCH;--//необходим для режима прореживания
 signal i_vfr_pix_en                : std_logic;
-signal i_vfr_actzone_pix           : std_logic;
-signal i_vfr_actzone_pix_en        : std_logic;
-signal i_vfr_actzone_pix_cnt       : std_logic_vector(1 downto 0);--//необходим для режима прореживания
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
 signal i_vfr_zone_active_pix_end   : std_logic_vector(i_vpkt_cnt'range);
 signal i_vfr_zone_active_row_end   : std_logic_vector(i_vfr_row'range);
@@ -185,7 +176,6 @@ signal upp_data_rd_out             : std_logic;
 signal upp_hd_data_rd_out          : std_logic;
 signal upp_pldvld_data_rd_out      : std_logic;
 
-signal i_upp_data_save             : std_logic_vector(23 downto 0);
 signal i_upp_data                  : std_logic_vector(31 downto 0);
 
 signal tst_dcount                  : std_logic_vector(31 downto 0);
@@ -293,64 +283,17 @@ p_out_mem_din <= i_mem_din_out;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_mem_din_out  <=(others=>'0');
-
+    i_mem_din_out<=(others=>'0');
     i_mem_adr_out<=(others=>'0');
 
     p_out_mem_ce   <='0';
     p_out_mem_wr   <='0';
     p_out_mem_term <='0';
 
-    i_upp_data_save<=(others=>'0');
-
   elsif p_in_clk'event and p_in_clk='1' then
 
---    i_mem_din_out(7 downto 0)  <=p_in_upp_data(15 downto 8); --//Byte0
---    i_mem_din_out(15 downto 8) <=p_in_upp_data(7 downto 0);  --//Byte1
---    i_mem_din_out(23 downto 16)<=p_in_upp_data(31 downto 24);--//Byte2
---    i_mem_din_out(31 downto 24)<=p_in_upp_data(23 downto 16);--//Byte3
-
-    --//Данные записи в ОЗУ
-    if i_vfr_subsampling="00" then
-    --//Прореживаня НЕТ
-        i_mem_din_out <=i_upp_data;--p_in_upp_data;
-
-    elsif i_vfr_subsampling="01" then
-    --//Прореживание ЕСТЬ: берем каждый 2-ой пиксель
-
-        --//Для случая 1Pix=8bit
-        if i_vfr_actzone_pix_cnt(0)='1' then
-        --//Запись DWORD в ОЗУ
-          i_mem_din_out(31 downto 24)<= i_upp_data(31 downto 24);--p_in_upp_data(31 downto 24);
-          i_mem_din_out(23 downto 16)<= i_upp_data(15 downto 8);--p_in_upp_data(15 downto 8);
-          i_mem_din_out(15 downto 8) <= i_upp_data_save(15 downto 8);
-          i_mem_din_out(7 downto 0)  <= i_upp_data_save(7 downto 0);
-        else
-        --//Собираем DWORD для записи в ОЗУ
-          i_upp_data_save(15 downto 8)<= i_upp_data(31 downto 24);--p_in_upp_data(31 downto 24);
-          i_upp_data_save(7 downto 0) <= i_upp_data(15 downto 8);--p_in_upp_data(15 downto 8);
-        end if;
-
-    elsif i_vfr_subsampling="10" then
-    --//Прореживание ЕСТЬ: берем каждый 4-ый пиксель
-
-        --//Для случая 1Pix=8bit
-        if i_vfr_actzone_pix_cnt(1 downto 0)="11" then
-        --//Запись DWORD в ОЗУ
-          i_mem_din_out(31 downto 24)<= i_upp_data(31 downto 24);--p_in_upp_data(31 downto 24);
-          i_mem_din_out(23 downto 16)<= i_upp_data_save(23 downto 16);
-          i_mem_din_out(15 downto 8) <= i_upp_data_save(15 downto 8);
-          i_mem_din_out(7 downto 0)  <= i_upp_data_save(7 downto 0);
-
-        --//Собираем DWORD для записи в ОЗУ:
-        elsif i_vfr_actzone_pix_cnt(1 downto 0)="10" then
-          i_upp_data_save(23 downto 16) <= i_upp_data(31 downto 24);--p_in_upp_data(31 downto 24);
-        elsif i_vfr_actzone_pix_cnt(1 downto 0)="01" then
-          i_upp_data_save(15 downto 8) <= i_upp_data(31 downto 24);--p_in_upp_data(31 downto 24);
-        else
-          i_upp_data_save(7 downto 0) <= i_upp_data(31 downto 24);--p_in_upp_data(31 downto 24);
-        end if;
-    end if;
+    --//Данны, запись в ОЗУ
+    i_mem_din_out <=i_upp_data;--p_in_upp_data;
 
     i_mem_adr_out<=i_vfr_mem_adr(i_mem_adr_out'high downto 0);
 
@@ -371,74 +314,6 @@ end process;
 
 --//Разрешение записи видеокадра в ОЗУ
 i_vfr_vld<=i_vfr_row_en and i_vfr_pix_en;
-
-----//Без режима прореживания
---i_vfr_row_en<=i_vfr_actzone_row;
---i_vfr_pix_en<=i_vfr_actzone_pix;
---i_vfr_actzone_pix_cnt<=(others=>'0');
---gen_subs_off : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
---begin
---i_vfr_actzone_row_cnts(i)<=(others=>'0');
---end generate gen_subs_off;
-
-
---//C режимом прореживания
---i_vfr_row_en<=i_vfr_actzone_row and i_vfr_actzone_row_en and not tst_dbg_pictire;
-i_vfr_row_en<=i_vfr_actzone_row and i_vfr_actzone_row_en;
-i_vfr_pix_en<=i_vfr_actzone_pix and i_vfr_actzone_pix_en;
-
---//Разрешение пиксел/строк в зависимости от режима прореживания
---//x00 - нет прореживания
---//x01 - берем каждый 4-ый пиксель и каждую 4-ю строку
---//x02 - берем каждый 2-ый пиксель и каждую 2-ю строку
-i_vfr_actzone_pix_en<='1' when i_vfr_subsampling="00" else
-                      '1' when i_vfr_subsampling="01" and i_vfr_actzone_pix_cnt(0)='1' else
-                      '1' when i_vfr_subsampling="10" and i_vfr_actzone_pix_cnt(1 downto 0)="11" else
-                      '0';
-
-i_vfr_actzone_row_en<='1' when i_vfr_subsampling="00" else
-                      '1' when i_vfr_subsampling="01" and i_vfr_actzone_row_cnt(0)='1' else
-                      '1' when i_vfr_subsampling="10" and i_vfr_actzone_row_cnt(1 downto 0)="11" else
-                      '0';
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    for i in 0 to C_DSN_VCTRL_VCH_MAX_COUNT-1 loop
-      i_vfr_actzone_row_cnts(i)<=(others=>'0');
-    end loop;
-    i_vfr_actzone_pix_cnt<=(others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-      --//Счетчик прореживания по строкам
-      for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
-          if p_in_cfg_set_idle_vch(i)='1' or i_vfr_rdy(i)='1' then
-          --//Сигнал p_in_cfg_set_idle_vch(i) нужно назначать только при отключеном видеопотоке,
-          --//(отключение видео потока через фильтр пакетов в модуле dsn_switch.vhd)
-            i_vfr_actzone_row_cnts(i)<=(others=>'0');
-
-          elsif fsm_state_cs=S_EXIT and i_vfr_actzone_row='1' then
-          --//Находимся в активной зоне по строкам
-            i_vfr_actzone_row_cnts(i)<=i_vfr_actzone_row_cnts(i)+1;
-          end if;
-      end loop; --//for
-
-      --//Счетчик прореживания по пикселям
-      if fsm_state_cs=S_EXIT then
-        i_vfr_actzone_pix_cnt<=(others=>'0');
-
-      elsif fsm_state_cs=S_MEM_TRN then
-        if upp_data_rd_out='1' then
-          if i_vfr_actzone_pix='1'then
-            i_vfr_actzone_pix_cnt<=i_vfr_actzone_pix_cnt+1;
-          end if;
-        end if;
-      end if;
-
-  end if;
-end process;
-
 
 
 --//----------------------------------------------
@@ -473,7 +348,6 @@ begin
       i_cfg_prm_vch(i).fr_size.skip.row<=(others=>'0');
       i_cfg_prm_vch(i).fr_size.activ.pix<=(others=>'0');
       i_cfg_prm_vch(i).fr_size.activ.row<=(others=>'0');
-      i_cfg_prm_vch(i).fr_subsampling<=(others=>'0');
 
       i_vfr_num(i)<=(others=>'0');
       i_vfr_row_mrk(i)<=(others=>'0');
@@ -485,15 +359,13 @@ begin
     i_vfr_zone_skip.row<=(others=>'0');
     i_vfr_zone_active.pix<=(others=>'0');
     i_vfr_zone_active.row<=(others=>'0');
-    i_vfr_subsampling<=(others=>'0');
-    i_vfr_actzone_row_cnt<=(others=>'0');
 
     i_vfr_pix_count<=(others=>'0');
     i_vfr_row_count<=(others=>'0');
     tmp_vfr_row_mrk_low<=(others=>'0');
     i_vfr_rdy<=(others=>'0');
-    i_vfr_actzone_row<='0';
-    i_vfr_actzone_pix<='0';
+    i_vfr_row_en<='0';
+    i_vfr_pix_en<='0';
     i_memtrn_zone_skip_pix_start<=(others=>'0');
 
     i_mem_adr_update<='0';
@@ -527,7 +399,6 @@ begin
             i_cfg_prm_vch(i).mem_adr<=p_in_cfg_prm_vch(i).mem_adr;
             i_cfg_prm_vch(i).fr_size.skip<=p_in_cfg_prm_vch(i).fr_size.skip;
             i_cfg_prm_vch(i).fr_size.activ<=p_in_cfg_prm_vch(i).fr_size.activ;
-            i_cfg_prm_vch(i).fr_subsampling<=p_in_cfg_prm_vch(i).fr_subsampling;
           end loop;
 
         end if;
@@ -573,8 +444,6 @@ begin
                 i_vfr_zone_skip.row<=i_cfg_prm_vch(i).fr_size.skip.row(i_vfr_zone_skip.row'high downto 0);
                 i_vfr_zone_active.pix<=i_cfg_prm_vch(i).fr_size.activ.pix(i_vfr_zone_active.pix'high downto 0);
                 i_vfr_zone_active.row<=i_cfg_prm_vch(i).fr_size.activ.row(i_vfr_zone_active.row'high downto 0);
-                i_vfr_subsampling<=i_cfg_prm_vch(i).fr_subsampling;
-                i_vfr_actzone_row_cnt<=i_vfr_actzone_row_cnts(i);
 
                 --//адрес ОЗУ:
                 i_vfr_mem_adr(G_MEM_BANK_MSB_BIT downto G_MEM_BANK_LSB_BIT)<=i_cfg_prm_vch(i).mem_adr(G_MEM_BANK_MSB_BIT downto G_MEM_BANK_LSB_BIT);--(G_MEM_BANK_MSB_BIT-G_MEM_BANK_LSB_BIT downto 0);
@@ -624,7 +493,10 @@ begin
                 if i_vch_num=i then
                   if i_vfr_num(i)/=p_in_upp_data(3 downto 0) then
                     --//Обнаружил начало нового кадра!!!!!!!!!
-                    i_cfg_prm_vch(i)<=p_in_cfg_prm_vch(i);  --//Перезагрузка параметров канала
+                    --//Перезагрузка параметров канала
+                    i_cfg_prm_vch(i).mem_adr<=p_in_cfg_prm_vch(i).mem_adr;
+                    i_cfg_prm_vch(i).fr_size.skip<=p_in_cfg_prm_vch(i).fr_size.skip;
+                    i_cfg_prm_vch(i).fr_size.activ<=p_in_cfg_prm_vch(i).fr_size.activ;
                   end if;
 
                   --//Сохраняем номер текущего кадра:
@@ -633,7 +505,7 @@ begin
                  end if;
               end loop;
 
-              --//Сохраняем размер кадра:  кол-во пикселей
+              --//Сохраняем размер кадра: кол-во пикселей
               i_vfr_pix_count<=p_in_upp_data(31 downto 16);
 
             --//Header DWORD-2:
@@ -676,10 +548,10 @@ begin
         if i_vfr_row >= i_vfr_zone_skip.row and
            i_vfr_row < i_vfr_zone_active_row_end then
             --//Находимся в актиной зоне кадра
-            i_vfr_actzone_row<='1';
+            i_vfr_row_en<='1';
         else
           --//Выход за пределы актиной зоны кадра
-          i_vfr_actzone_row<='0';
+          i_vfr_row_en<='0';
         end if;
 
         i_vfr_zone_active.pix<=i_vfr_zone_active.pix-1;
@@ -716,7 +588,7 @@ begin
       --//------------------------------------
       when S_MEM_SET_ADR =>
 
-        --//Проверяем попадает ли в теркущую MEM_TRN активная зона кадра по пикселам
+        --//Проверяем попадает ли в текущую MEM_TRN активная зона кадра по пикселям
         if i_vpkt_data_readed <= EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) then
           if (i_vpkt_data_readed + i_vpkt_cnt) > (EXT(i_vfr_zone_skip.pix, i_vpkt_cnt'length)) then
             var_temp:='1';
@@ -741,7 +613,7 @@ begin
         end if;
 
       --//------------------------------------
-      --//Ждем разрешения от арбитра
+      --//Ждем разрешение от арбитра
       --//------------------------------------
       when S_MEM_WAIT_RQ_EN =>
 
@@ -766,10 +638,10 @@ begin
             if i_vpkt_data_readed >= EXT(i_vfr_zone_skip.pix, i_vpkt_cnt'length) and
                i_vpkt_data_readed <= EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) then
                 --//Находимся в активной зоне кадра
-                i_vfr_actzone_pix<='1';
+                i_vfr_pix_en<='1';
             else
                 --//Выход за пределы актиной зоны кадра
-                i_vfr_actzone_pix<='0';
+                i_vfr_pix_en<='0';
             end if;
         end if;
 
@@ -788,10 +660,10 @@ begin
           if i_vpkt_data_readed >= EXT(i_memtrn_zone_skip_pix_start, i_vpkt_cnt'length) and
              i_vpkt_data_readed < EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) then
               --//Находимся в активной зоне кадра
-              i_vfr_actzone_pix<='1';
+              i_vfr_pix_en<='1';
           else
               --//Выход за пределы актиной зоны кадра
-              i_vfr_actzone_pix<='0';
+              i_vfr_pix_en<='0';
           end if;
 
           --//Счетчик действительных данных(в DWORD) текущей MEM_TRN
