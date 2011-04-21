@@ -350,9 +350,9 @@ begin
     i_link_establish_dly(1)<=i_link_establish_dly(0);
     i_link_establish_change<=i_link_establish_dly(1) and not i_link_establish_dly(0);
 
-    p_out_status.SError(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)<=i_sstatus(C_ASSTAT_DET_BIT_L+2 downto C_ASSTAT_DET_BIT_L);
+    p_out_status.SError(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)<=i_sstatus(C_ASSTAT_DET_BIT_L+1 downto C_ASSTAT_DET_BIT_L);
     p_out_status.SError(C_ASERR_SPD_M_BIT downto C_ASERR_SPD_L_BIT)<=i_sstatus(C_ASSTAT_SPD_BIT_L+2 downto C_ASSTAT_SPD_BIT_L);
-    p_out_status.SError(C_ASERR_IPM_M_BIT downto C_ASERR_IPM_L_BIT)<=i_sstatus(C_ASSTAT_IPM_BIT_L+2 downto C_ASSTAT_IPM_BIT_L);
+    p_out_status.SError(C_ASERR_IPM_L_BIT)<=i_sstatus(C_ASSTAT_IPM_BIT_L);
 
     if i_err_clr='1' then
 
