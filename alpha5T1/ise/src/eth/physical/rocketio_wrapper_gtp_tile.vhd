@@ -131,42 +131,43 @@ architecture RTL of ROCKETIO_WRAPPER_GTP_TILE is
 component gtp_drp_ctrl
 generic
 (
-G_USE_USRCTLR              : integer   := 0;
+G_USE_USRCTLR      : integer   := 0;
 
-G_CLKIN_CHANGE             : std_logic := '0';
-G_CLKSOUTH_CHANGE          : std_logic := '0';
-G_CLKNORTH_CHANGE          : std_logic := '0';
+G_CLKIN_CHANGE     : std_logic := '0';
+G_CLKSOUTH_CHANGE  : std_logic := '0';
+G_CLKNORTH_CHANGE  : std_logic := '0';
 
-G_CLKIN_MUX_VAL            : std_logic_vector(2 downto 0):="011";
-G_CLKSOUTH_MUX_VAL         : std_logic := '0';
-G_CLKNORTH_MUX_VAL         : std_logic := '0'
+G_CLKIN_MUX_VAL    : std_logic_vector(2 downto 0):="011";
+G_CLKSOUTH_MUX_VAL : std_logic := '0';
+G_CLKNORTH_MUX_VAL : std_logic := '0'
 );
 port
 (
-p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+p_in_usr_ctrl     : in    std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --RocketIO
 --------------------------------------------------
-p_out_gtp_drpclk        : out   std_logic;
-p_out_gtp_drpaddr       : out   std_logic_vector(6 downto 0);--Dynamic Reconfiguration Port (DRP)
-p_out_gtp_drpen         : out   std_logic;
-p_out_gtp_drpwe         : out   std_logic;
-p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
-p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
-p_in_gtp_drprdy         : in    std_logic;
+p_out_gtp_drpclk  : out   std_logic;
+p_out_gtp_drpaddr : out   std_logic_vector(6 downto 0);--Dynamic Reconfiguration Port (DRP)
+p_out_gtp_drpen   : out   std_logic;
+p_out_gtp_drpwe   : out   std_logic;
+p_out_gtp_drpdi   : out   std_logic_vector(15 downto 0);
+p_in_gtp_drpdo    : in    std_logic_vector(15 downto 0);
+p_in_gtp_drprdy   : in    std_logic;
 
-p_out_gtp_rst           : out   std_logic;
+p_out_gtp_rst     : out   std_logic;
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_out_tst_fsm           : out   std_logic_vector(18 downto 0);
+p_out_tst         : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --SYSTEM
 --------------------------------------------------
-p_in_clk                : in    std_logic;--
-p_in_rst                : in    std_logic --
+p_in_clk          : in    std_logic;--
+p_in_rst          : in    std_logic --
 );
 end component;
 
@@ -734,42 +735,43 @@ begin
 m_drp_ctrl : gtp_drp_ctrl
 generic map
 (
-G_USE_USRCTLR       =>  1,
+G_USE_USRCTLR      =>  1,
 
-G_CLKIN_CHANGE      => '0',--'1',--//Буду изменять источник опорной частоты для DUAL_GTP_X0Y7
-G_CLKSOUTH_CHANGE   => '0',
-G_CLKNORTH_CHANGE   => '0',
+G_CLKIN_CHANGE     => '0',--'1',--//Буду изменять источник опорной частоты для DUAL_GTP_X0Y7
+G_CLKSOUTH_CHANGE  => '0',
+G_CLKNORTH_CHANGE  => '0',
 
-G_CLKIN_MUX_VAL     => "111",--//Беру опорную частоту для DUAL_GTP_X0Y7 с тарасы CLKOUTNORTH
-G_CLKSOUTH_MUX_VAL  => '0',
-G_CLKNORTH_MUX_VAL  => '0'
+G_CLKIN_MUX_VAL    => "111",--//Беру опорную частоту для DUAL_GTP_X0Y7 с тарасы CLKOUTNORTH
+G_CLKSOUTH_MUX_VAL => '0',
+G_CLKNORTH_MUX_VAL => '0'
 )
 port map
 (
-p_in_usr_ctrl           => p_in_drp_ctrl(31 downto 0),
+p_in_usr_ctrl     => p_in_drp_ctrl(31 downto 0),
 
 --------------------------------------------------
 --RocketIO
 --------------------------------------------------
-p_out_gtp_drpclk        => i_gtp_drpclk,
-p_out_gtp_drpaddr       => i_gtp_drpaddr,
-p_out_gtp_drpen         => i_gtp_drpen,
-p_out_gtp_drpwe         => i_gtp_drpwe,
-p_out_gtp_drpdi         => i_gtp_drpdi,
-p_in_gtp_drpdo          => i_gtp_drpdo,
-p_in_gtp_drprdy         => i_gtp_drprdy,
+p_out_gtp_drpclk  => i_gtp_drpclk,
+p_out_gtp_drpaddr => i_gtp_drpaddr,
+p_out_gtp_drpen   => i_gtp_drpen,
+p_out_gtp_drpwe   => i_gtp_drpwe,
+p_out_gtp_drpdi   => i_gtp_drpdi,
+p_in_gtp_drpdo    => i_gtp_drpdo,
+p_in_gtp_drprdy   => i_gtp_drprdy,
 
-p_out_gtp_rst           => i_gtp_rst,--i_gtp_rst_drp,--
+p_out_gtp_rst     => i_gtp_rst,--i_gtp_rst_drp,--
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_out_tst_fsm           => open,
+p_out_tst         => open,
 
 --------------------------------------------------
 --SYSTEM
 --------------------------------------------------
-p_in_clk                => p_in_drp_ctrl(31),
-p_in_rst                => GTPRESET_IN
+p_in_clk          => p_in_drp_ctrl(31),
+p_in_rst          => GTPRESET_IN
 );
 
 --i_gtp_rst <= GTPRESET_IN or i_gtp_rst_drp;
