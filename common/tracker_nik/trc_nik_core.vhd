@@ -303,9 +303,6 @@ end component;
 signal i_vmirx_done                  : std_logic;
 signal i_vmir_dout                   : std_logic_vector(31 downto 0);
 signal i_vmir_dout_en                : std_logic;
---signal i_vmir_rdy_n                  : std_logic;
---signal i_vmir_din                    : std_logic_vector(31 downto 0);
---signal i_vmir_din_en                 : std_logic;
 
 signal i_vcoldemasc_bypass           : std_logic;
 signal i_vcoldemasc_rdy_n            : std_logic;
@@ -520,10 +517,10 @@ p_in_rst            => p_in_rst
 );
 
 
---//-----------------------------
+--//----------------------------------------
 --//Модуль интерполяции цвета
 --//Конвертирование значений фильта Байера в правельный цвет RGB
---//-----------------------------
+--//----------------------------------------
 i_vcoldemasc_bypass<=not p_in_prm_vch.fr_color or not tst_dbg_color;
 
 m_vcoldemosaic : vcoldemosaic_main
@@ -679,9 +676,9 @@ p_in_rst         => p_in_rst
 );
 
 
---//-----------------------------
+--//----------------------------------------
 --//Логика работы модуля trc_nik_core.vhd
---//-----------------------------
+--//----------------------------------------
 --//Автомат операций выполняемых модулем trc_nik_core.vhd
 process(p_in_rst,p_in_clk)
 variable  var_nik_ip  : TTrcNikIP;
@@ -913,10 +910,10 @@ begin
 end process;
 
 
---//-----------------------------
+--//----------------------------------------
 --//Управление буферами строк сотавляющими
 --//одну элементарную строку(ЭС) Никифорова
---//-----------------------------
+--//----------------------------------------
 i_vbufrow_adra(9 downto 0)<=i_vbufrow_adr(9 downto 0);
 
 i_vbufrow_adrb(i_nik_ebcntx'length-1 downto 0)<=i_nik_ebcntx;
@@ -946,7 +943,7 @@ clka  => p_in_clk,
 rsta  => p_in_rst,
 
 addrb => i_vbufrow_adrb,--i_vbufrow_adr(9 downto 0),
-dinb  => "000000000000000000000000",--"0000000000000000",--"00000000000000000000000000000000",
+dinb  => "000000000000000000000000",
 doutb => i_vbufrow_doutb(i),
 enb   => i_vbufrow_enb(i),
 web   => "0",
@@ -964,7 +961,7 @@ end generate gen_buf;
 --//----------------------------------------
 --//Выделение КТ попавших в заданые ИП +
 --//Формирование выходны данных:
---//-----------------------------
+--//----------------------------------------
 --//счетчик ЭБ в одной ЭС
 i_nik_ebcnt<=i_vbufrow_adr(i_nik_ebcnt'length+i_nik_ebcntx'length-1 downto i_nik_ebcntx'length);
 
@@ -988,7 +985,7 @@ begin
 
     --//Макрируем краевые точки
     if i_nik_elcnt=(i_nik_elcnt'range =>'0') then
-    --//Первая ЭС
+    --//Первая ЭС Никифорова в видео кадре
         if i_nik_ebcnty=(i_nik_ebcnty'range =>'0') or
          (i_nik_ebcnt=(i_nik_ebcnt'range =>'0') and i_nik_ebcntx=(i_nik_ebcntx'range =>'0')) or
          (i_nik_ebcnt=i_nik_ebcnt_max-1 and i_nik_ebcntx=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENX-1, i_nik_ebcntx'length)) then
@@ -998,7 +995,7 @@ begin
         end if;
 
     elsif i_nik_elcnt=i_nik_elcnt_max-1 then
-    --//Последняя ЭС
+    --//Последняя ЭС Никифорова в видео кадре
         if i_nik_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY-1, i_nik_ebcnty'length) or
          (i_nik_ebcnt=(i_nik_ebcnt'range =>'0') and i_nik_ebcntx=(i_nik_ebcntx'range =>'0')) or
          (i_nik_ebcnt=i_nik_ebcnt_max-1 and i_nik_ebcntx=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENX-1, i_nik_ebcntx'length)) then
@@ -1008,7 +1005,7 @@ begin
         end if;
 
     else
-    --//Все остальные ЭС
+    --//Все остальные ЭС Никифорова в видео кадре
         if (i_nik_ebcnt=(i_nik_ebcnt'range =>'0') and i_nik_ebcntx=(i_nik_ebcntx'range =>'0')) or
          (i_nik_ebcnt=i_nik_ebcnt_max-1 and i_nik_ebcntx=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENX-1, i_nik_ebcntx'length)) then
             i_nik_ktedge<='1';
@@ -1095,7 +1092,7 @@ begin
 end process;
 
 --//Запись данных в выходной буфер:
-p_out_hbuf_wr<=OR_reduce(i_hbuf_wr);--i_hbuf_wr;--
+p_out_hbuf_wr<=OR_reduce(i_hbuf_wr);
 
 p_out_hbuf_din(7 downto 0)  <=i_nik_kt.idx;
 p_out_hbuf_din(15 downto 8) <=i_nik_kt.pix;

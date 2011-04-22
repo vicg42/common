@@ -32,51 +32,51 @@ use work.dsn_track_nik_pkg.all;
 entity trc_nik_grado is
 generic(
 G_USE_WDATIN : integer:=32; --//Сколько бит входных данных использовать. 32, 8
-G_SIM : string:="OFF"
+G_SIM        : string:="OFF"
 );
 port
 (
 -------------------------------
 -- Управление
 -------------------------------
-p_in_ctrl                  : in    std_logic_vector(1 downto 0);
+p_in_ctrl        : in    std_logic_vector(1 downto 0);
 
 --//--------------------------
 --//Upstream Port (входные данные)
 --//--------------------------
-p_in_upp_dxm               : in    std_logic_vector((8*4)-1 downto 0);--//dx - модуль
-p_in_upp_dym               : in    std_logic_vector((8*4)-1 downto 0);--//dy - модуль
+p_in_upp_dxm     : in    std_logic_vector((8*4)-1 downto 0);--//dx - модуль
+p_in_upp_dym     : in    std_logic_vector((8*4)-1 downto 0);--//dy - модуль
 
-p_in_upp_dxs               : in    std_logic_vector((11*4)-1 downto 0);--//dx - знаковые значения
-p_in_upp_dys               : in    std_logic_vector((11*4)-1 downto 0);--//dy - знаковые значения
+p_in_upp_dxs     : in    std_logic_vector((11*4)-1 downto 0);--//dx - знаковые значения
+p_in_upp_dys     : in    std_logic_vector((11*4)-1 downto 0);--//dy - знаковые значения
 
-p_in_upp_grad              : in    std_logic_vector((8*4)-1 downto 0);--//Градиент яркости (Амплетуда)
-p_in_upp_data              : in    std_logic_vector((8*4)-1 downto 0);--//Значение пиксела
+p_in_upp_grad    : in    std_logic_vector((8*4)-1 downto 0);--//Градиент яркости (Амплетуда)
+p_in_upp_data    : in    std_logic_vector((8*4)-1 downto 0);--//Значение пиксела
 
-p_in_upp_wd                : in    std_logic;                    --//Запись данных в модуль trc_nik_grado.vhd
-p_out_upp_rdy_n            : out   std_logic;                    --//0 - Модуль trc_nik_grado.vhd готов к приему данных
+p_in_upp_wd      : in    std_logic;                    --//Запись данных в модуль trc_nik_grado.vhd
+p_out_upp_rdy_n  : out   std_logic;                    --//0 - Модуль trc_nik_grado.vhd готов к приему данных
 
 --//--------------------------
 --//Downstream Port (результат)
 --//--------------------------
-p_out_dwnp_data            : out   std_logic_vector((8*4)-1 downto 0);--//Значение пиксела
-p_out_dwnp_grada           : out   std_logic_vector((8*4)-1 downto 0);--//Градиент яркости (Амплетуда)
-p_out_dwnp_grado           : out   std_logic_vector((8*4)-1 downto 0);--//Градиент яркости (Ориентация/Напровление)
+p_out_dwnp_data  : out   std_logic_vector((8*4)-1 downto 0);--//Значение пиксела
+p_out_dwnp_grada : out   std_logic_vector((8*4)-1 downto 0);--//Градиент яркости (Амплетуда)
+p_out_dwnp_grado : out   std_logic_vector((8*4)-1 downto 0);--//Градиент яркости (Ориентация/Напровление)
 
-p_out_dwnp_wd              : out   std_logic;                    --//Запись данных в приемник
-p_in_dwnp_rdy_n            : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
+p_out_dwnp_wd    : out   std_logic;                    --//Запись данных в приемник
+p_in_dwnp_rdy_n  : in    std_logic;                    --//0 - порт приемника готов к приему даннвх
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk         : in    std_logic;
+p_in_rst         : in    std_logic
 );
 end trc_nik_grado;
 

@@ -8,7 +8,8 @@
 -- Назначение/Описание :
 --  Предобработка данных для Soft Следилки Никифорова
 --
---
+--  Результаты вычислений trc_nik_core.vhd - значения счетчиков данных ЭБ и
+--  значения выделеные КТ ЭБ записываются в соответствующие облости ОЗУ
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -283,7 +284,6 @@ signal i_trc_rxrdy_n                 : std_logic;
 
 signal i_trc_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)+1 downto 0);
 signal i_trc_ebout                   : TTrcNikEBOs;
---signal i_trc_ebout_err               : std_logic_vector(CNIK_EBOUT_COUNT-1 downto 0);
 
 signal i_trccore_fst_calc_skip       : std_logic;
 signal i_trccore_ebout               : TTrcNikEBOs;
@@ -319,23 +319,11 @@ signal i_hpkt_header_data            : std_logic_vector(31 downto 0);
 signal i_hpkt_header_cnt             : std_logic_vector(1 downto 0);--(log2(CNIK_HPKT_COUNT) downto 0);
 
 
---signal tst_dbg_dis_wrtrcbufo         : std_logic;
-
 signal tst_ctrl                      : std_logic_vector(31 downto 0);
 signal tst_trccore_out               : std_logic_vector(31 downto 0);
 
 signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 signal tst_fsmstate_dly              : std_logic_vector(tst_fsmstate'range);
-signal tst_trc_hrddone               : std_logic;
-
-signal tst_regctrl_wd                : std_logic;
-signal tst_regctrl_width_cnt         : std_logic_vector(3 downto 0);
-signal tst_regctrl_width             : std_logic;
-signal tst_regctrl_wd_resyn          : std_logic;
-signal tst_regctrl_wd_resyn0         : std_logic;
-signal tst_regctrl_wd_resyn1         : std_logic;
-signal tst_mem_din                   : std_logic_vector(31 downto 0);
-signal tst_trc_ebout_err             : std_logic;
 
 
 --MAIN
@@ -363,7 +351,6 @@ end process;
 
 --//Запись регистров
 process(p_in_rst,p_in_host_clk)
-  variable var_regctrl_wd : std_logic;
 begin
   if p_in_rst='1' then
     h_reg_ctrl<=(others=>'0');
@@ -383,12 +370,7 @@ begin
       end loop;
     end loop;
 
-    var_regctrl_wd:='0';
-    tst_regctrl_wd<='0';
-
   elsif p_in_host_clk'event and p_in_host_clk='1' then
-
-    var_regctrl_wd:='0';
 
     if p_in_cfg_wd='1' then
       if i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
@@ -401,8 +383,6 @@ begin
           g_trc_prm.ch(y).opt <= EXT(h_reg_opt, g_trc_prm.ch(y).opt'length);
           g_trc_prm.ch(y).mem_arbuf<=h_reg_mem_rbuf;
         end loop;
-
-        var_regctrl_wd:='1';
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_RBUF_LSB, i_cfg_adr_cnt'length) then h_reg_mem_rbuf(15 downto 0)<=p_in_cfg_txdata;
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_RBUF_MSB, i_cfg_adr_cnt'length) then h_reg_mem_rbuf(31 downto 16)<=p_in_cfg_txdata;
@@ -427,7 +407,6 @@ begin
 
     end if;--//if p_in_cfg_wd='1' then
 
-    tst_regctrl_wd<=var_regctrl_wd;
   end if;
 end process;
 
@@ -482,66 +461,17 @@ gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-process(p_in_rst,p_in_host_clk)
-begin
-  if p_in_rst='1' then
-    tst_regctrl_width_cnt<=(others=>'0');
-    tst_regctrl_width<='0';
-  elsif p_in_host_clk'event and p_in_host_clk='1' then
-
-    if tst_regctrl_wd='1' then
-      tst_regctrl_width<='1';
-    elsif tst_regctrl_width_cnt(3)='1' then--="1000" then
-      tst_regctrl_width<='0';
-    end if;
-
-    if tst_regctrl_width='0' then
-      tst_regctrl_width_cnt<=(others=>'0');
-    else
-      tst_regctrl_width_cnt<=tst_regctrl_width_cnt+1;
-    end if;
-
-  end if;
-end process;
-
-
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     tst_fsmstate_dly<=(others=>'0');
---    tst_result_dcnt<=(others=>'0');
     p_out_tst(0)<='0';
-    tst_trc_hrddone<='0';
-
-    tst_regctrl_wd_resyn0<='0';
-    tst_regctrl_wd_resyn1<='0';
-    tst_regctrl_wd_resyn<='0';
-
-    tst_mem_din<=(others=>'0');
---    tst_trc_ebout_err<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
     tst_fsmstate_dly<=tst_fsmstate;
-    tst_trc_hrddone<=p_in_trc_hrddone;
 
-    tst_regctrl_wd_resyn0<=tst_regctrl_width;
-    tst_regctrl_wd_resyn1<=tst_regctrl_wd_resyn0;
-    tst_regctrl_wd_resyn<=tst_regctrl_wd_resyn1 and not tst_regctrl_wd_resyn0;
-
---    tst_trc_ebout_err<=OR_reduce(i_trc_ebout_err);
-
-    p_out_tst(0)<=OR_reduce(tst_fsmstate_dly) or tst_trccore_out(0) or tst_trc_hrddone or tst_regctrl_wd_resyn or
-                  OR_reduce(tst_mem_din) or i_vfr_done;-- or tst_trc_ebout_err;
-
-    if i_trcbufo_dout_en='1' then
-      tst_mem_din<=i_mem_din;
-    end if;
-
---    if i_vch_vfrrdy='1' then --if tmp_trc_hrddone='1' then
---      tst_result_dcnt<=(others=>'0');
---    elsif i_trcbufo_din_en='1' then
---      tst_result_dcnt<=tst_result_dcnt + 1;
---    end if;
+    p_out_tst(0)<=OR_reduce(tst_fsmstate_dly) or
+                  tst_trccore_out(0) or i_vfr_done;
 
   end if;
 end process;
@@ -563,17 +493,14 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length) when fsm_state_c
               CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD2 else
               CONV_STD_LOGIC_VECTOR(16#0E#,tst_fsmstate'length) when fsm_state_cs=S_EXIT_CHK else
               CONV_STD_LOGIC_VECTOR(16#0F#,tst_fsmstate'length);-- when fsm_state_cs=S_WAIT_HOST_ACK else
---              CONV_STD_LOGIC_VECTOR(16#1F#,tst_fsmstate'length);
 
 tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
-
---tst_dbg_dis_wrtrcbufo<=tst_ctrl(C_DSN_TRCNIK_REG_TST0_DIS_WRRESULT_BIT);
 
 
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_trc_hdrdy<=i_trc_drdy;-- and not tst_dbg_dis_wrtrcbufo;
+p_out_trc_hdrdy<=i_trc_drdy;
 p_out_trc_hirq <=i_trc_irq_width;
 
 --p_out_trc_hfrmrk<=i_mem_wdptr;
@@ -595,9 +522,9 @@ begin
       i_trc_drdy_dly<=i_trc_drdy;
       i_trc_irq<=i_trc_drdy and not i_trc_drdy_dly;
 
-        if i_trc_irq='1' then --and tst_dbg_dis_wrtrcbufo='0' then --if i_trc_irq='1' then
+        if i_trc_irq='1' then
           i_trc_irq_width<='1';
-        elsif i_trc_irq_width_cnt(3)='1' then--="1000" then
+        elsif i_trc_irq_width_cnt(3)='1' then
           i_trc_irq_width<='0';
         end if;
 
@@ -724,14 +651,12 @@ begin
     i_trc_ebcnty<=(others=>'0');
     for i in 0 to CNIK_EBOUT_COUNT-1 loop
       i_trc_ebout(i).cnt<=(others=>'0');
---      i_trc_ebout_err(i)<='0';
     end loop;
 
     i_hpkt_header_cnt<=(others=>'0');
     i_hpkt_payload_dsize<=(others=>'0');
 
     g_trcbufo_dout_en<='0';
---    tst_vfrcnt<=(others=>'0');
 
     i_trccore_fst_calc_skip<='0';
     i_trc_work<='0';
@@ -1148,7 +1073,7 @@ begin
       --//----------------------------------------------
       when S_WAIT_HOST_ACK =>
 
-        if p_in_trc_hrddone='1' then--or tst_dbg_dis_wrtrcbufo='1' then
+        if p_in_trc_hrddone='1' then
           i_vfr_done<='1';
           i_trc_drdy<='0';
           i_trc_busy<=(others=>'0');
@@ -1176,56 +1101,56 @@ port map
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_mem_adr           => i_mem_adr,
-p_in_cfg_mem_trn_len       => i_mem_trn_len,
-p_in_cfg_mem_dlen_rq       => i_mem_dlen_rq,
-p_in_cfg_mem_wr            => i_mem_dir,
-p_in_cfg_mem_start         => i_mem_start,
-p_out_cfg_mem_done         => i_mem_done,
+p_in_cfg_mem_adr     => i_mem_adr,
+p_in_cfg_mem_trn_len => i_mem_trn_len,
+p_in_cfg_mem_dlen_rq => i_mem_dlen_rq,
+p_in_cfg_mem_wr      => i_mem_dir,
+p_in_cfg_mem_start   => i_mem_start,
+p_out_cfg_mem_done   => i_mem_done,
 
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout        => i_mem_din,
-p_out_usr_txbuf_rd         => i_mem_din_en,
-p_in_usr_txbuf_empty       => i_trc_txrdy_n,
+p_in_usr_txbuf_dout  => i_mem_din,
+p_out_usr_txbuf_rd   => i_mem_din_en,
+p_in_usr_txbuf_empty => i_trc_txrdy_n,
 
-p_out_usr_rxbuf_din        => i_mem_dout,
-p_out_usr_rxbuf_wd         => i_mem_dout_en,
-p_in_usr_rxbuf_full        => i_trc_rxrdy_n,
+p_out_usr_rxbuf_din  => i_mem_dout,
+p_out_usr_rxbuf_wd   => i_mem_dout_en,
+p_in_usr_rxbuf_full  => i_trc_rxrdy_n,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           => p_out_memarb_req,
-p_in_memarb_en             => p_in_memarb_en,
+p_out_memarb_req     => p_out_memarb_req,
+p_in_memarb_en       => p_in_memarb_en,
 
-p_out_mem_bank1h           => p_out_mem_bank1h,
-p_out_mem_ce               => p_out_mem_ce,
-p_out_mem_cw               => p_out_mem_cw,
-p_out_mem_rd               => p_out_mem_rd,
-p_out_mem_wr               => p_out_mem_wr,
-p_out_mem_term             => p_out_mem_term,
-p_out_mem_adr              => p_out_mem_adr,
-p_out_mem_be               => p_out_mem_be,
-p_out_mem_din              => p_out_mem_din,
-p_in_mem_dout              => p_in_mem_dout,
+p_out_mem_bank1h     => p_out_mem_bank1h,
+p_out_mem_ce         => p_out_mem_ce,
+p_out_mem_cw         => p_out_mem_cw,
+p_out_mem_rd         => p_out_mem_rd,
+p_out_mem_wr         => p_out_mem_wr,
+p_out_mem_term       => p_out_mem_term,
+p_out_mem_adr        => p_out_mem_adr,
+p_out_mem_be         => p_out_mem_be,
+p_out_mem_din        => p_out_mem_din,
+p_in_mem_dout        => p_in_mem_dout,
 
-p_in_mem_wf                => p_in_mem_wf,
-p_in_mem_wpf               => p_in_mem_wpf,
-p_in_mem_re                => p_in_mem_re,
-p_in_mem_rpe               => p_in_mem_rpe,
+p_in_mem_wf          => p_in_mem_wf,
+p_in_mem_wpf         => p_in_mem_wpf,
+p_in_mem_re          => p_in_mem_re,
+p_in_mem_rpe         => p_in_mem_rpe,
 
-p_out_mem_clk              => p_out_mem_clk,
+p_out_mem_clk        => p_out_mem_clk,
 
 -------------------------------
 --System
 -------------------------------
-p_in_tst                   => "00000000000000000000000000000000",
-p_out_tst                  => open,
+p_in_tst             => "00000000000000000000000000000000",
+p_out_tst            => open,
 
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
+p_in_clk             => p_in_clk,
+p_in_rst             => p_in_rst
 );
 
 
@@ -1241,53 +1166,54 @@ port map
 -------------------------------
 -- Управление
 -------------------------------
-p_in_prm_trc               => i_trc_prm,
-p_in_prm_vch               => i_vch_prm,
+p_in_prm_trc         => i_trc_prm,
+p_in_prm_vch         => i_vch_prm,
 
-p_in_ctrl                  => i_trccore_ctrl,
-p_out_status               => i_trccore_status,
-p_out_hbuf_dsize           => i_hbuf_dsize,
-p_out_ebout                => i_trccore_ebout,
+p_in_ctrl            => i_trccore_ctrl,
+p_out_status         => i_trccore_status,
+p_out_hbuf_dsize     => i_hbuf_dsize,
+p_out_ebout          => i_trccore_ebout,
 
 --//--------------------------
 --//Связь с ОЗУ
 --//--------------------------
-p_in_mem_dout              => i_mem_dout,
-p_in_mem_dout_en           => i_mem_dout_en,
-p_out_mem_dout_rdy_n       => i_trc_rxrdy_n,
+p_in_mem_dout        => i_mem_dout,
+p_in_mem_dout_en     => i_mem_dout_en,
+p_out_mem_dout_rdy_n => i_trc_rxrdy_n,
 
-p_out_mem_din              => open,--i_mem_din,
-p_in_mem_din_en            => '0',--i_mem_din_en,
-p_out_mem_din_rdy_n        => open,--i_trc_txrdy_n,
+p_out_mem_din        => open,--i_mem_din,
+p_in_mem_din_en      => '0',--i_mem_din_en,
+p_out_mem_din_rdy_n  => open,--i_trc_txrdy_n,
 
 --//--------------------------
 --//Запись данных в буфер ХОСТА
 --//--------------------------
-p_out_hirq                 => open,--i_trc_irq,
+p_out_hirq           => open,--i_trc_irq,
 
-p_out_hbuf_din             => i_trcbufo_din,
-p_out_hbuf_wr              => i_trcbufo_din_en,
-p_in_hbuf_wrrdy_n          => i_trcbufo_pfull,
-p_in_hbuf_empty            => i_trcbufo_empty,
+p_out_hbuf_din       => i_trcbufo_din,
+p_out_hbuf_wr        => i_trcbufo_din_en,
+p_in_hbuf_wrrdy_n    => i_trcbufo_pfull,
+p_in_hbuf_empty      => i_trcbufo_empty,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   => tst_ctrl,
-p_out_tst                  => tst_trccore_out,
+p_in_tst             => tst_ctrl,
+p_out_tst            => tst_trccore_out,
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
+p_in_clk             => p_in_clk,
+p_in_rst             => p_in_rst
 );
 
 
 
 --//-----------------------------
---//Связь с Хостом:
---//Выходной буфер(результат вычислений)
+--//Выходной буфер. Результат вычислений trc_nik_core.vhd
+--//1. Запись в ОЗУ значений счетчиков данных ЭБ
+--//2. Запись в ОЗУ значений выделеные КТ ЭБ
 --//-----------------------------
 gen_hd:  for i in 0 to CNIK_HPKT_COUNT-1 generate
 i_hpkt_header(i)(31 downto 24)<=i_trc_ebout(4*i + 3).cnt;
@@ -1320,7 +1246,6 @@ end generate gen_hd4;
 
 i_mem_din<=i_hpkt_header_data when g_trcbufo_dout_en='0' else i_trcbufo_dout;
 i_trc_txrdy_n<=i_trcbufo_empty and g_trcbufo_dout_en;
---//
 
 i_trcbufo_dout_en<=i_mem_din_en and g_trcbufo_dout_en;
 

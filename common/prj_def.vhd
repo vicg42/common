@@ -27,7 +27,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0308#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0309#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -717,8 +717,8 @@ constant C_DSN_TRCNIK_REG_OPT_LAST_BIT                : integer:=C_DSN_TRCNIK_RE
 
 
 --//Register C_DSN_TRCNIK_REG_TST0 / Bit Map:
-constant C_DSN_TRCNIK_REG_TST0_DIS_WRRESULT_BIT       : integer:=0;
-constant C_DSN_TRCNIK_REG_TST0_TIMEOUT_CLR_BIT        : integer:=1;--//
+--constant C_DSN_TRCNIK_REG_TST0_DIS_WRRESULT_BIT       : integer:=0;
+--constant C_DSN_TRCNIK_REG_TST0_TIMEOUT_CLR_BIT        : integer:=1;--//
 constant C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT          : integer:=3;--//1/0 - Запрерить/разрешить работу модуля vcoldemosaic_main.vhd в ядре модуля слежения
 constant C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT          : integer:=4;--//отладка модуля vcoldemosaic_main.vhd 0/1 - выкл/вкл
 constant C_DSN_TRCNKI_REG_TST0_LAST_BIT               : integer:=C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT;
