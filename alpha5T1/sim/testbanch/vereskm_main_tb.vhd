@@ -804,7 +804,7 @@ begin
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
   VctrlChParams(0).fr_color_fst      :=CONV_STD_LOGIC_VECTOR(16#01#, 2);--//Первый пиксель 0/1/2 - R/G/B
-  VctrlChParams(0).fr_color          :='0'; --// 1/0 - Есть/Нет цвета
+  VctrlChParams(0).fr_color          :='1'; --// 1/0 - Есть/Нет цвета
   VctrlChParams(0).fr_pcolor         :='0'; --// 1/0 - Вкл/Выкл
 --  VctrlChParams(0).fr_zooming_up     :=CONV_STD_LOGIC_VECTOR(16#00#, 2);
 
@@ -847,7 +847,7 @@ begin
 --  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_SOBEL_CTRL_DIV_BIT):='0';--//1/0 - dx/2 и dy/2 /нет делений
 --  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_SOBEL_CTRL_MULT_BIT):='1';--//1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
   TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT):='0';  --
-  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT):='0';  --
+--  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT):='0';  --
 
 --  --------------------------------
 --  --//Параметры модуля TRACK
