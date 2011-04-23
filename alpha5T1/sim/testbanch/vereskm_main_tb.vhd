@@ -783,7 +783,7 @@ begin
   AutoVCH_Change:='0';--//Изменение номерка видеоканала - 1/0 auto/mnl
   Pix8bit :='1';--//1 пиксель = 8 бит
   PixLen  :=CONV_STD_LOGIC_VECTOR(10#064#, 32);--(10#20#, 32);--
-  RowLen  :=CONV_STD_LOGIC_VECTOR(10#032#, 32);
+  RowLen  :=CONV_STD_LOGIC_VECTOR(10#016#, 32);
   --0x584  - 1412pix
 
 
@@ -800,7 +800,7 @@ begin
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(16#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(16#000#, 16);--//Начало активной зоны кадра Y
   VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#064#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
-  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра Y
+  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#016#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
   VctrlChParams(0).fr_color_fst      :=CONV_STD_LOGIC_VECTOR(16#01#, 2);--//Первый пиксель 0/1/2 - R/G/B
@@ -835,7 +835,7 @@ begin
 
   TrcNikChParams(0).opt:=(others=>'0');
 
-  TrcNikIP_Count:=3;--//Кол-во обрабатываемых интервальных порогов
+  TrcNikIP_Count:=1;--//Кол-во обрабатываемых интервальных порогов
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
@@ -884,7 +884,7 @@ begin
 
 --//Чтение данных модуля Track
   track_read_01_start:=2000;--//
-  track_read_01_end  :=100;--//
+  track_read_01_end  :=1400;--//
 
 --//Чтения данных VCTRL 15us
   vctrl_read_01_start:=40;--//начало чтения Хостом модуля VCTRL
@@ -2443,7 +2443,8 @@ begin
   wait_cycles(track_read_01_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT):='1';
+--  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT):='1';
+  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
@@ -3436,7 +3437,7 @@ ramclko    => ramclk);
             ddm => rc1_ram(3 downto 0),
             ddqs => rc1_ram(7 downto 4),
             ddqs_l => rc1_ram(11 downto 8));
-
+--
 --    mem_model_1 : for i in 0 to 1 generate
 --        chip0 : HY5PS121621F
 ----            generic map(
