@@ -309,7 +309,7 @@ signal i_hpkt_header                 : TTrcNikHPkt;--std_logic_vector(31 downto 
 signal i_hpkt_header_data            : std_logic_vector(31 downto 0);
 signal i_hpkt_header_cnt             : std_logic_vector(1 downto 0);--(log2(CNIK_HPKT_COUNT) downto 0);
 
-
+signal tst_dis_color                 : std_logic;
 signal tst_ctrl                      : std_logic_vector(31 downto 0);
 signal tst_trccore_out               : std_logic_vector(31 downto 0);
 signal tst_fsmstate                  : std_logic_vector(3 downto 0);
@@ -487,6 +487,8 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_c
 
 tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
 
+tst_dis_color<=tst_ctrl(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT);
+
 
 --//----------------------------------------------
 --//—татусы
@@ -616,13 +618,17 @@ begin
     i_mem_rdtrn_len<=(others=>'0');
     i_mem_wdtrn_len<=(others=>'0');
 
+    i_vch_prm.mem_adr<=(others=>'0');
+    i_vch_prm.fr_size.skip.pix<=(others=>'0');
+    i_vch_prm.fr_size.skip.row<=(others=>'0');
     i_vch_prm.fr_size.activ.pix<=(others=>'0');
+--    i_vch_prm.fr_size.activ.row<=(others=>'0');
     i_vch_prm.fr_color_fst<=(others=>'0');
     i_vch_prm.fr_color<='0';
---    i_vch_prm.fr_pcolor<='0';
---    i_vch_prm.fr_zoom<=(others=>'0');
---    i_vch_prm.fr_zoom_type<='0';
---    i_vch_prm.fr_subsampling<=(others=>'0');
+    i_vch_prm.fr_pcolor<='0';
+    i_vch_prm.fr_zoom<=(others=>'0');
+    i_vch_prm.fr_zoom_type<='0';
+    i_vch_prm.fr_subsampling<=(others=>'0');
 
     for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
       i_trc_prm.ip(i).p1<=(others=>'0');
@@ -705,7 +711,7 @@ begin
             --//--------------------------
             --//
             --//--------------------------
-            i_vch_prm.fr_color    <=p_in_vctrl_vrdprms(i).fr_color;
+            i_vch_prm.fr_color    <=p_in_vctrl_vrdprms(i).fr_color and not tst_dis_color;
             i_vch_prm.fr_color_fst<=p_in_vctrl_vrdprms(i).fr_color_fst;
 
             --//--------------------------
@@ -846,7 +852,12 @@ begin
               --//загружаем загружаем по 4-е (CNIK_EBKT_LENY-1) строки.
               --//“ак сделано потому что дл€ начала работы модул€ vsobel_main.vhd в него необходимо загрузить
               --//две строки.
-              if i_trc_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY, i_trc_ebcnty'length) and i_trccore_fst_calc_skip='0' then
+              if i_vch_prm.fr_color='1' and i_trc_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY+1, i_trc_ebcnty'length) and i_trccore_fst_calc_skip='0' then
+                i_trccore_fst_calc_skip<='1';
+                i_trc_ebcnty<=(others=>'0');
+                fsm_state_cs <= S_WAIT_DRDY;
+
+              elsif i_vch_prm.fr_color='0' and i_trc_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY, i_trc_ebcnty'length) and i_trccore_fst_calc_skip='0' then
                 i_trccore_fst_calc_skip<='1';
                 i_trc_ebcnty<=(others=>'0');
                 fsm_state_cs <= S_WAIT_DRDY;

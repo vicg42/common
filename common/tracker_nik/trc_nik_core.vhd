@@ -147,7 +147,6 @@ p_in_cfg_init      : in    std_logic;
 --//--------------------------
 --//Upstream Port
 --//--------------------------
---p_in_upp_clk       : in    std_logic;
 p_in_upp_data      : in    std_logic_vector(31 downto 0);
 p_in_upp_wd        : in    std_logic;
 p_out_upp_rdy_n    : out   std_logic;
@@ -155,7 +154,6 @@ p_out_upp_rdy_n    : out   std_logic;
 --//--------------------------
 --//Downstream Port
 --//--------------------------
---p_in_dwnp_clk      : in    std_logic;
 p_out_dwnp_data    : out   std_logic_vector(127 downto 0);
 p_out_dwnp_wd      : out   std_logic;
 p_in_dwnp_rdy_n    : in    std_logic;
@@ -171,6 +169,46 @@ p_out_tst          : out   std_logic_vector(31 downto 0);
 -------------------------------
 p_in_clk           : in    std_logic;
 p_in_rst           : in    std_logic
+);
+end component;
+
+component vrgb2yuv_main
+generic(
+G_DWIDTH : integer:=32;
+G_SIM    : string :="OFF"
+);
+port
+(
+-------------------------------
+-- Управление
+-------------------------------
+p_in_cfg_bypass : in    std_logic;
+
+--//--------------------------
+--//Upstream Port (входные данные)
+--//--------------------------
+p_in_upp_data   : in    std_logic_vector((32*4)-1 downto 0);
+p_in_upp_wd     : in    std_logic;
+p_out_upp_rdy_n : out   std_logic;
+
+--//--------------------------
+--//Downstream Port (результат)
+--//--------------------------
+p_in_dwnp_rdy_n : in    std_logic;
+p_out_dwnp_wd   : out   std_logic;
+p_out_dwnp_data : out   std_logic_vector((32*4)-1 downto 0);
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst        : in    std_logic_vector(31 downto 0);
+p_out_tst       : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk        : in    std_logic;
+p_in_rst        : in    std_logic
 );
 end component;
 
@@ -309,6 +347,12 @@ signal i_vcoldemasc_rdy_n            : std_logic;
 signal i_vcoldemasc_dout             : std_logic_vector(127 downto 0);
 signal i_vcoldemasc_dout_en          : std_logic;
 
+signal tmp_vrgb2yuv_dout             : std_logic_vector(127 downto 0);
+signal tmp_vrgb2yuv_dout_en          : std_logic;
+signal i_vrgb2yuv_rdy_n              : std_logic;
+signal i_vrgb2yuv_dout_en            : std_logic;
+signal i_vrgb2yuv_dout               : std_logic_vector(31 downto 0);
+
 signal i_vsobel_ctrl                 : std_logic_vector(1 downto 0);
 signal i_vsobel_dxs_out              : std_logic_vector((11*4)-1 downto 0);
 signal i_vsobel_dys_out              : std_logic_vector((11*4)-1 downto 0);
@@ -390,7 +434,8 @@ signal i_nik_ebout_cnttotal          : std_logic_vector(9 downto 0);
 signal i_hbuf_drdy                   : std_logic;
 signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
 
-signal tst_dbg_color                 : std_logic;
+--signal tst_dbg_color                 : std_logic;
+--signal tst_dis_color                   : std_logic;
 signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
 signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
 
@@ -413,7 +458,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     tst_fsmvbuf_cstate_dly<=tst_fsmvbuf_cstate;
 
-    p_out_tst(0) <=OR_reduce(tst_fsmvbuf_cstate_dly);-- or OR_reduce(i_nik_ebcnt) or OR_reduce(i_nik_elcnt) or i_nik_ktedge;
+    p_out_tst(0)<=OR_reduce(tst_fsmvbuf_cstate_dly);-- or OR_reduce(i_nik_ebcnt) or OR_reduce(i_nik_elcnt) or i_nik_ktedge;
 
   end if;
 end process;
@@ -432,7 +477,8 @@ tst_fsmvbuf_cstate<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmvbuf_cstate'length) whe
 --//-----------------------------
 --//Инициализация
 --//-----------------------------
-tst_dbg_color<=p_in_tst(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT);
+--tst_dbg_color<=p_in_tst(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT);
+--tst_dis_color<=p_in_tst(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT);
 
 p_out_mem_din <=(others=>'0');
 p_out_mem_din_rdy_n <='0';
@@ -520,11 +566,11 @@ p_in_rst            => p_in_rst
 --//Модуль интерполяции цвета
 --//Конвертирование значений фильта Байера в правельный цвет RGB
 --//----------------------------------------
-i_vcoldemasc_bypass<=not p_in_prm_vch.fr_color or not tst_dbg_color;
+i_vcoldemasc_bypass<=not p_in_prm_vch.fr_color;-- or not tst_dis_color;
 
 m_vcoldemosaic : vcoldemosaic_main
 generic map(
-G_DOUT_WIDTH => 8,
+G_DOUT_WIDTH => 32,
 G_SIM        => G_SIM
 )
 port map (
@@ -549,7 +595,7 @@ p_out_upp_rdy_n    => i_vcoldemasc_rdy_n,
 --//--------------------------
 p_out_dwnp_data    => i_vcoldemasc_dout,
 p_out_dwnp_wd      => i_vcoldemasc_dout_en,
-p_in_dwnp_rdy_n    => i_vsobel_rdy_n,
+p_in_dwnp_rdy_n    => i_vrgb2yuv_rdy_n,--i_vsobel_rdy_n,
 
 -------------------------------
 --Технологический
@@ -564,6 +610,56 @@ p_in_clk           => p_in_clk,
 p_in_rst           => p_in_rst
 );
 
+
+--//-----------------------------
+--//Модуль конвертации цвета RGB -> YUV
+--//-----------------------------
+m_rgb2yuv : vrgb2yuv_main
+generic map(
+G_DWIDTH => 32,
+G_SIM    => G_SIM
+)
+port map
+(
+-------------------------------
+-- Управление
+-------------------------------
+p_in_cfg_bypass => i_vcoldemasc_bypass,
+
+--//--------------------------
+--//Upstream Port (входные данные)
+--//--------------------------
+p_in_upp_data   => i_vcoldemasc_dout,
+p_in_upp_wd     => i_vcoldemasc_dout_en,
+p_out_upp_rdy_n => i_vrgb2yuv_rdy_n,
+
+--//--------------------------
+--//Downstream Port (результат)
+--//--------------------------
+p_out_dwnp_data => tmp_vrgb2yuv_dout,
+p_out_dwnp_wd   => tmp_vrgb2yuv_dout_en,
+p_in_dwnp_rdy_n => i_vsobel_rdy_n,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst        => "00000000000000000000000000000000",
+p_out_tst       => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk        => p_in_clk,
+p_in_rst        => p_in_rst
+);
+
+--//Если кадр цветной, то конвертируем RGB->YUV и в модуль vsobel_main.vhd передаем только Y компоненты
+i_vrgb2yuv_dout_en<=tmp_vrgb2yuv_dout_en;
+i_vrgb2yuv_dout(31 downto 0)<=tmp_vrgb2yuv_dout(31 downto 0) when i_vcoldemasc_bypass='1' else
+                             (tmp_vrgb2yuv_dout((32*3 + 8)-1 downto 32*3)&
+                              tmp_vrgb2yuv_dout((32*2 + 8)-1 downto 32*2)&
+                              tmp_vrgb2yuv_dout((32*1 + 8)-1 downto 32*1)&
+                              tmp_vrgb2yuv_dout((32*0 + 8)-1 downto 32*0));
 
 
 --//-----------------------------
@@ -588,9 +684,12 @@ p_in_cfg_init      => i_trccore_fr_new,
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data      => i_vcoldemasc_dout(31 downto 0),
-p_in_upp_wd        => i_vcoldemasc_dout_en,
+p_in_upp_data      => i_vrgb2yuv_dout(31 downto 0),
+p_in_upp_wd        => i_vrgb2yuv_dout_en,
 p_out_upp_rdy_n    => i_vsobel_rdy_n,
+--p_in_upp_data      => i_vcoldemasc_dout(31 downto 0),
+--p_in_upp_wd        => i_vcoldemasc_dout_en,
+--p_out_upp_rdy_n    => i_vsobel_rdy_n,
 
 --//--------------------------
 --//Downstream Port
