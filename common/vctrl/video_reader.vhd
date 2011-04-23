@@ -152,8 +152,8 @@ signal i_vfr_color                   : std_logic;
 signal i_vfr_color_fst               : std_logic_vector(1 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
 signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
-signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'high downto 0);
-signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'high downto 0);
+signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'range);
+signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT downto 0);
@@ -172,6 +172,7 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
+p_out_tst(31 downto 0)<=(others=>'0');
 --process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
@@ -196,11 +197,9 @@ begin
 --              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
 
-p_out_tst(31 downto 0)<=(others=>'0');
-
-
 tst_dbg_rdTBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
 tst_dbg_rdEBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
+
 
 --//----------------------------------------------
 --//Статусы
@@ -227,6 +226,7 @@ p_out_vch_mirx      <=i_vfr_mirror.pix;
 --//----------------------------------------------
 --//Логика работы автомата
 process(p_in_rst,p_in_clk)
+  variable vfr_active_row_end : std_logic_vector(i_vfr_row_cnt'range);
 begin
   if p_in_rst='1' then
 
@@ -248,6 +248,7 @@ begin
     i_vfr_mirror.row<='0';
     i_vfr_row_cnt<=(others=>'0');
     i_vfr_active_row<=(others=>'0');
+      vfr_active_row_end:=(others=>'0');
     i_vfr_skip_row<=(others=>'0');
     i_vfr_zoom<=(others=>'0');
     i_vfr_zoom_type<='0';
@@ -325,14 +326,13 @@ begin
             --//Строки:
             --//--------------------------
             i_vfr_active_row<=p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_active_row'high downto 0);
+            i_vfr_skip_row<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_skip_row'high downto 0);
 
             --//Инициализируем счетчик строк
             if p_in_cfg_prm_vch(i).fr_mirror.row='0' then
               i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
-              i_vfr_skip_row<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
             else
               i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0) + p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_row_cnt'high downto 0);
-              i_vfr_skip_row<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
             end if;
 
           end if;
@@ -354,9 +354,9 @@ begin
           --//Отзеркаливание по Y - РАЗРЕШЕНО
           --//Инициализируем счетчик строк
           i_vfr_row_cnt<=i_vfr_row_cnt-1;
-        else
-          i_vfr_active_row<=i_vfr_active_row - 1;
         end if;
+
+        vfr_active_row_end:=i_vfr_active_row - 1;
 
         fsm_state_cs <= S_ROW_FINED1;
 
@@ -408,7 +408,7 @@ begin
 
         if p_in_vfr_nrow='1' then
 
-          if (i_vfr_mirror.row='0' and i_vfr_row_cnt=(i_vfr_skip_row + i_vfr_active_row)) or
+          if (i_vfr_mirror.row='0' and i_vfr_row_cnt=(i_vfr_skip_row + vfr_active_row_end)) or
              (i_vfr_mirror.row='1' and i_vfr_row_cnt=i_vfr_skip_row)then
               fsm_state_cs <= S_WAIT_HOST_ACK;
           else

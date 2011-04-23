@@ -391,8 +391,8 @@ signal i_hbuf_drdy                   : std_logic;
 signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
 
 signal tst_dbg_color                 : std_logic;
---signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
---signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
+signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
+signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
 
 
 
@@ -403,32 +403,31 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fsmvbuf_cstate_dly<=(others=>'0');
---    p_out_tst(0)<='0';
---
---  elsif p_in_clk'event and p_in_clk='1' then
---    tst_fsmvbuf_cstate_dly<=tst_fsmvbuf_cstate;
---
---    p_out_tst(0) <=OR_reduce(tst_fsmvbuf_cstate_dly) or tst_timeout_cnt(8);-- or OR_reduce(i_nik_ebcnt) or OR_reduce(i_nik_elcnt) or i_nik_ktedge;
---
---  end if;
---end process;
---p_out_tst(31 downto 1)<=(others=>'0');
---
---tst_fsmvbuf_cstate<=CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IDLE else
---                    CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_WVBUF else
---                    CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_SET else
---                    CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_CHK else
---                    CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_RVBUF else
---                    CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY0 else
---                    CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY1 else
---                    CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EXIT_CHK else
---                    CONV_STD_LOGIC_VECTOR(16#08#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EBOUT_CHK else
---                    CONV_STD_LOGIC_VECTOR(16#FF#, tst_fsmvbuf_cstate'length);
+--p_out_tst(31 downto 0)<=(others=>'0');
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    tst_fsmvbuf_cstate_dly<=(others=>'0');
+    p_out_tst(0)<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+    tst_fsmvbuf_cstate_dly<=tst_fsmvbuf_cstate;
+
+    p_out_tst(0) <=OR_reduce(tst_fsmvbuf_cstate_dly);-- or OR_reduce(i_nik_ebcnt) or OR_reduce(i_nik_elcnt) or i_nik_ktedge;
+
+  end if;
+end process;
+p_out_tst(31 downto 1)<=(others=>'0');
+
+tst_fsmvbuf_cstate<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_WVBUF else
+                    CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_SET else
+                    CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_CHK else
+                    CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_RVBUF else
+                    CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY0 else
+                    CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY1 else
+                    CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EXIT_CHK else
+                    CONV_STD_LOGIC_VECTOR(16#08#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EBOUT_CHK else
+                    CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmvbuf_cstate'length); --when fsmvbuf_cstate=S_TRC_IDLE else
 
 --//-----------------------------
 --//Инициализация
@@ -681,7 +680,6 @@ p_in_rst         => p_in_rst
 --//----------------------------------------
 --//Автомат операций выполняемых модулем trc_nik_core.vhd
 process(p_in_rst,p_in_clk)
-variable  var_nik_ip  : TTrcNikIP;
 begin
   if p_in_rst='1' then
     fsmvbuf_cstate <= S_TRC_IDLE;
@@ -692,8 +690,6 @@ begin
 
     i_hbuf_drdy<='0';
 
-    var_nik_ip.p1:=(others=>'0');
-    var_nik_ip.p2:=(others=>'0');
     i_nik_ip.p1<=(others=>'0');
     i_nik_ip.p2<=(others=>'0');
 
@@ -706,7 +702,6 @@ begin
     i_trccore_done<='0';
 
     i_vfr_row_cnt<=(others=>'0');
-
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -1022,7 +1017,7 @@ end process;
 i_nik_ebkt_idx<=i_nik_ebcnty_dly & i_nik_ebcntx_dly;
 
 process(p_in_rst,p_in_clk)
-  variable var_hbuf_wr : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
+  variable hbuf_wr : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
 begin
   if p_in_rst='1' then
 
@@ -1032,11 +1027,11 @@ begin
     i_nik_kt.grado<=(others=>'0');
 
     i_hbuf_wr<=(others=>'0');
-    var_hbuf_wr:=(others=>'0');
+      hbuf_wr:=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    var_hbuf_wr:=(others=>'0');
+    hbuf_wr:=(others=>'0');
 
     if i_vbufrow_rd_dly='1' then
 
@@ -1057,7 +1052,7 @@ begin
                     --//Формируем разрешение записи данных
                     for x in 0 to CNIK_EBOUT_COUNT-1 loop
                       if i_nik_ebout_num_dly=x then
-                        var_hbuf_wr(x):='1';
+                        hbuf_wr(x):='1';
                       end if;
                     end loop;
 
@@ -1070,7 +1065,7 @@ begin
                     --//Формируем разрешение записи данных
                     for x in 0 to CNIK_EBOUT_COUNT-1 loop
                       if i_nik_ebout_num_dly=x then
-                        var_hbuf_wr(x):='1';
+                        hbuf_wr(x):='1';
                       end if;
                     end loop;
 
@@ -1087,7 +1082,7 @@ begin
 
     end if;
 
-    i_hbuf_wr<=var_hbuf_wr;--//Разрешение записи в выходной буфер
+    i_hbuf_wr<=hbuf_wr;--//Разрешение записи в выходной буфер
   end if;
 end process;
 

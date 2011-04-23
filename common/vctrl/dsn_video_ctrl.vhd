@@ -646,7 +646,6 @@ signal i_vscale_dout                     : std_logic_vector(31 downto 0);
 signal i_vscale_dout_en                  : std_logic;
 signal i_vscale_pix_count                : std_logic_vector(15 downto 0);
 signal i_vscale_row_count                : std_logic_vector(15 downto 0);
---signal i_vscale_tst_out                  : std_logic_vector(7 downto 0);
 
 signal i_vpcolor_coe_ramnum              : std_logic_vector(2 downto 0);
 signal i_vpcolor_coe_adr                 : std_logic_vector(6 downto 0);
@@ -702,9 +701,7 @@ p_out_tst(0)<=tst_vwriter_out(0) or OR_reduce(tst_vfrskip_rd_err);-- or OR_reduc
 p_out_tst(4 downto 1)  <=tst_vwriter_out(4 downto 1);
 p_out_tst(8 downto 5)  <=tst_vreader_out(3 downto 0);
 p_out_tst(15 downto 9) <=(others=>'0');
---p_out_tst(23 downto 16)<=(others=>'0');
---p_out_tst(31 downto 24)<=(others=>'0');
-p_out_tst(19 downto 16)<=tst_vfrskip_rd_out;
+p_out_tst(19 downto 16)<=tst_vfrskip_rd_out;--(others=>'0');
 p_out_tst(31 downto 20)<=(others=>'0');
 
 --p_out_vbufout_din_wd<=tst_vbufout_din_wd;
@@ -745,21 +742,21 @@ end process;
 h_ramcoe_num<=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_LSB_BIT);
 
 process(p_in_rst,p_in_host_clk)
-  variable var_vch      : std_logic_vector(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT downto 0);
-  variable var_vprm     : std_logic_vector(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT downto 0);
-  variable var_vprm_set : std_logic;
-  variable var_set_idle_vch: std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+  variable vch      : std_logic_vector(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT downto 0);
+  variable vprm     : std_logic_vector(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT downto 0);
+  variable vprm_set : std_logic;
+  variable set_idle_vch: std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
 begin
   if p_in_rst='1' then
     h_reg_ctrl<=(others=>'0');
     h_reg_tst0<=(others=>'0');
 --    h_reg_tst1<=(others=>'0');
     h_reg_prm_data<=(others=>'0');
-    var_vprm_set:='0';
+      vprm_set:='0';
     h_vprm_set<='0';
 
-    var_vch   :=(others=>'0');
-    var_vprm:=(others=>'0');
+      vch :=(others=>'0');
+      vprm:=(others=>'0');
 
     for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
         i_vprm.ch(i).mem_addr_wr<=(others=>'0');
@@ -780,46 +777,46 @@ begin
     i_vprm.mem_wd_trn_len<=(others=>'0');
     i_vprm.mem_rd_trn_len<=(others=>'0');
 
-    var_set_idle_vch:=(others=>'0');
+      set_idle_vch:=(others=>'0');
     h_set_idle_vch<=(others=>'0');
 
   elsif p_in_host_clk'event and p_in_host_clk='1' then
-    var_vprm_set:='0';
-    var_set_idle_vch:=(others=>'0');
+    vprm_set:='0';
+    set_idle_vch:=(others=>'0');
 
     if p_in_cfg_wd='1' then
       if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
-          var_vch :=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
-          var_vprm:=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
+          vch :=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
+          vprm:=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
 
             for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
-              if i=var_vch then
-                var_set_idle_vch(i) :=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_SET_IDLE_BIT);
+              if i=vch then
+                set_idle_vch(i) :=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_SET_IDLE_BIT);
               end if;
             end loop;
 
           if p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
              p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='0' and p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
-            var_vprm_set:='1';
+            vprm_set:='1';
 
             for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
-              if i=var_vch then
+              if i=vch then
                 --//Ищем индекс папаметра
-                if var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, var_vprm'length) then
+                if vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, vprm'length) then
                   i_vprm.ch(i).mem_addr_wr<=h_reg_prm_data(31 downto 0);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, var_vprm'length) then
+                elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, vprm'length) then
                   i_vprm.ch(i).mem_addr_rd<=h_reg_prm_data(31 downto 0);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
+                elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, vprm'length) then
                   i_vprm.ch(i).fr_size.skip.pix<=h_reg_prm_data(15 downto 0);
                   i_vprm.ch(i).fr_size.skip.row<=h_reg_prm_data(31 downto 16);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
+                elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, vprm'length) then
                   i_vprm.ch(i).fr_size.activ.pix<=h_reg_prm_data(15 downto 0);
                   i_vprm.ch(i).fr_size.activ.row<=h_reg_prm_data(31 downto 16);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
+                elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, vprm'length) then
                   i_vprm.ch(i).fr_subsampling<=h_reg_prm_data(3 downto 2);
                   i_vprm.ch(i).fr_mirror.pix<=h_reg_prm_data(4);
                   i_vprm.ch(i).fr_mirror.row<=h_reg_prm_data(5);
@@ -841,23 +838,23 @@ begin
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_MSB, i_cfg_adr_cnt'length) then h_reg_prm_data(31 downto 16) <=p_in_cfg_txdata;
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_MEM_TRN_LEN, i_cfg_adr_cnt'length) then
-          var_vprm_set:='1';
+          vprm_set:='1';
           i_vprm.mem_wd_trn_len(7 downto 0)<=p_in_cfg_txdata(7 downto 0);
           i_vprm.mem_rd_trn_len(7 downto 0)<=p_in_cfg_txdata(15 downto 8);
 
       end if;
     end if;
 
-    h_set_idle_vch<=var_set_idle_vch;
-    h_vprm_set<=var_vprm_set;
+    h_set_idle_vch<=set_idle_vch;
+    h_vprm_set<=vprm_set;
 
   end if;
 end process;
 
 --//Чтение регистров
 process(p_in_rst,p_in_host_clk)
-  variable var_vch  : std_logic_vector(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT downto 0);
-  variable var_vprm : std_logic_vector(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT downto 0);
+  variable vch  : std_logic_vector(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT downto 0);
+  variable vprm : std_logic_vector(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT downto 0);
 begin
   if p_in_rst='1' then
     p_out_cfg_rxdata<=(others=>'0');
@@ -871,26 +868,26 @@ begin
 --      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_TST1, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=(others=>'0');
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) then
-          var_vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
-          var_vprm:=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
+          vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
+          vprm:=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
 
           if h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='0' and h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
               for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
-                if i=var_vch then
+                if i=vch then
                   --//Ищем индекс папаметра
-                  if var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, var_vprm'length) then
+                  if vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_wr(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_rd(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.skip.pix(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.activ.pix(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, vprm'length) then
                     p_out_cfg_rxdata(3 downto 2) <=i_vprm.ch(i).fr_subsampling;
                     p_out_cfg_rxdata(4)          <=i_vprm.ch(i).fr_mirror.pix;
                     p_out_cfg_rxdata(5)          <=i_vprm.ch(i).fr_mirror.row;
@@ -917,26 +914,26 @@ begin
            end if;
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_MSB, i_cfg_adr_cnt'length) then
-          var_vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
-          var_vprm:=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
+          vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
+          vprm:=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
 
           if h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='0' and h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
               for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
-                if i=var_vch then
+                if i=vch then
                   --//Ищем индекс папаметра
-                  if var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, var_vprm'length) then
+                  if vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_wr(31 downto 16);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_rd(31 downto 16);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.skip.row(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.activ.row(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
+                  elsif vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, vprm'length) then
                     p_out_cfg_rxdata(15 downto 0)<=(others=>'0');
 
                   end if;
@@ -1010,7 +1007,7 @@ p_out_vbuf_clk     <= p_in_clk;
 --//Готовим параметры видео каналов для модуля слежения
 gen_trcprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
 begin
-i_trcprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_wr;--
+i_trcprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_wr;
 i_trcprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
 i_trcprm_vch(i).fr_subsampling <=i_vprm.ch(i).fr_subsampling;
 i_trcprm_vch(i).fr_mirror      <=i_vprm.ch(i).fr_mirror;
@@ -1050,7 +1047,7 @@ begin
     for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
         if i_vrd_irq(i)='1' then
           i_vrd_irq_width(i)<='1';
-        elsif i_vrd_irq_width_cnt(i)(3)='1' then--="1000" then
+        elsif i_vrd_irq_width_cnt(i)(3)='1' then
           i_vrd_irq_width(i)<='0';
         end if;
 
@@ -1656,8 +1653,8 @@ port map
 p_in_cfg_color      => i_vreader_color_out,
 p_in_cfg_zoom_type  => i_vreader_zoom_type_out,
 p_in_cfg_zoom       => i_vreader_zoom_out,
-p_in_cfg_pix_count  => i_vscale_pix_count,--i_vreader_active_pix_out,
-p_in_cfg_row_count  => i_vscale_row_count,--i_vreader_active_row_out,
+p_in_cfg_pix_count  => i_vscale_pix_count,
+p_in_cfg_row_count  => i_vscale_row_count,
 p_in_cfg_init       => i_vreader_fr_new,
 
 p_out_cfg_zoom_done => open,
@@ -1688,7 +1685,7 @@ p_in_dwnp_rdy_n     => i_vpcolor_rdy_n,
 --Технологический
 -------------------------------
 p_in_tst            => "00000000000000000000000000000000",
-p_out_tst           => open,--i_vscale_tst_out,
+p_out_tst           => open,
 
 -------------------------------
 --System
