@@ -377,7 +377,7 @@ INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = 
 #--------------------------------------------------------------------------
 # EMAC0 Clocking
 # 125MHz clock input from BUFG
-NET "m_ethg/LB_MOD_USE_ON.m_eth_main/m_emac_core_main/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
+NET "m_ethg/gen_use_on.m_eth_main/m_emac_core_main/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
 TIMEGRP  "emac_core_gtp_clk"            = "mac0_clk_gtp";
 TIMESPEC "TS_emac_core_gtp_clk"         = PERIOD "emac_core_gtp_clk" 7700 ps HIGH 50 %;
 
@@ -434,31 +434,31 @@ INST "ibuf_pciexp_gtp_refclk"     DIFF_TERM = "TRUE" ;
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
-INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 2, 3
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 4, 5
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y4;# PCIe Lanes 6, 7
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 2, 3
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 4, 5
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y4;# PCIe Lanes 6, 7
 ## BlockRAM placement
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y9;
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y8;
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X1Y7;
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X1Y6;
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_retry/generate_sdp.ram_sdp_inst"      LOC = RAMB36_X1Y5;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y9;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y8;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X1Y7;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X1Y6;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_retry/generate_sdp.ram_sdp_inst"      LOC = RAMB36_X1Y5;
 #
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/ll_bridge/tx_bridge/tx_bridge/shift_pipe1"                 LOC = "SLICE_X59Y36";
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/ll_bridge/rx_bridge/arb_inst/completion_available"         LOC = "SLICE_X58Y26";
-#INST "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/cf_bridge/management_interface/mgmt_rdata_d1_3"            LOC = "SLICE_X59Y25";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/ll_bridge/tx_bridge/tx_bridge/shift_pipe1"                 LOC = "SLICE_X59Y36";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/ll_bridge/rx_bridge/arb_inst/completion_available"         LOC = "SLICE_X58Y26";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/cf_bridge/management_interface/mgmt_rdata_d1_3"            LOC = "SLICE_X59Y25";
 
 #--------------------------------------------------------------------------
 #Временные ограничения
 #--------------------------------------------------------------------------
 NET "i_pciexp_gtp_refclkin" PERIOD = 10ns;
 
-NET "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
+NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
 #NET "m_host/m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out[0]" TNM_NET = "MGTCLK";## if PCIe Lanes > 1
 TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 
-NET "m_host/LB_HOST_SIM_OFF.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
+NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
 
 #############################################################################
 ###############       Проект SATA       #####################################
@@ -478,20 +478,20 @@ INST "ibufds_gtp_hdd_clkin"   DIFF_TERM = "TRUE" ;
 #INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 
 #НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
-INST "m_hdd/LB_MOD_USE_OFF.m_gtp_dual_clk/m_gt"  LOC=GTP_DUAL_X0Y2;
+INST "m_hdd/gen_use_off.m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y2;
 
 ####ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
 ##Для случая когда в VERESKm_MAIN.VHD generic G_USE_HDD : string:="ON";
-#INST "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/LB_ROCKETIO_ON.m_sata_rocketio_i/m_gtp_dual_i"  LOC=GTP_DUAL_X0Y2;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[1].m_sata_host_i/LB_ROCKETIO_ON.m_sata_rocketio_i/m_gtp_dual_i"  LOC=GTP_DUAL_X0Y1;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[2].m_sata_host_i/LB_ROCKETIO_ON.m_sata_rocketio_i/m_gtp_dual_i"  LOC=GTP_DUAL_X0Y3;
+#INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y2;
+##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt  LOC=GTP_DUAL_X0Y1;
+##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[2].m_satah/gen_sim_off.m_gt/m_gt  LOC=GTP_DUAL_X0Y3;
 #
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_cmdfifo/m_fifo_i"                 LOC=RAMB36_X1Y12;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_rxfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y11;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_txfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y10;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_cmdfifo/m_fifo_i"                 LOC=RAMB36_X1Y9;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_rxfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y8;
-##INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_txfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y7;
+##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_cmdfifo/m_fifo_i"                 LOC=RAMB36_X1Y12;
+##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_rxfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y11;
+##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_txfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y10;
+##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_cmdfifo/m_fifo_i"                 LOC=RAMB36_X1Y9;
+##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_rxfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y8;
+##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_txfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y7;
 
 ###--------------------------------------------------------------------------
 ###Временные ограничения
@@ -507,17 +507,17 @@ INST "m_hdd/LB_MOD_USE_OFF.m_gtp_dual_clk/m_gt"  LOC=GTP_DUAL_X0Y2;
 #TIMESPEC "TS_SataClk300MHz_RAMStoFFS" = FROM "tgrp_SataClk300MHzRAMS" TO "tgrp_SataClk300MHzFFS" 150.00 MHz;
 #
 ##---  SATA_CH0
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM_NET="tnmnet_SataClkCH0";
-##NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM_NET="tnmnet_SataClkCH0";
+#NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM_NET="tnmnet_SataClkCH0";
+##NET "m_hdd/gen_use_on.m_dsn_sata/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM_NET="tnmnet_SataClkCH0";
 #TIMEGRP  "tgrp_SataClkCH0" = "tnmnet_SataClkCH0";
 #TIMESPEC "TS_SataClkCH0" = PERIOD "tgrp_SataClkCH0" 150.00 MHz HIGH 50 % ;
 #
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="FFS:SataClkCh0FFS";
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="RAMS:SataClkCh0RAMS";
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="HSIOS:SataClkCh0HSIOS";
-##NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM="FFS:SataCh0FFS";
-##NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM="RAMS:SataCh0RAMS";
-##NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM="HSIOS:SataCh0HSIOS";
+#NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="FFS:SataClkCh0FFS";
+#NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="RAMS:SataClkCh0RAMS";
+#NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="HSIOS:SataClkCh0HSIOS";
+##NET "m_hdd/gen_use_on.m_dsn_sata/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM="FFS:SataCh0FFS";
+##NET "m_hdd/gen_use_on.m_dsn_sata/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM="RAMS:SataCh0RAMS";
+##NET "m_hdd/gen_use_on.m_dsn_sata/i_tr_bl_rxbuf_wdclk_dual_gtp<0><0>" TNM="HSIOS:SataCh0HSIOS";
 #TIMEGRP  "tgrp_SataCh0FFS" = "SataCh0FFS";
 #TIMEGRP  "tgrp_SataCh0RAMS" = "SataCh0RAMS";
 #TIMEGRP  "tgrp_SataCh0HSIOS" = "SataCh0HSIOS";
@@ -528,13 +528,13 @@ INST "m_hdd/LB_MOD_USE_OFF.m_gtp_dual_clk/m_gt"  LOC=GTP_DUAL_X0Y2;
 #TIMESPEC "TS_SataCh0_HSIOStoFFS" = FROM "tgrp_SataCh0HSIOS" TO "tgrp_SataCh0FFS" 150.00 MHz;
 
 ####---  SATA_CH1
-###NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM_NET="tnmnet_SataClkCH1";
+###NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM_NET="tnmnet_SataClkCH1";
 ###TIMEGRP  "tgrp_SataClkCH1" = "tnmnet_SataClkCH1";
 ###TIMESPEC "TS_SataClkCH1" = PERIOD "tgrp_SataClkCH1" 150.00 MHz HIGH 50 % ;
 ###
-###NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="FFS:SataClkCh1FFS";
-###NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="RAMS:SataClkCh1RAMS";
-###NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="HSIOS:SataClkCh1HSIOS";
+###NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="FFS:SataClkCh1FFS";
+###NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="RAMS:SataClkCh1RAMS";
+###NET "m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="HSIOS:SataClkCh1HSIOS";
 ###TIMEGRP  "tgrp_SataClkCh1FFS" = "SataClkCh1FFS";
 ###TIMEGRP  "tgrp_SataClkCh1RAMS" = "SataClkCh1RAMS";
 ###TIMEGRP  "tgrp_SataClkCh1HSIOS" = "SataClkCh1HSIOS";
@@ -544,7 +544,7 @@ INST "m_hdd/LB_MOD_USE_OFF.m_gtp_dual_clk/m_gt"  LOC=GTP_DUAL_X0Y2;
 ###TIMESPEC "TS_SataClkCh1_FFStoHSIOS" = FROM "tgrp_SataClkCh1FFS" TO "tgrp_SataClkCh1HSIOS" 150.00 MHz;
 ###TIMESPEC "TS_SataClkCh1_HSIOStoFFS" = FROM "tgrp_SataClkCh1HSIOS" TO "tgrp_SataClkCh1FFS" 150.00 MHz;
 ###
-#####INST m_hdd/LB_MOD_USE_ON.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
+#####INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
 #####AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
 
 
