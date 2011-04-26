@@ -173,6 +173,7 @@ vcom -93 "../../../common/veresk_m/eth/dsn_ethg.vhd"
 ##-------------------------------
 ##..SRC/USER_MODULE/VIDEO
 ##-------------------------------
+vcom -93 "../../../common/veresk_m/color_conv/core_gen/*.vhd"
 vcom -93 "../../../common/veresk_m/color_conv/vrgb2yuv_main.vhd"
 vcom -93 "../../../common/veresk_m/color_conv/vyuv2rgb_main.vhd"
 

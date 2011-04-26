@@ -782,7 +782,7 @@ begin
   FrTxD_2DW_cnt :='0';--//передовать вместо видео информации счетчик. Начинается с 1
   AutoVCH_Change:='0';--//Изменение номерка видеоканала - 1/0 auto/mnl
   Pix8bit :='1';--//1 пиксель = 8 бит
-  PixLen  :=CONV_STD_LOGIC_VECTOR(10#064#, 32);--(10#20#, 32);--
+  PixLen  :=CONV_STD_LOGIC_VECTOR(10#128#, 32);--(10#20#, 32);--
   RowLen  :=CONV_STD_LOGIC_VECTOR(10#016#, 32);
   --0x584  - 1412pix
 
@@ -799,7 +799,7 @@ begin
   VctrlChParams(0).fr_subsampling    :=CONV_STD_LOGIC_VECTOR(16#000#, 2); --//Прореживание
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(16#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(16#000#, 16);--//Начало активной зоны кадра Y
-  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#064#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#128#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#016#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
@@ -883,7 +883,7 @@ begin
 
 
 --//Чтение данных модуля Track
-  track_read_01_start:=2000;--//
+  track_read_01_start:=5000;--//
   track_read_01_end  :=1400;--//
 
 --//Чтения данных VCTRL 15us
