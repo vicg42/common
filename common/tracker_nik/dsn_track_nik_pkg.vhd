@@ -26,21 +26,6 @@ package dsn_track_nik_pkg is
 --//----------------------------------------
 --//Константы
 --//----------------------------------------
---//trc_nik_core.vhd порт p_in_ctrl Bit Map:
-constant CNIK_TRCCORE_CTRL_START_BIT                : integer:=0;--//Начать работу
-constant CNIK_TRCCORE_CTRL_FR_NEW_BIT               : integer:=1;--//Новый кадр
-constant CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT           : integer:=2;--//Запись в ОЗУ завершена
-constant CNIK_TRCCORE_CTRL_LAST_BIT                 : integer:=CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT;
-
---//trc_nik_core.vhd порт p_out_satatus Bit Map:
-constant CNIK_TRCCORE_STAT_NXT_ROW_BIT              : integer:=0;
-constant CNIK_TRCCORE_STAT_IDLE_BIT                 : integer:=1;
-constant CNIK_TRCCORE_STAT_HBUF_SKIP_BIT            : integer:=2;
-constant CNIK_TRCCORE_STAT_HBUF_DRDY_BIT            : integer:=3;
-constant CNIK_TRCCORE_STAT_LAST_BIT                 : integer:=CNIK_TRCCORE_STAT_HBUF_DRDY_BIT;
-
-
-
 --//Размеры элементарного блока (ЭБ)
 --//Значения должны быть кратны 2
 constant CNIK_EBKT_LENX                             : integer:=4; --//по оси X (пикселы)
@@ -56,6 +41,21 @@ constant CNIK_HPKT_COUNT                            : integer:=CNIK_EBOUT_COUNT/
 --//----------------------------------------
 --//Типы данных, структуры
 --//----------------------------------------
+--//trc_nik_core.vhd порт p_in_ctrl Bit Map:
+type TTrcNikCoreCtrl is record
+start    : std_logic;
+fr_new   : std_logic;
+mem_done : std_logic;
+end record;
+
+--//trc_nik_core.vhd порт p_out_satatus Bit Map:
+type TTrcNikCoreStatus is record
+nxt_row : std_logic;
+drdy    : std_logic;
+idle    : std_logic;
+end record;
+
+
 Type TTrcNikHPkt is array (0 to 3) of std_logic_vector(31 downto 0);
 
 type TTrcNikEBO is record
@@ -95,6 +95,9 @@ mem_wd_trnlen   : std_logic_vector(7 downto 0);
 mem_rd_trnlen   : std_logic_vector(7 downto 0);
 ch              : TTrcNikParams;
 end record;
+
+
+
 
 end dsn_track_nik_pkg;
 

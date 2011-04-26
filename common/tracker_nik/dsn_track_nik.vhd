@@ -146,8 +146,8 @@ port
 p_in_prm_trc         : in    TTrcNikParam;    --//Параметры слежения
 p_in_prm_vch         : in    TReaderVCHParam; --//Параметры видеоканала
 
-p_in_ctrl            : in    std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
-p_out_status         : out   std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
+p_in_ctrl            : in    TTrcNikCoreCtrl;--std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
+p_out_status         : out   TTrcNikCoreStatus;--std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
 p_out_hbuf_dsize     : out   std_logic_vector(15 downto 0);
 p_out_ebout          : out   TTrcNikEBOs;
 
@@ -228,6 +228,7 @@ S_MEM_START,
 S_MEM_RD,
 S_ROW_NXT,
 S_WAIT_DRDY,
+S_WAIT_DRDY2,
 S_MEM_STARTW1,
 S_MEM_WD1,
 S_MEM_STARTW2,
@@ -278,9 +279,8 @@ signal i_trc_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)+1 d
 signal i_trc_ebout                   : TTrcNikEBOs;
 
 signal i_trccore_fst_calc_skip       : std_logic;
-signal i_trccore_ebout               : TTrcNikEBOs;
-signal i_trccore_ctrl                : std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0);
-signal i_trccore_status              : std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
+signal i_trccore_ctrl                : TTrcNikCoreCtrl;
+signal i_trccore_status              : TTrcNikCoreStatus;
 
 signal i_trc_prm                     : TTrcNikParam;
 signal i_nik_ip_count                : std_logic_vector(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT downto 0);
@@ -303,7 +303,6 @@ signal i_trcbufo_pfull               : std_logic;
 signal i_trcbufo_empty               : std_logic;
 --signal i_trcbufo_full                : std_logic;
 
-signal i_hbuf_dsize                  : std_logic_vector(15 downto 0);
 signal i_hpkt_payload_dsize          : std_logic_vector(15 downto 0);
 signal i_hpkt_header                 : TTrcNikHPkt;--std_logic_vector(31 downto 0);
 signal i_hpkt_header_data            : std_logic_vector(31 downto 0);
@@ -314,6 +313,7 @@ signal tst_ctrl                      : std_logic_vector(31 downto 0);
 signal tst_trccore_out               : std_logic_vector(31 downto 0);
 signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 signal tst_fsmstate_dly              : std_logic_vector(tst_fsmstate'range);
+
 
 
 --MAIN
@@ -637,20 +637,17 @@ begin
     i_trc_prm.opt<=(others=>'0');
     i_trc_prm.mem_arbuf<=(others=>'0');
 
-    i_trc_ebcnty<=(others=>'0');
-    for i in 0 to CNIK_EBOUT_COUNT-1 loop
-      i_trc_ebout(i).cnt<=(others=>'0');
-    end loop;
-
     i_trc_drdy<='0';
-    i_trccore_fst_calc_skip<='0';
     i_trc_work<='0';
     i_trc_busy<=(others=>'0');
 
-    i_trccore_ctrl<=(others=>'0');
+    i_trc_ebcnty<=(others=>'0');
+    i_trccore_fst_calc_skip<='0';
+    i_trccore_ctrl.start<='0';
+    i_trccore_ctrl.fr_new<='0';
+    i_trccore_ctrl.mem_done<='0';
 
     i_hpkt_header_cnt<=(others=>'0');
-    i_hpkt_payload_dsize<=(others=>'0');
 
     g_trcbufo_dout_en<='0';
 
@@ -753,7 +750,7 @@ begin
 
         i_trc_ebcnty<=(others=>'0');
         i_trccore_fst_calc_skip<='0';
-        i_trccore_ctrl(CNIK_TRCCORE_CTRL_FR_NEW_BIT)<='1';
+        i_trccore_ctrl.fr_new<='1';
 
         fsm_state_cs <= S_ROW_FINED0;
 
@@ -762,7 +759,7 @@ begin
       --//------------------------------------
       when S_ROW_FINED0 =>
 
-        i_trccore_ctrl(CNIK_TRCCORE_CTRL_FR_NEW_BIT)<='0';
+        i_trccore_ctrl.fr_new<='0';
 
         if i_vfr_mirror.row='1' then
           --//Отзеркаливание по Y - РАЗРЕШЕНО
@@ -780,7 +777,7 @@ begin
       when S_ROW_FINED1 =>
 
         --//Запускаем работу модуля trc_nik_core.vhd
-        i_trccore_ctrl(CNIK_TRCCORE_CTRL_START_BIT)<='1';
+        i_trccore_ctrl.start<='1';
         fsm_state_cs <= S_ROW_FINED2;
 
       --//------------------------------------
@@ -788,7 +785,7 @@ begin
       --//------------------------------------
       when S_ROW_FINED2 =>
 
-        i_trccore_ctrl(CNIK_TRCCORE_CTRL_START_BIT)<='0';
+        i_trccore_ctrl.start<='0';
 
         fsm_state_cs <= S_MEM_SET_ADR;
 
@@ -833,7 +830,7 @@ begin
       --//----------------------------------------------
       when S_ROW_NXT =>
 
-        if i_trccore_status(CNIK_TRCCORE_STAT_NXT_ROW_BIT)='1' then
+        if i_trccore_status.nxt_row='1' then
 
           if (i_vfr_mirror.row='0' and i_vfr_row_cnt=(i_vfr_skip_row + vfr_active_row_end)) or
              (i_vfr_mirror.row='1' and i_vfr_row_cnt=i_vfr_skip_row)then
@@ -847,17 +844,23 @@ begin
                 i_vfr_row_cnt<=i_vfr_row_cnt+1;
               end if;
 
-              --//Управление загрузкой строк в модуль trc_nik_core.vhd
-              --//первый раз загружаем 5-ть(CNIK_EBKT_LENY) строк, затем, до конца кадра
-              --//загружаем загружаем по 4-е (CNIK_EBKT_LENY-1) строки.
-              --//Так сделано потому что для начала работы модуля vsobel_main.vhd в него необходимо загрузить
-              --//две строки.
               if i_vch_prm.fr_color='1' and i_trc_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY+1, i_trc_ebcnty'length) and i_trccore_fst_calc_skip='0' then
+              --//Color VFrame:
+              --//Управление загрузкой строк в модуль trc_nik_core.vhd
+              --//первый раз загружаем 6-ть(CNIK_EBKT_LENY+1) строк, затем, до конца кадра
+              --//загружаем загружаем по 4-е (CNIK_EBKT_LENY-1) строки.
+              --//Так сделано потому что для начала работы модуля vsobel_main.vhd и vcoldemosaic_main.vhd в них необходимо загрузить
+              --//по одной строке.
                 i_trccore_fst_calc_skip<='1';
                 i_trc_ebcnty<=(others=>'0');
                 fsm_state_cs <= S_WAIT_DRDY;
 
               elsif i_vch_prm.fr_color='0' and i_trc_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY, i_trc_ebcnty'length) and i_trccore_fst_calc_skip='0' then
+              --//Gray VFrame:
+              --//Управление загрузкой строк в модуль trc_nik_core.vhd
+              --//первый раз загружаем 5-ть(CNIK_EBKT_LENY) строк, затем, до конца кадра
+              --//загружаем загружаем по 4-е (CNIK_EBKT_LENY-1) строки.
+              --//Так сделано потому что для начала работы модуля vsobel_main.vhd в него необходимо загрузить 1-у строку
                 i_trccore_fst_calc_skip<='1';
                 i_trc_ebcnty<=(others=>'0');
                 fsm_state_cs <= S_WAIT_DRDY;
@@ -882,12 +885,12 @@ begin
       --//----------------------------------------------
       when S_WAIT_DRDY =>
 
-        i_trccore_ctrl(CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT)<='0';
+        i_trccore_ctrl.mem_done<='0';
+        fsm_state_cs <= S_WAIT_DRDY2;
 
-        if i_trccore_status(CNIK_TRCCORE_STAT_HBUF_DRDY_BIT)='1' then
-          i_trc_ebout<=i_trccore_ebout;
-          i_hpkt_payload_dsize<=i_hbuf_dsize;
+      when S_WAIT_DRDY2 =>
 
+        if i_trccore_status.drdy='1' then
           fsm_state_cs <= S_MEM_STARTW1;
         end if;
 
@@ -933,9 +936,9 @@ begin
             fsm_state_cs <= S_MEM_STARTW2;
           else
 
-              i_trccore_ctrl(CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT)<='1';
+              i_trccore_ctrl.mem_done<='1';
 
-              if i_trccore_status(CNIK_TRCCORE_STAT_IDLE_BIT)='1' then
+              if i_trccore_status.idle='1' then
                 fsm_state_cs <= S_EXIT_CHK;
               else
                 fsm_state_cs <= S_WAIT_DRDY;
@@ -972,9 +975,9 @@ begin
           i_mem_wdptr_kt<=i_mem_wdptr_kt + ("0000000000000000"&i_mem_dlen_rq(13 downto 0)&"00");--//Адрес в байтах
 
           g_trcbufo_dout_en<='0';
-          i_trccore_ctrl(CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT)<='1';
+          i_trccore_ctrl.mem_done<='1';
 
-          if i_trccore_status(CNIK_TRCCORE_STAT_IDLE_BIT)='1' then
+          if i_trccore_status.idle='1' then
             fsm_state_cs <= S_EXIT_CHK;
           else
             fsm_state_cs <= S_WAIT_DRDY;
@@ -987,7 +990,7 @@ begin
       --//----------------------------------------------
       when S_EXIT_CHK =>
 
-        i_trccore_ctrl(CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT)<='0';
+        i_trccore_ctrl.mem_done<='0';
 
         if (i_vfr_mirror.row='0' and i_vfr_row_cnt=(i_vfr_skip_row + vfr_active_row_end)) or
            (i_vfr_mirror.row='1' and i_vfr_row_cnt=i_vfr_skip_row)then
@@ -1100,8 +1103,8 @@ p_in_prm_vch         => i_vch_prm,
 
 p_in_ctrl            => i_trccore_ctrl,
 p_out_status         => i_trccore_status,
-p_out_hbuf_dsize     => i_hbuf_dsize,
-p_out_ebout          => i_trccore_ebout,
+p_out_hbuf_dsize     => i_hpkt_payload_dsize,
+p_out_ebout          => i_trc_ebout,
 
 --//--------------------------
 --//Связь с ОЗУ
@@ -1234,6 +1237,7 @@ p_out_trc_bufo_empty<='0';
 p_out_trc_busy<=(others=>'0');
 
 end generate gen_use_off;
+
 
 --END MAIN
 end behavioral;

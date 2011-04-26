@@ -46,8 +46,8 @@ port
 p_in_prm_trc         : in    TTrcNikParam;    --//Параметры слежения
 p_in_prm_vch         : in    TReaderVCHParam; --//Параметры видеоканала
 
-p_in_ctrl            : in    std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
-p_out_status         : out   std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
+p_in_ctrl            : in    TTrcNikCoreCtrl;--std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
+p_out_status         : out   TTrcNikCoreStatus;--std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
 p_out_hbuf_dsize     : out   std_logic_vector(15 downto 0);--//Общее кол-во данных которые нужно передать в ОЗУ (в DW)
 p_out_ebout          : out   TTrcNikEBOs;                  --//Счетчики данных ЭБ
 
@@ -183,6 +183,7 @@ port
 -- Управление
 -------------------------------
 p_in_cfg_bypass : in    std_logic;
+p_in_cfg_init   : in    std_logic;
 
 --//--------------------------
 --//Upstream Port (входные данные)
@@ -337,6 +338,7 @@ rstb  : in   std_logic
 );
 end component;
 
+constant C_DWIDTH                    : integer:=8;--32 --//Настройка реализации модулей vcoldemosaic_main, vrgb2yuv_main
 
 signal i_vmirx_done                  : std_logic;
 signal i_vmir_dout                   : std_logic_vector(31 downto 0);
@@ -347,11 +349,13 @@ signal i_vcoldemasc_rdy_n            : std_logic;
 signal i_vcoldemasc_dout             : std_logic_vector(127 downto 0);
 signal i_vcoldemasc_dout_en          : std_logic;
 
-signal tmp_vrgb2yuv_dout             : std_logic_vector(127 downto 0);
-signal tmp_vrgb2yuv_dout_en          : std_logic;
 signal i_vrgb2yuv_rdy_n              : std_logic;
 signal i_vrgb2yuv_dout_en            : std_logic;
+signal i_vrgb2yuv_dout_en_tmp        : std_logic;
+signal i_vrgb2yuv_dout_tmp           : std_logic_vector(127 downto 0);
+signal i_vrgb2yuv_dout_tmp2          : std_logic_vector(31 downto 0);
 signal i_vrgb2yuv_dout               : std_logic_vector(31 downto 0);
+signal i_vrgb2yuv_cnt_byte           : std_logic_vector(1 downto 0);
 
 signal i_vsobel_ctrl                 : std_logic_vector(1 downto 0);
 signal i_vsobel_dxs_out              : std_logic_vector((11*4)-1 downto 0);
@@ -362,6 +366,7 @@ signal i_vsobel_grad_out             : std_logic_vector((8*4)-1 downto 0);
 signal i_vsobel_dout                 : std_logic_vector((8*4)-1 downto 0);
 signal i_vsobel_dout_en              : std_logic;
 signal i_vsobel_rdy_n                : std_logic;
+signal i_vsobel_rdy_n_tmp            : std_logic;
 
 signal i_val_rdy_n                   : std_logic;
 signal i_val_grada_out               : std_logic_vector((8*4)-1 downto 0);
@@ -382,6 +387,7 @@ S_TRC_EXIT_CHK,
 S_TRC_EBOUT_CHK
 );
 signal fsmvbuf_cstate: fsmvbuf_state;
+signal i_fsm_dly                     : std_logic_vector(1 downto 0);
 
 signal i_vbufrow_adr                 : std_logic_vector(15 downto 0);
 --signal i_vbufrow_wd                  : std_logic;
@@ -410,7 +416,6 @@ signal i_trccore_done                : std_logic;
 signal i_nik_ktedge                  : std_logic;
 signal i_nik_kt                      : TTrcNikKT;
 signal i_nik_dout                    : TTrcNikDouts;
-signal i_nik_dout_chk                : TTrcNikDout;
 signal i_nik_ip                      : TTrcNikIP;
 signal i_nik_ebout_num               : std_logic_vector(log2(CNIK_EBOUT_COUNT)-1 downto 0);
 signal i_nik_ebout_num_max           : std_logic_vector(log2(CNIK_EBOUT_COUNT)-1 downto 0);
@@ -434,11 +439,16 @@ signal i_nik_ebout_cnttotal          : std_logic_vector(9 downto 0);
 signal i_hbuf_drdy                   : std_logic;
 signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
 
+signal i_hbuf_dsize_out              : std_logic_vector(15 downto 0);
+signal i_ebout_out                   : TTrcNikEBOs;
+
 --signal tst_dbg_color                 : std_logic;
 --signal tst_dis_color                   : std_logic;
 signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
 signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
-
+signal tst_vcoldemasc_dout_en        : std_logic;
+signal tst_vrgb2yuv_dout_en          : std_logic;
+signal tst_vsobel_dout_en            : std_logic;
 
 
 --MAIN
@@ -454,11 +464,19 @@ begin
   if p_in_rst='1' then
     tst_fsmvbuf_cstate_dly<=(others=>'0');
     p_out_tst(0)<='0';
+    tst_vcoldemasc_dout_en<='0';
+    tst_vrgb2yuv_dout_en<='0';
+    tst_vsobel_dout_en<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
     tst_fsmvbuf_cstate_dly<=tst_fsmvbuf_cstate;
 
-    p_out_tst(0)<=OR_reduce(tst_fsmvbuf_cstate_dly);-- or OR_reduce(i_nik_ebcnt) or OR_reduce(i_nik_elcnt) or i_nik_ktedge;
+    tst_vcoldemasc_dout_en<=i_vcoldemasc_dout_en;
+    tst_vrgb2yuv_dout_en<=i_vrgb2yuv_dout_en;
+    tst_vsobel_dout_en<=i_vsobel_dout_en;
+
+    p_out_tst(0)<=OR_reduce(tst_fsmvbuf_cstate_dly) or
+                  tst_vcoldemasc_dout_en or tst_vrgb2yuv_dout_en or tst_vsobel_dout_en;
 
   end if;
 end process;
@@ -497,10 +515,9 @@ i_nik_ebout_num_max<=CONV_STD_LOGIC_VECTOR(12-1, i_nik_ebout_num_max'length) whe
 i_nik_elcnt_max<=p_in_prm_vch.fr_size.activ.row(i_nik_elcnt_max'length+2-1 downto 2);--//Кол-во элементарных строк ЭС
 i_nik_ebcnt_max<=p_in_prm_vch.fr_size.activ.pix(i_nik_ebcnt_max'length-1 downto 0);  --//Кол-во элементарных блоков ЭБ в одной ЭС
 
-
-i_trccore_start<=p_in_ctrl(CNIK_TRCCORE_CTRL_START_BIT);
-i_trccore_fr_new<=p_in_ctrl(CNIK_TRCCORE_CTRL_FR_NEW_BIT);
-i_trccore_memwd_done<=p_in_ctrl(CNIK_TRCCORE_CTRL_MEMWD_DONE_BIT);
+i_trccore_start<=p_in_ctrl.start;
+i_trccore_fr_new<=p_in_ctrl.fr_new;
+i_trccore_memwd_done<=p_in_ctrl.mem_done;
 
 i_vsobel_ctrl(0)<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT);
 i_vsobel_ctrl(1)<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT);
@@ -510,15 +527,12 @@ i_vsobel_ctrl(1)<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT);
 --//-----------------------------
 --//Статусы
 --//-----------------------------
-p_out_status(CNIK_TRCCORE_STAT_NXT_ROW_BIT)<=i_vmirx_done or i_trccore_done;
-p_out_status(CNIK_TRCCORE_STAT_HBUF_DRDY_BIT)<=i_hbuf_drdy;
-p_out_status(CNIK_TRCCORE_STAT_HBUF_SKIP_BIT)<='0';
-p_out_status(CNIK_TRCCORE_STAT_IDLE_BIT)<='1' when fsmvbuf_cstate=S_TRC_IDLE else '0';
+p_out_status.nxt_row<=i_vmirx_done or i_trccore_done;
+p_out_status.drdy<=i_hbuf_drdy;
+p_out_status.idle<='1' when fsmvbuf_cstate=S_TRC_IDLE else '0';
 
-p_out_hbuf_dsize<=EXT(i_nik_ebout_cnttotal, p_out_hbuf_dsize'length);
-
-p_out_ebout<=i_nik_ebout;
-
+p_out_hbuf_dsize<=i_hbuf_dsize_out;
+p_out_ebout<=i_ebout_out;
 
 
 --//-----------------------------
@@ -566,11 +580,11 @@ p_in_rst            => p_in_rst
 --//Модуль интерполяции цвета
 --//Конвертирование значений фильта Байера в правельный цвет RGB
 --//----------------------------------------
-i_vcoldemasc_bypass<=not p_in_prm_vch.fr_color;-- or not tst_dis_color;
+i_vcoldemasc_bypass<=not p_in_prm_vch.fr_color;
 
 m_vcoldemosaic : vcoldemosaic_main
 generic map(
-G_DOUT_WIDTH => 32,
+G_DOUT_WIDTH => C_DWIDTH,
 G_SIM        => G_SIM
 )
 port map (
@@ -595,7 +609,7 @@ p_out_upp_rdy_n    => i_vcoldemasc_rdy_n,
 --//--------------------------
 p_out_dwnp_data    => i_vcoldemasc_dout,
 p_out_dwnp_wd      => i_vcoldemasc_dout_en,
-p_in_dwnp_rdy_n    => i_vrgb2yuv_rdy_n,--i_vsobel_rdy_n,
+p_in_dwnp_rdy_n    => i_vrgb2yuv_rdy_n,
 
 -------------------------------
 --Технологический
@@ -616,7 +630,7 @@ p_in_rst           => p_in_rst
 --//-----------------------------
 m_rgb2yuv : vrgb2yuv_main
 generic map(
-G_DWIDTH => 32,
+G_DWIDTH => C_DWIDTH,
 G_SIM    => G_SIM
 )
 port map
@@ -625,6 +639,7 @@ port map
 -- Управление
 -------------------------------
 p_in_cfg_bypass => i_vcoldemasc_bypass,
+p_in_cfg_init   => i_trccore_fr_new,
 
 --//--------------------------
 --//Upstream Port (входные данные)
@@ -636,8 +651,8 @@ p_out_upp_rdy_n => i_vrgb2yuv_rdy_n,
 --//--------------------------
 --//Downstream Port (результат)
 --//--------------------------
-p_out_dwnp_data => tmp_vrgb2yuv_dout,
-p_out_dwnp_wd   => tmp_vrgb2yuv_dout_en,
+p_out_dwnp_data => i_vrgb2yuv_dout_tmp,
+p_out_dwnp_wd   => i_vrgb2yuv_dout_en_tmp,
 p_in_dwnp_rdy_n => i_vsobel_rdy_n,
 
 -------------------------------
@@ -654,12 +669,50 @@ p_in_rst        => p_in_rst
 );
 
 --//Если кадр цветной, то конвертируем RGB->YUV и в модуль vsobel_main.vhd передаем только Y компоненты
-i_vrgb2yuv_dout_en<=tmp_vrgb2yuv_dout_en;
-i_vrgb2yuv_dout(31 downto 0)<=tmp_vrgb2yuv_dout(31 downto 0) when i_vcoldemasc_bypass='1' else
-                             (tmp_vrgb2yuv_dout((32*3 + 8)-1 downto 32*3)&
-                              tmp_vrgb2yuv_dout((32*2 + 8)-1 downto 32*2)&
-                              tmp_vrgb2yuv_dout((32*1 + 8)-1 downto 32*1)&
-                              tmp_vrgb2yuv_dout((32*0 + 8)-1 downto 32*0));
+gen_dw32 : if cmpval(C_DWIDTH,32) generate
+--//Когда generic G_DWIDTH=32 для модулей vcoldemosaic_main, vrgb2yuv_main
+i_vrgb2yuv_dout_en<=i_vrgb2yuv_dout_en_tmp;
+i_vrgb2yuv_dout(31 downto 0)<=i_vrgb2yuv_dout_tmp(31 downto 0) when i_vcoldemasc_bypass='1' else
+                             (i_vrgb2yuv_dout_tmp((32*3 + 8)-1 downto 32*3)&
+                              i_vrgb2yuv_dout_tmp((32*2 + 8)-1 downto 32*2)&
+                              i_vrgb2yuv_dout_tmp((32*1 + 8)-1 downto 32*1)&
+                              i_vrgb2yuv_dout_tmp((32*0 + 8)-1 downto 32*0));
+end generate gen_dw32;
+
+gen_dw8 : if cmpval(C_DWIDTH,8) generate
+--//Когда generic G_DWIDTH=8 для модулей vcoldemosaic_main, vrgb2yuv_main
+--//Собираем 4-е семпла для отправки в модуль vsobel
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_vrgb2yuv_dout_tmp2((8*3)-1 downto 8*0)<=(others=>'0');
+    i_vrgb2yuv_cnt_byte<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_trccore_fr_new='1' then
+      i_vrgb2yuv_dout_tmp2((8*3)-1 downto 8*0)<=(others=>'0');
+      i_vrgb2yuv_cnt_byte<=(others=>'0');
+    else
+
+        if i_vrgb2yuv_dout_en_tmp='1' then
+          if i_vrgb2yuv_cnt_byte="00" then
+            i_vrgb2yuv_dout_tmp2((8*1)-1 downto 8*0)<=i_vrgb2yuv_dout_tmp(7 downto 0);
+          elsif i_vrgb2yuv_cnt_byte="01" then
+            i_vrgb2yuv_dout_tmp2((8*2)-1 downto 8*1)<=i_vrgb2yuv_dout_tmp(7 downto 0);
+          elsif i_vrgb2yuv_cnt_byte="10" then
+            i_vrgb2yuv_dout_tmp2((8*3)-1 downto 8*2)<=i_vrgb2yuv_dout_tmp(7 downto 0);
+          end if;
+
+          i_vrgb2yuv_cnt_byte<=i_vrgb2yuv_cnt_byte + 1;
+        end if;
+
+    end if;
+  end if;
+end process;
+i_vrgb2yuv_dout_tmp2((8*4)-1 downto 8*3)<=i_vrgb2yuv_dout_tmp(7 downto 0);
+
+i_vrgb2yuv_dout((8*4)-1 downto 8*0)<=i_vrgb2yuv_dout_tmp(31 downto 0) when i_vcoldemasc_bypass='1' else i_vrgb2yuv_dout_tmp2(31 downto 0);
+i_vrgb2yuv_dout_en<=i_vrgb2yuv_dout_en_tmp when i_vcoldemasc_bypass='1' else i_vrgb2yuv_dout_en_tmp and AND_reduce(i_vrgb2yuv_cnt_byte);
+end generate gen_dw8;
 
 
 --//-----------------------------
@@ -687,9 +740,6 @@ p_in_cfg_init      => i_trccore_fr_new,
 p_in_upp_data      => i_vrgb2yuv_dout(31 downto 0),
 p_in_upp_wd        => i_vrgb2yuv_dout_en,
 p_out_upp_rdy_n    => i_vsobel_rdy_n,
---p_in_upp_data      => i_vcoldemasc_dout(31 downto 0),
---p_in_upp_wd        => i_vcoldemasc_dout_en,
---p_out_upp_rdy_n    => i_vsobel_rdy_n,
 
 --//--------------------------
 --//Downstream Port
@@ -782,6 +832,7 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     fsmvbuf_cstate <= S_TRC_IDLE;
+    i_fsm_dly<=(others=>'0');
 
     i_vbufrow_adr<=(others=>'0');
 --    i_vbufrow_wd<='0';
@@ -802,6 +853,11 @@ begin
 
     i_vfr_row_cnt<=(others=>'0');
 
+    i_hbuf_dsize_out<=(others=>'0');
+    for i in 0 to i_ebout_out'high loop
+    i_ebout_out(i).cnt<=(others=>'0');
+    end loop;
+
   elsif p_in_clk'event and p_in_clk='1' then
 
       case fsmvbuf_cstate is
@@ -818,11 +874,12 @@ begin
           i_trccore_done<='0';
 
           if i_trccore_fr_new='1' then
+            i_hbuf_drdy<='0';
             i_vfr_row_cnt<=(others=>'0');
             i_nik_elcnt<=(others=>'0');
 
           elsif i_trccore_start='1' then
-
+            i_hbuf_drdy<='0';
             fsmvbuf_cstate <= S_TRC_WVBUF;
 
           end if;
@@ -958,12 +1015,21 @@ begin
         --//
         --//------------------------------------
         when S_TRC_DLY0 =>
-          fsmvbuf_cstate <= S_TRC_DLY1;
+
+          if i_fsm_dly="10" then
+            i_fsm_dly<=(others=>'0');
+            fsmvbuf_cstate <= S_TRC_DLY1;
+          else
+            i_fsm_dly<=i_fsm_dly + 1;
+          end if;
 
         when S_TRC_DLY1 =>
           --//Сигнализуруем автомату модуля dsn_track_nik.vhd, что
           --//В выходном буфере есть данные
           i_hbuf_drdy<='1';
+
+          i_hbuf_dsize_out<=EXT(i_nik_ebout_cnttotal, p_out_hbuf_dsize'length);
+          i_ebout_out<=i_nik_ebout;
           fsmvbuf_cstate <= S_TRC_EXIT_CHK;
 
         --//------------------------------------
@@ -971,10 +1037,8 @@ begin
         --//------------------------------------
         when S_TRC_EXIT_CHK =>
 
-          i_hbuf_drdy<='0';
-
           if i_vbufrow_adr=p_in_prm_vch.fr_size.activ.pix(13 downto 0)&"00" and
-             i_nik_ipcnt=(i_nik_ipcnt'range =>'0') then
+            i_nik_ipcnt=(i_nik_ipcnt'range =>'0') then
 
             --//Завершил обработку текущией ЭС
             i_vbufrow_adr<=(others=>'0');
@@ -995,6 +1059,7 @@ begin
         when S_TRC_EBOUT_CHK =>
 
           if i_trccore_memwd_done='1' then
+            i_hbuf_drdy<='0';
             fsmvbuf_cstate <= S_TRC_IP_SET;
           end if;
 
@@ -1224,6 +1289,7 @@ begin
   end if;
 end process;
 end generate gen;
+
 
 
 --END MAIN
