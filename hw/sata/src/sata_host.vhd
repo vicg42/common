@@ -76,6 +76,7 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 --------------------------------------------------
 p_in_tst                    : in    TBus32_GTCH;
 p_out_tst                   : out   TBus32_GTCH;
+p_out_dbg                   : out   TSH_dbgport_GTCH;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -401,6 +402,7 @@ p_in_reg_update           => i_reg_update(i),
 --------------------------------------------------
 p_in_tst                  => p_in_tst(i),
 p_out_tst                 => tst_alayer_out(i),
+p_out_dbg                 => p_out_dbg(i).alayer,
 
 --------------------------------------------------
 --System
@@ -466,6 +468,7 @@ p_in_pl_status            => i_phy_status(i),
 --------------------------------------------------
 p_in_tst                  => p_in_tst(i),
 p_out_tst                 => tst_tlayer_out(i),
+p_out_dbg                 => p_out_dbg(i).tlayer,
 
 --------------------------------------------------
 --System
@@ -515,6 +518,7 @@ p_in_phy_txrdy_n        => i_phy_txrdy_n(i),
 --------------------------------------------------
 p_in_tst                => p_in_tst(i),
 p_out_tst               => tst_llayer_out(i),
+p_out_dbg               => p_out_dbg(i).llayer,
 
 --------------------------------------------------
 --System
@@ -576,6 +580,7 @@ p_in_gtp_rxbyteisaligned   => i_gtp_rxbyteisaligned(i),
 --------------------------------------------------
 p_in_tst                   => p_in_tst(i),
 p_out_tst                  => tst_player_out(i),
+p_out_dbg                  => p_out_dbg(i).player,
 
 --------------------------------------------------
 --System

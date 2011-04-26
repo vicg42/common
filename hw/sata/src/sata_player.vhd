@@ -86,6 +86,7 @@ p_in_gtp_rxbyteisaligned   : in    std_logic;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TPL_dbgport;
 
 --------------------------------------------------
 --System
@@ -230,6 +231,7 @@ p_in_gtp_rxstatus      => p_in_gtp_rxstatus,
 --------------------------------------------------
 p_in_tst               => p_in_tst,
 p_out_tst              => tst_player_oob_out,
+p_out_dbg              => p_out_dbg.oob,
 
 --------------------------------------------------
 --System
@@ -272,6 +274,7 @@ p_out_gtp_txcharisk    => p_out_gtp_txcharisk,
 --------------------------------------------------
 p_in_tst               => p_in_tst,
 p_out_tst              => tst_player_tsf_out,
+p_out_dbg              => p_out_dbg.tx,
 
 --------------------------------------------------
 --System
@@ -314,6 +317,7 @@ p_in_gtp_rxbyteisaligned   => p_in_gtp_rxbyteisaligned,
 --------------------------------------------------
 p_in_tst                   => p_in_tst,
 p_out_tst                  => tst_player_rcv_out,
+p_out_dbg                  => p_out_dbg.rx,
 
 --------------------------------------------------
 --System

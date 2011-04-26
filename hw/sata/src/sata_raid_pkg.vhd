@@ -27,6 +27,7 @@ package sata_raid_pkg is
 type TUsrSErrorSHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALSERR_LAST_BIT downto 0);
 
 type TUsrStatus is record
+glob_hdd_count : std_logic_vector(3 downto 0);
 glob_busy: std_logic;
 glob_drdy: std_logic;
 glob_err : std_logic;

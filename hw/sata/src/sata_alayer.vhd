@@ -64,6 +64,7 @@ p_in_reg_update           : in    TRegShadowUpdate;--//Стробы для обнавления АТА
 --------------------------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
 p_out_tst                 : out   std_logic_vector(31 downto 0);
+p_out_dbg                 : out   TAL_dbgport;
 
 --------------------------------------------------
 --System
@@ -112,7 +113,7 @@ signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0
 signal sr_usr_status_busy          : std_logic_vector(0 to 4);
 
 signal tst_al_status               : TSimALStatus;
-signal dbgtsf_type                 : string(1 to 23);
+signal i_dbgtsf_type               : string(1 to 23);
 signal tst_val                     : std_logic;
 
 
@@ -513,7 +514,7 @@ i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 --//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
-tst_al_status.cmd_name<=dbgtsf_type;
+tst_al_status.cmd_name<=i_dbgtsf_type;
 tst_al_status.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
 tst_al_status.signature<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);
 
@@ -522,30 +523,34 @@ begin
 
   if i_trn_atacommand='1' then
     if i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_DEV, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_IDENTIFY           ";
+      i_dbgtsf_type<="ATA_IDENTIFY           ";
     elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_PACKET_DEV, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_IDENTIFY_PACKET_DEV";
+      i_dbgtsf_type<="ATA_IDENTIFY_PACKET_DEV";
     elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_NOP, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_NOP                ";
+      i_dbgtsf_type<="ATA_NOP                ";
     elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_PIO_WRITE          ";
+      i_dbgtsf_type<="ATA_PIO_WRITE          ";
     elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_PIO_READ           ";
+      i_dbgtsf_type<="ATA_PIO_READ           ";
     elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_DMA_WRITE          ";
+      i_dbgtsf_type<="ATA_DMA_WRITE          ";
     elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_reg_shadow.command'length) then
-      dbgtsf_type<="ATA_DMA_READ           ";
+      i_dbgtsf_type<="ATA_DMA_READ           ";
     else
-      dbgtsf_type<="NONE                   ";
+      i_dbgtsf_type<="NONE                   ";
     end if;
   end if;
 
-  if dbgtsf_type="NONE                   " and tst_al_status.cmd_busy='1' then
+  if i_dbgtsf_type="NONE                   " and tst_al_status.cmd_busy='1' then
     tst_val<='1';
   else
     tst_val<='0';
   end if;
 end process rq_name;
+
+p_out_dbg.cmd_name<=i_dbgtsf_type;
+p_out_dbg.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
+p_out_dbg.signature<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);
 
 end generate gen_sim_on;
 

@@ -58,6 +58,7 @@ p_in_gtp_rxbyteisaligned   : in    std_logic;
 --------------------------------------------------
 p_in_tst                   : in    std_logic_vector(31 downto 0);
 p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_out_dbg                  : out   TPLrx_dbgport;
 
 --------------------------------------------------
 --System
@@ -261,6 +262,8 @@ if p_in_clk'event and p_in_clk='1' then
   end if;
 end if;
 end process rcv_name;
+
+p_out_dbg.name<=dbgrcv_type;
 
 end generate gen_sim_on;
 

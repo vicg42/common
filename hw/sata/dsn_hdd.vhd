@@ -5,8 +5,8 @@
 -- Create Date : 10/26/2007
 -- Module Name : dsn_hdd
 --
--- РќР°Р·РЅР°С‡РµРЅРёРµ/РћРїРёСЃР°РЅРёРµ :
---  Р—Р°РїРёСЃСЊ/Р§С‚РµРЅРёРµ СЂРµРіРёСЃС‚СЂРѕРІ СѓСЃС‚СЂРѕР№СЃС‚РІ
+-- Назначение/Описание :
+--  Запись/Чтение регистров устройств
 --
 --
 -- Revision:
@@ -40,7 +40,7 @@ G_SIM                  : string:="OFF"
 port
 (
 -------------------------------
--- РљРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ РјРѕРґСѓР»СЏ DSN_HDD.VHD (p_in_cfg_clk domain)
+-- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 -------------------------------
 p_in_cfg_clk              : in   std_logic;                      --//
 
@@ -58,14 +58,14 @@ p_in_cfg_done             : in   std_logic;                      --//
 p_in_cfg_rst              : in   std_logic;
 
 -------------------------------
--- STATUS РјРѕРґСѓР»СЏ DSN_HDD.VHD
+-- STATUS модуля DSN_HDD.VHD
 -------------------------------
 p_out_hdd_rdy             : out  std_logic;                      --//
 p_out_hdd_error           : out  std_logic;                      --//
 p_out_hdd_busy            : out  std_logic;                      --//
 
 -------------------------------
--- РЎРІСЏР·СЊ СЃ РСЃС‚РѕС‡РЅРёРєР°РјРё/РџСЂРёРµРјРЅРёРєР°РјРё РґР°РЅРЅС‹С… РЅР°РєРѕРїРёС‚РµР»СЏ
+-- Связь с Источниками/Приемниками данных накопителя
 -------------------------------
 p_out_rambuf_adr          : out  std_logic_vector(31 downto 0);  --//
 p_out_rambuf_ctrl         : out  std_logic_vector(31 downto 0);  --//
@@ -89,13 +89,13 @@ p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
 p_in_sata_refclk          : in    std_logic;
 
 ---------------------------------------------------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёР№ РїРѕСЂС‚
+--Технологический порт
 ---------------------------------------------------------------------------
 p_in_tst                 : in    std_logic_vector(31 downto 0);
 p_out_tst                : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
---РњРѕРґРµР»РёСЂРѕРІР°РЅРёРµ/РћС‚Р»Р°РґРєР° - РІ СЂР°Р±РѕС‡РµРј РїСЂРѕРµРєС‚Рµ РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
+--Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
@@ -138,7 +138,6 @@ signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
 
 signal h_reg_ctrl_l                     : std_logic_vector(C_DSN_HDD_REG_CTRLL_LAST_BIT downto 0);
 signal h_reg_tst0                       : std_logic_vector(C_DSN_HDD_REG_TST0_LAST_BIT downto 0);
-signal h_reg_tst1                       : std_logic_vector(C_DSN_HDD_REG_TST1_LAST_BIT downto 0);
 signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0);
 signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
 
@@ -176,7 +175,7 @@ signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 begin
 
 --//----------------------------------
---//РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёРµ СЃРёРіРЅР°Р»С‹
+--//Технологические сигналы
 --//----------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 8)<=(others=>'0');
@@ -209,9 +208,9 @@ p_out_tst(7)<='0';
 
 
 --//--------------------------------------------------
---//РљРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ РјРѕРґСѓР»СЏ DSN_HDD.VHD
+--//Конфигурирование модуля DSN_HDD.VHD
 --//--------------------------------------------------
---//РЎС‡РµС‚С‡РёРє Р°РґСЂРµСЃР° СЂРµРіРёСЃС‚СЂРѕРІ
+--//Счетчик адреса регистров
 process(p_in_cfg_rst,p_in_cfg_clk)
 begin
   if p_in_cfg_rst='1' then
@@ -227,13 +226,12 @@ begin
   end if;
 end process;
 
---//Р—Р°РїРёСЃСЊ СЂРµРіРёСЃС‚СЂРѕРІ
+--//Запись регистров
 process(p_in_cfg_rst,p_in_cfg_clk)
 begin
   if p_in_cfg_rst='1' then
     h_reg_ctrl_l<=(others=>'0');
     h_reg_tst0<=(others=>'0');
-    h_reg_tst1<=(others=>'0');
 
     h_reg_rambuf_adr<=(others=>'0');
     h_reg_rambuf_ctrl<=(others=>'0');
@@ -244,7 +242,6 @@ begin
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl_l<=p_in_cfg_txdata(h_reg_ctrl_l'high downto 0);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TST0, i_cfg_adr_cnt'length)   then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TST1, i_cfg_adr_cnt'length)   then h_reg_tst1<=p_in_cfg_txdata(h_reg_tst1'high downto 0);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(15 downto 0)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(31 downto 16)<=p_in_cfg_txdata;
@@ -256,7 +253,7 @@ begin
   end if;
 end process;
 
---//Р§С‚РµРЅРёРµ СЂРµРіРёСЃС‚СЂРѕРІ
+--//Чтение регистров
 process(p_in_cfg_rst,p_in_cfg_clk)
 begin
   if p_in_cfg_rst='1' then
@@ -266,18 +263,18 @@ begin
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl_l, p_out_cfg_rxdata'length);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=EXT(h_reg_tst0, p_out_cfg_rxdata'length);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TST1, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=EXT(h_reg_tst1, p_out_cfg_rxdata'length);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_rambuf_adr(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_rambuf_adr(31 downto 16);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_rambuf_ctrl;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_rambuf_ctrl;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS, i_cfg_adr_cnt'length)           then p_out_cfg_rxdata(15 downto 0)<=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_drdy, 8);--h_reg_satah_status(15 downto 0);
+--        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<="000000000" & i_sh_status.glob_busy & i_sh_status.glob_err & i_sh_status.glob_drdy & i_sh_status.glob_hdd_count(3 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_drdy, 8);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA0_L, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(0)(15 downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA0_M, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(0)(31 downto 16);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA1_L, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(1)(15 downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA1_M, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(1)(31 downto 16);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA0_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(0)(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA0_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(0)(31 downto 16);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA1_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(1)(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_SATA1_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.SError(1)(31 downto 16);
 
         end if;
     end if;
@@ -286,12 +283,12 @@ end process;
 
 i_sh_ctrl<=EXT(h_reg_ctrl_l, i_sh_ctrl'length);
 
-i_cfg_bufrst<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_BUFRST_BIT);--//РЎР±СЂРѕСЃ РІСЃРµС… Р±СѓС„РµСЂРѕРІ --//add 2010.08.18
+i_cfg_bufrst<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_BUFRST_BIT);--//Сброс всех буферов --//add 2010.08.18
 --i_cfg_buf_ovflow_disable_det<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT);--//add 2010.10.03
 
 
 --//add 2010.10.03
---//РќР°СЃС‚СЂРѕР№РєР°/РЈРїСЂР°РІР»РµРЅРёРµ RAM Р±СѓС„РµСЂРѕРј
+--//Настройка/Управление RAM буфером
 p_out_rambuf_adr(15 downto 0)<=h_reg_rambuf_adr(15 downto 0);
 p_out_rambuf_adr(31 downto 16)<=h_reg_rambuf_adr(31 downto 16);
 p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT);
@@ -306,20 +303,20 @@ p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT)<='0';--i_hw_stopsyn;
 p_out_rambuf_ctrl(31 downto C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT+1)<=(others=>'0');
 
 
---//РЎС‚Р°С‚СѓСЃС‹ РјРѕРґСѓР»СЏ
+--//Статусы модуля
 p_out_hdd_rdy  <=i_sh_status.glob_drdy;
 p_out_hdd_error<=i_sh_status.glob_err;
 p_out_hdd_busy <=i_sh_status.glob_busy;
 
 
---//РЎС‚Р°С‚СѓСЃС‹ РјРѕРґСѓР»СЏ
+--//Статусы модуля
 --i_sh_cmd<=p_in_cfg_txdata;
 i_sh_cmd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
 --i_sh_cmd_rdy<=p_in_cfg_done when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
 
 
 --//############################
---//USE - ON (РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ РІ РїСЂРѕРµРєС‚Рµ)
+--//USE - ON (использовать в проекте)
 --//############################
 gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 
@@ -387,7 +384,7 @@ p_in_sata_rxp               => p_in_sata_rxp,
 p_in_sata_refclk            => i_sata_gt_refclk,
 
 --------------------------------------------------
---РЎРІСЏР·СЊ СЃ РјРѕРґСѓР»РµРј dsn_hdd.vhd
+--Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl               => i_sh_ctrl,
 p_out_usr_status            => i_sh_status,
@@ -407,7 +404,7 @@ p_out_usr_rxd_wr            => i_sh_rxd_wr,
 p_in_usr_rxbuf_full         => i_sh_rxbuf_full,
 
 --------------------------------------------------
---РњРѕРґРµР»РёСЂРѕРІР°РЅРёРµ/РћС‚Р»Р°РґРєР° - РІ СЂР°Р±РѕС‡РµРј РїСЂРѕРµРєС‚Рµ РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ
+--Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 p_out_sim_gtp_txdata        => i_sh_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_sh_sim_gtp_txcharisk,
@@ -422,7 +419,7 @@ p_out_gtp_sim_rst           => i_sh_sim_gtp_sim_rst,
 p_out_gtp_sim_clk           => i_sh_sim_gtp_sim_clk,
 
 --------------------------------------------------
---РўРµС…РЅРѕР»РѕРіРёС‡РµСЃРєРёРµ СЃРёРіРЅР°Р»С‹
+--Технологические сигналы
 --------------------------------------------------
 p_in_tst                    => "00000000000000000000000000000000",--tst_hdd_in,
 p_out_tst                   => tst_hdd_out,
@@ -463,7 +460,7 @@ end generate gen_use_on;
 
 
 --//############################
---//USE - OFF (РІС‹Р±СЂРѕСЃРёС‚СЊ РёР· РїСЂРѕРµРєС‚Р°)
+--//USE - OFF (выбросить из проекта)
 --//############################
 gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 

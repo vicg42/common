@@ -75,6 +75,7 @@ p_in_phy_txrdy_n        : in    std_logic;                   --//Статус передатч
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TLL_dbgport;
 
 --------------------------------------------------
 --System
@@ -86,46 +87,7 @@ end sata_llayer;
 
 architecture behavioral of sata_llayer is
 
-type fsm_state is
-(
---------------------------------------------
--- Link idle states.
---------------------------------------------
-S_L_RESET,
-S_L_IDLE,
-S_L_SyncEscape,
-S_L_NoCommErr,
-S_L_NoComm,
---S_L_SendAlign,
-
-----------------------------------------------
----- Link transfer states.
-----------------------------------------------
-S_LT_H_SendChkRdy,
-S_LT_SendSOF,
-S_LT_SendData,
-S_LT_SendCRC,
-S_LT_SendEOF,
-S_LT_Wait,
-S_LT_RcvrHold,
-S_LT_SendHold,
-
---------------------------------------------
--- Link reciever states.
---------------------------------------------
-S_LR_RcvChkRdy,
-S_LR_RcvWaitFifo,
-S_LR_RcvData,
-S_LR_Hold,
-S_LR_SendHold,
-S_LR_RcvEOF,
-S_LR_GoodCRC,
-S_LR_GoodEnd,
-S_LR_BadEnd
-
-);
-signal fsm_llayer_cs: fsm_state;
-
+signal fsm_llayer_cs               : TLL_fsm_state;
 
 signal i_status                    : std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
 
@@ -2462,6 +2424,11 @@ begin
     tst_val<='0';
   end if;
 end process;
+
+p_out_dbg.fsm<=fsm_llayer_cs;
+p_out_dbg.ctrl<=tst_ll_ctrl;
+p_out_dbg.status<=tst_ll_status;
+p_out_dbg.rxp<=tst_ll_rxp;
 
 end generate gen_sim_on;
 

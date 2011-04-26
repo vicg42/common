@@ -190,6 +190,9 @@ end generate gen_sh_tst_out;
 --//----------------------------------
 p_out_usr_status<=i_usr_status;
 
+--//êîë-âî HDD ïîäêëş÷åííûõ ê FPGA
+i_usr_status.glob_hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.glob_hdd_count'length);
+
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then

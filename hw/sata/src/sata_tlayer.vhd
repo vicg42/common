@@ -87,6 +87,7 @@ p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 --------------------------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
 p_out_tst                 : out   std_logic_vector(31 downto 0);
+p_out_dbg                 : out   TTL_dbgport;
 
 --------------------------------------------------
 --System
@@ -100,73 +101,7 @@ architecture behavioral of sata_tlayer is
 
 constant CI_FR_DWORD_COUNT_MAX : integer:=selval(C_FR_DWORD_COUNT_MAX, C_SIM_FR_DWORD_COUNT_MAX, strcmp(G_SIM, "OFF"));
 
-type fsm_tlayer_state is
-(
---------------------------------------------
---Host transport idle states.
---------------------------------------------
-S_IDLE,
-S_HT_ChkTyp,  --//Проверка типа принимаемого FIS
-
---------------------------------------------
---Передача FIS_REG_HOST2DEV: Передача ATA command
---------------------------------------------
-S_HT_CmdFIS,
-S_HT_CmdTransStatus,
-
---------------------------------------------
---Передача FIS_REG_HOST2DEV: Передача ATA control
---------------------------------------------
-S_HT_CtrlFIS,
-S_HT_CtrlTransStatus,
-
---------------------------------------------
---Прием/Обработка FIS_REG_DEV2HOST
---------------------------------------------
-S_HT_RegFIS,
-S_HT_RegTransStatus,
-
---------------------------------------------
---Прием/Обработка FIS_REG_SET_DEVICE_BITS
---------------------------------------------
-S_HT_DB_FIS,
-S_HT_Dev_Bits,
-
-----------------------------------------------
-----Прием/Обработка FIS_BIST_ACTIVATE (Используется для тестирования. Различные виды loopback)
-----------------------------------------------
---S_HT_Xmit_BIST,  --Передача
---S_HT_TransBISTStatus,
-
-S_HT_RcvBIST,    --Прием
-S_HT_BISTTrans1,
-
---------------------------------------------
---Работа в режиме PIO
---------------------------------------------
-S_HT_PS_FIS,     --Прием/Обработка FIS_PIOSETUP
-S_HT_PIOOTrans1, --Передача данных по SATA
-S_HT_PIOOTrans2,
-S_HT_PIOEnd,
-S_HT_PIOITrans1, --Прием данных из SATA
-S_HT_PIOITrans2,
-
-----------------------------------------------
-----Работа в режиме DMA
-----------------------------------------------
-S_HT_DmaSetupFIS,        --//Передача FIS_DMASETUP
-S_HT_DmaSetupTransStatus,
-
-S_HT_DS_FIS,     --//Прием FIS_DMASETUP
-
-S_HT_DMA_FIS,    --Прием/Обработка FIS_DMA_ACTIVATE
-S_HT_DMAOTrans1, --Передача данных по SATA
-S_HT_DMAOTrans2,
-S_HT_DMAEnd,
-S_HT_DMAITrans   --Прием данных из SATA
-
-);
-signal fsm_tlayer_cs: fsm_tlayer_state;
+signal fsm_tlayer_cs               : TTL_fsm_state;
 
 signal i_reg_hold                  : TRegHold;
 signal i_reg_update                : TRegShadowUpdate;
@@ -1621,6 +1556,10 @@ begin
     tst_val<='0';
   end if;
 end process;
+
+p_out_dbg.fsm<=fsm_tlayer_cs;
+p_out_dbg.ctrl<=tst_tl_ctrl;
+p_out_dbg.status<=tst_tl_status;
 
 end generate gen_sim_on;
 

@@ -57,6 +57,7 @@ p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
 --------------------------------------------------
 p_in_tst               : in    std_logic_vector(31 downto 0);
 p_out_tst              : out   std_logic_vector(31 downto 0);
+p_out_dbg              : out   TPLtx_dbgport;
 
 --------------------------------------------------
 --System
@@ -349,7 +350,7 @@ p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
 --//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
-tst_pltx_status.req_name<=dbgtsf_type;
+--tst_pltx_status.req_name<=dbgtsf_type;
 tst_pltx_status.suspend_phold<=i_suspend(C_THOLD);
 tst_pltx_status.suspend_pholda<=i_suspend(C_THOLDA);
 tst_pltx_status.suspend_psof<=i_suspend(C_TSOF);
@@ -366,6 +367,11 @@ begin
     tst_val<='0';
   end if;
 end process rq_name;
+
+p_out_dbg.stat<=tst_pltx_status;
+
+p_out_dbg.req_name<=dbgtsf_type;
+p_out_dbg.stat<=tst_pltx_status;
 
 end generate gen_sim_on;
 

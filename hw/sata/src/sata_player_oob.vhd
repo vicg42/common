@@ -60,6 +60,7 @@ p_out_gtp_rst          : out   std_logic;                    --//Сброс Tx/Rx PCM
 --------------------------------------------------
 p_in_tst               : in    std_logic_vector(31 downto 0);
 p_out_tst              : out   std_logic_vector(31 downto 0);
+p_out_dbg              : out   TPLoob_dbgport;
 
 --------------------------------------------------
 --System
@@ -72,20 +73,7 @@ end sata_player_oob;
 
 architecture behavioral of sata_player_oob is
 
-type fsm_states is
-(
-S_HR_COMRESET,
-S_HR_COMRESET_DONE,
-S_HR_AwaitCOMINIT,
-S_HR_COMWAKE,
-S_HR_COMWAKE_DONE,
-S_HR_AwaitCOMWAKE,
-S_HR_AwaitNoCOMWAKE,
-S_HR_AwaitAlign,
-S_HR_SendAlign,
-S_HR_Ready
-);
-signal i_fsm_statecs: fsm_states;
+signal fsm_ploob_cs             : TPLoob_fsm_state;
 
 signal i_gtp_txelecidle         : std_logic;
 signal i_gtp_txcomstart         : std_logic;
@@ -136,16 +124,16 @@ begin
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when i_fsm_statecs=S_HR_COMRESET_DONE else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when i_fsm_statecs=S_HR_AwaitCOMINIT else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when i_fsm_statecs=S_HR_COMWAKE else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when i_fsm_statecs=S_HR_COMWAKE_DONE else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when i_fsm_statecs=S_HR_AwaitCOMWAKE else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when i_fsm_statecs=S_HR_AwaitNoCOMWAKE else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when i_fsm_statecs=S_HR_AwaitAlign else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when i_fsm_statecs=S_HR_SendAlign else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when i_fsm_statecs=S_HR_Ready else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//when i_fsm_statecs=S_HR_COMRESET
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET_DONE else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMINIT else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE_DONE else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMWAKE else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMWAKE else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitAlign else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_SendAlign else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Ready else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//when fsm_ploob_cs=S_HR_COMRESET
 
 end generate gen_dbg_on;
 
@@ -191,7 +179,7 @@ end process ltimeout;
 lfsm:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_fsm_statecs <= S_HR_COMRESET;
+    fsm_ploob_cs <= S_HR_COMRESET;
 
     i_gtp_txcomstart<='0';
     i_gtp_txcomtype <='0';
@@ -209,7 +197,7 @@ begin
 
     i_timeout<=i_tmrout;
 
-    case i_fsm_statecs is
+    case fsm_ploob_cs is
 
       --//-------------------------------
       --//Отправка сигнала COMRESET
@@ -222,7 +210,7 @@ begin
 
         i_gtp_txcomstart<='1';--//Запуск отправки сигналов COMRESET
         i_gtp_txcomtype <='0';
-        i_fsm_statecs <= S_HR_COMRESET_DONE;
+        fsm_ploob_cs <= S_HR_COMRESET_DONE;
 
       when S_HR_COMRESET_DONE =>
 
@@ -231,7 +219,7 @@ begin
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигналов COMRESET
           i_timer_rst_n<='1';
-          i_fsm_statecs <= S_HR_AwaitCOMINIT;
+          fsm_ploob_cs <= S_HR_AwaitCOMINIT;
         end if;
 
 
@@ -243,12 +231,12 @@ begin
         if p_in_gtp_rxelecidle='1' and p_in_gtp_rxstatus = "100" then
             --Обнаружил сигнал COMINIT
             i_timer_rst_n<='0';
-            i_fsm_statecs <= S_HR_COMWAKE;
+            fsm_ploob_cs <= S_HR_COMWAKE;
 
         else
           if i_timeout='1' then
             i_timer_rst_n<='0';
-            i_fsm_statecs <= S_HR_COMRESET;
+            fsm_ploob_cs <= S_HR_COMRESET;
           end if;
         end if;
 
@@ -260,7 +248,7 @@ begin
 
           i_gtp_txcomstart<='1';--//Вкл. сигнал COMWAKE
           i_gtp_txcomtype <='1';
-          i_fsm_statecs <= S_HR_COMWAKE_DONE;
+          fsm_ploob_cs <= S_HR_COMWAKE_DONE;
 
       when S_HR_COMWAKE_DONE =>
 
@@ -269,7 +257,7 @@ begin
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигналов COMWAKE
           i_timer_rst_n<='1';
-          i_fsm_statecs <= S_HR_AwaitCOMWAKE;
+          fsm_ploob_cs <= S_HR_AwaitCOMWAKE;
         end if;
 
 
@@ -282,11 +270,11 @@ begin
             --Обнаружил сигнал COMWAKE
             i_timer_rst_n<='0';
             i_status(C_PSTAT_COMWAKE_RCV_BIT)<='1';
-            i_fsm_statecs <= S_HR_AwaitNoCOMWAKE;
+            fsm_ploob_cs <= S_HR_AwaitNoCOMWAKE;
         else
           if i_timeout='1' then
             i_timer_rst_n<='0';
-            i_fsm_statecs <= S_HR_COMRESET;
+            fsm_ploob_cs <= S_HR_COMRESET;
           end if;
         end if;
 
@@ -303,10 +291,10 @@ begin
             --//в это время отпрапвляю D10.2 код
             i_gtp_pcm_rst<='1';
             i_status(C_PSTAT_DET_DEV_ON_BIT)<='1';
-            i_fsm_statecs <= S_HR_AwaitAlign;
+            fsm_ploob_cs <= S_HR_AwaitAlign;
         else
             if i_timeout='1' then
-              i_fsm_statecs <= S_HR_COMRESET;
+              fsm_ploob_cs <= S_HR_COMRESET;
               i_timer_rst_n<='0';
             else
               i_timer_rst_n<='1';
@@ -328,18 +316,18 @@ begin
                 i_d10_2_senddis<='1';--Как только сигнал установится в '1'
                                      --начнется отправка ALIGN Primitive
                 i_timer_rst_n<='0';
-                i_fsm_statecs <= S_HR_SendAlign;
+                fsm_ploob_cs <= S_HR_SendAlign;
             else
                 if i_timeout='1' then
                   i_timer_rst_n<='0';
-                  i_fsm_statecs <= S_HR_COMRESET;
+                  fsm_ploob_cs <= S_HR_COMRESET;
                 else
                   i_timer_rst_n<='1';
                 end if;
             end if;
         else
           i_timer_rst_n<='0';
-          i_fsm_statecs <= S_HR_COMRESET;
+          fsm_ploob_cs <= S_HR_COMRESET;
         end if;
 
 
@@ -352,7 +340,7 @@ begin
 
             if i_timeout='1' then
               i_timer_rst_n<='0';
-              i_fsm_statecs <= S_HR_COMRESET;
+              fsm_ploob_cs <= S_HR_COMRESET;
 
             else
 
@@ -370,7 +358,7 @@ begin
                   i_status(C_PSTAT_DET_ESTABLISH_ON_BIT)<='1';
                   i_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)<=p_in_ctrl(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L);
 
-                  i_fsm_statecs <= S_HR_Ready;
+                  fsm_ploob_cs <= S_HR_Ready;
                 else
                   i_rx_prmt_cnt<=i_rx_prmt_cnt+1;
                 end if;
@@ -378,7 +366,7 @@ begin
             end if;
         else
           i_timer_rst_n<='0';
-          i_fsm_statecs <= S_HR_COMRESET;
+          fsm_ploob_cs <= S_HR_COMRESET;
         end if;
 
 
@@ -389,7 +377,7 @@ begin
 
         i_timer_rst_n<='0';
         if p_in_gtp_rxelecidle = '1' then
-          i_fsm_statecs <= S_HR_COMRESET;
+          fsm_ploob_cs <= S_HR_COMRESET;
         end if;
 
     end case;
@@ -417,6 +405,9 @@ begin
     tst_val<='0';
   end if;
 end process;
+
+p_out_dbg.stat<=tst_pl_status;
+p_out_dbg.fsm<=fsm_ploob_cs;
 
 end generate gen_sim_on;
 

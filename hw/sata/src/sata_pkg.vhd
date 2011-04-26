@@ -269,6 +269,72 @@ constant C_FIS_BIST_ACTIVATE_DWSIZE      : integer:=3;
 constant C_FIS_PIOSETUP_DWSIZE           : integer:=5;
 constant C_FIS_SET_DEV_BITS_DWSIZE       : integer:=2;
 
+type TTL_fsm_state is
+(
+--------------------------------------------
+--Host transport idle states.
+--------------------------------------------
+S_IDLE,
+S_HT_ChkTyp,  --//Проверка типа принимаемого FIS
+
+--------------------------------------------
+--Передача FIS_REG_HOST2DEV: Передача ATA command
+--------------------------------------------
+S_HT_CmdFIS,
+S_HT_CmdTransStatus,
+
+--------------------------------------------
+--Передача FIS_REG_HOST2DEV: Передача ATA control
+--------------------------------------------
+S_HT_CtrlFIS,
+S_HT_CtrlTransStatus,
+
+--------------------------------------------
+--Прием/Обработка FIS_REG_DEV2HOST
+--------------------------------------------
+S_HT_RegFIS,
+S_HT_RegTransStatus,
+
+--------------------------------------------
+--Прием/Обработка FIS_REG_SET_DEVICE_BITS
+--------------------------------------------
+S_HT_DB_FIS,
+S_HT_Dev_Bits,
+
+----------------------------------------------
+----Прием/Обработка FIS_BIST_ACTIVATE (Используется для тестирования. Различные виды loopback)
+----------------------------------------------
+--S_HT_Xmit_BIST,  --Передача
+--S_HT_TransBISTStatus,
+
+S_HT_RcvBIST,    --Прием
+S_HT_BISTTrans1,
+
+--------------------------------------------
+--Работа в режиме PIO
+--------------------------------------------
+S_HT_PS_FIS,     --Прием/Обработка FIS_PIOSETUP
+S_HT_PIOOTrans1, --Передача данных по SATA
+S_HT_PIOOTrans2,
+S_HT_PIOEnd,
+S_HT_PIOITrans1, --Прием данных из SATA
+S_HT_PIOITrans2,
+
+----------------------------------------------
+----Работа в режиме DMA
+----------------------------------------------
+S_HT_DmaSetupFIS,        --//Передача FIS_DMASETUP
+S_HT_DmaSetupTransStatus,
+
+S_HT_DS_FIS,     --//Прием FIS_DMASETUP
+
+S_HT_DMA_FIS,    --Прием/Обработка FIS_DMA_ACTIVATE
+S_HT_DMAOTrans1, --Передача данных по SATA
+S_HT_DMAOTrans2,
+S_HT_DMAEnd,
+S_HT_DMAITrans   --Прием данных из SATA
+
+);
 
 --//-------------------------------------------------
 --//Link Layer
@@ -298,6 +364,44 @@ constant C_LLSTAT_LAST_BIT                : integer:=C_LSTAT_TxERR_ABORT;
 --//Задержка возврашения к передаче данных их состояния S_LT_SendHold автомата управления Link Layer
 constant C_LL_TXDATA_RETURN_TMR          : integer:=20;
 
+type TLL_fsm_state is
+(
+--------------------------------------------
+-- Link idle states.
+--------------------------------------------
+S_L_RESET,
+S_L_IDLE,
+S_L_SyncEscape,
+S_L_NoCommErr,
+S_L_NoComm,
+--S_L_SendAlign,
+
+----------------------------------------------
+---- Link transfer states.
+----------------------------------------------
+S_LT_H_SendChkRdy,
+S_LT_SendSOF,
+S_LT_SendData,
+S_LT_SendCRC,
+S_LT_SendEOF,
+S_LT_Wait,
+S_LT_RcvrHold,
+S_LT_SendHold,
+
+--------------------------------------------
+-- Link reciever states.
+--------------------------------------------
+S_LR_RcvChkRdy,
+S_LR_RcvWaitFifo,
+S_LR_RcvData,
+S_LR_Hold,
+S_LR_SendHold,
+S_LR_RcvEOF,
+S_LR_GoodCRC,
+S_LR_GoodEnd,
+S_LR_BadEnd
+
+);
 
 --//-------------------------------------------------
 --//PHY Layer
@@ -321,6 +425,19 @@ constant C_PSTAT_SPD_BIT_M               : integer:=C_PRxSTAT_LAST_BIT + 4;
 constant C_PSTAT_COMWAKE_RCV_BIT         : integer:=C_PRxSTAT_LAST_BIT + 5;--//0/1 - Сигнал COMWAKE от устойства не принят/принят
 constant C_PLSTAT_LAST_BIT               : integer:=C_PSTAT_COMWAKE_RCV_BIT;
 
+type TPLoob_fsm_state is
+(
+S_HR_COMRESET,
+S_HR_COMRESET_DONE,
+S_HR_AwaitCOMINIT,
+S_HR_COMWAKE,
+S_HR_COMWAKE_DONE,
+S_HR_AwaitCOMWAKE,
+S_HR_AwaitNoCOMWAKE,
+S_HR_AwaitAlign,
+S_HR_SendAlign,
+S_HR_Ready
+);
 
 --//sata_player_tx.vhd
 --//Отправка примитива ALIGN

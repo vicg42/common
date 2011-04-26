@@ -18,6 +18,7 @@ use ieee.std_logic_arith.all;
 
 use work.vicg_common_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 
 package sata_unit_pkg is
@@ -196,6 +197,7 @@ p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
 --------------------------------------------------
 p_in_tst               : in    std_logic_vector(31 downto 0);
 p_out_tst              : out   std_logic_vector(31 downto 0);
+p_out_dbg              : out   TPLtx_dbgport;
 
 --------------------------------------------------
 --System
@@ -235,6 +237,7 @@ p_in_gtp_rxbyteisaligned   : in    std_logic;
 --------------------------------------------------
 p_in_tst                   : in    std_logic_vector(31 downto 0);
 p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_out_dbg                  : out   TPLrx_dbgport;
 
 --------------------------------------------------
 --System
@@ -279,6 +282,7 @@ p_in_gtp_rxstatus      : in    std_logic_vector(2 downto 0);
 --------------------------------------------------
 p_in_tst               : in    std_logic_vector(31 downto 0);
 p_out_tst              : out   std_logic_vector(31 downto 0);
+p_out_dbg              : out   TPLoob_dbgport;
 
 --------------------------------------------------
 --System
@@ -328,6 +332,7 @@ p_in_reg_update           : in    TRegShadowUpdate;
 --------------------------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
 p_out_tst                 : out   std_logic_vector(31 downto 0);
+p_out_dbg                 : out   TAL_dbgport;
 
 --------------------------------------------------
 --System
@@ -395,6 +400,7 @@ p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 --------------------------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
 p_out_tst                 : out   std_logic_vector(31 downto 0);
+p_out_dbg                 : out   TTL_dbgport;
 
 --------------------------------------------------
 --System
@@ -445,6 +451,7 @@ p_in_phy_txrdy_n        : in    std_logic;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TLL_dbgport;
 
 --------------------------------------------------
 --System
@@ -504,6 +511,7 @@ p_in_gtp_rxbyteisaligned   : in    std_logic;
 --------------------------------------------------
 p_in_tst                   : in    std_logic_vector(31 downto 0);
 p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_out_dbg                  : out   TPL_dbgport;
 
 --------------------------------------------------
 --System
@@ -710,6 +718,7 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 --------------------------------------------------
 p_in_tst                    : in    TBus32_GTCH;
 p_out_tst                   : out   TBus32_GTCH;
+p_out_dbg                   : out   TSH_dbgport_GTCH;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется

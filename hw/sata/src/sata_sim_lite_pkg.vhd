@@ -62,14 +62,24 @@ constant C_PNAME_STR : TString_SataArray21:=
 );
 
 --//Структуры используемые при моделировании - облегчает контроль за сигналами соответстующих уровней
+--//------------------------------
 --//Application Layer
+--//------------------------------
 type TSimALStatus is record
 cmd_name    : string(1 to 23);
 cmd_busy    : std_logic;
 signature   : std_logic;
 end record;
 
+type TAL_dbgport is record
+cmd_name    : string(1 to 23);
+cmd_busy    : std_logic;
+signature   : std_logic;
+end record;
+
+--//------------------------------
 --//Transport Layer
+--//------------------------------
 type TSimTLCtrl is record
 ata_command : std_logic;
 ata_control : std_logic;
@@ -83,7 +93,15 @@ rxfislen_err     : std_logic;
 txerr_crc_repeat : std_logic;
 end record;
 
+type TTL_dbgport is record
+fsm   : TTL_fsm_state;
+ctrl  : TSimTLCtrl;
+status: TSimTLStatus;
+end record;
+
+--//------------------------------
 --//Link Layer
+--//------------------------------
 type TSimLLCtrl is record
 trn_escape   : std_logic;
 txstart      : std_logic;
@@ -111,7 +129,16 @@ xrdy: std_logic;
 cont: std_logic;
 end record;
 
+type TLL_dbgport is record
+fsm   : TLL_fsm_state;
+ctrl  : TSimLLCtrl;
+status: TSimLLStatus;
+rxp   : TSimLLRxP;
+end record;
+
+--//------------------------------
 --//PHY Layer
+--//------------------------------
 type TSimPLCtrl is record
 speed          : std_logic_vector(C_PCTRL_SPD_BIT_M-C_PCTRL_SPD_BIT_L downto 0);
 end record;
@@ -124,12 +151,44 @@ rcv_comwake    : std_logic;
 end record;
 
 type TSimPLTxStatus is record
-req_name    : string(1 to 7);
 suspend_psof   : std_logic;
 suspend_peof   : std_logic;
 suspend_phold  : std_logic;
 suspend_pholda : std_logic;
 end record;
+
+type TPLoob_dbgport is record
+fsm  : TPLoob_fsm_state;
+stat : TSimPLStatus;
+end record;
+
+type TPLtx_dbgport is record
+req_name : string(1 to 7);
+stat     : TSimPLTxStatus;
+end record;
+
+type TPLrx_dbgport is record
+name : string(1 to 7);
+end record;
+
+type TPL_dbgport is record
+oob : TPLoob_dbgport;
+tx  : TPLtx_dbgport;
+rx  : TPLrx_dbgport;
+end record;
+
+
+type TSH_dbgport is record
+alayer  : TAL_dbgport;
+tlayer  : TTL_dbgport;
+llayer  : TLL_dbgport;
+player  : TPL_dbgport;
+end record;
+
+
+type TSH_dbgport_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgport;
+type TSH_dbgport_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_GTCH;
+type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport;
 
 end sata_sim_lite_pkg;
 

@@ -24,6 +24,7 @@ use unisim.vcomponents.all;
 use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 
 entity dsn_raid_main is
@@ -173,13 +174,16 @@ signal i_sim_gtp_rxbyteisaligned   : TBusGTCH_SHCountMax;
 signal i_sim_gtp_rst               : TBusGTCH_SHCountMax;
 signal i_sim_gtp_clk               : TBusGTCH_SHCountMax;
 
-signal tst_sh_in                   : TBus32GTCH_SHCountMax;--TBus32_SHCountMax;
-signal tst_sh_out                  : TBus32GTCH_SHCountMax;--TBus32_SHCountMax;
+signal i_tst_sh_in                 : TBus32GTCH_SHCountMax;
+signal i_tst_sh_out                : TBus32GTCH_SHCountMax;
+signal i_dbg_sh_out                : TSH_dbgport_GTCH_SHCountMax;
 
 signal i_uap_tst_sh_in             : TBus32_SHCountMax;
 signal i_uap_tst_sh_out            : TBus32_SHCountMax;
+signal i_dbg_satah                 : TSH_dbgport_SHCountMax;
 
-signal tst_raid_ctrl               : std_logic_vector(31 downto 0);
+signal i_tst_raid_ctrl             : std_logic_vector(31 downto 0);
+signal i_tst_val                   : std_logic:='0';
 
 
 --MAIN
@@ -204,9 +208,22 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
 --  end if;
 --end process ltstout;
-p_out_tst(0)<=OR_reduce(tst_raid_ctrl);
+p_out_tst(0)<=OR_reduce(i_tst_raid_ctrl) or i_tst_val;
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
+
+gen_sim_on : if strcmp(G_SIM,"ON") generate
+
+process(i_dbg_satah)
+begin
+  if i_dbg_satah(0).alayer.signature='1' then
+    i_tst_val<='1';
+  else
+    i_tst_val<='0';
+  end if;
+end process;
+
+end generate gen_sim_on;
 
 
 --//#############################################
@@ -265,7 +282,7 @@ p_in_sh_rxbuf_status    => i_uap_rxbuf_status,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => tst_raid_ctrl,
+p_out_tst               => i_tst_raid_ctrl,
 
 p_in_sh_tst             => i_uap_tst_sh_out,
 p_out_sh_tst            => i_uap_tst_sh_in,
@@ -328,10 +345,13 @@ i_u_rxd_rd(sh_idx)(ch_idx)<=i_uap_rxd_rd(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 i_uap_txbuf_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_txbuf_status(sh_idx)(ch_idx);
 i_uap_rxbuf_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_rxbuf_status(sh_idx)(ch_idx);
 
-tst_sh_in(sh_idx)(ch_idx)<=i_uap_tst_sh_in(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
-i_uap_tst_sh_out(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=tst_sh_out(sh_idx)(ch_idx);
+i_tst_sh_in(sh_idx)(ch_idx)<=i_uap_tst_sh_in(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
+i_uap_tst_sh_out(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_tst_sh_out(sh_idx)(ch_idx);
+
 
 --//Моделирование
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_dbg_sh_out(sh_idx)(ch_idx);
+
 p_out_gtp_sim_rst(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_rst(sh_idx)(ch_idx);
 p_out_gtp_sim_clk(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_clk(sh_idx)(ch_idx);
 
@@ -465,8 +485,9 @@ p_in_rxbuf_status           => i_rxbuf_status(sh_idx),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                    => tst_sh_in(sh_idx),
-p_out_tst                   => tst_sh_out(sh_idx),
+p_in_tst                    => i_tst_sh_in(sh_idx),
+p_out_tst                   => i_tst_sh_out(sh_idx),
+p_out_dbg                   => i_dbg_sh_out(sh_idx),
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
