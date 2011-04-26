@@ -29,7 +29,7 @@ use unisim.vcomponents.all;
 
 entity vcoldemosaic_main_tb is
 generic(
-G_DOUT_WIDTH : integer:=8
+G_DOUT_WIDTH : integer:=32
 );
 end vcoldemosaic_main_tb;
 
@@ -71,6 +71,7 @@ p_in_dwnp_rdy_n            : in    std_logic;
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst                   : in    std_logic_vector(31 downto 0);
 p_out_tst                  : out   std_logic_vector(31 downto 0);
 
 -------------------------------
@@ -189,6 +190,7 @@ p_in_dwnp_rdy_n            => p_in_dwnp_rdy_n,
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst                   => "00000000000000000000000000000000",
 p_out_tst                  => open,
 
 -------------------------------
@@ -239,15 +241,15 @@ p_in_cfg_bypass<='0';--//0/1 - разрешение работы блока/1 bypss
 p_in_cfg_colorfst<=CONV_STD_LOGIC_VECTOR(16#01#, p_in_cfg_colorfst'length); --//0/1/2 - R/G/B
 
 --//Конфигурируем генератор тестровых данных:
-usr_cfg_pix_count<=CONV_STD_LOGIC_VECTOR(10#08#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-X
+usr_cfg_pix_count<=CONV_STD_LOGIC_VECTOR(10#24#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-X
 usr_cfg_row_count<=CONV_STD_LOGIC_VECTOR(10#08#, p_in_cfg_pix_count'length); --Тестовый кадр: SIZE-Y
-usr_cfg_fr_count <=CONV_STD_LOGIC_VECTOR(16#08#, usr_cfg_fr_count'length);   --Кол-во тестовых кодров
+usr_cfg_fr_count <=CONV_STD_LOGIC_VECTOR(16#02#, usr_cfg_fr_count'length);   --Кол-во тестовых кодров
 
-tst_mnl_row_pause<=CONV_STD_LOGIC_VECTOR(16#00#, tst_mnl_row_pause'length);  --//Пауза между строками
-tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(16#08#, tst_mnl_fr_pause'length);   --//Пауза между кадрами
+tst_mnl_row_pause<=CONV_STD_LOGIC_VECTOR(10#6#, tst_mnl_row_pause'length);  --//Пауза между строками
+tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(10#56#, tst_mnl_fr_pause'length);   --//Пауза между кадрами
 
 --// 1/0 Генерировать/НЕ Гненерировать waveform для сигнала p_in_dwnp_rdy_n
-mnl_use_gen_dwnp_rdy<='1';
+mnl_use_gen_dwnp_rdy<='0';
 
 
 
@@ -264,7 +266,8 @@ end generate gen_w8;
 
 gen_w32 : if G_DOUT_WIDTH=32 generate
 begin
-p_in_cfg_pix_count<=usr_cfg_pix_count;   --//Кол-во пикселей
+--p_in_cfg_pix_count<=usr_cfg_pix_count;   --//Кол-во пикселей
+p_in_cfg_pix_count<="00"&usr_cfg_pix_count(15 downto 2);   --//Кол-во пикселей
 p_in_cfg_row_count<=usr_cfg_row_count;   --//Кол-во строк
 end generate gen_w32;
 
@@ -288,6 +291,12 @@ end process;
 
 --//Генератор тестовых данных
 p_in_upp_wd<=not i_fifoin_full and i_upp_wd_en and not i_upp_wd_stop and not i_upp_frpause and not i_upp_rowpause;
+
+tst_data_out(7 downto 0)  <=tst_data;
+tst_data_out(15 downto 8) <=tst_data+2;
+tst_data_out(23 downto 16)<=tst_data+4;
+tst_data_out(31 downto 24)<=tst_data+6;
+
 process(p_in_rst,p_in_clk)
   variable GUI_line : LINE;--Строка дл_ вывода в ModelSim
 begin
@@ -299,7 +308,7 @@ begin
     tst_row_count<=(others=>'0');
     tst_pix_count<=(others=>'0');
     tst_data<=CONV_STD_LOGIC_VECTOR(16#2#, tst_data'length); --//
-    tst_data_out<=(others=>'0');
+--    tst_data_out<=(others=>'0');
     i_upp_frpause<='0';
     i_upp_rowpause<='0';
     i_upp_wd_en<='0';
@@ -330,6 +339,7 @@ begin
         if p_in_upp_wd='1' then
           if tst_pix_count=p_in_cfg_pix_count-1 then
            tst_pix_count<=(others=>'0');
+           tst_data<=tst_data+8;
               if tst_row_count=p_in_cfg_row_count-1 then
               tst_row_count<=(others=>'0');
                   if tst_vfr_count=usr_cfg_fr_count-1 then
@@ -354,10 +364,10 @@ begin
               tst_pix_count<=tst_pix_count+1;
 
               tst_data<=tst_data+8;
-              tst_data_out(7 downto 0)  <=tst_data;
-              tst_data_out(15 downto 8) <=tst_data+2;
-              tst_data_out(23 downto 16)<=tst_data+4;
-              tst_data_out(31 downto 24)<=tst_data+6;
+--              tst_data_out(7 downto 0)  <=tst_data;
+--              tst_data_out(15 downto 8) <=tst_data+2;
+--              tst_data_out(23 downto 16)<=tst_data+4;
+--              tst_data_out(31 downto 24)<=tst_data+6;
 
           end if;--//if tst_pix_count=p_in_cfg_pix_count-1 then
         end if;--//if p_in_upp_wd='0' then
@@ -366,10 +376,10 @@ begin
       end if;--//if i_upp_wd_en='0' then
     else
       i_upp_wd_en<='0';
-      tst_data_out(7 downto 0)  <=tst_data;
-      tst_data_out(15 downto 8) <=tst_data+2;
-      tst_data_out(23 downto 16)<=tst_data+4;
-      tst_data_out(31 downto 24)<=tst_data+6;
+--      tst_data_out(7 downto 0)  <=tst_data;
+--      tst_data_out(15 downto 8) <=tst_data+2;
+--      tst_data_out(23 downto 16)<=tst_data+4;
+--      tst_data_out(31 downto 24)<=tst_data+6;
     end if;--//if mnl_write_testdata='1' then
 
   end if;
