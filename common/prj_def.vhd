@@ -27,7 +27,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#030D#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#030E#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -379,8 +379,9 @@ Type TEthFmask is array (0 to (2*C_DSN_SWT_FMASK_MAX_COUNT)-1) of std_logic_vect
 constant C_DSN_HDD_REG_CTRL_L                : integer:=16#000#;
 --constant C_DSN_HDD_REG_CTRL_M                : integer:=16#001#;
 constant C_DSN_HDD_REG_TST0                  : integer:=16#002#;
-constant C_DSN_HDD_REG_TST1                  : integer:=16#003#;
-constant C_DSN_HDD_REG_STATUS                : integer:=16#004#;
+--constant C_DSN_HDD_REG_TST1                  : integer:=16#003#;
+constant C_DSN_HDD_REG_STATUS_L              : integer:=16#003#;
+constant C_DSN_HDD_REG_STATUS_M              : integer:=16#004#;
 constant C_DSN_HDD_REG_STATUS_SATA0_L        : integer:=16#005#;
 constant C_DSN_HDD_REG_STATUS_SATA0_M        : integer:=16#006#;
 constant C_DSN_HDD_REG_STATUS_SATA1_L        : integer:=16#007#;
@@ -407,7 +408,7 @@ constant C_DSN_HDD_REG_TEST_TDLY_M           : integer:=16#01C#;
 
 constant C_DSN_HDD_REG_CMDFIFO               : integer:=16#01E#;
 
-constant C_DSN_HDD_REG_STATUS_M              : integer:=16#01F#;--//Добавлено 2010.09.08
+--constant C_DSN_HDD_REG_STATUS_M              : integer:=16#01F#;--//Добавлено 2010.09.08
 
 constant C_DSN_HDD_REG_RBUF_ADR_L            : integer:=16#020#;--//add 2010.10.03
 constant C_DSN_HDD_REG_RBUF_ADR_M            : integer:=16#021#;--//add 2010.10.03
@@ -419,14 +420,10 @@ constant C_DSN_HDD_REG_RBUF_CTRL             : integer:=16#026#;--//add 2010.10.
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_CTRL_L / Bit Map:
---//номера битом должны соответствовать номерам констант в sata_pkg.vhd/C_FSATA_REG_CTRL0_xxx
-constant C_DSN_HDD_REG_CTRLL_SATA_VER_LSB_BIT : integer:=0; --//C_FSATA_REG_CTRL0_SATA_VER_LSB_BIT
-constant C_DSN_HDD_REG_CTRLL_SATA_VER_MSB_BIT : integer:=1; --//C_FSATA_REG_CTRL0_SATA_VER_MSB_BIT
+constant C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT      : integer:=0; --//Сброс ошибок
+constant C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT      : integer:=1; --//
 constant C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT : integer:=2;
-constant C_DSN_HDD_REG_CTRLL_BUFRST_BIT       : integer:=3; --//
-constant C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT      : integer:=6; --//индекс этого бита нельзя менять, т.к. он привязан к управлению сбросом
-                                                            --//ошибок в модуле dsn_sata.vhd/C_FSATA_REG_CTRL0_ERR_CLR_BIT
-constant C_DSN_HDD_REG_CTRLL_LAST_BIT         : integer:=C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT;
+constant C_DSN_HDD_REG_CTRLL_LAST_BIT         : integer:=C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT;
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_RBUF_ADR / Bit Map:
