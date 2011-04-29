@@ -91,10 +91,14 @@ txfh2d_en        : std_logic;
 rxfistype_err    : std_logic;
 rxfislen_err     : std_logic;
 txerr_crc_repeat : std_logic;
+dma_wrstart : std_logic;
 end record;
 
 type TTL_dbgport is record
 fsm   : TTL_fsm_state;
+piotrn_sizedw : std_logic_vector(31 downto 0);
+dmatrn_sizedw : std_logic_vector(31 downto 0);
+dmatrn_dcnt   : std_logic_vector(31 downto 0);
 ctrl  : TSimTLCtrl;
 status: TSimTLStatus;
 end record;

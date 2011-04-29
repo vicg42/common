@@ -110,6 +110,8 @@ signal i_serr_c_err                : std_logic;
 
 signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 
+signal i_dwr_width_cnt             : std_logic_vector(3 downto 0);
+
 signal sr_usr_status_busy          : std_logic_vector(0 to 4);
 
 signal tst_al_status               : TSimALStatus;
@@ -470,8 +472,23 @@ begin
     i_usr_status(C_AUSER_BUSY_BIT)<='1';
     i_usr_status(C_ALUSER_LAST_BIT downto C_AUSER_BUSY_BIT+1)<=(others=>'0');
 
+    i_dwr_width_cnt<=(others=>'0');
+
   elsif p_in_clk'event and p_in_clk='1' then
     i_usr_status(C_AUSER_BUSY_BIT)<=i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_REG_ATA_STATUS_DRQ_BIT);
+
+    --//Растягиваем импульс C_AUSER_DWR_START_BIT
+    if p_in_tl_status(C_TSTAT_DWR_START_BIT)='1' then
+      i_usr_status(C_AUSER_DWR_START_BIT)<='1';
+    elsif i_dwr_width_cnt(3)='1' then
+      i_usr_status(C_AUSER_DWR_START_BIT)<='0';
+    end if;
+
+    if i_usr_status(C_AUSER_DWR_START_BIT)<='0' then
+      i_dwr_width_cnt<=(others=>'0');
+    else
+      i_dwr_width_cnt<=i_dwr_width_cnt+1;
+    end if;
 
   end if;
 end process;

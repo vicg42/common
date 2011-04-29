@@ -2,7 +2,7 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 2010.06
+-- Create Date : 28.04.2011 17:34:40
 -- Module Name : dsn_hdd_rambuf
 --
 -- Назначение/Описание :
@@ -32,86 +32,88 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
 use work.memory_ctrl_pkg.all;
+use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
+use work.sata_raid_pkg.all;
+use work.dsn_hdd_pkg.all;
 
 entity dsn_hdd_rambuf is
 generic
 (
 G_MODULE_USE      : string:="ON";
-G_HDD_RAMBUF_SIZE : integer:=23 --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_HDD_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_SIM             : string:="OFF"
 );
 port
 (
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_ramadr            : in    std_logic_vector(31 downto 0);--//Базовый адрес rambuf в ОЗУ
-p_in_cfg_rambuf            : in    std_logic_vector(31 downto 0);--//Управление работой rambuf
-
---//Статусы
-p_out_sts_rdy              : out   std_logic;                    --//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
-p_out_sts_err              : out   std_logic;                    --//Ошибка работы: i_rambuf_full or i_vbuf_full
+p_in_rbuf_cfg         : in    THDDRBufCfg;
+p_out_rbuf_status      : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
 
 --//--------------------------
 --//Связь с буфером видеоданных
 --//--------------------------
-p_in_vbuf_dout             : in    std_logic_vector(31 downto 0);
-p_out_vbuf_rd              : out   std_logic;
-p_in_vbuf_empty            : in    std_logic;
-p_in_vbuf_full             : in    std_logic;
-p_in_vbuf_pfull            : in    std_logic;
+p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
+p_out_vbuf_rd         : out   std_logic;
+p_in_vbuf_empty       : in    std_logic;
+p_in_vbuf_full        : in    std_logic;
+p_in_vbuf_pfull       : in    std_logic;
 
 --//--------------------------
 --//Связь с модулем HDD
 --//--------------------------
-p_out_hdd_txd              : out   std_logic_vector(31 downto 0);
-p_out_hdd_txd_wr           : out   std_logic;
-p_in_hdd_txbuf_full        : in    std_logic;
---p_in_hdd_txbuf_empty       : in    std_logic;
+p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
+p_out_hdd_txd_wr      : out   std_logic;
+p_in_hdd_txbuf_full   : in    std_logic;
+--p_in_hdd_txbuf_empty  : in    std_logic;
 
-p_in_hdd_rxd               : in    std_logic_vector(31 downto 0);
-p_out_hdd_rxd_rd           : out   std_logic;
-p_in_hdd_rxbuf_empty       : in    std_logic;
+p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
+p_out_hdd_rxd_rd      : out   std_logic;
+p_in_hdd_rxbuf_empty  : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en             : in    std_logic;                    --//Разрешение арбитра
+p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
+p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
 
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk         : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end dsn_hdd_rambuf;
 
 architecture behavioral of dsn_hdd_rambuf is
 
+constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
 constant C_HDD_TXSTREAM_FIFO_DEPTH : integer:=16#1000#;--//DWORD
 constant C_HDD_RAMBUF_PFULL        : integer:=10;--//Program FULL level - 2**10 = 1024(0x400) - (в DWORD)
@@ -129,18 +131,24 @@ type fsm_state is
 (
 S_IDLE,
 
-S_MEMW_CHECK,
-S_MEMW_START,
-S_MEMW_WORK,
+S_SW_WAIT,
+S_SW_MEM_CHECK,
+S_SW_MEM_START,
+S_SW_MEM_WORK
 
-S_MEMR_CHECK,
-S_MEMR_CHECK2,
-S_MEMR_CHECK3,
-S_MEMR_START,
-S_MEMR_WORK,
-S_MEMR_START2,
 
-S_MEM_TST
+--S_MEMW_CHECK,
+--S_MEMW_START,
+--S_MEMW_WORK,
+--
+--S_MEMR_CHECK,
+--S_MEMR_CHECK2,
+--S_MEMR_CHECK3,
+--S_MEMR_START,
+--S_MEMR_WORK,
+--S_MEMR_START2,
+--
+--S_MEM_TST
 );
 signal fsm_state_cs: fsm_state;
 
@@ -149,12 +157,15 @@ signal b_cfg_work                      : std_logic;
 signal b_cfg_testing                   : std_logic;
 signal b_cfg_hw_stop                   : std_logic;
 
+signal i_mode_sw                       : std_logic;
+signal i_mode_sw_wr                    : std_logic;
+
 signal i_cfg_work_dly                  : std_logic_vector(1 downto 0);
 signal i_cfg_work_upedge               : std_logic;
 signal i_cfg_work_dwnedge              : std_logic;
 signal i_cfg_stop_rq                   : std_logic;
 
-signal i_wr_lenreq                     : std_logic_vector(7 downto 0);--//(в DWORD)
+signal i_wr_lenreq                     : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lenreq                     : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lenreq_dbl                 : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lenreq_dbl_remain          : std_logic_vector(15 downto 0);--//(в DWORD)
@@ -168,20 +179,26 @@ signal i_rd_ptr                        : std_logic_vector(31 downto 0);--//Адрес
 signal i_rambuf_dcnt                   : std_logic_vector(31 downto 0);--//(в DWORD): std_logic_vector(G_HDD_RAMBUF_SIZE-2 downto 0);--//(в DWORD)
 signal i_rambuf_rdy                    : std_logic;
 signal i_rambuf_full                   : std_logic;
+signal i_rambuf_done                   : std_logic;
 
 signal i_dwn_fillen                    : std_logic;
 signal i_dwnbuf_empty                  : std_logic;
 
-signal i_vbuf_rdy                   : std_logic;
-signal i_vbuf_full                  : std_logic;
+signal i_vbuf_rdy                      : std_logic;
+signal i_vbuf_full                     : std_logic;
 
 signal i_mem_adr                       : std_logic_vector(31 downto 0);--//Адрес в BYTE
+signal i_mem_lentrn                    : std_logic_vector(15 downto 0);--//Размер запрашиваемых данных (в DWORD)
 signal i_mem_lenreq                    : std_logic_vector(15 downto 0);--//Размер запрашиваемых данных (в DWORD)
 signal i_mem_dir                       : std_logic;
 signal i_mem_start                     : std_logic;
 signal i_mem_done                      : std_logic;
 signal i_mem_rd_dbl                    : std_logic;
 signal i_mem_pusr_rxbuf_wd             : std_logic;
+
+signal i_scount                        : std_logic_vector(15 downto 0);
+signal i_mem_lenreq_byte               : std_logic_vector(i_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+signal i_mem_lenreq_dw                 : std_logic_vector(i_mem_lenreq_byte'range);
 
 
 signal tst_hdd_rambuf_err              : std_logic;
@@ -266,68 +283,74 @@ p_out_tst(31 downto 1)<=(others=>'0');
 --//----------------------------------------------
 --//Распределяем сигналы управления
 --//----------------------------------------------
-b_cfg_memtrn  <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT);
-b_cfg_work    <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_START_BIT);
-b_cfg_testing <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT);
-b_cfg_hw_stop <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT);
+--b_cfg_memtrn  <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT);
+--b_cfg_work    <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_START_BIT);
+--b_cfg_testing <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT);
+--b_cfg_hw_stop <= p_in_cfg_rambuf(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT);
 
 
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_sts_err<=i_rambuf_full or i_vbuf_full;
-p_out_sts_rdy<=i_rambuf_rdy and p_in_vbuf_empty and p_in_dwnp_buf_empty;
+--p_out_err<=i_rambuf_full or i_vbuf_full;
+--p_out_rdy<=i_rambuf_rdy and p_in_vbuf_empty and p_in_dwnp_buf_empty;
+p_out_rbuf_status.err<='0';
+p_out_rbuf_status.rdy<='0';
+p_out_rbuf_status.done<=i_rambuf_done;
 
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_vbuf_rdy<='0';
-    i_vbuf_full<='0';
-
-    i_dwnbuf_empty<='0';
-
-    i_cfg_work_dly<=(others=>'0');
-    i_cfg_work_upedge<='0';
-    i_cfg_work_dwnedge<='0';
-    i_cfg_stop_rq<='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    i_vbuf_full<=p_in_vbuf_full;
-    i_vbuf_rdy<=p_in_vbuf_pfull;
-
-    i_dwnbuf_empty<=p_in_dwnp_buf_empty;
-
-    i_cfg_work_dly(0)<=b_cfg_work;
-    i_cfg_work_dly(1)<=i_cfg_work_dly(0);
-    i_cfg_work_upedge <=    i_cfg_work_dly(0) and not i_cfg_work_dly(1);
-    i_cfg_work_dwnedge<=not i_cfg_work_dly(0) and     i_cfg_work_dly(1);
-
-    if b_cfg_hw_stop='1' or i_cfg_work_dwnedge='1' then
-      i_cfg_stop_rq<='1';
-    elsif fsm_state_cs = S_IDLE then
-      i_cfg_stop_rq<='0';
-    end if;
-  end if;
-end process;
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_vbuf_rdy<='0';
+--    i_vbuf_full<='0';
+--
+--    i_dwnbuf_empty<='0';
+--
+--    i_cfg_work_dly<=(others=>'0');
+--    i_cfg_work_upedge<='0';
+--    i_cfg_work_dwnedge<='0';
+--    i_cfg_stop_rq<='0';
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+--    i_vbuf_full<=p_in_vbuf_full;
+--    i_vbuf_rdy<=p_in_vbuf_pfull;
+--
+--    i_dwnbuf_empty<=p_in_dwnp_buf_empty;
+--
+--    i_cfg_work_dly(0)<=b_cfg_work;
+--    i_cfg_work_dly(1)<=i_cfg_work_dly(0);
+--    i_cfg_work_upedge <=    i_cfg_work_dly(0) and not i_cfg_work_dly(1);
+--    i_cfg_work_dwnedge<=not i_cfg_work_dly(0) and     i_cfg_work_dly(1);
+--
+--    if b_cfg_hw_stop='1' or i_cfg_work_dwnedge='1' then
+--      i_cfg_stop_rq<='1';
+--    elsif fsm_state_cs = S_IDLE then
+--      i_cfg_stop_rq<='0';
+--    end if;
+--  end if;
+--end process;
 
 --//----------------------------------------------
 --//Автомат управления записю/чтение данных ОЗУ
 --//----------------------------------------------
+i_mem_lenreq_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+i_mem_lenreq_dw<=("00"&i_mem_lenreq_byte(i_mem_lenreq_byte'high downto 2));
 
 --//Логика работы автомата
 process(p_in_rst,p_in_clk)
-  variable var_update_addr: std_logic_vector(i_mem_lenreq'length+1 downto 0);
-  variable var_width32b  : std_logic_vector(31 downto 0);
+  variable update_addr: std_logic_vector(i_mem_lenreq'length+1 downto 0);
+  variable width32b   : std_logic_vector(31 downto 0);
 begin
   if p_in_rst='1' then
-    var_update_addr:=(others=>'0');
-    var_width32b:=(others=>'0');
+      update_addr:=(others=>'0');
+      width32b:=(others=>'0');
 
     fsm_state_cs <= S_IDLE;
     i_rambuf_rdy<='0';
     i_rambuf_full<='0';
     i_rambuf_dcnt<=(others=>'0');
+    i_rambuf_done<='0';
 
     i_wr_lenreq<=(others=>'0');
     i_rd_lenreq<=(others=>'0');
@@ -342,10 +365,16 @@ begin
     i_dwn_fillen<='0';
 
     i_mem_adr<=(others=>'0');
+    i_mem_lentrn<=(others=>'0');
     i_mem_lenreq<=(others=>'0');
     i_mem_dir<='0';
     i_mem_start<='0';
     i_mem_rd_dbl<='0';
+
+    i_scount<=(others=>'0');
+
+    i_mode_sw<='0';
+    i_mode_sw_wr<='0';
 
     tst_rambuf_empty<='1';
     tst_fast_ramrd<='0';
@@ -354,285 +383,376 @@ begin
 
     case fsm_state_cs is
 
-      --//------------------------------------
+      --//####################################
       --//Исходное состояние
-      --//------------------------------------
+      --//####################################
       when S_IDLE =>
-        tst_rambuf_empty<='1';
-        i_rambuf_rdy<='1';
-        i_rambuf_full<='0';
 
-        --//Инициализация
-        if i_cfg_work_upedge='1' or b_cfg_testing='1' then
+        i_rambuf_done<='0';
 
-          i_rambuf_dcnt<=(others=>'0');--//Уровень данных в RAMBUF (DWORD)
-          i_dnwport_dcnt<=(others=>'0');--//Кол-во записаных данных в буфер приемника (DWORD)
-          i_dwnport_remain<=(others=>'0');--//Сколько данных осталось записать в буфер приемника (DWORD)
+        if p_in_rbuf_cfg.dmacfg.start='1' then
+        --//Готовим контроллер ОЗУ:
 
           --//Указатель записи/чтения
           i_wr_ptr<=(others=>'0');
           i_rd_ptr<=(others=>'0');
 
           --//Размер транзакций записи/чтения ОЗУ по умолчанию (DWORD)
-          i_wr_lenreq<=EXT(b_cfg_memtrn(7 downto 0), i_wr_lenreq'length);
-          i_rd_lenreq<=EXT(b_cfg_memtrn(7 downto 0), i_rd_lenreq'length);
+          i_wr_lenreq<=EXT(p_in_rbuf_cfg.mem_trn(7 downto 0), i_wr_lenreq'length);
+          i_rd_lenreq<=EXT(p_in_rbuf_cfg.mem_trn(7 downto 0), i_rd_lenreq'length);
 
-          if b_cfg_testing='0' then
-            fsm_state_cs <= S_MEMW_CHECK;
-          else
-            fsm_state_cs <= S_MEM_TST;
+          i_rambuf_dcnt<=(others=>'0');
+
+          if p_in_rbuf_cfg.dmacfg.sw_mode='1' then
+
+            i_scount<=p_in_rbuf_cfg.dmacfg.scount;
+
+            if p_in_rbuf_cfg.dmacfg.scount/=(p_in_rbuf_cfg.dmacfg.scount'range =>'0') then
+              fsm_state_cs <= S_SW_WAIT;
+            end if;
+
           end if;
         end if;
 
 
+      --//####################################
+      --//Режим работы SW
+      --//####################################
+      --//Ждем сигнала запуска
+      when S_SW_WAIT =>
 
-      --//----------------------------------------------
-      --//----------------------------------------------
-      --//Анализ и выбор операции
-      --//----------------------------------------------
-      when S_MEMW_CHECK =>
-        i_rambuf_rdy<='0';
+        i_mem_lenreq<=i_wr_lenreq;--i_mem_lenreq_dw(15 downto 0);
+        i_mem_lentrn<=i_wr_lenreq;
 
-        if i_dnwport_dcnt>=CONV_STD_LOGIC_VECTOR(C_HDD_TXSTREAM_FIFO_DEPTH, i_dnwport_dcnt'length) then
-          --//В буфер приемника записано требуемый размер данных
-          i_dnwport_dcnt<=(others=>'0');
-          i_dwn_fillen<='0';--//Сброс флага разрешение заполнения буфера приемника
+        if p_in_rbuf_cfg.dmacfg.wr_start='1' then
+        --//Отрабатываем направление RAM->HDD
+          i_mem_dir<=C_MEMCTRLCHWR_READ;
+          fsm_state_cs <= S_SW_MEM_CHECK;
+
+        elsif p_in_hdd_rxbuf_empty='0' then
+        --//Отрабатываем направление RAM<-HDD
+          i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+          fsm_state_cs <= S_SW_MEM_CHECK;
         end if;
 
-        if i_cfg_stop_rq='1' then
-        --//Отрабоатываю запрос ОСТАНОВКИ
+      --//Проверка окончания записи/чтения
+      when S_SW_MEM_CHECK =>
+
+        if i_mem_lenreq_dw(15 downto 0)=i_rambuf_dcnt(15 downto 0) then
+          i_rambuf_done<='1';
           fsm_state_cs <= S_IDLE;
-
         else
-          if i_vbuf_rdy='0' then
-              --//Еще не накопилось нужное кол-во данных!!!
-              fsm_state_cs <= S_MEMR_CHECK;--//Переход к ЧТЕНИЮ
-          else
-              if i_rambuf_dcnt(G_HDD_RAMBUF_SIZE-2)='1' then --//(-2 т.к. значения i_rambuf_dcnt в DWPRD)
-                --//RamBuffer/Full - в буфере нет свободного места.
-                i_rambuf_full<='1';
-
-                fsm_state_cs <= S_MEMR_CHECK;--//Переход к ЧТЕНИЮ
-              else
-                fsm_state_cs <= S_MEMW_START;--//Переход к ЗАПИСИ
-              end if;
-          end if;
+          fsm_state_cs <= S_SW_MEM_START;
         end if;
 
-      --//------------------------------------
-      --//Запись данных
-      --//------------------------------------
-      when S_MEMW_START =>
-        i_rambuf_rdy<='0';
+      --//Запуск mem транзакции
+      when S_SW_MEM_START =>
 
-        if i_wr_ptr(G_HDD_RAMBUF_SIZE)='1' then
-          --//Закольцовываю указатель записи
-          i_wr_ptr<=(others=>'0');
-          --//Установка базового адреса RAMBUF
-          i_mem_adr<=p_in_cfg_ramadr;
-        else
-          --//Update адреса RAMBUF
-          i_mem_adr<=i_wr_ptr + p_in_cfg_ramadr;
-        end if;
-
-        i_mem_lenreq<=EXT(i_wr_lenreq, i_mem_lenreq'length);
-        i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+        i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
         i_mem_start<='1';
-        fsm_state_cs <= S_MEMW_WORK;
 
-      when S_MEMW_WORK =>
+        fsm_state_cs <= S_SW_MEM_WORK;
+
+      --//Отработка mem транзакции
+      when S_SW_MEM_WORK =>
 
         i_mem_start<='0';
 
-        --//Формируем значение для обнавления адреса ОЗУ.
-        --//это действие необходимо т.к. значение i_mem_lenreq в DWORD, а
-        --//значение i_wr_ptr должно быть в BYTE
-        var_update_addr(1 downto 0) :=(others=>'0');
-        var_update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
+        update_addr(1 downto 0) :=(others=>'0');
+        update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
 
-        --//Операция выполнена
         if i_mem_done='1' then
+          --//Операция выполнена:
           --//Обновляем указатель записи + уровень данных в буфере
-          i_wr_ptr<=i_wr_ptr + EXT(var_update_addr, i_wr_ptr'length);
-          i_rambuf_dcnt<=i_rambuf_dcnt + EXT(i_mem_lenreq, i_rambuf_dcnt'length);
+          i_wr_ptr<=i_wr_ptr + EXT(update_addr, i_wr_ptr'length);
+          i_rambuf_dcnt<=i_rambuf_dcnt + EXT(i_mem_lentrn, i_rambuf_dcnt'length);
 
-          tst_rambuf_empty<='0';
-          fsm_state_cs <= S_MEMR_CHECK;--//Переход к ЧТЕНИЮ
+          fsm_state_cs <= S_SW_MEM_CHECK;
         end if;
 
 
 
-      --//----------------------------------------------
-      --//----------------------------------------------
-      --//Анализ и выбор операции
-      --//----------------------------------------------
-      when S_MEMR_CHECK =>
-        --//Вычисляем сколько данных осталось закачать в буфер приемника
-        i_dwnport_remain<=CONV_STD_LOGIC_VECTOR(C_HDD_TXSTREAM_FIFO_DEPTH, i_dwnport_remain'length)-i_dnwport_dcnt;
-
-        if i_dwn_fillen='0' then
-            if i_dwnbuf_empty='1' then
-            --//Буфер приемника пуст. => прерхожу к его заполнению
-              fsm_state_cs <= S_MEMR_CHECK2;
-            else
-            --//Ждем когда опустошится буфер приемника
-              fsm_state_cs <= S_MEMW_CHECK;--//Переход к ЗАПИСИ
-            end if;
-        else
-        --//Есть разрешение на заполнение в буфера приемника
-        --//Переходим к его заполнению
-          fsm_state_cs <= S_MEMR_CHECK2;
-        end if;
-
-      when S_MEMR_CHECK2 =>
-
-        i_dwn_fillen<='1';--//Разрешаем заполнение в буфер приемника
-
-        if i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') then
-        --//RamBuffer/Empty - Нет данных для чтения
-          tst_rambuf_empty<='1';
-          fsm_state_cs <= S_MEMW_CHECK;--//Переход к ЗАПИСИ
-        else
-        --//Вычисляем размер данных которые будем вычитывать из ОЗУ
-
-            if i_dwnport_remain>=CONV_STD_LOGIC_VECTOR(pwr(2,C_HDD_RAMBUF_PFULL), i_dwnport_remain'length) then
-            --//Если в буфер приемника осталось закачать данных > или = порогу C_HDD_RAMBUF_PFULL. Тогда ...
-
-                if i_rambuf_dcnt>=CONV_STD_LOGIC_VECTOR(pwr(2,C_HDD_RAMBUF_PFULL), i_rambuf_dcnt'length) then
-                --//Если уровень данных в RAMBUF > или = порогу C_HDD_RAMBUF_PFULL, то ускоряем процесс вычитки
-                --//данных из RAMBUF путем увеличения размера запрашиваемых данных
-                  i_rd_lenreq<=CONV_STD_LOGIC_VECTOR(pwr(2,C_HDD_RAMBUF_PFULL), i_rd_lenreq'length);
-                  tst_fast_ramrd<='1';
-                else
-                --//Иначе запашиваем из ОЗУ столько данных сколько есть
-                  i_rd_lenreq<=i_rambuf_dcnt(15 downto 0);
-                end if;
-            else
-            --//Если в буфер приемника осталось закачать данных < порога C_HDD_RAMBUF_PFULL. Тогда ...
-
-                if i_rambuf_dcnt>=EXT(i_dwnport_remain, i_rambuf_dcnt'length) then
-                --//Если уровень данных в RAMBUF > или = порогу i_dwnport_remain, то ускоряем процесс вычитки
-                --//данных из RAMBUF путем увеличения размера запрашиваемых данных
-                  i_rd_lenreq<=i_dwnport_remain;
-                else
-                --//Иначе запашиваем из ОЗУ столько данных сколько есть
-                  i_rd_lenreq<=i_rambuf_dcnt(15 downto 0);
-                end if;
-            end if;
-
-            fsm_state_cs <= S_MEMR_CHECK3;--S_MEMR_START;--//Переход к ЧТЕНИЮ
-
-        end if;
-
-      when S_MEMR_CHECK3 =>
-        --//Перевод значения i_rd_lenreq в байты
-        var_update_addr(1 downto 0) :=(others=>'0');
-        var_update_addr(i_mem_lenreq'length+1 downto 2):=i_rd_lenreq;
-
-        --//Анализ выхода за границы RAM буфера при текущем размере i_rd_lenreq
-        if i_rd_ptr(G_HDD_RAMBUF_SIZE)='0' then
-          if (i_rd_ptr + EXT(var_update_addr, i_rd_ptr'length))>CONV_STD_LOGIC_VECTOR(pwr(2,G_HDD_RAMBUF_SIZE), i_rd_ptr'length) then
-            --//Будет выход за границы буфера.
-
-            i_mem_rd_dbl<='1';--//Делаем двойную вычитку данных
-
-            --//Расчет размера данных чтения ОЗУ для 1-го этапа
-            --//Вычисляем какое кол-во данных нужно чтобы достигнлуть мах границы буфера.
-            var_width32b:=CONV_STD_LOGIC_VECTOR(pwr(2,G_HDD_RAMBUF_SIZE), var_width32b'length)-i_rd_ptr;
-            i_rd_lenreq_dbl<=var_width32b(17 downto 2);--//т.к. i_rd_lenreq_dbl должно быть представлено в DWORD
-          end if;
-        end if;
-
-        fsm_state_cs <= S_MEMR_START;--//Переход к ЧТЕНИЮ
-
-      --//----------------------------------------------
-      --//Чтение данных
-      --//----------------------------------------------
-      when S_MEMR_START =>
-
-        tst_fast_ramrd<='0';
-
-        if i_rd_ptr(G_HDD_RAMBUF_SIZE)='1' then
-        --//Закольцовываю указатель чтения
-          i_rd_ptr<=(others=>'0');
-          --//Установка базового адреса RAMBUF
-          i_mem_adr<=p_in_cfg_ramadr;
-        else
-          --//Update адреса RAMBUF
-          i_mem_adr<=i_rd_ptr + p_in_cfg_ramadr;
-        end if;
-
-        if i_mem_rd_dbl='1' then
-          --//Двойное чтение:
-          --//Назначаем размер данных чтения ОЗУ для 1-го этапа
-          i_mem_lenreq<=i_rd_lenreq_dbl;
-          --//Расчет размера данных чтения ОЗУ для 2-го этапа
-          i_rd_lenreq_dbl_remain<=i_rd_lenreq - i_rd_lenreq_dbl;
-        else
-          i_mem_lenreq<=i_rd_lenreq;
-        end if;
-        i_mem_dir<=C_MEMCTRLCHWR_READ;
-        i_mem_start<='1';
-        fsm_state_cs <= S_MEMR_WORK;
-
-      when S_MEMR_WORK =>
-
-        i_mem_start<='0';
-
-        --//Формируем значение для обнавления адреса ОЗУ.
-        --//это действие необходимо т.к. значение i_mem_lenreq в DWORD, а
-        --//значение i_wr_ptr должно быть в BYTE
-        var_update_addr(1 downto 0) :=(others=>'0');
-        var_update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
-
-        --//Операция выполнена
-        if i_mem_done='1' then
-          i_rambuf_full<='0';--//Сброс флага БУФЕР ОЗУ FULL
-
-          --//Обновляем указатель чтения + уровень данных в буфере
-          i_rd_ptr<=i_rd_ptr + EXT(var_update_addr, i_rd_ptr'length);
-          i_rambuf_dcnt<=i_rambuf_dcnt - EXT(i_mem_lenreq, i_rambuf_dcnt'length);
-
-          --//Подсчет данных записаных в буфер приемника
-          i_dnwport_dcnt<=i_dnwport_dcnt + EXT(i_mem_lenreq, i_dnwport_dcnt'length);
-
-          if i_mem_rd_dbl='1' then
-            fsm_state_cs <= S_MEMR_START2;--//Переход к вычитке в 2-а этапа
-          else
-            fsm_state_cs <= S_MEMW_CHECK;--//Переход к ЗАПИСИ
-          end if;
-
-        end if;
-
-      when S_MEMR_START2 =>
-
-        --//Update адреса RAMBUF + указателя чтения
-        i_rd_ptr<=(others=>'0');
-        i_mem_rd_dbl<='0';--//Сброс флага двойной вычетки
-
-        i_mem_adr<=p_in_cfg_ramadr;
-        i_mem_lenreq<=i_rd_lenreq_dbl_remain;
-        i_mem_dir<=C_MEMCTRLCHWR_READ;
-        i_mem_start<='1';
-        fsm_state_cs <= S_MEMR_WORK;
 
 
-
-      --//----------------------------------------------
-      --//Тестирование
-      --//----------------------------------------------
-      when S_MEM_TST =>
-
-        if b_cfg_testing='0' then
-          fsm_state_cs <= S_IDLE;
-        end if;
+--      --//------------------------------------
+--      --//Исходное состояние
+--      --//------------------------------------
+--      when S_IDLE =>
+--        tst_rambuf_empty<='1';
+--        i_rambuf_rdy<='1';
+--        i_rambuf_full<='0';
 --
---        i_wr_ptr<=CONV_STD_LOGIC_VECTOR(16#1FFFF00#, i_wr_ptr'length);
---        i_rd_ptr<=CONV_STD_LOGIC_VECTOR(16#1FFFEE0#, i_rd_ptr'length);
+--        --//Инициализация
+--        if i_cfg_work_upedge='1' or b_cfg_testing='1' then
+--
+--          i_rambuf_dcnt<=(others=>'0');--//Уровень данных в RAMBUF (DWORD)
+--          i_dnwport_dcnt<=(others=>'0');--//Кол-во записаных данных в буфер приемника (DWORD)
+--          i_dwnport_remain<=(others=>'0');--//Сколько данных осталось записать в буфер приемника (DWORD)
+--
+--          --//Указатель записи/чтения
+--          i_wr_ptr<=(others=>'0');
+--          i_rd_ptr<=(others=>'0');
+--
+--          --//Размер транзакций записи/чтения ОЗУ по умолчанию (DWORD)
+--          i_wr_lenreq<=EXT(b_cfg_memtrn(7 downto 0), i_wr_lenreq'length);
+--          i_rd_lenreq<=EXT(b_cfg_memtrn(7 downto 0), i_rd_lenreq'length);
+--
+--          if b_cfg_testing='0' then
+--            fsm_state_cs <= S_MEMW_CHECK;
+--          else
+--            fsm_state_cs <= S_MEM_TST;
+--          end if;
+--        end if;
+--
+--
+--
+--      --//----------------------------------------------
+--      --//----------------------------------------------
+--      --//Анализ и выбор операции
+--      --//----------------------------------------------
+--      when S_MEMW_CHECK =>
+--        i_rambuf_rdy<='0';
+--
+--        if i_dnwport_dcnt>=CONV_STD_LOGIC_VECTOR(C_HDD_TXSTREAM_FIFO_DEPTH, i_dnwport_dcnt'length) then
+--          --//В буфер приемника записано требуемый размер данных
+--          i_dnwport_dcnt<=(others=>'0');
+--          i_dwn_fillen<='0';--//Сброс флага разрешение заполнения буфера приемника
+--        end if;
+--
+--        if i_cfg_stop_rq='1' then
+--        --//Отрабоатываю запрос ОСТАНОВКИ
+--          fsm_state_cs <= S_IDLE;
+--
+--        else
+--          if i_vbuf_rdy='0' then
+--              --//Еще не накопилось нужное кол-во данных!!!
+--              fsm_state_cs <= S_MEMR_CHECK;--//Переход к ЧТЕНИЮ
+--          else
+--              if i_rambuf_dcnt(G_HDD_RAMBUF_SIZE-2)='1' then --//(-2 т.к. значения i_rambuf_dcnt в DWPRD)
+--                --//RamBuffer/Full - в буфере нет свободного места.
+--                i_rambuf_full<='1';
+--
+--                fsm_state_cs <= S_MEMR_CHECK;--//Переход к ЧТЕНИЮ
+--              else
+--                fsm_state_cs <= S_MEMW_START;--//Переход к ЗАПИСИ
+--              end if;
+--          end if;
+--        end if;
+--
+--      --//------------------------------------
+--      --//Запись данных
+--      --//------------------------------------
+--      when S_MEMW_START =>
+--        i_rambuf_rdy<='0';
+--
+--        if i_wr_ptr(G_HDD_RAMBUF_SIZE)='1' then
+--          --//Закольцовываю указатель записи
+--          i_wr_ptr<=(others=>'0');
+--          --//Установка базового адреса RAMBUF
+--          i_mem_adr<=p_in_cfg_ramadr;
+--        else
+--          --//Update адреса RAMBUF
+--          i_mem_adr<=i_wr_ptr + p_in_cfg_ramadr;
+--        end if;
+--
+--        i_mem_lenreq<=EXT(i_wr_lenreq, i_mem_lenreq'length);
+--        i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+--        i_mem_start<='1';
+--        fsm_state_cs <= S_MEMW_WORK;
+--
+--      when S_MEMW_WORK =>
+--
+--        i_mem_start<='0';
+--
+--        --//Формируем значение для обнавления адреса ОЗУ.
+--        --//это действие необходимо т.к. значение i_mem_lenreq в DWORD, а
+--        --//значение i_wr_ptr должно быть в BYTE
+--        update_addr(1 downto 0) :=(others=>'0');
+--        update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
+--
+--        --//Операция выполнена
+--        if i_mem_done='1' then
+--          --//Обновляем указатель записи + уровень данных в буфере
+--          i_wr_ptr<=i_wr_ptr + EXT(update_addr, i_wr_ptr'length);
+--          i_rambuf_dcnt<=i_rambuf_dcnt + EXT(i_mem_lenreq, i_rambuf_dcnt'length);
+--
+--          tst_rambuf_empty<='0';
+--          fsm_state_cs <= S_MEMR_CHECK;--//Переход к ЧТЕНИЮ
+--        end if;
+--
+--
+--
+--      --//----------------------------------------------
+--      --//----------------------------------------------
+--      --//Анализ и выбор операции
+--      --//----------------------------------------------
+--      when S_MEMR_CHECK =>
+--        --//Вычисляем сколько данных осталось закачать в буфер приемника
+--        i_dwnport_remain<=CONV_STD_LOGIC_VECTOR(C_HDD_TXSTREAM_FIFO_DEPTH, i_dwnport_remain'length)-i_dnwport_dcnt;
+--
+--        if i_dwn_fillen='0' then
+--            if i_dwnbuf_empty='1' then
+--            --//Буфер приемника пуст. => прерхожу к его заполнению
+--              fsm_state_cs <= S_MEMR_CHECK2;
+--            else
+--            --//Ждем когда опустошится буфер приемника
+--              fsm_state_cs <= S_MEMW_CHECK;--//Переход к ЗАПИСИ
+--            end if;
+--        else
+--        --//Есть разрешение на заполнение в буфера приемника
+--        --//Переходим к его заполнению
+--          fsm_state_cs <= S_MEMR_CHECK2;
+--        end if;
+--
+--      when S_MEMR_CHECK2 =>
+--
+--        i_dwn_fillen<='1';--//Разрешаем заполнение в буфер приемника
+--
+--        if i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') then
+--        --//RamBuffer/Empty - Нет данных для чтения
+--          tst_rambuf_empty<='1';
+--          fsm_state_cs <= S_MEMW_CHECK;--//Переход к ЗАПИСИ
+--        else
+--        --//Вычисляем размер данных которые будем вычитывать из ОЗУ
+--
+--            if i_dwnport_remain>=CONV_STD_LOGIC_VECTOR(pwr(2,C_HDD_RAMBUF_PFULL), i_dwnport_remain'length) then
+--            --//Если в буфер приемника осталось закачать данных > или = порогу C_HDD_RAMBUF_PFULL. Тогда ...
+--
+--                if i_rambuf_dcnt>=CONV_STD_LOGIC_VECTOR(pwr(2,C_HDD_RAMBUF_PFULL), i_rambuf_dcnt'length) then
+--                --//Если уровень данных в RAMBUF > или = порогу C_HDD_RAMBUF_PFULL, то ускоряем процесс вычитки
+--                --//данных из RAMBUF путем увеличения размера запрашиваемых данных
+--                  i_rd_lenreq<=CONV_STD_LOGIC_VECTOR(pwr(2,C_HDD_RAMBUF_PFULL), i_rd_lenreq'length);
+--                  tst_fast_ramrd<='1';
+--                else
+--                --//Иначе запашиваем из ОЗУ столько данных сколько есть
+--                  i_rd_lenreq<=i_rambuf_dcnt(15 downto 0);
+--                end if;
+--            else
+--            --//Если в буфер приемника осталось закачать данных < порога C_HDD_RAMBUF_PFULL. Тогда ...
+--
+--                if i_rambuf_dcnt>=EXT(i_dwnport_remain, i_rambuf_dcnt'length) then
+--                --//Если уровень данных в RAMBUF > или = порогу i_dwnport_remain, то ускоряем процесс вычитки
+--                --//данных из RAMBUF путем увеличения размера запрашиваемых данных
+--                  i_rd_lenreq<=i_dwnport_remain;
+--                else
+--                --//Иначе запашиваем из ОЗУ столько данных сколько есть
+--                  i_rd_lenreq<=i_rambuf_dcnt(15 downto 0);
+--                end if;
+--            end if;
+--
+--            fsm_state_cs <= S_MEMR_CHECK3;--S_MEMR_START;--//Переход к ЧТЕНИЮ
+--
+--        end if;
+--
+--      when S_MEMR_CHECK3 =>
+--        --//Перевод значения i_rd_lenreq в байты
+--        update_addr(1 downto 0) :=(others=>'0');
+--        update_addr(i_mem_lenreq'length+1 downto 2):=i_rd_lenreq;
+--
+--        --//Анализ выхода за границы RAM буфера при текущем размере i_rd_lenreq
+--        if i_rd_ptr(G_HDD_RAMBUF_SIZE)='0' then
+--          if (i_rd_ptr + EXT(update_addr, i_rd_ptr'length))>CONV_STD_LOGIC_VECTOR(pwr(2,G_HDD_RAMBUF_SIZE), i_rd_ptr'length) then
+--            --//Будет выход за границы буфера.
+--
+--            i_mem_rd_dbl<='1';--//Делаем двойную вычитку данных
+--
+--            --//Расчет размера данных чтения ОЗУ для 1-го этапа
+--            --//Вычисляем какое кол-во данных нужно чтобы достигнлуть мах границы буфера.
+--            width32b:=CONV_STD_LOGIC_VECTOR(pwr(2,G_HDD_RAMBUF_SIZE), width32b'length)-i_rd_ptr;
+--            i_rd_lenreq_dbl<=width32b(17 downto 2);--//т.к. i_rd_lenreq_dbl должно быть представлено в DWORD
+--          end if;
+--        end if;
+--
+--        fsm_state_cs <= S_MEMR_START;--//Переход к ЧТЕНИЮ
+--
+--      --//----------------------------------------------
+--      --//Чтение данных
+--      --//----------------------------------------------
+--      when S_MEMR_START =>
+--
+--        tst_fast_ramrd<='0';
+--
+--        if i_rd_ptr(G_HDD_RAMBUF_SIZE)='1' then
+--        --//Закольцовываю указатель чтения
+--          i_rd_ptr<=(others=>'0');
+--          --//Установка базового адреса RAMBUF
+--          i_mem_adr<=p_in_cfg_ramadr;
+--        else
+--          --//Update адреса RAMBUF
+--          i_mem_adr<=i_rd_ptr + p_in_cfg_ramadr;
+--        end if;
+--
+--        if i_mem_rd_dbl='1' then
+--          --//Двойное чтение:
+--          --//Назначаем размер данных чтения ОЗУ для 1-го этапа
+--          i_mem_lenreq<=i_rd_lenreq_dbl;
+--          --//Расчет размера данных чтения ОЗУ для 2-го этапа
+--          i_rd_lenreq_dbl_remain<=i_rd_lenreq - i_rd_lenreq_dbl;
+--        else
+--          i_mem_lenreq<=i_rd_lenreq;
+--        end if;
+--        i_mem_dir<=C_MEMCTRLCHWR_READ;
+--        i_mem_start<='1';
+--        fsm_state_cs <= S_MEMR_WORK;
+--
+--      when S_MEMR_WORK =>
+--
+--        i_mem_start<='0';
+--
+--        --//Формируем значение для обнавления адреса ОЗУ.
+--        --//это действие необходимо т.к. значение i_mem_lenreq в DWORD, а
+--        --//значение i_wr_ptr должно быть в BYTE
+--        update_addr(1 downto 0) :=(others=>'0');
+--        update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
+--
+--        --//Операция выполнена
+--        if i_mem_done='1' then
+--          i_rambuf_full<='0';--//Сброс флага БУФЕР ОЗУ FULL
+--
+--          --//Обновляем указатель чтения + уровень данных в буфере
+--          i_rd_ptr<=i_rd_ptr + EXT(update_addr, i_rd_ptr'length);
+--          i_rambuf_dcnt<=i_rambuf_dcnt - EXT(i_mem_lenreq, i_rambuf_dcnt'length);
+--
+--          --//Подсчет данных записаных в буфер приемника
+--          i_dnwport_dcnt<=i_dnwport_dcnt + EXT(i_mem_lenreq, i_dnwport_dcnt'length);
+--
+--          if i_mem_rd_dbl='1' then
+--            fsm_state_cs <= S_MEMR_START2;--//Переход к вычитке в 2-а этапа
+--          else
+--            fsm_state_cs <= S_MEMW_CHECK;--//Переход к ЗАПИСИ
+--          end if;
+--
+--        end if;
+--
+--      when S_MEMR_START2 =>
+--
+--        --//Update адреса RAMBUF + указателя чтения
+--        i_rd_ptr<=(others=>'0');
+--        i_mem_rd_dbl<='0';--//Сброс флага двойной вычетки
+--
+--        i_mem_adr<=p_in_cfg_ramadr;
+--        i_mem_lenreq<=i_rd_lenreq_dbl_remain;
+--        i_mem_dir<=C_MEMCTRLCHWR_READ;
+--        i_mem_start<='1';
+--        fsm_state_cs <= S_MEMR_WORK;
+--
+--
+--
+--      --//----------------------------------------------
+--      --//Тестирование
+--      --//----------------------------------------------
+--      when S_MEM_TST =>
+--
+--        if b_cfg_testing='0' then
+--          fsm_state_cs <= S_IDLE;
+--        end if;
 ----
-----        i_wr_ptr<=CONV_STD_LOGIC_VECTOR(16#100#, i_wr_ptr'length);
-----        i_rd_ptr<=CONV_STD_LOGIC_VECTOR(16#1C0#, i_rd_ptr'length);
---        fsm_state_cs <= S_MEMW_CHECK;
+----        i_wr_ptr<=CONV_STD_LOGIC_VECTOR(16#1FFFF00#, i_wr_ptr'length);
+----        i_rd_ptr<=CONV_STD_LOGIC_VECTOR(16#1FFFEE0#, i_rd_ptr'length);
+------
+------        i_wr_ptr<=CONV_STD_LOGIC_VECTOR(16#100#, i_wr_ptr'length);
+------        i_rd_ptr<=CONV_STD_LOGIC_VECTOR(16#1C0#, i_rd_ptr'length);
+----        fsm_state_cs <= S_MEMW_CHECK;
 
     end case;
   end if;
@@ -643,9 +763,9 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (memory_ctrl.vhd)
 --//------------------------------------------------------
-p_out_hdd_txd_wr<=i_mem_pusr_rxbuf_wd or i_cfg_stop_rq; --//На время отработки запроса остановки, производим запись в
-                                                          --//буфер приемника. Это гарантирует, что для последней
-                                                          --//записи в HDD всегда будут данные
+--p_out_hdd_txd_wr<=i_mem_pusr_rxbuf_wd or i_cfg_stop_rq; --//На время отработки запроса остановки, производим запись в
+--                                                          --//буфер приемника. Это гарантирует, что для последней
+--                                                          --//записи в HDD всегда будут данные
 
 
 
@@ -660,7 +780,7 @@ port map
 -- Конфигурирование
 -------------------------------
 p_in_cfg_mem_adr           => i_mem_adr,
-p_in_cfg_mem_trn_len       => i_mem_lenreq,
+p_in_cfg_mem_trn_len       => i_mem_lentrn,
 p_in_cfg_mem_dlen_rq       => i_mem_lenreq,
 p_in_cfg_mem_wr            => i_mem_dir,
 p_in_cfg_mem_start         => i_mem_start,
@@ -674,7 +794,7 @@ p_out_usr_txbuf_rd         => p_out_hdd_rxd_rd,--p_out_vbuf_rd,
 p_in_usr_txbuf_empty       => p_in_hdd_rxbuf_empty,--p_in_vbuf_empty,
 
 p_out_usr_rxbuf_din        => p_out_hdd_txd,
-p_out_usr_rxbuf_wd         => i_mem_pusr_rxbuf_wd,
+p_out_usr_rxbuf_wd         => p_out_hdd_txd_wr,--i_mem_pusr_rxbuf_wd,
 p_in_usr_rxbuf_full        => p_in_hdd_txbuf_full,
 
 ---------------------------------
@@ -704,7 +824,7 @@ p_out_mem_clk              => p_out_mem_clk,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst_ctrl              => "00000000000000000000000000000000",
+p_in_tst                   => "00000000000000000000000000000000",
 p_out_tst                  => open,
 
 -------------------------------
@@ -719,8 +839,9 @@ end generate gen_use_on;
 
 gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
-p_out_sts_rdy <='0';
-p_out_sts_err <='0';
+p_out_rbuf_status.err<='0';
+p_out_rbuf_status.rdy<='0';
+p_out_rbuf_status.done<='0';
 
 p_out_mem_clk <= p_in_clk;
 
@@ -736,10 +857,10 @@ p_out_mem_din    <=(others=>'0');
 
 p_out_memarb_req <='0';
 
-p_out_vbuf_rd <= not p_in_vbuf_empty and not p_in_dwnp_buf_pfull;
+p_out_vbuf_rd <= not p_in_vbuf_empty;-- and not p_in_dwnp_buf_pfull;
 
 p_out_hdd_txd <= p_in_vbuf_dout;
-p_out_hdd_txd_wr <= not p_in_vbuf_empty and not p_in_dwnp_buf_pfull;
+p_out_hdd_txd_wr <= not p_in_vbuf_empty;-- and not p_in_dwnp_buf_pfull;
 
 p_out_tst <= (others=>'0');
 

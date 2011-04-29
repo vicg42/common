@@ -39,7 +39,7 @@ port
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
-p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
 --//cmdpkt
@@ -104,8 +104,7 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 
 signal i_usr_status                : TUsrStatus;
 
-signal sr_glob_busy                : std_logic_vector(0 to 1);
-signal sr_glob_err                 : std_logic_vector(0 to 1);
+signal sr_dev_err                 : std_logic_vector(0 to 1);
 type TShDetect is record
 cmddone : std_logic;
 err     : std_logic;
@@ -152,6 +151,8 @@ signal sr_raid_atrn_done           : std_logic_vector(0 to 2);
 signal i_raid_atrn_next            : std_logic;
 signal i_raid_trn_done             : std_logic;
 
+signal i_dwr_start                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
+
 
 
 --MAIN
@@ -190,16 +191,27 @@ end generate gen_sh_tst_out;
 --//----------------------------------
 p_out_usr_status<=i_usr_status;
 
+i_usr_status.dmacfg.sw_mode<=i_usrmode.sw;
+i_usr_status.dmacfg.hw_mode<=i_usrmode.hw;
+i_usr_status.dmacfg.tst_mode<='0';
+i_usr_status.dmacfg.start<=i_sh_cmd_start;
+i_usr_status.dmacfg.wr_start<=OR_reduce(i_dwr_start);
+i_usr_status.dmacfg.raid.used<=p_in_raid.used;
+i_usr_status.dmacfg.raid.hddcount<=p_in_raid.hddcount;
+i_usr_status.dmacfg.scount<=i_cmdpkt.scount;
+i_usr_status.dmacfg.error<=i_usr_status.dev_err;
+
+
 --//кол-во HDD подключенных к FPGA
-i_usr_status.glob_hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.glob_hdd_count'length);
+i_usr_status.hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.hdd_count'length);
 
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_usr_status.glob_busy<='1';
-    i_usr_status.glob_drdy<='0';
-    i_usr_status.glob_err<='0';
-    i_usr_status.glob_usr<=(others=>'0');
+    i_usr_status.dev_busy<='1';
+    i_usr_status.dev_rdy<='0';
+    i_usr_status.dev_err<='0';
+    i_usr_status.usr<=(others=>'0');
     for i in 0 to C_HDD_COUNT_MAX-1 loop
       i_usr_status.ch_usr(i)<=(others=>'0');
       i_usr_status.ch_busy(i)<='1';
@@ -208,12 +220,14 @@ begin
       i_usr_status.SError(i)<=(others=>'0');
     end loop;
 
+    i_dwr_start<=(others=>'0');
+
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_usr_status.glob_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0));
-    i_usr_status.glob_drdy<=AND_reduce(i_usr_status.ch_drdy(G_HDD_COUNT-1 downto 0));
-    i_usr_status.glob_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0));
---    i_usr_status.glob_usr<=(others=>'0');
+    i_usr_status.dev_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0));
+    i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_drdy(G_HDD_COUNT-1 downto 0));
+    i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0));
+--    i_usr_status.usr<=(others=>'0');
 
     for i in 0 to G_HDD_COUNT-1 loop
       i_usr_status.ch_busy(i)<=p_in_sh_status(i).Usr(C_AUSER_BUSY_BIT);
@@ -226,6 +240,9 @@ begin
 
 --      i_usr_status.ch_usr(i)<=(others=>'0');
       i_usr_status.SError(i)<=p_in_sh_status(i).SError;
+
+      i_dwr_start(i)<=p_in_sh_status(i).Usr(C_AUSER_DWR_START_BIT);
+
     end loop;
 
   end if;
@@ -236,8 +253,8 @@ end process;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    sr_glob_busy<=(others=>'0');
-    sr_glob_err<=(others=>'0');
+
+    sr_dev_err<=(others=>'0');
     i_sh_det.cmddone<='0';
     i_sh_det.err<='0';
 
@@ -245,12 +262,10 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr_glob_busy<=i_usr_status.glob_busy & sr_glob_busy(0 to 0);
-    sr_glob_err<=i_usr_status.glob_err & sr_glob_err(0 to 0);
+    sr_dev_err<=i_usr_status.dev_err & sr_dev_err(0 to 0);
 
-    i_sh_det.cmddone<=not sr_glob_busy(0) and sr_glob_busy(1);
-    i_sh_det.err<=sr_glob_err(0) and not sr_glob_err(1);
-
+    i_sh_det.cmddone<=p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT);
+    i_sh_det.err<=sr_dev_err(0) and not sr_dev_err(1);
 
     sr_sh_cmddone<=i_sh_det.cmddone & sr_sh_cmddone(0 to 0);
   end if;
@@ -471,7 +486,8 @@ p_out_sh_hdd<=i_sh_hddcnt;
 p_out_sh_txd<=p_in_usr_txd;
 p_out_sh_txd_wr <=i_sh_txd_wr;
 
-i_sh_txd_wr<=i_sh_trn_en and not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full;
+i_sh_txd_wr<=i_sh_trn_en and not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full when p_in_raid.used='1' else
+             not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full;
 
 p_out_usr_txd_rd<=i_sh_txd_wr;
 
@@ -489,7 +505,8 @@ begin
   end if;
 end process;
 
-i_sh_rxd_rd<=i_sh_trn_en and not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty;
+i_sh_rxd_rd<=i_sh_trn_en and not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty when p_in_raid.used='1' else
+             not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty;
 
 p_out_sh_rxd_rd<=i_sh_rxd_rd;
 
@@ -519,9 +536,9 @@ begin
     --//
       i_sh_trn_en<='0';
 
-    elsif p_in_raid.used='0' and i_sh_cmd_start='1' then
-    --//Режим работы с одним HDD
-      i_sh_trn_en<='1';
+--    elsif p_in_raid.used='0' and i_sh_cmd_start='1' then
+--    --//Режим работы с одним HDD
+--      i_sh_trn_en<='1';
 
     elsif p_in_raid.used='1' then
     --//Режим работы с RAID

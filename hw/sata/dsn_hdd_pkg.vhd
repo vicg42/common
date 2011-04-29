@@ -18,8 +18,10 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
 
 package dsn_hdd_pkg is
+
 
 component hdd_txfifo
 port
@@ -96,12 +98,14 @@ p_in_cfg_rst              : in   std_logic;
 p_out_hdd_rdy             : out  std_logic;                      --//
 p_out_hdd_error           : out  std_logic;                      --//
 p_out_hdd_busy            : out  std_logic;                      --//
+p_out_hdd_irq             : out  std_logic;                      --//
+p_out_hdd_done            : out  std_logic;                      --//
 
---------------------------------------------------
+--//--------------------------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
 --------------------------------------------------
-p_out_rambuf_adr          : out  std_logic_vector(31 downto 0);  --//
-p_out_rambuf_ctrl         : out  std_logic_vector(31 downto 0);  --//
+p_out_rbuf_cfg            : out  THDDRBufCfg;  --//
+p_in_rbuf_status          : in   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
 
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//

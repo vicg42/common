@@ -969,6 +969,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
                 if i_fdir_bit=C_DIR_H2D then
                 --//Передача данных (FPGA -> HDD)
+                  i_tl_status(C_TSTAT_DWR_START_BIT)<='1';
                   fsm_tlayer_cs <= S_HT_PIOOTrans1;
                 else
                 --//Прием данных (FPGA <- HDD)
@@ -1035,6 +1036,7 @@ elsif p_in_clk'event and p_in_clk='1' then
     --//------------------------------------------
     when S_HT_PIOOTrans1 =>
 
+      i_tl_status(C_TSTAT_DWR_START_BIT)<='0';
       i_reg_update.fpio<='1';
       fsm_tlayer_cs <= S_IDLE;--fsm_tlayer_cs <= S_HT_PIOOTrans2;
 
@@ -1343,6 +1345,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           --//CRC - OK!
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(C_FIS_DMA_ACTIVATE_DWSIZE, 3) then
             --//FIS length - OK!
+              i_tl_status(C_TSTAT_DWR_START_BIT)<='1';
               fsm_tlayer_cs <= S_HT_DMAOTrans1;
 
             else
@@ -1377,6 +1380,8 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
           i_ll_ctrl(C_LCTRL_TL_CHECK_DONE_BIT)<='0';
+
+          i_tl_status(C_TSTAT_DWR_START_BIT)<='0';
 
           if i_txfifo_pfull='1' then
           --//Ждем когда в TxBUF накопятся данные для предачи
@@ -1545,6 +1550,7 @@ tst_tl_status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
 tst_tl_status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
 tst_tl_status.rxfislen_err<=i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT);
 tst_tl_status.txerr_crc_repeat<=i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT);
+tst_tl_status.dma_wrstart<=i_tl_status(C_TSTAT_DWR_START_BIT);
 
 process(p_in_tl_ctrl,i_tl_status)
 begin
@@ -1560,6 +1566,9 @@ end process;
 p_out_dbg.fsm<=fsm_tlayer_cs;
 p_out_dbg.ctrl<=tst_tl_ctrl;
 p_out_dbg.status<=tst_tl_status;
+p_out_dbg.dmatrn_sizedw<=EXT(i_dma_trncount_dw, p_out_dbg.dmatrn_sizedw'length);
+p_out_dbg.dmatrn_dcnt<=EXT(i_dma_dcnt, p_out_dbg.dmatrn_dcnt'length);
+p_out_dbg.piotrn_sizedw<=EXT(i_piosetup_trncount_dw, p_out_dbg.piotrn_sizedw'length);
 
 end generate gen_sim_on;
 

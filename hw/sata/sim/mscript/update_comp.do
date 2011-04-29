@@ -67,6 +67,12 @@ vcom -93 "../../../../veresk_m/prj_def.vhd"
 vcom -93 "../../dsn_hdd_pkg.vhd"
 vcom -93 "../../dsn_hdd.vhd"
 
+vcom -93 "../../../lib/alphadata/admxrc/vhdl/common/memif/memif_pkg.vhd"
+vcom -93 "../../../mem/alphadata/memory_ctrl_pkg.vhd"
+vcom -93 "../../../mem/alphadata/memory_ctrl_ch_wr.vhd"
+vcom -93 "../../dsn_hdd_rambuf.vhd"
+
+
 vcom -93 "../testbanch/sata_sim_pkg.vhd"
 vcom -93 "../testbanch/sata_bufdata.vhd"
 vcom -93 "../testbanch/sata_dev_model.vhd"
@@ -74,3 +80,4 @@ vcom -93 "../testbanch/sata_player_tb.vhd"
 vcom -93 "../testbanch/sata_host_tb.vhd"
 vcom -93 "../testbanch/dsn_raid_main_tb.vhd"
 vcom -93 "../testbanch/dsn_hdd_tb.vhd"
+vcom -93 "../testbanch/vereskm_hdd_tb.vhd"

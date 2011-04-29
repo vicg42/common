@@ -38,7 +38,7 @@ port
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
-p_in_usr_ctrl           : in    std_logic_vector(31 downto 0);
+p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
 --//cmdpkt

@@ -63,12 +63,14 @@ p_in_cfg_rst              : in   std_logic;
 p_out_hdd_rdy             : out  std_logic;                      --//
 p_out_hdd_error           : out  std_logic;                      --//
 p_out_hdd_busy            : out  std_logic;                      --//
+p_out_hdd_irq             : out  std_logic;                      --//
+p_out_hdd_done            : out  std_logic;                      --//
 
 -------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
 -------------------------------
-p_out_rambuf_adr          : out  std_logic_vector(31 downto 0);  --//
-p_out_rambuf_ctrl         : out  std_logic_vector(31 downto 0);  --//
+p_out_rbuf_cfg            : out  THDDRBufCfg;  --//
+p_in_rbuf_status          : in   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
 
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
@@ -144,8 +146,24 @@ signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
 signal i_cfg_bufrst                     : std_logic;
 
 signal i_sata_gt_refclk                 : std_logic_vector(0 downto 0);
-signal i_sh_ctrl                        : std_logic_vector(31 downto 0);
+signal i_sh_ctrl                        : std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 signal i_sh_status                      : TUsrStatus;
+
+signal sr_sh_busy                       : std_logic_vector(0 to 1);
+signal i_sh_busy                        : std_logic;
+signal i_sh_done                        : std_logic;
+signal i_sh_ata_done                    : std_logic;
+signal i_sh_irq_en                      : std_logic;
+signal i_sh_irq_width                   : std_logic;
+signal i_sh_irq_width_cnt               : std_logic_vector(3 downto 0);
+
+type THDDBufChk_state is
+(
+S_IDLE,
+S_CHEK_BUF,
+S_CHEK_BUF_DONE
+);
+signal fsm_state_cs                     : THDDBufChk_state;
 
 signal i_sh_cmd_wr                      : std_logic;
 signal i_sh_txd                         : std_logic_vector(31 downto 0);
@@ -154,6 +172,9 @@ signal i_sh_txbuf_empty                 : std_logic;
 signal i_sh_rxd                         : std_logic_vector(31 downto 0);
 signal i_sh_rxd_wr                      : std_logic;
 signal i_sh_rxbuf_full                  : std_logic;
+
+signal i_sh_rxbuf_empty                 : std_logic;
+signal sr_sh_rxbuf_empty                : std_logic_vector(0 downto 0);
 
 signal i_sh_sim_gtp_txdata              : TBus32_SHCountMax;
 signal i_sh_sim_gtp_txcharisk           : TBus04_SHCountMax;
@@ -281,7 +302,11 @@ begin
   end if;
 end process;
 
-i_sh_ctrl<=EXT(h_reg_ctrl_l, i_sh_ctrl'length);
+
+i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)<='0';--h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT);
+i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT)<='0';--h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);
+i_sh_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)<=i_sh_ata_done;
+
 
 i_cfg_bufrst<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_BUFRST_BIT);--//Сброс всех буферов --//add 2010.08.18
 --i_cfg_buf_ovflow_disable_det<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT);--//add 2010.10.03
@@ -289,24 +314,17 @@ i_cfg_bufrst<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_BUFRST_BIT);--//Сброс всех буферо
 
 --//add 2010.10.03
 --//Настройка/Управление RAM буфером
-p_out_rambuf_adr(15 downto 0)<=h_reg_rambuf_adr(15 downto 0);
-p_out_rambuf_adr(31 downto 16)<=h_reg_rambuf_adr(31 downto 16);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT)<=h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_START_BIT)<='0';--i_satadsn_status_module(C_STATUS_MODULE_STREAM_ON_BIT);
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_RST_BIT)<=i_cfg_bufrst;
-p_out_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT)<='0';--i_hw_stopsyn;
-p_out_rambuf_ctrl(31 downto C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT+1)<=(others=>'0');
+p_out_rbuf_cfg.mem_trn <=EXT(h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT), p_out_rbuf_cfg.mem_trn'length);
+p_out_rbuf_cfg.mem_adr <=h_reg_rambuf_adr;
+p_out_rbuf_cfg.dmacfg  <=i_sh_status.dmacfg;
 
 
 --//Статусы модуля
-p_out_hdd_rdy  <=i_sh_status.glob_drdy;
-p_out_hdd_error<=i_sh_status.glob_err;
-p_out_hdd_busy <=i_sh_status.glob_busy;
+p_out_hdd_rdy  <=i_sh_status.dev_rdy;
+p_out_hdd_error<=i_sh_status.dev_err;
+p_out_hdd_busy <=i_sh_busy;
+p_out_hdd_irq  <=i_sh_irq_width;
+p_out_hdd_done <=i_sh_done;
 
 
 --//Статусы модуля
@@ -319,6 +337,94 @@ i_sh_cmd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD
 --//USE - ON (использовать в проекте)
 --//############################
 gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
+
+process(p_in_rst,p_in_cfg_clk)
+begin
+  if p_in_rst='1' then
+    fsm_state_cs<= S_IDLE;
+    i_sh_ata_done<='0';
+    i_sh_done<='0';
+
+  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
+
+    case fsm_state_cs is
+
+      when S_IDLE =>
+
+        if i_sh_cmd_wr='1' then
+        --//Сброс флага выполнения предыдущей команды
+          i_sh_done<='0';
+        end if;
+
+        if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
+        --//Ловим задний фронт сигнала АТА BUSY
+          fsm_state_cs<= S_CHEK_BUF;
+        end if;
+
+      when S_CHEK_BUF =>
+        --//Ждем пока из буферов уйдут все данные
+        if sr_sh_rxbuf_empty(0)='1' and i_sh_txbuf_empty='1' then
+          i_sh_ata_done<='1';--//Подтверждение завершения АТА команды
+          i_sh_done<='1';
+
+          fsm_state_cs<= S_CHEK_BUF_DONE;
+        end if;
+
+      when S_CHEK_BUF_DONE =>
+        i_sh_ata_done<='0';
+        fsm_state_cs<= S_IDLE;
+    end case;
+
+  end if;
+end process;
+
+
+process(p_in_rst,p_in_cfg_clk)
+begin
+  if p_in_rst='1' then
+    sr_sh_rxbuf_empty<=(others=>'1');
+
+    sr_sh_busy<=(others=>'1');
+    i_sh_busy<='1';
+
+    i_sh_irq_en<='0';
+    i_sh_irq_width<='0';
+    i_sh_irq_width_cnt<=(others=>'0');
+
+  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
+
+    sr_sh_rxbuf_empty(0)<=i_sh_rxbuf_empty;
+
+    --//Формируем сигнал BUSY
+    sr_sh_busy<=i_sh_status.dev_busy & sr_sh_busy(0 to 0);
+
+    if sr_sh_busy(0)='1' and sr_sh_busy(1)='0' then
+      i_sh_busy<='1';
+    elsif i_sh_ata_done='1' then
+      i_sh_busy<='0';
+    end if;
+
+
+    --//Растягиваем импульcы генерации прерывания
+    if i_sh_irq_en='0' and i_sh_ata_done='1' then
+      i_sh_irq_en<='1';
+
+    elsif i_sh_irq_en='1' then
+      if i_sh_ata_done='1' then
+        i_sh_irq_width<='1';
+      elsif i_sh_irq_width_cnt(3)='1' then
+        i_sh_irq_width<='0';
+      end if;
+    end if;
+
+    if i_sh_irq_width='0' then
+      i_sh_irq_width_cnt<=(others=>'0');
+    else
+      i_sh_irq_width_cnt<=i_sh_irq_width_cnt+1;
+    end if;
+  end if;
+end process;
+
 
 m_txfifo : hdd_txfifo
 port map
@@ -353,11 +459,13 @@ rd_en       => p_in_hdd_rxd_rd,
 
 full        => open,
 almost_full => i_sh_rxbuf_full,
-empty       => p_out_hdd_rxbuf_empty,
+empty       => i_sh_rxbuf_empty,
 
 clk         => p_in_cfg_clk,
 rst         => p_in_rst
 );
+
+p_out_hdd_rxbuf_empty<=i_sh_rxbuf_empty;
 
 
 i_sata_gt_refclk(0)<=p_in_sata_refclk;
@@ -492,10 +600,10 @@ i_sh_status.ch_usr(i)<=(others=>'0');
 
 end generate gen_satah;
 
-i_sh_status.glob_busy<='0';
-i_sh_status.glob_drdy<='0';
-i_sh_status.glob_err <='0';
-i_sh_status.glob_usr <=(others=>'0');
+i_sh_status.dev_busy<='0';
+i_sh_status.dev_rdy <='0';
+i_sh_status.dev_err <='0';
+i_sh_status.usr <=(others=>'0');
 
 p_out_hdd_txbuf_full<=i_sh_cmd_wr;
 
@@ -511,6 +619,9 @@ end process;
 
 p_out_hdd_rxd <=i_sh_rxd;
 p_out_hdd_rxbuf_empty<=i_sh_cmd_wr;
+
+i_sh_ata_done<='0';
+i_sh_done<='0';
 
 end generate gen_use_off;
 

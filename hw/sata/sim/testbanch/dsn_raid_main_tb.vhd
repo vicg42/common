@@ -55,9 +55,9 @@ signal i_sata_rxn                 : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUN
 signal i_sata_rxp                 : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 signal i_sata_refclk              : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-signal p_in_usr_ctrl              : std_logic_vector(31 downto 0);
+signal p_in_usr_ctrl              : std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
-signal i_usr_raid_status          : TUsrStatus;
+signal i_usr_status               : TUsrStatus;
 
 signal i_usr_cxdin                : std_logic_vector(15 downto 0);
 signal i_usr_cxd_wr               : std_logic;
@@ -189,7 +189,7 @@ p_in_sata_refclk            => i_sata_refclk,
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl               => p_in_usr_ctrl,
-p_out_usr_status            => i_usr_raid_status,
+p_out_usr_status            => i_usr_status,
 
 --//cmdpkt
 p_in_usr_cxd                => i_usr_cxdin,
@@ -565,7 +565,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr_cmdbusy<=i_usr_raid_status.glob_busy & sr_cmdbusy(0 to 0);
+    sr_cmdbusy<=i_usr_status.dev_busy & sr_cmdbusy(0 to 0);
 
     if i_cmddone_det_clr='1' then
       i_cmddone_det<='0';
@@ -595,7 +595,7 @@ begin
 end process;
 
 i_satadev_ctrl.loopback<=i_loopback;
-i_satadev_ctrl.link_establish<=i_usr_raid_status.glob_drdy;
+i_satadev_ctrl.link_establish<=i_usr_status.dev_rdy;
 i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl.dbuf_ruse<='1';
 

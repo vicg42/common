@@ -91,6 +91,14 @@ constant C_GT7_CH_COUNT : T08SHCountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 
 
 
+--//-------------------------------------------------
+--//User Global Ctrl
+--//-------------------------------------------------
+constant C_USR_GCTRL_CLR_ERR_BIT        : integer:=0;
+constant C_USR_GCTRL_CLR_BUF_BIT        : integer:=1;
+constant C_USR_GCTRL_ATADONE_ACK_BIT    : integer:=2;
+constant C_USR_GCTRL_LAST_BIT           : integer:=C_USR_GCTRL_ATADONE_ACK_BIT;
+
 
 --//-------------------------------------------------
 --//User Application Layer
@@ -217,7 +225,8 @@ constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_IPM_L_BIT;
 
 --//Поле - User/Map:
 constant C_AUSER_BUSY_BIT                : integer:=0;
-constant C_AUSER_RESERV_BIT              : integer:=1;
+constant C_AUSER_DWR_START_BIT           : integer:=1;--//Растягивание Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
+constant C_AUSER_RESERV_BIT              : integer:=2;
 constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_RESERV_BIT;
 
 
@@ -235,7 +244,8 @@ constant C_TSTAT_RxFISTYPE_ERR_BIT       : integer:=0;--//Transport Layer не смо
 constant C_TSTAT_RxFISLEN_ERR_BIT        : integer:=1;--//
 constant C_TSTAT_TxERR_CRC_REPEAT_BIT    : integer:=2;--//Было сделано несколько попыток отправить FIS_H2D, но каждый раз получал от Link Layer C_LSTAT_TxERR_CRC
 constant C_TSTAT_TxFISHOST2DEV_BIT       : integer:=3;--//Сигнализируем что идет передача FIS_HOST2DEV
-constant C_TLSTAT_LAST_BIT               : integer:=C_TSTAT_TxFISHOST2DEV_BIT;
+constant C_TSTAT_DWR_START_BIT           : integer:=4;--//Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
+constant C_TLSTAT_LAST_BIT               : integer:=C_TSTAT_DWR_START_BIT;
 
 --//FIS Type:
 constant C_FIS_REG_HOST2DEV              : integer:=16#27#;

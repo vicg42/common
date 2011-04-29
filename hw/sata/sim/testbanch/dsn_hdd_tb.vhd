@@ -119,6 +119,8 @@ signal i_satadev_status           : TSataDevStatusSataCount;
 signal i_satadev_ctrl             : TSataDevCtrl;
 
 
+signal i_rbuf_status              : THDDRBufStatus;
+
 
 --MAIN
 begin
@@ -128,6 +130,11 @@ gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 generate
 i_sata_rxn<=(others=>'0');
 i_sata_rxp<=(others=>'1');
 end generate gen_sata_drv;
+
+
+i_rbuf_status.err<='0';
+i_rbuf_status.rdy<='0';
+i_rbuf_status.done<='0';
 
 
 m_hdd : dsn_hdd
@@ -168,8 +175,8 @@ p_out_hdd_busy            => i_hdd_busy,
 --------------------------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
 --------------------------------------------------
-p_out_rambuf_adr          => open,
-p_out_rambuf_ctrl         => open,
+p_out_rbuf_cfg            => open,
+p_in_rbuf_status          => i_rbuf_status,
 
 p_in_hdd_txd              => i_usr_txd,
 p_in_hdd_txd_wr           => i_usr_txd_wr,
