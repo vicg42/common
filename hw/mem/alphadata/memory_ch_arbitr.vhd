@@ -30,132 +30,131 @@ use work.memory_ctrl_pkg.all;
 
 entity memory_ch_arbitr is
 generic(
---G_CH0_USE            : string:="ON";
---G_CH1_USE            : string:="ON";
---G_CH2_USE            : string:="ON";
---G_CH3_USE            : string:="ON"
-G_CH_COUNT           : integer:=4
+G_CH_COUNT : integer:=4
 );
 port
 (
 -------------------------------
 -- Связь с CH0
 -------------------------------
-p_in_ch0_req              : in    std_logic;
-p_out_ch0_en              : out   std_logic;
+p_in_ch0_req     : in    std_logic;
+p_out_ch0_en     : out   std_logic;
 
-p_in_ch0_bank1h           : in    std_logic_vector(15 downto 0);
-p_in_ch0_ce               : in    std_logic;
-p_in_ch0_cw               : in    std_logic;
-p_in_ch0_rd               : in    std_logic;
-p_in_ch0_wr               : in    std_logic;
-p_in_ch0_term             : in    std_logic;
-p_in_ch0_adr              : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch0_be               : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch0_din              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch0_dout            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch0_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch0_ce      : in    std_logic;
+p_in_ch0_cw      : in    std_logic;
+p_in_ch0_rd      : in    std_logic;
+p_in_ch0_wr      : in    std_logic;
+p_in_ch0_term    : in    std_logic;
+p_in_ch0_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_in_ch0_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_in_ch0_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_ch0_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_out_ch0_wf              : out   std_logic;
-p_out_ch0_wpf             : out   std_logic;
-p_out_ch0_re              : out   std_logic;
-p_out_ch0_rpe             : out   std_logic;
+p_out_ch0_wf     : out   std_logic;
+p_out_ch0_wpf    : out   std_logic;
+p_out_ch0_re     : out   std_logic;
+p_out_ch0_rpe    : out   std_logic;
 
 -------------------------------
 -- Связь с CH1
 -------------------------------
-p_in_ch1_req              : in    std_logic;
-p_out_ch1_en              : out   std_logic;
+p_in_ch1_req     : in    std_logic;
+p_out_ch1_en     : out   std_logic;
 
-p_in_ch1_bank1h           : in    std_logic_vector(15 downto 0);
-p_in_ch1_ce               : in    std_logic;
-p_in_ch1_cw               : in    std_logic;
-p_in_ch1_rd               : in    std_logic;
-p_in_ch1_wr               : in    std_logic;
-p_in_ch1_term             : in    std_logic;
-p_in_ch1_adr              : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch1_be               : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch1_din              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch1_dout            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch1_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch1_ce      : in    std_logic;
+p_in_ch1_cw      : in    std_logic;
+p_in_ch1_rd      : in    std_logic;
+p_in_ch1_wr      : in    std_logic;
+p_in_ch1_term    : in    std_logic;
+p_in_ch1_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_in_ch1_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_in_ch1_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_ch1_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_out_ch1_wf              : out   std_logic;
-p_out_ch1_wpf             : out   std_logic;
-p_out_ch1_re              : out   std_logic;
-p_out_ch1_rpe             : out   std_logic;
+p_out_ch1_wf     : out   std_logic;
+p_out_ch1_wpf    : out   std_logic;
+p_out_ch1_re     : out   std_logic;
+p_out_ch1_rpe    : out   std_logic;
 
 -------------------------------
 -- Связь с CH2
 -------------------------------
-p_in_ch2_req              : in    std_logic;
-p_out_ch2_en              : out   std_logic;
+p_in_ch2_req     : in    std_logic;
+p_out_ch2_en     : out   std_logic;
 
-p_in_ch2_bank1h           : in    std_logic_vector(15 downto 0);
-p_in_ch2_ce               : in    std_logic;
-p_in_ch2_cw               : in    std_logic;
-p_in_ch2_rd               : in    std_logic;
-p_in_ch2_wr               : in    std_logic;
-p_in_ch2_term             : in    std_logic;
-p_in_ch2_adr              : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch2_be               : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch2_din              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch2_dout            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch2_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch2_ce      : in    std_logic;
+p_in_ch2_cw      : in    std_logic;
+p_in_ch2_rd      : in    std_logic;
+p_in_ch2_wr      : in    std_logic;
+p_in_ch2_term    : in    std_logic;
+p_in_ch2_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_in_ch2_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_in_ch2_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_ch2_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_out_ch2_wf              : out   std_logic;
-p_out_ch2_wpf             : out   std_logic;
-p_out_ch2_re              : out   std_logic;
-p_out_ch2_rpe             : out   std_logic;
+p_out_ch2_wf     : out   std_logic;
+p_out_ch2_wpf    : out   std_logic;
+p_out_ch2_re     : out   std_logic;
+p_out_ch2_rpe    : out   std_logic;
 
 -------------------------------
 -- Связь с CH3
 -------------------------------
-p_in_ch3_req              : in    std_logic;
-p_out_ch3_en              : out   std_logic;
+p_in_ch3_req     : in    std_logic;
+p_out_ch3_en     : out   std_logic;
 
-p_in_ch3_bank1h           : in    std_logic_vector(15 downto 0);
-p_in_ch3_ce               : in    std_logic;
-p_in_ch3_cw               : in    std_logic;
-p_in_ch3_rd               : in    std_logic;
-p_in_ch3_wr               : in    std_logic;
-p_in_ch3_term             : in    std_logic;
-p_in_ch3_adr              : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch3_be               : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch3_din              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch3_dout            : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch3_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch3_ce      : in    std_logic;
+p_in_ch3_cw      : in    std_logic;
+p_in_ch3_rd      : in    std_logic;
+p_in_ch3_wr      : in    std_logic;
+p_in_ch3_term    : in    std_logic;
+p_in_ch3_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_in_ch3_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_in_ch3_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_ch3_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_out_ch3_wf              : out   std_logic;
-p_out_ch3_wpf             : out   std_logic;
-p_out_ch3_re              : out   std_logic;
-p_out_ch3_rpe             : out   std_logic;
-
+p_out_ch3_wf     : out   std_logic;
+p_out_ch3_wpf    : out   std_logic;
+p_out_ch3_re     : out   std_logic;
+p_out_ch3_rpe    : out   std_logic;
 
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_mem_clk              : out   std_logic;
+p_out_mem_clk    : out   std_logic;
 
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h : out   std_logic_vector(15 downto 0);
+p_out_mem_ce     : out   std_logic;
+p_out_mem_cw     : out   std_logic;
+p_out_mem_rd     : out   std_logic;
+p_out_mem_wr     : out   std_logic;
+p_out_mem_term   : out   std_logic;
+p_out_mem_adr    : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din    : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout    : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf      : in    std_logic;
+p_in_mem_wpf     : in    std_logic;
+p_in_mem_re      : in    std_logic;
+p_in_mem_rpe     : in    std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_out_tst                  : out   std_logic_vector(31 downto 0);--//Технологические выходы
-
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk         : in    std_logic;
+p_in_rst         : in    std_logic
 );
 end memory_ch_arbitr;
 
@@ -179,30 +178,25 @@ S_CHK_DLY_CH3
 );
 signal fsm_state_cs: fsm_state;
 
-signal i_ch_count                        : std_logic_vector(1 downto 0);
+signal i_ch_count        : std_logic_vector(1 downto 0);
 
-signal i_ch_req                          : std_logic_vector(3 downto 0);
-signal i_ch_req_en                       : std_logic_vector(3 downto 0);
+signal i_ch_req          : std_logic_vector(3 downto 0);
+signal i_ch_req_en       : std_logic_vector(3 downto 0);
 
-signal i_mem_ce_ch                       : std_logic_vector(3 downto 0);
-signal i_mem_cw_ch                       : std_logic_vector(3 downto 0);
-signal i_mem_rd_ch                       : std_logic_vector(3 downto 0);
-signal i_mem_wr_ch                       : std_logic_vector(3 downto 0);
-signal i_mem_term_ch                     : std_logic_vector(3 downto 0);
+signal i_mem_ce_ch       : std_logic_vector(3 downto 0);
+signal i_mem_cw_ch       : std_logic_vector(3 downto 0);
+signal i_mem_rd_ch       : std_logic_vector(3 downto 0);
+signal i_mem_wr_ch       : std_logic_vector(3 downto 0);
+signal i_mem_term_ch     : std_logic_vector(3 downto 0);
 
-signal i_mem_ce_out                      : std_logic;
-signal i_mem_cw_out                      : std_logic;
-signal i_mem_rd_out                      : std_logic;
-signal i_mem_wr_out                      : std_logic;
-signal i_mem_term_out                    : std_logic;
+signal i_mem_cw_out      : std_logic;
 
-
-signal tst_mem_ce                        : std_logic;
-signal tst_mem_cw                        : std_logic;
-signal tst_mem_rd                        : std_logic;
-signal tst_mem_wr                        : std_logic;
-signal tst_mem_term                      : std_logic;
-signal tst_enable_ch                     : std_logic_vector(3 downto 0);
+signal tst_mem_ce        : std_logic;
+signal tst_mem_cw        : std_logic;
+signal tst_mem_rd        : std_logic;
+signal tst_mem_wr        : std_logic;
+signal tst_mem_term      : std_logic;
+signal tst_enable_ch     : std_logic_vector(3 downto 0);
 
 --MAIN
 begin
@@ -220,13 +214,12 @@ begin
     tst_mem_term<='0';
     tst_enable_ch<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-    tst_mem_ce<=i_mem_ce_out;
-    tst_mem_cw<=i_mem_cw_out;
-    tst_mem_rd<=i_mem_rd_out;
-    tst_mem_wr<=i_mem_wr_out;
-    tst_mem_term<=i_mem_term_out;
+    tst_mem_cw  <=i_mem_cw_out;
+    tst_mem_ce  <=OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
+    tst_mem_rd  <=OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
+    tst_mem_wr  <=OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
+    tst_mem_term<=OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
     tst_enable_ch<=i_ch_req_en;
-
   end if;
 end process;
 p_out_tst(0)<=tst_mem_ce or tst_mem_cw or tst_mem_rd or tst_mem_wr or tst_mem_term or OR_reduce(tst_enable_ch);
@@ -234,6 +227,9 @@ p_out_tst(31 downto 1)<=(others=>'0');
 
 
 
+--//--------------------------------------------------
+--//Связь с пользовательским каналами (CHxx)
+--//--------------------------------------------------
 i_mem_ce_ch(0)<=p_in_ch0_ce;
 i_mem_ce_ch(1)<=p_in_ch1_ce;
 i_mem_ce_ch(2)<=p_in_ch2_ce;
@@ -259,11 +255,11 @@ i_mem_term_ch(1)<=p_in_ch1_term;
 i_mem_term_ch(2)<=p_in_ch2_term;
 i_mem_term_ch(3)<=p_in_ch3_term;
 
-
 i_ch_req(0)<=p_in_ch0_req;
 i_ch_req(1)<=p_in_ch1_req;
 i_ch_req(2)<=p_in_ch2_req;
 i_ch_req(3)<=p_in_ch3_req;
+
 
 p_out_ch0_en<=i_ch_req_en(0);
 p_out_ch1_en<=i_ch_req_en(1);
@@ -300,92 +296,85 @@ p_out_ch3_dout <=p_in_mem_dout;
 --//--------------------------------------------------
 --//Связь с контроллером памяти memory_ctrl_nch.vhd
 --//--------------------------------------------------
-p_out_mem_clk    <= p_in_clk;
+p_out_mem_clk <=p_in_clk;
 
-p_out_mem_ce    <= i_mem_ce_out;
-p_out_mem_cw    <= i_mem_cw_out;
-p_out_mem_rd    <= i_mem_rd_out;
-p_out_mem_wr    <= i_mem_wr_out;
-p_out_mem_term  <= i_mem_term_out;
-p_out_mem_be    <= (others=>'1');
+p_out_mem_cw  <=i_mem_cw_out;
+p_out_mem_ce  <=OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
+p_out_mem_rd  <=OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
+p_out_mem_wr  <=OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
+p_out_mem_term<=OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
+p_out_mem_be  <=(others=>'1');
 
 gen_chcount_1 : if G_CH_COUNT=1 generate
 begin
 p_out_mem_bank1h(C_MEM_BANK_MSB_BIT downto 0)<=p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
-p_out_mem_adr <= p_in_ch0_adr;
+p_out_mem_adr<=p_in_ch0_adr;
 
-p_out_mem_din <= p_in_ch0_din;
+p_out_mem_din<=p_in_ch0_din;
 
-i_mem_cw_out  <= i_mem_cw_ch(0);
+i_mem_cw_out <=i_mem_cw_ch(0);
 
 end generate gen_chcount_1;
 
 gen_chcount_2 : if G_CH_COUNT=2 generate
 begin
 p_out_mem_bank1h(C_MEM_BANK_MSB_BIT downto 0)<=p_in_ch1_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(1)='1' else
-                                                    p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
+                                               p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
 
-p_out_mem_adr   <= p_in_ch1_adr when i_ch_req_en(1)='1' else
-                   p_in_ch0_adr;
+p_out_mem_adr<=p_in_ch1_adr when i_ch_req_en(1)='1' else
+               p_in_ch0_adr;
 
 p_out_mem_din<=p_in_ch1_din when i_ch_req_en(1)='1' else
                p_in_ch0_din;
 
-i_mem_cw_out  <= i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-                 i_mem_cw_ch(0);
+i_mem_cw_out <=i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
+               i_mem_cw_ch(0);
 
 end generate gen_chcount_2;
 
 gen_chcount_3 : if G_CH_COUNT=3 generate
 begin
 p_out_mem_bank1h(C_MEM_BANK_MSB_BIT downto 0)<=p_in_ch2_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(2)='1' else
-                                                    p_in_ch1_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(1)='1' else
-                                                    p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
+                                               p_in_ch1_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(1)='1' else
+                                               p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
 
-p_out_mem_adr   <= p_in_ch2_adr when i_ch_req_en(2)='1' else
-                   p_in_ch1_adr when i_ch_req_en(1)='1' else
-                   p_in_ch0_adr;
+p_out_mem_adr<=p_in_ch2_adr when i_ch_req_en(2)='1' else
+               p_in_ch1_adr when i_ch_req_en(1)='1' else
+               p_in_ch0_adr;
 
 p_out_mem_din<=p_in_ch2_din when i_ch_req_en(2)='1' else
                p_in_ch1_din when i_ch_req_en(1)='1' else
                p_in_ch0_din;
 
-i_mem_cw_out  <= i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
-                 i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-                 i_mem_cw_ch(0);
+i_mem_cw_out <=i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
+               i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
+               i_mem_cw_ch(0);
 end generate gen_chcount_3;
 
 gen_chcount_4 : if G_CH_COUNT=4 generate
 begin
 p_out_mem_bank1h(C_MEM_BANK_MSB_BIT downto 0)<=p_in_ch3_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(3)='1' else
-                                                    p_in_ch2_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(2)='1' else
-                                                    p_in_ch1_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(1)='1' else
-                                                    p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
+                                               p_in_ch2_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(2)='1' else
+                                               p_in_ch1_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(1)='1' else
+                                               p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
 
-p_out_mem_adr   <= p_in_ch3_adr when i_ch_req_en(3)='1' else
-                   p_in_ch2_adr when i_ch_req_en(2)='1' else
-                   p_in_ch1_adr when i_ch_req_en(1)='1' else
-                   p_in_ch0_adr;
+p_out_mem_adr<=p_in_ch3_adr when i_ch_req_en(3)='1' else
+               p_in_ch2_adr when i_ch_req_en(2)='1' else
+               p_in_ch1_adr when i_ch_req_en(1)='1' else
+               p_in_ch0_adr;
 
 p_out_mem_din<=p_in_ch3_din when i_ch_req_en(3)='1' else
                p_in_ch2_din when i_ch_req_en(2)='1' else
                p_in_ch1_din when i_ch_req_en(1)='1' else
                p_in_ch0_din;
 
-i_mem_cw_out  <= i_mem_cw_ch(3) when i_ch_req_en(3)='1' else
-                 i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
-                 i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-                 i_mem_cw_ch(0);
+i_mem_cw_out <=i_mem_cw_ch(3) when i_ch_req_en(3)='1' else
+               i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
+               i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
+               i_mem_cw_ch(0);
 end generate gen_chcount_4;
 
 p_out_mem_bank1h(p_out_mem_bank1h'length-1 downto C_MEM_BANK_MSB_BIT+1)<=(others=>'0');
-
-
-
-i_mem_ce_out    <= OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
-i_mem_rd_out    <= OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
-i_mem_wr_out    <= OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
-i_mem_term_out  <= OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
 
 
 
