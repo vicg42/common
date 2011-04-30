@@ -36,76 +36,76 @@ port
 --------------------------------------------------
 -- Связь с хостом по Local bus
 --------------------------------------------------
-lad                        : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-lbe_l                      : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
-lads_l                     : in    std_logic;
-lwrite                     : in    std_logic;
-lblast_l                   : in    std_logic;
-lbterm_l                   : inout std_logic;
-lready_l                   : inout std_logic;
-fholda                     : in    std_logic;
-finto_l                    : out   std_logic;
+lad                 : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);
+lbe_l               : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);
+lads_l              : in    std_logic;
+lwrite              : in    std_logic;
+lblast_l            : in    std_logic;
+lbterm_l            : inout std_logic;
+lready_l            : inout std_logic;
+fholda              : in    std_logic;
+finto_l             : out   std_logic;
 
-lclk_locked                : in    std_logic;--//Status
-lclk                       : in    std_logic;
+lclk_locked         : in    std_logic;--//Status
+lclk                : in    std_logic;
 
 --//-----------------------------
 --// PCI-Express
 --//-----------------------------
-p_out_pciexp_txp           : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn           : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp            : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn            : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp    : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txn    : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxp     : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxn     : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
 
-p_in_pciexp_gtp_refclkin   : in    std_logic;
-p_out_pciexp_gtp_refclkout : out   std_logic;
+p_in_pciexp_gt_clkin   : in    std_logic;
+p_out_pciexp_gt_clkout : out   std_logic;
 
 --//-----------------------------------------------------
 --//Пользовательский порт
 --//-----------------------------------------------------
-p_in_usr_tst               : in    std_logic_vector(127 downto 0);
-p_out_usr_tst              : out   std_logic_vector(127 downto 0);
+p_in_usr_tst        : in    std_logic_vector(127 downto 0);
+p_out_usr_tst       : out   std_logic_vector(127 downto 0);
 
-p_out_host_clk             : out   std_logic;
-p_out_glob_ctrl            : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_host_clk      : out   std_logic;
+p_out_glob_ctrl     : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
 
-p_out_dev_ctrl             : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_out_dev_din              : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-p_in_dev_dout              : in    std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-p_out_dev_wd               : out   std_logic;
-p_out_dev_rd               : out   std_logic;
-p_in_dev_fifoflag          : in    std_logic_vector(7 downto 0);
-p_in_dev_status            : in    std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_in_dev_irq               : in    std_logic_vector(31 downto 0);
-p_in_dev_option            : in    std_logic_vector(127 downto 0);
+p_out_dev_ctrl      : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_dev_din       : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_in_dev_dout       : in    std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_dev_wd        : out   std_logic;
+p_out_dev_rd        : out   std_logic;
+p_in_dev_fifoflag   : in    std_logic_vector(7 downto 0);
+p_in_dev_status     : in    std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_in_dev_irq        : in    std_logic_vector(31 downto 0);
+p_in_dev_option     : in    std_logic_vector(127 downto 0);
 
 --//связь с модулем memory_ctrl.vhd
-p_out_mem_ctl_reg          : out   std_logic_vector(0 downto 0);
-p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
-p_out_mem_mode_reg         : out   std_logic_vector(511 downto 0);
-p_in_mem_locked            : in    std_logic_vector(7 downto 0);
-p_in_mem_trained           : in    std_logic_vector(15 downto 0);
+p_out_mem_ctl_reg   : out   std_logic_vector(0 downto 0);
+p_out_mem_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_mem_mode_reg  : out   std_logic_vector(511 downto 0);
+p_in_mem_locked     : in    std_logic_vector(7 downto 0);
+p_in_mem_trained    : in    std_logic_vector(15 downto 0);
 
-p_out_mem_ce               : out   std_logic;
-p_out_mem_cw               : out   std_logic;
-p_out_mem_rd               : out   std_logic;
-p_out_mem_wr               : out   std_logic;
-p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_ce        : out   std_logic;
+p_out_mem_cw        : out   std_logic;
+p_out_mem_rd        : out   std_logic;
+p_out_mem_wr        : out   std_logic;
+p_out_mem_term      : out   std_logic;
+p_out_mem_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf                : in    std_logic;
-p_in_mem_wpf               : in    std_logic;
-p_in_mem_re                : in    std_logic;
-p_in_mem_rpe               : in    std_logic;
+p_in_mem_wf         : in    std_logic;
+p_in_mem_wpf        : in    std_logic;
+p_in_mem_re         : in    std_logic;
+p_in_mem_rpe        : in    std_logic;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_out_module_rdy           : out   std_logic;
-p_in_rst_n                 : in    std_logic
+p_out_module_rdy    : out   std_logic;
+p_in_rst_n          : in    std_logic
 );
 end dsn_host;
 
@@ -426,8 +426,8 @@ p_in_pciexp_rxn            => p_in_pciexp_rxn,
 p_in_pciexp_rst            => p_in_rst_n,
 
 p_out_module_rdy           => p_out_module_rdy,--open,
-p_in_gtp_refclkin          => p_in_pciexp_gtp_refclkin,
-p_out_gtp_refclkout        => p_out_pciexp_gtp_refclkout
+p_in_gtp_refclkin          => p_in_pciexp_gt_clkin,
+p_out_gtp_refclkout        => p_out_pciexp_gt_clkout
 
 );
 
@@ -474,7 +474,7 @@ p_out_pciexp_txn <=p_in_pciexp_rxn;
 i_pciexp_glob_ctrl(0)<='1';
 i_pciexp_glob_ctrl(31 downto 1)<=(others=>'0');
 
-p_out_pciexp_gtp_refclkout<=p_in_pciexp_gtp_refclkin;--lclk;
+p_out_pciexp_gt_clkout<=p_in_pciexp_gt_clkin;--lclk;
 
 p_out_usr_tst        <= (others=>'0');--i_lbus_out_usr_tst;
 

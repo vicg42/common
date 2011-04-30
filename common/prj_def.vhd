@@ -27,7 +27,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#030E#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#030F#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -190,9 +190,9 @@ constant C_HREG_STATUS_DEV_CFGDEV_TXBUF_RDY_BIT  : integer:=2;
 
 constant C_HREG_STATUS_DEV_HDD_MOD_RDY_BIT       : integer:=3;
 constant C_HREG_STATUS_DEV_HDD_MOD_ERR_BIT       : integer:=4;
-constant C_HREG_STATUS_DEV_HDD_CMDBUF_RDY_BIT    : integer:=5;
-constant C_HREG_STATUS_DEV_HDD_RXBUF_RDY_BIT     : integer:=6;
-constant C_HREG_STATUS_DEV_HDD_TXBUF_RDY_BIT     : integer:=7;
+constant C_HREG_STATUS_DEV_HDD_MOD_BUSY_BIT      : integer:=5;
+constant C_HREG_STATUS_DEV_HDD_CMD_DONE_BIT      : integer:=6;
+constant C_HREG_STATUS_DEV_RESERV_7_BIT          : integer:=7;
 
 constant C_HREG_STATUS_DEV_ETHG_MOD_RDY_BIT      : integer:=8;
 constant C_HREG_STATUS_DEV_ETHG_MOD_ERR_BIT      : integer:=9;
@@ -211,8 +211,8 @@ constant C_HREG_STATUS_DCM_LBUS_LOCK_BIT         : integer:=18;
 constant C_HREG_STATUS_DCM_SATA_LOCK_BIT         : integer:=19;
 constant C_HREG_STATUS_DCM_MEMCTRL_LOCK_BIT      : integer:=20;
 
-constant C_HREG_STATUS_DEV_HDD_CMD_BUSY_BIT      : integer:=21;--//add 2010.08.27---------------------------------------------------------------------------
-constant C_HREG_STATUS_DEV_HDD_TXBUFSTREAM_RDY_BIT: integer:=22;
+constant C_HREG_STATUS_DEV_RESERV_21_BIT         : integer:=21;
+constant C_HREG_STATUS_DEV_RESERV_22_BIT         : integer:=22;
 
 constant C_HREG_STATUS_DEV_DSNTEST_RDY_BIT       : integer:=23;
 constant C_HREG_STATUS_DEV_DSNTEST_ERR_BIT       : integer:=24;
