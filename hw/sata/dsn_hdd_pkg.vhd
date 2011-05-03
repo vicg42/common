@@ -22,6 +22,31 @@ use work.sata_raid_pkg.all;
 
 package dsn_hdd_pkg is
 
+type THDDLed is record
+link: std_logic;--//Связь установлена
+rdy : std_logic;--//Канал готов к работе
+err : std_logic;--//
+end record;
+type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
+
+component hdd_cmdfifo is
+port
+(
+din         : in std_logic_vector(15 downto 0);
+wr_en       : in std_logic;
+wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(15 downto 0);
+rd_en       : in std_logic;
+rd_clk      : in std_logic;
+
+full        : out std_logic;
+empty       : out std_logic;
+
+--clk         : in std_logic;
+rst         : in std_logic
+);
+end component ;
 
 component hdd_txfifo
 port
@@ -124,6 +149,7 @@ p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
 p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
 
 p_in_sata_refclk          : in    std_logic;
+p_out_sata_refclkout      : out   std_logic;
 
 --------------------------------------------------
 --Технологический порт
@@ -146,9 +172,12 @@ p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0)
 p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
+p_out_dbgled                : out   THDDLed_SHCountMax;
+
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
 );
 end component;

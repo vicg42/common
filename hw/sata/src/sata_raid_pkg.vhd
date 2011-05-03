@@ -71,6 +71,7 @@ type THDDRBufCfg is record
 mem_trn : std_logic_vector(15 downto 0);
 mem_adr : std_logic_vector(31 downto 0);
 dmacfg  : TDMAcfg;
+bufrst  : std_logic;
 end record;
 end sata_raid_pkg;
 

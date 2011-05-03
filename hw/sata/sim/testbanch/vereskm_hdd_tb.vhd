@@ -49,6 +49,7 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 
 constant C_SATACLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
+constant C_HOSTCLK_PERIOD : TIME := 6.6*6 ns;
 
 component dsn_hdd_rambuf
 generic
@@ -125,6 +126,7 @@ p_in_rst              : in    std_logic
 end component;
 
 signal i_sata_gtp_refclkmain      : std_logic;
+signal g_host_clk                 : std_logic;
 signal p_in_clk                   : std_logic;
 signal i_dsn_hdd_rst              : std_logic:='1';
 
@@ -282,6 +284,14 @@ begin
   wait for C_SATACLK_PERIOD/2;
 end process;
 
+gen_host_clk : process
+begin
+  g_host_clk<='0';
+  wait for C_HOSTCLK_PERIOD/2;
+  g_host_clk<='1';
+  wait for C_HOSTCLK_PERIOD/2;
+end process;
+
 gen_clk_usr : process
 begin
   p_in_clk<='0';
@@ -306,7 +316,7 @@ port map
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
-p_in_cfg_clk           => p_in_clk,--//g_host_clk
+p_in_cfg_clk           => g_host_clk,
 
 p_in_cfg_adr           => i_cfgdev_adr,
 p_in_cfg_adr_ld        => i_cfgdev_adr_ld,
@@ -375,9 +385,12 @@ p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
 p_out_gtp_sim_rst           => i_hdd_sim_gtp_rst,
 p_out_gtp_sim_clk           => i_hdd_sim_gtp_clk,
 
+p_out_dbgled                => open,
+
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_clk               => p_in_clk,
 p_in_rst               => i_dsn_hdd_rst
 );
 
@@ -451,7 +464,7 @@ p_out_tst             => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk              => p_in_clk,--//g_host_clk
+p_in_clk              => p_in_clk,
 p_in_rst              => i_dsn_hdd_rst
 );
 
@@ -838,17 +851,17 @@ begin
   --//--------------------------
   wait until i_dsn_hdd_regcfg_start = '1';--//Ждем разрешения кофигурирования регистров модуля dsn_hdd
 
-  wait until p_in_clk'event and p_in_clk='1';
+  wait until g_host_clk'event and g_host_clk='1';
     i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
-  wait until p_in_clk'event and p_in_clk='1';
+  wait until g_host_clk'event and g_host_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
     i_cfgdev_txdata(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT)<=mem_lentrn_dw(7 downto 0);
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
 
-  wait until p_in_clk'event and p_in_clk='1';
+  wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
     i_dsn_hdd_regcfg_done<='1';
 
@@ -868,22 +881,22 @@ begin
 
       wait until i_cmd_wrstart = '1';--//Ждем разрешения записи данных
 
-      wait until p_in_clk'event and p_in_clk='1';
+      wait until g_host_clk'event and g_host_clk='1';
         i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
         i_cfgdev_adr_ld<='1';
         i_cfgdev_adr_fifo<='1';
-      wait until p_in_clk'event and p_in_clk='1';
+      wait until g_host_clk'event and g_host_clk='1';
         i_cfgdev_adr_ld<='0';
         i_cfgdev_adr_fifo<='1';
 
-      wait until p_in_clk'event and p_in_clk='1';
-      p_CMDPKT_WRITE(p_in_clk,
+      wait until g_host_clk'event and g_host_clk='1';
+      p_CMDPKT_WRITE(g_host_clk,
                     i_cmd_data,
                     i_cfgdev_txdata, i_dev_cfg_wd(C_CFGDEV_HDD));
 
-      wait until p_in_clk'event and p_in_clk='1';
+      wait until g_host_clk'event and g_host_clk='1';
         i_dev_cfg_done(C_CFGDEV_HDD)<='1';
-      wait until p_in_clk'event and p_in_clk='1';
+      wait until g_host_clk'event and g_host_clk='1';
         i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
   end loop ltxcmdloop;
@@ -967,59 +980,6 @@ end process ltxd;
 --//########################################
 --//Чтение данных из RxBUF
 --//########################################
---lrxd:process
---variable dcnt : integer:=0;
---variable GUI_line  : LINE;--Строка для вывода в ModelSim
---begin
---
---  i_usr_rxd_rd<='0';
---  i_rxdata_rddone<='0';
---
---  lrxdloop:while true loop
---
---      wait until i_rxdata_rdstart = '1';--//Ждем разрешения чтения данных
---
---      --//Инициализация
---      for i in 0 to i_txdata'high loop
---      i_rxdata(i)<=(others=>'0');
---      end loop;
---
---      dcnt:=0;
---      --//Чтение данных из RxBuf(m_rxbuf)
---      lbufd_rd:while dcnt/=i_tstdata_dwsize loop
---
---          if i_usr_rxbuf_empty='0' then
---
---              wait until p_in_clk'event and p_in_clk='1';
---                  i_usr_rxd_rd<='1';
---                  --//если FIFO - FIRST WORD
---                  i_rxdata(dcnt)<=i_usr_rxd;
---                  dcnt:=dcnt + 1;
---
---              wait until p_in_clk'event and p_in_clk='1';
---                  i_usr_rxd_rd<='0';
---
-----              --//если FIFO - STANDART
-----              wait until p_in_clk'event and p_in_clk='1';
-----                  i_rxdata(dcnt)<=i_usr_rxd;
-----                  dcnt:=dcnt + 1;
---          else
---              wait until p_in_clk'event and p_in_clk='1';
---                  i_usr_rxd_rd<='0';
---          end if;
---
---       end loop lbufd_rd;
---
---      wait until p_in_clk'event and p_in_clk='1';
---        i_rxdata_rddone<='1';
---      wait until p_in_clk'event and p_in_clk='1';
---        i_rxdata_rddone<='0';
---
---  end loop lrxdloop;
---
---  wait;
---end process lrxd;
-
 lrxd:process(i_dsn_hdd_rst,p_in_clk)
   variable dcnt : integer:=0;
 begin

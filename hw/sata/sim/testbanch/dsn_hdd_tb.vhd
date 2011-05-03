@@ -217,9 +217,12 @@ p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
 p_out_gtp_sim_rst           => i_hdd_sim_gtp_rst,
 p_out_gtp_sim_clk           => i_hdd_sim_gtp_clk,
 
+p_out_dbgled                => open,
+
 --------------------------------------------------
 --System
 --------------------------------------------------
+p_in_clk                => p_in_clk,--//g_host_clk
 p_in_rst                => i_dsn_hdd_rst
 );
 
