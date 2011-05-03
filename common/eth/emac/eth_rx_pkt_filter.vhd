@@ -39,34 +39,34 @@ port
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask               : in    TEthFmask;
+p_in_fmask      : in    TEthFmask;
 
 --//------------------------------------
 --//Upstream Port
 --//------------------------------------
-p_in_upp_data            : in    std_logic_vector(31 downto 0);
-p_in_upp_wr              : in    std_logic;
-p_in_upp_rdy             : in    std_logic;
-p_in_upp_sof             : in    std_logic;
+p_in_upp_data   : in    std_logic_vector(31 downto 0);
+p_in_upp_wr     : in    std_logic;
+p_in_upp_rdy    : in    std_logic;
+p_in_upp_sof    : in    std_logic;
 
 --//------------------------------------
 --//Downstream Port
 --//------------------------------------
-p_out_dwnp_data          : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wr            : out   std_logic;
-p_out_dwnp_rdy           : out   std_logic;
-p_out_dwnp_sof           : out   std_logic;
+p_out_dwnp_data : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wr   : out   std_logic;
+p_out_dwnp_rdy  : out   std_logic;
+p_out_dwnp_sof  : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                : out   std_logic_vector(31 downto 0);
+p_out_tst       : out   std_logic_vector(31 downto 0);
 
 --//------------------------------------
 --//SYSTEM
 --//------------------------------------
-p_in_clk                 : in    std_logic;
-p_in_rst                 : in    std_logic
+p_in_clk        : in    std_logic;
+p_in_rst        : in    std_logic
 );
 end eth_rx_pkt_filter;
 
