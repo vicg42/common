@@ -50,7 +50,7 @@ port
 -- Конфигурирование
 -------------------------------
 p_in_rbuf_cfg         : in    THDDRBufCfg;
-p_out_rbuf_status      : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
+p_out_rbuf_status     : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
 
 --//--------------------------
 --//Связь с буфером видеоданных
@@ -199,6 +199,10 @@ signal i_mem_pusr_rxbuf_wd             : std_logic;
 signal i_scount                        : std_logic_vector(15 downto 0);
 signal i_mem_lenreq_byte               : std_logic_vector(i_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
 signal i_mem_lenreq_dw                 : std_logic_vector(i_mem_lenreq_byte'range);
+
+signal i_usr_rxbuf_dout                : std_logic_vector(31 downto 0);
+signal i_usr_rxbuf_rd                  : std_logic;
+signal i_usr_rxbuf_empty               : std_logic;
 
 
 signal tst_hdd_rambuf_err              : std_logic;
@@ -766,7 +770,13 @@ end process;
 --p_out_hdd_txd_wr<=i_mem_pusr_rxbuf_wd or i_cfg_stop_rq; --//На время отработки запроса остановки, производим запись в
 --                                                          --//буфер приемника. Это гарантирует, что для последней
 --                                                          --//записи в HDD всегда будут данные
+p_out_vbuf_rd <=p_in_rbuf_cfg.dmacfg.hw_mode and i_usr_rxbuf_rd;
 
+p_out_hdd_rxd_rd<=p_in_rbuf_cfg.dmacfg.sw_mode and i_usr_rxbuf_rd;
+
+i_usr_rxbuf_empty<=p_in_hdd_rxbuf_empty when p_in_rbuf_cfg.dmacfg.sw_mode='1' else p_in_vbuf_empty;
+
+i_usr_rxbuf_dout<=p_in_hdd_rxd when p_in_rbuf_cfg.dmacfg.sw_mode='1' else p_in_vbuf_dout;
 
 
 m_mem_ctrl_wr : memory_ctrl_ch_wr
@@ -789,9 +799,9 @@ p_out_cfg_mem_done         => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout        => p_in_hdd_rxd,--p_in_vbuf_dout,
-p_out_usr_txbuf_rd         => p_out_hdd_rxd_rd,--p_out_vbuf_rd,
-p_in_usr_txbuf_empty       => p_in_hdd_rxbuf_empty,--p_in_vbuf_empty,
+p_in_usr_txbuf_dout        => i_usr_rxbuf_dout,--p_in_hdd_rxd,--p_in_vbuf_dout,
+p_out_usr_txbuf_rd         => i_usr_rxbuf_rd,--p_out_hdd_rxd_rd,--p_out_vbuf_rd,
+p_in_usr_txbuf_empty       => i_usr_rxbuf_empty,--p_in_hdd_rxbuf_empty,--p_in_vbuf_empty,
 
 p_out_usr_rxbuf_din        => p_out_hdd_txd,
 p_out_usr_rxbuf_wd         => p_out_hdd_txd_wr,--i_mem_pusr_rxbuf_wd,
@@ -862,7 +872,12 @@ p_out_vbuf_rd <= not p_in_vbuf_empty;-- and not p_in_dwnp_buf_pfull;
 p_out_hdd_txd <= p_in_vbuf_dout;
 p_out_hdd_txd_wr <= not p_in_vbuf_empty;-- and not p_in_dwnp_buf_pfull;
 
-p_out_tst <= (others=>'0');
+
+p_out_hdd_rxd_rd<='0';
+
+p_out_tst(0)<=OR_reduce(p_in_vbuf_dout) or p_in_vbuf_empty or
+              OR_reduce(p_in_hdd_rxd) or p_in_hdd_rxbuf_empty or p_in_hdd_txbuf_full;
+p_out_tst(31 downto 1) <= (others=>'0');
 
 end generate gen_use_off;
 
