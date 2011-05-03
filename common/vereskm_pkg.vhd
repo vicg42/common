@@ -21,6 +21,8 @@ use work.memory_ctrl_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
+use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
 
 package vereskm_pkg is
 
@@ -213,78 +215,77 @@ p_in_rst             : in    std_logic
 );
 end component;
 
-
-component dsn_hdd_rambuf
+component dsn_hdd_rambuf is
 generic
 (
 G_MODULE_USE      : string:="ON";
-G_HDD_RAMBUF_SIZE : integer:=23
+G_HDD_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_SIM             : string:="OFF"
 );
 port
 (
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_ramadr     : in    std_logic_vector(31 downto 0);
-p_in_cfg_rambuf     : in    std_logic_vector(31 downto 0);
-
---//Статусы
-p_out_sts_rdy       : out   std_logic;
-p_out_sts_err       : out   std_logic;
+p_in_rbuf_cfg         : in    THDDRBufCfg;
+p_out_rbuf_status     : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
 
 --//--------------------------
---//Upstream Port(Связь с буфером источника данных)
+--//Связь с буфером видеоданных
 --//--------------------------
-p_in_upp_data       : in    std_logic_vector(31 downto 0);
-p_out_upp_data_rd   : out   std_logic;
-p_in_upp_buf_empty  : in    std_logic;
-p_in_upp_buf_full   : in    std_logic;
-p_in_upp_buf_pfull  : in    std_logic;
+p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
+p_out_vbuf_rd         : out   std_logic;
+p_in_vbuf_empty       : in    std_logic;
+p_in_vbuf_full        : in    std_logic;
+p_in_vbuf_pfull       : in    std_logic;
 
 --//--------------------------
---//Downstream Port(Связь с буфером приемника данных)
+--//Связь с модулем HDD
 --//--------------------------
-p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
-p_out_dwnp_data_wd  : out   std_logic;
-p_in_dwnp_buf_empty : in    std_logic;
-p_in_dwnp_buf_full  : in    std_logic;
-p_in_dwnp_buf_pfull : in    std_logic;
+p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
+p_out_hdd_txd_wr      : out   std_logic;
+p_in_hdd_txbuf_full   : in    std_logic;
+--p_in_hdd_txbuf_empty  : in    std_logic;
+
+p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
+p_out_hdd_rxd_rd      : out   std_logic;
+p_in_hdd_rxbuf_empty  : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req    : out   std_logic;
-p_in_memarb_en      : in    std_logic;
+p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
+p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h    : out   std_logic_vector(15 downto 0);
-p_out_mem_ce        : out   std_logic;
-p_out_mem_cw        : out   std_logic;
-p_out_mem_rd        : out   std_logic;
-p_out_mem_wr        : out   std_logic;
-p_out_mem_term      : out   std_logic;
-p_out_mem_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-p_in_mem_wf         : in    std_logic;
-p_in_mem_wpf        : in    std_logic;
-p_in_mem_re         : in    std_logic;
-p_in_mem_rpe        : in    std_logic;
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
 
-p_out_mem_clk       : out   std_logic;
+p_out_mem_clk         : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
 );
 end component;
 
@@ -415,47 +416,35 @@ port
 -------------------------------
 -- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
 -------------------------------
-p_in_cfg_clk          : in   std_logic;                      --//
+p_in_cfg_clk              : in   std_logic;                      --//
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld       : in   std_logic;                      --//
-p_in_cfg_adr_fifo     : in   std_logic;                      --//
+p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
+p_in_cfg_adr_ld           : in   std_logic;                      --//
+p_in_cfg_adr_fifo         : in   std_logic;                      --//
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);  --//
+p_in_cfg_wd               : in   std_logic;                      --//
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);  --//
+p_in_cfg_rd               : in   std_logic;                      --//
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done             : in   std_logic;                      --//
 
 -------------------------------
 -- Связь с Хостом (host_clk domain)
 -------------------------------
-p_in_host_clk             : in   std_logic;                      --//
-
--- Связь Хост <-> Накопитель(dsn_hdd.vhd)
-p_out_host_hdd_cmddone_set_irq : out  std_logic;                                --//
-p_out_host_hdd_rxbuf_rdy  : out  std_logic;                                --//
-p_out_host_hdd_rxdata     : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_hdd_rd          : in   std_logic;                                --//
-
-p_out_host_hdd_cmdbuf_rdy : out  std_logic;                                --//
-
-p_out_host_hdd_txbuf_rdy  : out  std_logic;                                --//
-p_in_host_hdd_txdata      : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_hdd_wd          : in   std_logic;                                --//
+p_in_host_clk             : in   std_logic;
 
 -- Связь Хост <-> Опритка(dsn_optic.vhd)
-p_out_host_ethg_rx_set_irq: out  std_logic;
-p_out_host_ethg_rxbuf_rdy : out  std_logic;                                --//
-p_out_host_ethg_rxdata    : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_ethg_rd         : in   std_logic;                                --//
+p_out_host_eth_rxd_irq    : out  std_logic;
+p_out_host_eth_rxd_rdy    : out  std_logic;                                --//
+p_out_host_eth_rxd        : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
+p_in_host_eth_rd          : in   std_logic;                                --//
 
-p_out_host_ethg_txbuf_rdy : out  std_logic;                                --//
-p_in_host_ethg_txdata     : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_ethg_wd         : in   std_logic;                                --//
-p_in_host_ethg_txdata_rdy : in   std_logic;                                --//
+p_out_host_eth_txbuf_rdy  : out  std_logic;                                --//
+p_in_host_eth_txd         : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
+p_in_host_eth_wr          : in   std_logic;                                --//
+p_in_host_eth_txd_rdy     : in   std_logic;                                --//
 
 -- Связь Хост <-> VideoBUF
 p_out_host_vbuf_dout      : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
@@ -465,80 +454,67 @@ p_out_host_vbuf_empty     : out  std_logic;                                --//
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_bufrst           : in   std_logic;                     --//
-p_in_hdd_bufclk           : in   std_logic;                      --//
-p_in_hdd_status_module    : in   std_logic_vector(15 downto 0);  --//
+p_in_hdd_vbuf_rst         : in   std_logic;                     --//
+p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
 
-p_in_hdd_cmdbuf_empty     : in   std_logic;                      --//
-
-p_out_hdd_txdata          : out  std_logic_vector(31 downto 0);  --//
-p_out_hdd_txdata_wd       : out  std_logic;                      --//
-p_in_hdd_txbuf_empty      : in   std_logic;                      --//
-p_in_hdd_txbuf_full       : in   std_logic;                      --//
-
-p_in_hdd_rxdata           : in   std_logic_vector(31 downto 0);  --//
-p_out_hdd_rxdata_rd       : out  std_logic;                      --//
-p_in_hdd_rxbuf_empty      : in   std_logic;                      --//
-p_in_hdd_rxbuf_full       : in   std_logic;                      --//
-
-p_out_hdd_txstream           : out  std_logic_vector(31 downto 0); --//
-p_in_hdd_txstream_rd         : in   std_logic;                     --//
-p_in_hdd_txstream_rd_clk     : in   std_logic;                     --//
-p_out_hdd_txstream_buf_empty : out  std_logic;                     --//
-p_out_hdd_txstream_buf_full  : out  std_logic;                     --//
-p_out_hdd_txstream_buf_pfull : out  std_logic;                     --//
+p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0); --//
+p_in_hdd_vbuf_rd          : in   std_logic;                     --//
+p_out_hdd_vbuf_empty      : out  std_logic;                     --//
+p_out_hdd_vbuf_full       : out  std_logic;                     --//
+p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
 -------------------------------
-p_in_ethg_clk                : in   std_logic;                     --//
+p_in_eth_clk              : in   std_logic;                     --//
 
-p_in_ethg_rxdata_rdy         : in   std_logic;                     --//
-p_in_ethg_rxdata_sof         : in   std_logic;                     --//
-p_in_ethg_rxbuf_din          : in   std_logic_vector(31 downto 0); --//
-p_in_ethg_rxbuf_wd           : in   std_logic;                     --//
-p_out_ethg_rxbuf_empty       : out  std_logic;                     --//
-p_out_ethg_rxbuf_full        : out  std_logic;                     --//
+p_in_eth_rxd_rdy          : in   std_logic;                     --//
+p_in_eth_rxd_sof          : in   std_logic;                     --//
+p_in_eth_rxbuf_din        : in   std_logic_vector(31 downto 0); --//
+p_in_eth_rxbuf_wr         : in   std_logic;                     --//
+p_out_eth_rxbuf_empty     : out  std_logic;                     --//
+p_out_eth_rxbuf_full      : out  std_logic;                     --//
 
-p_out_ethg_txdata_rdy        : out  std_logic;
-p_out_ethg_txbuf_dout        : out  std_logic_vector(31 downto 0); --//
-p_in_ethg_txbuf_rd           : in   std_logic;                     --//
-p_out_ethg_txbuf_empty       : out  std_logic;                     --//
-p_out_ethg_txbuf_full        : out  std_logic;                     --//
-p_out_ethg_txbuf_empty_almost: out  std_logic;                     --//
+p_out_eth_txbuf_drdy      : out  std_logic;
+p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
+p_in_eth_txbuf_rd         : in   std_logic;                     --//
+p_out_eth_txbuf_empty     : out  std_logic;                     --//
+p_out_eth_txbuf_full      : out  std_logic;                     --//
+p_out_eth_txbuf_aempty    : out  std_logic;                     --//
 
 -------------------------------
 -- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)
 -------------------------------
-p_in_vctrl_clk               : in   std_logic;                      --//
+p_in_vctrl_clk            : in   std_logic;                      --//
 
-p_out_vbufin_rdy             : out  std_logic;                      --//
-p_out_vbufin_dout            : out  std_logic_vector(31 downto 0);  --//
-p_in_vbufin_rd               : in   std_logic;                      --//
-p_out_vbufin_empty           : out  std_logic;                      --//
-p_out_vbufin_full            : out  std_logic;                      --//
-p_out_vbufin_pfull           : out  std_logic;                      --//
+p_out_vctrl_vbufin_rdy    : out  std_logic;                      --//
+p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);  --//
+p_in_vctrl_vbufin_rd      : in   std_logic;                      --//
+p_out_vctrl_vbufin_empty  : out  std_logic;                      --//
+p_out_vctrl_vbufin_full   : out  std_logic;                      --//
+p_out_vctrl_vbufin_pfull  : out  std_logic;                      --//
 
-p_in_vbufout_din             : in   std_logic_vector(31 downto 0);  --//
-p_in_vbufout_wd              : in   std_logic;                      --//
-p_out_vbufout_empty          : out  std_logic;                      --//
-p_out_vbufout_full           : out  std_logic;                      --//
+p_in_vctrl_vbufout_din    : in   std_logic_vector(31 downto 0);  --//
+p_in_vctrl_vbufout_wr     : in   std_logic;                      --//
+p_out_vctrl_vbufout_empty : out  std_logic;                      --//
+p_out_vctrl_vbufout_full  : out  std_logic;                      --//
 
 -------------------------------
 -- Связь с Модулем Тестирования(dsn_testing.vhd)
 -------------------------------
-p_out_dsntst_bufclk          : out  std_logic;                      --//
+p_out_dsntst_bufclk       : out  std_logic;                      --//
 
-p_in_dsntst_txdata_rdy       : in   std_logic;                      --//
-p_in_dsntst_txdata_dout      : in   std_logic_vector(31 downto 0);  --//
-p_in_dsntst_txdata_wd        : in   std_logic;                      --//
-p_out_dsntst_txbuf_empty     : out  std_logic;                      --//
-p_out_dsntst_txbuf_full      : out  std_logic;                      --//
+p_in_dsntst_txd_rdy       : in   std_logic;                      --//
+p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0);  --//
+p_in_dsntst_txbuf_wr      : in   std_logic;                      --//
+p_out_dsntst_txbuf_empty  : out  std_logic;                      --//
+p_out_dsntst_txbuf_full   : out  std_logic;                      --//
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst    : out   std_logic_vector(31 downto 0);  --//
+p_in_tst                  : in    std_logic_vector(31 downto 0);
+p_out_tst                 : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System

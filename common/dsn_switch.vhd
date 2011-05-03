@@ -24,8 +24,7 @@ use unisim.vcomponents.all;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
 use work.memory_ctrl_pkg.all;
-use work.sata_pkg.all;
---use work.eth_pkg.all;
+
 
 entity dsn_switch is
 port
@@ -33,47 +32,35 @@ port
 -------------------------------
 -- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
 -------------------------------
-p_in_cfg_clk          : in   std_logic;                      --//
+p_in_cfg_clk              : in   std_logic;                      --//
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld       : in   std_logic;                      --//
-p_in_cfg_adr_fifo     : in   std_logic;                      --//
+p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
+p_in_cfg_adr_ld           : in   std_logic;                      --//
+p_in_cfg_adr_fifo         : in   std_logic;                      --//
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);  --//
+p_in_cfg_wd               : in   std_logic;                      --//
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);  --//
+p_in_cfg_rd               : in   std_logic;                      --//
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done             : in   std_logic;                      --//
 
 -------------------------------
 -- Связь с Хостом (host_clk domain)
 -------------------------------
-p_in_host_clk             : in   std_logic;                      --//
-
--- Связь Хост <-> Накопитель(dsn_hdd.vhd)
-p_out_host_hdd_cmddone_set_irq : out  std_logic;                           --//
-p_out_host_hdd_rxbuf_rdy  : out  std_logic;                                --//
-p_out_host_hdd_rxdata     : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_hdd_rd          : in   std_logic;                                --//
-
-p_out_host_hdd_cmdbuf_rdy : out  std_logic;                                --//
-
-p_out_host_hdd_txbuf_rdy  : out  std_logic;                                --//
-p_in_host_hdd_txdata      : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_hdd_wd          : in   std_logic;                                --//
+p_in_host_clk             : in   std_logic;
 
 -- Связь Хост <-> Опритка(dsn_optic.vhd)
-p_out_host_ethg_rx_set_irq: out  std_logic;
-p_out_host_ethg_rxbuf_rdy : out  std_logic;                                --//
-p_out_host_ethg_rxdata    : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_ethg_rd         : in   std_logic;                                --//
+p_out_host_eth_rxd_irq    : out  std_logic;
+p_out_host_eth_rxd_rdy    : out  std_logic;                                --//
+p_out_host_eth_rxd        : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
+p_in_host_eth_rd          : in   std_logic;                                --//
 
-p_out_host_ethg_txbuf_rdy : out  std_logic;                                --//
-p_in_host_ethg_txdata     : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_ethg_wd         : in   std_logic;                                --//
-p_in_host_ethg_txdata_rdy : in   std_logic;                                --//
+p_out_host_eth_txbuf_rdy  : out  std_logic;                                --//
+p_in_host_eth_txd         : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
+p_in_host_eth_wr          : in   std_logic;                                --//
+p_in_host_eth_txd_rdy     : in   std_logic;                                --//
 
 -- Связь Хост <-> VideoBUF
 p_out_host_vbuf_dout      : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
@@ -83,80 +70,67 @@ p_out_host_vbuf_empty     : out  std_logic;                                --//
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_bufrst           : in   std_logic;                     --//
-p_in_hdd_bufclk           : in   std_logic;                      --//
-p_in_hdd_status_module    : in   std_logic_vector(15 downto 0);  --//
+p_in_hdd_vbuf_rst         : in   std_logic;                     --//
+p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
 
-p_in_hdd_cmdbuf_empty     : in   std_logic;                      --//
-
-p_out_hdd_txdata          : out  std_logic_vector(31 downto 0);  --//
-p_out_hdd_txdata_wd       : out  std_logic;                      --//
-p_in_hdd_txbuf_empty      : in   std_logic;                      --//
-p_in_hdd_txbuf_full       : in   std_logic;                      --//
-
-p_in_hdd_rxdata           : in   std_logic_vector(31 downto 0);  --//
-p_out_hdd_rxdata_rd       : out  std_logic;                      --//
-p_in_hdd_rxbuf_empty      : in   std_logic;                      --//
-p_in_hdd_rxbuf_full       : in   std_logic;                      --//
-
-p_out_hdd_txstream           : out  std_logic_vector(31 downto 0); --//
-p_in_hdd_txstream_rd         : in   std_logic;                     --//
-p_in_hdd_txstream_rd_clk     : in   std_logic;                     --//
-p_out_hdd_txstream_buf_empty : out  std_logic;                     --//
-p_out_hdd_txstream_buf_full  : out  std_logic;                     --//
-p_out_hdd_txstream_buf_pfull : out  std_logic;                     --//
+p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0); --//
+p_in_hdd_vbuf_rd          : in   std_logic;                     --//
+p_out_hdd_vbuf_empty      : out  std_logic;                     --//
+p_out_hdd_vbuf_full       : out  std_logic;                     --//
+p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
 -------------------------------
-p_in_ethg_clk                : in   std_logic;                     --//
+p_in_eth_clk              : in   std_logic;                     --//
 
-p_in_ethg_rxdata_rdy         : in   std_logic;                     --//
-p_in_ethg_rxdata_sof         : in   std_logic;                     --//
-p_in_ethg_rxbuf_din          : in   std_logic_vector(31 downto 0); --//
-p_in_ethg_rxbuf_wd           : in   std_logic;                     --//
-p_out_ethg_rxbuf_empty       : out  std_logic;                     --//
-p_out_ethg_rxbuf_full        : out  std_logic;                     --//
+p_in_eth_rxd_rdy          : in   std_logic;                     --//
+p_in_eth_rxd_sof          : in   std_logic;                     --//
+p_in_eth_rxbuf_din        : in   std_logic_vector(31 downto 0); --//
+p_in_eth_rxbuf_wr         : in   std_logic;                     --//
+p_out_eth_rxbuf_empty     : out  std_logic;                     --//
+p_out_eth_rxbuf_full      : out  std_logic;                     --//
 
-p_out_ethg_txdata_rdy        : out  std_logic;
-p_out_ethg_txbuf_dout        : out  std_logic_vector(31 downto 0); --//
-p_in_ethg_txbuf_rd           : in   std_logic;                     --//
-p_out_ethg_txbuf_empty       : out  std_logic;                     --//
-p_out_ethg_txbuf_full        : out  std_logic;                     --//
-p_out_ethg_txbuf_empty_almost: out  std_logic;                     --//
+p_out_eth_txbuf_drdy      : out  std_logic;
+p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
+p_in_eth_txbuf_rd         : in   std_logic;                     --//
+p_out_eth_txbuf_empty     : out  std_logic;                     --//
+p_out_eth_txbuf_full      : out  std_logic;                     --//
+p_out_eth_txbuf_aempty    : out  std_logic;                     --//
 
 -------------------------------
 -- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)
 -------------------------------
-p_in_vctrl_clk               : in   std_logic;                      --//
+p_in_vctrl_clk            : in   std_logic;                      --//
 
-p_out_vbufin_rdy             : out  std_logic;                      --//
-p_out_vbufin_dout            : out  std_logic_vector(31 downto 0);  --//
-p_in_vbufin_rd               : in   std_logic;                      --//
-p_out_vbufin_empty           : out  std_logic;                      --//
-p_out_vbufin_full            : out  std_logic;                      --//
-p_out_vbufin_pfull           : out  std_logic;                      --//
+p_out_vctrl_vbufin_rdy    : out  std_logic;                      --//
+p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);  --//
+p_in_vctrl_vbufin_rd      : in   std_logic;                      --//
+p_out_vctrl_vbufin_empty  : out  std_logic;                      --//
+p_out_vctrl_vbufin_full   : out  std_logic;                      --//
+p_out_vctrl_vbufin_pfull  : out  std_logic;                      --//
 
-p_in_vbufout_din             : in   std_logic_vector(31 downto 0);  --//
-p_in_vbufout_wd              : in   std_logic;                      --//
-p_out_vbufout_empty          : out  std_logic;                      --//
-p_out_vbufout_full           : out  std_logic;                      --//
+p_in_vctrl_vbufout_din    : in   std_logic_vector(31 downto 0);  --//
+p_in_vctrl_vbufout_wr     : in   std_logic;                      --//
+p_out_vctrl_vbufout_empty : out  std_logic;                      --//
+p_out_vctrl_vbufout_full  : out  std_logic;                      --//
 
 -------------------------------
 -- Связь с Модулем Тестирования(dsn_testing.vhd)
 -------------------------------
-p_out_dsntst_bufclk          : out  std_logic;                      --//
+p_out_dsntst_bufclk       : out  std_logic;                      --//
 
-p_in_dsntst_txdata_rdy       : in   std_logic;                      --//
-p_in_dsntst_txdata_dout      : in   std_logic_vector(31 downto 0);  --//
-p_in_dsntst_txdata_wd        : in   std_logic;                      --//
-p_out_dsntst_txbuf_empty     : out  std_logic;                      --//
-p_out_dsntst_txbuf_full      : out  std_logic;                      --//
+p_in_dsntst_txd_rdy       : in   std_logic;                      --//
+p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0);  --//
+p_in_dsntst_txbuf_wr      : in   std_logic;                      --//
+p_out_dsntst_txbuf_empty  : out  std_logic;                      --//
+p_out_dsntst_txbuf_full   : out  std_logic;                      --//
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst    : out   std_logic_vector(31 downto 0);  --//
+p_in_tst                  : in    std_logic_vector(31 downto 0);
+p_out_tst                 : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -170,7 +144,7 @@ architecture behavioral of dsn_switch is
 component host_vbuf
 port
 (
-din         : IN  std_logic_vector(31 downto 0);--(C_FHOST_DBUS-1 downto 0);
+din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
@@ -191,7 +165,7 @@ end component;
 component host_ethg_txfifo
 port
 (
-din         : IN  std_logic_vector(31 downto 0);--(C_FHOST_DBUS-1 downto 0);
+din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
@@ -215,7 +189,7 @@ din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
-dout        : OUT std_logic_vector(31 downto 0);--(C_FHOST_DBUS-1 downto 0);
+dout        : OUT std_logic_vector(31 downto 0);
 rd_en       : IN  std_logic;
 rd_clk      : IN  std_logic;
 
@@ -249,41 +223,41 @@ end component;
 
 component eth_rx_pkt_filter
 generic(
-G_FMASK_COUNT     : integer := 3
+G_FMASK_COUNT   : integer := 3
 );
 port
 (
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask               : in    TEthFmask;
+p_in_fmask      : in    TEthFmask;
 
 --//------------------------------------
 --//Upstream Port
 --//------------------------------------
-p_in_upp_data            : in    std_logic_vector(31 downto 0);
-p_in_upp_wr              : in    std_logic;
-p_in_upp_rdy             : in    std_logic;
-p_in_upp_sof             : in    std_logic;
+p_in_upp_data   : in    std_logic_vector(31 downto 0);
+p_in_upp_wr     : in    std_logic;
+p_in_upp_rdy    : in    std_logic;
+p_in_upp_sof    : in    std_logic;
 
 --//------------------------------------
 --//Downstream Port
 --//------------------------------------
-p_out_dwnp_data          : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wr            : out   std_logic;
-p_out_dwnp_rdy           : out   std_logic;
-p_out_dwnp_sof           : out   std_logic;
+p_out_dwnp_data : out   std_logic_vector(31 downto 0);
+p_out_dwnp_wr   : out   std_logic;
+p_out_dwnp_rdy  : out   std_logic;
+p_out_dwnp_sof  : out   std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                : out   std_logic_vector(31 downto 0);
+p_out_tst       : out   std_logic_vector(31 downto 0);
 
 --//------------------------------------
 --//SYSTEM
 --//------------------------------------
-p_in_clk                 : in    std_logic;
-p_in_rst                 : in    std_logic
+p_in_clk        : in    std_logic;
+p_in_rst        : in    std_logic
 );
 end component;
 
@@ -291,100 +265,70 @@ signal i_cfg_adr_cnt                          : std_logic_vector(7 downto 0);
 
 signal h_reg_ctrl                             : std_logic_vector(C_DSN_SWT_REG_CTRL_LAST_BIT downto 0);
 signal h_reg_tst0                             : std_logic_vector(C_DSN_SWT_REG_TST0_LAST_BIT downto 0);
-signal h_reg_ethg_host_fmask                  : TEthFmask;
-signal h_reg_ethg_hdd_fmask                   : TEthFmask;
-signal h_reg_ethg_vctrl_fmask                 : TEthFmask;
+signal h_reg_eth_host_fmask                   : TEthFmask;
+signal h_reg_eth_hdd_fmask                    : TEthFmask;
+signal h_reg_eth_vctrl_fmask                  : TEthFmask;
 
-signal b_rst_ethg_bufs                        : std_logic;
+signal b_rst_eth_bufs                         : std_logic;
 signal b_rst_vctrl_bufs                       : std_logic;
 signal b_ethtxbuf_loopback                    : std_logic;
 signal b_tstdsn_to_ethtxbuf                   : std_logic;
 signal b_ethtxbuf_to_vctrlbufin               : std_logic;
 signal b_ethtxbuf_to_hddbuf                   : std_logic;
 
-signal syn_ethg_rxdata                        : std_logic_vector(31 downto 0);
-signal syn_ethg_rxdata_wd                     : std_logic;
-signal syn_ethg_rxdata_rdy                    : std_logic;
-signal syn_ethg_rxdata_sof                    : std_logic;
-signal syn_ethg_host_fmask                    : TEthFmask;
-signal syn_ethg_hdd_fmask                     : TEthFmask;
-signal syn_ethg_vctrl_fmask                   : TEthFmask;
+signal syn_eth_rxd                            : std_logic_vector(31 downto 0);
+signal syn_eth_rxd_wr                         : std_logic;
+signal syn_eth_rxd_rdy                        : std_logic;
+signal syn_eth_rxd_sof                        : std_logic;
+signal syn_eth_host_fmask                     : TEthFmask;
+signal syn_eth_hdd_fmask                      : TEthFmask;
+signal syn_eth_vctrl_fmask                    : TEthFmask;
 
-signal hclk_hdd_cmddone_irq                   : std_logic;
-signal i_hdd_cmd_busy_dly                     : std_logic_vector(1 downto 0);
-signal hddclk_hdd_cmd_busy_edge_width         : std_logic;
-signal hddclk_hdd_cmd_busy_edge_width_cnt     : std_logic_vector(2 downto 0);
+signal i_hdd_vbuf_rst                         : std_logic;
+signal i_hdd_vbuf_fltr_dout                   : std_logic_vector(31 downto 0);
+signal i_hdd_vbuf_fltr_den                    : std_logic;
+signal i_hdd_vbuf_din                         : std_logic_vector(31 downto 0);
+signal i_hdd_vbuf_wr                          : std_logic;
 
-signal i_ethg_hdd_fltr_dout                   : std_logic_vector(31 downto 0);
-signal i_ethg_hdd_fltr_dout_vld               : std_logic;
-signal i_ethg_hddbuf                          : std_logic_vector(31 downto 0);
-signal i_ethg_hddbuf_wd                       : std_logic;
-signal i_ethg_hddbuf_empty                    : std_logic;
-signal i_ethg_hddbuf_full                     : std_logic;
-signal i_ethg_hddbuf_pfull                    : std_logic;
---signal i_ethg_hddbuf_aempty                   : std_logic;
---signal i_ethg_hddbuf_pempty                   : std_logic;
+signal hclk_eth_txbuf_drdy                    : std_logic;
+signal hclk_eth_txbuf_drdy_cnt                : std_logic_vector(2 downto 0);
+signal eclk_eth_txbuf_drdy_dly                : std_logic_vector(1 downto 0);
+signal eclk_eth_txbuf_drdy                    : std_logic;
+signal i_eth_txbuf_drdy                       : std_logic;
+signal i_eth_txbuf_dout                       : std_logic_vector(31 downto 0);
+signal i_eth_txbuf_din                        : std_logic_vector(31 downto 0);
+signal i_eth_txbuf_wr                         : std_logic;
+signal i_eth_txbuf_rd                         : std_logic;
+signal i_eth_txbuf_empty                      : std_logic;
 
-signal hclk_host_ethtxdata_rdy_width          : std_logic;
-signal hclk_host_ethtxdata_rdy_width_cnt      : std_logic_vector(2 downto 0);
-signal ethclk_host_ethtxdata_rdy_width_dly    : std_logic_vector(1 downto 0);
-signal ethclk_host_ethtxdata_rdy              : std_logic;
-signal ethclk_host_ethtxdata_rdy_out          : std_logic;
-signal i_host_ethtxdata_rdy                   : std_logic;
-signal i_host_ethtxbuf_dout                   : std_logic_vector(31 downto 0);
-signal i_host_ethtxbuf_din                    : std_logic_vector(C_FHOST_DBUS-1 downto 0);
-signal i_host_ethtxbuf_wd                     : std_logic;
-signal i_host_ethtxbuf_rd                     : std_logic;
-signal i_host_ethtxbuf_empty                  : std_logic;
-signal i_host_ethtxbuf_full                   : std_logic;
-signal i_host_ethtxbuf_aempty                 : std_logic;
+signal i_eth_rxbuf_din                        : std_logic_vector(31 downto 0);
+signal i_eth_rxbuf_wr                         : std_logic;
+signal i_eth_rxbuf_empty                      : std_logic;
+signal i_eth_rxbuf_drdy                       : std_logic;
+signal i_eth_rxbuf_drdy_dly                   : std_logic_vector(2 downto 0);
+signal i_eth_rxbuf_fltr_dout                  : std_logic_vector(31 downto 0);
+signal i_eth_rxbuf_fltr_den                   : std_logic;
+signal i_eth_rxbuf_fltr_drdy                  : std_logic;
+signal eclk_eth_rxbuf_drdy_w                  : std_logic;
+signal eclk_eth_rxbuf_drdy_wcnt               : std_logic_vector(2 downto 0);
+signal hclk_eth_rxbuf_drdy                    : std_logic;
 
-signal i_host_ethrxbuf_din                    : std_logic_vector(31 downto 0);
-signal i_host_ethrxbuf_din_wd                 : std_logic;
-signal i_host_ethrxbuf_dout                   : std_logic_vector(C_FHOST_DBUS-1 downto 0);
---signal i_host_ethrxbuf_dout_swap            : std_logic_vector(C_FHOST_DBUS-1 downto 0);
-signal i_host_ethrxbuf_empty                  : std_logic;
-signal i_host_ethrxbuf_rdy                    : std_logic;
-signal i_host_ethrxbuf_rdy_dly                : std_logic_vector(2 downto 0);
-signal i_host_ethrxbuf_full                   : std_logic;
-signal i_host_ethrx_fltr_dout                 : std_logic_vector(31 downto 0);
-signal i_host_ethrx_fltr_dout_vld             : std_logic;
-signal i_host_ethrx_fltr_dout_rdy             : std_logic;
---signal i_host_ethrx_fltr_dout_sof            : std_logic;
+signal i_vctrl_vbufin_fltr_dout               : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufin_fltr_den                : std_logic;
+signal i_vctrl_vbufin_din                     : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufin_din_wd                  : std_logic;
 
-signal hclk_host_ethrxbuf_rdy                 : std_logic;
-signal ethclk_host_ethrxbuf_rdy_width         : std_logic;
-signal ethclk_host_ethrxbuf_rdy_width_cnt     : std_logic_vector(2 downto 0);
+signal i_vctrl_vbufout_empty                  : std_logic;
 
-signal i_ethg_vctrl_fltr_dout                 : std_logic_vector(31 downto 0);
-signal i_ethg_vctrl_fltr_dout_vld             : std_logic;
-signal i_ethg_vbufin_din                      : std_logic_vector(31 downto 0);
-signal i_ethg_vbufin_din_wd                   : std_logic;
-signal i_ethg_vbufin_empty                    : std_logic;
-signal i_ethg_vbufin_full                     : std_logic;
-signal i_ethg_vbufin_pfull                    : std_logic;
-
-signal i_host_vbuf_empty                      : std_logic;
-
-
---signal tst_ethg_vctrl_out                     : std_logic_vector(31 downto 0);
---signal tst_rst_vctrl_bufs                     : std_logic;
 
 
 --MAIN
 begin
 
---process(p_in_vctrl_clk)
---begin
---  if p_in_vctrl_clk'event and p_in_vctrl_clk='1' then
-----    p_out_tst(0)<=i_host_vbuf_almost_full;
---    tst_rst_vctrl_bufs<=b_rst_vctrl_bufs;
---  end if;
---end process;
-
-p_out_tst(0)<='0';--tst_rst_vctrl_bufs;
+p_out_tst(0)<='0';
 p_out_tst(1)<='0';
 p_out_tst(31 downto 2)<=(others=>'0');
+
 
 --//--------------------------------------------------
 --//Конфигурирование модуля dsn_switch.vhd
@@ -413,18 +357,18 @@ begin
     h_reg_tst0<=(others=>'0');
 
     for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
-      h_reg_ethg_host_fmask(2*i)  <=(others=>'0');
-      h_reg_ethg_host_fmask(2*i+1)<=(others=>'0');
+      h_reg_eth_host_fmask(2*i)  <=(others=>'0');
+      h_reg_eth_host_fmask(2*i+1)<=(others=>'0');
     end loop;
 
     for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
-      h_reg_ethg_hdd_fmask(2*i)  <=(others=>'0');
-      h_reg_ethg_hdd_fmask(2*i+1)<=(others=>'0');
+      h_reg_eth_hdd_fmask(2*i)  <=(others=>'0');
+      h_reg_eth_hdd_fmask(2*i+1)<=(others=>'0');
     end loop;
 
     for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
-      h_reg_ethg_vctrl_fmask(2*i)  <=(others=>'0');
-      h_reg_ethg_vctrl_fmask(2*i+1)<=(others=>'0');
+      h_reg_eth_vctrl_fmask(2*i)  <=(others=>'0');
+      h_reg_eth_vctrl_fmask(2*i+1)<=(others=>'0');
     end loop;
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
@@ -437,8 +381,8 @@ begin
         --//Заполняем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              h_reg_ethg_host_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_ethg_host_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+              h_reg_eth_host_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
+              h_reg_eth_host_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
@@ -446,8 +390,8 @@ begin
         --//Заполняем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              h_reg_ethg_hdd_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_ethg_hdd_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+              h_reg_eth_hdd_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
+              h_reg_eth_hdd_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
@@ -455,8 +399,8 @@ begin
         --//Заполняем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              h_reg_ethg_vctrl_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_ethg_vctrl_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+              h_reg_eth_vctrl_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
+              h_reg_eth_vctrl_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
@@ -480,8 +424,8 @@ begin
         --//Читаем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_ethg_host_fmask(2*i);
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_ethg_host_fmask(2*i+1);
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_host_fmask(2*i);
+              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_host_fmask(2*i+1);
             end if;
           end loop;
 
@@ -489,8 +433,8 @@ begin
         --//Читаем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_ethg_hdd_fmask(2*i);
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_ethg_hdd_fmask(2*i+1);
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_fmask(2*i);
+              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_hdd_fmask(2*i+1);
             end if;
           end loop;
 
@@ -498,8 +442,8 @@ begin
         --//Читаем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_ethg_vctrl_fmask(2*i);
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_ethg_vctrl_fmask(2*i+1);
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_vctrl_fmask(2*i);
+              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_vctrl_fmask(2*i+1);
             end if;
           end loop;
 
@@ -509,145 +453,71 @@ begin
 end process;
 
 
-
-b_rst_ethg_bufs  <=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
-b_rst_vctrl_bufs <=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
+b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
+b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
 b_ethtxbuf_loopback  <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT);
 
-b_tstdsn_to_ethtxbuf      <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_ETHTX_BIT);
-b_ethtxbuf_to_vctrlbufin  <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_VCTRL_BUFIN_BIT);
-b_ethtxbuf_to_hddbuf      <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_HDDBUF_BIT);
-
-
---//########################################################################
---//Обмен Хост <-> Накопитель (dsn_hdd.vhd)
---//########################################################################
-p_out_host_hdd_cmdbuf_rdy <=p_in_hdd_cmdbuf_empty;
-
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Хост -> HDD_TXFIFO.(запись данных в накопитель)
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-p_out_hdd_txdata         <=p_in_host_hdd_txdata(31 downto 0);
-p_out_hdd_txdata_wd      <=p_in_host_hdd_wd;
-
---//Сигнал Хосту: TxBUF готов принимать данные
-p_out_host_hdd_txbuf_rdy <=p_in_hdd_txbuf_empty;
-
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Хост <- HDD_RXFIFO.(чтение данных из накопителя)
---//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-p_out_hdd_rxdata_rd      <=p_in_host_hdd_rd;
-
-p_out_host_hdd_rxdata    <=p_in_hdd_rxdata;
-
---//Сигнал Хосту: в RxBUF есть новые данные от накопителя + строб для установки прерывания
-p_out_host_hdd_rxbuf_rdy<=not p_in_hdd_rxbuf_empty;
-p_out_host_hdd_cmddone_set_irq<=hclk_hdd_cmddone_irq;
-
---//Формируем сигнал прерывания от накопителя (задний фронт бита C_STATUS_MODULE_BUSY_BIT)
---//Выделяем задний фронт сигнала BUSY накопителя
-process(p_in_rst,p_in_hdd_bufclk)
-begin
-  if p_in_rst='1' then
-    i_hdd_cmd_busy_dly<=(others=>'0');
-  elsif p_in_hdd_bufclk'event and p_in_hdd_bufclk='1' then
-    i_hdd_cmd_busy_dly(0)<=p_in_hdd_status_module(C_STATUS_MODULE_BUSY_BIT);
-    i_hdd_cmd_busy_dly(1)<=i_hdd_cmd_busy_dly(0);
-  end if;
-end process;
-
---//Растягиваем сформированый импульс
-process(p_in_rst,p_in_hdd_bufclk)
-begin
-  if p_in_rst='1' then
-    hddclk_hdd_cmd_busy_edge_width<='0';
-    hddclk_hdd_cmd_busy_edge_width_cnt<=(others=>'0');
-
-  elsif p_in_hdd_bufclk'event and p_in_hdd_bufclk='1' then
-
-    if i_hdd_cmd_busy_dly(0)='0' and i_hdd_cmd_busy_dly(1)='1' then
-    --//Обноружил задний фронт сигнала C_STATUS_MODULE_BUSY_BIT
-      hddclk_hdd_cmd_busy_edge_width<='1';
-    elsif hddclk_hdd_cmd_busy_edge_width_cnt(2)='1' then--="100" then
-      hddclk_hdd_cmd_busy_edge_width<='0';
-    end if;
-
-    if hddclk_hdd_cmd_busy_edge_width='0' then
-      hddclk_hdd_cmd_busy_edge_width_cnt<=(others=>'0');
-    else
-      hddclk_hdd_cmd_busy_edge_width_cnt<=hddclk_hdd_cmd_busy_edge_width_cnt+1;
-    end if;
-
-  end if;
-end process;
-
---//Пересинхронизация ипульса прерывания от накопителя
-process(p_in_rst,p_in_host_clk)
-begin
-  if p_in_rst='1' then
-    hclk_hdd_cmddone_irq<='0';
-  elsif p_in_host_clk'event and p_in_host_clk='1' then
-    hclk_hdd_cmddone_irq<=hddclk_hdd_cmd_busy_edge_width;
-  end if;
-end process;
+b_tstdsn_to_ethtxbuf     <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_ETHTX_BIT);
+b_ethtxbuf_to_vctrlbufin <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_VCTRL_BUFIN_BIT);
+b_ethtxbuf_to_hddbuf     <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_HDDBUF_BIT);
 
 
 
 --//########################################################################
---//Зарветвление сигнала записи данных rxdata от модуля dsn_ethg.vhd
+--//Разветвление сигнала записи данных rxdata от модуля dsn_ethg.vhd
 --//########################################################################
 
 --//Синхронизируем управление ветвлением данных с началом прининятого пакета Ethernet
-process(p_in_rst,p_in_ethg_clk)
+process(p_in_rst,p_in_eth_clk)
 begin
   if p_in_rst='1' then
 
     for i in 0 to C_DSN_SWT_FMASK_MAX_COUNT-1 loop
-      syn_ethg_host_fmask(2*i)  <=(others=>'0');
-      syn_ethg_host_fmask(2*i+1)<=(others=>'0');
+      syn_eth_host_fmask(2*i)  <=(others=>'0');
+      syn_eth_host_fmask(2*i+1)<=(others=>'0');
     end loop;
 
     for i in 0 to C_DSN_SWT_FMASK_MAX_COUNT-1 loop
-      syn_ethg_hdd_fmask(2*i)  <=(others=>'0');
-      syn_ethg_hdd_fmask(2*i+1)<=(others=>'0');
+      syn_eth_hdd_fmask(2*i)  <=(others=>'0');
+      syn_eth_hdd_fmask(2*i+1)<=(others=>'0');
     end loop;
 
     for i in 0 to C_DSN_SWT_FMASK_MAX_COUNT-1 loop
-      syn_ethg_vctrl_fmask(2*i)  <=(others=>'0');
-      syn_ethg_vctrl_fmask(2*i+1)<=(others=>'0');
+      syn_eth_vctrl_fmask(2*i)  <=(others=>'0');
+      syn_eth_vctrl_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    syn_ethg_rxdata<=(others=>'0');
-    syn_ethg_rxdata_rdy<='0';
-    syn_ethg_rxdata_sof<='0';
-    syn_ethg_rxdata_wd<='0';
+    syn_eth_rxd<=(others=>'0');
+    syn_eth_rxd_rdy<='0';
+    syn_eth_rxd_sof<='0';
+    syn_eth_rxd_wr<='0';
 
-  elsif p_in_ethg_clk'event and p_in_ethg_clk='1' then
+  elsif p_in_eth_clk'event and p_in_eth_clk='1' then
 
-    if p_in_ethg_rxdata_sof='1' then
+    if p_in_eth_rxd_sof='1' then
 
       for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
-        syn_ethg_host_fmask(2*i)  <= h_reg_ethg_host_fmask(2*i);
-        syn_ethg_host_fmask(2*i+1)<= h_reg_ethg_host_fmask(2*i+1);
+        syn_eth_host_fmask(2*i)  <= h_reg_eth_host_fmask(2*i);
+        syn_eth_host_fmask(2*i+1)<= h_reg_eth_host_fmask(2*i+1);
       end loop;
 
       for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
-        syn_ethg_hdd_fmask(2*i)  <= h_reg_ethg_hdd_fmask(2*i);
-        syn_ethg_hdd_fmask(2*i+1)<= h_reg_ethg_hdd_fmask(2*i+1);
+        syn_eth_hdd_fmask(2*i)  <= h_reg_eth_hdd_fmask(2*i);
+        syn_eth_hdd_fmask(2*i+1)<= h_reg_eth_hdd_fmask(2*i+1);
       end loop;
 
       for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
-        syn_ethg_vctrl_fmask(2*i)  <= h_reg_ethg_vctrl_fmask(2*i);
-        syn_ethg_vctrl_fmask(2*i+1)<= h_reg_ethg_vctrl_fmask(2*i+1);
+        syn_eth_vctrl_fmask(2*i)  <= h_reg_eth_vctrl_fmask(2*i);
+        syn_eth_vctrl_fmask(2*i+1)<= h_reg_eth_vctrl_fmask(2*i+1);
       end loop;
 
     end if;
 
-    syn_ethg_rxdata<=p_in_ethg_rxbuf_din;
-    syn_ethg_rxdata_rdy<=p_in_ethg_rxdata_rdy;
-    syn_ethg_rxdata_sof<=p_in_ethg_rxdata_sof;
-    syn_ethg_rxdata_wd<=p_in_ethg_rxbuf_wd;
+    syn_eth_rxd<=p_in_eth_rxbuf_din;
+    syn_eth_rxd_rdy<=p_in_eth_rxd_rdy;
+    syn_eth_rxd_sof<=p_in_eth_rxd_sof;
+    syn_eth_rxd_wr<=p_in_eth_rxbuf_wr;
 
   end if;
 end process;
@@ -665,104 +535,93 @@ end process;
 --//----------------------------------
 --//Связь с модулем хоста dsn_host.vhd
 --//----------------------------------
-i_host_ethtxbuf_din <=p_in_host_ethg_txdata     when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txdata_dout(31 downto 0);
-i_host_ethtxbuf_wd  <=p_in_host_ethg_wd         when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txdata_wd;
-i_host_ethtxdata_rdy<=p_in_host_ethg_txdata_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txdata_rdy;
+i_eth_txbuf_din <=p_in_host_eth_txd     when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_din(31 downto 0);
+i_eth_txbuf_wr  <=p_in_host_eth_wr      when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_wr;
+i_eth_txbuf_drdy<=p_in_host_eth_txd_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txd_rdy;
 
 --//Сигнал хосту EthG TxBUF - готов принять данные
-p_out_host_ethg_txbuf_rdy<=i_host_ethtxbuf_empty and not b_tstdsn_to_ethtxbuf;
+p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
 
 --//----------------------------------
 --//Буфер TXDATA для модуля dsn_ethg.vhd
 --//----------------------------------
-m_host_ethg_txfifo : host_ethg_txfifo
+m_eth_txbuf : host_ethg_txfifo
 port map
 (
-din     => i_host_ethtxbuf_din,
-wr_en   => i_host_ethtxbuf_wd,
+din     => i_eth_txbuf_din,
+wr_en   => i_eth_txbuf_wr,
 wr_clk  => p_in_host_clk,
 
-dout    => i_host_ethtxbuf_dout,
-rd_en   => i_host_ethtxbuf_rd,
-rd_clk  => p_in_ethg_clk,
+dout    => i_eth_txbuf_dout,
+rd_en   => i_eth_txbuf_rd,
+rd_clk  => p_in_eth_clk,
 
-empty   => i_host_ethtxbuf_empty,
-full    => i_host_ethtxbuf_full,
-almost_empty=> i_host_ethtxbuf_aempty,
---almost_full => i_host_ethtxbuf_empty_full,
+empty   => i_eth_txbuf_empty,
+full    => p_out_eth_txbuf_full,
+almost_empty=> p_out_eth_txbuf_aempty,
 
-rst     => b_rst_ethg_bufs
+rst     => b_rst_eth_bufs
 );
 
 --//----------------------------------
 --//Связь с модулем dsn_ethg.vhd
 --//----------------------------------
---//Чтение данных из буфера m_host_ethg_txfifo.
---//если LoopBack, то переписываем данные в буфер Хост->EthG RxBUF
---//иначе модуль dsn_ethg.vhd вычитывает данные.
---i_host_ethtxbuf_rd<=p_in_ethg_txbuf_rd when b_ethtxbuf_loopback='0' else not i_host_ethtxbuf_empty;
-i_host_ethtxbuf_rd<=p_in_ethg_txbuf_rd    when b_ethtxbuf_loopback='0' and (b_ethtxbuf_to_vctrlbufin='0' and b_ethtxbuf_to_hddbuf='0') else
-                not i_host_ethtxbuf_empty when b_ethtxbuf_loopback='1' and (b_ethtxbuf_to_vctrlbufin='0' and b_ethtxbuf_to_hddbuf='0') else
-                not i_host_ethtxbuf_empty when b_ethtxbuf_loopback='0' and (b_ethtxbuf_to_vctrlbufin='1' or  b_ethtxbuf_to_hddbuf='1') else
+--//Чтение данных из буфера m_eth_txbuf.
+i_eth_txbuf_rd<=    p_in_eth_txbuf_rd when b_ethtxbuf_loopback='0' and (b_ethtxbuf_to_vctrlbufin='0' and b_ethtxbuf_to_hddbuf='0') else
+                not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' and (b_ethtxbuf_to_vctrlbufin='0' and b_ethtxbuf_to_hddbuf='0') else
+                not i_eth_txbuf_empty when b_ethtxbuf_loopback='0' and (b_ethtxbuf_to_vctrlbufin='1' or  b_ethtxbuf_to_hddbuf='1') else
                 '0';
 
-p_out_ethg_txbuf_dout <=i_host_ethtxbuf_dout;
-p_out_ethg_txbuf_empty<=i_host_ethtxbuf_empty;
-p_out_ethg_txbuf_full <=i_host_ethtxbuf_full;
-p_out_ethg_txbuf_empty_almost<=i_host_ethtxbuf_aempty;
+p_out_eth_txbuf_dout <=i_eth_txbuf_dout;
+p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
+
 
 --//Растягиваем импульс готовности данных для dsn_ethg.vhd
 process(p_in_rst,p_in_host_clk)
 begin
   if p_in_rst='1' then
-    hclk_host_ethtxdata_rdy_width_cnt<=(others=>'0');
-    hclk_host_ethtxdata_rdy_width<='0';
+    hclk_eth_txbuf_drdy_cnt<=(others=>'0');
+    hclk_eth_txbuf_drdy<='0';
   elsif p_in_host_clk'event and p_in_host_clk='1' then
-    if i_host_ethtxdata_rdy='1' then
-      hclk_host_ethtxdata_rdy_width<='1';
-    elsif hclk_host_ethtxdata_rdy_width_cnt(2)='1' then--="010" then
-      hclk_host_ethtxdata_rdy_width<='0';
+    if i_eth_txbuf_drdy='1' then
+      hclk_eth_txbuf_drdy<='1';
+    elsif hclk_eth_txbuf_drdy_cnt(2)='1' then
+      hclk_eth_txbuf_drdy<='0';
     end if;
 
-    if hclk_host_ethtxdata_rdy_width='0' then
-      hclk_host_ethtxdata_rdy_width_cnt<=(others=>'0');
+    if hclk_eth_txbuf_drdy='0' then
+      hclk_eth_txbuf_drdy_cnt<=(others=>'0');
     else
-      hclk_host_ethtxdata_rdy_width_cnt<=hclk_host_ethtxdata_rdy_width_cnt+1;
+      hclk_eth_txbuf_drdy_cnt<=hclk_eth_txbuf_drdy_cnt+1;
     end if;
   end if;
 end process;
 
---//Пересинхронизация ипульса импульс готовности данных для dsn_ethg.vhd
---//+ выделение фронта
-process(p_in_rst,p_in_ethg_clk)
+--//Пересинхронизация на частоту p_in_eth_clk + выделение фронта
+process(p_in_rst,p_in_eth_clk)
 begin
   if p_in_rst='1' then
-    ethclk_host_ethtxdata_rdy_width_dly<=(others=>'0');
-    ethclk_host_ethtxdata_rdy<='0';
-  elsif p_in_ethg_clk'event and p_in_ethg_clk='1' then
-    ethclk_host_ethtxdata_rdy_width_dly(0)<=hclk_host_ethtxdata_rdy_width;
-    ethclk_host_ethtxdata_rdy_width_dly(1)<=ethclk_host_ethtxdata_rdy_width_dly(0);
+    eclk_eth_txbuf_drdy_dly<=(others=>'0');
+    eclk_eth_txbuf_drdy<='0';
+  elsif p_in_eth_clk'event and p_in_eth_clk='1' then
+    eclk_eth_txbuf_drdy_dly(0)<=hclk_eth_txbuf_drdy;
+    eclk_eth_txbuf_drdy_dly(1)<=eclk_eth_txbuf_drdy_dly(0);
     --//Фронт
-    ethclk_host_ethtxdata_rdy<=ethclk_host_ethtxdata_rdy_width_dly(0) and not ethclk_host_ethtxdata_rdy_width_dly(1);
+    eclk_eth_txbuf_drdy<=eclk_eth_txbuf_drdy_dly(0) and not eclk_eth_txbuf_drdy_dly(1);
   end if;
 end process;
 
 --//Сигнал модулю dsn_ethg.vhd - есть данные для передачи по EthG
-ethclk_host_ethtxdata_rdy_out <= ethclk_host_ethtxdata_rdy and
-                             not i_host_ethtxbuf_empty and
-                             not b_ethtxbuf_loopback and
-                             not (b_ethtxbuf_to_vctrlbufin or b_ethtxbuf_to_hddbuf);
+p_out_eth_txbuf_drdy<= eclk_eth_txbuf_drdy and
+                   not i_eth_txbuf_empty and
+                   not b_ethtxbuf_loopback and
+                   not (b_ethtxbuf_to_vctrlbufin or b_ethtxbuf_to_hddbuf);
 
-p_out_ethg_txdata_rdy<=ethclk_host_ethtxdata_rdy_out;
 
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --//Хост <- ETHG_RXFIFO.(чтение данных из Gigabit Ethernet)
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//----------------------------------
---//Связь с модулем dsn_ethg.vhd
---//----------------------------------
-
 --//Фильтер пакетов от модуля dsn_ethg.vhd
 m_host_eth_pkt_fltr: eth_rx_pkt_filter
 generic map(
@@ -773,117 +632,109 @@ port map
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask        => syn_ethg_host_fmask,
+p_in_fmask      => syn_eth_host_fmask,
 
 --//------------------------------------
 --//Upstream Port
 --//------------------------------------
-p_in_upp_data     => syn_ethg_rxdata,
-p_in_upp_wr       => syn_ethg_rxdata_wd,
-p_in_upp_rdy      => syn_ethg_rxdata_rdy,
-p_in_upp_sof      => syn_ethg_rxdata_sof,
+p_in_upp_data   => syn_eth_rxd,
+p_in_upp_wr     => syn_eth_rxd_wr,
+p_in_upp_rdy    => syn_eth_rxd_rdy,
+p_in_upp_sof    => syn_eth_rxd_sof,
 
 --//------------------------------------
 --//Downstream Port
 --//------------------------------------
-p_out_dwnp_data   => i_host_ethrx_fltr_dout,
-p_out_dwnp_wr     => i_host_ethrx_fltr_dout_vld,
-p_out_dwnp_rdy    => i_host_ethrx_fltr_dout_rdy,
-p_out_dwnp_sof    => open,
+p_out_dwnp_data => i_eth_rxbuf_fltr_dout,
+p_out_dwnp_wr   => i_eth_rxbuf_fltr_den,
+p_out_dwnp_rdy  => i_eth_rxbuf_fltr_drdy,
+p_out_dwnp_sof  => open,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst        => open,
+p_out_tst       => open,
 
 --//------------------------------------
 --//SYSTEM
 --//------------------------------------
-p_in_clk          => p_in_ethg_clk,
-p_in_rst          => b_rst_ethg_bufs
+p_in_clk        => p_in_eth_clk,
+p_in_rst        => b_rst_eth_bufs
 );
 
---//Выбор источника данных для буфера m_host_ethg_rxfifo
-i_host_ethrxbuf_din   <=i_host_ethrx_fltr_dout     when b_ethtxbuf_loopback='0' else     i_host_ethtxbuf_dout;
-i_host_ethrxbuf_din_wd<=i_host_ethrx_fltr_dout_vld when b_ethtxbuf_loopback='0' else not i_host_ethtxbuf_empty;
-i_host_ethrxbuf_rdy   <=i_host_ethrx_fltr_dout_rdy when b_ethtxbuf_loopback='0' else     ethclk_host_ethtxdata_rdy;
+--//Выбор источника данных для буфера m_eth_rxbuf
+i_eth_rxbuf_din <=i_eth_rxbuf_fltr_dout when b_ethtxbuf_loopback='0' else     i_eth_txbuf_dout;
+i_eth_rxbuf_wr  <=i_eth_rxbuf_fltr_den  when b_ethtxbuf_loopback='0' else not i_eth_txbuf_empty;
+i_eth_rxbuf_drdy<=i_eth_rxbuf_fltr_drdy when b_ethtxbuf_loopback='0' else     eclk_eth_txbuf_drdy;
 
 --//----------------------------------
 --//Буфер RXDATA для модуля dsn_ethg.vhd
 --//----------------------------------
-m_host_ethg_rxfifo : host_ethg_rxfifo
+m_eth_rxbuf : host_ethg_rxfifo
 port map
 (
-din     => i_host_ethrxbuf_din,
-wr_en   => i_host_ethrxbuf_din_wd,
-wr_clk  => p_in_ethg_clk,
+din     => i_eth_rxbuf_din,
+wr_en   => i_eth_rxbuf_wr,
+wr_clk  => p_in_eth_clk,
 
-dout    => i_host_ethrxbuf_dout,
-rd_en   => p_in_host_ethg_rd,
+dout    => p_out_host_eth_rxd,
+rd_en   => p_in_host_eth_rd,
 rd_clk  => p_in_host_clk,
 
-empty   => i_host_ethrxbuf_empty,
-full    => i_host_ethrxbuf_full,
+empty   => i_eth_rxbuf_empty,
+full    => p_out_eth_rxbuf_full,
 
-rst     => b_rst_ethg_bufs
+rst     => b_rst_eth_bufs
 );
-
-p_out_ethg_rxbuf_empty<=i_host_ethrxbuf_empty;
-p_out_ethg_rxbuf_full <=i_host_ethrxbuf_full;
 
 
 --//----------------------------------
 --//Связь с модулем хоста dsn_host.vhd
 --//----------------------------------
---i_host_ethrxbuf_dout_swap(31 downto 0) <=i_host_ethrxbuf_dout(31 downto 0);
---i_host_ethrxbuf_dout_swap(16*1-1 downto 16*0)<=i_host_ethrxbuf_dout(16*2-1 downto 16*1);
---i_host_ethrxbuf_dout_swap(16*2-1 downto 16*1)<=i_host_ethrxbuf_dout(16*1-1 downto 16*0);
---
---p_out_host_ethg_rxdata<=i_host_ethrxbuf_dout  when b_ethtxbuf_loopback='1' else
---                        i_host_ethrxbuf_dout_swap;
-p_out_host_ethg_rxdata<=i_host_ethrxbuf_dout;
+p_out_eth_rxbuf_empty<=i_eth_rxbuf_empty;
 
 --//Сигнал Хосту: в RxBUF есть новые данные от Gigabit Ethernet
-p_out_host_ethg_rxbuf_rdy<=not i_host_ethrxbuf_empty;
+p_out_host_eth_rxd_rdy<=not i_eth_rxbuf_empty;
 
-
---//Растягиваем импульс готовности данных от модуля dsn_ethg.vhd
-process(p_in_rst,p_in_ethg_clk)
+--//Формируем прерываение ETH_RXBUF
+process(p_in_rst,p_in_eth_clk)
 begin
   if p_in_rst='1' then
-    i_host_ethrxbuf_rdy_dly<=(others=>'0');
-    ethclk_host_ethrxbuf_rdy_width_cnt<=(others=>'0');
-    ethclk_host_ethrxbuf_rdy_width<='0';
-  elsif p_in_ethg_clk'event and p_in_ethg_clk='1' then
-    i_host_ethrxbuf_rdy_dly(0)<=i_host_ethrxbuf_rdy;
-    i_host_ethrxbuf_rdy_dly(1)<=i_host_ethrxbuf_rdy_dly(0);
-    i_host_ethrxbuf_rdy_dly(2)<=i_host_ethrxbuf_rdy_dly(1);
+    i_eth_rxbuf_drdy_dly<=(others=>'0');
+    eclk_eth_rxbuf_drdy_wcnt<=(others=>'0');
+    eclk_eth_rxbuf_drdy_w<='0';
 
-    if i_host_ethrxbuf_rdy_dly(2)='1' then
-      ethclk_host_ethrxbuf_rdy_width<='1';
-    elsif ethclk_host_ethrxbuf_rdy_width_cnt(2)='1' then--="010" then
-      ethclk_host_ethrxbuf_rdy_width<='0';
+  elsif p_in_eth_clk'event and p_in_eth_clk='1' then
+    i_eth_rxbuf_drdy_dly(0)<=i_eth_rxbuf_drdy;
+    i_eth_rxbuf_drdy_dly(1)<=i_eth_rxbuf_drdy_dly(0);
+    i_eth_rxbuf_drdy_dly(2)<=i_eth_rxbuf_drdy_dly(1);
+
+    --//Растягиваем импульс готовности данных от модуля dsn_ethg.vhd
+    if i_eth_rxbuf_drdy_dly(2)='1' then
+      eclk_eth_rxbuf_drdy_w<='1';
+    elsif eclk_eth_rxbuf_drdy_wcnt(2)='1' then
+      eclk_eth_rxbuf_drdy_w<='0';
     end if;
 
-    if ethclk_host_ethrxbuf_rdy_width='0' then
-      ethclk_host_ethrxbuf_rdy_width_cnt<=(others=>'0');
+    if eclk_eth_rxbuf_drdy_w='0' then
+      eclk_eth_rxbuf_drdy_wcnt<=(others=>'0');
     else
-      ethclk_host_ethrxbuf_rdy_width_cnt<=ethclk_host_ethrxbuf_rdy_width_cnt+1;
+      eclk_eth_rxbuf_drdy_wcnt<=eclk_eth_rxbuf_drdy_wcnt+1;
     end if;
   end if;
 end process;
 
---//Пересинхронизация строба готовности данных HOST_ETHG_RXBUF (установка прерывания)
+--//Пересинхронизация на частоту p_in_host_clk
 process(p_in_rst,p_in_host_clk)
 begin
   if p_in_rst='1' then
-    hclk_host_ethrxbuf_rdy<='0';
+    hclk_eth_rxbuf_drdy<='0';
   elsif p_in_host_clk'event and p_in_host_clk='1' then
-    hclk_host_ethrxbuf_rdy<=ethclk_host_ethrxbuf_rdy_width;
+    hclk_eth_rxbuf_drdy<=eclk_eth_rxbuf_drdy_w;
   end if;
 end process;
 
-p_out_host_ethg_rx_set_irq<=hclk_host_ethrxbuf_rdy;
+p_out_host_eth_rxd_irq<=hclk_eth_rxbuf_drdy;
 
 
 
@@ -900,72 +751,64 @@ port map
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask        => syn_ethg_hdd_fmask,
+p_in_fmask      => syn_eth_hdd_fmask,
 
 --//------------------------------------
 --//Upstream Port
 --//------------------------------------
-p_in_upp_data     => syn_ethg_rxdata,
-p_in_upp_wr       => syn_ethg_rxdata_wd,
-p_in_upp_rdy      => syn_ethg_rxdata_rdy,
-p_in_upp_sof      => syn_ethg_rxdata_sof,
+p_in_upp_data   => syn_eth_rxd,
+p_in_upp_wr     => syn_eth_rxd_wr,
+p_in_upp_rdy    => syn_eth_rxd_rdy,
+p_in_upp_sof    => syn_eth_rxd_sof,
 
 --//------------------------------------
 --//Downstream Port
 --//------------------------------------
-p_out_dwnp_data   => i_ethg_hdd_fltr_dout,
-p_out_dwnp_wr     => i_ethg_hdd_fltr_dout_vld,
-p_out_dwnp_rdy    => open,
-p_out_dwnp_sof    => open,
+p_out_dwnp_data => i_hdd_vbuf_fltr_dout,
+p_out_dwnp_wr   => i_hdd_vbuf_fltr_den,
+p_out_dwnp_rdy  => open,
+p_out_dwnp_sof  => open,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst        => open,
+p_out_tst       => open,
 
 --//------------------------------------
 --//SYSTEM
 --//------------------------------------
-p_in_clk          => p_in_ethg_clk,
-p_in_rst          => p_in_hdd_bufrst
+p_in_clk        => p_in_eth_clk,
+p_in_rst        => i_hdd_vbuf_rst
 );
 
 --//Выбор данных для модуля dsn_hdd.vhd
-i_ethg_hddbuf    <=i_ethg_hdd_fltr_dout     when b_ethtxbuf_to_hddbuf='0' else i_host_ethtxbuf_dout;
-i_ethg_hddbuf_wd <=i_ethg_hdd_fltr_dout_vld when b_ethtxbuf_to_hddbuf='0' else i_host_ethtxbuf_rd;
+i_hdd_vbuf_din<=i_hdd_vbuf_fltr_dout when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_dout;
+i_hdd_vbuf_wr <=i_hdd_vbuf_fltr_den  when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_rd;
 
-
-m_ethg_hdd : ethg_vctrl_rxfifo
+m_eth_hdd : ethg_vctrl_rxfifo
 port map
 (
-din         => i_ethg_hddbuf,
-wr_en       => i_ethg_hddbuf_wd,
-wr_clk      => p_in_ethg_clk,
+din         => i_hdd_vbuf_din,
+wr_en       => i_hdd_vbuf_wr,
+wr_clk      => p_in_eth_clk,
 
-dout        => p_out_hdd_txstream,
-rd_en       => p_in_hdd_txstream_rd,
-rd_clk      => p_in_hdd_txstream_rd_clk,
+dout        => p_in_hdd_vbuf_dout,
+rd_en       => p_in_hdd_vbuf_rd,
+rd_clk      => p_in_hdd_vbuf_rdclk,
 
-empty       => i_ethg_hddbuf_empty,
-full        => i_ethg_hddbuf_full,
-prog_full   => i_ethg_hddbuf_pfull,
---almost_empty=> open,
---prog_empty  => open,
+empty       => p_out_hdd_vbuf_empty,
+full        => p_out_hdd_vbuf_full,
+prog_full   => p_out_hdd_vbuf_pfull,
 
-rst         => p_in_hdd_bufrst
+rst         => i_hdd_vbuf_rst
 );
 
-p_out_hdd_txstream_buf_empty<=i_ethg_hddbuf_empty;
-p_out_hdd_txstream_buf_full <=i_ethg_hddbuf_full;
-p_out_hdd_txstream_buf_pfull<=i_ethg_hddbuf_pfull;
+i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_vbuf_rst;
 
 
 --//#############################################################################
 --//Связь EthG->VIDEO_CTRL(модуль видеоконтроллера) (dsn_video_ctrl.vhd)
 --//#############################################################################
---//----------------------------------
---//Связь с модулем Ethernet dsn_ethg.vhd
---//----------------------------------
 --//Фильтер пакетов от модуля dsn_ethg.vhd
 m_eth_vbufin_pkt_fltr: eth_rx_pkt_filter
 generic map(
@@ -976,96 +819,87 @@ port map
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask        => syn_ethg_vctrl_fmask,
+p_in_fmask      => syn_eth_vctrl_fmask,
 
 --//------------------------------------
 --//Upstream Port
 --//------------------------------------
-p_in_upp_data     => syn_ethg_rxdata,
-p_in_upp_wr       => syn_ethg_rxdata_wd,
-p_in_upp_rdy      => syn_ethg_rxdata_rdy,
-p_in_upp_sof      => syn_ethg_rxdata_sof,
+p_in_upp_data   => syn_eth_rxd,
+p_in_upp_wr     => syn_eth_rxd_wr,
+p_in_upp_rdy    => syn_eth_rxd_rdy,
+p_in_upp_sof    => syn_eth_rxd_sof,
 
 --//------------------------------------
 --//Downstream Port
 --//------------------------------------
-p_out_dwnp_data   => i_ethg_vctrl_fltr_dout,
-p_out_dwnp_wr     => i_ethg_vctrl_fltr_dout_vld,
-p_out_dwnp_rdy    => open,
-p_out_dwnp_sof    => open,
+p_out_dwnp_data => i_vctrl_vbufin_fltr_dout,
+p_out_dwnp_wr   => i_vctrl_vbufin_fltr_den,
+p_out_dwnp_rdy  => open,
+p_out_dwnp_sof  => open,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst        => open,--tst_ethg_vctrl_out,
+p_out_tst       => open,
 
 --//------------------------------------
 --//SYSTEM
 --//------------------------------------
-p_in_clk          => p_in_ethg_clk,
-p_in_rst          => b_rst_vctrl_bufs
+p_in_clk        => p_in_eth_clk,
+p_in_rst        => b_rst_vctrl_bufs
 );
 
---//Выбор источника данных для буфера m_ethg_vctrl_rxfifo модуля dsn_video_ctrl.vhd
-p_out_vbufin_rdy    <='0';
-i_ethg_vbufin_din   <=i_ethg_vctrl_fltr_dout      when b_ethtxbuf_to_vctrlbufin='0' else i_host_ethtxbuf_dout;
-i_ethg_vbufin_din_wd<=i_ethg_vctrl_fltr_dout_vld  when b_ethtxbuf_to_vctrlbufin='0' else i_host_ethtxbuf_rd;
+--//Выбор источника данных для буфера m_vctrl_vbufin модуля dsn_video_ctrl.vhd
+p_out_vctrl_vbufin_rdy<='0';
+i_vctrl_vbufin_din    <=i_vctrl_vbufin_fltr_dout when b_ethtxbuf_to_vctrlbufin='0' else i_eth_txbuf_dout;
+i_vctrl_vbufin_din_wd <=i_vctrl_vbufin_fltr_den  when b_ethtxbuf_to_vctrlbufin='0' else i_eth_txbuf_rd;
 
 --//----------------------------------
---//Буфер данных для модуля dsn_video_ctrl.vhd
+--//Входной буфер для модуля dsn_video_ctrl.vhd
 --//----------------------------------
-m_ethg_vctrl_rxfifo : ethg_vctrl_rxfifo
+m_vctrl_vbufin : ethg_vctrl_rxfifo
 port map
 (
-din         => i_ethg_vbufin_din,
-wr_en       => i_ethg_vbufin_din_wd,
-wr_clk      => p_in_ethg_clk,
+din         => i_vctrl_vbufin_din,
+wr_en       => i_vctrl_vbufin_din_wd,
+wr_clk      => p_in_eth_clk,
 
-dout        => p_out_vbufin_dout,
-rd_en       => p_in_vbufin_rd,
+dout        => p_out_vctrl_vbufin_dout,
+rd_en       => p_in_vctrl_vbufin_rd,
 rd_clk      => p_in_vctrl_clk,
 
-empty       => i_ethg_vbufin_empty,
-full        => i_ethg_vbufin_full,
-prog_full   => i_ethg_vbufin_pfull,
---almost_empty=> open,
---prog_empty  => open,
+empty       => p_out_vctrl_vbufin_empty,
+full        => p_out_vctrl_vbufin_full,
+prog_full   => p_out_vctrl_vbufin_pfull,
 
 rst         => b_rst_vctrl_bufs
 );
 
-p_out_vbufin_empty<=i_ethg_vbufin_empty;
-p_out_vbufin_full<=i_ethg_vbufin_full;
-p_out_vbufin_pfull<=i_ethg_vbufin_pfull;
-
-
 --//----------------------------------
---//Связь с модулем в dsn_host.vhd
+--//Выходной буфер для модуля dsn_video_ctrl.vhd
 --//----------------------------------
-p_out_host_vbuf_empty <=i_host_vbuf_empty;
-
-m_host_vbuf : host_vbuf
+m_vctrl_vbufout : host_vbuf
 port map
 (
-din         => p_in_vbufout_din,
-wr_en       => p_in_vbufout_wd,
+din         => p_in_vctrl_vbufout_din,
+wr_en       => p_in_vctrl_vbufout_wr,
 wr_clk      => p_in_vctrl_clk,
 
 dout        => p_out_host_vbuf_dout,
 rd_en       => p_in_host_vbuf_rd,
 rd_clk      => p_in_host_clk,
 
-empty       => i_host_vbuf_empty,
+empty       => i_vctrl_vbufout_empty,
 full        => open,
 --almost_full => open,
-prog_full   => p_out_vbufout_full,
+prog_full   => p_out_vctrl_vbufout_full,
 --almost_empty=> open,
 
 rst         => b_rst_vctrl_bufs
 );
 
-p_out_vbufout_empty <=i_host_vbuf_empty;
-
+p_out_vctrl_vbufout_empty <=i_vctrl_vbufout_empty;
+p_out_host_vbuf_empty <=i_vctrl_vbufout_empty;
 
 
 
@@ -1074,7 +908,7 @@ p_out_vbufout_empty <=i_host_vbuf_empty;
 --//#############################################################################
 p_out_dsntst_bufclk <=p_in_host_clk;
 
-p_out_dsntst_txbuf_empty <=i_host_ethtxbuf_empty or not b_tstdsn_to_ethtxbuf;
+p_out_dsntst_txbuf_empty <=i_eth_txbuf_empty or not b_tstdsn_to_ethtxbuf;
 p_out_dsntst_txbuf_full  <='1';
 
 

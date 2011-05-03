@@ -188,6 +188,8 @@ signal i_drp_ctrl                       : std_logic_vector(31 downto 0);
 
 signal i_ust_tst                        : std_logic_vector(31 downto 0);
 
+signal i_tst_txdcnt                     : std_logic_vector(15 downto 0);
+
 
 
 --MAIN
@@ -213,7 +215,7 @@ p_out_ust_tst(26)<=i_emac0_tx_ll_src_rdy_n;
 p_out_ust_tst(27)<=i_emac0_tx_ll_dst_rdy_n;
 
 p_out_ust_tst(28)<=i_usr0_rxdata_wr;
-p_out_ust_tst(29)<=i_usr0_rxdata_rdy;
+p_out_ust_tst(29)<=i_usr0_rxdata_rdy or OR_reduce(i_tst_txdcnt);
 
 p_out_ust_tst(31 downto 30)<=i_ust_tst(31 downto 30);
 
@@ -585,6 +587,18 @@ p_in_rst                        => i_emac0_rst
 );
 
 
+process(i_emac0_rst,i_emac0_tx_client_clkin)
+begin
+  if i_emac0_rst='1' then
+    i_tst_txdcnt<=(others=>'0');
+  elsif i_emac0_tx_client_clkin'event and i_emac0_tx_client_clkin='1' then
+    if i_emac0_tx_ll_src_rdy_n='1' then
+      i_tst_txdcnt<=(others=>'0');
+    else
+      i_tst_txdcnt<=i_tst_txdcnt + 1;
+    end if;
+  end if;
+end process;
 
 --END MAIN
 end behavioral;
