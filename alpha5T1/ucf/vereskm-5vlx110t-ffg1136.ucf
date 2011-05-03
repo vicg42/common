@@ -199,10 +199,10 @@ INST "ibufds_gtp_hdd_clkin"   DIFF_TERM = "TRUE" ;
 #INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 
 ##НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
-INST "m_hdd/gen_use_off.m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y4;
+#INST "m_hdd/gen_use_off.m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y4;
 
 ###ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
-#INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"   LOC=GTP_DUAL_X0Y4;
+INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"   LOC=GTP_DUAL_X0Y4;
 ##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y1;
 ##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[2].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y3;
 

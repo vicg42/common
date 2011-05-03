@@ -676,6 +676,7 @@ stimulate: process
   variable swt_dsntesting_to_ethtxbuf: std_logic;
   variable swt_ethtxbuf_to_vdbufrxd: std_logic;
   variable swt_ethtxbuf_to_hddbuf: std_logic;
+  variable eth_usrtxpkt_size: integer:=0;
 
   variable VctrlRegTST0 : std_logic_vector(15 downto 0);
 
@@ -772,7 +773,7 @@ begin
   swt_fmask2_eth_vctrl:=(others=>'0');
 
   swt_fmask_eth_hdd  :='1';--//Разрешение прохождения пакетов направление Eth-HDD
-  swt_fmask_eth_host :='0';--//Разрешение прохождения пакетов направление Eth-HOST
+  swt_fmask_eth_host :='1';--//Разрешение прохождения пакетов направление Eth-HOST
 
 
   --------------------------------
@@ -782,7 +783,7 @@ begin
   FrTxD_2DW_cnt :='0';--//передовать вместо видео информации счетчик. Начинается с 1
   AutoVCH_Change:='0';--//Изменение номерка видеоканала - 1/0 auto/mnl
   Pix8bit :='1';--//1 пиксель = 8 бит
-  PixLen  :=CONV_STD_LOGIC_VECTOR(10#128#, 32);--(10#20#, 32);--
+  PixLen  :=CONV_STD_LOGIC_VECTOR(10#256#, 32);--(10#20#, 32);--
   RowLen  :=CONV_STD_LOGIC_VECTOR(10#016#, 32);
   --0x584  - 1412pix
 
@@ -797,9 +798,9 @@ begin
   VctrlChParams(0).mem_addr_wr       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).mem_addr_rd       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).fr_subsampling    :=CONV_STD_LOGIC_VECTOR(16#000#, 2); --//Прореживание
-  VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#016#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
-  VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#004#, 16);--//Начало активной зоны кадра Y
-  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#096#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра Y
+  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#128#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#008#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='1';
@@ -1100,9 +1101,10 @@ begin
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//C_DSN_SWT_REG_FMASK_ETHG_HOST
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(1)-[15:8];  Маска(0)-[7:0]
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(3)-[15:8];  Маска(2)-[7:0]
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(5)-[15:8];  Маска(4)-[7:0]
+  User_Reg(0)(0):=swt_fmask_eth_host; --//Маска(1)-[15:8];  Маска(0)-[7:0]
+  User_Reg(0)(15 downto 1):=(others=>'0'); --//Маска(1)-[15:8];  Маска(0)-[7:0]
+  User_Reg(1)(15 downto 0):=(others=>'0'); --//Маска(3)-[15:8];  Маска(2)-[7:0]
+  User_Reg(2)(15 downto 0):=(others=>'0'); --//Маска(5)-[15:8];  Маска(4)-[7:0]
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
@@ -1220,14 +1222,19 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
---  User_Reg(0)(15 downto 0) :=CONV_STD_LOGIC_VECTOR(16#000A#, 16);--//0x000A
---  User_Reg(0)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#0201#, 16);
-  User_Reg(0)(31 downto 0):=CONV_STD_LOGIC_VECTOR(16#02010006#, 32);
-  User_Reg(1)(31 downto 0):=CONV_STD_LOGIC_VECTOR(16#06050403#, 32);
---  User_Reg(2)(31 downto 0):=CONV_STD_LOGIC_VECTOR(16#0A090807#, 32);
---  User_Reg(3)(31 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C0B0A#, 32);
+  eth_usrtxpkt_size:=7;    --//Размер передоваемых данных(txdata) (в байтах)
+  User_Reg(0)(15 downto  0):=CONV_STD_LOGIC_VECTOR(eth_usrtxpkt_size, 16);    --//Размер передоваемых данных(txdata) (в байтах)
+  User_Reg(0)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#0201#, 16);    --//txdata
+  User_Reg(1)(31 downto 0 ):=CONV_STD_LOGIC_VECTOR(16#06050403#, 32);--//txdata
+  User_Reg(2)(31 downto 0 ):=CONV_STD_LOGIC_VECTOR(16#0A090807#, 32);--//txdata
 
-  datasize:=2;
+  eth_usrtxpkt_size:=8;    --//Размер передоваемых данных(txdata) (в байтах)
+  User_Reg(3)(15 downto  0):=CONV_STD_LOGIC_VECTOR(eth_usrtxpkt_size, 16);    --//Размер передоваемых данных(txdata) (в байтах)
+  User_Reg(3)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#0807#, 16);    --//txdata
+  User_Reg(4)(31 downto 0 ):=CONV_STD_LOGIC_VECTOR(16#0C0B0A09#, 32);--//txdata
+  User_Reg(5)(31 downto 0 ):=CONV_STD_LOGIC_VECTOR(16#1211100D#, 32);--//txdata
+
+  datasize:=6;
   for y in 0 to datasize - 1 loop
     for i in 0 to 4 - 1 loop
       data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
@@ -1321,86 +1328,12 @@ begin
   wait_cycles(4, lclk);
 
 
---  --//Готовим значения регистров:
---  --//C_DSN_SWT_REG_VIDEO_PREPARATION / Bit Map:
---  User_Reg(0)(15 downto 0):=(others=>'0');
---  User_Reg(0)(C_DSN_SWT_REG_VPREAR_VPKT_MASK_MSB_BIT downto C_DSN_SWT_REG_VPREAR_VPKT_MASK_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_SWT_REG_VPREAR_VPKT_MASK_MSB_BIT-C_DSN_SWT_REG_VPREAR_VPKT_MASK_LSB_BIT+1); --
---  User_Reg(0)(C_DSN_SWT_REG_VPREAR_VP_MODE_MSB_BIT downto C_DSN_SWT_REG_VPREAR_VP_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_SWT_REG_VPREAR_VP_MODE_MSB_BIT-C_DSN_SWT_REG_VPREAR_VP_MODE_LSB_BIT+1); --
---  User_Reg(0)(C_DSN_SWT_REG_VPREAR_PKT_BYPASS_BIT):='0';
---
---  datasize:=1;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_VIDEO_PREPARATION, datasize, i_dev_ctrl, data, bus_in, bus_out);
-
   wait_cycles(4, lclk);
   --// Настройка модуля DSN_SWITCH.VHD
   --//End
   ----------------------------------------------------
   ----------------------------------------------------------------------------------------
 
---  ----------------------------------------------------------------------------------------
---  ----------------------------------------------------
---  --// Настройка модуля DSN_VM_VIDEO_PROCESSING.VHD
---  --//Begin
---  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
---  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
---  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
---
---  --//Готовим значения регистров:
---  i_FrameSize:=CONV_STD_LOGIC_VECTOR(16#20#, 64);
---
---  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#04#, 16);  --//C_DSN_VPROC_REG_PIX
---  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#02#, 16);  --//C_DSN_VPROC_REG_ROW
---  User_Reg(2)(15 downto 0):=i_FrameSize(15 downto 0);           --//C_DSN_VPROC_REG_FRAME_SIZE_LSB
---  User_Reg(3)(15 downto 0):=i_FrameSize(31 downto 16);          --//C_DSN_VPROC_REG_FRAME_SIZE_MSB
---  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#10#, 16);  --//C_DSN_VPROC_REG_MEM_ADDR_VCH0_IN_LSB
---  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#00#, 16);  --//C_DSN_VPROC_REG_MEM_ADDR_VCH0_IN_MSB
---
---  datasize:=6;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_DSN_VPROC_REG_PIX, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---  --//Готовим значения регистров:
---  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#80#, 16);  --//C_DSN_VPROC_REG_MEM_ADDR_VCH_OUT_LSB
---  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#00#, 16);  --//C_DSN_VPROC_REG_MEM_ADDR_VCH_OUT_MSB
---
---  datasize:=2;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_DSN_VPROC_REG_MEM_ADDR_VCH_OUT_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---  --//Готовим значения регистров:
---  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#01#, 16);  --//C_DSN_VPROC_REG_CTRL_L
---
---  datasize:=1;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_DSN_VPROC_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---
---  wait_cycles(4000000, lclk);
---  --// Настройка модуля DSN_VM_VIDEO_PROCESSING.VHD
---  --//End
---  ----------------------------------------------------
---  ----------------------------------------------------------------------------------------
 
 
   ----------------------------------------------------------------------------------------
@@ -2356,8 +2289,8 @@ begin
   --//Формируем командный пакет для накопителя
   --//поле user_ctrl
   User_Reg(0):=(others=>'0');
-  User_Reg(0)(C_TRLR_REG_USER_CTRL_MODE_MSB_BIT downto C_TRLR_REG_USER_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_TRLR_REG_USER_CTRL_MODE_HW, (C_TRLR_REG_USER_CTRL_MODE_MSB_BIT - C_TRLR_REG_USER_CTRL_MODE_LSB_BIT+1));
-  User_Reg(0)(C_TRLR_REG_USER_CTRL_SATA_CS_MASK_MSB_BIT downto C_TRLR_REG_USER_CTRL_SATA_CS_MASK_LSB_BIT):=CONV_STD_LOGIC_VECTOR(hdd_mask, (C_TRLR_REG_USER_CTRL_SATA_CS_MASK_MSB_BIT - C_TRLR_REG_USER_CTRL_SATA_CS_MASK_LSB_BIT+1));
+--  User_Reg(0)(C_TRLR_REG_USER_CTRL_MODE_MSB_BIT downto C_TRLR_REG_USER_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_TRLR_REG_USER_CTRL_MODE_HW, (C_TRLR_REG_USER_CTRL_MODE_MSB_BIT - C_TRLR_REG_USER_CTRL_MODE_LSB_BIT+1));
+--  User_Reg(0)(C_TRLR_REG_USER_CTRL_SATA_CS_MASK_MSB_BIT downto C_TRLR_REG_USER_CTRL_SATA_CS_MASK_LSB_BIT):=CONV_STD_LOGIC_VECTOR(hdd_mask, (C_TRLR_REG_USER_CTRL_SATA_CS_MASK_MSB_BIT - C_TRLR_REG_USER_CTRL_SATA_CS_MASK_LSB_BIT+1));
 
   User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#01#, 16);                 --//поле feature
   User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#02#, 16);                 --//поле lba
