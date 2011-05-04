@@ -8,7 +8,7 @@ vcom -93 -work plxsim "../../../common/hw/lib/alphadata/admxrc/vhdl/plxsim/lbpch
 
 
 ##-------------------------------
-##..SRC/LIB_ALPHA_DATA
+##..Lib AlphaData
 ##-------------------------------
 vcom -93 "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpmem_pkg.vhd"
 vcom -93 "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpbram0.vhd"
@@ -56,33 +56,8 @@ vcom -93 "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/localbus_
 vcom -93 "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/plxdssm.vhd"
 
 ##-------------------------------
-##..Мои библиотеки и константы проекта
+##../Xilinx xapp
 ##-------------------------------
-vcom -93 "../../../common/hw/lib/vicg/vicg_common_pkg.vhd"
-vcom -93 "../testbanch/prj_cfg_sim.vhd"
-vcom -93 "../../../common/veresk_m/prj_def.vhd"
-vcom -93 "../../../common/hw/lib/vicg/v5/gtp_drp_ctrl.vhd"
-vcom -93 "../../../common/hw/lib/vicg/v5/gtp_prog_clkmux.vhd"
-vcom -93 "../../../common/hw/lib/vicg/v5/mclk_gtp_wrap.vhd"
-
-
-##-------------------------------
-##..SRC/USER_MODULE/ALPHA_DATA
-##-------------------------------
-vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_pkg.vhd"
-vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_pll.vhd"
-vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl.vhd"
-vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr.vhd"
-vcom -93 "../../../common/hw/mem/alphadata/memory_ch_arbitr.vhd"
-
-##-------------------------------
-##..SRC/USER_MODULE/CFGDEV
-##-------------------------------
-vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd"
-vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev.vhd"
-vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_rxfifo.vhd"
-vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_txfifo.vhd"
-
 vcom -93 "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_pkg.vhd"
 vcom -93 "../../../common/hw/xapp/xapp691/src/vhdl/fifo_utils.vhd"
 vcom -93 "../../../common/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_fifo_pkg.vhd"
@@ -109,8 +84,37 @@ vcom -93 "../../../common/hw/xapp/xapp930/GenXlib_arch.vhd"
 vcom -93 "../../../common/hw/xapp/xapp930/Xil_RGB2YCrCb.vhd"
 #vcom -93 "../../../common/hw/xapp/xapp931/Xil_YCrCb2RGB.vhd"
 
+
 ##-------------------------------
-##..SRC/USER_MODULE/SATA
+##..Мои библиотеки и константы проекта
+##-------------------------------
+vcom -93 "../../../common/hw/lib/vicg/vicg_common_pkg.vhd"
+vcom -93 "../testbanch/prj_cfg_sim.vhd"
+vcom -93 "../../../common/veresk_m/prj_def.vhd"
+vcom -93 "../../../common/hw/lib/vicg/v5/gtp_drp_ctrl.vhd"
+vcom -93 "../../../common/hw/lib/vicg/v5/gtp_prog_clkmux.vhd"
+vcom -93 "../../../common/hw/lib/vicg/v5/mclk_gtp_wrap.vhd"
+
+
+##-------------------------------
+##..Мои модули /ALPHA_DATA
+##-------------------------------
+vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_pkg.vhd"
+vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_pll.vhd"
+vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl.vhd"
+vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr.vhd"
+vcom -93 "../../../common/hw/mem/alphadata/memory_ch_arbitr.vhd"
+
+##-------------------------------
+##..Мои модули /CFGDEV
+##-------------------------------
+vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd"
+vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev.vhd"
+vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_rxfifo.vhd"
+vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_txfifo.vhd"
+
+##-------------------------------
+##..Мои модули /SATA
 ##-------------------------------
 vcom -93 "../../../common/hw/sata/core_gen/sata_rxfifo.vhd"
 vcom -93 "../../../common/hw/sata/core_gen/sata_txfifo.vhd"
@@ -146,28 +150,28 @@ vcom -93 "../../../common/hw/sata/dsn_hdd.vhd"
 vcom -93 "../../../common/hw/sata/dsn_hdd_rambuf.vhd"
 
 ##-------------------------------
-##..SRC/USER_MODULE/ETH
+##..Мои модули /ETH
 ##-------------------------------
-vcom -93 "../../../common/veresk_m/eth/emac/eth_pkg.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/eth_rx_pkt_filter.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/address_swap_module_8.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/sim/testbanch/example_design/physical/gtp_dual_1000X.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/sim/testbanch/example_design/physical/rocketio_wrapper_gtp.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/sim/testbanch/example_design/physical/rocketio_wrapper_gtp_tile.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/sim/testbanch/example_design/emac_core.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/sim/testbanch/example_design/emac_core_block.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/sim/testbanch/example_design/emac_core_locallink.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/emac_core_main.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/eth_tx_rev1xx.vhd"
-vcom -93 "../../../common/veresk_m/eth/emac/eth_main.vhd"
+vcom -93 "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/address_swap_module_8.vhd"
+vcom -93 "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd"
+vcom -93 "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd"
+vcom -93 "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd"
+vcom -93 "../../../common/veresk_m/eth/sim/testbanch/example_design/physical/gtp_dual_1000X.vhd"
+vcom -93 "../../../common/veresk_m/eth/sim/testbanch/example_design/physical/rocketio_wrapper_gtp.vhd"
+vcom -93 "../../../common/veresk_m/eth/sim/testbanch/example_design/physical/rocketio_wrapper_gtp_tile.vhd"
+vcom -93 "../../../common/veresk_m/eth/sim/testbanch/example_design/emac_core.vhd"
+vcom -93 "../../../common/veresk_m/eth/sim/testbanch/example_design/emac_core_block.vhd"
+vcom -93 "../../../common/veresk_m/eth/sim/testbanch/example_design/emac_core_locallink.vhd"
+vcom -93 "../../../common/veresk_m/eth/src/emac_core_main.vhd"
+vcom -93 "../../../common/veresk_m/eth/src/eth_pkg.vhd"
+vcom -93 "../../../common/veresk_m/eth/src/eth_tx_rev1xx.vhd"
+vcom -93 "../../../common/veresk_m/eth/src/eth_rx_rev1xx.vhd"
+vcom -93 "../../../common/veresk_m/eth/src/eth_main.vhd"
 vcom -93 "../../../common/veresk_m/eth/dsn_ethg_pkg.vhd"
 vcom -93 "../../../common/veresk_m/eth/dsn_ethg.vhd"
 
 ##-------------------------------
-##..SRC/USER_MODULE/VIDEO
+##..Мои модули /VIDEO
 ##-------------------------------
 vcom -93 "../../../common/veresk_m/color_conv/core_gen/*.vhd"
 vcom -93 "../../../common/veresk_m/color_conv/vrgb2yuv_main_rev0xx.vhd"
@@ -188,6 +192,10 @@ vcom -93 "../../../common/hw/video/scaler/vscaler_main_rev3xx.vhd"
 vcom -93 "../../../common/hw/video/sobel/core_gen/*.vhd"
 vcom -93 "../../../common/hw/video/sobel/vsobel_main_rev3xx.vhd"
 
+
+##-------------------------------
+##..Мои модули /VERESK-M
+##-------------------------------
 vcom -93 "../../../common/veresk_m/tester/vtester_v01.vhd"
 
 vcom -93 "../../../common/veresk_m/vctrl/dsn_video_ctrl_pkg.vhd"
@@ -212,13 +220,11 @@ vcom -93 "../../../common/veresk_m/tracker_nik/dsn_track_nik.vhd"
 vcom -93 "../../../common/veresk_m/mirror/core_gen/*.vhd"
 vcom -93 "../../../common/veresk_m/mirror/vmirx_main.vhd"
 
-##-------------------------------
-##..SRC/USER_MODULE/VERESK-M
-##-------------------------------
 vcom -93 "../../../common/veresk_m/alphadata/lbus_dcm.vhd"
 vcom -93 "../../../common/veresk_m/alphadata/lbus_connector_32bit.vhd"
 
 vcom -93 "../../../common/veresk_m/core_gen/*.vhd"
+vcom -93 "../../../common/veresk_m/video_pkt_filter.vhd"
 vcom -93 "../../../common/veresk_m/dsn_host.vhd"
 vcom -93 "../../../common/veresk_m/dsn_switch.vhd"
 vcom -93 "../../../common/veresk_m/dsn_timer.vhd"

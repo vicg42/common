@@ -19,8 +19,14 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 
+library std;
+use std.textio.all;
+
 library plxsim;
 use plxsim.plxsim.all;
+
+library work;
+use work.vicg_common_pkg.all;
 use work.memif.all;
 use work.memif_sim.all;
 use work.prj_cfg.all;
@@ -28,13 +34,10 @@ use work.prj_def.all;
 use work.sata_pkg.all;
 use work.vereskm_pkg.all;
 use work.memory_ctrl_pkg.all;
-use work.vicg_common_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.dsn_track_pkg.all;
 use work.dsn_track_nik_pkg.all;
 
-library std;
-use std.textio.all;
 
 entity vereskm_main_tb is
 end vereskm_main_tb;
@@ -190,10 +193,10 @@ signal cor_pci_exp_txp : std_logic_vector((1 - 1) downto 0);
 signal cor_pci_exp_rxn : std_logic_vector((1 - 1) downto 0);
 signal cor_pci_exp_rxp : std_logic_vector((1 - 1) downto 0);
 
-signal eth_gtp_txp   : std_logic_vector(1 downto 0);
-signal eth_gtp_txn   : std_logic_vector(1 downto 0);
-signal eth_gtp_rxp   : std_logic_vector(1 downto 0);
-signal eth_gtp_rxn   : std_logic_vector(1 downto 0);
+signal i_eth_txp   : std_logic_vector(1 downto 0);
+signal i_eth_txn   : std_logic_vector(1 downto 0);
+signal i_eth_rxp   : std_logic_vector(1 downto 0);
+signal i_eth_rxn   : std_logic_vector(1 downto 0);
 signal mgtclk_p      : std_logic;
 signal mgtclk_n      : std_logic;
 
@@ -295,42 +298,34 @@ end writeNowToScreen;
 component vereskm_main
 generic
 (
---G_MEMCTRL_BANK_COUNT : integer:=1;
-
---G_USE_TRACK       : string:="ON";
---G_USE_ETH         : string:="ON";--"OFF";--
---G_USE_HDD         : string:="ON";--"OFF";--
---
---G_DBG_HDD         : string:="OFF";--
-
-G_SIM_HOST        : string:="OFF";
-G_SIM_PCIEXP      : std_logic:='0';
-G_DBG_PCIEXP      : string:="OFF";
-G_SIM             : string:="ON"
+G_SIM_HOST   : string:="OFF";
+G_SIM_PCIEXP : std_logic:='0';
+G_DBG_PCIEXP : string:="OFF";
+G_SIM        : string:="ON"
 );
 port
 (
 --------------------------------------------------
 --Светодиоды (Для платы ML505)
 --------------------------------------------------
-pin_out_led                      : out   std_logic_vector(7 downto 0);
-pin_out_led_C                    : out   std_logic;
-pin_out_led_E                    : out   std_logic;
-pin_out_led_N                    : out   std_logic;
-pin_out_led_S                    : out   std_logic;
-pin_out_led_W                    : out   std_logic;
+pin_out_led       : out   std_logic_vector(7 downto 0);
+pin_out_led_C     : out   std_logic;
+pin_out_led_E     : out   std_logic;
+pin_out_led_N     : out   std_logic;
+pin_out_led_S     : out   std_logic;
+pin_out_led_W     : out   std_logic;
 
-pin_out_TP                       : out   std_logic_vector(7 downto 0);
+pin_out_TP        : out   std_logic_vector(7 downto 0);
 
-pin_in_btn_C                     : in    std_logic;
-pin_in_btn_E                     : in    std_logic;
-pin_in_btn_N                     : in    std_logic;
-pin_in_btn_S                     : in    std_logic;
-pin_in_btn_W                     : in    std_logic;
+pin_in_btn_C      : in    std_logic;
+pin_in_btn_E      : in    std_logic;
+pin_in_btn_N      : in    std_logic;
+pin_in_btn_S      : in    std_logic;
+pin_in_btn_W      : in    std_logic;
 
-pin_out_ddr2_cke1                : out   std_logic;
-pin_out_ddr2_cs1                 : out   std_logic;
-pin_out_ddr2_odt1                : out   std_logic;
+pin_out_ddr2_cke1 : out   std_logic;
+pin_out_ddr2_cs1  : out   std_logic;
+pin_out_ddr2_odt1 : out   std_logic;
 
 --------------------------------------------------
 --Memory banks (up to 16 supported by this design)
@@ -391,19 +386,19 @@ ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 pin_out_sfp_tx_dis    : out  std_logic;                      --//SFP - TX DISABLE
 pin_in_sfp_sd         : in   std_logic;                      --//SFP - SD signal detect
 
-pin_out_eth_gtp_txp   : out   std_logic_vector(1 downto 0);
-pin_out_eth_gtp_txn   : out   std_logic_vector(1 downto 0);
-pin_in_eth_gtp_rxp    : in    std_logic_vector(1 downto 0);
-pin_in_eth_gtp_rxn    : in    std_logic_vector(1 downto 0);
-pin_in_eth0_clk_p     : in    std_logic;
-pin_in_eth0_clk_n     : in    std_logic;
+pin_out_eth_txp       : out   std_logic_vector(1 downto 0);
+pin_out_eth_txn       : out   std_logic_vector(1 downto 0);
+pin_in_eth_rxp        : in    std_logic_vector(1 downto 0);
+pin_in_eth_rxn        : in    std_logic_vector(1 downto 0);
+pin_in_eth_clk_p      : in    std_logic;
+pin_in_eth_clk_n      : in    std_logic;
 
-pin_out_gtp_X0Y6_txp  : out  std_logic_vector(1 downto 0);
-pin_out_gtp_X0Y6_txn  : out  std_logic_vector(1 downto 0);
-pin_in_gtp_X0Y6_rxp   : in   std_logic_vector(1 downto 0);
-pin_in_gtp_X0Y6_rxn   : in   std_logic_vector(1 downto 0);
-pin_in_gtp_X0Y6_clk_p : in   std_logic;
-pin_in_gtp_X0Y6_clk_n : in   std_logic;
+pin_out_gt_X0Y6_txp   : out  std_logic_vector(1 downto 0);
+pin_out_gt_X0Y6_txn   : out  std_logic_vector(1 downto 0);
+pin_in_gt_X0Y6_rxp    : in   std_logic_vector(1 downto 0);
+pin_in_gt_X0Y6_rxn    : in   std_logic_vector(1 downto 0);
+pin_in_gt_X0Y6_clk_p  : in   std_logic;
+pin_in_gt_X0Y6_clk_n  : in   std_logic;
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -1178,11 +1173,11 @@ begin
 
   --//Готовим значения регистров:
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_DSN_ETHG_REG_MAC_USRCTRL
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT):='0';--//Старшим байтом вперед
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT):='0';--//Младшим байтом вперед
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
+----  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT):='0';--//Старшим байтом вперед
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT):='0';--//Младшим байтом вперед
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
 
 
 --  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0001#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST (MULTICAST)
@@ -1966,9 +1961,9 @@ begin
 --  constant C_DSN_ETHG_REG_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
 --  constant C_DSN_ETHG_REG_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_DSN_ETHG_REG_TX_PATRN_PARAM
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
-  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
+--  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
 
   User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST
   User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_DSN_ETHG_REG_TX_PATRN1
@@ -3064,10 +3059,9 @@ end process p_mgtclk;
 -- Drive Gigabit Transceiver differential clock with 125MHz
 mgtclk_n <= not mgtclk_p;
 
---eth_gtp_txp,
---eth_gtp_txn,
-eth_gtp_rxp <=eth_gtp_txp;--"11";
-eth_gtp_rxn <=eth_gtp_txn;--"00";
+
+i_eth_rxp<=i_eth_txp;
+i_eth_rxn<=i_eth_txn;
 
 i_pciexp_txp <=CONV_STD_LOGIC_VECTOR(0, C_PCIEXPRESS_LINK_WIDTH);
 i_pciexp_txn <=CONV_STD_LOGIC_VECTOR(0, C_PCIEXPRESS_LINK_WIDTH);
@@ -3111,13 +3105,6 @@ i_pciexp_txn <=CONV_STD_LOGIC_VECTOR(0, C_PCIEXPRESS_LINK_WIDTH);
 fpga : vereskm_main
 generic map
 (
---G_MEMCTRL_BANK_COUNT => G_MEMCTRL_BANK_COUNT,
-
---G_USE_TRACK       => C_USE_TRACK,
---G_USE_ETH         => C_USE_ETH,
---G_USE_HDD         => C_USE_HDD,
---G_DBG_HDD         => C_DBG_HDD,
-
 G_SIM_HOST        => "ON",
 G_SIM_PCIEXP      => '1',
 G_DBG_PCIEXP      => "OFF",
@@ -3153,40 +3140,40 @@ pin_out_ddr2_odt1     => open,
 pin_out_sfp_tx_dis    => open,
 pin_in_sfp_sd         => '0',
 
-pin_out_eth_gtp_txp   => eth_gtp_txp,
-pin_out_eth_gtp_txn   => eth_gtp_txn,
-pin_in_eth_gtp_rxp    => eth_gtp_rxp,
-pin_in_eth_gtp_rxn    => eth_gtp_rxn,
-pin_in_eth0_clk_p     => mgtclk_p,
-pin_in_eth0_clk_n     => mgtclk_n,
+pin_out_eth_txp       => i_eth_txp,
+pin_out_eth_txn       => i_eth_txn,
+pin_in_eth_rxp        => i_eth_rxp,
+pin_in_eth_rxn        => i_eth_rxn,
+pin_in_eth_clk_p      => mgtclk_p,
+pin_in_eth_clk_n      => mgtclk_n,
 
-pin_out_gtp_X0Y6_txp  => open,
-pin_out_gtp_X0Y6_txn  => open,
-pin_in_gtp_X0Y6_rxp   => "11",
-pin_in_gtp_X0Y6_rxn   => "00",
-pin_in_gtp_X0Y6_clk_p => mgtclk_p,
-pin_in_gtp_X0Y6_clk_n => mgtclk_n,
+pin_out_gt_X0Y6_txp   => open,
+pin_out_gt_X0Y6_txn   => open,
+pin_in_gt_X0Y6_rxp    => "11",
+pin_in_gt_X0Y6_rxn    => "00",
+pin_in_gt_X0Y6_clk_p  => mgtclk_p,
+pin_in_gt_X0Y6_clk_n  => mgtclk_n,
 
 --------------------------------------------------
 --PCI-EXPRESS
 --------------------------------------------------
-pin_out_pciexp_txp  => i_pciexp_txp,--cor_pci_exp_txp,--
-pin_out_pciexp_txn  => i_pciexp_txn,--cor_pci_exp_txn,--
-pin_in_pciexp_rxp   => i_pciexp_rxp,--cor_pci_exp_rxp,--
-pin_in_pciexp_rxn   => i_pciexp_rxn,--cor_pci_exp_rxn,--
-pin_in_pciexp_clk_p => mgtclk_p,--cor_sys_clk_p,--mclka_n,--
-pin_in_pciexp_clk_n => mgtclk_n,--cor_sys_clk_n,--mclka_p,--
+pin_out_pciexp_txp    => i_pciexp_txp,--cor_pci_exp_txp,--
+pin_out_pciexp_txn    => i_pciexp_txn,--cor_pci_exp_txn,--
+pin_in_pciexp_rxp     => i_pciexp_rxp,--cor_pci_exp_rxp,--
+pin_in_pciexp_rxn     => i_pciexp_rxn,--cor_pci_exp_rxn,--
+pin_in_pciexp_clk_p   => mgtclk_p,--cor_sys_clk_p,--mclka_n,--
+pin_in_pciexp_clk_n   => mgtclk_n,--cor_sys_clk_n,--mclka_p,--
 
 --------------------------------------------------
 --Driver
 --------------------------------------------------
-pin_out_sata_txn   => open,
-pin_out_sata_txp   => open,
-pin_in_sata_rxn    =>"11",
-pin_in_sata_rxp    =>"11",
+pin_out_sata_txn      => open,
+pin_out_sata_txp      => open,
+pin_in_sata_rxn       =>"11",
+pin_in_sata_rxp       =>"11",
 
-pin_in_sata_clk_n  => mclka_n,
-pin_in_sata_clk_p  => mclka_p,
+pin_in_sata_clk_n     => mclka_n,
+pin_in_sata_clk_p     => mclka_p,
 
 
 lclk       => lclk,
