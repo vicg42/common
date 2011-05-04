@@ -27,6 +27,7 @@ constant C_USE_ETH                           : string:="ON";
 constant C_USE_HDD                           : string:="OFF";
 
 constant C_DBG_HDD                           : string:="OFF";
+constant G_DBG_ETH                           : string:="OFF";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller
