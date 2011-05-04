@@ -60,13 +60,13 @@ NET "pin_out_ddr2_odt1"   LOC="U10";
 #--------------------------------------------------------------------------
 #Назначение пинов
 #--------------------------------------------------------------------------
-NET "pin_in_gtp_X0Y6_clk_p" LOC = "E4";##"GTP_DUAL_X0Y6";
-NET "pin_in_gtp_X0Y6_clk_n" LOC = "D4";
+NET "pin_in_gt_X0Y6_clk_p" LOC = "E4";##"GTP_DUAL_X0Y6";
+NET "pin_in_gt_X0Y6_clk_n" LOC = "D4";
 
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
-INST "m_gtp_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y6";
+INST "m_gt_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y6";
 
 #############################################################################
 ###############       Проект Ethernet        ################################
@@ -77,8 +77,8 @@ INST "m_gtp_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y6";
 NET "pin_out_sfp_tx_dis" LOC = "AB6";##//SFP - TX DISABLE
 NET "pin_in_sfp_sd"      LOC = "AB7";##//SFP - SD signal detect
 
-NET "pin_in_eth0_clk_p" LOC = "D8";##"GTP_DUAL_X0Y7";
-NET "pin_in_eth0_clk_n" LOC = "C8";
+NET "pin_in_eth_clk_p" LOC = "D8";##"GTP_DUAL_X0Y7";
+NET "pin_in_eth_clk_n" LOC = "C8";
 
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
@@ -146,7 +146,7 @@ TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
 #--------------------------------------------------------------------------
 NET "pin_in_pciexp_clk_p"                     LOC = "AL7";
 NET "pin_in_pciexp_clk_n"                     LOC = "AM7";
-INST "ibuf_pciexp_gtp_refclk"               DIFF_TERM = "TRUE" ;
+INST "ibuf_pciexp_gt_refclk"                  DIFF_TERM = "TRUE" ;
 
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
@@ -176,7 +176,7 @@ NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wr
 #NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";##//if PCIe Lines==1
 TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 
-NET "i_pciexp_gtp_refclkin" PERIOD = 10ns;
+NET "i_pciexp_gt_refclk" PERIOD = 10ns;
 
 ##INST "m_host/m_pciexp" AREA_GROUP = "AG_PCIEXPRESS";
 ##AREA_GROUP "AG_PCIEXPRESS" RANGE = SLICE_X75Y76:SLICE_X103Y5;
@@ -191,7 +191,7 @@ NET "i_pciexp_gtp_refclkin" PERIOD = 10ns;
 #--------------------------------------------------------------------------
 NET "pin_in_sata_clk_p"  LOC = "P4"  | IOSTANDARD = "LVPECL_25";###CLK150MHz
 NET "pin_in_sata_clk_n"  LOC = "P3"  | IOSTANDARD = "LVPECL_25";
-INST "ibufds_gtp_hdd_clkin"   DIFF_TERM = "TRUE" ;
+INST "ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 
 #--------------------------------------------------------------------------
 #Расположение компоненов в кристале
