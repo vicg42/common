@@ -116,6 +116,38 @@ set _projects [ list \
       [ list "../../../common/hw/video/sobel/core_gen/vsobel_bram.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/sobel/core_gen/vsobel_sub.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/core_gen/sata_txfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/core_gen/hdd_txfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/sata/src/sata_dcm.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_crc.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_spd_ctrl_v5gtp.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_v5gtp.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_oob.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_llayer.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_tlayer.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_alayer.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_host.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_raid_decoder.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/dsn_hdd_rambuf.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/mirror/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
@@ -131,19 +163,14 @@ set _projects [ list \
       [ list "../../../common/veresk_m/tracker_nik/dsn_track_nik.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tracker_nik/trc_nik_core.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tracker_nik/trc_nik_grado.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_tx_mac_frame_header_set.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_rx_mac_padding_clr.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_rx_mac_frame_header_clr.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_rx_mac_cheker.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_tx.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_rx.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/emac_core_main.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/emac/eth_rx_pkt_filter.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/src/eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/src/emac_core_main.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/eth/dsn_ethg.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/alphadata/lbus_connector_32bit.vhd" $_VHDMod ] \
@@ -166,38 +193,10 @@ set _projects [ list \
       [ list "../../../common/veresk_m/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/core_gen/host_vbuf.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vereskm_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/video_pkt_filter.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_timer.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_switch.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_host.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/sata_cmdfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/hdd_host_cmdfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/hdd_host_rxfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/hdd_host_txfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/core_gen/hdd_txstream_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_test.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_scrambler.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_phy_layer_transmiter.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_phy_layer_receiver.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_phy_layer_oob_cntrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_crc.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_transport_layer.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_speed_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_rocketio.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_phy_layer.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/src/sata_link_layer.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_app_layer_data_mux.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_app_layer_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_host_core/sata_host.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_app_layer.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/balance_trlr_applr.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/src/sata_dcm.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/sata_dsn.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/dsn_hdd_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_m/sata_old/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/sata_old/dsn_hdd_rambuf.vhd" $_VHDMod ] \
       [ list "../src/pci_express/core_gen/core_pciexp_ep_blk_plus/source/use_newinterrupt.v" $_VMod ] \
       [ list "../src/pci_express/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_if.v" $_VMod ] \
       [ list "../src/pci_express/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll.v" $_VMod ] \
