@@ -468,19 +468,18 @@ p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
 -------------------------------
 p_in_eth_clk              : in   std_logic;                     --//
 
-p_in_eth_rxd_rdy          : in   std_logic;                     --//
 p_in_eth_rxd_sof          : in   std_logic;                     --//
+p_in_eth_rxd_eof          : in   std_logic;                     --//
 p_in_eth_rxbuf_din        : in   std_logic_vector(31 downto 0); --//
 p_in_eth_rxbuf_wr         : in   std_logic;                     --//
 p_out_eth_rxbuf_empty     : out  std_logic;                     --//
 p_out_eth_rxbuf_full      : out  std_logic;                     --//
 
-p_out_eth_txbuf_drdy      : out  std_logic;
+p_out_eth_txd_rdy         : out  std_logic;
 p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
 p_in_eth_txbuf_rd         : in   std_logic;                     --//
 p_out_eth_txbuf_empty     : out  std_logic;                     --//
 p_out_eth_txbuf_full      : out  std_logic;                     --//
-p_out_eth_txbuf_aempty    : out  std_logic;                     --//
 
 -------------------------------
 -- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)

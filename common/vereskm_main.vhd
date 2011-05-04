@@ -18,8 +18,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
---library ieee_proposed;
---use ieee_proposed.float_pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
@@ -34,14 +35,6 @@ use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
-
----- synopsys translate_off
---library unisim;
---use unisim.vcomponents.all;
----- synopsys translate_on
-
-Library UNISIM;
-use UNISIM.vcomponents.all;
 
 entity vereskm_main is
 generic
@@ -134,19 +127,19 @@ ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 pin_out_sfp_tx_dis    : out  std_logic;                      --//SFP - TX DISABLE
 pin_in_sfp_sd         : in   std_logic;                      --//SFP - SD signal detect
 
-pin_out_eth_gtp_txp   : out   std_logic_vector(1 downto 0);
-pin_out_eth_gtp_txn   : out   std_logic_vector(1 downto 0);
-pin_in_eth_gtp_rxp    : in    std_logic_vector(1 downto 0);
-pin_in_eth_gtp_rxn    : in    std_logic_vector(1 downto 0);
-pin_in_eth0_clk_p     : in    std_logic;
-pin_in_eth0_clk_n     : in    std_logic;
+pin_out_eth_txp       : out   std_logic_vector(1 downto 0);
+pin_out_eth_txn       : out   std_logic_vector(1 downto 0);
+pin_in_eth_rxp        : in    std_logic_vector(1 downto 0);
+pin_in_eth_rxn        : in    std_logic_vector(1 downto 0);
+pin_in_eth_clk_p      : in    std_logic;
+pin_in_eth_clk_n      : in    std_logic;
 
-pin_out_gtp_X0Y6_txp  : out  std_logic_vector(1 downto 0);
-pin_out_gtp_X0Y6_txn  : out  std_logic_vector(1 downto 0);
-pin_in_gtp_X0Y6_rxp   : in   std_logic_vector(1 downto 0);
-pin_in_gtp_X0Y6_rxn   : in   std_logic_vector(1 downto 0);
-pin_in_gtp_X0Y6_clk_p : in   std_logic;
-pin_in_gtp_X0Y6_clk_n : in   std_logic;
+pin_out_gt_X0Y6_txp   : out  std_logic_vector(1 downto 0);
+pin_out_gt_X0Y6_txn   : out  std_logic_vector(1 downto 0);
+pin_in_gt_X0Y6_rxp    : in   std_logic_vector(1 downto 0);
+pin_in_gt_X0Y6_rxn    : in   std_logic_vector(1 downto 0);
+pin_in_gt_X0Y6_clk_p  : in   std_logic;
+pin_in_gt_X0Y6_clk_n  : in   std_logic;
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -260,10 +253,10 @@ signal rst_sys_n                        : std_logic;
 signal i_refclk200MHz                   : std_logic;
 signal g_refclk200MHz                   : std_logic;
 
-signal i_gtp_X0Y6_rst                   : std_logic;
-signal i_gtp_X0Y6_clkin                 : std_logic;
---signal i_gtp_X0Y6_refclkout             : std_logic;
---signal g_gtp_X0Y6_refclkout             : std_logic;
+signal i_gt_X0Y6_rst                    : std_logic;
+signal i_gt_X0Y6_clkin                  : std_logic;
+--signal i_gt_X0Y6_refclkout              : std_logic;
+--signal g_gt_X0Y6_refclkout              : std_logic;
 
 signal ramclki                          : std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 
@@ -284,8 +277,8 @@ signal i_memctrl_pllclk2x0              : std_logic;
 signal i_memctrl_pllclk2x90             : std_logic;
 signal i_memctrl_pll_rst_out            : std_logic;
 
-signal i_pciexp_gtp_refclkin            : std_logic;
-signal g_pciexp_gtp_refclkout           : std_logic;
+signal i_pciexp_gt_refclk               : std_logic;
+signal g_pciexp_gt_refclkout            : std_logic;
 
 signal i_host_module_rdy                : std_logic;
 signal i_host_rst_n                     : std_logic;
@@ -364,25 +357,24 @@ signal i_swt_module_rst                 : std_logic;
 signal i_swt_cfg_rxdata                 : std_logic_vector(15 downto 0);
 signal i_swt_tst_out                    : std_logic_vector(31 downto 0);
 
+signal i_eth_gt_refclk125               : std_logic;
+signal g_eth_gt_refclkout               : std_logic;
 signal i_eth_module_rst                 : std_logic;
 signal i_eth_module_rdy                 : std_logic;
 signal i_eth_module_error               : std_logic;
 signal i_eth_module_gtp_plllkdet        : std_logic;
 signal i_eth_cfg_rxdata                 : std_logic_vector(15 downto 0);
-signal g_ethg_swt_bufclk                : std_logic;
-signal i_eth0_rxdata_rdy                : std_logic;
-signal i_eth0_rxdata_sof                : std_logic;
-signal i_eth0_rxbuf_din                 : std_logic_vector(31 downto 0);
-signal i_eth0_rxbuf_wd                  : std_logic;
-signal i_eth0_rxbuf_empty               : std_logic;
-signal i_eth0_rxbuf_full                : std_logic;
-signal i_eth0_txdata_rdy                : std_logic;
-signal i_eth0_txbuf_dout                : std_logic_vector(31 downto 0);
-signal i_eth0_txbuf_rd                  : std_logic;
-signal i_eth0_txbuf_empty               : std_logic;
-signal i_eth0_txbuf_full                : std_logic;
-signal i_eth0_txbuf_aempty              : std_logic;
-signal i_eth0_gtp_refclk_125MHz         : std_logic;
+signal i_eth_rxd_sof                    : std_logic;
+signal i_eth_rxd_eof                    : std_logic;
+signal i_eth_rxbuf_din                  : std_logic_vector(31 downto 0);
+signal i_eth_rxbuf_wr                   : std_logic;
+signal i_eth_rxbuf_empty                : std_logic;
+signal i_eth_rxbuf_full                 : std_logic;
+signal i_eth_txd_rdy                    : std_logic;
+signal i_eth_txbuf_dout                 : std_logic_vector(31 downto 0);
+signal i_eth_txbuf_rd                   : std_logic;
+signal i_eth_txbuf_empty                : std_logic;
+signal i_eth_txbuf_full                 : std_logic;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
 
@@ -653,7 +645,7 @@ ramclki <= (others => '-');
 rst_sys_n <= lreset_l;
 
 i_host_rst_n        <=    rst_sys_n;
-i_gtp_X0Y6_rst      <=not i_host_module_rdy;
+i_gt_X0Y6_rst       <=not i_host_module_rdy;
 i_tmr_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_cfgdev_module_rst <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_eth_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all or i_host_rgctrl_rst_eth;
@@ -687,18 +679,18 @@ ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => refclk_p, IB => refclk_n, O  => 
 bufg_refclk  : BUFG              port map(I  => i_refclk200MHz, O  => g_refclk200MHz);
 
 --//Input 100MHz reference clock for PCI-EXPRESS
-ibuf_pciexp_gtp_refclk : IBUFDS port map (I=>pin_in_pciexp_clk_p, IB=> pin_in_pciexp_clk_n, O=>i_pciexp_gtp_refclkin );
+ibuf_pciexp_gt_refclk : IBUFDS port map (I=>pin_in_pciexp_clk_p, IB=> pin_in_pciexp_clk_n, O=>i_pciexp_gt_refclk );
 
 --//Input 150MHz reference clock for SATA
-ibufds_gtp_hdd_clkin : IBUFDS port map(I  => pin_in_sata_clk_p, IB => pin_in_sata_clk_n, O  => i_hdd_gt_refclk150);
+ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p, IB => pin_in_sata_clk_n, O  => i_hdd_gt_refclk150);
 
 --//Input 125MHz reference clock for Eth
-ibufds_gtp_X0Y6_clkin : IBUFDS port map(I => pin_in_gtp_X0Y6_clk_p, IB => pin_in_gtp_X0Y6_clk_n, O => i_gtp_X0Y6_clkin);
+ibufds_X0Y6_gt_refclk : IBUFDS port map(I => pin_in_gt_X0Y6_clk_p, IB => pin_in_gt_X0Y6_clk_n, O => i_gt_X0Y6_clkin);
 
 --//Программирую ветвление опорной частоты GTP_X0Y6
---//Т.к в данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth0_clk_n/p, а
+--//Т.к в данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth_clk_n/p, а
 --//с линии CLKINNORTH (более подробно см. xilinx manual ug196.pdf/Appendix F)
-m_gtp_refclkout : gtp_prog_clkmux
+m_gt_refclkout : gtp_prog_clkmux
 generic map
 (
 G_CLKIN_CHANGE      => '0',   --//разрешение/запрет изменения состояния мультиплексора CLKIN    - '1'/'0'
@@ -710,25 +702,25 @@ G_CLKSOUTH_MUX_VAL  => '1',   --//Значение для мультиплексора CLKSOUTH
 G_CLKNORTH_MUX_VAL  => '1'    --//Значение для мультиплексора CLKNORTH
 )
 port map(
-p_in_drp_rst    => i_gtp_X0Y6_rst,
-p_in_drp_clk    => g_pciexp_gtp_refclkout,--g_hdd_dcm_clkin,--g_gtp_X0Y6_refclkout,--
+p_in_drp_rst    => i_gt_X0Y6_rst,
+p_in_drp_clk    => g_pciexp_gt_refclkout,
 
-p_out_txp       => pin_out_gtp_X0Y6_txp,
-p_out_txn       => pin_out_gtp_X0Y6_txn,
-p_in_rxp        => pin_in_gtp_X0Y6_rxp,
-p_in_rxn        => pin_in_gtp_X0Y6_rxn,
+p_out_txp       => pin_out_gt_X0Y6_txp,
+p_out_txn       => pin_out_gt_X0Y6_txn,
+p_in_rxp        => pin_in_gt_X0Y6_rxp,
+p_in_rxn        => pin_in_gt_X0Y6_rxn,
 
-p_in_clkin      => i_gtp_X0Y6_clkin,
-p_out_refclkout => open --i_gtp_X0Y6_refclkout
+p_in_clkin      => i_gt_X0Y6_clkin,
+p_out_refclkout => open --i_gt_X0Y6_refclkout
 );
 
-----//Буду использовать g_gtp_X0Y6_refclkout для тактирования блока GTP_X0Y7/DRP (Ethernet)
---bufg_gtp_X0Y6_refclk  : BUFG port map(I  => i_gtp_X0Y6_refclkout, O  => g_gtp_X0Y6_refclkout);
+----//Буду использовать g_gt_X0Y6_refclkout для тактирования блока GTP_X0Y7/DRP (Ethernet)
+--bufg_gt_X0Y6_refclk  : BUFG port map(I  => i_gt_X0Y6_refclkout, O  => g_gt_X0Y6_refclkout);
 
 --//Input 125MHz reference clock for GTP_X0Y7 Eth_MAC0
---//В данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth0_clk_n/p, а
+--//В данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth_clk_n/p, а
 --//с линии CLKINNORTH (более подробно см. xilinx manual ug196.pdf/Appendix F)
-ibufds_gtp_ethmac0_clkin : IBUFDS port map(I  => pin_in_eth0_clk_p, IB => pin_in_eth0_clk_n, O  => i_eth0_gtp_refclk_125MHz);
+ibufds_gt_eth_refclk : IBUFDS port map(I  => pin_in_eth_clk_p, IB => pin_in_eth_clk_n, O  => i_eth_gt_refclk125);
 
 --//DCM Local Bus
 m_dcm_lbus : lbus_dcm
@@ -860,7 +852,7 @@ p_in_cfg_done     => i_dev_cfg_wd(C_CFGDEV_TMR),
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
 -------------------------------
-p_in_tmr_clk      => g_pciexp_gtp_refclkout,
+p_in_tmr_clk      => g_pciexp_gt_refclkout,
 p_out_tmr_rdy     => open,
 p_out_tmr_error   => open,
 
@@ -933,21 +925,20 @@ p_out_hdd_vbuf_pfull      => i_hdd_vbuf_pfull,
 -------------------------------
 -- Связь с Eth(dsn_ethg.vhd) (ethg_clk domain)
 -------------------------------
-p_in_eth_clk              => g_ethg_swt_bufclk,
+p_in_eth_clk              => g_eth_gt_refclkout,
 
-p_in_eth_rxd_rdy          => i_eth0_rxdata_rdy,
-p_in_eth_rxd_sof          => i_eth0_rxdata_sof,
-p_in_eth_rxbuf_din        => i_eth0_rxbuf_din,
-p_in_eth_rxbuf_wr         => i_eth0_rxbuf_wd,
-p_out_eth_rxbuf_empty     => i_eth0_rxbuf_empty,
-p_out_eth_rxbuf_full      => i_eth0_rxbuf_full,
+p_in_eth_rxd_sof          => i_eth_rxd_sof,
+p_in_eth_rxd_eof          => i_eth_rxd_eof,
+p_in_eth_rxbuf_din        => i_eth_rxbuf_din,
+p_in_eth_rxbuf_wr         => i_eth_rxbuf_wr,
+p_out_eth_rxbuf_empty     => i_eth_rxbuf_empty,
+p_out_eth_rxbuf_full      => i_eth_rxbuf_full,
 
-p_out_eth_txbuf_drdy      => i_eth0_txdata_rdy,
-p_out_eth_txbuf_dout      => i_eth0_txbuf_dout,
-p_in_eth_txbuf_rd         => i_eth0_txbuf_rd,
-p_out_eth_txbuf_empty     => i_eth0_txbuf_empty,
-p_out_eth_txbuf_full      => i_eth0_txbuf_full,
-p_out_eth_txbuf_aempty    => i_eth0_txbuf_aempty,
+p_out_eth_txd_rdy         => i_eth_txd_rdy,
+p_out_eth_txbuf_dout      => i_eth_txbuf_dout,
+p_in_eth_txbuf_rd         => i_eth_txbuf_rd,
+p_out_eth_txbuf_empty     => i_eth_txbuf_empty,
+p_out_eth_txbuf_full      => i_eth_txbuf_full,
 
 
 -------------------------------
@@ -998,7 +989,9 @@ p_in_rst => i_swt_module_rst
 m_ethg : dsn_ethg
 generic map
 (
-G_MODULE_USE => C_USE_ETH
+G_MODULE_USE => C_USE_ETH,
+G_DBG        => G_DBG_ETH,
+G_SIM        => G_SIM
 )
 port map
 (
@@ -1023,59 +1016,49 @@ p_in_cfg_rst          => i_cfgdev_module_rst,
 -------------------------------
 -- STATUS модуля dsn_ethg.vhd
 -------------------------------
-p_out_eth_rdy               => i_eth_module_rdy,
-p_out_eth_error             => i_eth_module_error,
-p_out_eth_gtp_plllkdet      => i_eth_module_gtp_plllkdet,
+p_out_eth_rdy          => i_eth_module_rdy,
+p_out_eth_error        => i_eth_module_error,
+p_out_eth_gt_plllkdet  => i_eth_module_gtp_plllkdet,
+
+p_out_sfp_tx_dis       => pin_out_sfp_tx_dis,
+p_in_sfp_sd            => pin_in_sfp_sd,
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_eth0_bufclk           => g_ethg_swt_bufclk,
+p_out_eth_rxbuf_din    => i_eth_rxbuf_din,
+p_out_eth_rxbuf_wr     => i_eth_rxbuf_wr,
+p_in_eth_rxbuf_full    => i_eth_rxbuf_full,
+p_out_eth_rxd_sof      => i_eth_rxd_sof,
+p_out_eth_rxd_eof      => i_eth_rxd_eof,
 
-p_out_eth0_rxdata_rdy       => i_eth0_rxdata_rdy,
-p_out_eth0_rxdata_sof       => i_eth0_rxdata_sof,
-p_out_eth0_rxbuf_din        => i_eth0_rxbuf_din,
-p_out_eth0_rxbuf_wd         => i_eth0_rxbuf_wd,
-p_in_eth0_rxbuf_empty       => i_eth0_rxbuf_empty,
-p_in_eth0_rxbuf_full        => i_eth0_rxbuf_full,
+p_in_eth_txbuf_dout    => i_eth_txbuf_dout,
+p_out_eth_txbuf_rd     => i_eth_txbuf_rd,
+p_in_eth_txbuf_empty   => i_eth_txbuf_empty,
+p_in_eth_txd_rdy       => i_eth_txd_rdy,
 
-p_in_eth0_txdata_rdy        => i_eth0_txdata_rdy,
-p_in_eth0_txbuf_dout        => i_eth0_txbuf_dout,
-p_out_eth0_txbuf_rd         => i_eth0_txbuf_rd,
-p_in_eth0_txbuf_empty       => i_eth0_txbuf_empty,
-p_in_eth0_txbuf_empty_almost=> i_eth0_txbuf_aempty,
+--------------------------------------------------
+--ETH Driver
+--------------------------------------------------
+p_out_eth_gt_txp       => pin_out_eth_txp,
+p_out_eth_gt_txn       => pin_out_eth_txn,
+p_in_eth_gt_rxp        => pin_in_eth_rxp,
+p_in_eth_gt_rxn        => pin_in_eth_rxn,
 
--------------------------------
--- EthG Drive
--------------------------------
---//Связь с внешиним приемопередатчиком
-p_out_eth0_gtp_txp          => pin_out_eth_gtp_txp(0),
-p_out_eth0_gtp_txn          => pin_out_eth_gtp_txn(0),
-p_in_eth0_gtp_rxp           => pin_in_eth_gtp_rxp(0),
-p_in_eth0_gtp_rxn           => pin_in_eth_gtp_rxn(0),
-
-p_in_eth0_clkref            => i_eth0_gtp_refclk_125MHz,
-
-p_out_eth1_gtp_txp          => pin_out_eth_gtp_txp(1),
-p_out_eth1_gtp_txn          => pin_out_eth_gtp_txn(1),
-p_in_eth1_gtp_rxp           => pin_in_eth_gtp_rxp(1),
-p_in_eth1_gtp_rxn           => pin_in_eth_gtp_rxn(1),
-
-p_out_sfp_tx_dis            => pin_out_sfp_tx_dis,
-p_in_sfp_sd                 => pin_in_sfp_sd,
+p_in_eth_gt_refclk     => i_eth_gt_refclk125,
+p_out_eth_gt_refclkout => g_eth_gt_refclkout,
+p_in_eth_gt_drpclk     => g_pciexp_gt_refclkout,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst                  => i_eth_tst_out,
+p_in_tst               => "00000000000000000000000000000000",
+p_out_tst              => i_eth_tst_out,
 
 -------------------------------
 --System
 -------------------------------
-p_out_eth0_sync_acq_status => open,
-p_in_gtp_drp_clk           => g_pciexp_gtp_refclkout,--g_hdd_dcm_clkin,--g_gtp_X0Y6_refclkout,--
-
-p_in_rst => i_eth_module_rst
+p_in_rst               => i_eth_module_rst
 );
 
 
@@ -1129,7 +1112,7 @@ p_out_tst             => i_dsntst_tst_out,
 -------------------------------
 --System
 -------------------------------
-p_in_tmrclk => g_pciexp_gtp_refclkout,--g_refclk200MHz,
+p_in_tmrclk => g_pciexp_gt_refclkout,--g_refclk200MHz,
 
 p_in_clk    => i_dsntst_bufclk,
 p_in_rst    => i_dsntst_module_rst
@@ -1662,8 +1645,8 @@ p_out_pciexp_txn   => pin_out_pciexp_txn,
 p_in_pciexp_rxp    => pin_in_pciexp_rxp,
 p_in_pciexp_rxn    => pin_in_pciexp_rxn,
 
-p_in_pciexp_gt_clkin   => i_pciexp_gtp_refclkin,
-p_out_pciexp_gt_clkout => g_pciexp_gtp_refclkout,
+p_in_pciexp_gt_clkin   => i_pciexp_gt_refclk,
+p_out_pciexp_gt_clkout => g_pciexp_gt_refclkout,
 
 --------------------------------------------------
 --Связь с уст-вами проекта Veresk-M
@@ -1808,10 +1791,10 @@ i_host_dev_dout     <=i_host_devcfg_rxdata when i_host_rdevctrl_hdevadr=CONV_STD
                       (others=>'0');
 
 
-i_host_dev_fifoflag(C_DEV_FIFO_FLAG_TXFIFO_PFULL_BIT)<=i_eth0_txbuf_full  when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, i_host_rdevctrl_hdevadr'length) else
+i_host_dev_fifoflag(C_DEV_FIFO_FLAG_TXFIFO_PFULL_BIT)<=i_eth_txbuf_full  when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, i_host_rdevctrl_hdevadr'length) else
                                                        '0';
 
-i_host_dev_fifoflag(C_DEV_FIFO_FLAG_RXFIFO_EMPTY_BIT)<=i_eth0_rxbuf_empty when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, i_host_rdevctrl_hdevadr'length) else
+i_host_dev_fifoflag(C_DEV_FIFO_FLAG_RXFIFO_EMPTY_BIT)<=i_eth_rxbuf_empty when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, i_host_rdevctrl_hdevadr'length) else
                                                        i_host_vbuf_empty  when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_rdevctrl_hdevadr'length) else
                                                        i_trcbufo_empty    when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_TRC_DBUF, i_host_rdevctrl_hdevadr'length) else
                                                        '0';
@@ -2431,7 +2414,7 @@ pin_out_led(7)<= i_hdd_dbgled(0).link;
 ---------------------------------
 ----System
 ---------------------------------
---p_in_clk       => g_gtp_X0Y6_refclkout,
+--p_in_clk       => g_gt_X0Y6_refclkout,
 --p_in_rst       => '0'
 --);
 --
@@ -2451,7 +2434,7 @@ pin_out_led(7)<= i_hdd_dbgled(0).link;
 ---------------------------------
 ----System
 ---------------------------------
---p_in_clk       => g_ethg_swt_bufclk,
+--p_in_clk       => g_eth_gt_refclkout,
 --p_in_rst       => '0'
 --);
 end generate gen_ml505;

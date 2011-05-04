@@ -74,7 +74,7 @@ p_in_cfg_done         : in   std_logic;                     --//
 --//Статусы
 p_out_trc_hirq        : out   std_logic;                    --//Хост: Прерывание - Можно забирать данные обработки
 p_out_trc_hdrdy       : out   std_logic;                    --//Хост: Флаг есть данные
-p_out_trc_hfrmrk      : out   std_logic_vector(31 downto 0);--//Хост: Маркер обработаного кадра
+p_out_trc_hfrmrk      : out   std_logic_vector(31 downto 0);--//Хост: Размер обработаных данных(байты)
 p_in_trc_hrddone      : in    std_logic;                    --//Хост: Подтверждение вычитки данных обработки
 
 p_out_trc_bufo_dout   : out   std_logic_vector(31 downto 0);--//Буфер результата обработки
@@ -293,6 +293,7 @@ signal i_trc_irq_width               : std_logic;--_vector(0 downto 0);
 signal i_trc_irq                     : std_logic;--_vector(0 downto 0);
 signal i_trc_drdy                    : std_logic;--_vector(0 downto 0);
 signal i_trc_drdy_dly                : std_logic;
+signal i_trc_dsize                   : std_logic_vector(31 downto 0);
 
 signal g_trcbufo_dout_en             : std_logic;
 signal i_trcbufo_dout                : std_logic_vector(31 downto 0);
@@ -497,7 +498,7 @@ p_out_trc_hdrdy<=i_trc_drdy;
 p_out_trc_hirq <=i_trc_irq_width;
 
 --p_out_trc_hfrmrk<=i_mem_wdptr;
-p_out_trc_hfrmrk<=i_mem_wdptr_kt + i_mem_ktcnt_size;
+p_out_trc_hfrmrk<=i_trc_dsize;--i_mem_wdptr_kt + i_mem_ktcnt_size;
 
 p_out_trc_busy<=i_trc_busy;
 
@@ -640,6 +641,7 @@ begin
     i_trc_drdy<='0';
     i_trc_work<='0';
     i_trc_busy<=(others=>'0');
+    i_trc_dsize<=(others=>'0');
 
     i_trc_ebcnty<=(others=>'0');
     i_trccore_fst_calc_skip<='0';
@@ -996,6 +998,8 @@ begin
            (i_vfr_mirror.row='1' and i_vfr_row_cnt=i_vfr_skip_row)then
 
             i_trc_drdy<='1';
+            i_trc_dsize<=i_mem_wdptr_kt + i_mem_ktcnt_size;
+
             fsm_state_cs <= S_WAIT_HOST_ACK;
         else
           fsm_state_cs <= S_ROW_FINED1;

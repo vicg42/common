@@ -16,6 +16,7 @@ use ieee.STD_LOGIC_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
 
+library work;
 use work.vicg_common_pkg.all;
 
 package prj_def is
@@ -27,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0312#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0313#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -478,20 +479,20 @@ constant C_DSN_ETHG_REG_MAC_PATRN6            : integer:=16#00B#;
 
 --//Bit Maps:
 --//Register C_DSN_ETHG_REG_MAC_USRCTRL / Bit Map:
-constant C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
-constant C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT : integer:=3;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
-constant C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
-constant C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
-
-constant C_DSN_ETHG_REG_MAC_RX_CHECK_MAC_DIS_BIT  : integer:=8; --//
-constant C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT: integer:=9; --//
-constant C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT      : integer:=10; --//
+--constant C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
+--constant C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT : integer:=3;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
+--constant C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
+--constant C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
+--
+--constant C_DSN_ETHG_REG_MAC_RX_CHECK_MAC_DIS_BIT  : integer:=8; --//
+--constant C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT: integer:=9; --//
+--constant C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT      : integer:=10; --//
 
 
 --//Register C_DSN_ETHG_REG_CTRL_L / Bit Map:
-constant C_DSN_ETHG_REG_CTRL_SWAP_LOOPBACK0_BIT      : integer:=0; --//address - Loopback принятого пакета с заменой местами MAC адресов src/dst
-constant C_DSN_ETHG_REG_CTRL_SWAP_LOOPBACK1_BIT      : integer:=1; --//loop    - Loopback принятого пакета
-constant C_DSN_ETHG_REG_CTRL_SWAP_LOOPBACK2_BIT      : integer:=2; --//swap    - В данном проекте не используется
+--constant C_DSN_ETHG_REG_CTRL_SWAP_LOOPBACK0_BIT      : integer:=0; --//address - Loopback принятого пакета с заменой местами MAC адресов src/dst
+--constant C_DSN_ETHG_REG_CTRL_SWAP_LOOPBACK1_BIT      : integer:=1; --//loop    - Loopback принятого пакета
+--constant C_DSN_ETHG_REG_CTRL_SWAP_LOOPBACK2_BIT      : integer:=2; --//swap    - В данном проекте не используется
 constant C_DSN_ETHG_REG_CTRL_SFP_TX_DISABLE_BIT      : integer:=3; --//Выключение передатчика на SFP
 
 constant C_DSN_ETHG_REG_CTRL_GTP_CLKIN_MUX_VLSB_BIT  : integer:=8; --//Значение для перепрограм. мультиплексора CLKIN RocketIO ETH
