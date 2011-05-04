@@ -21,6 +21,7 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library work;
 use work.vicg_common_pkg.all;
 
 entity sata_scrambler is

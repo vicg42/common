@@ -17,6 +17,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
 
+library work;
 use work.vicg_common_pkg.all;
 
 package sata_pkg is

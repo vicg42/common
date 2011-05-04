@@ -22,6 +22,7 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library work;
 use work.prj_def.all;
 use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
