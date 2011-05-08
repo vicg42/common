@@ -158,9 +158,8 @@ signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT downto 0);
 
-signal tst_dbg_rdTBUF                : std_logic;
-signal tst_dbg_rdEBUF                : std_logic;
-
+--signal tst_dbg_rdTBUF                : std_logic;
+--signal tst_dbg_rdEBUF                : std_logic;
 --signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 --signal tst_fsmstate_dly              : std_logic_vector(3 downto 0);
 --signal tst_mem_ctrl_ch_wr_out        : std_logic_vector(31 downto 0);
@@ -196,9 +195,9 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
 --              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
-
-tst_dbg_rdTBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
-tst_dbg_rdEBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
+--
+--tst_dbg_rdTBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
+--tst_dbg_rdEBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
 
 
 --//----------------------------------------------

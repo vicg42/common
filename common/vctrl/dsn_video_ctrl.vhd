@@ -574,7 +574,6 @@ signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
 signal h_reg_ctrl                        : std_logic_vector(C_DSN_VCTRL_REG_CTRL_LAST_BIT downto 0);
 signal h_reg_tst0                        : std_logic_vector(C_DSN_VCTRL_REG_TST0_LAST_BIT downto 0);
---signal h_reg_tst1                        : std_logic_vector(15 downto 0);
 signal h_reg_prm_data                    : std_logic_vector(31 downto 0);
 signal h_ramcoe_num                      : std_logic_vector(C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_MSB_BIT-C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_LSB_BIT downto 0);
 
@@ -750,7 +749,6 @@ begin
   if p_in_rst='1' then
     h_reg_ctrl<=(others=>'0');
     h_reg_tst0<=(others=>'0');
---    h_reg_tst1<=(others=>'0');
     h_reg_prm_data<=(others=>'0');
     var_vprm_set:='0';
     h_vprm_set<='0';
@@ -865,7 +863,6 @@ begin
       if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, 16);
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_TST0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_tst0, 16);
---      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_TST1, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=(others=>'0');
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) then
           var_vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
@@ -952,7 +949,7 @@ begin
 end process;
 
 
-tst_ctrl(31 downto 0)<=EXT(h_reg_tst0, 32);--h_reg_tst1&h_reg_tst0;
+tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
 tst_dbg_pictire<=tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 tst_dbg_sobel<=tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_SOBEL_BIT);
 
@@ -1066,14 +1063,14 @@ end process;
 --//--------------------------------------------------
 --//Запись Видео
 
---//Варианты захвата видео буфера:
+--//Варианты захвата видеобуфера:
 --//x, 0, 0, 0, x, 0, 0, x, 0, x
 --//1, x, 1, 1, x, x, 1, 1, x, 1
 --//2, 2, x, 2, 2, x, x, x, 2, 2
 --//3, 3, 3, x, 3, 3, x, 3, x, x
 
---//где 0,1,2,3 - индексы свободных буферов видеоканал
---//    x - видеобуфер захваченый модулям слежения или чтения видео
+--//где 0,1,2,3 - индексы свободных видеобуферов соответствующего видеоканала
+--//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
 
 gen_vhold : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
 begin
@@ -1338,7 +1335,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
-        --//Выдаем номер видеобуфера модулю слежения
+        --//Выдаем модулю слежения номер видеобуфера доступного для чтения
         if i_vwrite_vfr_rdy_out(i)='1' then
             if tst_dbg_pictire='1' then
               i_vbuf_trc(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length);
