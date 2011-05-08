@@ -146,8 +146,8 @@ port
 p_in_prm_trc         : in    TTrcNikParam;    --//Параметры слежения
 p_in_prm_vch         : in    TReaderVCHParam; --//Параметры видеоканала
 
-p_in_ctrl            : in    TTrcNikCoreCtrl;--std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
-p_out_status         : out   TTrcNikCoreStatus;--std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
+p_in_ctrl            : in    TTrcNikCoreCtrl;
+p_out_status         : out   TTrcNikCoreStatus;
 p_out_hbuf_dsize     : out   std_logic_vector(15 downto 0);
 p_out_ebout          : out   TTrcNikEBOs;
 
@@ -271,7 +271,7 @@ signal i_mem_din                     : std_logic_vector(31 downto 0);
 signal i_mem_din_en                  : std_logic;
 
 signal i_trc_work                    : std_logic;
-signal i_trc_busy                    : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+signal i_trc_busy                    : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
 signal i_trc_txrdy_n                 : std_logic;
 signal i_trc_rxrdy_n                 : std_logic;
 
@@ -305,9 +305,9 @@ signal i_trcbufo_empty               : std_logic;
 --signal i_trcbufo_full                : std_logic;
 
 signal i_hpkt_payload_dsize          : std_logic_vector(15 downto 0);
-signal i_hpkt_header                 : TTrcNikHPkt;--std_logic_vector(31 downto 0);
+signal i_hpkt_header                 : TTrcNikHPkt;
 signal i_hpkt_header_data            : std_logic_vector(31 downto 0);
-signal i_hpkt_header_cnt             : std_logic_vector(1 downto 0);--(log2(CNIK_HPKT_COUNT) downto 0);
+signal i_hpkt_header_cnt             : std_logic_vector(1 downto 0);
 
 signal tst_dis_color                 : std_logic;
 signal tst_ctrl                      : std_logic_vector(31 downto 0);
@@ -452,39 +452,40 @@ gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
---p_out_tst(31 downto 0)<=(others=>'0');
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_fsmstate_dly<=(others=>'0');
-    p_out_tst(0)<='0';
+p_out_tst(31 downto 0)<=(others=>'0');
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    tst_fsmstate_dly<=(others=>'0');
+--    p_out_tst(0)<='0';
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    tst_fsmstate_dly<=tst_fsmstate;
+--
+--    p_out_tst(0)<=OR_reduce(tst_fsmstate_dly) or
+--                  tst_trccore_out(0);
+--
+--  end if;
+--end process;
+--p_out_tst(31 downto 1)<=(others=>'0');
+--
+--tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_LD_PRMS else
+--              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED0 else
+--              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED1 else
+--              CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED2 else
+--              CONV_STD_LOGIC_VECTOR(16#05#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR else
+--              CONV_STD_LOGIC_VECTOR(16#06#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START else
+--              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD else
+--              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
+--              CONV_STD_LOGIC_VECTOR(16#09#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_DRDY else
+--              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW1 else
+--              CONV_STD_LOGIC_VECTOR(16#0B#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD1 else
+--              CONV_STD_LOGIC_VECTOR(16#0C#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW2 else
+--              CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD2 else
+--              CONV_STD_LOGIC_VECTOR(16#0E#,tst_fsmstate'length) when fsm_state_cs=S_EXIT_CHK else
+--              CONV_STD_LOGIC_VECTOR(16#0F#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
+--              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length);-- when fsm_state_cs=S_IDLE else
 
-  elsif p_in_clk'event and p_in_clk='1' then
-    tst_fsmstate_dly<=tst_fsmstate;
-
-    p_out_tst(0)<=OR_reduce(tst_fsmstate_dly) or
-                  tst_trccore_out(0);
-
-  end if;
-end process;
-p_out_tst(31 downto 1)<=(others=>'0');
-
-tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_LD_PRMS else
-              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED0 else
-              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED1 else
-              CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED2 else
-              CONV_STD_LOGIC_VECTOR(16#05#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR else
-              CONV_STD_LOGIC_VECTOR(16#06#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START else
-              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD else
-              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
-              CONV_STD_LOGIC_VECTOR(16#09#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_DRDY else
-              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW1 else
-              CONV_STD_LOGIC_VECTOR(16#0B#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD1 else
-              CONV_STD_LOGIC_VECTOR(16#0C#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW2 else
-              CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD2 else
-              CONV_STD_LOGIC_VECTOR(16#0E#,tst_fsmstate'length) when fsm_state_cs=S_EXIT_CHK else
-              CONV_STD_LOGIC_VECTOR(16#0F#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
-              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length);-- when fsm_state_cs=S_IDLE else
 
 tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
 
@@ -497,8 +498,7 @@ tst_dis_color<=tst_ctrl(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT);
 p_out_trc_hdrdy<=i_trc_drdy;
 p_out_trc_hirq <=i_trc_irq_width;
 
---p_out_trc_hfrmrk<=i_mem_wdptr;
-p_out_trc_hfrmrk<=i_trc_dsize;--i_mem_wdptr_kt + i_mem_ktcnt_size;
+p_out_trc_hfrmrk<=i_trc_dsize;
 
 p_out_trc_busy<=i_trc_busy;
 

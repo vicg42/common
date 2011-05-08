@@ -46,8 +46,8 @@ port
 p_in_prm_trc         : in    TTrcNikParam;    --//Параметры слежения
 p_in_prm_vch         : in    TReaderVCHParam; --//Параметры видеоканала
 
-p_in_ctrl            : in    TTrcNikCoreCtrl;--std_logic_vector(CNIK_TRCCORE_CTRL_LAST_BIT downto 0); --//Управление
-p_out_status         : out   TTrcNikCoreStatus;--std_logic_vector(CNIK_TRCCORE_STAT_LAST_BIT downto 0);
+p_in_ctrl            : in    TTrcNikCoreCtrl;
+p_out_status         : out   TTrcNikCoreStatus;
 p_out_hbuf_dsize     : out   std_logic_vector(15 downto 0);--//Общее кол-во данных которые нужно передать в ОЗУ (в DW)
 p_out_ebout          : out   TTrcNikEBOs;                  --//Счетчики данных ЭБ
 
@@ -442,8 +442,6 @@ signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT-1)
 signal i_hbuf_dsize_out              : std_logic_vector(15 downto 0);
 signal i_ebout_out                   : TTrcNikEBOs;
 
---signal tst_dbg_color                 : std_logic;
---signal tst_dis_color                   : std_logic;
 signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
 signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
 signal tst_vcoldemasc_dout_en        : std_logic;
@@ -458,45 +456,43 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
---p_out_tst(31 downto 0)<=(others=>'0');
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_fsmvbuf_cstate_dly<=(others=>'0');
-    p_out_tst(0)<='0';
-    tst_vcoldemasc_dout_en<='0';
-    tst_vrgb2yuv_dout_en<='0';
-    tst_vsobel_dout_en<='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-    tst_fsmvbuf_cstate_dly<=tst_fsmvbuf_cstate;
-
-    tst_vcoldemasc_dout_en<=i_vcoldemasc_dout_en;
-    tst_vrgb2yuv_dout_en<=i_vrgb2yuv_dout_en;
-    tst_vsobel_dout_en<=i_vsobel_dout_en;
-
-    p_out_tst(0)<=OR_reduce(tst_fsmvbuf_cstate_dly) or
-                  tst_vcoldemasc_dout_en or tst_vrgb2yuv_dout_en or tst_vsobel_dout_en;
-
-  end if;
-end process;
-p_out_tst(31 downto 1)<=(others=>'0');
-
-tst_fsmvbuf_cstate<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_WVBUF else
-                    CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_SET else
-                    CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_CHK else
-                    CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_RVBUF else
-                    CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY0 else
-                    CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY1 else
-                    CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EXIT_CHK else
-                    CONV_STD_LOGIC_VECTOR(16#08#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EBOUT_CHK else
-                    CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmvbuf_cstate'length); --when fsmvbuf_cstate=S_TRC_IDLE else
+p_out_tst(31 downto 0)<=(others=>'0');
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    tst_fsmvbuf_cstate_dly<=(others=>'0');
+--    p_out_tst(0)<='0';
+--    tst_vcoldemasc_dout_en<='0';
+--    tst_vrgb2yuv_dout_en<='0';
+--    tst_vsobel_dout_en<='0';
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    tst_fsmvbuf_cstate_dly<=tst_fsmvbuf_cstate;
+--
+--    tst_vcoldemasc_dout_en<=i_vcoldemasc_dout_en;
+--    tst_vrgb2yuv_dout_en<=i_vrgb2yuv_dout_en;
+--    tst_vsobel_dout_en<=i_vsobel_dout_en;
+--
+--    p_out_tst(0)<=OR_reduce(tst_fsmvbuf_cstate_dly) or
+--                  tst_vcoldemasc_dout_en or tst_vrgb2yuv_dout_en or tst_vsobel_dout_en;
+--
+--  end if;
+--end process;
+--p_out_tst(31 downto 1)<=(others=>'0');
+--
+--tst_fsmvbuf_cstate<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_WVBUF else
+--                    CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_SET else
+--                    CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_IP_CHK else
+--                    CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_RVBUF else
+--                    CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY0 else
+--                    CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY1 else
+--                    CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EXIT_CHK else
+--                    CONV_STD_LOGIC_VECTOR(16#08#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EBOUT_CHK else
+--                    CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmvbuf_cstate'length); --when fsmvbuf_cstate=S_TRC_IDLE else
 
 --//-----------------------------
 --//Инициализация
 --//-----------------------------
---tst_dbg_color<=p_in_tst(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT);
---tst_dis_color<=p_in_tst(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT);
 
 p_out_mem_din <=(others=>'0');
 p_out_mem_din_rdy_n <='0';
