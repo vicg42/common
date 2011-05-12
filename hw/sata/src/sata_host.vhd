@@ -261,7 +261,7 @@ p_in_rst                => p_in_rst
 --//###########################################################################
 gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
 
-p_out_usrfifo_clkout(1)<=<=g_gtp_usrclk2(0);
+p_out_usrfifo_clkout(1)<=g_gtp_usrclk2(0);
 
 p_out_status(1).ATAStatus<=(others=>'0');
 p_out_status(1).ATAError<=(others=>'0');
