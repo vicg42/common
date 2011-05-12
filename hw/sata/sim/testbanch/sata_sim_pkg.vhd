@@ -403,7 +403,7 @@ component sata_dev_model
 generic
 (
 G_DBG_LLAYER : string := "OFF";
-G_GTP_DBUS   : integer:= 16
+G_GT_DBUS    : integer:= 16
 );
 port
 (

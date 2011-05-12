@@ -226,7 +226,7 @@ end component;
 component sata_player_tx
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -265,7 +265,7 @@ end component;
 component sata_player_rx
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -305,7 +305,7 @@ end component;
 component sata_player_oob
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -519,7 +519,7 @@ end component;
 component sata_player
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -580,7 +580,7 @@ end component;
 component sata_player_gtsim
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_SIM      : string  := "OFF"
 );
 port
@@ -613,7 +613,7 @@ end component;
 component sata_player_gt
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_SIM      : string  := "OFF"
 );
 port
@@ -731,7 +731,7 @@ generic
 G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
 G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
-G_GTP_DBUS        : integer:=16;   --//
+G_GT_DBUS         : integer:=16;   --//
 G_DBG             : string :="OFF";--//
 --G_DBGCS           : string :="OFF";--//
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
@@ -1082,7 +1082,7 @@ component dsn_raid_main
 generic
 (
 G_HDD_COUNT : integer:=2;
-G_GTP_DBUS  : integer:=16;
+G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
 --G_DBGCS     : string :="OFF";
 G_SIM       : string :="OFF"

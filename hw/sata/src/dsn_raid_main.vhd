@@ -32,7 +32,7 @@ entity dsn_raid_main is
 generic
 (
 G_HDD_COUNT : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
-G_GTP_DBUS  : integer:=16;
+G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
 --G_DBGCS     : string :="OFF";--//
 G_SIM       : string :="OFF"
@@ -481,7 +481,7 @@ generic map
 G_SATAH_COUNT_MAX => C_SH_COUNT_MAX(G_HDD_COUNT-1),
 G_SATAH_NUM       => sh_idx,
 G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
-G_GTP_DBUS        => G_GTP_DBUS,
+G_GT_DBUS         => G_GT_DBUS,
 G_DBG             => G_DBG,
 --G_DBGCS           => G_DBGCS,
 G_SIM             => G_SIM

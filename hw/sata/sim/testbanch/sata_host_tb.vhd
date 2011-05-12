@@ -33,7 +33,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_host_tb is
 generic
 (
-G_GTP_DBUS   : integer:= 16;
+G_GT_DBUS    : integer:= 16;
 G_DBG        : string := "ON";
 G_SIM        : string := "ON"
 );
@@ -247,7 +247,7 @@ generic map
 G_SATAH_COUNT_MAX => 1,
 G_SATAH_NUM       => 0,
 G_SATAH_CH_COUNT  => 1,
-G_GTP_DBUS        => G_GTP_DBUS,
+G_GT_DBUS         => G_GT_DBUS,
 --G_DBGCS           =>  "OFF",
 G_DBG             => G_DBG,
 G_SIM             => G_SIM
@@ -328,7 +328,7 @@ m_sata_dev : sata_dev_model
 generic map
 (
 G_DBG_LLAYER => "OFF",
-G_GTP_DBUS   => G_GTP_DBUS
+G_GT_DBUS    => G_GT_DBUS
 )
 port map
 (

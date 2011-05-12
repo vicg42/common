@@ -32,7 +32,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_tx is
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -287,8 +287,8 @@ begin
           end case;
       end if;
     else
-        sr_txdata<=sr_txdata(G_GTP_DBUS-1 downto 0) & sr_txdata(31 downto G_GTP_DBUS);
-        sr_txdtype<=sr_txdtype(G_GTP_DBUS/8-1 downto 0) & sr_txdtype(3 downto G_GTP_DBUS/8);
+        sr_txdata<=sr_txdata(G_GT_DBUS-1 downto 0) & sr_txdata(31 downto G_GT_DBUS);
+        sr_txdtype<=sr_txdtype(G_GT_DBUS/8-1 downto 0) & sr_txdtype(3 downto G_GT_DBUS/8);
 
     end if;
   end if;
@@ -296,7 +296,7 @@ end process ltxd;
 
 
 --GTP: ШИНА ДАНЫХ=8bit
-gen_dbus8 : if G_GTP_DBUS=8 generate
+gen_dbus8 : if G_GT_DBUS=8 generate
 
 --//Подстройка
 ltxd_sr:process(p_in_rst,p_in_clk)
@@ -322,7 +322,7 @@ end generate gen_dbus8;
 
 
 --GTP: ШИНА ДАНЫХ=16bit
-gen_dbus16 : if G_GTP_DBUS=16 generate
+gen_dbus16 : if G_GT_DBUS=16 generate
 
 ----//Подстройка
 --ltxd_sr:process(p_in_rst,p_in_clk)

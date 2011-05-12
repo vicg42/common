@@ -37,7 +37,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player is
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -108,7 +108,7 @@ signal i_d10_2_senddis          : std_logic;
 
 signal i_synch                  : std_logic;
 signal i_resynch                : std_logic;
-signal i_cnt_sync               : std_logic_vector(selval(1, 0, cmpval(G_GTP_DBUS, 8)) downto 0);--(1 downto 0);
+signal i_cnt_sync               : std_logic_vector(selval(1, 0, cmpval(G_GT_DBUS, 8)) downto 0);--(1 downto 0);
 
 
 signal i_dbg                  : TPL_dbgport;
@@ -166,11 +166,11 @@ end generate gen_dbg_on;
 --//----------------------------------
 --//Логика управления
 --//----------------------------------
-gen_dbus16 : if G_GTP_DBUS=16 generate
+gen_dbus16 : if G_GT_DBUS=16 generate
 i_synch<=i_cnt_sync(0);
 end generate gen_dbus16;
 
-gen_dbus8 : if G_GTP_DBUS=8 generate
+gen_dbus8 : if G_GT_DBUS=8 generate
 i_synch<=AND_reduce(i_cnt_sync);
 end generate gen_dbus8;
 
@@ -207,7 +207,7 @@ i_resynch<=i_rxtype(C_TALIGN);
 m_phy_oob : sata_player_oob
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
@@ -256,7 +256,7 @@ p_in_rst               => p_in_rst
 m_phy_tx : sata_player_tx
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
@@ -298,7 +298,7 @@ p_in_rst               => p_in_rst
 m_phy_rx : sata_player_rx
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )

@@ -27,7 +27,7 @@ use work.sata_pkg.all;
 entity sata_player_gtsim is
 generic
 (
-G_GTP_DBUS             : integer   := 16;   --//
+G_GT_DBUS              : integer   := 16;   --//
 G_SIM                  : string    := "OFF"
 );
 port
@@ -72,7 +72,7 @@ gen_ch : for i in 0 to C_GTCH_COUNT_MAX-1 generate
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
 --//Выбор тактовых частот для работы SATA-I/II
-gen_gtp_w8 : if G_GTP_DBUS=8 generate
+gen_gtp_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
@@ -84,7 +84,7 @@ O  => g_gtp_usrclk2(i)
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gtp_w8;
 
-gen_gtp_w16 : if G_GTP_DBUS=16 generate
+gen_gtp_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (

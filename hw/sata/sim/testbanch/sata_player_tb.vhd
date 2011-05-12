@@ -33,7 +33,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_tb is
 generic
 (
-G_GTP_DBUS   : integer:= 8;
+G_GT_DBUS    : integer:= 8;
 G_DBG        : string := "ON";
 G_SIM        : string := "ON"
 );
@@ -241,7 +241,7 @@ i_phy_ctrl(1)(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L)<=(others=>'0');
 m_player : sata_player
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
@@ -357,7 +357,7 @@ m_sata_dev : sata_dev_model
 generic map
 (
 G_DBG_LLAYER => "ON",
-G_GTP_DBUS   => G_GTP_DBUS
+G_GT_DBUS    => G_GT_DBUS
 )
 port map
 (

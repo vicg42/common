@@ -35,7 +35,7 @@ generic
 G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
 G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
-G_GTP_DBUS        : integer:=16;   --//
+G_GT_DBUS         : integer:=16;   --//
 G_DBG             : string :="OFF";--//
 --G_DBGCS           : string :="OFF";--//
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
@@ -261,7 +261,7 @@ p_in_rst                => p_in_rst
 --//###########################################################################
 gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
 
-p_out_usrfifo_clkout(1)<='0';
+p_out_usrfifo_clkout(1)<=<=g_gtp_usrclk2(0);
 
 p_out_status(1).ATAStatus<=(others=>'0');
 p_out_status(1).ATAError<=(others=>'0');
@@ -278,26 +278,27 @@ p_out_txbuf_rd(1)<='0';
 p_out_rxbuf_din(1)<=(others=>'0');
 p_out_rxbuf_wd(1)<='0';
 
-i_spd_ctrl(1).change<='0';
-i_spd_ctrl(1).sata_ver<=(others=>'0');
+i_spd_ctrl(1)<=i_spd_ctrl(0);
 
---//Связь с DUAL_GTP
+--//Связь с GT
 i_gtp_txelecidle(1)<='0';
 i_gtp_txcomstart(1)<='0';
 i_gtp_txcomtype(1) <='0';
 i_gtp_txdata(1)    <=i_gtp_txdata(0);
 i_gtp_txcharisk(1) <=i_gtp_txcharisk(0);
+i_gtp_ch_rst(1)    <=i_gtp_ch_rst(0);
+
 
 p_out_tst(1)(31 downto 0)<=(others=>'0');
 
 -- Моделирование
 gen_sim_on: if strcmp(G_SIM,"ON") generate
 
-p_out_sim_gtp_txdata(1) <= (others=>'0');
-p_out_sim_gtp_txcharisk(1) <= (others=>'0');
+p_out_sim_gtp_txdata(1)<=(others=>'0');
+p_out_sim_gtp_txcharisk(1)<=(others=>'0');
 
-p_out_sim_rst(1) <= i_sata_module_rst(1);
-p_out_sim_clk(1) <= '0';
+p_out_sim_rst(1)<=i_sata_module_rst(0);
+p_out_sim_clk(1)<=g_gtp_usrclk2(0);
 
 end generate gen_sim_on;
 
@@ -541,7 +542,7 @@ p_in_rst                => i_sata_module_rst(i)
 m_player : sata_player
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
@@ -658,7 +659,7 @@ begin
 m_gt : sata_player_gt
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_SIM      => G_SIM
 )
 port map
@@ -738,7 +739,7 @@ gen_sim_on: if strcmp(G_SIM,"ON") generate
 m_gt_sim : sata_player_gtsim
 generic map
 (
-G_GTP_DBUS => G_GTP_DBUS,
+G_GT_DBUS  => G_GT_DBUS,
 G_SIM      => G_SIM
 )
 port map

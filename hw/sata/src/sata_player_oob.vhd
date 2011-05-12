@@ -29,7 +29,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_oob is
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );

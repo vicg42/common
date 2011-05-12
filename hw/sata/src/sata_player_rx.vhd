@@ -32,7 +32,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_rx is
 generic
 (
-G_GTP_DBUS : integer := 16;
+G_GT_DBUS  : integer := 16;
 G_DBG      : string  := "OFF";
 G_SIM      : string  := "OFF"
 );
@@ -159,7 +159,7 @@ p_out_rxd<=i_rxdata;
 
 
 --GTP: ØÈÍÀ ÄÀÍÛÕ=8bit
-gen_dbus8 : if G_GTP_DBUS=8 generate
+gen_dbus8 : if G_GT_DBUS=8 generate
 
 i_rxdata<=p_in_gtp_rxdata(7 downto 0) & sr_rxdata(0) & sr_rxdata(1) & sr_rxdata(2);
 i_rxdtype<=p_in_gtp_rxcharisk(0) & sr_rxdtype(0) & sr_rxdtype(1) & sr_rxdtype(2);
@@ -192,7 +192,7 @@ end generate gen_dbus8;
 
 
 --GTP: ØÈÍÀ ÄÀÍÛÕ=16bit
-gen_dbus16 : if G_GTP_DBUS=16 generate
+gen_dbus16 : if G_GT_DBUS=16 generate
 
 i_rxdata<=p_in_gtp_rxdata(15 downto 8) & p_in_gtp_rxdata(7 downto 0) & sr_rxdata(1) & sr_rxdata(0);
 i_rxdtype<=p_in_gtp_rxcharisk(1) & p_in_gtp_rxcharisk(0) & sr_rxdtype(1) & sr_rxdtype(0);

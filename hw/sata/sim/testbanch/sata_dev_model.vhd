@@ -34,7 +34,7 @@ entity sata_dev_model is
 generic
 (
 G_DBG_LLAYER : string := "OFF";--//"ON" - только для использования тестбанча sata_player_tb.vhd, иначе "OFF"!!!
-G_GTP_DBUS   : integer:= 16
+G_GT_DBUS    : integer:= 16
 );
 port
 (
@@ -121,7 +121,7 @@ signal i_rxd_out                  : std_logic_vector(31 downto 0);
 signal i_rxcrc_calc               : std_logic_vector(31 downto 0);
 type TSrCRC is array (0 to 1) of std_logic_vector(31 downto 0);
 signal sr_rxcrc_calc              : TSrCRC;
-signal i_rxd_sync                 : std_logic_vector(selval(1, 0, cmpval(G_GTP_DBUS, 8)) downto 0);
+signal i_rxd_sync                 : std_logic_vector(selval(1, 0, cmpval(G_GT_DBUS, 8)) downto 0);
 signal i_rcv_name                 : string(1 to 7);
 signal i_rcv_allname              : string(1 to 7);
 signal i_rxp_sof                  : std_logic;
@@ -253,7 +253,7 @@ p_out_status.rcv_fisdata  <=i_rxd_out;
 p_out_status.rcv_crc_calc <=sr_rxcrc_calc(1);
 
 
-i_usropt_in.gtp_dbus<=G_GTP_DBUS;
+i_usropt_in.gtp_dbus<=G_GT_DBUS;
 i_usropt_in.console_on<=1;
 
 i_usropt_in.tx.primitive.align.timer<=i_txalign_timer;
@@ -403,7 +403,7 @@ end process sim_sync;
 --//Эмуляция HDD - Прием данных
 --//#########################################
 --GTP: ШИНА ДАНЫХ=8bit
-gen_dbus8 : if G_GTP_DBUS=8 generate
+gen_dbus8 : if G_GT_DBUS=8 generate
   sim_get : process(p_in_rst,p_in_clk)
   begin
     if p_in_rst='1' then
@@ -422,7 +422,7 @@ end generate gen_dbus8;
 
 
 --GTP: ШИНА ДАНЫХ=16bit
-gen_dbus16 : if G_GTP_DBUS=16 generate
+gen_dbus16 : if G_GT_DBUS=16 generate
   sim_get : process(p_in_rst,p_in_clk)
   begin
     if p_in_rst='1' then

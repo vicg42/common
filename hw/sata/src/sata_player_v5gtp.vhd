@@ -27,8 +27,9 @@ use work.sata_pkg.all;
 entity sata_player_gt is
 generic
 (
-G_GTP_DBUS : integer := 16;
-G_SIM      : string  := "OFF"
+G_GT_CH_COUNT: integer := 2;
+G_GT_DBUS    : integer := 16;
+G_SIM        : string  := "OFF"
 );
 port
 (
@@ -94,11 +95,11 @@ end sata_player_gt;
 
 architecture RTL of sata_player_gt is
 
---//1 - только дл€ случа€ G_GTP_DBUS=8
+--//1 - только дл€ случа€ G_GT_DBUS=8
 --//2 - дл€ всех других случаев. ¬ыравниваение по чЄтной границе. см Figure 7-15: Comma Alignment Boundaries ,
 --      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GTP_DBUS, 8));
-constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GTP_DBUS, 8)), 1);
+constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
+constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
 
 signal i_rxenelecidleresetb        : std_logic;
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -125,12 +126,20 @@ p_out_rxnotintable(i)(3 downto 2)<=(others=>'0');
 end generate gen_null;
 
 
-gen_ch : for i in 0 to C_GTCH_COUNT_MAX-1 generate
+gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
+g_gtp_usrclk(1) <=g_gtp_usrclk(0);
+g_gtp_usrclk2(1)<=g_gtp_usrclk2(0);
+
+p_out_usrclk2(1)<=g_gtp_usrclk2(1);
+end generate gen_gt_ch1;
+
+
+gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
 --//¬ыбор тактовых частот дл€ работы SATA-I/II
-gen_gtp_w8 : if G_GTP_DBUS=8 generate
+gen_gtp_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
@@ -142,7 +151,7 @@ O  => g_gtp_usrclk2(i)
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gtp_w8;
 
-gen_gtp_w16 : if G_GTP_DBUS=16 generate
+gen_gtp_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
