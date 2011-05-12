@@ -49,6 +49,7 @@ signal p_in_rst                   : std_logic;
 
 signal i_gtp_refclk_out           : std_logic;
 signal g_gtp_refclk_out           : std_logic;
+signal i_gtp_pllkdet              : std_logic;
 
 signal i_sata_dcm_clk             : std_logic;
 signal i_sata_dcm_clk2x           : std_logic;
@@ -247,6 +248,7 @@ G_SATAH_COUNT_MAX => 1,
 G_SATAH_NUM       => 0,
 G_SATAH_CH_COUNT  => 1,
 G_GTP_DBUS        => G_GTP_DBUS,
+--G_DBGCS           =>  "OFF",
 G_DBG             => G_DBG,
 G_SIM             => G_SIM
 )
@@ -313,10 +315,10 @@ p_in_sys_dcm_gclk2div       => i_sata_dcm_clk2div,
 p_in_sys_dcm_gclk           => i_sata_dcm_clk,
 p_in_sys_dcm_gclk2x         => i_sata_dcm_clk2x,
 p_in_sys_dcm_lock           => i_sata_dcm_lock,
-p_out_sys_dcm_rst           => i_sata_dcm_rst,
 
-p_in_gtp_drpclk             => i_sata_dcm_clk2div,
+p_out_gtp_pllkdet           => i_gtp_pllkdet,
 p_out_gtp_refclk            => i_gtp_refclk_out,
+p_in_gtp_drpclk             => i_sata_dcm_clk2div,
 p_in_gtp_refclk             => p_in_clk,
 p_in_rst                    => p_in_rst
 );
@@ -383,6 +385,7 @@ p_in_clk            => g_gtp_refclk_out,
 p_in_rst            => i_sata_dcm_rst
 );
 
+i_sata_dcm_rst<=not i_gtp_pllkdet;
 ibufg_hdd : BUFG port map (I => i_gtp_refclk_out, O => g_gtp_refclk_out);
 
 p_in_rst<='1','0' after 1 us;

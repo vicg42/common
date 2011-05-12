@@ -167,25 +167,20 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
---    p_out_tst(31 downto 1)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    tst_fms_cs_dly<=tst_fms_cs;
---    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
---  end if;
---end process ltstout;
-p_out_tst(0)<=p_in_sh_tst(0)(0) or p_in_sh_tst(1)(0);
+--p_out_tst(31 downto 0)<=(others=>'0');
+ltstout:process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    p_out_tst(0)<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    p_out_tst(0)<=p_in_sh_tst(0)(0) or p_in_sh_tst(1)(0) or p_in_usr_ctrl(C_USR_GCTRL_RESERV_BIT);
+  end if;
+end process ltstout;
+
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
 
-gen_sh_tst_out : for i in 0 to C_HDD_COUNT_MAX-1 generate
-p_out_sh_tst(i)<=(others=>'0');
-end generate gen_sh_tst_out;
 
 --//----------------------------------
 --//Формирую отчеты
@@ -232,9 +227,9 @@ begin
 
     for i in 0 to G_HDD_COUNT-1 loop
       i_usr_status.ch_busy(i)<=p_in_sh_status(i).Usr(C_AUSER_BUSY_BIT);
-      i_usr_status.ch_drdy(i)<=p_in_sh_status(i).ATAStatus(C_REG_ATA_STATUS_DRDY_BIT);
+      i_usr_status.ch_drdy(i)<=p_in_sh_status(i).ATAStatus(C_ATA_STATUS_DRDY_BIT);
 
-      i_usr_status.ch_err(i)<=p_in_sh_status(i).ATAStatus(C_REG_ATA_STATUS_ERR_BIT) or
+      i_usr_status.ch_err(i)<=p_in_sh_status(i).ATAStatus(C_ATA_STATUS_ERR_BIT) or
                               p_in_sh_status(i).SError(C_ASERR_I_ERR_BIT) or
                               p_in_sh_status(i).SError(C_ASERR_C_ERR_BIT) or
                               p_in_sh_status(i).SError(C_ASERR_P_ERR_BIT);
@@ -272,6 +267,11 @@ begin
   end if;
 end process;
 
+
+gen_sh_pout : for i in 0 to C_HDD_COUNT_MAX-1 generate
+p_out_sh_tst(i)<=(others=>'0'); --//технологические входы модулей sata_host
+p_out_sh_ctrl(i)<=p_in_usr_ctrl;--//передача глобального управления модулям sata_host
+end generate gen_sh_pout;
 
 
 

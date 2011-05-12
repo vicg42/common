@@ -196,6 +196,8 @@ p_in_sata_rxn               => i_sata_rxn,
 p_in_sata_rxp               => i_sata_rxp,
 
 p_in_sata_refclk            => i_sata_gtp_refclkmain,
+p_out_sata_refclkout        => open,
+p_out_sata_gt_plldet        => open,
 
 --------------------------------------------------
 --Технологический порт

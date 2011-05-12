@@ -24,6 +24,57 @@ use work.sata_raid_pkg.all;
 
 package sata_unit_pkg is
 
+component sata_dbgcs_icon
+port (
+control0 : inout std_logic_vector(35 downto 0)
+);
+end component;
+
+component sata_dbgcs_ila
+port (
+control : inout std_logic_vector(35 downto 0);
+clk     : in    std_logic;
+data    : in    std_logic_vector(52 downto 0);
+trig0   : in    std_logic_vector(39 downto 0)
+);
+end component;
+
+component sata_dbgcs
+generic
+(
+G_DBG      : string  := "OFF";
+G_SIM      : string  := "OFF"
+);
+port
+(
+p_in_ctrl       : in   std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
+
+p_in_dbg        : in   TSH_dbgport;
+p_in_alstatus   : in   TALStatus;
+p_in_phy_txreq  : in   std_logic_vector(7 downto 0);
+p_in_phy_rxtype : in   std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_in_phy_rxdata : in   std_logic_vector(31 downto 0);
+p_in_phy_sync   : in   std_logic;
+
+p_in_ll_rxd     : in   std_logic_vector(31 downto 0);
+p_in_ll_rxd_wr  : in   std_logic;
+
+p_in_gt_rxdata    : in std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk : in std_logic_vector(3 downto 0);
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_out_tst       : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk : in    std_logic;
+p_in_rst : in    std_logic
+);
+end component;
+
 component sata_dcm
 port
 (
@@ -98,9 +149,11 @@ rd_clk      : in std_logic;
 
 full        : out std_logic;
 prog_full   : out std_logic;
---almost_full : out std_logic;
+almost_full : out std_logic;
 empty       : out std_logic;
 almost_empty: out std_logic;
+rd_data_count : out std_logic_vector(3 downto 0);
+--wr_data_count : out std_logic_vector(3 downto 0);
 
 rst         : in std_logic
 );
@@ -122,6 +175,7 @@ prog_full   : out std_logic;
 --almost_full : out std_logic;
 empty       : out std_logic;
 --almost_empty: out std_logic;
+wr_data_count : out std_logic_vector(3 downto 0);
 
 rst        : in std_logic
 );
@@ -305,7 +359,7 @@ port
 --------------------------------------------------
 --Связь с USR APP Layer
 --------------------------------------------------
-p_in_ctrl                 : in    std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
+p_in_ctrl                 : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_status              : out   TALStatus;
 
 --//Связь с CMDFIFO
@@ -679,6 +733,7 @@ G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
 G_GTP_DBUS        : integer:=16;   --//
 G_DBG             : string :="OFF";--//
+--G_DBGCS           : string :="OFF";--//
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
 port
@@ -744,10 +799,10 @@ p_in_sys_dcm_gclk2div       : in    std_logic;
 p_in_sys_dcm_gclk           : in    std_logic;
 p_in_sys_dcm_gclk2x         : in    std_logic;
 p_in_sys_dcm_lock           : in    std_logic;
-p_out_sys_dcm_rst           : out   std_logic;
 
-p_in_gtp_drpclk             : in    std_logic;
+p_out_gtp_pllkdet           : out   std_logic;
 p_out_gtp_refclk            : out   std_logic;
+p_in_gtp_drpclk             : in    std_logic;
 p_in_gtp_refclk             : in    std_logic;
 p_in_rst                    : in    std_logic
 );
@@ -1029,6 +1084,7 @@ generic
 G_HDD_COUNT : integer:=2;
 G_GTP_DBUS  : integer:=16;
 G_DBG       : string :="OFF";
+--G_DBGCS     : string :="OFF";
 G_SIM       : string :="OFF"
 );
 port
@@ -1043,6 +1099,7 @@ p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUN
 
 p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_out_sata_refclkout        : out   std_logic;
+p_out_sata_gt_plldet        : out   std_logic;
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd

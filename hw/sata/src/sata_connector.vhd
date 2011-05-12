@@ -5,7 +5,8 @@
 -- Create Date : 31.03.2011 10:41:13
 -- Module Name : sata_connector
 --
--- Назначение :
+-- Назначение : Согласующие буфера между модулем SATA_HOST и пользовательскими буферами.
+--              ВАЖНО: держим буфера в сбросе пока не установится соединение c HDD (Link Esatblish)
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -96,6 +97,7 @@ architecture behavioral of sata_connector is
 
 signal i_buf_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
+
 --MAIN
 begin
 
@@ -149,60 +151,60 @@ end generate gen_ch0_only;
 
 gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
 
-i_buf_rst(i)<=not p_in_sh_status(i).SError(C_ASERR_DET_L_BIT+1);--//Link Establish
+i_buf_rst(i)<=p_in_rst or not p_in_sh_status(i).SError(C_ASERR_DET_L_BIT+1);--//Link Establish
 
 --//----------------------------
 --//Согласующие буфера:
 --//----------------------------
 m_cmdbuf : ll_fifo
 generic map(
-MEM_TYPE        => 0,           -- 0 choose BRAM, 1 choose Distributed RAM
-BRAM_MACRO_NUM  => 1,           -- Memory Depth(Кол-во элементов BRAM (1BRAM-4kB). For BRAM only - Allowed: 1, 2, 4, 8, 16
-DRAM_DEPTH      => 16,          -- Memory Depth. For DRAM only
+MEM_TYPE       => 0,     -- 0 choose BRAM, 1 choose Distributed RAM
+BRAM_MACRO_NUM => 1,     -- Memory Depth(Кол-во элементов BRAM (1BRAM-4kB). For BRAM only - Allowed: 1, 2, 4, 8, 16
+DRAM_DEPTH     => 16,    -- Memory Depth. For DRAM only
 
-WR_REM_WIDTH    => 1,           -- Remainder width of write data
-WR_DWIDTH       => 16,          -- FIFO write data width,
-                                   -- Acceptable values are 8, 16, 32, 64, 128.
+WR_REM_WIDTH   => 1,     -- Remainder width of write data
+WR_DWIDTH      => 16,    -- FIFO write data width,
+                            -- Acceptable values are 8, 16, 32, 64, 128.
 
-RD_REM_WIDTH    => 1,           -- Remainder width of read data
-RD_DWIDTH       => 16,          -- FIFO read data width,
-                                   -- Acceptable values are 8, 16, 32, 64, 128.
+RD_REM_WIDTH   => 1,     -- Remainder width of read data
+RD_DWIDTH      => 16,    -- FIFO read data width,
+                            -- Acceptable values are 8, 16, 32, 64, 128.
 
-USE_LENGTH      => false,       -- Length FIFO option
-glbtm           => 1 ns         -- Global timing delay for simulation
+USE_LENGTH     => false, -- Length FIFO option
+glbtm          => 1 ns   -- Global timing delay for simulation
 )
 port map
 (
 -- Interface to downstream user application
-data_out               => p_out_sh_cxd(i),
-rem_out                => open,--ll_rcmdpkt_rem,
-sof_out_n              => open,--p_out_sh_cxd_sof_n(i),
-eof_out_n              => p_out_sh_cxd_eof_n(i),
-src_rdy_out_n          => p_out_sh_cxd_src_rdy_n(i),
-dst_rdy_in_n           => '0',
+data_out       => p_out_sh_cxd(i),
+rem_out        => open,--ll_rcmdpkt_rem,
+sof_out_n      => open,--p_out_sh_cxd_sof_n(i),
+eof_out_n      => p_out_sh_cxd_eof_n(i),
+src_rdy_out_n  => p_out_sh_cxd_src_rdy_n(i),
+dst_rdy_in_n   => '0',
 
-read_clock_in          => p_in_sh_clk(i),
+read_clock_in  => p_in_sh_clk(i),
 
 -- Interface to upstream user application
-data_in                => p_in_uap_cxd(i),
-rem_in                 => "0",
-sof_in_n               => p_in_uap_cxd_sof_n(i),
-eof_in_n               => p_in_uap_cxd_eof_n(i),
-src_rdy_in_n           => p_in_uap_cxd_src_rdy_n(i),
-dst_rdy_out_n          => open,--p_out_wcmdpkt_dst_rdy_n,
+data_in        => p_in_uap_cxd(i),
+rem_in         => "0",
+sof_in_n       => p_in_uap_cxd_sof_n(i),
+eof_in_n       => p_in_uap_cxd_eof_n(i),
+src_rdy_in_n   => p_in_uap_cxd_src_rdy_n(i),
+dst_rdy_out_n  => open,--p_out_wcmdpkt_dst_rdy_n,
 
-write_clock_in         => p_in_uap_clk,
+write_clock_in => p_in_uap_clk,
 
 -- FIFO status signals
-fifostatus_out         => open,
+fifostatus_out => open,
 
 -- Length Status
-len_rdy_out            => open,
-len_out                => open,
-len_err_out            => open,
+len_rdy_out    => open,
+len_out        => open,
+len_err_out    => open,
 
 -- Reset
-areset_in              => i_buf_rst(i)
+areset_in      => i_buf_rst(i)
 );
 
 m_txbuf : sata_txfifo
@@ -217,10 +219,12 @@ rd_en      => p_in_sh_txd_rd(i),
 rd_clk     => p_in_sh_clk(i),
 
 full        => p_out_txbuf_status(i).full,
-prog_full   => p_out_txbuf_status(i).pfull,
---almost_full => i_txbuf_afull(0),
+prog_full   => open,--p_out_txbuf_status(i).pfull,
+almost_full => p_out_txbuf_status(i).pfull,
 empty       => p_out_txbuf_status(i).empty,
 almost_empty=> p_out_txbuf_status(i).aempty,
+rd_data_count => p_out_txbuf_status(i).rdcount,
+--wr_data_count => p_out_txbuf_status(i).wrcount,
 
 rst        => i_buf_rst(i)
 );
@@ -241,9 +245,12 @@ prog_full   => p_out_rxbuf_status(i).pfull,
 --almost_full => i_txbuf_afull(0),
 empty       => p_out_rxbuf_status(i).empty,
 --almost_empty=> i_rxbuf_aempty(0),
+wr_data_count => p_out_rxbuf_status(i).wrcount,
 
 rst        => i_buf_rst(i)
 );
+
+
 end generate gen_ch;
 
 --END MAIN

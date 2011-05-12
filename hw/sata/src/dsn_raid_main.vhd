@@ -31,10 +31,11 @@ use work.sata_raid_pkg.all;
 entity dsn_raid_main is
 generic
 (
-G_HDD_COUNT     : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
-G_GTP_DBUS      : integer:=16;
-G_DBG           : string :="OFF";
-G_SIM           : string :="OFF"
+G_HDD_COUNT : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
+G_GTP_DBUS  : integer:=16;
+G_DBG       : string :="OFF";
+--G_DBGCS     : string :="OFF";--//
+G_SIM       : string :="OFF"
 );
 port
 (
@@ -48,6 +49,7 @@ p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUN
 
 p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_out_sata_refclkout        : out   std_logic;
+p_out_sata_gt_plldet        : out   std_logic;
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
@@ -114,6 +116,7 @@ C_GT7_CH_COUNT
 );
 
 
+signal i_sh_gtp_pllkdet            : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal i_sh_gtp_refclkout          : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal i_sh_dcm_rst                : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal g_sh_dcm_clkin              : std_logic;
@@ -122,9 +125,10 @@ signal g_sh_dcm_clk                : std_logic;
 signal g_sh_dcm_clk2x              : std_logic;
 signal i_sh_dcm_lock               : std_logic;
 
-
+signal i_sh_buf_rst                : std_logic;
 signal i_sh_status                 : TALStatusGTCH_SHCountMax;
 signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
+
 --//cmdfifo
 signal i_u_cxd                     : TBus16GTCH_SHCountMax;
 signal i_u_cxd_sof_n               : TBusGTCH_SHCountMax;
@@ -210,11 +214,18 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
 --  end if;
 --end process ltstout;
-p_out_tst(0)<=OR_reduce(i_tst_raid_ctrl) or i_tst_val;
-p_out_tst(31 downto 1)<=(others=>'0');
+p_out_tst(0)<=i_tst_raid_ctrl(0);
+p_out_tst(1)<=i_uap_tst_sh_out(0)(1);
+p_out_tst(2)<=i_tst_val;
+p_out_tst(31 downto 3)<=(others=>'0');
 end generate gen_dbg_on;
 
-gen_sim_on : if strcmp(G_SIM,"ON") generate
+
+---##############################
+-- Debug/Sim
+---##############################
+--//Только для моделирования (удобства алализа данных при моделироании)
+gen_sim_on: if strcmp(G_SIM,"ON") generate
 
 process(i_dbg_satah)
 begin
@@ -226,6 +237,7 @@ begin
 end process;
 
 end generate gen_sim_on;
+
 
 
 --//#############################################
@@ -302,8 +314,12 @@ p_in_rst                => p_in_rst
 --//Генерация частот для модулей sata_host.vhd
 --//#############################################
 p_out_sata_refclkout<=g_sh_dcm_clkin;
+p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(G_HDD_COUNT-1 downto 0));
 
-bufg_sata : BUFG port map (I => i_sh_gtp_refclkout(C_SH_MAIN_NUM), O => g_sh_dcm_clkin);
+i_sh_buf_rst<=p_in_rst or p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
+
+bufg_sata : BUFG port map (I => i_sh_gtp_refclkout(C_SH_MAIN_NUM), O => g_sh_dcm_clkin);--//clkin для sata_dcm
+i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM);                       --//сброс sata_dcm
 
 m_dcm_sata : sata_dcm
 port map
@@ -354,7 +370,24 @@ i_uap_tst_sh_out(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_tst_sh_out(sh_idx)(ch_idx);
 
 
 --//Моделирование
-i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_dbg_sh_out(sh_idx)(ch_idx);
+--i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_dbg_sh_out(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).alayer<=i_dbg_sh_out(sh_idx)(ch_idx).alayer;
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).tlayer<=i_dbg_sh_out(sh_idx)(ch_idx).tlayer;
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).llayer<=i_dbg_sh_out(sh_idx)(ch_idx).llayer;
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).player<=i_dbg_sh_out(sh_idx)(ch_idx).player;
+
+--i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.din<=i_u_txd(sh_idx)(ch_idx);
+--i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.dout<=i_sh_txd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.wr<=i_u_txd_wr(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.rd<=i_sh_txd_rd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.status<=i_txbuf_status(sh_idx)(ch_idx);
+
+--i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.din<=i_sh_rxd(sh_idx)(ch_idx);
+--i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.dout<=i_u_rxd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.wr<=i_sh_rxd_wr(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.rd<=i_u_rxd_rd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.status<=i_rxbuf_status(sh_idx)(ch_idx);
+
 
 p_out_gtp_sim_rst(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_rst(sh_idx)(ch_idx);
 p_out_gtp_sim_clk(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_clk(sh_idx)(ch_idx);
@@ -437,7 +470,7 @@ p_out_tst               => open,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_rst                => p_in_rst
+p_in_rst                => i_sh_buf_rst
 );
 
 
@@ -450,6 +483,7 @@ G_SATAH_NUM       => sh_idx,
 G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
 G_GTP_DBUS        => G_GTP_DBUS,
 G_DBG             => G_DBG,
+--G_DBGCS           => G_DBGCS,
 G_SIM             => G_SIM
 )
 port map
@@ -516,10 +550,10 @@ p_in_sys_dcm_gclk2div       => g_sh_dcm_clk2div,
 p_in_sys_dcm_gclk           => g_sh_dcm_clk,
 p_in_sys_dcm_gclk2x         => g_sh_dcm_clk2x,
 p_in_sys_dcm_lock           => i_sh_dcm_lock,
-p_out_sys_dcm_rst           => i_sh_dcm_rst(sh_idx),
 
-p_in_gtp_drpclk             => g_sh_dcm_clk2div,
+p_out_gtp_pllkdet           => i_sh_gtp_pllkdet(sh_idx),
 p_out_gtp_refclk            => i_sh_gtp_refclkout(sh_idx),
+p_in_gtp_drpclk             => g_sh_dcm_clk2div,
 p_in_gtp_refclk             => p_in_sata_refclk(sh_idx),
 p_in_rst                    => p_in_rst
 );

@@ -37,7 +37,7 @@ port
 --------------------------------------------------
 --Связь с USR APP Layer
 --------------------------------------------------
-p_in_ctrl                 : in    std_logic_vector(C_ALCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Application Layer/Управление/Map:
+p_in_ctrl                 : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Application Layer/Управление/Map:
 p_out_status              : out   TALStatus;--//Константы см. sata_pkg.vhd/поле - Application Layer/Статусы/Map:
 
 --//Связь с CMDFIFO
@@ -111,13 +111,11 @@ signal i_serr_c_err                : std_logic;
 
 signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 
-signal i_dwr_width_cnt             : std_logic_vector(3 downto 0);
+--signal i_dwr_width_cnt             : std_logic_vector(15 downto 0);
 
 signal sr_usr_status_busy          : std_logic_vector(0 to 4);
 
-signal tst_al_status               : TSimALStatus;
 signal i_dbgtsf_type               : string(1 to 23);
-signal tst_val                     : std_logic;
 
 
 
@@ -132,14 +130,15 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-tstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    p_out_tst(31 downto 0)<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-    p_out_tst(0)<=tst_val;
-  end if;
-end process tstout;
+p_out_tst(31 downto 0)<=(others=>'0');
+--tstout:process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    p_out_tst(31 downto 0)<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    p_out_tst(0)<=tst_val;
+--  end if;
+--end process tstout;
 --p_out_tst(31 downto 1)<=(others=>'0');
 
 end generate gen_dbg_on;
@@ -153,7 +152,7 @@ begin
   if p_in_rst='1' then
     i_err_clr<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    i_err_clr<=p_in_ctrl(C_ACTRL_ERR_CLR_BIT);
+    i_err_clr<=p_in_ctrl(C_USR_GCTRL_CLR_ERR_BIT);
   end if;
 end process;
 
@@ -205,8 +204,8 @@ begin
     i_usrctrl<=(others=>'0');
 
     i_reg_shadow.command<=(others=>'0');
-    i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
-    i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT)<='1';
+    i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
+    i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
     i_reg_shadow.error<=(others=>'0');
     i_reg_shadow.device<=(others=>'0');
     i_reg_shadow.control<=(others=>'0');
@@ -224,10 +223,10 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     if i_err_clr='1' then
-      i_reg_shadow.status(C_REG_ATA_STATUS_ERR_BIT)<='0';
+      i_reg_shadow.status(C_ATA_STATUS_ERR_BIT)<='0';
 
     elsif i_trn_atacommand='1' then
-      i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT)<='1';
+      i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
 
     elsif p_in_reg_update.fsdb='1' then
     --//Обновление регистров по приему FIS_SetDevice_Bits
@@ -257,7 +256,7 @@ begin
     elsif p_in_reg_update.fd2h='1'then
     --//Обновление регистров по приему FIS_DEV2HOST
     --//ВАЖНО: Если оба бита BSY и DRQ ='0', то обновление не делаем - в соответвии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 10.3.5.3
-      if i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT)='1' or i_reg_shadow.status(C_REG_ATA_STATUS_DRQ_BIT)='1' then
+      if i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)='1' or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT)='1' then
         i_reg_shadow.status <= p_in_reg_hold.status;
         i_reg_shadow.error <= p_in_reg_hold.error;
         i_reg_shadow.device <= p_in_reg_hold.device;
@@ -299,7 +298,7 @@ begin
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_reg_shadow_addr'length) then
           i_reg_shadow.command <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.control <= i_reg_shadow_din(15 downto 8);
-          i_reg_shadow.device(C_REG_ATA_DEVICE_LBA_BIT)<='1';--Уст.режим адресации LBA
+          i_reg_shadow.device(C_ATA_DEVICE_LBA_BIT)<='1';--Уст.режим адресации LBA
 
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_reg_shadow_addr'length) then
           i_reg_shadow.device <= i_reg_shadow_din(7 downto 0);
@@ -330,7 +329,7 @@ i_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when i_spd_ver=C
                                                          "0010" when i_spd_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, i_spd_ver'length) else
                                                          "0000";
 
-i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);--//Интрефейс в активном состоянии. Сигнатура от устройства получена
+i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);--//Интрефейс в активном состоянии. Сигнатура от устройства получена
 
 i_sstatus(C_ALSSTAT_LAST_BIT downto C_ASSTAT_IPM_BIT_L+1)<=(others=>'0');
 
@@ -473,27 +472,29 @@ begin
     i_usr_status(C_AUSER_BUSY_BIT)<='1';
     i_usr_status(C_ALUSER_LAST_BIT downto C_AUSER_BUSY_BIT+1)<=(others=>'0');
 
-    i_dwr_width_cnt<=(others=>'0');
+--    i_dwr_width_cnt<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
-    i_usr_status(C_AUSER_BUSY_BIT)<=i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_REG_ATA_STATUS_DRQ_BIT);
+    i_usr_status(C_AUSER_BUSY_BIT)<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
 
     --//Растягиваем импульс C_AUSER_DWR_START_BIT
     if p_in_tl_status(C_TSTAT_DWR_START_BIT)='1' then
       i_usr_status(C_AUSER_DWR_START_BIT)<='1';
-    elsif i_dwr_width_cnt(3)='1' then
+--    elsif i_dwr_width_cnt(8)='1' then
+    elsif p_in_reg_update.fpio_e='1' or p_in_reg_update.fd2h='1' or
+         (i_serr_i_err='1' or i_serr_p_err='1' or i_serr_c_err='1' or i_reg_shadow.status(C_ATA_STATUS_ERR_BIT)='1') then
+    --//Сброс по завершению команды в режиме PIO или по приему FIS_DEV2HOST или при обнаружении ошибки
       i_usr_status(C_AUSER_DWR_START_BIT)<='0';
     end if;
 
-    if i_usr_status(C_AUSER_DWR_START_BIT)<='0' then
-      i_dwr_width_cnt<=(others=>'0');
-    else
-      i_dwr_width_cnt<=i_dwr_width_cnt+1;
-    end if;
+--    if i_usr_status(C_AUSER_DWR_START_BIT)<='0' then
+--      i_dwr_width_cnt<=(others=>'0');
+--    else
+--      i_dwr_width_cnt<=i_dwr_width_cnt+1;
+--    end if;
 
   end if;
 end process;
-
 
 
 
@@ -529,16 +530,14 @@ i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 
 
 
---//Только для моделирования (удобства алализа данных при моделироании)
-gen_sim_on : if strcmp(G_SIM,"ON") generate
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+----//Только для моделирования (удобства алализа данных при моделироании)
+--gen_sim_on : if strcmp(G_SIM,"ON") generate
 
-tst_al_status.cmd_name<=i_dbgtsf_type;
-tst_al_status.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
-tst_al_status.signature<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);
-
-rq_name: process(i_reg_shadow,tst_al_status)
+rq_name: process(i_reg_shadow,i_trn_atacommand)
 begin
-
   if i_trn_atacommand='1' then
     if i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_DEV, i_reg_shadow.command'length) then
       i_dbgtsf_type<="ATA_IDENTIFY           ";
@@ -558,19 +557,14 @@ begin
       i_dbgtsf_type<="NONE                   ";
     end if;
   end if;
-
-  if i_dbgtsf_type="NONE                   " and tst_al_status.cmd_busy='1' then
-    tst_val<='1';
-  else
-    tst_val<='0';
-  end if;
 end process rq_name;
 
 p_out_dbg.cmd_name<=i_dbgtsf_type;
-p_out_dbg.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
-p_out_dbg.signature<=i_reg_shadow.status(C_REG_ATA_STATUS_DRDY_BIT);
 
-end generate gen_sim_on;
+p_out_dbg.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
+p_out_dbg.signature<=i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);
+
+--end generate gen_sim_on;
 
 
 --END MAIN

@@ -112,6 +112,8 @@ dout       => i_rxbuf_dout,
 rd_en      => i_rxbuf_dout_rd,
 rd_clk     => i_rxbuf_clk,
 
+wr_data_count => open,
+
 full        => open,
 prog_full   => i_rxbuf_pfull,
 empty       => i_rxbuf_empty,

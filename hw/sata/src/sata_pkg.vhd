@@ -23,6 +23,17 @@ use work.vicg_common_pkg.all;
 package sata_pkg is
 
 ---------------------------------------------------------
+--User Cfg
+---------------------------------------------------------
+--//Назначаем тип FPGA:
+--//0 - "V5_GTP"
+--//1 - "V5_GTX"
+--//2 - "V6_GTX"
+--//3 - "S6_GTP"
+constant C_FPGA_TYPE         : integer:=0;
+constant C_SH_MAIN_NUM       : integer:=0; --//определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
+
+---------------------------------------------------------
 --Типы
 ---------------------------------------------------------
 type T04GTCHCount is array (0 to 3) of integer;
@@ -33,19 +44,15 @@ type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
 ---------------------------------------------------------
 --Константы
 ---------------------------------------------------------
---//0 - "V5_GTP"
---//1 - "V5_GTX"
---//2 - "V6_GTX"
---//3 - "S6_GTP"
-constant C_FPGA_TYPE         : integer:=0;
-constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
-
-constant C_GTCH_COUNT_MAX    : integer:=C_GTCH_COUNT_MAX_SEL(C_FPGA_TYPE);
-
---//Определяем мах кол-во HDD:
+--//мах кол-во HDD:
 constant C_HDD_COUNT_MAX     : integer:=8;--//
 
---//Назначаем общее кол-во модулей GTP:
+--//Кол-во каналов в одном модуле GT:
+constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
+constant C_GTCH_COUNT_MAX    : integer:=C_GTCH_COUNT_MAX_SEL(C_FPGA_TYPE);
+
+
+--//Общее кол-во модулей GT:
 ---------------------------------------------------------------------------
 --//G_HDD_COUNT - значения:               | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 ---------------------------------------------------------------------------
@@ -54,7 +61,6 @@ constant C_1CGT_COUNT      : T08SHCount:=(  1,  2,  3,  4,  5,  6,  7,  8 );--//
 constant C_GT_COUNT_SEL    : T08SHCountSel:=(C_1CGT_COUNT, C_2CGT_COUNT);
 
 constant C_SH_COUNT_MAX    : T08SHCount:=C_GT_COUNT_SEL(C_GTCH_COUNT_MAX-1);
-constant C_SH_MAIN_NUM     : integer:=0; --//определяем индекс модуля от которого будем брать частоту для тактирования DCM
 
 --//Кол-во используемх каналов в модуле sata_host.vhd
 ----------------------------------------------------------------------------------------
@@ -95,46 +101,55 @@ constant C_GT7_CH_COUNT : T08SHCountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 --//-------------------------------------------------
 --//User Global Ctrl
 --//-------------------------------------------------
-constant C_USR_GCTRL_CLR_ERR_BIT        : integer:=0;
-constant C_USR_GCTRL_CLR_BUF_BIT        : integer:=1;
-constant C_USR_GCTRL_ATADONE_ACK_BIT    : integer:=2;
-constant C_USR_GCTRL_LAST_BIT           : integer:=C_USR_GCTRL_ATADONE_ACK_BIT;
+constant C_USR_GCTRL_CLR_ERR_BIT         : integer:=0;
+constant C_USR_GCTRL_CLR_BUF_BIT         : integer:=1;
+constant C_USR_GCTRL_ATADONE_ACK_BIT     : integer:=2;
+constant C_USR_GCTRL_RESERV_BIT          : integer:=3;
+constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_RESERV_BIT;
 
 
 --//-------------------------------------------------
 --//User Application Layer
 --//-------------------------------------------------
 --//Размер командного пакета в WORD
-constant C_USRAPP_CMDPKT_SIZE_WORD        : integer:=10#07#;
+constant C_USRAPP_CMDPKT_SIZE_WORD       : integer:=7;
 
 --//User CMD Pkt :
 --//Поле UsrCtrl/Map:
-constant C_CMDPKT_USRHDD_NUM_L_BIT        : integer:=0;
-constant C_CMDPKT_USRHDD_NUM_M_BIT        : integer:=7;
-constant C_CMDPKT_USRMODE_SW_BIT          : integer:=8;
-constant C_CMDPKT_USRMODE_HW_BIT          : integer:=9;
-constant C_CMDPKT_USRMODE_LBAEND_BIT      : integer:=10;
-constant C_CMDPKT_USRMODE_TSTW_BIT        : integer:=11;
-constant C_CMDPKT_USRCMD_L_BIT            : integer:=12;
-constant C_CMDPKT_USRCMD_M_BIT            : integer:=14;
+constant C_CMDPKT_USRHDD_NUM_L_BIT       : integer:=0;
+constant C_CMDPKT_USRHDD_NUM_M_BIT       : integer:=7;
+constant C_CMDPKT_USRMODE_SW_BIT         : integer:=8; --//работа от управляющей программы
+constant C_CMDPKT_USRMODE_HW_BIT         : integer:=9; --//аппаратная запись
+constant C_CMDPKT_USRMODE_LBAEND_BIT     : integer:=10;--//установка конечного адреса LBA (при работе в режиме HW)
+constant C_CMDPKT_USRMODE_TSTW_BIT       : integer:=11;
+constant C_CMDPKT_USRCMD_L_BIT           : integer:=12;
+constant C_CMDPKT_USRCMD_M_BIT           : integer:=14;
 
---//C_CMDPKT_USRCMD/Map:
-constant C_USRCMD_ATACONTROL              : integer:=0;
-constant C_USRCMD_ATACOMMAND              : integer:=1;
-constant C_USRCMD_FPDMA_W                 : integer:=2;
-constant C_USRCMD_FPDMA_R                 : integer:=3;
-constant C_USRCMD_SET_SATA1               : integer:=4;
-constant C_USRCMD_SET_SATA2               : integer:=5;
-constant C_USRCMD_COUNT                   : integer:=C_USRCMD_SET_SATA2+1;
+--//(C_CMDPKT_USRCMD_M downto C_CMDPKT_USRCMD_L)/Map:
+constant C_USRCMD_ATACONTROL             : integer:=0;
+constant C_USRCMD_ATACOMMAND             : integer:=1;
+constant C_USRCMD_FPDMA_W                : integer:=2;
+constant C_USRCMD_FPDMA_R                : integer:=3;
+constant C_USRCMD_SET_SATA1              : integer:=4;
+constant C_USRCMD_SET_SATA2              : integer:=5;
+constant C_USRCMD_COUNT                  : integer:=C_USRCMD_SET_SATA2+1;
 
 
 --//-------------------------------------------------
 --//Application Layer
 --//-------------------------------------------------
---//Размер командного пакета в WORD
-constant C_TRLR_CMDPKT_SIZE              : integer:=C_USRAPP_CMDPKT_SIZE_WORD-1;
+--//Register / Adress Map:
+constant C_ALREG_USRCTRL                 : integer:=16#00#;
+constant C_ALREG_FEATURE                 : integer:=16#01#;
+constant C_ALREG_LBA_LOW                 : integer:=16#02#;
+constant C_ALREG_LBA_MID                 : integer:=16#03#;
+constant C_ALREG_LBA_HIGH                : integer:=16#04#;
+constant C_ALREG_SECTOR_COUNT            : integer:=16#05#;
+constant C_ALREG_COMMAND                 : integer:=16#06#;-- + C_ALREG_DEV_CONTROL
+constant C_ALREG_DEVICE                  : integer:=16#07#;
 
---//Регистр C_REG_ATA_COMMAND/ Commad Map:
+--//Регистры ATA / Bit Map:
+--//Регистр ATA_COMMAND/ Commad Map:
 constant C_ATA_CMD_IDENTIFY_DEV          : integer:=16#EC#;
 constant C_ATA_CMD_IDENTIFY_PACKET_DEV   : integer:=16#A1#;
 constant C_ATA_CMD_NOP                   : integer:=16#00#;
@@ -143,39 +158,28 @@ constant C_ATA_CMD_READ_SECTORS_EXT      : integer:=16#24#;--//PIO Read
 constant C_ATA_CMD_WRITE_DMA_EXT         : integer:=16#35#;--//DMA Write
 constant C_ATA_CMD_READ_DMA_EXT          : integer:=16#25#;--//DMA Read
 
---//Регистр C_REG_ATA_STATUS/Bit Map:
-constant C_REG_ATA_STATUS_BUSY_BIT       : integer:=7;--уст-во занято
-constant C_REG_ATA_STATUS_DRDY_BIT       : integer:=6;--уст-во готово к принятию комманд
-constant C_REG_ATA_STATUS_DRQ_BIT        : integer:=3;--уст-во готово к обмену данными
-constant C_REG_ATA_STATUS_ERR_BIT        : integer:=0;--ошибка
+--//Регистр ATA_STATUS/Bit Map:
+constant C_ATA_STATUS_BUSY_BIT           : integer:=7;--уст-во занято
+constant C_ATA_STATUS_DRDY_BIT           : integer:=6;--уст-во готово к принятию комманд
+constant C_ATA_STATUS_DRQ_BIT            : integer:=3;--уст-во готово к обмену данными
+constant C_ATA_STATUS_ERR_BIT            : integer:=0;--ошибка
 
---//Регистр C_REG_ATA_DEV_CONTROL/Bit Map:
-constant C_REG_ATA_DEV_CONTROL_nIEN_BIT  : integer:=1;--маскирование сигнала переывания(0/1 - разрешено/запрещено)
-constant C_REG_ATA_DEV_CONTROL_SRST_BIT  : integer:=2;--
-constant C_IRQ_ON                        : std_logic:='0';
-constant C_IRQ_OFF                       : std_logic:='1';
+--//Регистр ATA_DEV_CONTROL/Bit Map:
+constant C_ATA_DEV_CONTROL_nIEN_BIT      : integer:=1;--маскирование сигнала переывания(0/1 - разрешено/запрещено)
+constant C_ATA_DEV_CONTROL_SRST_BIT      : integer:=2;--
+constant C_ATA_IRQ_ON                    : std_logic:='0';
+constant C_ATA_IRQ_OFF                   : std_logic:='1';
 
---//Регистр C_REG_ATA_DEVICE/Bit Map:
-constant C_REG_ATA_DEVICE_LBA_BIT        : integer:=6;--Режим адресации. 1/0 - LBA/CHS (линейная/трехмерная). В нашем случае применяем только LBA!!!
+--//Регистр ATA_DEVICE/Bit Map:
+constant C_ATA_DEVICE_LBA_BIT            : integer:=6;--Режим адресации. 1/0 - LBA/CHS (линейная/трехмерная). В нашем случае применяем только LBA!!!
 
---//Регистр C_REG_ATA_ERROR/Bit Map:
-constant C_REG_ATA_ERROR_ABRT_BIT        : integer:=2;--command aborted
+--//Регистр ATA_ERROR/Bit Map:
+constant C_ATA_ERROR_ABRT_BIT            : integer:=2;--command aborted
 
-
---//Register / Adress Map:
-constant C_ALREG_USRCTRL                  : integer:=16#000000#;
-constant C_ALREG_FEATURE                  : integer:=16#000001#;
-constant C_ALREG_LBA_LOW                  : integer:=16#000002#;
-constant C_ALREG_LBA_MID                  : integer:=16#000003#;
-constant C_ALREG_LBA_HIGH                 : integer:=16#000004#;
-constant C_ALREG_SECTOR_COUNT             : integer:=16#000005#;
-constant C_ALREG_COMMAND                  : integer:=16#000006#;-- + C_ALREG_DEV_CONTROL
-constant C_ALREG_DEVICE                   : integer:=16#000007#;
 
 
 --//Управление/Map:
-constant C_ACTRL_ERR_CLR_BIT              : integer:=0;--//Сброс ошибок SError
-constant C_ALCTRL_LAST_BIT                : integer:=C_ACTRL_ERR_CLR_BIT;
+--//См. секцию User Global Ctrl
 
 --//Статусы/Map:
 --//Поле - SStatus/Map:
@@ -205,22 +209,22 @@ constant C_ASERR_C_ERR_BIT               : integer:=9;
 constant C_ASERR_P_ERR_BIT               : integer:=10;
 constant C_ASERR_E_ERR_BIT               : integer:=11;--//не использую
 
-constant C_ASERR_N_DIAG_BIT              : integer:=16;
+constant C_ASERR_N_DIAG_BIT              : integer:=16;--//PHY Layer:if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') then
 constant C_ASERR_I_DIAG_BIT              : integer:=17;--//не использую
-constant C_ASERR_W_DIAG_BIT              : integer:=18;
-constant C_ASERR_B_DIAG_BIT              : integer:=19;
-constant C_ASERR_D_DIAG_BIT              : integer:=20;
-constant C_ASERR_C_DIAG_BIT              : integer:=21;
-constant C_ASERR_H_DIAG_BIT              : integer:=22;
-constant C_ASERR_S_DIAG_BIT              : integer:=23;
-constant C_ASERR_T_DIAG_BIT              : integer:=24;
-constant C_ASERR_F_DIAG_BIT              : integer:=25;
+constant C_ASERR_W_DIAG_BIT              : integer:=18;--//PHY Layer:if p_in_pl_status(C_PSTAT_COMWAKE_RCV_BIT)='1' then
+constant C_ASERR_B_DIAG_BIT              : integer:=19;--//PHY Layer:if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+constant C_ASERR_D_DIAG_BIT              : integer:=20;--//PHY Layer:if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
+constant C_ASERR_C_DIAG_BIT              : integer:=21;--//Link Layer: --//CRC ERROR
+constant C_ASERR_H_DIAG_BIT              : integer:=22;--//Link Layer: --//1/0 - CRC ERROR on (send FIS/rcv FIS)
+constant C_ASERR_S_DIAG_BIT              : integer:=23;--//Link Layer:if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
+constant C_ASERR_T_DIAG_BIT              : integer:=24;--//Link Layer:if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
+constant C_ASERR_F_DIAG_BIT              : integer:=25;--//Transport Layer: FIS CRC-OK, but FISTYPE/FISLEN ERROR
 
-constant C_ASERR_DET_L_BIT               : integer:=26;--//Биты 26..31 не в ходят в bitmap регистра SErr,
-constant C_ASERR_DET_M_BIT               : integer:=27;--//но я включил эти биты для удобства
-constant C_ASERR_SPD_L_BIT               : integer:=28;
+constant C_ASERR_DET_L_BIT               : integer:=26;--//PHY Layer: C_PSTAT_DET_DEV_ON_BIT
+constant C_ASERR_DET_M_BIT               : integer:=27;--//PHY Layer: C_PSTAT_DET_ESTABLISH_ON_BIT
+constant C_ASERR_SPD_L_BIT               : integer:=28;--//PHY Layer: SATA speed negatiation
 constant C_ASERR_SPD_M_BIT               : integer:=30;
-constant C_ASERR_IPM_L_BIT               : integer:=31;
+constant C_ASERR_IPM_L_BIT               : integer:=31;--//i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT)
 
 constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_IPM_L_BIT;
 
@@ -438,9 +442,12 @@ constant C_PLSTAT_LAST_BIT               : integer:=C_PSTAT_COMWAKE_RCV_BIT;
 
 type TPLoob_fsm_state is
 (
+S_HR_IDLE,
 S_HR_COMRESET,
 S_HR_COMRESET_DONE,
 S_HR_AwaitCOMINIT,
+S_HR_AwaitNoCOMINIT,
+S_HR_Calibrate,
 S_HR_COMWAKE,
 S_HR_COMWAKE_DONE,
 S_HR_AwaitCOMWAKE,
@@ -461,7 +468,8 @@ constant C_SECTOR_SIZE_BYTE              : integer:=512;
 constant C_FR_DWORD_COUNT_MAX            : integer:=2048;
 
 --//sata_player_oob.vhd
-constant C_OOB_TIMEOUT                   : integer:=10#66000#; --=880us на 75MHz
+constant C_OOB_TIMEOUT_880us             : integer:=10#66000#; --=880us на 75MHz
+constant C_OOB_TIMEOUT_10ms              : integer:=10#750000#;--=10ms на 75MHz
 
 --//Версии спецификации SATA
 --//ВАЖНО: изменив эти константы, нужно будет руками править файлы sata_spd_ctrl.vhd sata_host.vhd
@@ -642,12 +650,15 @@ full    : std_logic;--//full
 pfull   : std_logic;--//prog full
 aempty  : std_logic;--//almost empty
 empty   : std_logic;--//empty
+rdcount : std_logic_vector(3 downto 0);
+--wrcount : std_logic_vector(3 downto 0);
 end record;
 
 type TRxBufStatus is record
 full    : std_logic;--//full
 pfull   : std_logic;--//prog full
 empty   : std_logic;--//empty
+wrcount : std_logic_vector(3 downto 0);
 end record;
 
 type TSpdCtrl is record
@@ -664,7 +675,7 @@ type TTLStat_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector(C_TLSTA
 type TPLCtrl_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
 type TLLCtrl_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
 type TTLCtrl_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
-type TALCtrl_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
+type TALCtrl_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
 type TTxBufStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TTxBufStatus;
 type TRxBufStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRxBufStatus;
@@ -694,7 +705,7 @@ type TBus16_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(15 
 type TBus02_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(1 downto 0);
 type TBus03_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(2 downto 0);
 type TBus04_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3 downto 0);
-type TALCtrl_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALCTRL_LAST_BIT downto 0);
+type TALCtrl_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 type TALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
 type TTxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;
 type TRxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus;

@@ -37,6 +37,7 @@ G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
 G_GTP_DBUS        : integer:=16;   --//
 G_DBG             : string :="OFF";--//
+--G_DBGCS           : string :="OFF";--//
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
 port
@@ -102,10 +103,10 @@ p_in_sys_dcm_gclk2div       : in    std_logic;--//dcm_clk0 /2
 p_in_sys_dcm_gclk           : in    std_logic;--//dcm_clk0
 p_in_sys_dcm_gclk2x         : in    std_logic;--//dcm_clk0 x 2
 p_in_sys_dcm_lock           : in    std_logic;
-p_out_sys_dcm_rst           : out   std_logic;
 
-p_in_gtp_drpclk             : in    std_logic;--//
+p_out_gtp_pllkdet           : out   std_logic;
 p_out_gtp_refclk            : out   std_logic;--//выход порта REFCLKOUT модуля GTP_DUAL/sata_player_gt.vhdl
+p_in_gtp_drpclk             : in    std_logic;--//
 p_in_gtp_refclk             : in    std_logic;--//CLKIN для модуля RocketIO(GTP)
 p_in_rst                    : in    std_logic
 );
@@ -123,6 +124,8 @@ signal i_reg_dma                   : TRegDMA_GTCH;
 signal i_reg_shadow                : TRegShadow_GTCH;
 signal i_reg_hold                  : TRegHold_GTCH;
 signal i_reg_update                : TRegShadowUpdate_GTCH;
+
+signal i_alstatus                  : TALStatus_GTCH;
 
 signal i_tr_ctrl                   : TTLCtrl_GTCH;
 signal i_tr_status                 : TTLStat_GTCH;
@@ -178,7 +181,9 @@ signal i_gtp_txdata                : TBus32_GTCH;
 signal i_gtp_txcharisk             : TBus04_GTCH;
 
 
+signal i_dbg                       : TSH_dbgport_GTCH;
 
+signal tst_dbg_cs                  : TBus32_GTCH;
 signal tst_alayer_out              : TBus32_GTCH;
 signal tst_tlayer_out              : TBus32_GTCH;
 signal tst_llayer_out              : TBus32_GTCH;
@@ -187,15 +192,16 @@ signal tst_spctrl_out              : std_logic_vector(31 downto 0);
 signal tst_out                     : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
-
 --MAIN
 begin
+
+
 
 
 --//#############################
 --//Инициализация
 --//#############################
-p_out_sys_dcm_rst<=not i_gtp_PLLLKDET;
+p_out_gtp_pllkdet<=i_gtp_PLLLKDET;
 
 i_gtp_glob_reset <= p_in_rst or i_gtp_rst;
 
@@ -308,22 +314,24 @@ p_out_tst(i)(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
+
+--p_out_tst(i)(31 downto 0)<=(others=>'0');
 tstout:process(p_in_rst,p_in_gtp_drpclk)
 begin
   if p_in_rst='1' then
-    tst_out(i)<='0';
+    p_out_tst(i)(0)<='0';
   elsif p_in_gtp_drpclk'event and p_in_gtp_drpclk='1' then
-    tst_out(i)<=OR_reduce(tst_spctrl_out) or
-                OR_reduce(tst_player_out(i)) or
-                OR_reduce(tst_llayer_out(i)) or
-                OR_reduce(tst_tlayer_out(i)) or
-                OR_reduce(tst_alayer_out(i));
+    p_out_tst(i)(0)<=tst_spctrl_out(0) or
+                     tst_player_out(i)(0) or
+                     tst_llayer_out(i)(0) or
+                     tst_tlayer_out(i)(0) or
+                     tst_alayer_out(i)(0);
 
   end if;
 end process tstout;
 
-p_out_tst(i)(0)<=tst_out(i);
-p_out_tst(i)(1)<=i_link_txd_close(i);
+--p_out_tst(i)(0)<=tst_dbg_cs(i)(0);
+p_out_tst(i)(1)<=i_sata_module_rst(i);
 p_out_tst(i)(31 downto 2)<=(others=>'0');
 
 end generate gen_dbg_on;
@@ -362,6 +370,8 @@ i_sata_module_rst(i)<=i_spd_gtp_ch_rst(i) or not p_in_sys_dcm_lock;
 --//Тактовая частота для тактирования Cmd/Rx/TxBUF - usrapp_layer
 p_out_usrfifo_clkout(i)<=g_gtp_usrclk2(i);
 
+p_out_status(i)<=i_alstatus(i);
+
 --//Implemention Layers:
 m_alayer : sata_alayer
 generic map
@@ -375,7 +385,7 @@ port map
 --Связь с USR APP Layer
 --------------------------------------------------
 p_in_ctrl                 => p_in_ctrl(i),
-p_out_status              => p_out_status(i),
+p_out_status              => i_alstatus(i),
 
 --//Связь с CMDFIFO
 p_in_cmdfifo_dout         => p_in_cmdfifo_dout(i),
@@ -403,7 +413,7 @@ p_in_reg_update           => i_reg_update(i),
 --------------------------------------------------
 p_in_tst                  => p_in_tst(i),
 p_out_tst                 => tst_alayer_out(i),
-p_out_dbg                 => p_out_dbg(i).alayer,
+p_out_dbg                 => i_dbg(i).alayer,
 
 --------------------------------------------------
 --System
@@ -469,7 +479,7 @@ p_in_pl_status            => i_phy_status(i),
 --------------------------------------------------
 p_in_tst                  => p_in_tst(i),
 p_out_tst                 => tst_tlayer_out(i),
-p_out_dbg                 => p_out_dbg(i).tlayer,
+p_out_dbg                 => i_dbg(i).tlayer,
 
 --------------------------------------------------
 --System
@@ -519,7 +529,7 @@ p_in_phy_txrdy_n        => i_phy_txrdy_n(i),
 --------------------------------------------------
 p_in_tst                => p_in_tst(i),
 p_out_tst               => tst_llayer_out(i),
-p_out_dbg               => p_out_dbg(i).llayer,
+p_out_dbg               => i_dbg(i).llayer,
 
 --------------------------------------------------
 --System
@@ -581,7 +591,7 @@ p_in_gtp_rxbyteisaligned   => i_gtp_rxbyteisaligned(i),
 --------------------------------------------------
 p_in_tst                   => p_in_tst(i),
 p_out_tst                  => tst_player_out(i),
-p_out_dbg                  => p_out_dbg(i).player,
+p_out_dbg                  => i_dbg(i).player,
 
 --------------------------------------------------
 --System
@@ -590,6 +600,50 @@ p_in_tmrclk             => p_in_sys_dcm_gclk2div,
 p_in_clk                => g_gtp_usrclk2(i),
 p_in_rst                => i_sata_module_rst(i)
 );
+
+
+
+----gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+----begin
+-----##############################
+---- Отладка через ChipScope
+-----##############################
+--m_dbgcs : sata_dbgcs
+--generic map
+--(
+--G_DBG => G_DBG,
+--G_SIM => G_SIM
+--)
+--port map
+--(
+--p_in_ctrl       => p_in_ctrl(i),
+--
+--p_in_dbg        => i_dbg(i),
+--p_in_alstatus   => i_alstatus(i),
+--p_in_phy_txreq  => i_phy_txreq(i),
+--p_in_phy_rxtype => i_phy_rxtype(i)(C_TDATA_EN downto C_TALIGN),
+--p_in_phy_rxdata => i_phy_rxd(i),
+--p_in_phy_sync   => i_phy_sync(i),
+--
+--p_in_ll_rxd     => i_link_rxd(i),
+--p_in_ll_rxd_wr  => i_link_rxd_wr(i),
+--
+--p_in_gt_rxdata     => i_gtp_rxdata(i),
+--p_in_gt_rxcharisk  => i_gtp_rxcharisk(i),
+--
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_out_tst       => tst_dbg_cs(i),
+--
+----------------------------------------------------
+----System
+----------------------------------------------------
+--p_in_clk        => g_gtp_usrclk2(i),
+--p_in_rst        => i_sata_module_rst(i)
+--);
+----end generate gen_dbgcs_on;
+
 
 end generate gen_ch;
 
@@ -667,14 +721,19 @@ p_in_refclkin          => p_in_gtp_refclk,
 p_in_rst               => i_gtp_glob_reset
 );
 
+p_out_dbg<=i_dbg;
+
 end generate gen_sim_off;
 
 
 
 ---##############################
--- Моделирование
+-- Debug/Sim
 ---##############################
+--//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on: if strcmp(G_SIM,"ON") generate
+
+--p_out_dbg<=i_dbg;
 
 m_gt_sim : sata_player_gtsim
 generic map

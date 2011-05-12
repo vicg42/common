@@ -135,10 +135,7 @@ signal i_txp_retransmit_dis        : std_logic;
 signal i_tl_check_done             : std_logic;--//Обнаружил сигнал завершения проверки Transport Layer
 signal i_tl_check_ok               : std_logic;--//Результат проверки принятых данных Transport Layer
 
-signal tst_val                     : std_logic;
-signal tst_ll_rxp                  : TSimLLRxP;
-signal tst_ll_ctrl                 : TSimLLCtrl;
-signal tst_ll_status               : TSimLLStatus;
+
 signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
 
@@ -154,6 +151,8 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
+
+--p_out_tst(31 downto 0)<=(others=>'0');
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -162,7 +161,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly);
+    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
   end if;
 end process ltstout;
 
@@ -2391,47 +2390,40 @@ end process lfsm;
 
 
 
---//Только для моделирования (удобства алализа данных при моделироании)
-gen_sim_on : if strcmp(G_SIM,"ON") generate
-
-tst_ll_rxp.dmat<=i_rxp(C_TDMAT);
-tst_ll_rxp.hold<=i_rxp(C_THOLD);
-tst_ll_rxp.xrdy<=i_rxp(C_TX_RDY);
-tst_ll_rxp.cont<=i_rxp(C_TCONT);
-
-tst_ll_ctrl.trn_escape<=p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT);
-tst_ll_ctrl.txstart<=p_in_ctrl(C_LCTRL_TxSTART_BIT );
-tst_ll_ctrl.tl_check_err<=p_in_ctrl(C_LCTRL_TL_CHECK_ERR_BIT);
-tst_ll_ctrl.tl_check_done<=p_in_ctrl(C_LCTRL_TL_CHECK_DONE_BIT);
-
-tst_ll_status.rxok<=i_status(C_LSTAT_RxOK);
-tst_ll_status.rxstart<=i_status(C_LSTAT_RxSTART);
-tst_ll_status.rxerr_crc<=i_status(C_LSTAT_RxERR_CRC);
-tst_ll_status.rxerr_idle<=i_status(C_LSTAT_RxERR_IDLE);
-tst_ll_status.rxerr_abort<=i_status(C_LSTAT_RxERR_ABORT);
-tst_ll_status.txok<=i_status(C_LSTAT_TxOK);
-tst_ll_status.txdmat<=i_status(C_LSTAT_TxDMAT);
-tst_ll_status.txerr_crc<=i_status(C_LSTAT_TxERR_CRC);
-tst_ll_status.txerr_idle<=i_status(C_LSTAT_TxERR_IDLE);
-tst_ll_status.txerr_abort<=i_status(C_LSTAT_TxERR_ABORT);
-
-process(tst_ll_rxp,tst_ll_ctrl,tst_ll_status)
-begin
-  if tst_ll_rxp.dmat='1' or
-     tst_ll_ctrl.txstart='1' or
-      tst_ll_status.rxok='1' then
-    tst_val<='1';
-  else
-    tst_val<='0';
-  end if;
-end process;
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+----//Только для моделирования (удобства алализа данных при моделироании)
+--gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 p_out_dbg.fsm<=fsm_llayer_cs;
-p_out_dbg.ctrl<=tst_ll_ctrl;
-p_out_dbg.status<=tst_ll_status;
-p_out_dbg.rxp<=tst_ll_rxp;
 
-end generate gen_sim_on;
+p_out_dbg.rxp.dmat<=i_rxp(C_TDMAT);
+p_out_dbg.rxp.hold<=i_rxp(C_THOLD);
+p_out_dbg.rxp.xrdy<=i_rxp(C_TX_RDY);
+p_out_dbg.rxp.cont<=i_rxp(C_TCONT);
+
+p_out_dbg.ctrl.trn_escape<=p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT);
+p_out_dbg.ctrl.txstart<=p_in_ctrl(C_LCTRL_TxSTART_BIT );
+p_out_dbg.ctrl.tl_check_err<=p_in_ctrl(C_LCTRL_TL_CHECK_ERR_BIT);
+p_out_dbg.ctrl.tl_check_done<=p_in_ctrl(C_LCTRL_TL_CHECK_DONE_BIT);
+
+p_out_dbg.status.rxok<=i_status(C_LSTAT_RxOK);
+p_out_dbg.status.rxstart<=i_status(C_LSTAT_RxSTART);
+p_out_dbg.status.rxerr_crc<=i_status(C_LSTAT_RxERR_CRC);
+p_out_dbg.status.rxerr_idle<=i_status(C_LSTAT_RxERR_IDLE);
+p_out_dbg.status.rxerr_abort<=i_status(C_LSTAT_RxERR_ABORT);
+p_out_dbg.status.txok<=i_status(C_LSTAT_TxOK);
+p_out_dbg.status.txdmat<=i_status(C_LSTAT_TxDMAT);
+p_out_dbg.status.txerr_crc<=i_status(C_LSTAT_TxERR_CRC);
+p_out_dbg.status.txerr_idle<=i_status(C_LSTAT_TxERR_IDLE);
+p_out_dbg.status.txerr_abort<=i_status(C_LSTAT_TxERR_ABORT);
+
+p_out_dbg.rxbuf_status<=p_in_rxd_status;
+p_out_dbg.txbuf_status<=p_in_txd_status;
+p_out_dbg.txd_close<=p_in_txd_close;
+
+--end generate gen_sim_on;
 
 --END MAIN
 end behavioral;

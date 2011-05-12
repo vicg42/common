@@ -30,7 +30,7 @@ package sata_sim_lite_pkg is
 ---------------------------------------------------------
 constant C_SIM_SATAHOST_TMR_ALIGN : integer:=10;--//Переиод отправки BURST ALIGN для sata_host.vhd
 
-constant C_SIM_SECTOR_SIZE_DWORD  : integer:=32;                       --//Размер сеткора в Dword
+constant C_SIM_SECTOR_SIZE_DWORD  : integer:=64;                       --//Размер сеткора в Dword
 constant C_SIM_FR_DWORD_COUNT_MAX : integer:=C_SIM_SECTOR_SIZE_DWORD*2;--//max кол-во Dword в FISDATA между SOF и EOF, исключая FISTYPE и CRC
 
 
@@ -138,6 +138,9 @@ fsm   : TLL_fsm_state;
 ctrl  : TSimLLCtrl;
 status: TSimLLStatus;
 rxp   : TSimLLRxP;
+rxbuf_status : TRxBufStatus;
+txbuf_status : TTxBufStatus;
+txd_close    : std_logic;
 end record;
 
 --//------------------------------
@@ -163,12 +166,15 @@ end record;
 
 type TPLoob_dbgport is record
 fsm  : TPLoob_fsm_state;
-stat : TSimPLStatus;
+status : TSimPLStatus;
+speed: std_logic_vector(C_PCTRL_SPD_BIT_M-C_PCTRL_SPD_BIT_L downto 0);
 end record;
 
 type TPLtx_dbgport is record
 req_name : string(1 to 7);
 stat     : TSimPLTxStatus;
+txalign  : std_logic;
+txd      : std_logic_vector(31 downto 0);
 end record;
 
 type TPLrx_dbgport is record
@@ -189,10 +195,35 @@ llayer  : TLL_dbgport;
 player  : TPL_dbgport;
 end record;
 
-
 type TSH_dbgport_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgport;
 type TSH_dbgport_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_GTCH;
-type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport;
+--type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport;
+
+type TSTxBuf_dbgport is record
+--din     : std_logic_vector(31 downto 0);
+--dout    : std_logic_vector(31 downto 0);
+wr      : std_logic;
+rd      : std_logic;
+status  : TTxBufStatus;
+end record;
+type TSRxBuf_dbgport is record
+--din     : std_logic_vector(31 downto 0);
+--dout    : std_logic_vector(31 downto 0);
+wr      : std_logic;
+rd      : std_logic;
+status  : TRxBufStatus;
+end record;
+
+type TSH_dbgport_addbuf is record
+txbuf   : TSTxBuf_dbgport;
+rxbuf   : TSRxBuf_dbgport;
+alayer  : TAL_dbgport;
+tlayer  : TTL_dbgport;
+llayer  : TLL_dbgport;
+player  : TPL_dbgport;
+end record;
+
+type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_addbuf;
 
 end sata_sim_lite_pkg;
 

@@ -49,7 +49,7 @@ architecture behavior of vereskm_hdd_tb is
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
 constant C_SATACLK_PERIOD : TIME := 6.6 ns; --150MHz
-constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
+constant C_USRCLK_PERIOD  : TIME := 3.6 ns;--6.6*100 ns;
 constant C_HOSTCLK_PERIOD : TIME := 6.6*6 ns;
 
 component dsn_hdd_rambuf
@@ -310,6 +310,7 @@ generic map
 G_MODULE_USE => "ON",--
 G_HDD_COUNT  => G_HDD_COUNT,
 G_DBG        => G_DBG,
+--G_DBGCS      => "OFF",
 G_SIM        => G_SIM
 )
 port map
@@ -364,6 +365,8 @@ p_in_sata_rxn          => i_sata_rxn,
 p_in_sata_rxp          => i_sata_rxp,
 
 p_in_sata_refclk       => i_sata_gtp_refclkmain,
+p_out_sata_refclkout   => open,
+p_out_sata_gt_plldet   => open,
 
 --------------------------------------------------
 --Технологический порт
@@ -531,22 +534,24 @@ begin
 
   wait until i_dsn_hdd_rst='0';
 
+  wait until i_hdd_busy='0';
+
   wait until p_in_clk'event and p_in_clk='1';
   i_dsn_hdd_regcfg_start<='1';
   wait until p_in_clk'event and p_in_clk='1';
   i_dsn_hdd_regcfg_start<='0';
 
-  wait until i_dsn_hdd_regcfg_done='1';
+  wait until p_in_clk'event and p_in_clk='1' and i_dsn_hdd_regcfg_done='1';
+  write(GUI_line,string'("module DSN_HDD: cfg reg - DONE."));writeline(output, GUI_line);
 
-
-  i_txdata_select<='1'; --//0/1 - Счетчик/Random DATA
+  i_txdata_select<='0'; --//0/1 - Счетчик/Random DATA
 
   --//Инициализируем команды которые будут отправлятся:
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='1';
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
-  cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_SECTORS_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
+  cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--;
   cfgCmdPkt(0).scount:=2;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);--//LBA
   cfgCmdPkt(0).loopback:='1';
@@ -555,7 +560,7 @@ begin
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='1';
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
-  cfgCmdPkt(1).command:=C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--;
+  cfgCmdPkt(1).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
   cfgCmdPkt(1).scount:=2;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(1).loopback:='1';
@@ -661,11 +666,8 @@ begin
   i_loopback<=cfgCmdPkt(idx).loopback;
 
   --//Ждем разрешения загрузки командного пакета
-  cmddone_det:='0';
-  while cmddone_det='0' loop
-      wait until p_in_clk'event and p_in_clk='1';
-        cmddone_det:=i_cmddone_det;
-  end loop;
+  wait until p_in_clk'event and p_in_clk='1' and i_cmddone_det='1';
+
   --//Сброс флага i_cmddone_det
   wait until p_in_clk'event and p_in_clk='1';
   i_cmddone_det_clr<='1';
@@ -838,6 +840,8 @@ begin
   mem_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, mem_lentrn_byte'length);
   mem_lentrn_dw:=("00"&mem_lentrn_byte(mem_lentrn_byte'high downto 2));
 
+  i_cmd_wrdone<='0';
+
   i_cfgdev_adr<=(others=>'0');
   i_cfgdev_adr_ld<='0';
   i_cfgdev_adr_fifo<='0';
@@ -900,12 +904,17 @@ begin
       wait until g_host_clk'event and g_host_clk='1';
         i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
+      wait until p_in_clk'event and p_in_clk='1';
+        i_cmd_wrdone<='1';
+      wait until p_in_clk'event and p_in_clk='1';
+        i_cmd_wrdone<='0';
+
   end loop ltxcmdloop;
 
   wait;
 end process ltxcmd;
 
-i_cmd_wrdone<=i_dev_cfg_done(C_CFGDEV_HDD);
+--i_cmd_wrdone<=i_dev_cfg_done(C_CFGDEV_HDD);
 
 
 --//########################################

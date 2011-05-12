@@ -95,9 +95,9 @@ type TDly2SrT is array (0 to 3) of std_logic_vector(1 downto 0);
 signal sr_tdly2                   : TDly2SrT;
 
 
-signal tst_pltx_status            : TSimPLTxStatus;
-signal tst_val                    : std_logic;
-signal dbgtsf_type                : string(1 to 7);
+--signal tst_pltx_status            : TSimPLTxStatus;
+--signal tst_val                    : std_logic;
+--signal dbgtsf_type                : string(1 to 7);
 
 
 --MAIN
@@ -119,7 +119,7 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(1)<=tst_synch;
 --  end if;
 --end process ltstout;
-p_out_tst(0)<=tst_val;
+p_out_tst(0)<='0';
 p_out_tst(31 downto 1)<=(others=>'0');
 
 end generate gen_dbg_on;
@@ -348,33 +348,26 @@ p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
 
 
 
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+begin
+p_out_dbg.req_name<=(others=>'0');
+end generate gen_sim_off;
+
 --//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
-
---tst_pltx_status.req_name<=dbgtsf_type;
-tst_pltx_status.suspend_phold<=i_suspend(C_THOLD);
-tst_pltx_status.suspend_pholda<=i_suspend(C_THOLDA);
-tst_pltx_status.suspend_psof<=i_suspend(C_TSOF);
-tst_pltx_status.suspend_peof<=i_suspend(C_TEOF);
-
-rq_name: process(p_in_txreq,tst_pltx_status)
-begin
-
-  dbgtsf_type<=C_PNAME_STR(CONV_INTEGER(p_in_txreq));
-
-  if dbgtsf_type=C_PNAME_STR(C_TALIGN) and tst_pltx_status.suspend_psof='1' then
-    tst_val<='1';
-  else
-    tst_val<='0';
-  end if;
-end process rq_name;
-
-p_out_dbg.stat<=tst_pltx_status;
-
-p_out_dbg.req_name<=dbgtsf_type;
-p_out_dbg.stat<=tst_pltx_status;
-
+p_out_dbg.req_name<=C_PNAME_STR(CONV_INTEGER(p_in_txreq));
 end generate gen_sim_on;
+
+p_out_dbg.stat.suspend_phold<=i_suspend(C_THOLD);
+p_out_dbg.stat.suspend_pholda<=i_suspend(C_THOLDA);
+p_out_dbg.stat.suspend_psof<=i_suspend(C_TSOF);
+p_out_dbg.stat.suspend_peof<=i_suspend(C_TEOF);
+p_out_dbg.txalign<=i_align_txen;
+p_out_dbg.txd<=sr_txdata;
+
 
 
 --END MAIN

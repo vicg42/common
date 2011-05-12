@@ -147,12 +147,8 @@ type TDlySrD is array (0 to 0) of std_logic_vector(31 downto 0);
 signal sr_llrxd                    : TDlySrD;                 --//Линия задержки данных/разрешения данных с порта p_in_ll_rxd/p_in_ll_rxd_wr
 signal sr_llrxd_en                 : std_logic_vector(0 to 0);
 
-signal i_txfifo_pfull              : std_logic;--//подсинхреные сигналы статусов буферов Tx/Rx
-signal i_rxfifo_empty              : std_logic;
+signal i_txfifo_pfull              : std_logic;
 
-signal tst_val                     : std_logic;
-signal tst_tl_ctrl                 : TSimTLCtrl;
-signal tst_tl_status               : TSimTLStatus;
 signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
 
@@ -168,6 +164,8 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
+
+--p_out_tst(31 downto 0)<=(others=>'0');
 tstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -176,7 +174,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=tst_val or OR_reduce(tst_fms_cs_dly) or i_irq or i_firq_bit;
+    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or i_irq or i_firq_bit;
 
   end if;
 end process tstout;
@@ -235,13 +233,28 @@ p_out_reg_update<=i_reg_update;
 --------------------------------------------------
 p_out_ll_ctrl<=i_ll_ctrl;--//Управление LINK уровнем
 
+--//Моделирование:
+gen_bufstatus_sim_on : if strcmp(G_SIM,"ON") generate
+p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.wrcount(1);
+end generate gen_bufstatus_sim_on;
+--//Рабочий вариант:
+gen_bufstatus_off : if strcmp(G_SIM,"OFF") generate
+--//буфер заполнен на 14/16 (p_in_rxfifo_status.wrcount="11110")
+p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.wrcount(3) and p_in_rxfifo_status.wrcount(2) and p_in_rxfifo_status.wrcount(1) and not p_in_rxfifo_status.wrcount(0);
+end generate gen_bufstatus_off;
 
-p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.pfull;
-p_out_ll_rxd_status.empty<=i_rxfifo_empty;
+p_out_ll_rxd_status.full<=p_in_rxfifo_status.full;
+p_out_ll_rxd_status.empty<=not OR_reduce(p_in_rxfifo_status.wrcount);
+p_out_ll_rxd_status.wrcount<=p_in_rxfifo_status.wrcount;
 
+p_out_ll_txd_status.full<=p_in_txfifo_status.full;
+p_out_ll_txd_status.pfull<=i_txfifo_pfull;
 p_out_ll_txd_status.aempty<=not(i_fh2d_tx_en or i_fdmasetup_tx_en) and p_in_txfifo_status.aempty;
 p_out_ll_txd_status.empty<=not(i_fh2d_tx_en or i_fdmasetup_tx_en) and p_in_txfifo_status.empty;
-p_out_ll_txd_status.pfull<=i_txfifo_pfull;
+p_out_ll_txd_status.rdcount<=p_in_txfifo_status.rdcount;
+--p_out_ll_txd_status.wrcount<=p_in_txfifo_status.wrcount;
+
+i_txfifo_pfull<=OR_reduce(p_in_txfifo_status.rdcount);
 
 p_out_ll_txd <=p_in_txfifo_dout when i_fdata_txd_en='1' else i_fh2d;
 
@@ -250,15 +263,6 @@ p_out_ll_txd_close <=i_fh2d_close or i_fdata_close;
 i_fdata_close<='1' when ( i_fpiosetup='1' and i_fdcnt=EXT(i_piosetup_trncount_dw, i_fdcnt'length) ) or
                         ( i_dma_txd='1' and i_fdata_txd_en='1' and (i_dma_dcnt=i_dma_trncount_dw or OR_reduce(i_dma_dcnt(log2(CI_FR_DWORD_COUNT_MAX)-1 downto 0))='0') ) else
                  '0';
-
---//Подсинхривание статусов буферов данных
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_txfifo_pfull<=p_in_txfifo_status.pfull; --//Т.к. статус pFull может быть привязан к wr_clk буфера Tx
-    i_rxfifo_empty<=p_in_rxfifo_status.empty; --//Т.к. статус empty может быть привязан к rd_clk буфера Rx
-  end if;
-end process;
 
 
 --//-----------------------------
@@ -746,7 +750,7 @@ elsif p_in_clk'event and p_in_clk='1' then
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
               i_fdir_bit<=sr_llrxd(0)(C_FIS_DIR_BIT+8);
                 i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
-              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_IRQ_ON then
+              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_ATA_IRQ_ON then
                 i_irq<='1';
               end if;
 
@@ -834,7 +838,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
                 i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
-              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_IRQ_ON then
+              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_ATA_IRQ_ON then
                 i_irq<='1';
               end if;
 
@@ -997,7 +1001,7 @@ elsif p_in_clk'event and p_in_clk='1' then
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
               i_fdir_bit<=sr_llrxd(0)(C_FIS_DIR_BIT+8);
                 i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
-              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_IRQ_ON then
+              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_ATA_IRQ_ON then
                 i_irq<='1';
               end if;
 
@@ -1540,39 +1544,29 @@ end process lfsm;
 
 
 
---//Только для моделирования (удобства алализа данных при моделироании)
-gen_sim_on : if strcmp(G_SIM,"ON") generate
-
-tst_tl_ctrl.ata_command<=p_in_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT);
-tst_tl_ctrl.ata_control<=p_in_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT);
-tst_tl_ctrl.fpdma<=p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT);
-
-tst_tl_status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
-tst_tl_status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
-tst_tl_status.rxfislen_err<=i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT);
-tst_tl_status.txerr_crc_repeat<=i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT);
-tst_tl_status.dma_wrstart<=i_tl_status(C_TSTAT_DWR_START_BIT);
-
-process(p_in_tl_ctrl,i_tl_status)
-begin
-
-  if tst_tl_status.rxfistype_err='1' or
-     tst_tl_ctrl.ata_command='1' then
-    tst_val<='1';
-  else
-    tst_val<='0';
-  end if;
-end process;
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+----//Только для моделирования (удобства алализа данных при моделироании)
+--gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 p_out_dbg.fsm<=fsm_tlayer_cs;
-p_out_dbg.ctrl<=tst_tl_ctrl;
-p_out_dbg.status<=tst_tl_status;
+
+p_out_dbg.ctrl.ata_command<=p_in_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT);
+p_out_dbg.ctrl.ata_control<=p_in_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT);
+p_out_dbg.ctrl.fpdma<=p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT);
+
+p_out_dbg.status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
+p_out_dbg.status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
+p_out_dbg.status.rxfislen_err<=i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT);
+p_out_dbg.status.txerr_crc_repeat<=i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT);
+p_out_dbg.status.dma_wrstart<=i_tl_status(C_TSTAT_DWR_START_BIT);
+
 p_out_dbg.dmatrn_sizedw<=EXT(i_dma_trncount_dw, p_out_dbg.dmatrn_sizedw'length);
 p_out_dbg.dmatrn_dcnt<=EXT(i_dma_dcnt, p_out_dbg.dmatrn_dcnt'length);
 p_out_dbg.piotrn_sizedw<=EXT(i_piosetup_trncount_dw, p_out_dbg.piotrn_sizedw'length);
 
-end generate gen_sim_on;
-
+--end generate gen_sim_on;
 
 --END MAIN
 end behavioral;

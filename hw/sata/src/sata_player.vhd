@@ -111,11 +111,12 @@ signal i_resynch                : std_logic;
 signal i_cnt_sync               : std_logic_vector(selval(1, 0, cmpval(G_GTP_DBUS, 8)) downto 0);--(1 downto 0);
 
 
+signal i_dbg                  : TPL_dbgport;
 signal tst_player_oob_out       : std_logic_vector(31 downto 0);
 signal tst_player_rcv_out       : std_logic_vector(31 downto 0);
 signal tst_player_tsf_out       : std_logic_vector(31 downto 0);
-signal tst_rcv_aperiod          : std_logic_vector(10 downto 0);
 signal tst_rxtype               : std_logic_vector(i_rxtype'range);
+--signal tst_rcv_aperiod          : std_logic_vector(10 downto 0);
 
 
 
@@ -130,29 +131,35 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
+
+--p_out_tst(31 downto 0)<=(others=>'0');
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    p_out_tst(31 downto 3)<=(others=>'0');
-    tst_rcv_aperiod<=(others=>'0');
+--    tst_rcv_aperiod<=(others=>'0');
+    p_out_tst<=(others=>'0');
     tst_rxtype<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_rxtype<=i_rxtype;
-    p_out_tst(0)<=OR_reduce(tst_rcv_aperiod) or OR_reduce(tst_rxtype) or
-                  OR_reduce(tst_player_oob_out) or OR_reduce(tst_player_rcv_out) or OR_reduce(tst_player_tsf_out);
+    p_out_tst(0)<=OR_reduce(tst_rxtype) or
+                  tst_player_oob_out(0) or tst_player_rcv_out(0);
+--                   or OR_reduce(tst_player_tsf_out);
+--                  OR_reduce(tst_rcv_aperiod) or
 
-    if i_resynch='1' then
-      tst_rcv_aperiod<=(others=>'0');
-    else
-      if tst_rcv_aperiod=(tst_rcv_aperiod'range =>'1') then
-        tst_rcv_aperiod<=(others=>'1');
-      else
-        tst_rcv_aperiod<=tst_rcv_aperiod + 1;
-      end if;
-    end if;
+--    if i_resynch='1' then
+--      tst_rcv_aperiod<=(others=>'0');
+--    else
+--      if tst_rcv_aperiod=(tst_rcv_aperiod'range =>'1') then
+--        tst_rcv_aperiod<=(others=>'1');
+--      else
+--        tst_rcv_aperiod<=tst_rcv_aperiod + 1;
+--      end if;
+--    end if;
+
   end if;
 end process ltstout;
+
 end generate gen_dbg_on;
 
 
@@ -160,11 +167,11 @@ end generate gen_dbg_on;
 --//Логика управления
 --//----------------------------------
 gen_dbus16 : if G_GTP_DBUS=16 generate
-  i_synch<=i_cnt_sync(0);
+i_synch<=i_cnt_sync(0);
 end generate gen_dbus16;
 
 gen_dbus8 : if G_GTP_DBUS=8 generate
-  i_synch<=AND_reduce(i_cnt_sync);
+i_synch<=AND_reduce(i_cnt_sync);
 end generate gen_dbus8;
 
 
@@ -232,7 +239,7 @@ p_in_gtp_rxstatus      => p_in_gtp_rxstatus,
 --------------------------------------------------
 p_in_tst               => p_in_tst,
 p_out_tst              => tst_player_oob_out,
-p_out_dbg              => p_out_dbg.oob,
+p_out_dbg              => i_dbg.oob,
 
 --------------------------------------------------
 --System
@@ -275,7 +282,7 @@ p_out_gtp_txcharisk    => p_out_gtp_txcharisk,
 --------------------------------------------------
 p_in_tst               => p_in_tst,
 p_out_tst              => tst_player_tsf_out,
-p_out_dbg              => p_out_dbg.tx,
+p_out_dbg              => i_dbg.tx,
 
 --------------------------------------------------
 --System
@@ -318,7 +325,7 @@ p_in_gtp_rxbyteisaligned   => p_in_gtp_rxbyteisaligned,
 --------------------------------------------------
 p_in_tst                   => p_in_tst,
 p_out_tst                  => tst_player_rcv_out,
-p_out_dbg                  => p_out_dbg.rx,
+p_out_dbg                  => i_dbg.rx,
 
 --------------------------------------------------
 --System
@@ -327,6 +334,16 @@ p_in_clk               => p_in_clk,
 p_in_rst               => p_in_rst
 );
 
+
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+----//Только для моделирования (удобства алализа данных при моделироании)
+--gen_sim_on : if strcmp(G_SIM,"ON") generate
+
+p_out_dbg<=i_dbg;
+
+--end generate gen_sim_on;
 
 --END MAIN
 end behavioral;

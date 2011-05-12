@@ -92,10 +92,11 @@ end component;
 component dsn_hdd
 generic
 (
-G_MODULE_USE           : string:="ON";
-G_HDD_COUNT            : integer:=2;
-G_DBG                  : string:="OFF";
-G_SIM                  : string:="OFF"
+G_MODULE_USE : string:="ON";
+G_HDD_COUNT  : integer:=2;
+G_DBG        : string:="OFF";
+--G_DBGCS      : string:="OFF";
+G_SIM        : string:="OFF"
 );
 port
 (
@@ -150,6 +151,7 @@ p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
 
 p_in_sata_refclk          : in    std_logic;
 p_out_sata_refclkout      : out   std_logic;
+p_out_sata_gt_plldet      : out   std_logic;
 
 --------------------------------------------------
 --Технологический порт

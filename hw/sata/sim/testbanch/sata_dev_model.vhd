@@ -192,8 +192,41 @@ tst_dbuf_wen<=i_usropt_in.dbuf.wen;
 --//#########################################
 --//OOB signaling
 --//#########################################
-p_out_gtp_rxelecidle <='0','1' after 1 us, '0' after 5.5 us;
-p_out_gtp_rxstatus <="001","100" after 2.5 us, "101" after 3.0 us, "010" after 5.0 us, "000" after 5.5 us;
+sim_txoob: process
+begin
+--//Инициализация:
+                 p_out_gtp_rxelecidle<='0';
+                 p_out_gtp_rxstatus  <="000";
+
+--//Работа:
+wait for 1.0 us; p_out_gtp_rxelecidle<='1';
+                 p_out_gtp_rxstatus  <="000";
+
+wait for 2.5 us; p_out_gtp_rxstatus  <="001";--//FPGA->HDD Tx COMRESET Done
+
+wait for 0.5 us; p_out_gtp_rxelecidle<='1';
+                 p_out_gtp_rxstatus  <="100";--//HDD->FPGA COMINIT
+
+wait for 0.5 us; p_out_gtp_rxelecidle<='1';
+                 p_out_gtp_rxstatus  <="000";--//HDD->FPGA COMINIT done
+
+
+wait for 1.0 us; p_out_gtp_rxstatus  <="001";--//FPGA->HDD Tx COMRWAKE Done
+
+
+wait for 0.5 us; p_out_gtp_rxelecidle<='1';
+                 p_out_gtp_rxstatus  <="010";--//HDD->FPGA COMWAKE
+
+wait for 0.5 us; p_out_gtp_rxelecidle<='0';
+                 p_out_gtp_rxstatus  <="000";--//--//HDD->FPGA COMWAKE done
+
+wait for 0.5 us; p_out_gtp_rxelecidle<='0';
+                 p_out_gtp_rxstatus  <="000";
+
+wait;
+end process;
+
+
 
 --//#########################################
 --//Ошибки приема данных
@@ -851,8 +884,8 @@ if p_in_rst='1' then
   end loop;
 
   i_reg_shadow.command<=(others=>'0');
-  i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
-  i_reg_shadow.status(C_REG_ATA_STATUS_BUSY_BIT)<='1';
+  i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
+  i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
   i_reg_shadow.error<=(others=>'0');
   i_reg_shadow.device<=(others=>'0');
   i_reg_shadow.control<=(others=>'0');

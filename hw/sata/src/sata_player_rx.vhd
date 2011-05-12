@@ -88,7 +88,6 @@ signal i_gtp_rxdisperr           : std_logic_vector(3 downto 0);
 signal i_gtp_rxnotintable        : std_logic_vector(3 downto 0);
 
 signal dbgrcv_type               : string(1 to 7);
-signal tst_val                   : std_logic;
 signal tst_rcv_error             : std_logic;
 signal tst_rcv_err_notintable    : std_logic;
 signal tst_rcv_err_disperr       : std_logic;
@@ -106,6 +105,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
+--p_out_tst(31 downto 0)<=(others=>'0');
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -120,8 +120,8 @@ begin
 
   end if;
 end process ltstout;
-p_out_tst(0)<=tst_val or tst_rcv_error or
-              tst_rcv_err_notintable or tst_rcv_err_disperr;
+p_out_tst(0)<=tst_rcv_error or
+              tst_rcv_err_disperr or tst_rcv_err_notintable;
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
@@ -229,6 +229,14 @@ end generate gen_dbus16;
 
 
 
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+begin
+p_out_dbg.name<=(others=>'0');
+end generate gen_sim_off;
+
 --//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
@@ -256,11 +264,6 @@ if p_in_clk'event and p_in_clk='1' then
   elsif                             i_rxdtype=C_PDAT_TDATA then dbgrcv_type<=C_PNAME_STR(C_TDATA_EN);
   end if;
 
-  if dbgrcv_type=C_PNAME_STR(C_TDATA_EN) and p_in_gtp_rxbyteisaligned='1' then
-    tst_val<='1';
-  else
-    tst_val<='0';
-  end if;
 end if;
 end process rcv_name;
 
