@@ -95,11 +95,6 @@ type TDly2SrT is array (0 to 3) of std_logic_vector(1 downto 0);
 signal sr_tdly2                   : TDly2SrT;
 
 
---signal tst_pltx_status            : TSimPLTxStatus;
---signal tst_val                    : std_logic;
---signal dbgtsf_type                : string(1 to 7);
-
-
 --MAIN
 begin
 
@@ -228,8 +223,8 @@ end process lsuspend;
 ltxd:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    sr_txdata<=(others=>'0');
-    sr_txdtype<=(others=>'0');
+    sr_txdata<=C_D10_2&C_D10_2&C_D10_2&C_D10_2;
+    sr_txdtype<=C_PDAT_TDATA;
 
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_sync='1' then
@@ -337,7 +332,9 @@ gen_dbus16 : if G_GT_DBUS=16 generate
 --    sr_tdly2<=sr_txdtype(1 downto 0) & sr_tdly2(0 to 2);
 --  end if;
 --end process ltxd_sr;
-
+--
+--p_out_gtp_txdata(15 downto 0)<=sr_ddly2(0);
+--p_out_gtp_txcharisk(1 downto 0)<=sr_tdly2(0);
 p_out_gtp_txdata(15 downto 0)<=sr_txdata(15 downto 0);--sr_ddly2(2);
 p_out_gtp_txcharisk(1 downto 0)<=sr_txdtype(1 downto 0);--sr_tdly2(2);
 

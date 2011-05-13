@@ -369,9 +369,9 @@ begin
       --//-------------------------------
       when S_HR_AwaitAlign =>
 
-        if p_in_gtp_rxelecidle='0' then
+          i_gtp_pcm_rst<='0';
 
-            i_gtp_pcm_rst<='0';
+--        if p_in_gtp_rxelecidle='0' then
 
             if p_in_primitive_det(C_TALIGN)='1' then
                 --Принял ALIGN Primitive
@@ -386,10 +386,10 @@ begin
                 i_timer_rst_n<='1';
               end if;
             end if;
-        else
-          i_timer_rst_n<='0';
-          fsm_ploob_cs <= S_HR_IDLE;
-        end if;
+--        else
+--          i_timer_rst_n<='0';
+--          fsm_ploob_cs <= S_HR_IDLE;
+--        end if;
 
 
       --//-------------------------------

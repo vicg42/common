@@ -173,7 +173,9 @@ begin
   if p_in_rst='1' then
     p_out_tst(0)<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    p_out_tst(0)<=p_in_sh_tst(0)(0) or p_in_sh_tst(1)(0) or p_in_usr_ctrl(C_USR_GCTRL_RESERV_BIT);
+    p_out_tst(0)<=p_in_sh_tst(0)(0) or p_in_sh_tst(0)(2) or
+                  p_in_sh_tst(1)(0) or p_in_sh_tst(1)(2) or
+                  p_in_usr_ctrl(C_USR_GCTRL_RESERV_BIT);
   end if;
 end process ltstout;
 

@@ -580,8 +580,9 @@ end component;
 component sata_player_gtsim
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_SIM      : string  := "OFF"
+G_GT_CH_COUNT: integer := 2;
+G_GT_DBUS    : integer := 16;
+G_SIM        : string  := "OFF"
 );
 port
 (
@@ -613,8 +614,9 @@ end component;
 component sata_player_gt
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_SIM      : string  := "OFF"
+G_GT_CH_COUNT: integer := 2;
+G_GT_DBUS    : integer := 16;
+G_SIM        : string  := "OFF"
 );
 port
 (
@@ -649,6 +651,7 @@ p_in_txcharisk         : in    TBus04_GTCH;
 --------------------------------------------------
 --Receiver
 --------------------------------------------------
+p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_rxstatus         : out   TBus03_GTCH;

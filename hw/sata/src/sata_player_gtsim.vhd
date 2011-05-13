@@ -27,8 +27,9 @@ use work.sata_pkg.all;
 entity sata_player_gtsim is
 generic
 (
-G_GT_DBUS              : integer   := 16;   --//
-G_SIM                  : string    := "OFF"
+G_GT_CH_COUNT: integer := 2;
+G_GT_DBUS    : integer := 16;   --//
+G_SIM        : string  := "OFF"
 );
 port
 (
@@ -67,7 +68,16 @@ signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 --MAIN
 begin
 
-gen_ch : for i in 0 to C_GTCH_COUNT_MAX-1 generate
+
+gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
+g_gtp_usrclk(1) <=g_gtp_usrclk(0);
+g_gtp_usrclk2(1)<=g_gtp_usrclk2(0);
+
+p_out_usrclk2(1)<=g_gtp_usrclk2(1);
+end generate gen_gt_ch1;
+
+
+gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
@@ -104,6 +114,7 @@ O  => g_gtp_usrclk(i)
 end generate gen_gtp_w16;
 
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
+
 end generate gen_ch;
 
 

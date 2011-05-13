@@ -318,7 +318,7 @@ p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(G_HDD_COUNT-1 downto 0));
 
 i_sh_buf_rst<=p_in_rst or p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
 
-bufg_sata : BUFG port map (I => i_sh_gtp_refclkout(C_SH_MAIN_NUM), O => g_sh_dcm_clkin);--//clkin הכÿ sata_dcm
+bufg_sata_gt_refclkout : BUFG port map (I => i_sh_gtp_refclkout(C_SH_MAIN_NUM), O => g_sh_dcm_clkin);--//clkin הכÿ sata_dcm
 i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM);                       --//סבנמס sata_dcm
 
 m_dcm_sata : sata_dcm
@@ -553,7 +553,7 @@ p_in_sys_dcm_lock           => i_sh_dcm_lock,
 
 p_out_gtp_pllkdet           => i_sh_gtp_pllkdet(sh_idx),
 p_out_gtp_refclk            => i_sh_gtp_refclkout(sh_idx),
-p_in_gtp_drpclk             => g_sh_dcm_clk2div,
+p_in_gtp_drpclk             => g_sh_dcm_clkin,
 p_in_gtp_refclk             => p_in_sata_refclk(sh_idx),
 p_in_rst                    => p_in_rst
 );

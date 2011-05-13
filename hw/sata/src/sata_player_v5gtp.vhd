@@ -64,7 +64,8 @@ p_in_txcharisk         : in    TBus04_GTCH;                                   --
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
-p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс приемника
+p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS + PMA
+p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS
 p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
 p_out_rxstatus         : out   TBus03_GTCH;                                    --//Тип обнаруженного OOB сигнала
 p_out_rxdata           : out   TBus32_GTCH;                                    --//поток данных от приемника DUAL_GTP
@@ -138,37 +139,37 @@ gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
---//Выбор тактовых частот для работы SATA-I/II
-gen_gtp_w8 : if G_GT_DBUS=8 generate
+--//Выбор тактовых частот для работы SATA
+gen_gt_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
 S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
+I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
 );
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
-end generate gen_gtp_w8;
+end generate gen_gt_w8;
 
-gen_gtp_w16 : if G_GT_DBUS=16 generate
+gen_gt_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
 (
 S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
+I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA-II (3Gb/s)
+I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA-I (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
 );
 m_bufg_usrclk : BUFGMUX_CTRL
 port map
 (
 S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
+I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
 O  => g_gtp_usrclk(i)
 );
-end generate gen_gtp_w16;
+end generate gen_gt_w16;
 
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
 
@@ -512,8 +513,8 @@ RXUSRCLK1                       =>      g_gtp_usrclk(1),
 RXUSRCLK20                      =>      g_gtp_usrclk2(0),
 RXUSRCLK21                      =>      g_gtp_usrclk2(1),
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-RXCDRRESET0                     =>      p_in_rxreset(0),
-RXCDRRESET1                     =>      p_in_rxreset(1),
+RXCDRRESET0                     =>      p_in_rxcdrreset(0),--p_in_rxreset(0),
+RXCDRRESET1                     =>      p_in_rxcdrreset(1),--p_in_rxreset(1),
 RXELECIDLE0                     =>      i_rxelecidle(0),
 RXELECIDLE1                     =>      i_rxelecidle(1),
 RXELECIDLERESET0                =>      i_rxelecidlereset(0),
