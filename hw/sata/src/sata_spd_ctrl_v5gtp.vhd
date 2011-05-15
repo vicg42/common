@@ -69,7 +69,9 @@ p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
 p_in_gtp_drprdy         : in    std_logic;
 
 p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--//Сброс соотв. GTP
-p_out_gtp_rst           : out   std_logic;                                      --//Полный сброс GTP.
+p_out_gtp_rst           : out   std_logic;
+p_out_gtp_rdy           : out   std_logic;
+p_in_gtp_resetdone      : in    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -119,6 +121,8 @@ constant C_REG_PLL_TXDIVSEL       : std_logic:='1';
 type TSpdCtrl_fsm_state is
 (
 S_IDLE,
+S_IDLE_INIT,
+S_IDLE_INIT_DONE,
 
 ----//-------------------------------------------
 ----//Перестройка частоты тактирования GTP
@@ -151,8 +155,9 @@ S_WRITE_CH1_DONE,
 S_PAUSE_W1,
 S_DRP_PROG_DONE,
 
-S_GTP_CH_RESET,
-S_GTP_CH_RESET_DONE
+S_GT_CH_RESET,
+S_GT_CH_RESET_WAIT_DONE,
+S_GT_CH_RESET_DONE
 );
 signal fsm_spdctrl_cs             : TSpdCtrl_fsm_state;
 
@@ -172,10 +177,10 @@ signal i_gt_drprdy              : std_logic;
 signal i_gt_drp_regsel          : std_logic;--//0/1 - выбор регистров канала GTP PLL_RXDIVSEL/PLL_TXDIVSEL
 signal i_gt_drp_rdval           : TBus16_GTCH;
 
+signal i_gt_rdy                 : std_logic;
 signal i_gt_rst                 : std_logic;
 signal i_gt_ch_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal tst_drp_cfg_done         : std_logic;
 signal tst_spd_ver              : std_logic_vector(i_spd_ver_out(0).sata_ver'range);
 signal tst_fms_cs               : std_logic_vector(4 downto 0);
 signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
@@ -206,8 +211,7 @@ begin
   end if;
 end process ltstout;
 
-p_out_tst(1)<=tst_drp_cfg_done;
-p_out_tst(31 downto 2)<=(others=>'0');
+p_out_tst(31 downto 1)<=(others=>'0');
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_SPDCFG       else
             CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH0          else
@@ -223,8 +227,11 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_spdctrl_cs
             CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH1_DONE    else
             CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_W1          else
             CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_spdctrl_cs=S_DRP_PROG_DONE     else
-            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GTP_CH_RESET      else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GTP_CH_RESET_DONE else
+            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET       else
+            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_DONE  else
+            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT         else
+            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT_DONE    else
+            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_WAIT_DONE    else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//S_IDLE
 
 end generate gen_dbg_on;
@@ -234,6 +241,8 @@ end generate gen_dbg_on;
 --//Связь с Sata_Host
 --//----------------------------------
 p_out_spd_ver<=i_spd_ver_out;
+
+p_out_gtp_rdy     <= i_gt_rdy;
 
 p_out_gtp_rst     <= i_gt_rst;
 p_out_gtp_ch_rst  <= i_gt_ch_rst;
@@ -295,7 +304,7 @@ begin
     end loop;
     i_tmr_en<='0';
 
-    tst_drp_cfg_done<='0';
+    i_gt_rdy<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -303,9 +312,38 @@ begin
 
       when S_IDLE =>
 
-        if p_in_gtp_pll_lock='0' or p_in_usr_dcm_lock='1' then
-          i_spd_change_save<=(others=>'1');
-          fsm_spdctrl_cs <= S_READ_CH0;
+        if p_in_gtp_pll_lock='1' or p_in_usr_dcm_lock='1' then
+          if i_tmr = CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
+            i_tmr_en<='0';
+            fsm_spdctrl_cs <= S_IDLE_INIT;
+          else
+            i_tmr_en<='1';
+          end if;
+        else
+          i_tmr_en<='0';
+        end if;
+
+      when S_IDLE_INIT =>
+
+        --//Cброс GT
+        if i_tmr = CONV_STD_LOGIC_VECTOR(16#01F#, i_tmr'length) then
+          i_tmr_en<='0';
+          i_gt_ch_rst<=(others=>'0');
+          fsm_spdctrl_cs <= S_IDLE_INIT_DONE;
+
+        elsif i_tmr = CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
+          i_gt_ch_rst<=(others=>'1');
+
+        else
+          i_tmr_en<='1';
+        end if;
+
+      when S_IDLE_INIT_DONE =>
+
+        --//Ждем завершения процеса сброса GT
+        if p_in_gtp_resetdone='1' then
+--          i_gt_rdy<='1';
+          fsm_spdctrl_cs <= S_READ_CH0;--S_IDLE_SPDCFG;
         end if;
 
 --        if C_SATAH_COUNT_MAX=1 then
@@ -452,11 +490,10 @@ begin
       --//##################################################
       when S_IDLE_SPDCFG =>
 
-        if p_in_gtp_pll_lock='0' or p_in_usr_dcm_lock='1' then
+        if p_in_gtp_pll_lock='1' or p_in_usr_dcm_lock='1' then
           if i_spd_change/=(i_spd_change'range =>'0') then
           --Ждем команды перестройки скорости соединения
             i_spd_change_save<=i_spd_change;
-            tst_drp_cfg_done<='0';
             fsm_spdctrl_cs <= S_READ_CH0;
           end if;
         end if;
@@ -484,7 +521,6 @@ begin
           i_gt_drp_en      <='0';
           i_gt_drp_rdval(0)<=i_gt_drpdo;
 
-          i_tmr_en<='1';
           fsm_spdctrl_cs <= S_PAUSE_R0;
         end if;
 
@@ -493,6 +529,8 @@ begin
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
           i_tmr_en<='0';
           fsm_spdctrl_cs <= S_READ_CH1;
+        else
+          i_tmr_en<='1';
         end if;
 
       --//-------------------------------------------
@@ -516,7 +554,6 @@ begin
           i_gt_drp_en      <='0';
           i_gt_drp_rdval(1)<= i_gt_drpdo;
 
-          i_tmr_en<='1';
           fsm_spdctrl_cs <= S_PAUSE_R1;
         end if;
 
@@ -525,6 +562,8 @@ begin
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
           i_tmr_en<='0';
           fsm_spdctrl_cs <= S_WRITE_CH0;
+        else
+          i_tmr_en<='1';
         end if;
 
       --//-------------------------------------------
@@ -566,7 +605,6 @@ begin
           i_gt_drp_en <= '0';
           i_gt_drp_we <= '0';
 
-          i_tmr_en<='1';
           fsm_spdctrl_cs <= S_PAUSE_W0;
         end if;
 
@@ -575,6 +613,8 @@ begin
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
           i_tmr_en<='0';
           fsm_spdctrl_cs <= S_WRITE_CH1;
+        else
+          i_tmr_en<='1';
         end if;
 
       --//-------------------------------------------
@@ -615,7 +655,6 @@ begin
           i_gt_drp_en <= '0';
           i_gt_drp_we <= '0';
 
-          i_tmr_en<='1';
           fsm_spdctrl_cs <= S_PAUSE_W1;
         end if;
 
@@ -624,6 +663,8 @@ begin
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
           i_tmr_en<='0';
           fsm_spdctrl_cs <= S_DRP_PROG_DONE;
+        else
+          i_tmr_en<='1';
         end if;
 
       --//-------------------------------------------
@@ -635,8 +676,12 @@ begin
         --//Все регистры запрограммированы.
         --//Переходим к процедуре сброса каналов DUAL_GTP
           i_gt_drp_regsel<=C_REG_PLL_RXDIVSEL;
-          i_tmr_en<='1';
-          fsm_spdctrl_cs <= S_GTP_CH_RESET;
+
+          for i in 0 to C_GTCH_COUNT_MAX-1 loop
+            i_spd_ver_out(i).sata_ver<=p_in_ctrl(i).sata_ver;
+          end loop;
+
+          fsm_spdctrl_cs <= S_GT_CH_RESET;
 
         else
           i_gt_drp_regsel<=C_REG_PLL_TXDIVSEL;
@@ -647,7 +692,7 @@ begin
       --//-------------------------------------------
       --//Сброс каналов DUAL_GTP
       --//-------------------------------------------
-      when S_GTP_CH_RESET =>
+      when S_GT_CH_RESET =>
 
         i_gt_drp_addr <= (others=>'0');
         i_gt_drp_di   <= (others=>'0');
@@ -657,7 +702,7 @@ begin
         --//модуля RocketIO GTP и модулей sata_host
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#01F#, i_tmr'length) then
           i_tmr_en<='0';
-          fsm_spdctrl_cs <= S_GTP_CH_RESET_DONE;
+          fsm_spdctrl_cs <= S_GT_CH_RESET_WAIT_DONE;
 
         elsif i_tmr=CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
 
@@ -665,21 +710,33 @@ begin
           for i in 0 to C_GTCH_COUNT_MAX-1 loop
             i_spd_ver_out(i).sata_ver<=p_in_ctrl(i).sata_ver;
 
-            if i_spd_change_save(i)='1' then
+--            if i_spd_change_save(i)='1' then
               i_gt_ch_rst(i)<='1';
-            end if;
+--            end if;
 
           end loop;
 
+        else
+          i_tmr_en<='1';
         end if;
 
-      when S_GTP_CH_RESET_DONE =>
+      when S_GT_CH_RESET_WAIT_DONE =>
 
-        i_spd_change_save<=(others=>'0');
         i_gt_ch_rst<=(others=>'0');
+        i_spd_change_save<=(others=>'0');
 
-        tst_drp_cfg_done<='1';
-        fsm_spdctrl_cs <= S_IDLE_SPDCFG;
+        if p_in_gtp_resetdone='1' then
+          i_gt_rdy<='1';
+          fsm_spdctrl_cs <= S_GT_CH_RESET_DONE;
+        end if;
+
+      when S_GT_CH_RESET_DONE =>
+
+        if i_spd_change/=(i_spd_change'range =>'0') then
+          fsm_spdctrl_cs <= S_IDLE_SPDCFG;
+        else
+          fsm_spdctrl_cs <= S_GT_CH_RESET_DONE;--S_IDLE_SPDCFG;
+        end if;
 
     end case;
 

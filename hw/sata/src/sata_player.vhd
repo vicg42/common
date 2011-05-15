@@ -73,6 +73,9 @@ p_out_gtp_txcomtype        : out   std_logic;
 p_out_gtp_txdata           : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk        : out   std_logic_vector(3 downto 0);
 
+p_out_gtp_txreset          : out   std_logic;
+p_in_gtp_txbufstatus       : in    std_logic_vector(1 downto 0);
+
 --RocketIO Receiver
 p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
@@ -81,6 +84,9 @@ p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
+
+p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
+p_out_gtp_rxbufreset       : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -107,15 +113,16 @@ signal i_rxtype                 : std_logic_vector(C_TDATA_EN downto C_TALIGN);
 signal i_d10_2_senddis          : std_logic;
 
 signal i_synch                  : std_logic;
-signal i_resynch                : std_logic;
 signal i_cnt_sync               : std_logic_vector(selval(1, 0, cmpval(G_GT_DBUS, 8)) downto 0);--(1 downto 0);
 
 
-signal i_dbg                  : TPL_dbgport;
+signal i_dbg                    : TPL_dbgport;
 signal tst_player_oob_out       : std_logic_vector(31 downto 0);
 signal tst_player_rcv_out       : std_logic_vector(31 downto 0);
 signal tst_player_tsf_out       : std_logic_vector(31 downto 0);
 signal tst_rxtype               : std_logic_vector(i_rxtype'range);
+signal tst_player_oob           : std_logic;
+signal tst_player_rcv           : std_logic;
 --signal tst_rcv_aperiod          : std_logic_vector(10 downto 0);
 
 
@@ -139,15 +146,19 @@ begin
 --    tst_rcv_aperiod<=(others=>'0');
     p_out_tst<=(others=>'0');
     tst_rxtype<=(others=>'0');
+    tst_player_oob<='0';
+    tst_player_rcv<='0';
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_rxtype<=i_rxtype;
-    p_out_tst(0)<=OR_reduce(tst_rxtype) or
-                  tst_player_oob_out(0) or tst_player_rcv_out(0);
+    tst_player_oob<=tst_player_oob_out(0);
+    tst_player_rcv<=tst_player_rcv_out(0);
+    p_out_tst(0)<=OR_reduce(tst_rxtype) or tst_player_oob or tst_player_rcv;
+--                  tst_player_oob_out(0) or tst_player_rcv_out(0);
 --                   or OR_reduce(tst_player_tsf_out);
 --                  OR_reduce(tst_rcv_aperiod) or
 
---    if i_resynch='1' then
+--    if i_rxtype(C_TALIGN)='1' then
 --      tst_rcv_aperiod<=(others=>'0');
 --    else
 --      if tst_rcv_aperiod=(tst_rcv_aperiod'range =>'1') then
@@ -189,7 +200,8 @@ begin
   if p_in_rst='1' then
     i_cnt_sync<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_resynch='1' then
+    --//Подстройка синхронизации:
+    if i_rxtype(C_TALIGN)='1' then
       i_cnt_sync<=(others=>'0');
     else
       i_cnt_sync<=i_cnt_sync + 1;
@@ -197,8 +209,6 @@ begin
   end if;
 end process lsync_cnt;
 
---//Подстройка синхронизации:
-i_resynch<=i_rxtype(C_TALIGN);
 
 
 --//----------------------------------
@@ -277,6 +287,9 @@ p_out_rdy_n            => p_out_phy_txrdy_n,
 p_out_gtp_txdata       => p_out_gtp_txdata,
 p_out_gtp_txcharisk    => p_out_gtp_txcharisk,
 
+p_out_gtp_txreset      => p_out_gtp_txreset,
+p_in_gtp_txbufstatus   => p_in_gtp_txbufstatus,
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
@@ -319,6 +332,9 @@ p_in_gtp_rxcharisk         => p_in_gtp_rxcharisk,
 p_in_gtp_rxdisperr         => p_in_gtp_rxdisperr,
 p_in_gtp_rxnotintable      => p_in_gtp_rxnotintable,
 p_in_gtp_rxbyteisaligned   => p_in_gtp_rxbyteisaligned,
+
+p_in_gtp_rxbufstatus       => p_in_gtp_rxbufstatus,
+p_out_gtp_rxbufreset       => p_out_gtp_rxbufreset,
 
 --------------------------------------------------
 --Технологические сигналы

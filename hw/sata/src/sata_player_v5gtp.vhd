@@ -14,8 +14,9 @@
 --------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_misc.all;
+use ieee.std_logic_unsigned.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -42,6 +43,7 @@ p_in_sys_dcm_gclk      : in    std_logic;--//dcm_clk0
 p_in_sys_dcm_gclk2x    : in    std_logic;--//dcm_clk0 x 2
 
 p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование модулей sata_host.vhd
+p_out_resetdone        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 ---------------------------------------------------------------------------
 --Driver(Сигналы подоваемые на разъем)
@@ -54,12 +56,14 @@ p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
-p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
 p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
 p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
 p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
 p_in_txdata            : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
 p_in_txcharisk         : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
+
+p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
+p_out_txbufstatus      : out   TBus02_GTCH;
 
 ---------------------------------------------------------------------------
 --Receiver
@@ -73,6 +77,9 @@ p_out_rxcharisk        : out   TBus04_GTCH;                                    -
 p_out_rxdisperr        : out   TBus04_GTCH;                                    --//Ошибка паритета в принятом данном
 p_out_rxnotintable     : out   TBus04_GTCH;                                    --//
 p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);  --//Данные выровнены по байтам
+
+p_in_rxbufreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_rxbufstatus      : out   TBus03_GTCH;
 
 ----------------------------------------------------------------------------
 --System
@@ -131,7 +138,10 @@ gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
 g_gtp_usrclk(1) <=g_gtp_usrclk(0);
 g_gtp_usrclk2(1)<=g_gtp_usrclk2(0);
 
-p_out_usrclk2(1)<=g_gtp_usrclk2(1);
+p_out_usrclk2(1)<=g_gtp_usrclk2(0);
+p_out_resetdone(1)<=i_resetdone(0);
+
+--i_rxelecidlereset(1)<='0';
 end generate gen_gt_ch1;
 
 
@@ -173,6 +183,10 @@ end generate gen_gt_w16;
 
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
 
+p_out_resetdone(i)<=i_resetdone(i);
+
+i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
+
 end generate gen_ch;
 
 
@@ -182,10 +196,11 @@ end generate gen_ch;
 --//###########################
 p_out_rxelecidle<=i_rxelecidle;
 
-i_rxelecidlereset(0)<=i_rxelecidle(0) and i_resetdone(0);
-i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
+--i_rxelecidlereset(0)<=i_rxelecidle(0) and i_resetdone(0);
+--i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
+--i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
 
-i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
+i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 
 m_gt : GTP_DUAL
 generic map
@@ -513,8 +528,8 @@ RXUSRCLK1                       =>      g_gtp_usrclk(1),
 RXUSRCLK20                      =>      g_gtp_usrclk2(0),
 RXUSRCLK21                      =>      g_gtp_usrclk2(1),
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-RXCDRRESET0                     =>      p_in_rxcdrreset(0),--p_in_rxreset(0),
-RXCDRRESET1                     =>      p_in_rxcdrreset(1),--p_in_rxreset(1),
+RXCDRRESET0                     =>      p_in_rxcdrreset(0),--p_in_rxreset(0),--
+RXCDRRESET1                     =>      p_in_rxcdrreset(1),--p_in_rxreset(1),--
 RXELECIDLE0                     =>      i_rxelecidle(0),
 RXELECIDLE1                     =>      i_rxelecidle(1),
 RXELECIDLERESET0                =>      i_rxelecidlereset(0),
@@ -530,10 +545,10 @@ RXN1                            =>      p_in_rxn(1),
 RXP0                            =>      p_in_rxp(0),
 RXP1                            =>      p_in_rxp(1),
 -------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0                     =>      '0',--p_in_rxbufreset(0),
-RXBUFRESET1                     =>      '0',--p_in_rxbufreset(1),
-RXBUFSTATUS0                    =>      open,--cм.стр.168  ug196.pdf
-RXBUFSTATUS1                    =>      open,--
+RXBUFRESET0                     =>      p_in_rxreset(0),--p_in_rxbufreset(0),
+RXBUFRESET1                     =>      p_in_rxreset(1),--p_in_rxbufreset(1),
+RXBUFSTATUS0                    =>      p_out_rxbufstatus(0),--cм.стр.168  ug196.pdf
+RXBUFSTATUS1                    =>      p_out_rxbufstatus(1),--
 RXCHANISALIGNED0                =>      open,
 RXCHANISALIGNED1                =>      open,
 RXCHANREALIGN0                  =>      open,
@@ -597,8 +612,8 @@ TXKERR1                         =>      open,
 TXRUNDISP0                      =>      open,
 TXRUNDISP1                      =>      open,
 ------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-TXBUFSTATUS0                    =>      open,--cм.стр.111  ug196.pdf
-TXBUFSTATUS1                    =>      open,--
+TXBUFSTATUS0                    =>      p_out_txbufstatus(0),--cм.стр.111  ug196.pdf
+TXBUFSTATUS1                    =>      p_out_txbufstatus(1),--
 ------------------ Transmit Ports - TX Data Path interface -----------------
 TXDATA0                         =>      p_in_txdata(0)(15 downto 0),
 TXDATA1                         =>      p_in_txdata(1)(15 downto 0),

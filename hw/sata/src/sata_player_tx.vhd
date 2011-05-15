@@ -53,6 +53,9 @@ p_out_rdy_n            : out   std_logic;                    --//Готов к загрузк
 p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
 
+p_out_gtp_txreset      : out   std_logic;
+p_in_gtp_txbufstatus   : in    std_logic_vector(1 downto 0);
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
@@ -72,6 +75,11 @@ architecture behavioral of sata_player_tx is
 
 constant CI_ALIGN_TMR   : integer:=selval(C_ALIGN_TMR, C_SIM_SATAHOST_TMR_ALIGN, strcmp(G_SIM,"OFF"));--//в DW
 
+signal i_tmr_rst                  : std_logic_vector(1 downto 0);
+signal i_tmr_rst_en               : std_logic;
+
+signal i_gtp_txreset              : std_logic;
+
 signal i_align_tmr                : std_logic_vector(10 downto 0);--
 signal i_align_txen               : std_logic;
 signal i_align_burst_cnt          : std_logic_vector(log2(C_ALIGN_BURST)-1 downto 0);
@@ -85,14 +93,14 @@ signal sr_txdata                  : std_logic_vector(31 downto 0);
 signal sr_txdtype                 : std_logic_vector(3 downto 0);
 
 type TDly1SrD is array (0 to 3) of std_logic_vector(7 downto 0);
-signal sr_ddly                    : TDly1SrD;
+signal sr_ddly                    : TDly1SrD:=("00000000","00000000","00000000","00000000");
 type TDly1SrT is array (0 to 3) of std_logic;
-signal sr_tdly                    : TDly1SrT;
+signal sr_tdly                    : TDly1SrT:=(others=>'0');
 
 type TDly2SrD is array (0 to 3) of std_logic_vector(15 downto 0);
-signal sr_ddly2                   : TDly2SrD;
+signal sr_ddly2                   : TDly2SrD:=("0000000000000000","0000000000000000","0000000000000000","0000000000000000");
 type TDly2SrT is array (0 to 3) of std_logic_vector(1 downto 0);
-signal sr_tdly2                   : TDly2SrT;
+signal sr_tdly2                   : TDly2SrT:=("00","00","00","00");
 
 
 --MAIN
@@ -119,6 +127,48 @@ p_out_tst(31 downto 1)<=(others=>'0');
 
 end generate gen_dbg_on;
 
+
+
+--//-------------------------------------
+--//Контроль переполнения буфера передатчика GT
+--//-------------------------------------
+--tmr_rst:process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_tmr_rst<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if i_tmr_rst_en='1' then
+--      i_tmr_rst<=i_tmr_rst+1;
+--    else
+--      i_tmr_rst<=(others=>'0');
+--    end if;
+--  end if;
+--end process;
+--
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_tmr_rst_en<='0';
+--    i_gtp_txreset<='0';
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if i_tmr_rst_en='0' then
+--      i_gtp_txreset<='0';
+--      if p_in_gtp_txbufstatus(1)='1' then
+--      --//gtp_txbufstatus(1)-'1'-буфер или переполнен или опусташен
+--      --формирую сброс
+--        i_tmr_rst_en<='1';
+--      end if;
+--    else
+--      i_gtp_txreset<='1';
+--      if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
+--        i_tmr_rst_en<='0';
+--      end if;
+--    end if;
+--  end if;
+--end process;
+
+p_out_gtp_txreset<='0';--i_gtp_txreset;
 
 
 --//-------------------------------------
@@ -294,14 +344,9 @@ end process ltxd;
 gen_dbus8 : if G_GT_DBUS=8 generate
 
 --//Подстройка
-ltxd_sr:process(p_in_rst,p_in_clk)
+ltxd_sr:process(p_in_clk)
 begin
-  if p_in_rst='1' then
-    for i in 0 to 3 loop
-      sr_ddly(i)<=(others=>'0');
-      sr_tdly(i)<='0';
-    end loop;
-  elsif p_in_clk'event and p_in_clk='1' then
+  if p_in_clk'event and p_in_clk='1' then
     sr_ddly<=sr_txdata(7 downto 0) & sr_ddly(0 to 2);
     sr_tdly<=sr_txdtype(0) & sr_tdly(0 to 2);
   end if;

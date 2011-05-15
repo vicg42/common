@@ -247,6 +247,9 @@ p_out_rdy_n            : out   std_logic;
 p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
 
+p_out_gtp_txreset      : out   std_logic;
+p_in_gtp_txbufstatus   : in    std_logic_vector(1 downto 0);
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
@@ -286,6 +289,9 @@ p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
+
+p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
+p_out_gtp_rxbufreset       : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -552,6 +558,9 @@ p_out_gtp_txcomtype        : out   std_logic;
 p_out_gtp_txdata           : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk        : out   std_logic_vector(3 downto 0);
 
+p_out_gtp_txreset          : out   std_logic;
+p_in_gtp_txbufstatus       : in    std_logic_vector(1 downto 0);
+
 --RocketIO Receiver
 p_in_gtp_rxelecidle        : in    std_logic;
 p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
@@ -560,6 +569,9 @@ p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
 p_in_gtp_rxbyteisaligned   : in    std_logic;
+
+p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
+p_out_gtp_rxbufreset       : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -629,6 +641,7 @@ p_in_sys_dcm_gclk      : in    std_logic;
 p_in_sys_dcm_gclk2x    : in    std_logic;
 
 p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_resetdone        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Driver
@@ -641,12 +654,14 @@ p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 --------------------------------------------------
 --Tranceiver
 --------------------------------------------------
-p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_txdata            : in    TBus32_GTCH;
 p_in_txcharisk         : in    TBus04_GTCH;
+
+p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
+p_out_txbufstatus      : out   TBus02_GTCH;
 
 --------------------------------------------------
 --Receiver
@@ -660,6 +675,9 @@ p_out_rxcharisk        : out   TBus04_GTCH;
 p_out_rxdisperr        : out   TBus04_GTCH;
 p_out_rxnotintable     : out   TBus04_GTCH;
 p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+p_in_rxbufreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_rxbufstatus      : out   TBus03_GTCH;
 
 --------------------------------------------------
 --System
@@ -712,6 +730,8 @@ p_in_gtp_drprdy         : in    std_logic;
 
 p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_gtp_rst           : out   std_logic;
+p_out_gtp_rdy           : out   std_logic;
+p_in_gtp_resetdone      : in    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы

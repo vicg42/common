@@ -93,7 +93,6 @@ signal i_status                 : std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 signal i_d10_2_senddis          : std_logic;
 signal i_tmr_dly                : std_logic_vector(8 downto 0);
 
-
 signal tst_fms_cs               : std_logic_vector(3 downto 0);
 signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
 
@@ -184,9 +183,9 @@ begin
   if p_in_rst='1' then
     fsm_ploob_cs <= S_HR_IDLE;
 
+    i_gtp_txelecidle<='1';
     i_gtp_txcomstart<='0';
     i_gtp_txcomtype <='0';
-    i_gtp_txelecidle<='0';
     i_gtp_pcm_rst<='0';
 
     i_status<=(others=>'0');
@@ -211,12 +210,13 @@ begin
         i_d10_2_senddis<='0';
         i_status<=(others=>'0');
 
+        i_gtp_txelecidle<='1';
         i_gtp_txcomstart<='0';
         i_gtp_txcomtype <='0';
 
         if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#03#, i_tmr_dly'length) then
           i_tmr_dly<=(others=>'0');
-          i_gtp_txelecidle<='1';
+--          i_gtp_txelecidle<='1';
           fsm_ploob_cs <= S_HR_COMRESET;
         else
           i_tmr_dly<=i_tmr_dly + 1;
@@ -244,7 +244,7 @@ begin
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигнала COMRESET
         --//(флаг TXCOMSTART operation complete)
-          i_gtp_txelecidle<='0';
+--          i_gtp_txelecidle<='0';
           i_timeout_sel<='1';--select timeout 10ms
           fsm_ploob_cs <= S_HR_AwaitCOMINIT;
         end if;
@@ -292,7 +292,7 @@ begin
       --//-------------------------------
       when S_HR_Calibrate =>
 
-        i_gtp_txelecidle<='1';
+--        i_gtp_txelecidle<='1';
         fsm_ploob_cs <= S_HR_COMWAKE;
 
 
@@ -318,7 +318,7 @@ begin
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигнала COMWAKE
         --//(флаг TXCOMSTART operation complete)
-          i_gtp_txelecidle<='0';
+--          i_gtp_txelecidle<='0';
           i_timer_rst_n<='1';
           fsm_ploob_cs <= S_HR_AwaitCOMWAKE;
         end if;
@@ -369,9 +369,10 @@ begin
       --//-------------------------------
       when S_HR_AwaitAlign =>
 
-          i_gtp_pcm_rst<='0';
+        i_gtp_pcm_rst<='0';
 
---        if p_in_gtp_rxelecidle='0' then
+        if p_in_gtp_rxelecidle='0' then
+            i_gtp_txelecidle<='0';
 
             if p_in_primitive_det(C_TALIGN)='1' then
                 --Принял ALIGN Primitive
@@ -386,10 +387,10 @@ begin
                 i_timer_rst_n<='1';
               end if;
             end if;
---        else
---          i_timer_rst_n<='0';
---          fsm_ploob_cs <= S_HR_IDLE;
---        end if;
+        else
+          i_timer_rst_n<='0';
+          fsm_ploob_cs <= S_HR_IDLE;
+        end if;
 
 
       --//-------------------------------
