@@ -41,6 +41,7 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_dev_detect        : in    std_logic;
 p_in_d10_2_send_dis    : in    std_logic;                    --//Запрещение передачи кода D10.2
 p_in_sync              : in    std_logic;                    --//
 p_in_txreq             : in    std_logic_vector(7 downto 0); --//Запрос на передачу SATA
@@ -132,43 +133,48 @@ end generate gen_dbg_on;
 --//-------------------------------------
 --//Контроль переполнения буфера передатчика GT
 --//-------------------------------------
---tmr_rst:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    i_tmr_rst<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    if i_tmr_rst_en='1' then
---      i_tmr_rst<=i_tmr_rst+1;
---    else
---      i_tmr_rst<=(others=>'0');
---    end if;
---  end if;
---end process;
---
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    i_tmr_rst_en<='0';
---    i_gtp_txreset<='0';
---
---  elsif p_in_clk'event and p_in_clk='1' then
---    if i_tmr_rst_en='0' then
---      i_gtp_txreset<='0';
---      if p_in_gtp_txbufstatus(1)='1' then
---      --//gtp_txbufstatus(1)-'1'-буфер или переполнен или опусташен
---      --формирую сброс
---        i_tmr_rst_en<='1';
---      end if;
---    else
---      i_gtp_txreset<='1';
---      if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
---        i_tmr_rst_en<='0';
---      end if;
---    end if;
---  end if;
---end process;
+tmr_rst:process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_tmr_rst<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_tmr_rst_en='1' then
+      i_tmr_rst<=i_tmr_rst+1;
+    else
+      i_tmr_rst<=(others=>'0');
+    end if;
+  end if;
+end process;
 
-p_out_gtp_txreset<='0';--i_gtp_txreset;
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_tmr_rst_en<='0';
+    i_gtp_txreset<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+    if p_in_dev_detect='0' then
+      i_tmr_rst_en<='0';
+      i_gtp_txreset<='0';
+    else
+      if i_tmr_rst_en='0' then
+        i_gtp_txreset<='0';
+        if p_in_gtp_txbufstatus(1)='1' then
+        --//gtp_txbufstatus(1)-'1'-буфер или переполнен или опусташен
+        --формирую сброс
+          i_tmr_rst_en<='1';
+        end if;
+      else
+        i_gtp_txreset<='1';
+        if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
+          i_tmr_rst_en<='0';
+        end if;
+      end if;
+    end if;--//if p_in_dev_detect='0' then
+  end if;
+end process;
+
+p_out_gtp_txreset<=i_gtp_txreset;
 
 
 --//-------------------------------------

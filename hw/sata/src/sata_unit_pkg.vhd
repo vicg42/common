@@ -235,6 +235,7 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_dev_detect        : in    std_logic;
 p_in_d10_2_send_dis    : in    std_logic;
 p_in_sync              : in    std_logic;
 p_in_txreq             : in    std_logic_vector(7 downto 0);

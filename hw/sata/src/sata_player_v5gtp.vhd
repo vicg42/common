@@ -141,15 +141,19 @@ g_gtp_usrclk2(1)<=g_gtp_usrclk2(0);
 p_out_usrclk2(1)<=g_gtp_usrclk2(0);
 p_out_resetdone(1)<=i_resetdone(0);
 
---i_rxelecidlereset(1)<='0';
 end generate gen_gt_ch1;
 
 
+--#########################################
+--//Выбор тактовых частот для работы SATA
+--#########################################
 gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
---//Выбор тактовых частот для работы SATA
+--//------------------------
+--//Если шина данных GT=8bit
+--//------------------------
 gen_gt_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -162,6 +166,9 @@ O  => g_gtp_usrclk2(i)
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gt_w8;
 
+--//------------------------
+--//Если шина данных GT=16bit
+--//------------------------
 gen_gt_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -195,10 +202,6 @@ end generate gen_ch;
 --//Gig Tx/Rx
 --//###########################
 p_out_rxelecidle<=i_rxelecidle;
-
---i_rxelecidlereset(0)<=i_rxelecidle(0) and i_resetdone(0);
---i_rxelecidlereset(1)<=i_rxelecidle(1) and i_resetdone(1);
---i_rxenelecidleresetb <= not (i_rxelecidlereset(0) or i_rxelecidlereset(1));
 
 i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 

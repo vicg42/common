@@ -206,12 +206,7 @@ signal tst_tlayer_out              : TBus32_GTCH;
 signal tst_llayer_out              : TBus32_GTCH;
 signal tst_player_out              : TBus32_GTCH;
 signal tst_spctrl_out              : std_logic_vector(31 downto 0);
-signal tst_player_in               : std_logic_vector(31 downto 0);
 signal tst_out                     : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_player                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_llayer                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_tlayer                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_alayer                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal tst_gtp_txbufstatus         : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
@@ -226,7 +221,6 @@ begin
 --//#############################
 p_out_gtp_pllkdet<=i_gtp_PLLLKDET;
 
---i_gtp_glob_reset <= p_in_rst or i_gtp_rst;
 
 --//#############################
 --//Модуль программирования регистров GTP
@@ -351,24 +345,15 @@ begin
     tst_gtp_rxreset(i)<='0';
     tst_gtp_rxcdrreset(i)<='0';
     tst_gtp_resetdone(i)<='0';
-    tst_player(i)<='0';
-    tst_llayer(i)<='0';
-    tst_tlayer(i)<='0';
-    tst_alayer(i)<='0';
     tst_gtp_txbufstatus(i)<='0';
 
   elsif g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
 
-    tst_player(i)<=tst_player_out(i)(0);
-    tst_llayer(i)<=tst_llayer_out(i)(0);
-    tst_tlayer(i)<=tst_tlayer_out(i)(0);
-    tst_alayer(i)<=tst_alayer_out(i)(0);
-
-    p_out_tst(i)(0)<=tst_player(i) or
-                     tst_llayer(i) or
-                     tst_tlayer(i) or
-                     tst_alayer(i) or OR_reduce(tst_gtp_resetdone) or tst_gtp_txbufstatus(i) or
-                     OR_reduce(tst_gtp_rxreset) or OR_reduce(tst_gtp_txreset) or OR_reduce(tst_gtp_rxcdrreset);-- or
+    p_out_tst(i)(0)<=tst_player_out(i)(0) or
+                     tst_llayer_out(i)(0) or
+                     tst_tlayer_out(i)(0) or
+                     tst_alayer_out(i)(0) or tst_gtp_resetdone(i) or tst_gtp_txbufstatus(i) or
+                     tst_gtp_rxreset(i) or tst_gtp_txreset(i) or tst_gtp_rxcdrreset(i);
 
     tst_gtp_txreset(i)<=i_gtp_txreset(i);
     tst_gtp_rxreset(i)<=i_gtp_rxreset(i);
@@ -401,15 +386,14 @@ i_linkup(i)<=i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT);
 i_phy_ctrl(i)<=i_spd_out(i).sata_ver;
 
 --//Сброс канала GT
---i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or (i_gtp_txbufreset(i) and i_spd_gt_rdy);--i_spd_gtp_ch_rst(i) or i_phy_gtp_ch_rst(i);
-i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
+i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or ((i_phy_gtp_ch_rst(i) or i_gtp_txbufreset(i)) and i_spd_gt_rdy);
 i_gtp_rxreset(i)<=i_spd_gtp_ch_rst(i) or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
-i_gtp_rxcdrreset(i)<=i_spd_gtp_ch_rst(i);-- or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
+i_gtp_rxcdrreset(i)<=i_spd_gtp_ch_rst(i);
 
 --//Сброс всех модулей управления если
 --//модуль sata_spd_ctrl.vhd - исчет скорость соединения или
 --//внешний DCM информирует что заблоктрован (p_in_sys_dcm_lock)
-i_sata_module_rst(i)<=i_spd_gtp_ch_rst(i) or not i_spd_gt_rdy;--not p_in_sys_dcm_lock or p_in_rst;
+i_sata_module_rst(i)<=i_spd_gtp_ch_rst(i) or not i_spd_gt_rdy;
 
 --//Тактовая частота для тактирования Cmd/Rx/TxBUF - usrapp_layer
 p_out_usrfifo_clkout(i)<=g_gtp_usrclk2(i);
@@ -463,7 +447,7 @@ p_out_dbg                 => i_dbg(i).alayer,
 --System
 --------------------------------------------------
 p_in_clk                  => g_gtp_usrclk2(i),
-p_in_rst                  => i_sata_module_rst(i) --p_in_rst --
+p_in_rst                  => i_sata_module_rst(i)
 );
 
 m_tlayer : sata_tlayer
@@ -529,7 +513,7 @@ p_out_dbg            => i_dbg(i).tlayer,
 --System
 --------------------------------------------------
 p_in_clk             => g_gtp_usrclk2(i),
-p_in_rst             => i_sata_module_rst(i) --p_in_rst --
+p_in_rst             => i_sata_module_rst(i)
 );
 
 m_llayer : sata_llayer
@@ -579,7 +563,7 @@ p_out_dbg         => i_dbg(i).llayer,
 --System
 --------------------------------------------------
 p_in_clk          => g_gtp_usrclk2(i),
-p_in_rst          => i_sata_module_rst(i) --p_in_rst --
+p_in_rst          => i_sata_module_rst(i)
 );
 
 m_player : sata_player
@@ -639,7 +623,7 @@ p_out_gtp_rxbufreset       => i_gtp_rxbufreset(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   => p_in_tst(i),--tst_player_in,
+p_in_tst                   => p_in_tst(i),
 p_out_tst                  => tst_player_out(i),
 p_out_dbg                  => i_dbg(i).player,
 
@@ -648,7 +632,7 @@ p_out_dbg                  => i_dbg(i).player,
 --------------------------------------------------
 p_in_tmrclk             => p_in_sys_dcm_gclk2div,
 p_in_clk                => g_gtp_usrclk2(i),
-p_in_rst                => i_sata_module_rst(i) --p_in_rst --
+p_in_rst                => i_sata_module_rst(i)
 );
 
 end generate gen_ch;
@@ -732,7 +716,7 @@ p_out_plllock          => i_gtp_PLLLKDET,
 p_out_refclkout        => p_out_gtp_refclk,
 
 p_in_refclkin          => p_in_gtp_refclk,
-p_in_rst               => p_in_rst --i_gtp_glob_reset
+p_in_rst               => p_in_rst
 );
 
 --p_out_dbg<=i_dbg;
@@ -794,7 +778,7 @@ p_out_plllock          => i_gtp_PLLLKDET,
 p_out_refclkout        => p_out_gtp_refclk,
 
 p_in_refclkin          => p_in_gtp_refclk,
-p_in_rst               => p_in_rst --i_gtp_glob_reset
+p_in_rst               => p_in_rst
 );
 
 i_gtp_rxbufstatus(0)<=(others=>'0');

@@ -159,11 +159,11 @@ S_PAUSE_W1,
 S_DRP_PROG_DONE,
 
 S_GT_CH_RESET,
-S_GT_CH_RESET_WAIT_DONE,
+S_GT_CH_RESET_DONE,
 S_WAIT_CONNECT,
 S_LINKUP
 );
-signal fsm_spdctrl_cs             : TSpdCtrl_fsm_state;
+signal fsm_spdctrl_cs           : TSpdCtrl_fsm_state;
 
 signal i_tmr                    : std_logic_vector(31 downto 0);
 signal i_tmr_en                 : std_logic;
@@ -237,8 +237,8 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_spdctrl_cs
             CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WAIT_CONNECT      else
             CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT         else
             CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_WAIT_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_spdctrl_cs=S_LINKUP           else
+            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_DONE  else
+            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_spdctrl_cs=S_LINKUP            else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//S_IDLE
 
 end generate gen_dbg_on;
@@ -320,6 +320,9 @@ begin
 
     case fsm_spdctrl_cs is
 
+      --//---------------------------------------------
+      --//Жду пока установятся тактовые частоты
+      --//---------------------------------------------
       when S_IDLE =>
 
         if p_in_gtp_pll_lock='1' or p_in_usr_dcm_lock='1' then
@@ -333,9 +336,11 @@ begin
           i_tmr_en<='0';
         end if;
 
+      --//---------------------------------------------
+      --//Cброс GT
+      --//---------------------------------------------
       when S_IDLE_INIT =>
 
-        --//Cброс GT
         if i_tmr = CONV_STD_LOGIC_VECTOR(16#01F#, i_tmr'length) then
           i_tmr_en<='0';
           i_gt_ch_rst<=(others=>'0');
@@ -352,7 +357,6 @@ begin
 
         --//Ждем завершения процеса сброса GT
         if p_in_gtp_resetdone='1' then
---          i_gt_rdy<='1';
           fsm_spdctrl_cs <= S_READ_CH0;--S_IDLE_SPDCFG;
         end if;
 
@@ -712,7 +716,7 @@ begin
         --//модуля RocketIO GTP и модулей sata_host
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#01F#, i_tmr'length) then
           i_tmr_en<='0';
-          fsm_spdctrl_cs <= S_GT_CH_RESET_WAIT_DONE;
+          fsm_spdctrl_cs <= S_GT_CH_RESET_DONE;
 
         elsif i_tmr=CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
 
@@ -730,7 +734,7 @@ begin
           i_tmr_en<='1';
         end if;
 
-      when S_GT_CH_RESET_WAIT_DONE =>
+      when S_GT_CH_RESET_DONE =>
 
         i_gt_ch_rst<=(others=>'0');
         i_spd_change_save<=(others=>'0');
@@ -746,7 +750,6 @@ begin
       --//-------------------------------------------
       when S_WAIT_CONNECT =>
 
-        --//Жду установления связи
         if  i_linkup=(i_linkup'range=>'1') then
           --//ЕСТЬ соединение
           i_tmr_en<='0';--//CLR TIMER
