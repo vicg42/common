@@ -164,6 +164,7 @@ p_out_tst                : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
+p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
 p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;

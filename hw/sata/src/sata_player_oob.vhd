@@ -86,7 +86,6 @@ signal i_tmrout                 : std_logic;                    --//timeout - cl
 
 signal i_timeout                : std_logic;                    --//timeout - clk domane p_in_clk
 signal i_timer_rst_n            : std_logic;                    --//Сброс таймера timqout
-signal i_timeout_sel            : std_logic;
 
 signal i_status                 : std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
@@ -129,10 +128,11 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ploob_cs=S
             CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMWAKE else
             CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitAlign else
             CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_SendAlign else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Ready else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Connect else
             CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET else
             CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMINIT else
             CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Calibrate else
+            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Disconnect else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//when fsm_ploob_cs=S_HR_IDLE
 
 end generate gen_dbg_on;
@@ -165,8 +165,7 @@ begin
 
     i_tmr<=i_tmr+1;
 
-    if (i_timeout_sel='0' and i_tmr=CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_880us, i_tmr'length)) or
-       (i_timeout_sel='1' and i_tmr=CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_10ms, i_tmr'length)) then
+    if i_tmr=CONV_STD_LOGIC_VECTOR(C_OOB_TIMEOUT_880us, i_tmr'length)then
       i_tmrout<='1';
     end if;
 
@@ -194,7 +193,6 @@ begin
     i_timer_rst_n<='0';
     i_timeout<='0';
     i_tmr_dly<=(others=>'0');
-    i_timeout_sel<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -239,15 +237,31 @@ begin
 
       when S_HR_COMRESET_DONE =>
 
-        i_gtp_txcomstart<='0';
-
-        if p_in_gtp_rxstatus(0)='1' then
-        --//Жду завершиения отправки сигнала COMRESET
-        --//(флаг TXCOMSTART operation complete)
---          i_gtp_txelecidle<='0';
-          i_timeout_sel<='1';--select timeout 10ms
+        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#0288#, i_tmr_dly'length) then
+          i_tmr_dly<=(others=>'0');
+          i_gtp_txcomstart<='0';
           fsm_ploob_cs <= S_HR_AwaitCOMINIT;
+        else
+          i_tmr_dly<=i_tmr_dly + 1;
         end if;
+
+--        i_gtp_txcomstart<='0';
+--
+--        if p_in_gtp_rxstatus(0)='1' then
+--        --//Жду завершиения отправки сигнала COMRESET
+--        --//(флаг TXCOMSTART operation complete)
+----          i_gtp_txelecidle<='0';
+--          i_timer_rst_n<='0';
+--          fsm_ploob_cs <= S_HR_AwaitCOMINIT;
+--
+--        else
+--          if i_timeout='1' then
+--            i_timer_rst_n<='0';
+--            fsm_ploob_cs <= S_HR_IDLE;
+--          else
+--            i_timer_rst_n<='1';
+--          end if;
+--        end if;
 
 
       --//-------------------------------
@@ -258,13 +272,11 @@ begin
         if p_in_gtp_rxstatus(2 downto 0)="100" then
             --Обнаружил сигнал COMINIT
             i_timer_rst_n<='0';
-            i_timeout_sel<='0';--select timeout 880us
             fsm_ploob_cs <= S_HR_AwaitNoCOMINIT;
 
         else
           if i_timeout='1' then
             i_timer_rst_n<='0';
-            i_timeout_sel<='0';--select timeout 880us
             fsm_ploob_cs <= S_HR_IDLE;
           else
             i_timer_rst_n<='1';
@@ -313,15 +325,30 @@ begin
 
       when S_HR_COMWAKE_DONE =>
 
-        i_gtp_txcomstart<='0';
-
-        if p_in_gtp_rxstatus(0)='1' then
-        --//Жду завершиения отправки сигнала COMWAKE
-        --//(флаг TXCOMSTART operation complete)
---          i_gtp_txelecidle<='0';
-          i_timer_rst_n<='1';
+        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#0288#, i_tmr_dly'length) then
+          i_tmr_dly<=(others=>'0');
+          i_gtp_txcomstart<='0';
           fsm_ploob_cs <= S_HR_AwaitCOMWAKE;
+        else
+          i_tmr_dly<=i_tmr_dly + 1;
         end if;
+
+--        i_gtp_txcomstart<='0';
+--
+--        if p_in_gtp_rxstatus(0)='1' then
+--        --//Жду завершиения отправки сигнала COMWAKE
+--        --//(флаг TXCOMSTART operation complete)
+----          i_gtp_txelecidle<='0';
+--          i_timer_rst_n<='0';
+--          fsm_ploob_cs <= S_HR_AwaitCOMWAKE;
+--        else
+--          if i_timeout='1' then
+--            i_timer_rst_n<='0';
+--            fsm_ploob_cs <= S_HR_IDLE;
+--          else
+--            i_timer_rst_n<='1';
+--          end if;
+--        end if;
 
 
       --//-------------------------------
@@ -420,7 +447,7 @@ begin
               i_status(C_PSTAT_DET_ESTABLISH_ON_BIT)<='1';
               i_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L)<=p_in_ctrl(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L);
 
-              fsm_ploob_cs <= S_HR_Ready;
+              fsm_ploob_cs <= S_HR_Connect;
             else
               i_tmr_dly<=i_tmr_dly+1;
             end if;
@@ -431,13 +458,19 @@ begin
       --//-------------------------------
       --//Установка соединения запершена
       --//-------------------------------
-      when S_HR_Ready =>
+      when S_HR_Connect =>
 
         i_timer_rst_n<='0';
 
         if p_in_gtp_rxelecidle = '1' then
-          fsm_ploob_cs <= S_HR_IDLE;
+          fsm_ploob_cs <= S_HR_Disconnect;
         end if;
+
+      --//Жду сброса модуля
+      when S_HR_Disconnect =>
+
+        i_status(C_PSTAT_DET_DEV_ON_BIT)<='0';
+        i_status(C_PSTAT_DET_ESTABLISH_ON_BIT)<='0';
 
     end case;
 

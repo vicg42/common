@@ -320,10 +320,10 @@ begin
             when C_TR_OK    => sr_txdata<=C_PDAT_R_OK;    sr_txdtype<=C_PDAT_TPRM;
             when C_TR_ERR   => sr_txdata<=C_PDAT_R_ERR;   sr_txdtype<=C_PDAT_TPRM;
             when C_TWTRM    => sr_txdata<=C_PDAT_WTRM;    sr_txdtype<=C_PDAT_TPRM;
-            when C_TPMREQ_P => sr_txdata<=C_PDAT_PMREQ_P; sr_txdtype<=C_PDAT_TPRM;
-            when C_TPMREQ_S => sr_txdata<=C_PDAT_PMREQ_S; sr_txdtype<=C_PDAT_TPRM;
-            when C_TPMACK   => sr_txdata<=C_PDAT_PMACK;   sr_txdtype<=C_PDAT_TPRM;
-            when C_TPMNAK   => sr_txdata<=C_PDAT_PMNAK;   sr_txdtype<=C_PDAT_TPRM;
+--            when C_TPMREQ_P => sr_txdata<=C_PDAT_PMREQ_P; sr_txdtype<=C_PDAT_TPRM;
+--            when C_TPMREQ_S => sr_txdata<=C_PDAT_PMREQ_S; sr_txdtype<=C_PDAT_TPRM;
+--            when C_TPMACK   => sr_txdata<=C_PDAT_PMACK;   sr_txdtype<=C_PDAT_TPRM;
+--            when C_TPMNAK   => sr_txdata<=C_PDAT_PMNAK;   sr_txdtype<=C_PDAT_TPRM;
 
             when C_TDATA_EN => sr_txdata<=p_in_txd; sr_txdtype<=C_PDAT_TDATA;--Передача данных FRAME
 
@@ -343,17 +343,23 @@ end process ltxd;
 --GTP: ШИНА ДАНЫХ=8bit
 gen_dbus8 : if G_GT_DBUS=8 generate
 
---//Подстройка
-ltxd_sr:process(p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    sr_ddly<=sr_txdata(7 downto 0) & sr_ddly(0 to 2);
-    sr_tdly<=sr_txdtype(0) & sr_tdly(0 to 2);
-  end if;
-end process ltxd_sr;
+----//Подстройка
+--ltxd_sr:process(p_in_clk)
+--begin
+--  if p_in_clk'event and p_in_clk='1' then
+--    sr_ddly<=sr_txdata(7 downto 0) & sr_ddly(0 to 2);
+--    sr_tdly<=sr_txdtype(0) & sr_tdly(0 to 2);
+--  end if;
+--end process ltxd_sr;
+--
+--p_out_gtp_txdata(7 downto 0)<=sr_ddly(2);
+--p_out_gtp_txcharisk(0)<=sr_tdly(2);
+--
+--p_out_gtp_txdata(15 downto 8)<=(others=>'0');
+--p_out_gtp_txcharisk(1)<='0';
 
-p_out_gtp_txdata(7 downto 0)<=sr_ddly(2);
-p_out_gtp_txcharisk(0)<=sr_tdly(2);
+p_out_gtp_txdata(7 downto 0)<=sr_txdata(7 downto 0);
+p_out_gtp_txcharisk(0)<=sr_txdtype(0);
 
 p_out_gtp_txdata(15 downto 8)<=(others=>'0');
 p_out_gtp_txcharisk(1)<='0';

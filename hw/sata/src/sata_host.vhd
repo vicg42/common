@@ -86,6 +86,8 @@ p_out_dbg                   : out   TSH_dbgport_GTCH;
 --//ћоделирование
 p_out_sim_gtp_txdata        : out   TBus32_GTCH;
 p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
+p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
 p_in_sim_gtp_rxdata         : in    TBus32_GTCH;
 p_in_sim_gtp_rxcharisk      : in    TBus04_GTCH;
 p_in_sim_gtp_rxstatus       : in    TBus03_GTCH;
@@ -115,6 +117,8 @@ end sata_host;
 architecture behavioral of sata_host is
 
 signal i_sata_module_rst           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_linkup                    : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_spd_ctrl                  : TSpdCtrl_GTCH;
 signal i_spd_out                   : TSpdCtrl_GTCH;
@@ -245,6 +249,7 @@ p_out_spd_ver      => i_spd_out,
 
 p_in_gtp_pll_lock  => i_gtp_PLLLKDET,
 p_in_usr_dcm_lock  => p_in_sys_dcm_lock,
+p_in_linkup        => i_linkup,
 
 --------------------------------------------------
 --RocketIO
@@ -280,6 +285,8 @@ p_in_rst           => p_in_rst
 --//–азмножение модулей управлени€ SATA соответствующего канала GTP (RocketIO)
 --//###########################################################################
 gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
+
+i_linkup(1)<=i_linkup(0);
 
 i_spd_ctrl(1)<=i_spd_ctrl(0);
 i_phy_ctrl(1)<=i_spd_out(0).sata_ver;
@@ -389,6 +396,7 @@ p_out_tst(i)(31 downto 3)<=(others=>'0');
 end generate gen_dbg_on;
 
 
+i_linkup(i)<=i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT);
 
 i_phy_ctrl(i)<=i_spd_out(i).sata_ver;
 
@@ -396,7 +404,7 @@ i_phy_ctrl(i)<=i_spd_out(i).sata_ver;
 --i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or (i_gtp_txbufreset(i) and i_spd_gt_rdy);--i_spd_gtp_ch_rst(i) or i_phy_gtp_ch_rst(i);
 i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
 i_gtp_rxreset(i)<=i_spd_gtp_ch_rst(i) or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
-i_gtp_rxcdrreset(i)<=i_spd_gtp_ch_rst(i) or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
+i_gtp_rxcdrreset(i)<=i_spd_gtp_ch_rst(i);-- or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
 
 --//—брос всех модулей управлени€ если
 --//модуль sata_spd_ctrl.vhd - исчет скорость соединени€ или
@@ -727,7 +735,7 @@ p_in_refclkin          => p_in_gtp_refclk,
 p_in_rst               => p_in_rst --i_gtp_glob_reset
 );
 
-p_out_dbg<=i_dbg;
+--p_out_dbg<=i_dbg;
 
 end generate gen_sim_off;
 
@@ -739,13 +747,14 @@ end generate gen_sim_off;
 --//“олько дл€ моделировани€ (удобства алализа данных при моделироании)
 gen_sim_on: if strcmp(G_SIM,"ON") generate
 
---p_out_dbg<=i_dbg;
+p_out_dbg<=i_dbg;
 
 p_out_sim_rst <= i_sata_module_rst;
 p_out_sim_clk <= g_gtp_usrclk2;
 
 p_out_sim_gtp_txdata   <= i_gtp_txdata;
 p_out_sim_gtp_txcharisk<= i_gtp_txcharisk;
+p_out_sim_gtp_txcomstart<= i_gtp_txcomstart;
 
 i_gtp_rxelecidle       <= p_in_sim_gtp_rxelecidle;
 i_gtp_rxstatus         <= p_in_sim_gtp_rxstatus;
@@ -787,6 +796,14 @@ p_out_refclkout        => p_out_gtp_refclk,
 p_in_refclkin          => p_in_gtp_refclk,
 p_in_rst               => p_in_rst --i_gtp_glob_reset
 );
+
+i_gtp_rxbufstatus(0)<=(others=>'0');
+i_gtp_rxbufstatus(1)<=(others=>'0');
+
+i_gtp_txbufstatus(0)<=(others=>'0');
+i_gtp_txbufstatus(1)<=(others=>'0');
+
+i_gtp_resetdone<=(others=>'1');
 
 end generate gen_sim_on;
 

@@ -44,6 +44,8 @@ port
 p_out_gtp_txdata            : out   std_logic_vector(31 downto 0);
 p_out_gtp_txcharisk         : out   std_logic_vector(3 downto 0);
 
+p_in_gtp_txcomstart         : in    std_logic;
+
 p_in_gtp_rxdata             : in    std_logic_vector(31 downto 0);
 p_in_gtp_rxcharisk          : in    std_logic_vector(3 downto 0);
 
@@ -197,6 +199,8 @@ begin
 --//Инициализация:
                  p_out_gtp_rxelecidle<='0';
                  p_out_gtp_rxstatus  <="000";
+
+wait until p_in_gtp_txcomstart='1';
 
 --//Работа:
 wait for 1.0 us; p_out_gtp_rxelecidle<='1';

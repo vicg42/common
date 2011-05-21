@@ -717,6 +717,7 @@ p_out_spd_ver           : out   TSpdCtrl_GTCH;
 
 p_in_gtp_pll_lock       : in    std_logic;
 p_in_usr_dcm_lock       : in    std_logic;
+p_in_linkup             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Связь с GTP
@@ -805,6 +806,7 @@ p_out_dbg                   : out   TSH_dbgport_GTCH;
 --//Моделирование
 p_out_sim_gtp_txdata        : out   TBus32_GTCH;
 p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
+p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus32_GTCH;
 p_in_sim_gtp_rxcharisk      : in    TBus04_GTCH;
 p_in_sim_gtp_rxstatus       : in    TBus03_GTCH;
@@ -1149,6 +1151,7 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
+p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
 p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;

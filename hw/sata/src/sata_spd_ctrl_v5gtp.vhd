@@ -57,6 +57,7 @@ p_out_spd_ver           : out   TSpdCtrl_GTCH;--//Выбор типа SATA: Generation 2 
 
 p_in_gtp_pll_lock       : in    std_logic;
 p_in_usr_dcm_lock       : in    std_logic;
+p_in_linkup             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Связь с GTP
@@ -88,6 +89,8 @@ p_in_rst                : in    std_logic
 end sata_speed_ctrl;
 
 architecture behavioral of sata_speed_ctrl is
+
+constant C_TIME_OUT        : integer := 16#00081EB4#;--16#00080EB4# - timeout для боевого проекта -3.5ms на 150MHz
 
 constant C_SATAH_COUNT_MAX : integer :=G_SATAH_COUNT_MAX;
 constant C_SATAH_NUM       : integer :=G_SATAH_NUM;
@@ -157,12 +160,15 @@ S_DRP_PROG_DONE,
 
 S_GT_CH_RESET,
 S_GT_CH_RESET_WAIT_DONE,
-S_GT_CH_RESET_DONE
+S_WAIT_CONNECT,
+S_LINKUP
 );
 signal fsm_spdctrl_cs             : TSpdCtrl_fsm_state;
 
-signal i_tmr                    : std_logic_vector(4 downto 0);
+signal i_tmr                    : std_logic_vector(31 downto 0);
 signal i_tmr_en                 : std_logic;
+
+signal i_linkup                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_spd_change             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_spd_change_save        : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -228,10 +234,11 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_spdctrl_cs
             CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_W1          else
             CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_spdctrl_cs=S_DRP_PROG_DONE     else
             CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET       else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_DONE  else
+            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WAIT_CONNECT      else
             CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT         else
             CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT_DONE    else
             CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_WAIT_DONE    else
+            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_spdctrl_cs=S_LINKUP           else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//S_IDLE
 
 end generate gen_dbg_on;
@@ -305,8 +312,11 @@ begin
     i_tmr_en<='0';
 
     i_gt_rdy<='0';
+    i_linkup<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
+
+    i_linkup<=p_in_linkup;
 
     case fsm_spdctrl_cs is
 
@@ -727,15 +737,41 @@ begin
 
         if p_in_gtp_resetdone='1' then
           i_gt_rdy<='1';
-          fsm_spdctrl_cs <= S_GT_CH_RESET_DONE;
+          fsm_spdctrl_cs <= S_WAIT_CONNECT;
         end if;
 
-      when S_GT_CH_RESET_DONE =>
 
-        if i_spd_change/=(i_spd_change'range =>'0') then
-          fsm_spdctrl_cs <= S_IDLE_SPDCFG;
+      --//-------------------------------------------
+      --//Ждем соединения
+      --//-------------------------------------------
+      when S_WAIT_CONNECT =>
+
+        --//Жду установления связи
+        if  i_linkup=(i_linkup'range=>'1') then
+          --//ЕСТЬ соединение
+          i_tmr_en<='0';--//CLR TIMER
+          fsm_spdctrl_cs <= S_LINKUP;
         else
-          fsm_spdctrl_cs <= S_GT_CH_RESET_DONE;--S_IDLE_SPDCFG;
+          if i_tmr=CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_tmr'length) then
+          --//Время ожидания вышло
+            i_tmr_en<='0';--//CLR TIMER
+            fsm_spdctrl_cs <= S_READ_CH0;
+          else
+            i_tmr_en<='1';
+          end if;
+        end if;
+
+      --//-------------------------------------------
+      --//
+      --//-------------------------------------------
+      when S_LINKUP =>
+
+        if i_linkup/=(i_linkup'range=>'1') then
+          fsm_spdctrl_cs <= S_READ_CH0;
+
+        elsif i_spd_change/=(i_spd_change'range =>'0') then
+          fsm_spdctrl_cs <= S_IDLE_SPDCFG;
+
         end if;
 
     end case;

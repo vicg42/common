@@ -178,6 +178,7 @@ txd      : std_logic_vector(31 downto 0);
 end record;
 
 type TPLrx_dbgport is record
+rxd  : std_logic_vector(31 downto 0);
 name : string(1 to 7);
 end record;
 

@@ -340,6 +340,7 @@ end if;
 end process rcv_name;
 
 p_out_dbg.name<=dbgrcv_type;
+p_out_dbg.rxd<=i_rxdata_out;
 
 end generate gen_sim_on;
 

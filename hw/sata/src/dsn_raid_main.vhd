@@ -76,6 +76,7 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
+p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
 p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
@@ -170,6 +171,7 @@ signal i_uap_rxbuf_status          : TRxBufStatus_SHCountMax;
 
 signal i_sim_gtp_txdata            : TBus32GTCH_SHCountMax;
 signal i_sim_gtp_txcharisk         : TBus04GTCH_SHCountMax;
+signal i_sim_gtp_txcomstart        : TBusGTCH_SHCountMax;
 signal i_sim_gtp_rxdata            : TBus32GTCH_SHCountMax;
 signal i_sim_gtp_rxcharisk         : TBus04GTCH_SHCountMax;
 signal i_sim_gtp_rxstatus          : TBus03GTCH_SHCountMax;
@@ -394,6 +396,7 @@ p_out_gtp_sim_clk(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_clk(sh_idx)(ch_idx)
 
 p_out_sim_gtp_txdata(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txdata(sh_idx)(ch_idx);
 p_out_sim_gtp_txcharisk(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txcharisk(sh_idx)(ch_idx);
+p_out_sim_gtp_txcomstart(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sim_gtp_txcomstart(sh_idx)(ch_idx);
 
 i_sim_gtp_rxdata(sh_idx)(ch_idx)<=p_in_sim_gtp_rxdata(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 i_sim_gtp_rxcharisk(sh_idx)(ch_idx)<=p_in_sim_gtp_rxcharisk(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
@@ -533,6 +536,7 @@ p_out_dbg                   => i_dbg_sh_out(sh_idx),
 --//Моделирование
 p_out_sim_gtp_txdata        => i_sim_gtp_txdata(sh_idx),
 p_out_sim_gtp_txcharisk     => i_sim_gtp_txcharisk(sh_idx),
+p_out_sim_gtp_txcomstart    => i_sim_gtp_txcomstart(sh_idx),
 p_in_sim_gtp_rxdata         => i_sim_gtp_rxdata(sh_idx),
 p_in_sim_gtp_rxcharisk      => i_sim_gtp_rxcharisk(sh_idx),
 p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus(sh_idx),

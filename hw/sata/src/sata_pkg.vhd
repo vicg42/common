@@ -454,7 +454,8 @@ S_HR_AwaitCOMWAKE,
 S_HR_AwaitNoCOMWAKE,
 S_HR_AwaitAlign,
 S_HR_SendAlign,
-S_HR_Ready
+S_HR_Connect,
+S_HR_Disconnect
 );
 
 --//sata_player_tx.vhd

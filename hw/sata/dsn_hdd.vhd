@@ -105,6 +105,7 @@ p_out_tst                : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
+p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
 p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
@@ -188,6 +189,7 @@ signal sr_sh_rxbuf_empty                : std_logic_vector(0 downto 0);
 
 signal i_sh_sim_gtp_txdata              : TBus32_SHCountMax;
 signal i_sh_sim_gtp_txcharisk           : TBus04_SHCountMax;
+signal i_sh_sim_gtp_txcomstart          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_sh_sim_gtp_rxdata              : TBus32_SHCountMax;
 signal i_sh_sim_gtp_rxcharisk           : TBus04_SHCountMax;
 signal i_sh_sim_gtp_rxstatus            : TBus03_SHCountMax;
@@ -555,6 +557,7 @@ p_in_usr_rxbuf_full         => i_sh_rxbuf_full,
 --------------------------------------------------
 p_out_sim_gtp_txdata        => i_sh_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_sh_sim_gtp_txcharisk,
+p_out_sim_gtp_txcomstart    => i_sh_sim_gtp_txcomstart,
 p_in_sim_gtp_rxdata         => i_sh_sim_gtp_rxdata,
 p_in_sim_gtp_rxcharisk      => i_sh_sim_gtp_rxcharisk,
 p_in_sim_gtp_rxstatus       => i_sh_sim_gtp_rxstatus,
@@ -597,6 +600,7 @@ end generate gen_dbgled;
 
 p_out_sim_gtp_txdata        <= i_sh_sim_gtp_txdata;
 p_out_sim_gtp_txcharisk     <= i_sh_sim_gtp_txcharisk;
+p_out_sim_gtp_txcomstart    <= i_sh_sim_gtp_txcomstart;
 i_sh_sim_gtp_rxdata         <= p_in_sim_gtp_rxdata;
 i_sh_sim_gtp_rxcharisk      <= p_in_sim_gtp_rxcharisk;
 i_sh_sim_gtp_rxstatus       <= p_in_sim_gtp_rxstatus;
@@ -641,6 +645,7 @@ p_out_sata_gt_plldet<='1';
 gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sim_gtp_txdata(i)    <=(others=>'0');
 p_out_sim_gtp_txcharisk(i) <=(others=>'0');
+p_out_sim_gtp_txcomstart(i)<='0';
 p_out_gtp_sim_rst(i)       <='0';
 p_out_gtp_sim_clk(i)       <='0';
 
