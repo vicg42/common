@@ -234,7 +234,7 @@ p_out_rxerr<=i_rcv_error_out;
 
 
 --//------------------------------
---//GTP: ШИНА ДАНЫХ=8bit
+--//GT: ШИНА ДАНЫХ=8bit
 --//------------------------------
 gen_dbus8 : if G_GT_DBUS=8 generate
 
@@ -268,7 +268,7 @@ i_gtp_rxnotintable<=p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(0) & sr_gtp_r
 end generate gen_dbus8;
 
 --//------------------------------
---//GTP: ШИНА ДАНЫХ=16bit
+--//GT: ШИНА ДАНЫХ=16bit
 --//------------------------------
 gen_dbus16 : if G_GT_DBUS=16 generate
 
@@ -315,7 +315,6 @@ begin
 p_out_dbg.name<=(others=>'0');
 end generate gen_sim_off;
 
---//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 rcv_name: process(p_in_clk)
@@ -346,9 +345,11 @@ end if;
 end process rcv_name;
 
 p_out_dbg.name<=dbgrcv_type;
-p_out_dbg.rxd<=i_rxdata_out;
 
 end generate gen_sim_on;
+
+p_out_dbg.rxd<=i_rxdata_out;
+
 
 
 --END MAIN

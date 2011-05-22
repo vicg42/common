@@ -533,8 +533,12 @@ i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-----//Только для моделирования (удобства алализа данных при моделироании)
---gen_sim_on : if strcmp(G_SIM,"ON") generate
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
+begin
+p_out_dbg.cmd_name<=(others=>'0');
+end generate gen_sim_off;
+
+gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 rq_name: process(i_reg_shadow,i_trn_atacommand)
 begin
@@ -561,10 +565,10 @@ end process rq_name;
 
 p_out_dbg.cmd_name<=i_dbgtsf_type;
 
+end generate gen_sim_on;
+
 p_out_dbg.cmd_busy<=i_usr_status(C_AUSER_BUSY_BIT);
 p_out_dbg.signature<=i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);
-
---end generate gen_sim_on;
 
 
 --END MAIN

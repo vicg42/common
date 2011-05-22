@@ -346,7 +346,9 @@ begin
 end process ltxd;
 
 
---GTP: ШИНА ДАНЫХ=8bit
+--//------------------------------
+--//GT: ШИНА ДАНЫХ=8bit
+--//------------------------------
 gen_dbus8 : if G_GT_DBUS=8 generate
 
 ----//Подстройка
@@ -370,10 +372,15 @@ p_out_gtp_txcharisk(0)<=sr_txdtype(0);
 p_out_gtp_txdata(15 downto 8)<=(others=>'0');
 p_out_gtp_txcharisk(1)<='0';
 
+p_out_gtp_txdata(31 downto 16)<=(others=>'0');
+p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
+
 end generate gen_dbus8;
 
 
---GTP: ШИНА ДАНЫХ=16bit
+--//------------------------------
+--//GT: ШИНА ДАНЫХ=16bit
+--//------------------------------
 gen_dbus16 : if G_GT_DBUS=16 generate
 
 ----//Подстройка
@@ -392,13 +399,14 @@ gen_dbus16 : if G_GT_DBUS=16 generate
 --
 --p_out_gtp_txdata(15 downto 0)<=sr_ddly2(0);
 --p_out_gtp_txcharisk(1 downto 0)<=sr_tdly2(0);
-p_out_gtp_txdata(15 downto 0)<=sr_txdata(15 downto 0);--sr_ddly2(2);
-p_out_gtp_txcharisk(1 downto 0)<=sr_txdtype(1 downto 0);--sr_tdly2(2);
-
-end generate gen_dbus16;
+p_out_gtp_txdata(15 downto 0)<=sr_txdata(15 downto 0);
+p_out_gtp_txcharisk(1 downto 0)<=sr_txdtype(1 downto 0);
 
 p_out_gtp_txdata(31 downto 16)<=(others=>'0');
 p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
+
+end generate gen_dbus16;
+
 
 
 

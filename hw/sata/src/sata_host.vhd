@@ -193,15 +193,15 @@ signal i_gtp_txcharisk             : TBus04_GTCH;
 
 signal i_dbg                       : TSH_dbgport_GTCH;
 
-signal tst_gtp_resetdone           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_txreset             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_rxreset             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_rxcdrreset          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal tst_alayer_out              : TBus32_GTCH;
 signal tst_tlayer_out              : TBus32_GTCH;
 signal tst_llayer_out              : TBus32_GTCH;
 signal tst_player_out              : TBus32_GTCH;
 signal tst_spctrl_out              : std_logic_vector(31 downto 0);
+signal tst_gtp_resetdone           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal tst_gtp_txreset             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal tst_gtp_rxreset             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal tst_gtp_rxcdrreset          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal tst_gtp_txbufstatus         : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
@@ -218,7 +218,7 @@ p_out_gtp_pllkdet<=i_gtp_plllkdet;
 
 
 --//#############################
---//Программирование регистров можуля GT (RocketIO)
+--//Программирование регистров модуля GT (RocketIO)
 --//#############################
 m_speed_ctrl : sata_speed_ctrl
 generic map
@@ -307,10 +307,10 @@ i_gtp_txcomtype(1) <='0';
 i_gtp_txdata(1)    <=i_gtp_txdata(0);
 i_gtp_txcharisk(1) <=i_gtp_txcharisk(0);
 
-i_gtp_txreset(1)<=i_gtp_txreset(0);
-i_gtp_rxreset(1)<=i_gtp_rxreset(0);
-i_gtp_rxcdrreset(1)<=i_gtp_rxcdrreset(0);
-i_gtp_rxbufreset(1)<=i_gtp_rxbufreset(0);
+i_gtp_txreset(1)<='0';
+i_gtp_rxreset(1)<='0';
+i_gtp_rxcdrreset(1)<='0';
+i_gtp_rxbufreset(1)<='0';
 
 p_out_tst(1)(31 downto 0)<=(others=>'0');
 
@@ -723,7 +723,6 @@ end generate gen_sim_off;
 ---##############################
 -- Debug/Sim
 ---##############################
---//Только для моделирования (удобства алализа данных при моделироании)
 gen_sim_on: if strcmp(G_SIM,"ON") generate
 
 p_out_dbg<=i_dbg;

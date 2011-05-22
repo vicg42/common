@@ -168,27 +168,27 @@ begin
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_llayer_cs=S_L_IDLE else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_llayer_cs=S_L_SyncEscape else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoCommErr else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoComm else
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_llayer_cs=S_L_IDLE          else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_llayer_cs=S_L_SyncEscape    else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoCommErr     else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoComm        else
             CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_H_SendChkRdy else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendSOF else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendData else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendCRC else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendEOF else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_Wait else
-            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_RcvrHold else
-            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendHold else
-            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvChkRdy else
-            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvWaitFifo else
-            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvData else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_Hold else
-            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_SendHold else
-            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvEOF else
-            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodCRC else
-            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodEnd else
-            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_BadEnd else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendSOF      else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendData     else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendCRC      else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendEOF      else
+            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_Wait         else
+            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_RcvrHold     else
+            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendHold     else
+            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvChkRdy    else
+            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvWaitFifo  else
+            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvData      else
+            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_Hold         else
+            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_SendHold     else
+            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvEOF       else
+            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodCRC      else
+            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodEnd      else
+            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_BadEnd       else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_llayer_cs=S_L_RESET else
 
 end generate gen_dbg_on;
@@ -2428,7 +2428,6 @@ end process lfsm;
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-----//Только для моделирования (удобства алализа данных при моделироании)
 --gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 p_out_dbg.fsm<=fsm_llayer_cs;

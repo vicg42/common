@@ -120,19 +120,19 @@ begin
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET_DONE else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMINIT else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE_DONE else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMWAKE else
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET_DONE  else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMINIT   else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE        else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE_DONE   else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMWAKE   else
             CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMWAKE else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitAlign else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_SendAlign else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Connect else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitAlign     else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_SendAlign      else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Connect        else
+            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET       else
             CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMINIT else
-            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Calibrate else
-            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Disconnect else
+            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Calibrate      else
+            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Disconnect     else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//when fsm_ploob_cs=S_HR_IDLE
 
 end generate gen_dbg_on;
@@ -465,7 +465,6 @@ end process lfsm;
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-----//Только для моделирования (удобства алализа данных при моделироании)
 --gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 p_out_dbg.fsm<=fsm_ploob_cs;

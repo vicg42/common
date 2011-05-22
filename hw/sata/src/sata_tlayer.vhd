@@ -179,31 +179,31 @@ begin
   end if;
 end process tstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_ChkTyp else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CmdFIS else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CmdTransStatus else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RegFIS else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RegTransStatus else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PS_FIS else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOOTrans1 else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOOTrans2 else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOEnd else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOITrans1 else
-            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOITrans2 else
-            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMA_FIS else
-            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAOTrans1 else
-            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAOTrans2 else
-            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAEnd else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAITrans else
-            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DmaSetupFIS else
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_ChkTyp              else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CmdFIS              else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CmdTransStatus      else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RegFIS              else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RegTransStatus      else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PS_FIS              else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOOTrans1          else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOOTrans2          else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOEnd              else
+            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOITrans1          else
+            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_PIOITrans2          else
+            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMA_FIS             else
+            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAOTrans1          else
+            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAOTrans2          else
+            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAEnd              else
+            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DMAITrans           else
+            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DmaSetupFIS         else
             CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DmaSetupTransStatus else
-            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DS_FIS else
-            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CtrlFIS else
-            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CtrlTransStatus else
-            CONV_STD_LOGIC_VECTOR(16#16#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DB_FIS else
-            CONV_STD_LOGIC_VECTOR(16#17#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_Dev_Bits else
-            CONV_STD_LOGIC_VECTOR(16#18#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RcvBIST else
-            CONV_STD_LOGIC_VECTOR(16#19#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_BISTTrans1 else
+            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DS_FIS              else
+            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CtrlFIS             else
+            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CtrlTransStatus     else
+            CONV_STD_LOGIC_VECTOR(16#16#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_DB_FIS              else
+            CONV_STD_LOGIC_VECTOR(16#17#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_Dev_Bits            else
+            CONV_STD_LOGIC_VECTOR(16#18#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_RcvBIST             else
+            CONV_STD_LOGIC_VECTOR(16#19#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_BISTTrans1          else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_tlayer_cs=S_IDLE else
 
 end generate gen_dbg_on;
@@ -1547,7 +1547,6 @@ end process lfsm;
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-----//Только для моделирования (удобства алализа данных при моделироании)
 --gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 p_out_dbg.fsm<=fsm_tlayer_cs;

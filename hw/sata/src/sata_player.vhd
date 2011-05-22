@@ -120,9 +120,6 @@ signal i_dbg                    : TPL_dbgport;
 signal tst_player_oob_out       : std_logic_vector(31 downto 0);
 signal tst_player_rcv_out       : std_logic_vector(31 downto 0);
 signal tst_player_tsf_out       : std_logic_vector(31 downto 0);
-signal tst_rxtype               : std_logic_vector(i_rxtype'range);
-signal tst_player_oob           : std_logic;
-signal tst_player_rcv           : std_logic;
 --signal tst_rcv_aperiod          : std_logic_vector(10 downto 0);
 
 
@@ -145,18 +142,10 @@ begin
   if p_in_rst='1' then
 --    tst_rcv_aperiod<=(others=>'0');
     p_out_tst<=(others=>'0');
-    tst_rxtype<=(others=>'0');
-    tst_player_oob<='0';
-    tst_player_rcv<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
 
-    tst_rxtype<=i_rxtype;
-    tst_player_oob<=tst_player_oob_out(0);
-    tst_player_rcv<=tst_player_rcv_out(0);
-    p_out_tst(0)<=OR_reduce(tst_rxtype) or tst_player_oob or tst_player_rcv;
---                  tst_player_oob_out(0) or tst_player_rcv_out(0);
---                   or OR_reduce(tst_player_tsf_out);
---                  OR_reduce(tst_rcv_aperiod) or
+    p_out_tst(0)<=tst_player_oob_out(0) or tst_player_rcv_out(0);
 
 --    if i_rxtype(C_TALIGN)='1' then
 --      tst_rcv_aperiod<=(others=>'0');
@@ -356,7 +345,6 @@ p_in_rst               => p_in_rst
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-----//Только для моделирования (удобства алализа данных при моделироании)
 --gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 p_out_dbg<=i_dbg;
