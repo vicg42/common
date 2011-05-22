@@ -513,7 +513,7 @@ m_dsn_sata : dsn_raid_main
 generic map
 (
 G_HDD_COUNT => G_HDD_COUNT,
-G_GT_DBUS   => 8,
+G_GT_DBUS   => 16,
 G_DBG       => G_DBG,
 --G_DBGCS     => G_DBGCS,
 G_SIM       => G_SIM
