@@ -182,7 +182,7 @@ begin
   if p_in_rst='1' then
     fsm_ploob_cs <= S_HR_IDLE;
 
-    i_gtp_txelecidle<='1';
+    i_gtp_txelecidle<='0';
     i_gtp_txcomstart<='0';
     i_gtp_txcomtype <='0';
     i_gtp_pcm_rst<='0';
@@ -227,7 +227,7 @@ begin
         i_gtp_txcomstart<='1';--//Пуск сигнала COMRESET
         i_gtp_txcomtype <='0';
 
-        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#03#, i_tmr_dly'length) then
+        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#0288#, i_tmr_dly'length) then
           i_tmr_dly<=(others=>'0');
           fsm_ploob_cs <= S_HR_COMRESET_DONE;
         else
@@ -241,7 +241,7 @@ begin
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигнала COMRESET
         --//(флаг TXCOMSTART operation complete)
-          i_gtp_txelecidle<='0';
+--          i_gtp_txelecidle<='0';
           i_timer_rst_n<='0';
           fsm_ploob_cs <= S_HR_AwaitCOMINIT;
 
@@ -295,7 +295,7 @@ begin
       --//-------------------------------
       when S_HR_Calibrate =>
 
-        i_gtp_txelecidle<='1';
+--        i_gtp_txelecidle<='1';
         fsm_ploob_cs <= S_HR_COMWAKE;
 
 
@@ -321,7 +321,7 @@ begin
         if p_in_gtp_rxstatus(0)='1' then
         --//Жду завершиения отправки сигнала COMWAKE
         --//(флаг TXCOMSTART operation complete)
-          i_gtp_txelecidle<='0';
+--          i_gtp_txelecidle<='0';
           i_timer_rst_n<='0';
           fsm_ploob_cs <= S_HR_AwaitCOMWAKE;
         else
