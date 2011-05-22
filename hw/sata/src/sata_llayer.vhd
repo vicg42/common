@@ -127,6 +127,9 @@ signal i_trn_term                  : std_logic;--//Закрываю транзакцию передачи 
 
 signal i_tmr                       : std_logic_vector(7 downto 0);--//timer
 
+signal i_txsync_cnt                : std_logic_vector(3 downto 0);
+signal i_pcont_use                 : std_logic;
+
 signal sr_phy_txrdy_n              : std_logic_vector(0 to 0);
 signal i_txp_cnt_clr               : std_logic;
 signal i_txp_retransmit_en         : std_logic;
@@ -384,12 +387,16 @@ begin
   if p_in_rst='1' then
     i_txp_retransmit_en<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_txp_retransmit_dis='1' then
-      i_txp_retransmit_en<='0';
-    elsif fsm_llayer_cs=S_L_IDLE then
-      if p_in_phy_txrdy_n='0' and sr_phy_txrdy_n(0)='1' then
-        i_txp_retransmit_en<='1';
+    if i_pcont_use='1' then
+      if i_txp_retransmit_dis='1' then
+        i_txp_retransmit_en<='0';
+      elsif fsm_llayer_cs=S_L_IDLE then
+        if p_in_phy_txrdy_n='0' and sr_phy_txrdy_n(0)='1' then
+          i_txp_retransmit_en<='1';
+        end if;
       end if;
+    else
+      i_txp_retransmit_en<='0';
     end if;
   end if;
 end process;
@@ -419,6 +426,9 @@ if p_in_rst='1' then
 
   i_trn_term<='0';
 
+  i_txsync_cnt<=(others=>'0');
+  i_pcont_use<='0';
+
 elsif p_in_clk'event and p_in_clk='1' then
 --if clk_en='1' then
 if p_in_phy_sync='1' then
@@ -436,13 +446,14 @@ if p_in_phy_sync='1' then
 
       i_init_work<='0';
 
-      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, 8);
+      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
       i_txp_cnt<=(others=>'0');
       i_txd_en<='0';
 
       i_rcv_en<='0';
       i_rcv_work<='0';
       i_rxp<=(others=>'0');
+      i_pcont_use<='0';
 
       fsm_llayer_cs <= S_L_NoComm;
 
@@ -472,6 +483,9 @@ if p_in_phy_sync='1' then
 
             if p_in_phy_rxtype(C_TX_RDY)='1' then
             --Уст-во готово к передаче данных
+                i_pcont_use<='1';
+--                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+
                 if p_in_phy_txrdy_n='0' then
                   if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                     if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
@@ -513,8 +527,25 @@ if p_in_phy_sync='1' then
                 i_txp_cnt<=(others=>'0');
                 fsm_llayer_cs <= S_LT_H_SendChkRdy;
 
+--            elsif i_pcont_use='0' then
+--            --Serial ATA Specification v2.5 (2005-10-27).pdf (пп 9.6.2 - Link IDLE state diagram/NOTE:4)
+--            --Перед использованием примитива CONT, должен отправить минимум 10 не ALIGN примитивов,
+--            --или принять примитив отличный от SYNC или ALIGN
+--                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+----                if p_in_phy_txrdy_n='0' then
+----                  if i_txsync_cnt=CONV_STD_LOGIC_VECTOR(15, i_txsync_cnt'length) then
+----                    i_txsync_cnt<=(others=>'0');
+----                    i_pcont_use<='1';
+----                  else
+----                    i_txsync_cnt<=i_txsync_cnt + 1;
+----                  end if;
+----                end if;
+
             else
-                if p_in_phy_txrdy_n='0' then
+                if i_pcont_use='0' then
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+
+                elsif p_in_phy_txrdy_n='0' then
                   if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                     if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
                       i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
@@ -612,17 +643,19 @@ if p_in_phy_sync='1' then
     --------------------------------------------
     when S_L_NoCommErr =>
 
+      i_txp_retransmit_dis<='1';
       i_status<=(others=>'0');
 
       i_init_work<='0';
 
-      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, 8);
+      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
       i_txp_cnt<=(others=>'0');
       i_txd_en<='0';
 
       i_rxp<=(others=>'0');
       i_rcv_en<='0';
       i_rcv_work<='0';
+      i_pcont_use<='0';
 
       fsm_llayer_cs <= S_L_NoComm;
 
@@ -634,25 +667,26 @@ if p_in_phy_sync='1' then
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' then
       --Связь с утройством установлена
         --//if p_in_phy_sync='1' then
-          fsm_llayer_cs <= S_L_IDLE;
+          fsm_llayer_cs <= S_L_SendAlign;--S_L_IDLE;
         --//end if;--//if p_in_phy_sync='1' then
       end if;
 
---      --------------------------------------------
---      -- Link idle. STATE: S_L_SendAlign
---      --------------------------------------------
---      when S_L_SendAlign =>
---
---        --1. Связь с утройством не установлена или оборвана
---        if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
---          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, 8);
---
---          fsm_llayer_cs <= S_L_NoCommErr;
---
---        --Связь установлена
---        else
---          fsm_llayer_cs <= S_L_IDLE;
---        end if;
+      --------------------------------------------
+      -- Link idle. STATE: S_L_SendAlign
+      --------------------------------------------
+      when S_L_SendAlign =>
+
+        if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
+        --//Связь с утройством оборвана
+          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
+
+          fsm_llayer_cs <= S_L_NoCommErr;
+
+        else
+        --Связь установлена
+          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+          fsm_llayer_cs <= S_L_IDLE;
+        end if;
 
 
 
@@ -1537,6 +1571,7 @@ if p_in_phy_sync='1' then
                 end if;
               end if;
 
+              i_pcont_use<='1';
               i_rxp<=(others=>'0');
               i_txp_cnt<=(others=>'0');
               i_rcv_en<='1';

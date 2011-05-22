@@ -41,6 +41,7 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_dev_detect            : in    std_logic;
 p_out_rxd                  : out   std_logic_vector(31 downto 0);                --//Принятые данные
 p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN); --//константы см. sata_pkg поле --//Номера примитивов
 p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);--//константы см. sata_pkg поле --//PHY Layer /Reciver /Статусы/Map:
@@ -139,45 +140,50 @@ end generate gen_dbg_on;
 --//-----------------------------------
 --//Логика работы
 --//-----------------------------------
---tmr_rst:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    i_tmr_rst<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    if i_tmr_rst_en='1' then
---      i_tmr_rst<=i_tmr_rst+1;
---    else
---      i_tmr_rst<=(others=>'0');
---    end if;
---  end if;
---end process;
---
-----//Контроль переполнения буфера приемника GT/  RX elastic buffer
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    i_tmr_rst_en<='0';
---    i_gtp_rxbufreset<='0';
---
---  elsif p_in_clk'event and p_in_clk='1' then
---    if i_tmr_rst_en='0' then
---      i_gtp_rxbufreset<='0';
---      if (p_in_gtp_rxbufstatus="101" or p_in_gtp_rxbufstatus="110") then
---      --"101" - underflow
---      --"110" - overflow
---      --формирую сброс
---        i_tmr_rst_en<='1';
---      end if;
---    else
---      i_gtp_rxbufreset<='1';
---      if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
---        i_tmr_rst_en<='0';
---      end if;
---    end if;
---  end if;
---end process;
+tmr_rst:process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_tmr_rst<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_tmr_rst_en='1' then
+      i_tmr_rst<=i_tmr_rst+1;
+    else
+      i_tmr_rst<=(others=>'0');
+    end if;
+  end if;
+end process;
 
-p_out_gtp_rxbufreset<='0';--i_gtp_rxbufreset;
+--//Контроль переполнения буфера приемника GT/  RX elastic buffer
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_tmr_rst_en<='0';
+    i_gtp_rxbufreset<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+    if p_in_dev_detect='0' then
+      i_tmr_rst_en<='0';
+      i_gtp_rxbufreset<='0';
+    else
+      if i_tmr_rst_en='0' then
+        i_gtp_rxbufreset<='0';
+        if (p_in_gtp_rxbufstatus="101" or p_in_gtp_rxbufstatus="110") then
+        --"101" - underflow
+        --"110" - overflow
+        --формирую сброс
+          i_tmr_rst_en<='1';
+        end if;
+      else
+        i_gtp_rxbufreset<='1';
+        if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
+          i_tmr_rst_en<='0';
+        end if;
+      end if;
+    end if;
+  end if;
+end process;
+
+p_out_gtp_rxbufreset<=i_gtp_rxbufreset;
 
 
 

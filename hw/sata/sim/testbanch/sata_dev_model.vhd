@@ -1304,7 +1304,7 @@ begin
 
   i_rxalign_det<='1';
 
-  for i in 0 to 2 loop
+  for i in 0 to 30 loop
     p_SetData(p_in_clk,
               C_PDAT_SYNC, C_CHAR_K,
               p_out_gtp_txdata, p_out_gtp_txcharisk,
@@ -1325,8 +1325,13 @@ begin
                 i_usropt_in, vusropt, i_usropt_out);
   end loop;
 
-  write(GUI_line,string'("ESTABLISH - OK!"));writeline(output, GUI_line);
+  for i in 0 to 10 loop
+  p_SetSYNC(p_in_clk,
+            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            i_usropt_in, i_usropt_out);
+  end loop;
 
+  write(GUI_line,string'("ESTABLISH - OK!!!"));writeline(output, GUI_line);
 
 
   --//--------------------------------
@@ -1530,7 +1535,7 @@ begin
 
   i_rxalign_det<='1';
 
-  for i in 0 to 2 loop
+  for i in 0 to 20 loop
     p_SetData(p_in_clk,
               C_PDAT_SYNC, C_CHAR_K,
               p_out_gtp_txdata, p_out_gtp_txcharisk,
@@ -1555,9 +1560,9 @@ begin
 
 
 
---  --//--------------------------------
---  --//Отправка данных: FIS_DEV2HOST (Signature)
---  --//--------------------------------
+  --//--------------------------------
+  --//Отправка данных: FIS_DEV2HOST (Signature)
+  --//--------------------------------
 --  --//Инициализация FIS:
 --  txfis_size:=C_FIS_D2H_SIGNATURE'high;
 --  for i in 0 to txfis_size loop

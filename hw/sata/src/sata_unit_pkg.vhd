@@ -278,6 +278,7 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_dev_detect            : in    std_logic;
 p_out_rxd                  : out   std_logic_vector(31 downto 0);
 p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
 p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
@@ -731,7 +732,6 @@ p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
 p_in_gtp_drprdy         : in    std_logic;
 
 p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_out_gtp_rst           : out   std_logic;
 p_out_gtp_rdy           : out   std_logic;
 p_in_gtp_resetdone      : in    std_logic;
 

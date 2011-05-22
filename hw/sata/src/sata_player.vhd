@@ -321,6 +321,7 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_dev_detect            => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
 p_out_rxd                  => p_out_phy_rxdata,
 p_out_rxtype               => i_rxtype,
 p_out_rxerr                => i_rxerr,

@@ -70,7 +70,6 @@ p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
 p_in_gtp_drprdy         : in    std_logic;
 
 p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--//Сброс соотв. GTP
-p_out_gtp_rst           : out   std_logic;
 p_out_gtp_rdy           : out   std_logic;
 p_in_gtp_resetdone      : in    std_logic;
 
@@ -184,7 +183,6 @@ signal i_gt_drp_regsel          : std_logic;--//0/1 - выбор регистров канала GTP
 signal i_gt_drp_rdval           : TBus16_GTCH;
 
 signal i_gt_rdy                 : std_logic;
-signal i_gt_rst                 : std_logic;
 signal i_gt_ch_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal tst_spd_ver              : std_logic_vector(i_spd_ver_out(0).sata_ver'range);
@@ -251,7 +249,6 @@ p_out_spd_ver<=i_spd_ver_out;
 
 p_out_gtp_rdy     <= i_gt_rdy;
 
-p_out_gtp_rst     <= i_gt_rst;
 p_out_gtp_ch_rst  <= i_gt_ch_rst;
 
 p_out_gtp_drpaddr <= i_gt_drp_addr;
@@ -302,7 +299,6 @@ begin
     i_gt_drp_regsel<=C_REG_PLL_RXDIVSEL;
 
     i_gt_ch_rst<=(others=>'0');
-    i_gt_rst<='0';
 
     for i in 0 to C_GTCH_COUNT_MAX-1 loop
     i_spd_change_save(i)<='0';
@@ -488,11 +484,9 @@ begin
 --        --//Генерю сброс для модуля RocketIO GTP
 --        if i_tmr = CONV_STD_LOGIC_VECTOR(16#01F#, i_rst_cnt'length) then
 --          i_tmr_en<='0';
---          i_gt_rst<='0';
 --          fsm_spdctrl_cs <= S_IDLE_SPDCFG;
 --
 --        elsif i_tmr = CONV_STD_LOGIC_VECTOR(16#0F#, i_rst_cnt'length) then
---          i_gt_rst<='1';
 --          fsm_spdctrl_cs <= S_GTP_RESET_DONE;
 --
 --        end if;

@@ -389,7 +389,7 @@ S_L_IDLE,
 S_L_SyncEscape,
 S_L_NoCommErr,
 S_L_NoComm,
---S_L_SendAlign,
+S_L_SendAlign,
 
 ----------------------------------------------
 ---- Link transfer states.

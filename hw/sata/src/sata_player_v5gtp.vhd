@@ -531,8 +531,8 @@ RXUSRCLK1                       =>      g_gtp_usrclk(1),
 RXUSRCLK20                      =>      g_gtp_usrclk2(0),
 RXUSRCLK21                      =>      g_gtp_usrclk2(1),
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-RXCDRRESET0                     =>      p_in_rxcdrreset(0),--p_in_rxreset(0),--
-RXCDRRESET1                     =>      p_in_rxcdrreset(1),--p_in_rxreset(1),--
+RXCDRRESET0                     =>      p_in_rxcdrreset(0),
+RXCDRRESET1                     =>      p_in_rxcdrreset(1),
 RXELECIDLE0                     =>      i_rxelecidle(0),
 RXELECIDLE1                     =>      i_rxelecidle(1),
 RXELECIDLERESET0                =>      i_rxelecidlereset(0),
@@ -548,8 +548,8 @@ RXN1                            =>      p_in_rxn(1),
 RXP0                            =>      p_in_rxp(0),
 RXP1                            =>      p_in_rxp(1),
 -------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0                     =>      p_in_rxreset(0),--p_in_rxbufreset(0),
-RXBUFRESET1                     =>      p_in_rxreset(1),--p_in_rxbufreset(1),
+RXBUFRESET0                     =>      p_in_rxbufreset(0),
+RXBUFRESET1                     =>      p_in_rxbufreset(1),
 RXBUFSTATUS0                    =>      p_out_rxbufstatus(0),--cм.стр.168  ug196.pdf
 RXBUFSTATUS1                    =>      p_out_rxbufstatus(1),--
 RXCHANISALIGNED0                =>      open,
