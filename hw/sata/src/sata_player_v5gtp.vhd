@@ -631,8 +631,8 @@ TXUSRCLK1                       =>      g_gtp_usrclk(1),
 TXUSRCLK20                      =>      g_gtp_usrclk2(0),
 TXUSRCLK21                      =>      g_gtp_usrclk2(1),
 --------------- Transmit Ports - TX Driver and OOB signalling --------------
-TXBUFDIFFCTRL0                  =>      "001",--strength of the pre-drivers.Table 6-17. ug196.pdf
-TXBUFDIFFCTRL1                  =>      "001",
+TXBUFDIFFCTRL0                  =>      "100",--strength of the pre-drivers.Table 6-17. ug196.pdf
+TXBUFDIFFCTRL1                  =>      "100",
 TXDIFFCTRL0                     =>      "100",--transmitter differential output swing.Table 6-18. ug196.pdf
 TXDIFFCTRL1                     =>      "100",
 TXINHIBIT0                      =>      '0', --'1' -TX diff pin pair is to a constant TXP='0', TXN='1'
