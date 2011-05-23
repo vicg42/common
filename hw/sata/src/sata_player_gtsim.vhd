@@ -82,6 +82,10 @@ gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
 --//Âûáîð òàêòîâûõ ÷àñòîò äëÿ ðàáîòû SATA-I/II
+
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=8bit
+--//------------------------------
 gen_gtp_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -94,6 +98,9 @@ O  => g_gtp_usrclk2(i)
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gtp_w8;
 
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=16bit
+--//------------------------------
 gen_gtp_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -112,6 +119,28 @@ I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
 O  => g_gtp_usrclk(i)
 );
 end generate gen_gtp_w16;
+
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=32bit -----  ÍÓÆÍÀ ÁÎËËÅ ÒÎ×ÍÀß ÐÅÀËÈÇÀÖÈß, Ò.Ê. ÝÒÎ ÇÀÏËÀÒÊÀ!!!!
+--//------------------------------
+gen_gtp_w32 : if G_GT_DBUS=32 generate
+m_bufg_usrclk2 : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk2(i)
+);
+m_bufg_usrclk : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk(i)
+);
+end generate gen_gtp_w32;
 
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
 

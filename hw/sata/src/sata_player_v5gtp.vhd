@@ -151,9 +151,9 @@ gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
---//------------------------
---//Åñëè øèíà äàííûõ GT=8bit
---//------------------------
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=8bit
+--//------------------------------
 gen_gt_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -166,9 +166,9 @@ O  => g_gtp_usrclk2(i)
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gt_w8;
 
---//------------------------
---//Åñëè øèíà äàííûõ GT=16bit
---//------------------------
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=16bit
+--//------------------------------
 gen_gt_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -665,3 +665,4 @@ TXCOMTYPE1                      =>      p_in_txcomtype(1)
 
 --END MAIN
 end RTL;
+

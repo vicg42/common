@@ -166,14 +166,17 @@ end generate gen_dbg_on;
 --//----------------------------------
 --//Логика управления
 --//----------------------------------
-gen_dbus16 : if G_GT_DBUS=16 generate
-i_synch<=i_cnt_sync(0);
-end generate gen_dbus16;
-
 gen_dbus8 : if G_GT_DBUS=8 generate
 i_synch<=AND_reduce(i_cnt_sync);
 end generate gen_dbus8;
 
+gen_dbus16 : if G_GT_DBUS=16 generate
+i_synch<=i_cnt_sync(0);
+end generate gen_dbus16;
+
+gen_dbus32 : if G_GT_DBUS=32 generate
+i_synch<='1';
+end generate gen_dbus32;
 
 p_out_phy_sync<=i_synch;
 p_out_phy_rxtype(C_TDATA_EN downto C_TALIGN)<=i_rxtype(C_TDATA_EN downto C_TALIGN);

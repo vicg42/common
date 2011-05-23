@@ -408,6 +408,17 @@ p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
 end generate gen_dbus16;
 
 
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=32bit
+--//------------------------------
+gen_dbus32 : if G_GT_DBUS=32 generate
+
+p_out_gtp_txdata(31 downto 0)<=sr_txdata(31 downto 0);
+p_out_gtp_txcharisk(3 downto 0)<=sr_txdtype(3 downto 0);
+
+end generate gen_dbus32;
+
+
 
 
 --//-----------------------------------

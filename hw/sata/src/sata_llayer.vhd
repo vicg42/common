@@ -112,6 +112,7 @@ signal i_rxd_out                   : std_logic_vector(31 downto 0);
 signal i_rxd_en_out                : std_logic;
 signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_THOLD);--//флаги принятых примитивов
 signal i_return                    : std_logic;
+signal i_rxd_wr_out                : std_logic;
 
 signal i_txd_en                    : std_logic;
 signal i_txd_out                   : std_logic_vector(31 downto 0);
@@ -227,7 +228,7 @@ lrxd_out:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_rxd_out<=(others=>'0');
-    p_out_rxd_wr<='0';
+    i_rxd_wr_out<='0';
   elsif p_in_clk'event and p_in_clk='1' then
 
     i_srambler_en_dly<=i_srambler_en;
@@ -235,12 +236,13 @@ begin
       i_rxd_out<=sr_rxdata_fst;
     end if;
 
-    p_out_rxd_wr<=i_rxd_en_out;
+    i_rxd_wr_out<=i_rxd_en_out;
 
   end if;
 end process lrxd_out;
 
 p_out_rxd<=i_rxd_out;
+p_out_rxd_wr<=i_rxd_wr_out;
 
 
 --//Transport Layer выдает результаты проверки принимаемых данных.
@@ -342,7 +344,8 @@ p_in_rst     => p_in_rst
 --//(см. пп 9.5 Serial ATA Specification v2.5 (2005-10-27).pdf)
 --//----------------------------
 i_crc_in<=i_txd_out when fsm_llayer_cs=S_LT_SendData or fsm_llayer_cs=S_LT_SendCRC or i_trn_term='1' else i_rxd_out;
-i_crc_en<=i_srambler_en_tx or i_rxd_en_out;
+i_crc_en<=i_srambler_en_tx or i_rxd_en_out;--GT_DBUS= 8,16
+--i_crc_en<=i_srambler_en_tx or i_rxd_wr_out;--GT_DBUS=32
 
 m_crc : sata_crc
 generic map
@@ -2212,35 +2215,42 @@ if p_in_phy_sync='1' then
 
             if p_in_phy_txrdy_n='0' then
 
-                if i_txr_ip='0' then
-                    if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                      if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                        i_txp_cnt<=i_txp_cnt + 1;
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                        i_txp_cnt<=i_txp_cnt+1;
-                      end if;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                    end if;
-
-                else
-                    if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                    end if;
-
-                end if;
-
                 --//Анализ принятого/расчтаного CRC
                 if i_crc_out=i_rxd_out then
+
+                    if i_txr_ip='0' then
+                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                          if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                            i_txp_cnt<=i_txp_cnt + 1;
+                          else
+                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
+                            i_txp_cnt<=i_txp_cnt+1;
+                          end if;
+                        else
+                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                        end if;
+
+                    else
+                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
+                        else
+                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                        end if;
+
+                    end if;
 
                     i_status(C_LSTAT_RxOK)<='1';--//Информ. Транспорный уровень
                     fsm_llayer_cs <= S_LR_GoodCRC;
 
                 else
+
+                    if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
+                    else
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    end if;
+                    i_txp_cnt<=(others=>'0');
 
                     i_status(C_LSTAT_RxERR_CRC)<='1';--//Информ. Транспорный уровень
                     fsm_llayer_cs <= S_LR_BadEnd;

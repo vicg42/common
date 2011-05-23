@@ -227,7 +227,7 @@ begin
         i_gtp_txcomstart<='1';--//Пуск сигнала COMRESET
         i_gtp_txcomtype <='0';
 
-        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#0288#, i_tmr_dly'length) then
+        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(selval(16#0288#, 16#003#, strcmp(G_SIM, "OFF")), i_tmr_dly'length) then
           i_tmr_dly<=(others=>'0');
           fsm_ploob_cs <= S_HR_COMRESET_DONE;
         else

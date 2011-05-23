@@ -306,6 +306,20 @@ i_gtp_rxnotintable<=p_in_gtp_rxnotintable(1) & p_in_gtp_rxnotintable(0) & sr_gtp
 end generate gen_dbus16;
 
 
+--//------------------------------
+--//GT: ØÈÍÀ ÄÀÍÛÕ=32bit
+--//------------------------------
+gen_dbus32 : if G_GT_DBUS=32 generate
+
+i_rxdata<=p_in_gtp_rxdata(31 downto 0);
+i_rxdtype<=p_in_gtp_rxcharisk(3 downto 0);
+
+i_gtp_rxdisperr<=p_in_gtp_rxdisperr(3 downto 0);
+i_gtp_rxnotintable<=p_in_gtp_rxnotintable(3 downto 0);
+
+end generate gen_dbus32;
+
+
 
 --//-----------------------------------
 --//Debug/Sim
