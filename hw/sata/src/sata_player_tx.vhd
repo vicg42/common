@@ -41,6 +41,8 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_rxalign           : in    std_logic;
+p_in_linkup            : in    std_logic;
 p_in_dev_detect        : in    std_logic;
 p_in_d10_2_send_dis    : in    std_logic;                    --//Запрещение передачи кода D10.2
 p_in_sync              : in    std_logic;                    --//
@@ -189,21 +191,21 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_sync='1' then
         --//TMR
-        if p_in_d10_2_send_dis='0' or i_align_tmr=CONV_STD_LOGIC_VECTOR(CI_ALIGN_TMR-1, i_align_tmr'length) then
+        if p_in_linkup='0' or i_align_tmr=CONV_STD_LOGIC_VECTOR(CI_ALIGN_TMR-1, i_align_tmr'length) or p_in_rxalign='1' then
           i_align_tmr<=(others=>'0');
         else
           i_align_tmr<=i_align_tmr+1;
         end if;
 
         --//ALIGN send enable
-        if i_align_tmr=CONV_STD_LOGIC_VECTOR(CI_ALIGN_TMR-1, i_align_tmr'length) then
+        if i_align_tmr=CONV_STD_LOGIC_VECTOR(CI_ALIGN_TMR-1, i_align_tmr'length) or p_in_rxalign='1' then
           i_align_txen<='1';
         elsif i_align_txen='1' and i_align_burst_cnt=CONV_STD_LOGIC_VECTOR(C_ALIGN_BURST-1, i_align_burst_cnt'length) then
           i_align_txen<='0';
         end if;
 
         --//BURST
-        if p_in_d10_2_send_dis='0' or (i_align_txen='1' and i_align_burst_cnt=CONV_STD_LOGIC_VECTOR(C_ALIGN_BURST-1, i_align_burst_cnt'length)) then
+        if p_in_linkup='0' or (i_align_txen='1' and i_align_burst_cnt=CONV_STD_LOGIC_VECTOR(C_ALIGN_BURST-1, i_align_burst_cnt'length)) then
           i_align_burst_cnt<=(others=>'0');
         else
           if i_align_txen='1' then

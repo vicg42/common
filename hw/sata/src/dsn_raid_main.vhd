@@ -378,14 +378,14 @@ i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).tlayer<=i_dbg_sh_out(sh_idx)(ch_idx)
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).llayer<=i_dbg_sh_out(sh_idx)(ch_idx).llayer;
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).player<=i_dbg_sh_out(sh_idx)(ch_idx).player;
 
---i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.din<=i_u_txd(sh_idx)(ch_idx);
---i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.dout<=i_sh_txd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.din<=i_u_txd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.dout<=i_sh_txd(sh_idx)(ch_idx);
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.wr<=i_u_txd_wr(sh_idx)(ch_idx);
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.rd<=i_sh_txd_rd(sh_idx)(ch_idx);
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).txbuf.status<=i_txbuf_status(sh_idx)(ch_idx);
 
---i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.din<=i_sh_rxd(sh_idx)(ch_idx);
---i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.dout<=i_u_rxd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.din<=i_sh_rxd(sh_idx)(ch_idx);
+i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.dout<=i_u_rxd(sh_idx)(ch_idx);
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.wr<=i_sh_rxd_wr(sh_idx)(ch_idx);
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.rd<=i_u_rxd_rd(sh_idx)(ch_idx);
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).rxbuf.status<=i_rxbuf_status(sh_idx)(ch_idx);

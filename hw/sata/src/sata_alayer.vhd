@@ -84,7 +84,7 @@ signal i_cmdfifo_rd_done           : std_logic;
 
 signal i_usrctrl                   : std_logic_vector(15 downto 0);
 signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT);
-signal i_usrmode                   : std_logic_vector(0 to C_USRCMD_COUNT-1);
+signal i_usrmode                   : std_logic_vector(C_USRCMD_COUNT-1 downto 0);
 signal i_err_clr                   : std_logic;
 signal i_sstatus                   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 signal i_spd_ver                   : std_logic_vector(C_PSTAT_SPD_BIT_M-C_PSTAT_SPD_BIT_L downto 0);
@@ -502,7 +502,9 @@ end process;
 --Ñâÿçü ñ Speed Controller
 --------------------------------------------------
 p_out_spd_ctrl.change<=(i_usrmode(C_USRCMD_SET_SATA1) or i_usrmode(C_USRCMD_SET_SATA2)) and i_reg_shadow_wr_done;
-p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, p_out_spd_ctrl.sata_ver'length) when  i_usrmode(C_USRCMD_SET_SATA1)='1' else CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata_ver'length);
+p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata_ver'length) when i_usrmode(C_USRCMD_SET_SATA2 downto C_USRCMD_SET_SATA1)="10" else
+                         CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, p_out_spd_ctrl.sata_ver'length) when i_usrmode(C_USRCMD_SET_SATA2 downto C_USRCMD_SET_SATA1)="01" else
+                         CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, p_out_spd_ctrl.sata_ver'length);--//default SATA GEN
 
 
 --------------------------------------------------

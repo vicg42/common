@@ -201,15 +201,15 @@ type TSH_dbgport_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgpor
 --type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport;
 
 type TSTxBuf_dbgport is record
---din     : std_logic_vector(31 downto 0);
---dout    : std_logic_vector(31 downto 0);
+din     : std_logic_vector(31 downto 0);
+dout    : std_logic_vector(31 downto 0);
 wr      : std_logic;
 rd      : std_logic;
 status  : TTxBufStatus;
 end record;
 type TSRxBuf_dbgport is record
---din     : std_logic_vector(31 downto 0);
---dout    : std_logic_vector(31 downto 0);
+din     : std_logic_vector(31 downto 0);
+dout    : std_logic_vector(31 downto 0);
 wr      : std_logic;
 rd      : std_logic;
 status  : TRxBufStatus;

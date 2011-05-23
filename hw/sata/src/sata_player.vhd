@@ -120,7 +120,7 @@ signal i_dbg                    : TPL_dbgport;
 signal tst_player_oob_out       : std_logic_vector(31 downto 0);
 signal tst_player_rcv_out       : std_logic_vector(31 downto 0);
 signal tst_player_tsf_out       : std_logic_vector(31 downto 0);
---signal tst_rcv_aperiod          : std_logic_vector(10 downto 0);
+--signal tst_rcv_aperiod          : std_logic_vector(15 downto 0);
 
 
 
@@ -145,7 +145,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    p_out_tst(0)<=tst_player_oob_out(0) or tst_player_rcv_out(0);
+    p_out_tst(0)<=tst_player_oob_out(0) or tst_player_rcv_out(0);-- or OR_reduce(tst_rcv_aperiod);
 
 --    if i_rxtype(C_TALIGN)='1' then
 --      tst_rcv_aperiod<=(others=>'0');
@@ -267,6 +267,8 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
+p_in_rxalign           => i_rxtype(C_TALIGN),
+p_in_linkup            => i_oob_status(C_PSTAT_DET_ESTABLISH_ON_BIT),
 p_in_dev_detect        => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
 p_in_d10_2_send_dis    => i_d10_2_senddis,
 p_in_sync              => i_synch,
