@@ -752,6 +752,7 @@ begin
           if i_tmr=CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_tmr'length) then
           --//Время ожидания вышло
             i_tmr_en<='0';--//CLR TIMER
+            i_gt_rdy<='0';
             fsm_spdctrl_cs <= S_READ_CH0;
           else
             i_tmr_en<='1';
@@ -764,9 +765,11 @@ begin
       when S_LINKUP =>
 
         if i_linkup/=(i_linkup'range=>'1') then
+          i_gt_rdy<='0';
           fsm_spdctrl_cs <= S_READ_CH0;
 
         elsif i_spd_change/=(i_spd_change'range =>'0') then
+          i_gt_rdy<='0';
           fsm_spdctrl_cs <= S_IDLE_SPDCFG;
 
         end if;
