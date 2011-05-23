@@ -388,7 +388,7 @@ begin
       end if;
 
       if i_txalign_timer=CONV_STD_LOGIC_VECTOR(0, i_txalign_timer'length) or i_txalign_timer=CONV_STD_LOGIC_VECTOR(1, i_txalign_timer'length) or
-         i_txalign_timer=CONV_STD_LOGIC_VECTOR(2, i_txalign_timer'length) or i_txalign_timer=CONV_STD_LOGIC_VECTOR(3, i_txalign_timer'length) then
+         (G_GT_DBUS/=32 and (i_txalign_timer=CONV_STD_LOGIC_VECTOR(2, i_txalign_timer'length) or i_txalign_timer=CONV_STD_LOGIC_VECTOR(3, i_txalign_timer'length))) then
         i_txalign_start<='1';
       else
         i_txalign_start<='0';
@@ -406,7 +406,7 @@ end process sim_sync;
 --//#########################################
 --//Ýìóëÿöèÿ HDD - Ïðèåì äàííûõ
 --//#########################################
---GTP: ØÈÍÀ ÄÀÍÛÕ=8bit
+--GT: ØÈÍÀ ÄÀÍÛÕ=8bit
 gen_dbus8 : if G_GT_DBUS=8 generate
   sim_get : process(p_in_rst,p_in_clk)
   begin
@@ -425,7 +425,7 @@ gen_dbus8 : if G_GT_DBUS=8 generate
 end generate gen_dbus8;
 
 
---GTP: ØÈÍÀ ÄÀÍÛÕ=16bit
+--GT: ØÈÍÀ ÄÀÍÛÕ=16bit
 gen_dbus16 : if G_GT_DBUS=16 generate
   sim_get : process(p_in_rst,p_in_clk)
   begin
@@ -443,6 +443,11 @@ gen_dbus16 : if G_GT_DBUS=16 generate
   i_rxcharisk<=p_in_gtp_rxcharisk(1) & p_in_gtp_rxcharisk(0) & sr2_gtp_rxcharisk(0)(1) & sr2_gtp_rxcharisk(0)(0);
 end generate gen_dbus16;
 
+--GT: ØÈÍÀ ÄÀÍÛÕ=32bit
+gen_dbus32 : if G_GT_DBUS=32 generate
+  i_rxd<=p_in_gtp_rxdata(31 downto 0);
+  i_rxcharisk<=p_in_gtp_rxcharisk(3 downto 0);
+end generate gen_dbus32;
 
 
 --//-----------------------------------------------
@@ -871,7 +876,12 @@ if p_in_rst='1' then
   fh2d_cbit:='0';
 
   i_rxd_out<=(others=>'0');
+  if G_GT_DBUS/=32 then
   i_rxd_sync<=(others=>'0');
+  else
+  i_rxd_sync<=(others=>'1');
+  end if;
+
   for i in 0 to sr_rxcrc_calc'high loop
   sr_rxcrc_calc(i)<=(others=>'0');
   end loop;
@@ -921,7 +931,13 @@ elsif p_in_clk'event and p_in_clk='1' then
   if    i_rxd=C_PDAT_SOF     and i_rxcharisk=C_PDAT_TPRM then i_rxp_eof<='0'; rxp_cont:='0'; i_rcv_name<=C_PNAME_STR(C_TSOF); rxp_dname_save:=C_PNAME_STR(C_TSOF);
     rxcrc_calc:=CONV_STD_LOGIC_VECTOR(16#52325032#, rxcrc_calc'length);
     rxsrcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#F0F6#, 16));
+
+    if G_GT_DBUS/=32 then
     i_rxd_sync<=(others=>'0');
+    else
+    i_rxd_sync<=(others=>'1');
+    end if;
+
     i_rxp_eof<='0';
     i_rxp_sof<='1';
     i_rxdw_cnt<=0;
@@ -975,7 +991,12 @@ elsif p_in_clk'event and p_in_clk='1' then
   elsif i_rxd=C_PDAT_PMNAK   and i_rxcharisk=C_PDAT_TPRM then i_rxp_sof<='0'; rxp_cont:='0'; i_rcv_name<=C_PNAME_STR(C_TPMNAK); rxp_dname_save:=C_PNAME_STR(C_TPMNAK);
 
   elsif i_rxd=C_D10_2&C_D10_2&C_D10_2&C_D10_2 and i_rxcharisk=C_PDAT_TDATA then
+    if G_GT_DBUS/=32 then
     i_rxd_sync<=(others=>'0');
+    else
+    i_rxd_sync<=(others=>'1');
+    end if;
+
     i_rxp_eof<='0';
     i_rxp_sof<='1';
     i_rxdw_cnt<=0;
@@ -1102,7 +1123,11 @@ elsif p_in_clk'event and p_in_clk='1' then
         i_rxfis_type_cheked<='1';
     end if;
 
+    if G_GT_DBUS/=32 then
     i_rxd_sync<=i_rxd_sync + 1;
+    else
+    i_rxd_sync<=(others=>'1');
+    end if;
 
   end if;
 
@@ -1278,7 +1303,7 @@ begin
 
   writeline(output, GUI_line);
 
-  write(GUI_line,string'("CHECKING: Done."));writeline(output, GUI_line);
+  write(GUI_line,string'("CHECKING: Done!!!"));writeline(output, GUI_line);
   write(GUI_line,string'(" "));writeline(output, GUI_line);
   txcrc:=CONV_STD_LOGIC_VECTOR(16#52325032#, txcrc'length);
   txsrcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#F0F6#, 16));

@@ -557,8 +557,8 @@ procedure p_SetDW(
   bs_done
   );
   variable state, n_state : state_type;
-  variable byteout   : std_logic_vector(7 downto 0);
-  variable tbyteout  : std_logic;
+  variable byteout0  : std_logic_vector(7 downto 0);
+  variable tbyteout0 : std_logic;
 
   variable byteout1  : std_logic_vector(7 downto 0);
   variable tbyteout1 : std_logic;
@@ -593,6 +593,53 @@ dbuf.dout(i):=(others=>'0');
 end loop;
 
 --//Отправка поьзовательских данных
+if p_in_usropt.gtp_dbus=32 then
+  wait until p_in_clk'event and p_in_clk = '1';
+
+    if vp_in_usropt.dbuf.wstart='1' then
+     dbuf.wstart:='1';
+    end if;
+    if vp_in_usropt.dbuf.rstart='1' then
+     dbuf.rstart:='1';
+    end if;
+
+    if vp_in_usropt.dbuf.wdone_clr='1' then
+     dbuf.wdone_clr:='1';
+    end if;
+    if vp_in_usropt.dbuf.rdone_clr='1' then
+     dbuf.rdone_clr:='1';
+    end if;
+
+    dbuf.sync:='1';
+
+    p_out_d <= p_in_d;
+    p_out_dt(0)<=p_in_dt;
+    p_out_dt(1)<=C_CHAR_D;
+    p_out_dt(2)<=C_CHAR_D;
+    p_out_dt(3)<=C_CHAR_D;
+
+    p_out_usropt.dbuf.trnsize<=dbuf.trnsize;
+
+    p_out_usropt.dbuf.rcnt<=vp_in_usropt.dbuf.rcnt;
+
+    p_out_usropt.dbuf.clk<=dbuf.clk;
+    p_out_usropt.dbuf.wused<=dbuf.wused;
+    p_out_usropt.dbuf.wstart<=dbuf.wstart;
+    p_out_usropt.dbuf.wdone<=dbuf.wdone;
+    p_out_usropt.dbuf.wdone_clr<=dbuf.wdone_clr;
+    p_out_usropt.dbuf.wen<=dbuf.wen;
+    p_out_usropt.dbuf.rused<=dbuf.rused;
+    p_out_usropt.dbuf.rstart<=dbuf.rstart;
+    p_out_usropt.dbuf.rdone<=dbuf.rdone;
+    p_out_usropt.dbuf.rdone_clr<=dbuf.rdone_clr;
+    p_out_usropt.dbuf.ren<=dbuf.ren;
+    p_out_usropt.dbuf.sync<=dbuf.sync;
+    p_out_usropt.dbuf.din<=dbuf.din;
+    p_out_usropt.dbuf.dout<=dbuf.dout;
+
+
+elsif p_in_usropt.gtp_dbus/=32 then
+
 while state /= bs_done loop
     wait until p_in_clk'event and p_in_clk = '1';
 
@@ -613,25 +660,44 @@ while state /= bs_done loop
                dbuf.rdone_clr:='1';
              end if;
 
-             if p_in_usropt.gtp_dbus=8 then
-                byteout  :=p_in_d(7 downto 0);
-                tbyteout :=p_in_dt;
-                byteout1 :=(others=>'0');
-                tbyteout1:='0';
-             else
-                byteout  :=p_in_d(7 downto 0);
-                tbyteout :=p_in_dt;
+             if p_in_usropt.gtp_dbus=32 then
+                byteout0 :=p_in_d(7 downto 0);
+                tbyteout0:=p_in_dt;
                 byteout1 :=p_in_d(15 downto 8);
                 tbyteout1:=C_CHAR_D;
+                byteout1 :=p_in_d(23 downto 16);
+                tbyteout1:=C_CHAR_D;
+                byteout1 :=p_in_d(31 downto 24);
+                tbyteout1:=C_CHAR_D;
+
+                n_state := bs_done;
+
+             elsif p_in_usropt.gtp_dbus=16 then
+                byteout0 :=p_in_d(7 downto 0);
+                tbyteout0:=p_in_dt;
+                byteout1 :=p_in_d(15 downto 8);
+                tbyteout1:=C_CHAR_D;
+                byteout2 :=(others=>'0');
+                tbyteout2:='0';
+                byteout3 :=(others=>'0');
+                tbyteout3:='0';
+
+                n_state := bs_byte1;
+
+             else
+
+                byteout0 :=p_in_d(7 downto 0);
+                tbyteout0:=p_in_dt;
+                byteout1 :=(others=>'0');
+                tbyteout1:='0';
+                byteout2 :=(others=>'0');
+                tbyteout2:='0';
+                byteout3 :=(others=>'0');
+                tbyteout3:='0';
+
+                n_state := bs_byte1;
              end if;
              dbuf.sync:='1';
-
-              byteout2 :=(others=>'0');
-              tbyteout2:='0';
-              byteout3 :=(others=>'0');
-              tbyteout3:='0';
-
-             n_state := bs_byte1;
 
         when bs_byte1 =>
 
@@ -643,16 +709,16 @@ while state /= bs_done loop
               dbuf.sync:='0';
 
              if p_in_usropt.gtp_dbus=8 then
-                byteout  :=p_in_d(15 downto 8);
-                tbyteout :=C_CHAR_D;
+                byteout0 :=p_in_d(15 downto 8);
+                tbyteout0:=C_CHAR_D;
                 byteout1 :=(others=>'0');
                 tbyteout1:='0';
 
                 n_state := bs_byte2;
 
              else
-                byteout  :=p_in_d(23 downto 16);
-                tbyteout :=C_CHAR_D;
+                byteout0 :=p_in_d(23 downto 16);
+                tbyteout0:=C_CHAR_D;
                 byteout1 :=p_in_d(31 downto 24);
                 tbyteout1:=C_CHAR_D;
 
@@ -666,8 +732,9 @@ while state /= bs_done loop
 
         when bs_byte2 =>
 
-              byteout  :=p_in_d(23 downto 16);
-              tbyteout :=C_CHAR_D;
+
+              byteout0 :=p_in_d(23 downto 16);
+              tbyteout0:=C_CHAR_D;
               byteout1 :=(others=>'0');
               tbyteout1:='0';
 
@@ -680,8 +747,8 @@ while state /= bs_done loop
 
         when bs_byte3 =>
 
-              byteout  :=p_in_d(31 downto 24);
-              tbyteout :=C_CHAR_D;
+              byteout0 :=p_in_d(31 downto 24);
+              tbyteout0:=C_CHAR_D;
               byteout1 :=(others=>'0');
               tbyteout1:='0';
 
@@ -698,13 +765,15 @@ while state /= bs_done loop
 
     state := n_state;
 
-    p_out_d(7 downto 0) <= byteout;
-    p_out_dt(0) <= tbyteout;
+    p_out_d(7 downto 0) <= byteout0;
+    p_out_dt(0) <= tbyteout0;
+
     p_out_d(15 downto 8) <= byteout1;
     p_out_dt(1) <= tbyteout1;
 
     p_out_d(23 downto 16) <= byteout2;
     p_out_dt(2) <= tbyteout2;
+
     p_out_d(31 downto 24) <= byteout3;
     p_out_dt(3) <= tbyteout3;
 
@@ -730,6 +799,7 @@ while state /= bs_done loop
     p_out_usropt.dbuf.dout<=dbuf.dout;
 
 end loop;
+end if;--//if p_in_usropt.gtp_dbus/=32 then
 
 end;--//procedure p_SetDW
 

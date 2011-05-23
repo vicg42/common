@@ -38,7 +38,7 @@ entity vereskm_hdd_tb is
 generic
 (
 G_HDD_COUNT     : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
-G_GT_DBUS       : integer:=8;
+G_GT_DBUS       : integer:=16;
 G_DBG           : string :="ON";
 G_SIM           : string :="ON"
 );
