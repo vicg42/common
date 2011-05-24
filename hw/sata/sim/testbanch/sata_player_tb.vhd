@@ -33,7 +33,7 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_tb is
 generic
 (
-G_GT_DBUS    : integer:= 8;
+G_GT_DBUS    : integer:= 16;
 G_DBG        : string := "ON";
 G_SIM        : string := "ON"
 );
@@ -47,8 +47,8 @@ signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 signal p_in_rst_inv               : std_logic;
 
-signal i_sata_module_rst           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-
+signal i_sata_module_rst          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_linkup                   : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_spd_ctrl                 : TSpdCtrl_GTCH;
 signal i_spd_out                  : TSpdCtrl_GTCH;
 
@@ -85,6 +85,7 @@ signal i_sim_gtp_rxelecidle       : std_logic;
 signal i_sim_gtp_rxstatus         : std_logic_vector(2 downto 0);
 signal i_sim_gtp_txdata           : std_logic_vector(31 downto 0);
 signal i_sim_gtp_txcharisk        : std_logic_vector(3 downto 0);
+signal i_sim_gtp_txcomstart       : std_logic;
 signal i_sim_gtp_rxdata           : std_logic_vector(31 downto 0);
 signal i_sim_gtp_rxcharisk        : std_logic_vector(3 downto 0);
 signal i_sim_gtp_rxdisperr        : std_logic_vector(3 downto 0);
@@ -96,6 +97,12 @@ signal i_sim_txbuf_close          : std_logic;
 
 signal i_satadev_ctrl             : TSataDevCtrl;
 
+type T_dbg_player_tb is record
+llayer  : TLL_dbgport;
+player  : TPL_dbgport;
+end record;
+signal i_dbg : T_dbg_player_tb;
+
 
 --Main
 begin
@@ -103,9 +110,10 @@ begin
 
 i_phy_status(1)<=(others=>'0');
 
+i_linkup(0)<='1';
+i_linkup(1)<='1';
 
-
-i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 9 us, '0' after 9.4 us;
+i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 11 us, '0' after 11.4 us;
 i_link_ctrl(0)(C_LCTRL_TRN_ESCAPE_BIT)<='0';
 i_link_ctrl(0)(C_LCTRL_TL_CHECK_ERR_BIT)<='0';
 i_link_ctrl(0)(C_LCTRL_TL_CHECK_DONE_BIT)<='1';
@@ -151,8 +159,8 @@ i_link_txd_close(0)<=i_sim_txbuf_close;
 --i_link_txd_status(0).aempty<='0';
 --
 --//Вариант 1 - отложеная передача HOLD перед выдачей данных
-i_link_txd_status(0).aempty<='0','1' after 9.772 us, '0' after 9.8 us;
-i_link_txd_status(0).empty<='1','1' after 9.772 us, '0' after 9.9 us;
+i_link_txd_status(0).aempty<='0','1' after 11.772 us, '0' after 11.8 us;
+i_link_txd_status(0).empty<='1','1' after 11.772 us, '0' after 11.9 us;
 ------
 ------//Вариант 2 - нету отложеной передачи HOLD перед выдачей данных
 ----i_link_txd_status(0).empty<='0','1' after 11.8 us, '0' after 12.5 us;
@@ -161,12 +169,32 @@ i_link_txd_status(0).empty<='1','1' after 9.772 us, '0' after 9.9 us;
 
 ----i_link_rxd_status(0).pfull<='0';
 --i_link_rxd_status(0).empty<='1';
---//Вариант 1
-i_link_rxd_status(0).pfull<='0','1' after 6.872 us, '0' after 7.0 us;
-i_link_rxd_status(0).empty<='1','0' after 6.872 us, '1' after 7.2 us;
-----//Вариант 2
---i_link_rxd_status(0).pfull<='0','1' after 7.312 us, '0' after 7.8 us;
---i_link_rxd_status(0).empty<='1','0' after 7.312 us, '1' after 7.9 us;
+----//Вариант 1
+--i_link_rxd_status(0).pfull<='0','1' after 9.872 us, '0' after 10.0 us;
+--i_link_rxd_status(0).empty<='1','0' after 9.872 us, '1' after 10.2 us;
+
+--//Вариант 2
+gen_dbus8 : if G_GT_DBUS=8 generate
+i_link_rxd_status(0).pfull<='0','1' after 9.012 us, '0' after 9.2 us;
+i_link_rxd_status(0).empty<='1','0' after 9.012 us, '1' after 9.3 us;
+end generate gen_dbus8;
+
+gen_dbus16 : if G_GT_DBUS=16 generate
+--i_link_rxd_status(0).pfull<='0','1' after 8.312 us, '0' after 8.4 us;
+--i_link_rxd_status(0).empty<='1','0' after 8.312 us, '1' after 8.5 us;
+
+i_link_rxd_status(0).pfull<='0','1' after 8.40 us, '0' after 8.46 us;
+i_link_rxd_status(0).empty<='1','0' after 8.40 us, '1' after 8.6 us;
+
+--i_link_rxd_status(0).pfull<='0','1' after 8.43 us, '0' after 8.46 us;
+--i_link_rxd_status(0).empty<='1','0' after 8.43 us, '1' after 8.6 us;
+end generate gen_dbus16;
+
+gen_dbus32 : if G_GT_DBUS=32 generate
+i_link_rxd_status(0).pfull<='0','1' after 8.0 us, '0' after 8.1 us;
+i_link_rxd_status(0).empty<='1','0' after 8.0 us, '1' after 8.2 us;
+end generate gen_dbus32;
+
 ----//Вариант 3
 --i_link_rxd_status(0).pfull<='0','1' after 7.342 us, '0' after 7.8 us;
 --i_link_rxd_status(0).empty<='1','0' after 7.342 us, '1' after 7.9 us;
@@ -183,7 +211,7 @@ i_link_rxd_status(1).empty<='1';
 
 
 i_sata_module_rst(0)<=not i_sata_dcm_lock;
-i_sata_module_rst(0)<='0';
+i_sata_module_rst(1)<=not i_sata_dcm_lock;
 
 m_llayer : sata_llayer
 generic map
@@ -226,6 +254,7 @@ p_in_phy_txrdy_n        => i_phy_txrdy_n(0),
 --------------------------------------------------
 p_in_tst                => "00000000000000000000000000000000",
 p_out_tst               => open,
+p_out_dbg               => i_dbg.llayer,
 
 --------------------------------------------------
 --System
@@ -272,10 +301,13 @@ p_out_gtp_rst              => open,
 
 --RocketIO Tranceiver
 p_out_gtp_txelecidle       => open,
-p_out_gtp_txcomstart       => open,
+p_out_gtp_txcomstart       => i_sim_gtp_txcomstart,
 p_out_gtp_txcomtype        => open,
 p_out_gtp_txdata           => i_sim_gtp_rxdata,
 p_out_gtp_txcharisk        => i_sim_gtp_rxcharisk,
+
+p_out_gtp_txreset          => open,
+p_in_gtp_txbufstatus       => "00",
 
 --RocketIO Receiver
 p_in_gtp_rxelecidle        => i_sim_gtp_rxelecidle,
@@ -286,11 +318,15 @@ p_in_gtp_rxdisperr         => i_sim_gtp_rxdisperr,
 p_in_gtp_rxnotintable      => i_sim_gtp_rxnotintable,
 p_in_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned,
 
+p_in_gtp_rxbufstatus       => "000",
+p_out_gtp_rxbufreset       => open,
+
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => "00000000000000000000000000000000",
 p_out_tst               => open,
+p_out_dbg               => i_dbg.player,
 
 --------------------------------------------------
 --System
@@ -325,6 +361,7 @@ p_out_spd_ver           => i_spd_out,
 
 p_in_usr_dcm_lock       => i_sata_dcm_lock,
 p_in_gtp_pll_lock       => '1',
+p_in_linkup             => i_linkup,
 
 --------------------------------------------------
 --RocketIO
@@ -337,7 +374,7 @@ p_in_gtp_drpdo          => "0000000000000000",
 p_in_gtp_drprdy         => '1',
 
 p_out_gtp_ch_rst        => open,
-p_out_gtp_rst           => open,
+p_in_gtp_resetdone      => '1',
 
 --------------------------------------------------
 --Технологические сигналы
@@ -366,6 +403,8 @@ port map
 ----------------------------
 p_out_gtp_txdata            => i_sim_gtp_txdata,
 p_out_gtp_txcharisk         => i_sim_gtp_txcharisk,
+
+p_in_gtp_txcomstart         => i_sim_gtp_txcomstart,
 
 p_in_gtp_rxdata             => i_sim_gtp_rxdata,
 p_in_gtp_rxcharisk          => i_sim_gtp_rxcharisk,

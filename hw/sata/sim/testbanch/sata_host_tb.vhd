@@ -63,6 +63,7 @@ signal i_sim_gtp_rxelecidle       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0
 signal i_sim_gtp_rxstatus         : TBus03_GTCH;
 signal i_sim_gtp_txdata           : TBus32_GTCH;
 signal i_sim_gtp_txcharisk        : TBus04_GTCH;
+signal i_sim_gtp_txcomstart       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_sim_gtp_rxdata           : TBus32_GTCH;
 signal i_sim_gtp_rxcharisk        : TBus04_GTCH;
 signal i_sim_gtp_rxdisperr        : TBus04_GTCH;
@@ -129,7 +130,7 @@ signal i_data_rddone              : std_logic:='0';
 signal i_tstdata_dwsize           : integer:=0;
 
 signal i_satadev_ctrl             : TSataDevCtrl_GTCH;
-
+signal i_dbg                      : TSH_dbgport_GTCH;
 
 
 signal tst_sata_host_in           : TBus32_GTCH;--std_logic_vector(31 downto 0);
@@ -291,6 +292,7 @@ p_in_rxbuf_status           => i_rxbuf_status,
 ---------------------------------------------------------------------------
 p_in_tst                    => tst_sata_host_in,
 p_out_tst                   => tst_sata_host_out,
+p_out_dbg                   => i_dbg,
 
 ---------------------------------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -298,6 +300,7 @@ p_out_tst                   => tst_sata_host_out,
 --//Моделирование
 p_out_sim_gtp_txdata        => i_sim_gtp_rxdata,
 p_out_sim_gtp_txcharisk     => i_sim_gtp_rxcharisk,
+p_out_sim_gtp_txcomstart    => i_sim_gtp_txcomstart,
 p_in_sim_gtp_rxdata         => i_sim_gtp_txdata,
 p_in_sim_gtp_rxcharisk      => i_sim_gtp_txcharisk,
 p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus,
@@ -337,6 +340,8 @@ port map
 ----------------------------
 p_out_gtp_txdata            => i_sim_gtp_txdata(0),
 p_out_gtp_txcharisk         => i_sim_gtp_txcharisk(0),
+
+p_in_gtp_txcomstart         => i_sim_gtp_txcomstart(0),
 
 p_in_gtp_rxdata             => i_sim_gtp_rxdata(0),
 p_in_gtp_rxcharisk          => i_sim_gtp_rxcharisk(0),
