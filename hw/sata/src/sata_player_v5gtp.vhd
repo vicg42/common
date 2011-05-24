@@ -110,20 +110,43 @@ constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8
 constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
 
 signal i_rxenelecidleresetb        : std_logic;
-signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
+
+signal i_txelecidle_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txcomstart_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txcomtype_in              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txdata_in                 : TBus32_GTCH;
+signal i_txcharisk_in              : TBus04_GTCH;
+
+signal i_txreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txbufstatus_out           : TBus02_GTCH;
+
+signal i_rxcdrreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_rxstatus_out              : TBus03_GTCH;
+signal i_rxdata_out                : TBus32_GTCH;
+signal i_rxcharisk_out             : TBus04_GTCH;
+signal i_rxdisperr_out             : TBus04_GTCH;
+signal i_rxnotintable_out          : TBus04_GTCH;
+signal i_rxbyteisaligned_out       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_rxbufreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxbufstatus_out           : TBus03_GTCH;
+
+
 attribute keep : string;
 attribute keep of g_gtp_usrclk : signal is "true";
 
 --MAIN
 begin
-
 
 
 gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
@@ -135,6 +158,29 @@ end generate gen_null;
 
 
 gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
+i_txelecidle_in(1)      <='0';
+i_txcomstart_in(1)      <='0';
+i_txcomtype_in(1)       <='0';
+i_txdata_in(1)(15 downto 0)  <=(others=>'0');
+i_txcharisk_in(1)(1 downto 0)<=(others=>'0');
+
+i_txreset_in(1)         <='0';
+p_out_txbufstatus(1)    <=(others=>'0');
+
+i_rxcdrreset_in(1)      <='0';
+i_rxreset_in(1)         <='0';
+p_out_rxelecidle(1)     <='0';
+p_out_rxstatus(1)       <=(others=>'0');
+p_out_rxdata(1)(15 downto 0)     <=(others=>'0');
+p_out_rxcharisk(1)(1 downto 0)   <=(others=>'0');
+p_out_rxdisperr(1)(1 downto 0)   <=(others=>'0');
+p_out_rxnotintable(1)(1 downto 0)<=(others=>'0');
+p_out_rxbyteisaligned(1)<='0';
+
+i_rxbufreset_in(1)      <='0';
+p_out_rxbufstatus(1)    <=(others=>'0');
+
+
 g_gtp_usrclk(1) <=g_gtp_usrclk(0);
 g_gtp_usrclk2(1)<=g_gtp_usrclk2(0);
 
@@ -164,6 +210,7 @@ I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
 );
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
+
 end generate gen_gt_w8;
 
 --//------------------------------
@@ -186,11 +233,49 @@ I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
 O  => g_gtp_usrclk(i)
 );
+
 end generate gen_gt_w16;
 
+----//------------------------------
+----//GT: ШИНА ДАНЫХ=32bit
+----//------------------------------
+--gen_gt_w32 : if G_GT_DBUS=32 generate
+--
+--end generate gen_gt_w32;
+
+
+--//------------------------------
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
 
-p_out_resetdone(i)<=i_resetdone(i);
+process(g_gtp_usrclk2)
+begin
+  if g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
+      p_out_resetdone(i)      <=i_resetdone(i);
+
+      i_txelecidle_in(i)      <=p_in_txelecidle(i);
+      i_txcomstart_in(i)      <=p_in_txcomstart(i);
+      i_txcomtype_in(i)       <=p_in_txcomtype(i);
+      i_txdata_in(i)(15 downto 0)  <=p_in_txdata(i)(15 downto 0);
+      i_txcharisk_in(i)(1 downto 0)<=p_in_txcharisk(i)(1 downto 0);
+
+      i_txreset_in(i)         <=p_in_txreset(i);
+      p_out_txbufstatus(i)    <=i_txbufstatus_out(i);
+
+      i_rxcdrreset_in(i)      <=p_in_rxcdrreset(i);
+      i_rxreset_in(i)         <=p_in_rxreset(i);
+      p_out_rxelecidle(i)     <=i_rxelecidle(i);
+      p_out_rxstatus(i)       <=i_rxstatus_out(i);
+
+      p_out_rxdata(i)(15 downto 0)     <=i_rxdata_out(i)(15 downto 0);
+      p_out_rxcharisk(i)(1 downto 0)   <=i_rxcharisk_out(i)(1 downto 0);
+      p_out_rxdisperr(i)(1 downto 0)   <=i_rxdisperr_out(i)(1 downto 0);
+      p_out_rxnotintable(i)(1 downto 0)<=i_rxnotintable_out(i)(1 downto 0);
+      p_out_rxbyteisaligned(i)         <=i_rxbyteisaligned_out(i);
+
+      i_rxbufreset_in(i)      <=p_in_rxbufreset(i);
+      p_out_rxbufstatus(i)    <=i_rxbufstatus_out(i);
+  end if;
+end process;
 
 i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
 
@@ -198,10 +283,10 @@ end generate gen_ch;
 
 
 
+
 --//###########################
 --//Gig Tx/Rx
 --//###########################
-p_out_rxelecidle<=i_rxelecidle;
 
 i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 
@@ -260,35 +345,35 @@ TX_DIFF_BOOST_1             =>       TRUE,
 
 ------------------ TX Pipe Control for PCI Express/SATA ---------------
 
-COM_BURST_VAL_0             =>       "0101",  --как в примере xapp870
+COM_BURST_VAL_0             =>       "0101", --/xapp870
 
-COM_BURST_VAL_1             =>       "0101",  --как в примере xapp870
+COM_BURST_VAL_1             =>       "0101", --/xapp870
 
 --_______________________ Receive Interface Attributes ________________
 
 ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------
 
-AC_CAP_DIS_0                =>       FALSE,         --как в примере xapp870
-OOBDETECT_THRESHOLD_0       =>       "111",         --как в примере xapp870
-PMA_CDR_SCAN_0              =>       x"6c08040",    --как в примере xapp870
-PMA_RX_CFG_0                =>       x"0dce111",    --как в примере xapp870
-RCV_TERM_GND_0              =>       FALSE,         --как в примере xapp870
-RCV_TERM_MID_0              =>       TRUE,          --как в примере xapp870
-RCV_TERM_VTTRX_0            =>       TRUE,          --как в примере xapp870
-TERMINATION_IMP_0           =>       50,            --как в примере xapp870
+AC_CAP_DIS_0                =>       FALSE,--/xapp870
+OOBDETECT_THRESHOLD_0       =>       "100",--/Wizard   "111",--/xapp870
+PMA_CDR_SCAN_0              =>       x"6c07640",--/Wizard  x"6c08040",--/xapp870
+PMA_RX_CFG_0                =>       x"09f0089",--/Wizard  x"0dce111",--/xapp870
+RCV_TERM_GND_0              =>       FALSE,--/xapp870
+RCV_TERM_MID_0              =>       TRUE, --/xapp870
+RCV_TERM_VTTRX_0            =>       FALSE,--/Wizard   TRUE, --/xapp870
+TERMINATION_IMP_0           =>       50,   --/xapp870
 
-AC_CAP_DIS_1                =>       FALSE,         --как в примере xapp870
-OOBDETECT_THRESHOLD_1       =>       "111",         --как в примере xapp870
-PMA_CDR_SCAN_1              =>       x"6c08040",    --как в примере xapp870
-PMA_RX_CFG_1                =>       x"0dce111",    --как в примере xapp870
-RCV_TERM_GND_1              =>       FALSE,         --как в примере xapp870
-RCV_TERM_MID_1              =>       TRUE,          --как в примере xapp870
-RCV_TERM_VTTRX_1            =>       TRUE,          --как в примере xapp870
-TERMINATION_IMP_1           =>       50,            --как в примере xapp870
+AC_CAP_DIS_1                =>       FALSE,--/xapp870
+OOBDETECT_THRESHOLD_1       =>       "100",--/Wizard   "111",--/xapp870
+PMA_CDR_SCAN_1              =>       x"6c07640",--/Wizard  x"6c08040",--/xapp870
+PMA_RX_CFG_1                =>       x"09f0089",--/Wizard  x"0dce111",--/xapp870
+RCV_TERM_GND_1              =>       FALSE,--/xapp870
+RCV_TERM_MID_1              =>       TRUE, --/xapp870
+RCV_TERM_VTTRX_1            =>       FALSE,--/Wizard   TRUE, --/xapp870
+TERMINATION_IMP_1           =>       50,   --/xapp870
 
---    PCS_COM_CFG                 =>       x"1680a0e",
-TERMINATION_CTRL            =>       "10100",       --как в примере xapp870
-TERMINATION_OVRD            =>       FALSE,         --как в примере xapp870
+PCS_COM_CFG                 =>       x"1680a0e",--/Wizard   For PLL_DIVSEL_FB=1 (28’h1680A07) иначе 28’h1680A0E (default)
+TERMINATION_CTRL            =>       "10100",   --/xapp870
+TERMINATION_OVRD            =>       FALSE,--/xapp870
 
 --------------------- RX Serial Line Rate Attributes ------------------
 
@@ -302,8 +387,8 @@ PLL_SATA_1                  =>       FALSE,    --When FALSE, PLL_SATA allows TX 
 
 ----------------------- PRBS Detection Attributes ---------------------
 
-PRBS_ERR_THRESHOLD_0        =>       x"00000008",
-PRBS_ERR_THRESHOLD_1        =>       x"00000008",
+PRBS_ERR_THRESHOLD_0        =>       x"00000001",--/Wizard   x"00000008",--/xapp870
+PRBS_ERR_THRESHOLD_1        =>       x"00000001",--/Wizard   x"00000008",--/xapp870
 
 ---------------- Comma Detection and Alignment Attributes -------------
 
@@ -317,7 +402,7 @@ MCOMMA_10B_VALUE_0          =>       "1010000011",--K28.5 rd+
 MCOMMA_DETECT_0             =>       TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd+
 PCOMMA_10B_VALUE_0          =>       "0101111100",--K28.5 rd-
 PCOMMA_DETECT_0             =>       TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd-
-RX_SLIDE_MODE_0             =>       "PCS",       --как в примере xapp870
+RX_SLIDE_MODE_0             =>       "PCS",   --/xapp870
 
 ALIGN_COMMA_WORD_1          =>       C_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
 COMMA_10B_ENABLE_1          =>       "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
@@ -329,7 +414,7 @@ MCOMMA_10B_VALUE_1          =>       "1010000011",--K28.5 rd+
 MCOMMA_DETECT_1             =>       TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd+
 PCOMMA_10B_VALUE_1          =>       "0101111100",--K28.5 rd-
 PCOMMA_DETECT_1             =>       TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd-
-RX_SLIDE_MODE_1             =>       "PCS",       --как в примере xapp870
+RX_SLIDE_MODE_1             =>       "PCS",   --/xapp870
 
 ------------------ RX Loss-of-sync State Machine Attributes -----------
 
@@ -356,8 +441,8 @@ CLK_COR_ADJ_LEN_0           =>       4,
 CLK_COR_DET_LEN_0           =>       4,
 CLK_COR_INSERT_IDLE_FLAG_0  =>       FALSE,
 CLK_COR_KEEP_IDLE_0         =>       FALSE,
-CLK_COR_MAX_LAT_0           =>       18,--16,
-CLK_COR_MIN_LAT_0           =>       16,--8,
+CLK_COR_MAX_LAT_0           =>       18,
+CLK_COR_MIN_LAT_0           =>       16,
 CLK_COR_PRECEDENCE_0        =>       TRUE,
 CLK_COR_REPEAT_WAIT_0       =>       0,
 CLK_COR_SEQ_1_1_0           =>       "0110111100",--xBC (Primitive ALIGN -clock correction sequences)
@@ -378,8 +463,8 @@ CLK_COR_ADJ_LEN_1           =>       4,
 CLK_COR_DET_LEN_1           =>       4,
 CLK_COR_INSERT_IDLE_FLAG_1  =>       FALSE,
 CLK_COR_KEEP_IDLE_1         =>       FALSE,
-CLK_COR_MAX_LAT_1           =>       18,--16,
-CLK_COR_MIN_LAT_1           =>       16,--8,
+CLK_COR_MAX_LAT_1           =>       18,
+CLK_COR_MIN_LAT_1           =>       16,
 CLK_COR_PRECEDENCE_1        =>       TRUE,
 CLK_COR_REPEAT_WAIT_1       =>       0,
 CLK_COR_SEQ_1_1_1           =>       "0110111100",--xBC (Primitive ALIGN -clock correction sequences)
@@ -397,8 +482,8 @@ RX_DECODE_SEQ_MATCH_1       =>       TRUE,
 
 ------------------------ Channel Bonding Attributes -------------------
 
-CHAN_BOND_1_MAX_SKEW_0      =>       7,
-CHAN_BOND_2_MAX_SKEW_0      =>       7,
+CHAN_BOND_1_MAX_SKEW_0      =>       1,--/Wizard   7,--/xapp870
+CHAN_BOND_2_MAX_SKEW_0      =>       1,--/Wizard   7,--/xapp870
 CHAN_BOND_LEVEL_0           =>       0,
 CHAN_BOND_MODE_0            =>       "OFF",
 CHAN_BOND_SEQ_1_1_0         =>       "0000000000",
@@ -415,8 +500,8 @@ CHAN_BOND_SEQ_2_USE_0       =>       FALSE,
 CHAN_BOND_SEQ_LEN_0         =>       1,
 PCI_EXPRESS_MODE_0          =>       FALSE,
 
-CHAN_BOND_1_MAX_SKEW_1      =>       7,
-CHAN_BOND_2_MAX_SKEW_1      =>       7,
+CHAN_BOND_1_MAX_SKEW_1      =>       1,--/Wizard   7,--/xapp870
+CHAN_BOND_2_MAX_SKEW_1      =>       1,--/Wizard   7,--/xapp870
 CHAN_BOND_LEVEL_1           =>       0,
 CHAN_BOND_MODE_1            =>       "OFF",
 CHAN_BOND_SEQ_1_1_1         =>       "0000000000",
@@ -444,9 +529,9 @@ SATA_MAX_WAKE_0             =>       7,
 SATA_MIN_BURST_0            =>       4,
 SATA_MIN_INIT_0             =>       12,
 SATA_MIN_WAKE_0             =>       4,
-TRANS_TIME_FROM_P2_0        =>       x"0060", --как в примере xapp870
-TRANS_TIME_NON_P2_0         =>       x"0025", --как в примере xapp870
-TRANS_TIME_TO_P2_0          =>       x"0100", --как в примере xapp870
+TRANS_TIME_FROM_P2_0        =>       x"003c",--/Wizard    x"0060",--/xapp870
+TRANS_TIME_NON_P2_0         =>       x"0019",--/Wizard    x"0025",--/xapp870
+TRANS_TIME_TO_P2_0          =>       x"0064",--/Wizard    x"0100",--/xapp870
 
 RX_STATUS_FMT_1             =>       "SATA",
 SATA_BURST_VAL_1            =>       "100",
@@ -457,9 +542,9 @@ SATA_MAX_WAKE_1             =>       7,
 SATA_MIN_BURST_1            =>       4,
 SATA_MIN_INIT_1             =>       12,
 SATA_MIN_WAKE_1             =>       4,
-TRANS_TIME_FROM_P2_1        =>       x"0060", --как в примере xapp870
-TRANS_TIME_NON_P2_1         =>       x"0025", --как в примере xapp870
-TRANS_TIME_TO_P2_1          =>       x"0100"  --как в примере xapp870
+TRANS_TIME_FROM_P2_1        =>       x"003c",--/Wizard    x"0060",--/xapp870
+TRANS_TIME_NON_P2_1         =>       x"0019",--/Wizard    x"0025",--/xapp870
+TRANS_TIME_TO_P2_1          =>       x"0064" --/Wizard    x"0100" --/xapp870
 )
 port map
 (
@@ -473,14 +558,14 @@ TXPOWERDOWN1                    =>      "00",
 ----------------------- Receive Ports - 8b10b Decoder ----------------------
 RXCHARISCOMMA0                  =>      open,
 RXCHARISCOMMA1                  =>      open,
-RXCHARISK0                      =>      p_out_rxcharisk(0)(1 downto 0),
-RXCHARISK1                      =>      p_out_rxcharisk(1)(1 downto 0),
+RXCHARISK0                      =>      i_rxcharisk_out(0)(1 downto 0),
+RXCHARISK1                      =>      i_rxcharisk_out(1)(1 downto 0),
 RXDEC8B10BUSE0                  =>      '1',--Разрешение или пропуск 8B/10B decoder (0/1-bypassed/enabled)
 RXDEC8B10BUSE1                  =>      '1',
-RXDISPERR0                      =>      p_out_rxdisperr(0)(1 downto 0),
-RXDISPERR1                      =>      p_out_rxdisperr(1)(1 downto 0),
-RXNOTINTABLE0                   =>      p_out_rxnotintable(0)(1 downto 0),
-RXNOTINTABLE1                   =>      p_out_rxnotintable(1)(1 downto 0),
+RXDISPERR0                      =>      i_rxdisperr_out(0)(1 downto 0),
+RXDISPERR1                      =>      i_rxdisperr_out(1)(1 downto 0),
+RXNOTINTABLE0                   =>      i_rxnotintable_out(0)(1 downto 0),
+RXNOTINTABLE1                   =>      i_rxnotintable_out(1)(1 downto 0),
 RXRUNDISP0                      =>      open,
 RXRUNDISP1                      =>      open,
 ------------------- Receive Ports - Channel Bonding Ports ------------------
@@ -496,8 +581,8 @@ RXENCHANSYNC1                   =>      '1',
 RXCLKCORCNT0                    =>      open,
 RXCLKCORCNT1                    =>      open,
 --------------- Receive Ports - Comma Detection and Alignment --------------
-RXBYTEISALIGNED0                =>      p_out_rxbyteisaligned(0),
-RXBYTEISALIGNED1                =>      p_out_rxbyteisaligned(1),
+RXBYTEISALIGNED0                =>      i_rxbyteisaligned_out(0),
+RXBYTEISALIGNED1                =>      i_rxbyteisaligned_out(1),
 RXBYTEREALIGN0                  =>      open,
 RXBYTEREALIGN1                  =>      open,
 RXCOMMADET0                     =>      open,
@@ -518,21 +603,21 @@ RXENPRBSTST1                    =>      "00",
 RXPRBSERR0                      =>      open,
 RXPRBSERR1                      =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
-RXDATA0                         =>      p_out_rxdata(0)(15 downto 0),
-RXDATA1                         =>      p_out_rxdata(1)(15 downto 0),
+RXDATA0                         =>      i_rxdata_out(0)(15 downto 0),
+RXDATA1                         =>      i_rxdata_out(1)(15 downto 0),
 RXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
 RXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
 RXRECCLK0                       =>      open,
 RXRECCLK1                       =>      open,
-RXRESET0                        =>      p_in_rxreset(0),
-RXRESET1                        =>      p_in_rxreset(1),
+RXRESET0                        =>      i_rxreset_in(0),--p_in_rxreset(0),--
+RXRESET1                        =>      i_rxreset_in(1),--p_in_rxreset(1),--
 RXUSRCLK0                       =>      g_gtp_usrclk(0),
 RXUSRCLK1                       =>      g_gtp_usrclk(1),
 RXUSRCLK20                      =>      g_gtp_usrclk2(0),
 RXUSRCLK21                      =>      g_gtp_usrclk2(1),
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-RXCDRRESET0                     =>      p_in_rxcdrreset(0),
-RXCDRRESET1                     =>      p_in_rxcdrreset(1),
+RXCDRRESET0                     =>      p_in_rxcdrreset(0),--i_rxcdrreset_in(0),--
+RXCDRRESET1                     =>      p_in_rxcdrreset(1),--i_rxcdrreset_in(1),--
 RXELECIDLE0                     =>      i_rxelecidle(0),
 RXELECIDLE1                     =>      i_rxelecidle(1),
 RXELECIDLERESET0                =>      i_rxelecidlereset(0),
@@ -548,18 +633,18 @@ RXN1                            =>      p_in_rxn(1),
 RXP0                            =>      p_in_rxp(0),
 RXP1                            =>      p_in_rxp(1),
 -------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0                     =>      p_in_rxbufreset(0),
-RXBUFRESET1                     =>      p_in_rxbufreset(1),
-RXBUFSTATUS0                    =>      p_out_rxbufstatus(0),--cм.стр.168  ug196.pdf
-RXBUFSTATUS1                    =>      p_out_rxbufstatus(1),--
+RXBUFRESET0                     =>      i_rxbufreset_in(0),--p_in_rxbufreset(0),--
+RXBUFRESET1                     =>      i_rxbufreset_in(1),--p_in_rxbufreset(1),--
+RXBUFSTATUS0                    =>      i_rxbufstatus_out(0),--cм.стр.168  ug196.pdf
+RXBUFSTATUS1                    =>      i_rxbufstatus_out(1),--
 RXCHANISALIGNED0                =>      open,
 RXCHANISALIGNED1                =>      open,
 RXCHANREALIGN0                  =>      open,
 RXCHANREALIGN1                  =>      open,
 RXPMASETPHASE0                  =>      '0',
 RXPMASETPHASE1                  =>      '0',
-RXSTATUS0                       =>      p_out_rxstatus(0),--cм.стр.123 Table 6-19. ug196.pdf
-RXSTATUS1                       =>      p_out_rxstatus(1),
+RXSTATUS0                       =>      i_rxstatus_out(0),--cм.стр.123 Table 6-19. ug196.pdf
+RXSTATUS1                       =>      i_rxstatus_out(1),
 --------------- Receive Ports - RX Loss-of-sync State Machine --------------
 RXLOSSOFSYNC0                   =>      open,
 RXLOSSOFSYNC1                   =>      open,
@@ -606,8 +691,8 @@ TXCHARDISPMODE0                 =>      "00",
 TXCHARDISPMODE1                 =>      "00",
 TXCHARDISPVAL0                  =>      "00",
 TXCHARDISPVAL1                  =>      "00",
-TXCHARISK0                      =>      p_in_txcharisk(0)(1 downto 0),
-TXCHARISK1                      =>      p_in_txcharisk(1)(1 downto 0),
+TXCHARISK0                      =>      i_txcharisk_in(0)(1 downto 0),
+TXCHARISK1                      =>      i_txcharisk_in(1)(1 downto 0),
 TXENC8B10BUSE0                  =>      '1',--0/1 8B/10B encoder bypassed/enabled(when enabled INTDATAWIDTH must be 1)
 TXENC8B10BUSE1                  =>      '1',--
 TXKERR0                         =>      open,
@@ -615,17 +700,17 @@ TXKERR1                         =>      open,
 TXRUNDISP0                      =>      open,
 TXRUNDISP1                      =>      open,
 ------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-TXBUFSTATUS0                    =>      p_out_txbufstatus(0),--cм.стр.111  ug196.pdf
-TXBUFSTATUS1                    =>      p_out_txbufstatus(1),--
+TXBUFSTATUS0                    =>      i_txbufstatus_out(0),--cм.стр.111  ug196.pdf
+TXBUFSTATUS1                    =>      i_txbufstatus_out(1),--
 ------------------ Transmit Ports - TX Data Path interface -----------------
-TXDATA0                         =>      p_in_txdata(0)(15 downto 0),
-TXDATA1                         =>      p_in_txdata(1)(15 downto 0),
+TXDATA0                         =>      i_txdata_in(0)(15 downto 0),
+TXDATA1                         =>      i_txdata_in(1)(15 downto 0),
 TXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
 TXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
 TXOUTCLK0                       =>      open,
 TXOUTCLK1                       =>      open,
-TXRESET0                        =>      p_in_txreset(0),
-TXRESET1                        =>      p_in_txreset(1),
+TXRESET0                        =>      i_txreset_in(0),--p_in_txreset(0),--
+TXRESET1                        =>      i_txreset_in(1),--p_in_txreset(1),--
 TXUSRCLK0                       =>      g_gtp_usrclk(0),
 TXUSRCLK1                       =>      g_gtp_usrclk(1),
 TXUSRCLK20                      =>      g_gtp_usrclk2(0),
@@ -652,13 +737,13 @@ TXPOLARITY1                     =>      '0',
 ----------------- Transmit Ports - TX Ports for PCI Express ----------------
 TXDETECTRX0                     =>      '0',
 TXDETECTRX1                     =>      '0',
-TXELECIDLE0                     =>      p_in_txelecidle(0),
-TXELECIDLE1                     =>      p_in_txelecidle(1),
+TXELECIDLE0                     =>      i_txelecidle_in(0),
+TXELECIDLE1                     =>      i_txelecidle_in(1),
 --------------------- Transmit Ports - TX Ports for SATA -------------------
-TXCOMSTART0                     =>      p_in_txcomstart(0),
-TXCOMSTART1                     =>      p_in_txcomstart(1),
-TXCOMTYPE0                      =>      p_in_txcomtype(0),
-TXCOMTYPE1                      =>      p_in_txcomtype(1)
+TXCOMSTART0                     =>      i_txcomstart_in(0),
+TXCOMSTART1                     =>      i_txcomstart_in(1),
+TXCOMTYPE0                      =>      i_txcomtype_in(0),
+TXCOMTYPE1                      =>      i_txcomtype_in(1)
 
 );
 

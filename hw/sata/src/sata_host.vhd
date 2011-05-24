@@ -155,6 +155,7 @@ signal i_phy_rxd_en                : TBus03_GTCH;
 signal i_phy_ctrl                  : TPLCtrl_GTCH;
 signal i_phy_status                : TPLStat_GTCH;
 signal i_phy_gtp_ch_rst            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_phy_gtp_rxbufreset        : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_gtp_plllkdet              : std_logic;
 signal i_gtp_resetdone             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -198,11 +199,7 @@ signal tst_tlayer_out              : TBus32_GTCH;
 signal tst_llayer_out              : TBus32_GTCH;
 signal tst_player_out              : TBus32_GTCH;
 signal tst_spctrl_out              : std_logic_vector(31 downto 0);
-signal tst_gtp_resetdone           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_txreset             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_rxreset             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_rxcdrreset          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal tst_gtp_txbufstatus         : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
 
 
 --MAIN
@@ -333,26 +330,13 @@ tst0out:process(p_in_rst,g_gtp_usrclk2)
 begin
   if p_in_rst='1' then
     p_out_tst(i)(0)<='0';
-    tst_gtp_txreset(i)<='0';
-    tst_gtp_rxreset(i)<='0';
-    tst_gtp_rxcdrreset(i)<='0';
-    tst_gtp_resetdone(i)<='0';
-    tst_gtp_txbufstatus(i)<='0';
 
   elsif g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
 
     p_out_tst(i)(0)<=tst_player_out(i)(0) or
                      tst_llayer_out(i)(0) or
                      tst_tlayer_out(i)(0) or
-                     tst_alayer_out(i)(0) or tst_gtp_resetdone(i) or tst_gtp_txbufstatus(i) or
-                     tst_gtp_rxreset(i) or tst_gtp_txreset(i) or tst_gtp_rxcdrreset(i);
-
-    tst_gtp_txreset(i)<=i_gtp_txreset(i);
-    tst_gtp_rxreset(i)<=i_gtp_rxreset(i);
-    tst_gtp_rxcdrreset(i)<=i_gtp_rxcdrreset(i);
-    tst_gtp_resetdone(i)<=i_gtp_resetdone(i);
-
-    tst_gtp_txbufstatus(i)<=i_gtp_txbufstatus(i)(1);
+                     tst_alayer_out(i)(0);
 
   end if;
 end process tst0out;
@@ -364,7 +348,7 @@ begin
   if p_in_rst='1' then
     p_out_tst(i)(2)<='0';
   elsif p_in_gtp_drpclk'event and p_in_gtp_drpclk='1' then
-    p_out_tst(i)(2)<=tst_spctrl_out(0) or tst_spctrl_out(1);
+    p_out_tst(i)(2)<=tst_spctrl_out(0);-- or tst_spctrl_out(1);
   end if;
 end process tst2out;
 
@@ -382,12 +366,13 @@ i_linkup(i)<=i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT);
 i_phy_ctrl(i)<=i_spd_out(i).sata_ver;
 
 --//Сброс канала GT
-i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or ((i_phy_gtp_ch_rst(i) or i_gtp_txbufreset(i)) and i_spd_gt_rdy);
-i_gtp_rxreset(i)<=i_spd_gtp_ch_rst(i) or (i_phy_gtp_ch_rst(i) and i_spd_gt_rdy);
-i_gtp_rxcdrreset(i)<=i_spd_gtp_ch_rst(i);
+i_gtp_txreset(i)<=i_spd_gtp_ch_rst(i) or i_phy_gtp_ch_rst(i) or i_gtp_txbufreset(i);
+i_gtp_rxreset(i)<=i_spd_gtp_ch_rst(i) or i_phy_gtp_ch_rst(i);
+i_gtp_rxbufreset(i)<=i_spd_gtp_ch_rst(i) or i_phy_gtp_rxbufreset(i);
+i_gtp_rxcdrreset(i)<=i_spd_gtp_ch_rst(i);--//Сброс модуля востановления частоты RxCDR
 
 --//Сброс всех модулей управления
-i_sata_module_rst(i)<=i_spd_gtp_ch_rst(i) or not i_spd_gt_rdy;
+i_sata_module_rst(i)<=not i_spd_gt_rdy;
 
 --//Тактовая частота для тактирования Cmd/Rx/TxBUF - usrapp_layer
 p_out_usrfifo_clkout(i)<=g_gtp_usrclk2(i);
@@ -615,7 +600,7 @@ p_in_gtp_rxnotintable      => i_gtp_rxnotintable(i),
 p_in_gtp_rxbyteisaligned   => i_gtp_rxbyteisaligned(i),
 
 p_in_gtp_rxbufstatus       => i_gtp_rxbufstatus(i),
-p_out_gtp_rxbufreset       => i_gtp_rxbufreset(i),
+p_out_gtp_rxbufreset       => i_phy_gtp_rxbufreset(i),
 
 --------------------------------------------------
 --Технологические сигналы

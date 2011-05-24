@@ -185,7 +185,7 @@ signal i_gt_drp_rdval           : TBus16_GTCH;
 signal i_gt_rdy                 : std_logic;
 signal i_gt_ch_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal tst_spd_ver              : std_logic_vector(i_spd_ver_out(0).sata_ver'range);
+--signal tst_spd_ver              : std_logic_vector(i_spd_ver_out(0).sata_ver'range);
 signal tst_fms_cs               : std_logic_vector(4 downto 0);
 signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
 
@@ -205,13 +205,13 @@ ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     tst_fms_cs_dly<=(others=>'0');
-    tst_spd_ver<=(others=>'0');
+--    tst_spd_ver<=(others=>'0');
     p_out_tst(0)<='0';
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
-    tst_spd_ver<=i_spd_ver_out(0).sata_ver;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or OR_reduce(tst_spd_ver);
+--    tst_spd_ver<=i_spd_ver_out(0).sata_ver;
+    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);-- or OR_reduce(tst_spd_ver);
   end if;
 end process ltstout;
 

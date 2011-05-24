@@ -182,7 +182,7 @@ begin
   if p_in_rst='1' then
     fsm_ploob_cs <= S_HR_IDLE;
 
-    i_gtp_txelecidle<='0';
+    i_gtp_txelecidle<='1';
     i_gtp_txcomstart<='0';
     i_gtp_txcomtype <='0';
     i_gtp_pcm_rst<='0';
@@ -212,12 +212,7 @@ begin
         i_gtp_txcomstart<='0';
         i_gtp_txcomtype <='0';
 
-        if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#03#, i_tmr_dly'length) then
-          i_tmr_dly<=(others=>'0');
-          fsm_ploob_cs <= S_HR_COMRESET;
-        else
-          i_tmr_dly<=i_tmr_dly + 1;
-        end if;
+        fsm_ploob_cs <= S_HR_COMRESET;
 
       --//-------------------------------
       --//Отправка сигнала COMRESET
