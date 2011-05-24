@@ -124,6 +124,7 @@ signal i_spd_ctrl                  : TSpdCtrl_GTCH;
 signal i_spd_out                   : TSpdCtrl_GTCH;
 signal i_spd_gtp_ch_rst            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_spd_gt_rdy                : std_logic;
+signal i_spd_gt_resetdone          : std_logic;
 
 signal i_reg_dma                   : TRegDMA_GTCH;
 signal i_reg_shadow                : TRegShadow_GTCH;
@@ -249,7 +250,7 @@ p_in_gtp_drprdy    => i_gtp_drprdy,
 
 p_out_gtp_ch_rst   => i_spd_gtp_ch_rst,
 p_out_gtp_rdy      => i_spd_gt_rdy,
-p_in_gtp_resetdone => i_gtp_resetdone(0),
+p_in_gtp_resetdone => i_spd_gt_resetdone,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -264,6 +265,7 @@ p_in_clk           => p_in_gtp_drpclk,
 p_in_rst           => p_in_rst
 );
 
+i_spd_gt_resetdone<=AND_reduce(i_gtp_resetdone);
 
 
 --//###########################################################################
@@ -348,7 +350,7 @@ begin
   if p_in_rst='1' then
     p_out_tst(i)(2)<='0';
   elsif p_in_gtp_drpclk'event and p_in_gtp_drpclk='1' then
-    p_out_tst(i)(2)<=tst_spctrl_out(0);-- or tst_spctrl_out(1);
+    p_out_tst(i)(2)<=tst_spctrl_out(0);
   end if;
 end process tst2out;
 
@@ -625,7 +627,6 @@ end generate gen_ch;
 --//GT (RocketIO)
 --//############################
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
-begin
 
 m_gt : sata_player_gt
 generic map

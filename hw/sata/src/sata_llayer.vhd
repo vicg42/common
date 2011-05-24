@@ -344,8 +344,8 @@ p_in_rst     => p_in_rst
 --//(см. пп 9.5 Serial ATA Specification v2.5 (2005-10-27).pdf)
 --//----------------------------
 i_crc_in<=i_txd_out when fsm_llayer_cs=S_LT_SendData or fsm_llayer_cs=S_LT_SendCRC or i_trn_term='1' else i_rxd_out;
-i_crc_en<=i_srambler_en_tx or i_rxd_en_out;--GT_DBUS= 8,16
---i_crc_en<=i_srambler_en_tx or i_rxd_wr_out;--GT_DBUS=32
+--i_crc_en<=i_srambler_en_tx or i_rxd_en_out;--GT_DBUS= 8,16
+i_crc_en<=i_srambler_en_tx or i_rxd_wr_out;--GT_DBUS=32
 
 m_crc : sata_crc
 generic map
