@@ -45,7 +45,7 @@ type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
 --Константы
 ---------------------------------------------------------
 --//мах кол-во HDD:
-constant C_HDD_COUNT_MAX     : integer:=8;--//
+constant C_HDD_COUNT_MAX     : integer:=2;--//
 
 --//Кол-во каналов в одном модуле GT:
 constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
