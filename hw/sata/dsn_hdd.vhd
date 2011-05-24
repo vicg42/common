@@ -513,7 +513,7 @@ m_dsn_sata : dsn_raid_main
 generic map
 (
 G_HDD_COUNT => G_HDD_COUNT,
-G_GT_DBUS   => 8,
+G_GT_DBUS   => 16,
 G_DBG       => G_DBG,
 --G_DBGCS     => G_DBGCS,
 G_SIM       => G_SIM
@@ -596,6 +596,7 @@ gen_dbgled: for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_dbgled(i).link<=i_sh_status.SError(i)(C_ASERR_DET_M_BIT);--//Уст-во обнаружено + соединение установлено
 p_out_dbgled(i).rdy<=i_sh_status.ch_drdy(i);
 p_out_dbgled(i).err<=i_sh_status.ch_err(i);
+p_out_dbgled(i).spd<=i_sh_status.SError(i)(C_ASERR_SPD_L_BIT+1 downto C_ASERR_SPD_L_BIT);--//Скорость соединения 1/2/3 - SATA-I/II/III
 end generate gen_dbgled;
 
 p_out_sim_gtp_txdata        <= i_sh_sim_gtp_txdata;
