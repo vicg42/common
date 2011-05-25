@@ -1128,6 +1128,7 @@ p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUN
 p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_out_sata_refclkout        : out   std_logic;
 p_out_sata_gt_plldet        : out   std_logic;
+p_out_sata_dcm_lock         : out   std_logic;
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd

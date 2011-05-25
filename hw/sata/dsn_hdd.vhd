@@ -93,6 +93,7 @@ p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
 p_in_sata_refclk          : in    std_logic;
 p_out_sata_refclkout      : out   std_logic;
 p_out_sata_gt_plldet      : out   std_logic;
+p_out_sata_dcm_lock       : out   std_logic;
 
 ---------------------------------------------------------------------------
 --Технологический порт
@@ -531,6 +532,7 @@ p_in_sata_rxp               => p_in_sata_rxp,
 p_in_sata_refclk            => i_sata_gt_refclk,
 p_out_sata_refclkout        => p_out_sata_refclkout,
 p_out_sata_gt_plldet        => p_out_sata_gt_plldet,
+p_out_sata_dcm_lock         => p_out_sata_dcm_lock,
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
@@ -642,6 +644,7 @@ clkout    => i_sata_gt_refclk(0)
 
 p_out_sata_refclkout<=i_sata_gt_refclk(0);
 p_out_sata_gt_plldet<='1';
+p_out_sata_dcm_lock<='1';
 
 gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sim_gtp_txdata(i)    <=(others=>'0');
