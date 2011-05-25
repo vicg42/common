@@ -247,6 +247,7 @@ locked        : out   std_logic
 );
 end component;
 
+signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
 --signal rst_sys                          : std_logic;
 
@@ -381,6 +382,8 @@ signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 signal i_hdd_module_rst                 : std_logic;
 signal i_hdd_gt_refclk150               : std_logic;
 signal g_hdd_gt_refclkout               : std_logic;
+signal i_hdd_gt_plldet                  : std_logic;
+signal i_hdd_dcm_lock                   : std_logic;
 signal i_hdd_cfg_rxdata                 : std_logic_vector(15 downto 0);
 signal i_hdd_module_rdy                 : std_logic;
 signal i_hdd_module_error               : std_logic;
@@ -413,6 +416,7 @@ signal i_hdd_dbgled                     : THDDLed_SHCountMax;
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
+signal i_hdd_sim_gtp_txcomstart         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gtp_rxdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_rxcharisk          : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_rxstatus           : TBus03_SHCountMax;
@@ -625,11 +629,11 @@ attribute MAX_FANOUT of i_memctrl_rst : signal is "100000";
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
 
-
-signal tst_rdareg_err : std_logic;
-signal tst_rdrgctrl_err : std_logic;
+signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
-signal tst_vfrrdy        : std_logic_vector(0 downto 0);
+--signal tst_rdareg_err : std_logic;
+--signal tst_rdrgctrl_err : std_logic;
+--signal tst_vfrrdy        : std_logic_vector(0 downto 0);
 --signal test_led_03_gtp : std_logic;
 --signal test_led_04_gtp : std_logic;
 
@@ -654,7 +658,7 @@ i_trc_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_swt_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_dsntst_module_rst <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_memctrl_rst       <=not rst_sys_n or i_host_mem_ctl_reg(0);
-i_hdd_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all or i_host_rgctrl_rst_hdd;
+i_hdd_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all or i_host_rgctrl_rst_hdd or i_usr_rst;
 
 
 process(rst_sys_n, g_refclk200MHz)
@@ -1495,6 +1499,8 @@ p_in_sata_rxp         => pin_in_sata_rxp,
 
 p_in_sata_refclk      => i_hdd_gt_refclk150,
 p_out_sata_refclkout  => g_hdd_gt_refclkout,
+p_out_sata_gt_plldet  => i_hdd_gt_plldet,
+p_out_sata_dcm_lock   => i_hdd_dcm_lock,
 
 ---------------------------------------------------------------------------
 --Технологический порт
@@ -1507,6 +1513,7 @@ p_out_tst             => i_hdd_tst_out,
 --------------------------------------------------
 p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
+p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
 p_in_sim_gtp_rxdata         => i_hdd_sim_gtp_rxdata,
 p_in_sim_gtp_rxcharisk      => i_hdd_sim_gtp_rxcharisk,
 p_in_sim_gtp_rxstatus       => i_hdd_sim_gtp_rxstatus,
@@ -1752,7 +1759,7 @@ i_host_dev_status(C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT) <=i_trcnik_hdrdy;
 
 i_host_dev_status(C_HREG_STATUS_DCM_ETH_GTP_LOCK_BIT)<=i_eth_module_gtp_plllkdet;
 i_host_dev_status(C_HREG_STATUS_DCM_LBUS_LOCK_BIT)   <=lclk_dcm_lock;
-i_host_dev_status(C_HREG_STATUS_DCM_SATA_LOCK_BIT)   <='1';--i_hdd_dcm_lock;
+i_host_dev_status(C_HREG_STATUS_DCM_SATA_LOCK_BIT)   <=i_hdd_gt_plldet and i_hdd_dcm_lock;
 i_host_dev_status(C_HREG_STATUS_DCM_MEMCTRL_LOCK_BIT)<=i_memctrl_dcm_lock;
 
 i_host_dev_status(C_FHOST_DBUS-1 downto C_HREG_STATUS_DEV_INT_ACT_BIT)<=(others=>'0');
@@ -2314,6 +2321,8 @@ pin_out_ddr2_cke1<='0';
 pin_out_ddr2_cs1<='0';
 pin_out_ddr2_odt1<='0';
 
+i_usr_rst<='0';
+
 end generate gen_alphadata;
 
 
@@ -2327,97 +2336,63 @@ pin_out_ddr2_cke1<='0';
 pin_out_ddr2_cs1<='0';
 pin_out_ddr2_odt1<='0';
 
-
+i_usr_rst<=pin_in_btn_N;
 tst_clr <=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S or pin_in_btn_W;
-process(rst_sys_n,g_host_clk)
-begin
-  if rst_sys_n='0' then
-    tst_rdareg_err<='0';
-    tst_rdrgctrl_err<='0';
-  elsif g_host_clk'event and g_host_clk='1' then
-
-    if tst_clr='1' then
-      tst_rdareg_err<='0';
-    elsif i_host_tst_out(126)='1'then
-      tst_rdareg_err<='1';
-    end if;
-
-    if tst_clr='1' then
-      tst_rdrgctrl_err<='0';
-    elsif i_host_tst_out(127)='1' then
-      tst_rdrgctrl_err<='1';
-    end if;
-
-  end if;
-end process;
-
-
-process(i_vctrl_module_rst,g_usr_highclk)
-begin
-  if i_vctrl_module_rst='0' then
-    tst_vfrrdy<=(others=>'0');
-  elsif g_usr_highclk'event and g_usr_highclk='1' then
-    if i_vctrl_vfrdy(0)='1' then
-      tst_vfrrdy(0)<=not tst_vfrrdy(0);
-    end if;
-  end if;
-end process;
-
 
 --//J5 /pin2
-pin_out_TP(0)<=i_trc_busy(0);--tst_vfrrdy(0);--i_dsntst_tst_out(0);
+pin_out_TP(0)<=i_trc_busy(0);
 
 --//J6
-pin_out_TP(1)<=i_vctrl_hrdy(0);--i_dsntst_tst_out(1);           --//pin6
-                                              --//pin8
-pin_out_TP(2)<=i_trcnik_hdrdy;--'0';--i_hdd_debug_data2(24);         --//pin10
-pin_out_TP(3)<='0';--i_hdd_debug_data2(25);         --//pin12
-                                              --//pin14
-pin_out_TP(4)<='0';              --//pin16
-                                              --//pin18
-pin_out_TP(5)<='0';             -- /pin20
-                                              --//pin22
-pin_out_TP(6)<='0';                           -- /pin24
-pin_out_TP(7)<='0';            -- /pin26
+pin_out_TP(1)<='0';--i_dsntst_tst_out(1);  --//pin6
+                            --//pin8
+pin_out_TP(2)<='0';         --//pin10
+pin_out_TP(3)<='0';
+                            --//pin14
+pin_out_TP(4)<='0';         --//pin16
+                            --//pin18
+pin_out_TP(5)<='0';         -- /pin20
+                            --//pin22
+pin_out_TP(6)<='0';         -- /pin24
+pin_out_TP(7)<='0';         -- /pin26
 
 
 --Светодиоды
-pin_out_led_C <= '0';
-pin_out_led_E <= i_dsntst_tst_out(1);
-pin_out_led_N <= '0';
-pin_out_led_S <= '0';
-pin_out_led_W <= i_dsntst_tst_out(2);
+pin_out_led_E<=i_hdd_gt_plldet and i_hdd_dcm_lock;
+pin_out_led_N<=i_hdd_module_rst;
+pin_out_led_S<=i_test01_led;
+pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
+pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
-pin_out_led(0)<= i_hdd_busy;
-pin_out_led(1)<= '0';
-pin_out_led(2)<= i_hdd_dbgled(1).err;
-pin_out_led(3)<= i_hdd_dbgled(1).rdy;
 
-pin_out_led(4)<= i_hdd_dbgled(1).link;
-pin_out_led(5)<= i_hdd_dbgled(0).err;
-pin_out_led(6)<= i_hdd_dbgled(0).rdy;
-pin_out_led(7)<= i_hdd_dbgled(0).link;
+pin_out_led(0)<=i_hdd_busy when pin_in_btn_S='0' else i_hdd_tst_out(0) or i_vctrl_hrdy(0) or tst_clr;
+pin_out_led(1)<='0';
+pin_out_led(2)<=i_hdd_dbgled(1).err;
+pin_out_led(3)<=i_hdd_dbgled(1).rdy;
 
---m_gtp_03_test: fpga_test_01
---generic map(
---G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
---G_CLK_T05us   =>10#62# -- кол-во периодов частоты порта p_in_clk
---                                  -- укладывающиес_ в 1/2 периода 1us
---)
---port map
---(
---p_out_test_led => test_led_03_gtp,
---p_out_test_done=> open,
---
---p_out_1us      => open,
---p_out_1ms      => open,
----------------------------------
-----System
----------------------------------
---p_in_clk       => g_gt_X0Y6_refclkout,
---p_in_rst       => '0'
---);
---
+pin_out_led(4)<=i_hdd_dbgled(1).link;
+pin_out_led(5)<=i_hdd_dbgled(0).err;
+pin_out_led(6)<=i_hdd_dbgled(0).rdy;
+pin_out_led(7)<=i_hdd_dbgled(0).link;
+
+m_gtp_03_test: fpga_test_01
+generic map(
+G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+)
+port map
+(
+p_out_test_led => i_test01_led,
+p_out_test_done=> open,
+
+p_out_1us      => open,
+p_out_1ms      => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clk       => g_hdd_gt_refclkout,
+p_in_rst       => i_hdd_module_rst
+);
+
 --m_gtp_04_test: fpga_test_01
 --generic map(
 --G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
