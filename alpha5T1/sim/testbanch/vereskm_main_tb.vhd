@@ -768,7 +768,7 @@ begin
   swt_fmask2_eth_vctrl:=(others=>'0');
 
   swt_fmask_eth_hdd  :='1';--//Разрешение прохождения пакетов направление Eth-HDD
-  swt_fmask_eth_host :='1';--//Разрешение прохождения пакетов направление Eth-HOST
+  swt_fmask_eth_host :='0';--//Разрешение прохождения пакетов направление Eth-HOST
 
 
   --------------------------------
@@ -778,7 +778,7 @@ begin
   FrTxD_2DW_cnt :='0';--//передовать вместо видео информации счетчик. Начинается с 1
   AutoVCH_Change:='0';--//Изменение номерка видеоканала - 1/0 auto/mnl
   Pix8bit :='1';--//1 пиксель = 8 бит
-  PixLen  :=CONV_STD_LOGIC_VECTOR(10#256#, 32);--(10#20#, 32);--
+  PixLen  :=CONV_STD_LOGIC_VECTOR(10#128#, 32);--(10#20#, 32);--
   RowLen  :=CONV_STD_LOGIC_VECTOR(10#016#, 32);
   --0x584  - 1412pix
 
@@ -836,7 +836,7 @@ begin
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
 
-  TrcNikWorkOn:='0';--//Запуск работы
+  TrcNikWorkOn:='1';--//Запуск работы
 
   TrcNikRegTST0:=(others=>'0');
   TrcNikRegTST0(C_DSN_TRC_REG_TST0_DIS_WRRESULT_BIT):='1'; --//1/0 - запретить/разрешить запись в выходной буфер m_trcbufo модкля dsn_track.vhd
@@ -879,8 +879,8 @@ begin
 
 
 --//Чтение данных модуля Track
-  track_read_01_start:=1;--5000;--//
-  track_read_01_end  :=1;--1400;--//
+  track_read_01_start:=5000;--//
+  track_read_01_end  :=1400;--//
 
 --//Чтения данных VCTRL 15us
   vctrl_read_01_start:=600;--//начало чтения Хостом модуля VCTRL
