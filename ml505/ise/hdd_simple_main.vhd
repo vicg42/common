@@ -19,20 +19,20 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
+---- synopsys translate_off
+--library unisim;
+--use unisim.vcomponents.all;
+---- synopsys translate_on
+Library UNISIM;
+use UNISIM.vcomponents.all;
+
 library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
-
----- synopsys translate_off
---library unisim;
---use unisim.vcomponents.all;
----- synopsys translate_on
-
-Library UNISIM;
-use UNISIM.vcomponents.all;
 
 entity hdd_simple_main is
 generic
@@ -128,12 +128,22 @@ signal i_refclk200MHz                   : std_logic;
 
 signal g_host_clk                       : std_logic;
 signal i_dsn_hdd_rst                    : std_logic;
-signal i_sata_gtp_refclkmain            : std_logic;
+signal i_hdd_gt_refclk150               : std_logic;
+signal g_hdd_gt_refclkout               : std_logic;
+signal i_hdd_gt_plldet                  : std_logic;
 
-signal i_usr_rxd                        : std_logic_vector(31 downto 0);
-signal i_usr_rxd_rd                     : std_logic;
-signal i_usr_txd                        : std_logic_vector(31 downto 0);
-signal i_usr_txd_wr                     : std_logic;
+signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
+signal i_hdd_rbuf_status                : THDDRBufStatus;
+
+signal i_hdd_txdata                     : std_logic_vector(31 downto 0);
+signal i_hdd_txdata_wd                  : std_logic;
+signal i_hdd_txbuf_full                 : std_logic;
+
+signal i_hdd_rxdata                     : std_logic_vector(31 downto 0);
+signal i_hdd_rxdata_rd                  : std_logic;
+signal i_hdd_rxbuf_empty                : std_logic;
+
+signal i_hdd_cfg_rxdata                 : std_logic_vector(15 downto 0);
 
 signal i_cfgdev_adr                     : std_logic_vector(7 downto 0);
 signal i_cfgdev_adr_ld                  : std_logic;
@@ -143,12 +153,15 @@ signal i_dev_cfg_wd                     : std_logic_vector(C_CFGDEV_COUNT-1 down
 signal i_dev_cfg_rd                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_done                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 
-signal i_hdd_rdy                        : std_logic;
-signal i_hdd_error                      : std_logic;
+signal i_hdd_module_rdy                 : std_logic;
+signal i_hdd_module_error               : std_logic;
 signal i_hdd_busy                       : std_logic;
+signal i_hdd_hirq                       : std_logic;
+signal i_hdd_done                       : std_logic;
 
 signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
+signal i_hdd_sim_gtp_txcomstart         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gtp_rxdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_rxcharisk          : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_rxstatus           : TBus03_SHCountMax;
@@ -159,9 +172,9 @@ signal i_hdd_sim_gtp_rxbyteisaligned    : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_hdd_sim_gtp_sim_rst            : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gtp_sim_clk            : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
+signal i_hdd_dbgled                     : THDDLed_SHCountMax;
 
-signal tst_hdd_in                       : std_logic_vector(31 downto 0);
-signal tst_hdd_out                      : std_logic_vector(31 downto 0);
+signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_test01_led                     : std_logic;
 
@@ -187,7 +200,7 @@ ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => refclk_p, IB => refclk_n, O  => 
 bufg_refclk  : BUFG              port map(I  => i_refclk200MHz, O  => g_host_clk);
 
 --//Input 150MHz reference clock for SATA
-ibufds_gtp_hdd_clkin : IBUFDS port map(I  => pin_in_sata_clk_p, IB => pin_in_sata_clk_n, O  => i_sata_gtp_refclkmain);
+ibufds_gtp_hdd_clkin : IBUFDS port map(I  => pin_in_sata_clk_p, IB => pin_in_sata_clk_n, O  => i_hdd_gt_refclk150);
 
 
 --***********************************************************
@@ -206,73 +219,79 @@ end generate gen_satah;
 m_hdd : dsn_hdd
 generic map
 (
-G_MODULE_USE => C_USE_HDD,
-G_HDD_COUNT  => C_HDD_COUNT,
-G_DBG        => C_DBG_HDD,
-G_SIM        => G_SIM
+G_MODULE_USE=> C_USE_HDD,
+G_HDD_COUNT => C_HDD_COUNT,
+G_DBG       => C_DBG_HDD,
+--G_DBGCS     => C_HDD_DBGCS,
+G_SIM       => G_SIM
 )
 port map
 (
---------------------------------------------------
--- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
---------------------------------------------------
-p_in_cfg_clk              => g_host_clk,
+-------------------------------
+-- Конфигурирование модуля dsn_hdd.vhd (p_in_cfg_clk domain)
+-------------------------------
+p_in_cfg_clk          => g_host_clk,
 
-p_in_cfg_adr              => i_cfgdev_adr,
-p_in_cfg_adr_ld           => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo         => i_cfgdev_adr_fifo,
+p_in_cfg_adr          => i_cfgdev_adr,
+p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
+p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
 
-p_in_cfg_txdata           => i_cfgdev_txdata,
-p_in_cfg_wd               => i_dev_cfg_wd(C_CFGDEV_HDD),
+p_in_cfg_txdata       => i_cfgdev_txdata,
+p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_HDD),
 
-p_out_cfg_rxdata          => open,--i_hdd_cfg_rxdata,
-p_in_cfg_rd               => i_dev_cfg_rd(C_CFGDEV_HDD),
+p_out_cfg_rxdata      => i_hdd_cfg_rxdata,
+p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_HDD),
 
-p_in_cfg_done             => i_dev_cfg_done(C_CFGDEV_HDD),
-p_in_cfg_rst              => i_dsn_hdd_rst,-- i_cfgdev_module_rst,
+p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_HDD),
+p_in_cfg_rst          => i_dsn_hdd_rst,
 
---------------------------------------------------
--- STATUS модуля DSN_HDD.VHD
---------------------------------------------------
-p_out_hdd_rdy             => i_hdd_rdy,
-p_out_hdd_error           => i_hdd_error,
-p_out_hdd_busy            => i_hdd_busy,
+-------------------------------
+-- STATUS модуля dsn_hdd.vhd
+-------------------------------
+p_out_hdd_rdy         => i_hdd_module_rdy,
+p_out_hdd_error       => i_hdd_module_error,
+p_out_hdd_busy        => i_hdd_busy,
+p_out_hdd_irq         => i_hdd_hirq,
+p_out_hdd_done        => i_hdd_done,
 
---------------------------------------------------
+-------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
---------------------------------------------------
-p_out_rambuf_adr          => open,
-p_out_rambuf_ctrl         => open,
+-------------------------------
+p_out_rbuf_cfg        => i_hdd_rbuf_cfg,
+p_in_rbuf_status      => i_hdd_rbuf_status,
 
-p_in_hdd_txd              => i_usr_txd,
-p_in_hdd_txd_wr           => i_usr_txd_wr,
-p_out_hdd_txbuf_full      => open,
+p_in_hdd_txd          => i_hdd_txdata,
+p_in_hdd_txd_wr       => i_hdd_txdata_wd,
+p_out_hdd_txbuf_full  => i_hdd_txbuf_full,
 
-p_out_hdd_rxd             => i_usr_rxd,
-p_in_hdd_rxd_rd           => i_usr_rxd_rd,
-p_out_hdd_rxbuf_empty     => open,
-
---------------------------------------------------
---SATA Driver
---------------------------------------------------
-p_out_sata_txn              => pin_out_sata_txn,
-p_out_sata_txp              => pin_out_sata_txp,
-p_in_sata_rxn               => pin_in_sata_rxn,
-p_in_sata_rxp               => pin_in_sata_rxp,
-
-p_in_sata_refclk            => i_sata_gtp_refclkmain,
+p_out_hdd_rxd         => i_hdd_rxdata,
+p_in_hdd_rxd_rd       => i_hdd_rxdata_rd,
+p_out_hdd_rxbuf_empty => i_hdd_rxbuf_empty,
 
 --------------------------------------------------
+--Sata Driver
+--------------------------------------------------
+p_out_sata_txn        => pin_out_sata_txn,
+p_out_sata_txp        => pin_out_sata_txp,
+p_in_sata_rxn         => pin_in_sata_rxn,
+p_in_sata_rxp         => pin_in_sata_rxp,
+
+p_in_sata_refclk      => i_hdd_gt_refclk150,
+p_out_sata_refclkout  => g_hdd_gt_refclkout,
+p_out_sata_gt_plldet  => i_hdd_gt_plldet,
+
+---------------------------------------------------------------------------
 --Технологический порт
---------------------------------------------------
-p_in_tst                    => "00000000000000000000000000000000",--tst_hdd_in,
-p_out_tst                   => tst_hdd_out,
+---------------------------------------------------------------------------
+p_in_tst              => "00000000000000000000000000000000",
+p_out_tst             => i_hdd_tst_out,
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
 p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
+p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
 p_in_sim_gtp_rxdata         => i_hdd_sim_gtp_rxdata,
 p_in_sim_gtp_rxcharisk      => i_hdd_sim_gtp_rxcharisk,
 p_in_sim_gtp_rxstatus       => i_hdd_sim_gtp_rxstatus,
@@ -283,10 +302,13 @@ p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
 p_out_gtp_sim_rst           => i_hdd_sim_gtp_sim_rst,
 p_out_gtp_sim_clk           => i_hdd_sim_gtp_sim_clk,
 
+p_out_dbgled                => i_hdd_dbgled,
+
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_rst                => i_dsn_hdd_rst
+p_in_clk           => lclk,
+p_in_rst           => i_dsn_hdd_rst
 );
 
 
@@ -296,34 +318,34 @@ p_in_rst                => i_dsn_hdd_rst
 --//Технологические сигналы
 --//----------------------------------
 --//J5 /pin2
-pin_out_TP(0)<=OR_reduce(tst_hdd_out) or OR_reduce(i_usr_rxd);
+pin_out_TP(0)<=OR_reduce(i_hdd_rxdata) or OR_reduce(i_hdd_cfg_rxdata) or i_hdd_txbuf_full or i_hdd_rxbuf_empty or i_hdd_gt_plldet or i_hdd_hirq or i_hdd_done;
 --//J6
-pin_out_TP(1)<='0';
+pin_out_TP(1)<=OR_reduce(i_hdd_tst_out);
 pin_out_TP(2)<='0';
 pin_out_TP(3)<=i_test01_led;
 pin_out_TP(4)<='0';
 pin_out_TP(5)<='0';
 pin_out_TP(6)<='0';
-pin_out_TP(7)<=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S or pin_in_btn_W;
+pin_out_TP(7)<=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S;
 
 
 --Светодиоды
-pin_out_led_C<='0';
-pin_out_led_E<='0';
-pin_out_led_N<='0';
-pin_out_led_S<='0';
-pin_out_led_W<='0';
+pin_out_led_E<=i_hdd_gt_plldet;
+pin_out_led_N<=i_hdd_tst_out(1);--//i_sata_module_rst(0);
+pin_out_led_S<=i_test01_led;
+pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
+pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
 
-pin_out_led(0)<=i_hdd_rdy;
-pin_out_led(1)<=i_hdd_error;
-pin_out_led(2)<=i_hdd_busy;
-pin_out_led(3)<='0';
+pin_out_led(0)<=i_hdd_busy;
+pin_out_led(1)<='0';
+pin_out_led(2)<=i_hdd_dbgled(1).err;
+pin_out_led(3)<=i_hdd_dbgled(1).rdy;
 
-pin_out_led(4)<=tst_hdd_out(0);--<=i_sh_status.ch_drdy(0);
-pin_out_led(5)<=tst_hdd_out(1);--<=i_sh_status.ch_drdy(1);
-pin_out_led(6)<=tst_hdd_out(2);--<=i_sh_status.ch_err(0);
-pin_out_led(7)<=tst_hdd_out(3);--<=i_sh_status.ch_err(1);
+pin_out_led(4)<=i_hdd_dbgled(1).link;
+pin_out_led(5)<=i_hdd_dbgled(0).err;
+pin_out_led(6)<=i_hdd_dbgled(0).rdy;
+pin_out_led(7)<=i_hdd_dbgled(0).link;
 
 
 
@@ -342,19 +364,21 @@ p_out_1ms      => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk       => g_host_clk,
-p_in_rst       => '0'
+p_in_clk       => g_hdd_gt_refclkout,
+p_in_rst       => i_dsn_hdd_rst
 );
 
 
-gen_txd: for i in 0 to i_usr_txd'length-1 generate
-i_usr_txd(i)<=pin_in_btn_W xor pin_in_btn_S;
+gen_txd: for i in 0 to i_hdd_txdata'length-1 generate
+i_hdd_txdata(i)<=pin_in_btn_W xor pin_in_btn_S;
 end generate gen_txd;
 
-i_usr_txd_wr<=pin_in_btn_W;
-i_usr_rxd_rd<=pin_in_btn_E;
+i_hdd_txdata_wd<=pin_in_btn_S;
+i_hdd_rxdata_rd<=pin_in_btn_E;
 
 
+i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+i_dev_cfg_rd(C_CFGDEV_HDD)<=pin_in_btn_E;
 i_cfgdev_adr<=i_cfgdev_txdata(i_cfgdev_adr'range);
 i_cfgdev_adr_ld<='1' when i_cfgdev_txdata=(i_cfgdev_txdata'range =>'0') else '0';
 i_cfgdev_adr_fifo<='1';
