@@ -695,7 +695,7 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<=tst_vwriter_out(0) or OR_reduce(tst_vfrskip_rd_err);-- or OR_reduce(tst_vbufout_wd_cnt);
+p_out_tst(0)<=OR_reduce(tst_vfrskip_rd_err);-- or OR_reduce(tst_vbufout_wd_cnt); tst_vwriter_out(0) or
 
 p_out_tst(4 downto 1)  <=tst_vwriter_out(4 downto 1);
 p_out_tst(8 downto 5)  <=tst_vreader_out(3 downto 0);

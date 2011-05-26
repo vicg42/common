@@ -38,7 +38,7 @@ vcom "../../../../hw/video/sobel/vsobel_main_rev3xx.vhd"
 vcom "../../../mirror/core_gen/*.vhd"
 vcom "../../../mirror/*.vhd"
 
-vcom "../../../color_conv/vrgb2yuv_main.vhd"
+vcom "../../../color_conv/vrgb2yuv_main_rev0xx.vhd"
 
 vcom "../../dsn_video_ctrl_pkg.vhd"
 vcom "../../video_reader.vhd"

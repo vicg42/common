@@ -215,11 +215,6 @@ p_in_rst_n                 : in    std_logic
 end component;
 
 component pciexp_main
---generic
---(
-----G_DBG                  : string    :="OFF"     --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
---  C_PCIEXPRESS_LINK_WIDTH_V : integer :=1
---);
 port
 (
 --//-------------------------------------------------------
@@ -366,11 +361,6 @@ p_out_dev_rd         <= i_pciexp_dev_rd;
 --//Проект PCI-EXPRESS
 --//-------------------------------------------------------
 m_pciexp : pciexp_main
---generic map
---(
-----G_DBG => G_DBG
---  C_PCIEXPRESS_LINK_WIDTH_V => C_PCIEXPRESS_LINK_WIDTH
---)
 port map
 (
 --//-------------------------------------------------------

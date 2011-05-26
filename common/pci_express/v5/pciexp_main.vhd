@@ -21,8 +21,6 @@ library work;
 use work.prj_cfg.all;
 
 entity pciexp_main is
---generic(
---);
 port
 (
 --//-------------------------------------------------------
