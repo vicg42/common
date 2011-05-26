@@ -112,27 +112,36 @@ constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_RESERV_BIT;
 --//User Application Layer
 --//-------------------------------------------------
 --//–азмер командного пакета в WORD
-constant C_USRAPP_CMDPKT_SIZE_WORD       : integer:=7;
+constant C_USRAPP_CMDPKT_SIZE_WORD       : integer:=8;
 
 --//User CMD Pkt :
 --//ѕоле UsrCtrl/Map:
-constant C_CMDPKT_USRHDD_NUM_L_BIT       : integer:=0;
-constant C_CMDPKT_USRHDD_NUM_M_BIT       : integer:=7;
-constant C_CMDPKT_USRMODE_SW_BIT         : integer:=8; --//работа от управл€ющей программы
-constant C_CMDPKT_USRMODE_HW_BIT         : integer:=9; --//аппаратна€ запись
-constant C_CMDPKT_USRMODE_LBAEND_BIT     : integer:=10;--//установка конечного адреса LBA (при работе в режиме HW)
-constant C_CMDPKT_USRMODE_TSTW_BIT       : integer:=11;
-constant C_CMDPKT_USRCMD_L_BIT           : integer:=12;
-constant C_CMDPKT_USRCMD_M_BIT           : integer:=14;
+constant C_CMDPKT_SATA_CS_L_BIT          : integer:=0;
+constant C_CMDPKT_SATA_CS_M_BIT          : integer:=7;
+constant C_CMDPKT_RAIDCMD_L_BIT          : integer:=8;
+constant C_CMDPKT_RAIDCMD_M_BIT          : integer:=10;
+--constant C_CMDPKT_RESERV0_BIT            : integer:=11;
+constant C_CMDPKT_SATACMD_L_BIT          : integer:=12;
+constant C_CMDPKT_SATACMD_M_BIT          : integer:=14;
+--constant C_CMDPKT_RESERV1_BIT            : integer:=15;
 
---//(C_CMDPKT_USRCMD_M downto C_CMDPKT_USRCMD_L)/Map:
-constant C_USRCMD_ATACONTROL             : integer:=0;
-constant C_USRCMD_ATACOMMAND             : integer:=1;
-constant C_USRCMD_FPDMA_W                : integer:=2;
-constant C_USRCMD_FPDMA_R                : integer:=3;
-constant C_USRCMD_SET_SATA1              : integer:=4;
-constant C_USRCMD_SET_SATA2              : integer:=5;
-constant C_USRCMD_COUNT                  : integer:=C_USRCMD_SET_SATA2+1;
+--//(C_CMDPKT_RAIDCMD_M downto C_CMDPKT_RAIDCMD_L)/Map:
+constant C_RAIDCMD_STOP                   : integer:=0; --//работа от управл€ющей программы
+constant C_RAIDCMD_SW                     : integer:=1; --//работа от управл€ющей программы
+constant C_RAIDCMD_HW                     : integer:=2; --//аппаратна€ запись
+constant C_RAIDCMD_LBAEND                 : integer:=3;--//установка конечного адреса LBA (при работе в режиме HW)
+--constant C_RAIDCMD_TSTW                   : integer:=4;
+--constant C_RAIDCMD_TSTR                   : integer:=5;
+
+--//(C_CMDPKT_SATACMD_M downto C_CMDPKT_SATACMD_L)/Map:
+constant C_SATACMD_NULL                   : integer:=0;
+constant C_SATACMD_ATACOMMAND             : integer:=1;
+constant C_SATACMD_ATACONTROL             : integer:=2;
+constant C_SATACMD_FPDMA_W                : integer:=3;
+constant C_SATACMD_FPDMA_R                : integer:=4;
+constant C_SATACMD_SET_SATA1              : integer:=5;
+constant C_SATACMD_SET_SATA2              : integer:=6;
+constant C_SATACMD_COUNT                  : integer:=C_SATACMD_SET_SATA2+1;
 
 
 --//-------------------------------------------------
@@ -145,8 +154,8 @@ constant C_ALREG_LBA_LOW                 : integer:=16#02#;
 constant C_ALREG_LBA_MID                 : integer:=16#03#;
 constant C_ALREG_LBA_HIGH                : integer:=16#04#;
 constant C_ALREG_SECTOR_COUNT            : integer:=16#05#;
-constant C_ALREG_COMMAND                 : integer:=16#06#;-- + C_ALREG_DEV_CONTROL
-constant C_ALREG_DEVICE                  : integer:=16#07#;
+constant C_ALREG_DEVICE                  : integer:=16#06#;-- + C_ALREG_DEV_CONTROL
+constant C_ALREG_COMMAND                 : integer:=16#07#;
 
 --//–егистры ATA / Bit Map:
 --//–егистр ATA_COMMAND/ Commad Map:

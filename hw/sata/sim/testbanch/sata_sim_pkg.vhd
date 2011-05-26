@@ -54,6 +54,16 @@ type TFIS_DMA_Activate  is array (0 to C_FIS_DMA_ACTIVATE_DWSIZE-1) of std_logic
 type TFIS_SetDeviceBits is array (0 to C_FIS_SET_DEV_BITS_DWSIZE-1) of std_logic_vector(31 downto 0);
 type TFIS_BIST_Activate is array (0 to C_FIS_BIST_ACTIVATE_DWSIZE-1) of std_logic_vector(31 downto 0);
 
+type TSimCfgCmdPkt is record
+usr_ctrl: std_logic_vector(15 downto 0);
+command : integer;
+scount  : integer;
+device  : std_logic_vector(7 downto 0);
+control : std_logic_vector(7 downto 0);
+lba     : std_logic_vector(47 downto 0);
+loopback: std_logic;
+end record;
+
 type TAlign is record
 timer : std_logic_vector(15 downto 0);
 en    : std_logic;

@@ -247,7 +247,7 @@ end generate gen_gt_w16;
 --//------------------------------
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
 
-process(g_gtp_usrclk2)
+process(g_gtp_usrclk2(i))
 begin
   if g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
       p_out_resetdone(i)      <=i_resetdone(i);

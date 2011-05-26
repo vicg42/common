@@ -115,11 +115,11 @@ architecture behavioral of dsn_hdd_rambuf is
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
-constant C_HDD_TXSTREAM_FIFO_DEPTH : integer:=16#1000#;--//DWORD
-constant C_HDD_RAMBUF_PFULL        : integer:=10;--//Program FULL level - 2**10 = 1024(0x400) - (в DWORD)
-                                                 --//Если данных в RAMBUF накопилось >= значению порога, то
-                                                 --//размер одиночной транзакции чтения ОЗУ увеличиваем до размера порога,
-                                                 --//иначе чтение ведем размером транзакции по умолчанию
+--constant C_HDD_TXSTREAM_FIFO_DEPTH : integer:=16#1000#;--//DWORD
+--constant C_HDD_RAMBUF_PFULL        : integer:=10;--//Program FULL level - 2**10 = 1024(0x400) - (в DWORD)
+--                                                 --//Если данных в RAMBUF накопилось >= значению порога, то
+--                                                 --//размер одиночной транзакции чтения ОЗУ увеличиваем до размера порога,
+--                                                 --//иначе чтение ведем размером транзакции по умолчанию
 
 ----//Тестрование
 --constant C_HDD_RAMBUF_PFULL        : integer:=7;
@@ -152,24 +152,21 @@ S_SW_MEM_WORK
 );
 signal fsm_state_cs: fsm_state;
 
---signal b_cfg_memtrn                    : std_logic_vector(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT downto 0);
-signal b_cfg_work                      : std_logic;
-signal b_cfg_testing                   : std_logic;
-signal b_cfg_hw_stop                   : std_logic;
+----signal b_cfg_memtrn                    : std_logic_vector(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT downto 0);
+--signal b_cfg_work                      : std_logic;
+--signal b_cfg_testing                   : std_logic;
+--signal b_cfg_hw_stop                   : std_logic;
+--
+--signal i_cfg_work_dly                  : std_logic_vector(1 downto 0);
+--signal i_cfg_work_upedge               : std_logic;
+--signal i_cfg_work_dwnedge              : std_logic;
+--signal i_cfg_stop_rq                   : std_logic;
 
-signal i_mode_sw                       : std_logic;
-signal i_mode_sw_wr                    : std_logic;
-
-signal i_cfg_work_dly                  : std_logic_vector(1 downto 0);
-signal i_cfg_work_upedge               : std_logic;
-signal i_cfg_work_dwnedge              : std_logic;
-signal i_cfg_stop_rq                   : std_logic;
-
-signal i_rd_lenreq_dbl                 : std_logic_vector(15 downto 0);--//(в DWORD)
-signal i_rd_lenreq_dbl_remain          : std_logic_vector(15 downto 0);--//(в DWORD)
-
-signal i_dwnport_remain                : std_logic_vector(15 downto 0);--//(в DWORD)
-signal i_dnwport_dcnt                  : std_logic_vector(15 downto 0);--//(в DWORD)
+--signal i_rd_lenreq_dbl                 : std_logic_vector(15 downto 0);--//(в DWORD)
+--signal i_rd_lenreq_dbl_remain          : std_logic_vector(15 downto 0);--//(в DWORD)
+--
+--signal i_dwnport_remain                : std_logic_vector(15 downto 0);--//(в DWORD)
+--signal i_dnwport_dcnt                  : std_logic_vector(15 downto 0);--//(в DWORD)
 
 signal i_wr_lentrn                     : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lentrn                     : std_logic_vector(15 downto 0);--//(в DWORD)
@@ -177,15 +174,15 @@ signal i_wr_ptr                        : std_logic_vector(31 downto 0);--//Адрес
 signal i_rd_ptr                        : std_logic_vector(31 downto 0);--//Адрес в BYTE
 
 signal i_rambuf_dcnt                   : std_logic_vector(31 downto 0);--//(в DWORD): std_logic_vector(G_HDD_RAMBUF_SIZE-2 downto 0);--//(в DWORD)
-signal i_rambuf_rdy                    : std_logic;
-signal i_rambuf_full                   : std_logic;
 signal i_rambuf_done                   : std_logic;
+--signal i_rambuf_rdy                    : std_logic;
+--signal i_rambuf_full                   : std_logic;
 
-signal i_dwn_fillen                    : std_logic;
-signal i_dwnbuf_empty                  : std_logic;
-
-signal i_vbuf_rdy                      : std_logic;
-signal i_vbuf_full                     : std_logic;
+--signal i_dwn_fillen                    : std_logic;
+--signal i_dwnbuf_empty                  : std_logic;
+--
+--signal i_vbuf_rdy                      : std_logic;
+--signal i_vbuf_full                     : std_logic;
 
 signal i_mem_adr                       : std_logic_vector(31 downto 0);--//Адрес в BYTE
 signal i_mem_lenreq                    : std_logic_vector(15 downto 0);--//Размер запрашиваемых данных (в DWORD)
@@ -193,8 +190,8 @@ signal i_mem_lentrn                    : std_logic_vector(15 downto 0);--//Разме
 signal i_mem_dir                       : std_logic;
 signal i_mem_start                     : std_logic;
 signal i_mem_done                      : std_logic;
-signal i_mem_rd_dbl                    : std_logic;
-signal i_mem_pusr_rxbuf_wd             : std_logic;
+--signal i_mem_rd_dbl                    : std_logic;
+--signal i_mem_pusr_rxbuf_wd             : std_logic;
 
 signal i_scount                        : std_logic_vector(15 downto 0);
 signal i_mem_lenreq_byte               : std_logic_vector(i_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
@@ -205,9 +202,9 @@ signal i_usr_rxbuf_rd                  : std_logic;
 signal i_usr_rxbuf_empty               : std_logic;
 
 
-signal tst_hdd_rambuf_err              : std_logic;
-signal tst_rambuf_empty                : std_logic;
-signal tst_fast_ramrd                  : std_logic;
+--signal tst_hdd_rambuf_err              : std_logic;
+--signal tst_rambuf_empty                : std_logic;
+--signal tst_fast_ramrd                  : std_logic;
 --signal tst_rdptr_det                   : std_logic_vector(2 downto 0);
 --signal tst_rdptr_detall                : std_logic;
 --signal tst_fsmstate                    : std_logic_vector(3 downto 0);
@@ -221,18 +218,18 @@ begin
 
 gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
+----//----------------------------------
+----//Технологические сигналы
+----//----------------------------------
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
 --    tst_fsmstate_dly<=(others=>'0');
 --    tst_rdptr_det<=(others=>'0');
 --    tst_rdptr_detall<='0';
-
-    tst_hdd_rambuf_err<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
+--
+--    tst_hdd_rambuf_err<='0';
+--  elsif p_in_clk'event and p_in_clk='1' then
 --    tst_fsmstate_dly<=tst_fsmstate;
 --
 --    if i_rd_ptr/=CONV_STD_LOGIC_VECTOR(pwr(2,G_HDD_RAMBUF_SIZE), i_rd_ptr'length) then
@@ -260,11 +257,11 @@ begin
 --    end if;
 --
 --    tst_rdptr_detall<=OR_reduce(tst_rdptr_det);
-
-    tst_hdd_rambuf_err<=i_rambuf_full or i_vbuf_full or i_cfg_work_dwnedge;
-
-  end if;
-end process;
+--
+--    tst_hdd_rambuf_err<=i_rambuf_full or i_vbuf_full or i_cfg_work_dwnedge;
+--
+--  end if;
+--end process;
 --tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_MEMW_CHECK else
 --              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEMW_START else
 --              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEMW_WORK else
@@ -276,11 +273,11 @@ end process;
 --              CONV_STD_LOGIC_VECTOR(16#09#,tst_fsmstate'length) when fsm_state_cs=S_MEMR_START2 else
 --              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_MEM_TST else
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//when fsm_state_cs=S_IDLE else
+--
+--p_out_tst(0)<=tst_hdd_rambuf_err or tst_rambuf_empty or tst_fast_ramrd;-- or tst_rdptr_detall or OR_reduce(tst_fsmstate_dly);
+--p_out_tst(31 downto 1)<=(others=>'0');
 
-p_out_tst(0)<=tst_hdd_rambuf_err or tst_rambuf_empty or tst_fast_ramrd;-- or tst_rdptr_detall or OR_reduce(tst_fsmstate_dly);
-p_out_tst(31 downto 1)<=(others=>'0');
-
---p_out_tst<=(others=>'0');
+p_out_tst<=(others=>'0');
 
 
 
@@ -351,37 +348,34 @@ begin
       width32b:=(others=>'0');
 
     fsm_state_cs <= S_IDLE;
-    i_rambuf_rdy<='0';
-    i_rambuf_full<='0';
     i_rambuf_dcnt<=(others=>'0');
     i_rambuf_done<='0';
+--    i_rambuf_rdy<='0';
+--    i_rambuf_full<='0';
 
     i_wr_lentrn<=(others=>'0');
     i_rd_lentrn<=(others=>'0');
-    i_rd_lenreq_dbl<=(others=>'0');
-    i_rd_lenreq_dbl_remain<=(others=>'0');
+--    i_rd_lenreq_dbl<=(others=>'0');
+--    i_rd_lenreq_dbl_remain<=(others=>'0');
 
     i_wr_ptr<=(others=>'0');
     i_rd_ptr<=(others=>'0');
 
-    i_dnwport_dcnt<=(others=>'0');
-    i_dwnport_remain<=(others=>'0');
-    i_dwn_fillen<='0';
+--    i_dnwport_dcnt<=(others=>'0');
+--    i_dwnport_remain<=(others=>'0');
+--    i_dwn_fillen<='0';
 
     i_mem_adr<=(others=>'0');
     i_mem_lentrn<=(others=>'0');
     i_mem_lenreq<=(others=>'0');
     i_mem_dir<='0';
     i_mem_start<='0';
-    i_mem_rd_dbl<='0';
+--    i_mem_rd_dbl<='0';
 
     i_scount<=(others=>'0');
 
-    i_mode_sw<='0';
-    i_mode_sw_wr<='0';
-
-    tst_rambuf_empty<='1';
-    tst_fast_ramrd<='0';
+--    tst_rambuf_empty<='1';
+--    tst_fast_ramrd<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 

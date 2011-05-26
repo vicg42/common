@@ -83,8 +83,8 @@ signal i_cmdfifo_dcnt              : std_logic_vector(3 downto 0);
 signal i_cmdfifo_rd_done           : std_logic;
 
 signal i_usrctrl                   : std_logic_vector(15 downto 0);
-signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT);
-signal i_usrmode                   : std_logic_vector(C_USRCMD_COUNT-1 downto 0);
+signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT);
+signal i_usrmode                   : std_logic_vector(C_SATACMD_COUNT-1 downto 0);
 signal i_err_clr                   : std_logic;
 signal i_sstatus                   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 signal i_spd_ver                   : std_logic_vector(C_PSTAT_SPD_BIT_M-C_PSTAT_SPD_BIT_L downto 0);
@@ -112,8 +112,6 @@ signal i_serr_c_err                : std_logic;
 signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 
 --signal i_dwr_width_cnt             : std_logic_vector(15 downto 0);
-
-signal sr_usr_status_busy          : std_logic_vector(0 to 4);
 
 signal i_dbgtsf_type               : string(1 to 23);
 
@@ -157,9 +155,9 @@ begin
 end process;
 
 --//Декодирование режима работы:
-i_usrmode_sel<=i_usrctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT);
+i_usrmode_sel<=i_usrctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT);
 
-gen_usrmode : for i in 0 to C_USRCMD_COUNT-1 generate
+gen_usrmode : for i in 0 to C_SATACMD_COUNT-1 generate
 i_usrmode(i)<='1' when i_usrmode_sel=CONV_STD_LOGIC_VECTOR(i, i_usrmode'length) else '0';
 end generate gen_usrmode;
 
@@ -295,13 +293,13 @@ begin
           i_reg_shadow.lba_high <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.lba_high_exp <= i_reg_shadow_din(15 downto 8);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_reg_shadow_addr'length) then
-          i_reg_shadow.command <= i_reg_shadow_din(7 downto 0);
-          i_reg_shadow.control <= i_reg_shadow_din(15 downto 8);
-          i_reg_shadow.device(C_ATA_DEVICE_LBA_BIT)<='1';--Уст.режим адресации LBA
-
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_reg_shadow_addr'length) then
           i_reg_shadow.device <= i_reg_shadow_din(7 downto 0);
+          i_reg_shadow.control <= i_reg_shadow_din(15 downto 8);
+
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_reg_shadow_addr'length) then
+          i_reg_shadow.command <= i_reg_shadow_din(7 downto 0);
+          i_reg_shadow.device(C_ATA_DEVICE_LBA_BIT)<='1';--Уст.режим адресации LBA
 
       end if;
 
@@ -388,7 +386,7 @@ begin
       end if;
 
       --//Ошибка связи или целостности данных(CRC error)
-      if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') or
+      if (i_link_establish_change='1' and i_usrmode(C_SATACMD_SET_SATA1)='0' and i_usrmode(C_SATACMD_SET_SATA2)='0') or
          p_in_ll_status(C_LSTAT_RxERR_CRC)='1' or
          (p_in_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)='1' and p_in_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT)='1') or
          (p_in_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)='0' and p_in_ll_status(C_LSTAT_TxERR_CRC)='1') then
@@ -441,7 +439,7 @@ begin
 
       --//PHY Layer:
       --//Связь с утройством оборвана
-      if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') then
+      if (i_link_establish_change='1' and i_usrmode(C_SATACMD_SET_SATA1)='0' and i_usrmode(C_SATACMD_SET_SATA2)='0') then
       p_out_status.SError(C_ASERR_N_DIAG_BIT)<='1';
       end if;
 
@@ -501,9 +499,9 @@ end process;
 --------------------------------------------------
 --Связь с Speed Controller
 --------------------------------------------------
-p_out_spd_ctrl.change<=(i_usrmode(C_USRCMD_SET_SATA1) or i_usrmode(C_USRCMD_SET_SATA2)) and i_reg_shadow_wr_done;
-p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata_ver'length) when i_usrmode(C_USRCMD_SET_SATA2 downto C_USRCMD_SET_SATA1)="10" else
-                         CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, p_out_spd_ctrl.sata_ver'length) when i_usrmode(C_USRCMD_SET_SATA2 downto C_USRCMD_SET_SATA1)="01" else
+p_out_spd_ctrl.change<=(i_usrmode(C_SATACMD_SET_SATA1) or i_usrmode(C_SATACMD_SET_SATA2)) and i_reg_shadow_wr_done;
+p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata_ver'length) when i_usrmode(C_SATACMD_SET_SATA2 downto C_SATACMD_SET_SATA1)="10" else
+                         CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, p_out_spd_ctrl.sata_ver'length) when i_usrmode(C_SATACMD_SET_SATA2 downto C_SATACMD_SET_SATA1)="01" else
                          CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, p_out_spd_ctrl.sata_ver'length);--//default SATA GEN
 
 
@@ -511,16 +509,16 @@ p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata
 --Связь с Transport Layer
 --------------------------------------------------
 --//Управление Transport уровнем
-i_trn_atacommand<=i_usrmode(C_USRCMD_ATACOMMAND) and i_reg_shadow_wr_done;
-i_trn_atacontrol<=i_usrmode(C_USRCMD_ATACONTROL) and i_reg_shadow_wr_done;
+i_trn_atacommand<=i_usrmode(C_SATACMD_ATACOMMAND) and i_reg_shadow_wr_done;
+i_trn_atacontrol<=i_usrmode(C_SATACMD_ATACONTROL) and i_reg_shadow_wr_done;
 
 p_out_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT)<=i_trn_atacommand;
 p_out_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT)<=i_trn_atacontrol;
-p_out_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)<=i_usrmode(C_USRCMD_FPDMA_W) or i_usrmode(C_USRCMD_FPDMA_R);
+p_out_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)<=i_usrmode(C_SATACMD_FPDMA_W) or i_usrmode(C_SATACMD_FPDMA_R);
 
 p_out_reg_shadow<=i_reg_shadow;
 
-p_out_reg_dma.fpdma.dir<=C_DIR_H2D when i_usrmode(C_USRCMD_FPDMA_W)='1' else C_DIR_D2H;
+p_out_reg_dma.fpdma.dir<=C_DIR_H2D when i_usrmode(C_SATACMD_FPDMA_W)='1' else C_DIR_D2H;
 p_out_reg_dma.fpdma.addr_l<=(others=>'0');
 p_out_reg_dma.fpdma.addr_m<=(others=>'0');
 p_out_reg_dma.fpdma.offset<=(others=>'0');

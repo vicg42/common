@@ -150,9 +150,11 @@ signal i_raid_atrncnt              : std_logic_vector(i_trn_dcount_dw'range);
 signal i_raid_atrn_done            : std_logic;
 signal sr_raid_atrn_done           : std_logic_vector(0 to 2);
 signal i_raid_atrn_next            : std_logic;
-signal i_raid_trn_done             : std_logic;
+--signal i_raid_trn_done             : std_logic;
 
 signal i_dwr_start                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
+
+signal i_tst                       : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
 
 
@@ -171,14 +173,17 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    p_out_tst(0)<='0';
+    for i in 0 to G_HDD_COUNT-1 loop
+    i_tst(i)<='0';
+    end loop;
   elsif p_in_clk'event and p_in_clk='1' then
-    p_out_tst(0)<=p_in_sh_tst(0)(0) or p_in_sh_tst(0)(2) or
-                  p_in_sh_tst(1)(0) or p_in_sh_tst(1)(2) or
-                  p_in_usr_ctrl(C_USR_GCTRL_RESERV_BIT);
+    for i in 0 to G_HDD_COUNT-1 loop
+    i_tst(i)<=OR_reduce(p_in_sh_tst(i)(2 downto 0));
+    end loop;
   end if;
 end process ltstout;
 
+p_out_tst(0)<=OR_reduce(i_tst) or p_in_usr_ctrl(C_USR_GCTRL_RESERV_BIT);
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
@@ -307,6 +312,7 @@ end process;
 
 --//Прием командного пакета
 process(p_in_rst,p_in_clk)
+  variable raidcmd: std_logic_vector(C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT downto 0);
 begin
   if p_in_rst='1' then
     i_cmdpkt.ctrl<=(others=>'0');
@@ -318,21 +324,56 @@ begin
     i_cmdpkt.device<=(others=>'0');
     i_cmdpkt.reserv<=(others=>'0');
 
+    i_usrmode.stop<='0';
+    i_usrmode.sw<='0';
+    i_usrmode.hw<='0';
+    i_usrmode.lbaend<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_usr_cxd_wr='1' then
       if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_cmdpkt_cnt'length)      then i_cmdpkt.ctrl<=p_in_usr_cxd;
+
+          raidcmd:=p_in_usr_cxd(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT);
+
+          if    raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, raidcmd'length) then
+            i_usrmode.stop<='1';
+            i_usrmode.sw<='0';
+            i_usrmode.hw<='0';
+            i_usrmode.lbaend<='0';
+
+          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, raidcmd'length) then
+            i_usrmode.stop<='0';
+            i_usrmode.sw<='1';
+            i_usrmode.hw<='0';
+            i_usrmode.lbaend<='0';
+
+          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HW, raidcmd'length) then
+            i_usrmode.stop<='0';
+            i_usrmode.sw<='0';
+            i_usrmode.hw<='1';
+            i_usrmode.lbaend<='0';
+
+          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_LBAEND, raidcmd'length) then
+            i_usrmode.stop<='0';
+            i_usrmode.sw<='0';
+            i_usrmode.hw<='0';
+            i_usrmode.lbaend<='1';
+
+          end if;
+
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_cmdpkt_cnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd(7 downto 0);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd( 7 downto 0);
+                                                                                               i_cmdpkt.lba(8*(1+1)-1 downto 8*1)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(2+1)-1 downto 8*2)<=p_in_usr_cxd( 7 downto 0);
                                                                                                i_cmdpkt.lba(8*(3+1)-1 downto 8*3)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(1+1)-1 downto 8*1)<=p_in_usr_cxd(7 downto 0);
-                                                                                               i_cmdpkt.lba(8*(4+1)-1 downto 8*4)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_cmdpkt_cnt'length)     then i_cmdpkt.lba(8*(2+1)-1 downto 8*2)<=p_in_usr_cxd(7 downto 0);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_cmdpkt_cnt'length)     then i_cmdpkt.lba(8*(4+1)-1 downto 8*4)<=p_in_usr_cxd( 7 downto 0);
                                                                                                i_cmdpkt.lba(8*(5+1)-1 downto 8*5)<=p_in_usr_cxd(15 downto 8);
+
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_cmdpkt_cnt'length) then i_cmdpkt.scount<=p_in_usr_cxd;
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_cmdpkt_cnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
-                                                                                               i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_cmdpkt_cnt'length)       then i_cmdpkt.device<=p_in_usr_cxd(7 downto 0);
-                                                                                               i_cmdpkt.reserv<=p_in_usr_cxd(15 downto 8);
+                                                                                               i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_cmdpkt_cnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
+
       end if;
     end if;
 
@@ -392,16 +433,17 @@ begin
     if i_sh_cmdcnt_en='1' then
       if    i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_sh_cmdcnt'length)     then i_sh_cxdout<=i_cmdpkt.ctrl;
       elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_sh_cmdcnt'length)     then i_sh_cxdout<=i_cmdpkt.feature;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(0+1)-1 downto 8*0);
-                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(3+1)-1 downto 8*3);
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(1+1)-1 downto 8*1);
-                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(4+1)-1 downto 8*4);
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_sh_cmdcnt'length)    then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(2+1)-1 downto 8*2);
-                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(5+1)-1 downto 8*5);
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(0+1)-1 downto 8*0);--lba_low
+                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(3+1)-1 downto 8*3);--lba_low(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(1+1)-1 downto 8*1);--lba_mid
+                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(4+1)-1 downto 8*4);--lba_mid(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_sh_cmdcnt'length)    then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(2+1)-1 downto 8*2);--lba_high
+                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(5+1)-1 downto 8*5);--lba_high(exp)
       elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_sh_cmdcnt'length)then i_sh_cxdout<=i_cmdpkt.scount;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0)<=i_cmdpkt.command;
-                                                                                            i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
       elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_sh_cmdcnt'length)      then i_sh_cxdout(7 downto 0)<=i_cmdpkt.device;
+                                                                                            i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
+
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0)<=i_cmdpkt.command;
                                                                                             i_sh_cxdout(15 downto 8)<=i_cmdpkt.reserv;
       end if;
     end if;
@@ -410,7 +452,7 @@ begin
 end process;
 
 
-p_out_sh_mask<=i_cmdpkt.ctrl(G_HDD_COUNT+C_CMDPKT_USRHDD_NUM_L_BIT-1 downto C_CMDPKT_USRHDD_NUM_L_BIT);
+p_out_sh_mask<=i_cmdpkt.ctrl(G_HDD_COUNT+C_CMDPKT_SATA_CS_L_BIT-1 downto C_CMDPKT_SATA_CS_L_BIT);
 
 p_out_sh_cxd<=i_sh_cxdout;
 p_out_sh_cxd_sof_n<=not i_sh_cxd_sof;
@@ -423,11 +465,6 @@ p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
 --//------------------------------------------
 --//Декодирование режима работы
 --//------------------------------------------
-i_usrmode.sw<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_SW_BIT);
-i_usrmode.hw<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_HW_BIT);
-i_usrmode.lbaend<=i_cmdpkt.ctrl(C_CMDPKT_USRMODE_LBAEND_BIT);
-i_usrmode.stop<=not(i_cmdpkt.ctrl(C_CMDPKT_USRMODE_SW_BIT) or i_cmdpkt.ctrl(C_CMDPKT_USRMODE_HW_BIT));
-
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -608,12 +645,12 @@ begin
     raid_trn_tx_done:='0';
 
     i_raid_atrn_next<='0';
-    i_raid_trn_done<='0';
+--    i_raid_trn_done<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     raid_atrn_next:='0';
-    raid_trn_tx_done:='0';
+--    raid_trn_tx_done:='0';
 
     --//Сигнал начать следующую атормарную транзакцию RAID
     if sr_raid_atrn_done(2)='1' and i_sh_hddcnt/=p_in_raid.hddcount then
@@ -626,7 +663,7 @@ begin
     end if;
 
     i_raid_atrn_next<=raid_atrn_next;
-    i_raid_trn_done<=raid_trn_tx_done;
+--    i_raid_trn_done<=raid_trn_tx_done;
 
   end if;
 end process;

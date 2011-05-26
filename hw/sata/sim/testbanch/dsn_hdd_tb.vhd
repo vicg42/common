@@ -308,15 +308,8 @@ p_in_usr_ctrl<=(others=>'0');
 --//Логика работы автомата управления
 lmain_ctrl:process
 
-type TCfgCmdPkt is record
-usr_ctrl: std_logic_vector(15 downto 0);
-command : integer;
-scount  : integer;
-lba     : std_logic_vector(47 downto 0);
-loopback: std_logic;
-end record;
-type TCfgCmdPkts is array (0 to 64) of TCfgCmdPkt;
-variable cfgCmdPkt : TCfgCmdPkts;
+type TSimCfgCmdPkts is array (0 to 64) of TSimCfgCmdPkt;
+variable cfgCmdPkt : TSimCfgCmdPkts;
 variable cmd_write : std_logic:='0';
 variable cmd_read  : std_logic:='0';
 variable cmddone_det: std_logic:='0';
@@ -347,93 +340,90 @@ begin
   cfgCmdPkt(i).scount:=1;
   cfgCmdPkt(i).lba:=(others=>'0');
   cfgCmdPkt(i).loopback:='0';
+  cfgCmdPkt(i).device:=(others=>'0');
+  cfgCmdPkt(i).control:=(others=>'0');
   end loop;
 
   i_txdata_select<='1'; --//0/1 - Счетчик/Random DATA
 
   --//Инициализируем команды которые будут отправлятся:
-  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
-  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='1';
-  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
-  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_DMA_EXT;--
   cfgCmdPkt(0).scount:=2;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);--//LBA
   cfgCmdPkt(0).loopback:='1';
 
-  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
-  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='1';
-  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
-  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
+  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
+  cfgCmdPkt(1).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(1).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--;
   cfgCmdPkt(1).scount:=2;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(1).loopback:='1';
 
-  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
-  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='0';
-  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
-  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
+  cfgCmdPkt(2).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(2).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(2).scount:=3;
   cfgCmdPkt(2).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(2).loopback:='1';
 
-  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
-  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='0';
-  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
-  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
+  cfgCmdPkt(3).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(3).command:=C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
   cfgCmdPkt(3).scount:=3;
   cfgCmdPkt(3).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(3).loopback:='1';
 
-  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRHDD_NUM_M_BIT downto C_CMDPKT_USRHDD_NUM_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_USRHDD_NUM_M_BIT-C_CMDPKT_USRHDD_NUM_L_BIT+1);
-  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRMODE_SW_BIT):='0';
-  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRMODE_HW_BIT):='0';
-  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
+  cfgCmdPkt(4).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(4).command:=C_ATA_CMD_WRITE_DMA_EXT;
   cfgCmdPkt(4).scount:=1;
   cfgCmdPkt(4).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(4).loopback:='0';
 
-  cfgCmdPkt(5).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(5).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(5).command:=C_ATA_CMD_READ_DMA_EXT;
   cfgCmdPkt(5).scount:=1;
   cfgCmdPkt(5).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(5).loopback:='0';
 
-  cfgCmdPkt(6).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(6).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(6).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(6).scount:=1;
   cfgCmdPkt(6).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(6).loopback:='0';
 
-  cfgCmdPkt(7).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(7).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(7).command:=C_ATA_CMD_READ_SECTORS_EXT;
   cfgCmdPkt(7).scount:=1;
   cfgCmdPkt(7).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(7).loopback:='0';
 
-  cfgCmdPkt(8).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(8).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(8).command:=C_ATA_CMD_WRITE_DMA_EXT;--;
   cfgCmdPkt(8).scount:=3;
   cfgCmdPkt(8).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(8).loopback:='0';
 
-  cfgCmdPkt(9).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(9).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(9).command:=C_ATA_CMD_READ_DMA_EXT;
   cfgCmdPkt(9).scount:=2;
   cfgCmdPkt(9).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(9).loopback:='0';
 
-  cfgCmdPkt(10).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(10).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(10).command:=C_ATA_CMD_WRITE_SECTORS_EXT;
   cfgCmdPkt(10).scount:=4;
   cfgCmdPkt(10).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
   cfgCmdPkt(10).loopback:='0';
 
-  cfgCmdPkt(11).usr_ctrl(C_CMDPKT_USRCMD_M_BIT downto C_CMDPKT_USRCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_USRCMD_ATACOMMAND, C_CMDPKT_USRCMD_M_BIT-C_CMDPKT_USRCMD_L_BIT+1);
+  cfgCmdPkt(11).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(11).command:=C_ATA_CMD_READ_SECTORS_EXT;
   cfgCmdPkt(11).scount:=3;
   cfgCmdPkt(11).lba:=CONV_STD_LOGIC_VECTOR(16#04030201#, 48);
@@ -470,7 +460,8 @@ begin
   i_cmd_data(3)<=cfgCmdPkt(idx).lba(39 downto 32) & cfgCmdPkt(idx).lba(15 downto 8);
   i_cmd_data(4)<=cfgCmdPkt(idx).lba(47 downto 40) & cfgCmdPkt(idx).lba(23 downto 16);
   i_cmd_data(5)<=CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).scount, 16);--//SectorCount
-  i_cmd_data(6)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).command, 8);--//Reserv + ATA Commad
+  i_cmd_data(6)<=cfgCmdPkt(idx).control & cfgCmdPkt(idx).device;--//Control + Device
+  i_cmd_data(7)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).command, 8);--//Reserv + ATA Commad
 
   i_tstdata_dwsize<=cfgCmdPkt(idx).scount * C_SIM_SECTOR_SIZE_DWORD;--//Назначаем размер данных в DWORD
 

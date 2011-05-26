@@ -328,7 +328,7 @@ end generate gen_dbg_off;
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 
 --p_out_tst(i)(31 downto 0)<=(others=>'0');
-tst0out:process(p_in_rst,g_gtp_usrclk2)
+tst0out:process(p_in_rst,g_gtp_usrclk2(i))
 begin
   if p_in_rst='1' then
     p_out_tst(i)(0)<='0';
