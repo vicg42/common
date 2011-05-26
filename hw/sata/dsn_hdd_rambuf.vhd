@@ -152,7 +152,7 @@ S_SW_MEM_WORK
 );
 signal fsm_state_cs: fsm_state;
 
-signal b_cfg_memtrn                    : std_logic_vector(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT downto 0);
+--signal b_cfg_memtrn                    : std_logic_vector(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT downto 0);
 signal b_cfg_work                      : std_logic;
 signal b_cfg_testing                   : std_logic;
 signal b_cfg_hw_stop                   : std_logic;
@@ -165,14 +165,14 @@ signal i_cfg_work_upedge               : std_logic;
 signal i_cfg_work_dwnedge              : std_logic;
 signal i_cfg_stop_rq                   : std_logic;
 
-signal i_wr_lenreq                     : std_logic_vector(15 downto 0);--//(в DWORD)
-signal i_rd_lenreq                     : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lenreq_dbl                 : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lenreq_dbl_remain          : std_logic_vector(15 downto 0);--//(в DWORD)
 
 signal i_dwnport_remain                : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_dnwport_dcnt                  : std_logic_vector(15 downto 0);--//(в DWORD)
 
+signal i_wr_lentrn                     : std_logic_vector(15 downto 0);--//(в DWORD)
+signal i_rd_lentrn                     : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_wr_ptr                        : std_logic_vector(31 downto 0);--//Адрес в BYTE
 signal i_rd_ptr                        : std_logic_vector(31 downto 0);--//Адрес в BYTE
 
@@ -188,8 +188,8 @@ signal i_vbuf_rdy                      : std_logic;
 signal i_vbuf_full                     : std_logic;
 
 signal i_mem_adr                       : std_logic_vector(31 downto 0);--//Адрес в BYTE
-signal i_mem_lentrn                    : std_logic_vector(15 downto 0);--//Размер запрашиваемых данных (в DWORD)
 signal i_mem_lenreq                    : std_logic_vector(15 downto 0);--//Размер запрашиваемых данных (в DWORD)
+signal i_mem_lentrn                    : std_logic_vector(15 downto 0);--//Размер одиночной транзакции
 signal i_mem_dir                       : std_logic;
 signal i_mem_start                     : std_logic;
 signal i_mem_done                      : std_logic;
@@ -356,8 +356,8 @@ begin
     i_rambuf_dcnt<=(others=>'0');
     i_rambuf_done<='0';
 
-    i_wr_lenreq<=(others=>'0');
-    i_rd_lenreq<=(others=>'0');
+    i_wr_lentrn<=(others=>'0');
+    i_rd_lentrn<=(others=>'0');
     i_rd_lenreq_dbl<=(others=>'0');
     i_rd_lenreq_dbl_remain<=(others=>'0');
 
@@ -401,9 +401,9 @@ begin
           i_wr_ptr<=(others=>'0');
           i_rd_ptr<=(others=>'0');
 
-          --//Размер транзакций записи/чтения ОЗУ по умолчанию (DWORD)
-          i_wr_lenreq<=EXT(p_in_rbuf_cfg.mem_trn(7 downto 0), i_wr_lenreq'length);
-          i_rd_lenreq<=EXT(p_in_rbuf_cfg.mem_trn(7 downto 0), i_rd_lenreq'length);
+          --//Размер одиночной транзакций записи/чтения ОЗУ (DWORD)
+          i_wr_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0);
+          i_rd_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
 
           i_rambuf_dcnt<=(others=>'0');
 
@@ -425,16 +425,20 @@ begin
       --//Ждем сигнала запуска
       when S_SW_WAIT =>
 
-        i_mem_lenreq<=i_wr_lenreq;--i_mem_lenreq_dw(15 downto 0);
-        i_mem_lentrn<=i_wr_lenreq;
+--        i_mem_lenreq<=i_wr_lenreq;--//usr requst len
+--        i_mem_lentrn<=i_wr_lenreq;--//chunk size
 
         if p_in_rbuf_cfg.dmacfg.wr_start='1' then
         --//Отрабатываем направление RAM->HDD
+          i_mem_lenreq<=i_mem_lenreq_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
+          i_mem_lentrn<=i_rd_lentrn;    --//размер одиночной транзакции
           i_mem_dir<=C_MEMCTRLCHWR_READ;
           fsm_state_cs <= S_SW_MEM_CHECK;
 
         elsif p_in_hdd_rxbuf_empty='0' then
         --//Отрабатываем направление RAM<-HDD
+          i_mem_lenreq<=i_mem_lenreq_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
+          i_mem_lentrn<=i_wr_lentrn;    --//размер одиночной транзакции
           i_mem_dir<=C_MEMCTRLCHWR_WRITE;
           fsm_state_cs <= S_SW_MEM_CHECK;
         end if;
@@ -469,7 +473,7 @@ begin
           --//Операция выполнена:
           --//Обновляем указатель записи + уровень данных в буфере
           i_wr_ptr<=i_wr_ptr + EXT(update_addr, i_wr_ptr'length);
-          i_rambuf_dcnt<=i_rambuf_dcnt + EXT(i_mem_lentrn, i_rambuf_dcnt'length);
+          i_rambuf_dcnt<=i_rambuf_dcnt + EXT(i_mem_lenreq, i_rambuf_dcnt'length);
 
           fsm_state_cs <= S_SW_MEM_CHECK;
         end if;

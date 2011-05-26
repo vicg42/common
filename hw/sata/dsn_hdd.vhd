@@ -247,7 +247,8 @@ begin
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(15 downto 0)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(31 downto 16)<=p_in_cfg_txdata;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(15 downto 0)<=p_in_cfg_txdata;
+--        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(31 downto 16)<=p_in_cfg_txdata;
 
         end if;
     end if;
@@ -270,7 +271,8 @@ begin
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_rambuf_adr(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_rambuf_adr(31 downto 16);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_rambuf_ctrl;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_rambuf_ctrl(15 downto 0);
+--        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_rambuf_ctrl(31 downto 16);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<="000000000" & i_sh_status.dev_busy & i_sh_status.dev_err & i_sh_status.dev_rdy & i_sh_status.hdd_count(3 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_drdy, 8);
@@ -294,7 +296,7 @@ i_sh_ctrl(C_USR_GCTRL_RESERV_BIT)<=h_reg_tst0(0);
 --i_cfg_buf_ovflow_disable_det<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT);--//add 2010.10.03
 
 --//Настройка/Управление RAM буфером
-p_out_rbuf_cfg.mem_trn<=EXT(h_reg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT), p_out_rbuf_cfg.mem_trn'length);
+p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
 p_out_rbuf_cfg.mem_adr<=h_reg_rambuf_adr;
 p_out_rbuf_cfg.dmacfg <=i_sh_status.dmacfg;
 p_out_rbuf_cfg.bufrst <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);

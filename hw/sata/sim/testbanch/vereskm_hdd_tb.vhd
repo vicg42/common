@@ -49,7 +49,7 @@ architecture behavior of vereskm_hdd_tb is
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
 constant C_SATACLK_PERIOD : TIME := 6.6 ns; --150MHz
-constant C_USRCLK_PERIOD  : TIME := 3.6 ns;--6.6*100 ns;
+constant C_USRCLK_PERIOD  : TIME := 3.6 ns;--6.6*10 ns;--
 constant C_HOSTCLK_PERIOD : TIME := 6.6*6 ns;
 
 component dsn_hdd_rambuf
@@ -836,13 +836,21 @@ i_satadev_ctrl.dbuf_ruse<='1';
 --//########################################
 ltxcmd:process
 variable GUI_line : LINE;--Строка для вывода в ModelSim
-variable mem_lentrn_byte: std_logic_vector(16 + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
-variable mem_lentrn_dw  : std_logic_vector(mem_lentrn_byte'range);
+variable memwr_lentrn_byte: std_logic_vector(16 + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+variable memwr_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
+variable memrd_lentrn_byte: std_logic_vector(memwr_lentrn_byte'range);
+variable memrd_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
 begin
 
   --//Инициализация:
-  mem_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, mem_lentrn_byte'length);
-  mem_lentrn_dw:=("00"&mem_lentrn_byte(mem_lentrn_byte'high downto 2));
+  --//настройка RAMBUF: направление RAM<-HDD
+--  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memwr_lentrn_byte'length);
+  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(1*4, memwr_lentrn_byte'length);
+  memwr_lentrn_dw:=("00"&memwr_lentrn_byte(memwr_lentrn_byte'high downto 2));
+
+  --//настройка RAMBUF: направление RAM->HDD
+  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memrd_lentrn_byte'length);
+  memrd_lentrn_dw:=("00"&memrd_lentrn_byte(memrd_lentrn_byte'high downto 2));
 
   i_cmd_wrdone<='0';
 
@@ -861,13 +869,14 @@ begin
   wait until i_dsn_hdd_regcfg_start = '1';--//Ждем разрешения кофигурирования регистров модуля dsn_hdd
 
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT)<=mem_lentrn_dw(7 downto 0);
+    i_cfgdev_txdata(7 downto 0) <=memwr_lentrn_dw(7 downto 0);
+    i_cfgdev_txdata(15 downto 8)<=memrd_lentrn_dw(7 downto 0);
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
 
   wait until g_host_clk'event and g_host_clk='1';
