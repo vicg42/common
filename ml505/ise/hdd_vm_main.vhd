@@ -1566,8 +1566,8 @@ p_in_rst_n         => i_host_rst_n
 
 i_host_tst_in(71 downto 64)<=i_vctrl_tst_out(23 downto 16);
 i_host_tst_in(126 downto 72)<=(others=>'0');
-i_host_tst_in(127)<=i_vctrl_tst_out(0) or
-                    i_hdd_rbuf_tst_out(0) or i_mem_arb1_tst_out(0) or i_swt_tst_out(0);
+i_host_tst_in(127)<=i_vctrl_tst_out(0) xor
+                    i_mem_arb1_tst_out(0) xor i_hdd_tst_out(0);-- i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0);
 
 
 --//Распределяем управление от хоста для соотв. модуля проекта:
@@ -2200,7 +2200,7 @@ pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1)
 pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
 
-pin_out_led(0)<=i_hdd_busy when pin_in_btn_S='0' else i_hdd_tst_out(0) or i_vctrl_hrdy(0) or tst_clr;
+pin_out_led(0)<=i_hdd_busy when pin_in_btn_S='0' else tst_clr;
 pin_out_led(1)<='0';
 pin_out_led(2)<=i_hdd_dbgled(1).err;
 pin_out_led(3)<=i_hdd_dbgled(1).rdy;

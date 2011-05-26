@@ -42,10 +42,7 @@ constant C_HDD_RAMBUF_SIZE                   : integer:=26;--//64MB : Определяет
 constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать сброс сгенеренный в проекта/с стота PCI-Express
 constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва линий
                                                           --Необходимо перегенерить ядро PCI-Express, для чего вызвать проект core_gen
-                                                          --..\src\user_module\pci_express\core_gen\pci_express.cgp
-                                                          --
-                                                          --а так же поравить константу C_PCIEXPRESS_LINK_WIDTH_
-                                                          --..\src\user_module\pci_express\pciexp_main.v
+                                                          --..board_xxx\src\pci_express\core_gen\pci_express.cgp
 
 
 --//cfg VCTRL
