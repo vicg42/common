@@ -25,12 +25,14 @@ library work;
 use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 
 entity sata_raid is
 generic
 (
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
+G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
@@ -81,6 +83,7 @@ p_in_sh_rxbuf_status    : in    TRxBufStatus_SHCountMax;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbgcs             : out   TSH_ila;
 
 p_in_sh_tst             : in    TBus32_SHCountMax;
 p_out_sh_tst            : out   TBus32_SHCountMax;
@@ -153,6 +156,7 @@ m_ctrl : sata_raid_ctrl
 generic map
 (
 G_HDD_COUNT => G_HDD_COUNT,
+G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM
 )
@@ -208,6 +212,7 @@ p_in_sh_rxbuf_empty     => i_sh_rxbuf_empty,
 --------------------------------------------------
 p_in_tst                => p_in_tst,
 p_out_tst               => tst_sata_raid_ctrl_out,
+p_out_dbgcs             => p_out_dbgcs,
 
 p_in_sh_tst             => p_in_sh_tst,
 p_out_sh_tst            => p_out_sh_tst,

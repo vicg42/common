@@ -1565,6 +1565,13 @@ p_out_dbg.dmatrn_sizedw<=EXT(i_dma_trncount_dw, p_out_dbg.dmatrn_sizedw'length);
 p_out_dbg.dmatrn_dcnt<=EXT(i_dma_dcnt, p_out_dbg.dmatrn_dcnt'length);
 p_out_dbg.piotrn_sizedw<=EXT(i_piosetup_trncount_dw, p_out_dbg.piotrn_sizedw'length);
 
+
+p_out_dbg.other_status.firq_bit<=i_firq_bit;
+p_out_dbg.other_status.fdir_bit<=i_fdir_bit;
+p_out_dbg.other_status.fpiosetup<=i_fpiosetup;
+p_out_dbg.other_status.irq<=i_irq;
+
+
 --end generate gen_sim_on;
 
 --END MAIN

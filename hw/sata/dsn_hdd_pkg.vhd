@@ -18,6 +18,7 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 
 package dsn_hdd_pkg is
@@ -96,7 +97,7 @@ generic
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=2;
 G_DBG        : string:="OFF";
---G_DBGCS      : string:="OFF";
+G_DBGCS      : string:="OFF";
 G_SIM        : string:="OFF"
 );
 port
@@ -164,6 +165,7 @@ p_out_tst                : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 : out   TSH_dbgcs_exp;
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);

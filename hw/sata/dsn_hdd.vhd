@@ -27,6 +27,7 @@ use work.prj_def.all;
 use work.vicg_common_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
 
@@ -36,7 +37,7 @@ generic
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=1;
 G_DBG        : string:="OFF";
---G_DBGCS      : string:="OFF";
+G_DBGCS      : string:="OFF";
 G_SIM        : string:="OFF"
 );
 port
@@ -104,6 +105,7 @@ p_out_tst                : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 : out   TSH_dbgcs_exp;
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -518,7 +520,7 @@ generic map
 G_HDD_COUNT => G_HDD_COUNT,
 G_GT_DBUS   => 16,
 G_DBG       => G_DBG,
---G_DBGCS     => G_DBGCS,
+G_DBGCS     => G_DBGCS,
 G_SIM       => G_SIM
 )
 port map
@@ -559,6 +561,7 @@ p_in_usr_rxbuf_full         => i_sh_rxbuf_full,
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 => p_out_dbgcs,
 p_out_sim_gtp_txdata        => i_sh_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_sh_sim_gtp_txcharisk,
 p_out_sim_gtp_txcomstart    => i_sh_sim_gtp_txcomstart,

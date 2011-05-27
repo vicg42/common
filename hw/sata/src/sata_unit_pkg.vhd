@@ -24,21 +24,6 @@ use work.sata_raid_pkg.all;
 
 package sata_unit_pkg is
 
-component sata_dbgcs_icon
-port (
-control0 : inout std_logic_vector(35 downto 0)
-);
-end component;
-
-component sata_dbgcs_ila
-port (
-control : inout std_logic_vector(35 downto 0);
-clk     : in    std_logic;
-data    : in    std_logic_vector(52 downto 0);
-trig0   : in    std_logic_vector(39 downto 0)
-);
-end component;
-
 component sata_dbgcs
 generic
 (
@@ -47,6 +32,14 @@ G_SIM      : string  := "OFF"
 );
 port
 (
+--------------------------------------------------
+--Связь с СhipScope ICON
+--------------------------------------------------
+p_out_dbgcs_ila : out  TSH_ila;
+
+--------------------------------------------------
+--USR
+--------------------------------------------------
 p_in_ctrl       : in   std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
 p_in_dbg        : in   TSH_dbgport;
@@ -61,6 +54,9 @@ p_in_ll_rxd_wr  : in   std_logic;
 
 p_in_gt_rxdata    : in std_logic_vector(31 downto 0);
 p_in_gt_rxcharisk : in std_logic_vector(3 downto 0);
+
+p_in_gt_txdata    : in std_logic_vector(31 downto 0);
+p_in_gt_txcharisk : in std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -760,7 +756,7 @@ G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
 G_GT_DBUS         : integer:=16;   --//
 G_DBG             : string :="OFF";--//
---G_DBGCS           : string :="OFF";--//
+G_DBGCS           : string :="OFF";--//
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
 port
@@ -802,6 +798,7 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 p_in_tst                    : in    TBus32_GTCH;
 p_out_tst                   : out   TBus32_GTCH;
 p_out_dbg                   : out   TSH_dbgport_GTCH;
+p_out_dbgcs                 : out   TSH_dbgcs_GTCH;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -907,6 +904,7 @@ component sata_raid_ctrl
 generic
 (
 G_HDD_COUNT : integer:=1;
+G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
@@ -962,6 +960,7 @@ p_in_sh_rxbuf_empty     : in    std_logic;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbgcs             : out   TSH_ila;
 
 p_in_sh_tst             : in    TBus32_SHCountMax;
 p_out_sh_tst            : out   TBus32_SHCountMax;
@@ -1042,6 +1041,7 @@ component sata_raid
 generic
 (
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
+G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
@@ -1092,6 +1092,7 @@ p_in_sh_rxbuf_status    : in    TRxBufStatus_SHCountMax;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbgcs             : out   TSH_ila;
 
 p_in_sh_tst             : in    TBus32_SHCountMax;
 p_out_sh_tst            : out   TBus32_SHCountMax;
@@ -1112,7 +1113,7 @@ generic
 G_HDD_COUNT : integer:=2;
 G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
---G_DBGCS     : string :="OFF";
+G_DBGCS     : string :="OFF";
 G_SIM       : string :="OFF"
 );
 port
@@ -1153,6 +1154,7 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 : out   TSH_dbgcs_exp;
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);

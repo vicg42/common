@@ -313,7 +313,7 @@ generic map
 G_MODULE_USE => "ON",--
 G_HDD_COUNT  => G_HDD_COUNT,
 G_DBG        => G_DBG,
---G_DBGCS      => "OFF",
+G_DBGCS      => "OFF",
 G_SIM        => G_SIM
 )
 port map

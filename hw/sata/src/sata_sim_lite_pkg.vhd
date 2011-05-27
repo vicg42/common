@@ -94,6 +94,13 @@ txerr_crc_repeat : std_logic;
 dma_wrstart : std_logic;
 end record;
 
+type TSimTLOtherStatus is record
+firq_bit : std_logic;
+fdir_bit : std_logic;
+fpiosetup: std_logic;
+irq      : std_logic;
+end record;
+
 type TTL_dbgport is record
 fsm   : TTL_fsm_state;
 piotrn_sizedw : std_logic_vector(31 downto 0);
@@ -101,6 +108,7 @@ dmatrn_sizedw : std_logic_vector(31 downto 0);
 dmatrn_dcnt   : std_logic_vector(31 downto 0);
 ctrl  : TSimTLCtrl;
 status: TSimTLStatus;
+other_status : TSimTLOtherStatus;
 end record;
 
 --//------------------------------
@@ -189,16 +197,31 @@ rx  : TPLrx_dbgport;
 end record;
 
 
+type TSH_ila is record
+clk   : std_logic;
+trig0 : std_logic_vector(63 downto 0);
+data  : std_logic_vector(127 downto 0);
+end record;
+
+type TSH_dbgcs is record
+spd   : TSH_ila;
+layer : TSH_ila;
+end record;
+
 type TSH_dbgport is record
 alayer  : TAL_dbgport;
 tlayer  : TTL_dbgport;
 llayer  : TLL_dbgport;
 player  : TPL_dbgport;
+dbg_ila : TSH_dbgcs;
 end record;
 
 type TSH_dbgport_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgport;
 type TSH_dbgport_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_GTCH;
---type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport;
+
+
+type TSH_dbgcs_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgcs;
+type TSH_dbgcs_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgcs_GTCH;
 
 type TSTxBuf_dbgport is record
 din     : std_logic_vector(31 downto 0);
@@ -215,7 +238,8 @@ rd      : std_logic;
 status  : TRxBufStatus;
 end record;
 
-type TSH_dbgport_addbuf is record
+
+type TSH_dbgport_exp is record
 txbuf   : TSTxBuf_dbgport;
 rxbuf   : TSRxBuf_dbgport;
 alayer  : TAL_dbgport;
@@ -224,7 +248,16 @@ llayer  : TLL_dbgport;
 player  : TPL_dbgport;
 end record;
 
-type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_addbuf;
+type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_exp;
+
+
+type TSH_dbgcs_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgcs;
+
+type TSH_dbgcs_exp is record
+sh    : TSH_dbgcs_SHCountMax;
+raid  : std_logic_vector(35 downto 0);
+end record;
+
 
 end sata_sim_lite_pkg;
 

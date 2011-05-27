@@ -249,7 +249,7 @@ G_SATAH_COUNT_MAX => 1,
 G_SATAH_NUM       => 0,
 G_SATAH_CH_COUNT  => 1,
 G_GT_DBUS         => G_GT_DBUS,
---G_DBGCS           =>  "OFF",
+G_DBGCS           =>  "OFF",
 G_DBG             => G_DBG,
 G_SIM             => G_SIM
 )

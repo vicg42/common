@@ -37,7 +37,7 @@ G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
 G_GT_DBUS         : integer:=16;   --//
 G_DBG             : string :="OFF";--//
---G_DBGCS           : string :="OFF";--//
+G_DBGCS           : string :="OFF";--//
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
 port
@@ -79,6 +79,7 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 p_in_tst                    : in    TBus32_GTCH;
 p_out_tst                   : out   TBus32_GTCH;
 p_out_dbg                   : out   TSH_dbgport_GTCH;
+p_out_dbgcs                 : out   TSH_dbgcs_GTCH;
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
@@ -624,6 +625,58 @@ p_in_tmrclk             => p_in_sys_dcm_gclk2div,
 p_in_clk                => g_gtp_usrclk2(i),
 p_in_rst                => i_sata_module_rst(i)
 );
+
+
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+
+m_dbgcs : sata_dbgcs
+generic map
+(
+G_DBG => G_DBG,
+G_SIM => G_SIM
+)
+port map
+(
+--------------------------------------------------
+--Связь с СhipScope ICON
+--------------------------------------------------
+p_out_dbgcs_ila   =>p_out_dbgcs(i).layer,
+--p_out_dbgcs_ila   =>i_dbg(i).dbg_ila.spd,
+
+--------------------------------------------------
+--USR
+--------------------------------------------------
+p_in_ctrl         => p_in_ctrl(i),
+
+p_in_dbg          => i_dbg(i),
+p_in_alstatus     => i_alstatus(i),
+p_in_phy_txreq    => i_phy_txreq(i),
+p_in_phy_rxtype   => i_phy_rxtype(i)(C_TDATA_EN downto C_TALIGN),
+p_in_phy_rxdata   => i_phy_rxd(i),
+p_in_phy_sync     => i_phy_sync(i),
+
+p_in_ll_rxd       => i_link_rxd(i),
+p_in_ll_rxd_wr    => i_link_rxd_wr(i),
+
+p_in_gt_rxdata    => i_gtp_rxdata(i),
+p_in_gt_rxcharisk => i_gtp_rxcharisk(i),
+
+p_in_gt_txdata    => i_gtp_txdata(i),
+p_in_gt_txcharisk => i_gtp_txcharisk(i),
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_out_tst         => open,
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk          => g_gtp_usrclk2(i),
+p_in_rst          => i_sata_module_rst(i)
+);
+
+end generate gen_dbgcs_on;
 
 end generate gen_ch;
 

@@ -32,6 +32,7 @@ entity sata_raid_ctrl is
 generic
 (
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
+G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
@@ -87,6 +88,7 @@ p_in_sh_rxbuf_empty     : in    std_logic;
 --------------------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
 p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbgcs             : out   TSH_ila;
 
 p_in_sh_tst             : in    TBus32_SHCountMax;
 p_out_sh_tst            : out   TBus32_SHCountMax;

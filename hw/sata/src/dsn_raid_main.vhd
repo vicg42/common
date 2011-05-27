@@ -34,7 +34,7 @@ generic
 G_HDD_COUNT : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
---G_DBGCS     : string :="OFF";--//
+G_DBGCS     : string :="OFF";--//
 G_SIM       : string :="OFF"
 );
 port
@@ -75,6 +75,7 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 : out   TSH_dbgcs_exp;
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -186,10 +187,13 @@ signal i_sim_gtp_clk               : TBusGTCH_SHCountMax;
 signal i_tst_sh_in                 : TBus32GTCH_SHCountMax;
 signal i_tst_sh_out                : TBus32GTCH_SHCountMax;
 signal i_dbg_sh_out                : TSH_dbgport_GTCH_SHCountMax;
+signal i_dbgcs_sh_out              : TSH_dbgcs_GTCH_SHCountMax;
 
 signal i_uap_tst_sh_in             : TBus32_SHCountMax;
 signal i_uap_tst_sh_out            : TBus32_SHCountMax;
 signal i_dbg_satah                 : TSH_dbgport_SHCountMax;
+signal i_dbgcs_satah               : TSH_dbgcs_SHCountMax;
+signal i_dbgcs_raid                : TSH_ila;
 
 signal i_tst_raid_ctrl             : std_logic_vector(31 downto 0);
 signal i_tst_val                   : std_logic:='0';
@@ -250,6 +254,7 @@ m_raid_ctrl : sata_raid
 generic map
 (
 G_HDD_COUNT => G_HDD_COUNT,
+G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM
 )
@@ -300,6 +305,7 @@ p_in_sh_rxbuf_status    => i_uap_rxbuf_status,
 --------------------------------------------------
 p_in_tst                => p_in_tst,
 p_out_tst               => i_tst_raid_ctrl,
+p_out_dbgcs             => i_dbgcs_raid,
 
 p_in_sh_tst             => i_uap_tst_sh_out,
 p_out_sh_tst            => i_uap_tst_sh_in,
@@ -319,6 +325,10 @@ p_in_rst                => p_in_rst
 p_out_sata_refclkout<=g_sh_dcm_clkin;
 p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(G_HDD_COUNT-1 downto 0));
 p_out_sata_dcm_lock<=i_sh_dcm_lock;
+
+p_out_dbgcs.sh<=i_dbgcs_satah;
+p_out_dbgcs.raid<=(others=>'0');--i_dbgcs_raid;
+
 
 i_sh_buf_rst<=p_in_rst or p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
 
@@ -374,7 +384,9 @@ i_uap_tst_sh_out(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_tst_sh_out(sh_idx)(ch_idx);
 
 
 --//Моделирование
---i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_dbg_sh_out(sh_idx)(ch_idx);
+i_dbgcs_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).spd<=i_dbgcs_sh_out(sh_idx)(ch_idx).spd;
+i_dbgcs_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).layer<=i_dbgcs_sh_out(sh_idx)(ch_idx).layer;
+
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).alayer<=i_dbg_sh_out(sh_idx)(ch_idx).alayer;
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).tlayer<=i_dbg_sh_out(sh_idx)(ch_idx).tlayer;
 i_dbg_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).llayer<=i_dbg_sh_out(sh_idx)(ch_idx).llayer;
@@ -488,7 +500,7 @@ G_SATAH_NUM       => sh_idx,
 G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
 G_GT_DBUS         => G_GT_DBUS,
 G_DBG             => G_DBG,
---G_DBGCS           => G_DBGCS,
+G_DBGCS           => G_DBGCS,
 G_SIM             => G_SIM
 )
 port map
@@ -531,6 +543,7 @@ p_in_rxbuf_status           => i_rxbuf_status(sh_idx),
 p_in_tst                    => i_tst_sh_in(sh_idx),
 p_out_tst                   => i_tst_sh_out(sh_idx),
 p_out_dbg                   => i_dbg_sh_out(sh_idx),
+p_out_dbgcs                 => i_dbgcs_sh_out(sh_idx),
 
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
