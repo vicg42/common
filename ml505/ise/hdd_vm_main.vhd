@@ -31,6 +31,7 @@ use work.vereskm_pkg.all;
 use work.cfgdev_pkg.all;
 use work.memory_ctrl_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
@@ -191,6 +192,21 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
+component dbgcs_icon
+  PORT (
+    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+
+end component;
+
+component sata_dbgcs_layer
+  PORT (
+    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CLK : IN STD_LOGIC;
+    DATA : IN STD_LOGIC_VECTOR(122 DOWNTO 0);
+    TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
+    );
+end component;
+
 component fpga_test_01
 generic(
 G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
@@ -246,6 +262,9 @@ clk           : out   std_logic;
 locked        : out   std_logic
 );
 end component;
+
+
+signal i_dbgcs_sh0_layer                 : std_logic_vector(35 downto 0);
 
 signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
@@ -414,6 +433,7 @@ signal i_hdd_rambuf_cfg                 : std_logic_vector(31 downto 0);
 signal i_hdd_rbuf_tst_out               : std_logic_vector(31 downto 0);
 signal i_hdd_dbgled                     : THDDLed_SHCountMax;
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
+signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
 signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_txcomstart         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -1297,7 +1317,7 @@ generic map
 G_MODULE_USE=> C_USE_HDD,
 G_HDD_COUNT => C_HDD_COUNT,
 G_DBG       => C_DBG_HDD,
---G_DBGCS     => C_HDD_DBGCS,
+G_DBGCS     => G_DBGCS_HDD,
 G_SIM       => G_SIM
 )
 port map
@@ -1365,6 +1385,7 @@ p_out_tst             => i_hdd_tst_out,
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 => i_hdd_dbgcs,
 p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
 p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
@@ -2141,7 +2162,6 @@ ramclko => ramclko
 --//Для ПЛАТЫ ALPHA DATA
 --//-----------------------------------------
 gen_alphadata : if strcmp(C_BOARD_USE,"ALPHA_DATA") generate
-begin
 
 pin_out_led<=(others=>'0');
 pin_out_led_C<=pin_in_btn_C;
@@ -2165,7 +2185,6 @@ end generate gen_alphadata;
 --//Для ПЛАТЫ ML505
 --//-----------------------------------------
 gen_ml505 : if strcmp(C_BOARD_USE,"ML505") generate
-begin
 
 pin_out_ddr2_cke1<='0';
 pin_out_ddr2_cs1<='0';
@@ -2228,6 +2247,44 @@ p_out_1ms      => open,
 p_in_clk       => g_hdd_gt_refclkout,
 p_in_rst       => i_hdd_module_rst
 );
+
+
+gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
+
+m_dbgcs_icon : dbgcs_icon
+port map(
+CONTROL0 => i_dbgcs_sh0_layer --
+--control => i_hdd_dbgcs.sh(0).spd,
+--control => i_hdd_dbgcs.raid,
+);
+
+m_dbgcs_sh0_layer : sata_dbgcs_layer
+port map
+(
+CONTROL => i_dbgcs_sh0_layer,
+CLK     => i_hdd_dbgcs.sh(0).layer.clk,
+DATA    => i_hdd_dbgcs.sh(0).layer.data(122 downto 0),
+TRIG0   => i_hdd_dbgcs.sh(0).layer.trig0(41 downto 0)
+);
+
+--m_dbgcs_sh0_spd : sata_dbgcs_spd
+--port map
+--(
+--CONTROL => i_dbgcs_sh0_spd,
+--CLK     => i_hdd_dbgcs.sh(0).spd.clk,
+--DATA    => i_hdd_dbgcs.sh(0).spd.data(122 downto 0),
+--TRIG0   => i_hdd_dbgcs.sh(0).spd.trig0(41 downto 0)
+--);
+--m_dbgcs_sh0_raid : sata_dbgcs_raid
+--port map
+--(
+--CONTROL => i_dbgcs_sh0_spd,
+--CLK     => i_hdd_dbgcs.raid.clk,
+--DATA    => i_hdd_dbgcs.raid.data(122 downto 0),
+--TRIG0   => i_hdd_dbgcs.raid.trig0(41 downto 0)
+--);
+
+end generate gen_dbgcs;
 
 --m_gtp_04_test: fpga_test_01
 --generic map(
