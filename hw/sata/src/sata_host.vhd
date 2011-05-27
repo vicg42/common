@@ -195,6 +195,7 @@ signal i_gtp_txcharisk             : TBus04_GTCH;
 
 signal i_dbg                       : TSH_dbgport_GTCH;
 
+signal tst_alayer_in               : TBus32_GTCH;
 signal tst_alayer_out              : TBus32_GTCH;
 signal tst_tlayer_out              : TBus32_GTCH;
 signal tst_llayer_out              : TBus32_GTCH;
@@ -343,7 +344,7 @@ begin
   end if;
 end process tst0out;
 
-p_out_tst(i)(1)<=i_sata_module_rst(i);
+p_out_tst(i)(1)<='0';
 
 tst2out:process(p_in_rst,p_in_gtp_drpclk)
 begin
@@ -363,6 +364,11 @@ end generate gen_dbg_on;
 --//-----------------------------
 --//Инициализация
 --//-----------------------------
+tst_alayer_in(i)(28 downto 0)<=p_in_tst(i)(28 downto 0);
+tst_alayer_in(i)(29)<=tst_llayer_out(i)(3);--is tst_rxon;
+tst_alayer_in(i)(30)<=tst_llayer_out(i)(2);--is tst_txon;
+tst_alayer_in(i)(31)<=tst_llayer_out(i)(1);--is i_rxp(C_THOLD);
+
 i_linkup(i)<=i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT);
 
 i_phy_ctrl(i)<=i_spd_out(i).sata_ver;
@@ -423,7 +429,7 @@ p_in_reg_update           => i_reg_update(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  => p_in_tst(i),
+p_in_tst                  => tst_alayer_in(i),
 p_out_tst                 => tst_alayer_out(i),
 p_out_dbg                 => i_dbg(i).alayer,
 

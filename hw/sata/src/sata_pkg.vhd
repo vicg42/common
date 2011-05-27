@@ -240,7 +240,10 @@ constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_IPM_L_BIT;
 --//Поле - User/Map:
 constant C_AUSER_BUSY_BIT                : integer:=0;
 constant C_AUSER_DWR_START_BIT           : integer:=1;--//Растягивание Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
-constant C_AUSER_RESERV_BIT              : integer:=2;
+constant C_AUSER_LLRXP_HOLD_BIT          : integer:=2;--
+constant C_AUSER_LLTX_ON_BIT             : integer:=3;--
+constant C_AUSER_LLRX_ON_BIT             : integer:=4;--
+constant C_AUSER_RESERV_BIT              : integer:=5;
 constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_RESERV_BIT;
 
 

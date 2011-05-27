@@ -111,8 +111,6 @@ signal i_serr_c_err                : std_logic;
 
 signal i_usr_status                : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 
---signal i_dwr_width_cnt             : std_logic_vector(15 downto 0);
-
 signal i_dbgtsf_type               : string(1 to 23);
 
 
@@ -470,26 +468,25 @@ begin
     i_usr_status(C_AUSER_BUSY_BIT)<='1';
     i_usr_status(C_ALUSER_LAST_BIT downto C_AUSER_BUSY_BIT+1)<=(others=>'0');
 
---    i_dwr_width_cnt<=(others=>'0');
-
   elsif p_in_clk'event and p_in_clk='1' then
     i_usr_status(C_AUSER_BUSY_BIT)<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
 
     --//–аст€гиваем импульс C_AUSER_DWR_START_BIT
     if p_in_tl_status(C_TSTAT_DWR_START_BIT)='1' then
       i_usr_status(C_AUSER_DWR_START_BIT)<='1';
---    elsif i_dwr_width_cnt(8)='1' then
     elsif p_in_reg_update.fpio_e='1' or p_in_reg_update.fd2h='1' or
          (i_serr_i_err='1' or i_serr_p_err='1' or i_serr_c_err='1' or i_reg_shadow.status(C_ATA_STATUS_ERR_BIT)='1') then
-    --//—брос по завершению команды в режиме PIO или по приему FIS_DEV2HOST или при обнаружении ошибки
+      --//—брос:
+      --по завершению команды в режиме PIO,
+      --по приему FIS_DEV2HOST,
+      --при обнаружении ошибки
       i_usr_status(C_AUSER_DWR_START_BIT)<='0';
     end if;
 
---    if i_usr_status(C_AUSER_DWR_START_BIT)<='0' then
---      i_dwr_width_cnt<=(others=>'0');
---    else
---      i_dwr_width_cnt<=i_dwr_width_cnt+1;
---    end if;
+    --//—игнал дл€ измерени€ задержек HDD
+    i_usr_status(C_AUSER_LLRXP_HOLD_BIT)<=p_in_tst(31);
+    i_usr_status(C_AUSER_LLTX_ON_BIT)<=p_in_tst(30);
+    i_usr_status(C_AUSER_LLRX_ON_BIT)<=p_in_tst(29);
 
   end if;
 end process;

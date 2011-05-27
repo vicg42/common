@@ -138,7 +138,8 @@ signal i_txp_retransmit_dis        : std_logic;
 signal i_tl_check_done             : std_logic;--//Обнаружил сигнал завершения проверки Transport Layer
 signal i_tl_check_ok               : std_logic;--//Результат проверки принятых данных Transport Layer
 
-
+signal tst_txon                    : std_logic;
+signal tst_rxon                    : std_logic;
 signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
 
@@ -160,13 +161,17 @@ ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(31 downto 1)<=(others=>'0');
+    p_out_tst(3 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
     p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
+    p_out_tst(1)<=i_rxp(C_THOLD);
+    p_out_tst(2)<=tst_txon;
+    p_out_tst(3)<=tst_rxon;
   end if;
 end process ltstout;
+p_out_tst(31 downto 4)<=(others=>'0');
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_llayer_cs=S_L_IDLE          else
             CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_llayer_cs=S_L_SyncEscape    else
@@ -430,6 +435,9 @@ if p_in_rst='1' then
 
   i_pcont_use<='0';
 
+  tst_txon<='0';
+  tst_rxon<='0';
+
 elsif p_in_clk'event and p_in_clk='1' then
 --if clk_en='1' then
 if p_in_phy_sync='1' then
@@ -472,6 +480,9 @@ if p_in_phy_sync='1' then
       i_status(C_LSTAT_TxERR_CRC)<='0';
       i_status(C_LSTAT_TxERR_IDLE)<='0';
       i_status(C_LSTAT_TxERR_ABORT)<='0';
+
+      tst_txon<='0';
+      tst_rxon<='0';
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с утройством оборвана
@@ -729,6 +740,7 @@ if p_in_phy_sync='1' then
 
               i_txp_cnt<=(others=>'0');
               i_init_work<='1';--//Инициализация модулей CRC,Scrambler
+              tst_txon<='1';
               fsm_llayer_cs <= S_LT_SendSOF;
 
           else
@@ -1568,6 +1580,7 @@ if p_in_phy_sync='1' then
               i_txp_cnt<=(others=>'0');
               i_rcv_en<='1';
               i_status(C_LSTAT_RxSTART)<='1';--//Информ. Транспорный уровень
+              tst_rxon<='1';
               fsm_llayer_cs <= S_LR_RcvData;
 
           elsif p_in_phy_rxtype(C_TCONT)='1' then

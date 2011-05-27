@@ -419,19 +419,16 @@ begin
       --//Ждем сигнала запуска
       when S_SW_WAIT =>
 
---        i_mem_lenreq<=i_wr_lenreq;--//usr requst len
---        i_mem_lentrn<=i_wr_lenreq;--//chunk size
+        i_mem_lenreq<=i_mem_lenreq_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
 
         if p_in_rbuf_cfg.dmacfg.wr_start='1' then
         --//Отрабатываем направление RAM->HDD
-          i_mem_lenreq<=i_mem_lenreq_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
           i_mem_lentrn<=i_rd_lentrn;    --//размер одиночной транзакции
           i_mem_dir<=C_MEMCTRLCHWR_READ;
           fsm_state_cs <= S_SW_MEM_CHECK;
 
         elsif p_in_hdd_rxbuf_empty='0' then
         --//Отрабатываем направление RAM<-HDD
-          i_mem_lenreq<=i_mem_lenreq_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
           i_mem_lentrn<=i_wr_lentrn;    --//размер одиночной транзакции
           i_mem_dir<=C_MEMCTRLCHWR_WRITE;
           fsm_state_cs <= S_SW_MEM_CHECK;
