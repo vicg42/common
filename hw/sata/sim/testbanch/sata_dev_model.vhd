@@ -1691,11 +1691,11 @@ write(GUI_line,string'("RCV DATA. Wait EOF ...."));writeline(output, GUI_line);
 --//-------------------------------------------------
 lrxd :while i_usropt_in.rx.detect.prmtv.eof='0' and i_usropt_in.rx.dname/="SYNC   " loop
 --//Прием FIS_DATA
-if txcomp_cnt3>16#0C# then
-  write(GUI_line,string'("RCV DATA./SEND DMAT"));writeline(output, GUI_line);
-  p_SetData(p_in_clk, C_PDAT_DMAT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-
-else
+--if txcomp_cnt3>16#0C# then
+--  write(GUI_line,string'("RCV DATA./SEND DMAT"));writeline(output, GUI_line);
+--  p_SetData(p_in_clk, C_PDAT_DMAT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--
+--else
   if i_usropt_in.dbuf.wused='1' and i_usropt_in.dbuf.wen='0' then
       txcomp_cnt1:=0;
       txcomp_cnt2:=0;
@@ -1744,7 +1744,7 @@ else
       end if;
 
   end if;
-end if;
+--end if;--if txcomp_cnt3>16#0C# then
   txcomp_cnt3:=txcomp_cnt3 + 1;
 
 end loop lrxd;

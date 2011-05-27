@@ -158,9 +158,6 @@ i_link_txd_close(0)<=i_sim_txbuf_close;
 --i_link_txd_status(0).empty<='0';
 --i_link_txd_status(0).aempty<='0';
 --
---//Вариант 1 - отложеная передача HOLD перед выдачей данных
-i_link_txd_status(0).aempty<='0','1' after 11.772 us, '0' after 11.8 us;
-i_link_txd_status(0).empty<='1','1' after 11.772 us, '0' after 11.9 us;
 ------
 ------//Вариант 2 - нету отложеной передачи HOLD перед выдачей данных
 ----i_link_txd_status(0).empty<='0','1' after 11.8 us, '0' after 12.5 us;
@@ -180,6 +177,10 @@ i_link_rxd_status(0).empty<='1','0' after 9.012 us, '1' after 9.3 us;
 end generate gen_dbus8;
 
 gen_dbus16 : if G_GT_DBUS=16 generate
+--//Вариант 1 - отложеная передача HOLD перед выдачей данных
+i_link_txd_status(0).aempty<='0','1' after 11.17 us, '0' after 11.18 us;
+i_link_txd_status(0).empty<='1','1' after 11.17 us, '0' after 11.19 us;
+
 --i_link_rxd_status(0).pfull<='0','1' after 8.312 us, '0' after 8.4 us;
 --i_link_rxd_status(0).empty<='1','0' after 8.312 us, '1' after 8.5 us;
 
