@@ -29,6 +29,8 @@ constant C_USE_HDD                           : string:="ON";
 constant C_DBG_HDD                           : string:="OFF";
 constant G_DBG_ETH                           : string:="OFF";
 
+constant G_DBGCS_HDD                         : string:="OFF";
+
 --//Конфигурирование модулей:
 --//cfg Memory Controller
 constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 3
