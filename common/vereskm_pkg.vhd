@@ -22,6 +22,7 @@ use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 
 package vereskm_pkg is
@@ -280,6 +281,7 @@ p_out_mem_clk         : out   std_logic;
 -------------------------------
 p_in_tst              : in    std_logic_vector(31 downto 0);
 p_out_tst             : out   std_logic_vector(31 downto 0);
+p_out_dbgcs           : out   TSH_ila;
 
 -------------------------------
 --System

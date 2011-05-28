@@ -1,11 +1,11 @@
-# Date: Sat Dec 04 08:55:04 2010
+# Date: Sat May 28 06:11:26 2011
 
 SET addpads = false
 SET asysymbol = true
 SET busformat = BusFormatAngleBracketNotRipped
 SET createndf = false
 SET designentry = VHDL
-SET device = xc5vlx110t
+SET device = xc5vlx50t
 SET devicefamily = virtex5
 SET flowvendor = Other
 SET formalverification = false
@@ -19,4 +19,4 @@ SET verilogsim = false
 SET vhdlsim = true
 SET workingdirectory = ./tmp/
 
-# CRC: cdbfb9f3
+# CRC: deb316f2
