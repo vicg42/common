@@ -31,6 +31,7 @@ use work.vereskm_pkg.all;
 use work.cfgdev_pkg.all;
 use work.memory_ctrl_pkg.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
