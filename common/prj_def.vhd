@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0313#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0315#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -417,7 +417,8 @@ constant C_DSN_HDD_REG_RBUF_ADR_M            : integer:=16#021#;--//add 2010.10.
 --constant C_DSN_HDD_REG_RBUF_SIZE_M           : integer:=16#023#;--//add 2010.10.03
 --constant C_DSN_HDD_REG_RBUF_LEVEL            : integer:=16#024#;--//add 2010.10.03
 --constant C_DSN_HDD_REG_RBUF_FIFO_SIZE        : integer:=16#025#;--//add 2010.10.03
-constant C_DSN_HDD_REG_RBUF_CTRL             : integer:=16#026#;--//add 2010.10.03
+constant C_DSN_HDD_REG_RBUF_CTRL_L           : integer:=16#026#;--//add 2010.10.03
+constant C_DSN_HDD_REG_RBUF_CTRL_M           : integer:=16#027#;--//add 2010.10.03
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_CTRL_L / Bit Map:
@@ -434,17 +435,15 @@ constant C_DSN_HDD_REG_RBUF_ADR_BANK_LSB_BIT       : integer:=C_HREG_USR_MEM_ADR
 constant C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT       : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;--29;
 constant C_DSN_HDD_REG_RBUF_LAST_BIT               : integer:=C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT;
 
---//Register C_DSN_HDD_REG_RBUF_CTRL / Bit Map:
-constant C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT   : integer:=0;
-constant C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT   : integer:=7;
-constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT      : integer:=8;
-constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT      : integer:=9;
-constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT     : integer:=10;
-constant C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT         : integer:=11;
-constant C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT         : integer:=12;
-constant C_DSN_HDD_REG_RBUF_CTRL_START_BIT        : integer:=13;
-constant C_DSN_HDD_REG_RBUF_CTRL_RST_BIT          : integer:=14;
-constant C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT      : integer:=15;
+--//Register C_DSN_HDD_REG_RBUF_CTRL_M / Bit Map:
+constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT      : integer:=0;
+constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT      : integer:=1;
+constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT     : integer:=2;
+constant C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT         : integer:=3;
+constant C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT         : integer:=4;
+constant C_DSN_HDD_REG_RBUF_CTRL_START_BIT        : integer:=5;
+constant C_DSN_HDD_REG_RBUF_CTRL_RST_BIT          : integer:=6;
+constant C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT      : integer:=7;
 
 
 --//Register C_DSN_HDD_REG_TST0 / Bit Map:
