@@ -748,7 +748,7 @@ begin
 
 --(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT)
   --//размер одиночной транзакции (в DWORD) для записи/чтения
-  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#40#, C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT+1);
+--  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#40#, C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT+1);
   hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT) :='1';--//Режим тестирования
   hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT) :='0';--//Перевод модуля HDD_RAMBUF в исходное состояние
                                                             --//Для коректного выолнения перехода в исходное состояние нельзя обрывать входной поток данных
@@ -823,7 +823,7 @@ begin
   TrcNikChParams(0).ip(0).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(0).p2:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(1).p1:=CONV_STD_LOGIC_VECTOR(16#42#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#2A#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#FA#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(2).p1:=CONV_STD_LOGIC_VECTOR(16#10#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(2).p2:=CONV_STD_LOGIC_VECTOR(16#C0#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(3).p1:=CONV_STD_LOGIC_VECTOR(16#20#, TrcNikChParams(0).ip(0).p1'length);
@@ -831,7 +831,7 @@ begin
 
   TrcNikChParams(0).opt:=(others=>'0');
 
-  TrcNikIP_Count:=1;--//Кол-во обрабатываемых интервальных порогов
+  TrcNikIP_Count:=2;--//Кол-во обрабатываемых интервальных порогов
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
@@ -2265,7 +2265,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(4, lclk);
   --// Конфигурирование RAMBUF Накопителя
   --//End
