@@ -31,6 +31,7 @@ use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.sata_pkg.all;
+use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
 
@@ -99,6 +100,31 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
+component dbgcs_icon
+  PORT (
+    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+
+end component;
+
+component dbgcs_sata_layer
+  PORT (
+    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CLK : IN STD_LOGIC;
+    DATA : IN STD_LOGIC_VECTOR(122 DOWNTO 0);
+    TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
+    );
+end component;
+
+component dbgcs_sata_rambuf
+  PORT (
+    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CLK : IN STD_LOGIC;
+    DATA : IN STD_LOGIC_VECTOR(104 DOWNTO 0);
+    TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
+    );
+end component;
+
 component fpga_test_01
 generic(
 G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
@@ -120,7 +146,10 @@ p_in_rst       : in    std_logic
 );
 end component;
 
+signal i_dbgcs_sh0_layer                : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
 
+signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
 --signal rst_sys                          : std_logic;
 
@@ -131,6 +160,7 @@ signal i_dsn_hdd_rst                    : std_logic;
 signal i_hdd_gt_refclk150               : std_logic;
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
+signal i_hdd_dcm_lock                   : std_logic;
 
 signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
 signal i_hdd_rbuf_status                : THDDRBufStatus;
@@ -159,6 +189,10 @@ signal i_hdd_busy                       : std_logic;
 signal i_hdd_hirq                       : std_logic;
 signal i_hdd_done                       : std_logic;
 
+signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
+signal i_hddrambuf_dbgcs                : TSH_ila;
+signal i_hdd_rambuf_dbgcs               : TSH_ila;
+
 signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_txcomstart         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -180,6 +214,8 @@ signal i_test01_led                     : std_logic;
 
 signal sr_hdd_cmd_start                 : std_logic_vector(0 to 6);
 
+signal tst_clr                          : std_logic;
+
 
 --//MAIN
 begin
@@ -190,7 +226,7 @@ begin
 --//RESET модулей
 --***********************************************************
 rst_sys_n <= lreset_l;
-i_dsn_hdd_rst <=not rst_sys_n;--
+i_dsn_hdd_rst <=not rst_sys_n or i_usr_rst;--
 
 --***********************************************************
 --          Установка частот проекта:
@@ -221,8 +257,9 @@ generic map
 (
 G_MODULE_USE=> C_USE_HDD,
 G_HDD_COUNT => C_HDD_COUNT,
+G_GT_DBUS   => C_HDD_GT_DBUS,
 G_DBG       => C_DBG_HDD,
---G_DBGCS     => C_HDD_DBGCS,
+G_DBGCS     => G_DBGCS_HDD,
 G_SIM       => G_SIM
 )
 port map
@@ -279,6 +316,7 @@ p_in_sata_rxp         => pin_in_sata_rxp,
 p_in_sata_refclk      => i_hdd_gt_refclk150,
 p_out_sata_refclkout  => g_hdd_gt_refclkout,
 p_out_sata_gt_plldet  => i_hdd_gt_plldet,
+p_out_sata_dcm_lock   => i_hdd_dcm_lock,
 
 ---------------------------------------------------------------------------
 --Технологический порт
@@ -289,6 +327,7 @@ p_out_tst             => i_hdd_tst_out,
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
+p_out_dbgcs                 => i_hdd_dbgcs,
 p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
 p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
@@ -317,27 +356,31 @@ p_in_rst           => i_dsn_hdd_rst
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
+i_usr_rst<=pin_in_btn_N;
+
+tst_clr<=OR_reduce(i_hdd_rxdata) or OR_reduce(i_hdd_cfg_rxdata) or i_hdd_txbuf_full or i_hdd_rxbuf_empty or i_hdd_gt_plldet or i_hdd_hirq or i_hdd_done;
+
 --//J5 /pin2
-pin_out_TP(0)<=OR_reduce(i_hdd_rxdata) or OR_reduce(i_hdd_cfg_rxdata) or i_hdd_txbuf_full or i_hdd_rxbuf_empty or i_hdd_gt_plldet or i_hdd_hirq or i_hdd_done;
+pin_out_TP(0)<=OR_reduce(i_hdd_tst_out) or pin_in_btn_C or pin_in_btn_E;
 --//J6
-pin_out_TP(1)<=OR_reduce(i_hdd_tst_out);
+pin_out_TP(1)<='0';
 pin_out_TP(2)<='0';
-pin_out_TP(3)<=i_test01_led;
+pin_out_TP(3)<='0';
 pin_out_TP(4)<='0';
 pin_out_TP(5)<='0';
 pin_out_TP(6)<='0';
-pin_out_TP(7)<=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S;
+pin_out_TP(7)<='0';
 
 
 --Светодиоды
-pin_out_led_E<=i_hdd_gt_plldet;
-pin_out_led_N<=i_hdd_tst_out(1);--//i_sata_module_rst(0);
+pin_out_led_E<=i_hdd_gt_plldet and i_hdd_dcm_lock;
+pin_out_led_N<=i_dsn_hdd_rst;
 pin_out_led_S<=i_test01_led;
 pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
 
-pin_out_led(0)<=i_hdd_busy;
+pin_out_led(0)<=i_hdd_busy when pin_in_btn_S='0' else tst_clr;
 pin_out_led(1)<='0';
 pin_out_led(2)<=i_hdd_dbgled(1).err;
 pin_out_led(3)<=i_hdd_dbgled(1).rdy;
@@ -409,5 +452,53 @@ begin
 end process;
 
 
+gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
+
+m_dbgcs_icon : dbgcs_icon
+port map(
+CONTROL0 => i_dbgcs_sh0_layer, --
+CONTROL1 => i_dbgcs_hdd_rambuf
+--control => i_hdd_dbgcs.raid,
+);
+
+m_dbgcs_sh0_layer : dbgcs_sata_layer
+port map
+(
+CONTROL => i_dbgcs_sh0_layer,
+CLK     => i_hdd_dbgcs.sh(0).layer.clk,
+DATA    => i_hdd_dbgcs.sh(0).layer.data(122 downto 0),
+TRIG0   => i_hdd_dbgcs.sh(0).layer.trig0(41 downto 0)
+);
+
+m_dbgcs_hddrambuf : dbgcs_sata_rambuf
+port map
+(
+CONTROL => i_dbgcs_hdd_rambuf,
+CLK     => i_hdd_dbgcs.sh(0).layer.clk,
+DATA    => i_hddrambuf_dbgcs.data(104 downto 0),
+TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
+);
+
+i_hddrambuf_dbgcs.trig0<=(others=>'0');
+i_hddrambuf_dbgcs.data<=(others=>'0');
+
+--m_dbgcs_sh0_spd : sata_dbgcs_spd
+--port map
+--(
+--CONTROL => i_dbgcs_sh0_spd,
+--CLK     => i_hdd_dbgcs.sh(0).spd.clk,
+--DATA    => i_hdd_dbgcs.sh(0).spd.data(122 downto 0),
+--TRIG0   => i_hdd_dbgcs.sh(0).spd.trig0(41 downto 0)
+--);
+--m_dbgcs_sh0_raid : sata_dbgcs_raid
+--port map
+--(
+--CONTROL => i_dbgcs_sh0_spd,
+--CLK     => i_hdd_dbgcs.raid.clk,
+--DATA    => i_hdd_dbgcs.raid.data(122 downto 0),
+--TRIG0   => i_hdd_dbgcs.raid.trig0(41 downto 0)
+--);
+
+end generate gen_dbgcs;
 
 end architecture;

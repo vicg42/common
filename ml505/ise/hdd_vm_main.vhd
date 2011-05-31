@@ -1330,6 +1330,7 @@ generic map
 (
 G_MODULE_USE=> C_USE_HDD,
 G_HDD_COUNT => C_HDD_COUNT,
+G_GT_DBUS   => C_HDD_GT_DBUS,
 G_DBG       => C_DBG_HDD,
 G_DBGCS     => G_DBGCS_HDD,
 G_SIM       => G_SIM
