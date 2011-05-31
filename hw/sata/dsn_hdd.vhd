@@ -36,6 +36,7 @@ generic
 (
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=1;
+G_GT_DBUS    : integer:=16;
 G_DBG        : string:="OFF";
 G_DBGCS      : string:="OFF";
 G_SIM        : string:="OFF"
@@ -518,7 +519,7 @@ m_dsn_sata : dsn_raid_main
 generic map
 (
 G_HDD_COUNT => G_HDD_COUNT,
-G_GT_DBUS   => 16,
+G_GT_DBUS   => G_GT_DBUS,
 G_DBG       => G_DBG,
 G_DBGCS     => G_DBGCS,
 G_SIM       => G_SIM

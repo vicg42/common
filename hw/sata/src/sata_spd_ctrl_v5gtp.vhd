@@ -329,6 +329,9 @@ begin
             i_tmr_en<='1';
           end if;
         else
+          for i in 0 to C_GTCH_COUNT_MAX-1 loop
+          i_spd_ver_out(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, i_spd_ver_out(i).sata_ver'length);
+          end loop;
           i_tmr_en<='0';
         end if;
 

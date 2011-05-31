@@ -353,6 +353,9 @@ begin
     p_out_status.SError(C_ASERR_SPD_M_BIT downto C_ASERR_SPD_L_BIT)<=i_sstatus(C_ASSTAT_SPD_BIT_L+2 downto C_ASSTAT_SPD_BIT_L);
     p_out_status.SError(C_ASERR_IPM_L_BIT)<=i_sstatus(C_ASSTAT_IPM_BIT_L);
 
+    p_out_status.SError(C_ASERR_ATAERR_DIAG_M_BIT downto C_ASERR_ATAERR_DIAG_L_BIT)<=i_reg_shadow.error;
+    p_out_status.SError(C_ASERR_ATA_ERR_BIT)<=i_reg_shadow.status(C_ATA_STATUS_ERR_BIT);
+
     if i_err_clr='1' then
 
       p_out_status.SError(C_ASERR_P_ERR_BIT)<='0';

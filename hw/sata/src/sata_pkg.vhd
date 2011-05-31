@@ -211,12 +211,15 @@ constant C_ASSTAT_DET_LINK_ESTABLISH     : integer:=3;
 --//Поле - SError/Map:
 --//Более подробно см. d1532v3r4b ATA-ATAPI-7.pdf п.п.19.2.2
 constant C_ASERR_I_ERR_BIT               : integer:=0;
-constant C_ASERR_M_ERR_BIT               : integer:=1;--//не использую
+--constant C_ASERR_M_ERR_BIT               : integer:=1;--//не использую
+--constant C_ASERR_T_ERR_BIT               : integer:=8;--//не использую
+constant C_ASERR_ATAERR_DIAG_L_BIT       : integer:=1;--//регистр shadow_error
+constant C_ASERR_ATAERR_DIAG_M_BIT       : integer:=8;--//
 
-constant C_ASERR_T_ERR_BIT               : integer:=8;--//не использую
 constant C_ASERR_C_ERR_BIT               : integer:=9;
 constant C_ASERR_P_ERR_BIT               : integer:=10;
-constant C_ASERR_E_ERR_BIT               : integer:=11;--//не использую
+--constant C_ASERR_E_ERR_BIT               : integer:=11;--//не использую
+constant C_ASERR_ATA_ERR_BIT             : integer:=11;
 
 constant C_ASERR_N_DIAG_BIT              : integer:=16;--//PHY Layer:if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') then
 constant C_ASERR_I_DIAG_BIT              : integer:=17;--//не использую
