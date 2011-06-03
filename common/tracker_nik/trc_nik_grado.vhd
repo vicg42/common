@@ -429,20 +429,15 @@ begin
       sr_buf_dout(i)(2)<=sr_buf_dout(i)(1);
 
       if (sr_dxs(i)(2)(10)='0' and sr_dxs(i)(2)(9 downto 0)>"0011111111") or
-         (sr_dxs(i)(2)(10)='1' and sr_dxs(i)(2)(9 downto 0)<"1100000000") then
-      --//Если -255 > значение > +255, то подстовляем
-      --//нормированый результат уножения на масштабирующий коэфициент (0.625)
-        i_dxs_result(i)<=i_dxs_mult_nresult(i);
-      else
-        i_dxs_result(i)<=sr_dxs(i)(2);
-      end if;
-
-      if (sr_dys(i)(2)(10)='0' and sr_dys(i)(2)(9 downto 0)>"0011111111") or
+         (sr_dxs(i)(2)(10)='1' and sr_dxs(i)(2)(9 downto 0)<"1100000000") or
+         (sr_dys(i)(2)(10)='0' and sr_dys(i)(2)(9 downto 0)>"0011111111") or
          (sr_dys(i)(2)(10)='1' and sr_dys(i)(2)(9 downto 0)<"1100000000") then
       --//Если -255 > значение > +255, то подстовляем
       --//нормированый результат уножения на масштабирующий коэфициент (0.625)
+        i_dxs_result(i)<=i_dxs_mult_nresult(i);
         i_dys_result(i)<=i_dys_mult_nresult(i);
       else
+        i_dxs_result(i)<=sr_dxs(i)(2);
         i_dys_result(i)<=sr_dys(i)(2);
       end if;
 
@@ -473,7 +468,7 @@ begin
 
         if i_sel_ang="00" then
         --//--------------------------
-        --//ВАРИАНТ 1
+        --//Вариант Никифорова - 03.06.2011
         --//--------------------------
 
             if i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(9 downto 0)=v_logic0 then
@@ -482,33 +477,42 @@ begin
 
             elsif i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(10)='0' then
             --dX=0, dY>0
-              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#64#, i_grado(i)'length);
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#192#, i_grado(i)'length);
 
             elsif i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(10)='1' then
             --dX=0, dY<0
-              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#192#, i_grado(i)'length);
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#64#, i_grado(i)'length);
 
-            elsif i_dxs_result(i)(10)='0' and (i_dys_result(i)(10)='1' or i_dys_result(i)(9 downto 0)=v_logic0) then
-            --dX>0, dY<=0
+            elsif i_dxs_result(i)(10)='0' and i_dys_result(i)(9 downto 0)=v_logic0 then
+            --dX>0, dY=0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#128#, i_grado(i)'length);
+
+            elsif i_dxs_result(i)(10)='1' and i_dys_result(i)(9 downto 0)=v_logic0 then
+            --dX<0, dY=0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#00#, i_grado(i)'length);
+
+            elsif i_dxs_result(i)(10)='0' and i_dys_result(i)(10)='0' then
+            --dY>0, dX>0
               i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#128#, i_grado(i)'length) + EXT(sr_buf_dout(i)(2), i_grado(i)'length);
 
-            elsif i_dxs_result(i)(10)='1' and (i_dys_result(i)(10)='0' or i_dys_result(i)(9 downto 0)=v_logic0) then
-            --dX<0, dY>=0
-              i_grado(i)<=EXT(sr_buf_dout(i)(2), i_grado(i)'length);
+            elsif i_dxs_result(i)(10)='1' and i_dys_result(i)(10)='0' then
+            --dY>0, dX<0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#256#, i_grado(i)'length) - EXT(sr_buf_dout(i)(2), i_grado(i)'length);
 
             elsif i_dxs_result(i)(10)='1' and i_dys_result(i)(10)='1' then
             --dX<0, dY<0
-              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#256#, i_grado(i)'length) - EXT(sr_buf_dout(i)(2), i_grado(i)'length);
+              i_grado(i)<=EXT(sr_buf_dout(i)(2), i_grado(i)'length);
 
-            elsif i_dxs_result(i)(10)='0' and i_dys_result(i)(10)='0' then
-            --dX>0, dY>0
+            elsif i_dxs_result(i)(10)='0' and i_dys_result(i)(10)='1' then
+            --dY<0, dX>0
               i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#128#, i_grado(i)'length) - EXT(sr_buf_dout(i)(2), i_grado(i)'length);
 
             end if;
+
 
         elsif i_sel_ang="01" then
         --//--------------------------
-        --//ВАРИАНТ 2
+        --//Из ТЗ. Вариант 2
         --//--------------------------
 
             if i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(9 downto 0)=v_logic0 then
@@ -540,6 +544,42 @@ begin
               i_grado(i)<=EXT(sr_buf_dout(i)(2), i_grado(i)'length);
 
             end if;
+
+
+        --//--------------------------
+        --//Из ТЗ. Вариант 1
+        --//--------------------------
+        elsif i_sel_ang="10" then
+            if i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(9 downto 0)=v_logic0 then
+            --dX=0, dY=0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#00#, i_grado(i)'length);
+
+            elsif i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(10)='0' then
+            --dX=0, dY>0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#64#, i_grado(i)'length);
+
+            elsif i_dxs_result(i)(9 downto 0)=v_logic0 and i_dys_result(i)(10)='1' then
+            --dX=0, dY<0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#192#, i_grado(i)'length);
+
+            elsif i_dxs_result(i)(10)='0' and (i_dys_result(i)(10)='1' or i_dys_result(i)(9 downto 0)=v_logic0) then
+            --dX>0, dY<=0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#128#, i_grado(i)'length) + EXT(sr_buf_dout(i)(2), i_grado(i)'length);
+
+            elsif i_dxs_result(i)(10)='1' and (i_dys_result(i)(10)='0' or i_dys_result(i)(9 downto 0)=v_logic0) then
+            --dX<0, dY>=0
+              i_grado(i)<=EXT(sr_buf_dout(i)(2), i_grado(i)'length);
+
+            elsif i_dxs_result(i)(10)='1' and i_dys_result(i)(10)='1' then
+            --dX<0, dY<0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#256#, i_grado(i)'length) - EXT(sr_buf_dout(i)(2), i_grado(i)'length);
+
+            elsif i_dxs_result(i)(10)='0' and i_dys_result(i)(10)='0' then
+            --dX>0, dY>0
+              i_grado(i)<=CONV_STD_LOGIC_VECTOR(10#128#, i_grado(i)'length) - EXT(sr_buf_dout(i)(2), i_grado(i)'length);
+
+            end if;
+
 
         end if;--//if i_sel_ang="00" then
     end if;--//if sr_upp_wd(3)='1' then

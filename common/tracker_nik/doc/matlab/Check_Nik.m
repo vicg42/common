@@ -48,10 +48,14 @@ function Check_Image(SrcImage, ResultDir, TDelta_calc, TGradO_var, IP, IPcount)
       %%--------------------------------------------------------
       ImFgradO = imread(strcat(ResultDir, 'img', num2str(i), '_2.png'));
       % Вычисляем направление градиента яркости
-      GradO = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_var, IP(1,i+1), IP(2,i+1)); %
+      GradO = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_var, IP(1,i+1), IP(2,i+1));
 
       % вычисляем разность
       GradODif = double(ImFgradO) - double(GradO);
+
+      %ImFgradO(128:64, 32:64)
+      %GradO(128:64, 32:64)
+      %GradODif(128:256, 128:256)
 
       % Вывод на экран
 %      figure('Name',strcat('IP',num2str(i), 'FPGA_result')); imshow(ImFgradO);

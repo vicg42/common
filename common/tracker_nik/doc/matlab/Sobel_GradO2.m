@@ -7,7 +7,7 @@
 %------------------------------------------------------------------------
 function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
     %Зануляем массив результата
-    Result = zeros(size(ImSrc), 'uint8');
+    Result = zeros(size(ImSrc), 'uint16');
 
 %    dXm_dbg = zeros(size(ImSrc), 'uint16');
 %    dYm_dbg = zeros(size(ImSrc), 'uint16');
@@ -23,6 +23,19 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
 
             dY1 = int16(ImSrc(i - 1, j - 1)) + 2 * int16(ImSrc(i, j - 1)) + int16(ImSrc(i + 1, j - 1));
             dY2 = int16(ImSrc(i - 1, j + 1)) + 2 * int16(ImSrc(i, j + 1)) + int16(ImSrc(i + 1, j + 1));
+
+            %--------------------------------------
+            %Конвертация в соответствии с требование Никифорова от 03.06.2011
+            %--------------------------------------
+            dX1_tmp = dX1;
+            dX2_tmp = dX2;
+            dY1_tmp = dY1;
+            dY2_tmp = dY2;
+            dY2=dX1_tmp;
+            dY1=dX2_tmp;
+            dX2=dY1_tmp;
+            dX1=dY2_tmp;
+            %--------------------------------------
 
             %Вычисляем модуль
             dXm = 0;
@@ -128,14 +141,49 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
             else
               R = double(128.0 * atan(double(dYm) / double(dXm)) / pi);
             end;
-            A = uint8(floor(R));
+            A = uint8(floor(R));%Округление результатаб до ближайшего целого меньшего или равного R
+                                %(B = floor(A) rounds the elements of A to the nearest integers less than or equal to A.)
 
 
             if (IP2>=GradA) && (GradA >= IP1)
 
                 %Расчет направления(ориентации)градиента яркости:
                 if TGradO_calc==0
-                %Вариант1
+                %Никифоров Вариант от 03/06/2011
+                    if      (dYs == 0)  && (dXs == 0)
+                      Result(i,j) = 0;
+
+                    elseif  (dXs == 0)  && (dYs > 0)
+                      Result(i,j) = 192;
+                    elseif  (dXs == 0)  && (dYs < 0)
+                      Result(i,j) = 64;
+
+                    elseif  (dXs > 0)  && (dYs == 0)
+                      Result(i,j) = 128;
+                    elseif  (dXs < 0)  && (dYs == 0)
+                      Result(i,j) = 0;
+
+                    elseif  (dYs > 0)  && (dXs > 0)
+                      Result(i,j) = 128 + A;
+                    elseif  (dYs > 0)  && (dXs < 0)
+                    %Странное поведение MatLab:
+                    %x=8bit
+                    %x=256 - 0 почемуто = 255, а ведь должно быть 0
+                    %поэтому делаю проверку переменной А
+                         if A==0
+                             Result(i,j) = 0;
+                         else
+                            Result(i,j) = 256 - A;
+                         end;
+                    elseif  (dYs < 0)  && (dXs < 0)
+                      Result(i,j) = A;
+                    elseif  (dYs < 0)  && (dXs > 0)
+                      Result(i,j) = 128 - A;
+                    end;
+
+
+                elseif TGradO_calc==1
+                %ТЗ Вариант1
                     if      (dXs < 0)  && (dYs >= 0)
                         Result(i,j) = A;
 
@@ -167,7 +215,7 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
                     end;
 
                 else
-                %Вариант2
+                %ТЗ Вариант2
                     if      (dXs < 0)  && (dYs >= 0)
                         Result(i,j) = 128 + A;
 

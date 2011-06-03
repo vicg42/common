@@ -22,6 +22,20 @@ function Result = Sobel_GradA2(ImSrc, TDelta_calc, IP1, IP2) %, TGradA_calc
             dY1 = int16(ImSrc(i - 1, j - 1)) + 2 * int16(ImSrc(i, j - 1)) + int16(ImSrc(i + 1, j - 1));
             dY2 = int16(ImSrc(i - 1, j + 1)) + 2 * int16(ImSrc(i, j + 1)) + int16(ImSrc(i + 1, j + 1));
 
+            %--------------------------------------
+            %Конвертация в соответствии с требование Никифорова от 03.06.2011
+            %--------------------------------------
+            dX1_tmp = dX1;
+            dX2_tmp = dX2;
+            dY1_tmp = dY1;
+            dY2_tmp = dY2;
+            dY2=dX1_tmp;
+            dY1=dX2_tmp;
+            dX2=dY1_tmp;
+            dX1=dY2_tmp;
+            %--------------------------------------
+
+
             %Вычисляем модуль
             dXm = 0;
             if dX1 > dX2
