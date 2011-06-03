@@ -58,7 +58,7 @@ p_in_rst               : in    std_logic
 );
 end sata_player_gtsim;
 
-architecture RTL of sata_player_gtsim is
+architecture sim_only of sata_player_gtsim is
 
 signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -154,4 +154,4 @@ p_out_plllock<= not p_in_rst;
 p_out_refclkout<=p_in_refclkin;
 
 --END MAIN
-end RTL;
+end sim_only;

@@ -55,6 +55,7 @@ ch_err   : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 SError   : TUsrSErrorSHCountMax;
 usr      : std_logic_vector(31 downto 0);
 ch_usr   : TBus32_SHCountMax;
+lba_bp   : std_logic_vector(47 downto 0);
 end record;
 
 

@@ -47,7 +47,7 @@ p_out_sata_txp              : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUN
 p_in_sata_rxn               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_refclk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_out_sata_refclkout        : out   std_logic;
 p_out_sata_gt_plldet        : out   std_logic;
 p_out_sata_dcm_lock         : out   std_logic;
@@ -57,6 +57,7 @@ p_out_sata_dcm_lock         : out   std_logic;
 --------------------------------------------------
 p_in_usr_ctrl               : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status            : out   TUsrStatus;
+p_out_measure               : out   TMeasureStatus;
 
 --//cmdpkt
 p_in_usr_cxd                : in    std_logic_vector(15 downto 0);
@@ -195,6 +196,7 @@ signal i_dbg_satah                 : TSH_dbgport_SHCountMax;
 signal i_dbgcs_satah               : TSH_dbgcs_SHCountMax;
 signal i_dbgcs_raid                : TSH_ila;
 
+signal i_tst_measure_out           : std_logic_vector(31 downto 0);
 signal i_tst_raid_ctrl             : std_logic_vector(31 downto 0);
 signal i_tst_val                   : std_logic:='0';
 
@@ -224,7 +226,8 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(0)<=i_tst_raid_ctrl(0);
 p_out_tst(1)<=i_uap_tst_sh_out(0)(1);
 p_out_tst(2)<=i_tst_val;
-p_out_tst(31 downto 3)<=(others=>'0');
+p_out_tst(3)<=i_tst_measure_out(0);
+p_out_tst(31 downto 4)<=(others=>'0');
 end generate gen_dbg_on;
 
 
@@ -244,6 +247,44 @@ begin
 end process;
 
 end generate gen_sim_on;
+
+
+--//#############################################
+--//Измерение задержек
+--//#############################################
+m_measure : sata_measure
+generic map
+(
+G_T05us     => 75, --//для частоты 150MHz
+G_HDD_COUNT => G_HDD_COUNT,
+G_DBG       => G_DBG,
+G_SIM       => G_SIM
+)
+port map
+(
+--------------------------------------------------
+--Связь с модулем dsn_hdd.vhd
+--------------------------------------------------
+p_in_ctrl      => p_in_usr_ctrl,
+p_out_status   => p_out_measure,
+
+--------------------------------------------------
+--Связь с модулям sata_host.vhd
+--------------------------------------------------
+p_in_sh_status => i_uap_status,
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst       => p_in_tst,
+p_out_tst      => i_tst_measure_out,
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk       => g_sh_dcm_clkin,--//150MHz
+p_in_rst       => p_in_rst
+);
 
 
 
@@ -323,7 +364,7 @@ p_in_rst                => p_in_rst
 --//Генерация частот для модулей sata_host.vhd
 --//#############################################
 p_out_sata_refclkout<=g_sh_dcm_clkin;
-p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(G_HDD_COUNT-1 downto 0));
+p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0));
 p_out_sata_dcm_lock<=i_sh_dcm_lock;
 
 p_out_dbgcs.sh<=i_dbgcs_satah;

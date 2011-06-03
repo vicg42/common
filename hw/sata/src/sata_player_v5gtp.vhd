@@ -101,7 +101,7 @@ p_in_rst               : in    std_logic
 );
 end sata_player_gt;
 
-architecture RTL of sata_player_gt is
+architecture behavioral of sata_player_gt is
 
 --//1 - только дл€ случа€ G_GT_DBUS=8
 --//2 - дл€ всех других случаев. ¬ыравниваение по чЄтной границе. см Figure 7-15: Comma Alignment Boundaries ,
@@ -749,5 +749,5 @@ TXCOMTYPE1                      =>      i_txcomtype_in(1)
 
 
 --END MAIN
-end RTL;
+end behavioral;
 

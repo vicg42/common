@@ -36,7 +36,8 @@ vcom -93 "../../src/sata_raid_pkg.vhd"
 vcom -93 "../../src/sata_sim_lite_pkg.vhd"
 vcom -93 "../../src/sata_unit_pkg.vhd"
 
-vcom -93 "../../src/sata_dcm.vhd"
+vcom -93 "../../src/sata_dcm_v5s6.vhd"
+vcom -93 "../../src/sata_measure.vhd"
 
 vcom -93 "../../src/sata_scrambler.vhd"
 vcom -93 "../../src/sata_crc.vhd"

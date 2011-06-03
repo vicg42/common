@@ -59,6 +59,7 @@ signal i_sata_refclk              : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT
 signal p_in_usr_ctrl              : std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
 signal i_usr_status               : TUsrStatus;
+signal i_usr_measure              : TMeasureStatus;
 
 signal i_usr_cxdin                : std_logic_vector(15 downto 0);
 signal i_usr_cxd_wr               : std_logic;
@@ -192,6 +193,7 @@ p_in_sata_refclk            => i_sata_refclk,
 --------------------------------------------------
 p_in_usr_ctrl               => p_in_usr_ctrl,
 p_out_usr_status            => i_usr_status,
+p_out_measure               => i_usr_measure,
 
 --//cmdpkt
 p_in_usr_cxd                => i_usr_cxdin,

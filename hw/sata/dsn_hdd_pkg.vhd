@@ -139,6 +139,7 @@ p_in_rbuf_status          : in   THDDRBufStatus;--//Модуль находится в исходном 
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
+p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
 p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
@@ -147,12 +148,16 @@ p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 --------------------------------------------------
 --SATA Driver
 --------------------------------------------------
-p_out_sata_txn            : out   std_logic_vector(1 downto 0);
-p_out_sata_txp            : out   std_logic_vector(1 downto 0);
-p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
-p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
+--p_out_sata_txn            : out   std_logic_vector(1 downto 0);
+--p_out_sata_txp            : out   std_logic_vector(1 downto 0);
+--p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
+--p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
+p_out_sata_txn            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-p_in_sata_refclk          : in    std_logic;
+p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_out_sata_refclkout      : out   std_logic;
 p_out_sata_gt_plldet      : out   std_logic;
 p_out_sata_dcm_lock       : out   std_logic;

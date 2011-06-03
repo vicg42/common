@@ -273,7 +273,7 @@ i_spd_gt_resetdone<=AND_reduce(i_gtp_resetdone);
 --//###########################################################################
 --//Размножение модулей управления SATA соответствующего канала GT (RocketIO)
 --//###########################################################################
-gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
+gen_ch_count1 : if C_GTCH_COUNT_MAX>1 and G_SATAH_CH_COUNT=1 generate
 
 i_linkup(1)<=i_linkup(0);
 

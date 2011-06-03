@@ -1106,6 +1106,40 @@ p_in_rst                : in    std_logic
 end component;
 
 
+component sata_measure
+generic
+(
+G_T05us     : integer:=1;
+G_HDD_COUNT : integer:=1;
+G_DBG       : string :="OFF";
+G_SIM       : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--Связь с модулем dsn_hdd.vhd
+--------------------------------------------------
+p_in_ctrl      : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
+p_out_status   : out   TMeasureStatus;
+
+--------------------------------------------------
+--Связь с модулям sata_host.vhd
+--------------------------------------------------
+p_in_sh_status : in    TALStatus_SHCountMax;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst       : in    std_logic_vector(31 downto 0);
+p_out_tst      : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk       : in    std_logic;
+p_in_rst       : in    std_logic
+);
+end component;
 
 component dsn_raid_main
 generic
@@ -1126,7 +1160,7 @@ p_out_sata_txp              : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUN
 p_in_sata_rxn               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_in_sata_rxp               : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-p_in_sata_refclk            : in    std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_refclk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_out_sata_refclkout        : out   std_logic;
 p_out_sata_gt_plldet        : out   std_logic;
 p_out_sata_dcm_lock         : out   std_logic;
@@ -1136,6 +1170,7 @@ p_out_sata_dcm_lock         : out   std_logic;
 --------------------------------------------------
 p_in_usr_ctrl               : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status            : out   TUsrStatus;
+p_out_measure               : out   TMeasureStatus;
 
 --//cmdpkt
 p_in_usr_cxd                : in    std_logic_vector(15 downto 0);

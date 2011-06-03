@@ -79,6 +79,7 @@ p_in_rbuf_status          : in   THDDRBufStatus;--//Модуль находится в исходном 
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
+p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
 p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
@@ -87,12 +88,16 @@ p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 --------------------------------------------------
 --SATA Driver
 --------------------------------------------------
-p_out_sata_txn            : out   std_logic_vector(1 downto 0);
-p_out_sata_txp            : out   std_logic_vector(1 downto 0);
-p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
-p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
+--p_out_sata_txn            : out   std_logic_vector(1 downto 0);
+--p_out_sata_txp            : out   std_logic_vector(1 downto 0);
+--p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
+--p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
+p_out_sata_txn            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
-p_in_sata_refclk          : in    std_logic;
+p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_out_sata_refclkout      : out   std_logic;
 p_out_sata_gt_plldet      : out   std_logic;
 p_out_sata_dcm_lock       : out   std_logic;
@@ -157,9 +162,10 @@ signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
 
 signal i_buf_rst                        : std_logic;
 
-signal i_sata_gt_refclk                 : std_logic_vector(0 downto 0);
+signal i_sata_gt_refclk                 : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal i_sh_ctrl                        : std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 signal i_sh_status                      : TUsrStatus;
+signal i_sh_measure                     : TMeasureStatus;
 
 signal sr_sh_busy                       : std_logic_vector(0 to 1);
 signal i_sh_busy                        : std_logic;
@@ -277,6 +283,15 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_rambuf_ctrl(15 downto 0);
 --        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_rambuf_ctrl(31 downto 16);
 
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_LBA_BPOINT_LSB, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.lba_bp(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_LBA_BPOINT_MID, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.lba_bp(31 downto 16);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_LBA_BPOINT_MSB, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_status.lba_bp(47 downto 32);
+
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TEST_TDLY_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_measure.tdly(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TEST_TDLY_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_measure.tdly(31 downto 16);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TEST_TWORK_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_measure.twork(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TEST_TWORK_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=i_sh_measure.twork(31 downto 16);
+
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<="000000000" & i_sh_status.dev_busy & i_sh_status.dev_err & i_sh_status.dev_rdy & i_sh_status.hdd_count(3 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_drdy, 8);
 
@@ -291,8 +306,10 @@ begin
 end process;
 
 
-i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT);
-i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);
+i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT);
+i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);
+i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
+i_sh_ctrl(C_USR_GCTRL_TST_RANDOM_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT);
 i_sh_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)<=i_sh_ata_done;
 i_sh_ctrl(C_USR_GCTRL_RESERV_BIT)<=h_reg_tst0(0);
 
@@ -334,7 +351,7 @@ ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
 --    tst_fms_cs_dly<=(others=>'0');
-    p_out_tst<=(others=>'0');
+    p_out_tst(1 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
 --    tst_fms_cs_dly<=tst_fms_cs;
@@ -342,6 +359,8 @@ begin
     p_out_tst(1)<=tst_hdd_out(1);--//i_sata_module_rst(0);
   end if;
 end process ltstout;
+p_out_tst(2)<=tst_hdd_out(3);--//i_tst_measure_out(0);
+p_out_tst(31 downto 3)<=(others=>'0');
 
 end generate gen_dbg_on;
 
@@ -489,6 +508,8 @@ clk         => p_in_clk,
 rst         => i_buf_rst
 );
 
+p_out_hdd_txbuf_empty<=i_sh_txbuf_empty;
+
 m_rxfifo : hdd_rxfifo
 port map
 (
@@ -512,7 +533,7 @@ i_buf_rst<=p_in_rst or i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
 p_out_hdd_rxbuf_empty<=i_sh_rxbuf_empty;
 
 
-i_sata_gt_refclk(0)<=p_in_sata_refclk;
+--i_sata_gt_refclk(0)<=p_in_sata_refclk;
 
 --//SATA
 m_dsn_sata : dsn_raid_main
@@ -534,7 +555,7 @@ p_out_sata_txp              => p_out_sata_txp,
 p_in_sata_rxn               => p_in_sata_rxn,
 p_in_sata_rxp               => p_in_sata_rxp,
 
-p_in_sata_refclk            => i_sata_gt_refclk,
+p_in_sata_refclk            => p_in_sata_refclk,--i_sata_gt_refclk,
 p_out_sata_refclkout        => p_out_sata_refclkout,
 p_out_sata_gt_plldet        => p_out_sata_gt_plldet,
 p_out_sata_dcm_lock         => p_out_sata_dcm_lock,
@@ -544,6 +565,7 @@ p_out_sata_dcm_lock         => p_out_sata_dcm_lock,
 --------------------------------------------------
 p_in_usr_ctrl               => i_sh_ctrl,
 p_out_usr_status            => i_sh_status,
+p_out_measure               => i_sh_measure,
 
 --//cmdpkt
 p_in_usr_cxd                => i_sh_cxd,
@@ -634,25 +656,30 @@ gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 p_out_tst<=(others=>'0');
 tst_hdd_out<=(others=>'0');
 
+
+gen_satah : for sh_idx in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
+
 m_sata_gt : mclk_gtp_wrap
 generic map(
 G_SIM => G_SIM
 )
 port map
 (
-p_out_txn => p_out_sata_txn,
-p_out_txp => p_out_sata_txp,
-p_in_rxn  => p_in_sata_rxn,
-p_in_rxp  => p_in_sata_rxp,
-clkin     => p_in_sata_refclk,
-clkout    => i_sata_gt_refclk(0)
+p_out_txn => p_out_sata_txn(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_out_txp => p_out_sata_txp(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_in_rxn  => p_in_sata_rxn(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_in_rxp  => p_in_sata_rxp(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+clkin     => p_in_sata_refclk(sh_idx),
+clkout    => i_sata_gt_refclk(sh_idx)
 );
+
+end generate gen_satah;
 
 p_out_sata_refclkout<=i_sata_gt_refclk(0);
 p_out_sata_gt_plldet<='1';
 p_out_sata_dcm_lock<='1';
 
-gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
+gen_satah_null: for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sim_gtp_txdata(i)    <=(others=>'0');
 p_out_sim_gtp_txcharisk(i) <=(others=>'0');
 p_out_sim_gtp_txcomstart(i)<='0';
@@ -669,12 +696,16 @@ p_out_dbgled(i).link<='0';
 p_out_dbgled(i).rdy<='0';
 p_out_dbgled(i).err<='0';
 
-end generate gen_satah;
+end generate gen_satah_null;
 
 i_sh_status.dev_busy<='0';
 i_sh_status.dev_rdy <='0';
 i_sh_status.dev_err <='0';
 i_sh_status.usr <=(others=>'0');
+i_sh_status.lba_bp <=(others=>'0');
+
+i_sh_measure.tdly  <=(others=>'0');
+i_sh_measure.twork <=(others=>'0');
 
 p_out_hdd_txbuf_full<=i_sh_cxd_wr;
 

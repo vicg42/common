@@ -48,7 +48,7 @@ architecture behavior of dsn_hdd_tb is
 constant C_SATACLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
 
-signal i_sata_gtp_refclkmain      : std_logic;
+signal i_sata_gtp_refclkmain      : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 signal p_in_clk                   : std_logic;
 signal i_dsn_hdd_rst              : std_logic;
 
@@ -129,8 +129,8 @@ begin
 
 
 gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 generate
-i_sata_rxn<=(others=>'0');
-i_sata_rxp<=(others=>'1');
+i_sata_rxn(i)<='0';--(others=>'0');
+i_sata_rxp(i)<='1';--(others=>'1');
 end generate gen_sata_drv;
 
 
@@ -277,14 +277,17 @@ p_in_rst                   => i_hdd_sim_gtp_rst(i)
 
 end generate gen_satad;
 
-
+gen_refclk_sata : for i in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 gen_clk_sata : process
 begin
-  i_sata_gtp_refclkmain<='0';
+  i_sata_gtp_refclkmain(i)<='0';
   wait for C_SATACLK_PERIOD/2;
-  i_sata_gtp_refclkmain<='1';
+  i_sata_gtp_refclkmain(i)<='1';
   wait for C_SATACLK_PERIOD/2;
 end process;
+end generate gen_refclk_sata;
+
+
 
 gen_clk_usr : process
 begin

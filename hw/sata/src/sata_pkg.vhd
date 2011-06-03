@@ -45,7 +45,7 @@ type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
 --Константы
 ---------------------------------------------------------
 --//мах кол-во HDD:
-constant C_HDD_COUNT_MAX     : integer:=2;--//
+constant C_HDD_COUNT_MAX     : integer:=8;--//
 
 --//Кол-во каналов в одном модуле GT:
 constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
@@ -104,7 +104,9 @@ constant C_GT7_CH_COUNT : T08SHCountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 constant C_USR_GCTRL_CLR_ERR_BIT         : integer:=0;
 constant C_USR_GCTRL_CLR_BUF_BIT         : integer:=1;
 constant C_USR_GCTRL_ATADONE_ACK_BIT     : integer:=2;
-constant C_USR_GCTRL_RESERV_BIT          : integer:=3;
+constant C_USR_GCTRL_TST_ON_BIT          : integer:=3;
+constant C_USR_GCTRL_TST_RANDOM_BIT      : integer:=4;
+constant C_USR_GCTRL_RESERV_BIT          : integer:=5;
 constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_RESERV_BIT;
 
 
@@ -676,6 +678,11 @@ full    : std_logic;--//full
 pfull   : std_logic;--//prog full
 empty   : std_logic;--//empty
 wrcount : std_logic_vector(3 downto 0);
+end record;
+
+type TMeasureStatus is record
+tdly  : std_logic_vector(31 downto 0);
+twork : std_logic_vector(31 downto 0);
 end record;
 
 type TSpdCtrl is record

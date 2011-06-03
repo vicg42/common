@@ -217,6 +217,7 @@ begin
     i_usr_status.dev_rdy<='0';
     i_usr_status.dev_err<='0';
     i_usr_status.usr<=(others=>'0');
+    i_usr_status.lba_bp<=(others=>'0');
     for i in 0 to C_HDD_COUNT_MAX-1 loop
       i_usr_status.ch_usr(i)<=(others=>'0');
       i_usr_status.ch_busy(i)<='1';
@@ -232,6 +233,7 @@ begin
     i_usr_status.dev_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_drdy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0));
+    i_usr_status.lba_bp<=i_lba_cnt;
 --    i_usr_status.usr<=(others=>'0');
 
     for i in 0 to G_HDD_COUNT-1 loop
@@ -669,6 +671,28 @@ begin
 
   end if;
 end process;
+
+
+
+
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+p_out_dbgcs.clk   <='0';--p_in_clk;
+p_out_dbgcs.trig0 <=(others=>'0');--EXT(i_dbgcs_trig00, p_out_dbgcs_ila.trig0'length);
+p_out_dbgcs.data  <=(others=>'0');--;--EXT(i_dbgcs_data, p_out_dbgcs_ila.data'length);
+--
+--process(p_in_clk)
+--begin
+--if p_in_clk'event and p_in_clk='1' then
+--i_dbgcs_trig00(18 downto 0)<=(others=>'0');
+--i_dbgcs_trig00(41 downto 19)<=(others=>'0');
+--
+--i_dbgcs_data(18 downto 0)<=(others=>'0');
+--i_dbgcs_data(122 downto 19)<=(others=>'0');
+--
+--end if;
+--end process;
 
 
 

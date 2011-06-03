@@ -42,6 +42,7 @@ p_in_sys_dcm_gclk      : in    std_logic;--//dcm_clk0
 p_in_sys_dcm_gclk2x    : in    std_logic;--//dcm_clk0 x 2
 
 p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование модулей sata_host.vhd
+p_out_resetdone        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 ---------------------------------------------------------------------------
 --Driver(Сигналы подоваемые на разъем)
@@ -54,17 +55,20 @@ p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
-p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
 p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
 p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
 p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
 p_in_txdata            : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
 p_in_txcharisk         : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
 
+p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
+p_out_txbufstatus      : out   TBus02_GTCH;
+
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
-p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс приемника
+p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS + PMA
+p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS
 p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
 p_out_rxstatus         : out   TBus03_GTCH;                                    --//Тип обнаруженного OOB сигнала
 p_out_rxdata           : out   TBus32_GTCH;                                    --//поток данных от приемника DUAL_GTP
@@ -72,6 +76,9 @@ p_out_rxcharisk        : out   TBus04_GTCH;                                    -
 p_out_rxdisperr        : out   TBus04_GTCH;                                    --//Ошибка паритета в принятом данном
 p_out_rxnotintable     : out   TBus04_GTCH;                                    --//
 p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);  --//Данные выровнены по байтам
+
+p_in_rxbufreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_rxbufstatus      : out   TBus03_GTCH;
 
 ----------------------------------------------------------------------------
 --System
@@ -91,11 +98,9 @@ p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclk
 p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
 p_in_rst               : in    std_logic
 );
-
-
 end sata_player_gt;
 
-architecture RTL of sata_player_gt is
+architecture behavioral of sata_player_gt is
 
 --//1 - только для случая G_GT_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
@@ -116,10 +121,35 @@ signal i_rxreset_done              : std_logic;
 signal i_txplllkdet                : std_logic;
 signal i_txreset_done              : std_logic;
 
+signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+
+signal i_txelecidle_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txcomstart_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txcomtype_in              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txdata_in                 : TBus32_GTCH;
+signal i_txcharisk_in              : TBus04_GTCH;
+
+signal i_txreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txbufstatus_out           : TBus02_GTCH;
+
+signal i_rxcdrreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_rxstatus_out              : TBus03_GTCH;
+signal i_rxdata_out                : TBus32_GTCH;
+signal i_rxcharisk_out             : TBus04_GTCH;
+signal i_rxdisperr_out             : TBus04_GTCH;
+signal i_rxnotintable_out          : TBus04_GTCH;
+signal i_rxbyteisaligned_out       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_rxbufreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxbufstatus_out           : TBus03_GTCH;
+
 
 attribute keep : string;
 attribute keep of g_gtp_usrclk : signal is "true";
@@ -129,27 +159,16 @@ attribute keep of g_gtp_usrclk : signal is "true";
 begin
 
 
-gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
-p_out_rxdata(i)(31 downto 16)<=(others=>'0');
-p_out_rxcharisk(i)(3 downto 2)<=(others=>'0');
-p_out_rxdisperr(i)(3 downto 2)<=(others=>'0');
-p_out_rxnotintable(i)(3 downto 2)<=(others=>'0');
-end generate gen_null;
-
-
-gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
-g_gtp_usrclk(1) <=g_gtp_usrclk(0);
-g_gtp_usrclk2(1)<=g_gtp_usrclk2(0);
-
-p_out_usrclk2(1)<=g_gtp_usrclk2(1);
-end generate gen_gt_ch1;
-
-
+--#########################################
+--//Выбор тактовых частот для работы SATA
+--#########################################
 gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
 i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
 
---//Выбор тактовых частот для работы SATA-I/II
+--//------------------------------
+--//GT: ШИНА ДАНЫХ=8bit
+--//------------------------------
 gen_gtp_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -162,6 +181,9 @@ O  => g_gtp_usrclk2(i)
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gtp_w8;
 
+--//------------------------------
+--//GT: ШИНА ДАНЫХ=16bit
+--//------------------------------
 gen_gtp_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
 port map
@@ -181,7 +203,63 @@ O  => g_gtp_usrclk(i)
 );
 end generate gen_gtp_w16;
 
+--//------------------------------
+--//GT: ШИНА ДАНЫХ=32bit
+--//------------------------------
+gen_gtp_w32 : if G_GT_DBUS=32 generate
+m_bufg_usrclk2 : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk2(i)
+);
+m_bufg_usrclk : BUFGMUX_CTRL
+port map
+(
+S  => i_spdclk_sel(i),
+I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+O  => g_gtp_usrclk(i)
+);
+end generate gen_gtp_w32;
+
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
+
+
+process(g_gtp_usrclk2(i))
+begin
+  if g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
+      p_out_resetdone(i)      <=i_rxreset_done and i_txreset_done;
+
+      i_txelecidle_in(i)      <=p_in_txelecidle(i);
+      i_txcomstart_in(i)      <=p_in_txcomstart(i);
+      i_txcomtype_in(i)       <=p_in_txcomtype(i);
+      i_txdata_in(i)(31 downto 0)  <=p_in_txdata(i)(31 downto 0);
+      i_txcharisk_in(i)(3 downto 0)<=p_in_txcharisk(i)(3 downto 0);
+
+      i_txreset_in(i)         <=p_in_txreset(i);
+      p_out_txbufstatus(i)    <=i_txbufstatus_out(i);
+
+      i_rxcdrreset_in(i)      <=p_in_rxcdrreset(i);
+      i_rxreset_in(i)         <=p_in_rxreset(i);
+      p_out_rxelecidle(i)     <=i_rxelecidle(i);
+--      p_out_rxstatus(i)       <=i_rxstatus_out(i);
+      p_out_rxstatus(i)(2)<=i_rxcominit;
+      p_out_rxstatus(i)(1)<=i_rxcomwake;
+      p_out_rxstatus(i)(0)<=i_txcom_finish;
+
+      p_out_rxdata(i)(31 downto 0)     <=i_rxdata_out(i)(31 downto 0);
+      p_out_rxcharisk(i)(3 downto 0)   <=i_rxcharisk_out(i)(3 downto 0);
+      p_out_rxdisperr(i)(3 downto 0)   <=i_rxdisperr_out(i)(3 downto 0);
+      p_out_rxnotintable(i)(3 downto 0)<=i_rxnotintable_out(i)(3 downto 0);
+      p_out_rxbyteisaligned(i)         <=i_rxbyteisaligned_out(i);
+
+      i_rxbufreset_in(i)      <=p_in_rxbufreset(i);
+      p_out_rxbufstatus(i)    <=i_rxbufstatus_out(i);
+  end if;
+end process;
 
 end generate gen_ch;
 
@@ -190,20 +268,16 @@ end generate gen_ch;
 --//###########################
 --//Gig Tx/Rx
 --//###########################
-p_out_rxstatus(0)(2)<=i_rxcominit;
-p_out_rxstatus(0)(1)<=i_rxcomwake;
-p_out_rxstatus(0)(0)<=i_txcom_finish;
-
-i_txcomsas <=p_in_txcomstart(0) and not p_in_txcomtype(0);
+i_txcomsas <=i_txcomstart_in(0) and not i_txcomtype_in(0);
 i_txcominit<='0';
-i_txcomwake<=p_in_txcomstart(0) and p_in_txcomtype(0);
+i_txcomwake<=i_txcomstart_in(0) and i_txcomtype_in(0);
 
 p_out_plllock<=i_txplllkdet and i_rxplllkdet;
 
 
 i_refclkin <= ('0' & p_in_refclkin);
 
-m_gtp : GTXE1
+m_gt : GTXE1
 generic map
 (
 --_______________________ Simulation-Only Attributes ___________________
@@ -445,13 +519,13 @@ RXSTARTOFSEQ                    =>      open,
 ----------------------- Receive Ports - 8b10b Decoder ----------------------
 RXCHARISCOMMA(3 downto 2)       =>      open,
 RXCHARISCOMMA(1 downto 0)       =>      open,
-RXCHARISK(3 downto 2)           =>      p_out_rxcharisk(0)(3 downto 2),--//############################### add vicg
-RXCHARISK(1 downto 0)           =>      p_out_rxcharisk(0)(1 downto 0),--//############################### add vicg
+RXCHARISK(3 downto 2)           =>      i_rxcharisk_out(0)(3 downto 2),--------------p_out_rxcharisk(0)(3 downto 2),--//############################### add vicg
+RXCHARISK(1 downto 0)           =>      i_rxcharisk_out(0)(1 downto 0),--------------p_out_rxcharisk(0)(1 downto 0),--//############################### add vicg
 RXDEC8B10BUSE                   =>      '1',
-RXDISPERR(3 downto 2)           =>      p_out_rxdisperr(0)(3 downto 2),--//############################### add vicg
-RXDISPERR(1 downto 0)           =>      p_out_rxdisperr(0)(1 downto 0),--//############################### add vicg
-RXNOTINTABLE(3 downto 2)        =>      p_out_rxnotintable(0)(3 downto 2),--//############################### add vicg
-RXNOTINTABLE(1 downto 0)        =>      p_out_rxnotintable(0)(1 downto 0),--//############################### add vicg
+RXDISPERR(3 downto 2)           =>      i_rxdisperr_out(0)(3 downto 2),--------------p_out_rxdisperr(0)(3 downto 2),--//############################### add vicg
+RXDISPERR(1 downto 0)           =>      i_rxdisperr_out(0)(1 downto 0),--------------p_out_rxdisperr(0)(1 downto 0),--//############################### add vicg
+RXNOTINTABLE(3 downto 2)        =>      i_rxnotintable_out(0)(3 downto 2),-----------p_out_rxnotintable(0)(3 downto 2),--//############################### add vicg
+RXNOTINTABLE(1 downto 0)        =>      i_rxnotintable_out(0)(1 downto 0),-----------p_out_rxnotintable(0)(1 downto 0),--//############################### add vicg
 RXRUNDISP                       =>      open,
 USRCODEERR                      =>      '0',
 ------------------- Receive Ports - Channel Bonding Ports ------------------
@@ -465,7 +539,7 @@ RXENCHANSYNC                    =>      '0',
 ------------------- Receive Ports - Clock Correction Ports -----------------
 RXCLKCORCNT                     =>      open,--RXCLKCORCNT_OUT,
 --------------- Receive Ports - Comma Detection and Alignment --------------
-RXBYTEISALIGNED                 =>      p_out_rxbyteisaligned(0),--//############################### add vicg
+RXBYTEISALIGNED                 =>      i_rxbyteisaligned_out(0),---------------------------p_out_rxbyteisaligned(0),--//############################### add vicg
 RXBYTEREALIGN                   =>      open,
 RXCOMMADET                      =>      open,
 RXCOMMADETUSE                   =>      '1',
@@ -477,10 +551,10 @@ PRBSCNTRESET                    =>      '0',
 RXENPRBSTST                     =>      "000",
 RXPRBSERR                       =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
-RXDATA                          =>      p_out_rxdata(0),--//############################### add vicg
+RXDATA                          =>      i_rxdata_out(0),-----------------------------p_out_rxdata(0),--//############################### add vicg
 RXRECCLK                        =>      open,--RXRECCLK_OUT,
 RXRECCLKPCS                     =>      open,
-RXRESET                         =>      p_in_rxreset(0),--//############################### add vicg
+RXRESET                         =>      i_rxreset_in(0),-----------------------------p_in_rxreset(0),--//############################### add vicg
 RXUSRCLK                        =>      g_gtp_usrclk(0),--//############################### add vicg
 RXUSRCLK2                       =>      g_gtp_usrclk2(0),--//############################### add vicg
 ------------ Receive Ports - RX Decision Feedback Equalizer(DFE) -----------
@@ -501,15 +575,15 @@ DFETAPOVRD                      =>      '1',
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
 GATERXELECIDLE                  =>      '0',
 IGNORESIGDET                    =>      '0',
-RXCDRRESET                      =>      '0',
-RXELECIDLE                      =>      p_out_rxelecidle(0),--//############################### add vicg
+RXCDRRESET                      =>      i_rxcdrreset_in(0),----------------------------------------------//############################### add vicg
+RXELECIDLE                      =>      i_rxelecidle(0),-----------------------------p_out_rxelecidle(0),--//############################### add vicg
 RXEQMIX(9 downto 3)             =>      "0000000",
 RXEQMIX(2 downto 0)             =>      "111",--RXEQMIX_IN,
 RXN                             =>      p_in_rxn(0),--//############################### add vicg
 RXP                             =>      p_in_rxp(0),--//############################### add vicg
 -------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET                      =>      '0',
-RXBUFSTATUS                     =>      open,
+RXBUFRESET                      =>      i_rxbufreset_in(0),----------------------------------------------//############################### add vicg
+RXBUFSTATUS                     =>      i_rxbufstatus_out(0),----------------------------------------------//############################### add vicg
 RXCHANISALIGNED                 =>      open,
 RXCHANREALIGN                   =>      open,
 RXDLYALIGNDISABLE               =>      '0',
@@ -541,7 +615,7 @@ RXPLLREFSELDY                   =>      "000",--RXPLLREFSELDY_IN,
 RXRATE                          =>      "00",
 RXRATEDONE                      =>      open,
 RXRESETDONE                     =>      i_rxreset_done,--RXRESETDONE_OUT,--//############################### add vicg
-SOUTHREFCLKRX                   =>      "000",--SOUTHREFCLKRX_IN,
+SOUTHREFCLKRX                   =>      "00",--SOUTHREFCLKRX_IN,
 -------------- Receive Ports - RX Pipe Control for PCI Express -------------
 PHYSTATUS                       =>      open,
 RXVALID                         =>      open,
@@ -549,7 +623,7 @@ RXVALID                         =>      open,
 RXPOLARITY                      =>      '0',
 --------------------- Receive Ports - RX Ports for SATA --------------------
 COMINITDET                      =>      i_rxcominit,--//############################### add vicg
-COMSASDET                       =>      open--COMSASDET_OUT,--//############################### add vicg
+COMSASDET                       =>      open,--COMSASDET_OUT,--//############################### add vicg
 COMWAKEDET                      =>      i_rxcomwake,--//############################### add vicg
 ------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
 DADDR                           =>      p_in_drpaddr(7 downto 0),--//############################### add vicg
@@ -569,8 +643,8 @@ TXSTARTSEQ                      =>      '0',
 TXBYPASS8B10B                   =>      "0000",
 TXCHARDISPMODE                  =>      "0000",
 TXCHARDISPVAL                   =>      "0000",
-TXCHARISK(3 downto 2)           =>      p_in_txcharisk(0)(3 downto 2),--//############################### add vicg
-TXCHARISK(1 downto 0)           =>      p_in_txcharisk(0)(1 downto 0),--//############################### add vicg
+TXCHARISK(3 downto 2)           =>      i_txcharisk_in(0)(3 downto 2),---------------------------p_in_txcharisk(0)(3 downto 2),--//############################### add vicg
+TXCHARISK(1 downto 0)           =>      i_txcharisk_in(0)(1 downto 0),---------------------------p_in_txcharisk(0)(1 downto 0),--//############################### add vicg
 TXENC8B10BUSE                   =>      '1',
 TXKERR                          =>      open,
 TXRUNDISP                       =>      open,
@@ -582,10 +656,10 @@ TSTCLK1                         =>      '0',
 TSTIN                           =>      "11111111111111111111",
 TSTOUT                          =>      open,
 ------------------ Transmit Ports - TX Data Path interface -----------------
-TXDATA                          =>      p_in_txdata(0),--//############################### add vicg
+TXDATA                          =>      i_txdata_in(0),-----------------------------p_in_txdata(0),--//############################### add vicg
 TXOUTCLK                        =>      p_out_refclkout,--//############################### add vicg
 TXOUTCLKPCS                     =>      open,
-TXRESET                         =>      p_in_txreset(0),--//############################### add vicg
+TXRESET                         =>      i_txreset_in(0),----------------------------p_in_txreset(0),--//############################### add vicg
 TXUSRCLK                        =>      g_gtp_usrclk(0),--//############################### add vicg
 TXUSRCLK2                       =>      g_gtp_usrclk2(0),--//############################### add vicg
 ---------------- Transmit Ports - TX Driver and OOB signaling --------------
@@ -598,7 +672,7 @@ TXPOSTEMPHASIS                  =>      "00000",
 --------------- Transmit Ports - TX Driver and OOB signalling --------------
 TXPREEMPHASIS                   =>      "0000",
 ----------- Transmit Ports - TX Elastic Buffer and Phase Alignment ---------
-TXBUFSTATUS                     =>      open,
+TXBUFSTATUS                     =>      i_txbufstatus_out(0),--------------------------------//############################### add vicg
 -------- Transmit Ports - TX Elastic Buffer and Phase Alignment Ports ------
 TXDLYALIGNDISABLE               =>      '1',
 TXDLYALIGNMONENB                =>      '0',
@@ -615,7 +689,7 @@ MGTREFCLKTX                     =>      i_refclkin,--//#########################
 NORTHREFCLKTX                   =>      "00",--NORTHREFCLKTX_IN,
 PERFCLKTX                       =>      '0',--PERFCLKTX_IN,
 PLLTXRESET                      =>      '0',--//############################### add vicg
-SOUTHREFCLKTX                   =>      "000",--SOUTHREFCLKTX_IN,
+SOUTHREFCLKTX                   =>      "00",--SOUTHREFCLKTX_IN,
 TXPLLLKDET                      =>      i_txplllkdet,
 TXPLLLKDETEN                    =>      '1',
 TXPLLPOWERDOWN                  =>      '0',
@@ -631,7 +705,7 @@ TXPOLARITY                      =>      '0',
 ----------------- Transmit Ports - TX Ports for PCI Express ----------------
 TXDEEMPH                        =>      '0',
 TXDETECTRX                      =>      '0',
-TXELECIDLE                      =>      p_in_txelecidle(0),--//############################### add vicg
+TXELECIDLE                      =>      i_txelecidle_in(0),-----------------------------------------p_in_txelecidle(0),--//############################### add vicg
 TXMARGIN                        =>      "000",
 TXPDOWNASYNCH                   =>      '0',
 TXSWING                         =>      '0',
@@ -644,4 +718,4 @@ TXCOMWAKE                       =>      i_txcomwake --//########################
 
 
 --END MAIN
-end RTL;
+end behavioral;
