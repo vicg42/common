@@ -189,9 +189,9 @@ NET "i_pciexp_gt_refclk" PERIOD = 10ns;
 #--------------------------------------------------------------------------
 #Назначение пинов
 #--------------------------------------------------------------------------
-NET "pin_in_sata_clk_p"  LOC = "P4"  | IOSTANDARD = "LVPECL_25";###CLK150MHz
-NET "pin_in_sata_clk_n"  LOC = "P3"  | IOSTANDARD = "LVPECL_25";
-INST "ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
+NET "pin_in_sata_clk_p<0>"  LOC = "P4"  | IOSTANDARD = "LVPECL_25";###CLK150MHz
+NET "pin_in_sata_clk_n<0>"  LOC = "P3"  | IOSTANDARD = "LVPECL_25";
+INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 
 #--------------------------------------------------------------------------
 #Расположение компоненов в кристале
