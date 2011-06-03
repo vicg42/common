@@ -1041,11 +1041,11 @@ begin
                                     --//его реальна€ €ркость
 
     --//2 –езультирующа€ сумма по X,Y
-    i_sum_x1(i)<=EXT(i_sum_pix02_line0(i), i_sum_x1(i)'length) + EXT(i_sum_pix1_line0_x2(i), i_sum_x1(i)'length);
-    i_sum_x2(i)<=EXT(i_sum_pix02_line2(i), i_sum_x2(i)'length) + EXT(i_sum_pix1_line2_x2(i), i_sum_x2(i)'length);
+    i_sum_y2(i)<=EXT(i_sum_pix02_line0(i), i_sum_x1(i)'length) + EXT(i_sum_pix1_line0_x2(i), i_sum_x1(i)'length);
+    i_sum_y1(i)<=EXT(i_sum_pix02_line2(i), i_sum_x2(i)'length) + EXT(i_sum_pix1_line2_x2(i), i_sum_x2(i)'length);
 
-    i_sum_y1(i)<=EXT(i_sum_pix0_line02(i), i_sum_y1(i)'length) + EXT(i_sum_pix0_line1_x2(i), i_sum_y1(i)'length);
-    i_sum_y2(i)<=EXT(i_sum_pix2_line02(i), i_sum_y2(i)'length) + EXT(i_sum_pix2_line1_x2(i), i_sum_y2(i)'length);
+    i_sum_x2(i)<=EXT(i_sum_pix0_line02(i), i_sum_y1(i)'length) + EXT(i_sum_pix0_line1_x2(i), i_sum_y1(i)'length);
+    i_sum_x1(i)<=EXT(i_sum_pix2_line02(i), i_sum_y2(i)'length) + EXT(i_sum_pix2_line1_x2(i), i_sum_y2(i)'length);
 
     sr_pix(i)(1)<=sr_pix(i)(0);
 
