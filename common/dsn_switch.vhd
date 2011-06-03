@@ -23,7 +23,7 @@ use unisim.vcomponents.all;
 
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
-use work.memory_ctrl_pkg.all;
+--use work.memory_ctrl_pkg.all;
 
 
 entity dsn_switch is
@@ -53,19 +53,19 @@ p_in_host_clk             : in   std_logic;
 
 -- Связь Хост <-> Опритка(dsn_optic.vhd)
 p_out_host_eth_rxd_irq    : out  std_logic;
-p_out_host_eth_rxd_rdy    : out  std_logic;                                --//
-p_out_host_eth_rxd        : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_eth_rd          : in   std_logic;                                --//
+p_out_host_eth_rxd_rdy    : out  std_logic;
+p_out_host_eth_rxd        : out  std_logic_vector(31 downto 0);
+p_in_host_eth_rd          : in   std_logic;
 
-p_out_host_eth_txbuf_rdy  : out  std_logic;                                --//
-p_in_host_eth_txd         : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_eth_wr          : in   std_logic;                                --//
-p_in_host_eth_txd_rdy     : in   std_logic;                                --//
+p_out_host_eth_txbuf_rdy  : out  std_logic;
+p_in_host_eth_txd         : in   std_logic_vector(31 downto 0);
+p_in_host_eth_wr          : in   std_logic;
+p_in_host_eth_txd_rdy     : in   std_logic;
 
 -- Связь Хост <-> VideoBUF
-p_out_host_vbuf_dout      : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_vbuf_rd         : in   std_logic;                                --//
-p_out_host_vbuf_empty     : out  std_logic;                                --//
+p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);
+p_in_host_vbuf_rd         : in   std_logic;
+p_out_host_vbuf_empty     : out  std_logic;
 
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
@@ -536,7 +536,7 @@ end process;
 --//----------------------------------
 i_eth_txbuf_din <=p_in_host_eth_txd     when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_din(31 downto 0);
 i_eth_txbuf_wr  <=p_in_host_eth_wr      when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_wr;
-i_eth_txd_rdy<=p_in_host_eth_txd_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txd_rdy;
+i_eth_txd_rdy   <=p_in_host_eth_txd_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txd_rdy;
 
 --//Сигнал хосту EthG TxBUF - готов принять данные
 p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
