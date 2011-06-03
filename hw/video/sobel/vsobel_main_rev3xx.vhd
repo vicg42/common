@@ -1008,21 +1008,33 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
   if p_in_dwnp_rdy_n='0' then
+
+--     Элементы матрицы вычислений
+--     -----------------------
+--    | (0,0) | (0,1) | (0,2) |
+--    |-----------------------|
+--    | (1,0) | (1,1) | (1,2) |
+--    |-----------------------|
+--    | (2,0) | (2,1) | (2,2) |
+--     -----------------------
+
     --//------------------------------------------
     --//Сумммы
     --//------------------------------------------
     --//1 Сумма крайних членов матрицы вычисления
-    i_sum_pix02_line0(i)<=EXT(i_matrix(i)(0)(0), i_sum_pix02_line0(i)'length) + EXT(i_matrix(i)(0)(2), i_sum_pix02_line0(i)'length);
-    i_sum_pix02_line2(i)<=EXT(i_matrix(i)(2)(0), i_sum_pix02_line2(i)'length) + EXT(i_matrix(i)(2)(2), i_sum_pix02_line2(i)'length);
+    i_sum_pix02_line0(i)<=EXT(i_matrix(i)(0)(0), i_sum_pix02_line0(i)'length) + EXT(i_matrix(i)(0)(2), i_sum_pix02_line0(i)'length);--вычисление dX1
+    i_sum_pix02_line2(i)<=EXT(i_matrix(i)(2)(0), i_sum_pix02_line2(i)'length) + EXT(i_matrix(i)(2)(2), i_sum_pix02_line2(i)'length);--вычисление dX2
 
-    i_sum_pix0_line02(i)<=EXT(i_matrix(i)(0)(0), i_sum_pix0_line02(i)'length) + EXT(i_matrix(i)(2)(0), i_sum_pix0_line02(i)'length);
-    i_sum_pix2_line02(i)<=EXT(i_matrix(i)(0)(2), i_sum_pix2_line02(i)'length) + EXT(i_matrix(i)(2)(2), i_sum_pix2_line02(i)'length);
+    i_sum_pix0_line02(i)<=EXT(i_matrix(i)(0)(0), i_sum_pix0_line02(i)'length) + EXT(i_matrix(i)(2)(0), i_sum_pix0_line02(i)'length);--вычисление dY1
+    i_sum_pix2_line02(i)<=EXT(i_matrix(i)(0)(2), i_sum_pix2_line02(i)'length) + EXT(i_matrix(i)(2)(2), i_sum_pix2_line02(i)'length);--вычисление dY2
 
-    --//add 2010.10.07
-    i_sum_pix1_line0_x2(i)<=i_matrix(i)(0)(1)&'0'; --//Умножение на 2 члена матрицы вычислений который расположен
-    i_sum_pix1_line2_x2(i)<=i_matrix(i)(2)(1)&'0'; --//между 2-я крайними
-    i_sum_pix0_line1_x2(i)<=i_matrix(i)(1)(0)&'0';
-    i_sum_pix2_line1_x2(i)<=i_matrix(i)(1)(2)&'0';
+
+    --//Умножение на 2 члена матрицы вычислений который расположен
+    --//между 2-я крайними
+    i_sum_pix1_line0_x2(i)<=i_matrix(i)(0)(1)&'0';--вычисление dX1
+    i_sum_pix1_line2_x2(i)<=i_matrix(i)(2)(1)&'0';--вычисление dX2
+    i_sum_pix0_line1_x2(i)<=i_matrix(i)(1)(0)&'0';--вычисление dY1
+    i_sum_pix2_line1_x2(i)<=i_matrix(i)(1)(2)&'0';--вычисление dY2
 
     sr_pix(i)(0)<=i_matrix(i)(1)(1);--//add 20.01.2011 18:59:43
                                     --//Теперь на выходной порт выдается вместе с общитаным пикселем и
