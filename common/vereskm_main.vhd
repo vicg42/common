@@ -155,12 +155,12 @@ pin_in_pciexp_clk_n   : in    std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector(1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector(1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector(1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector(1 downto 0);
-pin_in_sata_clk_n     : in    std_logic;
-pin_in_sata_clk_p     : in    std_logic;
+pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
 -- Local bus
@@ -409,7 +409,7 @@ signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
 
 signal i_hdd_module_rst                 : std_logic;
-signal i_hdd_gt_refclk150               : std_logic;
+signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
 signal i_hdd_dcm_lock                   : std_logic;
@@ -718,7 +718,9 @@ bufg_refclk  : BUFG              port map(I  => i_refclk200MHz, O  => g_refclk20
 ibuf_pciexp_gt_refclk : IBUFDS port map (I=>pin_in_pciexp_clk_p, IB=> pin_in_pciexp_clk_n, O=>i_pciexp_gt_refclk );
 
 --//Input 150MHz reference clock for SATA
-ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p, IB => pin_in_sata_clk_n, O  => i_hdd_gt_refclk150);
+gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 generate
+ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O  => i_hdd_gt_refclk150(i));
+end generate gen_sata_gt;
 
 --//Input 125MHz reference clock for Eth
 ibufds_X0Y6_gt_refclk : IBUFDS port map(I => pin_in_gt_X0Y6_clk_p, IB => pin_in_gt_X0Y6_clk_n, O => i_gt_X0Y6_clkin);
@@ -1518,6 +1520,7 @@ p_in_rbuf_status      => i_hdd_rbuf_status,
 p_in_hdd_txd          => i_hdd_txdata,
 p_in_hdd_txd_wr       => i_hdd_txdata_wd,
 p_out_hdd_txbuf_full  => i_hdd_txbuf_full,
+p_out_hdd_txbuf_empty => i_hdd_txbuf_empty,
 
 p_out_hdd_rxd         => i_hdd_rxdata,
 p_in_hdd_rxd_rd       => i_hdd_rxdata_rd,
@@ -1608,6 +1611,7 @@ p_in_vbuf_pfull     => i_hdd_vbuf_pfull,
 p_out_hdd_txd        => i_hdd_txdata,
 p_out_hdd_txd_wr     => i_hdd_txdata_wd,
 p_in_hdd_txbuf_full  => i_hdd_txbuf_full,
+p_in_hdd_txbuf_empty => i_hdd_txbuf_empty,
 
 p_in_hdd_rxd         => i_hdd_rxdata,
 p_out_hdd_rxd_rd     => i_hdd_rxdata_rd,

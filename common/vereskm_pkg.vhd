@@ -246,7 +246,7 @@ p_in_vbuf_pfull       : in    std_logic;
 p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
 p_out_hdd_txd_wr      : out   std_logic;
 p_in_hdd_txbuf_full   : in    std_logic;
---p_in_hdd_txbuf_empty  : in    std_logic;
+p_in_hdd_txbuf_empty  : in    std_logic;
 
 p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
 p_out_hdd_rxd_rd      : out   std_logic;
@@ -303,8 +303,8 @@ port
 --------------------------------------------------
 -- Связь с хостом по Local bus
 --------------------------------------------------
-lad                 : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);
-lbe_l               : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);
+lad                 : inout std_logic_vector(31 downto 0);
+lbe_l               : in    std_logic_vector(32/8-1 downto 0);
 lads_l              : in    std_logic;
 lwrite              : in    std_logic;
 lblast_l            : in    std_logic;
@@ -334,15 +334,15 @@ p_in_usr_tst        : in    std_logic_vector(127 downto 0);
 p_out_usr_tst       : out   std_logic_vector(127 downto 0);
 
 p_out_host_clk      : out   std_logic;
-p_out_glob_ctrl     : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_glob_ctrl     : out   std_logic_vector(31 downto 0);
 
-p_out_dev_ctrl      : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_out_dev_din       : out   std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_in_dev_dout       : in    std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_dev_ctrl      : out   std_logic_vector(31 downto 0);
+p_out_dev_din       : out   std_logic_vector(31 downto 0);
+p_in_dev_dout       : in    std_logic_vector(31 downto 0);
 p_out_dev_wd        : out   std_logic;
 p_out_dev_rd        : out   std_logic;
 p_in_dev_fifoflag   : in    std_logic_vector(7 downto 0);
-p_in_dev_status     : in    std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_in_dev_status     : in    std_logic_vector(31 downto 0);
 p_in_dev_irq        : in    std_logic_vector(31 downto 0);
 p_in_dev_option     : in    std_logic_vector(127 downto 0);
 
@@ -358,10 +358,10 @@ p_out_mem_cw        : out   std_logic;
 p_out_mem_rd        : out   std_logic;
 p_out_mem_wr        : out   std_logic;
 p_out_mem_term      : out   std_logic;
-p_out_mem_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr       : out   std_logic_vector(31 downto 0);
+p_out_mem_be        : out   std_logic_vector(32/8 - 1 downto 0);
+p_out_mem_din       : out   std_logic_vector(31 downto 0);
+p_in_mem_dout       : in    std_logic_vector(31 downto 0);
 
 p_in_mem_wf         : in    std_logic;
 p_in_mem_wpf        : in    std_logic;
@@ -439,19 +439,19 @@ p_in_host_clk             : in   std_logic;
 
 -- Связь Хост <-> Опритка(dsn_optic.vhd)
 p_out_host_eth_rxd_irq    : out  std_logic;
-p_out_host_eth_rxd_rdy    : out  std_logic;                                --//
-p_out_host_eth_rxd        : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_eth_rd          : in   std_logic;                                --//
+p_out_host_eth_rxd_rdy    : out  std_logic;
+p_out_host_eth_rxd        : out  std_logic_vector(31 downto 0);
+p_in_host_eth_rd          : in   std_logic;
 
-p_out_host_eth_txbuf_rdy  : out  std_logic;                                --//
-p_in_host_eth_txd         : in   std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_eth_wr          : in   std_logic;                                --//
-p_in_host_eth_txd_rdy     : in   std_logic;                                --//
+p_out_host_eth_txbuf_rdy  : out  std_logic;
+p_in_host_eth_txd         : in   std_logic_vector(31 downto 0);
+p_in_host_eth_wr          : in   std_logic;
+p_in_host_eth_txd_rdy     : in   std_logic;
 
 -- Связь Хост <-> VideoBUF
-p_out_host_vbuf_dout      : out  std_logic_vector(C_FHOST_DBUS-1 downto 0);--//
-p_in_host_vbuf_rd         : in   std_logic;                                --//
-p_out_host_vbuf_empty     : out  std_logic;                                --//
+p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);
+p_in_host_vbuf_rd         : in   std_logic;
+p_out_host_vbuf_empty     : out  std_logic;
 
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
