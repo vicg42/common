@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0315#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0316#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -395,21 +395,21 @@ constant C_DSN_HDD_REG_STATUS_SATA4_L        : integer:=16#00D#;
 constant C_DSN_HDD_REG_STATUS_SATA4_M        : integer:=16#00E#;
 constant C_DSN_HDD_REG_STATUS_SATA5_L        : integer:=16#00F#;
 constant C_DSN_HDD_REG_STATUS_SATA5_M        : integer:=16#010#;
+constant C_DSN_HDD_REG_STATUS_SATA6_L        : integer:=16#011#;
+constant C_DSN_HDD_REG_STATUS_SATA6_M        : integer:=16#012#;
+constant C_DSN_HDD_REG_STATUS_SATA7_L        : integer:=16#013#;
+constant C_DSN_HDD_REG_STATUS_SATA7_M        : integer:=16#014#;
 
-constant C_DSN_HDD_REG_LBA_BPOINT_LSB        : integer:=16#011#;
-constant C_DSN_HDD_REG_LBA_BPOINT_MID        : integer:=16#012#;
-constant C_DSN_HDD_REG_LBA_BPOINT_MSB        : integer:=16#013#;
+constant C_DSN_HDD_REG_LBA_BPOINT_LSB        : integer:=16#015#;
+constant C_DSN_HDD_REG_LBA_BPOINT_MID        : integer:=16#016#;
+constant C_DSN_HDD_REG_LBA_BPOINT_MSB        : integer:=16#017#;
 
-constant C_DSN_HDD_REG_TEST_TCMD_L           : integer:=16#016#;
-constant C_DSN_HDD_REG_TEST_TCMD_M           : integer:=16#017#;
 constant C_DSN_HDD_REG_TEST_TWORK_L          : integer:=16#018#;
 constant C_DSN_HDD_REG_TEST_TWORK_M          : integer:=16#019#;
-constant C_DSN_HDD_REG_TEST_TDLY_L           : integer:=16#01B#;
-constant C_DSN_HDD_REG_TEST_TDLY_M           : integer:=16#01C#;
+constant C_DSN_HDD_REG_TEST_TDLY_L           : integer:=16#01A#;
+constant C_DSN_HDD_REG_TEST_TDLY_M           : integer:=16#01B#;
 
 constant C_DSN_HDD_REG_CMDFIFO               : integer:=16#01E#;
-
---constant C_DSN_HDD_REG_STATUS_M              : integer:=16#01F#;--//Добавлено 2010.09.08
 
 constant C_DSN_HDD_REG_RBUF_ADR_L            : integer:=16#020#;--//add 2010.10.03
 constant C_DSN_HDD_REG_RBUF_ADR_M            : integer:=16#021#;--//add 2010.10.03
@@ -424,7 +424,9 @@ constant C_DSN_HDD_REG_RBUF_CTRL_M           : integer:=16#027#;--//add 2010.10.
 --//Register C_DSN_HDD_REG_CTRL_L / Bit Map:
 constant C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT      : integer:=0; --//Сброс ошибок
 constant C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT      : integer:=1; --//
-constant C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT : integer:=2;
+constant C_DSN_HDD_REG_CTRLL_TST_ON_BIT       : integer:=2;
+constant C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT   : integer:=3;
+constant C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT : integer:=4;
 constant C_DSN_HDD_REG_CTRLL_LAST_BIT         : integer:=C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT;
 
 --//Bit Maps:
@@ -435,15 +437,10 @@ constant C_DSN_HDD_REG_RBUF_ADR_BANK_LSB_BIT       : integer:=C_HREG_USR_MEM_ADR
 constant C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT       : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;--29;
 constant C_DSN_HDD_REG_RBUF_LAST_BIT               : integer:=C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT;
 
---//Register C_DSN_HDD_REG_RBUF_CTRL_M / Bit Map:
-constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_8BIT      : integer:=0;
-constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_9BIT      : integer:=1;
-constant C_DSN_HDD_REG_RBUF_CTRL_RESERV_10BIT     : integer:=2;
-constant C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT         : integer:=3;
-constant C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT         : integer:=4;
-constant C_DSN_HDD_REG_RBUF_CTRL_START_BIT        : integer:=5;
-constant C_DSN_HDD_REG_RBUF_CTRL_RST_BIT          : integer:=6;
-constant C_DSN_HDD_REG_RBUF_CTRL_STOPSYN_BIT      : integer:=7;
+--//Register C_DSN_HDD_REG_RBUF_CTRL_L / Bit Map:
+--constant C_DSN_HDD_REG_RBUF_CTRL_L           : integer:=7..0;--trn_mem_wr
+--constant C_DSN_HDD_REG_RBUF_CTRL_L           : integer:=15..8;--trn_mem_rd
+
 
 
 --//Register C_DSN_HDD_REG_TST0 / Bit Map:
