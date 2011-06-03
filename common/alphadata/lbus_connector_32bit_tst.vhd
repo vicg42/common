@@ -13,8 +13,8 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.localbus.all;
-use work.memif.all;
-use work.memory_ctrl_pkg.all;
+--use work.memif.all;
+--use work.memory_ctrl_pkg.all;
 
 entity lbus_connector_32bit_tst is
 generic
@@ -47,6 +47,7 @@ end entity;
 
 architecture mixed of lbus_connector_32bit_tst is
 
+constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
 
   signal rst                  : std_logic;
 

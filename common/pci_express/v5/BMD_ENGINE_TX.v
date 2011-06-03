@@ -465,7 +465,7 @@ module BMD_ENGINE_TX
         mwr_pkt_count_req <= mwr_count_i[15:0];
         mwr_pkt_count     <= 16'b0;
         mwr_len_byte      <= 13'b0;
-        mwr_len_dw_req    <= mwr_len_i;
+        mwr_len_dw_req    <= mwr_len_i[10:0];
         mwr_len_dw        <= 11'b0;
         pmwr_addr         <= 32'b0;
         mwr_fbe_req       <= mwr_fbe_i;
@@ -480,7 +480,7 @@ module BMD_ENGINE_TX
         mrd_pkt_count     <= 16'b0;
         mrd_len_byte      <= 13'b0;
         pmrd_addr         <= 32'b0;
-        mrd_len_dw_req    <= mrd_len_i;
+        mrd_len_dw_req    <= mrd_len_i[10:0];
         mrd_len_dw        <= 11'b0;
         mrd_fbe_req       <= mrd_fbe_i;
         mrd_lbe_req       <= mrd_lbe_i;

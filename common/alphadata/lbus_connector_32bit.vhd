@@ -148,8 +148,8 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.localbus.all;
-use work.memif.all;
-use work.memory_ctrl_pkg.all;
+--use work.memif.all;
+--use work.memory_ctrl_pkg.all;
 
 entity lbus_connector_32bit is
 generic
@@ -201,10 +201,10 @@ p_out_mem_cw               : out   std_logic;
 p_out_mem_rd               : out   std_logic;
 p_out_mem_wr               : out   std_logic;
 p_out_mem_term             : out   std_logic;
-p_out_mem_adr              : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be               : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din              : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout              : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr              : out   std_logic_vector(32 - 1 downto 0);
+p_out_mem_be               : out   std_logic_vector(32 / 8 - 1 downto 0);
+p_out_mem_din              : out   std_logic_vector(32 - 1 downto 0);
+p_in_mem_dout              : in    std_logic_vector(32 - 1 downto 0);
 
 p_in_mem_wf                : in    std_logic;
 p_in_mem_wpf               : in    std_logic;
@@ -229,6 +229,8 @@ p_in_rst_n                 : in    std_logic
 end entity;
 
 architecture mixed of lbus_connector_32bit is
+
+constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
 
   -- SPD clock division factor (80kHz SCL @ LCLK frequency of 80MHz)
   constant scldiv             : natural := 250;

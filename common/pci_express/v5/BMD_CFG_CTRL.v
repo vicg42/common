@@ -148,7 +148,7 @@ always @(posedge clk or negedge rst_n) begin
     cfg_cap_max_lnk_width <= 6'b0;
     cfg_cap_max_payload_size <= 3'b0;
     cfg_intf_state <= `BMD_CFG_STATE_RESET;
-    cfg_bme_state <= cfg_bus_mstr_enable;
+    cfg_bme_state <= 0;//cfg_bus_mstr_enable;
 
   end else begin
 

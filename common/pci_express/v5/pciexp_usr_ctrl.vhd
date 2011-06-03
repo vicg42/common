@@ -23,7 +23,7 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.vicg_common_pkg.all;
-use work.memory_ctrl_pkg.all;
+--use work.memory_ctrl_pkg.all;
 
 entity pciexp_usr_ctrl is
 generic
@@ -179,23 +179,25 @@ end pciexp_usr_ctrl;
 
 architecture behavioral of pciexp_usr_ctrl is
 
+constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
+
 component bram_dma_params
 port
 (
-  addra    : in   std_logic_vector(9 downto 0);
-  dina     : in   std_logic_vector(31 downto 0);
-  douta    : out  std_logic_vector(31 downto 0);
-  ena      : in   std_logic;
-  wea      : in   std_logic_vector(0 downto 0);
-  clka     : in   std_logic;
+addra    : in   std_logic_vector(9 downto 0);
+dina     : in   std_logic_vector(31 downto 0);
+douta    : out  std_logic_vector(31 downto 0);
+ena      : in   std_logic;
+wea      : in   std_logic_vector(0 downto 0);
+clka     : in   std_logic;
 
 
-  addrb    : in   std_logic_vector(9 downto 0);
-  dinb     : in   std_logic_vector(31 downto 0);
-  doutb    : out  std_logic_vector(31 downto 0);
-  enb      : in   std_logic;
-  web      : in   std_logic_vector(0 downto 0);
-  clkb     : in   std_logic
+addrb    : in   std_logic_vector(9 downto 0);
+dinb     : in   std_logic_vector(31 downto 0);
+doutb    : out  std_logic_vector(31 downto 0);
+enb      : in   std_logic;
+web      : in   std_logic_vector(0 downto 0);
+clkb     : in   std_logic
 );
 end component;
 
@@ -232,8 +234,8 @@ signal i_cfg_prg_max_rd_req_size   : std_logic_vector(2 downto 0);
 
 signal i_reg_rd                    : std_logic;
 signal i_reg_wd                    : std_logic;
-signal i_reg_rxdata                : std_logic_vector(C_FHOST_DBUS-1 downto 0);
-signal i_reg_txdata                : std_logic_vector(C_FHOST_DBUS-1 downto 0);
+signal i_reg_rxdata                : std_logic_vector(31 downto 0);
+signal i_reg_txdata                : std_logic_vector(31 downto 0);
 
 signal v_reg_fpga_firmware         : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
 signal v_reg_glob_ctrl             : std_logic_vector(C_HREG_GCTRL0_LAST_BIT downto 0);
@@ -241,10 +243,9 @@ signal v_reg_dev_ctrl              : std_logic_vector(C_HREG_DEV_CTRL_DEV_LAST_B
 signal v_reg_usr_mem_adr           : std_logic_vector(C_HREG_USR_MEM_LAST_BIT downto 0);
 signal v_reg_irq_ctrl              : std_logic_vector(C_HREG_INT_CTRL_WD_LAST_BIT downto 0);
 signal v_reg_pciexp_ctrl           : std_logic_vector(C_HREG_PCIEXP_CTRL_LAST_BIT downto 0);
-signal v_reg_tst0                  : std_logic_vector(C_FHOST_DBUS-1 downto 0);
-signal v_reg_tst1                  : std_logic_vector(C_FHOST_DBUS-1 downto 0);
-signal v_reg_tst2                  : std_logic_vector(C_FHOST_DBUS-1 downto 0);
---signal v_reg_tst2_rd               : std_logic_vector(C_FHOST_DBUS-1 downto 0);
+signal v_reg_tst0                  : std_logic_vector(31 downto 0);
+signal v_reg_tst1                  : std_logic_vector(31 downto 0);
+signal v_reg_tst2                  : std_logic_vector(31 downto 0);
 
 signal b_trn_start                 : std_logic;
 signal b_trn_dir                   : std_logic;
@@ -296,7 +297,7 @@ signal i_dmabuf_done_cnt           : std_logic_vector(b_dmabuf_count'high downto
 signal i_irq_src_clr               : std_logic;
 signal i_irq_src_en                : std_logic_vector(15 downto 0);
 signal i_irq_src_act               : std_logic_vector(15 downto 0);
-signal i_irq_src_set               : std_logic_vector(C_HIRQ_COUNT - 1 downto 0);--(15 downto 0);
+signal i_irq_src_set               : std_logic_vector(C_HIRQ_COUNT - 1 downto 0);
 signal tmp_irq_src_set_del0        : std_logic_vector(15 downto 0);
 signal tmp_irq_src_set_del1        : std_logic_vector(15 downto 0);
 signal i_irq_src_set_edge          : std_logic_vector(15 downto 0);
@@ -315,7 +316,7 @@ signal i_mst_usr_rxbuf_rd_last_del : std_logic;
 signal mem_locked           : std_logic_vector(7 downto 0);
 signal mem_trained          : std_logic_vector(15 downto 0);--(max_num_bank - 1 downto 0);
 signal memctl_reg           : std_logic_vector(0 downto 0);
-signal status_reg           : std_logic_vector(23 downto 0);--(31 downto 0);
+signal status_reg           : std_logic_vector(23 downto 0);
 signal memstat_reg          : std_logic_vector(15 downto 0);
 signal mode_reg             : std_logic_vector((C_MEMCTRL_CFG_MODE_REG_COUNT*10)-1 downto 0);
 signal clk_locked           : std_logic;
@@ -348,40 +349,11 @@ signal i_mem_be             : std_logic_vector(7 downto 0);
 signal i_mem_wpf            : std_logic;
 signal i_mem_re             : std_logic;
 
-signal dbg_rdrgctrl         : std_logic;
-signal dbg_rdareg_err       : std_logic;
-signal dbg_rdrgctrl_err     : std_logic;
-
---//Технологические сигналы
---signal tst_trndma_wd        : std_logic;
---signal tst_trndma_rd        : std_logic;
---signal tst_mem_cw           : std_logic;
---signal tst_mem_ce           : std_logic;
---signal tst_mem_term         : std_logic;
---signal tst_mem_lastwr       : std_logic;
---
---signal tst_mem_adr          : std_logic_vector(31 downto 0);
---signal tst_mem_din          : std_logic_vector(31 downto 0);
---signal tst_mem_dout         : std_logic_vector(31 downto 0);
---
---signal tst_mem_wpf          : std_logic;
---signal tst_mem_re           : std_logic;
---
---signal tst_irq_src_act      : std_logic;
---signal tst_irq_src_set      : std_logic;
---
---signal tst_dmatotal_mwr_done: std_logic;
---signal tst_dmatotal_mrd_done: std_logic;
---signal tst_dmatotal_done    : std_logic;
---signal tst_trn_data_cnt     : std_logic_vector(31 downto 0);
---signal tst_dev_status       : std_logic_vector(31 downto 0);
---
---signal tst_mem_bits         : std_logic_vector(7 downto 0);
-
 
 
 --MAIN
 begin
+
 
 p_out_host_clk_out <=p_in_clk;
 
@@ -817,24 +789,14 @@ end process;
 --//Чтение:
 process(p_in_rst_n,p_in_clk)
   variable var_val : std_logic_vector(i_reg_txdata'range);
-  variable var_dbg_rdrgctrl: std_logic;
-  variable var_dbg_rdareg_err: std_logic;
 begin
   if p_in_rst_n='0' then
     var_val:=(others => '0');
     i_reg_txdata<=(others=>'0');
     i_reg_rd<='0';
 
-    var_dbg_rdrgctrl:='0';
-    var_dbg_rdareg_err:='0';
-    dbg_rdrgctrl<='0';
-    dbg_rdareg_err<='0';
-    dbg_rdrgctrl_err<='0';
-
   elsif p_in_clk'event and p_in_clk='1' then
     var_val := (others => '0');
-    var_dbg_rdrgctrl:='0';
-    var_dbg_rdareg_err:='0';
 
     i_reg_rd<=p_in_trg_rd;
 
@@ -847,7 +809,6 @@ begin
             var_val:=EXT(v_reg_fpga_firmware, i_reg_txdata'length);
 
         elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0, 5) then
-          var_dbg_rdrgctrl:='1';
 
             var_val(C_HREG_GCTRL0_RST_ALL_BIT):=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_ALL_BIT);
             var_val(C_HREG_GCTRL0_LBUS_SEL_BIT):=v_reg_glob_ctrl(C_HREG_GCTRL0_LBUS_SEL_BIT);
@@ -929,9 +890,6 @@ begin
 
         elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST2, 5) then
           var_val:=EXT(v_reg_tst2, i_reg_txdata'length);
---          var_val:=EXT(v_reg_tst2_rd, i_reg_txdata'length);
-        else
-          var_dbg_rdareg_err:='1';
         end if;
 
       elsif mem_reg_bar='1' then
@@ -947,25 +905,12 @@ begin
                 var_val(9 downto 0):= mode_reg(10* (i + 1) - 1 downto 10 * i);
               end if;
             end loop;
-        else
-          var_dbg_rdareg_err:='1';
         end if;
-      else
-        var_dbg_rdareg_err:='1';
       end if;
 
       i_reg_txdata<=var_val;
 
     end if;--//if i_reg_rd='1' then
-
-    dbg_rdrgctrl<=var_dbg_rdrgctrl;
-    dbg_rdareg_err<=var_dbg_rdareg_err;
-
-    if dbg_rdrgctrl='1' and i_reg_txdata=(i_reg_txdata'range =>'1') then
-      dbg_rdrgctrl_err<='1';
-    else
-      dbg_rdrgctrl_err<='0';
-    end if;
 
   end if;
 end process;
@@ -1121,20 +1066,20 @@ i_hw_dmaparam_adrr(7 downto 0)<=EXT(i_dmabuf_idx_cnt,8);
 m_bram_dma_params_i : bram_dma_params
 port map
 (
-  addra    => i_host_dmaparam_adrr,
-  dina     => i_host_dmaparam_din,
-  douta    => i_host_dmaparam_dout,
-  ena      => '1',
-  wea      => i_host_dmaparam_wr,
-  clka     => p_in_clk,
+addra => i_host_dmaparam_adrr,
+dina  => i_host_dmaparam_din,
+douta => i_host_dmaparam_dout,
+ena   => '1',
+wea   => i_host_dmaparam_wr,
+clka  => p_in_clk,
 
 
-  addrb    => i_hw_dmaparam_adrr,
-  dinb     => "00000000000000000000000000000000",
-  doutb    => i_hw_dmaparam_dout,
-  enb      => i_hw_dmaparam_rd(0),
-  web      => "0",                --// Только чтение
-  clkb     => p_in_clk
+addrb => i_hw_dmaparam_adrr,
+dinb  => "00000000000000000000000000000000",
+doutb => i_hw_dmaparam_dout,
+enb   => i_hw_dmaparam_rd(0),
+web   => "0",                --// Только чтение
+clkb  => p_in_clk
 );
 
 --//Анализ размера принятых данных запроса MRd
@@ -1383,115 +1328,17 @@ p_out_mem_din     <= i_mem_din;
 --//-------------------------------------------------------------------
 p_out_usr_tst(31 downto 0)  <=v_reg_tst0;
 p_out_usr_tst(63 downto 32) <=v_reg_tst1;
-
---gen_dbg_off : if strcmp(G_DBG,"OFF") generate
---
-  p_out_usr_tst(125 downto 64)<=(others=>'0');
-  p_out_usr_tst(126)<=dbg_rdareg_err;
-  p_out_usr_tst(127)<=dbg_rdrgctrl_err;
---end generate gen_dbg_off;
+p_out_usr_tst(125 downto 64)<=(others=>'0');
+p_out_usr_tst(126)<='0';
+p_out_usr_tst(127)<='0';
 
 
---gen_dbg_on : if strcmp(G_DBG,"ON") generate
---
---v_reg_tst2_rd(0)<=OR_reduce(tst_mem_adr);
---v_reg_tst2_rd(1)<=OR_reduce(tst_trn_data_cnt);
---v_reg_tst2_rd(2)<=OR_reduce(tst_dev_status);
---v_reg_tst2_rd(3)<=OR_reduce(tst_mem_din);
---v_reg_tst2_rd(4)<=OR_reduce(tst_mem_bits);
---v_reg_tst2_rd(5)<=OR_reduce(tst_mem_dout);
---v_reg_tst2_rd(6)<=OR_reduce(p_in_usr_tst(p_in_usr_tst'high downto 96);--(127 downto 96);
---v_reg_tst2_rd(31 downto 7)<=(others=>'0');
---
---tst_mem_bits(0)<=tst_mem_ce or tst_mem_term or tst_trndma_rd or tst_trndma_wd or tst_mem_cw or tst_mem_wpf or tst_mem_re or tst_mem_lastwr;--tst_dev_wd or tst_dev_rd;
---tst_mem_bits(1)<=tst_dmatotal_mwr_done or tst_dmatotal_mrd_done or tst_dmatotal_done;
---tst_mem_bits(2)<='0';--tst_dev_wd or tst_dev_rd;
---tst_mem_bits(3)<=tst_irq_src_act or tst_irq_src_set;
---tst_mem_bits(7 downto 4)<=(others=>'0');
---
---p_out_usr_tst(p_out_usr_tst'high downto 64)<=(others=>'0');
---
---
---p_out_tst_irq_ctrl_out(3 downto 0)<=v_reg_tst2(3 downto 0);
---
-----//-------------------------------------------------------------------
-----//Технологические сигналы
-----//-------------------------------------------------------------------
---process(p_in_rst_n,p_in_clk)
---  variable var_tst_latch: std_logic;
---begin
---  if p_in_rst_n='0' then
---
---    tst_trndma_wd<= '0';
---    tst_trndma_rd<= '0';
---    tst_mem_cw   <='0';
---    tst_mem_ce <='0';
---    tst_mem_term  <='0';
---    tst_mem_lastwr<='0';
---
---    tst_mem_wpf <='0';
---    tst_mem_re  <='0';
---
---    tst_mem_adr <=(others=>'0');
---    tst_mem_din    <=(others=>'0');
---    tst_mem_dout   <=(others=>'0');
---
---    tst_irq_src_act  <= '0';
---    tst_irq_src_set  <= '0';
---
---    tst_dmatotal_mwr_done<='0';
---    tst_dmatotal_mrd_done<='0';
---    tst_dmatotal_done<='0';
---
---    tst_trn_data_cnt<=(others=>'0');
---
---    tst_dev_status<=(others=>'0');
---
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    tst_trndma_wd <= p_in_mst_usr_txbuf_wd;
---    tst_trndma_rd <= p_in_mst_usr_rxbuf_rd;
---
---    tst_mem_adr    <= i_mem_adr(31 downto 0);--(tst_mem_adr'high downto 0);
---    tst_mem_din    <= i_mem_din;
---    tst_mem_dout   <= i_mem_dout;
---
---    tst_mem_cw     <= i_mem_cw;
---    tst_mem_ce     <= i_mem_ce;
---    tst_mem_term   <= i_mem_term;
---    tst_mem_lastwr <= p_in_mst_usr_rxbuf_rd_last or p_in_mst_usr_txbuf_wd_last;
---    tst_mem_wpf    <= i_mem_wpf;
---    tst_mem_re     <= i_mem_re;
---
---    tst_irq_src_act <= OR_reduce(i_irq_src_act(C_HIRQ_COUNT-1 downto 0));
---    tst_irq_src_set <= OR_reduce(i_irq_src_set(C_HIRQ_COUNT-1 downto 0));
---
---    tst_dmatotal_mwr_done<=i_dmatotal_mwr_done and i_dma_mwr_done_del;
---    tst_dmatotal_mrd_done<=i_dmatotal_mrd_done and i_dma_mrd_done_del;
---    tst_dmatotal_done<=tst_dmatotal_mwr_done or tst_dmatotal_mrd_done;
---
---    tst_dev_status(C_HREG_STATUS_DEV_INT_ACT_BIT-1 downto 0)<=p_in_dev_status(C_HREG_STATUS_DEV_INT_ACT_BIT-1 downto 0);
---    tst_dev_status(C_HREG_STATUS_DEV_INT_ACT_BIT)           <=OR_reduce(i_irq_src_act(C_HIRQ_COUNT-1 downto 0));
---    tst_dev_status(C_HREG_STATUS_DEV_DMA_BUSY_BIT)          <=i_dmatotal_work;
---    tst_dev_status(C_HREG_STATUS_DEV_PCIEXP_ERR_BIT)        <=p_in_cpld_malformed;
---    tst_dev_status(C_HREG_STATUS_DEV_PCIEXP_DMA_WR_DONE_BIT)<=i_dmatotal_mwr_done;
---    tst_dev_status(C_HREG_STATUS_DEV_PCIEXP_DMA_RD_DONE_BIT)<=i_dmatotal_mrd_done;
---
---
---  if tst_trndma_rd='1' or tst_trndma_wd='1' then--tst_dev_wd='1' or tst_dev_rd='1'
---    tst_trn_data_cnt<=tst_trn_data_cnt+1;
---
---    if tst_trn_data_cnt=v_reg_tst0 then
---    end if;
---  elsif i_trn_start_sw='1' or tst_dmatotal_mwr_done='1' or tst_dmatotal_mwr_done='1' then
---    tst_trn_data_cnt<=(others=>'0');
---  end if;
---
---
--- end if;
---end process;
---
---end generate gen_dbg_on;
+--//-------------------------------------------------------------------
+--//Технологические сигналы
+--//-------------------------------------------------------------------
+
+
+
 
 --END MAIN
 end behavioral;

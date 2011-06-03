@@ -289,8 +289,8 @@ wire [3:0]        tst_irq_ctrl_out;
 
 //wire [127:0]      out_usr_tst;
 //wire [127:0]      in_usr_tst;
-wire [3:0]        tst_tx_engine_state;
-wire [3:0]        tst_rx_engine_state;
+//wire [3:0]        tst_tx_engine_state;
+//wire [3:0]        tst_rx_engine_state;
 //wire [7:0]        tst_expansion_rom_count;
 
 wire [7:0]        trg_addr;
@@ -299,7 +299,7 @@ wire [31:0]       trg_dout;
 wire              trg_wr;
 wire              trg_rd;
 
-wire [3:0]        mst_rx_data_be;
+//wire [3:0]        mst_rx_data_be;
 wire [31:0]       usr_txbuf_din;
 wire              usr_txbuf_wd;
 wire              usr_txbuf_wd_last;
@@ -685,13 +685,13 @@ BMD_ENGINE_RX m_RX_ENGINE
     .trg_rx_data_rd_o(trg_rd),
 
 //    .mst_rx_addr_o(mst_rx_addr),
-    .mst_rx_data_be_o(mst_rx_data_be),
+    .mst_rx_data_be_o(),//mst_rx_data_be
     .mst_rx_data_o(usr_txbuf_din),
     .mst_rx_data_wd_o(usr_txbuf_wd),
     .mst_rx_data_wd_last_o(usr_txbuf_wd_last),
     .usr_buf_full_i(usr_txbuf_full),
 
-    .tst_rx_engine_state_o(tst_rx_engine_state),
+    .tst_rx_engine_state_o(),//tst_rx_engine_state
 
     //Связь с LocalLink Rx ядра PCI-EXPRESS
     .trn_rd(trn_rd_i),                                 // I [63/31:0]
@@ -757,7 +757,7 @@ BMD_ENGINE_TX m_TX_ENGINE
     .mst_tx_data_rd_last_o(usr_rxbuf_rd_last),
     .usr_buf_empty_i(usr_rxbuf_empty),
 
-    .tst_tx_engine_state_o(tst_tx_engine_state),
+    .tst_tx_engine_state_o(),//tst_tx_engine_state
     .tst_cur_mwr_pkt_count_o(tst_cur_mwr_pkt_count),
 //    .tst_cur_mwr_len_count_o(tst_cur_mwr_len_count),
     .tst_rdy_del_inv_o(tst_rdy_del_inv),
