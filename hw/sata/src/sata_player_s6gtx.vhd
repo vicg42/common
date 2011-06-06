@@ -2,7 +2,7 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 03.04.2011 11:49:15
+-- Create Date : 05.06.2011 15:14:44
 -- Module Name : sata_player_gt
 --
 -- Назначение/Описание :
@@ -14,8 +14,9 @@
 --------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_misc.all;
+use ieee.std_logic_unsigned.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -27,6 +28,7 @@ use work.sata_pkg.all;
 entity sata_player_gt is
 generic
 (
+G_SATAH_NUM  : integer := 0;
 G_GT_CH_COUNT: integer := 2;
 G_GT_DBUS    : integer := 16;
 G_SIM        : string  := "OFF"
@@ -96,6 +98,11 @@ p_out_plllock          : out   std_logic;--//Захват частоты PLL DUAL_GTP
 p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclkin. см. стр.68. ug196.pdf
 
 p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
+
+p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+
 p_in_rst               : in    std_logic
 );
 end sata_player_gt;
@@ -106,7 +113,7 @@ architecture behavioral of sata_player_gt is
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
 --      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
 constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
-constant C_GTP_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), C_GTP_DATAWIDTH'length);
+constant C_GTP_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), 2);
 
 signal i_refclkin                  : std_logic_vector(1 downto 0);
 signal i_txcomsas                  : std_logic;
@@ -138,6 +145,7 @@ signal i_txbufstatus_out           : TBus02_GTCH;
 signal i_rxcdrreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
+signal i_rxchariscomma             : TBus04_GTCH;
 signal i_rxstatus_out              : TBus03_GTCH;
 signal i_rxdata_out                : TBus32_GTCH;
 signal i_rxcharisk_out             : TBus04_GTCH;
@@ -148,10 +156,8 @@ signal i_rxbyteisaligned_out       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_rxbufreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxbufstatus_out           : TBus03_GTCH;
 
-signal i_refclkout                 : std_logic_vector(1 downto 0);
-signal i_refclkout_o               : std_logic_vector(1 downto 0);
-signal i_gtpclkfbwest              : std_logic_vector(1 downto 0);
-signal i_gtpclkfbwest_out          : std_logic_vector(1 downto 0);
+signal i_refclkout                 : TBus02_GTCH;
+signal i_refclkpll                 : std_logic_vector(1 downto 0);
 
 signal  tied_to_ground_i           : std_logic;
 signal  tied_to_ground_vec_i       : std_logic_vector(63 downto 0);
@@ -166,28 +172,14 @@ attribute keep of g_gtp_usrclk : signal is "true";
 begin
 
 
-gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
-m_BUFIO2FB : BUFIO2FB
-generic map(
-DIVIDE_BYPASS =>TRUE--Bypassdivider(TRUE/FALSE)
-)
-port map(O =>i_gtpclkfbwest_out(i), I =>i_gtpclkfbwest(i));
-
-m_BUFIO2 : BUFIO2
-generic map(
-DIVIDE        => 1,
-DIVIDE_BYPASS => TRUE,
-I_INVERT      => FALSE,
-USE_DOUBLER   => FALSE
-)
-port map(
-I            => i_refclkout(i),  --1-bitinput:Clockinput(connecttoIBUFG)
-DIVCLK       => open,            --1-bitoutput:Dividedclockoutput
-IOCLK        => i_refclkout_o(i),--1-bitoutput:I/Ooutputclock
-SERDESSTROBE => open,            --1-bitoutput:OutputSERDESstrobe(connecttoISERDES2/OSERDES2)
-);
-
-end generate gen_null;
+--gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
+----m_BUFIO2FB : BUFIO2FB
+----generic map(
+----DIVIDE_BYPASS =>TRUE--Bypassdivider(TRUE/FALSE)
+----)
+----port map(O =>i_gtpclkfbwest_out(i), I =>i_gtpclkfbwest(i));
+--
+--end generate gen_null;
 
 
 gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
@@ -337,8 +329,12 @@ tied_to_vcc_i        <= '1';
 tied_to_vcc_vec_i    <= (others => '1');
 
 p_out_plllock<=AND_reduce(i_plllkdet(G_GT_CH_COUNT-1 downto 0));
-p_out_refclkout<=i_refclkout_o(0);
+p_out_refclkout<=i_refclkout(0)(0);
 
+p_out_optrefclk(0)<=i_refclkpll(0);
+p_out_optrefclk(1)<=i_refclkpll(1);
+p_out_optrefclk(2)<='0';
+p_out_optrefclk(3)<='0';
 
 
 m_gt : GTPA1_DUAL
@@ -371,7 +367,7 @@ PLL_COM_CFG_0                           =>     (x"21680a"),
 PLL_CP_CFG_0                            =>     (x"00"),
 PLL_RXDIVSEL_OUT_0                      =>     (1),
 PLL_SATA_0                              =>     (FALSE),
-PLL_SOURCE_0                            =>     (TILE_PLL_SOURCE_0),
+PLL_SOURCE_0                            =>     ("PLL0"),                --//############################### add vicg
 PLL_TXDIVSEL_OUT_0                      =>     (1),
 PLLLKDET_CFG_0                          =>     ("111"),
 
@@ -383,7 +379,7 @@ PLL_COM_CFG_1                           =>     (x"21680a"),
 PLL_CP_CFG_1                            =>     (x"00"),
 PLL_RXDIVSEL_OUT_1                      =>     (1),
 PLL_SATA_1                              =>     (FALSE),
-PLL_SOURCE_1                            =>     (TILE_PLL_SOURCE_1),
+PLL_SOURCE_1                            =>     ("PLL1"),                --//############################### add vicg
 PLL_TXDIVSEL_OUT_1                      =>     (1),
 PLLLKDET_CFG_1                          =>     ("111"),
 PMA_COM_CFG_EAST                        =>     (x"000008000"),
@@ -617,14 +613,14 @@ RXPOWERDOWN1                    =>      tied_to_ground_vec_i(1 downto 0),
 TXPOWERDOWN0                    =>      tied_to_ground_vec_i(1 downto 0),
 TXPOWERDOWN1                    =>      tied_to_ground_vec_i(1 downto 0),
 --------------------------------- PLL Ports --------------------------------
-CLK00                           =>      CLK00_IN,
-CLK01                           =>      CLK01_IN,
+CLK00                           =>      p_in_refclkin, --External jitter stable clock driven by the IBUFDS primitive --//############################### add vicg
+CLK01                           =>      '0',                                --//############################### add vicg
 CLK10                           =>      tied_to_ground_i,
 CLK11                           =>      tied_to_ground_i,
-CLKINEAST0                      =>      tied_to_ground_i,
-CLKINEAST1                      =>      tied_to_ground_i,
-CLKINWEST0                      =>      tied_to_ground_i,
-CLKINWEST1                      =>      tied_to_ground_i,
+CLKINEAST0                      =>      p_in_optrefclk(0),
+CLKINEAST1                      =>      p_in_optrefclk(0),
+CLKINWEST0                      =>      p_in_optrefclk(0),
+CLKINWEST1                      =>      p_in_optrefclk(0),
 GCLK00                          =>      tied_to_ground_i,
 GCLK01                          =>      tied_to_ground_i,
 GCLK10                          =>      tied_to_ground_i,
@@ -647,12 +643,12 @@ PLLPOWERDOWN0                   =>      tied_to_ground_i,
 PLLPOWERDOWN1                   =>      tied_to_ground_i,
 REFCLKOUT0                      =>      open,
 REFCLKOUT1                      =>      open,
-REFCLKPLL0                      =>      open,
-REFCLKPLL1                      =>      open,
+REFCLKPLL0                      =>      i_refclkpll(0),      --//############################### add vicg
+REFCLKPLL1                      =>      i_refclkpll(1),      --//############################### add vicg
 REFCLKPWRDNB0                   =>      tied_to_vcc_i,
 REFCLKPWRDNB1                   =>      tied_to_vcc_i,
-REFSELDYPLL0                    =>      tied_to_ground_vec_i(2 downto 0),
-REFSELDYPLL1                    =>      tied_to_ground_vec_i(2 downto 0),
+REFSELDYPLL0                    =>      p_in_optrefclksel(2 downto 0),      --//############################### add vicg
+REFSELDYPLL1                    =>      p_in_optrefclksel(2 downto 0),      --//############################### add vicg
 RESETDONE0                      =>      i_resetdone(0),                     --//############################### add vicg
 RESETDONE1                      =>      i_resetdone(1),                     --//############################### add vicg
 TSTCLK0                         =>      tied_to_ground_i,
@@ -662,10 +658,10 @@ TSTIN1                          =>      tied_to_ground_vec_i(11 downto 0),
 TSTOUT0                         =>      open,
 TSTOUT1                         =>      open,
 ----------------------- Receive Ports - 8b10b Decoder ----------------------
-RXCHARISCOMMA0(3 downto 2)      =>      open,                               --//############################### add vicg
-RXCHARISCOMMA0(1 downto 0)      =>      open,                               --//############################### add vicg
-RXCHARISCOMMA1(3 downto 2)      =>      open,                               --//############################### add vicg
-RXCHARISCOMMA1(1 downto 0)      =>      open,                               --//############################### add vicg
+RXCHARISCOMMA0(3 downto 2)      =>      i_rxchariscomma(0)(3 downto 2),     --//############################### add vicg
+RXCHARISCOMMA0(1 downto 0)      =>      i_rxchariscomma(0)(1 downto 0),     --//############################### add vicg
+RXCHARISCOMMA1(3 downto 2)      =>      i_rxchariscomma(1)(3 downto 2),     --//############################### add vicg
+RXCHARISCOMMA1(1 downto 0)      =>      i_rxchariscomma(1)(1 downto 0),     --//############################### add vicg
 RXCHARISK0(3 downto 2)          =>      i_rxcharisk_out(0)(3 downto 2),     --//############################### add vicg
 RXCHARISK0(1 downto 0)          =>      i_rxcharisk_out(0)(1 downto 0),     --//############################### add vicg
 RXCHARISK1(3 downto 2)          =>      i_rxcharisk_out(1)(3 downto 2),     --//############################### add vicg
@@ -792,9 +788,9 @@ GTPCLKFBSEL0EAST                =>      "10",
 GTPCLKFBSEL0WEST                =>      "00",
 GTPCLKFBSEL1EAST                =>      "11",
 GTPCLKFBSEL1WEST                =>      "01",
-GTPCLKFBWEST                    =>      i_gtpclkfbwest,                 --//############################### add vicg
-GTPCLKOUT0                      =>      i_refclkout(0),                 --//############################### add vicg
-GTPCLKOUT1                      =>      i_refclkout(1),                 --//############################### add vicg
+GTPCLKFBWEST                    =>      open,
+GTPCLKOUT0                      =>      i_refclkout(0)(1 downto 0),     --//############################### add vicg
+GTPCLKOUT1                      =>      i_refclkout(1)(1 downto 0),     --//############################### add vicg
 ------------------- Transmit Ports - 8b10b Encoder Control -----------------
 TXBYPASS8B10B0                  =>      tied_to_ground_vec_i(3 downto 0),
 TXBYPASS8B10B1                  =>      tied_to_ground_vec_i(3 downto 0),

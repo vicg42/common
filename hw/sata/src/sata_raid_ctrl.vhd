@@ -106,8 +106,9 @@ architecture behavioral of sata_raid_ctrl is
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
 signal i_usr_status                : TUsrStatus;
+signal sr_dev_busy                 : std_logic;
 
-signal sr_dev_err                 : std_logic_vector(0 to 1);
+signal sr_dev_err                  : std_logic_vector(0 to 1);
 type TShDetect is record
 cmddone : std_logic;
 err     : std_logic;
@@ -266,17 +267,23 @@ begin
     i_sh_det.err<='0';
 
     sr_sh_cmddone<=(others=>'0');
+    sr_dev_busy<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     sr_dev_err<=i_usr_status.dev_err & sr_dev_err(0 to 0);
 
-    i_sh_det.cmddone<=p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT);
+    sr_dev_busy<=i_usr_status.dev_busy;
+    i_sh_det.cmddone<=(i_usrmode.sw and p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)) or
+                      (sr_dev_busy and not i_usr_status.dev_busy);
+
     i_sh_det.err<=sr_dev_err(0) and not sr_dev_err(1);
 
     sr_sh_cmddone<=i_sh_det.cmddone & sr_sh_cmddone(0 to 0);
   end if;
 end process;
+
+--i_buf_padd<=i_usr_status.dev_busy
 
 
 gen_sh_pout : for i in 0 to C_HDD_COUNT_MAX-1 generate

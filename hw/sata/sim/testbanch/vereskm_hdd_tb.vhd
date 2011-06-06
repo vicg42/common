@@ -37,7 +37,7 @@ use work.memory_ctrl_pkg.all;
 entity vereskm_hdd_tb is
 generic
 (
-G_HDD_COUNT     : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
+G_HDD_COUNT     : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS       : integer:=16;
 G_DBG           : string :="ON";
 G_SIM           : string :="ON"
@@ -193,19 +193,6 @@ signal i_hdd_sim_gtp_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downt
 signal i_hdd_sim_gtp_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gtp_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_vbuf_din                     : std_logic_vector(31 downto 0);
-signal i_vbuf_wr                      : std_logic;
-signal i_vbuf_wrclk                   : std_logic;
-signal i_vbuf_dout                    : std_logic_vector(31 downto 0);
-signal i_vbuf_rd                      : std_logic;
-signal i_vbuf_full                    : std_logic;
-signal i_vbuf_pfull                   : std_logic;
-signal i_vbuf_empty                   : std_logic;
-signal i_vbuf_wrcount                 : std_logic_vector(3 downto 0);
-signal i_vdata_wrstart                : std_logic;
-signal i_vdata_wrdone                 : std_logic;
-
-
 signal i_hdd_mem_bank1h               : std_logic_vector(15 downto 0);
 signal i_hdd_mem_ce                   : std_logic;
 signal i_hdd_mem_cw                   : std_logic;
@@ -222,27 +209,40 @@ signal i_hdd_mem_wpf                  : std_logic;
 signal i_hdd_mem_re                   : std_logic;
 signal i_hdd_mem_rpe                  : std_logic;
 
-signal tst_hdd_out                : std_logic_vector(31 downto 0);
+signal tst_hdd_out                    : std_logic_vector(31 downto 0);
 
-signal i_loopback                 : std_logic;
-signal sr_cmdbusy                 : std_logic_vector(0 to 1);
-signal i_cmddone_det_clr          : std_logic:='0';
-signal i_cmddone_det              : std_logic:='0';
-signal i_cmd_data                 : TUsrAppCmdPkt;
-signal i_cmd_wrstart              : std_logic:='0';
-signal i_cmd_wrdone               : std_logic:='0';
-signal i_txdata_select            : std_logic:='0';
-signal i_txdata                   : TSimBufData;
-signal i_txdata_wrstart           : std_logic:='0';
-signal i_txdata_wrdone            : std_logic:='0';
-signal i_rxdata                   : TSimBufData;
-signal i_rxdata_rdstart           : std_logic:='0';
-signal i_rxdata_rddone            : std_logic:='0';
-signal i_tstdata_dwsize           : integer:=0;
+signal i_tstdata_dwsize               : integer:=0;
+signal i_loopback                     : std_logic;
+signal sr_cmdbusy                     : std_logic_vector(0 to 1);
+signal i_cmddone_det_clr              : std_logic:='0';
+signal i_cmddone_det                  : std_logic:='0';
+signal i_cmd_data                     : TUsrAppCmdPkt;
+signal i_cmd_wrstart                  : std_logic:='0';
+signal i_cmd_wrdone                   : std_logic:='0';
+signal i_ram_txbuf                    : TSimBufData;
+signal i_ram_txbuf_start              : std_logic:='0';
+signal i_ram_txbuf_done               : std_logic:='0';
+signal i_ram_txbuf_fillselect         : std_logic:='0';
+signal i_ram_rxbuf                    : TSimBufData;
+signal i_ram_rxbuf_start              : std_logic:='0';
+signal i_ram_rxbuf_done               : std_logic:='0';
+
+signal i_vbuf_din                     : std_logic_vector(31 downto 0);
+signal i_vbuf_wr                      : std_logic;
+signal i_vbuf_wrclk                   : std_logic;
+signal i_vbuf_dout                    : std_logic_vector(31 downto 0);
+signal i_vbuf_rd                      : std_logic;
+signal i_vbuf_full                    : std_logic;
+signal i_vbuf_pfull                   : std_logic;
+signal i_vbuf_empty                   : std_logic;
+signal i_vbuf_wrcount                 : std_logic_vector(3 downto 0);
+signal i_vdata_start                  : std_logic;
+signal i_vdata_done                   : std_logic;
+
 
 type TSataDevStatusSataCount is array (0 to C_HDD_COUNT_MAX-1) of TSataDevStatus;
-signal i_satadev_status           : TSataDevStatusSataCount;
-signal i_satadev_ctrl             : TSataDevCtrl;
+signal i_satadev_status               : TSataDevStatusSataCount;
+signal i_satadev_ctrl                 : TSataDevCtrl;
 
 
 
@@ -541,13 +541,376 @@ i_hdd_mem_rpe<='0';
 
 
 
---//########################################
---//Main Ctrl
---//########################################
+
 
 p_in_usr_ctrl<=(others=>'0');
 
 
+--//Выделяем задний фронт из сигнала BUSY модуля m_sata_host.
+--//Для детектированя завершения АТА команды
+lcmddone:process(i_dsn_hdd_rst,p_in_clk)
+begin
+  if i_dsn_hdd_rst='1' then
+
+    sr_cmdbusy<=(others=>'1');
+    i_cmddone_det<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    sr_cmdbusy<=i_hdd_busy & sr_cmdbusy(0 to 0);
+
+    if i_cmddone_det_clr='1' then
+      i_cmddone_det<='0';
+    elsif sr_cmdbusy(1)='1' and sr_cmdbusy(0)='0' then
+      i_cmddone_det<='1';
+    end if;
+
+  end if;
+end process lcmddone;
+
+
+
+process
+variable GUI_line : LINE;--Строка для вывода в ModelSim
+begin
+
+  i_satadev_ctrl.atacmd_done<='0';
+
+  wait until i_cmddone_det_clr='1';
+
+  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
+  i_satadev_ctrl.atacmd_done<='1';
+  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
+  i_satadev_ctrl.atacmd_done<='0';
+
+end process;
+
+i_satadev_ctrl.loopback<=i_loopback;
+i_satadev_ctrl.link_establish<=i_hdd_rdy;
+i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
+i_satadev_ctrl.dbuf_ruse<='1';
+
+
+
+
+--//########################################
+--//Программирование модуля dsn_hdd
+--//########################################
+ltxcmd:process
+variable GUI_line : LINE;--Строка для вывода в ModelSim
+variable memwr_lentrn_byte: std_logic_vector(16 + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+variable memwr_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
+variable memrd_lentrn_byte: std_logic_vector(memwr_lentrn_byte'range);
+variable memrd_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
+begin
+
+  --//Инициализация:
+  --//настройка RAMBUF: направление RAM<-HDD
+  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memwr_lentrn_byte'length);
+--  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(1*4, memwr_lentrn_byte'length);
+  memwr_lentrn_dw:=("00"&memwr_lentrn_byte(memwr_lentrn_byte'high downto 2));
+
+  --//настройка RAMBUF: направление RAM->HDD
+  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memrd_lentrn_byte'length);
+  memrd_lentrn_dw:=("00"&memrd_lentrn_byte(memrd_lentrn_byte'high downto 2));
+
+  i_cmd_wrdone<='0';
+
+  i_cfgdev_adr<=(others=>'0');
+  i_cfgdev_adr_ld<='0';
+  i_cfgdev_adr_fifo<='0';
+  i_cfgdev_txdata<=(others=>'0');
+  i_dev_cfg_wd<=(others=>'0');
+  i_dev_cfg_rd<=(others=>'0');
+  i_dev_cfg_done<=(others=>'0');
+  i_dsn_hdd_regcfg_done<='0';
+
+  --//--------------------------
+  --//Программирование регистров модуля dsn_hdd:
+  --//--------------------------
+  wait until i_dsn_hdd_regcfg_start = '1';--//Ждем разрешения кофигурирования регистров модуля dsn_hdd
+
+  wait until g_host_clk'event and g_host_clk='1';
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfgdev_adr'length);
+    i_cfgdev_adr_ld<='1';
+    i_cfgdev_adr_fifo<='0';
+  wait until g_host_clk'event and g_host_clk='1';
+    i_cfgdev_adr_ld<='0';
+    i_cfgdev_adr_fifo<='0';
+    i_cfgdev_txdata(7 downto 0) <=memwr_lentrn_dw(7 downto 0);
+    i_cfgdev_txdata(15 downto 8)<=memrd_lentrn_dw(7 downto 0);
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+
+  wait until g_host_clk'event and g_host_clk='1';
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+    i_dsn_hdd_regcfg_done<='1';
+
+
+  --//--------------------------
+  --//Отправка HDD_cmdpkt:
+  --//--------------------------
+  ltxcmdloop:while true loop
+
+      i_cfgdev_adr<=(others=>'0');
+      i_cfgdev_adr_ld<='0';
+      i_cfgdev_adr_fifo<='0';
+      i_cfgdev_txdata<=(others=>'0');
+      i_dev_cfg_wd<=(others=>'0');
+      i_dev_cfg_rd<=(others=>'0');
+      i_dev_cfg_done<=(others=>'0');
+
+      wait until i_cmd_wrstart = '1';--//Ждем разрешения записи данных
+
+      wait until g_host_clk'event and g_host_clk='1';
+        i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+        i_cfgdev_adr_ld<='1';
+        i_cfgdev_adr_fifo<='1';
+      wait until g_host_clk'event and g_host_clk='1';
+        i_cfgdev_adr_ld<='0';
+        i_cfgdev_adr_fifo<='1';
+
+      wait until g_host_clk'event and g_host_clk='1';
+      p_CMDPKT_WRITE(g_host_clk,
+                    i_cmd_data,
+                    i_cfgdev_txdata, i_dev_cfg_wd(C_CFGDEV_HDD));
+
+      wait until g_host_clk'event and g_host_clk='1';
+        i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+      wait until g_host_clk'event and g_host_clk='1';
+        i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+
+      wait until p_in_clk'event and p_in_clk='1';
+        i_cmd_wrdone<='1';
+      wait until p_in_clk'event and p_in_clk='1';
+        i_cmd_wrdone<='0';
+
+  end loop ltxcmdloop;
+
+  wait;
+end process ltxcmd;
+
+--i_cmd_wrdone<=i_dev_cfg_done(C_CFGDEV_HDD);
+
+
+
+--//########################################
+--//Запись данных в ОЗУ
+--//########################################
+lmem_trn_wr:process(i_dsn_hdd_rst,p_in_clk)
+  variable dcnt : integer:=0;
+begin
+  if i_dsn_hdd_rst='1' then
+      for i in 0 to i_ram_txbuf'high loop
+      i_ram_rxbuf(i)<=(others=>'0');
+      end loop;
+      dcnt:=0;
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_ram_rxbuf_start = '1' or i_vdata_start='1' then
+
+      --//Инициализация
+      for i in 0 to i_ram_txbuf'high loop
+      i_ram_rxbuf(i)<=(others=>'0');
+      end loop;
+      dcnt:=0;
+
+    else
+      if i_hdd_mem_wr='1' then
+        i_ram_rxbuf(dcnt)<=i_hdd_mem_din;
+        if dcnt=i_ram_rxbuf'length-1 then
+          dcnt:=0;
+        else
+          dcnt:=dcnt + 1;
+        end if;
+      end if;
+
+    end if;
+  end if;
+end process lmem_trn_wr;
+
+i_ram_rxbuf_done<=i_rbuf_status.done;
+
+
+--//########################################
+--//Чтение данных ОЗУ
+--//########################################
+lmem_trn_rd:process
+variable memtrn_term: std_logic:='0';
+variable dcnt      : integer;
+variable srcambler : std_logic_vector(31 downto 0):=(others=>'0');
+variable GUI_line  : LINE;--Строка для вывода в ModelSim
+begin
+
+  i_hdd_mem_dout<=(others=>'0');
+  i_hdd_mem_re<='1';
+  i_ram_txbuf_done<='0';
+
+   memtrn_term:='0';
+
+  --//Инициализация генератора рандомных данных
+  srcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#1032#, 16));
+
+  while true loop
+
+      wait until i_ram_txbuf_start = '1' or i_vdata_start = '1';--//Ждем разрешения чтения данных
+
+          --//Инициализация
+          for i in 0 to i_ram_txbuf'high loop
+          i_ram_txbuf(i)<=(others=>'0');
+          end loop;
+
+          --//Генератор тестовых данных
+          for i in 0 to i_ram_txbuf'high loop
+            if i_ram_txbuf_fillselect='0' then
+              i_ram_txbuf(i)<=CONV_STD_LOGIC_VECTOR(i+1, i_ram_txbuf(i)'length);--счетчик
+            else
+              i_ram_txbuf(i)<=srcambler;--//Random Data
+            end if;
+            srcambler:=srambler32_0(srcambler(31 downto 16));--//Инкрементация скремблера
+          end loop;
+
+          dcnt:=0;
+
+      if i_sw_mode='1' then
+      --//-------------------------------------
+      --//SW mode
+      --//-------------------------------------
+          --//Чтение данных ОЗУ
+          while dcnt/=i_tstdata_dwsize loop
+
+              wait until i_hdd_mem_ce='1' and i_hdd_mem_cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
+
+              while i_hdd_mem_term='0' loop
+
+                wait until p_in_clk'event and p_in_clk='1';
+                  if i_hdd_mem_term='0' then
+                    i_hdd_mem_re<='0';
+                    i_hdd_mem_dout<=i_ram_txbuf(dcnt);
+                    if dcnt=i_ram_txbuf'length-1 then
+                      dcnt:=0;
+                    else
+                      dcnt:=dcnt + 1;
+                    end if;
+                  end if;
+              end loop;
+              dcnt:=dcnt - 1;
+              i_hdd_mem_re<='1';
+          end loop;
+
+      elsif i_hw_mode='1' then
+      --//-------------------------------------
+      --//HW mode
+      --//-------------------------------------
+          --//Чтение данных ОЗУ
+          while i_hw_mode_stop='0' loop
+
+              wait until i_hdd_mem_ce='1' and i_hdd_mem_cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
+
+              while i_hdd_mem_term='0' loop
+                wait until p_in_clk'event and p_in_clk='1';
+                  if i_hdd_mem_term='0' then
+                    i_hdd_mem_re<='0';
+                    i_hdd_mem_dout<=i_ram_rxbuf(dcnt);
+                    if dcnt=i_ram_txbuf'length-1 then
+                      dcnt:=0;
+                    else
+                      dcnt:=dcnt + 1;
+                    end if;
+                  end if;
+              end loop;
+
+              if dcnt=0 then
+                dcnt:=i_ram_txbuf'length-1;
+              else
+                dcnt:=dcnt - 1;
+              end if;
+              i_hdd_mem_re<='1';
+          end loop;
+
+      else
+        wait until p_in_clk'event and p_in_clk='1';
+      end if;
+
+      wait until p_in_clk'event and p_in_clk='1';
+        i_ram_txbuf_done<='1';
+      wait until p_in_clk'event and p_in_clk='1';
+        i_ram_txbuf_done<='0';
+
+  end loop;
+
+  wait;
+end process lmem_trn_rd;
+
+
+--//########################################
+--//Запись данных в VBUF
+--//########################################
+ltxvd:process
+variable dcnt      : integer;
+variable srcambler : std_logic_vector(31 downto 0):=(others=>'0');
+variable GUI_line  : LINE;--Строка для вывода в ModelSim
+begin
+
+  i_vbuf_din<=(others=>'0');
+  i_vbuf_wr<='0';
+
+  i_vdata_done<='0';
+
+  --//Инициализация генератора рандомных данных
+  srcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#1032#, 16));
+
+  while true loop
+
+      --//-------------------------------------
+      --//HW mode
+      --//-------------------------------------
+          wait until i_vdata_start = '1';--//Ждем разрешения записи данных
+
+          --//Инициализация
+          dcnt:=0;
+          --//Запись данных в TxBuf(m_txbuf)
+          lbufd_wr_hw:while i_hw_mode_stop='0' loop
+
+              lmemtrn_wr_hw:while i_vbuf_wrcount(2)/='1' loop
+
+                    wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
+                    i_vbuf_wr<='1';
+                    if i_ram_txbuf_fillselect='0' then
+                      i_vbuf_din<=CONV_STD_LOGIC_VECTOR(dcnt, i_hdd_mem_dout'length);--счетчик
+                    else
+                      i_vbuf_din<=srcambler;--//Random Data
+                    end if;
+                    srcambler:=srambler32_0(srcambler(31 downto 16));--//Инкрементация скремблера
+
+                    if dcnt=65535 then
+                      dcnt:=0;
+                    else
+                      dcnt:=dcnt + 1;
+                    end if;
+
+                    wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
+                    i_vbuf_wr<='0';
+              end loop lmemtrn_wr_hw;
+
+          end loop lbufd_wr_hw;
+
+          wait until p_in_clk'event and p_in_clk='1';
+            i_vdata_done<='1';
+          wait until p_in_clk'event and p_in_clk='1';
+            i_vdata_done<='0';
+
+  end loop;
+
+  wait;
+end process ltxvd;
+
+
+
+
+--//########################################
+--//Main Ctrl
+--//########################################
 --//Логика работы автомата управления
 lmain_ctrl:process
 
@@ -566,17 +929,16 @@ begin
   --//---------------------------------------------------
   --/Инициализация
   --//---------------------------------------------------
-  i_sw_mode<='1';
+  i_sw_mode<='0';
   i_sw_sata_cs<=2;
 
-  i_hw_mode<='0';
-  i_hw_sata_cs<=3;
+  i_hw_mode<='1';
+  i_hw_sata_cs<=16#01#;
   i_hw_mode_stop<='0';
 
-
   i_cmd_wrstart<='0';
-  i_txdata_wrstart<='0';
-  i_rxdata_rdstart<='0';
+  i_ram_txbuf_start<='0';
+  i_ram_rxbuf_start<='0';
   i_tstdata_dwsize<=0;
   i_loopback<='0';
   i_cmddone_det_clr<='0';
@@ -608,7 +970,7 @@ begin
   wait until p_in_clk'event and p_in_clk='1' and i_dsn_hdd_regcfg_done='1';
   write(GUI_line,string'("module DSN_HDD: cfg reg - DONE."));writeline(output, GUI_line);
 
-  i_txdata_select<='0'; --//0/1 - Счетчик/Random DATA
+  i_ram_txbuf_fillselect<='0'; --//0/1 - Счетчик/Random DATA
 
   --//Инициализируем команды которые будут отправлятся:
   if i_sw_mode='1' and i_hw_mode='1' then
@@ -791,27 +1153,27 @@ begin
       if cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_DMA_EXT then
       --//Запускаем автомат записи данных
         wait until p_in_clk'event and p_in_clk='1';
-        i_txdata_wrstart<='1';
+        i_ram_txbuf_start<='1';
         cmd_write:='1';
 
         wait until p_in_clk'event and p_in_clk='1';
-        i_txdata_wrstart<='0';
+        i_ram_txbuf_start<='0';
 
         --//Ждем когда запишем все данные в TxBUF
-        wait until i_txdata_wrdone='1';
+        wait until i_ram_txbuf_done='1';
       end if;
 
       if cfgCmdPkt(idx).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_READ_DMA_EXT then
       --//Запускаем автомат чтния данных
         wait until p_in_clk'event and p_in_clk='1';
-        i_rxdata_rdstart<='1';
+        i_ram_rxbuf_start<='1';
         cmd_read:='1';
 
         wait until p_in_clk'event and p_in_clk='1';
-        i_rxdata_rdstart<='0';
+        i_ram_rxbuf_start<='0';
 
         --//Ждем когда прочитаем все данные из RxBUF
-        wait until i_rxdata_rddone='1';
+        wait until i_ram_rxbuf_done='1';
       end if;
 
 
@@ -823,35 +1185,35 @@ begin
       else
 
         if cmd_write='1' and cmd_read='1' then
-          write(GUI_line,string'("COMPARE DATA: i_txdata,i_rxdata")); writeline(output, GUI_line);
+          write(GUI_line,string'("COMPARE DATA: i_ram_txbuf,i_ram_rxbuf")); writeline(output, GUI_line);
           for i in 0 to i_tstdata_dwsize-1 loop
 
-              write(GUI_line,string'(" i_txdata/i_rxdata("));write(GUI_line,i);write(GUI_line,string'("): 0x"));
-              --write(GUI_line,CONV_INTEGER(i_txdata(i)));
+              write(GUI_line,string'(" i_ram_txbuf/i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'("): 0x"));
+              --write(GUI_line,CONV_INTEGER(i_ram_txbuf(i)));
               for y in 1 to 8 loop
-              string_value:=i_txdata(i)((32-(4*(y-1)))-1 downto (32-(4*y)));
+              string_value:=i_ram_txbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));
               write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));
               end loop;
               write(GUI_line,string'("/0x"));
-              --write(GUI_line,CONV_INTEGER(i_rxdata(i)));
+              --write(GUI_line,CONV_INTEGER(i_ram_rxbuf(i)));
               for y in 1 to 8 loop
-              string_value:=i_rxdata(i)((32-(4*(y-1)))-1 downto (32-(4*y)));
+              string_value:=i_ram_rxbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));
               write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));
               end loop;
               writeline(output, GUI_line);
 
-            if i_txdata(i)/=i_rxdata(i) then
+            if i_ram_txbuf(i)/=i_ram_rxbuf(i) then
               --//Завершаем модеоирование.
-              write(GUI_line,string'("COMPARE DATA:ERROR - i_txdata("));write(GUI_line,i);write(GUI_line,string'(")/= "));
-              write(GUI_line,string'("i_rxdata("));write(GUI_line,i);write(GUI_line,string'(")"));
+              write(GUI_line,string'("COMPARE DATA:ERROR - i_ram_txbuf("));write(GUI_line,i);write(GUI_line,string'(")/= "));
+              write(GUI_line,string'("i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'(")"));
               writeline(output, GUI_line);
-              p_SIM_STOP("Simulation of STOP: COMPARE DATA:ERROR i_rxdata/=i_rxdata");
+              p_SIM_STOP("Simulation of STOP: COMPARE DATA:ERROR i_ram_rxbuf/=i_ram_rxbuf");
             end if;
           end loop;
 
           cmd_write:='0';
           cmd_read:='0';
-          write(GUI_line,string'("COMPARE DATA: i_txdata/i_rxdata - OK.")); writeline(output, GUI_line);
+          write(GUI_line,string'("COMPARE DATA: i_ram_txbuf/i_ram_rxbuf - OK.")); writeline(output, GUI_line);
         end if;
       end if;
 
@@ -863,7 +1225,7 @@ begin
       --//##################################
 
 
-      write(GUI_line,string'("SET LBA_END."));writeline(output, GUI_line);
+      write(GUI_line,string'("SEND CMDPKT: SET LBA_END."));writeline(output, GUI_line);
       --//Заполняем CmdPkt
       i_cmd_data(0)<=cfgCmdPkt(0).usr_ctrl; --//UsrCTRL
       i_cmd_data(1)<=CONV_STD_LOGIC_VECTOR(16#AA55#, 16);--//Feature
@@ -886,7 +1248,7 @@ begin
       wait until i_cmd_wrdone='1';
 
 
-      write(GUI_line,string'("SEND ATA COMAND."));writeline(output, GUI_line);
+      write(GUI_line,string'("SEND CMDPKT: ATA COMAND."));writeline(output, GUI_line);
       --//Заполняем CmdPkt
       i_cmd_data(0)<=cfgCmdPkt(1).usr_ctrl; --//UsrCTRL
       i_cmd_data(1)<=CONV_STD_LOGIC_VECTOR(16#AA55#, 16);--//Feature
@@ -915,31 +1277,32 @@ begin
       if cfgCmdPkt(1).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_WRITE_DMA_EXT then
       --//Запускаем автомат записи данных
         wait until p_in_clk'event and p_in_clk='1';
-        i_vdata_wrstart<='1';
+        i_vdata_start<='1';
         cmd_write:='1';
 
         wait until p_in_clk'event and p_in_clk='1';
-        i_vdata_wrstart<='0';
+        i_vdata_start<='0';
 
 --        --//Ждем когда запишем все данные в TxBUF
---        wait until i_vdata_wrdone='1';
+--        wait until i_vdata_done='1';
       end if;
 
       if cfgCmdPkt(1).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_READ_DMA_EXT then
       --//Запускаем автомат чтния данных
         wait until p_in_clk'event and p_in_clk='1';
-        i_rxdata_rdstart<='1';
+        i_ram_rxbuf_start<='1';
         cmd_read:='1';
 
         wait until p_in_clk'event and p_in_clk='1';
-        i_rxdata_rdstart<='0';
+        i_ram_rxbuf_start<='0';
 
 --        --//Ждем когда прочитаем все данные из RxBUF
---        wait until i_rxdata_rddone='1';
+--        wait until i_ram_rxbuf_done='1';
       end if;
 
-      wait for 10 us;
+      wait for 30 us;
       wait until p_in_clk'event and p_in_clk='1';
+      write(GUI_line,string'("SEND CMDPKT: HW STOP."));writeline(output, GUI_line);
       --//Заполняем CmdPkt
       i_cmd_data(0)<=cfgCmdPkt(0).usr_ctrl; --//UsrCTRL
       i_cmd_data(0)(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT)<=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
@@ -963,7 +1326,7 @@ begin
       wait until i_cmd_wrdone='1';
       i_hw_mode_stop<='1';
 
-      wait until i_txdata_wrdone='1';
+      wait until i_ram_txbuf_done='1';
       write(GUI_line,string'("HW STOP!!!"));writeline(output, GUI_line);
 
       wait for 10 us;
@@ -979,369 +1342,6 @@ begin
 
   wait;
 end process lmain_ctrl;
-
-
---//Выделяем задний фронт из сигнала BUSY модуля m_sata_host.
---//Для детектированя завершения АТА команды
-lcmddone:process(i_dsn_hdd_rst,p_in_clk)
-begin
-  if i_dsn_hdd_rst='1' then
-
-    sr_cmdbusy<=(others=>'1');
-    i_cmddone_det<='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    sr_cmdbusy<=i_hdd_busy & sr_cmdbusy(0 to 0);
-
-    if i_cmddone_det_clr='1' then
-      i_cmddone_det<='0';
-    elsif sr_cmdbusy(1)='1' and sr_cmdbusy(0)='0' then
-      i_cmddone_det<='1';
-    end if;
-
-  end if;
-end process lcmddone;
-
-
-
-
-process
-variable GUI_line : LINE;--Строка для вывода в ModelSim
-begin
-
-  i_satadev_ctrl.atacmd_done<='0';
-
-  wait until i_cmddone_det_clr='1';
-
-  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
-  i_satadev_ctrl.atacmd_done<='1';
-  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
-  i_satadev_ctrl.atacmd_done<='0';
-
-end process;
-
-i_satadev_ctrl.loopback<=i_loopback;
-i_satadev_ctrl.link_establish<=i_hdd_rdy;
-i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
-i_satadev_ctrl.dbuf_ruse<='1';
-
-
-
-
---//########################################
---//Программирование модуля dsn_hdd
---//########################################
-ltxcmd:process
-variable GUI_line : LINE;--Строка для вывода в ModelSim
-variable memwr_lentrn_byte: std_logic_vector(16 + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
-variable memwr_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
-variable memrd_lentrn_byte: std_logic_vector(memwr_lentrn_byte'range);
-variable memrd_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
-begin
-
-  --//Инициализация:
-  --//настройка RAMBUF: направление RAM<-HDD
-  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memwr_lentrn_byte'length);
---  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(1*4, memwr_lentrn_byte'length);
-  memwr_lentrn_dw:=("00"&memwr_lentrn_byte(memwr_lentrn_byte'high downto 2));
-
-  --//настройка RAMBUF: направление RAM->HDD
-  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memrd_lentrn_byte'length);
-  memrd_lentrn_dw:=("00"&memrd_lentrn_byte(memrd_lentrn_byte'high downto 2));
-
-  i_cmd_wrdone<='0';
-
-  i_cfgdev_adr<=(others=>'0');
-  i_cfgdev_adr_ld<='0';
-  i_cfgdev_adr_fifo<='0';
-  i_cfgdev_txdata<=(others=>'0');
-  i_dev_cfg_wd<=(others=>'0');
-  i_dev_cfg_rd<=(others=>'0');
-  i_dev_cfg_done<=(others=>'0');
-  i_dsn_hdd_regcfg_done<='0';
-
-  --//--------------------------
-  --//Программирование регистров модуля dsn_hdd:
-  --//--------------------------
-  wait until i_dsn_hdd_regcfg_start = '1';--//Ждем разрешения кофигурирования регистров модуля dsn_hdd
-
-  wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfgdev_adr'length);
-    i_cfgdev_adr_ld<='1';
-    i_cfgdev_adr_fifo<='0';
-  wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr_ld<='0';
-    i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata(7 downto 0) <=memwr_lentrn_dw(7 downto 0);
-    i_cfgdev_txdata(15 downto 8)<=memrd_lentrn_dw(7 downto 0);
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
-
-  wait until g_host_clk'event and g_host_clk='1';
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
-    i_dsn_hdd_regcfg_done<='1';
-
-
-  --//--------------------------
-  --//Отправка HDD_cmdpkt:
-  --//--------------------------
-  ltxcmdloop:while true loop
-
-      i_cfgdev_adr<=(others=>'0');
-      i_cfgdev_adr_ld<='0';
-      i_cfgdev_adr_fifo<='0';
-      i_cfgdev_txdata<=(others=>'0');
-      i_dev_cfg_wd<=(others=>'0');
-      i_dev_cfg_rd<=(others=>'0');
-      i_dev_cfg_done<=(others=>'0');
-
-      wait until i_cmd_wrstart = '1';--//Ждем разрешения записи данных
-
-      wait until g_host_clk'event and g_host_clk='1';
-        i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
-        i_cfgdev_adr_ld<='1';
-        i_cfgdev_adr_fifo<='1';
-      wait until g_host_clk'event and g_host_clk='1';
-        i_cfgdev_adr_ld<='0';
-        i_cfgdev_adr_fifo<='1';
-
-      wait until g_host_clk'event and g_host_clk='1';
-      p_CMDPKT_WRITE(g_host_clk,
-                    i_cmd_data,
-                    i_cfgdev_txdata, i_dev_cfg_wd(C_CFGDEV_HDD));
-
-      wait until g_host_clk'event and g_host_clk='1';
-        i_dev_cfg_done(C_CFGDEV_HDD)<='1';
-      wait until g_host_clk'event and g_host_clk='1';
-        i_dev_cfg_done(C_CFGDEV_HDD)<='0';
-
-      wait until p_in_clk'event and p_in_clk='1';
-        i_cmd_wrdone<='1';
-      wait until p_in_clk'event and p_in_clk='1';
-        i_cmd_wrdone<='0';
-
-  end loop ltxcmdloop;
-
-  wait;
-end process ltxcmd;
-
---i_cmd_wrdone<=i_dev_cfg_done(C_CFGDEV_HDD);
-
-
-
---//########################################
---//Запись данных в ОЗУ
---//########################################
-lmem_trn_wr:process(i_dsn_hdd_rst,p_in_clk)
-  variable dcnt : integer:=0;
-begin
-  if i_dsn_hdd_rst='1' then
-      for i in 0 to i_txdata'high loop
-      i_rxdata(i)<=(others=>'0');
-      end loop;
-      dcnt:=0;
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    if i_rxdata_rdstart = '1' or i_vdata_wrstart='1' then
-
-      --//Инициализация
-      for i in 0 to i_txdata'high loop
-      i_rxdata(i)<=(others=>'0');
-      end loop;
-      dcnt:=0;
-
-    else
-      if i_hdd_mem_wr='1' then
-        i_rxdata(dcnt)<=i_hdd_mem_din;
-        if dcnt=i_rxdata'length-1 then
-          dcnt:=0;
-        else
-          dcnt:=dcnt + 1;
-        end if;
-      end if;
-
-    end if;
-  end if;
-end process lmem_trn_wr;
-
-i_rxdata_rddone<=i_rbuf_status.done;
-
-
---//########################################
---//Чтение данных ОЗУ
---//########################################
-lmem_trn_rd:process
-variable memtrn_term: std_logic:='0';
-variable dcnt      : integer;
-variable srcambler : std_logic_vector(31 downto 0):=(others=>'0');
-variable GUI_line  : LINE;--Строка для вывода в ModelSim
-begin
-
-  i_hdd_mem_dout<=(others=>'0');
-  i_hdd_mem_re<='1';
-  i_txdata_wrdone<='0';
-
-   memtrn_term:='0';
-
-  --//Инициализация генератора рандомных данных
-  srcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#1032#, 16));
-
-  while true loop
-
-      wait until i_txdata_wrstart = '1' or i_vdata_wrstart = '1';--//Ждем разрешения чтения данных
-
-          --//Инициализация
-          for i in 0 to i_txdata'high loop
-          i_txdata(i)<=(others=>'0');
-          end loop;
-
-          --//Генератор тестовых данных
-          for i in 0 to i_txdata'high loop
-            if i_txdata_select='0' then
-              i_txdata(i)<=CONV_STD_LOGIC_VECTOR(i+1, i_txdata(i)'length);--счетчик
-            else
-              i_txdata(i)<=srcambler;--//Random Data
-            end if;
-            srcambler:=srambler32_0(srcambler(31 downto 16));--//Инкрементация скремблера
-          end loop;
-
-          dcnt:=0;
-
-      if i_sw_mode='1' then
-      --//-------------------------------------
-      --//SW mode
-      --//-------------------------------------
-          --//Чтение данных ОЗУ
-          while dcnt/=i_tstdata_dwsize loop
-
-              wait until i_hdd_mem_ce='1' and i_hdd_mem_cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
-
-              while i_hdd_mem_term='0' loop
-
-                wait until p_in_clk'event and p_in_clk='1';
-                  if i_hdd_mem_term='0' then
-                    i_hdd_mem_re<='0';
-                    i_hdd_mem_dout<=i_txdata(dcnt);
-                    if dcnt=i_txdata'length-1 then
-                      dcnt:=0;
-                    else
-                      dcnt:=dcnt + 1;
-                    end if;
-                  end if;
-              end loop;
-              dcnt:=dcnt - 1;
-              i_hdd_mem_re<='1';
-          end loop;
-
-      elsif i_hw_mode='1' then
-      --//-------------------------------------
-      --//HW mode
-      --//-------------------------------------
-          --//Чтение данных ОЗУ
-          while i_hw_mode_stop='0' loop
-
-              wait until i_hdd_mem_ce='1' and i_hdd_mem_cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
-
-              while i_hdd_mem_term='0' loop
-                wait until p_in_clk'event and p_in_clk='1';
-                  if i_hdd_mem_term='0' then
-                    i_hdd_mem_re<='0';
-                    i_hdd_mem_dout<=i_rxdata(dcnt);
-                    if dcnt=i_txdata'length-1 then
-                      dcnt:=0;
-                    else
-                      dcnt:=dcnt + 1;
-                    end if;
-                  end if;
-              end loop;
-
-              if dcnt=0 then
-                dcnt:=i_txdata'length-1;
-              else
-                dcnt:=dcnt - 1;
-              end if;
-              i_hdd_mem_re<='1';
-          end loop;
-
-      else
-        wait until p_in_clk'event and p_in_clk='1';
-      end if;
-
-      wait until p_in_clk'event and p_in_clk='1';
-        i_txdata_wrdone<='1';
-      wait until p_in_clk'event and p_in_clk='1';
-        i_txdata_wrdone<='0';
-
-  end loop;
-
-  wait;
-end process lmem_trn_rd;
-
-
---//########################################
---//Запись данных в VBUF
---//########################################
-ltxvd:process
-variable dcnt      : integer;
-variable srcambler : std_logic_vector(31 downto 0):=(others=>'0');
-variable GUI_line  : LINE;--Строка для вывода в ModelSim
-begin
-
-  i_vbuf_din<=(others=>'0');
-  i_vbuf_wr<='0';
-
-  i_vdata_wrdone<='0';
-
-  --//Инициализация генератора рандомных данных
-  srcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#1032#, 16));
-
-  while true loop
-
-      --//-------------------------------------
-      --//HW mode
-      --//-------------------------------------
-          wait until i_vdata_wrstart = '1';--//Ждем разрешения записи данных
-
-          --//Инициализация
-          dcnt:=0;
-          --//Запись данных в TxBuf(m_txbuf)
-          lbufd_wr_hw:while i_hw_mode_stop='0' loop
-
-              lmemtrn_wr_hw:while i_vbuf_wrcount(2)/='1' loop
-
-                    wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
-                    i_vbuf_wr<='1';
-                    if i_txdata_select='0' then
-                      i_vbuf_din<=CONV_STD_LOGIC_VECTOR(dcnt, i_hdd_mem_dout'length);--счетчик
-                    else
-                      i_vbuf_din<=srcambler;--//Random Data
-                    end if;
-                    srcambler:=srambler32_0(srcambler(31 downto 16));--//Инкрементация скремблера
-
-                    if dcnt=65535 then
-                      dcnt:=0;
-                    else
-                      dcnt:=dcnt + 1;
-                    end if;
-
-                    wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
-                    i_vbuf_wr<='0';
-              end loop lmemtrn_wr_hw;
-
-          end loop lbufd_wr_hw;
-
-          wait until p_in_clk'event and p_in_clk='1';
-            i_vdata_wrdone<='1';
-          wait until p_in_clk'event and p_in_clk='1';
-            i_vdata_wrdone<='0';
-
-  end loop;
-
-  wait;
-end process ltxvd;
-
-
 --END MAIN
 end;
 

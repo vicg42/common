@@ -111,6 +111,11 @@ p_out_gtp_pllkdet           : out   std_logic;
 p_out_gtp_refclk            : out   std_logic;--//выход порта REFCLKOUT модуля GT/sata_player_gt.vhdl
 p_in_gtp_drpclk             : in    std_logic;--//
 p_in_gtp_refclk             : in    std_logic;--//CLKIN для модуля GT (RocketIO)
+
+p_in_optrefclksel           : in    std_logic_vector(3 downto 0);
+p_in_optrefclk              : in    std_logic_vector(3 downto 0);
+p_out_optrefclk             : out   std_logic_vector(3 downto 0);
+
 p_in_rst                    : in    std_logic
 );
 end sata_host;
@@ -560,9 +565,9 @@ p_in_rst          => i_sata_module_rst(i)
 m_player : sata_player
 generic map
 (
-G_GT_DBUS => G_GT_DBUS,
-G_DBG     => G_DBG,
-G_SIM     => G_SIM
+G_GT_DBUS   => G_GT_DBUS,
+G_DBG       => G_DBG,
+G_SIM       => G_SIM
 )
 port map
 (
@@ -690,6 +695,7 @@ gen_sim_off : if strcmp(G_SIM,"OFF") generate
 m_gt : sata_player_gt
 generic map
 (
+G_SATAH_NUM   => G_SATAH_NUM,
 G_GT_CH_COUNT => G_SATAH_CH_COUNT,
 G_GT_DBUS     => G_GT_DBUS,
 G_SIM         => G_SIM
@@ -758,6 +764,11 @@ p_out_plllock          => i_gtp_plllkdet,
 p_out_refclkout        => p_out_gtp_refclk,
 
 p_in_refclkin          => p_in_gtp_refclk,
+
+p_in_optrefclksel      => p_in_optrefclksel,
+p_in_optrefclk         => p_in_optrefclk,
+p_out_optrefclk        => p_out_optrefclk,
+
 p_in_rst               => p_in_rst
 );
 
@@ -790,6 +801,7 @@ i_gtp_rxbyteisaligned <= p_in_sim_gtp_rxbyteisaligned;
 m_gt_sim : sata_player_gtsim
 generic map
 (
+G_SATAH_NUM   => G_SATAH_NUM,
 G_GT_CH_COUNT => G_SATAH_CH_COUNT,
 G_GT_DBUS     => G_GT_DBUS,
 G_SIM         => G_SIM
@@ -817,6 +829,11 @@ p_out_plllock          => i_gtp_plllkdet,
 p_out_refclkout        => p_out_gtp_refclk,
 
 p_in_refclkin          => p_in_gtp_refclk,
+
+p_in_optrefclksel      => p_in_optrefclksel,
+p_in_optrefclk         => p_in_optrefclk,
+p_out_optrefclk        => p_out_optrefclk,
+
 p_in_rst               => p_in_rst
 );
 

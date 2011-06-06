@@ -200,7 +200,7 @@ end record;
 type TSH_ila is record
 clk   : std_logic;
 trig0 : std_logic_vector(63 downto 0);
-data  : std_logic_vector(127 downto 0);
+data  : std_logic_vector(159 downto 0);
 end record;
 
 type TSH_dbgcs is record

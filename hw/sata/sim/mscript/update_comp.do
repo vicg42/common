@@ -36,7 +36,9 @@ vcom -93 "../../src/sata_raid_pkg.vhd"
 vcom -93 "../../src/sata_sim_lite_pkg.vhd"
 vcom -93 "../../src/sata_unit_pkg.vhd"
 
-vcom -93 "../../src/sata_dcm_v5s6.vhd"
+vcom -93 "../../src/sata_dcm_v5.vhd"
+#vcom -93 "../../src/sata_dcm_v6.vhd"
+#vcom -93 "../../src/sata_dcm_s6.vhd"
 vcom -93 "../../src/sata_measure.vhd"
 
 vcom -93 "../../src/sata_scrambler.vhd"
@@ -44,10 +46,17 @@ vcom -93 "../../src/sata_crc.vhd"
 
 vcom -93 "../../src/sata_spd_ctrl_v5gtp.vhd"
 #vcom -93 "../../src/sata_spd_ctrl_v6gtx.vhd"
+#vcom -93 "../../src/sata_spd_ctrl_s6gtx.vhd"
 
 vcom -93 "../../src/sata_player_gtsim.vhd"
-vcom -93 "../../src/sata_player_v5gtp.vhd"
+#vcom -93 "../../src/sata_player_v5gtp.vhd"
 #vcom -93 "../../src/sata_player_v6gtx.vhd"
+#vcom -93 "../../src/sata_player_s6gtx.vhd"
+
+vcom -93 "../../src/sata_player_v5gt_clkmux.vhd"
+#vcom -93 "../../src/sata_player_v6gt_clkmux.vhd"
+#vcom -93 "../../src/sata_player_s6gt_clkmux.vhd"
+
 vcom -93 "../../src/sata_player_oob.vhd"
 vcom -93 "../../src/sata_player_rx.vhd"
 vcom -93 "../../src/sata_player_tx.vhd"

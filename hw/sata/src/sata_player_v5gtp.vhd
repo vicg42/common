@@ -28,6 +28,7 @@ use work.sata_pkg.all;
 entity sata_player_gt is
 generic
 (
+G_SATAH_NUM  : integer := 0;
 G_GT_CH_COUNT: integer := 2;
 G_GT_DBUS    : integer := 16;
 G_SIM        : string  := "OFF"
@@ -97,6 +98,11 @@ p_out_plllock          : out   std_logic;--//Захват частоты PLL DUAL_GTP
 p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclkin. см. стр.68. ug196.pdf
 
 p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
+
+p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+
 p_in_rst               : in    std_logic
 );
 end sata_player_gt;
@@ -287,6 +293,7 @@ end generate gen_ch;
 --//###########################
 --//Gig Tx/Rx
 --//###########################
+p_out_optrefclk<=(others=>'0');
 
 i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 

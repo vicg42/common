@@ -72,6 +72,11 @@ p_in_rst : in    std_logic
 end component;
 
 component sata_dcm
+generic (
+G_HDD_COUNT : integer:=1;
+G_SATAH_NUM : integer:=0;
+G_GT_DBUS   : integer:=16
+);
 port
 (
 p_out_dcm_gclk0     : out   std_logic;
@@ -80,10 +85,26 @@ p_out_dcm_gclkdv    : out   std_logic;
 
 p_out_dcmlock       : out   std_logic;
 
-p_in_clk            : in    std_logic;
+p_out_refclkout     : out   std_logic;
+p_in_clk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_in_rst            : in    std_logic
 );
 end component;
+
+component sata_player_gt_clkmux
+generic
+(
+G_HDD_COUNT  : integer := 0;
+G_SIM        : string  := "OFF"
+);
+port
+(
+p_out_optrefclksel : out   T04_SHCountMax;
+p_out_optrefclk    : out   T04_SHCountMax;
+p_in_optrefclk     : in    T04_SHCountMax
+);
+end component;
+
 
 component ll_fifo
 generic (
@@ -592,6 +613,7 @@ end component;
 component sata_player_gtsim
 generic
 (
+G_SATAH_NUM  : integer :=0;
 G_GT_CH_COUNT: integer := 2;
 G_GT_DBUS    : integer := 16;
 G_SIM        : string  := "OFF"
@@ -619,6 +641,11 @@ p_out_plllock          : out   std_logic;
 p_out_refclkout        : out   std_logic;
 
 p_in_refclkin          : in    std_logic;
+
+p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+
 p_in_rst               : in    std_logic
 );
 end component;
@@ -626,6 +653,7 @@ end component;
 component sata_player_gt
 generic
 (
+G_SATAH_NUM  : integer := 0;
 G_GT_CH_COUNT: integer := 2;
 G_GT_DBUS    : integer := 16;
 G_SIM        : string  := "OFF"
@@ -694,6 +722,11 @@ p_out_plllock          : out   std_logic;
 p_out_refclkout        : out   std_logic;
 
 p_in_refclkin          : in    std_logic;
+
+p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+
 p_in_rst               : in    std_logic
 );
 end component;
@@ -829,6 +862,11 @@ p_out_gtp_pllkdet           : out   std_logic;
 p_out_gtp_refclk            : out   std_logic;
 p_in_gtp_drpclk             : in    std_logic;
 p_in_gtp_refclk             : in    std_logic;
+
+p_in_optrefclksel           : in    std_logic_vector(3 downto 0);
+p_in_optrefclk              : in    std_logic_vector(3 downto 0);
+p_out_optrefclk             : out   std_logic_vector(3 downto 0);
+
 p_in_rst                    : in    std_logic
 );
 end component;

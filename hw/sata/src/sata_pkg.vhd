@@ -23,23 +23,25 @@ use work.vicg_common_pkg.all;
 package sata_pkg is
 
 ---------------------------------------------------------
---User Cfg
----------------------------------------------------------
---//Ќазначаем тип FPGA:
---//0 - "V5_GTP"
---//1 - "V5_GTX"
---//2 - "V6_GTX"
---//3 - "S6_GTP"
-constant C_FPGA_TYPE         : integer:=0;
-constant C_SH_MAIN_NUM       : integer:=0; --//определ€ем индекс GT модул€ от которого будем брать частоту дл€ тактировани€ sata_dcm.vhd
-
----------------------------------------------------------
 --“ипы
 ---------------------------------------------------------
 type T04GTCHCount is array (0 to 3) of integer;
 type T08SHCount is array (0 to 7) of integer;
 type T08SHCountSel is array (0 to 1) of T08SHCount;
 type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
+
+
+---------------------------------------------------------
+--User Cfg
+---------------------------------------------------------
+--//Ќазначаем тип FPGA:
+--//0 - "V5_GTP"
+--//1 - "V5_GTX"
+--//2 - "V6_GTX"
+--//3 - "S6_GTPA"
+constant C_FPGA_TYPE         : integer:=0;
+constant C_SH_MAIN_NUM       : integer:=0; --//определ€ем индекс GT модул€ от которого будем брать частоту дл€ тактировани€ sata_dcm.vhd
+
 
 ---------------------------------------------------------
 -- онстанты
@@ -733,6 +735,8 @@ type TALCtrl_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_
 type TALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
 type TTxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;
 type TRxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus;
+
+Type T04_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3 downto 0);
 
 
 ---------------------------------------------------------

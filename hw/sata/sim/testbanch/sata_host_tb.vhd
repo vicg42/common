@@ -47,8 +47,9 @@ constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
 signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 
+signal g_gtp_refclk_out           : std_logic_vector(C_SH_COUNT_MAX(1-1)-1 downto 0);
 signal i_gtp_refclk_out           : std_logic;
-signal g_gtp_refclk_out           : std_logic;
+--signal g_gtp_refclk_out           : std_logic;
 signal i_gtp_pllkdet              : std_logic;
 
 signal i_sata_dcm_clk             : std_logic;
@@ -323,6 +324,11 @@ p_out_gtp_pllkdet           => i_gtp_pllkdet,
 p_out_gtp_refclk            => i_gtp_refclk_out,
 p_in_gtp_drpclk             => i_sata_dcm_clk2div,
 p_in_gtp_refclk             => p_in_clk,
+
+p_in_optrefclksel           => "0000",--: in    std_logic_vector(3 downto 0);
+p_in_optrefclk              => "0000",--: in    std_logic_vector(3 downto 0);
+p_out_optrefclk             => open,--: out   std_logic_vector(3 downto 0);
+
 p_in_rst                    => p_in_rst
 );
 
@@ -378,6 +384,11 @@ i_sim_gtp_rxbyteisaligned(1)<='0';
 
 
 m_sata_dcm : sata_dcm
+generic map(
+G_HDD_COUNT => 1,
+G_SATAH_NUM => 0,
+G_GT_DBUS   => G_GT_DBUS
+)
 port map
 (
 p_out_dcm_gclk0     => i_sata_dcm_clk,
@@ -386,12 +397,15 @@ p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 
 p_out_dcmlock       => i_sata_dcm_lock,
 
-p_in_clk            => g_gtp_refclk_out,
+p_out_refclkout     => open,
+p_in_clk            => g_gtp_refclk_out, --std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_in_rst            => i_sata_dcm_rst
 );
 
+g_gtp_refclk_out(0)<=i_gtp_refclk_out;
+
 i_sata_dcm_rst<=not i_gtp_pllkdet;
-ibufg_hdd : BUFG port map (I => i_gtp_refclk_out, O => g_gtp_refclk_out);
+--ibufg_hdd : BUFG port map (I => i_gtp_refclk_out, O => g_gtp_refclk_out);
 
 p_in_rst<='1','0' after 1 us;
 

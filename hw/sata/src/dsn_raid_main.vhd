@@ -119,15 +119,19 @@ C_GT6_CH_COUNT,
 C_GT7_CH_COUNT
 );
 
+signal g_refclkout                 : std_logic;
 
 signal i_sh_gtp_pllkdet            : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal i_sh_gtp_refclkout          : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal i_sh_dcm_rst                : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
-signal g_sh_dcm_clkin              : std_logic;
 signal g_sh_dcm_clk2div            : std_logic;
 signal g_sh_dcm_clk                : std_logic;
 signal g_sh_dcm_clk2x              : std_logic;
 signal i_sh_dcm_lock               : std_logic;
+
+signal i_sh_gt_optrefclksel        : T04_SHCountMax;
+signal i_sh_gt_optrefclkin         : T04_SHCountMax;
+signal i_sh_gt_optrefclkout        : T04_SHCountMax;
 
 signal i_sh_buf_rst                : std_logic;
 signal i_sh_status                 : TALStatusGTCH_SHCountMax;
@@ -282,7 +286,7 @@ p_out_tst      => i_tst_measure_out,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk       => g_sh_dcm_clkin,--//150MHz
+p_in_clk       => g_refclkout,--//150MHz
 p_in_rst       => p_in_rst
 );
 
@@ -363,20 +367,23 @@ p_in_rst                => p_in_rst
 --//#############################################
 --//Генерация частот для модулей sata_host.vhd
 --//#############################################
-p_out_sata_refclkout<=g_sh_dcm_clkin;
+p_out_sata_refclkout<=g_refclkout;
 p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0));
 p_out_sata_dcm_lock<=i_sh_dcm_lock;
 
 p_out_dbgcs.sh<=i_dbgcs_satah;
 p_out_dbgcs.raid<=(others=>'0');--i_dbgcs_raid;
 
-
 i_sh_buf_rst<=p_in_rst or p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
 
-bufg_sata_gt_refclkout : BUFG port map (I => i_sh_gtp_refclkout(C_SH_MAIN_NUM), O => g_sh_dcm_clkin);--//clkin для sata_dcm
-i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM);                       --//сброс sata_dcm
+i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM);
 
 m_dcm_sata : sata_dcm
+generic map (
+G_HDD_COUNT => G_HDD_COUNT,
+G_SATAH_NUM => C_SH_MAIN_NUM,
+G_GT_DBUS   => G_GT_DBUS
+)
 port map
 (
 p_out_dcm_gclk0  => g_sh_dcm_clk,
@@ -385,9 +392,24 @@ p_out_dcm_gclkdv => g_sh_dcm_clk2div,
 
 p_out_dcmlock    => i_sh_dcm_lock,
 
-p_in_clk         => g_sh_dcm_clkin, --//150MHz
+p_out_refclkout  => g_refclkout,
+p_in_clk         => i_sh_gtp_refclkout,
 p_in_rst         => i_sh_dcm_rst(C_SH_MAIN_NUM)
 );
+
+m_gt_clkmux : sata_player_gt_clkmux
+generic map
+(
+G_HDD_COUNT  => G_HDD_COUNT,
+G_SIM        => G_SIM
+)
+port map
+(
+p_out_optrefclksel => i_sh_gt_optrefclksel,
+p_out_optrefclk    => i_sh_gt_optrefclkin,
+p_in_optrefclk     => i_sh_gt_optrefclkout
+);
+
 
 
 --//#############################################
@@ -613,8 +635,13 @@ p_in_sys_dcm_lock           => i_sh_dcm_lock,
 
 p_out_gtp_pllkdet           => i_sh_gtp_pllkdet(sh_idx),
 p_out_gtp_refclk            => i_sh_gtp_refclkout(sh_idx),
-p_in_gtp_drpclk             => g_sh_dcm_clkin,
+p_in_gtp_drpclk             => g_refclkout,
 p_in_gtp_refclk             => p_in_sata_refclk(sh_idx),
+
+p_in_optrefclksel           => i_sh_gt_optrefclksel(sh_idx),
+p_in_optrefclk              => i_sh_gt_optrefclkin(sh_idx),
+p_out_optrefclk             => i_sh_gt_optrefclkout(sh_idx),
+
 p_in_rst                    => p_in_rst
 );
 

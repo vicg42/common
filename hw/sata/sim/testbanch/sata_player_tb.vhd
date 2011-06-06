@@ -47,6 +47,8 @@ signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 signal p_in_rst_inv               : std_logic;
 
+signal i_sata_dcm_clkin           : std_logic_vector(C_SH_COUNT_MAX(0)-1 downto 0);
+
 signal i_sata_module_rst          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_linkup                   : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_spd_ctrl                 : TSpdCtrl_GTCH;
@@ -433,6 +435,10 @@ p_in_rst                    => p_in_rst_inv
 
 
 m_sata_dcm : sata_dcm
+generic map(
+G_SATAH_NUM => 0,
+G_GT_DBUS   => G_GT_DBUS
+)
 port map
 (
 p_out_dcm_gclk0     => i_sata_dcm_clk,
@@ -441,9 +447,12 @@ p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 
 p_out_dcmlock       => i_sata_dcm_lock,
 
-p_in_clk            => p_in_clk,
+p_out_refclkout     => open,
+p_in_clk            => i_sata_dcm_clkin,
 p_in_rst            => p_in_rst
 );
+i_sata_dcm_clkin(0)<=p_in_clk;
+
 
 
 i_sata_dcm_clk<=p_in_clk;

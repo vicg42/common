@@ -14,8 +14,9 @@
 --------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_misc.all;
+use ieee.std_logic_unsigned.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -27,6 +28,7 @@ use work.sata_pkg.all;
 entity sata_player_gt is
 generic
 (
+G_SATAH_NUM  : integer := 0;
 G_GT_CH_COUNT: integer := 2;
 G_GT_DBUS    : integer := 16;
 G_SIM        : string  := "OFF"
@@ -96,6 +98,11 @@ p_out_plllock          : out   std_logic;--//Захват частоты PLL DUAL_GTP
 p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclkin. см. стр.68. ug196.pdf
 
 p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
+
+p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+
 p_in_rst               : in    std_logic
 );
 end sata_player_gt;
@@ -106,7 +113,7 @@ architecture behavioral of sata_player_gt is
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
 --      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
 constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
-constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
+constant C_GTP_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), C_GTP_DATAWIDTH'length);
 
 signal i_refclkin                  : std_logic_vector(1 downto 0);
 signal i_txcomsas                  : std_logic;
@@ -274,6 +281,8 @@ i_txcomwake<=i_txcomstart_in(0) and i_txcomtype_in(0);
 
 p_out_plllock<=i_txplllkdet and i_rxplllkdet;
 
+
+p_out_optrefclk<=(others=>'0')
 
 i_refclkin <= ('0' & p_in_refclkin);
 

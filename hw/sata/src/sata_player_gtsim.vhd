@@ -27,6 +27,7 @@ use work.sata_pkg.all;
 entity sata_player_gtsim is
 generic
 (
+G_SATAH_NUM  : integer := 0;
 G_GT_CH_COUNT: integer := 2;
 G_GT_DBUS    : integer := 16;   --//
 G_SIM        : string  := "OFF"
@@ -54,6 +55,11 @@ p_out_plllock          : out   std_logic;--//Захват частоты PLL DUAL_GTP
 p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclkin. см. стр.68. ug196.pdf
 
 p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
+
+p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+
 p_in_rst               : in    std_logic
 );
 end sata_player_gtsim;
@@ -152,6 +158,8 @@ p_out_drprdy<='1';
 
 p_out_plllock<= not p_in_rst;
 p_out_refclkout<=p_in_refclkin;
+
+p_out_optrefclk<=(others=>'0');
 
 --END MAIN
 end sim_only;
