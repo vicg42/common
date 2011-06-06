@@ -19,7 +19,16 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library work;
+use work.vicg_common_pkg.all;
+use work.sata_pkg.all;
+
 entity sata_dcm is
+generic (
+G_HDD_COUNT : integer:=1;
+G_SATAH_NUM : integer:=0;
+G_GT_DBUS   : integer:=16
+);
 port
 (
 p_out_dcm_gclk0     : out   std_logic;
@@ -28,14 +37,17 @@ p_out_dcm_gclkdv    : out   std_logic;
 
 p_out_dcmlock       : out   std_logic;
 
-p_in_clk            : in    std_logic;
+p_out_refclkout     : out   std_logic;
+p_in_clk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_in_rst            : in    std_logic
 );
 end sata_dcm;
 
 architecture behavioral of sata_dcm is
 
---signal g_gclk_in      : std_logic;
+signal i_clkin        : std_logic;
+
+signal g_dcm_clkin    : std_logic;
 signal g_dcm_clk0     : std_logic;
 signal i_dcm_clk0     : std_logic;
 signal i_dcm_clk2x    : std_logic;
@@ -45,7 +57,11 @@ signal i_dcm_clkdv    : std_logic;
 begin
 
 
---bufg_clk_in    : BUFG port map (I=>p_clk_in,    O=>g_clk_in);
+i_clkin<=p_in_clk(G_SATAH_NUM);
+bufg_gt_refclkout : BUFG port map (I => i_clkin, O => g_dcm_clkin);
+
+p_out_refclkout <=g_dcm_clkin;
+
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
@@ -90,7 +106,7 @@ CLKDV    => i_dcm_clkdv,
 
 LOCKED   => p_out_dcmlock,
 
-CLKIN    => p_in_clk,
+CLKIN    => g_dcm_clkin,
 RST      => p_in_rst
 );
 
