@@ -120,6 +120,8 @@ signal i_cmdpkt                    : TUsrCmdPkt;
 signal i_cmdpkt_cnt                : std_logic_vector(3 downto 0);--//счетчик данных принимаемого командного пакета
 signal i_cmdpkt_get_done           : std_logic;                   --//ѕрием cmd пакета завершен
 
+signal i_dmacfg_start              : std_logic;
+
 signal i_sh_cmd_start              : std_logic;
 signal i_sh_cmdcnt                 : std_logic_vector(i_cmdpkt_cnt'range);
 signal i_sh_cmdcnt_en              : std_logic;
@@ -200,7 +202,9 @@ p_out_usr_status<=i_usr_status;
 i_usr_status.dmacfg.sw_mode<=i_usrmode.sw;
 i_usr_status.dmacfg.hw_mode<=i_usrmode.hw;
 i_usr_status.dmacfg.tst_mode<='0';
-i_usr_status.dmacfg.start<=i_sh_cmd_start;
+i_usr_status.dmacfg.start<=i_dmacfg_start;--i_sh_cmd_start;
+
+
 i_usr_status.dmacfg.wr_start<=OR_reduce(i_dwr_start);
 i_usr_status.dmacfg.raid.used<=p_in_raid.used;
 i_usr_status.dmacfg.raid.hddcount<=p_in_raid.hddcount;
@@ -324,6 +328,7 @@ end process;
 --//ѕрием командного пакета
 process(p_in_rst,p_in_clk)
   variable raidcmd: std_logic_vector(C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT downto 0);
+  variable dmacfg_start: std_logic;
 begin
   if p_in_rst='1' then
     i_cmdpkt.ctrl<=(others=>'0');
@@ -340,7 +345,12 @@ begin
     i_usrmode.hw<='0';
     i_usrmode.lbaend<='0';
 
+      dmacfg_start:='0';
+    i_dmacfg_start<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
+    dmacfg_start:='0';
+
     if p_in_usr_cxd_wr='1' then
       if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_cmdpkt_cnt'length)      then i_cmdpkt.ctrl<=p_in_usr_cxd;
 
@@ -385,9 +395,22 @@ begin
                                                                                                i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_cmdpkt_cnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
 
+        --//–азрешаем использование RAMBUF только дл€ пречисленых ниже команд:
+        if  p_in_usr_cxd(7 downto 0)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_DEV, i_cmdpkt.command'length) or
+            p_in_usr_cxd(7 downto 0)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
+            p_in_usr_cxd(7 downto 0)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_cmdpkt.command'length) or
+            p_in_usr_cxd(7 downto 0)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length) or
+            p_in_usr_cxd(7 downto 0)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_cmdpkt.command'length)  or
+            i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_W, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) or
+            i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_R, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) then
+
+              dmacfg_start:='1';
+        end if;
+
       end if;
     end if;
 
+    i_dmacfg_start<=dmacfg_start;
   end if;
 end process;
 
