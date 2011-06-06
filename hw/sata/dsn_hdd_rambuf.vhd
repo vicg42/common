@@ -238,30 +238,31 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_rambuf_cs=S
 
 p_out_dbgcs.clk<=p_in_clk;
 
-p_out_dbgcs.trig0(0)           <=tst_dma_start;
-p_out_dbgcs.trig0(1)           <=tst_dmasw_start_wr;
-p_out_dbgcs.trig0(2)           <=tst_dmasw_start_rd;
-p_out_dbgcs.trig0(3)           <='0';
-p_out_dbgcs.trig0(4)           <='0';
-p_out_dbgcs.trig0(5)           <='0';
-p_out_dbgcs.trig0(6)           <='0';
-p_out_dbgcs.trig0(7)           <='0';
-p_out_dbgcs.trig0(11 downto  8)<=tst_fsm_cs_dly(3 downto 0);
-p_out_dbgcs.trig0(63 downto 12)<=(others=>'0');
+p_out_dbgcs.trig0(0)            <=tst_dma_start;
+p_out_dbgcs.trig0(1)            <=tst_dmasw_start_wr;
+p_out_dbgcs.trig0(2)            <=tst_dmasw_start_rd;
+p_out_dbgcs.trig0(3)            <='0'; --//зарезервированио для i_hdd_mem_ce;
+p_out_dbgcs.trig0(4)            <='0'; --//зарезервированио для i_hdd_mem_cw;
+p_out_dbgcs.trig0(5)            <=tst_rambuf_empty;
+p_out_dbgcs.trig0(6)            <=i_vbuf_pfull;
+p_out_dbgcs.trig0(7)            <=tst_fast_ramrd;
+p_out_dbgcs.trig0(11 downto  8) <=tst_fsm_cs_dly(3 downto 0);
+p_out_dbgcs.trig0(63 downto 12) <=(others=>'0');
 
-p_out_dbgcs.data(0)            <=tst_dma_start;
-p_out_dbgcs.data(1)            <=tst_dmasw_start_wr;
-p_out_dbgcs.data(2)            <=tst_dmasw_start_rd;
-p_out_dbgcs.data(3)            <='0';
-p_out_dbgcs.data(4)            <='0';
-p_out_dbgcs.data(5)            <='0';
-p_out_dbgcs.data(6)            <=i_vbuf_pfull;
-p_out_dbgcs.data(7)            <='0';
-p_out_dbgcs.data(11  downto  8)<=tst_fsm_cs_dly(3 downto 0);
-p_out_dbgcs.data(96  downto 81)<=i_mem_lenreq(15 downto 0);
-p_out_dbgcs.data(104 downto 97)<=i_mem_lentrn(7 downto 0);
-p_out_dbgcs.data(122 downto 105)<=(others=>'0');
-
+p_out_dbgcs.data(0)             <=tst_dma_start;
+p_out_dbgcs.data(1)             <=tst_dmasw_start_wr;
+p_out_dbgcs.data(2)             <=tst_dmasw_start_rd;
+p_out_dbgcs.data(3)             <='0';
+p_out_dbgcs.data(4)             <=tst_fast_ramrd;
+p_out_dbgcs.data(5)             <=tst_rambuf_empty;
+p_out_dbgcs.data(6)             <=i_vbuf_pfull;
+p_out_dbgcs.data(7)             <='0';
+p_out_dbgcs.data(11  downto  8) <=tst_fsm_cs_dly(3 downto 0);
+--p_out_dbgcs.data(80  downto  12)<=tst_fsm_cs_dly(3 downto 0);--//зарезервировано для сигналов mem_ctrl
+p_out_dbgcs.data(112 downto 81) <=i_rambuf_dcnt(31 downto 0);
+p_out_dbgcs.data(128 downto 113)<=i_mem_lenreq(15 downto 0);
+p_out_dbgcs.data(136 downto 129)<=i_mem_lentrn(7 downto 0);
+--p_out_dbgcs.data(122 downto 105)<=(others=>'0');
 
 
 --//----------------------------------------------
