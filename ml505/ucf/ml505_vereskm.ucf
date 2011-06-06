@@ -466,9 +466,9 @@ NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wr
 #--------------------------------------------------------------------------
 #Назначение пинов
 #--------------------------------------------------------------------------
-NET "pin_in_sata_clk_n" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
-NET "pin_in_sata_clk_p" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
-INST "ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
+NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
+NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
+INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 
 ##SATA1 - Разъем J40
 ##SATA2 - Разъем J41
@@ -482,15 +482,7 @@ INST "ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 
 ###ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
 INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y2;
-##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt  LOC=GTP_DUAL_X0Y1;
-##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[2].m_satah/gen_sim_off.m_gt/m_gt  LOC=GTP_DUAL_X0Y3;
-#
-##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_cmdfifo/m_fifo_i"                 LOC=RAMB36_X1Y12;
-##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_rxfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y11;
-##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[0].m_txfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y10;
-##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_cmdfifo/m_fifo_i"                 LOC=RAMB36_X1Y9;
-##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_rxfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y8;
-##INST m_hdd/gen_use_on.m_dsn_sata/LB_SATA_HOST_MODULE_IDX[0].m_balance_trlr_applr/LB_CH[1].m_txfifo/LB_FIFO_IDX[0].m_fifo_i"   LOC=RAMB36_X1Y7;
+
 
 ###--------------------------------------------------------------------------
 ###Временные ограничения

@@ -78,12 +78,12 @@ lclk                  : in    std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector(1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector(1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector(1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector(1 downto 0);
-pin_in_sata_clk_n     : in    std_logic;
-pin_in_sata_clk_p     : in    std_logic;
+pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
 -- Reference clock 200MHz
@@ -157,7 +157,7 @@ signal i_refclk200MHz                   : std_logic;
 
 signal g_host_clk                       : std_logic;
 signal i_dsn_hdd_rst                    : std_logic;
-signal i_hdd_gt_refclk150               : std_logic;
+signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
 signal i_hdd_dcm_lock                   : std_logic;
@@ -236,7 +236,9 @@ ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => refclk_p, IB => refclk_n, O  => 
 bufg_refclk  : BUFG              port map(I  => i_refclk200MHz, O  => g_host_clk);
 
 --//Input 150MHz reference clock for SATA
-ibufds_gtp_hdd_clkin : IBUFDS port map(I  => pin_in_sata_clk_p, IB => pin_in_sata_clk_n, O  => i_hdd_gt_refclk150);
+gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 generate
+ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O  => i_hdd_gt_refclk150(i));
+end generate gen_sata_gt;
 
 
 --***********************************************************

@@ -212,7 +212,7 @@ component dbgcs_sata_rambuf
   PORT (
     CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
     CLK : IN STD_LOGIC;
-    DATA : IN STD_LOGIC_VECTOR(104 DOWNTO 0);
+    DATA : IN STD_LOGIC_VECTOR(136 DOWNTO 0);
     TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
     );
 end component;
@@ -1375,6 +1375,7 @@ p_in_rbuf_status      => i_hdd_rbuf_status,
 p_in_hdd_txd          => i_hdd_txdata,
 p_in_hdd_txd_wr       => i_hdd_txdata_wd,
 p_out_hdd_txbuf_full  => i_hdd_txbuf_full,
+p_out_hdd_txbuf_empty => i_hdd_txbuf_empty,
 
 p_out_hdd_rxd         => i_hdd_rxdata,
 p_in_hdd_rxd_rd       => i_hdd_rxdata_rd,
@@ -1465,6 +1466,7 @@ p_in_vbuf_pfull     => i_hdd_vbuf_pfull,
 p_out_hdd_txd        => i_hdd_txdata,
 p_out_hdd_txd_wr     => i_hdd_txdata_wd,
 p_in_hdd_txbuf_full  => i_hdd_txbuf_full,
+p_in_hdd_txbuf_empty => i_hdd_txbuf_empty,
 
 p_in_hdd_rxd         => i_hdd_rxdata,
 p_out_hdd_rxd_rd     => i_hdd_rxdata_rd,
@@ -2290,7 +2292,7 @@ port map
 (
 CONTROL => i_dbgcs_hdd_rambuf,
 CLK     => i_hdd_rambuf_dbgcs.clk,
-DATA    => i_hddrambuf_dbgcs.data(104 downto 0),
+DATA    => i_hddrambuf_dbgcs.data(136 downto 0),
 TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
 );
 
@@ -2327,9 +2329,14 @@ i_hddrambuf_dbgcs.data(80 downto 49)<=i_hdd_mem_dout(31 downto 0);
 --i_hdd_mem_adr(31 downto 0);
 end if;
 end process;
-i_hddrambuf_dbgcs.data(96  downto 81)<=i_hdd_rambuf_dbgcs.data(96  downto 81);--i_mem_lenreq(15 downto 0);
-i_hddrambuf_dbgcs.data(104 downto 97)<=i_hdd_rambuf_dbgcs.data(104 downto 97);--i_mem_lentrn(7 downto 0);
-i_hddrambuf_dbgcs.data(122 downto 105)<=(others=>'0');
+i_hddrambuf_dbgcs.data(112 downto 81) <=i_hdd_rambuf_dbgcs.data(112 downto 81) ;--i_rambuf_dcnt(31 downto 0)
+i_hddrambuf_dbgcs.data(128 downto 113)<=i_hdd_rambuf_dbgcs.data(128 downto 113);--i_mem_lenreq (15 downto 0);
+i_hddrambuf_dbgcs.data(136 downto 139)<=i_hdd_rambuf_dbgcs.data(136 downto 139);--i_mem_lentrn(7 downto 0);
+
+--
+--i_hddrambuf_dbgcs.data(96  downto 81)<=i_hdd_rambuf_dbgcs.data(96  downto 81);--i_mem_lenreq(15 downto 0);
+--i_hddrambuf_dbgcs.data(104 downto 97)<=i_hdd_rambuf_dbgcs.data(104 downto 97);--i_mem_lentrn(7 downto 0);
+--i_hddrambuf_dbgcs.data(122 downto 105)<=(others=>'0');
 
 
 

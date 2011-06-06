@@ -29,7 +29,7 @@ constant C_USE_HDD                           : string:="ON";
 constant G_DBG_ETH                           : string:="OFF";
 constant C_DBG_HDD                           : string:="OFF";
 
-constant G_DBGCS_HDD                         : string:="OFF";
+constant G_DBGCS_HDD                         : string:="ON";
 
 
 --//Конфигурирование модулей:
