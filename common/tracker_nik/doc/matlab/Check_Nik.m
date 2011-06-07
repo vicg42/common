@@ -53,9 +53,9 @@ function Check_Image(SrcImage, ResultDir, TDelta_calc, TGradO_var, IP, IPcount)
       % вычисляем разность
       GradODif = double(ImFgradO) - double(GradO);
 
-      %ImFgradO(128:64, 32:64)
-      %GradO(128:64, 32:64)
-      %GradODif(128:256, 128:256)
+%      ImFgradO(600:663, 130:163)
+%      GradO(600:663, 130:163)
+%      GradODif(600:663, 130:163)
 
       % Вывод на экран
 %      figure('Name',strcat('IP',num2str(i), 'FPGA_result')); imshow(ImFgradO);

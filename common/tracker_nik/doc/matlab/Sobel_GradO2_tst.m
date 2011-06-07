@@ -5,7 +5,7 @@
 %                                      если 0, то dXm,dYm; dXs,dYs НЕ делим на 2)
 % TGradO_calc -- варианты вычисления направления градиента яркости
 %------------------------------------------------------------------------
-function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
+function Result = Sobel_GradO2(ImSrc, ImFpgaGradO, TDelta_calc, TGradO_calc, IP1, IP2)
     %Зануляем массив результата
     Result = zeros(size(ImSrc), 'uint16');
 
@@ -109,6 +109,7 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
 
 
             %Если необходимо производи масштабирование
+
 % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 % !!! Никифоров Вариант от 03/06/2011 !!!
 % !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -132,6 +133,29 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
                 end;
             end;
 
+%% Старый вариант:
+%%            if (dXs < -255) || (dXs > 255)
+%%                dXs = double(dXs) * 0.625;
+%%                dXs = fix(dXs);%Отбрасываем дробную часть
+%%
+%%                if dXs > 255
+%%                    dXs = 255;
+%%                elseif dXs < -255
+%%                    dXs = -255;
+%%                end;
+%%            end;
+%%
+%%            if (dYs < -255) || (dYs > 255)
+%%                dYs = double(dYs) * 0.625;
+%%                dYs = fix(dYs);%Отбрасываем дробную часть
+%%
+%%                if dYs > 255
+%%                    dYs = 255;
+%%                elseif dYs < -255
+%%                    dYs = -255;
+%%                end;
+%%            end;
+
 
             %Вычисляем угол
 %            A = M(dX_offset,dY_offset);
@@ -146,6 +170,8 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
             A = uint8(floor(R));%Округление результатаб до ближайшего целого меньшего или равного R
                                 %(B = floor(A) rounds the elements of A to the nearest integers less than or equal to A.)
 
+%            if (i==839) && (j==930)
+%            strcat('!!!!')
 
             if (IP2>=GradA) && (GradA >= IP1)
 
@@ -255,6 +281,11 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
 
             end;%if (PI2>=GradA) && (GradA >= IP1)
 
+
+            if (ImFpgaGradO(i,j) ~= Result(i,j))
+              strcat('dXs=',num2str(dXs),' dYs=',num2str(dYs), ' ImFpgaGradO(',num2str(i),',',num2str(j),')=',num2str(ImFpgaGradO(i,j)), ' Result(',num2str(i),',',num2str(j),')=',num2str(Result(i,j)) )
+            end;
+
         end;%for(j)
     end;%for(i)
 
@@ -262,5 +293,6 @@ function Result = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_calc, IP1, IP2)
 %    dYm_vdbg = dYm_dbg
 %    dXs_vdbg = dXs_dbg
 %    dYs_vdbg = dYs_dbg
+
 
 end
