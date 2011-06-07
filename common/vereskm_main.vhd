@@ -212,7 +212,7 @@ component dbgcs_sata_rambuf
   PORT (
     CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
     CLK : IN STD_LOGIC;
-    DATA : IN STD_LOGIC_VECTOR(104 DOWNTO 0);
+    DATA : IN STD_LOGIC_VECTOR(136 DOWNTO 0);
     TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
     );
 end component;
@@ -670,6 +670,8 @@ signal tst_clr          : std_logic;
 --signal test_led_04_gtp : std_logic;
 
 
+
+--//MAIN
 begin
 
 ramclki <= (others => '-');
@@ -2376,7 +2378,7 @@ pin_out_ddr2_odt1<='0';
 
 i_usr_rst<=pin_in_btn_N;
 tst_clr <=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S or pin_in_btn_W;
-i_trc_busy<=(others=>'0');
+--i_trc_busy<=(others=>'0');
 
 --//J5 /pin2
 pin_out_TP(0)<=i_trc_busy(0);
@@ -2456,7 +2458,7 @@ port map
 (
 CONTROL => i_dbgcs_hdd_rambuf,
 CLK     => i_hdd_rambuf_dbgcs.clk,
-DATA    => i_hddrambuf_dbgcs.data(104 downto 0),
+DATA    => i_hddrambuf_dbgcs.data(136 downto 0),
 TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
 );
 
@@ -2465,9 +2467,9 @@ i_hddrambuf_dbgcs.trig0(1)           <=i_hdd_rambuf_dbgcs.trig0(1);--tst_dmasw_s
 i_hddrambuf_dbgcs.trig0(2)           <=i_hdd_rambuf_dbgcs.trig0(2);--tst_dmasw_start_rd<='0';
 i_hddrambuf_dbgcs.trig0(3)           <=i_hdd_mem_ce;--
 i_hddrambuf_dbgcs.trig0(4)           <=i_hdd_mem_cw;--'0';
-i_hddrambuf_dbgcs.trig0(5)           <=i_hdd_rambuf_dbgcs.trig0(5);--'0';
-i_hddrambuf_dbgcs.trig0(6)           <=i_hdd_rambuf_dbgcs.trig0(6);--'0';
-i_hddrambuf_dbgcs.trig0(7)           <=i_hdd_rambuf_dbgcs.trig0(7);--'0';
+i_hddrambuf_dbgcs.trig0(5)           <=i_hdd_rambuf_dbgcs.trig0(5);--tst_rambuf_empty;
+i_hddrambuf_dbgcs.trig0(6)           <=i_hdd_rambuf_dbgcs.trig0(6);--i_vbuf_pfull;
+i_hddrambuf_dbgcs.trig0(7)           <=i_hdd_rambuf_dbgcs.trig0(7);--tst_fast_ramrd;
 i_hddrambuf_dbgcs.trig0(11 downto  8)<=i_hdd_rambuf_dbgcs.trig0(11 downto 8);--tst_fsm_cs_dly(3 downto 0);
 i_hddrambuf_dbgcs.trig0(63 downto 12)<=(others=>'0');
 
@@ -2493,9 +2495,9 @@ i_hddrambuf_dbgcs.data(80 downto 49)<=i_hdd_mem_dout(31 downto 0);
 --i_hdd_mem_adr(31 downto 0);
 end if;
 end process;
-i_hddrambuf_dbgcs.data(96  downto 81)<=i_hdd_rambuf_dbgcs.data(96  downto 81);--i_mem_lenreq(15 downto 0);
-i_hddrambuf_dbgcs.data(104 downto 97)<=i_hdd_rambuf_dbgcs.data(104 downto 97);--i_mem_lentrn(7 downto 0);
-i_hddrambuf_dbgcs.data(122 downto 105)<=(others=>'0');
+i_hddrambuf_dbgcs.data(112 downto 81) <=i_hdd_rambuf_dbgcs.data(112 downto 81) ;--i_rambuf_dcnt(31 downto 0)
+i_hddrambuf_dbgcs.data(128 downto 113)<=i_hdd_rambuf_dbgcs.data(128 downto 113);--i_mem_lenreq (15 downto 0);
+i_hddrambuf_dbgcs.data(136 downto 139)<=i_hdd_rambuf_dbgcs.data(136 downto 139);--i_mem_lentrn(7 downto 0);
 
 
 
