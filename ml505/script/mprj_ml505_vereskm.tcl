@@ -124,12 +124,13 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_dcm.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_dcm_v5.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_crc.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_spd_ctrl_v5gtp.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_v5gtp.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_v5gt_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_oob.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_rx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
@@ -138,6 +139,7 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_tlayer.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_alayer.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_host.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid_decoder.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
@@ -247,7 +249,7 @@ set _projects [ list \
       [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
-      [ list "../ml505_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../ml505_vm_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/vereskm_main.vhd" $_VHDMod ] \
       [ list "../../ucf/ml505_vereskm.ucf" "vereskm_main" ] \
     ] \

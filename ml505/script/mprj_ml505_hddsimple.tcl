@@ -52,9 +52,10 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_crc.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_dcm.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_dcm_v5.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_spd_ctrl_v5gtp.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_v5gtp.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_v5gt_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_rx.vhd" $_VHDMod ] \
@@ -65,6 +66,7 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_alayer.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_host.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid_decoder.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
@@ -77,7 +79,7 @@ set _projects [ list \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
-      [ list "../ml505_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../ml505_hdd_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../hdd_simple_main.vhd" $_VHDMod ] \
       [ list "../../ucf/hdd_simple_main.ucf" "hdd_simple_main" ] \
     ] \
