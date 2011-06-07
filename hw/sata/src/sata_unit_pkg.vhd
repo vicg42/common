@@ -73,9 +73,7 @@ end component;
 
 component sata_dcm
 generic (
-G_HDD_COUNT : integer:=1;
-G_SATAH_NUM : integer:=0;
-G_GT_DBUS   : integer:=16
+G_GT_DBUS : integer:=16
 );
 port
 (
@@ -86,7 +84,7 @@ p_out_dcm_gclkdv    : out   std_logic;
 p_out_dcmlock       : out   std_logic;
 
 p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+p_in_clk            : in    std_logic;--_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_in_rst            : in    std_logic
 );
 end component;

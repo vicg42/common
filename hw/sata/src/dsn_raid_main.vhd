@@ -374,15 +374,14 @@ p_out_sata_dcm_lock<=i_sh_dcm_lock;
 p_out_dbgcs.sh<=i_dbgcs_satah;
 p_out_dbgcs.raid<=(others=>'0');--i_dbgcs_raid;
 
+
 i_sh_buf_rst<=p_in_rst or p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
 
-i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM);
+i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM); --//סבנמס sata_dcm
 
 m_dcm_sata : sata_dcm
 generic map (
-G_HDD_COUNT => G_HDD_COUNT,
-G_SATAH_NUM => C_SH_MAIN_NUM,
-G_GT_DBUS   => G_GT_DBUS
+G_GT_DBUS => G_GT_DBUS
 )
 port map
 (
@@ -393,7 +392,7 @@ p_out_dcm_gclkdv => g_sh_dcm_clk2div,
 p_out_dcmlock    => i_sh_dcm_lock,
 
 p_out_refclkout  => g_refclkout,
-p_in_clk         => i_sh_gtp_refclkout,
+p_in_clk         => i_sh_gtp_refclkout(C_SH_MAIN_NUM), --//150MHz
 p_in_rst         => i_sh_dcm_rst(C_SH_MAIN_NUM)
 );
 

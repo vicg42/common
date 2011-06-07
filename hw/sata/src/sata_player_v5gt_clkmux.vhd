@@ -42,16 +42,13 @@ end sata_player_gt_clkmux;
 architecture behavioral of sata_player_gt_clkmux is
 
 
-constant C_SH_COUNT : integer:=C_SH_COUNT_MAX(G_HDD_COUNT-1);
-
-
 --MAIN
 begin
 
 
 gen_sh : for i in 0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1 generate
 
-p_out_optrefclksel(i)<=CONV_STD_LOGIC_VECTOR(16#00#, p_out_optrefclksel(0)'length);
+p_out_optrefclksel(i)<=(others=>'0');
 p_out_optrefclk(i)   <=(others=>'0');
 
 end generate gen_sh;
