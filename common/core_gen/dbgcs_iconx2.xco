@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.1
-# Date: Sat May 28 06:09:12 2011
+# Date: Wed Jun 08 12:28:09 2011
 #
 ##############################################################
 #
@@ -35,7 +35,7 @@ SET vhdlsim = true
 SELECT ICON_(ChipScope_Pro_-_Integrated_Controller) family Xilinx,_Inc. 1.05.a
 # END Select
 # BEGIN Parameters
-CSET component_name=dbgcs_icon
+CSET component_name=dbgcs_iconx2
 CSET enable_jtag_bufg=true
 CSET example_design=false
 CSET number_control_ports=2
@@ -45,4 +45,4 @@ CSET use_unused_bscan=false
 CSET user_scan_chain=USER1
 # END Parameters
 GENERATE
-# CRC: 6150e0a0
+# CRC: b442f0fd

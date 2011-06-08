@@ -192,7 +192,7 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
-component dbgcs_icon
+component dbgcs_iconx2
   PORT (
     CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
     CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
@@ -2437,7 +2437,7 @@ p_in_rst       => i_hdd_module_rst
 
 gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
 
-m_dbgcs_icon : dbgcs_icon
+m_dbgcs_icon : dbgcs_iconx2
 port map(
 CONTROL0 => i_dbgcs_sh0_layer, --
 CONTROL1 => i_dbgcs_hdd_rambuf
