@@ -74,9 +74,10 @@ p_out_usr_rxd_wr            : out   std_logic;
 p_in_usr_rxbuf_full         : in    std_logic;
 
 --------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
+--//Debug/Sim
 --------------------------------------------------
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
+
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -133,9 +134,11 @@ signal i_sh_gt_optrefclksel        : T04_SHCountMax;
 signal i_sh_gt_optrefclkin         : T04_SHCountMax;
 signal i_sh_gt_optrefclkout        : T04_SHCountMax;
 
-signal i_sh_buf_rst                : std_logic;
+signal i_sh_buf_rst                : TBusGTCH_SHCountMax;
 signal i_sh_status                 : TALStatusGTCH_SHCountMax;
 signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
+
+signal i_measure_sh_status         : TMeasureALStatus_SHCountMax;
 
 --//cmdfifo
 signal i_u_cxd                     : TBus16GTCH_SHCountMax;
@@ -208,6 +211,7 @@ signal i_tst_val                   : std_logic:='0';
 --MAIN
 begin
 
+
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
@@ -275,7 +279,7 @@ p_out_status   => p_out_measure,
 --------------------------------------------------
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
-p_in_sh_status => i_uap_status,
+p_in_sh_status => i_measure_sh_status,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -363,9 +367,8 @@ p_in_rst                => p_in_rst
 );
 
 
-
 --//#############################################
---//Генерация частот для модулей sata_host.vhd
+--//
 --//#############################################
 p_out_sata_refclkout<=g_refclkout;
 p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0));
@@ -375,8 +378,9 @@ p_out_dbgcs.sh<=i_dbgcs_satah;
 p_out_dbgcs.raid<=(others=>'0');--i_dbgcs_raid;
 
 
-i_sh_buf_rst<=p_in_rst or p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
-
+--//#############################################
+--//Тактирование модулей sata_host.vhd
+--//#############################################
 i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gtp_pllkdet(C_SH_MAIN_NUM); --//сброс sata_dcm
 
 m_dcm_sata : sata_dcm
@@ -419,6 +423,14 @@ gen_satah : for sh_idx in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 --//сигналы для связи с sata_raid.vhd
 gen_satah_ch : for ch_idx in 0 to C_GTCH_COUNT_MAX-1 generate
 
+--//Для модуля измерения
+i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).Usr<=i_sh_status(sh_idx)(ch_idx).Usr;
+
+--//Сброс sata_connector
+i_sh_buf_rst(sh_idx)(ch_idx)<=p_in_rst or
+                              p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT) or
+                              not i_sh_status(sh_idx)(ch_idx).SError(C_ASERR_DET_L_BIT+1);--//Link Establish
+
 --//статусы и управление модулем sata_host.vhd
 i_uap_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sh_status(sh_idx)(ch_idx);
 i_sh_ctrl(sh_idx)(ch_idx)<=i_uap_ctrl(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
@@ -445,7 +457,7 @@ i_tst_sh_in(sh_idx)(ch_idx)<=i_uap_tst_sh_in(C_GTCH_COUNT_MAX*sh_idx+ch_idx);
 i_uap_tst_sh_out(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_tst_sh_out(sh_idx)(ch_idx);
 
 
---//Моделирование
+--//Debug/Sim
 i_dbgcs_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).spd<=i_dbgcs_sh_out(sh_idx)(ch_idx).spd;
 i_dbgcs_satah(C_GTCH_COUNT_MAX*sh_idx+ch_idx).layer<=i_dbgcs_sh_out(sh_idx)(ch_idx).layer;
 
@@ -549,7 +561,7 @@ p_out_tst               => open,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_rst                => i_sh_buf_rst
+p_in_rst                => i_sh_buf_rst(sh_idx)
 );
 
 
@@ -586,8 +598,7 @@ p_in_ctrl                   => i_sh_ctrl(sh_idx),
 p_in_cmdfifo_dout           => i_sh_cxd(sh_idx),
 p_in_cmdfifo_eof_n          => i_sh_cxd_eof_n(sh_idx),
 p_in_cmdfifo_src_rdy_n      => i_sh_cxd_src_rdy_n(sh_idx),
-p_out_cmdfifo_dst_rdy_n     => open,
-
+--p_out_cmdfifo_dst_rdy_n     => open,
 
 --//Связь с TXFIFO
 p_in_txbuf_dout             => i_sh_txd(sh_idx),
@@ -604,13 +615,13 @@ p_in_rxbuf_status           => i_rxbuf_status(sh_idx),
 --------------------------------------------------
 p_in_tst                    => i_tst_sh_in(sh_idx),
 p_out_tst                   => i_tst_sh_out(sh_idx),
+
+--------------------------------------------------
+--//Debug/Sim
+--------------------------------------------------
 p_out_dbg                   => i_dbg_sh_out(sh_idx),
 p_out_dbgcs                 => i_dbgcs_sh_out(sh_idx),
 
---------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
---------------------------------------------------
---//Моделирование
 p_out_sim_gtp_txdata        => i_sim_gtp_txdata(sh_idx),
 p_out_sim_gtp_txcharisk     => i_sim_gtp_txcharisk(sh_idx),
 p_out_sim_gtp_txcomstart    => i_sim_gtp_txcomstart(sh_idx),

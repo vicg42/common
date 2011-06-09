@@ -74,6 +74,18 @@ signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 --MAIN
 begin
 
+--gen_v5gtp : if C_FPGA_TYPE=0 generate
+--assert G_GT_DBUS>16
+--    report "*** V5 gtp dbus : illegal values of G_GT_DBUS " & CONV_STRING(G_GT_DBUS)
+--    severity failure;
+--end generate gen_v5gtp;
+--
+--gen_v6s6 : if C_FPGA_TYPE/=0 generate
+--assert G_GT_DBUS>32
+--    report "*** V5(GTX),V6,S6 GT dbus : illegal values of G_GT_DBUS " & CONV_STRING(G_GT_DBUS)
+--    severity failure;
+--end generate gen_v6s6;
+
 
 gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
 g_gtp_usrclk(1) <=g_gtp_usrclk(0);

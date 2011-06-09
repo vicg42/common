@@ -93,7 +93,7 @@ signal ll_rcmdpkt_data            : TBus16_GTCH;
 signal ll_rcmdpkt_sof_n           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
 signal ll_rcmdpkt_eof_n           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
 signal ll_rcmdpkt_src_rdy_n       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
-signal ll_rcmdpkt_dst_rdy_n       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
+--signal ll_rcmdpkt_dst_rdy_n       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0):=(others=>'0');
 
 
 signal i_txbuf_dout               : TBus32_GTCH;
@@ -171,7 +171,7 @@ rem_out                => open,--ll_rcmdpkt_rem,
 sof_out_n              => ll_rcmdpkt_sof_n(0),
 eof_out_n              => ll_rcmdpkt_eof_n(0),
 src_rdy_out_n          => ll_rcmdpkt_src_rdy_n(0),
-dst_rdy_in_n           => ll_rcmdpkt_dst_rdy_n(0),
+dst_rdy_in_n           => '0',--ll_rcmdpkt_dst_rdy_n(0),
 
 read_clock_in          => i_al_clkout(0),
 
@@ -275,7 +275,7 @@ p_in_ctrl                   => i_al_ctrl,
 p_in_cmdfifo_dout           => ll_rcmdpkt_data,
 p_in_cmdfifo_eof_n          => ll_rcmdpkt_eof_n,
 p_in_cmdfifo_src_rdy_n      => ll_rcmdpkt_src_rdy_n,
-p_out_cmdfifo_dst_rdy_n     => ll_rcmdpkt_dst_rdy_n,
+--p_out_cmdfifo_dst_rdy_n     => ll_rcmdpkt_dst_rdy_n,
 
 
 --//Ñâÿçü ñ TXFIFO
@@ -385,8 +385,6 @@ i_sim_gtp_rxbyteisaligned(1)<='0';
 
 m_sata_dcm : sata_dcm
 generic map(
-G_HDD_COUNT => 1,
-G_SATAH_NUM => 0,
 G_GT_DBUS   => G_GT_DBUS
 )
 port map
@@ -398,14 +396,13 @@ p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 p_out_dcmlock       => i_sata_dcm_lock,
 
 p_out_refclkout     => open,
-p_in_clk            => g_gtp_refclk_out, --std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+p_in_clk            => g_gtp_refclk_out(0),
 p_in_rst            => i_sata_dcm_rst
 );
 
 g_gtp_refclk_out(0)<=i_gtp_refclk_out;
 
 i_sata_dcm_rst<=not i_gtp_pllkdet;
---ibufg_hdd : BUFG port map (I => i_gtp_refclk_out, O => g_gtp_refclk_out);
 
 p_in_rst<='1','0' after 1 us;
 

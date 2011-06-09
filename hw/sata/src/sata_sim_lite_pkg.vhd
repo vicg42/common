@@ -217,11 +217,10 @@ dbg_ila : TSH_dbgcs;
 end record;
 
 type TSH_dbgport_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgport;
-type TSH_dbgport_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_GTCH;
-
+type TSH_dbgport_GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TSH_dbgport_GTCH;
 
 type TSH_dbgcs_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgcs;
-type TSH_dbgcs_GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgcs_GTCH;
+type TSH_dbgcs_GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TSH_dbgcs_GTCH;
 
 type TSTxBuf_dbgport is record
 din     : std_logic_vector(31 downto 0);

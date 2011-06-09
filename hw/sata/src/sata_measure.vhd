@@ -47,7 +47,7 @@ p_out_status   : out   TMeasureStatus;
 --------------------------------------------------
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
-p_in_sh_status : in    TALStatus_SHCountMax;
+p_in_sh_status : in    TMeasureALStatus_SHCountMax;
 
 --------------------------------------------------
 --Технологические сигналы

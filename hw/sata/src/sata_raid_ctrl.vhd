@@ -105,6 +105,7 @@ architecture behavioral of sata_raid_ctrl is
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
+signal i_err_rambuf                : std_logic;
 signal i_usr_status                : TUsrStatus;
 signal sr_dev_busy                 : std_logic;
 
@@ -194,6 +195,12 @@ end generate gen_dbg_on;
 
 
 
+--//------------------------------------------
+--//Инициализация
+--//------------------------------------------
+i_err_rambuf<=p_in_usr_ctrl(C_USR_GCTRL_RAMBUF_ERR_BIT);--//Только для режима HW
+
+
 --//----------------------------------
 --//Формирую отчеты
 --//----------------------------------
@@ -221,10 +228,10 @@ begin
     i_usr_status.dev_busy<='1';
     i_usr_status.dev_rdy<='0';
     i_usr_status.dev_err<='0';
-    i_usr_status.usr<=(others=>'0');
+--    i_usr_status.usr<=(others=>'0');
     i_usr_status.lba_bp<=(others=>'0');
-    for i in 0 to C_HDD_COUNT_MAX-1 loop
-      i_usr_status.ch_usr(i)<=(others=>'0');
+    for i in 0 to G_HDD_COUNT-1 loop
+--      i_usr_status.ch_usr(i)<=(others=>'0');
       i_usr_status.ch_busy(i)<='1';
       i_usr_status.ch_drdy(i)<='0';
       i_usr_status.ch_err(i)<='0';
@@ -237,7 +244,7 @@ begin
 
     i_usr_status.dev_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_drdy(G_HDD_COUNT-1 downto 0));
-    i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0));
+    i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0)) or i_err_rambuf;
     i_usr_status.lba_bp<=i_lba_cnt;
 --    i_usr_status.usr<=(others=>'0');
 
@@ -338,7 +345,6 @@ begin
     i_cmdpkt.command<=(others=>'0');
     i_cmdpkt.control<=(others=>'0');
     i_cmdpkt.device<=(others=>'0');
-    i_cmdpkt.reserv<=(others=>'0');
 
     i_usrmode.stop<='0';
     i_usrmode.sw<='0';
@@ -478,7 +484,7 @@ begin
                                                                                             i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
 
       elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0)<=i_cmdpkt.command;
-                                                                                            i_sh_cxdout(15 downto 8)<=i_cmdpkt.reserv;
+                                                                                            i_sh_cxdout(15 downto 8)<=(others=>'0');
       end if;
     end if;
 

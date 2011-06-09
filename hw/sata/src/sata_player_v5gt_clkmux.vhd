@@ -46,7 +46,7 @@ architecture behavioral of sata_player_gt_clkmux is
 begin
 
 
-gen_sh : for i in 0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1 generate
+gen_sh : for i in 0 to T04_SHCountMax'length-1 generate
 
 p_out_optrefclksel(i)<=(others=>'0');
 p_out_optrefclk(i)   <=(others=>'0');

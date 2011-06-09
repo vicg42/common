@@ -84,7 +84,7 @@ p_out_dcm_gclkdv    : out   std_logic;
 p_out_dcmlock       : out   std_logic;
 
 p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic;--_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+p_in_clk            : in    std_logic;
 p_in_rst            : in    std_logic
 );
 end component;
@@ -391,7 +391,7 @@ p_out_status              : out   TALStatus;
 p_in_cmdfifo_dout         : in    std_logic_vector(15 downto 0);
 p_in_cmdfifo_eof_n        : in    std_logic;
 p_in_cmdfifo_src_rdy_n    : in    std_logic;
-p_out_cmdfifo_dst_rdy_n   : out   std_logic;
+--p_out_cmdfifo_dst_rdy_n   : out   std_logic;
 
 --------------------------------------------------
 --Связь с Transport/Link/PHY Layer
@@ -686,7 +686,7 @@ p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_txdata            : in    TBus32_GTCH;
 p_in_txcharisk         : in    TBus04_GTCH;
 
-p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
+p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_txbufstatus      : out   TBus02_GTCH;
 
 --------------------------------------------------
@@ -732,10 +732,10 @@ end component;
 component sata_speed_ctrl
 generic
 (
-G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
-G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
-G_DBG             : string :="OFF";--//
-G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
+G_SATAH_COUNT_MAX : integer:=1;
+G_SATAH_NUM       : integer:=0;
+G_DBG             : string :="OFF";
+G_SIM             : string :="OFF"
 
 );
 port
@@ -782,13 +782,13 @@ end component;
 component sata_host
 generic
 (
-G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модуле sata_host
-G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
-G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов SATA используемых в модуле.(2/1
-G_GT_DBUS         : integer:=16;   --//
-G_DBG             : string :="OFF";--//
-G_DBGCS           : string :="OFF";--//
-G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
+G_SATAH_COUNT_MAX : integer:=1;
+G_SATAH_NUM       : integer:=0;
+G_SATAH_CH_COUNT  : integer:=1;
+G_GT_DBUS         : integer:=16;
+G_DBG             : string :="OFF";
+G_DBGCS           : string :="OFF";
+G_SIM             : string :="OFF"
 );
 port
 (
@@ -808,18 +808,18 @@ p_out_status                : out   TALStatus_GTCH;
 p_in_ctrl                   : in    TALCtrl_GTCH;
 
 --//Связь с CMDFIFO
-p_in_cmdfifo_dout           : in    TBus16_GTCH;                                   --//
+p_in_cmdfifo_dout           : in    TBus16_GTCH;
 p_in_cmdfifo_eof_n          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_cmdfifo_src_rdy_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//Связь с TXFIFO
-p_in_txbuf_dout             : in    TBus32_GTCH;                                   --//
+p_in_txbuf_dout             : in    TBus32_GTCH;
 p_out_txbuf_rd              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_txbuf_status           : in    TTxBufStatus_GTCH;
 
 --//Связь с RXFIFO
-p_out_rxbuf_din             : out   TBus32_GTCH;                                   --//
+p_out_rxbuf_din             : out   TBus32_GTCH;
 p_out_rxbuf_wd              : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 
@@ -828,13 +828,13 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 --------------------------------------------------
 p_in_tst                    : in    TBus32_GTCH;
 p_out_tst                   : out   TBus32_GTCH;
+
+--------------------------------------------------
+--//Debug/Sim
+--------------------------------------------------
 p_out_dbg                   : out   TSH_dbgport_GTCH;
 p_out_dbgcs                 : out   TSH_dbgcs_GTCH;
 
---------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
---------------------------------------------------
---//Моделирование
 p_out_sim_gtp_txdata        : out   TBus32_GTCH;
 p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -932,7 +932,7 @@ p_out_tst               : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_rst                : in    std_logic
+p_in_rst                : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0)
 );
 end component;
 
@@ -1161,7 +1161,7 @@ p_out_status   : out   TMeasureStatus;
 --------------------------------------------------
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
-p_in_sh_status : in    TALStatus_SHCountMax;
+p_in_sh_status : in    TMeasureALStatus_SHCountMax;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -1223,9 +1223,10 @@ p_out_usr_rxd_wr            : out   std_logic;
 p_in_usr_rxbuf_full         : in    std_logic;
 
 --------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
+--//Debug/Sim
 --------------------------------------------------
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
+
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);

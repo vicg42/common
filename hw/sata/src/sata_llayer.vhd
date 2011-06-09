@@ -140,8 +140,8 @@ signal i_tl_check_ok               : std_logic;--//Результат проверки принятых д
 
 signal tst_txon                    : std_logic;
 signal tst_rxon                    : std_logic;
-signal tst_fms_cs                  : std_logic_vector(4 downto 0);
-signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
+--signal tst_fms_cs                  : std_logic_vector(4 downto 0);
+--signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
 
 
 --MAIN
@@ -160,12 +160,12 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    tst_fms_cs_dly<=(others=>'0');
+--    tst_fms_cs_dly<=(others=>'0');
     p_out_tst(3 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
-    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
+--    tst_fms_cs_dly<=tst_fms_cs;
+    p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
     p_out_tst(1)<=i_rxp(C_THOLD);
     p_out_tst(2)<=tst_txon;
     p_out_tst(3)<=tst_rxon;
@@ -173,28 +173,28 @@ begin
 end process ltstout;
 p_out_tst(31 downto 4)<=(others=>'0');
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_llayer_cs=S_L_IDLE          else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_llayer_cs=S_L_SyncEscape    else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoCommErr     else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoComm        else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_H_SendChkRdy else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendSOF      else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendData     else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendCRC      else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendEOF      else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_Wait         else
-            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_RcvrHold     else
-            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendHold     else
-            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvChkRdy    else
-            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvWaitFifo  else
-            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvData      else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_Hold         else
-            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_SendHold     else
-            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvEOF       else
-            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodCRC      else
-            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodEnd      else
-            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_BadEnd       else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_llayer_cs=S_L_RESET else
+--tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_llayer_cs=S_L_IDLE          else
+--            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_llayer_cs=S_L_SyncEscape    else
+--            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoCommErr     else
+--            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_llayer_cs=S_L_NoComm        else
+--            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_H_SendChkRdy else
+--            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendSOF      else
+--            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendData     else
+--            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendCRC      else
+--            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendEOF      else
+--            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_Wait         else
+--            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_RcvrHold     else
+--            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_llayer_cs=S_LT_SendHold     else
+--            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvChkRdy    else
+--            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvWaitFifo  else
+--            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvData      else
+--            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_Hold         else
+--            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_SendHold     else
+--            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_RcvEOF       else
+--            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodCRC      else
+--            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_GoodEnd      else
+--            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_llayer_cs=S_LR_BadEnd       else
+--            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_llayer_cs=S_L_RESET else
 
 end generate gen_dbg_on;
 

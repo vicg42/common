@@ -47,7 +47,7 @@ constant C_SH_MAIN_NUM       : integer:=0; --//определяем индекс GT модуля от ко
 --Константы
 ---------------------------------------------------------
 --//мах кол-во HDD:
-constant C_HDD_COUNT_MAX     : integer:=8;--//
+constant C_HDD_COUNT_MAX     : integer:=2;--//
 
 --//Кол-во каналов в одном модуле GT:
 constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
@@ -108,7 +108,8 @@ constant C_USR_GCTRL_CLR_BUF_BIT         : integer:=1;
 constant C_USR_GCTRL_ATADONE_ACK_BIT     : integer:=2;
 constant C_USR_GCTRL_TST_ON_BIT          : integer:=3;
 constant C_USR_GCTRL_TST_RANDOM_BIT      : integer:=4;
-constant C_USR_GCTRL_RESERV_BIT          : integer:=5;
+constant C_USR_GCTRL_RAMBUF_ERR_BIT      : integer:=5;
+constant C_USR_GCTRL_RESERV_BIT          : integer:=6;
 constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_RESERV_BIT;
 
 
@@ -596,7 +597,7 @@ scount       : std_logic_vector(15 downto 0);
 command      : std_logic_vector(7 downto 0);
 control      : std_logic_vector(7 downto 0);
 device       : std_logic_vector(7 downto 0);
-reserv       : std_logic_vector(7 downto 0);
+--reserv       : std_logic_vector(7 downto 0);
 end record;
 
 
@@ -713,17 +714,17 @@ type TRegShadowUpdate_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegShadowUpdat
 type TALStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TALStatus;
 
 
-type TALCtrlGTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALCtrl_GTCH;
-type TALStatusGTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus_GTCH;
-type TTxBufStatusGTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus_GTCH;
-type TRxBufStatusGTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus_GTCH;
+type TALCtrlGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TALCtrl_GTCH;
+type TALStatusGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TALStatus_GTCH;
+type TTxBufStatusGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TTxBufStatus_GTCH;
+type TRxBufStatusGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TRxBufStatus_GTCH;
 
-type TBusGTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-type TBus02GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus02_GTCH;
-type TBus03GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus03_GTCH;
-type TBus04GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus04_GTCH;
-type TBus16GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus16_GTCH;
-type TBus32GTCH_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TBus32_GTCH;
+type TBusGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+type TBus02GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus02_GTCH;
+type TBus03GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus03_GTCH;
+type TBus04GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus04_GTCH;
+type TBus16GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus16_GTCH;
+type TBus32GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus32_GTCH;
 
 
 type TBus32_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(31 downto 0);
@@ -736,7 +737,14 @@ type TALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
 type TTxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;
 type TRxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus;
 
-Type T04_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3 downto 0);
+
+--//
+type TMeasureALStatus is record
+Usr : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
+end record;
+type TMeasureALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TMeasureALStatus;
+
+Type T04_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of std_logic_vector(3 downto 0);
 
 
 ---------------------------------------------------------

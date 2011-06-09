@@ -49,8 +49,8 @@ port
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_rbuf_cfg         : in    THDDRBufCfg;
-p_out_rbuf_status     : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
+p_in_rbuf_cfg         : in    THDDRBufCfg;   --//Конфигурирование RAMBUF
+p_out_rbuf_status     : out   THDDRBufStatus;--//Статусы RAMBUF
 
 --//--------------------------
 --//Связь с буфером видеоданных
@@ -160,6 +160,7 @@ signal i_rd_ptr                        : std_logic_vector(31 downto 0);--//Адрес
 signal i_rambuf_dcnt                   : std_logic_vector(31 downto 0);--//(в DWORD): std_logic_vector(G_HDD_RAMBUF_SIZE-2 downto 0);--//(в DWORD)
 signal i_rambuf_done                   : std_logic;
 signal i_rambuf_full                   : std_logic;
+signal i_rambuf_full_err               : std_logic;
 
 signal i_hdd_txbuf_wr_en               : std_logic;
 signal i_hdd_txbuf_empty               : std_logic;
@@ -216,7 +217,7 @@ begin
     tst_fsm_cs_dly<=tst_fsm_cs;
     tst_dma_start<=p_in_rbuf_cfg.dmacfg.start;
     tst_dmasw_start_wr<=p_in_rbuf_cfg.dmacfg.wr_start; --//Отрабатываем направление RAM->HDD
-    tst_dmasw_start_rd<=p_in_hdd_rxbuf_empty; --//Отрабатываем направление RAM<-HDD
+    tst_dmasw_start_rd<=p_in_hdd_rxbuf_empty;          --//Отрабатываем направление RAM<-HDD
   end if;
 end process;
 
@@ -243,7 +244,7 @@ p_out_dbgcs.trig0(1)            <=tst_dmasw_start_wr;
 p_out_dbgcs.trig0(2)            <=tst_dmasw_start_rd;
 p_out_dbgcs.trig0(3)            <='0'; --//зарезервированио для i_hdd_mem_ce;
 p_out_dbgcs.trig0(4)            <='0'; --//зарезервированио для i_hdd_mem_cw;
-p_out_dbgcs.trig0(5)            <=tst_rambuf_empty;
+p_out_dbgcs.trig0(5)            <=i_rambuf_full;
 p_out_dbgcs.trig0(6)            <=i_vbuf_pfull;
 p_out_dbgcs.trig0(7)            <=tst_fast_ramrd;
 p_out_dbgcs.trig0(11 downto  8) <=tst_fsm_cs_dly(3 downto 0);
@@ -253,10 +254,10 @@ p_out_dbgcs.data(0)             <=tst_dma_start;
 p_out_dbgcs.data(1)             <=tst_dmasw_start_wr;
 p_out_dbgcs.data(2)             <=tst_dmasw_start_rd;
 p_out_dbgcs.data(3)             <='0';
-p_out_dbgcs.data(4)             <=tst_fast_ramrd;
-p_out_dbgcs.data(5)             <=tst_rambuf_empty;
+p_out_dbgcs.data(4)             <=tst_rambuf_empty;
+p_out_dbgcs.data(5)             <=i_rambuf_full;
 p_out_dbgcs.data(6)             <=i_vbuf_pfull;
-p_out_dbgcs.data(7)             <='0';
+p_out_dbgcs.data(7)             <=tst_fast_ramrd;
 p_out_dbgcs.data(11  downto  8) <=tst_fsm_cs_dly(3 downto 0);
 --p_out_dbgcs.data(80  downto  12)<=tst_fsm_cs_dly(3 downto 0);--//зарезервировано для сигналов mem_ctrl
 p_out_dbgcs.data(112 downto 81) <=i_rambuf_dcnt(31 downto 0);
@@ -268,9 +269,23 @@ p_out_dbgcs.data(136 downto 129)<=i_mem_lentrn(7 downto 0);
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_rbuf_status.err<=i_rambuf_full;
+p_out_rbuf_status.err<=i_rambuf_full_err;
 p_out_rbuf_status.rdy<='0';
 p_out_rbuf_status.done<=i_rambuf_done;
+
+--//Сброс/детектирование переполнения потокового буфера
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_rambuf_full_err<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    if p_in_rbuf_cfg.errclr='1' then
+      i_rambuf_full_err<='0';
+    elsif i_rambuf_full='1' then
+      i_rambuf_full_err<='1';
+    end if;
+  end if;
+end process;
 
 
 --//----------------------------------------------
@@ -333,6 +348,7 @@ begin
       when S_IDLE =>
 
         i_rambuf_done<='0';
+        i_rambuf_full<='0';
 
         if p_in_rbuf_cfg.dmacfg.start='1' then
         --//Готовим контроллер ОЗУ:
@@ -757,10 +773,10 @@ p_out_mem_din    <=(others=>'0');
 
 p_out_memarb_req <='0';
 
-p_out_vbuf_rd <= not p_in_vbuf_empty;-- and not p_in_dwnp_buf_pfull;
+p_out_vbuf_rd <= not p_in_vbuf_empty;
 
 p_out_hdd_txd <= p_in_vbuf_dout;
-p_out_hdd_txd_wr <= not p_in_vbuf_empty;-- and not p_in_dwnp_buf_pfull;
+p_out_hdd_txd_wr <= not p_in_vbuf_empty;
 
 
 p_out_hdd_rxd_rd<='0';

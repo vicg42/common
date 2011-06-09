@@ -44,7 +44,7 @@ p_out_status              : out   TALStatus;--//Константы см. sata_pkg.vhd/поле 
 p_in_cmdfifo_dout         : in    std_logic_vector(15 downto 0);
 p_in_cmdfifo_eof_n        : in    std_logic; --//Командный пакет готов.Можно читать
 p_in_cmdfifo_src_rdy_n    : in    std_logic;
-p_out_cmdfifo_dst_rdy_n   : out   std_logic;
+--p_out_cmdfifo_dst_rdy_n   : out   std_logic;
 
 --------------------------------------------------
 --Связь с Transport/Link/PHY Layer
@@ -82,8 +82,7 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 signal i_cmdfifo_dcnt              : std_logic_vector(3 downto 0);
 signal i_cmdfifo_rd_done           : std_logic;
 
-signal i_usrctrl                   : std_logic_vector(15 downto 0);
-signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT);
+signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_SATACMD_M_BIT - C_CMDPKT_SATACMD_L_BIT downto 0);
 signal i_usrmode                   : std_logic_vector(C_SATACMD_COUNT-1 downto 0);
 signal i_err_clr                   : std_logic;
 signal i_sstatus                   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
@@ -153,8 +152,6 @@ begin
 end process;
 
 --//Декодирование режима работы:
-i_usrmode_sel<=i_usrctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT);
-
 gen_usrmode : for i in 0 to C_SATACMD_COUNT-1 generate
 i_usrmode(i)<='1' when i_usrmode_sel=CONV_STD_LOGIC_VECTOR(i, i_usrmode'length) else '0';
 end generate gen_usrmode;
@@ -165,7 +162,7 @@ end generate gen_usrmode;
 --Связь с USR APP Layer
 --------------------------------------------------
 --//Чтение командного пакета
-p_out_cmdfifo_dst_rdy_n<=i_usr_status(C_AUSER_BUSY_BIT);
+--p_out_cmdfifo_dst_rdy_n<=i_usr_status(C_AUSER_BUSY_BIT);
 
 process(p_in_rst,p_in_clk)
 begin
@@ -197,7 +194,7 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
 
-    i_usrctrl<=(others=>'0');
+    i_usrmode_sel<=(others=>'0');
 
     i_reg_shadow.command<=(others=>'0');
     i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
@@ -269,7 +266,7 @@ begin
     elsif i_reg_shadow_wr='1' then
     --//Записть данных в регистры Хостом
       if    i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_reg_shadow_addr'length) then
-          i_usrctrl<=i_reg_shadow_din(15 downto 0);
+          i_usrmode_sel<=i_reg_shadow_din(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT);
 
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_reg_shadow_addr'length) then
           i_reg_shadow.scount <= i_reg_shadow_din(7 downto 0);

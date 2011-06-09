@@ -61,7 +61,7 @@ p_in_ctrl                   : in    TALCtrl_GTCH;
 p_in_cmdfifo_dout           : in    TBus16_GTCH;
 p_in_cmdfifo_eof_n          : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_cmdfifo_src_rdy_n      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--p_out_cmdfifo_dst_rdy_n     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --//Связь с TXFIFO
 p_in_txbuf_dout             : in    TBus32_GTCH;
@@ -78,17 +78,16 @@ p_in_rxbuf_status           : in    TRxBufStatus_GTCH;
 --------------------------------------------------
 p_in_tst                    : in    TBus32_GTCH;
 p_out_tst                   : out   TBus32_GTCH;
+
+--------------------------------------------------
+--//Debug/Sim
+--------------------------------------------------
 p_out_dbg                   : out   TSH_dbgport_GTCH;
 p_out_dbgcs                 : out   TSH_dbgcs_GTCH;
 
---------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
---------------------------------------------------
---//Моделирование
 p_out_sim_gtp_txdata        : out   TBus32_GTCH;
 p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-
 p_in_sim_gtp_rxdata         : in    TBus32_GTCH;
 p_in_sim_gtp_rxcharisk      : in    TBus04_GTCH;
 p_in_sim_gtp_rxstatus       : in    TBus03_GTCH;
@@ -297,7 +296,7 @@ p_out_status(1).SError<=(others=>'0');
 p_out_status(1).Usr<=(others=>'0');
 
 --//Связь с CMDFIFO
-p_out_cmdfifo_dst_rdy_n(1)<='1';
+--p_out_cmdfifo_dst_rdy_n(1)<='1';
 
 --//Связь с TXFIFO
 p_out_txbuf_rd(1)<='0';
@@ -415,7 +414,7 @@ p_out_status              => i_alstatus(i),
 p_in_cmdfifo_dout         => p_in_cmdfifo_dout(i),
 p_in_cmdfifo_eof_n        => p_in_cmdfifo_eof_n(i),
 p_in_cmdfifo_src_rdy_n    => p_in_cmdfifo_src_rdy_n(i),
-p_out_cmdfifo_dst_rdy_n   => p_out_cmdfifo_dst_rdy_n(i),
+--p_out_cmdfifo_dst_rdy_n   => p_out_cmdfifo_dst_rdy_n(i),
 
 
 --------------------------------------------------

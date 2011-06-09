@@ -106,52 +106,48 @@ port
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
-p_in_cfg_clk              : in   std_logic;                      --//
+p_in_cfg_clk              : in   std_logic;
 
-p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld           : in   std_logic;                      --//
-p_in_cfg_adr_fifo         : in   std_logic;                      --//
+p_in_cfg_adr              : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld           : in   std_logic;
+p_in_cfg_adr_fifo         : in   std_logic;
 
-p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd               : in   std_logic;                      --//
+p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd               : in   std_logic;
 
-p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd               : in   std_logic;                      --//
+p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd               : in   std_logic;
 
-p_in_cfg_done             : in   std_logic;                      --//
+p_in_cfg_done             : in   std_logic;
 p_in_cfg_rst              : in   std_logic;
 
 --------------------------------------------------
 -- STATUS модуля DSN_HDD.VHD
 --------------------------------------------------
-p_out_hdd_rdy             : out  std_logic;                      --//
-p_out_hdd_error           : out  std_logic;                      --//
-p_out_hdd_busy            : out  std_logic;                      --//
-p_out_hdd_irq             : out  std_logic;                      --//
-p_out_hdd_done            : out  std_logic;                      --//
+p_out_hdd_rdy             : out  std_logic;
+p_out_hdd_error           : out  std_logic;
+p_out_hdd_busy            : out  std_logic;
+p_out_hdd_irq             : out  std_logic;
+p_out_hdd_done            : out  std_logic;
 
---//--------------------------------------------------
+----------------------------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
 --------------------------------------------------
-p_out_rbuf_cfg            : out  THDDRBufCfg;  --//
-p_in_rbuf_status          : in   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
+p_out_rbuf_cfg            : out  THDDRBufCfg;
+p_in_rbuf_status          : in   THDDRBufStatus;
 
-p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
-p_in_hdd_txd_wr           : in   std_logic;                      --//
-p_out_hdd_txbuf_full      : out  std_logic;                      --//
-p_out_hdd_txbuf_empty     : out  std_logic;                      --//
+p_in_hdd_txd              : in   std_logic_vector(31 downto 0);
+p_in_hdd_txd_wr           : in   std_logic;
+p_out_hdd_txbuf_full      : out  std_logic;
+p_out_hdd_txbuf_empty     : out  std_logic;
 
-p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
-p_in_hdd_rxd_rd           : in   std_logic;                      --//
-p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
+p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);
+p_in_hdd_rxd_rd           : in   std_logic;
+p_out_hdd_rxbuf_empty     : out  std_logic;
 
 --------------------------------------------------
 --SATA Driver
 --------------------------------------------------
---p_out_sata_txn            : out   std_logic_vector(1 downto 0);
---p_out_sata_txp            : out   std_logic_vector(1 downto 0);
---p_in_sata_rxn             : in    std_logic_vector(1 downto 0);
---p_in_sata_rxp             : in    std_logic_vector(1 downto 0);
 p_out_sata_txn            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_out_sata_txp            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 p_in_sata_rxn             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
@@ -169,9 +165,11 @@ p_in_tst                 : in    std_logic_vector(31 downto 0);
 p_out_tst                : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
+--//Debug/Sim
 --------------------------------------------------
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
+p_out_dbgled                : out   THDDLed_SHCountMax;
+
 p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
 p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
 p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
@@ -184,8 +182,6 @@ p_in_sim_gtp_rxnotintable   : in    TBus04_SHCountMax;
 p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-
-p_out_dbgled                : out   THDDLed_SHCountMax;
 
 --------------------------------------------------
 --System

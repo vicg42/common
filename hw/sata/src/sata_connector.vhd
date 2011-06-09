@@ -89,13 +89,11 @@ p_out_tst               : out   std_logic_vector(31 downto 0);
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_rst                : in    std_logic
+p_in_rst                : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0)
 );
 end sata_connector;
 
 architecture behavioral of sata_connector is
-
-signal i_buf_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
 --MAIN
@@ -151,8 +149,6 @@ end generate gen_ch0_only;
 
 gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
 
-i_buf_rst(i)<=p_in_rst or not p_in_sh_status(i).SError(C_ASERR_DET_L_BIT+1);--//Link Establish
-
 --//----------------------------
 --//Согласующие буфера:
 --//----------------------------
@@ -204,7 +200,7 @@ len_out        => open,
 len_err_out    => open,
 
 -- Reset
-areset_in      => i_buf_rst(i)
+areset_in      => p_in_rst(i)
 );
 
 m_txbuf : sata_txfifo
@@ -226,7 +222,7 @@ almost_empty=> p_out_txbuf_status(i).aempty,
 rd_data_count => p_out_txbuf_status(i).rdcount,
 --wr_data_count => p_out_txbuf_status(i).wrcount,
 
-rst        => i_buf_rst(i)
+rst        => p_in_rst(i)
 );
 
 m_rxbuf : sata_rxfifo
@@ -247,7 +243,7 @@ empty       => p_out_rxbuf_status(i).empty,
 --almost_empty=> i_rxbuf_aempty(0),
 wr_data_count => p_out_rxbuf_status(i).wrcount,
 
-rst        => i_buf_rst(i)
+rst        => p_in_rst(i)
 );
 
 

@@ -186,8 +186,8 @@ signal i_gt_rdy                 : std_logic;
 signal i_gt_ch_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --signal tst_spd_ver              : std_logic_vector(i_spd_ver_out(0).sata_ver'range);
-signal tst_fms_cs               : std_logic_vector(4 downto 0);
-signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
+--signal tst_fms_cs               : std_logic_vector(4 downto 0);
+--signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
 
 
 --MAIN
@@ -201,43 +201,42 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_fms_cs_dly<=(others=>'0');
---    tst_spd_ver<=(others=>'0');
-    p_out_tst(0)<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    tst_fms_cs_dly<=tst_fms_cs;
---    tst_spd_ver<=i_spd_ver_out(0).sata_ver;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);-- or OR_reduce(tst_spd_ver);
-  end if;
-end process ltstout;
-
-p_out_tst(31 downto 1)<=(others=>'0');
-
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_SPDCFG       else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH0          else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH0_DONE     else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_R0          else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH1          else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH1_DONE     else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_R1          else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH0         else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH0_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_W0          else
-            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH1         else
-            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH1_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_W1          else
-            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_spdctrl_cs=S_DRP_PROG_DONE     else
-            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET       else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WAIT_CONNECT      else
-            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT         else
-            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_DONE  else
-            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_spdctrl_cs=S_LINKUP            else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//S_IDLE
+p_out_tst(31 downto 0)<=(others=>'0');
+--ltstout:process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+----    tst_fms_cs_dly<=(others=>'0');
+--    p_out_tst(0)<='0';
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+----    tst_fms_cs_dly<=tst_fms_cs;
+--    p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
+--  end if;
+--end process ltstout;
+--
+--p_out_tst(31 downto 1)<=(others=>'0');
+--
+--tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_SPDCFG       else
+--            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH0          else
+--            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH0_DONE     else
+--            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_R0          else
+--            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH1          else
+--            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_spdctrl_cs=S_READ_CH1_DONE     else
+--            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_R1          else
+--            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH0         else
+--            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH0_DONE    else
+--            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_W0          else
+--            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH1         else
+--            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WRITE_CH1_DONE    else
+--            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_spdctrl_cs=S_PAUSE_W1          else
+--            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_spdctrl_cs=S_DRP_PROG_DONE     else
+--            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET       else
+--            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_spdctrl_cs=S_WAIT_CONNECT      else
+--            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT         else
+--            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_spdctrl_cs=S_IDLE_INIT_DONE    else
+--            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_spdctrl_cs=S_GT_CH_RESET_DONE  else
+--            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_spdctrl_cs=S_LINKUP            else
+--            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//S_IDLE
 
 end generate gen_dbg_on;
 

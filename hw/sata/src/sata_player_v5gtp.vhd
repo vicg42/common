@@ -151,8 +151,14 @@ signal i_rxbufstatus_out           : TBus03_GTCH;
 attribute keep : string;
 attribute keep of g_gtp_usrclk : signal is "true";
 
+
+
 --MAIN
 begin
+
+--assert G_GT_DBUS>16
+--    report "*** sata_player_gt(sata_player_v5gtp.vhd) : illegal values of G_GT_DBUS " & CONV_STRING(G_GT_DBUS)
+--    severity failure;
 
 
 gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
