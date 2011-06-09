@@ -1,5 +1,5 @@
 #ChipScope Pro Analyzer Project File, Version 3.0
-#Mon Jun 06 12:21:26 MSD 2011
+#Thu Jun 09 18:57:29 MSD 2011
 deviceChain.deviceName0=XCF32P
 deviceChain.deviceName1=XCF32P
 deviceChain.deviceName2=XC9500XL
@@ -2414,7 +2414,7 @@ unit.4.1.port.-1.s.39.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.-1.s.39.name=DataPort[39]
 unit.4.1.port.-1.s.39.orderindex=-1
 unit.4.1.port.-1.s.39.visible=1
-unit.4.1.port.-1.s.4.alias=DP[4]-tst_fast_ramrd
+unit.4.1.port.-1.s.4.alias=DP[4]-tst_rambuf_empty
 unit.4.1.port.-1.s.4.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.-1.s.4.name=DataPort[4]
 unit.4.1.port.-1.s.4.orderindex=-1
@@ -2469,7 +2469,7 @@ unit.4.1.port.-1.s.49.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.-1.s.49.name=DataPort[49]
 unit.4.1.port.-1.s.49.orderindex=-1
 unit.4.1.port.-1.s.49.visible=1
-unit.4.1.port.-1.s.5.alias=DP[5]-tst_rambuf_empty
+unit.4.1.port.-1.s.5.alias=DP[5]-i_rambuf_full
 unit.4.1.port.-1.s.5.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.-1.s.5.name=DataPort[5]
 unit.4.1.port.-1.s.5.orderindex=-1
@@ -2579,7 +2579,7 @@ unit.4.1.port.-1.s.69.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.-1.s.69.name=DataPort[69]
 unit.4.1.port.-1.s.69.orderindex=-1
 unit.4.1.port.-1.s.69.visible=1
-unit.4.1.port.-1.s.7.alias=
+unit.4.1.port.-1.s.7.alias=DP[7]-tst_fast_ramrd
 unit.4.1.port.-1.s.7.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.-1.s.7.name=DataPort[7]
 unit.4.1.port.-1.s.7.orderindex=-1
@@ -2794,7 +2794,7 @@ unit.4.1.port.0.s.4.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.0.s.4.name=TriggerPort0[4]
 unit.4.1.port.0.s.4.orderindex=-1
 unit.4.1.port.0.s.4.visible=1
-unit.4.1.port.0.s.5.alias=TP[5]-tst_rambuf_empty
+unit.4.1.port.0.s.5.alias=TP[5]-i_rambuf_full
 unit.4.1.port.0.s.5.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.1.port.0.s.5.name=TriggerPort0[5]
 unit.4.1.port.0.s.5.orderindex=-1
