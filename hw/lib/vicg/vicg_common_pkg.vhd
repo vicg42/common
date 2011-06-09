@@ -18,6 +18,8 @@ use ieee.std_logic_arith.conv_std_logic_vector;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
+library std;
+use std.textio.all;
 
 package vicg_common_pkg is
 
@@ -40,6 +42,8 @@ constant Int2StrHEX : TInt2Char:=(
 procedure p_SIM_STOP (constant massage :in string);
 procedure p_SIM_ERROR (constant massage :in string);
 procedure p_SIM_WARNING (constant massage :in string);
+
+function CONV_STRING( val : in integer) return string;
 
 function crc32_0( Data: std_logic_vector(31 downto 0); CRC: std_logic_vector(31 downto 0) ) return std_logic_vector;
 function srambler32_0( FB : std_logic_vector(15 downto 0) ) return std_logic_vector;
@@ -804,6 +808,20 @@ begin
     report massage
     severity warning;--note;--error;--failure;--
 end p_SIM_WARNING;
+
+
+function CONV_STRING(
+    val : in integer)
+return string is
+    variable l : line;
+    variable len : integer;
+    variable s : string(1 to 64);
+begin
+    write(l, val);
+    len := l'length;
+    read(l, s(1 to len));
+    return s(1 to len);
+end;
 
 end package body vicg_common_pkg;
 
