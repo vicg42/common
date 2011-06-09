@@ -25,9 +25,7 @@ use work.sata_pkg.all;
 
 entity sata_dcm is
 generic (
-G_HDD_COUNT : integer:=1;
-G_SATAH_NUM : integer:=0;
-G_GT_DBUS   : integer:=16
+G_GT_DBUS : integer:=16
 );
 port
 (
@@ -38,14 +36,15 @@ p_out_dcm_gclkdv    : out   std_logic;
 p_out_dcmlock       : out   std_logic;
 
 p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+p_in_clk            : in    std_logic;
 p_in_rst            : in    std_logic
 );
 end sata_dcm;
 
 architecture behavioral of sata_dcm is
 
-signal i_clkin        : std_logic;
+constant C_CLKDV_DIVIDE   : integer:=selval(4, 2, cmpval(G_GT_DBUS, 32));
+
 signal i_refclkout    : std_logic;
 
 signal g_dcm_clkin    : std_logic;
@@ -57,7 +56,6 @@ signal i_dcm_clkdv    : std_logic;
 --//MAIN
 begin
 
-i_clkin<=p_in_clk(G_SATAH_NUM);
 
 bufg_gt_refclkout : BUFIO2
 generic map(
@@ -67,13 +65,13 @@ I_INVERT      => FALSE,
 USE_DOUBLER   => FALSE
 )
 port map(
-I            => i_clkin,         --from GTPA/port GTPCLKOUT
-DIVCLK       => g_dcm_clkin,     --to PLL/DCM
-IOCLK        => i_refclkout,     --to BUFG
-SERDESSTROBE => open             --to ISERDES2/OSERDES2
+I            => p_in_clk,    --from GTPA/port GTPCLKOUT
+DIVCLK       => g_dcm_clkin, --to PLL/DCM
+IOCLK        => i_refclkout, --to BUFG
+SERDESSTROBE => open         --to ISERDES2/OSERDES2
 );
 
-bufg_refclkout : BUFG port map (I=>i_refclkout,  O=>p_out_refclkout);
+bufg_refclkout : BUFG port map (I=>i_refclkout, O=>p_out_refclkout);
 
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
@@ -82,7 +80,7 @@ bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
 m_dcm : DCM_SP
 generic map
 (
-CLKDV_DIVIDE           => 2.0,
+CLKDV_DIVIDE           => C_CLKDV_DIVIDE,--2.0,
 CLKFX_DIVIDE           => 1,
 CLKFX_MULTIPLY         => 2,
 CLKIN_DIVIDE_BY_2      => FALSE,  -- разреш./запр. делить CLKIN на 2

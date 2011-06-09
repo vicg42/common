@@ -32,7 +32,7 @@ p_out_dcm_gclkdv    : out   std_logic;
 p_out_dcmlock       : out   std_logic;
 
 p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic;--_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+p_in_clk            : in    std_logic;
 p_in_rst            : in    std_logic
 );
 end sata_dcm;
@@ -96,7 +96,7 @@ CLKDV    => i_dcm_clkdv,
 
 LOCKED   => p_out_dcmlock,
 
-CLKIN    => p_in_clk,
+CLKIN    => g_dcm_clkin,
 RST      => p_in_rst
 );
 

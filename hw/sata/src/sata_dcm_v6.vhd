@@ -25,9 +25,7 @@ use work.sata_pkg.all;
 
 entity sata_dcm is
 generic (
-G_HDD_COUNT : integer:=1;
-G_SATAH_NUM : integer:=0;
-G_GT_DBUS   : integer:=16
+G_GT_DBUS : integer:=16
 );
 port
 (
@@ -38,14 +36,15 @@ p_out_dcm_gclkdv    : out   std_logic;
 p_out_dcmlock       : out   std_logic;
 
 p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+p_in_clk            : in    std_logic;
 p_in_rst            : in    std_logic
 );
 end sata_dcm;
 
 architecture behavioral of sata_dcm is
 
-signal g_dcm_clkin      : std_logic;
+signal i_clkfb        : std_logic;
+signal g_dcm_clkin    : std_logic;
 signal g_dcm_clk0     : std_logic;
 signal i_dcm_clk0     : std_logic;
 signal i_dcm_clk2x    : std_logic;
@@ -55,55 +54,91 @@ signal i_dcm_clkdv    : std_logic;
 begin
 
 
-bufg_gt_refclkout : BUFG port map (I => p_in_clk(C_SH_MAIN_NUM), O => g_dcm_clkin);
+p_out_refclkout<=g_dcm_clkin;
+
+bufg_gt_refclkout : BUFG port map (I => p_in_clk, O => g_dcm_clkin);
 
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
 
-m_dcm : DCM_BASE
-generic map
-(
-CLKDV_DIVIDE           => 2.0,
-CLKFX_DIVIDE           => 1,
-CLKFX_MULTIPLY         => 2,
-CLKIN_DIVIDE_BY_2      => FALSE,  -- разреш./запр. делить CLKIN на 2
-CLKIN_PERIOD           => 6.667,  -- Specify period of input clock in ns from 1.25 to 1000.00
-CLKOUT_PHASE_SHIFT     => "NONE", -- Specify phase shift mode of NONE or FIXED
-CLK_FEEDBACK           => "1X",   -- Specify clock feedback of NONE or 1X
-DCM_AUTOCALIBRATION    => TRUE,   -- DCM calibration circuitry TRUE/FALSE
-DCM_PERFORMANCE_MODE   => "MAX_SPEED", -- Can be MAX_SPEED or MAX_RANGE
-DESKEW_ADJUST          => "SYSTEM_SYNCHRONOUS", -- SOURCE_SYNCHRONOUS, SYSTEM_SYNCHRONOUS or an integer from 0 to 15
-DFS_FREQUENCY_MODE     => "HIGH",  -- LOW or HIGH frequency mode for frequency synthesis
-DLL_FREQUENCY_MODE     => "HIGH",  -- LOW, HIGH, or HIGH_SER frequency mode for DLL
-DUTY_CYCLE_CORRECTION  => TRUE,    -- Duty cycle correction, TRUE or FALSE
-FACTORY_JF             => X"F0F0", -- FACTORY JF Values Suggested to be set to X"F0F0"
-PHASE_SHIFT            => 0,       -- Amount of fixed phase shift from -255 to 1023
---SIM_DEVICE             => "VIRTEX5",
-STARTUP_WAIT           => FALSE    -- Delay configuration DONE until DCM LOCK, TRUE/FALSE
+
+m_dcm : MMCM_BASE
+generic map(
+BANDWIDTH          => "OPTIMIZED",--Jitter programming("HIGH","LOW","OPTIMIZED")
+CLKFBOUT_MULT_F    => 8.0,        --Multiply value fo rall CLKOUT(5.0-64.0).
+CLKFBOUT_PHASE     => 0.0,        --Phase offset in degrees of CLKFB(0.00-360.00).
+CLKIN1_PERIOD      => 0.0,        --Input clock period in ns to ps resolution(i.e.33.333is30MHz).
+CLKOUT0_DIVIDE_F   => 1.0,        --Divide amount for CLKOUT0(1.000-128.000).
+
+--CLKOUT0_DUTY_CYCLE-CLKOUT6_DUTY_CYCLE:Duty cycle for each CLKOUT(0.01-0.99).
+CLKOUT0_DUTY_CYCLE => 0.5,
+CLKOUT1_DUTY_CYCLE => 0.5,
+CLKOUT2_DUTY_CYCLE => 0.5,
+CLKOUT3_DUTY_CYCLE => 0.5,
+CLKOUT4_DUTY_CYCLE => 0.5,
+CLKOUT5_DUTY_CYCLE => 0.5,
+CLKOUT6_DUTY_CYCLE => 0.5,
+
+--CLKOUT0_PHASE-CLKOUT6_PHASE:Phase offset for each CLKOUT(-360.000-360.000).
+CLKOUT0_PHASE      => 0.0,
+CLKOUT1_PHASE      => 0.0,
+CLKOUT2_PHASE      => 0.0,
+CLKOUT3_PHASE      => 0.0,
+CLKOUT4_PHASE      => 0.0,
+CLKOUT5_PHASE      => 0.0,
+CLKOUT6_PHASE      => 0.0,
+
+--CLKOUT1_DIVIDE-CLKOUT6_DIVIDE:Divide amount for each CLKOUT(1-128)
+CLKOUT1_DIVIDE     => 4,
+CLKOUT2_DIVIDE     => 8,
+CLKOUT3_DIVIDE     => 16,
+CLKOUT4_DIVIDE     => 1,
+CLKOUT5_DIVIDE     => 1,
+CLKOUT6_DIVIDE     => 1,
+CLKOUT4_CASCADE    => FALSE, --Cascase CLKOUT4 counter with CLKOUT6(TRUE/FALSE)
+CLOCK_HOLD         => FALSE, --Hold VCOF requency(TRUE/FALSE)
+DIVCLK_DIVIDE      => 1,     --Master division value(1-80)
+REF_JITTER1        => 0.0,   --Reference input jitter in UI(0.000-0.999).
+STARTUP_WAIT       => FALSE  --Not supported. Must be set to FALSE.
 )
-port map
-(
-CLKFB    => g_dcm_clk0,
+port map(
+--Clock Outputs:1-bit(each)output:User configurable clock outputs
+CLKOUT0  => i_dcm_clk2x, --1-bit output:CLKOUT0 output
+CLKOUT0B => open,        --1-bit output:Inverted CLKOUT0output
 
-CLK0     => i_dcm_clk0,
-CLK90    => open,
-CLK180   => open,
-CLK270   => open,
+CLKOUT1  => i_dcm_clk0,  --1-bit output:CLKOUT1 output
+CLKOUT1B => open,        --1-bit output:Inverted CLKOUT1output
 
-CLK2X    => i_dcm_clk2x,
-CLK2X180 => open,
+CLKOUT2  => i_dcm_clkdv, --1-bit output:CLKOUT2 output
+CLKOUT2B => open,        --1-bit output:Inverted CLKOUT2output
 
-CLKFX    => open,
-CLKFX180 => open,
+CLKOUT3  => open,        --1-bit output:CLKOUT3 output
+CLKOUT3B => open,        --1-bit output:Inverted CLKOUT3output
 
-CLKDV    => i_dcm_clkdv,
+CLKOUT4  => open,        --1-bit output:CLKOUT4 output
+CLKOUT5  => open,        --1-bit output:CLKOUT5 output
+CLKOUT6  => open,        --1-bit output:CLKOUT6 output
 
+--Feedback Clocks:1-bit(each)output:Clock feedback ports
+CLKFBOUT => i_clkfb,     --1-bitoutput:Feedback clock output
+CLKFBOUTB=> open,        --1-bitoutput:Inverted CLKFBOUT output
+
+--StatusPort:1-bit(each)output:MMCM status ports
 LOCKED   => p_out_dcmlock,
 
-CLKIN    => g_dcm_clkin,
-RST      => p_in_rst
+--ClockInput:1-bit(each)input:Clock input
+CLKIN1   => g_dcm_clkin,
+
+--ControlPorts:1-bit(each)input:MMCM control ports
+PWRDWN   => '0',
+
+RST      => p_in_clk,    --1-bitinput:Reset input
+
+--FeedbackClocks:1-bit(each)input:Clock feedback ports
+CLKFBIN  => i_clkfb      --1-bitinput:Feedback clock input
 );
+
 
 --//END MAIN
 end BEHAVIORAL;
