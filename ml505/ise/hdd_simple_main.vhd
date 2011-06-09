@@ -100,10 +100,10 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
-component dbgcs_icon
+component dbgcs_iconx1
   PORT (
-    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-    CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+--    CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
 
 end component;
 
@@ -116,14 +116,14 @@ component dbgcs_sata_layer
     );
 end component;
 
-component dbgcs_sata_rambuf
-  PORT (
-    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-    CLK : IN STD_LOGIC;
-    DATA : IN STD_LOGIC_VECTOR(104 DOWNTO 0);
-    TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
-    );
-end component;
+--component dbgcs_sata_rambuf
+--  PORT (
+--    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+--    CLK : IN STD_LOGIC;
+--    DATA : IN STD_LOGIC_VECTOR(104 DOWNTO 0);
+--    TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
+--    );
+--end component;
 
 component fpga_test_01
 generic(
@@ -147,7 +147,7 @@ p_in_rst       : in    std_logic
 end component;
 
 signal i_dbgcs_sh0_layer                : std_logic_vector(35 downto 0);
-signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
+--signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
 
 signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
@@ -190,8 +190,8 @@ signal i_hdd_hirq                       : std_logic;
 signal i_hdd_done                       : std_logic;
 
 signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
-signal i_hddrambuf_dbgcs                : TSH_ila;
-signal i_hdd_rambuf_dbgcs               : TSH_ila;
+--signal i_hddrambuf_dbgcs                : TSH_ila;
+--signal i_hdd_rambuf_dbgcs               : TSH_ila;
 
 signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
@@ -327,9 +327,11 @@ p_in_tst              => "00000000000000000000000000000000",
 p_out_tst             => i_hdd_tst_out,
 
 --------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
+--//Debug/Sim
 --------------------------------------------------
 p_out_dbgcs                 => i_hdd_dbgcs,
+p_out_dbgled                => i_hdd_dbgled,
+
 p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
 p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
@@ -343,8 +345,6 @@ p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
 p_out_gtp_sim_rst           => i_hdd_sim_gtp_sim_rst,
 p_out_gtp_sim_clk           => i_hdd_sim_gtp_sim_clk,
 
-p_out_dbgled                => i_hdd_dbgled,
-
 --------------------------------------------------
 --System
 --------------------------------------------------
@@ -353,6 +353,9 @@ p_in_rst           => i_dsn_hdd_rst
 );
 
 
+i_hdd_rbuf_status.rdy  <='0';
+i_hdd_rbuf_status.err  <=pin_in_btn_E or pin_in_btn_W;
+i_hdd_rbuf_status.done <=pin_in_btn_E and pin_in_btn_W;
 
 
 --//----------------------------------
@@ -360,7 +363,10 @@ p_in_rst           => i_dsn_hdd_rst
 --//----------------------------------
 i_usr_rst<=pin_in_btn_N;
 
-tst_clr<=OR_reduce(i_hdd_rxdata) or OR_reduce(i_hdd_cfg_rxdata) or i_hdd_txbuf_full or i_hdd_rxbuf_empty or i_hdd_gt_plldet or i_hdd_hirq or i_hdd_done;
+tst_clr<=OR_reduce(i_hdd_rxdata) or OR_reduce(i_hdd_cfg_rxdata) or i_hdd_txbuf_full or i_hdd_rxbuf_empty or
+        i_hdd_gt_plldet or i_hdd_hirq or i_hdd_done or i_hdd_module_rdy or i_hdd_module_error or
+        i_hdd_rbuf_cfg.bufrst or i_hdd_rbuf_cfg.errclr or i_hdd_rbuf_cfg.dmacfg.wr_start or
+        i_hdd_rbuf_cfg.dmacfg.sw_mode or i_hdd_rbuf_cfg.dmacfg.hw_mode or OR_reduce(i_hdd_rbuf_cfg.mem_trn) or OR_reduce(i_hdd_rbuf_cfg.mem_adr);
 
 --//J5 /pin2
 pin_out_TP(0)<=OR_reduce(i_hdd_tst_out) or pin_in_btn_C or pin_in_btn_E;
@@ -456,11 +462,11 @@ end process;
 
 gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
 
-m_dbgcs_icon : dbgcs_icon
+m_dbgcs_icon : dbgcs_iconx1
 port map(
-CONTROL0 => i_dbgcs_sh0_layer, --
-CONTROL1 => i_dbgcs_hdd_rambuf
---control => i_hdd_dbgcs.raid,
+CONTROL0 => i_dbgcs_sh0_layer --
+--CONTROL1 => i_dbgcs_hdd_rambuf
+--CONTROL2 => i_hdd_dbgcs.raid,
 );
 
 m_dbgcs_sh0_layer : dbgcs_sata_layer
@@ -472,17 +478,17 @@ DATA    => i_hdd_dbgcs.sh(0).layer.data(122 downto 0),
 TRIG0   => i_hdd_dbgcs.sh(0).layer.trig0(41 downto 0)
 );
 
-m_dbgcs_hddrambuf : dbgcs_sata_rambuf
-port map
-(
-CONTROL => i_dbgcs_hdd_rambuf,
-CLK     => i_hdd_dbgcs.sh(0).layer.clk,
-DATA    => i_hddrambuf_dbgcs.data(104 downto 0),
-TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
-);
-
-i_hddrambuf_dbgcs.trig0<=(others=>'0');
-i_hddrambuf_dbgcs.data<=(others=>'0');
+--m_dbgcs_hddrambuf : dbgcs_sata_rambuf
+--port map
+--(
+--CONTROL => i_dbgcs_hdd_rambuf,
+--CLK     => i_hdd_dbgcs.sh(0).layer.clk,
+--DATA    => i_hddrambuf_dbgcs.data(104 downto 0),
+--TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
+--);
+--
+--i_hddrambuf_dbgcs.trig0<=(others=>'0');
+--i_hddrambuf_dbgcs.data<=(others=>'0');
 
 --m_dbgcs_sh0_spd : sata_dbgcs_spd
 --port map

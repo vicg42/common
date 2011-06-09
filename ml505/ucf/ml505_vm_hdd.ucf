@@ -491,19 +491,19 @@ NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;
 
-##SATA_CH0
+##SATA_CH0,1
 TIMEGRP SATA0_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/*);
 TIMESPEC "TS_SATA0_PHY_FFS2MGT" = FROM SATA0_PHY_FFS  TO HSIOS           6.666ns;
 TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns;
 
-###SATA_CH1
+###SATA_CH2,3
 #TIMEGRP SATA1_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/*);
 #TIMESPEC "TS_SATA1_PHY_FFS2MGT" = FROM SATA1_PHY_FFS  TO HSIOS           6.666ns;
 #TIMESPEC "TS_MGT2SATA1_PHY_FFS" = FROM HSIOS          TO SATA1_PHY_FFS   6.666ns;
 
 
-#####INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
-#####AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
+###INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
+###AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
 
 
 

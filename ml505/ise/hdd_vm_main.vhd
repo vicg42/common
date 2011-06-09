@@ -192,7 +192,7 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
-component dbgcs_icon
+component dbgcs_iconx2
   PORT (
     CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
     CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
@@ -1401,9 +1401,11 @@ p_in_tst              => "00000000000000000000000000000000",--i_hdd_rbuf_tst_out
 p_out_tst             => i_hdd_tst_out,
 
 --------------------------------------------------
---Моделирование/Отладка - в рабочем проекте не используется
+--//Debug/Sim
 --------------------------------------------------
 p_out_dbgcs                 => i_hdd_dbgcs,
+p_out_dbgled                => i_hdd_dbgled,
+
 p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
 p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
 p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
@@ -1416,8 +1418,6 @@ p_in_sim_gtp_rxnotintable   => i_hdd_sim_gtp_rxnotintable,
 p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
 p_out_gtp_sim_rst           => i_hdd_sim_gtp_sim_rst,
 p_out_gtp_sim_clk           => i_hdd_sim_gtp_sim_clk,
-
-p_out_dbgled                => i_hdd_dbgled,
 
 --------------------------------------------------
 --System
@@ -2271,7 +2271,7 @@ p_in_rst       => i_hdd_module_rst
 
 gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
 
-m_dbgcs_icon : dbgcs_icon
+m_dbgcs_icon : dbgcs_iconx2
 port map(
 CONTROL0 => i_dbgcs_sh0_layer, --
 CONTROL1 => i_dbgcs_hdd_rambuf
@@ -2301,20 +2301,20 @@ i_hddrambuf_dbgcs.trig0(1)           <=i_hdd_rambuf_dbgcs.trig0(1);--tst_dmasw_s
 i_hddrambuf_dbgcs.trig0(2)           <=i_hdd_rambuf_dbgcs.trig0(2);--tst_dmasw_start_rd<='0';
 i_hddrambuf_dbgcs.trig0(3)           <=i_hdd_mem_ce;--
 i_hddrambuf_dbgcs.trig0(4)           <=i_hdd_mem_cw;--'0';
-i_hddrambuf_dbgcs.trig0(5)           <=i_hdd_rambuf_dbgcs.trig0(5);--tst_rambuf_empty;
+i_hddrambuf_dbgcs.trig0(5)           <=i_hdd_rambuf_dbgcs.trig0(5);--i_rambuf_full;
 i_hddrambuf_dbgcs.trig0(6)           <=i_hdd_rambuf_dbgcs.trig0(6);--i_vbuf_pfull;
 i_hddrambuf_dbgcs.trig0(7)           <=i_hdd_rambuf_dbgcs.trig0(7);--tst_fast_ramrd;
 i_hddrambuf_dbgcs.trig0(11 downto  8)<=i_hdd_rambuf_dbgcs.trig0(11 downto 8);--tst_fsm_cs_dly(3 downto 0);
 i_hddrambuf_dbgcs.trig0(63 downto 12)<=(others=>'0');
 
-i_hddrambuf_dbgcs.data(0)           <=i_hdd_rambuf_dbgcs.data(0);--tst_dma_start<='0';
-i_hddrambuf_dbgcs.data(1)           <=i_hdd_rambuf_dbgcs.data(1);--tst_dmasw_start_wr<='0';
-i_hddrambuf_dbgcs.data(2)           <=i_hdd_rambuf_dbgcs.data(2);--tst_dmasw_start_rd<='0';
+i_hddrambuf_dbgcs.data(0)           <=i_hdd_rambuf_dbgcs.data(0);--tst_dma_start;
+i_hddrambuf_dbgcs.data(1)           <=i_hdd_rambuf_dbgcs.data(1);--tst_dmasw_start_wr;
+i_hddrambuf_dbgcs.data(2)           <=i_hdd_rambuf_dbgcs.data(2);--tst_dmasw_start_rd;
 i_hddrambuf_dbgcs.data(3)           <=i_hdd_rambuf_dbgcs.data(3);--'0';
-i_hddrambuf_dbgcs.data(4)           <=i_hdd_rambuf_dbgcs.data(4);--'0';
-i_hddrambuf_dbgcs.data(5)           <=i_hdd_rambuf_dbgcs.data(5);--'0';
-i_hddrambuf_dbgcs.data(6)           <=i_hdd_rambuf_dbgcs.data(6);--'0';
-i_hddrambuf_dbgcs.data(7)           <=i_hdd_rambuf_dbgcs.data(7);--'0';
+i_hddrambuf_dbgcs.data(4)           <=i_hdd_rambuf_dbgcs.data(4);--tst_rambuf_empty;
+i_hddrambuf_dbgcs.data(5)           <=i_hdd_rambuf_dbgcs.data(5);--i_rambuf_full;
+i_hddrambuf_dbgcs.data(6)           <=i_hdd_rambuf_dbgcs.data(6);--i_vbuf_pfull;
+i_hddrambuf_dbgcs.data(7)           <=i_hdd_rambuf_dbgcs.data(7);--tst_fast_ramrd;
 i_hddrambuf_dbgcs.data(11 downto  8)<=i_hdd_rambuf_dbgcs.data(11 downto 8);--tst_fsm_cs_dly(3 downto 0);
 process(i_hdd_rambuf_dbgcs.clk)
 begin
