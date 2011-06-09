@@ -199,71 +199,35 @@ INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 #INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 
 ##НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
-#INST "m_hdd/gen_use_off.m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y4;
+#INST "m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y2;
 
 ###ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
 INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"   LOC=GTP_DUAL_X0Y4;
 ##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y1;
 ##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[2].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y3;
 
-#--------------------------------------------------------------------------
-#Временные ограничения
-#--------------------------------------------------------------------------
-#NET m_hdd/p_out_sata_refclkout PERIOD = 6.666 ns;
+
+##--------------------------------------------------------------------------
+##Временные ограничения
+##--------------------------------------------------------------------------
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;
 
+##SATA_CH0,1
 TIMEGRP SATA0_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/*);
 TIMESPEC "TS_SATA0_PHY_FFS2MGT" = FROM SATA0_PHY_FFS  TO HSIOS           6.666ns;
 TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns;
 
-#NET "g_hdd_dcm_clkin_150MHz" TNM_NET = "tnmnet_SataDcmClkIn";
-#TIMESPEC "TS_SataDcmClkIn" = PERIOD "tnmnet_SataDcmClkIn" 150.00 MHz HIGH 50 % ;
-#
-#NET "g_hdd_dcm_clkout_300MHz" TNM="FFS:SataAppLayerFFS";
-#TIMEGRP  "tgrp_SataAppLayerFFS" = "SataAppLayerFFS";
-#NET "g_hdd_dcm_clkout_300MHz" TNM="RAMS:SataAppLayerRAMS";
-#TIMEGRP  "tgrp_SataAppLayerRAMS" = "SataAppLayerRAMS";
-#TIMESPEC "TS_SataAppLayer_FFStoRAMS" = FROM "tgrp_SataAppLayerFFS" TO "tgrp_SataAppLayerRAMS" 150.00 MHz;
-#TIMESPEC "TS_SataAppLayer_RAMStoFFS" = FROM "tgrp_SataAppLayerRAMS" TO "tgrp_SataAppLayerFFS" 150.00 MHz;
-#
-##---  SATA_CH0
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM_NET="tnmnet_SataCh0Clk";
-#TIMEGRP  "tgrp_SataCh0Clk" = "tnmnet_SataCh0Clk";
-#TIMESPEC "TS_SataCh0Clk" = PERIOD "tgrp_SataCh0Clk" 150.00 MHz HIGH 50 % ;
-#
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="FFS:SataCh0FFS";
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="RAMS:SataCh0RAMS";
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<0>" TNM="HSIOS:SataCh0HSIOS";
-#TIMEGRP  "tgrp_SataCh0FFS" = "SataCh0FFS";
-#TIMEGRP  "tgrp_SataCh0RAMS" = "SataCh0RAMS";
-#TIMEGRP  "tgrp_SataCh0HSIOS" = "SataCh0HSIOS";
-#
-#TIMESPEC "TS_SataCh0_FFStoRAMS" = FROM "tgrp_SataCh0RAMS" TO "tgrp_SataCh0FFS" 150.00 MHz;
-#TIMESPEC "TS_SataCh0_RAMStoFFS" = FROM "tgrp_SataCh0FFS" TO "tgrp_SataCh0RAMS" 150.00 MHz;
-#TIMESPEC "TS_SataCh0_FFStoHSIOS" = FROM "tgrp_SataCh0FFS" TO "tgrp_SataCh0HSIOS" 150.00 MHz;
-#TIMESPEC "TS_SataCh0_HSIOStoFFS" = FROM "tgrp_SataCh0HSIOS" TO "tgrp_SataCh0FFS" 150.00 MHz;
-#
-##---  SATA_CH1
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM_NET="tnmnet_SataCh1Clk";
-#TIMEGRP  "tgrp_SataCh1Clk" = "tnmnet_SataCh1Clk";
-#TIMESPEC "TS_SataCh1Clk" = PERIOD "tgrp_SataCh1Clk" 150.00 MHz HIGH 50 % ;
-#
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="FFS:SataCh1FFS";
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="RAMS:SataCh1RAMS";
-#NET "m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i/i_gtp_usrclk<1>" TNM="HSIOS:SataCh1HSIOS";
-#TIMEGRP  "tgrp_SataCh1FFS" = "SataCh1FFS";
-#TIMEGRP  "tgrp_SataCh1RAMS" = "SataCh1RAMS";
-#TIMEGRP  "tgrp_SataCh1HSIOS" = "SataCh1HSIOS";
-#
-#TIMESPEC "TS_SataCh1_FFStoRAMS" = FROM "tgrp_SataCh1RAMS" TO "tgrp_SataCh1FFS" 150.00 MHz;
-#TIMESPEC "TS_SataCh1_RAMStoFFS" = FROM "tgrp_SataCh1FFS" TO "tgrp_SataCh1RAMS" 150.00 MHz;
-#TIMESPEC "TS_SataCh1_FFStoHSIOS" = FROM "tgrp_SataCh1FFS" TO "tgrp_SataCh1HSIOS" 150.00 MHz;
-#TIMESPEC "TS_SataCh1_HSIOStoFFS" = FROM "tgrp_SataCh1HSIOS" TO "tgrp_SataCh1FFS" 150.00 MHz;
-#
-###INST m_hdd/LB_MOD_USE_ON.m_sata_dsn/LB_SATA_HOST_MODULE_IDX[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
+###SATA_CH2,3
+#TIMEGRP SATA1_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/*);
+#TIMESPEC "TS_SATA1_PHY_FFS2MGT" = FROM SATA1_PHY_FFS  TO HSIOS           6.666ns;
+#TIMESPEC "TS_MGT2SATA1_PHY_FFS" = FROM HSIOS          TO SATA1_PHY_FFS   6.666ns;
+
+
+###INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
 ###AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
+
 
 
 ##########################################################
