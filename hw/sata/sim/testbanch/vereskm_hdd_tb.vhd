@@ -37,7 +37,7 @@ use work.memory_ctrl_pkg.all;
 entity vereskm_hdd_tb is
 generic
 (
-G_HDD_COUNT     : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
+G_HDD_COUNT     : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS       : integer:=16;
 G_DBG           : string :="ON";
 G_SIM           : string :="ON"
@@ -931,7 +931,7 @@ begin
   --/Инициализация
   --//---------------------------------------------------
   i_sw_mode<='1';
-  i_sw_sata_cs<=1;
+  i_sw_sata_cs<=16#03#;
 
   i_hw_mode<='0';
   i_hw_sata_cs<=16#01#;
@@ -1007,10 +1007,10 @@ begin
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sw_sata_cs, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
-  cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--;
+  cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--;C_ATA_CMD_NOP;--
   cfgCmdPkt(0).scount:=2;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
-  cfgCmdPkt(0).loopback:='1';
+  cfgCmdPkt(0).loopback:='0';
 
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sw_sata_cs, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
@@ -1018,7 +1018,7 @@ begin
   cfgCmdPkt(1).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
   cfgCmdPkt(1).scount:=2;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#6655#, 16)&CONV_STD_LOGIC_VECTOR(16#4433#, 16)&CONV_STD_LOGIC_VECTOR(16#2211#, 16);--//LBA
-  cfgCmdPkt(1).loopback:='1';
+  cfgCmdPkt(1).loopback:='0';
   end if;
 
   cfgCmdPkt(2).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sw_sata_cs, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
@@ -1137,7 +1137,29 @@ begin
       i_cmd_data(6)<=cfgCmdPkt(idx).control & cfgCmdPkt(idx).device;--//Control + Device
       i_cmd_data(7)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).command, 8);--//Reserv + ATA Commad
 
-      i_tstdata_dwsize<=cfgCmdPkt(idx).scount * C_SIM_SECTOR_SIZE_DWORD;--//Назначаем размер данных в DWORD
+
+      if cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(1, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) or
+         cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(2, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) or
+         cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(4, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) or
+         cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(5, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) or
+         cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(6, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) or
+         cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(7, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) then
+
+          i_tstdata_dwsize<=cfgCmdPkt(idx).scount * C_SIM_SECTOR_SIZE_DWORD;--//Назначаем размер данных в DWORD
+
+      elsif cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(16#03#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) then
+      --//RAID HDDx2
+          i_tstdata_dwsize<=cfgCmdPkt(idx).scount * C_SIM_SECTOR_SIZE_DWORD * 2;--//Назначаем размер данных в DWORD
+
+      elsif cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(16#07#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) then
+      --//RAID HDDx3
+          i_tstdata_dwsize<=cfgCmdPkt(idx).scount * C_SIM_SECTOR_SIZE_DWORD * 3;--//Назначаем размер данных в DWORD
+
+      elsif cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(16#0F#, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) then
+      --//RAID HDDx4
+          i_tstdata_dwsize<=cfgCmdPkt(idx).scount * C_SIM_SECTOR_SIZE_DWORD * 4;--//Назначаем размер данных в DWORD
+
+      end if;
 
 
       --//Запускаем автомат записи командного пакета

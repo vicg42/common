@@ -146,6 +146,8 @@ S_HW_MEMR_START2
 );
 signal fsm_rambuf_cs: fsm_state;
 
+signal i_hddcnt                        : std_logic_vector(2 downto 0);
+
 signal i_rd_lentrn_dbl                 : std_logic_vector(15 downto 0);--//(в DWORD)
 signal i_rd_lentrn_dbl_remain          : std_logic_vector(15 downto 0);--//(в DWORD)
 
@@ -304,6 +306,8 @@ begin
       width32b:=(others=>'0');
 
     fsm_rambuf_cs <= S_IDLE;
+    i_hddcnt<=(others=>'0');
+
     i_rambuf_dcnt<=(others=>'0');
     i_rambuf_done<='0';
     i_rambuf_full<='0';
@@ -361,6 +365,7 @@ begin
           i_wr_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0);
           i_rd_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
 
+          i_hddcnt<=(others=>'0');
           i_rambuf_dcnt<=(others=>'0');
 
           if p_in_rbuf_cfg.dmacfg.sw_mode='1' then
@@ -404,8 +409,21 @@ begin
       when S_SW_MEM_CHECK =>
 
         if i_mem_lenreq_dw(15 downto 0)=i_rambuf_dcnt(15 downto 0) then
-          i_rambuf_done<='1';
-          fsm_rambuf_cs <= S_IDLE;
+          if p_in_rbuf_cfg.dmacfg.raid.used='0' then
+          --//Работа с одним HDD
+            i_rambuf_done<='1';
+            fsm_rambuf_cs <= S_IDLE;
+          else
+          --//Работа с RAID
+            if i_hddcnt=p_in_rbuf_cfg.dmacfg.raid.hddcount then
+              i_rambuf_done<='1';
+              fsm_rambuf_cs <= S_IDLE;
+            else
+              i_rambuf_dcnt<=(others=>'0');
+              i_hddcnt<=i_hddcnt + 1;
+              fsm_rambuf_cs <= S_SW_MEM_START;
+            end if;
+          end if;
         else
           fsm_rambuf_cs <= S_SW_MEM_START;
         end if;

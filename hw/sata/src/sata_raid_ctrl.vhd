@@ -153,10 +153,8 @@ signal i_sh_trn_den                : std_logic;
 signal i_sh_txd_wr                 : std_logic;
 signal i_sh_rxd_rd                 : std_logic;
 signal i_raid_atrncnt              : std_logic_vector(i_trn_dcount_dw'range);
-signal i_raid_atrn_done            : std_logic;
 signal sr_raid_atrn_done           : std_logic_vector(0 to 2);
 signal i_raid_atrn_next            : std_logic;
---signal i_raid_trn_done             : std_logic;
 
 signal i_dwr_start                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
@@ -564,10 +562,10 @@ p_out_sh_hdd<=i_sh_hddcnt;
 
 --//запись в TxBUF sata_host
 p_out_sh_txd<=p_in_usr_txd;
-p_out_sh_txd_wr <=i_sh_txd_wr;
+p_out_sh_txd_wr<=i_sh_txd_wr;
 
-i_sh_txd_wr<=i_sh_trn_en and not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full when p_in_raid.used='1' else
-             not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full;
+i_sh_txd_wr<=not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full when p_in_raid.used='0' else --//Работа с одним HDD
+             not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full and i_sh_trn_en;             --//Работа с RAID
 
 p_out_usr_txd_rd<=i_sh_txd_wr;
 
@@ -585,8 +583,8 @@ begin
   end if;
 end process;
 
-i_sh_rxd_rd<=i_sh_trn_en and not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty when p_in_raid.used='1' else
-             not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty;
+i_sh_rxd_rd<=not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty  when p_in_raid.used='0' else --//Работа с одним HDD
+             not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty and i_sh_trn_en;              --//Работа с RAID
 
 p_out_sh_rxd_rd<=i_sh_rxd_rd;
 
@@ -605,7 +603,6 @@ begin
     raid_atrn_done:='0';
 
     i_sh_trn_en<='0';
-    i_raid_atrn_done<='0';
     sr_raid_atrn_done<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -625,15 +622,14 @@ begin
         if (i_sh_cmd_start='1' or i_raid_atrn_next='1') then
           i_sh_trn_en<='1';
         else
-          if i_sh_trn_en='1' and i_sh_trn_den='1' and i_raid_atrncnt=i_trn_dcount_dw then
+          if i_sh_trn_en='1' and i_sh_trn_den='1' and i_raid_atrncnt=(i_trn_dcount_dw - 1) then
             i_sh_trn_en<='0';
-            raid_atrn_done:='1';--//Выполнена транзакия для одного HDD (атомарная операция)
+            raid_atrn_done:='1';--//Выполнена транзакция для одного HDD (атомарная операция)
           end if;
         end if;
     end if;
 
-    i_raid_atrn_done<=raid_atrn_done;
-    sr_raid_atrn_done<=i_raid_atrn_done & sr_raid_atrn_done(0 to 1);
+    sr_raid_atrn_done<=raid_atrn_done & sr_raid_atrn_done(0 to 1);
 
   end if;
 end process;
@@ -685,12 +681,10 @@ begin
     raid_trn_tx_done:='0';
 
     i_raid_atrn_next<='0';
---    i_raid_trn_done<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     raid_atrn_next:='0';
---    raid_trn_tx_done:='0';
 
     --//Сигнал начать следующую атормарную транзакцию RAID
     if sr_raid_atrn_done(2)='1' and i_sh_hddcnt/=p_in_raid.hddcount then
@@ -703,7 +697,6 @@ begin
     end if;
 
     i_raid_atrn_next<=raid_atrn_next;
---    i_raid_trn_done<=raid_trn_tx_done;
 
   end if;
 end process;
