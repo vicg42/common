@@ -914,6 +914,7 @@ if p_in_rst='1' then
   i_reg_shadow.feature<=(others=>'0');
   i_reg_shadow.feature_exp<=(others=>'0');
 
+  i_action.ata_cmdcod<=(others=>'0');
   i_action.ata_command<='0';
   i_action.ata_control<='0';
   i_action.dir<='0';
@@ -1058,8 +1059,10 @@ elsif p_in_clk'event and p_in_clk='1' then
 
               if fh2d_cbit='1' then
               i_reg_shadow.command<=i_rxd_out(8*(2+1)-1 downto 8*2);
+              i_action.ata_cmdcod<=i_rxd_out(8*(2+1)-1 downto 8*2);
 
-                if i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, 8) or
+                if i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_NOP, 8) or
+                   i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, 8) or
                    i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, 8) then
                     if i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, 8) then
                       i_action.dir<=C_DIR_H2D;

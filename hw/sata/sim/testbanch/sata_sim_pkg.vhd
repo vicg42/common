@@ -85,6 +85,7 @@ data  : std_logic;
 end record;
 
 type TAction is record
+ata_cmdcod  : std_logic_vector(7 downto 0);
 ata_command : std_logic;
 ata_control : std_logic;
 dir         : std_logic;
@@ -399,6 +400,17 @@ procedure p_BUF_ATADMA_WRITE(
 
 -- Процедура p_BUF_ATAPIO_WRITE
 procedure p_BUF_ATAPIO_WRITE(
+  signal p_in_clk            : in    std_logic;
+
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+
+  signal p_in_usropt         : in    TInUsrOpt;
+  signal p_out_usropt        : out   TOutUsrOpt
+);
+
+-- Процедура p_ATAPIO_NULL
+procedure p_ATAPIO_NULL(
   signal p_in_clk            : in    std_logic;
 
   signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
@@ -1938,7 +1950,8 @@ begin
 if p_in_usropt.action.ata_command='1' then
 
   if p_in_usropt.action.piomode='1' then
-      if p_in_usropt.action.dir=C_DIR_H2D then
+--      if p_in_usropt.action.dir=C_DIR_H2D then
+      if p_in_usropt.action.ata_cmdcod=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, p_in_usropt.action.ata_cmdcod'length) then
             if p_in_usropt.dbuf.wused='1' then
             --//Использовать модуль sata_bufdata.vhd
               p_BUF_ATAPIO_WRITE(p_in_clk,
@@ -1949,7 +1962,8 @@ if p_in_usropt.action.ata_command='1' then
                        p_out_gtp_txdata, p_out_gtp_txcharisk,
                        p_in_usropt, p_out_usropt);
             end if;
-      else
+--      else
+      elsif p_in_usropt.action.ata_cmdcod=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, p_in_usropt.action.ata_cmdcod'length) then
 --              if p_in_usropt.dbuf.rused='1' then
 --              --//Использовать модуль sata_bufdata.vhd
 --                p_BUF_ATAPIO_READ(p_in_clk,
@@ -1960,6 +1974,10 @@ if p_in_usropt.action.ata_command='1' then
                        p_out_gtp_txdata, p_out_gtp_txcharisk,
                        p_in_usropt, p_out_usropt);
 --              end if;
+      else
+              p_ATAPIO_NULL(p_in_clk,
+                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_in_usropt, p_out_usropt);
       end if;
 
   elsif p_in_usropt.action.dmamode='1' then
@@ -2942,6 +2960,172 @@ p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp
 write(GUI_line,string'("p_BUF_ATAPIO_WRITE done."));writeline(output, GUI_line);
 
 end;--//procedure p_BUF_ATAPIO_WRITE
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+-- Процедура p_ATAPIO_NULL
+--
+-------------------------------------------------------------------------------
+procedure p_ATAPIO_NULL(
+  signal p_in_clk            : in    std_logic;
+
+  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+
+  signal p_in_usropt         : in    TInUsrOpt;
+  signal p_out_usropt        : out   TOutUsrOpt
+)is
+
+  variable txfis_size      : integer:=0;
+  variable txd             : TSimBufData; --//Массиив данных для передачи
+
+  variable trncount_byte   : integer:=0;
+  variable scount          : integer:=0;
+  variable atacmd_scount   : std_logic_vector(15 downto 0):=(others=>'0');
+  variable atacmd_dma_dwcount : integer:=0;
+  variable rcv_dwcount     : integer:=0;
+
+  variable tstdata_cnt     : std_logic_vector(31 downto 0):=(others=>'0');
+
+  variable dbuf            : TSimDBufCtrl;
+
+--  variable fis_data        : TFIS_DATA;
+  variable fis_d2h         : TFIS_D2H;
+  variable fis_pioSetup    : TFIS_PIOSETUP;
+  variable fis_dmaSetup    : TFIS_DMASETUP;
+  variable fis_dmaActivate : TFIS_DMA_Activate;
+
+  variable vusropt     : TOutUsrOpt;
+  variable txcomp_cnt  : integer;
+  variable GUI_line    : LINE;--Строка дл_ вывода в ModelSim
+
+begin
+
+vusropt.dbuf.trnsize:=0;
+vusropt.dbuf.clk:='0';
+vusropt.dbuf.wused:='0';
+vusropt.dbuf.wstart:='0';
+vusropt.dbuf.wdone:='0';
+vusropt.dbuf.wdone_clr:='0';
+vusropt.dbuf.wen:='0';
+vusropt.dbuf.rused:='0';
+vusropt.dbuf.rstart:='0';
+vusropt.dbuf.rdone:='0';
+vusropt.dbuf.rdone_clr:='0';
+vusropt.dbuf.ren:='0';
+for i in 0 to vusropt.dbuf.din'high loop
+vusropt.dbuf.din(i):=(others=>'0');
+vusropt.dbuf.dout(i):=(others=>'0');
+end loop;
+
+write(GUI_line,string'("p_ATAPIO_NULL start."));writeline(output, GUI_line);
+
+--//--------------------------------
+--//FIS_DEV2HOST: FPGA<-HDD
+--//--------------------------------
+write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
+--//Инициализация FIS:
+txfis_size:=fis_d2h'high;
+for i in 0 to txfis_size loop
+txd(i):=(others=>'0');
+end loop;
+txd(0)(8*(0+1)-1 downto 8*0):=CONV_STD_LOGIC_VECTOR(C_FIS_REG_DEV2HOST, 8);
+txd(0)(C_FIS_INT_BIT+8):='1';
+
+--Reg: Status
+txd(0)(8*2+C_ATA_STATUS_BUSY_BIT):='0';
+txd(0)(8*2+C_ATA_STATUS_DRDY_BIT):='1';
+
+--Reg: Error
+txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
+
+--Reg: device lba_low/mid/high
+txd(1)(8*(0+1)-1 downto 8*0):=p_in_usropt.reg_shadow.lba_low;
+txd(1)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.lba_mid;
+txd(1)(8*(2+1)-1 downto 8*2):=p_in_usropt.reg_shadow.lba_high;
+txd(1)(8*(3+1)-1 downto 8*3):=p_in_usropt.reg_shadow.device;
+
+txd(2)(8*(0+1)-1 downto 8*0):=p_in_usropt.reg_shadow.lba_low_exp;
+txd(2)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.lba_mid_exp;
+txd(2)(8*(2+1)-1 downto 8*2):=p_in_usropt.reg_shadow.lba_high_exp;
+
+--Reg: scount
+txd(3)(8*(0+1)-1 downto 8*0):=p_in_usropt.reg_shadow.scount;
+txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
+
+p_SendFIS(p_in_clk,
+          txd, txfis_size,
+          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_in_usropt, p_out_usropt);
+
+write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
+--//--------------------------------
+
+----//--------------------------------
+----//FIS_PIOSETUP: FPGA<-HDD
+----//--------------------------------
+--write(GUI_line,string'("FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
+----//Инициализация FIS:
+--txfis_size:=fis_pioSetup'high;
+--for i in 0 to txfis_size loop
+--txd(i):=(others=>'0');
+--end loop;
+--txd(0)(8*(0+1)-1 downto 8*0):=CONV_STD_LOGIC_VECTOR(C_FIS_PIOSETUP, 8);
+--txd(0)(C_FIS_DIR_BIT+8):=C_DIR_H2D;--//FPGA->HDD
+--txd(0)(C_FIS_INT_BIT+8):='1';
+--
+----Reg: Status
+--txd(0)(8*2+C_ATA_STATUS_BUSY_BIT):='0';
+--txd(0)(8*2+C_ATA_STATUS_DRQ_BIT) :='0';--Status
+--txd(0)(8*2+C_ATA_STATUS_DRDY_BIT):='1';
+--
+----Reg: Error
+--txd(0)(8*(3+1)-1 downto 8*3):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
+--
+----Reg: device lba_low/mid/high
+--txd(1)(8*(0+1)-1 downto 8*0):=p_in_usropt.reg_shadow.lba_low;
+--txd(1)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.lba_mid;
+--txd(1)(8*(2+1)-1 downto 8*2):=p_in_usropt.reg_shadow.lba_high;
+--txd(1)(8*(3+1)-1 downto 8*3):=p_in_usropt.reg_shadow.device;
+--
+--txd(2)(8*(0+1)-1 downto 8*0):=p_in_usropt.reg_shadow.lba_low_exp;
+--txd(2)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.lba_mid_exp;
+--txd(2)(8*(2+1)-1 downto 8*2):=p_in_usropt.reg_shadow.lba_high_exp;
+--
+----Reg: scount
+--txd(3)(8*(0+1)-1 downto 8*0):=p_in_usropt.reg_shadow.scount;
+--txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
+--
+--atacmd_scount:=p_in_usropt.reg_shadow.scount_exp&p_in_usropt.reg_shadow.scount;
+--
+----Reg: E_Status
+--txd(3)(8*3+C_ATA_STATUS_BUSY_BIT):='0';--E_Status
+--txd(3)(8*3+C_ATA_STATUS_DRQ_BIT) :='0';--E_Status
+--txd(3)(8*3+C_ATA_STATUS_DRDY_BIT):='1';
+--
+----Reg: Transfer Count
+--txd(4)(8*(1+1)-1 downto 8*0):=CONV_STD_LOGIC_VECTOR(trncount_byte, 16);--Transfer Count(Byte)
+--
+--p_SendFIS(p_in_clk,
+--          txd, txfis_size,
+--          p_out_gtp_txdata, p_out_gtp_txcharisk,
+--          p_in_usropt, p_out_usropt);
+--write(GUI_line,string'("FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
+----//--------------------------------
+
+p_SetSYNC(p_in_clk,
+          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_in_usropt, p_out_usropt);
+
+write(GUI_line,string'("p_ATAPIO_NULL done."));writeline(output, GUI_line);
+
+end;--//procedure p_ATAPIO_NULL
+
 
 end sata_sim_pkg;
 
