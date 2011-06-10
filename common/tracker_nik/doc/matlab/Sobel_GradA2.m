@@ -7,7 +7,14 @@
 %------------------------------------------------------------------------
 function Result = Sobel_GradA2(ImSrc, TDelta_calc, IP1, IP2) %, TGradA_calc
     %Зануляем массив результата
-    Result = zeros(size(ImSrc), 'uint8');
+    Result.A   = zeros(size(ImSrc), 'uint8');%Амплитуда градиента яркости: все точки
+    Result.Aip = zeros(size(ImSrc), 'uint8');%Амплитуда градиента яркости: Только точки попавшие в дапозон порогового итервала(IP)
+
+    Result.dXm = zeros(size(ImSrc), 'uint16');%Нормированиые значения модулей. Для расчета табличных значений угла град. ярк.
+    Result.dYm = zeros(size(ImSrc), 'uint16');
+
+    Result.dXs = zeros(size(ImSrc), 'int16');%Не нормированиые значения. Для расчета направления град. яркости.
+    Result.dYs = zeros(size(ImSrc), 'int16');
 
 %     dXm_dbg = zeros(size(ImSrc), 'uint16');
 %     dYm_dbg = zeros(size(ImSrc), 'uint16');
@@ -38,22 +45,34 @@ function Result = Sobel_GradA2(ImSrc, TDelta_calc, IP1, IP2) %, TGradA_calc
 
             %Вычисляем модуль
             dXm = 0;
+            dYm = 0;
             if dX1 > dX2
             dXm = int16(dX1) - int16(dX2);
             else
             dXm = int16(dX2) - int16(dX1);
             end;
 
-            dYm = 0;
             if dY1 > dY2
             dYm = int16(dY1) - int16(dY2);
             else
             dYm = int16(dY2) - int16(dY1);
             end;
 
+
+            %dXs,dYs - знаковые значения
+            dXs = dX1 - dX2;
+            dYs = dY2 - dY1;%dYs = dY1 - dY2;
+
+
             if TDelta_calc==1
               dXdiv = double(dXm)/2;
               dYdiv = double(dYm)/2;
+
+              dXsdiv = double(dXs)/2;
+              dYsdiv = double(dYs)/2;
+
+              dXs = fix(dXsdiv);%Отбрасываем дробную часть
+              dYs = fix(dYsdiv);%Отбрасываем дробную часть
 
               dXm = fix(dXdiv);%Отбрасываем дробную часть
               dYm = fix(dYdiv);%Отбрасываем дробную часть
@@ -71,16 +90,34 @@ function Result = Sobel_GradA2(ImSrc, TDelta_calc, IP1, IP2) %, TGradA_calc
               %(-5) это сдвиг на 5 бит вправо(деление на 32)
 %            end;
 
-            %Нормирование результата
+            %Нормирование амплитуды Градиента яркости:
             if GradA >= 255
                 GradA = 255;
             else
                 GradA = uint8(GradA);
             end;
 
+
             if (IP2>=GradA) && (GradA >= IP1)
-              Result(i,j) = uint8(GradA);
+              Result.Aip(i,j) = uint8(GradA);
             end;
+
+            Result.A(i,j)   = uint8(GradA);
+
+
+            %Нормирование значений модуля
+            if dXm > 255
+                dXm = 255;
+            end;
+
+            if dYm > 255
+                dYm = 255;
+            end;
+            Result.dXm(i,j) = dXm;
+            Result.dYm(i,j) = dYm;
+            Result.dXs(i,j) = dXs;
+            Result.dYs(i,j) = dYs;
+
 
         end;%for(j)
     end;%for(i)

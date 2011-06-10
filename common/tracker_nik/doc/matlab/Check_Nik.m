@@ -35,11 +35,11 @@ function Check_Image(SrcImage, ResultDir, TDelta_calc, TGradO_var, IP, IPcount)
       GradA = Sobel_GradA2(ImSrc, TDelta_calc, IP(1,i+1), IP(2,i+1)); % TGradA_calc);
 
       % вычисляем разность
-      GradADif = double(ImFgradA) - double(GradA);
+      GradADif = double(ImFgradA) - double(GradA.Aip);
 
       % Вывод на экран
 %      figure('Name',strcat('IP',num2str(i), 'GradA FPGA')); imshow(ImFgradA);
-%      figure('Name',strcat('IP',num2str(i), 'GradA MatLab')); imshow(GradA);
+%      figure('Name',strcat('IP',num2str(i), 'GradA MatLab')); imshow(GradA.Aip);
       figure('Name',strcat('IP',num2str(i), 'GradA Diff')); mesh(GradADif(2:(ImSizeY-1), 2:(ImSizeX-1)));
       strcat('Выполнено!')
 
@@ -48,18 +48,18 @@ function Check_Image(SrcImage, ResultDir, TDelta_calc, TGradO_var, IP, IPcount)
       %%--------------------------------------------------------
       ImFgradO = imread(strcat(ResultDir, 'img', num2str(i), '_2.png'));
       % Вычисляем направление градиента яркости
-      GradO = Sobel_GradO2(ImSrc, TDelta_calc, TGradO_var, IP(1,i+1), IP(2,i+1));
+      GradO = Sobel_GradO2(ImSrc, GradA, TDelta_calc, TGradO_var, IP(1,i+1), IP(2,i+1));
 
       % вычисляем разность
-      GradODif = double(ImFgradO) - double(GradO);
+      GradODif = double(ImFgradO) - double(GradO.Oip);
 
 %      ImFgradO(600:663, 130:163)
-%      GradO(600:663, 130:163)
+%      GradO.Oip(600:663, 130:163)
 %      GradODif(600:663, 130:163)
 
       % Вывод на экран
 %      figure('Name',strcat('IP',num2str(i), 'FPGA_result')); imshow(ImFgradO);
-%      figure('Name',strcat('IP',num2str(i), 'ImSrc')); imshow(GradO);
+%      figure('Name',strcat('IP',num2str(i), 'ImSrc')); imshow(GradO.Oip);
       figure('Name',strcat('IP',num2str(i), 'GradO Diff')); mesh(GradODif(2:(ImSizeY-1), 2:(ImSizeX-1)));
       strcat('Выполнено!')
     end;%for(i)
