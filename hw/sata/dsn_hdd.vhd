@@ -166,7 +166,7 @@ signal i_sh_measure                     : TMeasureStatus;
 signal sr_sh_busy                       : std_logic_vector(0 to 1);
 signal i_sh_busy                        : std_logic;
 signal i_sh_done                        : std_logic;
-signal i_sh_ata_done                    : std_logic;
+signal i_sh_atadone_ack                 : std_logic;
 signal i_sh_irq_en                      : std_logic;
 signal i_sh_irq_width                   : std_logic;
 signal i_sh_irq_width_cnt               : std_logic_vector(3 downto 0);
@@ -175,6 +175,7 @@ type THDDBufChk_state is
 (
 S_IDLE,
 S_CHEK_BUF,
+S_WAIT_HW_DONE,
 S_CHEK_BUF_DONE
 );
 signal fsm_state_cs                     : THDDBufChk_state;
@@ -328,7 +329,7 @@ i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_
 i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_RANDOM_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT);
-i_sh_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)<=i_sh_ata_done;
+i_sh_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)<=i_sh_atadone_ack;
 i_sh_ctrl(C_USR_GCTRL_RAMBUF_ERR_BIT)<=p_in_rbuf_status.err;
 i_sh_ctrl(C_USR_GCTRL_RESERV_BIT)<=h_reg_tst0(0);
 
@@ -387,13 +388,13 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     fsm_state_cs<= S_IDLE;
-    i_sh_ata_done<='0';
+    i_sh_atadone_ack<='0';
     i_sh_done<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)='1' then
       fsm_state_cs<= S_IDLE;
-      i_sh_ata_done<='0';
+      i_sh_atadone_ack<='0';
       i_sh_done<='0';
 
     else
@@ -406,22 +407,35 @@ begin
               i_sh_done<='0';
             end if;
 
-            if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
-            --//Ловим задний фронт сигнала АТА BUSY
-              fsm_state_cs<= S_CHEK_BUF;
+            if i_sh_status.dmacfg.hw_mode='1' then
+               fsm_state_cs<= S_WAIT_HW_DONE;
+            else
+              if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
+                --//Ловим задний фронт сигнала АТА BUSY
+                fsm_state_cs<= S_CHEK_BUF;
+              end if;
             end if;
 
           when S_CHEK_BUF =>
             --//Ждем пока из буферов уйдут все данные
             if sr_sh_rxbuf_empty(0)='1' and i_sh_txbuf_empty='1' then
-              i_sh_ata_done<='1';--//Подтверждение завершения АТА команды
+              i_sh_atadone_ack<='1';--//Подтверждение завершения АТА команды
+              i_sh_done<='1';
+
+              fsm_state_cs<= S_CHEK_BUF_DONE;
+            end if;
+
+          when S_WAIT_HW_DONE =>
+            --//Ждем пока из буферов уйдут все данные
+            if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
+              i_sh_atadone_ack<='1';--//Подтверждение завершения АТА команды
               i_sh_done<='1';
 
               fsm_state_cs<= S_CHEK_BUF_DONE;
             end if;
 
           when S_CHEK_BUF_DONE =>
-            i_sh_ata_done<='0';
+            i_sh_atadone_ack<='0';
             fsm_state_cs<= S_IDLE;
         end case;
 
@@ -460,17 +474,17 @@ begin
 
         if sr_sh_busy(0)='1' and sr_sh_busy(1)='0' then
           i_sh_busy<='1';
-        elsif i_sh_ata_done='1' then
+        elsif i_sh_atadone_ack='1' then
           i_sh_busy<='0';
         end if;
 
 
         --//Растягиваем импульcы генерации прерывания
-        if i_sh_irq_en='0' and i_sh_ata_done='1' then
+        if i_sh_irq_en='0' and i_sh_atadone_ack='1' then
           i_sh_irq_en<='1';
 
         elsif i_sh_irq_en='1' then
-          if i_sh_ata_done='1' then
+          if i_sh_atadone_ack='1' then
             i_sh_irq_width<='1';
           elsif i_sh_irq_width_cnt(3)='1' then
             i_sh_irq_width<='0';
@@ -731,7 +745,7 @@ p_out_hdd_rxbuf_empty<=i_sh_cxd_wr;
 
 p_out_hdd_txbuf_full<=i_sh_cxd_wr;
 
-i_sh_ata_done<='0';
+i_sh_atadone_ack<='0';
 i_sh_done<='0';
 
 
