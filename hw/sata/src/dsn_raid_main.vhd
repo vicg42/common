@@ -120,6 +120,7 @@ C_GT6_CH_COUNT,
 C_GT7_CH_COUNT
 );
 
+signal i_usr_status                : TUsrStatus;
 signal g_refclkout                 : std_logic;
 
 signal i_sh_gtp_pllkdet            : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
@@ -138,6 +139,7 @@ signal i_sh_buf_rst                : TBusGTCH_SHCountMax;
 signal i_sh_status                 : TALStatusGTCH_SHCountMax;
 signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
 
+signal i_measure_dev_busy          : std_logic;
 signal i_measure_sh_status         : TMeasureALStatus_SHCountMax;
 
 --//cmdfifo
@@ -279,6 +281,7 @@ p_out_status   => p_out_measure,
 --------------------------------------------------
 --Ñâÿçü ñ ìîäóëÿì sata_host.vhd
 --------------------------------------------------
+p_in_dev_busy  => i_measure_dev_busy,
 p_in_sh_status => i_measure_sh_status,
 
 --------------------------------------------------
@@ -294,6 +297,7 @@ p_in_clk       => g_refclkout,--//150MHz
 p_in_rst       => p_in_rst
 );
 
+i_measure_dev_busy<=i_usr_status.dev_busy and i_usr_status.dev_rdy;
 
 
 --//#############################################
@@ -313,7 +317,7 @@ port map
 --Ñâÿçü ñ ìîäóëåì dsn_hdd.vhd
 --------------------------------------------------
 p_in_usr_ctrl           => p_in_usr_ctrl,
-p_out_usr_status        => p_out_usr_status,
+p_out_usr_status        => i_usr_status,
 
 --//cmdpkt
 p_in_usr_cxd            => p_in_usr_cxd,
@@ -370,6 +374,8 @@ p_in_rst                => p_in_rst
 --//#############################################
 --//
 --//#############################################
+p_out_usr_status<=i_usr_status;
+
 p_out_sata_refclkout<=g_refclkout;
 p_out_sata_gt_plldet<=AND_reduce(i_sh_gtp_pllkdet(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0));
 p_out_sata_dcm_lock<=i_sh_dcm_lock;

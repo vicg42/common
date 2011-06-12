@@ -484,9 +484,12 @@ begin
     end if;
 
     --//Сигнал для измерения задержек HDD
-    i_usr_status(C_AUSER_LLRXP_HOLD_BIT)<=p_in_tst(31);
-    i_usr_status(C_AUSER_LLTX_ON_BIT)<=p_in_tst(30);
-    i_usr_status(C_AUSER_LLRX_ON_BIT)<=p_in_tst(29);
+--    i_usr_status(C_AUSER_LLRX_ON_BIT)   <=p_in_tst(26);--tst_llayer_out(i)(4);--is tst_rxon;
+--    i_usr_status(C_AUSER_LLTX_ON_BIT)   <=p_in_tst(27);--tst_llayer_out(i)(3);--is tst_txon;
+    i_usr_status(C_AUSER_TLRX_ON_BIT)   <=p_in_tst(28);--tst_tlayer_out(i)(2);--is tst_rxd_on;
+    i_usr_status(C_AUSER_TLTX_ON_BIT)   <=p_in_tst(29);--tst_tlayer_out(i)(1);--is tst_txd_on;
+    i_usr_status(C_AUSER_LLTXP_HOLD_BIT)<=p_in_tst(30);--tst_llayer_out(i)(2);--is tst_txp_hold;
+    i_usr_status(C_AUSER_LLRXP_HOLD_BIT)<=p_in_tst(31);--tst_llayer_out(i)(1);--is i_rxp(C_THOLD);
 
   end if;
 end process;

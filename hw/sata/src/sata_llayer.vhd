@@ -138,8 +138,9 @@ signal i_txp_retransmit_dis        : std_logic;
 signal i_tl_check_done             : std_logic;--//Обнаружил сигнал завершения проверки Transport Layer
 signal i_tl_check_ok               : std_logic;--//Результат проверки принятых данных Transport Layer
 
-signal tst_txon                    : std_logic;
-signal tst_rxon                    : std_logic;
+signal tst_txp_hold                : std_logic;
+--signal tst_txon                    : std_logic;
+--signal tst_rxon                    : std_logic;
 --signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 --signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
 
@@ -167,8 +168,9 @@ begin
 --    tst_fms_cs_dly<=tst_fms_cs;
     p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
     p_out_tst(1)<=i_rxp(C_THOLD);
-    p_out_tst(2)<=tst_txon;
-    p_out_tst(3)<=tst_rxon;
+    p_out_tst(2)<=tst_txp_hold;
+--    p_out_tst(3)<=tst_txon;
+--    p_out_tst(4)<=tst_rxon;
   end if;
 end process ltstout;
 p_out_tst(31 downto 4)<=(others=>'0');
@@ -435,8 +437,9 @@ if p_in_rst='1' then
 
   i_pcont_use<='0';
 
-  tst_txon<='0';
-  tst_rxon<='0';
+--  tst_txon<='0';
+--  tst_rxon<='0';
+  tst_txp_hold<='0';
 
 elsif p_in_clk'event and p_in_clk='1' then
 --if clk_en='1' then
@@ -481,8 +484,9 @@ if p_in_phy_sync='1' then
       i_status(C_LSTAT_TxERR_IDLE)<='0';
       i_status(C_LSTAT_TxERR_ABORT)<='0';
 
-      tst_txon<='0';
-      tst_rxon<='0';
+--      tst_txon<='0';
+--      tst_rxon<='0';
+      tst_txp_hold<='0';
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с утройством оборвана
@@ -601,6 +605,8 @@ if p_in_phy_sync='1' then
           i_rcv_en<='0';
           i_rcv_work<='0';
 
+          tst_txp_hold<='0';
+
           if p_in_phy_rxtype(C_TX_RDY)='1' or p_in_phy_rxtype(C_TSYNC)='1' then
               i_rxp<=(others=>'0');
 
@@ -659,6 +665,8 @@ if p_in_phy_sync='1' then
       i_rcv_en<='0';
       i_rcv_work<='0';
       i_pcont_use<='0';
+
+      tst_txp_hold<='0';
 
       fsm_llayer_cs <= S_L_NoComm;
 
@@ -740,7 +748,7 @@ if p_in_phy_sync='1' then
 
               i_txp_cnt<=(others=>'0');
               i_init_work<='1';--//Инициализация модулей CRC,Scrambler
-              tst_txon<='1';
+--              tst_txon<='1';
               fsm_llayer_cs <= S_LT_SendSOF;
 
           else
@@ -834,6 +842,7 @@ if p_in_phy_sync='1' then
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
                 i_txp_cnt<=(others=>'0');
                 i_rxp(C_TDMAT)<='1';
+                tst_txp_hold<='0';
                 fsm_llayer_cs <= S_LT_SendCRC;
               end if;
 
@@ -845,6 +854,7 @@ if p_in_phy_sync='1' then
                 i_rxp(C_TCONT)<='0';
                 i_rxp(C_THOLD)<='1';
               end if;
+              tst_txp_hold<='0';
               fsm_llayer_cs <= S_LT_RcvrHold;
 
           else
@@ -864,6 +874,7 @@ if p_in_phy_sync='1' then
               if p_in_txd_close='1' then
               --Передача данных ЗАКОНЧЕНА!!!
                   if p_in_phy_txrdy_n='0' then
+                    tst_txp_hold<='0';
                     fsm_llayer_cs <= S_LT_SendCRC;
                   end if;
 
@@ -871,11 +882,13 @@ if p_in_phy_sync='1' then
               --Передача данных НЕ ЗАКОНЧЕНА!!!, буфер Tx почти пуст
               --перходим к сигнализации устройству о приостановке передачи до появления данных
                   i_txd_en<='0';
+                  tst_txp_hold<='1';
                   fsm_llayer_cs <= S_LT_SendHold;
 
               else
 
                   if p_in_phy_txrdy_n='0' then
+                    tst_txp_hold<='0';
                     i_txd_en<='1';
                   end if;
 
@@ -933,6 +946,7 @@ if p_in_phy_sync='1' then
                   if i_trn_term='1' then
                     i_trn_term<='0';
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
+                    tst_txp_hold<='0';
                     fsm_llayer_cs <= S_LT_SendCRC;
 
                   else
@@ -1030,6 +1044,7 @@ if p_in_phy_sync='1' then
                       end if;
 
                       i_txp_cnt<=(others=>'0');
+                      tst_txp_hold<='0';
                       fsm_llayer_cs <= S_LT_RcvrHold;
                   end if;
 
@@ -1580,7 +1595,7 @@ if p_in_phy_sync='1' then
               i_txp_cnt<=(others=>'0');
               i_rcv_en<='1';
               i_status(C_LSTAT_RxSTART)<='1';--//Информ. Транспорный уровень
-              tst_rxon<='1';
+--              tst_rxon<='1';
               fsm_llayer_cs <= S_LR_RcvData;
 
           elsif p_in_phy_rxtype(C_TCONT)='1' then
@@ -1807,6 +1822,7 @@ if p_in_phy_sync='1' then
                       i_rxp(C_TCONT)<='0';
                       i_rxp(C_THOLD)<='0';
                       i_txp_cnt<=(others=>'0');
+                      tst_txp_hold<='1';
                       fsm_llayer_cs <= S_LR_Hold;
 
                   else
@@ -1914,6 +1930,7 @@ if p_in_phy_sync='1' then
                 i_rxp<=(others=>'0');
                 i_txp_cnt<=(others=>'0');
                 i_rcv_en<='0';
+                tst_txp_hold<='0';
                 fsm_llayer_cs <= S_LR_RcvEOF;
 
             elsif p_in_phy_rxtype(C_TCONT)='1' then
@@ -1950,6 +1967,7 @@ if p_in_phy_sync='1' then
                     end if;
 
                     i_txp_cnt<=(others=>'0');
+                    tst_txp_hold<='0';
                     fsm_llayer_cs <= S_LR_RcvData;
 
                 else
@@ -1987,6 +2005,7 @@ if p_in_phy_sync='1' then
                     end if;
 
                     i_txp_cnt<=(others=>'0');
+                    tst_txp_hold<='0';
                     fsm_llayer_cs <= S_LR_SendHold;
 
                 else
@@ -2026,10 +2045,12 @@ if p_in_phy_sync='1' then
                     i_txp_cnt<=(others=>'0');
                     if (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
                     --//Был прием примитива HOLD - Устро-во синализирует что передача отложена
+                      tst_txp_hold<='0';
                       fsm_llayer_cs <= S_LR_SendHold;
 
                     else
                     --//Возвращаемся к приему данных
+                      tst_txp_hold<='0';
                       fsm_llayer_cs <= S_LR_RcvData;
                     end if;
 

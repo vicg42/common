@@ -47,6 +47,7 @@ p_out_status   : out   TMeasureStatus;
 --------------------------------------------------
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
+p_in_dev_busy  : in    std_logic;
 p_in_sh_status : in    TMeasureALStatus_SHCountMax;
 
 --------------------------------------------------
@@ -78,17 +79,17 @@ signal i_cnt_min                : std_logic_vector(15 downto 0);
 signal i_measure_dly_tcnt       : std_logic_vector(31 downto 0);
 signal i_measure_dly_time       : std_logic_vector(31 downto 0);
 
-signal i_sh_busy                : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_rxhold              : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_txon                : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_rxon                : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_tlayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_tlayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
+--signal i_sh_llayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
+--signal i_sh_llayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_llayer_txhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_llayer_rxhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
-signal i_mesure_en              : std_logic;
-signal sr_mesure_en             : std_logic;
-signal i_measure_on             : std_logic;
 signal i_dly_on                 : std_logic;
 
-
+signal sr_measure_start         : std_logic_vector(0 to 1);
+signal i_measure_start          : std_logic;
 
 
 --MAIN
@@ -129,37 +130,38 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     for i in 0 to G_HDD_COUNT-1 loop
-      i_sh_busy(i)<='0';
-      i_sh_rxhold(i)<='0';
-      i_sh_txon(i)<='0';
-      i_sh_rxon(i)<='0';
+      i_sh_tlayer_rxon(i)<='0';
+      i_sh_tlayer_txon(i)<='0';
+--      i_sh_llayer_rxon(i)<='0';
+--      i_sh_llayer_txon(i)<='0';
+      i_sh_llayer_txhold(i)<='0';
+      i_sh_llayer_rxhold(i)<='0';
     end loop;
 
-    i_mesure_en<='0';
-    sr_mesure_en<='0';
-    i_measure_on<='0';
     i_dly_on<='0';
+    sr_measure_start<=(others=>'0');
+    i_measure_start<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_mesure_en<=OR_reduce(i_sh_busy(G_HDD_COUNT-1 downto 0)) and i_measure_on;
-
     for i in 0 to G_HDD_COUNT-1 loop
-      i_sh_busy(i)<=p_in_sh_status(i).Usr(C_AUSER_BUSY_BIT);
-      i_sh_rxhold(i)<=p_in_sh_status(i).Usr(C_AUSER_LLRXP_HOLD_BIT);
-      i_sh_txon(i)<=p_in_sh_status(i).Usr(C_AUSER_LLTX_ON_BIT);
-      i_sh_rxon(i)<=p_in_sh_status(i).Usr(C_AUSER_LLRX_ON_BIT);
+
+      i_sh_tlayer_rxon(i)<=p_in_sh_status(i).Usr(C_AUSER_TLRX_ON_BIT);
+      i_sh_tlayer_txon(i)<=p_in_sh_status(i).Usr(C_AUSER_TLTX_ON_BIT);
+--      i_sh_llayer_rxon(i)<=p_in_sh_status(i).Usr(C_AUSER_LLRX_ON_BIT);
+--      i_sh_llayer_txon(i)<=p_in_sh_status(i).Usr(C_AUSER_LLTX_ON_BIT);
+      i_sh_llayer_txhold(i)<=p_in_sh_status(i).Usr(C_AUSER_LLTXP_HOLD_BIT);
+      i_sh_llayer_rxhold(i)<=p_in_sh_status(i).Usr(C_AUSER_LLRXP_HOLD_BIT);
+
     end loop;
 
-    i_dly_on<=(i_mesure_en xor (OR_reduce(i_sh_txon) or OR_reduce(i_sh_rxon))) or OR_reduce(i_sh_rxhold);
+    i_dly_on<=(p_in_dev_busy xor (OR_reduce(i_sh_tlayer_txon) or OR_reduce(i_sh_tlayer_rxon)) ) or
+              (OR_reduce(i_sh_llayer_txhold) or OR_reduce(i_sh_llayer_rxhold));
 
-    sr_mesure_en<=i_mesure_en;
 
-    if p_in_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' then
-      i_measure_on<='0';
-    elsif p_in_ctrl(C_USR_GCTRL_TST_ON_BIT)='1' and i_mesure_en='1' and sr_mesure_en='0' and i_measure_on='0' then
-      i_measure_on<='1';
-    end if;
+    sr_measure_start<=p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) & sr_measure_start(0 to 0);
+
+    i_measure_start<=sr_measure_start(0) and not sr_measure_start(1);
 
   end if;
 end process;
@@ -185,7 +187,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if p_in_ctrl(C_USR_GCTRL_CLR_ERR_BIT)='1' then
+    if i_measure_start='1' then
       i_cnt_05us<=(others=>'0');
       i_cnt_us<=(others=>'0');
       i_cnt_ms<=(others=>'0');
@@ -194,7 +196,7 @@ begin
       a:='0';
       i_1us<='0';
 
-    elsif i_mesure_en='1' then
+    elsif p_in_dev_busy='1' then
       if i_cnt_05us=CONV_STD_LOGIC_VECTOR(G_T05us-1, i_cnt_05us'length) then
         i_cnt_05us<=(others=>'0');
         a:= not a;
@@ -237,10 +239,10 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if p_in_ctrl(C_USR_GCTRL_CLR_ERR_BIT)='1' then
+    if i_measure_start='1' then
       i_measure_dly_tcnt<=(others=>'0');
 
-    elsif i_mesure_en='1' then
+    elsif p_in_dev_busy='1' then
 
       if i_dly_on='1' then
         i_measure_dly_tcnt<=i_measure_dly_tcnt+1;
@@ -250,7 +252,7 @@ begin
 
     end if;
 
-    if p_in_ctrl(C_USR_GCTRL_CLR_ERR_BIT)='1' then
+    if i_measure_start='1' then
       i_measure_dly_time<=(others=>'0');
 
     elsif i_measure_dly_tcnt>i_measure_dly_time then

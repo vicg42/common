@@ -369,9 +369,12 @@ end generate gen_dbg_on;
 --//-----------------------------
 --//Инициализация
 --//-----------------------------
-tst_alayer_in(i)(28 downto 0)<=p_in_tst(i)(28 downto 0);
-tst_alayer_in(i)(29)<=tst_llayer_out(i)(3);--is tst_rxon;
-tst_alayer_in(i)(30)<=tst_llayer_out(i)(2);--is tst_txon;
+tst_alayer_in(i)(27 downto 0)<=p_in_tst(i)(27 downto 0);
+--tst_alayer_in(i)(26)<=tst_llayer_out(i)(4);--is tst_rxon;
+--tst_alayer_in(i)(27)<=tst_llayer_out(i)(3);--is tst_txon;
+tst_alayer_in(i)(28)<=tst_tlayer_out(i)(2);--is tst_rxd_on;
+tst_alayer_in(i)(29)<=tst_tlayer_out(i)(1);--is tst_txd_on;
+tst_alayer_in(i)(30)<=tst_llayer_out(i)(2);--is tst_txp_hold;
 tst_alayer_in(i)(31)<=tst_llayer_out(i)(1);--is i_rxp(C_THOLD);
 
 i_linkup(i)<=i_phy_status(i)(C_PSTAT_DET_ESTABLISH_ON_BIT);
