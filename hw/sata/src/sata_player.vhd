@@ -267,7 +267,7 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign           => i_rxtype(C_TALIGN),
+p_in_rxalign           => '0',--i_rxtype(C_TALIGN),
 p_in_linkup            => i_oob_status(C_PSTAT_DET_ESTABLISH_ON_BIT),
 p_in_dev_detect        => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
 p_in_d10_2_send_dis    => i_d10_2_senddis,
