@@ -2497,7 +2497,7 @@ end if;
 end process;
 i_hddrambuf_dbgcs.data(112 downto 81) <=i_hdd_rambuf_dbgcs.data(112 downto 81) ;--i_rambuf_dcnt(31 downto 0)
 i_hddrambuf_dbgcs.data(128 downto 113)<=i_hdd_rambuf_dbgcs.data(128 downto 113);--i_mem_lenreq (15 downto 0);
-i_hddrambuf_dbgcs.data(136 downto 139)<=i_hdd_rambuf_dbgcs.data(136 downto 139);--i_mem_lentrn(7 downto 0);
+i_hddrambuf_dbgcs.data(136 downto 129)<=i_hdd_rambuf_dbgcs.data(136 downto 129);--i_mem_lentrn(7 downto 0);
 
 
 
