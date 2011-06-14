@@ -1591,22 +1591,22 @@ begin
   --//--------------------------------
   --//Отправка данных: FIS_DEV2HOST (Signature)
   --//--------------------------------
---  --//Инициализация FIS:
---  txfis_size:=C_FIS_D2H_SIGNATURE'high;
---  for i in 0 to txfis_size loop
---  txd(i):=C_FIS_D2H_SIGNATURE(i);
---  end loop;
---  write(GUI_line,string'("FPGA<-HDD(Signature): Begin"));writeline(output, GUI_line);
---  p_SendFIS(p_in_clk,
---            txd, txfis_size,
---            p_out_gtp_txdata, p_out_gtp_txcharisk,
---            i_usropt_in, i_usropt2_out);
---  write(GUI_line,string'("FPGA<-HDD(Signature): End"));writeline(output, GUI_line);
---
---
---  p_SetSYNC(p_in_clk,
---            p_out_gtp_txdata, p_out_gtp_txcharisk,
---            i_usropt_in, i_usropt2_out);
+  --//Инициализация FIS:
+  txfis_size:=C_FIS_D2H_SIGNATURE'high;
+  for i in 0 to txfis_size loop
+  txd(i):=C_FIS_D2H_SIGNATURE(i);
+  end loop;
+  write(GUI_line,string'("FPGA<-HDD(Signature): Begin"));writeline(output, GUI_line);
+  p_SendFIS(p_in_clk,
+            txd, txfis_size,
+            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            i_usropt_in, i_usropt2_out);
+  write(GUI_line,string'("FPGA<-HDD(Signature): End"));writeline(output, GUI_line);
+
+
+  p_SetSYNC(p_in_clk,
+            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            i_usropt_in, i_usropt2_out);
 
 
 
@@ -1993,24 +1993,24 @@ end if;
                       C_PDAT_HOLD, C_CHAR_K,
                       p_out_gtp_txdata, p_out_gtp_txcharisk,
                       i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_CONT, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            for i in 0 to 2 loop
-            p_SetData(p_in_clk,
-                      i_txsrcambler, C_CHAR_D,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            end loop;
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_CONT, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            for i in 0 to 1 loop
+--            p_SetData(p_in_clk,
+--                      i_txsrcambler, C_CHAR_D,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            end loop;
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
 
     --//user DATA
       for i in 0 to 8 loop
@@ -2044,25 +2044,25 @@ end if;
         txsrcambler:=srambler32_0(txsrcambler(31 downto 16));
       end loop;
 
-            --//Имитация сигнала HOLD от hdd
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_CONT, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            for i in 0 to 2 loop
-            p_SetData(p_in_clk,
-                      i_txsrcambler, C_CHAR_D,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            end loop;
+--            --//Имитация сигнала HOLD от hdd
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_CONT, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            for i in 0 to 2 loop
+--            p_SetData(p_in_clk,
+--                      i_txsrcambler, C_CHAR_D,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            end loop;
 
 --                --//Имитация примитива ALIGN
 --                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
@@ -2125,29 +2125,29 @@ end if;
       end loop;
 
 
-            --//Имитация сигнала HOLD от hdd
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_CONT, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            for i in 0 to 4 loop
-            p_SetData(p_in_clk,
-                      i_txsrcambler, C_CHAR_D,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            end loop;
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
+--            --//Имитация сигнала HOLD от hdd
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_CONT, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            for i in 0 to 4 loop
+--            p_SetData(p_in_clk,
+--                      i_txsrcambler, C_CHAR_D,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            end loop;
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
 
     --//user DATA
       for i in 11 to 15 loop
@@ -2237,49 +2237,49 @@ end if;
         txsrcambler:=srambler32_0(txsrcambler(31 downto 16));
       end loop;
 
-            --//Имитация сигнала HOLD от hdd
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-
+--            --//Имитация сигнала HOLD от hdd
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--
 --                --//Имитация примитива ALIGN
 --                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
 --                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-
+--
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--
+----                --//Имитация примитива ALIGN
+----                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+----                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--
+--            p_SetData(p_in_clk,
+--                      C_PDAT_CONT, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--
 --                --//Имитация примитива ALIGN
 --                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
 --                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-
-            p_SetData(p_in_clk,
-                      C_PDAT_CONT, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-
-                --//Имитация примитива ALIGN
-                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-
-            for i in 0 to 3 loop
-            p_SetData(p_in_clk,
-                      i_txsrcambler, C_CHAR_D,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            end loop;
-
---                --//Имитация примитива ALIGN
---                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
---                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
+--
+--            for i in 0 to 3 loop
+--            p_SetData(p_in_clk,
+--                      i_txsrcambler, C_CHAR_D,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            end loop;
+--
+----                --//Имитация примитива ALIGN
+----                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+----                p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
+--
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
 
     --//CRC
       if i_rcv_name="HOLD   " then
@@ -2307,30 +2307,30 @@ end if;
 --            --//Имитация примитива ALIGN
 --            p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
 --            p_SetData(p_in_clk, C_PDAT_ALIGN, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, i_usropt_in, vusropt, i_usropt2_out);
-
-            --//Имитация сигнала HOLD от hdd
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            p_SetData(p_in_clk,
-                      C_PDAT_CONT, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            for i in 0 to 2 loop
-            p_SetData(p_in_clk,
-                      i_txsrcambler, C_CHAR_D,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
-            end loop;
-            p_SetData(p_in_clk,
-                      C_PDAT_HOLD, C_CHAR_K,
-                      p_out_gtp_txdata, p_out_gtp_txcharisk,
-                      i_usropt_in, vusropt, i_usropt2_out);
+--
+--            --//Имитация сигнала HOLD от hdd
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            p_SetData(p_in_clk,
+--                      C_PDAT_CONT, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            for i in 0 to 1 loop
+--            p_SetData(p_in_clk,
+--                      i_txsrcambler, C_CHAR_D,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
+--            end loop;
+--            p_SetData(p_in_clk,
+--                      C_PDAT_HOLD, C_CHAR_K,
+--                      p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                      i_usropt_in, vusropt, i_usropt2_out);
 
     --//EOF
       if i_rcv_name="HOLD   " then

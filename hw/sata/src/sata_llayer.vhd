@@ -104,15 +104,15 @@ signal i_crc_en                    : std_logic;
 signal i_crc_in                    : std_logic_vector(31 downto 0);
 signal i_crc_out                   : std_logic_vector(31 downto 0);
 
-signal i_rcv_en                    : std_logic;--//управление приемом данных
-signal i_rcv_work                  : std_logic;
-signal sr_rxdata_fst               : std_logic_vector(31 downto 0);
+signal i_rcv_en                    : std_logic;--//прием данных
+signal i_rxd_descr                 : std_logic_vector(31 downto 0);--//дескремблированые данные
+signal i_rxd_descr_en              : std_logic;
+signal i_rxd_only                  : std_logic;--//сигнал для отбрасывания CRC в выдоваемых данных транспортному уровню
 type TDlySrD is array (0 to 1) of std_logic_vector(31 downto 0);
 signal i_rxd_out                   : std_logic_vector(31 downto 0);
 signal i_rxd_en_out                : std_logic;
 signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_THOLD);--//флаги принятых примитивов
 signal i_return                    : std_logic;
-signal i_rxd_wr_out                : std_logic;
 
 signal i_txd_en                    : std_logic;
 signal i_txd_out                   : std_logic_vector(31 downto 0);
@@ -139,10 +139,9 @@ signal i_tl_check_done             : std_logic;--//Обнаружил сигнал завершения п
 signal i_tl_check_ok               : std_logic;--//Результат проверки принятых данных Transport Layer
 
 signal tst_txp_hold                : std_logic;
---signal tst_txon                    : std_logic;
---signal tst_rxon                    : std_logic;
 --signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 --signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
+
 
 
 --MAIN
@@ -169,8 +168,6 @@ begin
     p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
     p_out_tst(1)<=i_rxp(C_THOLD);
     p_out_tst(2)<=tst_txp_hold;
---    p_out_tst(3)<=tst_txon;
---    p_out_tst(4)<=tst_rxon;
   end if;
 end process ltstout;
 p_out_tst(31 downto 4)<=(others=>'0');
@@ -216,39 +213,50 @@ end generate gen_report;
 lrxd_descrambler:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    sr_rxdata_fst<=(others=>'0');
+    i_rxd_descr<=(others=>'0');
+    i_rxd_descr_en<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    if p_in_phy_sync='1' then
-      if p_in_phy_rxtype(C_TDATA_EN)='1' then
+    if i_srambler_en_rx='1' then
         for i in 0 to 31 loop
-          sr_rxdata_fst(i)<=p_in_phy_rxd(i) xor i_srambler_out(i);--//De-scrambling
+          i_rxd_descr(i)<=p_in_phy_rxd(i) xor i_srambler_out(i);--//De-scrambling
         end loop;
-      end if;
     end if;
+
+    i_rxd_descr_en<=i_srambler_en_rx;
+
   end if;
 end process lrxd_descrambler;
 
---//Принятые данные (без CRC)
-i_rxd_en_out<=i_srambler_en_rx and i_rcv_work;
+--//Готовим выходные данные (Выбрасываем CRC из данных передоваемых на транспортный уровень)
+i_rxd_en_out<=i_rxd_descr_en and i_rxd_only;
 lrxd_out:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_rxd_out<=(others=>'0');
-    i_rxd_wr_out<='0';
+    i_rxd_only<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-
-    i_srambler_en_dly<=i_srambler_en;
-    if i_srambler_en_dly='1' then
-      i_rxd_out<=sr_rxdata_fst;
+    if i_rxd_descr_en='1' then
+      i_rxd_out<=i_rxd_descr;
     end if;
 
-    i_rxd_wr_out<=i_rxd_en_out;
+    if fsm_llayer_cs=S_L_IDLE then
+      i_rxd_only<='0';
+    elsif i_rxd_descr_en='1' then
+      i_rxd_only<='1';
+    end if;
 
   end if;
 end process lrxd_out;
 
-p_out_rxd<=i_rxd_out;
-p_out_rxd_wr<=i_rxd_wr_out;
+--//Выходной регистр
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    p_out_rxd<=i_rxd_out;
+    p_out_rxd_wr<=i_rxd_en_out;
+  end if;
+end process;
+
 
 
 --//Transport Layer выдает результаты проверки принимаемых данных.
@@ -349,9 +357,8 @@ p_in_rst     => p_in_rst
 --//Расчет CRC согласно спецификации SATA
 --//(см. пп 9.5 Serial ATA Specification v2.5 (2005-10-27).pdf)
 --//----------------------------
-i_crc_in<=i_txd_out when fsm_llayer_cs=S_LT_SendData or fsm_llayer_cs=S_LT_SendCRC or i_trn_term='1' else i_rxd_out;
---i_crc_en<=i_srambler_en_tx or i_rxd_en_out;--GT_DBUS= 8,16
-i_crc_en<=i_srambler_en_tx or i_rxd_wr_out;--GT_DBUS=32
+i_crc_in<=i_txd_out when fsm_llayer_cs=S_LT_SendData or fsm_llayer_cs=S_LT_SendCRC or i_trn_term='1' else i_rxd_descr;
+i_crc_en<=i_srambler_en_tx or i_rxd_descr_en;
 
 m_crc : sata_crc
 generic map
@@ -429,7 +436,6 @@ if p_in_rst='1' then
 
   i_rxp<=(others=>'0');
   i_rcv_en<='0';
-  i_rcv_work<='0';
 
   i_return<='0';
 
@@ -437,8 +443,6 @@ if p_in_rst='1' then
 
   i_pcont_use<='0';
 
---  tst_txon<='0';
---  tst_rxon<='0';
   tst_txp_hold<='0';
 
 elsif p_in_clk'event and p_in_clk='1' then
@@ -463,7 +467,6 @@ if p_in_phy_sync='1' then
       i_txd_en<='0';
 
       i_rcv_en<='0';
-      i_rcv_work<='0';
       i_rxp<=(others=>'0');
       i_pcont_use<='0';
 
@@ -484,8 +487,6 @@ if p_in_phy_sync='1' then
       i_status(C_LSTAT_TxERR_IDLE)<='0';
       i_status(C_LSTAT_TxERR_ABORT)<='0';
 
---      tst_txon<='0';
---      tst_rxon<='0';
       tst_txp_hold<='0';
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
@@ -494,7 +495,6 @@ if p_in_phy_sync='1' then
 
       else
           --//if p_in_phy_sync='1' then
-            i_rcv_work<='0';
             i_txr_ip<='0';
 
             if p_in_phy_rxtype(C_TX_RDY)='1' then
@@ -603,7 +603,6 @@ if p_in_phy_sync='1' then
           i_txr_ip<='0';
 
           i_rcv_en<='0';
-          i_rcv_work<='0';
 
           tst_txp_hold<='0';
 
@@ -663,7 +662,6 @@ if p_in_phy_sync='1' then
 
       i_rxp<=(others=>'0');
       i_rcv_en<='0';
-      i_rcv_work<='0';
       i_pcont_use<='0';
 
       tst_txp_hold<='0';
@@ -748,7 +746,6 @@ if p_in_phy_sync='1' then
 
               i_txp_cnt<=(others=>'0');
               i_init_work<='1';--//Инициализация модулей CRC,Scrambler
---              tst_txon<='1';
               fsm_llayer_cs <= S_LT_SendSOF;
 
           else
@@ -1595,7 +1592,6 @@ if p_in_phy_sync='1' then
               i_txp_cnt<=(others=>'0');
               i_rcv_en<='1';
               i_status(C_LSTAT_RxSTART)<='1';--//Информ. Транспорный уровень
---              tst_rxon<='1';
               fsm_llayer_cs <= S_LR_RcvData;
 
           elsif p_in_phy_rxtype(C_TCONT)='1' then
@@ -1769,7 +1765,7 @@ if p_in_phy_sync='1' then
 
               i_rxp<=(others=>'0');
               i_txp_cnt<=(others=>'0');
-              i_rcv_en<='0';
+--              i_rcv_en<='0';
               fsm_llayer_cs <= S_LR_SendHold;
 
           elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 or i_rxp(C_TCONT)='1' then
@@ -1802,7 +1798,6 @@ if p_in_phy_sync='1' then
 
           elsif p_in_phy_rxtype(C_TDATA_EN)='1' then
           --//Принимаю данные от уст-ва
-              i_rcv_work<='1';
 
               if p_in_phy_txrdy_n='0' then
 
@@ -1952,7 +1947,7 @@ if p_in_phy_sync='1' then
                 end if;
 
                 i_rxp(C_TCONT)<='1';
-                i_rcv_en<='0';
+--                i_rcv_en<='0';
 
             elsif CONV_INTEGER(p_in_phy_rxtype(C_TPMNAK downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0' then
             --//Принял некий примимив, но не SYNC, EOF, CONT, HOLD
@@ -2156,7 +2151,7 @@ if p_in_phy_sync='1' then
                 end if;
 
                 i_rxp(C_TCONT)<='1';
-                i_rcv_en<='0';
+--                i_rcv_en<='0';
 
             elsif p_in_phy_rxtype(C_THOLD)='1' or (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
             --//Устро-во синализирует что передача отложена
@@ -2195,7 +2190,6 @@ if p_in_phy_sync='1' then
 
                 i_rxp<=(others=>'0');
                 i_txp_cnt<=(others=>'0');
-                i_rcv_work<='1';
                 fsm_llayer_cs <= S_LR_RcvData;
 
             else
@@ -2234,12 +2228,10 @@ if p_in_phy_sync='1' then
       else
         --//if p_in_phy_sync='1' then
 
-            i_rcv_work<='0';
-
             if p_in_phy_txrdy_n='0' then
 
                 --//Анализ принятого/расчтаного CRC
-                if i_crc_out=i_rxd_out then
+                if i_crc_out=(i_crc_out'range =>'0') then
 
                     if i_txr_ip='0' then
                         if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then

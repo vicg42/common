@@ -157,20 +157,11 @@ end process;
 i_link_txd_status(0).pfull<='0';
 i_link_txd_close(0)<=i_sim_txbuf_close;
 
---i_link_txd_status(0).empty<='0';
 --i_link_txd_status(0).aempty<='0';
---
-------
-------//Вариант 2 - нету отложеной передачи HOLD перед выдачей данных
-----i_link_txd_status(0).empty<='0','1' after 11.8 us, '0' after 12.5 us;
-----i_link_txd_status(0).aempty<='0','1' after 11.5 us, '0' after 11.8 us;
-
-
-----i_link_rxd_status(0).pfull<='0';
+--i_link_txd_status(0).empty<='1';
+--i_link_rxd_status(0).pfull<='0';
 --i_link_rxd_status(0).empty<='1';
-----//Вариант 1
---i_link_rxd_status(0).pfull<='0','1' after 9.872 us, '0' after 10.0 us;
---i_link_rxd_status(0).empty<='1','0' after 9.872 us, '1' after 10.2 us;
+
 
 --//Вариант 2
 gen_dbus8 : if G_GT_DBUS=8 generate
@@ -198,9 +189,6 @@ i_link_rxd_status(0).pfull<='0','1' after 8.0 us, '0' after 8.1 us;
 i_link_rxd_status(0).empty<='1','0' after 8.0 us, '1' after 8.2 us;
 end generate gen_dbus32;
 
-----//Вариант 3
---i_link_rxd_status(0).pfull<='0','1' after 7.342 us, '0' after 7.8 us;
---i_link_rxd_status(0).empty<='1','0' after 7.342 us, '1' after 7.9 us;
 
 
 i_link_ctrl(1)<=(others=>'0');
