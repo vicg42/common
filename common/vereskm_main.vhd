@@ -300,7 +300,7 @@ signal g_usr_highclk                    : std_logic;
 
 signal i_memctrl_dcm_lock               : std_logic;
 
-signal i_memctrl_pll_clkin              : std_logic;
+--signal i_memctrl_pll_clkin              : std_logic;
 signal i_memctrl_pllclk0                : std_logic;
 signal i_memctrl_pllclk45               : std_logic;
 signal i_memctrl_pllclk2x0              : std_logic;
@@ -325,7 +325,7 @@ signal i_host_dev_wd                    : std_logic;
 signal i_host_dev_rd                    : std_logic;
 signal i_host_dev_fifoflag              : std_logic_vector(7 downto 0);
 
-signal i_host_rdevctrl_hdevadr          : std_logic_vector(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT-C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT downto 0);--(C_HREG_DEV_CTRL_DEV_ADDR_SIZE-1 downto 0);
+signal i_host_rdevctrl_hdevadr          : std_logic_vector(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT-C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT downto 0);
 signal i_host_rdevctrl_txdrdy           : std_logic;
 signal i_host_rdevctrl_vchsel           : std_logic_vector(3 downto 0);
 signal i_host_rdevctrl_dmatrn_start     : std_logic;
@@ -334,7 +334,7 @@ signal i_host_rgctrl_rst_all            : std_logic;
 signal i_host_rgctrl_rst_hdd            : std_logic;
 signal i_host_rgctrl_rst_eth            : std_logic;
 signal i_host_rgctrl_rddone_vctrl       : std_logic;
-signal i_host_rgctrl_rddone_trc         : std_logic;
+--signal i_host_rgctrl_rddone_trc         : std_logic;
 signal i_host_rgctrl_rddone_trcnik      : std_logic;
 
 signal i_dev_txd_rdy                    : std_logic_vector(C_HDEV_COUNT-1 downto 0);
@@ -407,7 +407,6 @@ signal i_eth_txbuf_empty                : std_logic;
 signal i_eth_txbuf_full                 : std_logic;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
-
 signal i_hdd_module_rst                 : std_logic;
 signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
@@ -422,16 +421,10 @@ signal i_hdd_done                       : std_logic;
 signal i_hdd_rxdata                     : std_logic_vector(31 downto 0);
 signal i_hdd_rxdata_rd                  : std_logic;
 signal i_hdd_rxbuf_empty                : std_logic;
-signal i_hdd_rxbuf_full                 : std_logic;
 signal i_hdd_txdata                     : std_logic_vector(31 downto 0);
 signal i_hdd_txdata_wd                  : std_logic;
 signal i_hdd_txbuf_empty                : std_logic;
 signal i_hdd_txbuf_full                 : std_logic;
-signal i_hdd_buf_din                    : std_logic_vector(31 downto 0);
-signal i_hdd_buf_wd                     : std_logic;
-signal i_hdd_buf_empty                  : std_logic;
-signal i_hdd_buf_full                   : std_logic;
-signal i_hdd_buf_pfull                  : std_logic;
 signal i_hdd_vbuf_dout                  : std_logic_vector(31 downto 0);
 signal i_hdd_vbuf_rd                    : std_logic;
 signal i_hdd_vbuf_empty                 : std_logic;
@@ -439,16 +432,15 @@ signal i_hdd_vbuf_full                  : std_logic;
 signal i_hdd_vbuf_pfull                 : std_logic;
 signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
 signal i_hdd_rbuf_status                : THDDRBufStatus;
-signal i_hdd_rambuf_cfg                 : std_logic_vector(31 downto 0);
 signal i_hdd_rbuf_tst_out               : std_logic_vector(31 downto 0);
 signal i_hdd_dbgled                     : THDDLed_SHCountMax;
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
 signal i_hddrambuf_dbgcs                : TSH_ila;
 signal i_hdd_rambuf_dbgcs               : TSH_ila;
-signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
-signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_txcomstart         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gtp_txdata             : TBus32_SHCountMax;
+--signal i_hdd_sim_gtp_txcharisk          : TBus04_SHCountMax;
+--signal i_hdd_sim_gtp_txcomstart         : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gtp_rxdata             : TBus32_SHCountMax;
 signal i_hdd_sim_gtp_rxcharisk          : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_rxstatus           : TBus03_SHCountMax;
@@ -456,8 +448,8 @@ signal i_hdd_sim_gtp_rxelecidle         : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_hdd_sim_gtp_rxdisperr          : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_rxnotintable       : TBus04_SHCountMax;
 signal i_hdd_sim_gtp_rxbyteisaligned    : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_sim_rst            : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_sim_clk            : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gtp_sim_rst            : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gtp_sim_clk            : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal i_hdd_memarb_req                 : std_logic;
 signal i_hdd_memarb_en                  : std_logic;
@@ -489,7 +481,6 @@ signal i_dsntst_txbuf_full              : std_logic;
 signal i_dsntst_bufclk                  : std_logic;
 signal i_dsntst_tst_out                 : std_logic_vector(31 downto 0);
 
-
 signal i_tmr_module_rst                 : std_logic;
 signal i_tmr_cfg_rxdata                 : std_logic_vector(15 downto 0);
 signal i_tmr_hirq                       : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
@@ -516,6 +507,8 @@ signal i_host_mem_re                    : std_logic;
 signal i_host_mem_rpe                   : std_logic;
 
 signal i_vctrl_module_rst               : std_logic;
+signal hclk_hrddone_vctrl_cnt           : std_logic_vector(2 downto 0);
+signal hclk_hrddone_vctrl               : std_logic;
 signal i_vctrl_cfg_rxdata               : std_logic_vector(15 downto 0);
 --signal i_vctrl_module_rdy               : std_logic;
 --signal i_vctrl_module_error             : std_logic;
@@ -529,12 +522,6 @@ signal i_vctrl_vbufout_din              : std_logic_vector(31 downto 0);
 signal i_vctrl_vbufout_wd               : std_logic;
 signal i_vctrl_vbufout_empty            : std_logic;
 signal i_vctrl_vbufout_full             : std_logic;
-signal hclk_hrddone_vctrl_cnt           : std_logic_vector(2 downto 0);
-signal hclk_hrddone_vctrl               : std_logic;
-signal hclk_hrddone_trc_cnt             : std_logic_vector(2 downto 0);
-signal hclk_hrddone_trc                 : std_logic;
-signal hclk_hrddone_trcnik_cnt          : std_logic_vector(2 downto 0);
-signal hclk_hrddone_trcnik              : std_logic;
 
 signal i_vctrl_hrd_start                : std_logic;
 signal i_vctrl_hrd_done                 : std_logic;
@@ -588,17 +575,21 @@ signal i_vctrlwr_mem_rpe                : std_logic;
 --signal i_vctrlwr_mem_clk                : std_logic;
 
 signal i_trc_module_rst                 : std_logic;
-signal i_trc_cfg_rxdata                 : std_logic_vector(15 downto 0):=(others=>'0');
+--signal hclk_hrddone_trc_cnt             : std_logic_vector(2 downto 0);
+--signal hclk_hrddone_trc                 : std_logic;
+--signal i_trc_cfg_rxdata                 : std_logic_vector(15 downto 0):=(others=>'0');
+--signal i_trc_hrd_done_dly               : std_logic_vector(1 downto 0);
+--signal i_trc_hrd_done                   : std_logic;
+--signal i_trc_hirq                       : std_logic:='0';
+--signal i_trc_hdrdy                      : std_logic:='0';
+--signal i_trc_hfrmrk                     : std_logic_vector(31 downto 0):=(others=>'0');
+signal hclk_hrddone_trcnik_cnt          : std_logic_vector(2 downto 0);
+signal hclk_hrddone_trcnik              : std_logic;
 signal i_trcnik_cfg_rxdata              : std_logic_vector(15 downto 0):=(others=>'0');
-signal i_trc_hrd_done_dly               : std_logic_vector(1 downto 0);
-signal i_trc_hrd_done                   : std_logic;
 signal i_trcnik_hrd_done_dly            : std_logic_vector(1 downto 0);
 signal i_trcnik_hrd_done                : std_logic;
-signal i_trc_hirq                       : std_logic:='0';
-signal i_trc_hdrdy                      : std_logic:='0';
 signal i_trcnik_hirq                    : std_logic:='0';
 signal i_trcnik_hdrdy                   : std_logic:='0';
-signal i_trc_hfrmrk                     : std_logic_vector(31 downto 0):=(others=>'0');
 signal i_trcnik_hfrmrk                  : std_logic_vector(31 downto 0):=(others=>'0');
 signal i_host_trcbufo_dout              : std_logic_vector(31 downto 0);
 signal i_host_trcbufo_rd                : std_logic;
@@ -623,8 +614,6 @@ signal i_trc_mem_wf                     : std_logic;
 signal i_trc_mem_wpf                    : std_logic;
 signal i_trc_mem_re                     : std_logic;
 signal i_trc_mem_rpe                    : std_logic;
---signal i_trc_mem_clk                    : std_logic;
-
 
 --signal i_mem_arb1_clk                   : std_logic;
 signal i_mem_arb1_bank1h                : std_logic_vector(15 downto 0);
@@ -663,11 +652,7 @@ attribute keep of g_host_clk : signal is "true";
 
 signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
---signal tst_rdareg_err : std_logic;
---signal tst_rdrgctrl_err : std_logic;
---signal tst_vfrrdy        : std_logic_vector(0 downto 0);
---signal test_led_03_gtp : std_logic;
---signal test_led_04_gtp : std_logic;
+
 
 
 
@@ -1553,9 +1538,9 @@ p_out_tst             => i_hdd_tst_out,
 p_out_dbgcs                 => i_hdd_dbgcs,
 p_out_dbgled                => i_hdd_dbgled,
 
-p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
-p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
-p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
+p_out_sim_gtp_txdata        => open,--i_hdd_sim_gtp_txdata,
+p_out_sim_gtp_txcharisk     => open,--i_hdd_sim_gtp_txcharisk,
+p_out_sim_gtp_txcomstart    => open,--i_hdd_sim_gtp_txcomstart,
 p_in_sim_gtp_rxdata         => i_hdd_sim_gtp_rxdata,
 p_in_sim_gtp_rxcharisk      => i_hdd_sim_gtp_rxcharisk,
 p_in_sim_gtp_rxstatus       => i_hdd_sim_gtp_rxstatus,
@@ -1563,8 +1548,8 @@ p_in_sim_gtp_rxelecidle     => i_hdd_sim_gtp_rxelecidle,
 p_in_sim_gtp_rxdisperr      => i_hdd_sim_gtp_rxdisperr,
 p_in_sim_gtp_rxnotintable   => i_hdd_sim_gtp_rxnotintable,
 p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
-p_out_gtp_sim_rst           => i_hdd_sim_gtp_sim_rst,
-p_out_gtp_sim_clk           => i_hdd_sim_gtp_sim_clk,
+p_out_gtp_sim_rst           => open,--i_hdd_sim_gtp_sim_rst,
+p_out_gtp_sim_clk           => open,--i_hdd_sim_gtp_sim_clk,
 
 --------------------------------------------------
 --System
@@ -1763,8 +1748,8 @@ i_host_rgctrl_rst_all<=i_host_glob_ctrl(C_HREG_GCTRL0_RST_ALL_BIT);
 i_host_rgctrl_rst_hdd<=i_host_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT);
 i_host_rgctrl_rst_eth<=i_host_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT);
 i_host_rgctrl_rddone_vctrl<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT);
-i_host_rgctrl_rddone_trc<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT);
 i_host_rgctrl_rddone_trcnik<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT);
+--i_host_rgctrl_rddone_trc<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT);
 
 
 --//Уст. биты региста СТАТУСА устр-в
@@ -1795,7 +1780,7 @@ i_host_dev_status(C_HREG_STATUS_DEV_DSNTEST_ERR_BIT) <=i_dsntst_module_error;
 i_host_dev_status(C_HREG_STATUS_DEV_RESERV_15BIT) <='0';
 i_host_dev_status(C_HREG_STATUS_DEV_RESERV_16BIT) <='0';
 
-i_host_dev_status(C_HREG_STATUS_DEV_TRC_DRDY_BIT) <=i_trc_hdrdy;--//add 2010.10.04
+i_host_dev_status(C_HREG_STATUS_DEV_TRC_DRDY_BIT) <='0';--i_trc_hdrdy;
 i_host_dev_status(C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT) <=i_trcnik_hdrdy;
 
 i_host_dev_status(C_HREG_STATUS_DCM_ETH_GTP_LOCK_BIT)<=i_eth_module_gtp_plllkdet;
@@ -1859,7 +1844,7 @@ i_host_dev_irq(C_HIRQ_VIDEO_CH0)    <=i_vctrl_hirq_out(0);
 i_host_dev_irq(C_HIRQ_VIDEO_CH1)    <=i_vctrl_hirq_out(1);
 i_host_dev_irq(C_HIRQ_VIDEO_CH2)    <=i_vctrl_hirq_out(2);
 i_host_dev_irq(C_HIRQ_TRACK_NIK)    <=i_trcnik_hirq;
-i_host_dev_irq(C_HIRQ_TRACK)        <=i_trc_hirq;
+i_host_dev_irq(C_HIRQ_TRACK)        <='0';--i_trc_hirq;
 i_host_dev_irq(31 downto C_HIRQ_TRACK+1)<=(others=>'0');
 
 i_host_dev_irq_out<=EXT(i_host_dev_irq(C_HIRQ_COUNT-1 downto 0), i_host_dev_irq_out'length);
@@ -1867,7 +1852,7 @@ i_host_dev_irq_out<=EXT(i_host_dev_irq(C_HIRQ_COUNT-1 downto 0), i_host_dev_irq_
 
 --//
 i_host_dev_option(31 downto 0)<=i_vctrl_hfrmrk;
-i_host_dev_option(63 downto 32)<=i_trc_hfrmrk;
+i_host_dev_option(63 downto 32)<=(others=>'0');--i_trc_hfrmrk;
 i_host_dev_option(95 downto 64)<=i_trcnik_hfrmrk;
 i_host_dev_option(127 downto 96)<=(others=>'0');
 
@@ -1885,8 +1870,8 @@ begin
     hclk_hrddone_vctrl<='0';
     hclk_hrddone_vctrl_cnt<=(others=>'0');
 
-    hclk_hrddone_trc<='0';
-    hclk_hrddone_trc_cnt<=(others=>'0');
+--    hclk_hrddone_trc<='0';
+--    hclk_hrddone_trc_cnt<=(others=>'0');
 
     hclk_hrddone_trcnik<='0';
     hclk_hrddone_trcnik_cnt<=(others=>'0');
@@ -1933,18 +1918,18 @@ begin
       hclk_hrddone_vctrl_cnt<=hclk_hrddone_vctrl_cnt+1;
     end if;
 
-    --//Растягиваем импульс i_host_rgctrl_rddone_trc
-    if i_host_rgctrl_rddone_trc='1' then
-      hclk_hrddone_trc<='1';
-    elsif hclk_hrddone_trc_cnt="100" then
-      hclk_hrddone_trc<='0';
-    end if;
-
-    if hclk_hrddone_trc='0' then
-      hclk_hrddone_trc_cnt<=(others=>'0');
-    else
-      hclk_hrddone_trc_cnt<=hclk_hrddone_trc_cnt+1;
-    end if;
+--    --//Растягиваем импульс i_host_rgctrl_rddone_trc
+--    if i_host_rgctrl_rddone_trc='1' then
+--      hclk_hrddone_trc<='1';
+--    elsif hclk_hrddone_trc_cnt="100" then
+--      hclk_hrddone_trc<='0';
+--    end if;
+--
+--    if hclk_hrddone_trc='0' then
+--      hclk_hrddone_trc_cnt<=(others=>'0');
+--    else
+--      hclk_hrddone_trc_cnt<=hclk_hrddone_trc_cnt+1;
+--    end if;
 
 
     --//Растягиваем импульс i_host_rgctrl_rddone_trcnik
@@ -1972,8 +1957,8 @@ begin
     i_vctrl_hrd_done<='0';
     i_vctrl_hrd_done_dly<=(others=>'0');
 
-    i_trc_hrd_done_dly<=(others=>'0');
-    i_trc_hrd_done<='0';
+--    i_trc_hrd_done_dly<=(others=>'0');
+--    i_trc_hrd_done<='0';
 
     i_trcnik_hrd_done_dly<=(others=>'0');
     i_trcnik_hrd_done<='0';
@@ -1985,9 +1970,9 @@ begin
     i_vctrl_hrd_done_dly(1)<=i_vctrl_hrd_done_dly(0);
     i_vctrl_hrd_done<=i_vctrl_hrd_done_dly(0) and not i_vctrl_hrd_done_dly(1);
 
-    i_trc_hrd_done_dly(0)<=hclk_hrddone_trc;
-    i_trc_hrd_done_dly(1)<=i_trc_hrd_done_dly(0);
-    i_trc_hrd_done<=i_trc_hrd_done_dly(0) and not i_trc_hrd_done_dly(1);
+--    i_trc_hrd_done_dly(0)<=hclk_hrddone_trc;
+--    i_trc_hrd_done_dly(1)<=i_trc_hrd_done_dly(0);
+--    i_trc_hrd_done<=i_trc_hrd_done_dly(0) and not i_trc_hrd_done_dly(1);
 
     i_trcnik_hrd_done_dly(0)<=hclk_hrddone_trcnik;
     i_trcnik_hrd_done_dly(1)<=i_trcnik_hrd_done_dly(0);
@@ -2399,21 +2384,21 @@ pin_out_TP(7)<='0';         -- /pin26
 
 --Светодиоды
 pin_out_led_E<=i_hdd_gt_plldet and i_hdd_dcm_lock;
-pin_out_led_N<=i_hdd_module_rst;
+pin_out_led_N<=i_hdd_busy or i_hdd_module_rst when pin_in_btn_S='0' else tst_clr;
 pin_out_led_S<=i_test01_led;
 pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
+pin_out_led(0)<=i_hdd_dbgled(1).busy;
+pin_out_led(1)<=i_hdd_dbgled(1).err;
+pin_out_led(2)<=i_hdd_dbgled(1).rdy;
+pin_out_led(3)<=i_hdd_dbgled(1).link;
 
-pin_out_led(0)<=i_hdd_busy when pin_in_btn_S='0' else tst_clr;
-pin_out_led(1)<='0';
-pin_out_led(2)<=i_hdd_dbgled(1).err;
-pin_out_led(3)<=i_hdd_dbgled(1).rdy;
-
-pin_out_led(4)<=i_hdd_dbgled(1).link;
+pin_out_led(4)<=i_hdd_dbgled(0).busy;
 pin_out_led(5)<=i_hdd_dbgled(0).err;
 pin_out_led(6)<=i_hdd_dbgled(0).rdy;
 pin_out_led(7)<=i_hdd_dbgled(0).link;
+
 
 m_gtp_03_test: fpga_test_01
 generic map(
