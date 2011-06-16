@@ -27,6 +27,7 @@ type THDDLed is record
 link: std_logic;--//Связь установлена
 rdy : std_logic;--//Канал готов к работе
 err : std_logic;--//
+busy: std_logic;--//
 spd : std_logic_vector(1 downto 0);
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
