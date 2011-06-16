@@ -472,17 +472,17 @@ process(p_in_rst,p_in_eth_clk)
 begin
   if p_in_rst='1' then
 
-    for i in 0 to C_DSN_SWT_FMASK_MAX_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
       syn_eth_host_fmask(2*i)  <=(others=>'0');
       syn_eth_host_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_FMASK_MAX_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
       syn_eth_hdd_fmask(2*i)  <=(others=>'0');
       syn_eth_hdd_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_FMASK_MAX_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
       syn_eth_vctrl_fmask(2*i)  <=(others=>'0');
       syn_eth_vctrl_fmask(2*i+1)<=(others=>'0');
     end loop;
