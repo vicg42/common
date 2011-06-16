@@ -243,7 +243,7 @@ signal i_vch_vfrrdy                  : std_logic;
 signal i_vch_prm                     : TReaderVCHParam;
 signal i_vch_num                     : std_logic_vector(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT-C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT downto 0);
 
-signal i_vfr_frmrk                   : std_logic_vector(31 downto 0);
+--signal i_vfr_frmrk                   : std_logic_vector(31 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
 signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
 signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'range);
@@ -312,8 +312,8 @@ signal i_hpkt_header_cnt             : std_logic_vector(1 downto 0);
 signal tst_dis_color                 : std_logic;
 signal tst_ctrl                      : std_logic_vector(31 downto 0);
 signal tst_trccore_out               : std_logic_vector(31 downto 0);
-signal tst_fsmstate                  : std_logic_vector(3 downto 0);
-signal tst_fsmstate_dly              : std_logic_vector(tst_fsmstate'range);
+--signal tst_fsmstate                  : std_logic_vector(3 downto 0);
+--signal tst_fsmstate_dly              : std_logic_vector(tst_fsmstate'range);
 
 
 
@@ -614,7 +614,7 @@ begin
     i_vfr_active_row<=(others=>'0');
     i_vfr_skip_row<=(others=>'0');
 
-    i_vfr_frmrk<=(others=>'0');
+--    i_vfr_frmrk<=(others=>'0');
 
     i_mem_rdtrn_len<=(others=>'0');
     i_mem_wdtrn_len<=(others=>'0');
@@ -673,7 +673,7 @@ begin
               --//«ащелкиваем маркер обрабатываемого кадра
               for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
                 if i_vch_num=i then
-                  i_vfr_frmrk<=p_in_vctrl_vrowmrk(i);
+--                  i_vfr_frmrk<=p_in_vctrl_vrowmrk(i);
                   i_trc_busy(i)<='1';
                 end if;
               end loop;

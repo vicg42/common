@@ -366,7 +366,6 @@ signal i_vsobel_grad_out             : std_logic_vector((8*4)-1 downto 0);
 signal i_vsobel_dout                 : std_logic_vector((8*4)-1 downto 0);
 signal i_vsobel_dout_en              : std_logic;
 signal i_vsobel_rdy_n                : std_logic;
-signal i_vsobel_rdy_n_tmp            : std_logic;
 
 signal i_val_rdy_n                   : std_logic;
 signal i_val_grada_out               : std_logic_vector((8*4)-1 downto 0);
@@ -402,7 +401,7 @@ signal i_vbufrow_ena                 : std_logic_vector(0 to 3);
 
 signal i_vbufrow_adrb                : std_logic_vector(9 downto 0);
 Type TVBufsDB is array (0 to CNIK_EBKT_LENY-1) of std_logic_vector(23 downto 0);
-signal i_vbufrow_dinb                : TVBufsDB;
+--signal i_vbufrow_dinb                : TVBufsDB;
 signal i_vbufrow_doutb               : TVBufsDB;
 signal i_vbufrow_enb                 : std_logic_vector(0 to 3);
 
@@ -442,11 +441,11 @@ signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT-1)
 signal i_hbuf_dsize_out              : std_logic_vector(15 downto 0);
 signal i_ebout_out                   : TTrcNikEBOs;
 
-signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
-signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
-signal tst_vcoldemasc_dout_en        : std_logic;
-signal tst_vrgb2yuv_dout_en          : std_logic;
-signal tst_vsobel_dout_en            : std_logic;
+--signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
+--signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
+--signal tst_vcoldemasc_dout_en        : std_logic;
+--signal tst_vrgb2yuv_dout_en          : std_logic;
+--signal tst_vsobel_dout_en            : std_logic;
 
 
 --MAIN
