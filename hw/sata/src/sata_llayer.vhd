@@ -90,14 +90,13 @@ architecture behavioral of sata_llayer is
 
 signal fsm_llayer_cs               : TLL_fsm_state;
 
-signal i_status                    : std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
+signal i_status                    : std_logic_vector(C_LSTAT_TxERR_ABORT downto C_LSTAT_RxOK);
 
 signal i_init_work                 : std_logic;--//Подготовка скрамблера и CRC к работе
 
 signal i_srambler_en_rx            : std_logic;
 signal i_srambler_en_tx            : std_logic;
 signal i_srambler_en               : std_logic;
-signal i_srambler_en_dly           : std_logic;
 signal i_srambler_out              : std_logic_vector(31 downto 0);
 
 signal i_crc_en                    : std_logic;
@@ -156,21 +155,15 @@ end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 
---p_out_tst(31 downto 0)<=(others=>'0');
-ltstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(3 downto 0)<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-
---    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
-    p_out_tst(1)<=i_rxp(C_THOLD);
-    p_out_tst(2)<=tst_txp_hold;
-  end if;
-end process ltstout;
-p_out_tst(31 downto 4)<=(others=>'0');
+p_out_tst(31 downto 0)<=(others=>'0');
+--ltstout:process(p_in_clk)
+--begin
+--  if p_in_clk'event and p_in_clk='1' then
+----    tst_fms_cs_dly<=tst_fms_cs;
+--    p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
+--  end if;
+--end process ltstout;
+--p_out_tst(31 downto 4)<=(others=>'0');
 
 --tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_llayer_cs=S_L_IDLE          else
 --            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_llayer_cs=S_L_SyncEscape    else
@@ -202,9 +195,13 @@ end generate gen_dbg_on;
 --//#########################################
 --//Статусы
 --//#########################################
-gen_report : for i in 0 to C_LLSTAT_LAST_BIT  generate
+gen_report : for i in C_LSTAT_RxOK to C_LSTAT_TxERR_ABORT  generate
 p_out_status(i)<=i_status(i);
 end generate gen_report;
+
+p_out_status(C_LSTAT_TxHOLD)<=tst_txp_hold;
+p_out_status(C_LSTAT_RxHOLD)<=i_rxp(C_THOLD);
+
 
 
 --//#########################################
@@ -2477,6 +2474,8 @@ p_out_dbg.status.txdmat<=i_status(C_LSTAT_TxDMAT);
 p_out_dbg.status.txerr_crc<=i_status(C_LSTAT_TxERR_CRC);
 p_out_dbg.status.txerr_idle<=i_status(C_LSTAT_TxERR_IDLE);
 p_out_dbg.status.txerr_abort<=i_status(C_LSTAT_TxERR_ABORT);
+p_out_dbg.status.txhold_on<=tst_txp_hold;
+p_out_dbg.status.rxhold_on<=i_rxp(C_THOLD);
 
 p_out_dbg.rxbuf_status<=p_in_rxd_status;
 p_out_dbg.txbuf_status<=p_in_txd_status;

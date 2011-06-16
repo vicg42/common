@@ -149,8 +149,6 @@ signal sr_llrxd_en                 : std_logic_vector(0 to 0);
 
 signal i_txfifo_pfull              : std_logic;
 
-signal tst_txd_on                  : std_logic;
-signal tst_rxd_on                  : std_logic;
 --signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 --signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
 
@@ -172,16 +170,14 @@ tstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
 --    tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(2 downto 0)<=(others=>'0');
+    p_out_tst(0 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
 --    tst_fms_cs_dly<=tst_fms_cs;
     p_out_tst(0)<=i_irq or i_firq_bit;--or OR_reduce(tst_fms_cs_dly)
-    p_out_tst(1)<=tst_txd_on;
-    p_out_tst(2)<=tst_rxd_on;
   end if;
 end process tstout;
-p_out_tst(31 downto 3)<=(others=>'0');
+p_out_tst(31 downto 1)<=(others=>'0');
 
 --tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_ChkTyp              else
 --            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CmdFIS              else
@@ -289,20 +285,11 @@ i_ll_state_illegal<=not p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT) or
 --//-----------------------------
 --//Линии задержек
 --//-----------------------------
-lsr_ll : process(p_in_rst,p_in_clk)
+lsr_ll : process(p_in_clk)
 begin
-  if p_in_rst='1' then
-
-    for i in 0 to 0 loop
-    sr_llrxd(i)<=(others=>'0');
-    end loop;
-    sr_llrxd_en<=(others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
+  if p_in_clk'event and p_in_clk='1' then
     sr_llrxd(0)<=p_in_ll_rxd;-- & sr_llrxd(0 to 1);
     sr_llrxd_en(0)<=p_in_ll_rxd_wr;-- & sr_llrxd_en(0 to 1);
-
   end if;
 end process lsr_ll;
 
@@ -371,9 +358,6 @@ if p_in_rst='1' then
   i_trn_err_cnt<=(others=>'0');
   i_trn_repeat<='0';
 
-  tst_txd_on<='0';
-  tst_rxd_on<='0';
-
 elsif p_in_clk'event and p_in_clk='1' then
 
   case fsm_tlayer_cs is
@@ -413,10 +397,10 @@ elsif p_in_clk'event and p_in_clk='1' then
 
         i_fh2d_tx_en<='0';
         i_fdmasetup_tx_en<='0';
-        if i_txfifo_pfull='0' then
+        if i_txfifo_pfull='1' then
         --//Ждем когда в TxBUF накопятся данные для предачи
           i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='1';
-          tst_txd_on<='1';
+          i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='1';
           fsm_tlayer_cs <= S_HT_PIOOTrans2;
         end if;
 
@@ -501,13 +485,13 @@ elsif p_in_clk'event and p_in_clk='1' then
 
                   if i_fpiosetup='1' and i_fdir_bit=C_DIR_D2H then
                   --//Прием данных в режиме PIO
-                    tst_rxd_on<='1';
+                    i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='1';
                     fsm_tlayer_cs <= S_HT_PIOITrans1;
 
                   else
                   --//Прием данных в режиме DMA
                     i_fdir_bit<=C_DIR_D2H;
-                    tst_rxd_on<='1';
+                    i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='1';
                     fsm_tlayer_cs <= S_HT_DMAITrans;
 
                   end if;
@@ -1063,7 +1047,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       if i_ll_state_illegal='1' then
         i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
         i_fpiosetup<='0';
-        tst_txd_on<='0';
+        i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else
@@ -1111,8 +1095,8 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       if i_ll_state_illegal='1' then
         i_fpiosetup<='0';
-        tst_txd_on<='0';
-        tst_rxd_on<='0';
+        i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+        i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else
@@ -1126,8 +1110,8 @@ elsif p_in_clk'event and p_in_clk='1' then
               end if;
 
               i_fpiosetup<='0';
-              tst_txd_on<='0';
-              tst_rxd_on<='0';
+              i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+              i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
               fsm_tlayer_cs <= S_IDLE;
 
           else
@@ -1135,16 +1119,16 @@ elsif p_in_clk'event and p_in_clk='1' then
               if p_in_ll_status(C_LSTAT_TxERR_CRC)='1' then
 
                 i_fpiosetup<='0';
-                tst_txd_on<='0';
-                tst_rxd_on<='0';
+                i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+                i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
                 fsm_tlayer_cs <= S_IDLE;
 
               elsif p_in_ll_status(C_LSTAT_TxOK)='1' then
 
                 i_fpiosetup<='0';
                 i_reg_update.fpio_e<='1';
-                tst_txd_on<='0';
-                tst_rxd_on<='0';
+                i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+                i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
                 fsm_tlayer_cs <= S_IDLE;
 
               end if;
@@ -1161,7 +1145,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       if i_ll_state_illegal='1' then
         i_fpiosetup<='0';
         i_rxd_en<='0';
-        tst_rxd_on<='0';
+        i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else
@@ -1180,7 +1164,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       if i_ll_state_illegal='1' then
         i_fpiosetup<='0';
         i_rxd_en<='0';
-        tst_rxd_on<='0';
+        i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else
@@ -1412,7 +1396,7 @@ elsif p_in_clk'event and p_in_clk='1' then
           --//Ждем когда в TxBUF накопятся данные для предачи
             i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='1';
             i_dma_txd<='1';
-            tst_txd_on<='1';
+            i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='1';
             fsm_tlayer_cs <= S_HT_DMAOTrans2;
 
           end if;
@@ -1427,7 +1411,7 @@ elsif p_in_clk'event and p_in_clk='1' then
       if i_ll_state_illegal='1' then
         i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
         i_dma_txd<='0';
-        tst_txd_on<='0';
+        i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else
@@ -1483,7 +1467,7 @@ elsif p_in_clk'event and p_in_clk='1' then
               i_fdata_txd_en<='0';
               i_fdata_tx_en<='0';
               i_fdone<='0';
-              tst_txd_on<='0';
+              i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
               fsm_tlayer_cs <= S_IDLE;
 
             end if;
@@ -1500,8 +1484,8 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       if i_ll_state_illegal='1' then
         i_dma_txd<='0';
-        tst_txd_on<='0';
-        tst_rxd_on<='0';
+        i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+        i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else
@@ -1512,8 +1496,8 @@ elsif p_in_clk'event and p_in_clk='1' then
                 i_ll_ctrl(C_LCTRL_TL_CHECK_DONE_BIT)<='1';--//Сигнал Link уровню отправить примитив подтверждения R_ERR/R_OK
               end if;
 
-              tst_txd_on<='0';
-              tst_rxd_on<='0';
+              i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+              i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
               fsm_tlayer_cs <= S_IDLE;
 
           else
@@ -1525,14 +1509,14 @@ elsif p_in_clk'event and p_in_clk='1' then
 
               if p_in_ll_status(C_LSTAT_TxERR_CRC)='1' then
                 i_dma_txd<='0';
-                tst_txd_on<='0';
-                tst_rxd_on<='0';
+                i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+                i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
                 fsm_tlayer_cs <= S_IDLE;
 
               elsif p_in_ll_status(C_LSTAT_TxOK)='1' then
                 i_dma_txd<='0';
-                tst_txd_on<='0';
-                tst_rxd_on<='0';
+                i_tl_status(C_TSTAT_FSMTxD_ON_BIT)<='0';
+                i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
                 fsm_tlayer_cs <= S_IDLE;
 
               end if;
@@ -1548,7 +1532,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       if i_ll_state_illegal='1' then
         i_rxd_en<='0';
-        tst_rxd_on<='0';
+        i_tl_status(C_TSTAT_FSMRxD_ON_BIT)<='0';
         fsm_tlayer_cs <= S_IDLE;
 
       else

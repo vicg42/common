@@ -133,6 +133,8 @@ txdmat      : std_logic;
 txerr_crc   : std_logic;
 txerr_idle  : std_logic;
 txerr_abort : std_logic;
+txhold_on   : std_logic;
+rxhold_on   : std_logic;
 end record;
 
 type TSimLLRxP is record

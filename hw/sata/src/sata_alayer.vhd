@@ -218,7 +218,7 @@ begin
     if i_err_clr='1' then
       i_reg_shadow.status(C_ATA_STATUS_ERR_BIT)<='0';
 
-    elsif i_trn_atacommand='1' then
+    elsif i_trn_atacommand='1' or i_trn_atacontrol='1' then
       i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
 
     elsif p_in_reg_update.fsdb='1' then
@@ -484,12 +484,10 @@ begin
     end if;
 
     --//Сигнал для измерения задержек HDD
---    i_usr_status(C_AUSER_LLRX_ON_BIT)   <=p_in_tst(26);--tst_llayer_out(i)(4);--is tst_rxon;
---    i_usr_status(C_AUSER_LLTX_ON_BIT)   <=p_in_tst(27);--tst_llayer_out(i)(3);--is tst_txon;
-    i_usr_status(C_AUSER_TLRX_ON_BIT)   <=p_in_tst(28);--tst_tlayer_out(i)(2);--is tst_rxd_on;
-    i_usr_status(C_AUSER_TLTX_ON_BIT)   <=p_in_tst(29);--tst_tlayer_out(i)(1);--is tst_txd_on;
-    i_usr_status(C_AUSER_LLTXP_HOLD_BIT)<=p_in_tst(30);--tst_llayer_out(i)(2);--is tst_txp_hold;
-    i_usr_status(C_AUSER_LLRXP_HOLD_BIT)<=p_in_tst(31);--tst_llayer_out(i)(1);--is i_rxp(C_THOLD);
+    i_usr_status(C_AUSER_TLRX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMRxD_ON_BIT);
+    i_usr_status(C_AUSER_TLTX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMTxD_ON_BIT);
+    i_usr_status(C_AUSER_LLTXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_TxHOLD);
+    i_usr_status(C_AUSER_LLRXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_RxHOLD);
 
   end if;
 end process;
@@ -540,25 +538,31 @@ end generate gen_sim_off;
 
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
-rq_name: process(i_reg_shadow,i_trn_atacommand)
+rq_name: process(i_reg_shadow,i_usrmode,i_reg_shadow_wr_done)
 begin
-  if i_trn_atacommand='1' then
-    if i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_DEV, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_IDENTIFY           ";
-    elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_PACKET_DEV, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_IDENTIFY_PACKET_DEV";
-    elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_NOP, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_NOP                ";
-    elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_PIO_WRITE          ";
-    elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_PIO_READ           ";
-    elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_DMA_WRITE          ";
-    elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_reg_shadow.command'length) then
-      i_dbgtsf_type<="ATA_DMA_READ           ";
+  if i_reg_shadow_wr_done='1' then
+    if i_usrmode(C_SATACMD_ATACOMMAND)='1' then
+      if i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_DEV, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_IDENTIFY           ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_PACKET_DEV, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_IDENTIFY_PACKET_DEV";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_NOP, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_NOP                ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_PIO_WRITE          ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_PIO_READ           ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_DMA_WRITE          ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_DMA_READ           ";
+      else
+        i_dbgtsf_type<="NONE                   ";
+      end if;
+    elsif i_usrmode(C_SATACMD_ATACONTROL)='1' then
+        i_dbgtsf_type<="ATA_CONTROL_WR         ";
     else
-      i_dbgtsf_type<="NONE                   ";
+        i_dbgtsf_type<="NONE                   ";
     end if;
   end if;
 end process rq_name;

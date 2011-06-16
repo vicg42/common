@@ -273,7 +273,9 @@ constant C_TSTAT_RxFISLEN_ERR_BIT        : integer:=1;--//
 constant C_TSTAT_TxERR_CRC_REPEAT_BIT    : integer:=2;--//Было сделано несколько попыток отправить FIS_H2D, но каждый раз получал от Link Layer C_LSTAT_TxERR_CRC
 constant C_TSTAT_TxFISHOST2DEV_BIT       : integer:=3;--//Сигнализируем что идет передача FIS_HOST2DEV
 constant C_TSTAT_DWR_START_BIT           : integer:=4;--//Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
-constant C_TLSTAT_LAST_BIT               : integer:=C_TSTAT_DWR_START_BIT;
+constant C_TSTAT_FSMTxD_ON_BIT           : integer:=5;--//для измерения задержек
+constant C_TSTAT_FSMRxD_ON_BIT           : integer:=6;--//для измерения задержек
+constant C_TLSTAT_LAST_BIT               : integer:=C_TSTAT_FSMRxD_ON_BIT;
 
 --//FIS Type:
 constant C_FIS_REG_HOST2DEV              : integer:=16#27#;
@@ -397,7 +399,9 @@ constant C_LSTAT_TxDMAT                   : integer:=6;--//Отправка пакета - При
 constant C_LSTAT_TxERR_CRC                : integer:=7;--//Отправка пакета - ошибка: CRC
 constant C_LSTAT_TxERR_IDLE               : integer:=8;--//Отправка пакета - ошибка: Принял примитив которого не ожидал
 constant C_LSTAT_TxERR_ABORT              : integer:=9;--//Отправка пакета - ошибка: Принял примитив SYNC
-constant C_LLSTAT_LAST_BIT                : integer:=C_LSTAT_TxERR_ABORT;
+constant C_LSTAT_TxHOLD                   : integer:=10;--//для измерения задержек
+constant C_LSTAT_RxHOLD                   : integer:=11;--//для измерения задержек
+constant C_LLSTAT_LAST_BIT                : integer:=C_LSTAT_RxHOLD;
 
 --//Задержка возврашения к передаче данных их состояния S_LT_SendHold автомата управления Link Layer
 constant C_LL_TXDATA_RETURN_TMR          : integer:=20;
