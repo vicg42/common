@@ -367,21 +367,21 @@ COM_BURST_VAL_1             =>       "0101", --/xapp870
 ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------
 
 AC_CAP_DIS_0                =>       FALSE,--/xapp870
-OOBDETECT_THRESHOLD_0       =>       "100",--/Wizard   "111",--/xapp870
+OOBDETECT_THRESHOLD_0       =>       "111",--/xapp870 (Xilinx rpt087.pdf)-- "100",--/Wizard
 PMA_CDR_SCAN_0              =>       x"6c07640",--/Wizard  x"6c08040",--/xapp870
 PMA_RX_CFG_0                =>       x"09f0089",--/Wizard  x"0dce111",--/xapp870
 RCV_TERM_GND_0              =>       FALSE,--/xapp870
 RCV_TERM_MID_0              =>       TRUE, --/xapp870
-RCV_TERM_VTTRX_0            =>       FALSE,--/Wizard   TRUE, --/xapp870
+RCV_TERM_VTTRX_0            =>       TRUE, --/xapp870 (Xilinx rpt087.pdf)-- FALSE,--/Wizard
 TERMINATION_IMP_0           =>       50,   --/xapp870
 
 AC_CAP_DIS_1                =>       FALSE,--/xapp870
-OOBDETECT_THRESHOLD_1       =>       "100",--/Wizard   "111",--/xapp870
+OOBDETECT_THRESHOLD_1       =>       "111",--/xapp870 (Xilinx rpt087.pdf)-- "100",--/Wizard
 PMA_CDR_SCAN_1              =>       x"6c07640",--/Wizard  x"6c08040",--/xapp870
 PMA_RX_CFG_1                =>       x"09f0089",--/Wizard  x"0dce111",--/xapp870
 RCV_TERM_GND_1              =>       FALSE,--/xapp870
 RCV_TERM_MID_1              =>       TRUE, --/xapp870
-RCV_TERM_VTTRX_1            =>       FALSE,--/Wizard   TRUE, --/xapp870
+RCV_TERM_VTTRX_1            =>       TRUE, --/xapp870 (Xilinx rpt087.pdf)-- FALSE,--/Wizard
 TERMINATION_IMP_1           =>       50,   --/xapp870
 
 PCS_COM_CFG                 =>       x"1680a0e",--/Wizard   For PLL_DIVSEL_FB=1 (28Тh1680A07) иначе 28Тh1680A0E (default)
@@ -729,8 +729,8 @@ TXUSRCLK1                       =>      g_gtp_usrclk(1),
 TXUSRCLK20                      =>      g_gtp_usrclk2(0),
 TXUSRCLK21                      =>      g_gtp_usrclk2(1),
 --------------- Transmit Ports - TX Driver and OOB signalling --------------
-TXBUFDIFFCTRL0                  =>      "100",--strength of the pre-drivers.Table 6-17. ug196.pdf
-TXBUFDIFFCTRL1                  =>      "100",
+TXBUFDIFFCTRL0                  =>      "001",--(Xilinx rpt087.pdf)-- strength of the pre-drivers.Table 6-17. ug196.pdf
+TXBUFDIFFCTRL1                  =>      "001",--(Xilinx rpt087.pdf)--
 TXDIFFCTRL0                     =>      "100",--transmitter differential output swing.Table 6-18. ug196.pdf
 TXDIFFCTRL1                     =>      "100",
 TXINHIBIT0                      =>      '0', --'1' -TX diff pin pair is to a constant TXP='0', TXN='1'
