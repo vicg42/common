@@ -143,7 +143,9 @@ stop     : std_logic;
 end record;
 signal i_usrmode                   : TUserMode;
 
+signal i_lba_random                : std_logic_vector(31 downto 0);
 signal i_lba_cnt                   : std_logic_vector(i_cmdpkt.lba'range);
+signal i_lba_inc                   : std_logic_vector(i_cmdpkt.scount'range);--//Значение наращивания LBA
 signal i_lba_end                   : std_logic_vector(i_cmdpkt.lba'range);
 
 signal i_trn_dcount_byte           : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
@@ -318,8 +320,9 @@ begin
     sr_dev_err<=i_usr_status.dev_err & sr_dev_err(0 to 0);
 
     sr_dev_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0)) & sr_dev_busy(0 to 0);
-    i_sh_det.cmddone<=(i_usrmode.sw and p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)) or
-                      (sr_dev_busy(1) and not sr_dev_busy(0));
+--    i_sh_det.cmddone<=(i_usrmode.sw and p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)) or
+--                      (sr_dev_busy(1) and not sr_dev_busy(0));
+    i_sh_det.cmddone<=sr_dev_busy(1) and not sr_dev_busy(0);
 
     i_sh_det.err<=sr_dev_err(0) and not sr_dev_err(1);
 
@@ -546,16 +549,32 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_lba_cnt<=(others=>'0');
-
+    i_lba_inc<=(others=>'0');
+    i_lba_random<=srambler32_0(CONV_STD_LOGIC_VECTOR(16#1864#, 16));
   elsif p_in_clk'event and p_in_clk='1' then
 
     if (i_usrmode.sw='1' or i_usrmode.hw='1') and i_cmdpkt_get_done='1' then
+    --//Загрузка счетчика LBA + значения наращивания
       i_lba_cnt<=i_cmdpkt.lba;
+      i_lba_inc<=i_cmdpkt.scount;
 
     elsif i_sh_det.cmddone='1' then
-      i_lba_cnt<=i_lba_cnt + EXT(i_cmdpkt.scount, i_lba_cnt'length);
+    --//LBA update
+      if p_in_usr_ctrl(C_USR_GCTRL_TST_RANDOM_BIT)='0' then
+        i_lba_cnt<=i_lba_cnt + EXT(i_lba_inc, i_lba_cnt'length);
+      else
+        if i_lba_cnt>i_lba_end then
+          i_lba_cnt(31 downto 0)<=i_lba_random(31 downto 0);
+          i_lba_cnt(31+7 downto 0+7)<=(others=>'0');
+        else
+          i_lba_cnt(31+7 downto 0+7)<=i_lba_random(31 downto 0);
+        end if;
+      end if;
     end if;
 
+    if p_in_usr_ctrl(C_USR_GCTRL_TST_RANDOM_BIT)='1' then
+      i_lba_random(31 downto 0)<=srambler32_0(i_lba_random(31 downto 16));
+    end if;
   end if;
 end process;
 
