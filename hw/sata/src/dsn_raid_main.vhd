@@ -206,7 +206,7 @@ signal i_dbgcs_satah               : TSH_dbgcs_SHCountMax;
 signal i_dbgcs_raid                : TSH_ila;
 
 signal i_tst_measure_out           : std_logic_vector(31 downto 0);
-signal i_tst_raid_ctrl             : std_logic_vector(31 downto 0);
+signal i_tst_raidctrl_out          : std_logic_vector(31 downto 0);
 signal i_tst_val                   : std_logic:='0';
 
 
@@ -233,7 +233,7 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 --    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
 --  end if;
 --end process ltstout;
-p_out_tst(0)<=i_tst_raid_ctrl(0);
+p_out_tst(0)<=i_tst_raidctrl_out(0);
 p_out_tst(1)<=i_uap_tst_sh_out(0)(1);
 p_out_tst(2)<=i_tst_val;
 p_out_tst(3)<=i_tst_measure_out(0);
@@ -357,7 +357,7 @@ p_in_sh_rxbuf_status    => i_uap_rxbuf_status,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => i_tst_raid_ctrl,
+p_out_tst               => i_tst_raidctrl_out,
 p_out_dbgcs             => i_dbgcs_raid,
 
 p_in_sh_tst             => i_uap_tst_sh_out,
