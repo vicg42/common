@@ -42,6 +42,8 @@ end sata_player_tb;
 architecture behavior of sata_player_tb is
 
 constant i_clk_period : TIME := 6.6 ns; --150MHz
+-- Small delay for simulation purposes.
+constant dly : time := 1 ps;
 
 signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
@@ -94,7 +96,7 @@ signal i_sim_gtp_rxdisperr        : std_logic_vector(3 downto 0);
 signal i_sim_gtp_rxnotintable     : std_logic_vector(3 downto 0);
 signal i_sim_gtp_rxbyteisaligned  : std_logic;
 
-signal i_sim_txd_cnt              : std_logic_vector(4 downto 0);
+signal i_sim_txd_cnt              : std_logic_vector(7 downto 0);
 signal i_sim_txbuf_close          : std_logic;
 
 signal i_satadev_ctrl             : TSataDevCtrl;
@@ -115,7 +117,8 @@ i_phy_status(1)<=(others=>'0');
 i_linkup(0)<='1';
 i_linkup(1)<='1';
 
-i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 11 us, '0' after 11.4 us;
+i_link_ctrl(0)(C_LCTRL_TxSTART_BIT)<='0','1' after 11 us, '0' after 11.4 us,
+                                         '1' after 12 us, '0' after 12.4 us;
 i_link_ctrl(0)(C_LCTRL_TRN_ESCAPE_BIT)<='0';
 i_link_ctrl(0)(C_LCTRL_TL_CHECK_ERR_BIT)<='0';
 i_link_ctrl(0)(C_LCTRL_TL_CHECK_DONE_BIT)<='1';
@@ -136,18 +139,18 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_link_txd_rd(0)='1' then
-      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#0E#, i_sim_txd_cnt'length) then
+      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#21#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='1';
         i_sim_txd_cnt<=i_sim_txd_cnt + 1;
 
-      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#0F#, i_sim_txd_cnt'length) then
+      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#22#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='0';
         i_sim_txd_cnt<=(others=>'0');
       else
         i_sim_txd_cnt<=i_sim_txd_cnt + 1;
       end if;
 
-      i_link_txd(0)(31 downto 0)<=tstdata(CONV_INTEGER(i_sim_txd_cnt));
+      i_link_txd(0)(31 downto 0)<=tstdata(CONV_INTEGER(i_sim_txd_cnt)) after dly;
 
     end if;
   end if;
@@ -155,39 +158,39 @@ end process;
 
 
 i_link_txd_status(0).pfull<='0';
-i_link_txd_close(0)<=i_sim_txbuf_close;
+i_link_txd_close(0)<=i_sim_txbuf_close after dly;
 
---i_link_txd_status(0).aempty<='0';
---i_link_txd_status(0).empty<='1';
---i_link_rxd_status(0).pfull<='0';
---i_link_rxd_status(0).empty<='1';
+i_link_txd_status(0).aempty<='0';
+i_link_txd_status(0).empty<='1';
+i_link_rxd_status(0).pfull<='0';
+i_link_rxd_status(0).empty<='1';
 
 
---//Вариант 2
-gen_dbus8 : if G_GT_DBUS=8 generate
-i_link_rxd_status(0).pfull<='0','1' after 9.012 us, '0' after 9.2 us;
-i_link_rxd_status(0).empty<='1','0' after 9.012 us, '1' after 9.3 us;
-end generate gen_dbus8;
-
-gen_dbus16 : if G_GT_DBUS=16 generate
---//Вариант 1 - отложеная передача HOLD перед выдачей данных
-i_link_txd_status(0).aempty<='0','1' after 11.17 us, '0' after 11.18 us;
-i_link_txd_status(0).empty<='1','1' after 11.17 us, '0' after 11.19 us;
-
---i_link_rxd_status(0).pfull<='0','1' after 8.312 us, '0' after 8.4 us;
---i_link_rxd_status(0).empty<='1','0' after 8.312 us, '1' after 8.5 us;
-
-i_link_rxd_status(0).pfull<='0','1' after 8.40 us, '0' after 8.46 us;
-i_link_rxd_status(0).empty<='1','0' after 8.40 us, '1' after 8.6 us;
-
---i_link_rxd_status(0).pfull<='0','1' after 8.43 us, '0' after 8.46 us;
---i_link_rxd_status(0).empty<='1','0' after 8.43 us, '1' after 8.6 us;
-end generate gen_dbus16;
-
-gen_dbus32 : if G_GT_DBUS=32 generate
-i_link_rxd_status(0).pfull<='0','1' after 8.0 us, '0' after 8.1 us;
-i_link_rxd_status(0).empty<='1','0' after 8.0 us, '1' after 8.2 us;
-end generate gen_dbus32;
+----//Вариант 2
+--gen_dbus8 : if G_GT_DBUS=8 generate
+--i_link_rxd_status(0).pfull<='0','1' after 9.012 us, '0' after 9.2 us;
+--i_link_rxd_status(0).empty<='1','0' after 9.012 us, '1' after 9.3 us;
+--end generate gen_dbus8;
+--
+--gen_dbus16 : if G_GT_DBUS=16 generate
+----//Вариант 1 - отложеная передача HOLD перед выдачей данных
+--i_link_txd_status(0).aempty<='0','1' after 11.17 us, '0' after 11.18 us;
+--i_link_txd_status(0).empty<='1','1' after 11.17 us, '0' after 11.19 us;
+--
+----i_link_rxd_status(0).pfull<='0','1' after 8.312 us, '0' after 8.4 us;
+----i_link_rxd_status(0).empty<='1','0' after 8.312 us, '1' after 8.5 us;
+--
+--i_link_rxd_status(0).pfull<='0','1' after 8.40 us, '0' after 8.46 us;
+--i_link_rxd_status(0).empty<='1','0' after 8.40 us, '1' after 8.6 us;
+--
+----i_link_rxd_status(0).pfull<='0','1' after 8.43 us, '0' after 8.46 us;
+----i_link_rxd_status(0).empty<='1','0' after 8.43 us, '1' after 8.6 us;
+--end generate gen_dbus16;
+--
+--gen_dbus32 : if G_GT_DBUS=32 generate
+--i_link_rxd_status(0).pfull<='0','1' after 8.0 us, '0' after 8.1 us;
+--i_link_rxd_status(0).empty<='1','0' after 8.0 us, '1' after 8.2 us;
+--end generate gen_dbus32;
 
 
 

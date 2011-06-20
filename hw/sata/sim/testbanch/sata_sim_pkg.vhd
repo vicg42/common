@@ -1362,7 +1362,7 @@ while scount/=atacmd_scount loop
   --//--------------------------------
   --//FIS_PIOSETUP: FPGA<-HDD
   --//--------------------------------
-  write(GUI_line,string'("FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_READ/ FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
   --//Инициализация FIS:
   txfis_size:=fis_pioSetup'high;
   for i in 0 to txfis_size loop
@@ -1414,7 +1414,7 @@ while scount/=atacmd_scount loop
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_READ/ FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -1438,12 +1438,12 @@ while scount/=atacmd_scount loop
     end if;
     buf_dcnt:=buf_dcnt + 1;
   end loop;
-  write(GUI_line,string'("FIS_DATA /Send Start/UserData Size(Byte). "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_READ/ FIS_DATA /Send Start/UserData Size(Byte). "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
   p_SendFIS(p_in_clk,
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DATA /Send Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_READ/ FIS_DATA /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -1526,7 +1526,7 @@ while scount/=atacmd_scount loop
   --//--------------------------------
   --//FIS_PIOSETUP: FPGA<-HDD
   --//--------------------------------
-  write(GUI_line,string'("FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
   --//Инициализация FIS:
   txfis_size:=fis_pioSetup'high;
   for i in 0 to txfis_size loop
@@ -1578,17 +1578,17 @@ while scount/=atacmd_scount loop
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   --//--------------------------------
   --//Прием : FIS_DATA
   --//--------------------------------
-  write(GUI_line,string'("FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_GetFIS(p_in_clk,
            p_out_gtp_txdata, p_out_gtp_txcharisk,
            p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -1843,7 +1843,7 @@ while atacmd_dma_dwcount/=0 loop
   --//--------------------------------
   --//FIS_DMA_ACTIVATE: FPGA<-HDD
   --//--------------------------------
-  write(GUI_line,string'("FIS_DMA_ACTIVATE /Send Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DMA_ACTIVATE /Send Start. "));writeline(output, GUI_line);
   --//Инициализация FIS:
   txfis_size:=fis_dmaActivate'high;
   for i in 0 to txfis_size loop
@@ -1855,17 +1855,17 @@ while atacmd_dma_dwcount/=0 loop
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DMA_ACTIVATE /Send Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DMA_ACTIVATE /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   --//--------------------------------
   --//Прием : FIS_DATA
   --//--------------------------------
-  write(GUI_line,string'("FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_GetFIS(p_in_clk,
            p_out_gtp_txdata, p_out_gtp_txcharisk,
            p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -1882,7 +1882,7 @@ end loop;
 --//--------------------------------
 --//FIS_DEV2HOST: FPGA<-HDD
 --//--------------------------------
-write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
+write(GUI_line,string'("p_ATADMA_WRITE/ FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
 --//Инициализация FIS:
 txfis_size:=fis_d2h'high;
 for i in 0 to txfis_size loop
@@ -1917,7 +1917,7 @@ p_SendFIS(p_in_clk,
           p_out_gtp_txdata, p_out_gtp_txcharisk,
           p_in_usropt, p_out_usropt);
 
-write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
+write(GUI_line,string'("p_ATADMA_WRITE/ FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
@@ -2538,7 +2538,7 @@ while atacmd_dma_dwcount/=0 loop
     txfis_size:=atacmd_dma_dwcount;
   end if;
 
-  write(GUI_line,string'("FIS_DATA /Send Start/UserData Size(Byte) "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATADMA_READ/FIS_DATA /Send Start/UserData Size(Byte) "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
 
   txd:=p_in_usropt.rx.bufdata;
 
@@ -2546,7 +2546,7 @@ while atacmd_dma_dwcount/=0 loop
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DATA /Send Done. "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATADMA_READ/FIS_DATA /Send Done. "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -2561,7 +2561,7 @@ end loop;
 --//--------------------------------
 --//FIS_DEV2HOST: FPGA<-HDD
 --//--------------------------------
-write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
+write(GUI_line,string'("p_BUF_ATADMA_READ/FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
 --//Инициализация FIS:
 txfis_size:=fis_d2h'high;
 for i in 0 to txfis_size loop
@@ -2596,7 +2596,7 @@ p_SendFIS(p_in_clk,
           p_out_gtp_txdata, p_out_gtp_txcharisk,
           p_in_usropt, p_out_usropt);
 
-write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
+write(GUI_line,string'("p_BUF_ATADMA_READ/FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
@@ -2694,7 +2694,7 @@ while atacmd_dma_dwcount/=0 loop
   --//--------------------------------
   --//FIS_DMA_ACTIVATE: FPGA<-HDD
   --//--------------------------------
-  write(GUI_line,string'("FIS_DMA_ACTIVATE /Send Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DMA_ACTIVATE /Send Start. "));writeline(output, GUI_line);
   --//Инициализация FIS:
   txfis_size:=fis_dmaActivate'high;
   for i in 0 to txfis_size loop
@@ -2706,17 +2706,17 @@ while atacmd_dma_dwcount/=0 loop
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DMA_ACTIVATE /Send Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DMA_ACTIVATE /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   --//--------------------------------
   --//Прием : FIS_DATA
   --//--------------------------------
-  write(GUI_line,string'("FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_BUF_GetFIS(p_in_clk,
            p_out_gtp_txdata, p_out_gtp_txcharisk,
            p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -2731,11 +2731,13 @@ end loop;
 
 
 --//Ждем завершения записи данных в буфер
+write(GUI_line,string'("p_BUF_ATADMA_WRITE/ Wait RxBUF write done... "));writeline(output, GUI_line);
 dbuf.wdone:='0';
 while dbuf.wdone='0' loop
   p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
   dbuf.wdone:=p_in_usropt.dbuf.wdone;
 end loop;
+write(GUI_line,string'("p_BUF_ATADMA_WRITE/ Wait RxBUF write DONE. "));writeline(output, GUI_line);
 --//Сброс флага завершения записи
 vusropt.dbuf.wdone_clr:=p_in_usropt.dbuf.wused;
 p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
@@ -2745,7 +2747,7 @@ p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp
 --//--------------------------------
 --//FIS_DEV2HOST: FPGA<-HDD
 --//--------------------------------
-write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
+write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_REG_DEV2HOSTA /Send Start "));writeline(output, GUI_line);
 --//Инициализация FIS:
 txfis_size:=fis_d2h'high;
 for i in 0 to txfis_size loop
@@ -2780,7 +2782,7 @@ p_SendFIS(p_in_clk,
           p_out_gtp_txdata, p_out_gtp_txcharisk,
           p_in_usropt, p_out_usropt);
 
-write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
+write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
@@ -2872,7 +2874,7 @@ while scount/=atacmd_scount loop
   --//--------------------------------
   --//FIS_PIOSETUP: FPGA<-HDD
   --//--------------------------------
-  write(GUI_line,string'("FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_PIOSETUP /Send Start. "));writeline(output, GUI_line);
   --//Инициализация FIS:
   txfis_size:=fis_pioSetup'high;
   for i in 0 to txfis_size loop
@@ -2924,17 +2926,17 @@ while scount/=atacmd_scount loop
             txd, txfis_size,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   --//--------------------------------
   --//Прием : FIS_DATA
   --//--------------------------------
-  write(GUI_line,string'("FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_GetFIS(p_in_clk,
            p_out_gtp_txdata, p_out_gtp_txcharisk,
            p_in_usropt, p_out_usropt);
-  write(GUI_line,string'("FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
+  write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
@@ -2946,11 +2948,13 @@ while scount/=atacmd_scount loop
 end loop;
 
 --//Ждем завершения записи данных в буфер
+write(GUI_line,string'("p_BUF_ATAPIO_WRITE /Wait RxBuf write done..."));writeline(output, GUI_line);
 dbuf.wdone:='0';
 while dbuf.wdone='0' loop
   p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
   dbuf.wdone:=p_in_usropt.dbuf.wdone;
 end loop;
+write(GUI_line,string'("p_BUF_ATAPIO_WRITE /Wait RxBuf write DONE!"));writeline(output, GUI_line);
 --//Сброс флага завершения записи
 vusropt.dbuf.wdone_clr:=p_in_usropt.dbuf.wused;
 p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
