@@ -213,7 +213,7 @@ end generate gen_dbg_on;
 --------------------------------------------------
 --Ñâÿçü ñ USRAPP Layer
 --------------------------------------------------
-p_out_txfifo_rd<=not(i_fh2d_tx_en or i_fdmasetup_tx_en) and p_in_ll_txd_rd and i_fdata_tx_en and not i_fdata_close;
+p_out_txfifo_rd<=p_in_ll_txd_rd and i_fdata_tx_en and not i_fdata_close;
 
 p_out_rxfifo_din<=p_in_ll_rxd;
 p_out_rxfifo_wd<=p_in_ll_rxd_wr and i_rxd_en;
