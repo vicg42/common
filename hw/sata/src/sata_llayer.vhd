@@ -107,7 +107,6 @@ signal i_rcv_en                    : std_logic;--//прием данных
 signal i_rxd_descr                 : std_logic_vector(31 downto 0);--//дескремблированые данные
 signal i_rxd_descr_en              : std_logic;
 signal i_rxd_only                  : std_logic;--//сигнал для отбрасывания CRC в выдоваемых данных транспортному уровню
-type TDlySrD is array (0 to 1) of std_logic_vector(31 downto 0);
 signal i_rxd_out                   : std_logic_vector(31 downto 0);
 signal i_rxd_en_out                : std_logic;
 signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_THOLD);--//флаги принятых примитивов
@@ -140,7 +139,6 @@ signal i_tl_check_ok               : std_logic;--//Результат проверки принятых д
 signal tst_txp_hold                : std_logic;
 --signal tst_fms_cs                  : std_logic_vector(4 downto 0);
 --signal tst_fms_cs_dly              : std_logic_vector(tst_fms_cs'range);
-
 
 
 --MAIN
@@ -830,15 +828,22 @@ if p_in_phy_sync='1' then
               i_txd_en<='0';
               fsm_llayer_cs <= S_L_IDLE;
 
-          elsif p_in_phy_rxtype(C_TDMAT)='1' then
+          elsif p_in_phy_rxtype(C_TDMAT)='1' or i_rxp(C_TDMAT)='1' then
           --//Уст-во просит завершить текущую транзакию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
               if p_in_phy_txrdy_n='0' then
-                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
-                i_txp_cnt<=(others=>'0');
-                i_rxp(C_TDMAT)<='1';
-                tst_txp_hold<='0';
-                fsm_llayer_cs <= S_LT_SendCRC;
+                if i_trn_term='1' then
+                  i_trn_term<='0';
+                  tst_txp_hold<='0';
+                  fsm_llayer_cs <= S_LT_SendCRC;
+                else
+                  i_trn_term<='1';
+                end if;
               end if;
+
+              i_rxp(C_TDMAT)<='1';
+              i_rxp(C_THOLD)<='0';
+              i_rxp(C_TCONT)<='0';
 
           elsif p_in_phy_rxtype(C_THOLD)='1' and p_in_txd_close ='0' then
           --//Устройство присит приостановить передачу данных
@@ -849,6 +854,8 @@ if p_in_phy_sync='1' then
                 i_rxp(C_THOLD)<='1';
               end if;
               tst_txp_hold<='0';
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
               fsm_llayer_cs <= S_LT_RcvrHold;
 
           else
@@ -934,7 +941,7 @@ if p_in_phy_sync='1' then
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
 
-          elsif p_in_phy_rxtype(C_TDMAT)='1' then
+          elsif p_in_phy_rxtype(C_TDMAT)='1' or i_rxp(C_TDMAT)='1' then
           --//Уст-во просит завершить текущую транзакию
               if p_in_phy_txrdy_n='0' then
                   if i_trn_term='1' then
@@ -1143,7 +1150,7 @@ if p_in_phy_sync='1' then
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
 
-          elsif p_in_phy_rxtype(C_TDMAT)='1' then
+          elsif p_in_phy_rxtype(C_TDMAT)='1' or i_rxp(C_TDMAT)='1' then
           --//Уст-во просит завершить текущую транзакию
               if p_in_phy_txrdy_n='0' then
                   if i_trn_term='1' then
@@ -1332,11 +1339,9 @@ if p_in_phy_sync='1' then
           else
 
             if p_in_phy_txrdy_n='0' then
-              i_txp_cnt<=i_txp_cnt+1;
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length);
+              fsm_llayer_cs <= S_LT_Wait;
             end if;
-
-            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length);
-            fsm_llayer_cs <= S_LT_Wait;
 
           end if;
 

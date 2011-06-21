@@ -30,7 +30,7 @@ package sata_sim_lite_pkg is
 ---------------------------------------------------------
 constant C_SIM_SATAHOST_TMR_ALIGN : integer:=10;--//Переиод отправки BURST ALIGN для sata_host.vhd
 
-constant C_SIM_SECTOR_SIZE_BYTE   : integer:=512;--256;--
+constant C_SIM_SECTOR_SIZE_BYTE   : integer:=256;--512;--
 constant C_SIM_SECTOR_SIZE_DWORD  : integer:=C_SIM_SECTOR_SIZE_BYTE/4; --//Размер сеткора в Dword
 constant C_SIM_FR_DWORD_COUNT_MAX : integer:=C_SIM_SECTOR_SIZE_DWORD*2;--//max кол-во Dword в FISDATA между SOF и EOF, исключая FISTYPE и CRC
 

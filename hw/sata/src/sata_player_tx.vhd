@@ -262,7 +262,7 @@ begin
                   if    CONV_INTEGER(p_in_txreq)=C_THOLD  then i_suspend(C_THOLD)<='1';
                   elsif CONV_INTEGER(p_in_txreq)=C_THOLDA then i_suspend(C_THOLDA)<='1';
                   elsif CONV_INTEGER(p_in_txreq)=C_TSOF   then i_suspend(C_TSOF)<='1';
-                  elsif CONV_INTEGER(p_in_txreq)=C_TEOF   then i_suspend(C_TEOF)<='1';
+--                  elsif CONV_INTEGER(p_in_txreq)=C_TEOF   then i_suspend(C_TEOF)<='1';
 
                   end if;
 
@@ -306,8 +306,8 @@ begin
           elsif i_suspend(C_TSOF)='1' then
             sr_txdata<=C_PDAT_SOF; sr_txdtype<=C_PDAT_TPRM;
 
-          else --if i_suspend(C_TEOF)='1' then
-            sr_txdata<=C_PDAT_EOF; sr_txdtype<=C_PDAT_TPRM;
+--          else --if i_suspend(C_TEOF)='1' then
+--            sr_txdata<=C_PDAT_EOF; sr_txdtype<=C_PDAT_TPRM;
 
           end if;
 
