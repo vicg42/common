@@ -91,6 +91,8 @@ signal i_fsm_ploob                 : std_logic_vector(3 downto 0);
 signal i_fsm_llayer                : std_logic_vector(4 downto 0);
 signal i_fsm_tlayer                : std_logic_vector(4 downto 0);
 
+signal tst_sync                    : std_logic;
+signal tst_det_rip                 : std_logic;
 
 
 --MAIN
@@ -108,6 +110,24 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_on;
 
 
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+      tst_sync<='0';
+      tst_det_rip<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    if tst_det_rip='1' and p_in_phy_rxtype(C_THOLD)='1' then
+      tst_sync<='1';
+      tst_det_rip<='0';
+    elsif tst_det_rip='1' and p_in_phy_rxtype(C_TR_IP)='1' then
+      tst_sync<='0';
+      tst_det_rip<='0';
+    elsif p_in_dbg.llayer.fsm=S_LT_RcvrHold and p_in_phy_rxtype(C_TR_IP)='1' then
+      tst_sync<='0';
+      tst_det_rip<='1';
+    end if;
+  end if;
+end process;
 
 
 --//-----------------------------
@@ -129,7 +149,7 @@ i_dbgcs_trig00(21)<=p_in_alstatus.SError(C_ASERR_DET_L_BIT); --: integer:=26;--/
 i_dbgcs_trig00(22)<=p_in_alstatus.SError(C_ASERR_F_DIAG_BIT);--: integer:=25;--//Transport Layer:  CRC-OK, but FISTYPE/FISLEN ERROR
 i_dbgcs_trig00(23)<=p_in_alstatus.SError(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
 i_dbgcs_trig00(24)<=p_in_alstatus.SError(C_ASERR_S_DIAG_BIT);--: integer:=23;--//if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
-i_dbgcs_trig00(25)<=p_in_alstatus.SError(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
+i_dbgcs_trig00(25)<=tst_sync;--p_in_alstatus.SError(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
 
 
 i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
@@ -165,7 +185,6 @@ i_dbgcs_data(39)<=p_in_alstatus.SError(C_ASERR_H_DIAG_BIT);--: integer:=22;--//L
 i_dbgcs_data(40)<=p_in_alstatus.SError(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
 i_dbgcs_data(41)<=p_in_alstatus.SError(C_ASERR_D_DIAG_BIT);--: integer:=20;--//if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
 i_dbgcs_data(42)<=p_in_alstatus.SError(C_ASERR_B_DIAG_BIT);--: integer:=19;--//if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
-
 
 i_dbgcs_data(43)<=p_in_dbg.player.tx.txalign;
 i_dbgcs_data(44)<=p_in_phy_txreq(0);
