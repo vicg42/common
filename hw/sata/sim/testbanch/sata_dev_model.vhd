@@ -1978,7 +1978,7 @@ begin
   --//-----------------------------------------
   --//Имитация отправки примитивов FPGA<-HDD
   --//-----------------------------------------
-  for i in 0 to 7 loop
+  for i in 0 to 1 loop
     p_SetData(p_in_clk,
               C_PDAT_R_IP, C_CHAR_K,
               p_out_gtp_txdata, p_out_gtp_txcharisk,
@@ -2019,14 +2019,14 @@ begin
             C_PDAT_CONT, C_CHAR_K,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
-  for i in 0 to 2 loop
+  for i in 0 to 4 loop
   p_SetData(p_in_clk,
             i_txsrcambler, C_CHAR_D,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
   end loop;
-
-
+--
+--
 --  --//SEND R_IP
 --  p_SetData(p_in_clk,
 --            C_PDAT_R_IP, C_CHAR_K,
@@ -2038,31 +2038,31 @@ begin
 --            C_PDAT_HOLD, C_CHAR_K,
 --            p_out_gtp_txdata, p_out_gtp_txcharisk,
 --            i_usropt_in, vusropt, i_usropt2_out);
---
-----  --//SEND R_IP
-----  for i in 0 to 1 loop
-----    p_SetData(p_in_clk,
-----              C_PDAT_R_IP, C_CHAR_K,
-----              p_out_gtp_txdata, p_out_gtp_txcharisk,
-----              i_usropt_in, vusropt, i_usropt2_out);
-----  end loop;
 ----
-----  p_SetData(p_in_clk,
-----            C_PDAT_CONT, C_CHAR_K,
-----            p_out_gtp_txdata, p_out_gtp_txcharisk,
-----            i_usropt_in, vusropt, i_usropt2_out);
-----
-----  for i in 0 to 1 loop
-----  p_SetData(p_in_clk,
-----            i_txsrcambler, C_CHAR_D,
-----            p_out_gtp_txdata, p_out_gtp_txcharisk,
-----            i_usropt_in, vusropt, i_usropt2_out);
-----  end loop;
-----
-----  p_SetData(p_in_clk,
-----            C_PDAT_R_IP, C_CHAR_K,
-----            p_out_gtp_txdata, p_out_gtp_txcharisk,
-----            i_usropt_in, vusropt, i_usropt2_out);
+------  --//SEND R_IP
+------  for i in 0 to 1 loop
+------    p_SetData(p_in_clk,
+------              C_PDAT_R_IP, C_CHAR_K,
+------              p_out_gtp_txdata, p_out_gtp_txcharisk,
+------              i_usropt_in, vusropt, i_usropt2_out);
+------  end loop;
+------
+------  p_SetData(p_in_clk,
+------            C_PDAT_CONT, C_CHAR_K,
+------            p_out_gtp_txdata, p_out_gtp_txcharisk,
+------            i_usropt_in, vusropt, i_usropt2_out);
+------
+------  for i in 0 to 1 loop
+------  p_SetData(p_in_clk,
+------            i_txsrcambler, C_CHAR_D,
+------            p_out_gtp_txdata, p_out_gtp_txcharisk,
+------            i_usropt_in, vusropt, i_usropt2_out);
+------  end loop;
+------
+------  p_SetData(p_in_clk,
+------            C_PDAT_R_IP, C_CHAR_K,
+------            p_out_gtp_txdata, p_out_gtp_txcharisk,
+------            i_usropt_in, vusropt, i_usropt2_out);
 
   --//Моделирую отправку DMAT
   write(GUI_line,string'("RCV DATA./SEND DMAT"));writeline(output, GUI_line);
@@ -2237,7 +2237,7 @@ begin
             C_PDAT_CONT, C_CHAR_K,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
-  for i in 0 to 1 loop
+  for i in 0 to 6 loop
   p_SetData(p_in_clk,
             i_txsrcambler, C_CHAR_D,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
@@ -2256,31 +2256,31 @@ begin
             C_PDAT_HOLD, C_CHAR_K,
             p_out_gtp_txdata, p_out_gtp_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
-
---  --//SEND R_IP
---  for i in 0 to 1 loop
---    p_SetData(p_in_clk,
---              C_PDAT_R_IP, C_CHAR_K,
---              p_out_gtp_txdata, p_out_gtp_txcharisk,
---              i_usropt_in, vusropt, i_usropt2_out);
---  end loop;
 --
---  p_SetData(p_in_clk,
---            C_PDAT_CONT, C_CHAR_K,
---            p_out_gtp_txdata, p_out_gtp_txcharisk,
---            i_usropt_in, vusropt, i_usropt2_out);
---
---  for i in 0 to 1 loop
---  p_SetData(p_in_clk,
---            i_txsrcambler, C_CHAR_D,
---            p_out_gtp_txdata, p_out_gtp_txcharisk,
---            i_usropt_in, vusropt, i_usropt2_out);
---  end loop;
---
---  p_SetData(p_in_clk,
---            C_PDAT_R_IP, C_CHAR_K,
---            p_out_gtp_txdata, p_out_gtp_txcharisk,
---            i_usropt_in, vusropt, i_usropt2_out);
+----  --//SEND R_IP
+----  for i in 0 to 1 loop
+----    p_SetData(p_in_clk,
+----              C_PDAT_R_IP, C_CHAR_K,
+----              p_out_gtp_txdata, p_out_gtp_txcharisk,
+----              i_usropt_in, vusropt, i_usropt2_out);
+----  end loop;
+----
+----  p_SetData(p_in_clk,
+----            C_PDAT_CONT, C_CHAR_K,
+----            p_out_gtp_txdata, p_out_gtp_txcharisk,
+----            i_usropt_in, vusropt, i_usropt2_out);
+----
+----  for i in 0 to 1 loop
+----  p_SetData(p_in_clk,
+----            i_txsrcambler, C_CHAR_D,
+----            p_out_gtp_txdata, p_out_gtp_txcharisk,
+----            i_usropt_in, vusropt, i_usropt2_out);
+----  end loop;
+----
+----  p_SetData(p_in_clk,
+----            C_PDAT_R_IP, C_CHAR_K,
+----            p_out_gtp_txdata, p_out_gtp_txcharisk,
+----            i_usropt_in, vusropt, i_usropt2_out);
 
   write(GUI_line,string'("RCV DATA. Wait EOF ...."));writeline(output, GUI_line);
   --//Жду EOF

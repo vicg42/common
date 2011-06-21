@@ -139,11 +139,11 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_link_txd_rd(0)='1' then
-      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#21#, i_sim_txd_cnt'length) then
+      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#22#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='1';
         i_sim_txd_cnt<=i_sim_txd_cnt + 1;
 
-      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#22#, i_sim_txd_cnt'length) then
+      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#23#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='0';
         i_sim_txd_cnt<=(others=>'0');
       else
