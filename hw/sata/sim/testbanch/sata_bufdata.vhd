@@ -68,6 +68,9 @@ architecture behavior of sata_sim_dbuf is
 constant C_CLK_PERIOD_TXBUF       : TIME := 6.6*2 ns;
 constant C_CLK_PERIOD_RXBUF       : TIME := 6.6*2 ns;
 
+-- Small delay for simulation purposes.
+constant dly : time := 1 ps;
+
 signal i_dbuf                     : TSimBufData;
 signal i_dbuf_rcnt                : integer;
 signal i_dbuf_wcnt                : integer;
@@ -208,7 +211,7 @@ begin
         i_rxbuf_dout_rd<='0';
 
         wait until i_rxbuf_clk'event and i_rxbuf_clk = '1';
-        i_dbuf(idx)<=i_rxbuf_dout;
+        i_dbuf(idx)<=i_rxbuf_dout after dly;
         idx:=idx+1;
         i_dbuf_rcnt<=i_dbuf_rcnt-1;
 
