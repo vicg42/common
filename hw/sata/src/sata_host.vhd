@@ -131,7 +131,7 @@ signal i_spd_gtp_ch_rst            : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_spd_gt_rdy                : std_logic;
 signal i_spd_gt_resetdone          : std_logic;
 
-signal i_reg_dma                   : TRegDMA_GTCH;
+signal i_reg_fpdma                 : TRegFPDMASetup_GTCH;
 signal i_reg_shadow                : TRegShadow_GTCH;
 signal i_reg_hold                  : TRegHold_GTCH;
 signal i_reg_update                : TRegShadowUpdate_GTCH;
@@ -420,7 +420,7 @@ p_in_tl_status            => i_tr_status(i),
 p_in_ll_status            => i_link_status(i),
 p_in_pl_status            => i_phy_status(i),
 
-p_out_reg_dma             => i_reg_dma(i),
+p_in_reg_fpdma            => i_reg_fpdma(i),
 p_out_reg_shadow          => i_reg_shadow(i),
 p_in_reg_hold             => i_reg_hold(i),
 p_in_reg_update           => i_reg_update(i),
@@ -466,7 +466,7 @@ p_in_rxfifo_status   => p_in_rxbuf_status(i),
 p_in_tl_ctrl         => i_tr_ctrl(i),
 p_out_tl_status      => i_tr_status(i),
 
-p_in_reg_dma         => i_reg_dma(i),
+p_out_reg_fpdma      => i_reg_fpdma(i),
 p_in_reg_shadow      => i_reg_shadow(i),
 p_out_reg_hold       => i_reg_hold(i),
 p_out_reg_update     => i_reg_update(i),

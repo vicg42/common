@@ -171,6 +171,9 @@ constant C_ATA_CMD_WRITE_SECTORS_EXT     : integer:=16#34#;--//PIO Write
 constant C_ATA_CMD_READ_SECTORS_EXT      : integer:=16#24#;--//PIO Read
 constant C_ATA_CMD_WRITE_DMA_EXT         : integer:=16#35#;--//DMA Write
 constant C_ATA_CMD_READ_DMA_EXT          : integer:=16#25#;--//DMA Read
+constant C_ATA_CMD_WRITE_FPDMA_QUEUED    : integer:=16#61#;--//QUEUED FPDMA Write
+constant C_ATA_CMD_READ_FPDMA_QUEUED     : integer:=16#60#;--//QUEUED FPDMA Read
+constant C_ATA_CMD_READ_LOG_EXT          : integer:=16#2F#;--//
 
 --//Регистр ATA_STATUS/Bit Map:
 constant C_ATA_STATUS_BUSY_BIT           : integer:=7;--уст-во занято
@@ -262,9 +265,8 @@ constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_RESERV_BIT;
 --//Transport Layer
 --//-------------------------------------------------
 --//Управление/Map:
-constant C_TCTRL_DMASETUP_WR_BIT         : integer:=16#00#;
-constant C_TCTRL_RCOMMAND_WR_BIT         : integer:=16#01#;
-constant C_TCTRL_RCONTROL_WR_BIT         : integer:=16#02#;
+constant C_TCTRL_RCOMMAND_WR_BIT         : integer:=16#00#;
+constant C_TCTRL_RCONTROL_WR_BIT         : integer:=16#01#;
 constant C_TLCTRL_LAST_BIT               : integer:=C_TCTRL_RCONTROL_WR_BIT;
 
 --//Статусы/Map:
@@ -363,8 +365,8 @@ S_HT_PIOITrans2,
 ----------------------------------------------
 ----Работа в режиме DMA
 ----------------------------------------------
-S_HT_DmaSetupFIS,        --//Передача FIS_DMASETUP
-S_HT_DmaSetupTransStatus,
+--S_HT_DmaSetupFIS,        --//Передача FIS_DMASETUP
+--S_HT_DmaSetupTransStatus,
 
 S_HT_DS_FIS,     --//Прием FIS_DMASETUP
 
@@ -653,15 +655,10 @@ fpio_e    : std_logic;--//Обновление Shadow Reg в результате корректного заверше
 fsdb      : std_logic;--//Обновление Shadow Reg по приему FIS_SetDevice_Bits
 end record;
 
-type TRegDMASetup is record
-dir           : std_logic;--//1/0 - FPGA->HDD/FPGA<-HDD
-addr_l        : std_logic_vector(31 downto 0);
-addr_m        : std_logic_vector(31 downto 0);
+type TRegFPDMASetup is record
+dir           : std_logic;--//см. константы C_DIR_H2D/C_DIR_D2H
+addr          : std_logic_vector(63 downto 0);
 offset        : std_logic_vector(31 downto 0);
-end record;
-
-type TRegDMA is record
-fpdma         : TRegDMASetup;
 trncount_byte : std_logic_vector(31 downto 0);
 end record;
 
@@ -672,6 +669,7 @@ ATAError  : std_logic_vector(7 downto 0);
 --SStatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 SError    : std_logic_vector(C_ALSERR_LAST_BIT downto 0);
 Usr       : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
+fpdma     : TRegFPDMASetup;
 end record;
 
 type TTxBufStatus is record
@@ -715,7 +713,7 @@ type TTxBufStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TTxBufStatus;
 type TRxBufStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRxBufStatus;
 
 type TRegHold_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegHold;
-type TRegDMA_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegDMA;
+type TRegFPDMASetup_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegFPDMASetup;
 type TRegShadow_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegShadow;
 type TRegShadowUpdate_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegShadowUpdate;
 type TALStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TALStatus;

@@ -402,7 +402,7 @@ p_in_tl_status            : in    std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
 p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
 p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
-p_out_reg_dma             : out   TRegDMA;
+p_in_reg_fpdma            : in    TRegFPDMASetup;
 p_out_reg_shadow          : out   TRegShadow;
 p_in_reg_hold             : in    TRegHold;
 p_in_reg_update           : in    TRegShadowUpdate;
@@ -449,7 +449,7 @@ p_in_rxfifo_status        : in    TRxBufStatus;
 p_in_tl_ctrl              : in    std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
 p_out_tl_status           : out   std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
 
-p_in_reg_dma              : in    TRegDMA;
+p_out_reg_fpdma           : out   TRegFPDMASetup;
 p_in_reg_shadow           : in    TRegShadow;
 p_out_reg_hold            : out   TRegHold;
 p_out_reg_update          : out   TRegShadowUpdate;

@@ -84,7 +84,6 @@ end record;
 type TSimTLCtrl is record
 ata_command : std_logic;
 ata_control : std_logic;
-fpdma       : std_logic;
 end record;
 
 type TSimTLStatus is record

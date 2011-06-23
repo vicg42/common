@@ -55,7 +55,7 @@ p_in_tl_status            : in    std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
 p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
 p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
-p_out_reg_dma             : out   TRegDMA;         --//Настройки для DMA
+p_in_reg_fpdma            : in    TRegFPDMASetup;  --//
 p_out_reg_shadow          : out   TRegShadow;      --//Значения АТА регистров
 p_in_reg_hold             : in    TRegHold;        --//Значения для обновления АТА регистров
 p_in_reg_update           : in    TRegShadowUpdate;--//Стробы для обнавления АТА регистров
@@ -77,8 +77,6 @@ end sata_alayer;
 
 architecture behavioral of sata_alayer is
 
-constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
-
 signal i_cmdfifo_dcnt              : std_logic_vector(3 downto 0);
 signal i_cmdfifo_rd_done           : std_logic;
 
@@ -97,9 +95,6 @@ signal i_reg_shadow                : TRegShadow;
 
 signal i_trn_atacommand            : std_logic;
 signal i_trn_atacontrol            : std_logic;
-
-signal i_scount                    : std_logic_vector(15 downto 0);
-signal i_scount_byte               : std_logic_vector(i_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
 
 signal i_link_establish_dly        : std_logic_vector(1 downto 0);
 signal i_link_establish_change     : std_logic;
@@ -308,6 +303,7 @@ end process;
 --//ATA:
 p_out_status.ATAStatus<=i_reg_shadow.status;
 p_out_status.ATAError<=i_reg_shadow.error;
+p_out_status.fpdma<=p_in_reg_fpdma;
 
 
 --//SATA Status:
@@ -512,19 +508,8 @@ i_trn_atacontrol<=i_usrmode(C_SATACMD_ATACONTROL) and i_reg_shadow_wr_done;
 
 p_out_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT)<=i_trn_atacommand;
 p_out_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT)<=i_trn_atacontrol;
-p_out_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)<=i_usrmode(C_SATACMD_FPDMA_W) or i_usrmode(C_SATACMD_FPDMA_R);
 
 p_out_reg_shadow<=i_reg_shadow;
-
-p_out_reg_dma.fpdma.dir<=C_DIR_H2D when i_usrmode(C_SATACMD_FPDMA_W)='1' else C_DIR_D2H;
-p_out_reg_dma.fpdma.addr_l<=(others=>'0');
-p_out_reg_dma.fpdma.addr_m<=(others=>'0');
-p_out_reg_dma.fpdma.offset<=(others=>'0');
-p_out_reg_dma.trncount_byte<=EXT(i_scount_byte, p_out_reg_dma.trncount_byte'length);
-
-
-i_scount<=i_reg_shadow.scount_exp&i_reg_shadow.scount;
-i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 
 
 
@@ -556,6 +541,14 @@ begin
         i_dbgtsf_type<="ATA_DMA_WRITE          ";
       elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_reg_shadow.command'length) then
         i_dbgtsf_type<="ATA_DMA_READ           ";
+
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_FPDMA_QUEUED, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_FPDMA_WRITE        ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_FPDMA_QUEUED, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_FPDMA_READ         ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_LOG_EXT, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_LOG_READ           ";
+
       else
         i_dbgtsf_type<="NONE                   ";
       end if;

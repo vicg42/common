@@ -57,7 +57,7 @@ p_in_rxfifo_status        : in    TRxBufStatus;                 --//Структуры см
 p_in_tl_ctrl              : in    std_logic_vector(C_TLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Transport Layer/Управление/Map:
 p_out_tl_status           : out   std_logic_vector(C_TLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Transport Layer/Статусы/Map:
 
-p_in_reg_dma              : in    TRegDMA;                       --//Структуры см. sata_pkg.vhd/поле - Типы
+p_out_reg_fpdma           : out   TRegFPDMASetup;               --//Структуры см. sata_pkg.vhd/поле - Типы
 p_in_reg_shadow           : in    TRegShadow;
 p_out_reg_hold            : out   TRegHold;
 p_out_reg_update          : out   TRegShadowUpdate;
@@ -100,12 +100,17 @@ end sata_tlayer;
 
 architecture behavioral of sata_tlayer is
 
+constant CI_SECTOR_SIZE_BYTE   : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 constant CI_FR_DWORD_COUNT_MAX : integer:=selval(C_FR_DWORD_COUNT_MAX, C_SIM_FR_DWORD_COUNT_MAX, strcmp(G_SIM, "OFF"));
 
 signal fsm_tlayer_cs               : TTL_fsm_state;
 
+signal i_scount                    : std_logic_vector(15 downto 0);
+signal i_scount_byte               : std_logic_vector(i_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+
 signal i_reg_hold                  : TRegHold;
 signal i_reg_update                : TRegShadowUpdate;
+signal i_reg_fpdma                 : TRegFPDMASetup;
 
 signal i_ll_ctrl                   : std_logic_vector(C_LLCTRL_LAST_BIT downto 0);--//Управление для Link Layer
 signal i_ll_state_illegal          : std_logic;                                   --//Ошибки при переходе из одного состояния в другое
@@ -125,15 +130,15 @@ signal i_fdcnt                     : std_logic_vector(16 downto 0);--//Счетчик d
 signal i_fh2d                      : std_logic_vector(31 downto 0);--//Регистр выдачи FIS_HOST2DEV
 signal i_fh2d_close                : std_logic;                    --//Закрыть FIS_HOST2DEV
 signal i_fh2d_tx_en                : std_logic;                    --//Сигнализирует что идет передача FIS_HOST2DEV
-signal i_fdmasetup_tx_en           : std_logic;                    --//Сигнализирует что идет передача FIS_DMASETUP
 signal i_fauto_activate_bit        : std_logic;
+--signal i_fdmasetup_tx_en           : std_logic;                    --//Сигнализирует что идет передача FIS_DMASETUP
 --signal i_fbist_pattern             : std_logic_vector(7 downto 0);
 --signal i_fbist_rxd                 : std_logic_vector(31 downto 0);
 
 signal i_trn_err_cnt               : std_logic_vector(1 downto 0);--//Сколько раз Link Layer сигнализировал о TxERR_CRC при повторной попытке отправить FIS_HOST2DEV
 signal i_trn_repeat                : std_logic;                   --//Повтор отправки FIS_HOST2DEV.
 
-signal i_dmasetup_hold_tsf_count   : std_logic_vector(31 downto 0);
+signal i_dma_trncount_byte         : std_logic_vector(31 downto 0);
 signal i_dma_trncount_dw           : std_logic_vector(31 downto 0);--//Размер транзакции(DWORD) режим DMA
 signal i_dma_txd                   : std_logic;                    --//Сигнализирует что идет передача в режиме DMA
 signal i_dma_dcnt                  : std_logic_vector(31 downto 0);--//Счетчик dword в режиме DMA
@@ -146,6 +151,7 @@ signal i_rxd_err                   : std_logic;
 type TDlySrD is array (0 to 0) of std_logic_vector(31 downto 0);
 signal sr_llrxd                    : TDlySrD;                 --//Линия задержки данных/разрешения данных с порта p_in_ll_rxd/p_in_ll_rxd_wr
 signal sr_llrxd_en                 : std_logic_vector(0 to 0);
+signal sr_ll_status_rcv_done       : std_logic;
 
 signal i_txfifo_pfull              : std_logic;
 
@@ -226,6 +232,7 @@ p_out_tl_status<=i_tl_status;
 
 p_out_reg_hold<=i_reg_hold;
 p_out_reg_update<=i_reg_update;
+p_out_reg_fpdma<=i_reg_fpdma;
 
 
 --------------------------------------------------
@@ -249,8 +256,8 @@ p_out_ll_rxd_status.wrcount<=p_in_rxfifo_status.wrcount;
 
 p_out_ll_txd_status.full<=p_in_txfifo_status.full;
 p_out_ll_txd_status.pfull<=i_txfifo_pfull;
-p_out_ll_txd_status.aempty<=not(i_fh2d_tx_en or i_fdmasetup_tx_en) and p_in_txfifo_status.aempty;
-p_out_ll_txd_status.empty<=not(i_fh2d_tx_en or i_fdmasetup_tx_en) and p_in_txfifo_status.empty;
+p_out_ll_txd_status.aempty<=p_in_txfifo_status.aempty and not(i_fh2d_tx_en);-- or i_fdmasetup_tx_en);
+p_out_ll_txd_status.empty <=p_in_txfifo_status.empty  and not(i_fh2d_tx_en);-- or i_fdmasetup_tx_en);
 p_out_ll_txd_status.rdcount<=p_in_txfifo_status.rdcount;
 --p_out_ll_txd_status.wrcount<=p_in_txfifo_status.wrcount;
 
@@ -268,17 +275,26 @@ i_fdata_close<='1' when ( i_fpiosetup='1' and i_fdcnt=EXT(i_piosetup_trncount_dw
 --//-----------------------------
 --//Инициализация
 --//-----------------------------
---//Кол-во байт для передачи в режиме PIO
+--//Размер транзакции в режиме PIO
 i_piosetup_trncount_byte<=i_reg_hold.tsf_count;
-i_piosetup_trncount_dw<=("00"&i_piosetup_trncount_byte(15 downto 2));
+i_piosetup_trncount_dw<="00"&i_piosetup_trncount_byte(15 downto 2);
 
-i_dma_trncount_dw<=("00"&p_in_reg_dma.trncount_byte(31 downto 2));
+--//Размер транзакции в режиме DMA
+i_scount<=p_in_reg_shadow.scount_exp&p_in_reg_shadow.scount;
+i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+
+i_dma_trncount_byte<=EXT(i_scount_byte, i_dma_trncount_byte'length) when p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, p_in_reg_shadow.command'length) or
+                                                                         p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, p_in_reg_shadow.command'length) else
+                     i_reg_fpdma.trncount_byte;
+
+i_dma_trncount_dw<="00"&i_dma_trncount_byte(31 downto 2);
+
 
 i_ll_state_illegal<=not p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT) or
-                    p_in_ll_status(C_LSTAT_RxERR_IDLE) or
-                    p_in_ll_status(C_LSTAT_RxERR_ABORT) or
-                    p_in_ll_status(C_LSTAT_TxERR_IDLE) or
-                    p_in_ll_status(C_LSTAT_TxERR_ABORT) ;
+                        p_in_ll_status(C_LSTAT_RxERR_IDLE) or
+                        p_in_ll_status(C_LSTAT_RxERR_ABORT) or
+                        p_in_ll_status(C_LSTAT_TxERR_IDLE) or
+                        p_in_ll_status(C_LSTAT_TxERR_ABORT) ;
 
 
 
@@ -288,8 +304,9 @@ i_ll_state_illegal<=not p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT) or
 lsr_ll : process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    sr_llrxd(0)<=p_in_ll_rxd;-- & sr_llrxd(0 to 1);
-    sr_llrxd_en(0)<=p_in_ll_rxd_wr;-- & sr_llrxd_en(0 to 1);
+    sr_llrxd(0)<=p_in_ll_rxd;
+    sr_llrxd_en(0)<=p_in_ll_rxd_wr;
+    sr_ll_status_rcv_done<=p_in_ll_status(C_LSTAT_RxOK) or p_in_ll_status(C_LSTAT_RxERR_CRC);
   end if;
 end process lsr_ll;
 
@@ -311,7 +328,6 @@ if p_in_rst='1' then
   i_tl_status<=(others=>'0');
   i_irq<='0';
 
---  i_ftxd<=(others=>'0');
   i_firq_bit<='0';
   i_fdir_bit<='0';
   i_fpiosetup<='0';
@@ -321,15 +337,19 @@ if p_in_rst='1' then
   i_fh2d<=(others=>'0');
   i_fh2d_close<='0';
   i_fh2d_tx_en<='0';
-  i_fauto_activate_bit<='0';
   i_fdcnt<=(others=>'0');
-  i_fdmasetup_tx_en<='0';
+  i_fauto_activate_bit<='0';
+--  i_fdmasetup_tx_en<='0';
 --  i_fbist_pattern<=(others=>'0');
 --  i_fbist_rxd<=(others=>'0');
 
   i_dma_dcnt<=(others=>'0');
   i_dma_txd<='0';
-  i_dmasetup_hold_tsf_count<=(others=>'0');
+
+  i_reg_fpdma.dir<='0';
+  i_reg_fpdma.addr<=(others=>'0');
+  i_reg_fpdma.offset<=(others=>'0');
+  i_reg_fpdma.trncount_byte<=(others=>'0');
 
   i_reg_hold.device<=(others=>'0');
   i_reg_hold.status<=(others=>'0');
@@ -389,14 +409,14 @@ elsif p_in_clk'event and p_in_clk='1' then
         i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)<='0';
 
         i_fh2d_tx_en<='0';
-        i_fdmasetup_tx_en<='0';
+--        i_fdmasetup_tx_en<='0';
         fsm_tlayer_cs <= S_HT_ChkTyp;
 
       elsif i_fpiosetup='1' and i_fdir_bit=C_DIR_H2D then
         i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)<='0';
 
         i_fh2d_tx_en<='0';
-        i_fdmasetup_tx_en<='0';
+--        i_fdmasetup_tx_en<='0';
         if i_txfifo_pfull='1' then
         --//Ждем когда в TxBUF накопятся данные для предачи
           i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='1';
@@ -414,7 +434,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)<='1';
 
         i_fh2d_tx_en<='1';
-        i_fdmasetup_tx_en<='0';
+--        i_fdmasetup_tx_en<='0';
         fsm_tlayer_cs <= S_HT_CmdFIS;
 
       elsif p_in_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT)='1' or i_trn_repeat='1' then
@@ -427,20 +447,20 @@ elsif p_in_clk'event and p_in_clk='1' then
         i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)<='1';
 
         i_fh2d_tx_en<='1';
-        i_fdmasetup_tx_en<='0';
+--        i_fdmasetup_tx_en<='0';
         fsm_tlayer_cs <= S_HT_CtrlFIS;
 
-      elsif p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)='1' then
-      --//FIS_DMA_SETUP : Передача
-        i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='1';
-        i_fdmasetup_tx_en<='1';
-        fsm_tlayer_cs <= S_HT_DmaSetupFIS;
+--      elsif p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT)='1' then
+--      --//FIS_DMA_SETUP : Передача
+--        i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='1';
+--        i_fdmasetup_tx_en<='1';
+--        fsm_tlayer_cs <= S_HT_DmaSetupFIS;
 
       else
         i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)<='0';
 
         i_fh2d_tx_en<='0';
-        i_fdmasetup_tx_en<='0';
+--        i_fdmasetup_tx_en<='0';
 
       end if;
 
@@ -457,7 +477,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         if i_ll_ctrl(C_LCTRL_TL_CHECK_ERR_BIT)='1' then
             --//Тип принимаемого FIS не определен.
             --//Ждем завершения приема данных
-            if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+            if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
 
                 i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT)<='1';
                 i_ll_ctrl(C_LCTRL_TL_CHECK_DONE_BIT)<='1';--//Сигнал Link уровню отправить примитив подтверждения R_ERR/R_OK
@@ -566,7 +586,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;
 
-            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
+            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(C_FIS_REG_HOST2DEV_DWSIZE-1, 3) then
             --//Передал все данные
               i_fh2d_close<='1';
               i_fdcnt<=(others=>'0');
@@ -666,7 +686,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             end if;
 
-            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
+            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(C_FIS_REG_HOST2DEV_DWSIZE-1, 3) then
             --//Передал все данные
               i_fh2d_close<='1';
               i_fdcnt<=(others=>'0');
@@ -728,7 +748,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-        if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+        if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
         --//Прием данных завершен
             if i_fdcnt(2 downto 0)/=CONV_STD_LOGIC_VECTOR(C_FIS_REG_DEV2HOST_DWSIZE, 3) then
               i_ll_ctrl(C_LCTRL_TL_CHECK_ERR_BIT)<='1';
@@ -817,7 +837,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-        if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+        if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
         --//Прием данных завершен
             if i_fdcnt(2 downto 0)/=CONV_STD_LOGIC_VECTOR(C_FIS_SET_DEV_BITS_DWSIZE, 3) then
               i_ll_ctrl(C_LCTRL_TL_CHECK_ERR_BIT)<='1';
@@ -884,7 +904,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-        if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+        if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
         --//Прием данных завершен
             if i_fdcnt(2 downto 0)/=CONV_STD_LOGIC_VECTOR(C_FIS_BIST_ACTIVATE_DWSIZE, 3) then
               i_ll_ctrl(C_LCTRL_TL_CHECK_ERR_BIT)<='1';
@@ -957,7 +977,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-        if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+        if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
         --//Прием данных завершен
             if p_in_ll_status(C_LSTAT_RxOK)='1' then
             --//CRC - OK!
@@ -1169,7 +1189,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-          if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+          if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
           --//Прием данных завершен
               i_rxd_en<='0';
 
@@ -1190,92 +1210,92 @@ elsif p_in_clk'event and p_in_clk='1' then
     --$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     -- //Обработчик Команд в режиме DMA
     --$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-    --//-------------------------------------------
-    --//FIS_DMASETUP: Передача
-    --//-------------------------------------------
-    when S_HT_DmaSetupFIS =>
-
-      if i_ll_state_illegal='1' or p_in_ll_status(C_LSTAT_RxSTART)='1' then
-      --//Link Layer сигнализирует о ошибках в работе автомата или о начале прием данных от SATA устройста
-        i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
-        fsm_tlayer_cs <= S_IDLE;
-
-      else
-
-        if p_in_ll_txd_rd='1' then
-            i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
-
-            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
-              i_fh2d(8*(0+1)-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(C_FIS_DMASETUP, 8);
-
-              i_fh2d(8*1+3 downto 8*1+0)<=(others=>'0');--//PM Port
-              i_fh2d(8*1+4)<='0';--//Reseved
-              i_fh2d(8*1+5)<=p_in_reg_dma.fpdma.dir;--//Direction
-              i_fh2d(8*1+6)<='0';--//Interrupt
-              i_fh2d(8*1+7)<='0';--//Auto-Activate
-
-              i_fh2d(8*(2+1)-1 downto 8*2)<=(others=>'0');
-              i_fh2d(8*(3+1)-1 downto 8*3)<=(others=>'0');
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#01#, 3) then
-              i_fh2d(8*(3+1)-1 downto 8*0)<=p_in_reg_dma.fpdma.addr_l;
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#02#, 3) then
-              i_fh2d(8*(3+1)-1 downto 8*0)<=p_in_reg_dma.fpdma.addr_m;
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#03#, 3) then
-              i_fh2d(8*(3+1)-1 downto 8*0)<=(others=>'0');
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
-              i_fh2d(8*(3+1)-1 downto 8*0)<=p_in_reg_dma.fpdma.offset;
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#05#, 3) then
-              i_fh2d(8*(3+1)-1 downto 8*0)<=p_in_reg_dma.trncount_byte;
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#06#, 3) then
-              i_fh2d(8*(3+1)-1 downto 8*0)<=(others=>'0');
-
-            end if;
-
-            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#06#, 3) then
-            --//Передал все данные
-              i_fh2d_close<='1';
-              i_fdcnt<=(others=>'0');
-              fsm_tlayer_cs <= S_HT_DmaSetupTransStatus;
-
-            else
-              i_fdcnt<=i_fdcnt + 1;
-            end if;
-
-        end if;
-
-      end if;--//if i_ll_state_illegal='1' then
-
-    --//------------------------------------------
-    --//FIS_DMASETUP: Передача
-    --//------------------------------------------
-    when S_HT_DmaSetupTransStatus =>
-
-      if i_ll_state_illegal='1' then
-        i_fh2d_close<='0';
-        fsm_tlayer_cs <= S_IDLE;
-
-      else
-          if p_in_ll_txd_rd='1' then
-            i_fh2d_close<='0';
-          end if;
-
-          if p_in_ll_status(C_LSTAT_TxERR_CRC)='1' then
-
-            fsm_tlayer_cs <= S_IDLE;
-
-          elsif p_in_ll_status(C_LSTAT_TxOK)='1' then
-
-            fsm_tlayer_cs <= S_IDLE;
-
-          end if;
-
-      end if;--//if i_ll_state_illegal='1' then
+--    --//-------------------------------------------
+--    --//FIS_DMASETUP: Передача
+--    --//-------------------------------------------
+--    when S_HT_DmaSetupFIS =>
+--
+--      if i_ll_state_illegal='1' or p_in_ll_status(C_LSTAT_RxSTART)='1' then
+--      --//Link Layer сигнализирует о ошибках в работе автомата или о начале прием данных от SATA устройста
+--        i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
+--        fsm_tlayer_cs <= S_IDLE;
+--
+--      else
+--
+--        if p_in_ll_txd_rd='1' then
+--            i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
+--
+--            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
+--              i_fh2d(8*(0+1)-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(C_FIS_DMASETUP, 8);
+--
+--              i_fh2d(8*1+3 downto 8*1+0)<=(others=>'0');--//PM Port
+--              i_fh2d(8*1+4)<='0';--//Reseved
+--              i_fh2d(8*1+5)<=i_reg_fpdma.dir;--//Direction
+--              i_fh2d(8*1+6)<='0';--//Interrupt
+--              i_fh2d(8*1+7)<='0';--//Auto-Activate
+--
+--              i_fh2d(8*(2+1)-1 downto 8*2)<=(others=>'0');
+--              i_fh2d(8*(3+1)-1 downto 8*3)<=(others=>'0');
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#01#, 3) then
+--              i_fh2d(31 downto 0)<=i_reg_fpdma.addr(31 downto 0);
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#02#, 3) then
+--              i_fh2d(31 downto 0)<=i_reg_fpdma.addr(63 downto 32);
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#03#, 3) then
+--              i_fh2d(31 downto 0)<=(others=>'0');
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
+--              i_fh2d(31 downto 0)<=i_reg_fpdma.offset;
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#05#, 3) then
+--              i_fh2d(31 downto 0)<=i_reg_fpdma.trncount_byte;
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#06#, 3) then
+--              i_fh2d(31 downto 0)<=(others=>'0');
+--
+--            end if;
+--
+--            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(C_FIS_DMASETUP_DWSIZE-1, 3) then
+--            --//Передал все данные
+--              i_fh2d_close<='1';
+--              i_fdcnt<=(others=>'0');
+--              fsm_tlayer_cs <= S_HT_DmaSetupTransStatus;
+--
+--            else
+--              i_fdcnt<=i_fdcnt + 1;
+--            end if;
+--
+--        end if;
+--
+--      end if;--//if i_ll_state_illegal='1' then
+--
+--    --//------------------------------------------
+--    --//FIS_DMASETUP: Передача
+--    --//------------------------------------------
+--    when S_HT_DmaSetupTransStatus =>
+--
+--      if i_ll_state_illegal='1' then
+--        i_fh2d_close<='0';
+--        fsm_tlayer_cs <= S_IDLE;
+--
+--      else
+--          if p_in_ll_txd_rd='1' then
+--            i_fh2d_close<='0';
+--          end if;
+--
+--          if p_in_ll_status(C_LSTAT_TxERR_CRC)='1' then
+--
+--            fsm_tlayer_cs <= S_IDLE;
+--
+--          elsif p_in_ll_status(C_LSTAT_TxOK)='1' then
+--
+--            fsm_tlayer_cs <= S_IDLE;
+--
+--          end if;
+--
+--      end if;--//if i_ll_state_illegal='1' then
 
 
     --//------------------------------------------
@@ -1290,7 +1310,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-        if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+        if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
         --//Прием данных завершен
             if p_in_ll_status(C_LSTAT_RxOK)='1' then
             --//CRC - OK!
@@ -1298,9 +1318,11 @@ elsif p_in_clk'event and p_in_clk='1' then
               --//FIS length - OK!
                   if i_fdir_bit=C_DIR_H2D and i_fauto_activate_bit='1' then
                   --//Передача данных (FPGA -> HDD)
+                    i_reg_fpdma.dir<=C_DIR_H2D;
                     fsm_tlayer_cs <= S_HT_DMAOTrans2;
                   else
                   --//Прием данных (FPGA <- HDD)
+                    i_reg_fpdma.dir<=C_DIR_D2H;
                     fsm_tlayer_cs <= S_IDLE;
                   end if;
 
@@ -1325,8 +1347,17 @@ elsif p_in_clk'event and p_in_clk='1' then
               i_fdir_bit <= sr_llrxd(0)(C_FIS_DIR_BIT+8);
               i_fauto_activate_bit <= sr_llrxd(0)(C_FIS_AUTO_ACTIVATE_BIT+8);
 
+            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#01#, 3) then
+              i_reg_fpdma.addr(31 downto 0)<=sr_llrxd(0);
+
+            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#02#, 3) then
+              i_reg_fpdma.addr(63 downto 32)<=sr_llrxd(0);
+
+            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
+              i_reg_fpdma.offset(31 downto 0)<=sr_llrxd(0);
+
             elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#05#, 3) then
-              i_dmasetup_hold_tsf_count <= sr_llrxd(0)(8*(3+1)-1 downto 8*0);
+              i_reg_fpdma.trncount_byte <= sr_llrxd(0);
 
             end if;
 
@@ -1348,7 +1379,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-        if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+        if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
         --//Прием данных завершен
           if p_in_ll_status(C_LSTAT_RxOK)='1' then
           --//CRC - OK!
@@ -1537,7 +1568,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
       else
 
-          if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
+          if sr_ll_status_rcv_done='1' then--if p_in_ll_status(C_LSTAT_RxOK)='1' or p_in_ll_status(C_LSTAT_RxERR_CRC)='1' then
           --//Прием данных завершен
               i_rxd_en<='0';
 
@@ -1569,7 +1600,6 @@ p_out_dbg.fsm<=fsm_tlayer_cs;
 
 p_out_dbg.ctrl.ata_command<=p_in_tl_ctrl(C_TCTRL_RCOMMAND_WR_BIT);
 p_out_dbg.ctrl.ata_control<=p_in_tl_ctrl(C_TCTRL_RCONTROL_WR_BIT);
-p_out_dbg.ctrl.fpdma<=p_in_tl_ctrl(C_TCTRL_DMASETUP_WR_BIT);
 
 p_out_dbg.status.txfh2d_en<=i_tl_status(C_TSTAT_TxFISHOST2DEV_BIT);
 p_out_dbg.status.rxfistype_err<=i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT);
