@@ -29,46 +29,46 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_oob is
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl              : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - PHY Layer/Управление/Map:
-p_out_status           : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - PHY Layer/Статусы/Map
+p_in_ctrl           : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - PHY Layer/Управление/Map:
+p_out_status        : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - PHY Layer/Статусы/Map
 
-p_in_primitive_det     : in    std_logic_vector(C_TPMNAK downto C_TALIGN);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
-p_out_d10_2_senddis    : out   std_logic;                    --//Запрещение передачи кода D10.2
+p_in_primitive_det  : in    std_logic_vector(C_TPMNAK downto C_TALIGN);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
+p_out_d10_2_senddis : out   std_logic;                    --//Запрещение передачи кода D10.2
 
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_out_gtp_txelecidle   : out   std_logic;                    --//TX electircal idel
-p_out_gtp_txcomstart   : out   std_logic;                    --//TX OOB enable
-p_out_gtp_txcomtype    : out   std_logic;                    --//TX OOB type select
+p_out_gt_txelecidle : out   std_logic;                    --//TX electircal idel
+p_out_gt_txcomstart : out   std_logic;                    --//TX OOB enable
+p_out_gt_txcomtype  : out   std_logic;                    --//TX OOB type select
 
-p_in_gtp_rxelecidle    : in    std_logic;                    --//RX electrical idle
-p_in_gtp_rxstatus      : in    std_logic_vector(2 downto 0); --//RX OOB type
+p_in_gt_rxelecidle  : in    std_logic;                    --//RX electrical idle
+p_in_gt_rxstatus    : in    std_logic_vector(2 downto 0); --//RX OOB type
 
-p_out_gtp_rst          : out   std_logic;                    --//Сброс Tx/Rx PCM
+p_out_gt_rst        : out   std_logic;                    --//Сброс Tx/Rx PCM
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst               : in    std_logic_vector(31 downto 0);
-p_out_tst              : out   std_logic_vector(31 downto 0);
-p_out_dbg              : out   TPLoob_dbgport;
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_dbg           : out   TPLoob_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_tmrclk            : in    std_logic;--//Тактирование таймера timeout. Частота должна быть 75MHz!!!
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_tmrclk         : in    std_logic;--//Тактирование таймера timeout. Частота должна быть 75MHz!!!
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
 );
 end sata_player_oob;
 
@@ -76,10 +76,10 @@ architecture behavioral of sata_player_oob is
 
 signal fsm_ploob_cs             : TPLoob_fsm_state;
 
-signal i_gtp_txelecidle         : std_logic;
-signal i_gtp_txcomstart         : std_logic;
-signal i_gtp_txcomtype          : std_logic;
-signal i_gtp_pcm_rst            : std_logic;
+signal i_gt_txelecidle         : std_logic;
+signal i_gt_txcomstart         : std_logic;
+signal i_gt_txcomtype          : std_logic;
+signal i_gt_pcm_rst            : std_logic;
 
 signal i_tmr                    : std_logic_vector(19 downto 0);--//timer-timeout
 signal i_tmrout                 : std_logic;                    --//timeout - clk domane p_in_tmrclk
@@ -143,11 +143,11 @@ end generate gen_dbg_on;
 --//----------------------------------
 --//Связь с main PHY Layer
 --//----------------------------------
-p_out_gtp_txelecidle<=i_gtp_txelecidle;
-p_out_gtp_txcomstart<=i_gtp_txcomstart;
-p_out_gtp_txcomtype <=i_gtp_txcomtype;
+p_out_gt_txelecidle<=i_gt_txelecidle;
+p_out_gt_txcomstart<=i_gt_txcomstart;
+p_out_gt_txcomtype <=i_gt_txcomtype;
 
-p_out_gtp_rst<=i_gtp_pcm_rst;
+p_out_gt_rst<=i_gt_pcm_rst;
 
 p_out_d10_2_senddis<=i_d10_2_senddis;
 
@@ -183,10 +183,10 @@ begin
   if p_in_rst='1' then
     fsm_ploob_cs <= S_HR_IDLE;
 
-    i_gtp_txelecidle<='1';
-    i_gtp_txcomstart<='0';
-    i_gtp_txcomtype <='0';
-    i_gtp_pcm_rst<='0';
+    i_gt_txelecidle<='1';
+    i_gt_txcomstart<='0';
+    i_gt_txcomtype <='0';
+    i_gt_pcm_rst<='0';
 
     i_status<=(others=>'0');
     i_d10_2_senddis<='0';
@@ -209,9 +209,9 @@ begin
         i_d10_2_senddis<='0';
         i_status<=(others=>'0');
 
-        i_gtp_txelecidle<='1';
-        i_gtp_txcomstart<='0';
-        i_gtp_txcomtype <='0';
+        i_gt_txelecidle<='1';
+        i_gt_txcomstart<='0';
+        i_gt_txcomtype <='0';
 
         fsm_ploob_cs <= S_HR_COMRESET;
 
@@ -220,8 +220,8 @@ begin
       --//-------------------------------
       when S_HR_COMRESET =>
 
-        i_gtp_txcomstart<='1';--//Пуск сигнала COMRESET
-        i_gtp_txcomtype <='0';
+        i_gt_txcomstart<='1';--//Пуск сигнала COMRESET
+        i_gt_txcomtype <='0';
 
         if i_tmr_dly=CONV_STD_LOGIC_VECTOR(selval(16#0288#, 16#003#, strcmp(G_SIM, "OFF")), i_tmr_dly'length) then
           i_tmr_dly<=(others=>'0');
@@ -232,12 +232,12 @@ begin
 
       when S_HR_COMRESET_DONE =>
 
-        i_gtp_txcomstart<='0';
+        i_gt_txcomstart<='0';
 
-        if p_in_gtp_rxstatus(0)='1' then
+        if p_in_gt_rxstatus(0)='1' then
         --//Жду завершиения отправки сигнала COMRESET
         --//(флаг TXCOMSTART operation complete)
---          i_gtp_txelecidle<='0';
+--          i_gt_txelecidle<='0';
           i_timer_rst_n<='0';
           fsm_ploob_cs <= S_HR_AwaitCOMINIT;
 
@@ -256,7 +256,7 @@ begin
       --//-------------------------------
       when S_HR_AwaitCOMINIT =>
 
-        if p_in_gtp_rxstatus(2 downto 0)="100" then
+        if p_in_gt_rxstatus(2 downto 0)="100" then
             --Обнаружил сигнал COMINIT
             i_timer_rst_n<='0';
             fsm_ploob_cs <= S_HR_AwaitNoCOMINIT;
@@ -272,7 +272,7 @@ begin
 
       when S_HR_AwaitNoCOMINIT =>
 
-        if p_in_gtp_rxstatus(2 downto 0)="000" then
+        if p_in_gt_rxstatus(2 downto 0)="000" then
             --//Завершен прием сигнала COMINIT
             i_timer_rst_n<='0';
             fsm_ploob_cs <= S_HR_Calibrate;
@@ -291,7 +291,7 @@ begin
       --//-------------------------------
       when S_HR_Calibrate =>
 
---        i_gtp_txelecidle<='1';
+--        i_gt_txelecidle<='1';
         fsm_ploob_cs <= S_HR_COMWAKE;
 
 
@@ -300,8 +300,8 @@ begin
       --//-------------------------------
       when S_HR_COMWAKE =>
 
-        i_gtp_txcomstart<='1';--//Пуск сигнала COMWAKE
-        i_gtp_txcomtype <='1';
+        i_gt_txcomstart<='1';--//Пуск сигнала COMWAKE
+        i_gt_txcomtype <='1';
 
         if i_tmr_dly=CONV_STD_LOGIC_VECTOR(16#03#, i_tmr_dly'length) then
           i_tmr_dly<=(others=>'0');
@@ -312,12 +312,12 @@ begin
 
       when S_HR_COMWAKE_DONE =>
 
-        i_gtp_txcomstart<='0';
+        i_gt_txcomstart<='0';
 
-        if p_in_gtp_rxstatus(0)='1' then
+        if p_in_gt_rxstatus(0)='1' then
         --//Жду завершиения отправки сигнала COMWAKE
         --//(флаг TXCOMSTART operation complete)
---          i_gtp_txelecidle<='0';
+--          i_gt_txelecidle<='0';
           i_timer_rst_n<='0';
           fsm_ploob_cs <= S_HR_AwaitCOMWAKE;
         else
@@ -335,7 +335,7 @@ begin
       --//-------------------------------
       when S_HR_AwaitCOMWAKE =>
 
-        if p_in_gtp_rxstatus(2 downto 0)="010" then
+        if p_in_gt_rxstatus(2 downto 0)="010" then
             --Обнаружил сигнал COMWAKE
             i_timer_rst_n<='0';
             i_status(C_PSTAT_COMWAKE_RCV_BIT)<='1';
@@ -351,11 +351,11 @@ begin
 
       when S_HR_AwaitNoCOMWAKE =>
 
-        if p_in_gtp_rxstatus(2 downto 0)="000" then
+        if p_in_gt_rxstatus(2 downto 0)="000" then
         --//Завершен прием сигнала COMWAKE
             i_timer_rst_n<='0';
 
-            i_gtp_pcm_rst<='1';--//сброс GT_TXPCM(RXPCM)
+            i_gt_pcm_rst<='1';--//сброс GT_TXPCM(RXPCM)
                                --//см. Table 5-7/ ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
 
             i_status(C_PSTAT_DET_DEV_ON_BIT)<='1';
@@ -375,10 +375,10 @@ begin
       --//-------------------------------
       when S_HR_AwaitAlign =>
 
-        i_gtp_pcm_rst<='0';
+        i_gt_pcm_rst<='0';
 
-        if p_in_gtp_rxelecidle='0' then
-            i_gtp_txelecidle<='0';
+        if p_in_gt_rxelecidle='0' then
+            i_gt_txelecidle<='0';
 
             if p_in_primitive_det(C_TALIGN)='1' then
                 --Принял ALIGN Primitive
@@ -441,7 +441,7 @@ begin
 
         i_timer_rst_n<='0';
 
-        if p_in_gtp_rxelecidle = '1' then
+        if p_in_gt_rxelecidle = '1' then
           fsm_ploob_cs <= S_HR_Disconnect;
         end if;
 

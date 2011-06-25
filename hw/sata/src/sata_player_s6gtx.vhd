@@ -28,10 +28,10 @@ use work.sata_pkg.all;
 entity sata_player_gt is
 generic
 (
-G_SATAH_NUM  : integer := 0;
-G_GT_CH_COUNT: integer := 2;
-G_GT_DBUS    : integer := 16;
-G_SIM        : string  := "OFF"
+G_SATAH_NUM   : integer:=0;
+G_GT_CH_COUNT : integer:=2;
+G_GT_DBUS     : integer:=16;
+G_SIM         : string :="OFF"
 );
 port
 (

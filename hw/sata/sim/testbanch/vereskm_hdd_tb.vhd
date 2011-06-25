@@ -127,11 +127,13 @@ p_in_rst              : in    std_logic
 );
 end component;
 
-signal i_sata_gtp_refclkmain      : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_gt_refclkmain      : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 signal g_host_clk                 : std_logic;
 signal p_in_clk                   : std_logic;
 signal i_dsn_hdd_rst              : std_logic:='1';
 
+signal i_tst_mode                 : std_logic;
+signal i_tst_command              : integer;
 signal i_sw_mode                  : std_logic;
 signal i_sw_sata_cs               : integer;
 signal i_hw_mode                  : std_logic;
@@ -163,6 +165,9 @@ signal i_dev_cfg_wd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_rd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_done             : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 
+signal i_dsnhdd_reg_ctrl_write    : std_logic;
+signal i_dsnhdd_reg_ctrl_val      : std_logic_vector(15 downto 0);
+
 signal i_rbuf_cfg                 : THDDRBufCfg;
 signal i_rbuf_status              : THDDRBufStatus;
 
@@ -180,18 +185,18 @@ signal i_hdd_busy                 : std_logic;
 signal i_hdd_irq                  : std_logic;
 signal i_hdd_done                 : std_logic;
 
-signal i_hdd_sim_gtp_txdata           : TBus32_SHCountMax;
-signal i_hdd_sim_gtp_txcharisk        : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_txcomstart       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_rxdata           : TBus32_SHCountMax;
-signal i_hdd_sim_gtp_rxcharisk        : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_rxstatus         : TBus03_SHCountMax;
-signal i_hdd_sim_gtp_rxelecidle       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_rxdisperr        : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_rxnotintable     : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_txdata            : TBus32_SHCountMax;
+signal i_hdd_sim_gt_txcharisk         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_txcomstart        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdata            : TBus32_SHCountMax;
+signal i_hdd_sim_gt_rxcharisk         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxstatus          : TBus03_SHCountMax;
+signal i_hdd_sim_gt_rxelecidle        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdisperr         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxnotintable      : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal i_hdd_mem_bank1h               : std_logic_vector(15 downto 0);
 signal i_hdd_mem_ce                   : std_logic;
@@ -268,34 +273,34 @@ port map
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata          => i_hdd_sim_gtp_rxdata(i),
-p_out_gtp_txcharisk       => i_hdd_sim_gtp_rxcharisk(i),
+p_out_gt_txdata          => i_hdd_sim_gt_rxdata(i),
+p_out_gt_txcharisk       => i_hdd_sim_gt_rxcharisk(i),
 
-p_in_gtp_txcomstart       => i_hdd_sim_gtp_txcomstart(i),
+p_in_gt_txcomstart       => i_hdd_sim_gt_txcomstart(i),
 
-p_in_gtp_rxdata           => i_hdd_sim_gtp_txdata(i),
-p_in_gtp_rxcharisk        => i_hdd_sim_gtp_txcharisk(i),
+p_in_gt_rxdata           => i_hdd_sim_gt_txdata(i),
+p_in_gt_rxcharisk        => i_hdd_sim_gt_txcharisk(i),
 
-p_out_gtp_rxstatus        => i_hdd_sim_gtp_rxstatus(i),
-p_out_gtp_rxelecidle      => i_hdd_sim_gtp_rxelecidle(i),
-p_out_gtp_rxdisperr       => i_hdd_sim_gtp_rxdisperr(i),
-p_out_gtp_rxnotintable    => i_hdd_sim_gtp_rxnotintable(i),
-p_out_gtp_rxbyteisaligned => i_hdd_sim_gtp_rxbyteisaligned(i),
+p_out_gt_rxstatus        => i_hdd_sim_gt_rxstatus(i),
+p_out_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle(i),
+p_out_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr(i),
+p_out_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable(i),
+p_out_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned(i),
 
-p_in_ctrl                 => i_satadev_ctrl,
-p_out_status              => i_satadev_status(i),
+p_in_ctrl                => i_satadev_ctrl,
+p_out_status             => i_satadev_status(i),
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  => "00000000000000000000000000000000",
-p_out_tst                 => open,
+p_in_tst                 => "00000000000000000000000000000000",
+p_out_tst                => open,
 
 ----------------------------
 --System
 ----------------------------
-p_in_clk                  => i_hdd_sim_gtp_clk(i),
-p_in_rst                  => i_hdd_sim_gtp_rst(i)
+p_in_clk                 => i_hdd_sim_gt_clk(i),
+p_in_rst                 => i_hdd_sim_gt_rst(i)
 );
 
 end generate gen_satad;
@@ -304,9 +309,9 @@ end generate gen_satad;
 gen_refclk_sata : for i in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 gen_clk_sata : process
 begin
-  i_sata_gtp_refclkmain(i)<='0';
+  i_sata_gt_refclkmain(i)<='0';
   wait for C_SATACLK_PERIOD/2;
-  i_sata_gtp_refclkmain(i)<='1';
+  i_sata_gt_refclkmain(i)<='1';
   wait for C_SATACLK_PERIOD/2;
 end process;
 end generate gen_refclk_sata;
@@ -402,7 +407,7 @@ p_out_sata_txp         => i_sata_txp,
 p_in_sata_rxn          => i_sata_rxn,
 p_in_sata_rxp          => i_sata_rxp,
 
-p_in_sata_refclk       => i_sata_gtp_refclkmain,
+p_in_sata_refclk       => i_sata_gt_refclkmain,
 p_out_sata_refclkout   => open,
 p_out_sata_gt_plldet   => open,
 
@@ -415,18 +420,18 @@ p_out_tst              => tst_hdd_out,
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
-p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
-p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
-p_in_sim_gtp_rxdata         => i_hdd_sim_gtp_rxdata,
-p_in_sim_gtp_rxcharisk      => i_hdd_sim_gtp_rxcharisk,
-p_in_sim_gtp_rxstatus       => i_hdd_sim_gtp_rxstatus,
-p_in_sim_gtp_rxelecidle     => i_hdd_sim_gtp_rxelecidle,
-p_in_sim_gtp_rxdisperr      => i_hdd_sim_gtp_rxdisperr,
-p_in_sim_gtp_rxnotintable   => i_hdd_sim_gtp_rxnotintable,
-p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
-p_out_gtp_sim_rst           => i_hdd_sim_gtp_rst,
-p_out_gtp_sim_clk           => i_hdd_sim_gtp_clk,
+p_out_sim_gt_txdata         => i_hdd_sim_gt_txdata,
+p_out_sim_gt_txcharisk      => i_hdd_sim_gt_txcharisk,
+p_out_sim_gt_txcomstart     => i_hdd_sim_gt_txcomstart,
+p_in_sim_gt_rxdata          => i_hdd_sim_gt_rxdata,
+p_in_sim_gt_rxcharisk       => i_hdd_sim_gt_rxcharisk,
+p_in_sim_gt_rxstatus        => i_hdd_sim_gt_rxstatus,
+p_in_sim_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle,
+p_in_sim_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr,
+p_in_sim_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable,
+p_in_sim_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned,
+p_out_gt_sim_rst            => i_hdd_sim_gt_rst,
+p_out_gt_sim_clk            => i_hdd_sim_gt_clk,
 
 p_out_dbgled                => open,
 
@@ -553,7 +558,7 @@ lcmddone:process(i_dsn_hdd_rst,p_in_clk)
 begin
   if i_dsn_hdd_rst='1' then
 
-    sr_cmdbusy<=(others=>'1');
+    sr_cmdbusy<=(others=>'0');--sr_cmdbusy<=(others=>'1');
     i_cmddone_det<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -579,9 +584,9 @@ begin
 
   wait until i_cmddone_det_clr='1';
 
-  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
+  wait until i_hdd_sim_gt_clk(0)'event and i_hdd_sim_gt_clk(0) = '1';
   i_satadev_ctrl.atacmd_done<='1';
-  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
+  wait until i_hdd_sim_gt_clk(0)'event and i_hdd_sim_gt_clk(0) = '1';
   i_satadev_ctrl.atacmd_done<='0';
 
 end process;
@@ -663,17 +668,30 @@ begin
       wait until i_cmd_wrstart = '1';--//Ждем разрешения записи данных
 
       wait until g_host_clk'event and g_host_clk='1';
+        if i_dsnhdd_reg_ctrl_write='0' then
         i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+        else
+        i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfgdev_adr'length);
+        end if;
+
         i_cfgdev_adr_ld<='1';
-        i_cfgdev_adr_fifo<='1';
+        i_cfgdev_adr_fifo<=not i_dsnhdd_reg_ctrl_write;
       wait until g_host_clk'event and g_host_clk='1';
         i_cfgdev_adr_ld<='0';
-        i_cfgdev_adr_fifo<='1';
+        i_cfgdev_adr_fifo<=not i_dsnhdd_reg_ctrl_write;
 
-      wait until g_host_clk'event and g_host_clk='1';
-      p_CMDPKT_WRITE(g_host_clk,
-                    i_cmd_data,
-                    i_cfgdev_txdata, i_dev_cfg_wd(C_CFGDEV_HDD));
+      if i_dsnhdd_reg_ctrl_write='0' then
+        wait until g_host_clk'event and g_host_clk='1';
+          p_CMDPKT_WRITE(g_host_clk,
+                        i_cmd_data,
+                        i_cfgdev_txdata, i_dev_cfg_wd(C_CFGDEV_HDD));
+      else
+        wait until g_host_clk'event and g_host_clk='1';
+        i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_val;
+        i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+        wait until g_host_clk'event and g_host_clk='1';
+        i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+      end if;
 
       wait until g_host_clk'event and g_host_clk='1';
         i_dev_cfg_done(C_CFGDEV_HDD)<='1';
@@ -930,6 +948,20 @@ begin
   --//---------------------------------------------------
   --/Инициализация
   --//---------------------------------------------------
+  i_tst_mode<='1';
+      i_tst_command<=C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_DMA_EXT;--;C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
+      i_dsnhdd_reg_ctrl_val<=(others=>'0');
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_ON_BIT)<='1';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_MEASURE_BUSY_ONLY_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
+      i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GENTDATA_BIT)<='0';
+
   i_sw_mode<='1';
   i_sw_sata_cs<=16#01#;
 
@@ -944,6 +976,7 @@ begin
   i_loopback<='0';
   i_cmddone_det_clr<='0';
   i_dsn_hdd_regcfg_start<='0';
+  i_dsnhdd_reg_ctrl_write<='0';
 
   for i in 0 to i_cmd_data'high loop
   i_cmd_data(i)<=(others=>'0');
@@ -1008,7 +1041,7 @@ begin
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--;C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--;C_ATA_CMD_NOP;--
-  cfgCmdPkt(0).scount:=1;--//Кол-во секторов
+  cfgCmdPkt(0).scount:=6;--//Кол-во секторов
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
   cfgCmdPkt(0).loopback:='1';
 
@@ -1016,7 +1049,7 @@ begin
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(1).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(1).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
-  cfgCmdPkt(1).scount:=1;
+  cfgCmdPkt(1).scount:=6;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#6655#, 16)&CONV_STD_LOGIC_VECTOR(16#4433#, 16)&CONV_STD_LOGIC_VECTOR(16#2211#, 16);--//LBA
   cfgCmdPkt(1).loopback:='1';
   end if;
@@ -1025,17 +1058,17 @@ begin
   cfgCmdPkt(2).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(2).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
   cfgCmdPkt(2).command:=C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--
-  cfgCmdPkt(2).scount:=4;
+  cfgCmdPkt(2).scount:=6;
   cfgCmdPkt(2).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
-  cfgCmdPkt(2).loopback:='1';
+  cfgCmdPkt(2).loopback:='0';
 
   cfgCmdPkt(3).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sw_sata_cs, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(3).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(3).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
-  cfgCmdPkt(3).command:=C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_READ_DMA_EXT;--
-  cfgCmdPkt(3).scount:=4;
+  cfgCmdPkt(3).command:=C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_READ_DMA_EXT;--
+  cfgCmdPkt(3).scount:=6;
   cfgCmdPkt(3).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
-  cfgCmdPkt(3).loopback:='1';
+  cfgCmdPkt(3).loopback:='0';
 
   cfgCmdPkt(4).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sw_sata_cs, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(4).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
@@ -1125,6 +1158,24 @@ begin
       wait until p_in_clk'event and p_in_clk='1';
       i_cmddone_det_clr<='0';
 
+
+      if i_tst_mode='1' then
+      write(GUI_line,string'("TST_MODE - ON."));writeline(output, GUI_line);
+        --//Конфигурируем тестовый режим
+        wait until p_in_clk'event and p_in_clk='1';
+        i_dsnhdd_reg_ctrl_write<='1';
+        wait until p_in_clk'event and p_in_clk='1';
+        i_cmd_wrstart<='1';
+        wait until p_in_clk'event and p_in_clk='1';
+        i_cmd_wrstart<='0';
+
+          --//Ждем отправки подтверждения записи командного пакета
+        wait until i_cmd_wrdone='1';
+        wait until p_in_clk'event and p_in_clk='1';
+        i_dsnhdd_reg_ctrl_write<='0';
+      end if;--if i_tst_mode='1' then
+
+
       write(GUI_line,string'("NEW ATA COMMAND 1."));writeline(output, GUI_line);
 
       --//Заполняем CmdPkt
@@ -1135,7 +1186,11 @@ begin
       i_cmd_data(4)<=cfgCmdPkt(idx).lba(47 downto 40) & cfgCmdPkt(idx).lba(39 downto 32);
       i_cmd_data(5)<=CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).scount, 16);--//SectorCount
       i_cmd_data(6)<=cfgCmdPkt(idx).control & cfgCmdPkt(idx).device;--//Control + Device
+      if i_tst_mode='0' then
       i_cmd_data(7)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).command, 8);--//Reserv + ATA Commad
+      else
+      i_cmd_data(7)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(i_tst_command, 8);--//Reserv + ATA Commad
+      end if;
 
 
       if cfgCmdPkt(idx).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(1, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1) or
@@ -1161,8 +1216,6 @@ begin
 
       end if;
 
-
-      --//Запускаем автомат записи командного пакета
       wait until p_in_clk'event and p_in_clk='1';
       i_cmd_wrstart<='1';
       wait until p_in_clk'event and p_in_clk='1';
@@ -1173,34 +1226,37 @@ begin
       wait until i_cmd_wrdone='1';
 
 
-      if cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_DMA_EXT then
-      --//Запускаем автомат записи данных
-        wait until p_in_clk'event and p_in_clk='1';
-        i_ram_txbuf_start<='1';
-        cmd_write:='1';
+      --//Запускаем автомат записи командного пакета
+      if i_tst_mode='0' then
+            if cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_DMA_EXT then
+            --//Запускаем автомат записи данных
+              wait until p_in_clk'event and p_in_clk='1';
+              i_ram_txbuf_start<='1';
+              cmd_write:='1';
 
-        wait until p_in_clk'event and p_in_clk='1';
-        i_ram_txbuf_start<='0';
+              wait until p_in_clk'event and p_in_clk='1';
+              i_ram_txbuf_start<='0';
 
-        --//Ждем когда запишем все данные в TxBUF
-        wait until i_ram_txbuf_done='1';
-      end if;
+              --//Ждем когда запишем все данные в TxBUF
+              wait until i_ram_txbuf_done='1';
+            end if;
 
-      if cfgCmdPkt(idx).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_READ_DMA_EXT then
-      --//Запускаем автомат чтния данных
-        wait until p_in_clk'event and p_in_clk='1';
-        i_ram_rxbuf_start<='1';
-        cmd_read:='1';
+            if cfgCmdPkt(idx).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_READ_DMA_EXT then
+            --//Запускаем автомат чтния данных
+              wait until p_in_clk'event and p_in_clk='1';
+              i_ram_rxbuf_start<='1';
+              cmd_read:='1';
 
-        wait until p_in_clk'event and p_in_clk='1';
-        i_ram_rxbuf_start<='0';
+              wait until p_in_clk'event and p_in_clk='1';
+              i_ram_rxbuf_start<='0';
 
-        --//Ждем когда прочитаем все данные из RxBUF
-        wait until i_ram_rxbuf_done='1';
-      end if;
+              --//Ждем когда прочитаем все данные из RxBUF
+              wait until i_ram_rxbuf_done='1';
+            end if;
+      end if;--if i_tst_mode='0' then
 
 
-      if i_loopback='0' then
+      if i_loopback='0' or i_tst_mode='1' then
         write(GUI_line,string'("LOOPBACK DATA: disable")); writeline(output, GUI_line);
         cmd_write:='0';
         cmd_read:='0';
@@ -1280,7 +1336,11 @@ begin
       i_cmd_data(4)<=cfgCmdPkt(1).lba(47 downto 40) & cfgCmdPkt(1).lba(39 downto 32);
       i_cmd_data(5)<=CONV_STD_LOGIC_VECTOR(cfgCmdPkt(1).scount, 16);--//SectorCount
       i_cmd_data(6)<=cfgCmdPkt(1).control & cfgCmdPkt(1).device;--//Control + Device
+      if i_tst_mode='0' then
       i_cmd_data(7)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(cfgCmdPkt(1).command, 8);--//Reserv + ATA Commad
+      else
+      i_cmd_data(7)<=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(i_tst_command, 8);--//Reserv + ATA Commad
+      end if;
 
       i_tstdata_dwsize<=cfgCmdPkt(1).scount * C_SIM_SECTOR_SIZE_DWORD;--//Назначаем размер данных в DWORD
 
@@ -1297,31 +1357,48 @@ begin
 
       wait until p_in_clk'event and p_in_clk='1';
 
-      if cfgCmdPkt(1).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_WRITE_DMA_EXT then
-      --//Запускаем автомат записи данных
+      if i_tst_mode='0' then
+            if cfgCmdPkt(1).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_WRITE_DMA_EXT then
+            --//Запускаем автомат записи данных
+              wait until p_in_clk'event and p_in_clk='1';
+              i_vdata_start<='1';
+              cmd_write:='1';
+
+              wait until p_in_clk'event and p_in_clk='1';
+              i_vdata_start<='0';
+
+      --        --//Ждем когда запишем все данные в TxBUF
+      --        wait until i_vdata_done='1';
+            end if;
+
+            if cfgCmdPkt(1).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_READ_DMA_EXT then
+            --//Запускаем автомат чтния данных
+              wait until p_in_clk'event and p_in_clk='1';
+              i_ram_rxbuf_start<='1';
+              cmd_read:='1';
+
+              wait until p_in_clk'event and p_in_clk='1';
+              i_ram_rxbuf_start<='0';
+
+      --        --//Ждем когда прочитаем все данные из RxBUF
+      --        wait until i_ram_rxbuf_done='1';
+            end if;
+      else
+        --//Конфигурируем тестовый режим
         wait until p_in_clk'event and p_in_clk='1';
-        i_vdata_start<='1';
-        cmd_write:='1';
-
+        i_dsnhdd_reg_ctrl_write<='1';
         wait until p_in_clk'event and p_in_clk='1';
-        i_vdata_start<='0';
-
---        --//Ждем когда запишем все данные в TxBUF
---        wait until i_vdata_done='1';
-      end if;
-
-      if cfgCmdPkt(1).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_READ_DMA_EXT then
-      --//Запускаем автомат чтния данных
+        i_cmd_wrstart<='1';
         wait until p_in_clk'event and p_in_clk='1';
-        i_ram_rxbuf_start<='1';
-        cmd_read:='1';
+        i_cmd_wrstart<='0';
 
+          --//Ждем отправки подтверждения записи командного пакета
+        wait until i_cmd_wrdone='1';
         wait until p_in_clk'event and p_in_clk='1';
-        i_ram_rxbuf_start<='0';
+        i_dsnhdd_reg_ctrl_write<='0';
 
---        --//Ждем когда прочитаем все данные из RxBUF
---        wait until i_ram_rxbuf_done='1';
-      end if;
+      end if;--if i_tst_mode='0' then
+
 
       wait for 30 us;
       wait until p_in_clk'event and p_in_clk='1';

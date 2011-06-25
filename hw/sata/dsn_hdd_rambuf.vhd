@@ -354,6 +354,10 @@ begin
         i_rambuf_done<='0';
         i_rambuf_full<='0';
 
+      if p_in_rbuf_cfg.dmacfg.tst_mode='1' and p_in_rbuf_cfg.dmacfg.tstgen.con2rambuf='0' then
+
+        fsm_rambuf_cs <= S_IDLE;
+      else
         if p_in_rbuf_cfg.dmacfg.start='1' then
         --//Готовим контроллер ОЗУ:
 
@@ -382,7 +386,7 @@ begin
             fsm_rambuf_cs <= S_HW_MEMW_CHECK;
           end if;
         end if;
-
+      end if;
 
       --//####################################
       --//Режим работы SW

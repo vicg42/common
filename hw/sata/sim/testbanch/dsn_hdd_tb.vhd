@@ -48,7 +48,7 @@ architecture behavior of dsn_hdd_tb is
 constant C_SATACLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
 
-signal i_sata_gtp_refclkmain      : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+signal i_sata_gt_refclkmain       : std_logic_vector((C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 signal p_in_clk                   : std_logic;
 signal i_dsn_hdd_rst              : std_logic;
 
@@ -85,18 +85,18 @@ signal i_hdd_rdy                  : std_logic;
 signal i_hdd_error                : std_logic;
 signal i_hdd_busy                 : std_logic;
 
-signal i_hdd_sim_gtp_txdata           : TBus32_SHCountMax;
-signal i_hdd_sim_gtp_txcharisk        : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_txcomstart       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_rxdata           : TBus32_SHCountMax;
-signal i_hdd_sim_gtp_rxcharisk        : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_rxstatus         : TBus03_SHCountMax;
-signal i_hdd_sim_gtp_rxelecidle       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_rxdisperr        : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_rxnotintable     : TBus04_SHCountMax;
-signal i_hdd_sim_gtp_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_hdd_sim_gtp_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_txdata           : TBus32_SHCountMax;
+signal i_hdd_sim_gt_txcharisk        : TBus04_SHCountMax;
+signal i_hdd_sim_gt_txcomstart       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdata           : TBus32_SHCountMax;
+signal i_hdd_sim_gt_rxcharisk        : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxstatus         : TBus03_SHCountMax;
+signal i_hdd_sim_gt_rxelecidle       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdisperr        : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxnotintable     : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal tst_hdd_out                : std_logic_vector(31 downto 0);
 
@@ -196,7 +196,7 @@ p_out_sata_txp              => i_sata_txp,
 p_in_sata_rxn               => i_sata_rxn,
 p_in_sata_rxp               => i_sata_rxp,
 
-p_in_sata_refclk            => i_sata_gtp_refclkmain,
+p_in_sata_refclk            => i_sata_gt_refclkmain,
 p_out_sata_refclkout        => open,
 p_out_sata_gt_plldet        => open,
 
@@ -209,18 +209,18 @@ p_out_tst                   => tst_hdd_out,
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        => i_hdd_sim_gtp_txdata,
-p_out_sim_gtp_txcharisk     => i_hdd_sim_gtp_txcharisk,
-p_out_sim_gtp_txcomstart    => i_hdd_sim_gtp_txcomstart,
-p_in_sim_gtp_rxdata         => i_hdd_sim_gtp_rxdata,
-p_in_sim_gtp_rxcharisk      => i_hdd_sim_gtp_rxcharisk,
-p_in_sim_gtp_rxstatus       => i_hdd_sim_gtp_rxstatus,
-p_in_sim_gtp_rxelecidle     => i_hdd_sim_gtp_rxelecidle,
-p_in_sim_gtp_rxdisperr      => i_hdd_sim_gtp_rxdisperr,
-p_in_sim_gtp_rxnotintable   => i_hdd_sim_gtp_rxnotintable,
-p_in_sim_gtp_rxbyteisaligned=> i_hdd_sim_gtp_rxbyteisaligned,
-p_out_gtp_sim_rst           => i_hdd_sim_gtp_rst,
-p_out_gtp_sim_clk           => i_hdd_sim_gtp_clk,
+p_out_sim_gt_txdata        => i_hdd_sim_gt_txdata,
+p_out_sim_gt_txcharisk     => i_hdd_sim_gt_txcharisk,
+p_out_sim_gt_txcomstart    => i_hdd_sim_gt_txcomstart,
+p_in_sim_gt_rxdata         => i_hdd_sim_gt_rxdata,
+p_in_sim_gt_rxcharisk      => i_hdd_sim_gt_rxcharisk,
+p_in_sim_gt_rxstatus       => i_hdd_sim_gt_rxstatus,
+p_in_sim_gt_rxelecidle     => i_hdd_sim_gt_rxelecidle,
+p_in_sim_gt_rxdisperr      => i_hdd_sim_gt_rxdisperr,
+p_in_sim_gt_rxnotintable   => i_hdd_sim_gt_rxnotintable,
+p_in_sim_gt_rxbyteisaligned=> i_hdd_sim_gt_rxbyteisaligned,
+p_out_gt_sim_rst           => i_hdd_sim_gt_rst,
+p_out_gt_sim_clk           => i_hdd_sim_gt_clk,
 
 p_out_dbgled                => open,
 
@@ -245,19 +245,19 @@ port map
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata            => i_hdd_sim_gtp_rxdata(i),
-p_out_gtp_txcharisk         => i_hdd_sim_gtp_rxcharisk(i),
+p_out_gt_txdata            => i_hdd_sim_gt_rxdata(i),
+p_out_gt_txcharisk         => i_hdd_sim_gt_rxcharisk(i),
 
-p_in_gtp_txcomstart         => i_hdd_sim_gtp_txcomstart(i),
+p_in_gt_txcomstart         => i_hdd_sim_gt_txcomstart(i),
 
-p_in_gtp_rxdata             => i_hdd_sim_gtp_txdata(i),
-p_in_gtp_rxcharisk          => i_hdd_sim_gtp_txcharisk(i),
+p_in_gt_rxdata             => i_hdd_sim_gt_txdata(i),
+p_in_gt_rxcharisk          => i_hdd_sim_gt_txcharisk(i),
 
-p_out_gtp_rxstatus          => i_hdd_sim_gtp_rxstatus(i),
-p_out_gtp_rxelecidle        => i_hdd_sim_gtp_rxelecidle(i),
-p_out_gtp_rxdisperr         => i_hdd_sim_gtp_rxdisperr(i),
-p_out_gtp_rxnotintable      => i_hdd_sim_gtp_rxnotintable(i),
-p_out_gtp_rxbyteisaligned   => i_hdd_sim_gtp_rxbyteisaligned(i),
+p_out_gt_rxstatus          => i_hdd_sim_gt_rxstatus(i),
+p_out_gt_rxelecidle        => i_hdd_sim_gt_rxelecidle(i),
+p_out_gt_rxdisperr         => i_hdd_sim_gt_rxdisperr(i),
+p_out_gt_rxnotintable      => i_hdd_sim_gt_rxnotintable(i),
+p_out_gt_rxbyteisaligned   => i_hdd_sim_gt_rxbyteisaligned(i),
 
 p_in_ctrl                   => i_satadev_ctrl,
 p_out_status                => i_satadev_status(i),
@@ -271,8 +271,8 @@ p_out_tst                  => open,
 ----------------------------
 --System
 ----------------------------
-p_in_clk                   => i_hdd_sim_gtp_clk(i),
-p_in_rst                   => i_hdd_sim_gtp_rst(i)
+p_in_clk                   => i_hdd_sim_gt_clk(i),
+p_in_rst                   => i_hdd_sim_gt_rst(i)
 );
 
 end generate gen_satad;
@@ -280,9 +280,9 @@ end generate gen_satad;
 gen_refclk_sata : for i in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 gen_clk_sata : process
 begin
-  i_sata_gtp_refclkmain(i)<='0';
+  i_sata_gt_refclkmain(i)<='0';
   wait for C_SATACLK_PERIOD/2;
-  i_sata_gtp_refclkmain(i)<='1';
+  i_sata_gt_refclkmain(i)<='1';
   wait for C_SATACLK_PERIOD/2;
 end process;
 end generate gen_refclk_sata;
@@ -593,9 +593,9 @@ begin
 
   wait until i_cmddone_det_clr='1';
 
-  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
+  wait until i_hdd_sim_gt_clk(0)'event and i_hdd_sim_gt_clk(0) = '1';
   i_satadev_ctrl.atacmd_done<='1';
-  wait until i_hdd_sim_gtp_clk(0)'event and i_hdd_sim_gtp_clk(0) = '1';
+  wait until i_hdd_sim_gt_clk(0)'event and i_hdd_sim_gt_clk(0) = '1';
   i_satadev_ctrl.atacmd_done<='0';
 
 end process;

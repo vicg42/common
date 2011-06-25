@@ -109,8 +109,12 @@ constant C_USR_GCTRL_ATADONE_ACK_BIT     : integer:=2;
 constant C_USR_GCTRL_TST_ON_BIT          : integer:=3;
 constant C_USR_GCTRL_TST_RANDOM_BIT      : integer:=4;
 constant C_USR_GCTRL_RAMBUF_ERR_BIT      : integer:=5;
-constant C_USR_GCTRL_RESERV_BIT          : integer:=6;
-constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_RESERV_BIT;
+constant C_USR_GCTRL_TST_GEN2RAMBUF_BIT  : integer:=6;
+constant C_USR_GCTRL_TST_GENTDATA_BIT    : integer:=7;
+constant C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT  : integer:=8;
+constant C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT : integer:=9;
+constant C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT : integer:=10;
+constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT;
 
 
 --//-------------------------------------------------
@@ -691,10 +695,11 @@ end record;
 type TMeasureStatus is record
 tdly  : std_logic_vector(31 downto 0);
 twork : std_logic_vector(31 downto 0);
+dly   : std_logic;
 end record;
 
 type TSpdCtrl is record
-change   : std_logic;
+--change   : std_logic;
 sata_ver : std_logic_vector(C_PCTRL_SPD_BIT_M downto C_PCTRL_SPD_BIT_L);
 end record;
 

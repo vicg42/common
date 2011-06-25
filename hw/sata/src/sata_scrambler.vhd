@@ -27,20 +27,20 @@ use work.vicg_common_pkg.all;
 entity sata_scrambler is
 generic
 (
-G_INIT_VAL             : integer   := 16#FFFF#
+G_INIT_VAL : integer:=16#FFFF#
 );
 port
 (
-p_in_SOF               : in    std_logic;
-p_in_en                : in    std_logic;
-p_out_result           : out   std_logic_vector(31 downto 0);
+p_in_SOF      : in    std_logic;
+p_in_en       : in    std_logic;
+p_out_result  : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
---p_in_clk_en            : in    std_logic;
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+--p_in_clk_en   : in    std_logic;
+p_in_clk      : in    std_logic;
+p_in_rst      : in    std_logic
 );
 end sata_scrambler;
 

@@ -253,8 +253,8 @@ procedure p_SetData(
 procedure p_SetSYNC(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -267,8 +267,8 @@ procedure p_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -278,8 +278,8 @@ procedure p_SendFIS(
 procedure p_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -289,8 +289,8 @@ procedure p_GetFIS(
 procedure p_ATAPIO_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -300,8 +300,8 @@ procedure p_ATAPIO_READ(
 procedure p_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -311,8 +311,8 @@ procedure p_ATAPIO_WRITE(
 procedure p_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -322,8 +322,8 @@ procedure p_ATADMA_READ(
 procedure p_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -333,8 +333,8 @@ procedure p_ATADMA_WRITE(
 procedure p_COMMAND_ACTIVATE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -344,10 +344,10 @@ procedure p_COMMAND_ACTIVATE(
 procedure p_CMDPKT_WRITE(
   signal p_in_cmdfifo_wrclk  : in    std_logic;
 
-  signal p_in_cmdpkt          : in    TUsrAppCmdPkt;
+  signal p_in_cmdpkt         : in    TUsrAppCmdPkt;
 
-  signal p_out_cmdfifo_din    : out   std_logic_vector(15 downto 0);
-  signal p_out_cmdfifo_wr     : out   std_logic
+  signal p_out_cmdfifo_din   : out   std_logic_vector(15 downto 0);
+  signal p_out_cmdfifo_wr    : out   std_logic
 );
 
 
@@ -358,8 +358,8 @@ procedure p_BUF_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -369,8 +369,8 @@ procedure p_BUF_SendFIS(
 procedure p_BUF_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -380,8 +380,8 @@ procedure p_BUF_GetFIS(
 procedure p_BUF_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -391,8 +391,8 @@ procedure p_BUF_ATADMA_READ(
 procedure p_BUF_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -402,8 +402,8 @@ procedure p_BUF_ATADMA_WRITE(
 procedure p_BUF_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -413,8 +413,8 @@ procedure p_BUF_ATAPIO_WRITE(
 procedure p_ATAPIO_NULL(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -432,34 +432,34 @@ port
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata            : out   std_logic_vector(31 downto 0);
-p_out_gtp_txcharisk         : out   std_logic_vector(3 downto 0);
+p_out_gt_txdata          : out   std_logic_vector(31 downto 0);
+p_out_gt_txcharisk       : out   std_logic_vector(3 downto 0);
 
-p_in_gtp_txcomstart         : in    std_logic;
+p_in_gt_txcomstart       : in    std_logic;
 
-p_in_gtp_rxdata             : in    std_logic_vector(31 downto 0);
-p_in_gtp_rxcharisk          : in    std_logic_vector(3 downto 0);
+p_in_gt_rxdata           : in    std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk        : in    std_logic_vector(3 downto 0);
 
-p_out_gtp_rxstatus          : out   std_logic_vector(2 downto 0);
-p_out_gtp_rxelecidle        : out   std_logic;
-p_out_gtp_rxdisperr         : out   std_logic_vector(3 downto 0);
-p_out_gtp_rxnotintable      : out   std_logic_vector(3 downto 0);
-p_out_gtp_rxbyteisaligned   : out   std_logic;
+p_out_gt_rxstatus        : out   std_logic_vector(2 downto 0);
+p_out_gt_rxelecidle      : out   std_logic;
+p_out_gt_rxdisperr       : out   std_logic_vector(3 downto 0);
+p_out_gt_rxnotintable    : out   std_logic_vector(3 downto 0);
+p_out_gt_rxbyteisaligned : out   std_logic;
 
-p_in_ctrl                   : in    TSataDevCtrl;
-p_out_status                : out   TSataDevStatus;
+p_in_ctrl                : in    TSataDevCtrl;
+p_out_status             : out   TSataDevStatus;
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
+p_in_tst                 : in    std_logic_vector(31 downto 0);
+p_out_tst                : out   std_logic_vector(31 downto 0);
 
 ----------------------------
 --System
 ----------------------------
-p_in_clk                    : in    std_logic;
-p_in_rst                    : in    std_logic
+p_in_clk                 : in    std_logic;
+p_in_rst                 : in    std_logic
 );
 end component;
 
@@ -873,8 +873,8 @@ end;--//procedure p_SetData
 procedure p_SetSYNC(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata    : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -907,12 +907,12 @@ txcomp_cnt:=1;
 while txcomp_cnt/=4 loop
       if txcomp_cnt/=3 then
           if txcomp_cnt=2 then
-            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           else
-            p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
       else
-          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
       end if;
       txcomp_cnt:=txcomp_cnt + 1;
 end loop;
@@ -931,8 +931,8 @@ procedure p_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -979,13 +979,13 @@ write(GUI_line,string'("Wait R_RDY(Host rdy recive data) ...."));writeline(outpu
 while p_in_usropt.rx.dname/="R_RDY  " loop
       if txcomp_cnt/=3 then
           if txcomp_cnt=2 then
-            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           else
-            p_SetData(p_in_clk, C_PDAT_X_RDY, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_X_RDY, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
           txcomp_cnt:=txcomp_cnt + 1;
       else
-          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
       end if;
 end loop;
 --//Инициализация CRC, Scrambler:
@@ -995,11 +995,11 @@ txsrcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#F0F6#, 16));
 
 --  while p_in_usropt.dbuf.ren='0' loop
 --  --//Жду когда из буфера можно будет вычитать данные
---    p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+--    p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --  end loop;
 
 --//SOF
-p_SetData(p_in_clk, C_PDAT_SOF, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, C_PDAT_SOF, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --//user DATA
 for i in 0 to p_in_fis_size loop
 
@@ -1007,7 +1007,7 @@ for i in 0 to p_in_fis_size loop
 
 --    while p_in_usropt.dbuf.ren='0' loop
 --    --//Жду когда из буфера можно будет вычитать данные
---      p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+--      p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --    end loop;
 
   if p_in_usropt.rx.dname="HOLD   " then
@@ -1018,16 +1018,16 @@ for i in 0 to p_in_fis_size loop
       while p_in_usropt.rx.dname/="R_IP   " loop
           if txcomp_cnt/=3 then
               if txcomp_cnt=2 then
-                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               else
-                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               end if;
               txcomp_cnt:=txcomp_cnt + 1;
           else
-              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
       end loop;
-      p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+      p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
   end if;
   det_warring:='0';
   txcomp_cnt:=0;
@@ -1038,7 +1038,7 @@ for i in 0 to p_in_fis_size loop
   txd_out(x):=p_in_fis_data(i)(x) xor txsrcambler(x);
   end loop;
   --//Отправка пользовательского DW
-  p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);  p_print_txrxd(p_in_fis_data(i), txsrcambler, txcrc, txd_out, p_in_usropt);
+  p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);  p_print_txrxd(p_in_fis_data(i), txsrcambler, txcrc, txd_out, p_in_usropt);
   --//Инкрементация скремблера
   txsrcambler:=srambler32_0(txsrcambler(31 downto 16));
 
@@ -1052,13 +1052,13 @@ if p_in_usropt.rx.dname="HOLD   " then
     while p_in_usropt.rx.dname/="R_IP   " loop
         if txcomp_cnt/=3 then
             if txcomp_cnt=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             else
-              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             txcomp_cnt:=txcomp_cnt + 1;
         else
-            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end loop;
 end if;
@@ -1069,7 +1069,7 @@ for x in 0 to 31 loop
 txd_out(x):=txcrc(x) xor txsrcambler(x);
 end loop;
 p_print_txrxd(txcrc, txsrcambler, txcrc, txd_out, p_in_usropt);
-p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --//EOF
 if p_in_usropt.rx.dname="HOLD   " then
     if det_warring='0' then
@@ -1079,24 +1079,24 @@ if p_in_usropt.rx.dname="HOLD   " then
     while p_in_usropt.rx.dname/="R_IP   " loop
         if txcomp_cnt/=3 then
             if txcomp_cnt=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             else
-              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             txcomp_cnt:=txcomp_cnt + 1;
         else
-            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end loop;
 end if;
 det_warring:='0';
 txcomp_cnt:=0;
-p_SetData(p_in_clk, C_PDAT_EOF, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, C_PDAT_EOF, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 write(GUI_line,string'("Wait R_OK/R_ERR ...."));writeline(output, GUI_line);
 while (p_in_usropt.rx.dname/="R_OK   " and  p_in_usropt.rx.dname/="R_ERR  ") loop
     p_SetData(p_in_clk,
               C_PDAT_WTRM, C_CHAR_K,
-              p_out_gtp_txdata, p_out_gtp_txcharisk,
+              p_out_gt_txdata, p_out_gt_txcharisk,
               p_in_usropt, vusropt, p_out_usropt);
     write(GUI_line,string'("...."));writeline(output, GUI_line);
 end loop;
@@ -1115,7 +1115,7 @@ end if;
 
 p_SetData(p_in_clk,
           C_PDAT_SYNC, C_CHAR_K,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, vusropt, p_out_usropt);
 
 end;--//procedure p_SendFIS
@@ -1129,8 +1129,8 @@ end;--//procedure p_SendFIS
 procedure p_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1175,13 +1175,13 @@ write(GUI_line,string'("Wait X_RDY(Host rdy send data) ...."));writeline(output,
 while p_in_usropt.rx.dname/="X_RDY  " loop
       if txcomp_cnt/=3 then
           if txcomp_cnt=2 then
-            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           else
-            p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
           txcomp_cnt:=txcomp_cnt + 1;
       else
-          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
       end if;
 end loop;
 txcomp_cnt:=0;
@@ -1191,13 +1191,13 @@ lwait_sof :while p_in_usropt.rx.detect.prmtv.sof='0' loop
 
     if txcomp_cnt/=3 then
         if txcomp_cnt=2 then
-          p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         else
-          p_SetData(p_in_clk, C_PDAT_R_RDY, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, C_PDAT_R_RDY, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
         txcomp_cnt:=txcomp_cnt + 1;
     else
-        p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+        p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
     end if;
 --      write(GUI_line,string'("...."));writeline(output, GUI_line);
 end loop lwait_sof;
@@ -1211,26 +1211,26 @@ lrxd :while p_in_usropt.rx.detect.prmtv.eof='0' and p_in_usropt.rx.dname/="SYNC 
         txcomp_cnt2:=0;
         if txcomp_cnt1/=3 then
             if txcomp_cnt1=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             else
-              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             txcomp_cnt1:=txcomp_cnt1 + 1;
         else
-            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     else
         txcomp_cnt1:=0;
         if txcomp_cnt2/=3 then
             if txcomp_cnt2=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             else
-              p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 
             end if;
             txcomp_cnt2:=txcomp_cnt2 + 1;
         else
-            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end if;
 end loop lrxd;
@@ -1246,13 +1246,13 @@ if p_in_usropt.rx.dname/="SYNC   " then
       while p_in_usropt.rx.dname/="SYNC   " loop
           if txcomp_cnt/=3 then
               if txcomp_cnt=2 then
-                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               else
-                p_SetData(p_in_clk, C_PDAT_R_OK, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_R_OK, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               end if;
               txcomp_cnt:=txcomp_cnt + 1;
           else
-              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
           write(GUI_line,string'("..."));writeline(output, GUI_line);
       end loop;
@@ -1264,13 +1264,13 @@ if p_in_usropt.rx.dname/="SYNC   " then
         while p_in_usropt.rx.dname/="SYNC   " loop
             if txcomp_cnt/=3 then
                 if txcomp_cnt=2 then
-                  p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                  p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
                 else
-                  p_SetData(p_in_clk, C_PDAT_R_ERR, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                  p_SetData(p_in_clk, C_PDAT_R_ERR, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
                 end if;
                 txcomp_cnt:=txcomp_cnt + 1;
             else
-                p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             write(GUI_line,string'("..."));writeline(output, GUI_line);
         end loop;
@@ -1286,7 +1286,7 @@ end if;
 
 p_SetData(p_in_clk,
           C_PDAT_SYNC, C_CHAR_K,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, vusropt, p_out_usropt);
 
 end;--//procedure p_GetFIS
@@ -1300,8 +1300,8 @@ end;--//procedure p_GetFIS
 procedure p_ATAPIO_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1412,13 +1412,13 @@ while scount/=atacmd_scount loop
 
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_ATAPIO_READ/ FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   --//--------------------------------
@@ -1441,13 +1441,13 @@ while scount/=atacmd_scount loop
   write(GUI_line,string'("p_ATAPIO_READ/ FIS_DATA /Send Start/UserData Size(Byte). "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_ATAPIO_READ/ FIS_DATA /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   scount:=scount+1;
@@ -1467,8 +1467,8 @@ end;--//procedure p_ATAPIO_READ
 procedure p_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1576,7 +1576,7 @@ while scount/=atacmd_scount loop
 
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
@@ -1586,13 +1586,13 @@ while scount/=atacmd_scount loop
   --//--------------------------------
   write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_GetFIS(p_in_clk,
-           p_out_gtp_txdata, p_out_gtp_txcharisk,
+           p_out_gt_txdata, p_out_gt_txcharisk,
            p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_ATAPIO_WRITE/ FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   scount:=scount+1;
@@ -1612,8 +1612,8 @@ end;--//procedure p_ATAPIO_WRITE
 procedure p_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1703,13 +1703,13 @@ while atacmd_dma_dwcount/=0 loop
   write(GUI_line,string'("FIS_DATA /Send Start/UserData Size(Byte) "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("FIS_DATA /Send Done. "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   atacmd_dma_dwcount:=atacmd_dma_dwcount - txfis_size;
@@ -1752,14 +1752,14 @@ txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
 
 p_SendFIS(p_in_clk,
           txd, txfis_size,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_ATADMA_READ done."));writeline(output, GUI_line);
@@ -1775,8 +1775,8 @@ end;--//procedure p_ATADMA_READ
 procedure p_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1853,7 +1853,7 @@ while atacmd_dma_dwcount/=0 loop
 
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DMA_ACTIVATE /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
@@ -1863,13 +1863,13 @@ while atacmd_dma_dwcount/=0 loop
   --//--------------------------------
   write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_GetFIS(p_in_clk,
-           p_out_gtp_txdata, p_out_gtp_txcharisk,
+           p_out_gt_txdata, p_out_gt_txcharisk,
            p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_ATADMA_WRITE/ FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   rcv_dwcount:=p_in_usropt.rx.rcv_dwcount-1;--//т.к DW FISTYPE не входит в пользовательские данные
@@ -1914,14 +1914,14 @@ txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
 
 p_SendFIS(p_in_clk,
           txd, txfis_size,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_ATADMA_WRITE/ FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_ATADMA_WRITE done."));writeline(output, GUI_line);
@@ -1936,8 +1936,8 @@ end;--//procedure p_ATADMA_WRITE
 procedure p_COMMAND_ACTIVATE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -1955,11 +1955,11 @@ if p_in_usropt.action.ata_command='1' then
             if p_in_usropt.dbuf.wused='1' then
             --//Использовать модуль sata_bufdata.vhd
               p_BUF_ATAPIO_WRITE(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
             else
               p_ATAPIO_WRITE(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
             end if;
 --      else
@@ -1967,16 +1967,16 @@ if p_in_usropt.action.ata_command='1' then
 --              if p_in_usropt.dbuf.rused='1' then
 --              --//Использовать модуль sata_bufdata.vhd
 --                p_BUF_ATAPIO_READ(p_in_clk,
---                         p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                         p_out_gt_txdata, p_out_gt_txcharisk,
 --                         p_in_usropt, p_out_usropt);
 --              else
               p_ATAPIO_READ(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
 --              end if;
       else
               p_ATAPIO_NULL(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
       end if;
 
@@ -1986,11 +1986,11 @@ if p_in_usropt.action.ata_command='1' then
             if p_in_usropt.dbuf.wused='1' then
             --//Использовать модуль sata_bufdata.vhd
               p_BUF_ATADMA_WRITE(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
             else
               p_ATADMA_WRITE(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
             end if;
 
@@ -1998,11 +1998,11 @@ if p_in_usropt.action.ata_command='1' then
 --              if p_in_usropt.dbuf.rused='1' then
 --              --//Использовать модуль sata_bufdata.vhd
 --                p_BUF_ATADMA_READ(p_in_clk,
---                         p_out_gtp_txdata, p_out_gtp_txcharisk,
+--                         p_out_gt_txdata, p_out_gt_txcharisk,
 --                         p_in_usropt, p_out_usropt);
 --              else
               p_ATADMA_READ(p_in_clk,
-                       p_out_gtp_txdata, p_out_gtp_txcharisk,
+                       p_out_gt_txdata, p_out_gt_txcharisk,
                        p_in_usropt, p_out_usropt);
 --              end if;
       end if;
@@ -2071,8 +2071,8 @@ end;--//procedure p_CMDPKT_WRITE
 procedure p_BUF_GetFIS(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2117,13 +2117,13 @@ write(GUI_line,string'("Wait X_RDY(Host rdy send data) ...."));writeline(output,
 while p_in_usropt.rx.dname/="X_RDY  " loop
       if txcomp_cnt/=3 then
           if txcomp_cnt=2 then
-            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           else
-            p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_SYNC, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               txcomp_cnt:=txcomp_cnt + 1;
           end if;
       else
-          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
       end if;
 end loop;
 txcomp_cnt:=0;
@@ -2132,13 +2132,13 @@ write(GUI_line,string'("RCV X_RDY. Wait SOF ...."));writeline(output, GUI_line);
 lwait_sof :while p_in_usropt.rx.detect.prmtv.sof='0' loop
     if txcomp_cnt/=3 then
         if txcomp_cnt=2 then
-          p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         else
-          p_SetData(p_in_clk, C_PDAT_R_RDY, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, C_PDAT_R_RDY, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
         txcomp_cnt:=txcomp_cnt + 1;
     else
-        p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+        p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
     end if;
 end loop lwait_sof;
 
@@ -2153,15 +2153,15 @@ lrxd :while p_in_usropt.rx.detect.prmtv.eof='0' and p_in_usropt.rx.dname/="SYNC 
       txcomp_cnt2:=0;
       if txcomp_cnt/=3 then
           if txcomp_cnt=2 then
-            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD/CONT"));writeline(output, GUI_line);
           else
-            p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             write(GUI_line,string'("RCV DATA./BUF_WDDISALE -> SEND HOLD"));writeline(output, GUI_line);
           end if;
           txcomp_cnt:=txcomp_cnt + 1;
       else
-          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
       end if;
 
   else
@@ -2171,27 +2171,27 @@ lrxd :while p_in_usropt.rx.detect.prmtv.eof='0' and p_in_usropt.rx.dname/="SYNC 
           txcomp_cnt2:=0;
           if txcomp_cnt1/=3 then
               if txcomp_cnt1=2 then
-                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
                 write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA/CONT"));writeline(output, GUI_line);
               else
-                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
                 write(GUI_line,string'("RCV DATA./RCV HOLD -> SEND HOLDA"));writeline(output, GUI_line);
               end if;
               txcomp_cnt1:=txcomp_cnt1 + 1;
           else
-              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
       else
           txcomp_cnt1:=0;
           if txcomp_cnt2/=3 then
               if txcomp_cnt2=2 then
-                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               else
-                p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_R_IP, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               end if;
               txcomp_cnt2:=txcomp_cnt2 + 1;
           else
-              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
       end if;
 
@@ -2207,13 +2207,13 @@ if p_in_usropt.rx.dname/="SYNC   " then
       while p_in_usropt.rx.dname/="SYNC   " loop
           if txcomp_cnt/=3 then
               if txcomp_cnt=2 then
-                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               else
-                p_SetData(p_in_clk, C_PDAT_R_OK, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_R_OK, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               end if;
               txcomp_cnt:=txcomp_cnt + 1;
           else
-              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
           write(GUI_line,string'("..."));writeline(output, GUI_line);
       end loop;
@@ -2225,13 +2225,13 @@ if p_in_usropt.rx.dname/="SYNC   " then
         while p_in_usropt.rx.dname/="SYNC   " loop
             if txcomp_cnt/=3 then
                 if txcomp_cnt=2 then
-                  p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                  p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
                 else
-                  p_SetData(p_in_clk, C_PDAT_R_ERR, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                  p_SetData(p_in_clk, C_PDAT_R_ERR, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
                 end if;
                 txcomp_cnt:=txcomp_cnt + 1;
             else
-                p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             write(GUI_line,string'("..."));writeline(output, GUI_line);
         end loop;
@@ -2247,7 +2247,7 @@ end if;
 
 p_SetData(p_in_clk,
           C_PDAT_SYNC, C_CHAR_K,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, vusropt, p_out_usropt);
 
 end;--//procedure p_BUF_GetFIS
@@ -2264,8 +2264,8 @@ procedure p_BUF_SendFIS(
   variable p_in_fis_data     : in    TSimBufData;
   variable p_in_fis_size     : in    integer;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2313,13 +2313,13 @@ write(GUI_line,string'("Wait R_RDY(Host rdy recive data) ...."));writeline(outpu
 while p_in_usropt.rx.dname/="R_RDY  " loop
       if txcomp_cnt/=3 then
           if txcomp_cnt=2 then
-            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           else
-            p_SetData(p_in_clk, C_PDAT_X_RDY, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, C_PDAT_X_RDY, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
           txcomp_cnt:=txcomp_cnt + 1;
       else
-          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+          p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
       end if;
 end loop;
 --//Инициализация CRC, Scrambler:
@@ -2329,17 +2329,17 @@ txsrcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#F0F6#, 16));
 
 --  while p_in_usropt.dbuf.ren='0' loop
 --  --//Жду когда из буфера можно будет вычитать данные
---    p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+--    p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --  end loop;
 
 --//SOF
-p_SetData(p_in_clk, C_PDAT_SOF, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, C_PDAT_SOF, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --//user DATA
 for i in 0 to p_in_fis_size loop
 
 --    while p_in_usropt.dbuf.ren='0' loop
 --    --//Жду когда из буфера можно будет вычитать данные
---      p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+--      p_SetData(p_in_clk, C_PDAT_HOLD, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --    end loop;
 
   if p_in_usropt.rx.dname="HOLD   " then
@@ -2350,13 +2350,13 @@ for i in 0 to p_in_fis_size loop
       while p_in_usropt.rx.dname/="R_IP   " loop
           if txcomp_cnt/=3 then
               if txcomp_cnt=2 then
-                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               else
-                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+                p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
               end if;
               txcomp_cnt:=txcomp_cnt + 1;
           else
-              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
           end if;
       end loop;
   end if;
@@ -2369,7 +2369,7 @@ for i in 0 to p_in_fis_size loop
   txd_out(x):=p_in_fis_data(i)(x) xor txsrcambler(x);
   end loop;
   --//Отправка пользовательского DW
-  p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);  p_print_txrxd(p_in_fis_data(i), txsrcambler, txcrc, txd_out, p_in_usropt);
+  p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);  p_print_txrxd(p_in_fis_data(i), txsrcambler, txcrc, txd_out, p_in_usropt);
   --//Инкрементация скремблера
   txsrcambler:=srambler32_0(txsrcambler(31 downto 16));
   vusropt.dbuf.rcnt:=i;
@@ -2384,13 +2384,13 @@ if p_in_usropt.rx.dname="HOLD   " then
     while p_in_usropt.rx.dname/="R_IP   " loop
         if txcomp_cnt/=3 then
             if txcomp_cnt=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             else
-              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             txcomp_cnt:=txcomp_cnt + 1;
         else
-            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end loop;
 end if;
@@ -2401,7 +2401,7 @@ for x in 0 to 31 loop
 txd_out(x):=txcrc(x) xor txsrcambler(x);
 end loop;
 p_print_txrxd(txcrc, txsrcambler, txcrc, txd_out, p_in_usropt);
-p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, txd_out, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 --//EOF
 if p_in_usropt.rx.dname="HOLD   " then
     if det_warring='0' then
@@ -2411,24 +2411,24 @@ if p_in_usropt.rx.dname="HOLD   " then
     while p_in_usropt.rx.dname/="R_IP   " loop
         if txcomp_cnt/=3 then
             if txcomp_cnt=2 then
-              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_CONT, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             else
-              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+              p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
             end if;
             txcomp_cnt:=txcomp_cnt + 1;
         else
-            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+            p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end loop;
 end if;
 det_warring:='0';
 txcomp_cnt:=0;
-p_SetData(p_in_clk, C_PDAT_EOF, C_CHAR_K, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, C_PDAT_EOF, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 write(GUI_line,string'("Wait R_OK/R_ERR ...."));writeline(output, GUI_line);
 while (p_in_usropt.rx.dname/="R_OK   " and  p_in_usropt.rx.dname/="R_ERR  ") loop
     p_SetData(p_in_clk,
               C_PDAT_WTRM, C_CHAR_K,
-              p_out_gtp_txdata, p_out_gtp_txcharisk,
+              p_out_gt_txdata, p_out_gt_txcharisk,
               p_in_usropt, vusropt, p_out_usropt);
     write(GUI_line,string'("...."));writeline(output, GUI_line);
 end loop;
@@ -2447,7 +2447,7 @@ end if;
 
 p_SetData(p_in_clk,
           C_PDAT_SYNC, C_CHAR_K,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, vusropt, p_out_usropt);
 
 end;--//procedure p_BUF_SendFIS
@@ -2461,8 +2461,8 @@ end;--//procedure p_BUF_SendFIS
 procedure p_BUF_ATADMA_READ(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2544,13 +2544,13 @@ while atacmd_dma_dwcount/=0 loop
 
   p_BUF_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_BUF_ATADMA_READ/FIS_DATA /Send Done. "));write(GUI_line, trncount_byte);writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   atacmd_dma_dwcount:=atacmd_dma_dwcount - txfis_size;
@@ -2593,14 +2593,14 @@ txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
 
 p_SendFIS(p_in_clk,
           txd, txfis_size,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_BUF_ATADMA_READ/FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_BUF_ATADMA_READ done."));writeline(output, GUI_line);
@@ -2615,8 +2615,8 @@ end;--//procedure p_BUF_ATADMA_READ
 procedure p_BUF_ATADMA_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2684,9 +2684,9 @@ write(GUI_line,string'("p_BUF_ATADMA_WRITE start."));writeline(output, GUI_line)
 --//Сигнал начать запись в буфер данных
 vusropt.dbuf.trnsize:=atacmd_dma_dwcount;
 vusropt.dbuf.wstart:=p_in_usropt.dbuf.wused;
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 vusropt.dbuf.wstart:='0';
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 
 
 while atacmd_dma_dwcount/=0 loop
@@ -2704,7 +2704,7 @@ while atacmd_dma_dwcount/=0 loop
 
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DMA_ACTIVATE /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
@@ -2714,13 +2714,13 @@ while atacmd_dma_dwcount/=0 loop
   --//--------------------------------
   write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_BUF_GetFIS(p_in_clk,
-           p_out_gtp_txdata, p_out_gtp_txcharisk,
+           p_out_gt_txdata, p_out_gt_txcharisk,
            p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   rcv_dwcount:=p_in_usropt.rx.rcv_dwcount-1;--//т.к DW FISTYPE не входит в пользовательские данные
@@ -2734,15 +2734,15 @@ end loop;
 write(GUI_line,string'("p_BUF_ATADMA_WRITE/ Wait RxBUF write done... "));writeline(output, GUI_line);
 dbuf.wdone:='0';
 while dbuf.wdone='0' loop
-  p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+  p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
   dbuf.wdone:=p_in_usropt.dbuf.wdone;
 end loop;
 write(GUI_line,string'("p_BUF_ATADMA_WRITE/ Wait RxBUF write DONE. "));writeline(output, GUI_line);
 --//Сброс флага завершения записи
 vusropt.dbuf.wdone_clr:=p_in_usropt.dbuf.wused;
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 vusropt.dbuf.wdone_clr:='0';
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 
 --//--------------------------------
 --//FIS_DEV2HOST: FPGA<-HDD
@@ -2779,14 +2779,14 @@ txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
 
 p_SendFIS(p_in_clk,
           txd, txfis_size,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_BUF_ATADMA_WRITE/ FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
 --//--------------------------------
 
 p_SetSYNC(p_in_clk,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_BUF_ATADMA_WRITE done."));writeline(output, GUI_line);
@@ -2802,8 +2802,8 @@ end;--//procedure p_BUF_ATADMA_WRITE
 procedure p_BUF_ATAPIO_WRITE(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -2866,9 +2866,9 @@ write(GUI_line,string'("p_BUF_ATAPIO_WRITE start."));writeline(output, GUI_line)
 --//Сигнал начать запись в буфер данных
 vusropt.dbuf.trnsize:=CONV_INTEGER(atacmd_scount);
 vusropt.dbuf.wstart:=p_in_usropt.dbuf.wused;
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 vusropt.dbuf.wstart:='0';
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 
 while scount/=atacmd_scount loop
   --//--------------------------------
@@ -2924,7 +2924,7 @@ while scount/=atacmd_scount loop
 
   p_SendFIS(p_in_clk,
             txd, txfis_size,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
   --//--------------------------------
@@ -2934,13 +2934,13 @@ while scount/=atacmd_scount loop
   --//--------------------------------
   write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_DATA /Rcv Start. "));writeline(output, GUI_line);
   p_GetFIS(p_in_clk,
-           p_out_gtp_txdata, p_out_gtp_txcharisk,
+           p_out_gt_txdata, p_out_gt_txcharisk,
            p_in_usropt, p_out_usropt);
   write(GUI_line,string'("p_BUF_ATAPIO_WRITE /FIS_DATA /Rcv Done. "));writeline(output, GUI_line);
   --//--------------------------------
 
   p_SetSYNC(p_in_clk,
-            p_out_gtp_txdata, p_out_gtp_txcharisk,
+            p_out_gt_txdata, p_out_gt_txcharisk,
             p_in_usropt, p_out_usropt);
 
   scount:=scount+1;
@@ -2951,15 +2951,15 @@ end loop;
 write(GUI_line,string'("p_BUF_ATAPIO_WRITE /Wait RxBuf write done..."));writeline(output, GUI_line);
 dbuf.wdone:='0';
 while dbuf.wdone='0' loop
-  p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+  p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
   dbuf.wdone:=p_in_usropt.dbuf.wdone;
 end loop;
 write(GUI_line,string'("p_BUF_ATAPIO_WRITE /Wait RxBuf write DONE!"));writeline(output, GUI_line);
 --//Сброс флага завершения записи
 vusropt.dbuf.wdone_clr:=p_in_usropt.dbuf.wused;
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 vusropt.dbuf.wdone_clr:='0';
-p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gtp_txdata, p_out_gtp_txcharisk, p_in_usropt, vusropt, p_out_usropt);
+p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 
 write(GUI_line,string'("p_BUF_ATAPIO_WRITE done."));writeline(output, GUI_line);
 
@@ -2978,8 +2978,8 @@ end;--//procedure p_BUF_ATAPIO_WRITE
 procedure p_ATAPIO_NULL(
   signal p_in_clk            : in    std_logic;
 
-  signal p_out_gtp_txdata    : out   std_logic_vector(31 downto 0);
-  signal p_out_gtp_txcharisk : out   std_logic_vector(3 downto 0);
+  signal p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+  signal p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
   signal p_in_usropt         : in    TInUsrOpt;
   signal p_out_usropt        : out   TOutUsrOpt
@@ -3064,7 +3064,7 @@ txd(3)(8*(1+1)-1 downto 8*1):=p_in_usropt.reg_shadow.scount_exp;
 
 p_SendFIS(p_in_clk,
           txd, txfis_size,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_line);
@@ -3117,13 +3117,13 @@ write(GUI_line,string'("FIS_REG_DEV2HOSTA /Send Done. "));writeline(output, GUI_
 --
 --p_SendFIS(p_in_clk,
 --          txd, txfis_size,
---          p_out_gtp_txdata, p_out_gtp_txcharisk,
+--          p_out_gt_txdata, p_out_gt_txcharisk,
 --          p_in_usropt, p_out_usropt);
 --write(GUI_line,string'("FIS_PIOSETUP /Send Done. "));writeline(output, GUI_line);
 ----//--------------------------------
 
 p_SetSYNC(p_in_clk,
-          p_out_gtp_txdata, p_out_gtp_txcharisk,
+          p_out_gt_txdata, p_out_gt_txcharisk,
           p_in_usropt, p_out_usropt);
 
 write(GUI_line,string'("p_ATAPIO_NULL done."));writeline(output, GUI_line);

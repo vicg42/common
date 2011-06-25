@@ -29,6 +29,7 @@ rdy : std_logic;--//Канал готов к работе
 err : std_logic;--//
 busy: std_logic;--//
 spd : std_logic_vector(1 downto 0);
+dly : std_logic;--//
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
@@ -171,18 +172,18 @@ p_out_tst                : out   std_logic_vector(31 downto 0);
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
 p_out_dbgled                : out   THDDLed_SHCountMax;
 
-p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
-p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+p_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+p_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+p_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+p_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+p_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System

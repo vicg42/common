@@ -75,7 +75,7 @@ signal i_phy_sync                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0
 signal i_phy_txd                  : TBus32_GTCH;
 signal i_phy_rxd                  : TBus32_GTCH;
 
-signal p_in_gtp_pll_lock          : std_logic;
+signal p_in_gt_pll_lock           : std_logic;
 
 signal i_sata_dcm_clk             : std_logic;
 signal i_sata_dcm_clk2x           : std_logic;
@@ -83,18 +83,18 @@ signal i_sata_dcm_clk2div         : std_logic;
 signal i_sata_dcm_lock            : std_logic;
 signal i_sata_dcm_rst             : std_logic;
 
-signal i_sim_gtp_clk              : std_logic;
-signal i_sim_gtp_rst              : std_logic;
-signal i_sim_gtp_rxelecidle       : std_logic;
-signal i_sim_gtp_rxstatus         : std_logic_vector(2 downto 0);
-signal i_sim_gtp_txdata           : std_logic_vector(31 downto 0);
-signal i_sim_gtp_txcharisk        : std_logic_vector(3 downto 0);
-signal i_sim_gtp_txcomstart       : std_logic;
-signal i_sim_gtp_rxdata           : std_logic_vector(31 downto 0);
-signal i_sim_gtp_rxcharisk        : std_logic_vector(3 downto 0);
-signal i_sim_gtp_rxdisperr        : std_logic_vector(3 downto 0);
-signal i_sim_gtp_rxnotintable     : std_logic_vector(3 downto 0);
-signal i_sim_gtp_rxbyteisaligned  : std_logic;
+signal i_sim_gt_clk               : std_logic;
+signal i_sim_gt_rst               : std_logic;
+signal i_sim_gt_rxelecidle        : std_logic;
+signal i_sim_gt_rxstatus          : std_logic_vector(2 downto 0);
+signal i_sim_gt_txdata            : std_logic_vector(31 downto 0);
+signal i_sim_gt_txcharisk         : std_logic_vector(3 downto 0);
+signal i_sim_gt_txcomstart        : std_logic;
+signal i_sim_gt_rxdata            : std_logic_vector(31 downto 0);
+signal i_sim_gt_rxcharisk         : std_logic_vector(3 downto 0);
+signal i_sim_gt_rxdisperr         : std_logic_vector(3 downto 0);
+signal i_sim_gt_rxnotintable      : std_logic_vector(3 downto 0);
+signal i_sim_gt_rxbyteisaligned   : std_logic;
 
 signal i_sim_txd_cnt              : std_logic_vector(7 downto 0);
 signal i_sim_txbuf_close          : std_logic;
@@ -273,47 +273,47 @@ port map
 --------------------------------------------------
 --Управление (Описание портов см. sata_player_oob_cntrl.vhd)
 --------------------------------------------------
-p_in_ctrl                  => i_phy_ctrl(0),
-p_out_status               => i_phy_status(0),
+p_in_ctrl               => i_phy_ctrl(0),
+p_out_status            => i_phy_status(0),
 
 --------------------------------------------------
 --Связь с Link Layer
 --------------------------------------------------
-p_in_phy_txd               => i_phy_txd(0),
-p_in_phy_txreq             => i_phy_txreq(0),
-p_out_phy_txrdy_n          => i_phy_txrdy_n(0),
+p_in_phy_txd            => i_phy_txd(0),
+p_in_phy_txreq          => i_phy_txreq(0),
+p_out_phy_txrdy_n       => i_phy_txrdy_n(0),
 
-p_out_phy_rxtype           => i_phy_rxtype(0)(C_TDATA_EN downto C_TALIGN),
-p_out_phy_rxdata           => i_phy_rxd(0),
+p_out_phy_rxtype        => i_phy_rxtype(0)(C_TDATA_EN downto C_TALIGN),
+p_out_phy_rxdata        => i_phy_rxd(0),
 
-p_out_phy_sync             => i_phy_sync(0),
+p_out_phy_sync          => i_phy_sync(0),
 
 --------------------------------------------------
 --Связь с RocketIO (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
-p_out_gtp_rst              => open,
+p_out_gt_rst            => open,
 
 --RocketIO Tranceiver
-p_out_gtp_txelecidle       => open,
-p_out_gtp_txcomstart       => i_sim_gtp_txcomstart,
-p_out_gtp_txcomtype        => open,
-p_out_gtp_txdata           => i_sim_gtp_rxdata,
-p_out_gtp_txcharisk        => i_sim_gtp_rxcharisk,
+p_out_gt_txelecidle     => open,
+p_out_gt_txcomstart     => i_sim_gt_txcomstart,
+p_out_gt_txcomtype      => open,
+p_out_gt_txdata         => i_sim_gt_rxdata,
+p_out_gt_txcharisk      => i_sim_gt_rxcharisk,
 
-p_out_gtp_txreset          => open,
-p_in_gtp_txbufstatus       => "00",
+p_out_gt_txreset        => open,
+p_in_gt_txbufstatus     => "00",
 
 --RocketIO Receiver
-p_in_gtp_rxelecidle        => i_sim_gtp_rxelecidle,
-p_in_gtp_rxstatus          => i_sim_gtp_rxstatus,
-p_in_gtp_rxdata            => i_sim_gtp_txdata,
-p_in_gtp_rxcharisk         => i_sim_gtp_txcharisk,
-p_in_gtp_rxdisperr         => i_sim_gtp_rxdisperr,
-p_in_gtp_rxnotintable      => i_sim_gtp_rxnotintable,
-p_in_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned,
+p_in_gt_rxelecidle      => i_sim_gt_rxelecidle,
+p_in_gt_rxstatus        => i_sim_gt_rxstatus,
+p_in_gt_rxdata          => i_sim_gt_txdata,
+p_in_gt_rxcharisk       => i_sim_gt_txcharisk,
+p_in_gt_rxdisperr       => i_sim_gt_rxdisperr,
+p_in_gt_rxnotintable    => i_sim_gt_rxnotintable,
+p_in_gt_rxbyteisaligned => i_sim_gt_rxbyteisaligned,
 
-p_in_gtp_rxbufstatus       => "000",
-p_out_gtp_rxbufreset       => open,
+p_in_gt_rxbufstatus     => "000",
+p_out_gt_rxbufreset     => open,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -325,16 +325,16 @@ p_out_dbg               => i_dbg.player,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_tmrclk            => i_sata_dcm_clk2div,
-p_in_clk               => i_sata_dcm_clk,
-p_in_rst               => i_sata_module_rst(0)
+p_in_tmrclk             => i_sata_dcm_clk2div,
+p_in_clk                => i_sata_dcm_clk,
+p_in_rst                => i_sata_module_rst(0)
 );
 
 
-i_spd_ctrl(0).change<='0';
+--i_spd_ctrl(0).change<='0';
 i_spd_ctrl(0).sata_ver<=(others=>'0');
 
-i_spd_ctrl(1).change<='0';
+--i_spd_ctrl(1).change<='0';
 i_spd_ctrl(1).sata_ver<=(others=>'0');
 
 m_speed_ctrl : sata_speed_ctrl
@@ -342,7 +342,9 @@ generic map
 (
 G_SATAH_COUNT_MAX => 1,
 G_SATAH_NUM       => 0,
+G_SATAH_CH_COUNT  => 1,
 G_DBG             => G_DBG,
+G_DBGCS           => "OFF",
 G_SIM             => G_SIM
 )
 port map
@@ -350,37 +352,39 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl               => i_spd_ctrl,
-p_out_spd_ver           => i_spd_out,
+p_in_ctrl           => i_spd_ctrl,
+p_out_phy_spd       => i_spd_out,
+p_out_phy_layer_rst => open,--i_phy_layer_rst,
 
-p_in_usr_dcm_lock       => i_sata_dcm_lock,
-p_in_gtp_pll_lock       => '1',
-p_in_linkup             => i_linkup,
+p_in_phy_linkup     => i_linkup,
+p_in_gt_pll_lock    => '1',
+p_in_usr_dcm_lock   => i_sata_dcm_lock,
 
 --------------------------------------------------
 --RocketIO
 --------------------------------------------------
-p_out_gtp_drpaddr       => open,
-p_out_gtp_drpen         => open,
-p_out_gtp_drpwe         => open,
-p_out_gtp_drpdi         => open,
-p_in_gtp_drpdo          => "0000000000000000",
-p_in_gtp_drprdy         => '1',
+p_out_gt_drpaddr   => open,
+p_out_gt_drpen     => open,
+p_out_gt_drpwe     => open,
+p_out_gt_drpdi     => open,
+p_in_gt_drpdo      => "0000000000000000",
+p_in_gt_drprdy     => '1',
 
-p_out_gtp_ch_rst        => open,
-p_in_gtp_resetdone      => '1',
+p_out_gt_ch_rst    => open,
+p_in_gt_resetdone  => "11",
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst               => "00000000000000000000000000000000",
-p_out_tst              => open,
+p_in_tst           => "00000000000000000000000000000000",
+p_out_tst          => open,
+p_out_dbgcs_ila    => open,
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk                => p_in_clk,
-p_in_rst                => p_in_rst
+p_in_clk           => p_in_clk,
+p_in_rst           => p_in_rst
 );
 
 
@@ -395,33 +399,33 @@ port map
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata            => i_sim_gtp_txdata,
-p_out_gtp_txcharisk         => i_sim_gtp_txcharisk,
+p_out_gt_txdata          => i_sim_gt_txdata,
+p_out_gt_txcharisk       => i_sim_gt_txcharisk,
 
-p_in_gtp_txcomstart         => i_sim_gtp_txcomstart,
+p_in_gt_txcomstart       => i_sim_gt_txcomstart,
 
-p_in_gtp_rxdata             => i_sim_gtp_rxdata,
-p_in_gtp_rxcharisk          => i_sim_gtp_rxcharisk,
+p_in_gt_rxdata           => i_sim_gt_rxdata,
+p_in_gt_rxcharisk        => i_sim_gt_rxcharisk,
 
-p_out_gtp_rxstatus          => i_sim_gtp_rxstatus,
-p_out_gtp_rxelecidle        => i_sim_gtp_rxelecidle,
-p_out_gtp_rxdisperr         => i_sim_gtp_rxdisperr,
-p_out_gtp_rxnotintable      => i_sim_gtp_rxnotintable,
-p_out_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned,
+p_out_gt_rxstatus        => i_sim_gt_rxstatus,
+p_out_gt_rxelecidle      => i_sim_gt_rxelecidle,
+p_out_gt_rxdisperr       => i_sim_gt_rxdisperr,
+p_out_gt_rxnotintable    => i_sim_gt_rxnotintable,
+p_out_gt_rxbyteisaligned => i_sim_gt_rxbyteisaligned,
 
-p_in_ctrl                   => i_satadev_ctrl,
+p_in_ctrl                => i_satadev_ctrl,
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   => "00000000000000000000000000000000",
-p_out_tst                  => open,
+p_in_tst                 => "00000000000000000000000000000000",
+p_out_tst                => open,
 
 ----------------------------
 --System
 ----------------------------
-p_in_clk                    => i_sata_dcm_clk,
-p_in_rst                    => p_in_rst_inv
+p_in_clk                 => i_sata_dcm_clk,
+p_in_rst                 => p_in_rst_inv
 );
 
 

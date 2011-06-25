@@ -32,45 +32,45 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_tx is
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign           : in    std_logic;
-p_in_linkup            : in    std_logic;
-p_in_dev_detect        : in    std_logic;
-p_in_d10_2_send_dis    : in    std_logic;                    --//Запрещение передачи кода D10.2
-p_in_sync              : in    std_logic;                    --//
-p_in_txreq             : in    std_logic_vector(7 downto 0); --//Запрос на передачу SATA
-p_in_txd               : in    std_logic_vector(31 downto 0);--//Данные для передатчика (полезная нагрузка, а не примитивы SATA)
-p_out_rdy_n            : out   std_logic;                    --//Готов к загрузке данных для передачи
+p_in_rxalign        : in    std_logic;
+p_in_linkup         : in    std_logic;
+p_in_dev_detect     : in    std_logic;
+p_in_d10_2_send_dis : in    std_logic;                    --//Запрещение передачи кода D10.2
+p_in_sync           : in    std_logic;                    --//
+p_in_txreq          : in    std_logic_vector(7 downto 0); --//Запрос на передачу SATA
+p_in_txd            : in    std_logic_vector(31 downto 0);--//Данные для передатчика (полезная нагрузка, а не примитивы SATA)
+p_out_rdy_n         : out   std_logic;                    --//Готов к загрузке данных для передачи
 
 --------------------------------------------------
 --RocketIO Transmiter (Назначение портов см. sata_player_gt.vhd)
 --------------------------------------------------
-p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
-p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
+p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
-p_out_gtp_txreset      : out   std_logic;
-p_in_gtp_txbufstatus   : in    std_logic_vector(1 downto 0);
+p_out_gt_txreset    : out   std_logic;
+p_in_gt_txbufstatus : in    std_logic_vector(1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst               : in    std_logic_vector(31 downto 0);
-p_out_tst              : out   std_logic_vector(31 downto 0);
-p_out_dbg              : out   TPLtx_dbgport;
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_dbg           : out   TPLtx_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
 );
 end sata_player_tx;
 
@@ -81,7 +81,7 @@ constant CI_ALIGN_TMR   : integer:=selval(C_ALIGN_TMR, C_SIM_SATAHOST_TMR_ALIGN,
 signal i_tmr_rst                  : std_logic_vector(1 downto 0);
 signal i_tmr_rst_en               : std_logic;
 
-signal i_gtp_txreset              : std_logic;
+signal i_gt_txreset              : std_logic;
 
 signal i_align_tmr                : std_logic_vector(10 downto 0);--
 signal i_align_txen               : std_logic;
@@ -152,22 +152,22 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_tmr_rst_en<='0';
-    i_gtp_txreset<='0';
+    i_gt_txreset<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dev_detect='0' then
       i_tmr_rst_en<='0';
-      i_gtp_txreset<='0';
+      i_gt_txreset<='0';
     else
       if i_tmr_rst_en='0' then
-        i_gtp_txreset<='0';
-        if p_in_gtp_txbufstatus(1)='1' then
+        i_gt_txreset<='0';
+        if p_in_gt_txbufstatus(1)='1' then
         --//gtp_txbufstatus(1)-'1'-буфер или переполнен или опусташен
         --формирую сброс
           i_tmr_rst_en<='1';
         end if;
       else
-        i_gtp_txreset<='1';
+        i_gt_txreset<='1';
         if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
           i_tmr_rst_en<='0';
         end if;
@@ -176,7 +176,7 @@ begin
   end if;
 end process;
 
-p_out_gtp_txreset<=i_gtp_txreset;
+p_out_gt_txreset<=i_gt_txreset;
 
 
 --//-------------------------------------
@@ -353,29 +353,14 @@ end process ltxd;
 --//------------------------------
 gen_dbus8 : if G_GT_DBUS=8 generate
 
-----//Подстройка
---ltxd_sr:process(p_in_clk)
---begin
---  if p_in_clk'event and p_in_clk='1' then
---    sr_ddly<=sr_txdata(7 downto 0) & sr_ddly(0 to 2);
---    sr_tdly<=sr_txdtype(0) & sr_tdly(0 to 2);
---  end if;
---end process ltxd_sr;
---
---p_out_gtp_txdata(7 downto 0)<=sr_ddly(2);
---p_out_gtp_txcharisk(0)<=sr_tdly(2);
---
---p_out_gtp_txdata(15 downto 8)<=(others=>'0');
---p_out_gtp_txcharisk(1)<='0';
+p_out_gt_txdata(7 downto 0)<=sr_txdata(7 downto 0);
+p_out_gt_txcharisk(0)<=sr_txdtype(0);
 
-p_out_gtp_txdata(7 downto 0)<=sr_txdata(7 downto 0);
-p_out_gtp_txcharisk(0)<=sr_txdtype(0);
+p_out_gt_txdata(15 downto 8)<=(others=>'0');
+p_out_gt_txcharisk(1)<='0';
 
-p_out_gtp_txdata(15 downto 8)<=(others=>'0');
-p_out_gtp_txcharisk(1)<='0';
-
-p_out_gtp_txdata(31 downto 16)<=(others=>'0');
-p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
+p_out_gt_txdata(31 downto 16)<=(others=>'0');
+p_out_gt_txcharisk(3 downto 2)<=(others=>'0');
 
 end generate gen_dbus8;
 
@@ -385,27 +370,11 @@ end generate gen_dbus8;
 --//------------------------------
 gen_dbus16 : if G_GT_DBUS=16 generate
 
-----//Подстройка
---ltxd_sr:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    for i in 0 to 3 loop
---      sr_ddly2(i)<=(others=>'0');
---      sr_tdly2(i)<=(others=>'0');
---    end loop;
---  elsif p_in_clk'event and p_in_clk='1' then
---    sr_ddly2<=sr_txdata(15 downto 0) & sr_ddly2(0 to 2);
---    sr_tdly2<=sr_txdtype(1 downto 0) & sr_tdly2(0 to 2);
---  end if;
---end process ltxd_sr;
---
---p_out_gtp_txdata(15 downto 0)<=sr_ddly2(0);
---p_out_gtp_txcharisk(1 downto 0)<=sr_tdly2(0);
-p_out_gtp_txdata(15 downto 0)<=sr_txdata(15 downto 0);
-p_out_gtp_txcharisk(1 downto 0)<=sr_txdtype(1 downto 0);
+p_out_gt_txdata(15 downto 0)<=sr_txdata(15 downto 0);
+p_out_gt_txcharisk(1 downto 0)<=sr_txdtype(1 downto 0);
 
-p_out_gtp_txdata(31 downto 16)<=(others=>'0');
-p_out_gtp_txcharisk(3 downto 2)<=(others=>'0');
+p_out_gt_txdata(31 downto 16)<=(others=>'0');
+p_out_gt_txcharisk(3 downto 2)<=(others=>'0');
 
 end generate gen_dbus16;
 
@@ -415,8 +384,8 @@ end generate gen_dbus16;
 --//------------------------------
 gen_dbus32 : if G_GT_DBUS=32 generate
 
-p_out_gtp_txdata(31 downto 0)<=sr_txdata(31 downto 0);
-p_out_gtp_txcharisk(3 downto 0)<=sr_txdtype(3 downto 0);
+p_out_gt_txdata(31 downto 0)<=sr_txdata(31 downto 0);
+p_out_gt_txcharisk(3 downto 0)<=sr_txdtype(3 downto 0);
 
 end generate gen_dbus32;
 

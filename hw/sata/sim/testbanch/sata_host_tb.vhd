@@ -47,10 +47,10 @@ constant C_USRCLK_PERIOD  : TIME := 6.6*8 ns;
 signal p_in_clk                   : std_logic;
 signal p_in_rst                   : std_logic;
 
-signal g_gtp_refclk_out           : std_logic_vector(C_SH_COUNT_MAX(1-1)-1 downto 0);
-signal i_gtp_refclk_out           : std_logic;
---signal g_gtp_refclk_out           : std_logic;
-signal i_gtp_pllkdet              : std_logic;
+signal g_gt_refclk_out            : std_logic_vector(C_SH_COUNT_MAX(1-1)-1 downto 0);
+signal i_gt_refclk_out            : std_logic;
+--signal g_gt_refclk_out            : std_logic;
+signal i_gt_pllkdet               : std_logic;
 
 signal i_sata_dcm_clk             : std_logic;
 signal i_sata_dcm_clk2x           : std_logic;
@@ -58,18 +58,18 @@ signal i_sata_dcm_clk2div         : std_logic;
 signal i_sata_dcm_lock            : std_logic;
 signal i_sata_dcm_rst             : std_logic;
 
-signal i_sim_gtp_clk              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rst              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxelecidle       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxstatus         : TBus03_GTCH;
-signal i_sim_gtp_txdata           : TBus32_GTCH;
-signal i_sim_gtp_txcharisk        : TBus04_GTCH;
-signal i_sim_gtp_txcomstart       : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxdata           : TBus32_GTCH;
-signal i_sim_gtp_rxcharisk        : TBus04_GTCH;
-signal i_sim_gtp_rxdisperr        : TBus04_GTCH;
-signal i_sim_gtp_rxnotintable     : TBus04_GTCH;
-signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gt_clk               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rst               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rxelecidle        : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rxstatus          : TBus03_GTCH;
+signal i_sim_gt_txdata            : TBus32_GTCH;
+signal i_sim_gt_txcharisk         : TBus04_GTCH;
+signal i_sim_gt_txcomstart        : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rxdata            : TBus32_GTCH;
+signal i_sim_gt_rxcharisk         : TBus04_GTCH;
+signal i_sim_gt_rxdisperr         : TBus04_GTCH;
+signal i_sim_gt_rxnotintable      : TBus04_GTCH;
+signal i_sim_gt_rxbyteisaligned   : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
 signal i_al_ctrl                  : TALCtrl_GTCH;
@@ -299,18 +299,18 @@ p_out_dbg                   => i_dbg,
 --Моделирование/Отладка - в рабочем проекте не используется
 ---------------------------------------------------------------------------
 --//Моделирование
-p_out_sim_gtp_txdata        => i_sim_gtp_rxdata,
-p_out_sim_gtp_txcharisk     => i_sim_gtp_rxcharisk,
-p_out_sim_gtp_txcomstart    => i_sim_gtp_txcomstart,
-p_in_sim_gtp_rxdata         => i_sim_gtp_txdata,
-p_in_sim_gtp_rxcharisk      => i_sim_gtp_txcharisk,
-p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus,
-p_in_sim_gtp_rxelecidle     => i_sim_gtp_rxelecidle,
-p_in_sim_gtp_rxdisperr      => i_sim_gtp_rxdisperr,
-p_in_sim_gtp_rxnotintable   => i_sim_gtp_rxnotintable,
-p_in_sim_gtp_rxbyteisaligned=> i_sim_gtp_rxbyteisaligned,
-p_out_sim_rst               => i_sim_gtp_rst,
-p_out_sim_clk               => i_sim_gtp_clk,
+p_out_sim_gt_txdata        => i_sim_gt_rxdata,
+p_out_sim_gt_txcharisk     => i_sim_gt_rxcharisk,
+p_out_sim_gt_txcomstart    => i_sim_gt_txcomstart,
+p_in_sim_gt_rxdata         => i_sim_gt_txdata,
+p_in_sim_gt_rxcharisk      => i_sim_gt_txcharisk,
+p_in_sim_gt_rxstatus       => i_sim_gt_rxstatus,
+p_in_sim_gt_rxelecidle     => i_sim_gt_rxelecidle,
+p_in_sim_gt_rxdisperr      => i_sim_gt_rxdisperr,
+p_in_sim_gt_rxnotintable   => i_sim_gt_rxnotintable,
+p_in_sim_gt_rxbyteisaligned=> i_sim_gt_rxbyteisaligned,
+p_out_sim_rst               => i_sim_gt_rst,
+p_out_sim_clk               => i_sim_gt_clk,
 
 ---------------------------------------------------------------------------
 --System
@@ -320,10 +320,10 @@ p_in_sys_dcm_gclk           => i_sata_dcm_clk,
 p_in_sys_dcm_gclk2x         => i_sata_dcm_clk2x,
 p_in_sys_dcm_lock           => i_sata_dcm_lock,
 
-p_out_gtp_pllkdet           => i_gtp_pllkdet,
-p_out_gtp_refclk            => i_gtp_refclk_out,
-p_in_gtp_drpclk             => i_sata_dcm_clk2div,
-p_in_gtp_refclk             => p_in_clk,
+p_out_gt_pllkdet           => i_gt_pllkdet,
+p_out_gt_refclk            => i_gt_refclk_out,
+p_in_gt_drpclk             => i_sata_dcm_clk2div,
+p_in_gt_refclk             => p_in_clk,
 
 p_in_optrefclksel           => "0000",--: in    std_logic_vector(3 downto 0);
 p_in_optrefclk              => "0000",--: in    std_logic_vector(3 downto 0);
@@ -344,19 +344,19 @@ port map
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata            => i_sim_gtp_txdata(0),
-p_out_gtp_txcharisk         => i_sim_gtp_txcharisk(0),
+p_out_gt_txdata            => i_sim_gt_txdata(0),
+p_out_gt_txcharisk         => i_sim_gt_txcharisk(0),
 
-p_in_gtp_txcomstart         => i_sim_gtp_txcomstart(0),
+p_in_gt_txcomstart         => i_sim_gt_txcomstart(0),
 
-p_in_gtp_rxdata             => i_sim_gtp_rxdata(0),
-p_in_gtp_rxcharisk          => i_sim_gtp_rxcharisk(0),
+p_in_gt_rxdata             => i_sim_gt_rxdata(0),
+p_in_gt_rxcharisk          => i_sim_gt_rxcharisk(0),
 
-p_out_gtp_rxstatus          => i_sim_gtp_rxstatus(0),
-p_out_gtp_rxelecidle        => i_sim_gtp_rxelecidle(0),
-p_out_gtp_rxdisperr         => i_sim_gtp_rxdisperr(0),
-p_out_gtp_rxnotintable      => i_sim_gtp_rxnotintable(0),
-p_out_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned(0),
+p_out_gt_rxstatus          => i_sim_gt_rxstatus(0),
+p_out_gt_rxelecidle        => i_sim_gt_rxelecidle(0),
+p_out_gt_rxdisperr         => i_sim_gt_rxdisperr(0),
+p_out_gt_rxnotintable      => i_sim_gt_rxnotintable(0),
+p_out_gt_rxbyteisaligned   => i_sim_gt_rxbyteisaligned(0),
 
 p_in_ctrl                   => i_satadev_ctrl(0),
 p_out_status                => open,
@@ -370,17 +370,17 @@ p_out_tst                  => open,
 ----------------------------
 --System
 ----------------------------
-p_in_clk                   => i_sim_gtp_clk(0),
-p_in_rst                   => i_sim_gtp_rst(0)
+p_in_clk                   => i_sim_gt_clk(0),
+p_in_rst                   => i_sim_gt_rst(0)
 );
 
-i_sim_gtp_rxelecidle(1)<='0';
-i_sim_gtp_rxstatus(1)<=(others=>'0');
-i_sim_gtp_rxdata(1)<=(others=>'0');
-i_sim_gtp_rxcharisk(1)<=(others=>'0');
-i_sim_gtp_rxdisperr(1)<=(others=>'0');
-i_sim_gtp_rxnotintable(1)<=(others=>'0');
-i_sim_gtp_rxbyteisaligned(1)<='0';
+i_sim_gt_rxelecidle(1)<='0';
+i_sim_gt_rxstatus(1)<=(others=>'0');
+i_sim_gt_rxdata(1)<=(others=>'0');
+i_sim_gt_rxcharisk(1)<=(others=>'0');
+i_sim_gt_rxdisperr(1)<=(others=>'0');
+i_sim_gt_rxnotintable(1)<=(others=>'0');
+i_sim_gt_rxbyteisaligned(1)<='0';
 
 
 m_sata_dcm : sata_dcm
@@ -396,13 +396,13 @@ p_out_dcm_gclkdv    => i_sata_dcm_clk2div,
 p_out_dcmlock       => i_sata_dcm_lock,
 
 p_out_refclkout     => open,
-p_in_clk            => g_gtp_refclk_out(0),
+p_in_clk            => g_gt_refclk_out(0),
 p_in_rst            => i_sata_dcm_rst
 );
 
-g_gtp_refclk_out(0)<=i_gtp_refclk_out;
+g_gt_refclk_out(0)<=i_gt_refclk_out;
 
-i_sata_dcm_rst<=not i_gtp_pllkdet;
+i_sata_dcm_rst<=not i_gt_pllkdet;
 
 p_in_rst<='1','0' after 1 us;
 
@@ -711,9 +711,9 @@ begin
 
   wait until i_cmddone_det_clr='1';
 
-  wait until i_sim_gtp_clk(0)'event and i_sim_gtp_clk(0) = '1';
+  wait until i_sim_gt_clk(0)'event and i_sim_gt_clk(0) = '1';
   i_satadev_ctrl(0).atacmd_done<='1';
-  wait until i_sim_gtp_clk(0)'event and i_sim_gtp_clk(0) = '1';
+  wait until i_sim_gt_clk(0)'event and i_sim_gt_clk(0) = '1';
   i_satadev_ctrl(0).atacmd_done<='0';
 
 end process;

@@ -37,56 +37,56 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player is
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --Óïğàâëåíèå (Îïèñàíèå ïîğòîâ ñì. sata_player_oob_cntrl.vhd)
 --------------------------------------------------
-p_in_ctrl                  : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);--//Êîíñòàíòû ñì. sata_pkg.vhd/ïîëå - PHY Layer/Óïğàâëåíèå/Map:
-p_out_status               : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);--//Êîíñòàíòû ñì. sata_pkg.vhd/ïîëå - PHY Layer/Ñòàòóñû/Map
+p_in_ctrl               : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);--//Êîíñòàíòû ñì. sata_pkg.vhd/ïîëå - PHY Layer/Óïğàâëåíèå/Map:
+p_out_status            : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);--//Êîíñòàíòû ñì. sata_pkg.vhd/ïîëå - PHY Layer/Ñòàòóñû/Map
 
 --------------------------------------------------
 --Ñâÿçü ñ Link Layer
 --------------------------------------------------
-p_in_phy_txd               : in    std_logic_vector(31 downto 0);
-p_in_phy_txreq             : in    std_logic_vector(7 downto 0);
-p_out_phy_txrdy_n          : out   std_logic;
+p_in_phy_txd            : in    std_logic_vector(31 downto 0);
+p_in_phy_txreq          : in    std_logic_vector(7 downto 0);
+p_out_phy_txrdy_n       : out   std_logic;
 
-p_out_phy_rxtype           : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
-p_out_phy_rxdata           : out   std_logic_vector(31 downto 0);
+p_out_phy_rxtype        : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_out_phy_rxdata        : out   std_logic_vector(31 downto 0);
 
-p_out_phy_sync             : out   std_logic;
+p_out_phy_sync          : out   std_logic;
 
 --------------------------------------------------
 --Ñâÿçü ñ RocketIO (Îïèñàíèå ïîğòîâ ñì. sata_player_gt.vhd)
 --------------------------------------------------
-p_out_gtp_rst              : out   std_logic;
+p_out_gt_rst            : out   std_logic;
 
 --RocketIO Tranceiver
-p_out_gtp_txelecidle       : out   std_logic;
-p_out_gtp_txcomstart       : out   std_logic;
-p_out_gtp_txcomtype        : out   std_logic;
-p_out_gtp_txdata           : out   std_logic_vector(31 downto 0);
-p_out_gtp_txcharisk        : out   std_logic_vector(3 downto 0);
+p_out_gt_txelecidle     : out   std_logic;
+p_out_gt_txcomstart     : out   std_logic;
+p_out_gt_txcomtype      : out   std_logic;
+p_out_gt_txdata         : out   std_logic_vector(31 downto 0);
+p_out_gt_txcharisk      : out   std_logic_vector(3 downto 0);
 
-p_out_gtp_txreset          : out   std_logic;
-p_in_gtp_txbufstatus       : in    std_logic_vector(1 downto 0);
+p_out_gt_txreset        : out   std_logic;
+p_in_gt_txbufstatus     : in    std_logic_vector(1 downto 0);
 
 --RocketIO Receiver
-p_in_gtp_rxelecidle        : in    std_logic;
-p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxbyteisaligned   : in    std_logic;
+p_in_gt_rxelecidle      : in    std_logic;
+p_in_gt_rxstatus        : in    std_logic_vector(2 downto 0);
+p_in_gt_rxdata          : in    std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxdisperr       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxnotintable    : in    std_logic_vector(3 downto 0);
+p_in_gt_rxbyteisaligned : in    std_logic;
 
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_out_gtp_rxbufreset       : out   std_logic;
+p_in_gt_rxbufstatus     : in    std_logic_vector(2 downto 0);
+p_out_gt_rxbufreset     : out   std_logic;
 
 --------------------------------------------------
 --Òåõíîëîãè÷åñêèå ñèãíàëû
@@ -218,37 +218,37 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl              => p_in_ctrl,
-p_out_status           => i_oob_status,
+p_in_ctrl           => p_in_ctrl,
+p_out_status        => i_oob_status,
 
-p_in_primitive_det     => i_rxtype(C_TPMNAK downto C_TALIGN),
-p_out_d10_2_senddis    => i_d10_2_senddis,
+p_in_primitive_det  => i_rxtype(C_TPMNAK downto C_TALIGN),
+p_out_d10_2_senddis => i_d10_2_senddis,
 
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_out_gtp_rst          => p_out_gtp_rst,
+p_out_gt_rst        => p_out_gt_rst,
 
-p_out_gtp_txelecidle   => p_out_gtp_txelecidle,
-p_out_gtp_txcomstart   => p_out_gtp_txcomstart,
-p_out_gtp_txcomtype    => p_out_gtp_txcomtype,
+p_out_gt_txelecidle => p_out_gt_txelecidle,
+p_out_gt_txcomstart => p_out_gt_txcomstart,
+p_out_gt_txcomtype  => p_out_gt_txcomtype,
 
-p_in_gtp_rxelecidle    => p_in_gtp_rxelecidle,
-p_in_gtp_rxstatus      => p_in_gtp_rxstatus,
+p_in_gt_rxelecidle  => p_in_gt_rxelecidle,
+p_in_gt_rxstatus    => p_in_gt_rxstatus,
 
 --------------------------------------------------
 --Òåõíîëîãè÷åñêèå ñèãíàëû
 --------------------------------------------------
-p_in_tst               => p_in_tst,
-p_out_tst              => tst_player_oob_out,
-p_out_dbg              => i_dbg.oob,
+p_in_tst            => p_in_tst,
+p_out_tst           => tst_player_oob_out,
+p_out_dbg           => i_dbg.oob,
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_tmrclk            => p_in_tmrclk,
-p_in_clk               => p_in_clk,
-p_in_rst               => p_in_rst
+p_in_tmrclk         => p_in_tmrclk,
+p_in_clk            => p_in_clk,
+p_in_rst            => p_in_rst
 );
 
 
@@ -267,36 +267,36 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign           => '0',--i_rxtype(C_TALIGN),
-p_in_linkup            => i_oob_status(C_PSTAT_DET_ESTABLISH_ON_BIT),
-p_in_dev_detect        => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
-p_in_d10_2_send_dis    => i_d10_2_senddis,
-p_in_sync              => i_synch,
-p_in_txreq             => p_in_phy_txreq,
-p_in_txd               => p_in_phy_txd,
-p_out_rdy_n            => p_out_phy_txrdy_n,
+p_in_rxalign        => '0',--i_rxtype(C_TALIGN),
+p_in_linkup         => i_oob_status(C_PSTAT_DET_ESTABLISH_ON_BIT),
+p_in_dev_detect     => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
+p_in_d10_2_send_dis => i_d10_2_senddis,
+p_in_sync           => i_synch,
+p_in_txreq          => p_in_phy_txreq,
+p_in_txd            => p_in_phy_txd,
+p_out_rdy_n         => p_out_phy_txrdy_n,
 
 --------------------------------------------------
 --RocketIO Transmiter
 --------------------------------------------------
-p_out_gtp_txdata       => p_out_gtp_txdata,
-p_out_gtp_txcharisk    => p_out_gtp_txcharisk,
+p_out_gt_txdata     => p_out_gt_txdata,
+p_out_gt_txcharisk  => p_out_gt_txcharisk,
 
-p_out_gtp_txreset      => p_out_gtp_txreset,
-p_in_gtp_txbufstatus   => p_in_gtp_txbufstatus,
+p_out_gt_txreset    => p_out_gt_txreset,
+p_in_gt_txbufstatus => p_in_gt_txbufstatus,
 
 --------------------------------------------------
 --Òåõíîëîãè÷åñêèå ñèãíàëû
 --------------------------------------------------
-p_in_tst               => p_in_tst,
-p_out_tst              => tst_player_tsf_out,
-p_out_dbg              => i_dbg.tx,
+p_in_tst            => p_in_tst,
+p_out_tst           => tst_player_tsf_out,
+p_out_dbg           => i_dbg.tx,
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               => p_in_clk,
-p_in_rst               => p_in_rst
+p_in_clk            => p_in_clk,
+p_in_rst            => p_in_rst
 );
 
 
@@ -315,35 +315,35 @@ port map
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_dev_detect            => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
-p_out_rxd                  => p_out_phy_rxdata,
-p_out_rxtype               => i_rxtype,
-p_out_rxerr                => i_rxerr,
+p_in_dev_detect         => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
+p_out_rxd               => p_out_phy_rxdata,
+p_out_rxtype            => i_rxtype,
+p_out_rxerr             => i_rxerr,
 
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_in_gtp_rxdata            => p_in_gtp_rxdata,
-p_in_gtp_rxcharisk         => p_in_gtp_rxcharisk,
-p_in_gtp_rxdisperr         => p_in_gtp_rxdisperr,
-p_in_gtp_rxnotintable      => p_in_gtp_rxnotintable,
-p_in_gtp_rxbyteisaligned   => p_in_gtp_rxbyteisaligned,
+p_in_gt_rxdata          => p_in_gt_rxdata,
+p_in_gt_rxcharisk       => p_in_gt_rxcharisk,
+p_in_gt_rxdisperr       => p_in_gt_rxdisperr,
+p_in_gt_rxnotintable    => p_in_gt_rxnotintable,
+p_in_gt_rxbyteisaligned => p_in_gt_rxbyteisaligned,
 
-p_in_gtp_rxbufstatus       => p_in_gtp_rxbufstatus,
-p_out_gtp_rxbufreset       => p_out_gtp_rxbufreset,
+p_in_gt_rxbufstatus     => p_in_gt_rxbufstatus,
+p_out_gt_rxbufreset     => p_out_gt_rxbufreset,
 
 --------------------------------------------------
 --Òåõíîëîãè÷åñêèå ñèãíàëû
 --------------------------------------------------
-p_in_tst                   => p_in_tst,
-p_out_tst                  => tst_player_rcv_out,
-p_out_dbg                  => i_dbg.rx,
+p_in_tst                => p_in_tst,
+p_out_tst               => tst_player_rcv_out,
+p_out_dbg               => i_dbg.rx,
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               => p_in_clk,
-p_in_rst               => p_in_rst
+p_in_clk                => p_in_clk,
+p_in_rst                => p_in_rst
 );
 
 

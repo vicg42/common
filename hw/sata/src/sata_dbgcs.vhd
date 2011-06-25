@@ -37,53 +37,52 @@ use work.sata_sim_lite_pkg.all;
 entity sata_dbgcs is
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
 --------------------------------------------------
 --Связь с СhipScope ICON
 --------------------------------------------------
-p_out_dbgcs_ila : out  TSH_ila;
+p_out_dbgcs_ila   : out   TSH_ila;
 
 --------------------------------------------------
 --USR
 --------------------------------------------------
-p_in_ctrl       : in   std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
+p_in_ctrl         : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
-p_in_dbg        : in   TSH_dbgport;
-p_in_alstatus   : in   TALStatus;
-p_in_phy_txreq  : in   std_logic_vector(7 downto 0);
-p_in_phy_rxtype : in   std_logic_vector(C_TDATA_EN downto C_TALIGN);
-p_in_phy_rxdata : in   std_logic_vector(31 downto 0);
-p_in_phy_sync   : in   std_logic;
+p_in_dbg          : in    TSH_dbgport;
+p_in_alstatus     : in    TALStatus;
+p_in_phy_txreq    : in    std_logic_vector(7 downto 0);
+p_in_phy_rxtype   : in    std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_in_phy_rxdata   : in    std_logic_vector(31 downto 0);
+p_in_phy_sync     : in    std_logic;
 
-p_in_ll_rxd     : in   std_logic_vector(31 downto 0);
-p_in_ll_rxd_wr  : in   std_logic;
+p_in_ll_rxd       : in    std_logic_vector(31 downto 0);
+p_in_ll_rxd_wr    : in    std_logic;
 
-p_in_gt_rxdata    : in std_logic_vector(31 downto 0);
-p_in_gt_rxcharisk : in std_logic_vector(3 downto 0);
+p_in_gt_rxdata    : in    std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk : in    std_logic_vector(3 downto 0);
 
-p_in_gt_txdata    : in std_logic_vector(31 downto 0);
-p_in_gt_txcharisk : in std_logic_vector(3 downto 0);
+p_in_gt_txdata    : in    std_logic_vector(31 downto 0);
+p_in_gt_txcharisk : in    std_logic_vector(3 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_out_tst       : out   std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk : in    std_logic;
-p_in_rst : in    std_logic
+p_in_clk          : in    std_logic;
+p_in_rst          : in    std_logic
 );
 end sata_dbgcs;
 
 architecture behavioral of sata_dbgcs is
 
-signal i_dbgcs_ctrl                : std_logic_vector(35 downto 0);
 signal i_dbgcs_trig00              : std_logic_vector(41 downto 0);
 signal i_dbgcs_data                : std_logic_vector(122 downto 0);
 
@@ -284,24 +283,6 @@ i_fsm_tlayer<=CONV_STD_LOGIC_VECTOR(16#01#, i_fsm_tlayer'length) when p_in_dbg.t
               CONV_STD_LOGIC_VECTOR(16#00#, i_fsm_tlayer'length) ; --//when p_in_dbg.tlayer.fsm=S_IDLE else
 
 
-
-
---m_dbgcs_ila : sata_dbgcs_layer
---port map
---(
---CONTROL => i_dbgcs_ctrl,
---CLK     => p_in_clk,
---DATA    => i_dbgcs_data,
---TRIG0   => i_dbgcs_trig00
---);
---
-----m_dbgcs_icon : sata_dbgcs_icon
-----port map
-----(
-----CONTROL0 => i_dbgcs_ctrl
-----);
-----
-----p_out_dbgcs_ila <=i_dbgcs_ctrl;
 
 p_out_dbgcs_ila.clk   <=p_in_clk;
 p_out_dbgcs_ila.trig0 <=EXT(i_dbgcs_trig00, p_out_dbgcs_ila.trig0'length);

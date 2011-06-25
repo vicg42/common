@@ -33,8 +33,8 @@ use work.sata_sim_lite_pkg.all;
 entity sata_tlayer is
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
@@ -42,59 +42,59 @@ port
 --Связь с USRAPP Layer
 --------------------------------------------------
 --//Связь с TXFIFO
-p_in_txfifo_dout          : in    std_logic_vector(31 downto 0);
-p_out_txfifo_rd           : out   std_logic;
-p_in_txfifo_status        : in    TTxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
+p_in_txfifo_dout    : in    std_logic_vector(31 downto 0);
+p_out_txfifo_rd     : out   std_logic;
+p_in_txfifo_status  : in    TTxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
 
 --//Связь с RXFIFO
-p_out_rxfifo_din          : out   std_logic_vector(31 downto 0);
-p_out_rxfifo_wd           : out   std_logic;
-p_in_rxfifo_status        : in    TRxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
+p_out_rxfifo_din    : out   std_logic_vector(31 downto 0);
+p_out_rxfifo_wd     : out   std_logic;
+p_in_rxfifo_status  : in    TRxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
 
 --------------------------------------------------
 --Связь с APP Layer
 --------------------------------------------------
-p_in_tl_ctrl              : in    std_logic_vector(C_TLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Transport Layer/Управление/Map:
-p_out_tl_status           : out   std_logic_vector(C_TLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Transport Layer/Статусы/Map:
+p_in_tl_ctrl        : in    std_logic_vector(C_TLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Transport Layer/Управление/Map:
+p_out_tl_status     : out   std_logic_vector(C_TLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Transport Layer/Статусы/Map:
 
-p_out_reg_fpdma           : out   TRegFPDMASetup;               --//Структуры см. sata_pkg.vhd/поле - Типы
-p_in_reg_shadow           : in    TRegShadow;
-p_out_reg_hold            : out   TRegHold;
-p_out_reg_update          : out   TRegShadowUpdate;
+p_out_reg_fpdma     : out   TRegFPDMASetup;               --//Структуры см. sata_pkg.vhd/поле - Типы
+p_in_reg_shadow     : in    TRegShadow;
+p_out_reg_hold      : out   TRegHold;
+p_out_reg_update    : out   TRegShadowUpdate;
 
 --------------------------------------------------
 --Связь с Link Layer
 --------------------------------------------------
-p_out_ll_ctrl             : out   std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
-p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
+p_out_ll_ctrl       : out   std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
+p_in_ll_status      : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
 
-p_out_ll_txd_close        : out   std_logic;                    --//
-p_out_ll_txd              : out   std_logic_vector(31 downto 0);--//
-p_in_ll_txd_rd            : in    std_logic;                    --//
-p_out_ll_txd_status       : out   TTxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
+p_out_ll_txd_close  : out   std_logic;                    --//
+p_out_ll_txd        : out   std_logic_vector(31 downto 0);--//
+p_in_ll_txd_rd      : in    std_logic;                    --//
+p_out_ll_txd_status : out   TTxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
 
-p_in_ll_rxd               : in    std_logic_vector(31 downto 0);--//
-p_in_ll_rxd_wr            : in    std_logic;                    --//
-p_out_ll_rxd_status       : out   TRxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
+p_in_ll_rxd         : in    std_logic_vector(31 downto 0);--//
+p_in_ll_rxd_wr      : in    std_logic;                    --//
+p_out_ll_rxd_status : out   TRxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
 
 --------------------------------------------------
 --Связь с PHY Layer
 --------------------------------------------------
---p_in_pl_ctrl              : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
-p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+--p_in_pl_ctrl        : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
+p_in_pl_status      : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  : in    std_logic_vector(31 downto 0);
-p_out_tst                 : out   std_logic_vector(31 downto 0);
-p_out_dbg                 : out   TTL_dbgport;
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_dbg           : out   TTL_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
 );
 end sata_tlayer;
 

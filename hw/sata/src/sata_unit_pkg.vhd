@@ -27,30 +27,30 @@ package sata_unit_pkg is
 component sata_dbgcs
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
 --------------------------------------------------
 --Связь с СhipScope ICON
 --------------------------------------------------
-p_out_dbgcs_ila : out  TSH_ila;
+p_out_dbgcs_ila   : out  TSH_ila;
 
 --------------------------------------------------
 --USR
 --------------------------------------------------
-p_in_ctrl       : in   std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
+p_in_ctrl         : in   std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
-p_in_dbg        : in   TSH_dbgport;
-p_in_alstatus   : in   TALStatus;
-p_in_phy_txreq  : in   std_logic_vector(7 downto 0);
-p_in_phy_rxtype : in   std_logic_vector(C_TDATA_EN downto C_TALIGN);
-p_in_phy_rxdata : in   std_logic_vector(31 downto 0);
-p_in_phy_sync   : in   std_logic;
+p_in_dbg          : in   TSH_dbgport;
+p_in_alstatus     : in   TALStatus;
+p_in_phy_txreq    : in   std_logic_vector(7 downto 0);
+p_in_phy_rxtype   : in   std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_in_phy_rxdata   : in   std_logic_vector(31 downto 0);
+p_in_phy_sync     : in   std_logic;
 
-p_in_ll_rxd     : in   std_logic_vector(31 downto 0);
-p_in_ll_rxd_wr  : in   std_logic;
+p_in_ll_rxd       : in   std_logic_vector(31 downto 0);
+p_in_ll_rxd_wr    : in   std_logic;
 
 p_in_gt_rxdata    : in std_logic_vector(31 downto 0);
 p_in_gt_rxcharisk : in std_logic_vector(3 downto 0);
@@ -61,13 +61,13 @@ p_in_gt_txcharisk : in std_logic_vector(3 downto 0);
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_out_tst       : out   std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk : in    std_logic;
-p_in_rst : in    std_logic
+p_in_clk          : in    std_logic;
+p_in_rst          : in    std_logic
 );
 end component;
 
@@ -92,8 +92,8 @@ end component;
 component sata_player_gt_clkmux
 generic
 (
-G_HDD_COUNT  : integer := 0;
-G_SIM        : string  := "OFF"
+G_HDD_COUNT : integer:=0;
+G_SIM       : string :="OFF"
 );
 port
 (
@@ -106,15 +106,15 @@ end component;
 
 component ll_fifo
 generic (
-MEM_TYPE        :       integer := 0;
-BRAM_MACRO_NUM  :       integer := 1;
-DRAM_DEPTH      :       integer := 16;
-WR_DWIDTH       :       integer := 32;
-RD_DWIDTH       :       integer := 32;
-RD_REM_WIDTH    :       integer := 2;
-WR_REM_WIDTH    :       integer := 2;
-USE_LENGTH      :       boolean := true;
-glbtm           :       time    := 1 ns
+MEM_TYPE       : integer:=0;
+BRAM_MACRO_NUM : integer:=1;
+DRAM_DEPTH     : integer:=16;
+WR_DWIDTH      : integer:=32;
+RD_DWIDTH      : integer:=32;
+RD_REM_WIDTH   : integer:=2;
+WR_REM_WIDTH   : integer:=2;
+USE_LENGTH     : boolean:=true;
+glbtm          : time   :=1 ns
 );
 port
 (
@@ -199,234 +199,234 @@ end component;
 component sata_scrambler
 generic
 (
-G_INIT_VAL : integer := 16#FFFF#
+G_INIT_VAL : integer:=16#FFFF#
 );
 port
 (
-p_in_SOF               : in    std_logic;
-p_in_en                : in    std_logic;
-p_out_result           : out   std_logic_vector(31 downto 0);
+p_in_SOF      : in    std_logic;
+p_in_en       : in    std_logic;
+p_out_result  : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
---p_in_clk_en            : in    std_logic;
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+--p_in_clk_en   : in    std_logic;
+p_in_clk      : in    std_logic;
+p_in_rst      : in    std_logic
 );
 end component;
 
 component sata_crc
 generic
 (
-G_INIT_VAL : integer := 16#52325032#
+G_INIT_VAL : integer:=16#52325032#
 );
 port
 (
-p_in_SOF               : in    std_logic;
---p_in_EOF               : in    std_logic;
-p_in_en                : in    std_logic;
-p_in_data              : in    std_logic_vector(31 downto 0);
-p_out_crc              : out   std_logic_vector(31 downto 0);
+p_in_SOF      : in    std_logic;
+--p_in_EOF      : in    std_logic;
+p_in_en       : in    std_logic;
+p_in_data     : in    std_logic_vector(31 downto 0);
+p_out_crc     : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
---p_in_clk_en            : in    std_logic;
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+--p_in_clk_en   : in    std_logic;
+p_in_clk      : in    std_logic;
+p_in_rst      : in    std_logic
 );
 end component;
 
 component sata_player_tx
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign           : in    std_logic;
-p_in_linkup            : in    std_logic;
-p_in_dev_detect        : in    std_logic;
-p_in_d10_2_send_dis    : in    std_logic;
-p_in_sync              : in    std_logic;
-p_in_txreq             : in    std_logic_vector(7 downto 0);
-p_in_txd               : in    std_logic_vector(31 downto 0);
-p_out_rdy_n            : out   std_logic;
+p_in_rxalign        : in    std_logic;
+p_in_linkup         : in    std_logic;
+p_in_dev_detect     : in    std_logic;
+p_in_d10_2_send_dis : in    std_logic;
+p_in_sync           : in    std_logic;
+p_in_txreq          : in    std_logic_vector(7 downto 0);
+p_in_txd            : in    std_logic_vector(31 downto 0);
+p_out_rdy_n         : out   std_logic;
 
 --------------------------------------------------
 --RocketIO Transmiter (Назначение портов см. sata_player_gt.vhd)
 --------------------------------------------------
-p_out_gtp_txdata       : out   std_logic_vector(31 downto 0);
-p_out_gtp_txcharisk    : out   std_logic_vector(3 downto 0);
+p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
+p_out_gt_txcharisk  : out   std_logic_vector(3 downto 0);
 
-p_out_gtp_txreset      : out   std_logic;
-p_in_gtp_txbufstatus   : in    std_logic_vector(1 downto 0);
+p_out_gt_txreset    : out   std_logic;
+p_in_gt_txbufstatus : in    std_logic_vector(1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst               : in    std_logic_vector(31 downto 0);
-p_out_tst              : out   std_logic_vector(31 downto 0);
-p_out_dbg              : out   TPLtx_dbgport;
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_dbg           : out   TPLtx_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
 );
 end component;
 
 component sata_player_rx
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_dev_detect            : in    std_logic;
-p_out_rxd                  : out   std_logic_vector(31 downto 0);
-p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
-p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
+p_in_dev_detect         : in    std_logic;
+p_out_rxd               : out   std_logic_vector(31 downto 0);
+p_out_rxtype            : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_out_rxerr             : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);
 
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
-p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxbyteisaligned   : in    std_logic;
+p_in_gt_rxdata          : in    std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxdisperr       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxnotintable    : in    std_logic_vector(3 downto 0);
+p_in_gt_rxbyteisaligned : in    std_logic;
 
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_out_gtp_rxbufreset       : out   std_logic;
+p_in_gt_rxbufstatus     : in    std_logic_vector(2 downto 0);
+p_out_gt_rxbufreset     : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
-p_out_dbg                  : out   TPLrx_dbgport;
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TPLrx_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
 );
 end component;
 
 component sata_player_oob
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl              : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
-p_out_status           : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+p_in_ctrl           : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
+p_out_status        : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
-p_in_primitive_det     : in    std_logic_vector(C_TPMNAK downto C_TALIGN);
-p_out_d10_2_senddis    : out   std_logic;
+p_in_primitive_det  : in    std_logic_vector(C_TPMNAK downto C_TALIGN);
+p_out_d10_2_senddis : out   std_logic;
 
 --------------------------------------------------
 --RocketIO Receiver
 --------------------------------------------------
-p_out_gtp_rst          : out   std_logic;
+p_out_gt_rst        : out   std_logic;
 
-p_out_gtp_txelecidle   : out   std_logic;
-p_out_gtp_txcomstart   : out   std_logic;
-p_out_gtp_txcomtype    : out   std_logic;
+p_out_gt_txelecidle : out   std_logic;
+p_out_gt_txcomstart : out   std_logic;
+p_out_gt_txcomtype  : out   std_logic;
 
-p_in_gtp_rxelecidle    : in    std_logic;
-p_in_gtp_rxstatus      : in    std_logic_vector(2 downto 0);
+p_in_gt_rxelecidle  : in    std_logic;
+p_in_gt_rxstatus    : in    std_logic_vector(2 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst               : in    std_logic_vector(31 downto 0);
-p_out_tst              : out   std_logic_vector(31 downto 0);
-p_out_dbg              : out   TPLoob_dbgport;
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_dbg           : out   TPLoob_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_tmrclk            : in    std_logic;
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_tmrclk         : in    std_logic;
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
 );
 end component;
 
 component sata_alayer
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
 --------------------------------------------------
 --Связь с USR APP Layer
 --------------------------------------------------
-p_in_ctrl                 : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
-p_out_status              : out   TALStatus;
+p_in_ctrl               : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
+p_out_status            : out   TALStatus;
 
 --//Связь с CMDFIFO
-p_in_cmdfifo_dout         : in    std_logic_vector(15 downto 0);
-p_in_cmdfifo_eof_n        : in    std_logic;
-p_in_cmdfifo_src_rdy_n    : in    std_logic;
---p_out_cmdfifo_dst_rdy_n   : out   std_logic;
+p_in_cmdfifo_dout       : in    std_logic_vector(15 downto 0);
+p_in_cmdfifo_eof_n      : in    std_logic;
+p_in_cmdfifo_src_rdy_n  : in    std_logic;
+--p_out_cmdfifo_dst_rdy_n : out   std_logic;
 
 --------------------------------------------------
 --Связь с Transport/Link/PHY Layer
 --------------------------------------------------
-p_out_spd_ctrl            : out   TSpdCtrl;
-p_out_tl_ctrl             : out   std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
-p_in_tl_status            : in    std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
-p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
-p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+p_out_spd_ctrl          : out   TSpdCtrl;
+p_out_tl_ctrl           : out   std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
+p_in_tl_status          : in    std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
+p_in_ll_status          : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
+p_in_pl_status          : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
-p_in_reg_fpdma            : in    TRegFPDMASetup;
-p_out_reg_shadow          : out   TRegShadow;
-p_in_reg_hold             : in    TRegHold;
-p_in_reg_update           : in    TRegShadowUpdate;
+p_in_reg_fpdma          : in    TRegFPDMASetup;
+p_out_reg_shadow        : out   TRegShadow;
+p_in_reg_hold           : in    TRegHold;
+p_in_reg_update         : in    TRegShadowUpdate;
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  : in    std_logic_vector(31 downto 0);
-p_out_tst                 : out   std_logic_vector(31 downto 0);
-p_out_dbg                 : out   TAL_dbgport;
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TAL_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
 );
 end component;
 
 component sata_tlayer
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
@@ -434,227 +434,227 @@ port
 --Связь с USRAPP Layer
 --------------------------------------------------
 --//Связь с TXFIFO
-p_in_txfifo_dout          : in    std_logic_vector(31 downto 0);
-p_out_txfifo_rd           : out   std_logic;
-p_in_txfifo_status        : in    TTxBufStatus;
+p_in_txfifo_dout     : in    std_logic_vector(31 downto 0);
+p_out_txfifo_rd      : out   std_logic;
+p_in_txfifo_status   : in    TTxBufStatus;
 
 --//Связь с RXFIFO
-p_out_rxfifo_din          : out   std_logic_vector(31 downto 0);
-p_out_rxfifo_wd           : out   std_logic;
-p_in_rxfifo_status        : in    TRxBufStatus;
+p_out_rxfifo_din     : out   std_logic_vector(31 downto 0);
+p_out_rxfifo_wd      : out   std_logic;
+p_in_rxfifo_status   : in    TRxBufStatus;
 
 --------------------------------------------------
 --Связь с APP Layer
 --------------------------------------------------
-p_in_tl_ctrl              : in    std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
-p_out_tl_status           : out   std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
+p_in_tl_ctrl         : in    std_logic_vector(C_TLCTRL_LAST_BIT downto 0);
+p_out_tl_status      : out   std_logic_vector(C_TLSTAT_LAST_BIT downto 0);
 
-p_out_reg_fpdma           : out   TRegFPDMASetup;
-p_in_reg_shadow           : in    TRegShadow;
-p_out_reg_hold            : out   TRegHold;
-p_out_reg_update          : out   TRegShadowUpdate;
+p_out_reg_fpdma      : out   TRegFPDMASetup;
+p_in_reg_shadow      : in    TRegShadow;
+p_out_reg_hold       : out   TRegHold;
+p_out_reg_update     : out   TRegShadowUpdate;
 
 --------------------------------------------------
 --Связь с Link Layer
 --------------------------------------------------
-p_out_ll_ctrl             : out   std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
-p_in_ll_status            : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
+p_out_ll_ctrl        : out   std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
+p_in_ll_status       : in    std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
 
-p_out_ll_txd_close        : out   std_logic;
-p_out_ll_txd              : out   std_logic_vector(31 downto 0);
-p_in_ll_txd_rd            : in    std_logic;
-p_out_ll_txd_status       : out   TTxBufStatus;
+p_out_ll_txd_close   : out   std_logic;
+p_out_ll_txd         : out   std_logic_vector(31 downto 0);
+p_in_ll_txd_rd       : in    std_logic;
+p_out_ll_txd_status  : out   TTxBufStatus;
 
-p_in_ll_rxd               : in    std_logic_vector(31 downto 0);
-p_in_ll_rxd_wr            : in    std_logic;
-p_out_ll_rxd_status       : out   TRxBufStatus;
+p_in_ll_rxd          : in    std_logic_vector(31 downto 0);
+p_in_ll_rxd_wr       : in    std_logic;
+p_out_ll_rxd_status  : out   TRxBufStatus;
 
 --------------------------------------------------
 --Связь с PHY Layer
 --------------------------------------------------
---p_in_pl_ctrl              : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
-p_in_pl_status            : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+--p_in_pl_ctrl         : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
+p_in_pl_status       : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                  : in    std_logic_vector(31 downto 0);
-p_out_tst                 : out   std_logic_vector(31 downto 0);
-p_out_dbg                 : out   TTL_dbgport;
+p_in_tst             : in    std_logic_vector(31 downto 0);
+p_out_tst            : out   std_logic_vector(31 downto 0);
+p_out_dbg            : out   TTL_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk             : in    std_logic;
+p_in_rst             : in    std_logic
 );
 end component;
 
 component sata_llayer
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
 --------------------------------------------------
 --Связь с Transport Layer
 --------------------------------------------------
-p_in_ctrl               : in    std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
-p_out_status            : out   std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
+p_in_ctrl        : in    std_logic_vector(C_LLCTRL_LAST_BIT downto 0);
+p_out_status     : out   std_logic_vector(C_LLSTAT_LAST_BIT downto 0);
 
-p_in_txd_close          : in    std_logic;
-p_in_txd                : in    std_logic_vector(31 downto 0);
-p_out_txd_rd            : out   std_logic;
-p_in_txd_status         : in    TTxBufStatus;
+p_in_txd_close   : in    std_logic;
+p_in_txd         : in    std_logic_vector(31 downto 0);
+p_out_txd_rd     : out   std_logic;
+p_in_txd_status  : in    TTxBufStatus;
 
-p_out_rxd               : out   std_logic_vector(31 downto 0);
-p_out_rxd_wr            : out   std_logic;
-p_in_rxd_status         : in    TRxBufStatus;
+p_out_rxd        : out   std_logic_vector(31 downto 0);
+p_out_rxd_wr     : out   std_logic;
+p_in_rxd_status  : in    TRxBufStatus;
 
 --------------------------------------------------
 --Связь с Phy Layer
 --------------------------------------------------
-p_in_phy_status         : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
-p_in_phy_sync           : in    std_logic;
+p_in_phy_status  : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+p_in_phy_sync    : in    std_logic;
 
-p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);
-p_in_phy_rxd            : in    std_logic_vector(31 downto 0);
+p_in_phy_rxtype  : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);
+p_in_phy_rxd     : in    std_logic_vector(31 downto 0);
 
-p_out_phy_txd           : out   std_logic_vector(31 downto 0);
-p_out_phy_txreq         : out   std_logic_vector(7 downto 0);
-p_in_phy_txrdy_n        : in    std_logic;
+p_out_phy_txd    : out   std_logic_vector(31 downto 0);
+p_out_phy_txreq  : out   std_logic_vector(7 downto 0);
+p_in_phy_txrdy_n : in    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                : in    std_logic_vector(31 downto 0);
-p_out_tst               : out   std_logic_vector(31 downto 0);
-p_out_dbg               : out   TLL_dbgport;
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(31 downto 0);
+p_out_dbg        : out   TLL_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;--
-p_in_rst               : in    std_logic
+p_in_clk         : in    std_logic;--
+p_in_rst         : in    std_logic
 );
 end component;
 
 component sata_player
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --Связь с Link Layer
 --------------------------------------------------
-p_in_ctrl                  : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
-p_out_status               : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+p_in_ctrl               : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
+p_out_status            : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
-p_in_phy_txd               : in    std_logic_vector(31 downto 0);
-p_in_phy_txreq             : in    std_logic_vector(7 downto 0);
-p_out_phy_txrdy_n          : out   std_logic;
+p_in_phy_txd            : in    std_logic_vector(31 downto 0);
+p_in_phy_txreq          : in    std_logic_vector(7 downto 0);
+p_out_phy_txrdy_n       : out   std_logic;
 
-p_out_phy_rxtype           : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
-p_out_phy_rxdata           : out   std_logic_vector(31 downto 0);
+p_out_phy_rxtype        : out   std_logic_vector(C_TDATA_EN downto C_TALIGN);
+p_out_phy_rxdata        : out   std_logic_vector(31 downto 0);
 
-p_out_phy_sync             : out   std_logic;
+p_out_phy_sync          : out   std_logic;
 
 --------------------------------------------------
 --Связь с RocketIO (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
-p_out_gtp_rst              : out   std_logic;
+p_out_gt_rst            : out   std_logic;
 
 --RocketIO Tranceiver
-p_out_gtp_txelecidle       : out   std_logic;
-p_out_gtp_txcomstart       : out   std_logic;
-p_out_gtp_txcomtype        : out   std_logic;
-p_out_gtp_txdata           : out   std_logic_vector(31 downto 0);
-p_out_gtp_txcharisk        : out   std_logic_vector(3 downto 0);
+p_out_gt_txelecidle     : out   std_logic;
+p_out_gt_txcomstart     : out   std_logic;
+p_out_gt_txcomtype      : out   std_logic;
+p_out_gt_txdata         : out   std_logic_vector(31 downto 0);
+p_out_gt_txcharisk      : out   std_logic_vector(3 downto 0);
 
-p_out_gtp_txreset          : out   std_logic;
-p_in_gtp_txbufstatus       : in    std_logic_vector(1 downto 0);
+p_out_gt_txreset        : out   std_logic;
+p_in_gt_txbufstatus     : in    std_logic_vector(1 downto 0);
 
 --RocketIO Receiver
-p_in_gtp_rxelecidle        : in    std_logic;
-p_in_gtp_rxstatus          : in    std_logic_vector(2 downto 0);
-p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxbyteisaligned   : in    std_logic;
+p_in_gt_rxelecidle      : in    std_logic;
+p_in_gt_rxstatus        : in    std_logic_vector(2 downto 0);
+p_in_gt_rxdata          : in    std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxdisperr       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxnotintable    : in    std_logic_vector(3 downto 0);
+p_in_gt_rxbyteisaligned : in    std_logic;
 
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_out_gtp_rxbufreset       : out   std_logic;
+p_in_gt_rxbufstatus     : in    std_logic_vector(2 downto 0);
+p_out_gt_rxbufreset     : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
-p_out_dbg                  : out   TPL_dbgport;
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TPL_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_tmrclk            : in    std_logic;
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_tmrclk             : in    std_logic;
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
 );
 end component;
 
 component sata_player_gtsim
 generic
 (
-G_SATAH_NUM  : integer :=0;
-G_GT_CH_COUNT: integer := 2;
-G_GT_DBUS    : integer := 16;
-G_SIM        : string  := "OFF"
+G_SATAH_NUM   : integer:=0;
+G_GT_CH_COUNT : integer:=2;
+G_GT_DBUS     : integer:=16;
+G_SIM         : string :="OFF"
 );
 port
 (
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
-p_in_spd               : in    TSpdCtrl_GTCH;
-p_in_sys_dcm_gclk2div  : in    std_logic;
-p_in_sys_dcm_gclk      : in    std_logic;
-p_in_sys_dcm_gclk2x    : in    std_logic;
+p_in_spd              : in    TSpdCtrl_GTCH;
+p_in_sys_dcm_gclk2div : in    std_logic;
+p_in_sys_dcm_gclk     : in    std_logic;
+p_in_sys_dcm_gclk2x   : in    std_logic;
 
-p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_usrclk2         : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 ----------------------------------------------------------------------------
 --System
 ----------------------------------------------------------------------------
 --Порт динамическаго конфигурирования DUAL_GTP
-p_out_drpdo            : out   std_logic_vector(15 downto 0);
-p_out_drprdy           : out   std_logic;
+p_out_drpdo           : out   std_logic_vector(15 downto 0);
+p_out_drprdy          : out   std_logic;
 
-p_out_plllock          : out   std_logic;
-p_out_refclkout        : out   std_logic;
+p_out_plllock         : out   std_logic;
+p_out_refclkout       : out   std_logic;
 
-p_in_refclkin          : in    std_logic;
+p_in_refclkin         : in    std_logic;
 
-p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
-p_in_optrefclk         : in    std_logic_vector(3 downto 0);
-p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+p_in_optrefclksel     : in    std_logic_vector(3 downto 0);
+p_in_optrefclk        : in    std_logic_vector(3 downto 0);
+p_out_optrefclk       : out   std_logic_vector(3 downto 0);
 
-p_in_rst               : in    std_logic
+p_in_rst              : in    std_logic
 );
 end component;
 
 component sata_player_gt
 generic
 (
-G_SATAH_NUM  : integer := 0;
-G_GT_CH_COUNT: integer := 2;
-G_GT_DBUS    : integer := 16;
-G_SIM        : string  := "OFF"
+G_SATAH_NUM   : integer:=0;
+G_GT_CH_COUNT : integer:=2;
+G_GT_DBUS     : integer:=16;
+G_SIM         : string :="OFF"
 );
 port
 (
@@ -734,7 +734,9 @@ generic
 (
 G_SATAH_COUNT_MAX : integer:=1;
 G_SATAH_NUM       : integer:=0;
+G_SATAH_CH_COUNT  : integer:=1;
 G_DBG             : string :="OFF";
+G_DBGCS           : string :="OFF";
 G_SIM             : string :="OFF"
 
 );
@@ -743,38 +745,39 @@ port
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_ctrl               : in    TSpdCtrl_GTCH;
-p_out_spd_ver           : out   TSpdCtrl_GTCH;
+p_in_ctrl           : in    TSpdCtrl_GTCH;
+p_out_phy_spd       : out   TSpdCtrl_GTCH;
+p_out_phy_layer_rst : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-p_in_gtp_pll_lock       : in    std_logic;
-p_in_usr_dcm_lock       : in    std_logic;
-p_in_linkup             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_phy_linkup     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_gt_pll_lock    : in    std_logic;
+p_in_usr_dcm_lock   : in    std_logic;
 
 --------------------------------------------------
 --Связь с GTP
 --------------------------------------------------
-p_out_gtp_drpaddr       : out   std_logic_vector(7 downto 0);
-p_out_gtp_drpen         : out   std_logic;
-p_out_gtp_drpwe         : out   std_logic;
-p_out_gtp_drpdi         : out   std_logic_vector(15 downto 0);
-p_in_gtp_drpdo          : in    std_logic_vector(15 downto 0);
-p_in_gtp_drprdy         : in    std_logic;
+p_out_gt_drpaddr    : out   std_logic_vector(7 downto 0);
+p_out_gt_drpen      : out   std_logic;
+p_out_gt_drpwe      : out   std_logic;
+p_out_gt_drpdi      : out   std_logic_vector(15 downto 0);
+p_in_gt_drpdo       : in    std_logic_vector(15 downto 0);
+p_in_gt_drprdy      : in    std_logic;
 
-p_out_gtp_ch_rst        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_out_gtp_rdy           : out   std_logic;
-p_in_gtp_resetdone      : in    std_logic;
+p_out_gt_ch_rst     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_gt_resetdone   : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                : in    std_logic_vector(31 downto 0);
-p_out_tst               : out   std_logic_vector(31 downto 0);
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_dbgcs_ila     : out   TSH_ila;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk                : in    std_logic;
-p_in_rst                : in    std_logic
+p_in_clk            : in    std_logic;
+p_in_rst            : in    std_logic
 );
 end component;
 
@@ -835,16 +838,16 @@ p_out_tst                   : out   TBus32_GTCH;
 p_out_dbg                   : out   TSH_dbgport_GTCH;
 p_out_dbgcs                 : out   TSH_dbgcs_GTCH;
 
-p_out_sim_gtp_txdata        : out   TBus32_GTCH;
-p_out_sim_gtp_txcharisk     : out   TBus04_GTCH;
-p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdata         : in    TBus32_GTCH;
-p_in_sim_gtp_rxcharisk      : in    TBus04_GTCH;
-p_in_sim_gtp_rxstatus       : in    TBus03_GTCH;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_GTCH;
-p_in_sim_gtp_rxnotintable   : in    TBus04_GTCH;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_out_sim_gt_txdata         : out   TBus32_GTCH;
+p_out_sim_gt_txcharisk      : out   TBus04_GTCH;
+p_out_sim_gt_txcomstart     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata          : in    TBus32_GTCH;
+p_in_sim_gt_rxcharisk       : in    TBus04_GTCH;
+p_in_sim_gt_rxstatus        : in    TBus03_GTCH;
+p_in_sim_gt_rxelecidle      : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr       : in    TBus04_GTCH;
+p_in_sim_gt_rxnotintable    : in    TBus04_GTCH;
+p_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_sim_rst               : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_sim_clk               : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
@@ -856,10 +859,10 @@ p_in_sys_dcm_gclk           : in    std_logic;
 p_in_sys_dcm_gclk2x         : in    std_logic;
 p_in_sys_dcm_lock           : in    std_logic;
 
-p_out_gtp_pllkdet           : out   std_logic;
-p_out_gtp_refclk            : out   std_logic;
-p_in_gtp_drpclk             : in    std_logic;
-p_in_gtp_refclk             : in    std_logic;
+p_out_gt_pllkdet            : out   std_logic;
+p_out_gt_refclk             : out   std_logic;
+p_in_gt_drpclk              : in    std_logic;
+p_in_gt_refclk              : in    std_logic;
 
 p_in_optrefclksel           : in    std_logic_vector(3 downto 0);
 p_in_optrefclk              : in    std_logic_vector(3 downto 0);
@@ -1228,18 +1231,18 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
 
-p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
-p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sim_gt_txdata        : out   TBus32_SHCountMax;
+p_out_sim_gt_txcharisk     : out   TBus04_SHCountMax;
+p_out_sim_gt_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata         : in    TBus32_SHCountMax;
+p_in_sim_gt_rxcharisk      : in    TBus04_SHCountMax;
+p_in_sim_gt_rxstatus       : in    TBus03_SHCountMax;
+p_in_sim_gt_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr      : in    TBus04_SHCountMax;
+p_in_sim_gt_rxnotintable   : in    TBus04_SHCountMax;
+p_in_sim_gt_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы

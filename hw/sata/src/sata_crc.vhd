@@ -27,22 +27,22 @@ use work.vicg_common_pkg.all;
 entity sata_crc is
 generic
 (
-G_INIT_VAL             : integer   := 16#52325032#
+G_INIT_VAL : integer:=16#52325032#
 );
 port
 (
-p_in_SOF               : in    std_logic;
---p_in_EOF               : in    std_logic;
-p_in_en                : in    std_logic;
-p_in_data              : in    std_logic_vector(31 downto 0);
-p_out_crc              : out   std_logic_vector(31 downto 0);
+p_in_SOF      : in    std_logic;
+--p_in_EOF      : in    std_logic;
+p_in_en       : in    std_logic;
+p_in_data     : in    std_logic_vector(31 downto 0);
+p_out_crc     : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
---p_in_clk_en            : in    std_logic;--
-p_in_clk               : in    std_logic;--
-p_in_rst               : in    std_logic
+--p_in_clk_en   : in    std_logic;--
+p_in_clk      : in    std_logic;--
+p_in_rst      : in    std_logic
 );
 end sata_crc;
 

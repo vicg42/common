@@ -38,51 +38,51 @@ use work.sata_sim_lite_pkg.all;
 entity sata_llayer is
 generic
 (
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port
 (
 --------------------------------------------------
 --Связь с Transport Layer
 --------------------------------------------------
-p_in_ctrl               : in    std_logic_vector(C_LLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Link Layer/Управление/Map:
-p_out_status            : out   std_logic_vector(C_LLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Link Layer/Статусы/Map:
+p_in_ctrl        : in    std_logic_vector(C_LLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Link Layer/Управление/Map:
+p_out_status     : out   std_logic_vector(C_LLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - Link Layer/Статусы/Map:
 
-p_in_txd_close          : in    std_logic;                    --//Закрыть передоваемый frame (0/1 -закрыть фрейм/(не закрывать -продолжать передачу данных))
-p_in_txd                : in    std_logic_vector(31 downto 0);--//Данные из TX буфера транспортного уровня
-p_out_txd_rd            : out   std_logic;                    --//Разрешение чтения данных TX буфера трансп. уровня
-p_in_txd_status         : in    TTxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
+p_in_txd_close   : in    std_logic;                    --//Закрыть передоваемый frame (0/1 -закрыть фрейм/(не закрывать -продолжать передачу данных))
+p_in_txd         : in    std_logic_vector(31 downto 0);--//Данные из TX буфера транспортного уровня
+p_out_txd_rd     : out   std_logic;                    --//Разрешение чтения данных TX буфера трансп. уровня
+p_in_txd_status  : in    TTxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
 
-p_out_rxd               : out   std_logic_vector(31 downto 0);--//Данные в RX буфер транспортного уровня
-p_out_rxd_wr            : out   std_logic;                    --//Разрешение записи данных в RX буфер трансп. уровня
-p_in_rxd_status         : in    TRxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
+p_out_rxd        : out   std_logic_vector(31 downto 0);--//Данные в RX буфер транспортного уровня
+p_out_rxd_wr     : out   std_logic;                    --//Разрешение записи данных в RX буфер трансп. уровня
+p_in_rxd_status  : in    TRxBufStatus;                 --//Структуры см. sata_pkg.vhd/поле - Типы
 
 --------------------------------------------------
 --Связь с Phy Layer
 --------------------------------------------------
-p_in_phy_status         : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
-p_in_phy_sync           : in    std_logic;                  --//синхронизация от phy уровня
+p_in_phy_status  : in    std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
+p_in_phy_sync    : in    std_logic;                  --//синхронизация от phy уровня
 
-p_in_phy_rxtype         : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
-p_in_phy_rxd            : in    std_logic_vector(31 downto 0);
+p_in_phy_rxtype  : in    std_logic_vector(C_TDATA_EN downto C_TSYNC);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
+p_in_phy_rxd     : in    std_logic_vector(31 downto 0);
 
-p_out_phy_txd           : out   std_logic_vector(31 downto 0);--//Tx -  пользовательские данные(скремблированые)
-p_out_phy_txreq         : out   std_logic_vector(7 downto 0);--//запрос на передачу премитива/данных
-p_in_phy_txrdy_n        : in    std_logic;                   --//Статус передатчика 1/0 - идет передача примита ALIGN/готов к передаче
+p_out_phy_txd    : out   std_logic_vector(31 downto 0);--//Tx -  пользовательские данные(скремблированые)
+p_out_phy_txreq  : out   std_logic_vector(7 downto 0);--//запрос на передачу премитива/данных
+p_in_phy_txrdy_n : in    std_logic;                   --//Статус передатчика 1/0 - идет передача примита ALIGN/готов к передаче
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                : in    std_logic_vector(31 downto 0);
-p_out_tst               : out   std_logic_vector(31 downto 0);
-p_out_dbg               : out   TLL_dbgport;
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(31 downto 0);
+p_out_dbg        : out   TLL_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;--
-p_in_rst               : in    std_logic
+p_in_clk         : in    std_logic;--
+p_in_rst         : in    std_logic
 );
 end sata_llayer;
 
@@ -485,7 +485,7 @@ if p_in_phy_sync='1' then
       tst_txp_hold<='0';
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -586,7 +586,7 @@ if p_in_phy_sync='1' then
     when S_L_SyncEscape =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -681,7 +681,7 @@ if p_in_phy_sync='1' then
       when S_L_SendAlign =>
 
         if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-        --//Связь с утройством оборвана
+        --//Связь с устройством оборвана
           i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
 
           fsm_llayer_cs <= S_L_NoCommErr;
@@ -704,7 +704,7 @@ if p_in_phy_sync='1' then
     when S_LT_H_SendChkRdy =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -772,7 +772,7 @@ if p_in_phy_sync='1' then
     when S_LT_SendSOF =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -808,7 +808,7 @@ if p_in_phy_sync='1' then
     when S_LT_SendData =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -907,7 +907,7 @@ if p_in_phy_sync='1' then
     when S_LT_SendHold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1116,7 +1116,7 @@ if p_in_phy_sync='1' then
     when S_LT_RcvrHold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1281,7 +1281,7 @@ if p_in_phy_sync='1' then
     when S_LT_SendCRC =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1322,7 +1322,7 @@ if p_in_phy_sync='1' then
     when S_LT_SendEOF =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1355,7 +1355,7 @@ if p_in_phy_sync='1' then
     when S_LT_Wait =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1438,7 +1438,7 @@ if p_in_phy_sync='1' then
     when S_LR_RcvWaitFifo =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1571,7 +1571,7 @@ if p_in_phy_sync='1' then
     when S_LR_RcvChkRdy =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1677,7 +1677,7 @@ if p_in_phy_sync='1' then
     when S_LR_RcvData =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -1877,7 +1877,7 @@ if p_in_phy_sync='1' then
     when S_LR_Hold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -2084,7 +2084,7 @@ if p_in_phy_sync='1' then
     when S_LR_SendHold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -2224,7 +2224,7 @@ if p_in_phy_sync='1' then
     when S_LR_RcvEOF =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -2286,7 +2286,7 @@ if p_in_phy_sync='1' then
     when S_LR_GoodCRC =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -2357,7 +2357,7 @@ if p_in_phy_sync='1' then
     when S_LR_GoodEnd =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
@@ -2404,7 +2404,7 @@ if p_in_phy_sync='1' then
     when S_LR_BadEnd =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//Связь с утройством оборвана
+      --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else

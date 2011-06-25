@@ -155,9 +155,13 @@ begin
 
     end loop;
 
-    i_dly_on<=(p_in_dev_busy xor (OR_reduce(i_sh_tlayer_txon) or OR_reduce(i_sh_tlayer_rxon)) ) or
-              (OR_reduce(i_sh_llayer_txhold) or OR_reduce(i_sh_llayer_rxhold));
-
+    if p_in_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT)='1' then
+      i_dly_on<=p_in_dev_busy;
+    else
+      i_dly_on<=(p_in_dev_busy xor (OR_reduce(i_sh_tlayer_txon) or OR_reduce(i_sh_tlayer_rxon)) ) or
+                ((OR_reduce(i_sh_llayer_txhold) and not p_in_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)) or
+                 (OR_reduce(i_sh_llayer_rxhold) and not p_in_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)) );
+    end if;
 
     sr_measure_start<=p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) & sr_measure_start(0 to 0);
 
@@ -280,6 +284,8 @@ begin
 
   end if;
 end process;
+
+p_out_status.dly<=i_dly_on;
 
 
 --END MAIN

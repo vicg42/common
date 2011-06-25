@@ -32,6 +32,11 @@ used     : std_logic;
 hddcount : std_logic_vector(2 downto 0);
 end record;
 
+type THDDTstGen is record
+con2rambuf: std_logic;
+dout      : std_logic_vector(31 downto 0);
+end record;
+
 type TDMAcfg is record
 start    : std_logic;
 sw_mode  : std_logic;
@@ -41,6 +46,7 @@ wr_start : std_logic;
 error    : std_logic;
 raid     : TRaid;
 scount   : std_logic_vector(15 downto 0);
+tstgen   : THDDTstGen;
 end record;
 
 type TUsrStatus is record
@@ -76,6 +82,8 @@ dmacfg  : TDMAcfg;
 bufrst  : std_logic;
 errclr  : std_logic;
 end record;
+
+
 end sata_raid_pkg;
 
 

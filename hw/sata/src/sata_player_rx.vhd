@@ -32,44 +32,44 @@ use work.sata_sim_lite_pkg.all;
 entity sata_player_rx is
 generic
 (
-G_GT_DBUS  : integer := 16;
-G_DBG      : string  := "OFF";
-G_SIM      : string  := "OFF"
+G_GT_DBUS : integer:=16;
+G_DBG     : string :="OFF";
+G_SIM     : string :="OFF"
 );
 port
 (
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_dev_detect            : in    std_logic;
-p_out_rxd                  : out   std_logic_vector(31 downto 0);                --//Принятые данные
-p_out_rxtype               : out   std_logic_vector(C_TDATA_EN downto C_TALIGN); --//константы см. sata_pkg поле --//Номера примитивов
-p_out_rxerr                : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);--//константы см. sata_pkg поле --//PHY Layer /Reciver /Статусы/Map:
+p_in_dev_detect         : in    std_logic;
+p_out_rxd               : out   std_logic_vector(31 downto 0);                --//Принятые данные
+p_out_rxtype            : out   std_logic_vector(C_TDATA_EN downto C_TALIGN); --//константы см. sata_pkg поле --//Номера примитивов
+p_out_rxerr             : out   std_logic_vector(C_PRxSTAT_LAST_BIT downto 0);--//константы см. sata_pkg поле --//PHY Layer /Reciver /Статусы/Map:
 
 --------------------------------------------------
 --RocketIO Receiver (Описание портов см. sata_player_gt.vhd)
 --------------------------------------------------
-p_in_gtp_rxdata            : in    std_logic_vector(31 downto 0);
-p_in_gtp_rxcharisk         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxdisperr         : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxnotintable      : in    std_logic_vector(3 downto 0);
-p_in_gtp_rxbyteisaligned   : in    std_logic;
+p_in_gt_rxdata          : in    std_logic_vector(31 downto 0);
+p_in_gt_rxcharisk       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxdisperr       : in    std_logic_vector(3 downto 0);
+p_in_gt_rxnotintable    : in    std_logic_vector(3 downto 0);
+p_in_gt_rxbyteisaligned : in    std_logic;
 
-p_in_gtp_rxbufstatus       : in    std_logic_vector(2 downto 0);
-p_out_gtp_rxbufreset       : out   std_logic;
+p_in_gt_rxbufstatus     : in    std_logic_vector(2 downto 0);
+p_out_gt_rxbufreset     : out   std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                   : in    std_logic_vector(31 downto 0);
-p_out_tst                  : out   std_logic_vector(31 downto 0);
-p_out_dbg                  : out   TPLrx_dbgport;
+p_in_tst                : in    std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_dbg               : out   TPLrx_dbgport;
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk               : in    std_logic;
-p_in_rst               : in    std_logic
+p_in_clk                : in    std_logic;
+p_in_rst                : in    std_logic
 );
 end sata_player_rx;
 
@@ -78,20 +78,20 @@ architecture behavioral of sata_player_rx is
 signal i_tmr_rst                 : std_logic_vector(1 downto 0);
 signal i_tmr_rst_en              : std_logic;
 
-signal i_gtp_rxbufreset          : std_logic;
+signal i_gt_rxbufreset          : std_logic;
 
 type TSrDataW8 is array (0 to 2) of std_logic_vector(7 downto 0);
 signal sr_rxdata                 : TSrDataW8;
 
 type TSrDtypeW8 is array (0 to 2) of std_logic;
 signal sr_rxdtype                : TSrDtypeW8;
-signal sr_gtp_rxdisperr          : TSrDtypeW8;
-signal sr_gtp_rxnotintable       : TSrDtypeW8;
+signal sr_gt_rxdisperr          : TSrDtypeW8;
+signal sr_gt_rxnotintable       : TSrDtypeW8;
 
 signal i_rxdata                  : std_logic_vector(31 downto 0);
 signal i_rxdtype                 : std_logic_vector(3 downto 0);
-signal i_gtp_rxdisperr           : std_logic_vector(3 downto 0);
-signal i_gtp_rxnotintable        : std_logic_vector(3 downto 0);
+signal i_gt_rxdisperr           : std_logic_vector(3 downto 0);
+signal i_gt_rxnotintable        : std_logic_vector(3 downto 0);
 
 signal i_rxdata_out              : std_logic_vector(31 downto 0):=(others=>'0');
 signal i_rxdtype_out             : std_logic_vector(C_TDATA_EN downto C_TALIGN):=(others=>'0');
@@ -124,7 +124,7 @@ begin
     tst_rcv_err_disperr<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
-    tst_rcv_error<=OR_reduce(i_rcv_error_out) or not p_in_gtp_rxbyteisaligned;
+    tst_rcv_error<=OR_reduce(i_rcv_error_out) or not p_in_gt_rxbyteisaligned;
     tst_rcv_err_disperr<=i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT);
     tst_rcv_err_notintable<=i_rcv_error_out(C_PRxSTAT_ERR_NOTINTABLE_BIT);
 
@@ -158,23 +158,23 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_tmr_rst_en<='0';
-    i_gtp_rxbufreset<='0';
+    i_gt_rxbufreset<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_dev_detect='0' then
       i_tmr_rst_en<='0';
-      i_gtp_rxbufreset<='0';
+      i_gt_rxbufreset<='0';
     else
       if i_tmr_rst_en='0' then
-        i_gtp_rxbufreset<='0';
-        if (p_in_gtp_rxbufstatus="101" or p_in_gtp_rxbufstatus="110") then
+        i_gt_rxbufreset<='0';
+        if (p_in_gt_rxbufstatus="101" or p_in_gt_rxbufstatus="110") then
         --"101" - underflow
         --"110" - overflow
         --формирую сброс
           i_tmr_rst_en<='1';
         end if;
       else
-        i_gtp_rxbufreset<='1';
+        i_gt_rxbufreset<='1';
         if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
           i_tmr_rst_en<='0';
         end if;
@@ -183,7 +183,7 @@ begin
   end if;
 end process;
 
-p_out_gtp_rxbufreset<=i_gtp_rxbufreset;
+p_out_gt_rxbufreset<=i_gt_rxbufreset;
 
 
 
@@ -194,7 +194,7 @@ begin
   if p_in_clk'event and p_in_clk='1' then
 
     rxdtype:=(others=>'0');
-    if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gtp_rxbyteisaligned='1' then rxdtype(C_TALIGN)   :='1';
+    if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1' then rxdtype(C_TALIGN)   :='1';
     elsif i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TSOF)     :='1';
     elsif i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TEOF)     :='1';
     elsif i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TDMAT)    :='1';
@@ -221,8 +221,8 @@ begin
 
     i_rxdata_out<=i_rxdata;
 
-    i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT)<=OR_reduce(i_gtp_rxdisperr);
-    i_rcv_error_out(C_PRxSTAT_ERR_NOTINTABLE_BIT)<=OR_reduce(i_gtp_rxnotintable);
+    i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT)<=OR_reduce(i_gt_rxdisperr);
+    i_rcv_error_out(C_PRxSTAT_ERR_NOTINTABLE_BIT)<=OR_reduce(i_gt_rxnotintable);
 
   end if;
 end process;
@@ -244,26 +244,26 @@ begin
     for i in 0 to 2 loop
       sr_rxdata(i)<=(others=>'0');
       sr_rxdtype(i)<='0';
-      sr_gtp_rxdisperr(i)<='0';
-      sr_gtp_rxnotintable(i)<='0';
+      sr_gt_rxdisperr(i)<='0';
+      sr_gt_rxnotintable(i)<='0';
     end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-      sr_rxdata<=p_in_gtp_rxdata(7 downto 0) & sr_rxdata(0 to 1);
-      sr_rxdtype<=p_in_gtp_rxcharisk(0) & sr_rxdtype(0 to 1);
+      sr_rxdata<=p_in_gt_rxdata(7 downto 0) & sr_rxdata(0 to 1);
+      sr_rxdtype<=p_in_gt_rxcharisk(0) & sr_rxdtype(0 to 1);
 
-      sr_gtp_rxdisperr<=p_in_gtp_rxdisperr(0) & sr_gtp_rxdisperr(0 to 1);
-      sr_gtp_rxnotintable<=p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(0 to 1);
+      sr_gt_rxdisperr<=p_in_gt_rxdisperr(0) & sr_gt_rxdisperr(0 to 1);
+      sr_gt_rxnotintable<=p_in_gt_rxnotintable(0) & sr_gt_rxnotintable(0 to 1);
 
   end if;
 end process lsr_rxd;
 
-i_rxdtype<=p_in_gtp_rxcharisk(0) & sr_rxdtype(0) & sr_rxdtype(1) & sr_rxdtype(2);
-i_rxdata<=p_in_gtp_rxdata(7 downto 0) & sr_rxdata(0) & sr_rxdata(1) & sr_rxdata(2);
+i_rxdtype<=p_in_gt_rxcharisk(0) & sr_rxdtype(0) & sr_rxdtype(1) & sr_rxdtype(2);
+i_rxdata<=p_in_gt_rxdata(7 downto 0) & sr_rxdata(0) & sr_rxdata(1) & sr_rxdata(2);
 
-i_gtp_rxdisperr<=p_in_gtp_rxdisperr(0) & sr_gtp_rxdisperr(0) & sr_gtp_rxdisperr(1) & sr_gtp_rxdisperr(2);
-i_gtp_rxnotintable<=p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(0) & sr_gtp_rxnotintable(1) & sr_gtp_rxnotintable(2);
+i_gt_rxdisperr<=p_in_gt_rxdisperr(0) & sr_gt_rxdisperr(0) & sr_gt_rxdisperr(1) & sr_gt_rxdisperr(2);
+i_gt_rxnotintable<=p_in_gt_rxnotintable(0) & sr_gt_rxnotintable(0) & sr_gt_rxnotintable(1) & sr_gt_rxnotintable(2);
 
 end generate gen_dbus8;
 
@@ -278,30 +278,30 @@ begin
     for i in 0 to 2 loop
       sr_rxdata(i)<=(others=>'0');
       sr_rxdtype(i)<='0';
-      sr_gtp_rxdisperr(i)<='0';
-      sr_gtp_rxnotintable(i)<='0';
+      sr_gt_rxdisperr(i)<='0';
+      sr_gt_rxnotintable(i)<='0';
     end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-      sr_rxdata(0)<=p_in_gtp_rxdata(7 downto 0);
-      sr_rxdata(1)<=p_in_gtp_rxdata(15 downto 8);
-      sr_rxdtype(0)<=p_in_gtp_rxcharisk(0);
-      sr_rxdtype(1)<=p_in_gtp_rxcharisk(1);
+      sr_rxdata(0)<=p_in_gt_rxdata(7 downto 0);
+      sr_rxdata(1)<=p_in_gt_rxdata(15 downto 8);
+      sr_rxdtype(0)<=p_in_gt_rxcharisk(0);
+      sr_rxdtype(1)<=p_in_gt_rxcharisk(1);
 
-      sr_gtp_rxdisperr(0)<=p_in_gtp_rxdisperr(0);
-      sr_gtp_rxdisperr(1)<=p_in_gtp_rxdisperr(1);
-      sr_gtp_rxnotintable(0)<=p_in_gtp_rxnotintable(0);
-      sr_gtp_rxnotintable(1)<=p_in_gtp_rxnotintable(1);
+      sr_gt_rxdisperr(0)<=p_in_gt_rxdisperr(0);
+      sr_gt_rxdisperr(1)<=p_in_gt_rxdisperr(1);
+      sr_gt_rxnotintable(0)<=p_in_gt_rxnotintable(0);
+      sr_gt_rxnotintable(1)<=p_in_gt_rxnotintable(1);
 
   end if;
 end process lsr_rxd;
 
-i_rxdata<=p_in_gtp_rxdata(15 downto 8) & p_in_gtp_rxdata(7 downto 0) & sr_rxdata(1) & sr_rxdata(0);
-i_rxdtype<=p_in_gtp_rxcharisk(1) & p_in_gtp_rxcharisk(0) & sr_rxdtype(1) & sr_rxdtype(0);
+i_rxdata<=p_in_gt_rxdata(15 downto 8) & p_in_gt_rxdata(7 downto 0) & sr_rxdata(1) & sr_rxdata(0);
+i_rxdtype<=p_in_gt_rxcharisk(1) & p_in_gt_rxcharisk(0) & sr_rxdtype(1) & sr_rxdtype(0);
 
-i_gtp_rxdisperr<=p_in_gtp_rxdisperr(1) & p_in_gtp_rxdisperr(0) & sr_gtp_rxdisperr(1) & sr_gtp_rxdisperr(0);
-i_gtp_rxnotintable<=p_in_gtp_rxnotintable(1) & p_in_gtp_rxnotintable(0) & sr_gtp_rxnotintable(1) & sr_gtp_rxnotintable(0);
+i_gt_rxdisperr<=p_in_gt_rxdisperr(1) & p_in_gt_rxdisperr(0) & sr_gt_rxdisperr(1) & sr_gt_rxdisperr(0);
+i_gt_rxnotintable<=p_in_gt_rxnotintable(1) & p_in_gt_rxnotintable(0) & sr_gt_rxnotintable(1) & sr_gt_rxnotintable(0);
 
 end generate gen_dbus16;
 
@@ -311,11 +311,11 @@ end generate gen_dbus16;
 --//------------------------------
 gen_dbus32 : if G_GT_DBUS=32 generate
 
-i_rxdata<=p_in_gtp_rxdata(31 downto 0);
-i_rxdtype<=p_in_gtp_rxcharisk(3 downto 0);
+i_rxdata<=p_in_gt_rxdata(31 downto 0);
+i_rxdtype<=p_in_gt_rxcharisk(3 downto 0);
 
-i_gtp_rxdisperr<=p_in_gtp_rxdisperr(3 downto 0);
-i_gtp_rxnotintable<=p_in_gtp_rxnotintable(3 downto 0);
+i_gt_rxdisperr<=p_in_gt_rxdisperr(3 downto 0);
+i_gt_rxnotintable<=p_in_gt_rxnotintable(3 downto 0);
 
 end generate gen_dbus32;
 

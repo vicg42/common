@@ -29,15 +29,15 @@ G_GT_DBUS : integer:=16
 );
 port
 (
-p_out_dcm_gclk0     : out   std_logic;
-p_out_dcm_gclk2x    : out   std_logic;
-p_out_dcm_gclkdv    : out   std_logic;
+p_out_dcm_gclk0  : out   std_logic;
+p_out_dcm_gclk2x : out   std_logic;
+p_out_dcm_gclkdv : out   std_logic;
 
-p_out_dcmlock       : out   std_logic;
+p_out_dcmlock    : out   std_logic;
 
-p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_out_refclkout  : out   std_logic;
+p_in_clk         : in    std_logic;
+p_in_rst         : in    std_logic
 );
 end sata_dcm;
 

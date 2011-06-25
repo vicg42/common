@@ -110,18 +110,18 @@ p_out_tst                : out   std_logic_vector(31 downto 0);
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
 p_out_dbgled                : out   THDDLed_SHCountMax;
 
-p_out_sim_gtp_txdata        : out   TBus32_SHCountMax;
-p_out_sim_gtp_txcharisk     : out   TBus04_SHCountMax;
-p_out_sim_gtp_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdata         : in    TBus32_SHCountMax;
-p_in_sim_gtp_rxcharisk      : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxstatus       : in    TBus03_SHCountMax;
-p_in_sim_gtp_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gtp_rxdisperr      : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxnotintable   : in    TBus04_SHCountMax;
-p_in_sim_gtp_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gtp_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+p_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+p_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+p_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+p_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+p_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --System
@@ -194,18 +194,18 @@ signal i_sh_rxbuf_full                  : std_logic;
 signal i_sh_rxbuf_empty                 : std_logic;
 signal sr_sh_rxbuf_empty                : std_logic_vector(0 downto 0);
 
-signal i_sh_sim_gtp_txdata              : TBus32_SHCountMax;
-signal i_sh_sim_gtp_txcharisk           : TBus04_SHCountMax;
-signal i_sh_sim_gtp_txcomstart          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sh_sim_gtp_rxdata              : TBus32_SHCountMax;
-signal i_sh_sim_gtp_rxcharisk           : TBus04_SHCountMax;
-signal i_sh_sim_gtp_rxstatus            : TBus03_SHCountMax;
-signal i_sh_sim_gtp_rxelecidle          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sh_sim_gtp_rxdisperr           : TBus04_SHCountMax;
-signal i_sh_sim_gtp_rxnotintable        : TBus04_SHCountMax;
-signal i_sh_sim_gtp_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sh_sim_gtp_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sh_sim_gtp_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sh_sim_gt_txdata               : TBus32_SHCountMax;
+signal i_sh_sim_gt_txcharisk            : TBus04_SHCountMax;
+signal i_sh_sim_gt_txcomstart           : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sh_sim_gt_rxdata               : TBus32_SHCountMax;
+signal i_sh_sim_gt_rxcharisk            : TBus04_SHCountMax;
+signal i_sh_sim_gt_rxstatus             : TBus03_SHCountMax;
+signal i_sh_sim_gt_rxelecidle           : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sh_sim_gt_rxdisperr            : TBus04_SHCountMax;
+signal i_sh_sim_gt_rxnotintable         : TBus04_SHCountMax;
+signal i_sh_sim_gt_rxbyteisaligned      : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sh_sim_gt_sim_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sh_sim_gt_sim_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 
@@ -325,21 +325,25 @@ begin
 end process;
 
 
-i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT);
-i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);
+i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT) or p_in_tst(0);
+i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT) or p_in_tst(0);
 i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_RANDOM_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT);
 i_sh_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)<=i_sh_atadone_ack;
 i_sh_ctrl(C_USR_GCTRL_RAMBUF_ERR_BIT)<=p_in_rbuf_status.err;
-i_sh_ctrl(C_USR_GCTRL_RESERV_BIT)<=h_reg_tst0(0);
+i_sh_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT) <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_BUSY_ONLY_BIT);
+i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);
+i_sh_ctrl(C_USR_GCTRL_TST_GENTDATA_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GENTDATA_BIT);
 
 
 --//Настройка/Управление RAM буфером
 p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
 p_out_rbuf_cfg.mem_adr<=h_reg_rambuf_adr;
 p_out_rbuf_cfg.dmacfg <=i_sh_status.dmacfg;
-p_out_rbuf_cfg.bufrst <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT);
-p_out_rbuf_cfg.errclr <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT);
+p_out_rbuf_cfg.bufrst <=i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
+p_out_rbuf_cfg.errclr <=i_sh_ctrl(C_USR_GCTRL_CLR_ERR_BIT);
 
 
 --//Статусы модуля
@@ -449,8 +453,8 @@ begin
   if p_in_rst='1' then
     sr_sh_rxbuf_empty<=(others=>'1');
 
-    sr_sh_busy<=(others=>'1');
-    i_sh_busy<='1';
+    sr_sh_busy<=(others=>'0');--sr_sh_busy<=(others=>'1');
+    i_sh_busy<='0';--i_sh_busy<='1';
 
     i_sh_irq_en<='0';
     i_sh_irq_width<='0';
@@ -617,18 +621,18 @@ p_in_usr_rxbuf_full         => i_sh_rxbuf_full,
 --------------------------------------------------
 p_out_dbgcs                 => p_out_dbgcs,
 
-p_out_sim_gtp_txdata        => i_sh_sim_gtp_txdata,
-p_out_sim_gtp_txcharisk     => i_sh_sim_gtp_txcharisk,
-p_out_sim_gtp_txcomstart    => i_sh_sim_gtp_txcomstart,
-p_in_sim_gtp_rxdata         => i_sh_sim_gtp_rxdata,
-p_in_sim_gtp_rxcharisk      => i_sh_sim_gtp_rxcharisk,
-p_in_sim_gtp_rxstatus       => i_sh_sim_gtp_rxstatus,
-p_in_sim_gtp_rxelecidle     => i_sh_sim_gtp_rxelecidle,
-p_in_sim_gtp_rxdisperr      => i_sh_sim_gtp_rxdisperr,
-p_in_sim_gtp_rxnotintable   => i_sh_sim_gtp_rxnotintable,
-p_in_sim_gtp_rxbyteisaligned=> i_sh_sim_gtp_rxbyteisaligned,
-p_out_gtp_sim_rst           => i_sh_sim_gtp_sim_rst,
-p_out_gtp_sim_clk           => i_sh_sim_gtp_sim_clk,
+p_out_sim_gt_txdata        => i_sh_sim_gt_txdata,
+p_out_sim_gt_txcharisk     => i_sh_sim_gt_txcharisk,
+p_out_sim_gt_txcomstart    => i_sh_sim_gt_txcomstart,
+p_in_sim_gt_rxdata         => i_sh_sim_gt_rxdata,
+p_in_sim_gt_rxcharisk      => i_sh_sim_gt_rxcharisk,
+p_in_sim_gt_rxstatus       => i_sh_sim_gt_rxstatus,
+p_in_sim_gt_rxelecidle     => i_sh_sim_gt_rxelecidle,
+p_in_sim_gt_rxdisperr      => i_sh_sim_gt_rxdisperr,
+p_in_sim_gt_rxnotintable   => i_sh_sim_gt_rxnotintable,
+p_in_sim_gt_rxbyteisaligned=> i_sh_sim_gt_rxbyteisaligned,
+p_out_gt_sim_rst           => i_sh_sim_gt_sim_rst,
+p_out_gt_sim_clk           => i_sh_sim_gt_sim_clk,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -649,20 +653,21 @@ p_out_dbgled(i).rdy<=i_sh_status.ch_drdy(i);
 p_out_dbgled(i).err<=i_sh_status.ch_err(i);
 p_out_dbgled(i).busy<=i_sh_status.ch_busy(i);
 p_out_dbgled(i).spd<=i_sh_status.SError(i)(C_ASERR_SPD_L_BIT+1 downto C_ASERR_SPD_L_BIT);--//Скорость соединения 1/2/3 - SATA-I/II/III
+p_out_dbgled(i).dly<=i_sh_measure.dly;--//
 end generate gen_dbgled;
 
-p_out_sim_gtp_txdata        <= i_sh_sim_gtp_txdata;
-p_out_sim_gtp_txcharisk     <= i_sh_sim_gtp_txcharisk;
-p_out_sim_gtp_txcomstart    <= i_sh_sim_gtp_txcomstart;
-i_sh_sim_gtp_rxdata         <= p_in_sim_gtp_rxdata;
-i_sh_sim_gtp_rxcharisk      <= p_in_sim_gtp_rxcharisk;
-i_sh_sim_gtp_rxstatus       <= p_in_sim_gtp_rxstatus;
-i_sh_sim_gtp_rxelecidle     <= p_in_sim_gtp_rxelecidle;
-i_sh_sim_gtp_rxdisperr      <= p_in_sim_gtp_rxdisperr;
-i_sh_sim_gtp_rxnotintable   <= p_in_sim_gtp_rxnotintable;
-i_sh_sim_gtp_rxbyteisaligned<= p_in_sim_gtp_rxbyteisaligned;
-p_out_gtp_sim_rst           <= i_sh_sim_gtp_sim_rst;
-p_out_gtp_sim_clk           <= i_sh_sim_gtp_sim_clk;
+p_out_sim_gt_txdata        <= i_sh_sim_gt_txdata;
+p_out_sim_gt_txcharisk     <= i_sh_sim_gt_txcharisk;
+p_out_sim_gt_txcomstart    <= i_sh_sim_gt_txcomstart;
+i_sh_sim_gt_rxdata         <= p_in_sim_gt_rxdata;
+i_sh_sim_gt_rxcharisk      <= p_in_sim_gt_rxcharisk;
+i_sh_sim_gt_rxstatus       <= p_in_sim_gt_rxstatus;
+i_sh_sim_gt_rxelecidle     <= p_in_sim_gt_rxelecidle;
+i_sh_sim_gt_rxdisperr      <= p_in_sim_gt_rxdisperr;
+i_sh_sim_gt_rxnotintable   <= p_in_sim_gt_rxnotintable;
+i_sh_sim_gt_rxbyteisaligned<= p_in_sim_gt_rxbyteisaligned;
+p_out_gt_sim_rst           <= i_sh_sim_gt_sim_rst;
+p_out_gt_sim_clk           <= i_sh_sim_gt_sim_clk;
 
 
 end generate gen_use_on;
@@ -702,11 +707,11 @@ p_out_sata_gt_plldet<='1';
 p_out_sata_dcm_lock<='1';
 
 gen_satah_null: for i in 0 to C_HDD_COUNT_MAX-1 generate
-p_out_sim_gtp_txdata(i)    <=(others=>'0');
-p_out_sim_gtp_txcharisk(i) <=(others=>'0');
-p_out_sim_gtp_txcomstart(i)<='0';
-p_out_gtp_sim_rst(i)       <='0';
-p_out_gtp_sim_clk(i)       <='0';
+p_out_sim_gt_txdata(i)    <=(others=>'0');
+p_out_sim_gt_txcharisk(i) <=(others=>'0');
+p_out_sim_gt_txcomstart(i)<='0';
+p_out_gt_sim_rst(i)       <='0';
+p_out_gt_sim_clk(i)       <='0';
 
 i_sh_status.ch_busy(i)<='0';
 i_sh_status.ch_drdy(i)<='0';

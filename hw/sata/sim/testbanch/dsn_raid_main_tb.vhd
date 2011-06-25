@@ -78,18 +78,18 @@ signal i_usr_rxbuf_full           : std_logic;
 signal i_usr_rxbuf_empty          : std_logic;
 
 
-signal i_sim_gtp_txdata           : TBus32_SHCountMax;
-signal i_sim_gtp_txcharisk        : TBus04_SHCountMax;
-signal i_sim_gtp_txcomstart       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxdata           : TBus32_SHCountMax;
-signal i_sim_gtp_rxcharisk        : TBus04_SHCountMax;
-signal i_sim_gtp_rxstatus         : TBus03_SHCountMax;
-signal i_sim_gtp_rxelecidle       : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rxdisperr        : TBus04_SHCountMax;
-signal i_sim_gtp_rxnotintable     : TBus04_SHCountMax;
-signal i_sim_gtp_rxbyteisaligned  : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-signal i_sim_gtp_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gt_txdata            : TBus32_SHCountMax;
+signal i_sim_gt_txcharisk         : TBus04_SHCountMax;
+signal i_sim_gt_txcomstart        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rxdata            : TBus32_SHCountMax;
+signal i_sim_gt_rxcharisk         : TBus04_SHCountMax;
+signal i_sim_gt_rxstatus          : TBus03_SHCountMax;
+signal i_sim_gt_rxelecidle        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rxdisperr         : TBus04_SHCountMax;
+signal i_sim_gt_rxnotintable      : TBus04_SHCountMax;
+signal i_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 
 
@@ -212,18 +212,18 @@ p_in_usr_rxbuf_full         => i_usr_rxbuf_full,
 --------------------------------------------------
 --Моделирование/Отладка - в рабочем проекте не используется
 --------------------------------------------------
-p_out_sim_gtp_txdata        => i_sim_gtp_rxdata,
-p_out_sim_gtp_txcharisk     => i_sim_gtp_rxcharisk,
-p_out_sim_gtp_txcomstart    => i_sim_gtp_txcomstart,
-p_in_sim_gtp_rxdata         => i_sim_gtp_txdata,
-p_in_sim_gtp_rxcharisk      => i_sim_gtp_txcharisk,
-p_in_sim_gtp_rxstatus       => i_sim_gtp_rxstatus,
-p_in_sim_gtp_rxelecidle     => i_sim_gtp_rxelecidle,
-p_in_sim_gtp_rxdisperr      => i_sim_gtp_rxdisperr,
-p_in_sim_gtp_rxnotintable   => i_sim_gtp_rxnotintable,
-p_in_sim_gtp_rxbyteisaligned=> i_sim_gtp_rxbyteisaligned,
-p_out_gtp_sim_rst           => i_sim_gtp_rst,
-p_out_gtp_sim_clk           => i_sim_gtp_clk,
+p_out_sim_gt_txdata        => i_sim_gt_rxdata,
+p_out_sim_gt_txcharisk     => i_sim_gt_rxcharisk,
+p_out_sim_gt_txcomstart    => i_sim_gt_txcomstart,
+p_in_sim_gt_rxdata         => i_sim_gt_txdata,
+p_in_sim_gt_rxcharisk      => i_sim_gt_txcharisk,
+p_in_sim_gt_rxstatus       => i_sim_gt_rxstatus,
+p_in_sim_gt_rxelecidle     => i_sim_gt_rxelecidle,
+p_in_sim_gt_rxdisperr      => i_sim_gt_rxdisperr,
+p_in_sim_gt_rxnotintable   => i_sim_gt_rxnotintable,
+p_in_sim_gt_rxbyteisaligned=> i_sim_gt_rxbyteisaligned,
+p_out_gt_sim_rst           => i_sim_gt_rst,
+p_out_gt_sim_clk           => i_sim_gt_clk,
 
 --------------------------------------------------
 --Технологические сигналы
@@ -252,19 +252,19 @@ port map
 ----------------------------
 --
 ----------------------------
-p_out_gtp_txdata            => i_sim_gtp_txdata(i),
-p_out_gtp_txcharisk         => i_sim_gtp_txcharisk(i),
+p_out_gt_txdata            => i_sim_gt_txdata(i),
+p_out_gt_txcharisk         => i_sim_gt_txcharisk(i),
 
-p_in_gtp_txcomstart         => i_sim_gtp_txcomstart(i),
+p_in_gt_txcomstart         => i_sim_gt_txcomstart(i),
 
-p_in_gtp_rxdata             => i_sim_gtp_rxdata(i),
-p_in_gtp_rxcharisk          => i_sim_gtp_rxcharisk(i),
+p_in_gt_rxdata             => i_sim_gt_rxdata(i),
+p_in_gt_rxcharisk          => i_sim_gt_rxcharisk(i),
 
-p_out_gtp_rxstatus          => i_sim_gtp_rxstatus(i),
-p_out_gtp_rxelecidle        => i_sim_gtp_rxelecidle(i),
-p_out_gtp_rxdisperr         => i_sim_gtp_rxdisperr(i),
-p_out_gtp_rxnotintable      => i_sim_gtp_rxnotintable(i),
-p_out_gtp_rxbyteisaligned   => i_sim_gtp_rxbyteisaligned(i),
+p_out_gt_rxstatus          => i_sim_gt_rxstatus(i),
+p_out_gt_rxelecidle        => i_sim_gt_rxelecidle(i),
+p_out_gt_rxdisperr         => i_sim_gt_rxdisperr(i),
+p_out_gt_rxnotintable      => i_sim_gt_rxnotintable(i),
+p_out_gt_rxbyteisaligned   => i_sim_gt_rxbyteisaligned(i),
 
 p_in_ctrl                   => i_satadev_ctrl,
 p_out_status                => i_satadev_status(i),
@@ -278,8 +278,8 @@ p_out_tst                  => open,
 ----------------------------
 --System
 ----------------------------
-p_in_clk                   => i_sim_gtp_clk(i),
-p_in_rst                   => i_sim_gtp_rst(i)
+p_in_clk                   => i_sim_gt_clk(i),
+p_in_rst                   => i_sim_gt_rst(i)
 );
 
 end generate gen_satad;
@@ -589,9 +589,9 @@ begin
 
   wait until i_cmddone_det_clr='1';
 
-  wait until i_sim_gtp_clk(0)'event and i_sim_gtp_clk(0) = '1';
+  wait until i_sim_gt_clk(0)'event and i_sim_gt_clk(0) = '1';
   i_satadev_ctrl.atacmd_done<='1';
-  wait until i_sim_gtp_clk(0)'event and i_sim_gtp_clk(0) = '1';
+  wait until i_sim_gt_clk(0)'event and i_sim_gt_clk(0) = '1';
   i_satadev_ctrl.atacmd_done<='0';
 
 end process;

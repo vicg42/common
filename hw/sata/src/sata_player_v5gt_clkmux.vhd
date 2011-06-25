@@ -28,8 +28,8 @@ use work.sata_pkg.all;
 entity sata_player_gt_clkmux is
 generic
 (
-G_HDD_COUNT  : integer := 0;
-G_SIM        : string  := "OFF"
+G_HDD_COUNT : integer:=0;
+G_SIM       : string :="OFF"
 );
 port
 (
