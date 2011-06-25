@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0318#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#031C#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -425,7 +425,13 @@ constant C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT      : integer:=1;--//
 constant C_DSN_HDD_REG_CTRLL_TST_ON_BIT       : integer:=2;--//Вкл/Выкл режима измерения задержек
 constant C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT   : integer:=3;--//Вкл/Выкл генерации рандомных LBA при измерения задержек
 constant C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT : integer:=4;
-constant C_DSN_HDD_REG_CTRLL_LAST_BIT         : integer:=C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT;
+constant C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT: integer:=5;
+constant C_DSN_HDD_REG_CTRLL_TST_GENTDATA_BIT : integer:=6;
+constant C_DSN_HDD_REG_CTRLL_MEASURE_BUSY_ONLY_BIT  : integer:=7;
+constant C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT : integer:=8;
+constant C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT : integer:=9;
+
+constant C_DSN_HDD_REG_CTRLL_LAST_BIT         : integer:=C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT;
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_RBUF_ADR / Bit Map:
