@@ -36,13 +36,16 @@ constant G_DBGCS_HDD                         : string:="OFF";
 constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 3
 
 --//cfg HDD
-constant C_HDD_COUNT                         : integer:=1;
-constant C_HDD_RAMBUF_SIZE                   : integer:=26;--//64MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+constant C_HDD_COUNT                         : integer:=2;
+constant C_HDD_RAMBUF_SIZE                   : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины данных GT (RocketIO)
 
 --//cfg PCI-Express
-constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--Завязан с константой C_PCIEXPRESS_LINK_WIDTH_
-                                                          --..\src\user_module\pci_express\pciexp_main.v
+constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать сброс сгенеренный в проекта/с стота PCI-Express
+constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва линий
+                                                          --Необходимо перегенерить ядро PCI-Express, для чего вызвать проект core_gen
+                                                          --..board_xxx\src\pci_express\core_gen\pci_express.cgp
+
 
 --//cfg VCTRL
 constant C_DSN_VCTRL_VCH_COUNT               : integer:=3;

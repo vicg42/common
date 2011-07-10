@@ -31,7 +31,12 @@ use work.memif.all;
 use work.memif_sim.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
+use work.sata_unit_pkg.all;
 use work.sata_pkg.all;
+use work.sata_raid_pkg.all;
+use work.sata_sim_pkg.all;
+use work.sata_sim_lite_pkg.all;
+use work.dsn_hdd_pkg.all;
 use work.vereskm_pkg.all;
 use work.memory_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
@@ -66,9 +71,10 @@ constant C_FIFO_ON               : std_logic:='1';
 --    constant period:     time     := 30 ns;
 --    constant priorities : integer_vector_t(0 to 0) := (others => 0);
 
-constant refclk_period : time := 5 ns;
-constant lclk_period : time := 15 ns;
-constant mclka_period : time := 3.75 ns; -- 266.67MHz clock frequency at memory chips
+constant C_SATACLK_PERIOD    : TIME := 6.6 ns; --150MHz
+constant refclk_period       : time := 5 ns;
+constant lclk_period         : time := 15 ns;
+constant mclka_period        : time := 3.75 ns; -- 266.67MHz clock frequency at memory chips
 
 constant num_agent : natural := 1;
 
@@ -200,6 +206,33 @@ signal i_eth_rxn   : std_logic_vector(1 downto 0);
 signal mgtclk_p      : std_logic;
 signal mgtclk_n      : std_logic;
 
+
+type TSataDevStatusSataCount is array (0 to C_HDD_COUNT_MAX-1) of TSataDevStatus;
+signal i_satadev_status               : TSataDevStatusSataCount;
+signal i_satadev_ctrl                 : TSataDevCtrl;
+
+signal i_hdd_sim_gt_txdata            : TBus32_SHCountMax;
+signal i_hdd_sim_gt_txcharisk         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_txcomstart        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdata            : TBus32_SHCountMax;
+signal i_hdd_sim_gt_rxcharisk         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxstatus          : TBus03_SHCountMax;
+signal i_hdd_sim_gt_rxelecidle        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdisperr         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxnotintable      : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+
+signal i_sata_txn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+signal i_sata_txp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+signal i_sata_rxn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+signal i_sata_rxp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+signal i_sata_gt_refclkmain_p         : std_logic_vector((C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0):=(others=>'1');
+signal i_sata_gt_refclkmain_n         : std_logic_vector((C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0):=(others=>'0');
+
+
+
 procedure report_message(
     str : in string)
 is
@@ -327,6 +360,19 @@ pin_out_ddr2_cke1 : out   std_logic;
 pin_out_ddr2_cs1  : out   std_logic;
 pin_out_ddr2_odt1 : out   std_logic;
 
+--pin_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+--pin_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+--pin_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+--pin_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+--pin_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+--pin_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+--pin_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+--pin_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+
 --------------------------------------------------
 --Memory banks (up to 16 supported by this design)
 --------------------------------------------------
@@ -413,12 +459,12 @@ pin_in_pciexp_clk_n   : in    std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector(1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector(1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector(1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector(1 downto 0);
-pin_in_sata_clk_n     : in    std_logic;
-pin_in_sata_clk_p     : in    std_logic;
+pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
 -- Local bus
@@ -699,6 +745,10 @@ stimulate: process
   variable vctrl_read_02_start: integer;
   variable vctrl_read_02_end: integer;
 
+  type TSimCfgCmdPkts is array (0 to 3) of TSimCfgCmdPkt;
+  variable cfgCmdPkt : TSimCfgCmdPkts;
+  variable sw_sata_cs : integer:=0;
+
 begin
   wait for 0.6 us;
 
@@ -737,21 +787,41 @@ begin
 
   --//Конфигурирование RAMBUF HDD
   --//Адрес буфера в ОЗУ
-  hdd_cfg_rambuf_adr:=CONV_STD_LOGIC_VECTOR(16#4000000#, hdd_cfg_rambuf_adr'length);--//В байтах
-  --//Размер буфера в ОЗУ
-  hdd_cfg_rambuf_size:=CONV_STD_LOGIC_VECTOR(16#4000000#, hdd_cfg_rambuf_size'length);--//В байтах
-  --//Уровень RAMBUF. Если данных в буфере больше этого уровня увеличиваем размер
-  --//транзакции чтения ОЗУ
-  hdd_cfg_rambuf_level:=CONV_STD_LOGIC_VECTOR(16#0000800#, hdd_cfg_rambuf_level'length);--//В DWORD
-  --//Размер согласующего FIFO в модуле dsn_sata.vhd
-  hdd_cfg_rambuf_fifo_size:=CONV_STD_LOGIC_VECTOR(16#0001000#, hdd_cfg_rambuf_fifo_size'length);--//В DWORD
+  hdd_cfg_rambuf_adr:=CONV_STD_LOGIC_VECTOR(16#2000000#, hdd_cfg_rambuf_adr'length);--//В байтах
+--  --//Размер буфера в ОЗУ
+--  hdd_cfg_rambuf_size:=CONV_STD_LOGIC_VECTOR(16#4000000#, hdd_cfg_rambuf_size'length);--//В байтах
+--  --//Уровень RAMBUF. Если данных в буфере больше этого уровня увеличиваем размер
+--  --//транзакции чтения ОЗУ
+--  hdd_cfg_rambuf_level:=CONV_STD_LOGIC_VECTOR(16#0000800#, hdd_cfg_rambuf_level'length);--//В DWORD
+--  --//Размер согласующего FIFO в модуле dsn_sata.vhd
+--  hdd_cfg_rambuf_fifo_size:=CONV_STD_LOGIC_VECTOR(16#0001000#, hdd_cfg_rambuf_fifo_size'length);--//В DWORD
 
---(C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT)
   --//размер одиночной транзакции (в DWORD) для записи/чтения
---  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT downto C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#40#, C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_MSB_BIT-C_DSN_HDD_REG_RBUF_CTRL_TRNMEM_LSB_BIT+1);
-  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT) :='1';--//Режим тестирования
-  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT) :='0';--//Перевод модуля HDD_RAMBUF в исходное состояние
-                                                            --//Для коректного выолнения перехода в исходное состояние нельзя обрывать входной поток данных
+  hdd_cfg_rambuf_ctrl((8*1)-1 downto 8*0):=CONV_STD_LOGIC_VECTOR(16#40#, 8);--7..0;--trn_mem_wr
+  hdd_cfg_rambuf_ctrl((8*2)-1 downto 8*1):=CONV_STD_LOGIC_VECTOR(16#40#, 8);--15..8;--trn_mem_rd
+--  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT) :='1';--//Режим тестирования
+--  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT) :='0';--//Перевод модуля HDD_RAMBUF в исходное состояние
+--                                                            --//Для коректного выолнения перехода в исходное состояние нельзя обрывать входной поток данных
+
+  for i in 0 to cfgCmdPkt'high loop
+  cfgCmdPkt(i).usr_ctrl:=(others=>'0');
+  cfgCmdPkt(i).command:=C_ATA_CMD_READ_SECTORS_EXT;
+  cfgCmdPkt(i).scount:=1;
+  cfgCmdPkt(i).lba:=(others=>'0');
+  cfgCmdPkt(i).loopback:='0';
+  cfgCmdPkt(i).device:=(others=>'0');
+  cfgCmdPkt(i).control:=(others=>'0');
+  end loop;
+
+  sw_sata_cs:=1;
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATA_CS_M_BIT downto C_CMDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(sw_sata_cs, C_CMDPKT_SATA_CS_M_BIT-C_CMDPKT_SATA_CS_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT+1);
+  cfgCmdPkt(0).usr_ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1);
+  cfgCmdPkt(0).command:=C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--;C_ATA_CMD_NOP;--C_ATA_CMD_WRITE_DMA_EXT;--;
+  cfgCmdPkt(0).scount:=1;--//Кол-во секторов
+  cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
+  cfgCmdPkt(0).loopback:='0';
+
 
   --------------------------------
   --//Параметры модуля Коммутатора
@@ -2203,6 +2273,19 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//
+  User_Reg(0)(15 downto 0):=hdd_cfg_rambuf_ctrl;
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 4 - 1 loop
+      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  wait_cycles(4, lclk);
+
+  --//
   User_Reg(0)(15 downto 0):=hdd_cfg_rambuf_adr(15 downto 0);
   User_Reg(1)(15 downto 0):=hdd_cfg_rambuf_adr(31 downto 16);
 
@@ -2255,18 +2338,6 @@ begin
 --  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_FIFO_SIZE, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --  wait_cycles(4, lclk);
 
-  --//
-  User_Reg(0)(15 downto 0):=hdd_cfg_rambuf_ctrl;
-
-  datasize:=1;
-  for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
-    end loop;
-  end loop;
-
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
-  wait_cycles(4, lclk);
   --// Конфигурирование RAMBUF Накопителя
   --//End
   ----------------------------------------------------
@@ -2280,21 +2351,28 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-
   --//Формируем командный пакет для накопителя
-  --//поле user_ctrl
   User_Reg(0):=(others=>'0');
---  User_Reg(0)(C_TRLR_REG_USER_CTRL_MODE_MSB_BIT downto C_TRLR_REG_USER_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_TRLR_REG_USER_CTRL_MODE_HW, (C_TRLR_REG_USER_CTRL_MODE_MSB_BIT - C_TRLR_REG_USER_CTRL_MODE_LSB_BIT+1));
---  User_Reg(0)(C_TRLR_REG_USER_CTRL_SATA_CS_MASK_MSB_BIT downto C_TRLR_REG_USER_CTRL_SATA_CS_MASK_LSB_BIT):=CONV_STD_LOGIC_VECTOR(hdd_mask, (C_TRLR_REG_USER_CTRL_SATA_CS_MASK_MSB_BIT - C_TRLR_REG_USER_CTRL_SATA_CS_MASK_LSB_BIT+1));
+  User_Reg(1):=(others=>'0');
+  User_Reg(2):=(others=>'0');
+  User_Reg(3):=(others=>'0');
+  User_Reg(4):=(others=>'0');
+  User_Reg(5):=(others=>'0');
+  User_Reg(6):=(others=>'0');
+  User_Reg(7):=(others=>'0');
 
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#01#, 16);                 --//поле feature
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#02#, 16);                 --//поле lba
-  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#03#, 16);                 --//поле lba
-  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#04#, 16);                 --//поле lba
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(hdd_SectorCount, 16);                 --//поле SectorCount
-  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, 16);--//поле Command
+  for idx in 0 to 0 loop
+  User_Reg(0)(15 downto 0):=cfgCmdPkt(idx).usr_ctrl; --//UsrCTRL
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#AA55#, 16);--//Feature
+  User_Reg(2)(15 downto 0):=cfgCmdPkt(idx).lba(15 downto  8) & cfgCmdPkt(idx).lba( 7 downto 0);
+  User_Reg(3)(15 downto 0):=cfgCmdPkt(idx).lba(31 downto 24) & cfgCmdPkt(idx).lba(23 downto 16);
+  User_Reg(4)(15 downto 0):=cfgCmdPkt(idx).lba(47 downto 40) & cfgCmdPkt(idx).lba(39 downto 32);
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).scount, 16);--//SectorCount
+  User_Reg(6)(15 downto 0):=cfgCmdPkt(idx).control & cfgCmdPkt(idx).device;--//Control + Device
+  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(0, 8) & CONV_STD_LOGIC_VECTOR(cfgCmdPkt(idx).command, 8);--//Reserv + ATA Commad
+  end loop;
 
-  datasize:=7;
+  datasize:=8;
   for y in 0 to datasize - 1 loop
     for i in 0 to 4 - 1 loop
       data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
@@ -3101,6 +3179,64 @@ i_pciexp_txn <=CONV_STD_LOGIC_VECTOR(0, C_PCIEXPRESS_LINK_WIDTH);
 --);
 
 
+i_satadev_ctrl.atacmd_done<='0';
+i_satadev_ctrl.loopback<='0';
+i_satadev_ctrl.link_establish<='0';
+i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
+i_satadev_ctrl.dbuf_ruse<='1';
+
+gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 generate
+i_sata_rxn<=(others=>'0');
+i_sata_rxp<=(others=>'1');
+
+i_sata_gt_refclkmain_p(i) <= not i_sata_gt_refclkmain_p(i) after C_SATACLK_PERIOD / 2;
+i_sata_gt_refclkmain_n(i) <= not i_sata_gt_refclkmain_n(i) after C_SATACLK_PERIOD / 2;
+end generate gen_sata_drv;
+
+
+--gen_satad : for i in 0 to C_HDD_COUNT-1 generate
+--m_sata_dev : sata_dev_model
+--generic map
+--(
+--G_DBG_LLAYER => "OFF",
+--G_GT_DBUS    => C_HDD_GT_DBUS
+--)
+--port map
+--(
+------------------------------
+----
+------------------------------
+--p_out_gt_txdata          => i_hdd_sim_gt_rxdata(i),
+--p_out_gt_txcharisk       => i_hdd_sim_gt_rxcharisk(i),
+--
+--p_in_gt_txcomstart       => i_hdd_sim_gt_txcomstart(i),
+--
+--p_in_gt_rxdata           => i_hdd_sim_gt_txdata(i),
+--p_in_gt_rxcharisk        => i_hdd_sim_gt_txcharisk(i),
+--
+--p_out_gt_rxstatus        => i_hdd_sim_gt_rxstatus(i),
+--p_out_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle(i),
+--p_out_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr(i),
+--p_out_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable(i),
+--p_out_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned(i),
+--
+--p_in_ctrl                => i_satadev_ctrl,
+--p_out_status             => i_satadev_status(i),
+--
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_in_tst                 => "00000000000000000000000000000000",
+--p_out_tst                => open,
+--
+------------------------------
+----System
+------------------------------
+--p_in_clk                 => i_hdd_sim_gt_clk(i),
+--p_in_rst                 => i_hdd_sim_gt_rst(i)
+--);
+--end generate gen_satad;
+
 
 fpga : vereskm_main
 generic map
@@ -3133,6 +3269,19 @@ pin_in_btn_W          => '0',
 pin_out_ddr2_cke1     => open,
 pin_out_ddr2_cs1      => open,
 pin_out_ddr2_odt1     => open,
+
+--pin_out_sim_gt_txdata         => i_hdd_sim_gt_txdata,
+--pin_out_sim_gt_txcharisk      => i_hdd_sim_gt_txcharisk,
+--pin_out_sim_gt_txcomstart     => i_hdd_sim_gt_txcomstart,
+--pin_in_sim_gt_rxdata          => i_hdd_sim_gt_rxdata,
+--pin_in_sim_gt_rxcharisk       => i_hdd_sim_gt_rxcharisk,
+--pin_in_sim_gt_rxstatus        => i_hdd_sim_gt_rxstatus,
+--pin_in_sim_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle,
+--pin_in_sim_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr,
+--pin_in_sim_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable,
+--pin_in_sim_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned,
+--pin_out_gt_sim_rst            => i_hdd_sim_gt_rst,
+--pin_out_gt_sim_clk            => i_hdd_sim_gt_clk,
 
 --------------------------------------------------
 --Ethernet
@@ -3167,13 +3316,13 @@ pin_in_pciexp_clk_n   => mgtclk_n,--cor_sys_clk_n,--mclka_p,--
 --------------------------------------------------
 --Driver
 --------------------------------------------------
-pin_out_sata_txn      => open,
-pin_out_sata_txp      => open,
-pin_in_sata_rxn       =>"11",
-pin_in_sata_rxp       =>"11",
+pin_out_sata_txn      => i_sata_txn,
+pin_out_sata_txp      => i_sata_txp,
+pin_in_sata_rxn       => i_sata_rxn,
+pin_in_sata_rxp       => i_sata_rxp,
 
-pin_in_sata_clk_n     => mclka_n,
-pin_in_sata_clk_p     => mclka_p,
+pin_in_sata_clk_n     => i_sata_gt_refclkmain_n,
+pin_in_sata_clk_p     => i_sata_gt_refclkmain_p,
 
 
 lclk       => lclk,
@@ -3187,9 +3336,6 @@ lbterm_l   => lbterm_l,
 lready_l   => lready_l,
 fholda     => fholda,
 finto_l    => finto_l,
-
---mclka_p    => mclka_p,
---mclka_n    => mclka_n,
 
 refclk_p   => refclk_p,
 refclk_n   => refclk_n,
