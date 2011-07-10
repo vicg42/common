@@ -25,38 +25,37 @@ vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_pkg.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo.vhd"
+
+vcom -93 "../../../../veresk_m/prj_def.vhd"
+vcom -93 "../../../lib/alphadata/admxrc/vhdl/common/memif/memif_pkg.vhd"
+vcom -93 "../../../mem/alphadata/memory_ctrl_pkg.vhd"
+vcom -93 "../../../mem/alphadata/memory_ctrl_ch_wr.vhd"
+
 vcom -93 "../../core_gen/sata_rxfifo.vhd"
 vcom -93 "../../core_gen/sata_txfifo.vhd"
 vcom -93 "../../core_gen/hdd_rxfifo.vhd"
 vcom -93 "../../core_gen/hdd_txfifo.vhd"
 vcom -93 "../../core_gen/hdd_cmdfifo.vhd"
-
 vcom -93 "../../src/sata_pkg.vhd"
 vcom -93 "../../src/sata_raid_pkg.vhd"
 vcom -93 "../../src/sata_sim_lite_pkg.vhd"
 vcom -93 "../../src/sata_unit_pkg.vhd"
-
-vcom -93 "../../src/sata_dcm_v5.vhd"
-#vcom -93 "../../src/sata_dcm_v6.vhd"
-#vcom -93 "../../src/sata_dcm_s6.vhd"
-vcom -93 "../../src/sata_measure.vhd"
-
 vcom -93 "../../src/sata_scrambler.vhd"
 vcom -93 "../../src/sata_crc.vhd"
-
+vcom -93 "../../src/sata_dcm_v5.vhd"
 vcom -93 "../../src/sata_spd_ctrl_v5gtp.vhd"
-#vcom -93 "../../src/sata_spd_ctrl_v6gtx.vhd"
-#vcom -93 "../../src/sata_spd_ctrl_s6gtx.vhd"
-
-vcom -93 "../../src/sata_player_gtsim.vhd"
-#vcom -93 "../../src/sata_player_v5gtp.vhd"
-#vcom -93 "../../src/sata_player_v6gtx.vhd"
-#vcom -93 "../../src/sata_player_s6gtx.vhd"
-
 vcom -93 "../../src/sata_player_v5gt_clkmux.vhd"
+#vcom -93 "../../src/sata_player_v5gtp.vhd"
+#vcom -93 "../../src/sata_dcm_v6.vhd"
+#vcom -93 "../../src/sata_spd_ctrl_v6gtx.vhd"
 #vcom -93 "../../src/sata_player_v6gt_clkmux.vhd"
+#vcom -93 "../../src/sata_player_v6gtp.vhd"
+#vcom -93 "../../src/sata_player_v6gtx.vhd"
+#vcom -93 "../../src/sata_dcm_s6.vhd"
+#vcom -93 "../../src/sata_spd_ctrl_s6gtx.vhd"
 #vcom -93 "../../src/sata_player_s6gt_clkmux.vhd"
-
+#vcom -93 "../../src/sata_player_s6gtx.vhd"
+vcom -93 "../../src/sata_player_gtsim.vhd"
 vcom -93 "../../src/sata_player_oob.vhd"
 vcom -93 "../../src/sata_player_rx.vhd"
 vcom -93 "../../src/sata_player_tx.vhd"
@@ -64,23 +63,15 @@ vcom -93 "../../src/sata_player.vhd"
 vcom -93 "../../src/sata_llayer.vhd"
 vcom -93 "../../src/sata_tlayer.vhd"
 vcom -93 "../../src/sata_alayer.vhd"
-
 vcom -93 "../../src/sata_host.vhd"
-
 vcom -93 "../../src/sata_connector.vhd"
 vcom -93 "../../src/sata_raid_decoder.vhd"
 vcom -93 "../../src/sata_raid_ctrl.vhd"
+vcom -93 "../../src/sata_measure.vhd"
 vcom -93 "../../src/sata_raid.vhd"
-
 vcom -93 "../../src/dsn_raid_main.vhd"
-
-vcom -93 "../../../../veresk_m/prj_def.vhd"
 vcom -93 "../../dsn_hdd_pkg.vhd"
 vcom -93 "../../dsn_hdd.vhd"
-
-vcom -93 "../../../lib/alphadata/admxrc/vhdl/common/memif/memif_pkg.vhd"
-vcom -93 "../../../mem/alphadata/memory_ctrl_pkg.vhd"
-vcom -93 "../../../mem/alphadata/memory_ctrl_ch_wr.vhd"
 vcom -93 "../../dsn_hdd_rambuf.vhd"
 
 
