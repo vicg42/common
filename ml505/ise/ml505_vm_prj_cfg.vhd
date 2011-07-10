@@ -24,7 +24,7 @@ constant C_BOARD_USE                         : string:="ML505";
 --//Управление использованием модулей проекта:
 constant C_USE_TRACK                         : string:="ON";
 constant C_USE_ETH                           : string:="ON";
-constant C_USE_HDD                           : string:="OFF";
+constant C_USE_HDD                           : string:="ON";
 
 constant G_DBG_ETH                           : string:="OFF";
 constant C_DBG_HDD                           : string:="OFF";
@@ -37,7 +37,7 @@ constant G_DBGCS_HDD                         : string:="OFF";
 constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 3
 
 --//cfg HDD
-constant C_HDD_COUNT                         : integer:=1;
+constant C_HDD_COUNT                         : integer:=2;
 constant C_HDD_RAMBUF_SIZE                   : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины данных GT (RocketIO)
 
