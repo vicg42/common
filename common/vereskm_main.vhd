@@ -69,6 +69,19 @@ pin_out_ddr2_cke1 : out   std_logic;
 pin_out_ddr2_cs1  : out   std_logic;
 pin_out_ddr2_odt1 : out   std_logic;
 
+--pin_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+--pin_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+--pin_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+--pin_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+--pin_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+--pin_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+--pin_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+--pin_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--pin_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+
 --------------------------------------------------
 --Memory banks (up to 16 supported by this design)
 --------------------------------------------------
@@ -396,7 +409,7 @@ signal g_eth_gt_refclkout               : std_logic;
 signal i_eth_module_rst                 : std_logic;
 signal i_eth_module_rdy                 : std_logic;
 signal i_eth_module_error               : std_logic;
-signal i_eth_module_gt_plllkdet        : std_logic;
+signal i_eth_module_gt_plllkdet         : std_logic;
 signal i_eth_cfg_rxdata                 : std_logic_vector(15 downto 0);
 signal i_eth_rxd_sof                    : std_logic;
 signal i_eth_rxd_eof                    : std_logic;
@@ -438,13 +451,14 @@ signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
 signal i_hdd_rbuf_status                : THDDRBufStatus;
 signal i_hdd_rbuf_tst_out               : std_logic_vector(31 downto 0);
 signal i_hdd_dbgled                     : THDDLed_SHCountMax;
+signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
 signal i_hddrambuf_dbgcs                : TSH_ila;
 signal i_hdd_rambuf_dbgcs               : TSH_ila;
---signal i_hdd_sim_gt_txdata              : TBus32_SHCountMax;
---signal i_hdd_sim_gt_txcharisk           : TBus04_SHCountMax;
---signal i_hdd_sim_gt_txcomstart          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gt_txdata              : TBus32_SHCountMax;--
+--signal i_hdd_sim_gt_txcharisk           : TBus04_SHCountMax;--
+--signal i_hdd_sim_gt_txcomstart          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);--
 signal i_hdd_sim_gt_rxdata              : TBus32_SHCountMax;
 signal i_hdd_sim_gt_rxcharisk           : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxstatus            : TBus03_SHCountMax;
@@ -452,8 +466,8 @@ signal i_hdd_sim_gt_rxelecidle          : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_hdd_sim_gt_rxdisperr           : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxnotintable        : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
---signal i_hdd_sim_gt_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
---signal i_hdd_sim_gt_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gt_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);--
+--signal i_hdd_sim_gt_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);--
 
 signal i_hdd_memarb_req                 : std_logic;
 signal i_hdd_memarb_en                  : std_logic;
@@ -1533,7 +1547,7 @@ p_out_sata_dcm_lock   => i_hdd_dcm_lock,
 ---------------------------------------------------------------------------
 --Технологический порт
 ---------------------------------------------------------------------------
-p_in_tst              => "00000000000000000000000000000000",--i_hdd_rbuf_tst_out,
+p_in_tst              => i_hdd_tst_in,
 p_out_tst             => i_hdd_tst_out,
 
 --------------------------------------------------
@@ -1542,9 +1556,9 @@ p_out_tst             => i_hdd_tst_out,
 p_out_dbgcs                 => i_hdd_dbgcs,
 p_out_dbgled                => i_hdd_dbgled,
 
-p_out_sim_gt_txdata         => open,--i_hdd_sim_gt_txdata,
-p_out_sim_gt_txcharisk      => open,--i_hdd_sim_gt_txcharisk,
-p_out_sim_gt_txcomstart     => open,--i_hdd_sim_gt_txcomstart,
+p_out_sim_gt_txdata         => open,--i_hdd_sim_gt_txdata,    --
+p_out_sim_gt_txcharisk      => open,--i_hdd_sim_gt_txcharisk, --
+p_out_sim_gt_txcomstart     => open,--i_hdd_sim_gt_txcomstart,--
 p_in_sim_gt_rxdata          => i_hdd_sim_gt_rxdata,
 p_in_sim_gt_rxcharisk       => i_hdd_sim_gt_rxcharisk,
 p_in_sim_gt_rxstatus        => i_hdd_sim_gt_rxstatus,
@@ -1552,8 +1566,8 @@ p_in_sim_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle,
 p_in_sim_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr,
 p_in_sim_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable,
 p_in_sim_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned,
-p_out_gt_sim_rst            => open,--i_hdd_sim_gt_sim_rst,
-p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
+p_out_gt_sim_rst            => open,--i_hdd_sim_gt_sim_rst,--
+p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,--
 
 --------------------------------------------------
 --System
@@ -1570,7 +1584,23 @@ i_hdd_sim_gt_rxelecidle(i)<='0';
 i_hdd_sim_gt_rxdisperr(i)<=(others=>'0');
 i_hdd_sim_gt_rxnotintable(i)<=(others=>'0');
 i_hdd_sim_gt_rxbyteisaligned(i)<='0';
+
+--pin_out_sim_gt_txdata(i)<=i_hdd_sim_gt_txdata(i);
+--pin_out_sim_gt_txcharisk(i)<=i_hdd_sim_gt_txcharisk(i);
+--pin_out_sim_gt_txcomstart(i)<=i_hdd_sim_gt_txcomstart(i);
+--i_hdd_sim_gt_rxdata(i)<=pin_in_sim_gt_rxdata(i);
+--i_hdd_sim_gt_rxcharisk(i)<=pin_in_sim_gt_rxcharisk(i);
+--i_hdd_sim_gt_rxstatus(i)<=pin_in_sim_gt_rxstatus(i);
+--i_hdd_sim_gt_rxelecidle(i)<=pin_in_sim_gt_rxelecidle(i);
+--i_hdd_sim_gt_rxdisperr(i)<=pin_in_sim_gt_rxdisperr(i);
+--i_hdd_sim_gt_rxnotintable(i)<=pin_in_sim_gt_rxnotintable(i);
+--i_hdd_sim_gt_rxbyteisaligned(i)<=pin_in_sim_gt_rxbyteisaligned(i);
+--pin_out_gt_sim_rst(i)<=i_hdd_sim_gt_sim_rst(i);
+--pin_out_gt_sim_clk(i)<=i_hdd_sim_gt_sim_clk(i);
+
 end generate gen_satah;
+
+
 
 m_hdd_rambuf : dsn_hdd_rambuf
 generic map
@@ -1787,7 +1817,7 @@ i_host_dev_status(C_HREG_STATUS_DEV_RESERV_16BIT) <='0';
 i_host_dev_status(C_HREG_STATUS_DEV_TRC_DRDY_BIT) <='0';--i_trc_hdrdy;
 i_host_dev_status(C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT) <=i_trcnik_hdrdy;
 
-i_host_dev_status(C_HREG_STATUS_DCM_ETH_gt_LOCK_BIT)<=i_eth_module_gt_plllkdet;
+i_host_dev_status(C_HREG_STATUS_DCM_ETH_GTP_LOCK_BIT)<=i_eth_module_gt_plllkdet;
 i_host_dev_status(C_HREG_STATUS_DCM_LBUS_LOCK_BIT)   <=lclk_dcm_lock;
 i_host_dev_status(C_HREG_STATUS_DCM_SATA_LOCK_BIT)   <=i_hdd_gt_plldet and i_hdd_dcm_lock;
 i_host_dev_status(C_HREG_STATUS_DCM_MEMCTRL_LOCK_BIT)<=i_memctrl_dcm_lock;
@@ -2372,6 +2402,7 @@ pin_out_ddr2_cs1<='0';
 pin_out_ddr2_odt1<='0';
 
 i_usr_rst<='0';
+i_hdd_tst_in<=(others=>'0');
 
 end generate gen_alphadata;
 
@@ -2386,7 +2417,10 @@ pin_out_ddr2_cs1<='0';
 pin_out_ddr2_odt1<='0';
 
 i_usr_rst<=pin_in_btn_N;
-tst_clr <=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S or pin_in_btn_W;
+i_hdd_tst_in(0)<=pin_in_btn_W;
+i_hdd_tst_in(31 downto 1)<=(others=>'0');
+
+tst_clr <=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S;
 --i_trc_busy<=(others=>'0');
 
 --//J5 /pin2
