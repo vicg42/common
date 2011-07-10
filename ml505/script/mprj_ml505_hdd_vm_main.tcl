@@ -27,6 +27,8 @@ set _projects [ list \
       [ list "../../../common/hw/lib/vicg/v5/gtp_drp_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/vicg/v5/gtp_prog_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/prj_def.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/timer/time_gen.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpmem_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpbram0.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/distmem0.vhd" $_VHDMod ] \
@@ -107,13 +109,13 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_dcm_v5.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_crc.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_dcm_v5.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_spd_ctrl_v5gtp.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_v5gtp.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_v5gt_clkmux.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_oob.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_rx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
@@ -121,12 +123,13 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_llayer.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_tlayer.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_alayer.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_dbgcs.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_host.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid_decoder.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
@@ -166,6 +169,10 @@ set _projects [ list \
       [ list "../../../common/veresk_m/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/core_gen/host_vbuf.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vereskm_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/video_pkt_filter.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_timer.vhd" $_VHDMod ] \

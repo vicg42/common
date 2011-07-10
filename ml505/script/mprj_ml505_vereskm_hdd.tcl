@@ -1,3 +1,9 @@
+##
+## Отладка проекта Veresk-M на плате ML505.
+## Отладка работы с HDD: ВАЖНО - вместо ../veresk_m/common/veresk_m/vctrl/dsn_video_ctrl.vhd использую
+##                                      ../veresk_m/ml505/ise/dsn_video_ctrl_simple.vhd для умень шения используемых ресурсов FPGA
+##
+
 source "../../common/script/projnav.tcl"
 #file mkdir "../ise/prj
 cd ../ise/prj
@@ -157,7 +163,6 @@ set _projects [ list \
       [ list "../../../common/veresk_m/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/vctrl/video_reader.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vctrl/video_writer.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tester/vtester_v01.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tracker_nik/core_gen/trc_nik_bufout.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tracker_nik/core_gen/trc_nik_vbuf.vhd" $_VHDMod ] \
@@ -256,6 +261,7 @@ set _projects [ list \
       [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
+      [ list "../dsn_video_ctrl_simple.vhd" $_VHDMod ] \
       [ list "../ml505_vm_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/vereskm_main.vhd" $_VHDMod ] \
       [ list "../../ucf/ml505_vereskm.ucf" "vereskm_main" ] \
