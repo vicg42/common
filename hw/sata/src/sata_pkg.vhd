@@ -47,7 +47,7 @@ constant C_SH_MAIN_NUM       : integer:=0; --//определяем индекс GT модуля от ко
 --Константы
 ---------------------------------------------------------
 --//мах кол-во HDD:
-constant C_HDD_COUNT_MAX     : integer:=2;--//
+constant C_HDD_COUNT_MAX     : integer:=8;--//
 
 --//Кол-во каналов в одном модуле GT:
 constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
@@ -101,7 +101,7 @@ constant C_GT7_CH_COUNT : T08SHCountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 
 
 --//-------------------------------------------------
---//User Global Ctrl
+--//User Global Ctrl/ Bit Map:
 --//-------------------------------------------------
 constant C_USR_GCTRL_CLR_ERR_BIT         : integer:=0;
 constant C_USR_GCTRL_CLR_BUF_BIT         : integer:=1;
@@ -124,7 +124,7 @@ constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_MEASURE_RXHOLD_D
 constant C_USRAPP_CMDPKT_SIZE_WORD       : integer:=8;
 
 --//User CMD Pkt :
---//Поле UsrCtrl/Map:
+--//Поле UsrCtrl/ Bit Map:
 constant C_CMDPKT_SATA_CS_L_BIT          : integer:=0;
 constant C_CMDPKT_SATA_CS_M_BIT          : integer:=7;
 constant C_CMDPKT_RAIDCMD_L_BIT          : integer:=8;
@@ -197,13 +197,11 @@ constant C_ATA_DEVICE_LBA_BIT            : integer:=6;--Режим адресации. 1/0 - L
 --//Регистр ATA_ERROR/Bit Map:
 constant C_ATA_ERROR_ABRT_BIT            : integer:=2;--command aborted
 
-
-
 --//Управление/Map:
 --//См. секцию User Global Ctrl
 
 --//Статусы/Map:
---//Поле - SStatus/Map:
+--//Поле - SStatus/ Bit Map:
 --//Более подробно см. d1532v3r4b ATA-ATAPI-7.pdf п.п.19.2.1
 constant C_ASSTAT_DET_BIT_L              : integer:=0;
 constant C_ASSTAT_DET_BIT_M              : integer:=3;
@@ -211,27 +209,17 @@ constant C_ASSTAT_SPD_BIT_L              : integer:=4;
 constant C_ASSTAT_SPD_BIT_M              : integer:=7;
 constant C_ASSTAT_IPM_BIT_L              : integer:=8;
 constant C_ASSTAT_IPM_BIT_M              : integer:=11;
-constant C_ASSTAT_RESERV_BIT             : integer:=12;
-constant C_ALSSTAT_LAST_BIT              : integer:=C_ASSTAT_RESERV_BIT;
+constant C_ALSSTAT_LAST_BIT              : integer:=C_ASSTAT_IPM_BIT_M;
 
---//SStatus/DET/Map:
-constant C_ASSTAT_DET_NODEV              : integer:=0;
-constant C_ASSTAT_DET_DEVICE             : integer:=1;
-constant C_ASSTAT_DET_LINK_ESTABLISH     : integer:=3;
-
-
---//Поле - SError/Map:
+--//Поле - SError/ Bit Map:
 --//Более подробно см. d1532v3r4b ATA-ATAPI-7.pdf п.п.19.2.2
 constant C_ASERR_I_ERR_BIT               : integer:=0;
---constant C_ASERR_M_ERR_BIT               : integer:=1;--//не использую
---constant C_ASERR_T_ERR_BIT               : integer:=8;--//не использую
-constant C_ASERR_ATAERR_DIAG_L_BIT       : integer:=1;--//регистр shadow_error
-constant C_ASERR_ATAERR_DIAG_M_BIT       : integer:=8;--//
+constant C_ASERR_M_ERR_BIT               : integer:=1;--//не использую
+constant C_ASERR_T_ERR_BIT               : integer:=8;--//не использую
 
 constant C_ASERR_C_ERR_BIT               : integer:=9;
 constant C_ASERR_P_ERR_BIT               : integer:=10;
---constant C_ASERR_E_ERR_BIT               : integer:=11;--//не использую
-constant C_ASERR_ATA_ERR_BIT             : integer:=11;
+constant C_ASERR_E_ERR_BIT               : integer:=11;--//не использую
 
 constant C_ASERR_N_DIAG_BIT              : integer:=16;--//PHY Layer:if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') then
 constant C_ASERR_I_DIAG_BIT              : integer:=17;--//не использую
@@ -243,16 +231,9 @@ constant C_ASERR_H_DIAG_BIT              : integer:=22;--//Link Layer: --//1/0 -
 constant C_ASERR_S_DIAG_BIT              : integer:=23;--//Link Layer:if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
 constant C_ASERR_T_DIAG_BIT              : integer:=24;--//Link Layer:if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
 constant C_ASERR_F_DIAG_BIT              : integer:=25;--//Transport Layer: FIS CRC-OK, but FISTYPE/FISLEN ERROR
+constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_F_DIAG_BIT;
 
-constant C_ASERR_DET_L_BIT               : integer:=26;--//PHY Layer: C_PSTAT_DET_DEV_ON_BIT
-constant C_ASERR_DET_M_BIT               : integer:=27;--//PHY Layer: C_PSTAT_DET_ESTABLISH_ON_BIT
-constant C_ASERR_SPD_L_BIT               : integer:=28;--//PHY Layer: SATA speed negatiation
-constant C_ASERR_SPD_M_BIT               : integer:=30;
-constant C_ASERR_IPM_L_BIT               : integer:=31;--//i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT)
-
-constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_IPM_L_BIT;
-
---//Поле - User/Map:
+--//Поле - User/ Bit Map:
 constant C_AUSER_BUSY_BIT                : integer:=0;
 constant C_AUSER_DWR_START_BIT           : integer:=1;--//Растягивание Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
 constant C_AUSER_LLRXP_HOLD_BIT          : integer:=2;--
@@ -261,29 +242,30 @@ constant C_AUSER_TLTX_ON_BIT             : integer:=4;--
 constant C_AUSER_TLRX_ON_BIT             : integer:=5;--
 --constant C_AUSER_LLTX_ON_BIT             : integer:=6;--
 --constant C_AUSER_LLRX_ON_BIT             : integer:=7;--
-constant C_AUSER_RESERV_BIT              : integer:=7;
-constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_RESERV_BIT;
+--constant C_AUSER_RESERV_BIT              : integer:=6;
+constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_TLRX_ON_BIT;
 
 
 --//-------------------------------------------------
 --//Transport Layer
 --//-------------------------------------------------
---//Управление/Map:
-constant C_TCTRL_RCOMMAND_WR_BIT         : integer:=16#00#;
-constant C_TCTRL_RCONTROL_WR_BIT         : integer:=16#01#;
+--//Управление/ Bit Map:
+constant C_TCTRL_RCOMMAND_WR_BIT         : integer:=0;
+constant C_TCTRL_RCONTROL_WR_BIT         : integer:=1;
 constant C_TLCTRL_LAST_BIT               : integer:=C_TCTRL_RCONTROL_WR_BIT;
 
---//Статусы/Map:
+--//Статусы/ Bit Map:
 constant C_TSTAT_RxFISTYPE_ERR_BIT       : integer:=0;--//Transport Layer не смог определить тип принятого пакета
 constant C_TSTAT_RxFISLEN_ERR_BIT        : integer:=1;--//
 constant C_TSTAT_TxERR_CRC_REPEAT_BIT    : integer:=2;--//Было сделано несколько попыток отправить FIS_H2D, но каждый раз получал от Link Layer C_LSTAT_TxERR_CRC
 constant C_TSTAT_TxFISHOST2DEV_BIT       : integer:=3;--//Сигнализируем что идет передача FIS_HOST2DEV
 constant C_TSTAT_DWR_START_BIT           : integer:=4;--//Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
-constant C_TSTAT_FSMTxD_ON_BIT           : integer:=5;--//для измерения задержек
-constant C_TSTAT_FSMRxD_ON_BIT           : integer:=6;--//для измерения задержек
+constant C_TSTAT_FIS_I_BIT               : integer:=5;--//
+constant C_TSTAT_FSMTxD_ON_BIT           : integer:=6;--//для измерения задержек
+constant C_TSTAT_FSMRxD_ON_BIT           : integer:=7;--//для измерения задержек
 constant C_TLSTAT_LAST_BIT               : integer:=C_TSTAT_FSMRxD_ON_BIT;
 
---//FIS Type:
+--//FIS Type/ Map:
 constant C_FIS_REG_HOST2DEV              : integer:=16#27#;
 constant C_FIS_REG_DEV2HOST              : integer:=16#34#;
 constant C_FIS_DMA_ACTIVATE              : integer:=16#39#;
@@ -300,9 +282,11 @@ constant C_FIS_VENDOR_SPEC1              : integer:=16#D4#;
 constant C_FIS_RESERV3                   : integer:=16#D9#;
 
 --//FIS Bit Map:
-constant C_FIS_DIR_BIT                   : integer:=16#05#;
-constant C_FIS_INT_BIT                   : integer:=16#06#;
-constant C_FIS_AUTO_ACTIVATE_BIT         : integer:=16#07#;
+constant C_FIS_DIR_BIT                   : integer:=5;
+constant C_FIS_INT_BIT                   : integer:=6;
+constant C_FIS_AUTO_ACTIVATE_BIT         : integer:=7;
+
+--//C_FIS_DIR_BIT/ Map:
 constant C_DIR_H2D                       : std_logic:='0';
 constant C_DIR_D2H                       : std_logic:='1';
 
@@ -385,16 +369,16 @@ S_HT_DMAITrans   --Прием данных из SATA
 --//-------------------------------------------------
 --//Link Layer
 --//-------------------------------------------------
---//Управление/Map:
-constant C_LCTRL_TxSTART_BIT              : integer:=16#00#;--//Transport Layer готов начать передачу данных
-constant C_LCTRL_TRN_ESCAPE_BIT           : integer:=16#01#;--//Transport Layer хочет оборвать текущую транзакцию
-constant C_LCTRL_TL_CHECK_ERR_BIT         : integer:=16#02#;--//Transport Layer сигнализирует что распознал ошибки при проверке принимаемых данных: FITYPE_ERR, FISLEN_ERR
-constant C_LCTRL_TL_CHECK_DONE_BIT        : integer:=16#03#;--//Transport Layer завершил проверку принимаемых данных
---constant C_LCTRL_PARTIAL_BIT             : integer:=16#04#;
---constant C_LCTRL_SLUMBER_BIT             : integer:=16#05#;
+--//Управление/ Bit Map:
+constant C_LCTRL_TxSTART_BIT              : integer:=0;--//Transport Layer готов начать передачу данных
+constant C_LCTRL_TRN_ESCAPE_BIT           : integer:=1;--//Transport Layer хочет оборвать текущую транзакцию
+constant C_LCTRL_TL_CHECK_ERR_BIT         : integer:=2;--//Transport Layer сигнализирует что распознал ошибки при проверке принимаемых данных: FITYPE_ERR, FISLEN_ERR
+constant C_LCTRL_TL_CHECK_DONE_BIT        : integer:=3;--//Transport Layer завершил проверку принимаемых данных
+--constant C_LCTRL_PARTIAL_BIT             : integer:=4;
+--constant C_LCTRL_SLUMBER_BIT             : integer:=5;
 constant C_LLCTRL_LAST_BIT                 : integer:=C_LCTRL_TL_CHECK_DONE_BIT;
 
---//Статусы/Map:
+--//Статусы/ Bit Map:
 constant C_LSTAT_RxOK                     : integer:=0;--//Прием пакета - ОК
 constant C_LSTAT_RxSTART                  : integer:=1;--//Прием пакета - Link Layer обнаружил SOF - начал прием данных
 constant C_LSTAT_RxERR_CRC                : integer:=2;--//Прием пакета - ошибка: CRC
@@ -455,17 +439,17 @@ S_LR_BadEnd
 --//PHY Layer
 --//-------------------------------------------------
 --//PHY Layer /Reciver
---//Статусы/Map:
+--//Статусы/ Bit Map:
 constant C_PRxSTAT_ERR_DISP_BIT          : integer:=0;--//Ошибка - received with a disparity error.
 constant C_PRxSTAT_ERR_NOTINTABLE_BIT    : integer:=1;--//Ошибка - indicates that RXDATA is the result of an illegal 8B/10B code
 constant C_PRxSTAT_LAST_BIT              : integer:=C_PRxSTAT_ERR_NOTINTABLE_BIT;
 
---//Управление/Map:
+--//Управление/ Bit Map:
 constant C_PCTRL_SPD_BIT_L               : integer:=0;
 constant C_PCTRL_SPD_BIT_M               : integer:=1;
 constant C_PLCTRL_LAST_BIT               : integer:=C_PCTRL_SPD_BIT_M;
 
---//Статусы/Map:
+--//Статусы/ Bit Map:
 constant C_PSTAT_DET_DEV_ON_BIT          : integer:=C_PRxSTAT_LAST_BIT + 1;--//Детектирование: 0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
 constant C_PSTAT_DET_ESTABLISH_ON_BIT    : integer:=C_PRxSTAT_LAST_BIT + 2;--//Детектирование: 0/1 - Соединение с устройством не установлено/установлено (можно работать)
 constant C_PSTAT_SPD_BIT_L               : integer:=C_PRxSTAT_LAST_BIT + 3;--//Cкорость соединения: "00"/"01"/"10" -  не согласована/Gen1/Gen2
@@ -668,12 +652,13 @@ end record;
 
 --//
 type TALStatus is record
-ATAStatus : std_logic_vector(7 downto 0);
-ATAError  : std_logic_vector(7 downto 0);
---SStatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
-SError    : std_logic_vector(C_ALSERR_LAST_BIT downto 0);
-Usr       : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
+atastatus : std_logic_vector(7 downto 0);
+ataerror  : std_logic_vector(7 downto 0);
+sstatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
+serror    : std_logic_vector(C_ALSERR_LAST_BIT downto 0);
+ipf       : std_logic;
 fpdma     : TRegFPDMASetup;
+usr       : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 end record;
 
 type TTxBufStatus is record
@@ -747,10 +732,15 @@ type TALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
 type TTxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;
 type TRxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TRxBufStatus;
 
+type TSError_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALSERR_LAST_BIT downto 0);
+type TSStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
+type TATAError_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(7 downto 0);
+type TATAStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(7 downto 0);
+
 
 --//
 type TMeasureALStatus is record
-Usr : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
+usr : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
 end record;
 type TMeasureALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TMeasureALStatus;
 

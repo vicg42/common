@@ -83,8 +83,8 @@ signal i_cmdfifo_rd_done           : std_logic;
 signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_SATACMD_M_BIT - C_CMDPKT_SATACMD_L_BIT downto 0);
 signal i_usrmode                   : std_logic_vector(C_SATACMD_COUNT-1 downto 0);
 signal i_err_clr                   : std_logic;
-signal i_sstatus                   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 signal i_spd_ver                   : std_logic_vector(C_PSTAT_SPD_BIT_M-C_PSTAT_SPD_BIT_L downto 0);
+signal i_spd_con                   : std_logic_vector(C_ASSTAT_SPD_BIT_M-C_ASSTAT_SPD_BIT_L downto 0);
 
 signal i_reg_shadow_addr           : std_logic_vector(i_cmdfifo_dcnt'range);
 signal i_reg_shadow_din            : std_logic_vector(15 downto 0);
@@ -92,8 +92,12 @@ signal i_reg_shadow_wr             : std_logic;
 signal i_reg_shadow_wr_done        : std_logic;
 
 signal i_reg_shadow                : TRegShadow;
+signal i_reg_sstatus               : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0):=(others=>'0');
 signal i_reg_serror                : std_logic_vector(C_ALSERR_LAST_BIT downto 0):=(others=>'0');
 signal i_reg_usr_status            : std_logic_vector(C_ALUSER_LAST_BIT downto 0):=(others=>'0');
+
+signal i_ata_ipf_bit                 : std_logic;--//IPF - (Interrupt pending flag) или по простому прерывание
+signal i_ata_dev_control_srst_bit_old: std_logic;
 
 signal i_trn_atacommand            : std_logic;
 signal i_trn_atacontrol            : std_logic;
@@ -106,6 +110,7 @@ signal i_serr_i_err                : std_logic;
 signal i_serr_p_err                : std_logic;
 signal i_serr_c_err                : std_logic;
 
+signal sr_fd2h                     : std_logic;
 
 signal i_dbgtsf_type               : string(1 to 23);
 
@@ -122,16 +127,17 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-p_out_tst(31 downto 0)<=(others=>'0');
---tstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(31 downto 0)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    p_out_tst(0)<=tst_val;
---  end if;
---end process tstout;
---p_out_tst(31 downto 1)<=(others=>'0');
+--p_out_tst(31 downto 0)<=(others=>'0');
+tstout:process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    p_out_tst(0 downto 0)<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    p_out_tst(0)<=i_ata_ipf_bit;
+  end if;
+end process tstout;
+p_out_tst(31 downto 1)<=(others=>'0');
 
 end generate gen_dbg_on;
 
@@ -144,6 +150,7 @@ begin
   if p_in_rst='1' then
     i_err_clr<='0';
   elsif p_in_clk'event and p_in_clk='1' then
+    --//Пересинхронизация сигнала сброса ошибок
     i_err_clr<=p_in_ctrl(C_USR_GCTRL_CLR_ERR_BIT);
   end if;
 end process;
@@ -159,7 +166,7 @@ end generate gen_usrmode;
 --Связь с USR APP Layer
 --------------------------------------------------
 --//Чтение командного пакета
---p_out_cmdfifo_dst_rdy_n<=i_reg_usr_status(C_AUSER_BUSY_BIT);
+--p_out_cmdfifo_dst_rdy_n<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
 
 process(p_in_rst,p_in_clk)
 begin
@@ -193,23 +200,25 @@ begin
 
     i_usrmode_sel<=(others=>'0');
 
-    i_reg_shadow.command<=(others=>'0');
---    i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT-1 downto 0)<=(others=>'0');
---    i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
-    i_reg_shadow.status<=(others=>'0');
-    i_reg_shadow.error<=(others=>'0');
-    i_reg_shadow.device<=(others=>'0');
-    i_reg_shadow.control<=(others=>'0');
-    i_reg_shadow.lba_low<=(others=>'0');
-    i_reg_shadow.lba_low_exp<=(others=>'0');
-    i_reg_shadow.lba_mid<=(others=>'0');
-    i_reg_shadow.lba_mid_exp<=(others=>'0');
-    i_reg_shadow.lba_high<=(others=>'0');
-    i_reg_shadow.lba_high_exp<=(others=>'0');
-    i_reg_shadow.scount<=(others=>'0');
-    i_reg_shadow.scount_exp<=(others=>'0');
+    --//Инициальзация Shadow register в соответствии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 13.1
+    i_reg_shadow.command<=(others=>'1');
+    i_reg_shadow.status<=CONV_STD_LOGIC_VECTOR(16#7F#, i_reg_shadow.status'length);
+    i_reg_shadow.error<=(others=>'1');
+    i_reg_shadow.device<=(others=>'1');
+    i_reg_shadow.lba_low<=(others=>'1');
+    i_reg_shadow.lba_low_exp<=(others=>'1');
+    i_reg_shadow.lba_mid<=(others=>'1');
+    i_reg_shadow.lba_mid_exp<=(others=>'1');
+    i_reg_shadow.lba_high<=(others=>'1');
+    i_reg_shadow.lba_high_exp<=(others=>'1');
+    i_reg_shadow.scount<=(others=>'1');
+    i_reg_shadow.scount_exp<=(others=>'1');
     i_reg_shadow.feature<=(others=>'0');
     i_reg_shadow.feature_exp<=(others=>'0');
+    i_reg_shadow.control<=(others=>'0');
+
+    i_ata_dev_control_srst_bit_old<='0';
+    i_ata_ipf_bit<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -217,13 +226,37 @@ begin
       i_reg_shadow.status(C_ATA_STATUS_ERR_BIT)<='0';
 
     elsif i_trn_atacommand='1' or i_trn_atacontrol='1' or i_link_up='1' then
-      i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
+      if i_link_up='1' then
+        i_reg_shadow.status<=CONV_STD_LOGIC_VECTOR(16#80#, i_reg_shadow.status'length);
+      elsif i_trn_atacontrol='1' then
+        if i_ata_dev_control_srst_bit_old/=i_reg_shadow.control(C_ATA_DEV_CONTROL_SRST_BIT) then
+          i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
+        end if;
+      else
+        i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)<='1';
+      end if;
+
+      i_ata_ipf_bit<='0';--//Прерывние
 
     elsif p_in_reg_update.fsdb='1' then
     --//Обновление регистров по приему FIS_SetDevice_Bits
+    --//В соответствии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 10.3.6
+
       i_reg_shadow.status(2 downto 0)<=p_in_reg_hold.sb_status(2 downto 0);
       i_reg_shadow.status(5 downto 4)<=p_in_reg_hold.sb_status(5 downto 4);
       i_reg_shadow.error <= p_in_reg_hold.sb_error;
+
+      --//Прерывние
+      if p_in_tl_status(C_TSTAT_FIS_I_BIT)='1' then
+        if i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_FPDMA_QUEUED, i_reg_shadow.command'length) or
+           i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_FPDMA_QUEUED, i_reg_shadow.command'length) then
+           i_ata_ipf_bit<='1';
+
+        elsif i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)='0' and i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT)='0' then
+          i_ata_ipf_bit<='1';
+
+        end if;
+      end if;
 
     elsif p_in_reg_update.fpio_e='1' then
     --//Режим PIO: Обновление регистров в результате корректного завершения АТА комманды
@@ -244,6 +277,11 @@ begin
         i_reg_shadow.scount <= p_in_reg_hold.scount;
         i_reg_shadow.scount_exp <= p_in_reg_hold.scount_exp;
 
+        --//Прерывние
+        if p_in_tl_status(C_TSTAT_FIS_I_BIT)='1' then
+          i_ata_ipf_bit<='1';
+        end if;
+
     elsif p_in_reg_update.fd2h='1'then
     --//Обновление регистров по приему FIS_DEV2HOST
     --//ВАЖНО: Если оба бита BSY и DRQ ='0', то обновление не делаем - в соответвии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 10.3.5.3
@@ -259,6 +297,11 @@ begin
         i_reg_shadow.lba_high_exp <= p_in_reg_hold.lba_high_exp;
         i_reg_shadow.scount <= p_in_reg_hold.scount;
         i_reg_shadow.scount_exp <= p_in_reg_hold.scount_exp;
+      end if;
+
+      --//Прерывние
+      if p_in_tl_status(C_TSTAT_FIS_I_BIT)='1' then
+        i_ata_ipf_bit<='1';
       end if;
 
     elsif i_link_break='1' then
@@ -293,6 +336,7 @@ begin
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_reg_shadow_addr'length) then
           i_reg_shadow.device <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.control <= i_reg_shadow_din(15 downto 8);
+          i_ata_dev_control_srst_bit_old<=i_reg_shadow.control(C_ATA_DEV_CONTROL_SRST_BIT);
 
       elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_reg_shadow_addr'length) then
           i_reg_shadow.command <= i_reg_shadow_din(7 downto 0);
@@ -307,29 +351,43 @@ end process;
 
 
 --//Собираем отчет:
-p_out_status.ATAStatus<=i_reg_shadow.status;
-p_out_status.ATAError<=i_reg_shadow.error;
-p_out_status.SError<=i_reg_serror;
+p_out_status.atastatus<=i_reg_shadow.status;
+p_out_status.ataerror<=i_reg_shadow.error;
+p_out_status.sstatus<=i_reg_sstatus;
+p_out_status.serror<=i_reg_serror;
+p_out_status.ipf<=i_ata_ipf_bit;--//Прерывние
 p_out_status.fpdma<=p_in_reg_fpdma;
-p_out_status.Usr<=i_reg_usr_status;
+p_out_status.usr<=i_reg_usr_status;
 
 
 --//SATA Status:
---//Детектирование:
-i_sstatus(C_ASSTAT_DET_BIT_L+0)<=p_in_pl_status(C_PSTAT_DET_DEV_ON_BIT);      --//0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
-i_sstatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--//0/1 - Соединение с устройством не установлено/установлено (можно работать)
-i_sstatus(C_ASSTAT_DET_BIT_M downto C_ASSTAT_DET_BIT_L+2)<=(others=>'0');
-
---//Cкорость соединения: "00"/"01"/"10" - не согласована/Gen1/Gen2
 i_spd_ver<=p_in_pl_status(C_PSTAT_SPD_BIT_M downto C_PSTAT_SPD_BIT_L);
-i_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<="0001" when i_spd_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN1, i_spd_ver'length) else
-                                                         "0010" when i_spd_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, i_spd_ver'length) else
-                                                         "0000";
+i_spd_con<=EXT(i_spd_ver, i_spd_con'length) + 1;
 
-i_sstatus(C_ASSTAT_IPM_BIT_L)<=i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);--//Интрефейс в активном состоянии. Сигнатура от устройства получена
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_reg_sstatus<=(others=>'0');
 
-i_sstatus(C_ALSSTAT_LAST_BIT downto C_ASSTAT_IPM_BIT_L+1)<=(others=>'0');
+    sr_fd2h<='0';
 
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    sr_fd2h<=p_in_reg_update.fd2h;
+
+    i_reg_sstatus(C_ASSTAT_SPD_BIT_M downto C_ASSTAT_SPD_BIT_L)<=i_spd_con;
+
+    i_reg_sstatus(C_ASSTAT_DET_BIT_L+0)<=p_in_pl_status(C_PSTAT_DET_DEV_ON_BIT);      --//0/1 - Устройство не обнаружено/обнаружено но соединение не установлено!!
+    i_reg_sstatus(C_ASSTAT_DET_BIT_L+1)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);--//0/1 - Соединение с устройством не установлено/установлено (можно работать)
+
+    if i_link_break='1' then
+    i_reg_sstatus(C_ASSTAT_IPM_BIT_L)<='0';
+    elsif sr_fd2h='1' and i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT)='1' then
+    i_reg_sstatus(C_ASSTAT_IPM_BIT_L)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);
+    end if;
+
+  end if;
+end process;
 
 --//SATA Error:
 process(p_in_rst,p_in_clk)
@@ -351,13 +409,6 @@ begin
     sr_link_establish(1)<=sr_link_establish(0);
     i_link_up   <=not sr_link_establish(1) and     sr_link_establish(0);
     i_link_break<=    sr_link_establish(1) and not sr_link_establish(0);
-
-    i_reg_serror(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)<=i_sstatus(C_ASSTAT_DET_BIT_L+1 downto C_ASSTAT_DET_BIT_L);
-    i_reg_serror(C_ASERR_SPD_M_BIT downto C_ASERR_SPD_L_BIT)<=i_sstatus(C_ASSTAT_SPD_BIT_L+2 downto C_ASSTAT_SPD_BIT_L);
-    i_reg_serror(C_ASERR_IPM_L_BIT)<=i_sstatus(C_ASSTAT_IPM_BIT_L);
-
-    i_reg_serror(C_ASERR_ATAERR_DIAG_M_BIT downto C_ASERR_ATAERR_DIAG_L_BIT)<=i_reg_shadow.error;
-    i_reg_serror(C_ASERR_ATA_ERR_BIT)<=i_reg_shadow.status(C_ATA_STATUS_ERR_BIT);
 
     if i_err_clr='1' then
 
@@ -470,11 +521,11 @@ end process;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_reg_usr_status(C_AUSER_BUSY_BIT)<='1';
+    i_reg_usr_status(C_AUSER_BUSY_BIT)<='0';
     i_reg_usr_status(C_ALUSER_LAST_BIT downto C_AUSER_BUSY_BIT+1)<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
-    i_reg_usr_status(C_AUSER_BUSY_BIT)<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT) or not p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);
+    i_reg_usr_status(C_AUSER_BUSY_BIT)<='0';
 
     --//Растягиваем импульс C_AUSER_DWR_START_BIT
     if p_in_tl_status(C_TSTAT_DWR_START_BIT)='1' then
@@ -572,8 +623,9 @@ p_out_dbg.cmd_name<=i_dbgtsf_type;
 
 end generate gen_sim_on;
 
-p_out_dbg.cmd_busy<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);--i_reg_usr_status(C_AUSER_BUSY_BIT);
-p_out_dbg.signature<=i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);
+p_out_dbg.cmd_busy<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
+p_out_dbg.signature<=i_reg_sstatus(C_ASSTAT_IPM_BIT_L);--i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);
+p_out_dbg.ipf_bit<=i_ata_ipf_bit;
 
 
 --END MAIN

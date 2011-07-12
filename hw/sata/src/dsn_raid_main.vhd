@@ -297,7 +297,7 @@ p_in_clk       => g_refclkout,--//150MHz
 p_in_rst       => p_in_rst
 );
 
-i_measure_dev_busy<=i_usr_status.dev_busy and i_usr_status.dev_rdy;
+i_measure_dev_busy<=i_usr_status.dev_bsy and i_usr_status.dev_rdy;
 
 
 --//#############################################
@@ -430,12 +430,12 @@ gen_satah : for sh_idx in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 gen_satah_ch : for ch_idx in 0 to C_GTCH_COUNT_MAX-1 generate
 
 --//Для модуля измерения
-i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).Usr<=i_sh_status(sh_idx)(ch_idx).Usr;
+i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).usr<=i_sh_status(sh_idx)(ch_idx).usr;
 
 --//Сброс sata_connector
 i_sh_buf_rst(sh_idx)(ch_idx)<=p_in_rst or
                               p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT) or
-                              not i_sh_status(sh_idx)(ch_idx).SError(C_ASERR_DET_L_BIT+1);--//Link Establish
+                              not i_sh_status(sh_idx)(ch_idx).sstatus(C_ASSTAT_DET_BIT_L+1);--//Link Establish
 
 --//статусы и управление модулем sata_host.vhd
 i_uap_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx)<=i_sh_status(sh_idx)(ch_idx);

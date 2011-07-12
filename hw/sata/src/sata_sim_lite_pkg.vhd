@@ -66,16 +66,17 @@ constant C_PNAME_STR : TString_SataArray21:=
 --//------------------------------
 --//Application Layer
 --//------------------------------
-type TSimALStatus is record
-cmd_name    : string(1 to 23);
-cmd_busy    : std_logic;
-signature   : std_logic;
-end record;
+--type TSimALStatus is record
+--cmd_name    : string(1 to 23);
+--cmd_busy    : std_logic;
+--signature   : std_logic;
+--end record;
 
 type TAL_dbgport is record
 cmd_name    : string(1 to 23);
 cmd_busy    : std_logic;
 signature   : std_logic;
+ipf_bit     : std_logic;
 end record;
 
 --//------------------------------
@@ -98,7 +99,7 @@ type TSimTLOtherStatus is record
 firq_bit : std_logic;
 fdir_bit : std_logic;
 fpiosetup: std_logic;
-irq      : std_logic;
+--irq      : std_logic;
 end record;
 
 type TTL_dbgport is record

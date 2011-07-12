@@ -567,7 +567,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr_cmdbusy<=i_usr_status.dev_busy & sr_cmdbusy(0 to 0);
+    sr_cmdbusy<=i_usr_status.dev_bsy & sr_cmdbusy(0 to 0);
 
     if i_cmddone_det_clr='1' then
       i_cmddone_det<='0';

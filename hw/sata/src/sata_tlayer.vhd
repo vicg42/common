@@ -117,9 +117,6 @@ signal i_ll_state_illegal          : std_logic;                                 
                                                                                   --//автомата управления LInk Layer
 signal i_tl_status                 : std_logic_vector(C_TLSTAT_LAST_BIT downto 0);--//Статусы Transport Layer
 
-signal i_irq                       : std_logic;
-
-signal i_firq_bit                  : std_logic;
 signal i_fdir_bit                  : std_logic;--//Прием/Передача FISDATA
 signal i_fpiosetup                 : std_logic;--//Сигнализация о приеме FIS_PIOSETUP
 signal i_fdone                     : std_logic;--//
@@ -171,19 +168,19 @@ end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 
---p_out_tst(31 downto 0)<=(others=>'0');
-tstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(0 downto 0)<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-
---    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=i_irq or i_firq_bit;--or OR_reduce(tst_fms_cs_dly)
-  end if;
-end process tstout;
-p_out_tst(31 downto 1)<=(others=>'0');
+p_out_tst(31 downto 0)<=(others=>'0');
+--tstout:process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+----    tst_fms_cs_dly<=(others=>'0');
+--    p_out_tst(0 downto 0)<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+----    tst_fms_cs_dly<=tst_fms_cs;
+----    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly)
+--  end if;
+--end process tstout;
+--p_out_tst(31 downto 1)<=(others=>'0');
 
 --tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_ChkTyp              else
 --            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_tlayer_cs=S_HT_CmdFIS              else
@@ -269,7 +266,7 @@ p_out_ll_txd_close <=i_fh2d_close or i_fdata_close;
 
 i_fdata_close<='1' when ( i_fpiosetup='1' and i_fdcnt=EXT(i_piosetup_trncount_dw, i_fdcnt'length) ) or
                         ( i_dma_txd='1' and i_fdata_txd_en='1' and (i_dma_dcnt=i_dma_trncount_dw or OR_reduce(i_dma_dcnt(log2(CI_FR_DWORD_COUNT_MAX)-1 downto 0))='0') ) else
-                 '0';
+               '0';
 
 
 --//-----------------------------
@@ -326,9 +323,7 @@ if p_in_rst='1' then
 
   i_ll_ctrl<=(others=>'0');
   i_tl_status<=(others=>'0');
-  i_irq<='0';
 
-  i_firq_bit<='0';
   i_fdir_bit<='0';
   i_fpiosetup<='0';
   i_fdone<='0';
@@ -391,7 +386,6 @@ elsif p_in_clk'event and p_in_clk='1' then
       i_reg_update.fpio<='0';
       i_reg_update.fpio_e<='0';
       i_reg_update.fsdb<='0';
-      i_irq<='0';
 
       i_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT)<='0';
       i_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT)<='0';
@@ -762,10 +756,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
               i_fdir_bit<=sr_llrxd(0)(C_FIS_DIR_BIT+8);
-                i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
-              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_ATA_IRQ_ON then
-                i_irq<='1';
-              end if;
+              i_tl_status(C_TSTAT_FIS_I_BIT)<=sr_llrxd(0)(C_FIS_INT_BIT+8);
 
               i_reg_hold.status <= sr_llrxd(0)(8*(2+1)-1 downto 8*2);
               i_reg_hold.error <= sr_llrxd(0)(8*(3+1)-1 downto 8*3);
@@ -850,10 +841,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         --//Прием содержимого FIS
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
-                i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
-              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_ATA_IRQ_ON then
-                i_irq<='1';
-              end if;
+              i_tl_status(C_TSTAT_FIS_I_BIT)<=sr_llrxd(0)(C_FIS_INT_BIT+8);
 
               i_reg_hold.sb_status <= sr_llrxd(0)(8*(2+1)-1 downto 8*2);
               i_reg_hold.sb_error <= sr_llrxd(0)(8*(3+1)-1 downto 8*3);
@@ -1013,10 +1001,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
               i_fdir_bit<=sr_llrxd(0)(C_FIS_DIR_BIT+8);
-                i_firq_bit<=sr_llrxd(0)(C_FIS_INT_BIT+8);
-              if sr_llrxd(0)(C_FIS_INT_BIT+8)=C_ATA_IRQ_ON then
-                i_irq<='1';
-              end if;
+              i_tl_status(C_TSTAT_FIS_I_BIT)<=sr_llrxd(0)(C_FIS_INT_BIT+8);
 
               i_reg_hold.status <= sr_llrxd(0)(8*(2+1)-1 downto 8*2);
               i_reg_hold.error <= sr_llrxd(0)(8*(3+1)-1 downto 8*3);
@@ -1612,10 +1597,9 @@ p_out_dbg.dmatrn_dcnt<=EXT(i_dma_dcnt, p_out_dbg.dmatrn_dcnt'length);
 p_out_dbg.piotrn_sizedw<=EXT(i_piosetup_trncount_dw, p_out_dbg.piotrn_sizedw'length);
 
 
-p_out_dbg.other_status.firq_bit<=i_firq_bit;
+p_out_dbg.other_status.firq_bit<=i_tl_status(C_TSTAT_FIS_I_BIT);
 p_out_dbg.other_status.fdir_bit<=i_fdir_bit;
 p_out_dbg.other_status.fpiosetup<=i_fpiosetup;
-p_out_dbg.other_status.irq<=i_irq;
 
 
 --end generate gen_sim_on;

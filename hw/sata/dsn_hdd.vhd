@@ -162,6 +162,8 @@ signal i_sata_gt_refclk                 : std_logic_vector(C_SH_COUNT_MAX(G_HDD_
 signal i_sh_ctrl                        : std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 signal i_sh_status                      : TUsrStatus;
 signal i_sh_measure                     : TMeasureStatus;
+type TChStatus is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(31 downto 0);
+signal i_sh_status_ch                   : TChStatus;
 
 signal sr_sh_busy                       : std_logic_vector(0 to 1);
 signal i_sh_busy                        : std_logic;
@@ -297,21 +299,21 @@ begin
             rxd(3 downto 0):=i_sh_status.hdd_count(3 downto 0);
             rxd(4):=i_sh_status.dev_rdy;
             rxd(5):=i_sh_status.dev_err;
-            rxd(6):=i_sh_status.dev_busy;
+            rxd(6):=i_sh_status.dev_bsy;
             rxd(7):=i_sh_done;
             rxd(8):=p_in_rbuf_status.err;
             rxd(15 downto 9):="0000000";
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_M, i_cfg_adr_cnt'length) then rxd:=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_drdy, 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_STATUS_M, i_cfg_adr_cnt'length) then rxd:=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_rdy, 8);
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto 4)=CONV_STD_LOGIC_VECTOR(16#01#, i_cfg_adr_cnt'length - 4) then
         --//Статусы SATA каналов, регистры C_DSN_HDD_REG_STATUS_SATAxx_L/M - адреса 0x10...0x1F
           for i in 0 to G_HDD_COUNT-1 loop
             if i_cfg_adr_cnt(3 downto 1)=i then
               if i_cfg_adr_cnt(0)='0' then
-                rxd:=i_sh_status.SError(i)(15 downto 0);
+                rxd:=i_sh_status_ch(i)(15 downto 0);
               else
-                rxd:=i_sh_status.SError(i)(31 downto 16);
+                rxd:=i_sh_status_ch(i)(31 downto 16);
               end if;
             end if;
           end loop;
@@ -337,6 +339,36 @@ i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_
 i_sh_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_GENTDATA_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GENTDATA_BIT);
 
+--//Формирую значения для регистров C_DSN_HDD_REG_STATUS_SATAxx_L/M
+gen_reg_stat : for i in 0 to G_HDD_COUNT-1 generate
+
+i_sh_status_ch(i)(0)<=i_sh_status.ch_serror(i)(C_ASERR_I_ERR_BIT);
+
+i_sh_status_ch(i)(8 downto 1)<=i_sh_status.ch_ataerror(i);--//ATA ERROR (COD)
+
+i_sh_status_ch(i)(9)<=i_sh_status.ch_serror(i)(C_ASERR_C_ERR_BIT);
+i_sh_status_ch(i)(10)<=i_sh_status.ch_serror(i)(C_ASERR_P_ERR_BIT);
+
+i_sh_status_ch(i)(11)<=i_sh_status.ch_atastatus(i)(C_ATA_STATUS_ERR_BIT);--ATA ERROR (Flag)
+i_sh_status_ch(i)(15 downto 12)<=(others=>'0');
+
+i_sh_status_ch(i)(16)<=i_sh_status.ch_serror(i)(C_ASERR_N_DIAG_BIT);--//PHY Layer:if (i_link_establish_change='1' and i_usrmode(C_USRCMD_SET_SATA1)='0' and i_usrmode(C_USRCMD_SET_SATA2)='0') then
+i_sh_status_ch(i)(17)<=i_sh_status.ch_serror(i)(C_ASERR_I_DIAG_BIT);--//не использую
+i_sh_status_ch(i)(18)<=i_sh_status.ch_serror(i)(C_ASERR_W_DIAG_BIT);--//PHY Layer:if p_in_pl_status(C_PSTAT_COMWAKE_RCV_BIT)='1' then
+i_sh_status_ch(i)(19)<=i_sh_status.ch_serror(i)(C_ASERR_B_DIAG_BIT);--//PHY Layer:if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+i_sh_status_ch(i)(20)<=i_sh_status.ch_serror(i)(C_ASERR_D_DIAG_BIT);--//PHY Layer:if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
+i_sh_status_ch(i)(21)<=i_sh_status.ch_serror(i)(C_ASERR_C_DIAG_BIT);--//Link Layer: --//CRC ERROR
+i_sh_status_ch(i)(22)<=i_sh_status.ch_serror(i)(C_ASERR_H_DIAG_BIT);--//Link Layer: --//1/0 - CRC ERROR on (send FIS/rcv FIS)
+i_sh_status_ch(i)(23)<=i_sh_status.ch_serror(i)(C_ASERR_S_DIAG_BIT);--//Link Layer:if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
+i_sh_status_ch(i)(24)<=i_sh_status.ch_serror(i)(C_ASERR_T_DIAG_BIT);--//Link Layer:if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
+i_sh_status_ch(i)(25)<=i_sh_status.ch_serror(i)(C_ASERR_F_DIAG_BIT);--//Transport Layer: FIS CRC-OK, but FISTYPE/FISLEN ERROR
+
+i_sh_status_ch(i)(26)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+0);--//PHY Layer: C_PSTAT_DET_DEV_ON_BIT
+i_sh_status_ch(i)(27)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1);--//PHY Layer: C_PSTAT_DET_ESTABLISH_ON_BIT
+i_sh_status_ch(i)(30 downto 28)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+2 downto C_ASSTAT_SPD_BIT_L);----//PHY Layer: SATA speed negatiation
+i_sh_status_ch(i)(31)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_IPM_BIT_L);--//
+
+end generate gen_reg_stat;
 
 --//Настройка/Управление RAM буфером
 p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
@@ -474,7 +506,7 @@ begin
 
     else
         --//Формируем сигнал BUSY
-        sr_sh_busy<=i_sh_status.dev_busy & sr_sh_busy(0 to 0);
+        sr_sh_busy<=i_sh_status.dev_bsy & sr_sh_busy(0 to 0);
 
         if sr_sh_busy(0)='1' and sr_sh_busy(1)='0' then
           i_sh_busy<='1';
@@ -647,13 +679,13 @@ p_in_rst                => p_in_rst
 );
 
 gen_dbgled: for i in 0 to C_HDD_COUNT_MAX-1 generate
---p_out_dbgled(i).link<=i_sh_status.SError(i)(C_ASERR_DET_L_BIT);--//Уст-во обнаружено
-p_out_dbgled(i).link<=i_sh_status.SError(i)(C_ASERR_DET_M_BIT);--//Уст-во обнаружено + соединение установлено
-p_out_dbgled(i).rdy<=i_sh_status.ch_drdy(i);
+--p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+0); --//Флаг C_PSTAT_DET_DEV_ON_BIT): Уст-во обнаружено
+p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1); --//Флаг C_PSTAT_DET_ESTABLISH_ON_BIT: Уст-во обнаружено + Соединение установлено
+p_out_dbgled(i).rdy<=i_sh_status.ch_rdy(i);--//Флаг C_ASSTAT_IPM_BIT_L: Уст-во обнаружено +  Соединение установлено + сигнатура получена
 p_out_dbgled(i).err<=i_sh_status.ch_err(i);
-p_out_dbgled(i).busy<=i_sh_status.ch_busy(i);
-p_out_dbgled(i).spd<=i_sh_status.SError(i)(C_ASERR_SPD_L_BIT+1 downto C_ASERR_SPD_L_BIT);--//Скорость соединения 1/2/3 - SATA-I/II/III
-p_out_dbgled(i).dly<=i_sh_measure.dly;--//
+p_out_dbgled(i).busy<=i_sh_status.ch_bsy(i);
+p_out_dbgled(i).spd<=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+1 downto C_ASSTAT_SPD_BIT_L);--//Скорость соединения 1/2/3 - SATA-I/II/III
+p_out_dbgled(i).dly<=i_sh_measure.dly;
 end generate gen_dbgled;
 
 p_out_sim_gt_txdata        <= i_sh_sim_gt_txdata;
@@ -713,23 +745,29 @@ p_out_sim_gt_txcomstart(i)<='0';
 p_out_gt_sim_rst(i)       <='0';
 p_out_gt_sim_clk(i)       <='0';
 
-i_sh_status.ch_busy(i)<='0';
-i_sh_status.ch_drdy(i)<='0';
+i_sh_status.ch_bsy(i)<='0';
+i_sh_status.ch_rdy(i)<='0';
 i_sh_status.ch_err(i)<='0';
-i_sh_status.SError(i)<=(others=>'0');
+i_sh_status.ch_serror(i)<=(others=>'0');
 i_sh_status.ch_usr(i)<=(others=>'0');
 
 p_out_dbgled(i).link<='0';
 p_out_dbgled(i).rdy<='0';
 p_out_dbgled(i).err<='0';
+p_out_dbgled(i).busy<='0';
+p_out_dbgled(i).spd<=(others=>'0');
+p_out_dbgled(i).dly<='0';
 
 end generate gen_satah_null;
 
-i_sh_status.dev_busy<='0';
+i_sh_status.dev_bsy<='0';
 i_sh_status.dev_rdy <='0';
 i_sh_status.dev_err <='0';
 i_sh_status.usr <=(others=>'0');
 i_sh_status.lba_bp <=(others=>'0');
+gen_rstat : for i in 0 to G_HDD_COUNT-1 generate
+i_sh_status_ch(i)<=(others=>'0');
+end generate gen_rstat;
 
 i_sh_measure.tdly  <=(others=>'0');
 i_sh_measure.twork <=(others=>'0');

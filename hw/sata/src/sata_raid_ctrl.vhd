@@ -267,42 +267,54 @@ i_usr_status.hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.hdd_coun
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_usr_status.dev_busy<='0';--i_usr_status.dev_busy<='1';
+    i_usr_status.dev_bsy<='0';
     i_usr_status.dev_rdy<='0';
     i_usr_status.dev_err<='0';
+    i_usr_status.dev_ipf<='0';
 --    i_usr_status.usr<=(others=>'0');
     i_usr_status.lba_bp<=(others=>'0');
     for i in 0 to G_HDD_COUNT-1 loop
---      i_usr_status.ch_usr(i)<=(others=>'0');
-      i_usr_status.ch_busy(i)<='0';--i_usr_status.ch_busy(i)<='1';
-      i_usr_status.ch_drdy(i)<='0';
+      i_usr_status.ch_bsy(i)<='0';
+      i_usr_status.ch_rdy(i)<='0';
       i_usr_status.ch_err(i)<='0';
-      i_usr_status.SError(i)<=(others=>'0');
+      i_usr_status.ch_ipf(i)<='0';
+      i_usr_status.ch_ataerror(i)<=(others=>'0');
+      i_usr_status.ch_atastatus(i)<=(others=>'0');
+      i_usr_status.ch_serror(i)<=(others=>'0');
+      i_usr_status.ch_sstatus(i)<=(others=>'0');
+--      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
     i_dwr_start<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_usr_status.dev_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0)) or i_usrmode.hw_work;
-    i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_drdy(G_HDD_COUNT-1 downto 0));
+    i_usr_status.dev_bsy<=OR_reduce(i_usr_status.ch_bsy(G_HDD_COUNT-1 downto 0)) or i_usrmode.hw_work;
+    i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_rdy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0)) or i_err_rambuf;
+    i_usr_status.dev_ipf<=AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0));
     i_usr_status.lba_bp<=i_lba_cnt;
 --    i_usr_status.usr<=(others=>'0');
 
     for i in 0 to G_HDD_COUNT-1 loop
-      i_usr_status.ch_busy(i)<=p_in_sh_status(i).ATAStatus(C_ATA_STATUS_BUSY_BIT) or p_in_sh_status(i).ATAStatus(C_ATA_STATUS_DRQ_BIT);--p_in_sh_status(i).Usr(C_AUSER_BUSY_BIT);--
-      i_usr_status.ch_drdy(i)<=p_in_sh_status(i).ATAStatus(C_ATA_STATUS_DRDY_BIT);
+      --//собираю данные от всех изпользуемых каналов:
+      i_usr_status.ch_bsy(i)<=p_in_sh_status(i).atastatus(C_ATA_STATUS_BUSY_BIT) or p_in_sh_status(i).ATAStatus(C_ATA_STATUS_DRQ_BIT);
+      i_usr_status.ch_rdy(i)<=p_in_sh_status(i).sstatus(C_ASSTAT_IPM_BIT_L);
 
-      i_usr_status.ch_err(i)<=p_in_sh_status(i).ATAStatus(C_ATA_STATUS_ERR_BIT) or
-                              p_in_sh_status(i).SError(C_ASERR_I_ERR_BIT) or
-                              p_in_sh_status(i).SError(C_ASERR_C_ERR_BIT) or
-                              p_in_sh_status(i).SError(C_ASERR_P_ERR_BIT);
+      i_usr_status.ch_err(i)<=p_in_sh_status(i).atastatus(C_ATA_STATUS_ERR_BIT) or
+                              p_in_sh_status(i).serror(C_ASERR_I_ERR_BIT) or
+                              p_in_sh_status(i).serror(C_ASERR_C_ERR_BIT) or
+                              p_in_sh_status(i).serror(C_ASERR_P_ERR_BIT);
 
+      i_usr_status.ch_ipf(i)<=p_in_sh_status(i).ipf;--//IPF - (Interrupt pending flag) или по простому прерывание
+
+      i_usr_status.ch_ataerror(i) <=p_in_sh_status(i).ataerror;
+      i_usr_status.ch_atastatus(i)<=p_in_sh_status(i).atastatus;
+      i_usr_status.ch_serror(i)   <=p_in_sh_status(i).serror;
+      i_usr_status.ch_sstatus(i)  <=p_in_sh_status(i).sstatus;
 --      i_usr_status.ch_usr(i)<=(others=>'0');
-      i_usr_status.SError(i)<=p_in_sh_status(i).SError;
 
-      i_dwr_start(i)<=p_in_sh_status(i).Usr(C_AUSER_DWR_START_BIT);
+      i_dwr_start(i)<=p_in_sh_status(i).usr(C_AUSER_DWR_START_BIT);
 
     end loop;
 
@@ -326,7 +338,7 @@ begin
 
     sr_dev_err<=i_usr_status.dev_err & sr_dev_err(0 to 0);
 
-    sr_dev_busy<=OR_reduce(i_usr_status.ch_busy(G_HDD_COUNT-1 downto 0)) & sr_dev_busy(0 to 0);
+    sr_dev_busy<=OR_reduce(i_usr_status.ch_bsy(G_HDD_COUNT-1 downto 0)) & sr_dev_busy(0 to 0);
 --    i_sh_det.cmddone<=(i_usrmode.sw and p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)) or
 --                      (sr_dev_busy(1) and not sr_dev_busy(0));
     i_sh_det.cmddone<=sr_dev_busy(1) and not sr_dev_busy(0);
@@ -611,7 +623,7 @@ p_out_sh_hdd<=i_sh_hddcnt;
 p_out_sh_txd<=p_in_usr_txd when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)='1' else i_tstdata;
 p_out_sh_txd_wr<=i_sh_txd_wr;
 
-i_usr_txbuf_empty<=p_in_usr_txbuf_empty when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)='1' else not i_usr_status.dev_busy;
+i_usr_txbuf_empty<=p_in_usr_txbuf_empty when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)='1' else not i_usr_status.dev_bsy;
 
 i_sh_txd_wr<=(i_sh_padding or not i_usr_txbuf_empty) and not p_in_sh_txbuf_full when p_in_raid.used='0' else --//Работа с одним HDD
              (i_sh_padding or not i_usr_txbuf_empty) and not p_in_sh_txbuf_full and i_sh_trn_en;             --//Работа с RAID

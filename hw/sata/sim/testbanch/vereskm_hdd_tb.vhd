@@ -963,7 +963,7 @@ begin
       i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GENTDATA_BIT)<='0';
 
   i_sw_mode<='1';
-  i_sw_sata_cs<=16#01#;
+  i_sw_sata_cs<=16#03#;
 
   i_hw_mode<='0';
   i_hw_sata_cs<=16#03#;

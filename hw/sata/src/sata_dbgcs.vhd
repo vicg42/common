@@ -90,8 +90,11 @@ signal i_fsm_ploob                 : std_logic_vector(3 downto 0);
 signal i_fsm_llayer                : std_logic_vector(4 downto 0);
 signal i_fsm_tlayer                : std_logic_vector(4 downto 0);
 
-signal tst_sync                    : std_logic;
-signal tst_det_rip                 : std_logic;
+--signal tst_sync                    : std_logic;
+--signal tst_det_rip                 : std_logic;
+
+signal sr_ipf_bit                  : std_logic_vector(1 downto 0);
+signal i_ipf_bit_det               : std_logic;
 
 
 --MAIN
@@ -109,24 +112,24 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_on;
 
 
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-      tst_sync<='0';
-      tst_det_rip<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-    if tst_det_rip='1' and p_in_phy_rxtype(C_THOLD)='1' then
-      tst_sync<='1';
-      tst_det_rip<='0';
-    elsif tst_det_rip='1' and p_in_phy_rxtype(C_TR_IP)='1' then
-      tst_sync<='0';
-      tst_det_rip<='0';
-    elsif p_in_dbg.llayer.fsm=S_LT_RcvrHold and p_in_phy_rxtype(C_TR_IP)='1' then
-      tst_sync<='0';
-      tst_det_rip<='1';
-    end if;
-  end if;
-end process;
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--      tst_sync<='0';
+--      tst_det_rip<='0';
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if tst_det_rip='1' and p_in_phy_rxtype(C_THOLD)='1' then
+--      tst_sync<='1';
+--      tst_det_rip<='0';
+--    elsif tst_det_rip='1' and p_in_phy_rxtype(C_TR_IP)='1' then
+--      tst_sync<='0';
+--      tst_det_rip<='0';
+--    elsif p_in_dbg.llayer.fsm=S_LT_RcvrHold and p_in_phy_rxtype(C_TR_IP)='1' then
+--      tst_sync<='0';
+--      tst_det_rip<='1';
+--    end if;
+--  end if;
+--end process;
 
 
 --//-----------------------------
@@ -135,20 +138,25 @@ end process;
 process(p_in_clk)
 begin
 if p_in_clk'event and p_in_clk='1' then
+sr_ipf_bit(0)<=p_in_alstatus.ipf;
+sr_ipf_bit(1)<=sr_ipf_bit(0);
+i_ipf_bit_det<=sr_ipf_bit(0) and not sr_ipf_bit(1);
+
+
 i_dbgcs_trig00(18 downto 0)<=p_in_phy_rxtype(C_TDATA_EN downto C_TALIGN);
 
-i_dbgcs_trig00(19)<=p_in_alstatus.SError(C_ASERR_P_ERR_BIT) or
-                    p_in_alstatus.SError(C_ASERR_C_ERR_BIT) or
-                    p_in_alstatus.SError(C_ASERR_I_ERR_BIT) or
-                    p_in_alstatus.ATAStatus(C_ATA_STATUS_ERR_BIT);
+i_dbgcs_trig00(19)<=p_in_alstatus.serror(C_ASERR_P_ERR_BIT) or
+                    p_in_alstatus.serror(C_ASERR_C_ERR_BIT) or
+                    p_in_alstatus.serror(C_ASERR_I_ERR_BIT) or
+                    p_in_alstatus.atastatus(C_ATA_STATUS_ERR_BIT);
 
-i_dbgcs_trig00(20)<=p_in_alstatus.SError(C_ASERR_DET_M_BIT); --: integer:=27;--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_dbgcs_trig00(21)<=p_in_alstatus.SError(C_ASERR_DET_L_BIT); --: integer:=26;--//C_PSTAT_DET_DEV_ON_BIT
+i_dbgcs_trig00(20)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+i_dbgcs_trig00(21)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
 
-i_dbgcs_trig00(22)<=p_in_alstatus.SError(C_ASERR_F_DIAG_BIT);--: integer:=25;--//Transport Layer:  CRC-OK, but FISTYPE/FISLEN ERROR
-i_dbgcs_trig00(23)<=p_in_alstatus.SError(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
-i_dbgcs_trig00(24)<=p_in_alstatus.SError(C_ASERR_S_DIAG_BIT);--: integer:=23;--//if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
-i_dbgcs_trig00(25)<=tst_sync;--p_in_alstatus.SError(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
+i_dbgcs_trig00(22)<=p_in_alstatus.serror(C_ASERR_F_DIAG_BIT);--: integer:=25;--//Transport Layer:  CRC-OK, but FISTYPE/FISLEN ERROR
+i_dbgcs_trig00(23)<=p_in_alstatus.serror(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
+i_dbgcs_trig00(24)<=p_in_alstatus.serror(C_ASERR_S_DIAG_BIT);--: integer:=23;--//if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
+i_dbgcs_trig00(25)<=i_ipf_bit_det;--tst_sync;--p_in_alstatus.serror(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
 
 
 i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
@@ -168,22 +176,22 @@ i_dbgcs_data(27 downto 23)<=i_fsm_llayer(4 downto 0);
 i_dbgcs_data(32 downto 28)<=i_fsm_tlayer(4 downto 0);
 
 --//detect error
-i_dbgcs_data(33)<=p_in_alstatus.SError(C_ASERR_P_ERR_BIT) or
-                  p_in_alstatus.SError(C_ASERR_C_ERR_BIT) or
-                  p_in_alstatus.SError(C_ASERR_I_ERR_BIT) or
-                  p_in_alstatus.ATAStatus(C_ATA_STATUS_ERR_BIT);
+i_dbgcs_data(33)<=p_in_alstatus.serror(C_ASERR_P_ERR_BIT) or
+                  p_in_alstatus.serror(C_ASERR_C_ERR_BIT) or
+                  p_in_alstatus.serror(C_ASERR_I_ERR_BIT) or
+                  p_in_alstatus.atastatus(C_ATA_STATUS_ERR_BIT);
 
 
-i_dbgcs_data(34)<=p_in_alstatus.SError(C_ASERR_DET_M_BIT); --: integer:=27;--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_dbgcs_data(35)<=p_in_alstatus.SError(C_ASERR_DET_L_BIT); --: integer:=26;--//C_PSTAT_DET_DEV_ON_BIT
+i_dbgcs_data(34)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+i_dbgcs_data(35)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
 
-i_dbgcs_data(36)<=p_in_alstatus.SError(C_ASERR_F_DIAG_BIT);--: integer:=25;--//Transport Layer:  CRC-OK, but FISTYPE/FISLEN ERROR
-i_dbgcs_data(37)<=p_in_alstatus.SError(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
-i_dbgcs_data(38)<=p_in_alstatus.SError(C_ASERR_S_DIAG_BIT);--: integer:=23;--//if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
-i_dbgcs_data(39)<=p_in_alstatus.SError(C_ASERR_H_DIAG_BIT);--: integer:=22;--//Link Layer: --//1/0 - CRC ERROR on (send FIS/rcv FIS)
-i_dbgcs_data(40)<=p_in_alstatus.SError(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
-i_dbgcs_data(41)<=p_in_alstatus.SError(C_ASERR_D_DIAG_BIT);--: integer:=20;--//if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
-i_dbgcs_data(42)<=p_in_alstatus.SError(C_ASERR_B_DIAG_BIT);--: integer:=19;--//if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+i_dbgcs_data(36)<=p_in_alstatus.serror(C_ASERR_F_DIAG_BIT);--: integer:=25;--//Transport Layer:  CRC-OK, but FISTYPE/FISLEN ERROR
+i_dbgcs_data(37)<=p_in_alstatus.serror(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
+i_dbgcs_data(38)<=p_in_alstatus.serror(C_ASERR_S_DIAG_BIT);--: integer:=23;--//if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
+i_dbgcs_data(39)<=p_in_alstatus.serror(C_ASERR_H_DIAG_BIT);--: integer:=22;--//Link Layer: --//1/0 - CRC ERROR on (send FIS/rcv FIS)
+i_dbgcs_data(40)<=p_in_alstatus.serror(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
+i_dbgcs_data(41)<=p_in_alstatus.serror(C_ASERR_D_DIAG_BIT);--: integer:=20;--//if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
+i_dbgcs_data(42)<=p_in_alstatus.serror(C_ASERR_B_DIAG_BIT);--: integer:=19;--//if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
 
 i_dbgcs_data(43)<=p_in_dbg.player.tx.txalign;
 i_dbgcs_data(44)<=p_in_phy_txreq(0);
@@ -204,7 +212,7 @@ i_dbgcs_data(116)<='0';
 i_dbgcs_data(117)<='0';
 i_dbgcs_data(118)<=p_in_gt_txcharisk(0);
 i_dbgcs_data(119)<=p_in_gt_txcharisk(1);
-i_dbgcs_data(120)<=p_in_dbg.tlayer.other_status.irq;
+i_dbgcs_data(120)<=p_in_alstatus.ipf;--p_in_dbg.tlayer.other_status.irq;
 i_dbgcs_data(121)<=p_in_dbg.tlayer.other_status.firq_bit;
 i_dbgcs_data(122)<=p_in_alstatus.Usr(C_AUSER_BUSY_BIT);
 
