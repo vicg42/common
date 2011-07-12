@@ -1,4 +1,4 @@
-source projnav.tcl
+source "../../common/script/projnav.tcl"
 #file mkdir "../ise/prj
 cd ../ise/prj
 
@@ -81,7 +81,11 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../ml505_hdd_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
+      [ list "../ml505_hddsimple_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../hdd_simple_main.vhd" $_VHDMod ] \
       [ list "../../ucf/hdd_simple_main.ucf" "hdd_simple_main" ] \
     ] \
