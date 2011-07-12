@@ -1,5 +1,5 @@
 #ChipScope Pro Analyzer Project File, Version 3.0
-#Fri Jun 17 19:20:03 MSD 2011
+#Mon Jul 11 12:52:30 MSD 2011
 deviceChain.deviceName0=XCF32P
 deviceChain.deviceName1=XCF32P
 deviceChain.deviceName2=XC9500XL
@@ -30,8 +30,8 @@ mdiUnit1=0
 mdiUnit2=1
 navigatorHeight=0.15846456692913385
 navigatorHeightLast=0.17913385826771652
-navigatorWidth=0.12805241215008933
-navigatorWidthLast=0.12805241215008933
+navigatorWidth=0.12760882528324388
+navigatorWidthLast=0.12760882528324388
 signalDisplayPath=0
 unit.-1.-1.username=
 unit.4.-1.coretype=SYSTEM MONITOR
@@ -43,8 +43,8 @@ unit.4.0.0.HEIGHT0=0.757764
 unit.4.0.0.TriggerRow0=1
 unit.4.0.0.TriggerRow1=1
 unit.4.0.0.TriggerRow2=1
-unit.4.0.0.WIDTH0=0.92451525
-unit.4.0.0.X0=6.9252076E-4
+unit.4.0.0.WIDTH0=0.9244629
+unit.4.0.0.X0=6.930007E-4
 unit.4.0.0.Y0=0.0
 unit.4.0.1.HEIGHT1=0.7068323
 unit.4.0.1.WIDTH1=1.0
@@ -74,7 +74,7 @@ unit.4.0.TCOutputEnable0=0
 unit.4.0.TCOutputHigh0=1
 unit.4.0.TCOutputMode0=0
 unit.4.0.browser_tree_state<DP[43]-satah/ch0/m_tlayer/fsm>=0
-unit.4.0.browser_tree_state<Data\ Port>=1
+unit.4.0.browser_tree_state<Data\ Port>=0
 unit.4.0.browser_tree_state<Trigger\ Ports>=1
 unit.4.0.browser_tree_state<TriggerPort0>=1
 unit.4.0.browser_tree_state<satah/ch0/err_type>=0
@@ -812,7 +812,7 @@ unit.4.0.port.-1.s.12.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.-1.s.12.name=DataPort[12]
 unit.4.0.port.-1.s.12.orderindex=-1
 unit.4.0.port.-1.s.12.visible=1
-unit.4.0.port.-1.s.120.alias=DP[120]-satah/ch0/m_tlayer/i_irq
+unit.4.0.port.-1.s.120.alias=DP[120]-satah/ch0/m_alayer/i_ata_ipf_bit
 unit.4.0.port.-1.s.120.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.-1.s.120.name=DataPort[120]
 unit.4.0.port.-1.s.120.orderindex=-1
@@ -1422,7 +1422,7 @@ unit.4.0.port.0.s.24.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.0.s.24.name=TriggerPort0[24]
 unit.4.0.port.0.s.24.orderindex=-1
 unit.4.0.port.0.s.24.visible=1
-unit.4.0.port.0.s.25.alias=TP[25]-llayer Rx(Tx)CRC ERROR
+unit.4.0.port.0.s.25.alias=TP[25]-satah/ch0/alayer/i_ata_ipf_bit
 unit.4.0.port.0.s.25.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.0.s.25.name=TriggerPort0[25]
 unit.4.0.port.0.s.25.orderindex=-1
@@ -1657,7 +1657,7 @@ unit.4.0.waveform.posn.26.channel=117
 unit.4.0.waveform.posn.26.name=DP[117]-satah/i_gt_txreset(0)
 unit.4.0.waveform.posn.26.type=signal
 unit.4.0.waveform.posn.27.channel=120
-unit.4.0.waveform.posn.27.name=DP[120]-satah/ch0/m_tlayer/i_irq
+unit.4.0.waveform.posn.27.name=DP[120]-satah/ch0/m_alayer/i_ata_ipf_bit
 unit.4.0.waveform.posn.27.type=signal
 unit.4.0.waveform.posn.28.channel=121
 unit.4.0.waveform.posn.28.name=DP[121]-satah/ch0/m_tlayer/i_firq_bit
@@ -1912,7 +1912,7 @@ unit.4.1.0.X0=0.028393352
 unit.4.1.0.Y0=0.0
 unit.4.1.1.HEIGHT1=0.44596273
 unit.4.1.1.WIDTH1=1.0
-unit.4.1.1.X1=-6.9252076E-4
+unit.4.1.1.X1=-6.930007E-4
 unit.4.1.1.Y1=0.5515528
 unit.4.1.MFBitsA0=XXX1XXXXXXXX
 unit.4.1.MFBitsB0=000000000000
