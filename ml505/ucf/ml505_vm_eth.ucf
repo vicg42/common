@@ -1,0 +1,1575 @@
+###########################################
+#UCF файл для Отладочной платы ML505 (Virtex5)
+#FPGA: XC5VLX50T-1FFG1136
+###########################################
+###############################################################################
+# Define Device, Package And Speed Grade
+###############################################################################
+CONFIG PART = XC5VLX50T-FF1136-1;
+
+##########################################################
+#                                                        #
+#   Set stepping level to ES, so that bitstream is       #
+#   compatible with devices of all steppings.            #
+#                                                        #
+##########################################################
+CONFIG STEPPING = ES;
+
+
+
+####################################################################
+###############       Global        ################################
+####################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+NET "pin_in_gt_X0Y6_clk_p" LOC = "P4";##"GTP_DUAL_X0Y3";
+NET "pin_in_gt_X0Y6_clk_n" LOC = "P3";
+
+#Светодиоды
+NET pin_out_led<0>        LOC="H18";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<1>        LOC="L18";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<2>        LOC="G15";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<3>        LOC="AD26" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_3     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET pin_out_led<4>        LOC="G16";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<5>        LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET pin_out_led<6>        LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET pin_out_led<7>        LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET pin_out_led_C         LOC="E8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_C     # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_out_led_E         LOC="AG23" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_E     # Bank 2, Vcco=3.3V
+NET pin_out_led_N         LOC="AF13" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_N     # Bank 2, Vcco=3.3V
+NET pin_out_led_S         LOC="AG12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_S     # Bank 2, Vcco=3.3V
+NET pin_out_led_W         LOC="AF23" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_W     # Bank 2, Vcco=3.3V
+
+##Тестовые точки
+NET pin_out_TP<0>         LOC="H33"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_2   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<1>         LOC="H34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<2>         LOC="G32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<3>         LOC="H32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_12  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<4>         LOC="J34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<5>         LOC="M32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<6>         LOC="N34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
+
+
+#######################################################################
+###############       Local Bus        ################################
+#######################################################################
+#33MHz
+NET "lclk"              LOC="AG18";# | IOSTANDARD=LVCMOS25; #;#Сигнал на схеме:CLK_33MHZ_FPGA
+
+#200MHz
+NET "refclk_n"          LOC="K19";#Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "refclk_p"          LOC="L19";#Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+
+NET  lad<8>           LOC="AH13";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<9>           LOC="AH14";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<10>          LOC="AH19";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D10       LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<11>          LOC="AH20";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D11       LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<12>          LOC="AG13";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D12       LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<13>          LOC="AH12";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D13       LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<14>          LOC="AH22";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D14       LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<15>          LOC="AG22";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D15       LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
+
+NET  lbe_l<0>         LOC="D10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW0             LOC="D10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lbe_l<1>         LOC="D11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW1             LOC="D11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lbe_l<2>         LOC="J11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW2             LOC="J11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lbe_l<3>         LOC="K11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW3             LOC="K11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<16>          LOC="N10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D16             LOC="N10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<17>          LOC="E13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D17             LOC="E13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<18>          LOC="E12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D18             LOC="E12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<19>          LOC="L9"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D19             LOC="L9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<20>          LOC="M10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D20             LOC="M10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<21>          LOC="E11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D21             LOC="E11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<22>          LOC="F11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D22             LOC="F11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<23>          LOC="L8"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D23             LOC="L8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<24>          LOC="M8"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D24             LOC="M8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<25>          LOC="G12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D25             LOC="G12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<26>          LOC="G11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D26             LOC="G11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<27>          LOC="C13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D27             LOC="C13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<28>          LOC="B13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D28             LOC="B13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<29>          LOC="K9"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D29             LOC="K9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<30>          LOC="K8"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D30             LOC="K8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lad<31>          LOC="J9"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D31             LOC="J9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  lblast_l         LOC="K12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A0        LOC="K12";   # Bank 1, Vcco=3.3V
+NET  lready_l         LOC="K13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A1        LOC="K13";   # Bank 1, Vcco=3.3V
+NET  lwrite           LOC="H23" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A2        LOC="H23";   # Bank 1, Vcco=3.3V
+NET  lads_l           LOC="G23" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A3        LOC="G23";   # Bank 1, Vcco=3.3V
+NET  lbterm_l         LOC="H12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A4        LOC="H12";   # Bank 1, Vcco=3.3V
+NET  fholda           LOC="J12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A5        LOC="J12";   # Bank 1, Vcco=3.3V
+NET  finto_l          LOC="K22" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A6        LOC="K22";   # Bank 1, Vcco=3.3V
+NET  lad<0>           LOC="AD19" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D0        LOC="AD19";  # Bank 2, Vcco=3.3V
+NET  lad<1>           LOC="AE19" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D1        LOC="AE19";  # Bank 2, Vcco=3.3V
+NET  lad<2>           LOC="AE17" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D2        LOC="AE17";  # Bank 2, Vcco=3.3V
+NET  lad<3>           LOC="AF16" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D3        LOC="AF16";  # Bank 2, Vcco=3.3V
+NET  lad<4>           LOC="AD20" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D4        LOC="AD20";  # Bank 2, Vcco=3.3V
+NET  lad<5>           LOC="AE21" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D5        LOC="AE21";  # Bank 2, Vcco=3.3V
+NET  lad<6>           LOC="AE16" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D6        LOC="AE16";  # Bank 2, Vcco=3.3V
+NET  lad<7>           LOC="AF15" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D7        LOC="AF15";  # Bank 2, Vcco=3.3V
+##NET  lreset_l         LOC="AC24" | IOSTANDARD=SSTL18_II;#(ML505)#GPIO_DIP_SW8 Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET  lreset_l         LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+
+
+##   DDR-II SDRAM Bank 0
+#### Изменил пины DDR-II SDRAM Bank 0 на нужные для платы ML505
+NET "ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<14>"             LOC="AH32" | IOSTANDARD=LVCMOS33;  #NET  HDR1_42              LOC="AH32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+NET "ra0<15>"             LOC="AK34" | IOSTANDARD=LVCMOS33;  #NET  HDR1_44              LOC="AK34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+NET "ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<*>"         IOSTANDARD = "SSTL18_I";
+
+#DATA
+NET "rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<*>"         IOSTANDARD = "SSTL18_II";
+
+
+NET "rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_ddr2_cke1"   LOC="U30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE1            LOC="U30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_ddr2_cs1"    LOC="J29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS1_B           LOC="J29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM4             LOC="V25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM5             LOC="P24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS4_N          LOC="Y29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS4_P          LOC="Y28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS5_N          LOC="E27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS5_P          LOC="E26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS6_N          LOC="G28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS6_P          LOC="H28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS7_N          LOC="H27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS7_P          LOC="G27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_ddr2_odt1"   LOC="F30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT1            LOC="F30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_SCL             LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_SDA             LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+#--------------------------------------------------------------------------
+#Расположение компонентов в кристале
+#--------------------------------------------------------------------------
+INST "m_gt_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y3";
+
+#--------------------------------------------------------------------------
+#Временные ограничения
+#--------------------------------------------------------------------------
+NET "g_refclk200MHz" PERIOD = 5.0ns HIGH 50%;
+
+
+NET "g_host_clk" TNM = "FFS:HOSTCLK_FFS";
+NET "g_host_clk" TNM = "RAMS:HOSTCLK_RAMS";
+
+# Internal timing, tclk'
+
+TIMEGRP "LCLK_PAD"       = pads(lclk);
+TIMEGRP "LAD_PADS"       = pads(lad<*>);
+TIMEGRP "LADS_PAD"       = pads(lads_l);
+TIMEGRP "LBE_PADS"       = pads(lbe_l<*>);
+TIMEGRP "LBLAST_PAD"     = pads(lblast_l);
+TIMEGRP "LBTERM_PAD"     = pads(lbterm_l);
+TIMEGRP "LREADY_PAD"     = pads(lready_l);
+TIMEGRP "LWRITE_PAD"     = pads(lwrite);
+TIMEGRP "FHOLDA_PAD"     = pads(fholda);
+
+TIMEGRP "LBUS_PADS"      = "LAD_PADS":
+                           "LADS_PAD":
+                           "LBE_PADS":
+                           "LBLAST_PAD":
+                           "LBTERM_PAD":
+                           "LREADY_PAD":
+                           "LWRITE_PAD":
+                           "FHOLDA_PAD";
+
+# Internal timing, tclk'
+NET "lclk" PERIOD = 14.0ns HIGH 50%;
+
+# FPGA clock-to-output, tco(FPGA)
+TIMEGRP "LBUS_PADS" OFFSET = OUT 9.8ns AFTER  "lclk";
+
+# FPGA setup, tsu(FPGA)
+#TIMEGRP "LBUS_PADS" OFFSET = IN 6.8ns BEFORE "lclk";
+TIMEGRP "LBUS_PADS" OFFSET = IN 6.3ns BEFORE "lclk";
+
+##########################################################
+#                                                        #
+# Timing specifications for memory clock domain          #
+# (all delays in nanoseconds)                            #
+#                                                        #
+# Assumptions:                                           #
+#                                                        #
+#   - Target freq. for this design = 333.33MHz.          #
+#                                                        #
+#     => tmclk = 3.0ns                                   #
+#                                                        #
+#   - Safety margin for timing = 0.25ns                  #
+#     => tmargin = 0.25ns                                #
+#                                                        #
+# Derivation of TIMESPECs:                               #
+#                                                        #
+#   => tmclk' = tmclk - tmargin                          #
+#      tmclk' = 3.0 - 0.25 = 2.75ns                      #
+#                                                        #
+##########################################################
+PIN "m_pll_mem_ctrl/pll_0.CLKOUT0" TNM = "FFS:MEMCLK2X90_FFS";
+PIN "m_pll_mem_ctrl/pll_0.CLKOUT1" TNM = "FFS:MEMCLK45_FFS";
+PIN "m_pll_mem_ctrl/pll_0.CLKOUT2" TNM = "FFS:MEMCLK2X0_FFS";
+PIN "m_pll_mem_ctrl/pll_0.CLKOUT3" TNM = "FFS:MEMCLK0_FFS";
+PIN "m_pll_mem_ctrl/pll_0.CLKOUT3" TNM = "RAMS:MEMCLK0_RAMS";
+
+TIMEGRP "MEMCLK_FFS"     = "MEMCLK0_FFS":
+                           "MEMCLK45_FFS":
+                           "MEMCLK2X0_FFS":
+                           "MEMCLK2X90_FFS";
+
+TIMEGRP "RA0_PADS"       = pads(ra0<*>);
+TIMEGRP "RC0_PADS"       = pads(rc0<*>);
+TIMEGRP "RD0_PADS"       = pads(rd0<*>);
+#
+#TIMEGRP "RA1_PADS"       = pads(ra1<*>);
+#TIMEGRP "RC1_PADS"       = pads(rc1<*>);
+#TIMEGRP "RD1_PADS"       = pads(rd1<*>);
+#
+#TIMEGRP "RA2_PADS"       = pads(ra2<*>);
+#TIMEGRP "RC2_PADS"       = pads(rc2<*>);
+#TIMEGRP "RD2_PADS"       = pads(rd2<*>);
+
+# Group together ZBT SRAM pads
+TIMEGRP "MEM_PADS"       = "RA0_PADS":
+                           "RC0_PADS":
+                           "RD0_PADS";
+#                           "RA1_PADS":
+#                           "RC1_PADS":
+#                           "RD1_PADS":
+#                           "RA2_PADS":
+#                           "RC2_PADS":
+#                           "RD2_PADS";
+# Clock-to-out for memory pads
+TIMESPEC "TS_FFS_MEM_PADS" = FROM "MEMCLK_FFS" TO "MEM_PADS" 3.5 ns;
+
+# Cross-clock-domain timing
+# This should be somewhat less than one clock cycle of the memory clock domain
+# (6.0 ns in this case).
+TIMESPEC "TS_M_FFS_TO_H_FFS"   = FROM "MEMCLK0_FFS"  TO "HOSTCLK_FFS"     4.0ns DATAPATHONLY;
+TIMESPEC "TS_M_FFS_TO_H_RAMS"  = FROM "MEMCLK0_FFS"  TO "HOSTCLK_RAMS"    4.0ns DATAPATHONLY;
+TIMESPEC "TS_M_RAMS_TO_H_FFS"  = FROM "MEMCLK0_RAMS" TO "HOSTCLK_FFS"     4.0ns DATAPATHONLY;
+#TIMESPEC "TS_M_RAMS_TO_H_RAMS" = FROM "MEMCLK0_RAMS" TO "HOSTCLK_RAMS"    4.0ns DATAPATHONLY;
+TIMESPEC "TS_H_FFS_TO_M_FFS"   = FROM "HOSTCLK_FFS"     TO "MEMCLK0_FFS"  4.0ns DATAPATHONLY;
+TIMESPEC "TS_H_FFS_TO_M_RAMS"  = FROM "HOSTCLK_FFS"     TO "MEMCLK0_RAMS" 4.0ns DATAPATHONLY;
+TIMESPEC "TS_H_RAMS_TO_M_FFS"  = FROM "HOSTCLK_RAMS"    TO "MEMCLK0_FFS"  4.0ns DATAPATHONLY;
+#TIMESPEC "TS_H_RAMS_TO_M_RAMS" = FROM "HOSTCLK_RAMS"    TO "MEMCLK0_RAMS" 4.0ns DATAPATHONLY;
+
+
+##NET "g_memctrl_dcm_clkout" TNM_NET = "MEMCLK_MODULES";
+##TIMESPEC "TS_MEMCLK_MODULES" = PERIOD "MEMCLK_MODULES" 300.00 MHz HIGH 50 %;
+#
+#NET "g_memctrl_dcm_clkout" TNM="FFS:MEMCLK_MODULES_FFS";
+#NET "g_memctrl_dcm_clkout" TNM="RAMS:MEMCLK_MODULES_RAMS";
+#TIMEGRP "TS_MEMCLK_MODULES_FFS" = "MEMCLK_MODULES_FFS";
+#TIMEGRP "TS_MEMCLK_MODULES_RAMS" = "MEMCLK_MODULES_RAMS";
+#
+#TIMESPEC "TS_MM_FFS_TO_H_FFS"  = FROM "MEMCLK_MODULES_FFS"  TO "HOSTCLK_FFS"   4.0ns DATAPATHONLY;
+##TIMESPEC "TS_MM_RAMS_TO_H_FFS" = FROM "MEMCLK_MODULES_RAMS" TO "HOSTCLK_FFS"   4.0ns DATAPATHONLY;
+##TIMESPEC "TS_MM_FFS_TO_H_RAMS" = FROM "MEMCLK_MODULES_FFS"  TO "HOSTCLK_RAMS"  4.0ns DATAPATHONLY;
+#TIMESPEC "TS_H_FFS_TO_MM_FFS"  = FROM "HOSTCLK_FFS"   TO "MEMCLK_MODULES_FFS"  4.0ns DATAPATHONLY;
+#TIMESPEC "TS_H_FFS_TO_MM_RAMS" = FROM "HOSTCLK_FFS"   TO "MEMCLK_MODULES_RAMS" 4.0ns DATAPATHONLY;
+##TIMESPEC "TS_H_RAMS_TO_MM_FFS" = FROM "HOSTCLK_RAMS"  TO "MEMCLK_MODULES_FFS"  4.0ns DATAPATHONLY;
+
+
+##
+## Certain nets in originating in the LCLK domain that are fed into the
+## memory clock domain are not timing-critical. It helps the design as a
+## whole to meet timing if such nets are flagged with the TIG constraint
+## (timing ignore).
+##
+#NET "m_mem_ctrl/mode_reg*" TIG = "TS_M_FFS_TO_H_FFS", "TS_M_FFS_TO_H_RAMS",
+#                                 "TS_M_RAMS_TO_H_FFS", "TS_M_RAMS_TO_H_RAMS",
+#                                 "TS_H_FFS_TO_M_FFS", "TS_H_FFS_TO_M_RAMS",
+#                                 "TS_H_RAMS_TO_M_FFS", "TS_H_RAMS_TO_M_RAMS";
+
+#############################################################################
+###############       Проект Ethernet        ################################
+#############################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+NET "pin_out_sfp_tx_dis" LOC = "K24" | IOSTANDARD=SSTL18_II; #;##//SFP - TX DISABLE
+
+NET "pin_in_sfp_sd"      LOC = "E7";##//SFP - SD signal detect #NET  CPU_TDO              LOC="E7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+
+NET "pin_in_eth_clk_p" LOC = "H4";##"GTP_DUAL_X0Y4";
+NET "pin_in_eth_clk_n" LOC = "H3";
+
+#--------------------------------------------------------------------------
+#Расположение компонентов в кристале
+#--------------------------------------------------------------------------
+###НЕ ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="OFF";)
+#INST "m_ethg/LB_MOD_USE_OFF.m_gtp_dual_clk/gtp_dual_i"  LOC = "GTP_DUAL_X0Y4";
+
+###ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="ON";)
+INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y4";
+
+#--------------------------------------------------------------------------
+#Временные ограничения
+#--------------------------------------------------------------------------
+# EMAC0 Clocking
+# 125MHz clock input from BUFG
+NET "m_ethg/gen_use_on.m_eth_main/m_emac_core_main/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
+TIMEGRP  "emac_core_gtp_clk"            = "mac0_clk_gtp";
+TIMESPEC "TS_emac_core_gtp_clk"         = PERIOD "emac_core_gtp_clk" 7700 ps HIGH 50 %;
+
+# EMAC0 LocalLink client FIFO constraints.
+INST "*client_side_FIFO_emac0?tx_fifo_i?rd_tran_frame_tog"    TNM = "tx_fifo_rd_to_wr_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?rd_retran_frame_tog"  TNM = "tx_fifo_rd_to_wr_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?rd_col_window_pipe_1" TNM = "tx_fifo_rd_to_wr_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?rd_addr_txfer*"       TNM = "tx_fifo_rd_to_wr_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?rd_txfer_tog"         TNM = "tx_fifo_rd_to_wr_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_frame_in_fifo"     TNM = "tx_fifo_wr_to_rd_0";
+
+TIMESPEC "TS_tx_fifo_rd_to_wr_0" = FROM "tx_fifo_rd_to_wr_0" TO "emac_core_gtp_clk" 8000 ps DATAPATHONLY;
+TIMESPEC "TS_tx_fifo_wr_to_rd_0" = FROM "tx_fifo_wr_to_rd_0" TO "emac_core_gtp_clk" 8000 ps DATAPATHONLY;
+
+# Reduce clock period to allow 3 ns for metastability settling time
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_tran_frame_tog"    TNM = "tx_metastable_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_rd_addr*"          TNM = "tx_metastable_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_txfer_tog"         TNM = "tx_metastable_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?frame_in_fifo"        TNM = "tx_metastable_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_retran_frame_tog*" TNM = "tx_metastable_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_col_window_pipe_0" TNM = "tx_metastable_0";
+
+TIMESPEC "ts_tx_meta_protect_0" = FROM "tx_metastable_0" 5 ns DATAPATHONLY;
+
+INST "*client_side_FIFO_emac0?tx_fifo_i?rd_addr_txfer*"       TNM = "tx_addr_rd_0";
+INST "*client_side_FIFO_emac0?tx_fifo_i?wr_rd_addr*"          TNM = "tx_addr_wr_0";
+
+TIMESPEC "TS_tx_fifo_addr_0" = FROM "tx_addr_rd_0" TO "tx_addr_wr_0" 10ns;
+
+## RX Client FIFO
+# Group the clock crossing signals into timing groups
+INST "*client_side_FIFO_emac0?rx_fifo_i?wr_store_frame_tog"   TNM = "rx_fifo_wr_to_rd_0";
+INST "*client_side_FIFO_emac0?rx_fifo_i?rd_addr_gray*"        TNM = "rx_fifo_rd_to_wr_0";
+
+TIMESPEC "TS_rx_fifo_wr_to_rd_0" = FROM "rx_fifo_wr_to_rd_0" TO "emac_core_gtp_clk" 8000 ps DATAPATHONLY;
+TIMESPEC "TS_rx_fifo_rd_to_wr_0" = FROM "rx_fifo_rd_to_wr_0" TO "emac_core_gtp_clk" 8000 ps DATAPATHONLY;
+
+# Reduce clock period to allow for metastability settling time
+INST "*client_side_FIFO_emac0?rx_fifo_i?wr_rd_addr_gray_sync*" TNM = "rx_metastable_0";
+INST "*client_side_FIFO_emac0?rx_fifo_i?rd_store_frame_tog"    TNM = "rx_metastable_0";
+
+TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
+
+#############################################################################
+###############       Проект PCI-Express     ################################
+#############################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+NET  "pin_in_pciexp_clk_p"        LOC="AF4"  ;
+NET  "pin_in_pciexp_clk_n"        LOC="AF3"  ;
+INST "ibuf_pciexp_gt_refclk"     DIFF_TERM = "TRUE" ;
+
+#--------------------------------------------------------------------------
+#Расположение компонентов в кристале
+#--------------------------------------------------------------------------
+INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 2, 3
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 4, 5
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y4;# PCIe Lanes 6, 7
+## BlockRAM placement
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y9;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y8;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X1Y7;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[0].ram_tdp2_inst" LOC = RAMB36_X1Y6;
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_retry/generate_sdp.ram_sdp_inst"      LOC = RAMB36_X1Y5;
+#
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/ll_bridge/tx_bridge/tx_bridge/shift_pipe1"                 LOC = "SLICE_X59Y36";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/ll_bridge/rx_bridge/arb_inst/completion_available"         LOC = "SLICE_X58Y26";
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk_if/cf_bridge/management_interface/mgmt_rdata_d1_3"            LOC = "SLICE_X59Y25";
+
+#--------------------------------------------------------------------------
+#Временные ограничения
+#--------------------------------------------------------------------------
+NET "i_pciexp_gt_refclk" PERIOD = 10ns;
+
+NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
+#NET "m_host/m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out[0]" TNM_NET = "MGTCLK";## if PCIe Lanes > 1
+TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
+
+NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
+
+#############################################################################
+###############       Проект SATA       #####################################
+#############################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
+NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
+INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
+
+##SATA1 - Разъем J40
+##SATA2 - Разъем J41
+#--------------------------------------------------------------------------
+#Расположение компоненов в кристале
+#--------------------------------------------------------------------------
+#INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
+
+#НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
+INST "m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y2;
+
+##ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
+#INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y2;
+
+
+###--------------------------------------------------------------------------
+###Временные ограничения
+###--------------------------------------------------------------------------
+#NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
+#NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
+#NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;
+#
+###SATA_CH0,1
+#TIMEGRP SATA0_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/*);
+#TIMESPEC "TS_SATA0_PHY_FFS2MGT" = FROM SATA0_PHY_FFS  TO HSIOS           6.666ns;
+#TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns;
+#
+####SATA_CH2,3
+##TIMEGRP SATA1_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/*);
+##TIMESPEC "TS_SATA1_PHY_FFS2MGT" = FROM SATA1_PHY_FFS  TO HSIOS           6.666ns;
+##TIMESPEC "TS_MGT2SATA1_PHY_FFS" = FROM HSIOS          TO SATA1_PHY_FFS   6.666ns;
+#
+#
+####INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
+####AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
+
+
+
+
+
+
+
+
+
+
+
+#--------------------------------------------------------------------------
+#Пины
+#--------------------------------------------------------------------------
+#частоты
+#NET pin_in_100MHz_clk      LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK        # Bank 4, Vcco=3.3V, No DCI
+
+
+##-- Для пробы ---------------------------------------------------
+#NET pin_in_sata_rxn<2>    LOC="AF1" ; #MGTRXN0_114, GTP_DUAL_X0Y1
+#NET pin_in_sata_rxp<2>    LOC="AE1" ; #MGTRXP0_114, GTP_DUAL_X0Y1
+#NET pin_out_sata_txn<2>   LOC="AE2" ; #MGTTXN0_114, GTP_DUAL_X0Y1
+#NET pin_out_sata_txp<2>   LOC="AD2" ; #MGTTXP0_114, GTP_DUAL_X0Y1
+#
+#NET pin_in_sata_rxn<3>    LOC="AG1"; #MGTRXN1_114, GTP_DUAL_X0Y1
+#NET pin_in_sata_rxp<3>    LOC="AH1"; #MGTRXP1_114, GTP_DUAL_X0Y1
+#NET pin_out_sata_txn<3>   LOC="AH2"; #MGTTXN1_114, GTP_DUAL_X0Y1
+#NET pin_out_sata_txp<3>   LOC="AJ2"; #MGTTXP1_114, GTP_DUAL_X0Y1
+#
+#NET pin_in_sata_rxn<4>    LOC="P1" ; #MGTRXN0_114, GTP_DUAL_X0Y3
+#NET pin_in_sata_rxp<4>    LOC="N1" ; #MGTRXP0_114, GTP_DUAL_X0Y3
+#NET pin_out_sata_txn<4>   LOC="N2" ; #MGTTXN0_114, GTP_DUAL_X0Y3
+#NET pin_out_sata_txp<4>   LOC="M2" ; #MGTTXP0_114, GTP_DUAL_X0Y3
+#
+#NET pin_in_sata_rxn<5>    LOC="R1"; #MGTRXN1_114, GTP_DUAL_X0Y3
+#NET pin_in_sata_rxp<5>    LOC="T1"; #MGTRXP1_114, GTP_DUAL_X0Y3
+#NET pin_out_sata_txn<5>   LOC="T2"; #MGTTXN1_114, GTP_DUAL_X0Y3
+#NET pin_out_sata_txp<5>   LOC="U2"; #MGTTXP1_114, GTP_DUAL_X0Y3
+##---------------------------------------------------------------
+
+##Светодиоды
+#NET pin_out_led<0>        LOC="H18";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
+#NET pin_out_led<1>        LOC="L18";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
+#NET pin_out_led<2>        LOC="G15";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
+#NET pin_out_led<3>        LOC="AD26" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_3     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET pin_out_led<4>        LOC="G16";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
+#NET pin_out_led<5>        LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET pin_out_led<6>        LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET pin_out_led<7>        LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET pin_out_led_C         LOC="E8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_C     # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_out_led_E         LOC="AG23" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_E     # Bank 2, Vcco=3.3V
+#NET pin_out_led_N         LOC="AF13" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_N     # Bank 2, Vcco=3.3V
+#NET pin_out_led_S         LOC="AG12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_S     # Bank 2, Vcco=3.3V
+#NET pin_out_led_W         LOC="AF23" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_LED_W     # Bank 2, Vcco=3.3V
+#
+#NET  lad<8>           LOC="AH13";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<9>           LOC="AH14";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<10>          LOC="AH19";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D10       LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<11>          LOC="AH20";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D11       LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<12>          LOC="AG13";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D12       LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<13>          LOC="AH12";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D13       LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<14>          LOC="AH22";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D14       LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
+#NET  lad<15>          LOC="AG22";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D15       LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
+#
+#NET  lbe_l<0>         LOC="D10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW0             LOC="D10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lbe_l<1>         LOC="D11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW1             LOC="D11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lbe_l<2>         LOC="J11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW2             LOC="J11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lbe_l<3>         LOC="K11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW3             LOC="K11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<16>          LOC="N10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D16             LOC="N10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<17>          LOC="E13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D17             LOC="E13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<18>          LOC="E12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D18             LOC="E12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<19>          LOC="L9"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D19             LOC="L9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<20>          LOC="M10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D20             LOC="M10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<21>          LOC="E11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D21             LOC="E11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<22>          LOC="F11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D22             LOC="F11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<23>          LOC="L8"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D23             LOC="L8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<24>          LOC="M8"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D24             LOC="M8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<25>          LOC="G12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D25             LOC="G12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<26>          LOC="G11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D26             LOC="G11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<27>          LOC="C13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D27             LOC="C13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<28>          LOC="B13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_D28             LOC="B13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<29>          LOC="K9"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D29             LOC="K9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<30>          LOC="K8"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D30             LOC="K8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lad<31>          LOC="J9"  | IOSTANDARD=LVCMOS33; #;    ##NET  SRAM_D31             LOC="J9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  lblast_l         LOC="K12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A0        LOC="K12";   # Bank 1, Vcco=3.3V
+#NET  lready_l         LOC="K13" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A1        LOC="K13";   # Bank 1, Vcco=3.3V
+#NET  lwrite           LOC="H23" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A2        LOC="H23";   # Bank 1, Vcco=3.3V
+#NET  lads_l           LOC="G23" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A3        LOC="G23";   # Bank 1, Vcco=3.3V
+#NET  lbterm_l         LOC="H12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A4        LOC="H12";   # Bank 1, Vcco=3.3V
+#NET  fholda           LOC="J12" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A5        LOC="J12";   # Bank 1, Vcco=3.3V
+#NET  finto_l          LOC="K22" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_FLASH_A6        LOC="K22";   # Bank 1, Vcco=3.3V
+#NET  lad<0>           LOC="AD19" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D0        LOC="AD19";  # Bank 2, Vcco=3.3V
+#NET  lad<1>           LOC="AE19" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D1        LOC="AE19";  # Bank 2, Vcco=3.3V
+#NET  lad<2>           LOC="AE17" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D2        LOC="AE17";  # Bank 2, Vcco=3.3V
+#NET  lad<3>           LOC="AF16" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D3        LOC="AF16";  # Bank 2, Vcco=3.3V
+#NET  lad<4>           LOC="AD20" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D4        LOC="AD20";  # Bank 2, Vcco=3.3V
+#NET  lad<5>           LOC="AE21" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D5        LOC="AE21";  # Bank 2, Vcco=3.3V
+#NET  lad<6>           LOC="AE16" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D6        LOC="AE16";  # Bank 2, Vcco=3.3V
+#NET  lad<7>           LOC="AF15" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D7        LOC="AF15";  # Bank 2, Vcco=3.3V
+#NET  lreset_l         LOC="AC24" | IOSTANDARD=SSTL18_II;#(ML505)#GPIO_DIP_SW8 Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#
+##
+###Кнопки
+##NET pin_in_btn_CPU_RST    LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_in_btn_C          LOC="AJ6"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_C         # Bank 18, Vcco=3.3V, No DCI
+NET pin_in_btn_E          LOC="AK7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_E         # Bank 18, Vcco=3.3V, No DCI
+NET pin_in_btn_N          LOC="U8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_N         # Bank 18, Vcco=3.3V, No DCI
+NET pin_in_btn_S          LOC="V8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_S         # Bank 18, Vcco=3.3V, No DCI
+NET pin_in_btn_W          LOC="AJ7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_W         # Bank 18, Vcco=3.3V, No DCI
+
+###Джойстик
+##NET pin_in_joystick_incA  LOC="AH30" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:FPGA_ROTARY_INCA  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET pin_in_joystick_incB  LOC="AG30" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:FPGA_ROTARY_INCB  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET pin_in_joystick_push  LOC="AH29" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:FPGA_ROTARY_PUSH  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#
+###Тестовые точки
+#NET pin_out_TP<0>         LOC="H33"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_2   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<1>         LOC="H34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<2>         LOC="G32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<3>         LOC="H32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_12  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<4>         LOC="J34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<5>         LOC="M32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<6>         LOC="N34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
+
+#NET pin_out_tst_clk100MHz       LOC="AN33" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_64   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_gtp_refclk_out  LOC="AN34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_62   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_dcm_clk0        LOC="AM32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_60   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_dcm_clk2x       LOC="AJ34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_58   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_spctrl_gtp_rst_out  LOC="AL34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_52   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_prmtv_align         LOC="AJ32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_48   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_prmtv_sync          LOC="AK33" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_46   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_tst_prmtv_sof           LOC="AG32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_40   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+
+
+##UART 0 (Подключен к PC)
+#NET pin_in_uart0_rx       LOC="AG15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_RX  # Bank 4, Vcco=3.3V, No DCI
+#NET pin_out_uart0_tx      LOC="AG20" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_TX  # Bank 4, Vcco=3.3V, No DCI
+#
+##GPIO
+#NET pin_io_gpio<0>        LOC="J32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_14  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<1>        LOC="J34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<2>        LOC="L33" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_18  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<3>        LOC="M32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<4>        LOC="P34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_22  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<5>        LOC="Y32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_32  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<6>        LOC="W32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_34  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_io_gpio<7>        LOC="AH34"| IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_36  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+
+#SPI
+#NET  SPI_CE_B             LOC="V9";    # Bank 18, Vcco=3.3V, No DCI
+#NET  FPGA_DIN             LOC="P15";   # Bank 0, Vcco=3.3V
+#NET  FLASH_OE_B           LOC="AF14";  # Bank 2, Vcco=3.3V
+#NET  FPGA_CCLK-R          LOC="N15";   # Bank 0, Vcco=3.3V
+
+##LCD
+#NET pin_out_lcd_data<4>   LOC="T9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_2LCD_FPGA_DB4  # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_out_lcd_data<5>   LOC="G7"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:LCD_FPGA_DB5        # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_out_lcd_data<6>   LOC="G6"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:LCD_FPGA_DB6        # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_out_lcd_data<7>   LOC="T11"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:LCD_FPGA_DB7        # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_out_lcd_en        LOC="AC9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:LCD_FPGA_E          # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_out_lcd_rst       LOC="J17"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:LCD_FPGA_RS         # Bank 3, Vcco=2.5V, No DCI
+#NET pin_out_lcd_rw        LOC="AC10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:LCD_FPGA_RW         # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+##UART 1
+#NET  pin_in_uart1_rx       LOC="G10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL2_RX  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  pin_out_uart1_tx      LOC="F10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL2_TX  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#
+##I2C (I2C EEPROM,FAN Controller, System clk generation, на разъем)
+#NET  pin_io_i2c_scl        LOC="F9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:IIC_SCL_MAIN   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  pin_io_i2c_sda        LOC="F8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:IIC_SDA_MAIN   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#
+###PS/2 - Клавиатура
+#NET pin_io_keyboard_clk   LOC="T26"  | IOSTANDARD=LVCMOS18; #Сигнал на схеме:KEYBOARD_CLK   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET pin_io_keyboard_dat   LOC="T25"  | IOSTANDARD=LVCMOS18; #Сигнал на схеме:KEYBOARD_DATA  # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#
+###PS/2 - Мышь
+#NET pin_io_mouse_clk      LOC="R27"  | IOSTANDARD=LVCMOS18; #Сигнал на схеме:MOUSE_CLK      # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET pin_io_mouse_dat      LOC="U26"  | IOSTANDARD=LVCMOS18; #Сигнал на схеме:MOUSE_DATA     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#
+##DDR
+##NET  DDR2_SCL                       LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_SDA                       LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_we                LOC="K29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_ras               LOC="H30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_cas               LOC="E31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_ce<0>             LOC="T28"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_ce<1>             LOC="U30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_cs<0>             LOC="L29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_cs<1>             LOC="J29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_clk_n<0>          LOC="AJ29" | IOSTANDARD=DIFF_SSTL18_II;# Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_clk_p<0>          LOC="AK29" | IOSTANDARD=DIFF_SSTL18_II;# Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_clk_n<1>          LOC="F28"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_clk_p<1>          LOC="E28"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_odt<0>            LOC="F31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_odt<1>            LOC="F30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<0>           LOC="L30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<1>           LOC="M30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<2>           LOC="N29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<3>           LOC="P29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<4>           LOC="K31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<5>           LOC="L31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<6>           LOC="P31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<7>           LOC="P30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<8>           LOC="M31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<9>           LOC="R28"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<10>          LOC="J31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_adrr<11>          LOC="R29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  finto_l           LOC="T31"  | IOSTANDARD=SSTL18_II;#pin_out_dram_adrr<12>     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  pin_out_dram_adrr<13>          LOC="H29"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_bank<0>           LOC="G31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_bank<1>           LOC="J30"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  pin_out_dram_bank<2>           LOC="R31"  | IOSTANDARD=SSTL18_II;     # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+
+#NET  pin_io_dram_dq<42>     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<43>             LOC="P26"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<44>             LOC="T24"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<45>             LOC="N25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<46>             LOC="P27"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<47>             LOC="N28"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<48>             LOC="M28"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<49>             LOC="L28"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<50>             LOC="F25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<51>             LOC="H25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<52>             LOC="K27"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<53>             LOC="K28"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<54>             LOC="H24"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<55>             LOC="G26"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<56>             LOC="G25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<57>             LOC="M26"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<58>             LOC="J24"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<59>             LOC="L26"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<60>             LOC="J27"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<61>             LOC="M25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<62>             LOC="L25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dq<63>             LOC="L24"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<0>             LOC="AJ31" | IOSTANDARD=SSTL18_II;     # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<1>             LOC="AE28" | IOSTANDARD=SSTL18_II;     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<2>             LOC="Y24"  | IOSTANDARD=SSTL18_II;     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<3>             LOC="Y31"  | IOSTANDARD=SSTL18_II;     # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<4>             LOC="V25"  | IOSTANDARD=SSTL18_II;     # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<5>             LOC="P24"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<6>             LOC="F26"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_out_dram_dm<7>             LOC="J25"  | IOSTANDARD=SSTL18_II;     # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<0>           LOC="AA30" | IOSTANDARD=DIFF_SSTL18_II;# Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<0>           LOC="AA29" | IOSTANDARD=DIFF_SSTL18_II;# Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<1>           LOC="AK27" | IOSTANDARD=DIFF_SSTL18_II;# Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<1>           LOC="AK28" | IOSTANDARD=DIFF_SSTL18_II;# Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<2>           LOC="AJ27" | IOSTANDARD=DIFF_SSTL18_II;# Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<2>           LOC="AK26" | IOSTANDARD=DIFF_SSTL18_II;# Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<3>           LOC="AA31" | IOSTANDARD=DIFF_SSTL18_II;# Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<3>           LOC="AB31" | IOSTANDARD=DIFF_SSTL18_II;# Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<4>           LOC="Y29"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<4>           LOC="Y28"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<5>           LOC="E27"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<5>           LOC="E26"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<6>           LOC="G28"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<6>           LOC="H28"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_n<7>           LOC="H27"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  pin_io_dram_dqs_p<7>           LOC="G27"  | IOSTANDARD=DIFF_SSTL18_II;# Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+
+
+
+#NET  SRAM_FLASH_WE_B      LOC="AF20";  # Bank 2, Vcco=3.3V
+#NET  SRAM_CLK             LOC="AG21";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_CLK             LOC="G8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_CS_B            LOC="J10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+
+
+############################################################
+###                                                        #
+###   DDR-II SDRAM Bank 0                                  #
+###                                                        #
+############################################################
+##### Изменил пины DDR-II SDRAM Bank 0 на нужные для платы ML505
+#NET "ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<14>"             LOC="AH32" | IOSTANDARD=LVCMOS33;  #NET  HDR1_42              LOC="AH32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET "ra0<15>"             LOC="AK34" | IOSTANDARD=LVCMOS33;  #NET  HDR1_44              LOC="AK34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET "ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET "ra0<*>"         IOSTANDARD = "SSTL18_I";
+#
+##DATA
+#NET "rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET "rd0<*>"         IOSTANDARD = "SSTL18_II";
+#
+#
+#NET "rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_ddr2_cke1"   LOC="U30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE1            LOC="U30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_ddr2_cs1"    LOC="J29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS1_B           LOC="J29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DM4             LOC="V25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DM5             LOC="P24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS4_N          LOC="Y29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS4_P          LOC="Y28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS5_N          LOC="E27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS5_P          LOC="E26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS6_N          LOC="G28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS6_P          LOC="H28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS7_N          LOC="H27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_DQS7_P          LOC="G27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_ddr2_odt1"   LOC="F30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT1            LOC="F30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_SCL             LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET  DDR2_SDA             LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+
+
+
+
+
+###########################################################
+##                                                        #
+##   DDR-II SDRAM Bank 1                                  #
+##                                                        #
+###########################################################
+#
+#NET "ra1<0>"         LOC = "K24";
+#NET "ra1<1>"         LOC = "L24";
+#NET "ra1<2>"         LOC = "L25";
+#NET "ra1<3>"         LOC = "L26";
+#NET "ra1<4>"         LOC = "J24";
+#NET "ra1<5>"         LOC = "J25";
+#NET "ra1<6>"         LOC = "M25";
+#NET "ra1<7>"         LOC = "M26";
+#NET "ra1<8>"         LOC = "N24";
+#NET "ra1<9>"         LOC = "P24";
+#NET "ra1<10>"        LOC = "P25";
+#NET "ra1<11>"        LOC = "N25";
+#NET "ra1<12>"        LOC = "E29";
+#NET "ra1<13>"        LOC = "L16";
+#NET "ra1<14>"        LOC = "J22";
+#NET "ra1<15>"        LOC = "K21";
+#NET "ra1<16>"        LOC = "F29";  # BA<0>
+#NET "ra1<17>"        LOC = "G30";  # BA<1>
+#NET "ra1<18>"        LOC = "F30";  # BA<2>
+#NET "ra1<*>"         IOSTANDARD = "SSTL18_I";
+#
+##DATA
+#NET "rd1<0>"         LOC = "J27";
+#NET "rd1<1>"         LOC = "G25";
+#NET "rd1<2>"         LOC = "G26";
+#NET "rd1<3>"         LOC = "H25";
+#NET "rd1<4>"         LOC = "H24";
+#NET "rd1<5>"         LOC = "F25";
+#NET "rd1<6>"         LOC = "F26";
+#NET "rd1<7>"         LOC = "G27";
+#NET "rd1<8>"         LOC = "E26";
+#NET "rd1<9>"         LOC = "E27";
+#NET "rd1<10>"        LOC = "K28";
+#NET "rd1<11>"        LOC = "L28";
+#NET "rd1<12>"        LOC = "K27";
+#NET "rd1<13>"        LOC = "M28";
+#NET "rd1<14>"        LOC = "N28";
+#NET "rd1<15>"        LOC = "P26";
+#NET "rd1<16>"        LOC = "L29";
+#NET "rd1<17>"        LOC = "H30";
+#NET "rd1<18>"        LOC = "G31";
+#NET "rd1<19>"        LOC = "J30";
+#NET "rd1<20>"        LOC = "J31";
+#NET "rd1<21>"        LOC = "L30";
+#NET "rd1<22>"        LOC = "M30";
+#NET "rd1<23>"        LOC = "N29";
+#NET "rd1<24>"        LOC = "M31";
+#NET "rd1<25>"        LOC = "N30";
+#NET "rd1<26>"        LOC = "T31";
+#NET "rd1<27>"        LOC = "R31";
+#NET "rd1<28>"        LOC = "U30";
+#NET "rd1<29>"        LOC = "T28";
+#NET "rd1<30>"        LOC = "T29";
+#NET "rd1<31>"        LOC = "U27";
+#NET "rd1<*>"         IOSTANDARD = "SSTL18_II";
+#
+#NET "rc1<0>"         LOC = "H27" | IOSTANDARD = "SSTL18_I";  # DM<0>
+#NET "rc1<1>"         LOC = "P27" | IOSTANDARD = "SSTL18_I";  # DM<1>
+#NET "rc1<2>"         LOC = "P29" | IOSTANDARD = "SSTL18_I";  # DM<2>
+#NET "rc1<3>"         LOC = "U28" | IOSTANDARD = "SSTL18_I";  # DM<3>
+#NET "rc1<4>"         LOC = "H28" | IOSTANDARD = "SSTL18_I";  # DQS<0>
+#NET "rc1<5>"         LOC = "E28" | IOSTANDARD = "SSTL18_I";  # DQS<1>
+#NET "rc1<6>"         LOC = "K31" | IOSTANDARD = "SSTL18_I";  # DQS<2>
+#NET "rc1<7>"         LOC = "P31" | IOSTANDARD = "SSTL18_I";  # DQS<3>
+#NET "rc1<8>"         LOC = "G28" | IOSTANDARD = "SSTL18_I";  # DQS#<0>
+#NET "rc1<9>"         LOC = "F28" | IOSTANDARD = "SSTL18_I";  # DQS#<1>
+#NET "rc1<10>"        LOC = "L31" | IOSTANDARD = "SSTL18_I";  # DQS#<2>
+#NET "rc1<11>"        LOC = "P30" | IOSTANDARD = "SSTL18_I";  # DQS#<3>
+#NET "rc1<12>"        LOC = "R24" | IOSTANDARD = "SSTL18_I";  # CK<0>
+#NET "rc1<13>"        LOC = "U25" | IOSTANDARD = "SSTL18_I";  # CK<1>
+#NET "rc1<14>"        LOC = "T24" | IOSTANDARD = "SSTL18_I";  # CK#<0>
+#NET "rc1<15>"        LOC = "T25" | IOSTANDARD = "SSTL18_I";  # CK#<1>
+#NET "rc1<16>"        LOC = "E31" | IOSTANDARD = "SSTL18_I";  # CKE
+#NET "rc1<17>"        LOC = "R27" | IOSTANDARD = "SSTL18_I";  # ODT
+#NET "rc1<18>"        LOC = "F31" | IOSTANDARD = "SSTL18_I";  # WE#
+#NET "rc1<19>"        LOC = "H29" | IOSTANDARD = "SSTL18_I";  # CAS#
+#NET "rc1<20>"        LOC = "J29" | IOSTANDARD = "SSTL18_I";  # RAS#
+#NET "rc1<21>"        LOC = "R26" | IOSTANDARD = "SSTL18_I";  # CS#
+#
+###########################################################
+##                                                        #
+##   DDR-II SSRAM Bank 2                                  #
+##                                                        #
+###########################################################
+#
+#NET "ra2<0>"         LOC = "AH23";
+#NET "ra2<1>"         LOC = "AJ22";
+#NET "ra2<2>"         LOC = "AL13";
+#NET "ra2<3>"         LOC = "AK13";
+#NET "ra2<4>"         LOC = "AP16";
+#NET "ra2<5>"         LOC = "AP17";
+#NET "ra2<6>"         LOC = "AN15";
+#NET "ra2<7>"         LOC = "AP15";
+#NET "ra2<8>"         LOC = "AM17";
+#NET "ra2<9>"         LOC = "AN17";
+#NET "ra2<10>"        LOC = "AG22";
+#NET "ra2<11>"        LOC = "AH22";
+#NET "ra2<12>"        LOC = "AH12";
+#NET "ra2<13>"        LOC = "AG13";
+#NET "ra2<14>"        LOC = "AH20";
+#NET "ra2<15>"        LOC = "AH19";
+#NET "ra2<16>"        LOC = "AH14";
+#NET "ra2<17>"        LOC = "AH13";
+#NET "ra2<18>"        LOC = "AG21";
+#NET "ra2<19>"        LOC = "AH15";
+#NET "ra2<20>"        LOC = "AG15";
+#NET "ra2<21>"        LOC = "AG18";
+#NET "ra2<22>"        LOC = "AF19";
+#NET "ra2<23>"        LOC = "AF18";
+#NET "ra2<*>"         IOSTANDARD = "HSTL_I_DCI";
+#
+#NET "rd2<0>"         LOC = "AK24";
+#NET "rd2<1>"         LOC = "AJ14";
+#NET "rd2<2>"         LOC = "AK14";
+#NET "rd2<3>"         LOC = "AK23";
+#NET "rd2<4>"         LOC = "AK22";
+#NET "rd2<5>"         LOC = "AL15";
+#NET "rd2<6>"         LOC = "AL14";
+#NET "rd2<7>"         LOC = "AJ21";
+##NET "rdp2<0>"        LOC = "AJ20"; # Parity bit
+#NET "rd2<8>"         LOC = "AK16";
+#NET "rd2<9>"         LOC = "AL16";
+#NET "rd2<10>"        LOC = "AL21";
+#NET "rd2<11>"        LOC = "AK21";
+#NET "rd2<12>"        LOC = "AL19";
+#NET "rd2<13>"        LOC = "AL20";
+#NET "rd2<14>"        LOC = "AK18";
+#NET "rd2<15>"        LOC = "AJ19";
+##NET "rdp2<1>"        LOC = "AK19"; # Parity bit
+#NET "rd2<*>"         IOSTANDARD = "HSTL_II";
+#
+#NET "rc2<0>"         LOC = "AH24" | IOSTANDARD = "HSTL_I_DCI"; # BWE#<0>
+#NET "rc2<1>"         LOC = "AJ24" | IOSTANDARD = "HSTL_I_DCI"; # BWE#<0>
+#NET "rc2<2>"         LOC = "AK12" | IOSTANDARD = "HSTL_I_DCI"; # LD#
+#NET "rc2<3>"         LOC = "AJ12" | IOSTANDARD = "HSTL_I_DCI"; # RW#
+#NET "rc2<4>"         LOC = "AM15" | IOSTANDARD = "HSTL_I_DCI"; # K
+#NET "rc2<5>"         LOC = "AM16" | IOSTANDARD = "HSTL_I_DCI"; # K#
+#NET "rc2<6>"         LOC = "AJ16" | IOSTANDARD = "HSTL_I_DCI"; # CQ
+#NET "rc2<7>"         LOC = "AJ15" | IOSTANDARD = "HSTL_I_DCI"; # CQ#
+#NET "rc2<8>"         LOC = "AE18" | IOSTANDARD = "HSTL_I_DCI"; # DOFF#
+
+#--------------------------------------------------------------------------
+#Все Пины отладочной платы ML505
+#--------------------------------------------------------------------------
+#NET  AUDIO_BIT_CLK        LOC="AF18";  # Bank 4, Vcco=3.3V, No DCI
+#NET  AUDIO_SDATA_IN       LOC="AE18";  # Bank 4, Vcco=3.3V, No DCI
+#NET  AUDIO_SDATA_OUT      LOC="AG16";  # Bank 4, Vcco=3.3V, No DCI
+#NET  AUDIO_SYNC           LOC="AF19";  # Bank 4, Vcco=3.3V, No DCI
+#NET  BUS_ERROR_1          LOC="F6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  BUS_ERROR_2          LOC="T10";   # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  CFG_ADDR_OUT0        LOC="AE12";  # Bank 2, Vcco=3.3V
+#NET  CFG_ADDR_OUT1        LOC="AE13";  # Bank 2, Vcco=3.3V
+#NET  CLK_27MHZ_FPGA       LOC="AG18";  # Bank 4, Vcco=3.3V, No DCI
+#NET  CLK_33MHZ_FPGA       LOC="AH17";  # Bank 4, Vcco=3.3V, No DCI
+#NET  CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+#NET  CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+#NET  CLKBUF_Q0_N          LOC="H3";    # Bank 116, MGTREFCLKN_116, GTP_DUAL_X0Y4
+#NET  CLKBUF_Q0_P          LOC="H4";    # Bank 116, MGTREFCLKP_116, GTP_DUAL_X0Y4
+#NET  CLKBUF_Q1_N          LOC="J19";   # Bank 3, Vcco=2.5V, No DCI
+#NET  CLKBUF_Q1_P          LOC="K18";   # Bank 3, Vcco=2.5V, No DCI
+#NET  CPLD_IO_1            LOC="W10";   # Bank 18, Vcco=3.3V, No DCI
+#NET  CPU_TCK              LOC="E6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  CPU_TDO              LOC="E7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  CPU_TMS              LOC="U10";   # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  CPU_TRST             LOC="V10";   # Bank 18, Vcco=3.3V, No DCI
+#NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CKE1            LOC="U30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_CS1_B           LOC="J29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D32             LOC="V29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D33             LOC="Y27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D34             LOC="Y26";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D35             LOC="W24";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D36             LOC="V28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D37             LOC="W25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D38             LOC="W26";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D39             LOC="V24";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D40             LOC="R24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D41             LOC="P25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D42             LOC="N24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D43             LOC="P26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D44             LOC="T24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D45             LOC="N25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D46             LOC="P27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D47             LOC="N28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D48             LOC="M28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D49             LOC="L28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D50             LOC="F25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D51             LOC="H25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D52             LOC="K27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D53             LOC="K28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D54             LOC="H24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D55             LOC="G26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D56             LOC="G25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D57             LOC="M26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D58             LOC="J24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D59             LOC="L26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D60             LOC="J27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D61             LOC="M25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D62             LOC="L25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_D63             LOC="L24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM4             LOC="V25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM5             LOC="P24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS4_N          LOC="Y29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS4_P          LOC="Y28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS5_N          LOC="E27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS5_P          LOC="E26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS6_N          LOC="G28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS6_P          LOC="H28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS7_N          LOC="H27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS7_P          LOC="G27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_ODT1            LOC="F30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_SCL             LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_SDA             LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DVI_D0               LOC="AB8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D1               LOC="AC8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D2               LOC="AN12";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D3               LOC="AP12";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D4               LOC="AA9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D5               LOC="AA8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D6               LOC="AM13";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D7               LOC="AN13";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D8               LOC="AA10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D9               LOC="AB10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D10              LOC="AP14";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_D11              LOC="AN14";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_DE               LOC="AE8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_GPIO1            LOC="N30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DVI_H                LOC="AM12";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_RESET_B          LOC="AK6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  DVI_V                LOC="AM11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_XCLK_N           LOC="AL10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  DVI_XCLK_P           LOC="AL11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FAN_ALERT_B          LOC="T30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FLASH_ADV_B          LOC="F13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FLASH_AUDIO_RESET_B  LOC="AG17";  # Bank 4, Vcco=3.3V, No DCI
+#NET  FLASH_CE_B           LOC="AE14";  # Bank 2, Vcco=3.3V
+#NET  FLASH_CLK            LOC="N9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FLASH_OE_B           LOC="AF14";  # Bank 2, Vcco=3.3V
+#NET  FLASH_WAIT           LOC="G13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_AVDD            LOC="T18";   # Bank 0, Vcco=3.3V
+#NET  FPGA_CCLK-R          LOC="N15";   # Bank 0, Vcco=3.3V
+#NET  FPGA_CPU_RESET_B     LOC="E9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_CS_B            LOC="N22";   # Bank 0, Vcco=3.3V
+#NET  FPGA_CS0_B           LOC="AF21";  # Bank 2, Vcco=3.3V
+#NET  FPGA_DIFF_CLK_OUT_N  LOC="J21";   # Bank 3, Vcco=2.5V, No DCI
+#NET  FPGA_DIFF_CLK_OUT_P  LOC="J20";   # Bank 3, Vcco=2.5V, No DCI
+#NET  FPGA_DIN             LOC="P15";   # Bank 0, Vcco=3.3V
+#NET  FPGA_DONE            LOC="M15";   # Bank 0, Vcco=3.3V
+#NET  FPGA_DOUT_BUSY       LOC="AD15";  # Bank 0, Vcco=3.3V
+#NET  FPGA_DX_N            LOC="W17";   # Bank 0, Vcco=3.3V
+#NET  FPGA_DX_P            LOC="W18";   # Bank 0, Vcco=3.3V
+#NET  FPGA_EXP_TCK         LOC="AB15";  # Bank 0, Vcco=3.3V
+#NET  FPGA_EXP_TMS         LOC="AC14";  # Bank 0, Vcco=3.3V
+#NET  FPGA_HSWAPEN         LOC="M23";   # Bank 0, Vcco=3.3V
+#NET  FPGA_INIT_B          LOC="N14";   # Bank 0, Vcco=3.3V
+#NET  FPGA_M0              LOC="AD21";  # Bank 0, Vcco=3.3V
+#NET  FPGA_M1              LOC="AC22";  # Bank 0, Vcco=3.3V
+#NET  FPGA_M2              LOC="AD22";  # Bank 0, Vcco=3.3V
+#NET  FPGA_PROG_B          LOC="M22";   # Bank 0, Vcco=3.3V
+#NET  FPGA_RDWR_B          LOC="N23";   # Bank 0, Vcco=3.3V
+#NET  FPGA_ROTARY_INCA     LOC="AH30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_ROTARY_INCB     LOC="AG30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_ROTARY_PUSH     LOC="AH29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_SERIAL1_RX      LOC="AG15";  # Bank 4, Vcco=3.3V, No DCI
+#NET  FPGA_SERIAL1_TX      LOC="AG20";  # Bank 4, Vcco=3.3V, No DCI
+#NET  FPGA_SERIAL2_RX      LOC="G10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_SERIAL2_TX      LOC="F10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_TDI             LOC="AC15";  # Bank 0, Vcco=3.3V
+#NET  FPGA_TDO             LOC="AD14";  # Bank 0, Vcco=3.3V
+#NET  FPGA_V_N             LOC="V17";   # Bank 0, Vcco=3.3V (SYSMON External Input: VN) J9-10
+#NET  FPGA_V_P             LOC="U18";   # Bank 0, Vcco=3.3V (SYSMON External Input: VP) J9-9
+#NET  FPGA_VBATT           LOC="L23";   # Bank 0, Vcco=3.3V
+#NET  FPGA_VREFP           LOC="V18";   # Bank 0, Vcco=3.3V
+#NET  FPGA_VRN_B11         LOC="N33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  FPGA_VRN_B13         LOC="AG33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  FPGA_VRN_B17         LOC="AD31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRN_B19         LOC="N27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRN_B20         LOC="L10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRN_B21         LOC="AJ25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRN_B22         LOC="AF8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRP_B11         LOC="M33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  FPGA_VRP_B13         LOC="AH33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  FPGA_VRP_B17         LOC="AE31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRP_B19         LOC="M27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRP_B20         LOC="L11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRP_B21         LOC="AH25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  FPGA_VRP_B22         LOC="AE9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW1         LOC="U25";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW2         LOC="AG27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW3         LOC="AF25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW4         LOC="AF26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW5         LOC="AE27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW6         LOC="AE26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW7         LOC="AC25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_DIP_SW8         LOC="AC24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_LED_0           LOC="H18";   # Bank 3, Vcco=2.5V, No DCI
+#NET  GPIO_LED_1           LOC="L18";   # Bank 3, Vcco=2.5V, No DCI
+#NET  GPIO_LED_2           LOC="G15";   # Bank 3, Vcco=2.5V, No DCI
+#NET  GPIO_LED_3           LOC="AD26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_LED_4           LOC="G16";   # Bank 3, Vcco=2.5V, No DCI
+#NET  GPIO_LED_5           LOC="AD25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_LED_6           LOC="AD24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_LED_7           LOC="AE24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  GPIO_LED_C           LOC="E8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  GPIO_LED_E           LOC="AG23";  # Bank 2, Vcco=3.3V
+#NET  GPIO_LED_N           LOC="AF13";  # Bank 2, Vcco=3.3V
+#NET  GPIO_LED_S           LOC="AG12";  # Bank 2, Vcco=3.3V
+#NET  GPIO_LED_W           LOC="AF23";  # Bank 2, Vcco=3.3V
+#NET  GPIO_SW_C            LOC="AJ6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  GPIO_SW_E            LOC="AK7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  GPIO_SW_N            LOC="U8";    # Bank 18, Vcco=3.3V, No DCI
+#NET  GPIO_SW_S            LOC="V8";    # Bank 18, Vcco=3.3V, No DCI
+#NET  GPIO_SW_W            LOC="AJ7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  HDR1_2               LOC="H33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_4               LOC="F34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_6               LOC="H34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_8               LOC="G33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_10              LOC="G32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_12              LOC="H32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_14              LOC="J32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_16              LOC="J34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_18              LOC ="L33";  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_20              LOC="M32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_22              LOC="P34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_24              LOC="N34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_26              LOC="AA34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
+#NET  HDR1_28              LOC="AD32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_30              LOC="Y34";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[5]) J6-30
+#NET  HDR1_32              LOC="Y32";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_34              LOC="W32";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_36              LOC="AH34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_38              LOC="AE32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_40              LOC="AG32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_42              LOC="AH32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_44              LOC="AK34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_46              LOC="AK33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_48              LOC="AJ32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_50              LOC="AK32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_52              LOC="AL34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_54              LOC="AL33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_56              LOC="AM33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_58              LOC="AJ34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_60              LOC="AM32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_62              LOC="AN34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR1_64              LOC="AN33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR2_2_SM_8_N        LOC="K34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[15]) J4-2
+#NET  HDR2_4_SM_8_P        LOC="L34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[15]) J4-4
+#NET  HDR2_6_SM_7_N        LOC="K32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[14]) J4-6
+#NET  HDR2_8_SM_7_P        LOC="K33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[14]) J4-8
+#NET  HDR2_10_DIFF_0_N     LOC="N32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[13]) J4-10
+#NET  HDR2_12_DIFF_0_P     LOC="P32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[13]) J4-12
+#NET  HDR2_14_DIFF_1_N     LOC="R34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[12]) J4-14
+#NET  HDR2_16_DIFF_1_P     LOC="T33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[12]) J4-16
+#NET  HDR2_18_DIFF_2_N     LOC="R32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[11]) J4-18
+#NET  HDR2_20_DIFF_2_P     LOC="R33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[11]) J4-20
+#NET  HDR2_22_SM_10_N      LOC="T34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[10]) J4-22
+#NET  HDR2_24_SM_10_P      LOC="U33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[10]) J4-24
+#NET  HDR2_26_SM_11_N      LOC="U31";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[9]) J4-26
+#NET  HDR2_28_SM_11_P      LOC="U32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[9]) J4-28
+#NET  HDR2_30_DIFF_3_N     LOC="V33";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[8]) J4-30
+#NET  HDR2_32_DIFF_3_P     LOC="V32";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[8]) J4-32
+#NET  HDR2_34_SM_15_N      LOC="V34";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[7]) J4-34
+#NET  HDR2_36_SM_15_P      LOC="W34";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[7]) J4-36
+#NET  HDR2_38_SM_6_N       LOC="AA33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[6]) J4-38
+#NET  HDR2_40_SM_6_P       LOC="Y33";   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[6]) J4-40
+#NET  HDR2_42_SM_14_N      LOC="AE34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[0]) J4-42
+#NET  HDR2_44_SM_14_P      LOC="AF34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[0]) J4-44
+#NET  HDR2_46_SM_12_N      LOC="AE33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[1]) J4-46
+#NET  HDR2_48_SM_12_P      LOC="AF33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[1]) J4-48
+#NET  HDR2_50_SM_5_N       LOC="AD34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[4]) J4-50
+#NET  HDR2_52_SM_5_P       LOC="AC34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[4]) J4-52
+#NET  HDR2_54_SM_13_N      LOC="AB32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[3]) J4-54
+#NET  HDR2_56_SM_13_P      LOC="AC32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[3]) J4-56
+#NET  HDR2_58_SM_4_N       LOC="AB33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXN[2]) J4-58
+#NET  HDR2_60_SM_4_P       LOC="AC33";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[2]) J4-60
+#NET  HDR2_62_SM_9_N       LOC="AP32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  HDR2_64_SM_9_P       LOC="AN32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET  IIC_SCL_MAIN         LOC="F9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  IIC_SCL_SFP          LOC="R26";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  IIC_SCL_VIDEO        LOC="U27";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  IIC_SDA_MAIN         LOC="F8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  IIC_SDA_SFP          LOC="U28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  IIC_SDA_VIDEO        LOC="T29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  KEYBOARD_CLK         LOC="T26";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  KEYBOARD_DATA        LOC="T25";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  LCD_FPGA_DB4         LOC="T9";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  LCD_FPGA_DB5         LOC="G7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  LCD_FPGA_DB6         LOC="G6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  LCD_FPGA_DB7         LOC="T11";   # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  LCD_FPGA_E           LOC="AC9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  LCD_FPGA_RS          LOC="J17";   # Bank 3, Vcco=2.5V, No DCI
+#NET  LCD_FPGA_RW          LOC="AC10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  LOOPBK_114_N         LOC="AG1";   # Bank 118, MGTRXN1_118, GTP_DUAL_X0Y1
+#NET  LOOPBK_114_N         LOC="AH2";   # Bank 118, MGTTXN1_118, GTP_DUAL_X0Y1
+#NET  LOOPBK_114_P         LOC="AH1";   # Bank 118, MGTRXP1_118, GTP_DUAL_X0Y1
+#NET  LOOPBK_114_P         LOC="AJ2";   # Bank 118, MGTTXP1_118, GTP_DUAL_X0Y1
+#NET  LOOPBK_116_N         LOC="R1";    # Bank 112, MGTRXN1_112, GTP_DUAL_X0Y3
+#NET  LOOPBK_116_N         LOC="T2";    # Bank 112, MGTTXN1_112, GTP_DUAL_X0Y3
+#NET  LOOPBK_116_P         LOC="T1";    # Bank 112, MGTRXP1_112, GTP_DUAL_X0Y3
+#NET  LOOPBK_116_P         LOC="U2";    # Bank 112, MGTTXP1_112, GTP_DUAL_X0Y3
+#NET  MOUSE_CLK            LOC="R27";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  MOUSE_DATA           LOC="U26";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  PC4_HALT_B           LOC="W9";    # Bank 18, Vcco=3.3V, No DCI
+#NET  PCIE_CLK_QO_N        LOC="AF3";   # Bank 118, MGTREFCLKN_118, GTP_DUAL_X0Y1
+#NET  PCIE_CLK_QO_P        LOC="AF4";   # Bank 118, MGTREFCLKP_118, GTP_DUAL_X0Y1
+#NET  PCIE_PRSNT_B_FPGA    LOC="AF24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  PCIE_RX_N            LOC="AF1";   # Bank 118, MGTRXN0_118, GTP_DUAL_X0Y1
+#NET  PCIE_RX_P            LOC="AE1";   # Bank 118, MGTRXP0_118, GTP_DUAL_X0Y1
+#NET  PCIE_TX_N            LOC="AE2";   # Bank 118, MGTTXN0_118, GTP_DUAL_X0Y1
+#NET  PCIE_TX_P            LOC="AD2";   # Bank 118, MGTTXP0_118, GTP_DUAL_X0Y1
+#NET  PHY_COL              LOC="B32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_CRS              LOC="E34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_INT              LOC="H20";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_MDC              LOC="H19";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_MDIO             LOC="H13";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_RESET            LOC="J14";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_RXCLK            LOC="H17";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_RXCTL_RXDV       LOC="E32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD0             LOC="A33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD1             LOC="B33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD2             LOC="C33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD3             LOC="C32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD4             LOC="D32";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD5             LOC="C34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD6             LOC="D34";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXD7             LOC="F33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_RXER             LOC="E33";   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET  PHY_TXC_GTXCLK       LOC="J16";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_TXCLK            LOC="K17";   # Bank 3, Vcco=2.5V, No DCI
+#NET  PHY_TXCTL_TXEN       LOC="AJ10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD0             LOC="AF11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD1             LOC="AE11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD2             LOC="AH9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD3             LOC="AH10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD4             LOC="AG8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD5             LOC="AH8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD6             LOC="AG10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXD7             LOC="AG11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PHY_TXER             LOC="AJ9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  PIEZO_SPEAKER        LOC="G30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  RESERVED1            LOC="AB23";  # Bank 0, Vcco=3.3V
+#NET  RESERVED2            LOC="AC23";  # Bank 0, Vcco=3.3V
+#NET  RREF                 LOC="V4";    # Bank 112, MGTRREF_112, GTP_DUAL_X0Y3
+#NET  SATA1_RX_N           LOC="Y1";    # Bank 114, MGTRXN0_114, GTP_DUAL_X0Y2
+#NET  SATA1_RX_P           LOC="W1";    # Bank 114, MGTRXP0_114, GTP_DUAL_X0Y2
+#NET  SATA1_TX_N           LOC="W2";    # Bank 114, MGTTXN0_114, GTP_DUAL_X0Y2
+#NET  SATA1_TX_P           LOC="V2";    # Bank 114, MGTTXP0_114, GTP_DUAL_X0Y2
+#NET  SATA2_RX_N           LOC="AA1";   # Bank 114, MGTRXN1_114, GTP_DUAL_X0Y2
+#NET  SATA2_RX_P           LOC="AB1";   # Bank 114, MGTRXP1_114, GTP_DUAL_X0Y2
+#NET  SATA2_TX_N           LOC="AB2";   # Bank 114, MGTTXN1_114, GTP_DUAL_X0Y2
+#NET  SATA2_TX_P           LOC="AC2";   # Bank 114, MGTTXP1_114, GTP_DUAL_X0Y2
+#NET  SATACLK_QO_N         LOC="Y3";    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
+#NET  SATACLK_QO_P         LOC="Y4";    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
+#NET  SFP_RX_N             LOC="H1";    # Bank 116, MGTRXN0_116, GTP_DUAL_X0Y4
+#NET  SFP_RX_P             LOC="G1";    # Bank 116, MGTRXP0_116, GTP_DUAL_X0Y4
+#NET  SFP_TX_DISABLE_FPGA  LOC="K24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  SFP_TX_N             LOC="G2";    # Bank 116, MGTTXN0_116, GTP_DUAL_X0Y4
+#NET  SFP_TX_P             LOC="F2";    # Bank 116, MGTTXP0_116, GTP_DUAL_X0Y4
+#NET  SGMII_RX_N           LOC="P1";    # Bank 112, MGTRXN0_112, GTP_DUAL_X0Y3
+#NET  SGMII_RX_P           LOC="N1";    # Bank 112, MGTRXP0_112, GTP_DUAL_X0Y3
+#NET  SGMII_TX_N           LOC="N2";    # Bank 112, MGTTXN0_112, GTP_DUAL_X0Y3
+#NET  SGMII_TX_P           LOC="M2";    # Bank 112, MGTTXP0_112, GTP_DUAL_X0Y3
+#NET  SGMIICLK_QO_N        LOC="P3";    # Bank 112, MGTREFCLKN_112, GTP_DUAL_X0Y3
+#NET  SGMIICLK_QO_P        LOC="P4";    # Bank 112, MGTREFCLKP_112, GTP_DUAL_X0Y3
+#NET  SMA_DIFF_CLK_IN_N    LOC="H15";   # Bank 3, Vcco=2.5V, No DCI
+#NET  SMA_DIFF_CLK_IN_P    LOC="H14";   # Bank 3, Vcco=2.5V, No DCI
+#NET  SMA_RX_N             LOC="J1";    # Bank 116, MGTRXN1_116, GTP_DUAL_X0Y4
+#NET  SMA_RX_P             LOC="K1";    # Bank 116, MGTRXP1_116, GTP_DUAL_X0Y4
+#NET  SMA_TX_N             LOC="K2";    # Bank 116, MGTTXN1_116, GTP_DUAL_X0Y4
+#NET  SMA_TX_P             LOC="L2";    # Bank 116, MGTTXP1_116, GTP_DUAL_X0Y4
+#NET  SPI_CE_B             LOC="V9";    # Bank 18, Vcco=3.3V, No DCI
+#NET  SRAM_ADV_LD_B        LOC="H8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_BW0             LOC="D10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_BW1             LOC="D11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_BW2             LOC="J11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_BW3             LOC="K11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_CLK             LOC="AG21";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_CLK             LOC="G8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_CS_B            LOC="J10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D16             LOC="N10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D17             LOC="E13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D18             LOC="E12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D19             LOC="L9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D20             LOC="M10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D21             LOC="E11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D22             LOC="F11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D23             LOC="L8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D24             LOC="M8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D25             LOC="G12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D26             LOC="G11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D27             LOC="C13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D28             LOC="B13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D29             LOC="K9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D30             LOC="K8";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_D31             LOC="J9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_DQP0            LOC="D12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_DQP1            LOC="C12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_DQP2            LOC="H10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_DQP3            LOC="H9";    # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_FLASH_A0        LOC="K12";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A1        LOC="K13";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A2        LOC="H23";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A3        LOC="G23";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A4        LOC="H12";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A5        LOC="J12";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A6        LOC="K22";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A7        LOC="K23";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A8        LOC="K14";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A9        LOC="L14";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A10       LOC="H22";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A11       LOC="G22";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A12       LOC="J15";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A13       LOC="K16";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A14       LOC="K21";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A15       LOC="J22";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A16       LOC="L16";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A17       LOC="L15";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A18       LOC="L20";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A19       LOC="L21";   # Bank 1, Vcco=3.3V
+#NET  SRAM_FLASH_A20       LOC="AE23";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_A21       LOC="AE22";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D0        LOC="AD19";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D1        LOC="AE19";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D2        LOC="AE17";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D3        LOC="AF16";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D4        LOC="AD20";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D5        LOC="AE21";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D6        LOC="AE16";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D7        LOC="AF15";  # Bank 2, Vcco=3.3V
+#NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D10       LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D11       LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D12       LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D13       LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D14       LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_D15       LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
+#NET  SRAM_FLASH_WE_B      LOC="AF20";  # Bank 2, Vcco=3.3V
+#NET  SRAM_MODE            LOC="A13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SRAM_OE_B            LOC="B12";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA00         LOC="G5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA01_USB_A0  LOC="N7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA02_USB_A1  LOC="N5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA03         LOC="P5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA04         LOC="R6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA05         LOC="M6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPA06         LOC="L6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPBRDY        LOC="H5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPCE          LOC="M5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPIRQ         LOC="M7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPOE_USB_RD_B LOC="N8";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_MPWE_USB_WR_B LOC="R9";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D0        LOC="P9";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D1        LOC="T8";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D2        LOC="J7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D3        LOC="H7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D4        LOC="R7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D5        LOC="U7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D6        LOC="P7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D7        LOC="P6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D8        LOC="R8";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D9        LOC="L5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D10       LOC="L4";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D11       LOC="K6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D12       LOC="J5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D13       LOC="T6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D14       LOC="K7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  SYSACE_USB_D15       LOC="J6";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_CLK              LOC="AD9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS1E             LOC="AK9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS1O             LOC="AF10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS2E             LOC="AK8";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS2O             LOC="AF9";   # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS3              LOC="AJ11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS4              LOC="AK11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS5              LOC="AD11";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  TRC_TS6              LOC="AD10";  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  USB_CS_B             LOC="P10";   # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  USB_INT              LOC="F5";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  USB_RESET_B          LOC="R11";   # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  USER_CLK             LOC="AH15";  # Bank 4, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE0         LOC="AC4";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE1         LOC="AC5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE2         LOC="AB6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE3         LOC="AB7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE4         LOC="AA5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE5         LOC="AB5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE6         LOC="AC7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_BLUE7         LOC="AD7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_CLAMP         LOC="AH7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_COAST         LOC="AG7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_DATA_CLK      LOC="AH18";  # Bank 4, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN0        LOC="Y8";    # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN1        LOC="Y9";    # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN2        LOC="AD4";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN3        LOC="AD5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN4        LOC="AA6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN5        LOC="Y7";    # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN6        LOC="AD6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_GREEN7        LOC="AE6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_HSOUT         LOC="AE7";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_ODD_EVEN_B    LOC="W6";    # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED0          LOC="AG5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED1          LOC="AF5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED2          LOC="W7";    # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED3          LOC="V7";    # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED4          LOC="AH5";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED5          LOC="AG6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED6          LOC="Y11";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_RED7          LOC="W11";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_SOGOUT        LOC="AF6";   # Bank 18, Vcco=3.3V, No DCI
+#NET  VGA_IN_VSOUT         LOC="Y6";    # Bank 18, Vcco=3.3V, No DCI
+
