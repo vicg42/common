@@ -51,6 +51,7 @@ end record;
 --//trc_nik_core.vhd порт p_out_satatus Bit Map:
 type TTrcNikCoreStatus is record
 nxt_row : std_logic;
+skip_ip : std_logic;
 drdy    : std_logic;
 idle    : std_logic;
 end record;

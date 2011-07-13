@@ -423,9 +423,9 @@ signal i_nik_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)-1 d
 signal i_nik_ip_count                : std_logic_vector(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT downto 0);
 signal i_nik_ipcnt                   : std_logic_vector(i_nik_ip_count'range);
 signal i_nik_ebkt_idx                : std_logic_vector((log2(CNIK_EBKT_LENY) + log2(CNIK_EBKT_LENX))-1 downto 0);
-signal i_nik_elcnt                   : std_logic_vector(8 downto 0);
+signal i_nik_elcnt                   : std_logic_vector(8 downto 0);--//Счетчик ЭС
 signal i_nik_elcnt_max               : std_logic_vector(8 downto 0);
-signal i_nik_ebcnt                   : std_logic_vector(8 downto 0);
+signal i_nik_ebcnt                   : std_logic_vector(8 downto 0);--//Счетчик ЭБ
 signal i_nik_ebcnt_max               : std_logic_vector(8 downto 0);
 
 signal i_nik_ebout_num_dly           : std_logic_vector(i_nik_ebout_num'range);
@@ -1040,7 +1040,7 @@ begin
             i_nik_ipcnt<=(others=>'0');
             i_trccore_done<='1';
 
-            i_nik_elcnt<=i_nik_elcnt + 1;
+            i_nik_elcnt<=i_nik_elcnt + 1;--//Счетчик ЭС
             fsmvbuf_cstate <= S_TRC_IDLE;
 
           else
@@ -1246,7 +1246,7 @@ begin
 end process;
 
 --//Запись данных в выходной буфер:
-p_out_hbuf_wr<=OR_reduce(i_hbuf_wr);
+p_out_hbuf_wr<=OR_reduce(i_hbuf_wr);--//В выходной буфер записываем только КТ попавшие в текущий ИП.
 
 p_out_hbuf_din(7 downto 0)  <=i_nik_kt.idx;
 p_out_hbuf_din(15 downto 8) <=i_nik_kt.pix;

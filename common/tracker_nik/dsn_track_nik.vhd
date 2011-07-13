@@ -566,6 +566,7 @@ i_vfrsize<="00" when i_vch_prm.fr_size.activ.pix=CONV_STD_LOGIC_VECTOR(1024/4, i
 
 --//Размер буфера счетчиков КТ в зависимости от типа канала и количества пороговых интервалов
 --//(В байтах)
+--//Например: vfr_size=1024x1024(pix), тогда кол-во ЭБ=1024/4, ЭС=1024/4, кол-во счетчиков=ЭБ*ЭС, (где один счетчик=1байт)
 i_mem_ktcnt_size<=CONV_STD_LOGIC_VECTOR(16#10000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(1, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#20000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(2, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#30000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(3, i_nik_ip_count'length) else
@@ -904,9 +905,9 @@ begin
         i_hpkt_header_cnt<=(others=>'0');
 
         if i_nik_ip_count=CONV_STD_LOGIC_VECTOR(3, i_nik_ip_count'length) then
-          i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(3, i_mem_dlen_rq'length);--//размер в DW
+          i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(3, i_mem_dlen_rq'length);--//размер в DW, т.е записываем 12 счетчиков
         else
-          i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(4, i_mem_dlen_rq'length);--//размер в DW
+          i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(4, i_mem_dlen_rq'length);--//размер в DW, т.е записываем 16 счетчиков
         end if;
 
         i_mem_adr<=i_mem_ktcnt_base + i_mem_wdptr_ktcnt;
