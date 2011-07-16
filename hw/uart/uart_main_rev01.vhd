@@ -23,10 +23,10 @@ use unisim.vcomponents.all;
 
 entity uart_rev01 is
 generic(
-G_BAUDCNT_VAL: integer:= 64 --//G_BAUDCNT_VAL = Fclkin/(16 * UART_BAUDRATE)
-                            --//Наприме: Fclkin=40MHz, UART_BAUDRATE=115200
-                            --//
-                            --// 40000000/(16 *115200)=21,701 => 22
+G_BAUDCNT_VAL: integer:=64 --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
+                           --//Например: FFuart_refclk=40MHz, UART_BAUDRATE=115200
+                           --//
+                           --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
 );
 port
 (
@@ -39,13 +39,13 @@ p_in_uart_rx     : in     std_logic;                    --//
 -------------------------------
 --USR IF
 -------------------------------
-p_out_usr_rxd    : out    std_logic_vector(7 downto 0); --//
-p_out_usr_rxrdy  : out    std_logic;                    --//
-p_in_usr_rd      : in     std_logic;                    --//
+p_out_usr_rxd    : out    std_logic_vector(7 downto 0); --//RXD
+p_out_usr_rxrdy  : out    std_logic;                    --//1/0 - rdy/not
+p_in_usr_rd      : in     std_logic;                    --//read
 
-p_in_usr_txd     : in     std_logic_vector(7 downto 0); --//
-p_out_usr_txrdy  : out    std_logic;                    --//
-p_in_usr_wr      : in     std_logic;                    --//
+p_in_usr_txd     : in     std_logic_vector(7 downto 0); --//TXD
+p_out_usr_txrdy  : out    std_logic;                    --//1/0 - rdy/not
+p_in_usr_wr      : in     std_logic;                    --//write
 
 -------------------------------
 --Технологический
@@ -89,6 +89,10 @@ component uart_tx is
 signal i_en_16_x_baud         : std_logic;
 signal i_baud_cnt             : integer range 0 to G_BAUDCNT_VAL-1 :=0;
 
+signal i_txbuf_full           : std_logic;
+signal i_txbuf_hfull          : std_logic;
+signal i_txbuf_hfull_dly      : std_logic;
+
 
 
 --MAIN
@@ -102,15 +106,16 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --begin
 --  if p_in_rst='1' then
 --    p_out_tst(0)<='0';
---    tst_fsm_state_cs_dly<=(others=>'0');
+--    i_txbuf_hfull_dly<='0';
 --
 --  elsif p_in_clk'event and p_in_clk='1' then
 --
---    tst_fsm_state_cs_dly<=tst_fsm_state_cs;
---    p_out_tst(0)<=OR_reduce(tst_fsm_state_cs_dly);
+--    i_txbuf_hfull_dly<=i_txbuf_hfull;
+--    p_out_tst(0)<=i_txbuf_hfull_dly;
 --
 --  end if;
 --end process;
+--p_out_tst(31 downto 1)<=(others=>'0');
 
 
 --------------------------------------------------
@@ -151,14 +156,15 @@ serial_out       => p_out_uart_tx,
 
 data_in          => p_in_usr_txd,
 write_buffer     => p_in_usr_wr,
-buffer_full      => p_out_usr_txrdy,
-buffer_half_full => open,
+buffer_full      => open,--i_txbuf_full,--
+buffer_half_full => i_txbuf_hfull,
 
 en_16_x_baud     => i_en_16_x_baud,
 clk              => p_in_clk,
 reset_buffer     => p_in_rst
 );
 
+p_out_usr_txrdy<=not i_txbuf_hfull;
 
 --END MAIN
 end behavioral;

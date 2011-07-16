@@ -20,25 +20,26 @@ library work;
 
 package cfgdev_pkg is
 
---//
-constant C_CFGPKT_ACT_WD                     : std_logic:='0';
-constant C_CFGPKT_ACT_RD                     : std_logic:='1';
-
---//Кол-во DW в заголовке пакета:
+--//Кол-во элементов в заголовке пакета:
 constant C_CFGPKT_HEADER_DW_COUNT            : integer:=2;
 
---//Bit map HEADER/DW(0)
---constant C_CFGPKT_RESERV_BIT                 : integer:=0 .. 6;
-constant C_CFGPKT_WR_BIT                     : integer:=7;
+--//HEADER(0)/ Bit map:
+--constant C_CFGPKT_RESERV_BIT                 : integer:=0 .. 5;
 constant C_CFGPKT_FIFO_BIT                   : integer:=6;
+constant C_CFGPKT_WR_BIT                     : integer:=7;
 constant C_CFGPKT_NUMDEV_LSB_BIT             : integer:=8;
 constant C_CFGPKT_NUMDEV_MSB_BIT             : integer:=15;
 
---//Bit map HEADER/DW(1)
+--//HEADER(1)/ Bit map:
 constant C_CFGPKT_NUMREG_LSB_BIT             : integer:=0;
 constant C_CFGPKT_NUMREG_MSB_BIT             : integer:=7;
 constant C_CFGPKT_DLEN_LSB_BIT               : integer:=8;
 constant C_CFGPKT_DLEN_MSB_BIT               : integer:=15;
+
+
+--//C_CFGPKT_WR_BIT/ Bit Map:
+constant C_CFGPKT_ACT_WD                     : std_logic:='0';
+constant C_CFGPKT_ACT_RD                     : std_logic:='1';
 
 
 component cfgdev_txfifo
@@ -124,6 +125,108 @@ p_out_tst             : out   std_logic_vector(31 downto 0);
 --System
 -------------------------------
 p_in_rst     : in    std_logic
+);
+end component;
+
+
+component cfgdev_uart is
+generic(
+G_BAUDCNT_VAL: integer:=64
+);
+port
+(
+-------------------------------
+--Связь с UART
+-------------------------------
+p_out_uart_tx        : out    std_logic;
+p_in_uart_rx         : in     std_logic;
+p_in_uart_refclk     : in     std_logic;
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     : out    std_logic;
+p_out_module_error   : out    std_logic;
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_dev_adr        : out    std_logic_vector(7 downto 0);
+p_out_cfg_adr        : out    std_logic_vector(7 downto 0);
+p_out_cfg_adr_ld     : out    std_logic;
+p_out_cfg_adr_fifo   : out    std_logic;
+p_out_cfg_wd         : out    std_logic;
+p_out_cfg_rd         : out    std_logic;
+p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
+p_in_cfg_txrdy       : in     std_logic;
+p_in_cfg_rxrdy       : in     std_logic;
+
+--p_out_cfg_rx_set_irq : out    std_logic;
+p_out_cfg_done       : out    std_logic;
+p_in_cfg_clk         : in     std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             : in     std_logic_vector(31 downto 0);
+p_out_tst            : out    std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst             : in     std_logic
+);
+end component;
+
+
+component cfgdev_ftdi is
+port
+(
+-------------------------------
+--Связь с FTDI
+-------------------------------
+p_inout_ftdi_d       : inout  std_logic_vector(7 downto 0);
+p_out_ftdi_rd_n      : out    std_logic;
+p_out_ftdi_wr_n      : out    std_logic;
+p_in_ftdi_txe_n      : in     std_logic;
+p_in_ftdi_rxf_n      : in     std_logic;
+p_in_ftdi_pwren_n    : in     std_logic;
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     : out    std_logic;
+p_out_module_error   : out    std_logic;
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_dev_adr        : out    std_logic_vector(7 downto 0);
+p_out_cfg_adr        : out    std_logic_vector(7 downto 0);
+p_out_cfg_adr_ld     : out    std_logic;
+p_out_cfg_adr_fifo   : out    std_logic;
+p_out_cfg_wd         : out    std_logic;
+p_out_cfg_rd         : out    std_logic;
+p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
+p_in_cfg_txrdy       : in     std_logic;
+p_in_cfg_rxrdy       : in     std_logic;
+
+--p_out_cfg_rx_set_irq : out    std_logic;
+p_out_cfg_done       : out    std_logic;
+p_in_cfg_clk         : in     std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             : in     std_logic_vector(31 downto 0);
+p_out_tst            : out    std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst             : in     std_logic
 );
 end component;
 

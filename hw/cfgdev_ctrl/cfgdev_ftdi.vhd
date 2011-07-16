@@ -70,7 +70,6 @@ p_out_tst            : out    std_logic_vector(31 downto 0);
 --System
 -------------------------------
 p_in_rst             : in     std_logic
-
 );
 end cfgdev_ftdi;
 
@@ -112,8 +111,8 @@ signal i_cfg_wr                         : std_logic;
 signal i_cfg_rd                         : std_logic;
 signal i_cfg_done                       : std_logic;
 
-signal i_pkt_dvadr                      : std_logic_vector(7 downto 0);
-signal i_pkt_rgadr                      : std_logic_vector(7 downto 0);
+signal i_pkt_dvadr                      : std_logic_vector(C_CFGPKT_NUMDEV_MSB_BIT-C_CFGPKT_NUMDEV_LSB_BIT downto 0);
+signal i_pkt_rgadr                      : std_logic_vector(C_CFGPKT_NUMREG_MSB_BIT-C_CFGPKT_NUMREG_LSB_BIT downto 0);
 signal i_pkt_rgfifo                     : std_logic;
 type TDevCfg_PktHeader is array (0 to C_CFGPKT_HEADER_DW_COUNT-1) of std_logic_vector(i_cfg_d'range);
 signal i_pkt_dheader                    : TDevCfg_PktHeader;
@@ -121,8 +120,8 @@ signal i_pkt_dheader                    : TDevCfg_PktHeader;
 signal i_cntd_pkt                       : std_logic_vector(7 downto 0);
 signal i_flag_pktdata                   : std_logic;
 
---signal tst_fsm_state_cs                 : std_logic_vector(3 downto 0);
---signal tst_fsm_state_cs_dly             : std_logic_vector(tst_fsm_state_cs'range);
+--signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
+--signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range);
 
 
 
@@ -137,29 +136,29 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --begin
 --  if p_in_rst='1' then
 --    p_out_tst(0)<='0';
---    tst_fsm_state_cs_dly<=(others=>'0');
+--    tst_fsm_cs_dly<=(others=>'0');
 --
 --  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 --
---    tst_fsm_state_cs_dly<=tst_fsm_state_cs;
---    p_out_tst(0)<=OR_reduce(tst_fsm_state_cs_dly);
+--    tst_fsm_cs_dly<=tst_fsm_cs;
+--    p_out_tst(0)<=OR_reduce(tst_fsm_cs_dly);
 --
 --  end if;
 --end process;
 --p_out_tst(31 downto 1)<=(others=>'0');
 --
---tst_fsm_state_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_state_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
---                  CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_state_cs'length) when fsm_state_cs=S_DEV_RXD        else
---                  CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_state_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
---                  CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_state_cs'length) when fsm_state_cs=S_DEV_TXD        else
---                  CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_state_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
---                  CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_state_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
---                  CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_state_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
---                  CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_state_cs'length) when fsm_state_cs=S_CFG_TXD        else
---                  CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_state_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
---                  CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_state_cs'length) when fsm_state_cs=S_CFG_RXD1       else
---                  CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_state_cs'length)
-----                  CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_state_cs'length) when fsm_state_cs=S_CFG_RXD2       else
+--tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
+--            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
+--            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
+--            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
+--            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
+--            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_RXD1       else
+--            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);
+----            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_RXD2       else
 
 
 
@@ -280,8 +279,8 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     --//--------------------------------
     when S_DEV_WAIT_RXRDY =>
 
-      i_cfg_done<='0';
       i_cfg_rgadr_ld<='0';
+      i_cfg_done<='0';
 
       if i_dv_rxrdy='1' then
         i_dv_rd<='0';
@@ -325,7 +324,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         i_dv_rd<='1';
 
       elsif i_dv_tmr=CONV_STD_LOGIC_VECTOR(8, i_dv_tmr'length) then
-        for i in 0 to 1 loop
+        for i in 0 to i_cfg_d'length/8-1 loop
           if i_cfg_dbyte=i then
             i_cfg_d(8*(i+1)-1 downto 8*i)<=i_dv_din(7 downto 0);
           end if;
@@ -339,7 +338,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     --//--------------------------------
     when S_PKTH_RXCHK =>
 
-      if i_cntd_pkt(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT-1, 2)  then
+      if i_cntd_pkt(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT-1, 2) then
 
           i_cfg_rgadr_ld<='1';
 
@@ -350,7 +349,6 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
             pkt_dlen  :=i_pkt_dheader(1)(15 downto 8)-1;
 
           if pkt_write=C_CFGPKT_ACT_WD then
-          --//Операция записи данных в FPGA модуль
             i_cntd_pkt<=pkt_dlen;
             i_flag_pktdata<='1';
             fsm_state_cs <= S_DEV_WAIT_RXRDY;
@@ -369,8 +367,6 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     --//Запись данных в FPGA модуля
     --//--------------------------------
     when S_CFG_WAIT_TXRDY =>
-
-      i_cfg_rgadr_ld<='0';
 
       if p_in_cfg_txrdy='1' then
         i_cfg_wr<='1';
@@ -403,7 +399,8 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 
       i_cfg_rgadr_ld<='0';
 
-      if i_cntd_pkt(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT, 2)  then
+      if i_cntd_pkt(2 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT, 3) then
+      --//Заголовок отправлен, переходим к чтению данных из модуля FPGA
         i_cntd_pkt<=pkt_dlen;
         i_flag_pktdata<='1';
         fsm_state_cs <= S_CFG_WAIT_RXRDY;
@@ -429,7 +426,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         i_dv_tmr_en<='1';
 --        i_dv_oe<='1';
 
-        for i in 0 to 1 loop
+        for i in 0 to i_cfg_d'length/8-1 loop
           if i_cfg_dbyte=i then
             i_dv_dout<=i_cfg_d(8*(i+1)-1 downto 8*i);
           end if;
@@ -476,7 +473,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         i_dv_wr<='0';
 
       elsif i_dv_tmr=CONV_STD_LOGIC_VECTOR(8, i_dv_tmr'length) then
---        for i in 0 to 1 loop
+--        for i in 0 to i_cfg_d'length/8-1 loop
 --          if i_cfg_dbyte=i then
 --            i_dv_dout<=i_cfg_d(8*(i+1)-1 downto 8*i);
 --          end if;
