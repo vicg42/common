@@ -89,9 +89,9 @@ component uart_tx is
 signal i_en_16_x_baud         : std_logic;
 signal i_baud_cnt             : integer range 0 to G_BAUDCNT_VAL-1 :=0;
 
-signal i_txbuf_full           : std_logic;
+--signal i_txbuf_full           : std_logic;
 signal i_txbuf_hfull          : std_logic;
-signal i_txbuf_hfull_dly      : std_logic;
+--signal i_txbuf_hfull_dly      : std_logic;
 
 
 

@@ -115,6 +115,25 @@ p_in_rst         : in    std_logic
 );
 end component;
 
+component cfgdev_2txfifo
+port
+(
+din         : IN  std_logic_vector(31 downto 0);
+wr_en       : IN  std_logic;
+wr_clk      : IN  std_logic;
+
+dout        : OUT std_logic_vector(31 downto 0);
+rd_en       : IN  std_logic;
+rd_clk      : IN  std_logic;
+
+empty       : OUT std_logic;
+full        : OUT std_logic;
+
+--clk         : IN  std_logic;
+rst         : IN  std_logic
+);
+end component;
+
 type fsm_state is
 (
 S_DEV_WAIT_RXRDY,
@@ -178,9 +197,9 @@ signal i_txbuf_empty                    : std_logic;
 signal i_txbuf_full                     : std_logic;
 
 
-signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
-signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range);
-signal tst_uart_rev01_out               : std_logic_vector(31 downto 0);
+--signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
+--signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range);
+--signal tst_uart_rev01_out               : std_logic_vector(31 downto 0);
 
 
 
@@ -301,19 +320,13 @@ rst         => p_in_rst
 i_txbuf_din<=EXT(i_dv_dout, i_txbuf_din'length);
 
 i_uart_din<=i_txbuf_dout(i_uart_din'range);
---i_uart_wr<=i_txbuf_rd;--//для FWFT FIFO
-process(p_in_uart_refclk)
-begin
-  if p_in_uart_refclk'event and p_in_uart_refclk='1' then
-    i_uart_wr<=i_txbuf_rd;--//для Standart FIFO
-  end if;
-end process;
+i_uart_wr<=i_txbuf_rd;
 
 i_txbuf_rd<=i_uart_txrdy and not i_txbuf_empty;
 
 i_dv_txrdy<=not i_txbuf_full;--//Готовность TxBUF
 
-m_txbuf : cfgdev_txfifo
+m_txbuf : cfgdev_2txfifo
 port map
 (
 din         => i_txbuf_din,
@@ -508,12 +521,6 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         fsm_state_cs <= S_DEV_WAIT_RXRDY;
       end if;
 
---      for i in 0 to i_cfg_d'length/8-1 loop
---        if i_cfg_dbyte=i then
---          i_cfg_d(8*(i+1)-1 downto 8*i)<=i_dv_din(7 downto 0);
---        end if;
---      end loop;
-
 
 
     --//--------------------------------
@@ -691,11 +698,6 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
           fsm_state_cs <= S_DEV_WAIT_TXRDY;
         end if;
 
---      for i in 0 to i_cfg_d'length/8-1 loop
---        if i_cfg_dbyte=i then
---          i_dv_dout<=i_cfg_d(8*(i+1)-1 downto 8*i);
---        end if;
---      end loop;
 
     --//--------------------------------
     --//Чтение данных из FPGA модуля

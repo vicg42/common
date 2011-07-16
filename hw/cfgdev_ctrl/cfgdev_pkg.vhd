@@ -231,6 +231,60 @@ p_in_rst             : in     std_logic
 end component;
 
 
+component cfgdev_host is
+port
+(
+-------------------------------
+--Связь с HOST
+-------------------------------
+p_out_host_rxbuf_rdy : out  std_logic;                      --//
+p_out_host_rxdata    : out  std_logic_vector(31 downto 0);  --//
+p_in_host_rd         : in   std_logic;                      --//
+
+p_out_host_txbuf_rdy : out  std_logic;                      --//
+p_in_host_txdata     : in   std_logic_vector(31 downto 0);  --//
+p_in_host_wd         : in   std_logic;                      --//
+p_in_host_txdata_rdy : in   std_logic;                      --//
+
+p_in_host_clk        : in   std_logic;                      --//
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     : out    std_logic;                    --//
+p_out_module_error   : out    std_logic;                    --//
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_dev_adr        : out    std_logic_vector(7 downto 0); --//Адрес модуля
+p_out_cfg_adr        : out    std_logic_vector(7 downto 0); --//Адрес стартового регистра
+p_out_cfg_adr_ld     : out    std_logic;                    --//Загрузка адреса регистра
+p_out_cfg_adr_fifo   : out    std_logic;                    --//Тип адресации
+p_out_cfg_wd         : out    std_logic;                    --//Строб записи
+p_out_cfg_rd         : out    std_logic;                    --//Строб чтения
+p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);--//
+p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);--//
+p_in_cfg_txrdy       : in     std_logic;                    --//Готовность приемника данных
+p_in_cfg_rxrdy       : in     std_logic;                    --//Готовность передатчика данных
+
+p_out_cfg_rx_set_irq : out    std_logic;                    --//
+p_out_cfg_done       : out    std_logic;                    --//
+p_in_cfg_clk         : in     std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             : in     std_logic_vector(31 downto 0);
+p_out_tst            : out    std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst             : in     std_logic
+);
+end component;
+
 end cfgdev_pkg;
 
 
