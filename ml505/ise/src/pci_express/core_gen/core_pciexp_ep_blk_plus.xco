@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 12.2
-# Date: Sun Nov 07 09:24:46 2010
+# Xilinx Core Generator version 13.2
+# Date: Tue Jul 19 14:27:34 2011
 #
 ##############################################################
 #
@@ -9,6 +9,10 @@
 #  Xilinx CORE Generator IP GUI. It is strongly recommended
 #  that you do not manually alter this file as it may cause
 #  unexpected and unsupported behavior.
+#
+##############################################################
+#
+#  Generated from component: xilinx.com:ip:pcie_blk_plus:1.15
 #
 ##############################################################
 #
@@ -32,7 +36,7 @@ SET verilogsim = true
 SET vhdlsim = false
 # END Project Options
 # BEGIN Select
-SELECT Endpoint_Block_Plus_for_PCI_Express family Xilinx,_Inc. 1.14
+SELECT Endpoint_Block_Plus_for_PCI_Express xilinx.com:ip:pcie_blk_plus:1.15
 # END Select
 # BEGIN Parameters
 CSET acceptable_l0_latency=No_limit
@@ -141,5 +145,8 @@ CSET tx_diff_ctrl=800
 CSET tx_pre_emphasis=52
 CSET vendor_id=0777
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2011-06-21T06:44:38.000Z
+# END Extra information
 GENERATE
-# CRC: dbb3746c
+# CRC: fbeea548
