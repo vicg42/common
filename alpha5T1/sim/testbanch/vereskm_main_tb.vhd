@@ -862,13 +862,12 @@ begin
   --//Парамеры одинаковы для всех 3-ех видеоканалов
   VctrlChParams(0).mem_addr_wr       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).mem_addr_rd       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
-  VctrlChParams(0).fr_subsampling    :=CONV_STD_LOGIC_VECTOR(16#000#, 2); --//Прореживание
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра Y
   VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#128#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
-  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#008#, 16);--//Размер активной зоны кадра Y
+  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#012#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
-  VctrlChParams(0).fr_mirror.row     :='1';
+  VctrlChParams(0).fr_mirror.row     :='0';
   VctrlChParams(0).fr_color_fst      :=CONV_STD_LOGIC_VECTOR(16#01#, 2);--//Первый пиксель 0/1/2 - R/G/B
   VctrlChParams(0).fr_color          :='0'; --// 1/0 - Есть/Нет цвета
   VctrlChParams(0).fr_pcolor         :='0'; --// 1/0 - Вкл/Выкл
@@ -890,18 +889,18 @@ begin
   TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_LSB_BIT-1 downto 0):=(others=>'0');
 
   --//Интервальные уровни
-  TrcNikChParams(0).ip(0).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(0).p2:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(1).p1:=CONV_STD_LOGIC_VECTOR(16#42#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#FA#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(2).p1:=CONV_STD_LOGIC_VECTOR(16#10#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(2).p2:=CONV_STD_LOGIC_VECTOR(16#C0#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(0).p1:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(0).p2:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(1).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#1A#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(2).p1:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(2).p2:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(3).p1:=CONV_STD_LOGIC_VECTOR(16#20#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(3).p2:=CONV_STD_LOGIC_VECTOR(16#BF#, TrcNikChParams(0).ip(0).p1'length);
 
   TrcNikChParams(0).opt:=(others=>'0');
 
-  TrcNikIP_Count:=2;--//Кол-во обрабатываемых интервальных порогов
+  TrcNikIP_Count:=3;--//Кол-во обрабатываемых интервальных порогов
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
@@ -1125,6 +1124,61 @@ begin
 
   ----------------------------------------------------------------------------------------
   ----------------------------------------------------
+  --// Чтение регистров модуля DSN_TIMER.VHD
+  --//Begin
+  ----------------------------------------------------
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+
+  datasize:=2;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 4 - 1 loop
+      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_TMR, C_DSN_TMR_REG_CMP_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  data(4 to 7) :=conv_byte_vector(X"00000000");
+
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  data(8 to 11) :=conv_byte_vector(i_dev_ctrl);
+  data(12 to 15) :=conv_byte_vector(X"00000000");
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
+
+
+  wait_cycles(16, lclk);
+
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+
+  tag := 0;
+  val32 := X"00000001";
+  remaining:=1*10#16#;--+32;--//Кол-во в байтах
+  offset:=0;
+  while remaining /= 0 loop
+      chunk := 10#16#;
+      if chunk > remaining then
+        chunk := remaining;
+      end if;
+
+      plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
+      remaining := remaining - n;
+      tag := tag + (n / 4);
+  end loop;
+  --// Чтение регистров модуля DSN_TIMER.VHD
+  --//End
+  ----------------------------------------------------
+  ----------------------------------------------------------------------------------------
+
+
+
+  ----------------------------------------------------------------------------------------
+  ----------------------------------------------------
   --// Настройка модуля DSN_SWITCH.VHD
   --//Begin
   i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
@@ -1154,7 +1208,7 @@ begin
   --//Готовим значения регистров:
   --//C_DSN_SWT_REG_CTRL_L
   User_Reg(0):=(others=>'0');
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_TO_ETHTX_BIT):='0';
+  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):='0';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1328,9 +1382,9 @@ begin
   --//Готовим значения регистров:
   --//C_DSN_SWT_REG_CTRL_L
   User_Reg(0):=(others=>'0');
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_TO_ETHTX_BIT)   :=swt_dsntesting_to_ethtxbuf;
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_TO_VCTRL_BUFIN_BIT):=swt_ethtxbuf_to_vdbufrxd;
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_TO_HDDBUF_BIT):=swt_ethtxbuf_to_hddbuf;
+  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):=swt_dsntesting_to_ethtxbuf;
+  User_Reg(0)(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT):=swt_ethtxbuf_to_vdbufrxd;
+  User_Reg(0)(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT):=swt_ethtxbuf_to_hddbuf;
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1561,8 +1615,6 @@ begin
   --//Установка FR_OPTIONS
   --//Готовим значения регистров:
   User_Reg(0):=(others=>'0');
---  User_Reg(0)(1 downto 0):=VctrlChParams(0).fr_subsampling.pix;--CONV_STD_LOGIC_VECTOR(10#00#, 2);  --//Pix
-  User_Reg(0)(3 downto 2):=VctrlChParams(0).fr_subsampling;--.row;--CONV_STD_LOGIC_VECTOR(10#00#, 2);  --//Row
   User_Reg(0)(4)         :=VctrlChParams(0).fr_mirror.pix;
   User_Reg(0)(5)         :=VctrlChParams(0).fr_mirror.row;
   User_Reg(0)(6)         :=VctrlChParams(0).fr_color_fst(0);
@@ -1727,8 +1779,6 @@ begin
   --//Установка FR_OPTIONS
   --//Готовим значения регистров:
   User_Reg(0):=(others=>'0');
---  User_Reg(0)(1 downto 0):=VctrlChParams(0).fr_subsampling.pix;--CONV_STD_LOGIC_VECTOR(10#00#, 2);  --//Pix
-  User_Reg(0)(3 downto 2):=VctrlChParams(0).fr_subsampling;--.row;--CONV_STD_LOGIC_VECTOR(10#00#, 2);  --//Row
   User_Reg(0)(4)         :=VctrlChParams(0).fr_mirror.pix;
   User_Reg(0)(5)         :=VctrlChParams(0).fr_mirror.row;
   User_Reg(0)(6)         :=VctrlChParams(0).fr_color_fst(0);
@@ -1893,8 +1943,6 @@ begin
   --//Установка FR_OPTIONS
   --//Готовим значения регистров:
   User_Reg(0):=(others=>'0');
---  User_Reg(0)(1 downto 0):=VctrlChParams(0).fr_subsampling.pix;--CONV_STD_LOGIC_VECTOR(10#00#, 2);  --//Pix
-  User_Reg(0)(3 downto 2):=VctrlChParams(0).fr_subsampling;--.row;--CONV_STD_LOGIC_VECTOR(10#00#, 2);  --//Row
   User_Reg(0)(4)         :=VctrlChParams(0).fr_mirror.pix;
   User_Reg(0)(5)         :=VctrlChParams(0).fr_mirror.row;
   User_Reg(0)(6)         :=VctrlChParams(0).fr_color_fst(0);
