@@ -477,7 +477,7 @@ p_in_eth_rxbuf_wr         : in   std_logic;                     --//
 p_out_eth_rxbuf_empty     : out  std_logic;                     --//
 p_out_eth_rxbuf_full      : out  std_logic;                     --//
 
-p_out_eth_txd_rdy         : out  std_logic;
+--p_out_eth_txd_rdy         : out  std_logic;
 p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
 p_in_eth_txbuf_rd         : in   std_logic;                     --//
 p_out_eth_txbuf_empty     : out  std_logic;                     --//

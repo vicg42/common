@@ -70,7 +70,7 @@ p_out_eth_rxd_eof      : out  std_logic;
 p_in_eth_txbuf_dout    : in   std_logic_vector(31 downto 0);
 p_out_eth_txbuf_rd     : out  std_logic;
 p_in_eth_txbuf_empty   : in   std_logic;
-p_in_eth_txd_rdy       : in   std_logic;
+--p_in_eth_txd_rdy       : in   std_logic;
 
 --------------------------------------------------
 --ETH Driver

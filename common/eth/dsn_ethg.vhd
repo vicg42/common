@@ -76,7 +76,7 @@ p_out_eth_rxd_eof      : out  std_logic;
 p_in_eth_txbuf_dout    : in   std_logic_vector(31 downto 0);
 p_out_eth_txbuf_rd     : out  std_logic;
 p_in_eth_txbuf_empty   : in   std_logic;
-p_in_eth_txd_rdy       : in   std_logic;
+--p_in_eth_txd_rdy       : in   std_logic;
 
 --------------------------------------------------
 --ETH Driver
@@ -225,7 +225,7 @@ signal i_eth_rxd_eof                     : std_logic_vector(C_GTCH_COUNT_MAX-1 d
 signal i_eth_txbuf_dout                  : TBusUsrBUF_GTCH;
 signal i_eth_txbuf_rd                    : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_eth_txbuf_empty                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_eth_txd_rdy                     : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--signal i_eth_txd_rdy                     : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
 signal mac0_gtp_clk125_o                 : std_logic;
@@ -383,8 +383,8 @@ p_out_eth_txbuf_rd<=i_eth_txbuf_rd(0);
 
 i_eth_txbuf_empty(0)<=p_in_eth_txbuf_empty;
 i_eth_txbuf_empty(1)<=p_in_eth_txbuf_empty;
-i_eth_txd_rdy(0)<=p_in_eth_txd_rdy;
-i_eth_txd_rdy(1)<=p_in_eth_txd_rdy;
+--i_eth_txd_rdy(0)<=p_in_eth_txd_rdy;
+--i_eth_txd_rdy(1)<=p_in_eth_txd_rdy;
 
 
 i_eth_cfg(0)<=h_reg_eth_cfg;
@@ -424,7 +424,7 @@ p_out_eth_rxd_eof      => i_eth_rxd_eof,
 p_in_eth_txbuf_dout    => i_eth_txbuf_dout,
 p_out_eth_txbuf_rd     => i_eth_txbuf_rd,
 p_in_eth_txbuf_empty   => i_eth_txbuf_empty,
-p_in_eth_txd_rdy       => i_eth_txd_rdy,
+--p_in_eth_txd_rdy       => i_eth_txd_rdy,
 
 --------------------------------------------------
 --ETH Driver
@@ -466,8 +466,8 @@ p_out_eth_gt_refclkout<=mac0_gtp_clk125;
 
 p_out_eth_rxbuf_din<=p_in_eth_txbuf_dout;
 p_out_eth_rxbuf_wr<= not p_in_eth_txbuf_empty and not p_in_eth_rxbuf_full;
-p_out_eth_rxd_sof <=p_in_eth_txd_rdy;
-p_out_eth_rxd_eof <=p_in_eth_txd_rdy;
+p_out_eth_rxd_sof <='0';--p_in_eth_txd_rdy;
+p_out_eth_rxd_eof <='0';--p_in_eth_txd_rdy;
 
 p_out_eth_txbuf_rd  <= not p_in_eth_txbuf_empty;
 

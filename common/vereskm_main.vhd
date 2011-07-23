@@ -417,7 +417,7 @@ signal i_eth_rxbuf_din                  : std_logic_vector(31 downto 0);
 signal i_eth_rxbuf_wr                   : std_logic;
 signal i_eth_rxbuf_empty                : std_logic;
 signal i_eth_rxbuf_full                 : std_logic;
-signal i_eth_txd_rdy                    : std_logic;
+--signal i_eth_txd_rdy                    : std_logic;
 signal i_eth_txbuf_dout                 : std_logic_vector(31 downto 0);
 signal i_eth_txbuf_rd                   : std_logic;
 signal i_eth_txbuf_empty                : std_logic;
@@ -804,45 +804,50 @@ g_usr_highclk<=i_memctrl_pllclk2x0;
 --***********************************************************
 --Модуль конфигурирования устр-в
 --***********************************************************
-m_devcfg : cfgdev
+m_devcfg : cfgdev_host
 port map
 (
 -------------------------------
 --Связь с Хостом
 -------------------------------
-p_in_host_clk        => g_host_clk,
-
-p_out_module_rdy     => i_cfgdev_module_rdy,
-p_out_module_error   => open,
-
-p_out_host_rxbuf_rdy => i_host_devcfg_rxbuf_rdy,
-p_out_host_rxdata    => i_host_devcfg_rxdata,
+p_out_host_rxrdy     => i_host_devcfg_rxbuf_rdy,
+p_out_host_rxd       => i_host_devcfg_rxdata,
 p_in_host_rd         => i_host_devcfg_rd,
 
-p_out_host_txbuf_rdy => i_host_devcfg_txbuf_rdy,
-p_in_host_txdata     => i_host_devcfg_txdata,
-p_in_host_wd         => i_host_devcfg_wd,
-p_in_host_txdata_rdy => i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT),
+p_out_host_txrdy     => i_host_devcfg_txbuf_rdy,
+p_in_host_txd        => i_host_devcfg_txdata,
+p_in_host_wr         => i_host_devcfg_wd,
+
+p_out_host_irq       => i_cfgdev_rx_hirq,
+p_in_host_clk        => g_host_clk,
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     => i_cfgdev_module_rdy,
+p_out_module_error   => open,
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr        => i_cfgdev_devadr,
-p_out_cfg_adr        => i_cfgdev_adr,
-p_out_cfg_adr_ld     => i_cfgdev_adr_ld,
-p_out_cfg_adr_fifo   => i_cfgdev_adr_fifo,
-p_out_cfg_wd         => i_cfgdev_wd,
+p_out_cfg_dadr       => i_cfgdev_devadr,
+p_out_cfg_radr       => i_cfgdev_adr,
+p_out_cfg_radr_ld    => i_cfgdev_adr_ld,
+p_out_cfg_radr_fifo  => i_cfgdev_adr_fifo,
+p_out_cfg_wr         => i_cfgdev_wd,
 p_out_cfg_rd         => i_cfgdev_rd,
 p_out_cfg_txdata     => i_cfgdev_txdata,
 p_in_cfg_rxdata      => i_cfgdev_rxdata,
+p_in_cfg_txrdy       => '1',
+p_in_cfg_rxrdy       => '1',
 
 p_out_cfg_done       => i_cfgdev_done,
-p_out_cfg_rx_set_irq => i_cfgdev_rx_hirq,
 p_in_cfg_clk         => g_host_clk,
 
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst             => "00000000000000000000000000000000",
 p_out_tst            => open,--i_cfgdev_tst_out,
 
 -------------------------------
@@ -852,13 +857,12 @@ p_in_rst => i_cfgdev_module_rst
 );
 
 --//Распределяем управление от блока конфигурирования(cfgdev.vhd) для соотв. модуля проекта:
-i_cfgdev_rxdata<=i_hdd_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, i_cfgdev_devadr'length) else
-                 i_eth_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETHG, i_cfgdev_devadr'length) else
-                 i_vctrl_cfg_rxdata  when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, i_cfgdev_devadr'length) else
-                 i_swt_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, i_cfgdev_devadr'length) else
-                 i_dsntst_cfg_rxdata when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, i_cfgdev_devadr'length) else
-                 i_tmr_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, i_cfgdev_devadr'length) else
-                 i_trcnik_cfg_rxdata when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRACK_NIK, i_cfgdev_devadr'length) else
+i_cfgdev_rxdata<=i_hdd_cfg_rxdata    when i_cfgdev_devadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, 4) else
+                 i_eth_cfg_rxdata    when i_cfgdev_devadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETHG, 4) else
+                 i_vctrl_cfg_rxdata  when i_cfgdev_devadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, 4) else
+                 i_swt_cfg_rxdata    when i_cfgdev_devadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, 4) else
+                 i_dsntst_cfg_rxdata when i_cfgdev_devadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, 4) else
+                 i_tmr_cfg_rxdata    when i_cfgdev_devadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4) else
                  (others=>'0');
 --                 i_trc_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRACK, i_cfgdev_devadr'length) else
 
@@ -977,7 +981,7 @@ p_in_eth_rxbuf_wr         => i_eth_rxbuf_wr,
 p_out_eth_rxbuf_empty     => i_eth_rxbuf_empty,
 p_out_eth_rxbuf_full      => i_eth_rxbuf_full,
 
-p_out_eth_txd_rdy         => i_eth_txd_rdy,
+--p_out_eth_txd_rdy         => i_eth_txd_rdy,
 p_out_eth_txbuf_dout      => i_eth_txbuf_dout,
 p_in_eth_txbuf_rd         => i_eth_txbuf_rd,
 p_out_eth_txbuf_empty     => i_eth_txbuf_empty,
@@ -1078,7 +1082,7 @@ p_out_eth_rxd_eof      => i_eth_rxd_eof,
 p_in_eth_txbuf_dout    => i_eth_txbuf_dout,
 p_out_eth_txbuf_rd     => i_eth_txbuf_rd,
 p_in_eth_txbuf_empty   => i_eth_txbuf_empty,
-p_in_eth_txd_rdy       => i_eth_txd_rdy,
+--p_in_eth_txd_rdy       => i_eth_txd_rdy,
 
 --------------------------------------------------
 --ETH Driver
@@ -1834,7 +1838,7 @@ i_host_rdevctrl_vchsel<=EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT down
 
 
 --//Уст. флаг TXDATA_RDY - данные запсисаны в TXBUF устр-ва с адресом i_host_rdevctrl_hdevadr
-i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT)<=i_host_rdevctrl_txdrdy when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_rdevctrl_hdevadr'length) else '0';
+--i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT)<=i_host_rdevctrl_txdrdy when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_rdevctrl_hdevadr'length) else '0';
 i_dev_txd_rdy(C_HREG_TXDATA_RDY_ETHG_BIT)  <=i_host_rdevctrl_txdrdy when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, i_host_rdevctrl_hdevadr'length) else '0';
 
 --//Запись/Чтение данных из устр-ва с адресом i_host_rdevctrl_hdevadr

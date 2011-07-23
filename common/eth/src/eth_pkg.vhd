@@ -80,7 +80,7 @@ p_out_eth_rxd_eof      : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_eth_txbuf_dout    : in    TBusUsrBUF_GTCH;
 p_out_eth_txbuf_rd     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_in_eth_txbuf_empty   : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_eth_txd_rdy       : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--p_in_eth_txd_rdy       : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --ETH Driver
@@ -179,7 +179,7 @@ p_in_cfg             : in    TEthCfg;
 p_in_txbuf_dout      : in    std_logic_vector(C_ETH_USRBUF_DWIDTH-1 downto 0);
 p_out_txbuf_rd       : out   std_logic;
 p_in_txbuf_empty     : in    std_logic;
-p_in_txd_rdy         : in    std_logic;
+--p_in_txd_rdy         : in    std_logic;
 
 --//------------------------------------
 --//Ñâÿçü ñ Local link TxFIFO

@@ -63,6 +63,7 @@ p_out_dwnp_sof  : out   std_logic;
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst        : in    std_logic_vector(31 downto 0);
 p_out_tst       : out   std_logic_vector(31 downto 0);
 
 --//------------------------------------

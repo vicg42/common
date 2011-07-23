@@ -91,7 +91,7 @@ p_in_eth_rxbuf_wr         : in   std_logic;                     --//
 p_out_eth_rxbuf_empty     : out  std_logic;                     --//
 p_out_eth_rxbuf_full      : out  std_logic;                     --//
 
-p_out_eth_txd_rdy         : out  std_logic;
+--p_out_eth_txd_rdy         : out  std_logic;
 p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
 p_in_eth_txbuf_rd         : in   std_logic;                     --//
 p_out_eth_txbuf_empty     : out  std_logic;                     --//
@@ -250,6 +250,7 @@ p_out_dwnp_sof  : out   std_logic;
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst        : in    std_logic_vector(31 downto 0);
 p_out_tst       : out   std_logic_vector(31 downto 0);
 
 --//------------------------------------
@@ -272,7 +273,7 @@ signal b_rst_eth_bufs                         : std_logic;
 signal b_rst_vctrl_bufs                       : std_logic;
 signal b_ethtxbuf_loopback                    : std_logic;
 signal b_tstdsn_to_ethtxbuf                   : std_logic;
-signal b_ethtxbuf_to_vctrlbufin               : std_logic;
+signal b_ethtxbuf_to_vbufin                   : std_logic;
 signal b_ethtxbuf_to_hddbuf                   : std_logic;
 
 signal syn_eth_rxd                            : std_logic_vector(31 downto 0);
@@ -289,11 +290,11 @@ signal i_hdd_vbuf_fltr_den                    : std_logic;
 signal i_hdd_vbuf_din                         : std_logic_vector(31 downto 0);
 signal i_hdd_vbuf_wr                          : std_logic;
 
-signal hclk_eth_txd_rdy                       : std_logic;
-signal hclk_eth_txd_rdy_cnt                   : std_logic_vector(2 downto 0);
-signal eclk_eth_txd_rdy_dly                   : std_logic_vector(1 downto 0);
-signal eclk_eth_txd_rdy                       : std_logic;
-signal i_eth_txd_rdy                          : std_logic;
+--signal hclk_eth_txd_rdy                       : std_logic;
+--signal hclk_eth_txd_rdy_cnt                   : std_logic_vector(2 downto 0);
+--signal eclk_eth_txd_rdy_dly                   : std_logic_vector(1 downto 0);
+--signal eclk_eth_txd_rdy                       : std_logic;
+--signal i_eth_txd_rdy                          : std_logic;
 signal i_eth_txbuf_din                        : std_logic_vector(31 downto 0);
 signal i_eth_txbuf_wr                         : std_logic;
 signal i_eth_txbuf_dout                       : std_logic_vector(31 downto 0);
@@ -355,17 +356,17 @@ begin
     h_reg_ctrl<=(others=>'0');
     h_reg_tst0<=(others=>'0');
 
-    for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
       h_reg_eth_host_fmask(2*i)  <=(others=>'0');
       h_reg_eth_host_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
       h_reg_eth_hdd_fmask(2*i)  <=(others=>'0');
       h_reg_eth_hdd_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
       h_reg_eth_vctrl_fmask(2*i)  <=(others=>'0');
       h_reg_eth_vctrl_fmask(2*i+1)<=(others=>'0');
     end loop;
@@ -376,27 +377,27 @@ begin
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
 
-        elsif i_cfg_adr_cnt(7 downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (7-log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
         --//Заполняем маски фильтрации пакетов
-          for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
+          for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               h_reg_eth_host_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
               h_reg_eth_host_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(7 downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (7-log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
         --//Заполняем маски фильтрации пакетов
-          for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
+          for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               h_reg_eth_hdd_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
               h_reg_eth_hdd_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(7 downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (7-log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
         --//Заполняем маски фильтрации пакетов
-          for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
+          for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               h_reg_eth_vctrl_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
               h_reg_eth_vctrl_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
@@ -415,11 +416,11 @@ begin
     p_out_cfg_rxdata<=(others=>'0');
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_rd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, 16);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, p_out_cfg_rxdata'length);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=EXT(h_reg_tst0, 16);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=EXT(h_reg_tst0, p_out_cfg_rxdata'length);
 
-        elsif i_cfg_adr_cnt(7 downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (7-log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
         --//Читаем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
@@ -428,7 +429,7 @@ begin
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(7 downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (7-log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
         --//Читаем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
@@ -437,7 +438,7 @@ begin
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(7 downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (7-log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
         --//Читаем маски фильтрации пакетов
           for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
@@ -455,11 +456,11 @@ end process;
 b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
-b_ethtxbuf_loopback<=h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT);
+b_ethtxbuf_loopback  <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT);
 
-b_tstdsn_to_ethtxbuf     <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_ETHTX_BIT);
-b_ethtxbuf_to_vctrlbufin <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_VCTRL_BUFIN_BIT);
-b_ethtxbuf_to_hddbuf     <=h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_TO_HDDBUF_BIT);
+b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
+b_ethtxbuf_to_vbufin <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT);
+b_ethtxbuf_to_hddbuf <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT);
 
 
 
@@ -472,17 +473,17 @@ process(p_in_rst,p_in_eth_clk)
 begin
   if p_in_rst='1' then
 
-    for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
       syn_eth_host_fmask(2*i)  <=(others=>'0');
       syn_eth_host_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
       syn_eth_hdd_fmask(2*i)  <=(others=>'0');
       syn_eth_hdd_fmask(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
+    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
       syn_eth_vctrl_fmask(2*i)  <=(others=>'0');
       syn_eth_vctrl_fmask(2*i+1)<=(others=>'0');
     end loop;
@@ -496,17 +497,17 @@ begin
 
     if p_in_eth_rxd_sof='1' then
 
-      for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
+      for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
         syn_eth_host_fmask(2*i)  <= h_reg_eth_host_fmask(2*i);
         syn_eth_host_fmask(2*i+1)<= h_reg_eth_host_fmask(2*i+1);
       end loop;
 
-      for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
+      for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
         syn_eth_hdd_fmask(2*i)  <= h_reg_eth_hdd_fmask(2*i);
         syn_eth_hdd_fmask(2*i+1)<= h_reg_eth_hdd_fmask(2*i+1);
       end loop;
 
-      for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
+      for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
         syn_eth_vctrl_fmask(2*i)  <= h_reg_eth_vctrl_fmask(2*i);
         syn_eth_vctrl_fmask(2*i+1)<= h_reg_eth_vctrl_fmask(2*i+1);
       end loop;
@@ -536,7 +537,7 @@ end process;
 --//----------------------------------
 i_eth_txbuf_din <=p_in_host_eth_txd     when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_din(31 downto 0);
 i_eth_txbuf_wr  <=p_in_host_eth_wr      when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_wr;
-i_eth_txd_rdy   <=p_in_host_eth_txd_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txd_rdy;
+--i_eth_txd_rdy   <=p_in_host_eth_txd_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txd_rdy;
 
 --//Сигнал хосту EthG TxBUF - готов принять данные
 p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
@@ -566,55 +567,56 @@ rst     => b_rst_eth_bufs
 --//Связь с модулем dsn_ethg.vhd
 --//----------------------------------
 --//Чтение данных из буфера m_eth_txbuf.
-i_eth_txbuf_rd<=    p_in_eth_txbuf_rd when b_ethtxbuf_loopback='0' and (b_ethtxbuf_to_vctrlbufin='0' and b_ethtxbuf_to_hddbuf='0') else
-                not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' and (b_ethtxbuf_to_vctrlbufin='0' and b_ethtxbuf_to_hddbuf='0') else
-                not i_eth_txbuf_empty when b_ethtxbuf_loopback='0' and (b_ethtxbuf_to_vctrlbufin='1' or  b_ethtxbuf_to_hddbuf='1') else
-                '0';
+--i_eth_txbuf_rd<=    p_in_eth_txbuf_rd when b_ethtxbuf_loopback='0' and b_ethtxbuf_to_vbufin='0' and b_ethtxbuf_to_hddbuf='0' else
+--                not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' or  b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
+--                '0';
+i_eth_txbuf_rd<=not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' or  b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
+                p_in_eth_txbuf_rd;
 
 p_out_eth_txbuf_dout <=i_eth_txbuf_dout;
 p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 
 
---//Растягиваем импульс готовности данных для dsn_ethg.vhd
-process(p_in_rst,p_in_host_clk)
-begin
-  if p_in_rst='1' then
-    hclk_eth_txd_rdy_cnt<=(others=>'0');
-    hclk_eth_txd_rdy<='0';
-  elsif p_in_host_clk'event and p_in_host_clk='1' then
-    if i_eth_txd_rdy='1' then
-      hclk_eth_txd_rdy<='1';
-    elsif hclk_eth_txd_rdy_cnt(2)='1' then
-      hclk_eth_txd_rdy<='0';
-    end if;
+----//Растягиваем импульс готовности данных для dsn_ethg.vhd
+--process(p_in_rst,p_in_host_clk)
+--begin
+--  if p_in_rst='1' then
+--    hclk_eth_txd_rdy_cnt<=(others=>'0');
+--    hclk_eth_txd_rdy<='0';
+--  elsif p_in_host_clk'event and p_in_host_clk='1' then
+--    if i_eth_txd_rdy='1' then
+--      hclk_eth_txd_rdy<='1';
+--    elsif hclk_eth_txd_rdy_cnt(2)='1' then
+--      hclk_eth_txd_rdy<='0';
+--    end if;
+--
+--    if hclk_eth_txd_rdy='0' then
+--      hclk_eth_txd_rdy_cnt<=(others=>'0');
+--    else
+--      hclk_eth_txd_rdy_cnt<=hclk_eth_txd_rdy_cnt+1;
+--    end if;
+--  end if;
+--end process;
+--
+----//Пересинхронизация на частоту p_in_eth_clk
+--process(p_in_rst,p_in_eth_clk)
+--begin
+--  if p_in_rst='1' then
+--    eclk_eth_txd_rdy_dly<=(others=>'0');
+--    eclk_eth_txd_rdy<='0';
+--  elsif p_in_eth_clk'event and p_in_eth_clk='1' then
+--    eclk_eth_txd_rdy_dly(0)<=hclk_eth_txd_rdy;
+--    eclk_eth_txd_rdy_dly(1)<=eclk_eth_txd_rdy_dly(0);
+--    --//Фронт
+--    eclk_eth_txd_rdy<=eclk_eth_txd_rdy_dly(0) and not eclk_eth_txd_rdy_dly(1);
+--  end if;
+--end process;
 
-    if hclk_eth_txd_rdy='0' then
-      hclk_eth_txd_rdy_cnt<=(others=>'0');
-    else
-      hclk_eth_txd_rdy_cnt<=hclk_eth_txd_rdy_cnt+1;
-    end if;
-  end if;
-end process;
-
---//Пересинхронизация на частоту p_in_eth_clk + выделение фронта
-process(p_in_rst,p_in_eth_clk)
-begin
-  if p_in_rst='1' then
-    eclk_eth_txd_rdy_dly<=(others=>'0');
-    eclk_eth_txd_rdy<='0';
-  elsif p_in_eth_clk'event and p_in_eth_clk='1' then
-    eclk_eth_txd_rdy_dly(0)<=hclk_eth_txd_rdy;
-    eclk_eth_txd_rdy_dly(1)<=eclk_eth_txd_rdy_dly(0);
-    --//Фронт
-    eclk_eth_txd_rdy<=eclk_eth_txd_rdy_dly(0) and not eclk_eth_txd_rdy_dly(1);
-  end if;
-end process;
-
---//Сигнал модулю dsn_ethg.vhd - есть данные для передачи по EthG
-p_out_eth_txd_rdy<= eclk_eth_txd_rdy and
-                   not i_eth_txbuf_empty and
-                   not b_ethtxbuf_loopback and
-                   not (b_ethtxbuf_to_vctrlbufin or b_ethtxbuf_to_hddbuf);
+----//Сигнал модулю dsn_ethg.vhd - есть данные для передачи по EthG
+--p_out_eth_txd_rdy<= eclk_eth_txd_rdy and
+--                   not i_eth_txbuf_empty and
+--                   not b_ethtxbuf_loopback and
+--                   not (b_ethtxbuf_to_vbufin or b_ethtxbuf_to_hddbuf);
 
 
 
@@ -652,6 +654,7 @@ p_out_dwnp_sof  => open,
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst        => "00000000000000000000000000000000",
 p_out_tst       => open,
 
 --//------------------------------------
@@ -664,7 +667,8 @@ p_in_rst        => b_rst_eth_bufs
 --//Выбор источника данных для буфера m_eth_rxbuf
 i_eth_rxbuf_din <=i_eth_rxbuf_fltr_dout when b_ethtxbuf_loopback='0' else     i_eth_txbuf_dout;
 i_eth_rxbuf_wr  <=i_eth_rxbuf_fltr_den  when b_ethtxbuf_loopback='0' else not i_eth_txbuf_empty;
-i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof  when b_ethtxbuf_loopback='0' else     eclk_eth_txd_rdy;
+--i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof  when b_ethtxbuf_loopback='0' else     eclk_eth_txd_rdy;
+i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof and not b_ethtxbuf_loopback;
 
 --//----------------------------------
 --//Буфер RXDATA для модуля dsn_ethg.vhd
@@ -729,7 +733,11 @@ begin
   if p_in_rst='1' then
     hclk_eth_rxd_rdy<='0';
   elsif p_in_host_clk'event and p_in_host_clk='1' then
+    if b_ethtxbuf_loopback='0' then
     hclk_eth_rxd_rdy<=eclk_eth_rxd_rdy_w;
+    else
+    hclk_eth_rxd_rdy<=p_in_host_eth_txd_rdy;
+    end if;
   end if;
 end process;
 
@@ -771,6 +779,7 @@ p_out_dwnp_sof  => open,
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst        => "00000000000000000000000000000000",
 p_out_tst       => open,
 
 --//------------------------------------
@@ -839,6 +848,7 @@ p_out_dwnp_sof  => open,
 -------------------------------
 --Технологический
 -------------------------------
+p_in_tst        => "00000000000000000000000000000000",
 p_out_tst       => open,
 
 --//------------------------------------
@@ -850,8 +860,8 @@ p_in_rst        => b_rst_vctrl_bufs
 
 --//Выбор источника данных для буфера m_vctrl_vbufin модуля dsn_video_ctrl.vhd
 p_out_vctrl_vbufin_rdy<='0';
-i_vctrl_vbufin_din    <=i_vctrl_vbufin_fltr_dout when b_ethtxbuf_to_vctrlbufin='0' else i_eth_txbuf_dout;
-i_vctrl_vbufin_din_wd <=i_vctrl_vbufin_fltr_den  when b_ethtxbuf_to_vctrlbufin='0' else i_eth_txbuf_rd;
+i_vctrl_vbufin_din    <=i_vctrl_vbufin_fltr_dout when b_ethtxbuf_to_vbufin='0' else i_eth_txbuf_dout;
+i_vctrl_vbufin_din_wd <=i_vctrl_vbufin_fltr_den  when b_ethtxbuf_to_vbufin='0' else i_eth_txbuf_rd;
 
 --//----------------------------------
 --//Входной буфер для модуля dsn_video_ctrl.vhd
