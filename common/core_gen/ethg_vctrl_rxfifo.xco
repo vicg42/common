@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 12.3
-# Date: Sat Dec 04 08:39:10 2010
+# Xilinx Core Generator version 13.2
+# Date: Tue Jul 19 12:34:19 2011
 #
 ##############################################################
 #
@@ -12,13 +12,17 @@
 #
 ##############################################################
 #
+#  Generated from component: xilinx.com:ip:fifo_generator:8.2
+#
+##############################################################
+#
 # BEGIN Project Options
 SET addpads = false
 SET asysymbol = true
 SET busformat = BusFormatAngleBracketNotRipped
 SET createndf = false
 SET designentry = VHDL
-SET device = xc5vlx110t
+SET device = xc5vlx50t
 SET devicefamily = virtex5
 SET flowvendor = Other
 SET formalverification = false
@@ -32,7 +36,7 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT Fifo_Generator family Xilinx,_Inc. 7.2
+SELECT Fifo_Generator xilinx.com:ip:fifo_generator:8.2
 # END Select
 # BEGIN Parameters
 CSET add_ngc_constraint_axi=false
@@ -86,6 +90,7 @@ CSET enable_handshake_flag_options_wach=false
 CSET enable_handshake_flag_options_wdch=false
 CSET enable_handshake_flag_options_wrch=false
 CSET enable_read_channel=false
+CSET enable_read_pointer_increment_by2=false
 CSET enable_reset_synchronization=true
 CSET enable_ruser=false
 CSET enable_tdata=false
@@ -170,6 +175,12 @@ CSET rdch_type=FIFO
 CSET read_clock_frequency=1
 CSET read_data_count=false
 CSET read_data_count_width=12
+CSET register_slice_mode_axis=Fully_Registered
+CSET register_slice_mode_rach=Fully_Registered
+CSET register_slice_mode_rdch=Fully_Registered
+CSET register_slice_mode_wach=Fully_Registered
+CSET register_slice_mode_wdch=Fully_Registered
+CSET register_slice_mode_wrch=Fully_Registered
 CSET reset_pin=true
 CSET reset_type=Asynchronous_Reset
 CSET ruser_width=1
@@ -199,5 +210,8 @@ CSET write_data_count=false
 CSET write_data_count_width=12
 CSET wuser_width=1
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2011-03-14T07:12:32.000Z
+# END Extra information
 GENERATE
-# CRC: 42f0094b
+# CRC: e71728d5

@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.2
-# Date: Tue Jul 19 12:27:20 2011
+# Date: Thu Jul 21 07:25:33 2011
 #
 ##############################################################
 #
@@ -40,7 +40,7 @@ SELECT ILA_(ChipScope_Pro_-_Integrated_Logic_Analyzer) family Xilinx,_Inc. 1.04.
 # END Select
 # BEGIN Parameters
 CSET check_bramcount=false
-CSET component_name=dbgcs_sata_layer
+CSET component_name=dbgcs_sata_raid
 CSET counter_width_1=Disabled
 CSET counter_width_10=Disabled
 CSET counter_width_11=Disabled
@@ -57,7 +57,7 @@ CSET counter_width_6=Disabled
 CSET counter_width_7=Disabled
 CSET counter_width_8=Disabled
 CSET counter_width_9=Disabled
-CSET data_port_width=123
+CSET data_port_width=173
 CSET data_same_as_trigger=false
 CSET disable_save_keep=false
 CSET enable_storage_qualification=true
@@ -134,4 +134,4 @@ CSET trigger_port_width_9=8
 CSET use_rpms=true
 # END Parameters
 GENERATE
-# CRC: 644d86d1
+# CRC: d249cd84

@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.1
-# Date: Wed Jun 08 12:23:50 2011
+# Xilinx Core Generator version 13.2
+# Date: Tue Jul 19 12:24:42 2011
 #
 ##############################################################
 #
@@ -9,6 +9,10 @@
 #  Xilinx CORE Generator IP GUI. It is strongly recommended
 #  that you do not manually alter this file as it may cause
 #  unexpected and unsupported behavior.
+#
+##############################################################
+#
+#  Generated from component: xilinx.com:ip:chipscope_icon:1.05.a
 #
 ##############################################################
 #

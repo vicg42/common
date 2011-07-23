@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 12.3
-# Date: Thu Dec 09 13:36:55 2010
+# Xilinx Core Generator version 13.2
+# Date: Thu Jul 21 05:38:02 2011
 #
 ##############################################################
 #
@@ -9,6 +9,10 @@
 #  Xilinx CORE Generator IP GUI. It is strongly recommended
 #  that you do not manually alter this file as it may cause
 #  unexpected and unsupported behavior.
+#
+##############################################################
+#
+#  Generated from component: xilinx.com:ip:mult_gen:11.2
 #
 ##############################################################
 #
@@ -32,7 +36,7 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT Multiplier family Xilinx,_Inc. 11.2
+SELECT Multiplier xilinx.com:ip:mult_gen:11.2
 # END Select
 # BEGIN Parameters
 CSET ccmimp=Distributed_Memory
@@ -57,5 +61,8 @@ CSET use_custom_output_width=false
 CSET userounding=false
 CSET zerodetect=false
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2011-06-21T06:26:54.000Z
+# END Extra information
 GENERATE
-# CRC: 39af09d1
+# CRC: e9f91dfa

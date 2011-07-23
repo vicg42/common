@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.1
-# Date: Mon Jun 06 06:54:42 2011
+# Xilinx Core Generator version 13.2
+# Date: Tue Jul 19 12:14:48 2011
 #
 ##############################################################
 #
@@ -12,13 +12,17 @@
 #
 ##############################################################
 #
+#  Generated from component: xilinx.com:ip:chipscope_ila:1.04.a
+#
+##############################################################
+#
 # BEGIN Project Options
 SET addpads = false
 SET asysymbol = true
 SET busformat = BusFormatAngleBracketNotRipped
 SET createndf = false
 SET designentry = VHDL
-SET device = xc5vlx110t
+SET device = xc5vlx50t
 SET devicefamily = virtex5
 SET flowvendor = Other
 SET formalverification = false
@@ -35,6 +39,7 @@ SET vhdlsim = true
 SELECT ILA_(ChipScope_Pro_-_Integrated_Logic_Analyzer) family Xilinx,_Inc. 1.04.a
 # END Select
 # BEGIN Parameters
+CSET check_bramcount=false
 CSET component_name=dbgcs_sata_rambuf
 CSET counter_width_1=Disabled
 CSET counter_width_10=Disabled
@@ -129,4 +134,4 @@ CSET trigger_port_width_9=8
 CSET use_rpms=true
 # END Parameters
 GENERATE
-# CRC: 72bdd715
+# CRC: f6601d26
