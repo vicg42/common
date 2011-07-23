@@ -229,19 +229,25 @@ S_MEM_RD,
 S_ROW_NXT,
 S_WAIT_DRDY,
 S_WAIT_DRDY2,
-S_MEM_STARTW1,
-S_MEM_WD1,
-S_MEM_STARTW2,
-S_MEM_WD2,
+S_MEM_STARTW_CNTKT,
+S_MEM_W_CNTKT,
+S_MEM_START_DKT,
+S_MEM_W_DKT,
 S_EXIT_CHK,
 S_WAIT_HOST_ACK
 );
 signal fsm_state_cs: fsm_state;
 
+signal i_dlycnt                      : std_logic_vector(2 downto 0);
+
 signal tmp_vch_vfrrdy                : std_logic_vector(C_DSN_VCTRL_VCH_MAX_COUNT-1 downto 0);
 signal i_vch_vfrrdy                  : std_logic;
 signal i_vch_prm                     : TReaderVCHParam;
 signal i_vch_num                     : std_logic_vector(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT-C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT downto 0);
+
+signal i_vfr_active_pix_byte         : std_logic_vector(15+2 downto 0);
+signal i_1el_ebmax_byte              : std_logic_vector(i_vfr_active_pix_byte'range);
+signal i_1el_ebmax_dword             : std_logic_vector(i_vfr_active_pix_byte'range);
 
 --signal i_vfr_frmrk                   : std_logic_vector(31 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
@@ -278,6 +284,7 @@ signal i_trc_rxrdy_n                 : std_logic;
 signal i_trc_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)+1 downto 0);
 signal i_trc_ebout                   : TTrcNikEBOs;
 
+signal i_trccore_skip_ip             : std_logic;
 signal i_trccore_fst_calc_skip       : std_logic;
 signal i_trccore_ctrl                : TTrcNikCoreCtrl;
 signal i_trccore_status              : TTrcNikCoreStatus;
@@ -478,10 +485,10 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD else
 --              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
 --              CONV_STD_LOGIC_VECTOR(16#09#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_DRDY else
---              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW1 else
---              CONV_STD_LOGIC_VECTOR(16#0B#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD1 else
---              CONV_STD_LOGIC_VECTOR(16#0C#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW2 else
---              CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WD2 else
+--              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_MEM_STARTW_CNTKT else
+--              CONV_STD_LOGIC_VECTOR(16#0B#,tst_fsmstate'length) when fsm_state_cs=S_MEM_W_CNTKT else
+--              CONV_STD_LOGIC_VECTOR(16#0C#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START_DKT else
+--              CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsmstate'length) when fsm_state_cs=S_MEM_W_DKT else
 --              CONV_STD_LOGIC_VECTOR(16#0E#,tst_fsmstate'length) when fsm_state_cs=S_EXIT_CHK else
 --              CONV_STD_LOGIC_VECTOR(16#0F#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length);-- when fsm_state_cs=S_IDLE else
@@ -571,11 +578,19 @@ i_mem_ktcnt_size<=CONV_STD_LOGIC_VECTOR(16#10000#, i_mem_ktcnt_size'length) when
                   CONV_STD_LOGIC_VECTOR(16#20000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(2, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#30000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(3, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#40000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(4, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#50000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(5, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#60000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(6, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#70000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(7, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#80000#, i_mem_ktcnt_size'length) when i_vfrsize="00" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(8, i_nik_ip_count'length) else
 
                   CONV_STD_LOGIC_VECTOR(16#01400#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(1, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#02800#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(2, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#03C00#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(3, i_nik_ip_count'length) else
                   CONV_STD_LOGIC_VECTOR(16#05000#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(4, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#06400#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(5, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#07800#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(6, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#08C00#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(7, i_nik_ip_count'length) else
+--                  CONV_STD_LOGIC_VECTOR(16#0A000#, i_mem_ktcnt_size'length) when i_vfrsize="01" and i_nik_ip_count=CONV_STD_LOGIC_VECTOR(8, i_nik_ip_count'length) else
 
                   CONV_STD_LOGIC_VECTOR(16#40000#, i_mem_ktcnt_size'length);
 
@@ -588,6 +603,9 @@ i_mem_kt_base<=i_trc_prm.mem_arbuf + i_mem_ktcnt_size;
 i_vch_prm.fr_size.activ.row<=EXT(i_vfr_active_row, i_vch_prm.fr_size.activ.row'length);
 i_vch_prm.fr_mirror<=i_vfr_mirror;
 
+i_vfr_active_pix_byte<=i_vch_prm.fr_size.activ.pix&"00";
+i_1el_ebmax_byte<=EXT(i_vfr_active_pix_byte(i_vfr_active_pix_byte'high downto 2), i_1el_ebmax_byte'length);
+i_1el_ebmax_dword<=EXT(i_1el_ebmax_byte(i_1el_ebmax_byte'high downto 2), i_1el_ebmax_dword'length);
 
 --//Логика работы автомата
 process(p_in_rst,p_in_clk)
@@ -630,7 +648,6 @@ begin
     i_vch_prm.fr_pcolor<='0';
     i_vch_prm.fr_zoom<=(others=>'0');
     i_vch_prm.fr_zoom_type<='0';
-    i_vch_prm.fr_subsampling<=(others=>'0');
 
     for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
       i_trc_prm.ip(i).p1<=(others=>'0');
@@ -643,8 +660,9 @@ begin
     i_trc_work<='0';
     i_trc_busy<=(others=>'0');
     i_trc_dsize<=(others=>'0');
-
     i_trc_ebcnty<=(others=>'0');
+
+    i_trccore_skip_ip<='0';
     i_trccore_fst_calc_skip<='0';
     i_trccore_ctrl.start<='0';
     i_trccore_ctrl.fr_new<='0';
@@ -653,6 +671,7 @@ begin
     i_hpkt_header_cnt<=(others=>'0');
 
     g_trcbufo_dout_en<='0';
+    i_dlycnt<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -889,25 +908,43 @@ begin
       when S_WAIT_DRDY =>
 
         i_trccore_ctrl.mem_done<='0';
-        fsm_state_cs <= S_WAIT_DRDY2;
+
+        if i_trccore_status.skip_ip='1' then
+          i_trccore_skip_ip<='1';--//Пропускаем текущий ИП. Т.е для текущй ЭС значения для всех счетчиков КТ равны 0 + Выделеных КТ нет!
+          fsm_state_cs <= S_MEM_STARTW_CNTKT;
+
+        else
+          if i_dlycnt(2)='1' then
+            i_dlycnt<=(others=>'0');
+            fsm_state_cs <= S_WAIT_DRDY2;
+          else
+            i_dlycnt<=i_dlycnt + 1;
+          end if;
+        end if;
 
       when S_WAIT_DRDY2 =>
 
         if i_trccore_status.drdy='1' then
-          fsm_state_cs <= S_MEM_STARTW1;
+          fsm_state_cs <= S_MEM_STARTW_CNTKT;
+
+        elsif i_trccore_status.skip_ip='1' then
+
+          i_trccore_skip_ip<='1';
+          fsm_state_cs <= S_MEM_STARTW_CNTKT;
+
         end if;
 
       --//------------------------------------
       --//Запись данных ОЗУ (значения счетчиков данных ЭБ)
       --//------------------------------------
-      when S_MEM_STARTW1 =>
+      when S_MEM_STARTW_CNTKT =>
 
         i_hpkt_header_cnt<=(others=>'0');
 
-        if i_nik_ip_count=CONV_STD_LOGIC_VECTOR(3, i_nik_ip_count'length) then
-          i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(3, i_mem_dlen_rq'length);--//размер в DW, т.е записываем 12 счетчиков
+        if i_trccore_skip_ip='0' then
+        i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(4, i_mem_dlen_rq'length);--//размер в DW, т.е записываем 16 счетчиков
         else
-          i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(4, i_mem_dlen_rq'length);--//размер в DW, т.е записываем 16 счетчиков
+        i_mem_dlen_rq <= i_1el_ebmax_dword(i_mem_dlen_rq'range);--//размер в DW,
         end if;
 
         i_mem_adr<=i_mem_ktcnt_base + i_mem_wdptr_ktcnt;
@@ -915,16 +952,16 @@ begin
         i_mem_dir<=C_MEMCTRLCHWR_WRITE;
         i_mem_start<='1';
 
-        fsm_state_cs <= S_MEM_WD1;
+        fsm_state_cs <= S_MEM_W_CNTKT;
 
       --//----------------------------------------------
       --//Запись данных
       --//----------------------------------------------
-      when S_MEM_WD1 =>
+      when S_MEM_W_CNTKT =>
 
         i_mem_start<='0';
 
-        if i_mem_din_en='1' then
+        if i_mem_din_en='1' and i_trccore_skip_ip='0' then
           i_hpkt_header_cnt<=i_hpkt_header_cnt+1;
         end if;
 
@@ -934,12 +971,14 @@ begin
           --//Update adr
           i_mem_wdptr_ktcnt<=i_mem_wdptr_ktcnt + ("0000000000000000"&i_mem_dlen_rq(13 downto 0)&"00");--//Адрес в байтах
 
+          i_trccore_skip_ip<='0';
+
           if i_trcbufo_empty='0' then
           --//Есть выделеные КТ. Переходим к записи в ОЗУ
-            fsm_state_cs <= S_MEM_STARTW2;
+            fsm_state_cs <= S_MEM_START_DKT;
           else
 
-              i_trccore_ctrl.mem_done<='1';
+              i_trccore_ctrl.mem_done<='1';--//Сигнализируем модулю trccore, что запись в ОЗУ завершена
 
               if i_trccore_status.idle='1' then
                 fsm_state_cs <= S_EXIT_CHK;
@@ -953,7 +992,7 @@ begin
       --//------------------------------------
       --//Запись данных ОЗУ (выделеные КТ ЭБ)
       --//------------------------------------
-      when S_MEM_STARTW2 =>
+      when S_MEM_START_DKT =>
 
         g_trcbufo_dout_en<='1';
         i_mem_dlen_rq <= i_hpkt_payload_dsize;--//размер в DW
@@ -962,12 +1001,12 @@ begin
         i_mem_dir<=C_MEMCTRLCHWR_WRITE;
         i_mem_start<='1';
 
-        fsm_state_cs <= S_MEM_WD2;
+        fsm_state_cs <= S_MEM_W_DKT;
 
       --//----------------------------------------------
       --//Запись данных
       --//----------------------------------------------
-      when S_MEM_WD2 =>
+      when S_MEM_W_DKT =>
 
         i_mem_start<='0';
 
@@ -978,9 +1017,13 @@ begin
           i_mem_wdptr_kt<=i_mem_wdptr_kt + ("0000000000000000"&i_mem_dlen_rq(13 downto 0)&"00");--//Адрес в байтах
 
           g_trcbufo_dout_en<='0';
-          i_trccore_ctrl.mem_done<='1';
+          i_trccore_ctrl.mem_done<='1';--//Сигнализируем модулю trccore, что запись в ОЗУ завершена
 
-          if i_trccore_status.idle='1' then
+          if i_trccore_status.skip_ip='1' then
+            i_trccore_skip_ip<='1';--//Пропускаем текущий ИП. Т.е для текущй ЭС значения для всех счетчиков КТ равны 0 + Выделеных КТ нет!
+            fsm_state_cs <= S_MEM_STARTW_CNTKT;
+
+          elsif i_trccore_status.idle='1' then
             fsm_state_cs <= S_EXIT_CHK;
           else
             fsm_state_cs <= S_WAIT_DRDY;
@@ -1181,10 +1224,14 @@ i_hpkt_header_data<=i_hpkt_header(3) when i_hpkt_header_cnt=CONV_STD_LOGIC_VECTO
                     i_hpkt_header(0);
 end generate gen_hd4;
 
-i_mem_din<=i_hpkt_header_data when g_trcbufo_dout_en='0' else i_trcbufo_dout;
-i_trc_txrdy_n<=i_trcbufo_empty and g_trcbufo_dout_en;
+--//Если пропускаю ИП, что все соотвю счетчики =0
+i_mem_din<=(others=>'0')      when i_trccore_skip_ip='1' else
+           i_hpkt_header_data when g_trcbufo_dout_en='0' else i_trcbufo_dout;
 
-i_trcbufo_dout_en<=i_mem_din_en and g_trcbufo_dout_en;
+i_trc_txrdy_n<=i_trcbufo_empty and g_trcbufo_dout_en and not i_trccore_skip_ip;
+
+i_trcbufo_dout_en<=i_mem_din_en and g_trcbufo_dout_en and not i_trccore_skip_ip;
+
 
 m_trcbufo : trc_nik_bufout
 port map
