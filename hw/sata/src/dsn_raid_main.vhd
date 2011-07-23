@@ -381,7 +381,7 @@ p_out_sata_gt_plldet<=AND_reduce(i_sh_gt_pllkdet(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1
 p_out_sata_dcm_lock<=i_sh_dcm_lock;
 
 p_out_dbgcs.sh<=i_dbgcs_satah;
-p_out_dbgcs.raid<=(others=>'0');--i_dbgcs_raid;
+p_out_dbgcs.raid<=i_dbgcs_raid;
 
 
 --//#############################################

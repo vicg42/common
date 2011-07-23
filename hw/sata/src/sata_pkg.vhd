@@ -146,10 +146,10 @@ constant C_RAIDCMD_LBAEND                 : integer:=3;--//установка конечного а
 constant C_SATACMD_NULL                   : integer:=0;
 constant C_SATACMD_ATACOMMAND             : integer:=1;
 constant C_SATACMD_ATACONTROL             : integer:=2;
-constant C_SATACMD_FPDMA_W                : integer:=3;
-constant C_SATACMD_FPDMA_R                : integer:=4;
-constant C_SATACMD_SET_SATA1              : integer:=5;
-constant C_SATACMD_SET_SATA2              : integer:=6;
+constant C_SATACMD_SET_SATA1              : integer:=3;
+constant C_SATACMD_SET_SATA2              : integer:=4;
+--constant C_SATACMD_FPDMA_W                : integer:=3;
+--constant C_SATACMD_FPDMA_R                : integer:=4;
 constant C_SATACMD_COUNT                  : integer:=C_SATACMD_SET_SATA2+1;
 
 
@@ -234,16 +234,17 @@ constant C_ASERR_F_DIAG_BIT              : integer:=25;--//Transport Layer: FIS 
 constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_F_DIAG_BIT;
 
 --//Поле - User/ Bit Map:
-constant C_AUSER_BUSY_BIT                : integer:=0;
-constant C_AUSER_DWR_START_BIT           : integer:=1;--//Растягивание Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
-constant C_AUSER_LLRXP_HOLD_BIT          : integer:=2;--
-constant C_AUSER_LLTXP_HOLD_BIT          : integer:=3;--
-constant C_AUSER_TLTX_ON_BIT             : integer:=4;--
-constant C_AUSER_TLRX_ON_BIT             : integer:=5;--
---constant C_AUSER_LLTX_ON_BIT             : integer:=6;--
---constant C_AUSER_LLRX_ON_BIT             : integer:=7;--
---constant C_AUSER_RESERV_BIT              : integer:=6;
-constant C_ALUSER_LAST_BIT               : integer:=C_AUSER_TLRX_ON_BIT;
+constant C_AUSR_BSY_BIT                  : integer:=0;
+constant C_AUSR_ERR_BIT                  : integer:=1;
+constant C_AUSR_DWR_START_BIT            : integer:=2;--//Растягивание Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
+constant C_AUSR_LLRXP_HOLD_BIT           : integer:=3;--
+constant C_AUSR_LLTXP_HOLD_BIT           : integer:=4;--
+constant C_AUSR_TLTX_ON_BIT              : integer:=5;--
+constant C_AUSR_TLRX_ON_BIT              : integer:=6;--
+--constant C_AUSR_LLTX_ON_BIT              : integer:=7;--
+--constant C_AUSR_LLRX_ON_BIT              : integer:=8;--
+--constant C_AUSR_RESERV_BIT               : integer:=9;
+constant C_ALUSR_LAST_BIT                : integer:=C_AUSR_TLRX_ON_BIT;
 
 
 --//-------------------------------------------------
@@ -658,7 +659,7 @@ sstatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 serror    : std_logic_vector(C_ALSERR_LAST_BIT downto 0);
 ipf       : std_logic;
 fpdma     : TRegFPDMASetup;
-usr       : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
+usr       : std_logic_vector(C_ALUSR_LAST_BIT downto 0);
 end record;
 
 type TTxBufStatus is record
@@ -740,7 +741,7 @@ type TATAStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector
 
 --//
 type TMeasureALStatus is record
-usr : std_logic_vector(C_ALUSER_LAST_BIT downto 0);
+usr : std_logic_vector(C_ALUSR_LAST_BIT downto 0);
 end record;
 type TMeasureALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TMeasureALStatus;
 

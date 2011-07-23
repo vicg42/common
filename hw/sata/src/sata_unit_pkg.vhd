@@ -49,8 +49,13 @@ p_in_phy_rxtype   : in   std_logic_vector(C_TDATA_EN downto C_TALIGN);
 p_in_phy_rxdata   : in   std_logic_vector(31 downto 0);
 p_in_phy_sync     : in   std_logic;
 
+p_in_reg_hold     : in    TRegHold;
+p_in_reg_update   : in    TRegShadowUpdate;
+
 p_in_ll_rxd       : in   std_logic_vector(31 downto 0);
 p_in_ll_rxd_wr    : in   std_logic;
+p_in_ll_txd       : in   std_logic_vector(31 downto 0);
+p_in_ll_txd_rd    : in   std_logic;
 
 p_in_gt_rxdata    : in std_logic_vector(31 downto 0);
 p_in_gt_rxcharisk : in std_logic_vector(3 downto 0);

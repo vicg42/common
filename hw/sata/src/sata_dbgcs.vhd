@@ -59,8 +59,13 @@ p_in_phy_rxtype   : in    std_logic_vector(C_TDATA_EN downto C_TALIGN);
 p_in_phy_rxdata   : in    std_logic_vector(31 downto 0);
 p_in_phy_sync     : in    std_logic;
 
+p_in_reg_hold     : in    TRegHold;
+p_in_reg_update   : in    TRegShadowUpdate;
+
 p_in_ll_rxd       : in    std_logic_vector(31 downto 0);
 p_in_ll_rxd_wr    : in    std_logic;
+p_in_ll_txd       : in    std_logic_vector(31 downto 0);
+p_in_ll_txd_rd    : in    std_logic;
 
 p_in_gt_rxdata    : in    std_logic_vector(31 downto 0);
 p_in_gt_rxcharisk : in    std_logic_vector(3 downto 0);
@@ -84,7 +89,7 @@ end sata_dbgcs;
 architecture behavioral of sata_dbgcs is
 
 signal i_dbgcs_trig00              : std_logic_vector(41 downto 0);
-signal i_dbgcs_data                : std_logic_vector(122 downto 0);
+signal i_dbgcs_data                : std_logic_vector(155 downto 0);--(122 downto 0);
 
 signal i_fsm_ploob                 : std_logic_vector(3 downto 0);
 signal i_fsm_llayer                : std_logic_vector(4 downto 0);
@@ -95,6 +100,9 @@ signal i_fsm_tlayer                : std_logic_vector(4 downto 0);
 
 signal sr_ipf_bit                  : std_logic_vector(1 downto 0);
 signal i_ipf_bit_det               : std_logic;
+
+signal i_tst_cnt                   : std_logic_vector(15 downto 0);
+signal tst_trm_timeout             : std_logic_vector(7 downto 0):=(others=>'0');
 
 
 --MAIN
@@ -162,7 +170,7 @@ i_dbgcs_trig00(25)<=i_ipf_bit_det;--tst_sync;--p_in_alstatus.serror(C_ASERR_C_DI
 i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
 i_dbgcs_trig00(34 downto 30)<=i_fsm_llayer(4 downto 0);
 i_dbgcs_trig00(39 downto 35)<=i_fsm_tlayer(4 downto 0);
-i_dbgcs_trig00(40)<=p_in_dbg.tlayer.other_status.fdir_bit;
+i_dbgcs_trig00(40)<=tst_trm_timeout(7);--p_in_dbg.tlayer.other_status.fdir_bit;
 i_dbgcs_trig00(41)<=p_in_dbg.tlayer.other_status.fpiosetup;
 
 
@@ -182,8 +190,8 @@ i_dbgcs_data(33)<=p_in_alstatus.serror(C_ASERR_P_ERR_BIT) or
                   p_in_alstatus.atastatus(C_ATA_STATUS_ERR_BIT);
 
 
-i_dbgcs_data(34)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_dbgcs_data(35)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+i_dbgcs_data(34)<=p_in_dbg.alayer.cmd_busy;--p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+i_dbgcs_data(35)<=p_in_dbg.tlayer.other_status.fpiosetup;--p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
 
 i_dbgcs_data(36)<=p_in_alstatus.serror(C_ASERR_F_DIAG_BIT);--: integer:=25;--//Transport Layer:  CRC-OK, but FISTYPE/FISLEN ERROR
 i_dbgcs_data(37)<=p_in_alstatus.serror(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
@@ -202,25 +210,65 @@ i_dbgcs_data(48)<=p_in_phy_txreq(4);
 
 i_dbgcs_data(49)<=p_in_ll_rxd_wr;
 i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);
+--i_dbgcs_data(65 downto 50)<=p_in_ll_rxd(15 downto 0);
 
-i_dbgcs_data(97 downto 82)<=p_in_gt_rxdata(15 downto 0);
-i_dbgcs_data(99 downto 98)<=p_in_gt_rxcharisk(1 downto 0);
+i_dbgcs_data(97 downto 82)<=p_in_ll_txd(15 downto 0);--p_in_gt_rxdata(15 downto 0);
+i_dbgcs_data(98)<=p_in_dbg.llayer.rxbuf_status.pfull; --p_in_gt_rxcharisk(0);
+i_dbgcs_data(99)<=p_in_dbg.llayer.txbuf_status.pfull; --p_in_gt_rxcharisk(1);
 
-i_dbgcs_data(115 downto 100)<=p_in_gt_txdata(15 downto 0);
+i_dbgcs_data(115 downto 100)<=p_in_dbg.tlayer.other_status.dcnt;--i_tst_cnt;--p_in_gt_txdata(15 downto 0);
 
-i_dbgcs_data(116)<='0';
-i_dbgcs_data(117)<='0';
-i_dbgcs_data(118)<=p_in_gt_txcharisk(0);
-i_dbgcs_data(119)<=p_in_gt_txcharisk(1);
+i_dbgcs_data(116)<=p_in_ll_txd_rd;
+i_dbgcs_data(117)<=p_in_dbg.llayer.txd_close;
+
+i_dbgcs_data(118)<=p_in_dbg.llayer.txbuf_status.aempty; --p_in_gt_txcharisk(0);
+i_dbgcs_data(119)<=p_in_dbg.llayer.txbuf_status.empty; --p_in_gt_txcharisk(1);
 i_dbgcs_data(120)<=p_in_alstatus.ipf;--p_in_dbg.tlayer.other_status.irq;
 i_dbgcs_data(121)<=p_in_dbg.tlayer.other_status.firq_bit;
-i_dbgcs_data(122)<=p_in_alstatus.Usr(C_AUSER_BUSY_BIT);
+i_dbgcs_data(122)<=p_in_alstatus.atastatus(C_ATA_STATUS_BUSY_BIT);
 
+
+i_dbgcs_data(123)<=p_in_dbg.alayer.opt.err_clr;
+i_dbgcs_data(131 downto 124)<=p_in_alstatus.atastatus;--ATA reg
+i_dbgcs_data(139 downto 132)<=p_in_reg_hold.status;--tlayer
+i_dbgcs_data(147 downto 140)<=p_in_reg_hold.e_status;--tlayer
+
+i_dbgcs_data(148)<=p_in_reg_update.fd2h;  --//Обновление Shadow Reg по приему FIS_DEV2HOST
+i_dbgcs_data(149)<=p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FIS_PIOSETUP
+i_dbgcs_data(150)<=p_in_reg_update.fpio_e;--//Обновление Shadow Reg в результате корректного завершения АТА комманды
+i_dbgcs_data(151)<=p_in_reg_update.fsdb;  --//Обновление Shadow Reg по приему FIS_SetDevice_Bits
+
+i_dbgcs_data(152)<=p_in_dbg.alayer.opt.link_up;
+i_dbgcs_data(153)<=p_in_dbg.alayer.opt.link_break;
+i_dbgcs_data(154)<=p_in_dbg.alayer.opt.reg_shadow_wr_done;
+i_dbgcs_data(155)<=p_in_dbg.alayer.opt.reg_shadow_wr;
+
+
+
+if p_in_dbg.tlayer.ctrl.ata_command='1' then
+  i_tst_cnt<=(others=>'0');
+else
+  if p_in_dbg.tlayer.other_status.altxbuf_rd='1' or p_in_dbg.tlayer.other_status.alrxbuf_wr='1' then
+    i_tst_cnt<=i_tst_cnt + 1;
+  end if;
+end if;
 
 
 end if;
 end process;
 
+
+process(p_in_clk)
+begin
+if p_in_clk'event and p_in_clk='1' then
+  --llayer/=S_LT_SendHold
+  if i_dbgcs_data(27 downto 23)=CONV_STD_LOGIC_VECTOR(16#0C#, 5) then
+    tst_trm_timeout<=tst_trm_timeout + 1;
+  else
+    tst_trm_timeout<=(others=>'0');
+  end if;
+end if;
+end process;
 
 
 i_fsm_ploob<=CONV_STD_LOGIC_VECTOR(16#01#, i_fsm_ploob'length) when p_in_dbg.player.oob.fsm=S_HR_COMRESET_DONE  else

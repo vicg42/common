@@ -689,7 +689,7 @@ begin
 
   elsif i_usr_clk'event and i_usr_clk='1' then
 
-    sr_cmdbusy<=i_al_status(0).usr(C_AUSER_BUSY_BIT)& sr_cmdbusy(0 to 0);
+    sr_cmdbusy<=i_al_status(0).usr(C_AUSR_BSY_BIT)& sr_cmdbusy(0 to 0);
 
     if i_cmddone_det_clr='1' then
       i_cmddone_det<='0';
@@ -719,7 +719,8 @@ begin
 end process;
 
 i_satadev_ctrl(0).loopback<=i_loopback;
-i_satadev_ctrl(0).link_establish<='1' when i_al_status(0).serror(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASERR_DET_M_BIT-C_ASERR_DET_L_BIT+1) else '0';
+--i_satadev_ctrl(0).link_establish<='1' when i_al_status(0).sstatus(C_ASERR_DET_M_BIT downto C_ASERR_DET_L_BIT)=CONV_STD_LOGIC_VECTOR(C_ASSTAT_DET_LINK_ESTABLISH, C_ASERR_DET_M_BIT-C_ASERR_DET_L_BIT+1) else '0';
+i_satadev_ctrl(0).link_establish<=i_al_status(0).sstatus(C_ASSTAT_DET_BIT_L+1);
 i_satadev_ctrl(0).dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl(0).dbuf_ruse<='1';
 

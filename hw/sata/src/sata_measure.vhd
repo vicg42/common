@@ -146,12 +146,12 @@ begin
 
     for i in 0 to G_HDD_COUNT-1 loop
 
-      i_sh_tlayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSER_TLRX_ON_BIT);
-      i_sh_tlayer_txon(i)<=p_in_sh_status(i).usr(C_AUSER_TLTX_ON_BIT);
---      i_sh_llayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSER_LLRX_ON_BIT);
---      i_sh_llayer_txon(i)<=p_in_sh_status(i).usr(C_AUSER_LLTX_ON_BIT);
-      i_sh_llayer_txhold(i)<=p_in_sh_status(i).usr(C_AUSER_LLTXP_HOLD_BIT);
-      i_sh_llayer_rxhold(i)<=p_in_sh_status(i).usr(C_AUSER_LLRXP_HOLD_BIT);
+      i_sh_tlayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_TLRX_ON_BIT);
+      i_sh_tlayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_TLTX_ON_BIT);
+--      i_sh_llayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_LLRX_ON_BIT);
+--      i_sh_llayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_LLTX_ON_BIT);
+      i_sh_llayer_txhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLTXP_HOLD_BIT);
+      i_sh_llayer_rxhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLRXP_HOLD_BIT);
 
     end loop;
 

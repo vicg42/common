@@ -1600,6 +1600,9 @@ p_out_dbg.piotrn_sizedw<=EXT(i_piosetup_trncount_dw, p_out_dbg.piotrn_sizedw'len
 p_out_dbg.other_status.firq_bit<=i_tl_status(C_TSTAT_FIS_I_BIT);
 p_out_dbg.other_status.fdir_bit<=i_fdir_bit;
 p_out_dbg.other_status.fpiosetup<=i_fpiosetup;
+p_out_dbg.other_status.dcnt     <=i_fdcnt(15 downto 0);
+p_out_dbg.other_status.altxbuf_rd<=p_in_ll_txd_rd and i_fdata_tx_en and not i_fdata_close;
+p_out_dbg.other_status.alrxbuf_wr<=p_in_ll_rxd_wr and i_rxd_en;
 
 
 --end generate gen_sim_on;

@@ -30,7 +30,7 @@ package sata_sim_lite_pkg is
 ---------------------------------------------------------
 constant C_SIM_SATAHOST_TMR_ALIGN : integer:=10;--//Переиод отправки BURST ALIGN для sata_host.vhd
 
-constant C_SIM_SECTOR_SIZE_BYTE   : integer:=256;--512;--
+constant C_SIM_SECTOR_SIZE_BYTE   : integer:=512;--256;--
 constant C_SIM_SECTOR_SIZE_DWORD  : integer:=C_SIM_SECTOR_SIZE_BYTE/4; --//Размер сеткора в Dword
 constant C_SIM_FR_DWORD_COUNT_MAX : integer:=C_SIM_SECTOR_SIZE_DWORD*2;--//max кол-во Dword в FISDATA между SOF и EOF, исключая FISTYPE и CRC
 
@@ -66,17 +66,20 @@ constant C_PNAME_STR : TString_SataArray21:=
 --//------------------------------
 --//Application Layer
 --//------------------------------
---type TSimALStatus is record
---cmd_name    : string(1 to 23);
---cmd_busy    : std_logic;
---signature   : std_logic;
---end record;
+type TAL_opt_dbgport is record
+link_up           : std_logic;
+link_break        : std_logic;
+reg_shadow_wr_done: std_logic;
+reg_shadow_wr     : std_logic;
+err_clr           : std_logic;
+end record;
 
 type TAL_dbgport is record
 cmd_name    : string(1 to 23);
 cmd_busy    : std_logic;
 signature   : std_logic;
 ipf_bit     : std_logic;
+opt         : TAL_opt_dbgport;
 end record;
 
 --//------------------------------
@@ -100,6 +103,9 @@ firq_bit : std_logic;
 fdir_bit : std_logic;
 fpiosetup: std_logic;
 --irq      : std_logic;
+altxbuf_rd: std_logic;
+alrxbuf_wr: std_logic;
+dcnt      : std_logic_vector(15 downto 0);
 end record;
 
 type TTL_dbgport is record
@@ -203,7 +209,7 @@ end record;
 type TSH_ila is record
 clk   : std_logic;
 trig0 : std_logic_vector(63 downto 0);
-data  : std_logic_vector(159 downto 0);
+data  : std_logic_vector(180 downto 0);
 end record;
 
 type TSH_dbgcs is record
@@ -257,7 +263,7 @@ type TSH_dbgcs_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgcs;
 
 type TSH_dbgcs_exp is record
 sh    : TSH_dbgcs_SHCountMax;
-raid  : std_logic_vector(35 downto 0);
+raid  : TSH_ila;--std_logic_vector(35 downto 0);
 end record;
 
 

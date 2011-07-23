@@ -94,7 +94,7 @@ signal i_reg_shadow_wr_done        : std_logic;
 signal i_reg_shadow                : TRegShadow;
 signal i_reg_sstatus               : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0):=(others=>'0');
 signal i_reg_serror                : std_logic_vector(C_ALSERR_LAST_BIT downto 0):=(others=>'0');
-signal i_reg_usr_status            : std_logic_vector(C_ALUSER_LAST_BIT downto 0):=(others=>'0');
+signal i_reg_usr_status            : std_logic_vector(C_ALUSR_LAST_BIT downto 0):=(others=>'0');
 
 signal i_ata_ipf_bit                 : std_logic;--//IPF - (Interrupt pending flag) или по простому прерывание
 signal i_ata_dev_control_srst_bit_old: std_logic;
@@ -105,10 +105,6 @@ signal i_trn_atacontrol            : std_logic;
 signal sr_link_establish           : std_logic_vector(1 downto 0);
 signal i_link_up                   : std_logic;
 signal i_link_break                : std_logic;
-
-signal i_serr_i_err                : std_logic;
-signal i_serr_p_err                : std_logic;
-signal i_serr_c_err                : std_logic;
 
 signal sr_fd2h                     : std_logic;
 
@@ -134,7 +130,7 @@ begin
     p_out_tst(0 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
-    p_out_tst(0)<=i_ata_ipf_bit;
+    p_out_tst(0)<=i_ata_ipf_bit or i_reg_serror(C_ASERR_I_ERR_BIT);
   end if;
 end process tstout;
 p_out_tst(31 downto 1)<=(others=>'0');
@@ -263,7 +259,7 @@ begin
     --//Значение p_in_reg_hold.e_status - устанавливается из соответствующего поля FIS_PIOSETUP
       i_reg_shadow.status<=p_in_reg_hold.e_status;
 
-    elsif p_in_reg_update.fpio='1'then
+    elsif p_in_reg_update.fpio='1' then
     --//Режим PIO: Обновление регистров по приему FIS_PIOSETUP
         i_reg_shadow.status <= p_in_reg_hold.status;
         i_reg_shadow.error <= p_in_reg_hold.error;
@@ -282,7 +278,7 @@ begin
           i_ata_ipf_bit<='1';
         end if;
 
-    elsif p_in_reg_update.fd2h='1'then
+    elsif p_in_reg_update.fd2h='1' then
     --//Обновление регистров по приему FIS_DEV2HOST
     --//ВАЖНО: Если оба бита BSY и DRQ ='0', то обновление не делаем - в соответвии с Serial ATA Specification v2.5 (2005-10-27).pdf/ пп 10.3.5.3
       if i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT)='1' or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT)='1' then
@@ -399,10 +395,6 @@ begin
     i_link_up<='0';
     i_link_break<='0';
 
-    i_serr_i_err<='0';
-    i_serr_p_err<='0';
-    i_serr_c_err<='0';
-
   elsif p_in_clk'event and p_in_clk='1' then
 
     sr_link_establish(0)<=p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT);
@@ -437,11 +429,10 @@ begin
          p_in_tl_status(C_TSTAT_RxFISTYPE_ERR_BIT)='1' or p_in_tl_status(C_TSTAT_RxFISLEN_ERR_BIT)='1' then
 
       i_reg_serror(C_ASERR_P_ERR_BIT)<='1';
-      i_serr_p_err<='1';
       end if;
 
       --//Ошибка связи или целостности данных(CRC error)
-      if (i_link_break='1' and i_usrmode(C_SATACMD_SET_SATA1)='0' and i_usrmode(C_SATACMD_SET_SATA2)='0') or
+      if (i_link_break='1') or
          p_in_ll_status(C_LSTAT_RxERR_CRC)='1' or
          (p_in_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)='1' and p_in_tl_status(C_TSTAT_TxERR_CRC_REPEAT_BIT)='1') or
          (p_in_tl_status(C_TSTAT_TxFISHOST2DEV_BIT)='0' and p_in_ll_status(C_LSTAT_TxERR_CRC)='1') then
@@ -454,14 +445,12 @@ begin
       --//Ошибки связи: обноружил измение состояния сигнала i_link_establish(Соединение установлено -'1' -> Соединение разорвано - '0' )
 
       i_reg_serror(C_ASERR_C_ERR_BIT)<='1';
-      i_serr_c_err<='1';
       end if;
 
       --//Ошибки декодирования
       --//ВАЖНО: сигнализируем только после установления соединения с устройством!!!
-      if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and (p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' or p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1') then
+      if i_reg_sstatus(C_ASSTAT_IPM_BIT_L)='1' and (p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' or p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1') then
       i_reg_serror(C_ASERR_I_ERR_BIT)<='1';
-      i_serr_i_err<='1';
       end if;
 
 
@@ -494,7 +483,7 @@ begin
 
       --//PHY Layer:
       --//Связь с утройством оборвана
-      if (i_link_break='1' and i_usrmode(C_SATACMD_SET_SATA1)='0' and i_usrmode(C_SATACMD_SET_SATA2)='0') then
+      if i_link_break='1' then
       i_reg_serror(C_ASERR_N_DIAG_BIT)<='1';
       end if;
 
@@ -504,12 +493,12 @@ begin
       end if;
 
       --//Disparity Error
-      if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
+      if i_reg_sstatus(C_ASSTAT_IPM_BIT_L)='1' and p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' then
       i_reg_serror(C_ASERR_D_DIAG_BIT)<='1';
       end if;
 
       --//10b to 8b Decode error
-      if p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
+      if i_reg_sstatus(C_ASSTAT_IPM_BIT_L)='1' and p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1' then
       i_reg_serror(C_ASERR_B_DIAG_BIT)<='1';
       end if;
 
@@ -518,32 +507,37 @@ begin
 end process;
 
 --//User:
-process(p_in_rst,p_in_clk)
+process(p_in_clk)
 begin
-  if p_in_rst='1' then
-    i_reg_usr_status(C_AUSER_BUSY_BIT)<='0';
-    i_reg_usr_status(C_ALUSER_LAST_BIT downto C_AUSER_BUSY_BIT+1)<=(others=>'0');
+  if p_in_clk'event and p_in_clk='1' then
+    --//Формируем сигнал выполнения ATA команды:
+    --//DMA - Only C_ATA_STATUS_BUSY_BIT
+    --//PIO -      C_ATA_STATUS_BUSY_BIT or C_ATA_STATUS_DRQ_BIT
+    i_reg_usr_status(C_AUSR_BSY_BIT)<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
 
-  elsif p_in_clk'event and p_in_clk='1' then
-    i_reg_usr_status(C_AUSER_BUSY_BIT)<='0';
+    --//Обнаружение ошибок:
+    i_reg_usr_status(C_AUSR_ERR_BIT)<=i_reg_shadow.status(C_ATA_STATUS_ERR_BIT) or
+                                      i_reg_serror(C_ASERR_C_ERR_BIT) or
+                                      i_reg_serror(C_ASERR_P_ERR_BIT);-- or
+--                                      i_reg_serror(C_ASERR_I_ERR_BIT);
 
-    --//Растягиваем импульс C_AUSER_DWR_START_BIT
+    --//Растягиваем импульс C_AUSR_DWR_START_BIT - Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
     if p_in_tl_status(C_TSTAT_DWR_START_BIT)='1' then
-      i_reg_usr_status(C_AUSER_DWR_START_BIT)<='1';
-    elsif p_in_reg_update.fpio_e='1' or p_in_reg_update.fd2h='1' or
-         (i_serr_i_err='1' or i_serr_p_err='1' or i_serr_c_err='1' or i_reg_shadow.status(C_ATA_STATUS_ERR_BIT)='1') then
+      i_reg_usr_status(C_AUSR_DWR_START_BIT)<='1';
+
+    elsif p_in_reg_update.fpio_e='1' or p_in_reg_update.fd2h='1' or i_err_clr='1' then
       --//Сброс:
       --по завершению команды в режиме PIO,
       --по приему FIS_DEV2HOST,
       --при обнаружении ошибки
-      i_reg_usr_status(C_AUSER_DWR_START_BIT)<='0';
+      i_reg_usr_status(C_AUSR_DWR_START_BIT)<='0';
     end if;
 
     --//Сигнал для измерения задержек HDD
-    i_reg_usr_status(C_AUSER_TLRX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMRxD_ON_BIT);
-    i_reg_usr_status(C_AUSER_TLTX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMTxD_ON_BIT);
-    i_reg_usr_status(C_AUSER_LLTXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_TxHOLD);
-    i_reg_usr_status(C_AUSER_LLRXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_RxHOLD);
+    i_reg_usr_status(C_AUSR_TLRX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMRxD_ON_BIT);
+    i_reg_usr_status(C_AUSR_TLTX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMTxD_ON_BIT);
+    i_reg_usr_status(C_AUSR_LLTXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_TxHOLD);
+    i_reg_usr_status(C_AUSR_LLRXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_RxHOLD);
 
   end if;
 end process;
@@ -623,9 +617,15 @@ p_out_dbg.cmd_name<=i_dbgtsf_type;
 
 end generate gen_sim_on;
 
-p_out_dbg.cmd_busy<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
+p_out_dbg.cmd_busy<=i_reg_usr_status(C_AUSR_BSY_BIT);--i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
 p_out_dbg.signature<=i_reg_sstatus(C_ASSTAT_IPM_BIT_L);--i_reg_shadow.status(C_ATA_STATUS_DRDY_BIT);
 p_out_dbg.ipf_bit<=i_ata_ipf_bit;
+
+p_out_dbg.opt.link_up           <=i_link_up;
+p_out_dbg.opt.link_break        <=i_link_break;
+p_out_dbg.opt.reg_shadow_wr_done<=i_reg_shadow_wr_done;
+p_out_dbg.opt.reg_shadow_wr     <=i_reg_shadow_wr;
+p_out_dbg.opt.err_clr           <=i_err_clr;
 
 
 --END MAIN

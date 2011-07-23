@@ -148,6 +148,32 @@ clkout    : out   std_logic
 );
 end component;
 
+--constant CI_DSN_HDD_TXBUF_PFULL_ASSERT : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#250#, 8); --CONV_STD_LOGIC_VECTOR(10#1004#, 10);
+--constant CI_DSN_HDD_TXBUF_PFULL_NEGATE : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#200#, 8); --CONV_STD_LOGIC_VECTOR(10#876#, 10);
+--
+--component hdd_2txfifo
+--port
+--(
+--din         : in std_logic_vector(31 downto 0);
+--wr_en       : in std_logic;
+----wr_clk      : in std_logic;
+--
+--dout        : out std_logic_vector(31 downto 0);
+--rd_en       : in std_logic;
+----rd_clk      : in std_logic;
+--
+--prog_full_thresh_assert : in std_logic_vector(7 downto 0);
+--prog_full_thresh_negate : in std_logic_vector(7 downto 0);
+--full        : out std_logic;
+--almost_full : out std_logic;
+--empty       : out std_logic;
+--prog_full   : out std_logic;
+--
+--clk         : in std_logic;
+--rst         : in std_logic
+--);
+--end component;
+
 
 signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
 
@@ -210,7 +236,7 @@ signal i_sh_sim_gt_sim_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_sh_sim_gt_sim_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
-
+--signal tst_txbuf_afull                  : std_logic;
 
 
 --MAIN
@@ -411,7 +437,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
 --    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=tst_hdd_out(0);
+    p_out_tst(0)<=tst_hdd_out(0);-- or tst_txbuf_afull;
     p_out_tst(1)<=tst_hdd_out(1);--//i_sata_module_rst(0);
   end if;
 end process ltstout;
@@ -578,6 +604,28 @@ rst         => i_buf_rst
 );
 
 p_out_hdd_txbuf_empty<=i_sh_txbuf_empty;
+
+--m_txfifo : hdd_2txfifo
+--port map
+--(
+--din         => p_in_hdd_txd,
+--wr_en       => p_in_hdd_txd_wr,
+----wr_clk      => ,
+--
+--dout        => i_sh_txd,
+--rd_en       => i_sh_txd_rd,
+----rd_clk      => ,
+--
+--prog_full_thresh_assert => CI_DSN_HDD_TXBUF_PFULL_ASSERT,
+--prog_full_thresh_negate => CI_DSN_HDD_TXBUF_PFULL_NEGATE,
+--full        => open,
+--almost_full => tst_txbuf_afull,
+--empty       => i_sh_txbuf_empty,
+--prog_full   => p_out_hdd_txbuf_full,
+--
+--clk         => p_in_clk,
+--rst         => i_buf_rst
+--);
 
 m_rxfifo : hdd_rxfifo
 port map

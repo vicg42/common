@@ -5,7 +5,10 @@
 -- Create Date : 31.03.2011 18:27:17
 -- Module Name : sata_raid_ctrl
 --
--- Назначение :
+-- Назначение : Управление модулями sata_host.vhd
+--
+-- ВАЖНО: Использование RAMBUF возможно не для всех АТА команд, более подробно см.
+--        коментарий --//Разрешаем использование RAMBUF только для пречисленых ниже команд:
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -105,9 +108,11 @@ architecture behavioral of sata_raid_ctrl is
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
+signal i_err_clr                   : std_logic;
 signal i_err_rambuf                : std_logic;
 signal i_usr_status                : TUsrStatus;
-signal sr_dev_busy                 : std_logic_vector(0 to 1);
+
+signal sr_dev_bsy                  : std_logic_vector(0 to 1);
 
 signal sr_dev_err                  : std_logic_vector(0 to 1);
 type TShDetect is record
@@ -163,13 +168,18 @@ signal i_raid_atrn_next            : std_logic;
 
 signal i_usr_txbuf_empty           : std_logic;
 signal i_usr_rxbuf_full            : std_logic;
-signal i_tstcmd                    : std_logic_vector(i_cmdpkt.command'range);--//защелкиваем АТА команду для опреденения направления тестирования
-signal i_tstdata                   : std_logic_vector(31 downto 0);           --//тестовые данные
+signal i_testing_cmd               : std_logic_vector(i_cmdpkt.command'range);--//защелкиваем АТА команду для опреденения направления тестирования
+signal i_testing_data              : std_logic_vector(31 downto 0);           --//тестовые данные
 
 signal i_dwr_start                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
 signal i_tst                       : std_logic_vector(G_HDD_COUNT-1 downto 0);
-
+signal i_tst_cnt                   : std_logic_vector(15 downto 0):=(others=>'0');
+signal i_tst_sr_ch_bsy             : std_logic_vector(G_HDD_COUNT-1 downto 0):=(others=>'0');
+signal i_tst_ch_bsy_done           : std_logic_vector(G_HDD_COUNT-1 downto 0):=(others=>'0');
+signal i_tst_bsy                   : std_logic_vector(G_HDD_COUNT-1 downto 0):=(others=>'0');
+signal sr_tst_bsy                  : std_logic_vector(0 to 1):=(others=>'0');
+signal tst_cmddone                 : std_logic:='0';
 
 
 --MAIN
@@ -206,6 +216,7 @@ end generate gen_dbg_on;
 --//------------------------------------------
 --//Инициализация
 --//------------------------------------------
+i_err_clr<=p_in_usr_ctrl(C_USR_GCTRL_CLR_ERR_BIT);
 i_err_rambuf<=p_in_usr_ctrl(C_USR_GCTRL_RAMBUF_ERR_BIT);--//Только для режима HW
 
 gen_sh_pout : for i in 0 to C_HDD_COUNT_MAX-1 generate
@@ -219,8 +230,9 @@ end generate gen_sh_pout;
 --//----------------------------------
 p_out_usr_status<=i_usr_status;
 
+--//RAMBUF:
 i_usr_status.dmacfg.tstgen.con2rambuf<=p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT);
-i_usr_status.dmacfg.tstgen.dout<=i_tstdata;
+i_usr_status.dmacfg.tstgen.dout<=i_testing_data;
 i_usr_status.dmacfg.tst_mode<=p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT);
 i_usr_status.dmacfg.sw_mode<=i_usrmode.sw;
 i_usr_status.dmacfg.hw_mode<=i_usrmode.hw_work;
@@ -242,9 +254,9 @@ begin
           i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
           i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_cmdpkt.command'length) or
           i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length) or
-          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_cmdpkt.command'length)  or
-          i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_W, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) or
-          i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_R, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) then
+          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_cmdpkt.command'length)  then
+--          i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_W, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) or
+--          i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_R, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) then
 
             dmacfg_start:='1';
       end if;
@@ -264,6 +276,10 @@ i_usr_status.dmacfg.error<=i_usr_status.dev_err;
 --//кол-во HDD подключенных к FPGA
 i_usr_status.hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.hdd_count'length);
 
+--//Точка останова:
+i_usr_status.lba_bp<=i_lba_cnt;
+
+--//Статусы накопителя:
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -272,7 +288,7 @@ begin
     i_usr_status.dev_err<='0';
     i_usr_status.dev_ipf<='0';
 --    i_usr_status.usr<=(others=>'0');
-    i_usr_status.lba_bp<=(others=>'0');
+--    i_usr_status.lba_bp<=(others=>'0');
     for i in 0 to G_HDD_COUNT-1 loop
       i_usr_status.ch_bsy(i)<='0';
       i_usr_status.ch_rdy(i)<='0';
@@ -289,23 +305,20 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
+    --//Глобальные статусы:
     i_usr_status.dev_bsy<=OR_reduce(i_usr_status.ch_bsy(G_HDD_COUNT-1 downto 0)) or i_usrmode.hw_work;
-    i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_rdy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0)) or i_err_rambuf;
+    i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_rdy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_ipf<=AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0));
-    i_usr_status.lba_bp<=i_lba_cnt;
+--    i_usr_status.lba_bp<=i_lba_cnt;
 --    i_usr_status.usr<=(others=>'0');
 
+    --//Статусы изпользуемых каналов:
     for i in 0 to G_HDD_COUNT-1 loop
-      --//собираю данные от всех изпользуемых каналов:
-      i_usr_status.ch_bsy(i)<=p_in_sh_status(i).atastatus(C_ATA_STATUS_BUSY_BIT) or p_in_sh_status(i).ATAStatus(C_ATA_STATUS_DRQ_BIT);
+      i_dwr_start(i)        <=p_in_sh_status(i).usr(C_AUSR_DWR_START_BIT);
+      i_usr_status.ch_bsy(i)<=p_in_sh_status(i).usr(C_AUSR_BSY_BIT);
+      i_usr_status.ch_err(i)<=p_in_sh_status(i).usr(C_AUSR_ERR_BIT);
       i_usr_status.ch_rdy(i)<=p_in_sh_status(i).sstatus(C_ASSTAT_IPM_BIT_L);
-
-      i_usr_status.ch_err(i)<=p_in_sh_status(i).atastatus(C_ATA_STATUS_ERR_BIT) or
-                              p_in_sh_status(i).serror(C_ASERR_I_ERR_BIT) or
-                              p_in_sh_status(i).serror(C_ASERR_C_ERR_BIT) or
-                              p_in_sh_status(i).serror(C_ASERR_P_ERR_BIT);
-
       i_usr_status.ch_ipf(i)<=p_in_sh_status(i).ipf;--//IPF - (Interrupt pending flag) или по простому прерывание
 
       i_usr_status.ch_ataerror(i) <=p_in_sh_status(i).ataerror;
@@ -313,9 +326,6 @@ begin
       i_usr_status.ch_serror(i)   <=p_in_sh_status(i).serror;
       i_usr_status.ch_sstatus(i)  <=p_in_sh_status(i).sstatus;
 --      i_usr_status.ch_usr(i)<=(others=>'0');
-
-      i_dwr_start(i)<=p_in_sh_status(i).usr(C_AUSER_DWR_START_BIT);
-
     end loop;
 
   end if;
@@ -332,26 +342,26 @@ begin
     i_sh_det.err<='0';
 
     sr_sh_cmddone<=(others=>'0');
-    sr_dev_busy<=(others=>'0');
+    sr_dev_bsy<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     sr_dev_err<=i_usr_status.dev_err & sr_dev_err(0 to 0);
 
-    sr_dev_busy<=OR_reduce(i_usr_status.ch_bsy(G_HDD_COUNT-1 downto 0)) & sr_dev_busy(0 to 0);
---    i_sh_det.cmddone<=(i_usrmode.sw and p_in_usr_ctrl(C_USR_GCTRL_ATADONE_ACK_BIT)) or
---                      (sr_dev_busy(1) and not sr_dev_busy(0));
-    i_sh_det.cmddone<=sr_dev_busy(1) and not sr_dev_busy(0);
+    sr_dev_bsy<=OR_reduce(i_usr_status.ch_bsy(G_HDD_COUNT-1 downto 0)) & sr_dev_bsy(0 to 0);
+
+    i_sh_det.cmddone<=sr_dev_bsy(1) and not sr_dev_bsy(0);
 
     i_sh_det.err<=sr_dev_err(0) and not sr_dev_err(1);
 
     sr_sh_cmddone<=i_sh_det.cmddone & sr_sh_cmddone(0 to 0);
+
   end if;
 end process;
 
 
 --//Режим HW: если необходимо, то выполняем формирование недостающих данных для после приема команды STOP
-i_sh_padding<=i_sh_padding_en and sr_dev_busy(0) and not i_usrmode.hw_work;
+i_sh_padding<=i_sh_padding_en and sr_dev_bsy(0) and not i_usrmode.hw_work;
 
 
 
@@ -505,20 +515,20 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_cmdcnt_en='1' then
-      if    i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_sh_cmdcnt'length)     then i_sh_cxdout<=i_cmdpkt.ctrl;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_sh_cmdcnt'length)     then i_sh_cxdout<=i_cmdpkt.feature;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(0+1)-1 downto 8*0);--lba_low
-                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(3+1)-1 downto 8*3);--lba_low(exp)
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(1+1)-1 downto 8*1);--lba_mid
-                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(4+1)-1 downto 8*4);--lba_mid(exp)
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_sh_cmdcnt'length)    then i_sh_cxdout(7 downto 0) <=i_lba_cnt(8*(2+1)-1 downto 8*2);--lba_high
-                                                                                            i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(5+1)-1 downto 8*5);--lba_high(exp)
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_sh_cmdcnt'length)then i_sh_cxdout<=i_cmdpkt.scount;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_sh_cmdcnt'length)      then i_sh_cxdout(7 downto 0)<=i_cmdpkt.device;
-                                                                                            i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
+      if    i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.ctrl;
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.feature;
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(0+1)-1 downto 8*0);--lba_low
+                                                                                             i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(3+1)-1 downto 8*3);--lba_low(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(1+1)-1 downto 8*1);--lba_mid
+                                                                                             i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(4+1)-1 downto 8*4);--lba_mid(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_sh_cmdcnt'length)     then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(2+1)-1 downto 8*2);--lba_high
+                                                                                             i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(5+1)-1 downto 8*5);--lba_high(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_sh_cmdcnt'length) then i_sh_cxdout<=i_cmdpkt.scount;
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_sh_cmdcnt'length)       then i_sh_cxdout( 7 downto 0)<=i_cmdpkt.device;
+                                                                                             i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
 
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length)     then i_sh_cxdout(7 downto 0)<=i_cmdpkt.command;
-                                                                                            i_sh_cxdout(15 downto 8)<=(others=>'0');
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_cmdpkt.command;
+                                                                                             i_sh_cxdout(15 downto 8)<=(others=>'0');
       end if;
     end if;
 
@@ -620,7 +630,7 @@ end process;
 p_out_sh_hdd<=i_sh_hddcnt;
 
 --//запись в TxBUF sata_host
-p_out_sh_txd<=p_in_usr_txd when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)='1' else i_tstdata;
+p_out_sh_txd<=p_in_usr_txd when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)='1' else i_testing_data;
 p_out_sh_txd_wr<=i_sh_txd_wr;
 
 i_usr_txbuf_empty<=p_in_usr_txbuf_empty when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or p_in_usr_ctrl(C_USR_GCTRL_TST_GEN2RAMBUF_BIT)='1' else not i_usr_status.dev_bsy;
@@ -633,7 +643,7 @@ p_out_usr_txd_rd<=i_sh_txd_wr when p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or 
 
 --//чтение из RxBUF sata_host
 p_out_usr_rxd<=p_in_sh_rxd;
---p_out_usr_rxd_wr<=i_sh_rxd_rd;--//sata_rxfifo - FIRST WORD
+--p_out_usr_rxd_wr<=i_sh_rxd_rd;--//sata_rxfifo - FWFT(First-Word-Fall-Through) FIFO
 
 --//sata_rxfifo - SATANDART FIFO (Добавляем задержку т.к.
 --//данные на выходе появляюся после отработки 1clk сигнала rd)
@@ -676,13 +686,9 @@ begin
 
     raid_atrn_done:='0';
 
-    if i_sh_det.cmddone='1' or i_sh_det.err='1' then
+    if i_sh_det.cmddone='1' or i_err_clr='1' then
     --//
       i_sh_trn_en<='0';
-
---    elsif p_in_raid.used='0' and i_sh_cmd_start='1' then
---    --//Режим работы с одним HDD
---      i_sh_trn_en<='1';
 
     elsif p_in_raid.used='1' then
     --//Режим работы с RAID
@@ -741,12 +747,9 @@ end process;
 
 process(p_in_rst,p_in_clk)
   variable raid_atrn_next: std_logic;
-  variable raid_trn_tx_done: std_logic;
 begin
   if p_in_rst='1' then
-    raid_atrn_next:='0';
-    raid_trn_tx_done:='0';
-
+      raid_atrn_next:='0';
     i_raid_atrn_next<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -756,11 +759,6 @@ begin
     --//Сигнал начать следующую атормарную транзакцию RAID
     if sr_raid_atrn_done(2)='1' and i_sh_hddcnt/=p_in_raid.hddcount then
       raid_atrn_next:='1';
-    end if;
-
-    --//Тразакция перемещения данных выполнена (только для RAID)
-    if sr_raid_atrn_done(2)='1' and i_sh_hddcnt=p_in_raid.hddcount then
-      raid_trn_tx_done:='1';
     end if;
 
     i_raid_atrn_next<=raid_atrn_next;
@@ -776,23 +774,23 @@ end process;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_tstcmd<=(others=>'0');
-    i_tstdata<=(others=>'0');
+    i_testing_cmd<=(others=>'0');
+    i_testing_data<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
     if (i_usrmode.sw='1' or i_usrmode.hw='1') and i_cmdpkt_get_done='1' then
     --//защелкиваем АТА команду для опреденения направления тестирования
-      i_tstcmd<=i_cmdpkt.command;
+      i_testing_cmd<=i_cmdpkt.command;
     end if;
 
-    if p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' or
-       i_tstcmd=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_tstcmd'length) or
-       i_tstcmd=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_tstcmd'length) then
-
-      i_tstdata<=(others=>'0');
+    if p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT)='0' then
+      i_testing_data<=(others=>'0');
     else
-      if i_sh_txd_wr='1' then
-        i_tstdata<=i_tstdata + 1;
+      if i_sh_txd_wr='1' and
+        (i_testing_cmd=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_testing_cmd'length) or
+         i_testing_cmd=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_testing_cmd'length) ) then
+      --//Генерация тестовых данных, только для перечисленых выше команд!!!
+        i_testing_data<=i_testing_data + 1;
       end if;
     end if;
 
@@ -806,22 +804,83 @@ end process;
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-p_out_dbgcs.clk   <='0';--p_in_clk;
-p_out_dbgcs.trig0 <=(others=>'0');--EXT(i_dbgcs_trig00, p_out_dbgcs_ila.trig0'length);
-p_out_dbgcs.data  <=(others=>'0');--;--EXT(i_dbgcs_data, p_out_dbgcs_ila.data'length);
---
---process(p_in_clk)
---begin
---if p_in_clk'event and p_in_clk='1' then
---i_dbgcs_trig00(18 downto 0)<=(others=>'0');
---i_dbgcs_trig00(41 downto 19)<=(others=>'0');
---
---i_dbgcs_data(18 downto 0)<=(others=>'0');
---i_dbgcs_data(122 downto 19)<=(others=>'0');
---
---end if;
---end process;
+gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
+p_out_dbgcs.clk   <=p_in_clk;
+p_out_dbgcs.trig0 <=(others=>'0');
+p_out_dbgcs.data  <=(others=>'0');
+end generate gen_dbgcs_off;
 
+
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+
+p_out_dbgcs.clk   <=p_in_clk;
+process(p_in_clk)
+begin
+if p_in_clk'event and p_in_clk='1' then
+
+p_out_dbgcs.trig0(0)<=i_sh_det.cmddone;
+p_out_dbgcs.trig0(1)<=i_sh_trn_en;
+p_out_dbgcs.trig0(2)<=i_sh_txd_wr;
+p_out_dbgcs.trig0(3)<=i_sh_rxd_rd;
+p_out_dbgcs.trig0(4)<=p_in_usr_txbuf_empty;
+p_out_dbgcs.trig0(5)<=p_in_sh_rxbuf_empty;
+p_out_dbgcs.trig0(6)<=p_in_sh_txbuf_full;
+p_out_dbgcs.trig0(7)<=OR_reduce(i_tst_cnt(3 downto 0));
+p_out_dbgcs.trig0(8)<=i_tst_ch_bsy_done(0);
+p_out_dbgcs.trig0(9)<=i_tst_ch_bsy_done(1);
+p_out_dbgcs.trig0(11 downto 10)<=(others=>'0');
+p_out_dbgcs.trig0(14 downto 12)<=i_sh_hddcnt(2 downto 0);
+p_out_dbgcs.trig0(15)          <=sr_raid_atrn_done(2);
+p_out_dbgcs.trig0(16)          <=i_sh_cxd_sof;
+p_out_dbgcs.trig0(17)          <=OR_reduce(i_tst_cnt(7 downto 4));
+p_out_dbgcs.trig0(18)<=tst_cmddone and i_tst_bsy(1) and not i_tst_bsy(0);
+p_out_dbgcs.trig0(19)<='0';--зарезервировано для tmr_timeout
+p_out_dbgcs.trig0(24 downto 20)<=(others=>'0');--зарезервировано для i_fsm_llayer(4 downto 0);--sh0
+p_out_dbgcs.trig0(29 downto 25)<=(others=>'0');--зарезервировано для i_fsm_tlayer(4 downto 0);
+p_out_dbgcs.trig0(34 downto 30)<=(others=>'0');--зарезервировано для i_fsm_llayer(4 downto 0);--sh1
+p_out_dbgcs.trig0(39 downto 35)<=(others=>'0');--зарезервировано для i_fsm_tlayer(4 downto 0);
+p_out_dbgcs.trig0(40)<='0';--рарезервировано
+p_out_dbgcs.trig0(41)<='0';
+
+p_out_dbgcs.data(0)<=i_sh_det.cmddone;
+p_out_dbgcs.data(1)<=i_sh_trn_en;
+p_out_dbgcs.data(2)<=i_sh_txd_wr;
+p_out_dbgcs.data(3)<=i_sh_rxd_rd;
+p_out_dbgcs.data(4)<=p_in_usr_txbuf_empty;
+p_out_dbgcs.data(5)<=p_in_sh_rxbuf_empty;
+p_out_dbgcs.data(6)<=p_in_sh_txbuf_full;
+p_out_dbgcs.data(7)<=sr_raid_atrn_done(2);
+p_out_dbgcs.data(8)<=i_usr_status.ch_bsy(0);
+p_out_dbgcs.data(9)<=i_usr_status.ch_bsy(1);
+p_out_dbgcs.data(10)<=i_sh_hddcnt(0);
+p_out_dbgcs.data(11)<=i_sh_hddcnt(1);
+p_out_dbgcs.data(27 downto 12)<=i_usr_status.ch_atastatus(1)&i_usr_status.ch_atastatus(0);--i_tst_cnt(15 downto 0);
+p_out_dbgcs.data(28)<=i_tst_bsy(1);--i_sh_cxd_src_rdy;
+p_out_dbgcs.data(29)<='0';--//зарезервировано
+p_out_dbgcs.data(122 downto 30)<=(others=>'0');--//зарезервировано
+
+if p_in_usr_cxd_wr='1' then
+  i_tst_cnt<=(others=>'0');
+else
+  if i_sh_txd_wr='1' or i_sh_rxd_rd='1' then
+    i_tst_cnt<=i_tst_cnt + 1;
+  end if;
+end if;
+
+for i in 0 to G_HDD_COUNT-1 loop
+i_tst_sr_ch_bsy(i)<=i_usr_status.ch_bsy(i);
+i_tst_ch_bsy_done(i)<=not i_usr_status.ch_bsy(i) and i_tst_sr_ch_bsy(i);
+
+i_tst_bsy(i)<=i_usr_status.ch_atastatus(i)(C_ATA_STATUS_BUSY_BIT) or i_usr_status.ch_atastatus(i)(C_ATA_STATUS_DRQ_BIT);
+end loop;
+
+sr_tst_bsy<=OR_reduce(i_tst_bsy(G_HDD_COUNT-1 downto 0)) & sr_tst_bsy(0 to 0);
+tst_cmddone<=sr_tst_bsy(1) and not sr_tst_bsy(0);
+
+end if;
+end process;
+
+end generate gen_dbgcs_on;
 
 
 --END MAIN

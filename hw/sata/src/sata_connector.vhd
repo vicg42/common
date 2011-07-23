@@ -95,6 +95,37 @@ end sata_connector;
 
 architecture behavioral of sata_connector is
 
+--constant CI_SATABUF_TXBUF_PFULL_ASSERT : std_logic_vector(9 downto 0):=CONV_STD_LOGIC_VECTOR(10#64#, 10); --CONV_STD_LOGIC_VECTOR(10#1004#, 10);
+--constant CI_SATABUF_TXBUF_PFULL_NEGATE : std_logic_vector(9 downto 0):=CONV_STD_LOGIC_VECTOR(10#32#, 10);  --CONV_STD_LOGIC_VECTOR(10#876#, 10);
+--
+--component sata_2txfifo
+--port
+--(
+--din         : in std_logic_vector(31 downto 0);
+--wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+--
+--dout        : out std_logic_vector(31 downto 0);
+--rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+--
+--prog_full_thresh_assert : in std_logic_vector(9 downto 0);
+--prog_full_thresh_negate : in std_logic_vector(9 downto 0);
+--full        : out std_logic;
+--prog_full   : out std_logic;
+--almost_full : out std_logic;
+--empty       : out std_logic;
+--almost_empty: out std_logic;
+--rd_data_count : out std_logic_vector(3 downto 0);
+--wr_data_count : out std_logic_vector(3 downto 0);
+--
+--rst         : in std_logic
+--);
+--end component;
+--
+--type TS06_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (3 downto 0);
+--signal i_txbuf_wrcount : TS06_GTCH;
+
 
 --MAIN
 begin
@@ -224,6 +255,31 @@ rd_data_count => p_out_txbuf_status(i).rdcount,
 
 rst        => p_in_rst(i)
 );
+
+--m_txbuf : sata_2txfifo
+--port map
+--(
+--din        => p_in_uap_txd(i),
+--wr_en      => p_in_uap_txd_wr(i),
+--wr_clk     => p_in_uap_clk,
+--
+--dout       => p_out_sh_txd(i),--i_sh_txd(i),
+--rd_en      => p_in_sh_txd_rd(i),
+--rd_clk     => p_in_sh_clk(i),
+--
+--prog_full_thresh_assert => CI_SATABUF_TXBUF_PFULL_ASSERT,
+--prog_full_thresh_negate => CI_SATABUF_TXBUF_PFULL_NEGATE,
+--
+--full        => p_out_txbuf_status(i).full,
+--prog_full   => p_out_txbuf_status(i).pfull,
+--almost_full => open,--p_out_txbuf_status(i).pfull,
+--empty       => p_out_txbuf_status(i).empty,
+--almost_empty=> p_out_txbuf_status(i).aempty,
+--rd_data_count => p_out_txbuf_status(i).rdcount,
+--wr_data_count => i_txbuf_wrcount(i),--p_out_txbuf_status(i).wrcount,
+--
+--rst        => p_in_rst(i)
+--);
 
 m_rxbuf : sata_rxfifo
 port map

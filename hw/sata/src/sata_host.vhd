@@ -603,8 +603,13 @@ p_in_phy_rxtype   => i_phy_rxtype(i)(C_TDATA_EN downto C_TALIGN),
 p_in_phy_rxdata   => i_phy_rxd(i),
 p_in_phy_sync     => i_phy_sync(i),
 
-p_in_ll_rxd       => i_link_rxd(i),
+p_in_reg_hold     => i_reg_hold(i),
+p_in_reg_update   => i_reg_update(i),
+
+p_in_ll_rxd       => i_link_rxd(i), --//llayer -> tlayer
 p_in_ll_rxd_wr    => i_link_rxd_wr(i),
+p_in_ll_txd       => i_link_txd(i), --//llayer <- tlayer
+p_in_ll_txd_rd    => i_link_txd_rd(i),
 
 p_in_gt_rxdata    => i_gt_rxdata(i),
 p_in_gt_rxcharisk => i_gt_rxcharisk(i),
