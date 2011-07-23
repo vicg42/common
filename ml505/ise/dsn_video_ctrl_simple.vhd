@@ -567,7 +567,6 @@ begin
         i_vprm.ch(i).fr_size.skip.row<=(others=>'0');
         i_vprm.ch(i).fr_size.activ.pix<=(others=>'0');
         i_vprm.ch(i).fr_size.activ.row<=(others=>'0');
-        i_vprm.ch(i).fr_subsampling<=(others=>'0');
         i_vprm.ch(i).fr_mirror.pix<='0';
         i_vprm.ch(i).fr_mirror.row<='0';
         i_vprm.ch(i).fr_color_fst<=(others=>'0');
@@ -619,7 +618,6 @@ begin
                   i_vprm.ch(i).fr_size.activ.row<=h_reg_prm_data(31 downto 16);
 
                 elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
-                  i_vprm.ch(i).fr_subsampling<=h_reg_prm_data(3 downto 2);
                   i_vprm.ch(i).fr_mirror.pix<=h_reg_prm_data(4);
                   i_vprm.ch(i).fr_mirror.row<=h_reg_prm_data(5);
                   i_vprm.ch(i).fr_color_fst <=h_reg_prm_data(7 downto 6);
@@ -690,7 +688,6 @@ begin
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.activ.pix(15 downto 0);
 
                   elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
-                    p_out_cfg_rxdata(3 downto 2) <=i_vprm.ch(i).fr_subsampling;
                     p_out_cfg_rxdata(4)          <=i_vprm.ch(i).fr_mirror.pix;
                     p_out_cfg_rxdata(5)          <=i_vprm.ch(i).fr_mirror.row;
                     p_out_cfg_rxdata(7 downto 6) <=i_vprm.ch(i).fr_color_fst;
@@ -782,7 +779,6 @@ gen_vwrprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
 begin
 i_wrprm_vch(i).mem_adr       <=i_vprm.ch(i).mem_addr_wr;
 i_wrprm_vch(i).fr_size       <=i_vprm.ch(i).fr_size;
-i_wrprm_vch(i).fr_subsampling<=i_vprm.ch(i).fr_subsampling;
 end generate gen_vwrprm;
 
 --//Готовим параметры для модуля чтения
@@ -790,7 +786,6 @@ gen_vrdprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
 begin
 i_rdprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
 i_rdprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
-i_rdprm_vch(i).fr_subsampling <=i_vprm.ch(i).fr_subsampling;
 i_rdprm_vch(i).fr_mirror      <=i_vprm.ch(i).fr_mirror;
 i_rdprm_vch(i).fr_pcolor      <=i_vprm.ch(i).fr_pcolor;
 i_rdprm_vch(i).fr_zoom        <=i_vprm.ch(i).fr_zoom;
@@ -811,7 +806,6 @@ gen_trcprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
 begin
 i_trcprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_wr;
 i_trcprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
-i_trcprm_vch(i).fr_subsampling <=i_vprm.ch(i).fr_subsampling;
 i_trcprm_vch(i).fr_mirror      <=i_vprm.ch(i).fr_mirror;
 i_trcprm_vch(i).fr_pcolor      <=i_vprm.ch(i).fr_pcolor;
 i_trcprm_vch(i).fr_zoom        <=i_vprm.ch(i).fr_zoom;
