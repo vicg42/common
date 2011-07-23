@@ -620,7 +620,7 @@ i_mrd_lbe<="0000" when i_mrd_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(1
 --//Распределяем биты пользовательских регистровов:
 --//--------------------------------------------------------------------------------------------
 b_trn_start    <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_START_BIT);
-b_trn_dir      <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIR_BIT);       --//1/0 DMA-запись/чтение (DMA-запись: PC<-FPGA, DMA-чтение: PC->FPGA)
+b_trn_dir      <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_DIR_BIT);       --//1/0 DMA-запись/чтение (DMA-запись: PC<-FPGA, DMA-чтение: PC->FPGA)
 b_dmabuf_idx   <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_MSB_BIT downto C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_LSB_BIT);
 b_dmabuf_count <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_MSB_BIT downto C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_LSB_BIT);
 b_dev_adr      <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT);
@@ -822,15 +822,8 @@ begin
             var_val:=EXT(i_host_dmaparam_dout, i_reg_txdata'length);
 
         elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL, 5) then
-            var_val(C_HREG_DEV_CTRL_DEV_TRN_START_BIT):='0';
-            var_val(C_HREG_DEV_CTRL_DEV_DIR_BIT)      :=b_trn_dir;
-            var_val(C_HREG_DEV_CTRL_DEV_RESERV2_BIT)  :='0';--b_interrupt_en;
-            var_val(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT)  :='0';
-            var_val(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=b_dev_adr;
-            var_val(C_HREG_DEV_CTRL_DEV_RESERV8_BIT)  :='0';
-            var_val(C_HREG_DEV_CTRL_DEV_TRN_RST_BIT)  :='0';
-            var_val(C_HREG_DEV_CTRL_DEV_RESERV10_BIT) :='0';
-            var_val(C_HREG_DEV_CTRL_DEV_RESERV11_BIT) :='0';
+            var_val(C_HREG_DEV_CTRL_DEV_TRN_DIR_BIT) := b_trn_dir;
+            var_val(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):= b_dev_adr;
             var_val(C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_MSB_BIT downto C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_LSB_BIT) := b_dmabuf_idx;
             var_val(C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_MSB_BIT downto C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_LSB_BIT) := b_dmabuf_count;
             var_val(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT) := v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT);
@@ -845,7 +838,6 @@ begin
             var_val(C_HREG_PCIEXP_CTRL_PHANT_FUNC_BIT)     :=p_in_cfg_phant_func_en;
             var_val(C_HREG_PCIEXP_CTRL_NOSNOOP_BIT)        :=p_in_cfg_no_snoop_en;
             var_val(C_HREG_PCIEXP_CTRL_CPLD_MALFORMED_BIT) :=p_in_cpld_malformed;
-            var_val(C_HREG_PCIEXP_CTRL_RESERV25_BIT)       :='0';--p_in_int_active;
 
             var_val(C_HREG_PCIEXP_CTRL_CPL_STREAMING_BIT)     :=v_reg_pciexp_ctrl(C_HREG_PCIEXP_CTRL_CPL_STREAMING_BIT);
             var_val(C_HREG_PCIEXP_CTRL_METRING_BIT)           :=v_reg_pciexp_ctrl(C_HREG_PCIEXP_CTRL_METRING_BIT);
