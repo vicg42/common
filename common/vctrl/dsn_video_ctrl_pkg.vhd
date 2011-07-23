@@ -46,7 +46,6 @@ type TVctrlChParam is record
 mem_addr_wr    : std_logic_vector(31 downto 0);--//Базовый Адрес где будет формироваться кадр
 mem_addr_rd    : std_logic_vector(31 downto 0);--//Базовый Адрес откуда будет вычитываться кадр
 fr_size        : TFrXYParam;
-fr_subsampling : std_logic_vector(1 downto 0);
 fr_mirror      : TFrXYMirror;
 fr_color_fst   : std_logic_vector(1 downto 0);
 fr_pcolor      : std_logic;
@@ -67,7 +66,6 @@ end record;
 type TWriterVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
-fr_subsampling : std_logic_vector(1 downto 0);
 end record;
 Type TWriterVCHParams is array (0 to C_DSN_VCTRL_VCH_COUNT-1) of TWriterVCHParam;
 
@@ -75,7 +73,6 @@ Type TWriterVCHParams is array (0 to C_DSN_VCTRL_VCH_COUNT-1) of TWriterVCHParam
 type TReaderVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
-fr_subsampling : std_logic_vector(1 downto 0);
 fr_mirror      : TFrXYMirror;
 fr_color_fst   : std_logic_vector(1 downto 0);
 fr_pcolor      : std_logic;

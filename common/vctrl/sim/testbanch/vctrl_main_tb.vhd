@@ -699,7 +699,6 @@ gen_vrdprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
 begin
 i_rdprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
 i_rdprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
-i_rdprm_vch(i).fr_subsampling <=i_vprm.ch(i).fr_subsampling;
 i_rdprm_vch(i).fr_mirror      <=i_vprm.ch(i).fr_mirror;
 i_rdprm_vch(i).fr_pcolor      <=i_vprm.ch(i).fr_pcolor;
 i_rdprm_vch(i).fr_zoom        <=i_vprm.ch(i).fr_zoom;
@@ -1195,7 +1194,6 @@ usrcfg.ch.fr_size.skip.pix <=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_size.ski
 usrcfg.ch.fr_size.skip.row <=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_size.skip.row'length);
 usrcfg.ch.fr_size.activ.pix<=CONV_STD_LOGIC_VECTOR(10#08#, usrcfg.ch.fr_size.activ.pix'length);
 usrcfg.ch.fr_size.activ.row<=CONV_STD_LOGIC_VECTOR(10#08#, usrcfg.ch.fr_size.activ.row'length);
-usrcfg.ch.fr_subsampling<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_subsampling'length);
 usrcfg.ch.fr_mirror.pix<='0';
 usrcfg.ch.fr_mirror.row<='0';
 usrcfg.ch.fr_pcolor<='0';
@@ -1254,7 +1252,6 @@ i_vprm.ch(i).fr_size.skip.pix <="00"&usrcfg.ch.fr_size.skip.pix(usrcfg.ch.fr_siz
 i_vprm.ch(i).fr_size.skip.row <=usrcfg.ch.fr_size.skip.row;
 i_vprm.ch(i).fr_size.activ.pix<="00"&usrcfg.ch.fr_size.activ.pix(usrcfg.ch.fr_size.activ.pix'high downto 2);
 i_vprm.ch(i).fr_size.activ.row<=usrcfg.ch.fr_size.activ.row;
-i_vprm.ch(i).fr_subsampling <=usrcfg.ch.fr_subsampling;
 i_vprm.ch(i).fr_mirror      <=usrcfg.ch.fr_mirror;
 i_vprm.ch(i).fr_pcolor      <=usrcfg.ch.fr_pcolor;
 i_vprm.ch(i).fr_zoom        <=usrcfg.ch.fr_zoom;
