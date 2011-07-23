@@ -103,9 +103,9 @@ set _projects [ list \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_txfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/cfgdev_ctrl/cfgdev.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/color_demosaic/core_gen/vcoldemosaic_bram.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/color_demosaic/vcoldemosaic_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/gamma/core_gen/vgamma_bram_rcol.vhd" $_VHDMod ] \
