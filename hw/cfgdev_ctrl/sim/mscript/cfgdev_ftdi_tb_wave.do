@@ -11,6 +11,9 @@ add wave -noupdate /cfgdev_ftdi_tb/i_ftdi_txe_n
 add wave -noupdate /cfgdev_ftdi_tb/i_ftdi_wr_n
 add wave -noupdate -divider m_devcfg
 add wave -noupdate -color {Cornflower Blue} -itemcolor Gold /cfgdev_ftdi_tb/m_devcfg/fsm_state_cs
+add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_pkt_field_data
+add wave -noupdate -radix hexadecimal /cfgdev_ftdi_tb/m_devcfg/i_pkt_cntd
+add wave -noupdate -radix hexadecimal -expand -subitemconfig {/cfgdev_ftdi_tb/m_devcfg/i_pkt_dheader(0) {-height 15 -radix hexadecimal} /cfgdev_ftdi_tb/m_devcfg/i_pkt_dheader(1) {-height 15 -radix hexadecimal}} /cfgdev_ftdi_tb/m_devcfg/i_pkt_dheader
 add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_dv_oe
 add wave -noupdate -radix hexadecimal /cfgdev_ftdi_tb/m_devcfg/i_dv_tmr
 add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_dv_tmr_en
@@ -20,9 +23,7 @@ add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_dv_rd
 add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_dv_wr
 add wave -noupdate -radix unsigned /cfgdev_ftdi_tb/m_devcfg/i_cfg_dbyte
 add wave -noupdate -radix hexadecimal /cfgdev_ftdi_tb/m_devcfg/i_cfg_d
-add wave -noupdate -radix hexadecimal -expand -subitemconfig {/cfgdev_ftdi_tb/m_devcfg/i_pkt_dheader(0) {-height 15 -radix hexadecimal} /cfgdev_ftdi_tb/m_devcfg/i_pkt_dheader(1) {-height 15 -radix hexadecimal}} /cfgdev_ftdi_tb/m_devcfg/i_pkt_dheader
-add wave -noupdate -radix hexadecimal /cfgdev_ftdi_tb/m_devcfg/i_cntd_pkt
-add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_flag_pktdata
+add wave -noupdate /cfgdev_ftdi_tb/m_devcfg/i_cfg_done
 add wave -noupdate -divider sim
 add wave -noupdate -radix hexadecimal /cfgdev_ftdi_tb/i_cfg_adr
 add wave -noupdate -radix hexadecimal /cfgdev_ftdi_tb/i_cfg_adr_cnt
@@ -50,4 +51,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {0 ps} {15750 ns}
+WaveRestoreZoom {1073077 ps} {8273077 ps}

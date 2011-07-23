@@ -21,64 +21,26 @@ library work;
 package cfgdev_pkg is
 
 --//Кол-во элементов в заголовке пакета:
-constant C_CFGPKT_HEADER_DW_COUNT            : integer:=2;
+constant C_CFGPKT_HEADER_DCOUNT     : integer:=2;
 
 --//HEADER(0)/ Bit map:
---constant C_CFGPKT_RESERV_BIT                 : integer:=0 .. 5;
-constant C_CFGPKT_FIFO_BIT                   : integer:=6;
-constant C_CFGPKT_WR_BIT                     : integer:=7;
-constant C_CFGPKT_NUMDEV_LSB_BIT             : integer:=8;
-constant C_CFGPKT_NUMDEV_MSB_BIT             : integer:=15;
+--constant C_CFGPKT_RESERV_BIT        : integer:=0 .. 5;
+constant C_CFGPKT_FIFO_BIT          : integer:=6;
+constant C_CFGPKT_WR_BIT            : integer:=7;
+constant C_CFGPKT_DADR_L_BIT        : integer:=8; --//Адрес модуля в проекте FPGA
+constant C_CFGPKT_DADR_M_BIT        : integer:=15;
 
 --//HEADER(1)/ Bit map:
-constant C_CFGPKT_NUMREG_LSB_BIT             : integer:=0;
-constant C_CFGPKT_NUMREG_MSB_BIT             : integer:=7;
-constant C_CFGPKT_DLEN_LSB_BIT               : integer:=8;
-constant C_CFGPKT_DLEN_MSB_BIT               : integer:=15;
+constant C_CFGPKT_RADR_L_BIT        : integer:=0; --//Адрес начального регистра
+constant C_CFGPKT_RADR_M_BIT        : integer:=7;
+constant C_CFGPKT_DLEN_L_BIT        : integer:=8; --//Кол-во данных для записи/чтения
+constant C_CFGPKT_DLEN_M_BIT        : integer:=15;
 
 
 --//C_CFGPKT_WR_BIT/ Bit Map:
-constant C_CFGPKT_ACT_WD                     : std_logic:='0';
-constant C_CFGPKT_ACT_RD                     : std_logic:='1';
+constant C_CFGPKT_WR                : std_logic:='0';
+constant C_CFGPKT_RD                : std_logic:='1';
 
-
-component cfgdev_txfifo
-port
-(
-din         : IN  std_logic_vector(31 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
-
-dout        : OUT std_logic_vector(31 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
-
-empty       : OUT std_logic;
-full        : OUT std_logic;
-
---clk         : IN  std_logic;
-rst         : IN  std_logic
-);
-end component;
-
-component cfgdev_rxfifo
-port
-(
-din         : IN  std_logic_vector(31 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
-
-dout        : OUT std_logic_vector(31 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
-
-empty       : OUT std_logic;
-full        : OUT std_logic;
-
---clk         : IN  std_logic;
-rst         : IN  std_logic
-);
-end component;
 
 component cfgdev
 port
@@ -151,19 +113,19 @@ p_out_module_error   : out    std_logic;
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr        : out    std_logic_vector(7 downto 0);
-p_out_cfg_adr        : out    std_logic_vector(7 downto 0);
-p_out_cfg_adr_ld     : out    std_logic;
-p_out_cfg_adr_fifo   : out    std_logic;
-p_out_cfg_wd         : out    std_logic;
+p_out_cfg_dadr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_radr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_radr_ld    : out    std_logic;
+p_out_cfg_radr_fifo  : out    std_logic;
+p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
 p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
 p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
 p_in_cfg_txrdy       : in     std_logic;
 p_in_cfg_rxrdy       : in     std_logic;
-
---p_out_cfg_rx_set_irq : out    std_logic;
 p_out_cfg_done       : out    std_logic;
+--p_in_cfg_irq         : in     std_logic;
+
 p_in_cfg_clk         : in     std_logic;
 
 -------------------------------
@@ -202,19 +164,19 @@ p_out_module_error   : out    std_logic;
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr        : out    std_logic_vector(7 downto 0);
-p_out_cfg_adr        : out    std_logic_vector(7 downto 0);
-p_out_cfg_adr_ld     : out    std_logic;
-p_out_cfg_adr_fifo   : out    std_logic;
-p_out_cfg_wd         : out    std_logic;
+p_out_cfg_dadr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_radr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_radr_ld    : out    std_logic;
+p_out_cfg_radr_fifo  : out    std_logic;
+p_out_cfg_wr         : out    std_logic;
 p_out_cfg_rd         : out    std_logic;
 p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
 p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
 p_in_cfg_txrdy       : in     std_logic;
 p_in_cfg_rxrdy       : in     std_logic;
-
---p_out_cfg_rx_set_irq : out    std_logic;
 p_out_cfg_done       : out    std_logic;
+--p_in_cfg_irq         : in     std_logic;
+
 p_in_cfg_clk         : in     std_logic;
 
 -------------------------------
@@ -237,39 +199,39 @@ port
 -------------------------------
 --Связь с HOST
 -------------------------------
-p_out_host_rxbuf_rdy : out  std_logic;                      --//
-p_out_host_rxdata    : out  std_logic_vector(31 downto 0);  --//
-p_in_host_rd         : in   std_logic;                      --//
+p_out_host_rxrdy     : out  std_logic;
+p_out_host_rxd       : out  std_logic_vector(31 downto 0);
+p_in_host_rd         : in   std_logic;
 
-p_out_host_txbuf_rdy : out  std_logic;                      --//
-p_in_host_txdata     : in   std_logic_vector(31 downto 0);  --//
-p_in_host_wd         : in   std_logic;                      --//
-p_in_host_txdata_rdy : in   std_logic;                      --//
+p_out_host_txrdy     : out  std_logic;
+p_in_host_txd        : in   std_logic_vector(31 downto 0);
+p_in_host_wr         : in   std_logic;
 
-p_in_host_clk        : in   std_logic;                      --//
+p_out_host_irq       : out  std_logic;
+p_in_host_clk        : in   std_logic;
 
 -------------------------------
 --
 -------------------------------
-p_out_module_rdy     : out    std_logic;                    --//
-p_out_module_error   : out    std_logic;                    --//
+p_out_module_rdy     : out    std_logic;
+p_out_module_error   : out    std_logic;
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr        : out    std_logic_vector(7 downto 0); --//Адрес модуля
-p_out_cfg_adr        : out    std_logic_vector(7 downto 0); --//Адрес стартового регистра
-p_out_cfg_adr_ld     : out    std_logic;                    --//Загрузка адреса регистра
-p_out_cfg_adr_fifo   : out    std_logic;                    --//Тип адресации
-p_out_cfg_wd         : out    std_logic;                    --//Строб записи
-p_out_cfg_rd         : out    std_logic;                    --//Строб чтения
-p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);--//
-p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);--//
-p_in_cfg_txrdy       : in     std_logic;                    --//Готовность приемника данных
-p_in_cfg_rxrdy       : in     std_logic;                    --//Готовность передатчика данных
+p_out_cfg_dadr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_radr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_radr_ld    : out    std_logic;
+p_out_cfg_radr_fifo  : out    std_logic;
+p_out_cfg_wr         : out    std_logic;
+p_out_cfg_rd         : out    std_logic;
+p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
+p_in_cfg_txrdy       : in     std_logic;
+p_in_cfg_rxrdy       : in     std_logic;
+p_out_cfg_done       : out    std_logic;
+--p_in_cfg_irq         : in     std_logic;
 
-p_out_cfg_rx_set_irq : out    std_logic;                    --//
-p_out_cfg_done       : out    std_logic;                    --//
 p_in_cfg_clk         : in     std_logic;
 
 -------------------------------

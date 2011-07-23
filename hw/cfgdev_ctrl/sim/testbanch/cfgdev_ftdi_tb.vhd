@@ -37,56 +37,6 @@ constant C_USRCLK_PERIOD  : TIME := 10 ns;
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;--50 ns;
 
-component cfgdev_ftdi is
-port
-(
--------------------------------
---Связь с FTDI
--------------------------------
-p_inout_ftdi_d       : inout  std_logic_vector(7 downto 0); --//
-p_out_ftdi_rd_n      : out    std_logic;                    --//
-p_out_ftdi_wr_n      : out    std_logic;                    --//
-p_in_ftdi_txe_n      : in     std_logic;                    --//
-p_in_ftdi_rxf_n      : in     std_logic;                    --//
-p_in_ftdi_pwren_n    : in     std_logic;                    --//
-
--------------------------------
---
--------------------------------
-p_out_module_rdy     : out    std_logic;                    --//
-p_out_module_error   : out    std_logic;                    --//
-
--------------------------------
---Запись/Чтение конфигурационных параметров уст-ва
--------------------------------
-p_out_dev_adr        : out    std_logic_vector(7 downto 0); --//Адрес модуля
-p_out_cfg_adr        : out    std_logic_vector(7 downto 0); --//Ардес регистра
-p_out_cfg_adr_ld     : out    std_logic;                    --//Загрузка адреса регистра
-p_out_cfg_adr_fifo   : out    std_logic;                    --//Тип адресации
-p_out_cfg_wd         : out    std_logic;                    --//Строб записи
-p_out_cfg_rd         : out    std_logic;                    --//Строб чтения
-p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);--//
-p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);--//
-p_in_cfg_txrdy       : in     std_logic;                    --//
-p_in_cfg_rxrdy       : in     std_logic;                    --//
-
---p_out_cfg_rx_set_irq : out    std_logic;                    --//
-p_out_cfg_done       : out    std_logic;                    --//
-p_in_cfg_clk         : in     std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             : in     std_logic_vector(31 downto 0);
-p_out_tst            : out    std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_rst             : in     std_logic
-);
-end component;
-
 signal p_in_clk                 : std_logic;
 signal p_in_rst                 : std_logic;
 
@@ -166,11 +116,11 @@ p_out_module_error   => open,
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr        => i_dev_adr,
-p_out_cfg_adr        => i_cfg_adr,
-p_out_cfg_adr_ld     => i_cfg_adr_ld,
-p_out_cfg_adr_fifo   => i_cfg_adr_fifo,
-p_out_cfg_wd         => i_cfg_wd,
+p_out_cfg_dadr       => i_dev_adr,
+p_out_cfg_radr       => i_cfg_adr,
+p_out_cfg_radr_ld    => i_cfg_adr_ld,
+p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
+p_out_cfg_wr         => i_cfg_wd,
 p_out_cfg_rd         => i_cfg_rd,
 p_out_cfg_txdata     => i_cfg_txdata,
 p_in_cfg_rxdata      => i_cfg_rxdata,
@@ -282,11 +232,11 @@ end loop;
 
 
 --//Pkt0
-i_pkts(0).h(0)(C_CFGPKT_NUMDEV_MSB_BIT downto C_CFGPKT_NUMDEV_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_NUMDEV_MSB_BIT-C_CFGPKT_NUMDEV_LSB_BIT+1);
-i_pkts(0).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_ACT_WD;
+i_pkts(0).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
+i_pkts(0).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(0).h(0)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(0).h(1)(C_CFGPKT_NUMREG_MSB_BIT downto C_CFGPKT_NUMREG_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_NUMREG_MSB_BIT-C_CFGPKT_NUMREG_LSB_BIT+1);
+i_pkts(0).h(1)(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT+1);
 i_pkts(0).h(1)(15 downto 8)<=CONV_STD_LOGIC_VECTOR(10#02#, 8);
 
 i_pkts(0).d(0)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0).d(0)'length);
@@ -295,11 +245,11 @@ i_pkts(0).d(2)<=CONV_STD_LOGIC_VECTOR(16#3013#, i_pkts(0).d(0)'length);
 i_pkts(0).d(3)<=CONV_STD_LOGIC_VECTOR(16#4014#, i_pkts(0).d(0)'length);
 
 --//Pkt1
-i_pkts(1).h(0)(C_CFGPKT_NUMDEV_MSB_BIT downto C_CFGPKT_NUMDEV_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_NUMDEV_MSB_BIT-C_CFGPKT_NUMDEV_LSB_BIT+1);
-i_pkts(1).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_ACT_RD;
+i_pkts(1).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
+i_pkts(1).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(1).h(0)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(1).h(1)(C_CFGPKT_NUMREG_MSB_BIT downto C_CFGPKT_NUMREG_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_NUMREG_MSB_BIT-C_CFGPKT_NUMREG_LSB_BIT+1);
+i_pkts(1).h(1)(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT+1);
 i_pkts(1).h(1)(15 downto 8)<=CONV_STD_LOGIC_VECTOR(10#02#, 8);
 
 i_pkts(1).d(0)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0).d(0)'length);
@@ -308,11 +258,11 @@ i_pkts(1).d(2)<=CONV_STD_LOGIC_VECTOR(16#03#, i_pkts(0).d(0)'length);
 i_pkts(1).d(3)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0).d(0)'length);
 
 --//Pkt2
-i_pkts(2).h(0)(C_CFGPKT_NUMDEV_MSB_BIT downto C_CFGPKT_NUMDEV_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_NUMDEV_MSB_BIT-C_CFGPKT_NUMDEV_LSB_BIT+1);
-i_pkts(2).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_ACT_RD;
+i_pkts(2).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
+i_pkts(2).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(2).h(0)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(2).h(1)(C_CFGPKT_NUMREG_MSB_BIT downto C_CFGPKT_NUMREG_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_NUMREG_MSB_BIT-C_CFGPKT_NUMREG_LSB_BIT+1);
+i_pkts(2).h(1)(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT+1);
 i_pkts(2).h(1)(15 downto 8)<=CONV_STD_LOGIC_VECTOR(10#02#, 8);
 
 i_pkts(2).d(0)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0).d(0)'length);

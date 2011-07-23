@@ -80,6 +80,44 @@ end cfgdev;
 
 architecture behavioral of cfgdev is
 
+component cfgdev_txfifo
+port
+(
+din         : IN  std_logic_vector(31 downto 0);
+wr_en       : IN  std_logic;
+wr_clk      : IN  std_logic;
+
+dout        : OUT std_logic_vector(31 downto 0);
+rd_en       : IN  std_logic;
+rd_clk      : IN  std_logic;
+
+empty       : OUT std_logic;
+full        : OUT std_logic;
+
+--clk         : IN  std_logic;
+rst         : IN  std_logic
+);
+end component;
+
+component cfgdev_rxfifo
+port
+(
+din         : IN  std_logic_vector(31 downto 0);
+wr_en       : IN  std_logic;
+wr_clk      : IN  std_logic;
+
+dout        : OUT std_logic_vector(31 downto 0);
+rd_en       : IN  std_logic;
+rd_clk      : IN  std_logic;
+
+empty       : OUT std_logic;
+full        : OUT std_logic;
+
+--clk         : IN  std_logic;
+rst         : IN  std_logic
+);
+end component;
+
 type fsm_state is
 (
 S_IDLE,
@@ -269,7 +307,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     when S_READ_HEADERDATA =>
 
 --      if i_cntlen(1 downto 0)=CONV_STD_LOGIC_VECTOR(16#01#, 2)  then
-      if i_cntlen(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT-1, 2)  then
+      if i_cntlen(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DCOUNT-1, 2)  then
           fsm_state_cs <= S_LD_DLEN;
           i_pkt_header_rd<='0';
       else
@@ -282,7 +320,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         fsm_state_cs <= S_IDLE;
       else
         fsm_state_cs <= S_COUNT_DATA;
-        if i_dev_wr=C_CFGPKT_ACT_WD then
+        if i_dev_wr=C_CFGPKT_WR then
           i_pkt_data_rd<='1';
         else
           i_pkt_data_wd<='1';
@@ -306,7 +344,7 @@ end if;
 end process fsm;
 
 --//Счетчик чтения/записи данных tx/rx буферов
-i_cntlen_dload<=i_txbuf_dout(15 downto 8) when fsm_state_cs=S_LD_DLEN else CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT, i_cntlen_dload'length);
+i_cntlen_dload<=i_txbuf_dout(15 downto 8) when fsm_state_cs=S_LD_DLEN else CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DCOUNT, i_cntlen_dload'length);
 process(p_in_rst,p_in_cfg_clk)
 begin
   if p_in_rst='1' then
@@ -337,13 +375,13 @@ begin
     i_reg_adr_fifo<='0';
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 --    if  fsm_state_cs=S_READ_HEADERDATA and i_cntlen(1 downto 0)=CONV_STD_LOGIC_VECTOR(16#01#, 2) then
-    if  fsm_state_cs=S_READ_HEADERDATA and i_cntlen(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DW_COUNT-1, 2) then
-      i_dev_adr     <=i_txbuf_dout(C_CFGPKT_NUMDEV_MSB_BIT downto C_CFGPKT_NUMDEV_LSB_BIT);
+    if  fsm_state_cs=S_READ_HEADERDATA and i_cntlen(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DCOUNT-1, 2) then
+      i_dev_adr     <=i_txbuf_dout(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT);
       i_dev_wr      <=i_txbuf_dout(C_CFGPKT_WR_BIT);
       i_reg_adr_fifo<=i_txbuf_dout(C_CFGPKT_FIFO_BIT);
 
     elsif fsm_state_cs=S_LD_DLEN then
-      i_reg_adr<=i_txbuf_dout(C_CFGPKT_NUMREG_MSB_BIT downto C_CFGPKT_NUMREG_LSB_BIT);
+      i_reg_adr<=i_txbuf_dout(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT);
       i_reg_adr_ld<='1';
     else
       i_reg_adr_ld<='0';
@@ -404,7 +442,7 @@ rst     => p_in_rst
 --  p_out_host_rxdata(31 downto 16) <=(others=>'0');
 
 p_out_host_rxbuf_rdy<=i_host_rxbuf_rdy;
-i_host_rxbuf_rdy<=not i_rxbuf_empty when fsm_state_cs=S_IDLE and i_dev_wr=C_CFGPKT_ACT_RD else '0';
+i_host_rxbuf_rdy<=not i_rxbuf_empty when fsm_state_cs=S_IDLE and i_dev_wr=C_CFGPKT_RD else '0';
 
 --//Задержки необходимые для формирования сигнала установки прерывания
 process(p_in_rst,p_in_cfg_clk)
@@ -447,7 +485,7 @@ end process;
 --//1.Записываем заголовок пакета
 --//2.Записываем прочитаные данные
 i_rxbuf_wd<=(i_pkt_header_wd or i_pkt_data_wd_delay2) and i_dev_wr;
-i_rxbuf_din(15 downto 0)<=i_txbuf_dout_delay when i_pkt_header_wd='1' and i_dev_wr=C_CFGPKT_ACT_RD else p_in_cfg_rxdata;
+i_rxbuf_din(15 downto 0)<=i_txbuf_dout_delay when i_pkt_header_wd='1' and i_dev_wr=C_CFGPKT_RD else p_in_cfg_rxdata;
 i_rxbuf_din(31 downto 16)<=(others=>'0');
 
 
