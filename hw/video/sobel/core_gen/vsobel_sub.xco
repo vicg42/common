@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.1
-# Date: Tue Apr 05 06:14:50 2011
+# Xilinx Core Generator version 13.2
+# Date: Wed Jul 20 15:12:47 2011
 #
 ##############################################################
 #
@@ -9,6 +9,10 @@
 #  Xilinx CORE Generator IP GUI. It is strongly recommended
 #  that you do not manually alter this file as it may cause
 #  unexpected and unsupported behavior.
+#
+##############################################################
+#
+#  Generated from component: xilinx.com:ip:c_addsub:11.0
 #
 ##############################################################
 #
@@ -63,7 +67,7 @@ CSET sync_ce_priority=Sync_Overrides_CE
 CSET sync_ctrl_priority=Reset_Overrides_Set
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2011-02-03T22:05:48.000Z
+MISC pkg_timestamp=2011-06-21T06:26:48.000Z
 # END Extra information
 GENERATE
-# CRC: 567f64e8
+# CRC: b42137f3
