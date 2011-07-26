@@ -109,11 +109,8 @@ vcom -93 "../../../common/hw/mem/alphadata/memory_ch_arbitr.vhd"
 ##..Мои модули /CFGDEV
 ##-------------------------------
 vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd"
-#vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev.vhd"
 vcom -93 "../../../common/hw/cfgdev_ctrl/cfgdev_host.vhd"
 vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/*.vhd"
-#vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_rxfifo.vhd"
-#vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/cfgdev_txfifo.vhd"
 
 
 ##-------------------------------

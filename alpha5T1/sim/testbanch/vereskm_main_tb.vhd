@@ -528,7 +528,10 @@ signal   bus_in   : in   locbus_in_t;
 signal   bus_out  : out  locbus_out_t
 )is
   variable val32 : std_logic_vector(31 downto 0);
-  variable val16 : std_logic_vector(15 downto 0);
+  variable h0    : std_logic_vector(15 downto 0);
+  variable h1    : std_logic_vector(15 downto 0);
+  variable h2    : std_logic_vector(15 downto 0);
+  variable h_bytesize : natural;
   variable data : byte_vector_t(0 to 127);
   variable be : byte_enable_t(0 to 127);
   variable n : natural;
@@ -543,28 +546,25 @@ var_DataSize:=DataSize;
 --//-----------------------------------------
 --//Передаем заголовок командного пакета
 --//-----------------------------------------
-val16:=CONV_STD_LOGIC_VECTOR(NumDev, 8)&WR&FIFO&"000000";
-data(0)(7 downto 0) := val16(7 downto 0);
-data(1)(7 downto 0) := val16(15 downto 8);
-data(2)(7 downto 0) := (others=>'0');
-data(3)(7 downto 0) := (others=>'0');
-
-val16:=CONV_STD_LOGIC_VECTOR(var_DataSize, 8)&CONV_STD_LOGIC_VECTOR(NumReg, 8);
-data(4)(7 downto 0) := val16(7 downto 0);
-data(5)(7 downto 0) := val16(15 downto 8);
-data(6)(7 downto 0) := (others=>'0');
-data(7)(7 downto 0) := (others=>'0');
-
+h0:=CONV_STD_LOGIC_VECTOR(NumDev, 8)&WR&FIFO&"000000";
+--h1:=CONV_STD_LOGIC_VECTOR(var_DataSize, 8)&CONV_STD_LOGIC_VECTOR(NumReg, 8);
+h1:=CONV_STD_LOGIC_VECTOR(NumReg, 16);
+h2:=CONV_STD_LOGIC_VECTOR(var_DataSize, 16);
+data(0)(7 downto 0) := h0(7 downto 0);
+data(1)(7 downto 0) := h0(15 downto 8);
+data(2)(7 downto 0) := h1(7 downto 0);
+data(3)(7 downto 0) := h1(15 downto 8);
+data(4)(7 downto 0) := h2(7 downto 0);
+data(5)(7 downto 0) := h2(15 downto 8);
+h_bytesize:=5;
 
 if WR=C_WRITE then
 --//-----------------------------------------
 --//Передаем данные
 --//-----------------------------------------
 for i in 0 to var_DataSize-1 loop
-data(4*i+8)(7 downto 0) := usr_data(4*i+0)(7 downto 0);
-data(4*i+9)(7 downto 0) := usr_data(4*i+1)(7 downto 0);
-data(4*i+10)(7 downto 0):= usr_data(4*i+2)(7 downto 0);
-data(4*i+11)(7 downto 0):= usr_data(4*i+3)(7 downto 0);
+data(2*i+h_bytesize+1)(7 downto 0):= usr_data(2*i+0)(7 downto 0);
+data(2*i+h_bytesize+2)(7 downto 0):= usr_data(2*i+1)(7 downto 0);
 end loop;
 else
 var_DataSize:=0;
@@ -573,12 +573,56 @@ end if;
 --//-----------------------------------------
 --//Формируем подтверждение записи в TXBUF модуля cfgdev.vhd
 --//-----------------------------------------
-plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to (7+(4*var_DataSize))), data(0 to (7+(4*var_DataSize))), n, bus_in, bus_out);
+plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to (h_bytesize+(2*var_DataSize))), data(0 to (h_bytesize+(2*var_DataSize))), n, bus_in, bus_out);
 tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
 data(0 to 3) :=conv_byte_vector(tmp_devctrl);
 tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
 data(4 to 7) :=conv_byte_vector(tmp_devctrl);
 plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
+
+--be := (others => '1');
+--tmp_devctrl:=devctrl;
+--var_DataSize:=DataSize;
+--
+----//-----------------------------------------
+----//Передаем заголовок командного пакета
+----//-----------------------------------------
+--val16:=CONV_STD_LOGIC_VECTOR(NumDev, 8)&WR&FIFO&"000000";
+--data(0)(7 downto 0) := val16(7 downto 0);
+--data(1)(7 downto 0) := val16(15 downto 8);
+--data(2)(7 downto 0) := (others=>'0');
+--data(3)(7 downto 0) := (others=>'1');
+--
+--val16:=CONV_STD_LOGIC_VECTOR(var_DataSize, 8)&CONV_STD_LOGIC_VECTOR(NumReg, 8);
+--data(4)(7 downto 0) := val16(7 downto 0);
+--data(5)(7 downto 0) := val16(15 downto 8);
+--data(6)(7 downto 0) := (others=>'0');
+--data(7)(7 downto 0) := (others=>'1');
+--
+--
+--if WR=C_WRITE then
+----//-----------------------------------------
+----//Передаем данные
+----//-----------------------------------------
+--for i in 0 to var_DataSize-1 loop
+--data(4*i+8)(7 downto 0) := usr_data(4*i+0)(7 downto 0);
+--data(4*i+9)(7 downto 0) := usr_data(4*i+1)(7 downto 0);
+--data(4*i+10)(7 downto 0):= usr_data(4*i+2)(7 downto 0);
+--data(4*i+11)(7 downto 0):= usr_data(4*i+3)(7 downto 0);
+--end loop;
+--else
+--var_DataSize:=0;
+--end if;
+--
+----//-----------------------------------------
+----//Формируем подтверждение записи в TXBUF модуля cfgdev.vhd
+----//-----------------------------------------
+--plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to (7+(4*var_DataSize))), data(0 to (7+(4*var_DataSize))), n, bus_in, bus_out);
+--tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+--data(0 to 3) :=conv_byte_vector(tmp_devctrl);
+--tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+--data(4 to 7) :=conv_byte_vector(tmp_devctrl);
+--plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
 
 end;
 
@@ -864,8 +908,8 @@ begin
   VctrlChParams(0).mem_addr_rd       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра Y
-  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#128#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
-  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#012#, 16);--//Размер активной зоны кадра Y
+  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
   VctrlChParams(0).fr_color_fst      :=CONV_STD_LOGIC_VECTOR(16#01#, 2);--//Первый пиксель 0/1/2 - R/G/B
@@ -885,14 +929,15 @@ begin
   TrcNik_MemRD_trn_len :=CONV_STD_LOGIC_VECTOR(16#80#, 8); --//размер одиночной транзакции ОЗУ READ (DWORD)
 
   TrcNikChParams(0).mem_arbuf:=(others=>'0');
-  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
+--  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
+  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(2, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
   TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_LSB_BIT-1 downto 0):=(others=>'0');
 
   --//Интервальные уровни
-  TrcNikChParams(0).ip(0).p1:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(0).p2:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(0).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(0).p2:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(1).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#1A#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(2).p1:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(2).p2:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
   TrcNikChParams(0).ip(3).p1:=CONV_STD_LOGIC_VECTOR(16#20#, TrcNikChParams(0).ip(0).p1'length);
@@ -900,7 +945,7 @@ begin
 
   TrcNikChParams(0).opt:=(others=>'0');
 
-  TrcNikIP_Count:=3;--//Кол-во обрабатываемых интервальных порогов
+  TrcNikIP_Count:=1;--//Кол-во обрабатываемых интервальных порогов
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
@@ -959,6 +1004,83 @@ begin
   vctrl_read_02_start:=1000;--//начало чтения Хостом модуля VCTRL
   vctrl_read_02_end  :=200; --//имитация формирования сигнала nxt_fr
 
+
+
+  ----------------------------------------------------------------------------------------
+  ----------------------------------------------------
+  --// Тестирование записи/чтения регистров через CFGDEV.VHD
+  --//Begin
+  --//Запись
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+
+  --//Готовим значения регистров:
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN0
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0022#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN1
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0023#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN2
+  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0024#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN2
+
+  datasize:=4;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  wait_cycles(16, lclk);
+
+  --//Чтение
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+
+  datasize:=4;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN1, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  data(4 to 7) :=conv_byte_vector(X"00000000");
+
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  data(8 to 11) :=conv_byte_vector(i_dev_ctrl);
+  data(12 to 15) :=conv_byte_vector(X"00000000");
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
+  wait_cycles(16, lclk);
+
+  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+
+  tag := 0;
+  val32 := X"00000001";
+  remaining:=1*10#16#;--+32;--//Кол-во в байтах
+  offset:=0;
+  while remaining /= 0 loop
+      chunk := 10#16#;
+      if chunk > remaining then
+        chunk := remaining;
+      end if;
+
+      plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
+      remaining := remaining - n;
+      tag := tag + (n / 4);
+  end loop;
+  wait_cycles(16, lclk);
+  --// Тестирование записи/чтения регистров через CFGDEV.VHD
+  --//End
+  ----------------------------------------------------
+  ----------------------------------------------------------------------------------------
+
+
+
 --  ----------------------------------------------------------------------------------------
 --  ----------------------------------------------------
 --  --// Тестрование записи/чтения коэфициенитов в модуль DSN_VCTRL/VSCALE
@@ -975,8 +1097,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -987,8 +1109,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -1002,8 +1124,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -1016,8 +1138,8 @@ begin
 --
 --  datasize:=16;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -1033,8 +1155,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -1045,8 +1167,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -1059,8 +1181,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -1081,8 +1203,6 @@ begin
 
 
 
-
-
   ----------------------------------------------------------------------------------------
   ----------------------------------------------------
   --// Настройка модуля DSN_TIMER.VHD
@@ -1091,14 +1211,18 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
+  User_Reg(0)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00AA#, 16);  --//C_DSN_TMR_REG_CMP_L
+  User_Reg(1)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00BB#, 16);  --//C_DSN_TMR_REG_CMP_M
+
   --//Готовим значения регистров:
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0020#, 16);  --//C_DSN_TMR_REG_CMP_L
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_TMR_REG_CMP_M
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_DSN_TMR_REG_CMP_M
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0022#, 16);  --//C_DSN_TMR_REG_CMP_M
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1109,14 +1233,14 @@ begin
   User_Reg(0)(C_DSN_TMR_REG_CTRL_EN_BIT):='1';
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TMR, C_DSN_TMR_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
-  wait_cycles(4, lclk);
+  wait_cycles(14, lclk);
   --// Настройка модуля DSN_TIMER.VHD
   --//End
   ----------------------------------------------------
@@ -1131,10 +1255,10 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  datasize:=2;
+  datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1193,17 +1317,13 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
---  datasize:=2;
---  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---  wait_cycles(4000000, lclk);
 
   --//Готовим значения регистров:
   --//C_DSN_SWT_REG_CTRL_L
@@ -1212,8 +1332,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1227,8 +1347,8 @@ begin
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1243,8 +1363,8 @@ begin
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1259,8 +1379,8 @@ begin
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1286,8 +1406,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1296,20 +1416,7 @@ begin
   wait_cycles(4, lclk);
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_DSN_ETHG_REG_MAC_USRCTRL
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
-----  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT):='0';--//Старшим байтом вперед
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_SWAP_BYTE_BIT):='0';--//Младшим байтом вперед
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
-
-
---  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0001#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST (MULTICAST)
---  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#015E#, 16);  --//C_DSN_ETHG_REG_TX_PATRN1
---  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0B01#, 16);  --//C_DSN_ETHG_REG_TX_PATRN2
---  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#FFFF#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST (BROADCAST)
---  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#FFFF#, 16);  --//C_DSN_ETHG_REG_TX_PATRN1
---  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#FFFF#, 16);  --//C_DSN_ETHG_REG_TX_PATRN2
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_DSN_ETHG_REG_MAC_USRCTRL
   User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST
   User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_DSN_ETHG_REG_TX_PATRN1
   User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_DSN_ETHG_REG_TX_PATRN2
@@ -1320,14 +1427,14 @@ begin
 
   datasize:=8;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
-  wait_cycles(4, lclk);
+  wait_cycles(34, lclk);
   --// Настройка модуля DSN_ETH.VHD
   --//End
   ----------------------------------------------------
@@ -1388,8 +1495,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1404,8 +1511,8 @@ begin
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1421,8 +1528,8 @@ begin
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1437,8 +1544,8 @@ begin
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1470,8 +1577,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1503,8 +1610,8 @@ begin
 
   datasize:=7;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1516,8 +1623,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1545,8 +1652,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1563,8 +1670,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1577,8 +1684,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1591,8 +1698,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1605,8 +1712,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1624,8 +1731,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1638,8 +1745,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1659,8 +1766,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1673,8 +1780,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1693,8 +1800,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1707,8 +1814,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1727,8 +1834,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1741,8 +1848,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1755,8 +1862,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1769,8 +1876,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1788,8 +1895,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1802,8 +1909,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1823,8 +1930,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1837,8 +1944,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1857,8 +1964,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1871,8 +1978,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1891,8 +1998,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1905,8 +2012,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1919,8 +2026,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1933,8 +2040,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1952,8 +2059,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1966,8 +2073,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -1987,8 +2094,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2001,8 +2108,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2021,8 +2128,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2035,8 +2142,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2050,8 +2157,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2093,8 +2200,8 @@ begin
 
   datasize:=8;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2121,8 +2228,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2134,8 +2241,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2177,8 +2284,8 @@ begin
 
   datasize:=17;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2206,8 +2313,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2219,8 +2326,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2266,8 +2373,8 @@ begin
 --
 --  datasize:=17;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2297,8 +2404,8 @@ begin
 ----
 ----  datasize:=1;
 ----  for y in 0 to datasize - 1 loop
-----    for i in 0 to 4 - 1 loop
-----      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+----    for i in 0 to 2 - 1 loop
+----      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 ----    end loop;
 ----  end loop;
 ----
@@ -2325,8 +2432,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2339,8 +2446,8 @@ begin
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2353,8 +2460,8 @@ begin
 --
 --  datasize:=2;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2365,8 +2472,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2378,8 +2485,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2422,8 +2529,8 @@ begin
 
   datasize:=8;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2451,8 +2558,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2473,8 +2580,8 @@ begin
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
-    for i in 0 to 4 - 1 loop
-      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
@@ -2591,8 +2698,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2618,8 +2725,8 @@ begin
 --
 --  datasize:=2;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2632,8 +2739,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2648,8 +2755,8 @@ begin
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
---    for i in 0 to 4 - 1 loop
---      data((y*4)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
 --    end loop;
 --  end loop;
 --
@@ -2703,14 +2810,16 @@ begin
   i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
---
---//Write CFGPkt
---//1. Настройка модуля DSN_SWITCH.vhd
+  --
+  --//Write CFGPkt
+  --//1. Настройка модуля DSN_SWITCH.vhd
   datasize:=1;
-  val32:=(others=>'0');
-  val32(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='1';
-  for i in 0 to 4 - 1 loop
-    data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
+  User_Reg(0)(15 downto 0):=(others=>'0');
+  User_Reg(0)(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='1';
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
   end loop;
 
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
