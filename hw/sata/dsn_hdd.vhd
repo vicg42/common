@@ -796,7 +796,10 @@ p_out_gt_sim_clk(i)       <='0';
 i_sh_status.ch_bsy(i)<='0';
 i_sh_status.ch_rdy(i)<='0';
 i_sh_status.ch_err(i)<='0';
+i_sh_status.ch_ataerror(i)<=(others=>'0');
+i_sh_status.ch_atastatus(i)<=(others=>'0');
 i_sh_status.ch_serror(i)<=(others=>'0');
+i_sh_status.ch_sstatus(i)<=(others=>'0');
 i_sh_status.ch_usr(i)<=(others=>'0');
 
 p_out_dbgled(i).link<='0';
@@ -813,9 +816,6 @@ i_sh_status.dev_rdy <='0';
 i_sh_status.dev_err <='0';
 i_sh_status.usr <=(others=>'0');
 i_sh_status.lba_bp <=(others=>'0');
-gen_rstat : for i in 0 to G_HDD_COUNT-1 generate
-i_sh_status_ch(i)<=(others=>'0');
-end generate gen_rstat;
 
 i_sh_measure.tdly  <=(others=>'0');
 i_sh_measure.twork <=(others=>'0');
