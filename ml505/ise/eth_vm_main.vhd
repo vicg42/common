@@ -372,20 +372,20 @@ signal i_hmem_ce                        : std_logic;
 
 signal i_cfgdev_module_rst              : std_logic;
 signal i_cfgdev_module_rdy              : std_logic;
-signal i_cfgdev_devadr                  : std_logic_vector(7 downto 0);
-signal i_cfgdev_adr                     : std_logic_vector(7 downto 0);
-signal i_cfgdev_adr_ld                  : std_logic;
-signal i_cfgdev_adr_fifo                : std_logic;
-signal i_cfgdev_wd                      : std_logic;
-signal i_cfgdev_rd                      : std_logic;
-signal i_cfgdev_txdata                  : std_logic_vector(15 downto 0);
-signal i_cfgdev_rxdata                  : std_logic_vector(15 downto 0);
-signal i_cfgdev_done                    : std_logic;
-signal i_cfgdev_rx_hirq                 : std_logic;
-signal i_dev_cfg_wd                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
-signal i_dev_cfg_rd                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
-signal i_dev_cfg_done                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
---signal i_cfgdev_tst_out                 : std_logic_vector(31 downto 0);
+signal i_cfg_dadr                       : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_radr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
+signal i_cfg_radr_ld                    : std_logic;
+signal i_cfg_radr_fifo                  : std_logic;
+signal i_cfg_wr                         : std_logic;
+signal i_cfg_rd                         : std_logic;
+signal i_cfg_txdata                     : std_logic_vector(15 downto 0);
+signal i_cfg_rxdata                     : std_logic_vector(15 downto 0);
+signal i_cfg_done                       : std_logic;
+signal i_cfg_rx_hirq                    : std_logic;
+signal i_cfg_wr_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
+signal i_cfg_rd_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
+signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
+signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_swt_module_rst                 : std_logic;
 signal i_swt_cfg_rxdata                 : std_logic_vector(15 downto 0);
@@ -823,46 +823,98 @@ g_usr_highclk<=i_memctrl_pllclk2x0;
 --***********************************************************
 --Модуль конфигурирования устр-в
 --***********************************************************
-m_devcfg : cfgdev
+--m_devcfg : cfgdev
+--port map
+--(
+---------------------------------
+----Связь с Хостом
+---------------------------------
+--p_in_host_clk        => g_host_clk,
+--
+--p_out_module_rdy     => i_cfgdev_module_rdy,
+--p_out_module_error   => open,
+--
+--p_out_host_rxbuf_rdy => i_host_devcfg_rxbuf_rdy,
+--p_out_host_rxdata    => i_host_devcfg_rxdata,
+--p_in_host_rd         => i_host_devcfg_rd,
+--
+--p_out_host_txbuf_rdy => i_host_devcfg_txbuf_rdy,
+--p_in_host_txdata     => i_host_devcfg_txdata,
+--p_in_host_wd         => i_host_devcfg_wd,
+--p_in_host_txdata_rdy => i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT),
+--
+---------------------------------
+----Запись/Чтение конфигурационных параметров уст-ва
+---------------------------------
+--p_out_dev_adr        => i_cfg_dadr,
+--p_out_cfg_adr        => i_cfg_radr,
+--p_out_cfg_adr_ld     => i_cfg_radr_ld,
+--p_out_cfg_adr_fifo   => i_cfg_radr_fifo,
+--p_out_cfg_wd         => i_cfg_wr,
+--p_out_cfg_rd         => i_cfg_rd,
+--p_out_cfg_txdata     => i_cfg_txdata,
+--p_in_cfg_rxdata      => i_cfg_rxdata,
+--
+--p_out_cfg_done       => i_cfg_done,
+--p_out_cfg_rx_set_irq => i_cfg_rx_hirq,
+--p_in_cfg_clk         => g_host_clk,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_out_tst            => open,--i_cfg_tst_out,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_rst => i_cfgdev_module_rst
+--);
+
+m_devcfg : cfgdev_host
 port map
 (
 -------------------------------
 --Связь с Хостом
 -------------------------------
-p_in_host_clk        => g_host_clk,
-
-p_out_module_rdy     => i_cfgdev_module_rdy,
-p_out_module_error   => open,
-
-p_out_host_rxbuf_rdy => i_host_devcfg_rxbuf_rdy,
-p_out_host_rxdata    => i_host_devcfg_rxdata,
+p_out_host_rxrdy     => i_host_devcfg_rxbuf_rdy,
+p_out_host_rxd       => i_host_devcfg_rxdata,
 p_in_host_rd         => i_host_devcfg_rd,
 
-p_out_host_txbuf_rdy => i_host_devcfg_txbuf_rdy,
-p_in_host_txdata     => i_host_devcfg_txdata,
-p_in_host_wd         => i_host_devcfg_wd,
-p_in_host_txdata_rdy => i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT),
+p_out_host_txrdy     => i_host_devcfg_txbuf_rdy,
+p_in_host_txd        => i_host_devcfg_txdata,
+p_in_host_wr         => i_host_devcfg_wd,
+
+p_out_host_irq       => i_cfg_rx_hirq,
+p_in_host_clk        => g_host_clk,
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     => i_cfgdev_module_rdy,
+p_out_module_error   => open,
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_dev_adr        => i_cfgdev_devadr,
-p_out_cfg_adr        => i_cfgdev_adr,
-p_out_cfg_adr_ld     => i_cfgdev_adr_ld,
-p_out_cfg_adr_fifo   => i_cfgdev_adr_fifo,
-p_out_cfg_wd         => i_cfgdev_wd,
-p_out_cfg_rd         => i_cfgdev_rd,
-p_out_cfg_txdata     => i_cfgdev_txdata,
-p_in_cfg_rxdata      => i_cfgdev_rxdata,
+p_out_cfg_dadr       => i_cfg_dadr,
+p_out_cfg_radr       => i_cfg_radr,
+p_out_cfg_radr_ld    => i_cfg_radr_ld,
+p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
+p_out_cfg_wr         => i_cfg_wr,
+p_out_cfg_rd         => i_cfg_rd,
+p_out_cfg_txdata     => i_cfg_txdata,
+p_in_cfg_rxdata      => i_cfg_rxdata,
+p_in_cfg_txrdy       => '1',
+p_in_cfg_rxrdy       => '1',
 
-p_out_cfg_done       => i_cfgdev_done,
-p_out_cfg_rx_set_irq => i_cfgdev_rx_hirq,
+p_out_cfg_done       => i_cfg_done,
 p_in_cfg_clk         => g_host_clk,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_tst            => open,--i_cfgdev_tst_out,
+p_in_tst             => "00000000000000000000000000000000",
+p_out_tst            => i_cfg_tst_out,
 
 -------------------------------
 --System
@@ -871,18 +923,18 @@ p_in_rst => i_cfgdev_module_rst
 );
 
 --//Распределяем управление от блока конфигурирования(cfgdev.vhd) для соотв. модуля проекта:
-i_cfgdev_rxdata<=i_hdd_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, i_cfgdev_devadr'length) else
-                 i_eth_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETHG, i_cfgdev_devadr'length) else
-                 i_vctrl_cfg_rxdata  when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, i_cfgdev_devadr'length) else
-                 i_swt_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, i_cfgdev_devadr'length) else
-                 i_dsntst_cfg_rxdata when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, i_cfgdev_devadr'length) else
-                 i_tmr_cfg_rxdata    when i_cfgdev_devadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, i_cfgdev_devadr'length) else
+i_cfg_rxdata<=i_hdd_cfg_rxdata    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, 4) else
+                 i_eth_cfg_rxdata    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETHG, 4) else
+                 i_vctrl_cfg_rxdata  when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, 4) else
+                 i_swt_cfg_rxdata    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, 4) else
+                 i_dsntst_cfg_rxdata when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, 4) else
+                 i_tmr_cfg_rxdata    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4) else
                  (others=>'0');
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
-i_dev_cfg_wd(i)   <=i_cfgdev_wd   when i_cfgdev_devadr=i else '0';
-i_dev_cfg_rd(i)   <=i_cfgdev_rd   when i_cfgdev_devadr=i else '0';
-i_dev_cfg_done(i) <=i_cfgdev_done when i_cfgdev_devadr=i else '0';
+i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr(3 downto 0)=i else '0';
+i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr(3 downto 0)=i else '0';
+i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr(3 downto 0)=i else '0';
 end generate gen_cfg_dev;
 
 
@@ -897,17 +949,17 @@ port map
 -------------------------------
 p_in_host_clk     => g_host_clk,
 
-p_in_cfg_adr      => i_cfgdev_adr,
-p_in_cfg_adr_ld   => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo => i_cfgdev_adr_fifo,
+p_in_cfg_adr      => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld   => i_cfg_radr_ld,
+p_in_cfg_adr_fifo => i_cfg_radr_fifo,
 
-p_in_cfg_txdata   => i_cfgdev_txdata,
-p_in_cfg_wd       => i_dev_cfg_wd(C_CFGDEV_TMR),
+p_in_cfg_txdata   => i_cfg_txdata,
+p_in_cfg_wd       => i_cfg_wr_dev(C_CFGDEV_TMR),
 
 p_out_cfg_rxdata  => i_tmr_cfg_rxdata,
-p_in_cfg_rd       => i_dev_cfg_rd(C_CFGDEV_TMR),
+p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_TMR),
 
-p_in_cfg_done     => i_dev_cfg_wd(C_CFGDEV_TMR),
+p_in_cfg_done     => i_cfg_wr_dev(C_CFGDEV_TMR),
 
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
@@ -935,17 +987,17 @@ port map
 -------------------------------
 p_in_cfg_clk              => g_host_clk,
 
-p_in_cfg_adr              => i_cfgdev_adr,
-p_in_cfg_adr_ld           => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo         => i_cfgdev_adr_fifo,
+p_in_cfg_adr              => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld           => i_cfg_radr_ld,
+p_in_cfg_adr_fifo         => i_cfg_radr_fifo,
 
-p_in_cfg_txdata           => i_cfgdev_txdata,
-p_in_cfg_wd               => i_dev_cfg_wd(C_CFGDEV_SWT),
+p_in_cfg_txdata           => i_cfg_txdata,
+p_in_cfg_wd               => i_cfg_wr_dev(C_CFGDEV_SWT),
 
 p_out_cfg_rxdata          => i_swt_cfg_rxdata,
-p_in_cfg_rd               => i_dev_cfg_rd(C_CFGDEV_SWT),
+p_in_cfg_rd               => i_cfg_rd_dev(C_CFGDEV_SWT),
 
-p_in_cfg_done             => i_dev_cfg_done(C_CFGDEV_SWT),
+p_in_cfg_done             => i_cfg_done_dev(C_CFGDEV_SWT),
 
 -------------------------------
 -- Связь с Хостом (host_clk domain)
@@ -994,7 +1046,7 @@ p_in_eth_rxbuf_wr         => i_eth_rxbuf_wr,
 p_out_eth_rxbuf_empty     => i_eth_rxbuf_empty,
 p_out_eth_rxbuf_full      => i_eth_rxbuf_full,
 
-p_out_eth_txd_rdy         => i_eth_txd_rdy,
+--p_out_eth_txd_rdy         => i_eth_txd_rdy,
 p_out_eth_txbuf_dout      => i_eth_txbuf_dout,
 p_in_eth_txbuf_rd         => i_eth_txbuf_rd,
 p_out_eth_txbuf_empty     => i_eth_txbuf_empty,
@@ -1060,17 +1112,17 @@ port map
 -------------------------------
 p_in_cfg_clk          => g_host_clk,
 
-p_in_cfg_adr          => i_cfgdev_adr,
-p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
+p_in_cfg_adr          => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld       => i_cfg_radr_ld,
+p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
 
-p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_ETHG),
+p_in_cfg_txdata       => i_cfg_txdata,
+p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_ETHG),
 
 p_out_cfg_rxdata      => i_eth_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_ETHG),
+p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_ETHG),
 
-p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_ETHG),
+p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETHG),
 p_in_cfg_rst          => i_cfgdev_module_rst,
 
 -------------------------------
@@ -1095,7 +1147,7 @@ p_out_eth_rxd_eof      => i_eth_rxd_eof,
 p_in_eth_txbuf_dout    => i_eth_txbuf_dout,
 p_out_eth_txbuf_rd     => i_eth_txbuf_rd,
 p_in_eth_txbuf_empty   => i_eth_txbuf_empty,
-p_in_eth_txd_rdy       => i_eth_txd_rdy,
+--p_in_eth_txd_rdy       => i_eth_txd_rdy,
 
 --------------------------------------------------
 --ETH Driver
@@ -1137,17 +1189,17 @@ port map
 -------------------------------
 p_in_host_clk         => g_host_clk,
 
-p_in_cfg_adr          => i_cfgdev_adr,
-p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
+p_in_cfg_adr          => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld       => i_cfg_radr_ld,
+p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
 
-p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_TESTING),
+p_in_cfg_txdata       => i_cfg_txdata,
+p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_TESTING),
 
 p_out_cfg_rxdata      => i_dsntst_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_TESTING),
+p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_TESTING),
 
-p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_TESTING),
+p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_TESTING),
 
 -------------------------------
 -- STATUS модуля dsn_testing.VHD
@@ -1195,17 +1247,17 @@ port map
 -------------------------------
 p_in_host_clk        => g_host_clk,
 
-p_in_cfg_adr         => i_cfgdev_adr,
-p_in_cfg_adr_ld      => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo    => i_cfgdev_adr_fifo,
+p_in_cfg_adr         => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld      => i_cfg_radr_ld,
+p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
 
-p_in_cfg_txdata      => i_cfgdev_txdata,
-p_in_cfg_wd          => i_dev_cfg_wd(C_CFGDEV_VCTRL),
+p_in_cfg_txdata      => i_cfg_txdata,
+p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_VCTRL),
 
 p_out_cfg_rxdata     => i_vctrl_cfg_rxdata,
-p_in_cfg_rd          => i_dev_cfg_rd(C_CFGDEV_VCTRL),
+p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_VCTRL),
 
-p_in_cfg_done        => i_dev_cfg_done(C_CFGDEV_VCTRL),
+p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
 
 -------------------------------
 -- Связь с ХОСТ
@@ -1331,17 +1383,17 @@ port map
 -------------------------------
 p_in_cfg_clk          => g_host_clk,
 
-p_in_cfg_adr          => i_cfgdev_adr,
-p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
-p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
+p_in_cfg_adr          => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld       => i_cfg_radr_ld,
+p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
 
-p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_HDD),
+p_in_cfg_txdata       => i_cfg_txdata,
+p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_HDD),
 
 p_out_cfg_rxdata      => i_hdd_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_HDD),
+p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_HDD),
 
-p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_HDD),
+p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_HDD),
 p_in_cfg_rst          => i_cfgdev_module_rst,
 
 -------------------------------
@@ -1594,7 +1646,7 @@ p_in_rst_n         => i_host_rst_n
 
 i_host_tst_in(71 downto 64)<=i_vctrl_tst_out(23 downto 16);
 i_host_tst_in(126 downto 72)<=(others=>'0');
-i_host_tst_in(127)<=i_vctrl_tst_out(0) xor
+i_host_tst_in(127)<=i_vctrl_tst_out(0) xor i_cfg_tst_out(0) xor
                     i_mem_arb1_tst_out(0) xor i_hdd_tst_out(0);-- i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0);
 
 
@@ -1653,7 +1705,7 @@ i_host_rdevctrl_vchsel<=EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT down
 
 
 --//Уст. флаг TXDATA_RDY - данные запсисаны в TXBUF устр-ва с адресом i_host_rdevctrl_hdevadr
-i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT)<=i_host_rdevctrl_txdrdy when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_rdevctrl_hdevadr'length) else '0';
+--i_dev_txd_rdy(C_HREG_TXDATA_RDY_CFGDEV_BIT)<=i_host_rdevctrl_txdrdy when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_rdevctrl_hdevadr'length) else '0';
 i_dev_txd_rdy(C_HREG_TXDATA_RDY_ETHG_BIT)  <=i_host_rdevctrl_txdrdy when i_host_rdevctrl_hdevadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, i_host_rdevctrl_hdevadr'length) else '0';
 
 --//Запись/Чтение данных из устр-ва с адресом i_host_rdevctrl_hdevadr
@@ -1687,7 +1739,7 @@ i_host_dev_irq(C_HIRQ_PCIEXP_DMA_WR)<='0';--//зарезервировано для модуля pciexp_
 i_host_dev_irq(C_HIRQ_PCIEXP_DMA_RD)<='0';--//зарезервировано для модуля pciexp_usr_ctrl.vhd
 i_host_dev_irq(C_HIRQ_TMR0)         <=i_tmr_hirq(0);
 i_host_dev_irq(C_HIRQ_ETH_RXBUF)    <=i_ethg_rx_hirq;
-i_host_dev_irq(C_HIRQ_DEVCFG_RXBUF) <=i_cfgdev_rx_hirq;
+i_host_dev_irq(C_HIRQ_DEVCFG_RXBUF) <=i_cfg_rx_hirq;
 i_host_dev_irq(C_HIRQ_HDD_CMDDONE)  <=i_hdd_hirq;
 i_host_dev_irq(C_HIRQ_VIDEO_CH0)    <=i_vctrl_hirq_out(0);
 i_host_dev_irq(C_HIRQ_VIDEO_CH1)    <=i_vctrl_hirq_out(1);
