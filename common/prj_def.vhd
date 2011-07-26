@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#031D#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#031E#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -689,9 +689,9 @@ constant C_DSN_TRCNIK_REG_CTRL_LAST_BIT             : integer:=C_DSN_TRCNIK_REG_
 constant C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT   : integer:=0;--//1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
 constant C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT    : integer:=1;--//1/0 - dx/2 и dy/2 /нет делений
 constant C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT        : integer:=2;--//Отладка работы Пороговых интревалов (Рабочее кол-во ИП)
-constant C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT        : integer:=4;--//
-constant C_DSN_TRCNIK_REG_OPT_ANG_LSB_BIT           : integer:=5;--//Выбор вариантов расчета направления градиента яркости
-constant C_DSN_TRCNIK_REG_OPT_ANG_MSB_BIT           : integer:=6;--//(пока реализовано 2-а, мах 4)
+constant C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT        : integer:=5;--//
+constant C_DSN_TRCNIK_REG_OPT_ANG_LSB_BIT           : integer:=6;--//Выбор вариантов расчета направления градиента яркости
+constant C_DSN_TRCNIK_REG_OPT_ANG_MSB_BIT           : integer:=7;--//(пока реализовано 2-а, мах 4)
 constant C_DSN_TRCNIK_REG_OPT_LAST_BIT              : integer:=C_DSN_TRCNIK_REG_OPT_ANG_MSB_BIT;
 
 
