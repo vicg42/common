@@ -32,9 +32,14 @@ constant CNIK_EBKT_LENX                             : integer:=4; --//по оси X (
 constant CNIK_EBKT_LENY                             : integer:=4; --//по оси Y (строки)=кол-ву буферов для строк
 
 --//Кол-во ЭБ записываемых в выходной буфер.
-constant CNIK_EBOUT_COUNT                           : integer:=16; --//Разрешенные значения: 4, 8, 16
+Type TGetEBOUT_Count is array (0 to 8) of integer;
+--------------------------------------------------------------------------------
+--//Кол-во интервальных порогов:                | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+--------------------------------------------------------------------------------
+constant CNIK_EBOUT_COUNT : TGetEBOUT_Count:=( 0, 4,  8,  12, 16, 20, 24, 28, 32);
 
-constant CNIK_HPKT_COUNT                            : integer:=CNIK_EBOUT_COUNT/4; --//Размер Заголовка выходного пакета в DW
+constant CNIK_EBOUT_COUNT_MAX                       : integer:=32; --//Разрешенные значения: 4, 8, 16
+constant CNIK_HPKT_COUNT_MAX                        : integer:=8;--CNIK_EBOUT_COUNT_MAX/4; --//Размер Заголовка выходного пакета в DW
 
 
 
@@ -51,18 +56,18 @@ end record;
 --//trc_nik_core.vhd порт p_out_satatus Bit Map:
 type TTrcNikCoreStatus is record
 nxt_row : std_logic;
-skip_ip : std_logic;
 drdy    : std_logic;
 idle    : std_logic;
+--skip_ip : std_logic;
 end record;
 
 
-Type TTrcNikHPkt is array (0 to 3) of std_logic_vector(31 downto 0);
+Type TTrcNikHPkt is array (0 to CNIK_HPKT_COUNT_MAX-1) of std_logic_vector(31 downto 0);
 
 type TTrcNikEBO is record
 cnt  : std_logic_vector(7 downto 0);
 end record;
-Type TTrcNikEBOs is array (0 to 15) of TTrcNikEBO;
+Type TTrcNikEBOs is array (0 to CNIK_EBOUT_COUNT_MAX-1) of TTrcNikEBO;
 
 type TTrcNikDout is record
 pix   : std_logic_vector(7 downto 0);
@@ -86,8 +91,8 @@ Type TTrcNikIPs is array (0 to C_DSN_TRCNIK_IP_COUNT-1) of TTrcNikIP;
 
 type TTrcNikParam is record
 mem_arbuf : std_logic_vector(31 downto 0);
-ip  : TTrcNikIPs;
-opt : std_logic_vector(15 downto 0);
+opt       : std_logic_vector(15 downto 0);
+ip        : TTrcNikIPs;
 end record;
 Type TTrcNikParams is array (0 to C_DSN_TRCNIK_CH_COUNT-1) of TTrcNikParam;
 

@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#031E#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#031F#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -664,7 +664,7 @@ constant C_DSN_TRCNIK_CH_COUNT                      : integer:=1;--//Текщее кол-
 constant C_DSN_TRCNIK_CH_MAX_COUNT                  : integer:=3;--//Мах кол-во
 
 --/Интервальные пороги
-constant C_DSN_TRCNIK_IP_COUNT                      : integer:=4;--//Текущее кол-во
+constant C_DSN_TRCNIK_IP_COUNT                      : integer:=8;--//Текущее кол-во
 constant C_DSN_TRCNIK_IP_MAX_COUNT                  : integer:=8;--//Мах кол-во
 
 

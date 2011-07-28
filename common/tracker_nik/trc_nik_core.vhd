@@ -6,18 +6,40 @@
 -- Module Name : trc_nik_core
 --
 -- Назначение/Описание :
---  Модуль реализует обсчет одной элементарной строки(ЭС) Никифорова
+-- Модуль реализует обсчет одной элементарной строки(ЭС) Никифорова
+--
+-- массив счетчиков выделеных КТ должен иметь следующий вид:
+-- |------------------------------------------------------ ... ------------------------
+-- |     |         ИП0           |         ИП1           | ... |         ИП(n)         |
+-- |     ------------------------------------------------- ... ------------------------
+-- |     | ЭБ0 | ЭБ1 | ... |ЭБ(n)| ЭБ0 | ЭБ1 | ... |ЭБ(n)| ... | ЭБ0 | ЭБ1 | ... |ЭБ(n)|
+-- |------------------------------------------------------ ... ------------------------
+-- | ЭС0 | xxx | xxx | ... | xxx | xxx | xxx | ... | xxx | ... | xxx | xxx | ... |xxx  |
+-- |------------------------------------------------------ ... ------------------------
+--                     ...                                 ...
+-- |------------------------------------------------------ ... ------------------------
+-- |ЭС(n)| xxx | xxx | ... | xxx | xxx | xxx | ... | xxx | ... | xxx | xxx | ... |xxx  |
+-- |------------------------------------------------------ ... ------------------------
+--
+-- массив значений выделеных КТ должен иметь следующий вид:
+-- |------------------------------------------------------ ... ------------------------
+-- |     |        ЭБ0            |         ЭБ1           | ... |         ЭБ(n)         |
+-- |     ------------------------------------------------- ... ------------------------
+-- |     | ИП0 | ИП1 | ... |ИП(n)| ИП0 | ИП1 | ... |ИП(n)| ... | ИП0 | ИП1 | ... |ИП(n)|
+-- |------------------------------------------------------ ... ------------------------
+-- | ЭС0 | yyy | yyy | ... | yyy | yyy | yyy | ... | yyy | ... | yyy | yyy | ... |yyy  |
+-- |------------------------------------------------------ ... ------------------------
+--                     ...                                 ...
+-- |------------------------------------------------------ ... ------------------------
+-- |ЭС(n)| yyy | yyy | ... | yyy | yyy | yyy | ... | yyy | ... | yyy | yyy | ... |yyy  |
+-- |------------------------------------------------------ ... ------------------------
+--
+-- где xxx - значение счетчика выделеных КТ для соотв. ЭБ
+-- где yyy - значения выделеных КТ для соотв. ЭБ
+--
 --
 -- Revision:
 -- Revision 0.01 - File Created
--- Revision 0.02 - Переделка заполнения выходного буфера Контурных точек.
---                 Теперь счетчики КТ будут хрониться отдельно от массива КТ
---                 Массив КТ :
---                 ЭС(0)                                                               |ЭС(1)..
---                 ЭБ(0)                           |ЭБ(1)                           |..|ЭБ(m)..
---                 ИП(0)    |ИП(1)    |..|ИП(n)    |ИП(0)    |ИП(1)    |..|ИП(n)    |..|ИП(0)..
---                 ..КТ,КТ..|..КТ,КТ..|..|..КТ,КТ..|..КТ,КТ..|..КТ,КТ..|..|..КТ,КТ..|..|..КТ,КТ..
--- Revision 1.00 - Корректировка модуля с учетом изменений реализации vsobel.vhd - Revision 3.00
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -50,6 +72,7 @@ p_in_ctrl            : in    TTrcNikCoreCtrl;
 p_out_status         : out   TTrcNikCoreStatus;
 p_out_hbuf_dsize     : out   std_logic_vector(15 downto 0);--//Общее кол-во данных которые нужно передать в ОЗУ (в DW)
 p_out_ebout          : out   TTrcNikEBOs;                  --//Счетчики данных ЭБ
+p_out_elout          : out   std_logic_vector(8 downto 0); --//Счетчик ЭС
 
 --//--------------------------
 --//
@@ -379,7 +402,6 @@ S_TRC_IDLE,
 S_TRC_WVBUF,
 S_TRC_IP_SET,
 S_TRC_IP_CHK,
-S_TRC_IP_SKIP,
 S_TRC_RVBUF,
 S_TRC_DLY0,
 S_TRC_DLY1,
@@ -416,11 +438,9 @@ signal i_trccore_done                : std_logic;
 signal i_nik_ktedge                  : std_logic;
 signal i_nik_kt                      : TTrcNikKT;
 signal i_nik_dout                    : TTrcNikDouts;
-signal i_nip_skip                    : std_logic;
-signal i_nip_ip_update               : std_logic;
 signal i_nik_ip                      : TTrcNikIP;
-signal i_nik_ebout_num               : std_logic_vector(log2(CNIK_EBOUT_COUNT)-1 downto 0);
-signal i_nik_ebout_num_max           : std_logic_vector(log2(CNIK_EBOUT_COUNT)-1 downto 0);
+signal i_nik_ebout_num               : std_logic_vector(log2(CNIK_EBOUT_COUNT_MAX)-1 downto 0);
+signal i_nik_ebout_num_max           : std_logic_vector(log2(CNIK_EBOUT_COUNT_MAX)-1 downto 0);
 signal i_nik_ebcntx                  : std_logic_vector(log2(CNIK_EBKT_LENX)-1 downto 0);
 signal i_nik_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)-1 downto 0);
 signal i_nik_ip_count                : std_logic_vector(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT downto 0);
@@ -439,10 +459,11 @@ signal i_nik_ebout                   : TTrcNikEBOs;
 signal i_nik_ebout_cnttotal          : std_logic_vector(9 downto 0);
 
 signal i_hbuf_drdy                   : std_logic;
-signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
+signal i_hbuf_wr                     : std_logic_vector(0 to CNIK_EBOUT_COUNT_MAX-1);
 
 signal i_hbuf_dsize_out              : std_logic_vector(15 downto 0);
 signal i_ebout_out                   : TTrcNikEBOs;
+signal i_el_out                      : std_logic_vector(i_nik_elcnt'range);
 
 --signal tst_fsmvbuf_cstate            : std_logic_vector(3 downto 0);
 --signal tst_fsmvbuf_cstate_dly        : std_logic_vector(tst_fsmvbuf_cstate'range);
@@ -489,7 +510,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --                    CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY0 else
 --                    CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_DLY1 else
 --                    CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EXIT_CHK else
-----                    CONV_STD_LOGIC_VECTOR(16#08#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EBOUT_CHK else
+--                    CONV_STD_LOGIC_VECTOR(16#08#, tst_fsmvbuf_cstate'length) when fsmvbuf_cstate=S_TRC_EBOUT_CHK else
 --                    CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmvbuf_cstate'length); --when fsmvbuf_cstate=S_TRC_IDLE else
 
 --//-----------------------------
@@ -502,8 +523,6 @@ p_out_mem_din_rdy_n <='0';
 p_out_hirq <='0';
 
 i_nik_ip_count<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT);
-
-i_nik_ebout_num_max<=CONV_STD_LOGIC_VECTOR(16-1, i_nik_ebout_num_max'length);
 
 i_nik_elcnt_max<=p_in_prm_vch.fr_size.activ.row(i_nik_elcnt_max'length+2-1 downto 2);--//Кол-во элементарных строк ЭС
 i_nik_ebcnt_max<=p_in_prm_vch.fr_size.activ.pix(i_nik_ebcnt_max'length-1 downto 0);  --//Кол-во элементарных блоков ЭБ в одной ЭС
@@ -523,9 +542,9 @@ i_vsobel_ctrl(1)<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT);
 p_out_status.nxt_row<=i_vmirx_done or i_trccore_done;
 p_out_status.drdy<=i_hbuf_drdy;
 p_out_status.idle<='1' when fsmvbuf_cstate=S_TRC_IDLE else '0';
-p_out_status.skip_ip<=i_nip_skip;
 
 p_out_hbuf_dsize<=i_hbuf_dsize_out;
+p_out_elout<=i_el_out;
 p_out_ebout<=i_ebout_out;
 
 
@@ -834,8 +853,8 @@ begin
 
     i_hbuf_drdy<='0';
 
-    i_nip_skip<='0';
-    i_nip_ip_update<='0';
+    i_nik_ebout_num_max<=(others=>'0');
+
     i_nik_ip.p1<=(others=>'0');
     i_nik_ip.p2<=(others=>'0');
 
@@ -848,11 +867,6 @@ begin
     i_trccore_done<='0';
 
     i_vfr_row_cnt<=(others=>'0');
-
-    i_hbuf_dsize_out<=(others=>'0');
-    for i in 0 to i_ebout_out'high loop
-    i_ebout_out(i).cnt<=(others=>'0');
-    end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -873,13 +887,16 @@ begin
             i_hbuf_drdy<='0';
             i_vfr_row_cnt<=(others=>'0');
             i_nik_elcnt<=(others=>'0');
-            i_nik_ipcnt<=(others=>'0');
-            i_nip_skip<='0';
+
+            --//Назначаем кол-во ЭБ записываемых в выходной буфер, в зависимости от кол-во пороговых интервалов
+            for i in 1 to C_DSN_TRCNIK_IP_COUNT loop
+              if i_nik_ip_count=i then
+                i_nik_ebout_num_max <= CONV_STD_LOGIC_VECTOR(CNIK_EBOUT_COUNT(i)-1, i_nik_ebout_num_max'length);
+              end if;
+            end loop;
 
           elsif i_trccore_start='1' then
             i_hbuf_drdy<='0';
-            i_nik_ipcnt<=(others=>'0');
-            i_nip_skip<='0';
             fsmvbuf_cstate <= S_TRC_WVBUF;
 
           end if;
@@ -943,41 +960,40 @@ begin
 
             if i_nik_ip.p1>i_nik_ip.p2 then --//Игнорирую обработку такого Интервального порога !!!!!!!
 
-                i_nip_skip<='1';
-
-                if i_nik_ipcnt=i_nik_ip_count-1 then
+                if i_vbufrow_adr>=p_in_prm_vch.fr_size.activ.pix(13 downto 0)&"00" and
+                   i_nik_ipcnt=(i_nik_ipcnt'range =>'0') then
                     --//Завершил обработку текущией ЭС(элементарной строки)
                     i_vbufrow_adr<=(others=>'0');
                     i_nik_ipcnt<=(others=>'0');
                     i_trccore_done<='1';
-                    i_nik_elcnt<=i_nik_elcnt + 1;--//Счетчик ЭС
-
                     fsmvbuf_cstate <= S_TRC_IDLE;
                 else
-                    i_nik_ipcnt<=i_nik_ipcnt + 1;
-                    fsmvbuf_cstate <= S_TRC_IP_SKIP;--//Переход к следующему ИП
-                end if;
+                    --//Счетчик ИП
+                    if i_nik_ipcnt=i_nik_ip_count-1 then
+                      i_nik_ipcnt<=(others=>'0');
+                      i_vbufrow_adr<=i_vbufrow_adr + CNIK_EBKT_LENX;--//Переходим к следующему ЭБ
+                    else
+                      i_nik_ipcnt<=i_nik_ipcnt + 1;
+                    end if;
 
+                    --Счетчик ЭБ отправленых на формирование выходного пакета данных КТ
+                    if i_nik_ebout_num=i_nik_ebout_num_max then
+                      i_nik_ebout_num<=(others=>'0');
+                      fsmvbuf_cstate <= S_TRC_DLY0;--//Отправляю данные в ОЗУ
+                    else
+                      i_nik_ebout_num<=i_nik_ebout_num + 1;
+                      fsmvbuf_cstate <= S_TRC_IP_SET;--//Переход к следующему ИП
+                    end if;
+                end if;
             else
                 i_vbufrow_rd<='1';
                 fsmvbuf_cstate <= S_TRC_RVBUF;
             end if;
 
-        when S_TRC_IP_SKIP =>
-
-            i_nip_skip<='0';
-
-            --//Ждем подтверждения записи счетчиков в ОЗУ
-            if i_trccore_memwd_done='1' then
-              fsmvbuf_cstate <= S_TRC_IP_SET;--//Переход к следующему ИП
-
-            end if;
-
-
         --//------------------------------------
         --//Читаем данные элементарных блоков (ЭБ) +
         --//Формируем выходной пакет данных(реализацию см. ниже).
-        --//Кол-во анализируемых ЭБ определяется константой CNIK_EBOUT_COUNT
+        --//Кол-во анализируемых ЭБ определяется константой CNIK_EBOUT_COUNT_MAX
         --//------------------------------------
         when S_TRC_RVBUF =>
 
@@ -986,16 +1002,23 @@ begin
                 if i_nik_ebcnty=CONV_STD_LOGIC_VECTOR(CNIK_EBKT_LENY-1, i_nik_ebcnty'length) then
                     i_nik_ebcnty<=(others=>'0');
                     --//Проанализировал все элементы ЭБ
+                    i_vbufrow_rd<='0';
 
-                    i_vbufrow_adr<=i_vbufrow_adr + CNIK_EBKT_LENX;--//Переходим к следующему ЭБ
+                    --//Счетчик ИП
+                    if i_nik_ipcnt=i_nik_ip_count-1 then
+                      i_nik_ipcnt<=(others=>'0');
+                      i_vbufrow_adr<=i_vbufrow_adr + CNIK_EBKT_LENX;--//Переходим к следующему ЭБ
+                    else
+                      i_nik_ipcnt<=i_nik_ipcnt + 1;
+                    end if;
 
                     --Счетчик ЭБ отправленых на формирование выходного пакета данных КТ
                     if i_nik_ebout_num=i_nik_ebout_num_max then
                       i_nik_ebout_num<=(others=>'0');
-                      i_vbufrow_rd<='0';
                       fsmvbuf_cstate <= S_TRC_DLY0;--//Отправляю данные в ОЗУ
                     else
                       i_nik_ebout_num<=i_nik_ebout_num + 1;
+                      fsmvbuf_cstate <= S_TRC_IP_SET;--//Переход к следующему ИП
                     end if;
 
                 else
@@ -1019,12 +1042,8 @@ begin
 
         when S_TRC_DLY1 =>
           --//Сигнализуруем автомату модуля dsn_track_nik.vhd, что
-          --//модуль готов отдать данные.
+          --//В выходном буфере есть данные
           i_hbuf_drdy<='1';
-
-          --//Защелкиваем:
-          i_hbuf_dsize_out<=EXT(i_nik_ebout_cnttotal, p_out_hbuf_dsize'length);--//кол-во КТ записавных в выходной буфер
-          i_ebout_out<=i_nik_ebout;                                            --//значения счетчиков КТ
 
           fsmvbuf_cstate <= S_TRC_EXIT_CHK;
 
@@ -1033,19 +1052,16 @@ begin
         --//------------------------------------
         when S_TRC_EXIT_CHK =>
 
-          if i_vbufrow_adr=p_in_prm_vch.fr_size.activ.pix(13 downto 0)&"00" then
+          if i_vbufrow_adr=p_in_prm_vch.fr_size.activ.pix(13 downto 0)&"00" and
+            i_nik_ipcnt=(i_nik_ipcnt'range =>'0') then
+
+            --//Завершил обработку текущией ЭС
             i_vbufrow_adr<=(others=>'0');
+            i_nik_ipcnt<=(others=>'0');
+            i_trccore_done<='1';
 
-            if i_nik_ipcnt=i_nik_ip_count-1 then
-              --//Завершил обработку всех ИП в текущией ЭС
-              i_trccore_done<='1';
-              i_nik_elcnt<=i_nik_elcnt + 1;--//Счетчик ЭС
-
-              fsmvbuf_cstate <= S_TRC_IDLE;--//Переходим к загрузке новой ЭС
-            else
-              i_nip_ip_update<='1';
-              fsmvbuf_cstate <= S_TRC_EBOUT_CHK;
-            end if;
+            i_nik_elcnt<=i_nik_elcnt + 1;--//Счетчик ЭС
+            fsmvbuf_cstate <= S_TRC_IDLE;
 
           else
             --//Продолжаю обработку текущей ЭС
@@ -1059,16 +1075,7 @@ begin
 
           if i_trccore_memwd_done='1' then
             i_hbuf_drdy<='0';
-
-            if i_nip_ip_update='1' then
-              i_nik_ipcnt<=i_nik_ipcnt + 1;--//Переходим к новому ИП
-              fsmvbuf_cstate <= S_TRC_IP_SET;
-            else
-              i_vbufrow_rd<='1';
-              fsmvbuf_cstate <= S_TRC_RVBUF;
-            end if;
-            i_nip_ip_update<='0';
-
+            fsmvbuf_cstate <= S_TRC_IP_SET;
           end if;
 
       end case;
@@ -1189,7 +1196,7 @@ end process;
 i_nik_ebkt_idx<=i_nik_ebcnty_dly & i_nik_ebcntx_dly;
 
 process(p_in_rst,p_in_clk)
-  variable hbuf_wr : std_logic_vector(0 to CNIK_EBOUT_COUNT-1);
+  variable hbuf_wr : std_logic_vector(0 to CNIK_EBOUT_COUNT_MAX-1);
 begin
   if p_in_rst='1' then
 
@@ -1222,7 +1229,7 @@ begin
                   if i_nik_ip.p1=i_nik_dout(i).grada then
 
                     --//Формируем разрешение записи данных
-                    for x in 0 to CNIK_EBOUT_COUNT-1 loop
+                    for x in 0 to CNIK_EBOUT_COUNT_MAX-1 loop
                       if i_nik_ebout_num_dly=x then
                         hbuf_wr(x):='1';
                       end if;
@@ -1235,7 +1242,7 @@ begin
                   if i_nik_ip.p2 >= i_nik_dout(i).grada then
 
                     --//Формируем разрешение записи данных
-                    for x in 0 to CNIK_EBOUT_COUNT-1 loop
+                    for x in 0 to CNIK_EBOUT_COUNT_MAX-1 loop
                       if i_nik_ebout_num_dly=x then
                         hbuf_wr(x):='1';
                       end if;
@@ -1282,7 +1289,7 @@ begin
   end if;
 end process;
 
-gen : for i in 0 to CNIK_EBOUT_COUNT-1 generate
+gen : for i in 0 to CNIK_EBOUT_COUNT_MAX-1 generate
 begin
 process(p_in_rst,p_in_clk)
 begin
@@ -1297,6 +1304,60 @@ begin
   end if;
 end process;
 end generate gen;
+
+
+--//Регистр выходных данных:
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_el_out<=(others=>'0');
+    i_hbuf_dsize_out<=(others=>'0');
+    for i in 0 to i_ebout_out'high loop
+    i_ebout_out(i).cnt<=(others=>'0');
+    end loop;
+  elsif p_in_clk'event and p_in_clk='1' then
+
+      if fsmvbuf_cstate = S_TRC_DLY1 then
+
+          --//номер текущей ЭС
+          i_el_out<=i_nik_elcnt;
+
+          --//кол-во выделеных КТ записаных в выходной буфер
+          i_hbuf_dsize_out<=EXT(i_nik_ebout_cnttotal, p_out_hbuf_dsize'length);
+
+          --//Конвертация значений счетчиков выделеных КТ из вида:
+          --|-----------------------------------------------------  ... ------------------------
+          --|     |        ЭБ0            |         ЭБ1           | ... |         ЭБ(n)         |
+          --|     ------------------------------------------------  ... ------------------------
+          --|     | ИП0 | ИП1 | ... |ИП(n)| ИП0 | ИП1 | ... |ИП(n)| ... | ИП0 | ИП1 | ... |ИП(n)|
+          --|-----------------------------------------------------  ... ------------------------
+          --|ЭС(n)| xxx | xxx | ... | xxx | xxx | xxx | ... | xxx | ... | xxx | xxx | ... |xxx  |
+          --|-----------------------------------------------------  ... ------------------------
+
+          --//в вид:
+          --|------------------------------------------------------ ... ------------------------
+          --|     |        ИП0            |         ИП1           | ... |         ИП(n)         |
+          --|     ------------------------------------------------- ... ------------------------
+          --|     | ЭБ0 | ЭБ1 | ... |ЭБ(n)| ЭБ0 | ЭБ1 | ... |ЭБ(n)| ... | ЭБ0 | ЭБ1 | ... |ЭБ(n)|
+          --|------------------------------------------------------ ... ------------------------
+          --|ЭС(n)| xxx | xxx | ... | xxx | xxx | xxx | ... | xxx | ... | xxx | xxx | ... |xxx  |
+          --|------------------------------------------------------ ... ------------------------
+          --//
+          --//где xxx - соответствующее значение счетчика для ЭБ(n);ИП(n)
+          --//
+          for c in 1 to C_DSN_TRCNIK_IP_COUNT loop
+            if i_nik_ip_count=c then
+                for p in 0 to c-1 loop --//кол-во используемых ИП
+                    for b in 0 to 3 loop --//кол-во байт в 1DWORD
+                      i_ebout_out(p*4+b).cnt<=i_nik_ebout(p+c*b).cnt;
+                    end loop;
+                end loop;
+            end if;
+          end loop;
+
+      end if;--//if fsmvbuf_cstate = S_TRC_DLY1 then
+  end if;
+end process;
 
 
 
