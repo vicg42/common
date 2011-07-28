@@ -715,6 +715,9 @@ stimulate: process
 --  variable be : byte_enable_t(0 to 127);
 --  variable n : natural;
 
+  type TSimNikIP is array (0 to C_DSN_TRCNIK_IP_MAX_COUNT-1) of std_logic_vector(15 downto 0);
+  variable nik_ip : TSimNikIP;
+
   variable data : byte_vector_t(0 to 127);
   variable data_usr : byte_vector_t(0 to 127);
   variable be : byte_enable_t(0 to 127);
@@ -908,7 +911,7 @@ begin
   VctrlChParams(0).mem_addr_rd       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра Y
-  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#064#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
@@ -925,27 +928,36 @@ begin
   --------------------------------
   --//Параметры модуля TRACK_NIK
   --------------------------------
+  TrcNikChParams(0).mem_arbuf:=(others=>'0');
+  TrcNikChParams(0).opt:=(others=>'0');
+  for i in 0 to TrcNikChParams(0).ip'length - 1 loop
+  TrcNikChParams(0).ip(i).p1:=(others=>'0');
+  TrcNikChParams(0).ip(i).p2:=(others=>'0');
+  end loop;
+
   TrcNik_MemWR_trn_len :=CONV_STD_LOGIC_VECTOR(16#88#, 8); --//размер одиночной транзакции ОЗУ WRITE (DWORD)
   TrcNik_MemRD_trn_len :=CONV_STD_LOGIC_VECTOR(16#80#, 8); --//размер одиночной транзакции ОЗУ READ (DWORD)
 
-  TrcNikChParams(0).mem_arbuf:=(others=>'0');
---  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
-  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(2, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
+  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
+--  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(2, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
   TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_LSB_BIT-1 downto 0):=(others=>'0');
 
   --//Интервальные уровни
-  TrcNikChParams(0).ip(0).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(0).p2:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(1).p1:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(1).p2:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(2).p1:=CONV_STD_LOGIC_VECTOR(16#FF#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(2).p2:=CONV_STD_LOGIC_VECTOR(16#00#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(3).p1:=CONV_STD_LOGIC_VECTOR(16#20#, TrcNikChParams(0).ip(0).p1'length);
-  TrcNikChParams(0).ip(3).p2:=CONV_STD_LOGIC_VECTOR(16#BF#, TrcNikChParams(0).ip(0).p1'length);
+  TrcNikIP_Count:=8;--//Кол-во обрабатываемых интервальных порогов
+  nik_ip(0):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(1):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(2):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(3):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(4):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(5):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(6):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
+  nik_ip(7):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
 
-  TrcNikChParams(0).opt:=(others=>'0');
-
-  TrcNikIP_Count:=1;--//Кол-во обрабатываемых интервальных порогов
+  for i in 0 to TrcNikIP_Count - 1 loop
+  --Если TrcNikIP_Count <= C_DSN_TRCNIK_IP_COUNT, то ...
+  TrcNikChParams(0).ip(i).p1:=nik_ip(i)( 7 downto 0);
+  TrcNikChParams(0).ip(i).p2:=nik_ip(i)(15 downto 8);
+  end loop;
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
   TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
