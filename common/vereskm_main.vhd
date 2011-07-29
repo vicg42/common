@@ -30,9 +30,7 @@ use work.memif.all;
 use work.vereskm_pkg.all;
 use work.cfgdev_pkg.all;
 use work.memory_ctrl_pkg.all;
-use work.sata_pkg.all;
-use work.sata_sim_lite_pkg.all;
-use work.sata_raid_pkg.all;
+use work.sata_glob_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
@@ -155,10 +153,10 @@ pin_in_pciexp_clk_n   : in    std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
 pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 

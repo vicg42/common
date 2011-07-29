@@ -21,9 +21,9 @@ use work.memory_ctrl_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
-use work.sata_pkg.all;
-use work.sata_sim_lite_pkg.all;
-use work.sata_raid_pkg.all;
+use work.sata_glob_pkg.all;
+use work.dsn_hdd_pkg.all;
+
 
 package vereskm_pkg is
 
