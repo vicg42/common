@@ -22,6 +22,7 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 
 entity sata_player_gtsim is

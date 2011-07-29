@@ -21,7 +21,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.sata_pkg.all;
 
 entity sata_dcm is
 generic (

@@ -23,8 +23,10 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
+use work.sata_unit_pkg.all;
 
 entity sata_alayer is
 generic
@@ -80,7 +82,7 @@ architecture behavioral of sata_alayer is
 signal i_cmdfifo_dcnt              : std_logic_vector(3 downto 0);
 signal i_cmdfifo_rd_done           : std_logic;
 
-signal i_usrmode_sel               : std_logic_vector(C_CMDPKT_SATACMD_M_BIT - C_CMDPKT_SATACMD_L_BIT downto 0);
+signal i_usrmode_sel               : std_logic_vector(C_HDDPKT_SATACMD_M_BIT - C_HDDPKT_SATACMD_L_BIT downto 0);
 signal i_usrmode                   : std_logic_vector(C_SATACMD_COUNT-1 downto 0);
 signal i_err_clr                   : std_logic;
 signal i_spd_ver                   : std_logic_vector(C_PSTAT_SPD_BIT_M-C_PSTAT_SPD_BIT_L downto 0);
@@ -306,35 +308,35 @@ begin
 
     elsif i_reg_shadow_wr='1' then
     --//Записть данных в регистры Хостом
-      if    i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_reg_shadow_addr'length) then
-          i_usrmode_sel<=i_reg_shadow_din(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT);
+      if    i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_USRCTRL, i_reg_shadow_addr'length) then
+          i_usrmode_sel<=i_reg_shadow_din(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_SECTOR_COUNT, i_reg_shadow_addr'length) then
           i_reg_shadow.scount <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.scount_exp <= i_reg_shadow_din(15 downto 8);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_FEATURE, i_reg_shadow_addr'length) then
           i_reg_shadow.feature <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.feature_exp <= i_reg_shadow_din(15 downto 8);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_LOW, i_reg_shadow_addr'length) then
           i_reg_shadow.lba_low <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.lba_low_exp <= i_reg_shadow_din(15 downto 8);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_MID, i_reg_shadow_addr'length) then
           i_reg_shadow.lba_mid <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.lba_mid_exp <= i_reg_shadow_din(15 downto 8);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_HIGH, i_reg_shadow_addr'length) then
           i_reg_shadow.lba_high <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.lba_high_exp <= i_reg_shadow_din(15 downto 8);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DEVICE, i_reg_shadow_addr'length) then
           i_reg_shadow.device <= i_reg_shadow_din(7 downto 0);
           i_reg_shadow.control <= i_reg_shadow_din(15 downto 8);
           i_ata_dev_control_srst_bit_old<=i_reg_shadow.control(C_ATA_DEV_CONTROL_SRST_BIT);
 
-      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_reg_shadow_addr'length) then
+      elsif i_reg_shadow_addr=CONV_STD_LOGIC_VECTOR(C_HDDPKT_COMMAND, i_reg_shadow_addr'length) then
           i_reg_shadow.command <= i_reg_shadow_din(7 downto 0);
 --          i_reg_shadow.device(C_ATA_DEVICE_LBA_BIT)<='1';--Уст.режим адресации LBA
 

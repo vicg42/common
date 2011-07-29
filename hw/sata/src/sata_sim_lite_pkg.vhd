@@ -21,6 +21,7 @@ use ieee.std_logic_textio.all;
 use std.textio.all;
 
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 
 package sata_sim_lite_pkg is
@@ -206,17 +207,6 @@ rx  : TPLrx_dbgport;
 end record;
 
 
-type TSH_ila is record
-clk   : std_logic;
-trig0 : std_logic_vector(63 downto 0);
-data  : std_logic_vector(180 downto 0);
-end record;
-
-type TSH_dbgcs is record
-spd   : TSH_ila;
-layer : TSH_ila;
-end record;
-
 type TSH_dbgport is record
 alayer  : TAL_dbgport;
 tlayer  : TTL_dbgport;
@@ -227,9 +217,6 @@ end record;
 
 type TSH_dbgport_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgport;
 type TSH_dbgport_GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TSH_dbgport_GTCH;
-
-type TSH_dbgcs_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgcs;
-type TSH_dbgcs_GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TSH_dbgcs_GTCH;
 
 type TSTxBuf_dbgport is record
 din     : std_logic_vector(31 downto 0);
@@ -257,14 +244,6 @@ player  : TPL_dbgport;
 end record;
 
 type TSH_dbgport_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgport_exp;
-
-
-type TSH_dbgcs_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgcs;
-
-type TSH_dbgcs_exp is record
-sh    : TSH_dbgcs_SHCountMax;
-raid  : TSH_ila;--std_logic_vector(35 downto 0);
-end record;
 
 
 end sata_sim_lite_pkg;

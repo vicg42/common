@@ -18,6 +18,7 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;

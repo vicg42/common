@@ -23,9 +23,10 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.sata_unit_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_raid_pkg.all;
+use work.sata_unit_pkg.all;
 
 entity sata_raid_decoder is
 generic

@@ -25,11 +25,12 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.vicg_common_pkg.all;
-use work.sata_unit_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
+use work.sata_unit_pkg.all;
 
 entity dsn_hdd is
 generic
@@ -88,10 +89,10 @@ p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 --------------------------------------------------
 --SATA Driver
 --------------------------------------------------
-p_out_sata_txn            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_out_sata_txp            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxn             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxp             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txn            : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp            : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn             : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp             : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
 p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_out_sata_refclkout      : out   std_logic;
@@ -148,32 +149,65 @@ clkout    : out   std_logic
 );
 end component;
 
---constant CI_DSN_HDD_TXBUF_PFULL_ASSERT : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#250#, 8); --CONV_STD_LOGIC_VECTOR(10#1004#, 10);
---constant CI_DSN_HDD_TXBUF_PFULL_NEGATE : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#200#, 8); --CONV_STD_LOGIC_VECTOR(10#876#, 10);
---
---component hdd_2txfifo
---port
---(
---din         : in std_logic_vector(31 downto 0);
---wr_en       : in std_logic;
-----wr_clk      : in std_logic;
---
---dout        : out std_logic_vector(31 downto 0);
---rd_en       : in std_logic;
-----rd_clk      : in std_logic;
---
---prog_full_thresh_assert : in std_logic_vector(7 downto 0);
---prog_full_thresh_negate : in std_logic_vector(7 downto 0);
---full        : out std_logic;
---almost_full : out std_logic;
---empty       : out std_logic;
---prog_full   : out std_logic;
---
---clk         : in std_logic;
---rst         : in std_logic
---);
---end component;
+component hdd_cmdfifo is
+port
+(
+din         : in std_logic_vector(15 downto 0);
+wr_en       : in std_logic;
+wr_clk      : in std_logic;
 
+dout        : out std_logic_vector(15 downto 0);
+rd_en       : in std_logic;
+rd_clk      : in std_logic;
+
+full        : out std_logic;
+empty       : out std_logic;
+
+--clk         : in std_logic;
+rst         : in std_logic
+);
+end component ;
+
+component hdd_txfifo
+port
+(
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(31 downto 0);
+rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+
+full        : out std_logic;
+almost_full : out std_logic;
+empty       : out std_logic;
+prog_full   : out std_logic;
+
+clk         : in std_logic;
+rst         : in std_logic
+);
+end component;
+
+component hdd_rxfifo
+port
+(
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(31 downto 0);
+rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+
+full        : out std_logic;
+almost_full : out std_logic;
+empty       : out std_logic;
+
+clk         : in std_logic;
+rst         : in std_logic
+);
+end component;
 
 signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
 
@@ -605,28 +639,6 @@ rst         => i_buf_rst
 
 p_out_hdd_txbuf_empty<=i_sh_txbuf_empty;
 
---m_txfifo : hdd_2txfifo
---port map
---(
---din         => p_in_hdd_txd,
---wr_en       => p_in_hdd_txd_wr,
-----wr_clk      => ,
---
---dout        => i_sh_txd,
---rd_en       => i_sh_txd_rd,
-----rd_clk      => ,
---
---prog_full_thresh_assert => CI_DSN_HDD_TXBUF_PFULL_ASSERT,
---prog_full_thresh_negate => CI_DSN_HDD_TXBUF_PFULL_NEGATE,
---full        => open,
---almost_full => tst_txbuf_afull,
---empty       => i_sh_txbuf_empty,
---prog_full   => p_out_hdd_txbuf_full,
---
---clk         => p_in_clk,
---rst         => i_buf_rst
---);
-
 m_rxfifo : hdd_rxfifo
 port map
 (
@@ -772,10 +784,10 @@ G_SIM => G_SIM
 )
 port map
 (
-p_out_txn => p_out_sata_txn(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
-p_out_txp => p_out_sata_txp(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
-p_in_rxn  => p_in_sata_rxn(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
-p_in_rxp  => p_in_sata_rxp(((C_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_GTCH_COUNT_MAX*sh_idx)),
+p_out_txn => p_out_sata_txn(((C_SH_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_SH_GTCH_COUNT_MAX*sh_idx)),
+p_out_txp => p_out_sata_txp(((C_SH_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_SH_GTCH_COUNT_MAX*sh_idx)),
+p_in_rxn  => p_in_sata_rxn(((C_SH_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_SH_GTCH_COUNT_MAX*sh_idx)),
+p_in_rxp  => p_in_sata_rxp(((C_SH_GTCH_COUNT_MAX*(sh_idx+1))-1) downto (C_SH_GTCH_COUNT_MAX*sh_idx)),
 clkin     => p_in_sata_refclk(sh_idx),
 clkout    => i_sata_gt_refclk(sh_idx)
 );

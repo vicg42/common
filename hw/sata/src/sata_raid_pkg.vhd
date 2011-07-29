@@ -19,6 +19,7 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 
 package sata_raid_pkg is
@@ -63,25 +64,6 @@ ch_sstatus   : TSStatus_SHCountMax;
 ch_usr       : TBus32_SHCountMax;
 usr          : std_logic_vector(31 downto 0);
 lba_bp       : std_logic_vector(47 downto 0);--//Break Point
-end record;
-
-
---//-------------------------------------------------
---//RAMBUF
---//-------------------------------------------------
---//Статусы/Map:
-type THDDRBufStatus is record
-rdy  : std_logic;
-err  : std_logic;
-done : std_logic;
-end record;
-
-type THDDRBufCfg is record
-mem_trn : std_logic_vector(15 downto 0);
-mem_adr : std_logic_vector(31 downto 0);
-dmacfg  : TDMAcfg;
-bufrst  : std_logic;
-errclr  : std_logic;
 end record;
 
 

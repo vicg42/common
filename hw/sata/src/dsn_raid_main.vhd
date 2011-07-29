@@ -23,10 +23,11 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.sata_unit_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
+use work.sata_unit_pkg.all;
 
 entity dsn_raid_main is
 generic
@@ -123,8 +124,8 @@ C_GT7_CH_COUNT
 signal i_usr_status                : TUsrStatus;
 signal g_refclkout                 : std_logic;
 
-signal i_sh_gt_pllkdet            : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
-signal i_sh_gt_refclkout          : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+signal i_sh_gt_pllkdet             : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
+signal i_sh_gt_refclkout           : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal i_sh_dcm_rst                : std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 signal g_sh_dcm_clk2div            : std_logic;
 signal g_sh_dcm_clk                : std_logic;

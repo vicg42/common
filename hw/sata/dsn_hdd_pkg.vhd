@@ -17,12 +17,14 @@ use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
 
 library work;
-use work.sata_pkg.all;
-use work.sata_sim_lite_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_raid_pkg.all;
 
 package dsn_hdd_pkg is
 
+--//-------------------------------------------------
+--//
+--//-------------------------------------------------
 type THDDLed is record
 link: std_logic;--//Связь установлена
 rdy : std_logic;--//Канал готов к работе
@@ -33,65 +35,25 @@ dly : std_logic;--//
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
-component hdd_cmdfifo is
-port
-(
-din         : in std_logic_vector(15 downto 0);
-wr_en       : in std_logic;
-wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(15 downto 0);
-rd_en       : in std_logic;
-rd_clk      : in std_logic;
+--//-------------------------------------------------
+--//RAMBUF
+--//-------------------------------------------------
+--//Статусы/Map:
+type THDDRBufStatus is record
+rdy  : std_logic;
+err  : std_logic;
+done : std_logic;
+end record;
 
-full        : out std_logic;
-empty       : out std_logic;
+type THDDRBufCfg is record
+mem_trn : std_logic_vector(15 downto 0);
+mem_adr : std_logic_vector(31 downto 0);
+dmacfg  : TDMAcfg;
+bufrst  : std_logic;
+errclr  : std_logic;
+end record;
 
---clk         : in std_logic;
-rst         : in std_logic
-);
-end component ;
-
-component hdd_txfifo
-port
-(
-din         : in std_logic_vector(31 downto 0);
-wr_en       : in std_logic;
---wr_clk      : in std_logic;
-
-dout        : out std_logic_vector(31 downto 0);
-rd_en       : in std_logic;
---rd_clk      : in std_logic;
-
-full        : out std_logic;
-almost_full : out std_logic;
-empty       : out std_logic;
-prog_full   : out std_logic;
-
-clk         : in std_logic;
-rst         : in std_logic
-);
-end component;
-
-component hdd_rxfifo
-port
-(
-din         : in std_logic_vector(31 downto 0);
-wr_en       : in std_logic;
---wr_clk      : in std_logic;
-
-dout        : out std_logic_vector(31 downto 0);
-rd_en       : in std_logic;
---rd_clk      : in std_logic;
-
-full        : out std_logic;
-almost_full : out std_logic;
-empty       : out std_logic;
-
-clk         : in std_logic;
-rst         : in std_logic
-);
-end component;
 
 component dsn_hdd
 generic
@@ -150,10 +112,10 @@ p_out_hdd_rxbuf_empty     : out  std_logic;
 --------------------------------------------------
 --SATA Driver
 --------------------------------------------------
-p_out_sata_txn            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_out_sata_txp            : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxn             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxp             : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txn            : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp            : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn             : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp             : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
 
 p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
 p_out_sata_refclkout      : out   std_logic;

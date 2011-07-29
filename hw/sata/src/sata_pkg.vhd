@@ -19,84 +19,50 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 
 package sata_pkg is
 
 ---------------------------------------------------------
 --Типы
 ---------------------------------------------------------
-type T04GTCHCount is array (0 to 3) of integer;
-type T08SHCount is array (0 to 7) of integer;
-type T08SHCountSel is array (0 to 1) of T08SHCount;
-type T8x08SHCountSel is array (0 to 7) of T08SHCountSel;
+type T8x08SHCountSel is array (0 to 7) of TSH_08CountSel;
+constant C_GTCH_COUNT_MAX :integer:=C_SH_GTCH_COUNT_MAX;
 
-
----------------------------------------------------------
---User Cfg
----------------------------------------------------------
---//Назначаем тип FPGA:
---//0 - "V5_GTP"
---//1 - "V5_GTX"
---//2 - "V6_GTX"
---//3 - "S6_GTPA"
-constant C_FPGA_TYPE         : integer:=0;
-constant C_SH_MAIN_NUM       : integer:=0; --//определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
-
-
----------------------------------------------------------
---Константы
----------------------------------------------------------
---//мах кол-во HDD:
-constant C_HDD_COUNT_MAX     : integer:=8;--//
-
---//Кол-во каналов в одном модуле GT:
-constant C_GTCH_COUNT_MAX_SEL: T04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)
-constant C_GTCH_COUNT_MAX    : integer:=C_GTCH_COUNT_MAX_SEL(C_FPGA_TYPE);
-
-
---//Общее кол-во модулей GT:
----------------------------------------------------------------------------
---//G_HDD_COUNT - значения:               | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
----------------------------------------------------------------------------
-constant C_2CGT_COUNT      : T08SHCount:=(  1,  1,  2,  2,  3,  3,  4,  4 );--//Для GT с двумя каналами(DUAL)
-constant C_1CGT_COUNT      : T08SHCount:=(  1,  2,  3,  4,  5,  6,  7,  8 );--//Для GT c одним каналом
-constant C_GT_COUNT_SEL    : T08SHCountSel:=(C_1CGT_COUNT, C_2CGT_COUNT);
-
-constant C_SH_COUNT_MAX    : T08SHCount:=C_GT_COUNT_SEL(C_GTCH_COUNT_MAX-1);
 
 --//Кол-во используемх каналов в модуле sata_host.vhd
-----------------------------------------------------------------------------------------
---//G_HDD_COUNT - значения:       | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |   / кол-во RocketIO |
-----------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
+--//G_HDD_COUNT - значения:        | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |   / кол-во RocketIO |
+-----------------------------------------------------------------------------------------
 --//GT с двумя каналами(DUAL)
 --//Virtex5
-constant C_2CGT0_CH : T08SHCount:=( 1,  2,  2,  2,  2,  2,  2,  2 );--|  1              |
-constant C_2CGT1_CH : T08SHCount:=( 0,  0,  1,  2,  2,  2,  2,  2 );--|  2              |
-constant C_2CGT2_CH : T08SHCount:=( 0,  0,  0,  0,  1,  2,  2,  2 );--|  3              |
-constant C_2CGT3_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  1,  2 );--|  4              |
-constant C_2CGT4_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
-constant C_2CGT5_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
-constant C_2CGT6_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
-constant C_2CGT7_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
+constant C_2CGT0_CH : TSH_08Count:=( 1,  2,  2,  2,  2,  2,  2,  2 );--|  1              |
+constant C_2CGT1_CH : TSH_08Count:=( 0,  0,  1,  2,  2,  2,  2,  2 );--|  2              |
+constant C_2CGT2_CH : TSH_08Count:=( 0,  0,  0,  0,  1,  2,  2,  2 );--|  3              |
+constant C_2CGT3_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  1,  2 );--|  4              |
+constant C_2CGT4_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
+constant C_2CGT5_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
+constant C_2CGT6_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
+constant C_2CGT7_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  0,  0 );--|                 |
 --//GT c одним каналом
 --//Virtex6
-constant C_1CGT0_CH : T08SHCount:=( 1,  1,  1,  1,  1,  1,  1,  1 );--|  1              |
-constant C_1CGT1_CH : T08SHCount:=( 0,  1,  1,  1,  1,  1,  1,  1 );--|  2              |
-constant C_1CGT2_CH : T08SHCount:=( 0,  0,  1,  1,  1,  1,  1,  1 );--|  3              |
-constant C_1CGT3_CH : T08SHCount:=( 0,  0,  0,  1,  1,  1,  1,  1 );--|  4              |
-constant C_1CGT4_CH : T08SHCount:=( 0,  0,  0,  0,  1,  1,  1,  1 );--|  5              |
-constant C_1CGT5_CH : T08SHCount:=( 0,  0,  0,  0,  0,  1,  1,  1 );--|  6              |
-constant C_1CGT6_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  1,  1 );--|  7              |
-constant C_1CGT7_CH : T08SHCount:=( 0,  0,  0,  0,  0,  0,  0,  1 );--|  8              |
+constant C_1CGT0_CH : TSH_08Count:=( 1,  1,  1,  1,  1,  1,  1,  1 );--|  1              |
+constant C_1CGT1_CH : TSH_08Count:=( 0,  1,  1,  1,  1,  1,  1,  1 );--|  2              |
+constant C_1CGT2_CH : TSH_08Count:=( 0,  0,  1,  1,  1,  1,  1,  1 );--|  3              |
+constant C_1CGT3_CH : TSH_08Count:=( 0,  0,  0,  1,  1,  1,  1,  1 );--|  4              |
+constant C_1CGT4_CH : TSH_08Count:=( 0,  0,  0,  0,  1,  1,  1,  1 );--|  5              |
+constant C_1CGT5_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  1,  1,  1 );--|  6              |
+constant C_1CGT6_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  1,  1 );--|  7              |
+constant C_1CGT7_CH : TSH_08Count:=( 0,  0,  0,  0,  0,  0,  0,  1 );--|  8              |
 
-constant C_GT0_CH_COUNT : T08SHCountSel:=(C_1CGT0_CH, C_2CGT0_CH);
-constant C_GT1_CH_COUNT : T08SHCountSel:=(C_1CGT1_CH, C_2CGT1_CH);
-constant C_GT2_CH_COUNT : T08SHCountSel:=(C_1CGT2_CH, C_2CGT2_CH);
-constant C_GT3_CH_COUNT : T08SHCountSel:=(C_1CGT3_CH, C_2CGT3_CH);
-constant C_GT4_CH_COUNT : T08SHCountSel:=(C_1CGT4_CH, C_2CGT4_CH);
-constant C_GT5_CH_COUNT : T08SHCountSel:=(C_1CGT5_CH, C_2CGT5_CH);
-constant C_GT6_CH_COUNT : T08SHCountSel:=(C_1CGT6_CH, C_2CGT6_CH);
-constant C_GT7_CH_COUNT : T08SHCountSel:=(C_1CGT7_CH, C_2CGT7_CH);
+constant C_GT0_CH_COUNT : TSH_08CountSel:=(C_1CGT0_CH, C_2CGT0_CH);
+constant C_GT1_CH_COUNT : TSH_08CountSel:=(C_1CGT1_CH, C_2CGT1_CH);
+constant C_GT2_CH_COUNT : TSH_08CountSel:=(C_1CGT2_CH, C_2CGT2_CH);
+constant C_GT3_CH_COUNT : TSH_08CountSel:=(C_1CGT3_CH, C_2CGT3_CH);
+constant C_GT4_CH_COUNT : TSH_08CountSel:=(C_1CGT4_CH, C_2CGT4_CH);
+constant C_GT5_CH_COUNT : TSH_08CountSel:=(C_1CGT5_CH, C_2CGT5_CH);
+constant C_GT6_CH_COUNT : TSH_08CountSel:=(C_1CGT6_CH, C_2CGT6_CH);
+constant C_GT7_CH_COUNT : TSH_08CountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 
 
 
@@ -120,52 +86,49 @@ constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_MEASURE_RXHOLD_D
 --//-------------------------------------------------
 --//User Application Layer
 --//-------------------------------------------------
---//Размер командного пакета в WORD
-constant C_USRAPP_CMDPKT_SIZE_WORD       : integer:=8;
+--//HDDCKT / Field Map:
+constant C_HDDPKT_USRCTRL                : integer:=16#00#;--//Пользовательское управление
+constant C_HDDPKT_FEATURE                : integer:=16#01#;--//АТА регистры
+constant C_HDDPKT_LBA_LOW                : integer:=16#02#;
+constant C_HDDPKT_LBA_MID                : integer:=16#03#;
+constant C_HDDPKT_LBA_HIGH               : integer:=16#04#;
+constant C_HDDPKT_SECTOR_COUNT           : integer:=16#05#;
+constant C_HDDPKT_DEVICE                 : integer:=16#06#;-- + C_HDDPKT_DEV_CONTROL
+constant C_HDDPKT_COMMAND                : integer:=16#07#;-- + (15..0)-неиспользуются
+--constant C_HDDPKT_RAID_CL                : integer:=16#08#;--//Размер кластера данных RAID (в секторах)
+
+--//Кол-во полей HDDPKT:
+constant C_HDDPKT_DCOUNT                 : integer:=1 + C_HDDPKT_COMMAND;
 
 --//User CMD Pkt :
 --//Поле UsrCtrl/ Bit Map:
-constant C_CMDPKT_SATA_CS_L_BIT          : integer:=0;
-constant C_CMDPKT_SATA_CS_M_BIT          : integer:=7;
-constant C_CMDPKT_RAIDCMD_L_BIT          : integer:=8;
-constant C_CMDPKT_RAIDCMD_M_BIT          : integer:=10;
---constant C_CMDPKT_RESERV0_BIT            : integer:=11;
-constant C_CMDPKT_SATACMD_L_BIT          : integer:=12;
-constant C_CMDPKT_SATACMD_M_BIT          : integer:=14;
---constant C_CMDPKT_RESERV1_BIT            : integer:=15;
+constant C_HDDPKT_SATA_CS_L_BIT          : integer:=0;
+constant C_HDDPKT_SATA_CS_M_BIT          : integer:=7;
+constant C_HDDPKT_RAIDCMD_L_BIT          : integer:=8;
+constant C_HDDPKT_RAIDCMD_M_BIT          : integer:=10;
+--constant C_HDDPKT_RESERV0_BIT            : integer:=11;
+constant C_HDDPKT_SATACMD_L_BIT          : integer:=12;
+constant C_HDDPKT_SATACMD_M_BIT          : integer:=14;
+--constant C_HDDPKT_RESERV1_BIT            : integer:=15;
 
---//(C_CMDPKT_RAIDCMD_M downto C_CMDPKT_RAIDCMD_L)/Map:
-constant C_RAIDCMD_STOP                   : integer:=0; --//работа от управляющей программы
-constant C_RAIDCMD_SW                     : integer:=1; --//работа от управляющей программы
-constant C_RAIDCMD_HW                     : integer:=2; --//аппаратная запись
-constant C_RAIDCMD_LBAEND                 : integer:=3;--//установка конечного адреса LBA (при работе в режиме HW)
---constant C_RAIDCMD_TSTW                   : integer:=4;
---constant C_RAIDCMD_TSTR                   : integer:=5;
+--//(C_HDDPKT_RAIDCMD_M downto C_HDDPKT_RAIDCMD_L)/Map:
+constant C_RAIDCMD_STOP                  : integer:=0;--//работа от управляющей программы
+constant C_RAIDCMD_SW                    : integer:=1;--//работа от управляющей программы
+constant C_RAIDCMD_HW                    : integer:=2;--//аппаратная запись
+constant C_RAIDCMD_LBAEND                : integer:=3;--//установка конечного адреса LBA (при работе в режиме HW)
 
---//(C_CMDPKT_SATACMD_M downto C_CMDPKT_SATACMD_L)/Map:
-constant C_SATACMD_NULL                   : integer:=0;
-constant C_SATACMD_ATACOMMAND             : integer:=1;
-constant C_SATACMD_ATACONTROL             : integer:=2;
-constant C_SATACMD_SET_SATA1              : integer:=3;
-constant C_SATACMD_SET_SATA2              : integer:=4;
---constant C_SATACMD_FPDMA_W                : integer:=3;
---constant C_SATACMD_FPDMA_R                : integer:=4;
-constant C_SATACMD_COUNT                  : integer:=C_SATACMD_SET_SATA2+1;
+--//(C_HDDPKT_SATACMD_M downto C_HDDPKT_SATACMD_L)/Map:
+constant C_SATACMD_NULL                  : integer:=0;
+constant C_SATACMD_ATACOMMAND            : integer:=1;
+constant C_SATACMD_ATACONTROL            : integer:=2;
+constant C_SATACMD_SET_SATA1             : integer:=3;
+constant C_SATACMD_SET_SATA2             : integer:=4;
+constant C_SATACMD_COUNT                 : integer:=C_SATACMD_SET_SATA2+1;
 
 
 --//-------------------------------------------------
 --//Application Layer
 --//-------------------------------------------------
---//Register / Adress Map:
-constant C_ALREG_USRCTRL                 : integer:=16#00#;
-constant C_ALREG_FEATURE                 : integer:=16#01#;
-constant C_ALREG_LBA_LOW                 : integer:=16#02#;
-constant C_ALREG_LBA_MID                 : integer:=16#03#;
-constant C_ALREG_LBA_HIGH                : integer:=16#04#;
-constant C_ALREG_SECTOR_COUNT            : integer:=16#05#;
-constant C_ALREG_DEVICE                  : integer:=16#06#;-- + C_ALREG_DEV_CONTROL
-constant C_ALREG_COMMAND                 : integer:=16#07#;
-
 --//Регистры ATA / Bit Map:
 --//Регистр ATA_COMMAND/ Commad Map:
 constant C_ATA_CMD_IDENTIFY_DEV          : integer:=16#EC#;
@@ -587,7 +550,7 @@ type TBus21_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (20 down
 type TBus32_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (31 downto 0);
 
 --//
-type TUsrCmdPkt is record
+type THDDPkt is record
 ctrl         : std_logic_vector(15 downto 0);
 feature      : std_logic_vector(15 downto 0);
 lba          : std_logic_vector(47 downto 0);
@@ -595,7 +558,7 @@ scount       : std_logic_vector(15 downto 0);
 command      : std_logic_vector(7 downto 0);
 control      : std_logic_vector(7 downto 0);
 device       : std_logic_vector(7 downto 0);
---reserv       : std_logic_vector(7 downto 0);
+--raid_cl       : std_logic_vector(15 downto 0);
 end record;
 
 
@@ -709,7 +672,6 @@ type TRegShadow_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegShadow;
 type TRegShadowUpdate_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TRegShadowUpdate;
 type TALStatus_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TALStatus;
 
-
 type TALCtrlGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TALCtrl_GTCH;
 type TALStatusGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TALStatus_GTCH;
 type TTxBufStatusGTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TTxBufStatus_GTCH;
@@ -722,12 +684,6 @@ type TBus04GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) o
 type TBus16GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus16_GTCH;
 type TBus32GTCH_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of TBus32_GTCH;
 
-
-type TBus32_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(31 downto 0);
-type TBus16_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(15 downto 0);
-type TBus02_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(1 downto 0);
-type TBus03_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(2 downto 0);
-type TBus04_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3 downto 0);
 type TALCtrl_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 type TALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TALStatus;
 type TTxBufStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TTxBufStatus;
@@ -746,6 +702,7 @@ end record;
 type TMeasureALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TMeasureALStatus;
 
 Type T04_SHCountMax is array (0 to C_SH_COUNT_MAX(C_HDD_COUNT_MAX-1)-1) of std_logic_vector(3 downto 0);
+
 
 
 ---------------------------------------------------------

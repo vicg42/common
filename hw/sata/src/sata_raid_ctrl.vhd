@@ -26,10 +26,11 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.sata_unit_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
+use work.sata_unit_pkg.all;
 
 entity sata_raid_ctrl is
 generic
@@ -122,7 +123,7 @@ end record;
 signal i_sh_det                    : TShDetect;
 signal sr_sh_cmddone               : std_logic_vector(0 to 1);
 
-signal i_cmdpkt                    : TUsrCmdPkt;
+signal i_cmdpkt                    : THDDPkt;
 signal i_cmdpkt_cnt                : std_logic_vector(3 downto 0);--//счетчик данных принимаемого командного пакета
 signal i_cmdpkt_get_done           : std_logic;                   --//Прием cmd пакета завершен
 
@@ -153,18 +154,18 @@ signal i_lba_cnt                   : std_logic_vector(i_cmdpkt.lba'range);
 signal i_lba_inc                   : std_logic_vector(i_cmdpkt.scount'range);--//Значение наращивания LBA
 signal i_lba_end                   : std_logic_vector(i_cmdpkt.lba'range);
 
-signal i_trn_dcount_byte           : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
-signal i_trn_dcount_dw             : std_logic_vector(i_trn_dcount_byte'range);
-
+signal i_sh_trn_byte_count         : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+signal i_sh_trn_dw_count           : std_logic_vector(i_sh_trn_byte_count'range);
 signal i_sh_hddcnt_ld              : std_logic_vector(p_in_sh_num'range);
 signal i_sh_hddcnt                 : std_logic_vector(p_in_sh_num'range);
 signal i_sh_trn_en                 : std_logic;
 signal i_sh_trn_den                : std_logic;
 signal i_sh_txd_wr                 : std_logic;
 signal i_sh_rxd_rd                 : std_logic;
-signal i_raid_atrncnt              : std_logic_vector(i_trn_dcount_dw'range);
-signal sr_raid_atrn_done           : std_logic_vector(0 to 2);
-signal i_raid_atrn_next            : std_logic;
+
+signal i_raid_cl_cntdw             : std_logic_vector(i_sh_trn_dw_count'range);
+signal sr_raid_cl_done             : std_logic_vector(0 to 2);
+signal i_raid_cl_next              : std_logic;
 
 signal i_usr_txbuf_empty           : std_logic;
 signal i_usr_rxbuf_full            : std_logic;
@@ -255,8 +256,8 @@ begin
           i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_cmdpkt.command'length) or
           i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length) or
           i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_cmdpkt.command'length)  then
---          i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_W, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) or
---          i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_R, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) then
+--          i_cmdpkt.ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_W, C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT+1) or
+--          i_cmdpkt.ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_FPDMA_R, C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT+1) then
 
             dmacfg_start:='1';
       end if;
@@ -378,13 +379,13 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_usr_cxd_wr='1' then
-      if i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cmdpkt_cnt'length) then
+      if i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_cmdpkt_cnt'length) then
         i_cmdpkt_cnt<=(others=>'0');
       else
         i_cmdpkt_cnt<=i_cmdpkt_cnt + 1;
       end if;
 
-      if i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cmdpkt_cnt'length) then
+      if i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_cmdpkt_cnt'length) then
         i_cmdpkt_get_done<='1';
       end if;
     else
@@ -396,7 +397,7 @@ end process;
 
 --//Прием командного пакета
 process(p_in_rst,p_in_clk)
-  variable raidcmd: std_logic_vector(C_CMDPKT_RAIDCMD_M_BIT-C_CMDPKT_RAIDCMD_L_BIT downto 0);
+  variable raidcmd: std_logic_vector(C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT downto 0);
 begin
   if p_in_rst='1' then
     i_cmdpkt.ctrl<=(others=>'0');
@@ -406,6 +407,7 @@ begin
     i_cmdpkt.command<=(others=>'0');
     i_cmdpkt.control<=(others=>'0');
     i_cmdpkt.device<=(others=>'0');
+--    i_cmdpkt.raid_cl<=(others=>'0');
 
     i_usrmode.stop<='0';
     i_usrmode.sw<='0';
@@ -415,9 +417,9 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     if p_in_usr_cxd_wr='1' then
-      if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_cmdpkt_cnt'length) then i_cmdpkt.ctrl<=p_in_usr_cxd;
+      if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_USRCTRL, i_cmdpkt_cnt'length) then i_cmdpkt.ctrl<=p_in_usr_cxd;
 
-          raidcmd:=p_in_usr_cxd(C_CMDPKT_RAIDCMD_M_BIT downto C_CMDPKT_RAIDCMD_L_BIT);
+          raidcmd:=p_in_usr_cxd(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT);
 
           if    raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, raidcmd'length) then
             i_usrmode.stop<='1';
@@ -445,18 +447,19 @@ begin
 
           end if;
 
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_cmdpkt_cnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd( 7 downto 0);
-                                                                                               i_cmdpkt.lba(8*(1+1)-1 downto 8*1)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(2+1)-1 downto 8*2)<=p_in_usr_cxd( 7 downto 0);
-                                                                                               i_cmdpkt.lba(8*(3+1)-1 downto 8*3)<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_cmdpkt_cnt'length)     then i_cmdpkt.lba(8*(4+1)-1 downto 8*4)<=p_in_usr_cxd( 7 downto 0);
-                                                                                               i_cmdpkt.lba(8*(5+1)-1 downto 8*5)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_FEATURE, i_cmdpkt_cnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd( 7 downto 0);
+                                                                                                i_cmdpkt.lba(8*(1+1)-1 downto 8*1)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_MID, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(2+1)-1 downto 8*2)<=p_in_usr_cxd( 7 downto 0);
+                                                                                                i_cmdpkt.lba(8*(3+1)-1 downto 8*3)<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_HIGH, i_cmdpkt_cnt'length)     then i_cmdpkt.lba(8*(4+1)-1 downto 8*4)<=p_in_usr_cxd( 7 downto 0);
+                                                                                                i_cmdpkt.lba(8*(5+1)-1 downto 8*5)<=p_in_usr_cxd(15 downto 8);
 
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_cmdpkt_cnt'length) then i_cmdpkt.scount<=p_in_usr_cxd;
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_cmdpkt_cnt'length)       then i_cmdpkt.device<=p_in_usr_cxd(7 downto 0);
-                                                                                               i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
-      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_cmdpkt_cnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_SECTOR_COUNT, i_cmdpkt_cnt'length) then i_cmdpkt.scount<=p_in_usr_cxd;
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DEVICE, i_cmdpkt_cnt'length)       then i_cmdpkt.device<=p_in_usr_cxd(7 downto 0);
+                                                                                                i_cmdpkt.control<=p_in_usr_cxd(15 downto 8);
+      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_COMMAND, i_cmdpkt_cnt'length)      then i_cmdpkt.command<=p_in_usr_cxd(7 downto 0);
+--      elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_RAID_CL, i_cmdpkt_cnt'length)      then i_cmdpkt.raid_cl<=p_in_usr_cxd;
 
       end if;
     end if; --//if p_in_usr_cxd_wr='1' then
@@ -481,7 +484,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_cmd_start='1' then
       i_sh_cmdcnt_en<='1';
-    elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD, i_sh_cmdcnt'length) then
+    elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT, i_sh_cmdcnt'length) then
       i_sh_cmdcnt_en<='0';
     end if;
 
@@ -497,7 +500,7 @@ begin
       i_sh_cxd_sof<='0';
     end if;
 
-    if i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD, i_sh_cmdcnt'length) then
+    if i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT, i_sh_cmdcnt'length) then
       i_sh_cxd_eof<='1';
     else
       i_sh_cxd_eof<='0';
@@ -515,20 +518,21 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_cmdcnt_en='1' then
-      if    i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_USRCTRL, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.ctrl;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_FEATURE, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.feature;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_LOW, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(0+1)-1 downto 8*0);--lba_low
-                                                                                             i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(3+1)-1 downto 8*3);--lba_low(exp)
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_MID, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(1+1)-1 downto 8*1);--lba_mid
-                                                                                             i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(4+1)-1 downto 8*4);--lba_mid(exp)
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_LBA_HIGH, i_sh_cmdcnt'length)     then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(2+1)-1 downto 8*2);--lba_high
-                                                                                             i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(5+1)-1 downto 8*5);--lba_high(exp)
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_SECTOR_COUNT, i_sh_cmdcnt'length) then i_sh_cxdout<=i_cmdpkt.scount;
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_DEVICE, i_sh_cmdcnt'length)       then i_sh_cxdout( 7 downto 0)<=i_cmdpkt.device;
-                                                                                             i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
+      if    i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_USRCTRL, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.ctrl;
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_FEATURE, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.feature;
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_LOW, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(0+1)-1 downto 8*0);--lba_low
+                                                                                              i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(3+1)-1 downto 8*3);--lba_low(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_MID, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(1+1)-1 downto 8*1);--lba_mid
+                                                                                              i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(4+1)-1 downto 8*4);--lba_mid(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_HIGH, i_sh_cmdcnt'length)     then i_sh_cxdout( 7 downto 0)<=i_lba_cnt(8*(2+1)-1 downto 8*2);--lba_high
+                                                                                              i_sh_cxdout(15 downto 8)<=i_lba_cnt(8*(5+1)-1 downto 8*5);--lba_high(exp)
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_SECTOR_COUNT, i_sh_cmdcnt'length) then i_sh_cxdout<=i_cmdpkt.scount;
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DEVICE, i_sh_cmdcnt'length)       then i_sh_cxdout( 7 downto 0)<=i_cmdpkt.device;
+                                                                                              i_sh_cxdout(15 downto 8)<=i_cmdpkt.control;
 
-      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_ALREG_COMMAND, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_cmdpkt.command;
-                                                                                             i_sh_cxdout(15 downto 8)<=(others=>'0');
+      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_COMMAND, i_sh_cmdcnt'length)      then i_sh_cxdout( 7 downto 0)<=i_cmdpkt.command;
+                                                                                              i_sh_cxdout(15 downto 8)<=(others=>'0');
+--      elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_RAID_CL, i_sh_cmdcnt'length)      then i_sh_cxdout<=i_cmdpkt.raid_cl;
       end if;
     end if;
 
@@ -536,7 +540,7 @@ begin
 end process;
 
 
-p_out_sh_mask<=i_cmdpkt.ctrl(G_HDD_COUNT+C_CMDPKT_SATA_CS_L_BIT-1 downto C_CMDPKT_SATA_CS_L_BIT);
+p_out_sh_mask<=i_cmdpkt.ctrl(G_HDD_COUNT+C_HDDPKT_SATA_CS_L_BIT-1 downto C_HDDPKT_SATA_CS_L_BIT);
 
 p_out_sh_cxd<=i_sh_cxdout;
 p_out_sh_cxd_sof_n<=not i_sh_cxd_sof;
@@ -563,7 +567,7 @@ begin
     end if;
 
     if i_cmdpkt_get_done='1' then
-      if i_usrmode.stop='1' and i_cmdpkt.ctrl(C_CMDPKT_SATACMD_M_BIT downto C_CMDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_NULL, C_CMDPKT_SATACMD_M_BIT-C_CMDPKT_SATACMD_L_BIT+1) then
+      if i_usrmode.stop='1' and i_cmdpkt.ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT)=CONV_STD_LOGIC_VECTOR(C_SATACMD_NULL, C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT+1) then
         i_sh_padding_en<='1';
       else
         i_sh_padding_en<='0';
@@ -670,21 +674,21 @@ p_out_sh_rxd_rd<=i_sh_rxd_rd;
 --//Формируем сигнал разрешения пермещения данных
 i_sh_trn_den<=i_sh_txd_wr or i_sh_rxd_rd;
 
-i_trn_dcount_byte<=i_cmdpkt.scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
-i_trn_dcount_dw<=("00"&i_trn_dcount_byte(i_trn_dcount_byte'high downto 2));
+i_sh_trn_byte_count<=i_cmdpkt.scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+i_sh_trn_dw_count<=("00"&i_sh_trn_byte_count(i_sh_trn_byte_count'high downto 2));
 
 process(p_in_rst,p_in_clk)
-  variable raid_atrn_done: std_logic;
+  variable raid_cl_done: std_logic;
 begin
   if p_in_rst='1' then
-    raid_atrn_done:='0';
+    raid_cl_done:='0';
 
     i_sh_trn_en<='0';
-    sr_raid_atrn_done<=(others=>'0');
+    sr_raid_cl_done<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    raid_atrn_done:='0';
+    raid_cl_done:='0';
 
     if i_sh_det.cmddone='1' or i_err_clr='1' then
     --//
@@ -692,33 +696,34 @@ begin
 
     elsif p_in_raid.used='1' then
     --//Режим работы с RAID
-        if (i_sh_cmd_start='1' or i_raid_atrn_next='1') then
+        if (i_sh_cmd_start='1' or i_raid_cl_next='1') then
           i_sh_trn_en<='1';
         else
-          if i_sh_trn_en='1' and i_sh_trn_den='1' and i_raid_atrncnt=(i_trn_dcount_dw - 1) then
+          if i_sh_trn_en='1' and i_sh_trn_den='1' and i_raid_cl_cntdw=(i_sh_trn_dw_count - 1) then
+          --//Завершена отработка одно кластера RAID
             i_sh_trn_en<='0';
-            raid_atrn_done:='1';--//Выполнена транзакция для одного HDD (атомарная операция)
+            raid_cl_done:='1';
           end if;
         end if;
     end if;
 
-    sr_raid_atrn_done<=raid_atrn_done & sr_raid_atrn_done(0 to 1);
+    sr_raid_cl_done<=raid_cl_done & sr_raid_cl_done(0 to 1);
 
   end if;
 end process;
 
---//Счетчик данных атомарной транзакции RAID
+--//Счетчик одного кластера данных RAID
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_raid_atrncnt<=(others=>'0');
+    i_raid_cl_cntdw<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_trn_en='0' then
-      i_raid_atrncnt<=(others=>'0');
+      i_raid_cl_cntdw<=(others=>'0');
 
     elsif p_in_raid.used='1' and i_sh_trn_den='1' then
-       i_raid_atrncnt<=i_raid_atrncnt+1;
+       i_raid_cl_cntdw<=i_raid_cl_cntdw+1;
     end if;
   end if;
 end process;
@@ -738,30 +743,29 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_cmd_start='1' then
       i_sh_hddcnt<=i_sh_hddcnt_ld;
-    elsif sr_raid_atrn_done(2)='1' then
+    elsif sr_raid_cl_done(2)='1' then
       i_sh_hddcnt<=i_sh_hddcnt+1;
     end if;
   end if;
 end process;
 
-
+--//Сигнал запуска следующего кластера RAID
 process(p_in_rst,p_in_clk)
-  variable raid_atrn_next: std_logic;
+  variable raid_cl_next: std_logic;
 begin
   if p_in_rst='1' then
-      raid_atrn_next:='0';
-    i_raid_atrn_next<='0';
+      raid_cl_next:='0';
+    i_raid_cl_next<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    raid_atrn_next:='0';
+    raid_cl_next:='0';
 
-    --//Сигнал начать следующую атормарную транзакцию RAID
-    if sr_raid_atrn_done(2)='1' and i_sh_hddcnt/=p_in_raid.hddcount then
-      raid_atrn_next:='1';
+    if i_sh_hddcnt/=p_in_raid.hddcount then
+      raid_cl_next:=sr_raid_cl_done(2);
     end if;
 
-    i_raid_atrn_next<=raid_atrn_next;
+    i_raid_cl_next<=raid_cl_next;
 
   end if;
 end process;
@@ -830,7 +834,7 @@ p_out_dbgcs.trig0(8)<=i_tst_ch_bsy_done(0);
 p_out_dbgcs.trig0(9)<=i_tst_ch_bsy_done(1);
 p_out_dbgcs.trig0(11 downto 10)<=(others=>'0');
 p_out_dbgcs.trig0(14 downto 12)<=i_sh_hddcnt(2 downto 0);
-p_out_dbgcs.trig0(15)          <=sr_raid_atrn_done(2);
+p_out_dbgcs.trig0(15)          <=sr_raid_cl_done(2);
 p_out_dbgcs.trig0(16)          <=i_sh_cxd_sof;
 p_out_dbgcs.trig0(17)          <=OR_reduce(i_tst_cnt(7 downto 4));
 p_out_dbgcs.trig0(18)<=tst_cmddone and i_tst_bsy(1) and not i_tst_bsy(0);
@@ -849,7 +853,7 @@ p_out_dbgcs.data(3)<=i_sh_rxd_rd;
 p_out_dbgcs.data(4)<=p_in_usr_txbuf_empty;
 p_out_dbgcs.data(5)<=p_in_sh_rxbuf_empty;
 p_out_dbgcs.data(6)<=p_in_sh_txbuf_full;
-p_out_dbgcs.data(7)<=sr_raid_atrn_done(2);
+p_out_dbgcs.data(7)<=sr_raid_cl_done(2);
 p_out_dbgcs.data(8)<=i_usr_status.ch_bsy(0);
 p_out_dbgcs.data(9)<=i_usr_status.ch_bsy(1);
 p_out_dbgcs.data(10)<=i_sh_hddcnt(0);

@@ -25,8 +25,10 @@ use std.textio.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
+use work.sata_unit_pkg.all;
 
 package sata_sim_pkg is
 
@@ -44,7 +46,7 @@ constant C_SIM_SATADEV_TMR_ALIGN  : integer:=48;--//Переиод отправки BURST ALIGN
 ---------------------------------------------------------
 type TSimBufData is array (0 to 2048) of std_logic_vector(31 downto 0);
 
-type TUsrAppCmdPkt is array (0 to C_USRAPP_CMDPKT_SIZE_WORD-1) of std_logic_vector(15 downto 0);
+type TUsrAppCmdPkt is array (0 to C_HDDPKT_DCOUNT-1) of std_logic_vector(15 downto 0);
 
 type TFIS_H2D           is array (0 to C_FIS_REG_HOST2DEV_DWSIZE-1) of std_logic_vector(31 downto 0);
 type TFIS_D2H           is array (0 to C_FIS_REG_DEV2HOST_DWSIZE-1) of std_logic_vector(31 downto 0);
@@ -62,6 +64,7 @@ device  : std_logic_vector(7 downto 0);
 control : std_logic_vector(7 downto 0);
 lba     : std_logic_vector(47 downto 0);
 loopback: std_logic;
+raid_cl : integer;
 end record;
 
 type TAlign is record
@@ -2044,7 +2047,7 @@ begin
   cmdpkt_cnt:=0;
   p_out_cmdfifo_wr<='0';
 
-  while cmdpkt_cnt /= C_USRAPP_CMDPKT_SIZE_WORD loop
+  while cmdpkt_cnt /= p_in_cmdpkt'length loop
       wait until p_in_cmdfifo_wrclk'event and p_in_cmdfifo_wrclk = '1';
           p_out_cmdfifo_din<=p_in_cmdpkt(cmdpkt_cnt);
           p_out_cmdfifo_wr<='1';
