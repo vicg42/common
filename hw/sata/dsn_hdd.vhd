@@ -79,11 +79,13 @@ p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAM
 
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
+p_out_hdd_txbuf_pfull     : out  std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
 p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
 p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
+--p_out_hdd_rxbuf_pempty    : out  std_logic;                      --//
 p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 
 --------------------------------------------------
@@ -133,6 +135,56 @@ p_in_rst              : in    std_logic
 end dsn_hdd;
 
 architecture behavioral of dsn_hdd is
+
+constant CI_DSN_HDD_TXBUF_PFULL_ASSERT : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#192#, 8);
+constant CI_DSN_HDD_TXBUF_PFULL_NEGATE : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#064#, 8);
+
+component hdd_2txfifo
+port
+(
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(31 downto 0);
+rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+
+prog_full_thresh_assert : in std_logic_vector(7 downto 0);
+prog_full_thresh_negate : in std_logic_vector(7 downto 0);
+full        : out std_logic;
+almost_full : out std_logic;
+empty       : out std_logic;
+prog_full   : out std_logic;
+
+clk         : in std_logic;
+rst         : in std_logic
+);
+end component;
+
+--constant CI_DSN_HDD_RXBUF_PEMPTY_ASSERT: std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#032#, 8); --CONV_STD_LOGIC_VECTOR(10#1004#, 10);
+----constant CI_DSN_HDD_RXBUF_PFULL_NEGATE : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(10#200#, 8); --CONV_STD_LOGIC_VECTOR(10#876#, 10);
+--
+--component hdd_2rxfifo
+--port (
+--din         : in std_logic_vector(31 downto 0);
+--wr_en       : in std_logic;
+----wr_clk      : in std_logic;
+--
+--dout        : out std_logic_vector(31 downto 0);
+--rd_en       : in std_logic;
+----rd_clk      : in std_logic;
+--
+--prog_empty_thresh : in std_logic_vector(7 downto 0);
+--full        : out std_logic;
+--almost_full : out std_logic;
+--empty       : out std_logic;
+--prog_empty  : out std_logic;
+--
+--clk         : in std_logic;
+--rst         : in std_logic
+--);
+--end component;
 
 component mclk_gtp_wrap
 generic(
@@ -270,7 +322,6 @@ signal i_sh_sim_gt_sim_rst              : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_sh_sim_gt_sim_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
---signal tst_txbuf_afull                  : std_logic;
 
 
 --MAIN
@@ -471,7 +522,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
 --    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=tst_hdd_out(0);-- or tst_txbuf_afull;
+    p_out_tst(0)<=tst_hdd_out(0);
     p_out_tst(1)<=tst_hdd_out(1);--//i_sata_module_rst(0);
   end if;
 end process ltstout;
@@ -545,8 +596,8 @@ begin
   if p_in_rst='1' then
     sr_sh_rxbuf_empty<=(others=>'1');
 
-    sr_sh_busy<=(others=>'0');--sr_sh_busy<=(others=>'1');
-    i_sh_busy<='0';--i_sh_busy<='1';
+    sr_sh_busy<=(others=>'0');
+    i_sh_busy<='0';
 
     i_sh_irq_en<='0';
     i_sh_irq_width<='0';
@@ -617,7 +668,7 @@ rst         => i_buf_rst
 
 i_sh_cxd_rd<=not i_sh_cxbuf_empty;
 
-m_txfifo : hdd_txfifo
+m_txfifo : hdd_2txfifo
 port map
 (
 din         => p_in_hdd_txd,
@@ -628,14 +679,37 @@ dout        => i_sh_txd,
 rd_en       => i_sh_txd_rd,
 --rd_clk      => ,
 
+prog_full_thresh_assert => CI_DSN_HDD_TXBUF_PFULL_ASSERT,
+prog_full_thresh_negate => CI_DSN_HDD_TXBUF_PFULL_NEGATE,
 full        => open,
 almost_full => p_out_hdd_txbuf_full,
 empty       => i_sh_txbuf_empty,
-prog_full   => open,
+prog_full   => p_out_hdd_txbuf_pfull,
 
 clk         => p_in_clk,
 rst         => i_buf_rst
 );
+
+
+--m_txfifo : hdd_txfifo
+--port map
+--(
+--din         => p_in_hdd_txd,
+--wr_en       => p_in_hdd_txd_wr,
+----wr_clk      => ,
+--
+--dout        => i_sh_txd,
+--rd_en       => i_sh_txd_rd,
+----rd_clk      => ,
+--
+--full        => open,
+--almost_full => p_out_hdd_txbuf_full,
+--empty       => i_sh_txbuf_empty,
+--prog_full   => open,
+--
+--clk         => p_in_clk,
+--rst         => i_buf_rst
+--);
 
 p_out_hdd_txbuf_empty<=i_sh_txbuf_empty;
 
@@ -660,6 +734,7 @@ rst         => i_buf_rst
 
 i_buf_rst<=p_in_rst or i_sh_ctrl(C_USR_GCTRL_CLR_BUF_BIT);
 p_out_hdd_rxbuf_empty<=i_sh_rxbuf_empty;
+--p_out_hdd_rxbuf_pempty<='0';
 
 
 --//SATA
@@ -833,6 +908,7 @@ i_sh_measure.tdly  <=(others=>'0');
 i_sh_measure.twork <=(others=>'0');
 
 p_out_hdd_txbuf_full<=i_sh_cxd_wr;
+p_out_hdd_txbuf_pfull<=i_sh_cxd_wr;
 
 process(p_in_rst,i_sata_gt_refclk(0))
 begin
@@ -846,8 +922,8 @@ end process;
 
 p_out_hdd_rxd <=i_sh_rxd;
 p_out_hdd_rxbuf_empty<=i_sh_cxd_wr;
+--p_out_hdd_rxbuf_pempty<=i_sh_cxd_wr;
 
-p_out_hdd_txbuf_full<=i_sh_cxd_wr;
 
 i_sh_atadone_ack<='0';
 i_sh_done<='0';

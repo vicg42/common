@@ -66,11 +66,13 @@ p_in_vbuf_pfull       : in    std_logic;
 --//--------------------------
 p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
 p_out_hdd_txd_wr      : out   std_logic;
+p_in_hdd_txbuf_pfull  : in    std_logic;
 p_in_hdd_txbuf_full   : in    std_logic;
 p_in_hdd_txbuf_empty  : in    std_logic;
 
 p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
 p_out_hdd_rxd_rd      : out   std_logic;
+--p_in_hdd_rxbuf_pempty : in    std_logic;
 p_in_hdd_rxbuf_empty  : in    std_logic;
 
 ---------------------------------
@@ -177,9 +179,9 @@ signal i_mem_start                     : std_logic;
 signal i_mem_done                      : std_logic;
 signal i_mem_rd_dbl                    : std_logic;
 
-signal i_scount                        : std_logic_vector(15 downto 0);
-signal i_mem_lenreq_byte               : std_logic_vector(i_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
-signal i_mem_lenreq_dw                 : std_logic_vector(i_mem_lenreq_byte'range);
+signal i_atacmd_scount                 : std_logic_vector(15 downto 0);
+signal i_atacmd_dcount_byte            : std_logic_vector(i_atacmd_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+signal i_atacmd_dcount_dw              : std_logic_vector(i_atacmd_dcount_byte'range);
 
 signal i_usr_rxbuf_dout                : std_logic_vector(31 downto 0);
 signal i_usr_rxbuf_rd                  : std_logic;
@@ -293,8 +295,8 @@ end process;
 --//----------------------------------------------
 --//Автомат управления записю/чтение данных ОЗУ
 --//----------------------------------------------
-i_mem_lenreq_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
-i_mem_lenreq_dw<=("00"&i_mem_lenreq_byte(i_mem_lenreq_byte'high downto 2));
+i_atacmd_dcount_byte<=i_atacmd_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+i_atacmd_dcount_dw<=("00"&i_atacmd_dcount_byte(i_atacmd_dcount_byte'high downto 2));
 
 --//Логика работы автомата
 process(p_in_rst,p_in_clk)
@@ -332,7 +334,7 @@ begin
     i_mem_start<='0';
     i_mem_rd_dbl<='0';
 
-    i_scount<=(others=>'0');
+    i_atacmd_scount<=(others=>'0');
 
     i_vbuf_pfull<='0';
 
@@ -374,7 +376,7 @@ begin
 
           if p_in_rbuf_cfg.dmacfg.sw_mode='1' then
 
-            i_scount<=p_in_rbuf_cfg.dmacfg.scount;
+            i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
 
             if p_in_rbuf_cfg.dmacfg.scount/=(p_in_rbuf_cfg.dmacfg.scount'range =>'0') then
               fsm_rambuf_cs <= S_SW_WAIT;
@@ -382,7 +384,7 @@ begin
 
           elsif p_in_rbuf_cfg.dmacfg.hw_mode='1' then
 
-            i_scount<=p_in_rbuf_cfg.dmacfg.scount;
+            i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
             fsm_rambuf_cs <= S_HW_MEMW_CHECK;
           end if;
         end if;
@@ -394,17 +396,19 @@ begin
       --//Ждем сигнала запуска
       when S_SW_WAIT =>
 
-        i_mem_lenreq<=i_mem_lenreq_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
+--        i_mem_lenreq<=i_atacmd_dcount_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
 
         if p_in_rbuf_cfg.dmacfg.wr_start='1' then
         --//Отрабатываем направление RAM->HDD
-          i_mem_lentrn<=i_rd_lentrn;    --//размер одиночной транзакции
+          i_mem_lenreq<=i_rd_lentrn;
+          i_mem_lentrn<=i_rd_lentrn;    --//размер одиночной транзакции.(Устанавливается программно)
           i_mem_dir<=C_MEMCTRLCHWR_READ;
           fsm_rambuf_cs <= S_SW_MEM_CHECK;
 
         elsif p_in_hdd_rxbuf_empty='0' then
         --//Отрабатываем направление RAM<-HDD
-          i_mem_lentrn<=i_wr_lentrn;    --//размер одиночной транзакции
+          i_mem_lenreq<=i_wr_lentrn;
+          i_mem_lentrn<=i_wr_lentrn;    --//размер одиночной транзакции.(Устанавливается программно)
           i_mem_dir<=C_MEMCTRLCHWR_WRITE;
           fsm_rambuf_cs <= S_SW_MEM_CHECK;
         end if;
@@ -412,7 +416,7 @@ begin
       --//Проверка окончания записи/чтения
       when S_SW_MEM_CHECK =>
 
-        if i_mem_lenreq_dw(15 downto 0)=i_rambuf_dcnt(15 downto 0) then
+        if i_atacmd_dcount_dw(15 downto 0)=i_rambuf_dcnt(15 downto 0) then
           if p_in_rbuf_cfg.dmacfg.raid.used='0' then
           --//Работа с одним HDD
             i_rambuf_done<='1';
@@ -435,10 +439,28 @@ begin
       --//Запуск mem транзакции
       when S_SW_MEM_START =>
 
-        i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
-        i_mem_start<='1';
+        --//Check HDD_FIFO
+        if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+        --//RAM<-HDD
+        --//Ждем когда в hdd_rxbuf накопится данные
+          if p_in_hdd_rxbuf_empty='0' then
+            i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
+            i_mem_start<='1';
 
-        fsm_rambuf_cs <= S_SW_MEM_WORK;
+            fsm_rambuf_cs <= S_SW_MEM_WORK;
+          end if;
+
+        else
+        --//RAM->HDD
+        --//Ждем когда в hdd_txbuf можно будет передовать данные
+          if p_in_hdd_txbuf_pfull='0' then
+            i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
+            i_mem_start<='1';
+
+            fsm_rambuf_cs <= S_SW_MEM_WORK;
+          end if;
+
+        end if;
 
       --//Отработка mem транзакции
       when S_SW_MEM_WORK =>
