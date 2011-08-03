@@ -538,8 +538,10 @@ begin
     --//Сигнал для измерения задержек HDD
     i_reg_usr_status(C_AUSR_TLRX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMRxD_ON_BIT);
     i_reg_usr_status(C_AUSR_TLTX_ON_BIT)   <=p_in_tl_status(C_TSTAT_FSMTxD_ON_BIT);
-    i_reg_usr_status(C_AUSR_LLTXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_TxHOLD);
-    i_reg_usr_status(C_AUSR_LLRXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_RxHOLD);
+    i_reg_usr_status(C_AUSR_LLRX_ON_BIT)   <=p_in_ll_status(C_LSTAT_FSMRxD_ON);
+    i_reg_usr_status(C_AUSR_LLTX_ON_BIT)   <=p_in_ll_status(C_LSTAT_FSMTxD_ON);
+--    i_reg_usr_status(C_AUSR_LLTXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_TxHOLD);
+--    i_reg_usr_status(C_AUSR_LLRXP_HOLD_BIT)<=p_in_ll_status(C_LSTAT_RxHOLD);
 
   end if;
 end process;

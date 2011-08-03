@@ -198,9 +198,10 @@ gen_report : for i in C_LSTAT_RxOK to C_LSTAT_TxERR_ABORT  generate
 p_out_status(i)<=i_status(i);
 end generate gen_report;
 
-p_out_status(C_LSTAT_TxHOLD)<=tst_txp_hold;
-p_out_status(C_LSTAT_RxHOLD)<=i_rxp(C_THOLD);
-
+p_out_status(C_LSTAT_FSMTxD_ON)<='1' when fsm_llayer_cs=S_LT_SendData or fsm_llayer_cs=S_LT_SendCRC else '0';
+p_out_status(C_LSTAT_FSMRxD_ON)<='1' when fsm_llayer_cs=S_LR_RcvData or fsm_llayer_cs=S_LR_RcvEOF else '0';
+--p_out_status(C_LSTAT_TxHOLD)<=tst_txp_hold;
+--p_out_status(C_LSTAT_RxHOLD)<=i_rxp(C_THOLD);
 
 
 --//#########################################
