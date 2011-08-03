@@ -98,6 +98,39 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
+component lbus_dcm
+generic(
+G_CLKFX_DIV  : integer:=1;
+G_CLKFX_MULT : integer:=2
+);
+port(
+p_out_clk0   : out   std_logic;
+p_out_clkfx  : out   std_logic;
+--p_out_clkdiv : out   std_logic;
+--p_out_clk2x  : out   std_logic;
+p_out_locked : out   std_logic;
+
+p_in_clk     : in    std_logic;
+p_in_rst     : in    std_logic
+);
+end component;
+
+component memory_ctrl_pll
+port
+(
+mclk              : in  std_logic;
+rst               : in  std_logic;
+refclk200         : in  std_logic;
+
+clk0              : out std_logic;
+clk45             : out std_logic;
+clk2x0            : out std_logic;
+clk2x90           : out std_logic;
+locked            : out std_logic_vector(1 downto 0);
+memrst            : out std_logic
+);
+end component;
+
 --component dbgcs_iconx1
 --  PORT (
 --    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
@@ -160,9 +193,30 @@ signal rst_sys_n                        : std_logic;
 --signal rst_sys                          : std_logic;
 
 signal i_refclk200MHz                   : std_logic;
+signal g_refclk200MHz                   : std_logic;
+
+--signal g_lbus_clkdiv                    : std_logic;
+--signal g_lbus_clk2x                     : std_logic;
+signal g_lbus_clkfx                     : std_logic;
+signal g_lbus_clk                       : std_logic;
+signal lclk_dcm_lock                    : std_logic;
+
+signal g_usr_highclk                    : std_logic;
+
+signal i_memctrl_rst                    : std_logic;
+signal i_memctrl_dcm_lock               : std_logic;
+
+--signal i_memctrl_pll_clkin              : std_logic;
+signal i_memctrl_pllclk0                : std_logic;
+signal i_memctrl_pllclk45               : std_logic;
+signal i_memctrl_pllclk2x0              : std_logic;
+signal i_memctrl_pllclk2x90             : std_logic;
+signal i_memctrl_pll_rst_out            : std_logic;
+
+signal i_host_mem_locked                : std_logic_vector(7 downto 0);
 
 signal g_host_clk                       : std_logic;
-signal i_hdd_module_rst                    : std_logic;
+signal i_hdd_module_rst                 : std_logic;
 signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
@@ -219,6 +273,8 @@ signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_test01_led                     : std_logic;
+signal i_test02_led                     : std_logic;
+signal i_test03_led                     : std_logic;
 
 signal sr_hdd_cmd_start                 : std_logic_vector(0 to 6);
 
@@ -242,12 +298,52 @@ i_cfgdev_module_rst<=not rst_sys_n or i_usr_rst;--
 --***********************************************************
 --//Input 200MHz reference clock for IDELAY / ODELAY elements
 ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => refclk_p, IB => refclk_n, O  => i_refclk200MHz);
-bufg_refclk  : BUFG              port map(I  => i_refclk200MHz, O  => g_host_clk);
+bufg_refclk  : BUFG              port map(I  => i_refclk200MHz, O  => g_refclk200MHz);
 
 --//Input 150MHz reference clock for SATA
 gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 generate
 ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O  => i_hdd_gt_refclk150(i));
 end generate gen_sata_gt;
+
+--//DCM Local Bus
+m_dcm_lbus : lbus_dcm
+generic map(
+G_CLKFX_DIV  => 1,
+G_CLKFX_MULT => C_LBUSDCM_CLKFX_M
+)
+port map
+(
+p_out_clk0   => g_lbus_clk,
+p_out_clkfx  => g_lbus_clkfx,
+--p_out_clkdiv => g_lbus_clkdiv,
+--p_out_clk2x  => g_lbus_clk2x,
+p_out_locked => lclk_dcm_lock,
+
+p_in_clk     => lclk,
+p_in_rst     => i_hdd_module_rst
+);
+
+i_memctrl_rst<=not lclk_dcm_lock;
+
+--//PLL контроллера памяти
+m_pll_mem_ctrl : memory_ctrl_pll
+port map
+(
+mclk      => g_lbus_clkfx,--g_refclk200MHz,
+rst       => i_memctrl_rst,
+refclk200 => g_refclk200MHz,
+
+clk0      => i_memctrl_pllclk0,
+clk45     => i_memctrl_pllclk45,
+clk2x0    => i_memctrl_pllclk2x0,
+clk2x90   => i_memctrl_pllclk2x90,
+locked    => i_host_mem_locked(1 downto 0),
+memrst    => i_memctrl_pll_rst_out
+);
+i_host_mem_locked(7 downto 2)<=(others=>'0');
+
+i_memctrl_dcm_lock<=i_host_mem_locked(0);
+g_host_clk<=i_memctrl_pllclk2x0;
 
 
 --***********************************************************
@@ -357,7 +453,7 @@ p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk           => lclk,
+p_in_clk           => g_lbus_clk,
 p_in_rst           => i_hdd_module_rst
 );
 
@@ -398,10 +494,10 @@ pin_out_led_S<=i_test01_led;
 pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
-pin_out_led(0)<=i_hdd_dbgled(1).busy;
-pin_out_led(1)<=i_hdd_dbgled(1).err;
-pin_out_led(2)<=i_hdd_dbgled(1).rdy;
-pin_out_led(3)<=i_hdd_dbgled(1).link;
+pin_out_led(0)<=lclk_dcm_lock;--i_hdd_dbgled(1).busy;
+pin_out_led(1)<=i_memctrl_dcm_lock;--i_hdd_dbgled(1).err;
+pin_out_led(2)<=i_test02_led;--i_hdd_dbgled(1).rdy;
+pin_out_led(3)<=i_test03_led;--i_hdd_dbgled(1).link;
 
 pin_out_led(4)<=i_hdd_dbgled(0).busy;
 pin_out_led(5)<=i_hdd_dbgled(0).err;
@@ -429,6 +525,44 @@ p_in_clk       => g_hdd_gt_refclkout,
 p_in_rst       => i_hdd_module_rst
 );
 
+
+m_test02: fpga_test_01
+generic map(
+G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+)
+port map
+(
+p_out_test_led => i_test02_led,
+p_out_test_done=> open,
+
+p_out_1us      => open,
+p_out_1ms      => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clk       => g_lbus_clk,
+p_in_rst       => i_hdd_module_rst
+);
+
+m_test03: fpga_test_01
+generic map(
+G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+)
+port map
+(
+p_out_test_led => i_test03_led,
+p_out_test_done=> open,
+
+p_out_1us      => open,
+p_out_1ms      => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clk       => g_host_clk,
+p_in_rst       => i_hdd_module_rst
+);
 
 gen_txd: for i in 0 to i_hdd_txdata'length-1 generate
 i_hdd_txdata(i)<=pin_in_btn_C xor pin_in_btn_E;
@@ -458,7 +592,7 @@ begin
       i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
 
     elsif i_dev_cfg_wd(C_CFGDEV_HDD)='1' then
-      if i_cfgdev_txdata=CONV_STD_LOGIC_VECTOR(C_USRAPP_CMDPKT_SIZE_WORD-1, i_cfgdev_txdata'length) then
+      if i_cfgdev_txdata=CONV_STD_LOGIC_VECTOR(9-1, i_cfgdev_txdata'length) then
         i_cfgdev_txdata<=(others=>'0');
         i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
       else
