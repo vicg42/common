@@ -1156,6 +1156,7 @@ generic
 (
 G_T05us     : integer:=1;
 G_HDD_COUNT : integer:=1;
+G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
@@ -1178,6 +1179,7 @@ p_in_sh_status : in    TMeasureALStatus_SHCountMax;
 --------------------------------------------------
 p_in_tst       : in    std_logic_vector(31 downto 0);
 p_out_tst      : out   std_logic_vector(31 downto 0);
+p_out_dbgcs    : out   TSH_ila;
 
 --------------------------------------------------
 --System

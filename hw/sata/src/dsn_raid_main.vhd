@@ -205,6 +205,7 @@ signal i_uap_tst_sh_out            : TBus32_SHCountMax;
 signal i_dbg_satah                 : TSH_dbgport_SHCountMax;
 signal i_dbgcs_satah               : TSH_dbgcs_SHCountMax;
 signal i_dbgcs_raid                : TSH_ila;
+signal i_dbgcs_measure             : TSH_ila;
 
 signal i_tst_measure_out           : std_logic_vector(31 downto 0);
 signal i_tst_raidctrl_out          : std_logic_vector(31 downto 0);
@@ -268,6 +269,7 @@ generic map
 (
 G_T05us     => 75, --//для частоты 150MHz
 G_HDD_COUNT => G_HDD_COUNT,
+G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM
 )
@@ -290,6 +292,7 @@ p_in_sh_status => i_measure_sh_status,
 --------------------------------------------------
 p_in_tst       => p_in_tst,
 p_out_tst      => i_tst_measure_out,
+p_out_dbgcs    => i_dbgcs_measure,
 
 --------------------------------------------------
 --System
@@ -383,6 +386,7 @@ p_out_sata_dcm_lock<=i_sh_dcm_lock;
 
 p_out_dbgcs.sh<=i_dbgcs_satah;
 p_out_dbgcs.raid<=i_dbgcs_raid;
+p_out_dbgcs.measure<=i_dbgcs_measure;
 
 
 --//#############################################

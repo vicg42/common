@@ -33,6 +33,7 @@ generic
 (
 G_T05us     : integer:=1;
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
+G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
@@ -55,6 +56,7 @@ p_in_sh_status : in    TMeasureALStatus_SHCountMax;
 --------------------------------------------------
 p_in_tst       : in    std_logic_vector(31 downto 0);
 p_out_tst      : out   std_logic_vector(31 downto 0);
+p_out_dbgcs    : out   TSH_ila;
 
 --------------------------------------------------
 --System
@@ -76,20 +78,20 @@ signal i_cnt_us                 : std_logic_vector(9 downto 0);
 signal i_cnt_ms                 : std_logic_vector(9 downto 0);
 signal i_cnt_sec                : std_logic_vector(5 downto 0);
 signal i_cnt_min                : std_logic_vector(15 downto 0);
-signal i_measure_dly_tcnt       : std_logic_vector(31 downto 0);
-signal i_measure_dly_time       : std_logic_vector(31 downto 0);
 
 signal i_sh_tlayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_sh_tlayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
---signal i_sh_llayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
---signal i_sh_llayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_llayer_txhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_llayer_rxhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_llayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_llayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
+--signal i_sh_llayer_txhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
+--signal i_sh_llayer_rxhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
 signal i_dly_on                 : std_logic;
-
+signal sr_measure_start_fst     : std_logic;
 signal sr_measure_start         : std_logic_vector(0 to 1);
 signal i_measure_start          : std_logic;
+signal i_measure_dly_tcnt       : std_logic_vector(p_out_status.tdly'range);
+signal i_measure_dly_time       : std_logic_vector(p_out_status.tdly'range);
 
 
 --MAIN
@@ -132,13 +134,14 @@ begin
     for i in 0 to G_HDD_COUNT-1 loop
       i_sh_tlayer_rxon(i)<='0';
       i_sh_tlayer_txon(i)<='0';
---      i_sh_llayer_rxon(i)<='0';
---      i_sh_llayer_txon(i)<='0';
-      i_sh_llayer_txhold(i)<='0';
-      i_sh_llayer_rxhold(i)<='0';
+      i_sh_llayer_rxon(i)<='0';
+      i_sh_llayer_txon(i)<='0';
+--      i_sh_llayer_txhold(i)<='0';
+--      i_sh_llayer_rxhold(i)<='0';
     end loop;
 
     i_dly_on<='0';
+    sr_measure_start_fst<='0';
     sr_measure_start<=(others=>'0');
     i_measure_start<='0';
 
@@ -148,22 +151,23 @@ begin
 
       i_sh_tlayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_TLRX_ON_BIT);
       i_sh_tlayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_TLTX_ON_BIT);
---      i_sh_llayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_LLRX_ON_BIT);
---      i_sh_llayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_LLTX_ON_BIT);
-      i_sh_llayer_txhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLTXP_HOLD_BIT);
-      i_sh_llayer_rxhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLRXP_HOLD_BIT);
+      i_sh_llayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_LLRX_ON_BIT);
+      i_sh_llayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_LLTX_ON_BIT);
+--      i_sh_llayer_txhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLTXP_HOLD_BIT);
+--      i_sh_llayer_rxhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLRXP_HOLD_BIT);
 
     end loop;
 
-    if p_in_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT)='1' then
-      i_dly_on<=p_in_dev_busy;
-    else
-      i_dly_on<=(p_in_dev_busy xor (OR_reduce(i_sh_tlayer_txon) or OR_reduce(i_sh_tlayer_rxon)) ) or
-                ((OR_reduce(i_sh_llayer_txhold) and not p_in_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)) or
-                 (OR_reduce(i_sh_llayer_rxhold) and not p_in_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)) );
-    end if;
+    i_dly_on<=(p_in_dev_busy and p_in_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT)) or
+              (not p_in_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT) and
+                (
+                  (p_in_dev_busy xor ((OR_reduce(i_sh_tlayer_txon) and OR_reduce(i_sh_llayer_txon)) or
+                                      (OR_reduce(i_sh_tlayer_rxon) and OR_reduce(i_sh_llayer_rxon))) )
+                )
+              );
 
-    sr_measure_start<=p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) & sr_measure_start(0 to 0);
+    sr_measure_start_fst<=p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) or (not p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) and p_in_dev_busy);
+    sr_measure_start<=sr_measure_start_fst & sr_measure_start(0 to 0);
 
     i_measure_start<=sr_measure_start(0) and not sr_measure_start(1);
 
@@ -284,9 +288,55 @@ begin
 
   end if;
 end process;
-
 p_out_status.dly<=i_dly_on;
 
+
+
+--//-----------------------------------
+--//Debug/Sim
+--//-----------------------------------
+gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
+p_out_dbgcs.clk   <=p_in_clk;
+p_out_dbgcs.trig0 <=(others=>'0');
+p_out_dbgcs.data  <=(others=>'0');
+end generate gen_dbgcs_off;
+
+
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+
+p_out_dbgcs.clk   <=p_in_clk;
+process(p_in_clk)
+begin
+if p_in_clk'event and p_in_clk='1' then
+
+p_out_dbgcs.trig0(0)<=i_dly_on;
+p_out_dbgcs.trig0(1)<=p_in_dev_busy;
+p_out_dbgcs.trig0(2)<='0';--i_sh_llayer_txhold(0);
+p_out_dbgcs.trig0(3)<='0';--i_sh_llayer_txhold(1);
+p_out_dbgcs.trig0(4)<='0';--i_sh_llayer_rxhold(0);
+p_out_dbgcs.trig0(5)<='0';--i_sh_llayer_rxhold(1);
+p_out_dbgcs.trig0(6)<='0';
+p_out_dbgcs.trig0(7)<='0';
+p_out_dbgcs.trig0(8)<='0';
+
+
+p_out_dbgcs.data(0)<=i_dly_on;
+p_out_dbgcs.data(1)<=p_in_dev_busy;
+p_out_dbgcs.data(2)<='0';--i_sh_llayer_txhold(0);
+p_out_dbgcs.data(3)<='0';--i_sh_llayer_txhold(1);
+p_out_dbgcs.data(4)<='0';--i_sh_llayer_rxhold(0);
+p_out_dbgcs.data(5)<='0';--i_sh_llayer_rxhold(1);
+p_out_dbgcs.data(6)<=i_sh_tlayer_txon(0);
+p_out_dbgcs.data(7)<=i_sh_tlayer_txon(1);
+p_out_dbgcs.data(8)<=i_sh_tlayer_rxon(0);
+p_out_dbgcs.data(9)<=i_sh_tlayer_rxon(1);
+p_out_dbgcs.data(41 downto 10)<=i_measure_dly_tcnt;
+p_out_dbgcs.data(73 downto 42)<=i_measure_dly_time;
+
+end if;
+end process;
+
+end generate gen_dbgcs_on;
 
 --END MAIN
 end behavioral;

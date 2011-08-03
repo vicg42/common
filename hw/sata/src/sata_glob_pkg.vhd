@@ -97,7 +97,8 @@ type TSH_dbgcs_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TSH_dbgcs;
 
 type TSH_dbgcs_exp is record
 sh    : TSH_dbgcs_SHCountMax;
-raid  : TSH_ila;--std_logic_vector(35 downto 0);
+raid  : TSH_ila;
+measure : TSH_ila;
 end record;
 
 
