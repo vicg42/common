@@ -116,11 +116,8 @@ vcom -93 "../../../common/hw/cfgdev_ctrl/core_gen/*.vhd"
 ##-------------------------------
 ##..Мои модули /SATA
 ##-------------------------------
-vcom -93 "../../../common/hw/sata/core_gen/sata_rxfifo.vhd"
-vcom -93 "../../../common/hw/sata/core_gen/sata_txfifo.vhd"
-vcom -93 "../../../common/hw/sata/core_gen/hdd_rxfifo.vhd"
-vcom -93 "../../../common/hw/sata/core_gen/hdd_txfifo.vhd"
-vcom -93 "../../../common/hw/sata/core_gen/hdd_cmdfifo.vhd"
+vcom -93 "../../../common/hw/sata/core_gen/*.vhd"
+vcom -93 "../../../common/hw/sata/src/sata_glob_pkg.vhd"
 vcom -93 "../../../common/hw/sata/src/sata_pkg.vhd"
 vcom -93 "../../../common/hw/sata/src/sata_raid_pkg.vhd"
 vcom -93 "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd"
