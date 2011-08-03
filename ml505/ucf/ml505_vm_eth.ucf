@@ -56,7 +56,8 @@ NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 ###############       Local Bus        ################################
 #######################################################################
 #33MHz
-NET "lclk"              LOC="AG18";# | IOSTANDARD=LVCMOS25; #;#Сигнал на схеме:CLK_33MHZ_FPGA
+#NET "lclk"              LOC="AG18";# | IOSTANDARD=LVCMOS25; #;#Сигнал на схеме:CLK_33MHZ_FPGA
+NET "lclk"              LOC="AH15";# | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
 
 #200MHz
 NET "refclk_n"          LOC="K19";#Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
@@ -244,15 +245,15 @@ TIMEGRP "LBUS_PADS"      = "LAD_PADS":
                            "LWRITE_PAD":
                            "FHOLDA_PAD";
 
-# Internal timing, tclk'
-NET "lclk" PERIOD = 14.0ns HIGH 50%;
-
-# FPGA clock-to-output, tco(FPGA)
-TIMEGRP "LBUS_PADS" OFFSET = OUT 9.8ns AFTER  "lclk";
-
-# FPGA setup, tsu(FPGA)
-#TIMEGRP "LBUS_PADS" OFFSET = IN 6.8ns BEFORE "lclk";
-TIMEGRP "LBUS_PADS" OFFSET = IN 6.3ns BEFORE "lclk";
+## Internal timing, tclk'
+#NET "lclk" PERIOD = 14.0ns HIGH 50%;
+#
+## FPGA clock-to-output, tco(FPGA)
+#TIMEGRP "LBUS_PADS" OFFSET = OUT 9.8ns AFTER  "lclk";
+#
+## FPGA setup, tsu(FPGA)
+##TIMEGRP "LBUS_PADS" OFFSET = IN 6.8ns BEFORE "lclk";
+#TIMEGRP "LBUS_PADS" OFFSET = IN 6.3ns BEFORE "lclk";
 
 ##########################################################
 #                                                        #

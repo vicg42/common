@@ -57,7 +57,8 @@ NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 #######################################################################
 #33MHz
 #NET "lclk"              LOC="AG18";# | IOSTANDARD=LVCMOS25; #;#Сигнал на схеме:CLK_33MHZ_FPGA
-NET "lclk"      LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK        # Bank 4, Vcco=3.3V, No DCI pin_in_100MHz_clk
+#NET "lclk"      LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK        # Bank 4, Vcco=3.3V, No DCI pin_in_100MHz_clk
+NET "lclk"              LOC="AH15";# | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
 
 #200MHz
 NET "refclk_n"          LOC="K19";#Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
@@ -218,7 +219,7 @@ NET  lreset_l         LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CP
 #--------------------------------------------------------------------------
 #Временные ограничения
 #--------------------------------------------------------------------------
-NET "g_host_clk" PERIOD = 5.0ns HIGH 50%; ##NET "g_refclk200MHz" PERIOD = 5.0ns HIGH 50%;
+#NET "g_host_clk" PERIOD = 5.0ns HIGH 50%; ##NET "g_refclk200MHz" PERIOD = 5.0ns HIGH 50%;
 
 
 #NET "g_host_clk" TNM = "FFS:HOSTCLK_FFS";
