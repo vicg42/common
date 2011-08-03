@@ -23,8 +23,6 @@ use unisim.vcomponents.all;
 
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
---use work.memory_ctrl_pkg.all;
-
 
 entity dsn_switch is
 port
@@ -32,19 +30,19 @@ port
 -------------------------------
 -- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
 -------------------------------
-p_in_cfg_clk              : in   std_logic;                      --//
+p_in_cfg_clk              : in   std_logic;                     --//
 
-p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld           : in   std_logic;                      --//
-p_in_cfg_adr_fifo         : in   std_logic;                      --//
+p_in_cfg_adr              : in   std_logic_vector(7 downto 0);  --//
+p_in_cfg_adr_ld           : in   std_logic;                     --//
+p_in_cfg_adr_fifo         : in   std_logic;                     --//
 
-p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd               : in   std_logic;                      --//
+p_in_cfg_txdata           : in   std_logic_vector(15 downto 0); --//
+p_in_cfg_wd               : in   std_logic;                     --//
 
-p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd               : in   std_logic;                      --//
+p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0); --//
+p_in_cfg_rd               : in   std_logic;                     --//
 
-p_in_cfg_done             : in   std_logic;                      --//
+p_in_cfg_done             : in   std_logic;                     --//
 
 -------------------------------
 -- Связь с Хостом (host_clk domain)
@@ -91,7 +89,6 @@ p_in_eth_rxbuf_wr         : in   std_logic;                     --//
 p_out_eth_rxbuf_empty     : out  std_logic;                     --//
 p_out_eth_rxbuf_full      : out  std_logic;                     --//
 
---p_out_eth_txd_rdy         : out  std_logic;
 p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
 p_in_eth_txbuf_rd         : in   std_logic;                     --//
 p_out_eth_txbuf_empty     : out  std_logic;                     --//
@@ -100,30 +97,30 @@ p_out_eth_txbuf_full      : out  std_logic;                     --//
 -------------------------------
 -- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)
 -------------------------------
-p_in_vctrl_clk            : in   std_logic;                      --//
+p_in_vctrl_clk            : in   std_logic;                     --//
 
-p_out_vctrl_vbufin_rdy    : out  std_logic;                      --//
-p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);  --//
-p_in_vctrl_vbufin_rd      : in   std_logic;                      --//
-p_out_vctrl_vbufin_empty  : out  std_logic;                      --//
-p_out_vctrl_vbufin_full   : out  std_logic;                      --//
-p_out_vctrl_vbufin_pfull  : out  std_logic;                      --//
+p_out_vctrl_vbufin_rdy    : out  std_logic;                     --//
+p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0); --//
+p_in_vctrl_vbufin_rd      : in   std_logic;                     --//
+p_out_vctrl_vbufin_empty  : out  std_logic;                     --//
+p_out_vctrl_vbufin_full   : out  std_logic;                     --//
+p_out_vctrl_vbufin_pfull  : out  std_logic;                     --//
 
-p_in_vctrl_vbufout_din    : in   std_logic_vector(31 downto 0);  --//
-p_in_vctrl_vbufout_wr     : in   std_logic;                      --//
-p_out_vctrl_vbufout_empty : out  std_logic;                      --//
-p_out_vctrl_vbufout_full  : out  std_logic;                      --//
+p_in_vctrl_vbufout_din    : in   std_logic_vector(31 downto 0); --//
+p_in_vctrl_vbufout_wr     : in   std_logic;                     --//
+p_out_vctrl_vbufout_empty : out  std_logic;                     --//
+p_out_vctrl_vbufout_full  : out  std_logic;                     --//
 
 -------------------------------
 -- Связь с Модулем Тестирования(dsn_testing.vhd)
 -------------------------------
-p_out_dsntst_bufclk       : out  std_logic;                      --//
+p_out_dsntst_bufclk       : out  std_logic;                     --//
 
-p_in_dsntst_txd_rdy       : in   std_logic;                      --//
-p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0);  --//
-p_in_dsntst_txbuf_wr      : in   std_logic;                      --//
-p_out_dsntst_txbuf_empty  : out  std_logic;                      --//
-p_out_dsntst_txbuf_full   : out  std_logic;                      --//
+p_in_dsntst_txd_rdy       : in   std_logic;                     --//
+p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0); --//
+p_in_dsntst_txbuf_wr      : in   std_logic;                     --//
+p_out_dsntst_txbuf_empty  : out  std_logic;                     --//
+p_out_dsntst_txbuf_full   : out  std_logic;                     --//
 
 -------------------------------
 --Технологический
@@ -290,11 +287,6 @@ signal i_hdd_vbuf_fltr_den                    : std_logic;
 signal i_hdd_vbuf_din                         : std_logic_vector(31 downto 0);
 signal i_hdd_vbuf_wr                          : std_logic;
 
---signal hclk_eth_txd_rdy                       : std_logic;
---signal hclk_eth_txd_rdy_cnt                   : std_logic_vector(2 downto 0);
---signal eclk_eth_txd_rdy_dly                   : std_logic_vector(1 downto 0);
---signal eclk_eth_txd_rdy                       : std_logic;
---signal i_eth_txd_rdy                          : std_logic;
 signal i_eth_txbuf_din                        : std_logic_vector(31 downto 0);
 signal i_eth_txbuf_wr                         : std_logic;
 signal i_eth_txbuf_dout                       : std_logic_vector(31 downto 0);
@@ -325,9 +317,13 @@ signal i_vctrl_vbufout_empty                  : std_logic;
 --MAIN
 begin
 
+--//----------------------------------
+--//Технологические сигналы
+--//----------------------------------
 p_out_tst(0)<='0';
 p_out_tst(1)<='0';
 p_out_tst(31 downto 2)<=(others=>'0');
+
 
 
 --//--------------------------------------------------
@@ -378,7 +374,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
-        --//Заполняем маски фильтрации пакетов
+        --//Заполняем маски фильтрации пакетов: ETH<->HOST
           for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               h_reg_eth_host_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
@@ -387,7 +383,7 @@ begin
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
-        --//Заполняем маски фильтрации пакетов
+        --//Заполняем маски фильтрации пакетов: ETH->HDD
           for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               h_reg_eth_hdd_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
@@ -396,7 +392,7 @@ begin
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
-        --//Заполняем маски фильтрации пакетов
+        --//Заполняем маски фильтрации пакетов: ETH->VCTRL
           for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               h_reg_eth_vctrl_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
@@ -421,7 +417,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=EXT(h_reg_tst0, p_out_cfg_rxdata'length);
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
-        --//Читаем маски фильтрации пакетов
+        --//Читаем маски фильтрации пакетов: ETH<->HOST
           for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_host_fmask(2*i);
@@ -430,7 +426,7 @@ begin
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
-        --//Читаем маски фильтрации пакетов
+        --//Читаем маски фильтрации пакетов: ETH->HDD
           for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_fmask(2*i);
@@ -439,7 +435,7 @@ begin
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
-        --//Читаем маски фильтрации пакетов
+        --//Читаем маски фильтрации пакетов: ETH->VCTRL
           for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
             if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
               p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_vctrl_fmask(2*i);
@@ -537,7 +533,7 @@ end process;
 --//----------------------------------
 i_eth_txbuf_din <=p_in_host_eth_txd     when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_din(31 downto 0);
 i_eth_txbuf_wr  <=p_in_host_eth_wr      when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_wr;
---i_eth_txd_rdy   <=p_in_host_eth_txd_rdy when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txd_rdy;
+
 
 --//Сигнал хосту EthG TxBUF - готов принять данные
 p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
@@ -567,56 +563,12 @@ rst     => b_rst_eth_bufs
 --//Связь с модулем dsn_ethg.vhd
 --//----------------------------------
 --//Чтение данных из буфера m_eth_txbuf.
---i_eth_txbuf_rd<=    p_in_eth_txbuf_rd when b_ethtxbuf_loopback='0' and b_ethtxbuf_to_vbufin='0' and b_ethtxbuf_to_hddbuf='0' else
---                not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' or  b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
---                '0';
 i_eth_txbuf_rd<=not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' or  b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
                 p_in_eth_txbuf_rd;
 
 p_out_eth_txbuf_dout <=i_eth_txbuf_dout;
 p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 
-
-----//Растягиваем импульс готовности данных для dsn_ethg.vhd
---process(p_in_rst,p_in_host_clk)
---begin
---  if p_in_rst='1' then
---    hclk_eth_txd_rdy_cnt<=(others=>'0');
---    hclk_eth_txd_rdy<='0';
---  elsif p_in_host_clk'event and p_in_host_clk='1' then
---    if i_eth_txd_rdy='1' then
---      hclk_eth_txd_rdy<='1';
---    elsif hclk_eth_txd_rdy_cnt(2)='1' then
---      hclk_eth_txd_rdy<='0';
---    end if;
---
---    if hclk_eth_txd_rdy='0' then
---      hclk_eth_txd_rdy_cnt<=(others=>'0');
---    else
---      hclk_eth_txd_rdy_cnt<=hclk_eth_txd_rdy_cnt+1;
---    end if;
---  end if;
---end process;
---
-----//Пересинхронизация на частоту p_in_eth_clk
---process(p_in_rst,p_in_eth_clk)
---begin
---  if p_in_rst='1' then
---    eclk_eth_txd_rdy_dly<=(others=>'0');
---    eclk_eth_txd_rdy<='0';
---  elsif p_in_eth_clk'event and p_in_eth_clk='1' then
---    eclk_eth_txd_rdy_dly(0)<=hclk_eth_txd_rdy;
---    eclk_eth_txd_rdy_dly(1)<=eclk_eth_txd_rdy_dly(0);
---    --//Фронт
---    eclk_eth_txd_rdy<=eclk_eth_txd_rdy_dly(0) and not eclk_eth_txd_rdy_dly(1);
---  end if;
---end process;
-
-----//Сигнал модулю dsn_ethg.vhd - есть данные для передачи по EthG
---p_out_eth_txd_rdy<= eclk_eth_txd_rdy and
---                   not i_eth_txbuf_empty and
---                   not b_ethtxbuf_loopback and
---                   not (b_ethtxbuf_to_vbufin or b_ethtxbuf_to_hddbuf);
 
 
 
@@ -667,7 +619,6 @@ p_in_rst        => b_rst_eth_bufs
 --//Выбор источника данных для буфера m_eth_rxbuf
 i_eth_rxbuf_din <=i_eth_rxbuf_fltr_dout when b_ethtxbuf_loopback='0' else     i_eth_txbuf_dout;
 i_eth_rxbuf_wr  <=i_eth_rxbuf_fltr_den  when b_ethtxbuf_loopback='0' else not i_eth_txbuf_empty;
---i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof  when b_ethtxbuf_loopback='0' else     eclk_eth_txd_rdy;
 i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof and not b_ethtxbuf_loopback;
 
 --//----------------------------------

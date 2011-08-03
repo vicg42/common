@@ -22,7 +22,6 @@ use unisim.vcomponents.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.vicg_common_pkg.all;
---use work.memory_ctrl_pkg.all;
 
 entity dsn_host is
 generic

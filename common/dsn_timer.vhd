@@ -23,8 +23,6 @@ use unisim.vcomponents.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
---use work.vereskm_pkg.all;
---use work.memory_ctrl_pkg.all;
 
 entity dsn_timer is
 port
@@ -32,26 +30,26 @@ port
 -------------------------------
 -- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
 -------------------------------
-p_in_host_clk         : in   std_logic;                      --//
+p_in_host_clk         : in   std_logic;                     --//
 
 p_in_cfg_adr          : in   std_logic_vector(7 downto 0);  --//
 p_in_cfg_adr_ld       : in   std_logic;                     --//
 p_in_cfg_adr_fifo     : in   std_logic;                     --//
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0); --//
+p_in_cfg_wd           : in   std_logic;                     --//
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0); --//
+p_in_cfg_rd           : in   std_logic;                     --//
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done         : in   std_logic;                     --//
 
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
 -------------------------------
 p_in_tmr_clk          : in   std_logic;
-p_out_tmr_rdy         : out  std_logic;                      --//
-p_out_tmr_error       : out  std_logic;                      --//
+p_out_tmr_rdy         : out  std_logic;                     --//
+p_out_tmr_error       : out  std_logic;                     --//
 
 p_out_tmr_irq         : out  std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
 

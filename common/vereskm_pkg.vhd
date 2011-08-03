@@ -50,31 +50,31 @@ port
 -------------------------------
 p_in_host_clk        : in   std_logic;
 
-p_in_cfg_adr         : in   std_logic_vector(7 downto 0);  --//
-p_in_cfg_adr_ld      : in   std_logic;                     --//
-p_in_cfg_adr_fifo    : in   std_logic;                     --//
+p_in_cfg_adr         : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld      : in   std_logic;
+p_in_cfg_adr_fifo    : in   std_logic;
 
-p_in_cfg_txdata      : in   std_logic_vector(15 downto 0); --//
-p_in_cfg_wd          : in   std_logic;                     --//
+p_in_cfg_txdata      : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd          : in   std_logic;
 
-p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0); --//
-p_in_cfg_rd          : in   std_logic;                     --//
+p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd          : in   std_logic;
 
-p_in_cfg_done        : in   std_logic;                     --//
+p_in_cfg_done        : in   std_logic;
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_out_trc_hirq       : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
-p_out_trc_hdrdy      : out   std_logic; --//Флаг есть данные
-p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);--//
-p_in_trc_hrddone     : in    std_logic; --//Подтверждение вычитки данных обработки
+p_out_trc_hirq       : out   std_logic;
+p_out_trc_hdrdy      : out   std_logic;
+p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);
+p_in_trc_hrddone     : in    std_logic;
 
 p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
 p_in_trc_bufo_rd     : in    std_logic;
 p_out_trc_bufo_empty : out   std_logic;
 
-p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
 
 -------------------------------
 -- Связь с VCTRL
@@ -144,31 +144,31 @@ port
 -------------------------------
 p_in_host_clk        : in   std_logic;
 
-p_in_cfg_adr         : in   std_logic_vector(7 downto 0);  --//
-p_in_cfg_adr_ld      : in   std_logic;                     --//
-p_in_cfg_adr_fifo    : in   std_logic;                     --//
+p_in_cfg_adr         : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld      : in   std_logic;
+p_in_cfg_adr_fifo    : in   std_logic;
 
-p_in_cfg_txdata      : in   std_logic_vector(15 downto 0); --//
-p_in_cfg_wd          : in   std_logic;                     --//
+p_in_cfg_txdata      : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd          : in   std_logic;
 
-p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0); --//
-p_in_cfg_rd          : in   std_logic;                     --//
+p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd          : in   std_logic;
 
-p_in_cfg_done        : in   std_logic;                     --//
+p_in_cfg_done        : in   std_logic;
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_out_trc_hirq       : out   std_logic; --//Прерывание ХОСТУ. Можно забирать данные обработки
-p_out_trc_hdrdy      : out   std_logic; --//Флаг есть данные
-p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);--//
-p_in_trc_hrddone     : in    std_logic; --//Подтверждение вычитки данных обработки
+p_out_trc_hirq       : out   std_logic;
+p_out_trc_hdrdy      : out   std_logic;
+p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);
+p_in_trc_hrddone     : in    std_logic;
 
 p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
 p_in_trc_bufo_rd     : in    std_logic;
 p_out_trc_bufo_empty : out   std_logic;
 
-p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
 
 -------------------------------
 -- Связь с VCTRL
@@ -220,7 +220,7 @@ component dsn_hdd_rambuf is
 generic
 (
 G_MODULE_USE      : string:="ON";
-G_HDD_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_HDD_RAMBUF_SIZE : integer:=23;
 G_SIM             : string:="OFF"
 );
 port
@@ -229,7 +229,7 @@ port
 -- Конфигурирование
 -------------------------------
 p_in_rbuf_cfg         : in    THDDRBufCfg;
-p_out_rbuf_status     : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
+p_out_rbuf_status     : out   THDDRBufStatus;
 
 --//--------------------------
 --//Связь с буфером видеоданных
@@ -245,6 +245,7 @@ p_in_vbuf_pfull       : in    std_logic;
 --//--------------------------
 p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
 p_out_hdd_txd_wr      : out   std_logic;
+p_in_hdd_txbuf_pfull  : in    std_logic;
 p_in_hdd_txbuf_full   : in    std_logic;
 p_in_hdd_txbuf_empty  : in    std_logic;
 
@@ -255,8 +256,8 @@ p_in_hdd_rxbuf_empty  : in    std_logic;
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
+p_out_memarb_req      : out   std_logic;
+p_in_memarb_en        : in    std_logic;
 
 p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
 p_out_mem_ce          : out   std_logic;
@@ -313,7 +314,7 @@ lready_l            : inout std_logic;
 fholda              : in    std_logic;
 finto_l             : out   std_logic;
 
-lclk_locked         : in    std_logic;--//Status
+lclk_locked         : in    std_logic;
 lclk                : in    std_logic;
 
 --//-----------------------------
@@ -382,26 +383,26 @@ port
 -------------------------------
 -- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
 -------------------------------
-p_in_host_clk         : in   std_logic;                      --//
+p_in_host_clk         : in   std_logic;
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);  --//
-p_in_cfg_adr_ld       : in   std_logic;                     --//
-p_in_cfg_adr_fifo     : in   std_logic;                     --//
+p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld       : in   std_logic;
+p_in_cfg_adr_fifo     : in   std_logic;
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd           : in   std_logic;
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd           : in   std_logic;
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done         : in   std_logic;
 
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
 -------------------------------
 p_in_tmr_clk          : in   std_logic;
-p_out_tmr_rdy         : out  std_logic;                      --//
-p_out_tmr_error       : out  std_logic;                      --//
+p_out_tmr_rdy         : out  std_logic;
+p_out_tmr_error       : out  std_logic;
 
 p_out_tmr_irq         : out  std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
 
@@ -418,19 +419,19 @@ port
 -------------------------------
 -- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
 -------------------------------
-p_in_cfg_clk              : in   std_logic;                      --//
+p_in_cfg_clk              : in   std_logic;
 
-p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld           : in   std_logic;                      --//
-p_in_cfg_adr_fifo         : in   std_logic;                      --//
+p_in_cfg_adr              : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld           : in   std_logic;
+p_in_cfg_adr_fifo         : in   std_logic;
 
-p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd               : in   std_logic;                      --//
+p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd               : in   std_logic;
 
-p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd               : in   std_logic;                      --//
+p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd               : in   std_logic;
 
-p_in_cfg_done             : in   std_logic;                      --//
+p_in_cfg_done             : in   std_logic;
 
 -------------------------------
 -- Связь с Хостом (host_clk domain)
@@ -456,60 +457,60 @@ p_out_host_vbuf_empty     : out  std_logic;
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_vbuf_rst         : in   std_logic;                     --//
-p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
+p_in_hdd_vbuf_rst         : in   std_logic;
+p_in_hdd_vbuf_rdclk       : in   std_logic;
 
-p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0); --//
-p_in_hdd_vbuf_rd          : in   std_logic;                     --//
-p_out_hdd_vbuf_empty      : out  std_logic;                     --//
-p_out_hdd_vbuf_full       : out  std_logic;                     --//
-p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
+p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0);
+p_in_hdd_vbuf_rd          : in   std_logic;
+p_out_hdd_vbuf_empty      : out  std_logic;
+p_out_hdd_vbuf_full       : out  std_logic;
+p_out_hdd_vbuf_pfull      : out  std_logic;
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
 -------------------------------
-p_in_eth_clk              : in   std_logic;                     --//
+p_in_eth_clk              : in   std_logic;
 
-p_in_eth_rxd_sof          : in   std_logic;                     --//
-p_in_eth_rxd_eof          : in   std_logic;                     --//
-p_in_eth_rxbuf_din        : in   std_logic_vector(31 downto 0); --//
-p_in_eth_rxbuf_wr         : in   std_logic;                     --//
-p_out_eth_rxbuf_empty     : out  std_logic;                     --//
-p_out_eth_rxbuf_full      : out  std_logic;                     --//
+p_in_eth_rxd_sof          : in   std_logic;
+p_in_eth_rxd_eof          : in   std_logic;
+p_in_eth_rxbuf_din        : in   std_logic_vector(31 downto 0);
+p_in_eth_rxbuf_wr         : in   std_logic;
+p_out_eth_rxbuf_empty     : out  std_logic;
+p_out_eth_rxbuf_full      : out  std_logic;
 
 --p_out_eth_txd_rdy         : out  std_logic;
-p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0); --//
-p_in_eth_txbuf_rd         : in   std_logic;                     --//
-p_out_eth_txbuf_empty     : out  std_logic;                     --//
-p_out_eth_txbuf_full      : out  std_logic;                     --//
+p_out_eth_txbuf_dout      : out  std_logic_vector(31 downto 0);
+p_in_eth_txbuf_rd         : in   std_logic;
+p_out_eth_txbuf_empty     : out  std_logic;
+p_out_eth_txbuf_full      : out  std_logic;
 
 -------------------------------
 -- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)
 -------------------------------
-p_in_vctrl_clk            : in   std_logic;                      --//
+p_in_vctrl_clk            : in   std_logic;
 
-p_out_vctrl_vbufin_rdy    : out  std_logic;                      --//
-p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);  --//
-p_in_vctrl_vbufin_rd      : in   std_logic;                      --//
-p_out_vctrl_vbufin_empty  : out  std_logic;                      --//
-p_out_vctrl_vbufin_full   : out  std_logic;                      --//
-p_out_vctrl_vbufin_pfull  : out  std_logic;                      --//
+p_out_vctrl_vbufin_rdy    : out  std_logic;
+p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);
+p_in_vctrl_vbufin_rd      : in   std_logic;
+p_out_vctrl_vbufin_empty  : out  std_logic;
+p_out_vctrl_vbufin_full   : out  std_logic;
+p_out_vctrl_vbufin_pfull  : out  std_logic;
 
-p_in_vctrl_vbufout_din    : in   std_logic_vector(31 downto 0);  --//
-p_in_vctrl_vbufout_wr     : in   std_logic;                      --//
-p_out_vctrl_vbufout_empty : out  std_logic;                      --//
-p_out_vctrl_vbufout_full  : out  std_logic;                      --//
+p_in_vctrl_vbufout_din    : in   std_logic_vector(31 downto 0);
+p_in_vctrl_vbufout_wr     : in   std_logic;
+p_out_vctrl_vbufout_empty : out  std_logic;
+p_out_vctrl_vbufout_full  : out  std_logic;
 
 -------------------------------
 -- Связь с Модулем Тестирования(dsn_testing.vhd)
 -------------------------------
-p_out_dsntst_bufclk       : out  std_logic;                      --//
+p_out_dsntst_bufclk       : out  std_logic;
 
-p_in_dsntst_txd_rdy       : in   std_logic;                      --//
-p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0);  --//
-p_in_dsntst_txbuf_wr      : in   std_logic;                      --//
-p_out_dsntst_txbuf_empty  : out  std_logic;                      --//
-p_out_dsntst_txbuf_full   : out  std_logic;                      --//
+p_in_dsntst_txd_rdy       : in   std_logic;
+p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0);
+p_in_dsntst_txbuf_wr      : in   std_logic;
+p_out_dsntst_txbuf_empty  : out  std_logic;
+p_out_dsntst_txbuf_full   : out  std_logic;
 
 -------------------------------
 --Технологический
@@ -533,63 +534,63 @@ port
 -------------------------------
 -- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
 -------------------------------
-p_in_host_clk         : in   std_logic;                      --//
+p_in_host_clk         : in   std_logic;
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld       : in   std_logic;                      --//
-p_in_cfg_adr_fifo     : in   std_logic;                      --//
+p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld       : in   std_logic;
+p_in_cfg_adr_fifo     : in   std_logic;
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd           : in   std_logic;
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd           : in   std_logic;
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done         : in   std_logic;
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --//Номер видео канала который будет читать ХОСТ
-p_in_vctrl_hrdstart   : in    std_logic;                      --//Начало чтенения видеоканала
-p_in_vctrl_hrddone    : in    std_logic;                      --//Подтверждение вычетки данных видеоканала
-p_out_vctrl_hirq      : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
-p_out_vctrl_hdrdy     : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
-p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);  --//
+p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);
+p_in_vctrl_hrdstart   : in    std_logic;
+p_in_vctrl_hrddone    : in    std_logic;
+p_out_vctrl_hirq      : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 -- STATUS модуля dsn_video_ctrl.vhd
 -------------------------------
-p_out_vctrl_modrdy    : out   std_logic;                      --//
-p_out_vctrl_moderr    : out   std_logic;                      --//
-p_out_vctrl_rd_done   : out   std_logic;                      --//
+p_out_vctrl_modrdy    : out   std_logic;
+p_out_vctrl_moderr    : out   std_logic;
+p_out_vctrl_rd_done   : out   std_logic;
 
-p_out_vctrl_vrdprm    : out   TReaderVCHParams;               --//Параметры видеоканалов
-p_out_vctrl_vfrrdy    : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
-p_out_vctrl_vrowmrk   : out   TVMrks;                         --//Маркер времени принятой строки
+p_out_vctrl_vrdprm    : out   TReaderVCHParams;
+p_out_vctrl_vfrrdy    : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_vrowmrk   : out   TVMrks;
 
 --//--------------------------
 --//Связь с модулем слежения
 --//--------------------------
-p_in_trc_busy         : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
-p_out_trc_vbuf        : out   TVfrBufs;                       --//Номера видео буферов с готовыми кадрами
+p_in_trc_busy         : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_trc_vbuf        : out   TVfrBufs;
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_vbuf_clk        : out   std_logic;                      --//
+p_out_vbuf_clk        : out   std_logic;
 
-p_in_vbufin_rdy       : in    std_logic;                      --//Связь в буфером входной видеоинформации
-p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);  --//
-p_out_vbufin_dout_rd  : out   std_logic;                      --//
-p_in_vbufin_empty     : in    std_logic;                      --//
-p_in_vbufin_full      : in    std_logic;                      --//
-p_in_vbufin_pfull     : in    std_logic;                      --//
+p_in_vbufin_rdy       : in    std_logic;
+p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);
+p_out_vbufin_dout_rd  : out   std_logic;
+p_in_vbufin_empty     : in    std_logic;
+p_in_vbufin_full      : in    std_logic;
+p_in_vbufin_pfull     : in    std_logic;
 
-p_out_vbufout_din     : out   std_logic_vector(31 downto 0);  --//Связь с буферов видео данных для ХОСТА
-p_out_vbufout_din_wd  : out   std_logic;                      --//
-p_in_vbufout_empty    : in    std_logic;                      --//
-p_in_vbufout_full     : in    std_logic;                      --//
+p_out_vbufout_din     : out   std_logic_vector(31 downto 0);
+p_out_vbufout_din_wd  : out   std_logic;
+p_in_vbufout_empty    : in    std_logic;
+p_in_vbufout_full     : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -657,19 +658,19 @@ port
 -------------------------------
 -- Управление от Хоста
 -------------------------------
-p_in_host_clk         : in   std_logic;  --//
+p_in_host_clk         : in   std_logic;
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);  --//
-p_in_cfg_adr_ld       : in   std_logic;                     --//
-p_in_cfg_adr_fifo     : in   std_logic;                     --//
+p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld       : in   std_logic;
+p_in_cfg_adr_fifo     : in   std_logic;
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd           : in   std_logic;
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd           : in   std_logic;
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done         : in   std_logic;
 
 -------------------------------
 -- STATUS модуля dsn_testing.VHD
@@ -680,11 +681,11 @@ p_out_module_error    : out  std_logic;
 -------------------------------
 --Связь с выходным буфером
 -------------------------------
-p_out_dst_dout_rdy   : out   std_logic; --//
-p_out_dst_dout       : out   std_logic_vector(31 downto 0); --//
-p_out_dst_dout_wd    : out   std_logic;                     --//
-p_in_dst_rdy         : in    std_logic;                     --//
---p_in_dst_clk         : in    std_logic;                     --//
+p_out_dst_dout_rdy   : out   std_logic;
+p_out_dst_dout       : out   std_logic_vector(31 downto 0);
+p_out_dst_dout_wd    : out   std_logic;
+p_in_dst_rdy         : in    std_logic;
+--p_in_dst_clk         : in    std_logic;
 
 -------------------------------
 --Технологический
@@ -694,9 +695,9 @@ p_out_tst           : out   std_logic_vector(31 downto 0);
 -------------------------------
 --System
 -------------------------------
-p_in_tmrclk  : in    std_logic;  --//
+p_in_tmrclk  : in    std_logic;
 
-p_in_clk     : in    std_logic;  --//
+p_in_clk     : in    std_logic;
 p_in_rst     : in    std_logic
 );
 end component;
