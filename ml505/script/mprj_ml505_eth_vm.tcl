@@ -105,6 +105,7 @@ set _projects [ list \
       [ list "../../../common/hw/sata/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/core_gen/hdd_txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
