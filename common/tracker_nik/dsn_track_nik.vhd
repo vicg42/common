@@ -745,9 +745,10 @@ begin
         end loop;
 
         i_mem_rdtrn_len<=EXT(g_trc_prm.mem_rd_trnlen, i_mem_rdtrn_len'length);
-        i_mem_wdtrn_len(15 downto 10)<=(others=>'0');
-        i_mem_wdtrn_len(9 downto 2)<=g_trc_prm.mem_wd_trnlen;
-        i_mem_wdtrn_len(1 downto 0)<=(others=>'0');
+        i_mem_wdtrn_len<=EXT(g_trc_prm.mem_wd_trnlen, i_mem_rdtrn_len'length);
+--        i_mem_wdtrn_len(15 downto 10)<=(others=>'0');
+--        i_mem_wdtrn_len(9 downto 2)<=g_trc_prm.mem_wd_trnlen;
+--        i_mem_wdtrn_len(1 downto 0)<=(others=>'0');
 
         i_mem_rdptr<=(others=>'0');
         i_mem_ktcnt_ip_offset<=(others=>'0');
