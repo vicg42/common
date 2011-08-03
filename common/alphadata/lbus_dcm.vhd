@@ -11,127 +11,67 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
--- synopsys translate_off
 library unisim;
 use unisim.vcomponents.all;
--- synopsys translate_on
 
 entity lbus_dcm is
-    port(
-        rst           : in    std_logic;
-        refclk        : in    std_logic;
-        lclk          : in    std_logic;
-        clk           : out   std_logic;
-        locked        : out   std_logic);
+generic(
+G_CLKFX_DIV  : integer:=1;
+G_CLKFX_MULT : integer:=2
+);
+port(
+p_out_clk0   : out   std_logic;
+p_out_clkfx  : out   std_logic;
+--p_out_clkdiv : out   std_logic;
+--p_out_clk2x  : out   std_logic;
+p_out_locked : out   std_logic;
+
+p_in_clk     : in    std_logic;
+p_in_rst     : in    std_logic
+);
 end entity;
 
 architecture struct of lbus_dcm is
 
-    signal lclk_ibufg : std_logic;
-    signal lclk_unbuf : std_logic;
-    signal lclk_bufg : std_logic;
+signal g_clkin      : std_logic;
+signal i_clk0       : std_logic;
+signal g_clk0       : std_logic;
+signal i_clkfx      : std_logic;
+signal i_clkdiv     : std_logic;
+signal i_clk2x      : std_logic;
 
---    signal count : std_logic_vector(5 downto 0);
---    signal dllrst : std_logic;
-
-    signal logic0 : std_logic;
---    signal logic1 : std_logic;
-
-    component DCM
-        port(
-            CLKIN         : in  std_logic;
-            CLKFB         : in  std_logic;
-            DSSEN         : in  std_logic;
-            PSINCDEC      : in  std_logic;
-            PSEN          : in  std_logic;
-            PSCLK         : in  std_logic;
-            RST           : in  std_logic;
-            CLK0          : out std_logic;
-            CLK90         : out std_logic;
-            CLK180        : out std_logic;
-            CLK270        : out std_logic;
-            CLK2X         : out std_logic;
-            CLK2X180      : out std_logic;
-            CLKDV         : out std_logic;
-            CLKFX         : out std_logic;
-            CLKFX180      : out std_logic;
-            LOCKED        : out std_logic;
-            PSDONE        : out std_logic;
-            STATUS        : out std_logic_vector(7 downto 0));
-    end component;
-
-    component IBUFG
-        port(
-            I : in  std_logic;
-            O : out std_logic);
-    end component;
-
-    component BUFG
-        port(
-            I : in  std_logic;
-            O : out std_logic);
-    end component;
-
-    attribute DLL_FREQUENCY_MODE : string;
-    attribute DUTY_CYCLE_CORRECTION : string;
-    attribute STARTUP_WAIT : string;
-    attribute CLK_FEEDBACK : string;
-
-    attribute DLL_FREQUENCY_MODE of dll_lclk : label is "LOW";
-    attribute DUTY_CYCLE_CORRECTION of dll_lclk : label is "TRUE";
-    attribute STARTUP_WAIT of dll_lclk : label is "FALSE";
-    attribute CLK_FEEDBACK of dll_lclk : label is "1X";
-
+--//MAIN
 begin
 
-    logic0 <= '0';
---    logic1 <= '1';
+p_out_clk0 <= g_clk0;
 
---    gen_count : process(rst, refclk)
---    begin
---        if rst = '1' then
---            count <= (others => '0');
---        elsif refclk'event and refclk = '1' then
---            if count(count'high) = '0' then
---                count <= count + 1;
---            end if;
---        end if;
---    end process;
---
---    dllrst <= count(count'high - 1);
+ibufg_lclk : IBUFG port map(I => p_in_clk,O => g_clkin);
+bufg_clk   : BUFG  port map(I => i_clk0  ,O => g_clk0);
+bufg_clkfx : BUFG  port map(I => i_clkfx ,O => p_out_clkfx);
+--bufg_clkdiv: BUFG  port map(I => i_clkdiv,O => p_out_clkdiv);
+--bufg_clk2x : BUFG  port map(I => i_clk2x ,O => p_out_clk2x);
 
-    clk <= lclk_bufg;
+m_dcm : DCM_BASE
+generic map(
+CLKFX_DIVIDE   => G_CLKFX_DIV,
+CLKFX_MULTIPLY => G_CLKFX_MULT
+)
+port map(
+CLKFB    => g_clk0,
+CLK0     => i_clk0,
+CLK90    => open,
+CLK180   => open,
+CLK270   => open,
+CLK2X    => open,--i_clk2x,
+CLK2X180 => open,
+CLKDV    => open,--i_clkdiv,
+CLKFX    => i_clkfx,
+CLKFX180 => open,
+LOCKED   => p_out_locked,
 
-    ibufg_lclk : IBUFG
-        port map(
-            I => lclk,
-            O => lclk_ibufg);
+CLKIN    => g_clkin,
+RST      => p_in_rst
+);
 
-    dll_lclk : dcm
-        port map(
-            CLKIN    => lclk_ibufg,
-            CLKFB    => lclk_bufg,
-            DSSEN    => logic0,
-            PSINCDEC => logic0,
-            PSEN     => logic0,
-            PSCLK    => logic0,
-            RST      => rst,--dllrst,
-            CLK0     => lclk_unbuf,
-            CLK90    => open,
-            CLK180   => open,
-            CLK270   => open,
-            CLK2X    => open,
-            CLK2X180 => open,
-            CLKDV    => open,
-            CLKFX    => open,
-            CLKFX180 => open,
-            LOCKED   => locked,
-            PSDONE   => open,
-            STATUS   => open);
-
-    bufg_lclk : BUFG
-        port map(
-            I => lclk_unbuf,
-            O => lclk_bufg);
-
+--//END MAIN
 end architecture;
