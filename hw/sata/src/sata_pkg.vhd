@@ -95,10 +95,10 @@ constant C_HDDPKT_LBA_HIGH               : integer:=16#04#;
 constant C_HDDPKT_SECTOR_COUNT           : integer:=16#05#;
 constant C_HDDPKT_DEVICE                 : integer:=16#06#;-- + C_HDDPKT_DEV_CONTROL
 constant C_HDDPKT_COMMAND                : integer:=16#07#;-- + (15..0)-неиспользуются
---constant C_HDDPKT_RAID_CL                : integer:=16#08#;--//Размер кластера данных RAID (в секторах)
+constant C_HDDPKT_RAID_CL                : integer:=16#08#;--//Размер кластера данных RAID (в секторах)
 
 --//Кол-во полей HDDPKT:
-constant C_HDDPKT_DCOUNT                 : integer:=1 + C_HDDPKT_COMMAND;
+constant C_HDDPKT_DCOUNT                 : integer:=1 + C_HDDPKT_RAID_CL;
 
 --//User CMD Pkt :
 --//Поле UsrCtrl/ Bit Map:
@@ -200,14 +200,13 @@ constant C_ALSERR_LAST_BIT               : integer:=C_ASERR_F_DIAG_BIT;
 constant C_AUSR_BSY_BIT                  : integer:=0;
 constant C_AUSR_ERR_BIT                  : integer:=1;
 constant C_AUSR_DWR_START_BIT            : integer:=2;--//Растягивание Сигнализация модулю hdd_rambuf.vhd начать чтение ОЗУ
-constant C_AUSR_LLRXP_HOLD_BIT           : integer:=3;--
-constant C_AUSR_LLTXP_HOLD_BIT           : integer:=4;--
-constant C_AUSR_TLTX_ON_BIT              : integer:=5;--
-constant C_AUSR_TLRX_ON_BIT              : integer:=6;--
---constant C_AUSR_LLTX_ON_BIT              : integer:=7;--
---constant C_AUSR_LLRX_ON_BIT              : integer:=8;--
---constant C_AUSR_RESERV_BIT               : integer:=9;
-constant C_ALUSR_LAST_BIT                : integer:=C_AUSR_TLRX_ON_BIT;
+constant C_AUSR_TLTX_ON_BIT              : integer:=3;--
+constant C_AUSR_TLRX_ON_BIT              : integer:=4;--
+constant C_AUSR_LLTX_ON_BIT              : integer:=5;--
+constant C_AUSR_LLRX_ON_BIT              : integer:=6;--
+--constant C_AUSR_LLRXP_HOLD_BIT           : integer:=7;--
+--constant C_AUSR_LLTXP_HOLD_BIT           : integer:=8;--
+constant C_ALUSR_LAST_BIT                : integer:=C_AUSR_LLRX_ON_BIT;
 
 
 --//-------------------------------------------------
@@ -353,9 +352,11 @@ constant C_LSTAT_TxDMAT                   : integer:=6;--//Отправка пакета - При
 constant C_LSTAT_TxERR_CRC                : integer:=7;--//Отправка пакета - ошибка: CRC
 constant C_LSTAT_TxERR_IDLE               : integer:=8;--//Отправка пакета - ошибка: Принял примитив которого не ожидал
 constant C_LSTAT_TxERR_ABORT              : integer:=9;--//Отправка пакета - ошибка: Принял примитив SYNC
-constant C_LSTAT_TxHOLD                   : integer:=10;--//для измерения задержек
-constant C_LSTAT_RxHOLD                   : integer:=11;--//для измерения задержек
-constant C_LLSTAT_LAST_BIT                : integer:=C_LSTAT_RxHOLD;
+constant C_LSTAT_FSMTxD_ON                : integer:=10;--//для измерения задержек (отправка данных)
+constant C_LSTAT_FSMRxD_ON                : integer:=11;--//для измерения задержек (прием данных)
+--constant C_LSTAT_TxHOLD                   : integer:=12;--//для измерения задержек
+--constant C_LSTAT_RxHOLD                   : integer:=13;--//для измерения задержек
+constant C_LLSTAT_LAST_BIT                : integer:=C_LSTAT_FSMRxD_ON;
 
 --//Задержка возврашения к передаче данных их состояния S_LT_SendHold автомата управления Link Layer
 constant C_LL_TXDATA_RETURN_TMR          : integer:=20;
@@ -558,7 +559,7 @@ scount       : std_logic_vector(15 downto 0);
 command      : std_logic_vector(7 downto 0);
 control      : std_logic_vector(7 downto 0);
 device       : std_logic_vector(7 downto 0);
---raid_cl       : std_logic_vector(15 downto 0);
+raid_cl      : std_logic_vector(15 downto 0);
 end record;
 
 
