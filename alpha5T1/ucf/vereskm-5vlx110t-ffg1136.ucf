@@ -370,7 +370,7 @@ NET "finto_l"        LOC = "AF26"  | IOSTANDARD = "LVCMOS18";
 #
 # DCM and PMCD location constraints
 #
-INST "m_dcm_lbus/dll_lclk" LOC = "DCM_ADV_X0Y6"; # for H17, top half
+INST "m_dcm_lbus/m_dcm" LOC = "DCM_ADV_X0Y6"; # for H17, top half
 
 ##########################################################
 #                                                        #
