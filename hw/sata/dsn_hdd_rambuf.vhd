@@ -42,6 +42,7 @@ generic
 (
 G_MODULE_USE      : string:="ON";
 G_HDD_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_DBGCS           : string:="OFF";
 G_SIM             : string:="OFF"
 );
 port
@@ -72,8 +73,8 @@ p_in_hdd_txbuf_empty  : in    std_logic;
 
 p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
 p_out_hdd_rxd_rd      : out   std_logic;
---p_in_hdd_rxbuf_pempty : in    std_logic;
 p_in_hdd_rxbuf_empty  : in    std_logic;
+p_in_hdd_rxbuf_pempty : in    std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -182,6 +183,7 @@ signal i_mem_rd_dbl                    : std_logic;
 signal i_atacmd_scount                 : std_logic_vector(15 downto 0);
 signal i_atacmd_dcount_byte            : std_logic_vector(i_atacmd_scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
 signal i_atacmd_dcount_dw              : std_logic_vector(i_atacmd_dcount_byte'range);
+signal i_atadone                       : std_logic;
 
 signal i_usr_rxbuf_dout                : std_logic_vector(31 downto 0);
 signal i_usr_rxbuf_rd                  : std_logic;
@@ -190,11 +192,8 @@ signal i_usr_rxbuf_empty               : std_logic;
 
 signal tst_rambuf_empty                : std_logic;
 signal tst_fast_ramrd                  : std_logic;
-signal tst_dma_start                   : std_logic;
-signal tst_dmasw_start_wr              : std_logic;
-signal tst_dmasw_start_rd              : std_logic;
 signal tst_fsm_cs                      : std_logic_vector(3 downto 0);
-signal tst_fsm_cs_dly                  : std_logic_vector(tst_fsm_cs'range);
+--signal tst_fsm_cs_dly                  : std_logic_vector(tst_fsm_cs'range);
 
 
 --MAIN
@@ -209,21 +208,45 @@ gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 --//----------------------------------
 p_out_tst<=(others=>'0');
 
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_fsm_cs_dly<=(others=>'0');
-    tst_dma_start<='0';
-    tst_dmasw_start_wr<='0';
-    tst_dmasw_start_rd<='0';
+--//----------------------------------
+--//DBG: ChipScoupe
+--//----------------------------------
+gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
+p_out_dbgcs.clk<='0';
+p_out_dbgcs.trig0<=(others=>'0');
+p_out_dbgcs.data<=(others=>'0');
+end generate gen_dbgcs_off;
 
-  elsif p_in_clk'event and p_in_clk='1' then
-    tst_fsm_cs_dly<=tst_fsm_cs;
-    tst_dma_start<=p_in_rbuf_cfg.dmacfg.start;
-    tst_dmasw_start_wr<=p_in_rbuf_cfg.dmacfg.wr_start; --//Отрабатываем направление RAM->HDD
-    tst_dmasw_start_rd<=p_in_hdd_rxbuf_empty;          --//Отрабатываем направление RAM<-HDD
-  end if;
-end process;
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+
+p_out_dbgcs.clk<=p_in_clk;
+
+p_out_dbgcs.trig0(0)            <=p_in_rbuf_cfg.dmacfg.armed;    --tst_dma_start;
+p_out_dbgcs.trig0(1)            <=p_in_rbuf_cfg.dmacfg.atacmdw; --tst_dmasw_start_wr;
+p_out_dbgcs.trig0(2)            <=p_in_hdd_rxbuf_empty;          --tst_dmasw_start_rd;
+p_out_dbgcs.trig0(3)            <='0'; --//зарезервированио для i_hdd_mem_ce;
+p_out_dbgcs.trig0(4)            <='0'; --//зарезервированио для i_hdd_mem_cw;
+p_out_dbgcs.trig0(5)            <=i_rambuf_full;
+p_out_dbgcs.trig0(6)            <=i_vbuf_pfull;
+p_out_dbgcs.trig0(7)            <=tst_fast_ramrd;
+p_out_dbgcs.trig0(11 downto  8) <=tst_fsm_cs(3 downto 0);
+p_out_dbgcs.trig0(63 downto 12) <=(others=>'0');
+
+p_out_dbgcs.data(0)             <=p_in_rbuf_cfg.dmacfg.armed;    --tst_dma_start;
+p_out_dbgcs.data(1)             <=p_in_rbuf_cfg.dmacfg.atacmdw; --tst_dmasw_start_wr;
+p_out_dbgcs.data(2)             <=p_in_hdd_rxbuf_empty;          --tst_dmasw_start_rd;
+p_out_dbgcs.data(3)             <=i_atadone;
+p_out_dbgcs.data(4)             <=tst_rambuf_empty;
+p_out_dbgcs.data(5)             <=i_rambuf_full;
+p_out_dbgcs.data(6)             <=i_vbuf_pfull;
+p_out_dbgcs.data(7)             <=tst_fast_ramrd;
+p_out_dbgcs.data(11  downto  8) <=tst_fsm_cs(3 downto 0);
+--p_out_dbgcs.data(80  downto  12)<=tst_fsm_cs_dly(3 downto 0);--//зарезервировано для сигналов mem_ctrl
+p_out_dbgcs.data(112 downto 81) <=i_rambuf_dcnt(31 downto 0);
+p_out_dbgcs.data(128 downto 113)<=i_mem_lenreq(15 downto 0);
+p_out_dbgcs.data(136 downto 129)<=i_mem_lentrn(7 downto 0);
+--p_out_dbgcs.data(122 downto 105)<=(others=>'0');
+
 
 tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_rambuf_cs=S_SW_WAIT           else
             CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_rambuf_cs=S_SW_MEM_CHECK      else
@@ -240,42 +263,15 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_rambuf_cs=S
             CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsm_cs'length) when fsm_rambuf_cs=S_HW_MEMR_START2    else
             CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_rambuf_cs=S_IDLE          else
 
-
-p_out_dbgcs.clk<=p_in_clk;
-
-p_out_dbgcs.trig0(0)            <=tst_dma_start;
-p_out_dbgcs.trig0(1)            <=tst_dmasw_start_wr;
-p_out_dbgcs.trig0(2)            <=tst_dmasw_start_rd;
-p_out_dbgcs.trig0(3)            <='0'; --//зарезервированио для i_hdd_mem_ce;
-p_out_dbgcs.trig0(4)            <='0'; --//зарезервированио для i_hdd_mem_cw;
-p_out_dbgcs.trig0(5)            <=i_rambuf_full;
-p_out_dbgcs.trig0(6)            <=i_vbuf_pfull;
-p_out_dbgcs.trig0(7)            <=tst_fast_ramrd;
-p_out_dbgcs.trig0(11 downto  8) <=tst_fsm_cs_dly(3 downto 0);
-p_out_dbgcs.trig0(63 downto 12) <=(others=>'0');
-
-p_out_dbgcs.data(0)             <=tst_dma_start;
-p_out_dbgcs.data(1)             <=tst_dmasw_start_wr;
-p_out_dbgcs.data(2)             <=tst_dmasw_start_rd;
-p_out_dbgcs.data(3)             <='0';
-p_out_dbgcs.data(4)             <=tst_rambuf_empty;
-p_out_dbgcs.data(5)             <=i_rambuf_full;
-p_out_dbgcs.data(6)             <=i_vbuf_pfull;
-p_out_dbgcs.data(7)             <=tst_fast_ramrd;
-p_out_dbgcs.data(11  downto  8) <=tst_fsm_cs_dly(3 downto 0);
---p_out_dbgcs.data(80  downto  12)<=tst_fsm_cs_dly(3 downto 0);--//зарезервировано для сигналов mem_ctrl
-p_out_dbgcs.data(112 downto 81) <=i_rambuf_dcnt(31 downto 0);
-p_out_dbgcs.data(128 downto 113)<=i_mem_lenreq(15 downto 0);
-p_out_dbgcs.data(136 downto 129)<=i_mem_lentrn(7 downto 0);
---p_out_dbgcs.data(122 downto 105)<=(others=>'0');
+end generate gen_dbgcs_on;
 
 
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
 p_out_rbuf_status.err<=i_rambuf_full_err;
-p_out_rbuf_status.rdy<='0';
 p_out_rbuf_status.done<=i_rambuf_done;
+--p_out_rbuf_status.rdy<='0';
 
 --//Сброс/детектирование переполнения потокового буфера
 process(p_in_rst,p_in_clk)
@@ -283,7 +279,7 @@ begin
   if p_in_rst='1' then
     i_rambuf_full_err<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    if p_in_rbuf_cfg.errclr='1' then
+    if p_in_rbuf_cfg.dmacfg.clr_err='1' then
       i_rambuf_full_err<='0';
     elsif i_rambuf_full='1' then
       i_rambuf_full_err<='1';
@@ -291,6 +287,19 @@ begin
   end if;
 end process;
 
+--//Обнаружение сигнала - АТА команда завершена
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_atadone<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    if fsm_rambuf_cs=S_IDLE then
+      i_atadone<='0';
+    elsif p_in_rbuf_cfg.dmacfg.atadone='1' then
+      i_atadone<='1';
+    end if;
+  end if;
+end process;
 
 --//----------------------------------------------
 --//Автомат управления записю/чтение данных ОЗУ
@@ -356,11 +365,12 @@ begin
         i_rambuf_done<='0';
         i_rambuf_full<='0';
 
-      if p_in_rbuf_cfg.dmacfg.tst_mode='1' and p_in_rbuf_cfg.dmacfg.tstgen.con2rambuf='0' then
+      if p_in_rbuf_cfg.tstgen.tesing_on='1' then --and p_in_rbuf_cfg.tstgen.con2rambuf='0' then
 
         fsm_rambuf_cs <= S_IDLE;
+
       else
-        if p_in_rbuf_cfg.dmacfg.start='1' then
+        if p_in_rbuf_cfg.dmacfg.armed='1' then
         --//Готовим контроллер ОЗУ:
 
           --//Указатель записи/чтения
@@ -374,17 +384,16 @@ begin
           i_hddcnt<=(others=>'0');
           i_rambuf_dcnt<=(others=>'0');
 
-          if p_in_rbuf_cfg.dmacfg.sw_mode='1' then
+          i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
 
-            i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
+          if p_in_rbuf_cfg.dmacfg.sw_mode='1' then
 
             if p_in_rbuf_cfg.dmacfg.scount/=(p_in_rbuf_cfg.dmacfg.scount'range =>'0') then
               fsm_rambuf_cs <= S_SW_WAIT;
             end if;
 
-          elsif p_in_rbuf_cfg.dmacfg.hw_mode='1' then
-
-            i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
+          else
+            --hw_mode
             fsm_rambuf_cs <= S_HW_MEMW_CHECK;
           end if;
         end if;
@@ -397,15 +406,16 @@ begin
       when S_SW_WAIT =>
 
 --        i_mem_lenreq<=i_atacmd_dcount_dw(i_mem_lenreq'range);--//размер данных запошеных пользователем
+        i_rambuf_dcnt(15 downto 0)<=i_atacmd_dcount_dw(15 downto 0);
 
-        if p_in_rbuf_cfg.dmacfg.wr_start='1' then
+        if p_in_rbuf_cfg.dmacfg.atacmdw='1' then
         --//Отрабатываем направление RAM->HDD
           i_mem_lenreq<=i_rd_lentrn;
           i_mem_lentrn<=i_rd_lentrn;    --//размер одиночной транзакции.(Устанавливается программно)
           i_mem_dir<=C_MEMCTRLCHWR_READ;
           fsm_rambuf_cs <= S_SW_MEM_CHECK;
 
-        elsif p_in_hdd_rxbuf_empty='0' then
+        elsif p_in_hdd_rxbuf_pempty='0' or i_atadone='1' then
         --//Отрабатываем направление RAM<-HDD
           i_mem_lenreq<=i_wr_lentrn;
           i_mem_lentrn<=i_wr_lentrn;    --//размер одиночной транзакции.(Устанавливается программно)
@@ -416,7 +426,7 @@ begin
       --//Проверка окончания записи/чтения
       when S_SW_MEM_CHECK =>
 
-        if i_atacmd_dcount_dw(15 downto 0)=i_rambuf_dcnt(15 downto 0) then
+        if i_rambuf_dcnt(15 downto 0)=(i_rambuf_dcnt'range =>'0') then
           if p_in_rbuf_cfg.dmacfg.raid.used='0' then
           --//Работа с одним HDD
             i_rambuf_done<='1';
@@ -427,12 +437,17 @@ begin
               i_rambuf_done<='1';
               fsm_rambuf_cs <= S_IDLE;
             else
-              i_rambuf_dcnt<=(others=>'0');
+              i_rambuf_dcnt(15 downto 0)<=i_atacmd_dcount_dw(15 downto 0);
               i_hddcnt<=i_hddcnt + 1;
               fsm_rambuf_cs <= S_SW_MEM_START;
             end if;
           end if;
         else
+
+          if i_rambuf_dcnt(15 downto 0)<=i_mem_lenreq then
+            i_mem_lenreq<=i_rambuf_dcnt(15 downto 0);
+          end if;
+
           fsm_rambuf_cs <= S_SW_MEM_START;
         end if;
 
@@ -443,7 +458,7 @@ begin
         if i_mem_dir=C_MEMCTRLCHWR_WRITE then
         --//RAM<-HDD
         --//Ждем когда в hdd_rxbuf накопится данные
-          if p_in_hdd_rxbuf_empty='0' then
+          if p_in_hdd_rxbuf_pempty='0' or i_atadone='1' then
             i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
             i_mem_start<='1';
 
@@ -474,7 +489,7 @@ begin
           --//Операция выполнена:
           --//Обновляем указатель записи + уровень данных в буфере
           i_wr_ptr<=i_wr_ptr + EXT(update_addr, i_wr_ptr'length);
-          i_rambuf_dcnt<=i_rambuf_dcnt + EXT(i_mem_lenreq, i_rambuf_dcnt'length);
+          i_rambuf_dcnt<=i_rambuf_dcnt - EXT(i_mem_lenreq, i_rambuf_dcnt'length);
 
           fsm_rambuf_cs <= S_SW_MEM_CHECK;
         end if;
@@ -800,8 +815,8 @@ end generate gen_use_on;
 gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
 p_out_rbuf_status.err<='0';
-p_out_rbuf_status.rdy<='0';
-p_out_rbuf_status.done<='0';
+--p_out_rbuf_status.rdy<='0';
+--p_out_rbuf_status.done<='0';
 
 p_out_mem_clk <= p_in_clk;
 

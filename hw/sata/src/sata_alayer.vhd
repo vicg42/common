@@ -149,7 +149,7 @@ begin
     i_err_clr<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     --//Пересинхронизация сигнала сброса ошибок
-    i_err_clr<=p_in_ctrl(C_USR_GCTRL_CLR_ERR_BIT);
+    i_err_clr<=p_in_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
   end if;
 end process;
 

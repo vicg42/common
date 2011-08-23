@@ -30,20 +30,23 @@ hddcount : std_logic_vector(2 downto 0);
 end record;
 
 type THDDTstGen is record
-con2rambuf: std_logic;
-dout      : std_logic_vector(31 downto 0);
+con2rambuf : std_logic;
+tesing_on  : std_logic;
+tesing_spd : std_logic_vector(7 downto 0);
 end record;
 
 type TDMAcfg is record
-start    : std_logic;
-sw_mode  : std_logic;
+sw_mode  : std_logic;--//Режим работы
 hw_mode  : std_logic;
-tst_mode : std_logic;
-wr_start : std_logic;
+armed    : std_logic;--//Взводим модуль RAMBUF (готовность к работе)
+atacmdnew: std_logic;
+atacmdw  : std_logic;--//Пуск операции FPGA->HDD
+atadone  : std_logic;
 error    : std_logic;
+clr_err  : std_logic;
 raid     : TRaid;
 scount   : std_logic_vector(15 downto 0);
-tstgen   : THDDTstGen;
+--tstgen   : THDDTstGen;
 end record;
 
 type TUsrStatus is record
@@ -65,6 +68,23 @@ ch_usr       : TBus32_SHCountMax;
 usr          : std_logic_vector(31 downto 0);
 lba_bp       : std_logic_vector(47 downto 0);--//Break Point
 end record;
+
+
+component sata_testgen
+port(
+p_in_rbuf_cfg  : in   TDMAcfg;
+p_in_buffull   : in   std_logic;
+
+p_out_rdy      : out  std_logic;
+p_out_err      : out  std_logic;
+
+p_out_tdata    : out  std_logic_vector(31 downto 0);
+p_out_tdata_en : out  std_logic;
+
+p_in_clk       : in   std_logic;
+p_in_rst       : in   std_logic
+);
+end component;
 
 
 end sata_raid_pkg;

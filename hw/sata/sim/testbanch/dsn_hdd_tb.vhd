@@ -136,8 +136,8 @@ end generate gen_sata_drv;
 
 
 i_rbuf_status.err<='0';
-i_rbuf_status.rdy<='0';
-i_rbuf_status.done<='0';
+--i_rbuf_status.rdy<='0';
+--i_rbuf_status.done<='0';
 
 
 m_hdd : dsn_hdd

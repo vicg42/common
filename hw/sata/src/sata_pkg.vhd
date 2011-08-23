@@ -69,17 +69,11 @@ constant C_GT7_CH_COUNT : TSH_08CountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 --//-------------------------------------------------
 --//User Global Ctrl/ Bit Map:
 --//-------------------------------------------------
-constant C_USR_GCTRL_CLR_ERR_BIT         : integer:=0;
-constant C_USR_GCTRL_CLR_BUF_BIT         : integer:=1;
-constant C_USR_GCTRL_ATADONE_ACK_BIT     : integer:=2;
-constant C_USR_GCTRL_TST_ON_BIT          : integer:=3;
-constant C_USR_GCTRL_TST_RANDOM_BIT      : integer:=4;
-constant C_USR_GCTRL_RAMBUF_ERR_BIT      : integer:=5;
-constant C_USR_GCTRL_TST_GEN2RAMBUF_BIT  : integer:=6;
-constant C_USR_GCTRL_TST_GENTDATA_BIT    : integer:=7;
-constant C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT  : integer:=8;
-constant C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT : integer:=9;
-constant C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT : integer:=10;
+constant C_USR_GCTRL_ERR_CLR_BIT         : integer:=0;
+constant C_USR_GCTRL_TST_ON_BIT          : integer:=1;
+constant C_USR_GCTRL_ERR_STREAMBUF_BIT   : integer:=2;
+constant C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT : integer:=3;
+constant C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
 constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT;
 
 
@@ -382,8 +376,8 @@ S_LT_SendData,
 S_LT_SendCRC,
 S_LT_SendEOF,
 S_LT_Wait,
-S_LT_RcvrHold,
-S_LT_SendHold,
+S_LT_RcvrHold, --//Передаю HOLDA, т.к. принял HOLD - Устро-во синализирует что действие FPGA->HDD отложено
+S_LT_SendHold, --//Передаю HOLD, т.к. пока нету данных для передачи
 
 --------------------------------------------
 -- Link reciever states.
@@ -391,8 +385,8 @@ S_LT_SendHold,
 S_LR_RcvChkRdy,
 S_LR_RcvWaitFifo,
 S_LR_RcvData,
-S_LR_Hold,
-S_LR_SendHold,
+S_LR_Hold,     --//Передаю HOLD, т.к. rxbuf не готов принимать данные
+S_LR_SendHold, --//Передаю HOLDA, т.к. принял HOLD - Устро-во синализирует что действие FPGA<-HDD отложено
 S_LR_RcvEOF,
 S_LR_GoodCRC,
 S_LR_GoodEnd,

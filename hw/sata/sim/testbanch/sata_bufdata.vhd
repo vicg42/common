@@ -181,6 +181,9 @@ begin
   i_dbuf_rcnt<=0;
   idx:=0;
   empty:='1';
+  for i in 0 to i_dbuf'high loop
+  i_dbuf(i)<=(others=>'0');
+  end loop;
 
   while true loop
 

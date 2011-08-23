@@ -44,7 +44,7 @@ constant C_SIM_SATADEV_TMR_ALIGN  : integer:=48;--//Переиод отправки BURST ALIGN
 ---------------------------------------------------------
 --Типы
 ---------------------------------------------------------
-type TSimBufData is array (0 to 2048) of std_logic_vector(31 downto 0);
+type TSimBufData is array (0 to 4128) of std_logic_vector(31 downto 0);
 
 type TUsrAppCmdPkt is array (0 to C_HDDPKT_DCOUNT-1) of std_logic_vector(15 downto 0);
 

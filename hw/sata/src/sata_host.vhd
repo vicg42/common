@@ -612,11 +612,30 @@ p_in_ll_rxd_wr    => i_link_rxd_wr(i),
 p_in_ll_txd       => i_link_txd(i), --//llayer <- tlayer
 p_in_ll_txd_rd    => i_link_txd_rd(i),
 
-p_in_gt_rxdata    => i_gt_rxdata(i),
-p_in_gt_rxcharisk => i_gt_rxcharisk(i),
 
-p_in_gt_txdata    => i_gt_txdata(i),
-p_in_gt_txcharisk => i_gt_txcharisk(i),
+--Tranceiver
+p_in_txelecidle      => i_gt_txelecidle(i),
+p_in_txcomstart      => i_gt_txcomstart(i),
+p_in_txcomtype       => i_gt_txcomtype(i),
+p_in_txdata          => i_gt_txdata(i),
+p_in_txcharisk       => i_gt_txcharisk(i),
+
+p_in_txreset         => i_gt_txreset(i),
+p_in_txbufstatus     => i_gt_txbufstatus(i),
+
+--Receiver
+p_in_rxcdrreset      => i_gt_rxcdrreset(i),
+p_in_rxreset         => i_gt_rxreset(i),
+p_in_rxelecidle      => i_gt_rxelecidle(i),
+p_in_rxstatus        => i_gt_rxstatus(i),
+p_in_rxdata          => i_gt_rxdata(i),
+p_in_rxcharisk       => i_gt_rxcharisk(i),
+p_in_rxdisperr       => i_gt_rxdisperr(i),
+p_in_rxnotintable    => i_gt_rxnotintable(i),
+p_in_rxbyteisaligned => i_gt_rxbyteisaligned(i),
+
+p_in_rxbufreset      => i_gt_rxbufreset(i),
+p_in_rxbufstatus     => i_gt_rxbufstatus(i),
 
 --------------------------------------------------
 --Технологические сигналы

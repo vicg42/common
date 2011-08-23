@@ -103,6 +103,7 @@ signal i_raid_prm                  : TRaid;
 
 signal i_sh_num                    : std_logic_vector(2 downto 0);
 signal i_sh_mask                   : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_padding                : std_logic;
 
 signal i_sh_cxd                    : std_logic_vector(15 downto 0);
 signal i_sh_cxd_sof_n              : std_logic;
@@ -191,14 +192,14 @@ p_out_sh_ctrl           => p_out_sh_ctrl,
 
 p_in_raid               => i_raid_prm,
 p_in_sh_num             => i_sh_num,
+p_out_sh_hdd            => i_sh_hdd,
 p_out_sh_mask           => i_sh_mask,
+p_out_sh_padding        => i_sh_padding,
 
 p_out_sh_cxd            => i_sh_cxd,
 p_out_sh_cxd_sof_n      => i_sh_cxd_sof_n,
 p_out_sh_cxd_eof_n      => i_sh_cxd_eof_n,
 p_out_sh_cxd_src_rdy_n  => i_sh_cxd_src_rdy_n,
-
-p_out_sh_hdd            => i_sh_hdd,
 
 p_out_sh_txd            => i_sh_txd,
 p_out_sh_txd_wr         => i_sh_txd_wr,
@@ -240,14 +241,14 @@ port map
 --------------------------------------------------
 p_out_raid              => i_raid_prm,
 p_out_sh_num            => i_sh_num,
+p_in_sh_hdd             => i_sh_hdd,
 p_in_sh_mask            => i_sh_mask,
+p_in_sh_padding         => i_sh_padding,
 
 p_in_usr_cxd            => i_sh_cxd,
 p_in_usr_cxd_sof_n      => i_sh_cxd_sof_n,
 p_in_usr_cxd_eof_n      => i_sh_cxd_eof_n,
 p_in_usr_cxd_src_rdy_n  => i_sh_cxd_src_rdy_n,
-
-p_in_sh_hdd             => i_sh_hdd,
 
 p_in_usr_txd            => i_sh_txd,
 p_in_usr_txd_wr         => i_sh_txd_wr,

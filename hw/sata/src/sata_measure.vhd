@@ -77,7 +77,7 @@ signal i_cnt_05us               : std_logic_vector(9 downto 0);
 signal i_cnt_us                 : std_logic_vector(9 downto 0);
 signal i_cnt_ms                 : std_logic_vector(9 downto 0);
 signal i_cnt_sec                : std_logic_vector(5 downto 0);
-signal i_cnt_min                : std_logic_vector(15 downto 0);
+signal i_cnt_min                : std_logic_vector(5 downto 0);
 
 signal i_sh_tlayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_sh_tlayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
@@ -158,16 +158,12 @@ begin
 
     end loop;
 
-    i_dly_on<=(p_in_dev_busy and p_in_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT)) or
-              (not p_in_ctrl(C_USR_GCTRL_MEASURE_BUSY_ONLY_BIT) and
-                (
-                  (p_in_dev_busy xor ((OR_reduce(i_sh_tlayer_txon) and OR_reduce(i_sh_llayer_txon)) or
-                                      (OR_reduce(i_sh_tlayer_rxon) and OR_reduce(i_sh_llayer_rxon))) )
-                )
-              );
+    i_dly_on<=(p_in_dev_busy xor ((OR_reduce(i_sh_tlayer_txon) and OR_reduce(i_sh_llayer_txon)) or
+                                  (OR_reduce(i_sh_tlayer_rxon) and OR_reduce(i_sh_llayer_rxon))) );
 
-    sr_measure_start_fst<=p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) or (not p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) and p_in_dev_busy);
-    sr_measure_start<=sr_measure_start_fst & sr_measure_start(0 to 0);
+--    sr_measure_start_fst<=p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) or (not p_in_ctrl(C_USR_GCTRL_TST_ON_BIT) and p_in_dev_busy);
+--    sr_measure_start<=sr_measure_start_fst & sr_measure_start(0 to 0);
+    sr_measure_start<=p_in_dev_busy & sr_measure_start(0 to 0);
 
     i_measure_start<=sr_measure_start(0) and not sr_measure_start(1);
 
@@ -284,7 +280,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     p_out_status.tdly<=i_measure_dly_time;
-    p_out_status.twork<=i_cnt_min & i_cnt_sec & i_cnt_ms;
+    p_out_status.twork<=i_cnt_min & i_cnt_sec & i_cnt_ms & i_cnt_us;
 
   end if;
 end process;

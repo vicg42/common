@@ -439,7 +439,7 @@ i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).usr<=i_sh_status(sh_idx)(ch_
 
 --//—брос sata_connector
 i_sh_buf_rst(sh_idx)(ch_idx)<=p_in_rst or
-                              p_in_usr_ctrl(C_USR_GCTRL_CLR_BUF_BIT) or
+                              p_in_usr_ctrl(C_USR_GCTRL_ERR_CLR_BIT) or
                               not i_sh_status(sh_idx)(ch_idx).sstatus(C_ASSTAT_DET_BIT_L+1);--//Link Establish
 
 --//статусы и управление модулем sata_host.vhd

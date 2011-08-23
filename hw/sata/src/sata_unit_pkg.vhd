@@ -58,11 +58,29 @@ p_in_ll_rxd_wr    : in   std_logic;
 p_in_ll_txd       : in   std_logic_vector(31 downto 0);
 p_in_ll_txd_rd    : in   std_logic;
 
-p_in_gt_rxdata    : in std_logic_vector(31 downto 0);
-p_in_gt_rxcharisk : in std_logic_vector(3 downto 0);
+--Tranceiver
+p_in_txelecidle     : in    std_logic;
+p_in_txcomstart     : in    std_logic;
+p_in_txcomtype      : in    std_logic;
+p_in_txdata         : in    std_logic_vector(31 downto 0);
+p_in_txcharisk      : in    std_logic_vector(3 downto 0);
 
-p_in_gt_txdata    : in std_logic_vector(31 downto 0);
-p_in_gt_txcharisk : in std_logic_vector(3 downto 0);
+p_in_txreset        : in    std_logic;
+p_in_txbufstatus    : in    std_logic_vector(1 downto 0);
+
+--Receiver
+p_in_rxcdrreset     : in    std_logic;
+p_in_rxreset        : in    std_logic;
+p_in_rxelecidle     : in    std_logic;
+p_in_rxstatus       : in    std_logic_vector(2 downto 0);
+p_in_rxdata         : in    std_logic_vector(31 downto 0);
+p_in_rxcharisk      : in    std_logic_vector(3 downto 0);
+p_in_rxdisperr      : in    std_logic_vector(3 downto 0);
+p_in_rxnotintable   : in    std_logic_vector(3 downto 0);
+p_in_rxbyteisaligned: in    std_logic;
+
+p_in_rxbufreset     : in    std_logic;
+p_in_rxbufstatus    : in    std_logic_vector(2 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -983,14 +1001,14 @@ p_out_sh_ctrl           : out   TALCtrl_SHCountMax;
 
 p_in_raid               : in    TRaid;
 p_in_sh_num             : in    std_logic_vector(2 downto 0);
+p_out_sh_hdd            : out   std_logic_vector(2 downto 0);
 p_out_sh_mask           : out   std_logic_vector(G_HDD_COUNT-1 downto 0);
+p_out_sh_padding        : out   std_logic;
 
 p_out_sh_cxd            : out   std_logic_vector(15 downto 0);
 p_out_sh_cxd_sof_n      : out   std_logic;
 p_out_sh_cxd_eof_n      : out   std_logic;
 p_out_sh_cxd_src_rdy_n  : out   std_logic;
-
-p_out_sh_hdd            : out   std_logic_vector(2 downto 0);
 
 p_out_sh_txd            : out   std_logic_vector(31 downto 0);
 p_out_sh_txd_wr         : out   std_logic;
@@ -1033,14 +1051,14 @@ port
 --------------------------------------------------
 p_out_raid              : out   TRaid;
 p_out_sh_num            : out   std_logic_vector(2 downto 0);
+p_in_sh_hdd             : in    std_logic_vector(2 downto 0);
 p_in_sh_mask            : in    std_logic_vector(G_HDD_COUNT-1 downto 0);
+p_in_sh_padding         : in    std_logic;
 
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_sof_n      : in    std_logic;
 p_in_usr_cxd_eof_n      : in    std_logic;
 p_in_usr_cxd_src_rdy_n  : in    std_logic;
-
-p_in_sh_hdd             : in    std_logic_vector(2 downto 0);
 
 p_in_usr_txd            : in    std_logic_vector(31 downto 0);
 p_in_usr_txd_wr         : in    std_logic;

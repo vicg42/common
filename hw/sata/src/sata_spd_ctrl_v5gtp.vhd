@@ -94,7 +94,7 @@ end sata_speed_ctrl;
 
 architecture behavioral of sata_speed_ctrl is
 
-constant C_TIME_OUT        : integer := 16#00081EB4#;--16#00080EB4# - timeout для боевого проекта -3.5ms на 150MHz
+constant C_TIME_OUT        : integer := 16#00081EB4#; -- timeout 3.5ms на 150MHz
 
 constant C_SATAH_COUNT_MAX : integer :=G_SATAH_COUNT_MAX;
 constant C_SATAH_NUM       : integer :=G_SATAH_NUM;
@@ -236,14 +236,42 @@ end generate gen_dbg_on;
 --//----------------------------------
 gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
 in_phy_linkup(1)<='1';
+
+sr0_ctrl(1).sata_ver<=(others=>'0');
+sr1_ctrl(1).sata_ver<=(others=>'0');
+i_spd_change_det(1)<='0';
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    sr0_ctrl(0).sata_ver<=(others=>'0');
+    sr1_ctrl(0).sata_ver<=(others=>'0');
+    i_spd_change_det(0)<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    sr0_ctrl(0).sata_ver<=p_in_ctrl(0).sata_ver;
+    sr1_ctrl(0).sata_ver<=sr0_ctrl(0).sata_ver;
+
+    if  i_spd_change_det(0)='0' and sr0_ctrl(0).sata_ver/=sr1_ctrl(0).sata_ver then
+    --//Пользователь измененил скорость соединения
+      i_spd_change_det(0)<='1';
+    else
+      i_spd_change_det(0)<='0';
+    end if;
+
+  end if;
+end process;
+
+--//Сброс SATA PHY Layer:
+i_phy_layer_rst(0)<=not i_phy_layer_rst_n(0) when i_phy_linkup(0)='0' else i_spd_change_det(0);
+i_phy_layer_rst(1)<='0';
+
 end generate gen_ch_count1;
+
 
 gen_ch: for i in 0 to G_SATAH_CH_COUNT-1 generate
 in_phy_linkup(i)<=p_in_phy_linkup(i);
-end generate gen_ch;
-
---//Детектируем изменение скорости соединения пользователем
-gen_chg_det : for i in 0 to C_GTCH_COUNT_MAX-1 generate
 
 process(p_in_rst,p_in_clk)
 begin
@@ -270,7 +298,7 @@ end process;
 --//Сброс SATA PHY Layer:
 i_phy_layer_rst(i)<=not i_phy_layer_rst_n(i) when i_phy_linkup(i)='0' else i_spd_change_det(i);
 
-end generate gen_chg_det;
+end generate gen_ch;
 
 p_out_phy_layer_rst<=i_phy_layer_rst;
 p_out_phy_spd<=i_phy_spd;

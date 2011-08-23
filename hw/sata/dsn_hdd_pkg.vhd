@@ -41,20 +41,22 @@ type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 --//-------------------------------------------------
 --//Статусы/Map:
 type THDDRBufStatus is record
-rdy  : std_logic;
 err  : std_logic;
 done : std_logic;
+--rdy  : std_logic;
 end record;
 
 type THDDRBufCfg is record
 mem_trn : std_logic_vector(15 downto 0);
 mem_adr : std_logic_vector(31 downto 0);
 dmacfg  : TDMAcfg;
-bufrst  : std_logic;
-errclr  : std_logic;
+tstgen  : THDDTstGen;
 end record;
 
 
+--//-------------------------------------------------
+--//
+--//-------------------------------------------------
 component dsn_hdd
 generic
 (
@@ -108,7 +110,7 @@ p_out_hdd_txbuf_empty     : out  std_logic;
 
 p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);
 p_in_hdd_rxd_rd           : in   std_logic;
---p_out_hdd_rxbuf_pempty    : out  std_logic;
+p_out_hdd_rxbuf_pempty    : out  std_logic;
 p_out_hdd_rxbuf_empty     : out  std_logic;
 
 --------------------------------------------------

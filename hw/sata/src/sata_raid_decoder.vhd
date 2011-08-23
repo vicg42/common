@@ -43,13 +43,13 @@ port
 p_out_raid              : out   TRaid;
 p_out_sh_num            : out   std_logic_vector(2 downto 0);
 p_in_sh_mask            : in    std_logic_vector(G_HDD_COUNT-1 downto 0);
+p_in_sh_hdd             : in    std_logic_vector(2 downto 0);
+p_in_sh_padding         : in    std_logic;
 
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_sof_n      : in    std_logic;
 p_in_usr_cxd_eof_n      : in    std_logic;
 p_in_usr_cxd_src_rdy_n  : in    std_logic;
-
-p_in_sh_hdd             : in    std_logic_vector(2 downto 0);
 
 p_in_usr_txd            : in    std_logic_vector(31 downto 0);
 p_in_usr_txd_wr         : in    std_logic;
@@ -93,7 +93,7 @@ end sata_raid_decoder;
 
 architecture behavioral of sata_raid_decoder is
 
-
+signal i_sh_txd_wr                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
 --MAIN
 begin
@@ -141,17 +141,18 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     p_out_sh_txd(i)<=(others=>'0');
-    p_out_sh_txd_wr(i)<='0';
+    i_sh_txd_wr(i)<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     p_out_sh_txd(i)<=p_in_usr_txd;
+
     if p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(i, p_in_sh_hdd'length) then
-      p_out_sh_txd_wr(i)<=p_in_usr_txd_wr;
+      i_sh_txd_wr(i)<=p_in_usr_txd_wr;
     else
-      p_out_sh_txd_wr(i)<='0';
+      i_sh_txd_wr(i)<='0';
     end if;
   end if;
 end process;
-
+p_out_sh_txd_wr(i)<=i_sh_txd_wr(i) or p_in_sh_padding;
 end generate gen_hddon;
 
 gen_hddoff_en : if G_HDD_COUNT/=C_HDD_COUNT_MAX  generate
