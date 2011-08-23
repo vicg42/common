@@ -145,6 +145,14 @@ component dbgcs_iconx2
 
 end component;
 
+component dbgcs_iconx3
+  PORT (
+    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CONTROL2 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
+
+end component;
+
 component dbgcs_sata_layer
   PORT (
     CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
@@ -154,14 +162,14 @@ component dbgcs_sata_layer
     );
 end component;
 
---component dbgcs_sata_rambuf
---  PORT (
---    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
---    CLK : IN STD_LOGIC;
---    DATA : IN STD_LOGIC_VECTOR(104 DOWNTO 0);
---    TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
---    );
---end component;
+component dbgcs_sata_raid
+  PORT (
+    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CLK : IN STD_LOGIC;
+    DATA : IN STD_LOGIC_VECTOR(172 downto 0); --(122 DOWNTO 0);
+    TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
+    );
+end component;
 
 component fpga_test_01
 generic(
@@ -184,9 +192,11 @@ p_in_rst       : in    std_logic
 );
 end component;
 
-signal i_dbgcs_sh0_layer                : std_logic_vector(35 downto 0);
---signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
 signal i_dbgcs_sh0_spd                  : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd0_layer               : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd1_layer               : std_logic_vector(35 downto 0);
+signal i_hdd0layer_dbgcs                : TSH_ila;
+signal i_hdd1layer_dbgcs                : TSH_ila;
 
 signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
@@ -472,7 +482,7 @@ i_hdd_tst_in(31 downto 1)<=(others=>'0');
 
 tst_clr<=OR_reduce(i_hdd_rxdata) or OR_reduce(i_hdd_cfg_rxdata) or i_hdd_txbuf_full or i_hdd_rxbuf_empty or
         i_hdd_gt_plldet or i_hdd_hirq or i_hdd_done or i_hdd_module_rdy or i_hdd_module_error or
-        i_hdd_rbuf_cfg.bufrst or i_hdd_rbuf_cfg.errclr or i_hdd_rbuf_cfg.dmacfg.wr_start or
+        i_hdd_rbuf_cfg.dmacfg.clr_err or i_hdd_rbuf_cfg.dmacfg.wr_start or
         i_hdd_rbuf_cfg.dmacfg.sw_mode or i_hdd_rbuf_cfg.dmacfg.hw_mode or OR_reduce(i_hdd_rbuf_cfg.mem_trn) or OR_reduce(i_hdd_rbuf_cfg.mem_adr);
 
 --//J5 /pin2
@@ -606,40 +616,14 @@ end process;
 
 gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
 
---m_dbgcs_icon : dbgcs_iconx1
---port map(
---CONTROL0 => i_dbgcs_sh0_layer --
-----CONTROL1 => i_dbgcs_hdd_rambuf
-----CONTROL2 => i_hdd_dbgcs.raid,
---);
-
-m_dbgcs_icon : dbgcs_iconx2
+m_dbgcs_icon : dbgcs_iconx3
 port map(
-CONTROL0 => i_dbgcs_sh0_layer,
-CONTROL1 => i_dbgcs_sh0_spd
+CONTROL0 => i_dbgcs_sh0_spd,
+CONTROL1 => i_dbgcs_hdd0_layer,
+CONTROL2 => i_dbgcs_hdd1_layer
 );
 
-m_dbgcs_sh0_layer : dbgcs_sata_layer
-port map
-(
-CONTROL => i_dbgcs_sh0_layer,
-CLK     => i_hdd_dbgcs.sh(0).layer.clk,
-DATA    => i_hdd_dbgcs.sh(0).layer.data(122 downto 0),
-TRIG0   => i_hdd_dbgcs.sh(0).layer.trig0(41 downto 0)
-);
-
---m_dbgcs_hddrambuf : dbgcs_sata_rambuf
---port map
---(
---CONTROL => i_dbgcs_hdd_rambuf,
---CLK     => i_hdd_dbgcs.sh(0).layer.clk,
---DATA    => i_hddrambuf_dbgcs.data(104 downto 0),
---TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
---);
---
---i_hddrambuf_dbgcs.trig0<=(others=>'0');
---i_hddrambuf_dbgcs.data<=(others=>'0');
-
+--//### HDD0: ########
 m_dbgcs_sh0_spd : dbgcs_sata_layer
 port map
 (
@@ -649,14 +633,43 @@ DATA    => i_hdd_dbgcs.sh(0).spd.data(122 downto 0),
 TRIG0   => i_hdd_dbgcs.sh(0).spd.trig0(41 downto 0)
 );
 
---m_dbgcs_sh0_raid : sata_dbgcs_raid
---port map
---(
---CONTROL => i_dbgcs_sh0_spd,
---CLK     => i_hdd_dbgcs.raid.clk,
---DATA    => i_hdd_dbgcs.raid.data(122 downto 0),
---TRIG0   => i_hdd_dbgcs.raid.trig0(41 downto 0)
---);
+--//### HDD0: ########
+m_dbgcs_hdd0_layer : dbgcs_sata_raid --dbgcs_sata_layer
+port map
+(
+CONTROL => i_dbgcs_hdd0_layer,
+CLK     => i_hdd_dbgcs.sh(0).layer.clk,
+DATA    => i_hdd_dbgcs.sh(0).layer.data(172 downto 0),--(122 downto 0),
+TRIG0   => i_hdd0layer_dbgcs.trig0(41 downto 0)
+);
+
+i_hdd0layer_dbgcs.trig0(19 downto 0)<=i_hdd_dbgcs.sh(0).layer.trig0(19 downto 0);--llayer
+i_hdd0layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(0).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+i_hdd0layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(0).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+i_hdd0layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(0).layer.data(162);--<=p_in_txelecidle;
+i_hdd0layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(0).layer.data(163);--<=p_in_rxelecidle;
+i_hdd0layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(0).layer.data(164);--<=p_in_txcomstart;
+i_hdd0layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(0).layer.data(167);--<=p_in_rxcdrreset;
+i_hdd0layer_dbgcs.trig0(41 downto 26)<=i_hdd_dbgcs.sh(0).layer.trig0(41 downto 26);--llayer
+
+--//### HDD1: ########
+m_dbgcs_hdd1_layer : dbgcs_sata_raid --dbgcs_sata_layer
+port map
+(
+CONTROL => i_dbgcs_hdd1_layer,
+CLK     => i_hdd_dbgcs.sh(1).layer.clk,
+DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
+TRIG0   => i_hdd1layer_dbgcs.trig0(41 downto 0)
+);
+
+i_hdd1layer_dbgcs.trig0(19 downto 0)<=i_hdd_dbgcs.sh(1).layer.trig0(19 downto 0);--llayer
+i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(1).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(1).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(1).layer.data(162);--<=p_in_txelecidle;
+i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(1).layer.data(163);--<=p_in_rxelecidle;
+i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(1).layer.data(164);--<=p_in_txcomstart;
+i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(1).layer.data(167);--<=p_in_rxcdrreset;
+i_hdd1layer_dbgcs.trig0(41 downto 26)<=i_hdd_dbgcs.sh(1).layer.trig0(41 downto 26);--llayer
 
 end generate gen_dbgcs;
 

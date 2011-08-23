@@ -29,7 +29,7 @@ constant C_USE_HDD                           : string:="ON";
 constant G_DBG_ETH                           : string:="OFF";
 constant C_DBG_HDD                           : string:="OFF";
 
-constant G_DBGCS_HDD                         : string:="OFF";
+constant G_DBGCS_HDD                         : string:="ON";
 
 
 --//Конфигурирование модулей:
@@ -52,7 +52,7 @@ constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва
 constant C_DSN_VCTRL_VCH_COUNT               : integer:=3;
 
 --//cfg clkfx - DCM LocalBus
-constant C_LBUSDCM_CLKFX_M                   : integer:=3;
+constant C_LBUSDCM_CLKFX_M                   : integer:=2;
 
 end prj_cfg;
 

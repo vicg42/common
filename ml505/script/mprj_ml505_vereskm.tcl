@@ -148,6 +148,7 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
