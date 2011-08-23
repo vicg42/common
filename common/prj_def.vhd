@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0321#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0323#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -415,24 +415,20 @@ constant C_DSN_HDD_REG_STATUS_SATA7_L               : integer:=16#01E#;
 constant C_DSN_HDD_REG_STATUS_SATA7_M               : integer:=16#01F#;
 
 constant C_DSN_HDD_REG_CMDFIFO                      : integer:=16#020#;
-constant C_DSN_HDD_REG_TST0                         : integer:=16#021#;
 
 
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_CTRL_L / Bit Map:
-constant C_DSN_HDD_REG_CTRLL_CLR_ERR_BIT            : integer:=0;--//Сброс ошибок
-constant C_DSN_HDD_REG_CTRLL_CLR_BUF_BIT            : integer:=1;--//
-constant C_DSN_HDD_REG_CTRLL_TST_ON_BIT             : integer:=2;--//Вкл/Выкл режима измерения задержек
-constant C_DSN_HDD_REG_CTRLL_TST_RANDOM_BIT         : integer:=3;--//Вкл/Выкл генерации рандомных LBA при измерения задержек
-constant C_DSN_HDD_REG_CTRLL_OVERFLOW_DET_BIT       : integer:=4;
-constant C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT     : integer:=5;
-constant C_DSN_HDD_REG_CTRLL_TST_GENTDATA_BIT       : integer:=6;
-constant C_DSN_HDD_REG_CTRLL_MEASURE_BUSY_ONLY_BIT  : integer:=7;
-constant C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT : integer:=8;
-constant C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT : integer:=9;
-
-constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT;
+constant C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT            : integer:=0;--//Сброс ошибок
+constant C_DSN_HDD_REG_CTRLL_TST_ON_BIT             : integer:=1;--//Вкл/Выкл режима измерения задержек
+constant C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT     : integer:=2;
+constant C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT : integer:=3;
+constant C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
+constant C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT          : integer:=5;
+constant C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT          : integer:=12;
+constant C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT   : integer:=13;
+constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT;
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_RBUF_ADR / Bit Map:
@@ -445,9 +441,6 @@ constant C_DSN_HDD_REG_RBUF_LAST_BIT                : integer:=C_DSN_HDD_REG_RBU
 --//Register C_DSN_HDD_REG_RBUF_CTRL_L / Bit Map:
 --constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=7..0;--trn_mem_wr
 --constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=15..8;--trn_mem_rd
-
---//Register C_DSN_HDD_REG_TST0 / Bit Map:
-constant C_DSN_HDD_REG_TST0_LAST_BIT                : integer:=16#007#;
 
 
 
