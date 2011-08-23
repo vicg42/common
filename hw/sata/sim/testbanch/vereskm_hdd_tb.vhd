@@ -224,7 +224,7 @@ signal i_cmddone_det                  : std_logic:='0';
 signal i_cmd_data                     : TUsrAppCmdPkt;
 signal i_ram_txbuf                    : TSimBufData;
 signal i_ram_txbuf_start              : std_logic:='0';
-signal i_ram_txbuf_fillselect         : std_logic:='0';
+signal i_testdata_sel                 : std_logic:='0';
 signal i_ram_rxbuf                    : TSimBufData;
 signal i_ram_rxbuf_start              : std_logic:='0';
 
@@ -674,7 +674,7 @@ begin
 
           --//Генератор тестовых данных
           for i in 0 to i_ram_txbuf'high loop
-            if i_ram_txbuf_fillselect='0' then
+            if i_testdata_sel='0' then
               i_ram_txbuf(i)<=CONV_STD_LOGIC_VECTOR(i+1, i_ram_txbuf(i)'length);--счетчик
             else
               i_ram_txbuf(i)<=srcambler;--//Random Data
@@ -793,7 +793,7 @@ begin
 
                     wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
                     i_vbuf_wr<='1';
-                    if i_ram_txbuf_fillselect='0' then
+                    if i_testdata_sel='0' then
                       i_vbuf_din<=CONV_STD_LOGIC_VECTOR(dcnt, i_hdd_mem_dout'length);--счетчик
                     else
                       i_vbuf_din<=srcambler;--//Random Data
@@ -869,6 +869,7 @@ begin
 
   --//Выбор режима:
   --C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
+  i_testdata_sel<='1'; --//0/1 - Счетчик/Random DATA
   i_sw_mode <='0';--//1/0 - sw_mode/hw_mode
   i_tst_mode<='1';--//режим тестирования
   raid_mode:='1';
@@ -894,6 +895,7 @@ begin
   i_dsnhdd_reg_ctrl_val<=(others=>'0');
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_ON_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0';
   --//1/128 - max ... 127/128 - min
 --  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(230, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
@@ -919,7 +921,6 @@ begin
   i_dev_cfg_rd<=(others=>'0');
   i_dev_cfg_done<=(others=>'0');
 
-  i_ram_txbuf_fillselect<='0'; --//0/1 - Счетчик/Random DATA
   i_sim_ctrl.ram_txbuf_start<='0';
   i_sim_ctrl.ram_rxbuf_start<='0';
   i_tstdata_dwsize<=0;
