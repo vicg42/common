@@ -234,6 +234,7 @@ signal h_reg_ctrl_l                     : std_logic_vector(C_DSN_HDD_REG_CTRLL_L
 signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0);
 signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
 
+signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range);
 signal i_buf_rst                        : std_logic;
 
 signal i_hdd_txd                        : std_logic_vector(p_in_hdd_txd'range);
@@ -299,7 +300,7 @@ signal i_testing_den                    : std_logic;
 signal i_testing_d                      : std_logic_vector(31 downto 0);
 
 signal i_err_streambuf                  : std_logic;
-
+signal tst_out                          : std_logic_vector(2 downto 0);
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 
 
@@ -408,18 +409,24 @@ begin
   end if;
 end process;
 
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    i_reg_ctrl_l<=h_reg_ctrl_l;
+  end if;
+end process;
 
-i_tstgen.con2rambuf<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);
-i_tstgen.tesing_on <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
-i_tstgen.tesing_spd<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT);
+i_tstgen.con2rambuf<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);
+i_tstgen.tesing_on <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
+i_tstgen.tesing_spd<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT);
 
 i_err_streambuf<=p_in_rbuf_status.err when i_testing_on='0' else i_testing_err;
 
-i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT) or p_in_tst(0);
-i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
-i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=i_err_streambuf and not h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
-i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
-i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=h_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=i_tstgen.tesing_on;
+i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT) or p_in_tst(0);
+i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=i_err_streambuf and not i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
 
 
 --//Формирую значения для регистров C_DSN_HDD_REG_STATUS_SATAxx_L/M
@@ -481,26 +488,27 @@ gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 --//Технологические сигналы
 --//----------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+tst_out(2 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(1 downto 0)<=(others=>'0');
+    tst_out(1 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-
---    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=tst_hdd_out(0);
-    p_out_tst(1)<=tst_hdd_out(1);--//i_sata_module_rst(0);
+    tst_out(0)<=tst_hdd_out(0);
+    tst_out(1)<=tst_hdd_out(1);--//i_sata_module_rst(0);
   end if;
 end process ltstout;
-p_out_tst(2)<=tst_hdd_out(3);--//i_tst_measure_out(0);
-p_out_tst(31 downto 3)<=(others=>'0');
-
+tst_out(2)<=tst_hdd_out(3);--//i_tst_measure_out(0);
 end generate gen_dbg_on;
+
+p_out_tst(2 downto 0)<=tst_out;
+p_out_tst(3)<=i_hdd_txd_wr;--//hdd_txbuf
+p_out_tst(4)<=i_hdd_rxd_rd;--//hdd_rxbuf
+p_out_tst(5)<=i_tstgen.tesing_on;
+p_out_tst(31 downto 6)<=(others=>'0');
 
 
 --//Логика управления статусами модуля DSN_HDD.VHD
