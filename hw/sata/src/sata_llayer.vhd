@@ -1492,7 +1492,7 @@ if p_in_phy_sync='1' then
           --//Уст-во готово к передаче данных
               if p_in_phy_txrdy_n='0' then
 
-                  if p_in_rxd_status.empty='1' then
+                  if p_in_rxd_status.pfull='0' then --if p_in_rxd_status.empty='1' then
                   --//RXBUF буфер готов к приему данных
                       if p_in_phy_txrdy_n='0' then
                         if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
