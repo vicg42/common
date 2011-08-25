@@ -244,8 +244,8 @@ p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.wrcount(1);
 end generate gen_bufstatus_sim_on;
 --//Рабочий вариант:
 gen_bufstatus_off : if strcmp(G_SIM,"OFF") generate
---//буфер заполнен на 14/16 (p_in_rxfifo_status.wrcount="11110")
-p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.wrcount(3) and p_in_rxfifo_status.wrcount(2) and p_in_rxfifo_status.wrcount(1) and not p_in_rxfifo_status.wrcount(0);
+--//Один разряд fifo_status.xxcount = 1024/16 + зависит от глубины самого FIFO
+p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.wrcount(1);
 end generate gen_bufstatus_off;
 
 p_out_ll_rxd_status.full<=p_in_rxfifo_status.full;
@@ -254,8 +254,8 @@ p_out_ll_rxd_status.wrcount<=p_in_rxfifo_status.wrcount;
 
 p_out_ll_txd_status.full<=p_in_txfifo_status.full;
 p_out_ll_txd_status.pfull<=i_txfifo_pfull;
-p_out_ll_txd_status.aempty<=p_in_txfifo_status.aempty and not(i_fh2d_tx_en);-- or i_fdmasetup_tx_en);
-p_out_ll_txd_status.empty <=p_in_txfifo_status.empty  and not(i_fh2d_tx_en);-- or i_fdmasetup_tx_en);
+p_out_ll_txd_status.aempty<=p_in_txfifo_status.aempty and not(i_fh2d_tx_en);
+p_out_ll_txd_status.empty <=p_in_txfifo_status.empty  and not(i_fh2d_tx_en);
 p_out_ll_txd_status.rdcount<=p_in_txfifo_status.rdcount;
 --p_out_ll_txd_status.wrcount<=p_in_txfifo_status.wrcount;
 
