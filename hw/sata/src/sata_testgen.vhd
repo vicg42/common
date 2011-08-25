@@ -22,6 +22,9 @@ use work.sata_raid_pkg.all;
 
 entity sata_testgen is
 port(
+--------------------------------------------------
+--USR
+--------------------------------------------------
 p_in_gen_cfg   : in   THDDTstGen;--//Подробнее см. sata_raid_pkg.vhd
 p_in_rbuf_cfg  : in   TDMAcfg;   --//Подробнее см. sata_raid_pkg.vhd
 p_in_buffull   : in   std_logic;
@@ -32,6 +35,15 @@ p_out_err      : out  std_logic;
 p_out_tdata    : out  std_logic_vector(31 downto 0);
 p_out_tdata_en : out  std_logic;
 
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_in_tst       : in    std_logic_vector(31 downto 0);
+--p_out_tst      : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
 p_in_clk       : in   std_logic;
 p_in_rst       : in   std_logic
 );
