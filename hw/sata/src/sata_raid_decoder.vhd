@@ -93,6 +93,7 @@ end sata_raid_decoder;
 
 architecture behavioral of sata_raid_decoder is
 
+signal i_sh_rxd_rd                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_sh_txd_wr                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
 --MAIN
@@ -134,7 +135,8 @@ p_out_sh_cxd_src_rdy_n(i)<=p_in_usr_cxd_src_rdy_n when p_in_sh_mask(i)='1' else 
 p_out_sh_cxd(i)<=p_in_usr_cxd;
 
 --//Чтение из RxBUF
-p_out_sh_rxd_rd(i)<=p_in_usr_rxd_rd when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(i, p_in_sh_hdd'length) else '0';
+i_sh_rxd_rd(i)<=p_in_usr_rxd_rd when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(i, p_in_sh_hdd'length) else '0';
+p_out_sh_rxd_rd(i)<=i_sh_rxd_rd(i) or p_in_sh_padding;
 
 --//запись d TxBUF
 process(p_in_rst,p_in_clk)
