@@ -96,7 +96,7 @@ end sata_connector;
 
 architecture behavioral of sata_connector is
 
-
+signal i_txbuf_wrcount         : TBus04_GTCH;
 
 --MAIN
 begin
@@ -218,14 +218,15 @@ rd_clk     => p_in_sh_clk(i),
 
 full        => p_out_txbuf_status(i).full,
 prog_full   => open,--p_out_txbuf_status(i).pfull,
-almost_full => p_out_txbuf_status(i).pfull,
+almost_full => open,--p_out_txbuf_status(i).pfull,
 empty       => p_out_txbuf_status(i).empty,
 almost_empty=> p_out_txbuf_status(i).aempty,
 rd_data_count => p_out_txbuf_status(i).rdcount,
---wr_data_count => p_out_txbuf_status(i).wrcount,
+wr_data_count => i_txbuf_wrcount(i),--p_out_txbuf_status(i).wrcount,
 
 rst        => p_in_rst(i)
 );
+p_out_txbuf_status(i).pfull<='1' when i_txbuf_wrcount(i)>="0010" else '0';
 
 m_rxbuf : sata_rxfifo
 port map

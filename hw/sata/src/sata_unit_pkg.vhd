@@ -192,7 +192,7 @@ almost_full : out std_logic;
 empty       : out std_logic;
 almost_empty: out std_logic;
 rd_data_count : out std_logic_vector(3 downto 0);
---wr_data_count : out std_logic_vector(3 downto 0);
+wr_data_count : out std_logic_vector(3 downto 0);
 
 rst         : in std_logic
 );

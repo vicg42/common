@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.2
-# Date: Tue Jul 19 13:51:12 2011
+# Date: Tue Aug 23 13:33:01 2011
 #
 ##############################################################
 #
@@ -206,12 +206,12 @@ CSET wrch_type=FIFO
 CSET write_acknowledge_flag=false
 CSET write_acknowledge_sense=Active_High
 CSET write_clock_frequency=1
-CSET write_data_count=false
-CSET write_data_count_width=10
+CSET write_data_count=true
+CSET write_data_count_width=4
 CSET wuser_width=1
 # END Parameters
 # BEGIN Extra information
 MISC pkg_timestamp=2011-03-14T07:12:32.000Z
 # END Extra information
 GENERATE
-# CRC: 525abf96
+# CRC: 5faff666
