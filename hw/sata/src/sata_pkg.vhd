@@ -74,7 +74,10 @@ constant C_USR_GCTRL_TST_ON_BIT          : integer:=1;
 constant C_USR_GCTRL_ERR_STREAMBUF_BIT   : integer:=2;
 constant C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT : integer:=3;
 constant C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
-constant C_USR_GCTRL_LAST_BIT            : integer:=C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT;
+constant C_USR_GCTRL_HWLOG_ON_BIT           : integer:=5;
+constant C_USR_GCTRL_HWSTART_DLY_L_BIT      : integer:=6;
+constant C_USR_GCTRL_HWSTART_DLY_M_BIT      : integer:=21;
+constant C_USR_GCTRL_LAST_BIT               : integer:=C_USR_GCTRL_HWSTART_DLY_M_BIT;
 
 
 --//-------------------------------------------------
@@ -636,11 +639,19 @@ empty   : std_logic;--//empty
 wrcount : std_logic_vector(3 downto 0);
 end record;
 
+type THWLog is record
+tdly   : std_logic_vector(31 downto 0);
+measure: std_logic;
+log_on : std_logic;
+end record;
+
 type TMeasureStatus is record
 tdly  : std_logic_vector(31 downto 0);
 twork : std_logic_vector(31 downto 0);
 dly   : std_logic;
+hwlog : THWLog;
 end record;
+
 
 type TSpdCtrl is record
 --change   : std_logic;

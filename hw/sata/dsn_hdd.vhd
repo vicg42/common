@@ -231,10 +231,12 @@ end component;
 signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
 
 signal h_reg_ctrl_l                     : std_logic_vector(C_DSN_HDD_REG_CTRLL_LAST_BIT downto 0);
+signal h_reg_hwstart_dly                : std_logic_vector(15 downto 0);
 signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0);
 signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
 
 signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range);
+signal i_reg_hwstart_dly                : std_logic_vector(h_reg_hwstart_dly'range);
 signal i_buf_rst                        : std_logic;
 
 signal i_hdd_txd                        : std_logic_vector(p_in_hdd_txd'range);
@@ -332,7 +334,7 @@ process(p_in_cfg_rst,p_in_cfg_clk)
 begin
   if p_in_cfg_rst='1' then
     h_reg_ctrl_l<=(others=>'0');
-
+    h_reg_hwstart_dly<=(others=>'0');
     h_reg_rambuf_adr<=(others=>'0');
     h_reg_rambuf_ctrl<=(others=>'0');
 
@@ -340,7 +342,7 @@ begin
 
     if p_in_cfg_wd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl_l<=p_in_cfg_txdata(h_reg_ctrl_l'high downto 0);
-
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HW_START_DLY, i_cfg_adr_cnt'length) then h_reg_hwstart_dly<=p_in_cfg_txdata(h_reg_hwstart_dly'high downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(15 downto 0)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(31 downto 16)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(15 downto 0)<=p_in_cfg_txdata;
@@ -364,7 +366,7 @@ begin
 
     if p_in_cfg_rd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then rxd(h_reg_ctrl_l'range):=h_reg_ctrl_l;
-
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HW_START_DLY, i_cfg_adr_cnt'length) then rxd:=h_reg_hwstart_dly;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then rxd:=h_reg_rambuf_adr(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then rxd:=h_reg_rambuf_adr(31 downto 16);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length)  then rxd:=h_reg_rambuf_ctrl(15 downto 0);
@@ -401,6 +403,9 @@ begin
             end if;
           end loop;
 
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HWLOG_SIZE_L, i_cfg_adr_cnt'length)  then rxd:=p_in_rbuf_status.hwlog_size(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HWLOG_SIZE_M, i_cfg_adr_cnt'length)  then rxd:=p_in_rbuf_status.hwlog_size(31 downto 16);
+
         end if;
 
         p_out_cfg_rxdata<=rxd;
@@ -413,6 +418,7 @@ process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
     i_reg_ctrl_l<=h_reg_ctrl_l;
+    i_reg_hwstart_dly<=h_reg_hwstart_dly;
   end if;
 end process;
 
@@ -422,11 +428,15 @@ i_tstgen.tesing_spd<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN
 
 i_err_streambuf<=p_in_rbuf_status.err when i_testing_on='0' else i_testing_err;
 
+i_sh_ctrl(C_USR_GCTRL_HWLOG_ON_BIT)  <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=i_tstgen.tesing_on;
 i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT) or p_in_tst(0);
 i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=i_err_streambuf and not i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
+
+i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)<=i_reg_hwstart_dly(15 downto 0);
+
 
 
 --//Формирую значения для регистров C_DSN_HDD_REG_STATUS_SATAxx_L/M
@@ -465,6 +475,7 @@ p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
 p_out_rbuf_cfg.mem_adr<=h_reg_rambuf_adr;
 p_out_rbuf_cfg.dmacfg <=i_sh_status.dmacfg;
 p_out_rbuf_cfg.tstgen <=i_tstgen;
+p_out_rbuf_cfg.hwlog  <=i_sh_measure.hwlog;
 
 
 --//Статусы модуля
@@ -508,7 +519,8 @@ p_out_tst(2 downto 0)<=tst_out;
 p_out_tst(3)<=i_hdd_txd_wr;--//hdd_txbuf
 p_out_tst(4)<=i_hdd_rxd_rd;--//hdd_rxbuf
 p_out_tst(5)<=i_tstgen.tesing_on;
-p_out_tst(31 downto 6)<=(others=>'0');
+p_out_tst(6)<=OR_reduce(i_sh_status.ch_bsy(G_HDD_COUNT-1 downto 0));
+p_out_tst(31 downto 7)<=(others=>'0');
 
 
 --//Логика управления статусами модуля DSN_HDD.VHD

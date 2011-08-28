@@ -52,9 +52,9 @@ architecture behavior of vereskm_hdd_tb is
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
-constant C_HOSTCLK_PERIOD    : TIME := 6.6*6 ns;
+constant C_HOSTCLK_PERIOD    : TIME := 6.6*6 ns;          --Тактирование модуля dsn_hdd/wr управляющих регистров
 constant C_SATACLK_PERIOD    : TIME := 6.6*2 ns; --150MHz
-constant C_USRCLK_PERIOD     : TIME := 3.6 ns;--6.6*10 ns;--
+constant C_USRCLK_PERIOD     : TIME := 6.6*10 ns;--3.6 ns;--Тактирование модуля dsn_hdd/логика работы
 constant C_VBUF_WRCLK_PERIOD : TIME := 3.6 ns;
 
 component dsn_hdd_rambuf
@@ -165,6 +165,7 @@ signal i_dev_cfg_rd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_done             : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 
 signal i_dsnhdd_reg_ctrl_val      : std_logic_vector(15 downto 0);
+signal i_dsnhdd_reg_hwstart_dly_val: std_logic_vector(15 downto 0);
 
 signal i_rbuf_cfg                 : THDDRBufCfg;
 signal i_rbuf_status              : THDDRBufStatus;
@@ -879,10 +880,10 @@ begin
   tst_cmd:=C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
 
   --//Только для режима HW(hw_mode)
-  hw_scount:=2;
+  hw_scount:=1;
   hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
-  hw_lba_end  :=16#F04#;
+  hw_lba_end  :=hw_lba_start + (hw_scount * 2);
 
 
 
@@ -895,10 +896,13 @@ begin
   i_dsnhdd_reg_ctrl_val<=(others=>'0');
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_ON_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0';
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT)<='1';
   --//1/128 - max ... 127/128 - min
 --  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(230, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(1, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+
+  i_dsnhdd_reg_hwstart_dly_val<=CONV_STD_LOGIC_VECTOR(1, i_dsnhdd_reg_hwstart_dly_val'length);
 
 
   if    G_HDD_COUNT=2 and raid_mode='1' then i_sata_cs<=16#03#;
@@ -962,6 +966,25 @@ begin
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
 
+  wait for 0.5 us;
+
+  --//Конфигурируем тестовый режим
+  if i_tst_mode='1' then
+  wait until g_host_clk'event and g_host_clk='1';
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HW_START_DLY, i_cfgdev_adr'length);
+    i_cfgdev_adr_ld<='1';
+    i_cfgdev_adr_fifo<='0';
+  wait until g_host_clk'event and g_host_clk='1';
+    i_cfgdev_adr_ld<='0';
+    i_cfgdev_adr_fifo<='0';
+    i_cfgdev_txdata<=i_dsnhdd_reg_hwstart_dly_val;
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+  wait until g_host_clk'event and g_host_clk='1';
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+  end if;--//if i_tst_mode='1' then
+
+  wait for 0.5 us;
+
   --//Конфигурируем тестовый режим
   if i_tst_mode='1' then
   wait until g_host_clk'event and g_host_clk='1';
@@ -976,6 +999,8 @@ begin
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
   end if;--//if i_tst_mode='1' then
+
+  wait for 0.5 us;
 
   write(GUI_line,string'("module DSN_HDD: cfg reg - DONE."));writeline(output, GUI_line);
 
@@ -1342,7 +1367,7 @@ begin
       wait until g_host_clk'event and g_host_clk='1';
       i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
-      wait for 0.01 us;
+      wait for 0.5 us;
 
 
       write(GUI_line,string'("SEND CMDPKT: ATA COMAND."));writeline(output, GUI_line);
@@ -1379,7 +1404,7 @@ begin
       i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
 
-      wait for 0.01 us;
+      wait for 0.5 us;
 
       i_tstdata_dwsize<=cfgCmdPkt(1).scount * C_SIM_SECTOR_SIZE_DWORD;--//Назначаем размер данных в DWORD
       wait until p_in_clk'event and p_in_clk='1';
@@ -1412,7 +1437,7 @@ begin
       wait for 50 us;
 --      wait for 54 us;
 --      wait for 60 us;
-
+--      wait for 150 us;
 
       wait until p_in_clk'event and p_in_clk='1';
       write(GUI_line,string'("SEND CMDPKT: HW STOP."));writeline(output, GUI_line);

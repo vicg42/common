@@ -108,6 +108,8 @@ end dsn_raid_main;
 
 architecture behavioral of dsn_raid_main is
 
+constant CI_SIM_T05us : integer:=8;--//Только для моделирования
+
 --//Определяет какое кол-во каналов использеустся конкретным модуем sata_host.vhd в зависиости от G_HDD_COUNT
 --//Где C_SH_CH_COUNT=(индекс модуля sata_host)(мах количество каналов в одном GTP)(количество sata в raid)
 constant C_SH_CH_COUNT : T8x08SHCountSel:=(
@@ -142,6 +144,10 @@ signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
 
 signal i_measure_dev_busy          : std_logic;
 signal i_measure_sh_status         : TMeasureALStatus_SHCountMax;
+signal i_measure_status_out        : TMeasureStatus;
+signal i_hw_work                   : std_logic;
+signal i_hw_start                  : std_logic;
+signal i_hw_start_dly              : std_logic;
 
 --//cmdfifo
 signal i_u_cxd                     : TBus16GTCH_SHCountMax;
@@ -262,12 +268,54 @@ end generate gen_sim_on;
 
 
 --//#############################################
+--//Задержка аппаратного запуска
+--//#############################################
+m_hwstart : sata_hwstart_ctrl
+generic map
+(
+G_T05us     => selval(75, CI_SIM_T05us, strcmp(G_SIM, "OFF")), --//для частоты 150MHz
+G_DBGCS     => G_DBGCS,
+G_DBG       => G_DBG,
+G_SIM       => G_SIM
+)
+port map
+(
+--------------------------------------------------
+--
+--------------------------------------------------
+p_in_ctrl      => p_in_usr_ctrl,
+
+--------------------------------------------------
+--Связь с модулям sata_raid.vhd
+--------------------------------------------------
+p_in_hw_work   => i_hw_work,
+p_in_hw_start  => i_hw_start,
+p_out_hw_start => i_hw_start_dly,
+
+p_in_sh_cmddone=> i_usr_status.dmacfg.atadone,
+p_in_mstatus   => i_measure_status_out,
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst       => p_in_tst,
+p_out_tst      => open,
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk       => g_refclkout,--//150MHz
+p_in_rst       => p_in_rst
+);
+
+
+--//#############################################
 --//Измерение задержек
 --//#############################################
 m_measure : sata_measure
 generic map
 (
-G_T05us     => 75, --//для частоты 150MHz
+G_T05us     => selval(75, CI_SIM_T05us, strcmp(G_SIM, "OFF")), --//для частоты 150MHz
 G_HDD_COUNT => G_HDD_COUNT,
 G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
@@ -279,11 +327,12 @@ port map
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
 p_in_ctrl      => p_in_usr_ctrl,
-p_out_status   => p_out_measure,
+p_out_status   => i_measure_status_out,
 
 --------------------------------------------------
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
+p_in_sh_busy   => i_usr_status.ch_bsy,
 p_in_dev_busy  => i_measure_dev_busy,
 p_in_sh_status => i_measure_sh_status,
 
@@ -302,6 +351,8 @@ p_in_rst       => p_in_rst
 );
 
 i_measure_dev_busy<=i_usr_status.dev_bsy and i_usr_status.dev_rdy;
+
+p_out_measure<=i_measure_status_out;
 
 
 --//#############################################
@@ -322,6 +373,11 @@ port map
 --------------------------------------------------
 p_in_usr_ctrl           => p_in_usr_ctrl,
 p_out_usr_status        => i_usr_status,
+
+--//ctrl - hw start
+p_out_hw_work           => i_hw_work,
+p_out_hw_start          => i_hw_start,
+p_in_hw_start           => i_hw_start_dly,
 
 --//cmdpkt
 p_in_usr_cxd            => p_in_usr_cxd,

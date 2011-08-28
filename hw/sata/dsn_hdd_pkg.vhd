@@ -18,6 +18,7 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.sata_glob_pkg.all;
+use work.sata_pkg.all;
 use work.sata_raid_pkg.all;
 
 package dsn_hdd_pkg is
@@ -44,6 +45,7 @@ type THDDRBufStatus is record
 err  : std_logic;
 done : std_logic;
 --rdy  : std_logic;
+hwlog_size : std_logic_vector(31 downto 0);
 end record;
 
 type THDDRBufCfg is record
@@ -51,6 +53,7 @@ mem_trn : std_logic_vector(15 downto 0);
 mem_adr : std_logic_vector(31 downto 0);
 dmacfg  : TDMAcfg;
 tstgen  : THDDTstGen;
+hwlog   : THWLog;
 end record;
 
 

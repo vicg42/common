@@ -45,6 +45,11 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
+--//ctrl - hw start
+p_out_hw_work           : out   std_logic;
+p_out_hw_start          : out   std_logic;
+p_in_hw_start           : in    std_logic;
+
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
@@ -170,9 +175,14 @@ port map
 p_in_usr_ctrl           => p_in_usr_ctrl,
 p_out_usr_status        => p_out_usr_status,
 
+--//ctrl - hw start
+p_out_hw_work           => p_out_hw_work,
+p_out_hw_start          => p_out_hw_start,
+p_in_hw_start           => p_in_hw_start,
+
 --//cmd
 p_in_usr_cxd            => p_in_usr_cxd,
-p_in_usr_cxd_wr        => p_in_usr_cxd_wr,
+p_in_usr_cxd_wr         => p_in_usr_cxd_wr,
 
 --//txfifo
 p_in_usr_txd            => p_in_usr_txd,

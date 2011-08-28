@@ -145,9 +145,13 @@ S_HW_MEMR_CHECK2,
 S_HW_MEMR_CHECK3,
 S_HW_MEMR_START,
 S_HW_MEMR_WORK,
-S_HW_MEMR_START2
+S_HW_MEMR_START2,
+
+S_HWLOG_WAIT_TRNDONE,
+S_HWLOG_MEM_START,
+S_HWLOG_MEM_WORK
 );
-signal fsm_rambuf_cs: fsm_state;
+signal fsm_rambuf_cs                   : fsm_state;
 
 signal i_hddcnt                        : std_logic_vector(2 downto 0);
 
@@ -188,7 +192,15 @@ signal i_atadone                       : std_logic;
 signal i_usr_rxbuf_dout                : std_logic_vector(31 downto 0);
 signal i_usr_rxbuf_rd                  : std_logic;
 signal i_usr_rxbuf_empty               : std_logic;
+signal i_usr_rxbuf_1dout               : std_logic_vector(31 downto 0);
+signal i_usr_rxbuf_1empty              : std_logic;
 
+
+signal i_hw_measure                    : std_logic;
+signal sr_hw_trn_done                  : std_logic_vector(0 to 1);
+signal i_hw_trn_done                   : std_logic;
+type THWlogData is array (0 to 0) of std_logic_vector(31 downto 0);
+signal i_hw_log_d                      : THWlogData;
 
 signal tst_rambuf_empty                : std_logic;
 signal tst_fast_ramrd                  : std_logic;
@@ -271,6 +283,7 @@ end generate gen_dbgcs_on;
 --//----------------------------------------------
 p_out_rbuf_status.err<=i_rambuf_full_err;
 p_out_rbuf_status.done<=i_rambuf_done;
+p_out_rbuf_status.hwlog_size<=i_wr_ptr;
 --p_out_rbuf_status.rdy<='0';
 
 --//Сброс/детектирование переполнения потокового буфера
@@ -347,6 +360,13 @@ begin
 
     i_vbuf_pfull<='0';
 
+    i_hw_measure<='0';
+    sr_hw_trn_done<=(others=>'0');
+    i_hw_trn_done<='0';
+    for i in 0 to i_hw_log_d'length-1 loop
+    i_hw_log_d(i)<=(others=>'0');
+    end loop;
+
     tst_rambuf_empty<='1';
     tst_fast_ramrd<='0';
 
@@ -354,6 +374,13 @@ begin
 
     i_vbuf_pfull<=p_in_vbuf_pfull;
     i_hdd_txbuf_empty<=p_in_hdd_txbuf_empty;
+
+    i_hw_measure<=p_in_rbuf_cfg.hwlog.measure;
+    sr_hw_trn_done<=i_hw_measure & sr_hw_trn_done(0 to 0);
+    i_hw_trn_done<=not sr_hw_trn_done(0) and sr_hw_trn_done(1);
+
+    i_hw_log_d(0)<=p_in_rbuf_cfg.hwlog.tdly;
+--    i_hw_log_d(1)<=p_in_rbuf_cfg.hwlog.twork;
 
     case fsm_rambuf_cs is
 
@@ -367,7 +394,13 @@ begin
 
       if p_in_rbuf_cfg.tstgen.tesing_on='1' then --and p_in_rbuf_cfg.tstgen.con2rambuf='0' then
 
-        fsm_rambuf_cs <= S_IDLE;
+        if p_in_rbuf_cfg.dmacfg.hw_mode='1' and p_in_rbuf_cfg.hwlog.log_on='1' then
+        --//Начало работы режима HW + HWLOG=ON
+          i_wr_ptr<=(others=>'0');
+          fsm_rambuf_cs <= S_HWLOG_WAIT_TRNDONE;
+        else
+          fsm_rambuf_cs <= S_IDLE;
+        end if;
 
       else
         if p_in_rbuf_cfg.dmacfg.armed='1' then
@@ -725,6 +758,49 @@ begin
         fsm_rambuf_cs <= S_HW_MEMR_WORK;
 
 
+
+      --//####################################
+      --//HWLOG
+      --//####################################
+      --//Ждем завершение текущей транзакции
+      when S_HWLOG_WAIT_TRNDONE =>
+
+        if p_in_rbuf_cfg.dmacfg.hw_mode='0' then
+          fsm_rambuf_cs <= S_IDLE;
+        else
+          if i_hw_trn_done='1' then
+            fsm_rambuf_cs <= S_HWLOG_MEM_START;
+          end if;
+        end if;
+
+      --//Ведем LOG
+      when S_HWLOG_MEM_START =>
+
+        i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
+        i_mem_lenreq<=CONV_STD_LOGIC_VECTOR(i_hw_log_d'length, i_mem_lenreq'length);
+        i_mem_lentrn<=CONV_STD_LOGIC_VECTOR(i_hw_log_d'length, i_mem_lenreq'length); --//размер одиночной транзакции.(Устанавливается программно)
+        i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+        i_mem_start<='1';
+
+        fsm_rambuf_cs <= S_HWLOG_MEM_WORK;
+
+      --//Отработка mem транзакции
+      when S_HWLOG_MEM_WORK =>
+
+        i_mem_start<='0';
+
+        update_addr(1 downto 0) :=(others=>'0');
+        update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
+
+        if i_mem_done='1' then
+          --//Операция выполнена:
+          --//Обновляем указатель записи + уровень данных в буфере
+          i_wr_ptr<=i_wr_ptr + EXT(update_addr, i_wr_ptr'length);
+
+          fsm_rambuf_cs <= S_HWLOG_WAIT_TRNDONE;
+        end if;
+
+
     end case;
   end if;
 end process;
@@ -738,9 +814,11 @@ p_out_vbuf_rd <=p_in_rbuf_cfg.dmacfg.hw_mode and i_usr_rxbuf_rd;
 
 p_out_hdd_rxd_rd<=p_in_rbuf_cfg.dmacfg.sw_mode and i_usr_rxbuf_rd;
 
-i_usr_rxbuf_empty<=p_in_hdd_rxbuf_empty when p_in_rbuf_cfg.dmacfg.sw_mode='1' else p_in_vbuf_empty;
+i_usr_rxbuf_1empty<=p_in_hdd_rxbuf_empty when p_in_rbuf_cfg.dmacfg.sw_mode='1' else p_in_vbuf_empty;
+i_usr_rxbuf_1dout <=p_in_hdd_rxd         when p_in_rbuf_cfg.dmacfg.sw_mode='1' else p_in_vbuf_dout;
 
-i_usr_rxbuf_dout<=p_in_hdd_rxd when p_in_rbuf_cfg.dmacfg.sw_mode='1' else p_in_vbuf_dout;
+i_usr_rxbuf_empty<= i_usr_rxbuf_1empty when p_in_rbuf_cfg.hwlog.log_on='0' else '0';
+i_usr_rxbuf_dout <= i_usr_rxbuf_1dout  when p_in_rbuf_cfg.hwlog.log_on='0' else i_hw_log_d(0);
 
 
 m_mem_ctrl_wr : memory_ctrl_ch_wr
@@ -767,9 +845,9 @@ p_in_usr_txbuf_dout        => i_usr_rxbuf_dout,
 p_out_usr_txbuf_rd         => i_usr_rxbuf_rd,
 p_in_usr_txbuf_empty       => i_usr_rxbuf_empty,
 
-p_out_usr_rxbuf_din        => p_out_hdd_txd,
-p_out_usr_rxbuf_wd         => p_out_hdd_txd_wr,
-p_in_usr_rxbuf_full        => p_in_hdd_txbuf_full,
+p_out_usr_rxbuf_din        => p_out_hdd_txd,      --i_usr_txbuf_din, --
+p_out_usr_rxbuf_wd         => p_out_hdd_txd_wr,   --i_usr_txbuf_wd,  --
+p_in_usr_rxbuf_full        => p_in_hdd_txbuf_full,--i_usr_txbuf_full,--
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd

@@ -979,6 +979,11 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
+--//ctrl - hw start
+p_out_hw_work           : out   std_logic;
+p_out_hw_start          : out   std_logic;
+p_in_hw_start           : in    std_logic;
+
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
@@ -1116,6 +1121,11 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
+--//ctrl - hw start
+p_out_hw_work           : out   std_logic;
+p_out_hw_start          : out   std_logic;
+p_in_hw_start           : in    std_logic;
+
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
@@ -1168,6 +1178,44 @@ p_in_rst                : in    std_logic
 );
 end component;
 
+component sata_hwstart_ctrl
+generic
+(
+G_T05us     : integer:=1;
+G_DBGCS     : string :="OFF";
+G_DBG       : string :="OFF";
+G_SIM       : string :="OFF"
+);
+port
+(
+--------------------------------------------------
+--
+--------------------------------------------------
+p_in_ctrl      : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
+
+--------------------------------------------------
+--Связь с модулям sata_raid.vhd
+--------------------------------------------------
+p_in_hw_work   : in    std_logic;
+p_in_hw_start  : in    std_logic;
+p_out_hw_start : out   std_logic;
+
+p_in_sh_cmddone: in    std_logic;
+p_in_mstatus   : in    TMeasureStatus;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst       : in    std_logic_vector(31 downto 0);
+p_out_tst      : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+p_in_clk       : in    std_logic;
+p_in_rst       : in    std_logic
+);
+end component;
 
 component sata_measure
 generic
@@ -1189,6 +1237,7 @@ p_out_status   : out   TMeasureStatus;
 --------------------------------------------------
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
+p_in_sh_busy   : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 p_in_dev_busy  : in    std_logic;
 p_in_sh_status : in    TMeasureALStatus_SHCountMax;
 

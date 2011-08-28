@@ -48,6 +48,11 @@ port
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
+--//ctrl - hw start
+p_out_hw_work           : out   std_logic;
+p_out_hw_start          : out   std_logic;
+p_in_hw_start           : in    std_logic;
+
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
@@ -145,6 +150,11 @@ err     : std_logic;--//Обнаружены ошибки
 end record;
 signal i_sh_det                    : TShDetect;
 signal sr_sh_cmddone               : std_logic_vector(0 to 4);
+
+signal i_sh_cmddone_width          : std_logic;
+signal i_sh_cmddone_width_cnt      : std_logic_vector(2 downto 0);
+signal i_hw_start_in               : std_logic;
+signal sr_hw_start_in              : std_logic_vector(0 to 1);
 
 signal i_sh_cmd_hw_start           : std_logic;
 signal i_sh_cmd_start              : std_logic;
@@ -321,7 +331,8 @@ begin
     i_usr_status.dev_bsy<=OR_reduce(i_usr_status.ch_bsy(G_HDD_COUNT-1 downto 0)) or i_usrmode.hw_work;
     i_usr_status.dev_err<=OR_reduce(i_usr_status.ch_err(G_HDD_COUNT-1 downto 0)) or i_err_streambuf;
     i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_rdy(G_HDD_COUNT-1 downto 0));
-    i_usr_status.dev_ipf<=AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0));
+    i_usr_status.dev_ipf<=(AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0)) and i_usrmode.sw) or
+                          (AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0)) and not i_usrmode.hw_work);
 --    i_usr_status.lba_bp<=i_lba_cnt;
 --    i_usr_status.usr<=(others=>'0');
 
@@ -371,7 +382,6 @@ begin
   end if;
 end process;
 
-i_sh_cmd_hw_start<=sr_sh_cmddone(4);
 
 
 
@@ -563,6 +573,46 @@ p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
 
 
 --//HW mode
+--i_sh_cmd_hw_start<=sr_sh_cmddone(4); --//Без использования модуля sata_hwstart_ctrl.vhd
+p_out_hw_work  <=i_usrmode.hw_work;
+p_out_hw_start <=i_sh_cmddone_width;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_sh_cmddone_width<='0';
+    i_sh_cmddone_width_cnt<=(others=>'0');
+
+    i_hw_start_in<='0';
+    sr_hw_start_in<=(others=>'0');
+    i_sh_cmd_hw_start<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    --//Расширяем импульс запуска задержки аппаратного пуска АТА команды,
+    --//т.к. модуль sata_hwstart_ctrl.vhd работает на другой частоте
+    if sr_sh_cmddone(4)='1' then
+      i_sh_cmddone_width<='1';
+    elsif i_sh_cmddone_width_cnt(i_sh_cmddone_width_cnt'high)='1' then
+      i_sh_cmddone_width<='0';
+    end if;
+
+    if i_sh_cmddone_width='0' then
+      i_sh_cmddone_width_cnt<=(others=>'0');
+    else
+      i_sh_cmddone_width_cnt<=i_sh_cmddone_width_cnt+1;
+    end if;
+
+    --//Выделяем задний фронт из полученой задержки
+    i_hw_start_in<=p_in_hw_start;
+    sr_hw_start_in<=i_hw_start_in & sr_hw_start_in(0 to 0);
+
+    i_sh_cmd_hw_start<=not sr_hw_start_in(0) and sr_hw_start_in(1);
+
+  end if;
+end process;
+
+
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -864,7 +914,7 @@ p_out_dbgcs.data(24)<=i_sh_trn_en;
 p_out_dbgcs.data(25)<=i_raid_cl_done;
 p_out_dbgcs.data(26)<=i_sh_padding_en;
 p_out_dbgcs.data(27)<=i_sh_padding;
-p_out_dbgcs.data(28)<=sr_sh_cmddone(1);--(анализ cntlba>lbaend)p_in_raid.used;--i_usr_status.dev_bsy;--i_sh_cxd_src_rdy;
+p_out_dbgcs.data(28)<=i_raid_trn_done(0);--//sr_sh_bsy(0)='0' and sr_sh_bsy(1)='1' then
 p_out_dbgcs.data(29)<='0';--//зарезервировано
 p_out_dbgcs.data(122 downto 30)<=(others=>'0');--//зарезервировано
 
