@@ -379,7 +379,7 @@ Type TEthFmask is array (0 to C_DSN_SWT_FMASK_MAX_COUNT-1) of std_logic_vector(7
 --//Регистры модуля dsn_hdd.vhd
 --//--------------------------------------------------------------
 constant C_DSN_HDD_REG_CTRL_L                       : integer:=16#000#;
---constant C_DSN_HDD_REG_CTRL_M                       : integer:=16#001#;
+constant C_DSN_HDD_REG_HW_START_DLY                 : integer:=16#001#;
 constant C_DSN_HDD_REG_STATUS_L                     : integer:=16#002#;
 constant C_DSN_HDD_REG_STATUS_M                     : integer:=16#003#;
 
@@ -416,6 +416,8 @@ constant C_DSN_HDD_REG_STATUS_SATA7_M               : integer:=16#01F#;
 
 constant C_DSN_HDD_REG_CMDFIFO                      : integer:=16#020#;
 
+constant C_DSN_HDD_REG_HWLOG_SIZE_L                 : integer:=16#021#;
+constant C_DSN_HDD_REG_HWLOG_SIZE_M                 : integer:=16#022#;
 
 
 --//Bit Maps:
@@ -428,7 +430,9 @@ constant C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
 constant C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT          : integer:=5;
 constant C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT          : integer:=12;
 constant C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT   : integer:=13;
-constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT;
+constant C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT           : integer:=14;
+constant C_DSN_HDD_REG_CTRLL_HWSTART_DLY_DIS_BIT    : integer:=15;
+constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_HWSTART_DLY_DIS_BIT;
 
 --//Bit Maps:
 --//Register C_DSN_HDD_REG_RBUF_ADR / Bit Map:
