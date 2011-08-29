@@ -1,5 +1,5 @@
 #ChipScope Pro Analyzer Project File, Version 3.0
-#Sat Aug 27 18:25:48 MSD 2011
+#Sun Aug 28 15:55:00 MSD 2011
 deviceChain.deviceName0=XCF32P
 deviceChain.deviceName1=XCF32P
 deviceChain.deviceName2=XC9500XL
@@ -53,7 +53,7 @@ unit.4.0.MFCompareB0=999
 unit.4.0.MFCount=1
 unit.4.0.MFDisplay0=0
 unit.4.0.MFEventType0=3
-unit.4.0.RunMode=REPETITIVE RUN
+unit.4.0.RunMode=SINGLE RUN
 unit.4.0.SQCondition=All Data
 unit.4.0.SQContiguous0=0
 unit.4.0.SequencerOn=0
@@ -2197,7 +2197,7 @@ unit.4.0.rep_trigger.signals=All Signals/Buses
 unit.4.0.samplesPerTrigger=1
 unit.4.0.triggerCapture=1
 unit.4.0.triggerNSamplesTS=0
-unit.4.0.triggerPosition=40
+unit.4.0.triggerPosition=800
 unit.4.0.triggerWindowCount=1
 unit.4.0.triggerWindowDepth=4096
 unit.4.0.triggerWindowTS=0

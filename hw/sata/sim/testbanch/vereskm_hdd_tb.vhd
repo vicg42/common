@@ -883,7 +883,7 @@ begin
   hw_scount:=1;
   hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
-  hw_lba_end  :=hw_lba_start + (hw_scount * 2);
+  hw_lba_end  :=hw_lba_start + (hw_scount * 20);
 
 
 
@@ -897,12 +897,16 @@ begin
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_ON_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
   --//1/128 - max ... 127/128 - min
 --  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(1, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
-  i_dsnhdd_reg_hwstart_dly_val<=CONV_STD_LOGIC_VECTOR(1, i_dsnhdd_reg_hwstart_dly_val'length);
+--  i_dsnhdd_reg_hwstart_dly_val<=CONV_STD_LOGIC_VECTOR(1, i_dsnhdd_reg_hwstart_dly_val'length);
+  i_dsnhdd_reg_hwstart_dly_val(3 downto   0)<=CONV_STD_LOGIC_VECTOR(2, i_dsnhdd_reg_hwstart_dly_val'length/4);
+  i_dsnhdd_reg_hwstart_dly_val(7 downto   4)<=CONV_STD_LOGIC_VECTOR(3, i_dsnhdd_reg_hwstart_dly_val'length/4);
+  i_dsnhdd_reg_hwstart_dly_val(11 downto  8)<=CONV_STD_LOGIC_VECTOR(4, i_dsnhdd_reg_hwstart_dly_val'length/4);
+  i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(5, i_dsnhdd_reg_hwstart_dly_val'length/4);
 
 
   if    G_HDD_COUNT=2 and raid_mode='1' then i_sata_cs<=16#03#;
@@ -1434,10 +1438,10 @@ begin
       end if;
 
 --      wait for 30 us;
-      wait for 50 us;
+--      wait for 50 us;
 --      wait for 54 us;
 --      wait for 60 us;
---      wait for 150 us;
+      wait for 80 us;
 
       wait until p_in_clk'event and p_in_clk='1';
       write(GUI_line,string'("SEND CMDPKT: HW STOP."));writeline(output, GUI_line);

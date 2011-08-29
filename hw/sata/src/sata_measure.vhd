@@ -173,7 +173,7 @@ end process;
 --//Измерения:
 --//-----------------------------------
 i_busy(0)<=p_in_dev_busy;
-i_busy(1)<=OR_reduce(p_in_sh_busy(G_HDD_COUNT-1 downto 0)) and p_in_ctrl(C_USR_GCTRL_HWLOG_ON_BIT);
+i_busy(1)<=OR_reduce(p_in_sh_busy(G_HDD_COUNT-1 downto 0));
 
 gen : for i in 0 to 1 generate
 --//Формируем  start
@@ -188,10 +188,9 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     i_dly_on(i)<=(i_busy(i) xor ((OR_reduce(i_sh_tlayer_txon) and OR_reduce(i_sh_llayer_txon)) or
-                                     (OR_reduce(i_sh_tlayer_rxon) and OR_reduce(i_sh_llayer_rxon))) );
+                                 (OR_reduce(i_sh_tlayer_rxon) and OR_reduce(i_sh_llayer_rxon))) );
 
     sr_measure_start(i)<=i_busy(i) & sr_measure_start(i)(0 to 0);
-
     i_measure_start(i)<=sr_measure_start(i)(0) and not sr_measure_start(i)(1);
 
   end if;
@@ -242,9 +241,10 @@ begin
       i_1us<='0';
 
     elsif i_busy(0)='1' then
-      if i_cnt_05us=G_T05us-1 then --CONV_STD_LOGIC_VECTOR(G_T05us-1, i_cnt_05us'length) then
-        i_cnt_05us<=0;--(others=>'0');
+      if i_cnt_05us=G_T05us-1 then
+        i_cnt_05us<=0;
         i_1us<=not i_1us;
+
         if i_1us='1' then
           if i_cnt_us=CONV_STD_LOGIC_VECTOR(C_Tms-1, i_cnt_us'length) then
             i_cnt_us<=(others=>'0');
@@ -262,8 +262,8 @@ begin
           else
             i_cnt_us<=i_cnt_us+1;
           end if;
-
         end if;
+
       else
         i_cnt_05us<=i_cnt_05us+1;
       end if;

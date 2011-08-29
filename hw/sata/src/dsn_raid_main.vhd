@@ -212,6 +212,7 @@ signal i_dbg_satah                 : TSH_dbgport_SHCountMax;
 signal i_dbgcs_satah               : TSH_dbgcs_SHCountMax;
 signal i_dbgcs_raid                : TSH_ila;
 signal i_dbgcs_measure             : TSH_ila;
+signal i_dbgcs_hwstart_dly         : TSH_ila;
 
 signal i_tst_measure_out           : std_logic_vector(31 downto 0);
 signal i_tst_raidctrl_out          : std_logic_vector(31 downto 0);
@@ -300,6 +301,7 @@ p_in_mstatus   => i_measure_status_out,
 --------------------------------------------------
 p_in_tst       => p_in_tst,
 p_out_tst      => open,
+p_out_dbgcs    => i_dbgcs_hwstart_dly,
 
 --------------------------------------------------
 --System
@@ -443,6 +445,7 @@ p_out_sata_dcm_lock<=i_sh_dcm_lock;
 p_out_dbgcs.sh<=i_dbgcs_satah;
 p_out_dbgcs.raid<=i_dbgcs_raid;
 p_out_dbgcs.measure<=i_dbgcs_measure;
+p_out_dbgcs.hwstart_dly<=i_dbgcs_hwstart_dly;
 
 
 --//#############################################
