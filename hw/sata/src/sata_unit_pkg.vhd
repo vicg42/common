@@ -1307,18 +1307,18 @@ p_in_usr_rxbuf_full         : in    std_logic;
 --------------------------------------------------
 p_out_dbgcs                 : out   TSH_dbgcs_exp;
 
-p_out_sim_gt_txdata        : out   TBus32_SHCountMax;
-p_out_sim_gt_txcharisk     : out   TBus04_SHCountMax;
-p_out_sim_gt_txcomstart    : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gt_rxdata         : in    TBus32_SHCountMax;
-p_in_sim_gt_rxcharisk      : in    TBus04_SHCountMax;
-p_in_sim_gt_rxstatus       : in    TBus03_SHCountMax;
-p_in_sim_gt_rxelecidle     : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_in_sim_gt_rxdisperr      : in    TBus04_SHCountMax;
-p_in_sim_gt_rxnotintable   : in    TBus04_SHCountMax;
-p_in_sim_gt_rxbyteisaligned: in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gt_sim_rst           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-p_out_gt_sim_clk           : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+p_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+p_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+p_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+p_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+p_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы

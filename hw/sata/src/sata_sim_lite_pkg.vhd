@@ -67,7 +67,7 @@ constant C_PNAME_STR : TString_SataArray21:=
 --//------------------------------
 --//Application Layer
 --//------------------------------
-type TAL_opt_dbgport is record
+type TDbg_AL_opt is record
 link_up           : std_logic;
 link_break        : std_logic;
 reg_shadow_wr_done: std_logic;
@@ -80,18 +80,18 @@ cmd_name    : string(1 to 23);
 cmd_busy    : std_logic;
 signature   : std_logic;
 ipf_bit     : std_logic;
-opt         : TAL_opt_dbgport;
+opt         : TDbg_AL_opt;
 end record;
 
 --//------------------------------
 --//Transport Layer
 --//------------------------------
-type TSimTLCtrl is record
+type TDbg_TLCtrl is record
 ata_command : std_logic;
 ata_control : std_logic;
 end record;
 
-type TSimTLStatus is record
+type TDbg_TLStatus is record
 txfh2d_en        : std_logic;
 rxfistype_err    : std_logic;
 rxfislen_err     : std_logic;
@@ -99,7 +99,7 @@ txerr_crc_repeat : std_logic;
 dma_wrstart : std_logic;
 end record;
 
-type TSimTLOtherStatus is record
+type TDbg_TLOtherStatus is record
 firq_bit : std_logic;
 fdir_bit : std_logic;
 fpiosetup: std_logic;
@@ -110,26 +110,26 @@ dcnt      : std_logic_vector(15 downto 0);
 end record;
 
 type TTL_dbgport is record
-fsm   : TTL_fsm_state;
+fsm           : TTL_fsm_state;
 piotrn_sizedw : std_logic_vector(31 downto 0);
 dmatrn_sizedw : std_logic_vector(31 downto 0);
 dmatrn_dcnt   : std_logic_vector(31 downto 0);
-ctrl  : TSimTLCtrl;
-status: TSimTLStatus;
-other_status : TSimTLOtherStatus;
+ctrl          : TDbg_TLCtrl;
+status        : TDbg_TLStatus;
+other_status  : TDbg_TLOtherStatus;
 end record;
 
 --//------------------------------
 --//Link Layer
 --//------------------------------
-type TSimLLCtrl is record
+type TDbg_LLCtrl is record
 trn_escape   : std_logic;
 txstart      : std_logic;
 tl_check_err : std_logic;
 tl_check_done: std_logic;
 end record;
 
-type TSimLLStatus is record
+type TDbg_LLStatus is record
 rxok        : std_logic;
 rxstart     : std_logic;
 rxerr_crc   : std_logic;
@@ -144,7 +144,7 @@ txhold_on   : std_logic;
 rxhold_on   : std_logic;
 end record;
 
-type TSimLLRxP is record
+type TDbg_LLRxP is record
 dmat: std_logic;
 hold: std_logic;
 xrdy: std_logic;
@@ -152,10 +152,10 @@ cont: std_logic;
 end record;
 
 type TLL_dbgport is record
-fsm   : TLL_fsm_state;
-ctrl  : TSimLLCtrl;
-status: TSimLLStatus;
-rxp   : TSimLLRxP;
+fsm          : TLL_fsm_state;
+ctrl         : TDbg_LLCtrl;
+status       : TDbg_LLStatus;
+rxp          : TDbg_LLRxP;
 rxbuf_status : TRxBufStatus;
 txbuf_status : TTxBufStatus;
 txd_close    : std_logic;
@@ -164,18 +164,18 @@ end record;
 --//------------------------------
 --//PHY Layer
 --//------------------------------
-type TSimPLCtrl is record
+type TDbg_PLCtrl is record
 speed          : std_logic_vector(C_PCTRL_SPD_BIT_M-C_PCTRL_SPD_BIT_L downto 0);
 end record;
 
-type TSimPLStatus is record
+type TDbg_PLStatus is record
 dev_detect     : std_logic;
 link_establish : std_logic;
 speed          : std_logic_vector(C_PSTAT_SPD_BIT_M-C_PSTAT_SPD_BIT_L downto 0);
 rcv_comwake    : std_logic;
 end record;
 
-type TSimPLTxStatus is record
+type TDbg_PLTxStatus is record
 suspend_psof   : std_logic;
 suspend_peof   : std_logic;
 suspend_phold  : std_logic;
@@ -183,14 +183,14 @@ suspend_pholda : std_logic;
 end record;
 
 type TPLoob_dbgport is record
-fsm  : TPLoob_fsm_state;
-status : TSimPLStatus;
-speed: std_logic_vector(C_PCTRL_SPD_BIT_M-C_PCTRL_SPD_BIT_L downto 0);
+fsm    : TPLoob_fsm_state;
+status : TDbg_PLStatus;
+speed  : std_logic_vector(C_PCTRL_SPD_BIT_M-C_PCTRL_SPD_BIT_L downto 0);
 end record;
 
 type TPLtx_dbgport is record
 req_name : string(1 to 7);
-stat     : TSimPLTxStatus;
+stat     : TDbg_PLTxStatus;
 txalign  : std_logic;
 txd      : std_logic_vector(31 downto 0);
 end record;

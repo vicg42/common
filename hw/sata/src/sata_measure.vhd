@@ -84,7 +84,7 @@ type TBus2 is array (0 to 1) of std_logic_vector(0 to 1);
 type TBusTDly is array (0 to 1) of std_logic_vector(p_out_status.tdly'range);
 
 signal i_1us                    : std_logic:='0';
-signal i_cnt_05us               : integer range 0 to G_T05us-1:=0;--std_logic_vector(9 downto 0):=(others=>'0');
+signal i_cnt_05us               : integer range 0 to G_T05us-1:=0;
 signal i_cnt_us                 : std_logic_vector(9 downto 0):=(others=>'0');
 signal i_cnt_ms                 : std_logic_vector(9 downto 0):=(others=>'0');
 signal i_cnt_sec                : std_logic_vector(5 downto 0):=(others=>'0');
@@ -233,7 +233,7 @@ begin
   if p_in_clk'event and p_in_clk='1' then
 
     if i_measure_start(0)='1' then
-      i_cnt_05us<=0;--(others=>'0');
+      i_cnt_05us<=0;
       i_cnt_us<=(others=>'0');
       i_cnt_ms<=(others=>'0');
       i_cnt_sec<=(others=>'0');

@@ -93,9 +93,6 @@ signal i_status                 : std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 signal i_d10_2_senddis          : std_logic;
 signal i_tmr_dly                : std_logic_vector(8 downto 0);
 
---signal tst_fms_cs               : std_logic_vector(3 downto 0);
---signal tst_fms_cs_dly           : std_logic_vector(tst_fms_cs'range);
-
 
 --MAIN
 begin
@@ -112,30 +109,11 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --ltstout:process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
-----    tst_fms_cs_dly<=(others=>'0');
 --    p_out_tst(31 downto 1)<=(others=>'0');
 --  elsif p_in_clk'event and p_in_clk='1' then
---
-----    tst_fms_cs_dly<=tst_fms_cs;
---    p_out_tst(0)<='0';--OR_reduce(tst_fms_cs_dly);
---
+--    p_out_tst(0)<='0';
 --  end if;
 --end process ltstout;
-
---tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET_DONE  else
---            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMINIT   else
---            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE        else
---            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMWAKE_DONE   else
---            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitCOMWAKE   else
---            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMWAKE else
---            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitAlign     else
---            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_SendAlign      else
---            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Connect        else
---            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_COMRESET       else
---            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_AwaitNoCOMINIT else
---            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Calibrate      else
---            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_ploob_cs=S_HR_Disconnect     else
---            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length); --//when fsm_ploob_cs=S_HR_IDLE
 
 end generate gen_dbg_on;
 
