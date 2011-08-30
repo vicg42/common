@@ -76,9 +76,10 @@ constant C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT : integer:=3;
 constant C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
 constant C_USR_GCTRL_HWLOG_ON_BIT           : integer:=5;
 constant C_USR_GCTRL_HWSTART_DLY_L_BIT      : integer:=6;
-constant C_USR_GCTRL_HWSTART_DLY_M_BIT      : integer:=21;
-constant C_USR_GCTRL_HWSTART_DLY_DIS_BIT    : integer:=22;
-constant C_USR_GCTRL_LAST_BIT               : integer:=C_USR_GCTRL_HWSTART_DLY_DIS_BIT;
+constant C_USR_GCTRL_HWSTART_DLY_M_BIT      : integer:=20;
+constant C_USR_GCTRL_HWSTART_DLY_FIX_BIT    : integer:=21;
+constant C_USR_GCTRL_HWSTART_DLY_ON_BIT     : integer:=22;
+constant C_USR_GCTRL_LAST_BIT               : integer:=C_USR_GCTRL_HWSTART_DLY_ON_BIT;
 
 
 --//-------------------------------------------------

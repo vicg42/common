@@ -342,7 +342,7 @@ begin
 
     if p_in_cfg_wd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl_l<=p_in_cfg_txdata(h_reg_ctrl_l'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HW_START_DLY, i_cfg_adr_cnt'length) then h_reg_hwstart_dly<=p_in_cfg_txdata(h_reg_hwstart_dly'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HWSTART_DLY, i_cfg_adr_cnt'length) then h_reg_hwstart_dly<=p_in_cfg_txdata(h_reg_hwstart_dly'high downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(15 downto 0)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(31 downto 16)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(15 downto 0)<=p_in_cfg_txdata;
@@ -366,7 +366,7 @@ begin
 
     if p_in_cfg_rd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then rxd(h_reg_ctrl_l'range):=h_reg_ctrl_l;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HW_START_DLY, i_cfg_adr_cnt'length) then rxd:=h_reg_hwstart_dly;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HWSTART_DLY, i_cfg_adr_cnt'length) then rxd:=h_reg_hwstart_dly;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then rxd:=h_reg_rambuf_adr(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then rxd:=h_reg_rambuf_adr(31 downto 16);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length)  then rxd:=h_reg_rambuf_ctrl(15 downto 0);
@@ -434,10 +434,10 @@ i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_CLR_
 i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=i_err_streambuf and not i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
-i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT);
 
-i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)<=i_reg_hwstart_dly(15 downto 0);
-
+i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_FIX_BIT)<=i_reg_hwstart_dly(C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT);
+i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)<=i_reg_hwstart_dly(C_DSN_HDD_REG_HWSTART_DLY_M_BIT downto C_DSN_HDD_REG_HWSTART_DLY_L_BIT);
 
 
 --//Формирую значения для регистров C_DSN_HDD_REG_STATUS_SATAxx_L/M

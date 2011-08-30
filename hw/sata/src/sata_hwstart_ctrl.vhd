@@ -73,9 +73,9 @@ architecture behavioral of sata_hwstart_ctrl is
 signal i_1us                    : std_logic:='0';
 signal i_cnt_05us               : integer range 0 to G_T05us-1:=0;
 signal i_cnt_us                 : std_logic_vector(15 downto 0):=(others=>'0');
-signal i_usr_hwdly_dis          : std_logic:='0';
-signal i_usr_dly                : std_logic_vector(C_USR_GCTRL_HWSTART_DLY_M_BIT-C_USR_GCTRL_HWSTART_DLY_L_BIT downto 0):=CONV_STD_LOGIC_VECTOR(20, C_USR_GCTRL_HWSTART_DLY_M_BIT-C_USR_GCTRL_HWSTART_DLY_L_BIT+1);--(others=>'0');
-signal i_hw_dly                 : std_logic_vector(i_usr_dly'range);
+signal i_usr_hwdly_on           : std_logic:='0';
+signal i_usr_hwdly_fix          : std_logic:='0';
+signal i_usr_dly                : std_logic_vector(15 downto 0):=(others=>'0');
 signal i_hw_work                : std_logic:='0';
 signal i_hw_start_in            : std_logic:='0';
 signal i_hw_start_out           : std_logic:='0';
@@ -85,8 +85,9 @@ signal i_tmr_en                 : std_logic_vector(0 to 1);
 signal i_tmr_start              : std_logic:='0';
 signal sr_hwdly_set             : std_logic_vector(0 to 1);
 signal i_hwdly_set              : std_logic;
+signal i_hw_dly                 : std_logic_vector(i_usr_dly'range);
 
-signal tst_hw_dly_set             : std_logic_vector(3 downto 0);
+signal tst_hw_dly_set           : std_logic_vector(3 downto 0);
 
 --MAIN
 begin
@@ -132,8 +133,9 @@ begin
     i_hw_work<=p_in_hw_work;
     i_hw_start_in<=p_in_hw_start;
 
-    i_usr_dly<=p_in_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT);
-    i_usr_hwdly_dis<=p_in_ctrl(C_USR_GCTRL_HWSTART_DLY_DIS_BIT);
+    i_usr_dly<=p_in_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)&'0';
+    i_usr_hwdly_on<=p_in_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT);
+    i_usr_hwdly_fix<=p_in_ctrl(C_USR_GCTRL_HWSTART_DLY_FIX_BIT);
   end if;
 end process;
 
@@ -157,7 +159,7 @@ begin
     sr_hw_start<=i_hw_start_in & sr_hw_start(0 to 0);
     i_hw_start<=sr_hw_start(0) and not sr_hw_start(1);
 
-    if i_hw_work='0' or AND_reduce(i_tmr_en)='1' then
+    if i_hw_work='0' or AND_reduce(i_tmr_en)='1' or i_usr_hwdly_on='0' then
       i_tmr_en<=(others=>'0');
     else
       if i_hw_start='1' then
@@ -179,11 +181,11 @@ process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
 
-    if i_tmr_start='1' then --or i_hw_work='0' then
+    if i_tmr_start='1' then
       i_cnt_05us<=0;
       i_1us<='0';
       i_cnt_us<=(others=>'0');
-      i_hw_start_out<='1';--i_hw_work;
+      i_hw_start_out<='1';
 
     elsif i_hw_start_out='1' then
 
@@ -191,8 +193,8 @@ begin
         i_cnt_05us<=0;
         i_1us<=not i_1us;
         if i_1us='1' then
-          if (i_usr_hwdly_dis='0' and i_cnt_us=i_hw_dly) or
-             (i_usr_hwdly_dis='1' and i_cnt_us=CONV_STD_LOGIC_VECTOR(2, i_cnt_us'length)) then
+          if (i_usr_hwdly_fix='1' and i_cnt_us=i_usr_dly) or
+             (i_usr_hwdly_fix='0' and i_cnt_us=i_hw_dly) then
             i_cnt_us<=(others=>'0');
             i_hw_start_out<='0';
           else
@@ -213,15 +215,13 @@ p_out_hw_start<=i_hw_start_out;
 
 
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
---//Выбор задержки HWSTART
+--//Адаптивная задержка HWSTART. Анализируются 4-е порога задержек
 --//p_in_mstatus.hwlog.tdly=150 ----- 1us
 --//p_in_mstatus.hwlog.tdly=150000 -- 1ms
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_hw_dly<=CONV_STD_LOGIC_VECTOR(1, i_hw_dly'length);
-
-    tst_hw_dly_set<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -230,31 +230,26 @@ begin
         if    p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150000*5, p_in_mstatus.hwlog.tdly'length) then
           --//min/max - 4ms/60ms - шаг 4ms
           i_hw_dly<=i_usr_dly(15 downto 12)&"000000000000";
-          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#8#, tst_hw_dly_set'length);
 
         elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(210000, p_in_mstatus.hwlog.tdly'length) then --150000*1.4
           --//min/max - 256us/3.8ms
           i_hw_dly<="0000"&i_usr_dly(11 downto 8)&"00000000";
-          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#4#, tst_hw_dly_set'length);
 
         elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150*700, p_in_mstatus.hwlog.tdly'length) then
           --//min/max - 16us/240us
           i_hw_dly<="00000000"&i_usr_dly(7 downto 4)&"0000";
-          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#3#, tst_hw_dly_set'length);
 
         elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150*200, p_in_mstatus.hwlog.tdly'length) then
-          --//min/max - 1us/15us
+          --//min/max - 2us/14us -т.к. бит(0)=0 потому что изпользуется как управление выбора типа задержки
+                                               --адаптивная или фикс. назначеная пользователем
           i_hw_dly<="000000000000"&i_usr_dly(3 downto 0);
-          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#1#, tst_hw_dly_set'length);
 
         else
           i_hw_dly<=CONV_STD_LOGIC_VECTOR(1, i_hw_dly'length);
-          tst_hw_dly_set<=(others=>'0');
 
         end if;
 
     end if;
-
   end if;
 end process;
 
@@ -265,41 +260,6 @@ end generate gen_sim_off;
 --//-----------------------------------
 --//Debug/Sim
 --//-----------------------------------
-gen_sim_on : if strcmp(G_SIM,"ON") generate
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_hw_dly<=CONV_STD_LOGIC_VECTOR(1, i_hw_dly'length);
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    if i_hwdly_set='1' then
-
-        if    p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150000*5, p_in_mstatus.hwlog.tdly'length) then
-          i_hw_dly<="00000000"&i_usr_dly(15 downto 12)&"0000";
-
-        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(300, p_in_mstatus.hwlog.tdly'length) then
-          i_hw_dly<="00000000"&i_usr_dly(11 downto 8)&"0000";
-
-        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(288, p_in_mstatus.hwlog.tdly'length) then
-          i_hw_dly<="00000000"&i_usr_dly(7 downto 4)&"0000";
-
-        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(200, p_in_mstatus.hwlog.tdly'length) then
-          i_hw_dly<="000000000000"&i_usr_dly(3 downto 0);
-
-        else
-          i_hw_dly<=CONV_STD_LOGIC_VECTOR(1, i_hw_dly'length);
-        end if;
-
-    end if;
-
-  end if;
-end process;
-
-end generate gen_sim_on;
-
-
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_dbgcs.clk   <=p_in_clk;
 p_out_dbgcs.trig0 <=(others=>'0');
@@ -339,7 +299,72 @@ p_out_dbgcs.data(7)<='0';
 end if;
 end process;
 
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    tst_hw_dly_set<=(others=>'0');
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_hwdly_set='1' then
+
+        if    p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150000*5, p_in_mstatus.hwlog.tdly'length) then
+          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#8#, tst_hw_dly_set'length);
+
+        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(210000, p_in_mstatus.hwlog.tdly'length) then --150000*1.4
+          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#4#, tst_hw_dly_set'length);
+
+        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150*700, p_in_mstatus.hwlog.tdly'length) then
+          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#3#, tst_hw_dly_set'length);
+
+        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150*200, p_in_mstatus.hwlog.tdly'length) then
+          tst_hw_dly_set<=CONV_STD_LOGIC_VECTOR(16#1#, tst_hw_dly_set'length);
+
+        else
+          tst_hw_dly_set<=(others=>'0');
+
+        end if;
+
+    end if;
+  end if;
+end process;
+
 end generate gen_dbgcs_on;
+
+
+
+gen_sim_on : if strcmp(G_SIM,"ON") generate
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_hw_dly<=CONV_STD_LOGIC_VECTOR(1, i_hw_dly'length);
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_hwdly_set='1' then
+
+        if    p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(150000*5, p_in_mstatus.hwlog.tdly'length) then
+          i_hw_dly<="00000000"&i_usr_dly(15 downto 12)&"0000";
+
+        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(300, p_in_mstatus.hwlog.tdly'length) then
+          i_hw_dly<="00000000"&i_usr_dly(11 downto 8)&"0000";
+
+        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(288, p_in_mstatus.hwlog.tdly'length) then
+          i_hw_dly<="00000000"&i_usr_dly(7 downto 4)&"0000";
+
+        elsif p_in_mstatus.hwlog.tdly>=CONV_STD_LOGIC_VECTOR(200, p_in_mstatus.hwlog.tdly'length) then
+          i_hw_dly<="000000000000"&i_usr_dly(3 downto 0);
+
+        else
+          i_hw_dly<=CONV_STD_LOGIC_VECTOR(1, i_hw_dly'length);
+        end if;
+
+    end if;
+  end if;
+end process;
+
+end generate gen_sim_on;
 --END MAIN
 end behavioral;
 

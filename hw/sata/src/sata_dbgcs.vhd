@@ -227,7 +227,7 @@ i_dbgcs_data(46)<=p_in_phy_txreq(2);
 i_dbgcs_data(47)<=p_in_phy_txreq(3);
 i_dbgcs_data(48)<=p_in_phy_txreq(4);
 
-i_dbgcs_data(49)<=p_in_ll_rxd_wr;
+i_dbgcs_data(49)<=p_in_dbg.tlayer.other_status.alrxbuf_wr;--p_in_ll_rxd_wr;
 i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);
 --i_dbgcs_data(65 downto 50)<=p_in_ll_rxd(15 downto 0);
 
@@ -237,7 +237,7 @@ i_dbgcs_data(99)<=p_in_dbg.llayer.txbuf_status.pfull; --p_in_gt_rxcharisk(1);
 
 i_dbgcs_data(115 downto 100)<=i_tst_cnt;--p_in_gt_txdata(15 downto 0);--p_in_dbg.tlayer.other_status.dcnt;--
 
-i_dbgcs_data(116)<=p_in_ll_txd_rd;
+i_dbgcs_data(116)<=p_in_dbg.tlayer.other_status.altxbuf_rd;--p_in_ll_txd_rd;
 i_dbgcs_data(117)<=p_in_dbg.llayer.txd_close;
 
 i_dbgcs_data(118)<=p_in_dbg.llayer.txbuf_status.aempty; --p_in_gt_txcharisk(0);

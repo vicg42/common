@@ -294,7 +294,8 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     if p_in_rbuf_cfg.dmacfg.clr_err='1' then
       i_rambuf_full_err<='0';
-    elsif i_rambuf_full='1' then
+    elsif i_rambuf_full='1' and
+          (p_in_rbuf_cfg.dmacfg.sw_mode='1' or p_in_rbuf_cfg.dmacfg.hw_mode='1') then
       i_rambuf_full_err<='1';
     end if;
   end if;
@@ -380,7 +381,7 @@ begin
     i_hw_trn_done<=not sr_hw_trn_done(0) and sr_hw_trn_done(1);
 
     i_hw_log_d(0)<=p_in_rbuf_cfg.hwlog.tdly;
---    i_hw_log_d(1)<=p_in_rbuf_cfg.hwlog.twork;
+--    i_hw_log_d(0)<=p_in_rbuf_cfg.hwlog.twork;
 
     case fsm_rambuf_cs is
 
@@ -392,45 +393,49 @@ begin
         i_rambuf_done<='0';
         i_rambuf_full<='0';
 
-      if p_in_rbuf_cfg.tstgen.tesing_on='1' then --and p_in_rbuf_cfg.tstgen.con2rambuf='0' then
+        if p_in_rbuf_cfg.tstgen.tesing_on='1' then --and p_in_rbuf_cfg.tstgen.con2rambuf='0' then
 
-        if p_in_rbuf_cfg.dmacfg.hw_mode='1' and p_in_rbuf_cfg.hwlog.log_on='1' then
-        --//Начало работы режима HW + HWLOG=ON
-          i_wr_ptr<=(others=>'0');
-          fsm_rambuf_cs <= S_HWLOG_WAIT_TRNDONE;
-        else
-          fsm_rambuf_cs <= S_IDLE;
-        end if;
-
-      else
-        if p_in_rbuf_cfg.dmacfg.armed='1' then
-        --//Готовим контроллер ОЗУ:
-
-          --//Указатель записи/чтения
-          i_wr_ptr<=(others=>'0');
-          i_rd_ptr<=(others=>'0');
-
-          --//Размер одиночной транзакций записи/чтения ОЗУ (DWORD)
-          i_wr_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0);
-          i_rd_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
-
-          i_hddcnt<=(others=>'0');
-          i_rambuf_dcnt<=(others=>'0');
-
-          i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
-
-          if p_in_rbuf_cfg.dmacfg.sw_mode='1' then
-
-            if p_in_rbuf_cfg.dmacfg.scount/=(p_in_rbuf_cfg.dmacfg.scount'range =>'0') then
-              fsm_rambuf_cs <= S_SW_WAIT;
+            if p_in_rbuf_cfg.dmacfg.hw_mode='1' and p_in_rbuf_cfg.hwlog.log_on='1' then
+            --//Начало работы режима HW + HWLOG=ON
+              i_wr_ptr<=(others=>'0');
+              fsm_rambuf_cs <= S_HWLOG_WAIT_TRNDONE;
+            else
+              fsm_rambuf_cs <= S_IDLE;
             end if;
 
-          else
-            --hw_mode
-            fsm_rambuf_cs <= S_HW_MEMW_CHECK;
-          end if;
+        else
+            if p_in_rbuf_cfg.dmacfg.armed='1' then
+                --//Готовим контроллер ОЗУ:
+                --//Указатель записи/чтения
+                i_wr_ptr<=(others=>'0');
+                i_rd_ptr<=(others=>'0');
+
+                --//Размер одиночной транзакций записи/чтения ОЗУ (DWORD)
+                i_wr_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0);
+                i_rd_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
+
+                i_hddcnt<=(others=>'0');
+                i_rambuf_dcnt<=(others=>'0');
+
+                i_atacmd_scount<=p_in_rbuf_cfg.dmacfg.scount;
+
+                if p_in_rbuf_cfg.dmacfg.sw_mode='1' and
+                   p_in_rbuf_cfg.dmacfg.scount/=(p_in_rbuf_cfg.dmacfg.scount'range =>'0') then
+
+                    fsm_rambuf_cs <= S_SW_WAIT;
+
+                elsif p_in_rbuf_cfg.dmacfg.hw_mode='1' then
+
+                  fsm_rambuf_cs <= S_HW_MEMW_CHECK;
+
+                else
+                  fsm_rambuf_cs <= S_IDLE;
+                end if;
+
+            else
+              fsm_rambuf_cs <= S_IDLE;
+            end if;
         end if;
-      end if;
 
       --//####################################
       --//Режим работы SW
@@ -475,6 +480,7 @@ begin
               fsm_rambuf_cs <= S_SW_MEM_START;
             end if;
           end if;
+
         else
 
           if i_rambuf_dcnt(15 downto 0)<=i_mem_lenreq then
