@@ -379,7 +379,7 @@ Type TEthFmask is array (0 to C_DSN_SWT_FMASK_MAX_COUNT-1) of std_logic_vector(7
 --//Регистры модуля dsn_hdd.vhd
 --//--------------------------------------------------------------
 constant C_DSN_HDD_REG_CTRL_L                       : integer:=16#000#;
-constant C_DSN_HDD_REG_HW_START_DLY                 : integer:=16#001#;
+constant C_DSN_HDD_REG_HWSTART_DLY                  : integer:=16#001#;
 constant C_DSN_HDD_REG_STATUS_L                     : integer:=16#002#;
 constant C_DSN_HDD_REG_STATUS_M                     : integer:=16#003#;
 
@@ -431,10 +431,9 @@ constant C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT          : integer:=5;
 constant C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT          : integer:=12;
 constant C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT   : integer:=13;
 constant C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT           : integer:=14;
-constant C_DSN_HDD_REG_CTRLL_HWSTART_DLY_DIS_BIT    : integer:=15;
-constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_HWSTART_DLY_DIS_BIT;
+constant C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT     : integer:=15;
+constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT;
 
---//Bit Maps:
 --//Register C_DSN_HDD_REG_RBUF_ADR / Bit Map:
 constant C_DSN_HDD_REG_RBUF_ADR_OFFSET_LSB_BIT      : integer:=C_HREG_USR_MEM_ADR_OFFSET_LSB_BIT;
 constant C_DSN_HDD_REG_RBUF_ADR_OFFSET_MSB_BIT      : integer:=C_HREG_USR_MEM_ADR_OFFSET_MSB_BIT;
@@ -446,6 +445,10 @@ constant C_DSN_HDD_REG_RBUF_LAST_BIT                : integer:=C_DSN_HDD_REG_RBU
 --constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=7..0;--trn_mem_wr
 --constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=15..8;--trn_mem_rd
 
+--//Register C_DSN_HDD_REG_HW_START_DLY / Bit Map:
+constant C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT          : integer:=0;--1- фиксированиая задержка(задается значением битов (15..2))
+constant C_DSN_HDD_REG_HWSTART_DLY_L_BIT            : integer:=1;--значение задержки (us)
+constant C_DSN_HDD_REG_HWSTART_DLY_M_BIT            : integer:=15;
 
 
 
