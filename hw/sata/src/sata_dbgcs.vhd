@@ -120,7 +120,7 @@ signal i_fsm_tlayer                : std_logic_vector(4 downto 0);
 signal sr_ipf_bit                  : std_logic_vector(1 downto 0);
 signal i_ipf_bit_det               : std_logic;
 
-signal i_tst_cnt                   : std_logic_vector(15 downto 0);
+signal i_tst_cnt                   : std_logic_vector(15 downto 0):=(others=>'0');
 signal tst_trm_timeout             : std_logic_vector(7 downto 0):=(others=>'0');
 
 
@@ -137,26 +137,6 @@ end generate gen_dbg_off;
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_on;
-
-
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---      tst_sync<='0';
---      tst_det_rip<='0';
---  elsif p_in_clk'event and p_in_clk='1' then
---    if tst_det_rip='1' and p_in_phy_rxtype(C_THOLD)='1' then
---      tst_sync<='1';
---      tst_det_rip<='0';
---    elsif tst_det_rip='1' and p_in_phy_rxtype(C_TR_IP)='1' then
---      tst_sync<='0';
---      tst_det_rip<='0';
---    elsif p_in_dbg.llayer.fsm=S_LT_RcvrHold and p_in_phy_rxtype(C_TR_IP)='1' then
---      tst_sync<='0';
---      tst_det_rip<='1';
---    end if;
---  end if;
---end process;
 
 
 --//-----------------------------
@@ -227,7 +207,7 @@ i_dbgcs_data(46)<=p_in_phy_txreq(2);
 i_dbgcs_data(47)<=p_in_phy_txreq(3);
 i_dbgcs_data(48)<=p_in_phy_txreq(4);
 
-i_dbgcs_data(49)<=p_in_dbg.tlayer.other_status.alrxbuf_wr;--p_in_ll_rxd_wr;
+i_dbgcs_data(49)<=p_in_ll_rxd_wr;
 i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);
 --i_dbgcs_data(65 downto 50)<=p_in_ll_rxd(15 downto 0);
 
@@ -235,9 +215,9 @@ i_dbgcs_data(97 downto 82)<=p_in_ll_txd(15 downto 0);--p_in_gt_rxdata(15 downto 
 i_dbgcs_data(98)<=p_in_dbg.llayer.rxbuf_status.pfull; --p_in_gt_rxcharisk(0);
 i_dbgcs_data(99)<=p_in_dbg.llayer.txbuf_status.pfull; --p_in_gt_rxcharisk(1);
 
-i_dbgcs_data(115 downto 100)<=i_tst_cnt;--p_in_gt_txdata(15 downto 0);--p_in_dbg.tlayer.other_status.dcnt;--
+i_dbgcs_data(115 downto 100)<=i_tst_cnt;--p_in_txdata(15 downto 0);--p_in_dbg.tlayer.other_status.dcnt;--
 
-i_dbgcs_data(116)<=p_in_dbg.tlayer.other_status.altxbuf_rd;--p_in_ll_txd_rd;
+i_dbgcs_data(116)<=p_in_ll_txd_rd;
 i_dbgcs_data(117)<=p_in_dbg.llayer.txd_close;
 
 i_dbgcs_data(118)<=p_in_dbg.llayer.txbuf_status.aempty; --p_in_gt_txcharisk(0);
@@ -263,7 +243,7 @@ i_dbgcs_data(154)<=p_in_dbg.alayer.opt.reg_shadow_wr_done;
 i_dbgcs_data(155)<=p_in_dbg.alayer.opt.reg_shadow_wr;
 
 
-i_dbgcs_data(159 downto 56)<=(others=>'0');
+i_dbgcs_data(159 downto 156)<=(others=>'0');
 
 i_dbgcs_data(160)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
 i_dbgcs_data(161)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
@@ -278,30 +258,41 @@ i_dbgcs_data(168)<=p_in_rxreset;
 i_dbgcs_data(169)<=p_in_rxbufreset;
 i_dbgcs_data(170)<=p_in_rxbyteisaligned;
 
---p_in_txbufstatus;--    : in    std_logic_vector(1 downto 0);
-----Receiver
---p_in_rxstatus;--       : in    std_logic_vector(2 downto 0);
---p_in_rxdisperr;--      : in    std_logic_vector(3 downto 0);
---p_in_rxnotintable;--   : in    std_logic_vector(3 downto 0);
---p_in_rxbufstatus;--    : in    std_logic_vector(2 downto 0);
-
-
-if p_in_dbg.tlayer.ctrl.ata_command='1' then
-  i_tst_cnt<=(others=>'0');
-else
-  if p_in_dbg.tlayer.other_status.altxbuf_rd='1' or p_in_dbg.tlayer.other_status.alrxbuf_wr='1' then
-    i_tst_cnt<=i_tst_cnt + 1;
-  end if;
-end if;
-
-
 end if;
 end process;
 
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--      tst_sync<='0';
+--      tst_det_rip<='0';
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if tst_det_rip='1' and p_in_phy_rxtype(C_THOLD)='1' then
+--      tst_sync<='1';
+--      tst_det_rip<='0';
+--    elsif tst_det_rip='1' and p_in_phy_rxtype(C_TR_IP)='1' then
+--      tst_sync<='0';
+--      tst_det_rip<='0';
+--    elsif p_in_dbg.llayer.fsm=S_LT_RcvrHold and p_in_phy_rxtype(C_TR_IP)='1' then
+--      tst_sync<='0';
+--      tst_det_rip<='1';
+--    end if;
+--  end if;
+--end process;
 
 process(p_in_clk)
 begin
 if p_in_clk'event and p_in_clk='1' then
+
+  if p_in_dbg.tlayer.ctrl.ata_command='1' then
+    i_tst_cnt<=(others=>'0');
+  else
+    if p_in_dbg.tlayer.other_status.altxbuf_rd='1' or p_in_dbg.tlayer.other_status.alrxbuf_wr='1' then
+      i_tst_cnt<=i_tst_cnt + 1;
+    end if;
+  end if;
+
+
   --llayer/=S_LT_SendHold
   if i_dbgcs_data(27 downto 23)=CONV_STD_LOGIC_VECTOR(16#0C#, 5) then
     tst_trm_timeout<=tst_trm_timeout + 1;
