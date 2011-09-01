@@ -40,6 +40,7 @@ generic
 (
 G_HDD_COUNT     : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS       : integer:=16;
+G_DBGCS         : string :="ON";
 G_DBG           : string :="ON";
 G_SIM           : string :="ON"
 );
@@ -364,7 +365,7 @@ G_MODULE_USE => "ON",
 G_HDD_COUNT  => G_HDD_COUNT,
 G_GT_DBUS    => G_GT_DBUS,
 G_DBG        => G_DBG,
-G_DBGCS      => "OFF",
+G_DBGCS      => G_DBGCS,
 G_SIM        => G_SIM
 )
 port map
@@ -898,15 +899,18 @@ begin
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='1';
   --//1/128 - max ... 127/128 - min
 --  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(1, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
---  i_dsnhdd_reg_hwstart_dly_val<=CONV_STD_LOGIC_VECTOR(1, i_dsnhdd_reg_hwstart_dly_val'length);
-  i_dsnhdd_reg_hwstart_dly_val(3 downto   0)<=CONV_STD_LOGIC_VECTOR(2, i_dsnhdd_reg_hwstart_dly_val'length/4);
-  i_dsnhdd_reg_hwstart_dly_val(7 downto   4)<=CONV_STD_LOGIC_VECTOR(3, i_dsnhdd_reg_hwstart_dly_val'length/4);
-  i_dsnhdd_reg_hwstart_dly_val(11 downto  8)<=CONV_STD_LOGIC_VECTOR(4, i_dsnhdd_reg_hwstart_dly_val'length/4);
-  i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(5, i_dsnhdd_reg_hwstart_dly_val'length/4);
+  i_dsnhdd_reg_hwstart_dly_val(C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT)<='1';
+  i_dsnhdd_reg_hwstart_dly_val(15 downto  1)<=CONV_STD_LOGIC_VECTOR(10, 15);--//фиксирования задержка
+
+--  i_dsnhdd_reg_hwstart_dly_val(3 downto   0)<=CONV_STD_LOGIC_VECTOR(2, 3);--//адаптивная задержка
+--  i_dsnhdd_reg_hwstart_dly_val(7 downto   4)<=CONV_STD_LOGIC_VECTOR(3, 4);
+--  i_dsnhdd_reg_hwstart_dly_val(11 downto  8)<=CONV_STD_LOGIC_VECTOR(4, 4);
+--  i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(5, 4);
 
 
   if    G_HDD_COUNT=2 and raid_mode='1' then i_sata_cs<=16#03#;
@@ -975,7 +979,7 @@ begin
   --//Конфигурируем тестовый режим
   if i_tst_mode='1' then
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HW_START_DLY, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HWSTART_DLY, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
