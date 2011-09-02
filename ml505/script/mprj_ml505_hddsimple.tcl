@@ -48,11 +48,11 @@ set _projects [ list \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/core_gen/sata_txfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/core_gen/hdd_txfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_txfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
@@ -79,16 +79,17 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_hwstart_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../ml505_hddsimple_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../hdd_simple_main.vhd" $_VHDMod ] \
       [ list "../../ucf/hdd_simple_main.ucf" "hdd_simple_main" ] \

@@ -22,7 +22,7 @@ package prj_cfg is
 constant C_BOARD_USE                         : string:="ML505";
 
 --//Управление использованием модулей проекта:
-constant C_USE_TRACK                         : string:="ON";
+constant C_USE_TRACK                         : string:="OFF";
 constant C_USE_ETH                           : string:="ON";
 constant C_USE_HDD                           : string:="OFF";
 
@@ -50,6 +50,7 @@ constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва
 
 --//cfg VCTRL
 constant C_DSN_VCTRL_VCH_COUNT               : integer:=3;
+constant C_DSN_VCTRL_SIMPLE                  : string:="ON";
 
 --//cfg clkfx - DCM LocalBus
 constant C_LBUSDCM_CLKFX_M                   : integer:=3;

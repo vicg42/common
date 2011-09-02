@@ -1256,7 +1256,8 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 m_video_ctrl : dsn_video_ctrl
 generic map (
-G_SIM => G_SIM
+G_SIMPLE => C_DSN_VCTRL_SIMPLE,
+G_SIM    => G_SIM
 )
 port map
 (

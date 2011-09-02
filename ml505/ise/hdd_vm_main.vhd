@@ -247,6 +247,15 @@ component dbgcs_cfg
     );
 end component;
 
+component dbgcs_sata_hwstart
+  PORT (
+    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CLK : IN STD_LOGIC;
+    DATA : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
+    TRIG0 : IN STD_LOGIC_VECTOR(7 DOWNTO 0)
+    );
+end component;
+
 component fpga_test_01
 generic(
 G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
@@ -315,6 +324,7 @@ signal i_dbgcs_sh0_layer                : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
 signal i_dbgcs_cfg                      : std_logic_vector(35 downto 0);
+signal i_dbgcs_hwstart_dly              : std_logic_vector(35 downto 0);
 
 signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
@@ -683,7 +693,7 @@ signal tst_clr          : std_logic:='0';
 
 signal tst_sh0_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
 signal tst_sh1_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
-signal tst_trm_timeout  : std_logic_vector(7 downto 0):=(others=>'0');
+signal tst_trm_timeout  : std_logic_vector(15 downto 0):=(others=>'0');
 
 
 
@@ -1248,7 +1258,8 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 m_video_ctrl : dsn_video_ctrl
 generic map (
-G_SIM => G_SIM
+G_SIMPLE => C_DSN_VCTRL_SIMPLE,
+G_SIM    => G_SIM
 )
 port map
 (
@@ -2283,8 +2294,8 @@ pin_out_TP(0)<=i_trc_busy(0);
 
 --//J6
 pin_out_TP(1)<=i_hdd_busy;  --//pin2
-pin_out_TP(2)<=i_hdd_dbgled(0).dly;--//pin6
-pin_out_TP(3)<=i_hdd_dbgled(1).dly;--//pin10
+pin_out_TP(2)<=i_hdd_tst_out(6);--//pin6  p_out_tst(6)<=OR_reduce(i_sh_status.ch_bsy(G_HDD_COUNT-1 downto 0));
+pin_out_TP(3)<=i_hdd_dbgled(0).dly;--//pin10
                             --//pin14
 pin_out_TP(4)<='0';         --//pin16
                             --//pin18
@@ -2318,13 +2329,13 @@ gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
 
 --m_dbgcs_icon : dbgcs_iconx1
 --port map(
---CONTROL0 => i_dbgcs_cfg
+--CONTROL0 => i_dbgcs_hdd_raid
 --);
 
 m_dbgcs_icon : dbgcs_iconx2
 port map(
-CONTROL0 => i_dbgcs_sh0_layer,
-CONTROL1 => i_dbgcs_hdd_raid
+CONTROL0 => i_dbgcs_hdd_raid,   --i_dbgcs_sh0_layer,
+CONTROL1 => i_dbgcs_hwstart_dly --i_dbgcs_hdd_raid
 );
 
 --m_dbgcs_icon : dbgcs_iconx3
@@ -2335,14 +2346,14 @@ CONTROL1 => i_dbgcs_hdd_raid
 --);
 
 --//### HDD_SH_LAYER: ########
-m_dbgcs_sh0_layer : dbgcs_sata_raid --dbgcs_sata_layer
-port map
-(
-CONTROL => i_dbgcs_sh0_layer,
-CLK     => i_hdd_dbgcs.sh(1).layer.clk,
-DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
-TRIG0   => i_hdd_dbgcs.sh(1).layer.trig0(41 downto 0)
-);
+--m_dbgcs_sh0_layer : dbgcs_sata_raid --dbgcs_sata_layer
+--port map
+--(
+--CONTROL => i_dbgcs_sh0_layer,
+--CLK     => i_hdd_dbgcs.sh(1).layer.clk,
+--DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
+--TRIG0   => i_hdd_dbgcs.sh(1).layer.trig0(41 downto 0)
+--);
 
 ----//### HDD_RAMBUF: ########
 --m_dbgcs_hddrambuf : dbgcs_sata_rambuf
@@ -2412,7 +2423,7 @@ TRIG0   => i_hddraid_dbgcs.trig0(41 downto 0)
 ----if i_hdd_rambuf_dbgcs.clk'event and i_hdd_rambuf_dbgcs.clk='1' then
 --//-------- TRIG: ------------------
 i_hddraid_dbgcs.trig0(18 downto 0)<=i_hdd_dbgcs.raid.trig0(18 downto 0);
-i_hddraid_dbgcs.trig0(19)<=tst_trm_timeout(7);--i_cfg_rx_hirq;--
+i_hddraid_dbgcs.trig0(19)<=tst_trm_timeout(10);--i_cfg_rx_hirq;--
 
 --//SH0
 i_hddraid_dbgcs.trig0(24 downto 20)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
@@ -2458,10 +2469,10 @@ i_hddraid_dbgcs.data(95)          <=i_hdd_rambuf_dbgcs.data(3);--i_hdd_dbgcs.sh(
 
 --//RAMBUF
 i_hddraid_dbgcs.data(103 downto 100)<=i_hdd_rambuf_dbgcs.data(11  downto  8);--tst_fsm_cs_dly(3 downto 0);
-i_hddraid_dbgcs.data(104)<=i_mem_arb1_ce;--i_hdd_done;--
+i_hddraid_dbgcs.data(104)<=i_mem_arb1_ce or i_hdd_tst_out(5);--<=i_tstgen.tesing_on;--i_hdd_done;--
 i_hddraid_dbgcs.data(105)<=i_hdd_rxbuf_empty;--i_hdd_memarb_en;--i_hdd_dbgcs.measure.data(1);--<=p_in_dev_busy;
-i_hddraid_dbgcs.data(106)<=i_mem_arb1_rd;--RAM->HDD
-i_hddraid_dbgcs.data(107)<=i_mem_arb1_wr;--RAM<-HDD
+i_hddraid_dbgcs.data(106)<=i_hdd_tst_out(3);--<=i_hdd_txd_wr;--//hdd_txbuf   --i_mem_arb1_rd;--RAM->HDD
+i_hddraid_dbgcs.data(107)<=i_hdd_tst_out(4);--<=i_hdd_rxd_rd;--//hdd_rxbuf   --i_mem_arb1_wr;--RAM<-HDD
 i_hddraid_dbgcs.data(108)<=i_mem_arb1_term;--i_hdd_dbgcs.measure.data(0);--<=i_dly_on;
 i_hddraid_dbgcs.data(140 downto 109)<=i_mem_arb1_dout(31 downto 0);--RAM->HDD
 i_hddraid_dbgcs.data(172 downto 141)<=i_mem_arb1_din(31 downto 0);--RAM<-HDD
@@ -2473,20 +2484,31 @@ i_hddraid_dbgcs.data(172 downto 141)<=i_mem_arb1_din(31 downto 0);--RAM<-HDD
 
 ----end process;
 
-process(i_hdd_dbgcs.raid.clk)
+process(i_hdd_rambuf_dbgcs.clk)
 begin
 if i_hdd_rambuf_dbgcs.clk'event and i_hdd_rambuf_dbgcs.clk='1' then
   tst_sh0_llayer<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
   tst_sh1_llayer<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30);--llayer
 
   if tst_sh0_llayer=CONV_STD_LOGIC_VECTOR(16#0C#, tst_sh0_llayer'length) or
-     tst_sh1_llayer=CONV_STD_LOGIC_VECTOR(16#0C#, tst_sh1_llayer'length) then
+     tst_sh1_llayer=CONV_STD_LOGIC_VECTOR(16#0C#, tst_sh1_llayer'length) or
+     tst_sh0_llayer=CONV_STD_LOGIC_VECTOR(16#13#, tst_sh0_llayer'length) or
+     tst_sh1_llayer=CONV_STD_LOGIC_VECTOR(16#13#, tst_sh1_llayer'length) then
     tst_trm_timeout<=tst_trm_timeout + 1;
   else
     tst_trm_timeout<=(others=>'0');
   end if;
 end if;
 end process;
+
+
+m_dbgcs_sata_hwstart : dbgcs_sata_hwstart
+port map(
+CONTROL => i_dbgcs_hwstart_dly,
+CLK     => i_hdd_dbgcs.hwstart_dly.clk,
+DATA    => i_hdd_dbgcs.hwstart_dly.data(7 downto 0),
+TRIG0   => i_hdd_dbgcs.hwstart_dly.trig0(7 downto 0)
+);
 
 
 --m_dbgcs_cfg : dbgcs_cfg
