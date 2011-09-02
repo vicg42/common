@@ -433,6 +433,7 @@ signal i_hdd_done                       : std_logic;
 signal i_hdd_rxdata                     : std_logic_vector(31 downto 0);
 signal i_hdd_rxdata_rd                  : std_logic;
 signal i_hdd_rxbuf_empty                : std_logic;
+signal i_hdd_rxbuf_pempty               : std_logic;
 signal i_hdd_txdata                     : std_logic_vector(31 downto 0);
 signal i_hdd_txdata_wd                  : std_logic;
 signal i_hdd_txbuf_empty                : std_logic;
@@ -783,7 +784,7 @@ p_in_rst     => i_dcm_rst
 m_pll_mem_ctrl : memory_ctrl_pll
 port map
 (
-mclk      => g_lbus_clkfx,--g_refclk200MHz,
+mclk      => g_refclk200MHz,--g_lbus_clkfx,--
 rst       => i_memctrl_rst,
 refclk200 => g_refclk200MHz,
 
@@ -962,7 +963,7 @@ p_out_host_vbuf_empty     => i_host_vbuf_empty,
 -------------------------------
 -- Связь с HDD(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_vbuf_rst         => i_hdd_rbuf_cfg.bufrst,
+p_in_hdd_vbuf_rst         => i_hdd_rbuf_cfg.dmacfg.clr_err,
 p_in_hdd_vbuf_rdclk       => g_usr_highclk,
 
 p_in_hdd_vbuf_dout        => i_hdd_vbuf_dout,
@@ -1176,7 +1177,8 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 m_video_ctrl : dsn_video_ctrl
 generic map (
-G_SIM => G_SIM
+G_SIMPLE => C_DSN_VCTRL_SIMPLE,
+G_SIM    => G_SIM
 )
 port map
 (
@@ -1538,6 +1540,7 @@ p_out_hdd_txbuf_empty => i_hdd_txbuf_empty,
 p_out_hdd_rxd         => i_hdd_rxdata,
 p_in_hdd_rxd_rd       => i_hdd_rxdata_rd,
 p_out_hdd_rxbuf_empty => i_hdd_rxbuf_empty,
+p_out_hdd_rxbuf_pempty=> i_hdd_rxbuf_pempty,
 
 --------------------------------------------------
 --Sata Driver
@@ -1594,14 +1597,13 @@ i_hdd_sim_gt_rxnotintable(i)<=(others=>'0');
 i_hdd_sim_gt_rxbyteisaligned(i)<='0';
 end generate gen_satah;
 
-
-
 m_hdd_rambuf : dsn_hdd_rambuf
 generic map
 (
 G_MODULE_USE      => C_USE_HDD,
 G_HDD_RAMBUF_SIZE => C_HDD_RAMBUF_SIZE,
-G_SIM => G_SIM
+G_DBGCS           => G_DBGCS_HDD,
+G_SIM             => G_SIM
 )
 port map
 (
@@ -1632,6 +1634,7 @@ p_in_hdd_txbuf_empty => i_hdd_txbuf_empty,
 p_in_hdd_rxd         => i_hdd_rxdata,
 p_out_hdd_rxd_rd     => i_hdd_rxdata_rd,
 p_in_hdd_rxbuf_empty => i_hdd_rxbuf_empty,
+p_in_hdd_rxbuf_pempty=> i_hdd_rxbuf_pempty,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -2089,46 +2092,46 @@ p_out_ch1_rpe    => i_vctrlrd_mem_rpe,
 -------------------------------
 -- Связь с CH2
 -------------------------------
-p_in_ch2_req     => i_trc_memarb_req,
-p_out_ch2_en     => i_trc_memarb_en,
+p_in_ch2_req     => i_hdd_memarb_req,
+p_out_ch2_en     => i_hdd_memarb_en,
 
-p_in_ch2_bank1h  => i_trc_mem_bank1h,
-p_in_ch2_ce      => i_trc_mem_ce,
-p_in_ch2_cw      => i_trc_mem_cw,
-p_in_ch2_term    => i_trc_mem_term,
-p_in_ch2_rd      => i_trc_mem_rd,
-p_in_ch2_wr      => i_trc_mem_wr,
-p_in_ch2_adr     => i_trc_mem_adr,
-p_in_ch2_be      => i_trc_mem_be,
-p_in_ch2_din     => i_trc_mem_din,
-p_out_ch2_dout   => i_trc_mem_dout,
+p_in_ch2_bank1h  => i_hdd_mem_bank1h,
+p_in_ch2_ce      => i_hdd_mem_ce,
+p_in_ch2_cw      => i_hdd_mem_cw,
+p_in_ch2_term    => i_hdd_mem_term,
+p_in_ch2_rd      => i_hdd_mem_rd,
+p_in_ch2_wr      => i_hdd_mem_wr,
+p_in_ch2_adr     => i_hdd_mem_adr,
+p_in_ch2_be      => i_hdd_mem_be,
+p_in_ch2_din     => i_hdd_mem_din,
+p_out_ch2_dout   => i_hdd_mem_dout,
 
-p_out_ch2_wf     => i_trc_mem_wf,
-p_out_ch2_wpf    => i_trc_mem_wpf,
-p_out_ch2_re     => i_trc_mem_re,
-p_out_ch2_rpe    => i_trc_mem_rpe,
+p_out_ch2_wf     => i_hdd_mem_wf,
+p_out_ch2_wpf    => i_hdd_mem_wpf,
+p_out_ch2_re     => i_hdd_mem_re,
+p_out_ch2_rpe    => i_hdd_mem_rpe,
 
 -------------------------------
 -- Связь с CH3
 -------------------------------
-p_in_ch3_req     => i_hdd_memarb_req,
-p_out_ch3_en     => i_hdd_memarb_en,
+p_in_ch3_req     => i_trc_memarb_req,
+p_out_ch3_en     => i_trc_memarb_en,
 
-p_in_ch3_bank1h  => i_hdd_mem_bank1h,
-p_in_ch3_ce      => i_hdd_mem_ce,
-p_in_ch3_cw      => i_hdd_mem_cw,
-p_in_ch3_term    => i_hdd_mem_term,
-p_in_ch3_rd      => i_hdd_mem_rd,
-p_in_ch3_wr      => i_hdd_mem_wr,
-p_in_ch3_adr     => i_hdd_mem_adr,
-p_in_ch3_be      => i_hdd_mem_be,
-p_in_ch3_din     => i_hdd_mem_din,
-p_out_ch3_dout   => i_hdd_mem_dout,
+p_in_ch3_bank1h  => i_trc_mem_bank1h,
+p_in_ch3_ce      => i_trc_mem_ce,
+p_in_ch3_cw      => i_trc_mem_cw,
+p_in_ch3_term    => i_trc_mem_term,
+p_in_ch3_rd      => i_trc_mem_rd,
+p_in_ch3_wr      => i_trc_mem_wr,
+p_in_ch3_adr     => i_trc_mem_adr,
+p_in_ch3_be      => i_trc_mem_be,
+p_in_ch3_din     => i_trc_mem_din,
+p_out_ch3_dout   => i_trc_mem_dout,
 
-p_out_ch3_wf     => i_hdd_mem_wf,
-p_out_ch3_wpf    => i_hdd_mem_wpf,
-p_out_ch3_re     => i_hdd_mem_re,
-p_out_ch3_rpe    => i_hdd_mem_rpe,
+p_out_ch3_wf     => i_trc_mem_wf,
+p_out_ch3_wpf    => i_trc_mem_wpf,
+p_out_ch3_re     => i_trc_mem_re,
+p_out_ch3_rpe    => i_trc_mem_rpe,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -2380,10 +2383,8 @@ ramclko => ramclko
 --//DBG
 --//-----------------------------------------
 --Светодиоды
-tst_clr <=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S;
-
 pin_out_led_E<=i_hdd_gt_plldet and i_hdd_dcm_lock;                                              --i_hdd_gt_plldet and i_hdd_dcm_lock;
-pin_out_led_N<=lclk_dcm_lock when pin_in_btn_S='0' else tst_clr or i_test01_led;                --i_hdd_busy or i_hdd_module_rst when pin_in_btn_S='0' else tst_clr;
+pin_out_led_N<=lclk_dcm_lock when pin_in_btn_S='0' else i_test01_led;                --i_hdd_busy or i_hdd_module_rst when pin_in_btn_S='0' else tst_clr;
 pin_out_led_S<=i_memctrl_dcm_lock;                                                              --i_test01_led;
 pin_out_led_W<=i_host_mem_ctl_reg(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);         --i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);--i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
@@ -2411,7 +2412,12 @@ begin
 --pin_out_led_S<=pin_in_btn_S;
 --pin_out_led_W<=pin_in_btn_W;
 
-pin_out_TP<=(others=>'0');
+pin_out_TP(0)<=pin_in_btn_C;
+pin_out_TP(1)<=pin_in_btn_E;
+pin_out_TP(2)<=pin_in_btn_N;
+pin_out_TP(3)<=pin_in_btn_S;
+pin_out_TP(4)<=pin_in_btn_W;
+pin_out_TP(pin_out_TP'high downto 5)<=(others=>'0');
 
 pin_out_ddr2_cke1<='0';
 pin_out_ddr2_cs1<='0';
@@ -2439,10 +2445,10 @@ i_hdd_tst_in(31 downto 1)<=(others=>'0');
 --i_trc_busy<=(others=>'0');
 
 --//J5 /pin2
-pin_out_TP(0)<=i_trc_busy(0);
+pin_out_TP(0)<=pin_in_btn_E or i_trc_busy(0);
 
 --//J6
-pin_out_TP(1)<='0';--i_dsntst_tst_out(1);  --//pin6
+pin_out_TP(1)<=pin_in_btn_C;--i_dsntst_tst_out(1);  --//pin6
                             --//pin8
 pin_out_TP(2)<='0';         --//pin10
 pin_out_TP(3)<='0';

@@ -387,10 +387,30 @@ i_eth_txbuf_empty(1)<=p_in_eth_txbuf_empty;
 --i_eth_txd_rdy(1)<=p_in_eth_txd_rdy;
 
 
-i_eth_cfg(0)<=h_reg_eth_cfg;
-i_eth_cfg(1)<=h_reg_eth_cfg;
+gen_cfg_eth : for i in 0 to i_eth_cfg'high generate
+process(p_in_rst,g_eth_gt_refclkout)
+begin
+  if p_in_rst='1' then
+    i_eth_cfg(i).usrctrl<=(others=>'0');
+    for y in 0 to i_eth_cfg(i).mac.dst'high loop
+    i_eth_cfg(i).mac.dst(y)<=(others=>'0');
+    i_eth_cfg(i).mac.src(y)<=(others=>'0');
+    end loop;
+    i_eth_cfg(i).mac.lentype<=(others=>'0');
+  elsif g_eth_gt_refclkout'event and g_eth_gt_refclkout='1' then
+    i_eth_cfg(i)<=h_reg_eth_cfg;
+  end if;
+end process;
+end generate gen_cfg_eth;
 
-i_eth_gctrl(30 downto 0)<=EXT(h_reg_ctrl, 31);
+process(p_in_rst,p_in_eth_gt_drpclk)
+begin
+  if p_in_rst='1' then
+    i_eth_gctrl(30 downto 0)<=(others=>'0');
+  elsif p_in_eth_gt_drpclk'event and p_in_eth_gt_drpclk='1' then
+    i_eth_gctrl(30 downto 0)<=EXT(h_reg_ctrl, 31);
+  end if;
+end process;
 i_eth_gctrl(31)<=p_in_eth_gt_drpclk;
 
 

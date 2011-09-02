@@ -42,7 +42,8 @@ use work.dsn_video_ctrl_pkg.all;
 
 entity dsn_video_ctrl is
 generic(
-G_SIM : string:="OFF"
+G_SIMPLE : string:="OFF";
+G_SIM    : string:="OFF"
 );
 port
 (
@@ -1555,6 +1556,7 @@ p_in_rst            => p_in_rst
 );
 
 
+gen_simple_off : if strcmp(G_SIMPLE,"OFF") generate
 
 --//-----------------------------
 --//Модуль интерполяции цвета
@@ -1835,6 +1837,23 @@ p_out_tst           => open,
 p_in_clk            => p_in_clk,
 p_in_rst            => p_in_rst
 );
+
+end generate gen_simple_off;
+
+
+
+gen_simple_on : if strcmp(G_SIMPLE,"ON") generate
+
+i_vscale_coe_dout <=(others=>'0');
+i_vpcolor_coe_dout<=(others=>'0');
+i_vgamma_coe_dout <=(others=>'0');
+
+p_out_vbufout_din   <=i_vmir_dout;
+p_out_vbufout_din_wd<=i_vmir_dout_en;
+i_vcoldemasc_rdy_n  <=p_in_vbufout_full;
+
+end generate gen_simple_on;
+
 
 
 --END MAIN

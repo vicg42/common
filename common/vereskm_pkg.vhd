@@ -221,6 +221,7 @@ generic
 (
 G_MODULE_USE      : string:="ON";
 G_HDD_RAMBUF_SIZE : integer:=23;
+G_DBGCS           : string:="OFF";
 G_SIM             : string:="OFF"
 );
 port
@@ -252,6 +253,7 @@ p_in_hdd_txbuf_empty  : in    std_logic;
 p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
 p_out_hdd_rxd_rd      : out   std_logic;
 p_in_hdd_rxbuf_empty  : in    std_logic;
+p_in_hdd_rxbuf_pempty : in    std_logic;
 
 ---------------------------------
 -- Ñâÿçü ñ memory_ctrl.vhd
@@ -527,7 +529,8 @@ end component;
 
 component dsn_video_ctrl
 generic(
-G_SIM : string:="OFF"
+G_SIMPLE : string:="OFF";
+G_SIM    : string:="OFF"
 );
 port
 (

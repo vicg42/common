@@ -55,10 +55,10 @@ p_in_upp_sof    : in    std_logic;
 --//------------------------------------
 --//Downstream Port
 --//------------------------------------
-p_out_dwnp_data : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wr   : out   std_logic;
-p_out_dwnp_eof  : out   std_logic;
-p_out_dwnp_sof  : out   std_logic;
+p_out_dwnp_data : out   std_logic_vector(31 downto 0):=(others=>'0');
+p_out_dwnp_wr   : out   std_logic:='0';
+p_out_dwnp_eof  : out   std_logic:='0';
+p_out_dwnp_sof  : out   std_logic:='0';
 
 -------------------------------
 --Технологический
@@ -77,10 +77,10 @@ end video_pkt_filter;
 
 architecture behavioral of video_pkt_filter is
 
-signal sr_upp_data            : std_logic_vector(31 downto 0);
-signal sr_upp_sof             : std_logic;
-signal sr_upp_wr              : std_logic;
-signal sr_upp_eof             : std_logic;
+signal sr_upp_data            : std_logic_vector(31 downto 0):=(others=>'0');
+signal sr_upp_sof             : std_logic:='0';
+signal sr_upp_wr              : std_logic:='0';
+signal sr_upp_eof             : std_logic:='0';
 
 signal i_pkt_type             : std_logic_vector(3 downto 0);
 signal i_pkt_subtype          : std_logic_vector(3 downto 0);
