@@ -114,30 +114,30 @@ architecture mixed of memory_ctrl_pll is
 --    signal logic1 : std_logic;
 --    signal logic0 : std_logic;
 
-    attribute CLKIN_PERIOD : real;
-    attribute CLKOUT0_DIVIDE : integer;
-    attribute CLKOUT0_PHASE : real;
-    attribute CLKOUT1_DIVIDE : integer;
-    attribute CLKOUT1_PHASE : real;
-    attribute CLKOUT2_DIVIDE : integer;
-    attribute CLKOUT2_PHASE : real;
-    attribute CLKOUT3_DIVIDE : integer;
-    attribute CLKOUT3_PHASE : real;
-    attribute CLKFBOUT_MULT : integer;
-    attribute DIVCLK_DIVIDE : integer;
-    attribute REF_JITTER : real;
-    attribute COMPENSATION : string;
-
-    attribute CLKIN_PERIOD of pll_0 : label is 3.75;
-    attribute CLKOUT0_DIVIDE of pll_0 : label is 2;
-    attribute CLKOUT0_PHASE of pll_0 : label is 0.0;
-    attribute CLKOUT1_DIVIDE of pll_0 : label is 4;
-    attribute CLKOUT1_PHASE of pll_0 : label is 0.0;
-    attribute CLKOUT2_DIVIDE of pll_0 : label is 2;
-    attribute CLKOUT2_PHASE of pll_0 : label is 90.0;
-    attribute CLKOUT3_DIVIDE of pll_0 : label is 4;
-    attribute CLKOUT3_PHASE of pll_0 : label is 45.0;
-    attribute CLKFBOUT_MULT of pll_0 : label is 2;
+--    attribute CLKIN_PERIOD : real;
+--    attribute CLKOUT0_DIVIDE : integer;
+--    attribute CLKOUT0_PHASE : real;
+--    attribute CLKOUT1_DIVIDE : integer;
+--    attribute CLKOUT1_PHASE : real;
+--    attribute CLKOUT2_DIVIDE : integer;
+--    attribute CLKOUT2_PHASE : real;
+--    attribute CLKOUT3_DIVIDE : integer;
+--    attribute CLKOUT3_PHASE : real;
+--    attribute CLKFBOUT_MULT : integer;
+--    attribute DIVCLK_DIVIDE : integer;
+--    attribute REF_JITTER : real;
+--    attribute COMPENSATION : string;
+--
+--    attribute CLKIN_PERIOD of pll_0 : label is 3.75;
+--    attribute CLKOUT0_DIVIDE of pll_0 : label is 2;
+--    attribute CLKOUT0_PHASE of pll_0 : label is 0.0;
+--    attribute CLKOUT1_DIVIDE of pll_0 : label is 4;
+--    attribute CLKOUT1_PHASE of pll_0 : label is 0.0;
+--    attribute CLKOUT2_DIVIDE of pll_0 : label is 2;
+--    attribute CLKOUT2_PHASE of pll_0 : label is 90.0;
+--    attribute CLKOUT3_DIVIDE of pll_0 : label is 4;
+--    attribute CLKOUT3_PHASE of pll_0 : label is 45.0;
+--    attribute CLKFBOUT_MULT of pll_0 : label is 2;
 
     --
     -- If the synthesizer replicates an asynchronous reset signal due high fanout,
