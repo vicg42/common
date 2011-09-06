@@ -21,18 +21,13 @@ library work;
 use work.vicg_common_pkg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
+use work.sata_testgen_pkg.all;
 
 package sata_raid_pkg is
 
 type TRaid is record
 used     : std_logic;
 hddcount : std_logic_vector(2 downto 0);
-end record;
-
-type THDDTstGen is record
-con2rambuf : std_logic;
-tesing_on  : std_logic;
-tesing_spd : std_logic_vector(7 downto 0);
 end record;
 
 type TDMAcfg is record
@@ -45,6 +40,7 @@ atadone  : std_logic;
 error    : std_logic;
 clr_err  : std_logic;
 raid     : TRaid;
+tstgen_start: std_logic;
 scount   : std_logic_vector(15 downto 0);
 --tstgen   : THDDTstGen;
 end record;
@@ -68,23 +64,6 @@ ch_usr       : TBus32_SHCountMax;
 usr          : std_logic_vector(31 downto 0);
 lba_bp       : std_logic_vector(47 downto 0);--//Break Point
 end record;
-
-
-component sata_testgen
-port(
-p_in_rbuf_cfg  : in   TDMAcfg;
-p_in_buffull   : in   std_logic;
-
-p_out_rdy      : out  std_logic;
-p_out_err      : out  std_logic;
-
-p_out_tdata    : out  std_logic_vector(31 downto 0);
-p_out_tdata_en : out  std_logic;
-
-p_in_clk       : in   std_logic;
-p_in_rst       : in   std_logic
-);
-end component;
 
 
 end sata_raid_pkg;

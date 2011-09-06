@@ -31,6 +31,7 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.sata_unit_pkg.all;
+use work.sata_testgen_pkg.all;
 
 entity dsn_hdd is
 generic
@@ -151,23 +152,6 @@ clkout    : out   std_logic
 );
 end component;
 
-component sata_testgen
-port(
-p_in_gen_cfg   : in   THDDTstGen;
-p_in_rbuf_cfg  : in   TDMAcfg;
-p_in_buffull   : in   std_logic;
-
-p_out_rdy      : out  std_logic;
-p_out_err      : out  std_logic;
-
-p_out_tdata    : out  std_logic_vector(31 downto 0);
-p_out_tdata_en : out  std_logic;
-
-p_in_clk       : in   std_logic;
-p_in_rst       : in   std_logic
-);
-end component;
-
 component hdd_cmdfifo
 port
 (
@@ -239,7 +223,7 @@ signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range);
 signal i_reg_hwstart_dly                : std_logic_vector(h_reg_hwstart_dly'range);
 signal i_buf_rst                        : std_logic;
 
-signal i_hdd_txd                        : std_logic_vector(p_in_hdd_txd'range);
+--signal i_hdd_txd                        : std_logic_vector(p_in_hdd_txd'range);
 signal i_hdd_txd_wr                     : std_logic;
 signal i_hdd_rxd_rd                     : std_logic;
 
@@ -271,10 +255,10 @@ signal i_sh_cxd                         : std_logic_vector(15 downto 0);
 signal i_sh_cxd_wr                      : std_logic;
 signal i_sh_cxd_rd                      : std_logic;
 signal i_sh_cxbuf_empty                 : std_logic;
-signal i_sh_txd                         : std_logic_vector(31 downto 0);
+signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(31 downto 0);
 signal i_sh_txd_rd                      : std_logic;
 signal i_sh_txbuf_empty                 : std_logic;
-signal i_sh_txbuf_full                  : std_logic;
+signal i_sh_txbuf_empty_tmp             : std_logic;
 signal i_sh_rxd                         : std_logic_vector(31 downto 0);
 signal i_sh_rxd_wr                      : std_logic;
 signal i_sh_rxbuf_full                  : std_logic;
@@ -297,11 +281,9 @@ signal i_sh_sim_gt_sim_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 
 signal i_tstgen                         : THDDTstGen;
 signal i_testing_on,i_testing_on_tmp    : std_logic;
-signal i_testing_err                    : std_logic;
 signal i_testing_den                    : std_logic;
 signal i_testing_d                      : std_logic_vector(31 downto 0);
 
-signal i_err_streambuf                  : std_logic;
 signal tst_out                          : std_logic_vector(2 downto 0);
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 
@@ -425,13 +407,14 @@ end process;
 i_tstgen.con2rambuf<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);
 i_tstgen.tesing_on <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_ON_BIT);
 i_tstgen.tesing_spd<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT);
-
-i_err_streambuf<=p_in_rbuf_status.err when i_testing_on='0' else i_testing_err;
+i_tstgen.start<=i_sh_status.dmacfg.tstgen_start;
+i_tstgen.stop<=i_sh_status.dmacfg.hw_mode;
+i_tstgen.clr_err<=i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
 
 i_sh_ctrl(C_USR_GCTRL_HWLOG_ON_BIT)  <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=i_tstgen.tesing_on;
 i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT) or p_in_tst(0);
-i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=i_err_streambuf and not i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=p_in_rbuf_status.err and not i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT);
@@ -656,27 +639,28 @@ i_sh_cxd_rd<=not i_sh_cxbuf_empty;
 m_txfifo : hdd_txfifo
 port map
 (
-din         => i_hdd_txd,
+din         => p_in_hdd_txd,
 wr_en       => i_hdd_txd_wr,
 --wr_clk      => ,
 
-dout        => i_sh_txd,
+dout        => i_sh_txd_tmp,
 rd_en       => i_sh_txd_rd,
 --rd_clk      => ,
 
 full        => open,
-almost_full => i_sh_txbuf_full,--p_out_hdd_txbuf_full,
-empty       => i_sh_txbuf_empty,
+almost_full => p_out_hdd_txbuf_full,
+empty       => i_sh_txbuf_empty_tmp,
 prog_full   => p_out_hdd_txbuf_pfull,
 
 clk         => p_in_clk,
 rst         => i_buf_rst
 );
 
-p_out_hdd_txbuf_full<=i_sh_txbuf_full;
 p_out_hdd_txbuf_empty<=i_sh_txbuf_empty;
-i_hdd_txd   <=p_in_hdd_txd    when i_testing_on='0' else i_testing_d;
-i_hdd_txd_wr<=p_in_hdd_txd_wr when i_testing_on='0' else i_testing_den;
+i_hdd_txd_wr<=p_in_hdd_txd_wr and not i_testing_on;
+
+i_sh_txd        <=i_sh_txd_tmp         when i_testing_on='0' else i_testing_d;
+i_sh_txbuf_empty<=i_sh_txbuf_empty_tmp when i_testing_on='0' else not i_testing_den;
 
 m_rxfifo : hdd_rxfifo
 port map
@@ -709,11 +693,8 @@ i_testing_on<=i_testing_on_tmp and not i_tstgen.con2rambuf;
 m_testgen : sata_testgen
 port map(
 p_in_gen_cfg   => i_tstgen,
-p_in_rbuf_cfg  => i_sh_status.dmacfg,
-p_in_buffull   => i_sh_txbuf_full,
 
 p_out_rdy      => i_testing_on_tmp,
-p_out_err      => i_testing_err,
 
 p_out_tdata    => i_testing_d,
 p_out_tdata_en => i_testing_den,

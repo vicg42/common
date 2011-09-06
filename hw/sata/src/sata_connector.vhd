@@ -226,7 +226,20 @@ wr_data_count => i_txbuf_wrcount(i),--p_out_txbuf_status(i).wrcount,
 
 rst        => p_in_rst(i)
 );
-p_out_txbuf_status(i).pfull<='1' when i_txbuf_wrcount(i)>="0010" else '0';
+
+process(p_in_rst(i),p_in_uap_clk)
+begin
+  if p_in_rst(i)='1' then
+    p_out_txbuf_status(i).pfull<='0';
+  elsif p_in_uap_clk'event and p_in_uap_clk='1' then
+    if i_txbuf_wrcount(i)>="1100" then
+    p_out_txbuf_status(i).pfull<='1';
+    elsif i_txbuf_wrcount(i)<="0111" then
+    p_out_txbuf_status(i).pfull<='0';
+    end if;
+  end if;
+end process;
+--p_out_txbuf_status(i).pfull<='1' when i_txbuf_wrcount(i)>="0010" else '0';
 
 m_rxbuf : sata_rxfifo
 port map

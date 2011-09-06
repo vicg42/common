@@ -1,5 +1,5 @@
 #ChipScope Pro Analyzer Project File, Version 3.0
-#Thu Sep 01 08:35:13 MSD 2011
+#Sun Sep 04 13:32:04 MSD 2011
 deviceChain.deviceName0=XCF32P
 deviceChain.deviceName1=XCF32P
 deviceChain.deviceName2=XC9500XL
@@ -49,7 +49,7 @@ unit.4.0.1.HEIGHT1=1.0
 unit.4.0.1.WIDTH1=1.0
 unit.4.0.1.X1=0.0
 unit.4.0.1.Y1=0.0
-unit.4.0.MFBitsA0=1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+unit.4.0.MFBitsA0=XXXXXXXXXXXXXXXXXXXXXXXXX11010XXXXXXXXXXXX
 unit.4.0.MFBitsB0=000000000000000000000000000000000000000000
 unit.4.0.MFCompareA0=0
 unit.4.0.MFCompareB0=999
@@ -101,7 +101,7 @@ unit.4.0.port.-1.b.1.channellist=141 142 143 144 145 146 147 148 149 150 151 152
 unit.4.0.port.-1.b.1.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.-1.b.1.name=DataPort
 unit.4.0.port.-1.b.1.orderindex=-1
-unit.4.0.port.-1.b.1.radix=Unsigned
+unit.4.0.port.-1.b.1.radix=Hex
 unit.4.0.port.-1.b.1.signedOffset=0.0
 unit.4.0.port.-1.b.1.signedPrecision=0
 unit.4.0.port.-1.b.1.signedScaleFactor=1.0
@@ -1140,7 +1140,7 @@ unit.4.0.port.-1.s.104.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.-1.s.104.name=DataPort[104]
 unit.4.0.port.-1.s.104.orderindex=-1
 unit.4.0.port.-1.s.104.visible=1
-unit.4.0.port.-1.s.105.alias=DP[105]-i_hdd_memarb_en
+unit.4.0.port.-1.s.105.alias=DP[105]-i_hdd_rxbuf_empty
 unit.4.0.port.-1.s.105.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.4.0.port.-1.s.105.name=DataPort[105]
 unit.4.0.port.-1.s.105.orderindex=-1
@@ -2200,14 +2200,14 @@ unit.4.0.rep_trigger.signals=All Signals/Buses
 unit.4.0.samplesPerTrigger=1
 unit.4.0.triggerCapture=1
 unit.4.0.triggerNSamplesTS=0
-unit.4.0.triggerPosition=3800
+unit.4.0.triggerPosition=600
 unit.4.0.triggerWindowCount=1
 unit.4.0.triggerWindowDepth=4096
 unit.4.0.triggerWindowTS=0
 unit.4.0.username=MyILA2
 unit.4.0.waveform.count=44
 unit.4.0.waveform.posn.0.channel=105
-unit.4.0.waveform.posn.0.name=DP[105]-i_hdd_memarb_en
+unit.4.0.waveform.posn.0.name=DP[105]-i_hdd_memarb_en/i_hdd_rxbuf_empty
 unit.4.0.waveform.posn.0.radix=1
 unit.4.0.waveform.posn.0.type=signal
 unit.4.0.waveform.posn.1.channel=104
@@ -2523,7 +2523,7 @@ unit.4.0.waveform.posn.69.name=DataPort[122]
 unit.4.0.waveform.posn.69.type=signal
 unit.4.0.waveform.posn.7.channel=2147483646
 unit.4.0.waveform.posn.7.name=i_mem_arb1_din(RAM<-HDD)
-unit.4.0.waveform.posn.7.radix=4
+unit.4.0.waveform.posn.7.radix=1
 unit.4.0.waveform.posn.7.type=bus
 unit.4.0.waveform.posn.70.channel=122
 unit.4.0.waveform.posn.70.name=DataPort[122]

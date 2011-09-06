@@ -393,7 +393,7 @@ begin
         i_rambuf_done<='0';
         i_rambuf_full<='0';
 
-        if p_in_rbuf_cfg.tstgen.tesing_on='1' then --and p_in_rbuf_cfg.tstgen.con2rambuf='0' then
+        if p_in_rbuf_cfg.tstgen.tesing_on='1' and p_in_rbuf_cfg.tstgen.con2rambuf='0' then
 
             if p_in_rbuf_cfg.dmacfg.hw_mode='1' and p_in_rbuf_cfg.hwlog.log_on='1' then
             --//Начало работы режима HW + HWLOG=ON

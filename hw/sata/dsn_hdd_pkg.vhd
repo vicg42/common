@@ -20,6 +20,7 @@ library work;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_raid_pkg.all;
+use work.sata_testgen_pkg.all;
 
 package dsn_hdd_pkg is
 
