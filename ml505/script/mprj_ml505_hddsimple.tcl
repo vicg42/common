@@ -55,6 +55,7 @@ set _projects [ list \
       [ list "../src/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
