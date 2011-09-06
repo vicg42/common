@@ -42,7 +42,7 @@ use work.dsn_video_ctrl_pkg.all;
 
 entity dsn_video_ctrl is
 generic(
-G_SIMPLE : string:="OFF";
+G_SIMPLE : string:="OFF"; --//ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
 G_SIM    : string:="OFF"
 );
 port
