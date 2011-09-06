@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0323#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0324#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -392,10 +392,8 @@ constant C_DSN_HDD_REG_TEST_TWORK_M                 : integer:=16#008#;
 constant C_DSN_HDD_REG_TEST_TDLY_L                  : integer:=16#009#;
 constant C_DSN_HDD_REG_TEST_TDLY_M                  : integer:=16#00A#;
 
-constant C_DSN_HDD_REG_RBUF_ADR_L                   : integer:=16#00B#;
-constant C_DSN_HDD_REG_RBUF_ADR_M                   : integer:=16#00C#;
-constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=16#00D#;
-constant C_DSN_HDD_REG_RBUF_CTRL_M                  : integer:=16#00E#;
+constant C_DSN_HDD_REG_HWLOG_SIZE_L                 : integer:=16#00B#;
+constant C_DSN_HDD_REG_HWLOG_SIZE_M                 : integer:=16#00C#;
 
 constant C_DSN_HDD_REG_STATUS_SATA0_L               : integer:=16#010#;
 constant C_DSN_HDD_REG_STATUS_SATA0_M               : integer:=16#011#;
@@ -416,8 +414,10 @@ constant C_DSN_HDD_REG_STATUS_SATA7_M               : integer:=16#01F#;
 
 constant C_DSN_HDD_REG_CMDFIFO                      : integer:=16#020#;
 
-constant C_DSN_HDD_REG_HWLOG_SIZE_L                 : integer:=16#021#;
-constant C_DSN_HDD_REG_HWLOG_SIZE_M                 : integer:=16#022#;
+constant C_DSN_HDD_REG_RBUF_ADR_L                   : integer:=16#021#;
+constant C_DSN_HDD_REG_RBUF_ADR_M                   : integer:=16#022#;
+constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=16#023#;
+constant C_DSN_HDD_REG_RBUF_CTRL_M                  : integer:=16#024#;
 
 
 --//Bit Maps:
