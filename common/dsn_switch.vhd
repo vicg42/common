@@ -23,6 +23,7 @@ use unisim.vcomponents.all;
 
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
+use work.sata_testgen_pkg.all;
 
 entity dsn_switch is
 port
@@ -68,7 +69,7 @@ p_out_host_vbuf_empty     : out  std_logic;
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_vbuf_rst         : in   std_logic;                     --//
+p_in_hdd_tstgen           : in   THDDTstGen;                    --//
 p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
 
 p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0); --//
@@ -312,6 +313,9 @@ signal i_vctrl_vbufin_din_wd                  : std_logic;
 
 signal i_vctrl_vbufout_empty                  : std_logic;
 
+signal i_hdd_tst_on,i_hdd_tst_on_tmp          : std_logic;
+signal i_hdd_tst_d                            : std_logic_vector(31 downto 0);
+signal i_hdd_tst_den                          : std_logic;
 
 
 --MAIN
@@ -740,9 +744,31 @@ p_in_clk        => p_in_eth_clk,
 p_in_rst        => i_hdd_vbuf_rst
 );
 
+m_hdd_testgen : sata_testgen
+port map(
+p_in_gen_cfg   => p_in_hdd_tstgen,
+
+p_out_rdy      => i_hdd_tst_on_tmp,
+
+p_out_tdata    => i_hdd_tst_d,
+p_out_tdata_en => i_hdd_tst_den,
+
+p_in_clk       => p_in_eth_clk,
+p_in_rst       => p_in_rst --i_hdd_vbuf_rst
+);
+
+i_hdd_tst_on<=i_hdd_tst_on_tmp and p_in_hdd_tstgen.con2rambuf;
+i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_tstgen.clr_err;
+
 --//Выбор данных для модуля dsn_hdd.vhd
-i_hdd_vbuf_din<=i_hdd_vbuf_fltr_dout when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_dout;
-i_hdd_vbuf_wr <=i_hdd_vbuf_fltr_den  when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_rd;
+--i_hdd_vbuf_din<=i_hdd_vbuf_fltr_dout when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_dout;
+--i_hdd_vbuf_wr <=i_hdd_vbuf_fltr_den  when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_rd;
+i_hdd_vbuf_din<=i_eth_txbuf_dout     when b_ethtxbuf_to_hddbuf='1' else
+                i_hdd_tst_d          when i_hdd_tst_on='1'         else
+                i_hdd_vbuf_fltr_dout;
+i_hdd_vbuf_wr <=i_eth_txbuf_rd       when b_ethtxbuf_to_hddbuf='1' else
+                i_hdd_tst_den        when i_hdd_tst_on='1'         else
+                i_hdd_vbuf_fltr_den;
 
 m_eth_hdd : ethg_vctrl_rxfifo
 port map
@@ -762,7 +788,6 @@ prog_full   => p_out_hdd_vbuf_pfull,
 rst         => i_hdd_vbuf_rst
 );
 
-i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_vbuf_rst;
 
 
 --//#############################################################################

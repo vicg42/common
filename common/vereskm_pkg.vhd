@@ -23,6 +23,7 @@ use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.sata_glob_pkg.all;
 use work.dsn_hdd_pkg.all;
+use work.sata_testgen_pkg.all;
 
 
 package vereskm_pkg is
@@ -459,7 +460,7 @@ p_out_host_vbuf_empty     : out  std_logic;
 -------------------------------
 -- Связь с Накопителем(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_vbuf_rst         : in   std_logic;
+p_in_hdd_tstgen           : in   THDDTstGen;
 p_in_hdd_vbuf_rdclk       : in   std_logic;
 
 p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0);

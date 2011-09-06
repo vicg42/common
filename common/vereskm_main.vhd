@@ -190,31 +190,6 @@ component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
-component dbgcs_iconx2
-  PORT (
-    CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-    CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
-
-end component;
-
-component dbgcs_sata_layer
-  PORT (
-    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-    CLK : IN STD_LOGIC;
-    DATA : IN STD_LOGIC_VECTOR(122 DOWNTO 0);
-    TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
-    );
-end component;
-
-component dbgcs_sata_rambuf
-  PORT (
-    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-    CLK : IN STD_LOGIC;
-    DATA : IN STD_LOGIC_VECTOR(136 DOWNTO 0);
-    TRIG0 : IN STD_LOGIC_VECTOR(11 DOWNTO 0)
-    );
-end component;
-
 component fpga_test_01
 generic(
 G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
@@ -963,7 +938,7 @@ p_out_host_vbuf_empty     => i_host_vbuf_empty,
 -------------------------------
 -- Связь с HDD(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_vbuf_rst         => i_hdd_rbuf_cfg.dmacfg.clr_err,
+p_in_hdd_tstgen           => i_hdd_rbuf_cfg.tstgen,
 p_in_hdd_vbuf_rdclk       => g_usr_highclk,
 
 p_in_hdd_vbuf_dout        => i_hdd_vbuf_dout,
@@ -2480,92 +2455,6 @@ p_out_1ms      => open,
 p_in_clk       => g_hdd_gt_refclkout,
 p_in_rst       => i_hdd_module_rst
 );
-
-
-gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
-
-m_dbgcs_icon : dbgcs_iconx2
-port map(
-CONTROL0 => i_dbgcs_sh0_layer, --
-CONTROL1 => i_dbgcs_hdd_rambuf
---control => i_hdd_dbgcs.raid,
-);
-
-m_dbgcs_sh0_layer : dbgcs_sata_layer
-port map
-(
-CONTROL => i_dbgcs_sh0_layer,
-CLK     => i_hdd_dbgcs.sh(0).layer.clk,
-DATA    => i_hdd_dbgcs.sh(0).layer.data(122 downto 0),
-TRIG0   => i_hdd_dbgcs.sh(0).layer.trig0(41 downto 0)
-);
-
-m_dbgcs_hddrambuf : dbgcs_sata_rambuf
-port map
-(
-CONTROL => i_dbgcs_hdd_rambuf,
-CLK     => i_hdd_rambuf_dbgcs.clk,
-DATA    => i_hddrambuf_dbgcs.data(136 downto 0),
-TRIG0   => i_hddrambuf_dbgcs.trig0(11 downto 0)
-);
-
-i_hddrambuf_dbgcs.trig0(0)           <=i_hdd_rambuf_dbgcs.trig0(0);--tst_dma_start<='0';
-i_hddrambuf_dbgcs.trig0(1)           <=i_hdd_rambuf_dbgcs.trig0(1);--tst_dmasw_start_wr<='0';
-i_hddrambuf_dbgcs.trig0(2)           <=i_hmem_ce;---i_hdd_rambuf_dbgcs.trig0(2);--tst_dmasw_start_rd<='0';
-i_hddrambuf_dbgcs.trig0(3)           <=i_mem_arb1_ce and i_hdd_memarb_en;--
-i_hddrambuf_dbgcs.trig0(4)           <=i_mem_arb1_cw and i_hdd_memarb_en;--'0';
-i_hddrambuf_dbgcs.trig0(5)           <=i_hdd_rambuf_dbgcs.trig0(5);--i_rambuf_full;
-i_hddrambuf_dbgcs.trig0(6)           <=i_hdd_rambuf_dbgcs.trig0(6);--i_vbuf_pfull;
-i_hddrambuf_dbgcs.trig0(7)           <=i_hdd_rambuf_dbgcs.trig0(7);--tst_fast_ramrd;
-i_hddrambuf_dbgcs.trig0(11 downto  8)<=i_hdd_rambuf_dbgcs.trig0(11 downto 8);--tst_fsm_cs_dly(3 downto 0);
-i_hddrambuf_dbgcs.trig0(63 downto 12)<=(others=>'0');
-
-i_hddrambuf_dbgcs.data(0)           <=i_hdd_rambuf_dbgcs.data(0);--tst_dma_start;
-i_hddrambuf_dbgcs.data(1)           <=i_hdd_rambuf_dbgcs.data(1);--tst_dmasw_start_wr;
-i_hddrambuf_dbgcs.data(2)           <=i_hdd_rambuf_dbgcs.data(2);--tst_dmasw_start_rd;
-i_hddrambuf_dbgcs.data(3)           <=i_hdd_rambuf_dbgcs.data(3);--'0';
-i_hddrambuf_dbgcs.data(4)           <=i_hdd_rambuf_dbgcs.data(4);--tst_rambuf_empty;
-i_hddrambuf_dbgcs.data(5)           <=i_hdd_rambuf_dbgcs.data(5);--i_rambuf_full;
-i_hddrambuf_dbgcs.data(6)           <=i_hdd_rambuf_dbgcs.data(6);--i_vbuf_pfull;
-i_hddrambuf_dbgcs.data(7)           <=i_hdd_rambuf_dbgcs.data(7);--tst_fast_ramrd;
-i_hddrambuf_dbgcs.data(11 downto  8)<=i_hdd_rambuf_dbgcs.data(11 downto 8);--tst_fsm_cs_dly(3 downto 0);
-process(i_hdd_rambuf_dbgcs.clk)
-begin
-if i_hdd_rambuf_dbgcs.clk'event and i_hdd_rambuf_dbgcs.clk='1' then
-i_hddrambuf_dbgcs.data(12)<=i_mem_arb1_ce;
-i_hddrambuf_dbgcs.data(13)<=i_hdd_memarb_en;--
-i_hddrambuf_dbgcs.data(14)<=i_mem_arb1_rd;
-i_hddrambuf_dbgcs.data(15)<=i_mem_arb1_wr;
-i_hddrambuf_dbgcs.data(16)<=i_mem_arb1_term;
-i_hddrambuf_dbgcs.data(48 downto 17)<=i_mem_arb1_din(31 downto 0);
-i_hddrambuf_dbgcs.data(80 downto 49)<=i_mem_arb1_dout_tmp(31 downto 0);
---i_hdd_mem_adr(31 downto 0);
-end if;
-end process;
-i_hddrambuf_dbgcs.data(112 downto 81) <=i_hdd_rambuf_dbgcs.data(112 downto 81) ;--i_rambuf_dcnt(31 downto 0)
-i_hddrambuf_dbgcs.data(128 downto 113)<=i_hdd_rambuf_dbgcs.data(128 downto 113);--i_mem_lenreq (15 downto 0);
-i_hddrambuf_dbgcs.data(136 downto 129)<=i_hdd_rambuf_dbgcs.data(136 downto 129);--i_mem_lentrn(7 downto 0);
-
-
-
---m_dbgcs_sh0_spd : sata_dbgcs_spd
---port map
---(
---CONTROL => i_dbgcs_sh0_spd,
---CLK     => i_hdd_dbgcs.sh(0).spd.clk,
---DATA    => i_hdd_dbgcs.sh(0).spd.data(122 downto 0),
---TRIG0   => i_hdd_dbgcs.sh(0).spd.trig0(41 downto 0)
---);
---m_dbgcs_sh0_raid : sata_dbgcs_raid
---port map
---(
---CONTROL => i_dbgcs_sh0_spd,
---CLK     => i_hdd_dbgcs.raid.clk,
---DATA    => i_hdd_dbgcs.raid.data(122 downto 0),
---TRIG0   => i_hdd_dbgcs.raid.trig0(41 downto 0)
---);
-
-end generate gen_dbgcs;
 
 end generate gen_ml505;
 
