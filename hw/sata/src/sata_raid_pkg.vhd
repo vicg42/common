@@ -21,7 +21,6 @@ library work;
 use work.vicg_common_pkg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
-use work.sata_testgen_pkg.all;
 
 package sata_raid_pkg is
 
