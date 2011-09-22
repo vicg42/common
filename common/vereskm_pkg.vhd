@@ -220,10 +220,12 @@ end component;
 component dsn_hdd_rambuf is
 generic
 (
-G_MODULE_USE      : string:="ON";
-G_HDD_RAMBUF_SIZE : integer:=23;
-G_DBGCS           : string:="OFF";
-G_SIM             : string:="OFF"
+G_MODULE_USE           : string:="ON";
+G_RAMBUF_SIZE          : integer:=23;
+G_DBGCS                : string:="OFF";
+G_SIM                  : string:="OFF";
+G_SIM_HDD_TXFIFO_DEPTH : integer:=128;
+G_SIM_RAMBUF_PFULL     : integer:=6
 );
 port
 (
@@ -241,6 +243,7 @@ p_out_vbuf_rd         : out   std_logic;
 p_in_vbuf_empty       : in    std_logic;
 p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
+p_in_vbuf_wr_count    : in    std_logic_vector(3 downto 0);
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -468,6 +471,7 @@ p_in_hdd_vbuf_rd          : in   std_logic;
 p_out_hdd_vbuf_empty      : out  std_logic;
 p_out_hdd_vbuf_full       : out  std_logic;
 p_out_hdd_vbuf_pfull      : out  std_logic;
+p_out_hdd_vbuf_wr_count   : out  std_logic_vector(3 downto 0);
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
