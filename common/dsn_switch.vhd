@@ -77,6 +77,7 @@ p_in_hdd_vbuf_rd          : in   std_logic;                     --//
 p_out_hdd_vbuf_empty      : out  std_logic;                     --//
 p_out_hdd_vbuf_full       : out  std_logic;                     --//
 p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
+p_out_hdd_vbuf_wr_count   : out  std_logic_vector(3 downto 0);  --//
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
@@ -218,6 +219,25 @@ rst         : IN  std_logic
 );
 end component;
 
+component hdd_rambuf_infifo
+port (
+din    : in std_logic_vector(31 downto 0);
+wr_en  : in std_logic;
+wr_clk : in std_logic;
+
+dout   : out std_logic_vector(31 downto 0);
+rd_en  : in std_logic;
+rd_clk : in std_logic;
+
+empty  : out std_logic;
+full   : out std_logic;
+prog_full     : out std_logic;
+wr_data_count : out std_logic_vector(3 downto 0);
+
+rst    : in std_logic
+);
+end component;
+
 component video_pkt_filter
 generic(
 G_FMASK_COUNT   : integer := 3
@@ -316,6 +336,7 @@ signal i_vctrl_vbufout_empty                  : std_logic;
 signal i_hdd_tst_on,i_hdd_tst_on_tmp          : std_logic;
 signal i_hdd_tst_d                            : std_logic_vector(31 downto 0);
 signal i_hdd_tst_den                          : std_logic;
+signal i_hdd_hw_work                          : std_logic;
 
 
 --MAIN
@@ -324,7 +345,7 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<='0';
+p_out_tst(0)<=i_hdd_vbuf_wr;
 p_out_tst(1)<='0';
 p_out_tst(31 downto 2)<=(others=>'0');
 
@@ -749,6 +770,7 @@ port map(
 p_in_gen_cfg   => p_in_hdd_tstgen,
 
 p_out_rdy      => i_hdd_tst_on_tmp,
+p_out_hwon     => i_hdd_hw_work,
 
 p_out_tdata    => i_hdd_tst_d,
 p_out_tdata_en => i_hdd_tst_den,
@@ -761,33 +783,31 @@ i_hdd_tst_on<=i_hdd_tst_on_tmp and p_in_hdd_tstgen.con2rambuf;
 i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_tstgen.clr_err;
 
 --//Выбор данных для модуля dsn_hdd.vhd
---i_hdd_vbuf_din<=i_hdd_vbuf_fltr_dout when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_dout;
---i_hdd_vbuf_wr <=i_hdd_vbuf_fltr_den  when b_ethtxbuf_to_hddbuf='0' else i_eth_txbuf_rd;
 i_hdd_vbuf_din<=i_eth_txbuf_dout     when b_ethtxbuf_to_hddbuf='1' else
                 i_hdd_tst_d          when i_hdd_tst_on='1'         else
                 i_hdd_vbuf_fltr_dout;
 i_hdd_vbuf_wr <=i_eth_txbuf_rd       when b_ethtxbuf_to_hddbuf='1' else
                 i_hdd_tst_den        when i_hdd_tst_on='1'         else
-                i_hdd_vbuf_fltr_den;
+                i_hdd_vbuf_fltr_den and i_hdd_hw_work;
 
-m_eth_hdd : ethg_vctrl_rxfifo
+m_eth_hdd : hdd_rambuf_infifo
 port map
 (
-din         => i_hdd_vbuf_din,
-wr_en       => i_hdd_vbuf_wr,
-wr_clk      => p_in_eth_clk,
+din       => i_hdd_vbuf_din,
+wr_en     => i_hdd_vbuf_wr,
+wr_clk    => p_in_eth_clk,
 
-dout        => p_in_hdd_vbuf_dout,
-rd_en       => p_in_hdd_vbuf_rd,
-rd_clk      => p_in_hdd_vbuf_rdclk,
+dout      => p_in_hdd_vbuf_dout,
+rd_en     => p_in_hdd_vbuf_rd,
+rd_clk    => p_in_hdd_vbuf_rdclk,
 
-empty       => p_out_hdd_vbuf_empty,
-full        => p_out_hdd_vbuf_full,
-prog_full   => p_out_hdd_vbuf_pfull,
+empty     => p_out_hdd_vbuf_empty,
+full      => p_out_hdd_vbuf_full,
+prog_full => p_out_hdd_vbuf_pfull,
+wr_data_count => p_out_hdd_vbuf_wr_count,
 
-rst         => i_hdd_vbuf_rst
+rst       => i_hdd_vbuf_rst
 );
-
 
 
 --//#############################################################################
