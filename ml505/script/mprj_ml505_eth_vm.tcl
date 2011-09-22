@@ -100,6 +100,7 @@ set _projects [ list \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \

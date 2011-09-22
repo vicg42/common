@@ -118,6 +118,7 @@ set _projects [ list \
       [ list "../src/core_gen/vsobel_bram.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
