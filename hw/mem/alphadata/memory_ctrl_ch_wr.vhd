@@ -140,7 +140,9 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(0)<=i_mem_term_out;
+p_out_tst(1)<=sr_mem_term_out;
+p_out_tst(31 downto 2)<=(others=>'0');
 --process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
