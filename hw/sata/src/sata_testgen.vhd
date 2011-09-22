@@ -28,6 +28,7 @@ port(
 p_in_gen_cfg   : in   THDDTstGen;--//Подробнее см. sata_testgen_pkg.vhd
 
 p_out_rdy      : out  std_logic;
+p_out_hwon     : out  std_logic;
 
 p_out_tdata    : out  std_logic_vector(31 downto 0);
 p_out_tdata_en : out  std_logic;
@@ -61,7 +62,6 @@ signal i_work             : std_logic;
 --MAIN
 begin
 
-p_out_rdy<=p_in_gen_cfg.tesing_on;
 
 p_out_tdata<=CONV_STD_LOGIC_VECTOR(16#55667788#, p_out_tdata'length);
 p_out_tdata_en<=i_shim;
@@ -77,7 +77,13 @@ begin
     i_work<='0';
     i_spd<=(others=>'0');
 
+    p_out_rdy<='0';
+    p_out_hwon<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
+
+    p_out_rdy<=p_in_gen_cfg.tesing_on;
+    p_out_hwon<=p_in_gen_cfg.stop;
 
     i_spd<=p_in_gen_cfg.tesing_spd;
 

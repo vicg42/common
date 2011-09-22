@@ -41,10 +41,16 @@ type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 --//-------------------------------------------------
 --//RAMBUF
 --//-------------------------------------------------
+type THDDRBufErrDetect is record
+vinbuf_full : std_logic;
+rambuf_full : std_logic;
+end record;
+
 --//Статусы/Map:
 type THDDRBufStatus is record
-err  : std_logic;
-done : std_logic;
+err      : std_logic;
+err_type : THDDRBufErrDetect;
+done     : std_logic;
 --rdy  : std_logic;
 hwlog_size : std_logic_vector(31 downto 0);
 end record;

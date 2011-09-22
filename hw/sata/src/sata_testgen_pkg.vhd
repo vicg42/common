@@ -36,6 +36,7 @@ port(
 p_in_gen_cfg   : in   THDDTstGen;
 
 p_out_rdy      : out  std_logic;
+p_out_hwon     : out  std_logic;
 
 p_out_tdata    : out  std_logic_vector(31 downto 0);
 p_out_tdata_en : out  std_logic;
