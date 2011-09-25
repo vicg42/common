@@ -118,6 +118,8 @@ signal i_hwstart_dly_on            : std_logic;
 signal i_err_clr                   : std_logic;
 signal i_err_streambuf             : std_logic;
 signal i_usr_status                : TUsrStatus;
+signal i_usr_rxd                   : std_logic_vector(31 downto 0):=(others=>'0');
+signal i_usr_rxd_wr                : std_logic:='0';
 
 signal i_dma_armed                 : std_logic;
 
@@ -741,17 +743,26 @@ p_out_usr_txd_rd<=i_sh_txd_wr;
 
 
 --//чтение из RxBUF sata_host
-p_out_usr_rxd<=p_in_sh_rxd;
---p_out_usr_rxd_wr<=i_sh_rxd_rd;--//sata_rxfifo - FWFT(First-Word-Fall-Through) FIFO
-
---//sata_rxfifo - SATANDART FIFO (Добавляем задержку т.к.
---//данные на выходе появляюся после отработки 1clk сигнала rd)
+p_out_usr_rxd<=i_usr_rxd;
+p_out_usr_rxd_wr<=i_usr_rxd_wr;
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    p_out_usr_rxd_wr<=i_sh_rxd_rd;
+    i_usr_rxd<=p_in_sh_rxd;
+    i_usr_rxd_wr<=i_sh_rxd_rd;
   end if;
 end process;
+--p_out_usr_rxd<=p_in_sh_rxd;
+--p_out_usr_rxd_wr<=i_sh_rxd_rd;--//sata_rxfifo - FWFT(First-Word-Fall-Through) FIFO
+
+----//sata_rxfifo - SATANDART FIFO (Добавляем задержку т.к.
+----//данные на выходе появляюся после отработки 1clk сигнала rd)
+--process(p_in_clk)
+--begin
+--  if p_in_clk'event and p_in_clk='1' then
+--    p_out_usr_rxd_wr<=i_sh_rxd_rd;
+--  end if;
+--end process;
 
 --//                                                                     | Работа с одним HDD   |  Работа с RAID               |
 i_sh_rxd_rd<=( (not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty) and (not p_in_raid.used or (i_sh_trn_en and p_in_raid.used)) );
@@ -952,7 +963,8 @@ p_out_dbgcs.data(8)<=i_usr_status.ch_bsy(0);
 p_out_dbgcs.data(9)<=i_usr_status.ch_bsy(1);
 p_out_dbgcs.data(10)<=i_sh_hddcnt(0);
 p_out_dbgcs.data(11)<=i_sh_hddcnt(1);
-p_out_dbgcs.data(20 downto 12)<=i_raid_cl_cntdw(8 downto 0);
+p_out_dbgcs.data(19 downto 12)<=i_usr_rxd(7 downto 0);--i_raid_cl_cntdw(8 downto 0);
+p_out_dbgcs.data(20)<=i_usr_rxd_wr;
 --p_out_dbgcs.data(16 downto 12)<=i_raid_trn_cnts(4 downto 0);
 --p_out_dbgcs.data(20 downto 17)<=i_sh_atacmd.lba(3 downto 0);
 p_out_dbgcs.data(21)<=p_in_usr_txbuf_empty;
