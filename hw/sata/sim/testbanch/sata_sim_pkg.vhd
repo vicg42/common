@@ -2052,6 +2052,10 @@ begin
           p_out_cmdfifo_din<=p_in_cmdpkt(cmdpkt_cnt);
           p_out_cmdfifo_wr<='1';
           cmdpkt_cnt:=cmdpkt_cnt + 1;
+      wait until p_in_cmdfifo_wrclk'event and p_in_cmdfifo_wrclk = '1';
+          p_out_cmdfifo_wr<='0';
+
+      wait for 100 ns;
   end loop;
   wait until p_in_cmdfifo_wrclk'event and p_in_cmdfifo_wrclk = '1';
   p_out_cmdfifo_wr<='0';

@@ -71,6 +71,25 @@ constant C_CLK_PERIOD_RXBUF       : TIME := 6.6*2 ns;
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
+component sata_simfifo
+port(
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(31 downto 0);
+rd_en       : in std_logic;
+rd_clk      : in std_logic;
+
+full        : out std_logic;
+prog_full   : out std_logic;
+empty       : out std_logic;
+almost_empty: out std_logic;
+
+rst        : in std_logic
+);
+end component;
+
 signal i_dbuf                     : TSimBufData;
 signal i_dbuf_rcnt                : integer;
 signal i_dbuf_wcnt                : integer;
@@ -104,7 +123,7 @@ begin
 p_out_tst<=(others=>'0');
 
 
-m_rxbuf : sata_rxfifo
+m_rxbuf : sata_simfifo
 port map
 (
 din        => p_in_data,
@@ -115,16 +134,15 @@ dout       => i_rxbuf_dout,
 rd_en      => i_rxbuf_dout_rd,
 rd_clk     => i_rxbuf_clk,
 
-wr_data_count => open,
-
 full        => open,
 prog_full   => i_rxbuf_pfull,
 empty       => i_rxbuf_empty,
+almost_empty=> open,
 
 rst        => p_in_rst
 );
 
-m_txbuf : sata_txfifo
+m_txbuf : sata_simfifo
 port map
 (
 din        => i_txbuf_din,
@@ -135,10 +153,10 @@ dout       => p_out_data,
 rd_en      => p_in_rd,
 rd_clk     => p_in_rclk,
 
-full        => open,--i_txbuf_full,
-prog_full   => open,--i_txbuf_pfull,
+full        => open,
+prog_full   => open,
 empty       => i_txbuf_empty,
-almost_empty=> open, --i_txbuf_aempty,
+almost_empty=> open,
 
 rst        => p_in_rst
 );
