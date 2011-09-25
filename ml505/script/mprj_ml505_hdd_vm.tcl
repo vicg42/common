@@ -100,6 +100,13 @@ set _projects [ list \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/cfgdev_ctrl/cfgdev_uart.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/uart_main_rev01.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/bbfifo_16x8.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/kcuart_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/kcuart_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/uart_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/uart_tx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vcoldemosaic_bram.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/color_demosaic/vcoldemosaic_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vgamma_bram_rcol.vhd" $_VHDMod ] \

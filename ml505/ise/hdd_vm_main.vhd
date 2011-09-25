@@ -67,6 +67,9 @@ pin_out_ddr2_cke1 : out   std_logic;
 pin_out_ddr2_cs1  : out   std_logic;
 pin_out_ddr2_odt1 : out   std_logic;
 
+pin_out_uart0_tx  : out   std_logic;
+pin_in_uart0_rx   : in    std_logic;
+
 --------------------------------------------------
 --Memory banks (up to 16 supported by this design)
 --------------------------------------------------
@@ -256,6 +259,56 @@ component dbgcs_sata_hwstart
     );
 end component;
 
+component cfgdev_uart
+generic(
+G_BAUDCNT_VAL: integer:=64
+);
+port
+(
+-------------------------------
+--Связь с UART
+-------------------------------
+p_out_uart_tx        : out    std_logic;
+p_in_uart_rx         : in     std_logic;
+p_in_uart_refclk     : in     std_logic;
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     : out    std_logic;
+p_out_module_error   : out    std_logic;
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
+p_out_cfg_radr       : out    std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
+p_out_cfg_radr_ld    : out    std_logic;
+p_out_cfg_radr_fifo  : out    std_logic;
+p_out_cfg_wr         : out    std_logic;
+p_out_cfg_rd         : out    std_logic;
+p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
+p_in_cfg_txrdy       : in     std_logic;
+p_in_cfg_rxrdy       : in     std_logic;
+p_out_cfg_done       : out    std_logic;
+--p_in_cfg_irq         : in     std_logic;
+
+p_in_cfg_clk         : in     std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             : in     std_logic_vector(31 downto 0);
+p_out_tst            : out    std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst             : in     std_logic
+);
+end component;
+
 component fpga_test_01
 generic(
 G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
@@ -423,21 +476,22 @@ signal i_hmem_ce                        : std_logic;
 
 signal i_cfgdev_module_rst              : std_logic;
 signal i_cfgdev_module_rdy              : std_logic;
-signal i_cfg_dadr                       : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
-signal i_cfg_radr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
-signal i_cfg_radr_ld                    : std_logic;
-signal i_cfg_radr_fifo                  : std_logic;
-signal i_cfg_wr                         : std_logic;
-signal i_cfg_rd                         : std_logic;
-signal i_cfg_txdata                     : std_logic_vector(15 downto 0);
-signal i_cfg_rxdata                     : std_logic_vector(15 downto 0);
-signal i_cfg_done                       : std_logic;
+signal i_cfg_dadr     ,i_cfgu_dadr     ,i_cfghdd_dadr      : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_radr     ,i_cfgu_radr     ,i_cfghdd_radr      : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
+signal i_cfg_radr_ld  ,i_cfgu_radr_ld  ,i_cfghdd_radr_ld   : std_logic;
+signal i_cfg_radr_fifo,i_cfgu_radr_fifo,i_cfghdd_radr_fifo : std_logic;
+signal i_cfg_wr       ,i_cfgu_wr       ,i_cfghdd_wr        : std_logic;
+signal i_cfg_rd       ,i_cfgu_rd       ,i_cfghdd_rd        : std_logic;
+signal i_cfg_txdata   ,i_cfgu_txdata   ,i_cfghdd_txdata    : std_logic_vector(15 downto 0);
+signal i_cfg_done     ,i_cfgu_done     ,i_cfghdd_done      : std_logic;
+signal i_cfg_rxdata   ,i_cfgu_rxdata    : std_logic_vector(15 downto 0);
 signal i_cfg_rx_hirq                    : std_logic;
 signal i_cfg_wr_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_cfg_rd_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 --signal i_cfgdev_tst_out                 : std_logic_vector(31 downto 0);
 signal i_cfg_dbgcs                      : TSH_ila;
+signal i_cfghdd_selif                   : std_logic;
 
 signal i_swt_module_rst                 : std_logic;
 signal i_swt_cfg_rxdata                 : std_logic_vector(15 downto 0);
@@ -893,6 +947,58 @@ g_usr_highclk<=i_memctrl_pllclk2x0;
 --***********************************************************
 --Модуль конфигурирования устр-в
 --***********************************************************
+m_devcfgu : cfgdev_uart
+generic map(
+G_BAUDCNT_VAL => 108       --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
+                           --//Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
+                           --//
+                           --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
+)
+port map
+(
+-------------------------------
+--Связь с UART
+-------------------------------
+p_out_uart_tx        => pin_out_uart0_tx,
+p_in_uart_rx         => pin_in_uart0_rx,
+p_in_uart_refclk     => g_refclk200MHz,
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     => open,
+p_out_module_error   => open,
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       => i_cfgu_dadr,
+p_out_cfg_radr       => i_cfgu_radr,
+p_out_cfg_radr_ld    => i_cfgu_radr_ld,
+p_out_cfg_radr_fifo  => i_cfgu_radr_fifo,
+p_out_cfg_wr         => i_cfgu_wr,
+p_out_cfg_rd         => i_cfgu_rd,
+p_out_cfg_txdata     => i_cfgu_txdata,
+p_in_cfg_rxdata      => i_cfgu_rxdata,
+p_in_cfg_txrdy       => '1',
+p_in_cfg_rxrdy       => '1',
+
+p_out_cfg_done       => i_cfgu_done,
+p_in_cfg_clk         => g_host_clk,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => "00000000000000000000000000000000",
+p_out_tst            => open,--i_cfgdev_tst_out,--
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_cfgdev_module_rst
+);
+
+
 m_devcfg : cfgdev_host
 port map
 (
@@ -1390,6 +1496,21 @@ p_in_rst => i_vctrl_module_rst
 --***********************************************************
 --Проект Накопителя - dsn_hdd.vhd
 --***********************************************************
+i_cfghdd_selif<=i_host_tst_out(0);
+
+i_cfghdd_radr(7 downto 0)<=i_cfg_radr(7 downto 0)when i_cfghdd_selif='0' else i_cfgu_radr(7 downto 0);
+i_cfghdd_radr_ld  <=i_cfg_radr_ld               when i_cfghdd_selif='0' else i_cfgu_radr_ld;
+i_cfghdd_radr_fifo<=i_cfg_radr_fifo             when i_cfghdd_selif='0' else i_cfgu_radr_fifo;
+
+i_cfghdd_txdata   <=i_cfg_txdata                when i_cfghdd_selif='0' else i_cfgu_txdata;
+i_cfghdd_wr       <=i_cfg_wr_dev(C_CFGDEV_HDD)  when i_cfghdd_selif='0' else i_cfgu_wr;
+
+i_cfgu_rxdata     <=i_hdd_cfg_rxdata;
+i_cfghdd_rd       <=i_cfg_rd_dev(C_CFGDEV_HDD)  when i_cfghdd_selif='0' else i_cfgu_rd;
+
+i_cfghdd_done     <=i_cfg_done_dev(C_CFGDEV_HDD)when i_cfghdd_selif='0' else i_cfgu_done;
+
+
 m_hdd : dsn_hdd
 generic map
 (
@@ -1407,17 +1528,17 @@ port map
 -------------------------------
 p_in_cfg_clk          => g_host_clk,
 
-p_in_cfg_adr          => i_cfg_radr(7 downto 0),
-p_in_cfg_adr_ld       => i_cfg_radr_ld,
-p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
+p_in_cfg_adr          => i_cfghdd_radr(7 downto 0),     --i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld       => i_cfghdd_radr_ld,              --i_cfg_radr_ld,
+p_in_cfg_adr_fifo     => i_cfghdd_radr_fifo,            --i_cfg_radr_fifo,
 
-p_in_cfg_txdata       => i_cfg_txdata,
-p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_HDD),
+p_in_cfg_txdata       => i_cfghdd_txdata,               --i_cfg_txdata,
+p_in_cfg_wd           => i_cfghdd_wr,                   --i_cfg_wr_dev(C_CFGDEV_HDD),
 
 p_out_cfg_rxdata      => i_hdd_cfg_rxdata,
-p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_HDD),
+p_in_cfg_rd           => i_cfghdd_rd,                   --i_cfg_rd_dev(C_CFGDEV_HDD),
 
-p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_HDD),
+p_in_cfg_done         => i_cfghdd_done,                 --i_cfg_done_dev(C_CFGDEV_HDD),
 p_in_cfg_rst          => i_cfgdev_module_rst,
 
 -------------------------------

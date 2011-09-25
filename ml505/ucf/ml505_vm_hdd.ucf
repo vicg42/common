@@ -56,20 +56,20 @@ NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 ###############       Local Bus        ################################
 #######################################################################
 #NET "lclk"              LOC="AG18";# | IOSTANDARD=LVCMOS25; #;#Сигнал на схеме: CLK_33MHZ_FPGA
-NET "lclk"              LOC="AH15";# | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
+NET "lclk"              LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
 
 #200MHz
 NET "refclk_n"          LOC="K19";#Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
 NET "refclk_p"          LOC="L19";#Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
-NET  lad<8>           LOC="AH13";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<9>           LOC="AH14";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<10>          LOC="AH19";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D10       LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<11>          LOC="AH20";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D11       LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<12>          LOC="AG13";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D12       LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<13>          LOC="AH12";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D13       LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<14>          LOC="AH22";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D14       LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
-NET  lad<15>          LOC="AG22";# | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D15       LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<8>           LOC="AH13" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<9>           LOC="AH14" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<10>          LOC="AH19" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D10       LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<11>          LOC="AH20" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D11       LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<12>          LOC="AG13" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D12       LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<13>          LOC="AH12" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D13       LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<14>          LOC="AH22" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D14       LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
+NET  lad<15>          LOC="AG22" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D15       LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
 
 NET  lbe_l<0>         LOC="D10" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW0             LOC="D10";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
 NET  lbe_l<1>         LOC="D11" | IOSTANDARD=LVCMOS33; #;   ##NET  SRAM_BW1             LOC="D11";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
@@ -604,10 +604,10 @@ NET pin_in_btn_W          LOC="AJ7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPI
 #NET pin_out_tst_prmtv_sof           LOC="AG32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_40   # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
 
 
-##UART 0 (Подключен к PC)
-#NET pin_in_uart0_rx       LOC="AG15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_RX  # Bank 4, Vcco=3.3V, No DCI
-#NET pin_out_uart0_tx      LOC="AG20" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_TX  # Bank 4, Vcco=3.3V, No DCI
-#
+#UART 0 (Подключен к PC)
+NET pin_in_uart0_rx       LOC="AG15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_RX  # Bank 4, Vcco=3.3V, No DCI
+NET pin_out_uart0_tx      LOC="AG20" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_TX  # Bank 4, Vcco=3.3V, No DCI
+
 ##GPIO
 #NET pin_io_gpio<0>        LOC="J32" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_14  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 #NET pin_io_gpio<1>        LOC="J34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
