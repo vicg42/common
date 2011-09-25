@@ -50,8 +50,8 @@ signal i_ftdi_txe_n             : std_logic;
 signal i_ftdi_rxf_n             : std_logic;
 signal i_ftdi_pwren_n           : std_logic;
 
-signal i_dev_adr                : std_logic_vector(7 downto 0);
-signal i_cfg_adr                : std_logic_vector(7 downto 0);
+signal i_dev_adr                : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_adr                : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
 signal i_cfg_adr_ld             : std_logic;
 signal i_cfg_adr_fifo           : std_logic;
 signal i_cfg_wd                 : std_logic;
@@ -63,11 +63,13 @@ signal i_cfg_done               : std_logic;
 signal i_cfg_adr_cnt            : std_logic_vector(i_cfg_adr'range);
 signal i_reg0                   : std_logic_vector(i_cfg_rxdata'range);
 signal i_reg1                   : std_logic_vector(i_cfg_rxdata'range);
+signal i_reg2                   : std_logic_vector(i_cfg_rxdata'range);
+signal i_reg3                   : std_logic_vector(i_cfg_rxdata'range);
+signal i_reg4                   : std_logic_vector(i_cfg_rxdata'range);
 
 
-
-type TUsrPktHeader is array (0 to 1) of std_logic_vector(15 downto 0);
-type TUsrPktData is array (0 to 3) of std_logic_vector(15 downto 0);
+type TUsrPktHeader is array (0 to C_CFGPKT_HEADER_DCOUNT-1) of std_logic_vector(15 downto 0);
+type TUsrPktData is array (0 to 5) of std_logic_vector(15 downto 0);
 type TUsrPkt is record
 h : TUsrPktHeader;
 d : TUsrPktData;
@@ -166,12 +168,18 @@ begin
   if p_in_rst='1' then
     i_reg0<=(others=>'0');
     i_reg1<=(others=>'0');
+    i_reg2<=(others=>'0');
+    i_reg3<=(others=>'0');
+    i_reg4<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     if i_cfg_wd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg0<=i_cfg_txdata(i_reg0'high downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then i_reg1<=i_cfg_txdata(i_reg1'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then i_reg2<=i_cfg_txdata(i_reg2'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then i_reg3<=i_cfg_txdata(i_reg3'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then i_reg4<=i_cfg_txdata(i_reg4'high downto 0);
 
         end if;
     end if;
@@ -192,6 +200,9 @@ begin
     if i_cfg_rd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg0, rxd'length);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg1, rxd'length);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg2, rxd'length);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg3, rxd'length);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then rxd:=EXT(i_reg4, rxd'length);
 
         end if;
 
@@ -207,7 +218,7 @@ end process;
 
 process
   variable ftdi_d: std_logic_vector(7 downto 0):=(others=>'0');
-  variable dlen_vec: std_logic_vector(7 downto 0):=(others=>'0');
+--  variable dlen_vec: std_logic_vector(15 downto 0):=(others=>'0');
   variable dlen_int: integer:=0;
 begin
 
@@ -236,39 +247,72 @@ i_pkts(0).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_V
 i_pkts(0).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(0).h(0)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(0).h(1)(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT+1);
-i_pkts(0).h(1)(15 downto 8)<=CONV_STD_LOGIC_VECTOR(10#02#, 8);
+i_pkts(0).h(1)<=CONV_STD_LOGIC_VECTOR(16#00#, i_pkts(0).h(1)'length);--//Start Adr
+i_pkts(0).h(2)<=CONV_STD_LOGIC_VECTOR(10#05#, i_pkts(0).h(2)'length);--//Len
 
 i_pkts(0).d(0)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0).d(0)'length);
 i_pkts(0).d(1)<=CONV_STD_LOGIC_VECTOR(16#2012#, i_pkts(0).d(0)'length);
 i_pkts(0).d(2)<=CONV_STD_LOGIC_VECTOR(16#3013#, i_pkts(0).d(0)'length);
 i_pkts(0).d(3)<=CONV_STD_LOGIC_VECTOR(16#4014#, i_pkts(0).d(0)'length);
+i_pkts(0).d(4)<=CONV_STD_LOGIC_VECTOR(16#5015#, i_pkts(0).d(0)'length);
 
 --//Pkt1
 i_pkts(1).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(1).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(1).h(0)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(1).h(1)(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT+1);
-i_pkts(1).h(1)(15 downto 8)<=CONV_STD_LOGIC_VECTOR(10#02#, 8);
+i_pkts(1).h(1)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0).h(1)'length);--//Start Adr
+i_pkts(1).h(2)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0).h(2)'length);--//Len
 
 i_pkts(1).d(0)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0).d(0)'length);
 i_pkts(1).d(1)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0).d(0)'length);
 i_pkts(1).d(2)<=CONV_STD_LOGIC_VECTOR(16#03#, i_pkts(0).d(0)'length);
 i_pkts(1).d(3)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0).d(0)'length);
+i_pkts(1).d(4)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0).d(0)'length);
 
 --//Pkt2
 i_pkts(2).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(2).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
 i_pkts(2).h(0)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(2).h(1)(C_CFGPKT_RADR_M_BIT downto C_CFGPKT_RADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT+1);
-i_pkts(2).h(1)(15 downto 8)<=CONV_STD_LOGIC_VECTOR(10#02#, 8);
+i_pkts(2).h(1)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0).h(1)'length);--//Start Adr
+i_pkts(2).h(2)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0).h(2)'length);--//Len
 
 i_pkts(2).d(0)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0).d(0)'length);
 i_pkts(2).d(1)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0).d(0)'length);
 i_pkts(2).d(2)<=CONV_STD_LOGIC_VECTOR(16#03#, i_pkts(0).d(0)'length);
 i_pkts(2).d(3)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0).d(0)'length);
+i_pkts(2).d(4)<=CONV_STD_LOGIC_VECTOR(16#04#, i_pkts(0).d(0)'length);
+
+
+--//Pkt3
+i_pkts(3).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
+i_pkts(3).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
+i_pkts(3).h(0)(C_CFGPKT_FIFO_BIT)<='0';
+
+i_pkts(3).h(1)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0).h(1)'length);--//Start Adr
+i_pkts(3).h(2)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0).h(2)'length);--//Len
+
+i_pkts(3).d(0)<=CONV_STD_LOGIC_VECTOR(16#1021#, i_pkts(0).d(0)'length);
+i_pkts(3).d(1)<=CONV_STD_LOGIC_VECTOR(16#2022#, i_pkts(0).d(0)'length);
+i_pkts(3).d(2)<=CONV_STD_LOGIC_VECTOR(16#3023#, i_pkts(0).d(0)'length);
+i_pkts(3).d(3)<=CONV_STD_LOGIC_VECTOR(16#4024#, i_pkts(0).d(0)'length);
+i_pkts(3).d(4)<=CONV_STD_LOGIC_VECTOR(16#5025#, i_pkts(0).d(0)'length);
+
+
+--//Pkt4
+i_pkts(4).h(0)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
+i_pkts(4).h(0)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
+i_pkts(4).h(0)(C_CFGPKT_FIFO_BIT)<='0';
+
+i_pkts(4).h(1)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0).h(1)'length);--//Start Adr
+i_pkts(4).h(2)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0).h(2)'length);--//Len
+
+i_pkts(4).d(0)<=CONV_STD_LOGIC_VECTOR(16#1031#, i_pkts(0).d(0)'length);
+i_pkts(4).d(1)<=CONV_STD_LOGIC_VECTOR(16#2032#, i_pkts(0).d(0)'length);
+i_pkts(4).d(2)<=CONV_STD_LOGIC_VECTOR(16#3033#, i_pkts(0).d(0)'length);
+i_pkts(4).d(3)<=CONV_STD_LOGIC_VECTOR(16#4034#, i_pkts(0).d(0)'length);
+i_pkts(4).d(4)<=CONV_STD_LOGIC_VECTOR(16#5035#, i_pkts(0).d(0)'length);
 
 
 --//-----------------
@@ -281,8 +325,8 @@ wait for 1 us;
 --//PKT(Write)
 i_ftdi_rxf_n<='0';
 
-dlen_vec:=i_pkts(0).h(1)(15 downto 8);
-dlen_int:=CONV_INTEGER(dlen_vec);
+--dlen_vec:=i_pkts(0).h(2);
+dlen_int:=CONV_INTEGER(i_pkts(0).h(2));
 
 for i in 0 to i_pkts(0).h'length-1 loop
   for a in 0 to i_cfg_txdata'length/8-1 loop
@@ -307,8 +351,8 @@ i_ftdi_rxf_n<='1';
 wait for 200 ns;
 i_ftdi_rxf_n<='0';
 
-dlen_vec:=i_pkts(1).h(1)(15 downto 8);
-dlen_int:=CONV_INTEGER(dlen_vec);
+--dlen_vec:=i_pkts(1).h(2);
+dlen_int:=CONV_INTEGER(i_pkts(1).h(2));
 
 for i in 0 to i_pkts(1).h'length-1 loop
   for a in 0 to i_cfg_txdata'length/8-1 loop
@@ -317,6 +361,80 @@ for i in 0 to i_pkts(1).h'length-1 loop
     wait until i_ftdi_rd_n'event and i_ftdi_rd_n='1';
   end loop;
 end loop;--//for i in 0 to dlen_int-1 loop
+
+i_ftdi_rxf_n<='1';
+
+
+--//PKT(Read)
+wait for 200 ns;
+i_ftdi_rxf_n<='0';
+
+--dlen_vec:=i_pkts(1).h(2);
+dlen_int:=CONV_INTEGER(i_pkts(2).h(2));
+
+for i in 0 to i_pkts(2).h'length-1 loop
+  for a in 0 to i_cfg_txdata'length/8-1 loop
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='0';
+    i_ftdi_d(7 downto 0)<=i_pkts(2).h(i)(8*(a+1)-1 downto 8*a) after dly;
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='1';
+  end loop;
+end loop;--//for i in 0 to dlen_int-1 loop
+
+i_ftdi_rxf_n<='1';
+i_ftdi_d<=(others =>'Z');
+
+
+
+--//PKT(Write)
+wait for 200 ns;
+i_ftdi_rxf_n<='0';
+
+--dlen_vec:=i_pkts(0).h(2);
+dlen_int:=CONV_INTEGER(i_pkts(3).h(2));
+
+for i in 0 to i_pkts(3).h'length-1 loop
+  for a in 0 to i_cfg_txdata'length/8-1 loop
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='0';
+    i_ftdi_d(7 downto 0)<=i_pkts(3).h(i)(8*(a+1)-1 downto 8*a) after dly;
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='1';
+  end loop;
+end loop;--//for i in 0 to dlen_int-1 loop
+
+for i in 0 to dlen_int-1 loop
+  for a in 0 to i_cfg_txdata'length/8-1 loop
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='0';
+    i_ftdi_d(7 downto 0)<=i_pkts(3).d(i)(8*(a+1)-1 downto 8*a) after dly;
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='1';
+  end loop;
+end loop;--//for i in 0 to dlen_int-1 loop
+
+i_ftdi_rxf_n<='1';
+
+
+--//PKT(Write)
+wait for 200 ns;
+i_ftdi_rxf_n<='0';
+
+--dlen_vec:=i_pkts(0).h(2);
+dlen_int:=CONV_INTEGER(i_pkts(4).h(2));
+
+for i in 0 to i_pkts(3).h'length-1 loop
+  for a in 0 to i_cfg_txdata'length/8-1 loop
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='0';
+    i_ftdi_d(7 downto 0)<=i_pkts(4).h(i)(8*(a+1)-1 downto 8*a) after dly;
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='1';
+  end loop;
+end loop;--//for i in 0 to dlen_int-1 loop
+
+for i in 0 to dlen_int-1 loop
+  for a in 0 to i_cfg_txdata'length/8-1 loop
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='0';
+    i_ftdi_d(7 downto 0)<=i_pkts(4).d(i)(8*(a+1)-1 downto 8*a) after dly;
+    wait until i_ftdi_rd_n'event and i_ftdi_rd_n='1';
+  end loop;
+end loop;--//for i in 0 to dlen_int-1 loop
+
+i_ftdi_rxf_n<='1';
 
 i_ftdi_rxf_n<='1';
 i_ftdi_d<=(others =>'Z');

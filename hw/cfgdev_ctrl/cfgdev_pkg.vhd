@@ -44,56 +44,7 @@ constant C_CFGPKT_WR                : std_logic:='0';
 constant C_CFGPKT_RD                : std_logic:='1';
 
 
-component cfgdev
-port
-(
--------------------------------
---Связь с Хостом
--------------------------------
-p_in_host_clk         : in   std_logic;
-
-p_out_module_rdy      : out  std_logic;
-p_out_module_error    : out  std_logic;
-
-p_out_host_rxbuf_rdy  : out  std_logic;
-p_out_host_rxdata     : out  std_logic_vector(31 downto 0);
-p_in_host_rd          : in  std_logic;
-
-p_out_host_txbuf_rdy  : out  std_logic;
-p_in_host_txdata      : in   std_logic_vector(31 downto 0);
-p_in_host_wd          : in   std_logic;
-p_in_host_txdata_rdy  : in   std_logic;
-
--------------------------------
---Запись/Чтение конфигурационных параметров уст-ва
--------------------------------
-p_out_dev_adr         : out  std_logic_vector(7 downto 0);
-p_out_cfg_adr         : out  std_logic_vector(7 downto 0);
-p_out_cfg_adr_ld      : out  std_logic;
-p_out_cfg_adr_fifo    : out  std_logic;
-p_out_cfg_wd          : out  std_logic;
-p_out_cfg_rd          : out  std_logic;
-p_out_cfg_txdata      : out  std_logic_vector(15 downto 0);
-p_in_cfg_rxdata       : in   std_logic_vector(15 downto 0);
-
-p_out_cfg_done        : out  std_logic;
-p_out_cfg_rx_set_irq  : out  std_logic;
-p_in_cfg_clk          : in   std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_out_tst             : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_rst     : in    std_logic
-);
-end component;
-
-
-component cfgdev_uart is
+component cfgdev_uart
 generic(
 G_BAUDCNT_VAL: integer:=64
 );
@@ -115,8 +66,8 @@ p_out_module_error   : out    std_logic;
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_cfg_dadr       : out    std_logic_vector(7 downto 0);
-p_out_cfg_radr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
+p_out_cfg_radr       : out    std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
 p_out_cfg_radr_ld    : out    std_logic;
 p_out_cfg_radr_fifo  : out    std_logic;
 p_out_cfg_wr         : out    std_logic;
@@ -144,7 +95,7 @@ p_in_rst             : in     std_logic
 end component;
 
 
-component cfgdev_ftdi is
+component cfgdev_ftdi
 port
 (
 -------------------------------
@@ -166,8 +117,8 @@ p_out_module_error   : out    std_logic;
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_cfg_dadr       : out    std_logic_vector(7 downto 0);
-p_out_cfg_radr       : out    std_logic_vector(7 downto 0);
+p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
+p_out_cfg_radr       : out    std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
 p_out_cfg_radr_ld    : out    std_logic;
 p_out_cfg_radr_fifo  : out    std_logic;
 p_out_cfg_wr         : out    std_logic;
@@ -195,7 +146,7 @@ p_in_rst             : in     std_logic
 end component;
 
 
-component cfgdev_host is
+component cfgdev_host
 port
 (
 -------------------------------
