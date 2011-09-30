@@ -72,7 +72,8 @@ rd_clk : in std_logic;
 empty  : out std_logic;
 full   : out std_logic;
 prog_full     : out std_logic;
-wr_data_count : out std_logic_vector(3 downto 0);
+--wr_data_count : out std_logic_vector(3 downto 0);
+rd_data_count : out std_logic_vector(3 downto 0);
 
 rst    : in std_logic
 );
@@ -84,9 +85,7 @@ generic
 G_MODULE_USE           : string:="ON";
 G_RAMBUF_SIZE          : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
 G_DBGCS                : string:="OFF";
-G_SIM                  : string:="OFF";
-G_SIM_HDD_TXFIFO_DEPTH : integer:=128;--//DWORD
-G_SIM_RAMBUF_PFULL     : integer:=6
+G_SIM                  : string:="OFF"
 );
 port
 (
@@ -104,7 +103,7 @@ p_out_vbuf_rd         : out   std_logic;
 p_in_vbuf_empty       : in    std_logic;
 p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
-p_in_vbuf_wr_count    : in    std_logic_vector(3 downto 0);
+p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -193,7 +192,6 @@ signal i_dsnhdd_reg_hwstart_dly_val: std_logic_vector(15 downto 0);
 
 signal i_rbuf_cfg                 : THDDRBufCfg;
 signal i_rbuf_status              : THDDRBufStatus;
-
 signal i_sh_txd                   : std_logic_vector(31 downto 0);
 signal i_sh_txd_wr                : std_logic;
 signal i_sh_txbuf_pfull           : std_logic;
@@ -261,7 +259,7 @@ signal i_vbuf_rd                      : std_logic;
 signal i_vbuf_full                    : std_logic;
 signal i_vbuf_pfull                   : std_logic;
 signal i_vbuf_empty                   : std_logic;
-signal i_vbuf_wrcount                 : std_logic_vector(3 downto 0);
+signal i_vbuf_wrcnt                   : std_logic_vector(3 downto 0);
 signal i_vdata_start                  : std_logic;
 signal i_vdata_done                   : std_logic;
 
@@ -269,6 +267,8 @@ signal i_hdd_tst_on,i_hdd_tst_on_tmp  : std_logic;
 signal i_hdd_tst_d                    : std_logic_vector(31 downto 0);
 signal i_hdd_tst_den                  : std_logic;
 signal i_hdd_vbuf_rst                 : std_logic;
+
+signal i_dcntwr                       : integer:=0;
 
 type TSataDevStatusSataCount is array (0 to C_HDD_COUNT_MAX-1) of TSataDevStatus;
 signal i_satadev_status               : TSataDevStatusSataCount;
@@ -490,11 +490,9 @@ m_hdd_rambuf : dsn_hdd_rambuf
 generic map
 (
 G_MODULE_USE           => "ON",
-G_RAMBUF_SIZE          => 23, --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
-G_DBGCS                => "OFF",
-G_SIM                  => G_SIM,
-G_SIM_HDD_TXFIFO_DEPTH => 128,
-G_SIM_RAMBUF_PFULL     => 6
+G_RAMBUF_SIZE          => 11, --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_DBGCS                => "ON",
+G_SIM                  => "ON" --G_SIM
 )
 port map
 (
@@ -512,7 +510,7 @@ p_out_vbuf_rd         => i_vbuf_rd,
 p_in_vbuf_empty       => i_vbuf_empty,
 p_in_vbuf_full        => i_vbuf_full,
 p_in_vbuf_pfull       => i_vbuf_pfull,
-p_in_vbuf_wr_count    => i_vbuf_wrcount,
+p_in_vbuf_wrcnt       => i_vbuf_wrcnt,
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -521,7 +519,7 @@ p_out_hdd_txd         => i_sh_txd,
 p_out_hdd_txd_wr      => i_sh_txd_wr,
 p_in_hdd_txbuf_pfull  => i_sh_txbuf_pfull,
 p_in_hdd_txbuf_full   => i_sh_txbuf_full,
-p_in_hdd_txbuf_empty  => i_sh_txbuf_empty,--i_vbuf_empty,
+p_in_hdd_txbuf_empty  => i_sh_txbuf_empty,
 
 p_in_hdd_rxd          => i_sh_rxd,
 p_out_hdd_rxd_rd      => i_sh_rxd_rd,
@@ -580,19 +578,23 @@ rd_clk     => p_in_clk,
 empty  => i_vbuf_empty,
 full   => i_vbuf_full,
 prog_full => i_vbuf_pfull,
-wr_data_count => i_vbuf_wrcount,
+--wr_data_count => i_vbuf_wrcnt,
+rd_data_count => i_vbuf_wrcnt,
 
 rst        => i_hdd_vbuf_rst
 );
---i_vbuf_pfull<=i_vbuf_wrcount(1);
+--i_vbuf_pfull<=i_vbuf_wrcnt(1);
 
 
 i_hdd_mem_wf <='0';
-i_hdd_mem_wpf<='0';
+--i_hdd_mem_wpf<='0';
 i_hdd_mem_rpe<='0';
 
 
 m_hdd_testgen : sata_testgen
+generic map(
+G_SCRAMBLER => "ON"
+)
 port map(
 p_in_gen_cfg   => i_rbuf_cfg.tstgen,
 
@@ -670,6 +672,7 @@ begin
       i_ram_rxbuf(i)<=(others=>'0');
       end loop;
       dcnt:=0;
+      i_dcntwr<=0;
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -692,8 +695,25 @@ begin
       end if;
 
     end if;
+
+    i_dcntwr<=dcnt;
+
   end if;
 end process lmem_trn_wr;
+
+process
+begin
+  i_hdd_mem_wpf<='0';
+
+  wait until i_dcntwr=16#0E# and p_in_clk'event and p_in_clk='1';
+    i_hdd_mem_wpf<='1';
+  wait for 200 ns;
+
+  wait until  p_in_clk'event and p_in_clk='1';
+    i_hdd_mem_wpf<='0';
+
+  wait;
+end process;
 
 i_sim_ctrl.ram_rxbuf_done<=i_rbuf_status.done;
 
@@ -843,7 +863,7 @@ begin
           --//Запись данных в TxBuf(m_txbuf)
           lbufd_wr_hw:while i_hw_mode_stop='0' loop
 
-              lmemtrn_wr_hw:while i_vbuf_wrcount(2)/='1' loop
+              lmemtrn_wr_hw:while i_vbuf_wrcnt(2)/='1' loop
 
                     wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
                     i_vbuf_wr<='1';
@@ -918,7 +938,7 @@ begin
 
   --//настройка RAMBUF: направление RAM<-HDD
 --  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memrd_lentrn_byte'length);
-  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(800, memrd_lentrn_byte'length);
+  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(64, memrd_lentrn_byte'length);
   memrd_lentrn_dw:=("00"&memrd_lentrn_byte(memrd_lentrn_byte'high downto 2));
 
   --//Выбор режима:
@@ -952,9 +972,9 @@ begin
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='1';
-  --//1/128 - max ... 127/128 - min
+  --//1- min ... 256/0 - max
 --  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
   i_dsnhdd_reg_hwstart_dly_val(C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT)<='1';
   i_dsnhdd_reg_hwstart_dly_val(15 downto  1)<=CONV_STD_LOGIC_VECTOR(10, 15);--//фиксирования задержка
@@ -1497,7 +1517,7 @@ begin
 --      wait for 50 us;
 --      wait for 54 us;
 --      wait for 60 us;
-      wait for 80 us;
+      wait for 380 us;
 
       wait until p_in_clk'event and p_in_clk='1';
       write(GUI_line,string'("SEND CMDPKT: HW STOP."));writeline(output, GUI_line);
