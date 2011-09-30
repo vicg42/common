@@ -195,7 +195,7 @@ begin
   if p_in_clk'event and p_in_clk='1' then
 
     rxdtype:=(others=>'0');
-    if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1' then rxdtype(C_TALIGN)   :='1';
+    if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1'  then rxdtype(C_TALIGN)   :='1';
     elsif i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TSOF)     :='1';
     elsif i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TEOF)     :='1';
     elsif i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TDMAT)    :='1';
@@ -214,8 +214,6 @@ begin
     elsif i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TPMACK)   :='1';
     elsif i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TPMNAK)   :='1';
     elsif                             i_rxdtype=C_PDAT_TDATA                                   then rxdtype(C_TDATA_EN) :='1';
-    else
-      rxdtype:=(others=>'0');
     end if;
 
     i_rxdtype_out<=rxdtype;
