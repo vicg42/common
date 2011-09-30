@@ -77,7 +77,7 @@ p_in_hdd_vbuf_rd          : in   std_logic;                     --//
 p_out_hdd_vbuf_empty      : out  std_logic;                     --//
 p_out_hdd_vbuf_full       : out  std_logic;                     --//
 p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
-p_out_hdd_vbuf_wr_count   : out  std_logic_vector(3 downto 0);  --//
+p_out_hdd_vbuf_wrcnt      : out  std_logic_vector(3 downto 0);  --//
 
 -------------------------------
 -- Ñâÿçü ñ EthG(Îïòèêà)(dsn_optic.vhd) (ethg_clk domain)
@@ -232,7 +232,7 @@ rd_clk : in std_logic;
 empty  : out std_logic;
 full   : out std_logic;
 prog_full     : out std_logic;
-wr_data_count : out std_logic_vector(3 downto 0);
+rd_data_count : out std_logic_vector(3 downto 0);
 
 rst    : in std_logic
 );
@@ -766,6 +766,9 @@ p_in_rst        => i_hdd_vbuf_rst
 );
 
 m_hdd_testgen : sata_testgen
+generic map(
+G_SCRAMBLER => "ON"
+)
 port map(
 p_in_gen_cfg   => p_in_hdd_tstgen,
 
@@ -804,7 +807,7 @@ rd_clk    => p_in_hdd_vbuf_rdclk,
 empty     => p_out_hdd_vbuf_empty,
 full      => p_out_hdd_vbuf_full,
 prog_full => p_out_hdd_vbuf_pfull,
-wr_data_count => p_out_hdd_vbuf_wr_count,
+rd_data_count => p_out_hdd_vbuf_wrcnt,
 
 rst       => i_hdd_vbuf_rst
 );

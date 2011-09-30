@@ -419,7 +419,7 @@ signal i_hdd_vbuf_rd                    : std_logic;
 signal i_hdd_vbuf_empty                 : std_logic;
 signal i_hdd_vbuf_full                  : std_logic;
 signal i_hdd_vbuf_pfull                 : std_logic;
-signal i_hdd_vbuf_wr_count              : std_logic_vector(3 downto 0);
+signal i_hdd_vbuf_wrcnt                 : std_logic_vector(3 downto 0);
 signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
 signal i_hdd_rbuf_status                : THDDRBufStatus;
 signal i_hdd_rbuf_tst_out               : std_logic_vector(31 downto 0);
@@ -947,7 +947,7 @@ p_in_hdd_vbuf_rd          => i_hdd_vbuf_rd,
 p_out_hdd_vbuf_empty      => i_hdd_vbuf_empty,
 p_out_hdd_vbuf_full       => i_hdd_vbuf_full,
 p_out_hdd_vbuf_pfull      => i_hdd_vbuf_pfull,
-p_out_hdd_vbuf_wr_count   => i_hdd_vbuf_wr_count,
+p_out_hdd_vbuf_wrcnt      => i_hdd_vbuf_wrcnt,
 
 -------------------------------
 -- Связь с Eth(dsn_ethg.vhd) (ethg_clk domain)
@@ -1576,12 +1576,10 @@ end generate gen_satah;
 m_hdd_rambuf : dsn_hdd_rambuf
 generic map
 (
-G_MODULE_USE           => C_USE_HDD,
-G_RAMBUF_SIZE          => C_HDD_RAMBUF_SIZE,
-G_DBGCS                => G_DBGCS_HDD,
-G_SIM                  => G_SIM,
-G_SIM_HDD_TXFIFO_DEPTH => 128,
-G_SIM_RAMBUF_PFULL     => 6
+G_MODULE_USE  => C_USE_HDD,
+G_RAMBUF_SIZE => C_HDD_RAMBUF_SIZE,
+G_DBGCS       => G_DBGCS_HDD,
+G_SIM         => G_SIM
 )
 port map
 (
@@ -1599,7 +1597,7 @@ p_out_vbuf_rd       => i_hdd_vbuf_rd,
 p_in_vbuf_empty     => i_hdd_vbuf_empty,
 p_in_vbuf_full      => i_hdd_vbuf_full,
 p_in_vbuf_pfull     => i_hdd_vbuf_pfull,
-p_in_vbuf_wr_count  => i_hdd_vbuf_wr_count,
+p_in_vbuf_wrcnt     => i_hdd_vbuf_wrcnt,
 
 --//--------------------------
 --//Связь с модулем HDD
