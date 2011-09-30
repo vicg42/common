@@ -19,8 +19,12 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.sata_testgen_pkg.all;
+use work.sata_unit_pkg.all;
 
 entity sata_testgen is
+generic(
+G_SCRAMBLER : string:="OFF"
+);
 port(
 --------------------------------------------------
 --USR
@@ -58,12 +62,41 @@ signal i_start            : std_logic;
 signal i_stop             : std_logic;
 signal i_work             : std_logic;
 
+signal i_srambler_out     : std_logic_vector(31 downto 0);
+
 
 --MAIN
 begin
 
 
+gen_srcambler_off : if strcmp(G_SCRAMBLER,"OFF") generate
 p_out_tdata<=CONV_STD_LOGIC_VECTOR(16#55667788#, p_out_tdata'length);
+end generate gen_srcambler_off;
+
+gen_srcambler_on : if strcmp(G_SCRAMBLER,"ON") generate
+
+m_scrambler : sata_scrambler
+generic map
+(
+G_INIT_VAL   => 16#F0F6#
+)
+port map
+(
+p_in_SOF     => i_start,
+p_in_en      => i_shim,
+p_out_result => i_srambler_out,
+
+-----------------
+--System
+-----------------
+--p_in_clk_en  => p_in_clk_en,
+p_in_clk     => p_in_clk,
+p_in_rst     => p_in_rst
+);
+p_out_tdata<=i_srambler_out;
+
+end generate gen_srcambler_on;
+
 p_out_tdata_en<=i_shim;
 
 --//¬ключение генерации тестовых данных
@@ -107,9 +140,9 @@ begin
   if p_in_rst='1' then
     i_shim<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_work='0' or (i_spd/=(i_spd'range =>'0') and i_cntbase=(i_cntbase'range => '1')) then
+    if i_work='0' or (i_spd/=(i_spd'range =>'0') and i_cntbase=i_spd ) then
       i_shim<='0';
-    elsif i_cntbase=i_spd then
+    elsif i_cntbase=(i_cntbase'range => '0') then
       i_shim<='1';
     end if;
   end if;

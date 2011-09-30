@@ -29,6 +29,9 @@ clr_err    : std_logic;
 end record;
 
 component sata_testgen
+generic(
+G_SCRAMBLER : string:="OFF"
+);
 port(
 ---------------------------------
 --USR

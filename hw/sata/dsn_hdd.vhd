@@ -642,11 +642,11 @@ port map
 (
 din         => p_in_hdd_txd,
 wr_en       => i_hdd_txd_wr,
---wr_clk      => ,
+--wr_clk      => p_in_clk,
 
 dout        => i_sh_txd_tmp,
 rd_en       => i_sh_txd_rd,
---rd_clk      => ,
+--rd_clk      => p_in_clk,
 
 full        => open,
 almost_full => p_out_hdd_txbuf_full,
@@ -692,6 +692,9 @@ i_hdd_rxd_rd<=p_in_hdd_rxd_rd or i_testing_on;
 i_testing_on<=i_testing_on_tmp and not i_tstgen.con2rambuf;
 
 m_testgen : sata_testgen
+generic map(
+G_SCRAMBLER => "OFF"
+)
 port map(
 p_in_gen_cfg   => i_tstgen,
 
