@@ -134,6 +134,9 @@ signal sr_mem_wr_out               : std_logic;
 signal sr_mem_term_out             : std_logic;
 signal sr_usr_txbuf_dout           : std_logic_vector(31 downto 0);
 
+signal tst_fsm_cs                  : std_logic_vector(3 downto 0);
+
+
 --MAIN
 begin
 
@@ -142,7 +145,9 @@ begin
 --//----------------------------------
 p_out_tst(0)<=i_mem_term_out;
 p_out_tst(1)<=sr_mem_term_out;
-p_out_tst(31 downto 2)<=(others=>'0');
+p_out_tst(5 downto 2)<=tst_fsm_cs;
+p_out_tst(15 downto 6)<=(others=>'0');
+p_out_tst(31 downto 16)<=i_mem_trn_len;
 --process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
@@ -156,6 +161,17 @@ p_out_tst(31 downto 2)<=(others=>'0');
 --  end if;
 --end process;
 --p_out_tst(31 downto 4)<=(others=>'0');
+
+tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_REMAIN_SIZE_CALC     else
+            CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_LEN_CALC         else
+            CONV_STD_LOGIC_VECTOR(16#03#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_WAIT_RQ_EN           else
+            CONV_STD_LOGIC_VECTOR(16#04#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_START            else
+            CONV_STD_LOGIC_VECTOR(16#05#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_START_DONE       else
+            CONV_STD_LOGIC_VECTOR(16#06#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN                  else
+            CONV_STD_LOGIC_VECTOR(16#07#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_END              else
+            CONV_STD_LOGIC_VECTOR(16#08#,tst_fsm_cs'length) when fsm_state_cs=S_WAIT                     else
+            CONV_STD_LOGIC_VECTOR(16#09#,tst_fsm_cs'length) when fsm_state_cs=S_EXIT                     else
+            CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_state_cs=S_IDLE                      else
 
 
 
@@ -364,6 +380,7 @@ begin
           i_mem_dlen_used<=i_mem_dlen_used+1;
 
           if i_mem_trn_len=(i_mem_trn_len'range => '0') then
+            i_mem_trn_len<=(others=>'0');
             i_mem_trn_work<='0';
             fsm_state_cs <= S_MEM_TRN_END;
           else
