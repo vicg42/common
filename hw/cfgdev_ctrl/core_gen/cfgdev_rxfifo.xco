@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.2
-# Date: Tue Jul 19 14:07:43 2011
+# Date: Wed Sep 28 12:44:35 2011
 #
 ##############################################################
 #
@@ -22,7 +22,7 @@ SET asysymbol = true
 SET busformat = BusFormatAngleBracketNotRipped
 SET createndf = false
 SET designentry = VHDL
-SET device = xc5vlx110t
+SET device = xc5vlx50t
 SET devicefamily = virtex5
 SET flowvendor = Other
 SET formalverification = false
@@ -109,14 +109,14 @@ CSET fifo_application_type_rdch=Data_FIFO
 CSET fifo_application_type_wach=Data_FIFO
 CSET fifo_application_type_wdch=Data_FIFO
 CSET fifo_application_type_wrch=Data_FIFO
-CSET fifo_implementation=Independent_Clocks_Distributed_RAM
+CSET fifo_implementation=Independent_Clocks_Block_RAM
 CSET fifo_implementation_axis=Common_Clock_Block_RAM
 CSET fifo_implementation_rach=Common_Clock_Block_RAM
 CSET fifo_implementation_rdch=Common_Clock_Block_RAM
 CSET fifo_implementation_wach=Common_Clock_Block_RAM
 CSET fifo_implementation_wdch=Common_Clock_Block_RAM
 CSET fifo_implementation_wrch=Common_Clock_Block_RAM
-CSET full_flags_reset_value=0
+CSET full_flags_reset_value=1
 CSET full_threshold_assert_value=63
 CSET full_threshold_assert_value_axis=1023
 CSET full_threshold_assert_value_rach=1023
@@ -195,7 +195,7 @@ CSET underflow_flag_axi=false
 CSET underflow_sense=Active_High
 CSET underflow_sense_axi=Active_High
 CSET use_clock_enable=false
-CSET use_dout_reset=false
+CSET use_dout_reset=true
 CSET use_embedded_registers=false
 CSET use_extra_logic=false
 CSET valid_flag=false
@@ -214,4 +214,4 @@ CSET wuser_width=1
 MISC pkg_timestamp=2011-03-14T07:12:32.000Z
 # END Extra information
 GENERATE
-# CRC: 7d823cee
+# CRC: 6536691f
