@@ -5,19 +5,20 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "ml505_eth_vm_main"
-set _usrdef_entity "eth_vm_main"
+set _usrdef_design "ml505_vereskm_test"
+set _usrdef_entity "vereskm_test_main"
 set _usrdef_xilinx_family "virtex5"
 set _usrdef_chip_family "v5lxt"
 set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "ml505_vereskm"
-set _usrdef_ucf_filepath "..\ucf\ml505_vm_hdd.ucf"
+set _usrdef_ucf_filename "ml505_vereskm_test"
+set _usrdef_ucf_filepath "..\ucf\ml505_vereskm_test.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
 set _VHDPkg $::projNav::VHDPkg
+set _MXCO $::projNav::MXCO
 
 set _projects [ list \
   [ list \
@@ -100,6 +101,23 @@ set _projects [ list \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vcoldemosaic_bram.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/video/color_demosaic/vcoldemosaic_main_rev3xx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vgamma_bram_rcol.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vgamma_bram_gcol.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vgamma_bram_bcol.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vgamma_bram_gray.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/video/gamma/vgamma_main.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vpcolor_rbram.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vpcolor_gbram.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vpcolor_bbram.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/video/pcolor/vpcolor_main.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vscale_bram_coef.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vscale_bram.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/video/scaler/vscaler_main_rev3xx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vsobel_bram.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
@@ -133,11 +151,13 @@ set _projects [ list \
       [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_hwstart_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_rambuf.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
@@ -145,6 +165,14 @@ set _projects [ list \
       [ list "../../../common/veresk_m/vctrl/video_writer.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tester/vtester_v01.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/trc_nik_bufout.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/trc_nik_vbuf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/trc_nik_ramang.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/trc_nik_mult.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/tracker_nik/dsn_track_nik_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/tracker_nik/dsn_track_nik.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/tracker_nik/trc_nik_core.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/tracker_nik/trc_nik_grado.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
@@ -176,8 +204,10 @@ set _projects [ list \
       [ list "../src/core_gen/host_vbuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vereskm_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/video_pkt_filter.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_timer.vhd" $_VHDMod ] \
@@ -234,9 +264,9 @@ set _projects [ list \
       [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
-      [ list "../ml505_eth_prj_cfg.vhd" $_VHDPkg ] \
-      [ list "../eth_vm_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/ml505_vm_eth.ucf" "eth_vm_main" ] \
+      [ list "../ml505_vmtest_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../vereskm_test_main.vhd" $_VHDMod ] \
+      [ list "../../ucf/ml505_vereskm_test.ucf" "vereskm_test_main" ] \
     ] \
   ] \
 ]
