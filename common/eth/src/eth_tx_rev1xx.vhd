@@ -126,10 +126,10 @@ end process ltstout;
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_MACA_DST0 else
             CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_MACA_DST1 else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_MACA_SRC else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_MACD else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_DONE else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_eth_tx_cs=S_IDLE else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_MACA_SRC  else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_MACD      else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_tx_cs=S_TX_DONE      else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_tx_cs=S_IDLE         else
 
 end generate gen_dbg_on;
 

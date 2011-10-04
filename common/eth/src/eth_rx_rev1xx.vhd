@@ -90,8 +90,8 @@ S_RX_MAC_DST,
 S_RX_MAC_SRC,
 S_RX_MAC_LENTYPE,
 S_LENTYPE_CHECK,
-S_RX_MAC_DATA_0,
-S_RX_MAC_DATA
+S_RXBUF_WDLEN,
+S_RXBUF_WDATA
 );
 signal fsm_eth_rx_cs: TEth_fsm_rx;
 
@@ -112,6 +112,10 @@ signal sr_rxll_src_rdy_n      : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
+signal tst_rxll_sof_n         : std_logic;
+signal tst_rxll_eof_n         : std_logic;
+signal tst_rxll_src_rdy_n     : std_logic;
+signal tst_rxbuf_full         : std_logic;
 
 
 --MAIN
@@ -128,22 +132,31 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
+    tst_rxll_sof_n<='0';
+    tst_rxll_eof_n<='0';
+    tst_rxll_src_rdy_n<='0';
+    tst_rxbuf_full<='0';
     tst_fms_cs_dly<=(others=>'0');
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
+    tst_rxll_sof_n<=p_in_rxll_sof_n;
+    tst_rxll_eof_n<=p_in_rxll_eof_n;
+    tst_rxll_src_rdy_n<=p_in_rxll_src_rdy_n;
+    tst_rxbuf_full<=p_in_rxbuf_full;
     tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
+
+    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or tst_rxll_src_rdy_n or tst_rxll_eof_n or tst_rxll_sof_n or tst_rxbuf_full;
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_DST else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_SRC else
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_DST     else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_SRC     else
             CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_LENTYPE else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_rx_cs=S_LENTYPE_CHECK else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_DATA_0 else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_DATA else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length) ; --//when fsm_eth_rx_cs=S_IDLE else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_rx_cs=S_LENTYPE_CHECK  else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RXBUF_WDLEN    else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RXBUF_WDATA    else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_rx_cs=S_IDLE           else
 
 end generate gen_dbg_on;
 
@@ -274,7 +287,7 @@ begin
                i_rx_mac.dst(5)=p_in_cfg.mac.src(5) then
 
             --//MAC_FRAME - наш:
-              fsm_eth_rx_cs<=S_RX_MAC_DATA_0;
+              fsm_eth_rx_cs<=S_RXBUF_WDLEN;
             else
             --//MAC_FRAME - НЕ наш:
               i_ll_dst_rdy_n<='0';
@@ -294,7 +307,7 @@ begin
         --//MACFRAME: запись данных mac frame в usr_rxbuf
         --//------------------------------------
         --//Запись pkt_len
-        when S_RX_MAC_DATA_0 =>
+        when S_RXBUF_WDLEN =>
 
           if p_in_rxbuf_full='0' then
 
@@ -309,13 +322,13 @@ begin
 
               if i_dcnt=CONV_STD_LOGIC_VECTOR((i_rx_mac.lentype'length/8)-1, i_dcnt'length) then
                 i_ll_dst_rdy_n<='0';
-                fsm_eth_rx_cs<=S_RX_MAC_DATA;
+                fsm_eth_rx_cs<=S_RXBUF_WDATA;
               end if;
 
           end if;--//if p_in_rxbuf_full='0' then
 
         --//Запись pkt_data
-        when S_RX_MAC_DATA =>
+        when S_RXBUF_WDATA =>
 
           if p_in_rxbuf_full='0' then
 
