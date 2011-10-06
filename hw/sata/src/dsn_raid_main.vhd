@@ -145,9 +145,9 @@ signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
 signal i_measure_dev_busy          : std_logic;
 signal i_measure_sh_status         : TMeasureALStatus_SHCountMax;
 signal i_measure_status_out        : TMeasureStatus;
-signal i_hw_work                   : std_logic;
-signal i_hw_start                  : std_logic;
-signal i_hw_start_dly              : std_logic;
+--signal i_hw_work                   : std_logic;
+--signal i_hw_start                  : std_logic;
+--signal i_hw_start_dly              : std_logic;
 
 --//cmdfifo
 signal i_u_cxd                     : TBus16GTCH_SHCountMax;
@@ -212,7 +212,7 @@ signal i_dbg_satah                 : TSH_dbgport_SHCountMax;
 signal i_dbgcs_satah               : TSH_dbgcs_SHCountMax;
 signal i_dbgcs_raid                : TSH_ila;
 signal i_dbgcs_measure             : TSH_ila;
-signal i_dbgcs_hwstart_dly         : TSH_ila;
+--signal i_dbgcs_hwstart_dly         : TSH_ila;
 
 signal i_tst_measure_out           : std_logic_vector(31 downto 0);
 signal i_tst_raidctrl_out          : std_logic_vector(31 downto 0);
@@ -268,47 +268,47 @@ end process;
 end generate gen_sim_on;
 
 
---//#############################################
---//Задержка аппаратного запуска
---//#############################################
-m_hwstart : sata_hwstart_ctrl
-generic map
-(
-G_T05us     => selval(75, CI_SIM_T05us, strcmp(G_SIM, "OFF")), --//для частоты 150MHz
-G_DBGCS     => G_DBGCS,
-G_DBG       => G_DBG,
-G_SIM       => G_SIM
-)
-port map
-(
---------------------------------------------------
+----//#############################################
+----//Задержка аппаратного запуска
+----//#############################################
+--m_hwstart : sata_hwstart_ctrl
+--generic map
+--(
+--G_T05us     => selval(75, CI_SIM_T05us, strcmp(G_SIM, "OFF")), --//для частоты 150MHz
+--G_DBGCS     => G_DBGCS,
+--G_DBG       => G_DBG,
+--G_SIM       => G_SIM
+--)
+--port map
+--(
+----------------------------------------------------
+----
+----------------------------------------------------
+--p_in_ctrl      => p_in_usr_ctrl,
 --
---------------------------------------------------
-p_in_ctrl      => p_in_usr_ctrl,
-
---------------------------------------------------
---Связь с модулям sata_raid.vhd
---------------------------------------------------
-p_in_hw_work   => i_hw_work,
-p_in_hw_start  => i_hw_start,
-p_out_hw_start => i_hw_start_dly,
-
-p_in_sh_cmddone=> i_usr_status.dmacfg.atadone,
-p_in_mstatus   => i_measure_status_out,
-
---------------------------------------------------
---Технологические сигналы
---------------------------------------------------
-p_in_tst       => p_in_tst,
-p_out_tst      => open,
-p_out_dbgcs    => i_dbgcs_hwstart_dly,
-
---------------------------------------------------
---System
---------------------------------------------------
-p_in_clk       => g_refclkout,--//150MHz
-p_in_rst       => p_in_rst
-);
+----------------------------------------------------
+----Связь с модулям sata_raid.vhd
+----------------------------------------------------
+--p_in_hw_work   => i_hw_work,
+--p_in_hw_start  => i_hw_start,
+--p_out_hw_start => i_hw_start_dly,
+--
+--p_in_sh_cmddone=> i_usr_status.dmacfg.atadone,
+--p_in_mstatus   => i_measure_status_out,
+--
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_in_tst       => p_in_tst,
+--p_out_tst      => open,
+--p_out_dbgcs    => i_dbgcs_hwstart_dly,
+--
+----------------------------------------------------
+----System
+----------------------------------------------------
+--p_in_clk       => g_refclkout,--//150MHz
+--p_in_rst       => p_in_rst
+--);
 
 
 --//#############################################
@@ -377,9 +377,9 @@ p_in_usr_ctrl           => p_in_usr_ctrl,
 p_out_usr_status        => i_usr_status,
 
 --//ctrl - hw start
-p_out_hw_work           => i_hw_work,
-p_out_hw_start          => i_hw_start,
-p_in_hw_start           => i_hw_start_dly,
+p_out_hw_work           => open,--i_hw_work,
+p_out_hw_start          => open,--i_hw_start,
+p_in_hw_start           => '0', --i_hw_start_dly,
 
 --//cmdpkt
 p_in_usr_cxd            => p_in_usr_cxd,
@@ -445,7 +445,7 @@ p_out_sata_dcm_lock<=i_sh_dcm_lock;
 p_out_dbgcs.sh<=i_dbgcs_satah;
 p_out_dbgcs.raid<=i_dbgcs_raid;
 p_out_dbgcs.measure<=i_dbgcs_measure;
-p_out_dbgcs.hwstart_dly<=i_dbgcs_hwstart_dly;
+--p_out_dbgcs.hwstart_dly<=i_dbgcs_hwstart_dly;
 
 
 --//#############################################

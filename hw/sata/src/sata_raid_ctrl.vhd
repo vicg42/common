@@ -114,7 +114,7 @@ architecture behavioral of sata_raid_ctrl is
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
-signal i_hwstart_dly_on            : std_logic;
+--signal i_hwstart_dly_on            : std_logic;
 signal i_err_clr                   : std_logic;
 signal i_err_streambuf             : std_logic;
 signal i_usr_status                : TUsrStatus;
@@ -154,10 +154,10 @@ end record;
 signal i_sh_det                    : TShDetect;
 signal sr_sh_cmddone               : std_logic_vector(0 to 4);
 
-signal i_sh_cmddone_width          : std_logic;
-signal i_sh_cmddone_width_cnt      : std_logic_vector(2 downto 0);
-signal i_hw_start_in               : std_logic;
-signal sr_hw_start_in              : std_logic_vector(0 to 1);
+--signal i_sh_cmddone_width          : std_logic;
+--signal i_sh_cmddone_width_cnt      : std_logic_vector(2 downto 0);
+--signal i_hw_start_in               : std_logic;
+--signal sr_hw_start_in              : std_logic_vector(0 to 1);
 
 signal i_sh_cmd_hw_start           : std_logic:='0';
 signal i_sh_cmd_en                 : std_logic;
@@ -236,7 +236,7 @@ end generate gen_dbg_on;
 --//------------------------------------------
 i_err_clr<=p_in_usr_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
 i_err_streambuf<=p_in_usr_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT);--//Только для режима HW
-i_hwstart_dly_on<=p_in_usr_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT);
+--i_hwstart_dly_on<=p_in_usr_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT);
 
 process(p_in_rst,p_in_clk)
 begin
@@ -607,49 +607,58 @@ p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
 
 
 --//HW mode
-p_out_hw_work  <=i_usrmode.hw_work;
-p_out_hw_start <=i_sh_cmddone_width;
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_sh_cmddone_width<='0';
-    i_sh_cmddone_width_cnt<=(others=>'0');
-
-    i_hw_start_in<='0';
-    sr_hw_start_in<=(others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    --//Расширяем импульс запуска задержки аппаратного пуска АТА команды,
-    --//т.к. модуль sata_hwstart_ctrl.vhd работает на другой частоте
-    if sr_sh_cmddone(4)='1' then
-      i_sh_cmddone_width<='1';
-    elsif i_sh_cmddone_width_cnt(i_sh_cmddone_width_cnt'high)='1' then
-      i_sh_cmddone_width<='0';
-    end if;
-
-    if i_sh_cmddone_width='0' then
-      i_sh_cmddone_width_cnt<=(others=>'0');
-    else
-      i_sh_cmddone_width_cnt<=i_sh_cmddone_width_cnt+1;
-    end if;
-
-    --//Выделяем задний фронт из полученой задержки
-    i_hw_start_in<=p_in_hw_start;
-    sr_hw_start_in<=i_hw_start_in & sr_hw_start_in(0 to 0);
-
-  end if;
-end process;
-
---//Выбор аппаратного запуска: с управляемой задержкой или вообще без задержки
+p_out_hw_work  <='0';
+p_out_hw_start <='0';
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    i_sh_cmd_hw_start<=(not i_hwstart_dly_on and sr_sh_cmddone(4)) or
-                       (    i_hwstart_dly_on and not sr_hw_start_in(0) and sr_hw_start_in(1));
+    i_sh_cmd_hw_start<=sr_sh_cmddone(4);
   end if;
 end process;
+
+--p_out_hw_work  <=i_usrmode.hw_work;
+--p_out_hw_start <=i_sh_cmddone_width;
+--
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_sh_cmddone_width<='0';
+--    i_sh_cmddone_width_cnt<=(others=>'0');
+--
+--    i_hw_start_in<='0';
+--    sr_hw_start_in<=(others=>'0');
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+--    --//Расширяем импульс запуска задержки аппаратного пуска АТА команды,
+--    --//т.к. модуль sata_hwstart_ctrl.vhd работает на другой частоте
+--    if sr_sh_cmddone(4)='1' then
+--      i_sh_cmddone_width<='1';
+--    elsif i_sh_cmddone_width_cnt(i_sh_cmddone_width_cnt'high)='1' then
+--      i_sh_cmddone_width<='0';
+--    end if;
+--
+--    if i_sh_cmddone_width='0' then
+--      i_sh_cmddone_width_cnt<=(others=>'0');
+--    else
+--      i_sh_cmddone_width_cnt<=i_sh_cmddone_width_cnt+1;
+--    end if;
+--
+--    --//Выделяем задний фронт из полученой задержки
+--    i_hw_start_in<=p_in_hw_start;
+--    sr_hw_start_in<=i_hw_start_in & sr_hw_start_in(0 to 0);
+--
+--  end if;
+--end process;
+--
+----//Выбор аппаратного запуска: с управляемой задержкой или вообще без задержки
+--process(p_in_clk)
+--begin
+--  if p_in_clk'event and p_in_clk='1' then
+--    i_sh_cmd_hw_start<=(not i_hwstart_dly_on and sr_sh_cmddone(4)) or
+--                       (    i_hwstart_dly_on and not sr_hw_start_in(0) and sr_hw_start_in(1));
+--  end if;
+--end process;
 
 --//Режим HW: Активная работа
 process(p_in_rst,p_in_clk)
