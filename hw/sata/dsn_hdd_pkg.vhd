@@ -61,6 +61,7 @@ mem_adr : std_logic_vector(31 downto 0);
 dmacfg  : TDMAcfg;
 tstgen  : THDDTstGen;
 hwlog   : THWLog;
+usr     : std_logic_vector(31 downto 0);
 end record;
 
 
