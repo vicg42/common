@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0327#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0328#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -91,7 +91,7 @@ constant C_HREG_GCTRL0_LBUS_SEL_BIT                 : integer:=1;--//
 constant C_HREG_GCTRL0_RST_HDD_BIT                  : integer:=2;--//
 constant C_HREG_GCTRL0_RST_ETH_BIT                  : integer:=3;--//
 constant C_HREG_GCTRL0_RDDONE_VCTRL_BIT             : integer:=4;--//
-constant C_HREG_GCTRL0_RDDONE_TRC_BIT               : integer:=5;--//
+--constant                                            : integer:=5;--//
 constant C_HREG_GCTRL0_RDDONE_TRCNIK_BIT            : integer:=6;--//
 constant C_HREG_GCTRL0_RESERV7_BIT                  : integer:=7;--//
 constant C_HREG_GCTRL0_RESERV8_BIT                  : integer:=8;--//
@@ -122,7 +122,6 @@ constant C_HIRQ_VIDEO_CH0                           : integer:=16#06#;
 constant C_HIRQ_VIDEO_CH1                           : integer:=16#07#;
 constant C_HIRQ_VIDEO_CH2                           : integer:=16#08#;
 constant C_HIRQ_TRACK_NIK                           : integer:=16#09#;
-constant C_HIRQ_TRACK                               : integer:=16#0A#;
 
 constant C_HIRQ_COUNT                               : integer:=C_HIRQ_TRACK_NIK+1;--//Текущее кол-во источников прерываний
 constant C_HIRQ_COUNT_MAX                           : integer:=16; --//Максимальное кол-во источников перывание.
@@ -218,7 +217,7 @@ constant C_HREG_STATUS_DEV_RESERV_22_BIT            : integer:=22;
 constant C_HREG_STATUS_DEV_DSNTEST_RDY_BIT          : integer:=23;
 constant C_HREG_STATUS_DEV_DSNTEST_ERR_BIT          : integer:=24;
 
-constant C_HREG_STATUS_DEV_TRC_DRDY_BIT             : integer:=25;--//add 2010.10.04
+constant C_HREG_STATUS_DEV_RESERV_25_BIT            : integer:=25;
 constant C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT          : integer:=26;--//add 2010.11.21
 
 constant C_HREG_STATUS_DEV_INT_ACT_BIT              : integer:=27;--//
@@ -298,7 +297,6 @@ constant C_CFGDEV_VCTRL                             : integer:=16#03#;
 constant C_CFGDEV_TESTING                           : integer:=16#04#;
 constant C_CFGDEV_TMR                               : integer:=16#05#;
 constant C_CFGDEV_TRACK_NIK                         : integer:=16#06#;
---constant C_CFGDEV_TRACK                             : integer:=16#07#;
 
 constant C_CFGDEV_COUNT                             : integer:=16#06# + 1;
 
@@ -426,7 +424,7 @@ constant C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT            : integer:=0;--//Сброс ошибо
 constant C_DSN_HDD_REG_CTRLL_TST_ON_BIT             : integer:=1;--//Вкл/Выкл режима измерения задержек
 constant C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT     : integer:=2;
 constant C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT : integer:=3;
-constant C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
+constant C_DSN_HDD_REG_CTRLL_TST_GEND0_BIT          : integer:=4;--//TestGen/Data=0
 constant C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT          : integer:=5;
 constant C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT          : integer:=12;
 constant C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT   : integer:=13;
@@ -569,71 +567,6 @@ constant C_DSN_VCTRL_REG_TST0_DBG_RDHOLD_BIT        : integer:=10;--//Эмуляция з
 constant C_DSN_VCTRL_REG_TST0_DBG_TRCHOLD_BIT       : integer:=11;--//Эмуляция захвата видеобуфера модулем слежения
 constant C_DSN_VCTRL_REG_TST0_LAST_BIT              : integer:=12;
 
-
---//--------------------------------------------------------------
---//Регистры модуля dsn_track.vhd
---//--------------------------------------------------------------
-constant C_DSN_TRC_REG_WIN_SKIP_LSB                 : integer:=16#000#;
-constant C_DSN_TRC_REG_WIN_SKIP_MSB                 : integer:=16#001#;
-constant C_DSN_TRC_REG_WIN_ACTIVE_LSB               : integer:=16#002#;
-constant C_DSN_TRC_REG_WIN_ACTIVE_MSB               : integer:=16#003#;
-constant C_DSN_TRC_REG_THRESHOLD                    : integer:=16#004#;
-constant C_DSN_TRC_REG_FR_OPTION_LSB                : integer:=16#005#;
-constant C_DSN_TRC_REG_FR_OPTION_MSB                : integer:=16#006#;
-constant C_DSN_TRC_REG_MEM_ATBUF_LSB                : integer:=16#007#;--//Базовый адрес буфера зоны слежения
-constant C_DSN_TRC_REG_MEM_ATBUF_MSB                : integer:=16#008#;
-constant C_DSN_TRC_REG_MEM_AEBUF_LSB                : integer:=16#009#;--//Базовый адрес буфера окна слежения (строба)
-constant C_DSN_TRC_REG_MEM_AEBUF_MSB                : integer:=16#00A#;
-constant C_DSN_TRC_REG_ZONE_SKIP_LSB                : integer:=16#00B#;
-constant C_DSN_TRC_REG_ZONE_SKIP_MSB                : integer:=16#00C#;
-constant C_DSN_TRC_REG_ZONE_ACTIVE_LSB              : integer:=16#00D#;
-constant C_DSN_TRC_REG_ZONE_ACTIVE_MSB              : integer:=16#00E#;
-
-constant C_DSN_TRC_REG_CTRL_L                       : integer:=16#010#;
---constant C_DSN_TRC_REG_CTRL_M                       : integer:=16#011#;
-constant C_DSN_TRC_REG_MEM_TRN_LEN                  : integer:=16#012#;
-constant C_DSN_TRC_REG_TST0                         : integer:=16#013#;
---constant C_DSN_TRC_REG_TST1                         : integer:=16#014#;
-
-
---//Каналы слежения = кол-ву видео каналов
---//ВАЖНО: пока сделано жестко для 1-го канала
-constant C_DSN_TRC_CH_COUNT                         : integer:=1;--//Текщее кол-во
-constant C_DSN_TRC_CH_MAX_COUNT                     : integer:=3;--//Max кол-во
-
---//Register C_DSN_TRC_REG_MEM_ADDR / Bit Map:
-constant C_DSN_TRC_REG_MEM_ADR_OFFSET_LSB_BIT       : integer:=C_HREG_USR_MEM_ADR_OFFSET_LSB_BIT;
-constant C_DSN_TRC_REG_MEM_ADR_OFFSET_MSB_BIT       : integer:=C_HREG_USR_MEM_ADR_OFFSET_MSB_BIT;
-constant C_DSN_TRC_REG_MEM_ADR_BANK_LSB_BIT         : integer:=C_HREG_USR_MEM_ADR_BANK_LSB_BIT;
-constant C_DSN_TRC_REG_MEM_ADR_BANK_MSB_BIT         : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;
-constant C_DSN_TRC_REG_MEM_LAST_BIT                 : integer:=C_DSN_TRC_REG_MEM_ADR_BANK_MSB_BIT;
-
-
-constant C_DSN_TRC_MEM_VCH                          : integer:=3;
-constant C_DSN_TRC_MEM_VFR_TBUF                     : integer:=1;
-constant C_DSN_TRC_MEM_VFR_EBUF                     : integer:=0;
-
-
---//Bit Maps:
---//Register C_DSN_TRC_REG_CTRL / Bit Map:
-constant C_DSN_TRC_REG_CTRL_CH_IDX_LSB_BIT          : integer:=0;
-constant C_DSN_TRC_REG_CTRL_CH_IDX_MSB_BIT          : integer:=3;
-constant C_DSN_TRC_REG_CTRL_SET_BIT                 : integer:=7;
-constant C_DSN_TRC_REG_CTRL_WORK_BIT                : integer:=9;
-constant C_DSN_TRC_REG_CTRL_LAST_BIT                : integer:=C_DSN_TRC_REG_CTRL_WORK_BIT;
-
-
---//Register C_DSN_TRC_REG_TST0 / Bit Map:
-constant C_DSN_TRC_REG_TST0_DIS_WRRESULT_BIT        : integer:=0;
---constant C_DSN_TRC_REG_TST0_NXTFR_MNL_BIT           : integer:=1;
-constant C_DSN_TRC_REG_TST0_TRCZONE_MNL_BIT         : integer:=2;--//1/0 - Зона слежения=из параметров dsn_track.vhd / Зона слежения=VCTRL/FR_ACTIVE
-constant C_DSN_TRC_REG_TST0_COLOR_BIT               : integer:=3;--//Тестовое управление модулем vcoldemosaic_main.vhd в следилке. (0/1 - baypass/управление от VCTRL)
-constant C_DSN_TRC_REG_TST0_SOBEL_CTRL_DIV_BIT      : integer:=4;--//1/0 - dx/2 и dy/2 /нет делений
-constant C_DSN_TRC_REG_TST0_SOBEL_CTRL_MULT_BIT     : integer:=5;--//1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
-constant C_DSN_TRC_REG_TST0_DIS_WRTBUF_BIT          : integer:=6;--//1/0 - запретить/разрешить запист данных в TBUF
-constant C_DSN_TRC_REG_TST0_TRCWIN_DIN_SEL_BIT      : integer:=7;--//1/0 - на вход модуля trc_win Чистые/Обработаные Собелом видео данные
-constant C_DSN_TRC_REG_TST0_TBUF_CLR_BIT            : integer:=8;--//1 - Очистка буфера RAM/TRACK/TBUF (буфера эталона и видео соответственно)
-constant C_DSN_TRC_REG_TST0_LAST_BIT                : integer:=C_DSN_TRC_REG_TST0_TBUF_CLR_BIT;
 
 
 --//--------------------------------------------------------------
