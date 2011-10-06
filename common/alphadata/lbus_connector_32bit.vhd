@@ -394,7 +394,6 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   signal i_interrupt_clr    : std_logic;
   signal i_trn_rst_sw       : std_logic;
   signal i_hrddone_vctrl    : std_logic;
-  signal i_hrddone_trc      : std_logic;
   signal i_hrddone_trcnik   : std_logic;
 
 begin
@@ -1047,7 +1046,6 @@ end process;
   p_out_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT);
   p_out_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT);
   p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
-  p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT)<=i_hrddone_trc;
   p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
   p_out_glob_ctrl(C_HREG_GCTRL0_RESERV7_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV7_BIT);
   p_out_glob_ctrl(C_HREG_GCTRL0_RESERV8_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV8_BIT);
@@ -1094,7 +1092,6 @@ end process;
     variable var_trn_rst_edge    : std_logic;
     variable var_dev_txd_rdy_edge: std_logic;
     variable var_hrddone_vctrl_edge: std_logic;
-    variable var_hrddone_trc_edge: std_logic;
     variable var_hrddone_trcnik_edge: std_logic;
 
   begin
@@ -1105,7 +1102,6 @@ end process;
       var_int_clr_edge    :='0';
       var_trn_rst_edge    :='0';
       var_hrddone_vctrl_edge:='0';
-      var_hrddone_trc_edge:='0';
       var_hrddone_trcnik_edge:='0';
 
       v_reg_glob_ctrl<=(others=>'0');
@@ -1118,7 +1114,6 @@ end process;
       i_interrupt_clr <='0';
       i_trn_rst_sw    <='0';
       i_hrddone_vctrl <='0';
-      i_hrddone_trc<='0';
       i_hrddone_trcnik<='0';
 
     elsif clk'event and clk = '1' then
@@ -1128,7 +1123,6 @@ end process;
       var_int_clr_edge    :='0';
       var_trn_rst_edge    :='0';
       var_hrddone_vctrl_edge:='0';
-      var_hrddone_trc_edge:='0';
       var_hrddone_trcnik_edge:='0';
 
         if usr_reg_wr='1' then
@@ -1142,7 +1136,6 @@ end process;
               end loop;
 
               var_hrddone_vctrl_edge:=ld_iq(C_HREG_GCTRL0_RDDONE_VCTRL_BIT);
-              var_hrddone_trc_edge:=ld_iq(C_HREG_GCTRL0_RDDONE_TRC_BIT);
               var_hrddone_trcnik_edge:=ld_iq(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT);
 
             elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL, 5) then
@@ -1181,7 +1174,6 @@ end process;
 --    i_interrupt_clr <=var_int_clr_edge;
     i_trn_rst_sw    <=var_trn_rst_edge;
     i_hrddone_vctrl<=var_hrddone_vctrl_edge;
-    i_hrddone_trc<=var_hrddone_trc_edge;
     i_hrddone_trcnik<=var_hrddone_trcnik_edge;
 
     end if;

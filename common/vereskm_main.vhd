@@ -566,14 +566,6 @@ signal i_vctrlwr_mem_rpe                : std_logic;
 --signal i_vctrlwr_mem_clk                : std_logic;
 
 signal i_trc_module_rst                 : std_logic;
---signal hclk_hrddone_trc_cnt             : std_logic_vector(2 downto 0);
---signal hclk_hrddone_trc                 : std_logic;
---signal i_trc_cfg_rxdata                 : std_logic_vector(15 downto 0):=(others=>'0');
---signal i_trc_hrd_done_dly               : std_logic_vector(1 downto 0);
---signal i_trc_hrd_done                   : std_logic;
---signal i_trc_hirq                       : std_logic:='0';
---signal i_trc_hdrdy                      : std_logic:='0';
---signal i_trc_hfrmrk                     : std_logic_vector(31 downto 0):=(others=>'0');
 signal hclk_hrddone_trcnik_cnt          : std_logic_vector(2 downto 0);
 signal hclk_hrddone_trcnik              : std_logic;
 signal i_trcnik_cfg_rxdata              : std_logic_vector(15 downto 0):=(others=>'0');
@@ -661,7 +653,7 @@ rst_sys_n <= lreset_l;
 i_host_rst_n        <=    rst_sys_n;
 i_gt_X0Y6_rst       <=not i_host_module_rdy;
 i_tmr_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all;
-i_cfg_module_rst <=not rst_sys_n or i_host_rgctrl_rst_all;
+i_cfg_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_eth_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all or i_host_rgctrl_rst_eth;
 i_vctrl_module_rst  <=not rst_sys_n or i_host_rgctrl_rst_all;
 i_trc_module_rst    <=not rst_sys_n or i_host_rgctrl_rst_all;
@@ -844,7 +836,6 @@ i_cfg_rxdata<=i_hdd_cfg_rxdata    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VEC
               i_dsntst_cfg_rxdata when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, 4) else
               i_tmr_cfg_rxdata    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4) else
               (others=>'0');
---              i_trc_cfg_rxdata    when i_cfg_dadr=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRACK, i_cfg_dadr'length) else
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
 i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
@@ -1278,96 +1269,6 @@ p_in_rst => i_vctrl_module_rst
 --***********************************************************
 --Проект Модуля Слежения - dsn_track.vhd
 --***********************************************************
---m_track : dsn_track
---generic map(
---G_SIM             => G_SIM,
---G_MODULE_USE      => C_USE_TRACK,
---
---G_MEM_BANK_MSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT,
---G_MEM_BANK_LSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT,
---
---G_MEM_VCH_MSB_BIT    => C_DSN_VCTRL_MEM_VCH_MSB_BIT,
---G_MEM_VCH_LSB_BIT    => C_DSN_VCTRL_MEM_VCH_LSB_BIT,
---G_MEM_VFRAME_LSB_BIT => C_DSN_VCTRL_MEM_VFRAME_LSB_BIT,
---G_MEM_VFRAME_MSB_BIT => C_DSN_VCTRL_MEM_VFRAME_MSB_BIT,
---G_MEM_VROW_MSB_BIT   => C_DSN_VCTRL_MEM_VLINE_MSB_BIT,
---G_MEM_VROW_LSB_BIT   => C_DSN_VCTRL_MEM_VLINE_LSB_BIT
---)
---port map
---(
----------------------------------
----- Управление от Хоста
----------------------------------
---p_in_host_clk         => g_host_clk,
---
---p_in_cfg_adr          => i_cfg_radr(7 downto 0),
---p_in_cfg_adr_ld       => i_cfg_radr_ld,
---p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
---
---p_in_cfg_txdata       => i_cfg_txdata,
---p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_TRACK),
---
---p_out_cfg_rxdata      => i_trc_cfg_rxdata,
---p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_TRACK),
---
---p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_TRACK),
---
----------------------------------
----- Связь с ХОСТ
----------------------------------
---p_out_trc_hirq           => i_trc_hirq,
---p_out_trc_hdrdy          => i_trc_hdrdy,
---p_out_trc_hfrmrk         => i_trc_hfrmrk,
---p_in_trc_hrddone         => i_trc_hrd_done,
---
---p_out_trc_bufo_dout      => i_host_trcbufo_dout,
---p_in_trc_bufo_rd         => i_host_trcbufo_rd,
---p_out_trc_bufo_empty     => i_trcbufo_empty,
---
----------------------------------
----- Связь с VCTRL
----------------------------------
---p_in_vctrl_vrdprms       => i_vctrl_vrdprms,
---p_in_vctrl_vfrrdy        => i_vctrl_vfrdy,
---p_in_vctrl_vbuf          => i_trc_vbufs,
---p_in_vctrl_vrowmrk       => i_vctrl_vrowmrk,
---
------------------------------------
----- Связь с memory_ctrl.vhd
------------------------------------
---p_out_memarb_req         => i_trc_memarb_req,
---p_in_memarb_en           => i_trc_memarb_en,
---
---p_out_mem_bank1h         => i_trc_mem_bank1h,
---p_out_mem_ce             => i_trc_mem_ce,
---p_out_mem_cw             => i_trc_mem_cw,
---p_out_mem_rd             => i_trc_mem_rd,
---p_out_mem_wr             => i_trc_mem_wr,
---p_out_mem_term           => i_trc_mem_term,
---p_out_mem_adr            => i_trc_mem_adr,
---p_out_mem_be             => i_trc_mem_be,
---p_out_mem_din            => i_trc_mem_din,
---p_in_mem_dout            => i_trc_mem_dout,
---
---p_in_mem_wf              => i_trc_mem_wf,
---p_in_mem_wpf             => i_trc_mem_wpf,
---p_in_mem_re              => i_trc_mem_re,
---p_in_mem_rpe             => i_trc_mem_rpe,
---
----------------------------------
-----Технологический
----------------------------------
---p_in_tst                 => "00000000000000000000000000000000",
---p_out_tst                => i_trc_tst_out,
---
----------------------------------
-----System
----------------------------------
---p_in_clk => g_usr_highclk,
---p_in_rst => i_trc_module_rst
---);
-
-
 m_track : dsn_track_nik
 generic map(
 G_SIM             => G_SIM,
@@ -1758,7 +1659,6 @@ i_host_rgctrl_rst_hdd<=i_host_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT);
 i_host_rgctrl_rst_eth<=i_host_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT);
 i_host_rgctrl_rddone_vctrl<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT);
 i_host_rgctrl_rddone_trcnik<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT);
---i_host_rgctrl_rddone_trc<=i_host_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT);
 
 
 --//Уст. биты региста СТАТУСА устр-в
@@ -1789,7 +1689,7 @@ i_host_dev_status(C_HREG_STATUS_DEV_DSNTEST_ERR_BIT) <=i_dsntst_module_error;
 i_host_dev_status(C_HREG_STATUS_DEV_RESERV_15BIT) <='0';
 i_host_dev_status(C_HREG_STATUS_DEV_RESERV_16BIT) <='0';
 
-i_host_dev_status(C_HREG_STATUS_DEV_TRC_DRDY_BIT) <='0';--i_trc_hdrdy;
+i_host_dev_status(C_HREG_STATUS_DEV_RESERV_25_BIT) <='0';
 i_host_dev_status(C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT) <=i_trcnik_hdrdy;
 
 i_host_dev_status(C_HREG_STATUS_DCM_ETH_GTP_LOCK_BIT)<=i_eth_module_gt_plllkdet;
@@ -1853,8 +1753,7 @@ i_host_dev_irq(C_HIRQ_VIDEO_CH0)    <=i_vctrl_hirq_out(0);
 i_host_dev_irq(C_HIRQ_VIDEO_CH1)    <=i_vctrl_hirq_out(1);
 i_host_dev_irq(C_HIRQ_VIDEO_CH2)    <=i_vctrl_hirq_out(2);
 i_host_dev_irq(C_HIRQ_TRACK_NIK)    <=i_trcnik_hirq;
-i_host_dev_irq(C_HIRQ_TRACK)        <='0';--i_trc_hirq;
-i_host_dev_irq(31 downto C_HIRQ_TRACK+1)<=(others=>'0');
+i_host_dev_irq(31 downto C_HIRQ_TRACK_NIK+1)<=(others=>'0');
 
 i_host_dev_irq_out<=EXT(i_host_dev_irq(C_HIRQ_COUNT-1 downto 0), i_host_dev_irq_out'length);
 
@@ -1878,9 +1777,6 @@ begin
 
     hclk_hrddone_vctrl<='0';
     hclk_hrddone_vctrl_cnt<=(others=>'0');
-
---    hclk_hrddone_trc<='0';
---    hclk_hrddone_trc_cnt<=(others=>'0');
 
     hclk_hrddone_trcnik<='0';
     hclk_hrddone_trcnik_cnt<=(others=>'0');
@@ -1930,20 +1826,6 @@ begin
       hclk_hrddone_vctrl_cnt<=hclk_hrddone_vctrl_cnt+1;
     end if;
 
---    --//Растягиваем импульс i_host_rgctrl_rddone_trc
---    if i_host_rgctrl_rddone_trc='1' then
---      hclk_hrddone_trc<='1';
---    elsif hclk_hrddone_trc_cnt="100" then
---      hclk_hrddone_trc<='0';
---    end if;
---
---    if hclk_hrddone_trc='0' then
---      hclk_hrddone_trc_cnt<=(others=>'0');
---    else
---      hclk_hrddone_trc_cnt<=hclk_hrddone_trc_cnt+1;
---    end if;
-
-
     --//Растягиваем импульс i_host_rgctrl_rddone_trcnik
     if i_host_rgctrl_rddone_trcnik='1' then
       hclk_hrddone_trcnik<='1';
@@ -1958,7 +1840,7 @@ begin
     end if;
 
     --//Растягиваем импульс
-    if i_host_mem_ce='1' then --or i_host_mem_term='1' then
+    if i_host_mem_ce='1' then
       hclk_hmem_ce<='1';
     elsif hclk_hmem_ce_cnt(2)='1' then
       hclk_hmem_ce<='0';
@@ -1982,9 +1864,6 @@ begin
     i_vctrl_hrd_done<='0';
     i_vctrl_hrd_done_dly<=(others=>'0');
 
---    i_trc_hrd_done_dly<=(others=>'0');
---    i_trc_hrd_done<='0';
-
     i_trcnik_hrd_done_dly<=(others=>'0');
     i_trcnik_hrd_done<='0';
 
@@ -1996,10 +1875,6 @@ begin
     i_vctrl_hrd_done_dly(0)<=hclk_hrddone_vctrl;
     i_vctrl_hrd_done_dly(1)<=i_vctrl_hrd_done_dly(0);
     i_vctrl_hrd_done<=i_vctrl_hrd_done_dly(0) and not i_vctrl_hrd_done_dly(1);
-
---    i_trc_hrd_done_dly(0)<=hclk_hrddone_trc;
---    i_trc_hrd_done_dly(1)<=i_trc_hrd_done_dly(0);
---    i_trc_hrd_done<=i_trc_hrd_done_dly(0) and not i_trc_hrd_done_dly(1);
 
     i_trcnik_hrd_done_dly(0)<=hclk_hrddone_trcnik;
     i_trcnik_hrd_done_dly(1)<=i_trcnik_hrd_done_dly(0);

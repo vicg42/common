@@ -308,7 +308,6 @@ signal vereskm_reg_bar             : std_logic;
 signal vereskm_reg_adr             : std_logic_vector(6 downto 0); --//Адреса регистров проекта VERESK-M
 
 signal i_hrddone_vctrl             : std_logic;
-signal i_hrddone_trc               : std_logic;
 signal i_hrddone_trcnik            : std_logic;
 signal i_mst_usr_rxbuf_rd_last_del : std_logic;
 
@@ -654,7 +653,6 @@ process(p_in_rst_n,p_in_clk)
   variable var_dmaparam_wr     : std_logic;
   variable var_dma_done_flag_clr: std_logic;
   variable var_hrddone_vctrl_edge: std_logic;
-  variable var_hrddone_trc_edge: std_logic;
   variable var_hrddone_trcnik_edge: std_logic;
 begin
   if p_in_rst_n='0' then
@@ -689,9 +687,7 @@ begin
     var_dmaparam_wr:='0';
     var_hrddone_vctrl_edge:='0';
     i_hrddone_vctrl<='0';
-    var_hrddone_trc_edge:='0';
     var_hrddone_trcnik_edge:='0';
-    i_hrddone_trc<='0';
     i_hrddone_trcnik<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -702,7 +698,6 @@ begin
     var_int_clr_edge:='0';
     var_trn_rst_edge:='0';
     var_hrddone_vctrl_edge:='0';
-    var_hrddone_trc_edge:='0';
     var_hrddone_trcnik_edge:='0';
     var_dma_done_flag_clr:='0';
 
@@ -713,7 +708,6 @@ begin
       --//--------------------------------------------
         if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0, 5)  then v_reg_glob_ctrl<=i_reg_rxdata(v_reg_glob_ctrl'high downto 0);
             var_hrddone_vctrl_edge:=i_reg_rxdata(C_HREG_GCTRL0_RDDONE_VCTRL_BIT);
-            var_hrddone_trc_edge:=i_reg_rxdata(C_HREG_GCTRL0_RDDONE_TRC_BIT);
             var_hrddone_trcnik_edge:=i_reg_rxdata(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT);
 
         elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TRN_DMA_ADDR, 5)then i_host_dmaparam_din<=i_reg_rxdata;
@@ -778,7 +772,6 @@ begin
     i_irq_src_clr<=var_int_clr_edge;
     i_trn_rst_sw<=var_trn_rst_edge;
     i_hrddone_vctrl<=var_hrddone_vctrl_edge;
-    i_hrddone_trc<=var_hrddone_trc_edge;
     i_hrddone_trcnik<=var_hrddone_trcnik_edge;
 
     i_dma_done_flag_clr<=var_dma_done_flag_clr;
@@ -874,14 +867,17 @@ begin
 --        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TRC_VFRD_MRK, 5) then var_val:=p_in_dev_option(95 downto 64);
 
 
-        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0, 5) then var_val:=EXT(v_reg_tst0, i_reg_txdata'length);
-        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST1, 5) then --var_val:=EXT(v_reg_tst1, i_reg_txdata'length);
+        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0, 5) then
+          var_val:=EXT(v_reg_tst0, i_reg_txdata'length);
+
+        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST1, 5) then
+          var_val:=p_in_usr_tst(103 downto 72);--EXT(v_reg_tst1, i_reg_txdata'length);--
+
+        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST2, 5) then
           var_val(7 downto 0):=p_in_usr_tst(71 downto 64);--//Тестирование счетчик пропущеных кадров читаемого канала
           var_val(30 downto 8):=v_reg_tst1(30 downto 8);
           var_val(31):=p_in_usr_tst(127);-- or p_in_tst_irq_ctrl(0);
 
-        elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST2, 5) then
-          var_val:=EXT(v_reg_tst2, i_reg_txdata'length);
         end if;
 
       elsif mem_reg_bar='1' then
@@ -1272,7 +1268,6 @@ p_out_glob_ctrl(C_HREG_GCTRL0_LBUS_SEL_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_LBUS_
 p_out_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT);
 p_out_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT);
 p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
-p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT)<=i_hrddone_trc;
 p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
 p_out_glob_ctrl(C_HREG_GCTRL0_RESERV7_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV7_BIT);
 p_out_glob_ctrl(C_HREG_GCTRL0_RESERV8_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV8_BIT);
