@@ -26,6 +26,7 @@ tesing_spd : std_logic_vector(7 downto 0);
 start      : std_logic;
 stop       : std_logic;
 clr_err    : std_logic;
+td_zero    : std_logic;
 end record;
 
 component sata_testgen

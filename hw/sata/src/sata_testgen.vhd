@@ -70,7 +70,8 @@ begin
 
 
 gen_srcambler_off : if strcmp(G_SCRAMBLER,"OFF") generate
-p_out_tdata<=CONV_STD_LOGIC_VECTOR(16#55667788#, p_out_tdata'length);
+p_out_tdata<=CONV_STD_LOGIC_VECTOR(16#55667788#, p_out_tdata'length) when p_in_gen_cfg.td_zero='0' else
+            (others=>'0');
 end generate gen_srcambler_off;
 
 gen_srcambler_on : if strcmp(G_SCRAMBLER,"ON") generate
@@ -93,7 +94,7 @@ p_out_result => i_srambler_out,
 p_in_clk     => p_in_clk,
 p_in_rst     => p_in_rst
 );
-p_out_tdata<=i_srambler_out;
+p_out_tdata<=i_srambler_out when p_in_gen_cfg.td_zero='0' else (others=>'0');
 
 end generate gen_srcambler_on;
 
