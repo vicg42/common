@@ -411,13 +411,14 @@ i_tstgen.tesing_spd<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN
 i_tstgen.start<=i_sh_status.dmacfg.tstgen_start;
 i_tstgen.stop<=i_sh_status.dmacfg.hw_mode;
 i_tstgen.clr_err<=i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
+i_tstgen.td_zero<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_TST_GEND0_BIT);
 
 i_sh_ctrl(C_USR_GCTRL_HWLOG_ON_BIT)  <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT);
 i_sh_ctrl(C_USR_GCTRL_TST_ON_BIT)    <=i_tstgen.tesing_on;
 i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT) or p_in_tst(0);
 i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=p_in_rbuf_status.err and not i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
-i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_MEASURE_RXHOLD_DIS_BIT);
+i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<='0';
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<=i_reg_ctrl_l(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT);
 
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_FIX_BIT)<=i_reg_hwstart_dly(C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT);
@@ -461,6 +462,7 @@ p_out_rbuf_cfg.mem_adr<=h_reg_rambuf_adr;
 p_out_rbuf_cfg.dmacfg <=i_sh_status.dmacfg;
 p_out_rbuf_cfg.tstgen <=i_tstgen;
 p_out_rbuf_cfg.hwlog  <=i_sh_measure.hwlog;
+p_out_rbuf_cfg.usr    <=EXT(i_reg_hwstart_dly, p_out_rbuf_cfg.usr'length);
 
 
 --//Статусы модуля
