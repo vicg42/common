@@ -922,7 +922,7 @@ p_in_rst     => i_dcm_rst
 m_pll_mem_ctrl : memory_ctrl_pll
 port map
 (
-mclk      => g_lbus_clkfx,--g_refclk200MHz,
+mclk      => g_refclk200MHz,--g_lbus_clkfx,--
 rst       => i_memctrl_rst,
 refclk200 => g_refclk200MHz,
 
@@ -1624,10 +1624,10 @@ end generate gen_satah;
 m_hdd_rambuf : dsn_hdd_rambuf
 generic map
 (
-G_MODULE_USE           => C_USE_HDD,
-G_RAMBUF_SIZE          => C_HDD_RAMBUF_SIZE,
-G_DBGCS                => G_DBGCS_HDD,
-G_SIM                  => G_SIM
+G_MODULE_USE  => C_USE_HDD,
+G_RAMBUF_SIZE => C_HDD_RAMBUF_SIZE,
+G_DBGCS       => G_DBGCS_HDD,
+G_SIM         => G_SIM
 )
 port map
 (
@@ -1795,7 +1795,8 @@ p_in_rst_n         => i_host_rst_n
 --i_host_tst_in(63 downto 47)<=i_host_tst_out(63 downto 47);
 
 i_host_tst_in(71 downto 64)<=i_vctrl_tst_out(23 downto 16);
-i_host_tst_in(126 downto 72)<=(others=>'0');
+i_host_tst_in(103 downto 72)<=(others=>'0');
+i_host_tst_in(126 downto 104)<=(others=>'0');
 i_host_tst_in(127)<=i_vctrl_tst_out(0) xor
                     i_mem_arb1_tst_out(0) xor i_hdd_tst_out(0);-- i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0); i_cfgdev_tst_out(0) xor
 
@@ -1835,7 +1836,7 @@ i_host_dev_status(C_HREG_STATUS_DEV_DSNTEST_ERR_BIT) <=i_dsntst_module_error;
 i_host_dev_status(C_HREG_STATUS_DEV_RESERV_15BIT) <='0';
 i_host_dev_status(C_HREG_STATUS_DEV_RESERV_16BIT) <='0';
 
-i_host_dev_status(C_HREG_STATUS_DEV_TRC_DRDY_BIT) <='0';
+i_host_dev_status(C_HREG_STATUS_DEV_RESERV_25_BIT) <='0';
 i_host_dev_status(C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT) <='0';
 
 i_host_dev_status(C_HREG_STATUS_DCM_ETH_GTP_LOCK_BIT)<=i_eth_module_gt_plllkdet;
@@ -1895,8 +1896,7 @@ i_host_dev_irq(C_HIRQ_VIDEO_CH0)    <=i_vctrl_hirq_out(0);
 i_host_dev_irq(C_HIRQ_VIDEO_CH1)    <=i_vctrl_hirq_out(1);
 i_host_dev_irq(C_HIRQ_VIDEO_CH2)    <=i_vctrl_hirq_out(2);
 i_host_dev_irq(C_HIRQ_TRACK_NIK)    <='0';
-i_host_dev_irq(C_HIRQ_TRACK)        <='0';
-i_host_dev_irq(31 downto C_HIRQ_TRACK+1)<=(others=>'0');
+i_host_dev_irq(31 downto C_HIRQ_TRACK_NIK+1)<=(others=>'0');
 
 i_host_dev_irq_out<=EXT(i_host_dev_irq(C_HIRQ_COUNT-1 downto 0), i_host_dev_irq_out'length);
 
@@ -2453,13 +2453,14 @@ gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
 
 m_dbgcs_icon : dbgcs_iconx1
 port map(
-CONTROL0 => i_dbgcs_hdd_rambuf --i_dbgcs_hdd_raid
+CONTROL0 => i_dbgcs_hdd_rambuf
+--CONTROL0 => i_dbgcs_hdd_raid
 );
 
 --m_dbgcs_icon : dbgcs_iconx2
 --port map(
---CONTROL0 => i_dbgcs_hdd_rambuf, --i_dbgcs_sh0_layer,--i_dbgcs_hdd_raid,   --
---CONTROL1 => i_dbgcs_hdd_raid    --i_dbgcs_hdd_raid  --i_dbgcs_hwstart_dly --
+--CONTROL0 => i_dbgcs_sh0_layer,--i_dbgcs_hdd_rambuf, --i_dbgcs_hdd_raid,   --
+--CONTROL1 => i_dbgcs_hdd_raid  --i_dbgcs_hdd_raid    --i_dbgcs_hwstart_dly --
 --);
 
 --m_dbgcs_icon : dbgcs_iconx3
@@ -2471,15 +2472,15 @@ CONTROL0 => i_dbgcs_hdd_rambuf --i_dbgcs_hdd_raid
 
 
 
-------//### HDD_SH_LAYER: ########
---m_dbgcs_sh0_layer : dbgcs_sata_raid --dbgcs_sata_layer
---port map
---(
---CONTROL => i_dbgcs_sh0_layer,
---CLK     => i_hdd_dbgcs.sh(1).layer.clk,
---DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
---TRIG0   => i_hdd_dbgcs.sh(1).layer.trig0(41 downto 0)
---);
+----//### HDD_SH_LAYER: ########
+m_dbgcs_sh0_layer : dbgcs_sata_raid --dbgcs_sata_layer
+port map
+(
+CONTROL => i_dbgcs_sh0_layer,
+CLK     => i_hdd_dbgcs.sh(1).layer.clk,
+DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
+TRIG0   => i_hdd_dbgcs.sh(1).layer.trig0(41 downto 0)
+);
 
 
 
@@ -2492,10 +2493,6 @@ CLK     => i_hdd_rambuf_dbgcs.clk,
 DATA    => i_hddrambuf_dbgcs.data(172 downto 0),--(136 downto 0),
 TRIG0   => i_hddrambuf_dbgcs.trig0(41 downto 0)
 );
-
---process(i_hdd_rambuf_dbgcs.clk)
---begin
---if i_hdd_rambuf_dbgcs.clk'event and i_hdd_rambuf_dbgcs.clk='1' then
 
 --//-------- TRIG: ------------------
 i_hddrambuf_dbgcs.trig0(4 downto  0) <=i_hdd_rambuf_dbgcs.trig0(4 downto 0);--tst_fsm_cs(4 downto 0);
@@ -2512,7 +2509,6 @@ i_hddrambuf_dbgcs.trig0(27)          <='0';
 i_hddrambuf_dbgcs.trig0(28)          <='0';
 i_hddrambuf_dbgcs.trig0(29)          <='0';
 i_hddrambuf_dbgcs.trig0(41 downto 30)<=i_hdd_rambuf_dbgcs.trig0(41 downto 30);
-
 
 
 --//-------- VIEW: ------------------
@@ -2532,21 +2528,10 @@ i_hddrambuf_dbgcs.data(151 downto 136)<=i_hdd_rambuf_dbgcs.data(151 downto 136);
 i_hddrambuf_dbgcs.data(152)          <=i_vctrlwr_memarb_en;
 i_hddrambuf_dbgcs.data(153)          <=i_vctrlrd_memarb_en;
 i_hddrambuf_dbgcs.data(154)          <=i_hdd_memarb_en;
-i_hddrambuf_dbgcs.data(166 downto 155)<=i_mem_arb1_din(27 downto 16);
+--i_hddrambuf_dbgcs.data(166 downto 155)<=i_mem_arb1_din(27 downto 16);
+i_hddrambuf_dbgcs.data(166 downto 155)<=i_hdd_rambuf_dbgcs.data(166 downto 155);
 
 i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
-
---i_hddrambuf_dbgcs.data(151 downto 120)<=i_mem_arb1_dout(31 downto 0);--RAM->HDD
---i_hddrambuf_dbgcs.data(183 downto 152)<=i_mem_arb1_din(31 downto 0);--RAM<-HDD
-
---end if;
---end process;
-
---  if i_hdd_mem_ce='1' then
---    tst_hdd_mem_dcnt<=(others=>'0');
---  elsif i_hdd_mem_wr='1' or i_hdd_mem_rd='1' then
---    tst_hdd_mem_dcnt<=tst_hdd_mem_dcnt + 1;
---  end if;
 
 
 
@@ -2610,17 +2595,15 @@ i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
 --i_hddraid_dbgcs.data(95)          <=i_hdd_done;--i_hdd_rambuf_dbgcs.data(3);--i_hdd_dbgcs.sh(1).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 --
 ----//RAMBUF
---i_hddraid_dbgcs.data(104 downto 100)<=i_hdd_rambuf_dbgcs.data(9 downto 5);--i_hdd_rambuf_dbgcs.data(11  downto  8);--tst_fsm_cs_dly(3 downto 0);
+--i_hddraid_dbgcs.data(104 downto 100)<=i_hdd_rambuf_dbgcs.data(9 downto 5);--rambuf_fsm(3 downto 0);
 ----i_hddraid_dbgcs.data(104)<=i_hdd_mem_ce;
 --i_hddraid_dbgcs.data(105)<=i_hdd_rxbuf_empty;
---i_hddraid_dbgcs.data(106)<=i_mem_arb1_rd;-- when i_hdd_tst_out(5)='0' else i_hdd_tst_out(3);--<=i_hdd_txd_wr;--//hdd_txbuf   i_mem_arb1_rd;--RAM->HDD
---i_hddraid_dbgcs.data(107)<=i_mem_arb1_wr;-- when i_hdd_tst_out(5)='0' else i_hdd_tst_out(4);--<=i_hdd_rxd_rd;--//hdd_rxbuf   i_mem_arb1_wr;--RAM<-HDD
+--i_hddraid_dbgcs.data(106)<=i_mem_arb1_rd;--RAM->HDD
+--i_hddraid_dbgcs.data(107)<=i_mem_arb1_wr;--RAM<-HDD
 --i_hddraid_dbgcs.data(108)<=i_mem_arb1_term;
 --i_hddraid_dbgcs.data(140 downto 109)<=i_mem_arb1_dout(31 downto 0);--RAM->HDD
 --i_hddraid_dbgcs.data(172 downto 141)<=i_mem_arb1_din(31 downto 0);--RAM<-HDD
---
---
-------end process;
+
 
 --process(i_hdd_rambuf_dbgcs.clk)
 --begin
