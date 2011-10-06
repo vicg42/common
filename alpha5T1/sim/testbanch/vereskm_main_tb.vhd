@@ -41,7 +41,6 @@ use work.dsn_hdd_pkg.all;
 use work.vereskm_pkg.all;
 use work.memory_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
-use work.dsn_track_pkg.all;
 use work.dsn_track_nik_pkg.all;
 
 
@@ -73,8 +72,8 @@ constant C_FIFO_ON               : std_logic:='1';
 --    constant priorities : integer_vector_t(0 to 0) := (others => 0);
 
 constant C_SATACLK_PERIOD    : TIME := 6.6 ns; --150MHz
-constant refclk_period       : time := 5 ns;
-constant lclk_period         : time := 15 ns;
+constant refclk_period       : time := 5 ns; --200MHz
+constant lclk_period         : time := 12.5 ns;--80MHz
 constant mclka_period        : time := 3.75 ns; -- 266.67MHz clock frequency at memory chips
 
 constant num_agent : natural := 1;
@@ -748,7 +747,6 @@ stimulate: process
 
   variable Trc_MemWR_trn_len : std_logic_vector(7 downto 0);
   variable Trc_MemRD_trn_len : std_logic_vector(7 downto 0);
-  variable TrcChParams :TTrackParams;
   variable TrcWorkOn :std_logic;
   variable TrcRegTST0 : std_logic_vector(15 downto 0);
 
@@ -912,7 +910,7 @@ begin
   VctrlChParams(0).mem_addr_rd       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра Y
-  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#064#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
@@ -939,12 +937,11 @@ begin
   TrcNik_MemWR_trn_len :=CONV_STD_LOGIC_VECTOR(16#88#, 8); --//размер одиночной транзакции ОЗУ WRITE (DWORD)
   TrcNik_MemRD_trn_len :=CONV_STD_LOGIC_VECTOR(16#80#, 8); --//размер одиночной транзакции ОЗУ READ (DWORD)
 
-  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
---  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(2, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
+  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(3, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
   TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_LSB_BIT-1 downto 0):=(others=>'0');
 
   --//Интервальные уровни
-  TrcNikIP_Count:=8;--//Кол-во обрабатываемых интервальных порогов
+  TrcNikIP_Count:=2;--//Кол-во обрабатываемых интервальных порогов
   nik_ip(0):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
   nik_ip(1):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
   nik_ip(2):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
@@ -966,43 +963,10 @@ begin
   TrcNikWorkOn:='1';--//Запуск работы
 
   TrcNikRegTST0:=(others=>'0');
-  TrcNikRegTST0(C_DSN_TRC_REG_TST0_DIS_WRRESULT_BIT):='1'; --//1/0 - запретить/разрешить запись в выходной буфер m_trcbufo модкля dsn_track.vhd
 --  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_SOBEL_CTRL_DIV_BIT):='0';--//1/0 - dx/2 и dy/2 /нет делений
 --  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_SOBEL_CTRL_MULT_BIT):='1';--//1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
   TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT):='0';  --
 --  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT):='0';  --
-
---  --------------------------------
---  --//Параметры модуля TRACK
---  --------------------------------
---  Trc_MemWR_trn_len :=CONV_STD_LOGIC_VECTOR(16#80#, 8); --//размер одиночной транзакции ОЗУ WRITE (DWORD)
---  Trc_MemRD_trn_len :=CONV_STD_LOGIC_VECTOR(16#80#, 8); --//размер одиночной транзакции ОЗУ READ (DWORD)
---
---  TrcChParams(0).win.skip.pix:=CONV_STD_LOGIC_VECTOR(16#04#, TrcChParams(0).win.skip.pix'length);--//Начало активной зоны кадра X - значен. должно быть кратено 4
---  TrcChParams(0).win.skip.row:=CONV_STD_LOGIC_VECTOR(16#00#, TrcChParams(0).win.skip.row'length);
---  TrcChParams(0).win.activ.pix:=CONV_STD_LOGIC_VECTOR(16#08#, TrcChParams(0).win.activ.pix'length);--//Начало активной зоны кадра X - значен. должно быть кратено 4
---  TrcChParams(0).win.activ.row:=CONV_STD_LOGIC_VECTOR(16#04#, TrcChParams(0).win.activ.row'length);
---  TrcChParams(0).threshold:=CONV_STD_LOGIC_VECTOR(16#5A#, TrcChParams(0).threshold'length);
---
-----  TrcChParams(0).fr_zoom_type:='0';
-----  TrcChParams(0).fr_zoom:=CONV_STD_LOGIC_VECTOR(16#000#, TrcChParams(0).fr_zoom'length);
---
---  TrcChParams(0).mem_atbuf:=(others=>'0');
---  TrcChParams(0).mem_atbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
---  TrcChParams(0).mem_atbuf(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT downto C_DSN_VCTRL_MEM_VFRAME_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VFR_TBUF, C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT+1);
---
---  TrcChParams(0).mem_aebuf:=(others=>'0');
---  TrcChParams(0).mem_aebuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VCH, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
---  TrcChParams(0).mem_aebuf(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT downto C_DSN_VCTRL_MEM_VFRAME_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_MEM_VFR_EBUF, C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT+1);
---
---  TrcWorkOn:='1';--//Запуск работы
---
---  TrcRegTST0:=(others=>'0');
---  TrcRegTST0(C_DSN_TRC_REG_TST0_TRCZONE_MNL_BIT):='0';   --//1/0 - Зона слежения=из параметров dsn_track.vhd / Зона слежения=VCTRL/FR_ACTIVE
---  TrcRegTST0(C_DSN_TRC_REG_TST0_DIS_WRRESULT_BIT):='0';  --//1/0 - запретить/разрешить запись в выходной буфер m_trcbufo модкля dsn_track.vhd
---  TrcRegTST0(C_DSN_TRC_REG_TST0_DIS_WRTBUF_BIT):='0';    --//1/0 -запретить/разрешить запись в RAM/TRACK/TBUF
---  TrcRegTST0(C_DSN_TRC_REG_TST0_TRCWIN_DIN_SEL_BIT):='0';--//1/0 - на вход модуля trc_win Чистые/Обработаные Собелом видео данные
---  TrcRegTST0(C_DSN_TRC_REG_TST0_TBUF_CLR_BIT):='0';      --//1 - Очистка буфера RAM/TRACK/TBUF (буфера эталона и видео соответственно)
 
 
 --//Чтение данных модуля Track
@@ -2350,7 +2314,7 @@ begin
   User_Reg(14):=(others=>'0');
   User_Reg(15):=(others=>'0');
 
-  --//Установка C_DSN_TRC_REG_CTRL_L
+  --//Установка C_DSN_TRCNIK_REG_CTRL_L
   User_Reg(16):=(others=>'0');
   User_Reg(16)(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT downto C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT-C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT+1);
   User_Reg(16)(C_DSN_TRCNIK_REG_CTRL_SET_BIT):='0';
@@ -2372,124 +2336,6 @@ begin
   ----------------------------------------------------
   ----------------------------------------------------------------------------------------
 
---  ----------------------------------------------------------------------------------------
---  ----------------------------------------------------
---  --// Настройка модуля DSN_TRACK.VHD
---  --//Begin
---  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
---  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
---  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
---
---  --//Установка C_DSN_TRC_REG_MEM_TRN_LEN
---  --//Готовим значения регистров:
---  User_Reg(0)(7 downto 0) :=Trc_MemWR_trn_len; --//WRITE
---  User_Reg(0)(15 downto 8):=Trc_MemRD_trn_len; --//READ
---
---  datasize:=1;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 2 - 1 loop
---      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK, C_DSN_TRC_REG_MEM_TRN_LEN, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---  --//Готовим значения регистров:
---  User_Reg(0):=(others=>'0');
---  User_Reg(0)(15 downto 0):=TrcRegTST0;
---
---  datasize:=1;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 2 - 1 loop
---      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK, C_DSN_TRC_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---  --//Установка параметров слежения
---  --//Готовим значения регистров:
---  if Pix8bit='1' then
---       User_Reg(0)(15 downto 0):="00"&TrcChParams(0).win.skip.pix(15 downto 2);  --// fr_zone_active.pix/4 (для кадра 1Pix=8bit)
---  else User_Reg(0)(15 downto 0):=TrcChParams(0).win.skip.pix;  --// fr_zone_active.pix/1
---  end if;
---  User_Reg(1)(15 downto 0):=TrcChParams(0).win.skip.row;
---
---  if Pix8bit='1' then
---       User_Reg(2)(15 downto 0):="00"&TrcChParams(0).win.activ.pix(15 downto 2);  --// fr_zone_active.pix/4 (для кадра 1Pix=8bit)
---  else User_Reg(2)(15 downto 0):=TrcChParams(0).win.activ.pix(15 downto 0);  --// fr_zone_active.pix/1
---  end if;
---  User_Reg(3)(15 downto 0):=TrcChParams(0).win.activ.row;
---
---  User_Reg(4)(15 downto 0):=EXT(TrcChParams(0).threshold, 16);
---
---  User_Reg(5):=(others=>'0');
-----  User_Reg(5)(12 downto 9):=TrcChParams(0).fr_zoom;
-----  User_Reg(5)(13)         :=TrcChParams(0).fr_zoom_type;
---  User_Reg(6):=(others=>'0');
---
---  User_Reg(7)(15 downto 0):=TrcChParams(0).mem_atbuf(15 downto 0);
---  User_Reg(8)(15 downto 0):=TrcChParams(0).mem_atbuf(31 downto 16);
---  User_Reg(9)(15 downto 0):=TrcChParams(0).mem_aebuf(15 downto 0);
---  User_Reg(10)(15 downto 0):=TrcChParams(0).mem_aebuf(31 downto 16);
---  User_Reg(11):=(others=>'0');
---  User_Reg(12):=(others=>'0');
---  User_Reg(13):=(others=>'0');
---  User_Reg(14):=(others=>'0');
---  User_Reg(15):=(others=>'0');
---
---  --//Установка C_DSN_TRC_REG_CTRL_L
---  User_Reg(16):=(others=>'0');
---  User_Reg(16)(C_DSN_TRC_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_TRC_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_TRC_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_TRC_REG_CTRL_CH_IDX_LSB_BIT+1);
-----  User_Reg(16)(C_DSN_TRC_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_TRC_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TRC_PRM_WIN, C_DSN_TRC_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_TRC_REG_CTRL_PRM_IDX_LSB_BIT+1);
-----  User_Reg(16)(C_DSN_TRC_REG_CTRL_SET_BIT):='1';
---  User_Reg(16)(C_DSN_TRC_REG_CTRL_WORK_BIT):=TrcWorkOn;
---
---  datasize:=17;
---  for y in 0 to datasize - 1 loop
---    for i in 0 to 2 - 1 loop
---      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
---    end loop;
---  end loop;
---
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK, C_DSN_TRC_REG_WIN_SKIP_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
---
---  wait_cycles(4, lclk);
---
---  --// Настройка модуля DSN_TRACK.VHD
---  --//End
---  ----------------------------------------------------
---  ----------------------------------------------------------------------------------------
---
-----  ----------------------------------------------------------------------------------------
-----  ----------------------------------------------------
-----  --// Запуск работы модуля DSN_TRACK.VHD
-----  --//Begin
-----  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-----  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-----  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
-----
-----
-----  --//Готовим значения регистров:
-----  User_Reg(0)(C_DSN_TRC_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_TRC_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_TRC_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_TRC_REG_CTRL_CH_IDX_LSB_BIT+1);
-----  User_Reg(0)(C_DSN_TRC_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_TRC_REG_CTRL_PRM_IDX_LSB_BIT):=(others=>'0');
-----  User_Reg(0)(C_DSN_TRC_REG_CTRL_SET_BIT):='0';
-----  User_Reg(0)(C_DSN_TRC_REG_CTRL_WORK_BIT):='1';
-----
-----  datasize:=1;
-----  for y in 0 to datasize - 1 loop
-----    for i in 0 to 2 - 1 loop
-----      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
-----    end loop;
-----  end loop;
-----
-----  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK, C_DSN_TRC_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
-----
-----  wait_cycles(4, lclk);
-----  --// Запуск работы модуля DSN_TRACK.VHD
-----  --//End
-----  ----------------------------------------------------
-----  ----------------------------------------------------------------------------------------
 
 
 
@@ -2678,7 +2524,6 @@ begin
   wait_cycles(track_read_01_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
---  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_TRC_BIT):='1';
   i_dev_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
