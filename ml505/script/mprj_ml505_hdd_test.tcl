@@ -12,6 +12,8 @@ set _usrdef_chip_family "v5lxt"
 set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
+set _usrdef_ucf_filename "ml505_hdd_test"
+set _usrdef_ucf_filepath "..\ucf\ml505_hdd_test.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -99,8 +101,9 @@ set _projects [ list \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
-      [ list "../ml505_hddsimple_prj_cfg.vhd" $_VHDPkg ] \
-      [ list "../hdd_simple_main.vhd" $_VHDMod ] \
+      [ list "../hdd_test_main.vhd" $_VHDMod ] \
+      [ list "../ml505_hdd_test_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../../ucf/ml505_hdd_test.ucf" "hdd_test_main" ] \
     ] \
   ] \
 ]

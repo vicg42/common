@@ -37,7 +37,7 @@ use work.dsn_hdd_pkg.all;
 entity hdd_test_main is
 generic
 (
-G_SIM        : string:="OFF"
+G_SIM : string:="OFF"
 );
 port
 (
@@ -63,21 +63,6 @@ pin_out_uart0_tx      : out   std_logic;
 pin_in_uart0_rx       : in    std_logic;
 
 --------------------------------------------------
--- Local bus
---------------------------------------------------
-lreset_l              : in    std_logic;
---lclk                  : in    std_logic;
---lwrite                : in    std_logic;
---lads_l                : in    std_logic;
---lblast_l              : in    std_logic;
---lbe_l                 : in    std_logic_vector(32/8-1 downto 0);--(3 downto 0);
---lad                   : inout std_logic_vector(32-1 downto 0);--(31 downto 0);
---lbterm_l              : inout std_logic;
---lready_l              : inout std_logic;
---fholda                : in    std_logic;
---finto_l               : out   std_logic;
-
---------------------------------------------------
 --SATA
 --------------------------------------------------
 pin_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
@@ -86,6 +71,11 @@ pin_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_M
 pin_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
 pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+
+--------------------------------------------------
+-- Reset
+--------------------------------------------------
+pin_in_rst            : in    std_logic;
 
 --------------------------------------------------
 -- Reference clock 200MHz
@@ -101,39 +91,6 @@ architecture struct of hdd_test_main is
 component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
-
-component lbus_dcm
-generic(
-G_CLKFX_DIV  : integer:=1;
-G_CLKFX_MULT : integer:=2
-);
-port(
-p_out_clk0   : out   std_logic;
-p_out_clkfx  : out   std_logic;
---p_out_clkdiv : out   std_logic;
---p_out_clk2x  : out   std_logic;
-p_out_locked : out   std_logic;
-
-p_in_clk     : in    std_logic;
-p_in_rst     : in    std_logic
-);
-end component;
-
-component memory_ctrl_pll
-port
-(
-mclk              : in  std_logic;
-rst               : in  std_logic;
-refclk200         : in  std_logic;
-
-clk0              : out std_logic;
-clk45             : out std_logic;
-clk2x0            : out std_logic;
-clk2x90           : out std_logic;
-locked            : out std_logic_vector(1 downto 0);
-memrst            : out std_logic
-);
-end component;
 
 --component dbgcs_iconx1
 --  PORT (
@@ -282,7 +239,7 @@ begin
 --***********************************************************
 --//RESET модулей
 --***********************************************************
-rst_sys_n <= lreset_l;
+rst_sys_n <= pin_in_rst;
 i_hdd_module_rst <=not rst_sys_n or i_usr_rst;--
 i_cfgdev_module_rst<=not rst_sys_n or i_usr_rst;--
 
@@ -367,7 +324,7 @@ G_MODULE_USE=> C_USE_HDD,
 G_HDD_COUNT => C_HDD_COUNT,
 G_GT_DBUS   => C_HDD_GT_DBUS,
 G_DBG       => C_DBG_HDD,
-G_DBGCS     => G_DBGCS_HDD,
+G_DBGCS     => C_DBGCS_HDD,
 G_SIM       => G_SIM
 )
 port map
@@ -513,10 +470,10 @@ pin_out_led_S<='0';
 pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
-pin_out_led(0)<=i_hdd_dcm_lock;--i_hdd_dbgled(1).busy;
-pin_out_led(1)<=i_hdd_gt_plldet;--i_hdd_dbgled(1).err;
-pin_out_led(2)<=i_test01_led;--i_hdd_dbgled(1).rdy;
-pin_out_led(3)<=i_test02_led;--i_hdd_dbgled(1).link;
+pin_out_led(0)<=i_hdd_dbgled(1).busy;--i_hdd_dcm_lock; --
+pin_out_led(1)<=i_hdd_dbgled(1).err; --i_hdd_gt_plldet;--
+pin_out_led(2)<=i_hdd_dbgled(1).rdy; --i_test01_led;   --
+pin_out_led(3)<=i_hdd_dbgled(1).link;--i_test02_led;   --
 
 pin_out_led(4)<=i_hdd_dbgled(0).busy;
 pin_out_led(5)<=i_hdd_dbgled(0).err;
