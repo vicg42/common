@@ -12,8 +12,8 @@ set _usrdef_chip_family "v5lxt"
 set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "ml505_vereskm"
-set _usrdef_ucf_filepath "..\ucf\ml505_vm_hdd.ucf"
+set _usrdef_ucf_filename "ml505_hdd_vm"
+set _usrdef_ucf_filepath "..\ucf\ml505_hdd_vm.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -265,7 +265,7 @@ set _projects [ list \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
       [ list "../ml505_hdd_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../hdd_vm_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/ml505_vm_hdd.ucf" "hdd_vm_main" ] \
+      [ list "../../ucf/ml505_hdd_vm.ucf" "hdd_vm_main" ] \
     ] \
   ] \
 ]
