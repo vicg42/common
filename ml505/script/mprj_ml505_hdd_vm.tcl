@@ -5,7 +5,7 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "ml505_hdd_vm_main"
+set _usrdef_design "ml505_hdd_vm"
 set _usrdef_entity "hdd_vm_main"
 set _usrdef_xilinx_family "virtex5"
 set _usrdef_chip_family "v5lxt"
@@ -121,9 +121,6 @@ set _projects [ list \
       [ list "../src/core_gen/vscale_bram_coef.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vscale_bram.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/scaler/vscaler_main_rev3xx.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vsobel_bram.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
@@ -163,7 +160,6 @@ set _projects [ list \
       [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/dsn_hdd_rambuf.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \

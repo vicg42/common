@@ -530,7 +530,7 @@ i_hdd_rxdata_rd<=pin_in_btn_E;
 
 
 
-gen_dbgcs : if strcmp(G_DBGCS_HDD,"ON") generate
+gen_dbgcs : if strcmp(C_DBGCS_HDD,"ON") generate
 
 m_dbgcs_icon : dbgcs_iconx3
 port map(
