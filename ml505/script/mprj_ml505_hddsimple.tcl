@@ -5,15 +5,13 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "ml505_hdd_simple"
-set _usrdef_entity "hdd_simple_main"
+set _usrdef_design "ml505_hdd_test"
+set _usrdef_entity "hdd_test_main"
 set _usrdef_xilinx_family "virtex5"
 set _usrdef_chip_family "v5lxt"
 set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "hdd_simple_main"
-set _usrdef_ucf_filepath "..\ucf\hdd_simple_main.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -48,6 +46,16 @@ set _projects [ list \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/cfgdev_ctrl/cfgdev_uart.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/uart_main_rev01.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/bbfifo_16x8.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/kcuart_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/kcuart_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/uart_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/uart/src/uart_tx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
@@ -93,7 +101,6 @@ set _projects [ list \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../ml505_hddsimple_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../hdd_simple_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/hdd_simple_main.ucf" "hdd_simple_main" ] \
     ] \
   ] \
 ]
