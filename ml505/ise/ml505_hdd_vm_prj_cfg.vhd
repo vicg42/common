@@ -38,7 +38,7 @@ constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 3
 
 --//cfg HDD
 constant C_HDD_COUNT                         : integer:=2;
-constant C_HDD_RAMBUF_SIZE                   : integer:=26;--//64MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+constant C_HDD_RAMBUF_SIZE                   : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины данных GT (RocketIO)
 
 --//cfg PCI-Express
@@ -49,7 +49,7 @@ constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва
 
 
 --//cfg VCTRL
-constant C_DSN_VCTRL_VCH_COUNT               : integer:=1;
+constant C_DSN_VCTRL_VCH_COUNT               : integer:=3;
 constant C_DSN_VCTRL_SIMPLE                  : string:="ON";
 
 --//cfg clkfx - DCM LocalBus

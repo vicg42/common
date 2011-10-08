@@ -263,7 +263,7 @@ set _projects [ list \
       [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
-      [ list "../ml505_hdd_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../ml505_hdd_vm_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../hdd_vm_main.vhd" $_VHDMod ] \
       [ list "../../ucf/ml505_hdd_vm.ucf" "hdd_vm_main" ] \
     ] \
