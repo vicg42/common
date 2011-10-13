@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 27.01.2011 16:46:55
 -- Module Name : prj_cfg
 --
--- Description : Конфигурирование проекта Veresk_M (ОТЛАДКА НА ПЛАТЕ ML505!!!!!)
+-- Description : Конфигурирование проекта Veresk_M (ОТЛАДКА НА ПЛАТЕ ALPHA_DATA!!!!!)
 --
 -- Revision:
 -- Revision 0.01 - File Created
