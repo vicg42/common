@@ -1,11 +1,11 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 27.01.2011 16:46:55
+-- Create Date : 13.10.2011 15:15:44
 -- Module Name : prj_cfg
 --
--- Description : Конфигурирование проекта Veresk_M (ОТЛАДКА НА ПЛАТЕ ML505!!!!!)
+-- Description : Конфигурирование проекта HSCAM (ОТЛАДКА НА РАБОЧЕЙ ПЛАТЕ!!!!!)
 --
 -- Revision:
 -- Revision 0.01 - File Created
