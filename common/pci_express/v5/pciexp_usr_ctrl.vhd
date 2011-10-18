@@ -23,7 +23,6 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.vicg_common_pkg.all;
---use work.memory_ctrl_pkg.all;
 
 entity pciexp_usr_ctrl is
 generic
