@@ -138,8 +138,6 @@ module pciexp_ep_cntrl
     trn_rfc_npd_av_i,
     trn_rfc_ph_av_i,
     trn_rfc_pd_av_i,
-//    trn_rfc_cplh_av_i,
-//    trn_rfc_cpld_av_i,
     trn_rcpl_streaming_n_o,
 
 //
@@ -225,8 +223,6 @@ input  [7:0]      trn_rfc_nph_av_i;
 input  [11:0]     trn_rfc_npd_av_i;
 input  [7:0]      trn_rfc_ph_av_i;
 input  [11:0]     trn_rfc_pd_av_i;
-//input   [(`PCI_EXP_TRN_FC_HDR_WIDTH - 1):0]       trn_rfc_cplh_av_i;
-//input   [(`PCI_EXP_TRN_FC_DATA_WIDTH - 1):0]      trn_rfc_cpld_av_i;
 output            trn_rcpl_streaming_n_o;
 
 // Transaction ( TRN ) Interface
@@ -284,14 +280,8 @@ input  [15:0]     cfg_lcommand_i;
 wire [15:0]       tst_cur_mwr_pkt_count;
 wire              tst_rdy_del_inv;
 
-wire [4:0]        tst_irq_ctrl;
-wire [3:0]        tst_irq_ctrl_out;
-
-//wire [127:0]      out_usr_tst;
-//wire [127:0]      in_usr_tst;
-//wire [3:0]        tst_tx_engine_state;
-//wire [3:0]        tst_rx_engine_state;
-//wire [7:0]        tst_expansion_rom_count;
+wire [31:0]       tst_irq_ctrl;
+wire [31:0]       tst_irq_ctrl_out;
 
 wire [7:0]        trg_addr;
 wire [31:0]       trg_din;
@@ -299,7 +289,6 @@ wire [31:0]       trg_dout;
 wire              trg_wr;
 wire              trg_rd;
 
-//wire [3:0]        mst_rx_data_be;
 wire [31:0]       usr_txbuf_din;
 wire              usr_txbuf_wd;
 wire              usr_txbuf_wd_last;
@@ -310,8 +299,6 @@ wire              usr_rxbuf_rd;
 wire              usr_rxbuf_rd_last;
 wire              usr_rxbuf_rd_start;
 wire              usr_rxbuf_empty;
-
-//wire              mst_tx_mem_start;
 
 wire              req_compl;
 wire              compl_done;
@@ -331,14 +318,14 @@ wire              req_expansion_rom;
 wire              trn_dma_rst;
 wire              trn_dma_init;
 
-wire              i_interrupt_clr;
-wire  [15:0]      i_interrupt_src_adr;
-wire  [15:0]      i_interrupt_src_set;
-wire  [15:0]      i_interrupt_src_act;
+wire              i_irq_ctrl_rst;
+wire              i_irq_clr;
+wire  [15:0]      i_irq_num;
+wire  [15:0]      i_irq_set;
+wire  [15:0]      i_irq_status;
 
 wire              mwr_work;
 wire              mwr_done;
-//wire              mwr_int_en;
 wire  [31:0]      mwr_addr;
 wire  [31:0]      mwr_len;
 wire  [31:0]      mwr_count;
@@ -353,8 +340,6 @@ wire  [3:0]       mwr_lbe;
 wire  [3:0]       mwr_fbe;
 
 wire              mrd_work;
-//wire              mrd_done;
-//wire              mrd_int_en;
 wire  [31:0]      mrd_addr;
 wire  [31:0]      mrd_len;
 wire  [31:0]      mrd_count;
@@ -435,7 +420,7 @@ wire        cfg_no_snoop_en          = cfg_dcommand_i[11];    //1/0 -Enable No S
 wire        cfg_bus_mstr_enable      = cfg_command_i[2];
 
 //Interrupt Disable
-wire        cfg_intrrupt_disable     = cfg_command_i[10];
+wire        cfg_intrrupt_disable     = cfg_command_i[10]; //Note that the Interrupt Disable bit has no effect on Message Signalled Interrupts (MSI).
 
 
 wire        bmd_reset_n = trn_reset_n_i & ~trn_lnk_up_n_i;
@@ -525,32 +510,30 @@ assign  trn_rnp_ok_n_o = trn_rnp_ok_n;
 //`endif
 assign  trn_rcpl_streaming_n_o = cpl_streaming;
 
-////add 2010.11.25
-//assign cfg_msi_enable = cfg_interrupt_msienable_i;
-`ifndef PCIEBLK
+//////add 2010.11.25
+////assign cfg_msi_enable = cfg_interrupt_msienable_i;
+//`ifndef PCIEBLK
 assign  cfg_msi_enable = cfg_interrupt_msienable_i;
-`else
-assign  cfg_msi_enable = cfg_msi_enable_tmp;
-`endif
+//`else
+//assign  cfg_msi_enable = cfg_msi_enable_tmp;
+//`endif
 //----------------
 
 
 //-------------------------------------------
 // Контроллер Usr Application :
 //-------------------------------------------
-//pciexp_usr_ctrl #(G_DBG) m_USR_CTRL
 pciexp_usr_ctrl m_USR_CTRL
 (
-  .p_in_tst_irq_ctrl(tst_irq_ctrl),
-  .p_out_tst_irq_ctrl_out(tst_irq_ctrl_out),
+  .p_in_tst_irq_ctrl(tst_irq_ctrl[4:0]),
+  .p_out_tst_irq_ctrl_out(tst_irq_ctrl_out[3:0]),
   .p_in_tst_cur_mwr_pkt_count(tst_cur_mwr_pkt_count),
-//  .p_in_tst_cur_mwr_len_count(tst_cur_mwr_len_count),
   .p_in_tst_cur_mrd_pkt_count(mrd_pkt_count),
   .p_in_tst_rdy_del_inv(tst_rdy_del_inv),
 
   .p_out_host_clk_out(p_out_host_clk_out),
 
-  .p_out_usr_tst(p_out_usr_tst),//(out_usr_tst),
+  .p_out_usr_tst(p_out_usr_tst),
   .p_in_usr_tst(p_in_usr_tst),
 
   .p_out_glob_ctrl(p_out_glob_ctrl),
@@ -589,24 +572,18 @@ pciexp_usr_ctrl m_USR_CTRL
 //--------------------------------------
 //--//Связь с m_RX_ENGINE/m_TX_ENGINE
 //--------------------------------------
-//  .p_in_mst_tx_mem_start(mst_tx_mem_start),
-//  .p_in_mst_tx_mem_term(mst_tx_mem_term),
-
-//  .p_in_usr_txbuf_din_be(),
   .p_in_mst_usr_txbuf_din(usr_txbuf_din),
   .p_in_mst_usr_txbuf_wd(usr_txbuf_wd),
   .p_in_mst_usr_txbuf_wd_last(usr_txbuf_wd_last),
   .p_out_mst_usr_txbuf_full(usr_txbuf_full),
 
-//  .p_in_usr_tx_data_be(),
   .p_out_mst_usr_rxbuf_dout(usr_rxbuf_dout),
   .p_in_mst_usr_rxbuf_rd(usr_rxbuf_rd),
   .p_in_mst_usr_rxbuf_rd_last(usr_rxbuf_rd_last),
   .p_in_mst_usr_rxbuf_rd_start(usr_rxbuf_rd_start),
   .p_out_mst_usr_rxbuf_empty(usr_rxbuf_empty),
 
-//  .p_in_trg_be(req_be[3:0]),
-  .p_in_trg_addr(trg_addr),//({{req_addr},{2'b0}}),
+  .p_in_trg_addr(trg_addr),
   .p_in_trg_wr(trg_wr),
   .p_in_trg_rd(trg_rd),
   .p_out_trg_dout(trg_dout),
@@ -615,10 +592,10 @@ pciexp_usr_ctrl m_USR_CTRL
   .p_out_trn_dma_rst(trn_dma_rst),                  // O
   .p_out_trn_dma_init(trn_dma_init),                // O
 
-  .p_out_irq_clr(i_interrupt_clr),
-  .p_out_irq_src_adr(i_interrupt_src_adr),
-  .p_out_irq_src_set(i_interrupt_src_set),
-  .p_in_irq_src_act(i_interrupt_src_act),
+  .p_out_irq_clr(i_irq_clr),
+  .p_out_irq_num(i_irq_num),
+  .p_out_irq_set(i_irq_set),
+  .p_in_irq_status(i_irq_status),
 
   .p_out_mwr_work(mwr_work),                        // O
   .p_in_mwr_done(mwr_done),                         // I
@@ -650,11 +627,11 @@ pciexp_usr_ctrl m_USR_CTRL
   .p_out_mrd_fbe(mrd_fbe),
 
   .p_in_cpld_total_size(cpld_total_size),            // I [31:0]
-  .p_out_cpl_streaming(cpl_streaming),//(trn_rcpl_streaming_n_o),      // O
+  .p_out_cpl_streaming(cpl_streaming),
   .p_out_rd_metering(rd_metering),                   // O
   .p_out_trn_rnp_ok_n(trn_rnp_ok_n),                 // O
 
-  .p_in_cfg_intrrupt_disable(cfg_intrrupt_disable),
+  .p_in_cfg_irq_disable(cfg_intrrupt_disable),
   .p_in_cpld_malformed(cpld_malformed),
   .p_in_cfg_msi_enable(cfg_msi_enable),
   .p_in_cfg_cap_max_lnk_width(cfg_cap_max_lnk_width), // I [5:0]
@@ -684,14 +661,13 @@ BMD_ENGINE_RX m_RX_ENGINE
     .trg_rx_data_wd_o(trg_wr),
     .trg_rx_data_rd_o(trg_rd),
 
-//    .mst_rx_addr_o(mst_rx_addr),
-    .mst_rx_data_be_o(),//mst_rx_data_be
+    .mst_rx_data_be_o(),
     .mst_rx_data_o(usr_txbuf_din),
     .mst_rx_data_wd_o(usr_txbuf_wd),
     .mst_rx_data_wd_last_o(usr_txbuf_wd_last),
     .usr_buf_full_i(usr_txbuf_full),
 
-    .tst_rx_engine_state_o(),//tst_rx_engine_state
+    .tst_rx_engine_state_o(),
 
     //Связь с LocalLink Rx ядра PCI-EXPRESS
     .trn_rd(trn_rd_i),                                 // I [63/31:0]
@@ -723,8 +699,8 @@ BMD_ENGINE_RX m_RX_ENGINE
     .req_expansion_rom_o(req_expansion_rom),           // O
 
     //Completion no Data
-    .cpl_ur_found_o(),//(cpl_ur_found),                // O [7:0]
-    .cpl_ur_tag_o(),//(cpl_ur_tag),                    // O [7:0]
+    .cpl_ur_found_o(),                                 // O [7:0]
+    .cpl_ur_tag_o(),                                   // O [7:0]
 
     //Completion with Data
     .cpld_found_o(cpld_found),                         // O [31:0]
@@ -749,17 +725,14 @@ BMD_ENGINE_TX m_TX_ENGINE
     .trg_tx_data_i(trg_dout),
 
     //Режим Master
-//    .mst_tx_addr_o(mst_tx_addr),
-//    .mst_tx_data_be_o(mst_tx_data_be),
     .mst_tx_data_rd_start_o(usr_rxbuf_rd_start),
     .mst_tx_data_i(usr_rxbuf_dout),
     .mst_tx_data_rd_o(usr_rxbuf_rd),
     .mst_tx_data_rd_last_o(usr_rxbuf_rd_last),
     .usr_buf_empty_i(usr_rxbuf_empty),
 
-    .tst_tx_engine_state_o(),//tst_tx_engine_state
+    .tst_tx_engine_state_o(),
     .tst_cur_mwr_pkt_count_o(tst_cur_mwr_pkt_count),
-//    .tst_cur_mwr_len_count_o(tst_cur_mwr_len_count),
     .tst_rdy_del_inv_o(tst_rdy_del_inv),
 
     //Связь с LocalLink Tx ядра PCI-EXPRESS
@@ -827,8 +800,8 @@ BMD_ENGINE_TX m_TX_ENGINE
     .completer_id_i(cfg_completer_id),                  // I [15:0]
     .cfg_ext_tag_en_i(cfg_ext_tag_en),                  // I
     .cfg_bus_mstr_enable_i(cfg_bus_mstr_enable),        // I
-    .cfg_prg_max_payload_size_i(usr_prg_max_payload_size),//(cfg_prg_max_payload_size), // I [2:0]
-    .cfg_prg_max_rd_req_size_i(usr_prg_max_rd_req_size),//(cfg_prg_max_rd_req_size),   // I [2:0]
+    .cfg_prg_max_payload_size_i(usr_prg_max_payload_size), // I [2:0]
+    .cfg_prg_max_rd_req_size_i(usr_prg_max_rd_req_size),   // I [2:0]
     .cfg_rd_comp_bound_i(cfg_rd_comp_bound),
 
     // Initiator Controls
@@ -851,19 +824,19 @@ BMD_RD_THROTTLE m_RD_THROTTLE
 
     .cpld_found_i(cpld_found),                  // I [31:0] - сигнал от модуля RX_ENGINE (Кол-во принятых пакетов CplDATA)
     .cpld_data_size_i(cpld_total_size),         // I [31:0] - сигнал от модуля RX_ENGINE (Размер данных всех принятых пакетов CplDATA)
-    .cpld_malformed_i(cpld_malformed),//(1'b0),// // I - Значение payload size указаное в заголовке пакета не совпало с подсчитаным значение
-    .cpld_data_err_i(1'b0),//(cpld_data_err),   // I
+    .cpld_malformed_i(cpld_malformed),          // I - Значение payload size указаное в заголовке пакета не совпало с подсчитаным значение
+    .cpld_data_err_i(1'b0),                     // I
 
-    .cpld_data_size_hwm(),//(cpld_data_size_hwm),// O [31:0]
-    .cur_rd_count_hwm(),//(cur_rd_count_hwm),    // O [15:0]
+    .cpld_data_size_hwm(),                      // O [31:0]
+    .cur_rd_count_hwm(),                        // O [15:0]
 
-    .cfg_rd_comp_bound_i(cfg_rd_comp_bound),     // I //Read Completion Boundary.(RCB = 0=64Byte or 1=128Byte)
-    .rd_metering_i(rd_metering),                 // I
+    .cfg_rd_comp_bound_i(cfg_rd_comp_bound),    // I //Read Completion Boundary.(RCB = 0=64Byte or 1=128Byte)
+    .rd_metering_i(rd_metering),                // I
 
-    .mrd_work_o(mrd_work_from_rd_throttle),      // O
+    .mrd_work_o(mrd_work_from_rd_throttle),     // O
 
-    .clk( trn_clk_i ),                           // I
-    .rst_n( bmd_reset_n )                        // I
+    .clk( trn_clk_i ),                          // I
+    .rst_n( bmd_reset_n )                       // I
 );
 
 
@@ -872,26 +845,26 @@ BMD_RD_THROTTLE m_RD_THROTTLE
 //
 BMD_INTR_CTRL m_INT_CTRL
 (
-    .p_in_irq_clr(i_interrupt_clr),
-    .p_in_irq_src_adr(i_interrupt_src_adr),
-    .p_in_irq_src_set(i_interrupt_src_set),
-    .p_out_irq_src_act(i_interrupt_src_act),
+    .p_in_irq_clr(i_irq_clr),
+    .p_in_irq_num(i_irq_num),
+    .p_in_irq_set(i_irq_set),
+    .p_out_irq_status(i_irq_status),
 
-    .p_in_init_rst(trn_dma_rst),                              // I
+    .p_in_cfg_irq_dis(cfg_intrrupt_disable),
+    .p_in_cfg_msi(cfg_msi_enable),
+    .p_in_cfg_irq_rdy_n(cfg_interrupt_rdy_n_i ),
+    .p_out_cfg_irq_assert_n(cfg_interrupt_assert_n_o),
+    .p_out_cfg_irq_n(cfg_interrupt_n_o),
+    .p_out_cfg_irq_di(cfg_interrupt_di_o),
 
-    .p_in_cfg_msi_enable(cfg_msi_enable),                     // I
-    .p_in_cfg_interrupt_rdy_n( cfg_interrupt_rdy_n_i ),       // I
-    .p_out_cfg_interrupt_di(cfg_interrupt_di_o),              // O[7:0]
-    .p_out_cfg_interrupt_assert_n( cfg_interrupt_assert_n_o), // 0
-    .p_out_cfg_interrupt_n( cfg_interrupt_n_o ),              // O
-
-    .p_in_tst_ctrl(tst_irq_ctrl_out),
+    .p_in_tst(tst_irq_ctrl_out),
     .p_out_tst(tst_irq_ctrl),
 
-    .p_in_clk( trn_clk_i ),                                   // I
-    .p_in_rst_n( bmd_reset_n )                                // I
+    .p_in_clk(trn_clk_i),
+    .p_in_rst(i_irq_ctrl_rst) //.p_in_rst_n(bmd_reset_n )
 );
 
+assign i_irq_ctrl_rst = !bmd_reset_n || trn_dma_rst;
 
 //
 // Configuration Controller
