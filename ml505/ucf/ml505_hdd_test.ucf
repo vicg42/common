@@ -16,21 +16,12 @@ CONFIG PART = XC5VLX50T-FF1136-1;
 CONFIG STEPPING = ES;
 
 
-####################################################################
-###############       Global        ################################
-####################################################################
-#--------------------------------------------------------------------------
-#Назначение пинов
-#--------------------------------------------------------------------------
-#NET "pin_in_gtp_X0Y6_clk_p" LOC = "P4";##"GTP_DUAL_X0Y3";
-#NET "pin_in_gtp_X0Y6_clk_n" LOC = "P3";
-
 #Светодиоды
-NET pin_out_led<0>        LOC="H18";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
-NET pin_out_led<1>        LOC="L18";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
-NET pin_out_led<2>        LOC="G15";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<0>        LOC="H18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<1>        LOC="L18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<2>        LOC="G15"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
 NET pin_out_led<3>        LOC="AD26" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_3     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET pin_out_led<4>        LOC="G16";#  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
+NET pin_out_led<4>        LOC="G16"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
 NET pin_out_led<5>        LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
 NET pin_out_led<6>        LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
 NET pin_out_led<7>        LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
@@ -58,16 +49,29 @@ NET pin_in_btn_N          LOC="U8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPI
 NET pin_in_btn_S          LOC="V8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_S         # Bank 18, Vcco=3.3V, No DCI
 NET pin_in_btn_W          LOC="AJ7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_W         # Bank 18, Vcco=3.3V, No DCI
 
-
 #UART 0 (Подключен к PC)
 NET pin_in_uart0_rx       LOC="AG15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_RX  # Bank 4, Vcco=3.3V, No DCI
 NET pin_out_uart0_tx      LOC="AG20" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_SERIAL1_TX  # Bank 4, Vcco=3.3V, No DCI
 
+NET pin_inout_ftdi_d<0>   LOC="M10" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<1>   LOC="E11" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<2>   LOC="F11" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<3>   LOC="L8"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<4>   LOC="M8"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<5>   LOC="G12" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<6>   LOC="G11" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_inout_ftdi_d<7>   LOC="C13" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_out_ftdi_rd_n     LOC="B13" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_out_ftdi_wr_n     LOC="K9"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_in_ftdi_txe_n     LOC="K8"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_in_ftdi_rxf_n     LOC="J9"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET pin_in_ftdi_pwren_n   LOC="D12" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+
 #200MHz
-NET "refclk_n"            LOC="K19";#Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
-NET "refclk_p"            LOC="L19";#Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_n"     LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_p"     LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
-
+NET "g_host_clk" PERIOD = 5.0ns HIGH 50%;
 
 
 #############################################################################
@@ -98,7 +102,7 @@ INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  L
 ##--------------------------------------------------------------------------
 ##Временные ограничения
 ##--------------------------------------------------------------------------
-NET g_hdd_gt_refclkout PERIOD = 6.666 ns;
+NET g_uart_refclk PERIOD = 6.666 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;

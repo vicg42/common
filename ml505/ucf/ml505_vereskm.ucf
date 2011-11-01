@@ -59,8 +59,8 @@ NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 NET "lclk"              LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
 
 #200MHz
-NET "refclk_n"          LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
-NET "refclk_p"          LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk200M_n" LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk200M_p" LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
 NET  lad<8>           LOC="AH13" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
 NET  lad<9>           LOC="AH14" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI

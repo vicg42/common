@@ -59,8 +59,8 @@ NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 NET "lclk"              LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
 
 #200MHz
-NET "refclk_n"          LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
-NET "refclk_p"          LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk200M_n" LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk200M_p" LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
 NET  lad<8>           LOC="AH13" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D8        LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
 NET  lad<9>           LOC="AH14" | IOSTANDARD=LVCMOS33; #;  ##NET  SRAM_FLASH_D9        LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
@@ -434,10 +434,12 @@ INST "ibuf_pciexp_gt_refclk"     DIFF_TERM = "TRUE" ;
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
+#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
+
 INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
-#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 2, 3
-#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 4, 5
-#INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y4;# PCIe Lanes 6, 7
+##INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y2;# PCIe Lanes 2, 3
+##INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[4].GT_i" LOC = GTP_DUAL_X0Y3;# PCIe Lanes 4, 5
+##INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[6].GT_i" LOC = GTP_DUAL_X0Y4;# PCIe Lanes 6, 7
 ## BlockRAM placement
 #INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_tx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y9;
 #INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/pcie_mim_wrapper_i/bram_tl_rx/generate_tdp2[1].ram_tdp2_inst" LOC = RAMB36_X1Y8;
@@ -452,13 +454,17 @@ INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_w
 #--------------------------------------------------------------------------
 #Временные ограничения
 #--------------------------------------------------------------------------
-NET "i_pciexp_gt_refclk" PERIOD = 10ns;
+#NET "i_pciexp_gt_refclk" PERIOD = 10ns;
+#NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK" ;
 
 NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
 #NET "m_host/m_pciexp/m_core_pciexp/BU2/U0/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out[0]" TNM_NET = "MGTCLK";## if PCIe Lanes > 1
 TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 
-NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
+#NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
+
+
+
 
 #############################################################################
 ###############       Проект SATA       #####################################

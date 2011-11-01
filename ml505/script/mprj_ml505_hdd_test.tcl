@@ -52,12 +52,14 @@ set _projects [ list \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_uart.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/cfgdev_ctrl/cfgdev_ftdi.vhd" $_VHDMod ] \
       [ list "../../../common/hw/uart/uart_main_rev01.vhd" $_VHDMod ] \
       [ list "../../../common/hw/uart/src/bbfifo_16x8.vhd" $_VHDMod ] \
       [ list "../../../common/hw/uart/src/kcuart_rx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/uart/src/kcuart_tx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/uart/src/uart_rx.vhd" $_VHDMod ] \
       [ list "../../../common/hw/uart/src/uart_tx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_ram_hfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \

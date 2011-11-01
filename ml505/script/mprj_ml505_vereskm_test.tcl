@@ -71,7 +71,8 @@ set _projects [ list \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/fifo_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/plxdssm.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/localbus_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ctrl_pkg.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/mem/alphadata/memory_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/mem/alphadata/memory_ctrl_pll.vhd" $_VHDMod ] \
       [ list "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr.vhd" $_VHDMod ] \
       [ list "../../../common/hw/mem/alphadata/memory_ch_arbitr.vhd" $_VHDMod ] \
