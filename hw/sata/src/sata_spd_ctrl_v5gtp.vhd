@@ -194,7 +194,6 @@ signal i_gt_drp_rdval           : std_logic_vector(p_out_gt_drpdi'range);
 signal i_gt_drp_regsel          : std_logic;--//0/1 - выбор регистров канала GTP PLL_RXDIVSEL/PLL_TXDIVSEL
 
 signal sr0_ctrl                 : TSpdCtrl_GTCH;
-signal sr1_ctrl                 : TSpdCtrl_GTCH;
 signal i_spd_change_det         : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal tst_fms_cs               : std_logic_vector(5 downto 0);
@@ -237,23 +236,15 @@ end generate gen_dbg_on;
 gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
 in_phy_linkup(1)<='1';
 
-sr0_ctrl(1).sata_ver<=(others=>'0');
-sr1_ctrl(1).sata_ver<=(others=>'0');
 i_spd_change_det(1)<='0';
 
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    sr0_ctrl(0).sata_ver<=(others=>'0');
-    sr1_ctrl(0).sata_ver<=(others=>'0');
     i_spd_change_det(0)<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
-
-    sr0_ctrl(0).sata_ver<=p_in_ctrl(0).sata_ver;
-    sr1_ctrl(0).sata_ver<=sr0_ctrl(0).sata_ver;
-
-    if  i_spd_change_det(0)='0' and sr0_ctrl(0).sata_ver/=sr1_ctrl(0).sata_ver then
+    if  i_spd_change_det(0)='0' and sr0_ctrl(0).sata_ver/=i_phy_spd(0).sata_ver then
     --//ѕользователь измененил скорость соединени€
       i_spd_change_det(0)<='1';
     else
@@ -276,16 +267,11 @@ in_phy_linkup(i)<=p_in_phy_linkup(i);
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    sr0_ctrl(i).sata_ver<=(others=>'0');
-    sr1_ctrl(i).sata_ver<=(others=>'0');
     i_spd_change_det(i)<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr0_ctrl(i).sata_ver<=p_in_ctrl(i).sata_ver;
-    sr1_ctrl(i).sata_ver<=sr0_ctrl(i).sata_ver;
-
-    if  i_spd_change_det(i)='0' and sr0_ctrl(i).sata_ver/=sr1_ctrl(i).sata_ver then
+    if  i_spd_change_det(i)='0' and sr0_ctrl(i).sata_ver/=i_phy_spd(i).sata_ver then
     --//ѕользователь измененил скорость соединени€
       i_spd_change_det(i)<='1';
     else
@@ -349,6 +335,7 @@ begin
     i_gt_drp_regsel<=C_REG_PLL_RXDIVSEL;
 
     for i in 0 to C_GTCH_COUNT_MAX-1 loop
+    sr0_ctrl(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, i_phy_spd(i).sata_ver'length);
     i_phy_spd(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, i_phy_spd(i).sata_ver'length);
     end loop;
     i_tmr_en<='0';
@@ -359,16 +346,17 @@ begin
 
     i_phy_linkup<=in_phy_linkup;
 
+    for i in 0 to C_GTCH_COUNT_MAX-1 loop
+      sr0_ctrl(i).sata_ver<=i_phy_spd(i).sata_ver;
+      i_phy_spd(i).sata_ver<=p_in_ctrl(i).sata_ver;
+    end loop;
+
     case fsm_spdctrl_cs is
 
       --//---------------------------------------------
       --//∆ду пока установ€тс€ тактовые частоты
       --//---------------------------------------------
       when S_IDLE =>
-
-        for i in 0 to C_GTCH_COUNT_MAX-1 loop
-          i_phy_spd(i).sata_ver<=p_in_ctrl(i).sata_ver;
-        end loop;
 
         if p_in_gt_pll_lock='1' or p_in_usr_dcm_lock='1' then
           if i_tmr=CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
@@ -825,8 +813,6 @@ begin
                 i_phy_layer_rst_n(i)<='0';
               end if;
 
-             i_phy_spd(i).sata_ver<=p_in_ctrl(i).sata_ver;
-
             end loop;
 
             fsm_spdctrl_cs<=S_CH0_CHECK_LINK;
@@ -906,7 +892,9 @@ i_dbgcs_data(22)<=i_gt_drpwe;
 i_dbgcs_data(23)<=p_in_gt_drprdy;
 i_dbgcs_data(39 downto 24)<=i_gt_drpdi;
 i_dbgcs_data(55 downto 40)<=p_in_gt_drpdo;
-i_dbgcs_data(122 downto 56)<=(others=>'0');
+i_dbgcs_data(41)<=i_phy_spd(0).sata_ver(0);
+i_dbgcs_data(42)<=i_phy_spd(0).sata_ver(1);
+i_dbgcs_data(122 downto 43)<=(others=>'0');
 
 
 end if;

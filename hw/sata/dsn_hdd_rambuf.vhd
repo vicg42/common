@@ -26,6 +26,7 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
 use work.memory_ctrl_pkg.all;
+use work.memory_ctrl_ch_wr_pkg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_raid_pkg.all;
@@ -49,9 +50,9 @@ port
 p_in_rbuf_cfg         : in    THDDRBufCfg;   --//Конфигурирование RAMBUF
 p_out_rbuf_status     : out   THDDRBufStatus;--//Статусы RAMBUF
 
---//--------------------------
---//Связь с буфером видеоданных
---//--------------------------
+----------------------------
+--Связь с буфером видеоданных
+----------------------------
 p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
 p_out_vbuf_rd         : out   std_logic;
 p_in_vbuf_empty       : in    std_logic;
@@ -59,9 +60,9 @@ p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
 p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
 
---//--------------------------
---//Связь с модулем HDD
---//--------------------------
+----------------------------
+--Связь с модулем HDD
+----------------------------
 p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
 p_out_hdd_txd_wr      : out   std_logic;
 p_in_hdd_txbuf_pfull  : in    std_logic;
@@ -121,6 +122,26 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
+component hdd_ram_hfifo
+port
+(
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(31 downto 0);
+rd_en       : in std_logic;
+rd_clk      : in std_logic;
+
+full        : out std_logic;
+almost_full : out std_logic;
+empty       : out std_logic;
+
+--clk         : in std_logic;
+rst         : in std_logic
+);
+end component;
+
 type fsm_state is
 (
 S_IDLE,
@@ -143,14 +164,18 @@ S_HW_FULL_CHECK,
 
 S_HWLOG_WAIT_TRNDONE,
 S_HWLOG_MEM_START,
-S_HWLOG_MEM_WORK
+S_HWLOG_MEM_WORK,
 
+S_C2R_MEM_START,
+S_C2R_MEM_WORK
 );
 signal fsm_rambuf_cs                   : fsm_state;
 
 signal i_rbuf_cfg                      : TDMAcfg;
 signal i_hwlog                         : THWLog;
 signal i_tstgen                        : THDDTstGen;
+signal i_usrif                         : std_logic;
+signal i_ram_wr_done                   : std_logic;
 
 signal i_err_det                       : THDDRBufErrDetect;
 
@@ -189,16 +214,37 @@ signal i_atacmd_dcount_byte            : std_logic_vector(i_atacmd_scount'length
 signal i_atacmd_dcount_dw              : std_logic_vector(i_atacmd_dcount_byte'range);
 signal i_atadone                       : std_logic;
 
-signal i_usr_rxbuf_dout                : std_logic_vector(31 downto 0);
-signal i_usr_rxbuf_rd                  : std_logic;
-signal i_usr_rxbuf_empty               : std_logic;
-signal i_usr_rxbuf_1dout               : std_logic_vector(31 downto 0);
-signal i_usr_rxbuf_1empty              : std_logic;
+signal i_mem_din_1tmp                  : std_logic_vector(31 downto 0);
+signal i_mem_din_2tmp                  : std_logic_vector(31 downto 0);
+signal i_mem_din_rdy_1tmp              : std_logic;
+signal i_mem_din_rdy_2tmp              : std_logic;
+signal i_mem_din                       : std_logic_vector(31 downto 0);
+signal i_mem_din_rdy                   : std_logic;
+signal i_mem_din_rd                    : std_logic;
+signal i_mem_dout                      : std_logic_vector(31 downto 0);
+signal i_mem_dout_wr                   : std_logic;
+signal i_mem_dout_wrdy                 : std_logic;
 
 signal sr_hwlog_atatrn                 : std_logic_vector(0 to 1);
 signal i_hwlog_atatrn_done             : std_logic;
 type THWlogData is array (0 to 0) of std_logic_vector(31 downto 0);
 signal i_hwlog_d                       : THWlogData;
+
+signal i_cfg_buf_use                   : std_logic;
+signal i_cfg_buf_clk                   : std_logic;
+signal i_cfg_buf_rst                   : std_logic;
+signal i_cfg_txbuf_din                 : std_logic_vector(31 downto 0);
+signal i_cfg_txbuf_dout                : std_logic_vector(31 downto 0);
+signal i_cfg_txbuf_wr                  : std_logic;
+signal i_cfg_txbuf_rd                  : std_logic;
+signal i_cfg_txbuf_empty               : std_logic;
+signal i_cfg_txbuf_full                : std_logic;
+--signal i_cfg_rxbuf_din                 : std_logic_vector(31 downto 0);
+signal i_cfg_rxbuf_dout                : std_logic_vector(31 downto 0);
+signal i_cfg_rxbuf_wr                  : std_logic;
+signal i_cfg_rxbuf_rd                  : std_logic;
+signal i_cfg_rxbuf_empty               : std_logic;
+signal i_cfg_rxbuf_full                : std_logic;
 
 signal i_hw_p0                         : std_logic_vector(11 downto 0):=(others=>'0');
 signal i_hw_p1                         : std_logic_vector(3 downto 0):=(others=>'0');
@@ -231,13 +277,53 @@ p_out_tst<=(others=>'0');
 
 
 --//----------------------------------------------
+--//Инициализация
+--//----------------------------------------------
+i_cfg_buf_clk   <= p_in_rbuf_cfg.ram_wr_i.clk;
+i_cfg_buf_rst   <= p_in_rst or i_ram_wr_done;
+
+i_cfg_txbuf_din <= p_in_rbuf_cfg.ram_wr_i.din;--//RAM<-CFG
+i_cfg_txbuf_wr  <= p_in_rbuf_cfg.ram_wr_i.wr;--//RAM<-CFG
+i_cfg_rxbuf_rd  <= p_in_rbuf_cfg.ram_wr_i.rd;--//RAM->CFG
+
+--//
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    i_vbuf_wrcnt<=p_in_vbuf_wrcnt;
+    i_vbuf_pfull<=p_in_vbuf_pfull;
+    i_hdd_txbuf_pfull<=p_in_hdd_txbuf_pfull;
+
+    i_rbuf_cfg<=p_in_rbuf_cfg.dmacfg;
+    i_hwlog<=p_in_rbuf_cfg.hwlog;
+
+    i_tstgen.tesing_on<=p_in_rbuf_cfg.tstgen.tesing_on;
+    i_tstgen.con2rambuf<=p_in_rbuf_cfg.tstgen.con2rambuf;
+
+    i_usrif<=p_in_rbuf_cfg.usrif;
+    i_ram_wr_done<=p_in_rbuf_cfg.ram_wr_i.wr_done;
+
+    i_hw_p0<=p_in_rbuf_cfg.usr(11 downto 0);
+    i_hw_p1<=p_in_rbuf_cfg.usr(15 downto 12);
+  end if;
+end process;
+
+i_hwlog_d(0)<=i_hwlog.tdly;
+--i_hwlog_d(0)<=i_hwlog.twork;
+
+
+--//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
 p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.vinbuf_full;
 p_out_rbuf_status.err_type<=i_err_det;
 p_out_rbuf_status.done<=i_rambuf_done;
 p_out_rbuf_status.hwlog_size<=i_wr_ptr;
---p_out_rbuf_status.rdy<='0';
+
+p_out_rbuf_status.ram_wr_o.wr_rdy <= not i_cfg_txbuf_full;--//RAM<-CFG
+p_out_rbuf_status.ram_wr_o.dout   <= i_cfg_rxbuf_dout;--//RAM->CFG
+p_out_rbuf_status.ram_wr_o.rd_rdy <= not i_cfg_rxbuf_empty;--//RAM->CFG
+
 
 --//Сброс/детектирование переполнения потокового буфера +
 --//входного видео буфера
@@ -280,28 +366,6 @@ begin
 end process;
 
 --//
-process(p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_vbuf_wrcnt<=p_in_vbuf_wrcnt;
-    i_vbuf_pfull<=p_in_vbuf_pfull;
-    i_hdd_txbuf_pfull<=p_in_hdd_txbuf_pfull;
-
-    i_rbuf_cfg<=p_in_rbuf_cfg.dmacfg;
-    i_hwlog<=p_in_rbuf_cfg.hwlog;
-
-    i_tstgen.tesing_on<=p_in_rbuf_cfg.tstgen.tesing_on;
-    i_tstgen.con2rambuf<=p_in_rbuf_cfg.tstgen.con2rambuf;
-
-    i_hw_p0<=p_in_rbuf_cfg.usr(11 downto 0);
-    i_hw_p1<=p_in_rbuf_cfg.usr(15 downto 12);
-  end if;
-end process;
-
-i_hwlog_d(0)<=i_hwlog.tdly;
---i_hwlog_d(0)<=i_hwlog.twork;
-
---//
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -312,6 +376,7 @@ begin
     i_hwlog_atatrn_done<=not sr_hwlog_atatrn(0) and sr_hwlog_atatrn(1);
   end if;
 end process;
+
 
 --//----------------------------------------------
 --//Автомат управления записю/чтение данных ОЗУ
@@ -354,6 +419,8 @@ begin
     i_mem_start<='0';
 
     i_atacmd_scount<=(others=>'0');
+    i_cfg_buf_use<='0';
+
     tst_rambuf_dcnt_max_clr<='0';
     tst_rambuf_pfull<='0';
 
@@ -379,7 +446,15 @@ begin
             end if;
 
         else
-            if i_rbuf_cfg.armed='1' then
+            if i_usrif=C_HDD_CFGIF_UART and i_cfg_txbuf_empty='0' then
+                --//RAM<-CFG
+                i_wr_ptr<=(others=>'0');
+                i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+                i_lenreq<=CONV_STD_LOGIC_VECTOR(1, i_lenreq'length);
+                i_cfg_buf_use<='1';
+                fsm_rambuf_cs <= S_C2R_MEM_START;
+
+            elsif i_rbuf_cfg.armed='1' then
                 --//Готовим контроллер ОЗУ:
                 --//Указатель записи/чтения
                 i_wr_ptr<=(others=>'0');
@@ -422,14 +497,14 @@ begin
         i_rambuf_dcnt(15 downto 0)<=i_atacmd_dcount_dw(15 downto 0);
 
         if i_rbuf_cfg.atacmdw='1' then
-        --//Отрабатываем направление RAM->HDD
+        --//RAM->HDD
           i_mem_lenreq<=i_rd_lentrn;
           i_mem_lentrn<=i_rd_lentrn;    --//размер одиночной транзакции.(Устанавливается программно)
           i_mem_dir<=C_MEMCTRLCHWR_READ;
           fsm_rambuf_cs <= S_SW_MEM_CHECK;
 
         elsif p_in_hdd_rxbuf_pempty='0' or i_atadone='1' then
-        --//Отрабатываем направление RAM<-HDD
+        --//RAM<-HDD
           i_mem_lenreq<=i_wr_lentrn;
           i_mem_lentrn<=i_wr_lentrn;    --//размер одиночной транзакции.(Устанавливается программно)
           i_mem_dir<=C_MEMCTRLCHWR_WRITE;
@@ -443,12 +518,33 @@ begin
           if i_rbuf_cfg.raid.used='0' then
           --//Работа с одним HDD
             i_rambuf_done<='1';
+
+            if i_usrif=C_HDD_CFGIF_UART and i_mem_dir=C_MEMCTRLCHWR_WRITE then
+            --//Операция RAM<-HDD отработана. Переходим к заполнению буфера m_cfg_rxbuf
+              i_wr_ptr<=(others=>'0');
+              i_mem_dir<=C_MEMCTRLCHWR_READ;
+              i_lenreq<=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE/4, i_lenreq'length);
+--              i_lenreq<=CONV_STD_LOGIC_VECTOR(16, i_mem_lentrn'length);
+              i_cfg_buf_use<='1';
+              fsm_rambuf_cs <= S_C2R_MEM_START;
+            else
             fsm_rambuf_cs <= S_IDLE;
+            end if;
           else
           --//Работа с RAID
             if i_hddcnt=i_rbuf_cfg.raid.hddcount then
               i_rambuf_done<='1';
+
+              if i_usrif=C_HDD_CFGIF_UART and i_mem_dir=C_MEMCTRLCHWR_WRITE then
+                --//Операция RAM<-HDD отработана. Переходим к заполнению буфера m_cfg_rxbuf
+                i_wr_ptr<=(others=>'0');
+                i_mem_dir<=C_MEMCTRLCHWR_READ;
+                i_lenreq<=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE/4, i_lenreq'length);
+                i_cfg_buf_use<='1';
+                fsm_rambuf_cs <= S_C2R_MEM_START;
+              else
               fsm_rambuf_cs <= S_IDLE;
+              end if;
             else
               i_rambuf_dcnt(15 downto 0)<=i_atacmd_dcount_dw(15 downto 0);
               i_hddcnt<=i_hddcnt + 1;
@@ -773,6 +869,54 @@ begin
         end if;
 
 
+
+
+      --//####################################
+      --//CFG<->RAM
+      --//####################################
+      when S_C2R_MEM_START =>
+
+        if i_rbuf_cfg.clr_err='1' or i_ram_wr_done='1' then
+            i_cfg_buf_use<='0';
+            fsm_rambuf_cs <= S_IDLE;
+        else
+            if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+            --//RAM<-CFG
+              i_mem_lentrn<=CONV_STD_LOGIC_VECTOR(1, i_mem_lentrn'length);
+              if i_cfg_txbuf_empty='0' then
+                i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
+                i_mem_start<='1';
+                fsm_rambuf_cs <= S_C2R_MEM_WORK;
+              end if;
+            else
+            --//RAM->CFG
+              i_mem_lentrn<=i_lenreq;
+              if i_cfg_rxbuf_empty='1' then
+                i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--//Update адреса RAMBUF
+                i_mem_start<='1';
+                fsm_rambuf_cs <= S_C2R_MEM_WORK;
+              end if;
+            end if;
+        end if;
+
+        i_mem_lenreq<=i_lenreq;
+
+      --//Отработка mem транзакции
+      when S_C2R_MEM_WORK =>
+
+        i_mem_start<='0';
+
+        update_addr(1 downto 0) :=(others=>'0');
+        update_addr(i_mem_lenreq'length+1 downto 2):=i_mem_lenreq;
+
+        if i_mem_done='1' then
+          --//Операция выполнена:
+          --//Обновляем указатель записи + уровень данных в буфере
+          i_wr_ptr<=i_wr_ptr + EXT(update_addr, i_wr_ptr'length);
+
+          fsm_rambuf_cs <= S_C2R_MEM_START;
+        end if;
+
     end case;
   end if;
 end process;
@@ -782,15 +926,27 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (memory_ctrl.vhd)
 --//------------------------------------------------------
-p_out_vbuf_rd <=i_rbuf_cfg.hw_mode and i_usr_rxbuf_rd;
+p_out_vbuf_rd <=i_rbuf_cfg.hw_mode and i_mem_din_rd and not i_cfg_buf_use;
 
-p_out_hdd_rxd_rd<=i_rbuf_cfg.sw_mode and i_usr_rxbuf_rd;
+p_out_hdd_rxd_rd<=i_rbuf_cfg.sw_mode and i_mem_din_rd and not i_cfg_buf_use;
 
-i_usr_rxbuf_1empty<=p_in_hdd_rxbuf_empty when i_rbuf_cfg.sw_mode='1' else p_in_vbuf_empty;
-i_usr_rxbuf_1dout <=p_in_hdd_rxd         when i_rbuf_cfg.sw_mode='1' else p_in_vbuf_dout;
+i_cfg_txbuf_rd<=i_mem_din_rd and i_cfg_buf_use;
+i_cfg_rxbuf_wr<=i_mem_dout_wr and i_cfg_buf_use;
 
-i_usr_rxbuf_empty<= i_usr_rxbuf_1empty when i_hwlog.log_on='0' else '0';
-i_usr_rxbuf_dout <= i_usr_rxbuf_1dout  when i_hwlog.log_on='0' else i_hwlog_d(0);
+--//to RAM
+i_mem_din_rdy_1tmp<=p_in_hdd_rxbuf_empty when i_rbuf_cfg.sw_mode='1' else p_in_vbuf_empty;
+i_mem_din_1tmp    <=p_in_hdd_rxd         when i_rbuf_cfg.sw_mode='1' else p_in_vbuf_dout;
+
+i_mem_din_rdy_2tmp<= i_mem_din_rdy_1tmp when i_hwlog.log_on='0' else '0';
+i_mem_din_2tmp    <= i_mem_din_1tmp     when i_hwlog.log_on='0' else i_hwlog_d(0);
+
+i_mem_din_rdy<= i_mem_din_rdy_2tmp when i_cfg_buf_use='0' else i_cfg_txbuf_empty;
+i_mem_din    <= i_mem_din_2tmp     when i_cfg_buf_use='0' else i_cfg_txbuf_dout;
+
+--//from RAM
+p_out_hdd_txd<=i_mem_dout;
+p_out_hdd_txd_wr<=i_mem_dout_wr and not i_cfg_buf_use;
+i_mem_dout_wrdy <= p_in_hdd_txbuf_full when i_cfg_buf_use='0' else i_cfg_rxbuf_full;
 
 
 m_mem_ctrl_wr : memory_ctrl_ch_wr
@@ -813,13 +969,13 @@ p_out_cfg_mem_done         => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout        => i_usr_rxbuf_dout,
-p_out_usr_txbuf_rd         => i_usr_rxbuf_rd,
-p_in_usr_txbuf_empty       => i_usr_rxbuf_empty,
+p_in_usr_txbuf_dout        => i_mem_din,
+p_out_usr_txbuf_rd         => i_mem_din_rd,
+p_in_usr_txbuf_empty       => i_mem_din_rdy,
 
-p_out_usr_rxbuf_din        => p_out_hdd_txd,      --i_usr_txbuf_din, --
-p_out_usr_rxbuf_wd         => p_out_hdd_txd_wr,   --i_usr_txbuf_wd,  --
-p_in_usr_rxbuf_full        => p_in_hdd_txbuf_full,--i_usr_txbuf_full,--
+p_out_usr_rxbuf_din        => i_mem_dout,
+p_out_usr_rxbuf_wd         => i_mem_dout_wr,
+p_in_usr_rxbuf_full        => i_mem_dout_wrdy,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -856,6 +1012,51 @@ p_out_tst                  => tst_mem_ctrl_out,
 -------------------------------
 p_in_clk            => p_in_clk,
 p_in_rst            => p_in_rst
+);
+
+
+
+--//--------------------------------------------------
+--//Запись/чтение ОЗУ через модуль CFG
+--//--------------------------------------------------
+--//RAM<-CFG
+m_cfg_txbuf : hdd_ram_hfifo
+port map
+(
+din         => i_cfg_txbuf_din,
+wr_en       => i_cfg_txbuf_wr,
+wr_clk      => i_cfg_buf_clk,
+
+dout        => i_cfg_txbuf_dout,
+rd_en       => i_cfg_txbuf_rd,
+rd_clk      => p_in_clk,
+
+full        => open,
+almost_full => i_cfg_txbuf_full,
+empty       => i_cfg_txbuf_empty,
+
+--clk         => p_in_clk,
+rst         => i_cfg_buf_rst
+);
+
+--//RAM->CFG
+m_cfg_rxbuf : hdd_ram_hfifo
+port map
+(
+din         => i_mem_dout,
+wr_en       => i_cfg_rxbuf_wr,
+wr_clk      => p_in_clk,
+
+dout        => i_cfg_rxbuf_dout,
+rd_en       => i_cfg_rxbuf_rd,
+rd_clk      => i_cfg_buf_clk,
+
+full        => open,
+almost_full => i_cfg_rxbuf_full,
+empty       => i_cfg_rxbuf_empty,
+
+--clk         => p_in_clk,
+rst         => i_cfg_buf_rst
 );
 
 
@@ -916,7 +1117,7 @@ p_out_dbgcs.data(17)             <=p_in_hdd_txbuf_full;
 p_out_dbgcs.data(18)             <=i_doble_act;
 p_out_dbgcs.data(19)             <='0';------------------//зарезервировано для tst_swt_hdd_vbuf_wr
 p_out_dbgcs.data(23 downto 20)   <=i_vbuf_wrcnt;
-p_out_dbgcs.data(24)             <=i_usr_rxbuf_empty;
+p_out_dbgcs.data(24)             <=i_mem_din_rdy;
 p_out_dbgcs.data(25)             <=i_mem_start;
 p_out_dbgcs.data(29 downto 26)   <=tst_mem_ctrl_out(5 downto 2);--//memory_ctrl_ch_wr/fsm(0)
 p_out_dbgcs.data(30)             <=p_in_mem_re;
@@ -952,6 +1153,8 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_rambuf_cs=S
             CONV_STD_LOGIC_VECTOR(16#0D#,tst_fsm_cs'length) when fsm_rambuf_cs=S_HWLOG_WAIT_TRNDONE else
             CONV_STD_LOGIC_VECTOR(16#0E#,tst_fsm_cs'length) when fsm_rambuf_cs=S_HWLOG_MEM_START    else
             CONV_STD_LOGIC_VECTOR(16#0F#,tst_fsm_cs'length) when fsm_rambuf_cs=S_HWLOG_MEM_WORK     else
+            CONV_STD_LOGIC_VECTOR(16#10#,tst_fsm_cs'length) when fsm_rambuf_cs=S_C2R_MEM_START      else
+            CONV_STD_LOGIC_VECTOR(16#11#,tst_fsm_cs'length) when fsm_rambuf_cs=S_C2R_MEM_WORK       else
             CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_rambuf_cs=S_IDLE          else
 
 

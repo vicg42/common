@@ -153,6 +153,7 @@ port map
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
+p_in_cfg_if               => '0',
 p_in_cfg_clk              => p_in_clk,--//g_host_clk
 
 p_in_cfg_adr              => i_cfgdev_adr,
@@ -161,9 +162,11 @@ p_in_cfg_adr_fifo         => i_cfgdev_adr_fifo,
 
 p_in_cfg_txdata           => i_cfgdev_txdata,
 p_in_cfg_wd               => i_dev_cfg_wd(C_CFGDEV_HDD),
+p_out_cfg_txrdy           => open,
 
 p_out_cfg_rxdata          => open,--i_hdd_cfg_rxdata,
 p_in_cfg_rd               => i_dev_cfg_rd(C_CFGDEV_HDD),
+p_out_cfg_rxrdy           => open,
 
 p_in_cfg_done             => i_dev_cfg_done(C_CFGDEV_HDD),
 p_in_cfg_rst              => i_dsn_hdd_rst,-- i_cfgdev_module_rst,

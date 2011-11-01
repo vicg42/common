@@ -65,13 +65,12 @@ constant C_GT6_CH_COUNT : TSH_08CountSel:=(C_1CGT6_CH, C_2CGT6_CH);
 constant C_GT7_CH_COUNT : TSH_08CountSel:=(C_1CGT7_CH, C_2CGT7_CH);
 
 
-
 --//-------------------------------------------------
 --//User Global Ctrl/ Bit Map:
 --//-------------------------------------------------
-constant C_USR_GCTRL_ERR_CLR_BIT         : integer:=0;
-constant C_USR_GCTRL_TST_ON_BIT          : integer:=1;
-constant C_USR_GCTRL_ERR_STREAMBUF_BIT   : integer:=2;
+constant C_USR_GCTRL_ERR_CLR_BIT            : integer:=0;
+constant C_USR_GCTRL_TST_ON_BIT             : integer:=1;
+constant C_USR_GCTRL_ERR_STREAMBUF_BIT      : integer:=2;
 constant C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT : integer:=3;
 constant C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT : integer:=4;
 constant C_USR_GCTRL_HWLOG_ON_BIT           : integer:=5;

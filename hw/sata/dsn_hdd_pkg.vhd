@@ -37,6 +37,11 @@ dly : std_logic;--//
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
+--//-------------------------------------------------
+--//
+--//-------------------------------------------------
+constant C_HDD_CFGIF_PCIEXP : std_logic:='0';
+constant C_HDD_CFGIF_UART   : std_logic:='1';
 
 --//-------------------------------------------------
 --//RAMBUF
@@ -46,6 +51,21 @@ vinbuf_full : std_logic;
 rambuf_full : std_logic;
 end record;
 
+--//Запись чтение RAM через CFG/Map:
+type THDDCfgRAMI is record
+clk     : std_logic;
+din     : std_logic_vector(31 downto 0);
+wr      : std_logic;
+rd      : std_logic;
+wr_done : std_logic;
+end record;
+
+type THDDCfgRAMO is record
+dout    : std_logic_vector(31 downto 0);
+rd_rdy  : std_logic;
+wr_rdy  : std_logic;
+end record;
+
 --//Статусы/Map:
 type THDDRBufStatus is record
 err      : std_logic;
@@ -53,6 +73,7 @@ err_type : THDDRBufErrDetect;
 done     : std_logic;
 --rdy  : std_logic;
 hwlog_size : std_logic_vector(31 downto 0);
+ram_wr_o : THDDCfgRAMO;
 end record;
 
 type THDDRBufCfg is record
@@ -62,6 +83,8 @@ dmacfg  : TDMAcfg;
 tstgen  : THDDTstGen;
 hwlog   : THWLog;
 usr     : std_logic_vector(31 downto 0);
+usrif   : std_logic;         --//Пользовательский интерфейс
+ram_wr_i: THDDCfgRAMI;
 end record;
 
 
@@ -83,6 +106,7 @@ port
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
+p_in_cfg_if               : in   std_logic;
 p_in_cfg_clk              : in   std_logic;
 
 p_in_cfg_adr              : in   std_logic_vector(7 downto 0);
@@ -91,9 +115,11 @@ p_in_cfg_adr_fifo         : in   std_logic;
 
 p_in_cfg_txdata           : in   std_logic_vector(15 downto 0);
 p_in_cfg_wd               : in   std_logic;
+p_out_cfg_txrdy           : out  std_logic;
 
 p_out_cfg_rxdata          : out  std_logic_vector(15 downto 0);
 p_in_cfg_rd               : in   std_logic;
+p_out_cfg_rxrdy           : out  std_logic;
 
 p_in_cfg_done             : in   std_logic;
 p_in_cfg_rst              : in   std_logic;
