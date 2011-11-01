@@ -238,8 +238,8 @@ TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns
 #NET "mclkb_p"        LOC = "P4"  | IOSTANDARD = "LVPECL_25";
 #NET "mclkb_n"        LOC = "P3"  | IOSTANDARD = "LVPECL_25";
 
-NET "refclk_p"    LOC = "G15" | IOSTANDARD = "LVPECL_25";
-NET "refclk_n"    LOC = "G16" | IOSTANDARD = "LVPECL_25";
+NET "pin_in_refclk200M_p" LOC = "G15" | IOSTANDARD = "LVPECL_25";
+NET "pin_in_refclk200M_n" LOC = "G16" | IOSTANDARD = "LVPECL_25";
 # Internal timing, trefclk'
 NET "i_refclk200MHz" PERIOD = 4.5ns HIGH 50%;
 
