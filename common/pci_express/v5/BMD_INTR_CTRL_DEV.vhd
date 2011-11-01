@@ -60,8 +60,8 @@ type fsm_state is
 S_IRQ_IDLE,
 S_IRQ_ASSERT_DONE,
 S_IRQ_WAIT_CLR,
-S_IRQ_DEASSERT_DONE,
-S_IRQ_DLY
+S_IRQ_DEASSERT_DONE
+--S_IRQ_DLY
 );
 signal fsm_cs: fsm_state;
 
@@ -69,8 +69,8 @@ signal i_irq_status             : std_logic:='0';
 signal i_irq_assert_n           : std_logic:='1';
 signal i_irq_n                  : std_logic:='1';
 
-signal i_timer_en               : std_logic:='0';
-signal i_timer_cnt              : std_logic_vector(6 downto 0):=(others=>'0');
+--signal i_timer_en               : std_logic:='0';
+--signal i_timer_cnt              : std_logic_vector(6 downto 0):=(others=>'0');
 
 
 --//MAIN
@@ -78,22 +78,6 @@ begin
 
 
 p_out_tst<=(others=>'0');
-
-
---//
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_timer_cnt<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-    if i_timer_en='0'then
-      i_timer_cnt<=(others=>'0');
-    else
-      i_timer_cnt<=i_timer_cnt+1;
-    end if;
-  end if;
-end process;
-
 
 --//Связь с ядром PCI-EXPRESS
 p_out_cfg_irq_di       <= CONV_STD_LOGIC_VECTOR(16#00#, p_out_cfg_irq_di'length);
@@ -108,7 +92,7 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
 
-    i_timer_en<='0';
+--    i_timer_en<='0';
     i_irq_status <= '0';
 
     i_irq_assert_n <= '1';
@@ -119,45 +103,45 @@ begin
 
     case fsm_cs is
 
---      --//--------------------------------
---      --//
---      --//--------------------------------
---      when S_IRQ_IDLE =>
---
---        if p_in_irq_set='1' then
---          i_irq_n        <= '0';
---          i_irq_assert_n <= '0';--ASSERT IRQ
---          fsm_cs <= S_IRQ_ASSERT_DONE;
---        else
---          i_irq_assert_n <= '1';
---          i_irq_n        <= '1';
---        end if;
-
       --//--------------------------------
       --//
       --//--------------------------------
       when S_IRQ_IDLE =>
 
-        i_irq_n        <= '1';
-        i_irq_assert_n <= '1';
-
         if p_in_irq_set='1' then
-          i_timer_en<='1';
-          fsm_cs <= S_IRQ_DLY;
-        end if;
-
-      --//--------------------------------
-      --//
-      --//--------------------------------
-      when S_IRQ_DLY =>
-
-        if i_timer_cnt=CONV_STD_LOGIC_VECTOR(G_TIME_DLY, i_timer_cnt'length) then
-          i_timer_en<='0';
-          --//Активируем прерывание
           i_irq_n        <= '0';
           i_irq_assert_n <= '0';--ASSERT IRQ
           fsm_cs <= S_IRQ_ASSERT_DONE;
+        else
+          i_irq_assert_n <= '1';
+          i_irq_n        <= '1';
         end if;
+
+--      --//--------------------------------
+--      --//
+--      --//--------------------------------
+--      when S_IRQ_IDLE =>
+--
+--        i_irq_n        <= '1';
+--        i_irq_assert_n <= '1';
+--
+--        if p_in_irq_set='1' then
+--          i_timer_en<='1';
+--          fsm_cs <= S_IRQ_DLY;
+--        end if;
+--
+--      --//--------------------------------
+--      --//
+--      --//--------------------------------
+--      when S_IRQ_DLY =>
+--
+--        if i_timer_cnt=CONV_STD_LOGIC_VECTOR(G_TIME_DLY, i_timer_cnt'length) then
+--          i_timer_en<='0';
+--          --//Активируем прерывание
+--          i_irq_n        <= '0';
+--          i_irq_assert_n <= '0';--ASSERT IRQ
+--          fsm_cs <= S_IRQ_ASSERT_DONE;
+--        end if;
 
       --//--------------------------------
       --//
@@ -208,6 +192,19 @@ begin
   end if;
 end process;
 
+----//
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_timer_cnt<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if i_timer_en='0'then
+--      i_timer_cnt<=(others=>'0');
+--    else
+--      i_timer_cnt<=i_timer_cnt+1;
+--    end if;
+--  end if;
+--end process;
 
 --END MAIN
 end behavioral;

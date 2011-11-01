@@ -175,9 +175,9 @@ finto_l                    : out   std_logic;
 --------------------------------------------------
 --Связь с уст-вами проекта Veresk-M
 --------------------------------------------------
-p_out_host_clk_out         : out   std_logic;
+p_out_hclk_out         : out   std_logic;
 
-p_out_glob_ctrl            : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_gctrl                : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
 p_out_dev_ctrl             : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
 p_in_dev_status            : in     std_logic_vector(C_FHOST_DBUS-1 downto 0);
 p_out_dev_din              : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
@@ -189,11 +189,11 @@ p_out_dev_eof              : out    std_logic;
 
 p_in_tst_in                : in     std_logic_vector(127 downto 0);
 
---//связь с модулем memory contrller
-p_out_mem_ctl_reg          : out   std_logic_vector(0 downto 0);
-p_out_mem_mode_reg         : out   std_logic_vector(511 downto 0);
-p_in_mem_locked            : in    std_logic_vector(7 downto 0);
-p_in_mem_trained           : in    std_logic_vector(15 downto 0);
+----//связь с модулем memory contrller
+--p_out_mem_ctl_reg          : out   std_logic_vector(0 downto 0);
+--p_out_mem_mode_reg         : out   std_logic_vector(511 downto 0);
+--p_in_mem_locked            : in    std_logic_vector(7 downto 0);
+--p_in_mem_trained           : in    std_logic_vector(15 downto 0);
 
 p_out_mem_bank1h           : out   std_logic_vector(15 downto 0);
 p_out_mem_ce               : out   std_logic;
@@ -351,18 +351,18 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
 
   signal vereskm_reg_adr        : std_logic_vector(6 downto 0); --//Адреса регистров проекта VERESK-M
   signal usr_reg_wr             : std_logic;
-  signal v_reg_glob_ctrl        : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(C_HREG_GCTRL0_LAST_BIT downto 0);
+  signal v_reg_gctrl        : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(C_HREG_GCTRL_LAST_BIT downto 0);
   signal v_reg_fpga_firmware    : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(C_HREG_FRMWARE_LAST_BIT downto 0);
-  signal v_reg_dev_ctrl         : std_logic_vector(C_FHOST_DBUS-1 downto 0);--C_HREG_DEV_CTRL_DEV_LAST_BIT downto 0);
+  signal v_reg_dev_ctrl         : std_logic_vector(C_FHOST_DBUS-1 downto 0);--C_HREG_DEV_CTRL_LAST_BIT downto 0);
   signal v_reg_tst0             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
   signal v_reg_tst1             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
 
   signal v_reg_tst4             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
 
-  signal b_dev_address               : std_logic_vector(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT-C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT downto 0);
+  signal b_dev_address               : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 
---  signal i_trn_dlen_cnt        : std_logic_vector(C_HREG_DEV_CTRL_DEV_DLEN_SIZE-1 downto 0);
---  signal i_trn_dlen            : std_logic_vector(C_HREG_DEV_CTRL_DEV_DLEN_SIZE-1 downto 0);
+--  signal i_trn_dlen_cnt        : std_logic_vector(C_HREG_DEV_CTRL_DLEN_SIZE-1 downto 0);
+--  signal i_trn_dlen            : std_logic_vector(C_HREG_DEV_CTRL_DLEN_SIZE-1 downto 0);
 --  signal i_trn_int_en          : std_logic;
   signal interrupt             : std_logic;
 
@@ -392,7 +392,7 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   signal i_dev_txd_rdy      : std_logic;
   signal i_trn_start_sw     : std_logic;
   signal i_interrupt_clr    : std_logic;
-  signal i_trn_rst_sw       : std_logic;
+--  signal i_trn_rst_sw       : std_logic;
   signal i_hrddone_vctrl    : std_logic;
   signal i_hrddone_trcnik   : std_logic;
 
@@ -818,28 +818,28 @@ begin
         --//Чтение данных регистров
         --//BAR - vereskm_reg_bar_detect
         if vereskm_reg_bar_detect='1' then
-          if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0, 5)  then lo(v_reg_glob_ctrl'high downto 0):= v_reg_glob_ctrl;
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_FIRMWARE, 5)    then lo(v_reg_fpga_firmware'high downto 0):= v_reg_fpga_firmware;
+          if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL, 5)  then lo(v_reg_gctrl'high downto 0):= v_reg_gctrl;
+          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FIRMWARE, 5)    then lo(v_reg_fpga_firmware'high downto 0):= v_reg_fpga_firmware;
 
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL, 5)    then --lo := v_reg_dev_ctrl_rd;
+          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL, 5)    then --lo := v_reg_dev_ctrl_rd;
 
-            lo(C_HREG_DEV_CTRL_DEV_TRN_DIR_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_DIR_BIT);
-            lo(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT);
-            lo(C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_MSB_BIT downto C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_LSB_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_MSB_BIT downto C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_LSB_BIT);
-            lo(C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_MSB_BIT downto C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_LSB_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_MSB_BIT downto C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_LSB_BIT);
-            lo(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT);
+            lo(C_HREG_DEV_CTRL_TRN_DIR_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_TRN_DIR_BIT);
+            lo(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
+            lo(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT downto C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT downto C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT);
+            lo(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT);
+            lo(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT);
 
 
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_STATUS_DEV_L, 5)then lo(C_HREG_STATUS_DEV_LAST_BIT downto 0):= p_in_dev_status(C_HREG_STATUS_DEV_LAST_BIT downto 0);
+          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_STATUS, 5)then lo(C_HREG_DEV_STATUS_LAST_BIT downto 0):= p_in_dev_status(C_HREG_DEV_STATUS_LAST_BIT downto 0);
 
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0, 5)        then lo := v_reg_tst0;
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST1, 5)        then lo := v_reg_tst1;
+          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5)        then lo := v_reg_tst0;
+          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5)        then lo := v_reg_tst1;
 
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST2, 5)        then lo := p_in_tst_in(31 downto 0);
---          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST3, 5)        then lo := p_in_tst_in(63 downto 32);
---          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST4, 5)        then lo := v_reg_tst4;
+--          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST2, 5)        then lo := p_in_tst_in(31 downto 0);
+--          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST4, 5)        then lo := p_in_tst_in(63 downto 32);
+--          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST4, 5)        then lo := v_reg_tst4;
 
---          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_DATA, 5) then x := x or i_usr_dev_dout;
+--          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) then x := x or i_usr_dev_dout;
           end if;
         end if;
 
@@ -923,13 +923,13 @@ begin
 --//-----------------------------------------------
 --//Конфигурирование
 --//-----------------------------------------------
-  mem_locked      <= p_in_mem_locked;
-  mem_trained     <= p_in_mem_trained;
+  mem_locked      <= (others=>'0');--p_in_mem_locked;
+  mem_trained     <= (others=>'0');--p_in_mem_trained;
 
-  p_out_mem_ctl_reg    <= memctl_reg;
---  p_out_mem_mode_reg   <= mode_reg;
-  p_out_mem_mode_reg((C_MEMCTRL_CFG_MODE_REG_COUNT*32)-1 downto 0)<= mode_reg((C_MEMCTRL_CFG_MODE_REG_COUNT*32)-1 downto 0);
-  p_out_mem_mode_reg(511 downto (C_MEMCTRL_CFG_MODE_REG_COUNT*32))<=(others=>'0');
+--  p_out_mem_ctl_reg    <= memctl_reg;
+----  p_out_mem_mode_reg   <= mode_reg;
+--  p_out_mem_mode_reg((C_MEMCTRL_CFG_MODE_REG_COUNT*32)-1 downto 0)<= mode_reg((C_MEMCTRL_CFG_MODE_REG_COUNT*32)-1 downto 0);
+--  p_out_mem_mode_reg(511 downto (C_MEMCTRL_CFG_MODE_REG_COUNT*32))<=(others=>'0');
   p_out_mem_bank1h<= bank1h;
 
   --
@@ -967,10 +967,10 @@ begin
 --//-----------------------------------------------
 --//запись/чтение памяти
 --//-----------------------------------------------
-  b_dev_address   <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT);
+  b_dev_address   <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
 
   sel_memory_ctrl <='1' when b_dev_address =CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, b_dev_address'length) else '0';
---  sel_memory_ctrl<='1' when v_reg_tst0(0)='1' or v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT)=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE) else '0';
+--  sel_memory_ctrl<='1' when v_reg_tst0(0)='1' or v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT)=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, C_HREG_DEV_CTRL_ADR_SIZE) else '0';
 
   p_out_mem_ce    <= ds_decode and mem_data_bar_detect and sel_memory_ctrl; --//Разрешение работы с памятью
   p_out_mem_cw    <= ds_decode and ds_write and sel_memory_ctrl;            --//Назначение операции записи/чтения
@@ -1041,17 +1041,12 @@ end process;
 --  usr_buf_re <='0';
 --  usr_buf_rpe<='0';
 
-  p_out_glob_ctrl(C_HREG_GCTRL0_RST_ALL_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_ALL_BIT);
-  p_out_glob_ctrl(C_HREG_GCTRL0_LBUS_SEL_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_LBUS_SEL_BIT);
-  p_out_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_HDD_BIT);
-  p_out_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RST_ETH_BIT);
-  p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
-  p_out_glob_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
-  p_out_glob_ctrl(C_HREG_GCTRL0_RESERV7_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV7_BIT);
-  p_out_glob_ctrl(C_HREG_GCTRL0_RESERV8_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV8_BIT);
-  p_out_glob_ctrl(C_HREG_GCTRL0_RESERV9_BIT)<=v_reg_glob_ctrl(C_HREG_GCTRL0_RESERV9_BIT);
-  p_out_glob_ctrl(p_out_glob_ctrl'high downto C_HREG_GCTRL0_LAST_BIT)<=(others=>'0');
-
+  p_out_gctrl(C_HREG_GCTRL_RST_ALL_BIT)<=v_reg_gctrl(C_HREG_GCTRL_RST_ALL_BIT);
+  p_out_gctrl(C_HREG_GCTRL_RST_MEM_BIT)<=v_reg_gctrl(C_HREG_GCTRL_RST_MEM_BIT);
+  p_out_gctrl(C_HREG_GCTRL_RST_ETH_BIT)<=v_reg_gctrl(C_HREG_GCTRL_RST_ETH_BIT);
+  p_out_gctrl(C_HREG_GCTRL_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
+  p_out_gctrl(C_HREG_GCTRL_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
+  p_out_gctrl(p_out_gctrl'high downto C_HREG_GCTRL_LAST_BIT)<=(others=>'0');
 
   p_out_dev_ctrl(0) <=i_trn_start_sw;
   p_out_dev_ctrl(p_out_dev_ctrl'high downto 1)<=v_reg_dev_ctrl(p_out_dev_ctrl'high downto 1);
@@ -1089,7 +1084,7 @@ end process;
   process(rst,clk)
     variable var_trn_start_edge  : std_logic;
     variable var_int_clr_edge    : std_logic;
-    variable var_trn_rst_edge    : std_logic;
+--    variable var_trn_rst_edge    : std_logic;
     variable var_dev_txd_rdy_edge: std_logic;
     variable var_hrddone_vctrl_edge: std_logic;
     variable var_hrddone_trcnik_edge: std_logic;
@@ -1100,11 +1095,11 @@ end process;
       var_dev_txd_rdy_edge:='0';
       var_trn_start_edge  :='0';
       var_int_clr_edge    :='0';
-      var_trn_rst_edge    :='0';
+--      var_trn_rst_edge    :='0';
       var_hrddone_vctrl_edge:='0';
       var_hrddone_trcnik_edge:='0';
 
-      v_reg_glob_ctrl<=(others=>'0');
+      v_reg_gctrl<=(others=>'0');
       v_reg_dev_ctrl<=(others=>'0');
       v_reg_tst0<=(others=>'0');
       v_reg_tst1<=(others=>'0');
@@ -1112,7 +1107,7 @@ end process;
       i_dev_txd_rdy   <='0';
       i_trn_start_sw  <='0';
       i_interrupt_clr <='0';
-      i_trn_rst_sw    <='0';
+--      i_trn_rst_sw    <='0';
       i_hrddone_vctrl <='0';
       i_hrddone_trcnik<='0';
 
@@ -1121,29 +1116,29 @@ end process;
       var_dev_txd_rdy_edge:='0';
       var_trn_start_edge  :='0';
       var_int_clr_edge    :='0';
-      var_trn_rst_edge    :='0';
+--      var_trn_rst_edge    :='0';
       var_hrddone_vctrl_edge:='0';
       var_hrddone_trcnik_edge:='0';
 
         if usr_reg_wr='1' then
           if vereskm_reg_bar_detect='1' then
-            if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0, 5) then
+            if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL, 5) then
 
               for j in 0 to C_FHOST_DBUS/8-1 loop
                 if lbe_iq_l(j) = '0' then
-                  v_reg_glob_ctrl(8 * (j + 1) - 1 downto  8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
+                  v_reg_gctrl(8 * (j + 1) - 1 downto  8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
-              var_hrddone_vctrl_edge:=ld_iq(C_HREG_GCTRL0_RDDONE_VCTRL_BIT);
-              var_hrddone_trcnik_edge:=ld_iq(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT);
+              var_hrddone_vctrl_edge:=ld_iq(C_HREG_GCTRL_RDDONE_VCTRL_BIT);
+              var_hrddone_trcnik_edge:=ld_iq(C_HREG_GCTRL_RDDONE_TRCNIK_BIT);
 
-            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL, 5) then
+            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL, 5) then
 
-              var_trn_start_edge  :=ld_iq(C_HREG_DEV_CTRL_DEV_TRN_START_BIT);
---              var_int_clr_edge    :=ld_iq(C_HREG_DEV_CTRL_DEV_RESERV8_BIT);
-              var_trn_rst_edge    :=ld_iq(C_HREG_DEV_CTRL_DEV_TRN_RST_BIT);
-              var_dev_txd_rdy_edge:=ld_iq(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT);
+              var_trn_start_edge  :=ld_iq(C_HREG_DEV_CTRL_TRN_START_BIT);
+--              var_int_clr_edge    :=ld_iq(C_HREG_DEV_CTRL_RESERV8_BIT);
+--              var_trn_rst_edge    :=ld_iq(C_HREG_DEV_CTRL_TRN_RST_BIT);
+              var_dev_txd_rdy_edge:=ld_iq(C_HREG_DEV_CTRL_DRDY_BIT);
 
               for j in 0 to C_FHOST_DBUS/8-1 loop
                 if lbe_iq_l(j) = '0' then
@@ -1151,14 +1146,14 @@ end process;
                 end if;
               end loop;
 
-            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0, 5) then
+            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5) then
               for j in 0 to C_FHOST_DBUS/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_tst0( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
-            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST1, 5) then
+            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then
               for j in 0 to C_FHOST_DBUS/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_tst1( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
@@ -1172,7 +1167,7 @@ end process;
     i_dev_txd_rdy   <=var_dev_txd_rdy_edge;
     i_trn_start_sw  <=var_trn_start_edge;
 --    i_interrupt_clr <=var_int_clr_edge;
-    i_trn_rst_sw    <=var_trn_rst_edge;
+--    i_trn_rst_sw    <=var_trn_rst_edge;
     i_hrddone_vctrl<=var_hrddone_vctrl_edge;
     i_hrddone_trcnik<=var_hrddone_trcnik_edge;
 
@@ -1188,17 +1183,17 @@ end process;
     end if;
   end process;
 
-  p_out_host_clk_out  <= clk;
+  p_out_hclk_out  <= clk;
 
 
 --//----------------------------------------
 --//Прерывание для ХОСТА
 --//----------------------------------------
 --  finto_l<='1';
-  finto_l<='1';-- when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_RESERV2_BIT)='0' else not interrupt;
+  finto_l<='1';-- when v_reg_dev_ctrl(C_HREG_DEV_CTRL_RESERV2_BIT)='0' else not interrupt;
 
---  i_trn_dlen<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_DLEN_MSB_BIT downto C_HREG_DEV_CTRL_DEV_DLEN_LSB_BIT);
---  i_trn_int_en<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_DEV_RESERV2_BIT);
+--  i_trn_dlen<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_DLEN_MSB_BIT downto C_HREG_DEV_CTRL_DLEN_LSB_BIT);
+--  i_trn_int_en<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_RESERV2_BIT);
 --
 --  process(rst,clk)
 --  begin

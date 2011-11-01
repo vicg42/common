@@ -250,9 +250,9 @@ begin
         --//Чтение данных регистров
         --//BAR - vereskm_reg_bar_detect
         if vereskm_reg_bar_detect='1' then
-          if vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_FIRMWARE, 5)    then lo(v_reg_fpga_firmware'high downto 0):= v_reg_fpga_firmware;
-          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0, 5)     then lo(v_reg_tst0'high downto 0):= v_reg_tst0;
---          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST1, 5)     then lo(v_reg_tst1'high downto 0):= v_reg_tst1;
+          if vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FIRMWARE, 5)    then lo(v_reg_fpga_firmware'high downto 0):= v_reg_fpga_firmware;
+          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5)     then lo(v_reg_tst0'high downto 0):= v_reg_tst0;
+--          elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5)     then lo(v_reg_tst1'high downto 0):= v_reg_tst1;
           end if;
         end if;
 
@@ -272,14 +272,14 @@ begin
 
         if usr_reg_wr='1' then
           if vereskm_reg_bar_detect='1' then
-            if vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0, 5) then
+            if vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5) then
               for j in 0 to C_FHOST_DBUS/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_tst0( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
---            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST1, 5) then
+--            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then
 --              for j in 0 to C_FHOST_DBUS/8-1 loop
 --                if lbe_iq_l(j) = '0' then
 --                  v_reg_tst1( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);

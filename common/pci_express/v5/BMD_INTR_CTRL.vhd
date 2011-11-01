@@ -88,37 +88,12 @@ p_in_rst               : in   std_logic
 );
 end component;
 
-Type TTimeDly is array (0 to C_HIRQ_COUNT_MAX-1) of integer;
-
-constant C_TIMEDLY : TTimeDly:=(
-8,   --HIRQ_PCIEXP_DMA_WR
-12,  --HIRQ_PCIEXP_DMA_RD
-0,   --HIRQ_TMR0
-2,   --HIRQ_ETH_RXBUF
-6,   --HIRQ_DEVCFG_RXBUF
-9,   --HIRQ_HDD_CMDDONE
-4,   --HIRQ_VIDEO_CH0
-14,  --HIRQ_VIDEO_CH1
-16,  --HIRQ_VIDEO_CH2
-3,   --HIRQ_TRACK
-7,
-1,
-5,
-11,
-10,
-15
-);
-
-signal i_rst                       : std_logic;
-
 signal i_cfg_irq_n                 : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
 signal i_cfg_irq_assert_n          : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
 signal i_irq_clr                   : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
 
 Type TIrqTST is array (0 to C_HIRQ_COUNT-1) of std_logic_vector(31 downto 0);
 signal i_tst_out                   : TIrqTST;
-
-signal i_irq_set                   : std_logic_vector(p_in_irq_set'range);
 
 
 --//MAIN
@@ -135,11 +110,11 @@ p_out_tst<=(others=>'0');
 --//16#03# - PCI_EXPRESS_LEGACY_INTD
 p_out_cfg_irq_di       <= CONV_STD_LOGIC_VECTOR(16#00#, p_out_cfg_irq_di'length);
 
-p_out_cfg_irq_n        <= AND_reduce(i_cfg_irq_n(C_HIRQ_COUNT - 1 downto 0));
-p_out_cfg_irq_assert_n <= AND_reduce(i_cfg_irq_assert_n(C_HIRQ_COUNT - 1 downto 0));
+p_out_cfg_irq_n        <= AND_reduce(i_cfg_irq_n(C_HIRQ_COUNT - 1 downto C_HIRQ_PCIE_DMA));
+p_out_cfg_irq_assert_n <= AND_reduce(i_cfg_irq_assert_n(C_HIRQ_COUNT - 1 downto C_HIRQ_PCIE_DMA));
 
 --//”правление работой соответствующего канала прерывани€
-gen_ch: for i in 0 to C_HIRQ_COUNT - 1 generate
+gen_ch: for i in C_HIRQ_PCIE_DMA to C_HIRQ_COUNT - 1 generate
 
 --//Ќазначаем флаг гашени€ перывани€ дл€ выбраного канала перерывани€
 i_irq_clr(i)<=p_in_irq_clr when p_in_irq_num(C_HIRQ_COUNT - 1 downto 0)=i else '0';
@@ -147,11 +122,11 @@ i_irq_clr(i)<=p_in_irq_clr when p_in_irq_num(C_HIRQ_COUNT - 1 downto 0)=i else '
 --//јвтомат управлени€ прерыванием соотв. канала перерывани€
 m_BMD_INTR_CTRL_DEV : BMD_INTR_CTRL_DEV
 generic map(
-G_TIME_DLY => C_TIMEDLY(i)
+G_TIME_DLY => 0
 )
 port map(
 --//ѕользовательское управление
-p_in_irq_set           => p_in_irq_set(i),--i_irq_set(i),--
+p_in_irq_set           => p_in_irq_set(i),
 p_in_irq_clr           => i_irq_clr(i),
 p_out_irq_status       => p_out_irq_status(i),
 
@@ -172,17 +147,6 @@ p_in_rst               => p_in_rst
 );
 
 end generate gen_ch;
-
---i_irq_set(C_HIRQ_PCIEXP_DMA_WR)<='0';--p_in_irq_set(C_HIRQ_PCIEXP_DMA_WR);
---i_irq_set(C_HIRQ_PCIEXP_DMA_RD)<='0';--p_in_irq_set(C_HIRQ_PCIEXP_DMA_RD);
---i_irq_set(C_HIRQ_TMR0         )<=p_in_irq_set(C_HIRQ_TMR0         );
---i_irq_set(C_HIRQ_ETH_RXBUF    )<='0';--p_in_irq_set(C_HIRQ_ETH_RXBUF    );
---i_irq_set(C_HIRQ_DEVCFG_RXBUF )<='0';--p_in_irq_set(C_HIRQ_DEVCFG_RXBUF );
---i_irq_set(C_HIRQ_HDD_CMDDONE  )<='0';--p_in_irq_set(C_HIRQ_HDD_CMDDONE  );
---i_irq_set(C_HIRQ_VIDEO_CH0    )<='0';--p_in_irq_set(C_HIRQ_VIDEO_CH0    );
---i_irq_set(C_HIRQ_VIDEO_CH1    )<='0';--p_in_irq_set(C_HIRQ_VIDEO_CH1    );
---i_irq_set(C_HIRQ_VIDEO_CH2    )<='0';--p_in_irq_set(C_HIRQ_VIDEO_CH2    );
---i_irq_set(C_HIRQ_TRACK_NIK    )<='0';--p_in_irq_set(C_HIRQ_TRACK_NIK    );
 
 --END MAIN
 end behavioral;

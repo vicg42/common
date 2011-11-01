@@ -217,6 +217,7 @@ module BMD_ENGINE_RX
   assign tst_rx_engine_state_o = fsm_state;
 
   assign  bar_expansion_rom =!trn_rbar_hit_n[6];
+  assign  bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
 
   assign trg_addr_o = {{req_addr_o[5:0]},{2'b0}};
 
@@ -515,7 +516,10 @@ module BMD_ENGINE_RX
             req_addr_o       <= trn_rd[63:34];//ADDR[31:2]
 
             trg_rx_data      <= trn_rd[31:00];
+            if (bar_usr)
             trg_rx_data_wd_o <= 1'b1;
+            else
+            trg_rx_data_wd_o <= 1'b0;
 
             req_compl_o    <= 1'b1;//Выставляем модулю Передачи запрос на отправку пакета Cpl
             trn_rdst_rdy_n <= 1'b1;
@@ -579,7 +583,10 @@ module BMD_ENGINE_RX
 
             if (!bar_expansion_rom)
             begin
+              if (bar_usr)
               trg_rx_data_rd_o<= 1'b1;
+              else
+              trg_rx_data_rd_o<= 1'b0;
             end
 
             fsm_state <= `STATE_RX_MEM_RD32_WT1;
@@ -643,7 +650,10 @@ module BMD_ENGINE_RX
           begin
             req_addr_o       <= trn_rd[63:34];//ADDR[31:2]
             trg_rx_data      <= trn_rd[31:00];
+            if (bar_usr)
             trg_rx_data_wd_o <= 1'b1;
+            else
+            trg_rx_data_wd_o <= 1'b0;
 
             if (!trn_reof_n)
             begin

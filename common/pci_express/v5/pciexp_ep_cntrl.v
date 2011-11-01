@@ -19,26 +19,21 @@ module pciexp_ep_cntrl
 //-----------------------------------------------------
 //Связь с Пользовательским проектом
 //-----------------------------------------------------
-    p_out_host_clk_out,
+    p_out_hclk,
 
     p_out_usr_tst,
     p_in_usr_tst,
 
-    p_out_glob_ctrl,
+    p_out_gctrl,
     p_out_dev_ctrl,
     p_out_dev_din,
     p_in_dev_dout,
     p_out_dev_wd,
     p_out_dev_rd,
-    p_in_dev_fifoflag,
+    p_in_dev_flag,
     p_in_dev_status,
     p_in_dev_irq,
     p_in_dev_option,
-
-    p_out_mem_ctl_reg,
-    p_out_mem_mode_reg,
-    p_in_mem_locked,
-    p_in_mem_trained,
 
     p_out_mem_bank1h,
     p_out_mem_adr,
@@ -154,26 +149,21 @@ module pciexp_ep_cntrl
 // Port Declarations
 //------------------------------------
 //Пользовательский порт
-output            p_out_host_clk_out;
+output            p_out_hclk;
 
 output [127:0]    p_out_usr_tst;
 input  [127:0]    p_in_usr_tst;
 
-output [31:0]     p_out_glob_ctrl;
+output [31:0]     p_out_gctrl;
 output [31:0]     p_out_dev_ctrl;
 output [31:0]     p_out_dev_din;
 input  [31:0]     p_in_dev_dout;
 output            p_out_dev_wd;
 output            p_out_dev_rd;
-input  [7:0]      p_in_dev_fifoflag;
+input  [7:0]      p_in_dev_flag;
 input  [31:0]     p_in_dev_status;
 input  [31:0]     p_in_dev_irq;
 input  [127:0]    p_in_dev_option;
-
-output [0:0]      p_out_mem_ctl_reg;
-output [511:0]    p_out_mem_mode_reg;
-input  [7:0]      p_in_mem_locked;
-input  [15:0]     p_in_mem_trained;
 
 output [15:0]     p_out_mem_bank1h;
 output [34:0]     p_out_mem_adr;
@@ -531,27 +521,22 @@ pciexp_usr_ctrl m_USR_CTRL
   .p_in_tst_cur_mrd_pkt_count(mrd_pkt_count),
   .p_in_tst_rdy_del_inv(tst_rdy_del_inv),
 
-  .p_out_host_clk_out(p_out_host_clk_out),
+  .p_out_hclk(p_out_hclk),
 
   .p_out_usr_tst(p_out_usr_tst),
   .p_in_usr_tst(p_in_usr_tst),
 
-  .p_out_glob_ctrl(p_out_glob_ctrl),
+  .p_out_gctrl(p_out_gctrl),
 
   .p_out_dev_ctrl(p_out_dev_ctrl),
   .p_out_dev_din(p_out_dev_din),
   .p_in_dev_dout(p_in_dev_dout),
   .p_out_dev_wd(p_out_dev_wd),
   .p_out_dev_rd(p_out_dev_rd),
-  .p_in_dev_fifoflag(p_in_dev_fifoflag),
+  .p_in_dev_flag(p_in_dev_flag),
   .p_in_dev_status(p_in_dev_status),
   .p_in_dev_irq(p_in_dev_irq),
   .p_in_dev_option(p_in_dev_option),
-
-  .p_out_mem_ctl_reg(p_out_mem_ctl_reg),
-  .p_out_mem_mode_reg(p_out_mem_mode_reg),
-  .p_in_mem_locked(p_in_mem_locked),
-  .p_in_mem_trained(p_in_mem_trained),
 
   .p_out_mem_bank1h(p_out_mem_bank1h),
   .p_out_mem_adr(p_out_mem_adr),
@@ -642,6 +627,7 @@ pciexp_usr_ctrl m_USR_CTRL
   .p_in_cfg_prg_max_rd_req_size(cfg_prg_max_rd_req_size),   // I [2:0]
   .p_in_cfg_phant_func_en(cfg_phant_func_en),
   .p_in_cfg_no_snoop_en(cfg_no_snoop_en),
+  .p_in_cfg_ext_tag_en(cfg_ext_tag_en),
 
   .p_out_usr_prg_max_payload_size(usr_prg_max_payload_size),
   .p_out_usr_prg_max_rd_req_size(usr_prg_max_rd_req_size),

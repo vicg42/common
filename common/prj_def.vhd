@@ -28,7 +28,7 @@ constant C_NO        : std_logic:='0';
 
 --Верси прошивки FPGA
 --//15..3 - ver; 3..0 - rev
-constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0328#;
+constant C_FPGA_FIRMWARE_VERSION             : integer:=16#0329#;
 
 --//Модуль Хоста
 constant C_FHOST_DBUS                        : integer:=32;--//Шина данных модуля dsn_host.vhd (нельзя изменять!!!)
@@ -40,248 +40,157 @@ constant C_VIDEO_PKT_HEADER_SIZE             : integer:=5;
 --//HOST
 --//--------------------------------------------------------------
 --//--------------------------------------------------------------
---//Порт модуля dsn_host.vhd / Bit Map:
+--//Регистры модуля dsn_host.vhd: (max count HREG - 0x1F)
 --//--------------------------------------------------------------
-constant C_DEV_FIFO_FLAG_TXFIFO_PFULL_BIT           : integer:=0;
-constant C_DEV_FIFO_FLAG_RXFIFO_EMPTY_BIT           : integer:=1;
-constant C_DEV_FIFO_FLAG_LAST_BIT                   : integer:=C_DEV_FIFO_FLAG_RXFIFO_EMPTY_BIT;
-
---//--------------------------------------------------------------
---//Регистры модуля dsn_host.vhd:
---//--------------------------------------------------------------
-constant C_HOST_REG_FIRMWARE                        : integer:=16#000001#;--//Версия прошивки FPGA
-constant C_HOST_REG_GLOB_CTRL0                      : integer:=16#000002#;--//Глобальное управление
-
-constant C_HOST_REG_TRN_DMA_ADDR                    : integer:=16#000003#;--//Адрес буфера выдленого в памяти PC драйвером PCI-Express
-constant C_HOST_REG_TRN_DMA_DLEN                    : integer:=16#000005#;--//Размер буфера(в байтах) выдленого в памяти PC драйвером PCI-Express
-
-constant C_HOST_REG_USR_MEM_ADDR                    : integer:=16#000007#;--//Адрес ОЗУ подключенного к FPGA
-constant C_HOST_REG_DEV_CTRL                        : integer:=16#000008#;--//Управление устр-вами подключенными к модулю dsn_host.vhd
-
-constant C_HOST_REG_STATUS_DEV                      : integer:=16#000009#;--//Статусы устройств к которым имеет доступ модуль dsn_host.vhd
-constant C_HOST_REG_STATUS_DEV_L                    : integer:=16#000009#;
-constant C_HOST_REG_STATUS_DEV_M                    : integer:=16#00000A#;
-
-constant C_HOST_REG_PCIEXP_CTRL                     : integer:=16#00000C#;--//Инф + Тюнинг("тонкая" настройка) PCI-Express
-
-constant C_HOST_REG_DEV_DATA                        : integer:=16#00000D#;--//Регистр данных для устройств подключенных к модулю dsn_host.vhd
-                                                                          --(для случая когда не используетя DMA транзакция)
-
-constant C_HOST_REG_IRQ_CTRL                        : integer:=16#00000E#;--//Прерывания Управление
-
-constant C_HOST_REG_VCTRL_FRMRK                     : integer:=16#00000F#;--//Маркер вычитаного видеокадра
-
-constant C_HOST_REG_TST0                            : integer:=16#000010#;--//Тестовые регистры
-constant C_HOST_REG_TST1                            : integer:=16#000011#;
-constant C_HOST_REG_TST2                            : integer:=16#000012#;
---constant C_HOST_REG_TST3                            : integer:=16#000013#;
---constant C_HOST_REG_TST4                            : integer:=16#000014#;
-
-constant C_HOST_REG_TRC_FRMRK                       : integer:=16#000015#;--//Маркер вычитаного видеокадра
-constant C_HOST_REG_TRCNIK_DSIZE                    : integer:=16#000016#;--//Маркер вычитаного видеокадра
-
-
---//Bit Maps:
---//Register C_HOST_REG_FIRMWARE / Bit Map:
-constant C_HREG_FRMWARE_LAST_BIT                    : integer:=15;--//
-
---//Register C_HOST_REG_GLOB_CTRL0 / Bit Map:
-constant C_HREG_GCTRL0_RST_ALL_BIT                  : integer:=0;--//
-constant C_HREG_GCTRL0_LBUS_SEL_BIT                 : integer:=1;--//
-constant C_HREG_GCTRL0_RST_HDD_BIT                  : integer:=2;--//
-constant C_HREG_GCTRL0_RST_ETH_BIT                  : integer:=3;--//
-constant C_HREG_GCTRL0_RDDONE_VCTRL_BIT             : integer:=4;--//
---constant                                            : integer:=5;--//
-constant C_HREG_GCTRL0_RDDONE_TRCNIK_BIT            : integer:=6;--//
-constant C_HREG_GCTRL0_RESERV7_BIT                  : integer:=7;--//
-constant C_HREG_GCTRL0_RESERV8_BIT                  : integer:=8;--//
-constant C_HREG_GCTRL0_RESERV9_BIT                  : integer:=9;--//
-constant C_HREG_GCTRL0_LAST_BIT                     : integer:=C_HREG_GCTRL0_RESERV9_BIT+1;--//
-
---//Register C_HOST_REG_IRQ_CTRL / Bit Map:
-constant C_HREG_INT_CTRL_WD_IRQ_SRC_LSB_BIT         : integer:=0; --// Номер источника прерывания
-constant C_HREG_INT_CTRL_WD_IRQ_SRC_MSB_BIT         : integer:=3; --//
-constant C_HREG_INT_CTRL_WD_IRQ_SRC_EN_BIT          : integer:=5; --// Разрешение прерывания от соответствующего источника
-constant C_HREG_INT_CTRL_WD_IRQ_SRC_DIS_BIT         : integer:=6; --// Зпрещение прерывания от соответствующего источника
-constant C_HREG_INT_CTRL_WD_IRQ_SRC_CLR_BIT         : integer:=7; --// Сброс статуса активности соотв. источника прерывания
-constant C_HREG_INT_CTRL_WD_LAST_BIT                : integer:=C_HREG_INT_CTRL_WD_IRQ_SRC_CLR_BIT;
-
-constant C_HREG_INT_CTRL_RD_IRQ_SRC_EN_LSB_BIT      : integer:=0; --// Статус разрешения/запрещения прерывания от соотв. источника
-constant C_HREG_INT_CTRL_RD_IRQ_SRC_EN_MSB_BIT      : integer:=15;--//
-constant C_HREG_INT_CTRL_RD_ACT_SRC_LSB_BIT         : integer:=16;--// Статус активности прерывания от соотв. источника
-constant C_HREG_INT_CTRL_RD_ACT_SRC_MSB_BIT         : integer:=31;--//
-
---//Поле C_HREG_INT_CTRL_WD_IRQ_SRC - Номера источников прерываний:
-constant C_HIRQ_PCIEXP_DMA_WR                       : integer:=16#00#;--//TRN: PC<-FPGA
-constant C_HIRQ_PCIEXP_DMA_RD                       : integer:=16#01#;--//TRN: PC->FPGA
-constant C_HIRQ_TMR0                                : integer:=16#02#;
-constant C_HIRQ_ETH_RXBUF                           : integer:=16#03#;
-constant C_HIRQ_DEVCFG_RXBUF                        : integer:=16#04#;
-constant C_HIRQ_HDD_CMDDONE                         : integer:=16#05#;
-constant C_HIRQ_VIDEO_CH0                           : integer:=16#06#;
-constant C_HIRQ_VIDEO_CH1                           : integer:=16#07#;
-constant C_HIRQ_VIDEO_CH2                           : integer:=16#08#;
-constant C_HIRQ_TRACK_NIK                           : integer:=16#09#;
-
-constant C_HIRQ_COUNT                               : integer:=C_HIRQ_TRACK_NIK+1;--//Текущее кол-во источников прерываний
-constant C_HIRQ_COUNT_MAX                           : integer:=16; --//Максимальное кол-во источников перывание.
-                                                                   --//Завязано с полями:
-                                                                   --//C_HREG_INT_CTRL_WD_IRQ_SRC_xxx
-                                                                   --//C_HREG_INT_CTRL_RD_IRQ_SRC_EN_xxx
-                                                                   --//C_HREG_INT_CTRL_RD_ACT_SRC_xxx
-
-
---//Register C_HOST_REG_INT_STATUS / Bit Map: (Источники прерываний)
-constant C_HREG_INT_STATUS_PCIEXP_DMA_BIT           : integer:=0;--//
-constant C_HREG_INT_STATUS_TMR0_BIT                 : integer:=1;--//
-constant C_HREG_INT_STATUS_ETH_RXBUF_BIT            : integer:=2;--//
-constant C_HREG_INT_STATUS_LAST_BIT                 : integer:=C_HREG_INT_STATUS_ETH_RXBUF_BIT;
-
-
---//Register C_HOST_REG_DEV_CTRL / Bit Map:
-constant C_HREG_DEV_CTRL_DEV_TRN_START_BIT          : integer:=0; --// (Передний фронт)Запуск текущей операции
-constant C_HREG_DEV_CTRL_DEV_TRN_DIR_BIT            : integer:=1; --// 1/0 – Чтение/Запись данных в пользовательское устройство
-constant C_HREG_DEV_CTRL_DEV_TRN_RST_BIT            : integer:=2; --// (Передний фронт) Сброс текущей операции
-constant C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT            : integer:=3; --//
-constant C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT           : integer:=4; --// Номер пользовательского устройства
-constant C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT           : integer:=7; --//
-constant C_HREG_DEV_CTRL_DEV_RESERV8_BIT            : integer:=8; --//
-constant C_HREG_DEV_CTRL_DEV_RESERV9_BIT            : integer:=9; --//
-constant C_HREG_DEV_CTRL_DEV_RESERV10_BIT           : integer:=10;--//
-constant C_HREG_DEV_CTRL_DEV_RESERV11_BIT           : integer:=11;--//
-constant C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_LSB_BIT  : integer:=12;--//
-constant C_HREG_DEV_CTRL_DEV_TRN_PARAM_IDX_MSB_BIT  : integer:=19;--//
-constant C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_LSB_BIT  : integer:=20;--//
-constant C_HREG_DEV_CTRL_DEV_DMA_BUF_COUNT_MSB_BIT  : integer:=27;--//
-constant C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT            : integer:=28;--//
-constant C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT            : integer:=29;--//
-constant C_HREG_DEV_CTRL_DEV_LAST_BIT               : integer:=C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT;--//
-
---//Поле C_HREG_DEV_CTRL_DEV_ADDR - Номера пользовательского устройств:
-constant C_HDEV_NOT_SELECT                          : integer:=0;
-constant C_HDEV_ETHG_DBUF                           : integer:=2;--//Буфера RX/TX для работы с EthG
-constant C_HDEV_HDD_DBUF                            : integer:=3;--//Буфера RX/TX для работы с HDD
-constant C_HDEV_MEM_DBUF                            : integer:=4;--//ОЗУ
-constant C_HDEV_CFG_DBUF                            : integer:=5;--//Буфера RX/TX для работы с Блоком конфигурирования устройств
-constant C_HDEV_VCH_DBUF                            : integer:=6;--//Буфер Видеоинформации
-constant C_HDEV_TRC_DBUF                            : integer:=7;--//Буфер Данных модуля Слежения
-
-constant C_HDEV_COUNT                               : integer:=7+1;
-
-
---//сигнал i_dev_txdata_rdy_mask / Bit Map:
---constant C_HREG_TXDATA_RDY_CFGDEV_BIT               : integer:=C_HDEV_CFG_DBUF; --//: integer:=0;
-constant C_HREG_TXDATA_RDY_ETHG_BIT                 : integer:=C_HDEV_ETHG_DBUF;--//: integer:=2;
+constant C_HREG_FIRMWARE                        : integer:=16#00#;--//Версия прошивки FPGA
+constant C_HREG_GCTRL                           : integer:=16#01#;--//Глобальное управление
+constant C_HREG_DMAPRM_ADR                      : integer:=16#02#;--//Адрес буфера выдленого в памяти PC драйвером PCI-Express
+constant C_HREG_DMAPRM_LEN                      : integer:=16#03#;--//Размер буфера(в байтах) выдленого в памяти PC драйвером PCI-Express
+constant C_HREG_DEV_CTRL                        : integer:=16#04#;--//Управление устр-вами подключенными к модулю dsn_host.vhd
+constant C_HREG_DEV_STATUS                      : integer:=16#05#;--//Статусы устройств подключенных к модулю dsn_host.vhd
+constant C_HREG_DEV_DATA                        : integer:=16#06#;--//Регистр данных (для случая когда не используетя DMA транзакция)
+constant C_HREG_IRQ_CTRL                        : integer:=16#07#;--//Прерывания: управление(wr only) + статусы(rd only)
+constant C_HREG_MEM_ADR                         : integer:=16#08#;--//Адрес ОЗУ подключенного к FPGA
+--constant C_HREG_RESERV                          : integer:=16#09#;
+constant C_HREG_VCTRL_FRMRK                     : integer:=16#0A#;--//Маркер вычитаного видеокадра
+constant C_HREG_VCTRL_FRERR                     : integer:=16#0B#;--//
+constant C_HREG_TRCNIK_DSIZE                    : integer:=16#0C#;--//
+constant C_HREG_PCIE_CTRL                       : integer:=16#0D#;--//Инф + Тюнинг("тонкая" настройка) PCI-Express
+--constant C_HREG_RESERV                          : integer:=16#0A#...;
+constant C_HREG_TST0                            : integer:=16#1C#;--//Тестовые регистры
+constant C_HREG_TST1                            : integer:=16#1D#;
+constant C_HREG_TST2                            : integer:=16#1E#;
+--constant C_HREG_TST3                            : integer:=16#1F#;
 
 
 
---//Register C_HOST_REG_USR_MEM_ADDR / Bit Map:
-constant C_HREG_USR_MEM_ADR_OFFSET_LSB_BIT          : integer:=0;
-constant C_HREG_USR_MEM_ADR_OFFSET_MSB_BIT          : integer:=27;
-constant C_HREG_USR_MEM_ADR_BANK_LSB_BIT            : integer:=28;
-constant C_HREG_USR_MEM_ADR_BANK_MSB_BIT            : integer:=29;
-constant C_HREG_USR_MEM_LAST_BIT                    : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;
+--//Register C_HREG_FIRMWARE / Bit Map:
+constant C_HREG_FRMWARE_LAST_BIT                : integer:=15;--//
+
+--//Register C_HREG_GCTRL / Bit Map:
+constant C_HREG_GCTRL_RST_ALL_BIT               : integer:=0;--//Сбросы устройств
+constant C_HREG_GCTRL_RST_MEM_BIT               : integer:=1;--//
+constant C_HREG_GCTRL_RST_ETH_BIT               : integer:=2;--//
+constant C_HREG_GCTRL_RDDONE_VCTRL_BIT          : integer:=3;--//Чтение завершено
+constant C_HREG_GCTRL_RDDONE_TRCNIK_BIT         : integer:=4;--//
+constant C_HREG_GCTRL_LAST_BIT                  : integer:=C_HREG_GCTRL_RDDONE_TRCNIK_BIT;
+
+
+--//Register C_HREG_DEV_CTRL / Bit Map:
+constant C_HREG_DEV_CTRL_TRN_START_BIT          : integer:=0; --//(Передний фронт)Запуск текущей операции
+constant C_HREG_DEV_CTRL_DRDY_BIT               : integer:=1; --//(Драйвером не используется)
+constant C_HREG_DEV_CTRL_TRN_DIR_BIT            : integer:=2; --//1/0 – Чтение/Запись данных в пользовательское устройство
+constant C_HREG_DEV_CTRL_ADR_L_BIT              : integer:=3; --//Номер пользовательского устройства:(C_HDEV_xxx)
+constant C_HREG_DEV_CTRL_ADR_M_BIT              : integer:=6; --//
+constant C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT       : integer:=7; --//Стартовый номер буфера с параметрами PCIE_DMA
+constant C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT       : integer:=14;--//
+constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT     : integer:=15;--//Общее кол-во буфера с параметрами PCIE_DMA
+constant C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT     : integer:=22;--//
+constant C_HREG_DEV_CTRL_VCH_L_BIT              : integer:=23;--//Номер видео канала
+constant C_HREG_DEV_CTRL_VCH_M_BIT              : integer:=25;--//
+constant C_HREG_DEV_CTRL_LAST_BIT               : integer:=C_HREG_DEV_CTRL_VCH_M_BIT;--//Max 31
+
+--//Поле C_HREG_DEV_CTRL_ADR - Номера пользовательского устройств:
+constant C_HDEV_CFG_DBUF                        : integer:=0;--//Буфера RX/TX CFG
+constant C_HDEV_ETH_DBUF                        : integer:=1;--//Буфера RX/TX ETH
+constant C_HDEV_MEM_DBUF                        : integer:=2;--//ОЗУ
+constant C_HDEV_VCH_DBUF                        : integer:=3;--//Буфер Видеоинформации
+constant C_HDEV_COUNT                           : integer:=4+1;
 
 
 --//Register C_HOST_REG_STATUS_DEV / Bit Map:
-constant C_HREG_STATUS_DEV_CFGDEV_MOD_RDY_BIT       : integer:=0;
-constant C_HREG_STATUS_DEV_CFGDEV_RXBUF_RDY_BIT     : integer:=1;
-constant C_HREG_STATUS_DEV_CFGDEV_TXBUF_RDY_BIT     : integer:=2;
-
-constant C_HREG_STATUS_DEV_HDD_MOD_RDY_BIT          : integer:=3;
-constant C_HREG_STATUS_DEV_HDD_MOD_ERR_BIT          : integer:=4;
-constant C_HREG_STATUS_DEV_HDD_MOD_BUSY_BIT         : integer:=5;
-constant C_HREG_STATUS_DEV_HDD_CMD_DONE_BIT         : integer:=6;
-constant C_HREG_STATUS_DEV_RESERV_7_BIT             : integer:=7;
-
-constant C_HREG_STATUS_DEV_ETHG_MOD_RDY_BIT         : integer:=8;
-constant C_HREG_STATUS_DEV_ETHG_MOD_ERR_BIT         : integer:=9;
-constant C_HREG_STATUS_DEV_ETHG_RXBUF_RDY_BIT       : integer:=10;
-constant C_HREG_STATUS_DEV_ETHG_TXBUF_RDY_BIT       : integer:=11;
-
-constant C_HREG_STATUS_DEV_VCTRL_CH0_FRRDY_BIT      : integer:=12;
-constant C_HREG_STATUS_DEV_VCTRL_CH1_FRRDY_BIT      : integer:=13;
-constant C_HREG_STATUS_DEV_VCTRL_CH2_FRRDY_BIT      : integer:=14;
-
-constant C_HREG_STATUS_DEV_RESERV_15BIT             : integer:=15;
-constant C_HREG_STATUS_DEV_RESERV_16BIT             : integer:=16;
-
-constant C_HREG_STATUS_DCM_ETH_GTP_LOCK_BIT         : integer:=17;
-constant C_HREG_STATUS_DCM_LBUS_LOCK_BIT            : integer:=18;
-constant C_HREG_STATUS_DCM_SATA_LOCK_BIT            : integer:=19;
-constant C_HREG_STATUS_DCM_MEMCTRL_LOCK_BIT         : integer:=20;
-
-constant C_HREG_STATUS_DEV_RESERV_21_BIT            : integer:=21;
-constant C_HREG_STATUS_DEV_RESERV_22_BIT            : integer:=22;
-
-constant C_HREG_STATUS_DEV_DSNTEST_RDY_BIT          : integer:=23;
-constant C_HREG_STATUS_DEV_DSNTEST_ERR_BIT          : integer:=24;
-
-constant C_HREG_STATUS_DEV_RESERV_25_BIT            : integer:=25;
-constant C_HREG_STATUS_DEV_TRCNIK_DRDY_BIT          : integer:=26;--//add 2010.11.21
-
-constant C_HREG_STATUS_DEV_INT_ACT_BIT              : integer:=27;--//
-constant C_HREG_STATUS_DEV_DMA_BUSY_BIT             : integer:=28;--//
-constant C_HREG_STATUS_DEV_PCIEXP_ERR_BIT           : integer:=29;--//
-constant C_HREG_STATUS_DEV_PCIEXP_DMA_WR_DONE_BIT   : integer:=30;--//
-constant C_HREG_STATUS_DEV_PCIEXP_DMA_RD_DONE_BIT   : integer:=31;--//
-constant C_HREG_STATUS_DEV_LAST_BIT                 : integer:=C_HREG_STATUS_DEV_PCIEXP_DMA_RD_DONE_BIT;--//
+constant C_HREG_DEV_STATUS_INT_ACT_BIT          : integer:=0; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PCIE_ERR_BIT         : integer:=1; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PCIE_DMAWR_DONE_BIT  : integer:=2; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PCIE_DMARD_DONE_BIT  : integer:=3; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_DMA_BUSY_BIT         : integer:=4; --//PCIE_DMA
+constant C_HREG_DEV_STATUS_CFG_RDY_BIT          : integer:=5; --//CFG
+constant C_HREG_DEV_STATUS_CFG_RXRDY_BIT        : integer:=6;
+constant C_HREG_DEV_STATUS_CFG_TXRDY_BIT        : integer:=7;
+constant C_HREG_DEV_STATUS_ETH_RDY_BIT          : integer:=8; --//ETH
+constant C_HREG_DEV_STATUS_ETH_CARIER_BIT       : integer:=9;
+constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT        : integer:=10;
+constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT        : integer:=11;
+constant C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT      : integer:=12;--//
+constant C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT      : integer:=13;--//
+--constant RESERV                                 : integer:=14;
+--constant RESERV                                 : integer:=15;
+constant C_HREG_DEV_STATUS_VCH0_FRRDY_BIT       : integer:=16;--//
+constant C_HREG_DEV_STATUS_VCH1_FRRDY_BIT       : integer:=17;
+constant C_HREG_DEV_STATUS_VCH2_FRRDY_BIT       : integer:=18;
+constant C_HREG_DEV_STATUS_VCH3_FRRDY_BIT       : integer:=19;
+constant C_HREG_DEV_STATUS_LAST_BIT             : integer:=C_HREG_DEV_STATUS_VCH3_FRRDY_BIT;
 
 
---//Register C_HOST_REG_PCIEXP_CTRL / Bit Map:
-constant C_HREG_PCIEXP_CTRL_REQ_LINK_LSB_BIT        : integer:=0; --//
-constant C_HREG_PCIEXP_CTRL_REQ_LINK_MSB_BIT        : integer:=5; --//
-constant C_HREG_PCIEXP_CTRL_NEG_LINK_LSB_BIT        : integer:=6; --//
-constant C_HREG_PCIEXP_CTRL_NEG_LINK_MSB_BIT        : integer:=11;--//
-constant C_HREG_PCIEXP_CTRL_REQ_MAX_PAYLOAD_LSB_BIT : integer:=12;--//
-constant C_HREG_PCIEXP_CTRL_REQ_MAX_PAYLOAD_MSB_BIT : integer:=14;--//
-constant C_HREG_PCIEXP_CTRL_NEG_MAX_PAYLOAD_LSB_BIT : integer:=15;--//
-constant C_HREG_PCIEXP_CTRL_NEG_MAX_PAYLOAD_MSB_BIT : integer:=17;--//
-constant C_HREG_PCIEXP_CTRL_NEG_MAX_RD_REQ_LSB_BIT  : integer:=18;--//
-constant C_HREG_PCIEXP_CTRL_NEG_MAX_RD_REQ_MSB_BIT  : integer:=20;--//
+--//Register C_HREG_IRQ_CTRL / Bit Map:
+constant C_HREG_IRQ_NUM_L_WBIT                  : integer:=0; --//Номер источника прерывания
+constant C_HREG_IRQ_NUM_M_WBIT                  : integer:=3; --//
+constant C_HREG_IRQ_EN_WBIT                     : integer:=5; --//Разрешение прерывания от соответствующего источника
+constant C_HREG_IRQ_DIS_WBIT                    : integer:=6; --//Зпрещение прерывания от соответствующего источника
+constant C_HREG_IRQ_CLR_WBIT                    : integer:=7; --//Сброс статуса активности соотв. источника прерывания
+constant C_HREG_IRQ_LAST_WBIT                   : integer:=C_HREG_IRQ_CLR_WBIT;
 
-constant C_HREG_PCIEXP_CTRL_MSI_EN_BIT              : integer:=21;--//
-constant C_HREG_PCIEXP_CTRL_PHANT_FUNC_BIT          : integer:=22;--//
-constant C_HREG_PCIEXP_CTRL_NOSNOOP_BIT             : integer:=23;--//
-constant C_HREG_PCIEXP_CTRL_DMA_RD_NOSNOOP_BIT      : integer:=23;--//
-constant C_HREG_PCIEXP_CTRL_CPLD_MALFORMED_BIT      : integer:=24;--//
-constant C_HREG_PCIEXP_CTRL_RESERV25_BIT            : integer:=25;--//--------------------Не использую
+constant C_HREG_IRQ_STATUS_L_RBIT               : integer:=16;--//Статус активности прерывания от соотв. источника
+constant C_HREG_IRQ_STATUS_M_RBIT               : integer:=31;--//
 
-constant C_HREG_PCIEXP_CTRL_CPL_STREAMING_BIT       : integer:=26;
-constant C_HREG_PCIEXP_CTRL_METRING_BIT             : integer:=27;
-constant C_HREG_PCIEXP_CTRL_TRN_RNP_OK_BIT          : integer:=28;
-constant C_HREG_PCIEXP_CTRL_DMA_RD_RELEX_ORDER_BIT  : integer:=29;
-constant C_HREG_PCIEXP_CTRL_DMA_WD_RELEX_ORDER_BIT  : integer:=30;
-constant C_HREG_PCIEXP_CTRL_DMA_WD_NOSNOOP_BIT      : integer:=31;
-
-constant C_HREG_PCIEXP_CTRL_LAST_BIT                : integer:=C_HREG_PCIEXP_CTRL_DMA_WD_NOSNOOP_BIT;
-
---//поле C_HREG_PCIEXP_CTRL_REQ_LINK/C_HREG_PCIEXP_CTRL_NEG_LINK - значения
-constant C_PCIEXP_LINK_X1                           : integer:=1;
-constant C_PCIEXP_LINK_X2                           : integer:=2;
-constant C_PCIEXP_LINK_X4                           : integer:=4;
-constant C_PCIEXP_LINK_X8                           : integer:=8;
-constant C_PCIEXP_LINK_X12                          : integer:=12;
-constant C_PCIEXP_LINK_X16                          : integer:=16;
-constant C_PCIEXP_LINK_X32                          : integer:=32;
-
---//Поле C_HREG_PCIEXP_CTRL_REQ_MAX_PAYLOAD/C_HREG_PCIEXP_CTRL_NEG_MAX_PAYLOAD - значения
-constant C_PCIEXP_MAX_PAYLOAD_SIZE_128_BYTE         : integer:=0;
-constant C_PCIEXP_MAX_PAYLOAD_SIZE_256_BYTE         : integer:=1;
-constant C_PCIEXP_MAX_PAYLOAD_SIZE_512_BYTE         : integer:=2;
-constant C_PCIEXP_MAX_PAYLOAD_SIZE_1024_BYTE        : integer:=3;
-constant C_PCIEXP_MAX_PAYLOAD_SIZE_2048_BYTE        : integer:=4;
-constant C_PCIEXP_MAX_PAYLOAD_SIZE_4096_BYTE        : integer:=5;
-
---//Значения для поля NEG_MAX_RD_REQ регистра C_HOST_REG_PCIEXP_CTRL
-constant C_PCIEXP_MAX_READ_REQ_SIZE_128_BYTE        : integer:=0;
-constant C_PCIEXP_MAX_READ_REQ_SIZE_256_BYTE        : integer:=1;
-constant C_PCIEXP_MAX_READ_REQ_SIZE_512_BYTE        : integer:=2;
-constant C_PCIEXP_MAX_READ_REQ_SIZE_1024_BYTE       : integer:=3;
-constant C_PCIEXP_MAX_READ_REQ_SIZE_2048_BYTE       : integer:=4;
-constant C_PCIEXP_MAX_READ_REQ_SIZE_4096_BYTE       : integer:=5;
+--//Поле C_HREG_IRQ_NUM - Номера источников прерываний:
+constant C_HIRQ_PCIE_DMA                        : integer:=16#00#;
+constant C_HIRQ_CFG_RX                          : integer:=16#01#;
+constant C_HIRQ_ETH_RX                          : integer:=16#02#;
+constant C_HIRQ_TMR0                            : integer:=16#03#;
+constant C_HIRQ_TRCNIK                          : integer:=16#04#;
+constant C_HIRQ_VCH0                            : integer:=16#05#;
+constant C_HIRQ_VCH1                            : integer:=16#06#;
+constant C_HIRQ_VCH2                            : integer:=16#07#;
+--constant C_HIRQ_VCH3                            : integer:=16#08#;
+constant C_HIRQ_COUNT                           : integer:=C_HIRQ_VCH2+1;--//Текущее кол-во источников прерываний
+constant C_HIRQ_COUNT_MAX                       : integer:=16;--//Максимальное кол-во источников перываний.
 
 
+--//Register C_HREG_MEM_ADR / Bit Map:
+constant C_HREG_MEM_ADR_OFFSET_L_BIT            : integer:=0;
+constant C_HREG_MEM_ADR_OFFSET_M_BIT            : integer:=27;
+constant C_HREG_MEM_ADR_BANK_L_BIT              : integer:=28;
+constant C_HREG_MEM_ADR_BANK_M_BIT              : integer:=29;
+constant C_HREG_MEM_ADR_LAST_BIT                : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
+
+
+--//Register C_HREG_PCIE_CTRL / Bit Map:
+constant C_HREG_PCIE_CTRL_REQ_LINK_L_BIT        : integer:=0;
+constant C_HREG_PCIE_CTRL_REQ_LINK_M_BIT        : integer:=5;
+constant C_HREG_PCIE_CTRL_NEG_LINK_L_BIT        : integer:=6; --//исользуется Максом
+constant C_HREG_PCIE_CTRL_NEG_LINK_M_BIT        : integer:=11;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_REQ_MAX_PAYLOAD_L_BIT : integer:=12;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_REQ_MAX_PAYLOAD_M_BIT : integer:=14;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_NEG_MAX_PAYLOAD_L_BIT : integer:=15;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_NEG_MAX_PAYLOAD_M_BIT : integer:=17;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_NEG_MAX_RD_REQ_L_BIT  : integer:=18;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_NEG_MAX_RD_REQ_M_BIT  : integer:=20;--//исользуется Максом
+
+constant C_HREG_PCIE_CTRL_MSI_EN_BIT            : integer:=21;
+constant C_HREG_PCIE_CTRL_PHANT_FUNC_BIT        : integer:=22;
+constant C_HREG_PCIE_CTRL_NOSNOOP_BIT           : integer:=23;
+constant C_HREG_PCIE_CTRL_DMA_RD_NOSNOOP_BIT    : integer:=23;
+constant C_HREG_PCIE_CTRL_CPLD_MALFORMED_BIT    : integer:=24;
+constant C_HREG_PCIE_CTRL_TAG_EXT_EN_BIT        : integer:=25;
+
+constant C_HREG_PCIE_CTRL_CPL_STREAMING_BIT     : integer:=26;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_METRING_BIT           : integer:=27;--//исользуется Максом
+constant C_HREG_PCIE_CTRL_TRN_RNP_OK_BIT        : integer:=28;
+constant C_HREG_PCIE_CTRL_DMA_RD_RELEX_ORDER_BIT: integer:=29;
+constant C_HREG_PCIE_CTRL_DMA_WD_RELEX_ORDER_BIT: integer:=30;
+constant C_HREG_PCIE_CTRL_DMA_WD_NOSNOOP_BIT    : integer:=31;
+
+constant C_HREG_PCIE_CTRL_LAST_BIT              : integer:=C_HREG_PCIE_CTRL_DMA_WD_NOSNOOP_BIT;
+
+
+--//Порт модуля dsn_host.vhd / Bit Map:
+constant C_DEV_FLAG_TXFIFO_PFULL_BIT            : integer:=0;
+constant C_DEV_FLAG_RXFIFO_EMPTY_BIT            : integer:=1;
+constant C_DEV_FLAG_LAST_BIT                    : integer:=C_DEV_FLAG_RXFIFO_EMPTY_BIT;
+
+--//сигнал i_dev_txdata_rdy_mask / Bit Map:
+constant C_HREG_DRDY_ETHG_BIT                   : integer:=C_HDEV_ETH_DBUF;
 
 
 
@@ -291,12 +200,12 @@ constant C_PCIEXP_MAX_READ_REQ_SIZE_4096_BYTE       : integer:=5;
 --//Адреса устройсв доступных через модуль cfgdev.vhd
 --//Device Address map:
 constant C_CFGDEV_SWT                               : integer:=16#00#;
-constant C_CFGDEV_HDD                               : integer:=16#01#;
-constant C_CFGDEV_ETHG                              : integer:=16#02#;
-constant C_CFGDEV_VCTRL                             : integer:=16#03#;
-constant C_CFGDEV_TESTING                           : integer:=16#04#;
-constant C_CFGDEV_TMR                               : integer:=16#05#;
-constant C_CFGDEV_TRACK_NIK                         : integer:=16#06#;
+constant C_CFGDEV_ETHG                              : integer:=16#01#;
+constant C_CFGDEV_VCTRL                             : integer:=16#02#;
+constant C_CFGDEV_TMR                               : integer:=16#03#;
+constant C_CFGDEV_TRCNIK                            : integer:=16#04#;
+constant C_CFGDEV_HDD                               : integer:=16#05#;
+constant C_CFGDEV_TESTING                           : integer:=16#06#;
 
 constant C_CFGDEV_COUNT                             : integer:=16#06# + 1;
 
@@ -415,7 +324,8 @@ constant C_DSN_HDD_REG_CMDFIFO                      : integer:=16#020#;
 constant C_DSN_HDD_REG_RBUF_ADR_L                   : integer:=16#021#;
 constant C_DSN_HDD_REG_RBUF_ADR_M                   : integer:=16#022#;
 constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=16#023#;
-constant C_DSN_HDD_REG_RBUF_CTRL_M                  : integer:=16#024#;
+constant C_DSN_HDD_REG_RBUF_DATA                    : integer:=16#024#;
+constant C_DSN_HDD_REG_CTRL_M                       : integer:=16#025#;
 
 
 --//Bit Maps:
@@ -433,10 +343,10 @@ constant C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT     : integer:=15;
 constant C_DSN_HDD_REG_CTRLL_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT;
 
 --//Register C_DSN_HDD_REG_RBUF_ADR / Bit Map:
-constant C_DSN_HDD_REG_RBUF_ADR_OFFSET_LSB_BIT      : integer:=C_HREG_USR_MEM_ADR_OFFSET_LSB_BIT;
-constant C_DSN_HDD_REG_RBUF_ADR_OFFSET_MSB_BIT      : integer:=C_HREG_USR_MEM_ADR_OFFSET_MSB_BIT;
-constant C_DSN_HDD_REG_RBUF_ADR_BANK_LSB_BIT        : integer:=C_HREG_USR_MEM_ADR_BANK_LSB_BIT;
-constant C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT        : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;
+constant C_DSN_HDD_REG_RBUF_ADR_OFFSET_LSB_BIT      : integer:=C_HREG_MEM_ADR_OFFSET_L_BIT;
+constant C_DSN_HDD_REG_RBUF_ADR_OFFSET_MSB_BIT      : integer:=C_HREG_MEM_ADR_OFFSET_M_BIT;
+constant C_DSN_HDD_REG_RBUF_ADR_BANK_LSB_BIT        : integer:=C_HREG_MEM_ADR_BANK_L_BIT;
+constant C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT        : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 constant C_DSN_HDD_REG_RBUF_LAST_BIT                : integer:=C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT;
 
 --//Register C_DSN_HDD_REG_RBUF_CTRL_L / Bit Map:
@@ -444,10 +354,10 @@ constant C_DSN_HDD_REG_RBUF_LAST_BIT                : integer:=C_DSN_HDD_REG_RBU
 --constant C_DSN_HDD_REG_RBUF_CTRL_L                  : integer:=15..8;--trn_mem_rd
 
 --//Register C_DSN_HDD_REG_HW_START_DLY / Bit Map:
-constant C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT          : integer:=0;--1- фиксированиая задержка(задается значением битов (15..2))
-constant C_DSN_HDD_REG_HWSTART_DLY_L_BIT            : integer:=1;--значение задержки (us)
-constant C_DSN_HDD_REG_HWSTART_DLY_M_BIT            : integer:=15;
 
+--//Register C_DSN_HDD_REG_CTRL_M / Bit Map:
+constant C_DSN_HDD_REG_CTRLM_RAMWR_DONE             : integer:=0;
+constant C_DSN_HDD_REG_CTRLM_LAST_BIT               : integer:=C_DSN_HDD_REG_CTRLM_RAMWR_DONE;
 
 
 
@@ -530,10 +440,10 @@ constant C_DSN_VCTRL_PRM_MAX_COUNT                  : integer:=4+1;--C_DSN_VCTRL
 
 
 --//Register VCTRL_REG_MEM_ADDR / Bit Map:
-constant C_DSN_VCTRL_REG_MEM_ADR_OFFSET_LSB_BIT     : integer:=C_HREG_USR_MEM_ADR_OFFSET_LSB_BIT;
-constant C_DSN_VCTRL_REG_MEM_ADR_OFFSET_MSB_BIT     : integer:=C_HREG_USR_MEM_ADR_OFFSET_MSB_BIT;
-constant C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT       : integer:=C_HREG_USR_MEM_ADR_BANK_LSB_BIT;
-constant C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT       : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;
+constant C_DSN_VCTRL_REG_MEM_ADR_OFFSET_LSB_BIT     : integer:=C_HREG_MEM_ADR_OFFSET_L_BIT;
+constant C_DSN_VCTRL_REG_MEM_ADR_OFFSET_MSB_BIT     : integer:=C_HREG_MEM_ADR_OFFSET_M_BIT;
+constant C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT       : integer:=C_HREG_MEM_ADR_BANK_L_BIT;
+constant C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT       : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 constant C_DSN_VCTRL_REG_MEM_LAST_BIT               : integer:=C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT;
 
 --//Как поделена память ОЗУ для записи/чтение видеоинформации:
@@ -602,10 +512,10 @@ constant C_DSN_TRCNIK_IP_MAX_COUNT                  : integer:=8;--//Мах кол-во
 
 
 --//Register C_DSN_TRCNIK_REG_MEM_ADDR / Bit Map:
-constant C_DSN_TRCNIK_REG_MEM_ADR_OFFSET_LSB_BIT    : integer:=C_HREG_USR_MEM_ADR_OFFSET_LSB_BIT;
-constant C_DSN_TRCNIK_REG_MEM_ADR_OFFSET_MSB_BIT    : integer:=C_HREG_USR_MEM_ADR_OFFSET_MSB_BIT;
-constant C_DSN_TRCNIK_REG_MEM_ADR_BANK_LSB_BIT      : integer:=C_HREG_USR_MEM_ADR_BANK_LSB_BIT;
-constant C_DSN_TRCNIK_REG_MEM_ADR_BANK_MSB_BIT      : integer:=C_HREG_USR_MEM_ADR_BANK_MSB_BIT;
+constant C_DSN_TRCNIK_REG_MEM_ADR_OFFSET_LSB_BIT    : integer:=C_HREG_MEM_ADR_OFFSET_L_BIT;
+constant C_DSN_TRCNIK_REG_MEM_ADR_OFFSET_MSB_BIT    : integer:=C_HREG_MEM_ADR_OFFSET_M_BIT;
+constant C_DSN_TRCNIK_REG_MEM_ADR_BANK_LSB_BIT      : integer:=C_HREG_MEM_ADR_BANK_L_BIT;
+constant C_DSN_TRCNIK_REG_MEM_ADR_BANK_MSB_BIT      : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 constant C_DSN_TRCNIK_REG_MEM_LAST_BIT              : integer:=C_DSN_TRCNIK_REG_MEM_ADR_BANK_MSB_BIT;
 
 
