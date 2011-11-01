@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 27.01.2011 16:46:55
@@ -20,6 +20,7 @@ package prj_cfg is
 
 --//Тип используемой платы
 constant C_BOARD_USE                         : string:="ML505";
+constant G_IF                                : string:="UART";--//Тип интерфейса управления HDD
 
 --//Управление использованием модулей проекта:
 constant C_USE_HDD                           : string:="ON";

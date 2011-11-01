@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 27.01.2011 16:46:55
@@ -29,7 +29,7 @@ constant C_USE_HDD                           : string:="OFF";
 constant G_DBG_ETH                           : string:="ON";
 constant C_DBG_HDD                           : string:="OFF";
 
-constant G_DBGCS_HDD                         : string:="OFF";
+constant C_DBGCS_HDD                         : string:="OFF";
 
 
 --//Конфигурирование модулей:
@@ -53,7 +53,7 @@ constant C_DSN_VCTRL_VCH_COUNT               : integer:=1;
 constant C_DSN_VCTRL_SIMPLE                  : string:="ON";
 
 --//cfg clkfx - DCM LocalBus
-constant C_LBUSDCM_CLKFX_M                   : integer:=3;
+constant C_LBUSDCM_CLKFX_M                   : integer:=2;
 
 end prj_cfg;
 
