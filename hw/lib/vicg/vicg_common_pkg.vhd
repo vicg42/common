@@ -23,6 +23,11 @@ use std.textio.all;
 
 package vicg_common_pkg is
 
+--constant C_ON        : std_logic:='1';
+--constant C_OFF       : std_logic:='0';
+--constant C_YES       : std_logic:='1';
+--constant C_NO        : std_logic:='0';
+
 -------------------------------------------------------------------------------
 -- Type Declarations
 -------------------------------------------------------------------------------

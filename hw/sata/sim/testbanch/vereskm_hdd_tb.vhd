@@ -427,7 +427,7 @@ p_in_cfg_rd            => i_dev_cfg_rd(C_CFGDEV_HDD),
 p_out_cfg_rxrdy        => i_cfgdev_rxrdy,
 
 p_in_cfg_done          => i_dev_cfg_done(C_CFGDEV_HDD),
-p_in_cfg_rst           => i_dsn_hdd_rst,-- i_cfgdev_module_rst,
+p_in_cfg_rst           => i_dsn_hdd_rst,-- i_cfgdev_rst,
 
 --------------------------------------------------
 -- STATUS модуля DSN_HDD.VHD
