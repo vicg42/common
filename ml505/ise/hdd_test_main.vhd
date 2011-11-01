@@ -221,7 +221,7 @@ signal g_uart_refclk                    : std_logic;
 signal i_refclk                         : std_logic;
 signal g_host_clk                       : std_logic;
 
-signal i_hdd_module_rst                 : std_logic;
+signal i_hdd_rst                        : std_logic;
 signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
@@ -247,15 +247,15 @@ signal i_cfg_adr_ld                     : std_logic;
 signal i_cfg_adr_fifo                   : std_logic;
 signal i_cfg_wd                         : std_logic;
 signal i_cfg_rd                         : std_logic;
-signal i_cfg_txdata                     : std_logic_vector(15 downto 0);
-signal i_cfg_rxdata                     : std_logic_vector(15 downto 0);
+signal i_cfg_txd                        : std_logic_vector(15 downto 0);
+signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
 signal i_cfg_txrdy                      : std_logic;
 signal i_cfg_rxrdy                      : std_logic;
 signal i_cfg_done                       : std_logic;
 signal i_cfg_buf_rst                    : std_logic;
 signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
-signal i_cfghdd_rxdata                  : std_logic_vector(i_cfg_rxdata'range);
-signal i_cfgt_rxdata                    : std_logic_vector(i_cfg_rxdata'range);
+signal i_cfg_rxd_dev                    : std_logic_vector(i_cfg_rxd'range);
+signal i_cfgt_rxdata                    : std_logic_vector(i_cfg_rxd'range);
 signal i_ram_txbuf_full                 : std_logic;
 signal i_ram_txbuf_afull                : std_logic;
 signal i_ram_txbuf_empty                : std_logic;
@@ -266,7 +266,7 @@ signal i_ram_rxbuf_empty                : std_logic;
 signal i_hdd_module_rdy                 : std_logic;
 signal i_hdd_module_error               : std_logic;
 signal i_hdd_busy                       : std_logic;
-signal i_hdd_hirq                       : std_logic;
+--signal i_hdd_hirq                       : std_logic;
 signal i_hdd_done                       : std_logic;
 
 signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
@@ -295,13 +295,13 @@ signal i_test01_led                     : std_logic;
 signal i_test02_led                     : std_logic;
 
 signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
-signal i_reg0                           : std_logic_vector(i_cfg_rxdata'range);
-signal i_reg1                           : std_logic_vector(i_cfg_rxdata'range);
-signal i_reg2                           : std_logic_vector(i_cfg_rxdata'range);
-signal i_reg3                           : std_logic_vector(i_cfg_rxdata'range);
-signal i_reg4                           : std_logic_vector(i_cfg_rxdata'range);
+signal i_reg0                           : std_logic_vector(i_cfg_rxd'range);
+signal i_reg1                           : std_logic_vector(i_cfg_rxd'range);
+signal i_reg2                           : std_logic_vector(i_cfg_rxd'range);
+signal i_reg3                           : std_logic_vector(i_cfg_rxd'range);
+signal i_reg4                           : std_logic_vector(i_cfg_rxd'range);
 
---signal tst_ram_rxbuf_rdcnt              : std_logic_vector(i_cfg_rxdata'range);
+--signal tst_ram_rxbuf_rdcnt              : std_logic_vector(i_cfg_rxd'range);
 
 
 
@@ -314,7 +314,7 @@ begin
 --//RESET модулей
 --***********************************************************
 rst_sys_n <= pin_in_rst;
-i_hdd_module_rst <=not rst_sys_n or i_usr_rst;--
+i_hdd_rst <=not rst_sys_n or i_usr_rst;--
 i_cfg_buf_rst<=not rst_sys_n or i_usr_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
 
 process(rst_sys_n, g_host_clk)
@@ -379,8 +379,8 @@ p_out_cfg_radr_ld    => i_cfg_adr_ld,
 p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
 p_out_cfg_wr         => i_cfg_wd,
 p_out_cfg_rd         => i_cfg_rd,
-p_out_cfg_txdata     => i_cfg_txdata,
-p_in_cfg_rxdata      => i_cfg_rxdata,
+p_out_cfg_txdata     => i_cfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
 p_in_cfg_txrdy       => i_cfg_txrdy,
 p_in_cfg_rxrdy       => i_cfg_rxrdy,
 
@@ -390,7 +390,7 @@ p_in_cfg_clk         => g_host_clk,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst             => "00000000000000000000000000000000",
+p_in_tst             => (others=>'0'),
 p_out_tst            => i_cfg_tstout,
 
 -------------------------------
@@ -440,8 +440,8 @@ p_out_cfg_radr_ld    => i_cfg_adr_ld,
 p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
 p_out_cfg_wr         => i_cfg_wd,
 p_out_cfg_rd         => i_cfg_rd,
-p_out_cfg_txdata     => i_cfg_txdata,
-p_in_cfg_rxdata      => i_cfg_rxdata,
+p_out_cfg_txdata     => i_cfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
 p_in_cfg_txrdy       => i_cfg_txrdy,
 p_in_cfg_rxrdy       => i_cfg_rxrdy,
 
@@ -451,7 +451,7 @@ p_in_cfg_clk         => g_host_clk,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst             => "00000000000000000000000000000000",
+p_in_tst             => (others=>'0'),
 p_out_tst            => i_cfg_tstout,
 
 -------------------------------
@@ -461,8 +461,8 @@ p_in_rst => i_dcm_rst
 );
 end generate gen_uart;
 
-i_cfg_rxdata<=i_cfghdd_rxdata  when i_dev_adr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, 4) else
-              i_cfgt_rxdata;
+i_cfg_rxd<=i_cfg_rxd_dev  when i_dev_adr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, 4) else
+           i_cfgt_rxdata;
 
 
 --***********************************************************
@@ -490,11 +490,11 @@ p_in_cfg_adr          => i_cfg_adr(7 downto 0),
 p_in_cfg_adr_ld       => i_cfg_adr_ld,
 p_in_cfg_adr_fifo     => i_cfg_adr_fifo,
 
-p_in_cfg_txdata       => i_cfg_txdata,
+p_in_cfg_txdata       => i_cfg_txd,
 p_in_cfg_wd           => i_cfg_wd,
 p_out_cfg_txrdy       => i_cfg_txrdy,
 
-p_out_cfg_rxdata      => i_cfghdd_rxdata,
+p_out_cfg_rxdata      => i_cfg_rxd_dev,
 p_in_cfg_rd           => i_cfg_rd,
 p_out_cfg_rxrdy       => i_cfg_rxrdy,
 
@@ -507,7 +507,7 @@ p_in_cfg_rst          => i_dcm_rst,
 p_out_hdd_rdy         => i_hdd_module_rdy,
 p_out_hdd_error       => i_hdd_module_error,
 p_out_hdd_busy        => i_hdd_busy,
-p_out_hdd_irq         => i_hdd_hirq,
+p_out_hdd_irq         => open, --i_hdd_hirq,
 p_out_hdd_done        => i_hdd_done,
 
 -------------------------------
@@ -569,7 +569,7 @@ p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
 --System
 --------------------------------------------------
 p_in_clk           => g_host_clk,
-p_in_rst           => i_hdd_module_rst
+p_in_rst           => i_hdd_rst
 );
 
 gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
@@ -659,7 +659,7 @@ pin_out_TP(7)<='0';
 
 --Светодиоды
 pin_out_led_E<=i_test01_led;
-pin_out_led_N<=i_hdd_busy or i_hdd_module_rst;
+pin_out_led_N<=i_hdd_busy or i_hdd_rst;
 pin_out_led_S<=i_test02_led;
 pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
@@ -692,7 +692,7 @@ p_out_1ms      => open,
 --System
 -------------------------------
 p_in_clk       => g_uart_refclk,
-p_in_rst       => i_hdd_module_rst
+p_in_rst       => i_hdd_rst
 );
 
 m_test02: fpga_test_01
@@ -711,7 +711,7 @@ p_out_1ms      => open,
 --System
 -------------------------------
 p_in_clk       => g_host_clk,
-p_in_rst       => i_hdd_module_rst
+p_in_rst       => i_hdd_rst
 );
 
 
@@ -902,8 +902,8 @@ i_cfg_dbgcs.data(3)<=i_cfg_done;
 i_cfg_dbgcs.data(4)<=i_cfg_txrdy;
 i_cfg_dbgcs.data(5)<=i_cfg_rxrdy;
 i_cfg_dbgcs.data(13 downto 6)<=i_cfg_adr(7 downto 0);
-i_cfg_dbgcs.data(29 downto 14)<=i_cfg_txdata;
-i_cfg_dbgcs.data(45 downto 30)<=i_cfg_rxdata;
+i_cfg_dbgcs.data(29 downto 14)<=i_cfg_txd;
+i_cfg_dbgcs.data(45 downto 30)<=i_cfg_rxd;
 i_cfg_dbgcs.data(49 downto 46)<=i_cfg_tstout(9 downto 6);
 i_cfg_dbgcs.data(50)<=i_ram_txbuf_afull;
 i_cfg_dbgcs.data(51)<=i_ram_txbuf_empty;
@@ -915,9 +915,9 @@ i_cfg_dbgcs.data(87 downto 56)<=i_hdd_rbuf_status.ram_wr_o.dout;
 i_cfg_dbgcs.data(103 downto 88)<=(others=>'0');--tst_ram_rxbuf_rdcnt;
 
 
---process(i_hdd_module_rst,i_hdd_rbuf_cfg.ram_wr_i.clk)
+--process(i_hdd_rst,i_hdd_rbuf_cfg.ram_wr_i.clk)
 --begin
---  if i_hdd_module_rst='1' then
+--  if i_hdd_rst='1' then
 --    tst_ram_rxbuf_rdcnt<=(others=>'0');
 --  elsif i_hdd_rbuf_cfg.ram_wr_i.clk'event and i_hdd_rbuf_cfg.ram_wr_i.clk='1' then
 --
@@ -935,9 +935,9 @@ end generate gen_dbgcs;
 
 
 --//Счетчик адреса регистров
-process(i_hdd_module_rst,g_host_clk)
+process(i_hdd_rst,g_host_clk)
 begin
-  if i_hdd_module_rst='1' then
+  if i_hdd_rst='1' then
     i_cfg_adr_cnt<=(others=>'0');
   elsif g_host_clk'event and g_host_clk='1' then
     if i_cfg_adr_ld='1' and i_dev_adr=CONV_STD_LOGIC_VECTOR(0, i_dev_adr'length) then
@@ -951,9 +951,9 @@ begin
 end process;
 
 --//Запись регистров
-process(i_hdd_module_rst,g_host_clk)
+process(i_hdd_rst,g_host_clk)
 begin
-  if i_hdd_module_rst='1' then
+  if i_hdd_rst='1' then
     i_reg0<=(others=>'0');
     i_reg1<=(others=>'0');
     i_reg2<=(others=>'0');
@@ -963,11 +963,11 @@ begin
   elsif g_host_clk'event and g_host_clk='1' then
 
     if i_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg0<=i_cfg_txdata(i_reg0'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then i_reg1<=i_cfg_txdata(i_reg1'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then i_reg2<=i_cfg_txdata(i_reg2'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then i_reg3<=i_cfg_txdata(i_reg3'high downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then i_reg4<=i_cfg_txdata(i_reg4'high downto 0);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg0<=i_cfg_txd(i_reg0'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(1, i_cfg_adr_cnt'length) then i_reg1<=i_cfg_txd(i_reg1'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(2, i_cfg_adr_cnt'length) then i_reg2<=i_cfg_txd(i_reg2'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(3, i_cfg_adr_cnt'length) then i_reg3<=i_cfg_txd(i_reg3'high downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(4, i_cfg_adr_cnt'length) then i_reg4<=i_cfg_txd(i_reg4'high downto 0);
 
         end if;
     end if;
@@ -976,10 +976,10 @@ begin
 end process;
 
 --//Чтение регистров
-process(i_hdd_module_rst,g_host_clk)
-  variable rxd : std_logic_vector(i_cfg_rxdata'range);
+process(i_hdd_rst,g_host_clk)
+  variable rxd : std_logic_vector(i_cfg_rxd'range);
 begin
-  if i_hdd_module_rst='1' then
+  if i_hdd_rst='1' then
       rxd:=(others=>'0');
     i_cfgt_rxdata<=(others=>'0');
   elsif g_host_clk'event and g_host_clk='1' then
