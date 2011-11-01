@@ -39,6 +39,7 @@ use work.sata_testgen_pkg.all;
 entity vereskm_hdd_tb is
 generic
 (
+G_CFG_IF        : std_logic:='1';--//Выбор интерфейса управления:0/1 - PCIEXP/UART
 G_HDD_COUNT     : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS       : integer:=16;
 G_DBGCS         : string :="ON";
@@ -54,9 +55,9 @@ architecture behavior of vereskm_hdd_tb is
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
-constant C_HOSTCLK_PERIOD    : TIME := 6.6*6 ns;          --Тактирование модуля dsn_hdd/wr управляющих регистров
+constant C_HOSTCLK_PERIOD    : TIME := 6.6*1 ns;          --Тактирование модуля dsn_hdd/wr управляющих регистров
 constant C_SATACLK_PERIOD    : TIME := 6.6*2 ns; --150MHz
-constant C_USRCLK_PERIOD     : TIME := 3.6 ns;--6.6*10 ns;--Тактирование модуля dsn_hdd/логика работы
+constant C_USRCLK_PERIOD     : TIME := 6.1 ns;--6.6*10 ns;--Тактирование модуля dsn_hdd/логика работы
 constant C_VBUF_WRCLK_PERIOD : TIME := 3.6 ns;
 
 component hdd_rambuf_infifo
@@ -179,10 +180,15 @@ signal i_usr_raid_status          : TUsrStatus;
 signal i_usr_cxdin                : std_logic_vector(15 downto 0);
 signal i_usr_cxd_wr               : std_logic;
 
+signal i_cfgdev_if                : std_logic;
+signal i_cfgdev_if_tst            : std_logic;
 signal i_cfgdev_adr               : std_logic_vector(7 downto 0);
 signal i_cfgdev_adr_ld            : std_logic;
 signal i_cfgdev_adr_fifo          : std_logic;
 signal i_cfgdev_txdata            : std_logic_vector(15 downto 0);
+signal i_cfgdev_rxdata            : std_logic_vector(15 downto 0);
+signal i_cfgdev_txrdy             : std_logic;
+signal i_cfgdev_rxrdy             : std_logic;
 signal i_dev_cfg_wd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_rd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_done             : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
@@ -295,7 +301,8 @@ signal tst_ramread  : std_logic_vector(4 downto 0):=(others=>'0');
 --MAIN
 begin
 
-pin_out_tst<=i_ltrn_count0 or i_ltrn_count1 when i_tst_dcnt=2 else i_ltrn_count1 or OR_reduce(tst_ramread);
+pin_out_tst<=i_ltrn_count0 or i_ltrn_count1 when i_tst_dcnt=2 else i_ltrn_count1 or OR_reduce(tst_ramread) or
+             OR_reduce(i_cfgdev_rxdata) or i_cfgdev_txrdy or i_cfgdev_rxrdy;
 
 --//RESET
 i_dsn_hdd_rst<='1','0' after 1 us;
@@ -387,6 +394,8 @@ end generate gen_satad;
 
 
 --//Эмуляция FPGA
+i_cfgdev_if<=G_CFG_IF;
+
 m_hdd : dsn_hdd
 generic map
 (
@@ -402,6 +411,7 @@ port map
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
+p_in_cfg_if            => i_cfgdev_if,
 p_in_cfg_clk           => g_host_clk,
 
 p_in_cfg_adr           => i_cfgdev_adr,
@@ -410,9 +420,11 @@ p_in_cfg_adr_fifo      => i_cfgdev_adr_fifo,
 
 p_in_cfg_txdata        => i_cfgdev_txdata,
 p_in_cfg_wd            => i_dev_cfg_wd(C_CFGDEV_HDD),
+p_out_cfg_txrdy        => i_cfgdev_txrdy,
 
-p_out_cfg_rxdata       => open,--i_hdd_cfg_rxdata,
+p_out_cfg_rxdata       => i_cfgdev_rxdata,
 p_in_cfg_rd            => i_dev_cfg_rd(C_CFGDEV_HDD),
+p_out_cfg_rxrdy        => i_cfgdev_rxrdy,
 
 p_in_cfg_done          => i_dev_cfg_done(C_CFGDEV_HDD),
 p_in_cfg_rst           => i_dsn_hdd_rst,-- i_cfgdev_module_rst,
@@ -739,11 +751,13 @@ begin
       wait until i_sim_ctrl.ram_txbuf_start = '1' or i_vdata_start = '1';--//Ждем разрешения чтения данных
           tst_ramread(0)<='1';
           --//Инициализация
-          for i in 0 to i_ram_txbuf'high loop
-          i_ram_txbuf(i)<=(others=>'0');
-          end loop;
+          if i_cfgdev_if_tst='0' then
+            for i in 0 to i_ram_txbuf'high loop
+            i_ram_txbuf(i)<=(others=>'0');
+            end loop;
+          end if;
 
-          if i_sw_mode='1' then
+          if i_sw_mode='1' and i_cfgdev_if_tst='0' then
             --//Генератор тестовых данных
             for i in 0 to i_ram_txbuf'high loop
               if i_testdata_sel='0' then
@@ -943,10 +957,10 @@ begin
 
   --//Выбор режима:
   --C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
-  i_testdata_sel<='1'; --//0/1 - Счетчик/Random DATA
-  i_sw_mode <='0';--//1/0 - sw_mode/hw_mode
-  i_tst_mode<='1';--//режим тестирования
-  raid_mode:='1';
+  i_testdata_sel<='0'; --//0/1 - Счетчик/Random DATA
+  i_sw_mode <='1';--//1/0 - sw_mode/hw_mode
+  i_tst_mode<='0';--//режим тестирования
+  raid_mode:='0';
   mnl_sata_cs:=16#01#; --//Только когда выключен режим raid_mode
 
   --//Только для режима тестирования
@@ -957,6 +971,8 @@ begin
   hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
   hw_lba_end  :=hw_lba_start + (hw_scount * 20);
+
+  i_cfgdev_if_tst<='0';
 
 
 
@@ -976,8 +992,8 @@ begin
 --  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
   i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
-  i_dsnhdd_reg_hwstart_dly_val(C_DSN_HDD_REG_HWSTART_DLY_FIX_BIT)<='1';
-  i_dsnhdd_reg_hwstart_dly_val(15 downto  1)<=CONV_STD_LOGIC_VECTOR(10, 15);--//фиксирования задержка
+  i_dsnhdd_reg_hwstart_dly_val(11 downto 0)<=CONV_STD_LOGIC_VECTOR(512, 12);--//фиксирования задержка
+  i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(1, 4);--//фиксирования задержка
 
 --  i_dsnhdd_reg_hwstart_dly_val(3 downto   0)<=CONV_STD_LOGIC_VECTOR(2, 3);--//адаптивная задержка
 --  i_dsnhdd_reg_hwstart_dly_val(7 downto   4)<=CONV_STD_LOGIC_VECTOR(3, 4);
@@ -1046,6 +1062,11 @@ begin
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+  wait for 0.1 us;
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
   wait for 0.5 us;
 
@@ -1063,6 +1084,11 @@ begin
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
   end if;--//if i_tst_mode='1' then
+  wait for 0.1 us;
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
   wait for 0.5 us;
 
@@ -1080,8 +1106,39 @@ begin
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
   end if;--//if i_tst_mode='1' then
+  wait for 0.1 us;
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
   wait for 0.5 us;
+
+--          --//Тестирование записи данных в ОЗУ через CFG
+--          if i_cfgdev_if=C_HDD_CFGIF_UART then
+--
+--            for i in 0 to 24-1 loop
+--              wait until g_host_clk'event and g_host_clk='1';
+--                i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_DATA, i_cfgdev_adr'length);
+--                i_cfgdev_adr_ld<='1';
+--                i_cfgdev_adr_fifo<='0';
+--              wait until g_host_clk'event and g_host_clk='1';
+--                i_cfgdev_adr_ld<='0';
+--                i_cfgdev_adr_fifo<='1';
+--                i_cfgdev_txdata<=CONV_STD_LOGIC_VECTOR(i, i_cfgdev_txdata'length);
+--                i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+--              wait until g_host_clk'event and g_host_clk='1';
+--                i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+--              wait for 0.1 us;
+--            end loop;
+--            wait until g_host_clk'event and g_host_clk='1';
+--            i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+--            wait until g_host_clk'event and g_host_clk='1';
+--            i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+--
+--            write(GUI_line,string'("module DSN_HDD: C_HDD_CFGIF_UART."));writeline(output, GUI_line);
+--            wait;
+--          end if;
 
   write(GUI_line,string'("module DSN_HDD: cfg reg - DONE."));writeline(output, GUI_line);
 
@@ -1310,7 +1367,6 @@ begin
       wait until g_host_clk'event and g_host_clk='1';
       i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
-
       --//Вычисляем размер данных которые необходимо записать/прочитать: (в DWORD)
       wait until g_host_clk'event and g_host_clk='1';
       if cfgCmdPkt(idx).usr_ctrl(C_HDDPKT_SATA_CS_M_BIT downto C_HDDPKT_SATA_CS_L_BIT)=CONV_STD_LOGIC_VECTOR(16#01#, C_HDDPKT_SATA_CS_M_BIT-C_HDDPKT_SATA_CS_L_BIT+1) or
@@ -1351,6 +1407,44 @@ begin
         --//Ждем когда прочитаем все данные из RxBUF
         if i_tst_mode='0' then
         wait until i_sim_ctrl.ram_rxbuf_done='1';
+--                      --//Тестирование чтения данных из ОЗУ через CFG
+--                      if i_cfgdev_if=C_HDD_CFGIF_UART then
+--
+--                          wait until p_in_clk'event and p_in_clk='1';
+--                           i_cfgdev_if_tst<='1';
+--
+--                        --//Запускаем автомат чтния данных
+--                          wait until p_in_clk'event and p_in_clk='1';
+--                          i_sim_ctrl.ram_txbuf_start<=not i_tst_mode;--'1';
+--                          wait until p_in_clk'event and p_in_clk='1';
+--                          i_sim_ctrl.ram_txbuf_start<='0';
+--
+--                          wait for 0.5 us;
+--
+--                          wait until g_host_clk'event and g_host_clk='1';
+--                            i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_DATA, i_cfgdev_adr'length);
+--                            i_cfgdev_adr_ld<='1';
+--                            i_cfgdev_adr_fifo<='0';
+--                          wait until g_host_clk'event and g_host_clk='1';
+--                            i_cfgdev_adr_ld<='0';
+--                            i_cfgdev_adr_fifo<='1';
+--
+--                          for i in 0 to 16*2 -1 loop
+--                            wait until g_host_clk'event and g_host_clk='1';
+--                            i_dev_cfg_rd(C_CFGDEV_HDD)<='1';
+--                            wait until g_host_clk'event and g_host_clk='1';
+--                            i_dev_cfg_rd(C_CFGDEV_HDD)<='0';
+--                            wait for 0.05 us;
+--                          end loop;
+--
+--                          wait until g_host_clk'event and g_host_clk='1';
+--                          i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+--                          wait until g_host_clk'event and g_host_clk='1';
+--                          i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+--
+--                          write(GUI_line,string'("module DSN_HDD: C_HDD_CFGIF_UART."));writeline(output, GUI_line);
+--                          wait;
+--                      end if;
         end if;
       end if;
 
