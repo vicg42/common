@@ -20,6 +20,7 @@ G_CLKFX_DIV  : integer:=1;
 G_CLKFX_MULT : integer:=2
 );
 port(
+p_out_gclkin : out   std_logic;
 p_out_clk0   : out   std_logic;
 p_out_clkfx  : out   std_logic;
 --p_out_clkdiv : out   std_logic;
@@ -44,6 +45,7 @@ signal i_clk2x      : std_logic;
 begin
 
 p_out_clk0 <= g_clk0;
+p_out_gclkin <= g_clkin;
 
 ibufg_lclk : IBUFG port map(I => p_in_clk,O => g_clkin);
 bufg_clk   : BUFG  port map(I => i_clk0  ,O => g_clk0);
