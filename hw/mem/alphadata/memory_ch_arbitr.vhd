@@ -160,7 +160,7 @@ end memory_ch_arbitr;
 
 architecture behavioral of memory_ch_arbitr is
 
-constant C_MEM_BANK_MSB_BIT   : integer:=pwr((C_HREG_USR_MEM_ADR_BANK_MSB_BIT-C_HREG_USR_MEM_ADR_BANK_LSB_BIT+1), 2)-1;
+constant C_MEM_BANK_MSB_BIT   : integer:=pwr((C_HREG_MEM_ADR_BANK_M_BIT-C_HREG_MEM_ADR_BANK_L_BIT+1), 2)-1;
 
 type fsm_state is
 (
