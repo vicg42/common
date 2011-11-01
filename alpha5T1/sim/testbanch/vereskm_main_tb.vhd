@@ -45,6 +45,9 @@ use work.dsn_track_nik_pkg.all;
 
 
 entity vereskm_main_tb is
+generic(
+G_FHOST_DBUS : integer:=32
+);
 end vereskm_main_tb;
 
 architecture behav of vereskm_main_tb is
@@ -100,8 +103,8 @@ constant num_ramclk : natural:= C_MEM_NUM_RAMCLK;--1;
 
 signal lclk, mclk:         std_logic := '1';
 signal lreset_l:           std_logic := '0';
-signal lbe_l:              std_logic_vector(C_FHOST_DBUS/8-1 downto 0) := (others => 'Z');
-signal lad:                std_logic_vector(C_FHOST_DBUS-1 downto 0) := (others => 'Z');
+signal lbe_l:              std_logic_vector(G_FHOST_DBUS/8-1 downto 0) := (others => 'Z');
+signal lad:                std_logic_vector(G_FHOST_DBUS-1 downto 0) := (others => 'Z');
 signal lwrite:             std_logic := '0';
 signal lads_l:             std_logic := '1';
 signal l64_l :             std_logic := 'Z';
@@ -474,8 +477,8 @@ lclk                  : in    std_logic;
 lwrite                : in    std_logic;
 lads_l                : in    std_logic;
 lblast_l              : in    std_logic;
-lbe_l                 : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
-lad                   : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
+lbe_l                 : in    std_logic_vector(G_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
+lad                   : inout std_logic_vector(G_FHOST_DBUS-1 downto 0);--(31 downto 0);
 lbterm_l              : inout std_logic;
 lready_l              : inout std_logic;
 fholda                : in    std_logic;
@@ -2524,10 +2527,10 @@ begin
   wait_cycles(track_read_01_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL_RDDONE_TRCNIK_BIT):='1';
+  i_dev_ctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 
   wait_cycles(4, lclk);
@@ -2545,21 +2548,21 @@ begin
 
   i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT):='0';
 
   wait_cycles(vctrl_read_01_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL_RDDONE_VCTRL_BIT):='1';
+  i_dev_ctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -2576,21 +2579,21 @@ begin
 
   i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT):='0';
 
   wait_cycles(vctrl_read_02_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL_RDDONE_VCTRL_BIT):='1';
+  i_dev_ctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -3659,7 +3662,7 @@ ramclko    => ramclk);
 
 
 --//32BIT
-  gen_lbus_32bit : if C_FHOST_DBUS=32 generate
+  gen_lbus_32bit : if G_FHOST_DBUS=32 generate
 
   arb_0 : locbus_arb
       generic map(
@@ -3710,7 +3713,7 @@ ramclko    => ramclk);
   end generate gen_lbus_32bit;
 
 --//64BIT
-  gen_lbus_64bit : if C_FHOST_DBUS=64 generate
+  gen_lbus_64bit : if G_FHOST_DBUS=64 generate
     agent_ds : locbus_agent_mux64
         port map(
             lclk        => lclk,
