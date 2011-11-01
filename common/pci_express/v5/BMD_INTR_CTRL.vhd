@@ -30,10 +30,10 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_clr          : in   std_logic;                    --//Сброс прерывания
-p_in_irq_num          : in   std_logic_vector(15 downto 0);--//Номер источника прерывания
-p_in_irq_set          : in   std_logic_vector(15 downto 0);--//Установка прерывания
-p_out_irq_status      : out  std_logic_vector(15 downto 0);--//Статус активности перываний
+p_in_irq_clr           : in   std_logic;                    --//Сброс прерывания
+p_in_irq_num           : in   std_logic_vector(15 downto 0);--//Номер источника прерывания
+p_in_irq_set           : in   std_logic_vector(15 downto 0);--//Установка прерывания
+p_out_irq_status       : out  std_logic_vector(15 downto 0);--//Статус активности перываний
 
 -----------------------------
 --Связь с ядром PCI-EXPRESS
@@ -88,12 +88,12 @@ p_in_rst               : in   std_logic
 );
 end component;
 
-signal i_cfg_irq_n                 : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
-signal i_cfg_irq_assert_n          : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
-signal i_irq_clr                   : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
+signal i_cfg_irq_n         : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
+signal i_cfg_irq_assert_n  : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
+signal i_irq_clr           : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
 
 Type TIrqTST is array (0 to C_HIRQ_COUNT-1) of std_logic_vector(31 downto 0);
-signal i_tst_out                   : TIrqTST;
+signal i_tst_out           : TIrqTST;
 
 
 --//MAIN

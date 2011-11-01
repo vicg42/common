@@ -162,8 +162,8 @@ port
 --------------------------------------------------
 -- Связь с хостом по Local bus
 --------------------------------------------------
-lad                        : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-lbe_l                      : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
+lad                        : inout std_logic_vector(32-1 downto 0);--(31 downto 0);
+lbe_l                      : in    std_logic_vector(32/8-1 downto 0);--(3 downto 0);
 lads_l                     : in    std_logic;
 lwrite                     : in    std_logic;
 lblast_l                   : in    std_logic;
@@ -177,11 +177,11 @@ finto_l                    : out   std_logic;
 --------------------------------------------------
 p_out_hclk_out         : out   std_logic;
 
-p_out_gctrl                : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_out_dev_ctrl             : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_in_dev_status            : in     std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_out_dev_din              : out    std_logic_vector(C_FHOST_DBUS-1 downto 0);
-p_in_dev_dout              : in     std_logic_vector(C_FHOST_DBUS-1 downto 0);
+p_out_gctrl                : out    std_logic_vector(32-1 downto 0);
+p_out_dev_ctrl             : out    std_logic_vector(32-1 downto 0);
+p_in_dev_status            : in     std_logic_vector(32-1 downto 0);
+p_out_dev_din              : out    std_logic_vector(32-1 downto 0);
+p_in_dev_dout              : in     std_logic_vector(32-1 downto 0);
 p_out_dev_wd               : out    std_logic;
 p_out_dev_rd               : out    std_logic;
 
@@ -219,9 +219,9 @@ sda_o                      : out   std_logic;
 --------------------------------------------------
 --System
 --------------------------------------------------
-clk_locked                 : in    std_logic;--//Status
---mclk_i                     : in    std_logic;--//General purpose clock
---refclk_i                   : in    std_logic;--//Reference clock for IDELAY elements (might be unused)
+--clk_locked                 : in    std_logic;--//Status
+----mclk_i                     : in    std_logic;--//General purpose clock
+----refclk_i                   : in    std_logic;--//Reference clock for IDELAY elements (might be unused)
 
 clk                        : in    std_logic;
 p_in_rst_n                 : in    std_logic
@@ -245,10 +245,10 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   --
   -- Local bus signals in and out
   --
-  signal la_i                 : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal ld_i                 : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal ld_o                 : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal ld_oe_l              : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
+  signal la_i                 : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal ld_i                 : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal ld_o                 : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal ld_oe_l              : std_logic_vector(32-1 downto 0);--(31 downto 0);
   signal lads_i               : std_logic;
   signal lblast_i             : std_logic;
   signal lbterm_i             : std_logic;
@@ -259,10 +259,10 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   signal lbterm_o_l           : std_logic;
   signal lbterm_oe_l          : std_logic;
   signal eld_oe               : std_logic;
-  signal ld_iq                : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal lbe_iq_l             : std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
+  signal ld_iq                : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal lbe_iq_l             : std_logic_vector(32/8-1 downto 0);--(3 downto 0);
 
-  signal ld_o_tmp             : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
+  signal ld_o_tmp             : std_logic_vector(32-1 downto 0);--(31 downto 0);
 
   --
   -- Qualified address strobe; this is LADS# qualified by some combinatorial
@@ -326,7 +326,7 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   signal mem_term             : std_logic;
   signal mem_wr               : std_logic;
   signal mem_rd               : std_logic;
-  signal mem_dout             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
+  signal mem_dout             : std_logic_vector(32-1 downto 0);
   signal mem_wf               : std_logic;
   signal mem_wpf              : std_logic;
   signal mem_re               : std_logic;
@@ -351,13 +351,13 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
 
   signal vereskm_reg_adr        : std_logic_vector(6 downto 0); --//Адреса регистров проекта VERESK-M
   signal usr_reg_wr             : std_logic;
-  signal v_reg_gctrl        : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(C_HREG_GCTRL_LAST_BIT downto 0);
-  signal v_reg_fpga_firmware    : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(C_HREG_FRMWARE_LAST_BIT downto 0);
-  signal v_reg_dev_ctrl         : std_logic_vector(C_FHOST_DBUS-1 downto 0);--C_HREG_DEV_CTRL_LAST_BIT downto 0);
-  signal v_reg_tst0             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
-  signal v_reg_tst1             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
+  signal v_reg_gctrl        : std_logic_vector(32-1 downto 0);--(C_HREG_CTRL_LAST_BIT downto 0);
+  signal v_reg_fpga_firmware    : std_logic_vector(32-1 downto 0);--(C_HREG_FRMWARE_LAST_BIT downto 0);
+  signal v_reg_dev_ctrl         : std_logic_vector(32-1 downto 0);--C_HREG_DEV_CTRL_LAST_BIT downto 0);
+  signal v_reg_tst0             : std_logic_vector(32-1 downto 0);
+  signal v_reg_tst1             : std_logic_vector(32-1 downto 0);
 
-  signal v_reg_tst4             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
+  signal v_reg_tst4             : std_logic_vector(32-1 downto 0);
 
   signal b_dev_address               : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 
@@ -714,26 +714,26 @@ begin
   status_reg_0 : process(clk)
   begin
     if clk'event and clk = '1' then
-      status_reg(0) <= clk_locked;
+      status_reg(0) <= '0';--clk_locked;
     end if;
   end process;
 
-  --
-  -- Bit 1 is a "sticky" version of bit 0, which is asynchronously set to 1
-  -- when LCLK DCM/DLL lock is lost.
-  --
-  status_reg_1 : process(clk_locked, clk)
-  begin
-    if clk_locked = '0' then
-        status_reg(1) <= '1';
-    elsif clk'event and clk = '1' then
-      if wr_status_reg = '1' then
-        if lbe_iq_l(0) = '0' and ld_iq(1) = '1' then
+--  --
+--  -- Bit 1 is a "sticky" version of bit 0, which is asynchronously set to 1
+--  -- when LCLK DCM/DLL lock is lost.
+--  --
+--  status_reg_1 : process(clk_locked, clk)
+--  begin
+--    if clk_locked = '0' then
+--        status_reg(1) <= '1';
+--    elsif clk'event and clk = '1' then
+--      if wr_status_reg = '1' then
+--        if lbe_iq_l(0) = '0' and ld_iq(1) = '1' then
           status_reg(1) <= '0';
-        end if;
-      end if;
-    end if;
-  end process;
+--        end if;
+--      end if;
+--    end if;
+--  end process;
 
   status_reg(7 downto 2) <= (others => '0');
 
@@ -818,12 +818,12 @@ begin
         --//Чтение данных регистров
         --//BAR - vereskm_reg_bar_detect
         if vereskm_reg_bar_detect='1' then
-          if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL, 5)  then lo(v_reg_gctrl'high downto 0):= v_reg_gctrl;
+          if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_CTRL, 5)  then lo(v_reg_gctrl'high downto 0):= v_reg_gctrl;
           elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FIRMWARE, 5)    then lo(v_reg_fpga_firmware'high downto 0):= v_reg_fpga_firmware;
 
           elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL, 5)    then --lo := v_reg_dev_ctrl_rd;
 
-            lo(C_HREG_DEV_CTRL_TRN_DIR_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_TRN_DIR_BIT);
+            lo(C_HREG_DEV_CTRL_DMA_DIR_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
             lo(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
             lo(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT downto C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT downto C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT);
             lo(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT):= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT);
@@ -1041,12 +1041,12 @@ end process;
 --  usr_buf_re <='0';
 --  usr_buf_rpe<='0';
 
-  p_out_gctrl(C_HREG_GCTRL_RST_ALL_BIT)<=v_reg_gctrl(C_HREG_GCTRL_RST_ALL_BIT);
-  p_out_gctrl(C_HREG_GCTRL_RST_MEM_BIT)<=v_reg_gctrl(C_HREG_GCTRL_RST_MEM_BIT);
-  p_out_gctrl(C_HREG_GCTRL_RST_ETH_BIT)<=v_reg_gctrl(C_HREG_GCTRL_RST_ETH_BIT);
-  p_out_gctrl(C_HREG_GCTRL_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
-  p_out_gctrl(C_HREG_GCTRL_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
-  p_out_gctrl(p_out_gctrl'high downto C_HREG_GCTRL_LAST_BIT)<=(others=>'0');
+  p_out_gctrl(C_HREG_CTRL_RST_ALL_BIT)<=v_reg_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+  p_out_gctrl(C_HREG_CTRL_RST_MEM_BIT)<=v_reg_gctrl(C_HREG_CTRL_RST_MEM_BIT);
+  p_out_gctrl(C_HREG_CTRL_RST_ETH_BIT)<=v_reg_gctrl(C_HREG_CTRL_RST_ETH_BIT);
+  p_out_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
+  p_out_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
+  p_out_gctrl(p_out_gctrl'high downto C_HREG_CTRL_LAST_BIT)<=(others=>'0');
 
   p_out_dev_ctrl(0) <=i_trn_start_sw;
   p_out_dev_ctrl(p_out_dev_ctrl'high downto 1)<=v_reg_dev_ctrl(p_out_dev_ctrl'high downto 1);
@@ -1122,39 +1122,39 @@ end process;
 
         if usr_reg_wr='1' then
           if vereskm_reg_bar_detect='1' then
-            if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL, 5) then
+            if    vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_CTRL, 5) then
 
-              for j in 0 to C_FHOST_DBUS/8-1 loop
+              for j in 0 to 32/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_gctrl(8 * (j + 1) - 1 downto  8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
-              var_hrddone_vctrl_edge:=ld_iq(C_HREG_GCTRL_RDDONE_VCTRL_BIT);
-              var_hrddone_trcnik_edge:=ld_iq(C_HREG_GCTRL_RDDONE_TRCNIK_BIT);
+              var_hrddone_vctrl_edge:=ld_iq(C_HREG_CTRL_RDDONE_VCTRL_BIT);
+              var_hrddone_trcnik_edge:=ld_iq(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
 
             elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL, 5) then
 
-              var_trn_start_edge  :=ld_iq(C_HREG_DEV_CTRL_TRN_START_BIT);
+              var_trn_start_edge  :=ld_iq(C_HREG_DEV_CTRL_DMA_START_BIT);
 --              var_int_clr_edge    :=ld_iq(C_HREG_DEV_CTRL_RESERV8_BIT);
 --              var_trn_rst_edge    :=ld_iq(C_HREG_DEV_CTRL_TRN_RST_BIT);
               var_dev_txd_rdy_edge:=ld_iq(C_HREG_DEV_CTRL_DRDY_BIT);
 
-              for j in 0 to C_FHOST_DBUS/8-1 loop
+              for j in 0 to 32/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_dev_ctrl( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
             elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5) then
-              for j in 0 to C_FHOST_DBUS/8-1 loop
+              for j in 0 to 32/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_tst0( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
             elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then
-              for j in 0 to C_FHOST_DBUS/8-1 loop
+              for j in 0 to 32/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_tst1( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;

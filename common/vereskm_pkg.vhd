@@ -317,8 +317,6 @@ lbterm_l            : inout std_logic;
 lready_l            : inout std_logic;
 fholda              : in    std_logic;
 finto_l             : out   std_logic;
-
-lclk_locked         : in    std_logic;
 lclk                : in    std_logic;
 
 --//-----------------------------
@@ -350,12 +348,6 @@ p_in_dev_flag       : in    std_logic_vector(7 downto 0);
 p_in_dev_status     : in    std_logic_vector(31 downto 0);
 p_in_dev_irq        : in    std_logic_vector(31 downto 0);
 p_in_dev_option     : in    std_logic_vector(127 downto 0);
-
-----//связь с модулем memory_ctrl.vhd
---p_out_mem_ctl_reg   : out   std_logic_vector(0 downto 0);
---p_out_mem_mode_reg  : out   std_logic_vector(511 downto 0);
---p_in_mem_locked     : in    std_logic_vector(7 downto 0);
---p_in_mem_trained    : in    std_logic_vector(15 downto 0);
 
 p_out_mem_bank1h    : out   std_logic_vector(15 downto 0);
 p_out_mem_ce        : out   std_logic;
@@ -448,7 +440,7 @@ p_in_cfg_done             : in   std_logic;
 -------------------------------
 p_in_host_clk             : in   std_logic;
 
--- Связь Хост <-> Опритка(dsn_optic.vhd)
+-- Связь Хост <-> ETH(dsn_eth.vhd)
 p_out_host_eth_rxd_irq    : out  std_logic;
 p_out_host_eth_rxd_rdy    : out  std_logic;
 p_out_host_eth_rxd        : out  std_logic_vector(31 downto 0);
@@ -457,7 +449,6 @@ p_in_host_eth_rd          : in   std_logic;
 p_out_host_eth_txbuf_rdy  : out  std_logic;
 p_in_host_eth_txd         : in   std_logic_vector(31 downto 0);
 p_in_host_eth_wr          : in   std_logic;
-p_in_host_eth_txd_rdy     : in   std_logic;
 
 -- Связь Хост <-> VideoBUF
 p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);

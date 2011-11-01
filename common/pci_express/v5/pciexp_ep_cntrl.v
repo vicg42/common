@@ -51,8 +51,6 @@ module pciexp_ep_cntrl
     p_in_mem_re,
     p_in_mem_rpe,
 
-    init_rst_o,
-
 //-----------------------------------------------------
 //Связь с ядром PCI-Express
 //-----------------------------------------------------
@@ -182,9 +180,6 @@ input             p_in_mem_re;
 input             p_in_mem_rpe;
 
 
-output            init_rst_o;
-
-
 // LocalLink Tx
 output [63:0]     trn_td_o;
 output [7:0]      trn_trem_n_o;
@@ -305,8 +300,7 @@ wire  [7:0]       req_tag;
 wire  [7:0]       req_be;
 wire              req_expansion_rom;
 
-wire              trn_dma_rst;
-wire              trn_dma_init;
+wire              dmatrn_init;
 
 wire              i_irq_ctrl_rst;
 wire              i_irq_clr;
@@ -492,7 +486,6 @@ assign cfg_dsn_o  = {{cfg_dsn_sw[07:00]},
                      {cfg_dsn_sw[63:56]}};
 
 
-assign  init_rst_o     = trn_dma_rst;
 assign  trn_rnp_ok_n_o = trn_rnp_ok_n;
 
 //`ifdef PCIEBLK
@@ -574,8 +567,7 @@ pciexp_usr_ctrl m_USR_CTRL
   .p_out_trg_dout(trg_dout),
   .p_in_trg_din(trg_din),
 
-  .p_out_trn_dma_rst(trn_dma_rst),                  // O
-  .p_out_trn_dma_init(trn_dma_init),                // O
+  .p_out_dmatrn_init(dmatrn_init),                // O
 
   .p_out_irq_clr(i_irq_clr),
   .p_out_irq_num(i_irq_num),
@@ -694,7 +686,7 @@ BMD_ENGINE_RX m_RX_ENGINE
     .cpld_malformed_o(cpld_malformed),                 // O
 
     //Initiator reset
-    .trn_dma_init_i(trn_dma_init | trn_dma_rst),       // I
+    .trn_dma_init_i(dmatrn_init),       // I
 
     .clk( trn_clk_i ),                                 // I
     .rst_n( bmd_reset_n )                              // I
@@ -791,7 +783,7 @@ BMD_ENGINE_TX m_TX_ENGINE
     .cfg_rd_comp_bound_i(cfg_rd_comp_bound),
 
     // Initiator Controls
-    .trn_dma_init_i(trn_dma_init | trn_dma_rst),         // I
+    .trn_dma_init_i(dmatrn_init),         // I
 
     .clk( trn_clk_i ),                                   // I
     .rst_n( bmd_reset_n )                                // I
@@ -802,7 +794,7 @@ BMD_ENGINE_TX m_TX_ENGINE
 //
 BMD_RD_THROTTLE m_RD_THROTTLE
 (
-    .init_rst_i(trn_dma_init | trn_dma_rst),    // I
+    .init_rst_i(dmatrn_init),    // I
 
     .mrd_work_i(mrd_work),                      // I
     .mrd_len_i(mrd_len),                        // I
@@ -850,7 +842,7 @@ BMD_INTR_CTRL m_INT_CTRL
     .p_in_rst(i_irq_ctrl_rst) //.p_in_rst_n(bmd_reset_n )
 );
 
-assign i_irq_ctrl_rst = !bmd_reset_n || trn_dma_rst;
+assign i_irq_ctrl_rst = !bmd_reset_n;
 
 //
 // Configuration Controller

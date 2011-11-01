@@ -47,14 +47,14 @@ signal g_host_clk                 : std_logic;
 signal i_eth0_gtp_refclk_125MHz   : std_logic;
 signal g_ethg_swt_bufclk          : std_logic;
 signal g_pciexp_gtp_refclkout     : std_logic;
-signal i_eth_module_rst           : std_logic;
+signal i_eth_rst                  : std_logic;
 
 signal pin_out_eth_gtp_txp        : std_logic_vector(1 downto 0);
 signal pin_out_eth_gtp_txn        : std_logic_vector(1 downto 0);
 signal pin_in_eth_gtp_rxp         : std_logic_vector(1 downto 0);
 signal pin_in_eth_gtp_rxn         : std_logic_vector(1 downto 0);
 
-signal i_cfgdev_module_rst        : std_logic;
+signal i_cfgdev_rst               : std_logic;
 signal i_cfgdev_adr               : std_logic_vector(7 downto 0);
 signal i_cfgdev_adr_ld            : std_logic;
 signal i_cfgdev_adr_fifo          : std_logic;
@@ -120,7 +120,7 @@ p_out_cfg_rxdata      => i_eth_cfg_rxdata,
 p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_ETHG),
 
 p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_ETHG),
-p_in_cfg_rst          => i_cfgdev_module_rst,
+p_in_cfg_rst          => i_cfgdev_rst,
 
 -------------------------------
 -- STATUS модуля dsn_ethg.vhd
@@ -167,7 +167,7 @@ p_out_tst              => i_eth_tst_out,
 -------------------------------
 --System
 -------------------------------
-p_in_rst               => i_eth_module_rst
+p_in_rst               => i_eth_rst
 );
 
 
@@ -196,8 +196,8 @@ begin
   wait for C_CFG_PERIOD/2;
 end process;
 
-i_eth_module_rst<='1','0' after 1 us;
-i_cfgdev_module_rst<='1','0' after 1 us;
+i_eth_rst<='1','0' after 1 us;
+i_cfgdev_rst<='1','0' after 1 us;
 
 
 

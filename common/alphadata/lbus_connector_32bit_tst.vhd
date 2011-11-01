@@ -27,8 +27,8 @@ port
 --------------------------------------------------
 -- Связь с хостом по Local bus
 --------------------------------------------------
-lad                        : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-lbe_l                      : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
+lad                        : inout std_logic_vector(32-1 downto 0);--(31 downto 0);
+lbe_l                      : in    std_logic_vector(32/8-1 downto 0);--(3 downto 0);
 lads_l                     : in    std_logic;
 lwrite                     : in    std_logic;
 lblast_l                   : in    std_logic;
@@ -54,10 +54,10 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   --
   -- Local bus signals in and out
   --
-  signal la_i                 : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal ld_i                 : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal ld_o                 : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal ld_oe_l              : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
+  signal la_i                 : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal ld_i                 : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal ld_o                 : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal ld_oe_l              : std_logic_vector(32-1 downto 0);--(31 downto 0);
   signal lads_i               : std_logic;
   signal lblast_i             : std_logic;
   signal lbterm_i             : std_logic;
@@ -68,8 +68,8 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   signal lbterm_o_l           : std_logic;
   signal lbterm_oe_l          : std_logic;
   signal eld_oe               : std_logic;
-  signal ld_iq                : std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
-  signal lbe_iq_l             : std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
+  signal ld_iq                : std_logic_vector(32-1 downto 0);--(31 downto 0);
+  signal lbe_iq_l             : std_logic_vector(32/8-1 downto 0);--(3 downto 0);
 
   --
   -- Qualified address strobe; this is LADS# qualified by some combinatorial
@@ -109,15 +109,15 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
   signal vereskm_reg_adr        : std_logic_vector(6 downto 0); --//Адреса регистров проекта VERESK-M
   signal usr_reg_wr             : std_logic;
   signal v_reg_fpga_firmware    : std_logic_vector(15 downto 0);
-  signal v_reg_tst0             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
---  signal v_reg_tst1             : std_logic_vector(C_FHOST_DBUS-1 downto 0);
+  signal v_reg_tst0             : std_logic_vector(32-1 downto 0);
+--  signal v_reg_tst1             : std_logic_vector(32-1 downto 0);
 
 
 
 begin
 
---  lad  <=(others=>'Z');--      : inout std_logic_vector(C_FHOST_DBUS-1 downto 0);--(31 downto 0);
---  --lbe_l                      : in    std_logic_vector(C_FHOST_DBUS/8-1 downto 0);--(3 downto 0);
+--  lad  <=(others=>'Z');--      : inout std_logic_vector(32-1 downto 0);--(31 downto 0);
+--  --lbe_l                      : in    std_logic_vector(32/8-1 downto 0);--(3 downto 0);
 --  --lads_l                     : in    std_logic;
 --  --lwrite                     : in    std_logic;
 --  --lblast_l                   : in    std_logic;
@@ -273,14 +273,14 @@ begin
         if usr_reg_wr='1' then
           if vereskm_reg_bar_detect='1' then
             if vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5) then
-              for j in 0 to C_FHOST_DBUS/8-1 loop
+              for j in 0 to 32/8-1 loop
                 if lbe_iq_l(j) = '0' then
                   v_reg_tst0( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
                 end if;
               end loop;
 
 --            elsif vereskm_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then
---              for j in 0 to C_FHOST_DBUS/8-1 loop
+--              for j in 0 to 32/8-1 loop
 --                if lbe_iq_l(j) = '0' then
 --                  v_reg_tst1( 8 * (j + 1) - 1 downto 8 * j) <= ld_iq(8 * (j + 1) - 1 downto 8 * j);
 --                end if;

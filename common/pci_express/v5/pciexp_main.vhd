@@ -99,6 +99,11 @@ constant GI_PCI_EXP_CFG_CAP_WIDTH        : integer:= 16;
 
 
 component core_pciexp_ep_blk_plus
+generic(
+PCI_EXP_LINK_WIDTH : integer    := 1;
+BAR0               : bit_vector := X"FFFFFF00";
+BAR1               : bit_vector := X"FFFFFF01"
+);
 port
 (
 --------------------------------------
@@ -235,8 +240,6 @@ p_in_mem_wf               : in    std_logic;
 p_in_mem_wpf              : in    std_logic;
 p_in_mem_re               : in    std_logic;
 p_in_mem_rpe              : in    std_logic;
-
-init_rst_o                : out   std_logic;
 
 --------------------------------------
 --Tx
@@ -453,8 +456,12 @@ p_out_tst(159 downto 96)<=trn_rd;
 --//Модуль ядра PCI-Express
 --//#############################################
 m_core_pciexp : core_pciexp_ep_blk_plus
-port map
-(
+generic map(
+PCI_EXP_LINK_WIDTH => C_PCIEXPRESS_LINK_WIDTH,
+BAR0               => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
+BAR1               => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
+)
+port map(
 --------------------------------------
 --PCI Express Fabric Interface
 --------------------------------------
@@ -592,8 +599,6 @@ p_in_mem_wf               => p_in_mem_wf,
 p_in_mem_wpf              => p_in_mem_wpf,
 p_in_mem_re               => p_in_mem_re,
 p_in_mem_rpe              => p_in_mem_rpe,
-
-init_rst_o                => open,
 
 --------------------------------------
 --Tx

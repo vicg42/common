@@ -50,7 +50,7 @@ p_in_cfg_done             : in   std_logic;                     --//
 -------------------------------
 p_in_host_clk             : in   std_logic;
 
--- Связь Хост <-> Опритка(dsn_optic.vhd)
+-- Связь Хост <-> ETH(dsn_eth.vhd)
 p_out_host_eth_rxd_irq    : out  std_logic;
 p_out_host_eth_rxd_rdy    : out  std_logic;
 p_out_host_eth_rxd        : out  std_logic_vector(31 downto 0);
@@ -59,7 +59,6 @@ p_in_host_eth_rd          : in   std_logic;
 p_out_host_eth_txbuf_rdy  : out  std_logic;
 p_in_host_eth_txd         : in   std_logic_vector(31 downto 0);
 p_in_host_eth_wr          : in   std_logic;
-p_in_host_eth_txd_rdy     : in   std_logic;
 
 -- Связь Хост <-> VideoBUF
 p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);
@@ -289,7 +288,6 @@ signal h_reg_eth_vctrl_fmask                  : TEthFmask;
 
 signal b_rst_eth_bufs                         : std_logic;
 signal b_rst_vctrl_bufs                       : std_logic;
-signal b_ethtxbuf_loopback                    : std_logic;
 signal b_tstdsn_to_ethtxbuf                   : std_logic;
 signal b_ethtxbuf_to_vbufin                   : std_logic;
 signal b_ethtxbuf_to_hddbuf                   : std_logic;
@@ -477,8 +475,6 @@ end process;
 b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
-b_ethtxbuf_loopback  <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT);
-
 b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
 b_ethtxbuf_to_vbufin <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT);
 b_ethtxbuf_to_hddbuf <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT);
@@ -588,7 +584,7 @@ rst     => b_rst_eth_bufs
 --//Связь с модулем dsn_ethg.vhd
 --//----------------------------------
 --//Чтение данных из буфера m_eth_txbuf.
-i_eth_txbuf_rd<=not i_eth_txbuf_empty when b_ethtxbuf_loopback='1' or  b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
+i_eth_txbuf_rd<=not i_eth_txbuf_empty when b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
                 p_in_eth_txbuf_rd;
 
 p_out_eth_txbuf_dout <=i_eth_txbuf_dout;
@@ -642,9 +638,9 @@ p_in_rst        => b_rst_eth_bufs
 );
 
 --//Выбор источника данных для буфера m_eth_rxbuf
-i_eth_rxbuf_din <=i_eth_rxbuf_fltr_dout when b_ethtxbuf_loopback='0' else     i_eth_txbuf_dout;
-i_eth_rxbuf_wr  <=i_eth_rxbuf_fltr_den  when b_ethtxbuf_loopback='0' else not i_eth_txbuf_empty;
-i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof and not b_ethtxbuf_loopback;
+i_eth_rxbuf_din <=i_eth_rxbuf_fltr_dout;
+i_eth_rxbuf_wr  <=i_eth_rxbuf_fltr_den ;
+i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof ;
 
 --//----------------------------------
 --//Буфер RXDATA для модуля dsn_ethg.vhd
@@ -709,11 +705,7 @@ begin
   if p_in_rst='1' then
     hclk_eth_rxd_rdy<='0';
   elsif p_in_host_clk'event and p_in_host_clk='1' then
-    if b_ethtxbuf_loopback='0' then
     hclk_eth_rxd_rdy<=eclk_eth_rxd_rdy_w;
-    else
-    hclk_eth_rxd_rdy<=p_in_host_eth_txd_rdy;
-    end if;
   end if;
 end process;
 
