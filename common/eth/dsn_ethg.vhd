@@ -337,8 +337,8 @@ end process;
 --/-----------------------------------
 --/Статусы
 --/-----------------------------------
-p_out_eth_rdy        <=p_in_sfp_sd;
-p_out_eth_error      <='0';
+p_out_eth_rdy        <=i_eth_gt_plllkdet;--//Модуль готов к работе
+p_out_eth_error      <=p_in_sfp_sd;      --//Carrier detect - Есть связь.
 p_out_eth_gt_plllkdet<=i_eth_gt_plllkdet;
 
 p_out_sfp_tx_dis <= h_reg_ctrl(C_DSN_ETHG_REG_CTRL_SFP_TX_DISABLE_BIT);
@@ -406,11 +406,20 @@ end generate gen_cfg_eth;
 process(p_in_rst,p_in_eth_gt_drpclk)
 begin
   if p_in_rst='1' then
-    i_eth_gctrl(30 downto 0)<=(others=>'0');
+    i_eth_gctrl(7 downto 0)<=(others=>'0');
   elsif p_in_eth_gt_drpclk'event and p_in_eth_gt_drpclk='1' then
-    i_eth_gctrl(30 downto 0)<=EXT(h_reg_ctrl, 31);
+    i_eth_gctrl(7 downto 0)<=h_reg_ctrl(7 downto 0);
   end if;
 end process;
+--i_eth_gctrl(10..8) : V5GT_CLKIN_MUX_BIT            --//Значение для перепрограм. мультиплексора CLKIN RocketIO ETH
+--i_eth_gctrl(12..11): V5GT_SOUTH_MUX_VAL_BIT(12..11)--//Значение для перепрограм. мультиплексора CLKSOUTH RocketIO ETH
+--i_eth_gctrl(13)    : V5GT_CLKIN_MUX_CNG_BIT(13)    --//1- перепрограммирование мультиплексора CLKIN RocketIO ETH
+--i_eth_gctrl(14)    : V5GT_SOUTH_MUX_CNG_BIT(14)    --//1- перепрограммирование мультиплексора CLKSOUTH RocketIO ETH
+--i_eth_gctrl(15)    : V5GT_NORTH_MUX_CNG_BIT(15)    --//1- перепрограммирование мультиплексора CLKNORTH RocketIO ETH
+i_eth_gctrl(10 downto 8) <=CONV_STD_LOGIC_VECTOR(16#07#, 3);
+i_eth_gctrl(12 downto 11)<=CONV_STD_LOGIC_VECTOR(16#00#, 2);
+i_eth_gctrl(15 downto 13)<=CONV_STD_LOGIC_VECTOR(16#01#, 3);
+i_eth_gctrl(30 downto 16)<=(others=>'0');
 i_eth_gctrl(31)<=p_in_eth_gt_drpclk;
 
 
@@ -494,7 +503,12 @@ p_out_eth_txbuf_rd  <= not p_in_eth_txbuf_empty;
 
 bufg_clk125 : BUFG port map (I => mac0_gtp_clk125_o, O => mac0_gtp_clk125);
 
-i_eth_gctrl(30 downto 0)<=EXT(h_reg_ctrl, 31);
+--i_eth_gctrl(30 downto 0)<=EXT(h_reg_ctrl, 31);
+i_eth_gctrl(7 downto 0)<=h_reg_ctrl(7 downto 0);
+i_eth_gctrl(10 downto 8)<=CONV_STD_LOGIC_VECTOR(16#07#, 3);
+i_eth_gctrl(12 downto 11)<=CONV_STD_LOGIC_VECTOR(16#00#, 2);
+i_eth_gctrl(15 downto 13)<=CONV_STD_LOGIC_VECTOR(16#01#, 3);
+i_eth_gctrl(30 downto 16)<=(others=>'0');
 i_eth_gctrl(31)<=p_in_eth_gt_drpclk;
 
 m_gtp_dual_clk : ROCKETIO_WRAPPER_GTP_TILE
