@@ -27,6 +27,7 @@ use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.memory_ctrl_pkg.all;
+use work.memory_ctrl_ch_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
 
