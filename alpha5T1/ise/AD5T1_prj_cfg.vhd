@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 27.01.2011 16:46:48
@@ -29,7 +29,7 @@ constant C_USE_HDD                           : string:="ON";
 constant C_DBG_HDD                           : string:="OFF";
 constant G_DBG_ETH                           : string:="OFF";
 
-constant G_DBGCS_HDD                         : string:="OFF";
+constant C_DBGCS_HDD                         : string:="OFF";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller

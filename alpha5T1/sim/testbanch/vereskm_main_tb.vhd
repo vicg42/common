@@ -49,7 +49,7 @@ end vereskm_main_tb;
 
 architecture behav of vereskm_main_tb is
 
-constant C_HREG_DEV_CTRL_DEV_ADDR_SIZE : integer:=(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT-C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT +1);
+constant C_HREG_DEV_CTRL_ADR_SIZE : integer:=(C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT +1);
 
 constant C_LBUS_32BIT            : natural := 2;
 constant C_LBUS_64BIT            : natural := 3;
@@ -331,10 +331,10 @@ end writeNowToScreen;
 component vereskm_main
 generic
 (
-G_SIM_HOST   : string:="OFF";
-G_SIM_PCIEXP : std_logic:='0';
-G_DBG_PCIEXP : string:="OFF";
-G_SIM        : string:="ON"
+G_SIM_HOST : string:="OFF";
+G_SIM_PCIE : std_logic:='0';
+G_DBG_PCIE : string:="OFF";
+G_SIM      : string:="ON"
 );
 port
 (
@@ -498,8 +498,8 @@ finto_l               : out   std_logic;
 --mclka_p           : in    std_logic;
 
 -- Reference clock 200MHz
-refclk_n          : in    std_logic;
-refclk_p          : in    std_logic
+pin_in_refclk200M_n          : in    std_logic;
+pin_in_refclk200M_p          : in    std_logic
 );
 end component;
 
@@ -574,11 +574,11 @@ end if;
 --//Формируем подтверждение записи в TXBUF модуля cfgdev.vhd
 --//-----------------------------------------
 plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to (h_bytesize+(2*var_DataSize))), data(0 to (h_bytesize+(2*var_DataSize))), n, bus_in, bus_out);
-tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+tmp_devctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
 data(0 to 3) :=conv_byte_vector(tmp_devctrl);
-tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+tmp_devctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
 data(4 to 7) :=conv_byte_vector(tmp_devctrl);
-plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
+plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
 
 --be := (others => '1');
 --tmp_devctrl:=devctrl;
@@ -618,11 +618,11 @@ plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_
 ----//Формируем подтверждение записи в TXBUF модуля cfgdev.vhd
 ----//-----------------------------------------
 --plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to (7+(4*var_DataSize))), data(0 to (7+(4*var_DataSize))), n, bus_in, bus_out);
---tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+--tmp_devctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
 --data(0 to 3) :=conv_byte_vector(tmp_devctrl);
---tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+--tmp_devctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
 --data(4 to 7) :=conv_byte_vector(tmp_devctrl);
---plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
+--plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
 
 end;
 
@@ -662,11 +662,11 @@ end loop;
 --//Формируем подтверждение записи в TXBUF модуля cfgdev.vhd
 --//-----------------------------------------
 plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to (4*DataSize)-1), data(0 to (4*DataSize)-1), n, bus_in, bus_out);
-tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+tmp_devctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
 data(0 to 3) :=conv_byte_vector(tmp_devctrl);
-tmp_devctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+tmp_devctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
 data(4 to 7) :=conv_byte_vector(tmp_devctrl);
-plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
+plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
 
 end;
 
@@ -813,7 +813,7 @@ begin
 
   data(0 to 3) :=conv_byte_vector(X"00001000");
   data(4 to 7) :=conv_byte_vector(X"0000AAAA");
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_TST0*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_TST0*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
 
   wait_cycles(10, lclk);
 
@@ -988,9 +988,9 @@ begin
   --// Тестирование записи/чтения регистров через CFGDEV.VHD
   --//Begin
   --//Запись
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN0
@@ -1025,9 +1025,9 @@ begin
   wait_cycles(16, lclk);
 
   --//Чтение
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1038,19 +1038,19 @@ begin
 
   p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   data(4 to 7) :=conv_byte_vector(X"00000000");
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(8 to 11) :=conv_byte_vector(i_dev_ctrl);
   data(12 to 15) :=conv_byte_vector(X"00000000");
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
   wait_cycles(16, lclk);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   tag := 0;
   val32 := X"00000001";
@@ -1070,9 +1070,9 @@ begin
 
 
   --//Чтение
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   datasize:=5;
   for y in 0 to datasize - 1 loop
@@ -1083,19 +1083,19 @@ begin
 
   p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   data(4 to 7) :=conv_byte_vector(X"00000000");
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(8 to 11) :=conv_byte_vector(i_dev_ctrl);
   data(12 to 15) :=conv_byte_vector(X"00000000");
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
   wait_cycles(24, lclk);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   tag := 0;
   val32 := X"00000001";
@@ -1123,9 +1123,9 @@ begin
 --  ----------------------------------------------------
 --  --// Тестрование записи/чтения коэфициенитов в модуль DSN_VCTRL/VSCALE
 --  --//Begin
---  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+--  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
 --  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
---  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+--  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 --
 --  --//ЗАПИСЬ
 --  --//Готовим значения регистров:
@@ -1245,9 +1245,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_TIMER.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   User_Reg(0)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00AA#, 16);  --//C_DSN_TMR_REG_CMP_L
   User_Reg(1)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00BB#, 16);  --//C_DSN_TMR_REG_CMP_M
@@ -1289,9 +1289,9 @@ begin
   --// Чтение регистров модуля ETH.VHD
   --//Begin
   ----------------------------------------------------
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   datasize:=3;
   for y in 0 to datasize - 1 loop
@@ -1302,21 +1302,21 @@ begin
 
   p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN1, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   data(4 to 7) :=conv_byte_vector(X"00000000");
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(8 to 11) :=conv_byte_vector(i_dev_ctrl);
   data(12 to 15) :=conv_byte_vector(X"00000000");
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
 
 
   wait_cycles(16, lclk);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   tag := 0;
   val32 := X"00000001";
@@ -1343,9 +1343,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_SWITCH.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 
   --//Готовим значения регистров:
@@ -1434,9 +1434,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_ETH.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16); --//C_DSN_ETHG_REG_CTRL_L
@@ -1482,9 +1482,9 @@ begin
   ----------------------------------------------------
   --// Запись в буфер SWT HOST-Eth TX
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   eth_usrtxpkt_size:=7;    --//Размер передоваемых данных(txdata) (в байтах)
   User_Reg(0)(15 downto  0):=CONV_STD_LOGIC_VECTOR(eth_usrtxpkt_size, 16);    --//Размер передоваемых данных(txdata) (в байтах)
@@ -1520,9 +1520,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_SWITCH.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
   --//C_DSN_SWT_REG_CTRL_L
@@ -1604,9 +1604,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_TESTING.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
 --constant C_DSN_TSTING_REG_CTRLM_FRAME_MOVE_LSB_BIT: integer:=0;
@@ -1678,9 +1678,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_VIDEO_CTRL.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 
   --//Установка C_DSN_VCTRL_REG_MEM_TRN_LEN
@@ -2214,9 +2214,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_ETH.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
 --  constant C_DSN_ETHG_REG_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
@@ -2255,9 +2255,9 @@ begin
   ----------------------------------------------------
   --// Настройка модуля DSN_TRACK_NIK.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Установка C_DSN_TRCNIK_REG_MEM_TRN_LEN
   --//Готовим значения регистров:
@@ -2343,9 +2343,9 @@ begin
   ----------------------------------------------------
   --// Конфигурирование RAMBUF Накопителя
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//
   User_Reg(0)(15 downto 0):=hdd_cfg_rambuf_ctrl;
@@ -2422,9 +2422,9 @@ begin
   ----------------------------------------------------
   --// Запись командного пакета в Накопитель
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Формируем командный пакет для накопителя
   User_Reg(0):=(others=>'0');
@@ -2467,9 +2467,9 @@ begin
   ----------------------------------------------------
   --// Пуск модуля DSN_TESTING.VHD
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
   --//C_DSN_TSTING_REG_T05_US
@@ -2524,10 +2524,10 @@ begin
   wait_cycles(track_read_01_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_TRCNIK_BIT):='1';
+  i_dev_ctrl(C_HREG_GCTRL_RDDONE_TRCNIK_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 
   wait_cycles(4, lclk);
@@ -2543,23 +2543,23 @@ begin
   --//Begin
   wait_cycles(vctrl_read_01_start, lclk);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT-C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_START_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
+  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT-C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_START_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
+  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='0';
 
   wait_cycles(vctrl_read_01_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT):='1';
+  i_dev_ctrl(C_HREG_GCTRL_RDDONE_VCTRL_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -2574,23 +2574,23 @@ begin
   --//Begin
   wait_cycles(vctrl_read_02_start, lclk);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT-C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_START_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
+  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT downto C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_DEV_VCH_MSB_BIT-C_HREG_DEV_CTRL_DEV_VCH_LSB_BIT+1);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_TRN_START_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(0, C_HREG_DEV_CTRL_VCH_M_BIT-C_HREG_DEV_CTRL_VCH_L_BIT+1);
+  i_dev_ctrl(C_HREG_DEV_CTRL_TRN_START_BIT):='0';
 
   wait_cycles(vctrl_read_02_end, lclk);
 
   i_dev_ctrl:=(others=>'0');
-  i_dev_ctrl(C_HREG_GCTRL0_RDDONE_VCTRL_BIT):='1';
+  i_dev_ctrl(C_HREG_GCTRL_RDDONE_VCTRL_BIT):='1';
 
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_GLOB_CTRL0*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_GCTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -2604,9 +2604,9 @@ begin
 --  ----------------------------------------------------
 --  --// Стоп модуля DSN_TESTING.VHD
 --  --//Begin
---  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+--  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
 --  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
---  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+--  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 --
 --  --//Готовим значения регистров:
 --  --//C_DSN_TSTING_REG_CTRL_L
@@ -2633,9 +2633,9 @@ begin
 --  ----------------------------------------------------
 --  --// Настройка модуля DSN_VPROC.VHD
 --  --//Begin
---  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+--  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
 --  data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
---  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+--  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 --
 --  --//Установка MEM_TRN
 --  --//Готовим значения регистров:
@@ -2694,9 +2694,9 @@ begin
   ----------------------------------------------------
   --// Чтение буфера HOST_VIDEOOUT
   --//Begin
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   tag := 0;
   val32 := X"00000001";
@@ -2726,9 +2726,9 @@ begin
   --// Loop Back FIFO EthG
   --//Begin
   ----------------------------------------------------
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
   --
   --//Write CFGPkt
   --//1. Настройка модуля DSN_SWITCH.vhd
@@ -2744,10 +2744,10 @@ begin
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 --//Write DATA to TXFIFO-EthG
   tag := 0;
@@ -2766,20 +2766,20 @@ begin
 
       --//Ждем запроса от модуля vereskm_main.vhd на работу в demand-mode DMA
       plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
---      plxsim_write(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
+--      plxsim_write(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
       remaining := remaining - n;
       tag := tag + (n / 4);
   end loop;
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 --//Read FIFO_ETHG
   tag := 0;
@@ -2792,7 +2792,7 @@ begin
         chunk := remaining;
       end if;
 
---     plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
+--     plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
 --      plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
       plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
       remaining := remaining - n;
@@ -2809,9 +2809,9 @@ begin
 
 --//Write RAM
   --//Уст. адрес C_HDEV_CFG_DBUF
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   tag := 0;
   val32 := X"00000001";
@@ -2841,9 +2841,9 @@ begin
   --//Begin
   ----------------------------------------------------
   --//Уст. адрес C_HDEV_CFG_DBUF
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 --//Write CFGPkt
 --//1. Настройка модуля DSN_SWITCH.vhd
@@ -2901,10 +2901,10 @@ begin
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETHG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 --//Write DATA to TXFIFO-EthG
   tag := 0;
@@ -2923,18 +2923,18 @@ begin
 
       --//Ждем запроса от модуля vereskm_main.vhd на работу в demand-mode DMA
       plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
---      plxsim_write(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
+--      plxsim_write(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
       remaining := remaining - n;
       tag := tag + (n / 4);
   end loop;
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --// End Loop Back FIFO EthG
   wait_cycles(16, lclk);
@@ -2955,10 +2955,10 @@ begin
   --// Чтение регистров модуля тестирования
   --//Begin
   ----------------------------------------------------
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
 --  data(4 to 7) :=conv_byte_vector(X"DDDDCCCC");
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 --
 --//Write CFGPkt
 --//1. Настройка модуля DSN_SWITCH.vhd
@@ -2991,14 +2991,14 @@ begin
 
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, X"00200000", be(0 to 7), data(0 to 7), n, bus_in, bus_out);
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='1';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   data(4 to 7) :=conv_byte_vector(X"00000000");
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_DIN_RDY_BIT):='0';
+  i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='0';
   data(8 to 11) :=conv_byte_vector(i_dev_ctrl);
   data(12 to 15) :=conv_byte_vector(X"00000000");
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 15), data(0 to 15), n, bus_in, bus_out);
 
 
   wait_cycles(16, lclk);
@@ -3015,8 +3015,8 @@ begin
       end if;
 
       plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, X"00200000", be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
---      plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
---      plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
+--      plxsim_read_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA*C_VM_USR_REG_BCOUNT, 32)), be(0 to chunk - 1), data(0 to chunk - 1), n, bus_in, bus_out);
+--      plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_ON, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 7), data(0 to 7), n, bus_in, bus_out);
       remaining := remaining - n;
       tag := tag + (n / 4);
   end loop;
@@ -3152,9 +3152,9 @@ begin
 
 
 
-  i_dev_ctrl(C_HREG_DEV_CTRL_DEV_ADDR_MSB_BIT downto C_HREG_DEV_CTRL_DEV_ADDR_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, C_HREG_DEV_CTRL_DEV_ADDR_SIZE);
+  i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
-  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HOST_REG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
+  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 --//Write RAM
   tag := 0;
@@ -3317,10 +3317,10 @@ end generate gen_sata_drv;
 fpga : vereskm_main
 generic map
 (
-G_SIM_HOST        => "ON",
-G_SIM_PCIEXP      => '1',
-G_DBG_PCIEXP      => "OFF",
-G_SIM             => "ON"
+G_SIM_HOST => "ON",
+G_SIM_PCIE => '1',
+G_DBG_PCIE => "OFF",
+G_SIM      => "ON"
 )
 port map
 (
@@ -3413,8 +3413,8 @@ lready_l   => lready_l,
 fholda     => fholda,
 finto_l    => finto_l,
 
-refclk_p   => refclk_p,
-refclk_n   => refclk_n,
+pin_in_refclk200M_p   => refclk_p,
+pin_in_refclk200M_n   => refclk_n,
 
 ra0        => ra0,
 rc0        => rc0,

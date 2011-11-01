@@ -99,6 +99,7 @@ vcom -93 "../../../common/hw/lib/vicg/v5/mclk_gtp_wrap.vhd"
 ##-------------------------------
 ##..Мои модули /ALPHA_DATA
 ##-------------------------------
+vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr_pkg.vhd"
 vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_pkg.vhd"
 vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl_pll.vhd"
 vcom -93 "../../../common/hw/mem/alphadata/memory_ctrl.vhd"
