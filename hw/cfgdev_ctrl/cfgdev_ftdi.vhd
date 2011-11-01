@@ -127,7 +127,7 @@ signal i_pkt_dheader                    : TDevCfg_PktHeader;
 signal i_pkt_field_data                 : std_logic;--//Структура пакета: поле данных
 signal i_pkt_cntd                       : std_logic_vector(C_CFGPKT_DLEN_M_BIT-C_CFGPKT_DLEN_L_BIT downto 0);
 
---signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
+signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
 
 
 
@@ -137,31 +137,32 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_rst,p_in_cfg_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(4 downto 0)<=(others=>'0');
---
---  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
---
---    p_out_tst(0)<=OR_reduce(tst_fsm_cs);
---    p_out_tst(4 downto 1)<=tst_fsm_cs;
---
---  end if;
---end process;
---p_out_tst(31 downto 6)<=(others=>'0');
---
---tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
---            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
---            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
---            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
---            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
---            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
---            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
---            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
---            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
---            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);--when fsm_state_cs=S_CFG_RXD       else
+--p_out_tst(31 downto 0)<=(others=>'0');
+process(p_in_rst,p_in_cfg_clk)
+begin
+  if p_in_rst='1' then
+    p_out_tst(5 downto 0)<=(others=>'0');
+
+  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
+
+    p_out_tst(0)<=OR_reduce(tst_fsm_cs);
+    p_out_tst(4 downto 1)<=tst_fsm_cs;
+    p_out_tst(5)<='0';
+  end if;
+end process;
+p_out_tst(9 downto 6)<=tst_fsm_cs;
+p_out_tst(31 downto 10)<=(others=>'0');
+
+tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);--when fsm_state_cs=S_CFG_RXD       else
 
 
 

@@ -248,7 +248,8 @@ begin
 
   end if;
 end process;
-p_out_tst(31 downto 6)<=(others=>'0');
+p_out_tst(9 downto 6)<=tst_fsm_cs;
+p_out_tst(31 downto 10)<=(others=>'0');
 
 tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
             CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
@@ -323,11 +324,11 @@ i_dv_rxrdy<=not i_rxbuf_empty;--//Готовность RxBUF
 m_rxbuf : cfgdev_rxfifo
 port map
 (
-din         => i_rxbuf_din,
+din         => i_rxbuf_din, --//<-UART
 wr_en       => i_uart_rd,
 wr_clk      => p_in_uart_refclk,
 
-dout        => i_rxbuf_dout,
+dout        => i_rxbuf_dout, --//->USR
 rd_en       => i_dv_rd,
 rd_clk      => p_in_cfg_clk,
 
@@ -351,11 +352,11 @@ i_dv_txrdy<=not i_txbuf_full;--//Готовность TxBUF
 m_txbuf : cfgdev_2txfifo
 port map
 (
-din         => i_txbuf_din,
+din         => i_txbuf_din, --//<-USR
 wr_en       => i_dv_wr,
 wr_clk      => p_in_cfg_clk,
 
-dout        => i_txbuf_dout,
+dout        => i_txbuf_dout,--//->UART
 rd_en       => i_txbuf_rd,
 rd_clk      => p_in_uart_refclk,
 
