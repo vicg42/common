@@ -27,7 +27,7 @@ constant C_USE_ETH                           : string:="ON";
 constant C_USE_HDD                           : string:="ON";
 
 constant C_DBG_HDD                           : string:="OFF";
-constant G_DBG_ETH                           : string:="OFF";
+constant C_DBG_ETH                           : string:="OFF";
 
 constant C_DBGCS_HDD                         : string:="OFF";
 
@@ -42,10 +42,7 @@ constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины да
 
 --//cfg PCI-Express
 constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать сброс сгенеренный в проекта/с стота PCI-Express
-constant C_PCIEXPRESS_LINK_WIDTH             : integer:=8;--При изменении кол-ва линий
-                                                          --Необходимо перегенерить ядро PCI-Express, для чего вызвать проект core_gen
-                                                          --..board_xxx\src\pci_express\core_gen\pci_express.cgp
-
+constant C_PCIEXPRESS_LINK_WIDTH             : integer:=8;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
 constant C_VCTRL_VCH_COUNT                   : integer:=3;

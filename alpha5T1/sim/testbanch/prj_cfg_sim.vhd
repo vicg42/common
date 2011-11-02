@@ -27,7 +27,7 @@ constant C_USE_ETH                           : string:="ON";
 constant C_USE_HDD                           : string:="ON";
 
 constant C_DBG_HDD                           : string:="ON";
-constant G_DBG_ETH                           : string:="ON";
+constant C_DBG_ETH                           : string:="ON";
 
 constant C_DBGCS_HDD                         : string:="OFF";
 
