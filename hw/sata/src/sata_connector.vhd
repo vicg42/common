@@ -29,14 +29,12 @@ use work.sata_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_connector is
-generic
-(
+generic(
 G_SATAH_CH_COUNT : integer:=1;    --//Кол-во портов SATA используемых в модуле
 G_DBG            : string :="OFF";--//
 G_SIM            : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем sata_raid.vhd
 --------------------------------------------------
@@ -171,8 +169,7 @@ RD_DWIDTH      => 16,    -- FIFO read data width,
 USE_LENGTH     => false, -- Length FIFO option
 glbtm          => 1 ns   -- Global timing delay for simulation
 )
-port map
-(
+port map(
 -- Interface to downstream user application
 data_out       => p_out_sh_cxd(i),
 rem_out        => open,--ll_rcmdpkt_rem,
@@ -206,8 +203,7 @@ areset_in      => p_in_rst(i)
 );
 
 m_txbuf : sata_txfifo
-port map
-(
+port map(
 din        => p_in_uap_txd(i),
 wr_en      => p_in_uap_txd_wr(i),
 wr_clk     => p_in_uap_clk,
@@ -242,8 +238,7 @@ end process;
 --p_out_txbuf_status(i).pfull<='1' when i_txbuf_wrcount(i)>="0010" else '0';
 
 m_rxbuf : sata_rxfifo
-port map
-(
+port map(
 din        => p_in_sh_rxd(i),
 wr_en      => p_in_sh_rxd_wr(i),
 wr_clk     => p_in_sh_clk(i),

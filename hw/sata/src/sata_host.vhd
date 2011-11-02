@@ -31,8 +31,7 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_host is
-generic
-(
+generic(
 G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модулей sata_host
 G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов используемых в модуле GT.(возможные значения - 1,2)
@@ -41,8 +40,7 @@ G_DBG             : string :="OFF";--//
 G_DBGCS           : string :="OFF";--//Отладка через ChipScope
 G_SIM             : string :="OFF" --//В боевом проекте обязательно должно быть "OFF" - моделирование
 );
-port
-(
+port(
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
@@ -220,8 +218,7 @@ p_out_gt_pllkdet<=i_gt_plllkdet;
 --//Программирование регистров модуля GT (RocketIO)
 --//#############################
 m_speed_ctrl : sata_speed_ctrl
-generic map
-(
+generic map(
 G_SATAH_COUNT_MAX => G_SATAH_COUNT_MAX,
 G_SATAH_NUM       => G_SATAH_NUM,
 G_SATAH_CH_COUNT  => G_SATAH_CH_COUNT,
@@ -229,8 +226,7 @@ G_DBG             => G_DBG,
 G_DBGCS           => G_DBGCS,
 G_SIM             => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -344,13 +340,11 @@ p_out_status(i)<=i_alstatus(i);
 --//Implemention Layers:
 --//-----------------------------
 m_alayer : sata_alayer
-generic map
-(
+generic map(
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с USR APP Layer
 --------------------------------------------------
@@ -392,13 +386,11 @@ p_in_rst                => p_in_rst
 );
 
 m_tlayer : sata_tlayer
-generic map
-(
+generic map(
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с USERAPP Layer
 --------------------------------------------------
@@ -458,13 +450,11 @@ p_in_rst             => p_in_rst
 );
 
 m_llayer : sata_llayer
-generic map
-(
+generic map(
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с Transport Layer
 --------------------------------------------------
@@ -508,14 +498,12 @@ p_in_rst          => p_in_rst
 );
 
 m_player : sata_player
-generic map
-(
+generic map(
 G_GT_DBUS   => G_GT_DBUS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Управление
 --------------------------------------------------
@@ -580,13 +568,11 @@ p_in_rst                => i_phy_layer_rst(i)
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 
 m_dbgcs : sata_dbgcs
-generic map
-(
+generic map(
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с СhipScope ICON
 --------------------------------------------------
@@ -661,15 +647,13 @@ end generate gen_ch;
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
 
 m_gt : sata_player_gt
-generic map
-(
+generic map(
 G_SATAH_NUM   => G_SATAH_NUM,
 G_GT_CH_COUNT => G_SATAH_CH_COUNT,
 G_GT_DBUS     => G_GT_DBUS,
 G_SIM         => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -767,15 +751,13 @@ i_gt_rxnotintable    <= p_in_sim_gt_rxnotintable;
 i_gt_rxbyteisaligned <= p_in_sim_gt_rxbyteisaligned;
 
 m_gt_sim : sata_player_gtsim
-generic map
-(
+generic map(
 G_SATAH_NUM   => G_SATAH_NUM,
 G_GT_CH_COUNT => G_SATAH_CH_COUNT,
 G_GT_DBUS     => G_GT_DBUS,
 G_SIM         => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --
 --------------------------------------------------

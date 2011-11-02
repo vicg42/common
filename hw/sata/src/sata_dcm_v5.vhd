@@ -20,11 +20,10 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity sata_dcm is
-generic (
+generic(
 G_GT_DBUS : integer:=16
 );
-port
-(
+port(
 p_out_dcm_gclk0  : out   std_logic;
 p_out_dcm_gclk2x : out   std_logic;
 p_out_dcm_gclkdv : out   std_logic;
@@ -77,8 +76,7 @@ PHASE_SHIFT            => 0,       -- Amount of fixed phase shift from -255 to 1
 --SIM_DEVICE             => "VIRTEX5",
 STARTUP_WAIT           => FALSE    -- Delay configuration DONE until DCM LOCK, TRUE/FALSE
 )
-port map
-(
+port map(
 CLKFB    => g_dcm_clk0,
 
 CLK0     => i_dcm_clk0,

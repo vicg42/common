@@ -36,14 +36,12 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_player is
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Управление (Описание портов см. sata_player_oob_cntrl.vhd)
 --------------------------------------------------
@@ -208,14 +206,12 @@ end process lsync_cnt;
 --//Модуль установки соединения
 --//----------------------------------
 m_phy_oob : sata_player_oob
-generic map
-(
+generic map(
 G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -257,14 +253,12 @@ p_in_rst            => p_in_rst
 --//Передатчик данных
 --//----------------------------------
 m_phy_tx : sata_player_tx
-generic map
-(
+generic map(
 G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -305,14 +299,12 @@ p_in_rst            => p_in_rst
 --//Приемник данных
 --//----------------------------------
 m_phy_rx : sata_player_rx
-generic map
-(
+generic map(
 G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --
 --------------------------------------------------

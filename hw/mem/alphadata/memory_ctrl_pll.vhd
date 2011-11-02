@@ -31,7 +31,7 @@ library work;
 use work.memif_def.all;
 
 entity memory_ctrl_pll is
-port (
+port(
 mclk      : in    std_logic;
 rst       : in    std_logic;
 refclk200 : in    std_logic;

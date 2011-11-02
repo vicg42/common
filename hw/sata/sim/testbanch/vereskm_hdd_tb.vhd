@@ -983,14 +983,14 @@ begin
   i_ltrn_count1<='0';
 
   i_dsnhdd_reg_ctrl_val<=(others=>'0');
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_ON_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='1';
   --//1- min ... 256/0 - max
---  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
-  i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_DSN_HDD_REG_CTRLL_TST_SPD_M_BIT-C_DSN_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
   i_dsnhdd_reg_hwstart_dly_val(11 downto 0)<=CONV_STD_LOGIC_VECTOR(512, 12);--//фиксирования задержка
   i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(1, 4);--//фиксирования задержка
@@ -1051,7 +1051,7 @@ begin
 
   --//Конфигурируем RAMBUF
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_CTRL_L, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_L, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
@@ -1073,7 +1073,7 @@ begin
   --//Конфигурируем тестовый режим
   if i_tst_mode='1' then
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_HWSTART_DLY, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_HWSTART_DLY, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
@@ -1095,7 +1095,7 @@ begin
   --//Конфигурируем тестовый режим
   if i_tst_mode='1' then
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_L, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
@@ -1119,7 +1119,7 @@ begin
 --
 --            for i in 0 to 24-1 loop
 --              wait until g_host_clk'event and g_host_clk='1';
---                i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_DATA, i_cfgdev_adr'length);
+--                i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfgdev_adr'length);
 --                i_cfgdev_adr_ld<='1';
 --                i_cfgdev_adr_fifo<='0';
 --              wait until g_host_clk'event and g_host_clk='1';
@@ -1300,7 +1300,7 @@ begin
 
       --//Читаем статусы модуля HDD
       wait until g_host_clk'event and g_host_clk='1';
-      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_TEST_TDLY_L, i_cfgdev_adr'length);
+      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_TEST_TDLY_L, i_cfgdev_adr'length);
       i_cfgdev_adr_ld<='1';
       i_cfgdev_adr_fifo<='0';
       wait until g_host_clk'event and g_host_clk='1';
@@ -1352,7 +1352,7 @@ begin
 
       --//Отправляем HDDPKT
       wait until g_host_clk'event and g_host_clk='1';
-      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
       i_cfgdev_adr_ld<='1';
       i_cfgdev_adr_fifo<='1';
       wait until g_host_clk'event and g_host_clk='1';
@@ -1422,7 +1422,7 @@ begin
 --                          wait for 0.5 us;
 --
 --                          wait until g_host_clk'event and g_host_clk='1';
---                            i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_RBUF_DATA, i_cfgdev_adr'length);
+--                            i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfgdev_adr'length);
 --                            i_cfgdev_adr_ld<='1';
 --                            i_cfgdev_adr_fifo<='0';
 --                          wait until g_host_clk'event and g_host_clk='1';
@@ -1527,7 +1527,7 @@ begin
 
       --//Отправляем HDDPKT
       wait until g_host_clk'event and g_host_clk='1';
-      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
       i_cfgdev_adr_ld<='1';
       i_cfgdev_adr_fifo<='1';
       wait until g_host_clk'event and g_host_clk='1';
@@ -1563,7 +1563,7 @@ begin
 
       --//Отправляем HDDPKT
       wait until g_host_clk'event and g_host_clk='1';
-      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
       i_cfgdev_adr_ld<='1';
       i_cfgdev_adr_fifo<='1';
       wait until g_host_clk'event and g_host_clk='1';
@@ -1584,7 +1584,7 @@ begin
       if cfgCmdPkt(1).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_WRITE_DMA_EXT then
       --//Запускаем автомат записи данных
         wait until p_in_clk'event and p_in_clk='1';
-        i_vdata_start<=not i_tst_mode or i_dsnhdd_reg_ctrl_val(C_DSN_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);--'1';
+        i_vdata_start<=not i_tst_mode or i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);--'1';
         cmd_write:='1';
         wait until p_in_clk'event and p_in_clk='1';
         i_vdata_start<='0';
@@ -1636,7 +1636,7 @@ begin
 
       --//Отправляем HDDPKT
       wait until g_host_clk'event and g_host_clk='1';
-      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+      i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
       i_cfgdev_adr_ld<='1';
       i_cfgdev_adr_fifo<='1';
       wait until g_host_clk'event and g_host_clk='1';
@@ -1667,14 +1667,14 @@ begin
   write(GUI_line,string'("HW - CLR_ERR/BUF")); writeline(output, GUI_line);
   --//CLR_ERR/BUF = '1'
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_L, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
     i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_val;
-    i_cfgdev_txdata(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT)<='1';
+    i_cfgdev_txdata(C_HDD_REG_CTRLL_ERR_CLR_BIT)<='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
@@ -1683,14 +1683,14 @@ begin
 
   --//CLR_ERR/BUF = '0'
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CTRL_L, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_L, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
     i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_val;
-    i_cfgdev_txdata(C_DSN_HDD_REG_CTRLL_ERR_CLR_BIT)<='0';
+    i_cfgdev_txdata(C_HDD_REG_CTRLL_ERR_CLR_BIT)<='0';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';

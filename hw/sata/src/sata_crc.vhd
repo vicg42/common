@@ -25,12 +25,10 @@ library work;
 use work.vicg_common_pkg.all;
 
 entity sata_crc is
-generic
-(
+generic(
 G_INIT_VAL : integer:=16#52325032#
 );
-port
-(
+port(
 p_in_SOF      : in    std_logic;
 --p_in_EOF      : in    std_logic;
 p_in_en       : in    std_logic;

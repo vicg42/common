@@ -29,11 +29,10 @@ use work.memory_ctrl_pkg.all;
 
 entity memory_ctrl_ch_wr is
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
-G_MEM_BANK_LSB_BIT   : integer:=28
+G_MEM_BANK_M_BIT   : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
+G_MEM_BANK_L_BIT   : integer:=28
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -97,8 +96,7 @@ end memory_ctrl_ch_wr;
 
 architecture behavioral of memory_ctrl_ch_wr is
 
-type fsm_state is
-(
+type fsm_state is (
 S_IDLE,
 S_MEM_REMAIN_SIZE_CALC,
 S_MEM_TRN_LEN_CALC,
@@ -112,8 +110,8 @@ S_EXIT
 );
 signal fsm_state_cs                : fsm_state;
 
-signal i_mem_bank1h_out            : std_logic_vector(pwr((G_MEM_BANK_MSB_BIT-G_MEM_BANK_LSB_BIT+1), 2)-1 downto 0);
-signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_LSB_BIT-1 downto 0);
+signal i_mem_bank1h_out            : std_logic_vector(pwr((G_MEM_BANK_M_BIT-G_MEM_BANK_L_BIT+1), 2)-1 downto 0);
+signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_wr_out                : std_logic;
 signal i_mem_rd_out                : std_logic;
 signal i_mem_term_out              : std_logic;
@@ -296,12 +294,12 @@ begin
       --//Ждем сигнала запуска операции
       --//------------------------------------
         if p_in_cfg_mem_start='1' then
-          i_mem_adr_out<=p_in_cfg_mem_adr(G_MEM_BANK_LSB_BIT-1 downto 0);
+          i_mem_adr_out<=p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
           i_mem_dir <=p_in_cfg_mem_wr;
 
           --//Назначаем банк ОЗУ
           for i in 0 to i_mem_bank1h_out'high loop
-            if p_in_cfg_mem_adr(G_MEM_BANK_MSB_BIT downto G_MEM_BANK_LSB_BIT)= i then
+            if p_in_cfg_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)= i then
               i_mem_bank1h_out(i) <= '1';
             else
               i_mem_bank1h_out(i) <= '0';

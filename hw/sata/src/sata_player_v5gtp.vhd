@@ -27,15 +27,13 @@ use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 
 entity sata_player_gt is
-generic
-(
+generic(
 G_SATAH_NUM   : integer:=0;
 G_GT_CH_COUNT : integer:=2;
 G_GT_DBUS     : integer:=16;
 G_SIM         : string :="OFF"
 );
-port
-(
+port(
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
@@ -215,8 +213,7 @@ i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN
 --//------------------------------
 gen_gt_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
@@ -231,16 +228,14 @@ end generate gen_gt_w8;
 --//------------------------------
 gen_gt_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA-II (3Gb/s)
 I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA-I (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
 );
 m_bufg_usrclk : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
@@ -305,8 +300,7 @@ p_out_optrefclk<=(others=>'0');
 i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 
 m_gt : GTP_DUAL
-generic map
-(
+generic map(
 
 --_______________________ Simulation-Only Attributes ___________________
 SIM_MODE                    =>       G_SIM,
@@ -560,8 +554,7 @@ TRANS_TIME_FROM_P2_1        =>       x"003c",--/Wizard    x"0060",--/xapp870
 TRANS_TIME_NON_P2_1         =>       x"0019",--/Wizard    x"0025",--/xapp870
 TRANS_TIME_TO_P2_1          =>       x"0064" --/Wizard    x"0100" --/xapp870
 )
-port map
-(
+port map(
 ------------------------ Loopback and Powerdown Ports ----------------------
 LOOPBACK0                       =>      "000",
 LOOPBACK1                       =>      "000",

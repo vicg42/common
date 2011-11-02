@@ -27,15 +27,13 @@ use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 
 entity sata_player_gt is
-generic
-(
+generic(
 G_SATAH_NUM   : integer:=0;
 G_GT_CH_COUNT : integer:=2;
 G_GT_DBUS     : integer:=16;
 G_SIM         : string :="OFF"
 );
-port
-(
+port(
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
@@ -179,8 +177,7 @@ i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN
 --//------------------------------
 gen_gtp_w8 : if G_GT_DBUS=8 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
@@ -194,16 +191,14 @@ end generate gen_gtp_w8;
 --//------------------------------
 gen_gtp_w16 : if G_GT_DBUS=16 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
 );
 m_bufg_usrclk : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
@@ -216,16 +211,14 @@ end generate gen_gtp_w16;
 --//------------------------------
 gen_gtp_w32 : if G_GT_DBUS=32 generate
 m_bufg_usrclk2 : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
 O  => g_gtp_usrclk2(i)
 );
 m_bufg_usrclk : BUFGMUX_CTRL
-port map
-(
+port map(
 S  => i_spdclk_sel(i),
 I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
 I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
@@ -288,8 +281,7 @@ p_out_optrefclk<=(others=>'0')
 i_refclkin <= ('0' & p_in_refclkin);
 
 m_gt : GTXE1
-generic map
-(
+generic map(
 --_______________________ Simulation-Only Attributes ___________________
 
 SIM_RECEIVER_DETECT_PASS   =>      (TRUE),
@@ -511,12 +503,9 @@ TRANS_TIME_FROM_P2                      =>     (x"03c"),
 TRANS_TIME_NON_P2                       =>     (x"19"),
 TRANS_TIME_RATE                         =>     (x"ff"),
 TRANS_TIME_TO_P2                        =>     (x"064")
-
-
 )
-port map
-(
-              ------------------------ Loopback and Powerdown Ports ----------------------
+port map(
+------------------------ Loopback and Powerdown Ports ----------------------
 LOOPBACK                        =>      "000",
 RXPOWERDOWN                     =>      "00",
 TXPOWERDOWN                     =>      "00",

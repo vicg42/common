@@ -23,11 +23,10 @@ library work;
 use work.vicg_common_pkg.all;
 
 entity sata_dcm is
-generic (
+generic(
 G_GT_DBUS : integer:=16
 );
-port
-(
+port(
 p_out_dcm_gclk0  : out   std_logic;
 p_out_dcm_gclk2x : out   std_logic;
 p_out_dcm_gclkdv : out   std_logic;

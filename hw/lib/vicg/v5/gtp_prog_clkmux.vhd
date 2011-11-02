@@ -25,8 +25,7 @@ use unisim.vcomponents.all;
 library work;
 
 entity gtp_prog_clkmux is
-generic
-(
+generic(
 G_CLKIN_CHANGE             : std_logic := '0';--//'1'/'0' - разрешение/запрет изменения состояния мультиплексора CLKIN
 G_CLKSOUTH_CHANGE          : std_logic := '0';--//'1'/'0' - разрешение/запрет изменения состояния мультиплексора CLKSOUTH
 G_CLKNORTH_CHANGE          : std_logic := '0';--//'1'/'0' - разрешение/запрет изменения состояния мультиплексора CLKNORTH
@@ -35,8 +34,7 @@ G_CLKIN_MUX_VAL            : std_logic_vector(2 downto 0):="011"; --//Значение д
 G_CLKSOUTH_MUX_VAL         : std_logic := '0';                    --//Значение для мультиплексора CLKSOUTH
 G_CLKNORTH_MUX_VAL         : std_logic := '0'                     --//Значение для мультиплексора CLKNORTH
 );
-port
-(
+port(
 p_in_drp_rst      : in    std_logic;
 p_in_drp_clk      : in    std_logic;
 

@@ -35,8 +35,7 @@ architecture behavior of vpcolor_main_tb is
 constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 component vpcolor_main
-port
-(
+port(
 -------------------------------
 -- ”правление
 -------------------------------
@@ -81,7 +80,7 @@ p_in_rst            : in    std_logic
 end component;
 
 component vpcolor_fifo
-port (
+port(
 din        : IN  std_logic_VECTOR(31 downto 0);
 wr_en      : IN  std_logic;
 
@@ -155,8 +154,7 @@ begin
 
 
 m_vpcolor: vpcolor_main
-port map
-(
+port map(
 -------------------------------
 -- ”правление
 -------------------------------
@@ -198,8 +196,7 @@ p_in_rst            => p_in_rst
 );
 
 m_fifo_result : vpcolor_fifo
-port map
-(
+port map(
 din         => p_out_dwnp_data,
 wr_en       => p_out_dwnp_wd,
 --wr_clk      => p_in_upp_clk,

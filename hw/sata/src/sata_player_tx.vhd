@@ -31,14 +31,12 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_player_tx is
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -227,12 +225,10 @@ p_out_rdy_n<=i_align_txen;
 i_srambler_init<=not p_in_d10_2_send_dis;
 
 m_scrambler : sata_scrambler
-generic map
-(
+generic map(
 G_INIT_VAL   => 16#F0F6#
 )
-port map
-(
+port map(
 p_in_SOF     => i_srambler_init,
 p_in_en      => p_in_sync,
 p_out_result => i_srambler_out,

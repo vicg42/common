@@ -25,11 +25,10 @@ constant C_MEMCTRLCHWR_READ    : std_logic:='0';
 
 component memory_ctrl_ch_wr
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28
+G_MEM_BANK_M_BIT : integer:=29;
+G_MEM_BANK_L_BIT : integer:=28
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------

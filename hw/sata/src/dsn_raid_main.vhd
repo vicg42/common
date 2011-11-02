@@ -30,16 +30,14 @@ use work.sata_raid_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity dsn_raid_main is
-generic
-(
+generic(
 G_HDD_COUNT : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
 G_DBGCS     : string :="OFF";--//
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
@@ -315,16 +313,14 @@ end generate gen_sim_on;
 --//Измерение задержек
 --//#############################################
 m_measure : sata_measure
-generic map
-(
+generic map(
 G_T05us     => selval(75, CI_SIM_T05us, strcmp(G_SIM, "OFF")), --//для частоты 150MHz
 G_HDD_COUNT => G_HDD_COUNT,
 G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
@@ -361,15 +357,13 @@ p_out_measure<=i_measure_status_out;
 --//RAID контроллер
 --//#############################################
 m_raid_ctrl : sata_raid
-generic map
-(
+generic map(
 G_HDD_COUNT => G_HDD_COUNT,
 G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
@@ -454,11 +448,10 @@ p_out_dbgcs.measure<=i_dbgcs_measure;
 i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gt_pllkdet(C_SH_MAIN_NUM); --//сброс sata_dcm
 
 m_dcm_sata : sata_dcm
-generic map (
+generic map(
 G_GT_DBUS => G_GT_DBUS
 )
-port map
-(
+port map(
 p_out_dcm_gclk0  => g_sh_dcm_clk,
 p_out_dcm_gclk2x => g_sh_dcm_clk2x,
 p_out_dcm_gclkdv => g_sh_dcm_clk2div,
@@ -471,13 +464,11 @@ p_in_rst         => i_sh_dcm_rst(C_SH_MAIN_NUM)
 );
 
 m_gt_clkmux : sata_player_gt_clkmux
-generic map
-(
+generic map(
 G_HDD_COUNT  => G_HDD_COUNT,
 G_SIM        => G_SIM
 )
-port map
-(
+port map(
 p_out_optrefclksel => i_sh_gt_optrefclksel,
 p_out_optrefclk    => i_sh_gt_optrefclkin,
 p_in_optrefclk     => i_sh_gt_optrefclkout
@@ -570,14 +561,12 @@ end generate gen_satah_ch;
 
 --//Согласующие буфера между sata_raid.vhd <-> sata_host.vhd:
 m_satah_buf : sata_connector
-generic map
-(
+generic map(
 G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
 G_DBG             => G_DBG,
 G_SIM             => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Связь с модулем
 --------------------------------------------------
@@ -637,8 +626,7 @@ p_in_rst                => i_sh_buf_rst(sh_idx)
 
 --//SATA Контроллер
 m_satah : sata_host
-generic map
-(
+generic map(
 G_SATAH_COUNT_MAX => C_SH_COUNT_MAX(G_HDD_COUNT-1),
 G_SATAH_NUM       => sh_idx,
 G_SATAH_CH_COUNT  => C_SH_CH_COUNT(sh_idx)(C_GTCH_COUNT_MAX-1)(G_HDD_COUNT-1),
@@ -647,8 +635,7 @@ G_DBG             => G_DBG,
 G_DBGCS           => G_DBGCS,
 G_SIM             => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------

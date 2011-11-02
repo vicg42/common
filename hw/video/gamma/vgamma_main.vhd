@@ -32,8 +32,7 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity vgamma_main is
-port
-(
+port(
 -------------------------------
 -- ”правление
 -------------------------------
@@ -83,7 +82,7 @@ architecture behavioral of vgamma_main is
 constant dly : time := 1 ps;
 
 component vgamma_bram_gray
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -103,7 +102,7 @@ rstb : in  std_logic
 end component;
 
 component vgamma_bram_rcol
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -123,7 +122,7 @@ rstb : in  std_logic
 end component;
 
 component vgamma_bram_gcol
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -143,7 +142,7 @@ rstb : in  std_logic
 end component;
 
 component vgamma_bram_bcol
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -247,10 +246,9 @@ p_out_cfg_dcoe<=i_bufgray_hout(15 downto 0) when p_in_cfg_coeram_num="00" else
 
 
 gen_gamma_gray : for i in 0 to 3 generate
-begin
+
 m_ram : vgamma_bram_gray
-port map
-(
+port map(
 --//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
@@ -272,8 +270,7 @@ rstb => p_in_rst
 end generate gen_gamma_gray;
 
 m_gamma_rcol : vgamma_bram_rcol
-port map
-(
+port map(
 --//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
@@ -294,8 +291,7 @@ rstb => p_in_rst
 );
 
 m_gamma_gcol : vgamma_bram_gcol
-port map
-(
+port map(
 --//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
@@ -316,8 +312,7 @@ rstb => p_in_rst
 );
 
 m_gamma_bcol : vgamma_bram_bcol
-port map
-(
+port map(
 --//write
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,

@@ -29,15 +29,13 @@ use work.sata_pkg.all;
 --use work.sata_unit_pkg.all;
 
 entity sata_hwstart_ctrl is
-generic
-(
+generic(
 G_T05us     : integer:=1;
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------

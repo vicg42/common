@@ -36,8 +36,7 @@ use unisim.vcomponents.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_ftdi is
-port
-(
+port(
 -------------------------------
 --Ñâÿçü ñ FTDI
 -------------------------------
@@ -87,8 +86,7 @@ end cfgdev_ftdi;
 
 architecture behavioral of cfgdev_ftdi is
 
-type fsm_state is
-(
+type fsm_state is (
 S_DEV_WAIT_RXRDY,
 S_DEV_RXD,
 S_DEV_WAIT_TXRDY,

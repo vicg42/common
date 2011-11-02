@@ -47,8 +47,7 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity vpcolor_main is
-port
-(
+port(
 -------------------------------
 -- ”правление
 -------------------------------
@@ -98,7 +97,7 @@ architecture behavioral of vpcolor_main is
 constant dly : time := 1 ps;
 
 component vpcolor_rbram
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -118,7 +117,7 @@ rstb : in  std_logic
 end component;
 
 component vpcolor_gbram
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -138,7 +137,7 @@ rstb : in  std_logic
 end component;
 
 component vpcolor_bbram
-port (
+port(
 addra: in  std_logic_vector(6 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -324,8 +323,7 @@ p_out_cfg_dcoe<=i_rcoe_dout when p_in_cfg_coeram_num="00" else
                 i_bcoe_dout;
 
 m_read_bram : vpcolor_rbram
-port map
-(
+port map(
 --//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
@@ -346,8 +344,7 @@ rstb => p_in_rst
 );
 
 m_green_bram : vpcolor_gbram
-port map
-(
+port map(
 --//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,
@@ -368,8 +365,7 @@ rstb => p_in_rst
 );
 
 m_blue_bram : vpcolor_bbram
-port map
-(
+port map(
 --//запись
 addra=> i_coebuf_awrite,
 dina => p_in_cfg_dcoe,

@@ -48,7 +48,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
---use work.prj_def.all;
 
 entity vcoldemosaic_main is
 generic(
@@ -71,8 +70,7 @@ G_DOUT_WIDTH : integer:=32;  --//Возможные значения 32, 8
                              --//p_out_dwnp_grad(127...96)= 0;
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -115,8 +113,7 @@ architecture behavioral of vcoldemosaic_main is
 constant dly : time := 1 ps;
 
 component vcoldemosaic_bram
-port
-(
+port(
 --//read first
 addra: in  std_logic_vector(9 downto 0);
 dina : in  std_logic_vector(31 downto 0);
@@ -243,8 +240,7 @@ i_lbufs_dout(0)<=p_in_upp_data;
 
 --//lineN-1 : Предыдущая строка
 m_buf0 : vcoldemosaic_bram
-port map
-(
+port map(
 --//READ FIRST
 addra=> i_lbufs_adra,
 dina => p_in_upp_data,
@@ -266,8 +262,7 @@ rstb => p_in_rst
 
 --//lineN-2 : Предыдущая строка
 m_buf1 : vcoldemosaic_bram
-port map
-(
+port map(
 --//READ FIRST
 addra=> i_lbufs_adra,
 dina => i_lbufs_dout(1),
@@ -293,7 +288,6 @@ rstb => p_in_rst
 --//для режима 1clk=4-е выходных sample
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_w32 : if G_DOUT_WIDTH=32 generate
-begin
 
 --//-----------------------------
 --//Инициализация
@@ -426,7 +420,6 @@ end process;
 --//Матрица вычислений
 --//где - i_matrix(Индекс выходного семпла)(Индекс строки)(Индекс Пикселя)
 gen_matrix0 : for i in 0 to 2 generate
-begin
 --//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(0)(2-i)(2)<=sr_byteline(i)(0);
 i_matrix(0)(2-i)(1)<=sr_byteline_dly(i)(1);
@@ -434,7 +427,6 @@ i_matrix(0)(2-i)(0)<=sr_byteline_dly(i)(0);
 end generate gen_matrix0;
 
 gen_matrix1 : for i in 0 to 2 generate
-begin
 --//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(1)(2-i)(2)<=sr_byteline(i)(1);
 i_matrix(1)(2-i)(1)<=sr_byteline(i)(0);
@@ -442,7 +434,6 @@ i_matrix(1)(2-i)(0)<=sr_byteline_dly(i)(1);
 end generate gen_matrix1;
 
 gen_matrix2 : for i in 0 to 2 generate
-begin
 --//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(2)(2-i)(2)<=sr_byteline(i)(2);
 i_matrix(2)(2-i)(1)<=sr_byteline(i)(1);
@@ -450,7 +441,6 @@ i_matrix(2)(2-i)(0)<=sr_byteline(i)(0);
 end generate gen_matrix2;
 
 gen_matrix3 : for i in 0 to 2 generate
-begin
 --//где - i_matrix(0)(Индекс строки)(Индекс Пикселя)
 i_matrix(3)(2-i)(2)<=sr_byteline(i)(3);
 i_matrix(3)(2-i)(1)<=sr_byteline(i)(2);
@@ -498,7 +488,7 @@ end generate gen_w32;
 --//для режима 1clk=1выходной sample
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 gen_w8 : if G_DOUT_WIDTH=8 generate
-begin
+
 --//-----------------------------
 --//Инициализация
 --//-----------------------------
@@ -655,7 +645,6 @@ end process;
 
 --//Матрица вычислений
 gen_matrix : for i in 0 to 2 generate
-begin
 --//где - i_matrix(Индекс строки)(Индекс Пикселя)
 i_matrix(0)(2-i)(2)<=sr_byteline(i)(0);
 i_matrix(0)(2-i)(1)<=sr_byteline_dly(i)(0);

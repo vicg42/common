@@ -29,16 +29,14 @@ use work.sata_raid_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_measure is
-generic
-(
+generic(
 G_T05us     : integer:=1;
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------

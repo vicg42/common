@@ -36,13 +36,11 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_dbgcs is
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Ñâÿçü ñ ÑhipScope ICON
 --------------------------------------------------

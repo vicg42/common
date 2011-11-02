@@ -36,8 +36,7 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 
 component vgamma_main
-port
-(
+port(
 -------------------------------
 -- ”правление
 -------------------------------
@@ -140,8 +139,7 @@ begin
 
 
 m_vgamma: vgamma_main
-port map
-(
+port map(
 -------------------------------
 -- ”правление
 -------------------------------

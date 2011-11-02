@@ -73,8 +73,7 @@ G_USE_COLOR : string:="OFF"  --//Если "OFF", то использование порта p_in_cfg_col
                              --//должен быть p_in_cfg_color='0'
                              --//Кроме того Режим "ON" использут больше ресурсов FPGA чем режим "OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -142,8 +141,7 @@ constant C_VSACL_SR_BLINE_DLY_DWIDTH : integer:=(8 * C_VSACL_MATRIX_COUNT);
 constant dly : time := 1 ps;
 
 component vscale_bram
-port
-(
+port(
 addra: in  std_logic_vector(9 downto 0);
 dina : in  std_logic_vector(31 downto 0);
 douta: out std_logic_vector(31 downto 0);
@@ -163,7 +161,7 @@ rstb : in  std_logic
 end component;
 
 component vscale_bram_coef
-port (
+port(
 addra: in  std_logic_vector(5 downto 0);--(8 downto 0);
 dina : in  std_logic_vector(15 downto 0);
 douta: out std_logic_vector(15 downto 0);
@@ -389,8 +387,7 @@ i_lbufs_douta(0)<=p_in_upp_data;
 
 --//lineN-1 : Предыдущая строка
 m_buf0 : vscale_bram
-port map
-(
+port map(
 --//READ FIRST
 addra=> i_lbufs_adra(9 downto 0),
 dina => p_in_upp_data,
@@ -412,8 +409,7 @@ rstb => p_in_rst
 
 --//lineN-2 : Предыдущая строка
 m_buf1 : vscale_bram
-port map
-(
+port map(
 --//READ FIRST
 addra=> i_lbufs_adra(9 downto 0),
 dina => i_lbufs_douta(1),
@@ -435,8 +431,7 @@ rstb => p_in_rst
 
 --//lineN-3 : Предыдущая строка
 m_buf2 : vscale_bram
-port map
-(
+port map(
 --//READ FIRST
 addra=> i_lbufs_adra(9 downto 0),
 dina => i_lbufs_douta(2),
@@ -483,8 +478,7 @@ i_coebuf_aread(3 downto 2)<=i_zoom_cnt_row;
 i_coebuf_aread(1 downto 0)<=i_zoom_cnt_pix;
 
 m_coef : vscale_bram_coef
-port map
-(
+port map(
 addra=> i_coebuf_awrite(5 downto 0),
 dina => p_in_cfg_dcoe,
 douta=> p_out_cfg_dcoe,
@@ -812,7 +806,6 @@ gen_mcalc : for i in 0 to C_VSACL_MATRIX_COUNT-1 generate
 
 --//Матрица вычислений
 gen_matrix : for x in 0 to C_VSACL_CALC_LINE_COUNT-1 generate
-begin
 --//где - i_matrix(i)(Индекс строки)(Индекс Пикселя)
 --// i=0 - обработка R компонента цветного изображения или для черно/белого изображения
 --// i=1 - обработка G компонента цветного изображения

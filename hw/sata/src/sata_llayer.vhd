@@ -37,13 +37,11 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 
 entity sata_llayer is
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Ñâÿçü ñ Transport Layer
 --------------------------------------------------
@@ -305,12 +303,10 @@ i_srambler_en_tx<=(p_in_phy_sync and not p_in_phy_txrdy_n and (i_txd_en or i_trn
 i_srambler_en<=i_srambler_en_rx or i_srambler_en_tx;
 
 m_scrambler : sata_scrambler
-generic map
-(
+generic map(
 G_INIT_VAL   => 16#F0F6#
 )
-port map
-(
+port map(
 p_in_SOF     => i_init_work,
 p_in_en      => i_srambler_en,
 p_out_result => i_srambler_out,
@@ -332,12 +328,10 @@ i_crc_in<=i_txd_out when fsm_llayer_cs=S_LT_SendData or fsm_llayer_cs=S_LT_SendC
 i_crc_en<=i_srambler_en_tx or i_rxd_descr_en;
 
 m_crc : sata_crc
-generic map
-(
+generic map(
 G_INIT_VAL    => 16#52325032#
 )
-port map
-(
+port map(
 p_in_SOF      => i_init_work,
 --  p_in_EOF  => '0',
 p_in_en       => i_crc_en,

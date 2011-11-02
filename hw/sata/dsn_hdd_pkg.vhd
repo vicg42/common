@@ -92,8 +92,7 @@ end record;
 --//
 --//-------------------------------------------------
 component dsn_hdd
-generic
-(
+generic(
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=2;
 G_GT_DBUS    : integer:=16;
@@ -101,8 +100,7 @@ G_DBG        : string:="OFF";
 G_DBGCS      : string:="OFF";
 G_SIM        : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------

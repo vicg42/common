@@ -25,12 +25,10 @@ library work;
 use work.vicg_common_pkg.all;
 
 entity sata_scrambler is
-generic
-(
+generic(
 G_INIT_VAL : integer:=16#FFFF#
 );
-port
-(
+port(
 p_in_SOF      : in    std_logic;
 p_in_en       : in    std_logic;
 p_out_result  : out   std_logic_vector(31 downto 0);

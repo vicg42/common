@@ -42,8 +42,7 @@ G_BAUDCNT_VAL: integer:=64 --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
                            --//
                            --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
 );
-port
-(
+port(
 -------------------------------
 --Связь с UART
 -------------------------------
@@ -94,8 +93,7 @@ component uart_rev01 is
 generic(
 G_BAUDCNT_VAL: integer:=64
 );
-port
-(
+port(
 -------------------------------
 --Связь с UART
 -------------------------------
@@ -130,8 +128,7 @@ end component;
 constant CI_CFG_BUF_DWIDTH  : integer:=32;
 
 component cfgdev_2txfifo
-port
-(
+port(
 din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -149,8 +146,7 @@ rst         : IN  std_logic
 end component;
 
 component cfgdev_rxfifo
-port
-(
+port(
 din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -168,8 +164,7 @@ rst         : IN  std_logic
 end component;
 
 
-type fsm_state is
-(
+type fsm_state is (
 S_DEV_WAIT_RXRDY,
 S_DEV_RXD,
 S_DEV_WAIT_TXRDY,
@@ -278,8 +273,7 @@ m_uart: uart_rev01
 generic map(
 G_BAUDCNT_VAL => G_BAUDCNT_VAL
 )
-port map
-(
+port map(
 -------------------------------
 --Связь с UART
 -------------------------------
@@ -322,8 +316,7 @@ i_dv_din<=i_rxbuf_dout(i_dv_din'range);
 i_dv_rxrdy<=not i_rxbuf_empty;--//Готовность RxBUF
 
 m_rxbuf : cfgdev_rxfifo
-port map
-(
+port map(
 din         => i_rxbuf_din, --//<-UART
 wr_en       => i_uart_rd,
 wr_clk      => p_in_uart_refclk,
@@ -350,8 +343,7 @@ i_txbuf_rd<=i_uart_txrdy and not i_txbuf_empty;
 i_dv_txrdy<=not i_txbuf_full;--//Готовность TxBUF
 
 m_txbuf : cfgdev_2txfifo
-port map
-(
+port map(
 din         => i_txbuf_din, --//<-USR
 wr_en       => i_dv_wr,
 wr_clk      => p_in_cfg_clk,

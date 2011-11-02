@@ -632,7 +632,7 @@ begin
       wait until i_cmd_wrstart = '1';--//∆дем разрешени€ записи данных
 
       wait until p_in_clk'event and p_in_clk='1';
-        i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_DSN_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
+        i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfgdev_adr'length);
         i_cfgdev_adr_ld<='1';
         i_cfgdev_adr_fifo<='1';
       wait until p_in_clk'event and p_in_clk='1';

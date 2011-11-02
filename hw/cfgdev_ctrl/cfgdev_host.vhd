@@ -36,8 +36,7 @@ use unisim.vcomponents.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_host is
-port
-(
+port(
 -------------------------------
 --Связь с HOST
 -------------------------------
@@ -94,8 +93,7 @@ architecture behavioral of cfgdev_host is
 constant CI_CFG_BUF_DWIDTH  : integer:=32;
 
 component cfgdev_2txfifo
-port
-(
+port(
 din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -113,8 +111,7 @@ rst         : IN  std_logic
 end component;
 
 component cfgdev_rxfifo
-port
-(
+port(
 din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -132,8 +129,7 @@ rst         : IN  std_logic
 end component;
 
 
-type fsm_state is
-(
+type fsm_state is (
 S_DEV_WAIT_RXRDY,
 S_DEV_RXD,
 S_DEV_WAIT_TXRDY,
@@ -279,8 +275,7 @@ end process;
 i_dv_rxrdy<=not i_rxbuf_empty;--//Готовность RxBUF
 
 m_rxbuf : cfgdev_rxfifo
-port map
-(
+port map(
 din         => p_in_host_txd,
 wr_en       => p_in_host_wr,
 wr_clk      => p_in_host_clk,
@@ -300,8 +295,7 @@ rst         => p_in_rst
 i_dv_txrdy<=not i_txbuf_full;--//Готовность TxBUF
 
 m_txbuf : cfgdev_2txfifo
-port map
-(
+port map(
 din         => i_dv_dout,
 wr_en       => i_dv_wr,
 wr_clk      => p_in_cfg_clk,

@@ -32,8 +32,7 @@ entity memory_ch_arbitr is
 generic(
 G_CH_COUNT : integer:=4
 );
-port
-(
+port(
 -------------------------------
 -- Ñâÿçü ñ CH0
 -------------------------------

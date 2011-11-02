@@ -48,8 +48,7 @@ component cfgdev_uart
 generic(
 G_BAUDCNT_VAL: integer:=64
 );
-port
-(
+port(
 -------------------------------
 --Ñâÿçü ñ UART
 -------------------------------
@@ -96,8 +95,7 @@ end component;
 
 
 component cfgdev_ftdi
-port
-(
+port(
 -------------------------------
 --Ñâÿçü ñ FTDI
 -------------------------------
@@ -147,8 +145,7 @@ end component;
 
 
 component cfgdev_host
-port
-(
+port(
 -------------------------------
 --Ñâÿçü ñ HOST
 -------------------------------

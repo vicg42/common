@@ -28,14 +28,12 @@ use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 
 entity sata_player_oob is
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------

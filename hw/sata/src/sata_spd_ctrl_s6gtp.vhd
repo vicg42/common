@@ -42,8 +42,7 @@ use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 
 entity sata_speed_ctrl is
-generic
-(
+generic(
 G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модулей sata_host
 G_SATAH_NUM       : integer:=0;    --//индекс модул€ sata_host
 G_SATAH_CH_COUNT  : integer:=1;    --// ол-во портов используемых в модуле GT.(возможные значени€ - 1,2)
@@ -51,8 +50,7 @@ G_DBG             : string :="OFF";
 G_DBGCS           : string :="OFF";--//ќтладка через ChipScope
 G_SIM             : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -128,8 +126,7 @@ constant C_REG_PLL_RXDIVSEL       : std_logic:='0';
 constant C_REG_PLL_TXDIVSEL       : std_logic:='1';
 
 
-type TSpdCtrl_fsm_state is
-(
+type TSpdCtrl_fsm_state is (
 S_IDLE,
 S_IDLE_INIT,
 S_IDLE_INIT_DONE,

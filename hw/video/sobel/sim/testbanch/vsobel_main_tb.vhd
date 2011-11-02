@@ -44,8 +44,7 @@ generic(
 G_DOUT_WIDTH : integer:=32;
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- ”правление
 -------------------------------
@@ -92,7 +91,7 @@ p_in_rst            : in    std_logic
 end component;
 
 component sim_fifo_v00
-port (
+port(
 din        : IN  std_logic_VECTOR(31 downto 0);
 wr_en      : IN  std_logic;
 
@@ -187,8 +186,7 @@ generic map(
 G_DOUT_WIDTH => G_DOUT_WIDTH,
 G_SIM => "ON"
 )
-port map
-(
+port map(
 -------------------------------
 -- ”правление
 -------------------------------

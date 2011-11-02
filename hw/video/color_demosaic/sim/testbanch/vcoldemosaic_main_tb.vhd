@@ -43,8 +43,7 @@ generic(
 G_DOUT_WIDTH  : integer:=32;  --//Возможные значения 32, 8
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -83,7 +82,7 @@ p_in_rst            : in    std_logic
 end component;
 
 component sim_fifo_v00
-port (
+port(
 din        : IN  std_logic_VECTOR(31 downto 0);
 wr_en      : IN  std_logic;
 
@@ -162,8 +161,7 @@ generic map(
 G_DOUT_WIDTH => G_DOUT_WIDTH,
 G_SIM => "ON"
 )
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -201,8 +199,7 @@ p_in_rst            => p_in_rst
 );
 
 m_fifo_in : sim_fifo_v00
-port map
-(
+port map(
 din         => tst_data_out,
 wr_en       => p_in_upp_wd,
 --wr_clk      => p_in_upp_clk,

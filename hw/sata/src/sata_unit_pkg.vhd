@@ -26,13 +26,11 @@ use work.sata_raid_pkg.all;
 package sata_unit_pkg is
 
 component sata_dbgcs
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с СhipScope ICON
 --------------------------------------------------
@@ -99,8 +97,7 @@ component sata_dcm
 generic (
 G_GT_DBUS : integer:=16
 );
-port
-(
+port(
 p_out_dcm_gclk0     : out   std_logic;
 p_out_dcm_gclk2x    : out   std_logic;
 p_out_dcm_gclkdv    : out   std_logic;
@@ -114,13 +111,11 @@ p_in_rst            : in    std_logic
 end component;
 
 component sata_player_gt_clkmux
-generic
-(
+generic(
 G_HDD_COUNT : integer:=0;
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 p_out_optrefclksel : out   T04_SHCountMax;
 p_out_optrefclk    : out   T04_SHCountMax;
 p_in_optrefclk     : in    T04_SHCountMax
@@ -140,8 +135,7 @@ WR_REM_WIDTH   : integer:=2;
 USE_LENGTH     : boolean:=true;
 glbtm          : time   :=1 ns
 );
-port
-(
+port(
 -- Reset
 areset_in:              in std_logic;
 
@@ -176,8 +170,7 @@ len_err_out:            out std_logic
 end component;
 
 component sata_txfifo
-port
-(
+port(
 din         : in std_logic_vector(31 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
@@ -199,8 +192,7 @@ rst         : in std_logic
 end component;
 
 component sata_rxfifo
-port
-(
+port(
 din        : in std_logic_vector(31 downto 0);
 wr_en      : in std_logic;
 wr_clk     : in std_logic;
@@ -221,12 +213,10 @@ rst        : in std_logic
 end component;
 
 component sata_scrambler
-generic
-(
+generic(
 G_INIT_VAL : integer:=16#FFFF#
 );
-port
-(
+port(
 p_in_SOF      : in    std_logic;
 p_in_en       : in    std_logic;
 p_out_result  : out   std_logic_vector(31 downto 0);
@@ -241,12 +231,10 @@ p_in_rst      : in    std_logic
 end component;
 
 component sata_crc
-generic
-(
+generic(
 G_INIT_VAL : integer:=16#52325032#
 );
-port
-(
+port(
 p_in_SOF      : in    std_logic;
 --p_in_EOF      : in    std_logic;
 p_in_en       : in    std_logic;
@@ -263,14 +251,12 @@ p_in_rst      : in    std_logic
 end component;
 
 component sata_player_tx
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -308,14 +294,12 @@ p_in_rst            : in    std_logic
 end component;
 
 component sata_player_rx
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -352,14 +336,12 @@ p_in_rst                : in    std_logic
 end component;
 
 component sata_player_oob
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -398,13 +380,11 @@ p_in_rst            : in    std_logic
 end component;
 
 component sata_alayer
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с USR APP Layer
 --------------------------------------------------
@@ -447,13 +427,11 @@ p_in_rst                : in    std_logic
 end component;
 
 component sata_tlayer
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с USRAPP Layer
 --------------------------------------------------
@@ -515,13 +493,11 @@ p_in_rst             : in    std_logic
 end component;
 
 component sata_llayer
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с Transport Layer
 --------------------------------------------------
@@ -566,14 +542,12 @@ p_in_rst         : in    std_logic
 end component;
 
 component sata_player
-generic
-(
+generic(
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с Link Layer
 --------------------------------------------------
@@ -633,15 +607,13 @@ p_in_rst                : in    std_logic
 end component;
 
 component sata_player_gtsim
-generic
-(
+generic(
 G_SATAH_NUM   : integer:=0;
 G_GT_CH_COUNT : integer:=2;
 G_GT_DBUS     : integer:=16;
 G_SIM         : string :="OFF"
 );
-port
-(
+port(
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
@@ -673,15 +645,13 @@ p_in_rst              : in    std_logic
 end component;
 
 component sata_player_gt
-generic
-(
+generic(
 G_SATAH_NUM   : integer:=0;
 G_GT_CH_COUNT : integer:=2;
 G_GT_DBUS     : integer:=16;
 G_SIM         : string :="OFF"
 );
-port
-(
+port(
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
@@ -754,18 +724,15 @@ p_in_rst               : in    std_logic
 end component;
 
 component sata_speed_ctrl
-generic
-(
+generic(
 G_SATAH_COUNT_MAX : integer:=1;
 G_SATAH_NUM       : integer:=0;
 G_SATAH_CH_COUNT  : integer:=1;
 G_DBG             : string :="OFF";
 G_DBGCS           : string :="OFF";
 G_SIM             : string :="OFF"
-
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -807,8 +774,7 @@ end component;
 
 
 component sata_host
-generic
-(
+generic(
 G_SATAH_COUNT_MAX : integer:=1;
 G_SATAH_NUM       : integer:=0;
 G_SATAH_CH_COUNT  : integer:=1;
@@ -817,8 +783,7 @@ G_DBG             : string :="OFF";
 G_DBGCS           : string :="OFF";
 G_SIM             : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------
@@ -898,14 +863,12 @@ end component;
 
 
 component sata_connector
-generic
-(
+generic(
 G_SATAH_CH_COUNT : integer:=1;
 G_DBG            : string :="OFF";
 G_SIM            : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем sata_raid.vhd
 --------------------------------------------------
@@ -964,15 +927,13 @@ p_in_rst                : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0)
 end component;
 
 component sata_raid_ctrl
-generic
-(
+generic(
 G_HDD_COUNT : integer:=1;
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
@@ -1043,14 +1004,12 @@ end component;
 
 
 component sata_raid_decoder
-generic
-(
+generic(
 G_HDD_COUNT : integer:=1;
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
@@ -1106,15 +1065,13 @@ end component;
 
 
 component sata_raid
-generic
-(
+generic(
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
@@ -1179,15 +1136,13 @@ p_in_rst                : in    std_logic
 end component;
 
 component sata_hwstart_ctrl
-generic
-(
+generic(
 G_T05us     : integer:=1;
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --
 --------------------------------------------------
@@ -1219,16 +1174,14 @@ p_in_rst       : in    std_logic
 end component;
 
 component sata_measure
-generic
-(
+generic(
 G_T05us     : integer:=1;
 G_HDD_COUNT : integer:=1;
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
 --------------------------------------------------
@@ -1258,16 +1211,14 @@ p_in_rst       : in    std_logic
 end component;
 
 component dsn_raid_main
-generic
-(
+generic(
 G_HDD_COUNT : integer:=2;
 G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
 G_DBGCS     : string :="OFF";
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Sata Driver
 --------------------------------------------------

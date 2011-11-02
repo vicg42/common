@@ -35,15 +35,13 @@ use work.sata_sim_lite_pkg.all;
 use work.dsn_hdd_pkg.all;
 
 entity dsn_hdd_rambuf is
-generic
-(
-G_MODULE_USE           : string:="ON";
-G_RAMBUF_SIZE          : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
-G_DBGCS                : string:="OFF";
-G_SIM                  : string:="OFF"
+generic(
+G_MODULE_USE  : string:="ON";
+G_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
+G_DBGCS       : string:="OFF";
+G_SIM         : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -123,8 +121,7 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 constant dly : time := 1 ps;
 
 component hdd_ram_hfifo
-port
-(
+port(
 din         : in std_logic_vector(31 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
@@ -142,8 +139,7 @@ rst         : in std_logic
 );
 end component;
 
-type fsm_state is
-(
+type fsm_state is (
 S_IDLE,
 
 S_SW_WAIT,
@@ -951,11 +947,10 @@ i_mem_dout_wrdy <= p_in_hdd_txbuf_full when i_cfg_buf_use='0' else i_cfg_rxbuf_f
 
 m_mem_ctrl_wr : memory_ctrl_ch_wr
 generic map(
-G_MEM_BANK_MSB_BIT   => C_DSN_HDD_REG_RBUF_ADR_BANK_MSB_BIT,
-G_MEM_BANK_LSB_BIT   => C_DSN_HDD_REG_RBUF_ADR_BANK_LSB_BIT
+G_MEM_BANK_M_BIT => C_HDD_REG_RBUF_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT => C_HDD_REG_RBUF_ADR_BANK_L_BIT
 )
-port map
-(
+port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -1021,8 +1016,7 @@ p_in_rst            => p_in_rst
 --//--------------------------------------------------
 --//RAM<-CFG
 m_cfg_txbuf : hdd_ram_hfifo
-port map
-(
+port map(
 din         => i_cfg_txbuf_din,
 wr_en       => i_cfg_txbuf_wr,
 wr_clk      => i_cfg_buf_clk,
@@ -1041,8 +1035,7 @@ rst         => i_cfg_buf_rst
 
 --//RAM->CFG
 m_cfg_rxbuf : hdd_ram_hfifo
-port map
-(
+port map(
 din         => i_mem_dout,
 wr_en       => i_cfg_rxbuf_wr,
 wr_clk      => p_in_clk,

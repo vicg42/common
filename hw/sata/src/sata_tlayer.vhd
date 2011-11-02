@@ -32,13 +32,11 @@ use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 
 entity sata_tlayer is
-generic
-(
+generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Ñâÿçü ñ USRAPP Layer
 --------------------------------------------------

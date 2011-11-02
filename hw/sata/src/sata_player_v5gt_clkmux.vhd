@@ -27,13 +27,11 @@ use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 
 entity sata_player_gt_clkmux is
-generic
-(
+generic(
 G_HDD_COUNT : integer:=0;
 G_SIM       : string :="OFF"
 );
-port
-(
+port(
 p_out_optrefclksel : out   T04_SHCountMax;
 p_out_optrefclk    : out   T04_SHCountMax;
 p_in_optrefclk     : in    T04_SHCountMax
