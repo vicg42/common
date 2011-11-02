@@ -48,8 +48,8 @@ constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва
 
 
 --//cfg VCTRL
-constant C_DSN_VCTRL_VCH_COUNT               : integer:=3;
-constant C_DSN_VCTRL_SIMPLE                  : string:="OFF";
+constant C_VCTRL_VCH_COUNT                   : integer:=3;
+constant C_VCTRL_SIMPLE                      : string:="OFF";
 
 --//cfg clkfx - DCM LocalBus
 constant C_LBUSDCM_CLKFX_M                   : integer:=4;

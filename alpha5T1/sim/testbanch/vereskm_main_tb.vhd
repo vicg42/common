@@ -718,7 +718,7 @@ stimulate: process
 --  variable be : byte_enable_t(0 to 127);
 --  variable n : natural;
 
-  type TSimNikIP is array (0 to C_DSN_TRCNIK_IP_MAX_COUNT-1) of std_logic_vector(15 downto 0);
+  type TSimNikIP is array (0 to C_TRCNIK_IP_COUNT_MAX-1) of std_logic_vector(15 downto 0);
   variable nik_ip : TSimNikIP;
 
   variable data : byte_vector_t(0 to 127);
@@ -848,8 +848,8 @@ begin
   --//размер одиночной транзакции (в DWORD) для записи/чтения
   hdd_cfg_rambuf_ctrl((8*1)-1 downto 8*0):=CONV_STD_LOGIC_VECTOR(16#40#, 8);--7..0;--trn_mem_wr
   hdd_cfg_rambuf_ctrl((8*2)-1 downto 8*1):=CONV_STD_LOGIC_VECTOR(16#40#, 8);--15..8;--trn_mem_rd
---  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_TEST_BIT) :='1';--//Режим тестирования
---  hdd_cfg_rambuf_ctrl(C_DSN_HDD_REG_RBUF_CTRL_STOP_BIT) :='0';--//Перевод модуля HDD_RAMBUF в исходное состояние
+--  hdd_cfg_rambuf_ctrl(C_HDD_REG_RBUF_CTRL_TEST_BIT) :='1';--//Режим тестирования
+--  hdd_cfg_rambuf_ctrl(C_HDD_REG_RBUF_CTRL_STOP_BIT) :='0';--//Перевод модуля HDD_RAMBUF в исходное состояние
 --                                                            --//Для коректного выолнения перехода в исходное состояние нельзя обрывать входной поток данных
 
   for i in 0 to cfgCmdPkt'high loop
@@ -923,8 +923,8 @@ begin
 --  VctrlChParams(0).fr_zooming_up     :=CONV_STD_LOGIC_VECTOR(16#00#, 2);
 
   VctrlRegTST0:=(others=>'0');
---  VctrlRegTST0(C_DSN_VCTRL_REG_TST0_DBG_PICTURE_BIT):='0';
---  VctrlRegTST0(C_DSN_VCTRL_REG_TST0_SKIPFR_CNT_CLR_BIT):='0';
+--  VctrlRegTST0(C_VCTRL_REG_TST0_DBG_PICTURE_BIT):='0';
+--  VctrlRegTST0(C_VCTRL_REG_TST0_SKIPFR_CNT_CLR_BIT):='0';
 
 
   --------------------------------
@@ -940,8 +940,8 @@ begin
   TrcNik_MemWR_trn_len :=CONV_STD_LOGIC_VECTOR(16#88#, 8); --//размер одиночной транзакции ОЗУ WRITE (DWORD)
   TrcNik_MemRD_trn_len :=CONV_STD_LOGIC_VECTOR(16#80#, 8); --//размер одиночной транзакции ОЗУ READ (DWORD)
 
-  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_MSB_BIT downto C_DSN_VCTRL_MEM_VCH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(3, C_DSN_VCTRL_MEM_VCH_MSB_BIT - C_DSN_VCTRL_MEM_VCH_LSB_BIT +1);
-  TrcNikChParams(0).mem_arbuf(C_DSN_VCTRL_MEM_VCH_LSB_BIT-1 downto 0):=(others=>'0');
+  TrcNikChParams(0).mem_arbuf(C_VCTRL_MEM_VCH_M_BIT downto C_VCTRL_MEM_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(3, C_VCTRL_MEM_VCH_M_BIT - C_VCTRL_MEM_VCH_L_BIT +1);
+  TrcNikChParams(0).mem_arbuf(C_VCTRL_MEM_VCH_L_BIT-1 downto 0):=(others=>'0');
 
   --//Интервальные уровни
   TrcNikIP_Count:=2;--//Кол-во обрабатываемых интервальных порогов
@@ -955,21 +955,21 @@ begin
   nik_ip(7):=CONV_STD_LOGIC_VECTOR(16#FF00#, nik_ip(0)'length);
 
   for i in 0 to TrcNikIP_Count - 1 loop
-  --Если TrcNikIP_Count <= C_DSN_TRCNIK_IP_COUNT, то ...
+  --Если TrcNikIP_Count <= C_TRCNIK_IP_COUNT, то ...
   TrcNikChParams(0).ip(i).p1:=nik_ip(i)( 7 downto 0);
   TrcNikChParams(0).ip(i).p2:=nik_ip(i)(15 downto 8);
   end loop;
-  TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
-  TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
-  TrcNikChParams(0).opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT+1);
+  TrcNikChParams(0).opt(C_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT):='1';
+  TrcNikChParams(0).opt(C_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT):='0';
+  TrcNikChParams(0).opt(C_TRCNIK_REG_OPT_IP_M_BIT downto C_TRCNIK_REG_OPT_IP_L_BIT):=CONV_STD_LOGIC_VECTOR(TrcNikIP_Count, C_TRCNIK_REG_OPT_IP_M_BIT-C_TRCNIK_REG_OPT_IP_L_BIT+1);
 
   TrcNikWorkOn:='1';--//Запуск работы
 
   TrcNikRegTST0:=(others=>'0');
---  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_SOBEL_CTRL_DIV_BIT):='0';--//1/0 - dx/2 и dy/2 /нет делений
---  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_SOBEL_CTRL_MULT_BIT):='1';--//1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
-  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT):='0';  --
---  TrcNikRegTST0(C_DSN_TRCNIK_REG_TST0_COLOR_DBG_BIT):='0';  --
+--  TrcNikRegTST0(C_TRCNIK_REG_TST0_SOBEL_CTRL_DIV_BIT):='0';--//1/0 - dx/2 и dy/2 /нет делений
+--  TrcNikRegTST0(C_TRCNIK_REG_TST0_SOBEL_CTRL_MULT_BIT):='1';--//1/0 - точная грубая апроксимация формуля (dx^2 + dy^2)^0.5
+  TrcNikRegTST0(C_TRCNIK_REG_TST0_COLOR_DIS_BIT):='0';  --
+--  TrcNikRegTST0(C_TRCNIK_REG_TST0_COLOR_DBG_BIT):='0';  --
 
 
 --//Чтение данных модуля Track
@@ -996,12 +996,12 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN0
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0022#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN1
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0023#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN2
-  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0024#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN2
-  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0025#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN2
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0026#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN2
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_ETH_REG_MAC_PATRN0
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0022#, 16);  --//C_ETH_REG_MAC_PATRN1
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0023#, 16);  --//C_ETH_REG_MAC_PATRN2
+  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0024#, 16);  --//C_ETH_REG_MAC_PATRN2
+  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0025#, 16);  --//C_ETH_REG_MAC_PATRN2
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0026#, 16);  --//C_ETH_REG_MAC_PATRN2
 
   datasize:=6;
   for y in 0 to datasize - 1 loop
@@ -1010,12 +1010,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(16, lclk);
 
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#1121#, 16);  --//C_DSN_ETHG_REG_MAC_PATRN0
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#1121#, 16);  --//C_ETH_REG_MAC_PATRN0
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1024,7 +1024,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(16, lclk);
 
   --//Чтение
@@ -1039,7 +1039,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
@@ -1084,7 +1084,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
@@ -1133,8 +1133,8 @@ begin
 --  --//ЗАПИСЬ
 --  --//Готовим значения регистров:
 --  User_Reg(0):=(others=>'0');
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT):='1'; --//будем устонавливать начальный адрес BRAM
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+--  User_Reg(0)(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT):='1'; --//будем устонавливать начальный адрес BRAM
+--  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -1143,7 +1143,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  --//Готовим значения:
 --  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(0, 16);
@@ -1155,13 +1155,13 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --
 --  --//Готовим значения регистров:
 --  User_Reg(0):=(others=>'0');
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT):='1'; --//будем писать данные в BRAM
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+--  User_Reg(0)(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT):='1'; --//будем писать данные в BRAM
+--  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -1170,7 +1170,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  --//Готовим значения:
 --  for i in 0 to 15 loop
@@ -1184,15 +1184,15 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_ON, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_ON, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  wait_cycles(10, lclk);
 --
 --  --//ЧТЕНИЕ
 --  --//Готовим значения регистров:
 --  User_Reg(0):=(others=>'0');
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT):='1'; --//будем устонавливать начальный адрес BRAM
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+--  User_Reg(0)(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT):='1'; --//будем устонавливать начальный адрес BRAM
+--  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -1201,7 +1201,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  --//Готовим значения для BRAM:
 --  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(4, 16);
@@ -1213,12 +1213,12 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  --//Готовим значения регистров:
 --  User_Reg(0):=(others=>'0');
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT):='1'; --//будем читать данные в BRAM
---  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='0';
+--  User_Reg(0)(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT):='1'; --//будем читать данные в BRAM
+--  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='0';
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -1227,11 +1227,11 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  --//Чтение :
 --  datasize:=16;
---  p_SendCfgPkt(C_READ, C_FIFO_ON, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_READ, C_FIFO_ON, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  wait_cycles(400000, lclk);
 --  --// Тестрование записи/чтения коэфициенитов в модуль DSN_VCTRL/VSCALE
@@ -1252,13 +1252,13 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  User_Reg(0)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00AA#, 16);  --//C_DSN_TMR_REG_CMP_L
-  User_Reg(1)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00BB#, 16);  --//C_DSN_TMR_REG_CMP_M
+  User_Reg(0)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00AA#, 16);  --//C_TMR_REG_CMP_L
+  User_Reg(1)(31 downto 16):=CONV_STD_LOGIC_VECTOR(16#00BB#, 16);  --//C_TMR_REG_CMP_M
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0020#, 16);  --//C_DSN_TMR_REG_CMP_L
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_DSN_TMR_REG_CMP_M
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0022#, 16);  --//C_DSN_TMR_REG_CMP_M
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0020#, 16);  --//C_TMR_REG_CMP_L
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0021#, 16);  --//C_TMR_REG_CMP_M
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0022#, 16);  --//C_TMR_REG_CMP_M
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
@@ -1267,11 +1267,11 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TMR, C_DSN_TMR_REG_CMP_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TMR, C_TMR_REG_CMP_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=(others=>'0');  --//C_DSN_TMR_REG_CTRL
-  User_Reg(0)(C_DSN_TMR_REG_CTRL_EN_BIT):='1';
+  User_Reg(0)(15 downto 0):=(others=>'0');  --//C_TMR_REG_CTRL
+  User_Reg(0)(C_TMR_REG_CTRL_EN_BIT):='1';
   datasize:=1;
   for y in 0 to datasize - 1 loop
     for i in 0 to 2 - 1 loop
@@ -1279,7 +1279,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TMR, C_DSN_TMR_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TMR, C_TMR_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(14, lclk);
   --// Настройка модуля DSN_TIMER.VHD
@@ -1303,7 +1303,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_PATRN1, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_READ, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN1, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   i_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT):='1';
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
@@ -1351,25 +1351,25 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 
+--  --//Готовим значения регистров:
+--  --//C_SWT_REG_CTRL
+--  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#5555#, 16);
+--  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#AAAA#, 16);
+--
+--  datasize:=2;
+--  for y in 0 to datasize - 1 loop
+--    for i in 0 to 2 - 1 loop
+--      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+--    end loop;
+--  end loop;
+--
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+
   --//Готовим значения регистров:
-  --//C_DSN_SWT_REG_CTRL_L
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#5555#, 16);
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#AAAA#, 16);
-
-  datasize:=2;
-  for y in 0 to datasize - 1 loop
-    for i in 0 to 2 - 1 loop
-      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
-    end loop;
-  end loop;
-
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
-
-
-  --//Готовим значения регистров:
-  --//C_DSN_SWT_REG_CTRL_L
+  --//C_SWT_REG_CTRL
   User_Reg(0):=(others=>'0');
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):='0';
+  User_Reg(0)(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):='0';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1378,9 +1378,9 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
-  --//C_DSN_SWT_REG_FMASK_ETHG_HOST
+  --//C_SWT_REG_FRR_ETHG_HOST
   User_Reg(0)(0):=swt_fmask_eth_host; --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(0)(15 downto 1):=(others=>'0'); --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(1)(15 downto 0):=(others=>'0'); --//Маска(3)-[15:8];  Маска(2)-[7:0]
@@ -1393,11 +1393,11 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_FMASK_ETHG_HOST, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_FRR_ETHG_HOST, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
-  --//C_DSN_SWT_REG_FMASK_ETHG_HDD
+  --//C_SWT_REG_FRR_ETHG_HDD
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(3)-[15:8];  Маска(2)-[7:0]
   User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(5)-[15:8];  Маска(4)-[7:0]
@@ -1409,11 +1409,11 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_FMASK_ETHG_HDD, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_FRR_ETHG_HDD, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
-  --//C_DSN_SWT_REG_FMASK_ETHG_VCTRL
+  --//C_SWT_REG_FRR_ETHG_VCTRL
   User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(3)-[15:8];  Маска(2)-[7:0]
   User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0000#, 16); --//Маска(5)-[15:8];  Маска(4)-[7:0]
@@ -1425,7 +1425,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_FMASK_ETHG_VCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_FRR_ETHG_VCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
   --// Настройка модуля DSN_SWITCH.VHD
@@ -1442,8 +1442,8 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16); --//C_DSN_ETHG_REG_CTRL_L
-  User_Reg(0)(C_DSN_ETHG_REG_CTRL_GTP_NORTH_MUX_CNG_BIT):='0';--//Тестируем запись этого бита
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16); --//C_ETH_REG_CTRL
+  User_Reg(0)(C_ETH_REG_CTRL_GTP_NORTH_MUX_CNG_BIT):='0';--//Тестируем запись этого бита
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1452,19 +1452,19 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_DSN_ETHG_REG_MAC_USRCTRL
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_DSN_ETHG_REG_TX_PATRN1
-  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_DSN_ETHG_REG_TX_PATRN2
-  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_DSN_ETHG_REG_TX_PATRN3 - MAC SRC
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_DSN_ETHG_REG_TX_PATRN4
-  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_DSN_ETHG_REG_TX_PATRN5
-  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_DSN_ETHG_REG_TX_PATRN6 - MAC Length/Type
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_ETH_REG_MAC_USRCTRL
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_ETH_REG_TX_PATRN0 - MAC DST
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_ETH_REG_TX_PATRN1
+  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_ETH_REG_TX_PATRN2
+  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_ETH_REG_TX_PATRN3 - MAC SRC
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_ETH_REG_TX_PATRN4
+  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_ETH_REG_TX_PATRN5
+  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_ETH_REG_TX_PATRN6 - MAC Length/Type
 
   datasize:=8;
   for y in 0 to datasize - 1 loop
@@ -1473,7 +1473,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(34, lclk);
   --// Настройка модуля DSN_ETH.VHD
@@ -1528,11 +1528,11 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  --//C_DSN_SWT_REG_CTRL_L
+  --//C_SWT_REG_CTRL
   User_Reg(0):=(others=>'0');
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):=swt_dsntesting_to_ethtxbuf;
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT):=swt_ethtxbuf_to_vdbufrxd;
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT):=swt_ethtxbuf_to_hddbuf;
+  User_Reg(0)(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):=swt_dsntesting_to_ethtxbuf;
+  User_Reg(0)(C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT):=swt_ethtxbuf_to_vdbufrxd;
+  User_Reg(0)(C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT):=swt_ethtxbuf_to_hddbuf;
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1541,10 +1541,10 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
-  --//C_DSN_SWT_REG_FMASK_ETHG_HOST
+  --//C_SWT_REG_FRR_ETHG_HOST
   User_Reg(0)(0):=swt_fmask_eth_host; --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(0)(15 downto 1):=(others=>'0'); --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(1)(15 downto 0):=(others=>'0'); --//Маска(3)-[15:8];  Маска(2)-[7:0]
@@ -1557,11 +1557,11 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_FMASK_ETHG_HOST, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_FRR_ETHG_HOST, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
-  --//C_DSN_SWT_REG_FMASK_ETHG_HDD
+  --//C_SWT_REG_FRR_ETHG_HDD
   User_Reg(0)(0):=swt_fmask_eth_hdd; --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(0)(15 downto 1):=(others=>'0'); --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(1)(15 downto 0):=(others=>'0'); --//Маска(3)-[15:8];  Маска(2)-[7:0]
@@ -1574,11 +1574,11 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_FMASK_ETHG_HDD, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_FRR_ETHG_HDD, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
-  --//C_DSN_SWT_REG_FMASK_ETHG_VCTRL
+  --//C_SWT_REG_FRR_ETHG_VCTRL
   User_Reg(0)(15 downto 0):=swt_fmask0_eth_vctrl; --//Маска(1)-[15:8];  Маска(0)-[7:0]
   User_Reg(1)(15 downto 0):=swt_fmask1_eth_vctrl; --//Маска(3)-[15:8];  Маска(2)-[7:0]
   User_Reg(2)(15 downto 0):=swt_fmask2_eth_vctrl; --//Маска(5)-[15:8];  Маска(4)-[7:0]
@@ -1590,7 +1590,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_FMASK_ETHG_VCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_FRR_ETHG_VCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -1612,9 +1612,9 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
---constant C_DSN_TSTING_REG_CTRLM_FRAME_MOVE_LSB_BIT: integer:=0;
---constant C_DSN_TSTING_REG_CTRLM_FRAME_MOVE_MSB_BIT: integer:=6;
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#01#, 16);  --//C_DSN_TSTING_REG_CTRL_M (Framve Move)
+--constant C_TSTING_REG_CTRLM_FRAME_MOVE_L_BIT: integer:=0;
+--constant C_TSTING_REG_CTRLM_FRAME_MOVE_M_BIT: integer:=6;
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#01#, 16);  --//C_TSTING_REG_CTRL_M (Framve Move)
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1623,31 +1623,31 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_DSN_TSTING_REG_CTRL_M, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_TSTING_REG_CTRL_M, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 --  if Pix8bit='1' then
---    User_Reg(0)(15 downto 0):=("00"&PixLen(15 downto 2))-1;  --//C_DSN_TSTING_REG_PIX
+--    User_Reg(0)(15 downto 0):=("00"&PixLen(15 downto 2))-1;  --//C_TSTING_REG_PIX
 --  else
---    User_Reg(0)(15 downto 0):=PixLen(15 downto 0)-1;  --//C_DSN_TSTING_REG_PIX
+--    User_Reg(0)(15 downto 0):=PixLen(15 downto 0)-1;  --//C_TSTING_REG_PIX
 --  end if;
 --
---  User_Reg(1)(15 downto 0):=RowLen(15 downto 0)-1;  --//C_DSN_TSTING_REG_ROW
+--  User_Reg(1)(15 downto 0):=RowLen(15 downto 0)-1;  --//C_TSTING_REG_ROW
 
   if Pix8bit='1' then
-    User_Reg(0)(15 downto 0):=("00"&PixLen(15 downto 2));  --//C_DSN_TSTING_REG_PIX
+    User_Reg(0)(15 downto 0):=("00"&PixLen(15 downto 2));  --//C_TSTING_REG_PIX
   else
-    User_Reg(0)(15 downto 0):=PixLen(15 downto 0);  --//C_DSN_TSTING_REG_PIX
+    User_Reg(0)(15 downto 0):=PixLen(15 downto 0);  --//C_TSTING_REG_PIX
   end if;
 
-  User_Reg(1)(15 downto 0):=RowLen(15 downto 0);  --//C_DSN_TSTING_REG_ROW
+  User_Reg(1)(15 downto 0):=RowLen(15 downto 0);  --//C_TSTING_REG_ROW
 
   i_FrameSize:=(CONV_STD_LOGIC_VECTOR(16#00#, 16)&(User_Reg(0)(15 downto 0)+1)) * (CONV_STD_LOGIC_VECTOR(16#00#, 16)&(User_Reg(1)(15 downto 0)+1));
 
-  User_Reg(2)(15 downto 0):=i_FrameSize(15 downto 0);           --//C_DSN_TSTING_REG_FRAME_SIZE_LSB
-  User_Reg(3)(15 downto 0):=i_FrameSize(31 downto 16);          --//C_DSN_TSTING_REG_FRAME_SIZE_MSB
-  User_Reg(4)(15 downto 0):=User_Reg(0)(15 downto 0)+1;--PixLen(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#80#, 16);  --//C_DSN_TSTING_REG_PKTLEN - Len Payload(Без учета длинны заголовка)
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#00#, 16);  --//C_DSN_TSTING_REG_ROW_SEND_TIME_DLY
-  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#02#, 16);  --//C_DSN_TSTING_REG_FR_SEND_TIME_DLY
+  User_Reg(2)(15 downto 0):=i_FrameSize(15 downto 0);           --//C_TSTING_REG_FRAME_SIZE_LSB
+  User_Reg(3)(15 downto 0):=i_FrameSize(31 downto 16);          --//C_TSTING_REG_FRAME_SIZE_MSB
+  User_Reg(4)(15 downto 0):=User_Reg(0)(15 downto 0)+1;--PixLen(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#80#, 16);  --//C_TSTING_REG_PKTLEN - Len Payload(Без учета длинны заголовка)
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#00#, 16);  --//C_TSTING_REG_ROW_SEND_TIME_DLY
+  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#02#, 16);  --//C_TSTING_REG_FR_SEND_TIME_DLY
 
   datasize:=7;
   for y in 0 to datasize - 1 loop
@@ -1656,11 +1656,11 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_DSN_TSTING_REG_PIX, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_TSTING_REG_PIX, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_DSN_TSTING_REG_COLOR_LSB
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_DSN_TSTING_REG_COLOR_MSB
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_TSTING_REG_COLOR_LSB
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_TSTING_REG_COLOR_MSB
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
@@ -1669,7 +1669,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_DSN_TSTING_REG_COLOR_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_TSTING_REG_COLOR_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
   --// Настройка модуля DSN_TESTING.VHD
@@ -1686,7 +1686,7 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
 
-  --//Установка C_DSN_VCTRL_REG_MEM_TRN_LEN
+  --//Установка C_VCTRL_REG_MEM_CTRL
   --//Готовим значения регистров:
   User_Reg(0)(7 downto 0) :=Vctrl_MemWR_trn_len;--CONV_STD_LOGIC_VECTOR(16#10#, 8); --//WRITE
   User_Reg(0)(15 downto 8):=Vctrl_MemRD_trn_len;--CONV_STD_LOGIC_VECTOR(16#10#, 8); --//READ
@@ -1698,14 +1698,14 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_MEM_TRN_LEN, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_MEM_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   --//Параметры VCH0
   --//Установка адреса записи в ОЗУ
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_LSB
-  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_MSB
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_M
 --  User_Reg(0)(15 downto 0):=EXT(VctrlChParams(0).mem_addr_wr, 16);
 --  User_Reg(1)(15 downto 0):=(Others=>'0');
 
@@ -1716,12 +1716,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1730,12 +1730,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка адреса чтния в ОЗУ
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_LSB
-  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_MSB
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_VCTRL_REG_DATA_M
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
@@ -1744,12 +1744,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1758,7 +1758,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка FR_OPTIONS
   --//Готовим значения регистров:
@@ -1777,12 +1777,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1791,7 +1791,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   --//Установка FR_ZONE_SKIP
@@ -1812,12 +1812,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1826,7 +1826,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка FR_ZONE_ACTIVE
   --//Готовим значения регистров:
@@ -1846,12 +1846,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1860,15 +1860,15 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
 
   --//Параметры VCH1
   --//Установка адреса записи в ОЗУ
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_LSB
-  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_MSB
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_M
 --  User_Reg(0)(15 downto 0):=EXT(VctrlChParams(0).mem_addr_wr, 16);
 --  User_Reg(1)(15 downto 0):=(Others=>'0');
 
@@ -1880,12 +1880,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1894,12 +1894,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка адреса чтния в ОЗУ
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_LSB
-  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_MSB
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_VCTRL_REG_DATA_M
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
@@ -1908,12 +1908,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1922,7 +1922,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка FR_OPTIONS
   --//Готовим значения регистров:
@@ -1941,12 +1941,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1955,7 +1955,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   --//Установка FR_ZONE_SKIP
@@ -1976,12 +1976,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -1990,7 +1990,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка FR_ZONE_ACTIVE
   --//Готовим значения регистров:
@@ -2010,12 +2010,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2024,7 +2024,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
 
@@ -2032,8 +2032,8 @@ begin
   --//Параметры VCH2
   --//Установка адреса записи в ОЗУ
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_LSB
-  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_MSB
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_M
 --  User_Reg(0)(15 downto 0):=EXT(VctrlChParams(0).mem_addr_wr, 16);
 --  User_Reg(1)(15 downto 0):=(Others=>'0');
 
@@ -2044,12 +2044,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#02#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#02#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2058,12 +2058,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка адреса чтния в ОЗУ
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_LSB
-  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_DSN_VCTRL_REG_PRM_DATA_MSB
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_VCTRL_REG_DATA_M
 
   datasize:=2;
   for y in 0 to datasize - 1 loop
@@ -2072,12 +2072,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#01#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2086,7 +2086,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка FR_OPTIONS
   --//Готовим значения регистров:
@@ -2105,12 +2105,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#02#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#02#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2119,7 +2119,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   --//Установка FR_ZONE_SKIP
@@ -2140,12 +2140,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#02#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#02#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2154,7 +2154,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Установка FR_ZONE_ACTIVE
   --//Готовим значения регистров:
@@ -2174,12 +2174,12 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT)  :=CONV_STD_LOGIC_VECTOR(16#02#, C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT+1);
-  User_Reg(0)(C_DSN_VCTRL_REG_CTRL_SET_BIT):='1';
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#02#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2188,7 +2188,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
 
@@ -2203,7 +2203,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
 
@@ -2222,22 +2222,22 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
---  constant C_DSN_ETHG_REG_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
---  constant C_DSN_ETHG_REG_TX_PATRN_SIZE_MSB_BIT : integer:=3;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
---  constant C_DSN_ETHG_REG_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
---  constant C_DSN_ETHG_REG_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_DSN_ETHG_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_DSN_ETHG_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_DSN_ETHG_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_DSN_ETHG_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
+--  constant C_ETH_REG_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
+--  constant C_ETH_REG_TX_PATRN_SIZE_MSB_BIT : integer:=3;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
+--  constant C_ETH_REG_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
+--  constant C_ETH_REG_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_ETH_REG_TX_PATRN_PARAM
+--  User_Reg(0)(C_ETH_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_ETH_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_ETH_REG_TX_PATRN_PARAM
+--  User_Reg(0)(C_ETH_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_ETH_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_ETH_REG_TX_PATRN_PARAM
+--  User_Reg(0)(C_ETH_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
 
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_DSN_ETHG_REG_TX_PATRN0 - MAC DST
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_DSN_ETHG_REG_TX_PATRN1
-  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_DSN_ETHG_REG_TX_PATRN2
-  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_DSN_ETHG_REG_TX_PATRN3 - MAC SRC
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_DSN_ETHG_REG_TX_PATRN4
-  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_DSN_ETHG_REG_TX_PATRN5
-  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_DSN_ETHG_REG_TX_PATRN6 - MAC Length/Type
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_ETH_REG_TX_PATRN0 - MAC DST
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_ETH_REG_TX_PATRN1
+  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_ETH_REG_TX_PATRN2
+  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_ETH_REG_TX_PATRN3 - MAC SRC
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_ETH_REG_TX_PATRN4
+  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_ETH_REG_TX_PATRN5
+  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_ETH_REG_TX_PATRN6 - MAC Length/Type
 
   datasize:=8;
   for y in 0 to datasize - 1 loop
@@ -2246,7 +2246,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETHG, C_DSN_ETHG_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
   --// Настройка модуля DSN_ETH.VHD
@@ -2262,7 +2262,7 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  --//Установка C_DSN_TRCNIK_REG_MEM_TRN_LEN
+  --//Установка C_TRCNIK_REG_MEM_CTRL
   --//Готовим значения регистров:
   User_Reg(0)(7 downto 0) :=TrcNik_MemWR_trn_len;--//WRITE
   User_Reg(0)(15 downto 8):=TrcNik_MemRD_trn_len;--//READ
@@ -2274,7 +2274,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_DSN_TRCNIK_REG_MEM_TRN_LEN, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_TRCNIK_REG_MEM_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
   User_Reg(0):=(others=>'0');
@@ -2287,7 +2287,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_DSN_TRCNIK_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_TRCNIK_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   --//Установка параметров слежения
@@ -2317,11 +2317,11 @@ begin
   User_Reg(14):=(others=>'0');
   User_Reg(15):=(others=>'0');
 
-  --//Установка C_DSN_TRCNIK_REG_CTRL_L
+  --//Установка C_TRCNIK_REG_CTRL
   User_Reg(16):=(others=>'0');
-  User_Reg(16)(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT downto C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT-C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT+1);
-  User_Reg(16)(C_DSN_TRCNIK_REG_CTRL_SET_BIT):='0';
-  User_Reg(16)(C_DSN_TRCNIK_REG_CTRL_WORK_BIT):=TrcNikWorkOn;
+  User_Reg(16)(C_TRCNIK_REG_CTRL_VCH_M_BIT downto C_TRCNIK_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_TRCNIK_REG_CTRL_VCH_M_BIT-C_TRCNIK_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(16)(C_TRCNIK_REG_CTRL_SET_BIT):='0';
+  User_Reg(16)(C_TRCNIK_REG_CTRL_WORK_BIT):=TrcNikWorkOn;
 
   datasize:=17;
   for y in 0 to datasize - 1 loop
@@ -2330,7 +2330,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_DSN_TRCNIK_REG_IP0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_TRCNIK_REG_IP0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -2360,7 +2360,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(4, lclk);
 
   --//
@@ -2374,7 +2374,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_ADR_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_ADR_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(4, lclk);
 
 --  --//
@@ -2388,7 +2388,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_SIZE_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_SIZE_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --  wait_cycles(4, lclk);
 --  --//
 --  User_Reg(0)(15 downto 0):=hdd_cfg_rambuf_level(15 downto 0);
@@ -2400,7 +2400,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_LEVEL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_LEVEL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --  wait_cycles(4, lclk);
 --
 --  --//
@@ -2413,7 +2413,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_DSN_HDD_REG_RBUF_FIFO_SIZE, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_FIFO_SIZE, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --  wait_cycles(4, lclk);
 
   --// Конфигурирование RAMBUF Накопителя
@@ -2457,7 +2457,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_ON, C_CFGDEV_HDD, C_DSN_HDD_REG_CMDFIFO, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_ON, C_CFGDEV_HDD, C_HDD_REG_CMDFIFO, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
   --// Запись командного пакета в Накопитель
@@ -2475,7 +2475,7 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  --//C_DSN_TSTING_REG_T05_US
+  --//C_TSTING_REG_T05_US
   User_Reg(0):=(others=>'0');
   User_Reg(0):=CONV_STD_LOGIC_VECTOR(10, User_Reg(0)'length);
 
@@ -2486,20 +2486,20 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_DSN_TSTING_REG_T05_US, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_TSTING_REG_T05_US, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(4, lclk);
 
 
   --//Готовим значения регистров:
-  --//C_DSN_TSTING_REG_CTRL_L
+  --//C_TSTING_REG_CTRL_L
   User_Reg(0):=(others=>'0');
-  User_Reg(0)(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_STREAM, (C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1));
---  User_Reg(0)(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_SINGL, (C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1));
-  User_Reg(0)(C_DSN_TSTING_REG_CTRL_START_BIT):='1';
-  User_Reg(0)(C_DSN_TSTING_REG_CTRL_FRAME_GRAY_BIT):=Pix8bit;
-  User_Reg(0)(C_DSN_TSTING_REG_CTRL_FRTXD_2DW_CNT_BIT):=FrTxD_2DW_cnt;
-  User_Reg(0)(C_DSN_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT):=TstData_02ver;
-  User_Reg(0)(C_DSN_TSTING_REG_CTRL_FRAME_CH_AUTO_BIT):=AutoVCH_Change;
+  User_Reg(0)(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT):=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_STREAM, (C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1));
+--  User_Reg(0)(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT):=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_SINGL, (C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1));
+  User_Reg(0)(C_TSTING_REG_CTRL_START_BIT):='1';
+  User_Reg(0)(C_TSTING_REG_CTRL_FRAME_GRAY_BIT):=Pix8bit;
+  User_Reg(0)(C_TSTING_REG_CTRL_FRTXD_2DW_CNT_BIT):=FrTxD_2DW_cnt;
+  User_Reg(0)(C_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT):=TstData_02ver;
+  User_Reg(0)(C_TSTING_REG_CTRL_FRAME_CH_AUTO_BIT):=AutoVCH_Change;
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
@@ -2508,7 +2508,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_DSN_TSTING_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_TSTING_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(80, lclk);
   --// Пуск модуля DSN_TESTING.VHD
   --//End
@@ -2612,11 +2612,11 @@ begin
 --  plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 --
 --  --//Готовим значения регистров:
---  --//C_DSN_TSTING_REG_CTRL_L
+--  --//C_TSTING_REG_CTRL_L
 --  User_Reg(0):=(others=>'0');
---  User_Reg(0)(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_STREAM, (C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1));
-----  User_Reg(0)(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_SINGL, (C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1));
---  User_Reg(0)(C_DSN_TSTING_REG_CTRL_START_BIT):='0';
+--  User_Reg(0)(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT):=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_STREAM, (C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1));
+----  User_Reg(0)(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT):=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_SINGL, (C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1));
+--  User_Reg(0)(C_TSTING_REG_CTRL_START_BIT):='0';
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -2625,7 +2625,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_DSN_TSTING_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TESTING, C_TSTING_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --  wait_cycles(4, lclk);
 --  --// Стоп модуля DSN_TESTING.VHD
 --  --//End
@@ -2642,8 +2642,8 @@ begin
 --
 --  --//Установка MEM_TRN
 --  --//Готовим значения регистров:
---  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0004#, 16);  --//C_DSN_VPROC_REG_PRM_DATA_LSB
---  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0010#, 16);  --//C_DSN_VPROC_REG_PRM_DATA_MSB
+--  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0004#, 16);  --//C_VPROC_REG_PRM_DATA_LSB
+--  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0010#, 16);  --//C_VPROC_REG_PRM_DATA_MSB
 --
 --  datasize:=2;
 --  for y in 0 to datasize - 1 loop
@@ -2652,12 +2652,12 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_DSN_VPROC_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_VPROC_REG_PRM_DATA_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  --//Готовим значения регистров:
---  User_Reg(0)(C_DSN_VPROC_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VPROC_REG_CTRL_CH_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_DSN_VPROC_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VPROC_REG_CTRL_CH_IDX_LSB_BIT+1);
---  User_Reg(0)(C_DSN_VPROC_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VPROC_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_DSN_VPROC_PARAM_MEM_TRN, C_DSN_VPROC_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VPROC_REG_CTRL_PRM_IDX_LSB_BIT+1);
---  User_Reg(0)(C_DSN_VPROC_REG_CTRL_SET_BIT):='1';
+--  User_Reg(0)(C_VPROC_REG_CTRL_CH_IDX_MSB_BIT downto C_VPROC_REG_CTRL_CH_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_VPROC_REG_CTRL_CH_IDX_MSB_BIT-C_VPROC_REG_CTRL_CH_IDX_LSB_BIT+1);
+--  User_Reg(0)(C_VPROC_REG_CTRL_PRM_IDX_MSB_BIT downto C_VPROC_REG_CTRL_PRM_IDX_LSB_BIT):=CONV_STD_LOGIC_VECTOR(C_VPROC_PARAM_MEM_TRN, C_VPROC_REG_CTRL_PRM_IDX_MSB_BIT-C_VPROC_REG_CTRL_PRM_IDX_LSB_BIT+1);
+--  User_Reg(0)(C_VPROC_REG_CTRL_SET_BIT):='1';
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -2666,14 +2666,14 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_DSN_VPROC_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_VPROC_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --
 --
 --
 --  --//Готовим значения регистров:
 --  User_Reg(0)(15 downto 0):=(others=>'0');
---  User_Reg(0)(C_DSN_VPROC_REG_CTRL_WORK_BIT):='1';  --//C_DSN_VPROC_REG_CTRL_L
+--  User_Reg(0)(C_VPROC_REG_CTRL_WORK_BIT):='1';  --//C_VPROC_REG_CTRL_L
 --
 --  datasize:=1;
 --  for y in 0 to datasize - 1 loop
@@ -2682,7 +2682,7 @@ begin
 --    end loop;
 --  end loop;
 --
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_DSN_VPROC_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VPRC_ADR, C_VPROC_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  wait_cycles(4, lclk);
 --  --// Настройка модуля DSN_VPROC.VHD
@@ -2737,14 +2737,14 @@ begin
   --//1. Настройка модуля DSN_SWITCH.vhd
   datasize:=1;
   User_Reg(0)(15 downto 0):=(others=>'0');
-  User_Reg(0)(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='1';
+  User_Reg(0)(C_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='1';
   for y in 0 to datasize - 1 loop
     for i in 0 to 2 - 1 loop
       data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
@@ -2852,11 +2852,11 @@ begin
 --//1. Настройка модуля DSN_SWITCH.vhd
   datasize:=1;
   val32:=(others=>'0');
-  val32(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='0';
+  val32(C_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='0';
   for i in 0 to 4 - 1 loop
     data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
   end loop;
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_DSN_SWT_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_SWT, C_SWT_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
 ----//Write CFGPkt
@@ -2867,7 +2867,7 @@ begin
 --  for i in 0 to 4 - 1 loop
 --    data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
 --  end loop;
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_MEM_ADDR_VCH0_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_MEM_ADDR_VCH0_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  datasize:=1;
 --  val32:=(others=>'0');
@@ -2875,7 +2875,7 @@ begin
 --  for i in 0 to 4 - 1 loop
 --    data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
 --  end loop;
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_MEM_ADDR_VCH0_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_MEM_ADDR_VCH0_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 --  datasize:=1;
 --  val32:=(others=>'0');
@@ -2883,7 +2883,7 @@ begin
 --  for i in 0 to 4 - 1 loop
 --    data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
 --  end loop;
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_MEM_CTRL_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_MEM_CTRL_LSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
 --
 --  datasize:=1;
 --  val32:=(others=>'0');
@@ -2891,7 +2891,7 @@ begin
 --  for i in 0 to 4 - 1 loop
 --    data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
 --  end loop;
---  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_MEM_CTRL_MSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
+--  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_MEM_CTRL_MSB, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 --//Write CFGPkt
 --//Начать операцию
@@ -2901,7 +2901,7 @@ begin
   for i in 0 to 4 - 1 loop
     data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
   end loop;
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_DSN_VCTRL_REG_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   i_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT):=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, C_HREG_DEV_CTRL_ADR_SIZE);
@@ -2970,7 +2970,7 @@ begin
 --  data(0)(7 downto 0) := C_READ & C_FIFO_OFF & "000000";
 --  data(1)(7 downto 0) := CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, 8);
 --  --//2-WORD
---  data(2)(7 downto 0) := CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_PIX, 8);
+--  data(2)(7 downto 0) := CONV_STD_LOGIC_VECTOR(C_TSTING_REG_PIX, 8);
 --  data(3)(7 downto 0) := CONV_STD_LOGIC_VECTOR((4), 8);
 --  --//3-WORD
 --  data(4)(7 downto 0) := CONV_STD_LOGIC_VECTOR(16#A5#, 8);--
@@ -2986,7 +2986,7 @@ begin
   data(2)(7 downto 0) := CONV_STD_LOGIC_VECTOR(16#0#, 8);--
   data(3)(7 downto 0) := CONV_STD_LOGIC_VECTOR(16#0#, 8);--
   --//3-WORD
-  data(4)(7 downto 0) := CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_ROW, 8);
+  data(4)(7 downto 0) := CONV_STD_LOGIC_VECTOR(C_TSTING_REG_ROW, 8);
   data(5)(7 downto 0) := CONV_STD_LOGIC_VECTOR((4), 8);
   --//3-WORD
   data(6)(7 downto 0) := CONV_STD_LOGIC_VECTOR(16#0#, 8);--
@@ -3051,7 +3051,7 @@ begin
 --p_SendCfgPkt(C_WRITE,
 --             C_FIFO_OFF,
 --             C_CFGDEV_TESTING,
---             C_DSN_TSTING_REG_CTRL_L,
+--             C_TSTING_REG_CTRL_L,
 --             datasize,
 --             data,
 --             bus_in,
@@ -3064,7 +3064,7 @@ begin
 --p_SendCfgPkt(C_WRITE,
 --             C_FIFO_OFF,
 --             C_CFGDEV_TESTING,
---             C_DSN_TSTING_REG_CTRL_L,
+--             C_TSTING_REG_CTRL_L,
 --             datasize,
 --             data,
 --             bus_in,
@@ -3774,7 +3774,7 @@ end behav;
 ----  end loop;
 --
 --  datasize:=1;
---  val32:=CONV_STD_LOGIC_VECTOR(0, 16)&CONV_STD_LOGIC_VECTOR(datasize, 8)&CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_CTRL_L, 8);
+--  val32:=CONV_STD_LOGIC_VECTOR(0, 16)&CONV_STD_LOGIC_VECTOR(datasize, 8)&CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, 8);
 --  PktDataIdx:=1;
 --  data(32 to 63) := conv_byte_vector(val32);
 ----  for i in 4 to 8 - 1 loop
@@ -3782,7 +3782,7 @@ end behav;
 ----  end loop;
 --
 --  datasize:=1;
---  val32:=CONV_STD_LOGIC_VECTOR(0, 16)&CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT, 16);
+--  val32:=CONV_STD_LOGIC_VECTOR(0, 16)&CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT, 16);
 --  PktDataIdx:=2;
 ----  for i in 8 to 12 - 1 loop
 ----    data(4 * i to 4 * (i + 1) - 1) := val32(4 * i downto 4 * (i + 1) - 1);--conv_byte_vector(val32(4 * i downto 4 * (i + 1) - 1));--conv_byte_vector(val32+ i);
