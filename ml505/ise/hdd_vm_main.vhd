@@ -600,7 +600,7 @@ signal i_dsntst_bufclk                  : std_logic;
 signal i_dsntst_tst_out                 : std_logic_vector(31 downto 0);
 
 signal i_tmr_rst                        : std_logic;
-signal i_tmr_hirq                       : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
+signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 signal i_vctrl_rst                      : std_logic;
 signal hclk_hrddone_vctrl_cnt           : std_logic_vector(2 downto 0);
@@ -622,15 +622,15 @@ signal i_vctrl_hrd_start                : std_logic;
 signal i_vctrl_hrd_done                 : std_logic;
 signal i_vctrl_hrd_done_dly             : std_logic_vector(1 downto 0);
 signal g_vctrl_swt_bufclk               : std_logic;
-signal i_vctrl_hirq                     : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vctrl_hrdy                     : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vctrl_hirq_out                 : std_logic_vector(C_DSN_VCTRL_VCH_MAX_COUNT-1 downto 0);
-signal i_vctrl_hrdy_out                 : std_logic_vector(C_DSN_VCTRL_VCH_MAX_COUNT-1 downto 0);
+signal i_vctrl_hirq                     : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vctrl_hrdy                     : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vctrl_hirq_out                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX-1 downto 0);
+signal i_vctrl_hrdy_out                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX-1 downto 0);
 signal i_vctrl_hfrmrk                   : std_logic_vector(31 downto 0);
 signal i_vctrl_vrd_done                 : std_logic;
 signal i_vctrl_tst_out                  : std_logic_vector(31 downto 0);
 signal i_vctrl_vrdprms                  : TReaderVCHParams;
-signal i_vctrl_vfrdy                    : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vctrl_vfrdy                    : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vctrl_vrowmrk                  : TVMrks;
 
 signal i_vctrlrd_memarb_req             : std_logic;
@@ -669,7 +669,8 @@ signal i_vctrlwr_mem_re                 : std_logic;
 signal i_vctrlwr_mem_rpe                : std_logic;
 --signal i_vctrlwr_mem_clk                : std_logic;
 
-signal i_trc_busy                       : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+signal i_trc_rst                        : std_logic;
+signal i_trc_busy                       : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_trc_vbufs                      : TVfrBufs;
 signal i_trcnik_hdrdy                   : std_logic:='0';
 
@@ -1041,7 +1042,7 @@ p_in_rst => i_cfg_rst
 );
 
 --//Распределяем управление от блока конфигурирования(cfgdev.vhd) для соотв. модуля проекта:
-i_cfg_rxd<=i_cfg_rxd_dev(C_CFGDEV_ETHG)    when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETHG, 4)    else
+i_cfg_rxd<=i_cfg_rxd_dev(C_CFGDEV_ETH)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETH, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_VCTRL)   when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, 4)   else
            i_cfg_rxd_dev(C_CFGDEV_SWT)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_TMR)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4)     else
@@ -1230,12 +1231,12 @@ p_in_cfg_adr_ld       => i_cfg_radr_ld,
 p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
 
 p_in_cfg_txdata       => i_cfg_txd,
-p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_ETHG),
+p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_ETH),
 
-p_out_cfg_rxdata      => i_cfg_rxd_dev(C_CFGDEV_ETHG),
-p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_ETHG),
+p_out_cfg_rxdata      => i_cfg_rxd_dev(C_CFGDEV_ETH),
+p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_ETH),
 
-p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETHG),
+p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETH),
 p_in_cfg_rst          => i_cfg_rst,
 
 -------------------------------
@@ -1348,7 +1349,7 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 m_video_ctrl : dsn_video_ctrl
 generic map(
-G_SIMPLE => C_DSN_VCTRL_SIMPLE,
+G_SIMPLE => C_VCTRL_SIMPLE,
 G_SIM    => G_SIM
 )
 port map(
@@ -1798,9 +1799,9 @@ i_host_dev_status(C_HREG_DEV_STATUS_ETH_CARIER_BIT) <=i_eth_carier;
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_ETH_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_ETH_DBUF);
 
-i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT) <=i_vctrl_hrdy_out(0);
-i_host_dev_status(C_HREG_DEV_STATUS_VCH1_FRRDY_BIT) <=i_vctrl_hrdy_out(1);
-i_host_dev_status(C_HREG_DEV_STATUS_VCH2_FRRDY_BIT) <=i_vctrl_hrdy_out(2);
+gen_status_vch : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
+i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(0 + i);
+end generate gen_status_vch;
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=i_memctrl_dcm_lock;
 i_host_dev_status(C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT)<='0';--i_trcnik_hdrdy;
@@ -1815,7 +1816,7 @@ i_host_wr(C_HDEV_ETH_DBUF) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VEC
 i_host_rd(C_HDEV_ETH_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else '0';
 i_host_txd(C_HDEV_ETH_DBUF)<=i_host_dev_txd;
 
-i_host_rd(C_HDEV_VCH_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length)  else '0';
+i_host_rd(C_HDEV_VCH_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else '0';
 
 
 --/Чтение
@@ -1838,9 +1839,9 @@ i_host_dev_irq(C_HIRQ_TMR0)  <=i_tmr_hirq(0);
 i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
 i_host_dev_irq(C_HIRQ_ETH_RX)<=i_host_irq(C_HIRQ_ETH_RX);
 i_host_dev_irq(C_HIRQ_TRCNIK)<='0';--i_host_irq(C_HIRQ_TRCNIK);
-i_host_dev_irq(C_HIRQ_VCH0)  <=i_vctrl_hirq_out(0);
-i_host_dev_irq(C_HIRQ_VCH1)  <=i_vctrl_hirq_out(1);
-i_host_dev_irq(C_HIRQ_VCH2)  <=i_vctrl_hirq_out(2);
+gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
+i_host_dev_irq(C_HIRQ_VCH0 + i)<=i_vctrl_hirq_out(0 + i);
+end generate gen_irq_vch;
 
 
 --//
