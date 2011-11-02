@@ -46,15 +46,15 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 component video_reader
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
 port
 (
@@ -483,9 +483,9 @@ signal p_in_vbufout_full          :   std_logic;                      --//
 
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0):=(others=>'0');
 
-signal h_reg_ctrl                        : std_logic_vector(C_DSN_VCTRL_REG_CTRL_LAST_BIT downto 0);
-signal h_reg_tst0                        : std_logic_vector(C_DSN_VCTRL_REG_TST0_LAST_BIT downto 0);
-signal h_ramcoe_num                      : std_logic_vector(C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_MSB_BIT-C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_LSB_BIT downto 0);
+signal h_reg_ctrl                        : std_logic_vector(C_VCTRL_REG_CTRL_LAST_BIT downto 0);
+signal h_reg_tst0                        : std_logic_vector(C_VCTRL_REG_TST0_LAST_BIT downto 0);
+signal h_ramcoe_num                      : std_logic_vector(C_VCTRL_REG_CTRL_RAMCOE_M_BIT-C_VCTRL_REG_CTRL_RAMCOE_L_BIT downto 0);
 
 signal i_vprm                            : TVctrlParam;
 signal i_rdprm_vch                       : TReaderVCHParams;
@@ -688,14 +688,14 @@ end process;
 
 tst_data_en<=not p_in_memrd_re and p_out_memrd_rd;
 
-gen_vbuf : for i in 0 to C_DSN_VCTRL_VCH_MAX_COUNT-1 generate
+gen_vbuf : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
 begin
 i_vbuf_rd(i)<=(others=>'0');
 end generate gen_vbuf;
 
 
 
-gen_vrdprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
+gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 begin
 i_rdprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
 i_rdprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
@@ -714,15 +714,15 @@ end generate gen_vrdprm;
 --//-----------------------------
 m_video_reader : video_reader
 generic map(
-G_MEM_BANK_MSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT,
-G_MEM_BANK_LSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 
-G_MEM_VCH_MSB_BIT    => C_DSN_VCTRL_MEM_VCH_MSB_BIT,
-G_MEM_VCH_LSB_BIT    => C_DSN_VCTRL_MEM_VCH_LSB_BIT,
-G_MEM_VFRAME_LSB_BIT => C_DSN_VCTRL_MEM_VFRAME_LSB_BIT,
-G_MEM_VFRAME_MSB_BIT => C_DSN_VCTRL_MEM_VFRAME_MSB_BIT,
-G_MEM_VROW_MSB_BIT   => C_DSN_VCTRL_MEM_VLINE_MSB_BIT,
-G_MEM_VROW_LSB_BIT   => C_DSN_VCTRL_MEM_VLINE_LSB_BIT
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
 )
 port map
 (
@@ -895,23 +895,23 @@ p_in_rst           => p_in_rst
 --//-----------------------------
 --//Доступ к BRAM коэфициентов
 i_vscale_coe_adr   <=p_in_cfg_txdata(i_vscale_coe_adr'high downto 0);
-i_vscale_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='1' and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vscale_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                       i_vscale_coe_ram_en='1' else '0';
 
 i_vscale_coe_din<=p_in_cfg_txdata;
-i_vscale_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vscale_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                    i_vscale_coe_ram_en='1' else '0';
 
-i_vscale_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='0' and
+i_vscale_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
                                                       i_vscale_coe_ram_en='1' else '0';
 
-i_vscale_coe_ram_en<='1' when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_SCALE_NUM, h_ramcoe_num'length) else '0';
+i_vscale_coe_ram_en<='1' when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_SCALE, h_ramcoe_num'length) else '0';
 
 i_vscale_pix_count <= i_vreader_active_pix_out when i_vreader_color_out='0' else (i_vreader_active_pix_out(13 downto 0)&"00");
 i_vscale_row_count <= i_vreader_active_row_out;
@@ -979,25 +979,25 @@ i_vpcolor_bypass<=not i_vreader_pcolor_out;
 
 --//Доступ к BRAM коэфициентов
 i_vpcolor_coe_adr   <=p_in_cfg_txdata(i_vpcolor_coe_adr'high downto 0);
-i_vpcolor_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='1' and
-                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vpcolor_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                       h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
+                                       h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                        i_vpcolor_coe_ramnum(2)='1' else '0';
 
 i_vpcolor_coe_din<=p_in_cfg_txdata(15 downto 0);
-i_vpcolor_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                    h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                    h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vpcolor_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                    h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                    h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                     i_vpcolor_coe_ramnum(2)='1' else '0';
 
-i_vpcolor_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='0' and
+i_vpcolor_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                                       h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                                       h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
                                                        i_vpcolor_coe_ramnum(2)='1' else '0';
 
-i_vpcolor_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_P_COLR_NUM, h_ramcoe_num'length) else
-                      "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_P_COLG_NUM, h_ramcoe_num'length) else
-                      "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_P_COLB_NUM, h_ramcoe_num'length) else
+i_vpcolor_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLR, h_ramcoe_num'length) else
+                      "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLG, h_ramcoe_num'length) else
+                      "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLB, h_ramcoe_num'length) else
                       "000";
 
 m_vpcolor : vpcolor_main
@@ -1105,26 +1105,26 @@ i_vgamma_color<=i_vreader_color_out or i_vreader_pcolor_out;
 
 --//Доступ к BRAM коэфициентов
 i_vgamma_coe_adr   <=p_in_cfg_txdata(i_vgamma_coe_adr'high downto 0);
-i_vgamma_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='1' and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vgamma_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                       i_vgamma_coe_ramnum(2)='1' else '0';
 
 i_vgamma_coe_din<=p_in_cfg_txdata(15 downto 0);
-i_vgamma_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vgamma_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                    i_vgamma_coe_ramnum(2)='1' else '0';
 
-i_vgamma_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='0' and
+i_vgamma_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
                                                       i_vgamma_coe_ramnum(2)='1' else '0';
 
-i_vgamma_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_GRAY_NUM, h_ramcoe_num'length) else
-                     "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_COLR_NUM, h_ramcoe_num'length) else
-                     "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_COLG_NUM, h_ramcoe_num'length) else
-                     "111" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_COLB_NUM, h_ramcoe_num'length) else
+i_vgamma_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_GRAY, h_ramcoe_num'length) else
+                     "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLR, h_ramcoe_num'length) else
+                     "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLG, h_ramcoe_num'length) else
+                     "111" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLB, h_ramcoe_num'length) else
                      "000";
 
 
@@ -1244,7 +1244,7 @@ usrcfg.ch.fr_zoom(1 downto 0)<=CONV_STD_LOGIC_VECTOR(16#02#, 2) when usrcfg_zoom
 p_in_cfg_pix_count<="00"&usrcfg.ch.fr_size.activ.pix(usrcfg.ch.fr_size.activ.pix'high downto 2);
 p_in_cfg_row_count<=usrcfg.ch.fr_size.activ.row;
 
-gen_vprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
+gen_vprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 begin
 i_vprm.ch(i).mem_addr_wr    <=usrcfg.ch.mem_addr_wr;
 i_vprm.ch(i).mem_addr_rd    <=usrcfg.ch.mem_addr_rd;

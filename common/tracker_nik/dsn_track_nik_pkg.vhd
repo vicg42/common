@@ -87,14 +87,14 @@ type TTrcNikIP is record
 p1 : std_logic_vector(7 downto 0);
 p2 : std_logic_vector(7 downto 0);
 end record;
-Type TTrcNikIPs is array (0 to C_DSN_TRCNIK_IP_COUNT-1) of TTrcNikIP;
+Type TTrcNikIPs is array (0 to C_TRCNIK_IP_COUNT-1) of TTrcNikIP;
 
 type TTrcNikParam is record
 mem_arbuf : std_logic_vector(31 downto 0);
 opt       : std_logic_vector(15 downto 0);
 ip        : TTrcNikIPs;
 end record;
-Type TTrcNikParams is array (0 to C_DSN_TRCNIK_CH_COUNT-1) of TTrcNikParam;
+Type TTrcNikParams is array (0 to C_TRCNIK_VCH_COUNT-1) of TTrcNikParam;
 
 type TGTrcNikParam is record
 mem_wd_trnlen   : std_logic_vector(7 downto 0);

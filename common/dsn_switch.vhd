@@ -26,8 +26,7 @@ use work.prj_def.all;
 use work.sata_testgen_pkg.all;
 
 entity dsn_switch is
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
 -------------------------------
@@ -139,8 +138,7 @@ end dsn_switch;
 architecture behavioral of dsn_switch is
 
 component host_vbuf
-port
-(
+port(
 din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -160,8 +158,7 @@ rst         : IN  std_logic
 end component;
 
 component host_ethg_txfifo
-port
-(
+port(
 din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -180,8 +177,7 @@ rst         : IN  std_logic
 end component;
 
 component host_ethg_rxfifo
-port
-(
+port(
 din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -198,8 +194,7 @@ rst         : IN  std_logic
 end component;
 
 component ethg_vctrl_rxfifo
-port
-(
+port(
 din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
@@ -219,7 +214,7 @@ rst         : IN  std_logic
 end component;
 
 component hdd_rambuf_infifo
-port (
+port(
 din    : in std_logic_vector(31 downto 0);
 wr_en  : in std_logic;
 wr_clk : in std_logic;
@@ -239,14 +234,13 @@ end component;
 
 component video_pkt_filter
 generic(
-G_FMASK_COUNT   : integer := 3
+G_FRR_COUNT : integer:=3
 );
-port
-(
+port(
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask      : in    TEthFmask;
+p_in_frr        : in    TEthFRR;
 
 --//------------------------------------
 --//Upstream Port
@@ -278,63 +272,62 @@ p_in_rst        : in    std_logic
 );
 end component;
 
-signal i_cfg_adr_cnt                          : std_logic_vector(7 downto 0);
+signal i_cfg_adr_cnt                 : std_logic_vector(7 downto 0);
 
-signal h_reg_ctrl                             : std_logic_vector(C_DSN_SWT_REG_CTRL_LAST_BIT downto 0);
-signal h_reg_tst0                             : std_logic_vector(C_DSN_SWT_REG_TST0_LAST_BIT downto 0);
-signal h_reg_eth_host_fmask                   : TEthFmask;
-signal h_reg_eth_hdd_fmask                    : TEthFmask;
-signal h_reg_eth_vctrl_fmask                  : TEthFmask;
+signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
+signal h_reg_eth_host_frr            : TEthFRR;
+signal h_reg_eth_hdd_frr             : TEthFRR;
+signal h_reg_eth_vctrl_frr           : TEthFRR;
 
-signal b_rst_eth_bufs                         : std_logic;
-signal b_rst_vctrl_bufs                       : std_logic;
-signal b_tstdsn_to_ethtxbuf                   : std_logic;
-signal b_ethtxbuf_to_vbufin                   : std_logic;
-signal b_ethtxbuf_to_hddbuf                   : std_logic;
+signal b_rst_eth_bufs                : std_logic;
+signal b_rst_vctrl_bufs              : std_logic;
+signal b_tstdsn_to_ethtxbuf          : std_logic;
+signal b_ethtxbuf_to_vbufin          : std_logic;
+signal b_ethtxbuf_to_hddbuf          : std_logic;
 
-signal syn_eth_rxd                            : std_logic_vector(31 downto 0);
-signal syn_eth_rxd_wr                         : std_logic;
-signal syn_eth_rxd_sof                        : std_logic;
-signal syn_eth_rxd_eof                        : std_logic;
-signal syn_eth_host_fmask                     : TEthFmask;
-signal syn_eth_hdd_fmask                      : TEthFmask;
-signal syn_eth_vctrl_fmask                    : TEthFmask;
+signal syn_eth_rxd                   : std_logic_vector(31 downto 0);
+signal syn_eth_rxd_wr                : std_logic;
+signal syn_eth_rxd_sof               : std_logic;
+signal syn_eth_rxd_eof               : std_logic;
+signal syn_eth_host_frr              : TEthFRR;
+signal syn_eth_hdd_frr               : TEthFRR;
+signal syn_eth_vctrl_frr             : TEthFRR;
 
-signal i_hdd_vbuf_rst                         : std_logic;
-signal i_hdd_vbuf_fltr_dout                   : std_logic_vector(31 downto 0);
-signal i_hdd_vbuf_fltr_den                    : std_logic;
-signal i_hdd_vbuf_din                         : std_logic_vector(31 downto 0);
-signal i_hdd_vbuf_wr                          : std_logic;
+signal i_hdd_vbuf_rst                : std_logic;
+signal i_hdd_vbuf_fltr_dout          : std_logic_vector(31 downto 0);
+signal i_hdd_vbuf_fltr_den           : std_logic;
+signal i_hdd_vbuf_din                : std_logic_vector(31 downto 0);
+signal i_hdd_vbuf_wr                 : std_logic;
 
-signal i_eth_txbuf_din                        : std_logic_vector(31 downto 0);
-signal i_eth_txbuf_wr                         : std_logic;
-signal i_eth_txbuf_dout                       : std_logic_vector(31 downto 0);
-signal i_eth_txbuf_rd                         : std_logic;
-signal i_eth_txbuf_empty                      : std_logic;
+signal i_eth_txbuf_din               : std_logic_vector(31 downto 0);
+signal i_eth_txbuf_wr                : std_logic;
+signal i_eth_txbuf_dout              : std_logic_vector(31 downto 0);
+signal i_eth_txbuf_rd                : std_logic;
+signal i_eth_txbuf_empty             : std_logic;
 
-signal i_eth_rxbuf_din                        : std_logic_vector(31 downto 0);
-signal i_eth_rxbuf_wr                         : std_logic;
-signal i_eth_rxbuf_empty                      : std_logic;
-signal i_eth_rxd_rdy                          : std_logic;
-signal i_eth_rxd_rdy_dly                      : std_logic_vector(2 downto 0);
-signal i_eth_rxbuf_fltr_dout                  : std_logic_vector(31 downto 0);
-signal i_eth_rxbuf_fltr_den                   : std_logic;
-signal i_eth_rxbuf_fltr_eof                   : std_logic;
-signal eclk_eth_rxd_rdy_w                     : std_logic;
-signal eclk_eth_rxd_rdy_wcnt                  : std_logic_vector(2 downto 0);
-signal hclk_eth_rxd_rdy                       : std_logic;
+signal i_eth_rxbuf_din               : std_logic_vector(31 downto 0);
+signal i_eth_rxbuf_wr                : std_logic;
+signal i_eth_rxbuf_empty             : std_logic;
+signal i_eth_rxd_rdy                 : std_logic;
+signal i_eth_rxd_rdy_dly             : std_logic_vector(2 downto 0);
+signal i_eth_rxbuf_fltr_dout         : std_logic_vector(31 downto 0);
+signal i_eth_rxbuf_fltr_den          : std_logic;
+signal i_eth_rxbuf_fltr_eof          : std_logic;
+signal eclk_eth_rxd_rdy_w            : std_logic;
+signal eclk_eth_rxd_rdy_wcnt         : std_logic_vector(2 downto 0);
+signal hclk_eth_rxd_rdy              : std_logic;
 
-signal i_vctrl_vbufin_fltr_dout               : std_logic_vector(31 downto 0);
-signal i_vctrl_vbufin_fltr_den                : std_logic;
-signal i_vctrl_vbufin_din                     : std_logic_vector(31 downto 0);
-signal i_vctrl_vbufin_din_wd                  : std_logic;
+signal i_vctrl_vbufin_fltr_dout      : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufin_fltr_den       : std_logic;
+signal i_vctrl_vbufin_din            : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufin_din_wd         : std_logic;
 
-signal i_vctrl_vbufout_empty                  : std_logic;
+signal i_vctrl_vbufout_empty         : std_logic;
 
-signal i_hdd_tst_on,i_hdd_tst_on_tmp          : std_logic;
-signal i_hdd_tst_d                            : std_logic_vector(31 downto 0);
-signal i_hdd_tst_den                          : std_logic;
-signal i_hdd_hw_work                          : std_logic;
+signal i_hdd_tst_on,i_hdd_tst_on_tmp : std_logic;
+signal i_hdd_tst_d                   : std_logic_vector(31 downto 0);
+signal i_hdd_tst_den                 : std_logic;
+signal i_hdd_hw_work                 : std_logic;
 
 
 --MAIN
@@ -373,53 +366,50 @@ process(p_in_rst,p_in_cfg_clk)
 begin
   if p_in_rst='1' then
     h_reg_ctrl<=(others=>'0');
-    h_reg_tst0<=(others=>'0');
 
-    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
-      h_reg_eth_host_fmask(2*i)  <=(others=>'0');
-      h_reg_eth_host_fmask(2*i+1)<=(others=>'0');
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+      h_reg_eth_host_frr(2*i)  <=(others=>'0');
+      h_reg_eth_host_frr(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
-      h_reg_eth_hdd_fmask(2*i)  <=(others=>'0');
-      h_reg_eth_hdd_fmask(2*i+1)<=(others=>'0');
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+      h_reg_eth_hdd_frr(2*i)  <=(others=>'0');
+      h_reg_eth_hdd_frr(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
-      h_reg_eth_vctrl_fmask(2*i)  <=(others=>'0');
-      h_reg_eth_vctrl_fmask(2*i+1)<=(others=>'0');
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+      h_reg_eth_vctrl_frr(2*i)  <=(others=>'0');
+      h_reg_eth_vctrl_frr(2*i+1)<=(others=>'0');
     end loop;
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
-
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Заполняем маски фильтрации пакетов: ETH<->HOST
-          for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
-            if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              h_reg_eth_host_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_eth_host_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              h_reg_eth_host_frr(2*i)  <=p_in_cfg_txdata(7 downto 0);
+              h_reg_eth_host_frr(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Заполняем маски фильтрации пакетов: ETH->HDD
-          for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
-            if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              h_reg_eth_hdd_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_eth_hdd_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              h_reg_eth_hdd_frr(2*i)  <=p_in_cfg_txdata(7 downto 0);
+              h_reg_eth_hdd_frr(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Заполняем маски фильтрации пакетов: ETH->VCTRL
-          for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
-            if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              h_reg_eth_vctrl_fmask(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_eth_vctrl_fmask(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              h_reg_eth_vctrl_frr(2*i)  <=p_in_cfg_txdata(7 downto 0);
+              h_reg_eth_vctrl_frr(2*i+1)<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
@@ -435,34 +425,32 @@ begin
     p_out_cfg_rxdata<=(others=>'0');
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_rd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, p_out_cfg_rxdata'length);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, p_out_cfg_rxdata'length);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=EXT(h_reg_tst0, p_out_cfg_rxdata'length);
-
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HOST/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH<->HOST
-          for i in 0 to C_DSN_SWT_ETHG_HOST_FMASK_COUNT-1 loop
-            if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_host_fmask(2*i);
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_host_fmask(2*i+1);
+          for i in 0 to C_SWT_ETH_HOST_FRR_COUNT-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_host_frr(2*i);
+              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_host_frr(2*i+1);
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_HDD/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH->HDD
-          for i in 0 to C_DSN_SWT_ETHG_HDD_FMASK_COUNT-1 loop
-            if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_fmask(2*i);
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_hdd_fmask(2*i+1);
+          for i in 0 to C_SWT_ETH_HDD_FRR_COUNT-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_frr(2*i);
+              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_hdd_frr(2*i+1);
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_DSN_SWT_FMASK_MAX_COUNT))=CONV_STD_LOGIC_VECTOR(C_DSN_SWT_REG_FMASK_ETHG_VCTRL/C_DSN_SWT_FMASK_MAX_COUNT, (i_cfg_adr_cnt'high - log2(C_DSN_SWT_FMASK_MAX_COUNT)+1)) then
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH->VCTRL
-          for i in 0 to C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT-1 loop
-            if i_cfg_adr_cnt(log2(C_DSN_SWT_FMASK_MAX_COUNT)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_vctrl_fmask(2*i);
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_vctrl_fmask(2*i+1);
+          for i in 0 to C_SWT_ETH_VCTRL_FRR_COUNT-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_vctrl_frr(2*i);
+              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_vctrl_frr(2*i+1);
             end if;
           end loop;
 
@@ -472,12 +460,12 @@ begin
 end process;
 
 
-b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
-b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_DSN_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
+b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
+b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
-b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
-b_ethtxbuf_to_vbufin <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT);
-b_ethtxbuf_to_hddbuf <= h_reg_ctrl(C_DSN_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT);
+b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
+b_ethtxbuf_to_vbufin <= h_reg_ctrl(C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT);
+b_ethtxbuf_to_hddbuf <= h_reg_ctrl(C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT);
 
 
 
@@ -490,19 +478,19 @@ process(p_in_rst,p_in_eth_clk)
 begin
   if p_in_rst='1' then
 
-    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
-      syn_eth_host_fmask(2*i)  <=(others=>'0');
-      syn_eth_host_fmask(2*i+1)<=(others=>'0');
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+      syn_eth_host_frr(2*i)  <=(others=>'0');
+      syn_eth_host_frr(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
-      syn_eth_hdd_fmask(2*i)  <=(others=>'0');
-      syn_eth_hdd_fmask(2*i+1)<=(others=>'0');
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+      syn_eth_hdd_frr(2*i)  <=(others=>'0');
+      syn_eth_hdd_frr(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
-      syn_eth_vctrl_fmask(2*i)  <=(others=>'0');
-      syn_eth_vctrl_fmask(2*i+1)<=(others=>'0');
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+      syn_eth_vctrl_frr(2*i)  <=(others=>'0');
+      syn_eth_vctrl_frr(2*i+1)<=(others=>'0');
     end loop;
 
     syn_eth_rxd<=(others=>'0');
@@ -514,19 +502,19 @@ begin
 
     if p_in_eth_rxd_sof='1' then
 
-      for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HOST_FMASK_COUNT)-1 loop
-        syn_eth_host_fmask(2*i)  <= h_reg_eth_host_fmask(2*i);
-        syn_eth_host_fmask(2*i+1)<= h_reg_eth_host_fmask(2*i+1);
+      for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+        syn_eth_host_frr(2*i)  <= h_reg_eth_host_frr(2*i);
+        syn_eth_host_frr(2*i+1)<= h_reg_eth_host_frr(2*i+1);
       end loop;
 
-      for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_HDD_FMASK_COUNT)-1 loop
-        syn_eth_hdd_fmask(2*i)  <= h_reg_eth_hdd_fmask(2*i);
-        syn_eth_hdd_fmask(2*i+1)<= h_reg_eth_hdd_fmask(2*i+1);
+      for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+        syn_eth_hdd_frr(2*i)  <= h_reg_eth_hdd_frr(2*i);
+        syn_eth_hdd_frr(2*i+1)<= h_reg_eth_hdd_frr(2*i+1);
       end loop;
 
-      for i in 0 to C_DSN_SWT_GET_FMASK_REG_COUNT(C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT)-1 loop
-        syn_eth_vctrl_fmask(2*i)  <= h_reg_eth_vctrl_fmask(2*i);
-        syn_eth_vctrl_fmask(2*i+1)<= h_reg_eth_vctrl_fmask(2*i+1);
+      for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+        syn_eth_vctrl_frr(2*i)  <= h_reg_eth_vctrl_frr(2*i);
+        syn_eth_vctrl_frr(2*i+1)<= h_reg_eth_vctrl_frr(2*i+1);
       end loop;
 
     end if;
@@ -563,8 +551,7 @@ p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
 --//Буфер TXDATA для модуля dsn_ethg.vhd
 --//----------------------------------
 m_eth_txbuf : host_ethg_txfifo
-port map
-(
+port map(
 din     => i_eth_txbuf_din,
 wr_en   => i_eth_txbuf_wr,
 wr_clk  => p_in_host_clk,
@@ -599,14 +586,13 @@ p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 --//Фильтер пакетов от модуля dsn_ethg.vhd
 m_host_eth_pkt_fltr: video_pkt_filter
 generic map(
-G_FMASK_COUNT   => C_DSN_SWT_ETHG_HOST_FMASK_COUNT
+G_FRR_COUNT => C_SWT_ETH_HOST_FRR_COUNT
 )
-port map
-(
+port map(
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask      => syn_eth_host_fmask,
+p_in_frr        => syn_eth_host_frr,
 
 --//------------------------------------
 --//Upstream Port
@@ -627,7 +613,7 @@ p_out_dwnp_sof  => open,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst        => "00000000000000000000000000000000",
+p_in_tst        => (others=>'0'),
 p_out_tst       => open,
 
 --//------------------------------------
@@ -646,8 +632,7 @@ i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof ;
 --//Буфер RXDATA для модуля dsn_ethg.vhd
 --//----------------------------------
 m_eth_rxbuf : host_ethg_rxfifo
-port map
-(
+port map(
 din     => i_eth_rxbuf_din,
 wr_en   => i_eth_rxbuf_wr,
 wr_clk  => p_in_eth_clk,
@@ -719,14 +704,13 @@ p_out_host_eth_rxd_irq<=hclk_eth_rxd_rdy;
 --//Фильтер пакетов от модуля dsn_ethg.vhd
 m_eth_hdd_pkt_fltr: video_pkt_filter
 generic map(
-G_FMASK_COUNT   => C_DSN_SWT_ETHG_HDD_FMASK_COUNT
+G_FRR_COUNT => C_SWT_ETH_HDD_FRR_COUNT
 )
-port map
-(
+port map(
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask      => syn_eth_hdd_fmask,
+p_in_frr        => syn_eth_hdd_frr,
 
 --//------------------------------------
 --//Upstream Port
@@ -747,7 +731,7 @@ p_out_dwnp_sof  => open,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst        => "00000000000000000000000000000000",
+p_in_tst        => (others=>'0'),
 p_out_tst       => open,
 
 --//------------------------------------
@@ -786,8 +770,7 @@ i_hdd_vbuf_wr <=i_eth_txbuf_rd       when b_ethtxbuf_to_hddbuf='1' else
                 i_hdd_vbuf_fltr_den and i_hdd_hw_work;
 
 m_eth_hdd : hdd_rambuf_infifo
-port map
-(
+port map(
 din       => i_hdd_vbuf_din,
 wr_en     => i_hdd_vbuf_wr,
 wr_clk    => p_in_eth_clk,
@@ -811,14 +794,13 @@ rst       => i_hdd_vbuf_rst
 --//Фильтер пакетов от модуля dsn_ethg.vhd
 m_eth_vbufin_pkt_fltr: video_pkt_filter
 generic map(
-G_FMASK_COUNT   => C_DSN_SWT_ETHG_VCTRL_FMASK_COUNT
+G_FRR_COUNT => C_SWT_ETH_VCTRL_FRR_COUNT
 )
-port map
-(
+port map(
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask      => syn_eth_vctrl_fmask,
+p_in_frr        => syn_eth_vctrl_frr,
 
 --//------------------------------------
 --//Upstream Port
@@ -839,7 +821,7 @@ p_out_dwnp_sof  => open,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst        => "00000000000000000000000000000000",
+p_in_tst        => (others=>'0'),
 p_out_tst       => open,
 
 --//------------------------------------
@@ -858,8 +840,7 @@ i_vctrl_vbufin_din_wd <=i_vctrl_vbufin_fltr_den  when b_ethtxbuf_to_vbufin='0' e
 --//Входной буфер для модуля dsn_video_ctrl.vhd
 --//----------------------------------
 m_vctrl_vbufin : ethg_vctrl_rxfifo
-port map
-(
+port map(
 din         => i_vctrl_vbufin_din,
 wr_en       => i_vctrl_vbufin_din_wd,
 wr_clk      => p_in_eth_clk,
@@ -879,8 +860,7 @@ rst         => b_rst_vctrl_bufs
 --//Выходной буфер для модуля dsn_video_ctrl.vhd
 --//----------------------------------
 m_vctrl_vbufout : host_vbuf
-port map
-(
+port map(
 din         => p_in_vctrl_vbufout_din,
 wr_en       => p_in_vctrl_vbufout_wr,
 wr_clk      => p_in_vctrl_clk,

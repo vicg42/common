@@ -33,18 +33,17 @@ use work.dsn_video_ctrl_pkg.all;
 
 entity video_reader is
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -122,8 +121,7 @@ architecture behavioral of video_reader is
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
-type fsm_state is
-(
+type fsm_state is (
 S_IDLE,
 S_LD_PRMS,
 S_ROW_FINED0,
@@ -152,12 +150,12 @@ signal i_vfr_pcolor                  : std_logic;
 signal i_vfr_color                   : std_logic;
 signal i_vfr_color_fst               : std_logic_vector(1 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
-signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
+signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFR_L_BIT-G_MEM_VLINE_L_BIT downto 0);
 signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
-signal i_vfr_buf                     : std_logic_vector(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT downto 0);
+signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
 
 --signal tst_dbg_rdTBUF                : std_logic;
 --signal tst_dbg_rdEBUF                : std_logic;
@@ -197,8 +195,8 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
 --
---tst_dbg_rdTBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
---tst_dbg_rdEBUF<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
+--tst_dbg_rdTBUF<=p_in_tst(C_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
+--tst_dbg_rdEBUF<=p_in_tst(C_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
 
 
 --//----------------------------------------------
@@ -283,7 +281,7 @@ begin
       when S_LD_PRMS =>
 
         --//Загрузка праметров Видео канала
-        for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+        for i in 0 to C_VCTRL_VCH_COUNT-1 loop
           if i_vch_num=i then
 
             --//--------------------------
@@ -372,10 +370,10 @@ begin
       --//------------------------------------
       when S_MEM_SET_ADR =>
 
-        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_MSB_BIT+1)<=(others=>'0');
-        i_mem_ptr(G_MEM_VCH_MSB_BIT downto G_MEM_VCH_LSB_BIT)<=i_vch_num(G_MEM_VCH_MSB_BIT-G_MEM_VCH_LSB_BIT downto 0);
-        i_mem_ptr(G_MEM_VFRAME_MSB_BIT downto G_MEM_VFRAME_LSB_BIT)<=i_vfr_buf;
-        i_mem_ptr(G_MEM_VROW_MSB_BIT downto G_MEM_VROW_LSB_BIT)<=i_vfr_row_cnt(G_MEM_VROW_MSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
+        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
+        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
+        i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
+        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row_cnt(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT downto 0);
 
         fsm_state_cs <= S_MEM_START;
 
@@ -444,8 +442,8 @@ end process;
 --//------------------------------------------------------
 m_mem_ctrl_wr : memory_ctrl_ch_wr
 generic map(
-G_MEM_BANK_MSB_BIT   => G_MEM_BANK_MSB_BIT,
-G_MEM_BANK_LSB_BIT   => G_MEM_BANK_LSB_BIT
+G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT
 )
 port map
 (

@@ -58,8 +58,7 @@ generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --//”правление
 p_in_gctrl             : in    std_logic_vector(31 downto 0);
 
@@ -113,8 +112,7 @@ generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --//------------------------------------
 --//”правление
 --//------------------------------------
@@ -166,8 +164,7 @@ generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --//------------------------------------
 --//”правление
 --//------------------------------------
@@ -208,8 +205,7 @@ end component;
 
 
 component emac_core_main
-port
-(
+port(
 --//------------------------------------
 --//EMAC - Channel 0
 --//------------------------------------

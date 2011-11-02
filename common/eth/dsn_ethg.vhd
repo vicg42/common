@@ -208,7 +208,6 @@ end component;
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
 signal h_reg_ctrl                        : std_logic_vector(15 downto 0);
-signal h_reg_tst0                        : std_logic_vector(15 downto 0);
 signal h_reg_eth_cfg                     : TEthCfg;
 
 signal i_eth_gctrl                       : std_logic_vector(31 downto 0);
@@ -263,7 +262,6 @@ process(p_in_cfg_rst,p_in_cfg_clk)
 begin
   if p_in_cfg_rst='1' then
     h_reg_ctrl<=(others=>'0');
-    h_reg_tst0<=(others=>'0');
 
     h_reg_eth_cfg.usrctrl<=(others=>'0');
     for i in 0 to h_reg_eth_cfg.mac.dst'high loop
@@ -274,26 +272,25 @@ begin
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_CTRL_L, i_cfg_adr_cnt'length)     then h_reg_ctrl<=p_in_cfg_txdata;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_TST0, i_cfg_adr_cnt'length)       then h_reg_tst0<=p_in_cfg_txdata;
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_USRCTRL, i_cfg_adr_cnt'length)then h_reg_eth_cfg.usrctrl<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_USRCTRL, i_cfg_adr_cnt'length)then h_reg_eth_cfg.usrctrl<=p_in_cfg_txdata;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(0)<=p_in_cfg_txdata(7 downto 0);
-                                                                                                        h_reg_eth_cfg.mac.dst(1)<=p_in_cfg_txdata(15 downto 8);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(2)<=p_in_cfg_txdata(7 downto 0);
-                                                                                                        h_reg_eth_cfg.mac.dst(3)<=p_in_cfg_txdata(15 downto 8);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN2, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(4)<=p_in_cfg_txdata(7 downto 0);
-                                                                                                        h_reg_eth_cfg.mac.dst(5)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(0)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                   h_reg_eth_cfg.mac.dst(1)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(2)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                   h_reg_eth_cfg.mac.dst(3)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN2, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(4)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                   h_reg_eth_cfg.mac.dst(5)<=p_in_cfg_txdata(15 downto 8);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN3, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(0)<=p_in_cfg_txdata(7 downto 0);
-                                                                                                        h_reg_eth_cfg.mac.src(1)<=p_in_cfg_txdata(15 downto 8);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN4, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(2)<=p_in_cfg_txdata(7 downto 0);
-                                                                                                        h_reg_eth_cfg.mac.src(3)<=p_in_cfg_txdata(15 downto 8);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(4)<=p_in_cfg_txdata(7 downto 0);
-                                                                                                        h_reg_eth_cfg.mac.src(5)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN3, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(0)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                   h_reg_eth_cfg.mac.src(1)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN4, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(2)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                   h_reg_eth_cfg.mac.src(3)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(4)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                   h_reg_eth_cfg.mac.src(5)<=p_in_cfg_txdata(15 downto 8);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.lentype<=p_in_cfg_txdata(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.lentype<=p_in_cfg_txdata(15 downto 0);
 
         end if;
     end if;
@@ -307,26 +304,25 @@ begin
     p_out_cfg_rxdata<=(others=>'0');
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_rd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_CTRL_L, i_cfg_adr_cnt'length)     then p_out_cfg_rxdata<=h_reg_ctrl;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_TST0, i_cfg_adr_cnt'length)       then p_out_cfg_rxdata<=h_reg_tst0;
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_ctrl;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_USRCTRL, i_cfg_adr_cnt'length)then p_out_cfg_rxdata<=h_reg_eth_cfg.usrctrl;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_USRCTRL, i_cfg_adr_cnt'length)then p_out_cfg_rxdata<=h_reg_eth_cfg.usrctrl;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(0);
-                                                                                                        p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(1);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(2);
-                                                                                                        p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(3);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN2, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(4);
-                                                                                                        p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(5);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(0);
+                                                                                                   p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(1);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(2);
+                                                                                                   p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(3);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN2, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(4);
+                                                                                                   p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(5);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN3, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(0);
-                                                                                                        p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(1);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN4, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(2);
-                                                                                                        p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(3);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(4);
-                                                                                                        p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(5);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN3, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(0);
+                                                                                                   p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(1);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN4, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(2);
+                                                                                                   p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(3);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(4);
+                                                                                                   p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(5);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_ETHG_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=h_reg_eth_cfg.mac.lentype;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=h_reg_eth_cfg.mac.lentype;
 
         end if;
     end if;
@@ -341,7 +337,7 @@ p_out_eth_rdy        <=i_eth_gt_plllkdet;--//Модуль готов к работе
 p_out_eth_error      <=p_in_sfp_sd;      --//Carrier detect - Есть связь.
 p_out_eth_gt_plllkdet<=i_eth_gt_plllkdet;
 
-p_out_sfp_tx_dis <= h_reg_ctrl(C_DSN_ETHG_REG_CTRL_SFP_TX_DISABLE_BIT);
+p_out_sfp_tx_dis <= h_reg_ctrl(C_ETH_REG_CTRL_SFP_TX_DISABLE_BIT);
 
 
 

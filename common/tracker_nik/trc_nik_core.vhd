@@ -60,8 +60,7 @@ entity trc_nik_core is
 generic(
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -112,7 +111,7 @@ end trc_nik_core;
 architecture behavioral of trc_nik_core is
 
 component vmirx_main
-port (
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -156,8 +155,7 @@ generic(
 G_DOUT_WIDTH : integer:=32;
 G_SIM        : string :="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -200,8 +198,7 @@ generic(
 G_DWIDTH : integer:=32;
 G_SIM    : string :="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -241,8 +238,7 @@ generic(
 G_DOUT_WIDTH : integer:=32;
 G_SIM        : string :="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -295,8 +291,7 @@ generic(
 G_USE_WDATIN : integer:=32;
 G_SIM        : string :="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -342,7 +337,7 @@ p_in_rst         : in    std_logic
 end component;
 
 component trc_nik_vbuf
-port (
+port(
 addra : in   std_logic_vector(9 downto 0);
 dina  : in   std_logic_vector(23 downto 0);
 douta : out  std_logic_vector(23 downto 0);
@@ -396,8 +391,7 @@ signal i_val_pix_out                 : std_logic_vector((8*4)-1 downto 0);
 signal i_val_grado_out               : std_logic_vector((8*4)-1 downto 0);
 signal i_val_en_out                  : std_logic;
 
-type fsmvbuf_state is
-(
+type fsmvbuf_state is (
 S_TRC_IDLE,
 S_TRC_WVBUF,
 S_TRC_IP_SET,
@@ -443,7 +437,7 @@ signal i_nik_ebout_num               : std_logic_vector(log2(CNIK_EBOUT_COUNT_MA
 signal i_nik_ebout_num_max           : std_logic_vector(log2(CNIK_EBOUT_COUNT_MAX)-1 downto 0);
 signal i_nik_ebcntx                  : std_logic_vector(log2(CNIK_EBKT_LENX)-1 downto 0);
 signal i_nik_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)-1 downto 0);
-signal i_nik_ip_count                : std_logic_vector(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT downto 0);
+signal i_nik_ip_count                : std_logic_vector(C_TRCNIK_REG_OPT_IP_M_BIT-C_TRCNIK_REG_OPT_IP_L_BIT downto 0);
 signal i_nik_ipcnt                   : std_logic_vector(i_nik_ip_count'range);
 signal i_nik_ebkt_idx                : std_logic_vector((log2(CNIK_EBKT_LENY) + log2(CNIK_EBKT_LENX))-1 downto 0);
 signal i_nik_elcnt                   : std_logic_vector(8 downto 0);--//Счетчик ЭС
@@ -522,7 +516,7 @@ p_out_mem_din_rdy_n <='0';
 
 p_out_hirq <='0';
 
-i_nik_ip_count<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT);
+i_nik_ip_count<=p_in_prm_trc.opt(C_TRCNIK_REG_OPT_IP_M_BIT downto C_TRCNIK_REG_OPT_IP_L_BIT);
 
 i_nik_elcnt_max<=p_in_prm_vch.fr_size.activ.row(i_nik_elcnt_max'length+2-1 downto 2);--//Кол-во элементарных строк ЭС
 i_nik_ebcnt_max<=p_in_prm_vch.fr_size.activ.pix(i_nik_ebcnt_max'length-1 downto 0);  --//Кол-во элементарных блоков ЭБ в одной ЭС
@@ -531,8 +525,8 @@ i_trccore_start<=p_in_ctrl.start;
 i_trccore_fr_new<=p_in_ctrl.fr_new;
 i_trccore_memwd_done<=p_in_ctrl.mem_done;
 
-i_vsobel_ctrl(0)<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT);
-i_vsobel_ctrl(1)<=p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT);
+i_vsobel_ctrl(0)<=p_in_prm_trc.opt(C_TRCNIK_REG_OPT_SOBEL_CTRL_MULT_BIT);
+i_vsobel_ctrl(1)<=p_in_prm_trc.opt(C_TRCNIK_REG_OPT_SOBEL_CTRL_DIV_BIT);
 
 
 
@@ -552,7 +546,7 @@ p_out_ebout<=i_ebout_out;
 --//Модуль отзеркаливания по Х
 --//-----------------------------
 m_vmirx : vmirx_main
-port map (
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -600,7 +594,7 @@ generic map(
 G_DOUT_WIDTH => C_DWIDTH,
 G_SIM        => G_SIM
 )
-port map (
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -646,8 +640,7 @@ generic map(
 G_DWIDTH => C_DWIDTH,
 G_SIM    => G_SIM
 )
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -732,12 +725,11 @@ end generate gen_dw8;
 --//Модуль Выделения контура.
 --//-----------------------------
 m_vsobel : vsobel_main
-generic map (
+generic map(
 G_DOUT_WIDTH => 8,
 G_SIM        => G_SIM
 )
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -791,12 +783,11 @@ generic map(
 G_USE_WDATIN => 8,
 G_SIM        => G_SIM
 )
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
-p_in_ctrl        => p_in_prm_trc.opt(C_DSN_TRCNIK_REG_OPT_ANG_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_ANG_LSB_BIT),
+p_in_ctrl        => p_in_prm_trc.opt(C_TRCNIK_REG_OPT_ANG_M_BIT downto C_TRCNIK_REG_OPT_ANG_L_BIT),
 
 --//--------------------------
 --//Upstream Port (входные данные)
@@ -889,7 +880,7 @@ begin
             i_nik_elcnt<=(others=>'0');
 
             --//Назначаем кол-во ЭБ записываемых в выходной буфер, в зависимости от кол-во пороговых интервалов
-            for i in 1 to C_DSN_TRCNIK_IP_COUNT loop
+            for i in 1 to C_TRCNIK_IP_COUNT loop
               if i_nik_ip_count=i then
                 i_nik_ebout_num_max <= CONV_STD_LOGIC_VECTOR(CNIK_EBOUT_COUNT(i)-1, i_nik_ebout_num_max'length);
               end if;
@@ -946,7 +937,7 @@ begin
         --//------------------------------------
         when S_TRC_IP_SET =>
 
-          for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
+          for i in 0 to C_TRCNIK_IP_COUNT-1 loop
             if i_nik_ipcnt=i then
               i_nik_ip<=p_in_prm_trc.ip(i);
             end if;
@@ -1095,7 +1086,6 @@ i_vbufrow_adrb(i_vbufrow_adrb'high downto i_nik_ebcntx'length)<=i_vbufrow_adr(i_
 
 --//Промежуточные буфера:
 gen_buf : for i in 0 to CNIK_EBKT_LENY-1 generate
-begin
 
 --//Запись элементарной строки(ЭС):
 i_vbufrow_ena(i)<=i_val_en_out when i_nik_ebcnty=i else '0';
@@ -1290,7 +1280,7 @@ begin
 end process;
 
 gen : for i in 0 to CNIK_EBOUT_COUNT_MAX-1 generate
-begin
+
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -1345,7 +1335,7 @@ begin
           --//
           --//где xxx - соответствующее значение счетчика для ЭБ(n);ИП(n)
           --//
-          for c in 1 to C_DSN_TRCNIK_IP_COUNT loop
+          for c in 1 to C_TRCNIK_IP_COUNT loop
             if i_nik_ip_count=c then
                 for p in 0 to c-1 loop --//кол-во используемых ИП
                     for b in 0 to 3 loop --//кол-во байт в 1DWORD

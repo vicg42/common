@@ -335,8 +335,8 @@ p_out_mwr_count         <=EXT(i_mwr_count_result, p_out_mwr_count'length);   --/
 p_out_mwr_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mwr_tlp_tc'length);
 p_out_mwr_64b           <='0';--//1/0 - 64b/32b
 p_out_mwr_phant_func_en1<='0';
-p_out_mwr_relaxed_order <=v_reg_pcie(C_HREG_PCIE_DMA_WD_RELEX_ORDER_BIT);
-p_out_mwr_nosnoop       <=v_reg_pcie(C_HREG_PCIE_DMA_WD_NOSNOOP_BIT);
+p_out_mwr_relaxed_order <='0';--v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
+p_out_mwr_nosnoop       <='0';--v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
 p_out_mwr_tag           <=CONV_STD_LOGIC_VECTOR(16#00#, p_out_mwr_tag'length);
 p_out_mwr_fbe           <=i_mwr_fbe;
 p_out_mwr_lbe           <=i_mwr_lbe;
@@ -351,16 +351,16 @@ p_out_mrd_count         <=EXT(i_mrd_count_result, p_out_mrd_count'length);   --/
 p_out_mrd_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_tlp_tc'length);
 p_out_mrd_64b           <='0';--//1/0 - 64b/32b
 p_out_mrd_phant_func_en1<='0';
-p_out_mrd_relaxed_order <=v_reg_pcie(C_HREG_PCIE_DMA_RD_RELEX_ORDER_BIT);
-p_out_mrd_nosnoop       <=v_reg_pcie(C_HREG_PCIE_DMA_RD_NOSNOOP_BIT);
+p_out_mrd_relaxed_order <='0';--v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
+p_out_mrd_nosnoop       <='0';--v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
 p_out_mrd_tag           <=CONV_STD_LOGIC_VECTOR(16#00#, p_out_mrd_tag'length);
 p_out_mrd_fbe           <=i_mrd_fbe;
 p_out_mrd_lbe           <=i_mrd_lbe;
 
 
-p_out_cpl_streaming     <=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);--//1/0 - рапрещено/разрешено
-p_out_rd_metering       <=v_reg_pcie(C_HREG_PCIE_METRING_BIT);      --//0/1 - запрещено/разрешено
-p_out_trn_rnp_ok_n      <=v_reg_pcie(C_HREG_PCIE_TRN_RNP_OK_BIT);   --//сигнализация ядру. '0'/'1' - user_app - готов/не готов принимать non-posted транзакции
+p_out_cpl_streaming     <=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_WBIT);--//1/0 - рапрещено/разрешено
+p_out_rd_metering       <=v_reg_pcie(C_HREG_PCIE_METRING_WBIT);      --//0/1 - запрещено/разрешено
+p_out_trn_rnp_ok_n      <='0';--v_reg_pcie(C_HREG_PCIE_TRN_RNP_OK_BIT);   --//сигнализация ядру. '0'/'1' - user_app - готов/не готов принимать non-posted транзакции
                                                                               --//Если '1', то ядро может принимать только posetd и completion транзакции
 
 --//-------------------------------------------------------
@@ -758,18 +758,15 @@ begin
             txd(C_HREG_PCIE_REQ_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_REQ_MAX_PAYLOAD_L_BIT):=p_in_cfg_cap_max_payload_size(2 downto 0);
             txd(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT):=p_in_cfg_prg_max_payload_size(2 downto 0);
             txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)  :=p_in_cfg_prg_max_rd_req_size(2 downto 0);
-            txd(C_HREG_PCIE_MSI_EN_BIT)            :=p_in_cfg_msi_enable;
-            txd(C_HREG_PCIE_PHANT_FUNC_BIT)        :=p_in_cfg_phant_func_en;
-            txd(C_HREG_PCIE_NOSNOOP_BIT)           :=p_in_cfg_no_snoop_en;
-            txd(C_HREG_PCIE_CPLD_MALFORMED_BIT)    :=p_in_cpld_malformed;
-            txd(C_HREG_PCIE_TAG_EXT_EN_BIT)        :=p_in_cfg_ext_tag_en;
+            txd(C_HREG_PCIE_PHANT_FUNC_RBIT)     :=p_in_cfg_phant_func_en;
+            txd(C_HREG_PCIE_TAG_EXT_EN_RBIT)     :=p_in_cfg_ext_tag_en;
+            txd(C_HREG_PCIE_NOSNOOP_RBIT)        :=p_in_cfg_no_snoop_en;
+            txd(C_HREG_PCIE_CPLD_MALFORMED_RBIT) :=p_in_cpld_malformed;
 
-            txd(C_HREG_PCIE_CPL_STREAMING_BIT)     :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);
-            txd(C_HREG_PCIE_METRING_BIT)           :=v_reg_pcie(C_HREG_PCIE_METRING_BIT);
-            txd(C_HREG_PCIE_TRN_RNP_OK_BIT)        :=v_reg_pcie(C_HREG_PCIE_TRN_RNP_OK_BIT);
-            txd(C_HREG_PCIE_DMA_RD_RELEX_ORDER_BIT):=v_reg_pcie(C_HREG_PCIE_DMA_RD_RELEX_ORDER_BIT);
-            txd(C_HREG_PCIE_DMA_WD_RELEX_ORDER_BIT):=v_reg_pcie(C_HREG_PCIE_DMA_WD_RELEX_ORDER_BIT);
-            txd(C_HREG_PCIE_DMA_WD_NOSNOOP_BIT)    :=v_reg_pcie(C_HREG_PCIE_DMA_WD_NOSNOOP_BIT);
+            txd(C_HREG_PCIE_CPL_STREAMING_WBIT)  :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_WBIT);
+            txd(C_HREG_PCIE_METRING_WBIT)        :=v_reg_pcie(C_HREG_PCIE_METRING_WBIT);
+--            txd(C_HREG_PCIE_DMA_NOSNOOP_WBIT)    :=v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
+--            txd(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT):=v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_MEM_ADR, 5) then
             txd:=EXT(v_reg_mem_adr, txd'length);
@@ -1144,7 +1141,7 @@ p_out_usr_tst(108 downto 101)<=p_in_irq_status(7 downto 0);--//Status IRQx
 p_out_usr_tst(116 downto 109)<=i_irq_set(7 downto 0);--//Set    IRQx
 p_out_usr_tst(117)           <=i_dma_mwr_done and sr_dmatrn_mwr_done;
 p_out_usr_tst(118)           <=i_dma_mrd_done and sr_dmatrn_mrd_done;
-p_out_usr_tst(119)           <=v_reg_pcie(C_HREG_PCIE_MSI_EN_BIT);
+p_out_usr_tst(119)           <='0';
 p_out_usr_tst(120)           <=p_in_cfg_msi_enable;
 p_out_usr_tst(121)           <=p_in_cfg_irq_disable;
 p_out_usr_tst(122)           <='0';

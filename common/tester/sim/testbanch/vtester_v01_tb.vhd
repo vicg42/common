@@ -200,34 +200,34 @@ mnl_reg_row <=CONV_STD_LOGIC_VECTOR(10#04#, mnl_reg_row'length);
 mnl_reg_row_dly <=CONV_STD_LOGIC_VECTOR(10#02#, mnl_reg_row_dly'length);
 mnl_reg_fr_dly  <=CONV_STD_LOGIC_VECTOR(10#01#, mnl_reg_fr_dly'length);
 
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_STREAM, (C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1));
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_START_BIT)<='1';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRTXD_2DW_CNT_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_GRAY_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_SET_MNL_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_CH_AUTO_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_CH_LSB_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_CH_MSB_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_DIAGONAL_BIT)<='0';
-mnl_reg_ctrl_l_start(C_DSN_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT)<='0';
-mnl_reg_ctrl_l_start(15 downto C_DSN_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT+1)<=(others=>'0');
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT)<=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_STREAM, (C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1));
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_START_BIT)<='1';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRTXD_2DW_CNT_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_GRAY_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_SET_MNL_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_CH_AUTO_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_CH_LSB_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_CH_MSB_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_DIAGONAL_BIT)<='0';
+mnl_reg_ctrl_l_start(C_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT)<='0';
+mnl_reg_ctrl_l_start(15 downto C_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT+1)<=(others=>'0');
 
 
-mnl_reg_ctrl_l_stop(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT)<=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_STREAM, (C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1));
-mnl_reg_ctrl_l_stop(C_DSN_TSTING_REG_CTRL_START_BIT)<='0';
-mnl_reg_ctrl_l_stop(15 downto C_DSN_TSTING_REG_CTRL_START_BIT+1)<=(others=>'0');
+mnl_reg_ctrl_l_stop(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT)<=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_STREAM, (C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1));
+mnl_reg_ctrl_l_stop(C_TSTING_REG_CTRL_START_BIT)<='0';
+mnl_reg_ctrl_l_stop(15 downto C_TSTING_REG_CTRL_START_BIT+1)<=(others=>'0');
 
 mnl_reg_ctrl_m<=(others=>'0');
 
 
 mnl_cfg_adr    <=CONV_STD_LOGIC_VECTOR(16#FF#, mnl_cfg_adr'length),
-                 CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_PIX, mnl_cfg_adr'length) after 2.00 us,
+                 CONV_STD_LOGIC_VECTOR(C_TSTING_REG_PIX, mnl_cfg_adr'length) after 2.00 us,
 
-                 CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_ROW_SEND_TIME_DLY, mnl_cfg_adr'length) after 2.500 us,
+                 CONV_STD_LOGIC_VECTOR(C_TSTING_REG_ROW_SEND_TIME_DLY, mnl_cfg_adr'length) after 2.500 us,
 
-                 CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_CTRL_L, mnl_cfg_adr'length) after 3.3 us,
+                 CONV_STD_LOGIC_VECTOR(C_TSTING_REG_CTRL_L, mnl_cfg_adr'length) after 3.3 us,
 
-                 CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_CTRL_L, mnl_cfg_adr'length) after 8 us;
+                 CONV_STD_LOGIC_VECTOR(C_TSTING_REG_CTRL_L, mnl_cfg_adr'length) after 8 us;
 
 
 mnl_cfg_adr_ld <='0',

@@ -25,7 +25,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
---use work.prj_def.all;
 use work.eth_pkg.all;
 
 entity eth_tx is
@@ -33,8 +32,7 @@ generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --//------------------------------------
 --//”правление
 --//------------------------------------
@@ -73,8 +71,7 @@ end eth_tx;
 
 architecture behavioral of eth_tx is
 
-type TEth_fsm_tx is
-(
+type TEth_fsm_tx is (
 S_IDLE,
 S_TX_MACA_DST0,
 S_TX_MACA_DST1,

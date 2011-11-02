@@ -31,21 +31,20 @@ package vereskm_pkg is
 
 component dsn_track_nik
 generic(
-G_SIM                : string:="OFF";
-G_MODULE_USE         : string:="ON";
+G_SIM             : string:="OFF";
+G_MODULE_USE      : string:="ON";
 
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Управление от Хоста
 -------------------------------
@@ -75,13 +74,13 @@ p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
 p_in_trc_bufo_rd     : in    std_logic;
 p_out_trc_bufo_empty : out   std_logic;
 
-p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_trc_busy       : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
 p_in_vctrl_vrdprms   : in    TReaderVCHParams;
-p_in_vctrl_vfrrdy    : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_vctrl_vfrrdy    : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_in_vctrl_vbuf      : in    TVfrBufs;
 p_in_vctrl_vrowmrk   : in    TVMrks;
 
@@ -125,21 +124,20 @@ end component;
 
 component dsn_track
 generic(
-G_SIM                : string:="OFF";
-G_MODULE_USE         : string:="ON";
+G_SIM             : string:="OFF";
+G_MODULE_USE      : string:="ON";
 
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Управление от Хоста
 -------------------------------
@@ -169,13 +167,13 @@ p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
 p_in_trc_bufo_rd     : in    std_logic;
 p_out_trc_bufo_empty : out   std_logic;
 
-p_out_trc_busy       : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_trc_busy       : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
 p_in_vctrl_vrdprms   : in    TReaderVCHParams;
-p_in_vctrl_vfrrdy    : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_vctrl_vfrrdy    : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_in_vctrl_vbuf      : in    TVfrBufs;
 p_in_vctrl_vrowmrk   : in    TVMrks;
 
@@ -218,15 +216,13 @@ p_in_rst             : in    std_logic
 end component;
 
 component dsn_hdd_rambuf is
-generic
-(
-G_MODULE_USE           : string:="ON";
-G_RAMBUF_SIZE          : integer:=23;
-G_DBGCS                : string:="OFF";
-G_SIM                  : string:="OFF"
+generic(
+G_MODULE_USE  : string:="ON";
+G_RAMBUF_SIZE : integer:=23;
+G_DBGCS       : string:="OFF";
+G_SIM         : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -297,14 +293,12 @@ p_in_rst              : in    std_logic
 end component;
 
 component dsn_host
-generic
-(
+generic(
 G_DBG      : string:="OFF";
 G_SIM_HOST : string:="OFF";
 G_SIM_PCIE : std_logic:='0'
 );
-port
-(
+port(
 --------------------------------------------------
 -- Связь с хостом по Local bus
 --------------------------------------------------
@@ -380,8 +374,7 @@ p_in_rst_n          : in    std_logic
 end component;
 
 component dsn_timer
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
 -------------------------------
@@ -406,7 +399,7 @@ p_in_tmr_clk          : in   std_logic;
 p_out_tmr_rdy         : out  std_logic;
 p_out_tmr_error       : out  std_logic;
 
-p_out_tmr_irq         : out  std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
+p_out_tmr_irq         : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 -------------------------------
 --System
@@ -416,8 +409,7 @@ p_in_rst            : in    std_logic
 end component;
 
 component dsn_switch
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
 -------------------------------
@@ -532,8 +524,7 @@ generic(
 G_SIMPLE : string:="OFF";
 G_SIM    : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
 -------------------------------
@@ -557,8 +548,8 @@ p_in_cfg_done         : in   std_logic;
 p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);
 p_in_vctrl_hrdstart   : in    std_logic;
 p_in_vctrl_hrddone    : in    std_logic;
-p_out_vctrl_hirq      : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vctrl_hdrdy     : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
 
 -------------------------------
@@ -569,13 +560,13 @@ p_out_vctrl_moderr    : out   std_logic;
 p_out_vctrl_rd_done   : out   std_logic;
 
 p_out_vctrl_vrdprm    : out   TReaderVCHParams;
-p_out_vctrl_vfrrdy    : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_vfrrdy    : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_vrowmrk   : out   TVMrks;
 
 --//--------------------------
 --//Связь с модулем слежения
 --//--------------------------
-p_in_trc_busy         : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_trc_busy         : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_trc_vbuf        : out   TVfrBufs;
 
 -------------------------------
@@ -652,12 +643,10 @@ p_in_rst              : in    std_logic
 end component;
 
 component vtester_v01
-generic
-(
-G_SIM        : string:="OFF"
+generic(
+G_SIM : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление от Хоста
 -------------------------------

@@ -15,7 +15,7 @@
 --            изменил управление счетчиками i_vbuf_wr, а также теперь работаю с 4-мя видеобуферами для каждого канала
 --            добавил регистр i_vbuf_rd - для модуля video_reader.vhd
 --            добавил регистр i_vbuf_trc - для модуля dsn_track_nik.vhd
---            добавил входной порт p_in_trc_busy : in   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--
+--            добавил входной порт p_in_trc_busy : in   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--
 -- Revision 0.03 - add 24.01.2011 16:48:50
 --            поправил управление счетчиками i_vbuf_wr, добавил анализ условия
 --            elsif p_in_trc_busy(i)='0' and i_vrd_hold_dly(i)='1' then
@@ -45,8 +45,7 @@ generic(
 G_SIMPLE : string:="OFF"; --//ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
 G_SIM    : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
 -------------------------------
@@ -70,8 +69,8 @@ p_in_cfg_done         : in   std_logic;                      --//
 p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --//Номер видео канала который будет читать ХОСТ
 p_in_vctrl_hrdstart   : in    std_logic;                      --//Начало чтенения видеоканала
 p_in_vctrl_hrddone    : in    std_logic;                      --//Подтверждение вычетки данных видеоканала
-p_out_vctrl_hirq      : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
-p_out_vctrl_hdrdy     : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
+p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
 p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);  --//
 
 -------------------------------
@@ -82,13 +81,13 @@ p_out_vctrl_moderr    : out   std_logic;                      --//
 p_out_vctrl_rd_done   : out   std_logic;                      --//
 
 p_out_vctrl_vrdprm    : out   TReaderVCHParams;               --//Параметры видеоканалов
-p_out_vctrl_vfrrdy    : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
+p_out_vctrl_vfrrdy    : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
 p_out_vctrl_vrowmrk   : out   TVMrks;                         --//Маркер времени принятой строки
 
 --//--------------------------
 --//Связь с модулем слежения
 --//--------------------------
-p_in_trc_busy         : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
+p_in_trc_busy         : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
 p_out_trc_vbuf        : out   TVfrBufs;                       --//Номера видео буферов с готовыми кадрами
 
 -------------------------------
@@ -167,35 +166,34 @@ end dsn_video_ctrl;
 architecture behavioral of dsn_video_ctrl is
 
 
-constant C_MEM_BANK_MSB_BIT   : integer:=pwr((C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT-C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT+1), 2)-1;
+constant C_MEM_BANK_MSB_BIT   : integer:=pwr((C_VCTRL_REG_MEM_ADR_BANK_M_BIT-C_VCTRL_REG_MEM_ADR_BANK_L_BIT+1), 2)-1;
 
 
 component video_writer
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
 p_in_cfg_load         : in    std_logic;
 p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);
 p_in_cfg_prm_vch      : in    TWriterVCHParams;
-p_in_cfg_set_idle_vch : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_cfg_set_idle_vch : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 p_in_vfr_buf          : in    TVfrBufs;
 
 --//Статусы
-p_out_vfr_rdy         : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vrow_mrk        : out   TVMrks;--
 
 --//--------------------------
@@ -248,18 +246,17 @@ end component;
 
 component video_reader
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -377,8 +374,7 @@ generic(
 G_DOUT_WIDTH : integer:=32;
 G_SIM        : string :="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -422,8 +418,7 @@ component vscaler_main
 generic(
 G_USE_COLOR : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -478,8 +473,7 @@ p_in_rst            : in    std_logic
 end component;
 
 component vpcolor_main
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -525,8 +519,7 @@ p_in_rst            : in    std_logic
 end component;
 
 component vgamma_main
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -573,17 +566,17 @@ end component;
 
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
-signal h_reg_ctrl                        : std_logic_vector(C_DSN_VCTRL_REG_CTRL_LAST_BIT downto 0);
-signal h_reg_tst0                        : std_logic_vector(C_DSN_VCTRL_REG_TST0_LAST_BIT downto 0);
+signal h_reg_ctrl                        : std_logic_vector(C_VCTRL_REG_CTRL_LAST_BIT downto 0);
+signal h_reg_tst0                        : std_logic_vector(C_VCTRL_REG_TST0_LAST_BIT downto 0);
 signal h_reg_prm_data                    : std_logic_vector(31 downto 0);
-signal h_ramcoe_num                      : std_logic_vector(C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_MSB_BIT-C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_LSB_BIT downto 0);
+signal h_ramcoe_num                      : std_logic_vector(C_VCTRL_REG_CTRL_RAMCOE_M_BIT-C_VCTRL_REG_CTRL_RAMCOE_L_BIT downto 0);
 
 signal h_vprm_set                        : std_logic;
 signal vclk_vprm_set                     : std_logic;
 signal vclk_vprm_set_dly                 : std_logic_vector(1 downto 0);
 
-signal h_set_idle_vch                    : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal vclk_set_idle_vch                 : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+signal h_set_idle_vch                    : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal vclk_set_idle_vch                 : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 signal i_vprm                            : TVctrlParam;
 signal i_wrprm_vch                       : TWriterVCHParams;
@@ -592,13 +585,13 @@ signal i_trcprm_vch                      : TReaderVCHParams;
 
 signal i_vtrc_hold                       : std_logic_vector(p_in_trc_busy'range);
 
-type TArrayCntWidth is array (0 to C_DSN_VCTRL_VCH_MAX_COUNT-1) of std_logic_vector(3 downto 0);
+type TArrayCntWidth is array (0 to C_VCTRL_VCH_COUNT_MAX-1) of std_logic_vector(3 downto 0);
 signal i_vrd_irq_width_cnt               : TArrayCntWidth;
-signal i_vrd_irq_width                   : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vrd_irq                         : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vrd_hold                        : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal tmp_vrd_hold                      : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vrd_hold_dly                    : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vrd_irq_width                   : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vrd_irq                         : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal tmp_vrd_hold                      : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vrd_hold_dly                    : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vrd_frmrk                       : TVMrks;
 signal i_vrd_frmrk_out                   : std_logic_vector(31 downto 0);
 
@@ -606,8 +599,8 @@ signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
 signal i_vbuf_trc                        : TVfrBufs;
 
-signal i_vwrite_vfr_rdy_out_dly          : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vwrite_vfr_rdy_out              : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vwrite_vfr_rdy_out_dly          : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vwrite_vfr_rdy_out              : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vwrite_vrow_mrk                 : TVMrks;
 
 signal i_vreader_fr_new                  : std_logic;
@@ -739,13 +732,13 @@ begin
 end process;
 
 --//Запись регистров
-h_ramcoe_num<=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_RAMCOE_NUM_LSB_BIT);
+h_ramcoe_num<=h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_M_BIT downto C_VCTRL_REG_CTRL_RAMCOE_L_BIT);
 
 process(p_in_rst,p_in_host_clk)
-  variable var_vch      : std_logic_vector(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT downto 0);
-  variable var_vprm     : std_logic_vector(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT downto 0);
+  variable var_vch      : std_logic_vector(C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT downto 0);
+  variable var_vprm     : std_logic_vector(C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT downto 0);
   variable var_vprm_set : std_logic;
-  variable var_set_idle_vch: std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+  variable var_set_idle_vch: std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 begin
   if p_in_rst='1' then
     h_reg_ctrl<=(others=>'0');
@@ -757,7 +750,7 @@ begin
     var_vch :=(others=>'0');
     var_vprm:=(others=>'0');
 
-    for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
         i_vprm.ch(i).mem_addr_wr<=(others=>'0');
         i_vprm.ch(i).mem_addr_rd<=(others=>'0');
         i_vprm.ch(i).fr_size.skip.pix<=(others=>'0');
@@ -783,38 +776,38 @@ begin
     var_set_idle_vch:=(others=>'0');
 
     if p_in_cfg_wd='1' then
-      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
-          var_vch :=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
-          var_vprm:=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
+      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
+          var_vch :=p_in_cfg_txdata(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT);
+          var_vprm:=p_in_cfg_txdata(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT);
 
-            for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+            for i in 0 to C_VCTRL_VCH_COUNT-1 loop
               if i=var_vch then
-                var_set_idle_vch(i) :=p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_SET_IDLE_BIT);
+                var_set_idle_vch(i) :=p_in_cfg_txdata(C_VCTRL_REG_CTRL_SET_IDLE_BIT);
               end if;
             end loop;
 
-          if p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
-             p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='0' and p_in_cfg_txdata(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
+          if p_in_cfg_txdata(C_VCTRL_REG_CTRL_SET_BIT)='1' and
+             p_in_cfg_txdata(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='0' and p_in_cfg_txdata(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
             var_vprm_set:='1';
 
-            for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+            for i in 0 to C_VCTRL_VCH_COUNT-1 loop
               if i=var_vch then
                 --//Ищем индекс папаметра
-                if var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, var_vprm'length) then
+                if var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, var_vprm'length) then
                   i_vprm.ch(i).mem_addr_wr<=h_reg_prm_data(31 downto 0);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, var_vprm'length) then
+                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, var_vprm'length) then
                   i_vprm.ch(i).mem_addr_rd<=h_reg_prm_data(31 downto 0);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
+                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
                   i_vprm.ch(i).fr_size.skip.pix<=h_reg_prm_data(15 downto 0);
                   i_vprm.ch(i).fr_size.skip.row<=h_reg_prm_data(31 downto 16);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
+                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
                   i_vprm.ch(i).fr_size.activ.pix<=h_reg_prm_data(15 downto 0);
                   i_vprm.ch(i).fr_size.activ.row<=h_reg_prm_data(31 downto 16);
 
-                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
+                elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
                   i_vprm.ch(i).fr_mirror.pix<=h_reg_prm_data(4);
                   i_vprm.ch(i).fr_mirror.row<=h_reg_prm_data(5);
                   i_vprm.ch(i).fr_color_fst <=h_reg_prm_data(7 downto 6);
@@ -829,12 +822,12 @@ begin
 
           end if;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_TST0, i_cfg_adr_cnt'length) then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_TST0, i_cfg_adr_cnt'length) then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) then h_reg_prm_data(15 downto 0)  <=p_in_cfg_txdata;
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_MSB, i_cfg_adr_cnt'length) then h_reg_prm_data(31 downto 16) <=p_in_cfg_txdata;
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) then h_reg_prm_data(15 downto 0)  <=p_in_cfg_txdata;
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_M, i_cfg_adr_cnt'length) then h_reg_prm_data(31 downto 16) <=p_in_cfg_txdata;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_MEM_TRN_LEN, i_cfg_adr_cnt'length) then
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_MEM_CTRL, i_cfg_adr_cnt'length) then
           var_vprm_set:='1';
           i_vprm.mem_wd_trn_len(7 downto 0)<=p_in_cfg_txdata(7 downto 0);
           i_vprm.mem_rd_trn_len(7 downto 0)<=p_in_cfg_txdata(15 downto 8);
@@ -850,8 +843,8 @@ end process;
 
 --//Чтение регистров
 process(p_in_rst,p_in_host_clk)
-  variable var_vch  : std_logic_vector(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT downto 0);
-  variable var_vprm : std_logic_vector(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT-C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT downto 0);
+  variable var_vch  : std_logic_vector(C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT downto 0);
+  variable var_vprm : std_logic_vector(C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT downto 0);
 begin
   if p_in_rst='1' then
     p_out_cfg_rxdata<=(others=>'0');
@@ -859,31 +852,31 @@ begin
   elsif p_in_host_clk'event and p_in_host_clk='1' then
 
     if p_in_cfg_rd='1' then
-      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, 16);
+      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_CTRL, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_ctrl, 16);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_TST0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_tst0, 16);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_TST0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_tst0, 16);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) then
-          var_vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
-          var_vprm:=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) then
+          var_vch :=h_reg_ctrl(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT);
+          var_vprm:=h_reg_ctrl(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT);
 
-          if h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='0' and h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
-              for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+          if h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='0' and h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
+              for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i=var_vch then
                   --//Ищем индекс папаметра
-                  if var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, var_vprm'length) then
+                  if var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_wr(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_rd(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.skip.pix(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.activ.pix(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
                     p_out_cfg_rxdata(4)          <=i_vprm.ch(i).fr_mirror.pix;
                     p_out_cfg_rxdata(5)          <=i_vprm.ch(i).fr_mirror.row;
                     p_out_cfg_rxdata(7 downto 6) <=i_vprm.ch(i).fr_color_fst;
@@ -897,7 +890,7 @@ begin
                 end if;
               end loop;
 
-           elsif h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' then
+           elsif h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' then
            --//Чтение BRAM коэфициентов
                 if i_vscale_coe_ram_en='1' then
                   p_out_cfg_rxdata<=i_vscale_coe_dout(15 downto 0);
@@ -908,27 +901,27 @@ begin
                 end if;
            end if;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_MSB, i_cfg_adr_cnt'length) then
-          var_vch :=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_CH_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_CH_IDX_LSB_BIT);
-          var_vprm:=h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_PRM_IDX_MSB_BIT downto C_DSN_VCTRL_REG_CTRL_PRM_IDX_LSB_BIT);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_M, i_cfg_adr_cnt'length) then
+          var_vch :=h_reg_ctrl(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT);
+          var_vprm:=h_reg_ctrl(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT);
 
-          if h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='0' and h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
-              for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+          if h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='0' and h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
+              for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i=var_vch then
                   --//Ищем индекс папаметра
-                  if var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_WR, var_vprm'length) then
+                  if var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_wr(31 downto 16);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_MEM_ADDR_RD, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_rd(31 downto 16);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.skip.row(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).fr_size.activ.row(15 downto 0);
 
-                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
+                  elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
                     p_out_cfg_rxdata(15 downto 0)<=(others=>'0');
 
                   end if;
@@ -937,7 +930,7 @@ begin
 
            end if;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_MEM_TRN_LEN, i_cfg_adr_cnt'length) then
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_MEM_CTRL, i_cfg_adr_cnt'length) then
           p_out_cfg_rxdata(7 downto 0)<=i_vprm.mem_wd_trn_len(7 downto 0);
           p_out_cfg_rxdata(15 downto 8)<=i_vprm.mem_rd_trn_len(7 downto 0);
       end if;
@@ -948,11 +941,11 @@ end process;
 
 
 tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
-tst_dbg_pictire<=tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_PICTURE_BIT);
-tst_dbg_sobel<=tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_SOBEL_BIT);
+tst_dbg_pictire<=tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
+tst_dbg_sobel<=tst_ctrl(C_VCTRL_REG_TST0_DBG_SOBEL_BIT);
 
-tst_dbg_rd_hold<=tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
-tst_dbg_trc_hold<=tst_ctrl(C_DSN_VCTRL_REG_TST0_DBG_TRCHOLD_BIT);
+tst_dbg_rd_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
+tst_dbg_trc_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT);
 
 --//Пересинхронизация
 process(p_in_rst,p_in_clk)
@@ -971,23 +964,21 @@ end process;
 
 
 --//Готовим параметры для модуля записи
-gen_vwrprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
-begin
-i_wrprm_vch(i).mem_adr       <=i_vprm.ch(i).mem_addr_wr;
-i_wrprm_vch(i).fr_size       <=i_vprm.ch(i).fr_size;
+gen_vwrprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
+i_wrprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_wr;
+i_wrprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
 end generate gen_vwrprm;
 
 --//Готовим параметры для модуля чтения
-gen_vrdprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
-begin
-i_rdprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
-i_rdprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
-i_rdprm_vch(i).fr_mirror      <=i_vprm.ch(i).fr_mirror;
-i_rdprm_vch(i).fr_pcolor      <=i_vprm.ch(i).fr_pcolor;
-i_rdprm_vch(i).fr_zoom        <=i_vprm.ch(i).fr_zoom;
-i_rdprm_vch(i).fr_zoom_type   <=i_vprm.ch(i).fr_zoom_type;
-i_rdprm_vch(i).fr_color       <=i_vprm.ch(i).fr_color;
-i_rdprm_vch(i).fr_color_fst   <=i_vprm.ch(i).fr_color_fst;
+gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
+i_rdprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
+i_rdprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
+i_rdprm_vch(i).fr_mirror   <=i_vprm.ch(i).fr_mirror;
+i_rdprm_vch(i).fr_pcolor   <=i_vprm.ch(i).fr_pcolor;
+i_rdprm_vch(i).fr_zoom     <=i_vprm.ch(i).fr_zoom;
+i_rdprm_vch(i).fr_zoom_type<=i_vprm.ch(i).fr_zoom_type;
+i_rdprm_vch(i).fr_color    <=i_vprm.ch(i).fr_color;
+i_rdprm_vch(i).fr_color_fst<=i_vprm.ch(i).fr_color_fst;
 end generate gen_vrdprm;
 
 
@@ -998,20 +989,19 @@ p_out_vbuf_clk     <= p_in_clk;
 --//Связь с модулем слежения
 --//--------------------------
 --//Готовим параметры видео каналов для модуля слежения
-gen_trcprm : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
-begin
-i_trcprm_vch(i).mem_adr        <=i_vprm.ch(i).mem_addr_wr;
-i_trcprm_vch(i).fr_size        <=i_vprm.ch(i).fr_size;
-i_trcprm_vch(i).fr_mirror      <=i_vprm.ch(i).fr_mirror;
-i_trcprm_vch(i).fr_pcolor      <=i_vprm.ch(i).fr_pcolor;
-i_trcprm_vch(i).fr_zoom        <=i_vprm.ch(i).fr_zoom;
-i_trcprm_vch(i).fr_zoom_type   <=i_vprm.ch(i).fr_zoom_type;
-i_trcprm_vch(i).fr_color       <=i_vprm.ch(i).fr_color;
-i_trcprm_vch(i).fr_color_fst   <=i_vprm.ch(i).fr_color_fst;
+gen_trcprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
+i_trcprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_wr;
+i_trcprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
+i_trcprm_vch(i).fr_mirror   <=i_vprm.ch(i).fr_mirror;
+i_trcprm_vch(i).fr_pcolor   <=i_vprm.ch(i).fr_pcolor;
+i_trcprm_vch(i).fr_zoom     <=i_vprm.ch(i).fr_zoom;
+i_trcprm_vch(i).fr_zoom_type<=i_vprm.ch(i).fr_zoom_type;
+i_trcprm_vch(i).fr_color    <=i_vprm.ch(i).fr_color;
+i_trcprm_vch(i).fr_color_fst<=i_vprm.ch(i).fr_color_fst;
 end generate gen_trcprm;
 
 p_out_vctrl_vrdprm <= i_trcprm_vch;
-p_out_vctrl_vfrrdy <= i_vwrite_vfr_rdy_out(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_vfrrdy <= i_vwrite_vfr_rdy_out(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_vrowmrk <= i_vwrite_vrow_mrk;
 
 p_out_trc_vbuf <= i_vbuf_trc;
@@ -1021,8 +1011,8 @@ p_out_trc_vbuf <= i_vbuf_trc;
 --//--------------------------------------------------
 p_out_vctrl_modrdy <= not p_in_rst;
 p_out_vctrl_moderr <= '0';
-p_out_vctrl_hirq <= i_vrd_irq_width(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vctrl_hdrdy <= i_vrd_hold(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hirq <= i_vrd_irq_width(C_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hdrdy <= i_vrd_hold(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_hfrmrk <= i_vrd_frmrk_out;
 
 p_out_vctrl_rd_done <= i_vreader_rd_done;
@@ -1031,12 +1021,12 @@ p_out_vctrl_rd_done <= i_vreader_rd_done;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    for i in 0 to C_DSN_VCTRL_VCH_MAX_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
       i_vrd_irq_width_cnt(i)<=(others=>'0');
     end loop;
     i_vrd_irq_width<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-    for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
         if i_vrd_irq(i)='1' then
           i_vrd_irq_width(i)<='1';
         elsif i_vrd_irq_width_cnt(i)(3)='1' then
@@ -1067,8 +1057,7 @@ end process;
 --//где 0,1,2,3 - индексы свободных видеобуферов соответствующего видеоканала
 --//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
 
-gen_vhold : for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 generate
-begin
+gen_vhold : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_vtrc_hold(i)<=p_in_trc_busy(i) or tst_dbg_trc_hold;
 tmp_vrd_hold(i)<=i_vrd_hold(i) or tst_dbg_rd_hold;
 end generate gen_vhold;
@@ -1077,7 +1066,7 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
 
-    for i in 0 to C_DSN_VCTRL_VCH_MAX_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
       i_vbuf_wr(i)<=(others=>'0');
     end loop;
     i_vwrite_vfr_rdy_out_dly<=(others=>'0');
@@ -1088,7 +1077,7 @@ begin
     i_vwrite_vfr_rdy_out_dly<=i_vwrite_vfr_rdy_out;
     i_vrd_hold_dly<=tmp_vrd_hold;
 
-    for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
 
         --//Назначаем видеобуфер для записи видео
         if i_vwrite_vfr_rdy_out_dly(i)='1' then
@@ -1253,7 +1242,7 @@ end process;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    for i in 0 to C_DSN_VCTRL_VCH_MAX_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
       i_vrd_frmrk(i)<=(others=>'0');
       i_vbuf_rd(i)<=(others=>'0');
       tst_vfrskip_rd(i)<=(others=>'0');
@@ -1266,7 +1255,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
 
         --//Выдаем номер видеобуфера модулю чтение видео video_reader.vhd
         if i_vwrite_vfr_rdy_out(i)='1' then
@@ -1323,13 +1312,13 @@ end process;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    for i in 0 to C_DSN_VCTRL_VCH_MAX_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
       i_vbuf_trc(i)<=(others=>'0');
     end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
         --//Выдаем модулю слежения номер видеобуфера доступного для чтения
         if i_vwrite_vfr_rdy_out(i)='1' then
             if tst_dbg_pictire='1' then
@@ -1351,18 +1340,17 @@ end process;
 -------------------------------
 m_video_writer : video_writer
 generic map(
-G_MEM_BANK_MSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT,
-G_MEM_BANK_LSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 
-G_MEM_VCH_MSB_BIT    => C_DSN_VCTRL_MEM_VCH_MSB_BIT,
-G_MEM_VCH_LSB_BIT    => C_DSN_VCTRL_MEM_VCH_LSB_BIT,
-G_MEM_VFRAME_LSB_BIT => C_DSN_VCTRL_MEM_VFRAME_LSB_BIT,
-G_MEM_VFRAME_MSB_BIT => C_DSN_VCTRL_MEM_VFRAME_MSB_BIT,
-G_MEM_VROW_MSB_BIT   => C_DSN_VCTRL_MEM_VLINE_MSB_BIT,
-G_MEM_VROW_LSB_BIT   => C_DSN_VCTRL_MEM_VLINE_LSB_BIT
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
 )
-port map
-(
+port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -1404,7 +1392,7 @@ p_out_mem_term        => p_out_memwr_term,
 p_out_mem_adr         => p_out_memwr_adr,
 p_out_mem_be          => p_out_memwr_be,
 p_out_mem_din         => p_out_memwr_din,
-p_in_mem_dout         => "00000000000000000000000000000000",
+p_in_mem_dout         => (others=>'0'),
 
 p_in_mem_wf           => p_in_memwr_wf,
 p_in_mem_wpf          => p_in_memwr_wpf,
@@ -1414,7 +1402,7 @@ p_in_mem_rpe          => p_in_memwr_rpe,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => "00000000000000000000000000000000",
+p_in_tst              => (others=>'0'),
 p_out_tst             => tst_vwriter_out,
 
 -------------------------------
@@ -1430,18 +1418,17 @@ p_in_rst              => p_in_rst
 --//-----------------------------
 m_video_reader : video_reader
 generic map(
-G_MEM_BANK_MSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_MSB_BIT,
-G_MEM_BANK_LSB_BIT   => C_DSN_VCTRL_REG_MEM_ADR_BANK_LSB_BIT,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 
-G_MEM_VCH_MSB_BIT    => C_DSN_VCTRL_MEM_VCH_MSB_BIT,
-G_MEM_VCH_LSB_BIT    => C_DSN_VCTRL_MEM_VCH_LSB_BIT,
-G_MEM_VFRAME_LSB_BIT => C_DSN_VCTRL_MEM_VFRAME_LSB_BIT,
-G_MEM_VFRAME_MSB_BIT => C_DSN_VCTRL_MEM_VFRAME_MSB_BIT,
-G_MEM_VROW_MSB_BIT   => C_DSN_VCTRL_MEM_VLINE_MSB_BIT,
-G_MEM_VROW_LSB_BIT   => C_DSN_VCTRL_MEM_VLINE_LSB_BIT
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
 )
-port map
-(
+port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -1503,7 +1490,7 @@ p_in_mem_rpe          => p_in_memrd_rpe,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => tst_ctrl(31 downto 0),--"00000000000000000000000000000000",
+p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
 p_out_tst             => tst_vreader_out,
 
 -------------------------------
@@ -1519,7 +1506,7 @@ p_in_rst              => p_in_rst
 --//Модуль отзеркаливания по Х
 --//-----------------------------
 m_vmirx : vmirx_main
-port map (
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -1545,7 +1532,7 @@ p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            => "00000000000000000000000000000000",
+p_in_tst            => (others=>'0'),
 p_out_tst           => open,
 
 -------------------------------
@@ -1569,7 +1556,7 @@ generic map(
 G_DOUT_WIDTH => 8,
 G_SIM        => G_SIM
 )
-port map (
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -1596,7 +1583,7 @@ p_in_dwnp_rdy_n     => i_vscale_rdy_n,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            => "00000000000000000000000000000000",
+p_in_tst            => (others=>'0'),
 p_out_tst           => open,
 
 -------------------------------
@@ -1613,23 +1600,23 @@ p_in_rst            => p_in_rst
 --//-----------------------------
 --//Доступ к BRAM коэфициентов
 i_vscale_coe_adr   <=p_in_cfg_txdata(i_vscale_coe_adr'high downto 0);
-i_vscale_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='1' and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vscale_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                       i_vscale_coe_ram_en='1' else '0';
 
 i_vscale_coe_din<=p_in_cfg_txdata;
-i_vscale_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vscale_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                    i_vscale_coe_ram_en='1' else '0';
 
-i_vscale_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='0' and
+i_vscale_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
                                                       i_vscale_coe_ram_en='1' else '0';
 
-i_vscale_coe_ram_en<='1' when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_SCALE_NUM, h_ramcoe_num'length) else '0';
+i_vscale_coe_ram_en<='1' when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_SCALE, h_ramcoe_num'length) else '0';
 
 i_vscale_pix_count <= i_vreader_active_pix_out when i_vreader_color_out='0' else (i_vreader_active_pix_out(13 downto 0)&"00");
 i_vscale_row_count <= i_vreader_active_row_out;
@@ -1638,8 +1625,7 @@ m_vscaler : vscaler_main
 generic map(
 G_USE_COLOR => "ON"
 )
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -1677,7 +1663,7 @@ p_in_dwnp_rdy_n     => i_vpcolor_rdy_n,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            => "00000000000000000000000000000000",
+p_in_tst            => (others=>'0'),
 p_out_tst           => open,
 
 -------------------------------
@@ -1697,30 +1683,29 @@ i_vpcolor_bypass<=not i_vreader_pcolor_out;
 
 --//Доступ к BRAM коэфициентов
 i_vpcolor_coe_adr   <=p_in_cfg_txdata(i_vpcolor_coe_adr'high downto 0);
-i_vpcolor_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='1' and
-                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vpcolor_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                       h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
+                                       h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                        i_vpcolor_coe_ramnum(2)='1' else '0';
 
 i_vpcolor_coe_din<=p_in_cfg_txdata(15 downto 0);
-i_vpcolor_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                    h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                    h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vpcolor_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                    h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                    h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                     i_vpcolor_coe_ramnum(2)='1' else '0';
 
-i_vpcolor_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                       h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='0' and
+i_vpcolor_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                                       h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                                       h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
                                                        i_vpcolor_coe_ramnum(2)='1' else '0';
 
-i_vpcolor_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_P_COLR_NUM, h_ramcoe_num'length) else
-                      "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_P_COLG_NUM, h_ramcoe_num'length) else
-                      "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_P_COLB_NUM, h_ramcoe_num'length) else
+i_vpcolor_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLR, h_ramcoe_num'length) else
+                      "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLG, h_ramcoe_num'length) else
+                      "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLB, h_ramcoe_num'length) else
                       "000";
 
 m_vpcolor : vpcolor_main
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -1752,7 +1737,7 @@ p_in_dwnp_rdy_n     => i_vgamma_rdy_n,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            => "00000000000000000000000000000000",
+p_in_tst            => (others=>'0'),
 p_out_tst           => open,
 
 -------------------------------
@@ -1771,32 +1756,31 @@ i_vgamma_color<=i_vreader_color_out or i_vreader_pcolor_out;
 
 --//Доступ к BRAM коэфициентов
 i_vgamma_coe_adr   <=p_in_cfg_txdata(i_vgamma_coe_adr'high downto 0);
-i_vgamma_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_ADDR_BIT)='1' and
-                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vgamma_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
+                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                       i_vgamma_coe_ramnum(2)='1' else '0';
 
 i_vgamma_coe_din<=p_in_cfg_txdata(15 downto 0);
-i_vgamma_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                   h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='1' and
+i_vgamma_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                   h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
                                    i_vgamma_coe_ramnum(2)='1' else '0';
 
-i_vgamma_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_PRM_DATA_LSB, i_cfg_adr_cnt'length) and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                      h_reg_ctrl(C_DSN_VCTRL_REG_CTRL_SET_BIT)='0' and
+i_vgamma_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
+                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
                                                       i_vgamma_coe_ramnum(2)='1' else '0';
 
-i_vgamma_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_GRAY_NUM, h_ramcoe_num'length) else
-                     "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_COLR_NUM, h_ramcoe_num'length) else
-                     "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_COLG_NUM, h_ramcoe_num'length) else
-                     "111" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_DSN_VCTRL_REG_CTRL_RAMCOE_GAMMA_COLB_NUM, h_ramcoe_num'length) else
+i_vgamma_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_GRAY, h_ramcoe_num'length) else
+                     "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLR, h_ramcoe_num'length) else
+                     "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLG, h_ramcoe_num'length) else
+                     "111" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLB, h_ramcoe_num'length) else
                      "000";
 
 
 m_vgamma: vgamma_main
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -1828,7 +1812,7 @@ p_in_dwnp_rdy_n     => p_in_vbufout_full,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            => "00000000000000000000000000000000",
+p_in_tst            => (others=>'0'),
 p_out_tst           => open,
 
 -------------------------------

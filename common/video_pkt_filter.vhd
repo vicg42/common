@@ -7,18 +7,16 @@
 --
 -- Назначение/Описание :
 --
---        Маска фильтрации:
+--        Структура правила маршрутизации(Маска):
 --        3..0 - тип пакета
 --        7..4 - подтип пакета
 --        Ведем фильтрацию пакетов только по не нулевым маскам, если
 --        маска совпала с соответстующими полями видео пакета, то такой пакет пропускаем,
 --        иначе выбрасываем.
---
+--        Знанечие Маски=0 - запретить прохождение пакета
 --
 -- Revision:
 -- Revision 0.01 - File Created
--- Revision 0.02 - add 24.01.2011 14:47:56
---                 Добавил Технологический порт
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -35,14 +33,13 @@ use unisim.vcomponents.all;
 
 entity video_pkt_filter is
 generic(
-G_FMASK_COUNT     : integer := 3
+G_FRR_COUNT : integer := 3
 );
-port
-(
+port(
 --//------------------------------------
 --//Управление
 --//------------------------------------
-p_in_fmask      : in    TEthFmask;
+p_in_frr        : in    TEthFRR;
 
 --//------------------------------------
 --//Upstream Port
@@ -74,17 +71,16 @@ p_in_rst        : in    std_logic
 );
 end video_pkt_filter;
 
-
 architecture behavioral of video_pkt_filter is
 
-signal sr_upp_data            : std_logic_vector(31 downto 0):=(others=>'0');
-signal sr_upp_sof             : std_logic:='0';
-signal sr_upp_wr              : std_logic:='0';
-signal sr_upp_eof             : std_logic:='0';
+signal sr_upp_data   : std_logic_vector(31 downto 0):=(others=>'0');
+signal sr_upp_sof    : std_logic:='0';
+signal sr_upp_wr     : std_logic:='0';
+signal sr_upp_eof    : std_logic:='0';
 
-signal i_pkt_type             : std_logic_vector(3 downto 0);
-signal i_pkt_subtype          : std_logic_vector(3 downto 0);
-signal i_pkt_en               : std_logic;
+signal i_pkt_type    : std_logic_vector(3 downto 0);
+signal i_pkt_subtype : std_logic_vector(3 downto 0);
+signal i_pkt_en      : std_logic;
 
 
 --MAIN
@@ -93,14 +89,6 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(0)<='0';
---  elsif p_in_clk'event and p_in_clk='1' then
---    p_out_tst(0) <='0'
---  end if;
---end process;
 p_out_tst(31 downto 0)<=(others=>'0');
 
 
@@ -130,29 +118,28 @@ i_pkt_type(3 downto 0)<=p_in_upp_data(19 downto 16);
 i_pkt_subtype(3 downto 0)<=p_in_upp_data(23 downto 20);
 
 process(p_in_rst,p_in_clk)
-  variable var_pkt_valid   : std_logic;
+  variable pkt_valid : std_logic;
 begin
   if p_in_rst='1' then
     i_pkt_en<='0';
-    var_pkt_valid:='0';
+      pkt_valid:='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    var_pkt_valid:='0';
+      pkt_valid:='0';
 
     if p_in_upp_sof='1' and p_in_upp_wr='1' then
 
-        --//Ищем подходящуюю маску для текущего пакета
-        for i in 0 to G_FMASK_COUNT-1 loop
-          --//Анализируем только не нулевые байты в наборе масок
-          if p_in_fmask(i)/=(p_in_fmask(i)'range => '0') then
-            if p_in_fmask(i)=(i_pkt_subtype & i_pkt_type) then
-              var_pkt_valid:='1';
+        --//Ищем правило машрутизации для текущего пакета
+        for i in 0 to G_FRR_COUNT-1 loop
+          if p_in_frr(i)/=(p_in_frr(i)'range => '0') then
+            if p_in_frr(i)=(i_pkt_subtype & i_pkt_type) then
+              pkt_valid:='1';
             end if;
           end if;
         end loop;
 
-      i_pkt_en<=var_pkt_valid;
+      i_pkt_en<=pkt_valid;
 
     elsif sr_upp_eof='1' then
       i_pkt_en<='0';

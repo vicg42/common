@@ -34,30 +34,29 @@ use work.dsn_video_ctrl_pkg.all;
 
 entity video_writer is
 generic(
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
 p_in_cfg_load         : in    std_logic;                   --//Загрузка параметров записи
 p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);--//Размер одиночной транзакции MEM_WR
 p_in_cfg_prm_vch      : in    TWriterVCHParams;            --//Параметры записи видео каналов
-p_in_cfg_set_idle_vch : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+p_in_cfg_set_idle_vch : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 p_in_vfr_buf          : in    TVfrBufs;                    --//Номер буфера где будет формироваться текущий кадр
 
 --//Статусы
-p_out_vfr_rdy         : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
+p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
 p_out_vrow_mrk        : out   TVMrks;                      --//Маркер строки
 
 --//--------------------------
@@ -113,8 +112,7 @@ architecture behavioral of video_writer is
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
-type fsm_state is
-(
+type fsm_state is (
 S_IDLE,
 S_PKT_HEADER_READ,
 S_MEM_CTRL_SEL_BANK,
@@ -131,10 +129,10 @@ signal fsm_state_cs: fsm_state;
 
 signal i_cfg_prm_vch               : TWriterVCHParams;
 
-signal i_vfr_mem_adr               : std_logic_vector(G_MEM_BANK_MSB_BIT downto 0);
+signal i_vfr_mem_adr               : std_logic_vector(G_MEM_BANK_M_BIT downto 0);
 type TWFrXYParam is record
-pix : std_logic_vector(G_MEM_VROW_LSB_BIT downto 0);
-row : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
+pix : std_logic_vector(G_MEM_VLINE_L_BIT downto 0);
+row : std_logic_vector(G_MEM_VFR_L_BIT-G_MEM_VLINE_L_BIT downto 0);
 end record;
 signal i_vfr_zone_skip             : TWFrXYParam;
 signal i_vfr_zone_active           : TWFrXYParam;
@@ -151,7 +149,7 @@ signal i_vpkt_data_remain          : std_logic_vector(i_vpkt_cnt'high downto 0);
 
 signal i_vfr_pix_count             : std_logic_vector(15 downto 0);
 signal i_vfr_row_count             : std_logic_vector(15 downto 0);
-Type TVfrNum is array (0 to C_DSN_VCTRL_VCH_COUNT-1) of std_logic_vector(3 downto 0);
+Type TVfrNum is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(3 downto 0);
 signal i_vfr_num                   : TVfrNum;
 signal i_vfr_row                   : std_logic_vector(15 downto 0);
 signal i_vch_num                   : std_logic_vector(3 downto 0);
@@ -166,8 +164,8 @@ signal i_memtrn_zone_skip_pix_start: std_logic_vector(i_vfr_zone_active.pix'high
 signal i_mem_din_out               : std_logic_vector(p_in_upp_data'range);
 signal i_mem_trn_len_cnt           : std_logic_vector(i_vpkt_cnt'high downto 0);
 signal i_mem_adr_update            : std_logic;
-signal i_mem_bank1h_out            : std_logic_vector(pwr((G_MEM_BANK_MSB_BIT-G_MEM_BANK_LSB_BIT+1), 2)-1 downto 0);
-signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_LSB_BIT-1 downto 0);
+signal i_mem_bank1h_out            : std_logic_vector(pwr((G_MEM_BANK_M_BIT-G_MEM_BANK_L_BIT+1), 2)-1 downto 0);
+signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_ce_out                : std_logic;
 signal i_mem_arb_req               : std_logic;
 
@@ -215,7 +213,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_EXIT else
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
 
---tst_dbg_dcount<=p_in_tst(C_DSN_VCTRL_REG_TST0_DBG_DCOUNT_BIT);
+--tst_dbg_dcount<=p_in_tst(C_VCTRL_REG_TST0_DBG_DCOUNT_BIT);
 --
 --process(p_in_rst,p_in_clk)
 --begin
@@ -333,7 +331,7 @@ begin
     i_vpkt_data_remain<=(others=>'0');
 
     i_vch_num<=(others=>'0');
-    for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
       i_cfg_prm_vch(i).mem_adr<=(others=>'0');
       i_cfg_prm_vch(i).fr_size.skip.pix<=(others=>'0');
       i_cfg_prm_vch(i).fr_size.skip.row<=(others=>'0');
@@ -389,7 +387,7 @@ begin
 
         --//Загрузка праметров Видео канала
         if p_in_cfg_load='1' then
-          for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+          for i in 0 to C_VCTRL_VCH_COUNT-1 loop
             i_cfg_prm_vch(i).mem_adr<=p_in_cfg_prm_vch(i).mem_adr;
             i_cfg_prm_vch(i).fr_size.skip<=p_in_cfg_prm_vch(i).fr_size.skip;
             i_cfg_prm_vch(i).fr_size.activ<=p_in_cfg_prm_vch(i).fr_size.activ;
@@ -426,7 +424,7 @@ begin
             i_vpkt_data_len<=dlen;
 
             --//Установка параметров для текущего кадра видеоканала:
-            for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+            for i in 0 to C_VCTRL_VCH_COUNT-1 loop
               if i_vch_num=i then
 
                 --//сохраняем маркер текущей строки кадра :
@@ -440,15 +438,15 @@ begin
                 i_vfr_zone_active.row<=i_cfg_prm_vch(i).fr_size.activ.row(i_vfr_zone_active.row'high downto 0);
 
                 --//адрес ОЗУ:
-                i_vfr_mem_adr(G_MEM_BANK_MSB_BIT downto G_MEM_BANK_LSB_BIT)<=i_cfg_prm_vch(i).mem_adr(G_MEM_BANK_MSB_BIT downto G_MEM_BANK_LSB_BIT);--(G_MEM_BANK_MSB_BIT-G_MEM_BANK_LSB_BIT downto 0);
-                i_vfr_mem_adr(G_MEM_VFRAME_MSB_BIT downto G_MEM_VFRAME_LSB_BIT)<=p_in_vfr_buf(i);
+                i_vfr_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)<=i_cfg_prm_vch(i).mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT);--(G_MEM_BANK_M_BIT-G_MEM_BANK_L_BIT downto 0);
+                i_vfr_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
               end if;
             end loop;
 
             --//адрес ОЗУ:
-            i_vfr_mem_adr(G_MEM_VCH_MSB_BIT downto G_MEM_VCH_LSB_BIT)<=i_vch_num(G_MEM_VCH_MSB_BIT-G_MEM_VCH_LSB_BIT downto 0);
-            i_vfr_mem_adr(G_MEM_VROW_MSB_BIT downto G_MEM_VROW_LSB_BIT)<=i_vfr_row((G_MEM_VROW_MSB_BIT-G_MEM_VROW_LSB_BIT)+0 downto 0);
-            i_vfr_mem_adr(G_MEM_VROW_LSB_BIT-1 downto 0)<=(others=>'0');
+            i_vfr_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
+            i_vfr_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row((G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT)+0 downto 0);
+            i_vfr_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');
 
 
             i_memtrn_zone_skip_pix_start<=(others=>'0');
@@ -483,7 +481,7 @@ begin
             --//Header DWORD-1:
             elsif i_vpkt_cnt=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-2, i_vpkt_cnt'length) then
 
-              for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+              for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i_vch_num=i then
                   if i_vfr_num(i)/=p_in_upp_data(3 downto 0) then
                     --//Обнаружил начало нового кадра!!!!!!!!!
@@ -531,7 +529,7 @@ begin
       when S_MEM_CTRL_SEL_BANK =>
 
         for j in 0 to i_mem_bank1h_out'high loop
-          if i_vfr_mem_adr(G_MEM_BANK_MSB_BIT downto G_MEM_BANK_LSB_BIT)= j then
+          if i_vfr_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)= j then
             i_mem_bank1h_out(j)<='1';
           else
             i_mem_bank1h_out(j)<='0';
@@ -686,7 +684,7 @@ begin
 
         --//Вычисляем адрес ОЗУ для следующей MEM_TRN
         if i_vfr_row_en='1' and i_mem_adr_update='1' then
-          i_vfr_mem_adr(G_MEM_VROW_LSB_BIT downto 0)<=i_vfr_mem_adr(G_MEM_VROW_LSB_BIT downto 0) + EXT(update_addr, G_MEM_VROW_LSB_BIT+1);
+          i_vfr_mem_adr(G_MEM_VLINE_L_BIT downto 0)<=i_vfr_mem_adr(G_MEM_VLINE_L_BIT downto 0) + EXT(update_addr, G_MEM_VLINE_L_BIT+1);
         end if;
 
         i_mem_adr_update<='0';
@@ -699,7 +697,7 @@ begin
           if i_vfr_row=(i_vfr_row_count - 1) then
           --//Обработал последнюю строку кадра.
           --//Выдаем прерывание:
-            for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+            for i in 0 to C_VCTRL_VCH_COUNT-1 loop
               if i_vch_num=i then
                 vfr_rdy(i):='1';
               end if;

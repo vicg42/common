@@ -114,12 +114,12 @@ p_in_cfg_adr_ld       => i_cfgdev_adr_ld,
 p_in_cfg_adr_fifo     => i_cfgdev_adr_fifo,
 
 p_in_cfg_txdata       => i_cfgdev_txdata,
-p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_ETHG),
+p_in_cfg_wd           => i_dev_cfg_wd(C_CFGDEV_ETH),
 
 p_out_cfg_rxdata      => i_eth_cfg_rxdata,
-p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_ETHG),
+p_in_cfg_rd           => i_dev_cfg_rd(C_CFGDEV_ETH),
 
-p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_ETHG),
+p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_ETH),
 p_in_cfg_rst          => i_cfgdev_rst,
 
 -------------------------------

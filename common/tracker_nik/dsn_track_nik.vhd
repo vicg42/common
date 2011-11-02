@@ -40,18 +40,17 @@ generic(
 G_SIM             : string:="OFF";
 G_MODULE_USE      : string:="ON";
 
-G_MEM_BANK_MSB_BIT   : integer:=29;
-G_MEM_BANK_LSB_BIT   : integer:=28;
+G_MEM_BANK_M_BIT  : integer:=29;
+G_MEM_BANK_L_BIT  : integer:=28;
 
-G_MEM_VCH_MSB_BIT    : integer:=25;
-G_MEM_VCH_LSB_BIT    : integer:=24;
-G_MEM_VFRAME_LSB_BIT : integer:=23;
-G_MEM_VFRAME_MSB_BIT : integer:=23;
-G_MEM_VROW_MSB_BIT   : integer:=22;
-G_MEM_VROW_LSB_BIT   : integer:=12
+G_MEM_VCH_M_BIT   : integer:=25;
+G_MEM_VCH_L_BIT   : integer:=24;
+G_MEM_VFR_M_BIT   : integer:=23;
+G_MEM_VFR_L_BIT   : integer:=23;
+G_MEM_VLINE_M_BIT : integer:=22;
+G_MEM_VLINE_L_BIT : integer:=12
 );
-port
-(
+port(
 -------------------------------
 -- Управление от Хоста
 -------------------------------
@@ -82,13 +81,13 @@ p_out_trc_bufo_dout   : out   std_logic_vector(31 downto 0);--//Буфер результата
 p_in_trc_bufo_rd      : in    std_logic;                    --//Чтение буфера
 p_out_trc_bufo_empty  : out   std_logic;                    --//Статус буфера
 
-p_out_trc_busy        : out   std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//захват видеобуфера
+p_out_trc_busy        : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//захват видеобуфера
 
 -------------------------------
 -- Связь с VCTRL
 -------------------------------
 p_in_vctrl_vrdprms    : in    TReaderVCHParams;            --//Параметры видеоканалов
-p_in_vctrl_vfrrdy     : in    std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);--//Сигналы готовности кадра видеоканалов
+p_in_vctrl_vfrrdy     : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Сигналы готовности кадра видеоканалов
 p_in_vctrl_vbuf       : in    TVfrBufs;                    --//Номера видеобуферов
 p_in_vctrl_vrowmrk    : in    TVMrks;                      --//Макреры строк видеоканалов
 
@@ -139,8 +138,7 @@ component trc_nik_core is
 generic(
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление
 -------------------------------
@@ -189,7 +187,7 @@ p_in_rst             : in    std_logic
 end component;
 
 component trc_nik_bufout
-port (
+port(
 din       : in std_logic_vector(31 downto 0);
 wr_en     : in std_logic;
 wr_clk    : in std_logic;
@@ -210,16 +208,15 @@ end component;
 
 signal i_cfg_adr_cnt                 : std_logic_vector(7 downto 0);
 
-signal h_reg_ctrl                    : std_logic_vector(C_DSN_TRCNIK_REG_CTRL_LAST_BIT downto 0);
-signal h_reg_tst0                    : std_logic_vector(C_DSN_TRCNKI_REG_TST0_LAST_BIT downto 0);
-signal h_reg_opt                     : std_logic_vector(C_DSN_TRCNIK_REG_OPT_LAST_BIT downto 0);
+signal h_reg_ctrl                    : std_logic_vector(C_TRCNIK_REG_CTRL_LAST_BIT downto 0);
+signal h_reg_tst0                    : std_logic_vector(C_TRCNKI_REG_TST0_LAST_BIT downto 0);
+signal h_reg_opt                     : std_logic_vector(C_TRCNIK_REG_OPT_LAST_BIT downto 0);
 signal h_reg_mem_rbuf                : std_logic_vector(31 downto 0);
 signal h_reg_ip                      : TTrcNikIPs;
 
 signal g_trc_prm                     : TGTrcNikParam;
 
-type fsm_state is
-(
+type fsm_state is (
 S_IDLE,
 S_LD_PRMS,
 S_ROW_FINED0,
@@ -245,17 +242,17 @@ signal fsm_state_cs: fsm_state;
 
 --signal i_dlycnt                      : std_logic_vector(1 downto 0);
 
-signal tmp_vch_vfrrdy                : std_logic_vector(C_DSN_VCTRL_VCH_MAX_COUNT-1 downto 0);
+signal tmp_vch_vfrrdy                : std_logic_vector(C_VCTRL_VCH_COUNT_MAX-1 downto 0);
 signal i_vch_vfrrdy                  : std_logic;
 signal i_vch_prm                     : TReaderVCHParam;
-signal i_vch_num                     : std_logic_vector(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT-C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT downto 0);
+signal i_vch_num                     : std_logic_vector(C_TRCNIK_REG_CTRL_VCH_M_BIT-C_TRCNIK_REG_CTRL_VCH_L_BIT downto 0);
 
 --signal i_vfr_frmrk                   : std_logic_vector(31 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
-signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFRAME_LSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
+signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFR_L_BIT-G_MEM_VLINE_L_BIT downto 0);
 signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'range);
-signal i_vfr_buf                     : std_logic_vector(C_DSN_VCTRL_MEM_VFRAME_MSB_BIT-C_DSN_VCTRL_MEM_VFRAME_LSB_BIT downto 0);
+signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
 
 signal i_mem_ktcnt_ip_base           : std_logic_vector(31 downto 0);
 signal i_mem_ktcnt_ip_offset         : std_logic_vector(15 downto 0);
@@ -284,14 +281,14 @@ signal i_mem_din                     : std_logic_vector(31 downto 0);
 signal i_mem_din_en                  : std_logic;
 
 signal i_trc_work                    : std_logic;
-signal i_trc_busy                    : std_logic_vector(C_DSN_VCTRL_VCH_COUNT-1 downto 0);
+signal i_trc_busy                    : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_trc_txrdy_n                 : std_logic;
 signal i_trc_rxrdy_n                 : std_logic;
 
 signal i_trc_ebcnty                  : std_logic_vector(log2(CNIK_EBKT_LENY)+1 downto 0);
 
 signal i_trc_prm                     : TTrcNikParam;
-signal i_nik_ip_count                : std_logic_vector(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT-C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT downto 0);
+signal i_nik_ip_count                : std_logic_vector(C_TRCNIK_REG_OPT_IP_M_BIT-C_TRCNIK_REG_OPT_IP_L_BIT downto 0);
 
 --type TArrayCntWidth is array (0 to 0) of std_logic_vector(3 downto 0);
 --signal i_trc_irq_width_cnt           : TArrayCntWidth;
@@ -365,10 +362,10 @@ begin
 
     g_trc_prm.mem_wd_trnlen(7 downto 0)<=(others=>'0');
     g_trc_prm.mem_rd_trnlen(7 downto 0)<=(others=>'0');
-    for x in 0 to C_DSN_TRCNIK_CH_COUNT-1 loop
+    for x in 0 to C_TRCNIK_VCH_COUNT-1 loop
       g_trc_prm.ch(x).mem_arbuf<=(others=>'0');
       g_trc_prm.ch(x).opt<=(others=>'0');
-      for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
+      for i in 0 to C_TRCNIK_IP_COUNT-1 loop
       g_trc_prm.ch(x).ip(i).p1<=(others=>'0');
       g_trc_prm.ch(x).ip(i).p2<=(others=>'0');
       end loop;
@@ -377,35 +374,35 @@ begin
   elsif p_in_host_clk'event and p_in_host_clk='1' then
 
     if p_in_cfg_wd='1' then
-      if i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
+      if i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
 
-        for y in 0 to C_DSN_TRCNIK_CH_COUNT-1 loop
+        for y in 0 to C_TRCNIK_VCH_COUNT-1 loop
           g_trc_prm.ch(y).mem_arbuf<=h_reg_mem_rbuf;
           g_trc_prm.ch(y).opt <= EXT(h_reg_opt, g_trc_prm.ch(y).opt'length);
 
-          for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
+          for i in 0 to C_TRCNIK_IP_COUNT-1 loop
           g_trc_prm.ch(y).ip(i) <= h_reg_ip(i);
           end loop;
         end loop;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_RBUF_LSB, i_cfg_adr_cnt'length) then h_reg_mem_rbuf(15 downto 0)<=p_in_cfg_txdata;
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_RBUF_MSB, i_cfg_adr_cnt'length) then h_reg_mem_rbuf(31 downto 16)<=p_in_cfg_txdata;
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_MEM_ADR_L, i_cfg_adr_cnt'length) then h_reg_mem_rbuf(15 downto 0)<=p_in_cfg_txdata;
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_MEM_ADR_M, i_cfg_adr_cnt'length) then h_reg_mem_rbuf(31 downto 16)<=p_in_cfg_txdata;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_OPT, i_cfg_adr_cnt'length) then h_reg_opt<=p_in_cfg_txdata(h_reg_opt'high downto 0);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_OPT, i_cfg_adr_cnt'length) then h_reg_opt<=p_in_cfg_txdata(h_reg_opt'high downto 0);
 
-      elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto 3)=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_IP0, (i_cfg_adr_cnt'high - 3 + 1)) then
-          for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
+      elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto 3)=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_IP0, (i_cfg_adr_cnt'high - 3 + 1)) then
+          for i in 0 to C_TRCNIK_IP_COUNT-1 loop
             if i_cfg_adr_cnt(2 downto 0)=i then
               h_reg_ip(i).p1<=p_in_cfg_txdata(7 downto 0);
               h_reg_ip(i).p2<=p_in_cfg_txdata(15 downto 8);
             end if;
           end loop;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_TRN_LEN, i_cfg_adr_cnt'length) then
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_MEM_CTRL, i_cfg_adr_cnt'length) then
         g_trc_prm.mem_wd_trnlen(7 downto 0)<= p_in_cfg_txdata(7 downto 0);
         g_trc_prm.mem_rd_trnlen(7 downto 0)<= p_in_cfg_txdata(15 downto 8);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_TST0, i_cfg_adr_cnt'length) then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_TST0, i_cfg_adr_cnt'length) then h_reg_tst0<=p_in_cfg_txdata(h_reg_tst0'high downto 0);
 
       end if;
 
@@ -426,26 +423,26 @@ begin
      var_val := (others=>'0');
 
     if p_in_cfg_rd='1' then
-      if i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_CTRL_L, i_cfg_adr_cnt'length) then var_val:=EXT(h_reg_ctrl, var_val'length);
+      if i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_CTRL, i_cfg_adr_cnt'length) then var_val:=EXT(h_reg_ctrl, var_val'length);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_RBUF_LSB, i_cfg_adr_cnt'length) then var_val:=h_reg_mem_rbuf(15 downto 0);
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_RBUF_MSB, i_cfg_adr_cnt'length) then var_val:=h_reg_mem_rbuf(31 downto 16);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_MEM_ADR_L, i_cfg_adr_cnt'length) then var_val:=h_reg_mem_rbuf(15 downto 0);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_MEM_ADR_M, i_cfg_adr_cnt'length) then var_val:=h_reg_mem_rbuf(31 downto 16);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_OPT, i_cfg_adr_cnt'length) then var_val:=EXT(h_reg_opt, var_val'length);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_OPT, i_cfg_adr_cnt'length) then var_val:=EXT(h_reg_opt, var_val'length);
 
-      elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto 3)=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_IP0, (i_cfg_adr_cnt'high - 3 + 1)) then
-          for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
+      elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto 3)=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_IP0, (i_cfg_adr_cnt'high - 3 + 1)) then
+          for i in 0 to C_TRCNIK_IP_COUNT-1 loop
             if i_cfg_adr_cnt(2 downto 0)=i then
               var_val( 7 downto 0):=h_reg_ip(i).p1;
               var_val(15 downto 8):=h_reg_ip(i).p2;
             end if;
           end loop;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_MEM_TRN_LEN, i_cfg_adr_cnt'length) then
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_MEM_CTRL, i_cfg_adr_cnt'length) then
         var_val( 7 downto 0):=g_trc_prm.mem_wd_trnlen(7 downto 0);
         var_val(15 downto 8):=g_trc_prm.mem_rd_trnlen(7 downto 0);
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TRCNIK_REG_TST0, i_cfg_adr_cnt'length) then var_val:=EXT(h_reg_tst0, var_val'length);
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TRCNIK_REG_TST0, i_cfg_adr_cnt'length) then var_val:=EXT(h_reg_tst0, var_val'length);
 
       end if;
 
@@ -455,7 +452,7 @@ begin
   end if;
 end process;
 
-i_vch_num<=h_reg_ctrl(C_DSN_TRCNIK_REG_CTRL_CH_MSB_BIT downto C_DSN_TRCNIK_REG_CTRL_CH_LSB_BIT);
+i_vch_num<=h_reg_ctrl(C_TRCNIK_REG_CTRL_VCH_M_BIT downto C_TRCNIK_REG_CTRL_VCH_L_BIT);
 
 
 
@@ -506,7 +503,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 
 tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
 
-tst_dis_color<=tst_ctrl(C_DSN_TRCNIK_REG_TST0_COLOR_DIS_BIT);
+tst_dis_color<=tst_ctrl(C_TRCNIK_REG_TST0_COLOR_DIS_BIT);
 
 
 --//----------------------------------------------
@@ -550,18 +547,18 @@ end process;
 
 tmp_vch_vfrrdy<=EXT(p_in_vctrl_vfrrdy, tmp_vch_vfrrdy'length);
 --//Выбор сигнала готовности кадра в зависимости от назначеного канала слежения:
-gen_vch_count1 : if C_DSN_VCTRL_VCH_COUNT=1 generate
+gen_vch_count1 : if C_VCTRL_VCH_COUNT=1 generate
 begin
 i_vch_vfrrdy<=tmp_vch_vfrrdy(0);
 end generate gen_vch_count1;
 
-gen_vch_count2 : if C_DSN_VCTRL_VCH_COUNT=2 generate
+gen_vch_count2 : if C_VCTRL_VCH_COUNT=2 generate
 begin
 i_vch_vfrrdy<=tmp_vch_vfrrdy(0) when i_vch_num=CONV_STD_LOGIC_VECTOR(0, i_vch_num'length) else
               tmp_vch_vfrrdy(1);
 end generate gen_vch_count2;
 
-gen_vch_count3 : if C_DSN_VCTRL_VCH_COUNT=3 generate
+gen_vch_count3 : if C_VCTRL_VCH_COUNT=3 generate
 begin
 i_vch_vfrrdy<=tmp_vch_vfrrdy(0) when i_vch_num=CONV_STD_LOGIC_VECTOR(0, i_vch_num'length) else
               tmp_vch_vfrrdy(1) when i_vch_num=CONV_STD_LOGIC_VECTOR(1, i_vch_num'length) else
@@ -572,7 +569,7 @@ end generate gen_vch_count3;
 --//----------------------------------------------
 --//Инициализация
 --//----------------------------------------------
-i_nik_ip_count<=i_trc_prm.opt(C_DSN_TRCNIK_REG_OPT_DBG_IP_MSB_BIT downto C_DSN_TRCNIK_REG_OPT_DBG_IP_LSB_BIT);
+i_nik_ip_count<=i_trc_prm.opt(C_TRCNIK_REG_OPT_IP_M_BIT downto C_TRCNIK_REG_OPT_IP_L_BIT);
 
 i_calc_1el_allip<=i_vch_prm.fr_size.activ.pix * EXT(i_nik_ip_count, i_vch_prm.fr_size.activ.pix'length);
 i_mem_ktcnt_size<=i_calc_1el_allip(15 downto 0) * EXT(i_vch_prm.fr_size.activ.row(15 downto 2), 16);
@@ -635,7 +632,7 @@ begin
 
     i_trc_prm.mem_arbuf<=(others=>'0');
     i_trc_prm.opt<=(others=>'0');
-    for i in 0 to C_DSN_TRCNIK_IP_COUNT-1 loop
+    for i in 0 to C_TRCNIK_IP_COUNT-1 loop
     i_trc_prm.ip(i).p1<=(others=>'0');
     i_trc_prm.ip(i).p2<=(others=>'0');
     end loop;
@@ -660,7 +657,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_trc_work<=h_reg_ctrl(C_DSN_TRCNIK_REG_CTRL_WORK_BIT);
+    i_trc_work<=h_reg_ctrl(C_TRCNIK_REG_CTRL_WORK_BIT);
 
     case fsm_state_cs is
 
@@ -676,7 +673,7 @@ begin
             if i_vch_vfrrdy='1' then
 
               --//Защелкиваем маркер обрабатываемого кадра
-              for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+              for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i_vch_num=i then
 --                  i_vfr_frmrk<=p_in_vctrl_vrowmrk(i);
                   i_trc_busy(i)<='1';
@@ -684,7 +681,7 @@ begin
               end loop;
 
               --//Синхронизация параметров:
-              for i in 0 to C_DSN_TRCNIK_CH_COUNT-1 loop
+              for i in 0 to C_TRCNIK_VCH_COUNT-1 loop
                 i_trc_prm<=g_trc_prm.ch(i);
               end loop;
 
@@ -699,7 +696,7 @@ begin
       when S_LD_PRMS =>
 
         --//Загрузка праметров Видео канала
-        for i in 0 to C_DSN_VCTRL_VCH_COUNT-1 loop
+        for i in 0 to C_VCTRL_VCH_COUNT-1 loop
           if i_vch_num=i then
 
             --//--------------------------
@@ -802,10 +799,10 @@ begin
       --//------------------------------------
       when S_MEM_SET_ADR =>
 
-        i_mem_rdptr(i_mem_rdptr'high downto G_MEM_VCH_MSB_BIT+1)<=(others=>'0');
-        i_mem_rdptr(G_MEM_VCH_MSB_BIT downto G_MEM_VCH_LSB_BIT)<=i_vch_num(G_MEM_VCH_MSB_BIT-G_MEM_VCH_LSB_BIT downto 0);
-        i_mem_rdptr(G_MEM_VFRAME_MSB_BIT downto G_MEM_VFRAME_LSB_BIT)<=i_vfr_buf;
-        i_mem_rdptr(G_MEM_VROW_MSB_BIT downto G_MEM_VROW_LSB_BIT)<=i_vfr_row_cnt(G_MEM_VROW_MSB_BIT-G_MEM_VROW_LSB_BIT downto 0);
+        i_mem_rdptr(i_mem_rdptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
+        i_mem_rdptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
+        i_mem_rdptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
+        i_mem_rdptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row_cnt(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT downto 0);
 
         fsm_state_cs <= S_MEM_START;
 
@@ -1062,11 +1059,10 @@ end process;
 --//------------------------------------------------------
 m_mem_ctrl_wr : memory_ctrl_ch_wr
 generic map(
-G_MEM_BANK_MSB_BIT   => G_MEM_BANK_MSB_BIT,
-G_MEM_BANK_LSB_BIT   => G_MEM_BANK_LSB_BIT
+G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT
 )
-port map
-(
+port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
@@ -1130,8 +1126,7 @@ m_trccore : trc_nik_core
 generic map(
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 -------------------------------
 -- Управление
 -------------------------------
@@ -1231,8 +1226,7 @@ i_trc_txrdy_n<=i_trcbufo_empty and g_trcbufo_dout_en;
 i_trcbufo_dout_en<=i_mem_din_en and g_trcbufo_dout_en;
 
 m_trcbufo : trc_nik_bufout
-port map
-(
+port map(
 din         => i_trcbufo_din,
 wr_en       => i_trcbufo_din_en,
 wr_clk      => p_in_clk,

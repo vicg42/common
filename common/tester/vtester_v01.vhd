@@ -25,12 +25,10 @@ use work.vicg_common_pkg.all;
 use work.prj_def.all;
 
 entity vtester_v01 is
-generic
-(
+generic(
 G_SIM        : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Управление от Хоста
 -------------------------------
@@ -97,8 +95,8 @@ signal i_cnt_05us                        : std_logic_vector(7 downto 0);
 signal i_cnt_us                          : std_logic_vector(10 downto 0);
 signal i_cnt_ms                          : std_logic_vector(7 downto 0);
 
-signal i_send_data_mode                  : std_logic_vector(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT downto 0);
-constant C_DSN_TSTING_REG_CTRL_MODE_SIZE : integer:=C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT-C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT+1;
+signal i_send_data_mode                  : std_logic_vector(C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT downto 0);
+constant C_TSTING_REG_CTRL_MODE_SIZE : integer:=C_TSTING_REG_CTRL_MODE_M_BIT-C_TSTING_REG_CTRL_MODE_L_BIT+1;
 
 signal i_frame_ch_auto_bit               : std_logic;
 --signal i_frame_gray_bit                  : std_logic;
@@ -229,17 +227,17 @@ begin
 
   elsif p_in_host_clk'event and p_in_host_clk='1' then
     if p_in_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl(15 downto 0) <=p_in_cfg_txdata;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_CTRL_M, i_cfg_adr_cnt'length) then h_reg_ctrl(31 downto 16)<=p_in_cfg_txdata;
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl(15 downto 0) <=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_CTRL_M, i_cfg_adr_cnt'length) then h_reg_ctrl(31 downto 16)<=p_in_cfg_txdata;
 
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_TST0, i_cfg_adr_cnt'length)   then h_reg_tst0<=p_in_cfg_txdata;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_T05_US, i_cfg_adr_cnt'length)   then h_reg_t05us<=p_in_cfg_txdata(h_reg_t05us'high downto 0);
+--        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_TST0, i_cfg_adr_cnt'length)   then h_reg_tst0<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_T05_US, i_cfg_adr_cnt'length)   then h_reg_t05us<=p_in_cfg_txdata(h_reg_t05us'high downto 0);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_PIX, i_cfg_adr_cnt'length)            then h_reg_pix<=p_in_cfg_txdata;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_ROW, i_cfg_adr_cnt'length)            then h_reg_row<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_PIX, i_cfg_adr_cnt'length)            then h_reg_pix<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_ROW, i_cfg_adr_cnt'length)            then h_reg_row<=p_in_cfg_txdata;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_ROW_SEND_TIME_DLY, i_cfg_adr_cnt'length) then h_reg_row_dly_send<=p_in_cfg_txdata;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_FR_SEND_TIME_DLY, i_cfg_adr_cnt'length)  then h_reg_fr_dly_send<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_ROW_SEND_TIME_DLY, i_cfg_adr_cnt'length) then h_reg_row_dly_send<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_FR_SEND_TIME_DLY, i_cfg_adr_cnt'length)  then h_reg_fr_dly_send<=p_in_cfg_txdata;
 
         end if;
     end if;
@@ -253,18 +251,18 @@ begin
     p_out_cfg_rxdata<=(others=>'0');
   elsif p_in_host_clk'event and p_in_host_clk='1' then
     if p_in_cfg_rd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_ctrl(15 downto 0);
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_CTRL_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_ctrl(31 downto 16);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_CTRL_L, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_ctrl(15 downto 0);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_CTRL_M, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_ctrl(31 downto 16);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(0)<=i_vfr_send or i_pkt_start_err or i_pkt_send;--h_reg_tst0;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_TST0, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata(0)<=i_vfr_send or i_pkt_start_err or i_pkt_send;--h_reg_tst0;
                                                                                                       p_out_cfg_rxdata(p_out_cfg_rxdata'high downto 1)<=(others=>'0');
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_T05_US, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_t05us, p_out_cfg_rxdata'length);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_T05_US, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=EXT(h_reg_t05us, p_out_cfg_rxdata'length);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_PIX, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=h_reg_pix;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_ROW, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=h_reg_row;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_PIX, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=h_reg_pix;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_ROW, i_cfg_adr_cnt'length)   then p_out_cfg_rxdata<=h_reg_row;
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_ROW_SEND_TIME_DLY, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_row_dly_send;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_REG_FR_SEND_TIME_DLY, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_fr_dly_send;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_ROW_SEND_TIME_DLY, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_row_dly_send;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TSTING_REG_FR_SEND_TIME_DLY, i_cfg_adr_cnt'length)  then p_out_cfg_rxdata<=h_reg_fr_dly_send;
 
         end if;
     end if;
@@ -276,17 +274,17 @@ end process;
 
 
 --//Распределяем биты управления
-i_send_data_mode        <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_MODE_MSB_BIT downto C_DSN_TSTING_REG_CTRL_MODE_LSB_BIT);
-i_run_work_bit          <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_START_BIT);
-i_frame_ch_mnl          <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRAME_CH_MSB_BIT downto C_DSN_TSTING_REG_CTRL_FRAME_CH_LSB_BIT);
-i_frame_ch_auto_bit     <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRAME_CH_AUTO_BIT);
---i_frame_gray_bit        <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRAME_GRAY_BIT);
---i_frame_set_mnl_bit     <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRAME_SET_MNL_BIT);
-i_frame_move(6 downto 0)<=h_reg_ctrl(C_DSN_TSTING_REG_CTRLM_FRAME_MOVE_MSB_BIT+16  downto C_DSN_TSTING_REG_CTRLM_FRAME_MOVE_LSB_BIT+16);
+i_send_data_mode        <=h_reg_ctrl(C_TSTING_REG_CTRL_MODE_M_BIT downto C_TSTING_REG_CTRL_MODE_L_BIT);
+i_run_work_bit          <=h_reg_ctrl(C_TSTING_REG_CTRL_START_BIT);
+i_frame_ch_mnl          <=h_reg_ctrl(C_TSTING_REG_CTRL_FRAME_CH_MSB_BIT downto C_TSTING_REG_CTRL_FRAME_CH_LSB_BIT);
+i_frame_ch_auto_bit     <=h_reg_ctrl(C_TSTING_REG_CTRL_FRAME_CH_AUTO_BIT);
+--i_frame_gray_bit        <=h_reg_ctrl(C_TSTING_REG_CTRL_FRAME_GRAY_BIT);
+--i_frame_set_mnl_bit     <=h_reg_ctrl(C_TSTING_REG_CTRL_FRAME_SET_MNL_BIT);
+i_frame_move(6 downto 0)<=h_reg_ctrl(C_TSTING_REG_CTRLM_FRAME_MOVE_M_BIT+16  downto C_TSTING_REG_CTRLM_FRAME_MOVE_L_BIT+16);
 
-i_fr_diagonal_bit      <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRAME_DIAGONAL_BIT);
-i_frtxd_2dw_cnt_bit    <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRTXD_2DW_CNT_BIT);
-i_tst_data_sel_bit     <=h_reg_ctrl(C_DSN_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT);
+i_fr_diagonal_bit      <=h_reg_ctrl(C_TSTING_REG_CTRL_FRAME_DIAGONAL_BIT);
+i_frtxd_2dw_cnt_bit    <=h_reg_ctrl(C_TSTING_REG_CTRL_FRTXD_2DW_CNT_BIT);
+i_tst_data_sel_bit     <=h_reg_ctrl(C_TSTING_REG_CTRL_FRAME_TSTDATA_2_BIT);
 
 
 
@@ -312,7 +310,7 @@ begin
   if p_in_rst='1' then
     i_module_work_stop_sync<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_module_work_stop='1' and i_send_data_mode=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_STREAM, i_send_data_mode'length) then
+    if i_module_work_stop='1' and i_send_data_mode=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_STREAM, i_send_data_mode'length) then
       i_module_work_stop_sync<='1';
     elsif i_module_work_done='1' then
       i_module_work_stop_sync<='0';
@@ -497,7 +495,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         i_move_incr<=i_move_incr+1;
       end if;
 
-      if (i_module_work_stop_sync='1' or i_send_data_mode=CONV_STD_LOGIC_VECTOR(C_DSN_TSTING_MODE_SEND_TXD_SINGL, i_send_data_mode'length)) then
+      if (i_module_work_stop_sync='1' or i_send_data_mode=CONV_STD_LOGIC_VECTOR(C_TSTING_MODE_SEND_TXD_SINGL, i_send_data_mode'length)) then
         i_module_work_done<='1';
         i_module_work<='0';
         fsm_state_cs <= S_IDLE;

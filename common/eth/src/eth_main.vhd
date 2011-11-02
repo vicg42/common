@@ -23,7 +23,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
---use work.prj_def.all;;
 use work.eth_pkg.all;
 
 entity eth_main is
@@ -31,8 +30,7 @@ generic(
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --//”правление
 p_in_gctrl             : in    std_logic_vector(31 downto 0);
 
@@ -176,8 +174,7 @@ generic map(
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 --//------------------------------------
 --//”правление
 --//------------------------------------
@@ -228,8 +225,7 @@ generic map(
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
-port map
-(
+port map(
 --//------------------------------------
 --//”правление
 --//------------------------------------
@@ -271,8 +267,7 @@ p_in_rst             => i_eth_rst(0)
 --//********  Ethernet MAC - Core  *************
 --//********************************************
 m_emac_core_main : emac_core_main
-port map
-(
+port map(
 --//------------------------------------
 --//EMAC - Channel 0
 --//------------------------------------

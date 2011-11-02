@@ -40,8 +40,7 @@ use work.vicg_common_pkg.all;
 --use work.prj_def.all;
 
 entity vmirx_main is
-port
-(
+port(
 -------------------------------
 -- ”Ô‡‚ÎÂÌËÂ
 -------------------------------
@@ -85,8 +84,7 @@ architecture behavioral of vmirx_main is
 constant dly : time := 1 ps;
 
 component vmirx_bram
-port
-(
+port(
 addra: in  std_logic_vector(9 downto 0);
 dina : in  std_logic_vector(31 downto 0);
 douta: out std_logic_vector(31 downto 0);
@@ -110,8 +108,7 @@ signal i_upp_data                        : std_logic_vector(31 downto 0);
 signal i_upp_data_swap                   : std_logic_vector(31 downto 0);
 signal i_upp_wd                          : std_logic;
 
-type fsm_state is
-(
+type fsm_state is (
 S_WRITE_BUFLINE,
 S_READ_BUFLINE_SOF,
 S_READ_BUFLINE,
@@ -285,8 +282,7 @@ i_tmpbuf_enb<=(not p_in_dwnp_rdy_n or not i_tmpbuf_dir) and i_read_en;--//add 19
 
 --//¡”‘≈– Õ¿ —“–Œ ”
 m_bufline : vmirx_bram
-port map
-(
+port map(
 addra => i_tmpbuf_addra(9 downto 0),
 dina  => i_tmpbuf_din,
 douta => open,

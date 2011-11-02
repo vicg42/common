@@ -25,8 +25,7 @@ use work.vicg_common_pkg.all;
 use work.prj_def.all;
 
 entity dsn_timer is
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
 -------------------------------
@@ -51,7 +50,7 @@ p_in_tmr_clk          : in   std_logic;
 p_out_tmr_rdy         : out  std_logic;                     --//
 p_out_tmr_error       : out  std_logic;                     --//
 
-p_out_tmr_irq         : out  std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
+p_out_tmr_irq         : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 -------------------------------
 --System
@@ -64,19 +63,19 @@ architecture behavioral of dsn_timer is
 
 signal i_cfg_adr_cnt             : std_logic_vector(7 downto 0);
 
-signal h_reg_ctrl                : std_logic_vector(C_DSN_TMR_REG_CTRL_LAST_BIT downto 0);
-signal h_tmr_en                  : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
-signal s_reg_ctrl                : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
+signal h_reg_ctrl                : std_logic_vector(C_TMR_REG_CTRL_LAST_BIT downto 0);
+signal h_tmr_en                  : std_logic_vector(C_TMR_COUNT-1 downto 0);
+signal s_reg_ctrl                : std_logic_vector(C_TMR_COUNT-1 downto 0);
 
-type TTmrCntDelay  is array (0 to C_DSN_TMR_COUNT_TMR-1) of std_logic_vector (2 downto 0);
-type TValCmp  is array (0 to C_DSN_TMR_COUNT_TMR-1) of std_logic_vector (31 downto 0);
+type TTmrCntDelay  is array (0 to C_TMR_COUNT-1) of std_logic_vector (2 downto 0);
+type TValCmp  is array (0 to C_TMR_COUNT-1) of std_logic_vector (31 downto 0);
 signal h_reg_count               : TValCmp;
 signal i_tmr_cnt                 : TValCmp;
-signal i_tmr_idx                 : std_logic_vector((C_DSN_TMR_REG_CTRL_IDX_MSB_BIT - C_DSN_TMR_REG_CTRL_IDX_LSB_BIT) downto 0);
-signal i_tmr_irq                 : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
-signal i_tmr_irq_width           : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
+signal i_tmr_idx                 : std_logic_vector((C_TMR_REG_CTRL_NUM_M_BIT - C_TMR_REG_CTRL_NUM_L_BIT) downto 0);
+signal i_tmr_irq                 : std_logic_vector(C_TMR_COUNT-1 downto 0);
+signal i_tmr_irq_width           : std_logic_vector(C_TMR_COUNT-1 downto 0);
 signal i_tmr_irq_cnt_width       : TTmrCntDelay;
-signal hclk_tmr_irq_width        : std_logic_vector(C_DSN_TMR_COUNT_TMR-1 downto 0);
+signal hclk_tmr_irq_width        : std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 --MAIN
 begin
@@ -102,14 +101,14 @@ end process;
 
 
 --//Выделяем биты для номера таймера
-i_tmr_idx<=h_reg_ctrl(C_DSN_TMR_REG_CTRL_IDX_MSB_BIT downto C_DSN_TMR_REG_CTRL_IDX_LSB_BIT);
+i_tmr_idx<=h_reg_ctrl(C_TMR_REG_CTRL_NUM_M_BIT downto C_TMR_REG_CTRL_NUM_L_BIT);
 
 --//Запись регистров
 process(p_in_rst,p_in_host_clk)
 begin
   if p_in_rst='1' then
     h_reg_ctrl<=(others=>'0');
-    for i in 0 to C_DSN_TMR_COUNT_TMR-1 loop
+    for i in 0 to C_TMR_COUNT-1 loop
       h_reg_count(i)<=(others=>'0');
     end loop;
 
@@ -117,27 +116,27 @@ begin
 
   elsif p_in_host_clk'event and p_in_host_clk='1' then
     if p_in_cfg_wd='1' then
-      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TMR_REG_CTRL, i_cfg_adr_cnt'length) then
+      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TMR_REG_CTRL, i_cfg_adr_cnt'length) then
         h_reg_ctrl <=p_in_cfg_txdata(h_reg_ctrl'high downto 0);
 
-        for i in 0 to C_DSN_TMR_COUNT_TMR-1 loop
-          if p_in_cfg_txdata(C_DSN_TMR_REG_CTRL_IDX_MSB_BIT downto C_DSN_TMR_REG_CTRL_IDX_LSB_BIT) = i then
-            if p_in_cfg_txdata(C_DSN_TMR_REG_CTRL_EN_BIT)='1' then
+        for i in 0 to C_TMR_COUNT-1 loop
+          if p_in_cfg_txdata(C_TMR_REG_CTRL_NUM_M_BIT downto C_TMR_REG_CTRL_NUM_L_BIT) = i then
+            if p_in_cfg_txdata(C_TMR_REG_CTRL_EN_BIT)='1' then
               h_tmr_en(i)<='1';
-            elsif p_in_cfg_txdata(C_DSN_TMR_REG_CTRL_DIS_BIT)='1' then
+            elsif p_in_cfg_txdata(C_TMR_REG_CTRL_DIS_BIT)='1' then
               h_tmr_en(i)<='0';
             end if;
           end if;
         end loop;
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TMR_REG_CMP_L, i_cfg_adr_cnt'length) then
-        for i in 0 to C_DSN_TMR_COUNT_TMR-1 loop
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TMR_REG_CMP_L, i_cfg_adr_cnt'length) then
+        for i in 0 to C_TMR_COUNT-1 loop
           if i = i_tmr_idx then
             h_reg_count(i)(15 downto 0) <=p_in_cfg_txdata;
           end if;
         end loop;
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TMR_REG_CMP_M, i_cfg_adr_cnt'length) then
-      for i in 0 to C_DSN_TMR_COUNT_TMR-1 loop
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TMR_REG_CMP_M, i_cfg_adr_cnt'length) then
+      for i in 0 to C_TMR_COUNT-1 loop
         if i = i_tmr_idx then
           h_reg_count(i)(31 downto 16) <=p_in_cfg_txdata;
         end if;
@@ -155,18 +154,18 @@ begin
     p_out_cfg_rxdata<=(others=>'0');
   elsif p_in_host_clk'event and p_in_host_clk='1' then
     if p_in_cfg_rd='1' then
-      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TMR_REG_CTRL, i_cfg_adr_cnt'length) then
+      if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TMR_REG_CTRL, i_cfg_adr_cnt'length) then
           p_out_cfg_rxdata(h_tmr_en'high downto 0)<=h_tmr_en;
           p_out_cfg_rxdata(15 downto h_tmr_en'high+1)<=(others=>'0');
 
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TMR_REG_CMP_L, i_cfg_adr_cnt'length) then
-        for i in 0 to C_DSN_TMR_COUNT_TMR-1 loop
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TMR_REG_CMP_L, i_cfg_adr_cnt'length) then
+        for i in 0 to C_TMR_COUNT-1 loop
           if i = i_tmr_idx then
             p_out_cfg_rxdata<=h_reg_count(i)(15 downto 0);
           end if;
         end loop;
-      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_DSN_TMR_REG_CMP_M, i_cfg_adr_cnt'length) then
-        for i in 0 to C_DSN_TMR_COUNT_TMR-1 loop
+      elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_TMR_REG_CMP_M, i_cfg_adr_cnt'length) then
+        for i in 0 to C_TMR_COUNT-1 loop
           if i = i_tmr_idx then
             p_out_cfg_rxdata<=h_reg_count(i)(31 downto 16);
           end if;
@@ -177,7 +176,7 @@ begin
 end process;
 
 
-gen_tmr : for i in 0 to C_DSN_TMR_COUNT_TMR-1 generate
+gen_tmr : for i in 0 to C_TMR_COUNT-1 generate
 begin
 
   process(p_in_rst,p_in_tmr_clk)
