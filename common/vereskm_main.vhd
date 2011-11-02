@@ -987,7 +987,7 @@ p_in_rst => i_swt_rst
 m_ethg : dsn_ethg
 generic map(
 G_MODULE_USE => C_USE_ETH,
-G_DBG        => G_DBG_ETH,
+G_DBG        => C_DBG_ETH,
 G_SIM        => G_SIM
 )
 port map(

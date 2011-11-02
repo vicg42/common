@@ -1108,7 +1108,7 @@ p_out_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT)<=i_rddone_trcnik;
 --//Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=i_dma_start;
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dev_drdy_out;
-p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DRDY_BIT+1)<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DRDY_BIT+1);
+p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1)<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1);
 p_out_dev_ctrl(p_out_dev_ctrl'high downto C_HREG_DEV_CTRL_LAST_BIT+1)<=(others=>'0');
 
 --//Чтение/Запись данных во внешние модули

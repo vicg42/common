@@ -22,7 +22,7 @@ use work.vicg_common_pkg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#032B#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#032C#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -66,15 +66,15 @@ constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_RDDONE_TRCN
 
 
 --//Register C_HREG_DEV_CTRL / Bit Map:
-constant C_HREG_DEV_CTRL_DMA_START_BIT        : integer:=0; --//(Передний фронт)Запуск текущей операции
-constant C_HREG_DEV_CTRL_DRDY_BIT             : integer:=1; --//(Драйвером не используется)
+constant C_HREG_DEV_CTRL_DRDY_BIT             : integer:=0; --//(Драйвером не используется)
+constant C_HREG_DEV_CTRL_DMA_START_BIT        : integer:=1; --//(Передний фронт)Запуск текущей операции
 constant C_HREG_DEV_CTRL_DMA_DIR_BIT          : integer:=2; --//1/0 – Чтение/Запись данных в пользовательское устройство
-constant C_HREG_DEV_CTRL_ADR_L_BIT            : integer:=3; --//Номер пользовательского устройства:(C_HDEV_xxx)
-constant C_HREG_DEV_CTRL_ADR_M_BIT            : integer:=6; --//
-constant C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT     : integer:=7; --//Стартовый номер буфера с параметрами PCIE_DMA
-constant C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT     : integer:=14;--//
-constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT   : integer:=15;--//Общее кол-во буфера с параметрами PCIE_DMA
-constant C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT   : integer:=22;--//
+constant C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT     : integer:=3; --//Стартовый номер буфера с параметрами PCIE_DMA
+constant C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT     : integer:=10;--//
+constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT   : integer:=11;--//Общее кол-во буфера с параметрами PCIE_DMA
+constant C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT   : integer:=18;--//
+constant C_HREG_DEV_CTRL_ADR_L_BIT            : integer:=19;--//Номер пользовательского устройства:(C_HDEV_xxx)
+constant C_HREG_DEV_CTRL_ADR_M_BIT            : integer:=22;--//
 constant C_HREG_DEV_CTRL_VCH_L_BIT            : integer:=23;--//Номер видео канала
 constant C_HREG_DEV_CTRL_VCH_M_BIT            : integer:=25;--//
 constant C_HREG_DEV_CTRL_LAST_BIT             : integer:=C_HREG_DEV_CTRL_VCH_M_BIT;--//Max 31
@@ -114,9 +114,9 @@ constant C_HREG_DEV_STATUS_LAST_BIT           : integer:=C_HREG_DEV_STATUS_VCH3_
 --//Register C_HREG_IRQ / Bit Map:
 constant C_HREG_IRQ_NUM_L_WBIT                : integer:=0; --//Номер источника прерывания
 constant C_HREG_IRQ_NUM_M_WBIT                : integer:=3; --//
-constant C_HREG_IRQ_EN_WBIT                   : integer:=5; --//Разрешение прерывания от соответствующего источника
-constant C_HREG_IRQ_DIS_WBIT                  : integer:=6; --//Зпрещение прерывания от соответствующего источника
-constant C_HREG_IRQ_CLR_WBIT                  : integer:=7; --//Сброс статуса активности соотв. источника прерывания
+constant C_HREG_IRQ_EN_WBIT                   : integer:=4; --//Разрешение прерывания от соответствующего источника
+constant C_HREG_IRQ_DIS_WBIT                  : integer:=5; --//Зпрещение прерывания от соответствующего источника
+constant C_HREG_IRQ_CLR_WBIT                  : integer:=6; --//Сброс статуса активности соотв. источника прерывания
 constant C_HREG_IRQ_LAST_WBIT                 : integer:=C_HREG_IRQ_CLR_WBIT;
 
 constant C_HREG_IRQ_STATUS_L_RBIT             : integer:=16;--//Статус активности прерывания от соотв. источника
@@ -227,18 +227,17 @@ constant C_TMR_COUNT                          : integer:=16#01#;
 --//Register MAP:
 constant C_SWT_REG_CTRL                       : integer:=16#00#;
 constant C_SWT_REG_FRR_ETHG_HOST              : integer:=16#08#;
-constant C_SWT_REG_FRR_ETHG_HDD               : integer:=16#10#;--//C_SWT_REG_FRR_ETHG_HOST + C_SWT_FRR_COUNT_MAX
-constant C_SWT_REG_FRR_ETHG_VCTRL             : integer:=16#18#;--//C_SWT_REG_FRR_ETHG_HDD + C_SWT_FRR_COUNT_MAX
+constant C_SWT_REG_FRR_ETHG_VCTRL             : integer:=16#10#;--//C_SWT_REG_FRR_ETHG_HDD + C_SWT_FRR_COUNT_MAX
+constant C_SWT_REG_FRR_ETHG_HDD               : integer:=16#18#;--//C_SWT_REG_FRR_ETHG_HOST + C_SWT_FRR_COUNT_MAX
 
 
 --//Bit Maps:
 --//Register C_SWT_REG_CTRL / Bit Map:
-constant C_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT   : integer:=0;
-constant C_SWT_REG_CTRL_RST_ETH_BUFS_BIT      : integer:=1;
-constant C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT    : integer:=3;
-constant C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT : integer:=4;
-constant C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT : integer:=5;
-constant C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT : integer:=6;
+constant C_SWT_REG_CTRL_RST_ETH_BUFS_BIT      : integer:=0;
+constant C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT    : integer:=1;
+constant C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT : integer:=2;
+constant C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT : integer:=3;
+constant C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT : integer:=4;
 constant C_SWT_REG_CTRL_LAST_BIT              : integer:=C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT;
 
 --//Мах кол-во правил машрутиразции:
@@ -339,16 +338,15 @@ constant C_HDD_REG_CTRLM_LAST_BIT             : integer:=C_HDD_REG_CTRLM_RAMWR_D
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_ethg.vhd
 --//--------------------------------------------------------------
-constant C_ETH_REG_CTRL                       : integer:=16#000#;
-constant C_ETH_REG_MAC_USRCTRL                : integer:=16#004#;
-constant C_ETH_REG_MAC_PATRN0                 : integer:=16#005#;
-constant C_ETH_REG_MAC_PATRN1                 : integer:=16#006#;
-constant C_ETH_REG_MAC_PATRN2                 : integer:=16#007#;
-constant C_ETH_REG_MAC_PATRN3                 : integer:=16#008#;
-constant C_ETH_REG_MAC_PATRN4                 : integer:=16#009#;
-constant C_ETH_REG_MAC_PATRN5                 : integer:=16#00A#;
-constant C_ETH_REG_MAC_PATRN6                 : integer:=16#00B#;
---constant C_ETH_REG_MAC_PATRN7                 : integer:=16#00C#;
+constant C_ETH_REG_CTRL                       : integer:=16#008#;
+constant C_ETH_REG_MAC_USRCTRL                : integer:=16#009#;
+constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;
+constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;
+constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
+constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;
+constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
+constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
+constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;
 
 --//Register C_ETH_REG_CTRL / Bit Map:
 constant C_ETH_REG_CTRL_SFP_TX_DISABLE_BIT    : integer:=3; --//Выключение передатчика на SFP
@@ -368,12 +366,10 @@ constant C_ETH_REG_CTRL_GTP_NORTH_MUX_CNG_BIT : integer:=15; --//1- перепрограмм
 --//Регистры модуля dsn_video_ctrl.vhd
 --//--------------------------------------------------------------
 constant C_VCTRL_REG_CTRL                     : integer:=16#000#;
-constant C_VCTRL_REG_TST0                     : integer:=16#002#;
-constant C_VCTRL_REG_DATA_L                   : integer:=16#004#;
-constant C_VCTRL_REG_DATA_M                   : integer:=16#005#;
-constant C_VCTRL_REG_MEM_CTRL                 : integer:=16#006#;
-
-
+constant C_VCTRL_REG_DATA_L                   : integer:=16#001#;
+constant C_VCTRL_REG_DATA_M                   : integer:=16#002#;
+constant C_VCTRL_REG_MEM_CTRL                 : integer:=16#003#;
+constant C_VCTRL_REG_TST0                     : integer:=16#004#;
 --//Bit Maps:
 --//Register C_VCTRL_REG_CTRL / Bit Map:
 constant C_VCTRL_REG_CTRL_VCH_L_BIT           : integer:=0;--//Номер видео канала
@@ -486,8 +482,8 @@ constant C_TRCNIK_REG_MEM_LAST_BIT            : integer:=C_TRCNIK_REG_MEM_ADR_BA
 --//Register C_TRCNIK_REG_CTRL / Bit Map:
 constant C_TRCNIK_REG_CTRL_VCH_L_BIT          : integer:=0;--//Номер видеоканала
 constant C_TRCNIK_REG_CTRL_VCH_M_BIT          : integer:=3;
-constant C_TRCNIK_REG_CTRL_SET_BIT            : integer:=7;
-constant C_TRCNIK_REG_CTRL_WORK_BIT           : integer:=9;
+constant C_TRCNIK_REG_CTRL_SET_BIT            : integer:=4;
+constant C_TRCNIK_REG_CTRL_WORK_BIT           : integer:=5;
 constant C_TRCNIK_REG_CTRL_LAST_BIT           : integer:=C_TRCNIK_REG_CTRL_WORK_BIT;
 
 
