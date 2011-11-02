@@ -842,7 +842,7 @@ p_in_rst     => i_dcm_rst
 --//PLL контроллера памяти
 m_pll_mem_ctrl : memory_ctrl_pll
 port map(
-mclk      => g_lbus_clkin,--g_refclk200MHz,--g_lbus_clkfx,--
+mclk      => g_refclk200MHz,--g_lbus_clkfx,--
 rst       => i_memctrl_rst,
 refclk200 => g_refclk200MHz,
 
@@ -1093,7 +1093,7 @@ p_in_rst => i_swt_rst
 m_ethg : dsn_ethg
 generic map(
 G_MODULE_USE => C_USE_ETH,
-G_DBG        => G_DBG_ETH,
+G_DBG        => C_DBG_ETH,
 G_SIM        => G_SIM
 )
 port map(
