@@ -1441,39 +1441,26 @@ begin
   data(0 to 3) :=conv_byte_vector(i_dev_ctrl);
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
-  --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16); --//C_ETH_REG_CTRL
-  User_Reg(0)(C_ETH_REG_CTRL_GTP_NORTH_MUX_CNG_BIT):='0';--//Тестируем запись этого бита
-
-  datasize:=1;
-  for y in 0 to datasize - 1 loop
-    for i in 0 to 2 - 1 loop
-      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
-    end loop;
-  end loop;
-
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
   --//Готовим значения регистров:
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//C_ETH_REG_MAC_USRCTRL
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_ETH_REG_TX_PATRN0 - MAC DST
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_ETH_REG_TX_PATRN1
-  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_ETH_REG_TX_PATRN2
-  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_ETH_REG_TX_PATRN3 - MAC SRC
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_ETH_REG_TX_PATRN4
-  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_ETH_REG_TX_PATRN5
-  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_ETH_REG_TX_PATRN6 - MAC Length/Type
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_ETH_REG_TX_PATRN0 - MAC DST
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_ETH_REG_TX_PATRN1
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_ETH_REG_TX_PATRN2
+  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B5B6#, 16);  --//C_ETH_REG_TX_PATRN3 - MAC SRC
+  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B3B4#, 16);  --//C_ETH_REG_TX_PATRN4
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#B1B2#, 16);  --//C_ETH_REG_TX_PATRN5
+  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_ETH_REG_TX_PATRN6 - MAC Length/Type
 
-  datasize:=8;
+  datasize:=7;
   for y in 0 to datasize - 1 loop
     for i in 0 to 2 - 1 loop
       data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(34, lclk);
   --// Настройка модуля DSN_ETH.VHD
@@ -2320,7 +2307,6 @@ begin
   --//Установка C_TRCNIK_REG_CTRL
   User_Reg(16):=(others=>'0');
   User_Reg(16)(C_TRCNIK_REG_CTRL_VCH_M_BIT downto C_TRCNIK_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#00#, C_TRCNIK_REG_CTRL_VCH_M_BIT-C_TRCNIK_REG_CTRL_VCH_L_BIT+1);
-  User_Reg(16)(C_TRCNIK_REG_CTRL_SET_BIT):='0';
   User_Reg(16)(C_TRCNIK_REG_CTRL_WORK_BIT):=TrcNikWorkOn;
 
   datasize:=17;
