@@ -270,27 +270,26 @@ p_in_rst       : in    std_logic
 end component;
 
 component gtp_prog_clkmux
-generic
-(
-G_CLKIN_CHANGE             : std_logic := '0';
-G_CLKSOUTH_CHANGE          : std_logic := '0';
-G_CLKNORTH_CHANGE          : std_logic := '0';
+generic(
+G_CLKIN_CHANGE     : std_logic := '0';
+G_CLKSOUTH_CHANGE  : std_logic := '0';
+G_CLKNORTH_CHANGE  : std_logic := '0';
 
-G_CLKIN_MUX_VAL            : std_logic_vector(2 downto 0):="011";
-G_CLKSOUTH_MUX_VAL         : std_logic := '0';
-G_CLKNORTH_MUX_VAL         : std_logic := '0'
+G_CLKIN_MUX_VAL    : std_logic_vector(2 downto 0):="011";
+G_CLKSOUTH_MUX_VAL : std_logic := '0';
+G_CLKNORTH_MUX_VAL : std_logic := '0'
 );
 port(
-p_in_drp_rst            : in    std_logic;
-p_in_drp_clk            : in    std_logic;
+p_in_drp_rst    : in    std_logic;
+p_in_drp_clk    : in    std_logic;
 
-p_out_txp               : out   std_logic_vector(1 downto 0);
-p_out_txn               : out   std_logic_vector(1 downto 0);
-p_in_rxp                : in    std_logic_vector(1 downto 0);
-p_in_rxn                : in    std_logic_vector(1 downto 0);
+p_out_txp       : out   std_logic_vector(1 downto 0);
+p_out_txn       : out   std_logic_vector(1 downto 0);
+p_in_rxp        : in    std_logic_vector(1 downto 0);
+p_in_rxn        : in    std_logic_vector(1 downto 0);
 
-p_in_clkin              : in    std_logic;
-p_out_refclkout         : out   std_logic
+p_in_clkin      : in    std_logic;
+p_out_refclkout : out   std_logic
 );
 end component;
 
@@ -338,8 +337,6 @@ signal g_refclk200MHz                   : std_logic;
 
 signal i_gt_X0Y6_rst                    : std_logic;
 signal i_gt_X0Y6_clkin                  : std_logic;
---signal i_gt_X0Y6_refclkout              : std_logic;
---signal g_gt_X0Y6_refclkout              : std_logic;
 
 signal ramclki                          : std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 
@@ -810,11 +807,8 @@ p_in_rxp        => pin_in_gt_X0Y6_rxp,
 p_in_rxn        => pin_in_gt_X0Y6_rxn,
 
 p_in_clkin      => i_gt_X0Y6_clkin,
-p_out_refclkout => open --i_gt_X0Y6_refclkout
+p_out_refclkout => open
 );
-
-----//Ѕуду использовать g_gt_X0Y6_refclkout дл€ тактировани€ блока GTP_X0Y7/DRP (Ethernet)
---bufg_gt_X0Y6_refclk  : BUFG port map(I  => i_gt_X0Y6_refclkout, O  => g_gt_X0Y6_refclkout);
 
 --//Input 125MHz reference clock for GTP_X0Y7 Eth_MAC0
 --//¬ данном проекте опорна€ частота дл€ GTP_X0Y7 будет братьс€ не с диф. пинов pin_in_eth_clk_n/p, а
@@ -842,7 +836,7 @@ p_in_rst     => i_dcm_rst
 --//PLL контроллера пам€ти
 m_pll_mem_ctrl : memory_ctrl_pll
 port map(
-mclk      => g_refclk200MHz,--g_lbus_clkfx,--
+mclk      => g_refclk200MHz,
 rst       => i_memctrl_rst,
 refclk200 => g_refclk200MHz,
 

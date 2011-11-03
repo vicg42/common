@@ -23,6 +23,7 @@ set _projects [ list \
   [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/lib/vicg/v5/v5_gt_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/lib/vicg/v5/mclk_gtp_wrap.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/vicg/v5/gtp_drp_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/vicg/v5/gtp_prog_clkmux.vhd" $_VHDMod ] \
