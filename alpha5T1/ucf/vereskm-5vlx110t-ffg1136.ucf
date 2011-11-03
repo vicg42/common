@@ -84,7 +84,7 @@ NET "pin_in_eth_clk_n" LOC = "C8";
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
 ###НЕ ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="OFF";)
-#INST "m_ethg/gen_use_off.m_gtp_dual_clk/gtp_dual_i"  LOC = "GTP_DUAL_X0Y7";
+#INST "m_ethg/gen_use_off.m_gtp_dual_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y7";
 
 ###ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="ON";)
 INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y7";
