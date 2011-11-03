@@ -103,103 +103,17 @@ end dsn_ethg;
 
 architecture behavioral of dsn_ethg is
 
-
-component ROCKETIO_WRAPPER_GTP_TILE
-generic
-(
--- Simulation attributes
-TILE_SIM_GTPRESET_SPEEDUP    : integer   := 0; -- Set to 1 to speed up sim reset
-TILE_SIM_PLL_PERDIV2         : bit_vector:= x"190"; -- Set to the VCO Unit Interval time
-
--- Channel bonding attributes
-TILE_CHAN_BOND_MODE_0        : string    := "OFF";  -- "MASTER", "SLAVE", or "OFF"
-TILE_CHAN_BOND_LEVEL_0       : integer   := 0;     -- 0 to 7. See UG for details
-
-TILE_CHAN_BOND_MODE_1        : string    := "OFF";  -- "MASTER", "SLAVE", or "OFF"
-TILE_CHAN_BOND_LEVEL_1       : integer   := 0      -- 0 to 7. See UG for details
+component mclk_gtp_wrap
+generic(
+G_SIM : string:="OFF"
 );
-port
-(
-p_in_drp_ctrl                  : in   std_logic_vector(31 downto 0);
-
------------------------- Loopback and Powerdown Ports ----------------------
-LOOPBACK0_IN                            : in   std_logic_vector(2 downto 0);
-LOOPBACK1_IN                            : in   std_logic_vector(2 downto 0);
------------------------ Receive Ports - 8b10b Decoder ----------------------
-RXCHARISCOMMA0_OUT                      : out  std_logic;
-RXCHARISCOMMA1_OUT                      : out  std_logic;
-RXCHARISK0_OUT                          : out  std_logic;
-RXCHARISK1_OUT                          : out  std_logic;
-RXDISPERR0_OUT                          : out  std_logic;
-RXDISPERR1_OUT                          : out  std_logic;
-RXNOTINTABLE0_OUT                       : out  std_logic;
-RXNOTINTABLE1_OUT                       : out  std_logic;
-RXRUNDISP0_OUT                          : out  std_logic;
-RXRUNDISP1_OUT                          : out  std_logic;
-------------------- Receive Ports - Clock Correction Ports -----------------
-RXCLKCORCNT0_OUT                        : out  std_logic_vector(2 downto 0);
-RXCLKCORCNT1_OUT                        : out  std_logic_vector(2 downto 0);
---------------- Receive Ports - Comma Detection and Alignment --------------
-RXENMCOMMAALIGN0_IN                     : in   std_logic;
-RXENMCOMMAALIGN1_IN                     : in   std_logic;
-RXENPCOMMAALIGN0_IN                     : in   std_logic;
-RXENPCOMMAALIGN1_IN                     : in   std_logic;
-------------------- Receive Ports - RX Data Path interface -----------------
-RXDATA0_OUT                             : out  std_logic_vector(7 downto 0);
-RXDATA1_OUT                             : out  std_logic_vector(7 downto 0);
-RXRECCLK0_OUT                           : out  std_logic;
-RXRECCLK1_OUT                           : out  std_logic;
-RXRESET0_IN                             : in   std_logic;
-RXRESET1_IN                             : in   std_logic;
-RXUSRCLK0_IN                            : in   std_logic;
-RXUSRCLK1_IN                            : in   std_logic;
-RXUSRCLK20_IN                           : in   std_logic;
-RXUSRCLK21_IN                           : in   std_logic;
-------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-RXELECIDLE0_OUT                         : out  std_logic;
-RXELECIDLE1_OUT                         : out  std_logic;
-RXN0_IN                                 : in   std_logic;
-RXN1_IN                                 : in   std_logic;
-RXP0_IN                                 : in   std_logic;
-RXP1_IN                                 : in   std_logic;
--------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0_IN                          : in   std_logic;
-RXBUFRESET1_IN                          : in   std_logic;
-RXBUFSTATUS0_OUT                        : out  std_logic_vector(2 downto 0);
-RXBUFSTATUS1_OUT                        : out  std_logic_vector(2 downto 0);
---------------------- Shared Ports - Tile and PLL Ports --------------------
-CLKIN_IN                                : in   std_logic;
-GTPRESET_IN                             : in   std_logic;
-PLLLKDET_OUT                            : out  std_logic;
-REFCLKOUT_OUT                           : out  std_logic;
-RESETDONE0_OUT                          : out  std_logic;
-RESETDONE1_OUT                          : out  std_logic;
----------------- Transmit Ports - 8b10b Encoder Control Ports --------------
-TXCHARDISPMODE0_IN                      : in   std_logic;
-TXCHARDISPMODE1_IN                      : in   std_logic;
-TXCHARDISPVAL0_IN                       : in   std_logic;
-TXCHARDISPVAL1_IN                       : in   std_logic;
-TXCHARISK0_IN                           : in   std_logic;
-TXCHARISK1_IN                           : in   std_logic;
-------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-TXBUFSTATUS0_OUT                        : out  std_logic_vector(1 downto 0);
-TXBUFSTATUS1_OUT                        : out  std_logic_vector(1 downto 0);
------------------- Transmit Ports - TX Data Path interface -----------------
-TXDATA0_IN                              : in   std_logic_vector(7 downto 0);
-TXDATA1_IN                              : in   std_logic_vector(7 downto 0);
-TXOUTCLK0_OUT                           : out  std_logic;
-TXOUTCLK1_OUT                           : out  std_logic;
-TXRESET0_IN                             : in   std_logic;
-TXRESET1_IN                             : in   std_logic;
-TXUSRCLK0_IN                            : in   std_logic;
-TXUSRCLK1_IN                            : in   std_logic;
-TXUSRCLK20_IN                           : in   std_logic;
-TXUSRCLK21_IN                           : in   std_logic;
---------------- Transmit Ports - TX Driver and OOB signalling --------------
-TXN0_OUT                                : out  std_logic;
-TXN1_OUT                                : out  std_logic;
-TXP0_OUT                                : out  std_logic;
-TXP1_OUT                                : out  std_logic
+port(
+p_out_txn : out   std_logic_vector(1 downto 0);
+p_out_txp : out   std_logic_vector(1 downto 0);
+p_in_rxn  : in    std_logic_vector(1 downto 0);
+p_in_rxp  : in    std_logic_vector(1 downto 0);
+clkin     : in    std_logic;
+clkout    : out   std_logic
 );
 end component;
 
@@ -481,111 +395,21 @@ p_out_eth_txbuf_rd  <= not p_in_eth_txbuf_empty;
 
 bufg_clk125 : BUFG port map (I => mac0_gtp_clk125_o, O => mac0_gtp_clk125);
 
---i_eth_gctrl(30 downto 0)<=EXT(h_reg_ctrl, 31);
-i_eth_gctrl(7 downto 0)<=h_reg_ctrl(7 downto 0);
-i_eth_gctrl(10 downto 8)<=CONV_STD_LOGIC_VECTOR(16#07#, 3);
-i_eth_gctrl(12 downto 11)<=CONV_STD_LOGIC_VECTOR(16#00#, 2);
-i_eth_gctrl(15 downto 13)<=CONV_STD_LOGIC_VECTOR(16#01#, 3);
-i_eth_gctrl(30 downto 16)<=(others=>'0');
-i_eth_gctrl(31)<=p_in_eth_gt_drpclk;
+i_eth_gt_plllkdet<='0';
 
-m_gtp_dual_clk : ROCKETIO_WRAPPER_GTP_TILE
-generic map
-(
--- Simulation attributes
-TILE_SIM_GTPRESET_SPEEDUP   => 1,
-TILE_SIM_PLL_PERDIV2        => x"190",
-
--- Channel bonding attributes
-TILE_CHAN_BOND_MODE_0        => "OFF",
-TILE_CHAN_BOND_LEVEL_0       => 0,
-
-TILE_CHAN_BOND_MODE_1        => "OFF",
-TILE_CHAN_BOND_LEVEL_1       => 0
+m_gtp_dual_clk : mclk_gtp_wrap
+generic map(
+G_SIM => G_SIM
 )
-port map
-(
-p_in_drp_ctrl                  => i_eth_gctrl,
-
------------------------- Loopback and Powerdown Ports ----------------------
-LOOPBACK0_IN                            => "000",
-LOOPBACK1_IN                            => "000",
------------------------ Receive Ports - 8b10b Decoder ----------------------
-RXCHARISCOMMA0_OUT                      => open,
-RXCHARISCOMMA1_OUT                      => open,
-RXCHARISK0_OUT                          => open,
-RXCHARISK1_OUT                          => open,
-RXDISPERR0_OUT                          => open,
-RXDISPERR1_OUT                          => open,
-RXNOTINTABLE0_OUT                       => open,
-RXNOTINTABLE1_OUT                       => open,
-RXRUNDISP0_OUT                          => open,
-RXRUNDISP1_OUT                          => open,
-------------------- Receive Ports - Clock Correction Ports -----------------
-RXCLKCORCNT0_OUT                        => open,
-RXCLKCORCNT1_OUT                        => open,
---------------- Receive Ports - Comma Detection and Alignment --------------
-RXENMCOMMAALIGN0_IN                     => '0',
-RXENMCOMMAALIGN1_IN                     => '0',
-RXENPCOMMAALIGN0_IN                     => '0',
-RXENPCOMMAALIGN1_IN                     => '0',
-------------------- Receive Ports - RX Data Path interface -----------------
-RXDATA0_OUT                             => open,
-RXDATA1_OUT                             => open,
-RXRECCLK0_OUT                           => open,
-RXRECCLK1_OUT                           => open,
-RXRESET0_IN                             => '0',
-RXRESET1_IN                             => '0',
-RXUSRCLK0_IN                            => '0',
-RXUSRCLK1_IN                            => '0',
-RXUSRCLK20_IN                           => '0',
-RXUSRCLK21_IN                           => '0',
-------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-RXELECIDLE0_OUT                         => open,
-RXELECIDLE1_OUT                         => open,
-RXN0_IN                                 => p_in_eth_gt_rxn(0),
-RXN1_IN                                 => p_in_eth_gt_rxn(1),
-RXP0_IN                                 => p_in_eth_gt_rxp(0),
-RXP1_IN                                 => p_in_eth_gt_rxp(1),
--------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0_IN                          => '0',
-RXBUFRESET1_IN                          => '0',
-RXBUFSTATUS0_OUT                        => open,
-RXBUFSTATUS1_OUT                        => open,
---------------------- Shared Ports - Tile and PLL Ports --------------------
-CLKIN_IN                                => p_in_eth_gt_refclk,
-GTPRESET_IN                             => p_in_rst,
-PLLLKDET_OUT                            => i_eth_gt_plllkdet,
-REFCLKOUT_OUT                           => mac0_gtp_clk125_o,
-RESETDONE0_OUT                          => open,
-RESETDONE1_OUT                          => open,
----------------- Transmit Ports - 8b10b Encoder Control Ports --------------
-TXCHARDISPMODE0_IN                      => '0',
-TXCHARDISPMODE1_IN                      => '0',
-TXCHARDISPVAL0_IN                       => '0',
-TXCHARDISPVAL1_IN                       => '0',
-TXCHARISK0_IN                           => '0',
-TXCHARISK1_IN                           => '0',
-------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-TXBUFSTATUS0_OUT                        => open,
-TXBUFSTATUS1_OUT                        => open,
------------------- Transmit Ports - TX Data Path interface -----------------
-TXDATA0_IN                              => "00000000",
-TXDATA1_IN                              => "00000000",
-TXOUTCLK0_OUT                           => open,
-TXOUTCLK1_OUT                           => open,
-TXRESET0_IN                             => '0',
-TXRESET1_IN                             => '0',
-TXUSRCLK0_IN                            => '0',
-TXUSRCLK1_IN                            => '0',
-TXUSRCLK20_IN                           => '0',
-TXUSRCLK21_IN                           => '0',
---------------- Transmit Ports - TX Driver and OOB signalling --------------
-TXN0_OUT                                => p_out_eth_gt_txn(0),
-TXN1_OUT                                => p_out_eth_gt_txn(1),
-TXP0_OUT                                => p_out_eth_gt_txp(0),
-TXP1_OUT                                => p_out_eth_gt_txp(1)
+port map(
+p_out_txn => p_out_eth_gt_txn,
+p_out_txp => p_out_eth_gt_txp,
+p_in_rxn  => p_in_eth_gt_rxn,
+p_in_rxp  => p_in_eth_gt_rxp,
+clkin     => p_in_eth_gt_refclk,
+clkout    => mac0_gtp_clk125_o
 );
+
 
 
 end generate gen_use_off;

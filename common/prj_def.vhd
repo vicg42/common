@@ -22,7 +22,7 @@ use work.vicg_common_pkg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#032E#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#032F#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
