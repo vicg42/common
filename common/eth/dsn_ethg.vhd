@@ -28,14 +28,12 @@ use work.prj_def.all;
 use work.eth_pkg.all;
 
 entity dsn_ethg is
-generic
-(
+generic(
 G_MODULE_USE : string:="ON";
 G_DBG        : string:="OFF";
 G_SIM        : string:="OFF"
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование модуля dsn_ethg.vhd (host_clk domain)
 -------------------------------
@@ -272,11 +270,7 @@ begin
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ctrl<=p_in_cfg_txdata;
-
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_USRCTRL, i_cfg_adr_cnt'length)then h_reg_eth_cfg.usrctrl<=p_in_cfg_txdata;
-
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(0)<=p_in_cfg_txdata(7 downto 0);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(0)<=p_in_cfg_txdata(7 downto 0);
                                                                                                    h_reg_eth_cfg.mac.dst(1)<=p_in_cfg_txdata(15 downto 8);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.dst(2)<=p_in_cfg_txdata(7 downto 0);
                                                                                                    h_reg_eth_cfg.mac.dst(3)<=p_in_cfg_txdata(15 downto 8);
@@ -290,7 +284,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.src(4)<=p_in_cfg_txdata(7 downto 0);
                                                                                                    h_reg_eth_cfg.mac.src(5)<=p_in_cfg_txdata(15 downto 8);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.lentype<=p_in_cfg_txdata(15 downto 0);
+--        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then h_reg_eth_cfg.mac.lentype<=p_in_cfg_txdata(15 downto 0);
 
         end if;
     end if;
@@ -304,11 +298,7 @@ begin
     p_out_cfg_rxdata<=(others=>'0');
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_rd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_cfg_adr_cnt'length) then p_out_cfg_rxdata<=h_reg_ctrl;
-
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_USRCTRL, i_cfg_adr_cnt'length)then p_out_cfg_rxdata<=h_reg_eth_cfg.usrctrl;
-
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(0);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(0);
                                                                                                    p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(1);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.dst(2);
                                                                                                    p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.dst(3);
@@ -322,7 +312,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_cfg.mac.src(4);
                                                                                                    p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_cfg.mac.src(5);
 
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=h_reg_eth_cfg.mac.lentype;
+--        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then p_out_cfg_rxdata(15 downto 0)<=h_reg_eth_cfg.mac.lentype;
 
         end if;
     end if;
@@ -337,7 +327,7 @@ p_out_eth_rdy        <=i_eth_gt_plllkdet;--//Модуль готов к работе
 p_out_eth_error      <=p_in_sfp_sd;      --//Carrier detect - Есть связь.
 p_out_eth_gt_plllkdet<=i_eth_gt_plllkdet;
 
-p_out_sfp_tx_dis <= h_reg_ctrl(C_ETH_REG_CTRL_SFP_TX_DISABLE_BIT);
+p_out_sfp_tx_dis <= '0';
 
 
 
@@ -399,14 +389,6 @@ begin
 end process;
 end generate gen_cfg_eth;
 
-process(p_in_rst,p_in_eth_gt_drpclk)
-begin
-  if p_in_rst='1' then
-    i_eth_gctrl(7 downto 0)<=(others=>'0');
-  elsif p_in_eth_gt_drpclk'event and p_in_eth_gt_drpclk='1' then
-    i_eth_gctrl(7 downto 0)<=h_reg_ctrl(7 downto 0);
-  end if;
-end process;
 --i_eth_gctrl(10..8) : V5GT_CLKIN_MUX_BIT            --//Значение для перепрограм. мультиплексора CLKIN RocketIO ETH
 --i_eth_gctrl(12..11): V5GT_SOUTH_MUX_VAL_BIT(12..11)--//Значение для перепрограм. мультиплексора CLKSOUTH RocketIO ETH
 --i_eth_gctrl(13)    : V5GT_CLKIN_MUX_CNG_BIT(13)    --//1- перепрограммирование мультиплексора CLKIN RocketIO ETH

@@ -22,7 +22,7 @@ use work.vicg_common_pkg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#032C#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#032D#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -69,8 +69,8 @@ constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_RDDONE_TRCN
 constant C_HREG_DEV_CTRL_DRDY_BIT             : integer:=0; --//(Драйвером не используется)
 constant C_HREG_DEV_CTRL_DMA_START_BIT        : integer:=1; --//(Передний фронт)Запуск текущей операции
 constant C_HREG_DEV_CTRL_DMA_DIR_BIT          : integer:=2; --//1/0 – Чтение/Запись данных в пользовательское устройство
-constant C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT     : integer:=3; --//Стартовый номер буфера с параметрами PCIE_DMA
-constant C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT     : integer:=10;--//
+constant C_HREG_DEV_CTRL_DMABUF_L_BIT         : integer:=3; --//Стартовый номер буфера с параметрами PCIE_DMA
+constant C_HREG_DEV_CTRL_DMABUF_M_BIT         : integer:=10;--//
 constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT   : integer:=11;--//Общее кол-во буфера с параметрами PCIE_DMA
 constant C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT   : integer:=18;--//
 constant C_HREG_DEV_CTRL_ADR_L_BIT            : integer:=19;--//Номер пользовательского устройства:(C_HDEV_xxx)
@@ -338,18 +338,13 @@ constant C_HDD_REG_CTRLM_LAST_BIT             : integer:=C_HDD_REG_CTRLM_RAMWR_D
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_ethg.vhd
 --//--------------------------------------------------------------
-constant C_ETH_REG_CTRL                       : integer:=16#008#;
-constant C_ETH_REG_MAC_USRCTRL                : integer:=16#009#;
 constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;
 constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;
 constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
 constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;
 constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
 constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
-constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;
-
---//Register C_ETH_REG_CTRL / Bit Map:
-constant C_ETH_REG_CTRL_SFP_TX_DISABLE_BIT    : integer:=3; --//Выключение передатчика на SFP
+--constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;
 
 --//не используется в модуле
 constant C_ETH_REG_CTRL_GTP_CLKIN_MUX_VLSB_BIT: integer:=8; --//Значение для перепрограм. мультиплексора CLKIN RocketIO ETH
@@ -482,8 +477,7 @@ constant C_TRCNIK_REG_MEM_LAST_BIT            : integer:=C_TRCNIK_REG_MEM_ADR_BA
 --//Register C_TRCNIK_REG_CTRL / Bit Map:
 constant C_TRCNIK_REG_CTRL_VCH_L_BIT          : integer:=0;--//Номер видеоканала
 constant C_TRCNIK_REG_CTRL_VCH_M_BIT          : integer:=3;
-constant C_TRCNIK_REG_CTRL_SET_BIT            : integer:=4;
-constant C_TRCNIK_REG_CTRL_WORK_BIT           : integer:=5;
+constant C_TRCNIK_REG_CTRL_WORK_BIT           : integer:=4;
 constant C_TRCNIK_REG_CTRL_LAST_BIT           : integer:=C_TRCNIK_REG_CTRL_WORK_BIT;
 
 

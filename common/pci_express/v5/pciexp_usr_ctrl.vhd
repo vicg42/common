@@ -235,7 +235,7 @@ signal v_reg_tst1                  : std_logic_vector(31 downto 0);
 
 signal i_hdev_adr                  : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 signal i_irq_num                   : std_logic_vector(C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT downto 0);
-signal i_dmabuf_num                : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT - C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT downto 0);
+signal i_dmabuf_num                : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_M_BIT - C_HREG_DEV_CTRL_DMABUF_L_BIT downto 0);
 signal i_dmabuf_count              : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT - C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT downto 0);
 
 signal i_dma_start                 : std_logic;--//Регистр DEV_CTRL(DMA_START) - передний фронт
@@ -581,7 +581,7 @@ i_mrd_lbe<="0000" when i_mrd_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(1
 --//--------------------------------------------------------------------------------------------
 --//Распределяем биты пользовательских регистровов:
 --//--------------------------------------------------------------------------------------------
-i_dmabuf_num   <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT downto C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT);
+i_dmabuf_num   <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_M_BIT downto C_HREG_DEV_CTRL_DMABUF_L_BIT);
 i_dmabuf_count <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT);
 i_hdev_adr     <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
 
@@ -748,7 +748,7 @@ begin
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL, 5) then
             txd(C_HREG_DEV_CTRL_DMA_DIR_BIT)                                                 := v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
             txd(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT)                  := i_hdev_adr;
-            txd(C_HREG_DEV_CTRL_DMABUF_NUM_M_BIT downto C_HREG_DEV_CTRL_DMABUF_NUM_L_BIT)    := i_dmabuf_num;
+            txd(C_HREG_DEV_CTRL_DMABUF_M_BIT downto C_HREG_DEV_CTRL_DMABUF_L_BIT)            := i_dmabuf_num;
             txd(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT):= i_dmabuf_count;
             txd(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT) := v_reg_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT);
 
