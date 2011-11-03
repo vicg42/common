@@ -197,8 +197,7 @@ G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
                                   -- укладывающиес_ в 1/2 периода 1us
 );
-port
-(
+port(
 p_out_test_led : out   std_logic;--//мигание сведодиода
 p_out_test_done: out   std_logic;--//сигнал переходи в '1' через 3 сек.
 
@@ -2246,8 +2245,7 @@ generic map(
 G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   =>10#75#   -- 05us - 150MHz
 )
-port map
-(
+port map(
 p_out_test_led => i_test01_led,
 p_out_test_done=> open,
 
