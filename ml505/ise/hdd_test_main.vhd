@@ -141,8 +141,7 @@ component dbgcs_sata_raid
 end component;
 
 component hdd_ram_hfifo
-port
-(
+port(
 din         : in std_logic_vector(31 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
@@ -166,8 +165,7 @@ G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
                                   -- укладывающиеся в 1/2 периода 1us
 );
-port
-(
+port(
 p_out_test_led : out   std_logic;--//мигание сведодиода
 p_out_test_done: out   std_logic;--//сигнал переходи в '1' через 3 сек.
 
@@ -352,8 +350,7 @@ gen_fdi : if strcmp(G_IF,"FTDI") generate
 pin_out_uart0_tx <= pin_in_uart0_rx;
 
 m_cfgdev : cfgdev_ftdi
-port map
-(
+port map(
 -------------------------------
 --Связь с FTDI
 -------------------------------
@@ -416,8 +413,7 @@ G_BAUDCNT_VAL => 81       --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
                            --//
                            --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
 )
-port map
-(
+port map(
 -------------------------------
 --Связь с UART
 -------------------------------
@@ -469,8 +465,7 @@ i_cfg_rxd<=i_cfg_rxd_dev  when i_dev_adr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFG
 --Проект Накопителя - dsn_hdd.vhd
 --***********************************************************
 m_hdd : dsn_hdd
-generic map
-(
+generic map(
 G_MODULE_USE=> C_USE_HDD,
 G_HDD_COUNT => C_HDD_COUNT,
 G_GT_DBUS   => C_HDD_GT_DBUS,
@@ -478,8 +473,7 @@ G_DBG       => C_DBG_HDD,
 G_DBGCS     => C_DBGCS_HDD,
 G_SIM       => G_SIM
 )
-port map
-(
+port map(
 -------------------------------
 -- Конфигурирование модуля dsn_hdd.vhd (p_in_cfg_clk domain)
 -------------------------------
@@ -591,8 +585,7 @@ i_hdd_rbuf_status.hwlog_size<=(others=>'0');
 
 --//RAM<-CFG
 m_ram_txbuf : hdd_ram_hfifo
-port map
-(
+port map(
 din         => i_hdd_rbuf_cfg.ram_wr_i.din,
 wr_en       => i_hdd_rbuf_cfg.ram_wr_i.wr,
 wr_clk      => i_hdd_rbuf_cfg.ram_wr_i.clk,
@@ -614,8 +607,7 @@ i_hdd_rbuf_status.ram_wr_o.wr_rdy<= not i_ram_txbuf_afull;
 
 --//RAM->CFG
 m_ram_rxbuf : hdd_ram_hfifo
-port map
-(
+port map(
 din         => i_hdd_rxdata,
 wr_en       => i_hdd_rxdata_rd,
 wr_clk      => g_host_clk,
@@ -681,8 +673,7 @@ generic map(
 G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   =>10#75#   -- 05us - 150MHz
 )
-port map
-(
+port map(
 p_out_test_led => i_test01_led,
 p_out_test_done=> open,
 
@@ -700,8 +691,7 @@ generic map(
 G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   =>10#75#   -- 05us - 150MHz
 )
-port map
-(
+port map(
 p_out_test_led => i_test02_led,
 p_out_test_done=> open,
 
@@ -783,8 +773,7 @@ CONTROL1 => i_dbgcs_cfg
 
 --//### HDD_RAID: ########
 m_dbgcs_sh0_raid : dbgcs_sata_raid
-port map
-(
+port map(
 CONTROL => i_dbgcs_hdd_raid,
 CLK     => i_hdd_dbgcs.raid.clk,
 DATA    => i_hddraid_dbgcs.data(172 downto 0),--(122 downto 0),
@@ -869,8 +858,7 @@ i_hddraid_dbgcs.data(172 downto 141)<=i_hdd_rxdata(31 downto 0);--RAM<-HDD
 
 ----//### CFG: ########
 m_dbgcs_cfg : dbgcs_sata_layer
-port map
-(
+port map(
 CONTROL => i_dbgcs_cfg,
 CLK     => i_cfg_dbgcs.clk,
 DATA    => i_cfg_dbgcs.data(122 downto 0),

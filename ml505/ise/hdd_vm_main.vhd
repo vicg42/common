@@ -2371,8 +2371,7 @@ generic map(
 G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   =>10#75#   -- 05us - 150MHz
 )
-port map
-(
+port map(
 p_out_test_led => i_test01_led,
 p_out_test_done=> open,
 
@@ -2411,8 +2410,7 @@ CONTROL0 => i_dbgcs_hdd_rambuf
 
 ----//### HDD_SH_LAYER: ########
 m_dbgcs_sh0_layer : dbgcs_sata_raid --dbgcs_sata_layer
-port map
-(
+port map(
 CONTROL => i_dbgcs_sh0_layer,
 CLK     => i_hdd_dbgcs.sh(1).layer.clk,
 DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
@@ -2423,8 +2421,7 @@ TRIG0   => i_hdd_dbgcs.sh(1).layer.trig0(41 downto 0)
 
 --//### HDD_RAMBUF: ########
 m_dbgcs_hddrambuf : dbgcs_sata_raid -- dbgcs_sata_rambuf
-port map
-(
+port map(
 CONTROL => i_dbgcs_hdd_rambuf,
 CLK     => i_hdd_rambuf_dbgcs.clk,
 DATA    => i_hddrambuf_dbgcs.data(172 downto 0),--(136 downto 0),
@@ -2476,8 +2473,7 @@ i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
 
 ----//### HDD_RAID: ########
 --m_dbgcs_sh0_raid : dbgcs_sata_raid
---port map
---(
+--port map(
 --CONTROL => i_dbgcs_hdd_raid,
 --CLK     => i_hdd_dbgcs.raid.clk,
 --DATA    => i_hddraid_dbgcs.data(172 downto 0),--(122 downto 0),
@@ -2570,8 +2566,7 @@ i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
 
 
 --m_dbgcs_cfg : dbgcs_cfg
---port map
---(
+--port map(
 --CONTROL => i_dbgcs_cfg,
 --CLK     => i_cfg_dbgcs.clk,
 --DATA    => i_cfg_dbgcs.data(113 downto 0),--(122 downto 0),
@@ -2610,8 +2605,7 @@ i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
 
 
 --m_dbgcs_sh0_spd : sata_dbgcs_spd
---port map
---(
+--port map(
 --CONTROL => i_dbgcs_sh0_spd,
 --CLK     => i_hdd_dbgcs.sh(0).spd.clk,
 --DATA    => i_hdd_dbgcs.sh(0).spd.data(122 downto 0),
