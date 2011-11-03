@@ -26,14 +26,13 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-use work.prj_def.all;
+use work.v5_gt_pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
 
 entity gtp_drp_ctrl is
-generic
-(
+generic(
 G_USE_USRCTLR      : integer   :=  0; --//1/0 -  управления модулем от порта p_in_usr_ctrl/ управление модулем от значений из generic
 
 G_CLKIN_CHANGE     : std_logic := '0';--//'1'/'0' - разрешение/запрет изменения состояния мультиплексора CLKIN
@@ -44,8 +43,7 @@ G_CLKIN_MUX_VAL    : std_logic_vector(2 downto 0):="011"; --//Значение для мульт
 G_CLKSOUTH_MUX_VAL : std_logic := '0';                    --//Значение для мультиплексора CLKSOUTH
 G_CLKNORTH_MUX_VAL : std_logic := '0'                     --//Значение для мультиплексора CLKNORTH
 );
-port
-(
+port(
 p_in_usr_ctrl     : in    std_logic_vector(31 downto 0):="00000000000000000000000000011011";
 
 --------------------------------------------------
@@ -76,13 +74,13 @@ end gtp_drp_ctrl;
 
 architecture behavioral of gtp_drp_ctrl is
 
-constant C_USRCTLR_GTP_CLKIN_MUX_VLSB_BIT  : integer:=C_ETH_REG_CTRL_GTP_CLKIN_MUX_VLSB_BIT;
-constant C_USRCTLR_GTP_CLKIN_MUX_VMSB_BIT  : integer:=C_ETH_REG_CTRL_GTP_CLKIN_MUX_VMSB_BIT;
-constant C_USRCTLR_GTP_SOUTH_MUX_VAL_BIT   : integer:=C_ETH_REG_CTRL_GTP_SOUTH_MUX_VAL_BIT;
-constant C_USRCTLR_GTP_NORTH_MUX_VAL_BIT   : integer:=C_ETH_REG_CTRL_GTP_NORTH_MUX_VAL_BIT;
-constant C_USRCTLR_GTP_CLKIN_MUX_CNG_BIT   : integer:=C_ETH_REG_CTRL_GTP_CLKIN_MUX_CNG_BIT;
-constant C_USRCTLR_GTP_SOUTH_MUX_CNG_BIT   : integer:=C_ETH_REG_CTRL_GTP_SOUTH_MUX_CNG_BIT;
-constant C_USRCTLR_GTP_NORTH_MUX_CNG_BIT   : integer:=C_ETH_REG_CTRL_GTP_NORTH_MUX_CNG_BIT;
+constant C_USRCTLR_GTP_CLKIN_MUX_VLSB_BIT  : integer:=C_V5GT_CLKIN_MUX_L_BIT  ;
+constant C_USRCTLR_GTP_CLKIN_MUX_VMSB_BIT  : integer:=C_V5GT_CLKIN_MUX_M_BIT  ;
+constant C_USRCTLR_GTP_SOUTH_MUX_VAL_BIT   : integer:=C_V5GT_SOUTH_MUX_VAL_BIT;
+constant C_USRCTLR_GTP_NORTH_MUX_VAL_BIT   : integer:=C_V5GT_NORTH_MUX_VAL_BIT;
+constant C_USRCTLR_GTP_CLKIN_MUX_CNG_BIT   : integer:=C_V5GT_CLKIN_MUX_CNG_BIT;
+constant C_USRCTLR_GTP_SOUTH_MUX_CNG_BIT   : integer:=C_V5GT_SOUTH_MUX_CNG_BIT;
+constant C_USRCTLR_GTP_NORTH_MUX_CNG_BIT   : integer:=C_V5GT_NORTH_MUX_CNG_BIT;
 
 --//Адреса регистров порта DRP компонента DUAL_GTP
 --//более подробно см.Appendix D/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
@@ -96,8 +94,7 @@ constant C_CLKIN_MUX_VAL    : std_logic_vector(2 downto 0):=G_CLKIN_MUX_VAL;
 constant C_CLKSOUTH_MUX_VAL : std_logic :=G_CLKSOUTH_MUX_VAL;
 constant C_CLKNORTH_MUX_VAL : std_logic :=G_CLKNORTH_MUX_VAL;
 
-type fsm_drp_ctrl is
-(
+type fsm_drp_ctrl is (
 S_PROG_CLOCK_MUX,
 
 --//-------------------------------------------
