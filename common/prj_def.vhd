@@ -22,7 +22,7 @@ use work.vicg_common_pkg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#032D#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#032E#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -131,7 +131,7 @@ constant C_HIRQ_TRCNIK                        : integer:=16#04#;
 constant C_HIRQ_VCH0                          : integer:=16#05#;
 constant C_HIRQ_VCH1                          : integer:=16#06#;
 constant C_HIRQ_VCH2                          : integer:=16#07#;
---constant C_HIRQ_VCH3                          : integer:=16#08#;
+constant C_HIRQ_VCH3                          : integer:=16#08#;
 constant C_HIRQ_COUNT                         : integer:=C_HIRQ_VCH2+1;--//Текущее кол-во источников прерываний
 constant C_HIRQ_COUNT_MAX                     : integer:=16;--//Максимальное кол-во источников перываний.
 
@@ -235,9 +235,7 @@ constant C_SWT_REG_FRR_ETHG_HDD               : integer:=16#18#;--//C_SWT_REG_FR
 --//Register C_SWT_REG_CTRL / Bit Map:
 constant C_SWT_REG_CTRL_RST_ETH_BUFS_BIT      : integer:=0;
 constant C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT    : integer:=1;
-constant C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT : integer:=2;
-constant C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT : integer:=3;
-constant C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT : integer:=4;
+constant C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT : integer:=2;
 constant C_SWT_REG_CTRL_LAST_BIT              : integer:=C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT;
 
 --//Мах кол-во правил машрутиразции:
@@ -345,15 +343,6 @@ constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;
 constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
 constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
 --constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;
-
---//не используется в модуле
-constant C_ETH_REG_CTRL_GTP_CLKIN_MUX_VLSB_BIT: integer:=8; --//Значение для перепрограм. мультиплексора CLKIN RocketIO ETH
-constant C_ETH_REG_CTRL_GTP_CLKIN_MUX_VMSB_BIT: integer:=10; --//
-constant C_ETH_REG_CTRL_GTP_SOUTH_MUX_VAL_BIT : integer:=11; --//Значение для перепрограм. мультиплексора CLKSOUTH RocketIO ETH
-constant C_ETH_REG_CTRL_GTP_NORTH_MUX_VAL_BIT : integer:=12; --//Значение для перепрограм. мультиплексора CLKNORTH RocketIO ETH
-constant C_ETH_REG_CTRL_GTP_CLKIN_MUX_CNG_BIT : integer:=13; --//1- перепрограммирование мультиплексора CLKIN RocketIO ETH
-constant C_ETH_REG_CTRL_GTP_SOUTH_MUX_CNG_BIT : integer:=14; --//1- перепрограммирование мультиплексора CLKSOUTH RocketIO ETH
-constant C_ETH_REG_CTRL_GTP_NORTH_MUX_CNG_BIT : integer:=15; --//1- перепрограммирование мультиплексора CLKNORTH RocketIO ETH
 
 
 

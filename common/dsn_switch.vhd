@@ -282,8 +282,6 @@ signal h_reg_eth_vctrl_frr           : TEthFRR;
 signal b_rst_eth_bufs                : std_logic;
 signal b_rst_vctrl_bufs              : std_logic;
 signal b_tstdsn_to_ethtxbuf          : std_logic;
-signal b_ethtxbuf_to_vbufin          : std_logic;
-signal b_ethtxbuf_to_hddbuf          : std_logic;
 
 signal syn_eth_rxd                   : std_logic_vector(31 downto 0);
 signal syn_eth_rxd_wr                : std_logic;
@@ -301,14 +299,9 @@ signal i_hdd_vbuf_wr                 : std_logic;
 
 signal i_eth_txbuf_din               : std_logic_vector(31 downto 0);
 signal i_eth_txbuf_wr                : std_logic;
-signal i_eth_txbuf_dout              : std_logic_vector(31 downto 0);
-signal i_eth_txbuf_rd                : std_logic;
 signal i_eth_txbuf_empty             : std_logic;
 
-signal i_eth_rxbuf_din               : std_logic_vector(31 downto 0);
-signal i_eth_rxbuf_wr                : std_logic;
 signal i_eth_rxbuf_empty             : std_logic;
-signal i_eth_rxd_rdy                 : std_logic;
 signal i_eth_rxd_rdy_dly             : std_logic_vector(2 downto 0);
 signal i_eth_rxbuf_fltr_dout         : std_logic_vector(31 downto 0);
 signal i_eth_rxbuf_fltr_den          : std_logic;
@@ -319,8 +312,6 @@ signal hclk_eth_rxd_rdy              : std_logic;
 
 signal i_vctrl_vbufin_fltr_dout      : std_logic_vector(31 downto 0);
 signal i_vctrl_vbufin_fltr_den       : std_logic;
-signal i_vctrl_vbufin_din            : std_logic_vector(31 downto 0);
-signal i_vctrl_vbufin_din_wd         : std_logic;
 
 signal i_vctrl_vbufout_empty         : std_logic;
 
@@ -464,8 +455,6 @@ b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
 b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
-b_ethtxbuf_to_vbufin <= h_reg_ctrl(C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT);
-b_ethtxbuf_to_hddbuf <= h_reg_ctrl(C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT);
 
 
 
@@ -556,8 +545,8 @@ din     => i_eth_txbuf_din,
 wr_en   => i_eth_txbuf_wr,
 wr_clk  => p_in_host_clk,
 
-dout    => i_eth_txbuf_dout,
-rd_en   => i_eth_txbuf_rd,
+dout    => p_out_eth_txbuf_dout,
+rd_en   => p_in_eth_txbuf_rd,
 rd_clk  => p_in_eth_clk,
 
 empty   => i_eth_txbuf_empty,
@@ -570,11 +559,6 @@ rst     => b_rst_eth_bufs
 --//----------------------------------
 --//Связь с модулем dsn_ethg.vhd
 --//----------------------------------
---//Чтение данных из буфера m_eth_txbuf.
-i_eth_txbuf_rd<=not i_eth_txbuf_empty when b_ethtxbuf_to_vbufin='1' or  b_ethtxbuf_to_hddbuf='1' else
-                p_in_eth_txbuf_rd;
-
-p_out_eth_txbuf_dout <=i_eth_txbuf_dout;
 p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 
 
@@ -623,18 +607,14 @@ p_in_clk        => p_in_eth_clk,
 p_in_rst        => b_rst_eth_bufs
 );
 
---//Выбор источника данных для буфера m_eth_rxbuf
-i_eth_rxbuf_din <=i_eth_rxbuf_fltr_dout;
-i_eth_rxbuf_wr  <=i_eth_rxbuf_fltr_den ;
-i_eth_rxd_rdy   <=i_eth_rxbuf_fltr_eof ;
 
 --//----------------------------------
 --//Буфер RXDATA для модуля dsn_ethg.vhd
 --//----------------------------------
 m_eth_rxbuf : host_ethg_rxfifo
 port map(
-din     => i_eth_rxbuf_din,
-wr_en   => i_eth_rxbuf_wr,
+din     => i_eth_rxbuf_fltr_dout,
+wr_en   => i_eth_rxbuf_fltr_den,
 wr_clk  => p_in_eth_clk,
 
 dout    => p_out_host_eth_rxd,
@@ -665,7 +645,7 @@ begin
     eclk_eth_rxd_rdy_w<='0';
 
   elsif p_in_eth_clk'event and p_in_eth_clk='1' then
-    i_eth_rxd_rdy_dly(0)<=i_eth_rxd_rdy;
+    i_eth_rxd_rdy_dly(0)<=i_eth_rxbuf_fltr_eof;
     i_eth_rxd_rdy_dly(1)<=i_eth_rxd_rdy_dly(0);
     i_eth_rxd_rdy_dly(2)<=i_eth_rxd_rdy_dly(1);
 
@@ -762,11 +742,9 @@ i_hdd_tst_on<=i_hdd_tst_on_tmp and p_in_hdd_tstgen.con2rambuf;
 i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_tstgen.clr_err;
 
 --//Выбор данных для модуля dsn_hdd.vhd
-i_hdd_vbuf_din<=i_eth_txbuf_dout     when b_ethtxbuf_to_hddbuf='1' else
-                i_hdd_tst_d          when i_hdd_tst_on='1'         else
+i_hdd_vbuf_din<=i_hdd_tst_d          when i_hdd_tst_on='1'         else
                 i_hdd_vbuf_fltr_dout;
-i_hdd_vbuf_wr <=i_eth_txbuf_rd       when b_ethtxbuf_to_hddbuf='1' else
-                i_hdd_tst_den        when i_hdd_tst_on='1'         else
+i_hdd_vbuf_wr <=i_hdd_tst_den        when i_hdd_tst_on='1'         else
                 i_hdd_vbuf_fltr_den and i_hdd_hw_work;
 
 m_eth_hdd : hdd_rambuf_infifo
@@ -833,16 +811,14 @@ p_in_rst        => b_rst_vctrl_bufs
 
 --//Выбор источника данных для буфера m_vctrl_vbufin модуля dsn_video_ctrl.vhd
 p_out_vctrl_vbufin_rdy<='0';
-i_vctrl_vbufin_din    <=i_vctrl_vbufin_fltr_dout when b_ethtxbuf_to_vbufin='0' else i_eth_txbuf_dout;
-i_vctrl_vbufin_din_wd <=i_vctrl_vbufin_fltr_den  when b_ethtxbuf_to_vbufin='0' else i_eth_txbuf_rd;
 
 --//----------------------------------
 --//Входной буфер для модуля dsn_video_ctrl.vhd
 --//----------------------------------
 m_vctrl_vbufin : ethg_vctrl_rxfifo
 port map(
-din         => i_vctrl_vbufin_din,
-wr_en       => i_vctrl_vbufin_din_wd,
+din         => i_vctrl_vbufin_fltr_dout,
+wr_en       => i_vctrl_vbufin_fltr_den,
 wr_clk      => p_in_eth_clk,
 
 dout        => p_out_vctrl_vbufin_dout,
