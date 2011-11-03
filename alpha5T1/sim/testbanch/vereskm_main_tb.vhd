@@ -764,8 +764,6 @@ stimulate: process
   variable Vctrl_MemWR_trn_len : std_logic_vector(7 downto 0);
   variable Vctrl_MemRD_trn_len : std_logic_vector(7 downto 0);
   variable swt_dsntesting_to_ethtxbuf: std_logic;
-  variable swt_ethtxbuf_to_vdbufrxd: std_logic;
-  variable swt_ethtxbuf_to_hddbuf: std_logic;
   variable eth_usrtxpkt_size: integer:=0;
 
   variable VctrlRegTST0 : std_logic_vector(15 downto 0);
@@ -876,8 +874,6 @@ begin
   --//Параметры модуля Коммутатора
   --------------------------------
   swt_dsntesting_to_ethtxbuf:='1';--//1/0 On/Off - dsn_testing подсоеденить к swt/ethtxbuf
-  swt_ethtxbuf_to_vdbufrxd  :='0';--//1/0 On/Off - swt/ethtxbuf подсоеденить к swt/vdbufrxd
-  swt_ethtxbuf_to_hddbuf    :='0';--//1/0 On/Off - swt/ethtxbuf подсоеденить к swt/hdd
 
   --Маска(1)-[15:8];  Маска(0)-[7:0]
   swt_fmask0_eth_vctrl(7 downto 0) :=CONV_STD_LOGIC_VECTOR(16#01#, 8);--//Разрешение прохождения пакетов направление Eth-VCTRL
@@ -1518,8 +1514,6 @@ begin
   --//C_SWT_REG_CTRL
   User_Reg(0):=(others=>'0');
   User_Reg(0)(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT):=swt_dsntesting_to_ethtxbuf;
-  User_Reg(0)(C_SWT_REG_CTRL_ETHTXBUF_2_VBUFIN_BIT):=swt_ethtxbuf_to_vdbufrxd;
-  User_Reg(0)(C_SWT_REG_CTRL_ETHTXBUF_2_HDDBUF_BIT):=swt_ethtxbuf_to_hddbuf;
 
   datasize:=1;
   for y in 0 to datasize - 1 loop
