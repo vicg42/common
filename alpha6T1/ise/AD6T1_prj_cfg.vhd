@@ -42,7 +42,7 @@ constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины да
 
 --//cfg PCI-Express
 constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать сброс сгенеренный в проекта/с стота PCI-Express
-constant C_PCIEXPRESS_LINK_WIDTH             : integer:=8;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
+constant C_PCIEXPRESS_LINK_WIDTH             : integer:=4;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
 constant C_VCTRL_VCH_COUNT                   : integer:=3;

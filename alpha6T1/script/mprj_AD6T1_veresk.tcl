@@ -53,20 +53,11 @@ set _projects [ list \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_clkfw.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_port.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_training.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_dq_out.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_dq_in.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_bwe.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_oserdes_dq.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_iserdes_dq.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_port_v4.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/pulse_sync.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/port_repl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/port_mux.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/async_port.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/cmd_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/arbiter_4.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/arbiter_2.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/afifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/fifo_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/plxdssm.vhd" $_VHDMod ] \

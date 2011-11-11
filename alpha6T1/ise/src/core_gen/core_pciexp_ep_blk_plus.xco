@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.2
-# Date: Tue Oct 18 07:40:35 2011
+# Xilinx Core Generator version 13.3
+# Date: Tue Nov 08 08:36:43 2011
 #
 ##############################################################
 #
@@ -39,7 +39,7 @@ SET vhdlsim = true
 SELECT Virtex-6_Integrated_Block_for_PCI_Express family Xilinx,_Inc. 1.7
 # END Select
 # BEGIN Parameters
-CSET acceptable_l0s_latency=Maximum_of_64_ns
+CSET acceptable_l0s_latency=No_limit
 CSET acceptable_l1_latency=No_limit
 CSET ack_nak_timeout_func=Absolute
 CSET ack_nak_timeout_value=0000
@@ -133,7 +133,7 @@ CSET en_route_pme_to_ack=false
 CSET en_route_unlock=false
 CSET enable_ack_nak_timer=false
 CSET enable_lane_reversal=false
-CSET enable_replay_timer=true
+CSET enable_replay_timer=false
 CSET enable_slot_clock_cfg=false
 CSET expansion_rom_enabled=false
 CSET expansion_rom_scale=Kilobytes
@@ -146,7 +146,7 @@ CSET hw_auton_spd_disable=false
 CSET intx_generation=true
 CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
-CSET link_speed=5.0_GT/s
+CSET link_speed=2.5_GT/s
 CSET max_payload_size=512_bytes
 CSET maximum_link_width=X4
 CSET msi_64b=true
@@ -191,10 +191,10 @@ CSET sub_class_interface_menu=Generic_XT_compatible_serial_controller
 CSET subsystem_id=8005
 CSET subsystem_vendor_id=0777
 CSET trans_buf_pipeline=None
-CSET trgt_link_speed=4'h2
+CSET trgt_link_speed=4'h1
 CSET trim_tlp_digest=false
 CSET upconfigure_capable=true
-CSET user_clk_freq=250_default
+CSET user_clk_freq=125_default
 CSET vc_cap_enabled=false
 CSET vc_cap_reject_snoop=false
 CSET vendor_id=0777
@@ -202,4 +202,4 @@ CSET vsec_enabled=false
 CSET xlnx_ref_board=None
 # END Parameters
 GENERATE
-# CRC: b1e075e0
+# CRC: 7ec17fe7
