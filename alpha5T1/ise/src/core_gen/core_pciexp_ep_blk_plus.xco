@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.2
-# Date: Fri Sep 02 05:38:33 2011
+# Xilinx Core Generator version 13.3
+# Date: Wed Nov 09 13:42:25 2011
 #
 ##############################################################
 #
@@ -146,7 +146,7 @@ CSET tx_pre_emphasis=52
 CSET vendor_id=0777
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2011-06-21T06:44:38.000Z
+MISC pkg_timestamp=2011-10-05T00:25:04.000Z
 # END Extra information
 GENERATE
-# CRC: 1acb3135
+# CRC: a48f8b1e

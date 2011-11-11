@@ -385,49 +385,49 @@ rd0               : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
 ra1               : out   std_logic_vector(C_MEM_BANK1.ra_width - 1 downto 0);
 rc1               : inout std_logic_vector(C_MEM_BANK1.rc_width - 1 downto 0);
 rd1               : inout std_logic_vector(C_MEM_BANK1.rd_width - 1 downto 0);
-ra2               : out   std_logic_vector(C_MEM_BANK2.ra_width - 1 downto 0);
-rc2               : inout std_logic_vector(C_MEM_BANK2.rc_width - 1 downto 0);
-rd2               : inout std_logic_vector(C_MEM_BANK2.rd_width - 1 downto 0);
-ra3               : out   std_logic_vector(C_MEM_BANK3.ra_width - 1 downto 0);
-rc3               : inout std_logic_vector(C_MEM_BANK3.rc_width - 1 downto 0);
-rd3               : inout std_logic_vector(C_MEM_BANK3.rd_width - 1 downto 0);
-ra4               : out   std_logic_vector(C_MEM_BANK4.ra_width - 1 downto 0);
-rc4               : inout std_logic_vector(C_MEM_BANK4.rc_width - 1 downto 0);
-rd4               : inout std_logic_vector(C_MEM_BANK4.rd_width - 1 downto 0);
-ra5               : out   std_logic_vector(C_MEM_BANK5.ra_width - 1 downto 0);
-rc5               : inout std_logic_vector(C_MEM_BANK5.rc_width - 1 downto 0);
-rd5               : inout std_logic_vector(C_MEM_BANK5.rd_width - 1 downto 0);
-ra6               : out   std_logic_vector(C_MEM_BANK6.ra_width - 1 downto 0);
-rc6               : inout std_logic_vector(C_MEM_BANK6.rc_width - 1 downto 0);
-rd6               : inout std_logic_vector(C_MEM_BANK6.rd_width - 1 downto 0);
-ra7               : out   std_logic_vector(C_MEM_BANK7.ra_width - 1 downto 0);
-rc7               : inout std_logic_vector(C_MEM_BANK7.rc_width - 1 downto 0);
-rd7               : inout std_logic_vector(C_MEM_BANK7.rd_width - 1 downto 0);
-ra8               : out   std_logic_vector(C_MEM_BANK8.ra_width - 1 downto 0);
-rc8               : inout std_logic_vector(C_MEM_BANK8.rc_width - 1 downto 0);
-rd8               : inout std_logic_vector(C_MEM_BANK8.rd_width - 1 downto 0);
-ra9               : out   std_logic_vector(C_MEM_BANK9.ra_width - 1 downto 0);
-rc9               : inout std_logic_vector(C_MEM_BANK9.rc_width - 1 downto 0);
-rd9               : inout std_logic_vector(C_MEM_BANK9.rd_width - 1 downto 0);
-ra10              : out   std_logic_vector(C_MEM_BANK10.ra_width - 1 downto 0);
-rc10              : inout std_logic_vector(C_MEM_BANK10.rc_width - 1 downto 0);
-rd10              : inout std_logic_vector(C_MEM_BANK10.rd_width - 1 downto 0);
-ra11              : out   std_logic_vector(C_MEM_BANK11.ra_width - 1 downto 0);
-rc11              : inout std_logic_vector(C_MEM_BANK11.rc_width - 1 downto 0);
-rd11              : inout std_logic_vector(C_MEM_BANK11.rd_width - 1 downto 0);
-ra12              : out   std_logic_vector(C_MEM_BANK12.ra_width - 1 downto 0);
-rc12              : inout std_logic_vector(C_MEM_BANK12.rc_width - 1 downto 0);
-rd12              : inout std_logic_vector(C_MEM_BANK12.rd_width - 1 downto 0);
-ra13              : out   std_logic_vector(C_MEM_BANK13.ra_width - 1 downto 0);
-rc13              : inout std_logic_vector(C_MEM_BANK13.rc_width - 1 downto 0);
-rd13              : inout std_logic_vector(C_MEM_BANK13.rd_width - 1 downto 0);
-ra14              : out   std_logic_vector(C_MEM_BANK14.ra_width - 1 downto 0);
-rc14              : inout std_logic_vector(C_MEM_BANK14.rc_width - 1 downto 0);
-rd14              : inout std_logic_vector(C_MEM_BANK14.rd_width - 1 downto 0);
-ra15              : out   std_logic_vector(C_MEM_BANK15.ra_width - 1 downto 0);
-rc15              : inout std_logic_vector(C_MEM_BANK15.rc_width - 1 downto 0);
-rd15              : inout std_logic_vector(C_MEM_BANK15.rd_width - 1 downto 0);
-ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
+--ra2               : out   std_logic_vector(C_MEM_BANK2.ra_width - 1 downto 0);
+--rc2               : inout std_logic_vector(C_MEM_BANK2.rc_width - 1 downto 0);
+--rd2               : inout std_logic_vector(C_MEM_BANK2.rd_width - 1 downto 0);
+--ra3               : out   std_logic_vector(C_MEM_BANK3.ra_width - 1 downto 0);
+--rc3               : inout std_logic_vector(C_MEM_BANK3.rc_width - 1 downto 0);
+--rd3               : inout std_logic_vector(C_MEM_BANK3.rd_width - 1 downto 0);
+--ra4               : out   std_logic_vector(C_MEM_BANK4.ra_width - 1 downto 0);
+--rc4               : inout std_logic_vector(C_MEM_BANK4.rc_width - 1 downto 0);
+--rd4               : inout std_logic_vector(C_MEM_BANK4.rd_width - 1 downto 0);
+--ra5               : out   std_logic_vector(C_MEM_BANK5.ra_width - 1 downto 0);
+--rc5               : inout std_logic_vector(C_MEM_BANK5.rc_width - 1 downto 0);
+--rd5               : inout std_logic_vector(C_MEM_BANK5.rd_width - 1 downto 0);
+--ra6               : out   std_logic_vector(C_MEM_BANK6.ra_width - 1 downto 0);
+--rc6               : inout std_logic_vector(C_MEM_BANK6.rc_width - 1 downto 0);
+--rd6               : inout std_logic_vector(C_MEM_BANK6.rd_width - 1 downto 0);
+--ra7               : out   std_logic_vector(C_MEM_BANK7.ra_width - 1 downto 0);
+--rc7               : inout std_logic_vector(C_MEM_BANK7.rc_width - 1 downto 0);
+--rd7               : inout std_logic_vector(C_MEM_BANK7.rd_width - 1 downto 0);
+--ra8               : out   std_logic_vector(C_MEM_BANK8.ra_width - 1 downto 0);
+--rc8               : inout std_logic_vector(C_MEM_BANK8.rc_width - 1 downto 0);
+--rd8               : inout std_logic_vector(C_MEM_BANK8.rd_width - 1 downto 0);
+--ra9               : out   std_logic_vector(C_MEM_BANK9.ra_width - 1 downto 0);
+--rc9               : inout std_logic_vector(C_MEM_BANK9.rc_width - 1 downto 0);
+--rd9               : inout std_logic_vector(C_MEM_BANK9.rd_width - 1 downto 0);
+--ra10              : out   std_logic_vector(C_MEM_BANK10.ra_width - 1 downto 0);
+--rc10              : inout std_logic_vector(C_MEM_BANK10.rc_width - 1 downto 0);
+--rd10              : inout std_logic_vector(C_MEM_BANK10.rd_width - 1 downto 0);
+--ra11              : out   std_logic_vector(C_MEM_BANK11.ra_width - 1 downto 0);
+--rc11              : inout std_logic_vector(C_MEM_BANK11.rc_width - 1 downto 0);
+--rd11              : inout std_logic_vector(C_MEM_BANK11.rd_width - 1 downto 0);
+--ra12              : out   std_logic_vector(C_MEM_BANK12.ra_width - 1 downto 0);
+--rc12              : inout std_logic_vector(C_MEM_BANK12.rc_width - 1 downto 0);
+--rd12              : inout std_logic_vector(C_MEM_BANK12.rd_width - 1 downto 0);
+--ra13              : out   std_logic_vector(C_MEM_BANK13.ra_width - 1 downto 0);
+--rc13              : inout std_logic_vector(C_MEM_BANK13.rc_width - 1 downto 0);
+--rd13              : inout std_logic_vector(C_MEM_BANK13.rd_width - 1 downto 0);
+--ra14              : out   std_logic_vector(C_MEM_BANK14.ra_width - 1 downto 0);
+--rc14              : inout std_logic_vector(C_MEM_BANK14.rc_width - 1 downto 0);
+--rd14              : inout std_logic_vector(C_MEM_BANK14.rd_width - 1 downto 0);
+--ra15              : out   std_logic_vector(C_MEM_BANK15.ra_width - 1 downto 0);
+--rc15              : inout std_logic_vector(C_MEM_BANK15.rc_width - 1 downto 0);
+--rd15              : inout std_logic_vector(C_MEM_BANK15.rd_width - 1 downto 0);
+--ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 
 --------------------------------------------------
 --Ethernet
@@ -3405,49 +3405,50 @@ rd0        => rd0,
 ra1        => ra1,
 rc1        => rc1,
 rd1        => rd1,
-ra2        => ra2,
-rc2        => rc2,
-rd2        => rd2,
-ra3        => ra3,
-rc3        => rc3,
-rd3        => rd3,
-ra4        => ra4,
-rc4        => rc4,
-rd4        => rd4,
-ra5        => ra5,
-rc5        => rc5,
-rd5        => rd5,
-ra6        => ra6,
-rc6        => rc6,
-rd6        => rd6,
-ra7        => ra7,
-rc7        => rc7,
-rd7        => rd7,
-ra8        => ra8,
-rc8        => rc8,
-rd8        => rd8,
-ra9        => ra9,
-rc9        => rc9,
-rd9        => rd9,
-ra10       => ra10,
-rc10       => rc10,
-rd10       => rd10,
-ra11       => ra11,
-rc11       => rc11,
-rd11       => rd11,
-ra12       => ra12,
-rc12       => rc12,
-rd12       => rd12,
-ra13       => ra13,
-rc13       => rc13,
-rd13       => rd13,
-ra14       => ra14,
-rc14       => rc14,
-rd14       => rd14,
-ra15       => ra15,
-rc15       => rc15,
-rd15       => rd15,
-ramclko    => ramclk);
+--ra2        => ra2,
+--rc2        => rc2,
+--rd2        => rd2,
+--ra3        => ra3,
+--rc3        => rc3,
+--rd3        => rd3,
+--ra4        => ra4,
+--rc4        => rc4,
+--rd4        => rd4,
+--ra5        => ra5,
+--rc5        => rc5,
+--rd5        => rd5,
+--ra6        => ra6,
+--rc6        => rc6,
+--rd6        => rd6,
+--ra7        => ra7,
+--rc7        => rc7,
+--rd7        => rd7,
+--ra8        => ra8,
+--rc8        => rc8,
+--rd8        => rd8,
+--ra9        => ra9,
+--rc9        => rc9,
+--rd9        => rd9,
+--ra10       => ra10,
+--rc10       => rc10,
+--rd10       => rd10,
+--ra11       => ra11,
+--rc11       => rc11,
+--rd11       => rd11,
+--ra12       => ra12,
+--rc12       => rc12,
+--rd12       => rd12,
+--ra13       => ra13,
+--rc13       => rc13,
+--rd13       => rd13,
+--ra14       => ra14,
+--rc14       => rc14,
+--rd14       => rd14,
+--ra15       => ra15,
+--rc15       => rc15,
+--rd15       => rd15,
+--ramclko    => ramclk
+);
 
 
     trace_model_0 : ddr2sdram_trace_model
@@ -3586,57 +3587,57 @@ ramclko    => ramclk);
 --                CLKB => rc1_ram(i + 14));
 --    end generate;
 
-    trace_model_2 : ddr2sram_trace_model
-        generic map(
-            a_width => bank2.ra_width,
-            dq_width => bank2.rd_width,
-            t_trace_k => 1.0 ns,
-            t_trace_c => 1.0 ns,
-            t_trace_cq => 1.0 ns,
-            t_trace_a => 1.0 ns,
-            t_trace_ctl => 1.0 ns,
-            t_trace_dq => 1.0 ns)
-        port map(
-            mk => rc2(4),
-            mk_l => rc2(5),
-            mc => rc2(4),
-            mc_l => rc2(5),
-            mld_l => rc2(2),
-            mw_l => rc2(3),
-            mbwe_l => rc2(1 downto 0),
-            mdq => rd2,
-            mcq => rc2(6),
-            mcq_l => rc2(7),
-            ma => ra2,
-            dk => rc2_ram(4),
-            dk_l => rc2_ram(5),
-            dc => open,
-            dc_l => open,
-            dld_l => rc2_ram(2),
-            dw_l => rc2_ram(3),
-            dbwe_l => rc2_ram(1 downto 0),
-            ddq => rd2_ram,
-            dcq => rc2_ram(6),
-            dcq_l => rc2_ram(7),
-            da => ra2_ram);
-
-    mem_model_2 : ddr2sram_model
-        generic map(
-            burst_order => 1,
-            a_width => 24,
-            dq_width => 16)
-        port map(
-            k => rc2_ram(4),
-            k_l => rc2_ram(5),
-            c => rc2_ram(4),
-            c_l => rc2_ram(5),
-            ld_l => rc2_ram(2),
-            w_l => rc2_ram(3),
-            bwe_l => rc2_ram(1 downto 0),
-            dq => rd2_ram,
-            cq => rc2_ram(6),
-            cq_l => rc2_ram(7),
-            a => ra2_ram);
+--    trace_model_2 : ddr2sram_trace_model
+--        generic map(
+--            a_width => bank2.ra_width,
+--            dq_width => bank2.rd_width,
+--            t_trace_k => 1.0 ns,
+--            t_trace_c => 1.0 ns,
+--            t_trace_cq => 1.0 ns,
+--            t_trace_a => 1.0 ns,
+--            t_trace_ctl => 1.0 ns,
+--            t_trace_dq => 1.0 ns)
+--        port map(
+--            mk => rc2(4),
+--            mk_l => rc2(5),
+--            mc => rc2(4),
+--            mc_l => rc2(5),
+--            mld_l => rc2(2),
+--            mw_l => rc2(3),
+--            mbwe_l => rc2(1 downto 0),
+--            mdq => rd2,
+--            mcq => rc2(6),
+--            mcq_l => rc2(7),
+--            ma => ra2,
+--            dk => rc2_ram(4),
+--            dk_l => rc2_ram(5),
+--            dc => open,
+--            dc_l => open,
+--            dld_l => rc2_ram(2),
+--            dw_l => rc2_ram(3),
+--            dbwe_l => rc2_ram(1 downto 0),
+--            ddq => rd2_ram,
+--            dcq => rc2_ram(6),
+--            dcq_l => rc2_ram(7),
+--            da => ra2_ram);
+--
+--    mem_model_2 : ddr2sram_model
+--        generic map(
+--            burst_order => 1,
+--            a_width => 24,
+--            dq_width => 16)
+--        port map(
+--            k => rc2_ram(4),
+--            k_l => rc2_ram(5),
+--            c => rc2_ram(4),
+--            c_l => rc2_ram(5),
+--            ld_l => rc2_ram(2),
+--            w_l => rc2_ram(3),
+--            bwe_l => rc2_ram(1 downto 0),
+--            dq => rd2_ram,
+--            cq => rc2_ram(6),
+--            cq_l => rc2_ram(7),
+--            a => ra2_ram);
 
 
 
