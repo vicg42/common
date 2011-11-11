@@ -1,0 +1,15 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+IDLE=00\h
+MEM_REMAIN_SIZE_CALC=01\h
+MEM_TRN_LEN_CALC=02\h
+MEM_SET_RQ=03\h
+MEM_WAIT_RQ_EN=04\h
+MEM_TRN_START=05\h
+MEM_TRN=06\h
+MEM_TRN_END=07\h
+EXIT=08\h
+
