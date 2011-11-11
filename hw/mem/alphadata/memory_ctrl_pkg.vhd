@@ -164,6 +164,27 @@ p_out_ch3_wpf    : out   std_logic;
 p_out_ch3_re     : out   std_logic;
 p_out_ch3_rpe    : out   std_logic;
 
+-------------------------------
+-- Связь с CH4
+-------------------------------
+p_in_ch4_req     : in    std_logic;
+p_out_ch4_en     : out   std_logic;
+
+p_in_ch4_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch4_ce      : in    std_logic;
+p_in_ch4_cw      : in    std_logic;
+p_in_ch4_rd      : in    std_logic;
+p_in_ch4_wr      : in    std_logic;
+p_in_ch4_term    : in    std_logic;
+p_in_ch4_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_in_ch4_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_in_ch4_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_ch4_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+
+p_out_ch4_wf     : out   std_logic;
+p_out_ch4_wpf    : out   std_logic;
+p_out_ch4_re     : out   std_logic;
+p_out_ch4_rpe    : out   std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -266,26 +287,26 @@ component memory_ctrl
     usr0_re       : out   std_logic;
     usr0_rpe      : out   std_logic;
 
-    -----------------------------
-    -- User channel 1
-    -----------------------------
-    usr1_clk      : in    std_logic;
-    --Управление
-    usr1_bank1h  : in    std_logic_vector(15 downto 0);
-    usr1_ce       : in    std_logic;
-    usr1_cw       : in    std_logic;
-    usr1_term     : in    std_logic;
-    usr1_rd       : in    std_logic;
-    usr1_wr       : in    std_logic;
-    usr1_adr      : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-    usr1_be       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-    usr1_din      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-    usr1_dout     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-    --TX/RXBUF STATUS
-    usr1_wf       : out   std_logic;
-    usr1_wpf      : out   std_logic;
-    usr1_re       : out   std_logic;
-    usr1_rpe      : out   std_logic;
+--    -----------------------------
+--    -- User channel 1
+--    -----------------------------
+--    usr1_clk      : in    std_logic;
+--    --Управление
+--    usr1_bank1h  : in    std_logic_vector(15 downto 0);
+--    usr1_ce       : in    std_logic;
+--    usr1_cw       : in    std_logic;
+--    usr1_term     : in    std_logic;
+--    usr1_rd       : in    std_logic;
+--    usr1_wr       : in    std_logic;
+--    usr1_adr      : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+--    usr1_be       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+--    usr1_din      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+--    usr1_dout     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+--    --TX/RXBUF STATUS
+--    usr1_wf       : out   std_logic;
+--    usr1_wpf      : out   std_logic;
+--    usr1_re       : out   std_logic;
+--    usr1_rpe      : out   std_logic;
 
     -----------------------------
     -- To/from FPGA memory pins

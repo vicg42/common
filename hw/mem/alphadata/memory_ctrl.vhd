@@ -91,26 +91,26 @@ entity memory_ctrl is
     usr0_re       : out   std_logic;
     usr0_rpe      : out   std_logic;
 
-    -----------------------------
-    -- User channel 1
-    -----------------------------
-    usr1_clk      : in    std_logic;
-    --Управление
-    usr1_bank1h   : in    std_logic_vector(15 downto 0);
-    usr1_ce       : in    std_logic;
-    usr1_cw       : in    std_logic;
-    usr1_term     : in    std_logic;
-    usr1_rd       : in    std_logic;
-    usr1_wr       : in    std_logic;
-    usr1_adr      : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-    usr1_be       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-    usr1_din      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-    usr1_dout     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-    --TX/RXBUF STATUS
-    usr1_wf       : out   std_logic;
-    usr1_wpf      : out   std_logic;
-    usr1_re       : out   std_logic;
-    usr1_rpe      : out   std_logic;
+--    -----------------------------
+--    -- User channel 1
+--    -----------------------------
+--    usr1_clk      : in    std_logic;
+--    --Управление
+--    usr1_bank1h   : in    std_logic_vector(15 downto 0);
+--    usr1_ce       : in    std_logic;
+--    usr1_cw       : in    std_logic;
+--    usr1_term     : in    std_logic;
+--    usr1_rd       : in    std_logic;
+--    usr1_wr       : in    std_logic;
+--    usr1_adr      : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+--    usr1_be       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+--    usr1_din      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+--    usr1_dout     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+--    --TX/RXBUF STATUS
+--    usr1_wf       : out   std_logic;
+--    usr1_wpf      : out   std_logic;
+--    usr1_re       : out   std_logic;
+--    usr1_rpe      : out   std_logic;
 
     -----------------------------
     -- To/from FPGA memory pins
@@ -172,7 +172,7 @@ architecture mixed of memory_ctrl is
 
     constant num_bank_dram        : natural := selval(1, 2, cmpval(1, G_BANK_COUNT));--2;
     constant num_bank_sram        : natural := 1;
-    constant num_bank             : natural := num_bank_dram + num_bank_sram;
+    constant num_bank             : natural := num_bank_dram;-- + num_bank_sram;
 
     constant mux_order_dram       : natural := 2;--//32BIT
 --    constant mux_order_dram       : natural := 1;--//64BIT
@@ -361,12 +361,12 @@ begin
     usr0_re  <= OR_reduce(usr0_bank1h(num_bank - 1 downto 0) and port0_pre);
     usr0_rpe <= OR_reduce(usr0_bank1h(num_bank - 1 downto 0) and port0_prpe);
 
-    --
-    -- Output outbound data to local bus
-    --
-gen_ch0_use0_ssram_on : if G_BANK_COUNT>=3  generate
-    usr0_dout <= usr0_dout_SRAM when usr0_bank1h(num_bank_dram) = '1' else usr0_dout_DRAM;
-end generate gen_ch0_use0_ssram_on;
+--    --
+--    -- Output outbound data to local bus
+--    --
+--gen_ch0_use0_ssram_on : if G_BANK_COUNT>=3  generate
+--    usr0_dout <= usr0_dout_SRAM when usr0_bank1h(num_bank_dram) = '1' else usr0_dout_DRAM;
+--end generate gen_ch0_use0_ssram_on;
 
 gen_ch0_use0_ssram_off : if G_BANK_COUNT<3  generate
     usr0_dout <= usr0_dout_DRAM;
@@ -432,67 +432,67 @@ end generate gen_ch0_use0_ssram_off;
             dout => usr0_dout_DRAM,
             last => port0_plast_DRAM);
 
-    --
-    -- Instantiate outbound data replicator for the DDR-II SSRAM banks
-    --
-gen_ch0_use1_ssram_on : if G_BANK_COUNT>=3  generate
-    port0_repl_sram : port_repl
-        generic map(
-            order     => mux_order_sram,
-            in_width  => 32,--C_MEMCTRL_DATA_WIDTH,--
-            out_width => port_width_sram,
-            partial   => true)
-        port map(
-            rst   => rst,
-            clk   => usr0_clk,
-
-            init  => usr0_cew,
-            addr  => usr0_adr(mux_order_sram - 1 downto 0),
-            wr    => usr0_wr,
-            last  => usr0_term,
-            din   => usr0_din,
-            bein  => usr0_be,
-
-            dout  => rep0_d_SRAM,
-            beout => rep0_be_SRAM,
-            valid => rep0_valid_SRAM,
-            final => rep0_final_SRAM);
-
-    --
-    -- Instantiate inbound data multiplexor for DDR-II SSRAM
-    --
-    gen_port0_pq_muxed_sram : process(
-        port0_pq_SRAM,
-        usr0_bank1h)
-        variable x : std_logic_vector(port_width_sram - 1 downto 0);
-    begin
-        x := (others => '0');
-        for i in 0 to num_bank_sram - 1 loop
-            if usr0_bank1h(i + num_bank_dram) = '1' then
-                x := x or port0_pq_SRAM(i);
-            end if;
-        end loop;
-        port0_pq_muxed_SRAM <= x;
-    end process;
-
-    port0_mux_sram : port_mux
-        generic map(
-            order     => mux_order_sram,
-            in_width  => port_width_sram,
-            out_width => 32)
-        port map(
-            rst  => rst,
-            clk  => usr0_clk,
-
-            init => usr0_ce,
-            addr => usr0_adr(mux_order_sram - 1 downto 0),
-            adv  => usr0_rd,
-
-            din  => port0_pq_muxed_SRAM,
-            dout => usr0_dout_SRAM,
-
-            last => port0_plast_SRAM);
-end generate gen_ch0_use1_ssram_on;
+--    --
+--    -- Instantiate outbound data replicator for the DDR-II SSRAM banks
+--    --
+--gen_ch0_use1_ssram_on : if G_BANK_COUNT>=3  generate
+--    port0_repl_sram : port_repl
+--        generic map(
+--            order     => mux_order_sram,
+--            in_width  => 32,--C_MEMCTRL_DATA_WIDTH,--
+--            out_width => port_width_sram,
+--            partial   => true)
+--        port map(
+--            rst   => rst,
+--            clk   => usr0_clk,
+--
+--            init  => usr0_cew,
+--            addr  => usr0_adr(mux_order_sram - 1 downto 0),
+--            wr    => usr0_wr,
+--            last  => usr0_term,
+--            din   => usr0_din,
+--            bein  => usr0_be,
+--
+--            dout  => rep0_d_SRAM,
+--            beout => rep0_be_SRAM,
+--            valid => rep0_valid_SRAM,
+--            final => rep0_final_SRAM);
+--
+--    --
+--    -- Instantiate inbound data multiplexor for DDR-II SSRAM
+--    --
+--    gen_port0_pq_muxed_sram : process(
+--        port0_pq_SRAM,
+--        usr0_bank1h)
+--        variable x : std_logic_vector(port_width_sram - 1 downto 0);
+--    begin
+--        x := (others => '0');
+--        for i in 0 to num_bank_sram - 1 loop
+--            if usr0_bank1h(i + num_bank_dram) = '1' then
+--                x := x or port0_pq_SRAM(i);
+--            end if;
+--        end loop;
+--        port0_pq_muxed_SRAM <= x;
+--    end process;
+--
+--    port0_mux_sram : port_mux
+--        generic map(
+--            order     => mux_order_sram,
+--            in_width  => port_width_sram,
+--            out_width => 32)
+--        port map(
+--            rst  => rst,
+--            clk  => usr0_clk,
+--
+--            init => usr0_ce,
+--            addr => usr0_adr(mux_order_sram - 1 downto 0),
+--            adv  => usr0_rd,
+--
+--            din  => port0_pq_muxed_SRAM,
+--            dout => usr0_dout_SRAM,
+--
+--            last => port0_plast_SRAM);
+--end generate gen_ch0_use1_ssram_on;
 
     --
     -- Instantiate 'async_port' components for DDR-II SDRAM memory banks.
@@ -553,335 +553,335 @@ end generate gen_ch0_use1_ssram_on;
                 tag_mask => usr0_tag_mask);
     end generate;
 
-    --
-    -- Instantiate 'async_port' components for DDR-II SSRAM memory banks.
-    --
-    -- These instances decouple the local bus clock domain from the
-    -- memory interface clock domain.
-    --
-gen_ch0_use2_ssram_on : if G_BANK_COUNT>=3  generate
-    gen_async_ports0_sram : for i in 0 to num_bank_sram - 1 generate
-        port0_pce(i + num_bank_dram)   <= usr0_bank1h(i + num_bank_dram) and usr0_ce;
-        port0_pcw(i + num_bank_dram)   <= usr0_cw;
-        port0_pterm(i + num_bank_dram) <= usr0_bank1h(i + num_bank_dram) and rep0_final_SRAM;
-        port0_padv(i + num_bank_dram)  <= usr0_bank1h(i + num_bank_dram) and port0_plast_SRAM and usr0_rd;
-        port0_pwr(i + num_bank_dram)   <= usr0_bank1h(i + num_bank_dram) and rep0_valid_SRAM;
+--    --
+--    -- Instantiate 'async_port' components for DDR-II SSRAM memory banks.
+--    --
+--    -- These instances decouple the local bus clock domain from the
+--    -- memory interface clock domain.
+--    --
+--gen_ch0_use2_ssram_on : if G_BANK_COUNT>=3  generate
+--    gen_async_ports0_sram : for i in 0 to num_bank_sram - 1 generate
+--        port0_pce(i + num_bank_dram)   <= usr0_bank1h(i + num_bank_dram) and usr0_ce;
+--        port0_pcw(i + num_bank_dram)   <= usr0_cw;
+--        port0_pterm(i + num_bank_dram) <= usr0_bank1h(i + num_bank_dram) and rep0_final_SRAM;
+--        port0_padv(i + num_bank_dram)  <= usr0_bank1h(i + num_bank_dram) and port0_plast_SRAM and usr0_rd;
+--        port0_pwr(i + num_bank_dram)   <= usr0_bank1h(i + num_bank_dram) and rep0_valid_SRAM;
+--
+--        async_port_0 : async_port
+--            generic map(
+--                family     => family_virtex5,
+--                order      => 6,
+--                iwpfl      => 32,--3,
+--                orpel      => 1,
+--                owpfl      => 32,
+--                addr_width => port_addr_width_sram,
+--                data_width => port_width_sram,
+--                tag_width  => 2)
+--            port map(
+--                rst      => rst,
+--                pclk     => usr0_clk,
+--                psr      => logic0,
+--
+--                pce      => port0_pce(i + num_bank_dram),
+--                pcw      => port0_pcw(i + num_bank_dram),
+--                pterm    => port0_pterm(i + num_bank_dram),
+--                padv     => port0_padv(i + num_bank_dram),
+--                pwr      => port0_pwr(i + num_bank_dram),
+--                pa       => usr0_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto mux_order_sram),
+--                pd       => rep0_d_SRAM,
+--                pbe      => rep0_be_SRAM,
+--                pq       => port0_pq_SRAM(i),
+--                pwf      => port0_pwf(i + num_bank_dram),
+--                pwpf     => port0_pwpf(i + num_bank_dram),
+--                pre      => port0_pre(i + num_bank_dram),
+--                prpe     => port0_prpe(i + num_bank_dram),
+--
+--                sclk     => memclk0,
+--                sce      => port0_sce(i + num_bank_dram),
+--                sw       => port0_sw(i + num_bank_dram),
+--                stag     => port0_stag(i + num_bank_dram),
+--                sa       => port0_sa_SRAM(i),
+--                sd       => port0_sd_SRAM(i),
+--                sbe      => port0_sbe_SRAM(i),
+--                sq       => port0_sq_SRAM(i),
+--                sqtag    => port0_sqtag(i + num_bank_dram),
+--                svalid   => port0_svalid(i + num_bank_dram),
+--                sready   => port0_sready(i + num_bank_dram),
+--                sreq     => port0_sreq(i + num_bank_dram),
+--                tag_base => usr0_tag_base,
+--                tag_mask => usr0_tag_mask);
+--    end generate;
+--end generate gen_ch0_use2_ssram_on;
 
-        async_port_0 : async_port
-            generic map(
-                family     => family_virtex5,
-                order      => 6,
-                iwpfl      => 32,--3,
-                orpel      => 1,
-                owpfl      => 32,
-                addr_width => port_addr_width_sram,
-                data_width => port_width_sram,
-                tag_width  => 2)
-            port map(
-                rst      => rst,
-                pclk     => usr0_clk,
-                psr      => logic0,
-
-                pce      => port0_pce(i + num_bank_dram),
-                pcw      => port0_pcw(i + num_bank_dram),
-                pterm    => port0_pterm(i + num_bank_dram),
-                padv     => port0_padv(i + num_bank_dram),
-                pwr      => port0_pwr(i + num_bank_dram),
-                pa       => usr0_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto mux_order_sram),
-                pd       => rep0_d_SRAM,
-                pbe      => rep0_be_SRAM,
-                pq       => port0_pq_SRAM(i),
-                pwf      => port0_pwf(i + num_bank_dram),
-                pwpf     => port0_pwpf(i + num_bank_dram),
-                pre      => port0_pre(i + num_bank_dram),
-                prpe     => port0_prpe(i + num_bank_dram),
-
-                sclk     => memclk0,
-                sce      => port0_sce(i + num_bank_dram),
-                sw       => port0_sw(i + num_bank_dram),
-                stag     => port0_stag(i + num_bank_dram),
-                sa       => port0_sa_SRAM(i),
-                sd       => port0_sd_SRAM(i),
-                sbe      => port0_sbe_SRAM(i),
-                sq       => port0_sq_SRAM(i),
-                sqtag    => port0_sqtag(i + num_bank_dram),
-                svalid   => port0_svalid(i + num_bank_dram),
-                sready   => port0_sready(i + num_bank_dram),
-                sreq     => port0_sreq(i + num_bank_dram),
-                tag_base => usr0_tag_base,
-                tag_mask => usr0_tag_mask);
-    end generate;
-end generate gen_ch0_use2_ssram_on;
-
---//----------------------------------------------------------------------
---//PORT-1
---//----------------------------------------------------------------------
-    usr1_wf  <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_pwf);
-    usr1_wpf <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_pwpf);
-    usr1_re  <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_pre);
-    usr1_rpe <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_prpe);
-
-    --
-    -- Output outbound data to local bus
-    --
-gen_ch1_use0_ssram_on : if G_BANK_COUNT>=3  generate
-    usr1_dout <= usr1_dout_SRAM when usr1_bank1h(num_bank_dram) = '1' else usr1_dout_DRAM;
-end generate gen_ch1_use0_ssram_on;
-
-gen_ch1_use0_ssram_off : if G_BANK_COUNT<3  generate
-    usr1_dout <= usr1_dout_DRAM;
-end generate gen_ch1_use0_ssram_off;
-
-    --
-    -- Instantiate outbound data replicator for the DDR-II SDRAM banks
-    --
-    usr1_cew <= usr1_ce and usr1_cw;
-
-    port1_repl_dram : port_repl
-        generic map(
-            order     => mux_order_dram,
-            in_width  => 32,--C_MEMCTRL_DATA_WIDTH,--
-            out_width => port_width_dram,
-            partial   => true)
-        port map(
-            rst   => rst,
-            clk   => usr1_clk,
-
-            init  => usr1_cew,
-            addr  => usr1_adr(mux_order_dram - 1 downto 0),
-            wr    => usr1_wr,
-            last  => usr1_term,
-            din   => usr1_din,
-            bein  => usr1_be,
-
-            dout  => rep1_d_DRAM,
-            beout => rep1_be_DRAM,
-            valid => rep1_valid_DRAM,
-            final => rep1_final_DRAM);
-
-    --
-    -- Instantiate inbound data multiplexor for DDR-II SDRAM
-    --
-    gen_port1_pq_muxed_dram : process(
-        port1_pq_DRAM,
-        usr1_bank1h)
-        variable x : std_logic_vector(port_width_dram - 1 downto 0);
-    begin
-        x := (others => '0');
-        for i in 0 to num_bank_dram - 1 loop
-            if usr1_bank1h(i) = '1' then
-                x := x or port1_pq_DRAM(i);
-            end if;
-        end loop;
-        port1_pq_muxed_DRAM <= x;
-    end process;
-
-    port1_mux_dram : port_mux
-        generic map(
-            order     => mux_order_dram,
-            in_width  => port_width_dram,
-            out_width => 32)--C_MEMCTRL_DATA_WIDTH )--,--
-        port map(
-            rst  => rst,
-            clk  => usr1_clk,
-
-            init => usr1_ce,
-            addr => usr1_adr(mux_order_dram - 1 downto 0),
-            adv  => usr1_rd,
-
-            din  => port1_pq_muxed_DRAM,
-            dout => usr1_dout_DRAM,
-
-            last => port1_plast_DRAM);
-
-    --
-    -- Instantiate outbound data replicator for the DDR-II SSRAM banks
-    --
-gen_ch1_use1_ssram_on : if G_BANK_COUNT>=3  generate
-    port1_repl_sram : port_repl
-        generic map(
-            order     => mux_order_sram,
-            in_width  => 32,--C_MEMCTRL_DATA_WIDTH,--
-            out_width => port_width_sram,
-            partial   => true)
-        port map(
-            rst   => rst,
-            clk   => usr1_clk,
-
-            init  => usr1_cew,
-            addr  => usr1_adr(mux_order_sram - 1 downto 0),
-            wr    => usr1_wr,
-            last  => usr1_term,
-            din   => usr1_din,
-            bein  => usr1_be,
-
-            dout  => rep1_d_SRAM,
-            beout => rep1_be_SRAM,
-            valid => rep1_valid_SRAM,
-            final => rep1_final_SRAM);
-
-    --
-    -- Instantiate inbound data multiplexor for DDR-II SSRAM
-    --
-    gen_port1_pq_muxed_sram : process(
-        port1_pq_sram,
-        usr1_bank1h)
-        variable x : std_logic_vector(port_width_sram - 1 downto 0);
-    begin
-        x := (others => '0');
-        for i in 0 to num_bank_sram - 1 loop
-            if usr1_bank1h(i + num_bank_dram) = '1' then
-                x := x or port1_pq_SRAM(i);
-            end if;
-        end loop;
-        port1_pq_muxed_SRAM <= x;
-    end process;
-
-    port1_mux_sram : port_mux
-        generic map(
-            order     => mux_order_sram,
-            in_width  => port_width_sram,
-            out_width => 32)--C_MEMCTRL_DATA_WIDTH )--,--
-        port map(
-            rst  => rst,
-            clk  => usr1_clk,
-
-            init => usr1_ce,
-            addr => usr1_adr(mux_order_sram - 1 downto 0),
-            adv  => usr1_rd,
-
-            din  => port1_pq_muxed_SRAM,
-            dout => usr1_dout_SRAM,
-
-            last => port1_plast_SRAM);
-end generate gen_ch1_use1_ssram_on;
-
-    --
-    -- Instantiate 'async_port' components for DDR-II SDRAM memory banks.
-    --
-    -- These instances decouple the local bus clock domain from the
-    -- memory interface clock domain.
-    --
-    gen_async_ports1_dram : for i in 0 to num_bank_dram - 1 generate
-        port1_pce(i)   <= usr1_bank1h(i) and usr1_ce;
-        port1_pcw(i)   <= usr1_cw;
-        port1_pterm(i) <= usr1_bank1h(i) and rep1_final_DRAM;
-        port1_padv(i)  <= usr1_bank1h(i) and port1_plast_DRAM and usr1_rd;
-        port1_pwr(i)   <= usr1_bank1h(i) and rep1_valid_DRAM;
-
-        async_port_1 : async_port
-            generic map(
-                family     => family_virtex5,
-                order      => 6, --//FIFO depth (number of words that can be held in the FIFO) is 2**order - 1.
-                iwpfl      => 32,--3,
-                orpel      => 1,
-                owpfl      => 32,
-                addr_width => port_addr_width_dram,
-                data_width => port_width_dram,
-                tag_width  => 2)
-            port map(
-                rst      => rst,
-                pclk     => usr1_clk,
-                psr      => logic0,
-
-                pce      => port1_pce(i),
-                pcw      => port1_pcw(i),
-                pterm    => port1_pterm(i),
-                padv     => port1_padv(i),
-                pwr      => port1_pwr(i),
-
-                pa       => usr1_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto mux_order_dram),
-
-                pd       => rep1_d_DRAM,
-                pbe      => rep1_be_DRAM,
-                pq       => port1_pq_DRAM(i),
-                pwf      => port1_pwf(i),
-                pwpf     => port1_pwpf(i),
-                pre      => port1_pre(i),
-                prpe     => port1_prpe(i),
-
-                sclk     => memclk0,
-
-                sce      => port1_sce(i),
-                sw       => port1_sw(i),
-                stag     => port1_stag(i),
-                sa       => port1_sa_DRAM(i),
-                sd       => port1_sd_DRAM(i),
-                sbe      => port1_sbe_DRAM(i),
-                sq       => port1_sq_DRAM(i),
-                sqtag    => port1_sqtag(i),
-                svalid   => port1_svalid(i),
-                sready   => port1_sready(i),
-                sreq     => port1_sreq(i),
-
-                tag_base => usr1_tag_base,
-                tag_mask => usr1_tag_mask);
-    end generate;
-
-    --
-    -- Instantiate 'async_port' components for DDR-II SSRAM memory banks.
-    --
-    -- These instances decouple the local bus clock domain from the
-    -- memory interface clock domain.
-    --
-gen_ch1_use2_ssram_on : if G_BANK_COUNT>=3  generate
-    gen_async_ports1_sram : for i in 0 to num_bank_sram - 1 generate
-        port1_pce(i + num_bank_dram)   <= usr1_bank1h(i + num_bank_dram) and usr1_ce;
-        port1_pcw(i + num_bank_dram)   <= usr1_cw;
-        port1_pterm(i + num_bank_dram) <= usr1_bank1h(i + num_bank_dram) and rep1_final_SRAM;
-        port1_padv(i + num_bank_dram)  <= usr1_bank1h(i + num_bank_dram) and port1_plast_SRAM and usr1_rd;
-        port1_pwr(i + num_bank_dram)   <= usr1_bank1h(i + num_bank_dram) and rep1_valid_SRAM;
-
-        async_port_1 : async_port
-            generic map(
-                family     => family_virtex5,
-                order      => 6,
-                iwpfl      => 32,--3,
-                orpel      => 1,
-                owpfl      => 32,
-                addr_width => port_addr_width_sram,
-                data_width => port_width_sram,
-                tag_width  => 2)
-            port map(
-                rst      => rst,
-                pclk     => usr1_clk,
-                psr      => logic0,
-
-                pce      => port1_pce(i + num_bank_dram),
-                pcw      => port1_pcw(i + num_bank_dram),
-                pterm    => port1_pterm(i + num_bank_dram),
-                padv     => port1_padv(i + num_bank_dram),
-                pwr      => port1_pwr(i + num_bank_dram),
-
-                pa       => usr1_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto mux_order_sram),
-
-                pd       => rep1_d_SRAM,
-                pbe      => rep1_be_SRAM,
-
-                pq       => port1_pq_SRAM(i),
-                pwf      => port1_pwf(i + num_bank_dram),
-                pwpf     => port1_pwpf(i + num_bank_dram),
-                pre      => port1_pre(i + num_bank_dram),
-                prpe     => port1_prpe(i + num_bank_dram),
-
-                sclk     => memclk0,
-
-                sce      => port1_sce(i + num_bank_dram),
-                sw       => port1_sw(i + num_bank_dram),
-                stag     => port1_stag(i + num_bank_dram),
-                sa       => port1_sa_SRAM(i),
-                sd       => port1_sd_SRAM(i),
-                sbe      => port1_sbe_SRAM(i),
-                sq       => port1_sq_SRAM(i),
-                sqtag    => port1_sqtag(i + num_bank_dram),
-                svalid   => port1_svalid(i + num_bank_dram),
-                sready   => port1_sready(i + num_bank_dram),
-                sreq     => port1_sreq(i + num_bank_dram),
-
-                tag_base => usr1_tag_base,
-                tag_mask => usr1_tag_mask);
-    end generate;
-end generate gen_ch1_use2_ssram_on;
+----//----------------------------------------------------------------------
+----//PORT-1
+----//----------------------------------------------------------------------
+--    usr1_wf  <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_pwf);
+--    usr1_wpf <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_pwpf);
+--    usr1_re  <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_pre);
+--    usr1_rpe <= OR_reduce(usr1_bank1h(num_bank - 1 downto 0) and port1_prpe);
+--
+--    --
+--    -- Output outbound data to local bus
+--    --
+--gen_ch1_use0_ssram_on : if G_BANK_COUNT>=3  generate
+--    usr1_dout <= usr1_dout_SRAM when usr1_bank1h(num_bank_dram) = '1' else usr1_dout_DRAM;
+--end generate gen_ch1_use0_ssram_on;
+--
+--gen_ch1_use0_ssram_off : if G_BANK_COUNT<3  generate
+--    usr1_dout <= usr1_dout_DRAM;
+--end generate gen_ch1_use0_ssram_off;
+--
+--    --
+--    -- Instantiate outbound data replicator for the DDR-II SDRAM banks
+--    --
+--    usr1_cew <= usr1_ce and usr1_cw;
+--
+--    port1_repl_dram : port_repl
+--        generic map(
+--            order     => mux_order_dram,
+--            in_width  => 32,--C_MEMCTRL_DATA_WIDTH,--
+--            out_width => port_width_dram,
+--            partial   => true)
+--        port map(
+--            rst   => rst,
+--            clk   => usr1_clk,
+--
+--            init  => usr1_cew,
+--            addr  => usr1_adr(mux_order_dram - 1 downto 0),
+--            wr    => usr1_wr,
+--            last  => usr1_term,
+--            din   => usr1_din,
+--            bein  => usr1_be,
+--
+--            dout  => rep1_d_DRAM,
+--            beout => rep1_be_DRAM,
+--            valid => rep1_valid_DRAM,
+--            final => rep1_final_DRAM);
+--
+--    --
+--    -- Instantiate inbound data multiplexor for DDR-II SDRAM
+--    --
+--    gen_port1_pq_muxed_dram : process(
+--        port1_pq_DRAM,
+--        usr1_bank1h)
+--        variable x : std_logic_vector(port_width_dram - 1 downto 0);
+--    begin
+--        x := (others => '0');
+--        for i in 0 to num_bank_dram - 1 loop
+--            if usr1_bank1h(i) = '1' then
+--                x := x or port1_pq_DRAM(i);
+--            end if;
+--        end loop;
+--        port1_pq_muxed_DRAM <= x;
+--    end process;
+--
+--    port1_mux_dram : port_mux
+--        generic map(
+--            order     => mux_order_dram,
+--            in_width  => port_width_dram,
+--            out_width => 32)--C_MEMCTRL_DATA_WIDTH )--,--
+--        port map(
+--            rst  => rst,
+--            clk  => usr1_clk,
+--
+--            init => usr1_ce,
+--            addr => usr1_adr(mux_order_dram - 1 downto 0),
+--            adv  => usr1_rd,
+--
+--            din  => port1_pq_muxed_DRAM,
+--            dout => usr1_dout_DRAM,
+--
+--            last => port1_plast_DRAM);
+--
+--    --
+--    -- Instantiate outbound data replicator for the DDR-II SSRAM banks
+--    --
+--gen_ch1_use1_ssram_on : if G_BANK_COUNT>=3  generate
+--    port1_repl_sram : port_repl
+--        generic map(
+--            order     => mux_order_sram,
+--            in_width  => 32,--C_MEMCTRL_DATA_WIDTH,--
+--            out_width => port_width_sram,
+--            partial   => true)
+--        port map(
+--            rst   => rst,
+--            clk   => usr1_clk,
+--
+--            init  => usr1_cew,
+--            addr  => usr1_adr(mux_order_sram - 1 downto 0),
+--            wr    => usr1_wr,
+--            last  => usr1_term,
+--            din   => usr1_din,
+--            bein  => usr1_be,
+--
+--            dout  => rep1_d_SRAM,
+--            beout => rep1_be_SRAM,
+--            valid => rep1_valid_SRAM,
+--            final => rep1_final_SRAM);
+--
+--    --
+--    -- Instantiate inbound data multiplexor for DDR-II SSRAM
+--    --
+--    gen_port1_pq_muxed_sram : process(
+--        port1_pq_sram,
+--        usr1_bank1h)
+--        variable x : std_logic_vector(port_width_sram - 1 downto 0);
+--    begin
+--        x := (others => '0');
+--        for i in 0 to num_bank_sram - 1 loop
+--            if usr1_bank1h(i + num_bank_dram) = '1' then
+--                x := x or port1_pq_SRAM(i);
+--            end if;
+--        end loop;
+--        port1_pq_muxed_SRAM <= x;
+--    end process;
+--
+--    port1_mux_sram : port_mux
+--        generic map(
+--            order     => mux_order_sram,
+--            in_width  => port_width_sram,
+--            out_width => 32)--C_MEMCTRL_DATA_WIDTH )--,--
+--        port map(
+--            rst  => rst,
+--            clk  => usr1_clk,
+--
+--            init => usr1_ce,
+--            addr => usr1_adr(mux_order_sram - 1 downto 0),
+--            adv  => usr1_rd,
+--
+--            din  => port1_pq_muxed_SRAM,
+--            dout => usr1_dout_SRAM,
+--
+--            last => port1_plast_SRAM);
+--end generate gen_ch1_use1_ssram_on;
+--
+--    --
+--    -- Instantiate 'async_port' components for DDR-II SDRAM memory banks.
+--    --
+--    -- These instances decouple the local bus clock domain from the
+--    -- memory interface clock domain.
+--    --
+--    gen_async_ports1_dram : for i in 0 to num_bank_dram - 1 generate
+--        port1_pce(i)   <= usr1_bank1h(i) and usr1_ce;
+--        port1_pcw(i)   <= usr1_cw;
+--        port1_pterm(i) <= usr1_bank1h(i) and rep1_final_DRAM;
+--        port1_padv(i)  <= usr1_bank1h(i) and port1_plast_DRAM and usr1_rd;
+--        port1_pwr(i)   <= usr1_bank1h(i) and rep1_valid_DRAM;
+--
+--        async_port_1 : async_port
+--            generic map(
+--                family     => family_virtex5,
+--                order      => 6, --//FIFO depth (number of words that can be held in the FIFO) is 2**order - 1.
+--                iwpfl      => 32,--3,
+--                orpel      => 1,
+--                owpfl      => 32,
+--                addr_width => port_addr_width_dram,
+--                data_width => port_width_dram,
+--                tag_width  => 2)
+--            port map(
+--                rst      => rst,
+--                pclk     => usr1_clk,
+--                psr      => logic0,
+--
+--                pce      => port1_pce(i),
+--                pcw      => port1_pcw(i),
+--                pterm    => port1_pterm(i),
+--                padv     => port1_padv(i),
+--                pwr      => port1_pwr(i),
+--
+--                pa       => usr1_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto mux_order_dram),
+--
+--                pd       => rep1_d_DRAM,
+--                pbe      => rep1_be_DRAM,
+--                pq       => port1_pq_DRAM(i),
+--                pwf      => port1_pwf(i),
+--                pwpf     => port1_pwpf(i),
+--                pre      => port1_pre(i),
+--                prpe     => port1_prpe(i),
+--
+--                sclk     => memclk0,
+--
+--                sce      => port1_sce(i),
+--                sw       => port1_sw(i),
+--                stag     => port1_stag(i),
+--                sa       => port1_sa_DRAM(i),
+--                sd       => port1_sd_DRAM(i),
+--                sbe      => port1_sbe_DRAM(i),
+--                sq       => port1_sq_DRAM(i),
+--                sqtag    => port1_sqtag(i),
+--                svalid   => port1_svalid(i),
+--                sready   => port1_sready(i),
+--                sreq     => port1_sreq(i),
+--
+--                tag_base => usr1_tag_base,
+--                tag_mask => usr1_tag_mask);
+--    end generate;
+--
+--    --
+--    -- Instantiate 'async_port' components for DDR-II SSRAM memory banks.
+--    --
+--    -- These instances decouple the local bus clock domain from the
+--    -- memory interface clock domain.
+--    --
+--gen_ch1_use2_ssram_on : if G_BANK_COUNT>=3  generate
+--    gen_async_ports1_sram : for i in 0 to num_bank_sram - 1 generate
+--        port1_pce(i + num_bank_dram)   <= usr1_bank1h(i + num_bank_dram) and usr1_ce;
+--        port1_pcw(i + num_bank_dram)   <= usr1_cw;
+--        port1_pterm(i + num_bank_dram) <= usr1_bank1h(i + num_bank_dram) and rep1_final_SRAM;
+--        port1_padv(i + num_bank_dram)  <= usr1_bank1h(i + num_bank_dram) and port1_plast_SRAM and usr1_rd;
+--        port1_pwr(i + num_bank_dram)   <= usr1_bank1h(i + num_bank_dram) and rep1_valid_SRAM;
+--
+--        async_port_1 : async_port
+--            generic map(
+--                family     => family_virtex5,
+--                order      => 6,
+--                iwpfl      => 32,--3,
+--                orpel      => 1,
+--                owpfl      => 32,
+--                addr_width => port_addr_width_sram,
+--                data_width => port_width_sram,
+--                tag_width  => 2)
+--            port map(
+--                rst      => rst,
+--                pclk     => usr1_clk,
+--                psr      => logic0,
+--
+--                pce      => port1_pce(i + num_bank_dram),
+--                pcw      => port1_pcw(i + num_bank_dram),
+--                pterm    => port1_pterm(i + num_bank_dram),
+--                padv     => port1_padv(i + num_bank_dram),
+--                pwr      => port1_pwr(i + num_bank_dram),
+--
+--                pa       => usr1_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto mux_order_sram),
+--
+--                pd       => rep1_d_SRAM,
+--                pbe      => rep1_be_SRAM,
+--
+--                pq       => port1_pq_SRAM(i),
+--                pwf      => port1_pwf(i + num_bank_dram),
+--                pwpf     => port1_pwpf(i + num_bank_dram),
+--                pre      => port1_pre(i + num_bank_dram),
+--                prpe     => port1_prpe(i + num_bank_dram),
+--
+--                sclk     => memclk0,
+--
+--                sce      => port1_sce(i + num_bank_dram),
+--                sw       => port1_sw(i + num_bank_dram),
+--                stag     => port1_stag(i + num_bank_dram),
+--                sa       => port1_sa_SRAM(i),
+--                sd       => port1_sd_SRAM(i),
+--                sbe      => port1_sbe_SRAM(i),
+--                sq       => port1_sq_SRAM(i),
+--                sqtag    => port1_sqtag(i + num_bank_dram),
+--                svalid   => port1_svalid(i + num_bank_dram),
+--                sready   => port1_sready(i + num_bank_dram),
+--                sreq     => port1_sreq(i + num_bank_dram),
+--
+--                tag_base => usr1_tag_base,
+--                tag_mask => usr1_tag_mask);
+--    end generate;
+--end generate gen_ch1_use2_ssram_on;
 
 
 --//----------------------------------------------------------------------
@@ -897,116 +897,128 @@ end generate gen_ch1_use2_ssram_on;
     -- memory banks may time out if timely access to the memory is not granted.
     --
     gen_arbiters_dram : for i in 0 to num_bank_dram - 1 generate
-        U0 : arbiter_2
-            generic map(
-                registered  => true,
-                ready_delay => 1,
-                latency     => 16,
-                unfair      => true,
-                bias        => 0,                    --//Номер канала с наивысшим приоритетом
-                a_width     => port_addr_width_dram,
-                d_width     => port_width_dram,
-                tag_width   => tag_width)
-            port map(
-            --//USR0
-                req0   => port0_sreq(i),
-                ce0    => port0_sce(i),
-                w0     => port0_sw(i),
-                tag0   => port0_stag(i),
-                a0     => port0_sa_DRAM(i),
-                d0     => port0_sd_DRAM(i),
-                be0    => port0_sbe_DRAM(i),
-                q0     => port0_sq_DRAM(i),
-                qtag0  => port0_sqtag(i),
-                valid0 => port0_svalid(i),
-                ready0 => port0_sready(i),
-            --//USR1
-                req1   => port1_sreq(i),
-                ce1    => port1_sce(i),
-                w1     => port1_sw(i),
-                tag1   => port1_stag(i),
-                a1     => port1_sa_DRAM(i),
-                d1     => port1_sd_DRAM(i),
-                be1    => port1_sbe_DRAM(i),
-                q1     => port1_sq_DRAM(i),
-                qtag1  => port1_sqtag(i),
-                valid1 => port1_svalid(i),
-                ready1 => port1_sready(i),
 
-            --//MEM_IF
-                ce    => arb_ce(i),
-                w     => arb_w(i),
-                tag   => arb_tag(i),
-                a     => arb_a_DRAM(i),
-                d     => arb_d_DRAM(i),
-                be    => arb_be_DRAM(i),
-                q     => arb_q_DRAM(i),
-                qtag  => arb_qtag(i),
-                valid => arb_valid(i),
-                ready => arb_ready(i),
+          arb_ce(i)     <= port0_sce(i)     ;--        ce            : out   std_logic;
+          arb_w(i)      <= port0_sw(i)      ;--        w             : out   std_logic;
+          arb_tag(i)    <= port0_stag(i)    ;--        tag           : out   std_logic_vector(tag_width - 1 downto 0);
+          arb_a_DRAM(i) <= port0_sa_DRAM(i) ;--        a             : out   std_logic_vector(a_width - 1 downto 0);
+          arb_d_DRAM(i) <= port0_sd_DRAM(i) ;--        d             : out   std_logic_vector(d_width - 1 downto 0);
+          arb_be_DRAM(i)<= port0_sbe_DRAM(i);--        be            : out   std_logic_vector(d_width / 8 - 1 downto 0);
+          port0_sq_DRAM(i)<= arb_q_DRAM(i)  ;--        q             : in    std_logic_vector(d_width - 1 downto 0);
+          port0_sqtag(i)  <= arb_qtag(i)    ;--        qtag          : in    std_logic_vector(tag_width - 1 downto 0);
+          port0_svalid(i) <= arb_valid(i)   ;--        valid         : in    std_logic;
+          port0_sready(i) <= arb_ready(i)   ;--        ready         : in    std_logic;
 
-                rst => memrst,
-                clk => memclk0,
-                sr  => logic0
-                );
+--        U0 : arbiter_2
+--            generic map(
+--                registered  => true,
+--                ready_delay => 1,
+--                latency     => 16,
+--                unfair      => true,
+--                bias        => 0,                    --//Номер канала с наивысшим приоритетом
+--                a_width     => port_addr_width_dram,
+--                d_width     => port_width_dram,
+--                tag_width   => tag_width)
+--            port map(
+--            --//USR0
+--                req0   => port0_sreq(i),
+--                ce0    => port0_sce(i),
+--                w0     => port0_sw(i),
+--                tag0   => port0_stag(i),
+--                a0     => port0_sa_DRAM(i),
+--                d0     => port0_sd_DRAM(i),
+--                be0    => port0_sbe_DRAM(i),
+--                q0     => port0_sq_DRAM(i),
+--                qtag0  => port0_sqtag(i),
+--                valid0 => port0_svalid(i),
+--                ready0 => port0_sready(i),
+--            --//USR1
+--                req1   => port1_sreq(i),
+--                ce1    => port1_sce(i),
+--                w1     => port1_sw(i),
+--                tag1   => port1_stag(i),
+--                a1     => port1_sa_DRAM(i),
+--                d1     => port1_sd_DRAM(i),
+--                be1    => port1_sbe_DRAM(i),
+--                q1     => port1_sq_DRAM(i),
+--                qtag1  => port1_sqtag(i),
+--                valid1 => port1_svalid(i),
+--                ready1 => port1_sready(i),
+--
+--            --//MEM_IF
+--                ce    => arb_ce(i),
+--                w     => arb_w(i),
+--                tag   => arb_tag(i),
+--                a     => arb_a_DRAM(i),
+--                d     => arb_d_DRAM(i),
+--                be    => arb_be_DRAM(i),
+--                q     => arb_q_DRAM(i),
+--                qtag  => arb_qtag(i),
+--                valid => arb_valid(i),
+--                ready => arb_ready(i),
+--
+--                rst => memrst,
+--                clk => memclk0,
+--                sr  => logic0
+--                );
     end generate;
 
-gen_arb_ssram_on : if G_BANK_COUNT>=3  generate
-    gen_arbiters_sram : for i in 0 to num_bank_sram - 1 generate
-        U0 : arbiter_2
-            generic map(
-                registered  => true,
-                ready_delay => 1,
-                latency     => 16,
-                unfair      => true,
-                bias        => 0,                    --//Номер канала с наивысшим приоритетом
-                a_width     => port_addr_width_sram,
-                d_width     => port_width_sram,
-                tag_width   => tag_width)
-            port map(
-            --//USR0
-                req0   => port0_sreq(i + num_bank_dram),
-                ce0    => port0_sce(i + num_bank_dram),
-                w0     => port0_sw(i + num_bank_dram),
-                tag0   => port0_stag(i + num_bank_dram),
-                a0     => port0_sa_SRAM(i),
-                d0     => port0_sd_SRAM(i),
-                be0    => port0_sbe_SRAM(i),
-                q0     => port0_sq_SRAM(i),
-                qtag0  => port0_sqtag(i + num_bank_dram),
-                valid0 => port0_svalid(i + num_bank_dram),
-                ready0 => port0_sready(i + num_bank_dram),
-            --//USR1
-                req1   => port1_sreq(i + num_bank_dram),
-                ce1    => port1_sce(i + num_bank_dram),
-                w1     => port1_sw(i + num_bank_dram),
-                tag1   => port1_stag(i + num_bank_dram),
-                a1     => port1_sa_SRAM(i),
-                d1     => port1_sd_SRAM(i),
-                be1    => port1_sbe_SRAM(i),
-                q1     => port1_sq_SRAM(i),
-                qtag1  => port1_sqtag(i + num_bank_dram),
-                valid1 => port1_svalid(i + num_bank_dram),
-                ready1 => port1_sready(i + num_bank_dram),
-
-            --//MEM_IF
-                ce    => arb_ce(i + num_bank_dram),
-                w     => arb_w(i + num_bank_dram),
-                tag   => arb_tag(i + num_bank_dram),
-                a     => arb_a_SRAM(i),
-                d     => arb_d_SRAM(i),
-                be    => arb_be_SRAM(i),
-                q     => arb_q_SRAM(i),
-                qtag  => arb_qtag(i + num_bank_dram),
-                valid => arb_valid(i + num_bank_dram),
-                ready => arb_ready(i + num_bank_dram),
-
-                rst => memrst,
-                clk => memclk0,
-                sr => logic0
-                );
-    end generate;
-end generate gen_arb_ssram_on;
+--gen_arb_ssram_on : if G_BANK_COUNT>=3  generate
+--    gen_arbiters_sram : for i in 0 to num_bank_sram - 1 generate
+--        U0 : arbiter_2
+--            generic map(
+--                registered  => true,
+--                ready_delay => 1,
+--                latency     => 16,
+--                unfair      => true,
+--                bias        => 0,                    --//Номер канала с наивысшим приоритетом
+--                a_width     => port_addr_width_sram,
+--                d_width     => port_width_sram,
+--                tag_width   => tag_width)
+--            port map(
+--            --//USR0
+--                req0   => port0_sreq(i + num_bank_dram),
+--                ce0    => port0_sce(i + num_bank_dram),
+--                w0     => port0_sw(i + num_bank_dram),
+--                tag0   => port0_stag(i + num_bank_dram),
+--                a0     => port0_sa_SRAM(i),
+--                d0     => port0_sd_SRAM(i),
+--                be0    => port0_sbe_SRAM(i),
+--                q0     => port0_sq_SRAM(i),
+--                qtag0  => port0_sqtag(i + num_bank_dram),
+--                valid0 => port0_svalid(i + num_bank_dram),
+--                ready0 => port0_sready(i + num_bank_dram),
+--            --//USR1
+--                req1   => port1_sreq(i + num_bank_dram),
+--                ce1    => port1_sce(i + num_bank_dram),
+--                w1     => port1_sw(i + num_bank_dram),
+--                tag1   => port1_stag(i + num_bank_dram),
+--                a1     => port1_sa_SRAM(i),
+--                d1     => port1_sd_SRAM(i),
+--                be1    => port1_sbe_SRAM(i),
+--                q1     => port1_sq_SRAM(i),
+--                qtag1  => port1_sqtag(i + num_bank_dram),
+--                valid1 => port1_svalid(i + num_bank_dram),
+--                ready1 => port1_sready(i + num_bank_dram),
+--
+--            --//MEM_IF
+--                ce    => arb_ce(i + num_bank_dram),
+--                w     => arb_w(i + num_bank_dram),
+--                tag   => arb_tag(i + num_bank_dram),
+--                a     => arb_a_SRAM(i),
+--                d     => arb_d_SRAM(i),
+--                be    => arb_be_SRAM(i),
+--                q     => arb_q_SRAM(i),
+--                qtag  => arb_qtag(i + num_bank_dram),
+--                valid => arb_valid(i + num_bank_dram),
+--                ready => arb_ready(i + num_bank_dram),
+--
+--                rst => memrst,
+--                clk => memclk0,
+--                sr => logic0
+--                );
+--    end generate;
+--end generate gen_arb_ssram_on;
 
 --//----------------------------------------------------------------
 -- Instantiate the DDR-II SDRAM memory ports
@@ -1095,50 +1107,50 @@ gen_ddrsdram_port2_off : if G_BANK_COUNT<2  generate
     rd2 <= (others => 'Z');
 end generate gen_ddrsdram_port2_off;
 
---//----------------------------------------------------------------
--- Instantiate the DDR-II SSRAM memory port
---//----------------------------------------------------------------
-gen_ssram_port_on : if G_BANK_COUNT>=3  generate
-    sram_port_0 : ddr2sram_port_v4
-        generic map(
-            pinout    => ddr2sram_pinout_admxrc5t1,
-            ra_width  => bank2.ra_width,
-            rc_width  => bank2.rc_width,
-            rd_width  => bank2.rd_width,
-            a_width   => port_addr_width_sram,
-            d_width   => port_width_sram,
-            tag_width => tag_width)
-        port map(
-            rst     => memrst,
-            sr      => logic0,
-            clk0    => memclk0,
-            clk45   => memclk45,
-            clk2x0  => memclk2x0,
-            clk2x90 => memclk2x90,
-
-            ce      => arb_ce(2),
-            w       => arb_w(2),
-            tag     => arb_tag(2),
-            a       => arb_a_SRAM(0),
-            d       => arb_d_SRAM(0),
-            be      => arb_be_SRAM(0),
-            q       => arb_q_SRAM(0),
-            qtag    => arb_qtag(2),
-            valid   => arb_valid(2),
-            ready   => arb_ready(2),
-            dll_off => mode_reg(32 * 2 + 2),
-            trained => trained(2),
-
-            ra => ra2,
-            rc => rc2,
-            rd => rd2);
-end generate gen_ssram_port_on;
-
-gen_ssram_port_off : if G_BANK_COUNT<3  generate
+----//----------------------------------------------------------------
+---- Instantiate the DDR-II SSRAM memory port
+----//----------------------------------------------------------------
+--gen_ssram_port_on : if G_BANK_COUNT>=3  generate
+--    sram_port_0 : ddr2sram_port_v4
+--        generic map(
+--            pinout    => ddr2sram_pinout_admxrc5t1,
+--            ra_width  => bank2.ra_width,
+--            rc_width  => bank2.rc_width,
+--            rd_width  => bank2.rd_width,
+--            a_width   => port_addr_width_sram,
+--            d_width   => port_width_sram,
+--            tag_width => tag_width)
+--        port map(
+--            rst     => memrst,
+--            sr      => logic0,
+--            clk0    => memclk0,
+--            clk45   => memclk45,
+--            clk2x0  => memclk2x0,
+--            clk2x90 => memclk2x90,
+--
+--            ce      => arb_ce(2),
+--            w       => arb_w(2),
+--            tag     => arb_tag(2),
+--            a       => arb_a_SRAM(0),
+--            d       => arb_d_SRAM(0),
+--            be      => arb_be_SRAM(0),
+--            q       => arb_q_SRAM(0),
+--            qtag    => arb_qtag(2),
+--            valid   => arb_valid(2),
+--            ready   => arb_ready(2),
+--            dll_off => mode_reg(32 * 2 + 2),
+--            trained => trained(2),
+--
+--            ra => ra2,
+--            rc => rc2,
+--            rd => rd2);
+--end generate gen_ssram_port_on;
+--
+--gen_ssram_port_off : if G_BANK_COUNT<3  generate
     ra2 <= (others => 'Z');
     rc2 <= (others => 'Z');
     rd2 <= (others => 'Z');
-end generate gen_ssram_port_off;
+--end generate gen_ssram_port_off;
     --
     -- Banks 3-15 are not present/used.
     --

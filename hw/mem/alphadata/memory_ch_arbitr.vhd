@@ -121,6 +121,27 @@ p_out_ch3_wpf    : out   std_logic;
 p_out_ch3_re     : out   std_logic;
 p_out_ch3_rpe    : out   std_logic;
 
+-------------------------------
+-- Связь с CH4
+-------------------------------
+p_in_ch4_req     : in    std_logic;
+p_out_ch4_en     : out   std_logic;
+
+p_in_ch4_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch4_ce      : in    std_logic;
+p_in_ch4_cw      : in    std_logic;
+p_in_ch4_rd      : in    std_logic;
+p_in_ch4_wr      : in    std_logic;
+p_in_ch4_term    : in    std_logic;
+p_in_ch4_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+p_in_ch4_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+p_in_ch4_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_ch4_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+
+p_out_ch4_wf     : out   std_logic;
+p_out_ch4_wpf    : out   std_logic;
+p_out_ch4_re     : out   std_logic;
+p_out_ch4_rpe    : out   std_logic;
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
@@ -161,8 +182,7 @@ architecture behavioral of memory_ch_arbitr is
 
 constant C_MEM_BANK_MSB_BIT   : integer:=pwr((C_HREG_MEM_ADR_BANK_M_BIT-C_HREG_MEM_ADR_BANK_L_BIT+1), 2)-1;
 
-type fsm_state is
-(
+type fsm_state is (
 S_CHK_RQ_CH0,
 S_CHK_DLY_CH0,
 
@@ -173,29 +193,32 @@ S_CHK_RQ_CH2,
 S_CHK_DLY_CH2,
 
 S_CHK_RQ_CH3,
-S_CHK_DLY_CH3
+S_CHK_DLY_CH3,
+
+S_CHK_RQ_CH4,
+S_CHK_DLY_CH4
 );
 signal fsm_state_cs: fsm_state;
 
-signal i_ch_count        : std_logic_vector(1 downto 0);
+signal i_ch_count        : std_logic_vector(2 downto 0);
 
-signal i_ch_req          : std_logic_vector(3 downto 0);
-signal i_ch_req_en       : std_logic_vector(3 downto 0);
+signal i_ch_req          : std_logic_vector(4 downto 0);
+signal i_ch_req_en       : std_logic_vector(4 downto 0);
 
-signal i_mem_ce_ch       : std_logic_vector(3 downto 0);
-signal i_mem_cw_ch       : std_logic_vector(3 downto 0);
-signal i_mem_rd_ch       : std_logic_vector(3 downto 0);
-signal i_mem_wr_ch       : std_logic_vector(3 downto 0);
-signal i_mem_term_ch     : std_logic_vector(3 downto 0);
+signal i_mem_ce_ch       : std_logic_vector(4 downto 0);
+signal i_mem_cw_ch       : std_logic_vector(4 downto 0);
+signal i_mem_rd_ch       : std_logic_vector(4 downto 0);
+signal i_mem_wr_ch       : std_logic_vector(4 downto 0);
+signal i_mem_term_ch     : std_logic_vector(4 downto 0);
 
 signal i_mem_cw_out      : std_logic;
 
-signal tst_mem_ce        : std_logic;
-signal tst_mem_cw        : std_logic;
-signal tst_mem_rd        : std_logic;
-signal tst_mem_wr        : std_logic;
-signal tst_mem_term      : std_logic;
-signal tst_enable_ch     : std_logic_vector(3 downto 0);
+--signal tst_mem_ce        : std_logic;
+--signal tst_mem_cw        : std_logic;
+--signal tst_mem_rd        : std_logic;
+--signal tst_mem_wr        : std_logic;
+--signal tst_mem_term      : std_logic;
+--signal tst_enable_ch     : std_logic_vector(4 downto 0);
 
 --MAIN
 begin
@@ -203,26 +226,27 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_mem_ce<='0';
-    tst_mem_cw<='0';
-    tst_mem_rd<='0';
-    tst_mem_wr<='0';
-    tst_mem_term<='0';
-    tst_enable_ch<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-    tst_mem_cw  <=i_mem_cw_out;
-    tst_mem_ce  <=OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
-    tst_mem_rd  <=OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
-    tst_mem_wr  <=OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
-    tst_mem_term<=OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
-    tst_enable_ch<=i_ch_req_en;
-  end if;
-end process;
-p_out_tst(0)<=tst_mem_ce or tst_mem_cw or tst_mem_rd or tst_mem_wr or tst_mem_term or OR_reduce(tst_enable_ch);
-p_out_tst(31 downto 1)<=(others=>'0');
+p_out_tst(31 downto 0)<=(others=>'0');
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    tst_mem_ce<='0';
+--    tst_mem_cw<='0';
+--    tst_mem_rd<='0';
+--    tst_mem_wr<='0';
+--    tst_mem_term<='0';
+--    tst_enable_ch<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    tst_mem_cw  <=i_mem_cw_out;
+--    tst_mem_ce  <=OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
+--    tst_mem_rd  <=OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
+--    tst_mem_wr  <=OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
+--    tst_mem_term<=OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
+--    tst_enable_ch<=i_ch_req_en;
+--  end if;
+--end process;
+--p_out_tst(0)<=tst_mem_ce or tst_mem_cw or tst_mem_rd or tst_mem_wr or tst_mem_term or OR_reduce(tst_enable_ch);
+--p_out_tst(31 downto 1)<=(others=>'0');
 
 
 
@@ -233,37 +257,44 @@ i_mem_ce_ch(0)<=p_in_ch0_ce;
 i_mem_ce_ch(1)<=p_in_ch1_ce;
 i_mem_ce_ch(2)<=p_in_ch2_ce;
 i_mem_ce_ch(3)<=p_in_ch3_ce;
+i_mem_ce_ch(4)<=p_in_ch4_ce;
 
 i_mem_cw_ch(0)<=p_in_ch0_cw;
 i_mem_cw_ch(1)<=p_in_ch1_cw;
 i_mem_cw_ch(2)<=p_in_ch2_cw;
 i_mem_cw_ch(3)<=p_in_ch3_cw;
+i_mem_cw_ch(4)<=p_in_ch4_cw;
 
 i_mem_rd_ch(0)<=p_in_ch0_rd;
 i_mem_rd_ch(1)<=p_in_ch1_rd;
 i_mem_rd_ch(2)<=p_in_ch2_rd;
 i_mem_rd_ch(3)<=p_in_ch3_rd;
+i_mem_rd_ch(4)<=p_in_ch4_rd;
 
 i_mem_wr_ch(0)<=p_in_ch0_wr;
 i_mem_wr_ch(1)<=p_in_ch1_wr;
 i_mem_wr_ch(2)<=p_in_ch2_wr;
 i_mem_wr_ch(3)<=p_in_ch3_wr;
+i_mem_wr_ch(4)<=p_in_ch4_wr;
 
 i_mem_term_ch(0)<=p_in_ch0_term;
 i_mem_term_ch(1)<=p_in_ch1_term;
 i_mem_term_ch(2)<=p_in_ch2_term;
 i_mem_term_ch(3)<=p_in_ch3_term;
+i_mem_term_ch(4)<=p_in_ch4_term;
 
 i_ch_req(0)<=p_in_ch0_req;
 i_ch_req(1)<=p_in_ch1_req;
 i_ch_req(2)<=p_in_ch2_req;
 i_ch_req(3)<=p_in_ch3_req;
+i_ch_req(4)<=p_in_ch4_req;
 
 
 p_out_ch0_en<=i_ch_req_en(0);
 p_out_ch1_en<=i_ch_req_en(1);
 p_out_ch2_en<=i_ch_req_en(2);
 p_out_ch3_en<=i_ch_req_en(3);
+p_out_ch4_en<=i_ch_req_en(4);
 
 p_out_ch0_wf  <=p_in_mem_wf;
 p_out_ch0_wpf <=p_in_mem_wpf;
@@ -285,10 +316,16 @@ p_out_ch3_wpf <=p_in_mem_wpf;
 p_out_ch3_re  <=p_in_mem_re;
 p_out_ch3_rpe <=p_in_mem_rpe;
 
+p_out_ch4_wf  <=p_in_mem_wf;
+p_out_ch4_wpf <=p_in_mem_wpf;
+p_out_ch4_re  <=p_in_mem_re;
+p_out_ch4_rpe <=p_in_mem_rpe;
+
 p_out_ch0_dout <=p_in_mem_dout;
 p_out_ch1_dout <=p_in_mem_dout;
 p_out_ch2_dout <=p_in_mem_dout;
 p_out_ch3_dout <=p_in_mem_dout;
+p_out_ch4_dout <=p_in_mem_dout;
 
 
 
@@ -373,6 +410,33 @@ i_mem_cw_out <=i_mem_cw_ch(3) when i_ch_req_en(3)='1' else
                i_mem_cw_ch(0);
 end generate gen_chcount_4;
 
+gen_chcount_5 : if G_CH_COUNT=5 generate
+begin
+p_out_mem_bank1h(C_MEM_BANK_MSB_BIT downto 0)<=p_in_ch4_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(4)='1' else
+                                               p_in_ch3_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(3)='1' else
+                                               p_in_ch2_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(2)='1' else
+                                               p_in_ch1_bank1h(C_MEM_BANK_MSB_BIT downto 0) when i_ch_req_en(1)='1' else
+                                               p_in_ch0_bank1h(C_MEM_BANK_MSB_BIT downto 0);
+
+p_out_mem_adr<=p_in_ch4_adr when i_ch_req_en(4)='1' else
+               p_in_ch3_adr when i_ch_req_en(3)='1' else
+               p_in_ch2_adr when i_ch_req_en(2)='1' else
+               p_in_ch1_adr when i_ch_req_en(1)='1' else
+               p_in_ch0_adr;
+
+p_out_mem_din<=p_in_ch4_din when i_ch_req_en(4)='1' else
+               p_in_ch3_din when i_ch_req_en(3)='1' else
+               p_in_ch2_din when i_ch_req_en(2)='1' else
+               p_in_ch1_din when i_ch_req_en(1)='1' else
+               p_in_ch0_din;
+
+i_mem_cw_out <=i_mem_cw_ch(4) when i_ch_req_en(4)='1' else
+               i_mem_cw_ch(3) when i_ch_req_en(3)='1' else
+               i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
+               i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
+               i_mem_cw_ch(0);
+end generate gen_chcount_5;
+
 p_out_mem_bank1h(p_out_mem_bank1h'length-1 downto C_MEM_BANK_MSB_BIT+1)<=(others=>'0');
 
 
@@ -408,11 +472,11 @@ begin
 
         i_ch_req_en<=(others=>'0');
 
-        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#00#, i_ch_count'length) then
-          fsm_state_cs <= S_CHK_RQ_CH0;
-        else
+--        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#00#, i_ch_count'length) then
+--          fsm_state_cs <= S_CHK_RQ_CH0;
+--        else
           fsm_state_cs <= S_CHK_RQ_CH1;
-        end if;
+--        end if;
 
       --//------------------------------------
       --//Проверка запроса от CH1
@@ -432,11 +496,11 @@ begin
 
         i_ch_req_en<=(others=>'0');
 
-        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#01#, i_ch_count'length) then
-          fsm_state_cs <= S_CHK_RQ_CH0;
-        else
+--        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#01#, i_ch_count'length) then
+--          fsm_state_cs <= S_CHK_RQ_CH0;
+--        else
           fsm_state_cs <= S_CHK_RQ_CH2;
-        end if;
+--        end if;
 
       --//------------------------------------
       --//Проверка запроса от CH2
@@ -455,11 +519,11 @@ begin
 
         i_ch_req_en<=(others=>'0');
 
-        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#02#, i_ch_count'length) then
-          fsm_state_cs <= S_CHK_RQ_CH0;
-        else
+--        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#02#, i_ch_count'length) then
+--          fsm_state_cs <= S_CHK_RQ_CH0;
+--        else
           fsm_state_cs <= S_CHK_RQ_CH3;
-        end if;
+--        end if;
 
       --//------------------------------------
       --//Проверка запроса от CH3
@@ -475,6 +539,29 @@ begin
           end if;
 
       when S_CHK_DLY_CH3 =>
+
+        i_ch_req_en<=(others=>'0');
+
+--        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#03#, i_ch_count'length) then
+--          fsm_state_cs <= S_CHK_RQ_CH0;
+--        else
+          fsm_state_cs <= S_CHK_RQ_CH4;
+--        end if;
+
+      --//------------------------------------
+      --//Проверка запроса от CH4
+      --//------------------------------------
+      when S_CHK_RQ_CH4 =>
+          if i_ch_req(4)='1' then
+              i_ch_req_en(4)<='1';--//Разрешаем занять канал
+          else
+              --//Нет запроса
+              --//преходим к анализу следующего канала
+              i_ch_req_en(4)<='0';
+              fsm_state_cs <= S_CHK_DLY_CH4;
+          end if;
+
+      when S_CHK_DLY_CH4 =>
 
         i_ch_req_en<=(others=>'0');
         fsm_state_cs <= S_CHK_RQ_CH0;
