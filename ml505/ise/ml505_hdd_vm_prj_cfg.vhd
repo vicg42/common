@@ -34,7 +34,7 @@ constant C_DBGCS_HDD                         : string:="ON";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller
-constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 3
+constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 1
 
 --//cfg HDD
 constant C_HDD_COUNT                         : integer:=2;
@@ -46,7 +46,7 @@ constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать с
 constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
-constant C_VCTRL_VCH_COUNT                   : integer:=3;
+constant C_VCTRL_VCH_COUNT                   : integer:=3; --//max 4
 constant C_VCTRL_SIMPLE                      : string:="ON";
 
 --//cfg clkfx - DCM LocalBus

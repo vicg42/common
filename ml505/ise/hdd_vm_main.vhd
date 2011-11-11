@@ -12,7 +12,6 @@
 -- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -34,17 +33,16 @@ use work.sata_glob_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
+use work.pcie_pkg.all;
 
 entity hdd_vm_main is
-generic
-(
+generic(
 G_SIM_HOST : string:="OFF";
 G_SIM_PCIE : std_logic:='0';
 G_DBG_PCIE : string:="OFF";
 G_SIM      : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -67,11 +65,8 @@ pin_out_ddr2_cke1 : out   std_logic;
 pin_out_ddr2_cs1  : out   std_logic;
 pin_out_ddr2_odt1 : out   std_logic;
 
-pin_out_uart0_tx  : out   std_logic;
-pin_in_uart0_rx   : in    std_logic;
-
 --------------------------------------------------
---Memory banks (up to 16 supported by this design)
+--Memory banks
 --------------------------------------------------
 ra0               : out   std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
 rc0               : inout std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
@@ -79,49 +74,6 @@ rd0               : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
 --ra1               : out   std_logic_vector(C_MEM_BANK1.ra_width - 1 downto 0);
 --rc1               : inout std_logic_vector(C_MEM_BANK1.rc_width - 1 downto 0);
 --rd1               : inout std_logic_vector(C_MEM_BANK1.rd_width - 1 downto 0);
---ra2               : out   std_logic_vector(C_MEM_BANK2.ra_width - 1 downto 0);
---rc2               : inout std_logic_vector(C_MEM_BANK2.rc_width - 1 downto 0);
---rd2               : inout std_logic_vector(C_MEM_BANK2.rd_width - 1 downto 0);
---ra3               : out   std_logic_vector(C_MEM_BANK3.ra_width - 1 downto 0);
---rc3               : inout std_logic_vector(C_MEM_BANK3.rc_width - 1 downto 0);
---rd3               : inout std_logic_vector(C_MEM_BANK3.rd_width - 1 downto 0);
---ra4               : out   std_logic_vector(C_MEM_BANK4.ra_width - 1 downto 0);
---rc4               : inout std_logic_vector(C_MEM_BANK4.rc_width - 1 downto 0);
---rd4               : inout std_logic_vector(C_MEM_BANK4.rd_width - 1 downto 0);
---ra5               : out   std_logic_vector(C_MEM_BANK5.ra_width - 1 downto 0);
---rc5               : inout std_logic_vector(C_MEM_BANK5.rc_width - 1 downto 0);
---rd5               : inout std_logic_vector(C_MEM_BANK5.rd_width - 1 downto 0);
---ra6               : out   std_logic_vector(C_MEM_BANK6.ra_width - 1 downto 0);
---rc6               : inout std_logic_vector(C_MEM_BANK6.rc_width - 1 downto 0);
---rd6               : inout std_logic_vector(C_MEM_BANK6.rd_width - 1 downto 0);
---ra7               : out   std_logic_vector(C_MEM_BANK7.ra_width - 1 downto 0);
---rc7               : inout std_logic_vector(C_MEM_BANK7.rc_width - 1 downto 0);
---rd7               : inout std_logic_vector(C_MEM_BANK7.rd_width - 1 downto 0);
---ra8               : out   std_logic_vector(C_MEM_BANK8.ra_width - 1 downto 0);
---rc8               : inout std_logic_vector(C_MEM_BANK8.rc_width - 1 downto 0);
---rd8               : inout std_logic_vector(C_MEM_BANK8.rd_width - 1 downto 0);
---ra9               : out   std_logic_vector(C_MEM_BANK9.ra_width - 1 downto 0);
---rc9               : inout std_logic_vector(C_MEM_BANK9.rc_width - 1 downto 0);
---rd9               : inout std_logic_vector(C_MEM_BANK9.rd_width - 1 downto 0);
---ra10              : out   std_logic_vector(C_MEM_BANK10.ra_width - 1 downto 0);
---rc10              : inout std_logic_vector(C_MEM_BANK10.rc_width - 1 downto 0);
---rd10              : inout std_logic_vector(C_MEM_BANK10.rd_width - 1 downto 0);
---ra11              : out   std_logic_vector(C_MEM_BANK11.ra_width - 1 downto 0);
---rc11              : inout std_logic_vector(C_MEM_BANK11.rc_width - 1 downto 0);
---rd11              : inout std_logic_vector(C_MEM_BANK11.rd_width - 1 downto 0);
---ra12              : out   std_logic_vector(C_MEM_BANK12.ra_width - 1 downto 0);
---rc12              : inout std_logic_vector(C_MEM_BANK12.rc_width - 1 downto 0);
---rd12              : inout std_logic_vector(C_MEM_BANK12.rd_width - 1 downto 0);
---ra13              : out   std_logic_vector(C_MEM_BANK13.ra_width - 1 downto 0);
---rc13              : inout std_logic_vector(C_MEM_BANK13.rc_width - 1 downto 0);
---rd13              : inout std_logic_vector(C_MEM_BANK13.rd_width - 1 downto 0);
---ra14              : out   std_logic_vector(C_MEM_BANK14.ra_width - 1 downto 0);
---rc14              : inout std_logic_vector(C_MEM_BANK14.rc_width - 1 downto 0);
---rd14              : inout std_logic_vector(C_MEM_BANK14.rd_width - 1 downto 0);
---ra15              : out   std_logic_vector(C_MEM_BANK15.ra_width - 1 downto 0);
---rc15              : inout std_logic_vector(C_MEM_BANK15.rc_width - 1 downto 0);
---rd15              : inout std_logic_vector(C_MEM_BANK15.rd_width - 1 downto 0);
---ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 
 --------------------------------------------------
 --Ethernet
@@ -171,8 +123,8 @@ lclk                  : in    std_logic;
 lwrite                : in    std_logic;
 lads_l                : in    std_logic;
 lblast_l              : in    std_logic;
-lbe_l                 : in    std_logic_vector(32/8-1 downto 0);--(3 downto 0);
-lad                   : inout std_logic_vector(32-1 downto 0);--(31 downto 0);
+lbe_l                 : in    std_logic_vector(32/8-1 downto 0);
+lad                   : inout std_logic_vector(32-1 downto 0);
 lbterm_l              : inout std_logic;
 lready_l              : inout std_logic;
 fholda                : in    std_logic;
@@ -259,55 +211,16 @@ component dbgcs_sata_hwstart
     );
 end component;
 
-component cfgdev_uart
-generic(
-G_BAUDCNT_VAL: integer:=64
-);
-port
-(
--------------------------------
---Связь с UART
--------------------------------
-p_out_uart_tx        : out    std_logic;
-p_in_uart_rx         : in     std_logic;
-p_in_uart_refclk     : in     std_logic;
+signal i_dbgcs_sh0_layer                : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
+signal i_dbgcs_cfg                      : std_logic_vector(35 downto 0);
+signal i_dbgcs_hwstart_dly              : std_logic_vector(35 downto 0);
 
--------------------------------
---
--------------------------------
-p_out_module_rdy     : out    std_logic;
-p_out_module_error   : out    std_logic;
-
--------------------------------
---Запись/Чтение конфигурационных параметров уст-ва
--------------------------------
-p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0);
-p_out_cfg_radr       : out    std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0);
-p_out_cfg_radr_ld    : out    std_logic;
-p_out_cfg_radr_fifo  : out    std_logic;
-p_out_cfg_wr         : out    std_logic;
-p_out_cfg_rd         : out    std_logic;
-p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
-p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
-p_in_cfg_txrdy       : in     std_logic;
-p_in_cfg_rxrdy       : in     std_logic;
-p_out_cfg_done       : out    std_logic;
---p_in_cfg_irq         : in     std_logic;
-
-p_in_cfg_clk         : in     std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             : in     std_logic_vector(31 downto 0);
-p_out_tst            : out    std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_rst             : in     std_logic
-);
-end component;
+signal tst_sh0_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
+signal tst_sh1_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
+signal tst_trm_timeout  : std_logic_vector(15 downto 0):=(others=>'0');
+--signal tst_hdd_mem_dcnt : std_logic_vector(15 downto 0):=(others=>'0');
 
 component fpga_test_01
 generic(
@@ -315,8 +228,7 @@ G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
                                   -- укладывающиес_ в 1/2 периода 1us
 );
-port
-(
+port(
 p_out_test_led : out   std_logic;--//мигание сведодиода
 p_out_test_done: out   std_logic;--//сигнал переходи в '1' через 3 сек.
 
@@ -373,8 +285,7 @@ p_in_rst     : in    std_logic
 end component;
 
 component memory_ctrl_pll
-port
-(
+port(
 mclk      : in  std_logic;
 rst       : in  std_logic;
 refclk200 : in  std_logic;
@@ -390,15 +301,6 @@ end component;
 
 signal i_dbgcs_sh0_layer                : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd_rambuf               : std_logic_vector(35 downto 0);
-signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
-signal i_dbgcs_cfg                      : std_logic_vector(35 downto 0);
-signal i_dbgcs_hwstart_dly              : std_logic_vector(35 downto 0);
-
-signal tst_sh0_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
-signal tst_sh1_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
-signal tst_trm_timeout  : std_logic_vector(15 downto 0):=(others=>'0');
---signal tst_hdd_mem_dcnt : std_logic_vector(15 downto 0):=(others=>'0');
-
 
 signal i_usr_rst                        : std_logic;
 
@@ -421,8 +323,6 @@ signal g_lbus_clk                       : std_logic;
 signal lclk_dcm_lock                    : std_logic;
 
 signal g_usr_highclk                    : std_logic;
-
-signal i_memctrl_dcm_lock               : std_logic;
 
 signal i_memctrl_pllclk0                : std_logic;
 signal i_memctrl_pllclk45               : std_logic;
@@ -450,18 +350,17 @@ signal i_host_rst_n                     : std_logic;
 signal g_host_clk                       : std_logic;
 signal i_host_gctrl                     : std_logic_vector(32-1 downto 0);
 signal i_host_dev_status                : std_logic_vector(32-1 downto 0);
-signal i_host_dev_irq                   : std_logic_vector(31 downto 0);
-signal i_host_dev_option                : std_logic_vector(127 downto 0);
+signal i_host_dev_irq                   : std_logic_vector(31 downto 0);-- THostDCtrl;
+signal i_host_dev_opt_in                : std_logic_vector(127 downto 0);
+signal i_host_dev_opt_out               : std_logic_vector(127 downto 0);
 signal i_host_dev_ctrl                  : std_logic_vector(32-1 downto 0);
 signal i_host_dev_txd                   : std_logic_vector(32-1 downto 0);
 signal i_host_dev_rxd                   : std_logic_vector(32-1 downto 0);
 signal i_host_dev_wr                    : std_logic;
 signal i_host_dev_rd                    : std_logic;
-signal i_host_dev_flag                  : std_logic_vector(7 downto 0);
 
 signal i_host_devadr                    : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 signal i_host_vchsel                    : std_logic_vector(3 downto 0);
-signal i_host_dma_start                 : std_logic;
 
 signal i_host_rst_all                   : std_logic;
 signal i_host_rst_eth                   : std_logic;
@@ -473,10 +372,6 @@ Type THDevWidthCnt is array (0 to C_HDEV_COUNT-1) of std_logic_vector(2 downto 0
 signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_COUNT-1 downto 0);
 signal hclk_hdev_dma_start              : std_logic_vector(C_HDEV_COUNT-1 downto 0);
 signal hclk_hdev_dma_start_cnt          : THDevWidthCnt;
-
-signal hclk_hmem_ce                     : std_logic;
-signal hclk_hmem_ce_cnt                 : std_logic_vector(2 downto 0);
-signal i_hmem_ce                        : std_logic;
 
 signal i_host_tst_in                    : std_logic_vector(127 downto 0);
 signal i_host_tst_out                   : std_logic_vector(127 downto 0);
@@ -667,16 +562,37 @@ signal i_vctrlwr_mem_rpe                : std_logic;
 --signal i_vctrlwr_mem_clk                : std_logic;
 
 signal i_trc_rst                        : std_logic;
-signal i_trc_busy                       : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal i_trc_vbufs                      : TVfrBufs;
+signal hclk_hrddone_trcnik_cnt          : std_logic_vector(2 downto 0);
+signal hclk_hrddone_trcnik              : std_logic;
+signal i_trcnik_hrd_done_dly            : std_logic_vector(1 downto 0);
+signal i_trcnik_hrd_done                : std_logic;
 signal i_trcnik_hdrdy                   : std_logic:='0';
+signal i_trcnik_hfrmrk                  : std_logic_vector(31 downto 0):=(others=>'0');
+signal i_trc_tst_out                    : std_logic_vector(31 downto 0);
+signal i_trc_vbufs                      : TVfrBufs;
+signal i_trc_busy                       : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
-signal i_memctrl_rst                    : std_logic;
-signal i_host_mem_ctl_reg               : std_logic_vector(0 downto 0);
-signal i_host_mem_mode_reg              : std_logic_vector(511 downto 0);
-signal i_host_mem_locked                : std_logic_vector(7 downto 0);
-signal i_host_mem_trained               : std_logic_vector(max_num_bank - 1 downto 0);
+signal i_trc_memarb_req                 : std_logic;
+signal i_trc_memarb_en                  : std_logic;
+signal i_trc_mem_bank1h                 : std_logic_vector(15 downto 0);
+signal i_trc_mem_ce                     : std_logic;
+signal i_trc_mem_cw                     : std_logic;
+signal i_trc_mem_term                   : std_logic;
+signal i_trc_mem_rd                     : std_logic;
+signal i_trc_mem_wr                     : std_logic;
+signal i_trc_mem_adr                    : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+signal i_trc_mem_be                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+signal i_trc_mem_din                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_trc_mem_dout                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_trc_mem_wf                     : std_logic;
+signal i_trc_mem_wpf                    : std_logic;
+signal i_trc_mem_re                     : std_logic;
+signal i_trc_mem_rpe                    : std_logic;
 
+signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
+signal i_host_mem_status                : TPce2Mem_Status;
+signal i_host_memarb_req                : std_logic;
+signal i_host_memarb_en                 : std_logic;
 signal i_host_mem_bank1h                : std_logic_vector(15 downto 0);
 signal i_host_mem_ce                    : std_logic;
 signal i_host_mem_cw                    : std_logic;
@@ -691,45 +607,71 @@ signal i_host_mem_wf                    : std_logic;
 signal i_host_mem_wpf                   : std_logic;
 signal i_host_mem_re                    : std_logic;
 signal i_host_mem_rpe                   : std_logic;
+signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
 
---signal i_mem_arb1_clk                   : std_logic;
-signal i_mem_arb1_bank1h                : std_logic_vector(15 downto 0);
-signal i_mem_arb1_ce                    : std_logic;
-signal i_mem_arb1_cw                    : std_logic;
-signal i_mem_arb1_term                  : std_logic;
-signal i_mem_arb1_rd                    : std_logic;
-signal i_mem_arb1_wr                    : std_logic;
-signal i_mem_arb1_adr                   : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_mem_arb1_be                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_mem_arb1_din                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_mem_arb1_dout                  : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_mem_arb1_wf                    : std_logic;
-signal i_mem_arb1_wpf                   : std_logic;
-signal i_mem_arb1_re                    : std_logic;
-signal i_mem_arb1_rpe                   : std_logic;
-signal i_mem_arb1_tst_out               : std_logic_vector(31 downto 0);
-signal i_mem_arb1_dout_tmp              : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_mem_arb1_wf_tmp                : std_logic;
-signal i_mem_arb1_wpf_tmp               : std_logic;
-signal i_mem_arb1_re_tmp                : std_logic;
-signal i_mem_arb1_rpe_tmp               : std_logic;
-signal i_sim_mem_arb1_read_dly_cnt      : std_logic_vector(3 downto 0);
-signal i_sim_mem_arb1_read_dly          : std_logic;
+signal i_memctrl_rst                    : std_logic;
+signal i_memctrl_mode_reg               : std_logic_vector(511 downto 0);
+signal i_memctrl_locked                 : std_logic_vector(7 downto 0);
+signal i_memctrl_trained                : std_logic_vector(max_num_bank - 1 downto 0);
 
-signal i_mem_null_bank1h                : std_logic_vector(15 downto 0);
-signal i_mem_null_ce                    : std_logic;
-signal i_mem_null_cw                    : std_logic;
-signal i_mem_null_term                  : std_logic;
-signal i_mem_null_rd                    : std_logic;
-signal i_mem_null_wr                    : std_logic;
-signal i_mem_null_adr                   : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_mem_null_be                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_mem_null_din                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_mem_null_dout                  : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_mem_null_wf                    : std_logic;
-signal i_mem_null_wpf                   : std_logic;
-signal i_mem_null_re                    : std_logic;
-signal i_mem_null_rpe                   : std_logic;
+signal i_arbch3_req                     : std_logic;
+signal i_arbch3_en                      : std_logic;
+signal i_arbch3_bank1h                  : std_logic_vector(15 downto 0);
+signal i_arbch3_ce                      : std_logic;
+signal i_arbch3_cw                      : std_logic;
+signal i_arbch3_term                    : std_logic;
+signal i_arbch3_rd                      : std_logic;
+signal i_arbch3_wr                      : std_logic;
+signal i_arbch3_adr                     : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+signal i_arbch3_be                      : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+signal i_arbch3_din                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_arbch3_dout                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_arbch3_wf                      : std_logic;
+signal i_arbch3_wpf                     : std_logic;
+signal i_arbch3_re                      : std_logic;
+signal i_arbch3_rpe                     : std_logic;
+
+signal i_arbch4_req                     : std_logic;
+signal i_arbch4_en                      : std_logic;
+signal i_arbch4_bank1h                  : std_logic_vector(15 downto 0);
+signal i_arbch4_ce                      : std_logic;
+signal i_arbch4_cw                      : std_logic;
+signal i_arbch4_term                    : std_logic;
+signal i_arbch4_rd                      : std_logic;
+signal i_arbch4_wr                      : std_logic;
+signal i_arbch4_adr                     : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+signal i_arbch4_be                      : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+signal i_arbch4_din                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_arbch4_dout                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_arbch4_wf                      : std_logic;
+signal i_arbch4_wpf                     : std_logic;
+signal i_arbch4_re                      : std_logic;
+signal i_arbch4_rpe                     : std_logic;
+
+--signal i_mem_arb_clk                    : std_logic;
+signal i_mem_arb_bank1h                 : std_logic_vector(15 downto 0);
+signal i_mem_arb_ce                     : std_logic;
+signal i_mem_arb_cw                     : std_logic;
+signal i_mem_arb_term                   : std_logic;
+signal i_mem_arb_rd                     : std_logic;
+signal i_mem_arb_wr                     : std_logic;
+signal i_mem_arb_adr                    : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+signal i_mem_arb_be                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+signal i_mem_arb_din                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_mem_arb_dout                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_mem_arb_wf                     : std_logic;
+signal i_mem_arb_wpf                    : std_logic;
+signal i_mem_arb_re                     : std_logic;
+signal i_mem_arb_rpe                    : std_logic;
+signal i_mem_arb_tst_out                : std_logic_vector(31 downto 0);
+signal i_mem_arb_dout_tmp               : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_mem_arb_wf_tmp                 : std_logic;
+signal i_mem_arb_wpf_tmp                : std_logic;
+signal i_mem_arb_re_tmp                 : std_logic;
+signal i_mem_arb_rpe_tmp                : std_logic;
+signal i_sim_mem_arb_read_dly_cnt       : std_logic_vector(3 downto 0);
+signal i_sim_mem_arb_read_dly           : std_logic;
+
 
 --
 -- If the synthesizer replicates an asynchronous reset signal due high fanout,
@@ -742,8 +684,9 @@ attribute MAX_FANOUT of i_memctrl_rst : signal is "100000";
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
 
-signal i_test01_led     : std_logic:='0';
-signal tst_clr          : std_logic:='0';
+signal i_test01_led     : std_logic;
+signal tst_clr          : std_logic;
+
 
 signal ra1     : std_logic_vector(C_MEM_BANK1.ra_width - 1 downto 0);
 signal rc1     : std_logic_vector(C_MEM_BANK1.rc_width - 1 downto 0);
@@ -792,20 +735,11 @@ signal rc15    : std_logic_vector(C_MEM_BANK15.rc_width - 1 downto 0);
 signal rd15    : std_logic_vector(C_MEM_BANK15.rd_width - 1 downto 0);
 signal ramclko : std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 
+
+--//MAIN
 begin
 
 ramclki <= (others => '-');
-
-
-i_mem_null_bank1h<=(others=>'0');
-i_mem_null_ce<='0';
-i_mem_null_cw<='0';
-i_mem_null_term<='0';
-i_mem_null_rd<='0';
-i_mem_null_wr<='0';
-i_mem_null_adr<=(others=>'0');
-i_mem_null_be<=(others=>'0');
-i_mem_null_din<=(others=>'0');
 
 
 --***********************************************************
@@ -840,7 +774,7 @@ i_dcm_rst <= i_dcm_rst_cnt(i_dcm_rst_cnt'high - 1) or i_host_rst_all;
 
 
 --***********************************************************
---          Установка частот проекта:
+--Установка частот проекта:
 --***********************************************************
 --//Input 200MHz reference clock for IDELAY / ODELAY elements
 ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => pin_in_refclk200M_p, IB => pin_in_refclk200M_n, O  => i_refclk200MHz);
@@ -917,18 +851,12 @@ clk0      => i_memctrl_pllclk0,
 clk45     => i_memctrl_pllclk45,
 clk2x0    => i_memctrl_pllclk2x0,
 clk2x90   => i_memctrl_pllclk2x90,
-locked    => i_host_mem_locked(1 downto 0),
+locked    => i_memctrl_locked(1 downto 0),
 memrst    => i_memctrl_pll_rst_out
 );
-i_host_mem_locked(7 downto 2)<=(others=>'0');
 
-i_memctrl_dcm_lock<=i_host_mem_locked(0);
 g_usr_highclk<=i_memctrl_pllclk2x0;
 
-
---***********************************************************
---              Модули устройств проекта:
---***********************************************************
 
 --***********************************************************
 --Модуль конфигурирования устр-в
@@ -1042,7 +970,7 @@ i_cfg_rxd<=i_cfg_rxd_dev(C_CFGDEV_ETH)     when i_cfg_dadr(3 downto 0)=CONV_STD_
            i_cfg_rxd_dev(C_CFGDEV_TMR)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_HDD)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_TESTING) when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, 4) else
---           i_cfg_rxd_dev(C_CFGDEV_TRCNIK)  when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRCNIK, 4)  else
+           i_cfg_rxd_dev(C_CFGDEV_TRCNIK)  when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRCNIK, 4)  else
            (others=>'0');
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
@@ -1055,7 +983,7 @@ end generate gen_cfg_dev;
 --***********************************************************
 --Проект модуля Таймер
 --***********************************************************
-m_timers : dsn_timer
+m_tmr : dsn_timer
 port map(
 -------------------------------
 -- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
@@ -1092,7 +1020,7 @@ p_in_rst => i_tmr_rst
 --***********************************************************
 --Проект модуля Комутатор
 --***********************************************************
-m_switch : dsn_switch
+m_swt : dsn_switch
 port map(
 -------------------------------
 -- Конфигурирование модуля dsn_switch.vhd (p_in_cfg_clk domain)
@@ -1206,9 +1134,9 @@ p_in_rst => i_swt_rst
 );
 
 --***********************************************************
---Проект Gigabit Ethernet - dsn_ethg.vhd
+--Проект Ethernet - dsn_ethg.vhd
 --***********************************************************
-m_ethg : dsn_ethg
+m_eth : dsn_ethg
 generic map(
 G_MODULE_USE => C_USE_ETH,
 G_DBG        => C_DBG_ETH,
@@ -1341,7 +1269,7 @@ p_in_rst    => i_dsntst_rst
 i_vctrl_hirq_out<=EXT(i_vctrl_hirq, i_vctrl_hirq_out'length);
 i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
-m_video_ctrl : dsn_video_ctrl
+m_vctrl : dsn_video_ctrl
 generic map(
 G_SIMPLE => C_VCTRL_SIMPLE,
 G_SIM    => G_SIM
@@ -1465,6 +1393,99 @@ p_in_rst => i_vctrl_rst
 
 
 --***********************************************************
+--Проект Модуля Слежения - dsn_track.vhd
+--***********************************************************
+m_track : dsn_track_nik
+generic map(
+G_SIM             => G_SIM,
+G_MODULE_USE      => C_USE_TRACK,
+
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
+)
+port map(
+-------------------------------
+-- Управление от Хоста
+-------------------------------
+p_in_host_clk        => g_host_clk,
+
+p_in_cfg_adr         => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld      => i_cfg_radr_ld,
+p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
+
+p_in_cfg_txdata      => i_cfg_txd,
+p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_TRCNIK),
+
+p_out_cfg_rxdata     => i_cfg_rxd_dev(C_CFGDEV_TRCNIK),
+p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_TRCNIK),
+
+p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_TRCNIK),
+
+-------------------------------
+-- Связь с ХОСТ
+-------------------------------
+p_out_trc_hirq       => i_host_irq(C_HIRQ_TRCNIK),
+p_out_trc_hdrdy      => i_trcnik_hdrdy,
+p_out_trc_hfrmrk     => i_trcnik_hfrmrk,
+p_in_trc_hrddone     => i_trcnik_hrd_done,
+
+p_out_trc_bufo_dout  => open,
+p_in_trc_bufo_rd     => '0',
+p_out_trc_bufo_empty => open,
+
+p_out_trc_busy       => i_trc_busy,
+
+-------------------------------
+-- Связь с VCTRL
+-------------------------------
+p_in_vctrl_vrdprms   => i_vctrl_vrdprms,
+p_in_vctrl_vfrrdy    => i_vctrl_vfrdy,
+p_in_vctrl_vbuf      => i_trc_vbufs,
+p_in_vctrl_vrowmrk   => i_vctrl_vrowmrk,
+
+---------------------------------
+-- Связь с memory_ctrl.vhd
+---------------------------------
+p_out_memarb_req     => i_trc_memarb_req,
+p_in_memarb_en       => i_trc_memarb_en,
+
+p_out_mem_bank1h     => i_trc_mem_bank1h,
+p_out_mem_ce         => i_trc_mem_ce,
+p_out_mem_cw         => i_trc_mem_cw,
+p_out_mem_rd         => i_trc_mem_rd,
+p_out_mem_wr         => i_trc_mem_wr,
+p_out_mem_term       => i_trc_mem_term,
+p_out_mem_adr        => i_trc_mem_adr,
+p_out_mem_be         => i_trc_mem_be,
+p_out_mem_din        => i_trc_mem_din,
+p_in_mem_dout        => i_trc_mem_dout,
+
+p_in_mem_wf          => i_trc_mem_wf,
+p_in_mem_wpf         => i_trc_mem_wpf,
+p_in_mem_re          => i_trc_mem_re,
+p_in_mem_rpe         => i_trc_mem_rpe,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => (others=>'0'),
+p_out_tst            => i_trc_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk => g_usr_highclk,
+p_in_rst => i_trc_rst
+);
+
+--***********************************************************
 --Проект Накопителя - dsn_hdd.vhd
 --***********************************************************
 i_cfghdd_selif<=i_hdd_rbuf_cfg.usrif;
@@ -1564,9 +1585,9 @@ p_out_tst             => i_hdd_tst_out,
 p_out_dbgcs                 => i_hdd_dbgcs,
 p_out_dbgled                => i_hdd_dbgled,
 
-p_out_sim_gt_txdata         => open,--i_hdd_sim_gt_txdata,
-p_out_sim_gt_txcharisk      => open,--i_hdd_sim_gt_txcharisk,
-p_out_sim_gt_txcomstart     => open,--i_hdd_sim_gt_txcomstart,
+p_out_sim_gt_txdata         => open,--i_hdd_sim_gt_txdata,    --
+p_out_sim_gt_txcharisk      => open,--i_hdd_sim_gt_txcharisk, --
+p_out_sim_gt_txcomstart     => open,--i_hdd_sim_gt_txcomstart,--
 p_in_sim_gt_rxdata          => i_hdd_sim_gt_rxdata,
 p_in_sim_gt_rxcharisk       => i_hdd_sim_gt_rxcharisk,
 p_in_sim_gt_rxstatus        => i_hdd_sim_gt_rxstatus,
@@ -1574,8 +1595,8 @@ p_in_sim_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle,
 p_in_sim_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr,
 p_in_sim_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable,
 p_in_sim_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned,
-p_out_gt_sim_rst            => open,--i_hdd_sim_gt_sim_rst,
-p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
+p_out_gt_sim_rst            => open,--i_hdd_sim_gt_sim_rst,--
+p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,--
 
 --------------------------------------------------
 --System
@@ -1659,7 +1680,7 @@ p_out_mem_clk       => open,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst            => "00000000000000000000000000000000",
+p_in_tst            => (others=>'0'),
 p_out_tst           => i_hdd_rbuf_tst_out,
 p_out_dbgcs         => i_hdd_rambuf_dbgcs,
 
@@ -1709,41 +1730,24 @@ p_out_pciexp_gt_clkout => g_pciexp_gt_refclkout,
 --------------------------------------------------
 --Связь с уст-вами проекта Veresk-M
 --------------------------------------------------
-p_in_usr_tst       => i_host_tst_in,
-p_out_usr_tst      => i_host_tst_out,
-
 p_out_hclk         => g_host_clk,
 p_out_gctrl        => i_host_gctrl,
 
 p_out_dev_ctrl     => i_host_dev_ctrl,
 p_out_dev_din      => i_host_dev_txd,
 p_in_dev_dout      => i_host_dev_rxd,
-p_out_dev_wd       => i_host_dev_wr,
+p_out_dev_wr       => i_host_dev_wr,
 p_out_dev_rd       => i_host_dev_rd,
-p_in_dev_flag      => i_host_dev_flag,
 p_in_dev_status    => i_host_dev_status,
 p_in_dev_irq       => i_host_dev_irq,
-p_in_dev_option    => i_host_dev_option,
+p_in_dev_opt       => i_host_dev_opt_in,
+p_out_dev_opt      => i_host_dev_opt_out,
 
-p_out_mem_bank1h   => open,--i_host_mem_bank1h,
-p_out_mem_ce       => i_host_mem_ce,
-p_out_mem_cw       => i_host_mem_cw,
-p_out_mem_rd       => i_host_mem_rd,
-p_out_mem_wr       => i_host_mem_wr,
-p_out_mem_term     => i_host_mem_term,
-p_out_mem_be       => i_host_mem_be,
-p_out_mem_adr      => i_host_mem_adr,
-p_out_mem_din      => i_host_mem_din,
-p_in_mem_dout      => i_host_mem_dout,
-
-p_in_mem_wf        => i_host_mem_wf,
-p_in_mem_wpf       => i_host_mem_wpf,
-p_in_mem_re        => i_host_mem_re,
-p_in_mem_rpe       => i_host_mem_rpe,
-
---//-------------------------------------------------------
---// Технологический
---//-------------------------------------------------------
+--------------------------------------------------
+--Технологический
+--------------------------------------------------
+p_in_usr_tst       => i_host_tst_in,
+p_out_usr_tst      => i_host_tst_out,
 p_in_tst           => (others=>'0'),
 p_out_tst          => i_host_tst2_out,
 
@@ -1754,36 +1758,19 @@ p_out_module_rdy   => i_host_rdy,
 p_in_rst_n         => i_host_rst_n
 );
 
---i_host_tst_in(20 downto 0)<=i_host_tst_out(20 downto 0);
---i_host_tst_in(27 downto 21)<=i_host_tst_out(27 downto 21);
---i_host_tst_in(37 downto 28)<=i_host_tst_out(37 downto 28);
---i_host_tst_in(46 downto 38)<=i_host_tst_out(46 downto 38);
---i_host_tst_in(63 downto 47)<=i_host_tst_out(63 downto 47);
-
-i_host_tst_in(71 downto 64)<=i_vctrl_tst_out(23 downto 16);
+i_host_tst_in(63 downto 0)<=(others=>'0');
+i_host_tst_in(71 downto 64)<=(others=>'0');
 i_host_tst_in(72)<=i_eth_module_gt_plllkdet;
 i_host_tst_in(73)<=lclk_dcm_lock;
 i_host_tst_in(74)<=i_hdd_gt_plldet and i_hdd_dcm_lock;
-i_host_tst_in(75)<=i_memctrl_dcm_lock;
-i_host_tst_in(76)<=AND_reduce(i_host_mem_trained(C_MEMCTRL_BANK_COUNT downto 0));
+i_host_tst_in(75)<=i_memctrl_locked(0);
+i_host_tst_in(76)<=AND_reduce(i_memctrl_trained(C_MEMCTRL_BANK_COUNT downto 0));
 i_host_tst_in(126 downto 77)<=(others=>'0');
-i_host_tst_in(127)<=i_vctrl_tst_out(0) xor
-                    i_mem_arb1_tst_out(0) xor i_hdd_tst_out(0);-- i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0);
+i_host_tst_in(127)<=i_vctrl_tst_out(0) xor i_hdd_tst_out(0);
+                    --i_mem_arb_tst_out(0)  i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0);
 
 
---//Распределяем управление от хоста для соотв. модуля проекта:
-i_host_rst_all<=i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
-i_host_rst_eth<=i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
-i_host_rst_mem<=i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
-i_host_rddone_vctrl<=i_host_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT);
-i_host_rddone_trcnik<=i_host_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
-
-i_host_dma_start<=i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT);
-i_host_devadr<=i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
-i_host_vchsel<=EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
-
-
---//Статусы устр-в
+--//Статусы устройств
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <=i_cfg_rdy;
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
@@ -1793,15 +1780,19 @@ i_host_dev_status(C_HREG_DEV_STATUS_ETH_CARIER_BIT) <=i_eth_carier;
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_ETH_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_ETH_DBUF);
 
-gen_status_vch : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
-i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(0 + i);
+gen_status_vch : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
+i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(i);
 end generate gen_status_vch;
 
-i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=i_memctrl_dcm_lock;
-i_host_dev_status(C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT)<='0';--i_trcnik_hdrdy;
+i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=i_memctrl_locked(0);
+i_host_dev_status(C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT)<=i_trcnik_hdrdy;
 
 
---//Запись/Чтение данных из устр-ва с адресом i_host_devadr
+--//Запись/Чтение данных устройств хоста
+i_host_wr(C_HDEV_MEM_DBUF) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else '0';
+i_host_rd(C_HDEV_MEM_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else '0';
+i_host_txd(C_HDEV_MEM_DBUF)<=i_host_dev_txd;
+
 i_host_wr(C_HDEV_CFG_DBUF) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else '0';
 i_host_rd(C_HDEV_CFG_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else '0';
 i_host_txd(C_HDEV_CFG_DBUF)<=i_host_dev_txd;
@@ -1812,40 +1803,55 @@ i_host_txd(C_HDEV_ETH_DBUF)<=i_host_dev_txd;
 
 i_host_rd(C_HDEV_VCH_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else '0';
 
-
---/Чтение
 i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                 (others=>'0');
 
 
-i_host_dev_flag(C_DEV_FLAG_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
-                                              '0';
+--//Флаги (Host<-dev)
+i_host_dev_opt_in(C_DEV_OPTIN_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
+                                                 i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                 '0';
 
-i_host_dev_flag(C_DEV_FLAG_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
-                                              i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
-                                              '0';
+i_host_dev_opt_in(C_DEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
+                                                 i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
+                                                 i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                 '0';
+
+i_host_dev_opt_in(C_DEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
+i_host_dev_opt_in(C_DEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_DEV_OPTIN_VCTRL_FRMRK_L_BIT)<=i_vctrl_hfrmrk;
+i_host_dev_opt_in(C_DEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_DEV_OPTIN_VCTRL_FRSKIP_L_BIT)<=i_vctrl_tst_out(23 downto 16);
 
 
---//Назначаем стробы для установки прерывания
+--//Прерывания
 i_host_dev_irq(C_HIRQ_TMR0)  <=i_tmr_hirq(0);
 i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
 i_host_dev_irq(C_HIRQ_ETH_RX)<=i_host_irq(C_HIRQ_ETH_RX);
-i_host_dev_irq(C_HIRQ_TRCNIK)<='0';--i_host_irq(C_HIRQ_TRCNIK);
-gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
-i_host_dev_irq(C_HIRQ_VCH0 + i)<=i_vctrl_hirq_out(0 + i);
+i_host_dev_irq(C_HIRQ_TRCNIK)<=i_host_irq(C_HIRQ_TRCNIK);
+gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
+i_host_dev_irq(C_HIRQ_VCH0 + i)<=i_vctrl_hirq_out(i);
 end generate gen_irq_vch;
 
 
---//
-i_host_dev_option(31 downto 0)<=i_vctrl_hfrmrk;
-i_host_dev_option(63 downto 32)<=(others=>'0');--i_trc_hfrmrk;
-i_host_dev_option(95 downto 64)<=(others=>'0');--i_trcnik_hfrmrk;
-i_host_dev_option(127 downto 96)<=(others=>'0');
-
-
 --//Обработка управляющих сигналов Хоста
+i_host_mem_ctrl.dir       <=not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
+i_host_mem_ctrl.start     <=i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else '0';
+i_host_mem_ctrl.adr       <=i_host_dev_opt_out(C_DEV_OPTOUT_MEM_ADR_M_BIT downto C_DEV_OPTOUT_MEM_ADR_L_BIT);
+i_host_mem_ctrl.req_len   <=i_host_dev_opt_out(C_DEV_OPTOUT_MEM_RQLEN_M_BIT downto C_DEV_OPTOUT_MEM_RQLEN_L_BIT);
+i_host_mem_ctrl.trnwr_len <=i_host_dev_opt_out(C_DEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_DEV_OPTOUT_MEM_TRNWR_LEN_L_BIT);
+i_host_mem_ctrl.trnrd_len <=i_host_dev_opt_out(C_DEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_DEV_OPTOUT_MEM_TRNRD_LEN_L_BIT);
+
+i_host_rst_all<=i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+i_host_rst_eth<=i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
+i_host_rst_mem<=i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
+i_host_rddone_vctrl<=i_host_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT);
+i_host_rddone_trcnik<=i_host_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
+
+i_host_devadr<=i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
+i_host_vchsel<=EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
+
 process(i_host_rst_n, g_host_clk)
 begin
   if i_host_rst_n='0' then
@@ -1858,15 +1864,15 @@ begin
     hclk_hrddone_vctrl<='0';
     hclk_hrddone_vctrl_cnt<=(others=>'0');
 
-    hclk_hmem_ce<='0';
-    hclk_hmem_ce_cnt<=(others=>'0');
+    hclk_hrddone_trcnik<='0';
+    hclk_hrddone_trcnik_cnt<=(others=>'0');
 
   elsif g_host_clk'event and g_host_clk='1' then
 
     for i in 0 to C_HDEV_COUNT-1 loop
       --//импульс начала DMA транзакции
       if i_host_devadr=i then
-        if i_host_dma_start='1' then
+        if i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' then
           i_hdev_dma_start(i)<='1';
         else
           i_hdev_dma_start(i)<='0';
@@ -1903,17 +1909,17 @@ begin
       hclk_hrddone_vctrl_cnt<=hclk_hrddone_vctrl_cnt+1;
     end if;
 
-    --//Растягиваем импульс
-    if i_host_mem_ce='1' then --or i_host_mem_term='1' then
-      hclk_hmem_ce<='1';
-    elsif hclk_hmem_ce_cnt(2)='1' then
-      hclk_hmem_ce<='0';
+    --//Растягиваем импульс i_host_rddone_trcnik
+    if i_host_rddone_trcnik='1' then
+      hclk_hrddone_trcnik<='1';
+    elsif hclk_hrddone_trcnik_cnt="100" then
+      hclk_hrddone_trcnik<='0';
     end if;
 
-    if hclk_hmem_ce='0' then
-      hclk_hmem_ce_cnt<=(others=>'0');
+    if hclk_hrddone_trcnik='0' then
+      hclk_hrddone_trcnik_cnt<=(others=>'0');
     else
-      hclk_hmem_ce_cnt<=hclk_hrddone_vctrl_cnt+1;
+      hclk_hrddone_trcnik_cnt<=hclk_hrddone_trcnik_cnt+1;
     end if;
 
   end if;
@@ -1928,7 +1934,8 @@ begin
     i_vctrl_hrd_done<='0';
     i_vctrl_hrd_done_dly<=(others=>'0');
 
-    i_hmem_ce<='0';
+    i_trcnik_hrd_done_dly<=(others=>'0');
+    i_trcnik_hrd_done<='0';
 
   elsif g_usr_highclk'event and g_usr_highclk='1' then
     i_vctrl_hrd_start<=hclk_hdev_dma_start(C_HDEV_VCH_DBUF);
@@ -1937,137 +1944,312 @@ begin
     i_vctrl_hrd_done_dly(1)<=i_vctrl_hrd_done_dly(0);
     i_vctrl_hrd_done<=i_vctrl_hrd_done_dly(0) and not i_vctrl_hrd_done_dly(1);
 
-    i_hmem_ce<=hclk_hmem_ce;
+    i_trcnik_hrd_done_dly(0)<=hclk_hrddone_trcnik;
+    i_trcnik_hrd_done_dly(1)<=i_trcnik_hrd_done_dly(0);
+    i_trcnik_hrd_done<=i_trcnik_hrd_done_dly(0) and not i_trcnik_hrd_done_dly(1);
 
   end if;
 end process;
 
 
-
 --***********************************************************
---Модуль Контроллера памяти - memory_ctrl.vhd
+--Модуль Контроллера памяти
 --***********************************************************
---//Арбитр канала 1 контроллера памяти
-m_mem_arb_ch1 : memory_ch_arbitr
+--Связь модуля dsn_host c ОЗУ
+m_host2mem : pcie2mem_ctrl
 generic map(
-G_CH_COUNT => selval(10#03#,10#02#, strcmp(C_USE_HDD,"ON")) --selval2(10#04#,10#03#,10#03#,10#02#, strcmp(C_USE_HDD,"ON"),strcmp(C_USE_TRACK,"ON"))
+G_MEMCTRL_AWIDTH => C_MEMCTRL_ADDR_WIDTH,
+G_MEMCTRL_DWIDTH => C_MEMCTRL_DATA_WIDTH,
+G_MEM_BANK_M_BIT => C_HREG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT => C_HREG_MEM_ADR_BANK_L_BIT,
+G_DBG            => G_SIM
+)
+port map(
+-------------------------------------------------------
+--Связь с mem_ctrl
+-------------------------------------------------------
+p_out_memarb_req  => i_host_memarb_req,
+p_in_memarb_en    => i_host_memarb_en,
+
+p_out_mem_bank1h  => i_host_mem_bank1h,
+p_out_mem_ce      => i_host_mem_ce,
+p_out_mem_cw      => i_host_mem_cw,
+p_out_mem_rd      => i_host_mem_rd,
+p_out_mem_wr      => i_host_mem_wr,
+p_out_mem_term    => i_host_mem_term,
+p_out_mem_adr     => i_host_mem_adr,
+p_out_mem_be      => i_host_mem_be,
+p_out_mem_din     => i_host_mem_din,
+p_in_mem_dout     => i_host_mem_dout,
+
+p_in_mem_wf       => i_host_mem_wf,
+p_in_mem_wpf      => i_host_mem_wpf,
+p_in_mem_re       => i_host_mem_re,
+p_in_mem_rpe      => i_host_mem_rpe,
+
+p_out_mem_clk     => open,
+
+-------------------------------------------------------
+--Управление
+-------------------------------------------------------
+p_in_ctrl         => i_host_mem_ctrl,
+p_out_status      => i_host_mem_status,
+
+p_in_txd          => i_host_txd(C_HDEV_MEM_DBUF),
+p_in_txd_wr       => i_host_wr(C_HDEV_MEM_DBUF),
+p_out_txbuf_full  => i_host_txbuf_full(C_HDEV_MEM_DBUF),
+
+p_out_rxd         => i_host_rxd(C_HDEV_MEM_DBUF),
+p_in_rxd_rd       => i_host_rd(C_HDEV_MEM_DBUF),
+p_out_rxbuf_empty => i_host_rxbuf_empty(C_HDEV_MEM_DBUF),
+
+p_in_hclk         => g_host_clk,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst          => (others=>'0'),
+p_out_tst         => i_host_mem_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk         => g_usr_highclk,
+p_in_rst         => i_memctrl_rst
+);
+
+--//Подключаем устройства к арбитру ОЗУ
+gen_chsel0 : if (strcmp(C_USE_HDD,"ON")  and strcmp(C_USE_TRACK,"ON")) or
+                (strcmp(C_USE_HDD,"OFF") and strcmp(C_USE_TRACK,"OFF")) or
+                (strcmp(C_USE_HDD,"ON")  and strcmp(C_USE_TRACK,"OFF")) generate
+--CH3
+i_arbch3_req     <= i_hdd_memarb_req ;
+i_hdd_memarb_en  <= i_arbch3_en      ;
+
+i_arbch3_bank1h  <= i_hdd_mem_bank1h ;
+i_arbch3_ce      <= i_hdd_mem_ce     ;
+i_arbch3_cw      <= i_hdd_mem_cw     ;
+i_arbch3_term    <= i_hdd_mem_term   ;
+i_arbch3_rd      <= i_hdd_mem_rd     ;
+i_arbch3_wr      <= i_hdd_mem_wr     ;
+i_arbch3_adr     <= i_hdd_mem_adr    ;
+i_arbch3_be      <= i_hdd_mem_be     ;
+i_arbch3_din     <= i_hdd_mem_din    ;
+i_hdd_mem_dout   <= i_arbch3_dout    ;
+
+i_hdd_mem_wf     <= i_arbch3_wf      ;
+i_hdd_mem_wpf    <= i_arbch3_wpf     ;
+i_hdd_mem_re     <= i_arbch3_re      ;
+i_hdd_mem_rpe    <= i_arbch3_rpe     ;
+
+--CH4
+i_arbch4_req     <= i_trc_memarb_req ;
+i_trc_memarb_en  <= i_arbch4_en      ;
+
+i_arbch4_bank1h  <= i_trc_mem_bank1h ;
+i_arbch4_ce      <= i_trc_mem_ce     ;
+i_arbch4_cw      <= i_trc_mem_cw     ;
+i_arbch4_term    <= i_trc_mem_term   ;
+i_arbch4_rd      <= i_trc_mem_rd     ;
+i_arbch4_wr      <= i_trc_mem_wr     ;
+i_arbch4_adr     <= i_trc_mem_adr    ;
+i_arbch4_be      <= i_trc_mem_be     ;
+i_arbch4_din     <= i_trc_mem_din    ;
+i_trc_mem_dout   <= i_arbch4_dout    ;
+
+i_trc_mem_wf     <= i_arbch4_wf      ;
+i_trc_mem_wpf    <= i_arbch4_wpf     ;
+i_trc_mem_re     <= i_arbch4_re      ;
+i_trc_mem_rpe    <= i_arbch4_rpe     ;
+
+end generate gen_chsel0;
+
+gen_chsel1 : if (strcmp(C_USE_HDD,"OFF") and strcmp(C_USE_TRACK,"ON")) generate
+--CH4
+i_arbch4_req     <= i_hdd_memarb_req ;
+i_hdd_memarb_en  <= i_arbch4_en      ;
+
+i_arbch4_bank1h  <= i_hdd_mem_bank1h ;
+i_arbch4_ce      <= i_hdd_mem_ce     ;
+i_arbch4_cw      <= i_hdd_mem_cw     ;
+i_arbch4_term    <= i_hdd_mem_term   ;
+i_arbch4_rd      <= i_hdd_mem_rd     ;
+i_arbch4_wr      <= i_hdd_mem_wr     ;
+i_arbch4_adr     <= i_hdd_mem_adr    ;
+i_arbch4_be      <= i_hdd_mem_be     ;
+i_arbch4_din     <= i_hdd_mem_din    ;
+i_hdd_mem_dout   <= i_arbch4_dout    ;
+
+i_hdd_mem_wf     <= i_arbch4_wf      ;
+i_hdd_mem_wpf    <= i_arbch4_wpf     ;
+i_hdd_mem_re     <= i_arbch4_re      ;
+i_hdd_mem_rpe    <= i_arbch4_rpe     ;
+
+--CH3
+i_arbch3_req     <= i_trc_memarb_req ;
+i_trc_memarb_en  <= i_arbch3_en      ;
+
+i_arbch3_bank1h  <= i_trc_mem_bank1h ;
+i_arbch3_ce      <= i_trc_mem_ce     ;
+i_arbch3_cw      <= i_trc_mem_cw     ;
+i_arbch3_term    <= i_trc_mem_term   ;
+i_arbch3_rd      <= i_trc_mem_rd     ;
+i_arbch3_wr      <= i_trc_mem_wr     ;
+i_arbch3_adr     <= i_trc_mem_adr    ;
+i_arbch3_be      <= i_trc_mem_be     ;
+i_arbch3_din     <= i_trc_mem_din    ;
+i_trc_mem_dout   <= i_arbch3_dout    ;
+
+i_trc_mem_wf     <= i_arbch3_wf      ;
+i_trc_mem_wpf    <= i_arbch3_wpf     ;
+i_trc_mem_re     <= i_arbch3_re      ;
+i_trc_mem_rpe    <= i_arbch3_rpe     ;
+
+end generate gen_chsel1;
+
+--//Арбитр контроллера памяти
+m_mem_arb : memory_ch_arbitr
+generic map(
+G_CH_COUNT => selval2(10#05#,10#04#,10#04#,10#03#, strcmp(C_USE_HDD,"ON"),strcmp(C_USE_TRACK,"ON"))
 )
 port map(
 -------------------------------
 -- Связь с CH0
 -------------------------------
-p_in_ch0_req     => i_vctrlwr_memarb_req,
-p_out_ch0_en     => i_vctrlwr_memarb_en,
+p_in_ch0_req     => i_host_memarb_req,
+p_out_ch0_en     => i_host_memarb_en,
 
-p_in_ch0_bank1h  => i_vctrlwr_mem_bank1h,
-p_in_ch0_ce      => i_vctrlwr_mem_ce,
-p_in_ch0_cw      => i_vctrlwr_mem_cw,
-p_in_ch0_term    => i_vctrlwr_mem_term,
-p_in_ch0_rd      => i_vctrlwr_mem_rd,
-p_in_ch0_wr      => i_vctrlwr_mem_wr,
-p_in_ch0_adr     => i_vctrlwr_mem_adr,
-p_in_ch0_be      => i_vctrlwr_mem_be,
-p_in_ch0_din     => i_vctrlwr_mem_din,
-p_out_ch0_dout   => i_vctrlwr_mem_dout,
+p_in_ch0_bank1h  => i_host_mem_bank1h,
+p_in_ch0_ce      => i_host_mem_ce,
+p_in_ch0_cw      => i_host_mem_cw,
+p_in_ch0_term    => i_host_mem_term,
+p_in_ch0_rd      => i_host_mem_rd,
+p_in_ch0_wr      => i_host_mem_wr,
+p_in_ch0_adr     => i_host_mem_adr,
+p_in_ch0_be      => i_host_mem_be,
+p_in_ch0_din     => i_host_mem_din,
+p_out_ch0_dout   => i_host_mem_dout,
 
-p_out_ch0_wf     => i_vctrlwr_mem_wf,
-p_out_ch0_wpf    => i_vctrlwr_mem_wpf,
-p_out_ch0_re     => i_vctrlwr_mem_re,
-p_out_ch0_rpe    => i_vctrlwr_mem_rpe,
+p_out_ch0_wf     => i_host_mem_wf,
+p_out_ch0_wpf    => i_host_mem_wpf,
+p_out_ch0_re     => i_host_mem_re,
+p_out_ch0_rpe    => i_host_mem_rpe,
 
 -------------------------------
 -- Связь с CH1
 -------------------------------
-p_in_ch1_req     => i_vctrlrd_memarb_req,
-p_out_ch1_en     => i_vctrlrd_memarb_en,
+p_in_ch1_req     => i_vctrlwr_memarb_req,
+p_out_ch1_en     => i_vctrlwr_memarb_en,
 
-p_in_ch1_bank1h  => i_vctrlrd_mem_bank1h,
-p_in_ch1_ce      => i_vctrlrd_mem_ce,
-p_in_ch1_cw      => i_vctrlrd_mem_cw,
-p_in_ch1_term    => i_vctrlrd_mem_term,
-p_in_ch1_rd      => i_vctrlrd_mem_rd,
-p_in_ch1_wr      => i_vctrlrd_mem_wr,
-p_in_ch1_adr     => i_vctrlrd_mem_adr,
-p_in_ch1_be      => i_vctrlrd_mem_be,
-p_in_ch1_din     => i_vctrlrd_mem_din,
-p_out_ch1_dout   => i_vctrlrd_mem_dout,
+p_in_ch1_bank1h  => i_vctrlwr_mem_bank1h,
+p_in_ch1_ce      => i_vctrlwr_mem_ce,
+p_in_ch1_cw      => i_vctrlwr_mem_cw,
+p_in_ch1_term    => i_vctrlwr_mem_term,
+p_in_ch1_rd      => i_vctrlwr_mem_rd,
+p_in_ch1_wr      => i_vctrlwr_mem_wr,
+p_in_ch1_adr     => i_vctrlwr_mem_adr,
+p_in_ch1_be      => i_vctrlwr_mem_be,
+p_in_ch1_din     => i_vctrlwr_mem_din,
+p_out_ch1_dout   => i_vctrlwr_mem_dout,
 
-p_out_ch1_wf     => i_vctrlrd_mem_wf,
-p_out_ch1_wpf    => i_vctrlrd_mem_wpf,
-p_out_ch1_re     => i_vctrlrd_mem_re,
-p_out_ch1_rpe    => i_vctrlrd_mem_rpe,
+p_out_ch1_wf     => i_vctrlwr_mem_wf,
+p_out_ch1_wpf    => i_vctrlwr_mem_wpf,
+p_out_ch1_re     => i_vctrlwr_mem_re,
+p_out_ch1_rpe    => i_vctrlwr_mem_rpe,
 
 -------------------------------
 -- Связь с CH2
 -------------------------------
-p_in_ch2_req     => i_hdd_memarb_req,
-p_out_ch2_en     => i_hdd_memarb_en,
+p_in_ch2_req     => i_vctrlrd_memarb_req,
+p_out_ch2_en     => i_vctrlrd_memarb_en,
 
-p_in_ch2_bank1h  => i_hdd_mem_bank1h,
-p_in_ch2_ce      => i_hdd_mem_ce,
-p_in_ch2_cw      => i_hdd_mem_cw,
-p_in_ch2_term    => i_hdd_mem_term,
-p_in_ch2_rd      => i_hdd_mem_rd,
-p_in_ch2_wr      => i_hdd_mem_wr,
-p_in_ch2_adr     => i_hdd_mem_adr,
-p_in_ch2_be      => i_hdd_mem_be,
-p_in_ch2_din     => i_hdd_mem_din,
-p_out_ch2_dout   => i_hdd_mem_dout,
+p_in_ch2_bank1h  => i_vctrlrd_mem_bank1h,
+p_in_ch2_ce      => i_vctrlrd_mem_ce,
+p_in_ch2_cw      => i_vctrlrd_mem_cw,
+p_in_ch2_term    => i_vctrlrd_mem_term,
+p_in_ch2_rd      => i_vctrlrd_mem_rd,
+p_in_ch2_wr      => i_vctrlrd_mem_wr,
+p_in_ch2_adr     => i_vctrlrd_mem_adr,
+p_in_ch2_be      => i_vctrlrd_mem_be,
+p_in_ch2_din     => i_vctrlrd_mem_din,
+p_out_ch2_dout   => i_vctrlrd_mem_dout,
 
-p_out_ch2_wf     => i_hdd_mem_wf,
-p_out_ch2_wpf    => i_hdd_mem_wpf,
-p_out_ch2_re     => i_hdd_mem_re,
-p_out_ch2_rpe    => i_hdd_mem_rpe,
+p_out_ch2_wf     => i_vctrlrd_mem_wf,
+p_out_ch2_wpf    => i_vctrlrd_mem_wpf,
+p_out_ch2_re     => i_vctrlrd_mem_re,
+p_out_ch2_rpe    => i_vctrlrd_mem_rpe,
 
 -------------------------------
 -- Связь с CH3
 -------------------------------
-p_in_ch3_req     => '0',
-p_out_ch3_en     => open,
+p_in_ch3_req     => i_arbch3_req,   --i_hdd_memarb_req,
+p_out_ch3_en     => i_arbch3_en,    --i_hdd_memarb_en,
 
-p_in_ch3_bank1h  => i_mem_null_bank1h,
-p_in_ch3_ce      => i_mem_null_ce,
-p_in_ch3_cw      => i_mem_null_cw,
-p_in_ch3_term    => i_mem_null_term,
-p_in_ch3_rd      => i_mem_null_rd,
-p_in_ch3_wr      => i_mem_null_wr,
-p_in_ch3_adr     => i_mem_null_adr,
-p_in_ch3_be      => i_mem_null_be,
-p_in_ch3_din     => i_mem_null_din,
-p_out_ch3_dout   => i_mem_null_dout,
+p_in_ch3_bank1h  => i_arbch3_bank1h,--i_hdd_mem_bank1h,
+p_in_ch3_ce      => i_arbch3_ce,    --i_hdd_mem_ce,
+p_in_ch3_cw      => i_arbch3_cw,    --i_hdd_mem_cw,
+p_in_ch3_term    => i_arbch3_term,  --i_hdd_mem_term,
+p_in_ch3_rd      => i_arbch3_rd,    --i_hdd_mem_rd,
+p_in_ch3_wr      => i_arbch3_wr,    --i_hdd_mem_wr,
+p_in_ch3_adr     => i_arbch3_adr,   --i_hdd_mem_adr,
+p_in_ch3_be      => i_arbch3_be,    --i_hdd_mem_be,
+p_in_ch3_din     => i_arbch3_din,   --i_hdd_mem_din,
+p_out_ch3_dout   => i_arbch3_dout,  --i_hdd_mem_dout,
 
-p_out_ch3_wf     => i_mem_null_wf,
-p_out_ch3_wpf    => i_mem_null_wpf,
-p_out_ch3_re     => i_mem_null_re,
-p_out_ch3_rpe    => i_mem_null_rpe,
+p_out_ch3_wf     => i_arbch3_wf,    --i_hdd_mem_wf,
+p_out_ch3_wpf    => i_arbch3_wpf,   --i_hdd_mem_wpf,
+p_out_ch3_re     => i_arbch3_re,    --i_hdd_mem_re,
+p_out_ch3_rpe    => i_arbch3_rpe,   --i_hdd_mem_rpe,
+
+-------------------------------
+-- Связь с CH4
+-------------------------------
+p_in_ch4_req     => i_arbch4_req,   --i_trc_memarb_req,
+p_out_ch4_en     => i_arbch4_en,    --i_trc_memarb_en,
+
+p_in_ch4_bank1h  => i_arbch4_bank1h,--i_trc_mem_bank1h,
+p_in_ch4_ce      => i_arbch4_ce,    --i_trc_mem_ce,
+p_in_ch4_cw      => i_arbch4_cw,    --i_trc_mem_cw,
+p_in_ch4_term    => i_arbch4_term,  --i_trc_mem_term,
+p_in_ch4_rd      => i_arbch4_rd,    --i_trc_mem_rd,
+p_in_ch4_wr      => i_arbch4_wr,    --i_trc_mem_wr,
+p_in_ch4_adr     => i_arbch4_adr,   --i_trc_mem_adr,
+p_in_ch4_be      => i_arbch4_be,    --i_trc_mem_be,
+p_in_ch4_din     => i_arbch4_din,   --i_trc_mem_din,
+p_out_ch4_dout   => i_arbch4_dout,  --i_trc_mem_dout,
+
+p_out_ch4_wf     => i_arbch4_wf,    --i_trc_mem_wf,
+p_out_ch4_wpf    => i_arbch4_wpf,   --i_trc_mem_wpf,
+p_out_ch4_re     => i_arbch4_re,    --i_trc_mem_re,
+p_out_ch4_rpe    => i_arbch4_rpe,   --i_trc_mem_rpe,
 
 ---------------------------------
 -- Связь с memory_ctrl.vhd
 ---------------------------------
-p_out_mem_clk    => open,--i_mem_arb1_clk,
+p_out_mem_clk    => open,--i_mem_arb_clk,
 
-p_out_mem_bank1h => i_mem_arb1_bank1h,
-p_out_mem_ce     => i_mem_arb1_ce,
-p_out_mem_cw     => i_mem_arb1_cw,
-p_out_mem_rd     => i_mem_arb1_rd,
-p_out_mem_wr     => i_mem_arb1_wr,
-p_out_mem_term   => i_mem_arb1_term,
-p_out_mem_adr    => i_mem_arb1_adr,
-p_out_mem_be     => i_mem_arb1_be,
-p_out_mem_din    => i_mem_arb1_din,
-p_in_mem_dout    => i_mem_arb1_dout,
+p_out_mem_bank1h => i_mem_arb_bank1h,
+p_out_mem_ce     => i_mem_arb_ce,
+p_out_mem_cw     => i_mem_arb_cw,
+p_out_mem_rd     => i_mem_arb_rd,
+p_out_mem_wr     => i_mem_arb_wr,
+p_out_mem_term   => i_mem_arb_term,
+p_out_mem_adr    => i_mem_arb_adr,
+p_out_mem_be     => i_mem_arb_be,
+p_out_mem_din    => i_mem_arb_din,
+p_in_mem_dout    => i_mem_arb_dout,
 
-p_in_mem_wf      => i_mem_arb1_wf,
-p_in_mem_wpf     => i_mem_arb1_wpf,
-p_in_mem_re      => i_mem_arb1_re,
-p_in_mem_rpe     => i_mem_arb1_rpe,
+p_in_mem_wf      => i_mem_arb_wf,
+p_in_mem_wpf     => i_mem_arb_wpf,
+p_in_mem_re      => i_mem_arb_re,
+p_in_mem_rpe     => i_mem_arb_rpe,
 
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst         => "00000000000000000000000000000000",
-p_out_tst        => i_mem_arb1_tst_out,
+p_in_tst         => (others=>'0'),
+p_out_tst        => i_mem_arb_tst_out,
 
 -------------------------------
 --System
@@ -2079,74 +2261,75 @@ p_in_rst         => i_memctrl_rst
 gen_sim_on : if strcmp(G_SIM,"ON") generate
 
 process(i_host_rst_n, g_usr_highclk)
-  variable sim_mem_arb1_read: std_logic;
-  variable sim_mem_arb1_dout: std_logic_vector(7 downto 0);
+  variable sim_mem_arb_read: std_logic;
+  variable sim_mem_arb_dout: std_logic_vector(7 downto 0);
 begin
   if i_host_rst_n='0' then
-    i_sim_mem_arb1_read_dly_cnt<=(others=>'0');
-    i_sim_mem_arb1_read_dly<='0';
-      sim_mem_arb1_dout:=(others=>'0');
+    i_sim_mem_arb_read_dly_cnt<=(others=>'0');
+    i_sim_mem_arb_read_dly<='0';
+      sim_mem_arb_dout:=(others=>'0');
 
-    i_mem_arb1_dout<=(others=>'0');
-    i_mem_arb1_re <='1';
+    i_mem_arb_dout<=(others=>'0');
+    i_mem_arb_re <='1';
 
   elsif g_usr_highclk'event and g_usr_highclk='1' then
-    sim_mem_arb1_read:='0';
+    sim_mem_arb_read:='0';
 
-    if i_mem_arb1_ce='1' and i_mem_arb1_cw='0' then
-      i_sim_mem_arb1_read_dly<='1';
+    if i_mem_arb_ce='1' and i_mem_arb_cw='0' then
+      i_sim_mem_arb_read_dly<='1';
     else
-      if i_sim_mem_arb1_read_dly='1' then
-        if i_sim_mem_arb1_read_dly_cnt="1100" then
-          i_sim_mem_arb1_read_dly_cnt<=(others=>'0');
-          i_sim_mem_arb1_read_dly<='0';
-          sim_mem_arb1_read:='1';
+      if i_sim_mem_arb_read_dly='1' then
+        if i_sim_mem_arb_read_dly_cnt="1100" then
+          i_sim_mem_arb_read_dly_cnt<=(others=>'0');
+          i_sim_mem_arb_read_dly<='0';
+          sim_mem_arb_read:='1';
         else
-          i_sim_mem_arb1_read_dly_cnt<=i_sim_mem_arb1_read_dly_cnt+1;
+          i_sim_mem_arb_read_dly_cnt<=i_sim_mem_arb_read_dly_cnt+1;
         end if;
       end if;
     end if;
 
-    if i_vctrl_vrd_done='1' and i_mem_arb1_cw='0' then
-      i_mem_arb1_dout<=(others=>'0');
-      sim_mem_arb1_dout:=(others=>'0');
+    if i_vctrl_vrd_done='1' and i_mem_arb_cw='0' then
+      i_mem_arb_dout<=(others=>'0');
+      sim_mem_arb_dout:=(others=>'0');
 
-    elsif i_mem_arb1_re='0' and i_mem_arb1_rd='1' then
-      sim_mem_arb1_dout:=sim_mem_arb1_dout+4;
+    elsif i_mem_arb_re='0' and i_mem_arb_rd='1' then
+      sim_mem_arb_dout:=sim_mem_arb_dout+4;
     end if;
 
-    i_mem_arb1_dout(7 downto 0)  <=sim_mem_arb1_dout;
-    i_mem_arb1_dout(15 downto 8) <=sim_mem_arb1_dout+1;
-    i_mem_arb1_dout(23 downto 16)<=sim_mem_arb1_dout+2;
-    i_mem_arb1_dout(31 downto 24)<=sim_mem_arb1_dout+3;
+    i_mem_arb_dout(7 downto 0)  <=sim_mem_arb_dout;
+    i_mem_arb_dout(15 downto 8) <=sim_mem_arb_dout+1;
+    i_mem_arb_dout(23 downto 16)<=sim_mem_arb_dout+2;
+    i_mem_arb_dout(31 downto 24)<=sim_mem_arb_dout+3;
 
-    if sim_mem_arb1_read='1' then
-      i_mem_arb1_re <='0';
-    elsif i_mem_arb1_term='1' then
-      i_mem_arb1_re <='1';
+    if sim_mem_arb_read='1' then
+      i_mem_arb_re <='0';
+    elsif i_mem_arb_term='1' then
+      i_mem_arb_re <='1';
     end if;
 
   end if;
 end process;
 
-i_mem_arb1_rpe<='0';
-i_mem_arb1_wf <='0';
-i_mem_arb1_wpf<='0';
+i_mem_arb_rpe<='0';
+i_mem_arb_wf <='0';
+i_mem_arb_wpf<='0';
 
 end generate gen_sim_on;
 
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
-i_mem_arb1_dout<=i_mem_arb1_dout_tmp;
-i_mem_arb1_re  <=i_mem_arb1_re_tmp;
-i_mem_arb1_rpe <=i_mem_arb1_rpe_tmp;
-i_mem_arb1_wf  <=i_mem_arb1_wf_tmp;
-i_mem_arb1_wpf <=i_mem_arb1_wpf_tmp;
+i_mem_arb_dout<=i_mem_arb_dout_tmp;
+i_mem_arb_re  <=i_mem_arb_re_tmp;
+i_mem_arb_rpe <=i_mem_arb_rpe_tmp;
+i_mem_arb_wf  <=i_mem_arb_wf_tmp;
+i_mem_arb_wpf <=i_mem_arb_wpf_tmp;
 end generate gen_sim_off;
 
-i_host_mem_mode_reg((32* (0 + 1)) - 23 downto  32* 0)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
-i_host_mem_mode_reg((32* (1 + 1)) - 23 downto  32* 1)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
-i_host_mem_mode_reg((32* (2 + 1)) - 23 downto  32* 2)<=CONV_STD_LOGIC_VECTOR(16#01#, 10);
-i_host_mem_mode_reg(i_host_mem_mode_reg'high downto (3*32))<=(others=>'0');
+
+i_memctrl_mode_reg((32* (0 + 1)) - 23 downto  32* 0)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
+i_memctrl_mode_reg((32* (1 + 1)) - 23 downto  32* 1)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
+i_memctrl_mode_reg((32* (2 + 1)) - 23 downto  32* 2)<=CONV_STD_LOGIC_VECTOR(16#01#, 10);
+i_memctrl_mode_reg(i_memctrl_mode_reg'high downto (3*32))<=(others=>'0');
 
 m_mem_ctrl : memory_ctrl
 generic map(
@@ -2185,52 +2368,30 @@ memrst      => i_memctrl_pll_rst_out,
 -----------------------------
 -- Configuration
 -----------------------------
-mode_reg    => i_host_mem_mode_reg,
+mode_reg    => i_memctrl_mode_reg,
 bank_reg    => "0000",--bank_reg,
-trained     => i_host_mem_trained,
+trained     => i_memctrl_trained,
 
 -----------------------------
--- User channel 0 (имеет наивысший приоритет)
+-- User channel 0
 -----------------------------
 usr0_clk    => g_usr_highclk,
 --Управление
-usr0_bank1h => i_mem_arb1_bank1h,
-usr0_ce     => i_mem_arb1_ce,
-usr0_cw     => i_mem_arb1_cw,
-usr0_term   => i_mem_arb1_term,
-usr0_rd     => i_mem_arb1_rd,
-usr0_wr     => i_mem_arb1_wr,
-usr0_adr    => i_mem_arb1_adr,
-usr0_be     => i_mem_arb1_be,
-usr0_din    => i_mem_arb1_din,
-usr0_dout   => i_mem_arb1_dout_tmp,
+usr0_bank1h => i_mem_arb_bank1h,
+usr0_ce     => i_mem_arb_ce,
+usr0_cw     => i_mem_arb_cw,
+usr0_term   => i_mem_arb_term,
+usr0_rd     => i_mem_arb_rd,
+usr0_wr     => i_mem_arb_wr,
+usr0_adr    => i_mem_arb_adr,
+usr0_be     => i_mem_arb_be,
+usr0_din    => i_mem_arb_din,
+usr0_dout   => i_mem_arb_dout_tmp,
 --TX/RXBUF STATUS
-usr0_wf     => i_mem_arb1_wf_tmp,
-usr0_wpf    => i_mem_arb1_wpf_tmp,
-usr0_re     => i_mem_arb1_re_tmp,
-usr0_rpe    => i_mem_arb1_rpe_tmp,
-
------------------------------
--- User channel 1
------------------------------
-usr1_clk    => g_host_clk,
---Управление
-usr1_bank1h => i_host_mem_bank1h,
-usr1_ce     => i_host_mem_ce,
-usr1_cw     => i_host_mem_cw,
-usr1_term   => i_host_mem_term,
-usr1_rd     => i_host_mem_rd,
-usr1_wr     => i_host_mem_wr,
-usr1_adr    => i_host_mem_adr,
-usr1_be     => i_host_mem_be,
-usr1_din    => i_host_mem_din,
-usr1_dout   => i_host_mem_dout,
---TX/RXBUF STATUS
-usr1_wf     => i_host_mem_wf,
-usr1_wpf    => i_host_mem_wpf,
-usr1_re     => i_host_mem_re,
-usr1_rpe    => i_host_mem_rpe,
-
+usr0_wf     => i_mem_arb_wf_tmp,
+usr0_wpf    => i_mem_arb_wpf_tmp,
+usr0_re     => i_mem_arb_re_tmp,
+usr0_rpe    => i_mem_arb_rpe_tmp,
 
 -----------------------------
 -- To/from FPGA memory pins
@@ -2288,42 +2449,26 @@ ramclko => ramclko
 );
 
 
---//-----------------------------------------
+--//#########################################
 --//DBG
---//-----------------------------------------
---Светодиоды
-tst_clr <=pin_in_btn_C or pin_in_btn_E or pin_in_btn_N or pin_in_btn_S;
-
-pin_out_led_E<=i_hdd_gt_plldet and i_hdd_dcm_lock;                                              --i_hdd_gt_plldet and i_hdd_dcm_lock;
-pin_out_led_N<=lclk_dcm_lock when pin_in_btn_S='0' else tst_clr or i_test01_led;                --i_hdd_busy or i_hdd_rst when pin_in_btn_S='0' else tst_clr;
-pin_out_led_S<=i_memctrl_dcm_lock;                                                              --i_test01_led;
-pin_out_led_W<=i_host_mem_ctl_reg(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);         --i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
-pin_out_led_C<=not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);--i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
-
-pin_out_led(0)<=i_hdd_dbgled(1).busy;
-pin_out_led(1)<=i_hdd_dbgled(1).err;
-pin_out_led(2)<=i_hdd_dbgled(1).rdy;
-pin_out_led(3)<=i_hdd_dbgled(1).link;
-
-pin_out_led(4)<=i_hdd_dbgled(0).busy;
-pin_out_led(5)<=i_hdd_dbgled(0).err;
-pin_out_led(6)<=i_hdd_dbgled(0).rdy;
-pin_out_led(7)<=i_hdd_dbgled(0).link;
-
-
---//-----------------------------------------
+--//#########################################
 --//Для ПЛАТЫ ALPHA DATA
---//-----------------------------------------
 gen_alphadata : if strcmp(C_BOARD_USE,"ALPHA_DATA") generate
+begin
 
---pin_out_led<=(others=>'0');
---pin_out_led_C<=pin_in_btn_C;
---pin_out_led_E<=pin_in_btn_E;
---pin_out_led_N<=pin_in_btn_N;
---pin_out_led_S<=pin_in_btn_S;
---pin_out_led_W<=pin_in_btn_W;
+pin_out_led<=(others=>'0');
+pin_out_led_C<=pin_in_btn_C;
+pin_out_led_E<=pin_in_btn_E;
+pin_out_led_N<=pin_in_btn_N;
+pin_out_led_S<=pin_in_btn_S;
+pin_out_led_W<=pin_in_btn_W;
 
-pin_out_TP<=(others=>'0');
+pin_out_TP(0)<=pin_in_btn_C;
+pin_out_TP(1)<=pin_in_btn_E;
+pin_out_TP(2)<=pin_in_btn_N;
+pin_out_TP(3)<=pin_in_btn_S;
+pin_out_TP(4)<=pin_in_btn_W;
+pin_out_TP(pin_out_TP'high downto 5)<=(others=>'0');
 
 pin_out_ddr2_cke1<='0';
 pin_out_ddr2_cs1<='0';
@@ -2335,9 +2480,7 @@ i_hdd_tst_in<=(others=>'0');
 end generate gen_alphadata;
 
 
---//-----------------------------------------
 --//Для ПЛАТЫ ML505
---//-----------------------------------------
 gen_ml505 : if strcmp(C_BOARD_USE,"ML505") generate
 
 pin_out_ddr2_cke1<='0';
@@ -2348,15 +2491,16 @@ i_usr_rst<=pin_in_btn_N;
 i_hdd_tst_in(0)<=pin_in_btn_W;
 i_hdd_tst_in(31 downto 1)<=(others=>'0');
 
-i_trc_busy<=(others=>'0');
+--i_trc_busy<=(others=>'0');
 
 --//J5 /pin2
-pin_out_TP(0)<=i_trc_busy(0);
+pin_out_TP(0)<=pin_in_btn_E or i_trc_busy(0);
 
 --//J6
-pin_out_TP(1)<=i_hdd_busy;  --//pin2
-pin_out_TP(2)<=i_hdd_tst_out(6);--//pin6  p_out_tst(6)<=OR_reduce(i_sh_status.ch_bsy(G_HDD_COUNT-1 downto 0));
-pin_out_TP(3)<=i_hdd_dbgled(0).dly;--//pin10
+pin_out_TP(1)<=pin_in_btn_C;--i_dsntst_tst_out(1);  --//pin6
+                            --//pin8
+pin_out_TP(2)<='0';         --//pin10
+pin_out_TP(3)<='0';
                             --//pin14
 pin_out_TP(4)<='0';         --//pin16
                             --//pin18
@@ -2365,6 +2509,22 @@ pin_out_TP(5)<='0';         -- /pin20
 pin_out_TP(6)<='0';         -- /pin24
 pin_out_TP(7)<='0';         -- /pin26
 
+--Светодиоды
+pin_out_led_E<=i_hdd_gt_plldet and i_hdd_dcm_lock;
+pin_out_led_N<=lclk_dcm_lock when pin_in_btn_S='0' else i_test01_led;
+pin_out_led_S<=i_memctrl_locked(0);
+pin_out_led_W<='0' when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
+pin_out_led_C<=not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
+
+pin_out_led(0)<=i_hdd_dbgled(1).busy;
+pin_out_led(1)<=i_hdd_dbgled(1).err;
+pin_out_led(2)<=i_hdd_dbgled(1).rdy;
+pin_out_led(3)<=i_hdd_dbgled(1).link;
+
+pin_out_led(4)<=i_hdd_dbgled(0).busy;
+pin_out_led(5)<=i_hdd_dbgled(0).err;
+pin_out_led(6)<=i_hdd_dbgled(0).rdy;
+pin_out_led(7)<=i_hdd_dbgled(0).link;
 
 m_gt_03_test: fpga_test_01
 generic map(
@@ -2380,7 +2540,7 @@ p_out_1ms      => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk       => g_hdd_gt_refclkout,
+p_in_clk       => g_pciexp_gt_refclkout,--g_hdd_gt_refclkout,
 p_in_rst       => i_hdd_rst
 );
 
@@ -2436,7 +2596,7 @@ i_hddrambuf_dbgcs.trig0(20 downto 7) <=i_hdd_rambuf_dbgcs.trig0(20 downto 7);
 i_hddrambuf_dbgcs.trig0(21)          <=i_vctrlwr_memarb_en;
 i_hddrambuf_dbgcs.trig0(22)          <=i_vctrlrd_memarb_en;
 i_hddrambuf_dbgcs.trig0(23)          <=i_hdd_memarb_en;
-i_hddrambuf_dbgcs.trig0(24)          <=i_mem_arb1_ce;
+i_hddrambuf_dbgcs.trig0(24)          <=i_mem_arb_ce;
 i_hddrambuf_dbgcs.trig0(25)          <='0';
 i_hddrambuf_dbgcs.trig0(26)          <='0';
 i_hddrambuf_dbgcs.trig0(27)          <='0';
@@ -2448,21 +2608,21 @@ i_hddrambuf_dbgcs.trig0(41 downto 30)<=i_hdd_rambuf_dbgcs.trig0(41 downto 30);
 --//-------- VIEW: ------------------
 i_hddrambuf_dbgcs.data(0)<=i_hdd_mem_ce;       --//
 i_hddrambuf_dbgcs.data(1)<=i_hdd_mem_cw;
-i_hddrambuf_dbgcs.data(2)<=i_mem_arb1_rd;   --//i_hdd_mem_rd;  --
-i_hddrambuf_dbgcs.data(3)<=i_mem_arb1_wr;   --//i_hdd_mem_wr;  --
-i_hddrambuf_dbgcs.data(4)<=i_mem_arb1_term; --//i_hdd_mem_term;--
+i_hddrambuf_dbgcs.data(2)<=i_mem_arb_rd;   --//i_hdd_mem_rd;  --
+i_hddrambuf_dbgcs.data(3)<=i_mem_arb_wr;   --//i_hdd_mem_wr;  --
+i_hddrambuf_dbgcs.data(4)<=i_mem_arb_term; --//i_hdd_mem_term;--
 i_hddrambuf_dbgcs.data(18 downto 5)<=i_hdd_rambuf_dbgcs.data(18 downto 5);
 
 i_hddrambuf_dbgcs.data(19)<=i_swt_tst_out(0);--//tst_swt_hdd_vbuf_wr;
 
 i_hddrambuf_dbgcs.data(119 downto 20)<=i_hdd_rambuf_dbgcs.data(119 downto 20);
-i_hddrambuf_dbgcs.data(135 downto 120)<=i_mem_arb1_dout(15 downto 0);--tst_hdd_mem_dcnt;
+i_hddrambuf_dbgcs.data(135 downto 120)<=i_mem_arb_dout(15 downto 0);--tst_hdd_mem_dcnt;
 i_hddrambuf_dbgcs.data(151 downto 136)<=i_hdd_rambuf_dbgcs.data(151 downto 136);
 
 i_hddrambuf_dbgcs.data(152)          <=i_vctrlwr_memarb_en;
 i_hddrambuf_dbgcs.data(153)          <=i_vctrlrd_memarb_en;
 i_hddrambuf_dbgcs.data(154)          <=i_hdd_memarb_en;
---i_hddrambuf_dbgcs.data(166 downto 155)<=i_mem_arb1_din(27 downto 16);
+--i_hddrambuf_dbgcs.data(166 downto 155)<=i_mem_arb_din(27 downto 16);
 i_hddrambuf_dbgcs.data(166 downto 155)<=i_hdd_rambuf_dbgcs.data(166 downto 155);
 
 i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
@@ -2531,11 +2691,11 @@ i_hddrambuf_dbgcs.data(172 downto 167)<=i_hdd_rambuf_dbgcs.data(172 downto 167);
 --i_hddraid_dbgcs.data(104 downto 100)<=i_hdd_rambuf_dbgcs.data(9 downto 5);--rambuf_fsm(3 downto 0);
 ----i_hddraid_dbgcs.data(104)<=i_hdd_mem_ce;
 --i_hddraid_dbgcs.data(105)<=i_hdd_rxbuf_empty;
---i_hddraid_dbgcs.data(106)<=i_mem_arb1_rd;--RAM->HDD
---i_hddraid_dbgcs.data(107)<=i_mem_arb1_wr;--RAM<-HDD
---i_hddraid_dbgcs.data(108)<=i_mem_arb1_term;
---i_hddraid_dbgcs.data(140 downto 109)<=i_mem_arb1_dout(31 downto 0);--RAM->HDD
---i_hddraid_dbgcs.data(172 downto 141)<=i_mem_arb1_din(31 downto 0);--RAM<-HDD
+--i_hddraid_dbgcs.data(106)<=i_mem_arb_rd;--RAM->HDD
+--i_hddraid_dbgcs.data(107)<=i_mem_arb_wr;--RAM<-HDD
+--i_hddraid_dbgcs.data(108)<=i_mem_arb_term;
+--i_hddraid_dbgcs.data(140 downto 109)<=i_mem_arb_dout(31 downto 0);--RAM->HDD
+--i_hddraid_dbgcs.data(172 downto 141)<=i_mem_arb_din(31 downto 0);--RAM<-HDD
 
 
 --process(i_hdd_rambuf_dbgcs.clk)

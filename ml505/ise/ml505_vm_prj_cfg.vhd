@@ -24,7 +24,7 @@ constant C_BOARD_USE                         : string:="ML505";
 --//Управление использованием модулей проекта:
 constant C_USE_TRACK                         : string:="OFF";
 constant C_USE_ETH                           : string:="ON";
-constant C_USE_HDD                           : string:="ON";
+constant C_USE_HDD                           : string:="OFF";
 
 constant C_DBG_ETH                           : string:="OFF";
 constant C_DBG_HDD                           : string:="OFF";
@@ -34,7 +34,7 @@ constant C_DBGCS_HDD                         : string:="OFF";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller
-constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 3
+constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 1
 
 --//cfg HDD
 constant C_HDD_COUNT                         : integer:=1;
@@ -46,11 +46,11 @@ constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать с
 constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
-constant C_VCTRL_VCH_COUNT                   : integer:=1;
-constant C_VCTRL_SIMPLE                      : string:="OFF";
+constant C_VCTRL_VCH_COUNT                   : integer:=3; --//max 4
+constant C_VCTRL_SIMPLE                      : string:="ON";
 
 --//cfg clkfx - DCM LocalBus
-constant C_LBUSDCM_CLKFX_M                   : integer:=3;
+constant C_LBUSDCM_CLKFX_M                   : integer:=2;
 
 end prj_cfg;
 

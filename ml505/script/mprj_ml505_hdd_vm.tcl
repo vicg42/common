@@ -53,20 +53,11 @@ set _projects [ list \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_clkfw.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_port.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_training.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_dq_out.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_dq_in.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_bwe.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_oserdes_dq.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_iserdes_dq.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sram_v4/ddr2sram_port_v4.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/pulse_sync.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/port_repl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/port_mux.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/async_port.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/cmd_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/arbiter_4.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/arbiter_2.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/afifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/fifo_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/plxdssm.vhd" $_VHDMod ] \
@@ -184,9 +175,13 @@ set _projects [ list \
       [ list "../../../common/veresk_m/alphadata/lbus_connector_32bit_tst.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/alphadata/lbus_dcm.vhd" $_VHDMod ] \
       [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/pcie2mem_fifo.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/pci_express/v5/pciexp_main.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/pci_express/v5/pciexp_ctrl_rst.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_ep_cntrl.v" $_VMod ] \
       [ list "../../../common/veresk_m/pci_express/v5/BMD_TO_CTRL.v" $_VMod ] \
       [ list "../../../common/veresk_m/pci_express/v5/BMD_RD_THROTTLE.v" $_VMod ] \
       [ list "../../../common/veresk_m/pci_express/v5/BMD_ENGINE_TX.v" $_VMod ] \

@@ -351,7 +351,7 @@ NET "pin_in_eth_clk_n" LOC = "H3";
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
 ###НЕ ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="OFF";)
-##INST "m_ethg/gen_use_off.m_gtp_dual_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y4";
+##INST "m_eth/gen_use_off.m_gtp_dual_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y4";
 
 ###ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="ON";)
 INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y4";
@@ -361,7 +361,7 @@ INST "*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = 
 #--------------------------------------------------------------------------
 # EMAC0 Clocking
 # 125MHz clock input from BUFG
-NET "m_ethg/gen_use_on.m_eth_main/m_emac_core_main/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
+NET "m_eth/gen_use_on.m_eth_main/m_eth_core/mac0_gtp_clk125" TNM_NET = "mac0_clk_gtp";
 TIMEGRP  "emac_core_gtp_clk"            = "mac0_clk_gtp";
 TIMESPEC "TS_emac_core_gtp_clk"         = PERIOD "emac_core_gtp_clk" 7700 ps HIGH 50 %;
 
@@ -418,17 +418,17 @@ INST "ibuf_pciexp_gt_refclk"     DIFF_TERM = "TRUE" ;
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
-INST "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
 
 #--------------------------------------------------------------------------
 #Временные ограничения
 #--------------------------------------------------------------------------
 NET "i_pciexp_gt_refclk" PERIOD = 10ns;
 
-NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
+NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
 TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 
-NET "m_host/gen_sim_off.m_pciexp/m_core_pciexp/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
+NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
 
 #############################################################################
 ###############       Проект SATA       #####################################
