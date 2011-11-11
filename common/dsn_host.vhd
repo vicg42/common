@@ -67,28 +67,12 @@ p_out_gctrl      : out   std_logic_vector(31 downto 0);
 p_out_dev_ctrl   : out   std_logic_vector(31 downto 0);
 p_out_dev_din    : out   std_logic_vector(31 downto 0);
 p_in_dev_dout    : in    std_logic_vector(31 downto 0);
-p_out_dev_wd     : out   std_logic;
+p_out_dev_wr     : out   std_logic;
 p_out_dev_rd     : out   std_logic;
-p_in_dev_flag    : in    std_logic_vector(7 downto 0);
 p_in_dev_status  : in    std_logic_vector(31 downto 0);
 p_in_dev_irq     : in    std_logic_vector(31 downto 0);
-p_in_dev_option  : in    std_logic_vector(127 downto 0);
-
-p_out_mem_bank1h : out   std_logic_vector(15 downto 0);
-p_out_mem_ce     : out   std_logic;
-p_out_mem_cw     : out   std_logic;
-p_out_mem_rd     : out   std_logic;
-p_out_mem_wr     : out   std_logic;
-p_out_mem_term   : out   std_logic;
-p_out_mem_adr    : out   std_logic_vector(32 - 1 downto 0);
-p_out_mem_be     : out   std_logic_vector(32/8 - 1 downto 0);
-p_out_mem_din    : out   std_logic_vector(32 - 1 downto 0);
-p_in_mem_dout    : in    std_logic_vector(32 - 1 downto 0);
-
-p_in_mem_wf      : in    std_logic;
-p_in_mem_wpf     : in    std_logic;
-p_in_mem_re      : in    std_logic;
-p_in_mem_rpe     : in    std_logic;
+p_in_dev_opt     : in    std_logic_vector(127 downto 0);
+p_out_dev_opt    : out   std_logic_vector(127 downto 0);
 
 --------------------------------------------------
 --// Технологический
@@ -165,7 +149,7 @@ p_out_dev_ctrl   : out   std_logic_vector(31 downto 0);
 p_in_dev_status  : in    std_logic_vector(31 downto 0);
 p_out_dev_din    : out   std_logic_vector(31 downto 0);
 p_in_dev_dout    : in    std_logic_vector(31 downto 0);
-p_out_dev_wd     : out   std_logic;
+p_out_dev_wr     : out   std_logic;
 p_out_dev_rd     : out   std_logic;
 
 p_out_dev_eof    : out   std_logic;
@@ -201,7 +185,7 @@ p_in_rst_n         : in    std_logic
 );
 end component;
 
-component pciexp_main
+component pcie_main
 port(
 --//-------------------------------------------------------
 --// User Port
@@ -215,28 +199,12 @@ p_out_gctrl          : out   std_logic_vector(31 downto 0);
 p_out_dev_ctrl       : out   std_logic_vector(31 downto 0);
 p_out_dev_din        : out   std_logic_vector(31 downto 0);
 p_in_dev_dout        : in    std_logic_vector(31 downto 0);
-p_out_dev_wd         : out   std_logic;
+p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
-p_in_dev_flag        : in    std_logic_vector(7 downto 0);
 p_in_dev_status      : in    std_logic_vector(31 downto 0);
 p_in_dev_irq         : in    std_logic_vector(31 downto 0);
-p_in_dev_option      : in    std_logic_vector(127 downto 0);
-
-p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
-p_out_mem_adr        : out   std_logic_vector(34 downto 0);
-p_out_mem_ce         : out   std_logic;
-p_out_mem_cw         : out   std_logic;
-p_out_mem_rd         : out   std_logic;
-p_out_mem_wr         : out   std_logic;
-p_out_mem_be         : out   std_logic_vector(7 downto 0);
-p_out_mem_term       : out   std_logic;
-p_out_mem_din        : out   std_logic_vector(31 downto 0);
-p_in_mem_dout        : in    std_logic_vector(31 downto 0);
-
-p_in_mem_wf          : in    std_logic;
-p_in_mem_wpf         : in    std_logic;
-p_in_mem_re          : in    std_logic;
-p_in_mem_rpe         : in    std_logic;
+p_in_dev_opt         : in    std_logic_vector(127 downto 0);
+p_out_dev_opt        : out   std_logic_vector(127 downto 0);
 
 --//-------------------------------------------------------
 --// Технологический
@@ -262,49 +230,6 @@ p_out_gtp_refclkout  : out   std_logic
 );
 end component;
 
-signal i_lbus_mem_ctl_reg          : std_logic_vector(0 downto 0);
-signal i_lbus_mem_mode_reg         : std_logic_vector(511 downto 0);
-
-signal i_lbus_hclk_out             : std_logic;
-
-signal i_lbus_gctrl                : std_logic_vector(31 downto 0);
-signal i_lbus_dev_ctrl             : std_logic_vector(31 downto 0);
-signal i_lbus_dev_din              : std_logic_vector(31 downto 0);
-signal i_lbus_dev_wd               : std_logic;
-signal i_lbus_dev_rd               : std_logic;
-
-signal i_lbus_mem_bank1h           : std_logic_vector(15 downto 0);
-signal i_lbus_mem_ce               : std_logic;
-signal i_lbus_mem_cw               : std_logic;
-signal i_lbus_mem_rd               : std_logic;
-signal i_lbus_mem_wr               : std_logic;
-signal i_lbus_mem_term             : std_logic;
-signal i_lbus_mem_adr              : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_lbus_mem_be               : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_lbus_mem_din              : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-
-signal i_pciexp_hclk_out           : std_logic;
-signal i_pciexp_out_usr_tst        : std_logic_vector(127 downto 0);
-
-signal i_pciexp_gctrl              : std_logic_vector(31 downto 0);
-signal i_pciexp_dev_ctrl           : std_logic_vector(31 downto 0);
-signal i_pciexp_dev_din            : std_logic_vector(31 downto 0);
-signal i_pciexp_dev_wd             : std_logic;
-signal i_pciexp_dev_rd             : std_logic;
-
-signal i_pciexp_mem_ctl_reg        : std_logic_vector(0 downto 0);
-signal i_pciexp_mem_mode_reg       : std_logic_vector(511 downto 0);
-
-signal i_pciexp_mem_bank1h         : std_logic_vector(15 downto 0);
-signal i_pciexp_mem_adr            : std_logic_vector(34 downto 0);
-signal i_pciexp_mem_ce             : std_logic;
-signal i_pciexp_mem_cw             : std_logic;
-signal i_pciexp_mem_rd             : std_logic;
-signal i_pciexp_mem_wr             : std_logic;
-signal i_pciexp_mem_be             : std_logic_vector(7 downto 0);
-signal i_pciexp_mem_term           : std_logic;
-signal i_pciexp_mem_din            : std_logic_vector(31 downto 0);
-
 signal scl                         : std_logic;
 signal sda                         : std_logic;
 
@@ -312,70 +237,31 @@ signal sda                         : std_logic;
 begin
 
 
---//---------------------------------------------------
---//Рабочий вариант (Только PCI-Express)
---//---------------------------------------------------
+--//###################################################
+--//Рабочий вариант
+--//###################################################
 gen_sim_off : if strcmp(G_SIM_HOST,"OFF") generate
 
-p_out_usr_tst<= i_pciexp_out_usr_tst;
-p_out_gctrl  <= i_pciexp_gctrl;
-
-p_out_mem_bank1h <= i_pciexp_mem_bank1h;
-p_out_mem_adr    <= i_pciexp_mem_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_ce     <= i_pciexp_mem_ce;
-p_out_mem_cw     <= i_pciexp_mem_cw;
-p_out_mem_rd     <= i_pciexp_mem_rd;
-p_out_mem_wr     <= i_pciexp_mem_wr;
-p_out_mem_be     <= i_pciexp_mem_be(C_MEMCTRL_DATA_WIDTH/8 - 1 downto 0);
-p_out_mem_term   <= i_pciexp_mem_term;
-p_out_mem_din    <= i_pciexp_mem_din(31 downto 0);
-
---//связь с другими модулями
-p_out_dev_ctrl   <= i_pciexp_dev_ctrl;
-p_out_dev_din    <= i_pciexp_dev_din;
-p_out_dev_wd     <= i_pciexp_dev_wd;
-p_out_dev_rd     <= i_pciexp_dev_rd;
-
-
---//-------------------------------------------------------
---//Проект PCI-EXPRESS
---//-------------------------------------------------------
-m_pciexp : pciexp_main
+m_pcie : pcie_main
 port map(
 --//-------------------------------------------------------
 --// User Port
 --//-------------------------------------------------------
-p_out_usr_tst        => i_pciexp_out_usr_tst,
+p_out_usr_tst        => p_out_usr_tst,
 p_in_usr_tst         => p_in_usr_tst,
 
 p_out_hclk           => p_out_hclk,
-p_out_gctrl          => i_pciexp_gctrl,
+p_out_gctrl          => p_out_gctrl,
 
-p_out_dev_ctrl       => i_pciexp_dev_ctrl,
-p_out_dev_din        => i_pciexp_dev_din,
+p_out_dev_ctrl       => p_out_dev_ctrl,
+p_out_dev_din        => p_out_dev_din,
 p_in_dev_dout        => p_in_dev_dout,
-p_out_dev_wd         => i_pciexp_dev_wd,
-p_out_dev_rd         => i_pciexp_dev_rd,
-p_in_dev_flag        => p_in_dev_flag,
+p_out_dev_wr         => p_out_dev_wr,
+p_out_dev_rd         => p_out_dev_rd,
 p_in_dev_status      => p_in_dev_status,
 p_in_dev_irq         => p_in_dev_irq,
-p_in_dev_option      => p_in_dev_option,
-
-p_out_mem_bank1h     => i_pciexp_mem_bank1h,
-p_out_mem_adr        => i_pciexp_mem_adr,
-p_out_mem_ce         => i_pciexp_mem_ce,
-p_out_mem_cw         => i_pciexp_mem_cw,
-p_out_mem_rd         => i_pciexp_mem_rd,
-p_out_mem_wr         => i_pciexp_mem_wr,
-p_out_mem_be         => i_pciexp_mem_be,
-p_out_mem_term       => i_pciexp_mem_term,
-p_out_mem_din        => i_pciexp_mem_din,
-p_in_mem_dout        => p_in_mem_dout,
-
-p_in_mem_wf          => p_in_mem_wf,
-p_in_mem_wpf         => p_in_mem_wpf,
-p_in_mem_re          => p_in_mem_re,
-p_in_mem_rpe         => p_in_mem_rpe,
+p_in_dev_opt         => p_in_dev_opt,
+p_out_dev_opt        => p_out_dev_opt,
 
 --//-------------------------------------------------------
 --// Технологический
@@ -401,7 +287,7 @@ p_out_gtp_refclkout  => p_out_pciexp_gt_clkout
 
 );
 
-m_local_bus_tst : lbus_connector_32bit_tst
+m_lbus : lbus_connector_32bit_tst
 generic map(
 la_top => 23
 )
@@ -429,47 +315,21 @@ p_in_rst_n => p_in_rst_n
 end generate gen_sim_off;
 
 
---//---------------------------------------------------
---//Вариант для моделирования (Моделирование через LocalBus)
---//---------------------------------------------------
+--//###################################################
+--//Вариант для моделирования (Работа через LocalBus)
+--//###################################################
 gen_sim_on : if strcmp(G_SIM_HOST,"ON") generate
 
 p_out_tst<=(others=>'0');
-
+p_out_usr_tst      <= (others=>'0');
 p_out_module_rdy <= not p_in_rst_n;
 
 p_out_pciexp_txp <=p_in_pciexp_rxp;
 p_out_pciexp_txn <=p_in_pciexp_rxn;
 
-i_pciexp_gctrl(0)<='1';
-i_pciexp_gctrl(31 downto 1)<=(others=>'0');
-
 p_out_pciexp_gt_clkout<=p_in_pciexp_gt_clkin;--lclk;
 
-p_out_usr_tst      <= (others=>'0');
-
-p_out_gctrl        <= i_lbus_gctrl;
-
-p_out_mem_bank1h   <= i_lbus_mem_bank1h;
-p_out_mem_adr      <= i_lbus_mem_adr(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_ce       <= i_lbus_mem_ce;
-p_out_mem_cw       <= i_lbus_mem_cw;
-p_out_mem_rd       <= i_lbus_mem_rd;
-p_out_mem_wr       <= i_lbus_mem_wr;
-p_out_mem_be       <= i_lbus_mem_be(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_term     <= i_lbus_mem_term;
-p_out_mem_din      <= i_lbus_mem_din(31 downto 0);
-
---//связь с другими модулями
-p_out_dev_ctrl     <= i_lbus_dev_ctrl;
-p_out_dev_din      <= i_lbus_dev_din;
-p_out_dev_wd       <= i_lbus_dev_wd;
-p_out_dev_rd       <= i_lbus_dev_rd;
-
-p_out_hclk         <= i_lbus_hclk_out;
-
--- Связь с хостом по Local bus
-m_local_bus : lbus_connector_32bit
+m_lbus : lbus_connector_32bit
 generic map(
 la_top => 23
 )
@@ -490,35 +350,35 @@ finto_l          => finto_l,
 --------------------------------------------------
 --Связь с уст-вами проекта Veresk-M
 --------------------------------------------------
-p_out_hclk       => i_lbus_hclk_out,
+p_out_hclk       => p_out_hclk,
 
-p_out_gctrl      => i_lbus_gctrl,
-p_out_dev_ctrl   => i_lbus_dev_ctrl,
+p_out_gctrl      => p_out_gctrl,
+p_out_dev_ctrl   => p_out_dev_ctrl,
 p_in_dev_status  => p_in_dev_status,
-p_out_dev_din    => i_lbus_dev_din,
+p_out_dev_din    => p_out_dev_din,
 p_in_dev_dout    => p_in_dev_dout,
-p_out_dev_wd     => i_lbus_dev_wd,
-p_out_dev_rd     => i_lbus_dev_rd,
+p_out_dev_wr     => p_out_dev_wr,
+p_out_dev_rd     => p_out_dev_rd,
 
 p_out_dev_eof    => open,
 
 p_in_tst_in      => p_in_usr_tst,
 
-p_out_mem_bank1h => i_lbus_mem_bank1h,
-p_out_mem_ce     => i_lbus_mem_ce,
-p_out_mem_cw     => i_lbus_mem_cw,
-p_out_mem_rd     => i_lbus_mem_rd,
-p_out_mem_wr     => i_lbus_mem_wr,
-p_out_mem_term   => i_lbus_mem_term,
-p_out_mem_adr    => i_lbus_mem_adr,
-p_out_mem_be     => i_lbus_mem_be,
-p_out_mem_din    => i_lbus_mem_din,
-p_in_mem_dout    => p_in_mem_dout,
+p_out_mem_bank1h => open,
+p_out_mem_ce     => open,
+p_out_mem_cw     => open,
+p_out_mem_rd     => open,
+p_out_mem_wr     => open,
+p_out_mem_term   => open,
+p_out_mem_adr    => open,
+p_out_mem_be     => open,
+p_out_mem_din    => open,
+p_in_mem_dout    => (others=>'0'),
 
-p_in_mem_wf      => p_in_mem_wf,
-p_in_mem_wpf     => p_in_mem_wpf,
-p_in_mem_re      => p_in_mem_re,
-p_in_mem_rpe     => p_in_mem_rpe,
+p_in_mem_wf      => '0',
+p_in_mem_wpf     => '0',
+p_in_mem_re      => '0',
+p_in_mem_rpe     => '0',
 
 scl_i            => scl,
 scl_o            => scl,

@@ -25,7 +25,7 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 
-entity BMD_INTR_CTRL is
+entity pcie_irq is
 port(
 -----------------------------
 --Usr Ctrl
@@ -57,11 +57,11 @@ p_out_tst              : out  std_logic_vector(31 downto 0);
 p_in_clk               : in   std_logic;
 p_in_rst               : in   std_logic
 );
-end BMD_INTR_CTRL;
+end pcie_irq;
 
-architecture behavioral of BMD_INTR_CTRL is
+architecture behavioral of pcie_irq is
 
-component BMD_INTR_CTRL_DEV
+component pcie_irq_dev
 generic(
 G_TIME_DLY : integer:=0
 );
@@ -120,7 +120,7 @@ gen_ch: for i in C_HIRQ_PCIE_DMA to C_HIRQ_COUNT - 1 generate
 i_irq_clr(i)<=p_in_irq_clr when p_in_irq_num(C_HIRQ_COUNT - 1 downto 0)=i else '0';
 
 --//Автомат управления прерыванием соотв. канала перерывания
-m_BMD_INTR_CTRL_DEV : BMD_INTR_CTRL_DEV
+m_irq_dev : pcie_irq_dev
 generic map(
 G_TIME_DLY => 0
 )

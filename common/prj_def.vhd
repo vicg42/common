@@ -22,7 +22,7 @@ use work.vicg_common_pkg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0330#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0331#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -40,21 +40,21 @@ constant C_HREG_DEV_STATUS                    : integer:=16#05#;--//Статусы устр
 constant C_HREG_DEV_DATA                      : integer:=16#06#;--//Регистр данных (для случая когда не используетя DMA транзакция)
 constant C_HREG_IRQ                           : integer:=16#07#;--//Прерывания: управление(wr only) + статусы(rd only)
 constant C_HREG_MEM_ADR                       : integer:=16#08#;--//Адрес ОЗУ подключенного к FPGA
---constant C_HREG_RESERV                        : integer:=16#09#;
+constant C_HREG_MEM_CTRL                      : integer:=16#09#;
 constant C_HREG_VCTRL_FRMRK                   : integer:=16#0A#;--//Маркер вычитаного видеокадра
 constant C_HREG_VCTRL_FRERR                   : integer:=16#0B#;--//
 constant C_HREG_TRCNIK_DSIZE                  : integer:=16#0C#;--//
 constant C_HREG_PCIE                          : integer:=16#0D#;--//Инф + Тюнинг("тонкая" настройка) PCI-Express
---constant C_HREG_RESERV                        : integer:=16#0A#...;
+--constant C_HREG_RESERV                        : integer:=...
 constant C_HREG_TST0                          : integer:=16#1C#;--//Тестовые регистры
 constant C_HREG_TST1                          : integer:=16#1D#;
 constant C_HREG_TST2                          : integer:=16#1E#;
 --constant C_HREG_TST3                          : integer:=16#1F#;
 
 
-
 --//Register C_HREG_FIRMWARE / Bit Map:
 constant C_HREG_FRMWARE_LAST_BIT              : integer:=15;
+
 
 --//Register C_HREG_CTRL / Bit Map:
 constant C_HREG_CTRL_RST_ALL_BIT              : integer:=0;--//Сбросы устройств
@@ -89,9 +89,9 @@ constant C_HDEV_COUNT                         : integer:=4+1;
 
 --//Register C_HOST_REG_STATUS_DEV / Bit Map:
 constant C_HREG_DEV_STATUS_INT_ACT_BIT        : integer:=0; --//Не используется драйвером
-constant C_HREG_DEV_STATUS_PCIE_ERR_BIT       : integer:=1; --//Не используется драйвером
-constant C_HREG_DEV_STATUS_PCIE_DMAWR_DONE_BIT: integer:=2; --//Не используется драйвером
-constant C_HREG_DEV_STATUS_PCIE_DMARD_DONE_BIT: integer:=3; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PCIE_DMAWR_DONE_BIT: integer:=1; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PCIE_DMARD_DONE_BIT: integer:=2; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PCIE_ERR_BIT       : integer:=3; --//Не используется драйвером
 constant C_HREG_DEV_STATUS_DMA_BUSY_BIT       : integer:=4; --//PCIE_DMA
 constant C_HREG_DEV_STATUS_CFG_RDY_BIT        : integer:=5; --//CFG
 constant C_HREG_DEV_STATUS_CFG_RXRDY_BIT      : integer:=6;
@@ -143,6 +143,13 @@ constant C_HREG_MEM_ADR_BANK_L_BIT            : integer:=28;
 constant C_HREG_MEM_ADR_BANK_M_BIT            : integer:=29;
 constant C_HREG_MEM_ADR_LAST_BIT              : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 
+--//Register C_HREG_MEM_CTRL / Bit Map:
+constant C_HREG_MEM_CTRL_TRNWR_L_BIT          : integer:=0;
+constant C_HREG_MEM_CTRL_TRNWR_M_BIT          : integer:=7;
+constant C_HREG_MEM_CTRL_TRNRD_L_BIT          : integer:=8;
+constant C_HREG_MEM_CTRL_TRNRD_M_BIT          : integer:=15;
+constant C_HREG_MEM_CTRL_LAST_BIT             : integer:=C_HREG_MEM_CTRL_TRNRD_M_BIT;
+
 
 --//Register C_HREG_PCIE / Bit Map:
 constant C_HREG_PCIE_REQ_LINK_L_BIT           : integer:=0;
@@ -155,27 +162,37 @@ constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer:=15;--//исользуется Макс
 constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer:=17;--//исользуется Максом
 constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer:=18;--//исользуется Максом
 constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer:=20;--//исользуется Максом
-
 constant C_HREG_PCIE_TAG_EXT_EN_RBIT          : integer:=21;
 constant C_HREG_PCIE_PHANT_FUNC_RBIT          : integer:=22;
 constant C_HREG_PCIE_NOSNOOP_RBIT             : integer:=23;
-constant C_HREG_PCIE_CPLD_MALFORMED_RBIT      : integer:=24;
-
+--constant RESERV                               : integer:=24;
 constant C_HREG_PCIE_CPL_STREAMING_WBIT       : integer:=26;--//исользуется Максом
 constant C_HREG_PCIE_METRING_WBIT             : integer:=27;--//исользуется Максом
 --constant C_HREG_PCIE_DMA_NOSNOOP_WBIT         : integer:=28;
 --constant C_HREG_PCIE_DMA_RELEX_ORDER_WBIT     : integer:=29;
-
 constant C_HREG_PCIE_LAST_BIT                 : integer:=C_HREG_PCIE_METRING_WBIT;
 
 
---//Порт модуля dsn_host.vhd / Bit Map:
-constant C_DEV_FLAG_TXFIFO_PFULL_BIT          : integer:=0;
-constant C_DEV_FLAG_RXFIFO_EMPTY_BIT          : integer:=1;
-constant C_DEV_FLAG_LAST_BIT                  : integer:=C_DEV_FLAG_RXFIFO_EMPTY_BIT;
+--//Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
+constant C_DEV_OPTIN_TXFIFO_PFULL_BIT         : integer:=0;
+constant C_DEV_OPTIN_RXFIFO_EMPTY_BIT         : integer:=1;
+constant C_DEV_OPTIN_MEMTRN_DONE_BIT          : integer:=2;
+constant C_DEV_OPTIN_VCTRL_FRMRK_L_BIT        : integer:=3;
+constant C_DEV_OPTIN_VCTRL_FRMRK_M_BIT        : integer:=34;--C_DEV_OPTIN_VCTRL_FRMRK_L_BIT + 31;
+constant C_DEV_OPTIN_VCTRL_FRSKIP_L_BIT       : integer:=35;
+constant C_DEV_OPTIN_VCTRL_FRSKIP_M_BIT       : integer:=42;--C_DEV_OPTIN_VCTRL_FRSKIP_L_BIT + 7;
+constant C_DEV_OPTIN_LAST_BIT                 : integer:=C_DEV_OPTIN_VCTRL_FRSKIP_M_BIT;
 
---//сигнал i_dev_txdata_rdy_mask / Bit Map:
-constant C_HREG_DRDY_ETHG_BIT                 : integer:=C_HDEV_ETH_DBUF;
+--//Порт модуля dsn_host.vhd /p_out_dev_option/ Bit Map:
+constant C_DEV_OPTOUT_MEM_ADR_L_BIT           : integer:=0;
+constant C_DEV_OPTOUT_MEM_ADR_M_BIT           : integer:=31;
+constant C_DEV_OPTOUT_MEM_RQLEN_L_BIT         : integer:=32;
+constant C_DEV_OPTOUT_MEM_RQLEN_M_BIT         : integer:=49;--C_DEV_OPTOUT_MEM_RQLEN_L_BIT + 17 (mem_rqlen - значение в BYTE. max 128KB)
+constant C_DEV_OPTOUT_MEM_TRNWR_LEN_L_BIT     : integer:=50;
+constant C_DEV_OPTOUT_MEM_TRNWR_LEN_M_BIT     : integer:=57;--C_DEV_OPTOUT_MEM_TRNWR_LEN_L_BIT + 7 (mem_trnwr - значение в DWORD.)
+constant C_DEV_OPTOUT_MEM_TRNRD_LEN_L_BIT     : integer:=58;
+constant C_DEV_OPTOUT_MEM_TRNRD_LEN_M_BIT     : integer:=65;--C_DEV_OPTOUT_MEM_TRNRD_LEN_L_BIT + 7 (mem_trnrd - значение в DWORD.)
+constant C_DEV_OPTOUT_LAST_BIT                : integer:=C_DEV_OPTOUT_MEM_TRNRD_LEN_M_BIT;
 
 
 
@@ -203,17 +220,16 @@ constant C_TMR_REG_CTRL                       : integer:=16#000#;
 constant C_TMR_REG_CMP_L                      : integer:=16#001#;
 constant C_TMR_REG_CMP_M                      : integer:=16#002#;
 
---//Bit Maps:
+
 --//Register C_TMR_REG_CTRL / Bit Map:
 constant C_TMR_REG_CTRL_NUM_L_BIT             : integer:=0;--//Номер таймера
 constant C_TMR_REG_CTRL_NUM_M_BIT             : integer:=1;
 constant C_TMR_REG_CTRL_EN_BIT                : integer:=2;
 constant C_TMR_REG_CTRL_DIS_BIT               : integer:=3;
-
 --constant C_TMR_REG_CTRL_STATUS_EN_L_RBIT      : integer:=0;--//только при чтении рег. C_TMR_REG_CTRL
 --constant C_TMR_REG_CTRL_STATUS_EN_M_RBIT      : integer:=3;
-
 constant C_TMR_REG_CTRL_LAST_BIT              : integer:=C_TMR_REG_CTRL_DIS_BIT;
+
 
 --constant C_TMR_COUNT_MAX                      : integer:=16#04#;
 --//Определяем кол-во таймеров в dsn_timer.vhd
@@ -224,28 +240,26 @@ constant C_TMR_COUNT                          : integer:=16#01#;
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_switch.vhd
 --//--------------------------------------------------------------
---//Register MAP:
-constant C_SWT_REG_CTRL                       : integer:=16#00#;
+constant C_SWT_REG_CTRL                       : integer:=16#07#;
 constant C_SWT_REG_FRR_ETHG_HOST              : integer:=16#08#;
 constant C_SWT_REG_FRR_ETHG_VCTRL             : integer:=16#10#;--//C_SWT_REG_FRR_ETHG_HDD + C_SWT_FRR_COUNT_MAX
 constant C_SWT_REG_FRR_ETHG_HDD               : integer:=16#18#;--//C_SWT_REG_FRR_ETHG_HOST + C_SWT_FRR_COUNT_MAX
 
 
---//Bit Maps:
 --//Register C_SWT_REG_CTRL / Bit Map:
 constant C_SWT_REG_CTRL_RST_ETH_BUFS_BIT      : integer:=0;
 constant C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT    : integer:=1;
 constant C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT : integer:=2;
 constant C_SWT_REG_CTRL_LAST_BIT              : integer:=C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT;
 
+
 --//Мах кол-во правил машрутиразции:
 constant C_SWT_FRR_COUNT_MAX                  : integer:=16#08#;
 
---//Register C_SWT_REG_FRR_XXX /:
+--//
 constant C_SWT_ETH_HOST_FRR_COUNT             : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-HOST
 constant C_SWT_ETH_VCTRL_FRR_COUNT            : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-VCTRL
 constant C_SWT_ETH_HDD_FRR_COUNT              : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-HDD
-
 
 Type TEthFRRGet is array (0 to C_SWT_FRR_COUNT_MAX-1) of integer;
 ----------------------------------------------------------------------------------------
@@ -306,7 +320,6 @@ constant C_HDD_REG_RBUF_DATA                  : integer:=16#024#;
 constant C_HDD_REG_CTRL_M                     : integer:=16#025#;
 
 
---//Bit Maps:
 --//Register C_HDD_REG_CTRL_L / Bit Map:
 constant C_HDD_REG_CTRLL_ERR_CLR_BIT            : integer:=0;--//Сброс ошибок
 constant C_HDD_REG_CTRLL_TST_ON_BIT             : integer:=1;--//Вкл/Выкл режима измерения задержек
@@ -320,12 +333,14 @@ constant C_HDD_REG_CTRLL_HWLOG_ON_BIT           : integer:=14;
 constant C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT     : integer:=15;
 constant C_HDD_REG_CTRLL_LAST_BIT               : integer:=C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT;
 
+
 --//Register C_HDD_REG_RBUF_ADR / Bit Map:
 constant C_HDD_REG_RBUF_ADR_OFFSET_L_BIT      : integer:=C_HREG_MEM_ADR_OFFSET_L_BIT;
 constant C_HDD_REG_RBUF_ADR_OFFSET_M_BIT      : integer:=C_HREG_MEM_ADR_OFFSET_M_BIT;
 constant C_HDD_REG_RBUF_ADR_BANK_L_BIT        : integer:=C_HREG_MEM_ADR_BANK_L_BIT;
 constant C_HDD_REG_RBUF_ADR_BANK_M_BIT        : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 constant C_HDD_REG_RBUF_LAST_BIT              : integer:=C_HDD_REG_RBUF_ADR_BANK_M_BIT;
+
 
 --//Register C_HDD_REG_CTRL_M / Bit Map:
 constant C_HDD_REG_CTRLM_RAMWR_DONE           : integer:=0;
@@ -352,9 +367,10 @@ constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
 constant C_VCTRL_REG_CTRL                     : integer:=16#000#;
 constant C_VCTRL_REG_DATA_L                   : integer:=16#001#;
 constant C_VCTRL_REG_DATA_M                   : integer:=16#002#;
-constant C_VCTRL_REG_MEM_CTRL                 : integer:=16#003#;
+constant C_VCTRL_REG_MEM_CTRL                 : integer:=16#003#;--//(15..8)(7..0) - trn_mem_rd;trn_mem_wr
 constant C_VCTRL_REG_TST0                     : integer:=16#004#;
---//Bit Maps:
+
+
 --//Register C_VCTRL_REG_CTRL / Bit Map:
 constant C_VCTRL_REG_CTRL_VCH_L_BIT           : integer:=0;--//Номер видео канала
 constant C_VCTRL_REG_CTRL_VCH_M_BIT           : integer:=3;
@@ -413,12 +429,15 @@ constant C_VCTRL_VCH_COUNT_MAX                : integer:=4; --//Вычисляется из з
 constant C_VCTRL_REG_TST0_DBG_TBUFRD_BIT      : integer:=0;--//Отладка модуля слежения - отображение содержимого RAM/TRACK/TBUF
 constant C_VCTRL_REG_TST0_DBG_EBUFRD_BIT      : integer:=1;--//Отладка модуля слежения - отображение содержимого RAM/TRACK/EBUF
 constant C_VCTRL_REG_TST0_DBG_SOBEL_BIT       : integer:=2;--//1/0 - Отладка модуля собела Выдача Grad/Video
+--constant RESERV                               : integer:=3;
+--constant RESERV                               : integer:=4;
 constant C_VCTRL_REG_TST0_DBG_DIS_DEMCOLOR_BIT: integer:=5;--//1/0 - Запретить работу модуля vcoldemosaic_main.vhd
 constant C_VCTRL_REG_TST0_DBG_DCOUNT_BIT      : integer:=6;--//1 - Вместо данных строки вставляется счетчик
 constant C_VCTRL_REG_TST0_DBG_PICTURE_BIT     : integer:=7;--//Запрещаю запись видео в ОЗУ + запрещаю инкрементацию счетчика vbuf,
                                                                --//при бит(7)=1 - vbuf=0
 constant C_VCTRL_REG_TST0_SKIPFR_CNT_CLR_BIT  : integer:=8;--//При 1 - происходит сброс счетчиков пропущеных кадров tst_vfrskip,
                                                                --//При 0 - нет
+--constant RESERV                               : integer:=9;
 constant C_VCTRL_REG_TST0_DBG_RDHOLD_BIT      : integer:=10;--//Эмуляция захвата видеобуфера модулем чтения
 constant C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT     : integer:=11;--//Эмуляция захвата видеобуфера модулем слежения
 constant C_VCTRL_REG_TST0_LAST_BIT            : integer:=12;
@@ -440,11 +459,12 @@ constant C_TRCNIK_REG_OPT                     : integer:=16#008#;
 constant C_TRCNIK_REG_MEM_ADR_L               : integer:=16#009#;--//Базовый адрес буфера результата
 constant C_TRCNIK_REG_MEM_ADR_M               : integer:=16#00A#;
 
-constant C_TRCNIK_REG_CTRL                    : integer:=16#010#;
---constant C_TRCNIK_REG_RESERV                  : integer:=16#011#;
+constant C_TRCNIK_REG_CTRL                    : integer:=16#010#;--//(15..8)(7..0) - trn_mem_rd;trn_mem_wr
+--constant RESERV                               : integer:=16#011#;
 constant C_TRCNIK_REG_MEM_CTRL                : integer:=16#012#;
 constant C_TRCNIK_REG_TST0                    : integer:=16#013#;
---constant C_TRCNIK_REG_RESERV                  : integer:=16#014#;
+--constant RESERV                               : integer:=16#014#;
+
 
 --constant C_TRCNIK_VCH_COUNT_MAX               : integer:=C_VCTRL_VCH_COUNT_MAX
 constant C_TRCNIK_VCH_COUNT                   : integer:=1;--//Текущее кол-во
@@ -462,7 +482,6 @@ constant C_TRCNIK_REG_MEM_ADR_BANK_M_BIT      : integer:=C_HREG_MEM_ADR_BANK_M_B
 constant C_TRCNIK_REG_MEM_LAST_BIT            : integer:=C_TRCNIK_REG_MEM_ADR_BANK_M_BIT;
 
 
---//Bit Maps:
 --//Register C_TRCNIK_REG_CTRL / Bit Map:
 constant C_TRCNIK_REG_CTRL_VCH_L_BIT          : integer:=0;--//Номер видеоканала
 constant C_TRCNIK_REG_CTRL_VCH_M_BIT          : integer:=3;
@@ -485,6 +504,8 @@ constant C_TRCNIK_REG_TST0_COLOR_DIS_BIT      : integer:=3;--//1/0 - Запрерить/р
 constant C_TRCNIK_REG_TST0_COLOR_DBG_BIT      : integer:=4;--//отладка модуля vcoldemosaic_main.vhd 0/1 - выкл/вкл
 constant C_TRCNKI_REG_TST0_LAST_BIT           : integer:=C_TRCNIK_REG_TST0_COLOR_DBG_BIT;
 
+
+
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_testing.vhd
 --//--------------------------------------------------------------
@@ -496,13 +517,11 @@ constant C_TSTING_REG_PIX                     : integer:=16#004#;
 constant C_TSTING_REG_ROW                     : integer:=16#005#;
 constant C_TSTING_REG_ROW_SEND_TIME_DLY       : integer:=16#009#;
 constant C_TSTING_REG_FR_SEND_TIME_DLY        : integer:=16#00A#;
-
 constant C_TSTING_REG_TXBUF_FULL_CNT          : integer:=16#00B#;
-
 constant C_TSTING_REG_COLOR_LSB               : integer:=16#00C#;
 constant C_TSTING_REG_COLOR_MSB               : integer:=16#00D#;
 
---//Bit Maps:
+
 --//Register C_TSTING_REG_CTRL / Bit Map:
 constant C_TSTING_REG_CTRL_MODE_L_BIT         : integer:=0;
 constant C_TSTING_REG_CTRL_MODE_M_BIT         : integer:=3;

@@ -3,7 +3,7 @@
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
-//-- Module Name : BMD_TO_CTRL.v
+//-- Module Name : pcie_off_on.v
 //--
 //-- Description : Turn-off Control Unit.
 //--
@@ -14,7 +14,7 @@
 `timescale 1ns/1ns
 `include "../../../common/veresk_m/pci_express/define/def_pciexpress.v"
 
-module BMD_TO_CTRL
+module pcie_off_on
 (
   req_compl_i,
   compl_done_i,
@@ -86,5 +86,5 @@ reg                 cfg_turnoff_ok_n_o;
     end
   end
 
-endmodule // BMD_TO_CTRL
+endmodule // pcie_off_on
 

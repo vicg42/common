@@ -3,7 +3,7 @@
 //-- Engineer    : Korg Alex
 //--
 //-- Create Date : 09/18/2009
-//-- Module Name : pciexp_ctrl_rst.v
+//-- Module Name : pcie_reset.v
 //--
 //-- Description : Котроллер сброса ядра PCI-Express.
 //--
@@ -21,7 +21,7 @@
 `define C_ST_RST_4    3'b100     //3'h04      //
 `define C_ST_RST_5    3'b101     //3'h05      //
 
-module pciexp_ctrl_rst
+module pcie_reset
 (
   pciexp_refclk_i,
   trn_lnk_up_n_i,

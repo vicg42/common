@@ -95,7 +95,7 @@ begin
 
 
 
-m_ethg : dsn_ethg
+m_eth : dsn_ethg
 generic map
 (
 G_MODULE_USE => C_USE_ETH,

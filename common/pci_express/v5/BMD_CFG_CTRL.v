@@ -3,7 +3,7 @@
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
-//-- Module Name : BMD_CFG_CTRL.v
+//-- Module Name : pcie_cfg.v
 //--
 //-- Description : Configuration Controller.
 //--
@@ -36,7 +36,7 @@
 `endif // PCIEBLK
 
 
-module BMD_CFG_CTRL (
+module pcie_cfg (
 
                     clk,
                     rst_n,
@@ -235,5 +235,5 @@ assign cfg_cap_max_payload_size = 3'b001;
 */
 
 
-endmodule // BMD_CFG_CTRL
+endmodule // pcie_cfg
 

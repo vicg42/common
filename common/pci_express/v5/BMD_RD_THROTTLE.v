@@ -3,7 +3,7 @@
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
-//-- Module Name : BMD_RD_THROTTLE.v
+//-- Module Name : pcie_mrd_throttle.v
 //--
 //-- Description : Read Metering Unit.
 //--               Задержка генерации запросов чтения (Когда FPGA-Master на Шине PCI-Express)
@@ -16,7 +16,7 @@
 
 `define BMD_RD_THROTTLE_CPL_LIMIT 8
 
-module BMD_RD_THROTTLE
+module pcie_mrd_throttle
 (
   clk,
   rst_n,
@@ -25,53 +25,47 @@ module BMD_RD_THROTTLE
 
   mrd_work_i,
   mrd_len_i,
-  mrd_pkt_count_i,         //I Кол-во переданых пакетов MRr
+  mrd_pkt_count_i,     //I Кол-во переданых пакетов MRr
 
-  cpld_found_i,
+//  cpld_found_i,
   cpld_data_size_i,
   cpld_malformed_i,
-  cpld_data_err_i,            //I
+  cpld_data_err_i,     //I
 
-  cfg_rd_comp_bound_i,        //I
+  cfg_rd_comp_bound_i, //I
 
-  cpld_data_size_hwm,         //O[31:0]
-  cur_rd_count_hwm,           //O[15:0]
-  rd_metering_i,              //I
+  rd_metering_i,       //I
 
-  mrd_work_o                 //O
+  mrd_work_o           //O
 
 );
 
-input                    clk;
-input                    rst_n;
+input         clk;
+input         rst_n;
 
-input                    init_rst_i;
+input         init_rst_i;
 
-input                    mrd_work_i;            // Start MRd Tx Command
-input [31:0]             mrd_len_i;              // Memory Read Size Command (DWs)
-input [15:0]             mrd_pkt_count_i;     // Current state of Tx Engine
+input         mrd_work_i;          // Start MRd Tx Command
+input [31:0]  mrd_len_i;           // Memory Read Size Command (DWs)
+input [15:0]  mrd_pkt_count_i;     // Кол-во переданых пакетов MRr
 
-input [31:0]             cpld_found_i;           // Current CompletionDs found
-input [31:0]             cpld_data_size_i;       // Current Completion data found
-input                    cpld_malformed_i;       // Malformed(Деформированый) Compltion found
-input                    cpld_data_err_i;        // Compltion data error found
+//input [31:0]  cpld_found_i;        // Current CompletionDs found
+input [31:0]  cpld_data_size_i;    // Current Completion data found
+input         cpld_malformed_i;    // Malformed(Деформированый) Compltion found
+input         cpld_data_err_i;     // Compltion data error found
 
-input                    cfg_rd_comp_bound_i;    // Programmed RCB = 0=64B or 1=128B
+input         cfg_rd_comp_bound_i; // Programmed RCB = 0=64B or 1=128B
+input         rd_metering_i;
 
-output [31:0]            cpld_data_size_hwm;     // HWMark for Completion Data (DWs)
-output [15:0]            cur_rd_count_hwm;       // HWMark for Read Count Allowed
+output        mrd_work_o;          // Tx MRds
 
-input                    rd_metering_i;
+parameter     Tcq = 1;
 
-output                   mrd_work_o;            // Tx MRds
+wire          mrd_work_o;
+reg   [31:0]  cpld_data_size_hwm;  // HWMark for Completion Data (DWs)
+reg   [15:0]  cur_rd_count_hwm;    // HWMark for Read Count Allowed
 
-parameter                Tcq = 1;
-
-wire                     mrd_work_o;
-reg   [31:0]             cpld_data_size_hwm;     // HWMark for Completion Data (DWs)
-reg   [15:0]             cur_rd_count_hwm;       // HWMark for Read Count Allowed
-
-reg                      cpld_found;
+reg           cpld_found;
 
 
 
@@ -226,5 +220,5 @@ end
 
 assign mrd_work_o = (rd_metering_i == 0) ? mrd_work_i
                                       : (mrd_work_i & (cur_rd_count_hwm  >= mrd_pkt_count_i));
-endmodule // BMD_RD_THROTTLE
+endmodule // pcie_mrd_throttle
 

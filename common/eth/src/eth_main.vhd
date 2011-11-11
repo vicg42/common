@@ -266,7 +266,7 @@ p_in_rst             => i_eth_rst(0)
 --//********************************************
 --//********  Ethernet MAC - Core  *************
 --//********************************************
-m_emac_core_main : emac_core_main
+m_eth_core : emac_core_main
 port map(
 --//------------------------------------
 --//EMAC - Channel 0

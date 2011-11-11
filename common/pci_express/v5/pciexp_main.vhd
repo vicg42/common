@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 31.01.2011 9:54:18
--- Module Name : pciexp_main.vhd
+-- Module Name : pcie_main.vhd
 --
 -- Description : Связь между Контроллер Endpoint PCI-Express и ядром PCI-Express.
 --
@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.prj_cfg.all;
 
-entity pciexp_main is
+entity pcie_main is
 port(
 --------------------------------------------------------
 --USR Port
@@ -34,28 +34,12 @@ p_out_gctrl          : out   std_logic_vector(31 downto 0);
 p_out_dev_ctrl       : out   std_logic_vector(31 downto 0);
 p_out_dev_din        : out   std_logic_vector(31 downto 0);
 p_in_dev_dout        : in    std_logic_vector(31 downto 0);
-p_out_dev_wd         : out   std_logic;
+p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
-p_in_dev_flag        : in    std_logic_vector(7 downto 0);
 p_in_dev_status      : in    std_logic_vector(31 downto 0);
 p_in_dev_irq         : in    std_logic_vector(31 downto 0);
-p_in_dev_option      : in    std_logic_vector(127 downto 0);
-
-p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
-p_out_mem_adr        : out   std_logic_vector(34 downto 0);
-p_out_mem_ce         : out   std_logic;
-p_out_mem_cw         : out   std_logic;
-p_out_mem_rd         : out   std_logic;
-p_out_mem_wr         : out   std_logic;
-p_out_mem_be         : out   std_logic_vector(7 downto 0);
-p_out_mem_term       : out   std_logic;
-p_out_mem_din        : out   std_logic_vector(31 downto 0);
-p_in_mem_dout        : in    std_logic_vector(31 downto 0);
-
-p_in_mem_wf          : in    std_logic;
-p_in_mem_wpf         : in    std_logic;
-p_in_mem_re          : in    std_logic;
-p_in_mem_rpe         : in    std_logic;
+p_in_dev_opt         : in    std_logic_vector(127 downto 0);
+p_out_dev_opt        : out   std_logic_vector(127 downto 0);
 
 --------------------------------------------------------
 --Технологический
@@ -79,9 +63,9 @@ p_out_module_rdy     : out   std_logic;
 p_in_gtp_refclkin    : in    std_logic;
 p_out_gtp_refclkout  : out   std_logic
 );
-end pciexp_main;
+end pcie_main;
 
-architecture behavioral of pciexp_main is
+architecture behavioral of pcie_main is
 
 constant GI_PCI_EXP_TRN_DATA_WIDTH       : integer:= 64;
 constant GI_PCI_EXP_TRN_REM_WIDTH        : integer:= 8;
@@ -99,11 +83,11 @@ constant GI_PCI_EXP_CFG_CAP_WIDTH        : integer:= 16;
 
 
 component core_pciexp_ep_blk_plus
-generic(
-PCI_EXP_LINK_WIDTH : integer    := 1;
-BAR0               : bit_vector := X"FFFFFF00";
-BAR1               : bit_vector := X"FFFFFF01"
-);
+--generic(
+--PCI_EXP_LINK_WIDTH : integer    := 1;
+--BAR0               : bit_vector := X"FFFFFF00";
+--BAR1               : bit_vector := X"FFFFFF01"
+--);
 port
 (
 --------------------------------------
@@ -204,42 +188,26 @@ sys_reset_n                : in    std_logic
 );
 end component;
 
-component pciexp_ep_cntrl
+component pcie_ctrl
 port(
 --------------------------------------
 --USR Port
 --------------------------------------
 p_out_hclk                : out   std_logic;
 
-p_out_usr_tst             : out   std_logic_vector(127 downto 0);
-p_in_usr_tst              : in    std_logic_vector(127 downto 0);
-
 p_out_gctrl               : out   std_logic_vector(31 downto 0);
 p_out_dev_ctrl            : out   std_logic_vector(31 downto 0);
 p_out_dev_din             : out   std_logic_vector(31 downto 0);
 p_in_dev_dout             : in    std_logic_vector(31 downto 0);
-p_out_dev_wd              : out   std_logic;
+p_out_dev_wr              : out   std_logic;
 p_out_dev_rd              : out   std_logic;
-p_in_dev_flag             : in    std_logic_vector(7 downto 0);
 p_in_dev_status           : in    std_logic_vector(31 downto 0);
 p_in_dev_irq              : in    std_logic_vector(31 downto 0);
-p_in_dev_option           : in    std_logic_vector(127 downto 0);
+p_in_dev_opt              : in    std_logic_vector(127 downto 0);
+p_out_dev_opt             : out   std_logic_vector(127 downto 0);
 
-p_out_mem_bank1h          : out   std_logic_vector(15 downto 0);
-p_out_mem_adr             : out   std_logic_vector(34 downto 0);
-p_out_mem_ce              : out   std_logic;
-p_out_mem_cw              : out   std_logic;
-p_out_mem_rd              : out   std_logic;
-p_out_mem_wr              : out   std_logic;
-p_out_mem_be              : out   std_logic_vector(7 downto 0);
-p_out_mem_term            : out   std_logic;
-p_out_mem_din             : out   std_logic_vector(31 downto 0);
-p_in_mem_dout             : in    std_logic_vector(31 downto 0);
-
-p_in_mem_wf               : in    std_logic;
-p_in_mem_wpf              : in    std_logic;
-p_in_mem_re               : in    std_logic;
-p_in_mem_rpe              : in    std_logic;
+p_out_tst                 : out   std_logic_vector(127 downto 0);
+p_in_tst                  : in    std_logic_vector(127 downto 0);
 
 --------------------------------------
 --Tx
@@ -329,7 +297,7 @@ trn_reset_n_i             : in    std_logic
 );
 end component;
 
-component pciexp_ctrl_rst
+component pcie_reset
 port(
 pciexp_refclk_i : in    std_logic;
 trn_lnk_up_n_i  : in    std_logic;
@@ -450,17 +418,18 @@ p_out_tst(22)<=trn_rnp_ok_n;
 p_out_tst(31 downto 23)<=(others=>'0');
 p_out_tst(95 downto 32)<=trn_td;
 p_out_tst(159 downto 96)<=trn_rd;
+p_out_tst(160)<=trn_rrem_n(0);
 
 
 --//#############################################
 --//Модуль ядра PCI-Express
 --//#############################################
-m_core_pciexp : core_pciexp_ep_blk_plus
-generic map(
-PCI_EXP_LINK_WIDTH => C_PCIEXPRESS_LINK_WIDTH,
-BAR0               => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
-BAR1               => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
-)
+m_core : core_pciexp_ep_blk_plus
+--generic map(
+--PCI_EXP_LINK_WIDTH => C_PCIEXPRESS_LINK_WIDTH,
+--BAR0               => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
+--BAR1               => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
+--)
 port map(
 --------------------------------------
 --PCI Express Fabric Interface
@@ -563,42 +532,26 @@ sys_reset_n                => sys_reset_n
 --//#############################################
 --//Модуль приложения PCI-Express(упраление ядром PCI-Express+ упр. пользовательским портом)
 --//#############################################
-m_pciexp_ep_cntrl : pciexp_ep_cntrl
+m_ctrl : pcie_ctrl
 port map(
 --------------------------------------
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
 
-p_out_usr_tst             => p_out_usr_tst,
-p_in_usr_tst              => p_in_usr_tst,
+p_out_tst                 => p_out_usr_tst,
+p_in_tst                  => p_in_usr_tst,
 
 p_out_gctrl               => p_out_gctrl,
 p_out_dev_ctrl            => p_out_dev_ctrl,
 p_out_dev_din             => p_out_dev_din,
 p_in_dev_dout             => p_in_dev_dout,
-p_out_dev_wd              => p_out_dev_wd,
+p_out_dev_wr              => p_out_dev_wr,
 p_out_dev_rd              => p_out_dev_rd,
-p_in_dev_flag             => p_in_dev_flag,
 p_in_dev_status           => p_in_dev_status,
 p_in_dev_irq              => p_in_dev_irq,
-p_in_dev_option           => p_in_dev_option,
-
-p_out_mem_bank1h          => p_out_mem_bank1h,
-p_out_mem_adr             => p_out_mem_adr,
-p_out_mem_ce              => p_out_mem_ce,
-p_out_mem_cw              => p_out_mem_cw,
-p_out_mem_rd              => p_out_mem_rd,
-p_out_mem_wr              => p_out_mem_wr,
-p_out_mem_be              => p_out_mem_be,
-p_out_mem_term            => p_out_mem_term,
-p_out_mem_din             => p_out_mem_din,
-p_in_mem_dout             => p_in_mem_dout,
-
-p_in_mem_wf               => p_in_mem_wf,
-p_in_mem_wpf              => p_in_mem_wpf,
-p_in_mem_re               => p_in_mem_re,
-p_in_mem_rpe              => p_in_mem_rpe,
+p_in_dev_opt              => p_in_dev_opt,
+p_out_dev_opt             => p_out_dev_opt,
 
 --------------------------------------
 --Tx
@@ -698,7 +651,7 @@ end generate gen_ext_rst;
 gen_intr_rst : if C_PCIEXPRESS_RST_FROM_SLOT=0 generate
 sys_reset_n<=from_ctrl_rst_n;
 
-m_pciexp_rst : pciexp_ctrl_rst
+m_reset : pcie_reset
 port map
 (
 pciexp_refclk_i    => refclkout,

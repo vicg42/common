@@ -182,7 +182,7 @@ p_out_dev_ctrl             : out    std_logic_vector(32-1 downto 0);
 p_in_dev_status            : in     std_logic_vector(32-1 downto 0);
 p_out_dev_din              : out    std_logic_vector(32-1 downto 0);
 p_in_dev_dout              : in     std_logic_vector(32-1 downto 0);
-p_out_dev_wd               : out    std_logic;
+p_out_dev_wr               : out    std_logic;
 p_out_dev_rd               : out    std_logic;
 
 p_out_dev_eof              : out    std_logic;
@@ -1052,7 +1052,7 @@ end process;
   p_out_dev_ctrl(p_out_dev_ctrl'high downto 1)<=v_reg_dev_ctrl(p_out_dev_ctrl'high downto 1);
 
   p_out_dev_din   <=ld_iq;
-  p_out_dev_wd    <=mem_wr;
+  p_out_dev_wr    <=mem_wr;
   p_out_dev_rd    <=usr_buf_rd;
 
   usr_buf_rd<='1' when ds_xfer='1' and ds_write='0' and mem_data_bar_detect='1' and sel_memory_ctrl='0' else '0';

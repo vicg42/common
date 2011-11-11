@@ -3,7 +3,7 @@
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
-//-- Module Name : BMD_ENGINE_TX.v
+//-- Module Name : pcie_tx.v
 //--
 //-- Description : Local-Link Transmit Unit.
 //--               Модуль пердачи и формирования пакетов уровня TPL PCI-Express
@@ -30,44 +30,30 @@
 //`define STATE_TX_MRD_QWN      4'b0111 //4'h08 //9'b100000000
 //`define STATE_TX_CPLD_QWN     4'b0010 //4'h02 //9'b000000100
 
-module BMD_ENGINE_TX
-(
-  //Transfer Data Port:
+module pcie_tx(
   //Режим Target
-  trg_tx_data_i,       // Rcv Data
+  usr_reg_dout_i,
 
   //Режим Master
-//  mst_tx_addr_o,
-//  mst_tx_data_be_o,    // Byte Enable
-  mst_tx_data_i,       //
-  mst_tx_data_rd_o,    // Чтение данных из буфера передатчика
-  mst_tx_data_rd_last_o,
-  mst_tx_data_rd_start_o,
-  usr_buf_empty_i,  //
-
-  tst_tx_engine_state_o,
-  tst_cur_mwr_pkt_count_o,
-//  tst_cur_mwr_len_count_o,
-  tst_rdy_del_inv_o,
-//  tst_trn_ttsrc_rdy_n_o,
-
+  usr_rxbuf_dout_i,
+  usr_rxbuf_rd_o,
+  usr_rxbuf_rd_fst_o,
+  usr_rxbuf_rd_last_o,
+  usr_rxbuf_empty_i,
+//  usr_rxbuf_dbe,    // Byte Enable
 
   //LocalLink Tx (Transmit local link interface to PCIe core)
   trn_td,          //out[31:0]: Transmit Data
   trn_trem_n,
   trn_tsof_n,      //out: Transmit (SOF): the start of a packet.
   trn_teof_n,      //out: Transmit (EOF): the end of a packet.
-  trn_tsrc_rdy_n_o,  //out: Transmit Source Ready: Indicates that the User Application is presenting valid data on trn_td
+  trn_tsrc_rdy_n_o,//out: Transmit Source Ready: Indicates that the User Application is presenting valid data on trn_td
   trn_tsrc_dsc_n,  //out: Transmit Source Discontinue: Can be asserted any time starting on the first cycle after SOF to EOF, inclusive.
   trn_tdst_rdy_n,  //in : Transmit Destination Ready: Indicates that the core is ready to accept data on trn_td.
   trn_tdst_dsc_n,  //in : Transmit Destination Discontinue: Active low. Indicates that the core is aborting the current packet.
                    //Asserted when the physical link is going into reset. Not supported; signal is tied high.
   trn_tbuf_av,     //in[5:0]: Transmit Buffers Available: Indicates transmit buffer availability in the core.
-                   //1/0 - Буфер доступен/не доступен
-                   //• trn_tbuf_av[0] => Non Posted Queue (Статус буфера для пакетаов MRd, MRdLk, IORd, IOWr, CfgRd(0,1), CfgWr(0,1))
-                   //• trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]) => Posted Queue (Статус буфера для пакетаов MWr, Msg)
-                   //• trn_tbuf_av[2] => Completion Queue (Статус буфера для пакетаов Cpl, CplD, CplLk, CplDLk)
-                   //• trn_tbuf_av[3] => Look-Ahead(Просмотр вперед) Completion Queue
+
 
   //Handshake with Rx engine
   req_compl_i,         //запрос: отправить пакет CplD
@@ -119,15 +105,14 @@ module BMD_ENGINE_TX
   mrd_tag_i,
   mrd_relaxed_order_i,
   mrd_nosnoop_i,
-
   mrd_pkt_count_o,           //Кол-во переданых пакетов MRr
+  mrd_pkt_len_o,
 
   completer_id_i,
-  cfg_ext_tag_en_i,
-  cfg_bus_mstr_enable_i,
-  cfg_prg_max_payload_size_i, // I [2:0]
-  cfg_prg_max_rd_req_size_i,  // I [2:0]
-  cfg_rd_comp_bound_i,
+  tag_ext_en_i,
+  mstr_enable_i,
+  max_payload_size_i, // I [2:0]
+  max_rd_req_size_i,  // I [2:0]
 
   clk,
   rst_n
@@ -136,175 +121,161 @@ module BMD_ENGINE_TX
 //------------------------------------
 // Port Declarations
 //------------------------------------
-  output [3:0]        tst_tx_engine_state_o;
-  output [15:0]       tst_cur_mwr_pkt_count_o;
-//  output [9:0]        tst_cur_mwr_len_count_o;
-  output              tst_rdy_del_inv_o;
-//  output              tst_trn_ttsrc_rdy_n_o;
+  input  [31:0]    usr_reg_dout_i;
 
-  input  [31:0]       trg_tx_data_i;
+//  output [3:0]     usr_rxbuf_dbe;
+  input  [31:0]    usr_rxbuf_dout_i;
+  output           usr_rxbuf_rd_o;
+  output           usr_rxbuf_rd_last_o;
+  output           usr_rxbuf_rd_fst_o;
+  input            usr_rxbuf_empty_i;
 
-//  output [31:0]       mst_tx_addr_o;
-//  output [3:0]        mst_tx_data_be_o;
-  input  [31:0]       mst_tx_data_i;
-  output              mst_tx_data_rd_o;
-  output              mst_tx_data_rd_last_o;
-  output              mst_tx_data_rd_start_o;
-  input               usr_buf_empty_i;
+  input            clk;
+  input            rst_n;
 
-  input               clk;
-  input               rst_n;
+  output [63:0]    trn_td;
+  output [7:0]     trn_trem_n;
+  output           trn_tsof_n;
+  output           trn_teof_n;
+  output           trn_tsrc_rdy_n_o;
+  output           trn_tsrc_dsc_n;
+  input            trn_tdst_rdy_n;
+  input            trn_tdst_dsc_n;
+  input [5:0]      trn_tbuf_av;
 
-  output [63:0]       trn_td;
-  output [7:0]        trn_trem_n;
-  output              trn_tsof_n;
-  output              trn_teof_n;
-  output              trn_tsrc_rdy_n_o;
-  output              trn_tsrc_dsc_n;
-  input               trn_tdst_rdy_n;
-  input               trn_tdst_dsc_n;
-  input [5:0]         trn_tbuf_av;
+  input            req_compl_i;
+  output           compl_done_o;
 
-  input               req_compl_i;
-  output              compl_done_o;
+  input [29:0]     req_addr_i;
+  input [6:0]      req_fmt_type_i;
+  input [2:0]      req_tc_i;
+  input            req_td_i;
+  input            req_ep_i;
+  input [1:0]      req_attr_i;
+  input [9:0]      req_len_i;
+  input [15:0]     req_rid_i;
+  input [7:0]      req_tag_i;
+  input [7:0]      req_be_i;
+  input            req_expansion_rom_i;
 
-  input [29:0]        req_addr_i;
-  input [6:0]         req_fmt_type_i;
-  input [2:0]         req_tc_i;
-  input               req_td_i;
-  input               req_ep_i;
-  input [1:0]         req_attr_i;
-  input [9:0]         req_len_i;
-  input [15:0]        req_rid_i;
-  input [7:0]         req_tag_i;
-  input [7:0]         req_be_i;
-  input               req_expansion_rom_i;
+  input            trn_dma_init_i;
 
-  input               trn_dma_init_i;
+  input            mwr_work_i;
+  input  [31:0]    mwr_len_i;
+  input  [7:0]     mwr_tag_i;
+  input  [3:0]     mwr_lbe_i;
+  input  [3:0]     mwr_fbe_i;
+  input  [31:0]    mwr_addr_i;
+  input  [31:0]    mwr_count_i;
+  output           mwr_done_o;
+  input  [2:0]     mwr_tlp_tc_i;
+  input            mwr_64b_en_i;
+  input            mwr_phant_func_en1_i;
+  input  [7:0]     mwr_addr_up_i;
+  input            mwr_relaxed_order_i;
+  input            mwr_nosnoop_i;
 
-  input               mwr_work_i;
-  input  [31:0]       mwr_len_i;
-  input  [7:0]        mwr_tag_i;
-  input  [3:0]        mwr_lbe_i;
-  input  [3:0]        mwr_fbe_i;
-  input  [31:0]       mwr_addr_i;
-  input  [31:0]       mwr_count_i;
-  output              mwr_done_o;
-  input  [2:0]        mwr_tlp_tc_i;
-  input               mwr_64b_en_i;
-  input               mwr_phant_func_en1_i;
-  input  [7:0]        mwr_addr_up_i;
-  input               mwr_relaxed_order_i;
-  input               mwr_nosnoop_i;
+  input            mrd_work_i;
+  input  [31:0]    mrd_len_i;
+  input  [7:0]     mrd_tag_i;
+  input  [3:0]     mrd_lbe_i;
+  input  [3:0]     mrd_fbe_i;
+  input  [31:0]    mrd_addr_i;
+  input  [31:0]    mrd_count_i;
+  input  [2:0]     mrd_tlp_tc_i;
+  input            mrd_64b_en_i;
+  input            mrd_phant_func_en1_i;
+  input  [7:0]     mrd_addr_up_i;
+  input            mrd_relaxed_order_i;
+  input            mrd_nosnoop_i;
+  output [31:0]    mrd_pkt_len_o;
+  output [15:0]    mrd_pkt_count_o;
 
-  input               mrd_work_i;
-  input  [31:0]       mrd_len_i;
-  input  [7:0]        mrd_tag_i;
-  input  [3:0]        mrd_lbe_i;
-  input  [3:0]        mrd_fbe_i;
-  input  [31:0]       mrd_addr_i;
-  input  [31:0]       mrd_count_i;
-  input  [2:0]        mrd_tlp_tc_i;
-  input               mrd_64b_en_i;
-  input               mrd_phant_func_en1_i;
-  input  [7:0]        mrd_addr_up_i;
-  input               mrd_relaxed_order_i;
-  input               mrd_nosnoop_i;
-
-  output [15:0]       mrd_pkt_count_o;
-
-  input [15:0]        completer_id_i;
-  input               cfg_ext_tag_en_i;
-  input               cfg_bus_mstr_enable_i;
-  input [2:0]         cfg_prg_max_payload_size_i;
-  input [2:0]         cfg_prg_max_rd_req_size_i;
-  input               cfg_rd_comp_bound_i;
+  input [15:0]     completer_id_i;
+  input            tag_ext_en_i;
+  input            mstr_enable_i;
+  input [2:0]      max_payload_size_i;
+  input [2:0]      max_rd_req_size_i;
 
 //---------------------------------------------
 // Local registers/wire
 //---------------------------------------------
   // Local Registers
-  wire [3:0]          tst_tx_engine_state_o;
-  wire                mst_tx_data_rd_last_o;
+  wire         usr_rxbuf_rd_last_o;
 
-  reg [31:0]          mst_tx_data_delay;
-  reg                 core_postedbuf_rdy_del_inv;
-  reg                 tmwr_addr_incr_stop;
-  reg                 trn_tdw_sel;
-  reg                 mstr_mwr_work;
-  reg                 mst_tx_data_rd_start_o;
-  reg [2:0]           timer_dly;
+  reg [31:0]   sr_usr_rxbuf_dout;
+  reg          core_postedbuf_rdy_del_inv;
+  reg          tmwr_addr_incr_stop;
+  reg          trn_tdw_sel;
+  reg          mstr_mwr_work;
+  reg          usr_rxbuf_rd_fst_o;
+  reg [2:0]    timer_dly;
 
-  reg [63:0]          trn_td;
-  reg [7:0]           trn_trem_n;
-  reg                 trn_tsof_n;
-  reg                 trn_teof_n;
-  reg                 trn_tsrc_rdy_n;
-  reg                 trn_tsrc_dsc_n;
+  reg [63:0]   trn_td;
+  reg [7:0]    trn_trem_n;
+  reg          trn_tsof_n;
+  reg          trn_teof_n;
+  reg          trn_tsrc_rdy_n;
+  reg          trn_tsrc_dsc_n;
 
-  reg [11:0]          byte_count;
-  reg [06:0]          lower_addr;
+  reg [11:0]   byte_count;
+  reg [06:0]   lower_addr;
 
-  reg [3:0]           fsm_state;
+  reg [3:0]    fsm_state;
 
-//  reg                 req_compl_0q;
-  reg                 req_compl_q;
-  reg                 compl_done_o;
+  reg          sr_req_compl;
+  reg          compl_done_o;
 
-  reg [7:0]           mwr_addr_up_req;
-  reg [31:0]          mwr_addr_req;
-  reg                 mwr_done_o;
-  reg [3:0]           mwr_fbe;
-  reg [3:0]           mwr_lbe;
-  reg [3:0]           mwr_fbe_req;
-  reg [3:0]           mwr_lbe_req;
-  reg [31:0]          pmwr_addr;            //Указатель адреса записи данных в память хоста
-  reg [31:0]          tmwr_addr;
-  reg [15:0]          mwr_pkt_count_req;    //Кол-во пакетов MWr которые необходимо передать хосту
-  reg [15:0]          mwr_pkt_count;        //Кол-во переданых пакетов MWr
-  reg [12:0]          mwr_len_byte;         //Размер одного пакета MWr в байт (учавствует в вычислении pmwr_addr)
-  reg [10:0]          mwr_len_dw_req;
-  reg [10:0]          mwr_len_dw;           //Сколько DW осталось передать в текущем пакете.
-                                            //По началу транзвкции Инициализируется значением mwr_len_i[9:0]
+  reg [7:0]    mwr_addr_up_req;
+  reg [31:0]   mwr_addr_req;
+  reg          mwr_done_o;
+  reg [3:0]    mwr_fbe;
+  reg [3:0]    mwr_lbe;
+  reg [3:0]    mwr_fbe_req;
+  reg [3:0]    mwr_lbe_req;
+  reg [31:0]   pmwr_addr;        //Указатель адреса записи данных в память хоста
+  reg [31:0]   tmwr_addr;
+  reg [15:0]   mwr_pkt_count_req;//Кол-во пакетов MWr которые необходимо передать хосту
+  reg [15:0]   mwr_pkt_count;    //Кол-во переданых пакетов MWr
+  reg [12:0]   mwr_len_byte;     //Размер одного пакета MWr в байт (учавствует в вычислении pmwr_addr)
+  reg [10:0]   mwr_len_dw_req;
+  reg [10:0]   mwr_len_dw;       //Сколько DW осталось передать в текущем пакете.
+                                 //По началу транзвкции Инициализируется значением mwr_len_i[9:0]
 
-  reg [7:0]           mrd_addr_up_req;
-  reg [31:0]          mrd_addr_req;
-  reg                 mrd_stop;
-  reg [3:0]           mrd_fbe;
-  reg [3:0]           mrd_lbe;
-  reg [3:0]           mrd_fbe_req;
-  reg [3:0]           mrd_lbe_req;
-  reg [31:0]          pmrd_addr;            //Указатель адреса чтения данных  памяти хоста
-  reg [31:0]          tmrd_addr;
-  reg [15:0]          mrd_pkt_count_req;    //Кол-во пакетов MRd которые необходимо передать хосту
-  reg [15:0]          mrd_pkt_count;        //Кол-во переданых запросов Чтения (пакетов MRr)
-  reg [12:0]          mrd_len_byte;         //Размер одного пакета MRd в байт (учавствует в вычислении pmrd_addr)
-  reg [10:0]          mrd_len_dw_req;
-  reg [10:0]          mrd_len_dw;
+  reg [7:0]    mrd_addr_up_req;
+  reg [31:0]   mrd_addr_req;
+  reg          mrd_stop;
+  reg [3:0]    mrd_fbe;
+  reg [3:0]    mrd_lbe;
+  reg [3:0]    mrd_fbe_req;
+  reg [3:0]    mrd_lbe_req;
+  reg [31:0]   pmrd_addr;        //Указатель адреса чтения данных  памяти хоста
+  reg [31:0]   tmrd_addr;
+  reg [15:0]   mrd_pkt_count_req;//Кол-во пакетов MRd которые необходимо передать хосту
+  reg [15:0]   mrd_pkt_count;    //Кол-во переданых запросов Чтения (пакетов MRr)
+  reg [12:0]   mrd_len_byte;     //Размер одного пакета MRd в байт (учавствует в вычислении pmrd_addr)
+  reg [10:0]   mrd_len_dw_req;
+  reg [10:0]   mrd_len_dw;
 
 
 
   // Local wires
-  wire [31:0]         trg_tx_data;
-  wire [3:0]          req_be;
-  reg [15:0]          mrd_pkt_count_o;
+  wire [31:0]  usr_reg_dout;
+  wire [3:0]   req_be;
+  reg [15:0]   mrd_pkt_count_o;
 
+  assign mrd_pkt_len_o = {21'b0, mrd_len_dw};
 
-  assign tst_tx_engine_state_o = fsm_state;
+  assign req_be = req_be_i[3:0];
 
-  assign req_be        = req_be_i[3:0];
+  assign usr_reg_dout = {usr_reg_dout_i[07:00], usr_reg_dout_i[15:08], usr_reg_dout_i[23:16], usr_reg_dout_i[31:24]};
 
-  assign trg_tx_data  = {trg_tx_data_i[07:00], trg_tx_data_i[15:08], trg_tx_data_i[23:16], trg_tx_data_i[31:24]};
+  assign usr_rxbuf_rd_o = (mstr_mwr_work) && (!usr_rxbuf_empty_i) && (!trn_tdst_rdy_n) && (trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]) && (trn_tdst_dsc_n);
 
-  assign mst_tx_data_rd_o = (mstr_mwr_work) && (!usr_buf_empty_i) && (!trn_tdst_rdy_n) && (trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]) && (trn_tdst_dsc_n);
-
-  assign mst_tx_data_rd_last_o = mst_tx_data_rd_o && (mwr_len_dw == 11'h1);
+  assign usr_rxbuf_rd_last_o = usr_rxbuf_rd_o && (mwr_len_dw == 11'h1);
 
   assign trn_tsrc_rdy_n_o = (trn_tsrc_rdy_n) || (trn_tdw_sel) || (core_postedbuf_rdy_del_inv);
 
-  assign tst_cur_mwr_pkt_count_o = mwr_pkt_count;
-//  assign tst_cur_mwr_len_count_o = mwr_len_dw[9:0];
-  assign tst_rdy_del_inv_o = core_postedbuf_rdy_del_inv;
 
   always @ ( posedge clk or negedge rst_n )
   begin
@@ -322,12 +293,12 @@ module BMD_ENGINE_TX
   begin
     if (!rst_n )
     begin
-      mst_tx_data_delay <= 0;
+      sr_usr_rxbuf_dout <= 0;
     end
     else
     begin
       if (!trn_tdw_sel)
-        mst_tx_data_delay <= {mst_tx_data_i[07:00], mst_tx_data_i[15:08], mst_tx_data_i[23:16], mst_tx_data_i[31:24]};
+        sr_usr_rxbuf_dout <= {usr_rxbuf_dout_i[07:00], usr_rxbuf_dout_i[15:08], usr_rxbuf_dout_i[23:16], usr_rxbuf_dout_i[31:24]};
     end
   end
 
@@ -369,14 +340,11 @@ module BMD_ENGINE_TX
   begin
       if (!rst_n )
       begin
-//        req_compl_0q <= 1'b0;
-        req_compl_q <= 1'b0;
+        sr_req_compl <= 1'b0;
       end
       else
       begin
-//        req_compl_0q <= req_compl_i;
-//        req_compl_q <= req_compl_0q;
-        req_compl_q <= req_compl_i;
+        sr_req_compl <= req_compl_i;
       end
   end
 
@@ -389,14 +357,14 @@ module BMD_ENGINE_TX
     if (!rst_n )
     begin
 
-      trn_tsof_n        <= 1'b1;
-      trn_teof_n        <= 1'b1;
-      trn_tsrc_rdy_n    <= 1'b1;
-      trn_tsrc_dsc_n    <= 1'b1;
-      trn_td            <= 64'b0;
-      trn_trem_n        <= 8'b0;
+      trn_tsof_n     <= 1'b1;
+      trn_teof_n     <= 1'b1;
+      trn_tsrc_rdy_n <= 1'b1;
+      trn_tsrc_dsc_n <= 1'b1;
+      trn_td         <= 64'b0;
+      trn_trem_n     <= 8'b0;
 
-      compl_done_o      <= 1'b0;
+      compl_done_o   <= 1'b0;
 
       tmwr_addr_incr_stop<= 1'b0;
       mstr_mwr_work      <= 1'b0;
@@ -433,26 +401,17 @@ module BMD_ENGINE_TX
       mrd_lbe           <= 4'b0;
 
       timer_dly   <= 3'b0;
-      mst_tx_data_rd_start_o<=1'b0;
+      usr_rxbuf_rd_fst_o<=1'b0;
 
       fsm_state   <= `STATE_TX_RST_STATE;
 
     end
     else
     begin
-      if (trn_dma_init_i )
+      if (trn_dma_init_i)
       begin
         //Инициализация перед началом DMA транзакции
-//        fsm_state   <= `STATE_TX_RST_STATE;
 
-//        trn_tsof_n        <= 1'b1;
-//        trn_teof_n        <= 1'b1;
-//        trn_tsrc_rdy_n    <= 1'b1;
-//        trn_tsrc_dsc_n    <= 1'b1;
-//        trn_td            <= 64'b0;
-//        trn_trem_n        <= 8'b0;
-
-//        mst_tx_data_delay <= 32'b0;
         tmwr_addr_incr_stop<= 1'b0;
         mstr_mwr_work      <= 1'b0;
         trn_tdw_sel        <= 1'b0;
@@ -496,7 +455,7 @@ module BMD_ENGINE_TX
           compl_done_o <= 1'b0;
 
           // Ответ на запрос принятый от PC. always get highest priority
-          if (req_compl_q && !compl_done_o &&
+          if (sr_req_compl && !compl_done_o &&
              !trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_COMPLETION_QUEUE])
           begin
           //-----------------------------------------------------
@@ -528,8 +487,8 @@ module BMD_ENGINE_TX
 
           end
           else
-          if (cfg_bus_mstr_enable_i &&
-              !req_compl_q && !compl_done_o &&
+          if (mstr_enable_i &&
+              !sr_req_compl && !compl_done_o &&
               mwr_work_i && !mwr_done_o &&
              !trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
           begin
@@ -545,9 +504,9 @@ module BMD_ENGINE_TX
             else
             begin
               if (timer_dly==3'h6)
-                mst_tx_data_rd_start_o<=1'b0;
+                usr_rxbuf_rd_fst_o<=1'b0;
               if (timer_dly==3'h5)
-                mst_tx_data_rd_start_o<=1'b1;
+                usr_rxbuf_rd_fst_o<=1'b1;
 
               timer_dly<=timer_dly+1;
             end
@@ -559,8 +518,8 @@ module BMD_ENGINE_TX
 
           end
           else
-          if (cfg_bus_mstr_enable_i &&
-              !req_compl_q && !compl_done_o &&
+          if (mstr_enable_i &&
+              !sr_req_compl && !compl_done_o &&
               mrd_work_i && !mrd_stop &&
               !trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
           begin
@@ -580,16 +539,16 @@ module BMD_ENGINE_TX
               mrd_fbe <= 4'hF;
               mrd_lbe <= 4'hF;
 
-              if      (cfg_prg_max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_dw <= 11'h100;
-              else if (cfg_prg_max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_dw <= 11'h80;
-              else if (cfg_prg_max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_dw <= 11'h40;
-              else                                                                mrd_len_dw <= 11'h20;
+              if      (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_dw <= 11'h100;
+              else if (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_dw <= 11'h80;
+              else if (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_dw <= 11'h40;
+              else                                                        mrd_len_dw <= 11'h20;
             end
 
-            if      (cfg_prg_max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_byte <= 13'h400;//4 * mrd_len_dw;
-            else if (cfg_prg_max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_byte <= 13'h200;//4 * mrd_len_dw
-            else if (cfg_prg_max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
-            else                                                                mrd_len_byte <= 13'h80; //4 * mrd_len_dw
+            if      (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_byte <= 13'h400;//4 * mrd_len_dw;
+            else if (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_byte <= 13'h200;//4 * mrd_len_dw
+            else if (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
+            else                                                        mrd_len_byte <= 13'h80; //4 * mrd_len_dw
 
             trn_tsof_n     <= 1'b1;
             trn_teof_n     <= 1'b1;
@@ -642,7 +601,7 @@ module BMD_ENGINE_TX
                                 req_tag_i,
                                 {1'b0},
                                 lower_addr,
-                                {req_expansion_rom_i ? 32'b0 : trg_tx_data} //Данные для хоста
+                                {req_expansion_rom_i ? 32'b0 : usr_reg_dout} //Данные для хоста
                               };
             trn_trem_n   <= 8'h00;
 
@@ -670,10 +629,10 @@ module BMD_ENGINE_TX
         begin
           if ( (!trn_tdst_rdy_n) || (!trn_tdst_dsc_n) )
           begin
-            trn_tsof_n       <= 1'b1;
-            trn_teof_n       <= 1'b1;
-            trn_tsrc_rdy_n   <= 1'b1;
-            trn_tsrc_dsc_n   <= 1'b1;
+            trn_tsof_n     <= 1'b1;
+            trn_teof_n     <= 1'b1;
+            trn_tsrc_rdy_n <= 1'b1;
+            trn_tsrc_dsc_n <= 1'b1;
 
             fsm_state <= `STATE_TX_RST_STATE;
           end
@@ -695,7 +654,7 @@ module BMD_ENGINE_TX
         `STATE_TX_MWR32_START :
         begin
 
-          if (!trn_tdst_rdy_n && trn_tdst_dsc_n && (!usr_buf_empty_i) && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
+          if (!trn_tdst_rdy_n && trn_tdst_dsc_n && (!usr_rxbuf_empty_i) && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
           begin
           //-----------------------------------------------------
           //Отправка пакета: Memory Write Request (MWr)
@@ -713,16 +672,16 @@ module BMD_ENGINE_TX
               mwr_fbe <=4'hF;
               mwr_lbe <=4'hF;
 
-              if      (cfg_prg_max_payload_size_i==`C_MAX_PAYLOAD_SIZE_1024_BYTE) mwr_len_dw <= 11'h100;
-              else if (cfg_prg_max_payload_size_i==`C_MAX_PAYLOAD_SIZE_512_BYTE)  mwr_len_dw <= 11'h80;
-              else if (cfg_prg_max_payload_size_i==`C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_dw <= 11'h40;
-              else                                                                mwr_len_dw <= 11'h20;
+              if      (max_payload_size_i==`C_MAX_PAYLOAD_SIZE_1024_BYTE) mwr_len_dw <= 11'h100;
+              else if (max_payload_size_i==`C_MAX_PAYLOAD_SIZE_512_BYTE)  mwr_len_dw <= 11'h80;
+              else if (max_payload_size_i==`C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_dw <= 11'h40;
+              else                                                        mwr_len_dw <= 11'h20;
             end
 
-            if      (cfg_prg_max_payload_size_i==`C_MAX_PAYLOAD_SIZE_1024_BYTE) mwr_len_byte <= 13'h400;//4 * mwr_len_dw;
-            else if (cfg_prg_max_payload_size_i==`C_MAX_PAYLOAD_SIZE_512_BYTE)  mwr_len_byte <= 13'h200;//4 * mwr_len_dw
-            else if (cfg_prg_max_payload_size_i==`C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
-            else                                                                mwr_len_byte <= 13'h80; //4 * mwr_len_dw
+            if      (max_payload_size_i==`C_MAX_PAYLOAD_SIZE_1024_BYTE) mwr_len_byte <= 13'h400;//4 * mwr_len_dw;
+            else if (max_payload_size_i==`C_MAX_PAYLOAD_SIZE_512_BYTE)  mwr_len_byte <= 13'h200;//4 * mwr_len_dw
+            else if (max_payload_size_i==`C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
+            else                                                        mwr_len_byte <= 13'h80; //4 * mwr_len_dw
 
             trn_tsof_n     <= 1'b1;
             trn_teof_n     <= 1'b1;
@@ -741,7 +700,7 @@ module BMD_ENGINE_TX
         //-----------------------------------------------------
         `STATE_TX_MWR32_QW0 :
         begin
-          if (!trn_tdst_rdy_n && trn_tdst_dsc_n && (!usr_buf_empty_i) && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
+          if (!trn_tdst_rdy_n && trn_tdst_dsc_n && (!usr_rxbuf_empty_i) && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
           begin
             trn_tsof_n     <= 1'b0;
             trn_teof_n     <= 1'b1;
@@ -759,7 +718,7 @@ module BMD_ENGINE_TX
                        {2'b0},
                        mwr_len_dw[9:0],       //Length (data payload size in DW)
                        {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b00},
-                       cfg_ext_tag_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]},
+                       tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]},
                        mwr_lbe,
                        mwr_fbe };
 
@@ -792,9 +751,9 @@ module BMD_ENGINE_TX
           //                 Indicates that the core is aborting the current packet.
           //                 Asserted when the physical link is going into reset
 
-          trn_tsrc_rdy_n   <= usr_buf_empty_i;
+          trn_tsrc_rdy_n <= usr_rxbuf_empty_i;
 
-          if ((!trn_tdst_rdy_n) && (trn_tdst_dsc_n) && (!usr_buf_empty_i))// && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]))
+          if ((!trn_tdst_rdy_n) && (trn_tdst_dsc_n) && (!usr_rxbuf_empty_i))
           begin
             trn_tsof_n <= 1'b1;
             trn_trem_n <= 8'h00;
@@ -808,7 +767,7 @@ module BMD_ENGINE_TX
             end
 
             trn_td   <= {tmwr_addr[31:2], {2'b00}, //Передаем начальный адрес записи в память хоста
-                         mst_tx_data_i[07:00], mst_tx_data_i[15:08], mst_tx_data_i[23:16], mst_tx_data_i[31:24]};//Передаем 1fst DW данных
+                         usr_rxbuf_dout_i[07:00], usr_rxbuf_dout_i[15:08], usr_rxbuf_dout_i[23:16], usr_rxbuf_dout_i[31:24]};//Передаем 1fst DW данных
             pmwr_addr<= tmwr_addr;
 
             if (trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
@@ -837,7 +796,7 @@ module BMD_ENGINE_TX
                 fsm_state <= `STATE_TX_MWR_QWN;
               end
             end
-            else //if (!trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]))
+            else //if (trn_tbuf_av!=0)
             begin
               //Буфер для POST транзакции не готов к приему данных
               //Ждем пока буфер будет доступен
@@ -872,9 +831,9 @@ module BMD_ENGINE_TX
           //                 Asserted when the physical link is going into reset
 
           tmwr_addr_incr_stop <= 1'b0;
-          trn_tsrc_rdy_n <= usr_buf_empty_i;
+          trn_tsrc_rdy_n <= usr_rxbuf_empty_i;
 
-          if ((!trn_tdst_rdy_n) && (trn_tdst_dsc_n) && (!usr_buf_empty_i)) // && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]))
+          if ((!trn_tdst_rdy_n) && (trn_tdst_dsc_n) && (!usr_rxbuf_empty_i))
           begin
 
             if (mwr_len_dw == 11'h1)
@@ -889,16 +848,16 @@ module BMD_ENGINE_TX
                 //высатвлего вместе с trn_teof_n
                 if (trn_tdw_sel)
                 begin
-                  trn_td[63:32] <= mst_tx_data_delay;
+                  trn_td[63:32] <= sr_usr_rxbuf_dout;
                   trn_trem_n <= 8'h00;//действительны trn_tdх[63:0]
                 end
                 else
                 begin
-                  trn_td[63:32] <= {mst_tx_data_i[07:00], mst_tx_data_i[15:08], mst_tx_data_i[23:16], mst_tx_data_i[31:24]};
+                  trn_td[63:32] <= {usr_rxbuf_dout_i[07:00], usr_rxbuf_dout_i[15:08], usr_rxbuf_dout_i[23:16], usr_rxbuf_dout_i[31:24]};
                   trn_trem_n <= 8'h0F;//действительны trn_tdх[63:32]
                 end
 
-                trn_td[31:0]<= {mst_tx_data_i[07:00], mst_tx_data_i[15:08], mst_tx_data_i[23:16], mst_tx_data_i[31:24]};
+                trn_td[31:0]<= {usr_rxbuf_dout_i[07:00], usr_rxbuf_dout_i[15:08], usr_rxbuf_dout_i[23:16], usr_rxbuf_dout_i[31:24]};
                 trn_tdw_sel <= 1'b0;
 
                 //Проверка кол-ва переданых пакетов
@@ -914,7 +873,7 @@ module BMD_ENGINE_TX
                 mstr_mwr_work <= 1'b0;
                 fsm_state <= `STATE_TX_RST_STATE;
               end
-              else //if (!trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]))
+              else //if (trn_tbuf_av!=0)
               //Буфер для POST транзакции не готов к приему данных
               //Ждем пока буфер будет доступен
                 fsm_state <= `STATE_TX_MWR_QWN;
@@ -923,14 +882,16 @@ module BMD_ENGINE_TX
             else //if (mwr_len_dw > 1'h1)
             begin
 
-              trn_td <= {mst_tx_data_delay, mst_tx_data_i[07:00], mst_tx_data_i[15:08], mst_tx_data_i[23:16], mst_tx_data_i[31:24]};
+              trn_td <= {sr_usr_rxbuf_dout, usr_rxbuf_dout_i[07:00], usr_rxbuf_dout_i[15:08], usr_rxbuf_dout_i[23:16], usr_rxbuf_dout_i[31:24]};
               trn_trem_n <= 8'h00;
 
               if (trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
               begin
                 //т.к. trn_td=[63:0]=DW+DW, а mst_tx_data=[31:0]=DW, то формиурую сигнал выбора DW
-                if (!trn_tdw_sel) trn_tdw_sel <= 1'b1;
-                else              trn_tdw_sel <= 1'b0;
+                if (!trn_tdw_sel)
+                trn_tdw_sel <= 1'b1;
+                else
+                trn_tdw_sel <= 1'b0;
 
                 mwr_len_dw <= mwr_len_dw - 1'h1;//Вычисляю сколько DW(payload) текущего пакета остальсь передать
               end
@@ -1020,7 +981,7 @@ module BMD_ENGINE_TX
                        {2'b0},
                        mrd_len_dw[9:0], //Length (data payload size in DW)
                        {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b00},
-                       cfg_ext_tag_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]},
+                       tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]},
                        mrd_lbe,
                        mrd_fbe };
 
@@ -1101,5 +1062,5 @@ module BMD_ENGINE_TX
   end //always @ ( posedge clk or negedge rst_n )
 
 
-endmodule //BMD_ENGINE_TX.v
+endmodule //pcie_tx.v
 

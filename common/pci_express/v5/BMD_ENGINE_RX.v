@@ -3,7 +3,7 @@
 //-- Engineer    : Golovachenko Victor
 //--
 //-- Create Date : 11/11/2009
-//-- Module Name : BMD_ENGINE_RX.v
+//-- Module Name : pcie_rx.v
 //--
 //-- Description : Local-Link Receive Unit.
 //--               Модуль приема и обработки пакетов уровня TPL PCI-Express
@@ -27,32 +27,23 @@
 `define STATE_RX_CPLD_QW1       4'b1000 //4'h08 //10'b0010000000
 `define STATE_RX_CPLD_QWN       4'b1001 //4'h09 //10'b0010000000
 `define STATE_RX_CPLD_WT0       4'b1010 //4'h0A //10'b1000000000
-`define STATE_RX_CPLD_WT1       4'b1011 //4'h0B //10'b1000000000
-`define STATE_RX_MEM_RD32_WT1   4'b1110 //4'h0B //10'b1000000000
-//`define STATE_RX_MEM_WR32_QWN   4'b1100 //4'h0C //10'b1000000000
+`define STATE_RX_MEM_RD32_WT1   4'b1011 //4'h0B //10'b1000000000
+`define STATE_RX_CPLD_WT1       4'b1100 //4'h0B //10'b1000000000
 
 
-module BMD_ENGINE_RX
-(
-  //Recieve Port:
+module pcie_rx(
   //режим Target
-  trg_addr_o,       // [7:0]
-  trg_rx_data_o,       // Rcv Data
-  trg_rx_data_wd_o,    // Write Enable
-  trg_rx_data_rd_o,    // Read Enable
+  usr_reg_adr_o,
+  usr_reg_din_o,
+  usr_reg_wr_o,
+  usr_reg_rd_o,
 
   //режим Master
-//  mst_rx_addr_o,
-  mst_rx_data_o,       // Rcv Data
-  mst_rx_data_be_o,    // Byte Enable
-  mst_rx_data_wd_o,    // Write Enable
-  mst_rx_data_wd_last_o,
-  usr_buf_full_i,
-
-//  wr_busy_i,        // Memory Write Busy
-
-  tst_rx_engine_state_o,
-
+  usr_txbuf_din_o,
+  usr_txbuf_wr_o,
+  usr_txbuf_wr_last_o,
+  usr_txbuf_full_i,
+//  usr_txbuf_dbe_o,  // Byte Enable
 
   //LocalLink Rx (Receive local link interface from PCIe core)
   trn_rd,          //in[31:0] : Receive DATA
@@ -62,15 +53,7 @@ module BMD_ENGINE_RX
   trn_rsrc_rdy_n,  //in  : Receive Source Ready: Indicates the core is presenting valid data on trn_rd
   trn_rsrc_dsc_n,  //in  : Receive Source Discontinue: Indicates the core is aborting the current packet.(Not supported; signal is tied high.)
   trn_rdst_rdy_n_o,//out : Receive Destination Ready: Indicates the User Application is ready to accept data on trn_rd
-  trn_rbar_hit_n,  //in[6:0] :Receive BAR Hit: Active low. Indicates BAR(s) targeted by
-                   //the current receive transaction.
-                   //trn_rbar_hit_n[0] => BAR0
-                   //trn_rbar_hit_n[1] => BAR1
-                   //trn_rbar_hit_n[2] => BAR2
-                   //trn_rbar_hit_n[3] => BAR3
-                   //trn_rbar_hit_n[4] => BAR4
-                   //trn_rbar_hit_n[5] => BAR5
-                   //trn_rbar_hit_n[6] => Expansion ROM Address.(Not supported (disabled). Signal is tied high.)
+  trn_rbar_hit_n,  //in[6:0] :Indicates BAR(s) targeted by
 
   //Handshake with Tx engine:
   req_compl_o,         //запрос: отправить пакет CplD
@@ -93,14 +76,12 @@ module BMD_ENGINE_RX
   trn_dma_init_i,
 
   //Completion with Data
-  cpld_found_o,     //Кол-во принятых пакетов CplDATA
-  cpld_total_size_o,//Total Payload Size (CplDATA)(DWORD)//Размер данных всех принятых пакетов CplDATA
+  cpld_total_size_o,//Общее кол-во данных(DW) от всех принятых пакетов CplD
   cpld_malformed_o, //Похо сформированный пакет
 
-
-  //Completion no Data
-  cpl_ur_found_o,
-  cpl_ur_tag_o,
+  //Технологический порт
+  tst_o,
+  tst2_o,
 
   clk,
   rst_n
@@ -109,153 +90,154 @@ module BMD_ENGINE_RX
 //------------------------------------
 // Port Declarations
 //------------------------------------
-  output [7:0]       trg_addr_o;
-  output [31:0]      trg_rx_data_o;
-  output             trg_rx_data_wd_o;
-  output             trg_rx_data_rd_o;
+  output [1:0]   tst_o;
+  output [9:0]   tst2_o;
+  output [7:0]   usr_reg_adr_o;
+  output [31:0]  usr_reg_din_o;
+  output         usr_reg_wr_o;
+  output         usr_reg_rd_o;
 
-  output [31:0]      mst_rx_data_o;
-  output [7:0]       mst_rx_data_be_o;
-  output             mst_rx_data_wd_o;
-  output             mst_rx_data_wd_last_o;
-  input              usr_buf_full_i;
+  output [31:0]  usr_txbuf_din_o;
+  output         usr_txbuf_wr_o;
+  output         usr_txbuf_wr_last_o;
+  input          usr_txbuf_full_i;
+//  output [7:0]   usr_txbuf_dbe_o;
 
-//  input              wr_busy_i;
+  input          clk;
+  input          rst_n;
 
-  output [3:0]       tst_rx_engine_state_o;
+  input [63:0]   trn_rd;
+  input [7:0]    trn_rrem_n;
+  input          trn_rsof_n;
+  input          trn_reof_n;
+  input          trn_rsrc_rdy_n;
+  input          trn_rsrc_dsc_n;
+  output         trn_rdst_rdy_n_o;
+  input [6:0]    trn_rbar_hit_n;
 
-  input              clk;
-  input              rst_n;
+  output         req_compl_o;
+  input          compl_done_i;
 
-  input [63:0]       trn_rd;
-  input [7:0]        trn_rrem_n;
-  input              trn_rsof_n;
-  input              trn_reof_n;
-  input              trn_rsrc_rdy_n;
-  input              trn_rsrc_dsc_n;
-  output             trn_rdst_rdy_n_o;
-  input [6:0]        trn_rbar_hit_n;
+  output [29:0]  req_addr_o;
+  output [6:0]   req_fmt_type_o;
+  output [2:0]   req_tc_o;
+  output         req_td_o;
+  output         req_ep_o;
+  output [1:0]   req_attr_o;
+  output [9:0]   req_len_o;
+  output [15:0]  req_rid_o;
+  output [7:0]   req_tag_o;
+  output [7:0]   req_be_o;
+  output         req_expansion_rom_o;
 
-  output             req_compl_o;
-  input              compl_done_i;
+  input          trn_dma_init_i;
 
-  output [29:0]      req_addr_o;
-  output [6:0]       req_fmt_type_o;
-  output [2:0]       req_tc_o;
-  output             req_td_o;
-  output             req_ep_o;
-  output [1:0]       req_attr_o;
-  output [9:0]       req_len_o;
-  output [15:0]      req_rid_o;
-  output [7:0]       req_tag_o;
-  output [7:0]       req_be_o;
-  output             req_expansion_rom_o;
-
-  input              trn_dma_init_i;
-
-  output [7:0]       cpl_ur_found_o;
-  output [7:0]       cpl_ur_tag_o;
-
-  output [31:0]      cpld_found_o;
-  output [31:0]      cpld_total_size_o;
-  output             cpld_malformed_o;
+  output [31:0]  cpld_total_size_o;
+  output         cpld_malformed_o;
 
 //---------------------------------------------
 // Local registers/wire
 //---------------------------------------------
   // Local wire
-  wire               bar_expansion_rom;
-
-  wire               mst_rx_data_wd_o;
-  wire               mst_rx_data_wd_last_o;
+  wire           bar_expansion_rom;
+  wire           usr_txbuf_wr;
+  wire           usr_txbuf_wr_o;
+  wire           usr_txbuf_wr_last_o;
 
   // Local Registers
-  wire[3:0]          tst_rx_engine_state_o;
+  reg [3:0]      fsm_state;
 
-  reg [3:0]          fsm_state;
+  reg            trn_rdst_rdy_n;
 
-  reg                trn_rdst_rdy_n;
+  reg            req_compl_o;
+  reg            req_expansion_rom_o;
 
-  reg                req_compl_o;
-  reg                req_expansion_rom_o;
+  reg [6:0]      req_fmt_type_o;
+  reg [2:0]      req_tc_o;
+  reg            req_td_o;
+  reg            req_ep_o;
+  reg [1:0]      req_attr_o;
+  reg [9:0]      req_len_o;
+  reg [15:0]     req_rid_o;
+  reg [7:0]      req_tag_o;
+  reg [7:0]      req_be_o;
 
-  reg [6:0]          req_fmt_type_o;
-  reg [2:0]          req_tc_o;
-  reg                req_td_o;
-  reg                req_ep_o;
-  reg [1:0]          req_attr_o;
-  reg [9:0]          req_len_o;
-  reg [15:0]         req_rid_o;
-  reg [7:0]          req_tag_o;
-  reg [7:0]          req_be_o;
+  reg [29:0]     req_addr_o;
 
-  reg [29:0]         req_addr_o;
+  reg [31:0]     trg_rxd;
+  reg            usr_reg_wr_o;
+  reg            usr_reg_rd_o;
 
-  reg [31:0]         trg_rx_data;
-  reg                trg_rx_data_wd_o;
-  reg                trg_rx_data_rd_o;
+  reg [31:0]     mst_rxd;
+//  reg [7:0]      mst_rxd_be;
 
-  reg [31:0]         mst_rx_data;
-  reg [7:0]          mst_rx_data_be;
+  reg [31:0]     cpld_total_size_o;
+  reg            cpld_malformed_o;
+
+  reg [9:0]      cpld_tlp_dcnt;
+  reg [9:0]      cpld_tlp_len;
+
+  reg            cpld_tpl_work;
+  reg            trn_rdw_sel;
+  reg            sr_trn_rdw_sel;
+  reg            cpld_tpl_dlast;
 
 
-  reg [7:0]          cpl_ur_found_o;
-  reg [7:0]          cpl_ur_tag_o;
-
-  reg [31:0]         cpld_found_o;
-  reg [31:0]         cpld_total_size_o;
-  reg                cpld_malformed_o;
-
-  reg [9:0]          cpld_tlp_size_count;
-  reg [9:0]          cpld_tlp_size_saved;
-
-  reg                cpld_tpl_work;
-  reg                trn_rdw_sel;
-  reg                trn_rdw_sel_delay;
-  reg                cpld_last_data;
-
-  assign tst_rx_engine_state_o = fsm_state;
+  assign tst_o[0] = cpld_tpl_work;
+  assign tst_o[1] = trn_rdw_sel;
+  assign tst2_o[9:0] = cpld_tlp_dcnt;
 
   assign  bar_expansion_rom =!trn_rbar_hit_n[6];
   assign  bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
 
-  assign trg_addr_o = {{req_addr_o[5:0]},{2'b0}};
+  assign usr_reg_adr_o = {{req_addr_o[5:0]},{2'b0}};
 
 
-  assign trg_rx_data_o = {{trg_rx_data[07:00]},
-                          {trg_rx_data[15:08]},
-                          {trg_rx_data[23:16]},
-                          {trg_rx_data[31:24]}};
+  assign usr_reg_din_o = {{trg_rxd[07:00]},
+                          {trg_rxd[15:08]},
+                          {trg_rxd[23:16]},
+                          {trg_rxd[31:24]}};
 
-  assign mst_rx_data_o = {{mst_rx_data[07:00]},
-                          {mst_rx_data[15:08]},
-                          {mst_rx_data[23:16]},
-                          {mst_rx_data[31:24]}};
+  assign usr_txbuf_din_o = {{mst_rxd[07:00]},
+                            {mst_rxd[15:08]},
+                            {mst_rxd[23:16]},
+                            {mst_rxd[31:24]}};
 
-  assign mst_rx_data_be_o = mst_rx_data_be;
+//  assign usr_txbuf_dbe_o = mst_rxd_be;
+  assign usr_txbuf_wr = cpld_tpl_work && (trn_rdw_sel || sr_trn_rdw_sel);
+  assign usr_txbuf_wr_o = usr_txbuf_wr;
 
-  assign mst_rx_data_wd_o = cpld_tpl_work && (trn_rdw_sel || trn_rdw_sel_delay);
+  assign usr_txbuf_wr_last_o = usr_txbuf_wr && (cpld_tpl_dlast || ((!trn_reof_n) && (!trn_rdw_sel) && (trn_rrem_n != 8'h00)));
 
-  assign mst_rx_data_wd_last_o = cpld_last_data;
+  assign trn_rdst_rdy_n_o = (cpld_tpl_work && (trn_rdw_sel || usr_txbuf_full_i)) || trn_rdst_rdy_n;
 
-//  assign trn_rdst_rdy_n_o = (cpld_tpl_work && (!usr_buf_full_i) && trn_rdw_sel) || trn_rdst_rdy_n;
-  assign trn_rdst_rdy_n_o = (cpld_tpl_work && (!usr_buf_full_i) && trn_rdw_sel) || (cpld_tpl_work && usr_buf_full_i) || trn_rdst_rdy_n;
 
   always @ ( posedge clk or negedge rst_n )
   begin
     if (!rst_n )
     begin
-      trn_rdw_sel_delay <= 1'b0;
+      sr_trn_rdw_sel <= 1'b0;
     end
     else
     begin
       if (cpld_tpl_work)
-        trn_rdw_sel_delay <= trn_rdw_sel;
+        sr_trn_rdw_sel <= trn_rdw_sel;
       else
-        trn_rdw_sel_delay <= 1'b0;
+        sr_trn_rdw_sel <= 1'b0;
     end
   end
 
+  always @ ( posedge clk or negedge rst_n )
+  begin
+    if (!rst_n )
+      cpld_tlp_dcnt <= 10'b0;
+    else
+    if ((!trn_rsof_n) && (!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
+      cpld_tlp_dcnt <= 10'b0;
+    else
+    if (usr_txbuf_wr)
+      cpld_tlp_dcnt <= cpld_tlp_dcnt + 1'b1;//Счетчик принятых данных(DW) в пакете cpld
+  end
 
   always @ ( posedge clk or negedge rst_n )
   begin
@@ -270,36 +252,30 @@ module BMD_ENGINE_RX
       req_expansion_rom_o<=1'b0;
 
       req_fmt_type_o <= 7'b0;
-      req_tc_o    <= 2'b0;
-      req_td_o    <= 1'b0;
-      req_ep_o    <= 1'b0;
-      req_attr_o  <= 2'b0;
-      req_len_o   <= 10'b0;
-      req_rid_o   <= 16'b0;
-      req_tag_o   <= 8'b0;
-      req_be_o    <= 8'b0;
-      req_addr_o  <= 30'b0;
+      req_tc_o   <= 2'b0;
+      req_td_o   <= 1'b0;
+      req_ep_o   <= 1'b0;
+      req_attr_o <= 2'b0;
+      req_len_o  <= 10'b0;
+      req_rid_o  <= 16'b0;
+      req_tag_o  <= 8'b0;
+      req_be_o   <= 8'b0;
+      req_addr_o <= 30'b0;
 
-      trg_rx_data      <= 32'b0;
-      trg_rx_data_wd_o <= 1'b0;
-      trg_rx_data_rd_o <= 1'b0;
+      trg_rxd <= 32'b0;
+      usr_reg_wr_o <= 1'b0;
+      usr_reg_rd_o <= 1'b0;
 
-      mst_rx_data      <= 32'b0;
-      mst_rx_data_be   <= 8'b0;
+      mst_rxd <= 32'b0;
+//      mst_rxd_be <= 8'b0;
 
-      cpl_ur_found_o   <= 8'b0;
-      cpl_ur_tag_o     <= 8'b0;
-
-      cpld_found_o     <= 32'b0;
       cpld_total_size_o<= 32'b0;
       cpld_malformed_o <= 1'b0;
 
-      cpld_tlp_size_count <= 10'b0;
-      cpld_tlp_size_saved <= 10'b0;
-
-      cpld_tpl_work   <= 1'b0;
-      trn_rdw_sel     <= 1'b0;
-      cpld_last_data  <= 1'b0;
+      trn_rdw_sel    <= 1'b0;
+      cpld_tpl_work  <= 1'b0;
+      cpld_tlp_len <= 10'b0;
+      cpld_tpl_dlast <= 1'b0;
 
     end
     else
@@ -310,18 +286,9 @@ module BMD_ENGINE_RX
       if (trn_dma_init_i)
       begin
       //Инициализация перед началом DMA транзакции
-//        fsm_state <= `STATE_RX_RST;
-
-        cpl_ur_found_o <= 8'b0;
-        cpl_ur_tag_o   <= 8'b0;
-
+        cpld_tlp_len <= 10'b0;
         cpld_total_size_o <= 32'b0;
-        cpld_found_o      <= 32'b0;
         cpld_malformed_o  <= 1'b0;
-
-        cpld_tlp_size_count <= 10'b0;
-        cpld_tlp_size_saved <= 10'b0;
-
       end
 
       case (fsm_state)
@@ -400,9 +367,7 @@ module BMD_ENGINE_RX
                 //Note:Requester хочет записать данные в память (регистры) FPFA
                 //-----------------------------------------------------------------------
                 if (trn_rd[41:32] == 10'b1)//-поле Length(Length of data payload in DW)
-                begin
                   fsm_state <= `STATE_RX_MEM_WR32_QW1;
-                end
                 else
                   fsm_state <= `STATE_RX_RST;
 
@@ -451,14 +416,12 @@ module BMD_ENGINE_RX
                 //-----------------------------------------------------------------------
                 if (trn_rd[15:13] != `C_COMPLETION_STATUS_SC)//trn_rd[15:13]-поле Completion Status Code, trn_rd[12]-поле BCM(Byte Count Modified)
                 begin
-                  cpl_ur_found_o <= cpl_ur_found_o + 1'b1;
-
                   fsm_state <= `STATE_RX_CPL_QW1;
                 end
                 else
                   fsm_state <= `STATE_RX_RST;
 
-              end //С_FMT_TYPE_CPL_3DW_ND
+              end //`C_FMT_TYPE_CPL_3DW_ND
 
 
               `C_FMT_TYPE_CPLD_3DW_WD :
@@ -471,34 +434,25 @@ module BMD_ENGINE_RX
 //                if (trn_rd[15:13] == `C_COMPLETION_STATUS_SC)//trn_rd[15:13]-поле Completion Status Code
 //                begin
                   cpld_total_size_o<= cpld_total_size_o + trn_rd[41:32];
-                  cpld_tlp_size_saved<= trn_rd[41:32]; //Length of data payload in DW
-                  cpld_tlp_size_count<= 10'b0;
-                  cpld_found_o <= cpld_found_o + 1'b1;
-
+                  cpld_tlp_len <= trn_rd[41:32]; //Length of data payload(DW),в текущем TPL
                   cpld_tpl_work <= 1'b1;
-
                   fsm_state <= `STATE_RX_CPLD_QW1;
 //                end
 //                else
-//                begin
 //                  fsm_state <= `STATE_RX_RST;
-//                end
 
               end //С_FMT_TYPE_CPLD_3DW_WD
 
-
               default :
-              begin
                 fsm_state <= `STATE_RX_RST;
-              end
 
-            endcase
-          end
+            endcase //case (trn_rd[62:56])
+
+          end //if ((!trn_rsof_n) && (!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
           else
-          begin
             fsm_state <= `STATE_RX_RST;
-          end
-        end
+
+        end //`STATE_RX_RST :
 
 
 
@@ -511,15 +465,16 @@ module BMD_ENGINE_RX
         //-----------------------------------------------------------------------
         `STATE_RX_IOWR32_QW1 :
         begin
+
           if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
           begin
-            req_addr_o       <= trn_rd[63:34];//ADDR[31:2]
+            req_addr_o <= trn_rd[63:34];//ADDR[31:2]
+            trg_rxd <= trn_rd[31:00];
 
-            trg_rx_data      <= trn_rd[31:00];
             if (bar_usr)
-            trg_rx_data_wd_o <= 1'b1;
+            usr_reg_wr_o <= 1'b1;
             else
-            trg_rx_data_wd_o <= 1'b0;
+            usr_reg_wr_o <= 1'b0;
 
             req_compl_o    <= 1'b1;//Выставляем модулю Передачи запрос на отправку пакета Cpl
             trn_rdst_rdy_n <= 1'b1;
@@ -529,13 +484,11 @@ module BMD_ENGINE_RX
           end
           else
           if (!trn_rsrc_dsc_n)
-          begin
             //Надо управлять сигналом ERROR cfg_err_cpl_abort_n_o
             fsm_state <= `STATE_RX_RST;
-          end
           else
             fsm_state <= `STATE_RX_IOWR32_QW1;
-        end
+        end //`STATE_RX_IOWR32_QW1 :
 
         //-----------------------------------------------------------------------
         //Обработчик пакета:- IOWr - 3DW, w/data
@@ -545,23 +498,22 @@ module BMD_ENGINE_RX
         `STATE_RX_IOWR32_WT:
         begin
 
-          trg_rx_data_wd_o <= 1'b0;
+          usr_reg_wr_o <= 1'b0;
 
           //Ждем пока модуль Передачи завершит отправку пакета Cpl
           if (compl_done_i)
           begin
             trn_rdst_rdy_n <= 1'b0;
-
             fsm_state <= `STATE_RX_RST;
           end
           else
           begin
             req_compl_o    <= 1'b1;
             trn_rdst_rdy_n <= 1'b1;
-
             fsm_state <= `STATE_RX_IOWR32_WT;
           end
-        end
+
+        end //`STATE_RX_IOWR32_WT:
         //END:Обработчик пакета:- IOWr - 3DW, w/data
 
 
@@ -575,18 +527,18 @@ module BMD_ENGINE_RX
         //-----------------------------------------------------------------------
         `STATE_RX_MEM_RD32_QW1 :
         begin
+
           if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
           begin
             req_addr_o     <= trn_rd[63:34];//ADDR[31:2]
-//            req_compl_o    <= 1'b1;//Выставляем модулю Передачи запрос на отправку пакета CplD
             trn_rdst_rdy_n <= 1'b1;
 
             if (!bar_expansion_rom)
             begin
               if (bar_usr)
-              trg_rx_data_rd_o<= 1'b1;
+              usr_reg_rd_o<= 1'b1;
               else
-              trg_rx_data_rd_o<= 1'b0;
+              usr_reg_rd_o<= 1'b0;
             end
 
             fsm_state <= `STATE_RX_MEM_RD32_WT1;
@@ -594,12 +546,11 @@ module BMD_ENGINE_RX
           end
           else
           if (!trn_rsrc_dsc_n)
-          begin
             fsm_state <= `STATE_RX_RST;
-          end
           else
             fsm_state <= `STATE_RX_MEM_RD32_QW1;
-        end
+
+        end //`STATE_RX_MEM_RD32_QW1 :
 
         //-----------------------------------------------------------------------
         //Обработчик пакета:- MRd - 3DW, no data
@@ -608,15 +559,16 @@ module BMD_ENGINE_RX
         `STATE_RX_MEM_RD32_WT1:
         begin
 
-          trg_rx_data_rd_o<= 1'b0;
-          req_compl_o    <= 1'b1;//Выставляем модулю Передачи запрос на отправку пакета CplD
+          usr_reg_rd_o<= 1'b0;
+          req_compl_o <= 1'b1;//Выставляем модулю Передачи запрос на отправку пакета CplD
           fsm_state <= `STATE_RX_MEM_RD32_WT;
-        end
+
+        end //`STATE_RX_MEM_RD32_WT1:
 
         `STATE_RX_MEM_RD32_WT:
         begin
 
-          trg_rx_data_rd_o<= 1'b0;
+          usr_reg_rd_o<= 1'b0;
           //Ждем пока модуль Передачи завершит отправку пакета CplD
           if (compl_done_i)
           begin
@@ -632,7 +584,8 @@ module BMD_ENGINE_RX
 
             fsm_state <= `STATE_RX_MEM_RD32_WT;
           end
-        end
+
+        end //`STATE_RX_MEM_RD32_WT:
         //END:Обработчик пакета:- MRd - 3DW, no data
 
 
@@ -648,12 +601,13 @@ module BMD_ENGINE_RX
 
           if ((!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
           begin
-            req_addr_o       <= trn_rd[63:34];//ADDR[31:2]
-            trg_rx_data      <= trn_rd[31:00];
+            req_addr_o <= trn_rd[63:34];//ADDR[31:2]
+            trg_rxd <= trn_rd[31:00];
+
             if (bar_usr)
-            trg_rx_data_wd_o <= 1'b1;
+            usr_reg_wr_o <= 1'b1;
             else
-            trg_rx_data_wd_o <= 1'b0;
+            usr_reg_wr_o <= 1'b0;
 
             if (!trn_reof_n)
             begin
@@ -666,66 +620,12 @@ module BMD_ENGINE_RX
           end
           else
           if (!trn_rsrc_dsc_n)
-          begin
             fsm_state <= `STATE_RX_RST;
-          end
           else
             fsm_state <= `STATE_RX_MEM_WR32_QW1;
 
-        end
+        end //`STATE_RX_MEM_WR32_QW1 :
 
-//        //-----------------------------------------------------------------------
-//        //Обработчик пакета:- MWd - 3DW, w/ data
-//        //Прием данных:
-//        //-----------------------------------------------------------------------
-//        `STATE_RX_MEM_WR32_QWN :
-//        begin
-//
-//          if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
-//          begin
-//            if (trn_rdst_rdy_n==1'b1)
-//            begin
-//              trn_rdst_rdy_n <= 1'b0;
-//              trg_rx_data <= trn_rd[63:32];
-//            end
-//            else
-//            begin
-//              trn_rdst_rdy_n  <=1'b1;
-//              trg_rx_data <= trn_rd[31:0];
-//            end
-//
-//            if (!trn_reof_n)
-//            begin
-//              if ((trn_rdst_rdy_n) && (trn_rrem_n!=8'h00))
-//                trg_rx_data_wd_o <= 1'b0;
-//            end
-//            else
-//              trg_rx_data_wd_o <= 1'b1;
-//
-//            if (trg_rx_data_wd_o==1'b1)
-//              req_mwr_len_dw <= req_mwr_len_dw - 1'h1;
-//
-//            //trn_rrem_n=8'h0F - trn_rd[63:32]
-//            //trn_rrem_n=8'h00 - trn_rd[63:0]
-//            if ((!trn_reof_n) && (!trn_rdst_rdy_n))
-//            begin
-//              fsm_state <= `STATE_RX_MEM_WR32_WT;
-//            end
-//
-//          end
-//          else
-//          if (!trn_rsrc_dsc_n)
-//          begin
-//            trg_rx_data_wd_o <= 1'b0;
-//            fsm_state <= `STATE_RX_RST;
-//          end
-//          else
-//          begin
-//            trg_rx_data_wd_o <= 1'b0;
-//            fsm_state <= `STATE_RX_MEM_WR32_QWN;
-//          end
-//
-//        end
 
         //-----------------------------------------------------------------------
         //Обработчик пакета:- MWd - 3DW, w/ data
@@ -734,12 +634,12 @@ module BMD_ENGINE_RX
         `STATE_RX_MEM_WR32_WT:
         begin
 
-          trg_rx_data_wd_o <= 1'b0;
+          usr_reg_wr_o <= 1'b0;
           trn_rdst_rdy_n   <= 1'b0;
 
           fsm_state <= `STATE_RX_RST;
 
-        end
+        end //`STATE_RX_MEM_WR32_WT:
         //END:Обработчик пакета:MWd - 3DW, w/ data
 
 
@@ -751,19 +651,16 @@ module BMD_ENGINE_RX
         //-----------------------------------------------------------------------
         `STATE_RX_CPL_QW1 :
         begin
+
           if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && (!trn_rdst_rdy_n) && trn_rsrc_dsc_n)
-          begin
-            cpl_ur_tag_o <= trn_rd[47:40];
             fsm_state <= `STATE_RX_RST;
-          end
           else
           if (!trn_rsrc_dsc_n)
-          begin
             fsm_state <= `STATE_RX_RST;
-          end
           else
             fsm_state <= `STATE_RX_CPL_QW1;
-        end
+
+        end //`STATE_RX_CPL_QW1 :
 
         //-----------------------------------------------------------------------
         //Обработчик пакета:- Completion W/Data (CplD) - 3DW, w/ data
@@ -773,18 +670,15 @@ module BMD_ENGINE_RX
         `STATE_RX_CPLD_QW1 :
         begin
 
-          if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n && (!usr_buf_full_i))
+          if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n && (!usr_txbuf_full_i))
           begin
             //Обнаружил конец кадра (EOF)
             if (trn_rrem_n == 8'h00)
             begin
-              cpld_tlp_size_count <= cpld_tlp_size_count + 1'b1;//Подсчет кол-ва принятых DW в текущем пакете
-
-              mst_rx_data <= trn_rd[31:0];
+              mst_rxd <= trn_rd[31:0];
               trn_rdw_sel <= 1'b1;
             end
-
-            cpld_last_data <= 1'b1;
+            cpld_tpl_dlast <= 1'b1;
             fsm_state <= `STATE_RX_CPLD_WT0;
 
           end
@@ -792,26 +686,21 @@ module BMD_ENGINE_RX
           if (!trn_rsrc_dsc_n)
           begin
             //Ядро прервало передачу данных
-            cpld_last_data <= 1'b1;
+            cpld_tpl_dlast <= 1'b1;
             fsm_state <= `STATE_RX_CPLD_WT0;
 
           end
           else
-          if ((!trn_rsrc_rdy_n) && (!usr_buf_full_i))
+          if ((!trn_rsrc_rdy_n) && (!usr_txbuf_full_i))
           begin
-            cpld_tlp_size_count <= cpld_tlp_size_count + 1'b1;//Подсчет кол-ва принятых DW в текущем пакете
-
-            mst_rx_data <= trn_rd[31:0];
+            mst_rxd <= trn_rd[31:0];
             trn_rdw_sel <= 1'b1;
-
             fsm_state <= `STATE_RX_CPLD_QWN;
           end
           else
-          begin
             fsm_state <= `STATE_RX_CPLD_QW1;
-          end
 
-        end
+        end //`STATE_RX_CPLD_QW1 :
 
         //-----------------------------------------------------------------------
         //Обработчик пакета:- Completion W/Data (CplD) - 3DW, w/ data
@@ -821,26 +710,22 @@ module BMD_ENGINE_RX
         `STATE_RX_CPLD_QWN :
         begin
 
-          if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n && (!usr_buf_full_i))
+          if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n && (!usr_txbuf_full_i))
           begin
             //Обнаружил конец кадра (EOF)
             if (trn_rrem_n == 8'h00)
             begin
-              cpld_tlp_size_count <= cpld_tlp_size_count + 1'b1;//Подсчет кол-ва принятых DW в текущем пакете
-
               if (trn_rdw_sel)
               begin
-
-                mst_rx_data <= trn_rd[63:32];
+                mst_rxd <= trn_rd[63:32];
                 trn_rdw_sel <= 1'b0;
-
                 fsm_state <= `STATE_RX_CPLD_QWN;
               end
               else
               begin
-                mst_rx_data <= trn_rd[31:0];
+                mst_rxd <= trn_rd[31:0];
                 trn_rdw_sel <= 1'b1;
-                cpld_last_data <= 1'b1;
+                cpld_tpl_dlast <= 1'b1;
                 fsm_state <= `STATE_RX_CPLD_WT0;
               end
 
@@ -848,56 +733,49 @@ module BMD_ENGINE_RX
             else
             if (trn_rrem_n == 8'h0F)
             begin
-              cpld_tlp_size_count <= cpld_tlp_size_count + 1'b1;//Подсчет кол-ва принятых DW в текущем пакете
-
-              mst_rx_data <= trn_rd[63:32];
+              mst_rxd <= trn_rd[63:32];
               trn_rdw_sel <= 1'b0;
-              cpld_last_data <= 1'b1;
-
-              fsm_state <= `STATE_RX_CPLD_WT0;
-            end
-            else
-            begin
-              cpld_last_data <= 1'b1;
               fsm_state <= `STATE_RX_CPLD_WT0;
             end
 
-          end
+          end //if ((!trn_reof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n && (!usr_txbuf_full_i))
           else
           if (!trn_rsrc_dsc_n)
           begin
             //Ядро прервало передачу данных
             trn_rdw_sel <= 1'b0;
-            cpld_last_data <= 1'b1;
+            cpld_tpl_dlast <= 1'b1;
             fsm_state <= `STATE_RX_CPLD_WT0;
 
-          end
+          end //if (!trn_rsrc_dsc_n)
           else
-          if ((!trn_rsrc_rdy_n) && (!usr_buf_full_i))
+          if ((!trn_rsrc_rdy_n) && (!usr_txbuf_full_i))
           begin
-            cpld_tlp_size_count <= cpld_tlp_size_count + 1'b1;//Подсчет кол-ва принятых DW в текущем пакете
-
             if (trn_rdw_sel)
             begin
               trn_rdw_sel <= 1'b0;
-              mst_rx_data <= trn_rd[63:32];
+              mst_rxd <= trn_rd[63:32];
             end
             else
             begin
               trn_rdw_sel <= 1'b1;
-              mst_rx_data <= trn_rd[31:0];
+              mst_rxd <= trn_rd[31:0];
             end
-
             fsm_state <= `STATE_RX_CPLD_QWN;
 
-          end
+          end //if ((!trn_rsrc_rdy_n) && (!usr_txbuf_full_i))
           else
           begin
+            if (trn_rdw_sel)
+              mst_rxd <= trn_rd[63:32];
+            else
+              mst_rxd <= trn_rd[31:0];
+
             trn_rdw_sel <= 1'b0;
             fsm_state <= `STATE_RX_CPLD_QWN;
           end
 
-        end
+        end //`STATE_RX_CPLD_QWN :
 
         //-----------------------------------------------------------------------
         //Обработчик пакета:- Completion W/Data (CplD) - 3DW
@@ -906,31 +784,25 @@ module BMD_ENGINE_RX
         `STATE_RX_CPLD_WT0:
         begin
 
-          trn_rdw_sel     <= 1'b0;
-          cpld_tpl_work   <= 1'b0;
-          cpld_last_data <= 1'b0;
-
-          if (cpld_tlp_size_count!=cpld_tlp_size_saved)
-          begin
-            cpld_malformed_o <= 1'b1;
-          end
-
+          trn_rdw_sel    <= 1'b0;
+          cpld_tpl_work  <= 1'b0;
+          cpld_tpl_dlast <= 1'b0;
+          trn_rdst_rdy_n <= 1'b1;
           fsm_state <= `STATE_RX_CPLD_WT1;
 
-        end
+        end //`STATE_RX_CPLD_WT0:
 
-        //-----------------------------------------------------------------------
-        //Обработчик пакета:- Completion W/Data (CplD) - 3DW
-        //Завершение
-        //-----------------------------------------------------------------------
-       `STATE_RX_CPLD_WT1:
-       begin
+        `STATE_RX_CPLD_WT1:
+        begin
 
-         trn_rdw_sel <= 1'b0;
+          trn_rdst_rdy_n <= 1'b0;
 
-         fsm_state <= `STATE_RX_RST;
+          if (cpld_tlp_dcnt!=cpld_tlp_len)
+            cpld_malformed_o <= 1'b1;
 
-       end
+          fsm_state <= `STATE_RX_RST;
+
+        end //`STATE_RX_CPLD_WT1:
        //END:Обработчик пакета:MWd - 3DW, w/ data
 
       endcase //case (fsm_state)

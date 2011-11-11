@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 28.10.2011 9:48:57
--- Module Name : BMD_INTR_CTRL_DEV
+-- Module Name : pcie_irq_dev
 --
 -- Description : Endpoint Intrrupt Controller
 --               ѕодробно работа с перывани€ми CORE PCIEXPRESS описана в
@@ -18,7 +18,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity BMD_INTR_CTRL_DEV is
+entity pcie_irq_dev is
 generic(
 G_TIME_DLY : integer:=0
 );
@@ -51,9 +51,9 @@ p_out_tst              : out std_logic_vector(31 downto 0);
 p_in_clk               : in   std_logic;
 p_in_rst               : in   std_logic
 );
-end BMD_INTR_CTRL_DEV;
+end pcie_irq_dev;
 
-architecture behavioral of BMD_INTR_CTRL_DEV is
+architecture behavioral of pcie_irq_dev is
 
 type fsm_state is (
 S_IRQ_IDLE,
