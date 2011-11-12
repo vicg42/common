@@ -25,7 +25,7 @@ use work.vicg_common_pkg.all;
 use work.memory_ctrl_pkg.all;
 use work.memory_ctrl_ch_wr_pkg.all;
 use work.pcie_pkg.all;
-use work.axi_glob_pkg.all;
+--use work.axi_glob_pkg.all;
 
 entity pcie2mem_ctrl is
 generic(
@@ -44,7 +44,7 @@ port(
 -------------------------------------------------------
 --//AXI Master Interface:
 --//WRAddr Ports(usr_buf->mem)
-p_out_maxi_awid      : out   std_logic_vector(C_AXI_ID_WIDTH_MAX-1 downto 0);
+p_out_maxi_awid      : out   std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
 p_out_maxi_awaddr    : out   std_logic_vector(G_AXI_ADDR_WIDTH-1 downto 0);
 p_out_maxi_awlen     : out   std_logic_vector(7 downto 0);--(15 downto 0);
 p_out_maxi_awsize    : out   std_logic_vector(2 downto 0);
@@ -62,13 +62,13 @@ p_out_maxi_wlast     : out   std_logic;
 p_out_maxi_wvalid    : out   std_logic;
 p_in_maxi_wready     : in    std_logic;
 --//WRResponse Ports
-p_in_maxi_bid        : in    std_logic_vector(C_AXI_ID_WIDTH_MAX-1 downto 0);
+p_in_maxi_bid        : in    std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
 p_in_maxi_bresp      : in    std_logic_vector(1 downto 0);
 p_in_maxi_bvalid     : in    std_logic;
 p_out_maxi_bready    : out   std_logic;
 
 --//RDAddr Ports(usr_buf<-mem)
-p_out_maxi_arid      : out   std_logic_vector(C_AXI_ID_WIDTH_MAX-1 downto 0);
+p_out_maxi_arid      : out   std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
 p_out_maxi_araddr    : out   std_logic_vector(G_AXI_ADDR_WIDTH-1 downto 0);
 p_out_maxi_arlen     : out   std_logic_vector(7 downto 0);--(15 downto 0);
 p_out_maxi_arsize    : out   std_logic_vector(2 downto 0);
@@ -80,7 +80,7 @@ p_out_maxi_arqos     : out   std_logic_vector(3 downto 0);
 p_out_maxi_arvalid   : out   std_logic;
 p_in_maxi_arready    : in    std_logic;
 --//RDData Ports
-p_in_maxi_rid        : in    std_logic_vector(C_AXI_ID_WIDTH_MAX-1 downto 0);
+p_in_maxi_rid        : in    std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
 p_in_maxi_rdata      : in    std_logic_vector(G_AXI_DATA_WIDTH-1 downto 0);
 p_in_maxi_rresp      : in    std_logic_vector(1 downto 0);
 p_in_maxi_rlast      : in    std_logic;
