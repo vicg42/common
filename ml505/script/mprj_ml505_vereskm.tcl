@@ -63,12 +63,12 @@ set _projects [ list \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/fifo_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/plxdssm.vhd" $_VHDMod ] \
       [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/localbus_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ctrl_pll.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ctrl_ch_wr.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ch_arbitr.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/mem/alphadata/memory_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/mem/alphadata/mem_wr_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/mem/alphadata/mem_ctrl_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/mem/alphadata/mem_pll.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/mem/alphadata/mem_wr.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/mem/alphadata/mem_arb.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/mem/alphadata/mem_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/fifo_utils.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S8_S72.vhd" $_VHDMod ] \
       [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S72_S72.vhd" $_VHDMod ] \
@@ -185,17 +185,17 @@ set _projects [ list \
       [ list "../../../common/veresk_m/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_main.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_v5_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/pci_express/v5/pcie_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_ctrl_rst.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_TO_CTRL.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_RD_THROTTLE.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_ENGINE_TX.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_ENGINE_RX.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_CFG_CTRL.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_INTR_CTRL.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_INTR_CTRL_DEV.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_usr_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_reset.v" $_VMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_off_on.v" $_VMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_mrd_throttle.v" $_VMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_tx.v" $_VMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_rx.v" $_VMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_cfg.v" $_VMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_irq.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_irq_dev.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/pci_express/v5/pcie_usr_app.vhd" $_VHDMod ] \
       [ list "../src/core_gen/ethg_vctrl_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
