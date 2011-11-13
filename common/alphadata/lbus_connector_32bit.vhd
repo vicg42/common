@@ -148,8 +148,6 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.localbus.all;
---use work.memif.all;
---use work.memory_ctrl_pkg.all;
 
 entity lbus_connector_32bit is
 generic
@@ -843,7 +841,7 @@ begin
           end if;
         end if;
 
-        --//Чтение данных из memory_ctrl.vhd
+        --//Чтение данных из mem_ctrl.vhd
         if mem_data_bar_detect = '1' and sel_memory_ctrl='1' then
             lo := lo or mem_dout(31 downto 0);
         end if;
@@ -943,8 +941,8 @@ begin
       mem_rd <= '0';
       mem_reading <= '0';
     elsif clk'event and clk = '1' then
-      mem_term <= mem_data_bar_detect and ds_xfer and (lblast_i or lbterm_i);--//Останов. записи данных в memory_ctrl.vhd
-      mem_wr   <= mem_data_bar_detect and ds_xfer and ds_write;              --//Запись данных в в memory_ctrl.vhd
+      mem_term <= mem_data_bar_detect and ds_xfer and (lblast_i or lbterm_i);--//Останов. записи данных в mem_ctrl.vhd
+      mem_wr   <= mem_data_bar_detect and ds_xfer and ds_write;              --//Запись данных в в mem_ctrl.vhd
 
       if ds_xfer = '1' and (lblast_i = '1' or lbterm_i = '1') then
         mem_rd <= '0';

@@ -37,13 +37,14 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
-use work.memory_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
 entity dsn_video_ctrl is
 generic(
 G_SIMPLE : string:="OFF"; --//ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
-G_SIM    : string:="OFF"
+G_SIM    : string:="OFF";
+G_MEM_AWIDTH : integer:=32;
+G_MEM_DWIDTH : integer:=32
 );
 port(
 -------------------------------
@@ -108,22 +109,22 @@ p_in_vbufout_empty    : in    std_logic;                      --//
 p_in_vbufout_full     : in    std_logic;                      --//
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 --//CH WRITE
 p_out_memarb_wrreq    : out   std_logic;
 p_in_memarb_wren      : in    std_logic;
 
-p_out_memwr_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_memwr_bank1h    : out   std_logic_vector(3 downto 0);
 p_out_memwr_ce        : out   std_logic;
 p_out_memwr_cw        : out   std_logic;
 p_out_memwr_rd        : out   std_logic;
 p_out_memwr_wr        : out   std_logic;
 p_out_memwr_term      : out   std_logic;
-p_out_memwr_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_memwr_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_memwr_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_memwr_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_memwr_adr       : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_memwr_be        : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_memwr_din       : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_memwr_dout       : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_memwr_wf         : in    std_logic;
 p_in_memwr_wpf        : in    std_logic;
@@ -134,16 +135,16 @@ p_in_memwr_rpe        : in    std_logic;
 p_out_memarb_rdreq    : out   std_logic;
 p_in_memarb_rden      : in    std_logic;
 
-p_out_memrd_bank1h    : out   std_logic_vector(15 downto 0);
+p_out_memrd_bank1h    : out   std_logic_vector(3 downto 0);
 p_out_memrd_ce        : out   std_logic;
 p_out_memrd_cw        : out   std_logic;
 p_out_memrd_rd        : out   std_logic;
 p_out_memrd_wr        : out   std_logic;
 p_out_memrd_term      : out   std_logic;
-p_out_memrd_adr       : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_memrd_be        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_memrd_din       : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_memrd_dout       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_memrd_adr       : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_memrd_be        : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_memrd_din       : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_memrd_dout       : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_memrd_wf         : in    std_logic;
 p_in_memrd_wpf        : in    std_logic;
@@ -166,9 +167,6 @@ end dsn_video_ctrl;
 architecture behavioral of dsn_video_ctrl is
 
 
-constant C_MEM_BANK_MSB_BIT   : integer:=pwr((C_VCTRL_REG_MEM_ADR_BANK_M_BIT-C_VCTRL_REG_MEM_ADR_BANK_L_BIT+1), 2)-1;
-
-
 component video_writer
 generic(
 G_MEM_BANK_M_BIT  : integer:=29;
@@ -179,7 +177,10 @@ G_MEM_VCH_L_BIT   : integer:=24;
 G_MEM_VFR_M_BIT   : integer:=23;
 G_MEM_VFR_L_BIT   : integer:=23;
 G_MEM_VLINE_M_BIT : integer:=22;
-G_MEM_VLINE_L_BIT : integer:=12
+G_MEM_VLINE_L_BIT : integer:=12;
+
+G_MEM_AWIDTH      : integer:=32;
+G_MEM_DWIDTH      : integer:=32
 );
 port(
 -------------------------------
@@ -207,21 +208,21 @@ p_in_upp_buf_full     : in    std_logic;
 p_in_upp_buf_pfull    : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req      : out   std_logic;
 p_in_memarb_en        : in    std_logic;
 
-p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
 p_out_mem_ce          : out   std_logic;
 p_out_mem_cw          : out   std_logic;
 p_out_mem_rd          : out   std_logic;
 p_out_mem_wr          : out   std_logic;
 p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf           : in    std_logic;
 p_in_mem_wpf          : in    std_logic;
@@ -254,7 +255,10 @@ G_MEM_VCH_L_BIT   : integer:=24;
 G_MEM_VFR_M_BIT   : integer:=23;
 G_MEM_VFR_L_BIT   : integer:=23;
 G_MEM_VLINE_M_BIT : integer:=22;
-G_MEM_VLINE_L_BIT : integer:=12
+G_MEM_VLINE_L_BIT : integer:=12;
+
+G_MEM_AWIDTH      : integer:=32;
+G_MEM_DWIDTH      : integer:=32
 );
 port(
 -------------------------------
@@ -292,21 +296,21 @@ p_in_upp_buf_empty   : in    std_logic;
 p_in_upp_buf_full    : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req     : out   std_logic;
 p_in_memarb_en       : in    std_logic;
 
-p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(3 downto 0);
 p_out_mem_ce         : out   std_logic;
 p_out_mem_cw         : out   std_logic;
 p_out_mem_rd         : out   std_logic;
 p_out_mem_wr         : out   std_logic;
 p_out_mem_term       : out   std_logic;
-p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr        : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf          : in    std_logic;
 p_in_mem_wpf         : in    std_logic;
@@ -664,6 +668,7 @@ signal i_vgamma_rdy_n                    : std_logic;
 --signal i_vgamma_dout                     : std_logic_vector(31 downto 0);
 --signal i_vgamma_dout_en                  : std_logic;
 
+signal i_mem_null_dout                   : std_logic_vector(G_MEM_DWIDTH - 1 downto 0):=(others=>'0');
 
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
 signal tst_vreader_out                   : std_logic_vector(31 downto 0);
@@ -1348,7 +1353,10 @@ G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
 G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
 G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
 G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
-G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+
+G_MEM_AWIDTH      => G_MEM_AWIDTH,
+G_MEM_DWIDTH      => G_MEM_DWIDTH
 )
 port map(
 -------------------------------
@@ -1376,7 +1384,7 @@ p_in_upp_buf_full     => p_in_vbufin_full,
 p_in_upp_buf_pfull    => p_in_vbufin_pfull,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_mem_clk         => open,
 
@@ -1392,7 +1400,7 @@ p_out_mem_term        => p_out_memwr_term,
 p_out_mem_adr         => p_out_memwr_adr,
 p_out_mem_be          => p_out_memwr_be,
 p_out_mem_din         => p_out_memwr_din,
-p_in_mem_dout         => (others=>'0'),
+p_in_mem_dout         => i_mem_null_dout,
 
 p_in_mem_wf           => p_in_memwr_wf,
 p_in_mem_wpf          => p_in_memwr_wpf,
@@ -1402,7 +1410,7 @@ p_in_mem_rpe          => p_in_memwr_rpe,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => (others=>'0'),
+p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
 p_out_tst             => tst_vwriter_out,
 
 -------------------------------
@@ -1426,7 +1434,10 @@ G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
 G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
 G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
 G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
-G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+
+G_MEM_AWIDTH      => G_MEM_AWIDTH,
+G_MEM_DWIDTH      => G_MEM_DWIDTH
 )
 port map(
 -------------------------------
@@ -1464,7 +1475,7 @@ p_in_upp_buf_empty    => '0',
 p_in_upp_buf_full     => i_vmir_rdy_n,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_mem_clk         => open,
 

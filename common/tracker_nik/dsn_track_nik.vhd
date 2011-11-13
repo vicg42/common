@@ -29,8 +29,7 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
-use work.memory_ctrl_pkg.all;
-use work.memory_ctrl_ch_wr_pkg.all;
+use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.dsn_track_nik_pkg.all;
 
@@ -48,7 +47,10 @@ G_MEM_VCH_L_BIT   : integer:=24;
 G_MEM_VFR_M_BIT   : integer:=23;
 G_MEM_VFR_L_BIT   : integer:=23;
 G_MEM_VLINE_M_BIT : integer:=22;
-G_MEM_VLINE_L_BIT : integer:=12
+G_MEM_VLINE_L_BIT : integer:=12;
+
+G_MEM_AWIDTH      : integer:=32;
+G_MEM_DWIDTH      : integer:=32
 );
 port(
 -------------------------------
@@ -92,21 +94,21 @@ p_in_vctrl_vbuf       : in    TVfrBufs;                    --//Номера видеобуфер
 p_in_vctrl_vrowmrk    : in    TVMrks;                      --//Макреры строк видеоканалов
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
 p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
 p_out_mem_ce          : out   std_logic;
 p_out_mem_cw          : out   std_logic;
 p_out_mem_rd          : out   std_logic;
 p_out_mem_wr          : out   std_logic;
 p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf           : in    std_logic;
 p_in_mem_wpf          : in    std_logic;
@@ -814,7 +816,7 @@ begin
         i_mem_dlen_rq<=i_vch_prm.fr_size.activ.pix;
         i_mem_adr<=i_mem_rdbase + i_mem_rdptr;
         i_mem_trn_len<=i_mem_rdtrn_len;
-        i_mem_dir<=C_MEMCTRLCHWR_READ;
+        i_mem_dir<=C_MEMWR_READ;
         i_mem_start<='1';
         fsm_state_cs <= S_MEM_RD;
 
@@ -939,7 +941,7 @@ begin
         i_mem_dlen_rq <= CONV_STD_LOGIC_VECTOR(1, i_mem_dlen_rq'length);--//размер в DW
         i_mem_adr<=i_mem_ktcnt_base + i_mem_wdptr_ktcnt;
         i_mem_trn_len<=i_mem_wdtrn_len;
-        i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+        i_mem_dir<=C_MEMWR_WRITE;
         i_mem_start<='1';
 
         fsm_state_cs <= S_MEM_W_CNTKT;
@@ -988,7 +990,7 @@ begin
         i_mem_dlen_rq <= i_trcbufo_dsize;--//размер в DW
         i_mem_adr<=i_mem_kt_base + i_mem_wdptr_kt;
         i_mem_trn_len<=i_mem_wdtrn_len;
-        i_mem_dir<=C_MEMCTRLCHWR_WRITE;
+        i_mem_dir<=C_MEMWR_WRITE;
         i_mem_start<='1';
 
         fsm_state_cs <= S_MEM_W_DKT;
@@ -1055,12 +1057,14 @@ end process;
 
 
 --//------------------------------------------------------
---//Модуль записи/чтения данных ОЗУ (memory_ctrl.vhd)
+--//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
-m_mem_ctrl_wr : memory_ctrl_ch_wr
+m_mem_wr : mem_wr
 generic map(
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
-G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT
+G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
+G_MEM_AWIDTH     => G_MEM_AWIDTH,
+G_MEM_DWIDTH     => G_MEM_DWIDTH
 )
 port map(
 -------------------------------
@@ -1085,7 +1089,7 @@ p_out_usr_rxbuf_wd   => i_mem_dout_en,
 p_in_usr_rxbuf_full  => i_trc_rxrdy_n,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req     => p_out_memarb_req,
 p_in_memarb_en       => p_in_memarb_en,

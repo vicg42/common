@@ -13,8 +13,6 @@ use unisim.vcomponents.all;
 library work;
 use work.prj_def.all;
 use work.localbus.all;
---use work.memif.all;
---use work.memory_ctrl_pkg.all;
 
 entity lbus_connector_32bit_tst is
 generic

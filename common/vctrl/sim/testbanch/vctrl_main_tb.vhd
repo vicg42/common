@@ -25,7 +25,6 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
-use work.memory_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
 library std;
@@ -54,7 +53,10 @@ G_MEM_VCH_L_BIT   : integer:=24;
 G_MEM_VFR_M_BIT   : integer:=23;
 G_MEM_VFR_L_BIT   : integer:=23;
 G_MEM_VLINE_M_BIT : integer:=22;
-G_MEM_VLINE_L_BIT : integer:=12
+G_MEM_VLINE_L_BIT : integer:=12;
+
+G_MEM_AWIDTH      : integer:=32;
+G_MEM_DWIDTH      : integer:=32
 );
 port
 (
@@ -93,21 +95,21 @@ p_in_upp_buf_empty   : in    std_logic;
 p_in_upp_buf_full    : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req     : out   std_logic;
 p_in_memarb_en       : in    std_logic;
 
-p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(3 downto 0);
 p_out_mem_ce         : out   std_logic;
 p_out_mem_cw         : out   std_logic;
 p_out_mem_rd         : out   std_logic;
 p_out_mem_wr         : out   std_logic;
 p_out_mem_term       : out   std_logic;
-p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr        : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf          : in    std_logic;
 p_in_mem_wpf         : in    std_logic;
@@ -443,16 +445,16 @@ signal p_in_vctrl_hrddone         : std_logic;                      --//Подтверж
 signal p_out_memarb_rdreq         : std_logic;
 signal p_in_memarb_rden           : std_logic;
 
-signal p_out_memrd_bank1h         : std_logic_vector(15 downto 0);
+signal p_out_memrd_bank1h         : std_logic_vector(3 downto 0);
 signal p_out_memrd_ce             : std_logic;
 signal p_out_memrd_cw             : std_logic;
 signal p_out_memrd_rd             : std_logic;
 signal p_out_memrd_wr             : std_logic;
 signal p_out_memrd_term           : std_logic;
-signal p_out_memrd_adr            : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal p_out_memrd_be             : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal p_out_memrd_din            : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal p_in_memrd_dout            : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal p_out_memrd_adr            : std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+signal p_out_memrd_be             : std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+signal p_out_memrd_din            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal p_in_memrd_dout            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 signal p_in_memrd_wf              : std_logic;
 signal p_in_memrd_wpf             : std_logic;
@@ -638,7 +640,7 @@ end process;
 p_in_rst<='1','0' after 1 us;
 
 
---//Имитация работы модуля контроллера попмяти (memory_ctrl.vhd)
+--//Имитация работы модуля контроллера попмяти (mem_ctrl.vhd)
 p_in_memrd_wf <='0';
 p_in_memrd_wpf<='0';
 p_in_memrd_rpe<='0';
@@ -761,7 +763,7 @@ p_in_upp_buf_empty   => '0',
 p_in_upp_buf_full    => i_vmir_rdy_n,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_mem_clk        => open,
 

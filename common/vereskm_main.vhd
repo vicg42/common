@@ -28,7 +28,7 @@ use work.prj_def.all;
 use work.memif.all;
 use work.vereskm_pkg.all;
 use work.cfgdev_pkg.all;
-use work.memory_ctrl_pkg.all;
+use work.mem_ctrl_pkg.all;
 use work.sata_glob_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
@@ -140,6 +140,9 @@ end entity;
 
 architecture struct of vereskm_main is
 
+constant CI_MEMCTRL_AWIDTH : integer:=C_MEMCTRL_ADDR_WIDTH;
+constant CI_MEMCTRL_DWIDTH : integer:=C_MEMCTRL_DATA_WIDTH;
+
 --component ROC generic (WIDTH : Time := 500 ns); port (O : out std_ulogic := '1'); end component;
 component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
 component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
@@ -207,7 +210,7 @@ p_in_rst     : in    std_logic
 );
 end component;
 
-component memory_ctrl_pll
+component mem_pll
 port(
 mclk      : in  std_logic;
 rst       : in  std_logic;
@@ -386,16 +389,16 @@ signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 
 signal i_hdd_memarb_req                 : std_logic;
 signal i_hdd_memarb_en                  : std_logic;
-signal i_hdd_mem_bank1h                 : std_logic_vector(15 downto 0);
+signal i_hdd_mem_bank1h                 : std_logic_vector(3 downto 0);
 signal i_hdd_mem_ce                     : std_logic;
 signal i_hdd_mem_cw                     : std_logic;
 signal i_hdd_mem_term                   : std_logic;
 signal i_hdd_mem_wr                     : std_logic;
 signal i_hdd_mem_rd                     : std_logic;
-signal i_hdd_mem_adr                    : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_hdd_mem_be                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_hdd_mem_din                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_hdd_mem_dout                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_hdd_mem_adr                    : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_hdd_mem_be                     : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_hdd_mem_din                    : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_hdd_mem_dout                   : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_hdd_mem_wf                     : std_logic;
 signal i_hdd_mem_wpf                    : std_logic;
 signal i_hdd_mem_re                     : std_logic;
@@ -447,16 +450,16 @@ signal i_vctrl_vrowmrk                  : TVMrks;
 
 signal i_vctrlrd_memarb_req             : std_logic;
 signal i_vctrlrd_memarb_en              : std_logic;
-signal i_vctrlrd_mem_bank1h             : std_logic_vector(15 downto 0);
+signal i_vctrlrd_mem_bank1h             : std_logic_vector(3 downto 0);
 signal i_vctrlrd_mem_ce                 : std_logic;
 signal i_vctrlrd_mem_cw                 : std_logic;
 signal i_vctrlrd_mem_term               : std_logic;
 signal i_vctrlrd_mem_rd                 : std_logic;
 signal i_vctrlrd_mem_wr                 : std_logic;
-signal i_vctrlrd_mem_adr                : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_vctrlrd_mem_be                 : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_vctrlrd_mem_din                : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_vctrlrd_mem_dout               : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_vctrlrd_mem_adr                : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_vctrlrd_mem_be                 : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_vctrlrd_mem_din                : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_vctrlrd_mem_dout               : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_vctrlrd_mem_wf                 : std_logic;
 signal i_vctrlrd_mem_wpf                : std_logic;
 signal i_vctrlrd_mem_re                 : std_logic;
@@ -465,16 +468,16 @@ signal i_vctrlrd_mem_rpe                : std_logic;
 
 signal i_vctrlwr_memarb_req             : std_logic;
 signal i_vctrlwr_memarb_en              : std_logic;
-signal i_vctrlwr_mem_bank1h             : std_logic_vector(15 downto 0);
+signal i_vctrlwr_mem_bank1h             : std_logic_vector(3 downto 0);
 signal i_vctrlwr_mem_ce                 : std_logic;
 signal i_vctrlwr_mem_cw                 : std_logic;
 signal i_vctrlwr_mem_term               : std_logic;
 signal i_vctrlwr_mem_rd                 : std_logic;
 signal i_vctrlwr_mem_wr                 : std_logic;
-signal i_vctrlwr_mem_adr                : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_vctrlwr_mem_be                 : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_vctrlwr_mem_din                : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_vctrlwr_mem_dout               : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_vctrlwr_mem_adr                : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_vctrlwr_mem_be                 : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_vctrlwr_mem_din                : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_vctrlwr_mem_dout               : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_vctrlwr_mem_wf                 : std_logic;
 signal i_vctrlwr_mem_wpf                : std_logic;
 signal i_vctrlwr_mem_re                 : std_logic;
@@ -494,16 +497,16 @@ signal i_trc_busy                       : std_logic_vector(C_VCTRL_VCH_COUNT-1 d
 
 signal i_trc_memarb_req                 : std_logic;
 signal i_trc_memarb_en                  : std_logic;
-signal i_trc_mem_bank1h                 : std_logic_vector(15 downto 0);
+signal i_trc_mem_bank1h                 : std_logic_vector(3 downto 0);
 signal i_trc_mem_ce                     : std_logic;
 signal i_trc_mem_cw                     : std_logic;
 signal i_trc_mem_term                   : std_logic;
 signal i_trc_mem_rd                     : std_logic;
 signal i_trc_mem_wr                     : std_logic;
-signal i_trc_mem_adr                    : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_trc_mem_be                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_trc_mem_din                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_trc_mem_dout                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_trc_mem_adr                    : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_trc_mem_be                     : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_trc_mem_din                    : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_trc_mem_dout                   : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_trc_mem_wf                     : std_logic;
 signal i_trc_mem_wpf                    : std_logic;
 signal i_trc_mem_re                     : std_logic;
@@ -513,16 +516,16 @@ signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
 signal i_host_mem_status                : TPce2Mem_Status;
 signal i_host_memarb_req                : std_logic;
 signal i_host_memarb_en                 : std_logic;
-signal i_host_mem_bank1h                : std_logic_vector(15 downto 0);
+signal i_host_mem_bank1h                : std_logic_vector(3 downto 0);
 signal i_host_mem_ce                    : std_logic;
 signal i_host_mem_cw                    : std_logic;
 signal i_host_mem_term                  : std_logic;
 signal i_host_mem_wr                    : std_logic;
 signal i_host_mem_rd                    : std_logic;
-signal i_host_mem_adr                   : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_host_mem_be                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 -1 downto 0);
-signal i_host_mem_din                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_host_mem_dout                  : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_host_mem_adr                   : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_host_mem_be                    : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 -1 downto 0);
+signal i_host_mem_din                   : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_host_mem_dout                  : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_host_mem_wf                    : std_logic;
 signal i_host_mem_wpf                   : std_logic;
 signal i_host_mem_re                    : std_logic;
@@ -536,16 +539,16 @@ signal i_memctrl_trained                : std_logic_vector(max_num_bank - 1 down
 
 signal i_arbch3_req                     : std_logic;
 signal i_arbch3_en                      : std_logic;
-signal i_arbch3_bank1h                  : std_logic_vector(15 downto 0);
+signal i_arbch3_bank1h                  : std_logic_vector(3 downto 0);
 signal i_arbch3_ce                      : std_logic;
 signal i_arbch3_cw                      : std_logic;
 signal i_arbch3_term                    : std_logic;
 signal i_arbch3_rd                      : std_logic;
 signal i_arbch3_wr                      : std_logic;
-signal i_arbch3_adr                     : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_arbch3_be                      : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_arbch3_din                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_arbch3_dout                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_arbch3_adr                     : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_arbch3_be                      : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_arbch3_din                     : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_arbch3_dout                    : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_arbch3_wf                      : std_logic;
 signal i_arbch3_wpf                     : std_logic;
 signal i_arbch3_re                      : std_logic;
@@ -553,16 +556,16 @@ signal i_arbch3_rpe                     : std_logic;
 
 signal i_arbch4_req                     : std_logic;
 signal i_arbch4_en                      : std_logic;
-signal i_arbch4_bank1h                  : std_logic_vector(15 downto 0);
+signal i_arbch4_bank1h                  : std_logic_vector(3 downto 0);
 signal i_arbch4_ce                      : std_logic;
 signal i_arbch4_cw                      : std_logic;
 signal i_arbch4_term                    : std_logic;
 signal i_arbch4_rd                      : std_logic;
 signal i_arbch4_wr                      : std_logic;
-signal i_arbch4_adr                     : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_arbch4_be                      : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_arbch4_din                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_arbch4_dout                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_arbch4_adr                     : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_arbch4_be                      : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_arbch4_din                     : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_arbch4_dout                    : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_arbch4_wf                      : std_logic;
 signal i_arbch4_wpf                     : std_logic;
 signal i_arbch4_re                      : std_logic;
@@ -575,16 +578,16 @@ signal i_mem_arb_cw                     : std_logic;
 signal i_mem_arb_term                   : std_logic;
 signal i_mem_arb_rd                     : std_logic;
 signal i_mem_arb_wr                     : std_logic;
-signal i_mem_arb_adr                    : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_mem_arb_be                     : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_mem_arb_din                    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_mem_arb_dout                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_mem_arb_adr                    : std_logic_vector(CI_MEMCTRL_AWIDTH - 1 downto 0);
+signal i_mem_arb_be                     : std_logic_vector(CI_MEMCTRL_DWIDTH / 8 - 1 downto 0);
+signal i_mem_arb_din                    : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
+signal i_mem_arb_dout                   : std_logic_vector(CI_MEMCTRL_DWIDTH - 1 downto 0);
 signal i_mem_arb_wf                     : std_logic;
 signal i_mem_arb_wpf                    : std_logic;
 signal i_mem_arb_re                     : std_logic;
 signal i_mem_arb_rpe                    : std_logic;
 signal i_mem_arb_tst_out                : std_logic_vector(31 downto 0);
-signal i_mem_arb_dout_tmp               : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_mem_arb_dout_tmp               : std_logic_vector(i_mem_arb_dout'range);
 signal i_mem_arb_wf_tmp                 : std_logic;
 signal i_mem_arb_wpf_tmp                : std_logic;
 signal i_mem_arb_re_tmp                 : std_logic;
@@ -761,7 +764,7 @@ p_in_rst     => i_dcm_rst
 );
 
 --//PLL контроллера памяти
-m_pll_mem_ctrl : memory_ctrl_pll
+m_pll_mem_ctrl : mem_pll
 port map(
 mclk      => g_refclk200MHz,
 rst       => i_memctrl_rst,
@@ -1141,7 +1144,10 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 m_vctrl : dsn_video_ctrl
 generic map(
 G_SIMPLE => C_VCTRL_SIMPLE,
-G_SIM    => G_SIM
+G_SIM    => G_SIM,
+
+G_MEM_AWIDTH => CI_MEMCTRL_AWIDTH,
+G_MEM_DWIDTH => CI_MEMCTRL_DWIDTH
 )
 port map(
 -------------------------------
@@ -1206,7 +1212,7 @@ p_in_vbufout_empty   => i_vctrl_vbufout_empty,
 p_in_vbufout_full    => i_vctrl_vbufout_full,
 
 -----------------------------------
----- Связь с memory_ctrl.vhd
+---- Связь с mem_ctrl.vhd
 -----------------------------------
 --//CH WRITE
 p_out_memarb_wrreq   => i_vctrlwr_memarb_req,
@@ -1277,7 +1283,10 @@ G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
 G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
 G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
 G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
-G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+
+G_MEM_AWIDTH      => CI_MEMCTRL_AWIDTH,
+G_MEM_DWIDTH      => CI_MEMCTRL_DWIDTH
 )
 port map(
 -------------------------------
@@ -1320,7 +1329,7 @@ p_in_vctrl_vbuf      => i_trc_vbufs,
 p_in_vctrl_vrowmrk   => i_vctrl_vrowmrk,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req     => i_trc_memarb_req,
 p_in_memarb_en       => i_trc_memarb_en,
@@ -1472,7 +1481,10 @@ generic map(
 G_MODULE_USE  => C_USE_HDD,
 G_RAMBUF_SIZE => C_HDD_RAMBUF_SIZE,
 G_DBGCS       => C_DBGCS_HDD,
-G_SIM         => G_SIM
+G_SIM         => G_SIM,
+
+G_MEM_AWIDTH  => CI_MEMCTRL_AWIDTH,
+G_MEM_DWIDTH  => CI_MEMCTRL_DWIDTH
 )
 port map(
 -------------------------------
@@ -1506,7 +1518,7 @@ p_in_hdd_rxbuf_empty => i_hdd_rxbuf_empty,
 p_in_hdd_rxbuf_pempty=> i_hdd_rxbuf_pempty,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req    => i_hdd_memarb_req,
 p_in_memarb_en      => i_hdd_memarb_en,
@@ -1810,8 +1822,8 @@ end process;
 --Связь модуля dsn_host c ОЗУ
 m_host2mem : pcie2mem_ctrl
 generic map(
-G_MEMCTRL_AWIDTH => C_MEMCTRL_ADDR_WIDTH,
-G_MEMCTRL_DWIDTH => C_MEMCTRL_DATA_WIDTH,
+G_MEM_AWIDTH     => CI_MEMCTRL_AWIDTH,
+G_MEM_DWIDTH     => CI_MEMCTRL_DWIDTH,
 G_MEM_BANK_M_BIT => C_HREG_MEM_ADR_BANK_M_BIT,
 G_MEM_BANK_L_BIT => C_HREG_MEM_ADR_BANK_L_BIT,
 G_DBG            => G_SIM
@@ -1960,9 +1972,11 @@ i_trc_mem_rpe    <= i_arbch3_rpe     ;
 end generate gen_chsel1;
 
 --//Арбитр контроллера памяти
-m_mem_arb : memory_ch_arbitr
+m_mem_arb : mem_arb
 generic map(
-G_CH_COUNT => selval2(10#05#,10#04#,10#04#,10#03#, strcmp(C_USE_HDD,"ON"),strcmp(C_USE_TRACK,"ON"))
+G_CH_COUNT   => selval2(10#05#,10#04#,10#04#,10#03#, strcmp(C_USE_HDD,"ON"),strcmp(C_USE_TRACK,"ON")),
+G_MEM_AWIDTH => CI_MEMCTRL_AWIDTH,
+G_MEM_DWIDTH => CI_MEMCTRL_DWIDTH
 )
 port map(
 -------------------------------
@@ -2076,11 +2090,11 @@ p_out_ch4_re     => i_arbch4_re,    --i_trc_mem_re,
 p_out_ch4_rpe    => i_arbch4_rpe,   --i_trc_mem_rpe,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_mem_clk    => open,--i_mem_arb_clk,
 
-p_out_mem_bank1h => i_mem_arb_bank1h,
+p_out_mem_bank1h => i_mem_arb_bank1h(3 downto 0),
 p_out_mem_ce     => i_mem_arb_ce,
 p_out_mem_cw     => i_mem_arb_cw,
 p_out_mem_rd     => i_mem_arb_rd,
@@ -2177,13 +2191,14 @@ i_mem_arb_wf  <=i_mem_arb_wf_tmp;
 i_mem_arb_wpf <=i_mem_arb_wpf_tmp;
 end generate gen_sim_off;
 
+i_mem_arb_bank1h(i_mem_arb_bank1h'high downto i_vctrlrd_mem_bank1h'length)<=(others=>'0');
 
 i_memctrl_mode_reg((32* (0 + 1)) - 23 downto  32* 0)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
 i_memctrl_mode_reg((32* (1 + 1)) - 23 downto  32* 1)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
 i_memctrl_mode_reg((32* (2 + 1)) - 23 downto  32* 2)<=CONV_STD_LOGIC_VECTOR(16#01#, 10);
 i_memctrl_mode_reg(i_memctrl_mode_reg'high downto (3*32))<=(others=>'0');
 
-m_mem_ctrl : memory_ctrl
+m_mem_ctrl : mem_ctrl
 generic map(
 G_BANK_COUNT => C_MEMCTRL_BANK_COUNT,
 

@@ -28,7 +28,6 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
-use work.memory_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
 
@@ -42,7 +41,10 @@ G_MEM_VCH_L_BIT   : integer:=24;
 G_MEM_VFR_M_BIT   : integer:=23;
 G_MEM_VFR_L_BIT   : integer:=23;
 G_MEM_VLINE_M_BIT : integer:=22;
-G_MEM_VLINE_L_BIT : integer:=12
+G_MEM_VLINE_L_BIT : integer:=12;
+
+G_MEM_AWIDTH      : integer:=32;
+G_MEM_DWIDTH      : integer:=32
 );
 port(
 -------------------------------
@@ -70,21 +72,21 @@ p_in_upp_buf_full     : in    std_logic;
 p_in_upp_buf_pfull    : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
 p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
 p_out_mem_ce          : out   std_logic;
 p_out_mem_cw          : out   std_logic;
 p_out_mem_rd          : out   std_logic;
 p_out_mem_wr          : out   std_logic;
 p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf           : in    std_logic;
 p_in_mem_wpf          : in    std_logic;
@@ -164,7 +166,7 @@ signal i_memtrn_zone_skip_pix_start: std_logic_vector(i_vfr_zone_active.pix'high
 signal i_mem_din_out               : std_logic_vector(p_in_upp_data'range);
 signal i_mem_trn_len_cnt           : std_logic_vector(i_vpkt_cnt'high downto 0);
 signal i_mem_adr_update            : std_logic;
-signal i_mem_bank1h_out            : std_logic_vector(pwr((G_MEM_BANK_M_BIT-G_MEM_BANK_L_BIT+1), 2)-1 downto 0);
+signal i_mem_bank1h_out            : std_logic_vector(p_out_mem_bank1h'range);
 signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_ce_out                : std_logic;
 signal i_mem_arb_req               : std_logic;
@@ -174,6 +176,7 @@ signal i_upp_data_rd_out           : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
 signal i_upp_pldvld_data_rd_out    : std_logic;
 
+signal tst_dbg_pictire             : std_logic;
 --signal tst_dbg_dcount              : std_logic;
 --signal tst_upp_data                  : std_logic_vector(31 downto 0);
 --signal tst_dcount                  : std_logic_vector(31 downto 0);
@@ -214,7 +217,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
 
 --tst_dbg_dcount<=p_in_tst(C_VCTRL_REG_TST0_DBG_DCOUNT_BIT);
---
+--tst_dbg_pictire<=p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 --process(p_in_rst,p_in_clk)
 --begin
 --  if p_in_rst='1' then
@@ -438,7 +441,7 @@ begin
                 i_vfr_zone_active.row<=i_cfg_prm_vch(i).fr_size.activ.row(i_vfr_zone_active.row'high downto 0);
 
                 --//адрес ОЗУ:
-                i_vfr_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)<=i_cfg_prm_vch(i).mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT);--(G_MEM_BANK_M_BIT-G_MEM_BANK_L_BIT downto 0);
+                i_vfr_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)<=i_cfg_prm_vch(i).mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT);
                 i_vfr_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
               end if;
             end loop;

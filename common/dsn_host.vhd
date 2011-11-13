@@ -90,10 +90,6 @@ end dsn_host;
 
 architecture behavioral of dsn_host is
 
-constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
-constant C_MEMCTRL_ADDR_WIDTH  : natural :=32;
-constant C_MEMCTRL_DATA_WIDTH  : natural :=32;
-
 component lbus_connector_32bit_tst
 generic(
 la_top : in    natural
@@ -162,10 +158,10 @@ p_out_mem_cw     : out   std_logic;
 p_out_mem_rd     : out   std_logic;
 p_out_mem_wr     : out   std_logic;
 p_out_mem_term   : out   std_logic;
-p_out_mem_adr    : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din    : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout    : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr    : out   std_logic_vector(32 -1  downto 0); --(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be     : out   std_logic_vector(32/8 -1 downto 0); --(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din    : out   std_logic_vector(32 -1  downto 0); --(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout    : in    std_logic_vector(32 -1  downto 0); --(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf      : in    std_logic;
 p_in_mem_wpf     : in    std_logic;
@@ -186,6 +182,9 @@ p_in_rst_n         : in    std_logic
 end component;
 
 component pcie_main
+generic(
+G_DBG : string:="OFF"
+);
 port(
 --//-------------------------------------------------------
 --// User Port
@@ -243,6 +242,9 @@ begin
 gen_sim_off : if strcmp(G_SIM_HOST,"OFF") generate
 
 m_pcie : pcie_main
+generic map(
+G_DBG => G_DBG
+)
 port map(
 --//-------------------------------------------------------
 --// User Port
