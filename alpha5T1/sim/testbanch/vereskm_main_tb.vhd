@@ -39,7 +39,7 @@ use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.vereskm_pkg.all;
-use work.memory_ctrl_pkg.all;
+use work.mem_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.dsn_track_nik_pkg.all;
 
