@@ -182,20 +182,20 @@ set _projects [ list \
       [ list "../../../common/veresk_m/alphadata/lbus_dcm.vhd" $_VHDMod ] \
       [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \
       [ list "../src/core_gen/pcie2mem_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_m/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_m/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_v5_main.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_reset.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_off_on.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_tx.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_rx.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_cfg.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_irq.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_irq_dev.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pcie_usr_app.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_reset.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_off_on.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_tx.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_rx.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_cfg.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_usr_app.vhd" $_VHDMod ] \
       [ list "../src/core_gen/ethg_vctrl_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
