@@ -21,6 +21,9 @@ library work;
 use work.prj_cfg.all;
 
 entity pcie_main is
+generic(
+G_DBG : string :="OFF"  --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
+);
 port(
 --------------------------------------------------------
 --USR Port
@@ -235,6 +238,9 @@ pl_upstream_prefer_deemph      : in  std_logic
 end component;
 
 component pcie_ctrl
+generic(
+G_DBG : string :="OFF"
+);
 port(
 --------------------------------------
 --USR Port
@@ -664,6 +670,9 @@ pl_upstream_prefer_deemph      => pl_upstream_prefer_deemph      --: in  std_log
 --//Модуль приложения PCI-Express(упраление ядром PCI-Express+ упр. пользовательским портом)
 --//#############################################
 m_ctrl : pcie_ctrl
+generic map(
+G_DBG => G_DBG
+)
 port map(
 --------------------------------------
 --USR port

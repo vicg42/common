@@ -33,18 +33,20 @@ use work.sata_sim_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 use work.dsn_hdd_pkg.all;
-use work.memory_ctrl_pkg.all;
+use work.mem_ctrl_pkg.all;
 use work.sata_testgen_pkg.all;
 
 entity vereskm_hdd_tb is
 generic
 (
-G_CFG_IF        : std_logic:='1';--//Выбор интерфейса управления:0/1 - PCIEXP/UART
-G_HDD_COUNT     : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
-G_GT_DBUS       : integer:=16;
-G_DBGCS         : string :="ON";
-G_DBG           : string :="ON";
-G_SIM           : string :="ON"
+G_CFG_IF      : std_logic:='1';--//Выбор интерфейса управления:0/1 - PCIEXP/UART
+G_HDD_COUNT   : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
+G_GT_DBUS     : integer:=16;
+G_DBGCS       : string :="ON";
+G_DBG         : string :="ON";
+G_SIM         : string :="ON";
+G_MEM_AWIDTH  : integer:=32;
+G_MEM_DWIDTH  : integer:=32
 );
 port(
 pin_out_tst: out std_logic
@@ -83,10 +85,13 @@ end component;
 component dsn_hdd_rambuf
 generic
 (
-G_MODULE_USE           : string:="ON";
-G_RAMBUF_SIZE          : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
-G_DBGCS                : string:="OFF";
-G_SIM                  : string:="OFF"
+G_MODULE_USE  : string:="ON";
+G_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
+G_DBGCS       : string:="OFF";
+G_SIM         : string:="OFF";
+
+G_MEM_AWIDTH  : integer:=32;
+G_MEM_DWIDTH  : integer:=32
 );
 port
 (
@@ -121,21 +126,21 @@ p_in_hdd_rxbuf_pempty : in    std_logic;
 p_in_hdd_rxbuf_empty  : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
 p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h      : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
 p_out_mem_ce          : out   std_logic;
 p_out_mem_cw          : out   std_logic;
 p_out_mem_rd          : out   std_logic;
 p_out_mem_wr          : out   std_logic;
 p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf           : in    std_logic;
 p_in_mem_wpf          : in    std_logic;
@@ -227,16 +232,16 @@ signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downt
 signal i_hdd_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_hdd_mem_bank1h               : std_logic_vector(15 downto 0);
+signal i_hdd_mem_bank1h               : std_logic_vector(3 downto 0);
 signal i_hdd_mem_ce                   : std_logic;
 signal i_hdd_mem_cw                   : std_logic;
 signal i_hdd_mem_rd                   : std_logic;
 signal i_hdd_mem_wr                   : std_logic;
 signal i_hdd_mem_term                 : std_logic;
-signal i_hdd_mem_adr                  : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-signal i_hdd_mem_be                   : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-signal i_hdd_mem_din                  : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-signal i_hdd_mem_dout                 : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+signal i_hdd_mem_adr                  : std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+signal i_hdd_mem_be                   : std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+signal i_hdd_mem_din                  : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_hdd_mem_dout                 : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 signal i_hdd_mem_wf                   : std_logic;
 signal i_hdd_mem_wpf                  : std_logic;
@@ -501,10 +506,13 @@ p_in_rst               => i_dsn_hdd_rst
 m_hdd_rambuf : dsn_hdd_rambuf
 generic map
 (
-G_MODULE_USE           => "ON",
-G_RAMBUF_SIZE          => 11, --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
-G_DBGCS                => "ON",
-G_SIM                  => "ON" --G_SIM
+G_MODULE_USE  => "ON",
+G_RAMBUF_SIZE => 11, --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_DBGCS       => "ON",
+G_SIM         => "ON", --G_SIM
+
+G_MEM_AWIDTH  => G_MEM_AWIDTH,
+G_MEM_DWIDTH  => G_MEM_DWIDTH
 )
 port map
 (
@@ -539,7 +547,7 @@ p_in_hdd_rxbuf_empty  => i_sh_rxbuf_empty,
 p_in_hdd_rxbuf_pempty => i_sh_rxbuf_pempty,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req      => open,
 p_in_memarb_en        => '1',

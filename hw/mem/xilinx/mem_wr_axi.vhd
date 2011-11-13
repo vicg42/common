@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 2010.06
--- Module Name : memory_ctrl_ch_wr
+-- Module Name : mem_wr
 --
 -- Назначение/Описание :
 --  Запись/Чтение данных ОЗУ
@@ -23,18 +23,17 @@ library unisim;
 use unisim.vcomponents.all;
 
 library work;
-use work.axi_glob_pkg.all;
-use work.memory_ctrl_ch_wr_pkg.all;
+use work.mem_wr_pkg.all;
 
-entity memory_ctrl_ch_wr is
+entity mem_wr is
 generic(
-G_AXI_ID_WIDTH   : integer:=4;
+G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
+G_MEM_BANK_L_BIT : integer:=28;
 G_AXI_IDWR_NUM   : integer:=1;
 G_AXI_IDRD_NUM   : integer:=2;
-G_AXI_ADDR_WIDTH : integer:=32;
-G_AXI_DATA_WIDTH : integer:=32;
-G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
-G_MEM_BANK_L_BIT : integer:=28
+G_AXI_IDWIDTH    : integer:=4;
+G_AXI_AWIDTH     : integer:=32;
+G_AXI_DWIDTH     : integer:=32
 );
 port(
 -------------------------------
@@ -51,22 +50,22 @@ p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции з
 -- Связь с пользовательскими буферами
 -------------------------------
 --//usr_buf->mem
-p_in_usr_txbuf_dout  : in    std_logic_vector(G_AXI_DATA_WIDTH-1 downto 0);
+p_in_usr_txbuf_dout  : in    std_logic_vector(31 downto 0);
 p_out_usr_txbuf_rd   : out   std_logic;
 p_in_usr_txbuf_empty : in    std_logic;
 
 --//usr_buf<-mem
-p_out_usr_rxbuf_din  : out   std_logic_vector(G_AXI_DATA_WIDTH-1 downto 0);
+p_out_usr_rxbuf_din  : out   std_logic_vector(31 downto 0);
 p_out_usr_rxbuf_wd   : out   std_logic;
 p_in_usr_rxbuf_full  : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 --//AXI Master Interface:
 --//WRAddr Ports(usr_buf->mem)
-p_out_maxi_awid      : out   std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
-p_out_maxi_awaddr    : out   std_logic_vector(G_AXI_ADDR_WIDTH-1 downto 0);
+p_out_maxi_awid      : out   std_logic_vector(G_AXI_IDWIDTH-1 downto 0);
+p_out_maxi_awaddr    : out   std_logic_vector(G_AXI_AWIDTH-1 downto 0);
 p_out_maxi_awlen     : out   std_logic_vector(7 downto 0);--(15 downto 0);
 p_out_maxi_awsize    : out   std_logic_vector(2 downto 0);
 p_out_maxi_awburst   : out   std_logic_vector(1 downto 0);
@@ -77,20 +76,20 @@ p_out_maxi_awqos     : out   std_logic_vector(3 downto 0);
 p_out_maxi_awvalid   : out   std_logic;
 p_in_maxi_awready    : in    std_logic;
 --//WRData Ports
-p_out_maxi_wdata     : out   std_logic_vector(G_AXI_DATA_WIDTH-1 downto 0);
-p_out_maxi_wstrb     : out   std_logic_vector(G_AXI_DATA_WIDTH/8-1 downto 0);
+p_out_maxi_wdata     : out   std_logic_vector(G_AXI_DWIDTH-1 downto 0);
+p_out_maxi_wstrb     : out   std_logic_vector(G_AXI_DWIDTH/8-1 downto 0);
 p_out_maxi_wlast     : out   std_logic;
 p_out_maxi_wvalid    : out   std_logic;
 p_in_maxi_wready     : in    std_logic;
 --//WRResponse Ports
-p_in_maxi_bid        : in    std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
+p_in_maxi_bid        : in    std_logic_vector(G_AXI_IDWIDTH-1 downto 0);
 p_in_maxi_bresp      : in    std_logic_vector(1 downto 0);
 p_in_maxi_bvalid     : in    std_logic;
 p_out_maxi_bready    : out   std_logic;
 
 --//RDAddr Ports(usr_buf<-mem)
-p_out_maxi_arid      : out   std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
-p_out_maxi_araddr    : out   std_logic_vector(G_AXI_ADDR_WIDTH-1 downto 0);
+p_out_maxi_arid      : out   std_logic_vector(G_AXI_IDWIDTH-1 downto 0);
+p_out_maxi_araddr    : out   std_logic_vector(G_AXI_AWIDTH-1 downto 0);
 p_out_maxi_arlen     : out   std_logic_vector(7 downto 0);--(15 downto 0);
 p_out_maxi_arsize    : out   std_logic_vector(2 downto 0);
 p_out_maxi_arburst   : out   std_logic_vector(1 downto 0);
@@ -101,8 +100,8 @@ p_out_maxi_arqos     : out   std_logic_vector(3 downto 0);
 p_out_maxi_arvalid   : out   std_logic;
 p_in_maxi_arready    : in    std_logic;
 --//RDData Ports
-p_in_maxi_rid        : in    std_logic_vector(G_AXI_ID_WIDTH-1 downto 0);
-p_in_maxi_rdata      : in    std_logic_vector(G_AXI_DATA_WIDTH-1 downto 0);
+p_in_maxi_rid        : in    std_logic_vector(G_AXI_IDWIDTH-1 downto 0);
+p_in_maxi_rdata      : in    std_logic_vector(G_AXI_DWIDTH-1 downto 0);
 p_in_maxi_rresp      : in    std_logic_vector(1 downto 0);
 p_in_maxi_rlast      : in    std_logic;
 p_in_maxi_rvalid     : in    std_logic;
@@ -120,9 +119,9 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end memory_ctrl_ch_wr;
+end mem_wr;
 
-architecture behavioral of memory_ctrl_ch_wr is
+architecture behavioral of mem_wr is
 
 type fsm_state is (
 S_IDLE,
@@ -232,7 +231,7 @@ p_out_maxi_arprot <=CONV_STD_LOGIC_VECTOR(0, p_out_maxi_arprot'length);
 p_out_maxi_arqos  <=CONV_STD_LOGIC_VECTOR(0, p_out_maxi_arqos'length);
 --//RDData Ports:
 p_out_maxi_arvalid<=i_axi_arvalid;
-p_out_maxi_rready <=i_mem_trn_work and not i_mem_dir and not p_in_usr_rxbuf_full;
+p_out_maxi_rready <=i_mem_trn_work and not p_in_usr_rxbuf_full when i_mem_dir=C_MEMWR_READ  else '0';
 
 
 process(p_in_clk)
@@ -240,7 +239,7 @@ begin
   if p_in_clk'event and p_in_clk='1' then
 
     --//Формируем сигнал последнего данного в текущей транзакции записи ОЗУ
-    if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+    if i_mem_dir=C_MEMWR_WRITE then
       if (i_mem_wr_out='1' or fsm_state_cs=S_MEM_WAIT_RQ_EN) and i_mem_trn_len=CONV_STD_LOGIC_VECTOR(1, i_mem_trn_len'length) then
         i_mem_term_out<='1';
       elsif i_mem_wr_out='1' and i_mem_trn_len=(i_mem_trn_len'range => '0') then
@@ -260,8 +259,8 @@ end process;
 p_out_cfg_mem_done<=i_mem_done;
 
 --//Разрешение записи/чтения ОЗУ
-i_mem_rd_out<=i_mem_trn_work and not i_mem_dir and p_in_maxi_rvalid and not p_in_usr_rxbuf_full;
-i_mem_wr_out<=i_mem_trn_work and     i_mem_dir and p_in_maxi_wready and not p_in_usr_txbuf_empty;
+i_mem_rd_out<=i_mem_trn_work and p_in_maxi_rvalid and not p_in_usr_rxbuf_full  when i_mem_dir=C_MEMWR_READ  else '0';
+i_mem_wr_out<=i_mem_trn_work and p_in_maxi_wready and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 
 --//Логика работы автомата
 process(p_in_rst,p_in_clk)
@@ -337,7 +336,7 @@ begin
       --//------------------------------------
       when S_MEM_SET_RQ =>
 
-        if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+        if i_mem_dir=C_MEMWR_WRITE then
           i_axi_awvalid<='1';
           fsm_state_cs <= S_MEM_WAIT_RQ_EN;
         else
@@ -350,7 +349,7 @@ begin
       --//------------------------------------
       when S_MEM_WAIT_RQ_EN =>
 
-        if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+        if i_mem_dir=C_MEMWR_WRITE then
         --//Ждем когда Slave будет готов к приему write params
           if p_in_maxi_awready='1' then
             i_axi_awvalid<='0';
@@ -368,7 +367,7 @@ begin
       --//------------------------------------
       when S_MEM_TRN_START =>
 
-        if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+        if i_mem_dir=C_MEMWR_WRITE then
         --//Ждем когда Slave будет готов к приему данных
           if p_in_maxi_wready='1' then
             i_mem_trn_len<=i_mem_trn_len-1;
@@ -392,7 +391,7 @@ begin
           if i_mem_trn_len=(i_mem_trn_len'range => '0') then
             i_mem_trn_len<=(others=>'0');
             i_mem_trn_work<='0';
-            if i_mem_dir=C_MEMCTRLCHWR_WRITE then
+            if i_mem_dir=C_MEMWR_WRITE then
               i_axi_bready<='1';
             end if;
             fsm_state_cs <= S_MEM_TRN_END;
@@ -410,7 +409,7 @@ begin
         var_update_addr(1 downto 0) :=(others=>'0');--//Если i_cfg_mem_trn_len в DWORD
         var_update_addr(i_mem_trn_len'length+1 downto 2):=i_cfg_mem_trn_len;
 
-        if (p_in_maxi_bvalid='1' and i_mem_dir=C_MEMCTRLCHWR_WRITE) or i_mem_dir=C_MEMCTRLCHWR_READ then
+        if (p_in_maxi_bvalid='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
           i_axi_bready<='0';
 
           if i_cfg_mem_dlen_rq=i_mem_dlen_used then

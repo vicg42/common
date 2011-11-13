@@ -22,14 +22,13 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.memory_ctrl_pkg.all;
-use work.memory_ctrl_ch_wr_pkg.all;
+use work.mem_wr_pkg.all;
 use work.pcie_pkg.all;
 
 entity pcie2mem_ctrl is
 generic(
-G_MEMCTRL_AWIDTH : integer:=32;
-G_MEMCTRL_DWIDTH : integer:=32;
+G_MEM_AWIDTH     : integer:=32;
+G_MEM_DWIDTH     : integer:=32;
 G_MEM_BANK_M_BIT : integer:=29;
 G_MEM_BANK_L_BIT : integer:=28;
 G_DBG            : string :="OFF"  --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
@@ -41,16 +40,16 @@ port(
 p_out_memarb_req  : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
 p_in_memarb_en    : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h  : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h  : out   std_logic_vector(3 downto 0);
 p_out_mem_ce      : out   std_logic;
 p_out_mem_cw      : out   std_logic;
 p_out_mem_rd      : out   std_logic;
 p_out_mem_wr      : out   std_logic;
 p_out_mem_term    : out   std_logic;
-p_out_mem_adr     : out   std_logic_vector(G_MEMCTRL_AWIDTH - 1 downto 0);
-p_out_mem_be      : out   std_logic_vector(G_MEMCTRL_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din     : out   std_logic_vector(G_MEMCTRL_DWIDTH - 1 downto 0);
-p_in_mem_dout     : in    std_logic_vector(G_MEMCTRL_DWIDTH - 1 downto 0);
+p_out_mem_adr     : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be      : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din     : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf       : in    std_logic;
 p_in_mem_wpf      : in    std_logic;
@@ -189,10 +188,12 @@ p_out_txbuf_full<=i_txbuf_full;
 --//--------------------------------------------------
 --//Контроллер записи/чтения ОЗУ
 --//--------------------------------------------------
-m_mem_ctrl_wr : memory_ctrl_ch_wr
+m_mem_wr : mem_wr
 generic map(
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
-G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT
+G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
+G_MEM_AWIDTH     => G_MEM_AWIDTH,
+G_MEM_DWIDTH     => G_MEM_DWIDTH
 )
 port map(
 -------------------------------
@@ -217,7 +218,7 @@ p_out_usr_rxbuf_wd   => i_rxbuf_din_wr,
 p_in_usr_rxbuf_full  => i_rxbuf_full,
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req     => p_out_memarb_req,
 p_in_memarb_en       => p_in_memarb_en,
@@ -260,7 +261,7 @@ p_in_rst             => p_in_rst
 process(p_in_hclk)
 begin
   if p_in_hclk'event and p_in_hclk='1' then
-    if p_in_ctrl.dir=C_MEMCTRLCHWR_WRITE then
+    if p_in_ctrl.dir=C_MEMWR_WRITE then
     h_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, h_mem_lentrn'length);
     else
     h_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, h_mem_lentrn'length);
@@ -320,13 +321,13 @@ p_out_status.done<=i_mem_done_out;
 --//----------------------------------
 p_out_tst(0)<=i_mem_start;
 p_out_tst(1)<=i_mem_done;
-p_out_tst(5 downto 2)<=tst_mem_ctrl_out(5 downto 2);--m_mem_ctrl_wr/tst_fsm_cs;
+p_out_tst(5 downto 2)<=tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
 p_out_tst(6)<=i_rxbuf_empty;
 p_out_tst(7)<=i_rxbuf_full;
 p_out_tst(8)<=i_txbuf_empty;
 p_out_tst(9)<=i_txbuf_full;
 p_out_tst(25 downto 10)<=i_mem_lenreq;
-p_out_tst(31 downto 26)<=tst_mem_ctrl_out(21 downto 16);--m_mem_ctrl_wr/i_mem_trn_len;
+p_out_tst(31 downto 26)<=tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
 
 
 

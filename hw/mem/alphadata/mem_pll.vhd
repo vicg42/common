@@ -30,7 +30,7 @@ use UNISIM.VCOMPONENTS.ALL;
 library work;
 use work.memif_def.all;
 
-entity memory_ctrl_pll is
+entity mem_pll is
 port(
 mclk      : in    std_logic;
 rst       : in    std_logic;
@@ -44,7 +44,7 @@ memrst    : out   std_logic
 );
 end entity;
 
-architecture mixed of memory_ctrl_pll is
+architecture mixed of mem_pll is
 
 component BUFG port( O : out std_ulogic; I : in  std_ulogic); end component;
 

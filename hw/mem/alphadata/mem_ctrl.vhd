@@ -1,5 +1,5 @@
 --
--- memory_ctrl.vhd - Memory banks for ADM-XRC-5T1
+-- mem_ctrl.vhd - Memory banks for ADM-XRC-5T1
 --
 -- (C) Copyright Alpha Data 2005-2007
 --
@@ -19,14 +19,14 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.memif.all;
-use work.memory_ctrl_pkg.all;
+use work.mem_ctrl_pkg.all;
 
 -- synopsys translate_off
 library unisim;
 use unisim.vcomponents.all;
 -- synopsys translate_on
 
-entity memory_ctrl is
+entity mem_ctrl is
   generic
   (
     G_BANK_COUNT  : in    integer;
@@ -168,7 +168,7 @@ entity memory_ctrl is
   );
 end entity;
 
-architecture mixed of memory_ctrl is
+architecture mixed of mem_ctrl is
 
     constant num_bank_dram        : natural := selval(1, 2, cmpval(1, G_BANK_COUNT));--2;
     constant num_bank_sram        : natural := 1;

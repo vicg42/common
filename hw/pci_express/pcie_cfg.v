@@ -15,7 +15,7 @@
 //                                       (посмотрим как будет работать в этом случае)
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
-`include "../../../common/veresk_m/pci_express/define/def_pciexpress.v"
+`include "../../../common/hw/pci_express/pcie_def.v"
 
 `define   BMD_CFG_STATE_RESET  5'b00001
 `define   BMD_CFG_STATE_MSI    5'b00010

@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 17.10.2011 10:47:52
--- Module Name : memory_ctrl_pkg.vhd
+-- Module Name : mem_ctrl_pkg.vhd
 --
 -- Description :
 --
@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.memif.all;
 
-package memory_ctrl_pkg is
+package mem_ctrl_pkg is
 
 constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
 
@@ -28,7 +28,7 @@ constant C_MEMCTRL_CFG_MODE_REG_COUNT  : integer:=3;--//32 bit
 constant C_MEMCTRL_ADDR_WIDTH  : natural :=32;
 constant C_MEMCTRL_DATA_WIDTH  : natural :=32;
 
---//Настройки чипов памяти подключенной к memory_ctrl.vhd
+--//Настройки чипов памяти подключенной к mem_ctrl.vhd
 constant C_MEM_BANK0       : bank_t  := (enable => true, ra_width => 19, rc_width => 22, rd_width => 32);--//SDRAM DDR-II (chip0)
 constant C_MEM_BANK1       : bank_t  := (enable => true, ra_width => 19, rc_width => 22, rd_width => 32);--//SDRAM DDR-II (chip1)
 constant C_MEM_BANK2       : bank_t  := (enable => true, ra_width => 24, rc_width => 9,  rd_width => 16);--//SSRAM DDR-II
@@ -70,9 +70,11 @@ type data_vector_t is array(natural range <>) of std_logic_vector(max_data_width
 -- Used for 'tag' and 'qtag' signals to and from a memory port
 type tag_vector_t is array(natural range <>) of std_logic_vector(tag_width - 1 downto 0);
 
-component memory_ch_arbitr
+component mem_arb
 generic(
-G_CH_COUNT : integer:=4
+G_CH_COUNT   : integer:=4;
+G_MEM_AWIDTH : integer:=32;
+G_MEM_DWIDTH : integer:=32
 );
 port
 (
@@ -82,16 +84,16 @@ port
 p_in_ch0_req     : in    std_logic;
 p_out_ch0_en     : out   std_logic;
 
-p_in_ch0_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch0_bank1h  : in    std_logic_vector(3 downto 0);
 p_in_ch0_ce      : in    std_logic;
 p_in_ch0_cw      : in    std_logic;
 p_in_ch0_rd      : in    std_logic;
 p_in_ch0_wr      : in    std_logic;
 p_in_ch0_term    : in    std_logic;
-p_in_ch0_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch0_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch0_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch0_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch0_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_in_ch0_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_in_ch0_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_out_ch0_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_out_ch0_wf     : out   std_logic;
 p_out_ch0_wpf    : out   std_logic;
@@ -104,16 +106,16 @@ p_out_ch0_rpe    : out   std_logic;
 p_in_ch1_req     : in    std_logic;
 p_out_ch1_en     : out   std_logic;
 
-p_in_ch1_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch1_bank1h  : in    std_logic_vector(3 downto 0);
 p_in_ch1_ce      : in    std_logic;
 p_in_ch1_cw      : in    std_logic;
 p_in_ch1_rd      : in    std_logic;
 p_in_ch1_wr      : in    std_logic;
 p_in_ch1_term    : in    std_logic;
-p_in_ch1_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch1_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch1_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch1_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch1_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_in_ch1_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_in_ch1_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_out_ch1_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_out_ch1_wf     : out   std_logic;
 p_out_ch1_wpf    : out   std_logic;
@@ -126,16 +128,16 @@ p_out_ch1_rpe    : out   std_logic;
 p_in_ch2_req     : in    std_logic;
 p_out_ch2_en     : out   std_logic;
 
-p_in_ch2_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch2_bank1h  : in    std_logic_vector(3 downto 0);
 p_in_ch2_ce      : in    std_logic;
 p_in_ch2_cw      : in    std_logic;
 p_in_ch2_rd      : in    std_logic;
 p_in_ch2_wr      : in    std_logic;
 p_in_ch2_term    : in    std_logic;
-p_in_ch2_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch2_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch2_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch2_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch2_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_in_ch2_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_in_ch2_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_out_ch2_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_out_ch2_wf     : out   std_logic;
 p_out_ch2_wpf    : out   std_logic;
@@ -148,16 +150,16 @@ p_out_ch2_rpe    : out   std_logic;
 p_in_ch3_req     : in    std_logic;
 p_out_ch3_en     : out   std_logic;
 
-p_in_ch3_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch3_bank1h  : in    std_logic_vector(3 downto 0);
 p_in_ch3_ce      : in    std_logic;
 p_in_ch3_cw      : in    std_logic;
 p_in_ch3_rd      : in    std_logic;
 p_in_ch3_wr      : in    std_logic;
 p_in_ch3_term    : in    std_logic;
-p_in_ch3_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch3_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch3_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch3_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch3_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_in_ch3_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_in_ch3_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_out_ch3_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_out_ch3_wf     : out   std_logic;
 p_out_ch3_wpf    : out   std_logic;
@@ -170,16 +172,16 @@ p_out_ch3_rpe    : out   std_logic;
 p_in_ch4_req     : in    std_logic;
 p_out_ch4_en     : out   std_logic;
 
-p_in_ch4_bank1h  : in    std_logic_vector(15 downto 0);
+p_in_ch4_bank1h  : in    std_logic_vector(3 downto 0);
 p_in_ch4_ce      : in    std_logic;
 p_in_ch4_cw      : in    std_logic;
 p_in_ch4_rd      : in    std_logic;
 p_in_ch4_wr      : in    std_logic;
 p_in_ch4_term    : in    std_logic;
-p_in_ch4_adr     : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_in_ch4_be      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_in_ch4_din     : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_out_ch4_dout   : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_ch4_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_in_ch4_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_in_ch4_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_out_ch4_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_out_ch4_wf     : out   std_logic;
 p_out_ch4_wpf    : out   std_logic;
@@ -187,20 +189,20 @@ p_out_ch4_re     : out   std_logic;
 p_out_ch4_rpe    : out   std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_mem_clk    : out   std_logic;
 
-p_out_mem_bank1h : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h : out   std_logic_vector(3 downto 0);
 p_out_mem_ce     : out   std_logic;
 p_out_mem_cw     : out   std_logic;
 p_out_mem_rd     : out   std_logic;
 p_out_mem_wr     : out   std_logic;
 p_out_mem_term   : out   std_logic;
-p_out_mem_adr    : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din    : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout    : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr    : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be     : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din    : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout    : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf      : in    std_logic;
 p_in_mem_wpf     : in    std_logic;
@@ -222,7 +224,7 @@ p_in_rst         : in    std_logic
 end component;
 
 
-component memory_ctrl
+component mem_ctrl
   generic
   (
     G_BANK_COUNT  : in    integer;

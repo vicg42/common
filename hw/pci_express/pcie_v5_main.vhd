@@ -21,6 +21,9 @@ library work;
 use work.prj_cfg.all;
 
 entity pcie_main is
+generic(
+G_DBG : string :="OFF"
+);
 port(
 --------------------------------------------------------
 --USR Port
@@ -189,6 +192,9 @@ sys_reset_n                : in    std_logic
 end component;
 
 component pcie_ctrl
+generic(
+G_DBG : string :="OFF"
+);
 port(
 --------------------------------------
 --USR Port
@@ -533,6 +539,9 @@ sys_reset_n                => sys_reset_n
 --//Модуль приложения PCI-Express(упраление ядром PCI-Express+ упр. пользовательским портом)
 --//#############################################
 m_ctrl : pcie_ctrl
+generic map(
+G_DBG => G_DBG
+)
 port map(
 --------------------------------------
 --USR port

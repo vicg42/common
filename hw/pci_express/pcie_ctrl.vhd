@@ -22,6 +22,9 @@ use work.prj_cfg.all;
 use work.pcie_unit_pkg.all;
 
 entity pcie_ctrl is
+generic(
+G_DBG : string :="OFF"
+);
 port(
 --------------------------------------
 --USR Port
@@ -316,7 +319,7 @@ i_cfg_msi_enable <= cfg_interrupt_msienable_i;
 --//###########################################
 m_usr_app : pcie_usr_app
 generic map(
-G_DBG => "OFF" --G_DBG
+G_DBG => G_DBG
 )
 port map(
 p_out_hclk                    => p_out_hclk,

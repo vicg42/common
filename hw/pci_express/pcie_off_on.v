@@ -12,7 +12,7 @@
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
-`include "../../../common/veresk_m/pci_express/define/def_pciexpress.v"
+`include "../../../common/hw/pci_express/pcie_def.v"
 
 module pcie_off_on
 (

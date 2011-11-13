@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 2010.06
--- Module Name : memory_ctrl_ch_wr
+-- Module Name : mem_wr
 --
 -- Назначение/Описание :
 --  Запись/Чтение данных ОЗУ
@@ -24,13 +24,14 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_def.all;
-use work.memory_ctrl_pkg.all;
+use work.mem_wr_pkg.all;
 
-entity memory_ctrl_ch_wr is
+entity mem_wr is
 generic(
-G_MEM_BANK_M_BIT   : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
-G_MEM_BANK_L_BIT   : integer:=28
+G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
+G_MEM_BANK_L_BIT : integer:=28;
+G_MEM_AWIDTH     : integer:=32;
+G_MEM_DWIDTH     : integer:=32
 );
 port(
 -------------------------------
@@ -47,31 +48,31 @@ p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции з
 -- Связь с пользовательскими буферами
 -------------------------------
 --//usr_buf->mem
-p_in_usr_txbuf_dout  : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_in_usr_txbuf_dout  : in    std_logic_vector(31 downto 0);
 p_out_usr_txbuf_rd   : out   std_logic;
 p_in_usr_txbuf_empty : in    std_logic;
 
 --//usr_buf<-mem
-p_out_usr_rxbuf_din  : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_usr_rxbuf_din  : out   std_logic_vector(31 downto 0);
 p_out_usr_rxbuf_wd   : out   std_logic;
 p_in_usr_rxbuf_full  : in    std_logic;
 
 ---------------------------------
--- Связь с memory_ctrl.vhd
+-- Связь с mem_ctrl.vhd
 ---------------------------------
 p_out_memarb_req     : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
 p_in_memarb_en       : in    std_logic;                    --//Разрешение арбитра
 
-p_out_mem_bank1h     : out   std_logic_vector(15 downto 0);
+p_out_mem_bank1h     : out   std_logic_vector(3 downto 0);
 p_out_mem_ce         : out   std_logic;
 p_out_mem_cw         : out   std_logic;
 p_out_mem_rd         : out   std_logic;
 p_out_mem_wr         : out   std_logic;
 p_out_mem_term       : out   std_logic;
-p_out_mem_adr        : out   std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-p_out_mem_be         : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-p_out_mem_din        : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-p_in_mem_dout        : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+p_out_mem_adr        : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be         : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout        : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 p_in_mem_wf          : in    std_logic;
 p_in_mem_wpf         : in    std_logic;
@@ -92,9 +93,9 @@ p_out_tst            : out   std_logic_vector(31 downto 0);
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end memory_ctrl_ch_wr;
+end mem_wr;
 
-architecture behavioral of memory_ctrl_ch_wr is
+architecture behavioral of mem_wr is
 
 type fsm_state is (
 S_IDLE,
@@ -110,7 +111,7 @@ S_EXIT
 );
 signal fsm_state_cs                : fsm_state;
 
-signal i_mem_bank1h_out            : std_logic_vector(pwr((G_MEM_BANK_M_BIT-G_MEM_BANK_L_BIT+1), 2)-1 downto 0);
+signal i_mem_bank1h_out            : std_logic_vector(p_out_mem_bank1h'range);
 signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_wr_out                : std_logic;
 signal i_mem_rd_out                : std_logic;
@@ -197,7 +198,7 @@ p_out_memarb_req<=i_memarb_req;
 
 p_out_mem_clk<=p_in_clk;
 
-p_out_mem_ce<=i_mem_ce when i_mem_dir='0' else sr_mem_ce;
+p_out_mem_ce<=i_mem_ce when i_mem_dir=C_MEMWR_READ else sr_mem_ce;
 p_out_mem_cw<=i_mem_dir;
 
 p_out_mem_bank1h<=EXT(i_mem_bank1h_out, p_out_mem_bank1h'length);
@@ -257,8 +258,8 @@ end process;
 p_out_cfg_mem_done<=i_mem_done;
 
 --//Разрешение записи/чтения ОЗУ
-i_mem_rd_out<=i_mem_trn_work and not i_mem_dir and not p_in_mem_re  and not p_in_usr_rxbuf_full;
-i_mem_wr_out<=i_mem_trn_work and     i_mem_dir and not p_in_mem_wpf and not p_in_usr_txbuf_empty;
+i_mem_rd_out<=i_mem_trn_work and not p_in_mem_re  and not p_in_usr_rxbuf_full  when i_mem_dir=C_MEMWR_READ  else '0';
+i_mem_wr_out<=i_mem_trn_work and not p_in_mem_wpf and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 
 --//Логика работы автомата
 process(p_in_rst,p_in_clk)
@@ -346,7 +347,7 @@ begin
       --//------------------------------------
       when S_MEM_TRN_START =>
 
-        if i_mem_dir='1' then
+        if i_mem_dir=C_MEMWR_WRITE then
         --Запись
           if p_in_mem_wpf='0'then
           --//Ждем когда в TXBUF контроллера памяти можно будет записывать данные
@@ -409,7 +410,7 @@ begin
       --//Переходим к выполнению следующей операции
       --//----------------------------------------------
       when S_WAIT =>
-        if i_mem_dir='0' then
+        if i_mem_dir=C_MEMWR_READ then
         --Чтение
           if p_in_mem_re='1'then
             i_memarb_req<='0';
@@ -428,7 +429,7 @@ begin
 
         i_mem_dlen_used<=(others=>'0');
 
-        if i_mem_dir='0' then
+        if i_mem_dir=C_MEMWR_READ then
         --Чтение
           if p_in_mem_re='1'then
             i_mem_done<='1';
