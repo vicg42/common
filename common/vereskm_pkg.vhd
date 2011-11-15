@@ -259,7 +259,7 @@ p_out_dev_opt       : out   std_logic_vector(127 downto 0);
 --// Технологический
 --------------------------------------------------
 p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(171 downto 0);
+p_out_tst           : out   std_logic_vector(255 downto 0);
 
 --------------------------------------------------
 --System
