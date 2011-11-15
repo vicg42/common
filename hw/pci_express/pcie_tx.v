@@ -440,11 +440,21 @@ module pcie_tx(
         mrd_len_byte      <= 13'b0;
         pmrd_addr         <= 32'b0;
         mrd_len_dw_req    <= mrd_len_i[10:0];
-        mrd_len_dw        <= 11'b0;
+//        mrd_len_dw        <= 11'b0;
         mrd_fbe_req       <= mrd_fbe_i;
         mrd_lbe_req       <= mrd_lbe_i;
         mrd_fbe           <= 4'b0;
         mrd_lbe           <= 4'b0;
+
+        if ((mrd_count_i - 1'b1)==16'b0)
+          mrd_len_dw[10:0] <= mrd_len_i[10:0];
+        else
+        begin
+          if      (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_dw <= 11'h100;
+          else if (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_dw <= 11'h80;
+          else if (max_rd_req_size_i==`C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_dw <= 11'h40;
+          else                                                        mrd_len_dw <= 11'h20;
+        end
 
       end
 

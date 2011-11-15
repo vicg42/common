@@ -48,7 +48,7 @@ p_out_dev_opt        : out   std_logic_vector(127 downto 0);
 --Технологический
 --------------------------------------------------------
 p_in_tst             : in    std_logic_vector(31 downto 0);
-p_out_tst            : out   std_logic_vector(171 downto 0);
+p_out_tst            : out   std_logic_vector(255 downto 0);
 
 ---------------------------------------------------------
 --System Port
@@ -257,7 +257,7 @@ p_in_dev_status           : in    std_logic_vector(31 downto 0);
 p_in_dev_irq              : in    std_logic_vector(31 downto 0);
 p_in_dev_opt              : in    std_logic_vector(127 downto 0);
 p_out_dev_opt             : out   std_logic_vector(127 downto 0);
-
+p_out_tst2                : out   std_logic_vector(127 downto 0);
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
 
@@ -325,6 +325,8 @@ cfg_err_cpl_unexpect_n_o  : out   std_logic;
 cfg_err_cpl_abort_n_o     : out   std_logic;
 cfg_err_posted_n_o        : out   std_logic;
 cfg_err_cor_n_o           : out   std_logic;
+cfg_err_locked_n_o        : out   std_logic;
+cfg_err_cpl_rdy_n_i       : in    std_logic;
 
 cfg_pm_wake_n_o           : out   std_logic;
 cfg_trn_pending_n_o       : out   std_logic;
@@ -394,7 +396,7 @@ signal trn_rbar_hit_n                 : std_logic_vector(CI_PCIEXP_BARHIT_BUS-1 
 --signal trn_rfc_npd_av                 : std_logic_vector(CI_PCIEXP_FCDAT_BUS-1 downto 0);
 --signal trn_rfc_ph_av                  : std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
 --signal trn_rfc_pd_av                  : std_logic_vector(CI_PCIEXP_FCDAT_BUS-1 downto 0);
---signal trn_rcpl_streaming_n           : std_logic;
+signal trn_rcpl_streaming_n           : std_logic;
 
 signal cfg_do                         : std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
 signal cfg_di                         : std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
@@ -480,6 +482,8 @@ signal pl_directed_link_speed         : std_logic;
 signal pl_directed_link_width         : std_logic_vector(1 downto 0);
 signal pl_upstream_prefer_deemph      : std_logic;
 
+signal i_out_tst2                     : std_logic_vector(127 downto 0);
+
 --//MAIN
 begin
 
@@ -505,12 +509,18 @@ p_out_tst(15)<=trn_rbar_hit_n(1);
 p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
 p_out_tst(19 downto 17)<=cfg_interrupt_mmenable(2 downto 0);
 p_out_tst(20)<=cfg_status(3);--//Interrupt Status
-p_out_tst(21)<='0';--trn_rcpl_streaming_n;
+p_out_tst(21)<=trn_rcpl_streaming_n;
 p_out_tst(22)<=trn_rnp_ok_n;
 p_out_tst(31 downto 23)<=(others=>'0');
 p_out_tst(95 downto 32)<=trn_td;
 p_out_tst(159 downto 96)<=trn_rd;
 p_out_tst(160)<=trn_rrem_n(0);
+p_out_tst(161)<=trn_terr_drop_n;
+p_out_tst(199 downto 162)<=(others=>'0');
+p_out_tst(215 downto 200)<=i_out_tst2(15 downto 0);
+p_out_tst(231 downto 216)<=i_out_tst2(31 downto 16);
+p_out_tst(248)           <=i_out_tst2(48);
+p_out_tst(255 downto 249)<=(others=>'0');
 
 
 --//#############################################
@@ -678,7 +688,7 @@ port map(
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
-
+p_out_tst2                => i_out_tst2,
 p_out_tst                 => p_out_usr_tst,
 p_in_tst                  => p_in_usr_tst,
 
@@ -725,7 +735,7 @@ trn_rfc_nph_av_i              => (others=>'0'),--trn_rfc_nph_av,
 trn_rfc_npd_av_i              => (others=>'0'),--trn_rfc_npd_av,
 trn_rfc_ph_av_i               => (others=>'0'),--trn_rfc_ph_av,
 trn_rfc_pd_av_i               => (others=>'0'),--trn_rfc_pd_av,
-trn_rcpl_streaming_n_o        => open,         --trn_rcpl_streaming_n,
+trn_rcpl_streaming_n_o        => trn_rcpl_streaming_n,
 
 --------------------------------------
 --CFG Interface
@@ -757,6 +767,8 @@ cfg_err_cpl_unexpect_n_o      => cfg_err_cpl_unexpect_n,
 cfg_err_cpl_abort_n_o         => cfg_err_cpl_abort_n,
 cfg_err_posted_n_o            => cfg_err_posted_n,
 cfg_err_cor_n_o               => cfg_err_cor_n,
+cfg_err_locked_n_o            => cfg_err_locked_n,
+cfg_err_cpl_rdy_n_i           => cfg_err_cpl_rdy_n,
 
 cfg_pm_wake_n_o               => cfg_pm_wake_n,
 cfg_trn_pending_n_o           => cfg_trn_pending_n,
@@ -807,15 +819,13 @@ end generate gen_intr_rst;
 --trn_rnp_ok_n              <= '0';
 trn_fc_sel                <= "000";
 trn_tcfg_gnt_n            <= '0';
-trn_tstr_n                <= '0';
+trn_tstr_n                <= trn_rcpl_streaming_n; --'0';
 
 pl_directed_link_change   <= "00";
 pl_directed_link_width    <= "00";
 pl_directed_link_speed    <= '0';
 pl_directed_link_auton    <= '0';
 pl_upstream_prefer_deemph <= '1';
-
-cfg_err_locked_n          <= '1';
 
 trn_trem_n                <= "1"   when (trn_trem_n_old = X"0F") else "0";
 trn_rrem_n_old            <= X"0F" when (trn_rrem_n(0) = '1') else X"00";

@@ -48,7 +48,7 @@ p_out_dev_opt        : out   std_logic_vector(127 downto 0);
 --Технологический
 --------------------------------------------------------
 p_in_tst             : in    std_logic_vector(31 downto 0);
-p_out_tst            : out   std_logic_vector(171 downto 0);
+p_out_tst            : out   std_logic_vector(255 downto 0);
 
 ---------------------------------------------------------
 --System Port
@@ -211,7 +211,7 @@ p_in_dev_status           : in    std_logic_vector(31 downto 0);
 p_in_dev_irq              : in    std_logic_vector(31 downto 0);
 p_in_dev_opt              : in    std_logic_vector(127 downto 0);
 p_out_dev_opt             : out   std_logic_vector(127 downto 0);
-
+p_out_tst2                : out   std_logic_vector(127 downto 0);
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
 
@@ -279,6 +279,8 @@ cfg_err_cpl_unexpect_n_o  : out   std_logic;
 cfg_err_cpl_abort_n_o     : out   std_logic;
 cfg_err_posted_n_o        : out   std_logic;
 cfg_err_cor_n_o           : out   std_logic;
+cfg_err_locked_n_o        : out   std_logic;
+cfg_err_cpl_rdy_n_i       : in    std_logic;
 
 cfg_pm_wake_n_o           : out   std_logic;
 cfg_trn_pending_n_o       : out   std_logic;
@@ -394,6 +396,8 @@ signal cfg_lcommand               : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 
 
 signal user_trn_tbuf_av           : std_logic_vector(5 downto 0);--(15 downto 0);
 
+signal i_out_tst2                 : std_logic_vector(127 downto 0);
+
 --//MAIN
 begin
 
@@ -425,6 +429,11 @@ p_out_tst(31 downto 23)<=(others=>'0');
 p_out_tst(95 downto 32)<=trn_td;
 p_out_tst(159 downto 96)<=trn_rd;
 p_out_tst(160)<=trn_rrem_n(0);
+p_out_tst(199 downto 161)<=(others=>'0');
+p_out_tst(215 downto 200)<=i_out_tst2(15 downto 0);
+p_out_tst(231 downto 216)<=i_out_tst2(31 downto 16);
+p_out_tst(248)           <=i_out_tst2(48);
+p_out_tst(255 downto 249)<=(others=>'0');
 
 
 --//#############################################
@@ -498,7 +507,7 @@ cfg_err_posted_n           => cfg_err_posted_n,
 cfg_err_tlp_cpl_header     => cfg_err_tlp_cpl_header,
 
 cfg_err_cpl_rdy_n          => cfg_err_cpl_rdy_n,
-cfg_err_locked_n           => '1',--cfg_err_locked_n,
+cfg_err_locked_n           => cfg_err_locked_n,
 cfg_interrupt_n            => cfg_interrupt_n,
 cfg_interrupt_rdy_n        => cfg_interrupt_rdy_n,
 cfg_interrupt_assert_n     => cfg_interrupt_assert_n,
@@ -547,7 +556,7 @@ port map(
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
-
+p_out_tst2                => i_out_tst2,
 p_out_tst                 => p_out_usr_tst,
 p_in_tst                  => p_in_usr_tst,
 
@@ -626,6 +635,8 @@ cfg_err_cpl_unexpect_n_o  => cfg_err_cpl_unexpect_n,
 cfg_err_cpl_abort_n_o     => cfg_err_cpl_abort_n,
 cfg_err_posted_n_o        => cfg_err_posted_n,
 cfg_err_cor_n_o           => cfg_err_cor_n,
+cfg_err_locked_n_o        => cfg_err_locked_n,
+cfg_err_cpl_rdy_n_i       => cfg_err_cpl_rdy_n,
 
 cfg_pm_wake_n_o           => cfg_pm_wake_n,
 cfg_trn_pending_n_o       => cfg_trn_pending_n,

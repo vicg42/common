@@ -36,6 +36,9 @@ module pcie_mrd_throttle
 
   rd_metering_i,       //I
 
+  cur_rd_count_hwm_o,
+  cpld_data_size_hwm_o,
+  cpld_found_o,
   mrd_work_o           //O
 
 );
@@ -59,13 +62,23 @@ input         rd_metering_i;
 
 output        mrd_work_o;          // Tx MRds
 
+output   [15:0]  cur_rd_count_hwm_o;
+output   [31:0]  cpld_data_size_hwm_o;
+output           cpld_found_o;
+
 parameter     Tcq = 1;
 
 wire          mrd_work_o;
 reg   [31:0]  cpld_data_size_hwm;  // HWMark for Completion Data (DWs)
 reg   [15:0]  cur_rd_count_hwm;    // HWMark for Read Count Allowed
 
-reg           cpld_found;
+reg           cpld_found_tmp;
+wire          mrd_work_out;
+wire          cpld_found;
+
+assign cur_rd_count_hwm_o = cur_rd_count_hwm;
+assign cpld_data_size_hwm_o = cpld_data_size_hwm;
+assign cpld_found_o = cpld_found;
 
 
 
@@ -74,21 +87,22 @@ always @ ( posedge clk or negedge rst_n )
 begin
   if (!rst_n )
   begin
-    cpld_found <= #(Tcq) 1'b0;
+    cpld_found_tmp <= #(Tcq) 1'b0;
   end
   else
   begin
     if (init_rst_i)
-      cpld_found <= #(Tcq) 1'b0;
+      cpld_found_tmp <= #(Tcq) 1'b0;
     else
     if ((mrd_pkt_count_i == (cur_rd_count_hwm + 1'b1)) &&
         (cpld_data_size_i >= cpld_data_size_hwm))
-      cpld_found <= #(Tcq) 1'b1;
+      cpld_found_tmp <= #(Tcq) 1'b1;
     else
-      cpld_found <= #(Tcq) 1'b0;
+      cpld_found_tmp <= #(Tcq) 1'b0;
   end
 end
 
+assign cpld_found = (cpld_found_tmp && !mrd_work_o);
 
 
 /* Here cur_rd_count_hwm is driven so that the mrd_work_o can be modulated */
@@ -219,6 +233,6 @@ begin
 end
 
 assign mrd_work_o = (rd_metering_i == 0) ? mrd_work_i
-                                      : (mrd_work_i & (cur_rd_count_hwm  >= mrd_pkt_count_i));
+                                      : (mrd_work_i & (cur_rd_count_hwm >= mrd_pkt_count_i));
 endmodule // pcie_mrd_throttle
 

@@ -293,6 +293,10 @@ rd_metering_i       : in  std_logic;
 
 mrd_work_o          : out std_logic;
 
+cur_rd_count_hwm_o  : out std_logic_vector(15 downto 0);
+cpld_data_size_hwm_o: out std_logic_vector(31 downto 0);
+cpld_found_o        : out std_logic;
+
 clk                 : in  std_logic;
 rst_n               : in  std_logic
 );
