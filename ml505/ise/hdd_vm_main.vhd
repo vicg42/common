@@ -378,7 +378,7 @@ signal hclk_hdev_dma_start_cnt          : THDevWidthCnt;
 
 signal i_host_tst_in                    : std_logic_vector(127 downto 0);
 signal i_host_tst_out                   : std_logic_vector(127 downto 0);
-signal i_host_tst2_out                  : std_logic_vector(171 downto 0);
+signal i_host_tst2_out                  : std_logic_vector(255 downto 0);
 
 signal i_cfg_rst                        : std_logic;
 signal i_cfg_rdy                        : std_logic;

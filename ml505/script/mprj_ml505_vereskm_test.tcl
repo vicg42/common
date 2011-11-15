@@ -200,12 +200,6 @@ set _projects [ list \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_vbuf.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/vereskm_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/video_pkt_filter.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_timer.vhd" $_VHDMod ] \
@@ -262,6 +256,12 @@ set _projects [ list \
       [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../ml505_vmtest_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../vereskm_test_main.vhd" $_VHDMod ] \
       [ list "../../ucf/ml505_vereskm_test.ucf" "vereskm_test_main" ] \

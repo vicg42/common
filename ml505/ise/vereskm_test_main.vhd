@@ -173,6 +173,15 @@ component dbgcs_sata_raid
   PORT (
     CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
     CLK : IN STD_LOGIC;
+    DATA : IN STD_LOGIC_VECTOR(172 downto 0); --(122 DOWNTO 0);
+    TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
+    );
+end component;
+
+component dbgcs_sata_raid_b
+  PORT (
+    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
+    CLK : IN STD_LOGIC;
     DATA : IN STD_LOGIC_VECTOR(255 downto 0); --(122 DOWNTO 0);(172 downto 0); --(122 DOWNTO 0);
     TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
     );
@@ -362,7 +371,7 @@ signal hclk_hdev_dma_start_cnt          : THDevWidthCnt;
 
 signal i_host_tst_in                    : std_logic_vector(127 downto 0);
 signal i_host_tst_out                   : std_logic_vector(127 downto 0);
-signal i_host_tst2_out                  : std_logic_vector(171 downto 0);
+signal i_host_tst2_out                  : std_logic_vector(255 downto 0);
 
 signal i_cfg_rst                        : std_logic;
 signal i_cfg_rdy                        : std_logic;
@@ -2480,7 +2489,7 @@ CONTROL1 => i_dbgcs_mem
 );
 
 --//###
-m_dbgcs_memaxi : dbgcs_sata_raid
+m_dbgcs_memaxi : dbgcs_sata_raid_b
 port map(
 CONTROL => i_dbgcs_memaxi,
 CLK     => g_host_clk,
@@ -2509,22 +2518,24 @@ i_dbgcs_memaxi_trg(16)         <=i_host_tst2_out(9);--p_out_tst(9)<=trn_rsof_n,
 i_dbgcs_memaxi_trg(17)         <=i_host_tst2_out(14);--p_out_tst(14)<=trn_rbar_hit_n(0);
 i_dbgcs_memaxi_trg(18)         <=i_host_tst2_out(15);--p_out_tst(15)<=trn_rbar_hit_n(1);
 
-i_dbgcs_memaxi_trg(19)          <=i_host_tst_out(119);--p_out_usr_tst(119)<=v_reg_pciexp_ctrl(C_HREG_PCIE_MSI_EN_BIT);
-i_dbgcs_memaxi_trg(20)          <=i_host_tst_out(120);--p_out_usr_tst(120)<=p_in_cfg_msi_enable;
-i_dbgcs_memaxi_trg(21)          <=i_host_tst2_out(16);--p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
-i_dbgcs_memaxi_trg(22)          <=i_host_tst_out(121);--p_out_usr_tst(121)<=p_in_cfg_intrrupt_disable;
+i_dbgcs_memaxi_trg(22 downto 19)<=i_host_devadr(3 downto 0);--i_host_tst_out(61 downto 58);--<=i_hdev_adr;
 i_dbgcs_memaxi_trg(30 downto 23)<=i_host_tst_out(108 downto 101);--<=i_irq_src_act(7 downto 0);--//Status IRQx
 i_dbgcs_memaxi_trg(31)          <=i_host_tst_out(123);--p_out_usr_tst(123)<=i_tst_rd; Чтение рег FIRMWARE
 i_dbgcs_memaxi_trg(32)          <=i_cfg_done_dev(C_CFGDEV_TMR);
 i_dbgcs_memaxi_trg(33)          <=i_host_tst_out(0);--бит(0) регистра C_HOST_REG_TST0
 i_dbgcs_memaxi_trg(34)          <=i_host_tst_out(123);-- <=i_dmatrn_init;
 i_dbgcs_memaxi_trg(35)          <=i_host_tst_out(124);--<=i_dma_start;
-i_dbgcs_memaxi_trg(41 downto 36) <=(others=>'0');
+i_dbgcs_memaxi_trg(36)          <=i_cfg_wr_dev(C_CFGDEV_VCTRL);
+i_dbgcs_memaxi_trg(37)          <=i_cfg_rd_dev(C_CFGDEV_VCTRL);
+i_dbgcs_memaxi_trg(38)          <=i_cfg_done_dev(C_CFGDEV_VCTRL);
+i_dbgcs_memaxi_trg(39)          <=i_host_dev_wr;
+i_dbgcs_memaxi_trg(40)          <=i_host_dev_rd;
+i_dbgcs_memaxi_trg(41)          <='0';
 
 
 --//-------- VIEW: ------------------
 i_dbgcs_memaxi_view(17 downto  0) <=i_host_mem_ctrl.req_len;
-i_dbgcs_memaxi_view(21 downto  18)<=i_host_tst_out(61 downto 58);--<=i_hdev_adr;
+i_dbgcs_memaxi_view(21 downto  18)<=i_host_devadr(3 downto 0);--i_host_tst_out(61 downto 58);--<=i_hdev_adr;
 i_dbgcs_memaxi_view(22)           <=i_host_tst_out(125);--cpld_tpl_work;
 i_dbgcs_memaxi_view(23)           <=i_host_tst_out(126);--trn_rdw_sel
 i_dbgcs_memaxi_view(24)           <=i_host_tst_out(56);--i_dmatrn_mem_done(0)
@@ -2547,10 +2558,10 @@ i_dbgcs_memaxi_view(79 downto 61)<=i_host_tst2_out(114 downto 96);--p_out_tst(15
 --i_dbgcs_memaxi_view(78)           <=i_host_tst_out(119);--=i_dmatrn_mwr_done;
 --i_dbgcs_memaxi_view(79)           <=i_host_tst_out(122);--=i_dmatrn_mrd_done;
 
-i_dbgcs_memaxi_view(80)          <=i_host_wr(C_HDEV_MEM_DBUF);
+i_dbgcs_memaxi_view(80)          <=i_host_dev_wr;--i_host_wr(C_HDEV_MEM_DBUF);
 i_dbgcs_memaxi_view(81)          <=i_host_dev_opt_in(C_DEV_OPTIN_TXFIFO_PFULL_BIT);--i_host_txbuf_full(C_HDEV_MEM_DBUF);
 i_dbgcs_memaxi_view(82)          <=i_host_mem_tst_out(8);--<=i_txbuf_empty;
-i_dbgcs_memaxi_view(83)          <=i_host_rd(C_HDEV_MEM_DBUF);
+i_dbgcs_memaxi_view(83)          <=i_host_dev_rd;--i_host_rd(C_HDEV_MEM_DBUF);
 i_dbgcs_memaxi_view(84)          <=i_host_dev_opt_in(C_DEV_OPTIN_RXFIFO_EMPTY_BIT);--i_host_rxbuf_empty(C_HDEV_MEM_DBUF);
 i_dbgcs_memaxi_view(85)          <=i_host_mem_tst_out(7);--<=i_rxbuf_full;
 
@@ -2587,11 +2598,30 @@ i_dbgcs_memaxi_view(172)         <=i_host_tst2_out(160);--<=trn_rrem_n(0);;
 
 i_dbgcs_memaxi_view(179 downto 173)<=i_host_tst_out(38 downto 32);-- <=p_in_mrd_pkt_len_tst(15 downto 0);
 
-i_dbgcs_memaxi_view(211 downto 180)<=i_host_txd(C_HDEV_MEM_DBUF);
-i_dbgcs_memaxi_view(243 downto 212)<=i_host_rxd(C_HDEV_MEM_DBUF);
+i_dbgcs_memaxi_view(211 downto 180)<=i_host_dev_txd;
+--i_dbgcs_memaxi_view(243 downto 212)<=i_host_dev_rxd;
+
+i_dbgcs_memaxi_view(227 downto 212)<=i_host_tst2_out(215 downto 200); --//cur_rd_count_hwm_o
+i_dbgcs_memaxi_view(243 downto 228)<=i_host_tst2_out(231 downto 216); --//cpld_data_size_hwm_o
+i_dbgcs_memaxi_view(244)           <=i_host_tst2_out(248);--cpld_found
+i_dbgcs_memaxi_view(255 downto 245)<=(others=>'0');
+
+--i_dbgcs_memaxi_view(187 downto 180)<=i_cfg_radr(7 downto 0);
+--i_dbgcs_memaxi_view(188)<=i_cfg_radr_ld;
+--i_dbgcs_memaxi_view(189)<=i_cfg_radr_fifo;
+--i_dbgcs_memaxi_view(190)<=i_cfg_wr_dev(C_CFGDEV_VCTRL);
+--i_dbgcs_memaxi_view(191)<=i_cfg_rd_dev(C_CFGDEV_VCTRL);
+--i_dbgcs_memaxi_view(192)<=i_cfg_done_dev(C_CFGDEV_VCTRL);
+--i_dbgcs_memaxi_view(211 downto 193)<=(others=>'0');
+--i_dbgcs_memaxi_view(227 downto 212)<=i_cfg_txd;
+--i_dbgcs_memaxi_view(243 downto 228)<=i_cfg_rxd_dev(C_CFGDEV_VCTRL);
 
 
-m_dbgcs_mem : dbgcs_sata_raid
+
+
+
+
+m_dbgcs_mem : dbgcs_sata_raid_b
 port map(
 CONTROL => i_dbgcs_mem,
 CLK     => g_usr_highclk,
@@ -2610,7 +2640,8 @@ i_dbgcs_mem_trg(35)<=i_vctrlwr_memarb_req;
 i_dbgcs_mem_trg(36)<=i_vctrlrd_memarb_req;
 i_dbgcs_mem_trg(37)<=i_hdd_memarb_req;
 i_dbgcs_mem_trg(38)<=i_trc_memarb_req;
-i_dbgcs_mem_trg(41 downto 39) <=(others=>'0');
+i_dbgcs_mem_trg(39)<=i_vctrl_hrd_start;
+i_dbgcs_mem_trg(41 downto 40) <=(others=>'0');
 
 
 --//-------- VIEW: ------------------
@@ -2628,7 +2659,8 @@ i_dbgcs_mem_view(13)           <=i_host_memarb_req; --i_hdd_memarb_req,
 i_dbgcs_mem_view(14)           <=i_host_memarb_en;  --i_hdd_memarb_en,
 i_dbgcs_mem_view(15)           <=i_host_mem_status.done;
 
-i_dbgcs_mem_view(25 downto 16) <=(others=>'0');
+i_dbgcs_mem_view(19 downto 16) <=i_mem_arb_bank1h(3 downto 0);
+i_dbgcs_mem_view(25 downto 20) <=(others=>'0');
 
 i_dbgcs_mem_view(31 downto 26) <=i_host_mem_tst_out(31 downto 26);--(31 downto 16);--m_mem_wr/i_mem_trn_len(5 downto 0);
 i_dbgcs_mem_view(63 downto 32) <=i_mem_arb_adr;
@@ -2661,7 +2693,7 @@ i_dbgcs_mem_view(255 downto 173) <=(others=>'0');
 --);
 --
 ----//###
---m_dbgcs_memaxi : dbgcs_sata_raid
+--m_dbgcs_memaxi : dbgcs_sata_raid_b
 --port map(
 --CONTROL => i_dbgcs_memaxi,
 --CLK     => g_host_clk,
