@@ -70,7 +70,7 @@ p_out_host_vbuf_empty     : out  std_logic;
 p_in_hdd_tstgen           : in   THDDTstGen;                    --//
 p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
 
-p_in_hdd_vbuf_dout        : out  std_logic_vector(31 downto 0); --//
+p_out_hdd_vbuf_dout       : out  std_logic_vector(31 downto 0); --//
 p_in_hdd_vbuf_rd          : in   std_logic;                     --//
 p_out_hdd_vbuf_empty      : out  std_logic;                     --//
 p_out_hdd_vbuf_full       : out  std_logic;                     --//
@@ -753,7 +753,7 @@ din       => i_hdd_vbuf_din,
 wr_en     => i_hdd_vbuf_wr,
 wr_clk    => p_in_eth_clk,
 
-dout      => p_in_hdd_vbuf_dout,
+dout      => p_out_hdd_vbuf_dout,
 rd_en     => p_in_hdd_vbuf_rd,
 rd_clk    => p_in_hdd_vbuf_rdclk,
 
