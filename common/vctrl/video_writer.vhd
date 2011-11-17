@@ -29,7 +29,7 @@ use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
-
+use work.mem_wr_pkg.all;
 
 entity video_writer is
 generic(
@@ -117,71 +117,40 @@ constant dly : time := 1 ps;
 type fsm_state is (
 S_IDLE,
 S_PKT_HEADER_READ,
-S_MEM_CTRL_SEL_BANK,
-S_MEM_CALC_REMAIN_SIZE,
-S_MEM_TRN_LEN_CALC,
-S_MEM_SET_ADR,
-S_MEM_WAIT_RQ_EN,
-S_MEM_SET_ADR_DONE,
-S_MEM_TRN,
-S_MEM_TRN_END,
-S_EXIT
+S_MEM_START,
+S_MEM_WR
 );
 signal fsm_state_cs: fsm_state;
 
-signal i_cfg_prm_vch               : TWriterVCHParams;
-
-signal i_vfr_mem_adr               : std_logic_vector(G_MEM_BANK_M_BIT downto 0);
-type TWFrXYParam is record
-pix : std_logic_vector(G_MEM_VLINE_L_BIT downto 0);
-row : std_logic_vector(G_MEM_VFR_L_BIT-G_MEM_VLINE_L_BIT downto 0);
-end record;
-signal i_vfr_zone_skip             : TWFrXYParam;
-signal i_vfr_zone_active           : TWFrXYParam;
-signal i_vfr_row_mrk               : TVMrks;
-signal i_vfr_row_mrk_l             : std_logic_vector(15 downto 0);
-
-signal i_vpkt_cnt                  : std_logic_vector(15 downto 0);
+signal i_vpkt_cnt                  : std_logic_vector(3 downto 0);
 signal i_vpkt_header_rd            : std_logic;
 signal i_vpkt_payload_rd           : std_logic;
-signal i_vpkt_total_len2dw         : std_logic_vector(i_vpkt_cnt'high downto 0);
-signal i_vpkt_data_len             : std_logic_vector(i_vpkt_cnt'high downto 0);
-signal i_vpkt_data_readed          : std_logic_vector(i_vpkt_cnt'high downto 0);
-signal i_vpkt_data_remain          : std_logic_vector(i_vpkt_cnt'high downto 0);
 
+signal i_vfr_row_mrk               : TVMrks;
+signal i_vfr_row_mrk_l             : std_logic_vector(15 downto 0);
 signal i_vfr_pix_count             : std_logic_vector(15 downto 0);
 signal i_vfr_row_count             : std_logic_vector(15 downto 0);
 Type TVfrNum is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(3 downto 0);
 signal i_vfr_num                   : TVfrNum;
 signal i_vfr_row                   : std_logic_vector(15 downto 0);
 signal i_vch_num                   : std_logic_vector(3 downto 0);
-signal i_vfr_vld                   : std_logic;
-signal i_vfr_row_en                : std_logic;
-signal i_vfr_pix_en                : std_logic;
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
-signal i_vfr_zone_active_pix_end   : std_logic_vector(i_vpkt_cnt'range);
-signal i_vfr_zone_active_row_end   : std_logic_vector(i_vfr_row'range);
 
-signal i_memtrn_zone_skip_pix_start: std_logic_vector(i_vfr_zone_active.pix'high downto 0);
-signal i_mem_din_out               : std_logic_vector(p_in_upp_data'range);
-signal i_mem_trn_len_cnt           : std_logic_vector(i_vpkt_cnt'high downto 0);
-signal i_mem_adr_update            : std_logic;
-signal i_mem_bank1h_out            : std_logic_vector(p_out_mem_bank1h'range);
-signal i_mem_adr_out               : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
-signal i_mem_ce_out                : std_logic;
-signal i_mem_arb_req               : std_logic;
+signal i_mem_ptr                   : std_logic_vector(31 downto 0);
+signal i_mem_wrbase                : std_logic_vector(31 downto 0);
+signal i_mem_adr                   : std_logic_vector(31 downto 0);
+signal i_mem_trn_len               : std_logic_vector(15 downto 0);
+signal i_mem_dlen_rq               : std_logic_vector(15 downto 0);
+signal i_mem_start                 : std_logic;
+signal i_mem_dir                   : std_logic;
+signal i_mem_done                  : std_logic;
 
+signal i_upp_data_rd               : std_logic;
 signal i_upp_buf_pfull             : std_logic;
-signal i_upp_data_rd_out           : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
-signal i_upp_pldvld_data_rd_out    : std_logic;
 
-signal tst_dbg_pictire             : std_logic;
---signal tst_dbg_dcount              : std_logic;
---signal tst_upp_data                  : std_logic_vector(31 downto 0);
---signal tst_dcount                  : std_logic_vector(31 downto 0);
+--signal tst_dbg_pictire             : std_logic;
 --signal tst_fsmstate                : std_logic_vector(3 downto 0);
---signal tst_fsmstate_dly            : std_logic_vector(3 downto 0);
 
 
 --MAIN
@@ -192,48 +161,13 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fsmstate_dly<=(others=>'0');
---    p_out_tst(0)<='0';
---  elsif p_in_clk'event and p_in_clk='1' then
---    tst_fsmstate_dly<=tst_fsmstate;
---    p_out_tst(0)<=OR_reduce(tst_fsmstate_dly);
---  end if;
---end process;
---p_out_tst(31 downto 1)<=(others=>'0');
 
 --tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_PKT_HEADER_READ else
---              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_CTRL_SEL_BANK else
---              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_CALC_REMAIN_SIZE else
---              CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_MEM_TRN_LEN_CALC else
---              CONV_STD_LOGIC_VECTOR(16#05#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR else
---              CONV_STD_LOGIC_VECTOR(16#06#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WAIT_RQ_EN else
---              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR_DONE else
---              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_MEM_TRN else
---              CONV_STD_LOGIC_VECTOR(16#09#,tst_fsmstate'length) when fsm_state_cs=S_MEM_TRN_END else
---              CONV_STD_LOGIC_VECTOR(16#0A#,tst_fsmstate'length) when fsm_state_cs=S_EXIT else
---              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
+--              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
+--              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WR          else
+--              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
 
---tst_dbg_dcount<=p_in_tst(C_VCTRL_REG_TST0_DBG_DCOUNT_BIT);
 --tst_dbg_pictire<=p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_dcount<=CONV_STD_LOGIC_VECTOR(1, tst_dcount'length);
---  elsif p_in_clk'event and p_in_clk='1' then
---    if tst_dbg_dcount='1' then
---      if fsm_state_cs = S_MEM_CTRL_SEL_BANK then
---        tst_dcount<=CONV_STD_LOGIC_VECTOR(1, tst_dcount'length);
---
---      elsif i_vpkt_payload_rd='1' and i_vfr_vld='1' and p_in_upp_buf_empty='0' and p_in_mem_wpf='0' then
---        tst_dcount<=tst_dcount + 1;
---      end if;
---    end if;
---  end if;
---end process;
---tst_upp_data<=p_in_upp_data when tst_dbg_dcount='0' else tst_dcount;
 
 
 --//----------------------------------------------
@@ -247,79 +181,16 @@ p_out_vrow_mrk<=i_vfr_row_mrk;--//Маркер строки видеокадра
 --//Связь с буфером видео пакетов
 --//Вычитка пакета видео информации
 --//----------------------------------------------
-p_out_upp_data_rd<=i_upp_data_rd_out;
+p_out_upp_data_rd<=i_upp_hd_data_rd_out or (i_vpkt_payload_rd and i_upp_data_rd);
 
-i_upp_data_rd_out<=i_upp_hd_data_rd_out or i_upp_pldvld_data_rd_out or
-                  (i_vpkt_payload_rd and not i_vfr_vld and not p_in_upp_buf_empty);
-i_upp_hd_data_rd_out    <=(i_vpkt_header_rd  and not p_in_upp_buf_empty);
-i_upp_pldvld_data_rd_out<=(i_vpkt_payload_rd and     i_vfr_vld and not p_in_upp_buf_empty and not p_in_mem_wpf);
-
-
---//----------------------------------------------
---//Связь с контроллером памяти
---//Запись видеоинформации в ОЗУ
---//----------------------------------------------
-p_out_memarb_req<=i_mem_arb_req; --//Запрос на выполнение транзакции записи к арбитру модуля DSN_VCTRL.VHD
-
-p_out_mem_clk<=p_in_clk;
-
-p_out_mem_adr<=EXT(i_mem_adr_out(i_mem_adr_out'high downto 2), p_out_mem_adr'length);
-p_out_mem_bank1h<=EXT(i_mem_bank1h_out, p_out_mem_bank1h'length);
-
-p_out_mem_be<=(others=>'1');
-p_out_mem_rd<='0';
-p_out_mem_cw<='1';
-
-p_out_mem_din<=i_mem_din_out;
-
---//Выходной буфер для сигналов memory_cntr.vhd
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_mem_din_out<=(others=>'0');
-    i_mem_adr_out<=(others=>'0');
-
-    p_out_mem_ce   <='0';
-    p_out_mem_wr   <='0';
-    p_out_mem_term <='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    --//Данны, запись в ОЗУ
-    i_mem_din_out<=p_in_upp_data;--tst_upp_data;--
-
-    i_mem_adr_out<=i_vfr_mem_adr(i_mem_adr_out'high downto 0);
-
-    p_out_mem_ce<=i_mem_ce_out;
-    p_out_mem_wr<=i_vpkt_payload_rd and i_vfr_vld and not p_in_upp_buf_empty and not p_in_mem_wpf;
-
-    --//add now
-    if i_vpkt_payload_rd='1' and i_vfr_vld='1' and p_in_upp_buf_empty='0' and p_in_mem_wpf='0' and
-    (i_vpkt_data_readed = EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) or i_vpkt_cnt = (i_vpkt_cnt'range => '0')) then
-      p_out_mem_term<='1';
-    else
-      p_out_mem_term<='0';
-    end if;
-
-  end if;
-end process;
-
-
---//Разрешение записи видеокадра в ОЗУ
-i_vfr_vld<=i_vfr_row_en and i_vfr_pix_en;
+i_upp_hd_data_rd_out <=(i_vpkt_header_rd  and not p_in_upp_buf_empty);
 
 
 --//----------------------------------------------
 --//Автомат записи видео информации
 --//----------------------------------------------
-i_vfr_zone_active_row_end<=EXT(i_vfr_zone_skip.row, i_vfr_zone_active_row_end'length) + EXT(i_vfr_zone_active.row, i_vfr_zone_active_row_end'length);
-i_vfr_zone_active_pix_end<=EXT(i_vfr_zone_skip.pix, i_vfr_zone_active_pix_end'length) + EXT(i_vfr_zone_active.pix, i_vfr_zone_active_pix_end'length);
-
 process(p_in_rst,p_in_clk)
-  variable update_addr : std_logic_vector(i_vpkt_cnt'length+1 downto 0);
-  variable dlen        : std_logic_vector(i_vpkt_cnt'length-1 downto 0);
-  variable temp        : std_logic;
-  variable vfr_rdy     : std_logic_vector(p_out_vfr_rdy'range);
+  variable vfr_rdy : std_logic_vector(p_out_vfr_rdy'range);
 begin
   if p_in_rst='1' then
 
@@ -328,55 +199,33 @@ begin
     i_vpkt_cnt<=(others=>'0');
     i_vpkt_header_rd<='0';
     i_vpkt_payload_rd<='0';
-    i_vpkt_total_len2dw<=(others=>'0');
-    i_vpkt_data_len<=(others=>'0');
-    i_vpkt_data_readed<=(others=>'0');
-    i_vpkt_data_remain<=(others=>'0');
 
     i_vch_num<=(others=>'0');
     for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-      i_cfg_prm_vch(i).mem_adr<=(others=>'0');
-      i_cfg_prm_vch(i).fr_size.skip.pix<=(others=>'0');
-      i_cfg_prm_vch(i).fr_size.skip.row<=(others=>'0');
-      i_cfg_prm_vch(i).fr_size.activ.pix<=(others=>'0');
-      i_cfg_prm_vch(i).fr_size.activ.row<=(others=>'0');
-
       i_vfr_num(i)<=(others=>'0');
       i_vfr_row_mrk(i)<=(others=>'0');
     end loop;
 
     i_vfr_row<=(others=>'0');
-    i_vfr_mem_adr<=(others=>'0');
-    i_vfr_zone_skip.pix<=(others=>'0');
-    i_vfr_zone_skip.row<=(others=>'0');
-    i_vfr_zone_active.pix<=(others=>'0');
-    i_vfr_zone_active.row<=(others=>'0');
-
     i_vfr_pix_count<=(others=>'0');
     i_vfr_row_count<=(others=>'0');
     i_vfr_row_mrk_l<=(others=>'0');
     i_vfr_rdy<=(others=>'0');
-    i_vfr_row_en<='0';
-    i_vfr_pix_en<='0';
-
-    i_memtrn_zone_skip_pix_start<=(others=>'0');
-
-    i_mem_adr_update<='0';
-    i_mem_bank1h_out<=(others=>'0');
-    i_mem_ce_out<='0';
-    i_mem_trn_len_cnt<=(others=>'0');
-    i_mem_arb_req<='0';
 
     i_upp_buf_pfull<='0';
 
-    update_addr:=(others=>'0');
-    dlen:=(others=>'0');
-    temp:='0';
     vfr_rdy:=(others=>'0');
 
+    i_mem_ptr<=(others=>'0');
+    i_mem_wrbase<=(others=>'0');
+    i_mem_adr<=(others=>'0');
+    i_mem_dlen_rq<=(others=>'0');
+    i_mem_trn_len<=(others=>'0');
+    i_mem_dir<='0';
+    i_mem_start<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
-  --  if clk_en='1' then
-    temp:='0';
+
     vfr_rdy:=(others=>'0');
 
     i_upp_buf_pfull<=p_in_upp_buf_pfull;
@@ -391,11 +240,8 @@ begin
         --//Загрузка праметров Видео канала
         if p_in_cfg_load='1' then
           for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-            i_cfg_prm_vch(i).mem_adr<=p_in_cfg_prm_vch(i).mem_adr;
-            i_cfg_prm_vch(i).fr_size.skip<=p_in_cfg_prm_vch(i).fr_size.skip;
-            i_cfg_prm_vch(i).fr_size.activ<=p_in_cfg_prm_vch(i).fr_size.activ;
+            i_mem_wrbase<=p_in_cfg_prm_vch(i).mem_adr;
           end loop;
-
         end if;
 
         --//Ждем когда появятся данные в буфере
@@ -414,7 +260,7 @@ begin
       --//------------------------------------
       when S_PKT_HEADER_READ =>
 
-        if i_upp_data_rd_out='1' then
+        if i_upp_hd_data_rd_out='1' then
 
           if i_vpkt_cnt=(i_vpkt_cnt'range =>'0') then
           --//----------------------------------------
@@ -422,9 +268,6 @@ begin
           --//----------------------------------------
 
             i_vpkt_header_rd<='0';
-            --//Расчет кол-ва данных видеоинформации (Размер пакета без учета размера заголовка (Header))
-            dlen:=i_vpkt_total_len2dw - CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE, i_vpkt_cnt'length);
-            i_vpkt_data_len<=dlen;
 
             --//Установка параметров для текущего кадра видеоканала:
             for i in 0 to C_VCTRL_VCH_COUNT-1 loop
@@ -434,40 +277,23 @@ begin
                 i_vfr_row_mrk(i)(31 downto 16)<=p_in_upp_data(15 downto 0);--//(старшая часть)
                 i_vfr_row_mrk(i)(15 downto 0)<=i_vfr_row_mrk_l;            --//(младшая часть)
 
-                --//параметры текущего видеоканала:
-                i_vfr_zone_skip.pix<=i_cfg_prm_vch(i).fr_size.skip.pix(i_vfr_zone_skip.pix'high downto 0);
-                i_vfr_zone_skip.row<=i_cfg_prm_vch(i).fr_size.skip.row(i_vfr_zone_skip.row'high downto 0);
-                i_vfr_zone_active.pix<=i_cfg_prm_vch(i).fr_size.activ.pix(i_vfr_zone_active.pix'high downto 0);
-                i_vfr_zone_active.row<=i_cfg_prm_vch(i).fr_size.activ.row(i_vfr_zone_active.row'high downto 0);
-
                 --//адрес ОЗУ:
-                i_vfr_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)<=i_cfg_prm_vch(i).mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT);
-                i_vfr_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
+                i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
               end if;
             end loop;
 
             --//адрес ОЗУ:
-            i_vfr_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
-            i_vfr_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row((G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT)+0 downto 0);
-            i_vfr_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');
+            i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
+            i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row((G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT)+0 downto 0);
+            i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');--//Pix
 
-
-            i_memtrn_zone_skip_pix_start<=(others=>'0');
-            i_vpkt_data_readed<=(others=>'0');
-
-            fsm_state_cs <= S_MEM_CTRL_SEL_BANK;
+            fsm_state_cs <= S_MEM_START;
           else
           --//-------------------------
           --//Чтение заголовка:
           --//-------------------------
             --//Header DWORD-0:
             if i_vpkt_cnt=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-1, i_vpkt_cnt'length) then
-
-              --//Определяем полный размер принятого пакета (BYTE)
-              dlen:=p_in_upp_data(15 downto 0)+2; --//+2 т.к. поле длинны в пакете не учитывает размер самого поля длинны
-
-              --//Преобразуем полный размер принятого пакета в (DWORD)
-              i_vpkt_total_len2dw<="00"&dlen(15 downto 2);--//
 
               if p_in_upp_data(19 downto 16)="0001" then
               --//Тип пакета - Видео Данные
@@ -489,9 +315,7 @@ begin
                   if i_vfr_num(i)/=p_in_upp_data(3 downto 0) then
                     --//Обнаружил начало нового кадра!!!!!!!!!
                     --//Перезагрузка параметров канала
-                    i_cfg_prm_vch(i).mem_adr<=p_in_cfg_prm_vch(i).mem_adr;
-                    i_cfg_prm_vch(i).fr_size.skip<=p_in_cfg_prm_vch(i).fr_size.skip;
-                    i_cfg_prm_vch(i).fr_size.activ<=p_in_cfg_prm_vch(i).fr_size.activ;
+                    i_mem_wrbase<=p_in_cfg_prm_vch(i).mem_adr;
                   end if;
 
                   --//Сохраняем номер текущего кадра:
@@ -526,176 +350,30 @@ begin
 
         end if;
 
-      --//------------------------------------
-      --//Назначаем банк ОЗУ
-      --//------------------------------------
-      when S_MEM_CTRL_SEL_BANK =>
-
-        for j in 0 to i_mem_bank1h_out'high loop
-          if i_vfr_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)= j then
-            i_mem_bank1h_out(j)<='1';
-          else
-            i_mem_bank1h_out(j)<='0';
-          end if;
-        end loop;--//for
-
-        --//Ищем активную зону кадра по строкам:
-        if i_vfr_row >= i_vfr_zone_skip.row and
-           i_vfr_row < i_vfr_zone_active_row_end then
-            --//Находимся в актиной зоне кадра
-            i_vfr_row_en<='1';
-        else
-          --//Выход за пределы актиной зоны кадра
-          i_vfr_row_en<='0';
-        end if;
-
-        i_vfr_zone_active.pix<=i_vfr_zone_active.pix-1;
-
-        if i_vfr_zone_skip.pix /= (i_vfr_zone_skip.pix'range =>'0') then
-          i_memtrn_zone_skip_pix_start<=i_vfr_zone_skip.pix-1;
-        end if;
-
-        fsm_state_cs <= S_MEM_CALC_REMAIN_SIZE;
 
       --//------------------------------------
-      --//Расчитываем сколько данных осталось прочитать из FIFO видеопакетов
+      --//Запускаем операцию записи ОЗУ
       --//------------------------------------
-      when S_MEM_CALC_REMAIN_SIZE =>
+      when S_MEM_START =>
 
-        i_vpkt_data_remain <= EXT(i_vpkt_data_len, i_vpkt_cnt'length) - EXT(i_vpkt_data_readed, i_vpkt_cnt'length);
-        fsm_state_cs <= S_MEM_TRN_LEN_CALC;
-
-      --//------------------------------------
-      --//Назначаем размер текущей MEM_TRN (запись в ОЗУ)
-      --//------------------------------------
-      when S_MEM_TRN_LEN_CALC =>
-
-        if i_vpkt_data_remain >= EXT(p_in_cfg_mem_trn_len, i_vpkt_cnt'length) then
-          i_vpkt_cnt <= EXT(p_in_cfg_mem_trn_len, i_vpkt_cnt'length);
-        else
-          i_vpkt_cnt <= i_vpkt_data_remain;
-        end if;
-
-        fsm_state_cs <= S_MEM_SET_ADR;
-
-      --//------------------------------------
-      --//Назначаем адрес ОЗУ
-      --//------------------------------------
-      when S_MEM_SET_ADR =>
-
-        --//Проверяем попадает ли в текущую MEM_TRN активная зона кадра по пикселям
-        if i_vpkt_data_readed <= EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) then
-          if (i_vpkt_data_readed + i_vpkt_cnt) > (EXT(i_vfr_zone_skip.pix, i_vpkt_cnt'length)) then
-            temp:='1';
-          end if;
-        end if;
-
-        if i_vfr_row_en='1' and temp='1' then
-        --//Есть разрешение на запись данных текущей строки видеокадра
-
-          if p_in_mem_wpf='0' and i_upp_buf_pfull='1' then --//if p_in_mem_wpf='0' then
-          --//Ждем когда в TXBUF контроллера памяти появится свободное место (p_in_mem_wpf)
-          --//+ когда в входном буфере накопится нужное кол-во данных (i_upp_buf_pfull)
-
-            i_mem_arb_req<='1';--//Запрашиваем разрешение у арбитра на выполнение транзакции записи
-            fsm_state_cs <= S_MEM_WAIT_RQ_EN;
-
-          end if;
-        else
-        --//Запись строки в ОЗУ не ведется, но она должна быть полностью
-        --//вычетана из FIFO видеопакетов
-          fsm_state_cs <= S_MEM_SET_ADR_DONE;
-        end if;
-
-      --//------------------------------------
-      --//Ждем разрешение от арбитра
-      --//------------------------------------
-      when S_MEM_WAIT_RQ_EN =>
-
-        if p_in_memarb_en='1' then
-        --//Получено разрешение от арбитра, переходим к выполнению MEM_TRN
-          i_mem_ce_out<='1';
-          fsm_state_cs <= S_MEM_SET_ADR_DONE;
-        end if;
-
-      --//------------------------------------
-      --//Подготовка MEM_TRN
-      --//------------------------------------
-      when S_MEM_SET_ADR_DONE =>
-
-        i_vpkt_cnt<=i_vpkt_cnt-1;
         i_vpkt_payload_rd<='1';
-        i_mem_ce_out<='0';
-
-        --//add now
-        if i_vfr_row_en='1' then
-            --//Ищем активную зону кадра по пикселям:
-            if i_vpkt_data_readed >= EXT(i_vfr_zone_skip.pix, i_vpkt_cnt'length) and
-               i_vpkt_data_readed <= EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) then
-                --//Находимся в активной зоне кадра
-                i_vfr_pix_en<='1';
-            else
-                --//Выход за пределы актиной зоны кадра
-                i_vfr_pix_en<='0';
-            end if;
-        end if;
-
-        i_mem_trn_len_cnt<=(others=>'0');
-        fsm_state_cs <= S_MEM_TRN;
+        i_mem_dlen_rq<="00"&i_vfr_pix_count(i_vfr_pix_count'high downto 2); --//DW
+        i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
+        i_mem_adr<=i_mem_wrbase + i_mem_ptr;
+        i_mem_dir<=C_MEMWR_WRITE;
+        i_mem_start<='1';
+        fsm_state_cs <= S_MEM_WR;
 
       --//----------------------------------------------
-      --//Выполнение MEM_TRN (запись в ОЗУ)
+      --//Запись данных
       --//----------------------------------------------
-      when S_MEM_TRN =>
+      when S_MEM_WR =>
 
-        if i_upp_data_rd_out='1' then
-          i_vpkt_data_readed<=i_vpkt_data_readed+1;--//Считаем сколько данных (DWORD) было вычитано из входного буфера
+        i_mem_start<='0';
 
-          --//Ищем активную зону кадра по пикселям:
-          if i_vpkt_data_readed >= EXT(i_memtrn_zone_skip_pix_start, i_vpkt_cnt'length) and
-             i_vpkt_data_readed < EXT(i_vfr_zone_active_pix_end, i_vpkt_cnt'length) then
-              --//Находимся в активной зоне кадра
-              i_vfr_pix_en<='1';
-          else
-              --//Выход за пределы актиной зоны кадра
-              i_vfr_pix_en<='0';
-          end if;
-
-          --//Счетчик действительных данных(в DWORD) текущей MEM_TRN
-          if i_vfr_pix_en='1' then
-            i_mem_trn_len_cnt<=i_mem_trn_len_cnt+1;
-            i_mem_adr_update<='1';
-          end if;
-
-          --//Счетчик данных(в DWORD) текущей MEM_TRN
-          if i_vpkt_cnt=(i_vpkt_cnt'range => '0') then
-            i_vpkt_payload_rd<='0';
-            fsm_state_cs <= S_MEM_TRN_END;
-          else
-            i_vpkt_cnt<=i_vpkt_cnt-1;
-          end if;
-        end if;
-
-      --//----------------------------------------------
-      --//Анализ завершения вычетки данных из FIFO видео пакетв
-      --//----------------------------------------------
-      when S_MEM_TRN_END =>
-
-        --//Вычисляем значение для обнавления адреса ОЗУ
-        update_addr(1 downto 0) :=(others=>'0');--//Если i_vpkt_total_len2dw в DWORD
-        update_addr(i_mem_trn_len_cnt'length+1 downto 2):=i_mem_trn_len_cnt;
-
-        --//Вычисляем адрес ОЗУ для следующей MEM_TRN
-        if i_vfr_row_en='1' and i_mem_adr_update='1' then
-          i_vfr_mem_adr(G_MEM_VLINE_L_BIT downto 0)<=i_vfr_mem_adr(G_MEM_VLINE_L_BIT downto 0) + EXT(update_addr, G_MEM_VLINE_L_BIT+1);
-        end if;
-
-        i_mem_adr_update<='0';
-        i_mem_arb_req<='0';
-
-        if i_vpkt_data_len=i_vpkt_data_readed then
-        --//Вычитал весь видеопакет из FIFO видеопакетов
-        --//Преходим к чтению следующего видеопакета
+        if i_mem_done='1' then
+        --//Операция выполнена
+          i_vpkt_payload_rd<='0';
 
           if i_vfr_row=(i_vfr_row_count - 1) then
           --//Обработал последнюю строку кадра.
@@ -707,19 +385,8 @@ begin
             end loop;
           end if;
 
-          fsm_state_cs <= S_EXIT;
-        else
-        --//Продолжаем чтение данных видеопакета
-          fsm_state_cs <= S_MEM_CALC_REMAIN_SIZE;
+          fsm_state_cs <= S_IDLE;
         end if;
-
-      --//----------------------------------------------
-      --//Подготовка к чтению следующего видеопакета
-      --//----------------------------------------------
-      when S_EXIT =>
-
-        i_vpkt_data_readed<=(others=>'0');
-        fsm_state_cs <= S_IDLE;
 
     end case;
 
@@ -727,6 +394,71 @@ begin
   end if;
 end process;
 
+
+m_mem_wr : mem_wr
+generic map(
+G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
+G_MEM_AWIDTH     => G_MEM_AWIDTH,
+G_MEM_DWIDTH     => G_MEM_DWIDTH
+)
+port map
+(
+-------------------------------
+-- Конфигурирование
+-------------------------------
+p_in_cfg_mem_adr     => i_mem_adr,
+p_in_cfg_mem_trn_len => i_mem_trn_len,
+p_in_cfg_mem_dlen_rq => i_mem_dlen_rq,
+p_in_cfg_mem_wr      => i_mem_dir,
+p_in_cfg_mem_start   => i_mem_start,
+p_out_cfg_mem_done   => i_mem_done,
+
+--//Статусы
+p_out_memarb_req     => p_out_memarb_req,
+p_in_memarb_en       => p_in_memarb_en,
+
+-------------------------------
+-- Связь с пользовательскими буферами
+-------------------------------
+p_in_usr_txbuf_dout  => p_in_upp_data,
+p_out_usr_txbuf_rd   => i_upp_data_rd,
+p_in_usr_txbuf_empty => p_in_upp_buf_empty,
+
+p_out_usr_rxbuf_din  => open,
+p_out_usr_rxbuf_wd   => open,
+p_in_usr_rxbuf_full  => '0',
+
+---------------------------------
+-- Связь с mem_ctrl.vhd
+---------------------------------
+p_out_mem_bank1h     => p_out_mem_bank1h,
+p_out_mem_ce         => p_out_mem_ce,
+p_out_mem_cw         => p_out_mem_cw,
+p_out_mem_rd         => p_out_mem_rd,
+p_out_mem_wr         => p_out_mem_wr,
+p_out_mem_term       => p_out_mem_term,
+p_out_mem_adr        => p_out_mem_adr,
+p_out_mem_be         => p_out_mem_be,
+p_out_mem_din        => p_out_mem_din,
+p_in_mem_dout        => p_in_mem_dout,
+
+p_in_mem_wf          => p_in_mem_wf,
+p_in_mem_wpf         => p_in_mem_wpf,
+p_in_mem_re          => p_in_mem_re,
+p_in_mem_rpe         => p_in_mem_rpe,
+
+p_out_mem_clk        => p_out_mem_clk,
+
+-------------------------------
+--System
+-------------------------------
+p_in_tst             => p_in_tst,
+p_out_tst            => open,--tst_mem_ctrl_ch_wr_out,
+
+p_in_clk             => p_in_clk,
+p_in_rst             => p_in_rst
+);
 
 --END MAIN
 end behavioral;

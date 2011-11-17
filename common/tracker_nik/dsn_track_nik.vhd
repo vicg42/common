@@ -727,6 +727,7 @@ begin
             --//Пиксели:
             --//--------------------------
             i_vch_prm.fr_size.activ.pix<=p_in_vctrl_vrdprms(i).fr_size.activ.pix;
+            i_vch_prm.fr_size.skip.pix<=p_in_vctrl_vrdprms(i).fr_size.skip.pix;
 
             --//--------------------------
             --//Строки:
@@ -805,6 +806,7 @@ begin
         i_mem_rdptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
         i_mem_rdptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
         i_mem_rdptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row_cnt(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT downto 0);
+        i_mem_rdptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_vch_prm.fr_size.skip.pix(G_MEM_VLINE_L_BIT-1 downto 0);
 
         fsm_state_cs <= S_MEM_START;
 

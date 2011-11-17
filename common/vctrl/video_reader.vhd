@@ -158,7 +158,7 @@ signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
-
+signal i_vfr_skip_pix                : std_logic_vector(i_vfr_row_cnt'range);
 --signal tst_dbg_rdTBUF                : std_logic;
 --signal tst_dbg_rdEBUF                : std_logic;
 --signal tst_fsmstate                  : std_logic_vector(3 downto 0);
@@ -250,6 +250,7 @@ begin
     i_vfr_active_row<=(others=>'0');
       vfr_active_row_end:=(others=>'0');
     i_vfr_skip_row<=(others=>'0');
+    i_vfr_skip_pix<=(others=>'0');
     i_vfr_zoom<=(others=>'0');
     i_vfr_zoom_type<='0';
 
@@ -321,6 +322,7 @@ begin
             --//Инициализируем размер транзакции чтения
             --//(Должен быть равен размеру одной строки)
             i_mem_dlen_rq<=p_in_cfg_prm_vch(i).fr_size.activ.pix;
+            i_vfr_skip_pix<=p_in_cfg_prm_vch(i).fr_size.skip.pix(i_vfr_skip_pix'high downto 0);
 
             --//--------------------------
             --//Строки:
@@ -376,6 +378,7 @@ begin
         i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
         i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
         i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row_cnt(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT downto 0);
+        i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_vfr_skip_pix(G_MEM_VLINE_L_BIT-1 downto 0);
 
         fsm_state_cs <= S_MEM_START;
 
