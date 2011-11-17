@@ -319,8 +319,8 @@ p_out_mrd_fbe           <=i_mrd_fbe;
 p_out_mrd_lbe           <=i_mrd_lbe;
 
 
-p_out_cpl_streaming     <=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_WBIT);--//1/0 - рапрещено/разрешено
-p_out_rd_metering       <=v_reg_pcie(C_HREG_PCIE_METRING_WBIT);      --//0/1 - запрещено/разрешено
+p_out_cpl_streaming     <=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);--//1/0 - рапрещено/разрешено
+p_out_rd_metering       <=v_reg_pcie(C_HREG_PCIE_METRING_BIT);      --//0/1 - запрещено/разрешено
 p_out_trn_rnp_ok_n      <='0';
 p_out_usr_max_payload_size <=i_max_payload_size;
 p_out_usr_max_rd_req_size  <=i_max_rd_req_size;
@@ -692,9 +692,9 @@ begin
             txd(C_HREG_PCIE_TAG_EXT_EN_RBIT)     :=p_in_cfg_ext_tag_en;
             txd(C_HREG_PCIE_NOSNOOP_RBIT)        :=p_in_cfg_no_snoop_en;
 
-            txd(C_HREG_PCIE_CPL_STREAMING_WBIT)  :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_WBIT);
-            txd(C_HREG_PCIE_METRING_WBIT)        :=v_reg_pcie(C_HREG_PCIE_METRING_WBIT);
---            txd(C_HREG_PCIE_DMA_NOSNOOP_WBIT)    :=v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
+            txd(C_HREG_PCIE_CPL_STREAMING_BIT)   :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);
+            txd(C_HREG_PCIE_METRING_BIT)         :=v_reg_pcie(C_HREG_PCIE_METRING_BIT);
+            txd(C_HREG_PCIE_SPEED_TESTING_BIT)   :=v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 --            txd(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT):=v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_MEM_ADR, 5) then
@@ -787,7 +787,7 @@ begin
     end if ;
 
     --//DMATRN_WR/RD завершена
-    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
+    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT)='1' then
       i_dmatrn_mrd_done_tmp<=i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
       i_dmatrn_mwr_done_tmp<=p_in_mwr_done and sr_rxbuf_rd_last;
       i_dmatrn_mem_done<=(others=>'0');
@@ -1007,8 +1007,10 @@ end generate gen_irq;
 --//Сигналы для модулей TX/RX PCI-Express
 --//-------------------------------------------------------------------
 p_out_rxbuf_dout <=p_in_dev_dout;
-p_out_txbuf_full <=p_in_dev_opt(C_DEV_OPTIN_TXFIFO_PFULL_BIT);
-p_out_rxbuf_empty<=p_in_dev_opt(C_DEV_OPTIN_RXFIFO_EMPTY_BIT);
+p_out_txbuf_full <=p_in_dev_opt(C_DEV_OPTIN_TXFIFO_PFULL_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
+                   p_in_dev_opt(C_DEV_OPTIN_TXFIFO_PFULL_BIT) and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+p_out_rxbuf_empty<=p_in_dev_opt(C_DEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
+                   p_in_dev_opt(C_DEV_OPTIN_RXFIFO_EMPTY_BIT) and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 
 --//-------------------------------------------------------------------
@@ -1026,7 +1028,7 @@ p_out_dev_din <= p_in_txbuf_din when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BI
 
 --//Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dmatrn_mrd_done when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init;
+p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1)<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1);
 p_out_dev_ctrl(p_out_dev_ctrl'high downto C_HREG_DEV_CTRL_LAST_BIT+1)<=(others=>'0');
 
