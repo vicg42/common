@@ -19,7 +19,7 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.sata_testgen_pkg.all;
-use work.sata_unit_pkg.all;
+--use work.sata_unit_pkg.all;
 
 entity sata_testgen is
 generic(
@@ -52,6 +52,24 @@ p_in_rst       : in   std_logic
 end sata_testgen;
 
 architecture behavioral of sata_testgen is
+
+component sata_scrambler
+generic(
+G_INIT_VAL : integer:=16#FFFF#
+);
+port(
+p_in_SOF      : in    std_logic;
+p_in_en       : in    std_logic;
+p_out_result  : out   std_logic_vector(31 downto 0);
+
+--------------------------------------------------
+--System
+--------------------------------------------------
+--p_in_clk_en   : in    std_logic;
+p_in_clk      : in    std_logic;
+p_in_rst      : in    std_logic
+);
+end component;
 
 signal i_shim             : std_logic;
 signal i_cntbase          : std_logic_vector(p_in_gen_cfg.tesing_spd'range):=(others=>'0');
