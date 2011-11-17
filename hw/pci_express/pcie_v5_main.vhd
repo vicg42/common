@@ -211,7 +211,7 @@ p_in_dev_status           : in    std_logic_vector(31 downto 0);
 p_in_dev_irq              : in    std_logic_vector(31 downto 0);
 p_in_dev_opt              : in    std_logic_vector(127 downto 0);
 p_out_dev_opt             : out   std_logic_vector(127 downto 0);
-p_out_tst2                : out   std_logic_vector(127 downto 0);
+
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
 
@@ -396,7 +396,7 @@ signal cfg_lcommand               : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 
 
 signal user_trn_tbuf_av           : std_logic_vector(5 downto 0);--(15 downto 0);
 
-signal i_out_tst2                 : std_logic_vector(127 downto 0);
+
 
 --//MAIN
 begin
@@ -430,9 +430,9 @@ p_out_tst(95 downto 32)<=trn_td;
 p_out_tst(159 downto 96)<=trn_rd;
 p_out_tst(160)<=trn_rrem_n(0);
 p_out_tst(199 downto 161)<=(others=>'0');
-p_out_tst(215 downto 200)<=i_out_tst2(15 downto 0);
-p_out_tst(231 downto 216)<=i_out_tst2(31 downto 16);
-p_out_tst(248)           <=i_out_tst2(48);
+p_out_tst(215 downto 200)<=(others=>'0');
+p_out_tst(231 downto 216)<=(others=>'0');
+p_out_tst(248)           <='0';
 p_out_tst(255 downto 249)<=(others=>'0');
 
 
@@ -556,7 +556,7 @@ port map(
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
-p_out_tst2                => i_out_tst2,
+
 p_out_tst                 => p_out_usr_tst,
 p_in_tst                  => p_in_usr_tst,
 

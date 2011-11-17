@@ -30,7 +30,7 @@ port(
 --USR Port
 --------------------------------------
 p_out_hclk                : out   std_logic;
-p_out_tst2                : out   std_logic_vector(127 downto 0);
+
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
 
@@ -595,15 +595,10 @@ rd_metering_i       => i_rd_metering,       --// I
 
 mrd_work_o          => i_mrd_work_throttle, --// O
 
-cur_rd_count_hwm_o  => p_out_tst2(15 downto 0),
-cpld_data_size_hwm_o=> p_out_tst2(47 downto 16),
-cpld_found_o        => p_out_tst2(48),
-
 clk                 =>  trn_clk_i ,
 rst_n               =>  i_rst_n
 );
-p_out_tst2(65 downto 50)<=i_mrd_rcv_size(15 downto 0);
-p_out_tst2(81 downto 66)<=i_mrd_pkt_count(15 downto 0);
+
 
 --//----------------------------------
 --//Interrupt Controller
