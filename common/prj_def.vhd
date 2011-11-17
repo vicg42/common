@@ -22,7 +22,7 @@ use work.vicg_common_pkg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0334#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0335#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -166,11 +166,11 @@ constant C_HREG_PCIE_TAG_EXT_EN_RBIT          : integer:=21;
 constant C_HREG_PCIE_PHANT_FUNC_RBIT          : integer:=22;
 constant C_HREG_PCIE_NOSNOOP_RBIT             : integer:=23;
 --constant RESERV                               : integer:=24;
-constant C_HREG_PCIE_CPL_STREAMING_WBIT       : integer:=26;--//исользуется Максом
-constant C_HREG_PCIE_METRING_WBIT             : integer:=27;--//исользуется Максом
---constant C_HREG_PCIE_DMA_NOSNOOP_WBIT         : integer:=28;
+constant C_HREG_PCIE_CPL_STREAMING_BIT        : integer:=26;--//исользуется Максом
+constant C_HREG_PCIE_METRING_BIT              : integer:=27;--//исользуется Максом
+constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer:=28;
 --constant C_HREG_PCIE_DMA_RELEX_ORDER_WBIT     : integer:=29;
-constant C_HREG_PCIE_LAST_BIT                 : integer:=C_HREG_PCIE_METRING_WBIT;
+constant C_HREG_PCIE_LAST_BIT                 : integer:=C_HREG_PCIE_SPEED_TESTING_BIT;
 
 
 --//Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
