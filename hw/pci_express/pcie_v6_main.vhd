@@ -87,12 +87,9 @@ constant CI_PCIEXP_CFG_CAP_BUS    : integer:= 16;
 
 component core_pciexp_ep_blk_plus
 generic(
-----ALLOW_X8_GEN2               : boolean    := FALSE;
---LINK_CAP_MAX_LINK_WIDTH     : bit_vector := X"04";
---LINK_CAP_MAX_LINK_WIDTH_int : integer    := 4;
---PL_FAST_TRAIN               : boolean;
-BAR0                        : bit_vector := X"FFFFFF00";
-BAR1                        : bit_vector := X"FFFFFF01"
+PL_FAST_TRAIN  : boolean;
+BAR0           : bit_vector := X"FFFFFF00";
+BAR1           : bit_vector := X"FFFFFF01"
 );
 port
 (
@@ -257,7 +254,7 @@ p_in_dev_status           : in    std_logic_vector(31 downto 0);
 p_in_dev_irq              : in    std_logic_vector(31 downto 0);
 p_in_dev_opt              : in    std_logic_vector(127 downto 0);
 p_out_dev_opt             : out   std_logic_vector(127 downto 0);
-p_out_tst2                : out   std_logic_vector(127 downto 0);
+
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
 
@@ -482,7 +479,7 @@ signal pl_directed_link_speed         : std_logic;
 signal pl_directed_link_width         : std_logic_vector(1 downto 0);
 signal pl_upstream_prefer_deemph      : std_logic;
 
-signal i_out_tst2                     : std_logic_vector(127 downto 0);
+
 
 --//MAIN
 begin
@@ -517,10 +514,10 @@ p_out_tst(159 downto 96)<=trn_rd;
 p_out_tst(160)<=trn_rrem_n(0);
 p_out_tst(161)<=trn_terr_drop_n;
 p_out_tst(199 downto 162)<=(others=>'0');
-p_out_tst(215 downto 200)<=i_out_tst2(15 downto 0);
-p_out_tst(231 downto 216)<=i_out_tst2(31 downto 16);
-p_out_tst(248)           <=i_out_tst2(48);
-p_out_tst(255 downto 249)<=(others=>'0');
+p_out_tst(215 downto 200)<=(others=>'0');
+p_out_tst(231 downto 216)<=(others=>'0');
+p_out_tst(249 downto 248)<=(others=>'0');
+p_out_tst(255 downto 250)<=trn_tbuf_av;
 
 
 --//#############################################
@@ -528,12 +525,9 @@ p_out_tst(255 downto 249)<=(others=>'0');
 --//#############################################
 m_core : core_pciexp_ep_blk_plus
 generic map(
-----ALLOW_X8_GEN2               => FALSE,
---LINK_CAP_MAX_LINK_WIDTH     => To_bitvector(CONV_STD_LOGIC_VECTOR(C_PCIEXPRESS_LINK_WIDTH, 8)),
---LINK_CAP_MAX_LINK_WIDTH_int => C_PCIEXPRESS_LINK_WIDTH,
---PL_FAST_TRAIN               => FALSE,
-BAR0                        => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
-BAR1                        => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
+PL_FAST_TRAIN => FALSE,
+BAR0          => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
+BAR1          => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
 )
 port map(
 --------------------------------------
@@ -688,7 +682,7 @@ port map(
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
-p_out_tst2                => i_out_tst2,
+
 p_out_tst                 => p_out_usr_tst,
 p_in_tst                  => p_in_usr_tst,
 
