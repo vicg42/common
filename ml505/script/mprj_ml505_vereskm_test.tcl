@@ -262,6 +262,7 @@ set _projects [ list \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_sata_raid_b.vhd" $_VHDMod ] \
       [ list "../ml505_vmtest_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../vereskm_test_main.vhd" $_VHDMod ] \
       [ list "../../ucf/ml505_vereskm_test.ucf" "vereskm_test_main" ] \

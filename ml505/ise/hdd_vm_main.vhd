@@ -29,6 +29,7 @@ use work.memif.all;
 use work.vereskm_pkg.all;
 use work.cfgdev_pkg.all;
 use work.mem_ctrl_pkg.all;
+use work.sata_testgen_pkg.all;
 use work.sata_glob_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
@@ -228,6 +229,138 @@ signal tst_sh1_llayer   : std_logic_vector(4 downto 0):=(others=>'0');
 signal tst_trm_timeout  : std_logic_vector(15 downto 0):=(others=>'0');
 --signal tst_hdd_mem_dcnt : std_logic_vector(15 downto 0):=(others=>'0');
 
+component dsn_hdd_rambuf is
+generic(
+G_MODULE_USE  : string:="ON";
+G_RAMBUF_SIZE : integer:=23;
+G_DBGCS       : string:="OFF";
+G_SIM         : string:="OFF";
+
+G_MEM_AWIDTH  : integer:=32;
+G_MEM_DWIDTH  : integer:=32
+);
+port(
+-------------------------------
+-- Конфигурирование
+-------------------------------
+p_in_rbuf_cfg         : in    THDDRBufCfg;
+p_out_rbuf_status     : out   THDDRBufStatus;
+
+--//--------------------------
+--//Связь с буфером видеоданных
+--//--------------------------
+p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
+p_out_vbuf_rd         : out   std_logic;
+p_in_vbuf_empty       : in    std_logic;
+p_in_vbuf_full        : in    std_logic;
+p_in_vbuf_pfull       : in    std_logic;
+p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+
+--//--------------------------
+--//Связь с модулем HDD
+--//--------------------------
+p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
+p_out_hdd_txd_wr      : out   std_logic;
+p_in_hdd_txbuf_pfull  : in    std_logic;
+p_in_hdd_txbuf_full   : in    std_logic;
+p_in_hdd_txbuf_empty  : in    std_logic;
+
+p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
+p_out_hdd_rxd_rd      : out   std_logic;
+p_in_hdd_rxbuf_empty  : in    std_logic;
+p_in_hdd_rxbuf_pempty : in    std_logic;
+
+---------------------------------
+-- Связь с mem_ctrl.vhd
+---------------------------------
+p_out_memarb_req      : out   std_logic;
+p_in_memarb_en        : in    std_logic;
+
+p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
+p_out_mem_ce          : out   std_logic;
+p_out_mem_cw          : out   std_logic;
+p_out_mem_rd          : out   std_logic;
+p_out_mem_wr          : out   std_logic;
+p_out_mem_term        : out   std_logic;
+p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
+p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
+p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+
+p_in_mem_wf           : in    std_logic;
+p_in_mem_wpf          : in    std_logic;
+p_in_mem_re           : in    std_logic;
+p_in_mem_rpe          : in    std_logic;
+
+p_out_mem_clk         : out   std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst              : in    std_logic_vector(31 downto 0);
+p_out_tst             : out   std_logic_vector(31 downto 0);
+p_out_dbgcs           : out   TSH_ila;
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk              : in    std_logic;
+p_in_rst              : in    std_logic
+);
+end component;
+
+component vtester_v01
+generic(
+G_SIM : string:="OFF"
+);
+port(
+-------------------------------
+-- Управление от Хоста
+-------------------------------
+p_in_host_clk         : in   std_logic;
+
+p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld       : in   std_logic;
+p_in_cfg_adr_fifo     : in   std_logic;
+
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd           : in   std_logic;
+
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd           : in   std_logic;
+
+p_in_cfg_done         : in   std_logic;
+
+-------------------------------
+-- STATUS модуля dsn_testing.VHD
+-------------------------------
+p_out_module_rdy      : out  std_logic;
+p_out_module_error    : out  std_logic;
+
+-------------------------------
+--Связь с выходным буфером
+-------------------------------
+p_out_dst_dout_rdy   : out   std_logic;
+p_out_dst_dout       : out   std_logic_vector(31 downto 0);
+p_out_dst_dout_wd    : out   std_logic;
+p_in_dst_rdy         : in    std_logic;
+--p_in_dst_clk         : in    std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_out_tst           : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_tmrclk  : in    std_logic;
+
+p_in_clk     : in    std_logic;
+p_in_rst     : in    std_logic
+);
+end component;
+
 component fpga_test_01
 generic(
 G_BLINK_T05   : integer:=10#125#; -- 1/2 периода мигания светодиода.(время в ms)
@@ -420,6 +553,7 @@ signal i_eth_txbuf_rd                   : std_logic;
 signal i_eth_txbuf_empty                : std_logic;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
+signal i_swt_hdd_tstgen_cfg             : THDDTstGen;
 signal i_hdd_rst                        : std_logic;
 signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
@@ -1066,10 +1200,10 @@ p_out_host_vbuf_empty     => i_host_rxbuf_empty(C_HDEV_VCH_DBUF),
 -------------------------------
 -- Связь с HDD(dsn_hdd.vhd)
 -------------------------------
-p_in_hdd_tstgen           => i_hdd_rbuf_cfg.tstgen,
+p_in_hdd_tstgen           => i_swt_hdd_tstgen_cfg,
 p_in_hdd_vbuf_rdclk       => g_usr_highclk,
 
-p_in_hdd_vbuf_dout        => i_hdd_vbuf_dout,
+p_out_hdd_vbuf_dout       => i_hdd_vbuf_dout,
 p_in_hdd_vbuf_rd          => i_hdd_vbuf_rd,
 p_out_hdd_vbuf_empty      => i_hdd_vbuf_empty,
 p_out_hdd_vbuf_full       => i_hdd_vbuf_full,
@@ -1511,6 +1645,7 @@ i_cfghdd_rd       <=i_cfg_rd_dev(C_CFGDEV_HDD)   when i_cfghdd_selif=C_HDD_CFGIF
 
 i_cfghdd_done     <=i_cfg_done_dev(C_CFGDEV_HDD) when i_cfghdd_selif=C_HDD_CFGIF_PCIEXP else i_cfgu_done;
 
+i_swt_hdd_tstgen_cfg<=i_hdd_rbuf_cfg.tstgen;
 
 m_hdd : dsn_hdd
 generic map(
@@ -2194,46 +2329,46 @@ p_out_ch2_rpe    => i_vctrlrd_mem_rpe,
 -------------------------------
 -- Связь с CH3
 -------------------------------
-p_in_ch3_req     => i_arbch3_req,   --i_hdd_memarb_req,
-p_out_ch3_en     => i_arbch3_en,    --i_hdd_memarb_en,
+p_in_ch3_req     => i_arbch3_req,
+p_out_ch3_en     => i_arbch3_en,
 
-p_in_ch3_bank1h  => i_arbch3_bank1h,--i_hdd_mem_bank1h,
-p_in_ch3_ce      => i_arbch3_ce,    --i_hdd_mem_ce,
-p_in_ch3_cw      => i_arbch3_cw,    --i_hdd_mem_cw,
-p_in_ch3_term    => i_arbch3_term,  --i_hdd_mem_term,
-p_in_ch3_rd      => i_arbch3_rd,    --i_hdd_mem_rd,
-p_in_ch3_wr      => i_arbch3_wr,    --i_hdd_mem_wr,
-p_in_ch3_adr     => i_arbch3_adr,   --i_hdd_mem_adr,
-p_in_ch3_be      => i_arbch3_be,    --i_hdd_mem_be,
-p_in_ch3_din     => i_arbch3_din,   --i_hdd_mem_din,
-p_out_ch3_dout   => i_arbch3_dout,  --i_hdd_mem_dout,
+p_in_ch3_bank1h  => i_arbch3_bank1h,
+p_in_ch3_ce      => i_arbch3_ce,
+p_in_ch3_cw      => i_arbch3_cw,
+p_in_ch3_term    => i_arbch3_term,
+p_in_ch3_rd      => i_arbch3_rd,
+p_in_ch3_wr      => i_arbch3_wr,
+p_in_ch3_adr     => i_arbch3_adr,
+p_in_ch3_be      => i_arbch3_be,
+p_in_ch3_din     => i_arbch3_din,
+p_out_ch3_dout   => i_arbch3_dout,
 
-p_out_ch3_wf     => i_arbch3_wf,    --i_hdd_mem_wf,
-p_out_ch3_wpf    => i_arbch3_wpf,   --i_hdd_mem_wpf,
-p_out_ch3_re     => i_arbch3_re,    --i_hdd_mem_re,
-p_out_ch3_rpe    => i_arbch3_rpe,   --i_hdd_mem_rpe,
+p_out_ch3_wf     => i_arbch3_wf,
+p_out_ch3_wpf    => i_arbch3_wpf,
+p_out_ch3_re     => i_arbch3_re,
+p_out_ch3_rpe    => i_arbch3_rpe,
 
 -------------------------------
 -- Связь с CH4
 -------------------------------
-p_in_ch4_req     => i_arbch4_req,   --i_trc_memarb_req,
-p_out_ch4_en     => i_arbch4_en,    --i_trc_memarb_en,
+p_in_ch4_req     => i_arbch4_req,
+p_out_ch4_en     => i_arbch4_en,
 
-p_in_ch4_bank1h  => i_arbch4_bank1h,--i_trc_mem_bank1h,
-p_in_ch4_ce      => i_arbch4_ce,    --i_trc_mem_ce,
-p_in_ch4_cw      => i_arbch4_cw,    --i_trc_mem_cw,
-p_in_ch4_term    => i_arbch4_term,  --i_trc_mem_term,
-p_in_ch4_rd      => i_arbch4_rd,    --i_trc_mem_rd,
-p_in_ch4_wr      => i_arbch4_wr,    --i_trc_mem_wr,
-p_in_ch4_adr     => i_arbch4_adr,   --i_trc_mem_adr,
-p_in_ch4_be      => i_arbch4_be,    --i_trc_mem_be,
-p_in_ch4_din     => i_arbch4_din,   --i_trc_mem_din,
-p_out_ch4_dout   => i_arbch4_dout,  --i_trc_mem_dout,
+p_in_ch4_bank1h  => i_arbch4_bank1h,
+p_in_ch4_ce      => i_arbch4_ce,
+p_in_ch4_cw      => i_arbch4_cw,
+p_in_ch4_term    => i_arbch4_term,
+p_in_ch4_rd      => i_arbch4_rd,
+p_in_ch4_wr      => i_arbch4_wr,
+p_in_ch4_adr     => i_arbch4_adr,
+p_in_ch4_be      => i_arbch4_be,
+p_in_ch4_din     => i_arbch4_din,
+p_out_ch4_dout   => i_arbch4_dout,
 
-p_out_ch4_wf     => i_arbch4_wf,    --i_trc_mem_wf,
-p_out_ch4_wpf    => i_arbch4_wpf,   --i_trc_mem_wpf,
-p_out_ch4_re     => i_arbch4_re,    --i_trc_mem_re,
-p_out_ch4_rpe    => i_arbch4_rpe,   --i_trc_mem_rpe,
+p_out_ch4_wf     => i_arbch4_wf,
+p_out_ch4_wpf    => i_arbch4_wpf,
+p_out_ch4_re     => i_arbch4_re,
+p_out_ch4_rpe    => i_arbch4_rpe,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
