@@ -237,8 +237,8 @@ signal i_cfg_intrrupt_disable     : std_logic;
 signal i_rx_engine_tst_out        : std_logic_vector(1 downto 0);
 signal i_rx_engine_tst2_out       : std_logic_vector(9 downto 0);
 signal i_rd_throttle_tst_out      : std_logic_vector(1 downto 0);
-signal i_irq_ctrl_tst_in          : std_logic_vector(31 downto 0);
-signal i_irq_ctrl_tst_out         : std_logic_vector(31 downto 0);
+signal i_pice_irq_tst_in          : std_logic_vector(31 downto 0);
+signal i_pice_irq_tst_out         : std_logic_vector(31 downto 0);
 
 
 --//MAIN
@@ -255,7 +255,7 @@ i_rd_throttle_tst_out(1) <='0';
 --//--------------------------------------
 --//Выходные сигналы
 --//--------------------------------------
-trn_rnp_ok_n_o <= i_trn_rnp_ok_n;
+trn_rnp_ok_n_o <= '0';--i_trn_rnp_ok_n;
 trn_rcpl_streaming_n_o <= i_cpl_streaming;
 
 cfg_pm_wake_n_o        <='1';
@@ -268,7 +268,7 @@ cfg_err_ur_n_o         <='1';
 cfg_err_cpl_timeout_n_o<='1';
 cfg_err_cpl_unexpect_n_o<='1';
 cfg_err_cor_n_o        <='1';
-cfg_err_posted_n_o     <='1';
+cfg_err_posted_n_o     <='0';
 cfg_err_cpl_abort_n_o  <='1';--//Configuration Error Completion Aborted: The
                              --//user can assert this signal to report that a completion
                              --//was aborted.
@@ -619,8 +619,8 @@ p_out_cfg_irq_assert_n => cfg_interrupt_assert_n_o,
 p_out_cfg_irq_n        => cfg_interrupt_n_o,
 p_out_cfg_irq_di       => cfg_interrupt_di_o,
 
-p_in_tst               => (others=>'0'),--i_irq_ctrl_tst_out,
-p_out_tst              => open, --i_irq_ctrl_tst_in,
+p_in_tst               => (others=>'0'),--i_pice_irq_tst_in,--
+p_out_tst              => open, --i_pcie_irq_tst_out,
 
 p_in_clk               => trn_clk_i,
 p_in_rst               => i_irq_ctrl_rst --i_rst_n
