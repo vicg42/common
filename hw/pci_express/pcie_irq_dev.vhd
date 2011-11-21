@@ -120,7 +120,7 @@ begin
         if p_in_cfg_irq_rdy_n='0' then
           i_irq_status   <= '1';
           i_irq_n        <= '1';
-          i_irq_assert_n <= '1';
+--          i_irq_assert_n <= '1';
           fsm_cs <= S_IRQ_WAIT_CLR;
         end if;
 
