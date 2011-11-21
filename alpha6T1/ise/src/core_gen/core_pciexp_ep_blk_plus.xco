@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.3
-# Date: Tue Nov 08 08:36:43 2011
+# Date: Sun Nov 20 13:05:02 2011
 #
 ##############################################################
 #
@@ -39,22 +39,22 @@ SET vhdlsim = true
 SELECT Virtex-6_Integrated_Block_for_PCI_Express family Xilinx,_Inc. 1.7
 # END Select
 # BEGIN Parameters
-CSET acceptable_l0s_latency=No_limit
+CSET acceptable_l0s_latency=Maximum_of_64_ns
 CSET acceptable_l1_latency=No_limit
 CSET ack_nak_timeout_func=Absolute
 CSET ack_nak_timeout_value=0000
 CSET bar0_64bit=false
 CSET bar0_enabled=true
 CSET bar0_prefetchable=false
-CSET bar0_scale=Bytes
-CSET bar0_size=256
+CSET bar0_scale=Kilobytes
+CSET bar0_size=1
 CSET bar0_type=Memory
 CSET bar1_64bit=false
-CSET bar1_enabled=true
+CSET bar1_enabled=false
 CSET bar1_prefetchable=false
-CSET bar1_scale=Bytes
-CSET bar1_size=256
-CSET bar1_type=Memory
+CSET bar1_scale=Kilobytes
+CSET bar1_size=2
+CSET bar1_type=N/A
 CSET bar2_64bit=false
 CSET bar2_enabled=false
 CSET bar2_prefetchable=false
@@ -81,7 +81,7 @@ CSET bar5_type=N/A
 CSET base_class_menu=Simple_communication_controllers
 CSET buf_opt_bma=false
 CSET cardbus_cis_pointer=00000000
-CSET class_code_base=FF
+CSET class_code_base=05
 CSET class_code_interface=00
 CSET class_code_sub=00
 CSET component_name=core_pciexp_ep_blk_plus
@@ -133,8 +133,8 @@ CSET en_route_pme_to_ack=false
 CSET en_route_unlock=false
 CSET enable_ack_nak_timer=false
 CSET enable_lane_reversal=false
-CSET enable_replay_timer=false
-CSET enable_slot_clock_cfg=false
+CSET enable_replay_timer=true
+CSET enable_slot_clock_cfg=true
 CSET expansion_rom_enabled=false
 CSET expansion_rom_scale=Kilobytes
 CSET expansion_rom_size=2
@@ -146,7 +146,7 @@ CSET hw_auton_spd_disable=false
 CSET intx_generation=true
 CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
-CSET link_speed=2.5_GT/s
+CSET link_speed=5.0_GT/s
 CSET max_payload_size=512_bytes
 CSET maximum_link_width=X4
 CSET msi_64b=true
@@ -162,7 +162,7 @@ CSET multiple_message_capable=1_vector
 CSET no_soft_reset=true
 CSET pci_cfg_space=false
 CSET pci_cfg_space_addr=3F
-CSET pcie_blk_locn=X0Y1
+CSET pcie_blk_locn=X0Y0
 CSET pcie_cap_slot_implemented=false
 CSET pcie_debug_ports=false
 CSET perf_level=High
@@ -173,7 +173,7 @@ CSET rcb=64_byte
 CSET ref_clk_freq=250_MHz
 CSET replay_timeout_func=Add
 CSET replay_timeout_value=0026
-CSET revision_id=01
+CSET revision_id=02
 CSET root_cap_crs=false
 CSET slot_cap_attn_butn=false
 CSET slot_cap_attn_ind=false
@@ -191,10 +191,10 @@ CSET sub_class_interface_menu=Generic_XT_compatible_serial_controller
 CSET subsystem_id=8005
 CSET subsystem_vendor_id=0777
 CSET trans_buf_pipeline=None
-CSET trgt_link_speed=4'h1
+CSET trgt_link_speed=4'h2
 CSET trim_tlp_digest=false
 CSET upconfigure_capable=true
-CSET user_clk_freq=125_default
+CSET user_clk_freq=250_default
 CSET vc_cap_enabled=false
 CSET vc_cap_reject_snoop=false
 CSET vendor_id=0777
@@ -202,4 +202,4 @@ CSET vsec_enabled=false
 CSET xlnx_ref_board=None
 # END Parameters
 GENERATE
-# CRC: 7ec17fe7
+# CRC: a6beba90
