@@ -18,31 +18,35 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
+use work.prj_def.all;
 use work.prj_cfg.all;
 
 entity pcie_main is
 generic(
+G_PCIE_LINK_WIDTH : integer:=1;
+G_PCIE_RST_SEL    : integer:=1;
 G_DBG : string :="OFF"  --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
 );
 port(
 --------------------------------------------------------
 --USR Port
 --------------------------------------------------------
-p_out_usr_tst        : out   std_logic_vector(127 downto 0);
-p_in_usr_tst         : in    std_logic_vector(127 downto 0);
-
 p_out_hclk           : out   std_logic;
-p_out_gctrl          : out   std_logic_vector(31 downto 0);
+p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_dev_ctrl       : out   std_logic_vector(31 downto 0);
-p_out_dev_din        : out   std_logic_vector(31 downto 0);
-p_in_dev_dout        : in    std_logic_vector(31 downto 0);
+--Управление внешними устройствами
+p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
-p_in_dev_status      : in    std_logic_vector(31 downto 0);
-p_in_dev_irq         : in    std_logic_vector(31 downto 0);
-p_in_dev_opt         : in    std_logic_vector(127 downto 0);
-p_out_dev_opt        : out   std_logic_vector(127 downto 0);
+p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+
+p_out_usr_tst        : out   std_logic_vector(127 downto 0);
+p_in_usr_tst         : in    std_logic_vector(127 downto 0);
 
 --------------------------------------------------------
 --Технологический
@@ -55,10 +59,10 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 ---------------------------------------------------------
 p_in_fast_simulation : in    std_logic;
 
-p_out_pciexp_txp     : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn     : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp      : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn      : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 
 p_in_pciexp_rst      : in    std_logic;
 
@@ -91,15 +95,14 @@ PL_FAST_TRAIN  : boolean;
 BAR0           : bit_vector := X"FFFFFF00";
 BAR1           : bit_vector := X"FFFFFF01"
 );
-port
-(
+port(
 --------------------------------------
 --PCI Express Fabric Interface
 --------------------------------------
-pci_exp_txp             : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);    --pci_exp_txp             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
-pci_exp_txn             : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);    --pci_exp_txn             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
-pci_exp_rxp             : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);    --pci_exp_rxp             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
-pci_exp_rxn             : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);    --pci_exp_rxn             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
+pci_exp_txp             : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);    --pci_exp_txp             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
+pci_exp_txn             : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);    --pci_exp_txn             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
+pci_exp_rxp             : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);    --pci_exp_rxp             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
+pci_exp_rxn             : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);    --pci_exp_rxn             : out std_logic_vector((LINK_CAP_MAX_LINK_WIDTH_int - 1) downto 0);
 
 --------------------------------------
 --Tx
@@ -243,17 +246,18 @@ port(
 --USR Port
 --------------------------------------
 p_out_hclk                : out   std_logic;
+p_out_gctrl               : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_gctrl               : out   std_logic_vector(31 downto 0);
-p_out_dev_ctrl            : out   std_logic_vector(31 downto 0);
-p_out_dev_din             : out   std_logic_vector(31 downto 0);
-p_in_dev_dout             : in    std_logic_vector(31 downto 0);
+--Управление внешними устройствами
+p_out_dev_ctrl            : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din             : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout             : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_out_dev_wr              : out   std_logic;
 p_out_dev_rd              : out   std_logic;
-p_in_dev_status           : in    std_logic_vector(31 downto 0);
-p_in_dev_irq              : in    std_logic_vector(31 downto 0);
-p_in_dev_opt              : in    std_logic_vector(127 downto 0);
-p_out_dev_opt             : out   std_logic_vector(127 downto 0);
+p_in_dev_status           : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq              : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt              : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt             : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
@@ -682,11 +686,9 @@ port map(
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
-
-p_out_tst                 => p_out_usr_tst,
-p_in_tst                  => p_in_usr_tst,
-
 p_out_gctrl               => p_out_gctrl,
+
+--Управление внешними устройствами
 p_out_dev_ctrl            => p_out_dev_ctrl,
 p_out_dev_din             => p_out_dev_din,
 p_in_dev_dout             => p_in_dev_dout,
@@ -697,86 +699,89 @@ p_in_dev_irq              => p_in_dev_irq,
 p_in_dev_opt              => p_in_dev_opt,
 p_out_dev_opt             => p_out_dev_opt,
 
+p_out_tst                 => p_out_usr_tst,
+p_in_tst                  => p_in_usr_tst,
+
 --------------------------------------
 --Tx
 --------------------------------------
-trn_td_o                      => trn_td,
-trn_trem_n_o                  => trn_trem_n_old,--trn_trem_n,
-trn_tsof_n_o                  => trn_tsof_n,
-trn_teof_n_o                  => trn_teof_n,
-trn_tsrc_rdy_n_o              => trn_tsrc_rdy_n,
-trn_tdst_rdy_n_i              => trn_tdst_rdy_n,
-trn_tsrc_dsc_n_o              => trn_tsrc_dsc_n,
-trn_tdst_dsc_n_i              => '1',--trn_tdst_dsc_n,
-trn_terrfwd_n_o               => trn_terrfwd_n,
-trn_tbuf_av_i                 => user_trn_tbuf_av,
+trn_td_o                  => trn_td,
+trn_trem_n_o              => trn_trem_n_old,--trn_trem_n,
+trn_tsof_n_o              => trn_tsof_n,
+trn_teof_n_o              => trn_teof_n,
+trn_tsrc_rdy_n_o          => trn_tsrc_rdy_n,
+trn_tdst_rdy_n_i          => trn_tdst_rdy_n,
+trn_tsrc_dsc_n_o          => trn_tsrc_dsc_n,
+trn_tdst_dsc_n_i          => '1',--trn_tdst_dsc_n,
+trn_terrfwd_n_o           => trn_terrfwd_n,
+trn_tbuf_av_i             => user_trn_tbuf_av,
 
 --------------------------------------
 --Rx
 --------------------------------------
-trn_rd_i                      => trn_rd,
-trn_rrem_n_i                  => trn_rrem_n_old,--trn_rrem_n,
-trn_rsof_n_i                  => trn_rsof_n,
-trn_reof_n_i                  => trn_reof_n,
-trn_rsrc_rdy_n_i              => trn_rsrc_rdy_n,
-trn_rsrc_dsc_n_i              => trn_rsrc_dsc_n,
-trn_rdst_rdy_n_o              => trn_rdst_rdy_n,
-trn_rerrfwd_n_i               => trn_rerrfwd_n,
-trn_rnp_ok_n_o                => trn_rnp_ok_n,
+trn_rd_i                  => trn_rd,
+trn_rrem_n_i              => trn_rrem_n_old,--trn_rrem_n,
+trn_rsof_n_i              => trn_rsof_n,
+trn_reof_n_i              => trn_reof_n,
+trn_rsrc_rdy_n_i          => trn_rsrc_rdy_n,
+trn_rsrc_dsc_n_i          => trn_rsrc_dsc_n,
+trn_rdst_rdy_n_o          => trn_rdst_rdy_n,
+trn_rerrfwd_n_i           => trn_rerrfwd_n,
+trn_rnp_ok_n_o            => trn_rnp_ok_n,
 
-trn_rbar_hit_n_i              => trn_rbar_hit_n,
-trn_rfc_nph_av_i              => (others=>'0'),--trn_rfc_nph_av,
-trn_rfc_npd_av_i              => (others=>'0'),--trn_rfc_npd_av,
-trn_rfc_ph_av_i               => (others=>'0'),--trn_rfc_ph_av,
-trn_rfc_pd_av_i               => (others=>'0'),--trn_rfc_pd_av,
-trn_rcpl_streaming_n_o        => trn_rcpl_streaming_n,
+trn_rbar_hit_n_i          => trn_rbar_hit_n,
+trn_rfc_nph_av_i          => (others=>'0'),--trn_rfc_nph_av,
+trn_rfc_npd_av_i          => (others=>'0'),--trn_rfc_npd_av,
+trn_rfc_ph_av_i           => (others=>'0'),--trn_rfc_ph_av,
+trn_rfc_pd_av_i           => (others=>'0'),--trn_rfc_pd_av,
+trn_rcpl_streaming_n_o    => trn_rcpl_streaming_n,
 
 --------------------------------------
 --CFG Interface
 --------------------------------------
-cfg_turnoff_ok_n_o            => cfg_turnoff_ok_n,
-cfg_to_turnoff_n_i            => cfg_to_turnoff_n,
+cfg_turnoff_ok_n_o        => cfg_turnoff_ok_n,
+cfg_to_turnoff_n_i        => cfg_to_turnoff_n,
 
-cfg_interrupt_n_o             => cfg_interrupt_n,
-cfg_interrupt_rdy_n_i         => cfg_interrupt_rdy_n,
-cfg_interrupt_assert_n_o      => cfg_interrupt_assert_n,
-cfg_interrupt_di_o            => cfg_interrupt_di,
-cfg_interrupt_do_i            => cfg_interrupt_do,
-cfg_interrupt_msienable_i     => cfg_interrupt_msienable,
-cfg_interrupt_mmenable_i      => cfg_interrupt_mmenable,
+cfg_interrupt_n_o         => cfg_interrupt_n,
+cfg_interrupt_rdy_n_i     => cfg_interrupt_rdy_n,
+cfg_interrupt_assert_n_o  => cfg_interrupt_assert_n,
+cfg_interrupt_di_o        => cfg_interrupt_di,
+cfg_interrupt_do_i        => cfg_interrupt_do,
+cfg_interrupt_msienable_i => cfg_interrupt_msienable,
+cfg_interrupt_mmenable_i  => cfg_interrupt_mmenable,
 
-cfg_do_i                      => cfg_do,
-cfg_di_o                      => cfg_di,
-cfg_dwaddr_o                  => cfg_dwaddr,
-cfg_byte_en_n_o               => cfg_byte_en_n,
-cfg_wr_en_n_o                 => cfg_wr_en_n,
-cfg_rd_en_n_o                 => cfg_rd_en_n,
-cfg_rd_wr_done_n_i            => cfg_rd_wr_done_n,
+cfg_do_i                  => cfg_do,
+cfg_di_o                  => cfg_di,
+cfg_dwaddr_o              => cfg_dwaddr,
+cfg_byte_en_n_o           => cfg_byte_en_n,
+cfg_wr_en_n_o             => cfg_wr_en_n,
+cfg_rd_en_n_o             => cfg_rd_en_n,
+cfg_rd_wr_done_n_i        => cfg_rd_wr_done_n,
 
-cfg_err_tlp_cpl_header_o      => cfg_err_tlp_cpl_header,
-cfg_err_ecrc_n_o              => cfg_err_ecrc_n,
-cfg_err_ur_n_o                => cfg_err_ur_n,
-cfg_err_cpl_timeout_n_o       => cfg_err_cpl_timeout_n,
-cfg_err_cpl_unexpect_n_o      => cfg_err_cpl_unexpect_n,
-cfg_err_cpl_abort_n_o         => cfg_err_cpl_abort_n,
-cfg_err_posted_n_o            => cfg_err_posted_n,
-cfg_err_cor_n_o               => cfg_err_cor_n,
-cfg_err_locked_n_o            => cfg_err_locked_n,
-cfg_err_cpl_rdy_n_i           => cfg_err_cpl_rdy_n,
+cfg_err_tlp_cpl_header_o  => cfg_err_tlp_cpl_header,
+cfg_err_ecrc_n_o          => cfg_err_ecrc_n,
+cfg_err_ur_n_o            => cfg_err_ur_n,
+cfg_err_cpl_timeout_n_o   => cfg_err_cpl_timeout_n,
+cfg_err_cpl_unexpect_n_o  => cfg_err_cpl_unexpect_n,
+cfg_err_cpl_abort_n_o     => cfg_err_cpl_abort_n,
+cfg_err_posted_n_o        => cfg_err_posted_n,
+cfg_err_cor_n_o           => cfg_err_cor_n,
+cfg_err_locked_n_o        => cfg_err_locked_n,
+cfg_err_cpl_rdy_n_i       => cfg_err_cpl_rdy_n,
 
-cfg_pm_wake_n_o               => cfg_pm_wake_n,
-cfg_trn_pending_n_o           => cfg_trn_pending_n,
-cfg_dsn_o                     => cfg_dsn,
-cfg_pcie_link_state_n_i       => cfg_pcie_link_state_n,
-cfg_bus_number_i              => cfg_bus_number,
-cfg_device_number_i           => cfg_device_number,
-cfg_function_number_i         => cfg_function_number,
-cfg_status_i                  => cfg_status,
-cfg_command_i                 => cfg_command,
-cfg_dstatus_i                 => cfg_dstatus,
-cfg_dcommand_i                => cfg_dcommand,
-cfg_lstatus_i                 => cfg_lstatus,
-cfg_lcommand_i                => cfg_lcommand,
+cfg_pm_wake_n_o           => cfg_pm_wake_n,
+cfg_trn_pending_n_o       => cfg_trn_pending_n,
+cfg_dsn_o                 => cfg_dsn,
+cfg_pcie_link_state_n_i   => cfg_pcie_link_state_n,
+cfg_bus_number_i          => cfg_bus_number,
+cfg_device_number_i       => cfg_device_number,
+cfg_function_number_i     => cfg_function_number,
+cfg_status_i              => cfg_status,
+cfg_command_i             => cfg_command,
+cfg_dstatus_i             => cfg_dstatus,
+cfg_dcommand_i            => cfg_dcommand,
+cfg_lstatus_i             => cfg_lstatus,
+cfg_lcommand_i            => cfg_lcommand,
 
 --------------------------------------
 --System Port
@@ -786,16 +791,15 @@ trn_clk_i                 => trn_clk,
 trn_reset_n_i             => trn_reset_n
 );
 
---user_trn_tbuf_av<=EXT(trn_tbuf_av, 6);
 user_trn_tbuf_av<=(others=>'1') when trn_tbuf_av/=(trn_tbuf_av'range =>'0') else (others=>'0');
 p_out_gtp_refclkout<=refclkout;
 
-gen_ext_rst : if C_PCIEXPRESS_RST_FROM_SLOT=1 generate
+gen_ext_rst : if G_PCIE_RST_SEL=1 generate
 p_out_module_rdy<=not trn_lnk_up_n;
 sys_reset_n<=p_in_pciexp_rst;
 end generate gen_ext_rst;
 
-gen_intr_rst : if C_PCIEXPRESS_RST_FROM_SLOT=0 generate
+gen_intr_rst : if G_PCIE_RST_SEL=0 generate
 sys_reset_n<=from_ctrl_rst_n;
 
 m_reset : pcie_reset
@@ -810,16 +814,15 @@ module_rdy_o       => p_out_module_rdy
 end generate gen_intr_rst;
 
 
---trn_rnp_ok_n              <= '0';
 trn_fc_sel                <= "000";
 trn_tcfg_gnt_n            <= '0';
-trn_tstr_n                <= trn_rcpl_streaming_n; --'0';
+trn_tstr_n                <= trn_rcpl_streaming_n;
 
 pl_directed_link_change   <= "00";
 pl_directed_link_width    <= "00";
 pl_directed_link_speed    <= '0';
 pl_directed_link_auton    <= '0';
-pl_upstream_prefer_deemph <= '1';
+pl_upstream_prefer_deemph <= '0';
 
 trn_trem_n                <= "1"   when (trn_trem_n_old = X"0F") else "0";
 trn_rrem_n_old            <= X"0F" when (trn_rrem_n(0) = '1') else X"00";

@@ -66,7 +66,6 @@ reg   [31:0]  cpld_data_size_hwm;  // HWMark for Completion Data (DWs)
 reg   [15:0]  cur_rd_count_hwm;    // HWMark for Read Count Allowed
 
 reg           cpld_found;
-wire          mrd_work_out;
 
 
 /* Checking for received completions */

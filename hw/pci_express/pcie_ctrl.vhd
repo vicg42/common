@@ -18,8 +18,9 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
-use work.prj_cfg.all;
 use work.pcie_unit_pkg.all;
+use work.prj_def.all;
+use work.prj_cfg.all;
 
 entity pcie_ctrl is
 generic(
@@ -29,21 +30,23 @@ port(
 --------------------------------------
 --USR Port
 --------------------------------------
-p_out_hclk                : out   std_logic;
+p_out_hclk                 : out   std_logic;
+p_out_gctrl                : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_tst                 : out   std_logic_vector(127 downto 0);
-p_in_tst                  : in    std_logic_vector(127 downto 0);
+--Управление внешними устройствами
+p_out_dev_ctrl             : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din              : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout              : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_wr               : out   std_logic;
+p_out_dev_rd               : out   std_logic;
+p_in_dev_status            : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq               : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt               : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt              : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
-p_out_gctrl               : out   std_logic_vector(31 downto 0);
-p_out_dev_ctrl            : out   std_logic_vector(31 downto 0);
-p_out_dev_din             : out   std_logic_vector(31 downto 0);
-p_in_dev_dout             : in    std_logic_vector(31 downto 0);
-p_out_dev_wr              : out   std_logic;
-p_out_dev_rd              : out   std_logic;
-p_in_dev_status           : in    std_logic_vector(31 downto 0);
-p_in_dev_irq              : in    std_logic_vector(31 downto 0);
-p_in_dev_opt              : in    std_logic_vector(127 downto 0);
-p_out_dev_opt             : out   std_logic_vector(127 downto 0);
+--Технологический порт
+p_out_tst                  : out   std_logic_vector(127 downto 0);
+p_in_tst                   : in    std_logic_vector(127 downto 0);
 
 --------------------------------------
 --Tx
@@ -215,9 +218,9 @@ signal i_trn_rnp_ok_n             : std_logic;
 
 signal i_irq_ctrl_rst             : std_logic;
 signal i_irq_clr                  : std_logic;
-signal i_irq_num                  : std_logic_vector(15 downto 0);
-signal i_irq_set                  : std_logic_vector(15 downto 0);
-signal i_irq_status               : std_logic_vector(15 downto 0);
+signal i_irq_num                  : std_logic_vector(4 downto 0);
+signal i_irq_set                  : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+signal i_irq_status               : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 
 signal i_cfg_msi_enable           : std_logic;
 signal i_cfg_cap_max_lnk_width    : std_logic_vector(5 downto 0);
@@ -255,7 +258,7 @@ i_rd_throttle_tst_out(1) <='0';
 --//--------------------------------------
 --//Выходные сигналы
 --//--------------------------------------
-trn_rnp_ok_n_o <= '0';--i_trn_rnp_ok_n;
+trn_rnp_ok_n_o <= i_trn_rnp_ok_n;
 trn_rcpl_streaming_n_o <= i_cpl_streaming;
 
 cfg_pm_wake_n_o        <='1';
@@ -268,7 +271,7 @@ cfg_err_ur_n_o         <='1';
 cfg_err_cpl_timeout_n_o<='1';
 cfg_err_cpl_unexpect_n_o<='1';
 cfg_err_cor_n_o        <='1';
-cfg_err_posted_n_o     <='0';
+cfg_err_posted_n_o     <='1';
 cfg_err_cpl_abort_n_o  <='1';--//Configuration Error Completion Aborted: The
                              --//user can assert this signal to report that a completion
                              --//was aborted.
@@ -326,21 +329,23 @@ generic map(
 G_DBG => G_DBG
 )
 port map(
-p_out_hclk                    => p_out_hclk,
+p_out_hclk      => p_out_hclk,
+p_out_gctrl     => p_out_gctrl,
 
-p_out_gctrl                   => p_out_gctrl,
-p_out_dev_ctrl                => p_out_dev_ctrl,
-p_out_dev_din                 => p_out_dev_din,
-p_in_dev_dout                 => p_in_dev_dout,
-p_out_dev_wr                  => p_out_dev_wr,
-p_out_dev_rd                  => p_out_dev_rd,
-p_in_dev_status               => p_in_dev_status,
-p_in_dev_irq                  => p_in_dev_irq,
-p_in_dev_opt                  => p_in_dev_opt,
-p_out_dev_opt                 => p_out_dev_opt,
+--Управление внешними устройствами
+p_out_dev_ctrl  => p_out_dev_ctrl,
+p_out_dev_din   => p_out_dev_din,
+p_in_dev_dout   => p_in_dev_dout,
+p_out_dev_wr    => p_out_dev_wr,
+p_out_dev_rd    => p_out_dev_rd,
+p_in_dev_status => p_in_dev_status,
+p_in_dev_irq    => p_in_dev_irq,
+p_in_dev_opt    => p_in_dev_opt,
+p_out_dev_opt   => p_out_dev_opt,
 
-p_out_tst                     => p_out_tst,
-p_in_tst                      => p_in_tst,
+--Технологический порт
+p_out_tst       => p_out_tst,
+p_in_tst        => p_in_tst,
 
 ------------------------------
 --Связь с m_pcie_rx/tx

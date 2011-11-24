@@ -18,31 +18,35 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
+use work.prj_def.all;
 use work.prj_cfg.all;
 
 entity pcie_main is
 generic(
+G_PCIE_LINK_WIDTH : integer:=1;
+G_PCIE_RST_SEL    : integer:=1;
 G_DBG : string :="OFF"
 );
 port(
 --------------------------------------------------------
 --USR Port
 --------------------------------------------------------
-p_out_usr_tst        : out   std_logic_vector(127 downto 0);
-p_in_usr_tst         : in    std_logic_vector(127 downto 0);
-
 p_out_hclk           : out   std_logic;
-p_out_gctrl          : out   std_logic_vector(31 downto 0);
+p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_dev_ctrl       : out   std_logic_vector(31 downto 0);
-p_out_dev_din        : out   std_logic_vector(31 downto 0);
-p_in_dev_dout        : in    std_logic_vector(31 downto 0);
+--Управление внешними устройствами
+p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
-p_in_dev_status      : in    std_logic_vector(31 downto 0);
-p_in_dev_irq         : in    std_logic_vector(31 downto 0);
-p_in_dev_opt         : in    std_logic_vector(127 downto 0);
-p_out_dev_opt        : out   std_logic_vector(127 downto 0);
+p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
+
+p_out_usr_tst        : out   std_logic_vector(127 downto 0);
+p_in_usr_tst         : in    std_logic_vector(127 downto 0);
 
 --------------------------------------------------------
 --Технологический
@@ -55,10 +59,10 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 ---------------------------------------------------------
 p_in_fast_simulation : in    std_logic;
 
-p_out_pciexp_txp     : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn     : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp      : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn      : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 
 p_in_pciexp_rst      : in    std_logic;
 
@@ -91,15 +95,14 @@ component core_pciexp_ep_blk_plus
 --BAR0               : bit_vector := X"FFFFFF00";
 --BAR1               : bit_vector := X"FFFFFF01"
 --);
-port
-(
+port(
 --------------------------------------
 --PCI Express Fabric Interface
 --------------------------------------
-pci_exp_txp                : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-pci_exp_txn                : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-pci_exp_rxp                : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-pci_exp_rxn                : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+pci_exp_txp                : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+pci_exp_txn                : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+pci_exp_rxp                : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+pci_exp_rxn                : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 
 --------------------------------------
 --Tx
@@ -200,17 +203,18 @@ port(
 --USR Port
 --------------------------------------
 p_out_hclk                : out   std_logic;
+p_out_gctrl               : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_gctrl               : out   std_logic_vector(31 downto 0);
-p_out_dev_ctrl            : out   std_logic_vector(31 downto 0);
-p_out_dev_din             : out   std_logic_vector(31 downto 0);
-p_in_dev_dout             : in    std_logic_vector(31 downto 0);
+--Управление внешними устройствами
+p_out_dev_ctrl            : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din             : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout             : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_out_dev_wr              : out   std_logic;
 p_out_dev_rd              : out   std_logic;
-p_in_dev_status           : in    std_logic_vector(31 downto 0);
-p_in_dev_irq              : in    std_logic_vector(31 downto 0);
-p_in_dev_opt              : in    std_logic_vector(127 downto 0);
-p_out_dev_opt             : out   std_logic_vector(127 downto 0);
+p_in_dev_status           : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq              : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt              : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt             : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 p_out_tst                 : out   std_logic_vector(127 downto 0);
 p_in_tst                  : in    std_logic_vector(127 downto 0);
@@ -441,7 +445,7 @@ p_out_tst(255 downto 249)<=(others=>'0');
 --//#############################################
 m_core : core_pciexp_ep_blk_plus
 --generic map(
---PCI_EXP_LINK_WIDTH => C_PCIEXPRESS_LINK_WIDTH,
+--PCI_EXP_LINK_WIDTH => G_PCIE_LINK_WIDTH,
 --BAR0               => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
 --BAR1               => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
 --)
@@ -556,11 +560,9 @@ port map(
 --USR port
 --------------------------------------
 p_out_hclk                => p_out_hclk,
-
-p_out_tst                 => p_out_usr_tst,
-p_in_tst                  => p_in_usr_tst,
-
 p_out_gctrl               => p_out_gctrl,
+
+--Управление внешними устройствами
 p_out_dev_ctrl            => p_out_dev_ctrl,
 p_out_dev_din             => p_out_dev_din,
 p_in_dev_dout             => p_in_dev_dout,
@@ -570,6 +572,9 @@ p_in_dev_status           => p_in_dev_status,
 p_in_dev_irq              => p_in_dev_irq,
 p_in_dev_opt              => p_in_dev_opt,
 p_out_dev_opt             => p_out_dev_opt,
+
+p_out_tst                 => p_out_usr_tst,
+p_in_tst                  => p_in_usr_tst,
 
 --------------------------------------
 --Tx
@@ -663,12 +668,12 @@ trn_reset_n_i             => trn_reset_n
 user_trn_tbuf_av<=EXT(trn_tbuf_av, 6);
 p_out_gtp_refclkout<=refclkout;
 
-gen_ext_rst : if C_PCIEXPRESS_RST_FROM_SLOT=1 generate
+gen_ext_rst : if G_PCIE_RST_SEL=1 generate
 p_out_module_rdy<=not trn_lnk_up_n;
 sys_reset_n<=p_in_pciexp_rst;
 end generate gen_ext_rst;
 
-gen_intr_rst : if C_PCIEXPRESS_RST_FROM_SLOT=0 generate
+gen_intr_rst : if G_PCIE_RST_SEL=0 generate
 sys_reset_n<=from_ctrl_rst_n;
 
 m_reset : pcie_reset
