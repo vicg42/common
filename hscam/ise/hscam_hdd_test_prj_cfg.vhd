@@ -19,25 +19,20 @@ use ieee.std_logic_arith.all;
 package prj_cfg is
 
 --//Тип используемой платы
-constant C_BOARD_USE                         : string:="ML505";
-constant G_IF                                : string:="FTDI";--//Тип интерфейса управления HDD
-
---//Управление использованием модулей проекта:
-constant C_USE_HDD                           : string:="ON";
-
-constant C_DBG_HDD                           : string:="OFF";
-constant C_DBGCS_HDD                         : string:="ON";
+constant C_PCFG_BOARD                  : string:="HSCAM";
+constant G_IF                          : string:="FTDI";--//Тип интерфейса управления HDD
+--//Конфигурирование модулей:
+--//cfg Memory Controller
+constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
 
 --//cfg HDD
-constant C_HDD_COUNT                         : integer:=2;
-constant C_HDD_RAMBUF_SIZE                   : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
-constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины данных GT (RocketIO)
+constant C_PCFG_HDD_USE                : string:="ON";
+constant C_PCFG_HDD_DBG                : string:="OFF";
+constant C_PCFG_HDD_DBGCS              : string:="ON";
+constant C_PCFG_HDD_COUNT              : integer:=1;
+constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+constant C_PCFG_HDD_GT_DBUS            : integer:=16;--//Настройка шины данных GT (RocketIO)
 
-
-end prj_cfg;
-
-
-package body prj_cfg is
 
 end prj_cfg;
 
