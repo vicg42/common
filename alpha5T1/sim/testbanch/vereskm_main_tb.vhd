@@ -227,12 +227,12 @@ signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downt
 signal i_hdd_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_sata_txn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-signal i_sata_txp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-signal i_sata_rxn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-signal i_sata_rxp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-signal i_sata_gt_refclkmain_p         : std_logic_vector((C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0):=(others=>'1');
-signal i_sata_gt_refclkmain_n         : std_logic_vector((C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0):=(others=>'0');
+signal i_sata_txn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+signal i_sata_txp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+signal i_sata_rxn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+signal i_sata_rxp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+signal i_sata_gt_refclkmain_p         : std_logic_vector((C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0):=(others=>'1');
+signal i_sata_gt_refclkmain_n         : std_logic_vector((C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0):=(others=>'0');
 
 
 
@@ -462,12 +462,12 @@ pin_in_pciexp_clk_n   : in    std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
-pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
 -- Local bus
@@ -3244,7 +3244,7 @@ i_satadev_ctrl.link_establish<='0';
 i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl.dbuf_ruse<='1';
 
-gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 generate
+gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 generate
 i_sata_rxn<=(others=>'0');
 i_sata_rxp<=(others=>'1');
 
@@ -3253,12 +3253,12 @@ i_sata_gt_refclkmain_n(i) <= not i_sata_gt_refclkmain_n(i) after C_SATACLK_PERIO
 end generate gen_sata_drv;
 
 
---gen_satad : for i in 0 to C_HDD_COUNT-1 generate
+--gen_satad : for i in 0 to C_PCFG_HDD_COUNT-1 generate
 --m_sata_dev : sata_dev_model
 --generic map
 --(
 --G_DBG_LLAYER => "OFF",
---G_GT_DBUS    => C_HDD_GT_DBUS
+--G_GT_DBUS    => C_PCFG_HDD_GT_DBUS
 --)
 --port map
 --(
