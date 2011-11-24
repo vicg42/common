@@ -48,6 +48,9 @@ NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 #--------------------------------------------------------------------------
 #Расположение компонентов в кристале
 #--------------------------------------------------------------------------
+NET "pin_in_gt_X0Y6_clk_p" LOC="P4"; #
+NET "pin_in_gt_X0Y6_clk_n" LOC="P3"; #
+INST "ibufds_X0Y6_gt_refclk"   DIFF_TERM = "TRUE" ;
 INST "m_gt_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y3";
 
 
@@ -163,50 +166,50 @@ TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
 
 
-#############################################################################
-###############       Проект SATA       #####################################
-#############################################################################
-#--------------------------------------------------------------------------
-#Назначение пинов
-#--------------------------------------------------------------------------
-NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
-NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
-INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
-
-##SATA1 - Разъем J40
-##SATA2 - Разъем J41
-#--------------------------------------------------------------------------
-#Расположение компоненов в кристале
-#--------------------------------------------------------------------------
-#INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
-
-#НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
-INST "m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y2;
-
-##ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
-#INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y2;
+##############################################################################
+################       Проект SATA       #####################################
+##############################################################################
+##--------------------------------------------------------------------------
+##Назначение пинов
+##--------------------------------------------------------------------------
+#NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
+#NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
+#INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 #
+###SATA1 - Разъем J40
+###SATA2 - Разъем J41
+##--------------------------------------------------------------------------
+##Расположение компоненов в кристале
+##--------------------------------------------------------------------------
+##INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 #
-###--------------------------------------------------------------------------
-###Временные ограничения
-###--------------------------------------------------------------------------
-#NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
-#NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
-#NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;
+##НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
+#INST "m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y2;
 #
-###SATA_CH0,1
-#TIMEGRP SATA0_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/*);
-#TIMESPEC "TS_SATA0_PHY_FFS2MGT" = FROM SATA0_PHY_FFS  TO HSIOS           6.666ns;
-#TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns;
-#
-####SATA_CH2,3
-##TIMEGRP SATA1_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/*);
-##TIMESPEC "TS_SATA1_PHY_FFS2MGT" = FROM SATA1_PHY_FFS  TO HSIOS           6.666ns;
-##TIMESPEC "TS_MGT2SATA1_PHY_FFS" = FROM HSIOS          TO SATA1_PHY_FFS   6.666ns;
-#
-#
-####INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
-####AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
+###ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
+##INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y2;
+##
+##
+####--------------------------------------------------------------------------
+####Временные ограничения
+####--------------------------------------------------------------------------
+##NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
+##NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
+##NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;
+##
+####SATA_CH0,1
+##TIMEGRP SATA0_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/*);
+##TIMESPEC "TS_SATA0_PHY_FFS2MGT" = FROM SATA0_PHY_FFS  TO HSIOS           6.666ns;
+##TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns;
+##
+#####SATA_CH2,3
+###TIMEGRP SATA1_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/*);
+###TIMESPEC "TS_SATA1_PHY_FFS2MGT" = FROM SATA1_PHY_FFS  TO HSIOS           6.666ns;
+###TIMESPEC "TS_MGT2SATA1_PHY_FFS" = FROM HSIOS          TO SATA1_PHY_FFS   6.666ns;
+##
+##
+#####INST m_hdd/gen_use_on.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
+#####AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;
 
 
 ##########################################################
