@@ -6,14 +6,14 @@ set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
 set _usrdef_design "AD6T1_veresk"
-set _usrdef_entity "vereskm_main"
+set _usrdef_entity "veresk_main"
 set _usrdef_xilinx_family "virtex6"
 set _usrdef_chip_family "v6lxt"
 set _usrdef_device "6vlx240t"
 set _usrdef_speed  1
-set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "veresk-6vlx240t-ffg1136"
-set _usrdef_ucf_filepath "..\ucf\veresk-6vlx2400t-ffg1136.ucf"
+set _usrdef_pkg    "ff1759"
+set _usrdef_ucf_filename "veresk-6vlx240t-ff1759"
+set _usrdef_ucf_filepath "..\ucf\veresk-6vlx2400t-ff1759.ucf"
 
 
 set _VMod $::projNav::VMod
@@ -24,71 +24,81 @@ set _projects [ list \
   [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/lib/vicg/v5/mclk_gtp_wrap.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/vicg/v5/gtp_drp_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/vicg/v5/gtp_prog_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpmem_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpbram0.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/distmem0.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpbram.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/dpmem/distmem.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/memif_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/memif_int_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/memif_def_synth.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_training_dc.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_oserdes_dqs.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_oserdes_dq.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_iserdes_dq.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_odt.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_init.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_dq_out.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_dq_in_dc.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_dq_in.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_dqs_out.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_dqs_in.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_dm.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_clkfw.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/ddr2sdram/ddr2sdram_port.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/pulse_sync.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/port_repl.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/port_mux.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/async_port.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/memif/cmd_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/afifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/fifo/fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/plxdssm.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/lib/alphadata/admxrc/vhdl/common/localbus/localbus_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/mem_wr_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/mem_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/mem/alphadata/mem_pll.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/mem/alphadata/mem_wr.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/mem/alphadata/mem_arb.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/mem/alphadata/mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/fifo_utils.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S8_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S72_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S36_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S18_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/DRAM/RAM_64nX1.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S8_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S72_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S36_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S16_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S144_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_macro.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_macro.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/xapp/xapp691/src/vhdl/ll_fifo.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/axi/carry_latch_or.v" $_VMod ] \
+      [ list "../src/alphadata/axi/carry_and.v" $_VMod ] \
+      [ list "../src/alphadata/axi/comparator_sel_static.v" $_VMod ] \
+      [ list "../src/alphadata/axi/comparator_sel.v" $_VMod ] \
+      [ list "../src/alphadata/axi/comparator.v" $_VMod ] \
+      [ list "../src/alphadata/axi/command_fifo.v" $_VMod ] \
+      [ list "../src/alphadata/axi/carry_or.v" $_VMod ] \
+      [ list "../src/alphadata/axi/carry_latch_and.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_wrap_cmd.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_incr_cmd.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axic_register_slice.v" $_VMod ] \
+      [ list "../src/alphadata/axi/w_upsizer.v" $_VMod ] \
+      [ list "../src/alphadata/axi/r_upsizer.v" $_VMod ] \
+      [ list "../src/alphadata/axi/a_upsizer.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_register_slice.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_simple_fifo.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_cmd_translator.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_cmd_fsm.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_upsizer.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_w_channel.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_r_channel.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_cmd_arbiter.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_b_channel.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_aw_channel.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc_ar_channel.v" $_VMod ] \
+      [ list "../src/alphadata/axi/axi_mc.v" $_VMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/rd_bitslip.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/circ_buffer.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_rddata_sync.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_rdctrl_sync.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_rdclk_gen.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_pd.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_dq_iob.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_dqs_iob.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_dm_iob.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_ck_iob.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_wrlvl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_write.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_read.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_rdlvl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_pd_top.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_init.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_dly_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_data_io.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_control_io.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_clock_io.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/phy/phy_top.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/round_robin_arb.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/bank_state.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/bank_queue.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/bank_compare.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/arb_select.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/arb_row_col.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/rank_common.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/rank_cntrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/bank_common.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/bank_cntrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/arb_mux.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/rank_mach.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/col_mach.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/bank_mach.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/controller/mc.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ui/ui_wr_data.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ui/ui_rd_data.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ui/ui_cmd.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ui/ui_top.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ecc/ecc_merge_enc.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ecc/ecc_gen.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ecc/ecc_dec_fix.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ecc/ecc_buf.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ip_top/mem_intfc.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/lib/alphadata/admxrcg3/vhdl/common/mem_if/ddr3_sdram/mig_v3_6/rtl/ip_top/infrastructure.vhd" $_VHDMod ] \
       [ list "../src/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
@@ -111,44 +121,9 @@ set _projects [ list \
       [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
       [ list "../../../common/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_txfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_glob_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_crc.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_dcm_v5.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_spd_ctrl_v5gtp.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_v5gtp.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_v5gt_clkmux.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_oob.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_rx.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_player.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_llayer.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_tlayer.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_alayer.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_dbgcs.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_host.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_raid_decoder.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/sata_hwstart_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../../../common/hw/sata/dsn_hdd_rambuf.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/mirror/vmirx_main.vhd" $_VHDMod ] \
@@ -175,90 +150,71 @@ set _projects [ list \
       [ list "../../../common/veresk_m/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/eth/dsn_ethg.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/alphadata/lbus_connector_32bit.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/alphadata/lbus_connector_32bit_tst.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/alphadata/lbus_dcm.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/alphadata/lbus_connector_null.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_m/alphadata/lbus_connector_null2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_main.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_ctrl_rst.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_ep_cntrl.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_TO_CTRL.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_RD_THROTTLE.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_ENGINE_TX.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_ENGINE_RX.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_CFG_CTRL.v" $_VMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_INTR_CTRL.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/BMD_INTR_CTRL_DEV.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/pci_express/v5/pciexp_usr_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_reset.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_off_on.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_tx.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_rx.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_cfg.v" $_VMod ] \
+      [ list "../../../common/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie_usr_app.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/pcie2mem_fifo.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../src/core_gen/ethg_vctrl_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_vbuf.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/vereskm_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_m/veresk_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/video_pkt_filter.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_timer.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_switch.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/dsn_host.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/use_newinterrupt.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_if.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll_tx.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll_tx_arb.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_plus_ll_tx.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_plus_ll_rx.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/tlm_rx_data_snk.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/tlm_rx_data_snk_mal.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/tlm_rx_data_snk_bar.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/tlm_rx_data_snk_pwr_mgmt.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_decoder.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll_oqbqfifo.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll_arb.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_ll_credit.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_cf.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_cf_mgmt.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_cf_err.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_cf_pwr.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_blk_cf_arb.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_cnt_en.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_cnt_nfl_en.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_cor.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_cpl.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_ftl.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_nfl.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_ram4x26.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_errman_ram8x26.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/cmm_intr.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_soft_int.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/bram_common.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_clocking.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/tx_sync_gtx.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/tx_sync_gtp.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_gtx_wrapper.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_gt_wrapper.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_gt_wrapper_top.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_mim_wrapper.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_reset_logic.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_top.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/prod_fixes.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/sync_fifo.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/extend_clk.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_ep.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_bram_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_tx_sync_rate_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_rx_valid_filter_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_drp_chanalign_fix_3752_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_pipe_misc_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_pipe_lane_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_brams_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_wrapper_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_upconfig_fix_3451_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_pipe_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_gtx_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_bram_top_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_reset_delay_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_clocking_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_2_0_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.vhd" $_VHDMod ] \
       [ list "../src/eth/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
       [ list "../src/eth/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
       [ list "../src/eth/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
       [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
+      [ list "../../../common/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
+      [ list "../src/axi_glob_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/alphadata/c0_memc_ui_top_axi.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/c1_memc_ui_top_axi.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/c2_memc_ui_top_axi.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/c3_memc_ui_top_axi.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/mem_ctrl_axi_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/alphadata/mem_ctrl_axi_core.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/mem_ctrl_axi.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/mem_arb.vhd" $_VHDMod ] \
+      [ list "../src/alphadata/clocks.vhd" $_VHDMod ] \
       [ list "../AD6T1_prj_cfg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_m/vereskm_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/veresk-6vlx240t-ffg1136.ucf" "vereskm_main" ] \
+      [ list "../../../common/veresk_m/veresk_main.vhd" $_VHDMod ] \
+      [ list "../../ucf/veresk-6vlx240t-ff1759.ucf" "veresk_main" ] \
     ] \
   ] \
 ]
