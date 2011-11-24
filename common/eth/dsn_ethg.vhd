@@ -119,7 +119,7 @@ end component;
 
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
-signal h_reg_ctrl                        : std_logic_vector(15 downto 0);
+--signal h_reg_ctrl                        : std_logic_vector(15 downto 0);
 signal h_reg_eth_cfg                     : TEthCfg;
 
 signal i_eth_gctrl                       : std_logic_vector(31 downto 0);
@@ -173,14 +173,14 @@ end process;
 process(p_in_cfg_rst,p_in_cfg_clk)
 begin
   if p_in_cfg_rst='1' then
-    h_reg_ctrl<=(others=>'0');
+--    h_reg_ctrl<=(others=>'0');
 
-    h_reg_eth_cfg.usrctrl<=(others=>'0');
+--    h_reg_eth_cfg.usrctrl<=(others=>'0');
+--    h_reg_eth_cfg.mac.lentype<=(others=>'0');
     for i in 0 to h_reg_eth_cfg.mac.dst'high loop
     h_reg_eth_cfg.mac.dst(i)<=(others=>'0');
     h_reg_eth_cfg.mac.src(i)<=(others=>'0');
     end loop;
-    h_reg_eth_cfg.mac.lentype<=(others=>'0');
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_wd='1' then
@@ -288,16 +288,16 @@ i_eth_txbuf_empty(1)<=p_in_eth_txbuf_empty;
 
 
 gen_cfg_eth : for i in 0 to i_eth_cfg'high generate
-process(p_in_rst,g_eth_gt_refclkout)
+process(g_eth_gt_refclkout) --process(p_in_rst,g_eth_gt_refclkout)
 begin
-  if p_in_rst='1' then
-    i_eth_cfg(i).usrctrl<=(others=>'0');
-    for y in 0 to i_eth_cfg(i).mac.dst'high loop
-    i_eth_cfg(i).mac.dst(y)<=(others=>'0');
-    i_eth_cfg(i).mac.src(y)<=(others=>'0');
-    end loop;
-    i_eth_cfg(i).mac.lentype<=(others=>'0');
-  elsif g_eth_gt_refclkout'event and g_eth_gt_refclkout='1' then
+--  if p_in_rst='1' then
+--    i_eth_cfg(i).usrctrl<=(others=>'0');
+--    for y in 0 to i_eth_cfg(i).mac.dst'high loop
+--    i_eth_cfg(i).mac.dst(y)<=(others=>'0');
+--    i_eth_cfg(i).mac.src(y)<=(others=>'0');
+--    end loop;
+--    i_eth_cfg(i).mac.lentype<=(others=>'0');
+  if g_eth_gt_refclkout'event and g_eth_gt_refclkout='1' then
     i_eth_cfg(i)<=h_reg_eth_cfg;
   end if;
 end process;
