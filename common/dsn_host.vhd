@@ -19,12 +19,14 @@ use ieee.std_logic_unsigned.all;
 
 library unisim;
 use unisim.vcomponents.all;
-use work.prj_cfg.all;
-use work.prj_def.all;
 use work.vicg_common_pkg.all;
+use work.prj_def.all;
+use work.prj_cfg.all;
 
 entity dsn_host is
 generic(
+G_PCIE_LINK_WIDTH : integer:=1;
+G_PCIE_RST_SEL    : integer:=1;
 G_DBG      : string:="OFF";
 G_SIM_HOST : string:="OFF";
 G_SIM_PCIE : std_logic:='0'
@@ -33,24 +35,24 @@ port(
 --------------------------------------------------
 -- Ñâÿçü ñ õîñòîì ïî Local bus
 --------------------------------------------------
-lad                 : inout std_logic_vector(31 downto 0);
-lbe_l               : in    std_logic_vector(32/8-1 downto 0);
-lads_l              : in    std_logic;
-lwrite              : in    std_logic;
-lblast_l            : in    std_logic;
-lbterm_l            : inout std_logic;
-lready_l            : inout std_logic;
-fholda              : in    std_logic;
-finto_l             : out   std_logic;
-lclk                : in    std_logic;
+lad               : inout std_logic_vector(31 downto 0);
+lbe_l             : in    std_logic_vector(32/8-1 downto 0);
+lads_l            : in    std_logic;
+lwrite            : in    std_logic;
+lblast_l          : in    std_logic;
+lbterm_l          : inout std_logic;
+lready_l          : inout std_logic;
+fholda            : in    std_logic;
+finto_l           : out   std_logic;
+lclk              : in    std_logic;
 
 --//-----------------------------
 --// PCI-Express
 --//-----------------------------
-p_out_pciexp_txp    : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn    : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp     : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn     : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txn  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxp   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxn   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 
 p_in_pciexp_gt_clkin   : in    std_logic;
 p_out_pciexp_gt_clkout : out   std_logic;
@@ -58,21 +60,22 @@ p_out_pciexp_gt_clkout : out   std_logic;
 --//-----------------------------------------------------
 --//Ïîëüçîâàòåëüñêèé ïîğò
 --//-----------------------------------------------------
-p_in_usr_tst     : in    std_logic_vector(127 downto 0);
-p_out_usr_tst    : out   std_logic_vector(127 downto 0);
+p_out_hclk        : out   std_logic;
+p_out_gctrl       : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_hclk       : out   std_logic;
-p_out_gctrl      : out   std_logic_vector(31 downto 0);
+--Óïğàâëåíèå âíåøíèìè óñòğîéñòâàìè
+p_out_dev_ctrl    : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_wr      : out   std_logic;
+p_out_dev_rd      : out   std_logic;
+p_in_dev_status   : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt      : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt     : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
-p_out_dev_ctrl   : out   std_logic_vector(31 downto 0);
-p_out_dev_din    : out   std_logic_vector(31 downto 0);
-p_in_dev_dout    : in    std_logic_vector(31 downto 0);
-p_out_dev_wr     : out   std_logic;
-p_out_dev_rd     : out   std_logic;
-p_in_dev_status  : in    std_logic_vector(31 downto 0);
-p_in_dev_irq     : in    std_logic_vector(31 downto 0);
-p_in_dev_opt     : in    std_logic_vector(127 downto 0);
-p_out_dev_opt    : out   std_logic_vector(127 downto 0);
+p_out_usr_tst     : out   std_logic_vector(127 downto 0);
+p_in_usr_tst      : in    std_logic_vector(127 downto 0);
 
 --------------------------------------------------
 --// Òåõíîëîãè÷åñêèé
@@ -139,15 +142,14 @@ finto_l          : out   std_logic;
 --Ñâÿçü ñ óñò-âàìè ïğîåêòà Veresk-M
 --------------------------------------------------
 p_out_hclk       : out   std_logic;
-p_out_gctrl      : out   std_logic_vector(31 downto 0);
+p_out_gctrl      : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_dev_ctrl   : out   std_logic_vector(31 downto 0);
-p_in_dev_status  : in    std_logic_vector(31 downto 0);
-p_out_dev_din    : out   std_logic_vector(31 downto 0);
-p_in_dev_dout    : in    std_logic_vector(31 downto 0);
+p_out_dev_ctrl   : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din    : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout    : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_out_dev_wr     : out   std_logic;
 p_out_dev_rd     : out   std_logic;
-
+p_in_dev_status  : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
 p_out_dev_eof    : out   std_logic;
 
 p_in_tst_in      : in    std_logic_vector(127 downto 0);
@@ -183,27 +185,30 @@ end component;
 
 component pcie_main
 generic(
+G_PCIE_LINK_WIDTH : integer:=1;
+G_PCIE_RST_SEL    : integer:=1;
 G_DBG : string:="OFF"
 );
 port(
 --//-------------------------------------------------------
 --// User Port
 --//-------------------------------------------------------
-p_out_usr_tst        : out   std_logic_vector(127 downto 0);
-p_in_usr_tst         : in    std_logic_vector(127 downto 0);
+p_out_hclk        : out   std_logic;
+p_out_gctrl       : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
-p_out_hclk           : out   std_logic;
-p_out_gctrl          : out   std_logic_vector(31 downto 0);
+--Óïğàâëåíèå âíåøíèìè óñòğîéñòâàìè
+p_out_dev_ctrl    : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_wr      : out   std_logic;
+p_out_dev_rd      : out   std_logic;
+p_in_dev_status   : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_opt      : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
+p_out_dev_opt     : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
-p_out_dev_ctrl       : out   std_logic_vector(31 downto 0);
-p_out_dev_din        : out   std_logic_vector(31 downto 0);
-p_in_dev_dout        : in    std_logic_vector(31 downto 0);
-p_out_dev_wr         : out   std_logic;
-p_out_dev_rd         : out   std_logic;
-p_in_dev_status      : in    std_logic_vector(31 downto 0);
-p_in_dev_irq         : in    std_logic_vector(31 downto 0);
-p_in_dev_opt         : in    std_logic_vector(127 downto 0);
-p_out_dev_opt        : out   std_logic_vector(127 downto 0);
+p_out_usr_tst     : out   std_logic_vector(127 downto 0);
+p_in_usr_tst      : in    std_logic_vector(127 downto 0);
 
 --//-------------------------------------------------------
 --// Òåõíîëîãè÷åñêèé
@@ -216,10 +221,10 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 --//-------------------------------------------------------
 p_in_fast_simulation : in    std_logic;
 
-p_out_pciexp_txp     : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn     : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp      : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn      : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 
 p_in_pciexp_rst      : in    std_logic;
 
@@ -243,33 +248,36 @@ gen_sim_off : if strcmp(G_SIM_HOST,"OFF") generate
 
 m_pcie : pcie_main
 generic map(
+G_PCIE_LINK_WIDTH => G_PCIE_LINK_WIDTH,
+G_PCIE_RST_SEL    => G_PCIE_RST_SEL,
 G_DBG => G_DBG
 )
 port map(
 --//-------------------------------------------------------
 --// User Port
 --//-------------------------------------------------------
-p_out_usr_tst        => p_out_usr_tst,
-p_in_usr_tst         => p_in_usr_tst,
+p_out_hclk      => p_out_hclk     ,
+p_out_gctrl     => p_out_gctrl    ,
 
-p_out_hclk           => p_out_hclk,
-p_out_gctrl          => p_out_gctrl,
+--Óïğàâëåíèå âíåøíèìè óñòğîéñòâàìè
+p_out_dev_ctrl  => p_out_dev_ctrl ,
+p_out_dev_din   => p_out_dev_din  ,
+p_in_dev_dout   => p_in_dev_dout  ,
+p_out_dev_wr    => p_out_dev_wr   ,
+p_out_dev_rd    => p_out_dev_rd   ,
+p_in_dev_status => p_in_dev_status,
+p_in_dev_irq    => p_in_dev_irq   ,
+p_in_dev_opt    => p_in_dev_opt   ,
+p_out_dev_opt   => p_out_dev_opt  ,
 
-p_out_dev_ctrl       => p_out_dev_ctrl,
-p_out_dev_din        => p_out_dev_din,
-p_in_dev_dout        => p_in_dev_dout,
-p_out_dev_wr         => p_out_dev_wr,
-p_out_dev_rd         => p_out_dev_rd,
-p_in_dev_status      => p_in_dev_status,
-p_in_dev_irq         => p_in_dev_irq,
-p_in_dev_opt         => p_in_dev_opt,
-p_out_dev_opt        => p_out_dev_opt,
+p_out_usr_tst   => p_out_usr_tst  ,
+p_in_usr_tst    => p_in_usr_tst   ,
 
 --//-------------------------------------------------------
 --// Òåõíîëîãè÷åñêèé
 --//-------------------------------------------------------
-p_in_tst             => p_in_tst,
-p_out_tst            => p_out_tst,
+p_in_tst        => p_in_tst,
+p_out_tst       => p_out_tst,
 
 --//-------------------------------------------------------
 --// System Port
@@ -356,12 +364,11 @@ p_out_hclk       => p_out_hclk,
 
 p_out_gctrl      => p_out_gctrl,
 p_out_dev_ctrl   => p_out_dev_ctrl,
-p_in_dev_status  => p_in_dev_status,
 p_out_dev_din    => p_out_dev_din,
 p_in_dev_dout    => p_in_dev_dout,
 p_out_dev_wr     => p_out_dev_wr,
 p_out_dev_rd     => p_out_dev_rd,
-
+p_in_dev_status  => p_in_dev_status,
 p_out_dev_eof    => open,
 
 p_in_tst_in      => p_in_usr_tst,
