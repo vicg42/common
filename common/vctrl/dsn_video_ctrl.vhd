@@ -38,6 +38,7 @@ use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
+use work.mem_wr_pkg.all;
 
 entity dsn_video_ctrl is
 generic(
@@ -112,44 +113,11 @@ p_in_vbufout_full     : in    std_logic;                      --//
 -- Связь с mem_ctrl.vhd
 ---------------------------------
 --//CH WRITE
-p_out_memarb_wrreq    : out   std_logic;
-p_in_memarb_wren      : in    std_logic;
-
-p_out_memwr_bank1h    : out   std_logic_vector(3 downto 0);
-p_out_memwr_ce        : out   std_logic;
-p_out_memwr_cw        : out   std_logic;
-p_out_memwr_rd        : out   std_logic;
-p_out_memwr_wr        : out   std_logic;
-p_out_memwr_term      : out   std_logic;
-p_out_memwr_adr       : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_memwr_be        : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_memwr_din       : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_memwr_dout       : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_memwr_wf         : in    std_logic;
-p_in_memwr_wpf        : in    std_logic;
-p_in_memwr_re         : in    std_logic;
-p_in_memwr_rpe        : in    std_logic;
-
+p_out_memwr           : out   TMemIN;
+p_in_memwr            : in    TMemOUT;
 --//CH READ
-p_out_memarb_rdreq    : out   std_logic;
-p_in_memarb_rden      : in    std_logic;
-
-p_out_memrd_bank1h    : out   std_logic_vector(3 downto 0);
-p_out_memrd_ce        : out   std_logic;
-p_out_memrd_cw        : out   std_logic;
-p_out_memrd_rd        : out   std_logic;
-p_out_memrd_wr        : out   std_logic;
-p_out_memrd_term      : out   std_logic;
-p_out_memrd_adr       : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_memrd_be        : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_memrd_din       : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_memrd_dout       : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_memrd_wf         : in    std_logic;
-p_in_memrd_wpf        : in    std_logic;
-p_in_memrd_re         : in    std_logic;
-p_in_memrd_rpe        : in    std_logic;
+p_out_memrd           : out   TMemIN;
+p_in_memrd            : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -210,26 +178,8 @@ p_in_upp_buf_pfull    : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req      : out   std_logic;
-p_in_memarb_en        : in    std_logic;
-
-p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
-p_out_mem_ce          : out   std_logic;
-p_out_mem_cw          : out   std_logic;
-p_out_mem_rd          : out   std_logic;
-p_out_mem_wr          : out   std_logic;
-p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf           : in    std_logic;
-p_in_mem_wpf          : in    std_logic;
-p_in_mem_re           : in    std_logic;
-p_in_mem_rpe          : in    std_logic;
-
-p_out_mem_clk         : out   std_logic;
+p_out_mem             : out   TMemIN;
+p_in_mem              : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -298,26 +248,8 @@ p_in_upp_buf_full    : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req     : out   std_logic;
-p_in_memarb_en       : in    std_logic;
-
-p_out_mem_bank1h     : out   std_logic_vector(3 downto 0);
-p_out_mem_ce         : out   std_logic;
-p_out_mem_cw         : out   std_logic;
-p_out_mem_rd         : out   std_logic;
-p_out_mem_wr         : out   std_logic;
-p_out_mem_term       : out   std_logic;
-p_out_mem_adr        : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be         : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout        : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf          : in    std_logic;
-p_in_mem_wpf         : in    std_logic;
-p_in_mem_re          : in    std_logic;
-p_in_mem_rpe         : in    std_logic;
-
-p_out_mem_clk        : out   std_logic;
+p_out_mem             : out   TMemIN;
+p_in_mem              : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -1386,26 +1318,8 @@ p_in_upp_buf_pfull    => p_in_vbufin_pfull,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_mem_clk         => open,
-
-p_out_memarb_req      => p_out_memarb_wrreq,
-p_in_memarb_en        => p_in_memarb_wren,
-
-p_out_mem_bank1h      => p_out_memwr_bank1h,
-p_out_mem_ce          => p_out_memwr_ce,
-p_out_mem_cw          => p_out_memwr_cw,
-p_out_mem_rd          => p_out_memwr_rd,
-p_out_mem_wr          => p_out_memwr_wr,
-p_out_mem_term        => p_out_memwr_term,
-p_out_mem_adr         => p_out_memwr_adr,
-p_out_mem_be          => p_out_memwr_be,
-p_out_mem_din         => p_out_memwr_din,
-p_in_mem_dout         => i_mem_null_dout,
-
-p_in_mem_wf           => p_in_memwr_wf,
-p_in_mem_wpf          => p_in_memwr_wpf,
-p_in_mem_re           => p_in_memwr_re,
-p_in_mem_rpe          => p_in_memwr_rpe,
+p_out_mem             => p_out_memwr,
+p_in_mem              => p_in_memwr,
 
 -------------------------------
 --Технологический
@@ -1477,26 +1391,8 @@ p_in_upp_buf_full     => i_vmir_rdy_n,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_mem_clk         => open,
-
-p_out_memarb_req      => p_out_memarb_rdreq,
-p_in_memarb_en        => p_in_memarb_rden,
-
-p_out_mem_bank1h      => p_out_memrd_bank1h,
-p_out_mem_ce          => p_out_memrd_ce,
-p_out_mem_cw          => p_out_memrd_cw,
-p_out_mem_rd          => p_out_memrd_rd,
-p_out_mem_wr          => p_out_memrd_wr,
-p_out_mem_term        => p_out_memrd_term,
-p_out_mem_adr         => p_out_memrd_adr,
-p_out_mem_be          => p_out_memrd_be,
-p_out_mem_din         => p_out_memrd_din,
-p_in_mem_dout         => p_in_memrd_dout,
-
-p_in_mem_wf           => p_in_memrd_wf,
-p_in_mem_wpf          => p_in_memrd_wpf,
-p_in_mem_re           => p_in_memrd_re,
-p_in_mem_rpe          => p_in_memrd_rpe,
+p_out_mem             => p_out_memrd,
+p_in_mem              => p_in_memrd,
 
 -------------------------------
 --Технологический
