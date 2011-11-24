@@ -175,11 +175,11 @@ finto_l                    : out   std_logic;
 --------------------------------------------------
 p_out_hclk_out         : out   std_logic;
 
-p_out_gctrl                : out    std_logic_vector(32-1 downto 0);
-p_out_dev_ctrl             : out    std_logic_vector(32-1 downto 0);
-p_in_dev_status            : in     std_logic_vector(32-1 downto 0);
-p_out_dev_din              : out    std_logic_vector(32-1 downto 0);
-p_in_dev_dout              : in     std_logic_vector(32-1 downto 0);
+p_out_gctrl                : out    std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
+p_out_dev_ctrl             : out    std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
+p_in_dev_status            : in     std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
+p_out_dev_din              : out    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_dev_dout              : in     std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_out_dev_wr               : out    std_logic;
 p_out_dev_rd               : out    std_logic;
 
@@ -1044,7 +1044,7 @@ end process;
   p_out_gctrl(C_HREG_CTRL_RST_ETH_BIT)<=v_reg_gctrl(C_HREG_CTRL_RST_ETH_BIT);
   p_out_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT)<=i_hrddone_vctrl;
   p_out_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT)<=i_hrddone_trcnik;
-  p_out_gctrl(p_out_gctrl'high downto C_HREG_CTRL_LAST_BIT)<=(others=>'0');
+--  p_out_gctrl(p_out_gctrl'high downto C_HREG_CTRL_LAST_BIT)<=(others=>'0');
 
   p_out_dev_ctrl(0) <=i_trn_start_sw;
   p_out_dev_ctrl(p_out_dev_ctrl'high downto 1)<=v_reg_dev_ctrl(p_out_dev_ctrl'high downto 1);

@@ -31,7 +31,7 @@ use work.dsn_ethg_pkg.all;
 entity dsn_ethg_tb is
 generic
 (
-C_USE_ETH       : string :="ON";
+C_PCFG_ETH_USE       : string :="ON";
 G_DBG           : string :="ON";
 G_SIM           : string :="ON"
 );
@@ -98,7 +98,7 @@ begin
 m_eth : dsn_ethg
 generic map
 (
-G_MODULE_USE => C_USE_ETH,
+G_MODULE_USE => C_PCFG_ETH_USE,
 G_DBG        => G_DBG,
 G_SIM        => G_SIM
 )
