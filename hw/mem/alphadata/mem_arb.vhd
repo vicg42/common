@@ -6,9 +6,7 @@
 -- Module Name : mem_arb
 --
 -- Назначение/Описание :
---  p_in_chXX_req - запрос на захват ОЗУ
---  p_out_chXX_en - разрешение захватить ОЗУ
---
+--  Арбитр достпупа к ОЗУ
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -25,6 +23,8 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.mem_glob_pkg.all;
+use work.mem_wr_pkg.all;
 
 entity mem_arb is
 generic(
@@ -34,147 +34,28 @@ G_MEM_DWIDTH : integer:=32
 );
 port(
 -------------------------------
--- Связь с CH0
+--Связь с пользователями ОЗУ
 -------------------------------
-p_in_ch0_req     : in    std_logic;
-p_out_ch0_en     : out   std_logic;
-
-p_in_ch0_bank1h  : in    std_logic_vector(3 downto 0);
-p_in_ch0_ce      : in    std_logic;
-p_in_ch0_cw      : in    std_logic;
-p_in_ch0_rd      : in    std_logic;
-p_in_ch0_wr      : in    std_logic;
-p_in_ch0_term    : in    std_logic;
-p_in_ch0_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_in_ch0_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_in_ch0_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_out_ch0_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_out_ch0_wf     : out   std_logic;
-p_out_ch0_wpf    : out   std_logic;
-p_out_ch0_re     : out   std_logic;
-p_out_ch0_rpe    : out   std_logic;
+p_in_memch  : in   TMemINCh;
+p_out_memch : out  TMemOUTCh;
 
 -------------------------------
--- Связь с CH1
+--Связь с mem_ctrl.vhd
 -------------------------------
-p_in_ch1_req     : in    std_logic;
-p_out_ch1_en     : out   std_logic;
-
-p_in_ch1_bank1h  : in    std_logic_vector(3 downto 0);
-p_in_ch1_ce      : in    std_logic;
-p_in_ch1_cw      : in    std_logic;
-p_in_ch1_rd      : in    std_logic;
-p_in_ch1_wr      : in    std_logic;
-p_in_ch1_term    : in    std_logic;
-p_in_ch1_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_in_ch1_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_in_ch1_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_out_ch1_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_out_ch1_wf     : out   std_logic;
-p_out_ch1_wpf    : out   std_logic;
-p_out_ch1_re     : out   std_logic;
-p_out_ch1_rpe    : out   std_logic;
-
--------------------------------
--- Связь с CH2
--------------------------------
-p_in_ch2_req     : in    std_logic;
-p_out_ch2_en     : out   std_logic;
-
-p_in_ch2_bank1h  : in    std_logic_vector(3 downto 0);
-p_in_ch2_ce      : in    std_logic;
-p_in_ch2_cw      : in    std_logic;
-p_in_ch2_rd      : in    std_logic;
-p_in_ch2_wr      : in    std_logic;
-p_in_ch2_term    : in    std_logic;
-p_in_ch2_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_in_ch2_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_in_ch2_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_out_ch2_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_out_ch2_wf     : out   std_logic;
-p_out_ch2_wpf    : out   std_logic;
-p_out_ch2_re     : out   std_logic;
-p_out_ch2_rpe    : out   std_logic;
-
--------------------------------
--- Связь с CH3
--------------------------------
-p_in_ch3_req     : in    std_logic;
-p_out_ch3_en     : out   std_logic;
-
-p_in_ch3_bank1h  : in    std_logic_vector(3 downto 0);
-p_in_ch3_ce      : in    std_logic;
-p_in_ch3_cw      : in    std_logic;
-p_in_ch3_rd      : in    std_logic;
-p_in_ch3_wr      : in    std_logic;
-p_in_ch3_term    : in    std_logic;
-p_in_ch3_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_in_ch3_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_in_ch3_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_out_ch3_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_out_ch3_wf     : out   std_logic;
-p_out_ch3_wpf    : out   std_logic;
-p_out_ch3_re     : out   std_logic;
-p_out_ch3_rpe    : out   std_logic;
-
--------------------------------
--- Связь с CH4
--------------------------------
-p_in_ch4_req     : in    std_logic;
-p_out_ch4_en     : out   std_logic;
-
-p_in_ch4_bank1h  : in    std_logic_vector(3 downto 0);
-p_in_ch4_ce      : in    std_logic;
-p_in_ch4_cw      : in    std_logic;
-p_in_ch4_rd      : in    std_logic;
-p_in_ch4_wr      : in    std_logic;
-p_in_ch4_term    : in    std_logic;
-p_in_ch4_adr     : in    std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_in_ch4_be      : in    std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_in_ch4_din     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_out_ch4_dout   : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_out_ch4_wf     : out   std_logic;
-p_out_ch4_wpf    : out   std_logic;
-p_out_ch4_re     : out   std_logic;
-p_out_ch4_rpe    : out   std_logic;
-
----------------------------------
--- Связь с mem_ctrl.vhd
----------------------------------
-p_out_mem_clk    : out   std_logic;
-
-p_out_mem_bank1h : out   std_logic_vector(3 downto 0);
-p_out_mem_ce     : out   std_logic;
-p_out_mem_cw     : out   std_logic;
-p_out_mem_rd     : out   std_logic;
-p_out_mem_wr     : out   std_logic;
-p_out_mem_term   : out   std_logic;
-p_out_mem_adr    : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be     : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din    : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout    : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf      : in    std_logic;
-p_in_mem_wpf     : in    std_logic;
-p_in_mem_re      : in    std_logic;
-p_in_mem_rpe     : in    std_logic;
+p_out_mem   : out   TMemIN;
+p_in_mem    : in    TMemOUT;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst         : in    std_logic_vector(31 downto 0);
-p_out_tst        : out   std_logic_vector(31 downto 0);
+p_in_tst    : in    std_logic_vector(31 downto 0);
+p_out_tst   : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk         : in    std_logic;
-p_in_rst         : in    std_logic
+p_in_clk    : in    std_logic;
+p_in_rst    : in    std_logic
 );
 end mem_arb;
 
@@ -198,25 +79,14 @@ S_CHK_DLY_CH4
 );
 signal fsm_state_cs: fsm_state;
 
-signal i_ch_count        : std_logic_vector(2 downto 0);
+signal i_mem_req      : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);-- запрос на захват ОЗУ
+signal i_mem_req_en   : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);-- разрешение захвата ОЗУ
+signal i_mem_ce       : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);
+signal i_mem_cw       : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);
+signal i_mem_rd       : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);
+signal i_mem_wr       : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);
+signal i_mem_term     : std_logic_vector(C_MEMCH_COUNT_MAX-1 downto 0);
 
-signal i_ch_req          : std_logic_vector(4 downto 0);
-signal i_ch_req_en       : std_logic_vector(4 downto 0);
-
-signal i_mem_ce_ch       : std_logic_vector(4 downto 0);
-signal i_mem_cw_ch       : std_logic_vector(4 downto 0);
-signal i_mem_rd_ch       : std_logic_vector(4 downto 0);
-signal i_mem_wr_ch       : std_logic_vector(4 downto 0);
-signal i_mem_term_ch     : std_logic_vector(4 downto 0);
-
-signal i_mem_cw_out      : std_logic;
-
---signal tst_mem_ce        : std_logic;
---signal tst_mem_cw        : std_logic;
---signal tst_mem_rd        : std_logic;
---signal tst_mem_wr        : std_logic;
---signal tst_mem_term      : std_logic;
---signal tst_enable_ch     : std_logic_vector(4 downto 0);
 
 --MAIN
 begin
@@ -225,226 +95,132 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_mem_ce<='0';
---    tst_mem_cw<='0';
---    tst_mem_rd<='0';
---    tst_mem_wr<='0';
---    tst_mem_term<='0';
---    tst_enable_ch<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    tst_mem_cw  <=i_mem_cw_out;
---    tst_mem_ce  <=OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
---    tst_mem_rd  <=OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
---    tst_mem_wr  <=OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
---    tst_mem_term<=OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
---    tst_enable_ch<=i_ch_req_en;
---  end if;
---end process;
---p_out_tst(0)<=tst_mem_ce or tst_mem_cw or tst_mem_rd or tst_mem_wr or tst_mem_term or OR_reduce(tst_enable_ch);
---p_out_tst(31 downto 1)<=(others=>'0');
 
 
 
 --//--------------------------------------------------
 --//Связь с пользовательским каналами (CHxx)
 --//--------------------------------------------------
-i_mem_ce_ch(0)<=p_in_ch0_ce;
-i_mem_ce_ch(1)<=p_in_ch1_ce;
-i_mem_ce_ch(2)<=p_in_ch2_ce;
-i_mem_ce_ch(3)<=p_in_ch3_ce;
-i_mem_ce_ch(4)<=p_in_ch4_ce;
+gen_ch : for i in 0 to G_CH_COUNT-1 generate
+i_mem_req (i)<=p_in_memch(i).req;
+i_mem_cw  (i)<=p_in_memch(i).cw and i_mem_req_en(i);
+i_mem_ce  (i)<=p_in_memch(i).ce;
+i_mem_wr  (i)<=p_in_memch(i).wr;
+i_mem_rd  (i)<=p_in_memch(i).rd;
+i_mem_term(i)<=p_in_memch(i).term;
 
-i_mem_cw_ch(0)<=p_in_ch0_cw;
-i_mem_cw_ch(1)<=p_in_ch1_cw;
-i_mem_cw_ch(2)<=p_in_ch2_cw;
-i_mem_cw_ch(3)<=p_in_ch3_cw;
-i_mem_cw_ch(4)<=p_in_ch4_cw;
+p_out_memch(i).req_en <=i_mem_req_en(i);
+p_out_memch(i).data   <=p_in_mem.data;
+p_out_memch(i).buf_wpf<=p_in_mem.buf_wpf;
+p_out_memch(i).buf_re <=p_in_mem.buf_re;
 
-i_mem_rd_ch(0)<=p_in_ch0_rd;
-i_mem_rd_ch(1)<=p_in_ch1_rd;
-i_mem_rd_ch(2)<=p_in_ch2_rd;
-i_mem_rd_ch(3)<=p_in_ch3_rd;
-i_mem_rd_ch(4)<=p_in_ch4_rd;
+end generate gen_ch;
 
-i_mem_wr_ch(0)<=p_in_ch0_wr;
-i_mem_wr_ch(1)<=p_in_ch1_wr;
-i_mem_wr_ch(2)<=p_in_ch2_wr;
-i_mem_wr_ch(3)<=p_in_ch3_wr;
-i_mem_wr_ch(4)<=p_in_ch4_wr;
-
-i_mem_term_ch(0)<=p_in_ch0_term;
-i_mem_term_ch(1)<=p_in_ch1_term;
-i_mem_term_ch(2)<=p_in_ch2_term;
-i_mem_term_ch(3)<=p_in_ch3_term;
-i_mem_term_ch(4)<=p_in_ch4_term;
-
-i_ch_req(0)<=p_in_ch0_req;
-i_ch_req(1)<=p_in_ch1_req;
-i_ch_req(2)<=p_in_ch2_req;
-i_ch_req(3)<=p_in_ch3_req;
-i_ch_req(4)<=p_in_ch4_req;
-
-
-p_out_ch0_en<=i_ch_req_en(0);
-p_out_ch1_en<=i_ch_req_en(1);
-p_out_ch2_en<=i_ch_req_en(2);
-p_out_ch3_en<=i_ch_req_en(3);
-p_out_ch4_en<=i_ch_req_en(4);
-
-p_out_ch0_wf  <=p_in_mem_wf;
-p_out_ch0_wpf <=p_in_mem_wpf;
-p_out_ch0_re  <=p_in_mem_re;
-p_out_ch0_rpe <=p_in_mem_rpe;
-
-p_out_ch1_wf  <=p_in_mem_wf;
-p_out_ch1_wpf <=p_in_mem_wpf;
-p_out_ch1_re  <=p_in_mem_re;
-p_out_ch1_rpe <=p_in_mem_rpe;
-
-p_out_ch2_wf  <=p_in_mem_wf;
-p_out_ch2_wpf <=p_in_mem_wpf;
-p_out_ch2_re  <=p_in_mem_re;
-p_out_ch2_rpe <=p_in_mem_rpe;
-
-p_out_ch3_wf  <=p_in_mem_wf;
-p_out_ch3_wpf <=p_in_mem_wpf;
-p_out_ch3_re  <=p_in_mem_re;
-p_out_ch3_rpe <=p_in_mem_rpe;
-
-p_out_ch4_wf  <=p_in_mem_wf;
-p_out_ch4_wpf <=p_in_mem_wpf;
-p_out_ch4_re  <=p_in_mem_re;
-p_out_ch4_rpe <=p_in_mem_rpe;
-
-p_out_ch0_dout <=p_in_mem_dout;
-p_out_ch1_dout <=p_in_mem_dout;
-p_out_ch2_dout <=p_in_mem_dout;
-p_out_ch3_dout <=p_in_mem_dout;
-p_out_ch4_dout <=p_in_mem_dout;
+gen_ch_nomax : if G_CH_COUNT/=C_MEMCH_COUNT_MAX-1 generate
+  gen_ch_remain : for i in G_CH_COUNT to C_MEMCH_COUNT_MAX-1 generate
+  i_mem_req(i)<='0';
+  end generate gen_ch_remain;
+end generate gen_ch_nomax;
 
 
 
 --//--------------------------------------------------
---//Связь с контроллером памяти memory_ctrl_nch.vhd
+--//Связь с контроллером памяти mem_ctrl.vhd
 --//--------------------------------------------------
-p_out_mem_clk <=p_in_clk;
-
-p_out_mem_cw  <=i_mem_cw_out;
-p_out_mem_ce  <=OR_reduce(i_mem_ce_ch(G_CH_COUNT-1 downto 0));
-p_out_mem_rd  <=OR_reduce(i_mem_rd_ch(G_CH_COUNT-1 downto 0));
-p_out_mem_wr  <=OR_reduce(i_mem_wr_ch(G_CH_COUNT-1 downto 0));
-p_out_mem_term<=OR_reduce(i_mem_term_ch(G_CH_COUNT-1 downto 0));
-p_out_mem_be  <=(others=>'1');
+p_out_mem.clk <=p_in_clk;
+p_out_mem.cw  <=OR_reduce(i_mem_cw(G_CH_COUNT-1 downto 0));
+p_out_mem.ce  <=OR_reduce(i_mem_ce(G_CH_COUNT-1 downto 0));
+p_out_mem.wr  <=OR_reduce(i_mem_wr(G_CH_COUNT-1 downto 0));
+p_out_mem.rd  <=OR_reduce(i_mem_rd(G_CH_COUNT-1 downto 0));
+p_out_mem.term<=OR_reduce(i_mem_term(G_CH_COUNT-1 downto 0));
+p_out_mem.dbe <=(others=>'1');
 
 gen_chcount_1 : if G_CH_COUNT=1 generate
-begin
-p_out_mem_bank1h(3 downto 0)<=p_in_ch0_bank1h(3 downto 0);
-p_out_mem_adr<=p_in_ch0_adr;
 
-p_out_mem_din<=p_in_ch0_din;
-
-i_mem_cw_out <=i_mem_cw_ch(0);
+p_out_mem.bank<=p_in_memch(0).bank;
+p_out_mem.adr <=p_in_memch(0).adr;
+p_out_mem.data<=p_in_memch(0).data;
 
 end generate gen_chcount_1;
 
 gen_chcount_2 : if G_CH_COUNT=2 generate
-begin
-p_out_mem_bank1h<=p_in_ch1_bank1h when i_ch_req_en(1)='1' else
-                  p_in_ch0_bank1h;
 
-p_out_mem_adr<=p_in_ch1_adr when i_ch_req_en(1)='1' else
-               p_in_ch0_adr;
+p_out_mem.bank<=p_in_memch(1).bank when i_mem_req_en(1)='1' else
+                p_in_memch(0).bank;
 
-p_out_mem_din<=p_in_ch1_din when i_ch_req_en(1)='1' else
-               p_in_ch0_din;
+p_out_mem.adr<=p_in_memch(1).adr when i_mem_req_en(1)='1' else
+               p_in_memch(0).adr;
 
-i_mem_cw_out <=i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-               i_mem_cw_ch(0);
+p_out_mem.data<=p_in_memch(1).data when i_mem_req_en(1)='1' else
+                p_in_memch(0).data;
 
 end generate gen_chcount_2;
 
 gen_chcount_3 : if G_CH_COUNT=3 generate
-begin
-p_out_mem_bank1h<=p_in_ch2_bank1h when i_ch_req_en(2)='1' else
-                  p_in_ch1_bank1h when i_ch_req_en(1)='1' else
-                  p_in_ch0_bank1h;
 
-p_out_mem_adr<=p_in_ch2_adr when i_ch_req_en(2)='1' else
-               p_in_ch1_adr when i_ch_req_en(1)='1' else
-               p_in_ch0_adr;
+p_out_mem.bank<=p_in_memch(2).bank when i_mem_req_en(2)='1' else
+                p_in_memch(1).bank when i_mem_req_en(1)='1' else
+                p_in_memch(0).bank;
 
-p_out_mem_din<=p_in_ch2_din when i_ch_req_en(2)='1' else
-               p_in_ch1_din when i_ch_req_en(1)='1' else
-               p_in_ch0_din;
+p_out_mem.adr<=p_in_memch(2).adr when i_mem_req_en(2)='1' else
+               p_in_memch(1).adr when i_mem_req_en(1)='1' else
+               p_in_memch(0).adr;
 
-i_mem_cw_out <=i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
-               i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-               i_mem_cw_ch(0);
+p_out_mem.data<=p_in_memch(2).data when i_mem_req_en(2)='1' else
+                p_in_memch(1).data when i_mem_req_en(1)='1' else
+                p_in_memch(0).data;
+
 end generate gen_chcount_3;
 
 gen_chcount_4 : if G_CH_COUNT=4 generate
-begin
-p_out_mem_bank1h<=p_in_ch3_bank1h when i_ch_req_en(3)='1' else
-                  p_in_ch2_bank1h when i_ch_req_en(2)='1' else
-                  p_in_ch1_bank1h when i_ch_req_en(1)='1' else
-                  p_in_ch0_bank1h;
 
-p_out_mem_adr<=p_in_ch3_adr when i_ch_req_en(3)='1' else
-               p_in_ch2_adr when i_ch_req_en(2)='1' else
-               p_in_ch1_adr when i_ch_req_en(1)='1' else
-               p_in_ch0_adr;
+p_out_mem.bank<=p_in_memch(3).bank when i_mem_req_en(3)='1' else
+                p_in_memch(2).bank when i_mem_req_en(2)='1' else
+                p_in_memch(1).bank when i_mem_req_en(1)='1' else
+                p_in_memch(0).bank;
 
-p_out_mem_din<=p_in_ch3_din when i_ch_req_en(3)='1' else
-               p_in_ch2_din when i_ch_req_en(2)='1' else
-               p_in_ch1_din when i_ch_req_en(1)='1' else
-               p_in_ch0_din;
+p_out_mem.adr<=p_in_memch(3).adr when i_mem_req_en(3)='1' else
+               p_in_memch(2).adr when i_mem_req_en(2)='1' else
+               p_in_memch(1).adr when i_mem_req_en(1)='1' else
+               p_in_memch(0).adr;
 
-i_mem_cw_out <=i_mem_cw_ch(3) when i_ch_req_en(3)='1' else
-               i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
-               i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-               i_mem_cw_ch(0);
+p_out_mem.data<=p_in_memch(3).data when i_mem_req_en(3)='1' else
+                p_in_memch(2).data when i_mem_req_en(2)='1' else
+                p_in_memch(1).data when i_mem_req_en(1)='1' else
+                p_in_memch(0).data;
+
 end generate gen_chcount_4;
 
 gen_chcount_5 : if G_CH_COUNT=5 generate
-begin
-p_out_mem_bank1h<=p_in_ch4_bank1h when i_ch_req_en(4)='1' else
-                  p_in_ch3_bank1h when i_ch_req_en(3)='1' else
-                  p_in_ch2_bank1h when i_ch_req_en(2)='1' else
-                  p_in_ch1_bank1h when i_ch_req_en(1)='1' else
-                  p_in_ch0_bank1h;
 
-p_out_mem_adr<=p_in_ch4_adr when i_ch_req_en(4)='1' else
-               p_in_ch3_adr when i_ch_req_en(3)='1' else
-               p_in_ch2_adr when i_ch_req_en(2)='1' else
-               p_in_ch1_adr when i_ch_req_en(1)='1' else
-               p_in_ch0_adr;
+p_out_mem.bank<=p_in_memch(4).bank when i_mem_req_en(4)='1' else
+                p_in_memch(3).bank when i_mem_req_en(3)='1' else
+                p_in_memch(2).bank when i_mem_req_en(2)='1' else
+                p_in_memch(1).bank when i_mem_req_en(1)='1' else
+                p_in_memch(0).bank;
 
-p_out_mem_din<=p_in_ch4_din when i_ch_req_en(4)='1' else
-               p_in_ch3_din when i_ch_req_en(3)='1' else
-               p_in_ch2_din when i_ch_req_en(2)='1' else
-               p_in_ch1_din when i_ch_req_en(1)='1' else
-               p_in_ch0_din;
+p_out_mem.adr<=p_in_memch(4).adr when i_mem_req_en(4)='1' else
+               p_in_memch(3).adr when i_mem_req_en(3)='1' else
+               p_in_memch(2).adr when i_mem_req_en(2)='1' else
+               p_in_memch(1).adr when i_mem_req_en(1)='1' else
+               p_in_memch(0).adr;
 
-i_mem_cw_out <=i_mem_cw_ch(4) when i_ch_req_en(4)='1' else
-               i_mem_cw_ch(3) when i_ch_req_en(3)='1' else
-               i_mem_cw_ch(2) when i_ch_req_en(2)='1' else
-               i_mem_cw_ch(1) when i_ch_req_en(1)='1' else
-               i_mem_cw_ch(0);
+p_out_mem.data<=p_in_memch(4).data when i_mem_req_en(4)='1' else
+                p_in_memch(3).data when i_mem_req_en(3)='1' else
+                p_in_memch(2).data when i_mem_req_en(2)='1' else
+                p_in_memch(1).data when i_mem_req_en(1)='1' else
+                p_in_memch(0).data;
+
 end generate gen_chcount_5;
 
 
 --//--------------------------------
 --//Автомат управления захватом ОЗУ
 --//--------------------------------
-i_ch_count<=CONV_STD_LOGIC_VECTOR(G_CH_COUNT-1, i_ch_count'length);
-
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_ch_req_en<=(others=>'0');
+    i_mem_req_en<=(others=>'0');
     fsm_state_cs <= S_CHK_RQ_CH0;
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -454,118 +230,82 @@ begin
       --//Проверка запроса от CH0
       --//------------------------------------
       when S_CHK_RQ_CH0 =>
-          if i_ch_req(0)='1' then
-              i_ch_req_en(0)<='1';--//Разрешаем занять канал
+          if i_mem_req(0)='1' then
+            i_mem_req_en(0)<='1';--//Разрешаем занять ОЗУ
           else
-              --//Нет запроса
-              --//преходим к анализу следующего канала
-              i_ch_req_en(0)<='0';
-              fsm_state_cs <= S_CHK_DLY_CH0;
+            i_mem_req_en(0)<='0';
+            fsm_state_cs <= S_CHK_DLY_CH0;
           end if;
 
       when S_CHK_DLY_CH0 =>
 
-        i_ch_req_en<=(others=>'0');
-
---        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#00#, i_ch_count'length) then
---          fsm_state_cs <= S_CHK_RQ_CH0;
---        else
-          fsm_state_cs <= S_CHK_RQ_CH1;
---        end if;
+        i_mem_req_en<=(others=>'0');
+        fsm_state_cs <= S_CHK_RQ_CH1;
 
       --//------------------------------------
       --//Проверка запроса от CH1
       --//------------------------------------
       when S_CHK_RQ_CH1 =>
 
-          if i_ch_req(1)='1' then
-              i_ch_req_en(1)<='1';--//Разрешаем занять канал
+          if i_mem_req(1)='1' then
+            i_mem_req_en(1)<='1';--//Разрешаем занять ОЗУ
           else
-              --//Нет запроса
-              --//преходим к анализу следующего канала
-              i_ch_req_en(1)<='0';
-              fsm_state_cs <= S_CHK_DLY_CH1;
+            i_mem_req_en(1)<='0';
+            fsm_state_cs <= S_CHK_DLY_CH1;
           end if;
 
       when S_CHK_DLY_CH1 =>
 
-        i_ch_req_en<=(others=>'0');
-
---        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#01#, i_ch_count'length) then
---          fsm_state_cs <= S_CHK_RQ_CH0;
---        else
-          fsm_state_cs <= S_CHK_RQ_CH2;
---        end if;
+        i_mem_req_en<=(others=>'0');
+        fsm_state_cs <= S_CHK_RQ_CH2;
 
       --//------------------------------------
       --//Проверка запроса от CH2
       --//------------------------------------
       when S_CHK_RQ_CH2 =>
-          if i_ch_req(2)='1' then
-              i_ch_req_en(2)<='1';--//Разрешаем занять канал
+          if i_mem_req(2)='1' then
+            i_mem_req_en(2)<='1';--//Разрешаем занять ОЗУ
           else
-              --//Нет запроса
-              --//преходим к анализу следующего канала
-              i_ch_req_en(2)<='0';
-              fsm_state_cs <= S_CHK_DLY_CH2;
+            i_mem_req_en(2)<='0';
+            fsm_state_cs <= S_CHK_DLY_CH2;
           end if;
 
       when S_CHK_DLY_CH2 =>
 
-        i_ch_req_en<=(others=>'0');
-
---        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#02#, i_ch_count'length) then
---          fsm_state_cs <= S_CHK_RQ_CH0;
---        else
-          fsm_state_cs <= S_CHK_RQ_CH3;
---        end if;
+        i_mem_req_en<=(others=>'0');
+        fsm_state_cs <= S_CHK_RQ_CH3;
 
       --//------------------------------------
       --//Проверка запроса от CH3
       --//------------------------------------
       when S_CHK_RQ_CH3 =>
-          if i_ch_req(3)='1' then
-              i_ch_req_en(3)<='1';--//Разрешаем занять канал
+          if i_mem_req(3)='1' then
+            i_mem_req_en(3)<='1';--//Разрешаем занять ОЗУ
           else
-              --//Нет запроса
-              --//преходим к анализу следующего канала
-              i_ch_req_en(3)<='0';
-              fsm_state_cs <= S_CHK_DLY_CH3;
+            i_mem_req_en(3)<='0';
+            fsm_state_cs <= S_CHK_DLY_CH3;
           end if;
 
       when S_CHK_DLY_CH3 =>
 
-        i_ch_req_en<=(others=>'0');
-
---        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#03#, i_ch_count'length) then
---          fsm_state_cs <= S_CHK_RQ_CH0;
---        else
-          fsm_state_cs <= S_CHK_RQ_CH4;
---        end if;
+        i_mem_req_en<=(others=>'0');
+        fsm_state_cs <= S_CHK_RQ_CH4;
 
       --//------------------------------------
       --//Проверка запроса от CH4
       --//------------------------------------
       when S_CHK_RQ_CH4 =>
-          if i_ch_req(4)='1' then
-              i_ch_req_en(4)<='1';--//Разрешаем занять канал
+          if i_mem_req(4)='1' then
+            i_mem_req_en(4)<='1';--//Разрешаем занять ОЗУ
           else
-              --//Нет запроса
-              --//преходим к анализу следующего канала
-              i_ch_req_en(4)<='0';
-              fsm_state_cs <= S_CHK_DLY_CH4;
+            i_mem_req_en(4)<='0';
+            fsm_state_cs <= S_CHK_DLY_CH4;
           end if;
 
       when S_CHK_DLY_CH4 =>
 
-        i_ch_req_en<=(others=>'0');
+        i_mem_req_en<=(others=>'0');
         fsm_state_cs <= S_CHK_RQ_CH0;
-
---        if i_ch_count=CONV_STD_LOGIC_VECTOR(10#03#, i_ch_count'length) then
---          fsm_state_cs <= S_CHK_RQ_CH0;
---        else
---          fsm_state_cs <= S_CHK_CH4_RQ;
---        end if;
 
     end case;
   end if;

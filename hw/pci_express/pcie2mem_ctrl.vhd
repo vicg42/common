@@ -34,33 +34,9 @@ G_MEM_BANK_L_BIT : integer:=28;
 G_DBG            : string :="OFF"  --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
 );
 port(
--------------------------------------------------------
---Связь с mem_ctrl
--------------------------------------------------------
-p_out_memarb_req  : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en    : in    std_logic;                    --//Разрешение арбитра
-
-p_out_mem_bank1h  : out   std_logic_vector(3 downto 0);
-p_out_mem_ce      : out   std_logic;
-p_out_mem_cw      : out   std_logic;
-p_out_mem_rd      : out   std_logic;
-p_out_mem_wr      : out   std_logic;
-p_out_mem_term    : out   std_logic;
-p_out_mem_adr     : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be      : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din     : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout     : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf       : in    std_logic;
-p_in_mem_wpf      : in    std_logic;
-p_in_mem_re       : in    std_logic;
-p_in_mem_rpe      : in    std_logic;
-
-p_out_mem_clk     : out   std_logic;
-
--------------------------------------------------------
+-------------------------------
 --Управление
--------------------------------------------------------
+-------------------------------
 p_in_ctrl         : in    TPce2Mem_Ctrl;
 p_out_status      : out   TPce2Mem_Status;
 
@@ -73,6 +49,12 @@ p_in_rxd_rd       : in    std_logic;
 p_out_rxbuf_empty : out   std_logic;
 
 p_in_hclk         : in    std_logic;
+
+-------------------------------
+--Связь с mem_ctrl
+-------------------------------
+p_out_mem         : out   TMemIN;
+p_in_mem          : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -120,18 +102,18 @@ signal i_rxbuf_din_wr                  : std_logic;
 signal i_rxbuf_full                    : std_logic;
 signal i_rxbuf_empty                   : std_logic;
 
-signal i_mem_adr                       : std_logic_vector(31 downto 0);--//(BYTE)
-signal i_mem_lenreq                    : std_logic_vector(15 downto 0);--//Размер запрашиваемых данных (DWORD)
-signal i_mem_lentrn                    : std_logic_vector(15 downto 0);--//Размер одиночной транзакции
-signal i_mem_dir                       : std_logic;
-signal i_mem_start                     : std_logic;
+signal i_mem_adr                       : std_logic_vector(31 downto 0):=(others=>'0');--//(BYTE)
+signal i_mem_lenreq                    : std_logic_vector(15 downto 0):=(others=>'0');--//Размер запрашиваемых данных (DWORD)
+signal i_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');--//Размер одиночной транзакции
+signal i_mem_dir                       : std_logic:='0';
+signal i_mem_start                     : std_logic:='0';
 signal i_mem_done                      : std_logic;
 
-signal h_mem_lentrn                    : std_logic_vector(15 downto 0);
-signal h_mem_start_wcnt                : std_logic_vector(2 downto 0);
-signal h_mem_start_w                   : std_logic;
-signal sr_mem_start                    : std_logic_vector(0 to 2);
-signal i_mem_done_out                  : std_logic;
+signal h_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');
+signal h_mem_start_wcnt                : std_logic_vector(2 downto 0):=(others=>'0');
+signal h_mem_start_w                   : std_logic:='0';
+signal sr_mem_start                    : std_logic_vector(0 to 2):=(others=>'0');
+signal i_mem_done_out                  : std_logic:='0';
 
 signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
 
@@ -220,26 +202,8 @@ p_in_usr_rxbuf_full  => i_rxbuf_full,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req     => p_out_memarb_req,
-p_in_memarb_en       => p_in_memarb_en,
-
-p_out_mem_bank1h     => p_out_mem_bank1h,
-p_out_mem_ce         => p_out_mem_ce,
-p_out_mem_cw         => p_out_mem_cw,
-p_out_mem_rd         => p_out_mem_rd,
-p_out_mem_wr         => p_out_mem_wr,
-p_out_mem_term       => p_out_mem_term,
-p_out_mem_adr        => p_out_mem_adr,
-p_out_mem_be         => p_out_mem_be,
-p_out_mem_din        => p_out_mem_din,
-p_in_mem_dout        => p_in_mem_dout,
-
-p_in_mem_wf          => p_in_mem_wf,
-p_in_mem_wpf         => p_in_mem_wpf,
-p_in_mem_re          => p_in_mem_re,
-p_in_mem_rpe         => p_in_mem_rpe,
-
-p_out_mem_clk        => p_out_mem_clk,
+p_out_mem            => p_out_mem,
+p_in_mem             => p_in_mem,
 
 -------------------------------
 --Технологический

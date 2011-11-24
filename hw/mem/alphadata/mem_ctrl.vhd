@@ -20,6 +20,7 @@ library work;
 use work.vicg_common_pkg.all;
 use work.memif.all;
 use work.mem_ctrl_pkg.all;
+use work.mem_wr_pkg.all;
 
 -- synopsys translate_off
 library unisim;
@@ -27,148 +28,60 @@ use unisim.vcomponents.all;
 -- synopsys translate_on
 
 entity mem_ctrl is
-  generic
-  (
-    G_BANK_COUNT  : in    integer;
+generic(
+G_BANK_COUNT : integer:=1;
+G_SIM        : string:="OFF"
+);
+port(
+-----------------------------
+--Memory pins
+-----------------------------
+ra0        : out   std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
+rc0        : inout std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
+rd0        : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
 
-    bank0         : in    bank_t;
-    bank1         : in    bank_t;
-    bank2         : in    bank_t;
-    bank3         : in    bank_t;
-    bank4         : in    bank_t;
-    bank5         : in    bank_t;
-    bank6         : in    bank_t;
-    bank7         : in    bank_t;
-    bank8         : in    bank_t;
-    bank9         : in    bank_t;
-    bank10        : in    bank_t;
-    bank11        : in    bank_t;
-    bank12        : in    bank_t;
-    bank13        : in    bank_t;
-    bank14        : in    bank_t;
-    bank15        : in    bank_t;
-    num_ramclk    : in    natural
-  );
-  port
-  (
-    -----------------------------
-    --System
-    -----------------------------
-    rst           : in    std_logic;
+-----------------------------
+--User channel
+-----------------------------
+p_in_mem   : in    TMemIN;
+p_out_mem  : out   TMemOUT;
 
-    memclk0       : in    std_logic;
-    memclk45      : in    std_logic;
-    memclk2x0     : in    std_logic;
-    memclk2x90    : in    std_logic;
-    memrst        : in    std_logic;
+-----------------------------
+--Status
+-----------------------------
+trained    : out   std_logic_vector(15 downto 0);
 
-    -----------------------------
-    -- Configuration
-    -----------------------------
-    bank_reg      : in    std_logic_vector(3 downto 0);
-    mode_reg      : in    std_logic_vector(511 downto 0);
---    locked        : out   std_logic_vector(7 downto 0);
-    trained       : out   std_logic_vector(15 downto 0);
-
-    -----------------------------
-    -- User channel 0
-    -----------------------------
-    usr0_clk      : in    std_logic;
-    --”правление
-    usr0_bank1h   : in    std_logic_vector(15 downto 0);
-    usr0_ce       : in    std_logic;
-    usr0_cw       : in    std_logic;
-    usr0_term     : in    std_logic;
-    usr0_rd       : in    std_logic;
-    usr0_wr       : in    std_logic;
-    usr0_adr      : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-    usr0_be       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-    usr0_din      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-    usr0_dout     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
-    --TX/RXBUF STATUS
-    usr0_wf       : out   std_logic;
-    usr0_wpf      : out   std_logic;
-    usr0_re       : out   std_logic;
-    usr0_rpe      : out   std_logic;
-
---    -----------------------------
---    -- User channel 1
---    -----------------------------
---    usr1_clk      : in    std_logic;
---    --”правление
---    usr1_bank1h   : in    std_logic_vector(15 downto 0);
---    usr1_ce       : in    std_logic;
---    usr1_cw       : in    std_logic;
---    usr1_term     : in    std_logic;
---    usr1_rd       : in    std_logic;
---    usr1_wr       : in    std_logic;
---    usr1_adr      : in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
---    usr1_be       : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
---    usr1_din      : in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
---    usr1_dout     : out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
---    --TX/RXBUF STATUS
---    usr1_wf       : out   std_logic;
---    usr1_wpf      : out   std_logic;
---    usr1_re       : out   std_logic;
---    usr1_rpe      : out   std_logic;
-
-    -----------------------------
-    -- To/from FPGA memory pins
-    -----------------------------
-    ra0           : out   std_logic_vector(bank0.ra_width - 1 downto 0);
-    rc0           : inout std_logic_vector(bank0.rc_width - 1 downto 0);
-    rd0           : inout std_logic_vector(bank0.rd_width - 1 downto 0);
-    ra1           : out   std_logic_vector(bank1.ra_width - 1 downto 0);
-    rc1           : inout std_logic_vector(bank1.rc_width - 1 downto 0);
-    rd1           : inout std_logic_vector(bank1.rd_width - 1 downto 0);
-    ra2           : out   std_logic_vector(bank2.ra_width - 1 downto 0);
-    rc2           : inout std_logic_vector(bank2.rc_width - 1 downto 0);
-    rd2           : inout std_logic_vector(bank2.rd_width - 1 downto 0);
-    ra3           : out   std_logic_vector(bank3.ra_width - 1 downto 0);
-    rc3           : inout std_logic_vector(bank3.rc_width - 1 downto 0);
-    rd3           : inout std_logic_vector(bank3.rd_width - 1 downto 0);
-    ra4           : out   std_logic_vector(bank4.ra_width - 1 downto 0);
-    rc4           : inout std_logic_vector(bank4.rc_width - 1 downto 0);
-    rd4           : inout std_logic_vector(bank4.rd_width - 1 downto 0);
-    ra5           : out   std_logic_vector(bank5.ra_width - 1 downto 0);
-    rc5           : inout std_logic_vector(bank5.rc_width - 1 downto 0);
-    rd5           : inout std_logic_vector(bank5.rd_width - 1 downto 0);
-    ra6           : out   std_logic_vector(bank6.ra_width - 1 downto 0);
-    rc6           : inout std_logic_vector(bank6.rc_width - 1 downto 0);
-    rd6           : inout std_logic_vector(bank6.rd_width - 1 downto 0);
-    ra7           : out   std_logic_vector(bank7.ra_width - 1 downto 0);
-    rc7           : inout std_logic_vector(bank7.rc_width - 1 downto 0);
-    rd7           : inout std_logic_vector(bank7.rd_width - 1 downto 0);
-    ra8           : out   std_logic_vector(bank8.ra_width - 1 downto 0);
-    rc8           : inout std_logic_vector(bank8.rc_width - 1 downto 0);
-    rd8           : inout std_logic_vector(bank8.rd_width - 1 downto 0);
-    ra9           : out   std_logic_vector(bank9.ra_width - 1 downto 0);
-    rc9           : inout std_logic_vector(bank9.rc_width - 1 downto 0);
-    rd9           : inout std_logic_vector(bank9.rd_width - 1 downto 0);
-    ra10          : out   std_logic_vector(bank10.ra_width - 1 downto 0);
-    rc10          : inout std_logic_vector(bank10.rc_width - 1 downto 0);
-    rd10          : inout std_logic_vector(bank10.rd_width - 1 downto 0);
-    ra11          : out   std_logic_vector(bank11.ra_width - 1 downto 0);
-    rc11          : inout std_logic_vector(bank11.rc_width - 1 downto 0);
-    rd11          : inout std_logic_vector(bank11.rd_width - 1 downto 0);
-    ra12          : out   std_logic_vector(bank12.ra_width - 1 downto 0);
-    rc12          : inout std_logic_vector(bank12.rc_width - 1 downto 0);
-    rd12          : inout std_logic_vector(bank12.rd_width - 1 downto 0);
-    ra13          : out   std_logic_vector(bank13.ra_width - 1 downto 0);
-    rc13          : inout std_logic_vector(bank13.rc_width - 1 downto 0);
-    rd13          : inout std_logic_vector(bank13.rd_width - 1 downto 0);
-    ra14          : out   std_logic_vector(bank14.ra_width - 1 downto 0);
-    rc14          : inout std_logic_vector(bank14.rc_width - 1 downto 0);
-    rd14          : inout std_logic_vector(bank14.rd_width - 1 downto 0);
-    ra15          : out   std_logic_vector(bank15.ra_width - 1 downto 0);
-    rc15          : inout std_logic_vector(bank15.rc_width - 1 downto 0);
-    rd15          : inout std_logic_vector(bank15.rd_width - 1 downto 0);
-    ramclki       : in    std_logic_vector(num_ramclk - 1 downto 0);
-    ramclko       : out   std_logic_vector(num_ramclk - 1 downto 0)
-  );
+-----------------------------
+--System
+-----------------------------
+memclk0    : in    std_logic;
+memclk45   : in    std_logic;
+memclk2x0  : in    std_logic;
+memclk2x90 : in    std_logic;
+memrst     : in    std_logic;
+rst        : in    std_logic
+);
 end entity;
 
 architecture mixed of mem_ctrl is
+
+constant bank0         : bank_t :=C_MEM_BANK0     ;
+constant bank1         : bank_t :=C_MEM_BANK1     ;
+constant bank2         : bank_t :=C_MEM_BANK2     ;
+constant bank3         : bank_t :=C_MEM_BANK3     ;
+constant bank4         : bank_t :=C_MEM_BANK4     ;
+constant bank5         : bank_t :=C_MEM_BANK5     ;
+constant bank6         : bank_t :=C_MEM_BANK6     ;
+constant bank7         : bank_t :=C_MEM_BANK7     ;
+constant bank8         : bank_t :=C_MEM_BANK8     ;
+constant bank9         : bank_t :=C_MEM_BANK9     ;
+constant bank10        : bank_t :=C_MEM_BANK10    ;
+constant bank11        : bank_t :=C_MEM_BANK11    ;
+constant bank12        : bank_t :=C_MEM_BANK12    ;
+constant bank13        : bank_t :=C_MEM_BANK13    ;
+constant bank14        : bank_t :=C_MEM_BANK14    ;
+constant bank15        : bank_t :=C_MEM_BANK15    ;
+constant num_ramclk    : natural:=C_MEM_NUM_RAMCLK;
 
     constant num_bank_dram        : natural := selval(1, 2, cmpval(1, G_BANK_COUNT));--2;
     constant num_bank_sram        : natural := 1;
@@ -330,10 +243,82 @@ architecture mixed of mem_ctrl is
     signal arb_be_SRAM : port_sbe_sram_t;
     signal arb_q_SRAM  : port_sd_sram_t;
 
+    signal usr0_clk    : std_logic;
+    signal usr0_bank1h : std_logic_vector(15 downto 0);
+    signal usr0_ce     : std_logic;
+    signal usr0_cw     : std_logic;
+    signal usr0_term   : std_logic;
+    signal usr0_rd     : std_logic;
+    signal usr0_wr     : std_logic;
+    signal usr0_adr    : std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+    signal usr0_be     : std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+    signal usr0_din    : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+    signal usr0_dout   : std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+    signal usr0_wf     : std_logic;
+    signal usr0_wpf    : std_logic;
+    signal usr0_re     : std_logic;
+    signal usr0_rpe    : std_logic;
+
+    signal mode_reg    : std_logic_vector(511 downto 0);
+
+signal ra1     : std_logic_vector(bank1.ra_width - 1 downto 0);
+signal rc1     : std_logic_vector(bank1.rc_width - 1 downto 0);
+signal rd1     : std_logic_vector(bank1.rd_width - 1 downto 0);
+signal ra2     : std_logic_vector(bank2.ra_width - 1 downto 0);
+signal rc2     : std_logic_vector(bank2.rc_width - 1 downto 0);
+signal rd2     : std_logic_vector(bank2.rd_width - 1 downto 0);
+signal ra3     : std_logic_vector(bank3.ra_width - 1 downto 0);
+signal rc3     : std_logic_vector(bank3.rc_width - 1 downto 0);
+signal rd3     : std_logic_vector(bank3.rd_width - 1 downto 0);
+signal ra4     : std_logic_vector(bank4.ra_width - 1 downto 0);
+signal rc4     : std_logic_vector(bank4.rc_width - 1 downto 0);
+signal rd4     : std_logic_vector(bank4.rd_width - 1 downto 0);
+signal ra5     : std_logic_vector(bank5.ra_width - 1 downto 0);
+signal rc5     : std_logic_vector(bank5.rc_width - 1 downto 0);
+signal rd5     : std_logic_vector(bank5.rd_width - 1 downto 0);
+signal ra6     : std_logic_vector(bank6.ra_width - 1 downto 0);
+signal rc6     : std_logic_vector(bank6.rc_width - 1 downto 0);
+signal rd6     : std_logic_vector(bank6.rd_width - 1 downto 0);
+signal ra7     : std_logic_vector(bank7.ra_width - 1 downto 0);
+signal rc7     : std_logic_vector(bank7.rc_width - 1 downto 0);
+signal rd7     : std_logic_vector(bank7.rd_width - 1 downto 0);
+signal ra8     : std_logic_vector(bank8.ra_width - 1 downto 0);
+signal rc8     : std_logic_vector(bank8.rc_width - 1 downto 0);
+signal rd8     : std_logic_vector(bank8.rd_width - 1 downto 0);
+signal ra9     : std_logic_vector(bank9.ra_width - 1 downto 0);
+signal rc9     : std_logic_vector(bank9.rc_width - 1 downto 0);
+signal rd9     : std_logic_vector(bank9.rd_width - 1 downto 0);
+signal ra10    : std_logic_vector(bank10.ra_width - 1 downto 0);
+signal rc10    : std_logic_vector(bank10.rc_width - 1 downto 0);
+signal rd10    : std_logic_vector(bank10.rd_width - 1 downto 0);
+signal ra11    : std_logic_vector(bank11.ra_width - 1 downto 0);
+signal rc11    : std_logic_vector(bank11.rc_width - 1 downto 0);
+signal rd11    : std_logic_vector(bank11.rd_width - 1 downto 0);
+signal ra12    : std_logic_vector(bank12.ra_width - 1 downto 0);
+signal rc12    : std_logic_vector(bank12.rc_width - 1 downto 0);
+signal rd12    : std_logic_vector(bank12.rd_width - 1 downto 0);
+signal ra13    : std_logic_vector(bank13.ra_width - 1 downto 0);
+signal rc13    : std_logic_vector(bank13.rc_width - 1 downto 0);
+signal rd13    : std_logic_vector(bank13.rd_width - 1 downto 0);
+signal ra14    : std_logic_vector(bank14.ra_width - 1 downto 0);
+signal rc14    : std_logic_vector(bank14.rc_width - 1 downto 0);
+signal rd14    : std_logic_vector(bank14.rd_width - 1 downto 0);
+signal ra15    : std_logic_vector(bank15.ra_width - 1 downto 0);
+signal rc15    : std_logic_vector(bank15.rc_width - 1 downto 0);
+signal rd15    : std_logic_vector(bank15.rd_width - 1 downto 0);
+signal ramclko : std_logic_vector(num_ramclk - 1 downto 0);
+signal ramclki : std_logic_vector(num_ramclk - 1 downto 0);
+
 begin
+
+    ramclki <= (others => '-');
 
     logic0 <= '0';
     logic1 <= '1';
+
+    mode_reg((32* (0 + 1)) - 23 downto  32* 0)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
+    mode_reg((32* (1 + 1)) - 23 downto  32* 1)<=CONV_STD_LOGIC_VECTOR(16#D4#, 10);
+    mode_reg((32* (2 + 1)) - 23 downto  32* 2)<=CONV_STD_LOGIC_VECTOR(16#01#, 10);
 
 --    user_rst <= memrst;
 --    user_clk <= memclk0;
@@ -352,6 +337,24 @@ begin
     usr1_tag_base <= EXT("10", tag_width);
     usr1_tag_mask <= EXT("11", tag_width);
 
+
+    usr0_clk      <=p_in_mem.clk;                                        --: in    std_logic;
+    --”правление
+    usr0_bank1h   <=EXT(p_in_mem.bank, usr0_bank1h'length);              --: in    std_logic_vector(15 downto 0);
+    usr0_ce       <=p_in_mem.ce;                                         --: in    std_logic;
+    usr0_cw       <=p_in_mem.cw;                                         --: in    std_logic;
+    usr0_term     <=p_in_mem.term;                                       --: in    std_logic;
+    usr0_rd       <=p_in_mem.rd;                                         --: in    std_logic;
+    usr0_wr       <=p_in_mem.wr;                                         --: in    std_logic;
+    usr0_adr      <=p_in_mem.adr(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);     --: in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+    usr0_be       <=p_in_mem.dbe(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0); --: in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+    usr0_din      <=p_in_mem.data(C_MEMCTRL_DATA_WIDTH - 1 downto 0);    --: in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+
+    p_out_mem.data    <=EXT(usr0_dout,p_out_mem.data'length);            --: out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+--    p_out_mem.buf_wf  <=usr0_wf ;                                       --: out   std_logic;
+    p_out_mem.buf_wpf <=usr0_wpf;                                        --: out   std_logic;
+    p_out_mem.buf_re  <=usr0_re ;                                        --: out   std_logic;
+--    p_out_mem.buf_rpe <=usr0_rpe;                                       --: out   std_logic;
 
 --//----------------------------------------------------------------------
 --//PORT-0

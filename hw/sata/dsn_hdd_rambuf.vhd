@@ -76,26 +76,8 @@ p_in_hdd_rxbuf_pempty : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
-
-p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
-p_out_mem_ce          : out   std_logic;
-p_out_mem_cw          : out   std_logic;
-p_out_mem_rd          : out   std_logic;
-p_out_mem_wr          : out   std_logic;
-p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf           : in    std_logic;
-p_in_mem_wpf          : in    std_logic;
-p_in_mem_re           : in    std_logic;
-p_in_mem_rpe          : in    std_logic;
-
-p_out_mem_clk         : out   std_logic;
+p_out_mem             : out   TMemIN;
+p_in_mem              : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -957,59 +939,41 @@ port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_mem_adr           => i_mem_adr,
-p_in_cfg_mem_trn_len       => i_mem_lentrn,
-p_in_cfg_mem_dlen_rq       => i_mem_lenreq,
-p_in_cfg_mem_wr            => i_mem_dir,
-p_in_cfg_mem_start         => i_mem_start,
-p_out_cfg_mem_done         => i_mem_done,
+p_in_cfg_mem_adr     => i_mem_adr,
+p_in_cfg_mem_trn_len => i_mem_lentrn,
+p_in_cfg_mem_dlen_rq => i_mem_lenreq,
+p_in_cfg_mem_wr      => i_mem_dir,
+p_in_cfg_mem_start   => i_mem_start,
+p_out_cfg_mem_done   => i_mem_done,
 
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout        => i_mem_din,
-p_out_usr_txbuf_rd         => i_mem_din_rd,
-p_in_usr_txbuf_empty       => i_mem_din_rdy,
+p_in_usr_txbuf_dout  => i_mem_din,
+p_out_usr_txbuf_rd   => i_mem_din_rd,
+p_in_usr_txbuf_empty => i_mem_din_rdy,
 
-p_out_usr_rxbuf_din        => i_mem_dout,
-p_out_usr_rxbuf_wd         => i_mem_dout_wr,
-p_in_usr_rxbuf_full        => i_mem_dout_wrdy,
+p_out_usr_rxbuf_din  => i_mem_dout,
+p_out_usr_rxbuf_wd   => i_mem_dout_wr,
+p_in_usr_rxbuf_full  => i_mem_dout_wrdy,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req           => p_out_memarb_req,
-p_in_memarb_en             => p_in_memarb_en,
-
-p_out_mem_bank1h           => p_out_mem_bank1h,
-p_out_mem_ce               => p_out_mem_ce,
-p_out_mem_cw               => p_out_mem_cw,
-p_out_mem_rd               => p_out_mem_rd,
-p_out_mem_wr               => p_out_mem_wr,
-p_out_mem_term             => p_out_mem_term,
-p_out_mem_adr              => p_out_mem_adr,
-p_out_mem_be               => p_out_mem_be,
-p_out_mem_din              => p_out_mem_din,
-p_in_mem_dout              => p_in_mem_dout,
-
-p_in_mem_wf                => p_in_mem_wf,
-p_in_mem_wpf               => p_in_mem_wpf,
-p_in_mem_re                => p_in_mem_re,
-p_in_mem_rpe               => p_in_mem_rpe,
-
-p_out_mem_clk              => p_out_mem_clk,
+p_out_mem            => p_out_mem,
+p_in_mem             => p_in_mem,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                   => "00000000000000000000000000000000",
-p_out_tst                  => tst_mem_ctrl_out,
+p_in_tst             => "00000000000000000000000000000000",
+p_out_tst            => tst_mem_ctrl_out,
 
 -------------------------------
 --System
 -------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
+p_in_clk             => p_in_clk,
+p_in_rst             => p_in_rst
 );
 
 
@@ -1116,8 +1080,8 @@ p_out_dbgcs.data(23 downto 20)   <=i_vbuf_wrcnt;
 p_out_dbgcs.data(24)             <=i_mem_din_rdy;
 p_out_dbgcs.data(25)             <=i_mem_start;
 p_out_dbgcs.data(29 downto 26)   <=tst_mem_ctrl_out(5 downto 2);--//mem_wr/fsm(0)
-p_out_dbgcs.data(30)             <=p_in_mem_re;
-p_out_dbgcs.data(31)             <=p_in_mem_wpf;
+p_out_dbgcs.data(30)             <=p_in_mem.buf_re;
+p_out_dbgcs.data(31)             <=p_in_mem.buf_wpf;
 p_out_dbgcs.data(63 downto 32)   <=i_rambuf_dcnt(31 downto 0);
 p_out_dbgcs.data(75 downto 64)   <=i_mem_lenreq(11 downto 0);
 p_out_dbgcs.data(87 downto 76)   <=i_mem_lentrn(11 downto 0);
@@ -1213,7 +1177,6 @@ end generate gen_dbgcs_on;
 end generate gen_use_on;
 
 
-
 gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
 p_out_dbgcs.clk<='0';
@@ -1225,22 +1188,6 @@ p_out_rbuf_status.err_type.vinbuf_full<='0';
 p_out_rbuf_status.err_type.rambuf_full<='0';
 p_out_rbuf_status.done<='0';
 p_out_rbuf_status.hwlog_size<=(others=>'0');
---p_out_rbuf_status.rdy<='0';
---p_out_rbuf_status.done<='0';
-
-p_out_mem_clk <= p_in_clk;
-
-p_out_mem_bank1h <=(others=>'0');
-p_out_mem_ce     <='0';
-p_out_mem_cw     <='0';
-p_out_mem_rd     <='0';
-p_out_mem_wr     <='0';
-p_out_mem_term   <='0';
-p_out_mem_adr    <=(others=>'0');
-p_out_mem_be     <=(others=>'0');
-p_out_mem_din    <=(others=>'0');
-
-p_out_memarb_req <='0';
 
 p_out_vbuf_rd <= not p_in_vbuf_empty;
 
@@ -1256,7 +1203,7 @@ p_out_tst(31 downto 1) <= (others=>'0');
 
 end generate gen_use_off;
 
+
 --END MAIN
 end behavioral;
-
 
