@@ -73,12 +73,12 @@ pin_in_ftdi_pwren_n   : in     std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
-pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+pin_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
 -- Reset
@@ -220,7 +220,7 @@ signal i_refclk                         : std_logic;
 signal g_host_clk                       : std_logic;
 
 signal i_hdd_rst                        : std_logic;
-signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 downto 0);
+signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
 signal i_hdd_dcm_lock                   : std_logic;
@@ -337,7 +337,7 @@ ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => pin_in_refclk_p, IB => pin_in_re
 bufg_refclk  : BUFG              port map(I  => i_refclk, O  => g_host_clk);
 
 --//Input 150MHz reference clock for SATA
-gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_HDD_COUNT-1)-1 generate
+gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 generate
 ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O => i_hdd_gt_refclk150(i));
 end generate gen_sata_gt;
 
@@ -466,11 +466,11 @@ i_cfg_rxd<=i_cfg_rxd_dev  when i_dev_adr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFG
 --***********************************************************
 m_hdd : dsn_hdd
 generic map(
-G_MODULE_USE=> C_USE_HDD,
-G_HDD_COUNT => C_HDD_COUNT,
-G_GT_DBUS   => C_HDD_GT_DBUS,
-G_DBG       => C_DBG_HDD,
-G_DBGCS     => C_DBGCS_HDD,
+G_MODULE_USE=> C_PCFG_HDD_USE,
+G_HDD_COUNT => C_PCFG_HDD_COUNT,
+G_GT_DBUS   => C_PCFG_HDD_GT_DBUS,
+G_DBG       => C_PCFG_HDD_DBG,
+G_DBGCS     => C_PCFG_HDD_DBGCS,
 G_SIM       => G_SIM
 )
 port map(
@@ -706,7 +706,7 @@ p_in_rst       => i_hdd_rst
 
 
 
-gen_dbgcs : if strcmp(C_DBGCS_HDD,"ON") generate
+gen_dbgcs : if strcmp(C_PCFG_HDD_DBGCS,"ON") generate
 
 m_dbgcs_icon : dbgcs_iconx2
 port map(

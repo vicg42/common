@@ -12,50 +12,43 @@
 --
 -------------------------------------------------------------------------
 library ieee;
-use ieee.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;
-use ieee.std_logic_arith.all;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
 
 package prj_cfg is
 
 --//Тип используемой платы
-constant C_BOARD_USE                         : string:="ML505";
-
---//Управление использованием модулей проекта:
-constant C_USE_TRACK                         : string:="OFF";
-constant C_USE_ETH                           : string:="ON";
-constant C_USE_HDD                           : string:="ON";
-
-constant C_DBG_ETH                           : string:="OFF";
-constant C_DBG_HDD                           : string:="OFF";
-
-constant C_DBGCS_HDD                         : string:="ON";
-
+constant C_PCFG_BOARD                  : string:="ML505";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller
-constant C_MEMCTRL_BANK_COUNT                : integer:=1; --//max 1
+constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
 
 --//cfg HDD
-constant C_HDD_COUNT                         : integer:=2;
-constant C_HDD_RAMBUF_SIZE                   : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
-constant C_HDD_GT_DBUS                       : integer:=16;--//Настройка шины данных GT (RocketIO)
+constant C_PCFG_HDD_USE                : string:="ON";
+constant C_PCFG_HDD_DBG                : string:="OFF";
+constant C_PCFG_HDD_DBGCS              : string:="ON";
+constant C_PCFG_HDD_COUNT              : integer:=1;
+constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+constant C_PCFG_HDD_GT_DBUS            : integer:=16;--//Настройка шины данных GT (RocketIO)
 
 --//cfg PCI-Express
-constant C_PCIEXPRESS_RST_FROM_SLOT          : integer:=0;--0/1 - Использовать сброс сгенеренный в проекта/с стота PCI-Express
-constant C_PCIEXPRESS_LINK_WIDTH             : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
+constant C_PCGF_PCIE_RST_SEL           : integer:=0;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
+constant C_PCGF_PCIE_LINK_WIDTH        : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
-constant C_VCTRL_VCH_COUNT                   : integer:=3; --//max 4
-constant C_VCTRL_SIMPLE                      : string:="ON";
+constant C_PCFG_VCTRL_VCH_COUNT        : integer:=4; --//max 4
+constant C_PCFG_VCTRL_SIMPLE           : string:="ON";
+
+--//cfg ETH
+constant C_PCFG_ETH_USE                : string:="ON";
+constant C_PCFG_ETH_DBG                : string:="OFF";
+
+--//cfg TRACKER
+constant C_PCFG_TRC_USE                : string:="OFF";
 
 --//cfg clkfx - DCM LocalBus
-constant C_LBUSDCM_CLKFX_M                   : integer:=2;
-
-end prj_cfg;
-
-
-package body prj_cfg is
+constant C_PCFG_LBUSDCM_CLKFX_M        : integer:=2;
 
 end prj_cfg;
 
