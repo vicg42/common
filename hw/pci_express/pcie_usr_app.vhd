@@ -275,8 +275,7 @@ signal i_dev_drdy                  : std_logic;
 signal i_dev_drdy_out              : std_logic;
 
 signal i_mem_adr_en                : std_logic;
-signal i_mem_adr                   : std_logic_vector(v_reg_mem_adr'range):=(others=>'0');
-signal i_mem_adr_out               : std_logic_vector(v_reg_mem_adr'range);
+signal i_mem_adr                   : std_logic_vector(31 downto 0):=(others=>'0');
 --signal i_tst_rd                    : std_logic;
 
 
@@ -383,8 +382,8 @@ i_mwr_payload_dw_result(10 downto 0)<=('0' & i_mwr_payload_dw_msb & i_mwr_payloa
 --//--------------------------------------------------------------------------------------------
 --//Вычисляем кол-во пакетов, необходимое для передачи/чтения всего запрошеного размера данных
 --//--------------------------------------------------------------------------------------------
---//Выделяем кол-во пакетов TPL из общего размера данных(i_dmatrn_len) установленых Хостом
---//В зависимости от значения (i_max_payload_size) CFG региста PCI устройства
+--Выделяем кол-во пакетов TPL из общего размера данных(i_dmatrn_len) установленых Хостом
+--В зависимости от значения (i_max_payload_size) CFG региста PCI устройства
 --i_mwr_count_mux(24 downto 0)<=("00000" & i_dmatrn_len(31 downto 12)) when i_max_payload_size="101" else
 i_mwr_count_mux(24 downto 0)<=("0000" & i_dmatrn_len(31 downto 11)) when i_max_payload_size="100" else
                               ("000" & i_dmatrn_len(31 downto 10)) when i_max_payload_size="011" else
@@ -394,7 +393,7 @@ i_mwr_count_mux(24 downto 0)<=("0000" & i_dmatrn_len(31 downto 11)) when i_max_p
 
 i_mwr_count_ziro<='1' when i_mwr_count_mux=CONV_STD_LOGIC_VECTOR(16#00#,32) else '0';
 
---//Результат вычислений:
+--Результат вычислений:
 i_mwr_count_result(25 downto 0)<=('0'&i_mwr_count_mux) + ('0'& CONV_STD_LOGIC_VECTOR(16#00#, 24)& not i_mwr_payload_byte_mux_ziro);
 
 --//--------------------------------------------------------------------------------------------
@@ -406,7 +405,7 @@ i_mwr_fbe<="1111" when i_mwr_payload_dw_lsb(10 downto 0)>CONV_STD_LOGIC_VECTOR(1
            "0011" when i_dmatrn_len(1 downto 0)="10" else
            "0111";
 
---//Byte enable last DWORD (TPL payload)
+--Byte enable last DWORD (TPL payload)
 i_mwr_lbe<="0000" when i_mwr_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(16#01#,11) else
            "1111" when i_dmatrn_len(1 downto 0)="00" else
            "0001" when i_dmatrn_len(1 downto 0)="01" else
@@ -429,8 +428,8 @@ i_mwr_lbe<="0000" when i_mwr_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(1
 --//--------------------------------------------------------------
 i_max_rd_req_size<=v_reg_pcie(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT);
 
---//Выделяем кол-во байт одного пакета TPL из общего размера данных(i_dmatrn_len) установленых Хостом
---//В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
+--Выделяем кол-во байт одного пакета TPL из общего размера данных(i_dmatrn_len) установленых Хостом
+--В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
 --i_mwr_payload_byte_mux(11 downto 0)<=(    i_dmatrn_len(11 downto 0)) when i_max_rd_req_size="101" else
 i_mrd_payload_byte_mux(11 downto 0)<=('0' & i_dmatrn_len(10 downto 0)) when i_max_rd_req_size="100" else
                                      ("00" & i_dmatrn_len(9 downto 0))  when i_max_rd_req_size="011" else
@@ -440,7 +439,7 @@ i_mrd_payload_byte_mux(11 downto 0)<=('0' & i_dmatrn_len(10 downto 0)) when i_ma
 
 i_mrd_payload_byte_mux_ziro <='1' when i_mrd_payload_byte_mux=CONV_STD_LOGIC_VECTOR(16#00#,12) else '0';
 
---//Вычисляем сколько DWORD должен содержать один пакет
+--Вычисляем сколько DWORD должен содержать один пакет
 i_mrd_payload_dw_lsb(10 downto 0)<=('0'&i_mrd_payload_byte_mux(11 downto 2)) + ('0'&CONV_STD_LOGIC_VECTOR(16#00#, 9)&(i_dmatrn_len(1) or i_dmatrn_len(0)));
 
 --i_mrd_payload_dw_lsb_ziro <='1' when (i_mrd_payload_dw_lsb(9 downto 0)="0000000000" and i_max_rd_req_size="101") or
@@ -450,7 +449,7 @@ i_mrd_payload_dw_lsb_ziro <='1' when (i_mrd_payload_dw_lsb(8 downto 0)="00000000
                                      (i_mrd_payload_dw_lsb(5 downto 0)="000000" and i_max_rd_req_size="001") or
                                      (i_mrd_payload_dw_lsb(4 downto 0)="00000" and i_max_rd_req_size="000") else '0';
 
---//Выделяем бит переноса в зависимости от i_max_rd_req_size
+--Выделяем бит переноса в зависимости от i_max_rd_req_size
 --i_mrd_payload_dw_carry <= i_mrd_payload_dw_lsb(10) when i_max_rd_req_size="101" else
 i_mrd_payload_dw_carry <= i_mrd_payload_dw_lsb(9)  when i_max_rd_req_size="100" else
                           i_mrd_payload_dw_lsb(8)  when i_max_rd_req_size="011" else
@@ -460,7 +459,7 @@ i_mrd_payload_dw_carry <= i_mrd_payload_dw_lsb(9)  when i_max_rd_req_size="100" 
 
 i_mrd_payload_dw_msb<='1' when i_mrd_count_ziro='0' and i_mrd_payload_dw_lsb_ziro='1' else i_mrd_payload_dw_carry;
 
---//Результат вычислений:
+--Результат вычислений:
 --i_mrd_payload_dw_result(10 downto 0)<=(     i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(9 downto 0)) when i_max_rd_req_size="101" else
 i_mrd_payload_dw_result(10 downto 0)<=('0' & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(8 downto 0)) when i_max_rd_req_size="100" else
                                       ("00" & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(7 downto 0)) when i_max_rd_req_size="011" else
@@ -472,8 +471,8 @@ i_mrd_payload_dw_result(10 downto 0)<=('0' & i_mrd_payload_dw_msb & i_mrd_payloa
 --//--------------------------------------------------------------------------------------------
 --//Вычисляем кол-во пакетов, необходимое для передачи/чтения всего запрошеного размера данных
 --//--------------------------------------------------------------------------------------------
---//Выделяем кол-во пакетов TPL из общего размера данных(i_dmatrn_len) установленых Хостом
---//В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
+--Выделяем кол-во пакетов TPL из общего размера данных(i_dmatrn_len) установленых Хостом
+--В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
 --i_mrd_count_mux(24 downto 0)<=("00000" & i_dmatrn_len(31 downto 12)) when i_max_rd_req_size="101" else
 i_mrd_count_mux(24 downto 0)<=("0000" & i_dmatrn_len(31 downto 11)) when i_max_rd_req_size="100" else
                               ("000" & i_dmatrn_len(31 downto 10)) when i_max_rd_req_size="011" else
@@ -483,7 +482,7 @@ i_mrd_count_mux(24 downto 0)<=("0000" & i_dmatrn_len(31 downto 11)) when i_max_r
 
 i_mrd_count_ziro<='1' when i_mrd_count_mux=CONV_STD_LOGIC_VECTOR(16#00#,32) else '0';
 
---//Результат вычислений:
+--Результат вычислений:
 i_mrd_count_result(25 downto 0)<=('0'&i_mrd_count_mux) + ('0'& CONV_STD_LOGIC_VECTOR(16#00#, 24)& not i_mrd_payload_byte_mux_ziro);
 
 --//--------------------------------------------------------------------------------------------
@@ -495,7 +494,7 @@ i_mrd_fbe<="1111" when i_mrd_payload_dw_lsb(10 downto 0)>CONV_STD_LOGIC_VECTOR(1
            "0011" when i_dmatrn_len(1 downto 0)="10" else
            "0111";
 
---//Byte enable last DWORD (TPL payload)
+--Byte enable last DWORD (TPL payload)
 i_mrd_lbe<="0000" when i_mrd_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(16#01#,11) else
            "1111" when i_dmatrn_len(1 downto 0)="00" else
            "0001" when i_dmatrn_len(1 downto 0)="01" else
@@ -506,11 +505,11 @@ i_mrd_lbe<="0000" when i_mrd_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(1
 --//--------------------------------------------------------------------------------------------
 --//Запись/Чтение пользовательских регистров:
 --//--------------------------------------------------------------------------------------------
---//Декодируем BAR для регистров управления контроллером памяти и регистров проекта VERESK-M
-vrsk_reg_bar <= p_in_reg_adr(7);--//x80 - Register Space: Veresk-M
+--Декодируем BAR для регистров управления контроллером памяти и регистров проекта VERESK-M
+vrsk_reg_bar <= p_in_reg_adr(7);--x80 - Register Space: Veresk-M
 vrsk_reg_adr(6 downto 0) <= p_in_reg_adr(6 downto 0);
 
---//Распределяем биты пользовательских регистров:
+--Распределяем биты пользовательских регистров:
 i_dmabuf_num   <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_M_BIT downto C_HREG_DEV_CTRL_DMABUF_L_BIT);
 i_dmabuf_count <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT downto C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT);
 i_hdev_adr     <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
@@ -519,7 +518,7 @@ i_irq_num      <= v_reg_irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
 
 v_reg_firmware<=CONV_STD_LOGIC_VECTOR(C_FPGA_FIRMWARE_VERSION, v_reg_firmware'length);
 
---//Запись:
+--Запись:
 process(p_in_rst_n,p_in_clk)
   variable dma_start : std_logic;
   variable irq_clr : std_logic;
@@ -575,20 +574,20 @@ begin
 
     if p_in_reg_wr='1' then
       if vrsk_reg_bar='1' then
-      --//--------------------------------------------
-      --//Register Space: Проект Veresk-M
-      --//--------------------------------------------
+      ----------------------------------------------
+      --Register Space: Проект Veresk-M
+      ----------------------------------------------
         if    vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_CTRL, 5)  then v_reg_ctrl<=p_in_reg_din(v_reg_ctrl'high downto 0);
             usr_grst:=p_in_reg_din(C_HREG_CTRL_RST_ALL_BIT);
             rddone_vctrl_edge:=p_in_reg_din(C_HREG_CTRL_RDDONE_VCTRL_BIT);
             rddone_trcnik_edge:=p_in_reg_din(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_ADR, 5) then i_host_dmaprm_din<=p_in_reg_din;
-        --//в байтах
+        --в байтах
             dmaprm_wr:='1';
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_LEN, 5) then i_host_dmaprm_din<=p_in_reg_din;
-        --//в байтах
+        --в байтах
             dmaprm_wr:='1';
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL, 5) then v_reg_dev_ctrl<=p_in_reg_din(v_reg_dev_ctrl'high downto 0);
@@ -614,7 +613,7 @@ begin
               end if;
             end loop;
 
-            --//Сброс флагов окончания TRN_DMA WR/RD
+            --Сброс флагов окончания TRN_DMA WR/RD
             if p_in_reg_din(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT) = CONV_STD_LOGIC_VECTOR(C_HIRQ_PCIE_DMA, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT+1))then
               dma_irq_clr:=p_in_reg_din(C_HREG_IRQ_CLR_WBIT);
             end if;
@@ -642,7 +641,7 @@ begin
   end if;
 end process;
 
---//Чтение:
+--Чтение:
 process(p_in_rst_n,p_in_clk)
   variable txd : std_logic_vector(p_out_reg_dout'range);
 begin
@@ -658,9 +657,9 @@ begin
 
     if i_reg_rd='1' then
       if vrsk_reg_bar='1' then
-      --//--------------------------------------------
-      --//Register Space: Проект Veresk-M
-      --//--------------------------------------------
+      ----------------------------------------------
+      --Register Space: Проект Veresk-M
+      ----------------------------------------------
         if    vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FIRMWARE, 5) then
             txd:=EXT(v_reg_firmware, txd'length); --tst_rd:='1';
 
@@ -744,7 +743,7 @@ begin
 
       p_out_reg_dout<=txd;
 
-    end if;--//if i_reg_rd='1' then
+    end if;--if i_reg_rd='1' then
 --    i_tst_rd<=tst_rd;
   end if;
 end process;
@@ -754,12 +753,12 @@ end process;
 --//--------------------------------------------------------------------------------------------
 --//Управление DMA транзакцией (режим Master)
 --//--------------------------------------------------------------------------------------------
---//Инициализация DMATRN
+--Инициализация DMATRN
 i_dmatrn_init<=i_dmatrn_init_sw or i_dmatrn_init_hw;
 
---//Стробы выполнения DMATRN_WR/RD
-i_dmatrn_mrd_done<=(not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done)) or i_dmatrn_mrd_done_tmp;--//TRN: PC->FPGA
-i_dmatrn_mwr_done<=(    v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done)) or i_dmatrn_mwr_done_tmp;--//TRN: PC<-FPGA
+--Стробы выполнения DMATRN_WR/RD
+i_dmatrn_mrd_done<=(not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done)) or i_dmatrn_mrd_done_tmp;--TRN: PC->FPGA
+i_dmatrn_mwr_done<=(    v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done)) or i_dmatrn_mwr_done_tmp;--TRN: PC<-FPGA
 
 process(p_in_rst_n,i_usr_grst,p_in_clk)
 begin
@@ -773,7 +772,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    --//Анализ размера принятых данных DMATRN_RD
+    --Анализ размера принятых данных DMATRN_RD
     if i_dmatrn_init='1' then
       i_mrd_rcv_size_ok <='0';
     else
@@ -784,7 +783,7 @@ begin
       end if;
     end if ;
 
-    --//DMATRN_WR/RD завершена
+    --DMATRN_WR/RD завершена
     if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT)='1' then
       i_dmatrn_mrd_done_tmp<=i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
       i_dmatrn_mwr_done_tmp<=p_in_mwr_done and sr_rxbuf_rd_last;
@@ -797,13 +796,13 @@ begin
       if AND_reduce(i_dmatrn_mem_done)='1' or i_dma_start='1' then
         i_dmatrn_mem_done<=(others=>'0');
       else
-        --//Core PCIExpress отработало DMATRN
+        --Core PCIExpress отработало DMATRN
         if ((i_mrd_rcv_size_ok='1' and p_in_txbuf_wr_last ='1') and v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)='0') or
            ((p_in_mwr_done='1' and sr_rxbuf_rd_last ='1') and v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)='1') then
           i_dmatrn_mem_done(0)<='1';
         end if;
 
-        --//Принял ответ от контроллера pcie2mem_ctrl.vhd
+        --Принял ответ от контроллера pcie2mem_ctrl.vhd
         if i_memtrn_done='1' then
           i_dmatrn_mem_done(1)<='1';
         end if;
@@ -855,20 +854,20 @@ begin
 
     sr_rxbuf_rd_last<=p_in_rxbuf_rd_last;
 
-    --//-------------------------------------------
-    --//Инициализация и запуск DMATRN
-    --//-------------------------------------------
-    --//DMA: первый запуск транзакции (Software start)
+    ---------------------------------------------
+    --Инициализация и запуск DMATRN
+    ---------------------------------------------
+    --DMA: первый запуск транзакции (Software start)
     i_dmatrn_init_sw  <=not i_dma_work and sr_hw_dmaprm_rd_done;
     i_dmatrn_start_sw <=i_dmatrn_init_sw;
 
-    --//DMA: все последующие запуски транзакции (Hardware start)
+    --DMA: все последующие запуски транзакции (Hardware start)
     i_dmatrn_init_hw  <=i_dma_work and sr_hw_dmaprm_rd_done;
     i_dmatrn_start_hw <=i_dmatrn_init_hw;
 
-    --//-------------------------------------------
-    --//Отработка буфера DMA
-    --//-------------------------------------------
+    ---------------------------------------------
+    --Отработка буфера DMA
+    ---------------------------------------------
     if i_dmatrn_start_sw='1' or i_dmatrn_start_hw='1' then
       i_dmatrn_work<='1';
     elsif i_dmatrn_mrd_done='1' or i_dmatrn_mwr_done='1' then
@@ -877,32 +876,32 @@ begin
     sr_dmatrn_mwr_done<=i_dmatrn_mwr_done;
     sr_dmatrn_mrd_done<=i_dmatrn_mrd_done;
 
-    --//-------------------------------------------
-    --//Отработка установленого кол-ва буферов DMA
-    --//-------------------------------------------
+    ---------------------------------------------
+    --Отработка установленого кол-ва буферов DMA
+    ---------------------------------------------
     if i_dmatrn_start_sw='1' then
       i_dma_work<='1';
     elsif (i_dmabuf_count=i_dmabuf_done_cnt and (i_dmatrn_mrd_done='1' or i_dmatrn_mwr_done='1')) or i_dma_irq_clr='1' then
       i_dma_work<='0';
     end if;
 
-    --//DMATRN: MEMORY READ(PC->FPGA) завершена (Отработано заказаное кол-во буферов)
+    --DMATRN: MEMORY READ(PC->FPGA) завершена (Отработано заказаное кол-во буферов)
     if i_dma_start='1' or i_dma_irq_clr='1' then
       i_dma_mrd_done <='0';
     elsif i_dmabuf_count=i_dmabuf_done_cnt and i_dmatrn_mrd_done='1' then
       i_dma_mrd_done <='1';
     end if;
 
-    --//DMATRN: MEMORY WRITE(PC<-FPGA) завершена (Отработано заказаное кол-во буферов)
+    --DMATRN: MEMORY WRITE(PC<-FPGA) завершена (Отработано заказаное кол-во буферов)
     if i_dma_start='1' or i_dma_irq_clr='1' then
       i_dma_mwr_done <='0';
     elsif i_dmabuf_count=i_dmabuf_done_cnt and i_dmatrn_mwr_done='1' then
       i_dma_mwr_done <='1';
     end if;
 
-    --//-------------------------------------------
-    --//Чтение параметров DMATRN
-    --//-------------------------------------------
+    ---------------------------------------------
+    --Чтение параметров DMATRN
+    ---------------------------------------------
     if i_dma_start='1' or (i_dma_work='1' and (sr_dmatrn_mwr_done='1' or sr_dmatrn_mrd_done='1')) then
        i_hw_dmaprm_rd(0)<='1';
     elsif i_hw_dmaprm_cnt="01" then
@@ -922,20 +921,20 @@ begin
     sr_hw_dmaprm_rd<=i_hw_dmaprm_rd;
     sr_hw_dmaprm_rd_done<=i_hw_dmaprm_rd_done;
 
-    --//Загрузка параметров DMA
+    --Загрузка параметров DMA
     if sr_hw_dmaprm_rd(0)='1' then
       if sr_hw_dmaprm_cnt="00" then
-        i_dmatrn_adr<=i_hw_dmaprm_dout;--//Адрес в байтах
+        i_dmatrn_adr<=i_hw_dmaprm_dout;--Адрес в байтах
       elsif sr_hw_dmaprm_cnt="01" then
-        i_dmatrn_len<=i_hw_dmaprm_dout;--//Размер в байтах
+        i_dmatrn_len<=i_hw_dmaprm_dout;--Размер в байтах
       end if;
     end if;
 
-    --//Подсчет кол-ва тработаных буферов +
-    --//загрузка индекса стартового буфера
+    --Подсчет кол-ва тработаных буферов +
+    --загрузка индекса стартового буфера
     if i_dma_start='1' then
-      i_dmabuf_num_cnt<=i_dmabuf_num;   --//Загружаем индекс стартового буфера
-      i_dmabuf_done_cnt<=(others=>'0'); --//Очищаем счетчик отработаных буферов
+      i_dmabuf_num_cnt<=i_dmabuf_num;   --Загружаем индекс стартового буфера
+      i_dmabuf_done_cnt<=(others=>'0'); --Очищаем счетчик отработаных буферов
 
     elsif (i_dmatrn_mwr_done='1' or i_dmatrn_mrd_done='1') then
       i_dmabuf_num_cnt<=i_dmabuf_num_cnt+1;
@@ -946,7 +945,7 @@ begin
 end process;
 
 
---//BRAM параметров DMATRN: Адрес буфера в памяти PC; Размер буфера
+--BRAM параметров DMATRN: Адрес буфера в памяти PC; Размер буфера
 i_host_dmaprm_adr(9 downto 8)<="01" when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_LEN, 5) else "00";
 i_host_dmaprm_adr(7 downto 0)<=EXT(i_dmabuf_num, 8);
 
@@ -968,7 +967,7 @@ addrb => i_hw_dmaprm_adr,
 dinb  => (others=>'0'),
 doutb => i_hw_dmaprm_dout,
 enb   => i_hw_dmaprm_rd(0),
-web   => "0",              --// Только чтение
+web   => "0",              --Только чтение
 clkb  => p_in_clk
 );
 
@@ -980,13 +979,13 @@ p_out_irq_clr<=i_irq_clr;
 p_out_irq_num<=EXT(i_irq_num, p_out_irq_num'length);
 p_out_irq_set<=EXT(i_irq_set, p_out_irq_set'length);
 
---//от DMA(WR/RD)
+--от DMA(WR/RD)
 i_irq_set(C_HIRQ_PCIE_DMA)<=i_irq_en(C_HIRQ_PCIE_DMA) and ((i_dma_mrd_done and sr_dmatrn_mrd_done) or
                                                            (i_dma_mwr_done and sr_dmatrn_mwr_done));
---//от пользовательских устройств
+--от пользовательских устройств
 gen_irq: for i in C_HIRQ_PCIE_DMA+1 to C_HIRQ_COUNT - 1 generate
 
---//Выделяю передний фронт
+--Выделяю передний фронт
 process(i_irq_en(i),i_usr_grst,p_in_clk)
 begin
   if i_irq_en(i)='0' or i_usr_grst='1' then
@@ -1014,7 +1013,7 @@ p_out_rxbuf_empty<=p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=
 --//-------------------------------------------------------------------
 --//Связь с внешним устройствам
 --//-------------------------------------------------------------------
---//Выбор доступа к внешним устройствам. Через DMA транзакцию или через регистр C_HREG_DEV_DATA
+--Выбор доступа к внешним устройствам. Через DMA транзакцию или через регистр C_HREG_DEV_DATA
 p_out_dev_wr  <= p_in_txbuf_wr  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  p_in_reg_wr    when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
 
@@ -1024,13 +1023,13 @@ p_out_dev_rd  <= p_in_rxbuf_rd  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BI
 p_out_dev_din <= p_in_txbuf_din when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else p_in_reg_din;
 
 
---//Вывод регистра управления устройствами
+--Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dmatrn_mrd_done when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1)<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1);
 
 
---//Вывод регистра глобального управления
+--Вывод регистра глобального управления
 p_out_gctrl(C_HREG_CTRL_RST_ALL_BIT)<=v_reg_ctrl(C_HREG_CTRL_RST_ALL_BIT);
 p_out_gctrl(C_HREG_CTRL_RST_MEM_BIT)<=v_reg_ctrl(C_HREG_CTRL_RST_MEM_BIT);
 p_out_gctrl(C_HREG_CTRL_RST_ETH_BIT)<=v_reg_ctrl(C_HREG_CTRL_RST_ETH_BIT);
@@ -1038,13 +1037,13 @@ p_out_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT)<=i_rddone_vctrl;
 p_out_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT)<=i_rddone_trcnik;
 
 
---//Доп. информация для управления умаройствами
+--Доп. информация для управления умаройствами
 i_mem_adr_en<=p_in_rxbuf_rd or p_in_txbuf_wr when i_hdev_adr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else '0';
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
     if i_dma_start='1' then
-      i_mem_adr<="00"&v_reg_mem_adr(i_mem_adr'high downto 2); --//Cnt DW
+      i_mem_adr<=EXT(v_reg_mem_adr(v_reg_mem_adr'high downto 2), i_mem_adr'length); --Cnt DW
     else
       if i_mem_adr_en='1' then
         i_mem_adr<=i_mem_adr + 1;
@@ -1053,16 +1052,14 @@ begin
   end if;
 end process;
 
-i_mem_adr_out<=i_mem_adr(i_mem_adr'high-2 downto 0)&"00"; --//Cnt BYTE
-
-p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT)<=EXT(i_mem_adr_out, C_HDEV_OPTOUT_MEM_ADR_M_BIT - C_HDEV_OPTOUT_MEM_ADR_L_BIT + 1);
+p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT)<=i_mem_adr(29 downto 0)&"00"; --Cnt BYTE
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT)<=i_dmatrn_len(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT - C_HDEV_OPTOUT_MEM_RQLEN_L_BIT downto 0);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT)<=v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT)<=v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT);
 
 
 --//-------------------------------------------------------------------
---//Тестовый вывод сигналов/Пользовательские данные
+--//DBG
 --//-------------------------------------------------------------------
 p_out_tst(31 downto 0)  <=v_reg_tst0;
 --p_out_tst(63 downto 32) <=v_reg_tst1;
