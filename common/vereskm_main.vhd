@@ -142,10 +142,120 @@ end entity;
 
 architecture struct of vereskm_main is
 
-----component ROC generic (WIDTH : Time := 500 ns); port (O : out std_ulogic := '1'); end component;
---component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
---component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
---component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
+
+--component dsn_hdd_rambuf is
+--generic(
+--G_MODULE_USE  : string:="ON";
+--G_RAMBUF_SIZE : integer:=23;
+--G_DBGCS       : string:="OFF";
+--G_SIM         : string:="OFF";
+--
+--G_MEM_AWIDTH  : integer:=32;
+--G_MEM_DWIDTH  : integer:=32
+--);
+--port(
+---------------------------------
+---- Конфигурирование
+---------------------------------
+--p_in_rbuf_cfg         : in    THDDRBufCfg;
+--p_out_rbuf_status     : out   THDDRBufStatus;
+--
+----//--------------------------
+----//Связь с буфером видеоданных
+----//--------------------------
+--p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
+--p_out_vbuf_rd         : out   std_logic;
+--p_in_vbuf_empty       : in    std_logic;
+--p_in_vbuf_full        : in    std_logic;
+--p_in_vbuf_pfull       : in    std_logic;
+--p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+--
+----//--------------------------
+----//Связь с модулем HDD
+----//--------------------------
+--p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
+--p_out_hdd_txd_wr      : out   std_logic;
+--p_in_hdd_txbuf_pfull  : in    std_logic;
+--p_in_hdd_txbuf_full   : in    std_logic;
+--p_in_hdd_txbuf_empty  : in    std_logic;
+--
+--p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
+--p_out_hdd_rxd_rd      : out   std_logic;
+--p_in_hdd_rxbuf_empty  : in    std_logic;
+--p_in_hdd_rxbuf_pempty : in    std_logic;
+--
+-----------------------------------
+---- Связь с mem_ctrl.vhd
+-----------------------------------
+--p_out_mem             : out   TMemIN;
+--p_in_mem              : in    TMemOUT;
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst              : in    std_logic_vector(31 downto 0);
+--p_out_tst             : out   std_logic_vector(31 downto 0);
+--p_out_dbgcs           : out   TSH_ila;
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk              : in    std_logic;
+--p_in_rst              : in    std_logic
+--);
+--end component;
+
+component vtester_v01
+generic(
+G_SIM : string:="OFF"
+);
+port(
+-------------------------------
+-- Управление от Хоста
+-------------------------------
+p_in_host_clk         : in   std_logic;
+
+p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld       : in   std_logic;
+p_in_cfg_adr_fifo     : in   std_logic;
+
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd           : in   std_logic;
+
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd           : in   std_logic;
+
+p_in_cfg_done         : in   std_logic;
+
+-------------------------------
+-- STATUS модуля dsn_testing.VHD
+-------------------------------
+p_out_module_rdy      : out  std_logic;
+p_out_module_error    : out  std_logic;
+
+-------------------------------
+--Связь с выходным буфером
+-------------------------------
+p_out_dst_dout_rdy   : out   std_logic;
+p_out_dst_dout       : out   std_logic_vector(31 downto 0);
+p_out_dst_dout_wd    : out   std_logic;
+p_in_dst_rdy         : in    std_logic;
+--p_in_dst_clk         : in    std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_out_tst           : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_tmrclk  : in    std_logic;
+
+p_in_clk     : in    std_logic;
+p_in_rst     : in    std_logic
+);
+end component;
 
 component fpga_test_01
 generic(
@@ -263,7 +373,7 @@ signal i_host_dev_rxd                   : std_logic_vector(C_HDEV_DWIDTH-1 downt
 signal i_host_dev_wr                    : std_logic;
 signal i_host_dev_rd                    : std_logic;
 signal i_host_dev_status                : std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-signal i_host_dev_irq                   : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
+signal i_host_dev_irq                   : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 signal i_host_dev_opt_in                : std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 signal i_host_dev_opt_out               : std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -280,7 +390,7 @@ signal i_host_rxrdy                     : THostDCtrl;
 signal i_host_txrdy                     : THostDCtrl;
 signal i_host_rxbuf_empty               : THostDCtrl;
 signal i_host_txbuf_full                : THostDCtrl;
-signal i_host_irq                       : THostDCtrl;
+signal i_host_irq                       : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 
 signal i_host_rst_all                   : std_logic;
 signal i_host_rst_eth                   : std_logic;
@@ -483,7 +593,6 @@ signal tst_clr          : std_logic;
 --//MAIN
 begin
 
-
 --***********************************************************
 --//RESET модулей
 --***********************************************************
@@ -654,7 +763,7 @@ p_out_tst            => i_cfg_tst_out,
 p_in_rst => i_cfg_rst
 );
 
---//Распределяем управление от блока конфи гурирования(cfgdev.vhd) для соотв. модуля проекта:
+--//Распределяем управление от блока конфигурирования(cfgdev.vhd):
 i_cfg_rxd<=i_cfg_rxd_dev(C_CFGDEV_ETH)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETH, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_VCTRL)   when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, 4)   else
            i_cfg_rxd_dev(C_CFGDEV_SWT)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, 4)     else
@@ -757,12 +866,12 @@ p_out_host_vbuf_empty     => i_host_rxbuf_empty(C_HDEV_VCH_DBUF),
 p_in_hdd_tstgen           => i_swt_hdd_tstgen_cfg,
 p_in_hdd_vbuf_rdclk       => g_usr_highclk,
 
-p_out_hdd_vbuf_dout       => open, --i_hdd_vbuf_dout,
-p_in_hdd_vbuf_rd          => '0',  --i_hdd_vbuf_rd,
-p_out_hdd_vbuf_empty      => open, --i_hdd_vbuf_empty,
-p_out_hdd_vbuf_full       => open, --i_hdd_vbuf_full,
-p_out_hdd_vbuf_pfull      => open, --i_hdd_vbuf_pfull,
-p_out_hdd_vbuf_wrcnt      => open, --i_hdd_vbuf_wrcnt,
+p_out_hdd_vbuf_dout       => open, --i_hdd_vbuf_dout,  --
+p_in_hdd_vbuf_rd          => '0',  --i_hdd_vbuf_rd,    --
+p_out_hdd_vbuf_empty      => open, --i_hdd_vbuf_empty, --
+p_out_hdd_vbuf_full       => open, --i_hdd_vbuf_full,  --
+p_out_hdd_vbuf_pfull      => open, --i_hdd_vbuf_pfull, --
+p_out_hdd_vbuf_wrcnt      => open, --i_hdd_vbuf_wrcnt, --
 
 -------------------------------
 -- Связь с Eth(dsn_ethg.vhd) (ethg_clk domain)
@@ -803,13 +912,13 @@ p_out_vctrl_vbufout_full  => i_vctrl_vbufout_full,
 -------------------------------
 -- Связь с Модулем Тестирования(dsn_testing.vhd)
 -------------------------------
-p_out_dsntst_bufclk       => open,         --i_dsntst_bufclk,
-
-p_in_dsntst_txd_rdy       => '0',          --i_dsntst_txdata_rdy,
-p_in_dsntst_txbuf_din     => (others=>'0'),--i_dsntst_txdata_dout,
-p_in_dsntst_txbuf_wr      => '0',          --i_dsntst_txdata_wd,
-p_out_dsntst_txbuf_empty  => open,         --i_dsntst_txbuf_empty,
-p_out_dsntst_txbuf_full   => open,         --i_dsntst_txbuf_full,
+p_out_dsntst_bufclk       => open,         --i_dsntst_bufclk,      --
+                                                                   --
+p_in_dsntst_txd_rdy       => '0',          --i_dsntst_txdata_rdy,  --
+p_in_dsntst_txbuf_din     => (others=>'0'),--i_dsntst_txdata_dout, --
+p_in_dsntst_txbuf_wr      => '0',          --i_dsntst_txdata_wd,   --
+p_out_dsntst_txbuf_empty  => open,         --i_dsntst_txbuf_empty, --
+p_out_dsntst_txbuf_full   => open,         --i_dsntst_txbuf_full,  --
 
 
 -------------------------------
@@ -1080,9 +1189,9 @@ p_in_rst => i_trc_rst
 );
 
 
-----***********************************************************
-----Проект Накопителя - dsn_hdd.vhd
-----***********************************************************
+--***********************************************************
+--Проект Накопителя - dsn_hdd.vhd
+--***********************************************************
 --i_swt_hdd_tstgen_cfg<=i_hdd_rbuf_cfg.tstgen;
 --
 --m_hdd : dsn_hdd
@@ -1255,8 +1364,8 @@ p_in_rst => i_trc_rst
 --p_in_clk => g_usr_highclk,
 --p_in_rst => i_hdd_rst
 --);
-
-
+--
+--
 ----***********************************************************
 ----Проект модуля Тестирования - Имитация Видео данных
 ----***********************************************************
@@ -1434,13 +1543,13 @@ i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VE
 
 --//Флаги (Host<-dev)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
-                                                 i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
-                                                 '0';
+                                                  i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                  '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
-                                                 i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
-                                                 i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
-                                                 '0';
+                                                  i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
+                                                  i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                  '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT)<=i_vctrl_hfrmrk;
@@ -1625,35 +1734,32 @@ p_in_rst         => i_arb_mem_rst
 
 --//Подключаем устройства к арбитру ОЗУ
 i_memin_ch(0) <= i_host_memin;
-i_host_memout    <= i_memout_ch(0);
+i_host_memout <= i_memout_ch(0);
 
-i_memin_ch(1) <= i_vctrlwr_memin;
+i_memin_ch(1)    <= i_vctrlwr_memin;
 i_vctrlwr_memout <= i_memout_ch(1);
 
-i_memin_ch(2) <= i_vctrlrd_memin;
+i_memin_ch(2)    <= i_vctrlrd_memin;
 i_vctrlrd_memout <= i_memout_ch(2);
 
 --gen_ch34sel0 : if (strcmp(C_PCFG_HDD_USE,"ON")  and strcmp(C_PCFG_TRC_USE,"ON")) or
---                (strcmp(C_PCFG_HDD_USE,"OFF") and strcmp(C_PCFG_TRC_USE,"OFF")) or
---                (strcmp(C_PCFG_HDD_USE,"ON")  and strcmp(C_PCFG_TRC_USE,"OFF")) generate
-----CH3
+--                  (strcmp(C_PCFG_HDD_USE,"OFF") and strcmp(C_PCFG_TRC_USE,"OFF")) or
+--                  (strcmp(C_PCFG_HDD_USE,"ON")  and strcmp(C_PCFG_TRC_USE,"OFF")) generate
+--
 --i_memin_ch(3)<= i_hdd_memin;
---i_hdd_memout    <= i_memout_ch(3);
+--i_hdd_memout <= i_memout_ch(3);
 --
-----CH4
 --i_memin_ch(4)<= i_trc_memin;
---i_trc_memout    <= i_memout_ch(4);
+--i_trc_memout <= i_memout_ch(4);
 --
---end generate gen_chs34el0;
+--end generate gen_ch34sel0;
 --
 --gen_ch34sel1 : if (strcmp(C_PCFG_HDD_USE,"OFF") and strcmp(C_PCFG_TRC_USE,"ON")) generate
---CH3
 i_memin_ch(3) <= i_trc_memin;
-i_trc_memout     <= i_memout_ch(3);
-
-----CH4
+i_trc_memout  <= i_memout_ch(3);
+--
 --i_memin_ch(4)<= i_hdd_memin;
---i_hdd_memout    <= i_memout_ch(4);
+--i_hdd_memout <= i_memout_ch(4);
 --
 --end generate gen_ch34sel1;
 
@@ -1790,21 +1896,21 @@ pin_out_TP(6)<='0';         -- /pin24
 pin_out_TP(7)<='0';         -- /pin26
 
 --Светодиоды
-pin_out_led_E<='0';         --i_hdd_gt_plldet and i_hdd_dcm_lock;
-pin_out_led_N<=i_test01_led;--i_test01_ledlclk_dcm_lock when pin_in_btn_S='0' else i_test01_led;
-pin_out_led_S<='0';
-pin_out_led_W<='0';         --'0' when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
-pin_out_led_C<='0';         --not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
+pin_out_led_E<='0';--i_hdd_gt_plldet and i_hdd_dcm_lock;
+pin_out_led_N<='0';--lclk_dcm_lock when pin_in_btn_S='0' else i_test01_led;
+pin_out_led_S<='0';--i_memctrl_locked(0);
+pin_out_led_W<='0';--'0' when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
+pin_out_led_C<='0';--not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
-pin_out_led(0)<='0'; --i_hdd_dbgled(1).busy;
-pin_out_led(1)<='0'; --i_hdd_dbgled(1).err;
-pin_out_led(2)<='0'; --i_hdd_dbgled(1).rdy;
-pin_out_led(3)<='0'; --i_hdd_dbgled(1).link;
+pin_out_led(0)<='0';--i_hdd_dbgled(1).busy;
+pin_out_led(1)<='0';--i_hdd_dbgled(1).err;
+pin_out_led(2)<='0';--i_hdd_dbgled(1).rdy;
+pin_out_led(3)<='0';--i_hdd_dbgled(1).link;
 
-pin_out_led(4)<='0'; --i_hdd_dbgled(0).busy;
-pin_out_led(5)<='0'; --i_hdd_dbgled(0).err;
-pin_out_led(6)<='0'; --i_hdd_dbgled(0).rdy;
-pin_out_led(7)<='0'; --i_hdd_dbgled(0).link;
+pin_out_led(4)<='0';--i_hdd_dbgled(0).busy;
+pin_out_led(5)<='0';--i_hdd_dbgled(0).err;
+pin_out_led(6)<='0';--i_hdd_dbgled(0).rdy;
+pin_out_led(7)<='0';--i_hdd_dbgled(0).link;
 
 m_gt_03_test: fpga_test_01
 generic map(
@@ -1820,7 +1926,7 @@ p_out_1ms      => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk       => g_host_clk,
+p_in_clk       => g_refclk200MHz,
 p_in_rst       => i_cfg_rst
 );
 
