@@ -18,11 +18,12 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.prj_cfg.all;
 
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0335#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0336#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -84,8 +85,8 @@ constant C_HDEV_CFG_DBUF                      : integer:=0;--//Буфера RX/TX CFG
 constant C_HDEV_ETH_DBUF                      : integer:=1;--//Буфера RX/TX ETH
 constant C_HDEV_MEM_DBUF                      : integer:=2;--//ОЗУ
 constant C_HDEV_VCH_DBUF                      : integer:=3;--//Буфер Видеоинформации
-constant C_HDEV_COUNT                         : integer:=4+1;
-
+constant C_HDEV_COUNT                         : integer:=C_HDEV_VCH_DBUF+1;
+constant C_HDEV_COUNT_MAX                     : integer:=pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT+1));
 
 --//Register C_HOST_REG_STATUS_DEV / Bit Map:
 constant C_HREG_DEV_STATUS_INT_ACT_BIT        : integer:=0; --//Не используется драйвером
@@ -132,8 +133,8 @@ constant C_HIRQ_VCH0                          : integer:=16#05#;
 constant C_HIRQ_VCH1                          : integer:=16#06#;
 constant C_HIRQ_VCH2                          : integer:=16#07#;
 constant C_HIRQ_VCH3                          : integer:=16#08#;
-constant C_HIRQ_COUNT                         : integer:=C_HIRQ_VCH2+1;--//Текущее кол-во источников прерываний
-constant C_HIRQ_COUNT_MAX                     : integer:=16;--//Максимальное кол-во источников перываний.
+constant C_HIRQ_COUNT                         : integer:=C_HIRQ_VCH3+1;
+constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
 
 --//Register C_HREG_MEM_ADR / Bit Map:
@@ -152,12 +153,12 @@ constant C_HREG_MEM_CTRL_LAST_BIT             : integer:=C_HREG_MEM_CTRL_TRNRD_M
 
 
 --//Register C_HREG_PCIE / Bit Map:
-constant C_HREG_PCIE_REQ_LINK_L_BIT           : integer:=0;
-constant C_HREG_PCIE_REQ_LINK_M_BIT           : integer:=5;
-constant C_HREG_PCIE_NEG_LINK_L_BIT           : integer:=6; --//исользуется Максом
-constant C_HREG_PCIE_NEG_LINK_M_BIT           : integer:=11;--//исользуется Максом
-constant C_HREG_PCIE_REQ_MAX_PAYLOAD_L_BIT    : integer:=12;--//исользуется Максом
-constant C_HREG_PCIE_REQ_MAX_PAYLOAD_M_BIT    : integer:=14;--//исользуется Максом
+constant C_HREG_PCIE_REQ_LINK_L_RBIT          : integer:=0;
+constant C_HREG_PCIE_REQ_LINK_M_RBIT          : integer:=5;
+constant C_HREG_PCIE_NEG_LINK_L_RBIT          : integer:=6; --//исользуется Максом
+constant C_HREG_PCIE_NEG_LINK_M_RBIT          : integer:=11;--//исользуется Максом
+constant C_HREG_PCIE_REQ_MAX_PAYLOAD_L_RBIT   : integer:=12;--//исользуется Максом
+constant C_HREG_PCIE_REQ_MAX_PAYLOAD_M_RBIT   : integer:=14;--//исользуется Максом
 constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer:=15;--//исользуется Максом
 constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer:=17;--//исользуется Максом
 constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer:=18;--//исользуется Максом
@@ -169,30 +170,34 @@ constant C_HREG_PCIE_NOSNOOP_RBIT             : integer:=23;
 constant C_HREG_PCIE_CPL_STREAMING_BIT        : integer:=26;--//исользуется Максом
 constant C_HREG_PCIE_METRING_BIT              : integer:=27;--//исользуется Максом
 constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer:=28;
---constant C_HREG_PCIE_DMA_RELEX_ORDER_WBIT     : integer:=29;
 constant C_HREG_PCIE_LAST_BIT                 : integer:=C_HREG_PCIE_SPEED_TESTING_BIT;
 
 
+--//Порт модуля dsn_host.vhd /p_out_dev_din/out/ Bit Map:
+constant C_HDEV_DWIDTH                        : integer:=32;
+
 --//Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
-constant C_DEV_OPTIN_TXFIFO_PFULL_BIT         : integer:=0;
-constant C_DEV_OPTIN_RXFIFO_EMPTY_BIT         : integer:=1;
-constant C_DEV_OPTIN_MEMTRN_DONE_BIT          : integer:=2;
-constant C_DEV_OPTIN_VCTRL_FRMRK_L_BIT        : integer:=3;
-constant C_DEV_OPTIN_VCTRL_FRMRK_M_BIT        : integer:=34;--C_DEV_OPTIN_VCTRL_FRMRK_L_BIT + 31;
-constant C_DEV_OPTIN_VCTRL_FRSKIP_L_BIT       : integer:=35;
-constant C_DEV_OPTIN_VCTRL_FRSKIP_M_BIT       : integer:=42;--C_DEV_OPTIN_VCTRL_FRSKIP_L_BIT + 7;
-constant C_DEV_OPTIN_LAST_BIT                 : integer:=C_DEV_OPTIN_VCTRL_FRSKIP_M_BIT;
+constant C_HDEV_OPTIN_TXFIFO_PFULL_BIT        : integer:=0;
+constant C_HDEV_OPTIN_RXFIFO_EMPTY_BIT        : integer:=1;
+constant C_HDEV_OPTIN_MEMTRN_DONE_BIT         : integer:=2;
+constant C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT       : integer:=3;
+constant C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT       : integer:=34;--C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + 31;
+constant C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT      : integer:=35;
+constant C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT      : integer:=42;--C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT + 7;
+constant C_HDEV_OPTIN_TRC_DSIZE_L_BIT         : integer:=43;
+constant C_HDEV_OPTIN_TRC_DSIZE_M_BIT         : integer:=74;--C_HDEV_OPTIN_TRC_DSIZE_L_BIT + 31
+constant C_HDEV_OPTIN_LAST_BIT                : integer:=C_HDEV_OPTIN_TRC_DSIZE_M_BIT;
 
 --//Порт модуля dsn_host.vhd /p_out_dev_option/ Bit Map:
-constant C_DEV_OPTOUT_MEM_ADR_L_BIT           : integer:=0;
-constant C_DEV_OPTOUT_MEM_ADR_M_BIT           : integer:=31;
-constant C_DEV_OPTOUT_MEM_RQLEN_L_BIT         : integer:=32;
-constant C_DEV_OPTOUT_MEM_RQLEN_M_BIT         : integer:=49;--C_DEV_OPTOUT_MEM_RQLEN_L_BIT + 17 (mem_rqlen - значение в BYTE. max 128KB)
-constant C_DEV_OPTOUT_MEM_TRNWR_LEN_L_BIT     : integer:=50;
-constant C_DEV_OPTOUT_MEM_TRNWR_LEN_M_BIT     : integer:=57;--C_DEV_OPTOUT_MEM_TRNWR_LEN_L_BIT + 7 (mem_trnwr - значение в DWORD.)
-constant C_DEV_OPTOUT_MEM_TRNRD_LEN_L_BIT     : integer:=58;
-constant C_DEV_OPTOUT_MEM_TRNRD_LEN_M_BIT     : integer:=65;--C_DEV_OPTOUT_MEM_TRNRD_LEN_L_BIT + 7 (mem_trnrd - значение в DWORD.)
-constant C_DEV_OPTOUT_LAST_BIT                : integer:=C_DEV_OPTOUT_MEM_TRNRD_LEN_M_BIT;
+constant C_HDEV_OPTOUT_MEM_ADR_L_BIT          : integer:=0;
+constant C_HDEV_OPTOUT_MEM_ADR_M_BIT          : integer:=31;
+constant C_HDEV_OPTOUT_MEM_RQLEN_L_BIT        : integer:=32;
+constant C_HDEV_OPTOUT_MEM_RQLEN_M_BIT        : integer:=49;--C_HDEV_OPTOUT_MEM_RQLEN_L_BIT + 17 (mem_rqlen - значение в BYTE. max 128KB)
+constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT    : integer:=50;
+constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT    : integer:=57;--C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT + 7 (mem_trnwr - значение в DWORD.)
+constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT    : integer:=58;
+constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT    : integer:=65;--C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT + 7 (mem_trnrd - значение в DWORD.)
+constant C_HDEV_OPTOUT_LAST_BIT               : integer:=C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT;
 
 
 
@@ -208,8 +213,8 @@ constant C_CFGDEV_TMR                         : integer:=16#03#;
 constant C_CFGDEV_TRCNIK                      : integer:=16#04#;
 constant C_CFGDEV_HDD                         : integer:=16#05#;
 constant C_CFGDEV_TESTING                     : integer:=16#06#;
-
-constant C_CFGDEV_COUNT                       : integer:=16#06# + 1;
+constant C_CFGDEV_COUNT                       : integer:=C_CFGDEV_TESTING + 1;
+constant C_CFGDEV_COUNT_MAX                   : integer:=256;--//Определяется константами C_CFGPKT_DADR_M/L_BIT в cfgdev_pkg.vhd
 
 
 
@@ -231,10 +236,9 @@ constant C_TMR_REG_CTRL_DIS_BIT               : integer:=3;
 constant C_TMR_REG_CTRL_LAST_BIT              : integer:=C_TMR_REG_CTRL_DIS_BIT;
 
 
---constant C_TMR_COUNT_MAX                      : integer:=16#04#;
 --//Определяем кол-во таймеров в dsn_timer.vhd
 constant C_TMR_COUNT                          : integer:=16#01#;
-
+constant C_TMR_COUNT_MAX                      : integer:=pwr(2, (C_TMR_REG_CTRL_NUM_M_BIT-C_TMR_REG_CTRL_NUM_L_BIT+1));
 
 
 --//--------------------------------------------------------------
@@ -400,8 +404,8 @@ constant C_VCTRL_PRM_MEM_ADR_RD               : integer:=1;--//Базовый адрес буф
 constant C_VCTRL_PRM_FR_ZONE_SKIP             : integer:=2;
 constant C_VCTRL_PRM_FR_ZONE_ACTIVE           : integer:=3;
 constant C_VCTRL_PRM_FR_OPTIONS               : integer:=4;
-----//Мах кол-во режимов установок параметров:
---constant C_VCTRL_PRM_COUNT_MAX                : integer:=4+1;--C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1;
+--//Мах кол-во режимов установок параметров:
+constant C_VCTRL_PRM_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1));
 
 
 --//Register VCTRL_REG_MEM_ADDR / Bit Map:
@@ -421,8 +425,8 @@ constant C_VCTRL_MEM_VCH_L_BIT                : integer:=24;--//Номер видео кана
 constant C_VCTRL_MEM_VCH_M_BIT                : integer:=25;
 
 --//Мах кол-во видео каналов:
-constant C_VCTRL_VCH_COUNT_MAX                : integer:=4; --//Вычисляется из значений C_VCTRL_MEM_VCH_(L/M)_BIT
---constant C_VCTRL_VCH_COUNT                    : integer:=C_VCTRL_VCH_COUNT_USE;
+constant C_VCTRL_VCH_COUNT                    : integer:=C_PCFG_VCTRL_VCH_COUNT;
+constant C_VCTRL_VCH_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_MEM_VCH_M_BIT-C_VCTRL_MEM_VCH_L_BIT+1));
 
 
 --//Register C_VCTRL_REG_TST0 / Bit Map:
@@ -467,11 +471,11 @@ constant C_TRCNIK_REG_TST0                    : integer:=16#013#;
 
 
 --constant C_TRCNIK_VCH_COUNT_MAX               : integer:=C_VCTRL_VCH_COUNT_MAX
-constant C_TRCNIK_VCH_COUNT                   : integer:=1;--//Текущее кол-во
+constant C_TRCNIK_VCH_COUNT                   : integer:=1;
 
 --/Интервальные пороги
-constant C_TRCNIK_IP_COUNT_MAX                : integer:=8;--//Мах кол-во
-constant C_TRCNIK_IP_COUNT                    : integer:=8;--//Текущее кол-во
+constant C_TRCNIK_IP_COUNT_MAX                : integer:=8;
+constant C_TRCNIK_IP_COUNT                    : integer:=8;
 
 
 --//Register C_TRCNIK_REG_MEM_ADDR / Bit Map:
