@@ -335,9 +335,9 @@ p_out_dbgcs.data(3)<='0';--i_sh_llayer_txhold(1);
 p_out_dbgcs.data(4)<='0';--i_sh_llayer_rxhold(0);
 p_out_dbgcs.data(5)<='0';--i_sh_llayer_rxhold(1);
 p_out_dbgcs.data(6)<=i_sh_tlayer_txon(0);
-p_out_dbgcs.data(7)<=i_sh_tlayer_txon(1);
+p_out_dbgcs.data(7)<='0';--i_sh_tlayer_txon(1);
 p_out_dbgcs.data(8)<=i_sh_tlayer_rxon(0);
-p_out_dbgcs.data(9)<=i_sh_tlayer_rxon(1);
+p_out_dbgcs.data(9)<='0';--i_sh_tlayer_rxon(1);
 p_out_dbgcs.data(41 downto 10)<=i_measure_dly_tcnt(0);
 p_out_dbgcs.data(73 downto 42)<=i_measure_dly_time(0);
 
