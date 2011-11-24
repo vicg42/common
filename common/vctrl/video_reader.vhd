@@ -83,26 +83,8 @@ p_in_upp_buf_full    : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req     : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en       : in    std_logic;                    --//Разрешение арбитра
-
-p_out_mem_bank1h     : out   std_logic_vector(3 downto 0);
-p_out_mem_ce         : out   std_logic;
-p_out_mem_cw         : out   std_logic;
-p_out_mem_rd         : out   std_logic;
-p_out_mem_wr         : out   std_logic;
-p_out_mem_term       : out   std_logic;
-p_out_mem_adr        : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be         : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout        : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf          : in    std_logic;
-p_in_mem_wpf         : in    std_logic;
-p_in_mem_re          : in    std_logic;
-p_in_mem_rpe         : in    std_logic;
-
-p_out_mem_clk        : out   std_logic;
+p_out_mem            : out   TMemIN;
+p_in_mem             : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -378,7 +360,7 @@ begin
         i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
         i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
         i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row_cnt(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT downto 0);
-        i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_vfr_skip_pix(G_MEM_VLINE_L_BIT-1 downto 0);
+        i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_vfr_skip_pix(G_MEM_VLINE_L_BIT-1-2 downto 0)&"00";--т.к. значение i_vfr_skip_pix в DW
 
         fsm_state_cs <= S_MEM_START;
 
@@ -464,10 +446,6 @@ p_in_cfg_mem_wr      => i_mem_dir,
 p_in_cfg_mem_start   => i_mem_start,
 p_out_cfg_mem_done   => i_mem_done,
 
---//Статусы
-p_out_memarb_req     => p_out_memarb_req,
-p_in_memarb_en       => p_in_memarb_en,
-
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
@@ -482,23 +460,8 @@ p_in_usr_rxbuf_full  => p_in_upp_buf_full,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_mem_bank1h     => p_out_mem_bank1h,
-p_out_mem_ce         => p_out_mem_ce,
-p_out_mem_cw         => p_out_mem_cw,
-p_out_mem_rd         => p_out_mem_rd,
-p_out_mem_wr         => p_out_mem_wr,
-p_out_mem_term       => p_out_mem_term,
-p_out_mem_adr        => p_out_mem_adr,
-p_out_mem_be         => p_out_mem_be,
-p_out_mem_din        => p_out_mem_din,
-p_in_mem_dout        => p_in_mem_dout,
-
-p_in_mem_wf          => p_in_mem_wf,
-p_in_mem_wpf         => p_in_mem_wpf,
-p_in_mem_re          => p_in_mem_re,
-p_in_mem_rpe         => p_in_mem_rpe,
-
-p_out_mem_clk        => p_out_mem_clk,
+p_out_mem            => p_out_mem,
+p_in_mem             => p_in_mem,
 
 -------------------------------
 --System
