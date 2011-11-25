@@ -13,7 +13,7 @@
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
-`include "../../../common/hw/pci_express/pcie_def.v"
+`include "../../../common/lib/hw/pci_express/pcie_def.v"
 
 //Состояния автомата управления
 `define STATE_RX_RST            4'b0000 //4'h00 //10'b0000000001
