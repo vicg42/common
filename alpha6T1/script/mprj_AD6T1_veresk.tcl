@@ -140,13 +140,9 @@ set _projects [ list \
       [ list "../../../common/veresk_m/tracker_nik/dsn_track_nik.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tracker_nik/trc_nik_core.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/tracker_nik/trc_nik_grado.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/src/eth_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_m/eth/src/emac_core_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_m/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_m/eth/dsn_ethg.vhd" $_VHDMod ] \
@@ -193,12 +189,17 @@ set _projects [ list \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_clocking_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_2_0_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/double_reset.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_gtx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_top.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core_locallink.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core.vhd" $_VHDMod ] \
+      [ list "../src/eth/emac_core_main.vhd" $_VHDMod ] \
       [ list "../../../common/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
