@@ -46,8 +46,8 @@ port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_rbuf_cfg         : in    THDDRBufCfg;   --//Конфигурирование RAMBUF
-p_out_rbuf_status     : out   THDDRBufStatus;--//Статусы RAMBUF
+p_in_rbuf_cfg         : in    THDDRBufCfg;   --Конфигурирование RAMBUF
+p_out_rbuf_status     : out   THDDRBufStatus;--Статусы RAMBUF
 
 ----------------------------
 --Связь с буфером видеоданных
