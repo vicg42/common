@@ -1,0 +1,1112 @@
+###############################################################################
+# Define Device, Package And Speed Grade
+###############################################################################
+CONFIG PART = XC6VLX240T-FF1759-1;
+
+## Target silicon stepping level 0 and later
+#CONFIG STEPPING = 0;
+
+###############################################################################
+#
+###############################################################################
+NET "pin_out_led<0>" LOC = "P41" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 8
+NET "pin_out_led<1>" LOC = "R42" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 14
+NET "pin_out_led<2>" LOC = "P42" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 16
+NET "pin_out_led<3>" LOC = "U41" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 73
+NET "pin_out_led<4>" LOC = "U32" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 71
+NET "pin_out_led<5>" LOC = "U33" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 69
+
+
+
+###############################################################################
+#
+###############################################################################
+#ref_clk (200 MHz Oscillator)
+NET "pin_in_refclk200M_p" LOC = "AE30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_refclk200M_n" LOC = "AF30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+TIMEGRP "REF_CLK_PADS" = PADS(pin_in_refclk200M_?);
+
+# PLL (g_pll_mem_clk) 400 MHz =  2.5 ns, 400 MHz clock to DDR3 memory infrastructure
+# PLL (g_pll_clkin) 200 MHz =  5.0 ns, reference clock (200 MHz, direct from pin)
+NET "g_pll_mem_clk" TNM_NET = TNM_PLL_MEM_CLK;
+NET "g_pll_clkin" TNM_NET = TNM_PLL_REF_CLK;
+#NET "g_pll_tmr_clk" TNM_NET = TNM_PLL_TMR_CLK;
+TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5 ns HIGH 50%;
+TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0 ns HIGH 50%;
+#TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%;
+
+
+#############################################################################
+###############       Проект Ethernet        ################################
+#############################################################################
+##--------------------------
+##---- RGMII
+##--------------------------
+#NET "mdoi"   LOC = "R40" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 24
+#NET "mdc"    LOC = "W36" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 36
+#NET "rstn"   LOC = "T41" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 30
+#NET "clk125" LOC = "W32" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 89
+#NET "crs"    LOC = "T39" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 27
+#NET "col"    LOC = "W37" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 35
+#NET "actn"   LOC = "N41" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 28
+#NET "txctrl" LOC = "N36" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 23
+#NET "txc"    LOC = "Y33" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 91
+#NET "txd<0>" LOC = "L39" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 11
+#NET "txd<1>" LOC = "P38" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 19
+#NET "txd<2>" LOC = "U36" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 7
+#NET "txd<3>" LOC = "N38" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 3
+#NET "rxd<0>" LOC = "R38" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 25
+#NET "rxd<1>" LOC = "L40" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 9
+#NET "rxd<2>" LOC = "P37" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 21
+#NET "rxd<3>" LOC = "N35" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 37
+#NET "rxctrl" LOC = "T35" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 13
+#NET "rxc"    LOC = "P35" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 40
+
+#--------------------------
+#---- 1000BASE-X (FIBER)
+#--------------------------
+NET "pin_out_eth_txp<1>" LOC = "AJ37" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 180
+NET "pin_out_eth_txn<1>" LOC = "AF32" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 179
+NET "pin_in_eth_rxp<1>"  LOC = "AK37" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 178
+NET "pin_in_eth_rxn<1>"  LOC = "AG33" | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 177
+NET "pin_out_sfp_tx_dis" LOC = "W36"  | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 36 (SFP - TX DISABLE)
+NET "pin_in_sfp_sd"      LOC = "V36"  | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 34 (SFP - SD signal detect)
+
+# MGTREFCLK0_117: Reference Clock from XRM (mgtclk_m2c_p/mgtclk_m2c_n)
+NET "pin_in_eth_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_eth_clk_n" LOC =  "G9"  | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+TIMEGRP "MGTCLKREF0_117_PADS" = PADS(pin_in_eth_clk_?);
+
+# Locate the Tri-Mode Ethernet MAC instance
+INST "*v6_emac" LOC = "TEMAC_X0Y0";
+INST "*gtx0_v6_gtxwizard_i?gtxe1_i" LOC = "GTXE1_X0Y18";
+
+## Group design elements around the Ethernet MAC to assist with timing
+## closure in this example design. These values may be modified or
+## removed to best suit your design.
+##INST "*" AREA_GROUP = "AG_example_design";
+##AREA_GROUP "AG_example_design" RANGE = CLOCKREGION_X1Y0:CLOCKREGION_X1Y3;
+#INST "*client_side_FIFO?tx_fifo_i?ramgen" LOC = "RAMB36_X7Y16";
+#INST "*client_side_FIFO?rx_fifo_i?ramgen" LOC = "RAMB36_X7Y17";
+
+# CLOCK CONSTRAINTS
+# The following constraints are required. If you choose to not use the example
+# design level of wrapper hierarchy, the net names should be translated to
+# match your design.
+
+# Ethernet MAC reference clock driven by transceiver
+#NET "clk125_o" TNM_NET = "clk_gt_clk";
+#TIMEGRP "emac_core_gt_clk" = "clk_gt_clk";
+#TIMESPEC "TS_emac_core_gt_clk" = PERIOD "emac_core_gt_clk" 8 ns HIGH 50 %;
+NET "m_eth/gen_use_on.m_eth_main/m_eth_core/mac0_gtp_clk125" TNM_NET = "clk_gt_clk";
+TIMEGRP  "emac_core_gt_clk"            = "clk_gt_clk";
+TIMESPEC "TS_emac_core_gt_clk"         = PERIOD "emac_core_gt_clk" 8 ns HIGH 50 %;
+
+
+# LOCALLINK FIFO CONSTRAINTS
+# The following constraints are necessary for proper operation of the LocalLink
+# FIFO. If you choose to not use the LocalLink level of wrapper hierarchy,
+# these constraints should be removed.
+
+# LocalLink client FIFO transmit-side constraints
+# Group the clock crossing signals into timing groups
+INST "*client_side_FIFO?tx_fifo_i?rd_tran_frame_tog"    TNM = "tx_fifo_rd_to_wr";
+INST "*client_side_FIFO?tx_fifo_i?rd_retran_frame_tog"  TNM = "tx_fifo_rd_to_wr";
+INST "*client_side_FIFO?tx_fifo_i?rd_col_window_pipe_1" TNM = "tx_fifo_rd_to_wr";
+INST "*client_side_FIFO?tx_fifo_i?rd_addr_txfer*"       TNM = "tx_fifo_rd_to_wr";
+INST "*client_side_FIFO?tx_fifo_i?rd_txfer_tog"         TNM = "tx_fifo_rd_to_wr";
+INST "*client_side_FIFO?tx_fifo_i?wr_frame_in_fifo"     TNM = "tx_fifo_wr_to_rd";
+
+TIMESPEC "TS_tx_fifo_rd_to_wr" = FROM "tx_fifo_rd_to_wr" TO "emac_core_gt_clk" 8 ns DATAPATHONLY;
+TIMESPEC "TS_tx_fifo_wr_to_rd" = FROM "tx_fifo_wr_to_rd" TO "emac_core_gt_clk" 8 ns DATAPATHONLY;
+
+# Reduce clock period to allow for metastability settling time
+INST "*client_side_FIFO?tx_fifo_i?wr_tran_frame_tog"    TNM = "tx_metastable";
+INST "*client_side_FIFO?tx_fifo_i?wr_rd_addr*"          TNM = "tx_metastable";
+INST "*client_side_FIFO?tx_fifo_i?wr_txfer_tog"         TNM = "tx_metastable";
+INST "*client_side_FIFO?tx_fifo_i?frame_in_fifo"        TNM = "tx_metastable";
+INST "*client_side_FIFO?tx_fifo_i?wr_retran_frame_tog*" TNM = "tx_metastable";
+INST "*client_side_FIFO?tx_fifo_i?wr_col_window_pipe_0" TNM = "tx_metastable";
+TIMESPEC "TS_tx_meta_protect" = FROM "tx_metastable" 5 ns DATAPATHONLY;
+
+# Transmit-side client FIFO address bus timing
+INST "*client_side_FIFO?tx_fifo_i?rd_addr_txfer*" TNM = "tx_addr_rd";
+INST "*client_side_FIFO?tx_fifo_i?wr_rd_addr*"    TNM = "tx_addr_wr";
+TIMESPEC "TS_tx_fifo_addr" = FROM "tx_addr_rd" TO "tx_addr_wr" 10 ns;
+
+# LocalLink client FIFO receive-side constraints
+# Group the clock crossing signals into timing groups
+INST "*client_side_FIFO?rx_fifo_i?wr_store_frame_tog" TNM = "rx_fifo_wr_to_rd";
+INST "*client_side_FIFO?rx_fifo_i?rd_addr_gray*"      TNM = "rx_fifo_rd_to_wr";
+
+TIMESPEC "TS_rx_fifo_wr_to_rd" = FROM "rx_fifo_wr_to_rd" TO "emac_core_gt_clk" 8 ns DATAPATHONLY;
+TIMESPEC "TS_rx_fifo_rd_to_wr" = FROM "rx_fifo_rd_to_wr" TO "emac_core_gt_clk" 8 ns DATAPATHONLY;
+
+# Reduce clock period to allow for metastability settling time
+INST "*client_side_FIFO?rx_fifo_i?wr_rd_addr_gray_sync*" TNM = "rx_metastable";
+INST "*client_side_FIFO?rx_fifo_i?rd_store_frame_tog"    TNM = "rx_metastable";
+TIMESPEC "TS_rx_meta_protect" = FROM "rx_metastable" 5 ns;
+
+
+#############################################################################
+###############       Проект PCI-Express     ################################
+#############################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+# MGTREFCLK0_114: PCIe Reference Clock 250MHz (derived from 100MHz input on P5)
+NET "pin_in_pciexp_clk_p" LOC =  "AB8" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_pciexp_clk_n" LOC =  "AB7" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+#TIMEGRP "MGTCLKREF0_114_PADS" = PADS(pin_in_pciexp_clk_?);
+
+NET "pin_in_pciexp_rstn" TIG;
+NET "pin_in_pciexp_rstn" LOC =  "AC30" | IOSTANDARD = LVCMOS25 | PULLUP | NODELAY ;
+
+#--------------------------------------------------------------------------
+#Расположение компонентов в кристале
+#--------------------------------------------------------------------------
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[0].GTX" LOC = GTXE1_X0Y12; # PCIe Lane 0
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[1].GTX" LOC = GTXE1_X0Y13; # PCIe Lane 1
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[2].GTX" LOC = GTXE1_X0Y14; # PCIe Lane 2
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[3].GTX" LOC = GTXE1_X0Y15; # PCIe Lane 3
+
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_block_i" LOC = PCIE_X0Y1;
+#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i" LOC = MMCM_ADV_X0Y3;
+
+#--------------------------------------------------------------------------
+#Временные ограничения
+#--------------------------------------------------------------------------
+NET "i_pciexp_gt_refclk" TNM_NET = "PCIEXP_SYSCLK" ;
+#NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_125" TNM_NET = "PCIEXP_CLK_125" ;
+#NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
+
+TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % PRIORITY 100 ;
+#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 1 ;
+#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
+
+PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
+PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
+PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
+
+
+###############################################################################
+### AXI: MEMEORY ARBITER BANK0
+###############################################################################
+##NET "m_memarb_bank0/*_resync*" TNM = FFS "memory_arb_bank0_reset_resync";
+##NET "m_memarb_bank0/*INTERCONNECT_ARESETN" TNM = FFS "memory_arb_bank0_reset_resync";
+##TIMEGRP "memory_arb_bank0_reset_source" = FFS PADS;
+##TIMESPEC "TS_memory_arb_bank0_reset_resync" = FROM "memory_arb_bank0_reset_source" TO "memory_arb_bank0_reset_resync" TIG;
+##INST "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*asyncfifo_*mem/*dout_i_?" TNM = "memory_arb_bank0_async_clock_conv_FFDEST";
+##INST "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*asyncfifo_*mem/*dout_i_??" TNM = "memory_arb_bank0_async_clock_conv_FFDEST";
+###INST "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*asyncfifo_*mem/*dout_i_???" TNM = "memory_arb_bank0_async_clock_conv_FFDEST";
+###INST "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*asyncfifo_*mem/*dout_i_????" TNM = "memory_arb_bank0_async_clock_conv_FFDEST";
+##TIMESPEC "TS_memory_arb_bank0_async_clock_conv" = FROM RAMS TO "memory_arb_bank0_async_clock_conv_FFDEST" TIG;
+##NET "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*asyncfifo_*/wr_pntr_*" TIG;
+##NET "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*asyncfifo_*/rd_pntr_*" TIG;
+##NET "m_memarb_bank0/*_converter_bank/*clock_conv_inst/*async_conv_reset" TIG;
+
+NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
+TIMEGRP "mem_arbch_reset_source" = FFS PADS;
+TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
+
+###############################################################################
+# DDR3 SDRAM Bank pin 0 constraints
+###############################################################################
+
+NET "mem_data_inout_ddr3_data_inout[0]_dq<0>"     LOC   =  "F16";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<1>"     LOC   =  "D17";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<2>"     LOC   =  "E17";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<3>"     LOC   =  "N18";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<4>"     LOC   =  "C18";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<5>"     LOC   =  "M16";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<6>"     LOC   =  "F19";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<7>"     LOC   =  "B17";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<8>"     LOC   =  "D18";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<9>"     LOC   =  "J16";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<10>"    LOC   =  "G19";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<11>"    LOC   =  "H18";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<12>"    LOC   =  "L16";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<13>"    LOC   =  "P16";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<14>"    LOC   =  "J15";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<15>"    LOC   =  "N15";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<16>"    LOC   =  "C20";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<17>"    LOC   =  "G21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<18>"    LOC   =  "G22";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<19>"    LOC   =  "J21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<20>"    LOC   =  "A21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<21>"    LOC   =  "F21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<22>"    LOC   =  "C21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<23>"    LOC   =  "D20";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<24>"    LOC   =  "K20";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<25>"    LOC   =  "L20";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<26>"    LOC   =  "J20";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<27>"    LOC   =  "D21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<28>"    LOC   =  "K19";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<29>"    LOC   =  "L21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<30>"    LOC   =  "L19";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<31>"    LOC   =  "H21";
+NET "mem_data_inout_ddr3_data_inout[0]_dq<*>"     IOSTANDARD = SSTL15_T_DCI;
+
+NET "mem_addr_out_ddr3_addr_out[0]_a<0>"          LOC   =  "G23";
+NET "mem_addr_out_ddr3_addr_out[0]_a<1>"          LOC   =  "E24";
+NET "mem_addr_out_ddr3_addr_out[0]_a<2>"          LOC   =  "E23";
+NET "mem_addr_out_ddr3_addr_out[0]_a<3>"          LOC   =  "A24";
+NET "mem_addr_out_ddr3_addr_out[0]_a<4>"          LOC   =  "D22";
+NET "mem_addr_out_ddr3_addr_out[0]_a<5>"          LOC   =  "K22";
+NET "mem_addr_out_ddr3_addr_out[0]_a<6>"          LOC   =  "F22";
+NET "mem_addr_out_ddr3_addr_out[0]_a<7>"          LOC   =  "C24";
+NET "mem_addr_out_ddr3_addr_out[0]_a<8>"          LOC   =  "C23";
+NET "mem_addr_out_ddr3_addr_out[0]_a<9>"          LOC   =  "H23";
+NET "mem_addr_out_ddr3_addr_out[0]_a<10>"         LOC   =  "G17";
+NET "mem_addr_out_ddr3_addr_out[0]_a<11>"         LOC   =  "G16";
+NET "mem_addr_out_ddr3_addr_out[0]_a<12>"         LOC   =  "J17";
+# NET "mem_addr_out_ddr3_addr_out[0]_a<13>"         LOC   =  "K17";
+# NET "mem_addr_out_ddr3_addr_out[0]_a<14>"         LOC   =  "L17";
+NET "mem_addr_out_ddr3_addr_out[0]_a<*>"          IOSTANDARD = SSTL15;
+
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_ba<0>"         LOC   =  "C19";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_ba<1>"         LOC   =  "P18";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_ba<2>"         LOC   =  "B19";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_ba<*>"         IOSTANDARD = SSTL15;
+
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_ras_l"         LOC   =  "L15";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_ras_l"         IOSTANDARD = SSTL15;
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_cas_l"         LOC   =  "K18";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_cas_l"         IOSTANDARD = SSTL15;
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_we_l"          LOC   =  "J18";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_we_l"          IOSTANDARD = SSTL15;
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_reset_l"       LOC   =  "E32";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_reset_l"       IOSTANDARD = SSTL15;
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_cs_l<0>"       LOC   =  "N16";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_cs_l<*>"       IOSTANDARD = SSTL15;
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_odt<0>"        LOC   =  "P17";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_odt<*>"        IOSTANDARD = SSTL15;
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_cke<0>"        LOC   =  "D32";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_cke<*>"        IOSTANDARD = SSTL15;
+
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_dm<0>"         LOC   =  "A17";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_dm<1>"         LOC   =  "G18";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_dm<2>"         LOC   =  "A22";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_dm<3>"         LOC   =  "B24";
+NET "mem_ctrl_out_ddr3_ctrl_out[0]_dm<*>"         IOSTANDARD = SSTL15;
+
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_p<0>"  LOC   =  "E19";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_n<0>"  LOC   =  "E18";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_p<1>"  LOC   =  "B18";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_n<1>"  LOC   =  "A19";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_p<2>"  LOC   =  "B23";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_n<2>"  LOC   =  "B22";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_p<3>"  LOC   =  "B21";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_n<3>"  LOC   =  "A20";
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_p<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+NET "mem_data_inout_ddr3_data_inout[0]_dqs_n<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+
+NET "mem_clk_out_ddr3_clk_out[0]_clk_p<0>"        LOC   =  "G33";
+NET "mem_clk_out_ddr3_clk_out[0]_clk_n<0>"        LOC   =  "G32";
+NET "mem_clk_out_ddr3_clk_out[0]_clk_p<*>"        IOSTANDARD = DIFF_SSTL15;
+NET "mem_clk_out_ddr3_clk_out[0]_clk_n<*>"        IOSTANDARD = DIFF_SSTL15;
+
+TIMEGRP "MEM0_DQ_PADS"   = PADS(mem_data_inout_ddr3_data_inout[0]*);
+TIMEGRP "MEM0_ADDR_PADS" = PADS(mem_addr_out_ddr3_addr_out[0]*);
+TIMEGRP "MEM0_CTRL_PADS" = PADS(mem_ctrl_out_ddr3_ctrl_out[0]*);
+TIMEGRP "MEM0_CLK_PADS"  = PADS(mem_clk_out_ddr3_clk_out[0]*);
+TIMEGRP "MEM0_PADS"      = "MEM0_DQ_PADS":
+                           "MEM0_ADDR_PADS":
+                           "MEM0_CTRL_PADS":
+                           "MEM0_CLK_PADS";
+
+# Create TIMEGRP for mig_ddr3_if_clk0
+NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
+
+# Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
+NET "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync<*>" TNM_NET = TNM_CLK_RSYNC0;
+TIMESPEC TS_CLK_RSYNC0_TO_MIG_CLK0 = FROM TNM_CLK_RSYNC0 to TNM_MIG_CLK0    TIG;
+TIMESPEC TS_MIG_CLK0_TO_CLK_RSYNC0 = FROM TNM_MIG_CLK0   to TNM_CLK_RSYNC0  TIG;
+
+################################################################################
+# Controller 0                                                                 #
+# Memory Device: DDR3_SDRAM->Components->MT41J64M16XX-187E                     #
+# Data Width:    32                                                            #
+# Frequency:     400                                                           #
+# Time Period:   2500                                                          #
+# Data Mask:     1                                                             #
+################################################################################
+# Timing constraints                                                           #
+################################################################################
+
+# Constrain BUFR clocks used to synchronize data from IOB to fabric logic
+# Note that ISE cannot infer this from other PERIOD constraints because
+# of the use of OSERDES blocks in the BUFR clock generation path
+NET "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = TNM_c0_clk_rsync;
+TIMESPEC "TS_c0_clk_rsync" = PERIOD "TNM_c0_clk_rsync" 5 ns;
+
+# Paths between DQ/DQS ISERDES.Q outputs and CLB flops clocked by falling
+# edge of BUFR will by design only be used if DYNCLKDIVSEL is asserted for
+# that particular flop. Mark this path as being a full-cycle, rather than
+# a half cycle path for timing purposes. NOTE: This constraint forces full-
+# cycle timing to be applied globally for all rising->falling edge paths
+# in all resynchronizaton clock domains. If the user had modified the logic
+# in the resync clock domain such that other rising->falling edge paths
+# exist, then constraint below should be modified to utilize pattern
+# matching to specific affect only the DQ/DQS ISERDES.Q outputs
+TIMEGRP "TG_c0_clk_rsync_rise" = RISING  "TNM_c0_clk_rsync";
+TIMEGRP "TG_c0_clk_rsync_fall" = FALLING "TNM_c0_clk_rsync";
+TIMESPEC "TS_c0_clk_rsync_rise_to_fall" = FROM "TG_c0_clk_rsync_rise" TO "TG_c0_clk_rsync_fall" "TS_PLL_MEM_CLK" * 2;
+
+# Signal to select between controller and physical layer signals. Four divided by two clock
+# cycles (8 memory clock cycles) are provided by design for the signal to settle down.
+# Used only by the phy modules.
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_init/u_ff_phy_init_data_sel" TNM = "TNM_C0_PHY_INIT_SEL";
+TIMESPEC "TS_C0_MC_PHY_INIT_SEL" = FROM "TNM_C0_PHY_INIT_SEL" TO FFS = "TS_PLL_MEM_CLK"*4;
+
+###############################################################################
+#Bank 0 DCI_CASCADING                                                         #
+#Syntax : CONFIG DCI_CASCADE = "<master> <slave1> <slave2> ..";               #
+###############################################################################
+CONFIG DCI_CASCADE = "37 36";
+
+##################################################################################################
+##The following locations must be reserved and cannot be used for external I/O because          ##
+##the I/O elements associated with these sites (IODELAY, OSERDES, and associated routing)       ##
+##are used to generate and route the clocks necessary for read data capture and synchronization ##
+##to the core clock domain. These pins should not be routed out on the user's PCB               ##
+##################################################################################################
+
+##################################################################################################
+##The logic of this pin is used internally to drive a BUFR in the column. This chosen pin must  ##
+##be a clock pin capable of spanning to all of the banks containing data bytes in the particular##
+##column. That is, all byte groups must be within +/- 1 bank of this pin. This pin cannot be    ##
+##used for other functions and should not be connected externally. If a different pin is chosen,##
+##he corresponding LOC constraint must also be changed.                                         ##
+##################################################################################################
+
+CONFIG PROHIBIT = L22;
+
+######################################################################################
+## Bank 0 Place RSYNC OSERDES and IODELAY:                                          ##
+######################################################################################
+
+##Site: L22 -- Bank 37
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_oserdes_rsync" LOC = "OLOGIC_X2Y221";
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_odelay_rsync"  LOC = "IODELAY_X2Y221";
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_bufr_rsync"    LOC = "BUFR_X2Y11";
+
+##################################################################################################
+##The logic of this pin is used internally to drive a BUFIO for the byte group. Any clock       ##
+##capable pin in the same bank as the data byte group (DQS, DQ, DM if used) can be used for     ##
+##this pin. This pin cannot be used for other functions and should not be connected externally. ##
+##If a different pin is chosen, the corresponding LOC constraint must also be changed.          ##
+##################################################################################################
+
+CONFIG PROHIBIT = D23,F17,H20,M18;
+
+######################################################################################
+## Bank 0 Place CPT OSERDES and IODELAY:                                            ##
+######################################################################################
+
+##Site: M18 -- Bank 36
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_oserdes_cpt" LOC = "OLOGIC_X2Y183";
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_odelay_cpt"  LOC = "IODELAY_X2Y183";
+
+##Site: F17 -- Bank 36
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_oserdes_cpt" LOC = "OLOGIC_X2Y177";
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_odelay_cpt"  LOC = "IODELAY_X2Y177";
+
+##Site: H20 -- Bank 37
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_oserdes_cpt" LOC = "OLOGIC_X2Y223";
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_odelay_cpt"  LOC = "IODELAY_X2Y223";
+
+##Site: D23 -- Bank 37
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_oserdes_cpt" LOC = "OLOGIC_X2Y217";
+INST "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_odelay_cpt"  LOC = "IODELAY_X2Y217";
+
+######################################################################################
+## Bank 0 MMCM_ADV CONSTRAINTS                                                      ##
+######################################################################################
+
+INST "*bank0_g.infrastructure_i/u_mmcm_adv" LOC = "MMCM_ADV_X0Y11"; #Banks 17, 27, 37
+
+
+################################################################################
+## DDR3 SDRAM Bank 1 pin constraints
+################################################################################
+#
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<0>"     LOC   =  "F40";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<1>"     LOC   =  "F41";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<2>"     LOC   =  "D40";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<3>"     LOC   =  "E40";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<4>"     LOC   =  "G41";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<5>"     LOC   =  "F36";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<6>"     LOC   =  "F37";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<7>"     LOC   =  "F42";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<8>"     LOC   =  "H36";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<9>"     LOC   =  "G36";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<10>"    LOC   =  "A40";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<11>"    LOC   =  "E42";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<12>"    LOC   =  "J35";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<13>"    LOC   =  "H35";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<14>"    LOC   =  "B38";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<15>"    LOC   =  "A39";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<16>"    LOC   =  "P28";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<17>"    LOC   =  "K34";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<18>"    LOC   =  "K39";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<19>"    LOC   =  "K32";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<20>"    LOC   =  "L35";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<21>"    LOC   =  "K35";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<22>"    LOC   =  "K40";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<23>"    LOC   =  "L34";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<24>"    LOC   =  "P31";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<25>"    LOC   =  "P30";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<26>"    LOC   =  "L31";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<27>"    LOC   =  "H38";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<28>"    LOC   =  "J42";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<29>"    LOC   =  "K42";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<30>"    LOC   =  "M31";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<31>"    LOC   =  "N28";
+#NET "mem_data_inout_ddr3_data_inout[1]_dq<*>"     IOSTANDARD = SSTL15_T_DCI;
+#
+#NET "mem_addr_out_ddr3_addr_out[1]_a<0>"          LOC   =  "G42";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<1>"          LOC   =  "D38";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<2>"          LOC   =  "C38";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<3>"          LOC   =  "B42";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<4>"          LOC   =  "A41";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<5>"          LOC   =  "E38";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<6>"          LOC   =  "D41";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<7>"          LOC   =  "D42";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<8>"          LOC   =  "C40";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<9>"          LOC   =  "C41";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<10>"         LOC   =  "G37";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<11>"         LOC   =  "J32";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<12>"         LOC   =  "C35";
+## NET "mem_addr_out_ddr3_addr_out[1]_a<13>"         LOC   =  "C36";
+## NET "mem_addr_out_ddr3_addr_out[1]_a<14>"         LOC   =  "H30";
+#NET "mem_addr_out_ddr3_addr_out[1]_a<*>"          IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_ba<0>"         LOC   =  "J30";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_ba<1>"         LOC   =  "E34";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_ba<2>"         LOC   =  "F34";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_ba<*>"         IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_ras_l"         LOC   =  "K30";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_ras_l"         IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_cas_l"         LOC   =  "K29";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_cas_l"         IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_we_l"          LOC   =  "D36";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_we_l"          IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_reset_l"       LOC   =  "H39";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_reset_l"       IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_cs_l<0>"       LOC   =  "D37";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_cs_l<*>"       IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_odt<0>"        LOC   =  "B36";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_odt<*>"        IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_cke<0>"        LOC   =  "M34";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_cke<*>"        IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_dm<0>"         LOC   =  "F39";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_dm<1>"         LOC   =  "G39";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_dm<2>"         LOC   =  "K33";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_dm<3>"         LOC   =  "N31";
+#NET "mem_ctrl_out_ddr3_ctrl_out[1]_dm<*>"         IOSTANDARD = SSTL15;
+#
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_p<0>"  LOC   =  "B37";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_n<0>"  LOC   =  "A37";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_p<1>"  LOC   =  "B39";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_n<1>"  LOC   =  "C39";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_p<2>"  LOC   =  "N29";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_n<2>"  LOC   =  "N30";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_p<3>"  LOC   =  "M33";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_n<3>"  LOC   =  "M32";
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_p<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+#NET "mem_data_inout_ddr3_data_inout[1]_dqs_n<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+#
+#NET "mem_clk_out_ddr3_clk_out[1]_clk_p<0>"        LOC   =  "G34";
+#NET "mem_clk_out_ddr3_clk_out[1]_clk_n<0>"        LOC   =  "H34";
+#NET "mem_clk_out_ddr3_clk_out[1]_clk_p<*>"        IOSTANDARD = DIFF_SSTL15;
+#NET "mem_clk_out_ddr3_clk_out[1]_clk_n<*>"        IOSTANDARD = DIFF_SSTL15;
+#
+#TIMEGRP "MEM1_DQ_PADS"   = PADS(mem_data_inout_ddr3_data_inout[1]*);
+#TIMEGRP "MEM1_ADDR_PADS" = PADS(mem_addr_out_ddr3_addr_out[1]*);
+#TIMEGRP "MEM1_CTRL_PADS" = PADS(mem_ctrl_out_ddr3_ctrl_out[1]*);
+#TIMEGRP "MEM1_CLK_PADS"  = PADS(mem_clk_out_ddr3_clk_out[1]*);
+#TIMEGRP "MEM1_PADS"      = "MEM1_DQ_PADS":
+#                           "MEM1_ADDR_PADS":
+#                           "MEM1_CTRL_PADS":
+#                           "MEM1_CLK_PADS";
+#
+## Create TIMEGRP for mig_ddr3_if_clk1
+#NET "*mig_ddr3_if_clk1" TNM_NET = TNM_MIG_CLK1;
+#
+## Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
+#NET "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync<*>" TNM_NET = TNM_CLK_RSYNC1;
+#TIMESPEC TS_CLK_RSYNC1_TO_MIG_CLK1 = FROM TNM_CLK_RSYNC1 to TNM_MIG_CLK1    TIG;
+#TIMESPEC TS_MIG_CLK1_TO_CLK_RSYNC1 = FROM TNM_MIG_CLK1   to TNM_CLK_RSYNC1  TIG;
+#
+#################################################################################
+## Controller 1                                                                 #
+## Memory Device: DDR3_SDRAM->Components->MT41J64M16XX-187E                     #
+## Data Width:    32                                                            #
+## Frequency:     400                                                           #
+## Time Period:   2500                                                          #
+## Data Mask:     1                                                             #
+#################################################################################
+## Timing constraints                                                           #
+#################################################################################
+#
+## Constrain BUFR clocks used to synchronize data from IOB to fabric logic
+## Note that ISE cannot infer this from other PERIOD constraints because
+## of the use of OSERDES blocks in the BUFR clock generation path
+#NET "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = TNM_c1_clk_rsync;
+#TIMESPEC "TS_c1_clk_rsync" = PERIOD "TNM_c1_clk_rsync" 5 ns;
+#
+## Paths between DQ/DQS ISERDES.Q outputs and CLB flops clocked by falling
+## edge of BUFR will by design only be used if DYNCLKDIVSEL is asserted for
+## that particular flop. Mark this path as being a full-cycle, rather than
+## a half cycle path for timing purposes. NOTE: This constraint forces full-
+## cycle timing to be applied globally for all rising->falling edge paths
+## in all resynchronizaton clock domains. If the user had modified the logic
+## in the resync clock domain such that other rising->falling edge paths
+## exist, then constraint below should be modified to utilize pattern
+## matching to specific affect only the DQ/DQS ISERDES.Q outputs
+#TIMEGRP "TG_c1_clk_rsync_rise" = RISING  "TNM_c1_clk_rsync";
+#TIMEGRP "TG_c1_clk_rsync_fall" = FALLING "TNM_c1_clk_rsync";
+#TIMESPEC "TS_c1_clk_rsync_rise_to_fall" = FROM "TG_c1_clk_rsync_rise" TO "TG_c1_clk_rsync_fall" "TS_PLL_MEM_CLK" * 2;
+#
+## Signal to select between controller and physical layer signals. Four divided by two clock
+## cycles (8 memory clock cycles) are provided by design for the signal to settle down.
+## Used only by the phy modules.
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_init/u_ff_phy_init_data_sel" TNM = "TNM_C1_PHY_INIT_SEL";
+#TIMESPEC "TS_C1_MC_PHY_INIT_SEL" = FROM "TNM_C1_PHY_INIT_SEL" TO FFS = "TS_PLL_MEM_CLK"*4;
+#
+################################################################################
+##Bank 1 DCI_CASCADING                                                         #
+##Syntax : CONFIG DCI_CASCADE = "<master> <slave1> <slave2> ..";               #
+################################################################################
+#CONFIG DCI_CASCADE = "27 25 26";
+#
+###################################################################################################
+###The following locations must be reserved and cannot be used for external I/O because          ##
+###the I/O elements associated with these sites (IODELAY, OSERDES, and associated routing)       ##
+###are used to generate and route the clocks necessary for read data capture and synchronization ##
+###to the core clock domain. These pins should not be routed out on the user's PCB               ##
+###################################################################################################
+#
+###################################################################################################
+###The logic of this pin is used internally to drive a BUFR in the column. This chosen pin must  ##
+###be a clock pin capable of spanning to all of the banks containing data bytes in the particular##
+###column. That is, all byte groups must be within +/- 1 bank of this pin. This pin cannot be    ##
+###used for other functions and should not be connected externally. If a different pin is chosen,##
+###he corresponding LOC constraint must also be changed.                                         ##
+###################################################################################################
+#
+#CONFIG PROHIBIT = F35;
+#
+#######################################################################################
+### Bank 1 Place RSYNC OSERDES and IODELAY:                                          ##
+#######################################################################################
+#
+##Site: F35 -- Bank 26
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_oserdes_rsync" LOC = "OLOGIC_X1Y179";
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_odelay_rsync"  LOC = "IODELAY_X1Y179";
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_bufr_rsync"    LOC = "BUFR_X1Y9";
+#
+###################################################################################################
+###The logic of this pin is used internally to drive a BUFIO for the byte group. Any clock       ##
+###capable pin in the same bank as the data byte group (DQS, DQ, DM if used) can be used for     ##
+###this pin. This pin cannot be used for other functions and should not be connected externally. ##
+###If a different pin is chosen, the corresponding LOC constraint must also be changed.          ##
+###################################################################################################
+#
+#CONFIG PROHIBIT = B41,E39,K37,K38;
+#
+#######################################################################################
+### Bank 1 Place CPT OSERDES and IODELAY:                                            ##
+#######################################################################################
+#
+###Site: B41 -- Bank 26
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_oserdes_cpt" LOC = "OLOGIC_X1Y177";
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_odelay_cpt"  LOC = "IODELAY_X1Y177";
+#
+###Site: E39 -- Bank 26
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_oserdes_cpt" LOC = "OLOGIC_X1Y183";
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_odelay_cpt"  LOC = "IODELAY_X1Y183";
+#
+###Site: K38 -- Bank 25
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_oserdes_cpt" LOC = "OLOGIC_X1Y143";
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_odelay_cpt"  LOC = "IODELAY_X1Y143";
+#
+###Site: K37 -- Bank 25
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_oserdes_cpt" LOC = "OLOGIC_X1Y137";
+#INST "*bank1_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_odelay_cpt"  LOC = "IODELAY_X1Y137";
+#
+#######################################################################################
+### Bank 1 MMCM_ADV CONSTRAINTS                                                      ##
+#######################################################################################
+#
+#INST "*bank1_g.infrastructure_i/u_mmcm_adv" LOC = "MMCM_ADV_X0Y9"; #Banks 15, 25, 35
+#
+#
+################################################################################
+## DDR3 SDRAM Bank 2 pin constraints
+################################################################################
+#
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<0>"     LOC   =  "AM37";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<1>"     LOC   =  "AL36";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<2>"     LOC   =  "AM36";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<3>"     LOC   =  "AV40";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<4>"     LOC   =  "AY40";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<5>"     LOC   =  "AN39";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<6>"     LOC   =  "AK35";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<7>"     LOC   =  "AP40";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<8>"     LOC   =  "AW40";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<9>"     LOC   =  "BA40";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<10>"    LOC   =  "AP42";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<11>"    LOC   =  "AM39";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<12>"    LOC   =  "AN41";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<13>"    LOC   =  "AN40";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<14>"    LOC   =  "AR42";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<15>"    LOC   =  "AP41";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<16>"    LOC   =  "AT34";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<17>"    LOC   =  "AY39";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<18>"    LOC   =  "AU34";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<19>"    LOC   =  "AY35";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<20>"    LOC   =  "BA35";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<21>"    LOC   =  "AY34";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<22>"    LOC   =  "AR38";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<23>"    LOC   =  "AW35";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<24>"    LOC   =  "AV38";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<25>"    LOC   =  "AV39";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<26>"    LOC   =  "AV35";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<27>"    LOC   =  "AT37";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<28>"    LOC   =  "BA39";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<29>"    LOC   =  "AP37";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<30>"    LOC   =  "AV34";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<31>"    LOC   =  "AR37";
+#NET "mem_data_inout_ddr3_data_inout[2]_dq<*>"     IOSTANDARD = SSTL15_T_DCI;
+#
+#NET "mem_addr_out_ddr3_addr_out[2]_a<0>"          LOC   =  "AN31";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<1>"          LOC   =  "AN29";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<2>"          LOC   =  "AM32";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<3>"          LOC   =  "AN30";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<4>"          LOC   =  "AM31";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<5>"          LOC   =  "AL30";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<6>"          LOC   =  "AJ27";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<7>"          LOC   =  "AK25";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<8>"          LOC   =  "AK29";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<9>"          LOC   =  "AL29";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<10>"         LOC   =  "AR32";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<11>"         LOC   =  "AL27";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<12>"         LOC   =  "AM28";
+## NET "mem_addr_out_ddr3_addr_out[2]_a<13>"         LOC   =  "AM33";
+## NET "mem_addr_out_ddr3_addr_out[2]_a<14>"         LOC   =  "AG28";
+#NET "mem_addr_out_ddr3_addr_out[2]_a<*>"          IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_ba<0>"         LOC   =  "AP31";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_ba<1>"         LOC   =  "AL31";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_ba<2>"         LOC   =  "AP30";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_ba<*>"         IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_ras_l"         LOC   =  "AU33";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_ras_l"         IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_cas_l"         LOC   =  "AU32";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_cas_l"         IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_we_l"          LOC   =  "AP33";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_we_l"          IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_reset_l"       LOC   =  "AJ26";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_reset_l"       IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_cs_l<0>"       LOC   =  "AV33";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_cs_l<*>"       IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_odt<0>"        LOC   =  "AW33";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_odt<*>"        IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_cke<0>"        LOC   =  "AT32";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_cke<*>"        IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_dm<0>"         LOC   =  "AU41";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_dm<1>"         LOC   =  "AR39";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_dm<2>"         LOC   =  "AU37";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_dm<3>"         LOC   =  "BB37";
+#NET "mem_ctrl_out_ddr3_ctrl_out[2]_dm<*>"         IOSTANDARD = SSTL15;
+#
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_p<0>"  LOC   =  "AT42";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_n<0>"  LOC   =  "AU42";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_p<1>"  LOC   =  "BA41";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_n<1>"  LOC   =  "BB41";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_p<2>"  LOC   =  "AY38";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_n<2>"  LOC   =  "AY37";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_p<3>"  LOC   =  "BB34";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_n<3>"  LOC   =  "BA34";
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_p<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+#NET "mem_data_inout_ddr3_data_inout[2]_dqs_n<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+#
+#NET "mem_clk_out_ddr3_clk_out[2]_clk_p<0>"        LOC   =  "AH24";
+#NET "mem_clk_out_ddr3_clk_out[2]_clk_n<0>"        LOC   =  "AH25";
+#NET "mem_clk_out_ddr3_clk_out[2]_clk_p<*>"        IOSTANDARD = DIFF_SSTL15;
+#NET "mem_clk_out_ddr3_clk_out[2]_clk_n<*>"        IOSTANDARD = DIFF_SSTL15;
+#
+#TIMEGRP "MEM2_DQ_PADS"   = PADS(mem_data_inout_ddr3_data_inout[2]*);
+#TIMEGRP "MEM2_ADDR_PADS" = PADS(mem_addr_out_ddr3_addr_out[2]*);
+#TIMEGRP "MEM2_CTRL_PADS" = PADS(mem_ctrl_out_ddr3_ctrl_out[2]*);
+#TIMEGRP "MEM2_CLK_PADS"  = PADS(mem_clk_out_ddr3_clk_out[2]*);
+#TIMEGRP "MEM2_PADS"      = "MEM2_DQ_PADS":
+#                           "MEM2_ADDR_PADS":
+#                           "MEM2_CTRL_PADS":
+#                           "MEM2_CLK_PADS";
+#
+## Create TIMEGRP for mig_ddr3_if_clk2
+#NET "*mig_ddr3_if_clk2" TNM_NET = TNM_MIG_CLK2;
+#
+## Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
+#NET "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync<*>" TNM_NET = TNM_CLK_RSYNC2;
+#TIMESPEC TS_CLK_RSYNC2_TO_MIG_CLK2 = FROM TNM_CLK_RSYNC2 to TNM_MIG_CLK2    TIG;
+#TIMESPEC TS_MIG_CLK2_TO_CLK_RSYNC2 = FROM TNM_MIG_CLK2   to TNM_CLK_RSYNC2  TIG;
+#
+#################################################################################
+## Controller 2                                                                 #
+## Memory Device: DDR3_SDRAM->Components->MT41J64M16XX-187E                     #
+## Data Width:    32                                                            #
+## Frequency:     400                                                           #
+## Time Period:   2500                                                          #
+## Data Mask:     1                                                             #
+#################################################################################
+## Timing constraints                                                           #
+#################################################################################
+#
+## Constrain BUFR clocks used to synchronize data from IOB to fabric logic
+## Note that ISE cannot infer this from other PERIOD constraints because
+## of the use of OSERDES blocks in the BUFR clock generation path
+#NET "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = TNM_c2_clk_rsync;
+#TIMESPEC "TS_c2_clk_rsync" = PERIOD "TNM_c2_clk_rsync" 5 ns;
+#
+## Paths between DQ/DQS ISERDES.Q outputs and CLB flops clocked by falling
+## edge of BUFR will by design only be used if DYNCLKDIVSEL is asserted for
+## that particular flop. Mark this path as being a full-cycle, rather than
+## a half cycle path for timing purposes. NOTE: This constraint forces full-
+## cycle timing to be applied globally for all rising->falling edge paths
+## in all resynchronizaton clock domains. If the user had modified the logic
+## in the resync clock domain such that other rising->falling edge paths
+## exist, then constraint below should be modified to utilize pattern
+## matching to specific affect only the DQ/DQS ISERDES.Q outputs
+#TIMEGRP "TG_c2_clk_rsync_rise" = RISING  "TNM_c2_clk_rsync";
+#TIMEGRP "TG_c2_clk_rsync_fall" = FALLING "TNM_c2_clk_rsync";
+#TIMESPEC "TS_c2_clk_rsync_rise_to_fall" = FROM "TG_c2_clk_rsync_rise" TO "TG_c2_clk_rsync_fall" "TS_PLL_MEM_CLK" * 2;
+#
+## Signal to select between controller and physical layer signals. Four divided by two clock
+## cycles (8 memory clock cycles) are provided by design for the signal to settle down.
+## Used only by the phy modules.
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_init/u_ff_phy_init_data_sel" TNM = "TNM_C2_PHY_INIT_SEL";
+#TIMESPEC "TS_C2_MC_PHY_INIT_SEL" = FROM "TNM_C2_PHY_INIT_SEL" TO FFS = "TS_PLL_MEM_CLK"*4;
+#
+################################################################################
+##Bank 2 DCI_CASCADING                                                         #
+##Syntax : CONFIG DCI_CASCADE = "<master> <slave1> <slave2> ..";               #
+################################################################################
+#CONFIG DCI_CASCADE = "12 13";
+#
+###################################################################################################
+###The following locations must be reserved and cannot be used for external I/O because          ##
+###the I/O elements associated with these sites (IODELAY, OSERDES, and associated routing)       ##
+###are used to generate and route the clocks necessary for read data capture and synchronization ##
+###to the core clock domain. These pins should not be routed out on the user's PCB               ##
+###################################################################################################
+#
+###################################################################################################
+###The logic of this pin is used internally to drive a BUFR in the column. This chosen pin must  ##
+###be a clock pin capable of spanning to all of the banks containing data bytes in the particular##
+###column. That is, all byte groups must be within +/- 1 bank of this pin. This pin cannot be    ##
+###used for other functions and should not be connected externally. If a different pin is chosen,##
+###he corresponding LOC constraint must also be changed.                                         ##
+###################################################################################################
+#
+#CONFIG PROHIBIT = AN35;
+#
+#######################################################################################
+### Bank 2 Place RSYNC OSERDES and IODELAY:                                          ##
+#######################################################################################
+#
+###Site: AN35 -- Bank 12
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col2.u_oserdes_rsync" LOC = "OLOGIC_X0Y21";
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col2.u_odelay_rsync"  LOC = "IODELAY_X0Y21";
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col2.u_bufr_rsync"    LOC = "BUFR_X0Y1";
+#
+###################################################################################################
+###The logic of this pin is used internally to drive a BUFIO for the byte group. Any clock       ##
+###capable pin in the same bank as the data byte group (DQS, DQ, DM if used) can be used for     ##
+###this pin. This pin cannot be used for other functions and should not be connected externally. ##
+###If a different pin is chosen, the corresponding LOC constraint must also be changed.          ##
+###################################################################################################
+#
+#CONFIG PROHIBIT = AR40,AV41,AW37,BA37;
+#
+#######################################################################################
+### Bank 2 Place CPT OSERDES and IODELAY:                                            ##
+#######################################################################################
+#
+###Site: AR40 -- Bank 13
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_oserdes_cpt" LOC = "OLOGIC_X0Y63";
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_odelay_cpt"  LOC = "IODELAY_X0Y63";
+#
+###Site: AV41 -- Bank 13
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_oserdes_cpt" LOC = "OLOGIC_X0Y57";
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_odelay_cpt"  LOC = "IODELAY_X0Y57";
+#
+###Site: AW37 -- Bank 12
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_oserdes_cpt" LOC = "OLOGIC_X0Y23";
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_odelay_cpt"  LOC = "IODELAY_X0Y23";
+#
+###Site: BA37 -- Bank 12
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_oserdes_cpt" LOC = "OLOGIC_X0Y17";
+#INST "*bank2_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_odelay_cpt"  LOC = "IODELAY_X0Y17";
+#
+#######################################################################################
+### Bank 2 MMCM_ADV CONSTRAINTS                                                      ##
+#######################################################################################
+#
+#INST "*bank2_g.infrastructure_i/u_mmcm_adv" LOC = "MMCM_ADV_X0Y3"; #Banks 13, 23, 33
+#
+#
+################################################################################
+## DDR3 SDRAM Bank 3 pin constraints
+################################################################################
+#
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<0>"     LOC   =  "BA22";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<1>"     LOC   =  "BB22";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<2>"     LOC   =  "AU22";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<3>"     LOC   =  "AW23";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<4>"     LOC   =  "AT20";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<5>"     LOC   =  "BA20";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<6>"     LOC   =  "AT22";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<7>"     LOC   =  "AV20";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<8>"     LOC   =  "AV23";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<9>"     LOC   =  "BB21";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<10>"    LOC   =  "BB24";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<11>"    LOC   =  "AW20";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<12>"    LOC   =  "AY24";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<13>"    LOC   =  "AY22";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<14>"    LOC   =  "BA24";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<15>"    LOC   =  "AW22";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<16>"    LOC   =  "BB28";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<17>"    LOC   =  "AV30";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<18>"    LOC   =  "BA32";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<19>"    LOC   =  "AW28";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<20>"    LOC   =  "BA29";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<21>"    LOC   =  "AV28";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<22>"    LOC   =  "AV31";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<23>"    LOC   =  "AU28";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<24>"    LOC   =  "AU31";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<25>"    LOC   =  "BB31";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<26>"    LOC   =  "AR30";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<27>"    LOC   =  "AY33";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<28>"    LOC   =  "BB29";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<29>"    LOC   =  "BB33";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<30>"    LOC   =  "AT31";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<31>"    LOC   =  "AY32";
+#NET "mem_data_inout_ddr3_data_inout[3]_dq<*>"     IOSTANDARD = SSTL15_T_DCI;
+#
+#NET "mem_addr_out_ddr3_addr_out[3]_a<0>"          LOC   =  "AP22";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<1>"          LOC   =  "AP20";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<2>"          LOC   =  "AW31";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<3>"          LOC   =  "AP21";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<4>"          LOC   =  "AN21";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<5>"          LOC   =  "AM19";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<6>"          LOC   =  "AK19";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<7>"          LOC   =  "AL19";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<8>"          LOC   =  "AJ20";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<9>"          LOC   =  "AY28";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<10>"         LOC   =  "AR22";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<11>"         LOC   =  "AN20";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<12>"         LOC   =  "AW30";
+## NET "mem_addr_out_ddr3_addr_out[3]_a<13>"         LOC   =  "AN26";
+## NET "mem_addr_out_ddr3_addr_out[3]_a<14>"         LOC   =  "AY29";
+#NET "mem_addr_out_ddr3_addr_out[3]_a<*>"          IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_ba<0>"         LOC   =  "AP27";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_ba<1>"         LOC   =  "AP28";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_ba<2>"         LOC   =  "AT27";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_ba<*>"         IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_ras_l"         LOC   =  "BA31";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_ras_l"         IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_cas_l"         LOC   =  "AL26";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_cas_l"         IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_we_l"          LOC   =  "AR28";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_we_l"          IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_reset_l"       LOC   =  "AK27";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_reset_l"       IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_cs_l<0>"       LOC   =  "AP32";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_cs_l<*>"       IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_odt<0>"        LOC   =  "AR33";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_odt<*>"        IOSTANDARD = SSTL15;
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_cke<0>"        LOC   =  "AH26";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_cke<*>"        IOSTANDARD = SSTL15;
+#
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_dm<0>"         LOC   =  "BB23";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_dm<1>"         LOC   =  "AR20";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_dm<2>"         LOC   =  "AT30";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_dm<3>"         LOC   =  "AY30";
+#NET "mem_ctrl_out_ddr3_ctrl_out[3]_dm<*>"         IOSTANDARD = SSTL15;
+#
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_p<0>"  LOC   =  "AL20";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_n<0>"  LOC   =  "AL21";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_p<1>"  LOC   =  "AU21";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_n<1>"  LOC   =  "AT21";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_p<2>"  LOC   =  "AT29";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_n<2>"  LOC   =  "AR29";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_p<3>"  LOC   =  "AU29";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_n<3>"  LOC   =  "AV29";
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_p<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+#NET "mem_data_inout_ddr3_data_inout[3]_dqs_n<*>"  IOSTANDARD = DIFF_SSTL15_T_DCI;
+#
+#NET "mem_clk_out_ddr3_clk_out[3]_clk_p<0>"        LOC   =  "AN28";
+#NET "mem_clk_out_ddr3_clk_out[3]_clk_n<0>"        LOC   =  "AM27";
+#NET "mem_clk_out_ddr3_clk_out[3]_clk_p<*>"        IOSTANDARD = DIFF_SSTL15;
+#NET "mem_clk_out_ddr3_clk_out[3]_clk_n<*>"        IOSTANDARD = DIFF_SSTL15;
+#
+#TIMEGRP "MEM3_DQ_PADS"   = PADS(mem_data_inout_ddr3_data_inout[3]*);
+#TIMEGRP "MEM3_ADDR_PADS" = PADS(mem_addr_out_ddr3_addr_out[3]*);
+#TIMEGRP "MEM3_CTRL_PADS" = PADS(mem_ctrl_out_ddr3_ctrl_out[3]*);
+#TIMEGRP "MEM3_CLK_PADS"  = PADS(mem_clk_out_ddr3_clk_out[3]*);
+#TIMEGRP "MEM3_PADS"      = "MEM3_DQ_PADS":
+#                           "MEM3_ADDR_PADS":
+#                           "MEM3_CTRL_PADS":
+#                           "MEM3_CLK_PADS";
+#
+## Create TIMEGRP for mig_ddr3_if_clk3
+#NET "*mig_ddr3_if_clk3" TNM_NET = TNM_MIG_CLK3;
+#
+## Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
+#NET "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync<*>" TNM_NET = TNM_CLK_RSYNC3;
+#TIMESPEC TS_CLK_RSYNC3_TO_MIG_CLK3 = FROM TNM_CLK_RSYNC3 to TNM_MIG_CLK3    TIG;
+#TIMESPEC TS_MIG_CLK3_TO_CLK_RSYNC3 = FROM TNM_MIG_CLK3   to TNM_CLK_RSYNC3  TIG;
+#
+#################################################################################
+## Controller 3                                                                 #
+## Memory Device: DDR3_SDRAM->Components->MT41J64M16XX-187E                     #
+## Data Width:    32                                                            #
+## Frequency:     400                                                           #
+## Time Period:   2500                                                          #
+## Data Mask:     1                                                             #
+#################################################################################
+## Timing constraints                                                           #
+#################################################################################
+#
+## Constrain BUFR clocks used to synchronize data from IOB to fabric logic
+## Note that ISE cannot infer this from other PERIOD constraints because
+## of the use of OSERDES blocks in the BUFR clock generation path
+#NET "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = TNM_c3_clk_rsync;
+#TIMESPEC "TS_c3_clk_rsync" = PERIOD "TNM_c3_clk_rsync" 5 ns;
+#
+## Paths between DQ/DQS ISERDES.Q outputs and CLB flops clocked by falling
+## edge of BUFR will by design only be used if DYNCLKDIVSEL is asserted for
+## that particular flop. Mark this path as being a full-cycle, rather than
+## a half cycle path for timing purposes. NOTE: This constraint forces full-
+## cycle timing to be applied globally for all rising->falling edge paths
+## in all resynchronizaton clock domains. If the user had modified the logic
+## in the resync clock domain such that other rising->falling edge paths
+## exist, then constraint below should be modified to utilize pattern
+## matching to specific affect only the DQ/DQS ISERDES.Q outputs
+#TIMEGRP "TG_c3_clk_rsync_rise" = RISING  "TNM_c3_clk_rsync";
+#TIMEGRP "TG_c3_clk_rsync_fall" = FALLING "TNM_c3_clk_rsync";
+#TIMESPEC "TS_c3_clk_rsync_rise_to_fall" = FROM "TG_c3_clk_rsync_rise" TO "TG_c3_clk_rsync_fall" "TS_PLL_MEM_CLK" * 2;
+#
+## Signal to select between controller and physical layer signals. Four divided by two clock
+## cycles (8 memory clock cycles) are provided by design for the signal to settle down.
+## Used only by the phy modules.
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_init/u_ff_phy_init_data_sel" TNM = "TNM_C3_PHY_INIT_SEL";
+#TIMESPEC "TS_C3_MC_PHY_INIT_SEL" = FROM "TNM_C3_PHY_INIT_SEL" TO FFS = "TS_PLL_MEM_CLK"*4;
+#
+################################################################################
+##Bank 3 DCI_CASCADING                                                         #
+##Syntax : CONFIG DCI_CASCADE = "<master> <slave1> <slave2> ..";               #
+################################################################################
+#CONFIG DCI_CASCADE = "23 22";
+#
+###################################################################################################
+###The following locations must be reserved and cannot be used for external I/O because          ##
+###the I/O elements associated with these sites (IODELAY, OSERDES, and associated routing)       ##
+###are used to generate and route the clocks necessary for read data capture and synchronization ##
+###to the core clock domain. These pins should not be routed out on the user's PCB               ##
+###################################################################################################
+#
+###################################################################################################
+###The logic of this pin is used internally to drive a BUFR in the column. This chosen pin must  ##
+###be a clock pin capable of spanning to all of the banks containing data bytes in the particular##
+###column. That is, all byte groups must be within +/- 1 bank of this pin. This pin cannot be    ##
+###used for other functions and should not be connected externally. If a different pin is chosen,##
+###he corresponding LOC constraint must also be changed.                                         ##
+###################################################################################################
+#
+#CONFIG PROHIBIT = AK20,AM26;
+#
+#######################################################################################
+###Place RSYNC OSERDES and IODELAY:                                                  ##
+#######################################################################################
+#
+###Site: AK20 -- Bank 32
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_oserdes_rsync" LOC = "OLOGIC_X2Y19";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_odelay_rsync"  LOC = "IODELAY_X2Y19";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col0.u_bufr_rsync"    LOC = "BUFR_X2Y1";
+#
+###Site: AM26 -- Bank 22
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col1.u_oserdes_rsync" LOC = "OLOGIC_X1Y21";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col1.u_odelay_rsync"  LOC = "IODELAY_X1Y21";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_loop_col1.u_bufr_rsync"    LOC = "BUFR_X1Y1";
+#
+###################################################################################################
+###The logic of this pin is used internally to drive a BUFIO for the byte group. Any clock       ##
+###capable pin in the same bank as the data byte group (DQS, DQ, DM if used) can be used for     ##
+###this pin. This pin cannot be used for other functions and should not be connected externally. ##
+###If a different pin is chosen, the corresponding LOC constraint must also be changed.          ##
+###################################################################################################
+#
+#CONFIG PROHIBIT = AM21,AR27,AY20,BA30;
+#
+#######################################################################################
+###Place CPT OSERDES and IODELAY:                                                    ##
+#######################################################################################
+#
+###Site: AY20 -- Bank 32
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_oserdes_cpt" LOC = "OLOGIC_X2Y23";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[0].u_odelay_cpt"  LOC = "IODELAY_X2Y23";
+#
+###Site: AM21 -- Bank 32
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_oserdes_cpt" LOC = "OLOGIC_X2Y17";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[1].u_odelay_cpt"  LOC = "IODELAY_X2Y17";
+#
+###Site: BA30 -- Bank 22
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_oserdes_cpt" LOC = "OLOGIC_X1Y23";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[2].u_odelay_cpt"  LOC = "IODELAY_X1Y23";
+#
+###Site: AR27 -- Bank 22
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_oserdes_cpt" LOC = "OLOGIC_X1Y17";
+#INST "*bank3_g.memc_ui_top_i/u_mem_intfc/phy_top0/u_phy_read/u_phy_rdclk_gen/gen_ck_cpt[3].u_odelay_cpt"  LOC = "IODELAY_X1Y17";
+#
+#######################################################################################
+### Bank 3 MMCM_ADV CONSTRAINTS                                                      ##
+#######################################################################################
+#
+#INST "*bank3_g.infrastructure_i/u_mmcm_adv" LOC = "MMCM_ADV_X0Y1"; #Banks 12, 22, 32
+
+
+###############################################################################
+# Timing for all memory banks
+###############################################################################
+
+# TO DO: delete MEM0_PADS, MEM1_PADS, MEM2_PADS and/or MEM3_PADS as appropriate
+# if using less than 4 banks of DDR3 SDRAM memory in your FPGA design.
+#TIMEGRP "MEM_PADS" = "MEM0_PADS":"MEM1_PADS":"MEM2_PADS":"MEM3_PADS"; ## FOR MEM_BANK=4
+#TIMEGRP "MEM_PADS" = "MEM0_PADS":"MEM1_PADS":"MEM2_PADS";             ## FOR MEM_BANK=3
+#TIMEGRP "MEM_PADS" = "MEM0_PADS":"MEM1_PADS";                         ## FOR MEM_BANK=2
+TIMEGRP "MEM_PADS" = "MEM0_PADS";                                     ## FOR MEM_BANK=1
+
+# Clock-to-out and setup for MEM_PADS.
+# Timing is essentially deterministic due to use of ISERDES and OSERDES, and
+# use of programmable delay elements means that actual delays cannot be known
+# at build time.
+PIN "*.IDATAIN" TPTHRU = "TPTHRU_IDATAIN";
+PIN "*.ODATAIN" TPTHRU = "TPTHRU_ODATAIN";
+TIMESPEC "TS_MEM_PADS_CO"       = FROM "FFS"                            TO "MEM_PADS" TIG;
+TIMESPEC "TS_MEM_PADS_SU"       = FROM "MEM_PADS"                       TO "FFS"      TIG;
+TIMESPEC "TS_MEM_PADS_LOOPBACK" = FROM "FFS"      THRU "TPTHRU_ODATAIN" TO "FFS"      TIG;
+# Flag unused paths with TIG.
+TIMESPEC "TS_MEM_PADS_TIG"      = FROM "MEM_PADS" THRU "TPTHRU_IDATAIN" TO "MEM_PADS" TIG;
+
