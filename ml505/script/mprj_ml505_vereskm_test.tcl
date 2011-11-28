@@ -109,9 +109,6 @@ set _projects [ list \
       [ list "../src/core_gen/vscale_bram_coef.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vscale_bram.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/video/scaler/vscaler_main_rev3xx.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vsobel_bram.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_ram_hfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
@@ -152,7 +149,6 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf.vhd" $_VHDMod ] \
-      [ list "../../../common/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
@@ -168,6 +164,10 @@ set _projects [ list \
       [ list "../../../common/tracker_nik/dsn_track_nik.vhd" $_VHDMod ] \
       [ list "../../../common/tracker_nik/trc_nik_core.vhd" $_VHDMod ] \
       [ list "../../../common/tracker_nik/trc_nik_grado.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vsobel_bram.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
+      [ list "../../../common/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
