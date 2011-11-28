@@ -94,16 +94,16 @@ signal i_mem_dir           : std_logic;
 signal i_mem_wr            : std_logic;
 signal i_mem_rd            : std_logic;
 signal i_mem_term          : std_logic:='0';
-signal i_mem_dlen_remain   : std_logic_vector(i_cfg_mem_dlen_rq'range);
-signal i_mem_dlen_used     : std_logic_vector(i_cfg_mem_dlen_rq'range);
+signal i_mem_dlen_remain   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
+signal i_mem_dlen_used     : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
 signal i_mem_trn_work      : std_logic;
-signal i_mem_trn_len       : std_logic_vector(i_cfg_mem_trn_len'range);
+signal i_mem_trn_len       : std_logic_vector(p_in_cfg_mem_trn_len'range);
 signal i_mem_done          : std_logic;
 
 signal i_axiw_rready       : std_logic;
 signal i_axiw_avalid       : std_logic;
 signal i_axir_avalid       : std_logic;
-signal i_axi_trnlen        : std_logic_vector(i_cfg_mem_trn_len'range);
+signal i_axi_trnlen        : std_logic_vector(p_in_cfg_mem_trn_len'range);
 
 signal i_cfg_mem_dlen_rq   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
 signal i_cfg_mem_trn_len   : std_logic_vector(p_in_cfg_mem_trn_len'range);

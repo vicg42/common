@@ -83,6 +83,7 @@ type TMemIN is record
 axiw    : TMemAXIwIN;
 axir    : TMemAXIrIN;
 clk     : std_logic;
+rstn    : std_logic;
 end record;
 
 type TMemOUT is record
