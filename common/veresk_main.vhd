@@ -25,13 +25,12 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
-use work.memif.all;
 use work.veresk_pkg.all;
 use work.cfgdev_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
 use work.sata_testgen_pkg.all;
---use work.sata_glob_pkg.all;signal
+--use work.sata_glob_pkg.all;
 --use work.dsn_hdd_pkg.all;
 use work.dsn_ethg_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
@@ -48,7 +47,7 @@ port(
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
-pin_out_led         : out   std_logic_vector(7 downto 0);
+pin_out_led         : out   std_logic_vector(5 downto 0);
 
 
 --------------------------------------------------
@@ -57,69 +56,62 @@ pin_out_led         : out   std_logic_vector(7 downto 0);
 mem_addr_out        : out   mem_addr_out_t;
 mem_ctrl_out        : out   mem_ctrl_out_t;
 mem_data_inout      : inout mem_data_inout_t;
-mem_clk_out         : out   mem_clk_out_t
+mem_clk_out         : out   mem_clk_out_t;
 
 --------------------------------------------------
 --Ethernet
 --------------------------------------------------
-pin_out_sfp_tx_dis    : out  std_logic;                      --//SFP - TX DISABLE
-pin_in_sfp_sd         : in   std_logic;                      --//SFP - SD signal detect
+pin_out_sfp_tx_dis  : out   std_logic;--SFP - TX DISABLE
+pin_in_sfp_sd       : in    std_logic;--SFP - SD signal detect
 
-pin_out_eth_txp       : out   std_logic_vector(1 downto 0);
-pin_out_eth_txn       : out   std_logic_vector(1 downto 0);
-pin_in_eth_rxp        : in    std_logic_vector(1 downto 0);
-pin_in_eth_rxn        : in    std_logic_vector(1 downto 0);
-pin_in_eth_clk_p      : in    std_logic;
-pin_in_eth_clk_n      : in    std_logic;
-
-pin_out_gt_X0Y6_txp   : out  std_logic_vector(1 downto 0);
-pin_out_gt_X0Y6_txn   : out  std_logic_vector(1 downto 0);
-pin_in_gt_X0Y6_rxp    : in   std_logic_vector(1 downto 0);
-pin_in_gt_X0Y6_rxn    : in   std_logic_vector(1 downto 0);
-pin_in_gt_X0Y6_clk_p  : in   std_logic;
-pin_in_gt_X0Y6_clk_n  : in   std_logic;
+pin_out_eth_txp     : out   std_logic_vector(1 downto 0);
+pin_out_eth_txn     : out   std_logic_vector(1 downto 0);
+pin_in_eth_rxp      : in    std_logic_vector(1 downto 0);
+pin_in_eth_rxn      : in    std_logic_vector(1 downto 0);
+pin_in_eth_clk_p    : in    std_logic;
+pin_in_eth_clk_n    : in    std_logic;
 
 --------------------------------------------------
 --PCI-EXPRESS
 --------------------------------------------------
-pin_out_pciexp_txp    : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
-pin_out_pciexp_txn    : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
-pin_in_pciexp_rxp     : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
-pin_in_pciexp_rxn     : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
-pin_in_pciexp_clk_p   : in    std_logic;
-pin_in_pciexp_clk_n   : in    std_logic;
-pin_in_pciexp_rstn    : in    std_logic;
+pin_out_pciexp_txp  : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_out_pciexp_txn  : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_in_pciexp_rxp   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_in_pciexp_rxn   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_in_pciexp_clk_p : in    std_logic;
+pin_in_pciexp_clk_n : in    std_logic;
+pin_in_pciexp_rstn  : in    std_logic;
 
 ----------------------------------------------------
 ----SATA
 ----------------------------------------------------
---pin_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
---pin_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
---pin_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
---pin_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
---pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
---pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+--pin_out_sata_txn    : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_out_sata_txp    : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_in_sata_rxn     : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_in_sata_rxp     : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_in_sata_clk_n   : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+--pin_in_sata_clk_p   : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
 
 ----------------------------------------------------
 ---- Local bus
 ----------------------------------------------------
---lreset_l              : in    std_logic;
---lclk                  : in    std_logic;
---lwrite                : in    std_logic;
---lads_l                : in    std_logic;
---lblast_l              : in    std_logic;
---lbe_l                 : in    std_logic_vector(32/8-1 downto 0);
---lad                   : inout std_logic_vector(32-1 downto 0);
---lbterm_l              : inout std_logic;
---lready_l              : inout std_logic;
---fholda                : in    std_logic;
---finto_l               : out   std_logic;
+--lreset_l            : in    std_logic;
+--lclk                : in    std_logic;
+--lwrite              : in    std_logic;
+--lads_l              : in    std_logic;
+--lblast_l            : in    std_logic;
+--lbe_l               : in    std_logic_vector(32/8-1 downto 0);
+--lad                 : inout std_logic_vector(32-1 downto 0);
+--lbterm_l            : inout std_logic;
+--lready_l            : inout std_logic;
+--fholda              : in    std_logic;
+--finto_l             : out   std_logic;
 
 --------------------------------------------------
 -- Reference clock 200MHz
 --------------------------------------------------
-pin_in_refclk200M_n   : in    std_logic;
-pin_in_refclk200M_p   : in    std_logic
+pin_in_refclk200M_n : in    std_logic;
+pin_in_refclk200M_p : in    std_logic
 );
 end entity;
 
@@ -171,52 +163,20 @@ p_in_clk           : in    std_logic
 );
 end component;
 
---component gtp_prog_clkmux
---generic(
---G_CLKIN_CHANGE     : std_logic := '0';
---G_CLKSOUTH_CHANGE  : std_logic := '0';
---G_CLKNORTH_CHANGE  : std_logic := '0';
---
---G_CLKIN_MUX_VAL    : std_logic_vector(2 downto 0):="011";
---G_CLKSOUTH_MUX_VAL : std_logic := '0';
---G_CLKNORTH_MUX_VAL : std_logic := '0'
---);
---port(
---p_in_drp_rst    : in    std_logic;
---p_in_drp_clk    : in    std_logic;
---
---p_out_txp       : out   std_logic_vector(1 downto 0);
---p_out_txn       : out   std_logic_vector(1 downto 0);
---p_in_rxp        : in    std_logic_vector(1 downto 0);
---p_in_rxn        : in    std_logic_vector(1 downto 0);
---
---p_in_clkin      : in    std_logic;
---p_out_refclkout : out   std_logic
---);
---end component;
+signal i_pll_rst_out                    : std_logic;
+signal g_pll_clkin                      : std_logic;
+signal g_pll_mem_clk                    : std_logic;
+signal g_pll_tmr_clk                    : std_logic;
 
 signal i_usr_rst                        : std_logic;
 
 signal i_refclk200MHz                   : std_logic;
-signal g_refclk200MHz                   : std_logic;
+--signal g_refclk200MHz                   : std_logic;
 
 signal i_gt_X0Y6_rst                    : std_logic;
 signal i_gt_X0Y6_clkin                  : std_logic;
 
---signal g_lbus_clkin                     : std_logic;
-----signal g_lbus_clkdiv                    : std_logic;
-----signal g_lbus_clk2x                     : std_logic;
---signal g_lbus_clkfx                     : std_logic;
---signal g_lbus_clk                       : std_logic;
---signal lclk_dcm_lock                    : std_logic;
-
 signal g_usr_highclk                    : std_logic;
-
---signal i_memctrl_pllclk0                : std_logic;
---signal i_memctrl_pllclk45               : std_logic;
---signal i_memctrl_pllclk2x0              : std_logic;
---signal i_memctrl_pllclk2x90             : std_logic;
---signal i_memctrl_pll_rst_out            : std_logic;
 
 signal i_pciexp_gt_refclk               : std_logic;
 signal g_pciexp_gt_refclkout            : std_logic;
@@ -231,7 +191,7 @@ signal i_host_dev_rxd                   : std_logic_vector(C_HDEV_DWIDTH-1 downt
 signal i_host_dev_wr                    : std_logic;
 signal i_host_dev_rd                    : std_logic;
 signal i_host_dev_status                : std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-signal i_host_dev_irq                   : std_logic_vector(C_HIRQ_COUNT-1 downto 0);
+signal i_host_dev_irq                   : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 signal i_host_dev_opt_in                : std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 signal i_host_dev_opt_out               : std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -248,13 +208,13 @@ signal i_host_rxrdy                     : THostDCtrl;
 signal i_host_txrdy                     : THostDCtrl;
 signal i_host_rxbuf_empty               : THostDCtrl;
 signal i_host_txbuf_full                : THostDCtrl;
-signal i_host_irq                       : THostDCtrl;
+signal i_host_irq                       : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 
 signal i_host_rst_all                   : std_logic;
 signal i_host_rst_eth                   : std_logic;
 signal i_host_rst_mem                   : std_logic;
 signal i_host_rddone_vctrl              : std_logic;
-signal i_host_rddone_trcnik             : std_logic;
+--signal i_host_rddone_trcnik             : std_logic;
 
 Type THDevWidthCnt is array (0 to C_HDEV_COUNT-1) of std_logic_vector(2 downto 0);
 signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_COUNT-1 downto 0);
@@ -303,6 +263,7 @@ signal i_eth_txbuf_empty                : std_logic;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_tmr_rst                        : std_logic;
+signal i_tmr_clk                        : std_logic;
 signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 signal i_vctrl_rst                      : std_logic;
@@ -340,19 +301,20 @@ signal i_vctrlwr_memout                 : TMemOUT;
 signal i_vctrlrd_memin                  : TMemIN;
 signal i_vctrlrd_memout                 : TMemOUT;
 
-signal i_trc_rst                        : std_logic;
-signal hclk_hrddone_trcnik_cnt          : std_logic_vector(2 downto 0);
-signal hclk_hrddone_trcnik              : std_logic;
-signal i_trcnik_hrd_done_dly            : std_logic_vector(1 downto 0);
-signal i_trcnik_hrd_done                : std_logic;
-signal i_trcnik_hdrdy                   : std_logic:='0';
-signal i_trcnik_hfrmrk                  : std_logic_vector(31 downto 0):=(others=>'0');
-signal i_trc_tst_out                    : std_logic_vector(31 downto 0);
+signal i_trc_busy                       : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0):=(others=>'0');
 signal i_trc_vbufs                      : TVfrBufs;
-signal i_trc_busy                       : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal i_trc_memin                      : TMemIN;
-signal i_trc_memout                     : TMemOUT;
+--signal i_trc_rst                        : std_logic;
+--signal hclk_hrddone_trcnik_cnt          : std_logic_vector(2 downto 0);
+--signal hclk_hrddone_trcnik              : std_logic;
+--signal i_trcnik_hrd_done_dly            : std_logic_vector(1 downto 0);
+--signal i_trcnik_hrd_done                : std_logic;
+--signal i_trcnik_hdrdy                   : std_logic:='0';
+--signal i_trcnik_hfrmrk                  : std_logic_vector(31 downto 0):=(others=>'0');
+--signal i_trc_tst_out                    : std_logic_vector(31 downto 0);
+--signal i_trc_memin                      : TMemIN;
+--signal i_trc_memout                     : TMemOUT;
 
+signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
 signal i_host_mem_status                : TPce2Mem_Status;
 signal i_host_memin                     : TMemIN;
@@ -361,11 +323,12 @@ signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
 
 signal i_memctrl_rst                    : std_logic;
 signal i_memctrl_locked                 : std_logic_vector(7 downto 0);
-signal i_memctrl_trained                : std_logic_vector(max_num_bank - 1 downto 0);
 signal i_memctrl_ready                  : std_logic;
 
 signal i_memin_ch                       : TMemINCh;
 signal i_memout_ch                      : TMemOUTCh;
+signal i_memin_bank                     : TMemINBank;
+signal i_memout_bank                    : TMemOUTBank;
 
 signal i_arb_mem_rst                    : std_logic;
 signal i_arb_memin                      : TMemIN;
@@ -432,17 +395,26 @@ signal i_swt_hdd_tstgen_cfg             : THDDTstGen;
 --signal i_dsntst_bufclk                  : std_logic;
 --signal i_dsntst_tst_out                 : std_logic_vector(31 downto 0);
 
+-- Memory status
+signal i_mem_if_rdy     : mem_if_rdy_array_t;
+--signal i_mem_if_stat    : mem_if_stat_array_t;
+--signal i_mem_if_err     : mem_if_err_array_t;
+---- Debug info
+--signal i_mem_if_err_info : mem_if_debug_array_t;
 
---
--- If the synthesizer replicates an asynchronous reset signal due high fanout,
--- this can prevent flip-flops being mapped into IOBs. We set the maximum
--- fanout for such nets to a high enough value that replication never occurs.
---
-attribute MAX_FANOUT : string;
-attribute MAX_FANOUT of i_memctrl_rst : signal is "100000";
+----
+---- If the synthesizer replicates an asynchronous reset signal due high fanout,
+---- this can prevent flip-flops being mapped into IOBs. We set the maximum
+---- fanout for such nets to a high enough value that replication never occurs.
+----
+--attribute MAX_FANOUT : string;
+--attribute MAX_FANOUT of i_memctrl_rst : signal is "100000";
 
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
+attribute keep of g_pll_mem_clk : signal is "true";
+attribute keep of g_pll_clkin : signal is "true";
+--attribute keep of g_pll_tmr_clk : signal is "true";
 
 signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
@@ -461,13 +433,14 @@ i_gt_X0Y6_rst<=not i_host_rdy;
 i_tmr_rst    <=not i_host_rst_n or i_host_rst_all;
 i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
 i_eth_rst    <=not i_host_rst_n or i_host_rst_all or i_host_rst_eth;
-i_vctrl_rst  <=not i_host_rst_n or i_host_rst_all;
-i_trc_rst    <=not i_host_rst_n or i_host_rst_all;
+i_vctrl_rst  <=not i_vctrlwr_memout.rstn;--<=not i_host_rst_n or i_host_rst_all;
+--i_trc_rst    <=not i_host_rst_n or i_host_rst_all;
 i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
-i_memctrl_rst<=not i_host_rst_n or i_host_rst_all or i_host_rst_mem;
+i_memctrl_rst<=not i_host_rst_n or i_host_rst_all or i_host_rst_mem or i_pll_rst_out;
 --i_dsntst_rst <=not i_host_rst_n or i_host_rst_all;
 --i_hdd_rst    <=not i_host_rst_n or i_host_rst_all or i_usr_rst;
-i_arb_mem_rst<=not i_memctrl_ready;
+i_host_mem_rst<=not i_host_memout.rstn;--<=not i_host_rst_n or i_host_rst_all;
+i_arb_mem_rst<=i_memctrl_ready;
 
 
 
@@ -492,39 +465,16 @@ ODIV2 => open
 --ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O  => i_hdd_gt_refclk150(i));
 --end generate gen_sata_gt;
 
-----//Input 125MHz reference clock for Eth
---ibufds_X0Y6_gt_refclk : IBUFDS port map(I => pin_in_gt_X0Y6_clk_p, IB => pin_in_gt_X0Y6_clk_n, O => i_gt_X0Y6_clkin);
---
-----//Программирую ветвление опорной частоты GTP_X0Y6
-----//Т.к в данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth_clk_n/p, а
-----//с линии CLKINNORTH (более подробно см. xilinx manual ug196.pdf/Appendix F)
---m_gt_refclkout : gtp_prog_clkmux
---generic map(
---G_CLKIN_CHANGE      => '0',   --//разрешение/запрет изменения состояния мультиплексора CLKIN    - '1'/'0'
---G_CLKSOUTH_CHANGE   => '0',   --//разрешение/запрет изменения состояния мультиплексора CLKSOUTH - '1'/'0'
---G_CLKNORTH_CHANGE   => '1',   --//разрешение/запрет изменения состояния мультиплексора CLKNORTH - '1'/'0'
---
---G_CLKIN_MUX_VAL     => "011", --//Значение для мультиплексора CLKIN
---G_CLKSOUTH_MUX_VAL  => '1',   --//Значение для мультиплексора CLKSOUTH
---G_CLKNORTH_MUX_VAL  => '1'    --//Значение для мультиплексора CLKNORTH
---)
---port map(
---p_in_drp_rst    => i_gt_X0Y6_rst,
---p_in_drp_clk    => g_pciexp_gt_refclkout,
---
---p_out_txp       => pin_out_gt_X0Y6_txp,
---p_out_txn       => pin_out_gt_X0Y6_txn,
---p_in_rxp        => pin_in_gt_X0Y6_rxp,
---p_in_rxn        => pin_in_gt_X0Y6_rxn,
---
---p_in_clkin      => i_gt_X0Y6_clkin,
---p_out_refclkout => open
---);
-
 --//Input 125MHz reference clock for GTP_X0Y7 Eth_MAC0
 --//В данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth_clk_n/p, а
 --//с линии CLKINNORTH (более подробно см. xilinx manual ug196.pdf/Appendix F)
-ibufds_gt_eth_refclk : IBUFDS port map(I  => pin_in_eth_clk_p, IB => pin_in_eth_clk_n, O  => i_eth_gt_refclk125);
+ibufds_gt_eth_refclk : IBUFDS_GTXE1 port map (
+I     => pin_in_eth_clk_p,
+IB    => pin_in_eth_clk_n,
+CEB   => '0',
+O     => i_eth_gt_refclk125,
+ODIV2 => open
+);
 
 --//PLL
 m_clocks : clocks
@@ -532,7 +482,7 @@ port map(
 -- Reset output
 p_out_pll_rst     => i_pll_rst_out,
 -- Clock outputs
-p_out_pll_gclkin  => g_refclk200MHz,
+p_out_pll_gclkin  => g_pll_clkin, --g_refclk200MHz,
 p_out_pll_mem_clk => g_pll_mem_clk,
 p_out_pll_tmr_clk => g_pll_tmr_clk,
 --p_out_pll_reg_clk =>
@@ -542,6 +492,7 @@ p_in_clk          => i_refclk200MHz
 );
 
 g_usr_highclk<=i_memout_bank(0).clk;
+i_tmr_clk<=g_pll_tmr_clk;--//100MHz
 
 
 --***********************************************************
@@ -605,8 +556,8 @@ i_cfg_rxd<=i_cfg_rxd_dev(C_CFGDEV_ETH)     when i_cfg_dadr(3 downto 0)=CONV_STD_
            i_cfg_rxd_dev(C_CFGDEV_TMR)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_HDD)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_HDD, 4)     else
            i_cfg_rxd_dev(C_CFGDEV_TESTING) when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TESTING, 4) else
-           i_cfg_rxd_dev(C_CFGDEV_TRCNIK)  when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRCNIK, 4)  else
            (others=>'0');
+--           i_cfg_rxd_dev(C_CFGDEV_TRCNIK)  when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_TRCNIK, 4)  else
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
 i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
@@ -640,7 +591,7 @@ p_in_cfg_done     => i_cfg_wr_dev(C_CFGDEV_TMR),
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
 -------------------------------
-p_in_tmr_clk      => g_pciexp_gt_refclkout,
+p_in_tmr_clk      => i_tmr_clk,
 p_out_tmr_rdy     => open,
 p_out_tmr_error   => open,
 
@@ -943,85 +894,85 @@ p_in_rst => i_vctrl_rst
 );
 
 
---***********************************************************
---Проект Модуля Слежения - dsn_track.vhd
---***********************************************************
-m_track : dsn_track_nik
-generic map(
-G_SIM             => G_SIM,
-G_MODULE_USE      => C_PCFG_TRC_USE,
-
-G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
-
-G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
-G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
-G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
-G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
-G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
-G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
-
-G_MEM_AWIDTH      => C_HREG_MEM_ADR_LAST_BIT,
-G_MEM_DWIDTH      => C_HDEV_DWIDTH
-)
-port map(
--------------------------------
--- Управление от Хоста
--------------------------------
-p_in_host_clk        => g_host_clk,
-
-p_in_cfg_adr         => i_cfg_radr(7 downto 0),
-p_in_cfg_adr_ld      => i_cfg_radr_ld,
-p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
-
-p_in_cfg_txdata      => i_cfg_txd,
-p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_TRCNIK),
-
-p_out_cfg_rxdata     => i_cfg_rxd_dev(C_CFGDEV_TRCNIK),
-p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_TRCNIK),
-
-p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_TRCNIK),
-
--------------------------------
--- Связь с ХОСТ
--------------------------------
-p_out_trc_hirq       => i_host_irq(C_HIRQ_TRCNIK),
-p_out_trc_hdrdy      => i_trcnik_hdrdy,
-p_out_trc_hfrmrk     => i_trcnik_hfrmrk,
-p_in_trc_hrddone     => i_trcnik_hrd_done,
-
-p_out_trc_bufo_dout  => open,
-p_in_trc_bufo_rd     => '0',
-p_out_trc_bufo_empty => open,
-
-p_out_trc_busy       => i_trc_busy,
-
--------------------------------
--- Связь с VCTRL
--------------------------------
-p_in_vctrl_vrdprms   => i_vctrl_vrdprms,
-p_in_vctrl_vfrrdy    => i_vctrl_vfrdy,
-p_in_vctrl_vbuf      => i_trc_vbufs,
-p_in_vctrl_vrowmrk   => i_vctrl_vrowmrk,
-
+----***********************************************************
+----Проект Модуля Слежения - dsn_track.vhd
+----***********************************************************
+--m_track : dsn_track_nik
+--generic map(
+--G_SIM             => G_SIM,
+--G_MODULE_USE      => C_PCFG_TRC_USE,
+--
+--G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+--G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+--
+--G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+--G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+--G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+--G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+--G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+--G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+--
+--G_MEM_AWIDTH      => C_HREG_MEM_ADR_LAST_BIT,
+--G_MEM_DWIDTH      => C_HDEV_DWIDTH
+--)
+--port map(
 ---------------------------------
--- Связь с mem_ctrl.vhd
+---- Управление от Хоста
 ---------------------------------
-p_out_mem            => i_trc_memin,
-p_in_mem             => i_trc_memout,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             => (others=>'0'),
-p_out_tst            => i_trc_tst_out,
-
--------------------------------
---System
--------------------------------
-p_in_clk => g_usr_highclk,
-p_in_rst => i_trc_rst
-);
+--p_in_host_clk        => g_host_clk,
+--
+--p_in_cfg_adr         => i_cfg_radr(7 downto 0),
+--p_in_cfg_adr_ld      => i_cfg_radr_ld,
+--p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
+--
+--p_in_cfg_txdata      => i_cfg_txd,
+--p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_TRCNIK),
+--
+--p_out_cfg_rxdata     => i_cfg_rxd_dev(C_CFGDEV_TRCNIK),
+--p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_TRCNIK),
+--
+--p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_TRCNIK),
+--
+---------------------------------
+---- Связь с ХОСТ
+---------------------------------
+--p_out_trc_hirq       => i_host_irq(C_HIRQ_TRCNIK),
+--p_out_trc_hdrdy      => i_trcnik_hdrdy,
+--p_out_trc_hfrmrk     => i_trcnik_hfrmrk,
+--p_in_trc_hrddone     => i_trcnik_hrd_done,
+--
+--p_out_trc_bufo_dout  => open,
+--p_in_trc_bufo_rd     => '0',
+--p_out_trc_bufo_empty => open,
+--
+--p_out_trc_busy       => i_trc_busy,
+--
+---------------------------------
+---- Связь с VCTRL
+---------------------------------
+--p_in_vctrl_vrdprms   => i_vctrl_vrdprms,
+--p_in_vctrl_vfrrdy    => i_vctrl_vfrdy,
+--p_in_vctrl_vbuf      => i_trc_vbufs,
+--p_in_vctrl_vrowmrk   => i_vctrl_vrowmrk,
+--
+-----------------------------------
+---- Связь с mem_ctrl.vhd
+-----------------------------------
+--p_out_mem            => i_trc_memin,
+--p_in_mem             => i_trc_memout,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst             => (others=>'0'),
+--p_out_tst            => i_trc_tst_out,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk => g_usr_highclk,
+--p_in_rst => i_trc_rst
+--);
 
 
 ----***********************************************************
@@ -1330,7 +1281,7 @@ i_host_tst_in(72)<=i_eth_module_gt_plllkdet;
 i_host_tst_in(73)<='0';--lclk_dcm_lock;
 i_host_tst_in(74)<='0';--i_hdd_gt_plldet and i_hdd_dcm_lock;
 i_host_tst_in(75)<=i_memctrl_ready;
-i_host_tst_in(76)<=AND_reduce(i_memctrl_trained(C_PCFG_MEMCTRL_BANK_COUNT downto 0));
+i_host_tst_in(76)<='0';--AND_reduce(i_memctrl_trained(C_PCFG_MEMCTRL_BANK_COUNT downto 0));
 i_host_tst_in(126 downto 77)<=(others=>'0');
 i_host_tst_in(127)<=i_vctrl_tst_out(0);-- xor i_hdd_tst_out(0);
                     --i_arb_mem_tst_out(0)  i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0);
@@ -1351,7 +1302,7 @@ i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(i);
 end generate gen_status_vch;
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=i_memctrl_ready;
-i_host_dev_status(C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT)<=i_trcnik_hdrdy;
+i_host_dev_status(C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT)<='0';--i_trcnik_hdrdy;
 
 
 --//Запись/Чтение данных устройств хоста
@@ -1389,14 +1340,14 @@ i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_ETH_
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT)<=i_vctrl_hfrmrk;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT)<=i_vctrl_tst_out(23 downto 16);
-i_host_dev_opt_in(C_HDEV_OPTIN_TRC_DSIZE_M_BIT downto C_HDEV_OPTIN_TRC_DSIZE_L_BIT)<=i_trcnik_hfrmrk;
+i_host_dev_opt_in(C_HDEV_OPTIN_TRC_DSIZE_M_BIT downto C_HDEV_OPTIN_TRC_DSIZE_L_BIT)<=(others=>'0');--i_trcnik_hfrmrk;
 
 
 --//Прерывания
 i_host_dev_irq(C_HIRQ_TMR0)  <=i_tmr_hirq(0);
 i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
 i_host_dev_irq(C_HIRQ_ETH_RX)<=i_host_irq(C_HIRQ_ETH_RX);
-i_host_dev_irq(C_HIRQ_TRCNIK)<=i_host_irq(C_HIRQ_TRCNIK);
+i_host_dev_irq(C_HIRQ_TRCNIK)<='0';--i_host_irq(C_HIRQ_TRCNIK);
 gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
 i_host_dev_irq(C_HIRQ_VCH0 + i)<=i_vctrl_hirq_out(i);
 end generate gen_irq_vch;
@@ -1414,7 +1365,7 @@ i_host_rst_all<=i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_host_rst_eth<=i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
 i_host_rst_mem<=i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
 i_host_rddone_vctrl<=i_host_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT);
-i_host_rddone_trcnik<=i_host_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
+--i_host_rddone_trcnik<=i_host_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
 
 i_host_devadr<=i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
 i_host_vchsel<=EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
@@ -1431,8 +1382,8 @@ begin
     hclk_hrddone_vctrl<='0';
     hclk_hrddone_vctrl_cnt<=(others=>'0');
 
-    hclk_hrddone_trcnik<='0';
-    hclk_hrddone_trcnik_cnt<=(others=>'0');
+--    hclk_hrddone_trcnik<='0';
+--    hclk_hrddone_trcnik_cnt<=(others=>'0');
 
   elsif g_host_clk'event and g_host_clk='1' then
 
@@ -1476,18 +1427,18 @@ begin
       hclk_hrddone_vctrl_cnt<=hclk_hrddone_vctrl_cnt+1;
     end if;
 
-    --//Растягиваем импульс i_host_rddone_trcnik
-    if i_host_rddone_trcnik='1' then
-      hclk_hrddone_trcnik<='1';
-    elsif hclk_hrddone_trcnik_cnt="100" then
-      hclk_hrddone_trcnik<='0';
-    end if;
-
-    if hclk_hrddone_trcnik='0' then
-      hclk_hrddone_trcnik_cnt<=(others=>'0');
-    else
-      hclk_hrddone_trcnik_cnt<=hclk_hrddone_trcnik_cnt+1;
-    end if;
+--    --//Растягиваем импульс i_host_rddone_trcnik
+--    if i_host_rddone_trcnik='1' then
+--      hclk_hrddone_trcnik<='1';
+--    elsif hclk_hrddone_trcnik_cnt="100" then
+--      hclk_hrddone_trcnik<='0';
+--    end if;
+--
+--    if hclk_hrddone_trcnik='0' then
+--      hclk_hrddone_trcnik_cnt<=(others=>'0');
+--    else
+--      hclk_hrddone_trcnik_cnt<=hclk_hrddone_trcnik_cnt+1;
+--    end if;
 
   end if;
 end process;
@@ -1501,8 +1452,8 @@ begin
     i_vctrl_hrd_done<='0';
     i_vctrl_hrd_done_dly<=(others=>'0');
 
-    i_trcnik_hrd_done_dly<=(others=>'0');
-    i_trcnik_hrd_done<='0';
+--    i_trcnik_hrd_done_dly<=(others=>'0');
+--    i_trcnik_hrd_done<='0';
 
   elsif g_usr_highclk'event and g_usr_highclk='1' then
     i_vctrl_hrd_start<=hclk_hdev_dma_start(C_HDEV_VCH_DBUF);
@@ -1511,9 +1462,9 @@ begin
     i_vctrl_hrd_done_dly(1)<=i_vctrl_hrd_done_dly(0);
     i_vctrl_hrd_done<=i_vctrl_hrd_done_dly(0) and not i_vctrl_hrd_done_dly(1);
 
-    i_trcnik_hrd_done_dly(0)<=hclk_hrddone_trcnik;
-    i_trcnik_hrd_done_dly(1)<=i_trcnik_hrd_done_dly(0);
-    i_trcnik_hrd_done<=i_trcnik_hrd_done_dly(0) and not i_trcnik_hrd_done_dly(1);
+--    i_trcnik_hrd_done_dly(0)<=hclk_hrddone_trcnik;
+--    i_trcnik_hrd_done_dly(1)<=i_trcnik_hrd_done_dly(0);
+--    i_trcnik_hrd_done<=i_trcnik_hrd_done_dly(0) and not i_trcnik_hrd_done_dly(1);
 
   end if;
 end process;
@@ -1564,7 +1515,7 @@ p_out_tst         => i_host_mem_tst_out,
 --System
 -------------------------------
 p_in_clk         => g_usr_highclk,
-p_in_rst         => i_arb_mem_rst
+p_in_rst         => i_host_mem_rst
 );
 
 --//Подключаем устройства к арбитру ОЗУ
@@ -1591,9 +1542,9 @@ i_vctrlrd_memout <= i_memout_ch(2);
 --
 --gen_ch34sel1 : if (strcmp(C_PCFG_HDD_USE,"OFF") and strcmp(C_PCFG_TRC_USE,"ON")) generate
 --
-i_memin_ch(3) <= i_trc_memin;
-i_trc_memout  <= i_memout_ch(3);
-
+--i_memin_ch(3) <= i_trc_memin;
+--i_trc_memout  <= i_memout_ch(3);
+--
 --i_memin_ch(4)<= i_hdd_memin;
 --i_hdd_memout <= i_memout_ch(4);
 --
@@ -1602,8 +1553,8 @@ i_trc_memout  <= i_memout_ch(3);
 --//Арбитр контроллера памяти
 m_mem_arb : mem_arb
 generic map(
-G_CH_COUNT   => selval(10#04#,10#03#, strcmp(C_PCFG_TRC_USE,"ON")),--selval2(10#05#,10#04#,10#04#,10#03#, strcmp(C_PCFG_HDD_USE,"ON"),strcmp(C_PCFG_TRC_USE,"ON")),
-G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
+G_CH_COUNT   => selval(10#04#,10#03#, strcmp(C_PCFG_HDD_USE,"ON")),----selval(10#04#,10#03#, strcmp(C_PCFG_TRC_USE,"ON")),--selval2(10#05#,10#04#,10#04#,10#03#, strcmp(C_PCFG_HDD_USE,"ON"),strcmp(C_PCFG_TRC_USE,"ON")),
+G_MEM_AWIDTH => C_AXI_AWIDTH, --C_HREG_MEM_ADR_LAST_BIT,
 G_MEM_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
@@ -1632,18 +1583,14 @@ p_in_clk    => g_usr_highclk,
 p_in_rst    => i_arb_mem_rst
 );
 
-
 --//Подключаем арбитра ОЗУ к соотв банку
 i_memin_bank(0)<=i_arb_memin;
 i_arb_memout   <=i_memout_bank(0);
 
--- Core Memory controller
+--//Core Memory controller
 m_mem_ctrl : mem_ctrl
 generic map(
-G_AXI_IDWIDTH  => C_AXIM_IDWIDTH,
-G_AXI_AWIDTH   => C_AXI_AWIDTH,
-G_AXI_DWIDTH   => C_AXI_DWIDTH,
-G_SIM          => G_SIM
+G_SIM => G_SIM
 )
 port map(
 -- User Post
@@ -1670,11 +1617,35 @@ mem_if_err_info => open --i_mem_if_err_info -- out   mem_if_debug_array_t
 i_memctrl_ready<=i_mem_if_rdy(0);--OR_reduce(i_mem_if_rdy);
 
 
+
+
 --//#########################################
 --//DBG
 --//#########################################
---pin_out_led<=(others=>'0');
+pin_out_led(0)<='0';
+pin_out_led(1)<=i_test01_led;
+pin_out_led(2)<=not i_test01_led;
+pin_out_led(3)<='0';
+pin_out_led(4)<=i_test01_led;
+pin_out_led(5)<=not i_test01_led;
 
+m_gt_03_test: fpga_test_01
+generic map(
+G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+)
+port map(
+p_out_test_led => i_test01_led,
+p_out_test_done=> open,
+
+p_out_1us      => open,
+p_out_1ms      => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clk       => g_pll_clkin,
+p_in_rst       => i_cfg_rst
+);
 
 
 

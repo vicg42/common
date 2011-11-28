@@ -445,6 +445,7 @@ signal i_eth_txbuf_empty                : std_logic;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_tmr_rst                        : std_logic;
+signal i_tmr_clk                        : std_logic;
 signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 signal i_vctrl_rst                      : std_logic;
@@ -707,6 +708,7 @@ memrst    => i_memctrl_pll_rst_out
 );
 
 g_usr_highclk<=i_memctrl_pllclk2x0;
+i_tmr_clk<=g_pciexp_gt_refclkout;
 
 
 --***********************************************************
@@ -805,7 +807,7 @@ p_in_cfg_done     => i_cfg_wr_dev(C_CFGDEV_TMR),
 -------------------------------
 -- STATUS модуля dsn_timer.vhd
 -------------------------------
-p_in_tmr_clk      => g_pciexp_gt_refclkout,
+p_in_tmr_clk      => i_tmr_clk,
 p_out_tmr_rdy     => open,
 p_out_tmr_error   => open,
 
