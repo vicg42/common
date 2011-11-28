@@ -21,8 +21,9 @@ library unisim;
 use unisim.vcomponents.all;
 
 library work;
-use work.prj_def.all;
 use work.vicg_common_pkg.all;
+use work.prj_def.all;
+use work.prj_cfg.all;
 
 entity pcie_usr_app is
 generic(
@@ -736,6 +737,24 @@ begin
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST2, 5) then
           txd(30 downto 0):=v_reg_tst1(30 downto 0);
           txd(31):=p_in_tst(127);
+
+        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNC, 5) then
+          txd(C_HREG_FUNC_MEM_BIT):='1';
+          txd(C_HREG_FUNC_TMR_BIT):='1';
+          txd(C_HREG_FUNC_VCTRL_BIT):='1';
+          txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
+          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
+
+        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
+
+          txd(C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT downto C_HREG_FUNCPRM_MEMBANK_SIZE_L_BIT):=CONV_STD_LOGIC_VECTOR(C_PCFG_MEMCTRL_BANK_SIZE, C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT - C_HREG_FUNCPRM_MEMBANK_SIZE_L_BIT +1);
+
+          txd(C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT downto C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT, C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT - C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT +1);
+          txd(C_HREG_FUNCPRM_VCTRL_MIR_BIT)   :='1';
+          txd(C_HREG_FUNCPRM_VCTRL_ZOOM_BIT)  :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+          txd(C_HREG_FUNCPRM_VCTRL_BAYER_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+          txd(C_HREG_FUNCPRM_VCTRL_PCOLOR_BIT):=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+          txd(C_HREG_FUNCPRM_VCTRL_GAMMA_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
 
         end if;
 
