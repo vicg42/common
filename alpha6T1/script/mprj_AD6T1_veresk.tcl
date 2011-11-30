@@ -129,8 +129,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_mac_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/eth/dsn_eth.vhd" $_VHDMod ] \

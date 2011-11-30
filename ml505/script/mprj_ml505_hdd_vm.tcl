@@ -171,8 +171,8 @@ set _projects [ list \
       [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_mac_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/emac_core_main.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \

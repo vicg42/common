@@ -171,8 +171,8 @@ set _projects [ list \
       [ list "../../../common/eth/src/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/eth/src/eth_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/eth/src/eth_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_mac_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
