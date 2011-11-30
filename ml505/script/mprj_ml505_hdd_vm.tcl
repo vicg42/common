@@ -175,8 +175,8 @@ set _projects [ list \
       [ list "../../../common/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/emac_core_main.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/dsn_ethg.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit_tst.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_dcm.vhd" $_VHDMod ] \

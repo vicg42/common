@@ -32,7 +32,9 @@ use work.mem_wr_pkg.all;
 use work.sata_testgen_pkg.all;
 --use work.sata_glob_pkg.all;
 --use work.dsn_hdd_pkg.all;
-use work.dsn_ethg_pkg.all;
+use work.eth_phypin_pkg.all;
+use work.eth_pkg.all;
+use work.dsn_eth_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
 
@@ -47,7 +49,7 @@ port(
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
-pin_out_led         : out   std_logic_vector(4 downto 0);
+pin_out_led         : out   std_logic_vector(5 downto 0);
 
 
 --------------------------------------------------
@@ -64,12 +66,14 @@ mem_clk_out         : out   mem_clk_out_t;
 pin_out_sfp_tx_dis  : out   std_logic;--SFP - TX DISABLE
 pin_in_sfp_sd       : in    std_logic;--SFP - SD signal detect
 
-pin_out_eth_txp     : out   std_logic_vector(0 downto 0);
-pin_out_eth_txn     : out   std_logic_vector(0 downto 0);
-pin_in_eth_rxp      : in    std_logic_vector(0 downto 0);
-pin_in_eth_rxn      : in    std_logic_vector(0 downto 0);
-pin_in_eth_clk_p    : in    std_logic;
-pin_in_eth_clk_n    : in    std_logic;
+pin_out_ethphy      : out   TEthPhyPinOUT;
+pin_in_ethphy       : in    TEthPhyPinIN;
+
+pin_in_ethphy_rgmii_clk125  : in  std_logic;
+pin_in_ethphy_rgmii_crs     : in  std_logic;
+pin_in_ethphy_rgmii_col     : in  std_logic;
+pin_in_ethphy_rgmii_actn    : in  std_logic;
+pin_out_ethphy_rgmii_rstn   : out std_logic;
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -229,8 +233,8 @@ signal i_usr_rst                        : std_logic;
 signal i_refclk200MHz                   : std_logic;
 --signal g_refclk200MHz                   : std_logic;
 
-signal i_gt_X0Y6_rst                    : std_logic;
-signal i_gt_X0Y6_clkin                  : std_logic;
+--signal i_gt_X0Y6_rst                    : std_logic;
+--signal i_gt_X0Y6_clkin                  : std_logic;
 
 signal g_usr_highclk                    : std_logic;
 
@@ -302,24 +306,12 @@ signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 signal i_swt_rst                        : std_logic;
 signal i_swt_tst_out                    : std_logic_vector(31 downto 0);
 
-signal i_out_eth_txp                    : std_logic_vector(1 downto 0);
-signal i_out_eth_txn                    : std_logic_vector(1 downto 0);
-signal i_in_eth_rxp                     : std_logic_vector(1 downto 0);
-signal i_in_eth_rxn                     : std_logic_vector(1 downto 0);
 signal i_eth_gt_refclk125               : std_logic;
-signal g_eth_gt_refclkout               : std_logic;
 signal i_eth_rst                        : std_logic;
-signal i_eth_rdy                        : std_logic;
-signal i_eth_carier                     : std_logic;
-signal i_eth_module_gt_plllkdet         : std_logic;
-signal i_eth_rxd_sof                    : std_logic;
-signal i_eth_rxd_eof                    : std_logic;
-signal i_eth_rxbuf_din                  : std_logic_vector(31 downto 0);
-signal i_eth_rxbuf_wr                   : std_logic;
-signal i_eth_rxbuf_full                 : std_logic;
-signal i_eth_txbuf_dout                 : std_logic_vector(31 downto 0);
-signal i_eth_txbuf_rd                   : std_logic;
-signal i_eth_txbuf_empty                : std_logic;
+signal i_eth_out                        : TEthOUTs;
+signal i_eth_in                         : TEthINs;
+signal i_ethphy_out                     : TEthPhyOUT;
+signal i_ethphy_in                      : TEthPhyIN;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_tmr_rst                        : std_logic;
@@ -489,7 +481,7 @@ begin
 --***********************************************************
 i_host_rst_n <=pin_in_pciexp_rstn;
 
-i_gt_X0Y6_rst<=not i_host_rdy;
+--i_gt_X0Y6_rst<=not i_host_rdy;
 i_tmr_rst    <=not i_host_rst_n or i_host_rst_all;
 i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
 i_eth_rst    <=not i_host_rst_n or i_host_rst_all or i_host_rst_eth;
@@ -529,8 +521,8 @@ ODIV2 => open
 --//В данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth_clk_n/p, а
 --//с линии CLKINNORTH (более подробно см. xilinx manual ug196.pdf/Appendix F)
 ibufds_gt_eth_refclk : IBUFDS_GTXE1 port map (
-I     => pin_in_eth_clk_p,
-IB    => pin_in_eth_clk_n,
+I     => pin_in_ethphy.fiber.clk_p,
+IB    => pin_in_ethphy.fiber.clk_n,
 CEB   => '0',
 O     => i_eth_gt_refclk125,
 ODIV2 => open
@@ -720,21 +712,21 @@ p_out_hdd_vbuf_pfull      => open, --i_hdd_vbuf_pfull,
 p_out_hdd_vbuf_wrcnt      => open, --i_hdd_vbuf_wrcnt,
 
 -------------------------------
--- Связь с Eth(dsn_ethg.vhd) (ethg_clk domain)
+-- Связь с Eth(dsn_eth.vhd) (ethg_clk domain)
 -------------------------------
-p_in_eth_clk              => g_eth_gt_refclkout,
+p_in_eth_clk              => i_ethphy_out.clk,   --g_eth_gt_refclkout,
 
-p_in_eth_rxd_sof          => i_eth_rxd_sof,
-p_in_eth_rxd_eof          => i_eth_rxd_eof,
-p_in_eth_rxbuf_din        => i_eth_rxbuf_din,
-p_in_eth_rxbuf_wr         => i_eth_rxbuf_wr,
-p_out_eth_rxbuf_empty     => i_host_rxbuf_empty(C_HDEV_ETH_DBUF),
-p_out_eth_rxbuf_full      => i_eth_rxbuf_full,
+p_in_eth_rxd_sof          => i_eth_out(0).rxbuf.sof, --i_eth_rxd_sof,
+p_in_eth_rxd_eof          => i_eth_out(0).rxbuf.eof, --i_eth_rxd_eof,
+p_in_eth_rxbuf_din        => i_eth_out(0).rxbuf.din, --i_eth_rxbuf_din,
+p_in_eth_rxbuf_wr         => i_eth_out(0).rxbuf.wr,  --i_eth_rxbuf_wr,
+p_out_eth_rxbuf_empty     => i_eth_in(0).rxbuf.empty,--i_host_rxbuf_empty(C_HDEV_ETH_DBUF),
+p_out_eth_rxbuf_full      => i_eth_in(0).rxbuf.full, --i_eth_rxbuf_full,
 
-p_out_eth_txbuf_dout      => i_eth_txbuf_dout,
-p_in_eth_txbuf_rd         => i_eth_txbuf_rd,
-p_out_eth_txbuf_empty     => i_eth_txbuf_empty,
-p_out_eth_txbuf_full      => i_host_txbuf_full(C_HDEV_ETH_DBUF),
+p_out_eth_txbuf_dout      => i_eth_in(0).txbuf.dout, --i_eth_txbuf_dout,
+p_in_eth_txbuf_rd         => i_eth_out(0).txbuf.rd,  --i_eth_txbuf_rd,
+p_out_eth_txbuf_empty     => i_eth_in(0).txbuf.empty,--i_eth_txbuf_empty,
+p_out_eth_txbuf_full      => i_eth_in(0).txbuf.full, --i_host_txbuf_full(C_HDEV_ETH_DBUF),
 
 
 -------------------------------
@@ -780,83 +772,83 @@ p_in_rst => i_swt_rst
 );
 
 --***********************************************************
---Проект Ethernet - dsn_ethg.vhd
+--Проект Ethernet - dsn_eth.vhd
 --***********************************************************
-m_eth : dsn_ethg
+--pin_in_ethphy_rgmii_clk125  : in  std_logic;
+--pin_in_ethphy_rgmii_crs     : in  std_logic;
+--pin_in_ethphy_rgmii_col     : in  std_logic;
+--pin_in_ethphy_rgmii_actn    : in  std_logic;
+pin_out_ethphy_rgmii_rstn <='0';
+
+pin_out_ethphy<=i_ethphy_out.pin;
+i_ethphy_in.pin<=pin_in_ethphy;
+
+i_ethphy_in.clk<=i_eth_gt_refclk125;
+
+pin_out_sfp_tx_dis<='0';
+i_ethphy_in.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT)<=i_refclk200MHz;
+i_ethphy_in.opt(C_ETHPHY_OPTIN_SFP_SD_BIT)<=pin_in_sfp_sd;
+----//Значение для перепрограм. мультиплексора CLKIN RocketIO ETH
+--i_ethphy_in.opt(C_ETHPHY_OPTIN_V5GT_CLKIN_MUX_M_BIT downto C_ETHPHY_OPTIN_V5GT_CLKIN_MUX_L_BIT) <=CONV_STD_LOGIC_VECTOR(16#07#, C_ETHPHY_OPTIN_V5GT_CLKIN_MUX_M_BIT-C_ETHPHY_OPTIN_V5GT_CLKIN_MUX_L_BIT+1);
+----//Значение для перепрограм. мультиплексора CLKSOUTH RocketIO ETH
+--i_ethphy_in.opt(C_ETHPHY_OPTIN_V5GT_SOUTH_MUX_VAL_M_BIT downto C_ETHPHY_OPTIN_V5GT_SOUTH_MUX_VAL_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_ETHPHY_OPTIN_V5GT_SOUTH_MUX_VAL_M_BIT-C_ETHPHY_OPTIN_V5GT_SOUTH_MUX_VAL_L_BIT+1);
+--i_ethphy_in.opt(C_ETHPHY_OPTIN_V5GT_CLKIN_MUX_CNG_BIT)<='1';  --//1- перепрограммирование мультиплексора CLKIN RocketIO ETH
+--i_ethphy_in.opt(C_ETHPHY_OPTIN_V5GT_SOUTH_MUX_CNG_BIT)<='0';  --//1- перепрограммирование мультиплексора CLKSOUTH RocketIO ETH
+--i_ethphy_in.opt(C_ETHPHY_OPTIN_V5GT_NORTH_MUX_CNG_BIT)<='0';  --//1- перепрограммирование мультиплексора CLKNORTH RocketIO ETH
+--i_ethphy_in.opt(C_ETHPHY_OPTIN_DRPCLK_BIT)            <=p_in_ethphy.opt(0);
+
+m_eth : dsn_eth
 generic map(
 G_MODULE_USE => C_PCFG_ETH_USE,
+G_ETH        => C_ETH_GPRM,
 G_DBG        => C_PCFG_ETH_DBG,
 G_SIM        => G_SIM
 )
 port map(
 -------------------------------
--- Конфигурирование модуля dsn_ethg.vhd (host_clk domain)
+--Конфигурирование
 -------------------------------
-p_in_cfg_clk          => g_host_clk,
+p_in_cfg_clk      => g_host_clk,
 
-p_in_cfg_adr          => i_cfg_radr(7 downto 0),
-p_in_cfg_adr_ld       => i_cfg_radr_ld,
-p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
+p_in_cfg_adr      => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld   => i_cfg_radr_ld,
+p_in_cfg_adr_fifo => i_cfg_radr_fifo,
 
-p_in_cfg_txdata       => i_cfg_txd,
-p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_ETH),
+p_in_cfg_txdata   => i_cfg_txd,
+p_in_cfg_wd       => i_cfg_wr_dev(C_CFGDEV_ETH),
 
-p_out_cfg_rxdata      => i_cfg_rxd_dev(C_CFGDEV_ETH),
-p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_ETH),
+p_out_cfg_rxdata  => i_cfg_rxd_dev(C_CFGDEV_ETH),
+p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_ETH),
 
-p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETH),
-p_in_cfg_rst          => i_cfg_rst,
-
--------------------------------
--- STATUS модуля dsn_ethg.vhd
--------------------------------
-p_out_eth_rdy          => i_eth_rdy,
-p_out_eth_error        => i_eth_carier,
-p_out_eth_gt_plllkdet  => i_eth_module_gt_plllkdet,
-
-p_out_sfp_tx_dis       => pin_out_sfp_tx_dis,
-p_in_sfp_sd            => pin_in_sfp_sd,
+p_in_cfg_done     => i_cfg_done_dev(C_CFGDEV_ETH),
+p_in_cfg_rst      => i_cfg_rst,
 
 -------------------------------
--- Связь с буферами модуля dsn_switch.vhd
+--Связь с UsrBuf
 -------------------------------
-p_out_eth_rxbuf_din    => i_eth_rxbuf_din,
-p_out_eth_rxbuf_wr     => i_eth_rxbuf_wr,
-p_in_eth_rxbuf_full    => i_eth_rxbuf_full,
-p_out_eth_rxd_sof      => i_eth_rxd_sof,
-p_out_eth_rxd_eof      => i_eth_rxd_eof,
+p_out_eth         => i_eth_out,
+p_in_eth          => i_eth_in,
 
-p_in_eth_txbuf_dout    => i_eth_txbuf_dout,
-p_out_eth_txbuf_rd     => i_eth_txbuf_rd,
-p_in_eth_txbuf_empty   => i_eth_txbuf_empty,
-
---------------------------------------------------
---ETH Driver
---------------------------------------------------
-p_out_eth_gt_txp       => i_out_eth_txp, --pin_out_eth_txp,
-p_out_eth_gt_txn       => i_out_eth_txn, --pin_out_eth_txn,
-p_in_eth_gt_rxp        => i_in_eth_rxp,  --pin_in_eth_rxp,
-p_in_eth_gt_rxn        => i_in_eth_rxn,  --pin_in_eth_rxn,
-
-p_in_eth_gt_refclk     => i_eth_gt_refclk125,
-p_out_eth_gt_refclkout => g_eth_gt_refclkout,
-p_in_eth_gt_drpclk     => g_pciexp_gt_refclkout,
+-------------------------------
+--ETH
+-------------------------------
+p_out_ethphy      => i_ethphy_out,
+p_in_ethphy       => i_ethphy_in,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst               => (others=>'0'),
-p_out_tst              => i_eth_tst_out,
+p_out_dbg         => open,
+p_in_tst          => i_eth_tst_out,
+p_out_tst         => open,
 
 -------------------------------
 --System
 -------------------------------
-p_in_rst               => i_eth_rst
+p_in_rst          => i_eth_rst
 );
-pin_out_eth_txp(0)<=i_out_eth_txp(0);
-pin_out_eth_txn(0)<=i_out_eth_txn(0);
-i_in_eth_rxp(0)<=pin_in_eth_rxp(0);
-i_in_eth_rxn(0)<=pin_in_eth_rxn(0);
+
+
 
 --***********************************************************
 --Проект модуля видео контролера - dsn_video_ctrl.vhd
@@ -1340,7 +1332,7 @@ p_in_rst_n         => i_host_rst_n
 
 i_host_tst_in(63 downto 0)<=(others=>'0');
 i_host_tst_in(71 downto 64)<=(others=>'0');
-i_host_tst_in(72)<=i_eth_module_gt_plllkdet;
+i_host_tst_in(72)<='0';--i_eth_module_gt_plllkdet;
 i_host_tst_in(73)<='0';--lclk_dcm_lock;
 i_host_tst_in(74)<='0';--i_hdd_gt_plldet and i_hdd_dcm_lock;
 i_host_tst_in(75)<=i_memctrl_ready;
@@ -1355,8 +1347,8 @@ i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <=i_cfg_rdy;
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
 
-i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT)    <=i_eth_rdy;
-i_host_dev_status(C_HREG_DEV_STATUS_ETH_CARIER_BIT) <=i_eth_carier;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT)    <=i_ethphy_out.rdy;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_CARIER_BIT) <=i_ethphy_out.link;
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_ETH_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_ETH_DBUF);
 
@@ -1685,12 +1677,14 @@ i_memctrl_ready<=i_mem_if_rdy(0);--OR_reduce(i_mem_if_rdy);
 --//#########################################
 --//DBG
 --//#########################################
-pin_out_led(0)<='0';               --//Blue
-pin_out_led(1)<=i_test01_led;      --//Green
+--pin_out_led<=(others=>'0');
+
+pin_out_led(0)<=i_test01_led;      --//Blue
+pin_out_led(1)<='0';               --//Green
 pin_out_led(2)<=not i_test01_led;  --//Red
-pin_out_led(3)<='0';               --//Blue
-pin_out_led(4)<=i_test01_led;      --//Green
---pin_out_led(5)<=not i_test01_led;  --//Red
+pin_out_led(3)<=i_test01_led;      --//Blue
+pin_out_led(4)<='0';               --//Green
+pin_out_led(5)<=not i_test01_led;  --//Red
 
 m_gt_03_test: fpga_test_01
 generic map(
@@ -1711,239 +1705,239 @@ p_in_rst       => i_cfg_rst
 );
 
 
-m_dbgcs_icon : dbgcs_iconx2
-port map(
-CONTROL0 => i_dbgcs_memaxi,
-CONTROL1 => i_dbgcs_mem
-);
-
---//###
-m_dbgcs_memaxi : dbgcs_sata_raid
-port map
-(
-CONTROL => i_dbgcs_memaxi,
-CLK     => g_host_clk,
-DATA    => i_dbgcs_memaxi_view(255 downto 0),--(172 downto 0),--(122 downto 0),
-TRIG0   => i_dbgcs_memaxi_trg(41 downto 0)
-);
-
---//-------- TRIG: ------------------
-i_dbgcs_memaxi_trg(3 downto  0) <=(others=>'0');
-i_dbgcs_memaxi_trg(4)           <=i_host_mem_ctrl.start;
-i_dbgcs_memaxi_trg(5)           <=i_host_mem_ctrl.dir;
-i_dbgcs_memaxi_trg(6)           <=i_host_tst_out(57) and i_host_tst_out(56);--i_trn_done;
-
-i_dbgcs_memaxi_trg(7)           <=i_host_tst_out(96) ;--i_irq_src_clr;--//Clr IRQ
-i_dbgcs_memaxi_trg(8)           <=i_host_tst_out(117);--i_dmatotal_mwr_done and i_dma_mwr_done_del;
-i_dbgcs_memaxi_trg(9)           <=i_host_tst_out(118);--i_dmatotal_mrd_done and i_dma_mrd_done_del;
-i_dbgcs_memaxi_trg(10)          <=i_host_tst_out(118) or i_host_tst_out(117);--<=i_dmatotal_mrd_done and i_dma_mrd_done_del;
-i_dbgcs_memaxi_trg(11)          <=i_host_tst2_out(0); --cfg_interrupt_n;
-i_dbgcs_memaxi_trg(12)          <=i_host_tst2_out(1); --cfg_interrupt_rdy_n;
-i_dbgcs_memaxi_trg(13)          <=i_host_tst2_out(2); --cfg_interrupt_assert_n;
-i_dbgcs_memaxi_trg(14)          <=i_host_tst2_out(3); --cfg_interrupt_msienable;
-
-i_dbgcs_memaxi_trg(15)          <=i_host_tst2_out(4); --trn_tsof_n,
-i_dbgcs_memaxi_trg(16)          <=i_host_tst2_out(9); --trn_rsof_n,
-
-i_dbgcs_memaxi_trg(17)          <=i_host_tst2_out(14);--trn_rbar_hit_n(0);
-i_dbgcs_memaxi_trg(18)          <=i_host_tst2_out(15);--trn_rbar_hit_n(1);
-
-i_dbgcs_memaxi_trg(19)          <=i_host_tst_out(119);--v_reg_pciexp_ctrl(C_HREG_PCIE_MSI_EN_BIT);
-i_dbgcs_memaxi_trg(20)          <=i_host_tst_out(120);--p_in_cfg_msi_enable;
-i_dbgcs_memaxi_trg(21)          <=i_host_tst2_out(16);--cfg_command(2);--//cfg_bus_mstr_enable
-i_dbgcs_memaxi_trg(22)          <=i_host_tst_out(121);--p_in_cfg_intrrupt_disable;
-i_dbgcs_memaxi_trg(30 downto 23)<=i_host_tst_out(108 downto 101);--p_in_irq_status(7 downto 0);
-i_dbgcs_memaxi_trg(31)          <='0';
-i_dbgcs_memaxi_trg(32)          <='0';--i_cfg_done_dev(C_CFGDEV_TMR);
-i_dbgcs_memaxi_trg(33)          <=i_host_tst_out(0);--бит(0) регистра C_HOST_REG_TST0
-i_dbgcs_memaxi_trg(34)          <=i_host_tst_out(123);--i_dmatrn_init;
-i_dbgcs_memaxi_trg(35)          <=i_host_tst_out(124);--i_dma_start;
-i_dbgcs_memaxi_trg(36)          <=i_host_tst2_out(23);--cfg_turnoff_ok_n;
-i_dbgcs_memaxi_trg(37)          <=i_host_tst2_out(24);--cfg_to_turnoff_n;
-i_dbgcs_memaxi_trg(38)          <=i_host_rst_n;
-i_dbgcs_memaxi_trg(39)          <=i_host_tst2_out(25);--trn_lnk_up_n;
-i_dbgcs_memaxi_trg(40)          <=i_host_tst2_out(26);--trn_reset_n;
-i_dbgcs_memaxi_trg(41)          <=i_host_tst_out(63);--vrsk_reg_bar and (p_in_reg_wr or i_reg_rd);
-
-
---//-------- VIEW: ------------------
-i_dbgcs_memaxi_view(17 downto  0) <=i_host_mem_ctrl.req_len;
-i_dbgcs_memaxi_view(21 downto  18)<=(others=>'0');--i_host_mem_tst_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-i_dbgcs_memaxi_view(22)           <=i_host_tst_out(125);--cpld_tpl_work;
-i_dbgcs_memaxi_view(23)           <=i_host_tst_out(126);--trn_rdw_sel
-i_dbgcs_memaxi_view(24)           <=i_host_tst_out(56); --i_dmatrn_mem_done(0)
-i_dbgcs_memaxi_view(25)           <=i_host_tst_out(57); --i_dmatrn_mem_done(1)
-i_dbgcs_memaxi_view(26)           <=i_host_tst_out(124);--i_dma_start;
-i_dbgcs_memaxi_view(27)           <='0';--i_host_tst_out(48);--sr_memtrn_done(0);
-i_dbgcs_memaxi_view(28)           <='0';--i_host_tst_out(49);--sr_memtrn_done(1);
-i_dbgcs_memaxi_view(29)           <='0';--i_host_tst_out(50);--sr_memtrn_done(2);
-i_dbgcs_memaxi_view(30)           <='0';--i_host_tst_out(51);--i_memtrn_done;
-i_dbgcs_memaxi_view(31)           <='0';--i_maxi_rready (0); --// Read Response ready
-
-i_dbgcs_memaxi_view(49 downto  32)<=i_host_mem_ctrl.adr(17 downto 0);
-
-i_dbgcs_memaxi_view(50)           <='0';--i_maxi_awvalid(0);
-i_dbgcs_memaxi_view(51)           <='0';--i_maxi_awready(0);
-i_dbgcs_memaxi_view(52)           <='0';--i_maxi_wlast  (0);
-i_dbgcs_memaxi_view(53)           <='0';--i_maxi_wvalid (0);
-i_dbgcs_memaxi_view(54)           <='0';--i_maxi_wready (0);
-i_dbgcs_memaxi_view(55)           <='0';--i_maxi_wbvalid(0);
-i_dbgcs_memaxi_view(56)           <='0';--i_maxi_wbready(0);
-
-i_dbgcs_memaxi_view(57)           <='0';--i_maxi_arvalid(0);
-i_dbgcs_memaxi_view(58)           <='0';--i_maxi_arready(0);
-i_dbgcs_memaxi_view(59)           <='0';--i_maxi_rlast  (0);
-i_dbgcs_memaxi_view(60)           <='0';--i_maxi_rvalid (0);
-i_dbgcs_memaxi_view(61)           <='0';--i_maxi_rready (0);
-
-i_dbgcs_memaxi_view(69 downto 62) <=i_host_tst2_out(114 downto 107);--p_out_tst(159 downto 96)<=trn_rd;
-i_dbgcs_memaxi_view(74 downto 70) <=(others=>'0');
-i_dbgcs_memaxi_view(75)           <=i_host_mem_status.done;
-i_dbgcs_memaxi_view(76)           <=i_host_mem_ctrl.dir;
-i_dbgcs_memaxi_view(77)           <=i_host_mem_ctrl.start;
-i_dbgcs_memaxi_view(78)           <=i_host_tst_out(119);--=i_dmatrn_mwr_done;
-i_dbgcs_memaxi_view(79)           <=i_host_tst_out(122);--=i_dmatrn_mrd_done;
-
-i_dbgcs_memaxi_view(80)           <=i_host_dev_wr;
-i_dbgcs_memaxi_view(81)           <=i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT);
-i_dbgcs_memaxi_view(82)           <=i_host_mem_tst_out(8);--<=i_txbuf_empty;
-i_dbgcs_memaxi_view(83)           <=i_host_dev_rd;
-i_dbgcs_memaxi_view(84)           <=i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT);
-i_dbgcs_memaxi_view(85)           <=i_host_mem_tst_out(7);--<=i_rxbuf_full;
-
-i_dbgcs_memaxi_view(86)           <=i_host_tst_out(96)             ;--i_irq_src_clr;--//Clr IRQ
-i_dbgcs_memaxi_view(90 downto 87) <=i_host_tst2_out(121 downto 118);--p_out_tst(159 downto 96)<=trn_rd;
-i_dbgcs_memaxi_view(98 downto 91) <=i_host_tst_out(108 downto 101) ;--i_irq_src_act(7 downto 0);--//Status IRQx
-i_dbgcs_memaxi_view(106 downto 99)<=i_host_tst_out(116 downto 109) ;--i_irq_src_set(7 downto 0);--//Set    IRQx
-i_dbgcs_memaxi_view(107)          <='0';
-i_dbgcs_memaxi_view(108)          <=i_host_tst_out(62); --p_in_mrd_rcv_err;
-
-i_dbgcs_memaxi_view(109)          <=i_host_tst2_out(0); --cfg_interrupt_n;
-i_dbgcs_memaxi_view(110)          <=i_host_tst2_out(1); --cfg_interrupt_rdy_n;
-i_dbgcs_memaxi_view(111)          <=i_host_tst2_out(2); --cfg_interrupt_assert_n;
-i_dbgcs_memaxi_view(112)          <=i_host_tst2_out(3); --cfg_interrupt_msienable;
-
-i_dbgcs_memaxi_view(113)          <=i_host_tst2_out(4); --trn_tsof_n,
-i_dbgcs_memaxi_view(114)          <=i_host_tst2_out(5); --trn_teof_n,
-i_dbgcs_memaxi_view(115)          <=i_host_tst2_out(6); --trn_tsrc_rdy_n,
-i_dbgcs_memaxi_view(116)          <=i_host_tst2_out(7); --trn_tdst_rdy_n,
-i_dbgcs_memaxi_view(117)          <=i_host_tst2_out(8); --trn_tsrc_dsc_n,
-i_dbgcs_memaxi_view(118)          <=i_host_tst2_out(9); --trn_rsof_n,
-i_dbgcs_memaxi_view(119)          <=i_host_tst2_out(10);--trn_reof_n,
-i_dbgcs_memaxi_view(120)          <=i_host_tst2_out(11);--trn_rsrc_rdy_n,
-i_dbgcs_memaxi_view(121)          <=i_host_tst2_out(12);--trn_rsrc_dsc_n,
-i_dbgcs_memaxi_view(122)          <=i_host_tst2_out(13);--trn_rdst_rdy_n,
-
-i_dbgcs_memaxi_view(123)          <=i_host_tst2_out(14);--trn_rbar_hit_n(0);
-i_dbgcs_memaxi_view(124)          <=i_host_tst2_out(15);--trn_rbar_hit_n(1);
-
-i_dbgcs_memaxi_view(169 downto 125)<=i_host_tst2_out(159 downto 115);--p_out_tst(159 downto 96)<=trn_rd;
-i_dbgcs_memaxi_view(170)<=i_host_tst_out(127); --p_in_txbuf_wr_last;
-i_dbgcs_memaxi_view(171)<=i_host_tst2_out(161);--trn_terr_drop_n;
-i_dbgcs_memaxi_view(172)<=i_host_tst2_out(160);--trn_rrem_n(0);
-i_dbgcs_memaxi_view(179 downto 173)<=(others=>'0');
-
---i_dbgcs_memaxi_view(190 downto 180)<=i_host_tst2_out(106 downto 96);--p_out_tst(159 downto 96)<=trn_rd;
-i_dbgcs_memaxi_view(211 downto 180)<=i_host_dev_txd;
---i_dbgcs_memaxi_view(243 downto 212)<=i_host_dev_rxd;
-i_dbgcs_memaxi_view(243 downto 212)<=tst_host_irq_measure;
-i_dbgcs_memaxi_view(244)           <=i_host_tst2_out(23);--cfg_turnoff_ok_n;
-i_dbgcs_memaxi_view(245)           <=i_host_tst2_out(24);--cfg_to_turnoff_n;
-i_dbgcs_memaxi_view(246)           <=i_host_rst_n;
-i_dbgcs_memaxi_view(247)           <=i_host_tst2_out(25);--trn_lnk_up_n;
-i_dbgcs_memaxi_view(248)           <=i_host_tst2_out(26);--trn_reset_n;
-i_dbgcs_memaxi_view(249)           <=i_host_tst_out(63);--vrsk_reg_bar and (p_in_reg_wr or i_reg_rd);
-i_dbgcs_memaxi_view(255 downto 250)<=i_host_tst2_out(255 downto 250);--trn_tbuf_av;
-
-
-
-m_dbgcs_mem : dbgcs_sata_raid
-port map(
-CONTROL => i_dbgcs_mem,
-CLK     => i_memout_bank(0).clk,
-DATA    => i_dbgcs_mem_view(255 downto 0),--(172 downto 0),--(122 downto 0),
-TRIG0   => i_dbgcs_mem_trg(41 downto 0)
-);
-
---//-------- TRIG: ------------------
-i_dbgcs_mem_trg(3 downto  0) <=(others=>'0');
-i_dbgcs_mem_trg(4)           <=i_host_mem_tst_out(0);--<=i_mem_start;
-i_dbgcs_mem_trg(5)           <='0';
-i_dbgcs_mem_trg(6)           <=i_host_mem_tst_out(1);--<=i_mem_done;
-i_dbgcs_mem_trg(32 downto 7)<=(others=>'0');
-i_dbgcs_mem_trg(33)          <=i_host_tst_out(0);--бит(0) регистра C_HOST_REG_TST0
-i_dbgcs_mem_trg(34)<='0';
-i_dbgcs_mem_trg(35)<='0';
-i_dbgcs_mem_trg(36)<='0';
-i_dbgcs_mem_trg(37)<='0';
-i_dbgcs_mem_trg(38)<='0';
-i_dbgcs_mem_trg(41 downto 39) <=(others=>'0');
-
-
---//-------- VIEW: ------------------
-i_dbgcs_mem_view(3 downto 0)    <=i_host_mem_tst_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-i_dbgcs_mem_view(4)             <=i_host_mem_tst_out(0);--<=i_mem_start;
-i_dbgcs_mem_view(5)             <=i_memin_bank(0).axiw.avalid;  --i_saxi_awvalid(0);
-i_dbgcs_mem_view(6)             <=i_memout_bank(0).axiw.aready; --i_saxi_awready(0);
-i_dbgcs_mem_view(7)             <=i_memin_bank(0).axiw.dlast;   --i_saxi_wlast  (0);
-i_dbgcs_mem_view(8)             <=i_memin_bank(0).axiw.dvalid;  --i_saxi_wvalid (0);
-i_dbgcs_mem_view(9)             <=i_memout_bank(0).axiw.wready; --i_saxi_wready (0);
-i_dbgcs_mem_view(10)            <=i_memout_bank(0).axiw.rvalid; --i_saxi_wbvalid(0);
-i_dbgcs_mem_view(11)            <=i_memin_bank(0).axiw.rready; --i_saxi_wbready(0);
-i_dbgcs_mem_view(12)            <='0';
-i_dbgcs_mem_view(13)            <='0'; --i_hdd_memarb_req,
-i_dbgcs_mem_view(14)            <='0';  --i_hdd_memarb_en,
-i_dbgcs_mem_view(15)            <=i_host_mem_status.done;
-i_dbgcs_mem_view(25 downto 16)  <=(others=>'0');
-i_dbgcs_mem_view(31 downto 26)  <=i_host_mem_tst_out(31 downto 26);--(31 downto 16);--m_mem_wr/i_mem_trn_len(5 downto 0);
-i_dbgcs_mem_view(63 downto 32)  <=i_memin_bank(0).axiw.adr(31 downto 0);  --i_saxi_awaddr (0); --// Write address
-i_dbgcs_mem_view(95 downto 64)  <=i_memin_bank(0).axiw.data(31 downto 0); --i_saxi_wdata  (0); --// Write data
-i_dbgcs_mem_view(127 downto 96) <=i_memout_bank(0).axir.data(31 downto 0);--i_saxi_rdata  (0); --// Write data
-i_dbgcs_mem_view(143 downto 128)<=i_host_mem_tst_out(25 downto 10);--m_mem_wr/i_mem_lenreq(15 downto 0)
-
-i_dbgcs_mem_view(144)           <=i_host_mem_tst_out(6);--<=i_rxbuf_empty;
-i_dbgcs_mem_view(145)           <=i_host_mem_tst_out(7);--<=i_rxbuf_full;
-i_dbgcs_mem_view(146)           <=i_host_mem_tst_out(8);--<=i_txbuf_empty;
-i_dbgcs_mem_view(147)           <=i_host_mem_tst_out(9);--<=i_txbuf_full;
-
-i_dbgcs_mem_view(148)           <=i_memin_bank(0).axir.avalid;  --i_saxi_arvalid(0);
-i_dbgcs_mem_view(149)           <=i_memout_bank(0).axir.aready; --i_saxi_arready(0);
-i_dbgcs_mem_view(150)           <=i_memout_bank(0).axir.dlast;  --i_saxi_rlast  (0);
-i_dbgcs_mem_view(151)           <=i_memout_bank(0).axir.dvalid; --i_saxi_rvalid (0);
-i_dbgcs_mem_view(152)           <=i_memin_bank(0).axir.rready;  --i_saxi_rready (0);
-
-i_dbgcs_mem_view(160 downto 153)<=i_memin_bank(0).axiw.trnlen(7 downto 0); --i_saxi_awlen(0)(7 downto 0);
-i_dbgcs_mem_view(168 downto 161)<=i_memin_bank(0).axir.trnlen(7 downto 0); --i_saxi_arlen(0)(7 downto 0);
-i_dbgcs_mem_view(255 downto 169)<=(others=>'0');
-
-
---//g_pll_clkin - 200MHz
-process(g_pll_clkin)
-begin
-  if g_pll_clkin'event and g_pll_clkin='1' then
---    tst_irq_status<=i_host_tst_out(108 downto 101);
-    tst_irq_status(C_HIRQ_PCIE_DMA)<=not i_host_tst2_out(2); --cfg_interrupt_assert_n;
-    tst_irq_status_dly<=tst_irq_status(C_HIRQ_PCIE_DMA);
-    tst_irq_measure_clr<=tst_irq_status(C_HIRQ_PCIE_DMA) and not tst_irq_status_dly;
-
-    if tst_irq_measure_clr='1' then
-      tst_irq_measure<=(others=>'0');
-    else
-      if tst_irq_status(C_HIRQ_PCIE_DMA)='1' then
-        if tst_irq_measure/=(tst_irq_measure'range =>'1') then
-          tst_irq_measure<=tst_irq_measure + 1;
-        end if;
-      end if;
-    end if;
-  end if;
-end process;
-
-process(g_host_clk)
-begin
-  if g_host_clk'event and g_host_clk='1' then
-    tst_host_irq_measure<=tst_irq_measure;
-  end if;
-end process;
+--m_dbgcs_icon : dbgcs_iconx2
+--port map(
+--CONTROL0 => i_dbgcs_memaxi,
+--CONTROL1 => i_dbgcs_mem
+--);
+--
+----//###
+--m_dbgcs_memaxi : dbgcs_sata_raid
+--port map
+--(
+--CONTROL => i_dbgcs_memaxi,
+--CLK     => g_host_clk,
+--DATA    => i_dbgcs_memaxi_view(255 downto 0),--(172 downto 0),--(122 downto 0),
+--TRIG0   => i_dbgcs_memaxi_trg(41 downto 0)
+--);
+--
+----//-------- TRIG: ------------------
+--i_dbgcs_memaxi_trg(3 downto  0) <=(others=>'0');
+--i_dbgcs_memaxi_trg(4)           <=i_host_mem_ctrl.start;
+--i_dbgcs_memaxi_trg(5)           <=i_host_mem_ctrl.dir;
+--i_dbgcs_memaxi_trg(6)           <=i_host_tst_out(57) and i_host_tst_out(56);--i_trn_done;
+--
+--i_dbgcs_memaxi_trg(7)           <=i_host_tst_out(96) ;--i_irq_src_clr;--//Clr IRQ
+--i_dbgcs_memaxi_trg(8)           <=i_host_tst_out(117);--i_dmatotal_mwr_done and i_dma_mwr_done_del;
+--i_dbgcs_memaxi_trg(9)           <=i_host_tst_out(118);--i_dmatotal_mrd_done and i_dma_mrd_done_del;
+--i_dbgcs_memaxi_trg(10)          <=i_host_tst_out(118) or i_host_tst_out(117);--<=i_dmatotal_mrd_done and i_dma_mrd_done_del;
+--i_dbgcs_memaxi_trg(11)          <=i_host_tst2_out(0); --cfg_interrupt_n;
+--i_dbgcs_memaxi_trg(12)          <=i_host_tst2_out(1); --cfg_interrupt_rdy_n;
+--i_dbgcs_memaxi_trg(13)          <=i_host_tst2_out(2); --cfg_interrupt_assert_n;
+--i_dbgcs_memaxi_trg(14)          <=i_host_tst2_out(3); --cfg_interrupt_msienable;
+--
+--i_dbgcs_memaxi_trg(15)          <=i_host_tst2_out(4); --trn_tsof_n,
+--i_dbgcs_memaxi_trg(16)          <=i_host_tst2_out(9); --trn_rsof_n,
+--
+--i_dbgcs_memaxi_trg(17)          <=i_host_tst2_out(14);--trn_rbar_hit_n(0);
+--i_dbgcs_memaxi_trg(18)          <=i_host_tst2_out(15);--trn_rbar_hit_n(1);
+--
+--i_dbgcs_memaxi_trg(19)          <=i_host_tst_out(119);--v_reg_pciexp_ctrl(C_HREG_PCIE_MSI_EN_BIT);
+--i_dbgcs_memaxi_trg(20)          <=i_host_tst_out(120);--p_in_cfg_msi_enable;
+--i_dbgcs_memaxi_trg(21)          <=i_host_tst2_out(16);--cfg_command(2);--//cfg_bus_mstr_enable
+--i_dbgcs_memaxi_trg(22)          <=i_host_tst_out(121);--p_in_cfg_intrrupt_disable;
+--i_dbgcs_memaxi_trg(30 downto 23)<=i_host_tst_out(108 downto 101);--p_in_irq_status(7 downto 0);
+--i_dbgcs_memaxi_trg(31)          <='0';
+--i_dbgcs_memaxi_trg(32)          <='0';--i_cfg_done_dev(C_CFGDEV_TMR);
+--i_dbgcs_memaxi_trg(33)          <=i_host_tst_out(0);--бит(0) регистра C_HOST_REG_TST0
+--i_dbgcs_memaxi_trg(34)          <=i_host_tst_out(123);--i_dmatrn_init;
+--i_dbgcs_memaxi_trg(35)          <=i_host_tst_out(124);--i_dma_start;
+--i_dbgcs_memaxi_trg(36)          <=i_host_tst2_out(23);--cfg_turnoff_ok_n;
+--i_dbgcs_memaxi_trg(37)          <=i_host_tst2_out(24);--cfg_to_turnoff_n;
+--i_dbgcs_memaxi_trg(38)          <=i_host_rst_n;
+--i_dbgcs_memaxi_trg(39)          <=i_host_tst2_out(25);--trn_lnk_up_n;
+--i_dbgcs_memaxi_trg(40)          <=i_host_tst2_out(26);--trn_reset_n;
+--i_dbgcs_memaxi_trg(41)          <=i_host_tst_out(63);--vrsk_reg_bar and (p_in_reg_wr or i_reg_rd);
+--
+--
+----//-------- VIEW: ------------------
+--i_dbgcs_memaxi_view(17 downto  0) <=i_host_mem_ctrl.req_len;
+--i_dbgcs_memaxi_view(21 downto  18)<=(others=>'0');--i_host_mem_tst_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
+--i_dbgcs_memaxi_view(22)           <=i_host_tst_out(125);--cpld_tpl_work;
+--i_dbgcs_memaxi_view(23)           <=i_host_tst_out(126);--trn_rdw_sel
+--i_dbgcs_memaxi_view(24)           <=i_host_tst_out(56); --i_dmatrn_mem_done(0)
+--i_dbgcs_memaxi_view(25)           <=i_host_tst_out(57); --i_dmatrn_mem_done(1)
+--i_dbgcs_memaxi_view(26)           <=i_host_tst_out(124);--i_dma_start;
+--i_dbgcs_memaxi_view(27)           <='0';--i_host_tst_out(48);--sr_memtrn_done(0);
+--i_dbgcs_memaxi_view(28)           <='0';--i_host_tst_out(49);--sr_memtrn_done(1);
+--i_dbgcs_memaxi_view(29)           <='0';--i_host_tst_out(50);--sr_memtrn_done(2);
+--i_dbgcs_memaxi_view(30)           <='0';--i_host_tst_out(51);--i_memtrn_done;
+--i_dbgcs_memaxi_view(31)           <='0';--i_maxi_rready (0); --// Read Response ready
+--
+--i_dbgcs_memaxi_view(49 downto  32)<=i_host_mem_ctrl.adr(17 downto 0);
+--
+--i_dbgcs_memaxi_view(50)           <='0';--i_maxi_awvalid(0);
+--i_dbgcs_memaxi_view(51)           <='0';--i_maxi_awready(0);
+--i_dbgcs_memaxi_view(52)           <='0';--i_maxi_wlast  (0);
+--i_dbgcs_memaxi_view(53)           <='0';--i_maxi_wvalid (0);
+--i_dbgcs_memaxi_view(54)           <='0';--i_maxi_wready (0);
+--i_dbgcs_memaxi_view(55)           <='0';--i_maxi_wbvalid(0);
+--i_dbgcs_memaxi_view(56)           <='0';--i_maxi_wbready(0);
+--
+--i_dbgcs_memaxi_view(57)           <='0';--i_maxi_arvalid(0);
+--i_dbgcs_memaxi_view(58)           <='0';--i_maxi_arready(0);
+--i_dbgcs_memaxi_view(59)           <='0';--i_maxi_rlast  (0);
+--i_dbgcs_memaxi_view(60)           <='0';--i_maxi_rvalid (0);
+--i_dbgcs_memaxi_view(61)           <='0';--i_maxi_rready (0);
+--
+--i_dbgcs_memaxi_view(69 downto 62) <=i_host_tst2_out(114 downto 107);--p_out_tst(159 downto 96)<=trn_rd;
+--i_dbgcs_memaxi_view(74 downto 70) <=(others=>'0');
+--i_dbgcs_memaxi_view(75)           <=i_host_mem_status.done;
+--i_dbgcs_memaxi_view(76)           <=i_host_mem_ctrl.dir;
+--i_dbgcs_memaxi_view(77)           <=i_host_mem_ctrl.start;
+--i_dbgcs_memaxi_view(78)           <=i_host_tst_out(119);--=i_dmatrn_mwr_done;
+--i_dbgcs_memaxi_view(79)           <=i_host_tst_out(122);--=i_dmatrn_mrd_done;
+--
+--i_dbgcs_memaxi_view(80)           <=i_host_dev_wr;
+--i_dbgcs_memaxi_view(81)           <=i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT);
+--i_dbgcs_memaxi_view(82)           <=i_host_mem_tst_out(8);--<=i_txbuf_empty;
+--i_dbgcs_memaxi_view(83)           <=i_host_dev_rd;
+--i_dbgcs_memaxi_view(84)           <=i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT);
+--i_dbgcs_memaxi_view(85)           <=i_host_mem_tst_out(7);--<=i_rxbuf_full;
+--
+--i_dbgcs_memaxi_view(86)           <=i_host_tst_out(96)             ;--i_irq_src_clr;--//Clr IRQ
+--i_dbgcs_memaxi_view(90 downto 87) <=i_host_tst2_out(121 downto 118);--p_out_tst(159 downto 96)<=trn_rd;
+--i_dbgcs_memaxi_view(98 downto 91) <=i_host_tst_out(108 downto 101) ;--i_irq_src_act(7 downto 0);--//Status IRQx
+--i_dbgcs_memaxi_view(106 downto 99)<=i_host_tst_out(116 downto 109) ;--i_irq_src_set(7 downto 0);--//Set    IRQx
+--i_dbgcs_memaxi_view(107)          <='0';
+--i_dbgcs_memaxi_view(108)          <=i_host_tst_out(62); --p_in_mrd_rcv_err;
+--
+--i_dbgcs_memaxi_view(109)          <=i_host_tst2_out(0); --cfg_interrupt_n;
+--i_dbgcs_memaxi_view(110)          <=i_host_tst2_out(1); --cfg_interrupt_rdy_n;
+--i_dbgcs_memaxi_view(111)          <=i_host_tst2_out(2); --cfg_interrupt_assert_n;
+--i_dbgcs_memaxi_view(112)          <=i_host_tst2_out(3); --cfg_interrupt_msienable;
+--
+--i_dbgcs_memaxi_view(113)          <=i_host_tst2_out(4); --trn_tsof_n,
+--i_dbgcs_memaxi_view(114)          <=i_host_tst2_out(5); --trn_teof_n,
+--i_dbgcs_memaxi_view(115)          <=i_host_tst2_out(6); --trn_tsrc_rdy_n,
+--i_dbgcs_memaxi_view(116)          <=i_host_tst2_out(7); --trn_tdst_rdy_n,
+--i_dbgcs_memaxi_view(117)          <=i_host_tst2_out(8); --trn_tsrc_dsc_n,
+--i_dbgcs_memaxi_view(118)          <=i_host_tst2_out(9); --trn_rsof_n,
+--i_dbgcs_memaxi_view(119)          <=i_host_tst2_out(10);--trn_reof_n,
+--i_dbgcs_memaxi_view(120)          <=i_host_tst2_out(11);--trn_rsrc_rdy_n,
+--i_dbgcs_memaxi_view(121)          <=i_host_tst2_out(12);--trn_rsrc_dsc_n,
+--i_dbgcs_memaxi_view(122)          <=i_host_tst2_out(13);--trn_rdst_rdy_n,
+--
+--i_dbgcs_memaxi_view(123)          <=i_host_tst2_out(14);--trn_rbar_hit_n(0);
+--i_dbgcs_memaxi_view(124)          <=i_host_tst2_out(15);--trn_rbar_hit_n(1);
+--
+--i_dbgcs_memaxi_view(169 downto 125)<=i_host_tst2_out(159 downto 115);--p_out_tst(159 downto 96)<=trn_rd;
+--i_dbgcs_memaxi_view(170)<=i_host_tst_out(127); --p_in_txbuf_wr_last;
+--i_dbgcs_memaxi_view(171)<=i_host_tst2_out(161);--trn_terr_drop_n;
+--i_dbgcs_memaxi_view(172)<=i_host_tst2_out(160);--trn_rrem_n(0);
+--i_dbgcs_memaxi_view(179 downto 173)<=(others=>'0');
+--
+----i_dbgcs_memaxi_view(190 downto 180)<=i_host_tst2_out(106 downto 96);--p_out_tst(159 downto 96)<=trn_rd;
+--i_dbgcs_memaxi_view(211 downto 180)<=i_host_dev_txd;
+----i_dbgcs_memaxi_view(243 downto 212)<=i_host_dev_rxd;
+--i_dbgcs_memaxi_view(243 downto 212)<=tst_host_irq_measure;
+--i_dbgcs_memaxi_view(244)           <=i_host_tst2_out(23);--cfg_turnoff_ok_n;
+--i_dbgcs_memaxi_view(245)           <=i_host_tst2_out(24);--cfg_to_turnoff_n;
+--i_dbgcs_memaxi_view(246)           <=i_host_rst_n;
+--i_dbgcs_memaxi_view(247)           <=i_host_tst2_out(25);--trn_lnk_up_n;
+--i_dbgcs_memaxi_view(248)           <=i_host_tst2_out(26);--trn_reset_n;
+--i_dbgcs_memaxi_view(249)           <=i_host_tst_out(63);--vrsk_reg_bar and (p_in_reg_wr or i_reg_rd);
+--i_dbgcs_memaxi_view(255 downto 250)<=i_host_tst2_out(255 downto 250);--trn_tbuf_av;
+--
+--
+--
+--m_dbgcs_mem : dbgcs_sata_raid
+--port map(
+--CONTROL => i_dbgcs_mem,
+--CLK     => i_memout_bank(0).clk,
+--DATA    => i_dbgcs_mem_view(255 downto 0),--(172 downto 0),--(122 downto 0),
+--TRIG0   => i_dbgcs_mem_trg(41 downto 0)
+--);
+--
+----//-------- TRIG: ------------------
+--i_dbgcs_mem_trg(3 downto  0) <=(others=>'0');
+--i_dbgcs_mem_trg(4)           <=i_host_mem_tst_out(0);--<=i_mem_start;
+--i_dbgcs_mem_trg(5)           <='0';
+--i_dbgcs_mem_trg(6)           <=i_host_mem_tst_out(1);--<=i_mem_done;
+--i_dbgcs_mem_trg(32 downto 7)<=(others=>'0');
+--i_dbgcs_mem_trg(33)          <=i_host_tst_out(0);--бит(0) регистра C_HOST_REG_TST0
+--i_dbgcs_mem_trg(34)<='0';
+--i_dbgcs_mem_trg(35)<='0';
+--i_dbgcs_mem_trg(36)<='0';
+--i_dbgcs_mem_trg(37)<='0';
+--i_dbgcs_mem_trg(38)<='0';
+--i_dbgcs_mem_trg(41 downto 39) <=(others=>'0');
+--
+--
+----//-------- VIEW: ------------------
+--i_dbgcs_mem_view(3 downto 0)    <=i_host_mem_tst_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
+--i_dbgcs_mem_view(4)             <=i_host_mem_tst_out(0);--<=i_mem_start;
+--i_dbgcs_mem_view(5)             <=i_memin_bank(0).axiw.avalid;  --i_saxi_awvalid(0);
+--i_dbgcs_mem_view(6)             <=i_memout_bank(0).axiw.aready; --i_saxi_awready(0);
+--i_dbgcs_mem_view(7)             <=i_memin_bank(0).axiw.dlast;   --i_saxi_wlast  (0);
+--i_dbgcs_mem_view(8)             <=i_memin_bank(0).axiw.dvalid;  --i_saxi_wvalid (0);
+--i_dbgcs_mem_view(9)             <=i_memout_bank(0).axiw.wready; --i_saxi_wready (0);
+--i_dbgcs_mem_view(10)            <=i_memout_bank(0).axiw.rvalid; --i_saxi_wbvalid(0);
+--i_dbgcs_mem_view(11)            <=i_memin_bank(0).axiw.rready; --i_saxi_wbready(0);
+--i_dbgcs_mem_view(12)            <='0';
+--i_dbgcs_mem_view(13)            <='0'; --i_hdd_memarb_req,
+--i_dbgcs_mem_view(14)            <='0';  --i_hdd_memarb_en,
+--i_dbgcs_mem_view(15)            <=i_host_mem_status.done;
+--i_dbgcs_mem_view(25 downto 16)  <=(others=>'0');
+--i_dbgcs_mem_view(31 downto 26)  <=i_host_mem_tst_out(31 downto 26);--(31 downto 16);--m_mem_wr/i_mem_trn_len(5 downto 0);
+--i_dbgcs_mem_view(63 downto 32)  <=i_memin_bank(0).axiw.adr(31 downto 0);  --i_saxi_awaddr (0); --// Write address
+--i_dbgcs_mem_view(95 downto 64)  <=i_memin_bank(0).axiw.data(31 downto 0); --i_saxi_wdata  (0); --// Write data
+--i_dbgcs_mem_view(127 downto 96) <=i_memout_bank(0).axir.data(31 downto 0);--i_saxi_rdata  (0); --// Write data
+--i_dbgcs_mem_view(143 downto 128)<=i_host_mem_tst_out(25 downto 10);--m_mem_wr/i_mem_lenreq(15 downto 0)
+--
+--i_dbgcs_mem_view(144)           <=i_host_mem_tst_out(6);--<=i_rxbuf_empty;
+--i_dbgcs_mem_view(145)           <=i_host_mem_tst_out(7);--<=i_rxbuf_full;
+--i_dbgcs_mem_view(146)           <=i_host_mem_tst_out(8);--<=i_txbuf_empty;
+--i_dbgcs_mem_view(147)           <=i_host_mem_tst_out(9);--<=i_txbuf_full;
+--
+--i_dbgcs_mem_view(148)           <=i_memin_bank(0).axir.avalid;  --i_saxi_arvalid(0);
+--i_dbgcs_mem_view(149)           <=i_memout_bank(0).axir.aready; --i_saxi_arready(0);
+--i_dbgcs_mem_view(150)           <=i_memout_bank(0).axir.dlast;  --i_saxi_rlast  (0);
+--i_dbgcs_mem_view(151)           <=i_memout_bank(0).axir.dvalid; --i_saxi_rvalid (0);
+--i_dbgcs_mem_view(152)           <=i_memin_bank(0).axir.rready;  --i_saxi_rready (0);
+--
+--i_dbgcs_mem_view(160 downto 153)<=i_memin_bank(0).axiw.trnlen(7 downto 0); --i_saxi_awlen(0)(7 downto 0);
+--i_dbgcs_mem_view(168 downto 161)<=i_memin_bank(0).axir.trnlen(7 downto 0); --i_saxi_arlen(0)(7 downto 0);
+--i_dbgcs_mem_view(255 downto 169)<=(others=>'0');
+--
+--
+----//g_pll_clkin - 200MHz
+--process(g_pll_clkin)
+--begin
+--  if g_pll_clkin'event and g_pll_clkin='1' then
+----    tst_irq_status<=i_host_tst_out(108 downto 101);
+--    tst_irq_status(C_HIRQ_PCIE_DMA)<=not i_host_tst2_out(2); --cfg_interrupt_assert_n;
+--    tst_irq_status_dly<=tst_irq_status(C_HIRQ_PCIE_DMA);
+--    tst_irq_measure_clr<=tst_irq_status(C_HIRQ_PCIE_DMA) and not tst_irq_status_dly;
+--
+--    if tst_irq_measure_clr='1' then
+--      tst_irq_measure<=(others=>'0');
+--    else
+--      if tst_irq_status(C_HIRQ_PCIE_DMA)='1' then
+--        if tst_irq_measure/=(tst_irq_measure'range =>'1') then
+--          tst_irq_measure<=tst_irq_measure + 1;
+--        end if;
+--      end if;
+--    end if;
+--  end if;
+--end process;
+--
+--process(g_host_clk)
+--begin
+--  if g_host_clk'event and g_host_clk='1' then
+--    tst_host_irq_measure<=tst_irq_measure;
+--  end if;
+--end process;
 
 
 end architecture;

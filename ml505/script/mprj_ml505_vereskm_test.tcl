@@ -168,13 +168,12 @@ set _projects [ list \
       [ list "../src/core_gen/vsobel_sub.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/video/sobel/vsobel_main_rev3xx.vhd" $_VHDMod ] \
       [ list "../../../common/color_conv/vrgb2yuv_main_rev0xx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/eth/src/eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/eth/src/eth_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/emac_core_main.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/eth/dsn_ethg.vhd" $_VHDMod ] \
@@ -251,12 +250,22 @@ set _projects [ list \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/extend_clk.v" $_VMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_ep.v" $_VMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.v" $_VMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core_locallink.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/physical/rgmii_if.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii_locallink.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_emac_core_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_rgmii.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \

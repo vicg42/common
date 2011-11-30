@@ -132,8 +132,8 @@ set _projects [ list \
       [ list "../../../common/eth/src/eth_rx_rev1xx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_tx_rev1xx.vhd" $_VHDMod ] \
       [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/dsn_ethg.vhd" $_VHDMod ] \
+      [ list "../../../common/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_null.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_null2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \

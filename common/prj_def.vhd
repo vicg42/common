@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0337#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0338#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -378,7 +378,7 @@ constant C_HDD_REG_CTRLM_LAST_BIT             : integer:=C_HDD_REG_CTRLM_RAMWR_D
 
 
 --//--------------------------------------------------------------
---//Регистры модуля dsn_ethg.vhd
+--//Регистры модуля dsn_eth.vhd
 --//--------------------------------------------------------------
 constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;
 constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;

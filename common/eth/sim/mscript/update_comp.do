@@ -22,8 +22,8 @@ vcom -93 "../../src/eth_rx_pkt_filter.vhd"
 vcom -93 "../../src/eth_tx_rev1xx.vhd"
 vcom -93 "../../src/eth_rx_rev1xx.vhd"
 vcom -93 "../../src/eth_main.vhd"
-vcom -93 "../../dsn_ethg_pkg.vhd"
-vcom -93 "../../dsn_ethg.vhd"
+vcom -93 "../../dsn_eth_pkg.vhd"
+vcom -93 "../../dsn_eth.vhd"
 
 
-vcom -93 "../testbanch/dsn_ethg_tb.vhd"
+vcom -93 "../testbanch/dsn_eth_tb.vhd"

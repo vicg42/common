@@ -27,7 +27,7 @@ constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
 constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=5; --//max 7: 0-8MB, 1-16MB, 2-32MB, ... 6-256MB, 7-512MB
 
 --//cfg TMR
-constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
+--constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
 
 --//cfg HDD
 constant C_PCFG_HDD_USE                : string:="OFF";
@@ -46,8 +46,11 @@ constant C_PCFG_VCTRL_VCH_COUNT        : integer:=4; --//max 4
 constant C_PCFG_VCTRL_SIMPLE           : string:="ON";
 
 --//cfg ETH
-constant C_PCFG_ETH_USE                : string:="OFF";
+constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
+constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=1;
+constant C_PCFG_ETH_PHY_DWIDTH         : integer:=8;
+constant C_PCFG_ETH_PHY_SEL            : integer:=0; --0:Fiber, 1:RGMII - Константы для интерфейсов см. eth_pkg.vhd
 
 --//cfg TRACKER
 constant C_PCFG_TRC_USE                : string:="OFF";

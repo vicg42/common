@@ -179,8 +179,8 @@ vcom -93 "../../../common/veresk_m/eth/src/eth_pkg.vhd"
 vcom -93 "../../../common/veresk_m/eth/src/eth_tx_rev1xx.vhd"
 vcom -93 "../../../common/veresk_m/eth/src/eth_rx_rev1xx.vhd"
 vcom -93 "../../../common/veresk_m/eth/src/eth_main.vhd"
-vcom -93 "../../../common/veresk_m/eth/dsn_ethg_pkg.vhd"
-vcom -93 "../../../common/veresk_m/eth/dsn_ethg.vhd"
+vcom -93 "../../../common/veresk_m/eth/dsn_eth_pkg.vhd"
+vcom -93 "../../../common/veresk_m/eth/dsn_eth.vhd"
 
 ##-------------------------------
 ##..Мои модули /VIDEO

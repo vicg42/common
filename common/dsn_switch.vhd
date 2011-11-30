@@ -459,7 +459,7 @@ b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
 
 
 --//########################################################################
---//Разветвление сигнала записи данных rxdata от модуля dsn_ethg.vhd
+--//Разветвление сигнала записи данных rxdata от модуля dsn_eth.vhd
 --//########################################################################
 
 --//Синхронизируем управление ветвлением данных с началом прининятого пакета Ethernet
@@ -520,7 +520,7 @@ end process;
 
 
 --//########################################################################
---//Обмен Хоста <-> EthG (dsn_ethg.vhd)
+--//Обмен Хоста <-> EthG (dsn_eth.vhd)
 --//########################################################################
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --//Хост -> ETHG_TXFIFO.(запись данных в Gigabit Ethernet)
@@ -537,7 +537,7 @@ i_eth_txbuf_wr  <=p_in_host_eth_wr      when b_tstdsn_to_ethtxbuf='0' else p_in_
 p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
 
 --//----------------------------------
---//Буфер TXDATA для модуля dsn_ethg.vhd
+--//Буфер TXDATA для модуля dsn_eth.vhd
 --//----------------------------------
 m_eth_txbuf : host_ethg_txfifo
 port map(
@@ -557,7 +557,7 @@ rst     => b_rst_eth_bufs
 );
 
 --//----------------------------------
---//Связь с модулем dsn_ethg.vhd
+--//Связь с модулем dsn_eth.vhd
 --//----------------------------------
 p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 
@@ -567,7 +567,7 @@ p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --//Хост <- ETHG_RXFIFO.(чтение данных из Gigabit Ethernet)
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Фильтер пакетов от модуля dsn_ethg.vhd
+--//Фильтер пакетов от модуля dsn_eth.vhd
 m_host_eth_pkt_fltr: video_pkt_filter
 generic map(
 G_FRR_COUNT => C_SWT_ETH_HOST_FRR_COUNT
@@ -609,7 +609,7 @@ p_in_rst        => b_rst_eth_bufs
 
 
 --//----------------------------------
---//Буфер RXDATA для модуля dsn_ethg.vhd
+--//Буфер RXDATA для модуля dsn_eth.vhd
 --//----------------------------------
 m_eth_rxbuf : host_ethg_rxfifo
 port map(
@@ -649,7 +649,7 @@ begin
     i_eth_rxd_rdy_dly(1)<=i_eth_rxd_rdy_dly(0);
     i_eth_rxd_rdy_dly(2)<=i_eth_rxd_rdy_dly(1);
 
-    --//Растягиваем импульс готовности данных от модуля dsn_ethg.vhd
+    --//Растягиваем импульс готовности данных от модуля dsn_eth.vhd
     if i_eth_rxd_rdy_dly(2)='1' then
       eclk_eth_rxd_rdy_w<='1';
     elsif eclk_eth_rxd_rdy_wcnt(2)='1' then
@@ -681,7 +681,7 @@ p_out_host_eth_rxd_irq<=hclk_eth_rxd_rdy;
 --//#############################################################################
 --//Связь EthG->HDD(накопитель) (dsn_hdd.vhd)
 --//#############################################################################
---//Фильтер пакетов от модуля dsn_ethg.vhd
+--//Фильтер пакетов от модуля dsn_eth.vhd
 m_eth_hdd_pkt_fltr: video_pkt_filter
 generic map(
 G_FRR_COUNT => C_SWT_ETH_HDD_FRR_COUNT
@@ -769,7 +769,7 @@ rst       => i_hdd_vbuf_rst
 --//#############################################################################
 --//Связь EthG->VIDEO_CTRL(модуль видеоконтроллера) (dsn_video_ctrl.vhd)
 --//#############################################################################
---//Фильтер пакетов от модуля dsn_ethg.vhd
+--//Фильтер пакетов от модуля dsn_eth.vhd
 m_eth_vbufin_pkt_fltr: video_pkt_filter
 generic map(
 G_FRR_COUNT => C_SWT_ETH_VCTRL_FRR_COUNT

@@ -33,7 +33,7 @@ use work.mem_wr_pkg.all;
 use work.sata_testgen_pkg.all;
 --use work.sata_glob_pkg.all;
 --use work.dsn_hdd_pkg.all;
-use work.dsn_ethg_pkg.all;
+use work.dsn_eth_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
 
@@ -876,7 +876,7 @@ p_out_hdd_vbuf_pfull      => open, --i_hdd_vbuf_pfull, --
 p_out_hdd_vbuf_wrcnt      => open, --i_hdd_vbuf_wrcnt, --
 
 -------------------------------
--- Связь с Eth(dsn_ethg.vhd) (ethg_clk domain)
+-- Связь с Eth(dsn_eth.vhd) (ethg_clk domain)
 -------------------------------
 p_in_eth_clk              => g_eth_gt_refclkout,
 
@@ -936,9 +936,9 @@ p_in_rst => i_swt_rst
 );
 
 --***********************************************************
---Проект Ethernet - dsn_ethg.vhd
+--Проект Ethernet - dsn_eth.vhd
 --***********************************************************
-m_eth : dsn_ethg
+m_eth : dsn_eth
 generic map(
 G_MODULE_USE => C_PCFG_ETH_USE,
 G_DBG        => C_PCFG_ETH_DBG,
@@ -946,7 +946,7 @@ G_SIM        => G_SIM
 )
 port map(
 -------------------------------
--- Конфигурирование модуля dsn_ethg.vhd (host_clk domain)
+-- Конфигурирование модуля dsn_eth.vhd (host_clk domain)
 -------------------------------
 p_in_cfg_clk          => g_host_clk,
 
@@ -964,7 +964,7 @@ p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETH),
 p_in_cfg_rst          => i_cfg_rst,
 
 -------------------------------
--- STATUS модуля dsn_ethg.vhd
+-- STATUS модуля dsn_eth.vhd
 -------------------------------
 p_out_eth_rdy          => i_eth_rdy,
 p_out_eth_error        => i_eth_carier,

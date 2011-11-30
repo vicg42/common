@@ -1,0 +1,72 @@
+-------------------------------------------------------------------------
+-- Company     : Linkos
+-- Engineer    : Golovachenko Victor
+--
+-- Create Date : 29.11.2011 11:10:24
+-- Module Name : eth_phypin_pkg
+--
+-- Description : Назначаем пины интерфейсов
+--
+-- Revision:
+-- Revision 0.01 - File Created
+--
+-------------------------------------------------------------------------
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+library work;
+use work.prj_cfg.all;
+
+package eth_phypin_pkg is
+
+constant C_GTCH_COUNT_MAX    : integer:=C_PCFG_ETH_GTCH_COUNT_MAX;
+
+----------------------------
+--FIBER:
+----------------------------
+type TEthPhyFiberPinOUT is record
+txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+end record;
+type TEthPhyFiberPinIN is record
+rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+clk_p: std_logic;
+clk_n: std_logic;
+end record;
+
+
+----------------------------
+--RGMII
+----------------------------
+type TEthPhyRGMIIPinOUT is record
+txd    : std_logic_vector(3 downto 0);
+tx_ctl : std_logic;
+txc    : std_logic;--//txclk
+end record;
+type TEthPhyRGMIIPinIN is record
+rxd    : std_logic_vector(3 downto 0);
+rx_ctl : std_logic;
+rxc    : std_logic;--//rxclk
+end record;
+
+type TEthPhyRGMIIPinOUTs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyRGMIIPinOUT;
+type TEthPhyRGMIIPinINs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyRGMIIPinIN;
+
+
+----------------------------
+--Total
+----------------------------
+type TEthPhyPinOUT is record
+fiber : TEthPhyFiberPinOUT;
+rgmii : TEthPhyRGMIIPinOUTs;
+end record;
+type TEthPhyPinIN is record
+fiber : TEthPhyFiberPinIN;
+rgmii : TEthPhyRGMIIPinINs;
+end record;
+
+end eth_phypin_pkg;
+
+

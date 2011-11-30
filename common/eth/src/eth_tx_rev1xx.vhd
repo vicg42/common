@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 01.05.2011 16:43:52
--- Module Name : eth_tx
+-- Module Name : eth_mac_tx
 --
 -- Назначение/Описание :
 --
@@ -20,40 +20,39 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.eth_pkg.all;
 
-entity eth_tx is
+entity eth_mac_tx is
 generic(
+G_ETH : TEthGeneric;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
 port(
---//------------------------------------
---//Управление
---//------------------------------------
+--------------------------------------
+--Управление
+--------------------------------------
 p_in_cfg             : in    TEthCfg;
 
---//------------------------------------
---//Связь с пользовательским TXBUF
---//------------------------------------
-p_in_txbuf_dout      : in    std_logic_vector(C_ETH_USRBUF_DWIDTH-1 downto 0);
+--------------------------------------
+--Связь с пользовательским TXBUF
+--------------------------------------
+p_in_txbuf_dout      : in    std_logic_vector(G_ETH.usrbuf_dwidth-1 downto 0);
 p_out_txbuf_rd       : out   std_logic;
 p_in_txbuf_empty     : in    std_logic;
 --p_in_txd_rdy         : in    std_logic;
 
---//------------------------------------
---//Связь с Local link TxFIFO
---//------------------------------------
-p_out_txll_data      : out   std_logic_vector(7 downto 0);
+--------------------------------------
+--Связь с Local link TxFIFO
+--------------------------------------
+p_out_txll_data      : out   std_logic_vector(G_ETH.phy_dwidth-1 downto 0);
 p_out_txll_sof_n     : out   std_logic;
 p_out_txll_eof_n     : out   std_logic;
 p_out_txll_src_rdy_n : out   std_logic;
 p_in_txll_dst_rdy_n  : in    std_logic;
+p_out_txll_rem       : out   std_logic_vector(0 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -61,15 +60,15 @@ p_in_txll_dst_rdy_n  : in    std_logic;
 p_in_tst             : in    std_logic_vector(31 downto 0);
 p_out_tst            : out   std_logic_vector(31 downto 0);
 
---//------------------------------------
---//SYSTEM
---//------------------------------------
+--------------------------------------
+--SYSTEM
+--------------------------------------
 p_in_clk             : in    std_logic;
 p_in_rst             : in    std_logic
 );
-end eth_tx;
+end eth_mac_tx;
 
-architecture behavioral of eth_tx is
+architecture behavioral of eth_mac_tx is
 
 type TEth_fsm_tx is (
 S_IDLE,

@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 31.03.2011 19:15:18
--- Module Name : dsn_ethg_tb
+-- Module Name : dsn_eth_tb
 --
 -- Description : Моделирование работы модуля dsn_hdd.vhd
 --
@@ -26,18 +26,18 @@ use unisim.vcomponents.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
-use work.dsn_ethg_pkg.all;
+use work.dsn_eth_pkg.all;
 
-entity dsn_ethg_tb is
+entity dsn_eth_tb is
 generic
 (
 C_PCFG_ETH_USE       : string :="ON";
 G_DBG           : string :="ON";
 G_SIM           : string :="ON"
 );
-end dsn_ethg_tb;
+end dsn_eth_tb;
 
-architecture behavior of dsn_ethg_tb is
+architecture behavior of dsn_eth_tb is
 
 constant C_ETH_GT_REFCLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_ETH_GT_DRPCLK_PERIOD : TIME := 6.6*8 ns;
@@ -95,7 +95,7 @@ begin
 
 
 
-m_eth : dsn_ethg
+m_eth : dsn_eth
 generic map
 (
 G_MODULE_USE => C_PCFG_ETH_USE,
@@ -105,7 +105,7 @@ G_SIM        => G_SIM
 port map
 (
 -------------------------------
--- Конфигурирование модуля dsn_ethg.vhd (host_clk domain)
+-- Конфигурирование модуля dsn_eth.vhd (host_clk domain)
 -------------------------------
 p_in_cfg_clk          => g_host_clk,
 
@@ -123,7 +123,7 @@ p_in_cfg_done         => i_dev_cfg_done(C_CFGDEV_ETH),
 p_in_cfg_rst          => i_cfgdev_rst,
 
 -------------------------------
--- STATUS модуля dsn_ethg.vhd
+-- STATUS модуля dsn_eth.vhd
 -------------------------------
 p_out_eth_rdy          => i_eth_module_rdy,
 p_out_eth_error        => i_eth_module_error,

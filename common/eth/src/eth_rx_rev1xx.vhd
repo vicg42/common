@@ -28,40 +28,42 @@ library work;
 use work.vicg_common_pkg.all;
 use work.eth_pkg.all;
 
-entity eth_rx is
+entity eth_mac_rx is
 generic(
+G_ETH : TEthGeneric;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
 port(
---//------------------------------------
---//Управление
---//------------------------------------
+--------------------------------------
+--Управление
+--------------------------------------
 p_in_cfg              : in    TEthCfg;
 
---//------------------------------------
---//Связь с пользовательским RXBUF
---//------------------------------------
-p_out_rxbuf_din       : out   std_logic_vector(C_ETH_USRBUF_DWIDTH-1 downto 0);
+--------------------------------------
+--Связь с пользовательским RXBUF
+--------------------------------------
+p_out_rxbuf_din       : out   std_logic_vector(G_ETH.usrbuf_dwidth-1 downto 0);
 p_out_rxbuf_wr        : out   std_logic;
 p_in_rxbuf_full       : in    std_logic;
 p_out_rxd_sof         : out   std_logic;
 p_out_rxd_eof         : out   std_logic;
 
---//------------------------------------
---//Связь с Local link RxFIFO
---//------------------------------------
-p_in_rxll_data        : in    std_logic_vector(7 downto 0);
+--------------------------------------
+--Связь с Local link RxFIFO
+--------------------------------------
+p_in_rxll_data        : in    std_logic_vector(G_ETH.phy_dwidth-1 downto 0);
 p_in_rxll_sof_n       : in    std_logic;
 p_in_rxll_eof_n       : in    std_logic;
 p_in_rxll_src_rdy_n   : in    std_logic;
 p_out_rxll_dst_rdy_n  : out   std_logic;
 p_in_rxll_fifo_status : in    std_logic_vector(3 downto 0);
+p_in_rxll_rem         : in    std_logic_vector(0 downto 0);
 
---//------------------------------------
---//Управление передачей PAUSE Control Frame
---//(более подробно см. ug194.pdf/Flow Control Block/Flow Control Implementation Example)
---//------------------------------------
+--------------------------------------
+--Управление передачей PAUSE Control Frame
+--(более подробно см. ug194.pdf/Flow Control Block/Flow Control Implementation Example)
+--------------------------------------
 p_out_pause_req       : out   std_logic;
 p_out_pause_val       : out   std_logic_vector(15 downto 0);
 
@@ -77,9 +79,9 @@ p_out_tst             : out   std_logic_vector(31 downto 0);
 p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
 );
-end eth_rx;
+end eth_mac_rx;
 
-architecture behavioral of eth_rx is
+architecture behavioral of eth_mac_rx is
 
 type TEth_fsm_rx is (
 S_IDLE,
