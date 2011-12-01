@@ -99,7 +99,7 @@ begin
 
 gen_fiber : if cmpval(G_ETH.phy_select, C_ETH_PHY_FIBER) generate
 
-m_phy : eth_phy_fiber
+m_if : eth_phy_fiber
 generic map(
 G_ETH => G_ETH
 )
@@ -126,7 +126,7 @@ end generate gen_fiber;
 
 gen_rgmii : if cmpval(G_ETH.phy_select, C_ETH_PHY_RGMII) generate
 
-m_phy : eth_phy_rgmii
+m_if : eth_phy_rgmii
 generic map(
 G_ETH => G_ETH
 )

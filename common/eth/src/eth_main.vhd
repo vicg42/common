@@ -90,7 +90,7 @@ end generate gen_dbg_on;
 --#############################################
 --Eth App
 --#############################################
-m_eth_app : eth_app
+m_app : eth_app
 generic map(
 G_ETH => G_ETH,
 G_DBG => G_DBG,
@@ -135,7 +135,7 @@ p_in_rst      => p_in_rst
 --#############################################
 --Eth PHY
 --#############################################
-m_eth_phy : eth_phy
+m_phy : eth_phy
 generic map(
 G_ETH => G_ETH
 )

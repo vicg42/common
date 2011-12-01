@@ -336,7 +336,7 @@ architecture TOP_LEVEL of eth_phy_rgmii is
     signal REFCLK            : std_logic;
     signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
 
-    signal i_phy_rst_cnt : std_logic_vector(6 downto 0);
+    signal i_phy_rst_cnt : std_logic_vector(7 downto 0);
     signal i_phy_rst    : std_logic;
 -------------------------------------------------------------------------------
 -- Main Body of Code
@@ -354,13 +354,16 @@ begin
   p_out_phy.rdy<='1';
   p_out_phy.clk<=ll_clk_0_i;
   p_out_phy.rst<=ll_reset_0_i;
-  p_out_phy.opt(C_ETHPHY_OPTOUT_RSTn_BIT)<=not i_phy_rst;
-  p_out_phy.opt(p_out_phy.opt'high downto C_ETHPHY_OPTOUT_RSTn_BIT+1)<=(others=>'0');
+  p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=i_phy_rst;
+  p_out_phy.opt(p_out_phy.opt'high-1 downto C_ETHPHY_OPTOUT_RST_BIT+1)<=(others=>'0');
+  p_out_phy.opt(31)<=rx_ll_src_rdy_n_0_i;
 
   reset_i<=p_in_rst;
   gtx_clk_0_i<=p_in_phy.clk; --GTX_CLK_0 <=p_in_phy.clk;
   refclk_ibufg_i<=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);--REFCLK  <=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
   RGMII_RXC_0<=p_in_phy.pin.rgmii(0).rxc;
+
+  p_out_phy2app(0).rxsrc_rdy_n<=rx_ll_src_rdy_n_0_i;
 
 
     --Reset Marvel 88E1111
@@ -371,7 +374,7 @@ begin
         i_phy_rst<='0';
       elsif ll_clk_0_i'event and ll_clk_0_i = '1' then
 
-        if i_phy_rst_cnt=CONV_STD_LOGIC_VECTOR(63, i_phy_rst_cnt'length) then
+        if i_phy_rst_cnt(7)='1' then
           i_phy_rst<='0';
         else
           if ll_reset_0_i='1' and ll_pre_reset_0_i(5)='0' then
@@ -470,7 +473,7 @@ begin
       RX_LL_DATA_0                    => p_out_phy2app(0).rxd(G_ETH.phy_dwidth-1 downto 0),--rx_ll_data_0_i,
       RX_LL_SOF_N_0                   => p_out_phy2app(0).rxsof_n,                         --rx_ll_sof_n_0_i,
       RX_LL_EOF_N_0                   => p_out_phy2app(0).rxeof_n,                         --rx_ll_eof_n_0_i,
-      RX_LL_SRC_RDY_N_0               => p_out_phy2app(0).rxsrc_rdy_n,                     --rx_ll_src_rdy_n_0_i,
+      RX_LL_SRC_RDY_N_0               => rx_ll_src_rdy_n_0_i,--p_out_phy2app(0).rxsrc_rdy_n,                     --
       RX_LL_DST_RDY_N_0               => p_in_phy2app (0).rxdst_rdy_n,                     --rx_ll_dst_rdy_n_0_i,
       RX_LL_FIFO_STATUS_0             => p_out_phy2app(0).rxbuf_status,                    --open,
 

@@ -216,7 +216,7 @@ end generate gen_cfg_eth;
 
 
 --Ethernet
-m_eth_main : eth_main
+m_main : eth_main
 generic map(
 G_ETH => G_ETH,
 G_DBG => G_DBG,
