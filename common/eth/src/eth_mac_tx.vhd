@@ -91,7 +91,7 @@ signal i_ll_data              : std_logic_vector(7 downto 0);
 signal i_ll_sof_n             : std_logic;
 signal i_ll_eof_n             : std_logic;
 signal i_ll_src_rdy_n         : std_logic;
-
+signal i_data_en              : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
@@ -148,6 +148,7 @@ begin
     i_pkt_len<=(others=>'0');
     i_dcnt<=(others=>'0');
     i_bcnt<=(others=>'0');
+    i_data_en<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -254,11 +255,26 @@ begin
                 i_ll_eof_n<='1';
               end if;
 
-              for i in 0 to 3 loop
-                if i_bcnt=i then
-                  i_ll_data<=p_in_txbuf_dout((8*(i+1))-1 downto 8*i);
-                end if;
-              end loop;
+              if i_data_en='0' then
+              --//поле Type/Length
+                for i in 0 to 1 loop
+                  if i_bcnt=i then
+                    if G_ETH.mac_length_swap=0 then
+                      i_ll_data<=p_in_txbuf_dout((16-(8*i))-1 downto 16-(8*(i+1)));--Отправка: первый ст. байт
+                    else
+                      i_ll_data<=p_in_txbuf_dout((8*(i+1))-1 downto 8*i);--Отправка: первый мл. байт
+                    end if;
+                  end if;
+                end loop;
+                i_data_en<=OR_reduce(i_bcnt);
+              else
+              --//Данные
+                for i in 0 to 3 loop
+                  if i_bcnt=i then
+                    i_ll_data<=p_in_txbuf_dout((8*(i+1))-1 downto 8*i);
+                  end if;
+                end loop;
+              end if;
 
               i_bcnt<=i_bcnt + 1;--//счетчик байт порта входных данных p_in_txbuf_dout
 
@@ -268,7 +284,7 @@ begin
 
           i_bcnt<=(others=>'0');
           i_dcnt<=(others=>'0');
-
+          i_data_en<='0';
           i_ll_sof_n<='1';
           i_ll_eof_n<='1';
           i_ll_src_rdy_n<='1';

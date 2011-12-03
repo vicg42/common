@@ -10,7 +10,7 @@
 --
 -- Revision:
 -- Revision 1.00 - Прием MAC FRAME если пакет адресовн нашему устройсту (mac_dst=наш),
---                 если mac.lentype поле является длинной mac frame
+--                 если mac.lentype поле является длинной mac frame (Если mac.lentype<0x05DC , то это Length, иначе Type!!!)
 --                 При приеме удаляем pad(пустые) байты, если таковые есть
 --                 (Pading длеается передатчико в случае если отправляемый пакет меньше чем 46 byte)
 --
@@ -263,7 +263,11 @@ begin
 
           for i in 0 to (i_rx_mac.lentype'length/8)-1 loop
             if i_dcnt(1 downto 0)=i then
-              i_rx_mac.lentype(8*(i+1)-1 downto 8*i)<=p_in_rxll_data(7 downto 0);
+              if G_ETH.mac_length_swap=0 then
+                i_rx_mac.lentype((16-(8*i))-1 downto 16-(8*(i+1)))<=p_in_rxll_data(7 downto 0);--Прием: первый ст. байт
+              else
+                i_rx_mac.lentype(8*(i+1)-1 downto 8*i)<=p_in_rxll_data(7 downto 0);--Прием: первый мл. байт
+              end if;
             end if;
           end loop;
 

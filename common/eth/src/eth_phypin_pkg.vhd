@@ -54,6 +54,20 @@ end record;
 type TEthPhyRGMIIPinOUTs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyRGMIIPinOUT;
 type TEthPhyRGMIIPinINs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyRGMIIPinIN;
 
+----------------------------
+--SGMII:
+----------------------------
+type TEthPhySGMIIPinOUT is record
+txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+end record;
+type TEthPhySGMIIPinIN is record
+rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+clk_p: std_logic;
+clk_n: std_logic;
+end record;
+
 
 ----------------------------
 --Total
@@ -61,10 +75,12 @@ type TEthPhyRGMIIPinINs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyRGMIIPinIN;
 type TEthPhyPinOUT is record
 fiber : TEthPhyFiberPinOUT;
 rgmii : TEthPhyRGMIIPinOUTs;
+sgmii : TEthPhySGMIIPinOUT;
 end record;
 type TEthPhyPinIN is record
 fiber : TEthPhyFiberPinIN;
 rgmii : TEthPhyRGMIIPinINs;
+sgmii : TEthPhySGMIIPinIN;
 end record;
 
 end eth_phypin_pkg;

@@ -214,7 +214,7 @@ p_out_rxd_eof         => p_out_eth(i).rxbuf.eof,
 --------------------------------------
 --Ñâÿçü ñ Local link RxFIFO
 --------------------------------------
-p_in_rxll_data        => p_in_phy2app(i).rxd,
+p_in_rxll_data        => p_in_phy2app(i).rxd(G_ETH.phy_dwidth-1 downto 0),
 p_in_rxll_sof_n       => p_in_phy2app(i).rxsof_n,
 p_in_rxll_eof_n       => p_in_phy2app(i).rxeof_n,
 p_in_rxll_src_rdy_n   => p_in_phy2app(i).rxsrc_rdy_n,
@@ -266,7 +266,7 @@ p_in_txbuf_empty     => p_in_eth (i).txbuf.empty,
 --------------------------------------
 --Ñâÿçü ñ Local link TxFIFO
 --------------------------------------
-p_out_txll_data      => p_out_phy2app (i).txd,
+p_out_txll_data      => p_out_phy2app (i).txd(G_ETH.phy_dwidth-1 downto 0),
 p_out_txll_sof_n     => p_out_phy2app (i).txsof_n,
 p_out_txll_eof_n     => p_out_phy2app (i).txeof_n,
 p_out_txll_src_rdy_n => p_out_phy2app (i).txsrc_rdy_n,
