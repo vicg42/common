@@ -242,7 +242,16 @@ architecture TOP_LEVEL of eth_phy_rgmii is
       RGMII_RX_CTL_0                  : in  std_logic;
       RGMII_RXC_0                     : in  std_logic;
 
-
+--      -- Generic Host Interface
+--      HOSTCLK                         : in  std_logic;
+--      HOSTOPCODE                      : in  std_logic_vector(1 downto 0);
+--      HOSTREQ                         : in  std_logic;
+--      HOSTMIIMSEL                     : in  std_logic;
+--      HOSTADDR                        : in  std_logic_vector(9 downto 0);
+--      HOSTWRDATA                      : in  std_logic_vector(31 downto 0);
+--      HOSTMIIMRDY                     : out std_logic;
+--      HOSTRDDATA                      : out std_logic_vector(31 downto 0);
+--      HOSTEMAC1SEL                    : in  std_logic;
 
       -- Asynchronous Reset
       RESET                           : in  std_logic
@@ -331,13 +340,25 @@ architecture TOP_LEVEL of eth_phy_rgmii is
     signal RGMII_RXC_0           : std_logic;
     attribute keep : string;
     attribute keep of RGMII_RXC_0 : signal is "true";
-    attribute keep of tx_clk_0 : signal is "true";
+--    attribute keep of tx_clk_0 : signal is "true";
 
     signal REFCLK            : std_logic;
     signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
 
     signal i_phy_rst_cnt : std_logic_vector(7 downto 0);
     signal i_phy_rst    : std_logic;
+    signal i_rx_clk_cnt : std_logic_vector(10 downto 0);
+
+--      -- Generic Host Interface
+--    signal HOSTCLK                         : std_logic;
+--    signal HOSTOPCODE                      : std_logic_vector(1 downto 0);
+--    signal HOSTREQ                         : std_logic;
+--    signal HOSTMIIMSEL                     : std_logic;
+--    signal HOSTADDR                        : std_logic_vector(9 downto 0);
+--    signal HOSTWRDATA                      : std_logic_vector(31 downto 0);
+--    signal HOSTMIIMRDY                     : std_logic;
+--    signal HOSTRDDATA                      : std_logic_vector(31 downto 0);
+--    signal HOSTEMAC1SEL                    : std_logic;
 -------------------------------------------------------------------------------
 -- Main Body of Code
 -------------------------------------------------------------------------------
@@ -355,19 +376,16 @@ begin
   p_out_phy.clk<=ll_clk_0_i;
   p_out_phy.rst<=ll_reset_0_i;
   p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=i_phy_rst;
-  p_out_phy.opt(p_out_phy.opt'high-1 downto C_ETHPHY_OPTOUT_RST_BIT+1)<=(others=>'0');
-  p_out_phy.opt(31)<=rx_ll_src_rdy_n_0_i;
+--  p_out_phy.opt(p_out_phy.opt'high-1 downto C_ETHPHY_OPTOUT_RST_BIT+1)<=(others=>'0');
 
   reset_i<=p_in_rst;
   gtx_clk_0_i<=p_in_phy.clk; --GTX_CLK_0 <=p_in_phy.clk;
   refclk_ibufg_i<=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);--REFCLK  <=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
   RGMII_RXC_0<=p_in_phy.pin.rgmii(0).rxc;
 
-  p_out_phy2app(0).rxsrc_rdy_n<=rx_ll_src_rdy_n_0_i;
-
 
     --Reset Marvel 88E1111
-    process (ll_clk_0_i, reset_i)
+    process (reset_i,ll_clk_0_i)
     begin
       if reset_i = '1' then
         i_phy_rst_cnt<=(others=>'0');
@@ -390,6 +408,18 @@ begin
 
       end if;
     end process;
+
+--HOSTEMAC1SEL           <='0';
+--HOSTMIIMSEL            <=p_in_phy.opt(32);          --miimsel
+--HOSTREQ                <=p_in_phy.opt(33);          --req
+--HOSTOPCODE             <=p_in_phy.opt(35 downto 34);--opcode
+--HOSTADDR(9 downto 0)   <=p_in_phy.opt(45 downto 36);--PHYADR
+--HOSTWRDATA             <=p_in_phy.opt(77 downto 46);--WRDATA
+--HOSTCLK                <=p_in_phy.opt(78);          --: in  std_logic;
+--
+--p_out_phy.opt(33)          <=HOSTMIIMRDY; --: out std_logic;
+--p_out_phy.opt(77 downto 46)<=HOSTRDDATA ; --: out std_logic_vector(31 downto 0);
+
 
     ---------------------------------------------------------------------------
     -- Reset Input Buffer
@@ -473,7 +503,7 @@ begin
       RX_LL_DATA_0                    => p_out_phy2app(0).rxd(G_ETH.phy_dwidth-1 downto 0),--rx_ll_data_0_i,
       RX_LL_SOF_N_0                   => p_out_phy2app(0).rxsof_n,                         --rx_ll_sof_n_0_i,
       RX_LL_EOF_N_0                   => p_out_phy2app(0).rxeof_n,                         --rx_ll_eof_n_0_i,
-      RX_LL_SRC_RDY_N_0               => rx_ll_src_rdy_n_0_i,--p_out_phy2app(0).rxsrc_rdy_n,                     --
+      RX_LL_SRC_RDY_N_0               => p_out_phy2app(0).rxsrc_rdy_n,                     --rx_ll_src_rdy_n_0_i,
       RX_LL_DST_RDY_N_0               => p_in_phy2app (0).rxdst_rdy_n,                     --rx_ll_dst_rdy_n_0_i,
       RX_LL_FIFO_STATUS_0             => p_out_phy2app(0).rxbuf_status,                    --open,
 
@@ -514,7 +544,16 @@ begin
       RGMII_RX_CTL_0                  => p_in_phy.pin.rgmii(0).rx_ctl, --RGMII_RX_CTL_0,
       RGMII_RXC_0                     => rx_clk_0_i,
 
-
+--      -- Generic Host Interface
+--      HOSTCLK                         => HOSTCLK     , --: in  std_logic;
+--      HOSTOPCODE                      => HOSTOPCODE  , --: in  std_logic_vector(1 downto 0);
+--      HOSTREQ                         => HOSTREQ     , --: in  std_logic;
+--      HOSTMIIMSEL                     => HOSTMIIMSEL , --: in  std_logic;
+--      HOSTADDR                        => HOSTADDR    , --: in  std_logic_vector(9 downto 0);
+--      HOSTWRDATA                      => HOSTWRDATA  , --: in  std_logic_vector(31 downto 0);
+--      HOSTMIIMRDY                     => HOSTMIIMRDY , --: out std_logic;
+--      HOSTRDDATA                      => HOSTRDDATA  , --: out std_logic_vector(31 downto 0);
+--      HOSTEMAC1SEL                    => HOSTEMAC1SEL, --: in  std_logic;
 
       -- Asynchronous Reset
       RESET                           => reset_i

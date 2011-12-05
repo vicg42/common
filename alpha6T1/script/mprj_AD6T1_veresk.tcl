@@ -128,12 +128,15 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/eth_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/src/eth_mac_rx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/eth/dsn_eth.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/src/eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/src/eth_unit_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mac_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/dsn_ethg.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_null.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_null2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \

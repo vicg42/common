@@ -346,8 +346,8 @@ architecture TOP_LEVEL of eth_phy_fiber is
 
 
 
-    attribute keep : string;
-    attribute keep of clk125 : signal is "true";
+--    attribute keep : string;
+--    attribute keep of clk125 : signal is "true";
     signal i_PHYAD                 : std_logic_vector(4 downto 0);
     signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
 -------------------------------------------------------------------------------
