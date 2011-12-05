@@ -186,7 +186,7 @@ end generate gen_dbg_on;
 --//----------------------------------
 --//Модули приема/передачи данных
 --//----------------------------------
-gen_ch : for i in 0 to p_in_ethcfg'length-1 generate
+gen_ch : for i in 0 to G_ETH.gtch_count_max-1 generate
 
 i_rst(i) <= p_in_rst or p_in_phy.rst;
 

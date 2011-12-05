@@ -41,6 +41,10 @@ mac_length_swap: integer;--1/0 Поле Length/Type первый мл./ст. байт (0 - по стан
 end record;
 
 
+--//для модуля eth_mdio.vhd
+constant C_ETH_MDIO_WR  : std_logic:='1'; --//Не менять!!!!
+constant C_ETH_MDIO_RD  : std_logic:='0'; --//Не менять!!!!
+
 
 --//EthConfiguration
 type TEthMacAdr is array (0 to 5) of std_logic_vector(7 downto 0);
@@ -75,7 +79,7 @@ constant C_ETHPHY_OPTOUT_RST_BIT                : integer:=0;
 
 type TEthPhyOUT is record
 pin : TEthPhyPinOUT;
-opt : std_logic_vector(31 downto 0);
+opt : std_logic_vector(127 downto 0);
 rdy : std_logic; --//Готов к работе
 link: std_logic; --//Есть соедитение с другой стороной
 clk : std_logic;
@@ -84,7 +88,7 @@ end record;
 
 type TEthPhyIN is record
 pin : TEthPhyPinIN;
-opt : std_logic_vector(31 downto 0);
+opt : std_logic_vector(127 downto 0);
 clk : std_logic;
 --rst : std_logic;
 end record;

@@ -16,11 +16,11 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
-use work.prj_cfg.all;
+--use work.prj_cfg.all;
 
 package eth_phypin_pkg is
 
-constant C_GTCH_COUNT_MAX    : integer:=C_PCFG_ETH_GTCH_COUNT_MAX;
+constant C_GTCH_COUNT_MAX    : integer:=2;--C_PCFG_ETH_GTCH_COUNT_MAX;
 
 ----------------------------
 --FIBER:
