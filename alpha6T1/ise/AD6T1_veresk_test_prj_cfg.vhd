@@ -50,7 +50,7 @@ constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
 constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=1;
 constant C_PCFG_ETH_PHY_DWIDTH         : integer:=8;
-constant C_PCFG_ETH_PHY_SEL            : integer:=0; --0:Fiber, 1:RGMII - Константы для интерфейсов см. eth_pkg.vhd
+constant C_PCFG_ETH_PHY_SEL            : integer:=0; --0/1/2/3 - Fiber/RGMII/SGMII/GMII - Константы для интерфейсов см. eth_pkg.vhd
 
 --//cfg TRACKER
 constant C_PCFG_TRC_USE                : string:="OFF";

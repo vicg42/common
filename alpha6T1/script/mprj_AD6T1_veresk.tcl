@@ -24,7 +24,6 @@ set _projects [ list \
   [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/lib/vicg/v6/v6_gt_mclk.vhd" $_VHDPkg ] \
       [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
@@ -135,8 +134,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_null.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_null2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \
@@ -189,10 +188,11 @@ set _projects [ list \
       [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/emac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_emac_core_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \

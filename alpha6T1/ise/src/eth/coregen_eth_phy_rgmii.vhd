@@ -298,8 +298,8 @@ architecture TOP_LEVEL of eth_phy_rgmii is
     -- RGMII input clocks to wrappers
     signal tx_clk              : std_logic;
 
-    attribute keep : boolean;
-    attribute keep of tx_clk : signal is true;
+--    attribute keep : boolean;
+--    attribute keep of tx_clk : signal is true;
 
     signal rx_clk_i            : std_logic;
     signal rgmii_rx_clk_bufio  : std_logic;
@@ -318,8 +318,14 @@ architecture TOP_LEVEL of eth_phy_rgmii is
     signal gtx_clk_i           : std_logic;
 
     signal GTX_CLK           : std_logic;
-    signal REFCLK            : std_logic;
+    signal RGMII_RXC         : std_logic;
+    attribute keep : string;
+    attribute keep of RGMII_RXC : signal is "true";
+--    signal REFCLK            : std_logic;
     signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
+    signal i_phy_rst_cnt : std_logic_vector(7 downto 0);
+    signal i_phy_rst    : std_logic;
+    signal i_rx_clk_cnt : std_logic_vector(10 downto 0);
 -------------------------------------------------------------------------------
 -- Main body of code
 -------------------------------------------------------------------------------
@@ -335,11 +341,37 @@ begin
   p_out_phy.rdy<='1';
   p_out_phy.clk<=ll_clk_i;
   p_out_phy.rst<=ll_reset_i;
-  p_out_phy.opt<=(others=>'0');
+  p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=i_phy_rst;
 
   reset_i<=p_in_rst;
-  GTX_CLK <=p_in_phy.clk;
-  REFCLK  <=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
+  GTX_CLK <=p_in_phy.clk;--gtx_clk_i <=p_in_phy.clk;--
+  refclk_ibufg_i  <=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
+  RGMII_RXC<=p_in_phy.pin.rgmii(0).rxc;
+
+    --Reset Marvel 88E1111
+    process (reset_i,ll_clk_i)
+    begin
+      if reset_i = '1' then
+        i_phy_rst_cnt<=(others=>'0');
+        i_phy_rst<='0';
+      elsif ll_clk_i'event and ll_clk_i = '1' then
+
+        if i_phy_rst_cnt(7)='1' then
+          i_phy_rst<='0';
+        else
+          if ll_reset_i='1' and ll_pre_reset_i(5)='0' then
+            i_phy_rst<='1';
+          end if;
+        end if;
+
+        if i_phy_rst='0' then
+          i_phy_rst_cnt<=(others=>'0');
+        else
+          i_phy_rst_cnt<=i_phy_rst_cnt + 1;
+        end if;
+
+      end if;
+    end process;
 
 --    -- Reset input buffer
 --    reset_ibuf : IBUF port map (
@@ -385,7 +417,7 @@ begin
       HIGH_PERFORMANCE_MODE => TRUE
     )
     port map (
-      IDATAIN => p_in_phy.pin.rgmii(0).rxc, --RGMII_RXC,
+      IDATAIN => RGMII_RXC,
       ODATAIN => '0',
       DATAOUT => rgmii_rx_clk_delay,
       DATAIN  => '0',
@@ -404,13 +436,20 @@ begin
       I => gtx_clk_i,
       O => tx_clk
     );
+--    bufg_tx : BUFR port map (
+--      I   => gtx_clk_i,
+--      O   => tx_clk,
+--      CE  => '1',
+--      CLR => '0'
+--    );
 
-    -- Use a low-skew BUFIO on the delayed RX_CLK, which will be used in the
-    -- RGMII phyical interface block to capture incoming data and control.
-    bufio_rx : BUFIO port map (
-      I => rgmii_rx_clk_delay,
-      O => rgmii_rx_clk_bufio
-    );
+--    -- Use a low-skew BUFIO on the delayed RX_CLK, which will be used in the
+--    -- RGMII phyical interface block to capture incoming data and control.
+--    bufio_rx : BUFIO port map (
+--      I => rgmii_rx_clk_delay,
+--      O => rgmii_rx_clk_bufio
+--    );
+    rgmii_rx_clk_bufio<=rgmii_rx_clk_delay;
 
     -- Regionally-buffer the receive-side RGMII physical interface clock
     -- for use with receive-side functions of the EMAC
@@ -521,21 +560,27 @@ begin
       end if;
     end process gen_ll_reset;
 
-    -- Globally-buffer the reference clock used for
-    -- the IODELAYCTRL primitive
-    refclk_ibufg : IBUFG port map (
-      I => REFCLK,
-      O => refclk_ibufg_i
-    );
+--    -- Globally-buffer the reference clock used for
+--    -- the IODELAYCTRL primitive
+--    refclk_ibufg : IBUFG port map (
+--      I => REFCLK,
+--      O => refclk_ibufg_i
+--    );
     refclk_bufg : BUFG port map (
       I => refclk_ibufg_i,
       O => refclk_bufg_i
     );
-    -- Prepare the GTX_CLK for a BUFG
-    gtx_clk_ibufg : IBUFG port map (
-      I => GTX_CLK,
-      O => gtx_clk_i
+--    -- Prepare the GTX_CLK for a BUFG
+--    gtx_clk_ibufg : IBUFG port map (
+--      I => GTX_CLK,
+--      O => gtx_clk_i
+--    );
+--    gtx_clk_i<=GTX_CLK;
+    gtx_clk_ibufg : BUFR port map (
+      I   => GTX_CLK,
+      O   => gtx_clk_i,
+      CE  => '1',
+      CLR => '0'
     );
-
 
 end TOP_LEVEL;

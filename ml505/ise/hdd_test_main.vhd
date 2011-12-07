@@ -19,10 +19,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
----- synopsys translate_off
---library unisim;
---use unisim.vcomponents.all;
----- synopsys translate_on
 Library UNISIM;
 use UNISIM.vcomponents.all;
 
@@ -35,15 +31,13 @@ use work.sata_glob_pkg.all;
 use work.dsn_hdd_pkg.all;
 
 entity hdd_test_main is
-generic
-(
+generic(
 G_IF  : string:="UART";
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
---Светодиоды (Для платы ML505)
+--DBG
 --------------------------------------------------
 pin_out_led           : out   std_logic_vector(7 downto 0);
 pin_out_led_C         : out   std_logic;
@@ -52,7 +46,7 @@ pin_out_led_N         : out   std_logic;
 pin_out_led_S         : out   std_logic;
 pin_out_led_W         : out   std_logic;
 
-pin_out_TP            : out   std_logic_vector(7 downto 0);
+pin_out_TP            : out   std_logic_vector(3 downto 0);
 
 pin_in_btn_C          : in    std_logic;
 pin_in_btn_E          : in    std_logic;
@@ -83,22 +77,11 @@ pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1
 --------------------------------------------------
 -- Reset
 --------------------------------------------------
-pin_in_rst            : in    std_logic;
-
---------------------------------------------------
--- Reference clock
---------------------------------------------------
-pin_in_refclk_n       : in    std_logic;
-pin_in_refclk_p       : in    std_logic
+pin_in_rst            : in    std_logic
 );
 end entity;
 
 architecture struct of hdd_test_main is
-
---component ROC generic (WIDTH : Time := 500 ns); port (O : out std_ulogic := '1'); end component;
-component IBUFDS            port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
-component IBUFGDS_LVPECL_25 port(I : in  std_logic; IB : in  std_logic; O  : out std_logic);end component;
-component BUFG              port(I : in  std_logic; O  : out std_logic);end component;
 
 --component dbgcs_iconx1
 --  PORT (
@@ -139,6 +122,17 @@ component dbgcs_sata_raid
     TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
     );
 end component;
+
+signal i_dbgcs_sh0_spd                  : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd0_layer               : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd1_layer               : std_logic_vector(35 downto 0);
+signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
+signal i_dbgcs_cfg                      : std_logic_vector(35 downto 0);
+
+signal i_hdd0layer_dbgcs                : TSH_ila;
+signal i_hdd1layer_dbgcs                : TSH_ila;
+signal i_cfg_dbgcs                      : TSH_ila;
+signal i_hddraid_dbgcs                  : TSH_ila;
 
 component hdd_ram_hfifo
 port(
@@ -197,27 +191,13 @@ p_in_rst     : in    std_logic
 );
 end component;
 
-signal i_dbgcs_sh0_spd                  : std_logic_vector(35 downto 0);
-signal i_dbgcs_hdd0_layer               : std_logic_vector(35 downto 0);
-signal i_dbgcs_hdd1_layer               : std_logic_vector(35 downto 0);
-signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
-signal i_dbgcs_cfg                      : std_logic_vector(35 downto 0);
-
-signal i_hdd0layer_dbgcs                : TSH_ila;
-signal i_hdd1layer_dbgcs                : TSH_ila;
-signal i_cfg_dbgcs                      : TSH_ila;
-signal i_hddraid_dbgcs                  : TSH_ila;
-
 signal i_usr_rst                        : std_logic;
 signal rst_sys_n                        : std_logic;
---signal rst_sys                          : std_logic;
 
-signal i_dcm_rst_cnt                    : std_logic_vector(5 downto 0);
-signal i_dcm_rst                        : std_logic;
+signal i_cfg_rst_cnt                    : std_logic_vector(5 downto 0);
+signal i_cfg_rst                        : std_logic;
 
-signal g_uart_refclk                    : std_logic;
-signal i_refclk                         : std_logic;
-signal g_host_clk                       : std_logic;
+signal g_sata_refclkout                 : std_logic;
 
 signal i_hdd_rst                        : std_logic;
 signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
@@ -312,30 +292,26 @@ begin
 --//RESET модулей
 --***********************************************************
 rst_sys_n <= pin_in_rst;
-i_hdd_rst <=not rst_sys_n or i_usr_rst;--
-i_cfg_buf_rst<=not rst_sys_n or i_usr_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
+i_hdd_rst <=not rst_sys_n or i_usr_rst;
+i_cfg_buf_rst<=i_cfg_rst or i_hdd_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
 
-process(rst_sys_n, g_host_clk)
+process(rst_sys_n, g_sata_refclkout)
 begin
   if rst_sys_n = '0' then
-    i_dcm_rst_cnt <= (others => '0');
-  elsif g_host_clk'event and g_host_clk = '1' then
-    if i_dcm_rst_cnt(i_dcm_rst_cnt'high) = '0' then
-      i_dcm_rst_cnt <= i_dcm_rst_cnt + 1;
+    i_cfg_rst_cnt <= (others => '0');
+  elsif g_sata_refclkout'event and g_sata_refclkout = '1' then
+    if i_cfg_rst_cnt(i_cfg_rst_cnt'high) = '0' then
+      i_cfg_rst_cnt <= i_cfg_rst_cnt + 1;
     end if;
   end if;
 end process;
 
-i_dcm_rst <= i_dcm_rst_cnt(i_dcm_rst_cnt'high - 1);
+i_cfg_rst <= i_cfg_rst_cnt(i_cfg_rst_cnt'high - 1);
 
 
 --***********************************************************
 --          Установка частот проекта:
 --***********************************************************
---//Input reference clock for IDELAY / ODELAY elements
-ibufg_refclk : IBUFGDS_LVPECL_25 port map(I  => pin_in_refclk_p, IB => pin_in_refclk_n, O => i_refclk);
-bufg_refclk  : BUFG              port map(I  => i_refclk, O  => g_host_clk);
-
 --//Input 150MHz reference clock for SATA
 gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 generate
 ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O => i_hdd_gt_refclk150(i));
@@ -345,7 +321,7 @@ end generate gen_sata_gt;
 --***********************************************************
 --Модуль конфигурирования устр-в
 --***********************************************************
-gen_fdi : if strcmp(G_IF,"FTDI") generate
+gen_ftdi : if strcmp(G_IF,"FTDI") generate
 
 pin_out_uart0_tx <= pin_in_uart0_rx;
 
@@ -382,7 +358,7 @@ p_in_cfg_txrdy       => i_cfg_txrdy,
 p_in_cfg_rxrdy       => i_cfg_rxrdy,
 
 p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => g_host_clk,
+p_in_cfg_clk         => g_sata_refclkout,
 
 -------------------------------
 --Технологический
@@ -393,9 +369,9 @@ p_out_tst            => i_cfg_tstout,
 -------------------------------
 --System
 -------------------------------
-p_in_rst => i_dcm_rst
+p_in_rst => i_cfg_rst
 );
-end generate gen_fdi;
+end generate gen_ftdi;
 
 gen_uart : if strcmp(G_IF,"UART") generate
 
@@ -419,7 +395,7 @@ port map(
 -------------------------------
 p_out_uart_tx        => pin_out_uart0_tx,
 p_in_uart_rx         => pin_in_uart0_rx,
-p_in_uart_refclk     => g_uart_refclk,
+p_in_uart_refclk     => g_sata_refclkout,
 
 -------------------------------
 --
@@ -442,7 +418,7 @@ p_in_cfg_txrdy       => i_cfg_txrdy,
 p_in_cfg_rxrdy       => i_cfg_rxrdy,
 
 p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => g_host_clk,
+p_in_cfg_clk         => g_sata_refclkout,
 
 -------------------------------
 --Технологический
@@ -453,7 +429,7 @@ p_out_tst            => i_cfg_tstout,
 -------------------------------
 --System
 -------------------------------
-p_in_rst => i_dcm_rst
+p_in_rst => i_cfg_rst
 );
 end generate gen_uart;
 
@@ -478,7 +454,7 @@ port map(
 -- Конфигурирование модуля dsn_hdd.vhd (p_in_cfg_clk domain)
 -------------------------------
 p_in_cfg_if           => C_HDD_CFGIF_UART,
-p_in_cfg_clk          => g_host_clk,
+p_in_cfg_clk          => g_sata_refclkout,
 
 p_in_cfg_adr          => i_cfg_adr(7 downto 0),
 p_in_cfg_adr_ld       => i_cfg_adr_ld,
@@ -493,7 +469,7 @@ p_in_cfg_rd           => i_cfg_rd,
 p_out_cfg_rxrdy       => i_cfg_rxrdy,
 
 p_in_cfg_done         => i_cfg_done,
-p_in_cfg_rst          => i_dcm_rst,
+p_in_cfg_rst          => i_cfg_rst,
 
 -------------------------------
 -- STATUS модуля dsn_hdd.vhd
@@ -530,7 +506,7 @@ p_in_sata_rxn         => pin_in_sata_rxn,
 p_in_sata_rxp         => pin_in_sata_rxp,
 
 p_in_sata_refclk      => i_hdd_gt_refclk150,
-p_out_sata_refclkout  => g_uart_refclk,
+p_out_sata_refclkout  => g_sata_refclkout,
 p_out_sata_gt_plldet  => i_hdd_gt_plldet,
 p_out_sata_dcm_lock   => i_hdd_dcm_lock,
 
@@ -562,7 +538,7 @@ p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk           => g_host_clk,
+p_in_clk           => g_sata_refclkout,
 p_in_rst           => i_hdd_rst
 );
 
@@ -592,7 +568,7 @@ wr_clk      => i_hdd_rbuf_cfg.ram_wr_i.clk,
 
 dout        => i_hdd_txdata,
 rd_en       => i_hdd_txdata_wd,
-rd_clk      => g_host_clk,
+rd_clk      => g_sata_refclkout,
 
 full        => i_ram_txbuf_full,
 almost_full => i_ram_txbuf_afull,
@@ -610,7 +586,7 @@ m_ram_rxbuf : hdd_ram_hfifo
 port map(
 din         => i_hdd_rxdata,
 wr_en       => i_hdd_rxdata_rd,
-wr_clk      => g_host_clk,
+wr_clk      => g_sata_refclkout,
 
 dout        => i_hdd_rbuf_status.ram_wr_o.dout,
 rd_en       => i_hdd_rbuf_cfg.ram_wr_i.rd,
@@ -632,9 +608,16 @@ i_hdd_rbuf_status.ram_wr_o.rd_rdy<= not i_ram_rxbuf_empty;
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
+gen_ml505 : if strcmp(C_PCFG_BOARD,"ML505") generate
 i_usr_rst<=pin_in_btn_N;
 i_hdd_tst_in(0)<=pin_in_btn_W;
 i_hdd_tst_in(31 downto 1)<=(others=>'0');
+end generate gen_ml505;
+
+gen_hscam : if strcmp(C_PCFG_BOARD,"HSCAM") generate
+i_usr_rst<='0';
+i_hdd_tst_in(31 downto 0)<=(others=>'0');
+end generate gen_hscam;
 
 --//J5 /pin2
 pin_out_TP(0)<=pin_in_btn_C or pin_in_btn_E or
@@ -643,11 +626,6 @@ pin_out_TP(0)<=pin_in_btn_C or pin_in_btn_E or
 pin_out_TP(1)<=i_test01_led;
 pin_out_TP(2)<=i_test02_led;
 pin_out_TP(3)<='0';
-pin_out_TP(4)<='0';
-pin_out_TP(5)<='0';
-pin_out_TP(6)<='0';
-pin_out_TP(7)<='0';
-
 
 --Светодиоды
 pin_out_led_E<=i_test01_led;
@@ -682,7 +660,7 @@ p_out_1ms      => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk       => g_uart_refclk,
+p_in_clk       => g_sata_refclkout,
 p_in_rst       => i_hdd_rst
 );
 
@@ -700,7 +678,7 @@ p_out_1ms      => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk       => g_host_clk,
+p_in_clk       => g_sata_refclkout,
 p_in_rst       => i_hdd_rst
 );
 
@@ -865,7 +843,7 @@ DATA    => i_cfg_dbgcs.data(122 downto 0),
 TRIG0   => i_cfg_dbgcs.trig0(41 downto 0)
 );
 
-i_cfg_dbgcs.clk<=g_host_clk;
+i_cfg_dbgcs.clk<=g_sata_refclkout;
 
 --//-------- TRIG: ------------------
 i_cfg_dbgcs.trig0(0)<=i_cfg_adr_ld;
@@ -923,11 +901,11 @@ end generate gen_dbgcs;
 
 
 --//Счетчик адреса регистров
-process(i_hdd_rst,g_host_clk)
+process(i_hdd_rst,g_sata_refclkout)
 begin
   if i_hdd_rst='1' then
     i_cfg_adr_cnt<=(others=>'0');
-  elsif g_host_clk'event and g_host_clk='1' then
+  elsif g_sata_refclkout'event and g_sata_refclkout='1' then
     if i_cfg_adr_ld='1' and i_dev_adr=CONV_STD_LOGIC_VECTOR(0, i_dev_adr'length) then
       i_cfg_adr_cnt<=i_cfg_adr(7 downto 0);
     else
@@ -939,7 +917,7 @@ begin
 end process;
 
 --//Запись регистров
-process(i_hdd_rst,g_host_clk)
+process(i_hdd_rst,g_sata_refclkout)
 begin
   if i_hdd_rst='1' then
     i_reg0<=(others=>'0');
@@ -948,7 +926,7 @@ begin
     i_reg3<=(others=>'0');
     i_reg4<=(others=>'0');
 
-  elsif g_host_clk'event and g_host_clk='1' then
+  elsif g_sata_refclkout'event and g_sata_refclkout='1' then
 
     if i_cfg_wd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(0, i_cfg_adr_cnt'length) then i_reg0<=i_cfg_txd(i_reg0'high downto 0);
@@ -964,13 +942,13 @@ begin
 end process;
 
 --//Чтение регистров
-process(i_hdd_rst,g_host_clk)
+process(i_hdd_rst,g_sata_refclkout)
   variable rxd : std_logic_vector(i_cfg_rxd'range);
 begin
   if i_hdd_rst='1' then
       rxd:=(others=>'0');
     i_cfgt_rxdata<=(others=>'0');
-  elsif g_host_clk'event and g_host_clk='1' then
+  elsif g_sata_refclkout'event and g_sata_refclkout='1' then
     rxd:=(others=>'0');
 
     if i_cfg_rd='1' then
@@ -987,5 +965,6 @@ begin
     end if;--//if p_in_cfg_rd='1' then
   end if;
 end process;
+
 
 end architecture;

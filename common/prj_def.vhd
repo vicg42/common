@@ -100,7 +100,7 @@ constant C_HREG_DEV_STATUS_CFG_RDY_BIT        : integer:=5; --//CFG
 constant C_HREG_DEV_STATUS_CFG_RXRDY_BIT      : integer:=6;
 constant C_HREG_DEV_STATUS_CFG_TXRDY_BIT      : integer:=7;
 constant C_HREG_DEV_STATUS_ETH_RDY_BIT        : integer:=8; --//ETH
-constant C_HREG_DEV_STATUS_ETH_CARIER_BIT     : integer:=9;
+constant C_HREG_DEV_STATUS_ETH_LINK_BIT       : integer:=9;
 constant C_HREG_DEV_STATUS_ETH_RXRDY_BIT      : integer:=10;
 constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer:=11;
 constant C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT    : integer:=12;--//
@@ -380,10 +380,10 @@ constant C_HDD_REG_CTRLM_LAST_BIT             : integer:=C_HDD_REG_CTRLM_RAMWR_D
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_eth.vhd
 --//--------------------------------------------------------------
-constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;
+constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;--//DST MAC
 constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;
 constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
-constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;
+constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;--//SRC MAC
 constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
 constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
 --constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;

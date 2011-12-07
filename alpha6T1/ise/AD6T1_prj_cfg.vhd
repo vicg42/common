@@ -48,6 +48,7 @@ constant C_PCFG_VCTRL_SIMPLE           : string:="OFF";
 --//cfg ETH
 constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
+constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=1; --Кол-во каналов в одном GT(RocketIO) модуле
 
 --//cfg TRACKER
 constant C_PCFG_TRC_USE                : string:="OFF";

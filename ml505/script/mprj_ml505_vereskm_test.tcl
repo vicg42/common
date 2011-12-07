@@ -175,8 +175,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit_tst.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_dcm.vhd" $_VHDMod ] \
@@ -265,7 +265,7 @@ set _projects [ list \
       [ list "../src/eth/coregen_emac_core_d8.vhd" $_VHDMod ] \
       [ list "../src/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
       [ list "../src/eth/coregen_eth_phy_rgmii.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_phy_test.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \

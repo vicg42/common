@@ -174,8 +174,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit_tst.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_dcm.vhd" $_VHDMod ] \
@@ -249,12 +249,17 @@ set _projects [ list \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/extend_clk.v" $_VMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_ep.v" $_VMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.v" $_VMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/emac_core_locallink.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_emac_core_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_phy_vm.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_uart.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/uart_main_rev01.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/bbfifo_16x8.vhd" $_VHDMod ] \

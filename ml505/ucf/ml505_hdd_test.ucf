@@ -36,10 +36,10 @@ NET pin_out_TP<0>         LOC="H33"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 NET pin_out_TP<1>         LOC="H34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 NET pin_out_TP<2>         LOC="G32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 NET pin_out_TP<3>         LOC="H32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_12  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
-NET pin_out_TP<4>         LOC="J34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
-NET pin_out_TP<5>         LOC="M32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
-NET pin_out_TP<6>         LOC="N34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
-NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
+#NET pin_out_TP<4>         LOC="J34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<5>         LOC="M32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<6>         LOC="N34"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
 
 ###Кнопки
 NET pin_in_rst            LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
@@ -67,11 +67,11 @@ NET pin_in_ftdi_txe_n     LOC="K8"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V
 NET pin_in_ftdi_rxf_n     LOC="J9"  | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
 NET pin_in_ftdi_pwren_n   LOC="D12" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
 
-#200MHz
-NET "pin_in_refclk_n"     LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
-NET "pin_in_refclk_p"     LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
-
-NET "g_host_clk" PERIOD = 5.0ns HIGH 50%;
+##200MHz
+#NET "pin_in_refclk_n"     LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+#NET "pin_in_refclk_p"     LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+#
+#NET "g_host_clk" PERIOD = 5.0ns HIGH 50%;
 
 
 #############################################################################
@@ -102,7 +102,7 @@ INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  L
 ##--------------------------------------------------------------------------
 ##Временные ограничения
 ##--------------------------------------------------------------------------
-NET g_uart_refclk PERIOD = 6.666 ns;
+NET g_sata_refclkout PERIOD = 6.666 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk PERIOD = 6.666 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x PERIOD = 3.333 ns;
 NET m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div PERIOD = 13.332 ns;

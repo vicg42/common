@@ -117,8 +117,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/eth/dsn_ethg.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_connector_32bit_tst.vhd" $_VHDMod ] \
       [ list "../../../common/alphadata/lbus_dcm.vhd" $_VHDMod ] \

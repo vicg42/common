@@ -66,14 +66,8 @@ mem_clk_out         : out   mem_clk_out_t;
 pin_out_sfp_tx_dis  : out   std_logic;--SFP - TX DISABLE
 pin_in_sfp_sd       : in    std_logic;--SFP - SD signal detect
 
-pin_out_ethphy      : out   TEthPhyPinOUT;
-pin_in_ethphy       : in    TEthPhyPinIN;
-
-pin_in_ethphy_rgmii_clk125  : in  std_logic;
-pin_in_ethphy_rgmii_crs     : in  std_logic;
-pin_in_ethphy_rgmii_col     : in  std_logic;
-pin_in_ethphy_rgmii_actn    : in  std_logic;
-pin_out_ethphy_rgmii_rstn   : out std_logic;
+pin_out_ethphy      : out   TEthPhyFiberPinOUT;
+pin_in_ethphy       : in    TEthPhyFiberPinIN;
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -411,6 +405,7 @@ attribute keep of g_host_clk : signal is "true";
 attribute keep of g_pll_mem_clk : signal is "true";
 attribute keep of g_pll_clkin : signal is "true";
 --attribute keep of g_pll_tmr_clk : signal is "true";
+attribute keep of i_ethphy_out : signal is "true";
 
 signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
@@ -465,8 +460,8 @@ ODIV2 => open
 --//В данном проекте опорная частота для GTP_X0Y7 будет браться не с диф. пинов pin_in_eth_clk_n/p, а
 --//с линии CLKINNORTH (более подробно см. xilinx manual ug196.pdf/Appendix F)
 ibufds_gt_eth_refclk : IBUFDS_GTXE1 port map (
-I     => pin_in_ethphy.fiber.clk_p,
-IB    => pin_in_ethphy.fiber.clk_n,
+I     => pin_in_ethphy.clk_p,
+IB    => pin_in_ethphy.clk_n,
 CEB   => '0',
 O     => i_eth_gt_refclk125,
 ODIV2 => open
@@ -718,14 +713,8 @@ p_in_rst => i_swt_rst
 --***********************************************************
 --Проект Ethernet - dsn_eth.vhd
 --***********************************************************
---pin_in_ethphy_rgmii_clk125  : in  std_logic;
---pin_in_ethphy_rgmii_crs     : in  std_logic;
---pin_in_ethphy_rgmii_col     : in  std_logic;
---pin_in_ethphy_rgmii_actn    : in  std_logic;
-pin_out_ethphy_rgmii_rstn <='0';
-
-pin_out_ethphy<=i_ethphy_out.pin;
-i_ethphy_in.pin<=pin_in_ethphy;
+pin_out_ethphy<=i_ethphy_out.pin.fiber;
+i_ethphy_in.pin.fiber<=pin_in_ethphy;
 
 i_ethphy_in.clk<=i_eth_gt_refclk125;
 
@@ -743,8 +732,12 @@ i_ethphy_in.opt(C_ETHPHY_OPTIN_SFP_SD_BIT)<=pin_in_sfp_sd;
 
 m_eth : dsn_eth
 generic map(
+G_ETH.gtch_count_max  => C_PCFG_ETH_GTCH_COUNT_MAX,
+G_ETH.usrbuf_dwidth   => 32,
+G_ETH.phy_dwidth      => 8,
+G_ETH.phy_select      => C_ETH_PHY_FIBER,
+G_ETH.mac_length_swap => 1, --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_MODULE_USE => C_PCFG_ETH_USE,
-G_PHY_SEL    => C_PCFG_ETH_PHY_SEL,
 G_DBG        => C_PCFG_ETH_DBG,
 G_SIM        => G_SIM
 )
@@ -1292,7 +1285,7 @@ i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DB
 i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
 
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT)    <=i_ethphy_out.rdy;
-i_host_dev_status(C_HREG_DEV_STATUS_ETH_CARIER_BIT) <=i_ethphy_out.link;
+i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT)   <=i_ethphy_out.link;
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_ETH_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_ETH_DBUF);
 

@@ -29,8 +29,8 @@ constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=5; --//max 7: 0-8MB, 1-16MB, 2
 --//cfg TMR
 --constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
 
-----//cfg HDD
---constant C_PCFG_HDD_USE                : string:="ON";
+--//cfg HDD
+constant C_PCFG_HDD_USE                : string:="OFF";
 --constant C_PCFG_HDD_DBG                : string:="OFF";
 --constant C_PCFG_HDD_DBGCS              : string:="ON";
 --constant C_PCFG_HDD_COUNT              : integer:=1;
@@ -48,6 +48,7 @@ constant C_PCFG_VCTRL_SIMPLE           : string:="ON";
 --//cfg ETH
 constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
+constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=2; --Кол-во каналов в одном GT(RocketIO) модуле
 
 --//cfg TRACKER
 constant C_PCFG_TRC_USE                : string:="OFF";
