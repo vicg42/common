@@ -323,7 +323,7 @@ tied_to_vcc_i        <= '1';
 tied_to_vcc_vec_i    <= (others => '1');
 
 p_out_plllock<=AND_reduce(i_plllkdet(G_GT_CH_COUNT-1 downto 0));
-p_out_refclkout<=i_refclkout(0)(0);
+m_buffio2 : BUFIO2 port map (DIVCLK => i_refclkout(0)(0), IOCLK => open, SERDESSTROBE => open, I => p_out_refclkout );
 
 p_out_optrefclk(0)<=i_refclkpll(0);
 p_out_optrefclk(1)<=i_refclkpll(1);

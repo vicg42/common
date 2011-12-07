@@ -41,11 +41,11 @@ end sata_dcm;
 
 architecture behavioral of sata_dcm is
 
-constant C_CLKDV_DIVIDE   : integer:=selval(4, 2, cmpval(G_GT_DBUS, 32));
+constant C_CLKDV_DIVIDE   : real:=selval_real(4.0, 2.0, cmpval(G_GT_DBUS, 32));
 
-signal i_refclkout    : std_logic;
+--signal i_refclkout    : std_logic;
 
-signal g_dcm_clkin    : std_logic;
+--signal g_dcm_clkin    : std_logic;
 signal g_dcm_clk0     : std_logic;
 signal i_dcm_clk0     : std_logic;
 signal i_dcm_clk2x    : std_logic;
@@ -55,30 +55,29 @@ signal i_dcm_clkdv    : std_logic;
 begin
 
 
-bufg_gt_refclkout : BUFIO2
-generic map(
-DIVIDE        => 1,
-DIVIDE_BYPASS => TRUE,
-I_INVERT      => FALSE,
-USE_DOUBLER   => FALSE
-)
-port map(
-I            => p_in_clk,    --from GTPA/port GTPCLKOUT
-DIVCLK       => g_dcm_clkin, --to PLL/DCM
-IOCLK        => i_refclkout, --to BUFG
-SERDESSTROBE => open         --to ISERDES2/OSERDES2
-);
+--bufg_gt_refclkout : BUFIO2
+--generic map(
+--DIVIDE        => 1,
+--DIVIDE_BYPASS => TRUE,
+--I_INVERT      => FALSE,
+--USE_DOUBLER   => FALSE
+--)
+--port map(
+--I            => p_in_clk,    --from GTPA/port GTPCLKOUT
+--DIVCLK       => g_dcm_clkin, --to PLL/DCM
+--IOCLK        => i_refclkout, --to BUFG
+--SERDESSTROBE => open         --to ISERDES2/OSERDES2
+--);
 
-bufg_refclkout : BUFG port map (I=>i_refclkout, O=>p_out_refclkout);
+p_out_refclkout<=p_in_clk;
 
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
 
 m_dcm : DCM_SP
-generic map
-(
-CLKDV_DIVIDE           => C_CLKDV_DIVIDE,--2.0,
+generic map(
+CLKDV_DIVIDE           => C_CLKDV_DIVIDE,--2.0,--
 CLKFX_DIVIDE           => 1,
 CLKFX_MULTIPLY         => 2,
 CLKIN_DIVIDE_BY_2      => FALSE,  -- разреш./запр. делить CLKIN на 2
@@ -119,7 +118,7 @@ PSCLK    => '0',
 PSEN     => '0',
 PSINCDEC => '0',
 
-CLKIN    => g_dcm_clkin,
+CLKIN    => p_in_clk, --g_dcm_clkin,
 RST      => p_in_rst
 );
 

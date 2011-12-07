@@ -56,6 +56,8 @@ function srambler32_0( FB : std_logic_vector(15 downto 0) ) return std_logic_vec
 function selval (valtrue, valfalse : integer; sel :boolean) return integer;
 function cmpval (val1, val2 : integer) return boolean;
 
+function selval_real (valtrue, valfalse : real; sel :boolean) return real;
+
 --function cmpval2 (val1, val2 : integer) return integer;
 function selval2 (val3, val2, val1, val0 : integer; sel1,sel0 :boolean) return integer;
 
@@ -360,6 +362,20 @@ else
 end if;
 end function selval;
 
+
+-------------------------------------------------------------------------------
+-- Function selval_real
+--
+--
+-------------------------------------------------------------------------------
+function selval_real (valtrue, valfalse : real; sel :boolean) return real is
+begin
+if sel=true then
+  return valtrue;
+else
+  return valfalse;
+end if;
+end function selval_real;
 --------------------------------------------------------------------------------
 ---- Function cmpval2
 ----

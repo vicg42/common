@@ -19,6 +19,7 @@ use ieee.std_logic_arith.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.prj_cfg.all;
 
 package sata_glob_pkg is
 
@@ -38,8 +39,8 @@ type TSH_08CountSel is array (0 to 1) of TSH_08Count;
 --//1 - "V5_GTX"
 --//2 - "V6_GTX"
 --//3 - "S6_GTPA"
-constant C_SH_FPGA_TYPE      : integer:=0;
-constant C_SH_MAIN_NUM       : integer:=0; --//определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
+constant C_SH_FPGA_TYPE      : integer:=C_PCFG_HDD_FPGA_TYPE;  --0;
+constant C_SH_MAIN_NUM       : integer:=C_PCFG_HDD_SH_MAIN_NUM;--0; --//определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
 
 
 ---------------------------------------------------------
@@ -103,21 +104,6 @@ hwstart_dly : TSH_ila;
 end record;
 
 
----------------------------------------------------------
---Прототипы функций
----------------------------------------------------------
-
 
 end sata_glob_pkg;
-
-
-package body sata_glob_pkg is
-
----------------------------------------------------------
---Функции
----------------------------------------------------------
-
-
-end sata_glob_pkg;
-
 
