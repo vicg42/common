@@ -69,11 +69,16 @@ begin
 --SERDESSTROBE => open         --to ISERDES2/OSERDES2
 --);
 
-p_out_refclkout<=p_in_clk;
+--p_out_refclkout<=p_in_clk;
+bufg_refclk    : BUFG port map (I => p_in_clk, O => p_out_refclkout);
 
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
+
+--g_dcm_clk0      <=i_dcm_clk0 ; p_out_dcm_gclk0<=g_dcm_clk0; --
+--p_out_dcm_gclk2x<=i_dcm_clk2x;                              --
+--p_out_dcm_gclkdv<=i_dcm_clkdv;                              --
 
 m_dcm : DCM_SP
 generic map(

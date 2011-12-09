@@ -9,18 +9,17 @@
 --      1. Задание типа спецификации SATA(Gen1,Gen2) на которой будет производиться установка связи
 --      2. Сброс модулей управления SATA соотв. канала DUAL_GTP перед попыткой установления связи.
 --
---адреса и значения атрибутов PLL модуля GTP
---которые необходи изменить для установки соединения на скоростях 1.5Gb/s или 3Gb/s
---Attribute               DRP Address     Value for           Value for
---                                        SATA Gen1           SATA Gen2
---                                        (1.5Gb/s)           (3Gb/s)
---GTP_0
---PLL_RXDIVSEL_OUT_0[0]   0X46[2]          1                    0
---PLL_TXDIVSEL_OUT_0[0]   0X45[15]         1                    0
---GTP_1
---PLL_RXDIVSEL_OUT_1[0]   0X0A[0]          1                    0
---PLL_TXDIVSEL_OUT_1[0]   0X05[4]          1                    0
---
+-- адреса/значения атрибутов PLL модуля GT
+-- -----------------------------------------------------------------
+--| GTCH |     Attribute      | DRP | DRP   | Value for | Value for |
+--|      |                    | Adr | bits  | SATA-I    | SATA-II   |
+--|-----------------------------------------------------------------
+--| CH0  | PLL_RXDIVSEL_OUT_0 | x34 |  8    |     1     |     0     |
+--|      | PLL_TXDIVSEL_OUT_0 | x34 |  10   |     1     |     0     |
+--|-----------------------------------------------------------------
+--| CH1  | PLL_RXDIVSEL_OUT_1 | x74 |  8    |     1     |     0     |
+--|      | PLL_TXDIVSEL_OUT_1 | x74 |  10   |     1     |     0     |
+-- -----------------------------------------------------------------
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -100,17 +99,15 @@ constant C_SATAH_NUM       : integer :=G_SATAH_NUM;
 constant C_GT_CH0          : integer :=0;
 constant C_GT_CH1          : integer :=1;
 
---//Адреса регистров GTP
---//более подробно см.Appendix D/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-constant C_AREG_REFCLK_SEL        : std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#04#, p_out_gt_drpaddr'length);
+--//Адреса регистров GT
+--//более подробно см.Appendix B/ug386_Spartan6_GTP_Transceivers_User_Guide.pdf
+constant C_AREG_PLL_TXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#34#, p_out_gt_drpaddr'length);--//Канал 0
+constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#74#, p_out_gt_drpaddr'length);--//Канал 1
 
-constant C_AREG_PLL_TXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#45#, p_out_gt_drpaddr'length);--//Канал 0
-constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#05#, p_out_gt_drpaddr'length);--//Канал 1
+constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#34#, p_out_gt_drpaddr'length);--//Канал 0
+constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#74#, p_out_gt_drpaddr'length);--//Канал 1
 
-constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#46#, p_out_gt_drpaddr'length);--//Канал 0
-constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#0A#, p_out_gt_drpaddr'length);--//Канал 1
-
-type TBusADRP_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (p_out_gt_drpaddr'range);
+type TBusADRP_GTCH is array (0 to 1) of std_logic_vector (p_out_gt_drpaddr'range);
 
 constant C_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
 constant C_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
@@ -131,21 +128,9 @@ S_IDLE,
 S_IDLE_INIT,
 S_IDLE_INIT_DONE,
 
-----//-------------------------------------------
-----//Перестройка частоты тактирования GTP
-----//-------------------------------------------
---S_DRP_READ,
---S_DRP_READ_DONE,
---S_DRP_READ_PAUSE,
---S_DRP_WRITE,
---S_DRP_WRITE_DONE,
---S_DRP_WRITE_PAUSE,
---S_GTP_RESET_START,
---S_GTP_RESET_DONE,
-
---//-------------------------------------------
---//Перестройка скорости соединения с SATA устройством
---//-------------------------------------------
+---------------------------------------------
+--Перестройка скорости соединения с SATA устройством
+---------------------------------------------
 S_CH0_CHECK_LINK,
 S_CH0_READ,
 S_CH0_READ_DONE,
@@ -373,140 +358,6 @@ begin
           fsm_spdctrl_cs<=S_CH0_CHECK_LINK;
         end if;
 
---        if C_SATAH_COUNT_MAX=1 then
---        --//Используется только один компонент DUAL_GTP,то
---        --//изменять регистр REFCLK_SEL не имеет смысла.
---        --//Переходим к процессу установления соединения
---          fsm_spdctrl_cs<=S_IDLE_SPDCFG;
-
---        else
---        --//Используется несколько компонентов DUAL_GTP,
---          fsm_spdctrl_cs<=S_DRP_READ;
---
---        end if;
-
-
---      --//##################################################
---      --//Программирую CLOCK MUX компонента GTP
---      --//##################################################
---      when S_DRP_READ =>
---
---        i_gt_drpaddr<=C_AREG_REFCLK_SEL;
---        i_gt_drpen<='1';
---        i_gt_drpwe<='0';
---
---        fsm_spdctrl_cs<=S_DRP_READ_DONE;
---
---      when S_DRP_READ_DONE =>
---
---        if p_in_gt_drprdy='1' then
---          i_gt_drpen           <='0';
---          i_gt_drp_rdval(0) <= p_in_gt_drpdo;
---
---          i_tmr_en<='1';
---          fsm_spdctrl_cs<=S_DRP_READ_PAUSE;
---        end if;
---
---      when S_DRP_READ_PAUSE =>
---
---        if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
---          i_tmr_en<='0';
---          fsm_spdctrl_cs<=S_DRP_WRITE;
---        end if;
---
---      when S_DRP_WRITE =>
---
---        i_gt_drpaddr<=C_AREG_REFCLK_SEL;
---
---        if C_SATAH_NUM=0 then
---          --//Если общее кол-во модуле sata_host.vhd=1,то перепрограммирование блока Clock Muxing
---          --//не требуется
---
---          if   C_SATAH_COUNT_MAX=3 then
---            --//Если общее кол-во модуле sata_host.vhd=3,то
---            --// модуля sata_host.vhd с индексом 0
---            --//настраиваем так, чтобы входная частота подоваемая на DUAL_GTP модуля sata_host.vhd/IDX=0
---            --//передовалась на вывод CLKOUTSOUTH и CLKOUTNORTH блока Clock Muxing
---            --//см. ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf/Appendix F/Figure F-1
---            i_gt_drpdi(6 downto 0)<=i_gt_drp_rdval(0)(6 downto 0);
---            i_gt_drpdi(7)          <= '1';                               --//CLKSOUTH_SEL
---            i_gt_drpdi(8)          <= '1';                               --//CLKNORTH_SEL
---            i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(0)(15 downto 9);
---
---          elsif C_SATAH_COUNT_MAX=2 then
---            --//Если общее кол-во модуле sata_host.vhd=2,то модуль sata_host.vhd с индексом 0
---            --//настраиваем так, чтобы входная частота подоваемая на DUAL_GTP модуля sata_host.vhd/IDX=0
---            --//передовалась на вывод CLKOUTSOUTH блока Clock Muxing
---            --//см. ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf/Appendix F/Figure F-1
---            i_gt_drpdi(6 downto 0)<=i_gt_drp_rdval(0)(6 downto 0);
---            i_gt_drpdi(7)          <= '1';                               --//CLKSOUTH_SEL
---            i_gt_drpdi(8)         <=i_gt_drp_rdval(0)(8);          --//CLKNORTH_SEL
---            i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(0)(15 downto 9);
---
---          end if;
---
---        elsif C_SATAH_NUM=1 then
---        --//Если модуль sata_host.vhd/IDX=1,то
---        --//тактирование компонента DUAL_GTP берем с линии CLKINSOUTH блока Clock Muxing
---        --//см. ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf/Appendix F/Figure F-1
---          i_gt_drpdi(3 downto 0)<=i_gt_drp_rdval(0)(3 downto 0);
---          i_gt_drpdi(6 downto 4) <= "100";
---          i_gt_drpdi(15 downto 7)<=i_gt_drp_rdval(0)(15 downto 7);
---
---        elsif C_SATAH_NUM=2 then
---        --//Если модуль sata_host.vhd/IDX=2,то
---        --//тактирование компонента DUAL_GTP берем с линии CLKOUTNORTH блока Clock Muxing
---        --//см. ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf/Appendix F/Figure F-1
---          i_gt_drpdi(3 downto 0)<=i_gt_drp_rdval(0)(3 downto 0);
---          i_gt_drpdi(6 downto 4) <= "101";
---          i_gt_drpdi(15 downto 7)<=i_gt_drp_rdval(0)(15 downto 7);
---
---        end if;
---
---        i_gt_drpen <= '1';
---        i_gt_drpwe <= '1';
---        fsm_spdctrl_cs<=S_DRP_WRITE_DONE;
---
---      when S_DRP_WRITE_DONE =>
---
---        if p_in_gt_drprdy='1' then
---          i_gt_drpen <= '0';
---          i_gt_drpwe <= '0';
---
---          i_tmr_en<='1';
---          fsm_spdctrl_cs<=S_DRP_WRITE_PAUSE;--S_CH0_PAUSE_W;
---        end if;
---
---      when S_DRP_WRITE_PAUSE =>
---
---        if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
---          i_tmr_en<='0';
---          fsm_spdctrl_cs<=S_GTP_RESET_START;
---        end if;
---
---      --//-------------------------------------------
---      --//Сброс DUAL_GTP
---      --//-------------------------------------------
---      when S_GTP_RESET_START =>
---        i_tmr_en<='1';
---        fsm_spdctrl_cs<=S_GTP_RESET_DONE;
---
---      when S_GTP_RESET_DONE =>
---
---        i_gt_drpaddr<=(others=>'0');
---        i_gt_drpdi<=(others=>'0');
---        i_gt_drpen<='0';
---        i_gt_drpwe<='0';
---
---        --//Генерю сброс для модуля RocketIO GTP
---        if i_tmr=CONV_STD_LOGIC_VECTOR(16#01F#, i_rst_cnt'length) then
---          i_tmr_en<='0';
---          fsm_spdctrl_cs<=S_IDLE_SPDCFG;
---
---        elsif i_tmr=CONV_STD_LOGIC_VECTOR(16#0F#, i_rst_cnt'length) then
---          fsm_spdctrl_cs<=S_GTP_RESET_DONE;
---
---        end if;
 
 
 
@@ -563,23 +414,27 @@ begin
         if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
           i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH0);
 
-          i_gt_drpdi(1 downto 0)<=i_gt_drp_rdval(1 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
-              i_gt_drpdi(2)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(8)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
-          i_gt_drpdi(15 downto 3)<=i_gt_drp_rdval(15 downto 3);
+          i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
+--          i_gt_drpdi(8)          <=i_gt_drp_rdval(8);
+          i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(15 downto 9);
 
         else
           i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH0);
 
-          i_gt_drpdi(14 downto 0)<=i_gt_drp_rdval(14 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
-              i_gt_drpdi(15)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(10)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
+          i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
+--          i_gt_drpdi(10)          <=i_gt_drp_rdval(10);
+          i_gt_drpdi(15 downto 11)<=i_gt_drp_rdval(15 downto 11);
+
         end if;
 
         i_gt_drpen<='1';
@@ -678,21 +533,25 @@ begin
 
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
-              i_gt_drpdi(0)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(8)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
-          i_gt_drpdi(15 downto 1)<=i_gt_drp_rdval(15 downto 1);
+          i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
+--          i_gt_drpdi(8)          <=i_gt_drp_rdval(8);
+          i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(15 downto 9);
 
         else
           i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH1);
 
-          i_gt_drpdi(3 downto 0)<=i_gt_drp_rdval(3 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
-              i_gt_drpdi(4)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(10)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
-          i_gt_drpdi(15 downto 5)<=i_gt_drp_rdval(15 downto 5);
+          i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
+--          i_gt_drpdi(10)          <=i_gt_drp_rdval(10);
+          i_gt_drpdi(15 downto 11)<=i_gt_drp_rdval(15 downto 11);
+
         end if;
 
         i_gt_drpen<='1';

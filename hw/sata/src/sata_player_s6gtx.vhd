@@ -118,9 +118,6 @@ signal i_refclkin                  : std_logic_vector(1 downto 0);
 signal i_txcomsas                  : std_logic;
 signal i_txcominit                 : std_logic;
 signal i_txcomwake                 : std_logic;
-signal i_txcom_finish              : std_logic;
-signal i_rxcominit                 : std_logic;
-signal i_rxcomwake                 : std_logic;
 
 signal i_plllkdet                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -130,7 +127,6 @@ signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-
 
 signal i_txelecidle_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_txcomstart_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -156,29 +152,14 @@ signal i_rxbufreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_rxbufstatus_out           : TBus03_GTCH;
 
 signal i_refclkout                 : TBus02_GTCH;
-signal i_refclkpll                 : std_logic_vector(1 downto 0);
+--signal i_refclkpll                 : std_logic_vector(1 downto 0);
 
-signal  tied_to_ground_i           : std_logic;
-signal  tied_to_ground_vec_i       : std_logic_vector(63 downto 0);
-signal  tied_to_vcc_i              : std_logic;
-signal  tied_to_vcc_vec_i          : std_logic_vector(63 downto 0);
-
-attribute keep : string;
-attribute keep of g_gtp_usrclk : signal is "true";
-
+--attribute keep : string;
+--attribute keep of g_gtp_usrclk : signal is "true";
+--attribute keep of g_gtp_usrclk2: signal is "true";
 
 --MAIN
 begin
-
-
---gen_null : for i in 0 to C_GTCH_COUNT_MAX-1 generate
-----m_BUFIO2FB : BUFIO2FB
-----generic map(
-----DIVIDE_BYPASS =>TRUE--Bypassdivider(TRUE/FALSE)
-----)
-----port map(O =>i_gtpclkfbwest_out(i), I =>i_gtpclkfbwest(i));
---
---end generate gen_null;
 
 
 gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
@@ -224,54 +205,72 @@ i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN
 --//GT: ØÈÍÀ ÄÀÍÛÕ=8bit
 --//------------------------------
 gen_gtp_w8 : if G_GT_DBUS=8 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
-g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
+--m_bufg_usrclk2 : BUFGMUX
+--port map(
+--S  => i_spdclk_sel(i),
+--I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+--I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+--O  => g_gtp_usrclk2(i)
+--);
+--g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
+--Only SATA-II
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2x;
+g_gtp_usrclk(i) <=g_gtp_usrclk2(i);
+----Only SATA-I
+--g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
+--g_gtp_usrclk(i) <=g_gtp_usrclk2(i);
 end generate gen_gtp_w8;
 
 --//------------------------------
 --//GT: ØÈÍÀ ÄÀÍÛÕ=16bit
 --//------------------------------
 gen_gtp_w16 : if G_GT_DBUS=16 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
-m_bufg_usrclk : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk(i)
-);
+--m_bufg_usrclk2 : BUFGMUX
+--port map(
+--S  => i_spdclk_sel(i),
+--I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
+--I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
+--O  => g_gtp_usrclk2(i)
+--);
+--m_bufg_usrclk : BUFGMUX
+--port map(
+--S  => i_spdclk_sel(i),
+--I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+--I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+--O  => g_gtp_usrclk(i)
+--);
+--Only SATA-II
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;
+----Only SATA-I
+--g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;
+--g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;
 end generate gen_gtp_w16;
 
 --//------------------------------
 --//GT: ØÈÍÀ ÄÀÍÛÕ=32bit
 --//------------------------------
 gen_gtp_w32 : if G_GT_DBUS=32 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
-m_bufg_usrclk : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
-O  => g_gtp_usrclk(i)
-);
+--m_bufg_usrclk2 : BUFGMUX
+--port map(
+--S  => i_spdclk_sel(i),
+--I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
+--I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
+--O  => g_gtp_usrclk2(i)
+--);
+--m_bufg_usrclk : BUFGMUX
+--port map(
+--S  => i_spdclk_sel(i),
+--I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
+--I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
+--O  => g_gtp_usrclk(i)
+--);
+--Only SATA-II
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;
+----Only SATA-I
+--g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;
+--g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;
 end generate gen_gtp_w32;
 
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
@@ -294,10 +293,9 @@ begin
       i_rxcdrreset_in(i)      <=p_in_rxcdrreset(i);
       i_rxreset_in(i)         <=p_in_rxreset(i);
       p_out_rxelecidle(i)     <=i_rxelecidle(i);
---      p_out_rxstatus(i)       <=i_rxstatus_out(i);
-      p_out_rxstatus(i)(2)<=i_rxcominit;
-      p_out_rxstatus(i)(1)<=i_rxcomwake;
-      p_out_rxstatus(i)(0)<=i_txcom_finish;
+      p_out_rxstatus(i)       <=i_rxstatus_out(i);--i_rxstatus_out(i)(2)<=i_rxcominit;
+                                                  --i_rxstatus_out(i)(1)<=i_rxcomwake;
+                                                  --i_rxstatus_out(i)(0)<=i_txcom_finish;
 
       p_out_rxdata(i)(31 downto 0)     <=i_rxdata_out(i)(31 downto 0);
       p_out_rxcharisk(i)(3 downto 0)   <=i_rxcharisk_out(i)(3 downto 0);
@@ -317,18 +315,14 @@ end generate gen_ch;
 --//###########################
 --//Gig Tx/Rx
 --//###########################
-tied_to_ground_i     <= '0';
-tied_to_ground_vec_i <= (others => '0');
-tied_to_vcc_i        <= '1';
-tied_to_vcc_vec_i    <= (others => '1');
 
 p_out_plllock<=AND_reduce(i_plllkdet(G_GT_CH_COUNT-1 downto 0));
-m_buffio2 : BUFIO2 port map (DIVCLK => i_refclkout(0)(0), IOCLK => open, SERDESSTROBE => open, I => p_out_refclkout );
+m_buffio2 : BUFIO2 port map (DIVCLK => p_out_refclkout, IOCLK => open, SERDESSTROBE => open, I => i_refclkout(0)(0) );
 
-p_out_optrefclk(0)<=i_refclkpll(0);
-p_out_optrefclk(1)<=i_refclkpll(1);
-p_out_optrefclk(2)<='0';
-p_out_optrefclk(3)<='0';
+--p_out_optrefclk(0)<=i_refclkpll(0);
+--p_out_optrefclk(1)<=i_refclkpll(1);
+--p_out_optrefclk(2)<='0';
+--p_out_optrefclk(3)<='0';
 
 
 m_gt : GTPA1_DUAL
@@ -381,9 +375,9 @@ TST_ATTR_1                              =>     (x"00000000"),
 
 --TX Interface Attributes
 CLK_OUT_GTP_SEL_0                       =>     ("REFCLKPLL0"),--("TXOUTCLK0"),  --//############################### add vicg
-TX_TDCC_CFG_0                           =>     ("11"),
-CLK_OUT_GTP_SEL_1                       =>     ("REFCLKPLL0"),--("TXOUTCLK1"),  --//############################### add vicg
-TX_TDCC_CFG_1                           =>     ("11"),
+TX_TDCC_CFG_0                           =>     ("00"),
+CLK_OUT_GTP_SEL_1                       =>     ("REFCLKPLL1"),--("TXOUTCLK1"),  --//############################### add vicg
+TX_TDCC_CFG_1                           =>     ("00"),
 
 --TX Buffer and Phase Alignment Attributes
 PMA_TX_CFG_0                            =>     (x"00082"),
@@ -406,24 +400,24 @@ COM_BURST_VAL_0                         =>     ("1111"),
 COM_BURST_VAL_1                         =>     ("1111"),
 
 --RX Driver,OOB signalling,Coupling and Eq,CDR Attributes
-AC_CAP_DIS_0                            =>     (FALSE),
+AC_CAP_DIS_0                            =>     (TRUE),--(FALSE),
 OOBDETECT_THRESHOLD_0                   =>     ("110"),
 PMA_CDR_SCAN_0                          =>     (x"6404040"),
 PMA_RX_CFG_0                            =>     (x"05ce089"),
 PMA_RXSYNC_CFG_0                        =>     (x"00"),
 RCV_TERM_GND_0                          =>     (FALSE),
-RCV_TERM_VTTRX_0                        =>     (TRUE),
+RCV_TERM_VTTRX_0                        =>     (FALSE),--(TRUE),
 RXEQ_CFG_0                              =>     ("01111011"),
 TERMINATION_CTRL_0                      =>     ("10100"),
 TERMINATION_OVRD_0                      =>     (FALSE),
 TX_DETECT_RX_CFG_0                      =>     (x"1832"),
-AC_CAP_DIS_1                            =>     (FALSE),
+AC_CAP_DIS_1                            =>     (TRUE),--(FALSE),
 OOBDETECT_THRESHOLD_1                   =>     ("110"),
 PMA_CDR_SCAN_1                          =>     (x"6404040"),
 PMA_RX_CFG_1                            =>     (x"05ce089"),
 PMA_RXSYNC_CFG_1                        =>     (x"00"),
 RCV_TERM_GND_1                          =>     (FALSE),
-RCV_TERM_VTTRX_1                        =>     (TRUE),
+RCV_TERM_VTTRX_1                        =>     (FALSE),--(TRUE),
 RXEQ_CFG_1                              =>     ("01111011"),
 TERMINATION_CTRL_1                      =>     ("10100"),
 TERMINATION_OVRD_1                      =>     (FALSE),
@@ -595,55 +589,55 @@ SATA_MIN_WAKE_1                         =>     (4)
 )
 port map(
 ------------------------ Loopback and Powerdown Ports ----------------------
-LOOPBACK0                       =>      tied_to_ground_vec_i(2 downto 0),
-LOOPBACK1                       =>      tied_to_ground_vec_i(2 downto 0),
-RXPOWERDOWN0                    =>      tied_to_ground_vec_i(1 downto 0),
-RXPOWERDOWN1                    =>      tied_to_ground_vec_i(1 downto 0),
-TXPOWERDOWN0                    =>      tied_to_ground_vec_i(1 downto 0),
-TXPOWERDOWN1                    =>      tied_to_ground_vec_i(1 downto 0),
+LOOPBACK0                       =>      (others=>'0'),
+LOOPBACK1                       =>      (others=>'0'),
+RXPOWERDOWN0                    =>      (others=>'0'),
+RXPOWERDOWN1                    =>      (others=>'0'),
+TXPOWERDOWN0                    =>      (others=>'0'),
+TXPOWERDOWN1                    =>      (others=>'0'),
 --------------------------------- PLL Ports --------------------------------
 CLK00                           =>      p_in_refclkin, --External jitter stable clock driven by the IBUFDS primitive --//############################### add vicg
 CLK01                           =>      '0',                                --//############################### add vicg
-CLK10                           =>      tied_to_ground_i,
-CLK11                           =>      tied_to_ground_i,
-CLKINEAST0                      =>      p_in_optrefclk(0),
-CLKINEAST1                      =>      p_in_optrefclk(0),
-CLKINWEST0                      =>      p_in_optrefclk(0),
-CLKINWEST1                      =>      p_in_optrefclk(0),
-GCLK00                          =>      tied_to_ground_i,
-GCLK01                          =>      tied_to_ground_i,
-GCLK10                          =>      tied_to_ground_i,
-GCLK11                          =>      tied_to_ground_i,
+CLK10                           =>      '0',
+CLK11                           =>      '0',
+CLKINEAST0                      =>      '0',--p_in_optrefclk(0),
+CLKINEAST1                      =>      '0',--p_in_optrefclk(0),
+CLKINWEST0                      =>      '0',--p_in_optrefclk(0),
+CLKINWEST1                      =>      '0',--p_in_optrefclk(0),
+GCLK00                          =>      '0',
+GCLK01                          =>      '0',
+GCLK10                          =>      '0',
+GCLK11                          =>      '0',
 GTPRESET0                       =>      p_in_rst,                           --//############################### add vicg
 GTPRESET1                       =>      p_in_rst,                           --//############################### add vicg
 GTPTEST0                        =>      "00010000",
 GTPTEST1                        =>      "00010000",
-INTDATAWIDTH0                   =>      tied_to_vcc_i,
-INTDATAWIDTH1                   =>      tied_to_vcc_i,
-PLLCLK00                        =>      tied_to_ground_i,
-PLLCLK01                        =>      tied_to_ground_i,
-PLLCLK10                        =>      tied_to_ground_i,
-PLLCLK11                        =>      tied_to_ground_i,
+INTDATAWIDTH0                   =>      '1', --0/1 -  Internal datapath is 8/10 bits wide and PLL N1 divider is set to 4/5
+INTDATAWIDTH1                   =>      '1',
+PLLCLK00                        =>      '0',
+PLLCLK01                        =>      '0',
+PLLCLK10                        =>      '0',
+PLLCLK11                        =>      '0',
 PLLLKDET0                       =>      i_plllkdet(0),                      --//############################### add vicg
 PLLLKDET1                       =>      i_plllkdet(1),                      --//############################### add vicg
-PLLLKDETEN0                     =>      tied_to_vcc_i,
-PLLLKDETEN1                     =>      tied_to_vcc_i,
-PLLPOWERDOWN0                   =>      tied_to_ground_i,
-PLLPOWERDOWN1                   =>      tied_to_ground_i,
+PLLLKDETEN0                     =>      '1',
+PLLLKDETEN1                     =>      '1',
+PLLPOWERDOWN0                   =>      '0',
+PLLPOWERDOWN1                   =>      '0',
 REFCLKOUT0                      =>      open,
 REFCLKOUT1                      =>      open,
-REFCLKPLL0                      =>      i_refclkpll(0),      --//############################### add vicg
-REFCLKPLL1                      =>      i_refclkpll(1),      --//############################### add vicg
-REFCLKPWRDNB0                   =>      tied_to_vcc_i,
-REFCLKPWRDNB1                   =>      tied_to_vcc_i,
-REFSELDYPLL0                    =>      p_in_optrefclksel(2 downto 0),      --//############################### add vicg
-REFSELDYPLL1                    =>      p_in_optrefclksel(2 downto 0),      --//############################### add vicg
+REFCLKPLL0                      =>      open,--i_refclkpll(0),      --//############################### add vicg
+REFCLKPLL1                      =>      open,--i_refclkpll(1),      --//############################### add vicg
+REFCLKPWRDNB0                   =>      '1',
+REFCLKPWRDNB1                   =>      '1',
+REFSELDYPLL0                    =>      "000",--p_in_optrefclksel(2 downto 0),      --//############################### add vicg
+REFSELDYPLL1                    =>      "000",--p_in_optrefclksel(2 downto 0),      --//############################### add vicg
 RESETDONE0                      =>      i_resetdone(0),                     --//############################### add vicg
 RESETDONE1                      =>      i_resetdone(1),                     --//############################### add vicg
-TSTCLK0                         =>      tied_to_ground_i,
-TSTCLK1                         =>      tied_to_ground_i,
-TSTIN0                          =>      tied_to_ground_vec_i(11 downto 0),
-TSTIN1                          =>      tied_to_ground_vec_i(11 downto 0),
+TSTCLK0                         =>      '0',
+TSTCLK1                         =>      '0',
+TSTIN0                          =>      (others=>'0'),
+TSTIN1                          =>      (others=>'0'),
 TSTOUT0                         =>      open,
 TSTOUT1                         =>      open,
 ----------------------- Receive Ports - 8b10b Decoder ----------------------
@@ -655,8 +649,8 @@ RXCHARISK0(3 downto 2)          =>      i_rxcharisk_out(0)(3 downto 2),     --//
 RXCHARISK0(1 downto 0)          =>      i_rxcharisk_out(0)(1 downto 0),     --//############################### add vicg
 RXCHARISK1(3 downto 2)          =>      i_rxcharisk_out(1)(3 downto 2),     --//############################### add vicg
 RXCHARISK1(1 downto 0)          =>      i_rxcharisk_out(1)(1 downto 0),     --//############################### add vicg
-RXDEC8B10BUSE0                  =>      tied_to_vcc_i,
-RXDEC8B10BUSE1                  =>      tied_to_vcc_i,
+RXDEC8B10BUSE0                  =>      '1',
+RXDEC8B10BUSE1                  =>      '1',
 RXDISPERR0(3 downto 2)          =>      i_rxdisperr_out(0)(3 downto 2),     --//############################### add vicg
 RXDISPERR0(1 downto 0)          =>      i_rxdisperr_out(0)(1 downto 0),     --//############################### add vicg
 RXDISPERR1(3 downto 2)          =>      i_rxdisperr_out(1)(3 downto 2),     --//############################### add vicg
@@ -667,8 +661,8 @@ RXNOTINTABLE1(3 downto 2)       =>      i_rxnotintable_out(1)(3 downto 2),  --//
 RXNOTINTABLE1(1 downto 0)       =>      i_rxnotintable_out(1)(1 downto 0),  --//############################### add vicg
 RXRUNDISP0                      =>      open,
 RXRUNDISP1                      =>      open,
-USRCODEERR0                     =>      tied_to_ground_i,
-USRCODEERR1                     =>      tied_to_ground_i,
+USRCODEERR0                     =>      '0',
+USRCODEERR1                     =>      '0',
 ---------------------- Receive Ports - Channel Bonding ---------------------
 RXCHANBONDSEQ0                  =>      open,
 RXCHANBONDSEQ1                  =>      open,
@@ -676,14 +670,14 @@ RXCHANISALIGNED0                =>      open,
 RXCHANISALIGNED1                =>      open,
 RXCHANREALIGN0                  =>      open,
 RXCHANREALIGN1                  =>      open,
-RXCHBONDI                       =>      tied_to_ground_vec_i(2 downto 0),
-RXCHBONDMASTER0                 =>      tied_to_ground_i,
-RXCHBONDMASTER1                 =>      tied_to_ground_i,
+RXCHBONDI                       =>      (others=>'0'),
+RXCHBONDMASTER0                 =>      '0',
+RXCHBONDMASTER1                 =>      '0',
 RXCHBONDO                       =>      open,
-RXCHBONDSLAVE0                  =>      tied_to_ground_i,
-RXCHBONDSLAVE1                  =>      tied_to_ground_i,
-RXENCHANSYNC0                   =>      tied_to_ground_i,
-RXENCHANSYNC1                   =>      tied_to_ground_i,
+RXCHBONDSLAVE0                  =>      '0',
+RXCHBONDSLAVE1                  =>      '0',
+RXENCHANSYNC0                   =>      '0',
+RXENCHANSYNC1                   =>      '0',
 ---------------------- Receive Ports - Clock Correction --------------------
 RXCLKCORCNT0                    =>      open,                           --//############################### add vicg
 RXCLKCORCNT1                    =>      open,                           --//############################### add vicg
@@ -700,13 +694,13 @@ RXENMCOMMAALIGN0                =>      '1',--êàê äëÿ V5                --//####
 RXENMCOMMAALIGN1                =>      '1',--êàê äëÿ V5                --//############################### add vicg
 RXENPCOMMAALIGN0                =>      '1',--êàê äëÿ V5                --//############################### add vicg
 RXENPCOMMAALIGN1                =>      '1',--êàê äëÿ V5                --//############################### add vicg
-RXSLIDE0                        =>      tied_to_ground_i,
-RXSLIDE1                        =>      tied_to_ground_i,
+RXSLIDE0                        =>      '0',
+RXSLIDE1                        =>      '0',
 ----------------------- Receive Ports - PRBS Detection ---------------------
-PRBSCNTRESET0                   =>      tied_to_ground_i,
-PRBSCNTRESET1                   =>      tied_to_ground_i,
-RXENPRBSTST0                    =>      tied_to_ground_vec_i(2 downto 0),
-RXENPRBSTST1                    =>      tied_to_ground_vec_i(2 downto 0),
+PRBSCNTRESET0                   =>      '0',
+PRBSCNTRESET1                   =>      '0',
+RXENPRBSTST0                    =>      (others=>'0'),
+RXENPRBSTST1                    =>      (others=>'0'),
 RXPRBSERR0                      =>      open,
 RXPRBSERR1                      =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
@@ -727,8 +721,8 @@ GATERXELECIDLE0                 =>      '0',                            --//####
 GATERXELECIDLE1                 =>      '0',                            --//############################### add vicg
 IGNORESIGDET0                   =>      '0',                            --//############################### add vicg
 IGNORESIGDET1                   =>      '0',                            --//############################### add vicg
-RCALINEAST                      =>      tied_to_ground_vec_i(4 downto 0),
-RCALINWEST                      =>      tied_to_ground_vec_i(4 downto 0),
+RCALINEAST                      =>      (others=>'0'),
+RCALINWEST                      =>      (others=>'0'),
 RCALOUTEAST                     =>      open,
 RCALOUTWEST                     =>      open,
 RXCDRRESET0                     =>      i_rxcdrreset_in(0),             --//############################### add vicg
@@ -746,10 +740,10 @@ RXBUFRESET0                     =>      i_rxbufreset_in(0),             --//####
 RXBUFRESET1                     =>      i_rxbufreset_in(1),             --//############################### add vicg
 RXBUFSTATUS0                    =>      i_rxbufstatus_out(0),           --//############################### add vicg
 RXBUFSTATUS1                    =>      i_rxbufstatus_out(1),           --//############################### add vicg
-RXENPMAPHASEALIGN0              =>      tied_to_ground_i,
-RXENPMAPHASEALIGN1              =>      tied_to_ground_i,
-RXPMASETPHASE0                  =>      tied_to_ground_i,
-RXPMASETPHASE1                  =>      tied_to_ground_i,
+RXENPMAPHASEALIGN0              =>      '0',
+RXENPMAPHASEALIGN1              =>      '0',
+RXPMASETPHASE0                  =>      '0',
+RXPMASETPHASE1                  =>      '0',
 RXSTATUS0                       =>      i_rxstatus_out(0),              --//############################### add vicg
 RXSTATUS1                       =>      i_rxstatus_out(1),              --//############################### add vicg
 --------------- Receive Ports - RX Loss-of-sync State Machine --------------
@@ -761,8 +755,8 @@ PHYSTATUS1                      =>      open,
 RXVALID0                        =>      open,
 RXVALID1                        =>      open,
 -------------------- Receive Ports - RX Polarity Control -------------------
-RXPOLARITY0                     =>      tied_to_ground_i,
-RXPOLARITY1                     =>      tied_to_ground_i,
+RXPOLARITY0                     =>      '0',
+RXPOLARITY1                     =>      '0',
 ------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
 DADDR                           =>      p_in_drpaddr(7 downto 0),       --//############################### add vicg
 DCLK                            =>      p_in_drpclk,                    --//############################### add vicg
@@ -781,18 +775,18 @@ GTPCLKFBWEST                    =>      open,
 GTPCLKOUT0                      =>      i_refclkout(0)(1 downto 0),     --//############################### add vicg
 GTPCLKOUT1                      =>      i_refclkout(1)(1 downto 0),     --//############################### add vicg
 ------------------- Transmit Ports - 8b10b Encoder Control -----------------
-TXBYPASS8B10B0                  =>      tied_to_ground_vec_i(3 downto 0),
-TXBYPASS8B10B1                  =>      tied_to_ground_vec_i(3 downto 0),
-TXCHARDISPMODE0                 =>      tied_to_ground_vec_i(3 downto 0),
-TXCHARDISPMODE1                 =>      tied_to_ground_vec_i(3 downto 0),
-TXCHARDISPVAL0                  =>      tied_to_ground_vec_i(3 downto 0),
-TXCHARDISPVAL1                  =>      tied_to_ground_vec_i(3 downto 0),
+TXBYPASS8B10B0                  =>      (others=>'0'),
+TXBYPASS8B10B1                  =>      (others=>'0'),
+TXCHARDISPMODE0                 =>      (others=>'0'),
+TXCHARDISPMODE1                 =>      (others=>'0'),
+TXCHARDISPVAL0                  =>      (others=>'0'),
+TXCHARDISPVAL1                  =>      (others=>'0'),
 TXCHARISK0(3 downto 2)          =>      i_txcharisk_in(0)(3 downto 2),  --//############################### add vicg
 TXCHARISK0(1 downto 0)          =>      i_txcharisk_in(0)(1 downto 0),  --//############################### add vicg
 TXCHARISK1(3 downto 2)          =>      i_txcharisk_in(1)(3 downto 2),  --//############################### add vicg
 TXCHARISK1(1 downto 0)          =>      i_txcharisk_in(1)(1 downto 0),  --//############################### add vicg
-TXENC8B10BUSE0                  =>      tied_to_vcc_i,
-TXENC8B10BUSE1                  =>      tied_to_vcc_i,
+TXENC8B10BUSE0                  =>      '1',
+TXENC8B10BUSE1                  =>      '1',
 TXKERR0                         =>      open,
 TXKERR1                         =>      open,
 TXRUNDISP0                      =>      open,
@@ -800,10 +794,10 @@ TXRUNDISP1                      =>      open,
 --------------- Transmit Ports - TX Buffer and Phase Alignment -------------
 TXBUFSTATUS0                    =>      open,
 TXBUFSTATUS1                    =>      open,
-TXENPMAPHASEALIGN0              =>      tied_to_ground_i,
-TXENPMAPHASEALIGN1              =>      tied_to_ground_i,
-TXPMASETPHASE0                  =>      tied_to_ground_i,
-TXPMASETPHASE1                  =>      tied_to_ground_i,
+TXENPMAPHASEALIGN0              =>      '0',
+TXENPMAPHASEALIGN1              =>      '0',
+TXPMASETPHASE0                  =>      '0',
+TXPMASETPHASE1                  =>      '0',
 ------------------ Transmit Ports - TX Data Path interface -----------------
 TXDATA0                         =>      i_txdata_in(0)(31 downto 0),  --//############################### add vicg
 TXDATA1                         =>      i_txdata_in(1)(31 downto 0),  --//############################### add vicg
@@ -822,8 +816,8 @@ TXBUFDIFFCTRL0                  =>      "101",
 TXBUFDIFFCTRL1                  =>      "101",
 TXDIFFCTRL0                     =>      "0111",--TXDIFFCTRL0_IN,--//############################### add vicg
 TXDIFFCTRL1                     =>      "0111",--TXDIFFCTRL1_IN,--//############################### add vicg
-TXINHIBIT0                      =>      tied_to_ground_i,
-TXINHIBIT1                      =>      tied_to_ground_i,
+TXINHIBIT0                      =>      '0',
+TXINHIBIT1                      =>      '0',
 TXN0                            =>      p_out_txn(0),
 TXN1                            =>      p_out_txn(1),
 TXP0                            =>      p_out_txp(0),
@@ -831,20 +825,20 @@ TXP1                            =>      p_out_txp(1),
 TXPREEMPHASIS0                  =>      "010",
 TXPREEMPHASIS1                  =>      "010",
 --------------------- Transmit Ports - TX PRBS Generator -------------------
-TXENPRBSTST0                    =>      tied_to_ground_vec_i(2 downto 0),
-TXENPRBSTST1                    =>      tied_to_ground_vec_i(2 downto 0),
-TXPRBSFORCEERR0                 =>      tied_to_ground_i,
-TXPRBSFORCEERR1                 =>      tied_to_ground_i,
+TXENPRBSTST0                    =>      (others=>'0'),
+TXENPRBSTST1                    =>      (others=>'0'),
+TXPRBSFORCEERR0                 =>      '0',
+TXPRBSFORCEERR1                 =>      '0',
 -------------------- Transmit Ports - TX Polarity Control ------------------
-TXPOLARITY0                     =>      tied_to_ground_i,
-TXPOLARITY1                     =>      tied_to_ground_i,
+TXPOLARITY0                     =>      '0',
+TXPOLARITY1                     =>      '0',
 ----------------- Transmit Ports - TX Ports for PCI Express ----------------
-TXDETECTRX0                     =>      tied_to_ground_i,
-TXDETECTRX1                     =>      tied_to_ground_i,
+TXDETECTRX0                     =>      '0',
+TXDETECTRX1                     =>      '0',
 TXELECIDLE0                     =>      i_txelecidle_in(0),          --//############################### add vicg
 TXELECIDLE1                     =>      i_txelecidle_in(1),          --//############################### add vicg
-TXPDOWNASYNCH0                  =>      tied_to_ground_i,
-TXPDOWNASYNCH1                  =>      tied_to_ground_i,
+TXPDOWNASYNCH0                  =>      '0',
+TXPDOWNASYNCH1                  =>      '0',
 --------------------- Transmit Ports - TX Ports for SATA -------------------
 TXCOMSTART0                     =>      i_txcomstart_in(0),          --//############################### add vicg
 TXCOMSTART1                     =>      i_txcomstart_in(1),          --//############################### add vicg
