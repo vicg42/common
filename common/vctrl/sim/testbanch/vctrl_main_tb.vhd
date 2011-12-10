@@ -25,6 +25,8 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
+use work.mem_glob_pkg.all;
+use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
 library std;
@@ -97,26 +99,8 @@ p_in_upp_buf_full    : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req     : out   std_logic;
-p_in_memarb_en       : in    std_logic;
-
-p_out_mem_bank1h     : out   std_logic_vector(3 downto 0);
-p_out_mem_ce         : out   std_logic;
-p_out_mem_cw         : out   std_logic;
-p_out_mem_rd         : out   std_logic;
-p_out_mem_wr         : out   std_logic;
-p_out_mem_term       : out   std_logic;
-p_out_mem_adr        : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be         : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout        : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf          : in    std_logic;
-p_in_mem_wpf         : in    std_logic;
-p_in_mem_re          : in    std_logic;
-p_in_mem_rpe         : in    std_logic;
-
-p_out_mem_clk        : out   std_logic;
+p_out_mem            : out   TMemIN;
+p_in_mem             : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -451,10 +435,10 @@ signal p_out_memrd_cw             : std_logic;
 signal p_out_memrd_rd             : std_logic;
 signal p_out_memrd_wr             : std_logic;
 signal p_out_memrd_term           : std_logic;
-signal p_out_memrd_adr            : std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-signal p_out_memrd_be             : std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-signal p_out_memrd_din            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-signal p_in_memrd_dout            : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal p_out_memrd_adr            : std_logic_vector(C_MEMWR_AWIDTH_MAX - 1 downto 0);
+signal p_out_memrd_be             : std_logic_vector(C_MEMWR_DWIDTH_MAX / 8 - 1 downto 0);
+signal p_out_memrd_din            : std_logic_vector(C_MEMWR_DWIDTH_MAX - 1 downto 0);
+signal p_in_memrd_dout            : std_logic_vector(C_MEMWR_DWIDTH_MAX - 1 downto 0);
 
 signal p_in_memrd_wf              : std_logic;
 signal p_in_memrd_wpf             : std_logic;
@@ -625,6 +609,9 @@ signal i_srambler_out                 : std_logic_vector(31 downto 0);
 
 signal mnl_only_1_frame             : std_logic;
 
+signal p_out_mem: TMemIN;
+signal p_in_mem : TMemOUT;
+
 --Main
 begin
 
@@ -640,14 +627,23 @@ end process;
 p_in_rst<='1','0' after 1 us;
 
 
+--tst_ctrl<=(others=>'0');
+tst_ctrl(2 downto 0)<=(others=>'0');
+tst_ctrl(3)<='1';--Rotate left
+tst_ctrl(4)<='0';--Rotate right
+tst_ctrl(31 downto 5)<=(others=>'0');
+
 --//Имитация работы модуля контроллера попмяти (mem_ctrl.vhd)
-p_in_memrd_wf <='0';
-p_in_memrd_wpf<='0';
-p_in_memrd_rpe<='0';
+p_in_mem.data<=tst_data_out;
+p_in_mem.buf_wpf<='0';
 
-p_in_memarb_rden<='1';
+--p_in_memrd_wf <='0';
+--p_in_memrd_wpf<='0';
+--p_in_memrd_rpe<='0';
 
-p_in_memrd_dout<=tst_data_out;
+p_in_mem.req_en<='1';
+
+--p_in_memrd_dout<=tst_data_out;
 
 process(p_in_rst, p_in_clk)
   variable var_mem_arb1_read: std_logic;
@@ -656,14 +652,14 @@ begin
   if p_in_rst='1' then
     i_mem_arb1_read_dly_cnt<=(others=>'0');
     i_mem_arb1_read_dly<='0';
-    p_in_memrd_re <='1';
+    p_in_mem.buf_re <='1';
 
 --    var_mem_arb1_dout_sim:=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
     var_mem_arb1_read:='0';
 
-    if p_out_memrd_ce='1' and p_out_memrd_cw='0' then
+    if p_out_mem.ce='1' and p_out_mem.cw='0' then
       i_mem_arb1_read_dly<='1';
     else
       if i_mem_arb1_read_dly='1' then ---and i_upp_wd_stop='0' then
@@ -679,16 +675,16 @@ begin
 
 --    if i_upp_wd_stop='0' then
         if var_mem_arb1_read='1' then
-          p_in_memrd_re <='0';
-        elsif p_out_memrd_term='1' then
-          p_in_memrd_re <='1';
+          p_in_mem.buf_re <='0';
+        elsif p_out_mem.term='1' then
+          p_in_mem.buf_re <='1';
         end if;
 --    end if;
 
   end if;
 end process;
 
-tst_data_en<=not p_in_memrd_re and p_out_memrd_rd;
+tst_data_en<=not p_in_mem.buf_re and p_out_mem.rd;
 
 gen_vbuf : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
 begin
@@ -765,26 +761,29 @@ p_in_upp_buf_full    => i_vmir_rdy_n,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_mem_clk        => open,
+p_out_mem            => p_out_mem,--: out   TMemIN;
+p_in_mem             => p_in_mem ,--: in    TMemOUT;
 
-p_out_memarb_req     => p_out_memarb_rdreq,
-p_in_memarb_en       => p_in_memarb_rden,
-
-p_out_mem_bank1h     => p_out_memrd_bank1h,
-p_out_mem_ce         => p_out_memrd_ce,
-p_out_mem_cw         => p_out_memrd_cw,
-p_out_mem_rd         => p_out_memrd_rd,
-p_out_mem_wr         => p_out_memrd_wr,
-p_out_mem_term       => p_out_memrd_term,
-p_out_mem_adr        => p_out_memrd_adr,
-p_out_mem_be         => p_out_memrd_be,
-p_out_mem_din        => p_out_memrd_din,
-p_in_mem_dout        => p_in_memrd_dout,
-
-p_in_mem_wf          => p_in_memrd_wf,
-p_in_mem_wpf         => p_in_memrd_wpf,
-p_in_mem_re          => p_in_memrd_re,
-p_in_mem_rpe         => p_in_memrd_rpe,
+--p_out_mem_clk        => open,
+--
+--p_out_memarb_req     => p_out_memarb_rdreq,
+--p_in_memarb_en       => p_in_memarb_rden,
+--
+--p_out_mem_bank1h     => p_out_memrd_bank1h,
+--p_out_mem_ce         => p_out_memrd_ce,
+--p_out_mem_cw         => p_out_memrd_cw,
+--p_out_mem_rd         => p_out_memrd_rd,
+--p_out_mem_wr         => p_out_memrd_wr,
+--p_out_mem_term       => p_out_memrd_term,
+--p_out_mem_adr        => p_out_memrd_adr,
+--p_out_mem_be         => p_out_memrd_be,
+--p_out_mem_din        => p_out_memrd_din,
+--p_in_mem_dout        => p_in_memrd_dout,
+--
+--p_in_mem_wf          => p_in_memrd_wf,
+--p_in_mem_wpf         => p_in_memrd_wpf,
+--p_in_mem_re          => p_in_memrd_re,
+--p_in_mem_rpe         => p_in_memrd_rpe,
 
 -------------------------------
 --Технологический
