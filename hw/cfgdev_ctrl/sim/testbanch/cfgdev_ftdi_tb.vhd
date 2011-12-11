@@ -228,7 +228,7 @@ begin
 i_ftdi_d<=(others=>'Z');
 i_ftdi_txe_n<='0';
 i_ftdi_rxf_n<='1';
-i_ftdi_pwren_n<='1';
+i_ftdi_pwren_n<='0';
 
 for i in 0 to i_pkts'length-1 loop
 
@@ -345,7 +345,7 @@ for i in 0 to dlen_int-1 loop
 end loop;--//for i in 0 to dlen_int-1 loop
 
 i_ftdi_rxf_n<='1';
-
+i_ftdi_d<=(others =>'Z');
 
 --//PKT(Read)
 wait for 200 ns;
@@ -363,7 +363,7 @@ for i in 0 to i_pkts(1).h'length-1 loop
 end loop;--//for i in 0 to dlen_int-1 loop
 
 i_ftdi_rxf_n<='1';
-
+i_ftdi_d<=(others =>'Z');
 
 --//PKT(Read)
 wait for 200 ns;
@@ -409,7 +409,7 @@ for i in 0 to dlen_int-1 loop
 end loop;--//for i in 0 to dlen_int-1 loop
 
 i_ftdi_rxf_n<='1';
-
+i_ftdi_d<=(others =>'Z');
 
 --//PKT(Write)
 wait for 200 ns;
