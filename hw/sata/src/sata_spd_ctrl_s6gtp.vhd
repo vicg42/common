@@ -42,11 +42,11 @@ use work.sata_sim_lite_pkg.all;
 
 entity sata_speed_ctrl is
 generic(
-G_SATAH_COUNT_MAX : integer:=1;    --//кол-во модулей sata_host
-G_SATAH_NUM       : integer:=0;    --//индекс модуля sata_host
-G_SATAH_CH_COUNT  : integer:=1;    --//Кол-во портов используемых в модуле GT.(возможные значения - 1,2)
+G_SATAH_COUNT_MAX : integer:=1;    --кол-во модулей sata_host
+G_SATAH_NUM       : integer:=0;    --индекс модуля sata_host
+G_SATAH_CH_COUNT  : integer:=1;    --Кол-во портов используемых в модуле GT.(возможные значения - 1,2)
 G_DBG             : string :="OFF";
-G_DBGCS           : string :="OFF";--//Отладка через ChipScope
+G_DBGCS           : string :="OFF";--Отладка через ChipScope
 G_SIM             : string :="OFF"
 );
 port(
@@ -54,7 +54,7 @@ port(
 --
 --------------------------------------------------
 p_in_ctrl           : in    TSpdCtrl_GTCH;
-p_out_phy_spd       : out   TSpdCtrl_GTCH;--//Текущая скорость соединения (SATA-II/I(3Gb/s)/(1.5Gb/s))
+p_out_phy_spd       : out   TSpdCtrl_GTCH;--Текущая скорость соединения (SATA-II/I(3Gb/s)/(1.5Gb/s))
 p_out_phy_layer_rst : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 p_in_phy_linkup     : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -71,8 +71,8 @@ p_out_gt_drpdi      : out   std_logic_vector(15 downto 0);
 p_in_gt_drpdo       : in    std_logic_vector(15 downto 0);
 p_in_gt_drprdy      : in    std_logic;
 
-p_out_gt_ch_rst     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--//Сброс канала GT
-p_in_gt_resetdone   : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--//Подтвержение завершения сброса GT
+p_out_gt_ch_rst     : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--Сброс канала GT
+p_in_gt_resetdone   : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);--Подтвержение завершения сброса GT
 
 --------------------------------------------------
 --Технологические сигналы
@@ -91,36 +91,33 @@ end sata_speed_ctrl;
 
 architecture behavioral of sata_speed_ctrl is
 
-constant C_TIME_OUT        : integer := 16#00081EB4#;--16#00080EB4# - timeout для боевого проекта -3.5ms на 150MHz
+constant CI_TIMEOUT       : integer := 16#00081EB4#;--16#00080EB4# - timeout для боевого проекта -3.5ms на 150MHz
 
-constant C_SATAH_COUNT_MAX : integer :=G_SATAH_COUNT_MAX;
-constant C_SATAH_NUM       : integer :=G_SATAH_NUM;
+constant CI_GT_CH0        : integer :=0;
+constant CI_GT_CH1        : integer :=1;
 
-constant C_GT_CH0          : integer :=0;
-constant C_GT_CH1          : integer :=1;
+--Адреса регистров GT
+--более подробно см.Appendix B/ug386_Spartan6_GTP_Transceivers_User_Guide.pdf
+constant CI_AREG_PLL_TXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#34#, p_out_gt_drpaddr'length);--Канал 0
+constant CI_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#74#, p_out_gt_drpaddr'length);--Канал 1
 
---//Адреса регистров GT
---//более подробно см.Appendix B/ug386_Spartan6_GTP_Transceivers_User_Guide.pdf
-constant C_AREG_PLL_TXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#34#, p_out_gt_drpaddr'length);--//Канал 0
-constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#74#, p_out_gt_drpaddr'length);--//Канал 1
-
-constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#34#, p_out_gt_drpaddr'length);--//Канал 0
-constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#74#, p_out_gt_drpaddr'length);--//Канал 1
+constant CI_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#34#, p_out_gt_drpaddr'length);--Канал 0
+constant CI_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#74#, p_out_gt_drpaddr'length);--Канал 1
 
 type TBusADRP_GTCH is array (0 to 1) of std_logic_vector (p_out_gt_drpaddr'range);
 
-constant C_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
-constant C_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
+constant CI_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GTCH:=(CI_AREG_PLL_TXDIVSEL_OUT_0,CI_AREG_PLL_TXDIVSEL_OUT_1);
+constant CI_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GTCH:=(CI_AREG_PLL_RXDIVSEL_OUT_0,CI_AREG_PLL_RXDIVSEL_OUT_1);
 
 type TRegValue is array (0 to C_FSATA_GEN_COUNT-1) of std_logic;
-constant C_VAL_PLL_DIVSEL_OUT  : TRegValue:=
+constant CI_VAL_PLL_DIVSEL_OUT  : TRegValue:=
 (
-'1',--//Значения для программирования SATA-I
-'0' --//Значения для программирования SATA-II
+'1',--Значения для программирования SATA-I
+'0' --Значения для программирования SATA-II
 );
 
-constant C_REG_PLL_RXDIVSEL       : std_logic:='0';
-constant C_REG_PLL_TXDIVSEL       : std_logic:='1';
+constant CI_REG_PLL_RXDIVSEL       : std_logic:='0';
+constant CI_REG_PLL_TXDIVSEL       : std_logic:='1';
 
 
 type TSpdCtrl_fsm_state is (
@@ -173,7 +170,7 @@ signal i_gt_drpdi               : std_logic_vector(p_out_gt_drpdi'range);
 signal i_gt_ch_rst              : std_logic_vector(p_out_gt_ch_rst'range);
 
 signal i_gt_drp_rdval           : std_logic_vector(p_out_gt_drpdi'range);
-signal i_gt_drp_regsel          : std_logic;--//0/1 - выбор регистров канала GTP PLL_RXDIVSEL/PLL_TXDIVSEL
+signal i_gt_drp_regsel          : std_logic;--0/1 - выбор регистров канала GTP PLL_RXDIVSEL/PLL_TXDIVSEL
 
 signal sr0_ctrl                 : TSpdCtrl_GTCH;
 signal sr1_ctrl                 : TSpdCtrl_GTCH;
@@ -224,7 +221,7 @@ gen_ch: for i in 0 to G_SATAH_CH_COUNT-1 generate
 in_phy_linkup(i)<=p_in_phy_linkup(i);
 end generate gen_ch;
 
---//Детектируем изменение скорости соединения пользователем
+--Детектируем изменение скорости соединения пользователем
 gen_chg_det : for i in 0 to C_GTCH_COUNT_MAX-1 generate
 
 process(p_in_rst,p_in_clk)
@@ -240,7 +237,7 @@ begin
     sr1_ctrl(i).sata_ver<=sr0_ctrl(i).sata_ver;
 
     if  i_spd_change_det(i)='0' and sr0_ctrl(i).sata_ver/=sr1_ctrl(i).sata_ver then
-    --//Пользователь измененил скорость соединения
+    --Пользователь измененил скорость соединения
       i_spd_change_det(i)<='1';
     else
       i_spd_change_det(i)<='0';
@@ -249,7 +246,7 @@ begin
   end if;
 end process;
 
---//Сброс SATA PHY Layer:
+--Сброс SATA PHY Layer:
 i_phy_layer_rst(i)<=not i_phy_layer_rst_n(i) when i_phy_linkup(i)='0' else i_spd_change_det(i);
 
 end generate gen_chg_det;
@@ -269,7 +266,6 @@ p_out_gt_ch_rst<=i_gt_ch_rst;
 --//----------------------------------
 --//Логика управления
 --//----------------------------------
---//
 ltmr:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -284,7 +280,7 @@ begin
 end process ltmr;
 
 
---//Автомат программирования регистров GTP
+--Автомат программирования регистров GTP
 lfsm:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -300,7 +296,7 @@ begin
     i_gt_drpwe<='0';
 
     i_gt_drp_rdval<=(others=>'0');
-    i_gt_drp_regsel<=C_REG_PLL_RXDIVSEL;
+    i_gt_drp_regsel<=CI_REG_PLL_RXDIVSEL;
 
     for i in 0 to C_GTCH_COUNT_MAX-1 loop
     i_phy_spd(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, i_phy_spd(i).sata_ver'length);
@@ -315,16 +311,16 @@ begin
 
     case fsm_spdctrl_cs is
 
-      --//---------------------------------------------
-      --//Жду пока установятся тактовые частоты
-      --//---------------------------------------------
+      -----------------------------------------------
+      --Жду пока установятся тактовые частоты
+      -----------------------------------------------
       when S_IDLE =>
 
         for i in 0 to C_GTCH_COUNT_MAX-1 loop
           i_phy_spd(i).sata_ver<=p_in_ctrl(i).sata_ver;
         end loop;
 
-        if p_in_gt_pll_lock='1' or p_in_usr_dcm_lock='1' then
+        if p_in_gt_pll_lock='1' and p_in_usr_dcm_lock='1' and AND_reduce(p_in_gt_resetdone(G_SATAH_CH_COUNT-1 downto 0))='1' then
           if i_tmr=CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
             i_tmr_en<='0';
             fsm_spdctrl_cs<=S_IDLE_INIT;
@@ -334,9 +330,9 @@ begin
         end if;
 
 
-      --//---------------------------------------------
-      --//Cброс GT
-      --//---------------------------------------------
+      -----------------------------------------------
+      --Cброс GT
+      -----------------------------------------------
       when S_IDLE_INIT =>
 
         if i_tmr=CONV_STD_LOGIC_VECTOR(16#01F#, i_tmr'length) then
@@ -353,35 +349,34 @@ begin
 
       when S_IDLE_INIT_DONE =>
 
-        --//Ждем завершения процеса сброса GT
-        if AND_reduce(p_in_gt_resetdone)='1' then
+        --Ждем завершения процеса сброса GT
+        if p_in_gt_pll_lock='1' and p_in_usr_dcm_lock='1' and AND_reduce(p_in_gt_resetdone(G_SATAH_CH_COUNT-1 downto 0))='1' then
           fsm_spdctrl_cs<=S_CH0_CHECK_LINK;
         end if;
 
 
 
-
-      --//##################################################
-      --//CH0 - программирование DRP регстиров
-      --//##################################################
+      --##################################################
+      --CH0 - программирование DRP регстиров
+      --##################################################
       when S_CH0_CHECK_LINK =>
 
-        if i_phy_linkup(C_GT_CH0)='0' then
-        --//Не соединения в этом канале
+        if i_phy_linkup(CI_GT_CH0)='0' then
+        --Не соединения в этом канале
           fsm_spdctrl_cs<=S_CH0_READ;
         else
           fsm_spdctrl_cs<=S_CH1_CHECK_LINK;
         end if;
 
-      --//-------------------------------------------
-      --//Чтение регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
-      --//-------------------------------------------
+      ---------------------------------------------
+      --Чтение регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
+      ---------------------------------------------
       when S_CH0_READ =>
 
-        if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
-          i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH0);
+        if i_gt_drp_regsel=CI_REG_PLL_RXDIVSEL then
+          i_gt_drpaddr<=CI_AREG_PLL_RXDIVSEL_OUT(CI_GT_CH0);
         else
-          i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH0);
+          i_gt_drpaddr<=CI_AREG_PLL_TXDIVSEL_OUT(CI_GT_CH0);
         end if;
 
         i_gt_drpen<='1';
@@ -406,17 +401,17 @@ begin
           i_tmr_en<='1';
         end if;
 
-      --//-------------------------------------------
-      --//Запись регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
-      --//-------------------------------------------
+      ---------------------------------------------
+      --Запись регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
+      ---------------------------------------------
       when S_CH0_WRITE =>
 
-        if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
-          i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH0);
+        if i_gt_drp_regsel=CI_REG_PLL_RXDIVSEL then
+          i_gt_drpaddr<=CI_AREG_PLL_RXDIVSEL_OUT(CI_GT_CH0);
 
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
-            if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
-              i_gt_drpdi(8)<=C_VAL_PLL_DIVSEL_OUT(i);
+            if i_phy_spd(CI_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH0).sata_ver'length) then
+              i_gt_drpdi(8)<=CI_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
           i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
@@ -424,11 +419,11 @@ begin
           i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(15 downto 9);
 
         else
-          i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH0);
+          i_gt_drpaddr<=CI_AREG_PLL_TXDIVSEL_OUT(CI_GT_CH0);
 
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
-            if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
-              i_gt_drpdi(10)<=C_VAL_PLL_DIVSEL_OUT(i);
+            if i_phy_spd(CI_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH0).sata_ver'length) then
+              i_gt_drpdi(10)<=CI_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
           i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
@@ -459,145 +454,165 @@ begin
           i_tmr_en<='1';
         end if;
 
-      --//-------------------------------------------
-      --//Проверяем запрограмированы ли все регисты DRP
-      --//-------------------------------------------
+      ---------------------------------------------
+      --Проверяем запрограмированы ли все регисты DRP
+      ---------------------------------------------
       when S_CH0_DRP_PROG_DONE =>
 
-        if i_gt_drp_regsel=C_REG_PLL_TXDIVSEL then
-          --//Все регистры запрограммированы.
-          i_gt_drp_regsel<=C_REG_PLL_RXDIVSEL;
+        if i_gt_drp_regsel=CI_REG_PLL_TXDIVSEL then
+          --Все регистры запрограммированы.
+          i_gt_drp_regsel<=CI_REG_PLL_RXDIVSEL;
 
           fsm_spdctrl_cs<=S_CH1_CHECK_LINK;
 
         else
-          i_gt_drp_regsel<=C_REG_PLL_TXDIVSEL;
+          i_gt_drp_regsel<=CI_REG_PLL_TXDIVSEL;
           fsm_spdctrl_cs<=S_CH0_READ;
 
         end if;
 
 
-
-      --//##################################################
-      --//CH1 - программирование DRP регстиров
-      --//##################################################
+      --##################################################
+      --CH1 - программирование DRP регстиров
+      --##################################################
       when S_CH1_CHECK_LINK =>
 
-        if i_phy_linkup(C_GT_CH1)='0' then
-        --//Не соединения в этом канале
-          fsm_spdctrl_cs<=S_CH1_READ;
+        if G_SATAH_CH_COUNT=2 then
+          if i_phy_linkup(CI_GT_CH1)='0' then
+          --Не соединения в этом канале
+            fsm_spdctrl_cs<=S_CH1_READ;
+          else
+            fsm_spdctrl_cs<=S_GT_CH_RESET;
+          end if;
         else
-          fsm_spdctrl_cs<=S_GT_CH_RESET;
+          fsm_spdctrl_cs<=S_CH1_READ;
         end if;
 
-      --//-------------------------------------------
-      --//Чтение регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
-      --//-------------------------------------------
+      ---------------------------------------------
+      --Чтение регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
+      ---------------------------------------------
       when S_CH1_READ =>
 
-        if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
-          i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH1);
-        else
-          i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH1);
-        end if;
+        if G_SATAH_CH_COUNT=2 then
+          if i_gt_drp_regsel=CI_REG_PLL_RXDIVSEL then
+            i_gt_drpaddr<=CI_AREG_PLL_RXDIVSEL_OUT(CI_GT_CH1);
+          else
+            i_gt_drpaddr<=CI_AREG_PLL_TXDIVSEL_OUT(CI_GT_CH1);
+          end if;
 
-        i_gt_drpen<='1';
-        i_gt_drpwe<='0';
+          i_gt_drpen<='1';
+          i_gt_drpwe<='0';
+        end if;
         fsm_spdctrl_cs<=S_CH1_READ_DONE;
 
       when S_CH1_READ_DONE =>
 
-        if p_in_gt_drprdy='1' then
-          i_gt_drpen<='0';
-          i_gt_drp_rdval<=p_in_gt_drpdo;
+        if G_SATAH_CH_COUNT=2 then
+          if p_in_gt_drprdy='1' then
+            i_gt_drpen<='0';
+            i_gt_drp_rdval<=p_in_gt_drpdo;
 
+            fsm_spdctrl_cs<=S_CH1_PAUSE_R;
+          end if;
+        else
           fsm_spdctrl_cs<=S_CH1_PAUSE_R;
         end if;
 
       when S_CH1_PAUSE_R =>
 
-        if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
-          i_tmr_en<='0';
-          fsm_spdctrl_cs<=S_CH1_WRITE;
+        if G_SATAH_CH_COUNT=2 then
+          if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
+            i_tmr_en<='0';
+            fsm_spdctrl_cs<=S_CH1_WRITE;
+          else
+            i_tmr_en<='1';
+          end if;
         else
-          i_tmr_en<='1';
+          fsm_spdctrl_cs<=S_CH1_WRITE;
         end if;
 
-      --//-------------------------------------------
-      --//Запись регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
-      --//-------------------------------------------
+      ---------------------------------------------
+      --Запись регистра DRP (См. таблицу в шапке модуля sata_spd_ctrl.vhd)
+      ---------------------------------------------
       when S_CH1_WRITE =>
 
-        if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
-          i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH1);
+        if G_SATAH_CH_COUNT=2 then
+          if i_gt_drp_regsel=CI_REG_PLL_RXDIVSEL then
+            i_gt_drpaddr<=CI_AREG_PLL_RXDIVSEL_OUT(CI_GT_CH1);
 
-          for i in 0 to C_FSATA_GEN_COUNT-1 loop
-            if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
-              i_gt_drpdi(8)<=C_VAL_PLL_DIVSEL_OUT(i);
-            end if;
-          end loop;
-          i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
---          i_gt_drpdi(8)          <=i_gt_drp_rdval(8);
-          i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(15 downto 9);
+            for i in 0 to C_FSATA_GEN_COUNT-1 loop
+              if i_phy_spd(CI_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH1).sata_ver'length) then
+                i_gt_drpdi(8)<=CI_VAL_PLL_DIVSEL_OUT(i);
+              end if;
+            end loop;
+            i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
+--            i_gt_drpdi(8)          <=i_gt_drp_rdval(8);
+            i_gt_drpdi(15 downto 9)<=i_gt_drp_rdval(15 downto 9);
 
-        else
-          i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH1);
+          else
+            i_gt_drpaddr<=CI_AREG_PLL_TXDIVSEL_OUT(CI_GT_CH1);
 
-          for i in 0 to C_FSATA_GEN_COUNT-1 loop
-            if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
-              i_gt_drpdi(10)<=C_VAL_PLL_DIVSEL_OUT(i);
-            end if;
-          end loop;
-          i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
---          i_gt_drpdi(10)          <=i_gt_drp_rdval(10);
-          i_gt_drpdi(15 downto 11)<=i_gt_drp_rdval(15 downto 11);
+            for i in 0 to C_FSATA_GEN_COUNT-1 loop
+              if i_phy_spd(CI_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH1).sata_ver'length) then
+                i_gt_drpdi(10)<=CI_VAL_PLL_DIVSEL_OUT(i);
+              end if;
+            end loop;
+            i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
+--            i_gt_drpdi(10)          <=i_gt_drp_rdval(10);
+            i_gt_drpdi(15 downto 11)<=i_gt_drp_rdval(15 downto 11);
 
+          end if;
+
+          i_gt_drpen<='1';
+          i_gt_drpwe<='1';
         end if;
-
-        i_gt_drpen<='1';
-        i_gt_drpwe<='1';
         fsm_spdctrl_cs<=S_CH1_WRITE_DONE;
 
       when S_CH1_WRITE_DONE =>
 
-        if p_in_gt_drprdy='1' then
-          i_gt_drpen<='0';
-          i_gt_drpwe<='0';
+        if G_SATAH_CH_COUNT=2 then
+          if p_in_gt_drprdy='1' then
+            i_gt_drpen<='0';
+            i_gt_drpwe<='0';
 
+            fsm_spdctrl_cs<=S_CH1_PAUSE_W;
+          end if;
+        else
           fsm_spdctrl_cs<=S_CH1_PAUSE_W;
         end if;
 
       when S_CH1_PAUSE_W =>
 
-        if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
-          i_tmr_en<='0';
-          fsm_spdctrl_cs<=S_CH1_DRP_PROG_DONE;
+        if G_SATAH_CH_COUNT=2 then
+          if i_tmr=CONV_STD_LOGIC_VECTOR(16#003#, i_tmr'length) then
+            i_tmr_en<='0';
+            fsm_spdctrl_cs<=S_CH1_DRP_PROG_DONE;
+          else
+            i_tmr_en<='1';
+          end if;
         else
-          i_tmr_en<='1';
+          fsm_spdctrl_cs<=S_CH1_DRP_PROG_DONE;
         end if;
 
-      --//-------------------------------------------
-      --//Проверяем запрограмированы ли все регисты DRP
-      --//-------------------------------------------
+      ---------------------------------------------
+      --Проверяем запрограмированы ли все регисты DRP
+      ---------------------------------------------
       when S_CH1_DRP_PROG_DONE =>
 
-        if i_gt_drp_regsel=C_REG_PLL_TXDIVSEL then
-          --//Все регистры запрограммированы.
-          i_gt_drp_regsel<=C_REG_PLL_RXDIVSEL;
-
+        if i_gt_drp_regsel=CI_REG_PLL_TXDIVSEL then
+          --Все регистры запрограммированы.
+          i_gt_drp_regsel<=CI_REG_PLL_RXDIVSEL;
           fsm_spdctrl_cs<=S_GT_CH_RESET;
 
         else
-          i_gt_drp_regsel<=C_REG_PLL_TXDIVSEL;
+          i_gt_drp_regsel<=CI_REG_PLL_TXDIVSEL;
           fsm_spdctrl_cs<=S_CH1_READ;
-
         end if;
 
 
-
-      --//##################################################
-      --//Сброс канала GT
-      --//##################################################
+      --##################################################
+      --Сброс канала GT
+      --##################################################
       when S_GT_CH_RESET =>
 
         i_gt_drpaddr<=(others=>'0');
@@ -611,7 +626,7 @@ begin
 
         elsif i_tmr=CONV_STD_LOGIC_VECTOR(16#0F#, i_tmr'length) then
 
-          for i in 0 to C_GTCH_COUNT_MAX-1 loop
+          for i in 0 to G_SATAH_CH_COUNT-1 loop
             if i_phy_linkup(i)='0' then
               i_gt_ch_rst(i)<='1';
             end if;
@@ -625,8 +640,8 @@ begin
 
         i_gt_ch_rst<=(others=>'0');
 
-        if AND_reduce(p_in_gt_resetdone)='1' then
-          for i in 0 to C_GTCH_COUNT_MAX-1 loop
+        if AND_reduce(p_in_gt_resetdone(G_SATAH_CH_COUNT-1 downto 0))='1' then
+          for i in 0 to G_SATAH_CH_COUNT-1 loop
             i_phy_layer_rst_n(i)<='1';
           end loop;
 
@@ -635,20 +650,20 @@ begin
 
 
 
-      --//##################################################
-      --//Ждем соединения
-      --//##################################################
+      --##################################################
+      --Ждем соединения
+      --##################################################
       when S_WAIT_CONNECT =>
 
-        if  i_phy_linkup=(i_phy_linkup'range=>'1') then
-          --//ЕСТЬ соединение в обоих каналах
-          i_tmr_en<='0';--//CLR TIMER
+        if AND_reduce(i_phy_linkup(G_SATAH_CH_COUNT-1 downto 0))='1' then
+          --ЕСТЬ соединение в обоих каналах
+          i_tmr_en<='0';--CLR TIMER
           fsm_spdctrl_cs<=S_LINKUP;
         else
-          if i_tmr=CONV_STD_LOGIC_VECTOR(C_TIME_OUT, i_tmr'length) then
-          --//Время ожидания вышло
-            i_tmr_en<='0';--//CLR TIMER
-            for i in 0 to C_GTCH_COUNT_MAX-1 loop
+          if i_tmr=CONV_STD_LOGIC_VECTOR(CI_TIMEOUT, i_tmr'length) then
+          --Время ожидания вышло
+            i_tmr_en<='0';--CLR TIMER
+            for i in 0 to G_SATAH_CH_COUNT-1 loop
               if i_phy_linkup(i)='0' then
                 i_phy_layer_rst_n(i)<='0';
               end if;
@@ -665,17 +680,15 @@ begin
 
       when S_LINKUP =>
 
-        if i_phy_linkup/=(i_phy_linkup'range=>'1') then
-        --//Обрыв соединения!!
-
-          for i in 0 to C_GTCH_COUNT_MAX-1 loop
+        if AND_reduce(i_phy_linkup(G_SATAH_CH_COUNT-1 downto 0))/='1' then
+        --Обрыв соединения!!
+          for i in 0 to G_SATAH_CH_COUNT-1 loop
             if i_phy_linkup(i)='0' then
               i_phy_layer_rst_n(i)<='0';
             end if;
           end loop;
 
           fsm_spdctrl_cs<=S_CH0_CHECK_LINK;
-
         end if;
 
     end case;
@@ -712,8 +725,15 @@ for e in 0 to C_GTCH_COUNT_MAX-1 loop
 i_dbgcs_trig00(8+e)<=i_phy_linkup(e);
 end loop;
 
-i_dbgcs_trig00(10)<=AND_reduce(p_in_gt_resetdone);
-i_dbgcs_trig00(41 downto 11)<=(others=>'0');
+for c in 0 to C_GTCH_COUNT_MAX-1 loop
+i_dbgcs_data(10+c)<=p_in_gt_resetdone(c);
+end loop;
+
+i_dbgcs_trig00(12)<=AND_reduce(i_phy_linkup(G_SATAH_CH_COUNT-1 downto 0));
+i_dbgcs_trig00(13)<=p_in_rst;
+i_dbgcs_trig00(14)<=p_in_gt_pll_lock;
+i_dbgcs_trig00(15)<=p_in_usr_dcm_lock;
+i_dbgcs_trig00(41 downto 16)<=(others=>'0');
 
 
 i_dbgcs_data(5 downto 0)<=tst_fms_cs(5 downto 0);
@@ -734,7 +754,15 @@ i_dbgcs_data(22)<=i_gt_drpwe;
 i_dbgcs_data(23)<=p_in_gt_drprdy;
 i_dbgcs_data(39 downto 24)<=i_gt_drpdi;
 i_dbgcs_data(55 downto 40)<=p_in_gt_drpdo;
-i_dbgcs_data(122 downto 56)<=(others=>'0');
+
+for c in 0 to C_GTCH_COUNT_MAX-1 loop
+i_dbgcs_data(56+c)<=p_in_gt_resetdone(c);
+end loop;
+
+i_dbgcs_data(58)<=p_in_gt_pll_lock;
+i_dbgcs_data(59)<=p_in_usr_dcm_lock;
+i_dbgcs_data(60)<=p_in_rst;
+i_dbgcs_data(122 downto 61)<=(others=>'0');
 
 
 end if;
@@ -773,3 +801,5 @@ end generate gen_dbgcs_on;
 
 --END MAIN
 end behavioral;
+
+

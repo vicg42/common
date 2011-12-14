@@ -109,8 +109,8 @@ end sata_player_gt;
 architecture behavioral of sata_player_gt is
 
 --//1 - только для случая G_GT_DBUS=8
---//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
---      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
+--//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 4-17: Comma Alignment Boundaries ,
+--      ug386_Spartan6_GTP_Transceivers_User_Guide.pdf
 constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
 constant C_GTP_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), 2);
 
@@ -596,9 +596,9 @@ RXPOWERDOWN1                    =>      (others=>'0'),
 TXPOWERDOWN0                    =>      (others=>'0'),
 TXPOWERDOWN1                    =>      (others=>'0'),
 --------------------------------- PLL Ports --------------------------------
-CLK00                           =>      p_in_refclkin, --External jitter stable clock driven by the IBUFDS primitive --//############################### add vicg
+CLK00                           =>      '0', --External jitter stable clock driven by the IBUFDS primitive --//############################### add vicg
 CLK01                           =>      '0',                                --//############################### add vicg
-CLK10                           =>      '0',
+CLK10                           =>      p_in_refclkin,
 CLK11                           =>      '0',
 CLKINEAST0                      =>      '0',--p_in_optrefclk(0),
 CLKINEAST1                      =>      '0',--p_in_optrefclk(0),
