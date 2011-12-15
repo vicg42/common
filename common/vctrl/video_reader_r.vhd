@@ -198,7 +198,7 @@ type TSrDW is array (i_vrow_buf_dout'length-1 downto 0) of TDWByte;
 signal sr_memd                       : TSrDW;
 signal sr_memd_en                    : std_logic_vector(i_vrow_buf_dout'length-1 downto 0);
 signal i_memd_count                  : std_logic_vector(3 downto 0);
-signal i_memd_out_en                 : std_logic_vector(i_vrow_buf_dout'length-1 downto 0);
+signal i_memd_out_en                 : std_logic;--_vector(i_vrow_buf_dout'length-1 downto 0);
 signal i_memd_out                    : std_logic_vector(p_out_upp_data'range);
 signal i_cntpix_out                  : std_logic_vector(15 downto 0);
 signal i_cntrow_out                  : std_logic_vector(15 downto 0);
@@ -274,7 +274,7 @@ p_out_vch_mirx      <=i_vfr_mirror.pix;
 --Логика работы автомата
 process(p_in_rst,p_in_clk)
   variable vfr_active_row_end : std_logic_vector(i_vfr_row_cnt'range);
-  variable vfr_pix_cntdw : std_logic_vector(i_vfr_pix_cntdw'range);
+  variable tmp_val : std_logic_vector(i_vfr_pix_cntdw'range);
 begin
   if p_in_rst='1' then
 
@@ -296,7 +296,6 @@ begin
     i_vfr_mirror.row<='0';
     i_vfr_row_cnt<=(others=>'0');
     i_vfr_pix_cntdw<=(others=>'0');
-      vfr_pix_cntdw:=(others=>'0');
     i_vfr_pix_cntbyte<=(others=>'0');
     i_vfr_size.skip.row<=(others=>'0');
     i_vfr_size.activ.row<=(others=>'0');
@@ -311,10 +310,11 @@ begin
     i_vfr_done<='0';
     i_vch_num<=(others=>'0');
     i_vfr_new<='0';
+      tmp_val:=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    vfr_pix_cntdw:=(others=>'0');
+    tmp_val:=(others=>'0');
 
     case fsm_state_cs is
 
@@ -418,15 +418,15 @@ begin
       when S_ROT_MEM_SET_ADR =>
 
         if i_vfr_mirror.row='0' then
-          vfr_pix_cntdw:=i_vfr_pix_cntdw - 1;
+          tmp_val:=i_vfr_pix_cntdw - 1;
         else
-          vfr_pix_cntdw:=vfr_pix_cntdw;
+          tmp_val:=i_vfr_pix_cntdw;
         end if;
 
         i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
         i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
         i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
-        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=vfr_pix_cntdw(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT-2 downto 0)&i_vfr_pix_cntbyte;
+        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=tmp_val(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT-2 downto 0)&i_vfr_pix_cntbyte;
         i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_vfr_row_cnt(G_MEM_VLINE_L_BIT-1 downto 0);
 
         fsm_state_cs <= S_ROT_MEM_START;
@@ -699,15 +699,17 @@ begin
           end if;
         end loop;
 
-        if i_memd_count=CONV_STD_LOGIC_VECTOR(1, i_memd_count'length) then
+        if i_memd_count=CONV_STD_LOGIC_VECTOR(i_vrow_buf_dout'length/(i_memd'length/8)-1, i_memd_count'length) then
           i_memd_count<=(others=>'0');
         else
           i_memd_count<=i_memd_count + 1;
         end if;
 
-        if i_vfr_pix_cntbyte=CONV_STD_LOGIC_VECTOR(i_memd'length/8-1, i_vfr_pix_cntbyte'length) then
+        if (i_vfr_mirror.row='0' and i_vfr_pix_cntbyte=CONV_STD_LOGIC_VECTOR(0, i_vfr_pix_cntbyte'length)) or
+           (i_vfr_mirror.row='1' and i_vfr_pix_cntbyte=CONV_STD_LOGIC_VECTOR(i_memd'length/8-1, i_vfr_pix_cntbyte'length)) then
           en_tmp:=(others=>'1');
         end if;
+
       end if;
     end if;
     sr_memd_en<=en_tmp;
@@ -755,7 +757,7 @@ begin
     fsm_do_cs <= S_DO_IDLE;
     i_vrow_buf_num<=(others=>'0');
     i_memd_out<=(others=>'0');
-    i_memd_out_en<=(others=>'0');
+    i_memd_out_en<='0';--(others=>'0');
     i_cntpix_out<=(others=>'0');
     i_cntrow_out<=(others=>'0');
       update_cntpix:='0';
@@ -782,41 +784,26 @@ begin
       --------------------------------------
       when S_DO_WORK =>
 
-        if i_vfr_rotate.l='0' and i_vfr_rotate.r='0' then
-          i_vrow_buf_num<=(others=>'0');
-          if i_vfr_done='1' then
-            fsm_do_cs <= S_DO_IDLE;
-          else
-            if i_vrow_buf_rd(0)='1' then
-              i_memd_out<=i_vrow_buf_dout(0);
-            end if;
+        for i in 0 to i_vrow_buf_dout'length-1 loop
+          if i_vrow_buf_num=i then
+            i_memd_out<=i_vrow_buf_dout(i);
           end if;
+        end loop;
 
-        else
+        if OR_reduce(i_vrow_buf_rd)='1' then
+          if i_cntpix_out=i_vfr_size.activ.pix-1 then
+            i_cntpix_out<=(others=>'0');
 
-            for i in 0 to i_vrow_buf_dout'length-1 loop
-              if i_vrow_buf_num=i then
-                if i_vrow_buf_rd(i)='1' then
-                  update_cntpix:='1';
-                  i_memd_out<=i_vrow_buf_dout(i);
-                end if;
-              end if;
-            end loop;
-
-            if update_cntpix='1' then
-              if i_cntpix_out=i_vfr_size.activ.pix-1 then
-                if i_vrow_buf_num=CONV_STD_LOGIC_VECTOR(i_vrow_buf_dout'length-1, i_vrow_buf_num'length) then
-                  i_vrow_buf_num<=(others=>'0');
-                else
-                  i_vrow_buf_num<=i_vrow_buf_num + 1;
-                end if;
-                i_cntpix_out<=(others=>'0');
-                fsm_do_cs <= S_DO_NEXT;
-              else
-                i_cntpix_out<=i_cntpix_out + 1;
-              end if;
+            if i_vrow_buf_num=CONV_STD_LOGIC_VECTOR(i_vrow_buf_dout'length-1, i_vrow_buf_num'length) or
+               (i_vfr_rotate.l='0' and i_vfr_rotate.r='0') then
+              i_vrow_buf_num<=(others=>'0');
+            else
+              i_vrow_buf_num<=i_vrow_buf_num + 1;
             end if;
-
+            fsm_do_cs <= S_DO_NEXT;
+          else
+            i_cntpix_out<=i_cntpix_out + 1;
+          end if;
         end if;
 
       --------------------------------------
@@ -836,13 +823,13 @@ begin
 
       end case;
 
-      i_memd_out_en<=i_vrow_buf_rd;
+      i_memd_out_en<=OR_reduce(i_vrow_buf_rd);
   end if;
 end process;
 
 
 p_out_upp_data<=i_memd_out;
-p_out_upp_data_wd<=OR_reduce(i_memd_out_en);
+p_out_upp_data_wd<=i_memd_out_en;
 
 
 --END MAIN
