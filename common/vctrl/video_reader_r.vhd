@@ -448,18 +448,18 @@ begin
 
         if i_mem_done='1' then
         --Операция выполнена
---          if i_vfr_mirror.row='0' then
---
---            if i_vfr_pix_cntbyte=CONV_STD_LOGIC_VECTOR(i_memd'length/8-1, i_vfr_pix_cntbyte'length) then
---              i_vfr_pix_cntbyte<=(others=>'0');
---              i_vfr_pix_cntdw<=i_vfr_pix_cntdw + i_mem_dlen_rq;
---              fsm_state_cs <= S_ROT_PIX_CHK;
---            else
---              i_vfr_pix_cntbyte<=i_vfr_pix_cntbyte + 1;
---              fsm_state_cs <= S_ROT_MEM_SET_ADR;
---            end if;
---
---          else
+          if i_vfr_mirror.row='0' then
+
+            if i_vfr_pix_cntbyte=CONV_STD_LOGIC_VECTOR(i_memd'length/8-1, i_vfr_pix_cntbyte'length) then
+              i_vfr_pix_cntbyte<=(others=>'0');
+              i_vfr_pix_cntdw<=i_vfr_pix_cntdw + i_mem_dlen_rq;
+              fsm_state_cs <= S_ROT_PIX_CHK;
+            else
+              i_vfr_pix_cntbyte<=i_vfr_pix_cntbyte + 1;
+              fsm_state_cs <= S_ROT_MEM_SET_ADR;
+            end if;
+
+          else
 
             if i_vfr_pix_cntbyte=CONV_STD_LOGIC_VECTOR(0, i_vfr_pix_cntbyte'length) then
               i_vfr_pix_cntbyte<=CONV_STD_LOGIC_VECTOR(i_memd'length/8-1, i_vfr_pix_cntbyte'length);
@@ -470,7 +470,7 @@ begin
               fsm_state_cs <= S_ROT_MEM_SET_ADR;
             end if;
 
---          end if;
+          end if;
 
         end if;
 
