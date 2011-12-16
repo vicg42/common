@@ -6,7 +6,7 @@
 -- Module Name : video_reader
 --
 -- Назначение/Описание :
---  Чтение кадра видеоканала из ОЗУ
+--  Чтение кадра видеоканала из ОЗУ + поворот влево на 90.
 --
 --
 -- Revision:
@@ -168,7 +168,7 @@ signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
 signal i_vfr_rotate                  : std_logic_vector(1 downto 0);
-type TVRowDout is array (7 downto 0) of std_logic_vector(p_out_upp_data'range);
+type TVRowDout is array (15 downto 0) of std_logic_vector(p_out_upp_data'range);
 signal i_vrow_buf_din                : TVRowDout;
 signal i_vrow_buf_dout               : TVRowDout;
 signal i_vrow_buf_wr                 : std_logic_vector(i_vrow_buf_dout'length-1 downto 0);
@@ -177,7 +177,7 @@ signal i_vrow_buf_empty              : std_logic_vector(i_vrow_buf_dout'length-1
 signal i_vrow_buf_full               : std_logic_vector(i_vrow_buf_dout'length-1 downto 0);
 signal i_vrow_buf_full_all           : std_logic;
 signal i_vrow_buf_rst                : std_logic;
-signal i_vrow_buf_num                : std_logic_vector(3 downto 0);
+signal i_vrow_buf_num                : std_logic_vector(4 downto 0);
 signal i_memd                        : std_logic_vector(p_out_upp_data'range);
 signal i_memd_en                     : std_logic;
 type TDWByte is array (i_memd'length/8-1 downto 0) of std_logic_vector(7 downto 0);
@@ -325,6 +325,8 @@ begin
             i_mem_rdbase<=p_in_cfg_prm_vch(i).mem_adr;
 
             i_vfr_rotate(1 downto 0)<=tst_dbg_rotleft & tst_dbg_rotright;
+            i_vfr_mirror.pix<=p_in_cfg_prm_vch(i).fr_mirror.row;
+            i_vfr_mirror.row<=p_in_cfg_prm_vch(i).fr_mirror.pix;
 
             i_vfr_pcolor<=p_in_cfg_prm_vch(i).fr_pcolor;
             i_vfr_color<=p_in_cfg_prm_vch(i).fr_color;
@@ -332,9 +334,6 @@ begin
 
             i_vfr_zoom<=p_in_cfg_prm_vch(i).fr_zoom;
             i_vfr_zoom_type<=p_in_cfg_prm_vch(i).fr_zoom_type;
-
-            i_vfr_mirror.pix<=p_in_cfg_prm_vch(i).fr_mirror.pix;
-            i_vfr_mirror.row<=p_in_cfg_prm_vch(i).fr_mirror.row;
 
             i_vfr_size.activ.pix<=p_in_cfg_prm_vch(i).fr_size.activ.pix;
             i_vfr_size.skip.pix<=p_in_cfg_prm_vch(i).fr_size.skip.pix;
@@ -588,10 +587,7 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
     en_tmp:=(others=>'0');
 
-    if i_vfr_new='1' then
-      i_memd_cnt<=(others=>'0');
-
-    elsif i_memd_en='1' then
+    if i_memd_en='1' then
       if OR_reduce(i_vfr_rotate)='0' then
           for i in 0 to i_memd'length/8-1 loop
             sr_memd(0)(i)<=i_memd(8*(i+1)-1 downto 8*i);
@@ -618,6 +614,7 @@ begin
           end if;
       end if;
     end if;
+
     sr_memd_en<=en_tmp;
   end if;
 end process;
