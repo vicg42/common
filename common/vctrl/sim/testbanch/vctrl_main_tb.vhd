@@ -38,6 +38,7 @@ use unisim.vcomponents.all;
 entity vctrl_main_tb is
 generic(
 G_ROTATE : string:="ON";
+G_ROTATE_BUF_COUNT: integer:=8; --min/max - 4/32
 G_SIM : string:="ON"
 );
 end vctrl_main_tb;
@@ -49,6 +50,7 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 component video_reader
 generic(
 G_ROTATE          : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16; --min/max - 4/32
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -709,6 +711,7 @@ end generate gen_vrdprm;
 m_video_reader : video_reader
 generic map(
 G_ROTATE          => G_ROTATE,
+G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
 G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
 G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 
@@ -1163,8 +1166,8 @@ p_in_rst            => p_in_rst
 --//----------------------------------------------------------
 --tst_ctrl<=(others=>'0');
 tst_ctrl(2 downto 0)<=(others=>'0');
-tst_ctrl(3)<='1';--Rotate left
-tst_ctrl(4)<='0';--Rotate right
+tst_ctrl(3)<='1';--Rotate right
+tst_ctrl(4)<='0';--Rotate left
 tst_ctrl(31 downto 5)<=(others=>'0');
 
 --//Конфигурируем генератор тестровых данных:
@@ -1173,12 +1176,12 @@ usrcfg.mem_rd_trn_len<=CONV_STD_LOGIC_VECTOR(16#80#, usrcfg.mem_rd_trn_len'lengt
 
 usrcfg.ch.mem_addr_wr<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.mem_addr_rd'length);
 usrcfg.ch.mem_addr_rd<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.mem_addr_rd'length);
-usrcfg.ch.fr_size.skip.pix <=CONV_STD_LOGIC_VECTOR(10#04#, usrcfg.ch.fr_size.skip.pix'length);
+usrcfg.ch.fr_size.skip.pix <=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_size.skip.pix'length);
 usrcfg.ch.fr_size.skip.row <=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_size.skip.row'length);
 usrcfg.ch.fr_size.activ.pix<=CONV_STD_LOGIC_VECTOR(10#16#, usrcfg.ch.fr_size.activ.pix'length);
 usrcfg.ch.fr_size.activ.row<=CONV_STD_LOGIC_VECTOR(10#16#, usrcfg.ch.fr_size.activ.row'length);
 usrcfg.ch.fr_mirror.pix<='0';
-usrcfg.ch.fr_mirror.row<='0';
+usrcfg.ch.fr_mirror.row<='1';
 usrcfg.ch.fr_pcolor<='0';
 usrcfg.ch.fr_color<='0';
 usrcfg.ch.fr_color_fst<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_color_fst'length);
