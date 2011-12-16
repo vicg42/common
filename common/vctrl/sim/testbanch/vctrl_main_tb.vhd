@@ -37,6 +37,7 @@ use unisim.vcomponents.all;
 
 entity vctrl_main_tb is
 generic(
+G_ROTATE : string:="ON";
 G_SIM : string:="ON"
 );
 end vctrl_main_tb;
@@ -47,6 +48,7 @@ constant i_clk_period : TIME := 6.6 ns; --150MHz
 
 component video_reader
 generic(
+G_ROTATE          : string:="OFF";
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -627,12 +629,6 @@ end process;
 p_in_rst<='1','0' after 1 us;
 
 
---tst_ctrl<=(others=>'0');
-tst_ctrl(2 downto 0)<=(others=>'0');
-tst_ctrl(3)<='1';--Rotate left
-tst_ctrl(4)<='0';--Rotate right
-tst_ctrl(31 downto 5)<=(others=>'0');
-
 --//Имитация работы модуля контроллера попмяти (mem_ctrl.vhd)
 p_in_mem.data<=tst_data_out;
 p_in_mem.buf_wpf<='0';
@@ -712,6 +708,7 @@ end generate gen_vrdprm;
 --//-----------------------------
 m_video_reader : video_reader
 generic map(
+G_ROTATE          => G_ROTATE,
 G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
 G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 
@@ -763,27 +760,6 @@ p_in_upp_buf_full    => i_vmir_rdy_n,
 ---------------------------------
 p_out_mem            => p_out_mem,--: out   TMemIN;
 p_in_mem             => p_in_mem ,--: in    TMemOUT;
-
---p_out_mem_clk        => open,
---
---p_out_memarb_req     => p_out_memarb_rdreq,
---p_in_memarb_en       => p_in_memarb_rden,
---
---p_out_mem_bank1h     => p_out_memrd_bank1h,
---p_out_mem_ce         => p_out_memrd_ce,
---p_out_mem_cw         => p_out_memrd_cw,
---p_out_mem_rd         => p_out_memrd_rd,
---p_out_mem_wr         => p_out_memrd_wr,
---p_out_mem_term       => p_out_memrd_term,
---p_out_mem_adr        => p_out_memrd_adr,
---p_out_mem_be         => p_out_memrd_be,
---p_out_mem_din        => p_out_memrd_din,
---p_in_mem_dout        => p_in_memrd_dout,
---
---p_in_mem_wf          => p_in_memrd_wf,
---p_in_mem_wpf         => p_in_memrd_wpf,
---p_in_mem_re          => p_in_memrd_re,
---p_in_mem_rpe         => p_in_memrd_rpe,
 
 -------------------------------
 --Технологический
@@ -1185,28 +1161,34 @@ p_in_rst            => p_in_rst
 --//----------------------------------------------------------
 --//Настройка тестирования
 --//----------------------------------------------------------
+--tst_ctrl<=(others=>'0');
+tst_ctrl(2 downto 0)<=(others=>'0');
+tst_ctrl(3)<='1';--Rotate left
+tst_ctrl(4)<='0';--Rotate right
+tst_ctrl(31 downto 5)<=(others=>'0');
+
 --//Конфигурируем генератор тестровых данных:
 usrcfg.mem_wd_trn_len<=CONV_STD_LOGIC_VECTOR(16#80#, usrcfg.mem_wd_trn_len'length);
 usrcfg.mem_rd_trn_len<=CONV_STD_LOGIC_VECTOR(16#80#, usrcfg.mem_rd_trn_len'length);
 
 usrcfg.ch.mem_addr_wr<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.mem_addr_rd'length);
 usrcfg.ch.mem_addr_rd<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.mem_addr_rd'length);
-usrcfg.ch.fr_size.skip.pix <=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_size.skip.pix'length);
+usrcfg.ch.fr_size.skip.pix <=CONV_STD_LOGIC_VECTOR(10#04#, usrcfg.ch.fr_size.skip.pix'length);
 usrcfg.ch.fr_size.skip.row <=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_size.skip.row'length);
-usrcfg.ch.fr_size.activ.pix<=CONV_STD_LOGIC_VECTOR(10#08#, usrcfg.ch.fr_size.activ.pix'length);
-usrcfg.ch.fr_size.activ.row<=CONV_STD_LOGIC_VECTOR(10#08#, usrcfg.ch.fr_size.activ.row'length);
+usrcfg.ch.fr_size.activ.pix<=CONV_STD_LOGIC_VECTOR(10#16#, usrcfg.ch.fr_size.activ.pix'length);
+usrcfg.ch.fr_size.activ.row<=CONV_STD_LOGIC_VECTOR(10#16#, usrcfg.ch.fr_size.activ.row'length);
 usrcfg.ch.fr_mirror.pix<='0';
 usrcfg.ch.fr_mirror.row<='0';
 usrcfg.ch.fr_pcolor<='0';
-usrcfg.ch.fr_color<='1';
+usrcfg.ch.fr_color<='0';
 usrcfg.ch.fr_color_fst<=CONV_STD_LOGIC_VECTOR(10#00#, usrcfg.ch.fr_color_fst'length);
 --//Конфигурируем работу модуля vscaler_main.vhd:
 usrcfg_zoom_type<='0';--//0/1 - Инткрполяция/1 дулирование
 --//Размер - Увеличение/Уменьшение
 usrcfg_zoom_size_x2<='0';
-usrcfg_zoom_size_x4<='1';
+usrcfg_zoom_size_x4<='0';
 --//Увеличение/Уменьшение
-usrcfg_zoom_up_on  <='1';
+usrcfg_zoom_up_on  <='0';
 usrcfg_zoom_dwn_on <='0';
 
 --//Настройки модуля SOBEL
@@ -1221,7 +1203,7 @@ tst_mnl_fr_pause <=CONV_STD_LOGIC_VECTOR(16#00#, tst_mnl_fr_pause'length);   --/
 --// 1/0 Генерировать/НЕ Гненерировать waveform для сигнала p_in_dwnp_rdy_n
 mnl_use_gen_dwnp_rdy<='0';
 
-mnl_only_1_frame<='1';--//1- только 1 кадр, 0 - много кадров
+mnl_only_1_frame<='0';--//1- только 1 кадр, 0 - много кадров
 
 
 
@@ -1242,8 +1224,8 @@ usrcfg.ch.fr_zoom(3 downto 2)<=CONV_STD_LOGIC_VECTOR(16#02#, 2) when usrcfg_zoom
 usrcfg.ch.fr_zoom(1 downto 0)<=CONV_STD_LOGIC_VECTOR(16#02#, 2) when usrcfg_zoom_size_x2='0' and usrcfg_zoom_size_x4='1' else
                                CONV_STD_LOGIC_VECTOR(16#01#, 2);
 
-p_in_cfg_pix_count<="00"&usrcfg.ch.fr_size.activ.pix(usrcfg.ch.fr_size.activ.pix'high downto 2);
-p_in_cfg_row_count<=usrcfg.ch.fr_size.activ.row;
+p_in_cfg_pix_count<="00"&usrcfg.ch.fr_size.activ.pix(usrcfg.ch.fr_size.activ.pix'high downto 2);--CONV_STD_LOGIC_VECTOR(16#32#, p_in_cfg_pix_count'length);--
+p_in_cfg_row_count<=usrcfg.ch.fr_size.activ.row;                                                --CONV_STD_LOGIC_VECTOR(16#32#, p_in_cfg_row_count'length);--
 
 gen_vprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 begin

@@ -42,6 +42,8 @@ use work.mem_wr_pkg.all;
 
 entity dsn_video_ctrl is
 generic(
+G_ROTATE : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF"; --//ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
 G_SIM    : string:="OFF";
 G_MEM_AWIDTH : integer:=32;
@@ -197,6 +199,8 @@ end component;
 
 component video_reader
 generic(
+G_ROTATE          : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16;
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -1340,6 +1344,8 @@ p_in_rst              => p_in_rst
 --//-----------------------------
 m_video_reader : video_reader
 generic map(
+G_ROTATE          => G_ROTATE,
+G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
 G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
 G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 

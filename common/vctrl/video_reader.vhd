@@ -29,9 +29,10 @@ use work.prj_def.all;
 use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
-
 entity video_reader is
 generic(
+G_ROTATE          : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16; --min/max - 4/32
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 

@@ -29,9 +29,10 @@ use work.prj_def.all;
 use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
-
 entity video_reader is
 generic(
+G_ROTATE          : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16; --min/max - 4/32
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -168,7 +169,7 @@ signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
 signal i_vfr_rotate                  : std_logic_vector(1 downto 0);
-type TVRowDout is array (15 downto 0) of std_logic_vector(p_out_upp_data'range);
+type TVRowDout is array (G_ROTATE_BUF_COUNT-1 downto 0) of std_logic_vector(p_out_upp_data'range);
 signal i_vrow_buf_din                : TVRowDout;
 signal i_vrow_buf_dout               : TVRowDout;
 signal i_vrow_buf_wr                 : std_logic_vector(i_vrow_buf_dout'length-1 downto 0);
@@ -570,6 +571,12 @@ p_in_rst             => p_in_rst
 --//------------------------------------------------------
 --//Формирование/Контроль выходных данных
 --//------------------------------------------------------
+gen_rotate_off : if strcmp(G_ROTATE,"OFF") generate
+p_out_upp_data<=i_memd;
+p_out_upp_data_wd<=i_memd_en;
+end generate gen_rotate_off;
+
+gen_rotate_on : if strcmp(G_ROTATE,"ON") generate
 --Формирование данных для записи в выходной буфер
 process(p_in_rst,p_in_clk)
   variable en_tmp : std_logic_vector(i_vrow_buf_dout'length-1 downto 0);
@@ -745,6 +752,8 @@ end process;
 
 p_out_upp_data<=i_memd_out;
 p_out_upp_data_wd<=OR_reduce(i_memd_out_en);
+
+end generate gen_rotate_on;
 
 
 --END MAIN

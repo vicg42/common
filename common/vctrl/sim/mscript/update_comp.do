@@ -39,5 +39,6 @@ vcom "../../../mirror/*.vhd"
 vcom "../../../color_conv/vrgb2yuv_main_rev0xx.vhd"
 
 vcom "../../dsn_video_ctrl_pkg.vhd"
-vcom "../../video_reader_n.vhd"
+vcom "../../video_reader_r.vhd"
+vcom "../testbanch/vbuf_rotate.vhd"
 vcom "../testbanch/vctrl_main_tb.vhd"
