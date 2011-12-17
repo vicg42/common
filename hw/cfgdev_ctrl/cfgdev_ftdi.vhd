@@ -126,7 +126,8 @@ signal i_pkt_field_data                 : std_logic;--//Структура пакета: поле д
 signal i_pkt_cntd                       : std_logic_vector(C_CFGPKT_DLEN_M_BIT-C_CFGPKT_DLEN_L_BIT downto 0);
 
 signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
-
+--signal sr_dv_rdy                        : std_logic_vector(0 to 2):=(others=>'0');
+--signal tst_dv_rdy_edge                  : std_logic:='0';
 
 
 --MAIN
@@ -135,32 +136,43 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
---p_out_tst(31 downto 0)<=(others=>'0');
-process(p_in_rst,p_in_cfg_clk)
-begin
-  if p_in_rst='1' then
-    p_out_tst(5 downto 0)<=(others=>'0');
-
-  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
-
-    p_out_tst(0)<=OR_reduce(tst_fsm_cs);
-    p_out_tst(4 downto 1)<=tst_fsm_cs;
-    p_out_tst(5)<='0';
-  end if;
-end process;
-p_out_tst(9 downto 6)<=tst_fsm_cs;
-p_out_tst(31 downto 10)<=(others=>'0');
-
-tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);--when fsm_state_cs=S_CFG_RXD       else
+p_out_tst(31 downto 0)<=(others=>'0');
+--process(p_in_rst,p_in_cfg_clk)
+--begin
+--  if p_in_rst='1' then
+--    sr_dv_rdy<=(others=>'0');
+--    tst_dv_rdy_edge<='0';
+----    p_out_tst(5 downto 0)<=(others=>'0');
+--  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
+----    p_out_tst(0)<=OR_reduce(tst_fsm_cs);
+----    p_out_tst(4 downto 1)<=tst_fsm_cs;
+--    sr_dv_rdy<=i_dv_rdy & sr_dv_rdy(0 to 1);
+--    tst_dv_rdy_edge<=not sr_dv_rdy(1) and sr_dv_rdy(2);
+--  end if;
+--end process;
+--p_out_tst(5 downto 0)<=(others=>'0');
+--p_out_tst(9 downto 6)<=tst_fsm_cs;
+--p_out_tst(10)<=i_dv_oe;
+--p_out_tst(11)<=i_dv_rd;
+--p_out_tst(12)<=not i_dv_wr;
+--p_out_tst(13)<=p_in_ftdi_txe_n  ;
+--p_out_tst(14)<=p_in_ftdi_rxf_n  ;
+--p_out_tst(15)<=p_in_ftdi_pwren_n;
+--p_out_tst(16)<='0';
+--p_out_tst(17)<='0';--tst_dv_rdy_edge;--
+----p_out_tst(25 downto 18)<=i_dv_din;
+--p_out_tst(31 downto 18)<=(others=>'0');
+--
+--tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
+--            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
+--            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
+--            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
+--            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
+--            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
+--            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);--when fsm_state_cs=S_CFG_RXD       else
 
 
 
@@ -168,7 +180,7 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S
 --------------------------------------------------
 --Статусы
 --------------------------------------------------
-p_out_module_rdy<=not p_in_rst;
+p_out_module_rdy<=not p_in_rst and i_dv_rdy;
 p_out_module_error<='0';
 
 
@@ -179,7 +191,7 @@ p_inout_ftdi_d<=i_dv_dout when i_dv_oe='1' else (others=> 'Z');
 i_dv_din<=p_inout_ftdi_d;
 
 p_out_ftdi_rd_n<=i_dv_rd;
-p_out_ftdi_wr_n<=i_dv_wr;
+p_out_ftdi_wr_n<=not i_dv_wr;
 
 process(p_in_cfg_clk)
 begin
@@ -228,12 +240,12 @@ end process;
 --------------------------------------------------
 --//Автомат управления
 --------------------------------------------------
-process(p_in_rst,p_in_cfg_clk)
+process(p_in_rst,p_in_cfg_clk,p_in_ftdi_pwren_n)
   variable pkt_type : std_logic;
   variable pkt_dlen : std_logic_vector(i_pkt_cntd'range);
 begin
 
-if p_in_rst='1' then
+if p_in_rst='1' or p_in_ftdi_pwren_n='1' then
 
   fsm_state_cs <= S_DEV_WAIT_RXRDY;
 
@@ -241,7 +253,7 @@ if p_in_rst='1' then
 
   i_dv_oe<='0';
   i_dv_rd<='1';
-  i_dv_wr<='1';
+  i_dv_wr<='0';
   i_dv_dout<=(others=>'0');
 
   i_cfg_dbyte<=0;
@@ -286,8 +298,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     --//--------------------------------
     when S_DEV_RXD =>
 
-      if i_dv_tmr=CONV_STD_LOGIC_VECTOR(16, i_dv_tmr'length) then
-        i_dv_rd<='1';
+      if i_dv_tmr=CONV_STD_LOGIC_VECTOR(20, i_dv_tmr'length) then
         i_dv_tmr_en<='0';
 
         if i_cfg_dbyte=CI_CFG_DBYTE_SIZE-1 then
@@ -315,8 +326,6 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 
       elsif i_dv_tmr=CONV_STD_LOGIC_VECTOR(10, i_dv_tmr'length) then
         i_dv_rd<='1';
-
-      elsif i_dv_tmr=CONV_STD_LOGIC_VECTOR(8, i_dv_tmr'length) then
         for i in 0 to CI_CFG_DBYTE_SIZE-1 loop
           if i_cfg_dbyte=i then
             i_cfg_d(i_dv_din'length*(i+1)-1 downto i_dv_din'length*i)<=i_dv_din(7 downto 0);
@@ -415,9 +424,8 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     when S_DEV_WAIT_TXRDY =>
 
       if i_dv_txrdy='1' then
-        i_dv_wr<='1';
         i_dv_tmr_en<='1';
---        i_dv_oe<='1';
+        i_dv_oe<='1';
 
         for i in 0 to CI_CFG_DBYTE_SIZE-1 loop
           if i_cfg_dbyte=i then
@@ -433,8 +441,8 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     --//--------------------------------
     when S_DEV_TXD =>
 
-      if i_dv_tmr=CONV_STD_LOGIC_VECTOR(16, i_dv_tmr'length) then
-        i_dv_wr<='1';
+      if i_dv_tmr=CONV_STD_LOGIC_VECTOR(20, i_dv_tmr'length) then
+        i_dv_wr<='0';
         i_dv_tmr_en<='0';
         i_dv_oe<='0';
 
@@ -463,15 +471,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         end if;
 
       elsif i_dv_tmr=CONV_STD_LOGIC_VECTOR(10, i_dv_tmr'length) then
-        i_dv_wr<='0';
-
-      elsif i_dv_tmr=CONV_STD_LOGIC_VECTOR(8, i_dv_tmr'length) then
---        for i in 0 to CI_CFG_DBYTE_SIZE-1 loop
---          if i_cfg_dbyte=i then
---            i_dv_dout<=i_cfg_d(i_dv_dout'length*(i+1)-1 downto i_dv_dout'length*i);
---          end if;
---        end loop;
-        i_dv_oe<='1';
+        i_dv_wr<='1';
 
       end if;
 
