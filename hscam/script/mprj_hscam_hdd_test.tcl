@@ -73,10 +73,10 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_crc.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_dcm_v5.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_spd_ctrl_v5gtp.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_player_v5gtp.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_player_v5gt_clkmux.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_dcm_s6.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_spd_ctrl_s6gtp.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_player_s6gtx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_player_s6gt_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_oob.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
