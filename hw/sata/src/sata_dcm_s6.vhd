@@ -55,20 +55,6 @@ signal i_dcm_clkdv    : std_logic;
 begin
 
 
---bufg_gt_refclkout : BUFIO2
---generic map(
---DIVIDE        => 1,
---DIVIDE_BYPASS => TRUE,
---I_INVERT      => FALSE,
---USE_DOUBLER   => FALSE
---)
---port map(
---I            => p_in_clk,    --from GTPA/port GTPCLKOUT
---DIVCLK       => g_dcm_clkin, --to PLL/DCM
---IOCLK        => i_refclkout, --to BUFG
---SERDESSTROBE => open         --to ISERDES2/OSERDES2
---);
-
 --p_out_refclkout<=p_in_clk;
 bufg_refclk    : BUFG port map (I => p_in_clk, O => p_out_refclkout);
 
