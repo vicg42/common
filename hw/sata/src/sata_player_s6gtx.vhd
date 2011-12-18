@@ -111,8 +111,9 @@ architecture behavioral of sata_player_gt is
 --//1 - только для случая G_GT_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 4-17: Comma Alignment Boundaries ,
 --      ug386_Spartan6_GTP_Transceivers_User_Guide.pdf
-constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
-constant C_GTP_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), 2);
+constant CI_GT_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
+constant CI_GT_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), 2);
+constant CI_8B10BUSE               : std_logic:='1';
 
 signal i_refclkin                  : std_logic_vector(1 downto 0);
 signal i_txcomsas                  : std_logic;
@@ -152,7 +153,7 @@ signal i_rxbufreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_rxbufstatus_out           : TBus03_GTCH;
 
 signal i_refclkout                 : TBus02_GTCH;
---signal i_refclkpll                 : std_logic_vector(1 downto 0);
+signal i_refclkpll                 : std_logic_vector(1 downto 0);
 
 --attribute keep : string;
 --attribute keep of g_gtp_usrclk : signal is "true";
@@ -215,10 +216,10 @@ gen_gtp_w8 : if G_GT_DBUS=8 generate
 --g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 --Only SATA-II
 g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2x;
-g_gtp_usrclk(i) <=g_gtp_usrclk2(i);
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;
 ----Only SATA-I
 --g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
---g_gtp_usrclk(i) <=g_gtp_usrclk2(i);
+--g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;
 end generate gen_gtp_w8;
 
 --//------------------------------
@@ -319,273 +320,294 @@ end generate gen_ch;
 p_out_plllock<=AND_reduce(i_plllkdet(G_GT_CH_COUNT-1 downto 0));
 m_buffio2 : BUFIO2 port map (DIVCLK => p_out_refclkout, IOCLK => open, SERDESSTROBE => open, I => i_refclkout(0)(0) );
 
---p_out_optrefclk(0)<=i_refclkpll(0);
---p_out_optrefclk(1)<=i_refclkpll(1);
---p_out_optrefclk(2)<='0';
---p_out_optrefclk(3)<='0';
+p_out_optrefclk(0)<=i_refclkpll(0);
+p_out_optrefclk(1)<=i_refclkpll(1);
+p_out_optrefclk(2)<='0';
+p_out_optrefclk(3)<='0';
 
 
 m_gt : GTPA1_DUAL
 generic map(
 --_______________________ Simulation-Only Attributes ___________________
 
-SIM_RECEIVER_DETECT_PASS    =>      (TRUE),
-SIM_TX_ELEC_IDLE_LEVEL      =>      ("Z"),
-SIM_VERSION                 =>      ("2.0"),
+SIM_RECEIVER_DETECT_PASS    =>     (TRUE),
+SIM_TX_ELEC_IDLE_LEVEL      =>     ("Z"),
+SIM_VERSION                 =>     ("2.0"),
 
-SIM_REFCLK0_SOURCE          =>      ("000"),
-SIM_REFCLK1_SOURCE          =>      ("000"),
+SIM_REFCLK0_SOURCE          =>     ("000"),
+SIM_REFCLK1_SOURCE          =>     ("000"),
+SIM_GTPRESET_SPEEDUP        =>     1,                          --также как для V5
 
-SIM_GTPRESET_SPEEDUP        =>      1,--(TILE_SIM_GTPRESET_SPEEDUP),  --//############################### add vicg
-CLK25_DIVIDER_0             =>      6, --также как для V5             --//############################### add vicg
-CLK25_DIVIDER_1             =>      6, --также как для V5             --//############################### add vicg
-PLL_DIVSEL_FB_0             =>      2, --также как для V5             --//############################### add vicg
-PLL_DIVSEL_FB_1             =>      2, --также как для V5             --//############################### add vicg
-PLL_DIVSEL_REF_0            =>      1, --также как для V5             --//############################### add vicg
-PLL_DIVSEL_REF_1            =>      1, --также как для V5             --//############################### add vicg
+CLK25_DIVIDER_0             =>     6,                          --также как для V5
+CLK25_DIVIDER_1             =>     6,                          --также как для V5
+
+--PLL_clkout=PLL_clkin * (N1*N2)/M , где N1 - if  INTDATAWIDTH_x=1 then N1=5 else N1=4
+--                                       N2 - PLL_DIVSEL_FB_x
+--                                       M  - PLL_DIVSEL_REF
+--PLL_clkout=150MHz * (5*2)/1 = 1500MHz
+--
+--RATE_clk= PLL_clkout * 2/D - где D: (PLL_TXDIVSEL_OUT_x или PLL_RXDIVSEL_OUT_x)
+--RATE_clk= 1500MHz * 2/1 = 3000MHz
+--
+--USRCLK=RATE_clk/(Internal Datapath Width), где Internal Datapath Width. INTDATAWIDTH=1 => значение =10
+--USRCLK=3000MHz/10 = 300MHz
+PLL_DIVSEL_FB_0             =>     2,                          --также как для V5
+PLL_DIVSEL_REF_0            =>     1,                          --также как для V5
+PLL_DIVSEL_FB_1             =>     2,                          --также как для V5
+PLL_DIVSEL_REF_1            =>     1,                          --также как для V5
 
 
 --PLL Attributes
-CLKINDC_B_0                             =>     (TRUE),
-CLKRCV_TRST_0                           =>     (TRUE),
-OOB_CLK_DIVIDER_0                       =>     (6),
-PLL_COM_CFG_0                           =>     (x"21680a"),
-PLL_CP_CFG_0                            =>     (x"00"),
-PLL_RXDIVSEL_OUT_0                      =>     (1),
-PLL_SATA_0                              =>     (FALSE),
-PLL_SOURCE_0                            =>     ("PLL0"),                --//############################### add vicg
-PLL_TXDIVSEL_OUT_0                      =>     (1),
-PLLLKDET_CFG_0                          =>     ("111"),
+CLKINDC_B_0                 =>     TRUE,                       --также как для V5
+CLKRCV_TRST_0               =>     TRUE,
+OOB_CLK_DIVIDER_0           =>     6,                          --также как для V5
+PLL_COM_CFG_0               =>     (x"21680a"),
+PLL_CP_CFG_0                =>     (x"00"),
+PLL_RXDIVSEL_OUT_0          =>     1,
+PLL_SATA_0                  =>     FALSE,                      --также как для V5
+PLL_SOURCE_0                =>     "PLL0",
+PLL_TXDIVSEL_OUT_0          =>     1,
+PLLLKDET_CFG_0              =>     ("111"),
 
 --
-CLKINDC_B_1                             =>     (TRUE),
-CLKRCV_TRST_1                           =>     (TRUE),
-OOB_CLK_DIVIDER_1                       =>     (6),
-PLL_COM_CFG_1                           =>     (x"21680a"),
-PLL_CP_CFG_1                            =>     (x"00"),
-PLL_RXDIVSEL_OUT_1                      =>     (1),
-PLL_SATA_1                              =>     (FALSE),
-PLL_SOURCE_1                            =>     ("PLL1"),                --//############################### add vicg
-PLL_TXDIVSEL_OUT_1                      =>     (1),
-PLLLKDET_CFG_1                          =>     ("111"),
-PMA_COM_CFG_EAST                        =>     (x"000008000"),
-PMA_COM_CFG_WEST                        =>     (x"00000a000"),
-TST_ATTR_0                              =>     (x"00000000"),
-TST_ATTR_1                              =>     (x"00000000"),
+CLKINDC_B_1                 =>     TRUE,                       --также как для V5
+CLKRCV_TRST_1               =>     TRUE,
+OOB_CLK_DIVIDER_1           =>     6,                          --также как для V5
+PLL_COM_CFG_1               =>     (x"21680a"),
+PLL_CP_CFG_1                =>     (x"00"),
+PLL_RXDIVSEL_OUT_1          =>     1,
+PLL_SATA_1                  =>     FALSE,                      --также как для V5
+PLL_SOURCE_1                =>     "PLL1",
+PLL_TXDIVSEL_OUT_1          =>     1,
+PLLLKDET_CFG_1              =>     ("111"),
+
+PMA_COM_CFG_EAST            =>     (x"000008000"),
+PMA_COM_CFG_WEST            =>     (x"00000a000"),
+TST_ATTR_0                  =>     (x"00000000"),
+TST_ATTR_1                  =>     (x"00000000"),
 
 --TX Interface Attributes
-CLK_OUT_GTP_SEL_0                       =>     ("REFCLKPLL0"),--("TXOUTCLK0"),  --//############################### add vicg
-TX_TDCC_CFG_0                           =>     ("00"),
-CLK_OUT_GTP_SEL_1                       =>     ("REFCLKPLL1"),--("TXOUTCLK1"),  --//############################### add vicg
-TX_TDCC_CFG_1                           =>     ("00"),
+CLK_OUT_GTP_SEL_0           =>     "REFCLKPLL0",--"TXOUTCLK0",
+TX_TDCC_CFG_0               =>     ("00"),
+CLK_OUT_GTP_SEL_1           =>     "REFCLKPLL1",--"TXOUTCLK1",
+TX_TDCC_CFG_1               =>     ("00"),
 
 --TX Buffer and Phase Alignment Attributes
-PMA_TX_CFG_0                            =>     (x"00082"),
-TX_BUFFER_USE_0                         =>     (TRUE),
-TX_XCLK_SEL_0                           =>     ("TXOUT"),
-TXRX_INVERT_0                           =>     ("011"),
-PMA_TX_CFG_1                            =>     (x"00082"),
-TX_BUFFER_USE_1                         =>     (TRUE),
-TX_XCLK_SEL_1                           =>     ("TXOUT"),
-TXRX_INVERT_1                           =>     ("011"),
+PMA_TX_CFG_0                =>     x"80082",   --(x"00082"), Изменено
+TX_BUFFER_USE_0             =>     TRUE,                       --также как для V5
+TX_XCLK_SEL_0               =>     "TXOUT",                    --также как для V5
+TXRX_INVERT_0               =>     "000",      --("011"),      --также как для V5
+
+PMA_TX_CFG_1                =>     x"80082",   --(x"00082"), Изменено
+TX_BUFFER_USE_1             =>     TRUE,                       --также как для V5
+TX_XCLK_SEL_1               =>     "TXOUT",                    --также как для V5
+TXRX_INVERT_1               =>     "000",      --("011"),      --также как для V5
 
 --TX Driver and OOB signalling Attributes
-CM_TRIM_0                               =>     ("00"),
-TX_IDLE_DELAY_0                         =>     ("011"),
-CM_TRIM_1                               =>     ("00"),
-TX_IDLE_DELAY_1                         =>     ("011"),
+CM_TRIM_0                   =>     ("00"),
+TX_IDLE_DELAY_0             =>     ("011"),
+CM_TRIM_1                   =>     ("00"),
+TX_IDLE_DELAY_1             =>     ("011"),
 
 --TX PIPE/SATA Attributes
-COM_BURST_VAL_0                         =>     ("1111"),
-COM_BURST_VAL_1                         =>     ("1111"),
+COM_BURST_VAL_0             =>     "0101",     --("1111"),    --также как для V5
+COM_BURST_VAL_1             =>     "0101",     --("1111"),    --также как для V5
 
 --RX Driver,OOB signalling,Coupling and Eq,CDR Attributes
-AC_CAP_DIS_0                            =>     (TRUE),--(FALSE),
-OOBDETECT_THRESHOLD_0                   =>     ("110"),
-PMA_CDR_SCAN_0                          =>     (x"6404040"),
-PMA_RX_CFG_0                            =>     (x"05ce089"),
-PMA_RXSYNC_CFG_0                        =>     (x"00"),
-RCV_TERM_GND_0                          =>     (FALSE),
-RCV_TERM_VTTRX_0                        =>     (FALSE),--(TRUE),
-RXEQ_CFG_0                              =>     ("01111011"),
-TERMINATION_CTRL_0                      =>     ("10100"),
-TERMINATION_OVRD_0                      =>     (FALSE),
-TX_DETECT_RX_CFG_0                      =>     (x"1832"),
-AC_CAP_DIS_1                            =>     (TRUE),--(FALSE),
-OOBDETECT_THRESHOLD_1                   =>     ("110"),
-PMA_CDR_SCAN_1                          =>     (x"6404040"),
-PMA_RX_CFG_1                            =>     (x"05ce089"),
-PMA_RXSYNC_CFG_1                        =>     (x"00"),
-RCV_TERM_GND_1                          =>     (FALSE),
-RCV_TERM_VTTRX_1                        =>     (FALSE),--(TRUE),
-RXEQ_CFG_1                              =>     ("01111011"),
-TERMINATION_CTRL_1                      =>     ("10100"),
-TERMINATION_OVRD_1                      =>     (FALSE),
-TX_DETECT_RX_CFG_1                      =>     (x"1832"),
+AC_CAP_DIS_0                =>     FALSE,      --TRUE         --также как для V5
+OOBDETECT_THRESHOLD_0       =>     "111",      --"110",       --также как для V5
+PMA_CDR_SCAN_0              =>     x"6c07640", --x"6404040",  --также как для V5
+PMA_RX_CFG_0                =>     x"09f0089", --x"05ce089",  --также как для V5
+PMA_RXSYNC_CFG_0            =>     x"00",
+RCV_TERM_GND_0              =>     FALSE,                     --также как для V5
+RCV_TERM_VTTRX_0            =>     TRUE,        --FALSE,      --также как для V5
+RXEQ_CFG_0                  =>     ("01111011"),
+TERMINATION_CTRL_0          =>     "10100",                   --также как для V5
+TERMINATION_OVRD_0          =>     FALSE,                     --также как для V5
+TX_DETECT_RX_CFG_0          =>     (x"1832"),
+
+AC_CAP_DIS_1                =>     FALSE,      --TRUE         --также как для V5
+OOBDETECT_THRESHOLD_1       =>     "111",      --"110",       --также как для V5
+PMA_CDR_SCAN_1              =>     x"6c07640", --x"6404040",  --также как для V5
+PMA_RX_CFG_1                =>     x"09f0089", --x"05ce089",  --также как для V5
+PMA_RXSYNC_CFG_1            =>     x"00",
+RCV_TERM_GND_1              =>     FALSE,                     --также как для V5
+RCV_TERM_VTTRX_1            =>     TRUE,        --FALSE,      --также как для V5
+RXEQ_CFG_1                  =>     ("01111011"),
+TERMINATION_CTRL_1          =>     "10100",                   --также как для V5
+TERMINATION_OVRD_1          =>     FALSE,                     --также как для V5
+TX_DETECT_RX_CFG_1          =>     (x"1832"),
 
 --PRBS Detection Attributes
-RXPRBSERR_LOOPBACK_0                    =>     ('0'),
-RXPRBSERR_LOOPBACK_1                    =>     ('0'),
+RXPRBSERR_LOOPBACK_0        =>     ('0'),
+RXPRBSERR_LOOPBACK_1        =>     ('0'),
 
 --Comma Detection and Alignment Attributes
-ALIGN_COMMA_WORD_0                      =>     C_GTP_ALIGN_COMMA_WORD,
-COMMA_10B_ENABLE_0                      =>     ("1111111111"),
-DEC_MCOMMA_DETECT_0                     =>     (TRUE),
-DEC_PCOMMA_DETECT_0                     =>     (TRUE),
-DEC_VALID_COMMA_ONLY_0                  =>     (FALSE),
-MCOMMA_10B_VALUE_0                      =>     ("1010000011"),
-MCOMMA_DETECT_0                         =>     (TRUE),
-PCOMMA_10B_VALUE_0                      =>     ("0101111100"),
-PCOMMA_DETECT_0                         =>     (TRUE),
-RX_SLIDE_MODE_0                         =>     ("PCS"),
-ALIGN_COMMA_WORD_1                      =>     C_GTP_ALIGN_COMMA_WORD,
-COMMA_10B_ENABLE_1                      =>     ("1111111111"),
-DEC_MCOMMA_DETECT_1                     =>     (TRUE),
-DEC_PCOMMA_DETECT_1                     =>     (TRUE),
-DEC_VALID_COMMA_ONLY_1                  =>     (FALSE),
-MCOMMA_10B_VALUE_1                      =>     ("1010000011"),
-MCOMMA_DETECT_1                         =>     (TRUE),
-PCOMMA_10B_VALUE_1                      =>     ("0101111100"),
-PCOMMA_DETECT_1                         =>     (TRUE),
-RX_SLIDE_MODE_1                         =>     ("PCS"),
+ALIGN_COMMA_WORD_0          =>     CI_GT_ALIGN_COMMA_WORD,    --также как для V5
+COMMA_10B_ENABLE_0          =>     "1111111111",              --также как для V5
+DEC_MCOMMA_DETECT_0         =>     TRUE,                      --также как для V5
+DEC_PCOMMA_DETECT_0         =>     TRUE,                      --также как для V5
+DEC_VALID_COMMA_ONLY_0      =>     FALSE,                     --также как для V5
+MCOMMA_10B_VALUE_0          =>     "1010000011",
+MCOMMA_DETECT_0             =>     TRUE,
+PCOMMA_10B_VALUE_0          =>     "0101111100",
+PCOMMA_DETECT_0             =>     TRUE,
+RX_SLIDE_MODE_0             =>     "PCS",
+
+ALIGN_COMMA_WORD_1          =>     CI_GT_ALIGN_COMMA_WORD,    --также как для V5
+COMMA_10B_ENABLE_1          =>     "1111111111",              --также как для V5
+DEC_MCOMMA_DETECT_1         =>     TRUE,                      --также как для V5
+DEC_PCOMMA_DETECT_1         =>     TRUE,                      --также как для V5
+DEC_VALID_COMMA_ONLY_1      =>     FALSE,                     --также как для V5
+MCOMMA_10B_VALUE_1          =>     "1010000011",
+MCOMMA_DETECT_1             =>     TRUE,
+PCOMMA_10B_VALUE_1          =>     "0101111100",
+PCOMMA_DETECT_1             =>     TRUE,
+RX_SLIDE_MODE_1             =>     "PCS",
 
 --RX Loss-of-sync State Machine Attributes
-RX_LOS_INVALID_INCR_0                   =>     (8),
-RX_LOS_THRESHOLD_0                      =>     (128),
-RX_LOSS_OF_SYNC_FSM_0                   =>     (FALSE),
-RX_LOS_INVALID_INCR_1                   =>     (8),
-RX_LOS_THRESHOLD_1                      =>     (128),
-RX_LOSS_OF_SYNC_FSM_1                   =>     (FALSE),
+RX_LOSS_OF_SYNC_FSM_0       =>     FALSE,                     --также как для V5
+RX_LOS_INVALID_INCR_0       =>     8,                         --также как для V5
+RX_LOS_THRESHOLD_0          =>     128,                       --также как для V5
+
+RX_LOSS_OF_SYNC_FSM_1       =>     FALSE,                     --также как для V5
+RX_LOS_INVALID_INCR_1       =>     8,                         --также как для V5
+RX_LOS_THRESHOLD_1          =>     128,                       --также как для V5
 
 --RX Elastic Buffer and Phase alignment Attributes
-RX_BUFFER_USE_0                         =>     (TRUE),
-RX_EN_IDLE_RESET_BUF_0                  =>     (TRUE),
-RX_IDLE_HI_CNT_0                        =>     ("1000"),
-RX_IDLE_LO_CNT_0                        =>     ("0000"),
-RX_XCLK_SEL_0                           =>     ("RXREC"),
-RX_BUFFER_USE_1                         =>     (TRUE),
-RX_EN_IDLE_RESET_BUF_1                  =>     (TRUE),
-RX_IDLE_HI_CNT_1                        =>     ("1000"),
-RX_IDLE_LO_CNT_1                        =>     ("0000"),
-RX_XCLK_SEL_1                           =>     ("RXREC"),
+RX_BUFFER_USE_0             =>     TRUE,                      --также как для V5
+RX_XCLK_SEL_0               =>     "RXREC",                   --также как для V5
+RX_EN_IDLE_RESET_BUF_0      =>     TRUE,
+RX_IDLE_HI_CNT_0            =>     ("1000"),
+RX_IDLE_LO_CNT_0            =>     ("0000"),
+
+RX_BUFFER_USE_1             =>     TRUE,                      --также как для V5
+RX_XCLK_SEL_1               =>     "RXREC",                   --также как для V5
+RX_EN_IDLE_RESET_BUF_1      =>     TRUE,
+RX_IDLE_HI_CNT_1            =>     ("1000"),
+RX_IDLE_LO_CNT_1            =>     ("0000"),
 
 --Clock Correction Attributes
-CLK_COR_ADJ_LEN_0                       =>     (4),
-CLK_COR_DET_LEN_0                       =>     (4),
-CLK_COR_INSERT_IDLE_FLAG_0              =>     (FALSE),
-CLK_COR_KEEP_IDLE_0                     =>     (FALSE),
-CLK_COR_MAX_LAT_0                       =>     (18),
-CLK_COR_MIN_LAT_0                       =>     (16),
-CLK_COR_PRECEDENCE_0                    =>     (TRUE),
-CLK_COR_REPEAT_WAIT_0                   =>     (0),
-CLK_COR_SEQ_1_1_0                       =>     ("0110111100"),
-CLK_COR_SEQ_1_2_0                       =>     ("0001001010"),
-CLK_COR_SEQ_1_3_0                       =>     ("0001001010"),
-CLK_COR_SEQ_1_4_0                       =>     ("0001111011"),
-CLK_COR_SEQ_1_ENABLE_0                  =>     ("1111"),
-CLK_COR_SEQ_2_1_0                       =>     ("0100000000"),
-CLK_COR_SEQ_2_2_0                       =>     ("0000000000"),
-CLK_COR_SEQ_2_3_0                       =>     ("0000000000"),
-CLK_COR_SEQ_2_4_0                       =>     ("0000000000"),
-CLK_COR_SEQ_2_ENABLE_0                  =>     ("0000"),
-CLK_COR_SEQ_2_USE_0                     =>     (FALSE),
-CLK_CORRECT_USE_0                       =>     (TRUE),
-RX_DECODE_SEQ_MATCH_0                   =>     (TRUE),
-CLK_COR_ADJ_LEN_1                       =>     (4),
-CLK_COR_DET_LEN_1                       =>     (4),
-CLK_COR_INSERT_IDLE_FLAG_1              =>     (FALSE),
-CLK_COR_KEEP_IDLE_1                     =>     (FALSE),
-CLK_COR_MAX_LAT_1                       =>     (18),
-CLK_COR_MIN_LAT_1                       =>     (16),
-CLK_COR_PRECEDENCE_1                    =>     (TRUE),
-CLK_COR_REPEAT_WAIT_1                   =>     (0),
-CLK_COR_SEQ_1_1_1                       =>     ("0110111100"),
-CLK_COR_SEQ_1_2_1                       =>     ("0001001010"),
-CLK_COR_SEQ_1_3_1                       =>     ("0001001010"),
-CLK_COR_SEQ_1_4_1                       =>     ("0001111011"),
-CLK_COR_SEQ_1_ENABLE_1                  =>     ("1111"),
-CLK_COR_SEQ_2_1_1                       =>     ("0100000000"),
-CLK_COR_SEQ_2_2_1                       =>     ("0000000000"),
-CLK_COR_SEQ_2_3_1                       =>     ("0000000000"),
-CLK_COR_SEQ_2_4_1                       =>     ("0000000000"),
-CLK_COR_SEQ_2_ENABLE_1                  =>     ("0000"),
-CLK_COR_SEQ_2_USE_1                     =>     (FALSE),
-CLK_CORRECT_USE_1                       =>     (TRUE),
-RX_DECODE_SEQ_MATCH_1                   =>     (TRUE),
+CLK_CORRECT_USE_0           =>     TRUE,                      --также как для V5
+CLK_COR_ADJ_LEN_0           =>     4,                         --также как для V5
+CLK_COR_DET_LEN_0           =>     4,                         --также как для V5
+CLK_COR_INSERT_IDLE_FLAG_0  =>     FALSE,                     --также как для V5
+CLK_COR_KEEP_IDLE_0         =>     FALSE,                     --также как для V5
+CLK_COR_MAX_LAT_0           =>     32,--18,                        --также как для V5
+CLK_COR_MIN_LAT_0           =>     16,                        --также как для V5
+CLK_COR_PRECEDENCE_0        =>     TRUE,                      --также как для V5
+CLK_COR_REPEAT_WAIT_0       =>     0,                         --также как для V5
+CLK_COR_SEQ_1_1_0           =>     "0110111100",              --также как для V5
+CLK_COR_SEQ_1_2_0           =>     "0001001010",              --также как для V5
+CLK_COR_SEQ_1_3_0           =>     "0001001010",              --также как для V5
+CLK_COR_SEQ_1_4_0           =>     "0001111011",              --также как для V5
+CLK_COR_SEQ_1_ENABLE_0      =>     "1111",                    --также как для V5
+CLK_COR_SEQ_2_1_0           =>     "0101111100",--x7C - C_K28_3
+CLK_COR_SEQ_2_2_0           =>     "0000000000",              --также как для V5
+CLK_COR_SEQ_2_3_0           =>     "0000000000",              --также как для V5
+CLK_COR_SEQ_2_4_0           =>     "0000000000",              --также как для V5
+CLK_COR_SEQ_2_ENABLE_0      =>     "0000",                    --также как для V5
+CLK_COR_SEQ_2_USE_0         =>     FALSE,                     --также как для V5
+RX_DECODE_SEQ_MATCH_0       =>     TRUE,                      --также как для V5
+
+CLK_CORRECT_USE_1           =>     TRUE,                      --также как для V5
+CLK_COR_ADJ_LEN_1           =>     4,                         --также как для V5
+CLK_COR_DET_LEN_1           =>     4,                         --также как для V5
+CLK_COR_INSERT_IDLE_FLAG_1  =>     FALSE,                     --также как для V5
+CLK_COR_KEEP_IDLE_1         =>     FALSE,                     --также как для V5
+CLK_COR_MAX_LAT_1           =>     32,--18,                        --также как для V5
+CLK_COR_MIN_LAT_1           =>     16,                        --также как для V5
+CLK_COR_PRECEDENCE_1        =>     TRUE,                      --также как для V5
+CLK_COR_REPEAT_WAIT_1       =>     0,                         --также как для V5
+CLK_COR_SEQ_1_1_1           =>     "0110111100",              --также как для V5
+CLK_COR_SEQ_1_2_1           =>     "0001001010",              --также как для V5
+CLK_COR_SEQ_1_3_1           =>     "0001001010",              --также как для V5
+CLK_COR_SEQ_1_4_1           =>     "0001111011",              --также как для V5
+CLK_COR_SEQ_1_ENABLE_1      =>     "1111",                    --также как для V5
+CLK_COR_SEQ_2_1_1           =>     "0101111100",--x7C - C_K28_3
+CLK_COR_SEQ_2_2_1           =>     "0000000000",              --также как для V5
+CLK_COR_SEQ_2_3_1           =>     "0000000000",              --также как для V5
+CLK_COR_SEQ_2_4_1           =>     "0000000000",              --также как для V5
+CLK_COR_SEQ_2_ENABLE_1      =>     "0000",                    --также как для V5
+CLK_COR_SEQ_2_USE_1         =>     FALSE,                     --также как для V5
+RX_DECODE_SEQ_MATCH_1       =>     TRUE,                      --также как для V5
 
 --Channel Bonding Attributes
-CHAN_BOND_1_MAX_SKEW_0                  =>     (1),
-CHAN_BOND_2_MAX_SKEW_0                  =>     (1),
-CHAN_BOND_KEEP_ALIGN_0                  =>     (FALSE),
-CHAN_BOND_SEQ_1_1_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_2_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_3_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_4_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_ENABLE_0                =>     ("0000"),
-CHAN_BOND_SEQ_2_1_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_2_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_3_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_4_0                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_ENABLE_0                =>     ("0000"),
-CHAN_BOND_SEQ_2_USE_0                   =>     (FALSE),
-CHAN_BOND_SEQ_LEN_0                     =>     (1),
-RX_EN_MODE_RESET_BUF_0                  =>     (TRUE),
-CHAN_BOND_1_MAX_SKEW_1                  =>     (1),
-CHAN_BOND_2_MAX_SKEW_1                  =>     (1),
-CHAN_BOND_KEEP_ALIGN_1                  =>     (FALSE),
-CHAN_BOND_SEQ_1_1_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_2_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_3_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_4_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_1_ENABLE_1                =>     ("0000"),
-CHAN_BOND_SEQ_2_1_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_2_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_3_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_4_1                     =>     ("0000000000"),
-CHAN_BOND_SEQ_2_ENABLE_1                =>     ("0000"),
-CHAN_BOND_SEQ_2_USE_1                   =>     (FALSE),
-CHAN_BOND_SEQ_LEN_1                     =>     (1),
-RX_EN_MODE_RESET_BUF_1                  =>     (TRUE),
+CHAN_BOND_1_MAX_SKEW_0      =>     1,                         --также как для V5
+CHAN_BOND_2_MAX_SKEW_0      =>     1,                         --также как для V5
+CHAN_BOND_KEEP_ALIGN_0      =>     (FALSE),
+CHAN_BOND_SEQ_1_1_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_2_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_3_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_4_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_ENABLE_0    =>     "0000",                    --также как для V5
+CHAN_BOND_SEQ_2_1_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_2_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_3_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_4_0         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_ENABLE_0    =>     "0000",                    --также как для V5
+CHAN_BOND_SEQ_2_USE_0       =>     FALSE,                     --также как для V5
+CHAN_BOND_SEQ_LEN_0         =>     1,                         --также как для V5
+RX_EN_MODE_RESET_BUF_0      =>     FALSE, --(TRUE), ??????
+
+CHAN_BOND_1_MAX_SKEW_1      =>     1,                         --также как для V5
+CHAN_BOND_2_MAX_SKEW_1      =>     1,                         --также как для V5
+CHAN_BOND_KEEP_ALIGN_1      =>     (FALSE),
+CHAN_BOND_SEQ_1_1_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_2_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_3_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_4_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_1_ENABLE_1    =>     "0000",                    --также как для V5
+CHAN_BOND_SEQ_2_1_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_2_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_3_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_4_1         =>     "0000000000",              --также как для V5
+CHAN_BOND_SEQ_2_ENABLE_1    =>     "0000",                    --также как для V5
+CHAN_BOND_SEQ_2_USE_1       =>     FALSE,                     --также как для V5
+CHAN_BOND_SEQ_LEN_1         =>     1,                         --также как для V5
+RX_EN_MODE_RESET_BUF_1      =>     FALSE, --(TRUE), ??????
 
 --RX PCI Express Attributes
-CB2_INH_CC_PERIOD_0                     =>     (8),
-CDR_PH_ADJ_TIME_0                       =>     ("01010"),
-PCI_EXPRESS_MODE_0                      =>     (FALSE),
-RX_EN_IDLE_HOLD_CDR_0                   =>     (FALSE),
-RX_EN_IDLE_RESET_FR_0                   =>     (TRUE),
-RX_EN_IDLE_RESET_PH_0                   =>     (TRUE),
-RX_STATUS_FMT_0                         =>     ("SATA"),
-TRANS_TIME_FROM_P2_0                    =>     (x"03c"),
-TRANS_TIME_NON_P2_0                     =>     (x"19"),
-TRANS_TIME_TO_P2_0                      =>     (x"064"),
-CB2_INH_CC_PERIOD_1                     =>     (8),
-CDR_PH_ADJ_TIME_1                       =>     ("01010"),
-PCI_EXPRESS_MODE_1                      =>     (FALSE),
-RX_EN_IDLE_HOLD_CDR_1                   =>     (FALSE),
-RX_EN_IDLE_RESET_FR_1                   =>     (TRUE),
-RX_EN_IDLE_RESET_PH_1                   =>     (TRUE),
-RX_STATUS_FMT_1                         =>     ("SATA"),
-TRANS_TIME_FROM_P2_1                    =>     (x"03c"),
-TRANS_TIME_NON_P2_1                     =>     (x"19"),
-TRANS_TIME_TO_P2_1                      =>     (x"064"),
+PCI_EXPRESS_MODE_0          =>     FALSE,                     --также как для V5
+CB2_INH_CC_PERIOD_0         =>     (8),
+CDR_PH_ADJ_TIME_0           =>     ("01010"),
+RX_EN_IDLE_HOLD_CDR_0       =>     FALSE,
+RX_EN_IDLE_RESET_FR_0       =>     FALSE, --TRUE, ??????
+RX_EN_IDLE_RESET_PH_0       =>     FALSE, --TRUE, ??????
+
+PCI_EXPRESS_MODE_1          =>     FALSE,                     --также как для V5
+CB2_INH_CC_PERIOD_1         =>     (8),
+CDR_PH_ADJ_TIME_1           =>     ("01010"),
+RX_EN_IDLE_HOLD_CDR_1       =>     FALSE,
+RX_EN_IDLE_RESET_FR_1       =>     FALSE, --TRUE, ??????
+RX_EN_IDLE_RESET_PH_1       =>     FALSE, --TRUE, ??????
 
 --RX SATA Attributes
-SATA_BURST_VAL_0                        =>     ("100"),
-SATA_IDLE_VAL_0                         =>     ("100"),
-SATA_MAX_BURST_0                        =>     (7),
-SATA_MAX_INIT_0                         =>     (22),
-SATA_MAX_WAKE_0                         =>     (7),
-SATA_MIN_BURST_0                        =>     (4),
-SATA_MIN_INIT_0                         =>     (12),
-SATA_MIN_WAKE_0                         =>     (4),
-SATA_BURST_VAL_1                        =>     ("100"),
-SATA_IDLE_VAL_1                         =>     ("100"),
-SATA_MAX_BURST_1                        =>     (7),
-SATA_MAX_INIT_1                         =>     (22),
-SATA_MAX_WAKE_1                         =>     (7),
-SATA_MIN_BURST_1                        =>     (4),
-SATA_MIN_INIT_1                         =>     (12),
-SATA_MIN_WAKE_1                         =>     (4)
+RX_STATUS_FMT_0             =>     "SATA",                    --также как для V5
+SATA_BURST_VAL_0            =>     "100",                     --также как для V5
+SATA_IDLE_VAL_0             =>     "100",                     --также как для V5
+SATA_MAX_BURST_0            =>     7,                         --также как для V5
+SATA_MAX_INIT_0             =>     22,                        --также как для V5
+SATA_MAX_WAKE_0             =>     7,                         --также как для V5
+SATA_MIN_BURST_0            =>     4,                         --также как для V5
+SATA_MIN_INIT_0             =>     12,                        --также как для V5
+SATA_MIN_WAKE_0             =>     4,                         --также как для V5
+TRANS_TIME_FROM_P2_0        =>     x"003c",--x"03c",          --также как для V5
+TRANS_TIME_NON_P2_0         =>     x"0019",--x"19",           --также как для V5
+TRANS_TIME_TO_P2_0          =>     x"0064",--x"064",          --также как для V5
+
+RX_STATUS_FMT_1             =>     "SATA",                    --также как для V5
+SATA_BURST_VAL_1            =>     "100",                     --также как для V5
+SATA_IDLE_VAL_1             =>     "100",                     --также как для V5
+SATA_MAX_BURST_1            =>     7,                         --также как для V5
+SATA_MAX_INIT_1             =>     22,                        --также как для V5
+SATA_MAX_WAKE_1             =>     7,                         --также как для V5
+SATA_MIN_BURST_1            =>     4,                         --также как для V5
+SATA_MIN_INIT_1             =>     12,                        --также как для V5
+SATA_MIN_WAKE_1             =>     4,                         --также как для V5
+TRANS_TIME_FROM_P2_1        =>     x"003c",--x"03c",          --также как для V5
+TRANS_TIME_NON_P2_1         =>     x"0019",--x"19",           --также как для V5
+TRANS_TIME_TO_P2_1          =>     x"0064" --x"064"           --также как для V5
 )
 port map(
 ------------------------ Loopback and Powerdown Ports ----------------------
@@ -600,10 +622,10 @@ CLK00                           =>      '0', --External jitter stable clock driv
 CLK01                           =>      '0',                                --//############################### add vicg
 CLK10                           =>      p_in_refclkin,
 CLK11                           =>      '0',
-CLKINEAST0                      =>      '0',--p_in_optrefclk(0),
-CLKINEAST1                      =>      '0',--p_in_optrefclk(0),
-CLKINWEST0                      =>      '0',--p_in_optrefclk(0),
-CLKINWEST1                      =>      '0',--p_in_optrefclk(0),
+CLKINEAST0                      =>      p_in_optrefclk(0),--'0',--
+CLKINEAST1                      =>      p_in_optrefclk(1),--'0',--
+CLKINWEST0                      =>      p_in_optrefclk(2),--'0',--
+CLKINWEST1                      =>      p_in_optrefclk(3),--'0',--
 GCLK00                          =>      '0',
 GCLK01                          =>      '0',
 GCLK10                          =>      '0',
@@ -626,12 +648,12 @@ PLLPOWERDOWN0                   =>      '0',
 PLLPOWERDOWN1                   =>      '0',
 REFCLKOUT0                      =>      open,
 REFCLKOUT1                      =>      open,
-REFCLKPLL0                      =>      open,--i_refclkpll(0),      --//############################### add vicg
-REFCLKPLL1                      =>      open,--i_refclkpll(1),      --//############################### add vicg
+REFCLKPLL0                      =>      i_refclkpll(0),--open,--      --//############################### add vicg
+REFCLKPLL1                      =>      i_refclkpll(1),--open,--      --//############################### add vicg
 REFCLKPWRDNB0                   =>      '1',
 REFCLKPWRDNB1                   =>      '1',
-REFSELDYPLL0                    =>      "000",--p_in_optrefclksel(2 downto 0),      --//############################### add vicg
-REFSELDYPLL1                    =>      "000",--p_in_optrefclksel(2 downto 0),      --//############################### add vicg
+REFSELDYPLL0                    =>      p_in_optrefclksel(2 downto 0),--"000",--      --//############################### add vicg
+REFSELDYPLL1                    =>      p_in_optrefclksel(2 downto 0),--"000",--      --//############################### add vicg
 RESETDONE0                      =>      i_resetdone(0),                     --//############################### add vicg
 RESETDONE1                      =>      i_resetdone(1),                     --//############################### add vicg
 TSTCLK0                         =>      '0',
@@ -649,8 +671,8 @@ RXCHARISK0(3 downto 2)          =>      i_rxcharisk_out(0)(3 downto 2),     --//
 RXCHARISK0(1 downto 0)          =>      i_rxcharisk_out(0)(1 downto 0),     --//############################### add vicg
 RXCHARISK1(3 downto 2)          =>      i_rxcharisk_out(1)(3 downto 2),     --//############################### add vicg
 RXCHARISK1(1 downto 0)          =>      i_rxcharisk_out(1)(1 downto 0),     --//############################### add vicg
-RXDEC8B10BUSE0                  =>      '1',
-RXDEC8B10BUSE1                  =>      '1',
+RXDEC8B10BUSE0                  =>      CI_8B10BUSE,
+RXDEC8B10BUSE1                  =>      CI_8B10BUSE,
 RXDISPERR0(3 downto 2)          =>      i_rxdisperr_out(0)(3 downto 2),     --//############################### add vicg
 RXDISPERR0(1 downto 0)          =>      i_rxdisperr_out(0)(1 downto 0),     --//############################### add vicg
 RXDISPERR1(3 downto 2)          =>      i_rxdisperr_out(1)(3 downto 2),     --//############################### add vicg
@@ -706,8 +728,8 @@ RXPRBSERR1                      =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
 RXDATA0                         =>      i_rxdata_out(0),                --//############################### add vicg
 RXDATA1                         =>      i_rxdata_out(1),                --//############################### add vicg
-RXDATAWIDTH0                    =>      C_GTP_DATAWIDTH,                --//############################### add vicg
-RXDATAWIDTH1                    =>      C_GTP_DATAWIDTH,                --//############################### add vicg
+RXDATAWIDTH0                    =>      CI_GT_DATAWIDTH,                --//############################### add vicg
+RXDATAWIDTH1                    =>      CI_GT_DATAWIDTH,                --//############################### add vicg
 RXRECCLK0                       =>      open,                           --//############################### add vicg
 RXRECCLK1                       =>      open,                           --//############################### add vicg
 RXRESET0                        =>      i_rxreset_in(0),                --//############################### add vicg
@@ -785,8 +807,8 @@ TXCHARISK0(3 downto 2)          =>      i_txcharisk_in(0)(3 downto 2),  --//####
 TXCHARISK0(1 downto 0)          =>      i_txcharisk_in(0)(1 downto 0),  --//############################### add vicg
 TXCHARISK1(3 downto 2)          =>      i_txcharisk_in(1)(3 downto 2),  --//############################### add vicg
 TXCHARISK1(1 downto 0)          =>      i_txcharisk_in(1)(1 downto 0),  --//############################### add vicg
-TXENC8B10BUSE0                  =>      '1',
-TXENC8B10BUSE1                  =>      '1',
+TXENC8B10BUSE0                  =>      CI_8B10BUSE,
+TXENC8B10BUSE1                  =>      CI_8B10BUSE,
 TXKERR0                         =>      open,
 TXKERR1                         =>      open,
 TXRUNDISP0                      =>      open,
@@ -801,8 +823,8 @@ TXPMASETPHASE1                  =>      '0',
 ------------------ Transmit Ports - TX Data Path interface -----------------
 TXDATA0                         =>      i_txdata_in(0)(31 downto 0),  --//############################### add vicg
 TXDATA1                         =>      i_txdata_in(1)(31 downto 0),  --//############################### add vicg
-TXDATAWIDTH0                    =>      C_GTP_DATAWIDTH,              --//############################### add vicg
-TXDATAWIDTH1                    =>      C_GTP_DATAWIDTH,              --//############################### add vicg
+TXDATAWIDTH0                    =>      CI_GT_DATAWIDTH,              --//############################### add vicg
+TXDATAWIDTH1                    =>      CI_GT_DATAWIDTH,              --//############################### add vicg
 TXOUTCLK0                       =>      open,                         --//############################### add vicg
 TXOUTCLK1                       =>      open,                         --//############################### add vicg
 TXRESET0                        =>      i_txreset_in(0),              --//############################### add vicg
