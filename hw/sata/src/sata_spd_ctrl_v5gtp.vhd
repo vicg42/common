@@ -9,18 +9,17 @@
 --      1. Задание типа спецификации SATA(Gen1,Gen2) на которой будет производиться установка связи
 --      2. Сброс модулей управления SATA соотв. канала DUAL_GTP перед попыткой установления связи.
 --
---адреса и значения атрибутов PLL модуля GTP
---которые необходи изменить для установки соединения на скоростях 1.5Gb/s или 3Gb/s
---Attribute               DRP Address     Value for           Value for
---                                        SATA Gen1           SATA Gen2
---                                        (1.5Gb/s)           (3Gb/s)
---GTP_0
---PLL_RXDIVSEL_OUT_0[0]   0X46[2]          1                    0
---PLL_TXDIVSEL_OUT_0[0]   0X45[15]         1                    0
---GTP_1
---PLL_RXDIVSEL_OUT_1[0]   0X0A[0]          1                    0
---PLL_TXDIVSEL_OUT_1[0]   0X05[4]          1                    0
---
+-- адреса/значения атрибутов PLL модуля GT
+-- -----------------------------------------------------------------
+--| GTCH |     Attribute      | DRP | DRP   | Value for | Value for |
+--|      |                    | Adr | bits  | SATA-I    | SATA-II   |
+--|-----------------------------------------------------------------
+--| CH0  | PLL_RXDIVSEL_OUT_0 | x46 |  2    |     1     |     0     |
+--|      | PLL_TXDIVSEL_OUT_0 | x45 |  15   |     1     |     0     |
+--|-----------------------------------------------------------------
+--| CH1  | PLL_RXDIVSEL_OUT_1 | x0A |  0    |     1     |     0     |
+--|      | PLL_TXDIVSEL_OUT_1 | x05 |  4    |     1     |     0     |
+-- -----------------------------------------------------------------
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -110,7 +109,7 @@ constant C_AREG_PLL_TXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CO
 constant C_AREG_PLL_RXDIVSEL_OUT_0: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#46#, p_out_gt_drpaddr'length);--//Канал 0
 constant C_AREG_PLL_RXDIVSEL_OUT_1: std_logic_vector(p_out_gt_drpaddr'range):=CONV_STD_LOGIC_VECTOR(16#0A#, p_out_gt_drpaddr'length);--//Канал 1
 
-type TBusADRP_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (p_out_gt_drpaddr'range);
+type TBusADRP_GTCH is array (0 to 1) of std_logic_vector (p_out_gt_drpaddr'range);
 
 constant C_AREG_PLL_TXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_TXDIVSEL_OUT_0,C_AREG_PLL_TXDIVSEL_OUT_1);
 constant C_AREG_PLL_RXDIVSEL_OUT  : TBusADRP_GTCH:=(C_AREG_PLL_RXDIVSEL_OUT_0,C_AREG_PLL_RXDIVSEL_OUT_1);
@@ -131,9 +130,9 @@ S_IDLE,
 S_IDLE_INIT,
 S_IDLE_INIT_DONE,
 
-----//-------------------------------------------
-----//Перестройка частоты тактирования GTP
-----//-------------------------------------------
+-----------------------------------------------
+----Перестройка частоты тактирования GTP
+-----------------------------------------------
 --S_DRP_READ,
 --S_DRP_READ_DONE,
 --S_DRP_READ_PAUSE,
@@ -143,9 +142,9 @@ S_IDLE_INIT_DONE,
 --S_GTP_RESET_START,
 --S_GTP_RESET_DONE,
 
---//-------------------------------------------
---//Перестройка скорости соединения с SATA устройством
---//-------------------------------------------
+---------------------------------------------
+--Перестройка скорости соединения с SATA устройством
+---------------------------------------------
 S_CH0_CHECK_LINK,
 S_CH0_READ,
 S_CH0_READ_DONE,
@@ -579,24 +578,26 @@ begin
         if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
           i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH0);
 
-          i_gt_drpdi(1 downto 0)<=i_gt_drp_rdval(1 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
               i_gt_drpdi(2)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
+          i_gt_drpdi(1 downto 0) <=i_gt_drp_rdval(1 downto 0);
+--          i_gt_drpdi(2)          <=i_gt_drp_rdval(2);
           i_gt_drpdi(15 downto 3)<=i_gt_drp_rdval(15 downto 3);
 
         else
           i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH0);
 
-          i_gt_drpdi(14 downto 0)<=i_gt_drp_rdval(14 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
               i_gt_drpdi(15)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
         end if;
+        i_gt_drpdi(14 downto 0)<=i_gt_drp_rdval(14 downto 0);
+--        i_gt_drpdi(15)         <=i_gt_drp_rdval(15);
 
         i_gt_drpen<='1';
         i_gt_drpwe<='1';
@@ -697,18 +698,21 @@ begin
               i_gt_drpdi(0)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
+--          i_gt_drpdi(0)          <=i_gt_drp_rdval(0);
           i_gt_drpdi(15 downto 1)<=i_gt_drp_rdval(15 downto 1);
 
         else
           i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH1);
 
-          i_gt_drpdi(3 downto 0)<=i_gt_drp_rdval(3 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
               i_gt_drpdi(4)<=C_VAL_PLL_DIVSEL_OUT(i);
             end if;
           end loop;
+          i_gt_drpdi(3 downto 0) <=i_gt_drp_rdval(3 downto 0);
+--          i_gt_drpdi(4)          <=i_gt_drp_rdval(4);
           i_gt_drpdi(15 downto 5)<=i_gt_drp_rdval(15 downto 5);
+
         end if;
 
         i_gt_drpen<='1';
