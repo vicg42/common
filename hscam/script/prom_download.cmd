@@ -5,12 +5,12 @@ setAttribute -configdevice -attr multiboot -value "FALSE"
 addPromDevice -p 1 -name xcf32p
 addDesign -version 0 -name 0
 addDeviceChain -index 0
-addDevice -p 1 -file D:\Work\Linkos\veresk_m\hscam\firmware\simple_test.bit
-generate -format mcs -fillvalue FF -output D:\Work\Linkos\veresk_m\hscam\firmware\simple_test.mcs
+addDevice -p 1 -file D:\Work\Linkos\veresk_m\hscam\firmware\hdd_test_main.bit
+generate -format mcs -fillvalue FF -output D:\Work\Linkos\veresk_m\hscam\firmware\hdd_test_main.mcs
 setMode -bs
 setCable -port auto
 identify
-assignFile -p 1 -file D:\Work\Linkos\veresk_m\hscam\firmware\simple_test.mcs
+assignFile -p 1 -file D:\Work\Linkos\veresk_m\hscam\firmware\hdd_test_main.mcs
 setAttribute -position 1 -attr readnextdevice -value "(null)"
 Program -p 1 -e
 quit
