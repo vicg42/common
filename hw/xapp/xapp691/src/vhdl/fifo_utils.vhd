@@ -1,20 +1,20 @@
 -------------------------------------------------------------------------------
---                                                                       
+--
 --  Module      : fifo_utils.vhd
 --
 --  Version     : 1.2
 --
 --  Last Update : 2005-06-29
---    
+--
 --  Project     : Parameterizable LocalLink FIFO
 --
 --  Description : Utility package created for LocalLink FIFO Design
---                                                                      
+--
 --  Designer    : Wen Ying Wei, Davy Huang
---                                            
---  Company     : Xilinx, Inc.                
---                                            
---  Disclaimer  : XILINX IS PROVIDING THIS DESIGN, CODE, OR    
+--
+--  Company     : Xilinx, Inc.
+--
+--  Disclaimer  : XILINX IS PROVIDING THIS DESIGN, CODE, OR
 --                INFORMATION "AS IS" SOLELY FOR USE IN DEVELOPING
 --                PROGRAMS AND SOLUTIONS FOR XILINX DEVICES.  BY
 --                PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
@@ -31,10 +31,10 @@
 --                FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES
 --                OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
 --                PURPOSE.
---                
+--
 --                (c) Copyright 2005 Xilinx, Inc.
 --                All rights reserved.
---                                            
+--
 -------------------------------------------------------------------------------
 
 
@@ -50,7 +50,7 @@ package fifo_u is
 
 -- data type conversion functions
 function to_character (bv : bit_vector(3 downto 0)) return character;
-function conv_ascii_logic_vector(nib:std_logic_vector(3 downto 0)) 
+function conv_ascii_logic_vector(nib:std_logic_vector(3 downto 0))
                                         return std_logic_vector;
 function to_string (bv : bit_vector) return string;
 function to_string (b : bit) return string;
@@ -66,8 +66,8 @@ function revByteOrder( arg : std_logic_vector) return std_logic_vector;
 
 -- arithmetic
 function log2 (i: natural) return natural;
-function POWER2 (p: integer)  return integer;
-function SQUARE2 (p: integer) return integer;
+function POWER2 (p: in integer)  return integer;
+function SQUARE2 (p: in integer) return integer;
 function maxNat (arg1, arg2 : natural)          return natural;
 function allZeroes (inp     : std_logic_vector) return boolean;
 function allOnes (inp       : std_logic_vector) return boolean;
@@ -75,12 +75,12 @@ function bin_to_gray ( a : std_logic_vector) return std_logic_vector;
 function gray_to_bin ( a : std_logic_vector) return std_logic_vector;
 function bit_duplicate (b : std_logic; size : natural) return std_logic_vector;
 
--- FIFO related functions 
-function GET_ADDR_WIDTH (dw : integer)        return integer;
-function GET_ADDR_MAJOR_WIDTH (a ,b : integer) return integer;
-function GET_ADDR_MINOR_WIDTH (a ,b : integer) return integer;
-function GET_WIDTH (i, a, b, m, RorW : integer) return integer;
-function GET_MAX_WIDTH(a, b: integer) return integer;
+-- FIFO related functions
+function GET_ADDR_WIDTH (dw : in integer)        return integer;
+function GET_ADDR_MAJOR_WIDTH (a ,b : in integer) return integer;
+function GET_ADDR_MINOR_WIDTH (a ,b : in integer) return integer;
+function GET_WIDTH (i, a, b, m, RorW : in integer) return integer;
+function GET_MAX_WIDTH(a, b: in integer) return integer;
 function GET_CTRL_WIDTH(ra,wa,rb,wb:integer) return integer;
 function GET_HIGH_VALUE(ra,wa: integer) return integer;
 function GET_ADDR_FULL_B(ra, wa, RorW: integer) return integer;
@@ -89,7 +89,7 @@ function GET_REM_WIDTH(a: integer) return integer;
 function GET_PAR_WIDTH(a: integer) return integer;
 function GET_EOF_REM_WIDTH(ra, wa: integer) return integer;
 function GET_RATIO(ra, wa, par: integer) return integer;
- 
+
 function GET_WR_SOF_EOF_WIDTH(ra, wa : integer) return integer;
 function GET_RD_SOF_EOF_WIDTH(ra, wa : integer) return integer;
 function GET_WR_CTRL_REM_WIDTH(ra, wa : integer) return integer;
@@ -146,19 +146,19 @@ package body fifo_u is
             when 'd'    => return "1101";
             when 'e'    => return "1110";
             when 'f'    => return "1111";
-            when others => assert false report "unrecognised character" 
+            when others => assert false report "unrecognised character"
                                                 severity failure;
         end case;
         return "0000";
     end conv_std_logic_vector;
-  
+
     -- convert bit to std_logic
     function to_std_logic (b : bit) return std_logic is
     begin
         case b is
             when '0'    => return '0';
             when '1'    => return '1';
-            when others => assert false report "unrecognised bit value" 
+            when others => assert false report "unrecognised bit value"
                         severity failure;
         end case;
         return '0';
@@ -197,8 +197,8 @@ package body fifo_u is
             when b"1111" => return 'f';
         end case;
     end to_character;
-    
-    function conv_ascii_logic_vector (nib : std_logic_vector(3 downto 0)) 
+
+    function conv_ascii_logic_vector (nib : std_logic_vector(3 downto 0))
                         return std_logic_vector is
     begin
         case nib is
@@ -241,7 +241,7 @@ package body fifo_u is
         case b is
             when '0'    => return "0";
             when '1'    => return "1";
-            when others => assert false report "unrecognised bit value" 
+            when others => assert false report "unrecognised bit value"
                                         severity failure;
         end case;
         return "0";
@@ -409,7 +409,7 @@ package body fifo_u is
         end loop;
         return b;
     end function;
-    
+
     -- conver gray code to binary code
     function gray_to_bin ( a : std_logic_vector) return std_logic_vector is
         variable b : std_logic_vector(a'range);
@@ -417,7 +417,7 @@ package body fifo_u is
         for i in a'range loop
             if i = a'left then
                 b(i) := a(i);
-            else 
+            else
                 b(i) := a(i) xor b(i+1);
             end if;
         end loop;
@@ -467,8 +467,8 @@ package body fifo_u is
                          -- Then A's addr width is longer than B's addr width
                          -- The Major & Minor Addrs are positive. The minor addr is equal to
                          -- the differential value between A & B's address width
-            if b > 32 then 
-                if b = 64 then 
+            if b > 32 then
+                if b = 64 then
                     result := GET_ADDR_WIDTH(a)+1 - GET_ADDR_WIDTH(b);
                 elsif b = 128 then
                     if a = 64 then
@@ -476,22 +476,22 @@ package body fifo_u is
                     else
                         result := GET_ADDR_WIDTH(a)+2 - GET_ADDR_WIDTH(b);
                     end if;
-                end if;  
-            else 
+                end if;
+            else
                 result := GET_ADDR_WIDTH(a) - GET_ADDR_WIDTH(b);
             end if;
         elsif a > b then           -- otherwise, invert the result
                          -- It may be zero which means no minor address exsits.
             if a > 32 then
                 if a = 64 then
-                    result := GET_ADDR_WIDTH(b)+1 - GET_ADDR_WIDTH(a); 
+                    result := GET_ADDR_WIDTH(b)+1 - GET_ADDR_WIDTH(a);
                 elsif a = 128 then
-                    if b = 64 then 
-                        result := GET_ADDR_WIDTH(b)+1 - GET_ADDR_WIDTH(a); 
+                    if b = 64 then
+                        result := GET_ADDR_WIDTH(b)+1 - GET_ADDR_WIDTH(a);
                     else
-                        result := GET_ADDR_WIDTH(b)+2 - GET_ADDR_WIDTH(a); 
+                        result := GET_ADDR_WIDTH(b)+2 - GET_ADDR_WIDTH(a);
                     end if;
-                end if;   
+                end if;
             else
                 result := GET_ADDR_WIDTH(b) - GET_ADDR_WIDTH(a);
             end if;
@@ -501,35 +501,35 @@ package body fifo_u is
         return result;
     end function GET_ADDR_MINOR_WIDTH;
 
-      
+
     function GET_WIDTH (i, a, b, m, RorW : in integer) return integer is
     -- m: 1 get major address width; 2 get minor address width
     -- RorW: 0 : Rd  1: Wr
     -- a:  Rd data width ; b: Wr data width
         variable result : integer;
-    begin                               
+    begin
         if a < b then
-            if m = 1 then               
+            if m = 1 then
                result := i;
-            elsif m = 2 then            
+            elsif m = 2 then
                 if RorW = 0 then
                     result := SQUARE2(b) - SQUARE2(a);
-                else 
+                else
                     result := 1;
                 end if;
             end if;
         else                      -- Rd > Wr
-            if m = 1 then                       
-                result := i;  
-            elsif m = 2 then                    
-                if RorW = 0 then  -- 
+            if m = 1 then
+                result := i;
+            elsif m = 2 then
+                if RorW = 0 then  --
                     result := 1;
                 else
                     result := SQUARE2(a) - SQUARE2(b);
                 end if;
             end if;
         end if;
-            
+
         if result = 0 then
             result := result + 1;
             return result;
@@ -537,7 +537,7 @@ package body fifo_u is
             return result;
         end if;
     end function GET_WIDTH;
-     
+
     function GET_MAX_WIDTH(a, b: in integer) return integer is
         variable result: integer;
      begin
@@ -559,13 +559,13 @@ package body fifo_u is
         end if;
         return result;
     end function GET_CTRL_WIDTH;
-     
+
     function GET_HIGH_VALUE(ra,wa: integer) return integer is
         variable result: integer;
     begin
         if (wa > ra) then
             result := wa - ra;
-        else 
+        else
             result := 1;
         end if;
             return result;
@@ -574,7 +574,7 @@ package body fifo_u is
 
     function GET_ADDR_FULL_B(ra, wa, RorW: integer) return integer is
         variable result : integer;
-    begin       
+    begin
         if (ra > wa) then
             if RorW = 0 then
                 result := GET_ADDR_WIDTH(ra);
@@ -585,7 +585,7 @@ package body fifo_u is
                     elsif ra = 128 then
                         if wa = 64 then
                             result := GET_ADDR_WIDTH(wa) + 1;
-                        else 
+                        else
                             result := GET_ADDR_WIDTH(wa) + 2;
                         end if;
                     end if;
@@ -595,7 +595,7 @@ package body fifo_u is
             end if;
         else
             if RorW = 0 then
-                if wa > 36 then 
+                if wa > 36 then
                     if wa = 64 then
                         result := GET_ADDR_WIDTH(ra)+1;
                     elsif wa = 128 then
@@ -606,7 +606,7 @@ package body fifo_u is
                         end if;
                     end if;
                 else
-                    result := GET_ADDR_WIDTH(ra); 
+                    result := GET_ADDR_WIDTH(ra);
                 end if;
             elsif RorW = 1 then
                 result := GET_ADDR_WIDTH(wa);
@@ -614,7 +614,7 @@ package body fifo_u is
         end if;
         return result;
     end function GET_ADDR_FULL_B;
-    
+
     function GET_ADDR_MAJOR_WIDTH(ra, wa, RorW: integer) return integer is
         variable result : integer;
     begin
@@ -622,18 +622,18 @@ package body fifo_u is
             if RorW = 0 then
                 result := GET_ADDR_WIDTH(ra);
             elsif RorW = 1 then
-                if ra > 36 then 
+                if ra > 36 then
                     if ra = 64 then
                         result := GET_ADDR_WIDTH(wa) - GET_ADDR_MINOR_WIDTH (ra, wa) + 1;
                     elsif ra = 128 then
-                        if wa = 64 then 
+                        if wa = 64 then
                             result := GET_ADDR_WIDTH(wa) - GET_ADDR_MINOR_WIDTH (ra, wa) + 1;
                         else
                             result := GET_ADDR_WIDTH(wa) - GET_ADDR_MINOR_WIDTH (ra, wa) + 2;
                         end if;
                     end if;
-                else 
-                    result := GET_ADDR_WIDTH(wa) - GET_ADDR_MINOR_WIDTH (ra, wa);        
+                else
+                    result := GET_ADDR_WIDTH(wa) - GET_ADDR_MINOR_WIDTH (ra, wa);
                 end if;
             end if;
         elsif ra < wa then
@@ -663,7 +663,7 @@ package body fifo_u is
         end if;
         return result;
     end function GET_ADDR_MAJOR_WIDTH;
-     
+
     function GET_REM_WIDTH(a: integer) return integer is
         variable result : integer;
     begin
@@ -674,7 +674,7 @@ package body fifo_u is
         end if;
         return result;
     end function GET_REM_WIDTH;
-     
+
     function GET_PAR_WIDTH(a: integer) return integer is
         variable result : integer;
     begin
@@ -688,7 +688,7 @@ package body fifo_u is
         end case;
         return result;
     end function GET_PAR_WIDTH;
-       
+
     function GET_EOF_REM_WIDTH(ra, wa: integer) return integer is
         variable result : integer;
     begin
@@ -699,14 +699,14 @@ package body fifo_u is
         end if;
         return result;
     end function GET_EOF_REM_WIDTH;
-   
+
     function GET_RATIO(ra, wa, par: integer) return integer is
         variable result : integer;
     begin
         result := (par * ra) / wa;
         return result;
-    end function GET_RATIO;   
-       
+    end function GET_RATIO;
+
     function GET_WR_SOF_EOF_WIDTH(ra, wa : integer) return integer is
         variable result : integer;
     begin
@@ -715,50 +715,50 @@ package body fifo_u is
                 when 8 => result := 2;
                 when 16 => result := 2;
                 when 32 => result := 2;
-                when 64 => result := 2;  
-                when 128 => result := 2; 
+                when 64 => result := 2;
+                when 128 => result := 2;
                 when others => NULL;
             end case;
         elsif wa = 16 then
             case ra is
                 when 8 => result := 4;
-                when 16 => result := 2;  
-                when 32 => result := 2;  
-                when 64 => result := 2;  
+                when 16 => result := 2;
+                when 32 => result := 2;
+                when 64 => result := 2;
                 when 128 => result := 2;
-                when others => NULL;     
+                when others => NULL;
             end case;
         elsif wa = 32 then
             case ra is
-                when 8 => result := 8;   
-                when 16 => result := 4;  
-                when 32 => result := 4;  
-                when 64 => result := 4;  
-                when 128 => result := 2; 
-                when others => NULL;     
+                when 8 => result := 8;
+                when 16 => result := 4;
+                when 32 => result := 4;
+                when 64 => result := 4;
+                when 128 => result := 2;
+                when others => NULL;
             end case;
         elsif wa = 64 then
             case ra is
-                when 8 => result := 16;  
-                when 16 => result := 8;  
-                when 32 => result := 8;  
-                when 64 => result := 8;  
+                when 8 => result := 16;
+                when 16 => result := 8;
+                when 32 => result := 8;
+                when 64 => result := 8;
                 when 128 => result := 8;
-                when others => NULL;  
+                when others => NULL;
             end case;
         elsif wa = 128 then
             case ra is
-                when 8 => result := 32; 
-                when 16 => result := 32; 
+                when 8 => result := 32;
+                when 16 => result := 32;
                 when 32 => result := 8;
                 when 64 => result := 16;
                 when 128 => result := 16;
-                when others => NULL; 
+                when others => NULL;
             end case;
-        end if;          
+        end if;
         return result;
     end function GET_WR_SOF_EOF_WIDTH;
-    
+
     function GET_RD_SOF_EOF_WIDTH(ra, wa : integer) return integer is
         variable result : integer;
     begin
@@ -767,45 +767,45 @@ package body fifo_u is
                 when 8 => result := 2;
                 when 16 => result := 2;
                 when 32 => result := 2;
-                when 64 => result := 2; 
+                when 64 => result := 2;
                 when 128 => result := 2;
                 when others => NULL;
             end case;
         elsif wa = 16 then
             case ra is
                 when 8 => result := 2;
-                when 16 => result := 2; 
-                when 32 => result := 4; 
-                when 64 => result := 8; 
+                when 16 => result := 2;
+                when 32 => result := 4;
+                when 64 => result := 8;
                 when 128 => result := 2;
-                when others => NULL;    
+                when others => NULL;
             end case;
         elsif wa = 32 then
             case ra is
-                when 8 => result := 2;  
-                when 16 => result := 2; 
-                when 32 => result := 4; 
-                when 64 => result := 8; 
+                when 8 => result := 2;
+                when 16 => result := 2;
+                when 32 => result := 4;
+                when 64 => result := 8;
                 when 128 => result := 8;
-                when others => NULL;     
+                when others => NULL;
             end case;
         elsif wa = 64 then
             case ra is
-                when 8 => result := 2;   
-                when 16 => result := 2;  
-                when 32 => result := 4;  
-                when 64 => result := 8;  
+                when 8 => result := 2;
+                when 16 => result := 2;
+                when 32 => result := 4;
+                when 64 => result := 8;
                 when 128 => result := 16;
-                when others => NULL;  
+                when others => NULL;
             end case;
         elsif wa = 128 then
             case ra is
-                when 8 => result := 2; 
+                when 8 => result := 2;
                 when 16 => result := 2;
                 when 32 => result := 2;
                 when 64 => result := 2;
-                when 128 => result := 16; 
-                when others => NULL;       
+                when 128 => result := 16;
+                when others => NULL;
             end case;
         end if;
         return result;
@@ -817,29 +817,29 @@ package body fifo_u is
         if wa = 8 then
             case ra is
                 when 8 => result := 1;
-                when 16 => result := 2; 
+                when 16 => result := 2;
                 when 32 => result := 1;
-                when 64 => result := 3; 
+                when 64 => result := 3;
                 when 128 => result := 4;
                 when others => NULL;
             end case;
         elsif wa = 16 then
             case ra is
-                when 8 => result := 2;  
-                when 16 => result := 1; 
-                when 32 => result := 2; 
-                when 64 => result := 4; 
+                when 8 => result := 2;
+                when 16 => result := 1;
+                when 32 => result := 2;
+                when 64 => result := 4;
                 when 128 => result := 4;
-                when others => NULL;      
+                when others => NULL;
             end case;
         elsif wa = 32 then
             case ra is
                 when 8 => result := 2;
-                when 16 => result := 2;  
+                when 16 => result := 2;
                 when 32 => result := 2;
                 when 64 => result := 4;
                 when 128 => result := 4;
-                when others => NULL;     
+                when others => NULL;
             end case;
         elsif wa = 64 then
             case ra is
@@ -848,50 +848,50 @@ package body fifo_u is
                 when 32 => result := 4;
                 when 64 => result := 2;
                 when 128 => result := 2;
-                when others => NULL;  
+                when others => NULL;
             end case;
         elsif wa = 128 then
             case ra is
                 when 8 => result := 16;
                 when 16 => result := 8;
-                when 32 => result := 16;  
+                when 32 => result := 16;
                 when 64 => result := 2;
                 when 128 => result := 2;
-                when others => NULL;       
+                when others => NULL;
             end case;
         end if;
         return result;
     end function GET_WR_CTRL_REM_WIDTH;
-           
+
     function GET_RD_CTRL_REM_WIDTH(ra, wa : integer) return integer is
         variable result : integer;
     begin
         if wa = 8 then
             case ra is
                 when 8 => result := 1;
-                when 16 => result := 2;  
+                when 16 => result := 2;
                 when 32 => result := 4;
-                when 64 => result := 3; 
+                when 64 => result := 3;
                 when 128 => result := 4;
                 when others => NULL;
             end case;
         elsif wa = 16 then
             case ra is
-                when 8 => result := 4;  
-                when 16 => result := 1; 
-                when 32 => result := 2; 
-                when 64 => result := 4; 
+                when 8 => result := 4;
+                when 16 => result := 1;
+                when 32 => result := 2;
+                when 64 => result := 4;
                 when 128 => result := 4;
-                when others => NULL;      
+                when others => NULL;
             end case;
         elsif wa = 32 then
             case ra is
                 when 8 => result := 2;
-                when 16 => result := 1;  
+                when 16 => result := 1;
                 when 32 => result := 2;
                 when 64 => result := 4;
                 when 128 => result := 16;
-                when others => NULL;     
+                when others => NULL;
             end case;
         elsif wa = 64 then
             case ra is
@@ -900,30 +900,30 @@ package body fifo_u is
                 when 32 => result := 4;
                 when 64 => result := 2;
                 when 128 => result := 2;
-                when others => NULL;  
+                when others => NULL;
             end case;
         elsif wa = 128 then
             case ra is
                 when 8 => result := 16;
                 when 16 => result := 1;
-                when 32 => result := 4; 
+                when 32 => result := 4;
                 when 64 => result := 3;
                 when 128 => result := 2;
-                when others => NULL;       
+                when others => NULL;
             end case;
         end if;
         return result;
     end function GET_RD_CTRL_REM_WIDTH;
-    
-    
+
+
     function GET_C_WR_ADDR_WIDTH(ra, wa, mem_num: integer) return integer is
         variable result : integer;
     begin
         if wa = 8 then
             case ra is
-                when 8 => 
+                when 8 =>
                     if mem_num < 8 then
-                        result := 13;  
+                        result := 13;
                     elsif mem_num = 8 then
                         result := 14;
                     elsif mem_num = 16 then
@@ -933,9 +933,9 @@ package body fifo_u is
                     end if;
                 when 16 => result := 13;
                 when 32 => result := 13;
-            when 64 => 
-                if mem_num <= 4 then   
-                    result := 11;  
+            when 64 =>
+                if mem_num <= 4 then
+                    result := 11;
                 elsif mem_num = 8 then
                     result := 12;
                 elsif mem_num = 16 then
@@ -949,34 +949,34 @@ package body fifo_u is
         elsif wa = 16 then
             case ra is
                 when 8 => result := 12;
-                when 16 => result := 14;  
+                when 16 => result := 14;
                 when 32 => result := 13;
-                when 64 => 
-                    if mem_num <= 8 then 
-                        result := 12;  
-                    else 
+                when 64 =>
+                    if mem_num <= 8 then
+                        result := 12;
+                    else
                         result := 13;
                     end if;
                 when 128 => result := 11;
-                when others => NULL;      
+                when others => NULL;
             end case;
         elsif wa = 32 then
             case ra is
-                when 8 => result := 13;  
-                when 16 => result := 13;  
+                when 8 => result := 13;
+                when 16 => result := 13;
                 when 32 => result := 12;
-                when 64 => 
+                when 64 =>
                     if mem_num <= 8 then
-                        result := 12;  
+                        result := 12;
                     else
                         result := 13;
-                    end if;           
-                when 128 => result := 13;   
-                when others => NULL;        
-            end case;   
-        elsif wa = 64 then   
-            case ra is   
-                when 8 => 
+                    end if;
+                when 128 => result := 13;
+                when others => NULL;
+            end case;
+        elsif wa = 64 then
+            case ra is
+                when 8 =>
                     if mem_num <= 2 then
                         result := 10;
                     elsif mem_num = 4 then
@@ -988,55 +988,55 @@ package body fifo_u is
                     else
                         result := 14;
                     end if;
-                when 16 => 
+                when 16 =>
                     if mem_num <= 8 then
-                        result := 12;  
+                        result := 12;
                     else
                         result := 13;
                     end if;
-                when 32 => result := 12;  
-                when 64 => result := 2;  
-                when 128 => result := 2;   
-                when others => NULL;     
-            end case;   
-        elsif wa = 128 then   
-            case ra is   
-                when 8 => result := 10; 
-                when 16 => result := 8; 
-                when 32 => result := 11; 
-                when 64 => result := 2;   
-                when 128 => result := 2;   
-                when others => NULL;          
-            end case;   
-        end if;   
-        return result;  
+                when 32 => result := 12;
+                when 64 => result := 2;
+                when 128 => result := 2;
+                when others => NULL;
+            end case;
+        elsif wa = 128 then
+            case ra is
+                when 8 => result := 10;
+                when 16 => result := 8;
+                when 32 => result := 11;
+                when 64 => result := 2;
+                when 128 => result := 2;
+                when others => NULL;
+            end case;
+        end if;
+        return result;
     end function GET_C_WR_ADDR_WIDTH;
-    
-    
+
+
     function GET_C_RD_ADDR_WIDTH(ra, wa, mem_num: integer) return integer is
         variable result : integer;
     begin
         if wa = 8 then
             case ra is
-                when 8 => 
+                when 8 =>
                     if mem_num < 8 then
-                        result := 13;  
+                        result := 13;
                     elsif mem_num = 8 then
                         result := 14;
                     elsif mem_num = 16 then
                         result := 15;
-                    else 
+                    else
                         result := 16;
                     end if;
                 when 16 => result := 13;
                 when 32 => result := 13;
-                when 64 => 
+                when 64 =>
                     if mem_num <= 4 then
                         result := 11;
                     elsif mem_num = 8 then
                         result := 12;
                     elsif mem_num = 16 then
-                        result := 13;  
+                        result := 13;
                     else
                         result := 14;
                     end if;
@@ -1046,30 +1046,30 @@ package body fifo_u is
         elsif wa = 16 then
             case ra is
                 when 8 => result := 13;
-                when 16 => result := 14; 
+                when 16 => result := 14;
                 when 32 => result := 13;
-                when 64 => 
-                    if mem_num <= 8 then 
-                        result := 12;  
-                    else 
+                when 64 =>
+                    if mem_num <= 8 then
+                        result := 12;
+                    else
                         result := 13;
                     end if;
                 when 128 => result := 11;
-                when others => NULL;      
+                when others => NULL;
             end case;
         elsif wa = 32 then
             case ra is
-                when 8 => result := 13; 
+                when 8 => result := 13;
                 when 16 => result := 14;
                 when 32 => result := 12;
-                when 64 => 
+                when 64 =>
                     if mem_num <= 8 then
-                        result := 12; 
+                        result := 12;
                     else
                         result := 13;
-                    end if;         
+                    end if;
                 when 128 => result := 13;
-                when others => NULL;     
+                when others => NULL;
             end case;
         elsif wa = 64 then
             case ra is
@@ -1083,49 +1083,49 @@ package body fifo_u is
                     elsif mem_num = 16 then
                         result := 16;
                     else
-                        result := 17; 
+                        result := 17;
                     end if;
-                when 16 => 
+                when 16 =>
                     if mem_num <= 8 then
-                        result := 14; 
+                        result := 14;
                     else
                         result := 15;
                     end if;
-                when 32 => result := 12;  
-                when 64 => result := 2;  
+                when 32 => result := 12;
+                when 64 => result := 2;
                 when 128 => result := 2;
-                when others => NULL;  
+                when others => NULL;
             end case;
         elsif wa = 128 then
             case ra is
                 when 8 => result := 13;
                 when 16 => result := 8;
-                when 32 => result := 13;  
+                when 32 => result := 13;
                 when 64 => result := 2;
                 when 128 => result := 2;
-                when others => NULL;       
+                when others => NULL;
             end case;
         end if;
         return result;
     end function GET_C_RD_ADDR_WIDTH;
-    
+
     function GET_C_RD_TEMP_WIDTH(ra, wa: integer) return integer is
         variable result : integer;
     begin
         if wa = 8 then
             case ra is
-                when 64 => result := 8; 
+                when 64 => result := 8;
                 when 128 => result := 8;
-                when others => result := 8;      
+                when others => result := 8;
             end case;
         elsif wa = 16 then
             case ra is
                 when 64 => result := 8;
-                when 128 => result := 8;  
-                when others => result := 8;       
+                when 128 => result := 8;
+                when others => result := 8;
             end case;
         elsif wa = 32 then
-            case ra is 
+            case ra is
                 when 8 => result := 8;
                 when 16 => result := 8;
                 when 32 => result := 8;
@@ -1142,15 +1142,15 @@ package body fifo_u is
             case ra is
                 when 16 => result := 4;
                 when 64 => result := 8;
-                when others => result := 8;      
+                when others => result := 8;
             end case;
         else
             result := 8;
         end if;
         return result;
     end function GET_C_RD_TEMP_WIDTH;
-    
-    
+
+
     function GET_C_WR_TEMP_WIDTH(ra, wa: integer) return integer is
         variable result : integer;
     begin
@@ -1158,16 +1158,16 @@ package body fifo_u is
             case ra is
                 when 64 => result := 8;
                 when 128 => result := 8;
-                when others => result := 8;      
+                when others => result := 8;
             end case;
         elsif wa = 16 then
             case ra is
                 when 64 => result := 8;
                 when 128 => result := 8;
-                when others => result := 8;       
+                when others => result := 8;
             end case;
         elsif wa = 32 then
-            case ra is 
+            case ra is
                 when 8 => result := 8;
                 when 16 => result := 8;
                 when 32 => result := 8;
@@ -1183,21 +1183,21 @@ package body fifo_u is
             case ra is
                 when 16 => result := 32;
                 when 64 => result := 16;
-                when others => result := 8;       
+                when others => result := 8;
             end case;
         else
             result := 8;
         end if;
         return result;
     end function GET_C_WR_TEMP_WIDTH;
-    
+
     function GET_WR_PAD_WIDTH(rd, wd, c_wa, waf, wa: integer) return integer is
         variable result: integer;
     begin
         if rd> wd then
-            if c_wa - wa >= 0 then 
+            if c_wa - wa >= 0 then
                 result := c_wa - wa;
-            else 
+            else
                 result := 0;
             end if;
         else
@@ -1209,13 +1209,13 @@ package body fifo_u is
         end if;
         return result;
     end function GET_WR_PAD_WIDTH;
-     
+
     function GET_RD_PAD_WIDTH(da, db: integer) return integer is
         variable result : integer;
     begin
         if da-db >= 0 then
             result := da - db;
-        else 
+        else
             result := 0;
         end if;
         return result;
@@ -1228,15 +1228,15 @@ package body fifo_u is
             case ra is
                 when 16 => result := 8;
                 when 64 => result := 2;
-                when others => result := 1;      
+                when others => result := 1;
             end case;
         elsif wa = 16 then
-            case ra is 
+            case ra is
                 when 8 => result := 4;
                 when others => result := 1;
             end case;
         elsif wa = 32 then
-            case ra is 
+            case ra is
                 when 8 => result := 4;
                 when others => result := 1;
             end case;
@@ -1261,7 +1261,7 @@ package body fifo_u is
         end if;
         return result;
     end function GET_WR_EN_FACTOR;
-     
+
     function GET_RDDWdivWRDW(RD_DWIDTH, WR_DWIDTH : integer) return integer is
         variable result : integer;
     begin
@@ -1283,6 +1283,5 @@ package body fifo_u is
         end if;
         return result;
     end function GET_WRDW_div_RDDW;
-     
+
 end fifo_u;
-   
