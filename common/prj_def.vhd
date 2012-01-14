@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0339#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#033A#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -82,7 +82,7 @@ constant C_HREG_DEV_CTRL_VCH_L_BIT            : integer:=23;--//Номер видео кана
 constant C_HREG_DEV_CTRL_VCH_M_BIT            : integer:=25;--//
 constant C_HREG_DEV_CTRL_LAST_BIT             : integer:=C_HREG_DEV_CTRL_VCH_M_BIT;--//Max 31
 
---//Поле C_HREG_DEV_CTRL_ADR - Номера пользовательского устройств:
+--//Поле C_HREG_DEV_CTRL_ADR - Номера пользовательских устройств:
 constant C_HDEV_CFG_DBUF                      : integer:=0;--//Буфера RX/TX CFG
 constant C_HDEV_ETH_DBUF                      : integer:=1;--//Буфера RX/TX ETH
 constant C_HDEV_MEM_DBUF                      : integer:=2;--//ОЗУ
@@ -229,7 +229,7 @@ constant C_HDEV_OPTOUT_LAST_BIT               : integer:=C_HDEV_OPTOUT_MEM_TRNRD
 --//--------------------------------------------------------------
 --//Модуль конфигурирования (cfgdev.vhd)
 --//--------------------------------------------------------------
---//Адреса устройсв доступных через модуль cfgdev.vhd
+--//Адреса устройств доступных через модуль cfgdev.vhd
 --//Device Address map:
 constant C_CFGDEV_SWT                         : integer:=16#00#;
 constant C_CFGDEV_ETH                         : integer:=16#01#;

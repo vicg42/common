@@ -795,7 +795,7 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 m_vctrl : dsn_video_ctrl
 generic map(
-G_ROTATE => "OFF",
+G_ROTATE => C_PCFG_VCTRL_ROTATE,--"OFF",
 G_ROTATE_BUF_COUNT => 16,
 G_SIMPLE => C_PCFG_VCTRL_SIMPLE,
 G_SIM    => G_SIM,

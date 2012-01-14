@@ -120,9 +120,10 @@ set _projects [ list \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/vctrl/video_reader.vhd" $_VHDMod ] \
+      [ list "../../../common/vctrl/video_reader_r.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/video_writer.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/vbuf_rotate.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \

@@ -44,6 +44,7 @@ constant C_PCGF_PCIE_LINK_WIDTH        : integer:=4;--При изменении кол-ва линий
 --//cfg VCTRL
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=4; --//max 4
 constant C_PCFG_VCTRL_SIMPLE           : string:="OFF";
+constant C_PCFG_VCTRL_ROTATE           : string:="ON";
 
 --//cfg ETH
 constant C_PCFG_ETH_USE                : string:="ON";
