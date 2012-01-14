@@ -322,6 +322,8 @@ end component;
 
 component dsn_video_ctrl
 generic(
+G_ROTATE : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF";
 G_SIM    : string:="OFF";
 

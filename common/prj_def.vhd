@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0338#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0339#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -458,8 +458,8 @@ constant C_VCTRL_VCH_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_MEM_VCH
 constant C_VCTRL_REG_TST0_DBG_TBUFRD_BIT      : integer:=0;--//Отладка модуля слежения - отображение содержимого RAM/TRACK/TBUF
 constant C_VCTRL_REG_TST0_DBG_EBUFRD_BIT      : integer:=1;--//Отладка модуля слежения - отображение содержимого RAM/TRACK/EBUF
 constant C_VCTRL_REG_TST0_DBG_SOBEL_BIT       : integer:=2;--//1/0 - Отладка модуля собела Выдача Grad/Video
---constant RESERV                               : integer:=3;
---constant RESERV                               : integer:=4;
+constant C_VCTRL_REG_TST0_DBG_ROTRIGHT_BIT    : integer:=3;--Поворот на 90 вправо
+constant C_VCTRL_REG_TST0_DBG_ROTLEFT_BIT     : integer:=4;--Поворот на 90 влево
 constant C_VCTRL_REG_TST0_DBG_DIS_DEMCOLOR_BIT: integer:=5;--//1/0 - Запретить работу модуля vcoldemosaic_main.vhd
 constant C_VCTRL_REG_TST0_DBG_DCOUNT_BIT      : integer:=6;--//1 - Вместо данных строки вставляется счетчик
 constant C_VCTRL_REG_TST0_DBG_PICTURE_BIT     : integer:=7;--//Запрещаю запись видео в ОЗУ + запрещаю инкрементацию счетчика vbuf,

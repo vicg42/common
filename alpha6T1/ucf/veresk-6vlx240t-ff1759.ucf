@@ -65,8 +65,12 @@ TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0 ns HIGH 50%;
 #--------------------------
 #---- 1000BASE-X (FIBER)
 #--------------------------
+#Плата - OptoSATA
 NET "pin_out_sfp_tx_dis"  LOC = "W36"  | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 36 (SFP - TX DISABLE)
 NET "pin_in_sfp_sd"       LOC = "V36"  | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 34 (SFP - SD signal detect)
+##Плата - Opto
+#NET "pin_out_sfp_tx_dis"  LOC = "AD41"  | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 123 (SFP - TX DISABLE)
+#NET "pin_in_sfp_sd"       LOC = "AC41"  | IOSTANDARD = "LVCMOS25"; ##Sematec pin: 121 (SFP - SD signal detect)
 
 # MGTREFCLK0_117: Reference Clock from XRM (mgtclk_m2c_p/mgtclk_m2c_n)
 NET "pin_in_ethphy_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
