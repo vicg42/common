@@ -30,7 +30,6 @@ type TSH_04GTCHCount is array (0 to 3) of integer;
 type TSH_08Count is array (0 to 7) of integer;
 type TSH_08CountSel is array (0 to 1) of TSH_08Count;
 
-
 ---------------------------------------------------------
 --User Cfg
 ---------------------------------------------------------
@@ -39,6 +38,7 @@ type TSH_08CountSel is array (0 to 1) of TSH_08Count;
 --//1 - "V5_GTX"
 --//2 - "V6_GTX"
 --//3 - "S6_GTPA"
+constant C_SH_FPGA_TYPE_COUNT: integer:=4;
 constant C_SH_FPGA_TYPE      : integer:=C_PCFG_HDD_FPGA_TYPE;  --0;
 constant C_SH_MAIN_NUM       : integer:=C_PCFG_HDD_SH_MAIN_NUM;--0; --//определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
 
