@@ -43,13 +43,12 @@ architecture behavioral of sata_dcm is
 
 constant C_CLKDV_DIVIDE   : real:=selval_real(4.0, 2.0, cmpval(G_GT_DBUS, 32));
 
---signal i_refclkout    : std_logic;
-
 --signal g_dcm_clkin    : std_logic;
 signal g_dcm_clk0     : std_logic;
 signal i_dcm_clk0     : std_logic;
 signal i_dcm_clk2x    : std_logic;
 signal i_dcm_clkdv    : std_logic;
+signal g_dcm_clkfb    : std_logic;
 
 --//MAIN
 begin
@@ -61,14 +60,11 @@ bufg_refclk    : BUFG port map (I => p_in_clk, O => p_out_refclkout);
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
-
---g_dcm_clk0      <=i_dcm_clk0 ; p_out_dcm_gclk0<=g_dcm_clk0; --
---p_out_dcm_gclk2x<=i_dcm_clk2x;                              --
---p_out_dcm_gclkdv<=i_dcm_clkdv;                              --
+bufg_dcm_clkfb : BUFIO2FB port map (I=>g_dcm_clk0, O=>g_dcm_clkfb);
 
 m_dcm : DCM_SP
 generic map(
-CLKDV_DIVIDE           => C_CLKDV_DIVIDE,--2.0,--
+CLKDV_DIVIDE           => C_CLKDV_DIVIDE,
 CLKFX_DIVIDE           => 1,
 CLKFX_MULTIPLY         => 2,
 CLKIN_DIVIDE_BY_2      => FALSE,  -- разреш./запр. делить CLKIN на 2
@@ -85,7 +81,7 @@ PHASE_SHIFT            => 0,      -- Amount of fixed phase shift from -255 to 10
 STARTUP_WAIT           => FALSE   -- Delay configuration DONE until DCM LOCK, TRUE/FALSE
 )
 port map(
-CLKFB    => g_dcm_clk0,
+CLKFB    => g_dcm_clkfb,
 
 CLK0     => i_dcm_clk0,
 CLK90    => open,
@@ -109,7 +105,7 @@ PSCLK    => '0',
 PSEN     => '0',
 PSINCDEC => '0',
 
-CLKIN    => p_in_clk, --g_dcm_clkin,
+CLKIN    => p_in_clk,
 RST      => p_in_rst
 );
 
