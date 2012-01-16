@@ -4,14 +4,14 @@
 CONFIG PART = XC6SLX100T-FGG676-2;
 
 #Светодиоды
-NET pin_out_led<0>        LOC="H9"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
-NET pin_out_led<1>        LOC="A2"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
+NET pin_out_led<0>        LOC="A2"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
+NET pin_out_led<1>        LOC="H9"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
 NET pin_out_led<2>        LOC="G11"  |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED2
 NET pin_out_led<3>        LOC="J12"  |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED3
 NET pin_out_led<4>        LOC="G10"  |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED4
 NET pin_out_led<5>        LOC="B4"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED5
-NET pin_out_led<6>        LOC="K12"  |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
-NET pin_out_led<7>        LOC="D5"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
+NET pin_out_led<6>        LOC="D5"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
+NET pin_out_led<7>        LOC="K12"  |IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
 NET pin_out_led_C         LOC="G7"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: не используемый контакт
 NET pin_out_led_E         LOC="H8"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: не используемый контакт
 NET pin_out_led_N         LOC="G8"   |IOSTANDARD=LVCMOS33; #Сигнал на схеме: не используемый контакт
