@@ -88,12 +88,12 @@ NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET = "TG_SATA_150MHz";
 NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET=FFS "TG_SATA_FF";
 NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET=HSIOS "TG_SATA_HSIOS";
 TIMEGRP "TG_SATA"="TG_SATA_FF" "TG_SATA_HSIOS";## "TG_BRAM_PORTA" "TG_BRAM_PORTB" "TG_SATA_RAM";
-TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 75 MHz;
+TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 150 MHz;
 
 ##-- SATAH[0]
-#NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_sim_off.m_gt/p_out_rx*" MAXSKEW=3 ns;
-NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_ch[?].m_player/i_cnt_sync*" TNM_NET = "TG_SATAH_SYNC";
-TIMESPEC "TS_SATA_SYNC"= FROM "TG_SATA_150MHz" TO "TG_SATAH_SYNC" 75 MHz;
+###NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_sim_off.m_gt/p_out_rx*" MAXSKEW=3 ns;
+##NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_ch[?].m_player/i_cnt_sync*" TNM_NET = "TG_SATAH_SYNC";
+##TIMESPEC "TS_SATA_SYNC"= FROM "TG_SATA_150MHz" TO "TG_SATAH_SYNC" 150 MHz;
 ##NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_ch[?].m_player/m_phy_rx/sr*" MAXSKEW=3 ns;
 ##NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_ch[?].m_player/m_phy_rx/i_rxd*" MAXSKEW=3 ns;
 ##NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_ch[?].m_llayer/m_crc/i_crc_calc<?>" MAXSKEW=3 ns;
