@@ -366,10 +366,10 @@ CLKRCV_TRST_0               =>     (TRUE),
 OOB_CLK_DIVIDER_0           =>     (6),
 PLL_COM_CFG_0               =>     (x"21680a"),
 PLL_CP_CFG_0                =>     (x"00"),
-PLL_RXDIVSEL_OUT_0          =>     1,                          --Изменил.
+PLL_RXDIVSEL_OUT_0          =>     1,                          --Изменил.(1/2 - SATA-II/I)
 PLL_SATA_0                  =>     FALSE,
 PLL_SOURCE_0                =>     ("PLL0"),
-PLL_TXDIVSEL_OUT_0          =>     1,                          --Изменил.
+PLL_TXDIVSEL_OUT_0          =>     1,                          --Изменил.(1/2 - SATA-II/I)
 PLLLKDET_CFG_0              =>     ("111"),
 
 --
