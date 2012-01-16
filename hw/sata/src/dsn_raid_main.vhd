@@ -216,6 +216,12 @@ signal i_tst_measure_out           : std_logic_vector(31 downto 0);
 signal i_tst_raidctrl_out          : std_logic_vector(31 downto 0);
 signal i_tst_val                   : std_logic:='0';
 
+attribute keep : string;
+attribute keep of g_refclkout: signal is "true";
+attribute keep of g_sh_dcm_clk: signal is "true";
+attribute keep of g_sh_dcm_clk2x: signal is "true";
+attribute keep of g_sh_dcm_clk2div: signal is "true";
+
 
 --MAIN
 begin
@@ -447,7 +453,7 @@ p_out_dbgcs.measure<=i_dbgcs_measure;
 --//#############################################
 i_sh_dcm_rst(C_SH_MAIN_NUM)<=not i_sh_gt_pllkdet(C_SH_MAIN_NUM); --//סבנמס sata_dcm
 
-m_dcm_sata : sata_dcm
+m_dcm : sata_dcm
 generic map(
 G_GT_DBUS => G_GT_DBUS
 )
@@ -702,7 +708,7 @@ p_in_sys_dcm_lock           => i_sh_dcm_lock,
 
 p_out_gt_pllkdet            => i_sh_gt_pllkdet(sh_idx),
 p_out_gt_refclk             => i_sh_gt_refclkout(sh_idx),
-p_in_gt_drpclk              => g_refclkout,
+p_in_gt_drpclk              => g_sh_dcm_clk2div,--g_refclkout,
 p_in_gt_refclk              => p_in_sata_refclk(sh_idx),
 
 p_in_optrefclksel           => i_sh_gt_optrefclksel(sh_idx),
