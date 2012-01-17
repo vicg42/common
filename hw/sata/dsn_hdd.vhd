@@ -215,15 +215,15 @@ signal i_cfg_ram_rd                     : std_logic;
 signal i_cfg_ram_wr                     : std_logic;
 signal i_cfg_ram_din                    : std_logic_vector(31 downto 0);
 
-signal h_reg_ctrl_l                     : std_logic_vector(C_HDD_REG_CTRLL_LAST_BIT downto 0);
-signal h_reg_ctrl_m                     : std_logic_vector(C_HDD_REG_CTRLM_LAST_BIT downto 0);
-signal h_reg_hwstart_dly                : std_logic_vector(15 downto 0);
-signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0);
-signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0);
+signal h_reg_ctrl_l                     : std_logic_vector(C_HDD_REG_CTRLL_LAST_BIT downto 0):=(others=>'0');
+signal h_reg_ctrl_m                     : std_logic_vector(C_HDD_REG_CTRLM_LAST_BIT downto 0):=(others=>'0');
+signal h_reg_hwstart_dly                : std_logic_vector(15 downto 0):=(others=>'0');
+signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0):=(others=>'0');
+signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0):=(others=>'0');
 
-signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range);
-signal i_reg_ctrl_m                     : std_logic_vector(h_reg_ctrl_m'range);
-signal i_reg_hwstart_dly                : std_logic_vector(h_reg_hwstart_dly'range);
+signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range):=(others=>'0');
+signal i_reg_ctrl_m                     : std_logic_vector(h_reg_ctrl_m'range):=(others=>'0');
+signal i_reg_hwstart_dly                : std_logic_vector(h_reg_hwstart_dly'range):=(others=>'0');
 signal i_buf_rst                        : std_logic;
 
 --signal i_hdd_txd                        : std_logic_vector(p_in_hdd_txd'range);
@@ -241,9 +241,6 @@ signal sr_sh_busy                       : std_logic_vector(0 to 1);
 signal i_sh_busy                        : std_logic;
 signal i_sh_done                        : std_logic;
 signal i_sh_atadone_ack                 : std_logic;
-signal i_sh_irq_en                      : std_logic;
-signal i_sh_irq_width                   : std_logic;
-signal i_sh_irq_width_cnt               : std_logic_vector(3 downto 0);
 
 type THDDBufChk_state is (
 S_IDLE,
@@ -488,7 +485,7 @@ i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)<=(
 
 
 --//Формирую значения для регистров C_HDD_REG_STATUS_SATAxx_L/M
-gen_reg_stat : for i in 0 to G_HDD_COUNT-1 generate
+gen_status_ch : for i in 0 to G_HDD_COUNT-1 generate
 
 i_sh_status_ch(i)(0)<=i_sh_status.ch_serror(i)(C_ASERR_I_ERR_BIT);
 
@@ -516,7 +513,13 @@ i_sh_status_ch(i)(27)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1);--//PHY L
 i_sh_status_ch(i)(30 downto 28)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+2 downto C_ASSTAT_SPD_BIT_L);----//PHY Layer: SATA speed negatiation
 i_sh_status_ch(i)(31)<=i_sh_status.ch_sstatus(i)(C_ASSTAT_IPM_BIT_L);--//
 
-end generate gen_reg_stat;
+end generate gen_status_ch;
+
+gen_nomax : if G_HDD_COUNT/=C_HDD_COUNT_MAX generate
+gen_null: for i in G_HDD_COUNT to C_HDD_COUNT_MAX-1 generate
+i_sh_status_ch(i)<=(others=>'0');
+end generate gen_null;
+end generate gen_nomax;
 
 --//Настройка/Управление RAM буфером
 p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
@@ -534,13 +537,13 @@ p_out_rbuf_cfg.ram_wr_i.wr<=i_cfg_ram_wr;
 p_out_rbuf_cfg.ram_wr_i.rd<=i_cfg_ram_rd;
 p_out_rbuf_cfg.ram_wr_i.wr_done<=i_reg_ctrl_m(C_HDD_REG_CTRLM_RAMWR_DONE);
 
-
+p_out_rbuf_cfg.greset<=i_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
 
 --//Статусы модуля
 p_out_hdd_rdy  <=i_sh_status.dev_rdy;
 p_out_hdd_error<=i_sh_status.dev_err;
 p_out_hdd_busy <=i_sh_busy;
-p_out_hdd_irq  <=i_sh_irq_width;
+p_out_hdd_irq  <=not i_sh_busy;--i_sh_irq_width;
 p_out_hdd_done <=i_sh_done;
 
 
@@ -630,12 +633,12 @@ begin
 
           when S_CHEK_BUF =>
             --//Ждем пока из буферов уйдут все данные
-            if (sr_sh_rxbuf_empty(0)='1' and i_sh_txbuf_empty='1') or i_tstgen.tesing_on='1' then
+--            if (sr_sh_rxbuf_empty(0)='1' and i_sh_txbuf_empty='1') or i_tstgen.tesing_on='1' then
               i_sh_atadone_ack<='1';--//Подтверждение завершения АТА команды
               i_sh_done<='1';
 
               fsm_state_cs<= S_CHEK_BUF_DONE;
-            end if;
+--            end if;
 
           when S_WAIT_HW_DONE =>
             if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
@@ -652,37 +655,6 @@ begin
         end case;
 
     end if;
-  end if;
-end process;
-
---//Перерывание:
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_sh_irq_en<='0';
-    i_sh_irq_width<='0';
-    i_sh_irq_width_cnt<=(others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    --//Растягиваем импульcы генерации прерывания
-    if i_sh_irq_en='0' and i_sh_atadone_ack='1' then
-      i_sh_irq_en<='1';
-
-    elsif i_sh_irq_en='1' then
-      if i_sh_atadone_ack='1' then
-        i_sh_irq_width<='1';
-      elsif i_sh_irq_width_cnt(3)='1' then
-        i_sh_irq_width<='0';
-      end if;
-    end if;
-
-    if i_sh_irq_width='0' then
-      i_sh_irq_width_cnt<=(others=>'0');
-    else
-      i_sh_irq_width_cnt<=i_sh_irq_width_cnt+1;
-    end if;
-
   end if;
 end process;
 
@@ -850,15 +822,26 @@ p_in_clk                => p_in_clk,
 p_in_rst                => p_in_rst
 );
 
-gen_dbgled: for i in 0 to C_HDD_COUNT_MAX-1 generate
+gen_hdd: for i in 0 to G_HDD_COUNT-1 generate
 --p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+0); --//Флаг C_PSTAT_DET_DEV_ON_BIT): Уст-во обнаружено
 p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1); --//Флаг C_PSTAT_DET_ESTABLISH_ON_BIT: Уст-во обнаружено + Соединение установлено
-p_out_dbgled(i).rdy<=i_sh_status.ch_rdy(i);--//Флаг C_ASSTAT_IPM_BIT_L: Уст-во обнаружено +  Соединение установлено + сигнатура получена
+p_out_dbgled(i).rdy<=i_sh_status.ch_rdy(i);--//Флаг C_ASSTAT_IPM_BIT_L: Уст-во обнаружено + Соединение установлено + сигнатура получена
 p_out_dbgled(i).err<=i_sh_status.ch_err(i);
 p_out_dbgled(i).busy<=i_sh_status.ch_bsy(i);
 p_out_dbgled(i).spd<=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+1 downto C_ASSTAT_SPD_BIT_L);--//Скорость соединения 1/2/3 - SATA-I/II/III
 p_out_dbgled(i).dly<=i_sh_measure.dly;
-end generate gen_dbgled;
+end generate gen_hdd;
+
+gen_nomax : if G_HDD_COUNT/=C_HDD_COUNT_MAX generate
+gen_null: for i in G_HDD_COUNT to C_HDD_COUNT_MAX-1 generate
+p_out_dbgled(i).link<='0';
+p_out_dbgled(i).rdy<='0';
+p_out_dbgled(i).err<='0';
+p_out_dbgled(i).busy<='0';
+p_out_dbgled(i).spd<=(others=>'0');
+p_out_dbgled(i).dly<='0';
+end generate gen_null;
+end generate gen_nomax;
 
 p_out_sim_gt_txdata        <= i_sh_sim_gt_txdata;
 p_out_sim_gt_txcharisk     <= i_sh_sim_gt_txcharisk;
@@ -909,7 +892,7 @@ p_out_sata_refclkout<=i_sata_gt_refclk(0);
 p_out_sata_gt_plldet<='1';
 p_out_sata_dcm_lock<='1';
 
-gen_satah_null: for i in 0 to C_HDD_COUNT_MAX-1 generate
+gen_null: for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sim_gt_txdata(i)    <=(others=>'0');
 p_out_sim_gt_txcharisk(i) <=(others=>'0');
 p_out_sim_gt_txcomstart(i)<='0';
@@ -932,7 +915,7 @@ p_out_dbgled(i).busy<='0';
 p_out_dbgled(i).spd<=(others=>'0');
 p_out_dbgled(i).dly<='0';
 
-end generate gen_satah_null;
+end generate gen_null;
 
 i_sh_status.dev_bsy<='0';
 i_sh_status.dev_rdy <='0';

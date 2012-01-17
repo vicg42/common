@@ -85,6 +85,7 @@ hwlog   : THWLog;
 usr     : std_logic_vector(31 downto 0);
 usrif   : std_logic;         --//Пользовательский интерфейс
 ram_wr_i: THDDCfgRAMI;
+greset  : std_logic;         --//Глобальный сброс всего кроме CFG
 end record;
 
 
