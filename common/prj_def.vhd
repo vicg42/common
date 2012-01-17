@@ -373,7 +373,8 @@ constant C_HDD_REG_RBUF_LAST_BIT              : integer:=C_HDD_REG_RBUF_ADR_BANK
 
 --//Register C_HDD_REG_CTRL_M / Bit Map:
 constant C_HDD_REG_CTRLM_RAMWR_DONE           : integer:=0;
-constant C_HDD_REG_CTRLM_LAST_BIT             : integer:=C_HDD_REG_CTRLM_RAMWR_DONE;
+constant C_HDD_REG_CTRLM_GRESET               : integer:=1;
+constant C_HDD_REG_CTRLM_LAST_BIT             : integer:=C_HDD_REG_CTRLM_GRESET;
 
 
 
