@@ -441,7 +441,7 @@ NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/g
 #--------------------------------------------------------------------------
 NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
 NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
-INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
+#INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 
 ##SATA1 - Разъем J40
 ##SATA2 - Разъем J41

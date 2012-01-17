@@ -42,7 +42,7 @@ NET pin_out_TP<3>         LOC="H32"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR
 #NET pin_out_TP<7>         LOC="AA34" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
 
 ###Кнопки
-NET pin_in_rst            LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET pin_in_rst            LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
 NET pin_in_btn_C          LOC="AJ6"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_C         # Bank 18, Vcco=3.3V, No DCI
 NET pin_in_btn_E          LOC="AK7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_E         # Bank 18, Vcco=3.3V, No DCI
 NET pin_in_btn_N          LOC="U8"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPIO_SW_N         # Bank 18, Vcco=3.3V, No DCI
@@ -82,7 +82,7 @@ NET pin_in_ftdi_pwren_n   LOC="D12" | IOSTANDARD=LVCMOS33;  # Bank 20, Vcco=3.3V
 #--------------------------------------------------------------------------
 NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
 NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
-INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
+#INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
 
 ##SATA1 - Разъем J40
 ##SATA2 - Разъем J41
