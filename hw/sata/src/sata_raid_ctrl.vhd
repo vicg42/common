@@ -984,6 +984,9 @@ p_out_dbgcs.data(27)<=i_sh_padding;
 p_out_dbgcs.data(28)<=i_raid_trn_done(0);
 p_out_dbgcs.data(29)<='0';--//зарезервировано
 p_out_dbgcs.data(122 downto 30)<=(others=>'0');--//зарезервировано
+p_out_dbgcs.data(129 downto 123)<=(others=>'0');
+p_out_dbgcs.data(161 downto 130)<=i_usr_rxd;
+
 
 
 tst_cmddone<=sr_tst_bsy(1) and not sr_tst_bsy(0);
