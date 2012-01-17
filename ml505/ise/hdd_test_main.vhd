@@ -209,14 +209,7 @@ signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
 signal i_cfg_txrdy                      : std_logic;
 signal i_cfg_rxrdy                      : std_logic;
 signal i_cfg_done                       : std_logic;
-signal i_cfg_buf_rst                    : std_logic;
 --signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
-signal i_ram_txbuf_full                 : std_logic;
-signal i_ram_txbuf_afull                : std_logic;
-signal i_ram_txbuf_empty                : std_logic;
-signal i_ram_rxbuf_full                 : std_logic;
-signal i_ram_rxbuf_afull                : std_logic;
-signal i_ram_rxbuf_empty                : std_logic;
 
 signal i_hdd_module_rdy                 : std_logic;
 signal i_hdd_module_error               : std_logic;
@@ -239,15 +232,19 @@ signal i_hdd_sim_gt_rxnotintable        : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 --signal i_hdd_sim_gt_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 --signal i_hdd_sim_gt_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
-
 signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 
+signal i_ram_txbuf_full                 : std_logic;
+signal i_ram_txbuf_afull                : std_logic;
+signal i_ram_txbuf_empty                : std_logic;
+signal i_ram_rxbuf_full                 : std_logic;
+signal i_ram_rxbuf_afull                : std_logic;
+signal i_ram_rxbuf_empty                : std_logic;
+signal i_ram_reset_buf                  : std_logic;
+
 signal i_test01_led                     : std_logic;
 
-
-signal i_tst_read                       : std_logic;
---signal tst_ram_rxbuf_rdcnt              : std_logic_vector(i_cfg_rxd'range);
 
 
 
@@ -270,122 +267,7 @@ end process;
 
 i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.greset;
-i_cfg_buf_rst<=i_hdd_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
-
-
---***********************************************************
---Модуль конфигурирования устр-в
---***********************************************************
-gen_ftdi : if strcmp(C_PCFG_HDD_IFCTRL,"FTDI") generate
-
-pin_out_uart0_tx <= '1';
-
-m_cfgdev : cfgdev_ftdi
-port map(
--------------------------------
---Связь с FTDI
--------------------------------
-p_inout_ftdi_d       => pin_inout_ftdi_d,
-p_out_ftdi_rd_n      => pin_out_ftdi_rd_n,
-p_out_ftdi_wr_n      => pin_out_ftdi_wr_n,
-p_in_ftdi_txe_n      => pin_in_ftdi_txe_n,
-p_in_ftdi_rxf_n      => pin_in_ftdi_rxf_n,
-p_in_ftdi_pwren_n    => pin_in_ftdi_pwren_n,
-
--------------------------------
---
--------------------------------
-p_out_module_rdy     => open,
-p_out_module_error   => open,
-
--------------------------------
---Запись/Чтение конфигурационных параметров уст-ва
--------------------------------
-p_out_cfg_dadr       => i_dev_adr,
-p_out_cfg_radr       => i_cfg_adr,
-p_out_cfg_radr_ld    => i_cfg_adr_ld,
-p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
-p_out_cfg_wr         => i_cfg_wd,
-p_out_cfg_rd         => i_cfg_rd,
-p_out_cfg_txdata     => i_cfg_txd,
-p_in_cfg_rxdata      => i_cfg_rxd,
-p_in_cfg_txrdy       => i_cfg_txrdy,
-p_in_cfg_rxrdy       => i_cfg_rxrdy,
-
-p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => g_sata_refclkout,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             => (others=>'0'),
-p_out_tst            => open,--i_cfg_tstout,
-
--------------------------------
---System
--------------------------------
-p_in_rst => i_sys_rst
-);
-end generate gen_ftdi;
-
-gen_uart : if strcmp(C_PCFG_HDD_IFCTRL,"UART") generate
-
-gen_ftdi_d : for i in 0 to pin_inout_ftdi_d'length-1 generate
-obuft_ftdi_d : OBUFT port map (O => pin_inout_ftdi_d(i), I => '0', T => '1');
-end generate gen_ftdi_d;
-pin_out_ftdi_rd_n<='1';
-pin_out_ftdi_wr_n<='1';
-
-m_cfgdev : cfgdev_uart
-generic map(
-G_BAUDCNT_VAL => 81       --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
-                           --//Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
-                           --//
-                           --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
-)
-port map(
--------------------------------
---Связь с UART
--------------------------------
-p_out_uart_tx        => pin_out_uart0_tx,
-p_in_uart_rx         => pin_in_uart0_rx,
-p_in_uart_refclk     => g_sata_refclkout,
-
--------------------------------
---
--------------------------------
-p_out_module_rdy     => open,
-p_out_module_error   => open,
-
--------------------------------
---Запись/Чтение конфигурационных параметров уст-ва
--------------------------------
-p_out_cfg_dadr       => i_dev_adr,
-p_out_cfg_radr       => i_cfg_adr,
-p_out_cfg_radr_ld    => i_cfg_adr_ld,
-p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
-p_out_cfg_wr         => i_cfg_wd,
-p_out_cfg_rd         => i_cfg_rd,
-p_out_cfg_txdata     => i_cfg_txd,
-p_in_cfg_rxdata      => i_cfg_rxd,
-p_in_cfg_txrdy       => i_cfg_txrdy,
-p_in_cfg_rxrdy       => i_cfg_rxrdy,
-
-p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => g_sata_refclkout,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             => (others=>'0'),
-p_out_tst            => open,--i_cfg_tstout(31 downto 0),
-
--------------------------------
---System
--------------------------------
-p_in_rst => i_sys_rst
-);
-end generate gen_uart;
+i_ram_reset_buf<=i_hdd_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
 
 
 --***********************************************************
@@ -510,9 +392,57 @@ i_hdd_rbuf_status.done <='0';
 i_hdd_rbuf_status.hwlog_size<=(others=>'0');
 
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+--***********************************************************
+--Связь с RAM
+--***********************************************************
+--RAM<-CFG
+m_txram : hdd_ram_hfifo
+port map(
+din         => i_hdd_rbuf_cfg.ram_wr_i.din,
+wr_en       => i_hdd_rbuf_cfg.ram_wr_i.wr,
+wr_clk      => i_hdd_rbuf_cfg.ram_wr_i.clk,
+
+dout        => i_hdd_txdata,
+rd_en       => i_hdd_txdata_wd,
+rd_clk      => g_sata_refclkout,
+
+full        => i_ram_txbuf_full,
+almost_full => i_ram_txbuf_afull,
+empty       => i_ram_txbuf_empty,
+
+--clk         => p_in_clk,
+rst         => i_ram_reset_buf
+);
+
+i_hdd_txdata_wd<=not i_ram_txbuf_empty and not i_hdd_txbuf_pfull;
+i_hdd_rbuf_status.ram_wr_o.wr_rdy<= not i_ram_txbuf_afull;
+
+--RAM->CFG
+m_rxram : hdd_ram_hfifo
+port map(
+din         => i_hdd_rxdata,
+wr_en       => i_hdd_rxdata_rd,
+wr_clk      => g_sata_refclkout,
+
+dout        => i_hdd_rbuf_status.ram_wr_o.dout,
+rd_en       => i_hdd_rbuf_cfg.ram_wr_i.rd,
+rd_clk      => i_hdd_rbuf_cfg.ram_wr_i.clk,
+
+full        => i_ram_rxbuf_full,
+almost_full => i_ram_rxbuf_afull,
+empty       => i_ram_rxbuf_empty,
+
+--clk         => p_in_clk,
+rst         => i_ram_reset_buf
+);
+
+i_hdd_rxdata_rd<=not i_hdd_rxbuf_empty and not i_ram_rxbuf_afull;
+i_hdd_rbuf_status.ram_wr_o.rd_rdy<= not i_ram_txbuf_afull;
+
+
+--***********************************************************
+--Технологические сигналы
+--***********************************************************
 m_test01: fpga_test_01
 generic map(
 G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
@@ -531,46 +461,57 @@ p_in_clk       => g_sata_refclkout,
 p_in_rst       => i_sys_rst
 );
 
-gen_ml505 : if strcmp(C_PCFG_BOARD,"ML505") generate
---//Input 150MHz reference clock for SATA
-gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 generate
-ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O => i_hdd_gt_refclk150(i));
-end generate gen_sata_gt;
-
---i_usr_rst<=pin_in_btn_N;
-i_hdd_tst_in(0)<=pin_in_btn_W;
-i_hdd_tst_in(31 downto 1)<=(others=>'0');
-
---//J5 /pin2
-pin_out_TP(0)<=pin_in_btn_C or pin_in_btn_E or
-               pin_in_btn_S;-- or OR_reduce(i_cfg_tstout);-- or OR_reduce(i_hdd_tst_out) or
---//J6
-pin_out_TP(1)<=i_test01_led;
-pin_out_TP(2)<='0';
-pin_out_TP(3)<='0';
-pin_out_TP(7 downto 4)<=(others=>'0');
-
---
-pin_out_led_E<=i_test01_led;
-pin_out_led_N<=i_hdd_busy or i_hdd_rst;
-pin_out_led_S<='0';
-pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
-pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
-
---HDD LEDs:
-pin_out_led(0)<=i_hdd_dbgled(1).busy;--i_hdd_dcm_lock; --
-pin_out_led(1)<=i_hdd_dbgled(1).err; --i_hdd_gt_plldet;--
-pin_out_led(2)<=i_hdd_dbgled(1).rdy; --i_test01_led;   --
-pin_out_led(3)<=i_hdd_dbgled(1).link;
-
-pin_out_led(4)<=i_hdd_dbgled(0).busy;
-pin_out_led(5)<=i_hdd_dbgled(0).err;
-pin_out_led(6)<=i_hdd_dbgled(0).rdy;
-pin_out_led(7)<=i_hdd_dbgled(0).link;
-
-end generate gen_ml505;
-
 gen_hscam : if strcmp(C_PCFG_BOARD,"HSCAM") generate
+--Модуль конфигурирования устр-в
+pin_out_uart0_tx <= '1';
+
+m_cfgdev : cfgdev_ftdi
+port map(
+-------------------------------
+--Связь с FTDI
+-------------------------------
+p_inout_ftdi_d       => pin_inout_ftdi_d,
+p_out_ftdi_rd_n      => pin_out_ftdi_rd_n,
+p_out_ftdi_wr_n      => pin_out_ftdi_wr_n,
+p_in_ftdi_txe_n      => pin_in_ftdi_txe_n,
+p_in_ftdi_rxf_n      => pin_in_ftdi_rxf_n,
+p_in_ftdi_pwren_n    => pin_in_ftdi_pwren_n,
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     => open,
+p_out_module_error   => open,
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       => i_dev_adr,
+p_out_cfg_radr       => i_cfg_adr,
+p_out_cfg_radr_ld    => i_cfg_adr_ld,
+p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
+p_out_cfg_wr         => i_cfg_wd,
+p_out_cfg_rd         => i_cfg_rd,
+p_out_cfg_txdata     => i_cfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
+p_in_cfg_txrdy       => i_cfg_txrdy,
+p_in_cfg_rxrdy       => i_cfg_rxrdy,
+
+p_out_cfg_done       => i_cfg_done,
+p_in_cfg_clk         => g_sata_refclkout,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => (others=>'0'),
+p_out_tst            => open,--i_cfg_tstout,
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_sys_rst
+);
+
 --//Input 150MHz reference clock for SATA
 gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 generate
     ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O => i_hdd_gt_refclk150(i));
@@ -613,6 +554,101 @@ pin_out_TP(5) <=i_hdd_dbgled(3).busy;
 end generate gen_hscam;
 
 
+gen_ml505 : if strcmp(C_PCFG_BOARD,"ML505") generate
+--Модуль конфигурирования устр-в
+gen_ftdi_d : for i in 0 to pin_inout_ftdi_d'length-1 generate
+obuft_ftdi_d : OBUFT port map (O => pin_inout_ftdi_d(i), I => '0', T => '1');
+end generate gen_ftdi_d;
+pin_out_ftdi_rd_n<='1';
+pin_out_ftdi_wr_n<='1';
+
+m_cfgdev : cfgdev_uart
+generic map(
+G_BAUDCNT_VAL => 81       --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
+                           --//Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
+                           --//
+                           --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
+)
+port map(
+-------------------------------
+--Связь с UART
+-------------------------------
+p_out_uart_tx        => pin_out_uart0_tx,
+p_in_uart_rx         => pin_in_uart0_rx,
+p_in_uart_refclk     => g_sata_refclkout,
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     => open,
+p_out_module_error   => open,
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       => i_dev_adr,
+p_out_cfg_radr       => i_cfg_adr,
+p_out_cfg_radr_ld    => i_cfg_adr_ld,
+p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
+p_out_cfg_wr         => i_cfg_wd,
+p_out_cfg_rd         => i_cfg_rd,
+p_out_cfg_txdata     => i_cfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
+p_in_cfg_txrdy       => i_cfg_txrdy,
+p_in_cfg_rxrdy       => i_cfg_rxrdy,
+
+p_out_cfg_done       => i_cfg_done,
+p_in_cfg_clk         => g_sata_refclkout,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => (others=>'0'),
+p_out_tst            => open,--i_cfg_tstout(31 downto 0),
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_sys_rst
+);
+
+--//Input 150MHz reference clock for SATA
+gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 generate
+ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O => i_hdd_gt_refclk150(i));
+end generate gen_sata_gt;
+
+--i_usr_rst<=pin_in_btn_N;
+i_hdd_tst_in(0)<=pin_in_btn_W;
+i_hdd_tst_in(31 downto 1)<=(others=>'0');
+
+--//J5 /pin2
+pin_out_TP(0)<=pin_in_btn_C or pin_in_btn_E or
+               pin_in_btn_S;-- or OR_reduce(i_cfg_tstout);-- or OR_reduce(i_hdd_tst_out) or
+--//J6
+pin_out_TP(1)<=i_test01_led;
+pin_out_TP(2)<='0';
+pin_out_TP(3)<='0';
+pin_out_TP(7 downto 4)<=(others=>'0');
+
+--
+pin_out_led_E<=i_test01_led;
+pin_out_led_N<=i_hdd_busy or i_hdd_rst;
+pin_out_led_S<='0';
+pin_out_led_W<=i_hdd_dbgled(0).spd(1) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
+pin_out_led_C<=i_hdd_dbgled(0).spd(0) when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
+
+--HDD LEDs:
+pin_out_led(0)<=i_hdd_dbgled(1).busy;--i_hdd_dcm_lock; --
+pin_out_led(1)<=i_hdd_dbgled(1).err; --i_hdd_gt_plldet;--
+pin_out_led(2)<=i_hdd_dbgled(1).rdy; --i_test01_led;   --
+pin_out_led(3)<=i_hdd_dbgled(1).link;
+
+pin_out_led(4)<=i_hdd_dbgled(0).busy;
+pin_out_led(5)<=i_hdd_dbgled(0).err;
+pin_out_led(6)<=i_hdd_dbgled(0).rdy;
+pin_out_led(7)<=i_hdd_dbgled(0).link;
+
+end generate gen_ml505;
 
 
 gen_dbgcs : if strcmp(C_PCFG_HDD_DBGCS,"ON") generate
