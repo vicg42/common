@@ -53,6 +53,7 @@ function CONV_STRING( val : in integer) return string;
 function crc32_0( Data: std_logic_vector(31 downto 0); CRC: std_logic_vector(31 downto 0) ) return std_logic_vector;
 function srambler32_0( FB : std_logic_vector(15 downto 0) ) return std_logic_vector;
 
+function selstring (valtrue, valfalse : string; sel :boolean) return string;
 function selval (valtrue, valfalse : integer; sel :boolean) return integer;
 function cmpval (val1, val2 : integer) return boolean;
 
@@ -348,6 +349,21 @@ end if;
 
 return equal;
 end function cmpval;
+
+-------------------------------------------------------------------------------
+-- Function selstring
+--
+--
+-------------------------------------------------------------------------------
+function selstring (valtrue, valfalse : string; sel :boolean) return string is
+begin
+if sel=true then
+  return valtrue;
+else
+  return valfalse;
+end if;
+end function selstring;
+
 -------------------------------------------------------------------------------
 -- Function selval
 --
