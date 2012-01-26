@@ -77,25 +77,25 @@ architecture behavioral of sata_player_rx is
 signal i_tmr_rst                 : std_logic_vector(1 downto 0);
 signal i_tmr_rst_en              : std_logic;
 
-signal i_gt_rxbufreset          : std_logic;
+signal i_gt_rxbufreset           : std_logic;
 
 type TSrDataW8 is array (0 to 2) of std_logic_vector(7 downto 0);
 signal sr_rxdata                 : TSrDataW8;
 
 type TSrDtypeW8 is array (0 to 2) of std_logic;
 signal sr_rxdtype                : TSrDtypeW8;
-signal sr_gt_rxdisperr          : TSrDtypeW8;
-signal sr_gt_rxnotintable       : TSrDtypeW8;
+signal sr_gt_rxdisperr           : TSrDtypeW8;
+signal sr_gt_rxnotintable        : TSrDtypeW8;
 
 signal i_rxdata                  : std_logic_vector(31 downto 0);
 signal i_rxdtype                 : std_logic_vector(3 downto 0);
-signal i_gt_rxdisperr           : std_logic_vector(3 downto 0);
-signal i_gt_rxnotintable        : std_logic_vector(3 downto 0);
+signal i_gt_rxdisperr            : std_logic_vector(3 downto 0);
+signal i_gt_rxnotintable         : std_logic_vector(3 downto 0);
 
 signal i_rxdata_out              : std_logic_vector(31 downto 0):=(others=>'0');
 signal i_rxdtype_out             : std_logic_vector(C_TDATA_EN downto C_TALIGN):=(others=>'0');
 signal i_rcv_error_out           : std_logic_vector(C_PRxSTAT_LAST_BIT downto 0):=(others=>'0');
-
+signal i_rxtype                  : std_logic_vector(C_TDATA_EN downto C_TALIGN):=(others=>'0');
 signal dbgrcv_type               : string(1 to 7);
 signal tst_rcv_error             : std_logic;
 signal tst_rcv_err_notintable    : std_logic;
@@ -184,38 +184,30 @@ end process;
 
 p_out_gt_rxbufreset<=i_gt_rxbufreset;
 
-
-
+i_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1' else '0';
+i_rxtype(C_TSOF)     <='1' when i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TEOF)     <='1' when i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TDMAT)    <='1' when i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TCONT)    <='1' when i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TSYNC)    <='1' when i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_THOLD)    <='1' when i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_THOLDA)   <='1' when i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TX_RDY)   <='1' when i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_RDY)   <='1' when i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_IP)    <='1' when i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_OK)    <='1' when i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_ERR)   <='1' when i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TWTRM)    <='1' when i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMREQ_P) <='1' when i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMREQ_S) <='1' when i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMACK)   <='1' when i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMNAK)   <='1' when i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TDATA_EN) <='1' when                             i_rxdtype=C_PDAT_TDATA                                  else '0';
 
 process(p_in_clk)
-  variable rxdtype : std_logic_vector(C_TDATA_EN downto C_TALIGN);
 begin
   if p_in_clk'event and p_in_clk='1' then
-
-    rxdtype:=(others=>'0');
-    if    i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1'  then rxdtype(C_TALIGN)   :='1';
-    elsif i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TSOF)     :='1';
-    elsif i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TEOF)     :='1';
-    elsif i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TDMAT)    :='1';
-    elsif i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TCONT)    :='1';
-    elsif i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TSYNC)    :='1';
-    elsif i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_THOLD)    :='1';
-    elsif i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_THOLDA)   :='1';
-    elsif i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TX_RDY)   :='1';
-    elsif i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TR_RDY)   :='1';
-    elsif i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TR_IP)    :='1';
-    elsif i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TR_OK)    :='1';
-    elsif i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TR_ERR)   :='1';
-    elsif i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TWTRM)    :='1';
-    elsif i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TPMREQ_P) :='1';
-    elsif i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TPMREQ_S) :='1';
-    elsif i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TPMACK)   :='1';
-    elsif i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM                                    then rxdtype(C_TPMNAK)   :='1';
-    elsif                             i_rxdtype=C_PDAT_TDATA                                   then rxdtype(C_TDATA_EN) :='1';
-    end if;
-
-    i_rxdtype_out<=rxdtype;
-
+    i_rxdtype_out<=i_rxtype;
     i_rxdata_out<=i_rxdata;
 
     i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT)<=OR_reduce(i_gt_rxdisperr);
