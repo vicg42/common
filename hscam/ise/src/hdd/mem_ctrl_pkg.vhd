@@ -11,12 +11,8 @@
 -- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
-use ieee.std_logic_unsigned.all;
 
 library work;
 use work.prj_cfg.all;
@@ -29,12 +25,22 @@ package mem_ctrl_pkg is
 constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 constant C_MEM_BANK_COUNT_MAX: integer := 2;
 
+----CLKOUT0_DIVIDE=(Fclkin * C5_CLKFBOUT_MULT) / (C5_DIVCLK_DIVIDE * C5_CLKOUT0_DIVIDE );
+----(150 * 5)/(1 * C5_CLKOUTxx_DIVIDE)
+--
+--constant C_MEMPLL_CLKOUT0_DIVIDE : integer := 2; --c5_sysclk_2x      =375MHZ
+--constant C_MEMPLL_CLKOUT1_DIVIDE : integer := 2; --c5_sysclk_2x_180
+--constant C_MEMPLL_CLKOUT2_DIVIDE : integer := 5; --p_out_pll_gclkusr =150MHZ) --(4; --p_out_pll_gclkusr =187,5MHZ)
+--constant C_MEMPLL_CLKOUT3_DIVIDE : integer := 8; --c5_mcb_drp_clk = 93,75MHz
+--constant C_MEMPLL_CLKFBOUT_MULT  : integer := 5;
+--constant C_MEMPLL_DIVCLK_DIVIDE  : integer := 1;
+
+constant C5_MEMCLK_PERIOD        : integer := 2600;--3200;-- Memory data transfer clock period.
 
 constant C5_P0_MASK_SIZE         : integer := 4;
 constant C5_P0_DATA_PORT_SIZE    : integer := 32;
 constant C5_P1_MASK_SIZE         : integer := 4;
 constant C5_P1_DATA_PORT_SIZE    : integer := 32;
-constant C5_MEMCLK_PERIOD        : integer := 3300;--3200;-- Memory data transfer clock period.
 constant C5_RST_ACT_LOW          : integer := 0;-- # = 1 for active low reset,-- # = 0 for active high reset.
 constant C5_INPUT_CLK_TYPE       : string := "SINGLE_ENDED"; -- input clock type DIFFERENTIAL or SINGLE_ENDED.
 constant C5_CALIB_SOFT_IP        : string := "TRUE";-- # = TRUE, Enables the soft calibration logic,-- # = FALSE, Disables the soft calibration logic.

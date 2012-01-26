@@ -12,7 +12,6 @@
 -- Revision 0.01 - File Created
 --
 -------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -115,8 +114,8 @@ p_out_hdd_dcm_gclk75M : out   std_logic;
 p_out_hdd_dcm_gclk300M: out   std_logic;
 p_out_hdd_dcm_gclk150M: out   std_logic;
 
-p_out_hdd_mem_plllock : out   std_logic;
-p_out_hdd_mem_gclk375M: out   std_logic;
+p_out_usrpll_lock     : out   std_logic;
+p_out_usrpll_gclk1    : out   std_logic;
 
 --------------------------------------------------
 --Технологический порт
@@ -186,22 +185,14 @@ signal i_hdd1layer_dbgcs                : TSH_ila;
 signal i_cfg_dbgcs                      : TSH_ila;
 signal i_hddraid_dbgcs                  : TSH_ila;
 
-component hdd_ram_hfifo
+component clock is
 port(
-din         : in std_logic_vector(31 downto 0);
-wr_en       : in std_logic;
-wr_clk      : in std_logic;
+p_out_gusrclk0 : out std_logic;
+p_out_gusrclk1 : out std_logic;
+p_out_pll_lock : out std_logic;
 
-dout        : out std_logic_vector(31 downto 0);
-rd_en       : in std_logic;
-rd_clk      : in std_logic;
-
-full        : out std_logic;
-almost_full : out std_logic;
-empty       : out std_logic;
-
---clk         : in std_logic;
-rst         : in std_logic
+p_in_clk       : in  std_logic;
+p_in_rst       : in  std_logic
 );
 end component;
 
@@ -216,6 +207,9 @@ signal i_vbufin_empty                   : std_logic;
 signal i_vbufout_din                    : std_logic_vector(31 downto 0);
 signal i_vbufout_wr                     : std_logic;
 signal i_vbufout_full                   : std_logic;
+signal i_hdd_vbufin_dout                : std_logic_vector(31 downto 0);
+signal i_hdd_vbufin_rd                  : std_logic;
+signal i_hdd_vbufin_empty               : std_logic;
 
 signal i_mem_ctrl_rst                   : std_logic;
 signal i_mem_ctrl_rdy                   : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
@@ -229,8 +223,10 @@ signal i_phymem_inout                   : TRam_inouts;
 
 signal i_usrpll_rst                     : std_logic;
 signal i_usrpll_lock                    : std_logic;
-signal g_memclk                         : std_logic;
+signal g_memclkin                       : std_logic;
+signal g_hclk                           : std_logic;
 
+signal i_hdd_rambuf_rst                 : std_logic;
 signal i_vctrl_rst                      : std_logic;
 signal i_sys_rst_cnt                    : std_logic_vector(5 downto 0):=(others=>'0');
 signal i_sys_rst                        : std_logic:='0';
@@ -296,21 +292,10 @@ signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 --signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 
-signal i_ram_txbuf_full                 : std_logic;
-signal i_ram_txbuf_afull                : std_logic;
-signal i_ram_txbuf_empty                : std_logic;
-signal i_ram_rxbuf_full                 : std_logic;
-signal i_ram_rxbuf_afull                : std_logic;
-signal i_ram_rxbuf_empty                : std_logic;
-signal i_ram_reset_buf                  : std_logic;
-
-signal i_ram_txbuf_rd                   : std_logic;
-signal i_ram_rxbuf_wr                   : std_logic;
-signal i_ram_rxbuf_din                  : std_logic_vector(31 downto 0);
-
 signal i_test01_led                     : std_logic;
 signal i_test02_led                     : std_logic;
 
+signal tst_hdd_rambuf_out               : std_logic_vector(31 downto 0);
 signal tst_vctrl_out                    : std_logic_vector(31 downto 0);
 signal sr_vctrl_rst                     : std_logic_vector(1 downto 0):=(others=>'0');
 signal tst_syn                          : std_logic:='0';
@@ -340,12 +325,22 @@ p_out_hdd_dcm_gclk75M <=g_hdd_dcm_gclk75M;
 p_out_hdd_dcm_gclk300M<=g_hdd_dcm_gclk300M;
 p_out_hdd_dcm_gclk150M<=g_hdd_dcm_gclk150M;
 
-p_out_hdd_mem_plllock <='0';--i_usrpll_lock;
-p_out_hdd_mem_gclk375M<='0';--g_memclk;
+p_out_usrpll_lock<=i_usrpll_lock;
 
+i_usrpll_rst<=not i_hdd_dcm_lock;
 
-g_memclk<=g_hdd_dcm_gclk300M;
---g_sata_refclkout<=p_in_sata_clk_p(0);
+m_usrpll : clock
+port map(
+p_out_gusrclk0 => g_memclkin,--375MHz
+p_out_gusrclk1 => p_out_usrpll_gclk1,--62.5MHz
+p_out_pll_lock => i_usrpll_lock,
+
+p_in_clk       => g_sata_refclkout,
+p_in_rst       => i_usrpll_rst
+);
+
+g_hclk<=g_sata_refclkout;--g_hdd_dcm_gclk75M;--g_hdd_dcm_gclk300M;
+
 
 --***********************************************************
 --RESET
@@ -361,9 +356,10 @@ end process;
 
 i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_hdd_rst <= i_sys_rst;-- or i_hdd_rbuf_cfg.greset;
-i_ram_reset_buf<=i_hdd_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
 i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_rdy));
-i_mem_ctrl_rst <= not i_hdd_dcm_lock or i_hdd_rbuf_cfg.greset;--i_usrpll_lock;--
+i_hdd_rambuf_rst<=i_vctrl_rst;
+i_mem_ctrl_rst <= not i_usrpll_lock or i_hdd_rbuf_cfg.greset;--not i_hdd_dcm_lock or i_hdd_rbuf_cfg.greset;--i_usrpll_lock;--
+
 
 
 --***********************************************************
@@ -382,17 +378,37 @@ p_in_vclk          => p_in_vin_clk,
 
 p_out_vfr_prm      => i_vfr_prm,
 
-p_out_vbufin_d     => i_vin_dout,--i_vbufin_dout,
-p_in_vbufin_rd     => t_vbufin_rd,--i_vbufin_rd,
-p_out_vbufin_empty => t_vbufin_empty,--i_vbufin_empty,
-p_in_vbufin_rdclk  => g_memclk,
+p_out_vbufin_d     => i_vbufin_dout,
+p_in_vbufin_rd     => i_vbufin_rd,
+p_out_vbufin_empty => i_vbufin_empty,
+p_in_vbufin_rdclk  => g_hclk,
+
+p_in_tst           => (others=>'0'),
+p_out_tst          => open,
 
 p_in_rst           => i_vctrl_rst
 );
 
-t_vbufin_rd<= not t_vbufin_empty;
+--Video Output
+m_vout : vout
+generic map(
+G_VSYN_ACTIVE => G_VSYN_ACTIVE
+)
+port map(
+p_out_vd           => p_out_vd,
+p_in_vs            => p_in_vout_vs,
+p_in_hs            => p_in_vout_hs,
+p_in_vclk          => p_in_vout_clk,
 
-m_vctrl : cfg2ram_ctrl
+p_in_vbufout_d     => i_vbufout_din,
+p_in_vbufout_wr    => i_vbufout_wr,
+p_out_vbufout_full => i_vbufout_full,
+p_in_vbufout_wrclk => g_hclk,
+
+p_in_rst           => i_vctrl_rst
+);
+
+m_vctrl : video_ctrl
 generic map(
 G_SIM => G_SIM,
 G_MEM_AWIDTH => CI_MEM_AWIDTH,
@@ -402,7 +418,7 @@ port map(
 -------------------------------
 --
 -------------------------------
-p_in_rbuf_cfg        => i_hdd_rbuf_cfg,
+p_in_vfr_prm         => i_vfr_prm,
 
 ----------------------------
 --Связь с вх/вых видеобуферами
@@ -420,10 +436,10 @@ p_in_vbufout_full     => i_vbufout_full,
 --Связь с mem_ctrl.vhd
 ---------------------------------
 --CH WRITE
-p_out_memwr           => i_memch0_in_bank(0), --: out   TMemIN;
+p_out_memwr           => i_memch0_in_bank (0),--: out   TMemIN;
 p_in_memwr            => i_memch0_out_bank(0),--: in    TMemOUT;
 --CH READ
-p_out_memrd           => i_memch1_in_bank(0), --: out   TMemIN;
+p_out_memrd           => i_memch1_in_bank (0),--: out   TMemIN;
 p_in_memrd            => i_memch1_out_bank(0),--: in    TMemOUT;
 
 -------------------------------
@@ -434,13 +450,13 @@ p_out_tst             => tst_vctrl_out,
 -------------------------------
 --System
 -------------------------------
-p_in_clk              => g_memclk,
+p_in_clk              => g_hclk,
 p_in_rst              => i_vctrl_rst
 );
 
 
 --***********************************************************
---Контроллер RAM
+--Контроллер ОЗУ
 --***********************************************************
 m_mem_ctrl : mem_ctrl
 generic map(
@@ -450,11 +466,11 @@ port map(
 ------------------------------------
 --User Post
 ------------------------------------
-p_in_memch0     => i_memch0_in_bank, --: in    TMemINBank;
-p_out_memch0    => i_memch0_out_bank,--: out   TMemOUTBank;
+p_in_memch0     => i_memch0_in_bank, --TMemINBank;
+p_out_memch0    => i_memch0_out_bank,--TMemOUTBank;
 
-p_in_memch1     => i_memch1_in_bank, --: in    TMemINBank;
-p_out_memch1    => i_memch1_out_bank,--: out   TMemOUTBank;
+p_in_memch1     => i_memch1_in_bank, --TMemINBank;
+p_out_memch1    => i_memch1_out_bank,--TMemOUTBank;
 
 ------------------------------------
 --Memory physical interface
@@ -470,9 +486,9 @@ p_out_mem_rdy   => i_mem_ctrl_rdy,
 ------------------------------------
 --System
 ------------------------------------
-p_out_pll_gclkusr => open,--g_memclk,--300MHz
+p_out_pll_gclkusr => open,--g_hclk, --300MHz
 --c5_rst0         : out   std_logic;
-p_in_clk        => g_memclk,--g_hdd_dcm_gclk300M,--
+p_in_clk        => g_memclkin, --g_sata_refclkout,--g_hdd_dcm_gclk300M,--g_hclk,--
 p_in_rst        => i_mem_ctrl_rst
 );
 
@@ -513,6 +529,7 @@ p_inout_mcb1_dqs    <= i_phymem_inout(1).dqs;
 p_inout_mcb1_dqs_n  <= i_phymem_inout(1).dqs_n;
 p_inout_mcb1_rzq    <= i_phymem_inout(1).rzq;
 p_inout_mcb1_zio    <= i_phymem_inout(1).zio;
+
 
 --***********************************************************
 --Проект Накопителя - dsn_hdd.vhd
@@ -636,74 +653,99 @@ i_hdd_sim_gt_rxnotintable(i)<=(others=>'0');
 i_hdd_sim_gt_rxbyteisaligned(i)<='0';
 end generate gen_satah;
 
-i_hdd_rbuf_status.err<='0';
-i_hdd_rbuf_status.err_type.vinbuf_full<='0';
-i_hdd_rbuf_status.err_type.rambuf_full<='0';
-i_hdd_rbuf_status.done <='0';
-i_hdd_rbuf_status.hwlog_size<=(others=>'0');
-
-
---***********************************************************
---Связь с RAM
---***********************************************************
---RAM<-CFG
-m_txram : hdd_ram_hfifo
+m_vin_hdd : vin_hdd
+generic map (
+G_VSYN_ACTIVE => G_VSYN_ACTIVE
+)
 port map(
-din         => i_hdd_rbuf_cfg.ram_wr_i.din,
-wr_en       => i_hdd_rbuf_cfg.ram_wr_i.wr,
-wr_clk      => i_hdd_rbuf_cfg.ram_wr_i.clk,
+p_in_vd            => p_in_vd,
+p_in_vs            => p_in_vin_vs,
+p_in_hs            => p_in_vin_hs,
+p_in_vclk          => p_in_vin_clk,
 
-dout        => i_hdd_txdata,
-rd_en       => i_ram_txbuf_rd,
-rd_clk      => g_memclk,--g_sata_refclkout,
+p_out_vbufin_d     => i_hdd_vbufin_dout,
+p_in_vbufin_rd     => i_hdd_vbufin_rd,
+p_out_vbufin_empty => i_hdd_vbufin_empty,
+p_in_vbufin_rdclk  => g_hclk,
 
-full        => i_ram_txbuf_full,
-almost_full => i_ram_txbuf_afull,
-empty       => i_ram_txbuf_empty,
+p_in_tst           => (others=>'0'),
+p_out_tst          => open,
 
---clk         => p_in_clk,
-rst         => i_ram_reset_buf
+p_in_rst           => i_hdd_rambuf_rst
 );
 
-i_hdd_rbuf_status.ram_wr_o.wr_rdy<= not i_ram_txbuf_afull;
-i_hdd_txdata_wd<=(not i_ram_txbuf_empty and not i_hdd_txbuf_pfull) when i_hdd_tst_out(7)='1' else '0';
-i_ram_txbuf_rd<=i_hdd_txdata_wd when i_hdd_tst_out(7)='1' else i_vbufin_rd;
-
-i_vbufin_dout<=i_hdd_txdata;
-i_vbufin_empty<='1' when i_hdd_tst_out(7)='1' else i_ram_txbuf_empty;
-
-
---RAM->CFG
-m_rxram : hdd_ram_hfifo
+m_hdd_rambuf : dsn_hdd_rambuf
+generic map(
+G_MODULE_USE => C_PCFG_HDD_USE,
+G_RAMBUF_SIZE=> C_PCFG_HDD_RAMBUF_SIZE,
+G_DBGCS      => C_PCFG_HDD_DBGCS,
+G_SIM        => G_SIM,
+G_MEM_AWIDTH => CI_MEM_AWIDTH,
+G_MEM_DWIDTH => CI_MEM_DWIDTH
+)
 port map(
-din         => i_ram_rxbuf_din, --i_hdd_rxdata,
-wr_en       => i_ram_rxbuf_wr, --i_hdd_rxdata_rd,
-wr_clk      => g_memclk,--g_sata_refclkout,
+-------------------------------
+-- Конфигурирование
+-------------------------------
+p_in_rbuf_cfg         => i_hdd_rbuf_cfg,
+p_out_rbuf_status     => i_hdd_rbuf_status,
 
-dout        => i_hdd_rbuf_status.ram_wr_o.dout,
-rd_en       => i_hdd_rbuf_cfg.ram_wr_i.rd,
-rd_clk      => i_hdd_rbuf_cfg.ram_wr_i.clk,
+----------------------------
+--Связь с буфером видеоданных
+----------------------------
+p_in_vbuf_dout        => i_hdd_vbufin_dout,
+p_out_vbuf_rd         => i_hdd_vbufin_rd,
+p_in_vbuf_empty       => i_hdd_vbufin_empty,--
+p_in_vbuf_full        => '0',--
+p_in_vbuf_pfull       => '0',--
+p_in_vbuf_wrcnt       => (others=>'0'),
 
-full        => i_ram_rxbuf_full,
-almost_full => i_ram_rxbuf_afull,
-empty       => i_ram_rxbuf_empty,
+----------------------------
+--Связь с модулем HDD
+----------------------------
+p_out_hdd_txd         => i_hdd_txdata,
+p_out_hdd_txd_wr      => i_hdd_txdata_wd,
+p_in_hdd_txbuf_pfull  => i_hdd_txbuf_pfull,
+p_in_hdd_txbuf_full   => i_hdd_txbuf_full,
+p_in_hdd_txbuf_empty  => i_hdd_txbuf_empty,
 
---clk         => p_in_clk,
-rst         => i_ram_reset_buf
+p_in_hdd_rxd          => i_hdd_rxdata,
+p_out_hdd_rxd_rd      => i_hdd_rxdata_rd,
+p_in_hdd_rxbuf_empty  => i_hdd_rxbuf_empty,
+p_in_hdd_rxbuf_pempty => i_hdd_rxbuf_pempty,
+
+---------------------------------
+-- Связь с mem_ctrl.vhd
+---------------------------------
+--p_out_mem             : out   TMemIN;
+--p_in_mem              : in    TMemOUT;
+--CH WRITE
+p_out_memwr           => i_memch0_in_bank (1),--: out   TMemIN;
+p_in_memwr            => i_memch0_out_bank(1),--: in    TMemOUT;
+--CH READ
+p_out_memrd           => i_memch1_in_bank (1),--: out   TMemIN;
+p_in_memrd            => i_memch1_out_bank(1),--: in    TMemOUT;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst              => i_hdd_tst_out,
+p_out_tst             => tst_hdd_rambuf_out,
+p_out_dbgcs           => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk              => g_hclk,
+p_in_rst              => i_hdd_rambuf_rst
 );
 
-i_hdd_rbuf_status.ram_wr_o.rd_rdy<= not i_ram_rxbuf_afull;
-i_hdd_rxdata_rd<=(not i_hdd_rxbuf_empty and not i_ram_rxbuf_afull) when i_hdd_tst_out(7)='1' else '0';
-i_ram_rxbuf_wr<=i_hdd_rxdata_rd when i_hdd_tst_out(7)='1' else i_vbufout_wr;
-i_ram_rxbuf_din<=i_hdd_rxdata when i_hdd_tst_out(7)='1' else i_vbufout_din;
-
-i_vbufout_full<=i_ram_rxbuf_afull;
 
 
 --***********************************************************
 --Технологические сигналы
 --***********************************************************
-m_test01: fpga_test_01
+m_blink : fpga_test_01
 generic map(
 G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
 G_CLK_T05us   =>10#75#   -- 05us - 150MHz
@@ -722,7 +764,7 @@ p_in_rst       => i_sys_rst
 );
 
 
-m_cfgdev : cfgdev_ftdi
+m_cfg : cfgdev_ftdi
 port map(
 -------------------------------
 --Связь с FTDI
@@ -786,7 +828,7 @@ p_out_TP(3) <=i_hdd_dbgled(1).busy;
 
 --SATA2 (На плате SATA3)
 p_out_led(0)<=i_mem_ctrl_rdy(0);--i_hdd_dbgled(2).link;
-p_out_led(7)<=i_ram_rxbuf_empty;--i_hdd_dbgled(2).rdy;
+p_out_led(7)<=tst_hdd_rambuf_out(23);--i_ram_rxbuf_empty;--i_hdd_dbgled(2).rdy;
 p_out_TP(6) <=i_hdd_dbgled(2).err and i_test01_led;
 p_out_TP(7) <=i_hdd_dbgled(2).busy;
 
@@ -1007,20 +1049,20 @@ CONTROL0 => i_dbgcs_hdd_raid
 m_dbgcs_sh0_raid : dbgcs_sata_raid
 port map(
 CONTROL => i_dbgcs_hdd_raid,
-CLK     => g_memclk,--i_hdd_dbgcs.raid.clk,
+CLK     => g_hclk,--i_hdd_dbgcs.raid.clk,
 DATA    => i_hddraid_dbgcs.data(172 downto 0),--(122 downto 0),
 TRIG0   => i_hddraid_dbgcs.trig0(41 downto 0)
 );
 
---//-------- TRIG: ------------------
-i_hddraid_dbgcs.trig0(0)            <=tst_vctrl_out(0);         --vwriter(0)<=p_in_cfg_mem_start;
-i_hddraid_dbgcs.trig0(1)            <=tst_vctrl_out(1);         --vwriter(1)<=i_mem_done;
-i_hddraid_dbgcs.trig0(4 downto 2)   <=tst_vctrl_out(4 downto 2);--vwriter(4 downto 2)<=tst_fsm_cs;
-i_hddraid_dbgcs.trig0(5)            <=tst_vctrl_out(5);         --vreader(0)<=p_in_cfg_mem_start;
-i_hddraid_dbgcs.trig0(6)            <=tst_vctrl_out(6);         --vreader(1)<=i_mem_done;
-i_hddraid_dbgcs.trig0(9 downto 7)   <=tst_vctrl_out(9 downto 7);--vreader(4 downto 2)<=tst_fsm_cs;
-i_hddraid_dbgcs.trig0(10)           <=tst_vctrl_out(14)        ;--  <=i_vwr_fr_rdy(0);
-i_hddraid_dbgcs.trig0(11)           <=tst_vctrl_out(15)        ;--  <=i_vrd_hold(0);
+--//-------- TRIG: ------------------ tst_hdd_rambuf_out
+i_hddraid_dbgcs.trig0(0)            <=tst_vctrl_out(0)         ;--tst_hdd_rambuf_out(0)         ;--vwriter(0)<=p_in_cfg_mem_start;
+i_hddraid_dbgcs.trig0(1)            <=tst_vctrl_out(1)         ;--tst_hdd_rambuf_out(1)         ;--vwriter(1)<=i_mem_done;
+i_hddraid_dbgcs.trig0(4 downto 2)   <=tst_vctrl_out(4 downto 2);--tst_hdd_rambuf_out(4 downto 2);--vwriter(4 downto 2)<=tst_fsm_cs;
+i_hddraid_dbgcs.trig0(5)            <=tst_vctrl_out(5)         ;--tst_hdd_rambuf_out(5)         ;--vreader(0)<=p_in_cfg_mem_start;
+i_hddraid_dbgcs.trig0(6)            <=tst_vctrl_out(6)         ;--tst_hdd_rambuf_out(6)         ;--vreader(1)<=i_mem_done;
+i_hddraid_dbgcs.trig0(9 downto 7)   <=tst_vctrl_out(9 downto 7);--tst_hdd_rambuf_out(9 downto 7);--vreader(4 downto 2)<=tst_fsm_cs;
+i_hddraid_dbgcs.trig0(10)           <=tst_vctrl_out(14)        ;--tst_hdd_rambuf_out(14)        ;--  <=i_vwr_fr_rdy(0);
+i_hddraid_dbgcs.trig0(11)           <=tst_vctrl_out(15)        ;--tst_hdd_rambuf_out(15)        ;--  <=i_vrd_hold(0);
 i_hddraid_dbgcs.trig0(12)           <=p_in_vin_vs;--   : in   std_logic;
 i_hddraid_dbgcs.trig0(13)           <=p_in_vin_hs;--   : in   std_logic;
 i_hddraid_dbgcs.trig0(14)           <=p_in_vout_vs;--   : in   std_logic;
@@ -1029,19 +1071,19 @@ i_hddraid_dbgcs.trig0(15)           <=p_in_vout_hs;--   : in   std_logic;
 i_hddraid_dbgcs.trig0(16)           <=i_memch0_in_bank(0).cmd_wr;-- : std_logic;
 i_hddraid_dbgcs.trig0(17)           <=i_memch1_in_bank(0).cmd_wr;-- : std_logic;
 i_hddraid_dbgcs.trig0(18)           <=tst_syn;
-i_hddraid_dbgcs.trig0(19)           <=i_ram_txbuf_rd;--i_ram_txbuf_empty;
-i_hddraid_dbgcs.trig0(20)           <=i_ram_rxbuf_wr;--i_ram_rxbuf_empty;
+i_hddraid_dbgcs.trig0(19)           <=tst_hdd_rambuf_out(20);--i_ram_txbuf_rd;
+i_hddraid_dbgcs.trig0(20)           <=tst_hdd_rambuf_out(21);--i_ram_rxbuf_wr;
 
 
 --//-------- VIEW: ------------------
-i_hddraid_dbgcs.data(0)             <=tst_vctrl_out(0);         --vwriter(0)<=p_in_cfg_mem_start;
-i_hddraid_dbgcs.data(1)             <=tst_vctrl_out(1);         --vwriter(1)<=i_mem_done;
-i_hddraid_dbgcs.data(4 downto 2)    <=tst_vctrl_out(4 downto 2);--vwriter(4 downto 2)<=tst_fsm_cs;
-i_hddraid_dbgcs.data(5)             <=tst_vctrl_out(5);         --vreader(0)<=p_in_cfg_mem_start;
-i_hddraid_dbgcs.data(6)             <=tst_vctrl_out(6);         --vreader(1)<=i_mem_done;
-i_hddraid_dbgcs.data(9 downto 7)    <=tst_vctrl_out(9 downto 7);--vreader(4 downto 2)<=tst_fsm_cs;
-i_hddraid_dbgcs.data(10)            <=tst_vctrl_out(14)        ;--  <=i_vwr_fr_rdy(0);/ram_start
-i_hddraid_dbgcs.data(11)            <=tst_vctrl_out(15)        ;--  <=i_vrd_hold(0);
+i_hddraid_dbgcs.data(0)             <=tst_vctrl_out(0)         ;--tst_hdd_rambuf_out(0)         ;--vwriter(0)<=p_in_cfg_mem_start;
+i_hddraid_dbgcs.data(1)             <=tst_vctrl_out(1)         ;--tst_hdd_rambuf_out(1)         ;--vwriter(1)<=i_mem_done;
+i_hddraid_dbgcs.data(4 downto 2)    <=tst_vctrl_out(4 downto 2);--tst_hdd_rambuf_out(4 downto 2);--vwriter(4 downto 2)<=tst_fsm_cs;
+i_hddraid_dbgcs.data(5)             <=tst_vctrl_out(5)         ;--tst_hdd_rambuf_out(5)         ;--vreader(0)<=p_in_cfg_mem_start;
+i_hddraid_dbgcs.data(6)             <=tst_vctrl_out(6)         ;--tst_hdd_rambuf_out(6)         ;--vreader(1)<=i_mem_done;
+i_hddraid_dbgcs.data(9 downto 7)    <=tst_vctrl_out(9 downto 7);--tst_hdd_rambuf_out(9 downto 7);--vreader(4 downto 2)<=tst_fsm_cs;
+i_hddraid_dbgcs.data(10)            <=tst_vctrl_out(14)        ;--tst_hdd_rambuf_out(14)        ;--  <=i_vwr_fr_rdy(0);/ram_start
+i_hddraid_dbgcs.data(11)            <=tst_vctrl_out(15)        ;--tst_hdd_rambuf_out(15)        ;--  <=i_vrd_hold(0);
 i_hddraid_dbgcs.data(13 downto 12)  <=tst_vctrl_out(11 downto 10);--<=i_vbuf_wr(0);
 i_hddraid_dbgcs.data(15 downto 14)  <=tst_vctrl_out(13 downto 12);--<=i_vbuf_rd(0);
 i_hddraid_dbgcs.data(16)            <=i_vbufin_empty;
@@ -1068,29 +1110,35 @@ i_hddraid_dbgcs.data(51)            <=i_memch1_out_bank(0).rxbuf_full   ;--: std
 i_hddraid_dbgcs.data(52)            <=i_memch1_out_bank(0).rxbuf_empty  ;--: std_logic;
 i_hddraid_dbgcs.data(59 downto 53)  <=i_memch1_out_bank(0).rxbuf_rdcount;--: std_logic_vector(6 downto 0);
 
-i_hddraid_dbgcs.data(60)            <=i_ram_txbuf_empty;
-i_hddraid_dbgcs.data(61)            <=i_ram_rxbuf_empty;
+i_hddraid_dbgcs.data(60)            <=tst_hdd_rambuf_out(22);--i_ram_txbuf_empty;
+i_hddraid_dbgcs.data(61)            <=tst_hdd_rambuf_out(23);--i_ram_rxbuf_empty;
 i_hddraid_dbgcs.data(62)            <=i_vctrl_rst;
 i_hddraid_dbgcs.data(63)            <=tst_syn;
 
-i_hddraid_dbgcs.data(95 downto 64)  <=i_vin_dout;--(others=>'0');
-i_hddraid_dbgcs.data(96)            <=tst_vctrl_out(16);--<=tst_vwr_out(5);--<=i_mem_cmden;
-i_hddraid_dbgcs.data(97)            <=tst_vctrl_out(17);--<=tst_vrd_out(5);--<=i_mem_cmden;
+i_hddraid_dbgcs.data(69 downto 64)  <=tst_vctrl_out(21 downto 16);--<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
+i_hddraid_dbgcs.data(95 downto 70)  <=(others=>'0');
+--i_hddraid_dbgcs.data(95 downto 64)  <=i_hdd_vbufin_dout;--i_vin_dout;--(others=>'0');
+i_hddraid_dbgcs.data(96)            <='0';--tst_vctrl_out(16);--<=tst_vwr_out(5);--<=i_mem_cmden;
+i_hddraid_dbgcs.data(97)            <='0';--tst_vctrl_out(17);--<=tst_vrd_out(5);--<=i_mem_cmden;
 i_hddraid_dbgcs.data(98)            <='0';--tst_vctrl_out(18);--<=tst_vwr_out(6);--<=i_mem_trn_work;
 i_hddraid_dbgcs.data(99)            <='0';--tst_vctrl_out(19);--<=tst_vrd_out(6);--<=i_mem_trn_work;
 
-i_hddraid_dbgcs.data(131 downto 100) <=i_hdd_txdata;--Tx --i_memch0_in_bank(0).txd(31 downto 0) ;--i_vbufin_dout
-i_hddraid_dbgcs.data(163 downto 132) <=i_ram_rxbuf_din;--i_memch1_out_bank(0).rxd(31 downto 0);--i_vbufout_din;--Rx
+i_hddraid_dbgcs.data(131 downto 100) <=i_memch0_in_bank (0).txd(31 downto 0) ;--i_vbufin_dout
+i_hddraid_dbgcs.data(163 downto 132) <=i_memch1_out_bank(0).rxd(31 downto 0);--i_vbufout_din;--Rx
 
-i_hddraid_dbgcs.data(164)            <=i_ram_rxbuf_wr;
-i_hddraid_dbgcs.data(165)            <=i_ram_txbuf_rd;
-i_hddraid_dbgcs.data(166)            <=t_vbufin_rd;
+i_hddraid_dbgcs.data(164)            <=tst_hdd_rambuf_out(21);--i_ram_rxbuf_wr;
+i_hddraid_dbgcs.data(165)            <=tst_hdd_rambuf_out(20);--i_ram_txbuf_rd;
+i_hddraid_dbgcs.data(166)            <=i_vbufin_rd;--t_vbufin_rd;
+i_hddraid_dbgcs.data(167)            <=i_hdd_vbufin_rd;
+i_hddraid_dbgcs.data(168)            <=i_memch0_out_bank(0).txbuf_err;
+i_hddraid_dbgcs.data(169)            <=i_memch0_out_bank(0).txbuf_underrun;
+i_hddraid_dbgcs.data(170)            <=i_memch1_out_bank(0).rxbuf_err;
+i_hddraid_dbgcs.data(171)            <=i_memch1_out_bank(0).rxbuf_overflow;
 
 
-
-process(g_memclk)
+process(g_hclk)
 begin
-  if g_memclk'event and g_memclk='1' then
+  if g_hclk'event and g_hclk='1' then
     sr_vctrl_rst(0)<=i_vctrl_rst;
     sr_vctrl_rst(1)<=sr_vctrl_rst(0);
     tst_syn<=not sr_vctrl_rst(0) and sr_vctrl_rst(1);

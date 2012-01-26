@@ -16,102 +16,20 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
-use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
-
-library unisim;
-use unisim.vcomponents.all;
+use ieee.std_logic_misc.all;
 
 library work;
-use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
-use work.prj_def.all;
-use work.cfgdev_pkg.all;
 use work.sata_glob_pkg.all;
-use work.dsn_hdd_pkg.all;
 
 entity hscam_main is
 generic(
-G_SIM             : string:="OFF"
+G_VSYN_ACTIVE : std_logic:='1';
+G_SIM : string:="OFF"
 );
 port
 (
---------------------------------------------------
---Технологический порт
---------------------------------------------------
-pin_out_TP         : out   std_logic_vector(7 downto 0);
-pin_in_SW          : in    std_logic_vector(3 downto 0);
-pin_out_led        : out   std_logic_vector(7 downto 0);
-
-pin_inout_ftdi_d   : inout std_logic_vector(7 downto 0);
-pin_out_ftdi_rd_n  : out   std_logic;
-pin_out_ftdi_wr_n  : out   std_logic;
-pin_in_ftdi_txe_n  : in    std_logic;
-pin_in_ftdi_rxf_n  : in    std_logic;
-pin_in_ftdi_pwren_n: in    std_logic;
-
---------------------------------------------------
---Image Sensor
---------------------------------------------------
-pin_in_ims_ra      : in    std_logic_vector(7 downto 0); --//Row Addr
-pin_in_ims_d       : in    std_logic_vector(99 downto 0);--//DATA
-pin_out_ims_dren   : out   std_logic;                    --//DATA_READ_EN_N
-pin_out_ims_ldsh   : out   std_logic;                    --//LD_SHFT_N
-pin_in_ims_cldone  : in    std_logic;                    --//CAL_DONE_N
-pin_out_ims_clstart: out   std_logic;                    --//CAL_STRT_N
-pin_in_ims_rdone   : in    std_logic;                    --//ROW_DONE_N
-pin_out_ims_rstart : out   std_logic;                    --//ROW_STRT_N
-pin_out_ims_dark   : out   std_logic;                    --//DARK_OFF_EN_N
-pin_out_ims_stby   : out   std_logic;                    --//STANDBY_N
-pin_out_ims_lrst   : out   std_logic;                    --//LRST_N
-pin_out_ims_pg     : out   std_logic;                    --//PG_N
-pin_out_ims_tx     : out   std_logic;                    --//TX_N
-pin_out_ims_pclk   : out   std_logic;                    --//PIXEL_CLK_OUT
-pin_in_ims_sclk    : in    std_logic;                    --//Sys Clk
-
-pin_out_ims_en     : out   std_logic;                    --//Сигнал на схеме EN
-pin_out_ims_tec_p  : out   std_logic;                    --//Сигнал на схеме TEC+
-pin_out_ims_tec_n  : out   std_logic;                    --//Сигнал на схеме TEC-
-pin_inout_ims_sda  : inout std_logic;                    --//Сигнал на схеме SDA
-pin_out_ims_scl    : out   std_logic;                    --//Сигнал на схеме SCL
-
---------------------------------------------------
---Camera Link
---------------------------------------------------
-pin_out_cl_xp      : out   std_logic_vector(3 downto 0); --//X(x)_p
-pin_out_cl_xn      : out   std_logic_vector(3 downto 0); --//X(x)_n
-pin_out_cl_xclk_p  : out   std_logic;
-pin_out_cl_xclk_n  : out   std_logic;
-
-pin_in_cl_cc_p     : in    std_logic_vector(4 downto 1); --//CC(x)_p
-pin_in_cl_cc_n     : in    std_logic_vector(4 downto 1); --//CC(x)_n
-pin_out_cl_tx_p    : out   std_logic;                    --//Грубо говоря UART для управления камерой:
-pin_out_cl_tx_n    : out   std_logic;                    --//UART/TX (Camera -> FG)
-pin_in_cl_rx_p     : in    std_logic;                    --//UART/RX (Camera <- FG)
-pin_in_cl_rx_n     : in    std_logic;
-
---------------------------------------------------
---RAM
---------------------------------------------------
-mcb5_dram_dq       : in std_logic_vector(15 downto 0);
-mcb5_dram_a        : in std_logic_vector(12 downto 0);
-mcb5_dram_ba       : in std_logic_vector(3 downto 0);
-mcb5_dram_dqs      : in std_logic;
-mcb5_dram_dqs_n    : in std_logic;
-mcb5_dram_ck       : in std_logic;
-mcb5_dram_ck_n     : in std_logic;
-mcb5_dram_cke      : in std_logic;
-mcb5_dram_ras_n    : in std_logic;
-mcb5_dram_cas_n    : in std_logic;
-mcb5_dram_we_n     : in std_logic;
-mcb5_dram_odt      : in std_logic;
-mcb5_dram_reset_n  : in std_logic;
-mcb5_dram_dm       : in std_logic;
-mcb5_rzq           : in std_logic;
-c5_sys_clk_p       : in std_logic;
-c5_sys_clk_n       : in std_logic;
-c5_sys_rst_i       : in std_logic;
-
 --------------------------------------------------
 --SATA
 --------------------------------------------------
@@ -123,100 +41,286 @@ pin_in_sata_clk_n  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1
 pin_in_sata_clk_p  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
---Reference clock
+--RAM
 --------------------------------------------------
-pin_in_refclk_n    : in    std_logic;
-pin_in_refclk_p    : in    std_logic
+pin_out_mcb5_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
+pin_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+pin_out_mcb5_ras_n    : out   std_logic;
+pin_out_mcb5_cas_n    : out   std_logic;
+pin_out_mcb5_we_n     : out   std_logic;
+pin_out_mcb5_odt      : out   std_logic;
+pin_out_mcb5_cke      : out   std_logic;
+pin_out_mcb5_dm       : out   std_logic;
+pin_out_mcb5_udm      : out   std_logic;
+pin_out_mcb5_ck       : out   std_logic;
+pin_out_mcb5_ck_n     : out   std_logic;
+pin_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+pin_inout_mcb5_udqs   : inout std_logic;
+pin_inout_mcb5_udqs_n : inout std_logic;
+pin_inout_mcb5_dqs    : inout std_logic;
+pin_inout_mcb5_dqs_n  : inout std_logic;
+pin_inout_mcb5_rzq    : inout std_logic;
+pin_inout_mcb5_zio    : inout std_logic;
+
+pin_out_mcb1_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
+pin_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+pin_out_mcb1_ras_n    : out   std_logic;
+pin_out_mcb1_cas_n    : out   std_logic;
+pin_out_mcb1_we_n     : out   std_logic;
+pin_out_mcb1_odt      : out   std_logic;
+pin_out_mcb1_cke      : out   std_logic;
+pin_out_mcb1_dm       : out   std_logic;
+pin_out_mcb1_udm      : out   std_logic;
+pin_out_mcb1_ck       : out   std_logic;
+pin_out_mcb1_ck_n     : out   std_logic;
+pin_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+pin_inout_mcb1_udqs   : inout std_logic;
+pin_inout_mcb1_udqs_n : inout std_logic;
+pin_inout_mcb1_dqs    : inout std_logic;
+pin_inout_mcb1_dqs_n  : inout std_logic;
+pin_inout_mcb1_rzq    : inout std_logic;
+pin_inout_mcb1_zio    : inout std_logic;
+
+--------------------------------------------------
+--Технологический порт
+--------------------------------------------------
+pin_inout_ftdi_d   : inout std_logic_vector(7 downto 0);
+pin_out_ftdi_rd_n  : out   std_logic;
+pin_out_ftdi_wr_n  : out   std_logic;
+pin_in_ftdi_txe_n  : in    std_logic;
+pin_in_ftdi_rxf_n  : in    std_logic;
+pin_in_ftdi_pwren_n: in    std_logic;
+
+pin_out_TP2        : out   std_logic_vector(1 downto 0);
+pin_out_TP         : out   std_logic_vector(7 downto 0);
+pin_out_led        : out   std_logic_vector(7 downto 0)
 );
 end entity;
 
 architecture struct of hscam_main is
 
-component camctrl_main
-port (
-p_out_TP         : out   std_logic_vector(7 downto 0);
-p_in_SW          : in    std_logic_vector(3 downto 0);
-
-p_in_ims_ra      : in    std_logic_vector(7 downto 0);
-p_in_ims_d       : in    std_logic_vector(99 downto 0);
-p_out_ims_dren   : out   std_logic;
-p_out_ims_ldsh   : out   std_logic;
-p_in_ims_cldone  : in    std_logic;
-p_out_ims_clstart: out   std_logic;
-p_in_ims_rdone   : in    std_logic;
-p_out_ims_rstart : out   std_logic;
-p_out_ims_dark   : out   std_logic;
-p_out_ims_stby   : out   std_logic;
-p_out_ims_lrst   : out   std_logic;
-p_out_ims_pg     : out   std_logic;
-p_out_ims_tx     : out   std_logic;
-p_out_ims_pclk   : out   std_logic;
-p_in_ims_sclk    : in    std_logic;
-
-p_out_ims_en     : out   std_logic;
-p_out_ims_tec_p  : out   std_logic;
-p_out_ims_tec_n  : out   std_logic;
-p_inout_ims_sda  : inout std_logic;
-p_out_ims_scl    : out   std_logic;
-);
-end component;
-
 component hdd_main
 generic(
-G_MODULE_USE : string:="ON";
-G_HDD_COUNT  : integer:=1;
-G_DBGCS      : string:="OFF";
-G_SIM        : string:="OFF"
+G_VSYN_ACTIVE : std_logic:='1';
+G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
---SATA Driver
+--VideoIN
 --------------------------------------------------
-p_out_sata_txn            : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_out_sata_txp            : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxn             : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxp             : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(G_HDD_COUNT-1))-1 downto 0);
+p_in_vd       : in   std_logic_vector(99 downto 0);
+p_in_vin_vs   : in   std_logic;
+p_in_vin_hs   : in   std_logic;
+p_in_vin_clk  : in   std_logic;
 
-p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0);
-p_out_sata_refclkout      : out   std_logic;
+--------------------------------------------------
+--VideoOUT
+--------------------------------------------------
+p_out_vd      : out  std_logic_vector(31 downto 0);
+p_in_vout_vs  : in   std_logic;
+p_in_vout_hs  : in   std_logic;
+p_in_vout_clk : in   std_logic;
 
----------------------------------------------------------------------------
---Технологический порт
----------------------------------------------------------------------------
-p_in_tst                 : in    std_logic_vector(31 downto 0);
-p_out_tst                : out   std_logic_vector(31 downto 0);
+--------------------------------------------------
+--RAM
+--------------------------------------------------
+p_out_mcb5_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
+p_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+p_out_mcb5_ras_n    : out   std_logic;
+p_out_mcb5_cas_n    : out   std_logic;
+p_out_mcb5_we_n     : out   std_logic;
+p_out_mcb5_odt      : out   std_logic;
+p_out_mcb5_cke      : out   std_logic;
+p_out_mcb5_dm       : out   std_logic;
+p_out_mcb5_udm      : out   std_logic;
+p_out_mcb5_ck       : out   std_logic;
+p_out_mcb5_ck_n     : out   std_logic;
+p_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+p_inout_mcb5_udqs   : inout std_logic;
+p_inout_mcb5_udqs_n : inout std_logic;
+p_inout_mcb5_dqs    : inout std_logic;
+p_inout_mcb5_dqs_n  : inout std_logic;
+p_inout_mcb5_rzq    : inout std_logic;
+p_inout_mcb5_zio    : inout std_logic;
+
+p_out_mcb1_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
+p_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+p_out_mcb1_ras_n    : out   std_logic;
+p_out_mcb1_cas_n    : out   std_logic;
+p_out_mcb1_we_n     : out   std_logic;
+p_out_mcb1_odt      : out   std_logic;
+p_out_mcb1_cke      : out   std_logic;
+p_out_mcb1_dm       : out   std_logic;
+p_out_mcb1_udm      : out   std_logic;
+p_out_mcb1_ck       : out   std_logic;
+p_out_mcb1_ck_n     : out   std_logic;
+p_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+p_inout_mcb1_udqs   : inout std_logic;
+p_inout_mcb1_udqs_n : inout std_logic;
+p_inout_mcb1_dqs    : inout std_logic;
+p_inout_mcb1_dqs_n  : inout std_logic;
+p_inout_mcb1_rzq    : inout std_logic;
+p_inout_mcb1_zio    : inout std_logic;
+
+--------------------------------------------------
+--SATA
+--------------------------------------------------
+p_out_sata_txn   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+p_out_sata_txp   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxn    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+p_in_sata_rxp    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+p_in_sata_clk_n  : in    std_logic_vector(0 downto 0);
+p_in_sata_clk_p  : in    std_logic_vector(0 downto 0);
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk              : in    std_logic;
-p_in_rst              : in    std_logic
+p_out_hdd_grefclk150M : out   std_logic;
+
+p_out_hdd_dcm_lock    : out   std_logic;
+p_out_hdd_dcm_gclk75M : out   std_logic;
+p_out_hdd_dcm_gclk300M: out   std_logic;
+p_out_hdd_dcm_gclk150M: out   std_logic;
+
+p_out_usrpll_lock     : out   std_logic;
+p_out_usrpll_gclk1    : out   std_logic;
+
+--------------------------------------------------
+--Технологический порт
+--------------------------------------------------
+p_inout_ftdi_d   : inout std_logic_vector(7 downto 0);
+p_out_ftdi_rd_n  : out   std_logic;
+p_out_ftdi_wr_n  : out   std_logic;
+p_in_ftdi_txe_n  : in    std_logic;
+p_in_ftdi_rxf_n  : in    std_logic;
+p_in_ftdi_pwren_n: in    std_logic;
+
+p_out_TP         : out   std_logic_vector(7 downto 0);
+p_out_led        : out   std_logic_vector(7 downto 0)
 );
 end component;
 
+component vtiming_gen
+generic(
+G_TVS : integer:=32;
+G_THS : integer:=32;
+G_PIX_COUNT : integer:=32;
+G_ROW_COUNT : integer:=32
+);
+port(
+p_out_vs : out  std_logic;
+p_out_hs : out  std_logic;
 
-signal i_refclk                         : std_logic;
-signal g_refclk                         : std_logic;
+p_in_clk : in   std_logic;
+p_in_rst : in   std_logic
+);
+end component;
 
-signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
-signal g_hdd_gt_refclkout               : std_logic;
+signal i_hdd_grefclk150M              : std_logic;
+
+signal i_hdd_dcm_lock                 : std_logic;
+signal i_hdd_dcm_gclk75M              : std_logic;
+signal i_hdd_dcm_gclk300M             : std_logic;
+signal i_hdd_dcm_gclk150M             : std_logic;
+
+signal i_usrpll_lock                  : std_logic;
+signal g_usrpll_clk1                  : std_logic;
+
+signal i_vtg_rst                      : std_logic;
+type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
+signal i_tdata                        : TDtest;
+
+
+signal i_vin_d                        : std_logic_vector(99 downto 0):=(others=>'0');
+signal i_vin_vs                       : std_logic;
+signal i_vin_hs                       : std_logic;
+signal i_vin_clk                      : std_logic;
+
+signal i_vout_d                       : std_logic_vector(31 downto 0);
+signal i_vout_vs                      : std_logic;
+signal i_vout_hs                      : std_logic;
+signal i_vout_clk                     : std_logic;
+
+--signal pin_out_mcb1_a                 : std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
+--signal pin_out_mcb1_ba                : std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+--signal pin_out_mcb1_ras_n             : std_logic;
+--signal pin_out_mcb1_cas_n             : std_logic;
+--signal pin_out_mcb1_we_n              : std_logic;
+--signal pin_out_mcb1_odt               : std_logic;
+--signal pin_out_mcb1_cke               : std_logic;
+--signal pin_out_mcb1_dm                : std_logic;
+--signal pin_out_mcb1_udm               : std_logic;
+--signal pin_out_mcb1_ck                : std_logic;
+--signal pin_out_mcb1_ck_n              : std_logic;
+--signal pin_inout_mcb1_dq              : std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+--signal pin_inout_mcb1_udqs            : std_logic;
+--signal pin_inout_mcb1_udqs_n          : std_logic;
+--signal pin_inout_mcb1_dqs             : std_logic;
+--signal pin_inout_mcb1_dqs_n           : std_logic;
+--signal pin_inout_mcb1_rzq             : std_logic;
+--signal pin_inout_mcb1_zio             : std_logic;
 
 
 --MAIN
 begin
 
 
---***********************************************************
---          Установка частот проекта:
---***********************************************************
-ibufg_refclk : IBUFGDS port map(I  => pin_in_refclk_p, IB => pin_in_refclk_n, O  => i_refclk);
-bufg_refclk  : BUFG    port map(I  => i_refclk, O  => g_refclk);
+i_vtg_rst <=not i_hdd_dcm_lock;--i_usrpll_lock;
+i_vin_clk <=g_usrpll_clk1;--62.5MHz  i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
+i_vout_clk<=i_hdd_dcm_gclk300M;--i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
 
---//Input 150MHz reference clock for SATA
-gen_sata_gt : for i in 0 to C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 generate
-ibufds_hdd_gt_refclk : IBUFDS port map(I  => pin_in_sata_clk_p(i), IB => pin_in_sata_clk_n(i), O  => i_hdd_gt_refclk150(i));
-end generate gen_sata_gt;
+--Генератор тестовых данных (Вертикальные полоски!!!)
+gen_vd : for i in 1 to 10 generate
+process(i_vtg_rst,i_vin_clk)
+begin
+  if i_vtg_rst='1' then
+    i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i, i_tdata(i-1)'length);
+  elsif i_vin_clk'event and i_vin_clk='1' then
+    if i_vin_vs=G_VSYN_ACTIVE or i_vin_hs=G_VSYN_ACTIVE then
+      i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, i_tdata(i-1)'length);
+    else
+      i_tdata(i-1)<=i_tdata(i-1) + CONV_STD_LOGIC_VECTOR(10, i_tdata(i-1)'length);
+    end if;
+  end if;
+end process;
+
+i_vin_d((10*i)-8-1 downto (10*i)-10)<=(others=>'0');
+i_vin_d((10*i)-1 downto (10*i)-8)<=i_tdata(i-1);
+end generate gen_vd;
+
+m_vtgen_high : vtiming_gen
+generic map(
+G_TVS => 32,
+G_THS => 16,
+G_PIX_COUNT => (C_PCFG_FRPIX/10),
+G_ROW_COUNT => C_PCFG_FRROW
+)
+port map(
+p_out_vs => i_vin_vs,
+p_out_hs => i_vin_hs,
+
+p_in_clk => i_vin_clk,
+p_in_rst => i_vtg_rst
+);
+
+m_vtgen_low : vtiming_gen
+generic map(
+G_TVS => 32,
+G_THS => 8,
+G_PIX_COUNT => (C_PCFG_FRPIX/32),
+G_ROW_COUNT => C_PCFG_FRROW
+)
+port map(
+p_out_vs => i_vout_vs,
+p_out_hs => i_vout_hs,
+
+p_in_clk => i_vout_clk,
+p_in_rst => i_vtg_rst
+);
+
+
+pin_out_TP2(0)<=OR_reduce(i_vout_d);
+pin_out_TP2(1)<='0';
 
 
 --***********************************************************
@@ -224,66 +328,102 @@ end generate gen_sata_gt;
 --***********************************************************
 m_hdd : hdd_main
 generic map(
-G_MODULE_USE=> C_PCFG_HDD_USE,
-G_HDD_COUNT => C_PCFG_HDD_COUNT,
-G_DBGCS     => C_PCFG_HDD_DBGCS,
-G_SIM       => G_SIM
-);
-port(
+G_VSYN_ACTIVE => G_VSYN_ACTIVE,
+G_SIM => G_SIM
+)
+port map(
+--------------------------------------------------
+--VideoIN
+--------------------------------------------------
+p_in_vd       => i_vin_d,
+p_in_vin_vs   => i_vin_vs,
+p_in_vin_hs   => i_vin_hs,
+p_in_vin_clk  => i_vin_clk,
+
+--------------------------------------------------
+--VideoOUT
+--------------------------------------------------
+p_out_vd      => i_vout_d,
+p_in_vout_vs  => i_vout_vs,
+p_in_vout_hs  => i_vout_hs,
+p_in_vout_clk => i_vout_clk,
+
+--------------------------------------------------
+--RAM
+--------------------------------------------------
+p_out_mcb5_a        => pin_out_mcb5_a       ,
+p_out_mcb5_ba       => pin_out_mcb5_ba      ,
+p_out_mcb5_ras_n    => pin_out_mcb5_ras_n   ,
+p_out_mcb5_cas_n    => pin_out_mcb5_cas_n   ,
+p_out_mcb5_we_n     => pin_out_mcb5_we_n    ,
+p_out_mcb5_odt      => pin_out_mcb5_odt     ,
+p_out_mcb5_cke      => pin_out_mcb5_cke     ,
+p_out_mcb5_dm       => pin_out_mcb5_dm      ,
+p_out_mcb5_udm      => pin_out_mcb5_udm     ,
+p_out_mcb5_ck       => pin_out_mcb5_ck      ,
+p_out_mcb5_ck_n     => pin_out_mcb5_ck_n    ,
+p_inout_mcb5_dq     => pin_inout_mcb5_dq    ,
+p_inout_mcb5_udqs   => pin_inout_mcb5_udqs  ,
+p_inout_mcb5_udqs_n => pin_inout_mcb5_udqs_n,
+p_inout_mcb5_dqs    => pin_inout_mcb5_dqs   ,
+p_inout_mcb5_dqs_n  => pin_inout_mcb5_dqs_n ,
+p_inout_mcb5_rzq    => pin_inout_mcb5_rzq   ,
+p_inout_mcb5_zio    => pin_inout_mcb5_zio   ,
+
+p_out_mcb1_a        => pin_out_mcb1_a       ,
+p_out_mcb1_ba       => pin_out_mcb1_ba      ,
+p_out_mcb1_ras_n    => pin_out_mcb1_ras_n   ,
+p_out_mcb1_cas_n    => pin_out_mcb1_cas_n   ,
+p_out_mcb1_we_n     => pin_out_mcb1_we_n    ,
+p_out_mcb1_odt      => pin_out_mcb1_odt     ,
+p_out_mcb1_cke      => pin_out_mcb1_cke     ,
+p_out_mcb1_dm       => pin_out_mcb1_dm      ,
+p_out_mcb1_udm      => pin_out_mcb1_udm     ,
+p_out_mcb1_ck       => pin_out_mcb1_ck      ,
+p_out_mcb1_ck_n     => pin_out_mcb1_ck_n    ,
+p_inout_mcb1_dq     => pin_inout_mcb1_dq    ,
+p_inout_mcb1_udqs   => pin_inout_mcb1_udqs  ,
+p_inout_mcb1_udqs_n => pin_inout_mcb1_udqs_n,
+p_inout_mcb1_dqs    => pin_inout_mcb1_dqs   ,
+p_inout_mcb1_dqs_n  => pin_inout_mcb1_dqs_n ,
+p_inout_mcb1_rzq    => pin_inout_mcb1_rzq   ,
+p_inout_mcb1_zio    => pin_inout_mcb1_zio   ,
+
 --------------------------------------------------
 --SATA Driver
 --------------------------------------------------
-p_out_sata_txn        => pin_out_sata_txn,
-p_out_sata_txp        => pin_out_sata_txp,
-p_in_sata_rxn         => pin_in_sata_rxn,
-p_in_sata_rxp         => pin_in_sata_rxp,
-
-p_in_sata_refclk      => i_hdd_gt_refclk150,
-p_out_sata_refclkout  => g_hdd_gt_refclkout,
-
---------------------------------------------------
---Технологический порт
---------------------------------------------------
-p_in_tst              => "00000000000000000000000000000000",
-p_out_tst             => open,
+p_out_sata_txn      => pin_out_sata_txn,
+p_out_sata_txp      => pin_out_sata_txp,
+p_in_sata_rxn       => pin_in_sata_rxn,
+p_in_sata_rxp       => pin_in_sata_rxp,
+p_in_sata_clk_n     => pin_in_sata_clk_n,
+p_in_sata_clk_p     => pin_in_sata_clk_p,
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_clk              => g_refclk
-p_in_rst              => '0'
-);
+p_out_hdd_grefclk150M => i_hdd_grefclk150M,
 
+p_out_hdd_dcm_lock    => i_hdd_dcm_lock,
+p_out_hdd_dcm_gclk75M => i_hdd_dcm_gclk75M,
+p_out_hdd_dcm_gclk300M=> i_hdd_dcm_gclk300M,
+p_out_hdd_dcm_gclk150M=> i_hdd_dcm_gclk150M,
 
---***********************************************************
--- Модуль управления Image Sensor:
---***********************************************************
-m_camctrl : camctrl_main
-port map (
-p_out_TP         => pin_out_TP         ,
-p_in_SW          => pin_in_SW          ,
+p_out_usrpll_lock     => i_usrpll_lock,
+p_out_usrpll_gclk1    => g_usrpll_clk1,
 
-p_in_ims_ra      => pin_in_ims_ra      ,
-p_in_ims_d       => pin_in_ims_d       ,
-p_out_ims_dren   => pin_out_ims_dren   ,
-p_out_ims_ldsh   => pin_out_ims_ldsh   ,
-p_in_ims_cldone  => pin_in_ims_cldone  ,
-p_out_ims_clstart=> pin_out_ims_clstart,
-p_in_ims_rdone   => pin_in_ims_rdone   ,
-p_out_ims_rstart => pin_out_ims_rstart ,
-p_out_ims_dark   => pin_out_ims_dark   ,
-p_out_ims_stby   => pin_out_ims_stby   ,
-p_out_ims_lrst   => pin_out_ims_lrst   ,
-p_out_ims_pg     => pin_out_ims_pg     ,
-p_out_ims_tx     => pin_out_ims_tx     ,
-p_out_ims_pclk   => pin_out_ims_pclk   ,
-p_in_ims_sclk    => pin_in_ims_sclk    ,
+--------------------------------------------------
+--Технологический порт
+--------------------------------------------------
+p_inout_ftdi_d      => pin_inout_ftdi_d,
+p_out_ftdi_rd_n     => pin_out_ftdi_rd_n,
+p_out_ftdi_wr_n     => pin_out_ftdi_wr_n,
+p_in_ftdi_txe_n     => pin_in_ftdi_txe_n,
+p_in_ftdi_rxf_n     => pin_in_ftdi_rxf_n,
+p_in_ftdi_pwren_n   => pin_in_ftdi_pwren_n,
 
-p_out_ims_en     => pin_out_ims_en     ,
-p_out_ims_tec_p  => pin_out_ims_tec_p  ,
-p_out_ims_tec_n  => pin_out_ims_tec_n  ,
-p_inout_ims_sda  => pin_inout_ims_sda  ,
-p_out_ims_scl    => pin_out_ims_scl
+p_out_TP            => pin_out_TP,
+p_out_led           => pin_out_led
 );
 
 

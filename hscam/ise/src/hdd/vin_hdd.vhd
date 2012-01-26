@@ -3,10 +3,10 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 17.01.2012 12:27:16
--- Module Name : vin_cam
+-- Module Name : vin_hdd
 --
 -- Назначение/Описание :
---   Прием видеоданных для записи в RAM
+--   Прием видеоданных для записи на HDD
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -18,11 +18,7 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library work;
-use work.prj_cfg.all;
-use work.video_ctrl_pkg.all;
-
-entity vin_cam is
+entity vin_hdd is
 generic(
 G_VSYN_ACTIVE : std_logic:='1'
 );
@@ -32,8 +28,6 @@ p_in_vd            : in   std_logic_vector(99 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
-
-p_out_vfr_prm      : out  TFrXY;
 
 --Вых. видеобуфера
 p_out_vbufin_d     : out  std_logic_vector(31 downto 0);
@@ -48,13 +42,13 @@ p_out_tst          : out   std_logic_vector(31 downto 0);
 --System
 p_in_rst           : in   std_logic
 );
-end vin_cam;
+end vin_hdd;
 
-architecture behavioral of vin_cam is
+architecture behavioral of vin_hdd is
 
 constant CI_BUF_COUNT : integer:=5;
 
-component vin_bufcam
+component vin_bufhdd
 port(
 din    : in  std_logic_vector(31 downto 0);
 wr_en  : in  std_logic;
@@ -88,9 +82,7 @@ signal i_buf_empty         : std_logic_vector(CI_BUF_COUNT-1 downto 0);
 --MAIN
 begin
 
-p_out_vfr_prm.pix <=(others=>'0');
-p_out_vfr_prm.row <=(others=>'0');
-p_out_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR(C_PCFG_FR_PIXTOTAL, p_out_vfr_prm.total_dw'length);
+
 
 --//Запись:
 --//Берем 8 старших бит из пердолгаемых 10 бит на 1Pixel
@@ -125,7 +117,7 @@ gen_buf : for i in 0 to CI_BUF_COUNT-1 generate
 
 i_buf_din(i)<=i_buf_din_vector(32*(i+1)-1 downto 32*i);
 
-m_buf : vin_bufcam
+m_buf : vin_bufhdd
 port map(
 din    => i_buf_din(i),
 wr_en  => i_buf_wr,

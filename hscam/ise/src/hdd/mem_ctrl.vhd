@@ -238,13 +238,24 @@ component memc5_wrapper is
 
 
 
-   constant C5_CLKOUT0_DIVIDE       : integer := 1;
-   constant C5_CLKOUT1_DIVIDE       : integer := 1;
-   constant C5_CLKOUT2_DIVIDE       : integer := 2;--16;--p_out_pll_gclkusr
-   constant C5_CLKOUT3_DIVIDE       : integer := 8;
+   constant C5_CLKOUT0_DIVIDE       : integer := 1; --c5_sysclk_2x
+   constant C5_CLKOUT1_DIVIDE       : integer := 1; --c5_sysclk_2x_180
+   constant C5_CLKOUT2_DIVIDE       : integer := 16;--p_out_pll_gclkusr
+   constant C5_CLKOUT3_DIVIDE       : integer := 8; --c5_mcb_drp_clk
    constant C5_CLKFBOUT_MULT        : integer := 2;
    constant C5_DIVCLK_DIVIDE        : integer := 1;
+
    constant C5_INCLK_PERIOD         : integer := ((C5_MEMCLK_PERIOD * C5_CLKFBOUT_MULT) / (C5_DIVCLK_DIVIDE * C5_CLKOUT0_DIVIDE * 2));
+
+--   constant C5_CLKOUT0_DIVIDE       : integer := C_MEMPLL_CLKOUT0_DIVIDE;
+--   constant C5_CLKOUT1_DIVIDE       : integer := C_MEMPLL_CLKOUT1_DIVIDE;
+--   constant C5_CLKOUT2_DIVIDE       : integer := C_MEMPLL_CLKOUT2_DIVIDE;
+--   constant C5_CLKOUT3_DIVIDE       : integer := C_MEMPLL_CLKOUT3_DIVIDE;
+--   constant C5_CLKFBOUT_MULT        : integer := C_MEMPLL_CLKFBOUT_MULT ;
+--   constant C5_DIVCLK_DIVIDE        : integer := C_MEMPLL_DIVCLK_DIVIDE ;
+--
+--   constant C5_INCLK_PERIOD         : integer := C5_MEMCLK_PERIOD;--((C5_MEMCLK_PERIOD * C5_CLKFBOUT_MULT) / (C5_DIVCLK_DIVIDE * C5_CLKOUT0_DIVIDE * 2));
+
    constant C5_ARB_NUM_TIME_SLOTS   : integer := 12;
    constant C5_ARB_TIME_SLOT_0      : bit_vector(5 downto 0) := o"23";
    constant C5_ARB_TIME_SLOT_1      : bit_vector(5 downto 0) := o"32";
