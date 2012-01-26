@@ -12,9 +12,7 @@
 --
 -------------------------------------------------------------------------
 library ieee;
-use ieee.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;
-use ieee.std_logic_arith.all;
+use ieee.std_logic_1164.all;
 
 library work;
 use work.sata_glob_pkg.all;
@@ -58,6 +56,10 @@ din     : std_logic_vector(31 downto 0);
 wr      : std_logic;
 rd      : std_logic;
 wr_done : std_logic;
+
+dlen    : std_logic_vector(15 downto 0);
+dir     : std_logic;
+start   : std_logic;
 end record;
 
 type THDDCfgRAMO is record
@@ -161,6 +163,9 @@ p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)
 p_out_sata_refclkout      : out   std_logic;
 p_out_sata_gt_plldet      : out   std_logic;
 p_out_sata_dcm_lock       : out   std_logic;
+p_out_sata_dcm_gclk2div   : out   std_logic;
+p_out_sata_dcm_gclk2x     : out   std_logic;
+p_out_sata_dcm_gclk0      : out   std_logic;
 
 --------------------------------------------------
 --Технологический порт
@@ -197,9 +202,3 @@ end component;
 
 
 end dsn_hdd_pkg;
-
-
-package body dsn_hdd_pkg is
-
-end dsn_hdd_pkg;
-

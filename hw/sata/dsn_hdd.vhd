@@ -19,9 +19,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.prj_def.all;
 use work.vicg_common_pkg.all;
@@ -102,12 +99,15 @@ p_in_sata_refclk          : in    std_logic_vector(C_SH_COUNT_MAX(G_HDD_COUNT-1)
 p_out_sata_refclkout      : out   std_logic;
 p_out_sata_gt_plldet      : out   std_logic;
 p_out_sata_dcm_lock       : out   std_logic;
+p_out_sata_dcm_gclk2div   : out   std_logic;
+p_out_sata_dcm_gclk2x     : out   std_logic;
+p_out_sata_dcm_gclk0      : out   std_logic;
 
 ---------------------------------------------------------------------------
 --Технологический порт
 ---------------------------------------------------------------------------
-p_in_tst                 : in    std_logic_vector(31 downto 0);
-p_out_tst                : out   std_logic_vector(31 downto 0);
+p_in_tst                  : in    std_logic_vector(31 downto 0);
+p_out_tst                 : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --//Debug/Sim
@@ -219,7 +219,7 @@ signal h_reg_ctrl_l                     : std_logic_vector(C_HDD_REG_CTRLL_LAST_
 signal h_reg_ctrl_m                     : std_logic_vector(C_HDD_REG_CTRLM_LAST_BIT downto 0):=(others=>'0');
 signal h_reg_hwstart_dly                : std_logic_vector(15 downto 0):=(others=>'0');
 signal h_reg_rambuf_adr                 : std_logic_vector(31 downto 0):=(others=>'0');
-signal h_reg_rambuf_ctrl                : std_logic_vector(15 downto 0):=(others=>'0');
+signal h_reg_rambuf_ctrl                : std_logic_vector(31 downto 0):=(others=>'0');
 
 signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range):=(others=>'0');
 signal i_reg_ctrl_m                     : std_logic_vector(h_reg_ctrl_m'range):=(others=>'0');
@@ -334,7 +334,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(15 downto 0)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then h_reg_rambuf_adr(31 downto 16)<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(15 downto 0)<=p_in_cfg_txdata;
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(31 downto 16)<=p_in_cfg_txdata;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length) then h_reg_rambuf_ctrl(31 downto 16)<=p_in_cfg_txdata;
 
         end if;
     end if;
@@ -359,7 +359,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_ADR_L, i_cfg_adr_cnt'length) then rxd:=h_reg_rambuf_adr(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then rxd:=h_reg_rambuf_adr(31 downto 16);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_L, i_cfg_adr_cnt'length)  then rxd:=h_reg_rambuf_ctrl(15 downto 0);
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length)  then rxd:=h_reg_rambuf_ctrl(31 downto 16);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_M, i_cfg_adr_cnt'length)  then rxd:=h_reg_rambuf_ctrl(31 downto 16);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_LBA_BPOINT_L, i_cfg_adr_cnt'length)   then rxd:=i_sh_status.lba_bp(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_LBA_BPOINT_MID, i_cfg_adr_cnt'length) then rxd:=i_sh_status.lba_bp(31 downto 16);
@@ -419,7 +419,7 @@ p_out_cfg_rxrdy<=p_in_rbuf_status.ram_wr_o.rd_rdy or
 process(p_in_cfg_clk)
 begin
   if p_in_cfg_clk'event and p_in_cfg_clk='1' then
-    if p_in_cfg_done='1' then
+    if i_reg_ctrl_m(C_HDD_REG_CTRLM_RAM_START)='1' then --if p_in_cfg_done='1' then
       sr_ram_rd_rdy<='0';
       i_ram_d_wcnt<='0';
 
@@ -524,6 +524,7 @@ end generate gen_nomax;
 --//Настройка/Управление RAM буфером
 p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
 p_out_rbuf_cfg.mem_adr<=h_reg_rambuf_adr;
+
 p_out_rbuf_cfg.dmacfg <=i_sh_status.dmacfg;
 p_out_rbuf_cfg.tstgen <=i_tstgen;
 p_out_rbuf_cfg.hwlog  <=i_sh_measure.hwlog;
@@ -535,7 +536,9 @@ p_out_rbuf_cfg.ram_wr_i.clk<=p_in_cfg_clk;
 p_out_rbuf_cfg.ram_wr_i.din<=i_cfg_ram_din;
 p_out_rbuf_cfg.ram_wr_i.wr<=i_cfg_ram_wr;
 p_out_rbuf_cfg.ram_wr_i.rd<=i_cfg_ram_rd;
-p_out_rbuf_cfg.ram_wr_i.wr_done<=i_reg_ctrl_m(C_HDD_REG_CTRLM_RAMWR_DONE);
+p_out_rbuf_cfg.ram_wr_i.dlen <=h_reg_rambuf_ctrl(31 downto 16);
+p_out_rbuf_cfg.ram_wr_i.dir  <=i_reg_ctrl_m(C_HDD_REG_CTRLM_RAMWR_ON);
+p_out_rbuf_cfg.ram_wr_i.start<=i_reg_ctrl_m(C_HDD_REG_CTRLM_RAM_START);
 
 p_out_rbuf_cfg.greset<=i_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
 
@@ -578,7 +581,9 @@ p_out_tst(3)<=i_hdd_txd_wr;--//hdd_txbuf
 p_out_tst(4)<=i_hdd_rxd_rd;--//hdd_rxbuf
 p_out_tst(5)<=i_tstgen.tesing_on;
 p_out_tst(6)<=OR_reduce(i_sh_status.ch_bsy(G_HDD_COUNT-1 downto 0));
-p_out_tst(31 downto 7)<=(others=>'0');
+p_out_tst(7)<=i_reg_ctrl_m(C_HDD_REG_CTRLM_CFG2RAM);
+p_out_tst(8)<=i_ram_d_wcnt;
+p_out_tst(31 downto 9)<=(others=>'0');
 
 
 --//Логика управления статусами модуля DSN_HDD.VHD
@@ -770,6 +775,9 @@ p_in_sata_refclk            => p_in_sata_refclk,
 p_out_sata_refclkout        => p_out_sata_refclkout,
 p_out_sata_gt_plldet        => p_out_sata_gt_plldet,
 p_out_sata_dcm_lock         => p_out_sata_dcm_lock,
+p_out_sata_dcm_gclk2div     => p_out_sata_dcm_gclk2div,
+p_out_sata_dcm_gclk2x       => p_out_sata_dcm_gclk2x,
+p_out_sata_dcm_gclk0        => p_out_sata_dcm_gclk0,
 
 --------------------------------------------------
 --Связь с модулем dsn_hdd.vhd
