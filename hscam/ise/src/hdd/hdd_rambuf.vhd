@@ -98,9 +98,28 @@ architecture behavioral of dsn_hdd_rambuf is
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
-component hdd_ram_hfifo
+--component hdd_ram_hfifo
+--port(
+--din         : in std_logic_vector(31 downto 0);
+--wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+--
+--dout        : out std_logic_vector(31 downto 0);
+--rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+--
+--full        : out std_logic;
+--almost_full : out std_logic;
+--empty       : out std_logic;
+--
+----clk         : in std_logic;
+--rst         : in std_logic
+--);
+--end component;
+
+component hdd_ram_hfifo_tx
 port(
-din         : in std_logic_vector(31 downto 0);
+din         : in std_logic_vector(15 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
@@ -117,6 +136,25 @@ rst         : in std_logic
 );
 end component;
 
+component hdd_ram_hfifo_rx
+port(
+din         : in std_logic_vector(31 downto 0);
+wr_en       : in std_logic;
+wr_clk      : in std_logic;
+
+dout        : out std_logic_vector(15 downto 0);
+rd_en       : in std_logic;
+rd_clk      : in std_logic;
+
+full        : out std_logic;
+almost_full : out std_logic;
+prog_full   : out std_logic;
+empty       : out std_logic;
+
+--clk         : in std_logic;
+rst         : in std_logic
+);
+end component;
 type fsm_state is (
 S_IDLE,
 S_MEM_WRSTART,
@@ -191,7 +229,9 @@ p_out_tst(20)          <=i_ram_txbuf_rd;
 p_out_tst(21)          <=i_ram_rxbuf_wr;
 p_out_tst(22)          <=i_ram_txbuf_empty;
 p_out_tst(23)          <=i_ram_rxbuf_empty;
-p_out_tst(31 downto 24)<=(others=>'0');
+p_out_tst(24)          <=i_ram_txbuf_afull;
+p_out_tst(25)          <=i_ram_rxbuf_afull;
+p_out_tst(31 downto 26)<=(others=>'0');
 
 
 p_out_vbuf_rd<=not p_in_vbuf_empty;
@@ -208,7 +248,7 @@ p_out_rbuf_status.hwlog_size<=(others=>'0');
 i_rst<=p_in_rst or p_in_rbuf_cfg.dmacfg.clr_err;
 
 --RAM<-CFG
-m_txram : hdd_ram_hfifo
+m_txram : hdd_ram_hfifo_tx
 port map(
 din         => p_in_rbuf_cfg.ram_wr_i.din,
 wr_en       => p_in_rbuf_cfg.ram_wr_i.wr,
@@ -238,7 +278,7 @@ i_hdd_txd_wr<=(not i_ram_txbuf_empty and not p_in_hdd_txbuf_pfull) when p_in_tst
 
 
 --RAM->CFG
-m_rxram : hdd_ram_hfifo
+m_rxram : hdd_ram_hfifo_rx
 port map(
 din         => i_ram_rxbuf_din,
 wr_en       => i_ram_rxbuf_wr,
@@ -249,14 +289,15 @@ rd_en       => p_in_rbuf_cfg.ram_wr_i.rd,
 rd_clk      => p_in_rbuf_cfg.ram_wr_i.clk,
 
 full        => i_ram_rxbuf_full,
-almost_full => i_ram_rxbuf_afull,
+almost_full => open,
+prog_full   => i_ram_rxbuf_afull,
 empty       => i_ram_rxbuf_empty,
 
 --clk         => p_in_clk,
 rst         => i_rst
 );
 
-p_out_rbuf_status.ram_wr_o.rd_rdy<= not i_ram_rxbuf_afull;
+p_out_rbuf_status.ram_wr_o.rd_rdy<= not i_ram_rxbuf_empty;
 i_hdd_rxd_rd<=(not p_in_hdd_rxbuf_empty and not i_ram_rxbuf_afull) when p_in_tst(7)='1' else '0';
 i_ram_rxbuf_wr<=i_hdd_rxd_rd when p_in_tst(7)='1' else i_ram_rxd_wr;
 i_ram_rxbuf_din<=p_in_hdd_rxd when p_in_tst(7)='1' else i_ram_rxd;
