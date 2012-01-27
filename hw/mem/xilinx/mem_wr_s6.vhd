@@ -100,6 +100,7 @@ signal i_mem_cmden         : std_logic;
 signal i_mem_cmdwr         : std_logic;
 signal i_mem_cmdbl         : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
 signal i_mem_rxd_det       : std_logic;
+signal i_mem_rxbuf_valid   : std_logic;
 
 signal i_cfg_mem_dlen_rq   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
 signal i_cfg_mem_trn_len   : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
@@ -166,7 +167,10 @@ p_out_cfg_mem_done<=i_mem_done;
 --Стробы записи/чтения ОЗУ
 i_mem_rd<=i_mem_rxd_det and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full;
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
-i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full) when i_mem_dir=C_MEMWR_WRITE else (i_mem_cmden and not p_in_mem.cmdbuf_full and not p_in_usr_rxbuf_full);
+i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full) when i_mem_dir=C_MEMWR_WRITE else
+             (i_mem_cmden and not p_in_mem.cmdbuf_full and not p_in_usr_rxbuf_full and i_mem_rxbuf_valid);
+
+i_mem_rxbuf_valid<='1' when p_in_mem.rxbuf_rdcount<CONV_STD_LOGIC_VECTOR(32, p_in_mem.rxbuf_rdcount'length) else '0';
 
 process(p_in_rst,p_in_clk)
 begin
