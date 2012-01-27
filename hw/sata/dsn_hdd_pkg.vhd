@@ -52,7 +52,7 @@ end record;
 --//Запись чтение RAM через CFG/Map:
 type THDDCfgRAMI is record
 clk     : std_logic;
-din     : std_logic_vector(31 downto 0);
+din     : std_logic_vector(15 downto 0);
 wr      : std_logic;
 rd      : std_logic;
 wr_done : std_logic;
@@ -63,7 +63,7 @@ start   : std_logic;
 end record;
 
 type THDDCfgRAMO is record
-dout    : std_logic_vector(31 downto 0);
+dout    : std_logic_vector(15 downto 0);
 rd_rdy  : std_logic;
 wr_rdy  : std_logic;
 end record;
@@ -73,7 +73,6 @@ type THDDRBufStatus is record
 err      : std_logic;
 err_type : THDDRBufErrDetect;
 done     : std_logic;
---rdy  : std_logic;
 hwlog_size : std_logic_vector(31 downto 0);
 ram_wr_o : THDDCfgRAMO;
 end record;
@@ -140,12 +139,14 @@ p_out_hdd_done            : out  std_logic;
 p_out_rbuf_cfg            : out  THDDRBufCfg;
 p_in_rbuf_status          : in   THDDRBufStatus;
 
+p_in_hdd_txd_wrclk        : in   std_logic;
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);
 p_in_hdd_txd_wr           : in   std_logic;
 p_out_hdd_txbuf_pfull     : out  std_logic;
 p_out_hdd_txbuf_full      : out  std_logic;
 p_out_hdd_txbuf_empty     : out  std_logic;
 
+p_in_hdd_rxd_rdclk        : in   std_logic;
 p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);
 p_in_hdd_rxd_rd           : in   std_logic;
 p_out_hdd_rxbuf_pempty    : out  std_logic;

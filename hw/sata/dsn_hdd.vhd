@@ -76,12 +76,14 @@ p_out_hdd_done            : out  std_logic;                      --//
 p_out_rbuf_cfg            : out  THDDRBufCfg;                    --//Конфигурирование RAMBUF
 p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAMBUF
 
+p_in_hdd_txd_wrclk        : in   std_logic;                      --//
 p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_pfull     : out  std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
 p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
+p_in_hdd_rxd_rdclk        : in   std_logic;                      --//
 p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
 p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
@@ -174,18 +176,18 @@ component hdd_txfifo
 port(
 din         : in std_logic_vector(p_in_hdd_txd'range);
 wr_en       : in std_logic;
---wr_clk      : in std_logic;
+wr_clk      : in std_logic;
 
 dout        : out std_logic_vector(p_in_hdd_txd'range);
 rd_en       : in std_logic;
---rd_clk      : in std_logic;
+rd_clk      : in std_logic;
 
 full        : out std_logic;
 almost_full : out std_logic;
 empty       : out std_logic;
 prog_full   : out std_logic;
 
-clk         : in std_logic;
+--clk         : in std_logic;
 rst         : in std_logic
 );
 end component;
@@ -194,26 +196,23 @@ component hdd_rxfifo
 port(
 din         : in std_logic_vector(p_out_hdd_rxd'range);
 wr_en       : in std_logic;
---wr_clk      : in std_logic;
+wr_clk      : in std_logic;
 
 dout        : out std_logic_vector(p_out_hdd_rxd'range);
 rd_en       : in std_logic;
---rd_clk      : in std_logic;
+rd_clk      : in std_logic;
 
 full        : out std_logic;
 almost_full : out std_logic;
 empty       : out std_logic;
 prog_empty  : out std_logic;
 
-clk         : in std_logic;
+--clk         : in std_logic;
 rst         : in std_logic
 );
 end component;
 
 signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
-signal i_cfg_ram_rd                     : std_logic;
-signal i_cfg_ram_wr                     : std_logic;
-signal i_cfg_ram_din                    : std_logic_vector(31 downto 0);
 
 signal h_reg_ctrl_l                     : std_logic_vector(C_HDD_REG_CTRLL_LAST_BIT downto 0):=(others=>'0');
 signal h_reg_ctrl_m                     : std_logic_vector(C_HDD_REG_CTRLM_LAST_BIT downto 0):=(others=>'0');
@@ -397,11 +396,7 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_HWLOG_SIZE_M, i_cfg_adr_cnt'length)  then rxd:=p_in_rbuf_status.hwlog_size(31 downto 16);
 
         elsif  i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) then
-          if i_ram_d_wcnt='0' then
-            rxd:=p_in_rbuf_status.ram_wr_o.dout(15 downto 0);
-          else
-            rxd:=i_ram_dout;
-          end if;
+            rxd:=p_in_rbuf_status.ram_wr_o.dout(rxd'range);
 
         end if;
 
@@ -412,48 +407,11 @@ begin
 end process;
 
 p_out_cfg_txrdy<=p_in_rbuf_status.ram_wr_o.wr_rdy when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '1';
-p_out_cfg_rxrdy<=p_in_rbuf_status.ram_wr_o.rd_rdy or
-                 sr_ram_rd_rdy                    when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '1';
+p_out_cfg_rxrdy<=p_in_rbuf_status.ram_wr_o.rd_rdy when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '1';
 
---//Запись/чтение ОЗУ через CFG
-process(p_in_cfg_clk)
-begin
-  if p_in_cfg_clk'event and p_in_cfg_clk='1' then
-    if i_reg_ctrl_m(C_HDD_REG_CTRLM_RAM_START)='1' then --if p_in_cfg_done='1' then
-      sr_ram_rd_rdy<='0';
-      i_ram_d_wcnt<='0';
-
-    elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) then
-
-      if p_in_cfg_rd='1' and i_ram_d_wcnt='1' then
-        sr_ram_rd_rdy<=p_in_rbuf_status.ram_wr_o.rd_rdy;
-      end if;
-
-      if p_in_cfg_wd='1' or p_in_cfg_rd='1' then
-        i_ram_d_wcnt<=not i_ram_d_wcnt;
-
-        if i_ram_d_wcnt='0' then
-          if p_in_cfg_wd='1' then
-            i_ram_din<=p_in_cfg_txdata;
-          end if;
-
-          if p_in_cfg_rd='1' then
-            i_ram_dout<=p_in_rbuf_status.ram_wr_o.dout(31 downto 16);
-          end if;
-        end if;
-      end if;
-
-    end if;
-  end if;
-end process;
-
-i_cfg_ram_rd <=p_in_cfg_rd  when i_ram_d_wcnt='0' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
-i_cfg_ram_wr <=p_in_cfg_wd  when i_ram_d_wcnt='1' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
-i_cfg_ram_din<=p_in_cfg_txdata & i_ram_din;
 
 --//Запись командного пакета
 i_sh_cxd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
-
 
 process(p_in_clk)
 begin
@@ -524,22 +482,21 @@ end generate gen_nomax;
 --//Настройка/Управление RAM буфером
 p_out_rbuf_cfg.mem_trn<=h_reg_rambuf_ctrl(15 downto 0);
 p_out_rbuf_cfg.mem_adr<=h_reg_rambuf_adr;
-
 p_out_rbuf_cfg.dmacfg <=i_sh_status.dmacfg;
 p_out_rbuf_cfg.tstgen <=i_tstgen;
 p_out_rbuf_cfg.hwlog  <=i_sh_measure.hwlog;
 p_out_rbuf_cfg.usr    <=EXT(i_reg_hwstart_dly, p_out_rbuf_cfg.usr'length);
 
-p_out_rbuf_cfg.usrif<=p_in_cfg_if;--//Интерфейс управления
-
+--Доступ к ОЗУ через CFG
 p_out_rbuf_cfg.ram_wr_i.clk<=p_in_cfg_clk;
-p_out_rbuf_cfg.ram_wr_i.din<=i_cfg_ram_din;
-p_out_rbuf_cfg.ram_wr_i.wr<=i_cfg_ram_wr;
-p_out_rbuf_cfg.ram_wr_i.rd<=i_cfg_ram_rd;
+p_out_rbuf_cfg.ram_wr_i.din<=p_in_cfg_txdata;
+p_out_rbuf_cfg.ram_wr_i.wr<=p_in_cfg_wd when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
+p_out_rbuf_cfg.ram_wr_i.rd<=p_in_cfg_rd when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
 p_out_rbuf_cfg.ram_wr_i.dlen <=h_reg_rambuf_ctrl(31 downto 16);
 p_out_rbuf_cfg.ram_wr_i.dir  <=i_reg_ctrl_m(C_HDD_REG_CTRLM_RAMWR_ON);
 p_out_rbuf_cfg.ram_wr_i.start<=i_reg_ctrl_m(C_HDD_REG_CTRLM_RAM_START);
 
+p_out_rbuf_cfg.usrif<=p_in_cfg_if;--//Интерфейс управления
 p_out_rbuf_cfg.greset<=i_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
 
 --//Статусы модуля
@@ -687,18 +644,18 @@ m_txfifo : hdd_txfifo
 port map(
 din         => p_in_hdd_txd,
 wr_en       => i_hdd_txd_wr,
---wr_clk      => p_in_clk,
+wr_clk      => p_in_hdd_txd_wrclk,
 
 dout        => i_sh_txd_tmp,
 rd_en       => i_sh_txd_rd,
---rd_clk      => p_in_clk,
+rd_clk      => p_in_clk,
 
 full        => open,
 almost_full => p_out_hdd_txbuf_full,
 empty       => i_sh_txbuf_empty_tmp,
 prog_full   => p_out_hdd_txbuf_pfull,
 
-clk         => p_in_clk,
+--clk         => p_in_clk,
 rst         => i_buf_rst
 );
 
@@ -712,18 +669,18 @@ m_rxfifo : hdd_rxfifo
 port map(
 din         => i_sh_rxd,
 wr_en       => i_sh_rxd_wr,
---wr_clk      => ,
+wr_clk      => p_in_clk,
 
 dout        => p_out_hdd_rxd,
 rd_en       => i_hdd_rxd_rd,
---rd_clk      => ,
+rd_clk      => p_in_hdd_rxd_rdclk,
 
 full        => open,
 almost_full => i_sh_rxbuf_full,
 empty       => i_sh_rxbuf_empty,
 prog_empty  => p_out_hdd_rxbuf_pempty,
 
-clk         => p_in_clk,
+--clk         => p_in_clk,
 rst         => i_buf_rst
 );
 
