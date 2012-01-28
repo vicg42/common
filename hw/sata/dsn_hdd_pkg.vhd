@@ -22,9 +22,10 @@ use work.sata_testgen_pkg.all;
 
 package dsn_hdd_pkg is
 
---//-------------------------------------------------
---//
---//-------------------------------------------------
+constant C_HDD_CFGIF_PCIEXP : std_logic:='0';
+constant C_HDD_CFGIF_UART   : std_logic:='1';
+
+
 type THDDLed is record
 link: std_logic;--//Связь установлена
 rdy : std_logic;--//Канал готов к работе
@@ -35,15 +36,7 @@ dly : std_logic;--//
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
---//-------------------------------------------------
---//
---//-------------------------------------------------
-constant C_HDD_CFGIF_PCIEXP : std_logic:='0';
-constant C_HDD_CFGIF_UART   : std_logic:='1';
 
---//-------------------------------------------------
---//RAMBUF
---//-------------------------------------------------
 type THDDRBufErrDetect is record
 vinbuf_full : std_logic;
 rambuf_full : std_logic;
@@ -55,11 +48,11 @@ clk     : std_logic;
 din     : std_logic_vector(15 downto 0);
 wr      : std_logic;
 rd      : std_logic;
-wr_done : std_logic;
 
-dlen    : std_logic_vector(15 downto 0);
-dir     : std_logic;
-start   : std_logic;
+reqlen  : std_logic_vector(15 downto 0);--Кол-во запрашиваемых данных
+dir     : std_logic;--1/0 (RAM<-CFG)/(RAM->CFG)
+start   : std_logic;--Пуск операции
+sel     : std_logic;--Подключение CFG к ОЗУ
 end record;
 
 type THDDCfgRAMO is record
@@ -90,9 +83,6 @@ greset  : std_logic;         --//Глобальный сброс всего кроме CFG
 end record;
 
 
---//-------------------------------------------------
---//
---//-------------------------------------------------
 component dsn_hdd
 generic(
 G_MODULE_USE : string:="ON";
