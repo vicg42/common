@@ -283,10 +283,13 @@ signal i_testing_on,i_testing_on_tmp    : std_logic;
 signal i_testing_den                    : std_logic;
 signal i_testing_d                      : std_logic_vector(31 downto 0);
 
-signal i_ram_d_wcnt                     : std_logic:='0';
-signal i_ram_din                        : std_logic_vector(15 downto 0):=(others=>'0');
-signal i_ram_dout                       : std_logic_vector(15 downto 0):=(others=>'0');
-signal sr_ram_rd_rdy                    : std_logic:='0';
+signal i_cr_rd                          : std_logic;
+signal i_cr_wr                          : std_logic;
+signal i_cr_dcnt                        : std_logic:='0';
+signal i_cr_din                         : std_logic_vector(31 downto 0):=(others=>'0');
+signal i_cr_din_save                    : std_logic_vector(15 downto 0):=(others=>'0');
+signal i_cr_dout_save                   : std_logic_vector(15 downto 0):=(others=>'0');
+signal sr_cr_rd_rdy                     : std_logic:='0';
 
 signal tst_out                          : std_logic_vector(2 downto 0);
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
@@ -399,7 +402,11 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_REQLEN, i_cfg_adr_cnt'length) then rxd:=h_reg_rbuf_reqlen;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL, i_cfg_adr_cnt'length) then rxd(h_reg_rbuf_ctrl'range):=h_reg_rbuf_ctrl;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) then
-            rxd:=p_in_rbuf_status.ram_wr_o.dout(rxd'range);
+          if i_cr_dcnt='0' then
+            rxd:=p_in_rbuf_status.ram_wr_o.dout(15 downto 0);
+          else
+            rxd:=i_cr_dout_save;
+          end if;
 
         end if;
 
@@ -410,7 +417,42 @@ begin
 end process;
 
 p_out_cfg_txrdy<=p_in_rbuf_status.ram_wr_o.wr_rdy when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '1';
-p_out_cfg_rxrdy<=p_in_rbuf_status.ram_wr_o.rd_rdy when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '1';
+p_out_cfg_rxrdy<=p_in_rbuf_status.ram_wr_o.rd_rdy or
+                 sr_cr_rd_rdy                     when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '1';
+
+--//Запись/чтение ОЗУ через CFG
+process(p_in_cfg_clk)
+begin
+  if p_in_cfg_clk'event and p_in_cfg_clk='1' then
+    if i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) then
+
+      if p_in_cfg_rd='1' and i_cr_dcnt='1' then
+        sr_cr_rd_rdy<=p_in_rbuf_status.ram_wr_o.rd_rdy;
+      end if;
+
+      if p_in_cfg_wd='1' or p_in_cfg_rd='1' then
+        i_cr_dcnt<=not i_cr_dcnt;
+
+        if i_cr_dcnt='0' then
+          if p_in_cfg_wd='1' then
+            i_cr_din_save<=p_in_cfg_txdata;
+          end if;
+
+          if p_in_cfg_rd='1' then
+            i_cr_dout_save<=p_in_rbuf_status.ram_wr_o.dout(31 downto 16);
+          end if;
+        end if;
+      end if;
+
+    else
+      sr_cr_rd_rdy<='0';
+      i_cr_dcnt<='0';
+    end if;
+  end if;
+end process;
+
+i_cr_rd <=p_in_cfg_rd  when i_cr_dcnt='0' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
+i_cr_wr <=p_in_cfg_wd  when i_cr_dcnt='1' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
 
 
 --//Запись командного пакета
@@ -492,9 +534,9 @@ p_out_rbuf_cfg.usr    <=EXT(i_reg_hwstart_dly, p_out_rbuf_cfg.usr'length);
 
 --Доступ к ОЗУ через CFG
 p_out_rbuf_cfg.ram_wr_i.clk<=p_in_cfg_clk;
-p_out_rbuf_cfg.ram_wr_i.din<=p_in_cfg_txdata;
-p_out_rbuf_cfg.ram_wr_i.wr<=p_in_cfg_wd when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
-p_out_rbuf_cfg.ram_wr_i.rd<=p_in_cfg_rd when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
+p_out_rbuf_cfg.ram_wr_i.din<=p_in_cfg_txdata & i_cr_din_save;
+p_out_rbuf_cfg.ram_wr_i.wr<=i_cr_wr;
+p_out_rbuf_cfg.ram_wr_i.rd<=i_cr_rd;
 p_out_rbuf_cfg.ram_wr_i.reqlen<=h_reg_rbuf_reqlen;
 p_out_rbuf_cfg.ram_wr_i.dir  <=i_reg_rbuf_ctrl(C_HDD_REG_RBUF_CTRL_DIR);
 p_out_rbuf_cfg.ram_wr_i.start<=i_reg_rbuf_ctrl(C_HDD_REG_RBUF_CTRL_START);
@@ -543,7 +585,7 @@ p_out_tst(4)<=i_hdd_rxd_rd;--//hdd_rxbuf
 p_out_tst(5)<=i_tstgen.tesing_on;
 p_out_tst(6)<=OR_reduce(i_sh_status.ch_bsy(G_HDD_COUNT-1 downto 0));
 p_out_tst(7)<=i_reg_rbuf_ctrl(C_HDD_REG_RBUF_CTRL_CFG2RAM);
-p_out_tst(8)<=i_ram_d_wcnt;
+p_out_tst(8)<=i_cr_dcnt;
 p_out_tst(31 downto 9)<=(others=>'0');
 
 

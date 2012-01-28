@@ -45,7 +45,7 @@ end record;
 --//Запись чтение RAM через CFG/Map:
 type THDDCfgRAMI is record
 clk     : std_logic;
-din     : std_logic_vector(15 downto 0);
+din     : std_logic_vector(31 downto 0);
 wr      : std_logic;
 rd      : std_logic;
 
@@ -56,7 +56,7 @@ sel     : std_logic;--Подключение CFG к ОЗУ
 end record;
 
 type THDDCfgRAMO is record
-dout    : std_logic_vector(15 downto 0);
+dout    : std_logic_vector(31 downto 0);
 rd_rdy  : std_logic;
 wr_rdy  : std_logic;
 end record;
