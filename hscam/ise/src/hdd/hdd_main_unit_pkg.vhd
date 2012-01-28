@@ -179,6 +179,8 @@ G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23;
 G_DBGCS       : string:="OFF";
 G_SIM         : string:="OFF";
+G_MEM_BANK_M_BIT : integer:=31;
+G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=32
 );

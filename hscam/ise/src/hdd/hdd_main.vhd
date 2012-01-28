@@ -682,6 +682,8 @@ G_MODULE_USE => C_PCFG_HDD_USE,
 G_RAMBUF_SIZE=> C_PCFG_HDD_RAMBUF_SIZE,
 G_DBGCS      => C_PCFG_HDD_DBGCS,
 G_SIM        => G_SIM,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 G_MEM_AWIDTH => CI_MEM_AWIDTH,
 G_MEM_DWIDTH => CI_MEM_DWIDTH
 )
@@ -1056,7 +1058,7 @@ DATA    => i_hddraid_dbgcs.data(172 downto 0),--(122 downto 0),
 TRIG0   => i_hddraid_dbgcs.trig0(41 downto 0)
 );
 
---//-------- TRIG: ------------------ tst_hdd_rambuf_out
+--//-------- TRIG: ------------------
 i_hddraid_dbgcs.trig0(0)            <=tst_hdd_rambuf_out(0)         ;--tst_vctrl_out(0)         ;--vwriter(0)<=p_in_cfg_mem_start;
 i_hddraid_dbgcs.trig0(1)            <=tst_hdd_rambuf_out(1)         ;--tst_vctrl_out(1)         ;--vwriter(1)<=i_mem_done;
 i_hddraid_dbgcs.trig0(4 downto 2)   <=tst_hdd_rambuf_out(4 downto 2);--tst_vctrl_out(4 downto 2);--vwriter(4 downto 2)<=tst_fsm_cs;
@@ -1119,7 +1121,9 @@ i_hddraid_dbgcs.data(62)            <=i_vctrl_rst;
 i_hddraid_dbgcs.data(63)            <=tst_syn;
 
 i_hddraid_dbgcs.data(69 downto 64)  <=tst_vctrl_out(21 downto 16);--<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
-i_hddraid_dbgcs.data(95 downto 70)  <=(others=>'0');
+i_hddraid_dbgcs.data(74 downto 70)  <=tst_hdd_rambuf_out(30 downto 26);--<=tst_fsm_cs;
+i_hddraid_dbgcs.data(95 downto 75)  <=(others=>'0');
+
 --i_hddraid_dbgcs.data(95 downto 64)  <=i_hdd_vbufin_dout;--i_vin_dout;--(others=>'0');
 i_hddraid_dbgcs.data(96)            <='0';--tst_vctrl_out(16);--<=tst_vwr_out(5);--<=i_mem_cmden;
 i_hddraid_dbgcs.data(97)            <='0';--tst_vctrl_out(17);--<=tst_vrd_out(5);--<=i_mem_cmden;
