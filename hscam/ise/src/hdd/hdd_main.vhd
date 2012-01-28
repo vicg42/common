@@ -266,6 +266,7 @@ signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
 signal i_cfg_txrdy                      : std_logic;
 signal i_cfg_rxrdy                      : std_logic;
 signal i_cfg_done                       : std_logic;
+signal g_cfg_clk                        : std_logic;
 --signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
 
 signal i_hdd_module_rdy                 : std_logic;
@@ -340,6 +341,7 @@ p_in_rst       => i_usrpll_rst
 );
 
 g_hclk<=g_hdd_dcm_gclk75M;--g_memclkin;--
+g_cfg_clk<=g_hclk;--g_sata_refclkout;
 
 
 --***********************************************************
@@ -552,7 +554,7 @@ port map(
 --Конфигурирование модуля dsn_hdd.vhd (p_in_cfg_clk domain)
 -------------------------------
 p_in_cfg_if           => C_HDD_CFGIF_UART,
-p_in_cfg_clk          => g_sata_refclkout,
+p_in_cfg_clk          => g_cfg_clk,
 
 p_in_cfg_adr          => i_cfg_adr(7 downto 0),
 p_in_cfg_adr_ld       => i_cfg_adr_ld,
@@ -801,7 +803,7 @@ p_in_cfg_txrdy       => i_cfg_txrdy,
 p_in_cfg_rxrdy       => i_cfg_rxrdy,
 
 p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => g_sata_refclkout,
+p_in_cfg_clk         => g_cfg_clk,
 
 -------------------------------
 --Технологический

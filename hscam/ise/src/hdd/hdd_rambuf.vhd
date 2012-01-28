@@ -106,32 +106,13 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
-component hdd_ram_hfifo_tx
-port(
-din         : in std_logic_vector(15 downto 0);
-wr_en       : in std_logic;
-wr_clk      : in std_logic;
-
-dout        : out std_logic_vector(31 downto 0);
-rd_en       : in std_logic;
-rd_clk      : in std_logic;
-
-full        : out std_logic;
-almost_full : out std_logic;
-empty       : out std_logic;
-
---clk         : in std_logic;
-rst         : in std_logic
-);
-end component;
-
-component hdd_ram_hfifo_rx
+component hdd_ram_hfifo
 port(
 din         : in std_logic_vector(31 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(15 downto 0);
+dout        : out std_logic_vector(31 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 
@@ -144,6 +125,45 @@ empty       : out std_logic;
 rst         : in std_logic
 );
 end component;
+
+--component hdd_ram_hfifo_tx
+--port(
+--din         : in std_logic_vector(15 downto 0);
+--wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+--
+--dout        : out std_logic_vector(31 downto 0);
+--rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+--
+--full        : out std_logic;
+--almost_full : out std_logic;
+--empty       : out std_logic;
+--
+----clk         : in std_logic;
+--rst         : in std_logic
+--);
+--end component;
+--
+--component hdd_ram_hfifo_rx
+--port(
+--din         : in std_logic_vector(31 downto 0);
+--wr_en       : in std_logic;
+--wr_clk      : in std_logic;
+--
+--dout        : out std_logic_vector(15 downto 0);
+--rd_en       : in std_logic;
+--rd_clk      : in std_logic;
+--
+--full        : out std_logic;
+--almost_full : out std_logic;
+--prog_full   : out std_logic;
+--empty       : out std_logic;
+--
+----clk         : in std_logic;
+--rst         : in std_logic
+--);
+--end component;
 
 type fsm_state is (
 S_IDLE,
@@ -1009,7 +1029,7 @@ i_cr_txbuf_rd<=i_mem_din_rd and p_in_rbuf_cfg.ram_wr_i.sel;
 i_cr_rxbuf_wr<=i_mem_dout_wr and p_in_rbuf_cfg.ram_wr_i.sel;
 
 --//RAM<-CFG
-m_cr_txbuf : hdd_ram_hfifo_tx
+m_cr_txbuf : hdd_ram_hfifo --hdd_ram_hfifo_tx
 port map(
 din         => p_in_rbuf_cfg.ram_wr_i.din,
 wr_en       => p_in_rbuf_cfg.ram_wr_i.wr,
@@ -1021,6 +1041,7 @@ rd_clk      => p_in_clk,
 
 full        => open,
 almost_full => i_cr_txbuf_full,
+prog_full   => open,
 empty       => i_cr_txbuf_empty,
 
 --clk         => p_in_clk,
@@ -1028,7 +1049,7 @@ rst         => i_cr_buf_rst
 );
 
 --//RAM->CFG
-m_cr_rxbuf : hdd_ram_hfifo_rx
+m_cr_rxbuf : hdd_ram_hfifo --hdd_ram_hfifo_rx
 port map(
 din         => i_mem_dout,
 wr_en       => i_cr_rxbuf_wr,
