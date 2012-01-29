@@ -18,6 +18,7 @@ library work;
 use work.video_ctrl_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.sata_glob_pkg.all;
+use work.sata_testgen_pkg.all;
 use work.mem_wr_pkg.all;
 
 package hdd_main_unit_pkg is
@@ -92,10 +93,16 @@ p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
 
 --Вых. видеобуфера
+p_in_vbufin_rdclk  : in   std_logic;
+
 p_out_vbufin_d     : out  std_logic_vector(31 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
-p_in_vbufin_rdclk  : in   std_logic;
+p_out_vbufin_full  : out  std_logic;
+p_out_vbufin_pfull : out  std_logic;
+p_out_vbufin_wrcnt : out  std_logic_vector(3 downto 0);
+
+p_in_hdd_tstgen    : in   THDDTstGen;
 
 --Технологический
 p_in_tst           : in    std_logic_vector(31 downto 0);
