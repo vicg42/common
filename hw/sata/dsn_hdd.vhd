@@ -580,16 +580,16 @@ tst_out(2)<=tst_hdd_out(3);--//i_tst_measure_out(0);
 end generate gen_dbg_on;
 
 p_out_tst(2 downto 0)<=tst_out;
-p_out_tst(3)<=i_hdd_txd_wr;--//hdd_txbuf
-p_out_tst(4)<=i_hdd_rxd_rd;--//hdd_rxbuf
-p_out_tst(5)<=i_tstgen.tesing_on;
+p_out_tst(3)<=i_sh_txd_rd;--i_hdd_txd_wr;--//hdd_txbuf
+p_out_tst(4)<=i_sh_rxd_wr;--i_hdd_rxd_rd;--//hdd_rxbuf
+p_out_tst(5)<=i_sh_cxd_rd;
 p_out_tst(6)<=OR_reduce(i_sh_status.ch_bsy(G_HDD_COUNT-1 downto 0));
 p_out_tst(7)<=i_reg_rbuf_ctrl(C_HDD_REG_RBUF_CTRL_CFG2RAM);
 p_out_tst(8)<='0';--i_cr_dcnt;
 p_out_tst(31 downto 9)<=(others=>'0');
 
 
---//Логика управления статусами модуля DSN_HDD.VHD
+--//Формирование i_hdd_busy,i_hdd_done
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -617,6 +617,7 @@ begin
         --//Формируем сигнал BUSY
         sr_sh_busy<=i_sh_status.dev_bsy & sr_sh_busy(0 to 0);
         if sr_sh_busy(0)='1' and sr_sh_busy(1)='0' then
+        --Ловим задний фронт сигнала АТА BUSY
           i_hdd_busy<='1';
         elsif i_hdd_busy_clr='1' then
           i_hdd_busy<='0';
@@ -752,7 +753,6 @@ p_in_rst       => p_in_rst
 );
 
 
---//SATA
 m_dsn_sata : dsn_raid_main
 generic map(
 G_HDD_COUNT => G_HDD_COUNT,
