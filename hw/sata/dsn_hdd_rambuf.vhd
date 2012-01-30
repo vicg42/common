@@ -24,7 +24,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_def.all;
 use work.mem_wr_pkg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
@@ -39,6 +38,8 @@ G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
 G_DBGCS       : string:="OFF";
 G_SIM         : string:="OFF";
+G_MEM_BANK_M_BIT : integer:=31;
+G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=32
 );
@@ -930,8 +931,8 @@ i_mem_dout_wrdy <= p_in_hdd_txbuf_full when i_cfg_buf_use='0' else i_cfg_rxbuf_f
 
 m_mem_wr : mem_wr
 generic map(
-G_MEM_BANK_M_BIT => C_HDD_REG_RBUF_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT => C_HDD_REG_RBUF_ADR_BANK_L_BIT,
+G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
 G_MEM_AWIDTH     => G_MEM_AWIDTH,
 G_MEM_DWIDTH     => G_MEM_DWIDTH
 )

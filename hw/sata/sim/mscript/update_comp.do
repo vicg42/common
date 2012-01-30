@@ -31,6 +31,8 @@ vcom -93 "../../../lib/alphadata/admxrc/vhdl/common/memif/memif_pkg.vhd"
 vcom -93 "../../../mem/alphadata/memory_ctrl_pkg.vhd"
 vcom -93 "../../../mem/alphadata/memory_ctrl_ch_wr.vhd"
 
+vcom -93 "../../dsn_hdd_reg_def.vhd"
+
 vcom -93 "../../core_gen/*.vhd"
 vcom -93 "../../src/sata_glob_pkg.vhd"
 vcom -93 "../../src/sata_pkg.vhd"

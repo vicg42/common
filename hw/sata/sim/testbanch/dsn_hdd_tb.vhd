@@ -25,7 +25,7 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_def.all;
+use work.dsn_hdd_reg_def.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_raid_pkg.all;

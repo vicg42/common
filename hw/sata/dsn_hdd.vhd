@@ -20,7 +20,7 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
-use work.prj_def.all;
+use work.dsn_hdd_reg_def.all;
 use work.vicg_common_pkg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
