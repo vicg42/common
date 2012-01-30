@@ -20,15 +20,15 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
-use work.dsn_hdd_reg_def.all;
 use work.vicg_common_pkg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_raid_pkg.all;
-use work.dsn_hdd_pkg.all;
 use work.sata_unit_pkg.all;
 use work.sata_testgen_pkg.all;
+use work.dsn_hdd_pkg.all;
+use work.dsn_hdd_reg_def.all;
 
 entity dsn_hdd is
 generic(
@@ -732,8 +732,6 @@ i_buf_rst<=p_in_rst or i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
 p_out_hdd_rxbuf_empty<=i_sh_rxbuf_empty;
 i_hdd_rxd_rd<=p_in_hdd_rxd_rd or i_testing_on;
 
-
---//
 i_testing_on<=i_testing_on_tmp and not i_tstgen.con2rambuf;
 
 m_testgen : sata_testgen
@@ -878,7 +876,6 @@ gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
 p_out_tst<=(others=>'0');
 tst_hdd_out<=(others=>'0');
-
 
 gen_satah : for sh_idx in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 

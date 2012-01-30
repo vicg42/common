@@ -122,18 +122,17 @@ end generate gen_dbg_on;
 --//
 --//###################################
 gen_hddon : for i in 0 to G_HDD_COUNT-1 generate
---//используемые HDD:
---//Передача командного пакета
+--//dsn_hdd_cmdbuf -> sh_cmdbuf
 p_out_sh_cxd_sof_n(i)<=p_in_usr_cxd_sof_n when p_in_sh_mask(i)='1' else '1';
 p_out_sh_cxd_eof_n(i)<=p_in_usr_cxd_eof_n when p_in_sh_mask(i)='1' else '1';
 p_out_sh_cxd_src_rdy_n(i)<=p_in_usr_cxd_src_rdy_n when p_in_sh_mask(i)='1' else '1';
 p_out_sh_cxd(i)<=p_in_usr_cxd;
 
---//Чтение из RxBUF
+--//dsn_hdd_rxbuf <- sh_rxbuf
 i_sh_rxd_rd(i)<=p_in_usr_rxd_rd when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(i, p_in_sh_hdd'length) else '0';
 p_out_sh_rxd_rd(i)<=i_sh_rxd_rd(i) or p_in_sh_padding;
 
---//запись d TxBUF
+--//dsn_hdd_txbuf -> sh_txbuf
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
