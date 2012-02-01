@@ -215,8 +215,8 @@ signal i_dbgcs_raid                : TSH_ila;
 signal i_dbgcs_measure             : TSH_ila;
 --signal i_dbgcs_hwstart_dly         : TSH_ila;
 
-signal i_tst_measure_out           : std_logic_vector(31 downto 0);
-signal i_tst_raidctrl_out          : std_logic_vector(31 downto 0);
+signal tst_measure_out             : std_logic_vector(31 downto 0);
+signal tst_raidctrl_out            : std_logic_vector(31 downto 0);
 signal i_tst_val                   : std_logic:='0';
 
 attribute keep : string;
@@ -234,27 +234,20 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(7 downto 0)<=(others=>'0');
+p_out_tst(31 downto 16)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
---    p_out_tst(31 downto 1)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    tst_fms_cs_dly<=tst_fms_cs;
---    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
---  end if;
---end process ltstout;
-p_out_tst(0)<=i_tst_raidctrl_out(0);
+p_out_tst(0)<=tst_raidctrl_out(0);
 p_out_tst(1)<=i_uap_tst_sh_out(0)(1);
 p_out_tst(2)<=i_tst_val;
-p_out_tst(3)<=i_tst_measure_out(0);
-p_out_tst(31 downto 4)<=(others=>'0');
+p_out_tst(3)<=tst_measure_out(0);
+p_out_tst(7 downto 4)<=(others=>'0');
+p_out_tst(31 downto 16)<=(others=>'0');
 end generate gen_dbg_on;
+
+p_out_tst(15 downto 8)<=tst_raidctrl_out(15 downto 8);--Активность записи/чтения соотвествующего HDD
 
 
 ---##############################
@@ -347,7 +340,7 @@ p_in_sh_status => i_measure_sh_status,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst       => p_in_tst,
-p_out_tst      => i_tst_measure_out,
+p_out_tst      => tst_measure_out,
 p_out_dbgcs    => i_dbgcs_measure,
 
 --------------------------------------------------
@@ -422,7 +415,7 @@ p_in_sh_rxbuf_status    => i_uap_rxbuf_status,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => i_tst_raidctrl_out,
+p_out_tst               => tst_raidctrl_out,
 p_out_dbgcs             => i_dbgcs_raid,
 
 p_in_sh_tst             => i_uap_tst_sh_out,

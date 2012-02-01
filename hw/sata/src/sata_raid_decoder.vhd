@@ -88,8 +88,10 @@ end sata_raid_decoder;
 
 architecture behavioral of sata_raid_decoder is
 
-signal i_sh_rxd_rd                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_txd_wr                 : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_rxd_rd    : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_txd_wr    : std_logic_vector(G_HDD_COUNT-1 downto 0);
+
+signal tst_hdd_wr     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);--Активность записи/чтения соотвествующего HDD
 
 --MAIN
 begin
@@ -97,24 +99,9 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
-end generate gen_dbg_off;
-
-gen_dbg_on : if strcmp(G_DBG,"ON") generate
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
---    p_out_tst(31 downto 1)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    tst_fms_cs_dly<=tst_fms_cs;
---    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
---  end if;
---end process ltstout;
-p_out_tst(31 downto 0)<=(others=>'0');
-end generate gen_dbg_on;
+p_out_tst(7 downto 0)<=(others=>'0');
+p_out_tst(15 downto 8)<=EXT(tst_hdd_wr, tst_hdd_wr'length);
+p_out_tst(31 downto 16)<=(others=>'0');
 
 
 
@@ -122,6 +109,8 @@ end generate gen_dbg_on;
 --//
 --//###################################
 gen_hddon : for i in 0 to G_HDD_COUNT-1 generate
+tst_hdd_wr(i)<=i_sh_txd_wr(i) or i_sh_rxd_rd(i);
+
 --//dsn_hdd_cmdbuf -> sh_cmdbuf
 p_out_sh_cxd_sof_n(i)<=p_in_usr_cxd_sof_n when p_in_sh_mask(i)='1' else '1';
 p_out_sh_cxd_eof_n(i)<=p_in_usr_cxd_eof_n when p_in_sh_mask(i)='1' else '1';
@@ -154,6 +143,7 @@ end generate gen_hddon;
 gen_hddoff_en : if G_HDD_COUNT/=C_HDD_COUNT_MAX  generate
 --//НЕ используемые HDD:
 gen_hddoff : for i in G_HDD_COUNT to C_HDD_COUNT_MAX-1 generate
+tst_hdd_wr(i)<='0';
 p_out_sh_cxd_sof_n(i)<='1';
 p_out_sh_cxd_eof_n(i)<='1';
 p_out_sh_cxd_src_rdy_n(i)<='1';

@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package dsn_hdd_reg_def is
 
 constant C_HDD_REG_CTRL_L                     : integer:=16#000#;
-constant C_HDD_REG_HWSTART_DLY                : integer:=16#001#;
+constant C_HDD_REG_CTRL_M                     : integer:=16#001#;
 constant C_HDD_REG_STATUS_L                   : integer:=16#002#;
 constant C_HDD_REG_STATUS_M                   : integer:=16#003#;
 
@@ -57,7 +57,7 @@ constant C_HDD_REG_RBUF_ADR_M                 : integer:=16#022#;
 constant C_HDD_REG_RBUF_TRNLEN                : integer:=16#023#;--//(15..8)(7..0) - trn_mem_rd;trn_mem_wr, бывший HDD_REG_RBUF_CTRL
 constant C_HDD_REG_RBUF_DATA                  : integer:=16#024#;
 constant C_HDD_REG_RBUF_REQLEN                : integer:=16#025#;--//data length request, бывший HDD_REG_ATADLY
-constant C_HDD_REG_RBUF_CTRL                  : integer:=16#026#;
+--constant C_HDD_REG_RBUF_CTRL                  : integer:=16#026#;
 
 
 
@@ -74,12 +74,12 @@ constant C_HDD_REG_CTRLL_HWLOG_ON_BIT           : integer:=14;
 constant C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT     : integer:=15;
 constant C_HDD_REG_CTRLL_LAST_BIT               : integer:=C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT;
 
---//Register C_HDD_REG_RBUF_CTRL / Bit Map:
-constant C_HDD_REG_RBUF_CTRL_DIR              : integer:=0; --0/1 - READ/WRITE
-constant C_HDD_REG_RBUF_CTRL_START            : integer:=1; --Пуск операции с ОЗУ через CFG
-constant C_HDD_REG_RBUF_CTRL_CFG2RAM          : integer:=2; --Подключение CFG для работы с ОЗУ(write/read)
-constant C_HDD_REG_RBUF_CTRL_GRESET           : integer:=3;
-constant C_HDD_REG_RBUF_CTRL_LAST_BIT         : integer:=C_HDD_REG_RBUF_CTRL_GRESET;
+--//Register C_HDD_REG_CTRL_M / Bit Map:
+constant C_HDD_REG_CTRLM_DIR                    : integer:=0; --0/1 - READ/WRITE
+constant C_HDD_REG_CTRLM_START                  : integer:=1; --Пуск операции с ОЗУ через CFG
+constant C_HDD_REG_CTRLM_CFG2RAM                : integer:=2; --Подключение CFG для работы с ОЗУ(write/read)
+constant C_HDD_REG_CTRLM_GRESET                 : integer:=3;
+constant C_HDD_REG_CTRLM_LAST_BIT               : integer:=C_HDD_REG_CTRLM_GRESET;
 
 
 end dsn_hdd_reg_def;

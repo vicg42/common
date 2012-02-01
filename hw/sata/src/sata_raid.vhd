@@ -120,8 +120,8 @@ signal i_sh_rxd                    : std_logic_vector(31 downto 0);
 signal i_sh_rxd_rd                 : std_logic;
 signal i_sh_rxbuf_empty            : std_logic;
 
-signal tst_sata_raid_ctrl_out      : std_logic_vector(31 downto 0);
-signal tst_sata_raid_recoder_out   : std_logic_vector(31 downto 0);
+signal tst_raid_ctrl_out           : std_logic_vector(31 downto 0);
+signal tst_raid_recoder_out        : std_logic_vector(31 downto 0);
 
 
 --MAIN
@@ -131,26 +131,18 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(7 downto 0)<=(others=>'0');
+p_out_tst(31 downto 16)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_fms_cs_dly<=(others=>'0');
---    p_out_tst(31 downto 1)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    tst_fms_cs_dly<=tst_fms_cs;
---    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
---  end if;
---end process ltstout;
-
-p_out_tst(0)<=tst_sata_raid_ctrl_out(0);
-p_out_tst(1)<=tst_sata_raid_recoder_out(0);
-p_out_tst(31 downto 2)<=(others=>'0');
+p_out_tst(0)<=tst_raid_ctrl_out(0);
+p_out_tst(1)<=tst_raid_recoder_out(0);
+p_out_tst(7 downto 2)<=(others=>'0');
+p_out_tst(31 downto 16)<=(others=>'0');
 end generate gen_dbg_on;
+
+p_out_tst(15 downto 8)<=tst_raid_recoder_out(15 downto 8);
 
 
 --//модуль управления
@@ -216,7 +208,7 @@ p_in_sh_rxbuf_empty     => i_sh_rxbuf_empty,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => tst_sata_raid_ctrl_out,
+p_out_tst               => tst_raid_ctrl_out,
 p_out_dbgcs             => p_out_dbgcs,
 
 p_in_sh_tst             => p_in_sh_tst,
@@ -281,7 +273,7 @@ p_in_sh_rxbuf_status    => p_in_sh_rxbuf_status,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst                => p_in_tst,
-p_out_tst               => tst_sata_raid_recoder_out,
+p_out_tst               => tst_raid_recoder_out,
 
 --------------------------------------------------
 --System
