@@ -27,6 +27,7 @@ use work.sata_unit_pkg.all;
 
 entity sata_raid_decoder is
 generic(
+G_USRBUF_DWIDTH : integer:=32;
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
@@ -46,11 +47,11 @@ p_in_usr_cxd_sof_n      : in    std_logic;
 p_in_usr_cxd_eof_n      : in    std_logic;
 p_in_usr_cxd_src_rdy_n  : in    std_logic;
 
-p_in_usr_txd            : in    std_logic_vector(31 downto 0);
+p_in_usr_txd            : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
 p_in_usr_txd_wr         : in    std_logic;
 p_out_usr_txbuf_full    : out   std_logic;
 
-p_out_usr_rxd           : out   std_logic_vector(31 downto 0);
+p_out_usr_rxd           : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
 p_in_usr_rxd_rd         : in    std_logic;
 p_out_usr_rxbuf_empty   : out   std_logic;
 

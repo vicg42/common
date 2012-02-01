@@ -140,6 +140,8 @@ end dsn_hdd;
 
 architecture behavioral of dsn_hdd is
 
+constant CI_USRBUF_DWIDTH : integer:=32;
+
 component mclk_gtp_wrap
 generic(
 G_SIM     : string:="OFF"
@@ -251,11 +253,11 @@ signal i_sh_cxd                         : std_logic_vector(15 downto 0);
 signal i_sh_cxd_wr                      : std_logic;
 signal i_sh_cxd_rd                      : std_logic;
 signal i_sh_cxbuf_empty                 : std_logic;
-signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(31 downto 0);
+signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
 signal i_sh_txd_rd                      : std_logic;
 signal i_sh_txbuf_empty                 : std_logic;
 signal i_sh_txbuf_empty_tmp             : std_logic;
-signal i_sh_rxd                         : std_logic_vector(31 downto 0);
+signal i_sh_rxd                         : std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
 signal i_sh_rxd_wr                      : std_logic;
 signal i_sh_rxbuf_full                  : std_logic;
 
@@ -685,7 +687,7 @@ din         => p_in_hdd_txd,
 wr_en       => i_hdd_txd_wr,
 --wr_clk      => p_in_hdd_txd_wrclk,
 
-dout        => i_sh_txd_tmp,
+dout        => i_sh_txd,
 rd_en       => i_sh_txd_rd,
 --rd_clk      => p_in_clk,
 
@@ -701,7 +703,6 @@ rst         => i_buf_rst
 p_out_hdd_txbuf_empty<=i_sh_txbuf_empty;
 i_hdd_txd_wr<=p_in_hdd_txd_wr and not i_testing_on;
 
-i_sh_txd        <=i_sh_txd_tmp         when i_testing_on='0' else i_testing_d;
 i_sh_txbuf_empty<=i_sh_txbuf_empty_tmp when i_testing_on='0' else not i_testing_den;
 
 m_rxfifo : hdd_rxfifo
@@ -746,9 +747,9 @@ p_in_clk       => p_in_clk,
 p_in_rst       => p_in_rst
 );
 
-
 m_dsn_sata : dsn_raid_main
 generic map(
+G_USRBUF_DWIDTH => CI_USRBUF_DWIDTH,
 G_HDD_COUNT => G_HDD_COUNT,
 G_GT_DBUS   => G_GT_DBUS,
 G_DBG       => G_DBG,

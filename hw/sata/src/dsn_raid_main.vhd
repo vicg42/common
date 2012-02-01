@@ -31,6 +31,7 @@ use work.sata_unit_pkg.all;
 
 entity dsn_raid_main is
 generic(
+G_USRBUF_DWIDTH : integer:=32;
 G_HDD_COUNT : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS   : integer:=16;
 G_DBG       : string :="OFF";
@@ -66,12 +67,12 @@ p_in_usr_cxd                : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr             : in    std_logic;
 
 --//txfifo
-p_in_usr_txd                : in    std_logic_vector(31 downto 0);
+p_in_usr_txd                : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
 p_out_usr_txd_rd            : out   std_logic;
 p_in_usr_txbuf_empty        : in    std_logic;
 
 --//rxfifo
-p_out_usr_rxd               : out   std_logic_vector(31 downto 0);
+p_out_usr_rxd               : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
 p_out_usr_rxd_wr            : out   std_logic;
 p_in_usr_rxbuf_full         : in    std_logic;
 
@@ -360,6 +361,7 @@ p_out_measure<=i_measure_status_out;
 --//#############################################
 m_raid_ctrl : sata_raid
 generic map(
+G_USRBUF_DWIDTH => G_USRBUF_DWIDTH,
 G_HDD_COUNT => G_HDD_COUNT,
 G_DBGCS     => G_DBGCS,
 G_DBG       => G_DBG,
@@ -707,7 +709,7 @@ p_in_sys_dcm_lock           => i_sh_dcm_lock,
 
 p_out_gt_pllkdet            => i_sh_gt_pllkdet(sh_idx),
 p_out_gt_refclk             => i_sh_gt_refclkout(sh_idx),
-p_in_gt_drpclk              => g_sh_dcm_clk2div,--g_refclkout,
+p_in_gt_drpclk              => g_refclkout,--g_sh_dcm_clk2div,--
 p_in_gt_refclk              => p_in_sata_refclk(sh_idx),
 
 p_in_optrefclksel           => i_sh_gt_optrefclksel(sh_idx),
