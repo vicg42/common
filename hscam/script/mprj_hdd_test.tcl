@@ -12,8 +12,8 @@ set _usrdef_chip_family "s6lxt"
 set _usrdef_device "6slx100t"
 set _usrdef_speed  2
 set _usrdef_pkg    "fgg676"
-set _usrdef_ucf_filename "hscam_hdd_test"
-set _usrdef_ucf_filepath "..\ucf\hscam_hdd_test.ucf"
+set _usrdef_ucf_filename "hdd_test"
+set _usrdef_ucf_filepath "..\ucf\hdd_test.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -58,7 +58,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/uart/src/kcuart_tx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/uart_rx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/uart_tx.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_ram_hfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_ram_hfifo_tx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_ram_hfifo_rx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
@@ -86,25 +87,25 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_dbgcs.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_host.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_raid_decoder.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/hdd/sata_raid_decoder.vhd" $_VHDMod ] \
+      [ list "../src/hdd/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../src/hdd/sata_player_s6gt_clkmux.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
-      [ list "../../../ml505/ise/hdd_test_main.vhd" $_VHDMod ] \
       [ list "../src/hdd/hdd_main_cfg.vhd" $_VHDPkg ] \
-      [ list "../../ucf/hscam_hdd_test.ucf" "hdd_test_main" ] \
+      [ list "../../../ml505/ise/hdd_test_main.vhd" $_VHDMod ] \
+      [ list "../../ucf/hdd_test.ucf "hdd_test_main" ] \
     ] \
   ] \
 ]
