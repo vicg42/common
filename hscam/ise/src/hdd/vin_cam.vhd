@@ -24,6 +24,7 @@ use work.video_ctrl_pkg.all;
 
 entity vin_cam is
 generic(
+G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
@@ -36,7 +37,7 @@ p_in_vclk          : in   std_logic;
 p_out_vfr_prm      : out  TFrXY;
 
 --Вых. видеобуфера
-p_out_vbufin_d     : out  std_logic_vector(31 downto 0);
+p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_in_vbufin_rdclk  : in   std_logic;

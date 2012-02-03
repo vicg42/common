@@ -19,9 +19,11 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity clock is
+generic(
+G_USRCLK_COUNT : integer:=1
+);
 port(
-p_out_gusrclk0 : out std_logic;
-p_out_gusrclk1 : out std_logic;
+p_out_gusrclk  : out std_logic_vector(G_USRCLK_COUNT-1 downto 0);
 p_out_pll_lock : out std_logic;
 
 p_in_clk       : in  std_logic;
@@ -31,26 +33,25 @@ end entity;
 
 architecture behavioral of clock is
 
-signal i_clk0   : std_logic;
-signal i_clk1   : std_logic;
 signal i_clkfb  : std_logic;
+signal i_clk    : std_logic_vector(5 downto 0);
 
 --MAIN
 begin
 
 
-m_bufg_clk0 : BUFG port map(I => i_clk0, O => p_out_gusrclk0 );
-m_bufg_clk1 : BUFG port map(I => i_clk1, O => p_out_gusrclk1 );
-
+gen_clk : for i in 0 to G_USRCLK_COUNT-1 generate
+m_bufg : BUFG port map(I => i_clk(i), O => p_out_gusrclk(i) );
+end generate gen_clk;
 
 m_pll_adv : PLL_ADV
 generic map(
 BANDWIDTH          => "OPTIMIZED",
 CLKIN1_PERIOD      => 6.6666, --150MHz
 CLKIN2_PERIOD      => 6.6666,
-CLKOUT0_DIVIDE     => 2, --clk0 = (150MHz/1) * (5/2) = 375MHz
-CLKOUT1_DIVIDE     => 12,--clk1 = (150MHz/1) * (5/12)= 62.5MHz
-CLKOUT2_DIVIDE     => 8,
+CLKOUT0_DIVIDE     => 2, --clk0 = ((150MHz * 4)/1) /2 = 300MHz
+CLKOUT1_DIVIDE     => 9, --clk1 = ((150MHz * 4)/1) /9 = 66.6MHz
+CLKOUT2_DIVIDE     => 6, --clk2 = ((150MHz * 4)/1) /6 = 100MHz
 CLKOUT3_DIVIDE     => 8,
 CLKOUT4_DIVIDE     => 8,
 CLKOUT5_DIVIDE     => 8,
@@ -69,7 +70,7 @@ CLKOUT5_DUTY_CYCLE => 0.500,
 SIM_DEVICE         => "SPARTAN6",
 COMPENSATION       => "INTERNAL",
 DIVCLK_DIVIDE      => 1,
-CLKFBOUT_MULT      => 5,
+CLKFBOUT_MULT      => 4,
 CLKFBOUT_PHASE     => 0.0,
 REF_JITTER         => 0.005000
 )
@@ -93,12 +94,12 @@ CLKOUTDCM2       => open,
 CLKOUTDCM3       => open,
 CLKOUTDCM4       => open,
 CLKOUTDCM5       => open,
-CLKOUT0          => i_clk0,
-CLKOUT1          => i_clk1,
-CLKOUT2          => open,
-CLKOUT3          => open,
-CLKOUT4          => open,
-CLKOUT5          => open,
+CLKOUT0          => i_clk(0),
+CLKOUT1          => i_clk(1),
+CLKOUT2          => i_clk(2),
+CLKOUT3          => i_clk(3),
+CLKOUT4          => i_clk(4),
+CLKOUT5          => i_clk(5),
 DO               => open,
 DRDY             => open,
 LOCKED           => p_out_pll_lock

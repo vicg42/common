@@ -55,6 +55,7 @@ end component;
 
 component vin_cam
 generic(
+G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
@@ -67,7 +68,7 @@ p_in_vclk          : in   std_logic;
 p_out_vfr_prm      : out  TFrXY;
 
 --Вых. видеобуфера
-p_out_vbufin_d     : out  std_logic_vector(31 downto 0);
+p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_in_vbufin_rdclk  : in   std_logic;
@@ -83,6 +84,7 @@ end component;
 
 component vin_hdd
 generic(
+G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
@@ -95,7 +97,7 @@ p_in_vclk          : in   std_logic;
 --Вых. видеобуфера
 p_in_vbufin_rdclk  : in   std_logic;
 
-p_out_vbufin_d     : out  std_logic_vector(31 downto 0);
+p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_out_vbufin_full  : out  std_logic;
@@ -115,15 +117,17 @@ end component;
 
 component vout
 generic(
+G_VBUF_IWIDTH : integer:=32;
+G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
-p_out_vd          : out  std_logic_vector(31 downto 0);
+p_out_vd          : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vs           : in   std_logic;
 p_in_hs           : in   std_logic;
 p_in_vclk         : in   std_logic;
 
-p_in_vbufout_d    : in   std_logic_vector(31 downto 0);
+p_in_vbufout_d    : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vbufout_wr   : in   std_logic;
 p_out_vbufout_full: out  std_logic;
 p_in_vbufout_wrclk: in   std_logic;
@@ -201,7 +205,7 @@ p_out_rbuf_status     : out   THDDRBufStatus;
 ----------------------------
 --Связь с буфером видеоданных
 ----------------------------
-p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
+p_in_vbuf_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbuf_rd         : out   std_logic;
 p_in_vbuf_empty       : in    std_logic;
 p_in_vbuf_full        : in    std_logic;
@@ -211,13 +215,13 @@ p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
 ----------------------------
 --Связь с модулем HDD
 ----------------------------
-p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
+p_out_hdd_txd         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_hdd_txd_wr      : out   std_logic;
 p_in_hdd_txbuf_pfull  : in    std_logic;
 p_in_hdd_txbuf_full   : in    std_logic;
 p_in_hdd_txbuf_empty  : in    std_logic;
 
-p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
+p_in_hdd_rxd          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_hdd_rxd_rd      : out   std_logic;
 p_in_hdd_rxbuf_empty  : in    std_logic;
 p_in_hdd_rxbuf_pempty : in    std_logic;

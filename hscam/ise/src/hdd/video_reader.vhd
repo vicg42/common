@@ -56,7 +56,7 @@ p_out_vch_rd_done    : out   std_logic;
 ----------------------------
 --Связь с выходным буфером видео
 ----------------------------
-p_out_vbufout_d      : out   std_logic_vector(31 downto 0);
+p_out_vbufout_d      : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbufout_wr     : out   std_logic;
 p_in_vbufout_full    : in    std_logic;
 

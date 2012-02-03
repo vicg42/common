@@ -20,17 +20,19 @@ use ieee.std_logic_unsigned.all;
 
 entity vout is
 generic(
+G_VBUF_IWIDTH: integer:=32;
+G_VBUF_OWIDTH: integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
 --Вых. видеопоток
-p_out_vd          : out  std_logic_vector(31 downto 0);
+p_out_vd          : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vs           : in   std_logic;
 p_in_hs           : in   std_logic;
 p_in_vclk         : in   std_logic;
 
 --Вх. видеобуфера
-p_in_vbufout_d    : in   std_logic_vector(31 downto 0);
+p_in_vbufout_d    : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vbufout_wr   : in   std_logic;
 p_out_vbufout_full: out  std_logic;
 p_in_vbufout_wrclk: in   std_logic;
@@ -43,11 +45,11 @@ architecture behavioral of vout is
 
 component vout_buf
 port(
-din       : in  std_logic_vector(31 downto 0);
+din       : in  std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 wr_en     : in  std_logic;
 wr_clk    : in  std_logic;
 
-dout      : out std_logic_vector(31 downto 0);
+dout      : out std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 rd_en     : in  std_logic;
 rd_clk    : in  std_logic;
 

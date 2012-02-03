@@ -52,7 +52,7 @@ p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--/
 ----------------------------
 --Связь с входным буфером видео
 ----------------------------
-p_in_vbufin_d         : in    std_logic_vector(31 downto 0);
+p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbufin_rd       : out   std_logic;
 p_in_vbufin_empty     : in    std_logic;
 

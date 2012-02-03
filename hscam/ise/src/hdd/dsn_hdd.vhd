@@ -32,6 +32,7 @@ use work.dsn_hdd_reg_def.all;
 
 entity dsn_hdd is
 generic(
+G_USRBUF_DWIDTH : integer:=32;
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=1;
 G_GT_DBUS    : integer:=16;
@@ -77,14 +78,14 @@ p_out_rbuf_cfg            : out  THDDRBufCfg;                    --//Конфигуриро
 p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAMBUF
 
 --p_in_hdd_txd_wrclk        : in   std_logic;                      --//
-p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
+p_in_hdd_txd              : in   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_pfull     : out  std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
 p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
 --p_in_hdd_rxd_rdclk        : in   std_logic;                      --//
-p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
+p_out_hdd_rxd             : out  std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
 p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 p_out_hdd_rxbuf_pempty    : out  std_logic;                      --//
@@ -176,11 +177,11 @@ end component ;
 
 component hdd_txfifo
 port(
-din         : in std_logic_vector(31 downto 0);
+din         : in std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(127 downto 0);
+dout        : out std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 
@@ -196,11 +197,11 @@ end component;
 
 component hdd_rxfifo
 port(
-din         : in std_logic_vector(127 downto 0);
+din         : in std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(31 downto 0);
+dout        : out std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 

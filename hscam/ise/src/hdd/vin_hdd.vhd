@@ -22,6 +22,7 @@ use work.sata_testgen_pkg.all;
 
 entity vin_hdd is
 generic(
+G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
@@ -34,7 +35,7 @@ p_in_vclk          : in   std_logic;
 --Вых. видеобуфера
 p_in_vbufin_rdclk  : in   std_logic;
 
-p_out_vbufin_d     : out  std_logic_vector(31 downto 0);
+p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_out_vbufin_full  : out  std_logic;
@@ -79,7 +80,7 @@ din    : in std_logic_vector(31 downto 0);
 wr_en  : in std_logic;
 --wr_clk : in std_logic;
 
-dout   : out std_logic_vector(31 downto 0);
+dout   : out std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 rd_en  : in std_logic;
 --rd_clk : in std_logic;
 
