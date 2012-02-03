@@ -88,32 +88,17 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/hdd/sata_player_s6gt_clkmux.vhd" $_VHDMod ] \
-      [ list "../src/hdd/clock.vhd" $_VHDMod ] \
-      [ list "../src/hdd/mem_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/hdd/mem_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/iodrp_controller.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/iodrp_mcb_controller.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_raw_wrapper.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_soft_calibration.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_soft_calibration_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/memc5_wrapper.vhd" $_VHDMod ] \
-      [ list "../src/hdd/memc5_infrastructure.vhd" $_VHDMod ] \
-      [ list "../src/hdd/video_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/hdd/video_reader.vhd" $_VHDMod ] \
-      [ list "../src/hdd/video_writer.vhd" $_VHDMod ] \
-      [ list "../src/hdd/video_ctrl.vhd" $_VHDMod ] \
-      [ list "../src/hdd/vin_cam.vhd" $_VHDMod ] \
-      [ list "../src/hdd/vin_hdd.vhd" $_VHDMod ] \
-      [ list "../src/hdd/vout.vhd" $_VHDMod ] \
-      [ list "../src/hdd/vtiming_gen.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vin_bufcam.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vin_bufhdd.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vout_buf.vhd" $_VHDMod ] \
-      [ list "../src/hdd/hdd_main.vhd" $_VHDMod ] \
-      [ list "../src/hdd/hdd_main_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/hdd/hdd_main_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
@@ -121,8 +106,22 @@ set _projects [ list \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rbuf.vhd" $_VHDMod ] \
-      [ list "../hscam_main.vhd" $_VHDMod ] \
+      [ list "../src/hdd/vtiming_gen.vhd" $_VHDMod ] \
+      [ list "../src/hdd/memc5_infrastructure.vhd" $_VHDMod ] \
+      [ list "../src/hdd/mem_ctrl_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/mem_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/hdd/video_ctrl_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/video_reader.vhd" $_VHDMod ] \
+      [ list "../src/hdd/video_writer.vhd" $_VHDMod ] \
+      [ list "../src/hdd/video_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/hdd/vin_cam.vhd" $_VHDMod ] \
+      [ list "../src/hdd/vin_hdd.vhd" $_VHDMod ] \
+      [ list "../src/hdd/vout.vhd" $_VHDMod ] \
+      [ list "../src/hdd/clock.vhd" $_VHDMod ] \
+      [ list "../src/hdd/hdd_main_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main_cfg.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/hdd_main.vhd" $_VHDMod ] \
+      [ list "../hscam_main.vhd" $_VHDMod ] \
       [ list "../../ucf/hscam.ucf" "hscam_main" ] \
     ] \
   ] \
