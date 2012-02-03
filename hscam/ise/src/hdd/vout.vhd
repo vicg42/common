@@ -37,6 +37,10 @@ p_in_vbufout_wr   : in   std_logic;
 p_out_vbufout_full: out  std_logic;
 p_in_vbufout_wrclk: in   std_logic;
 
+p_in_hbufout_d    : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
+p_in_hbufout_wr   : in   std_logic;
+p_in_hsel         : in   std_logic;
+
 p_in_rst          : in   std_logic
 );
 end vout;
@@ -62,17 +66,39 @@ rst       : in  std_logic
 end component;
 
 
+signal i_vbufout_d         : std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
+signal i_vbufout_wr        : std_logic;
+
+signal i_buf_rd_en         : std_logic;
+signal i_buf_rd_tmp        : std_logic;
 signal i_buf_rd            : std_logic;
+
 
 --MAIN
 begin
 
-i_buf_rd<='1' when p_in_hs/=G_VSYN_ACTIVE and p_in_vs/=G_VSYN_ACTIVE else '0';
+i_vbufout_d<=p_in_hbufout_d when p_in_hsel='1' else p_in_vbufout_d;
+i_vbufout_wr<=p_in_hbufout_wr when p_in_hsel='1' else p_in_vbufout_wr;
+
+i_buf_rd_tmp<='1' when p_in_hs/=G_VSYN_ACTIVE and p_in_vs/=G_VSYN_ACTIVE else '0';
+
+process(p_in_rst,p_in_vclk)
+begin
+  if p_in_rst='1' then
+    i_buf_rd_en<='0';
+  elsif p_in_vclk'event and p_in_vclk='1' then
+    if p_in_hs=G_VSYN_ACTIVE then
+      i_buf_rd_en<='1';
+    end if;
+  end if;
+end process;
+
+i_buf_rd<=i_buf_rd_tmp and i_buf_rd_en;
 
 m_buf : vout_buf
 port map(
-din    => p_in_vbufout_d,
-wr_en  => p_in_vbufout_wr,
+din    => i_vbufout_d,
+wr_en  => i_vbufout_wr,
 wr_clk => p_in_vbufout_wrclk,
 
 dout   => p_out_vd,

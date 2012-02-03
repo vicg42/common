@@ -228,6 +228,9 @@ signal i_hdd_vbufin_empty               : std_logic;
 signal i_hdd_vbufin_full                : std_logic;
 signal i_hdd_vbufin_pfull               : std_logic;
 signal i_hdd_vbufin_wrcnt               : std_logic_vector(3 downto 0);
+signal i_hbufout_din                    : std_logic_vector(CI_MEM_DWIDTH-1 downto 0);
+signal i_hbufout_wr                     : std_logic;
+signal i_hbufout_sel                    : std_logic;
 
 signal i_mem_ctrl_rst                   : std_logic;
 signal i_mem_ctrl_rdy                   : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
@@ -245,6 +248,7 @@ signal g_usrpll_clkout                  : std_logic_vector(5 downto 0);
 signal g_memclkin                       : std_logic;
 signal g_hclk                           : std_logic;
 signal g_hdd_clk                        : std_logic;
+signal g_vbuf_iclk                      : std_logic;
 
 signal i_hdd_rambuf_rst                 : std_logic;
 signal i_vctrl_rst                      : std_logic;
@@ -367,8 +371,12 @@ g_memclkin<=g_usrpll_clkout(0);--375MHz
 p_out_usrpll_gclk1<=g_usrpll_clkout(1);--62.5MHz
 
 g_cfg_clk<=g_hdd_dcm_gclk75M;--g_hdd_dcm_gclk300M;--g_usrpll_clkout(2); --g_sata_refclkout;--g_sata_refclkout;--
-g_hclk   <=g_hdd_dcm_gclk75M;--g_usrpll_clkout(2); --g_sata_refclkout;--g_sata_refclkout;--g_memclkin;--
 g_hdd_clk<=g_hdd_dcm_gclk75M;--g_usrpll_clkout(2); --g_sata_refclkout;--g_sata_refclkout;--g_sata_refclkout;
+
+--частота переписывания данных внутренних буферов для модулей vin_cam,vin_hdd
+g_vbuf_iclk<=g_hdd_dcm_gclk300M;
+--частота работы с ОЗУ
+g_hclk   <=g_hdd_dcm_gclk75M;--g_usrpll_clkout(2); --g_sata_refclkout;--g_sata_refclkout;--g_memclkin;--
 
 
 --***********************************************************
@@ -385,8 +393,8 @@ end process;
 
 i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.greset;
-i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_rdy));
-i_hdd_rambuf_rst<=i_vctrl_rst;
+i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_rdy)) or (i_hbufout_sel and i_hdd_rbuf_cfg.dmacfg.clr_err);
+i_hdd_rambuf_rst<=i_sys_rst or not (AND_reduce(i_mem_ctrl_rdy)) ;
 i_mem_ctrl_rst <= not i_usrpll_lock;
 
 
@@ -412,6 +420,7 @@ p_out_vbufin_d     => i_vbufin_dout,
 p_in_vbufin_rd     => i_vbufin_rd,
 p_out_vbufin_empty => i_vbufin_empty,
 p_in_vbufin_rdclk  => g_hclk,
+p_in_vbufin_wrclk  => g_vbuf_iclk,
 
 p_in_tst           => (others=>'0'),
 p_out_tst          => open,
@@ -436,6 +445,10 @@ p_in_vbufout_d     => i_vbufout_din,
 p_in_vbufout_wr    => i_vbufout_wr,
 p_out_vbufout_full => i_vbufout_full,
 p_in_vbufout_wrclk => g_hclk,
+
+p_in_hbufout_d     => i_hbufout_din,
+p_in_hbufout_wr    => i_hbufout_wr,
+p_in_hsel          => i_hbufout_sel,
 
 p_in_rst           => i_vctrl_rst
 );
@@ -703,6 +716,7 @@ p_in_hs            => p_in_vin_hs,
 p_in_vclk          => p_in_vin_clk,
 
 --Вых. видеобуфера
+p_in_vbufin_wrclk  => g_vbuf_iclk,
 p_in_vbufin_rdclk  => g_hclk,
 
 p_out_vbufin_d     => i_hdd_vbufin_dout,
@@ -749,6 +763,11 @@ p_in_vbuf_empty       => i_hdd_vbufin_empty,
 p_in_vbuf_full        => i_hdd_vbufin_full,
 p_in_vbuf_pfull       => i_hdd_vbufin_pfull,
 p_in_vbuf_wrcnt       => i_hdd_vbufin_wrcnt,
+
+p_out_vbufo_sel       => i_hbufout_sel,
+p_out_vbufo_din       => i_hbufout_din,
+p_out_vbufo_wr        => i_hbufout_wr,
+p_in_vbufo_full       => i_vbufout_full,
 
 ----------------------------
 --Связь с модулем HDD

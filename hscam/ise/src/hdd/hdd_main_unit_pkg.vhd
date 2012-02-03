@@ -72,6 +72,7 @@ p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_in_vbufin_rdclk  : in   std_logic;
+p_in_vbufin_wrclk  : in   std_logic;
 
 --Технологический
 p_in_tst           : in    std_logic_vector(31 downto 0);
@@ -95,6 +96,7 @@ p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
 
 --Вых. видеобуфера
+p_in_vbufin_wrclk  : in   std_logic;
 p_in_vbufin_rdclk  : in   std_logic;
 
 p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
@@ -131,6 +133,10 @@ p_in_vbufout_d    : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vbufout_wr   : in   std_logic;
 p_out_vbufout_full: out  std_logic;
 p_in_vbufout_wrclk: in   std_logic;
+
+p_in_hbufout_d    : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
+p_in_hbufout_wr   : in   std_logic;
+p_in_hsel         : in   std_logic;
 
 p_in_rst          : in   std_logic
 );
@@ -213,6 +219,11 @@ p_in_vbuf_empty       : in    std_logic;
 p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
 p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+
+p_out_vbufo_sel       : out   std_logic;
+p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr        : out   std_logic;
+p_in_vbufo_full       : in    std_logic;
 
 ----------------------------
 --Связь с модулем HDD

@@ -33,6 +33,7 @@ p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
 
 --Вых. видеобуфера
+p_in_vbufin_wrclk  : in   std_logic;
 p_in_vbufin_rdclk  : in   std_logic;
 
 p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
@@ -78,19 +79,19 @@ component hdd_rambuf_infifo
 port(
 din    : in std_logic_vector(31 downto 0);
 wr_en  : in std_logic;
---wr_clk : in std_logic;
+wr_clk : in std_logic;
 
 dout   : out std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 rd_en  : in std_logic;
---rd_clk : in std_logic;
+rd_clk : in std_logic;
 
 empty  : out std_logic;
 full   : out std_logic;
 prog_full     : out std_logic;
---rd_data_count : out std_logic_vector(3 downto 0);
-data_count : out std_logic_vector(3 downto 0);
+rd_data_count : out std_logic_vector(3 downto 0);
+--data_count : out std_logic_vector(3 downto 0);
 
-clk    : in std_logic;
+--clk    : in std_logic;
 rst    : in std_logic
 );
 end component;
@@ -122,7 +123,7 @@ signal i_hdd_tst_on        : std_logic;
 signal i_hdd_vbuf_rst      : std_logic;
 signal i_hdd_vbuf_din      : std_logic_vector(31 downto 0);
 signal i_hdd_vbuf_wr       : std_logic;
-signal i_vbufin_full       : std_logic;
+signal i_hdd_vbuf_full     : std_logic;
 
 
 --MAIN
@@ -185,7 +186,7 @@ wr_clk => p_in_vclk,
 
 dout   => i_buf_dout(i)(31 downto 0),
 rd_en  => i_buf_rd(i),
-rd_clk => p_in_vbufin_rdclk,
+rd_clk => p_in_vbufin_wrclk,
 
 full   => i_buf_full(i),
 empty  => i_buf_empty(i),
@@ -198,11 +199,11 @@ i_buf_rd(i)<=g_buf_rd when i_buf_cnt=i else '0';
 end generate gen_buf;
 
 --//Чтение:
-process(p_in_rst,p_in_vbufin_rdclk)
+process(p_in_rst,p_in_vbufin_wrclk)
 begin
   if p_in_rst='1' then
     i_buf_cnt<=0;
-  elsif p_in_vbufin_rdclk'event and p_in_vbufin_rdclk='1' then
+  elsif p_in_vbufin_wrclk'event and p_in_vbufin_wrclk='1' then
     if g_buf_rd='1' then
       if i_buf_cnt=CI_BUF_COUNT-1 then
         i_buf_cnt<=0;
@@ -219,12 +220,12 @@ g_buf_dout<=i_buf_dout(4) when i_buf_cnt=4 else
             i_buf_dout(1) when i_buf_cnt=1 else
             i_buf_dout(0);-- when i_buf_cnt=0;
 
-g_buf_rd<=not OR_reduce(i_buf_empty);
+g_buf_rd<=not AND_reduce(i_buf_empty);
 
 
 m_hdd_testgen : sata_testgen
 generic map(
-G_SCRAMBLER => "ON"
+G_SCRAMBLER => "OFF"
 )
 port map(
 p_in_gen_cfg   => p_in_hdd_tstgen,
@@ -232,40 +233,40 @@ p_in_gen_cfg   => p_in_hdd_tstgen,
 p_out_rdy      => i_hdd_tst_on,
 p_out_hwon     => i_hdd_hw_work,
 
-p_out_tdata    => i_hdd_tst_d,
+p_out_tdata    => open,--i_hdd_tst_d,
 p_out_tdata_en => i_hdd_tst_den,
 
-p_in_clk       => p_in_vbufin_rdclk,
+p_in_clk       => p_in_vbufin_wrclk,
 p_in_rst       => p_in_rst
 );
 
 i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_tstgen.clr_err;
 
 --//Выбор данных для модуля dsn_hdd.vhd
-i_hdd_vbuf_din<=i_hdd_tst_d   when i_hdd_tst_on='1' and p_in_hdd_tstgen.con2rambuf='1' else g_buf_dout;
+--i_hdd_vbuf_din<=i_hdd_tst_d   when i_hdd_tst_on='1' and p_in_hdd_tstgen.con2rambuf='1' else g_buf_dout;
 i_hdd_vbuf_wr <=i_hdd_tst_den when i_hdd_tst_on='1' and p_in_hdd_tstgen.con2rambuf='1' else g_buf_rd;
 
 m_bufout : hdd_rambuf_infifo
 port map(
-din       => i_hdd_vbuf_din,
+din       => g_buf_dout,--i_hdd_vbuf_din,
 wr_en     => i_hdd_vbuf_wr,
---wr_clk    => p_in_vbufin_rdclk,
+wr_clk    => p_in_vbufin_wrclk,
 
 dout      => p_out_vbufin_d,
 rd_en     => p_in_vbufin_rd,
---rd_clk    => p_in_hdd_vbuf_rdclk,
+rd_clk    => p_in_vbufin_rdclk,
 
 empty     => p_out_vbufin_empty,
-full      => i_vbufin_full,
+full      => i_hdd_vbuf_full,
 prog_full => p_out_vbufin_pfull,
---rd_data_count => p_out_vbufin_wrcnt,
-data_count => p_out_vbufin_wrcnt,
+rd_data_count => p_out_vbufin_wrcnt,
+--data_count => p_out_vbufin_wrcnt,
 
-clk       => p_in_vbufin_rdclk,
+--clk       => p_in_vbufin_rdclk,
 rst       => i_hdd_vbuf_rst
 );
 
-p_out_vbufin_full<=i_vbufin_full when i_hdd_tst_on='1' and p_in_hdd_tstgen.con2rambuf='1' else (AND_reduce(i_buf_full) and i_vbufin_full);
+p_out_vbufin_full<=i_hdd_vbuf_full when i_hdd_tst_on='1' and p_in_hdd_tstgen.con2rambuf='1' else (AND_reduce(i_buf_full) and i_hdd_vbuf_full);
 
 --END MAIN
 end behavioral;

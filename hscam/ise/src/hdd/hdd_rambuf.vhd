@@ -57,6 +57,11 @@ p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
 p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
 
+p_out_vbufo_sel       : out   std_logic;
+p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr        : out   std_logic;
+p_in_vbufo_full       : in    std_logic;
+
 ----------------------------
 --Связь с модулем HDD
 ----------------------------
@@ -810,6 +815,10 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
+p_out_vbufo_din<=p_in_hdd_rxd;
+p_out_vbufo_wr<=(i_rbuf_cfg.hw_mode and not p_in_hdd_rxbuf_empty and not p_in_vbufo_full) or i_padding;-- and not p_in_rbuf_cfg.ram_wr_i.sel;
+p_out_vbufo_sel<=(i_rbuf_cfg.hw_mode and not p_in_hdd_rxbuf_empty);
+
 p_out_vbuf_rd<=(i_rbuf_cfg.hw_mode and i_mem_din_rd) or i_padding;-- and not p_in_rbuf_cfg.ram_wr_i.sel;
 
 p_out_hdd_rxd_rd<=(i_rbuf_cfg.sw_mode and i_mem_din_rd) or i_padding;-- and not p_in_rbuf_cfg.ram_wr_i.sel;

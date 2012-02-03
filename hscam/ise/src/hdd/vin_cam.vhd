@@ -41,6 +41,7 @@ p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_in_vbufin_rdclk  : in   std_logic;
+p_in_vbufin_wrclk  : in   std_logic;
 
 --Технологический
 p_in_tst           : in    std_logic_vector(31 downto 0);
@@ -72,6 +73,24 @@ rst    : in  std_logic
 );
 end component;
 
+component vin_bufout
+port(
+din    : in std_logic_vector(31 downto 0);
+wr_en  : in std_logic;
+wr_clk : in std_logic;
+
+dout   : out std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
+rd_en  : in std_logic;
+rd_clk : in std_logic;
+
+empty  : out std_logic;
+full   : out std_logic;
+
+--clk    : in std_logic;
+rst    : in std_logic
+);
+end component;
+
 signal i_vd                : std_logic_vector(p_in_vd'length-(10*2)-1 downto 0):=(others=>'0');
 signal i_vd_save           : std_logic_vector(p_in_vd'length-(10*2)-1 downto 0):=(others=>'0');
 
@@ -84,6 +103,8 @@ type TBufData  is array (0 to CI_BUF_COUNT-1) of std_logic_vector(31 downto 0);
 signal i_buf_din           : TBufData;
 signal i_buf_dout          : TBufData;
 signal i_buf_empty         : std_logic_vector(CI_BUF_COUNT-1 downto 0);
+signal i_bufout_din        : std_logic_vector(31 downto 0);
+signal i_bufout_wr         : std_logic;
 
 
 --MAIN
@@ -134,7 +155,7 @@ wr_clk => p_in_vclk,
 
 dout   => i_buf_dout(i)(31 downto 0),
 rd_en  => i_buf_rd(i),
-rd_clk => p_in_vbufin_rdclk,
+rd_clk => p_in_vbufin_wrclk,
 
 full   => open,
 empty  => i_buf_empty(i),
@@ -142,17 +163,17 @@ empty  => i_buf_empty(i),
 rst    => p_in_rst
 );
 
-i_buf_rd(i)<=p_in_vbufin_rd when i_buf_cnt=i else '0';
+i_buf_rd(i)<=i_bufout_wr when i_buf_cnt=i else '0';
 
 end generate gen_buf;
 
 --//Чтение:
-process(p_in_rst,p_in_vbufin_rdclk)
+process(p_in_rst,p_in_vbufin_wrclk)
 begin
   if p_in_rst='1' then
     i_buf_cnt<=0;
-  elsif p_in_vbufin_rdclk'event and p_in_vbufin_rdclk='1' then
-    if p_in_vbufin_rd='1' then
+  elsif p_in_vbufin_wrclk'event and p_in_vbufin_wrclk='1' then
+    if i_bufout_wr='1' then
       if i_buf_cnt=CI_BUF_COUNT-1 then
         i_buf_cnt<=0;
       else
@@ -162,14 +183,30 @@ begin
   end if;
 end process;
 
-p_out_vbufin_d<=i_buf_dout(4) when i_buf_cnt=4 else
-                i_buf_dout(3) when i_buf_cnt=3 else
-                i_buf_dout(2) when i_buf_cnt=2 else
-                i_buf_dout(1) when i_buf_cnt=1 else
-                i_buf_dout(0);-- when i_buf_cnt=0;
+i_bufout_din<=i_buf_dout(4) when i_buf_cnt=4 else
+              i_buf_dout(3) when i_buf_cnt=3 else
+              i_buf_dout(2) when i_buf_cnt=2 else
+              i_buf_dout(1) when i_buf_cnt=1 else
+              i_buf_dout(0);-- when i_buf_cnt=0;
 
-p_out_vbufin_empty<=AND_reduce(i_buf_empty);
+i_bufout_wr<=not AND_reduce(i_buf_empty);
 
+m_bufout : vin_bufout
+port map(
+din    => i_bufout_din,
+wr_en  => i_bufout_wr,
+wr_clk => p_in_vbufin_wrclk,
+
+dout   => p_out_vbufin_d,
+rd_en  => p_in_vbufin_rd,
+rd_clk => p_in_vbufin_rdclk,
+
+empty  => p_out_vbufin_empty,
+full   => open,
+
+--clk    : in std_logic;
+rst    => p_in_rst
+);
 
 --END MAIN
 end behavioral;

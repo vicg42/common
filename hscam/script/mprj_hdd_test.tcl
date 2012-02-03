@@ -5,7 +5,7 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "hscam_hdd_test"
+set _usrdef_design "hdd_test"
 set _usrdef_entity "hdd_test_main"
 set _usrdef_xilinx_family "spartan6"
 set _usrdef_chip_family "s6lxt"
@@ -47,11 +47,11 @@ set _projects [ list \
       [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_ftdi.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_uart.vhd" $_VHDMod ] \
       [ list "../src/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_uart.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_ftdi.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/uart_main_rev01.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/bbfifo_16x8.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/kcuart_rx.vhd" $_VHDMod ] \
@@ -103,9 +103,10 @@ set _projects [ list \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
-      [ list "../src/hdd/hdd_main_cfg.vhd" $_VHDPkg ] \
-      [ list "../../../ml505/ise/hdd_test_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/hdd_test.ucf "hdd_test_main" ] \
+      [ list "../src/core_gen/dbgcs_sata_rbuf.vhd" $_VHDMod ] \
+      [ list "../hdd_test_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../hdd_test_main.vhd" $_VHDMod ] \
+      [ list "../../ucf/hdd_test.ucf" "hdd_test_main" ] \
     ] \
   ] \
 ]
@@ -114,3 +115,4 @@ set _projects [ list \
 
 #cd ../src
 #exec "updata_ngc.bat"
+
