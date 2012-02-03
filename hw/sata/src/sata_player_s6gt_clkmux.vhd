@@ -44,6 +44,12 @@ constant C_SH_COUNT : integer:=C_SH_COUNT_MAX(G_HDD_COUNT-1);
 --MAIN
 begin
 
+--gen_off : if (p_out_optrefclksel'length-1)>C_SH_COUNT  generate
+--gen : for i in C_SH_COUNT to p_out_optrefclksel'length-1 generate
+--p_out_optrefclksel(i)<=(others=>'0');
+--p_out_optrefclk(i)   <=(others=>'0');
+--end generate gen;
+--end generate gen_off;
 
 --//----------------------------------
 --//SHCOUNT=1
