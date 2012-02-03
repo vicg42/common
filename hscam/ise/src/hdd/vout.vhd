@@ -20,8 +20,8 @@ use ieee.std_logic_unsigned.all;
 
 entity vout is
 generic(
-G_VBUF_IWIDTH: integer:=32;
-G_VBUF_OWIDTH: integer:=32;
+G_VBUF_IWIDTH : integer:=32;
+G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1'
 );
 port(

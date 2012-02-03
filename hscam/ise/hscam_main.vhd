@@ -25,6 +25,7 @@ use work.sata_glob_pkg.all;
 
 entity hscam_main is
 generic(
+G_VOUT_DWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1';
 G_SIM : string:="OFF"
 );
@@ -43,8 +44,8 @@ pin_in_sata_clk_p  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1
 --------------------------------------------------
 --RAM
 --------------------------------------------------
-pin_out_mcb5_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
-pin_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+pin_out_mcb5_a        : out   std_logic_vector(12 downto 0);
+pin_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;
 pin_out_mcb5_ras_n    : out   std_logic;
 pin_out_mcb5_cas_n    : out   std_logic;
 pin_out_mcb5_we_n     : out   std_logic;
@@ -54,7 +55,7 @@ pin_out_mcb5_dm       : out   std_logic;
 pin_out_mcb5_udm      : out   std_logic;
 pin_out_mcb5_ck       : out   std_logic;
 pin_out_mcb5_ck_n     : out   std_logic;
-pin_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+pin_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);
 pin_inout_mcb5_udqs   : inout std_logic;
 pin_inout_mcb5_udqs_n : inout std_logic;
 pin_inout_mcb5_dqs    : inout std_logic;
@@ -62,8 +63,8 @@ pin_inout_mcb5_dqs_n  : inout std_logic;
 pin_inout_mcb5_rzq    : inout std_logic;
 pin_inout_mcb5_zio    : inout std_logic;
 
-pin_out_mcb1_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
-pin_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+pin_out_mcb1_a        : out   std_logic_vector(12 downto 0);
+pin_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;
 pin_out_mcb1_ras_n    : out   std_logic;
 pin_out_mcb1_cas_n    : out   std_logic;
 pin_out_mcb1_we_n     : out   std_logic;
@@ -73,7 +74,7 @@ pin_out_mcb1_dm       : out   std_logic;
 pin_out_mcb1_udm      : out   std_logic;
 pin_out_mcb1_ck       : out   std_logic;
 pin_out_mcb1_ck_n     : out   std_logic;
-pin_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+pin_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);
 pin_inout_mcb1_udqs   : inout std_logic;
 pin_inout_mcb1_udqs_n : inout std_logic;
 pin_inout_mcb1_dqs    : inout std_logic;
@@ -101,6 +102,7 @@ architecture struct of hscam_main is
 
 component hdd_main
 generic(
+G_VOUT_DWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1';
 G_SIM : string:="OFF"
 );
@@ -116,7 +118,7 @@ p_in_vin_clk  : in   std_logic;
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
-p_out_vd      : out  std_logic_vector(31 downto 0);
+p_out_vd      : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
 p_in_vout_vs  : in   std_logic;
 p_in_vout_hs  : in   std_logic;
 p_in_vout_clk : in   std_logic;
@@ -124,8 +126,8 @@ p_in_vout_clk : in   std_logic;
 --------------------------------------------------
 --RAM
 --------------------------------------------------
-p_out_mcb5_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
-p_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+p_out_mcb5_a        : out   std_logic_vector(12 downto 0);
+p_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;
 p_out_mcb5_ras_n    : out   std_logic;
 p_out_mcb5_cas_n    : out   std_logic;
 p_out_mcb5_we_n     : out   std_logic;
@@ -135,7 +137,7 @@ p_out_mcb5_dm       : out   std_logic;
 p_out_mcb5_udm      : out   std_logic;
 p_out_mcb5_ck       : out   std_logic;
 p_out_mcb5_ck_n     : out   std_logic;
-p_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+p_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);
 p_inout_mcb5_udqs   : inout std_logic;
 p_inout_mcb5_udqs_n : inout std_logic;
 p_inout_mcb5_dqs    : inout std_logic;
@@ -143,8 +145,8 @@ p_inout_mcb5_dqs_n  : inout std_logic;
 p_inout_mcb5_rzq    : inout std_logic;
 p_inout_mcb5_zio    : inout std_logic;
 
-p_out_mcb1_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
-p_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+p_out_mcb1_a        : out   std_logic_vector(12 downto 0);
+p_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;
 p_out_mcb1_ras_n    : out   std_logic;
 p_out_mcb1_cas_n    : out   std_logic;
 p_out_mcb1_we_n     : out   std_logic;
@@ -154,7 +156,7 @@ p_out_mcb1_dm       : out   std_logic;
 p_out_mcb1_udm      : out   std_logic;
 p_out_mcb1_ck       : out   std_logic;
 p_out_mcb1_ck_n     : out   std_logic;
-p_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+p_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);
 p_inout_mcb1_udqs   : inout std_logic;
 p_inout_mcb1_udqs_n : inout std_logic;
 p_inout_mcb1_dqs    : inout std_logic;
@@ -165,12 +167,12 @@ p_inout_mcb1_zio    : inout std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-p_out_sata_txn   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-p_out_sata_txp   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxn    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-p_in_sata_rxp    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-p_in_sata_clk_n  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
-p_in_sata_clk_p  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+p_out_sata_txn   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_out_sata_txp   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_in_sata_rxn    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_in_sata_rxp    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_in_sata_clk_n  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+p_in_sata_clk_p  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 
 --------------------------------------------------
 --System
@@ -230,35 +232,15 @@ signal i_vtg_rst                      : std_logic;
 type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
 signal i_tdata                        : TDtest;
 
-
 signal i_vin_d                        : std_logic_vector(99 downto 0):=(others=>'0');
 signal i_vin_vs                       : std_logic;
 signal i_vin_hs                       : std_logic;
 signal i_vin_clk                      : std_logic;
 
-signal i_vout_d                       : std_logic_vector(31 downto 0);
+signal i_vout_d                       : std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
 signal i_vout_vs                      : std_logic;
 signal i_vout_hs                      : std_logic;
 signal i_vout_clk                     : std_logic;
-
---signal pin_out_mcb1_a                 : std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
---signal pin_out_mcb1_ba                : std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
---signal pin_out_mcb1_ras_n             : std_logic;
---signal pin_out_mcb1_cas_n             : std_logic;
---signal pin_out_mcb1_we_n              : std_logic;
---signal pin_out_mcb1_odt               : std_logic;
---signal pin_out_mcb1_cke               : std_logic;
---signal pin_out_mcb1_dm                : std_logic;
---signal pin_out_mcb1_udm               : std_logic;
---signal pin_out_mcb1_ck                : std_logic;
---signal pin_out_mcb1_ck_n              : std_logic;
---signal pin_inout_mcb1_dq              : std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
---signal pin_inout_mcb1_udqs            : std_logic;
---signal pin_inout_mcb1_udqs_n          : std_logic;
---signal pin_inout_mcb1_dqs             : std_logic;
---signal pin_inout_mcb1_dqs_n           : std_logic;
---signal pin_inout_mcb1_rzq             : std_logic;
---signal pin_inout_mcb1_zio             : std_logic;
 
 
 --MAIN
@@ -328,6 +310,7 @@ pin_out_TP2(1)<='0';
 --***********************************************************
 m_hdd : hdd_main
 generic map(
+G_VOUT_DWIDTH => G_VOUT_DWIDTH,
 G_VSYN_ACTIVE => G_VSYN_ACTIVE,
 G_SIM => G_SIM
 )

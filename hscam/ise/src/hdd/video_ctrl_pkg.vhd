@@ -27,11 +27,9 @@ constant C_VCTRL_MEM_VFR_L_BIT                : integer:=22;--//Номер кадра (MSB
 constant C_VCTRL_MEM_VFR_M_BIT                : integer:=23;--//
 constant C_VCTRL_MEM_VCH_L_BIT                : integer:=24;--//Номер видео канала (MSB...LSB)
 constant C_VCTRL_MEM_VCH_M_BIT                : integer:=25;
-constant C_VCTRL_REG_MEM_ADR_BANK_L_BIT       : integer:=30;
-constant C_VCTRL_REG_MEM_ADR_BANK_M_BIT       : integer:=31;
 
-constant C_VCTRL_VCH_COUNT    : integer:=1;
-constant C_VCTRL_VCH_COUNT_MAX: integer:=1;
+constant C_VCTRL_VCH_COUNT     : integer:=1;
+constant C_VCTRL_VCH_COUNT_MAX : integer:=1;
 
 type TFrXY is record
 pix : std_logic_vector(15 downto 0);
@@ -52,17 +50,5 @@ end record;
 Type TReaderVCHParams is array (0 to C_VCTRL_VCH_COUNT-1) of TReaderVCHParam;
 
 Type TVfrBufs is array (0 to C_VCTRL_VCH_COUNT_MAX-1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
-
-type TVSyn is record
-v   : std_logic;
-h   : std_logic;
-clk : std_logic;
-end record;
-
-type TVBufStatus is record
-empty : std_logic;
-full  : std_logic;
-pfull : std_logic;
-end record;
 
 end video_ctrl_pkg;

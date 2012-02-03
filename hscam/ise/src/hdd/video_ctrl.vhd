@@ -26,6 +26,8 @@ use work.mem_wr_pkg.all;
 entity video_ctrl is
 generic(
 G_SIM    : string:="OFF";
+G_MEM_BANK_M_BIT : integer:=32;
+G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH : integer:=32;
 G_MEM_DWIDTH : integer:=32
 );
@@ -331,8 +333,8 @@ end process;
 -------------------------------
 m_vwriter : video_writer
 generic map(
-G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+G_MEM_BANK_M_BIT  => G_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => G_MEM_BANK_L_BIT,
 
 G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
 G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
@@ -388,8 +390,8 @@ p_in_rst              => p_in_rst
 --//-----------------------------
 m_vreader : video_reader
 generic map(
-G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+G_MEM_BANK_M_BIT  => G_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => G_MEM_BANK_L_BIT,
 
 G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
 G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,

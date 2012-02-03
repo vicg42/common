@@ -34,6 +34,7 @@ use work.mem_ctrl_pkg.all;
 entity hdd_main is
 generic(
 G_VSYN_ACTIVE : std_logic:='1';
+G_VOUT_DWIDTH : integer:=32;
 G_SIM : string:="OFF"
 );
 port(
@@ -48,7 +49,7 @@ p_in_vin_clk  : in   std_logic;
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
-p_out_vd      : out  std_logic_vector(31 downto 0);
+p_out_vd      : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
 p_in_vout_vs  : in   std_logic;
 p_in_vout_hs  : in   std_logic;
 p_in_vout_clk : in   std_logic;
@@ -56,8 +57,8 @@ p_in_vout_clk : in   std_logic;
 --------------------------------------------------
 --RAM
 --------------------------------------------------
-p_out_mcb5_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
-p_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+p_out_mcb5_a        : out   std_logic_vector(12 downto 0);
+p_out_mcb5_ba       : out   std_logic_vector(2 downto 0) ;
 p_out_mcb5_ras_n    : out   std_logic;
 p_out_mcb5_cas_n    : out   std_logic;
 p_out_mcb5_we_n     : out   std_logic;
@@ -67,7 +68,7 @@ p_out_mcb5_dm       : out   std_logic;
 p_out_mcb5_udm      : out   std_logic;
 p_out_mcb5_ck       : out   std_logic;
 p_out_mcb5_ck_n     : out   std_logic;
-p_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+p_inout_mcb5_dq     : inout std_logic_vector(15 downto 0);
 p_inout_mcb5_udqs   : inout std_logic;
 p_inout_mcb5_udqs_n : inout std_logic;
 p_inout_mcb5_dqs    : inout std_logic;
@@ -75,8 +76,8 @@ p_inout_mcb5_dqs_n  : inout std_logic;
 p_inout_mcb5_rzq    : inout std_logic;
 p_inout_mcb5_zio    : inout std_logic;
 
-p_out_mcb1_a        : out   std_logic_vector(12 downto 0);--(C5_MEM_ADDR_WIDTH-1 downto 0);
-p_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;--(C5_MEM_BANKADDR_WIDTH-1 downto 0);
+p_out_mcb1_a        : out   std_logic_vector(12 downto 0);
+p_out_mcb1_ba       : out   std_logic_vector(2 downto 0) ;
 p_out_mcb1_ras_n    : out   std_logic;
 p_out_mcb1_cas_n    : out   std_logic;
 p_out_mcb1_we_n     : out   std_logic;
@@ -86,7 +87,7 @@ p_out_mcb1_dm       : out   std_logic;
 p_out_mcb1_udm      : out   std_logic;
 p_out_mcb1_ck       : out   std_logic;
 p_out_mcb1_ck_n     : out   std_logic;
-p_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);--(C5_NUM_DQ_PINS-1 downto 0);
+p_inout_mcb1_dq     : inout std_logic_vector(15 downto 0);
 p_inout_mcb1_udqs   : inout std_logic;
 p_inout_mcb1_udqs_n : inout std_logic;
 p_inout_mcb1_dqs    : inout std_logic;
@@ -101,8 +102,8 @@ p_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX
 p_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
 p_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
 p_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
-p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 
 --------------------------------------------------
 --System
@@ -208,8 +209,10 @@ p_in_rst       : in  std_logic
 );
 end component;
 
-constant CI_MEM_AWIDTH : integer:=32;
-constant CI_MEM_DWIDTH : integer:=32;
+constant CI_MEM_BANK_M_BIT : integer:=C_MEMCTRL_AWIDTH+1;
+constant CI_MEM_BANK_L_BIT : integer:=C_MEMCTRL_AWIDTH+1;
+constant CI_MEM_AWIDTH     : integer:=32;
+constant CI_MEM_DWIDTH     : integer:=C_MEMCTRL_DWIDTH;
 
 signal i_vfr_prm                        : TFrXY;
 
@@ -254,9 +257,9 @@ signal i_hdd_gt_refclk150               : std_logic_vector(C_SH_COUNT_MAX(C_PCFG
 signal g_hdd_gt_refclkout               : std_logic;
 signal i_hdd_gt_plldet                  : std_logic;
 signal i_hdd_dcm_lock                   : std_logic;
-signal g_hdd_dcm_gclk75M                : std_logic;--p_out_hdd_dcm_gclk75M,--i_hdd_dcm_gclk2div,
-signal g_hdd_dcm_gclk300M               : std_logic;--p_out_hdd_dcm_gclk300M,--i_hdd_dcm_gclk2x,
-signal g_hdd_dcm_gclk150M               : std_logic;--p_out_hdd_dcm_gclk300M,--i_hdd_dcm_gclk2x,
+signal g_hdd_dcm_gclk75M                : std_logic;
+signal g_hdd_dcm_gclk300M               : std_logic;
+signal g_hdd_dcm_gclk150M               : std_logic;
 
 signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
 signal i_hdd_rbuf_status                : THDDRBufStatus;
@@ -384,7 +387,7 @@ i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.greset;
 i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_rdy));
 i_hdd_rambuf_rst<=i_vctrl_rst;
-i_mem_ctrl_rst <= not i_usrpll_lock;--not i_hdd_dcm_lock or i_hdd_rbuf_cfg.greset;--i_usrpll_lock;--
+i_mem_ctrl_rst <= not i_usrpll_lock;
 
 
 
@@ -420,7 +423,7 @@ p_in_rst           => i_vctrl_rst
 m_vout : vout
 generic map(
 G_VBUF_IWIDTH => CI_MEM_DWIDTH,
-G_VBUF_OWIDTH => 32,
+G_VBUF_OWIDTH => G_VOUT_DWIDTH,
 G_VSYN_ACTIVE => G_VSYN_ACTIVE
 )
 port map(
@@ -440,6 +443,8 @@ p_in_rst           => i_vctrl_rst
 m_vctrl : video_ctrl
 generic map(
 G_SIM => G_SIM,
+G_MEM_BANK_M_BIT => CI_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT => CI_MEM_BANK_L_BIT,
 G_MEM_AWIDTH => CI_MEM_AWIDTH,
 G_MEM_DWIDTH => CI_MEM_DWIDTH
 )
@@ -515,9 +520,9 @@ p_out_mem_rdy   => i_mem_ctrl_rdy,
 ------------------------------------
 --System
 ------------------------------------
-p_out_pll_gclkusr => open,--g_hclk, --300MHz
+p_out_pll_gclkusr => open,
 --c5_rst0         : out   std_logic;
-p_in_clk        => g_memclkin, --g_sata_refclkout,--g_hdd_dcm_gclk300M,--g_hclk,--
+p_in_clk        => g_memclkin,
 p_in_rst        => i_mem_ctrl_rst
 );
 
@@ -671,7 +676,7 @@ p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
 -------------------------------
 --System
 -------------------------------
-p_in_clk           => g_hdd_clk,--g_sata_refclkout,--p_in_mem_ctrl_clk,--
+p_in_clk           => g_hdd_clk,
 p_in_rst           => i_hdd_rst
 );
 
@@ -723,8 +728,8 @@ G_MODULE_USE => C_PCFG_HDD_USE,
 G_RAMBUF_SIZE=> C_PCFG_HDD_RAMBUF_SIZE,
 G_DBGCS      => C_PCFG_HDD_DBGCS,
 G_SIM        => G_SIM,
-G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+G_MEM_BANK_M_BIT => CI_MEM_BANK_M_BIT,
+G_MEM_BANK_L_BIT => CI_MEM_BANK_L_BIT,
 G_MEM_AWIDTH => CI_MEM_AWIDTH,
 G_MEM_DWIDTH => CI_MEM_DWIDTH
 )
@@ -856,31 +861,29 @@ p_out_tst            => open,--i_cfg_tstout,
 p_in_rst => i_sys_rst
 );
 
---i_hdd_tst_in(31 downto 0)<=(others=>'0');
-
 --HDD LEDs:
 --SATA0 (На плате SATA1)
 p_out_led(2)<=i_hdd_dbgled(0).link;
 p_out_led(4)<=i_hdd_dbgled(0).rdy when i_hdd_dbgled(0).err='0' else i_test01_led;
-p_out_TP(0) <=i_hdd_dbgled(0).wr;--i_hdd_dbgled(0).err and i_test01_led;
+p_out_TP(0) <=i_hdd_dbgled(0).wr;
 p_out_TP(1) <=i_hdd_dbgled(0).busy;
 
 --SATA1 (На плате SATA0)
 p_out_led(3)<=i_hdd_dbgled(1).link;
 p_out_led(5)<=i_hdd_dbgled(1).rdy when i_hdd_dbgled(1).err='0' else i_test01_led;
-p_out_TP(2) <=i_hdd_dbgled(1).wr;--i_hdd_dbgled(1).err and i_test01_led;
+p_out_TP(2) <=i_hdd_dbgled(1).wr;
 p_out_TP(3) <=i_hdd_dbgled(1).busy;
 
 --SATA2 (На плате SATA3)
-p_out_led(0)<=i_hdd_dbgled(2).link;--i_mem_ctrl_rdy(0);--
-p_out_led(7)<=i_hdd_dbgled(2).rdy when i_hdd_dbgled(2).err='0' else i_test01_led;--
-p_out_TP(4) <=i_hdd_dbgled(2).wr;--i_ram_rxbuf_empty;--i_hdd_dbgled(2).err and i_test01_led;
+p_out_led(0)<=i_hdd_dbgled(2).link;
+p_out_led(7)<=i_hdd_dbgled(2).rdy when i_hdd_dbgled(2).err='0' else i_test01_led;
+p_out_TP(4) <=i_hdd_dbgled(2).wr;
 p_out_TP(5) <=i_hdd_dbgled(2).busy;
 
 --SATA3 (На плате SATA2)
 p_out_led(1)<=i_hdd_dbgled(3).link;
 p_out_led(6)<=i_hdd_dbgled(3).rdy when i_hdd_dbgled(3).err='0' else i_test01_led;
-p_out_TP(6) <=i_hdd_dbgled(3).wr;--i_hdd_dbgled(3).err and i_test01_led;
+p_out_TP(6) <=i_hdd_dbgled(3).wr;
 p_out_TP(7) <=i_hdd_dbgled(3).busy;
 
 

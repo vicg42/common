@@ -49,6 +49,8 @@ constant C5_NUM_DQ_PINS          : integer := 16;-- External memory data width.
 constant C5_MEM_ADDR_WIDTH       : integer := 13;-- External memory address width.
 constant C5_MEM_BANKADDR_WIDTH   : integer := 3;-- External memory bank address width.
 
+constant C_MEMCTRL_AWIDTH        : integer := 30;
+constant C_MEMCTRL_DWIDTH        : integer := C5_P0_DATA_PORT_SIZE;
 
 --Memory interface types
 type TRam_out is record
