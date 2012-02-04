@@ -136,6 +136,8 @@ S_HWLOG_MEM_WORK
 );
 signal fsm_rambuf_cs                   : fsm_state;
 
+signal i_data_null                     : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+
 signal i_rbuf_cfg                      : TDMAcfg;
 signal i_hwlog                         : THWLog;
 signal i_tstgen                        : THDDTstGen;
@@ -214,6 +216,7 @@ signal tst_vrd_out                     : std_logic_vector(31 downto 0);
 --MAIN
 begin
 
+i_data_null<=(others=>'0');
 
 gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 
@@ -313,9 +316,9 @@ p_out_rbuf_status.err_type<=i_err_det;
 p_out_rbuf_status.done<=i_rambuf_done;
 p_out_rbuf_status.hwlog_size<=i_wr_ptr;
 
-p_out_rbuf_status.ram_wr_o.wr_rdy <='1';-- not i_cr_txbuf_full;--//RAM<-CFG
-p_out_rbuf_status.ram_wr_o.rd_rdy <='1';-- not i_cr_rxbuf_empty;--//RAM->CFG
-
+p_out_rbuf_status.ram_wr_o.wr_rdy <='1';
+p_out_rbuf_status.ram_wr_o.rd_rdy <='1';
+p_out_rbuf_status.ram_wr_o.dout <=(others=>'0');
 
 --//Сброс/детектирование переполнения потокового буфера +
 --//входного видео буфера
@@ -372,8 +375,8 @@ end process;
 --//----------------------------------------------
 --//Автомат управления записю/чтение данных ОЗУ
 --//----------------------------------------------
-i_atacmd_dcount_byte<=i_atacmd_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
-i_atacmd_dcount_dw<=("00"&i_atacmd_dcount_byte(i_atacmd_dcount_byte'high downto 2));
+i_atacmd_dcount_byte<=i_atacmd_scount & CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+i_atacmd_dcount_dw<=(CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) & i_atacmd_dcount_byte(i_atacmd_dcount_byte'high downto log2(G_MEM_DWIDTH/8)));
 
 gen_memd8 : if G_MEM_DWIDTH=8 generate
 i_mem_adr_update<=(CONV_STD_LOGIC_VECTOR(0, (i_mem_adr'length - i_mem_lentrn'length)) & i_mem_lentrn);
@@ -910,7 +913,7 @@ p_out_cfg_mem_done   => i_mem_rddone,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout  => "00000000000000000000000000000000",
+p_in_usr_txbuf_dout  => i_data_null,
 p_out_usr_txbuf_rd   => open,
 p_in_usr_txbuf_empty => '0',
 
