@@ -35,22 +35,27 @@ constant C_MEM_BANK_COUNT_MAX: integer := 2;
 --constant C_MEMPLL_CLKFBOUT_MULT  : integer := 5;
 --constant C_MEMPLL_DIVCLK_DIVIDE  : integer := 1;
 
-constant C5_MEMCLK_PERIOD        : integer := 2600;--3200;-- Memory data transfer clock period.
+constant C5_MEMCLK_PERIOD          : integer := 2600;--3200;-- Memory data transfer clock period.
 
-constant C5_P0_MASK_SIZE         : integer := 4;
-constant C5_P0_DATA_PORT_SIZE    : integer := 32;
-constant C5_P1_MASK_SIZE         : integer := 4;
-constant C5_P1_DATA_PORT_SIZE    : integer := 32;
-constant C5_RST_ACT_LOW          : integer := 0;-- # = 1 for active low reset,-- # = 0 for active high reset.
-constant C5_INPUT_CLK_TYPE       : string := "SINGLE_ENDED"; -- input clock type DIFFERENTIAL or SINGLE_ENDED.
-constant C5_CALIB_SOFT_IP        : string := "TRUE";-- # = TRUE, Enables the soft calibration logic,-- # = FALSE, Disables the soft calibration logic.
-constant C5_MEM_ADDR_ORDER       : string := "BANK_ROW_COLUMN";-- ROW_BANK_COLUMN or BANK_ROW_COLUMN.
-constant C5_NUM_DQ_PINS          : integer := 16;-- External memory data width.
-constant C5_MEM_ADDR_WIDTH       : integer := 13;-- External memory address width.
-constant C5_MEM_BANKADDR_WIDTH   : integer := 3;-- External memory bank address width.
+constant C5_P0_MASK_SIZE           : integer := 8;
+constant C5_P0_DATA_PORT_SIZE      : integer := 64;
+constant C5_P1_MASK_SIZE           : integer := 8;
+constant C5_P1_DATA_PORT_SIZE      : integer := 64;
+constant C5_RST_ACT_LOW            : integer := 0;-- # = 1 for active low reset,-- # = 0 for active high reset.
+constant C5_INPUT_CLK_TYPE         : string := "SINGLE_ENDED"; -- input clock type DIFFERENTIAL or SINGLE_ENDED.
+constant C5_CALIB_SOFT_IP          : string := "TRUE";-- # = TRUE, Enables the soft calibration logic,-- # = FALSE, Disables the soft calibration logic.
+constant C5_MEM_ADDR_ORDER         : string := "BANK_ROW_COLUMN";-- ROW_BANK_COLUMN or BANK_ROW_COLUMN.
+constant C5_NUM_DQ_PINS            : integer := 16;-- External memory data width.
+constant C5_MEM_ADDR_WIDTH         : integer := 13;-- External memory address width.
+constant C5_MEM_BANKADDR_WIDTH     : integer := 3;-- External memory bank address width.
 
-constant C_MEMCTRL_AWIDTH        : integer := 30;
-constant C_MEMCTRL_DWIDTH        : integer := C5_P0_DATA_PORT_SIZE;
+constant C_MEMCTRL_AWIDTH      : integer := 30;
+constant C_MEMCTRL_DWIDTH      : integer := C5_P0_DATA_PORT_SIZE;
+
+constant C_MEMCTRL_CH0_DWIDTH  : integer := C5_P0_DATA_PORT_SIZE;
+constant C_MEMCTRL_CH0_BEWIDTH : integer := C5_P0_MASK_SIZE;
+constant C_MEMCTRL_CH1_DWIDTH  : integer := C5_P1_DATA_PORT_SIZE;
+constant C_MEMCTRL_CH1_BEWIDTH : integer := C5_P1_MASK_SIZE;
 
 --Memory interface types
 type TRam_out is record

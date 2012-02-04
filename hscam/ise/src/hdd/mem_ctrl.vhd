@@ -196,37 +196,54 @@ component memc5_wrapper is
       mcb5_dram_dqs_n                        : inout  std_logic;
       mcb5_dram_ck                           : out  std_logic;
       mcb5_dram_ck_n                         : out  std_logic;
-      p2_cmd_clk                            : in std_logic;
-      p2_cmd_en                             : in std_logic;
-      p2_cmd_instr                          : in std_logic_vector(2 downto 0);
-      p2_cmd_bl                             : in std_logic_vector(5 downto 0);
-      p2_cmd_byte_addr                      : in std_logic_vector(29 downto 0);
-      p2_cmd_empty                          : out std_logic;
-      p2_cmd_full                           : out std_logic;
-      p2_wr_clk                             : in std_logic;
-      p2_wr_en                              : in std_logic;
-      p2_wr_mask                            : in std_logic_vector(3 downto 0);
-      p2_wr_data                            : in std_logic_vector(31 downto 0);
-      p2_wr_full                            : out std_logic;
-      p2_wr_empty                           : out std_logic;
-      p2_wr_count                           : out std_logic_vector(6 downto 0);
-      p2_wr_underrun                        : out std_logic;
-      p2_wr_error                           : out std_logic;
-      p3_cmd_clk                            : in std_logic;
-      p3_cmd_en                             : in std_logic;
-      p3_cmd_instr                          : in std_logic_vector(2 downto 0);
-      p3_cmd_bl                             : in std_logic_vector(5 downto 0);
-      p3_cmd_byte_addr                      : in std_logic_vector(29 downto 0);
-      p3_cmd_empty                          : out std_logic;
-      p3_cmd_full                           : out std_logic;
-      p3_rd_clk                             : in std_logic;
-      p3_rd_en                              : in std_logic;
-      p3_rd_data                            : out std_logic_vector(31 downto 0);
-      p3_rd_full                            : out std_logic;
-      p3_rd_empty                           : out std_logic;
-      p3_rd_count                           : out std_logic_vector(6 downto 0);
-      p3_rd_overflow                        : out std_logic;
-      p3_rd_error                           : out std_logic;
+      p0_cmd_clk                            : in std_logic;
+      p0_cmd_en                             : in std_logic;
+      p0_cmd_instr                          : in std_logic_vector(2 downto 0);
+      p0_cmd_bl                             : in std_logic_vector(5 downto 0);
+      p0_cmd_byte_addr                      : in std_logic_vector(29 downto 0);
+      p0_cmd_empty                          : out std_logic;
+      p0_cmd_full                           : out std_logic;
+      p0_wr_clk                             : in std_logic;
+      p0_wr_en                              : in std_logic;
+      p0_wr_mask                            : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
+      p0_wr_data                            : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+      p0_wr_full                            : out std_logic;
+      p0_wr_empty                           : out std_logic;
+      p0_wr_count                           : out std_logic_vector(6 downto 0);
+      p0_wr_underrun                        : out std_logic;
+      p0_wr_error                           : out std_logic;
+      p0_rd_clk                             : in std_logic;
+      p0_rd_en                              : in std_logic;
+      p0_rd_data                            : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+      p0_rd_full                            : out std_logic;
+      p0_rd_empty                           : out std_logic;
+      p0_rd_count                           : out std_logic_vector(6 downto 0);
+      p0_rd_overflow                        : out std_logic;
+      p0_rd_error                           : out std_logic;
+      p1_cmd_clk                            : in std_logic;
+      p1_cmd_en                             : in std_logic;
+      p1_cmd_instr                          : in std_logic_vector(2 downto 0);
+      p1_cmd_bl                             : in std_logic_vector(5 downto 0);
+      p1_cmd_byte_addr                      : in std_logic_vector(29 downto 0);
+      p1_cmd_empty                          : out std_logic;
+      p1_cmd_full                           : out std_logic;
+      p1_wr_clk                             : in std_logic;
+      p1_wr_en                              : in std_logic;
+      p1_wr_mask                            : in std_logic_vector(C_P1_MASK_SIZE - 1 downto 0);
+      p1_wr_data                            : in std_logic_vector(C_P1_DATA_PORT_SIZE - 1 downto 0);
+      p1_wr_full                            : out std_logic;
+      p1_wr_empty                           : out std_logic;
+      p1_wr_count                           : out std_logic_vector(6 downto 0);
+      p1_wr_underrun                        : out std_logic;
+      p1_wr_error                           : out std_logic;
+      p1_rd_clk                             : in std_logic;
+      p1_rd_en                              : in std_logic;
+      p1_rd_data                            : out std_logic_vector(C_P1_DATA_PORT_SIZE - 1 downto 0);
+      p1_rd_full                            : out std_logic;
+      p1_rd_empty                           : out std_logic;
+      p1_rd_count                           : out std_logic_vector(6 downto 0);
+      p1_rd_overflow                        : out std_logic;
+      p1_rd_error                           : out std_logic;
       selfrefresh_enter                     : in std_logic;
       selfrefresh_mode                      : out std_logic
 
@@ -257,18 +274,18 @@ component memc5_wrapper is
 --   constant C5_INCLK_PERIOD         : integer := C5_MEMCLK_PERIOD;--((C5_MEMCLK_PERIOD * C5_CLKFBOUT_MULT) / (C5_DIVCLK_DIVIDE * C5_CLKOUT0_DIVIDE * 2));
 
    constant C5_ARB_NUM_TIME_SLOTS   : integer := 12;
-   constant C5_ARB_TIME_SLOT_0      : bit_vector(5 downto 0) := o"23";
-   constant C5_ARB_TIME_SLOT_1      : bit_vector(5 downto 0) := o"32";
-   constant C5_ARB_TIME_SLOT_2      : bit_vector(5 downto 0) := o"23";
-   constant C5_ARB_TIME_SLOT_3      : bit_vector(5 downto 0) := o"32";
-   constant C5_ARB_TIME_SLOT_4      : bit_vector(5 downto 0) := o"23";
-   constant C5_ARB_TIME_SLOT_5      : bit_vector(5 downto 0) := o"32";
-   constant C5_ARB_TIME_SLOT_6      : bit_vector(5 downto 0) := o"23";
-   constant C5_ARB_TIME_SLOT_7      : bit_vector(5 downto 0) := o"32";
-   constant C5_ARB_TIME_SLOT_8      : bit_vector(5 downto 0) := o"23";
-   constant C5_ARB_TIME_SLOT_9      : bit_vector(5 downto 0) := o"32";
-   constant C5_ARB_TIME_SLOT_10     : bit_vector(5 downto 0) := o"23";
-   constant C5_ARB_TIME_SLOT_11     : bit_vector(5 downto 0) := o"32";
+   constant C5_ARB_TIME_SLOT_0      : bit_vector(5 downto 0) := o"02";
+   constant C5_ARB_TIME_SLOT_1      : bit_vector(5 downto 0) := o"20";
+   constant C5_ARB_TIME_SLOT_2      : bit_vector(5 downto 0) := o"02";
+   constant C5_ARB_TIME_SLOT_3      : bit_vector(5 downto 0) := o"20";
+   constant C5_ARB_TIME_SLOT_4      : bit_vector(5 downto 0) := o"02";
+   constant C5_ARB_TIME_SLOT_5      : bit_vector(5 downto 0) := o"20";
+   constant C5_ARB_TIME_SLOT_6      : bit_vector(5 downto 0) := o"02";
+   constant C5_ARB_TIME_SLOT_7      : bit_vector(5 downto 0) := o"20";
+   constant C5_ARB_TIME_SLOT_8      : bit_vector(5 downto 0) := o"02";
+   constant C5_ARB_TIME_SLOT_9      : bit_vector(5 downto 0) := o"20";
+   constant C5_ARB_TIME_SLOT_10     : bit_vector(5 downto 0) := o"02";
+   constant C5_ARB_TIME_SLOT_11     : bit_vector(5 downto 0) := o"20";
    constant C5_MEM_TRAS             : integer := 40000;
    constant C5_MEM_TRCD             : integer := 15000;
    constant C5_MEM_TREFI            : integer := 7800000;
@@ -336,7 +353,7 @@ component memc5_wrapper is
   signal  c5_cmp_error                             : std_logic;
   signal  c5_cmp_data_valid                        : std_logic;
   signal  c5_vio_modify_enable                     : std_logic;
-  signal  c5_error_status                          : std_logic_vector(127 downto 0);
+  signal  c5_error_status                          : std_logic_vector(191 downto 0);
   signal  c5_vio_data_mode_value                   : std_logic_vector(2 downto 0);
   signal  c5_vio_addr_mode_value                   : std_logic_vector(2 downto 0);
   signal  c5_cmp_data                              : std_logic_vector(31 downto 0);
@@ -350,7 +367,7 @@ begin
 
 c5_sys_clk_p <= '0';
 c5_sys_clk_n <= '0';
-c5_selfrefresh_enter <= '0';
+--c5_selfrefresh_enter <= '0';
 memc5_infrastructure_inst : memc5_infrastructure
 generic map(
 C_RST_ACT_LOW     => C5_RST_ACT_LOW,--0,--
@@ -383,84 +400,86 @@ mcb_drp_clk       => c5_mcb_drp_clk
 -- wrapper instantiation
 gen_bank : for i in 0 to C_MEM_BANK_COUNT-1 generate
 
-memc5_wrapper_inst : memc5_wrapper
-generic map(
-C_MEMCLK_PERIOD                   => C5_MEMCLK_PERIOD,
-C_CALIB_SOFT_IP                   => C5_CALIB_SOFT_IP,--"TRUE",--
-C_SIMULATION                      => C5_SIMULATION,   --"TRUE",--
-C_P0_MASK_SIZE                    => C5_P0_MASK_SIZE,
-C_P0_DATA_PORT_SIZE               => C5_P0_DATA_PORT_SIZE,
-C_P1_MASK_SIZE                    => C5_P1_MASK_SIZE,
-C_P1_DATA_PORT_SIZE               => C5_P1_DATA_PORT_SIZE,
-C_ARB_NUM_TIME_SLOTS              => C5_ARB_NUM_TIME_SLOTS,
-C_ARB_TIME_SLOT_0                 => C5_ARB_TIME_SLOT_0,
-C_ARB_TIME_SLOT_1                 => C5_ARB_TIME_SLOT_1,
-C_ARB_TIME_SLOT_2                 => C5_ARB_TIME_SLOT_2,
-C_ARB_TIME_SLOT_3                 => C5_ARB_TIME_SLOT_3,
-C_ARB_TIME_SLOT_4                 => C5_ARB_TIME_SLOT_4,
-C_ARB_TIME_SLOT_5                 => C5_ARB_TIME_SLOT_5,
-C_ARB_TIME_SLOT_6                 => C5_ARB_TIME_SLOT_6,
-C_ARB_TIME_SLOT_7                 => C5_ARB_TIME_SLOT_7,
-C_ARB_TIME_SLOT_8                 => C5_ARB_TIME_SLOT_8,
-C_ARB_TIME_SLOT_9                 => C5_ARB_TIME_SLOT_9,
-C_ARB_TIME_SLOT_10                => C5_ARB_TIME_SLOT_10,
-C_ARB_TIME_SLOT_11                => C5_ARB_TIME_SLOT_11,
-C_MEM_TRAS                        => C5_MEM_TRAS,
-C_MEM_TRCD                        => C5_MEM_TRCD,
-C_MEM_TREFI                       => C5_MEM_TREFI,
-C_MEM_TRFC                        => C5_MEM_TRFC,
-C_MEM_TRP                         => C5_MEM_TRP,
-C_MEM_TWR                         => C5_MEM_TWR,
-C_MEM_TRTP                        => C5_MEM_TRTP,
-C_MEM_TWTR                        => C5_MEM_TWTR,
-C_MEM_ADDR_ORDER                  => C5_MEM_ADDR_ORDER,
-C_NUM_DQ_PINS                     => C5_NUM_DQ_PINS,--16,--
-C_MEM_TYPE                        => C5_MEM_TYPE,
-C_MEM_DENSITY                     => C5_MEM_DENSITY,
-C_MEM_BURST_LEN                   => C5_MEM_BURST_LEN,
-C_MEM_CAS_LATENCY                 => C5_MEM_CAS_LATENCY,
-C_MEM_ADDR_WIDTH                  => C5_MEM_ADDR_WIDTH,--13,--
-C_MEM_BANKADDR_WIDTH              => C5_MEM_BANKADDR_WIDTH,--3,--
-C_MEM_NUM_COL_BITS                => C5_MEM_NUM_COL_BITS,
-C_MEM_DDR1_2_ODS                  => C5_MEM_DDR1_2_ODS,
-C_MEM_DDR2_RTT                    => C5_MEM_DDR2_RTT,
-C_MEM_DDR2_DIFF_DQS_EN            => C5_MEM_DDR2_DIFF_DQS_EN,
-C_MEM_DDR2_3_PA_SR                => C5_MEM_DDR2_3_PA_SR,
-C_MEM_DDR2_3_HIGH_TEMP_SR         => C5_MEM_DDR2_3_HIGH_TEMP_SR,
-C_MEM_DDR3_CAS_LATENCY            => C5_MEM_DDR3_CAS_LATENCY,
-C_MEM_DDR3_ODS                    => C5_MEM_DDR3_ODS,
-C_MEM_DDR3_RTT                    => C5_MEM_DDR3_RTT,
-C_MEM_DDR3_CAS_WR_LATENCY         => C5_MEM_DDR3_CAS_WR_LATENCY,
-C_MEM_DDR3_AUTO_SR                => C5_MEM_DDR3_AUTO_SR,
-C_MEM_DDR3_DYN_WRT_ODT            => C5_MEM_DDR3_DYN_WRT_ODT,
-C_MEM_MOBILE_PA_SR                => C5_MEM_MOBILE_PA_SR,
-C_MEM_MDDR_ODS                    => C5_MEM_MDDR_ODS,
-C_MC_CALIB_BYPASS                 => C5_MC_CALIB_BYPASS,
-C_MC_CALIBRATION_MODE             => C5_MC_CALIBRATION_MODE,
-C_MC_CALIBRATION_DELAY            => C5_MC_CALIBRATION_DELAY,
-C_SKIP_IN_TERM_CAL                => C5_SKIP_IN_TERM_CAL,
-C_SKIP_DYNAMIC_CAL                => C5_SKIP_DYNAMIC_CAL,
-C_LDQSP_TAP_DELAY_VAL             => C5_LDQSP_TAP_DELAY_VAL,
-C_LDQSN_TAP_DELAY_VAL             => C5_LDQSN_TAP_DELAY_VAL,
-C_UDQSP_TAP_DELAY_VAL             => C5_UDQSP_TAP_DELAY_VAL,
-C_UDQSN_TAP_DELAY_VAL             => C5_UDQSN_TAP_DELAY_VAL,
-C_DQ0_TAP_DELAY_VAL               => C5_DQ0_TAP_DELAY_VAL,
-C_DQ1_TAP_DELAY_VAL               => C5_DQ1_TAP_DELAY_VAL,
-C_DQ2_TAP_DELAY_VAL               => C5_DQ2_TAP_DELAY_VAL,
-C_DQ3_TAP_DELAY_VAL               => C5_DQ3_TAP_DELAY_VAL,
-C_DQ4_TAP_DELAY_VAL               => C5_DQ4_TAP_DELAY_VAL,
-C_DQ5_TAP_DELAY_VAL               => C5_DQ5_TAP_DELAY_VAL,
-C_DQ6_TAP_DELAY_VAL               => C5_DQ6_TAP_DELAY_VAL,
-C_DQ7_TAP_DELAY_VAL               => C5_DQ7_TAP_DELAY_VAL,
-C_DQ8_TAP_DELAY_VAL               => C5_DQ8_TAP_DELAY_VAL,
-C_DQ9_TAP_DELAY_VAL               => C5_DQ9_TAP_DELAY_VAL,
-C_DQ10_TAP_DELAY_VAL              => C5_DQ10_TAP_DELAY_VAL,
-C_DQ11_TAP_DELAY_VAL              => C5_DQ11_TAP_DELAY_VAL,
-C_DQ12_TAP_DELAY_VAL              => C5_DQ12_TAP_DELAY_VAL,
-C_DQ13_TAP_DELAY_VAL              => C5_DQ13_TAP_DELAY_VAL,
-C_DQ14_TAP_DELAY_VAL              => C5_DQ14_TAP_DELAY_VAL,
-C_DQ15_TAP_DELAY_VAL              => C5_DQ15_TAP_DELAY_VAL
-)
+ memc5_wrapper_inst : memc5_wrapper
+
+generic map
+ (
+   C_MEMCLK_PERIOD                   => C5_MEMCLK_PERIOD,
+   C_CALIB_SOFT_IP                   => C5_CALIB_SOFT_IP,
+   C_SIMULATION                      => C5_SIMULATION,
+   C_P0_MASK_SIZE                    => C5_P0_MASK_SIZE,
+   C_P0_DATA_PORT_SIZE               => C5_P0_DATA_PORT_SIZE,
+   C_P1_MASK_SIZE                    => C5_P1_MASK_SIZE,
+   C_P1_DATA_PORT_SIZE               => C5_P1_DATA_PORT_SIZE,
+   C_ARB_NUM_TIME_SLOTS              => C5_ARB_NUM_TIME_SLOTS,
+   C_ARB_TIME_SLOT_0                 => C5_ARB_TIME_SLOT_0,
+   C_ARB_TIME_SLOT_1                 => C5_ARB_TIME_SLOT_1,
+   C_ARB_TIME_SLOT_2                 => C5_ARB_TIME_SLOT_2,
+   C_ARB_TIME_SLOT_3                 => C5_ARB_TIME_SLOT_3,
+   C_ARB_TIME_SLOT_4                 => C5_ARB_TIME_SLOT_4,
+   C_ARB_TIME_SLOT_5                 => C5_ARB_TIME_SLOT_5,
+   C_ARB_TIME_SLOT_6                 => C5_ARB_TIME_SLOT_6,
+   C_ARB_TIME_SLOT_7                 => C5_ARB_TIME_SLOT_7,
+   C_ARB_TIME_SLOT_8                 => C5_ARB_TIME_SLOT_8,
+   C_ARB_TIME_SLOT_9                 => C5_ARB_TIME_SLOT_9,
+   C_ARB_TIME_SLOT_10                => C5_ARB_TIME_SLOT_10,
+   C_ARB_TIME_SLOT_11                => C5_ARB_TIME_SLOT_11,
+   C_MEM_TRAS                        => C5_MEM_TRAS,
+   C_MEM_TRCD                        => C5_MEM_TRCD,
+   C_MEM_TREFI                       => C5_MEM_TREFI,
+   C_MEM_TRFC                        => C5_MEM_TRFC,
+   C_MEM_TRP                         => C5_MEM_TRP,
+   C_MEM_TWR                         => C5_MEM_TWR,
+   C_MEM_TRTP                        => C5_MEM_TRTP,
+   C_MEM_TWTR                        => C5_MEM_TWTR,
+   C_MEM_ADDR_ORDER                  => C5_MEM_ADDR_ORDER,
+   C_NUM_DQ_PINS                     => C5_NUM_DQ_PINS,
+   C_MEM_TYPE                        => C5_MEM_TYPE,
+   C_MEM_DENSITY                     => C5_MEM_DENSITY,
+   C_MEM_BURST_LEN                   => C5_MEM_BURST_LEN,
+   C_MEM_CAS_LATENCY                 => C5_MEM_CAS_LATENCY,
+   C_MEM_ADDR_WIDTH                  => C5_MEM_ADDR_WIDTH,
+   C_MEM_BANKADDR_WIDTH              => C5_MEM_BANKADDR_WIDTH,
+   C_MEM_NUM_COL_BITS                => C5_MEM_NUM_COL_BITS,
+   C_MEM_DDR1_2_ODS                  => C5_MEM_DDR1_2_ODS,
+   C_MEM_DDR2_RTT                    => C5_MEM_DDR2_RTT,
+   C_MEM_DDR2_DIFF_DQS_EN            => C5_MEM_DDR2_DIFF_DQS_EN,
+   C_MEM_DDR2_3_PA_SR                => C5_MEM_DDR2_3_PA_SR,
+   C_MEM_DDR2_3_HIGH_TEMP_SR         => C5_MEM_DDR2_3_HIGH_TEMP_SR,
+   C_MEM_DDR3_CAS_LATENCY            => C5_MEM_DDR3_CAS_LATENCY,
+   C_MEM_DDR3_ODS                    => C5_MEM_DDR3_ODS,
+   C_MEM_DDR3_RTT                    => C5_MEM_DDR3_RTT,
+   C_MEM_DDR3_CAS_WR_LATENCY         => C5_MEM_DDR3_CAS_WR_LATENCY,
+   C_MEM_DDR3_AUTO_SR                => C5_MEM_DDR3_AUTO_SR,
+   C_MEM_DDR3_DYN_WRT_ODT            => C5_MEM_DDR3_DYN_WRT_ODT,
+   C_MEM_MOBILE_PA_SR                => C5_MEM_MOBILE_PA_SR,
+   C_MEM_MDDR_ODS                    => C5_MEM_MDDR_ODS,
+   C_MC_CALIB_BYPASS                 => C5_MC_CALIB_BYPASS,
+   C_MC_CALIBRATION_MODE             => C5_MC_CALIBRATION_MODE,
+   C_MC_CALIBRATION_DELAY            => C5_MC_CALIBRATION_DELAY,
+   C_SKIP_IN_TERM_CAL                => C5_SKIP_IN_TERM_CAL,
+   C_SKIP_DYNAMIC_CAL                => C5_SKIP_DYNAMIC_CAL,
+   C_LDQSP_TAP_DELAY_VAL             => C5_LDQSP_TAP_DELAY_VAL,
+   C_LDQSN_TAP_DELAY_VAL             => C5_LDQSN_TAP_DELAY_VAL,
+   C_UDQSP_TAP_DELAY_VAL             => C5_UDQSP_TAP_DELAY_VAL,
+   C_UDQSN_TAP_DELAY_VAL             => C5_UDQSN_TAP_DELAY_VAL,
+   C_DQ0_TAP_DELAY_VAL               => C5_DQ0_TAP_DELAY_VAL,
+   C_DQ1_TAP_DELAY_VAL               => C5_DQ1_TAP_DELAY_VAL,
+   C_DQ2_TAP_DELAY_VAL               => C5_DQ2_TAP_DELAY_VAL,
+   C_DQ3_TAP_DELAY_VAL               => C5_DQ3_TAP_DELAY_VAL,
+   C_DQ4_TAP_DELAY_VAL               => C5_DQ4_TAP_DELAY_VAL,
+   C_DQ5_TAP_DELAY_VAL               => C5_DQ5_TAP_DELAY_VAL,
+   C_DQ6_TAP_DELAY_VAL               => C5_DQ6_TAP_DELAY_VAL,
+   C_DQ7_TAP_DELAY_VAL               => C5_DQ7_TAP_DELAY_VAL,
+   C_DQ8_TAP_DELAY_VAL               => C5_DQ8_TAP_DELAY_VAL,
+   C_DQ9_TAP_DELAY_VAL               => C5_DQ9_TAP_DELAY_VAL,
+   C_DQ10_TAP_DELAY_VAL              => C5_DQ10_TAP_DELAY_VAL,
+   C_DQ11_TAP_DELAY_VAL              => C5_DQ11_TAP_DELAY_VAL,
+   C_DQ12_TAP_DELAY_VAL              => C5_DQ12_TAP_DELAY_VAL,
+   C_DQ13_TAP_DELAY_VAL              => C5_DQ13_TAP_DELAY_VAL,
+   C_DQ14_TAP_DELAY_VAL              => C5_DQ14_TAP_DELAY_VAL,
+   C_DQ15_TAP_DELAY_VAL              => C5_DQ15_TAP_DELAY_VAL
+   )
 port map(
 mcb5_dram_dq       => p_inout_phymem(i).dq,    --mcb5_dram_dq     : inout std_logic_vector((C_NUM_DQ_PINS-1) downto 0);
 mcb5_dram_a        => p_out_phymem  (i).a,     --mcb5_dram_a      : out   std_logic_vector((C_MEM_ADDR_WIDTH-1) downto 0);
@@ -482,58 +501,58 @@ mcb5_dram_ck       => p_out_phymem  (i).ck,    --mcb5_dram_ck     : out   std_lo
 mcb5_dram_ck_n     => p_out_phymem  (i).ck_n,  --mcb5_dram_ck_n   : out   std_logic;
 mcb_drp_clk        => c5_mcb_drp_clk,
 
-p2_cmd_clk         => p_in_memch0 (i).clk,                                    --p0_cmd_clk       : in std_logic;
-p2_cmd_en          => p_in_memch0 (i).cmd_wr,                                 --p0_cmd_en        : in std_logic;
-p2_cmd_instr       => p_in_memch0 (i).cmd_i,                                  --p0_cmd_instr     : in std_logic_vector(2 downto 0);
-p2_cmd_bl          => p_in_memch0 (i).cmd_bl,                                 --p0_cmd_bl        : in std_logic_vector(5 downto 0);
-p2_cmd_byte_addr   => p_in_memch0 (i).adr(C_MEMCTRL_AWIDTH-1 downto 0),       --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
-p2_cmd_empty       => p_out_memch0(i).cmdbuf_empty,                           --p0_cmd_empty     : out std_logic;
-p2_cmd_full        => p_out_memch0(i).cmdbuf_full,                            --p0_cmd_full      : out std_logic;
-p2_wr_clk          => p_in_memch0 (i).clk,                                    --p0_wr_clk        : in std_logic;
-p2_wr_en           => p_in_memch0 (i).txd_wr,                                 --p0_wr_en         : in std_logic;
-p2_wr_mask         => p_in_memch0 (i).txd_be(C5_P0_MASK_SIZE - 1 downto 0),   --p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
-p2_wr_data         => p_in_memch0 (i).txd(C5_P0_DATA_PORT_SIZE - 1 downto 0), --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
-p2_wr_full         => p_out_memch0(i).txbuf_full,                             --p0_wr_full       : out std_logic;
-p2_wr_empty        => p_out_memch0(i).txbuf_empty,                            --p0_wr_empty      : out std_logic;
-p2_wr_count        => p_out_memch0(i).txbuf_wrcount,                          --p0_wr_count      : out std_logic_vector(6 downto 0);
-p2_wr_underrun     => p_out_memch0(i).txbuf_underrun,                         --p0_wr_underrun   : out std_logic;
-p2_wr_error        => p_out_memch0(i).txbuf_err,                              --p0_wr_error      : out std_logic;
---p2_rd_clk          => p_in_memch0 (i).clk,                                    --p0_rd_clk        : in std_logic;
---p2_rd_en           => p_in_memch0 (i).rxd_rd,                                 --p0_rd_en         : in std_logic;
---p2_rd_data         => p_out_memch0(i).rxd(C_P2_DATA_PORT_SIZE - 1 downto 0),  --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
---p2_rd_full         => p_out_memch0(i).rxbuf_full,                             --p0_rd_full       : out std_logic;
---p2_rd_empty        => p_out_memch0(i).rxbuf_empty,                            --p0_rd_empty      : out std_logic;
---p2_rd_count        => p_out_memch0(i).rxbuf_rdcount,                          --p0_rd_count      : out std_logic_vector(6 downto 0);
---p2_rd_overflow     => p_out_memch0(i).rxbuf_overflow,                         --p0_rd_overflow   : out std_logic;
---p2_rd_error        => p_out_memch0(i).rxbuf_err,                              --p0_rd_error      : out std_logic;
+p0_cmd_clk         => p_in_memch0 (i).clk,                                       --p0_cmd_clk       : in std_logic;
+p0_cmd_en          => p_in_memch0 (i).cmd_wr,                                    --p0_cmd_en        : in std_logic;
+p0_cmd_instr       => p_in_memch0 (i).cmd_i,                                     --p0_cmd_instr     : in std_logic_vector(2 downto 0);
+p0_cmd_bl          => p_in_memch0 (i).cmd_bl,                                    --p0_cmd_bl        : in std_logic_vector(5 downto 0);
+p0_cmd_byte_addr   => p_in_memch0 (i).adr(C_MEMCTRL_AWIDTH-1 downto 0),          --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
+p0_cmd_empty       => p_out_memch0(i).cmdbuf_empty,                              --p0_cmd_empty     : out std_logic;
+p0_cmd_full        => p_out_memch0(i).cmdbuf_full,                               --p0_cmd_full      : out std_logic;
+p0_wr_clk          => p_in_memch0 (i).clk,                                       --p0_wr_clk        : in std_logic;
+p0_wr_en           => p_in_memch0 (i).txd_wr,                                    --p0_wr_en         : in std_logic;
+p0_wr_mask         => p_in_memch0 (i).txd_be(C_MEMCTRL_CH0_BEWIDTH - 1 downto 0),--p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
+p0_wr_data         => p_in_memch0 (i).txd(C_MEMCTRL_CH0_DWIDTH - 1 downto 0),    --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p0_wr_full         => p_out_memch0(i).txbuf_full,                                --p0_wr_full       : out std_logic;
+p0_wr_empty        => p_out_memch0(i).txbuf_empty,                               --p0_wr_empty      : out std_logic;
+p0_wr_count        => p_out_memch0(i).txbuf_wrcount,                             --p0_wr_count      : out std_logic_vector(6 downto 0);
+p0_wr_underrun     => p_out_memch0(i).txbuf_underrun,                            --p0_wr_underrun   : out std_logic;
+p0_wr_error        => p_out_memch0(i).txbuf_err,                                 --p0_wr_error      : out std_logic;
+p0_rd_clk          => p_in_memch0 (i).clk,                                       --p0_rd_clk        : in std_logic;
+p0_rd_en           => p_in_memch0 (i).rxd_rd,                                    --p0_rd_en         : in std_logic;
+p0_rd_data         => p_out_memch0(i).rxd(C_MEMCTRL_CH0_DWIDTH - 1 downto 0),    --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p0_rd_full         => p_out_memch0(i).rxbuf_full,                                --p0_rd_full       : out std_logic;
+p0_rd_empty        => p_out_memch0(i).rxbuf_empty,                               --p0_rd_empty      : out std_logic;
+p0_rd_count        => p_out_memch0(i).rxbuf_rdcount,                             --p0_rd_count      : out std_logic_vector(6 downto 0);
+p0_rd_overflow     => p_out_memch0(i).rxbuf_overflow,                            --p0_rd_overflow   : out std_logic;
+p0_rd_error        => p_out_memch0(i).rxbuf_err,                                 --p0_rd_error      : out std_logic;
 
-p3_cmd_clk         => p_in_memch1(i).clk,                                     --p0_cmd_clk       : in std_logic;
-p3_cmd_en          => p_in_memch1 (i).cmd_wr,                                 --p0_cmd_en        : in std_logic;
-p3_cmd_instr       => p_in_memch1 (i).cmd_i,                                  --p0_cmd_instr     : in std_logic_vector(2 downto 0);
-p3_cmd_bl          => p_in_memch1 (i).cmd_bl,                                 --p0_cmd_bl        : in std_logic_vector(5 downto 0);
-p3_cmd_byte_addr   => p_in_memch1 (i).adr(C_MEMCTRL_AWIDTH-1 downto 0),       --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
-p3_cmd_empty       => p_out_memch1(i).cmdbuf_empty,                           --p0_cmd_empty     : out std_logic;
-p3_cmd_full        => p_out_memch1(i).cmdbuf_full,                            --p0_cmd_full      : out std_logic;
---p3_wr_clk          => p_in_memch1 (i).clk,                                    --p0_wr_clk        : in std_logic;
---p3_wr_en           => p_in_memch1 (i).txd_wr,                                 --p0_wr_en         : in std_logic;
---p3_wr_mask         => p_in_memch1 (i).wr_be(C5_P1_MASK_SIZE - 1 downto 0),    --p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
---p3_wr_data         => p_in_memch1 (i).txd(C5_P1_DATA_PORT_SIZE - 1 downto 0);,--p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
---p3_wr_full         => p_out_memch1(i).txbuf_full,                             --p0_wr_full       : out std_logic;
---p3_wr_empty        => p_out_memch1(i).txbuf_empty,                            --p0_wr_empty      : out std_logic;
---p3_wr_count        => p_out_memch1(i).txbuf_wrcount,                          --p0_wr_count      : out std_logic_vector(6 downto 0);
---p3_wr_underrun     => p_out_memch1(i).txbuf_underrun,                         --p0_wr_underrun   : out std_logic;
---p3_wr_error        => p_out_memch1(i).txbuf_err,                              --p0_wr_error      : out std_logic;
-p3_rd_clk          => p_in_memch1 (i).clk,                                    --p0_rd_clk        : in std_logic;
-p3_rd_en           => p_in_memch1 (i).rxd_rd,                                 --p0_rd_en         : in std_logic;
-p3_rd_data         => p_out_memch1(i).rxd(C5_P1_DATA_PORT_SIZE - 1 downto 0), --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
-p3_rd_full         => p_out_memch1(i).rxbuf_full,                             --p0_rd_full       : out std_logic;
-p3_rd_empty        => p_out_memch1(i).rxbuf_empty,                            --p0_rd_empty      : out std_logic;
-p3_rd_count        => p_out_memch1(i).rxbuf_rdcount,                          --p0_rd_count      : out std_logic_vector(6 downto 0);
-p3_rd_overflow     => p_out_memch1(i).rxbuf_overflow,                         --p0_rd_overflow   : out std_logic;
-p3_rd_error        => p_out_memch1(i).rxbuf_err,                              --p0_rd_error      : out std_logic;
+p1_cmd_clk         => p_in_memch1(i).clk,                                        --p0_cmd_clk       : in std_logic;
+p1_cmd_en          => p_in_memch1 (i).cmd_wr,                                    --p0_cmd_en        : in std_logic;
+p1_cmd_instr       => p_in_memch1 (i).cmd_i,                                     --p0_cmd_instr     : in std_logic_vector(2 downto 0);
+p1_cmd_bl          => p_in_memch1 (i).cmd_bl,                                    --p0_cmd_bl        : in std_logic_vector(5 downto 0);
+p1_cmd_byte_addr   => p_in_memch1 (i).adr(C_MEMCTRL_AWIDTH-1 downto 0),          --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
+p1_cmd_empty       => p_out_memch1(i).cmdbuf_empty,                              --p0_cmd_empty     : out std_logic;
+p1_cmd_full        => p_out_memch1(i).cmdbuf_full,                               --p0_cmd_full      : out std_logic;
+p1_wr_clk          => p_in_memch1 (i).clk,                                       --p0_wr_clk        : in std_logic;
+p1_wr_en           => p_in_memch1 (i).txd_wr,                                    --p0_wr_en         : in std_logic;
+p1_wr_mask         => p_in_memch1 (i).txd_be(C_MEMCTRL_CH1_BEWIDTH - 1 downto 0),--p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
+p1_wr_data         => p_in_memch1 (i).txd(C_MEMCTRL_CH1_DWIDTH - 1 downto 0),    --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p1_wr_full         => p_out_memch1(i).txbuf_full,                                --p0_wr_full       : out std_logic;
+p1_wr_empty        => p_out_memch1(i).txbuf_empty,                               --p0_wr_empty      : out std_logic;
+p1_wr_count        => p_out_memch1(i).txbuf_wrcount,                             --p0_wr_count      : out std_logic_vector(6 downto 0);
+p1_wr_underrun     => p_out_memch1(i).txbuf_underrun,                            --p0_wr_underrun   : out std_logic;
+p1_wr_error        => p_out_memch1(i).txbuf_err,                                 --p0_wr_error      : out std_logic;
+p1_rd_clk          => p_in_memch1 (i).clk,                                       --p0_rd_clk        : in std_logic;
+p1_rd_en           => p_in_memch1 (i).rxd_rd,                                    --p0_rd_en         : in std_logic;
+p1_rd_data         => p_out_memch1(i).rxd(C_MEMCTRL_CH1_DWIDTH - 1 downto 0),    --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p1_rd_full         => p_out_memch1(i).rxbuf_full,                                --p0_rd_full       : out std_logic;
+p1_rd_empty        => p_out_memch1(i).rxbuf_empty,                               --p0_rd_empty      : out std_logic;
+p1_rd_count        => p_out_memch1(i).rxbuf_rdcount,                             --p0_rd_count      : out std_logic_vector(6 downto 0);
+p1_rd_overflow     => p_out_memch1(i).rxbuf_overflow,                            --p0_rd_overflow   : out std_logic;
+p1_rd_error        => p_out_memch1(i).rxbuf_err,                                 --p0_rd_error      : out std_logic;
 
-selfrefresh_enter  => c5_selfrefresh_enter,
-selfrefresh_mode   => c5_selfrefresh_mode,
+selfrefresh_enter  => '0',--c5_selfrefresh_enter,
+selfrefresh_mode   => open,--c5_selfrefresh_mode,
 
 calib_done         => p_out_mem_rdy(i),--c5_calib_done,
 async_rst          => c5_async_rst,
@@ -544,18 +563,18 @@ pll_ce_90          => c5_pll_ce_90,
 pll_lock           => c5_pll_lock
 );
 
-p_out_memch0(i).rxd<=(others=>'0');
-p_out_memch0(i).rxbuf_full<='1';
-p_out_memch0(i).rxbuf_empty<='1';
-p_out_memch0(i).rxbuf_rdcount<=(others=>'0');
-p_out_memch0(i).rxbuf_overflow<='0';
-p_out_memch0(i).rxbuf_err<='0';
-
-p_out_memch1(i).txbuf_full<='1';
-p_out_memch1(i).txbuf_empty<='1';
-p_out_memch1(i).txbuf_wrcount<=(others=>'0');
-p_out_memch1(i).txbuf_underrun<='0';
-p_out_memch1(i).txbuf_err<='0';
+--p_out_memch0(i).rxd<=(others=>'0');
+--p_out_memch0(i).rxbuf_full<='1';
+--p_out_memch0(i).rxbuf_empty<='1';
+--p_out_memch0(i).rxbuf_rdcount<=(others=>'0');
+--p_out_memch0(i).rxbuf_overflow<='0';
+--p_out_memch0(i).rxbuf_err<='0';
+--
+--p_out_memch1(i).txbuf_full<='1';
+--p_out_memch1(i).txbuf_empty<='1';
+--p_out_memch1(i).txbuf_wrcount<=(others=>'0');
+--p_out_memch1(i).txbuf_underrun<='0';
+--p_out_memch1(i).txbuf_err<='0';
 
 end generate gen_bank;
 
