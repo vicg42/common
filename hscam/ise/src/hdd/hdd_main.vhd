@@ -366,9 +366,9 @@ p_in_clk       => g_sata_refclkout,
 p_in_rst       => i_usrpll_rst
 );
 
-g_memclkin<=g_usrpll_clkout(0);--375MHz
+g_memclkin<=g_usrpll_clkout(0);
 
-p_out_usrpll_gclk1<=g_usrpll_clkout(1);--62.5MHz
+p_out_usrpll_gclk1<=g_usrpll_clkout(1);
 
 g_cfg_clk<=g_hdd_dcm_gclk75M;--g_hdd_dcm_gclk300M;--g_usrpll_clkout(2); --g_sata_refclkout;--g_sata_refclkout;--
 g_hdd_clk<=g_hdd_dcm_gclk75M;--g_usrpll_clkout(2); --g_sata_refclkout;--g_sata_refclkout;--g_sata_refclkout;

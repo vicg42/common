@@ -160,11 +160,11 @@ p_in_vfr_prm          : in  TFrXY;
 --Связь с вх/вых видеобуферами
 ----------------------------
 --Вх
-p_in_vbufin_d         : in    std_logic_vector(31 downto 0);
+p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbufin_rd       : out   std_logic;
 p_in_vbufin_empty     : in    std_logic;
 --Вых
-p_out_vbufout_d       : out   std_logic_vector(31 downto 0);
+p_out_vbufout_d       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbufout_wr      : out   std_logic;
 p_in_vbufout_full     : in    std_logic;
 

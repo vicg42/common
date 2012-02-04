@@ -92,6 +92,8 @@ S_MEM_RD
 );
 signal fsm_state_cs: fsm_state;
 
+signal i_data_null                   : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+
 signal i_mem_ptr                     : std_logic_vector(31 downto 0);
 signal i_mem_trn_len                 : std_logic_vector(15 downto 0);
 signal i_mem_dlen_rq                 : std_logic_vector(15 downto 0);
@@ -105,6 +107,8 @@ signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
 --MAIN
 begin
 
+
+i_data_null<=(others=>'0');
 
 --//----------------------------------
 --//Технологические сигналы
@@ -216,7 +220,7 @@ p_out_cfg_mem_done   => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout  => "00000000000000000000000000000000",
+p_in_usr_txbuf_dout  => i_data_null,
 p_out_usr_txbuf_rd   => open,
 p_in_usr_txbuf_empty => '0',
 
