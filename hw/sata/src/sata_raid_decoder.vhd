@@ -92,7 +92,7 @@ architecture behavioral of sata_raid_decoder is
 signal i_sh_rxd_rd    : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_sh_txd_wr    : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
-signal tst_hdd_wr     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);--Активность записи/чтения соотвествующего HDD
+signal tst_hdd_wr     : std_logic_vector(G_HDD_COUNT-1 downto 0);--Активность записи/чтения соотвествующего HDD
 
 --MAIN
 begin
@@ -101,7 +101,7 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 p_out_tst(7 downto 0)<=(others=>'0');
-p_out_tst(15 downto 8)<=EXT(tst_hdd_wr, tst_hdd_wr'length);
+p_out_tst(15 downto 8)<=EXT(tst_hdd_wr, 8);
 p_out_tst(31 downto 16)<=(others=>'0');
 
 
@@ -144,7 +144,6 @@ end generate gen_hddon;
 gen_hddoff_en : if G_HDD_COUNT/=C_HDD_COUNT_MAX  generate
 --//НЕ используемые HDD:
 gen_hddoff : for i in G_HDD_COUNT to C_HDD_COUNT_MAX-1 generate
-tst_hdd_wr(i)<='0';
 p_out_sh_cxd_sof_n(i)<='1';
 p_out_sh_cxd_eof_n(i)<='1';
 p_out_sh_cxd_src_rdy_n(i)<='1';

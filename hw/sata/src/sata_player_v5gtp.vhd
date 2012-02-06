@@ -148,7 +148,7 @@ signal i_rxbufstatus_out           : TBus03_GTCH;
 
 
 attribute keep : string;
-attribute keep of g_gtp_usrclk : signal is "true";
+attribute keep of g_gtp_usrclk2 : signal is "true";
 
 
 
