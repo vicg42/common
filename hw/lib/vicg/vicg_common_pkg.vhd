@@ -28,6 +28,10 @@ package vicg_common_pkg is
 --constant C_YES       : std_logic:='1';
 --constant C_NO        : std_logic:='0';
 
+constant C_1KB         : integer:=1024;
+constant C_1MB         : integer:=C_1KB*C_1KB;
+constant C_1GB         : integer:=C_1MB*C_1KB;
+
 -------------------------------------------------------------------------------
 -- Type Declarations
 -------------------------------------------------------------------------------
