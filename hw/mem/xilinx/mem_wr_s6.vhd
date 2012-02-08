@@ -100,7 +100,6 @@ signal i_mem_cmden         : std_logic;
 signal i_mem_cmdwr         : std_logic;
 signal i_mem_cmdbl         : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
 signal i_mem_rxd_det       : std_logic;
-signal i_mem_rxbuf_valid   : std_logic;
 
 signal i_cfg_mem_dlen_rq   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
 signal i_cfg_mem_trn_len   : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
@@ -167,10 +166,7 @@ p_out_cfg_mem_done<=i_mem_done;
 --Стробы записи/чтения ОЗУ
 i_mem_rd<=i_mem_rxd_det and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full;
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
-i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full) when i_mem_dir=C_MEMWR_WRITE else
-             (i_mem_cmden and not p_in_mem.cmdbuf_full and not p_in_usr_rxbuf_full and i_mem_rxbuf_valid);
-
-i_mem_rxbuf_valid<='1' when p_in_mem.rxbuf_rdcount<CONV_STD_LOGIC_VECTOR(32, p_in_mem.rxbuf_rdcount'length) else '0';
+i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full);
 
 process(p_in_rst,p_in_clk)
 begin
@@ -191,12 +187,14 @@ begin
     i_mem_cmden<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     if i_mem_cmden='0' then
-      if fsm_state_cs=S_MEM_TRN then
-        if i_mem_dir=C_MEMWR_WRITE then
+      if i_mem_dir=C_MEMWR_WRITE then
+        if fsm_state_cs=S_MEM_TRN then
           if i_mem_wr='1' and i_mem_trn_len=(i_mem_trn_len'range => '0') then
             i_mem_cmden<='1';
           end if;
-        else
+        end if;
+      else
+        if fsm_state_cs=S_MEM_TRN_START then
           i_mem_cmden<='1';
         end if;
       end if;
@@ -293,10 +291,8 @@ begin
       --------------------------------------
       when S_MEM_TRN_START =>
 
-        if i_mem_dir=C_MEMWR_WRITE then
-          i_mem_trn_work<='1';
-          i_mem_trn_len<=i_mem_trn_len - 1;
-        end if;
+        i_mem_trn_work<='1';
+        i_mem_trn_len<=i_mem_trn_len - 1;
         i_mem_cmdbl <= i_mem_trn_len - 1;
 
         fsm_state_cs <= S_MEM_TRN;
@@ -306,20 +302,15 @@ begin
       ------------------------------------------------
       when S_MEM_TRN =>
 
-        if i_mem_dir=C_MEMWR_WRITE then
-          if i_mem_wr='1' then
-            i_mem_dlen_used<=i_mem_dlen_used+1;
+        if i_mem_wr='1' or i_mem_rd='1' then
+          i_mem_dlen_used<=i_mem_dlen_used+1;
 
-            if i_mem_trn_len=(i_mem_trn_len'range => '0') then
-              i_mem_trn_work<='0';
-              fsm_state_cs <= S_MEM_TRN_END;
-            else
-              i_mem_trn_len<=i_mem_trn_len-1;
-            end if;
+          if i_mem_trn_len=(i_mem_trn_len'range => '0') then
+            i_mem_trn_work<='0';
+            fsm_state_cs <= S_MEM_TRN_END;
+          else
+            i_mem_trn_len<=i_mem_trn_len-1;
           end if;
-        else
-          i_mem_dlen_used<=i_mem_dlen_used + i_mem_trn_len;
-          fsm_state_cs <= S_MEM_TRN_END;
         end if;
 
       ------------------------------------------------
@@ -327,7 +318,7 @@ begin
       ------------------------------------------------
       when S_MEM_TRN_END =>
 
-        if i_mem_cmdwr='1' then
+        if (i_mem_cmdwr='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
           i_mem_trn_len<=(others=>'0');
 
           if i_cfg_mem_dlen_rq=i_mem_dlen_used then
@@ -336,8 +327,8 @@ begin
           else
             --//Вычисляем следующий адрес ОЗУ
             i_mem_adr<=i_mem_adr + i_mem_adr_update;
-
             fsm_state_cs <= S_MEM_REMAIN_SIZE_CALC;
+
           end if;
         end if;
 
