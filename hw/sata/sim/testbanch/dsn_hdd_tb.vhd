@@ -20,12 +20,10 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.dsn_hdd_reg_def.all;
+use work.prj_cfg.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
 use work.sata_raid_pkg.all;
@@ -35,8 +33,8 @@ use work.sata_unit_pkg.all;
 use work.dsn_hdd_pkg.all;
 
 entity dsn_hdd_tb is
-generic
-(
+generic(
+G_RAID_DWIDTH : integer:=32;
 G_HDD_COUNT     : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS       : integer:=16;
 G_DBG           : string :="ON";
@@ -141,8 +139,8 @@ i_rbuf_status.err<='0';
 
 
 m_hdd : dsn_hdd
-generic map
-(
+generic map(
+G_RAID_DWIDTH => G_RAID_DWIDTH,
 G_MODULE_USE => "ON",--
 G_HDD_COUNT  => G_HDD_COUNT,
 G_DBG        => G_DBG,
@@ -203,6 +201,10 @@ p_in_sata_rxp               => i_sata_rxp,
 p_in_sata_refclk            => i_sata_gt_refclkmain,
 p_out_sata_refclkout        => open,
 p_out_sata_gt_plldet        => open,
+p_out_sata_dcm_lock         => open,
+p_out_sata_dcm_gclk2div     => open,
+p_out_sata_dcm_gclk2x       => open,
+p_out_sata_dcm_gclk0        => open,
 
 --------------------------------------------------
 --Технологический порт

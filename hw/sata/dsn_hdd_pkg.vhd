@@ -86,7 +86,8 @@ end record;
 
 component dsn_hdd
 generic(
-G_USRBUF_DWIDTH : integer:=32;
+G_MEM_DWIDTH : integer:=32;
+G_RAID_DWIDTH: integer:=32;
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=2;
 G_GT_DBUS    : integer:=16;
@@ -132,14 +133,14 @@ p_out_rbuf_cfg            : out  THDDRBufCfg;
 p_in_rbuf_status          : in   THDDRBufStatus;
 
 --p_in_hdd_txd_wrclk        : in   std_logic;
-p_in_hdd_txd              : in   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_in_hdd_txd              : in   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_hdd_txd_wr           : in   std_logic;
 p_out_hdd_txbuf_pfull     : out  std_logic;
 p_out_hdd_txbuf_full      : out  std_logic;
 p_out_hdd_txbuf_empty     : out  std_logic;
 
 --p_in_hdd_rxd_rdclk        : in   std_logic;
-p_out_hdd_rxd             : out  std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_out_hdd_rxd             : out  std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_hdd_rxd_rd           : in   std_logic;
 p_out_hdd_rxbuf_pempty    : out  std_logic;
 p_out_hdd_rxbuf_empty     : out  std_logic;

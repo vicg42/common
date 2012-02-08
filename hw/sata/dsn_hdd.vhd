@@ -32,6 +32,8 @@ use work.dsn_hdd_reg_def.all;
 
 entity dsn_hdd is
 generic(
+G_MEM_DWIDTH : integer:=32;
+G_RAID_DWIDTH: integer:=32;
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=1;
 G_GT_DBUS    : integer:=16;
@@ -77,14 +79,14 @@ p_out_rbuf_cfg            : out  THDDRBufCfg;                    --//Конфигуриро
 p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAMBUF
 
 --p_in_hdd_txd_wrclk        : in   std_logic;                      --//
-p_in_hdd_txd              : in   std_logic_vector(31 downto 0);  --//
+p_in_hdd_txd              : in   std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_pfull     : out  std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
 p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
 --p_in_hdd_rxd_rdclk        : in   std_logic;                      --//
-p_out_hdd_rxd             : out  std_logic_vector(31 downto 0);  --//
+p_out_hdd_rxd             : out  std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
 p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 p_out_hdd_rxbuf_pempty    : out  std_logic;                      --//
@@ -140,8 +142,6 @@ end dsn_hdd;
 
 architecture behavioral of dsn_hdd is
 
-constant CI_USRBUF_DWIDTH : integer:=32;
-
 component mclk_gtp_wrap
 generic(
 G_SIM     : string:="OFF"
@@ -176,11 +176,11 @@ end component ;
 
 component hdd_txfifo
 port(
-din         : in std_logic_vector(p_in_hdd_txd'range);
+din         : in std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 --wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(p_in_hdd_txd'range);
+dout        : out std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 --rd_clk      : in std_logic;
 
@@ -196,11 +196,11 @@ end component;
 
 component hdd_rxfifo
 port(
-din         : in std_logic_vector(p_out_hdd_rxd'range);
+din         : in std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 --wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(p_out_hdd_rxd'range);
+dout        : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 --rd_clk      : in std_logic;
 
@@ -253,11 +253,11 @@ signal i_sh_cxd                         : std_logic_vector(15 downto 0);
 signal i_sh_cxd_wr                      : std_logic;
 signal i_sh_cxd_rd                      : std_logic;
 signal i_sh_cxbuf_empty                 : std_logic;
-signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
+signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 signal i_sh_txd_rd                      : std_logic;
 signal i_sh_txbuf_empty                 : std_logic;
 signal i_sh_txbuf_empty_tmp             : std_logic;
-signal i_sh_rxd                         : std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
+signal i_sh_rxd                         : std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 signal i_sh_rxd_wr                      : std_logic;
 signal i_sh_rxbuf_full                  : std_logic;
 
@@ -280,7 +280,7 @@ signal i_sh_sim_gt_sim_clk              : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_tstgen                         : THDDTstGen;
 signal i_testing_on                     : std_logic;
 signal i_testing_den                    : std_logic;
-signal i_testing_d                      : std_logic_vector(31 downto 0);
+--signal i_testing_d                      : std_logic_vector(31 downto 0);
 
 --signal i_cr_rd                          : std_logic;
 --signal i_cr_wr                          : std_logic;
@@ -413,10 +413,9 @@ begin
 end process;
 
 
-p_out_cfg_txrdy<='1';-- when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.wr_rdy;
-p_out_cfg_rxrdy<='1';-- when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.rd_rdy or sr_cr_rd_rdy;
+p_out_cfg_txrdy<='1';-- when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.wr_rdy;
+p_out_cfg_rxrdy<='1';-- when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.rd_rdy or sr_cr_rd_rdy;
 
---
 ----//Запись/чтение ОЗУ через CFG
 --process(p_in_cfg_clk)
 --begin
@@ -448,8 +447,8 @@ p_out_cfg_rxrdy<='1';-- when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LO
 --  end if;
 --end process;
 --
---i_cr_rd <=p_in_cfg_rd  when i_cr_dcnt='0' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
---i_cr_wr <=p_in_cfg_wd  when i_cr_dcnt='1' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
+--i_cr_rd<=p_in_cfg_rd when i_cr_dcnt='0' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
+--i_cr_wr<=p_in_cfg_wd when i_cr_dcnt='1' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
 
 
 --//Запись командного пакета
@@ -685,7 +684,7 @@ m_txfifo : hdd_txfifo
 port map(
 din         => p_in_hdd_txd,
 wr_en       => i_hdd_txd_wr,
---wr_clk      => p_in_hdd_txd_wrclk,
+--wr_clk      => p_in_clk, --p_in_hdd_txd_wrclk,
 
 dout        => i_sh_txd,
 rd_en       => i_sh_txd_rd,
@@ -713,7 +712,7 @@ wr_en       => i_sh_rxd_wr,
 
 dout        => p_out_hdd_rxd,
 rd_en       => i_hdd_rxd_rd,
---rd_clk      => p_in_hdd_rxd_rdclk,
+--rd_clk      => p_in_clk,--p_in_hdd_rxd_rdclk,
 
 full        => open,
 almost_full => i_sh_rxbuf_full,
@@ -740,16 +739,17 @@ p_in_gen_cfg   => i_tstgen,
 p_out_rdy      => open,
 p_out_hwon     => open,
 
-p_out_tdata    => i_testing_d,
+p_out_tdata    => open,--i_testing_d(31 downto 0),
 p_out_tdata_en => i_testing_den,
 
 p_in_clk       => p_in_clk,
 p_in_rst       => p_in_rst
 );
 
+
 m_dsn_sata : dsn_raid_main
 generic map(
-G_USRBUF_DWIDTH => CI_USRBUF_DWIDTH,
+G_RAID_DWIDTH => G_RAID_DWIDTH,
 G_HDD_COUNT => G_HDD_COUNT,
 G_GT_DBUS   => G_GT_DBUS,
 G_DBG       => G_DBG,

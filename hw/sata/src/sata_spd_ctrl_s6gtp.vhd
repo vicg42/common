@@ -212,29 +212,44 @@ end generate gen_dbg_on;
 --//----------------------------------
 gen_ch_count1 : if G_SATAH_CH_COUNT=1 generate
 in_phy_linkup(1)<='1';
-end generate gen_ch_count1;
 
-gen_ch: for i in 0 to G_SATAH_CH_COUNT-1 generate
-in_phy_linkup(i)<=p_in_phy_linkup(i);
-end generate gen_ch;
-
---Детектируем изменение скорости соединения пользователем
-gen_chg_det : for i in 0 to C_GTCH_COUNT_MAX-1 generate
+i_spd_change_det(1)<='0';
 
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    sr0_ctrl(i).sata_ver<=(others=>'0');
-    sr1_ctrl(i).sata_ver<=(others=>'0');
+    i_spd_change_det(0)<='0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+    if  i_spd_change_det(0)='0' and sr0_ctrl(0).sata_ver/=i_phy_spd(0).sata_ver then
+    --//Пользователь измененил скорость соединения
+      i_spd_change_det(0)<='1';
+    else
+      i_spd_change_det(0)<='0';
+    end if;
+
+  end if;
+end process;
+
+--//Сброс SATA PHY Layer:
+i_phy_layer_rst(0)<=not i_phy_layer_rst_n(0) when i_phy_linkup(0)='0' else i_spd_change_det(0);
+i_phy_layer_rst(1)<='0';
+
+end generate gen_ch_count1;
+
+
+gen_ch: for i in 0 to G_SATAH_CH_COUNT-1 generate
+in_phy_linkup(i)<=p_in_phy_linkup(i);
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
     i_spd_change_det(i)<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    sr0_ctrl(i).sata_ver<=p_in_ctrl(i).sata_ver;
-    sr1_ctrl(i).sata_ver<=sr0_ctrl(i).sata_ver;
-
-    if  i_spd_change_det(i)='0' and sr0_ctrl(i).sata_ver/=sr1_ctrl(i).sata_ver then
-    --Пользователь измененил скорость соединения
+    if  i_spd_change_det(i)='0' and sr0_ctrl(i).sata_ver/=i_phy_spd(i).sata_ver then
+    --//Пользователь измененил скорость соединения
       i_spd_change_det(i)<='1';
     else
       i_spd_change_det(i)<='0';
@@ -243,10 +258,10 @@ begin
   end if;
 end process;
 
---Сброс SATA PHY Layer:
+--//Сброс SATA PHY Layer:
 i_phy_layer_rst(i)<=not i_phy_layer_rst_n(i) when i_phy_linkup(i)='0' else i_spd_change_det(i);
 
-end generate gen_chg_det;
+end generate gen_ch;
 
 p_out_phy_layer_rst<=i_phy_layer_rst;
 p_out_phy_spd<=i_phy_spd;
@@ -296,6 +311,7 @@ begin
     i_gt_drp_regsel<=CI_REG_PLL_RXDIVSEL;
 
     for i in 0 to C_GTCH_COUNT_MAX-1 loop
+    sr0_ctrl(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, i_phy_spd(i).sata_ver'length);
     i_phy_spd(i).sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, i_phy_spd(i).sata_ver'length);
     end loop;
     i_tmr_en<='0';
@@ -305,6 +321,11 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     i_phy_linkup<=in_phy_linkup;
+
+    for i in 0 to C_GTCH_COUNT_MAX-1 loop
+      sr0_ctrl(i).sata_ver<=i_phy_spd(i).sata_ver;
+      i_phy_spd(i).sata_ver<=p_in_ctrl(i).sata_ver;
+    end loop;
 
     case fsm_spdctrl_cs is
 

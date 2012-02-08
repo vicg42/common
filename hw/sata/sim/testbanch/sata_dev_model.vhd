@@ -298,7 +298,7 @@ i_usropt_in.rx.detect.error.pcont<=i_rxp_err_pcont;
 i_usropt_in.rx.detect.error.fistype<=i_rxfistype_error;
 i_usropt_in.rx.detect.error.prmvt_count<=OR_reduce(i_rxprmtv_err_cnt);
 
-i_usropt_in.rx.bufdata<=i_rxbuffer when p_in_ctrl.dbuf_ruse='0' else i_sim_dbuf;
+i_usropt_in.rx.bufdata<=i_rxbuffer(i_usropt_in.rx.bufdata'range) when p_in_ctrl.dbuf_ruse='0' else i_sim_dbuf(i_usropt_in.rx.bufdata'range);
 i_usropt_in.loopback<=p_in_ctrl.loopback;
 
 i_usropt_in.dbuf.trnsize<=0;
@@ -314,8 +314,8 @@ i_usropt_in.dbuf.rstart<='0';
 i_usropt_in.dbuf.rdone<='0';
 i_usropt_in.dbuf.rdone_clr<='0';
 i_usropt_in.dbuf.ren<='0';
-i_usropt_in.dbuf.din<=i_rxbuffer;
-i_usropt_in.dbuf.dout<=i_rxbuffer;
+i_usropt_in.dbuf.din<=i_rxbuffer(i_usropt_in.dbuf.din'range);
+i_usropt_in.dbuf.dout<=i_rxbuffer(i_usropt_in.dbuf.dout'range);
 
 
 
@@ -1237,7 +1237,7 @@ elsif p_in_clk'event and p_in_clk='1' then
     if AND_reduce(i_rxfis_dcnt_sync)='1' then
       if i_rxfistype_data_result='1' then
         if i_rxbuffer_cnt_en_result='1' and p_in_ctrl.dbuf_wuse='0' then
-          i_rxbuffer(i_rxbuffer_cnt)<=i_usropt_in.rx.fisdata;
+          i_rxbuffer(i_rxbuffer_cnt)(i_usropt_in.rx.fisdata'range)<=i_usropt_in.rx.fisdata;
           i_rxbuffer_cnt<=i_rxbuffer_cnt + 1;
         end if;
       end if;

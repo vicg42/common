@@ -31,7 +31,7 @@ use work.sata_unit_pkg.all;
 
 entity sata_raid_ctrl is
 generic(
-G_USRBUF_DWIDTH : integer:=32;
+G_RAID_DWIDTH : integer:=32;
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
@@ -54,12 +54,12 @@ p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
 
 --//txfifo
-p_in_usr_txd            : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_in_usr_txd            : in    std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_usr_txd_rd        : out   std_logic;
 p_in_usr_txbuf_empty    : in    std_logic;
 
 --//rxfifo
-p_out_usr_rxd           : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_out_usr_rxd           : out   std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_usr_rxd_wr        : out   std_logic;
 p_in_usr_rxbuf_full     : in    std_logic;
 
@@ -80,11 +80,11 @@ p_out_sh_cxd_sof_n      : out   std_logic;
 p_out_sh_cxd_eof_n      : out   std_logic;
 p_out_sh_cxd_src_rdy_n  : out   std_logic;
 
-p_out_sh_txd            : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_out_sh_txd            : out   std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_sh_txd_wr         : out   std_logic;
 p_in_sh_txbuf_full      : in    std_logic;
 
-p_in_sh_rxd             : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_in_sh_rxd             : in    std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_sh_rxd_rd         : out   std_logic;
 p_in_sh_rxbuf_empty     : in    std_logic;
 
@@ -114,7 +114,7 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 signal i_err_clr                   : std_logic;
 signal i_err_streambuf             : std_logic;
 signal i_usr_status                : TUsrStatus;
-signal i_usr_rxd                   : std_logic_vector(G_USRBUF_DWIDTH-1 downto 0):=(others=>'0');
+signal i_usr_rxd                   : std_logic_vector(G_RAID_DWIDTH-1 downto 0):=(others=>'0');
 signal i_usr_rxd_wr                : std_logic:='0';
 
 signal i_dma_armed                 : std_logic;

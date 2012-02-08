@@ -20,11 +20,9 @@ use ieee.std_logic_unsigned.all;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
+use work.prj_cfg.all;
 use work.dsn_hdd_reg_def.all;
 use work.sata_glob_pkg.all;
 use work.sata_pkg.all;
@@ -33,18 +31,19 @@ use work.sata_sim_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 use work.dsn_hdd_pkg.all;
-use work.mem_ctrl_pkg.all;
 use work.sata_testgen_pkg.all;
+use work.mem_wr_pkg.all;
 
 entity vereskm_hdd_tb is
-generic
-(
+generic(
 G_CFG_IF      : std_logic:='1';--//Выбор интерфейса управления:0/1 - PCIEXP/UART
 G_HDD_COUNT   : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
 G_GT_DBUS     : integer:=16;
 G_DBGCS       : string :="ON";
 G_DBG         : string :="ON";
 G_SIM         : string :="ON";
+G_RAMBUF_SIZE : integer:=11; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_RAID_DWIDTH : integer:=64;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=32
 );
@@ -68,7 +67,7 @@ din    : in std_logic_vector(31 downto 0);
 wr_en  : in std_logic;
 wr_clk : in std_logic;
 
-dout   : out std_logic_vector(31 downto 0);
+dout   : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 rd_en  : in std_logic;
 rd_clk : in std_logic;
 
@@ -83,77 +82,73 @@ rst    : in std_logic
 end component;
 
 component dsn_hdd_rambuf
-generic
-(
+generic(
 G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
 G_DBGCS       : string:="OFF";
 G_SIM         : string:="OFF";
-
+G_USE_2CH     : string:="ON";
+G_MEM_BANK_M_BIT : integer:=31;
+G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=32
 );
-port
-(
+port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_rbuf_cfg         : in    THDDRBufCfg;
-p_out_rbuf_status     : out   THDDRBufStatus;--//Модуль находится в исходном состоянии + p_in_vbuf_empty and p_in_dwnp_buf_empty
+p_in_rbuf_cfg         : in    THDDRBufCfg;   --Конфигурирование RAMBUF
+p_out_rbuf_status     : out   THDDRBufStatus;--Статусы RAMBUF
+p_in_lentrn_exp       : in    std_logic;
 
---//--------------------------
---//Связь с буфером видеоданных
---//--------------------------
-p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
+----------------------------
+--Связь с буфером видеоданных
+----------------------------
+p_in_vbuf_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbuf_rd         : out   std_logic;
 p_in_vbuf_empty       : in    std_logic;
 p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
 p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
 
---//--------------------------
---//Связь с модулем HDD
---//--------------------------
-p_out_hdd_txd         : out   std_logic_vector(31 downto 0);
+p_out_vbufo_sel       : out   std_logic;
+p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr        : out   std_logic;
+p_in_vbufo_full       : in    std_logic;
+
+----------------------------
+--Связь с модулем HDD
+----------------------------
+p_out_hdd_txd         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_hdd_txd_wr      : out   std_logic;
 p_in_hdd_txbuf_pfull  : in    std_logic;
 p_in_hdd_txbuf_full   : in    std_logic;
 p_in_hdd_txbuf_empty  : in    std_logic;
 
-p_in_hdd_rxd          : in    std_logic_vector(31 downto 0);
+p_in_hdd_rxd          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_hdd_rxd_rd      : out   std_logic;
-p_in_hdd_rxbuf_pempty : in    std_logic;
 p_in_hdd_rxbuf_empty  : in    std_logic;
+p_in_hdd_rxbuf_pempty : in    std_logic;
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req      : out   std_logic;                    --//Запрос к арбитру ОЗУ на выполнение транзакции
-p_in_memarb_en        : in    std_logic;                    --//Разрешение арбитра
+--p_out_mem             : out   TMemIN;
+--p_in_mem              : in    TMemOUT;
 
-p_out_mem_bank1h      : out   std_logic_vector(3 downto 0);
-p_out_mem_ce          : out   std_logic;
-p_out_mem_cw          : out   std_logic;
-p_out_mem_rd          : out   std_logic;
-p_out_mem_wr          : out   std_logic;
-p_out_mem_term        : out   std_logic;
-p_out_mem_adr         : out   std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be          : out   std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf           : in    std_logic;
-p_in_mem_wpf          : in    std_logic;
-p_in_mem_re           : in    std_logic;
-p_in_mem_rpe          : in    std_logic;
-
-p_out_mem_clk         : out   std_logic;
+--CH WRITE
+p_out_memwr           : out   TMemIN;
+p_in_memwr            : in    TMemOUT;
+--CH READ
+p_out_memrd           : out   TMemIN;
+p_in_memrd            : in    TMemOUT;
 
 -------------------------------
 --Технологический
 -------------------------------
 p_in_tst              : in    std_logic_vector(31 downto 0);
 p_out_tst             : out   std_logic_vector(31 downto 0);
+p_out_dbgcs           : out   TSH_ila;
 
 -------------------------------
 --System
@@ -203,12 +198,12 @@ signal i_dsnhdd_reg_hwstart_dly_val: std_logic_vector(15 downto 0);
 
 signal i_rbuf_cfg                 : THDDRBufCfg;
 signal i_rbuf_status              : THDDRBufStatus;
-signal i_sh_txd                   : std_logic_vector(31 downto 0);
+signal i_sh_txd                   : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_sh_txd_wr                : std_logic;
 signal i_sh_txbuf_pfull           : std_logic;
 signal i_sh_txbuf_full            : std_logic;
 signal i_sh_txbuf_empty           : std_logic;
-signal i_sh_rxd                   : std_logic_vector(31 downto 0);
+signal i_sh_rxd                   : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_sh_rxd_rd                : std_logic;
 signal i_sh_rxbuf_pempty          : std_logic;
 signal i_sh_rxbuf_empty           : std_logic;
@@ -232,21 +227,10 @@ signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downt
 signal i_hdd_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_hdd_mem_bank1h               : std_logic_vector(3 downto 0);
-signal i_hdd_mem_ce                   : std_logic;
-signal i_hdd_mem_cw                   : std_logic;
-signal i_hdd_mem_rd                   : std_logic;
-signal i_hdd_mem_wr                   : std_logic;
-signal i_hdd_mem_term                 : std_logic;
-signal i_hdd_mem_adr                  : std_logic_vector(G_MEM_AWIDTH - 1 downto 0);
-signal i_hdd_mem_be                   : std_logic_vector(G_MEM_DWIDTH / 8 - 1 downto 0);
-signal i_hdd_mem_din                  : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-signal i_hdd_mem_dout                 : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
-signal i_hdd_mem_wf                   : std_logic;
-signal i_hdd_mem_wpf                  : std_logic;
-signal i_hdd_mem_re                   : std_logic;
-signal i_hdd_mem_rpe                  : std_logic;
+signal i_memwr_in                     : TMemIN;
+signal i_memwr_out                    : TMemOUT;
+signal i_memrd_in                     : TMemIN;
+signal i_memrd_out                    : TMemOUT;
 
 signal tst_hdd_out                    : std_logic_vector(31 downto 0);
 
@@ -256,16 +240,18 @@ signal sr_cmdbusy                     : std_logic_vector(0 to 1);
 signal i_cmddone_det_clr              : std_logic:='0';
 signal i_cmddone_det                  : std_logic:='0';
 signal i_cmd_data                     : TUsrAppCmdPkt;
-signal i_ram_txbuf                    : TSimBufData;
+
+type TSimBufData2 is array (0 to 6128) of std_logic_vector(128 downto 0);
+signal i_ram_txbuf                    : TSimBufData2;
 signal i_ram_txbuf_start              : std_logic:='0';
 signal i_testdata_sel                 : std_logic:='0';
-signal i_ram_rxbuf                    : TSimBufData;
+signal i_ram_rxbuf                    : TSimBufData2;
 signal i_ram_rxbuf_start              : std_logic:='0';
 
 signal i_vbuf_din,i_vbuf_din_in       : std_logic_vector(31 downto 0);
 signal i_vbuf_wr,i_vbuf_wr_in         : std_logic;
 signal i_vbuf_wrclk                   : std_logic;
-signal i_vbuf_dout                    : std_logic_vector(31 downto 0);
+signal i_vbuf_dout                    : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_vbuf_rd                      : std_logic;
 signal i_vbuf_full                    : std_logic;
 signal i_vbuf_pfull                   : std_logic;
@@ -356,13 +342,11 @@ end generate gen_sata_drv;
 
 gen_satad : for i in 0 to G_HDD_COUNT-1 generate
 m_sata_dev : sata_dev_model
-generic map
-(
+generic map(
 G_DBG_LLAYER => "OFF",
 G_GT_DBUS    => G_GT_DBUS
 )
-port map
-(
+port map(
 ----------------------------
 --
 ----------------------------
@@ -402,8 +386,9 @@ end generate gen_satad;
 i_cfgdev_if<=G_CFG_IF;
 
 m_hdd : dsn_hdd
-generic map
-(
+generic map(
+G_MEM_DWIDTH => G_MEM_DWIDTH,
+G_RAID_DWIDTH=> G_RAID_DWIDTH,
 G_MODULE_USE => "ON",
 G_HDD_COUNT  => G_HDD_COUNT,
 G_GT_DBUS    => G_GT_DBUS,
@@ -411,8 +396,7 @@ G_DBG        => G_DBG,
 G_DBGCS      => G_DBGCS,
 G_SIM        => G_SIM
 )
-port map
-(
+port map(
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
@@ -471,6 +455,10 @@ p_in_sata_rxp          => i_sata_rxp,
 p_in_sata_refclk       => i_sata_gt_refclkmain,
 p_out_sata_refclkout   => open,
 p_out_sata_gt_plldet   => open,
+p_out_sata_dcm_lock    => open,
+p_out_sata_dcm_gclk2div=> open,
+p_out_sata_dcm_gclk2x  => open,
+p_out_sata_dcm_gclk0   => open,
 
 --------------------------------------------------
 --Технологический порт
@@ -504,23 +492,24 @@ p_in_rst               => i_dsn_hdd_rst
 );
 
 m_hdd_rambuf : dsn_hdd_rambuf
-generic map
-(
+generic map(
 G_MODULE_USE  => "ON",
-G_RAMBUF_SIZE => 11, --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+G_RAMBUF_SIZE => G_RAMBUF_SIZE, --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 G_DBGCS       => "ON",
 G_SIM         => "ON", --G_SIM
-
+G_USE_2CH     => "ON",
+G_MEM_BANK_M_BIT =>31,
+G_MEM_BANK_L_BIT =>31,
 G_MEM_AWIDTH  => G_MEM_AWIDTH,
 G_MEM_DWIDTH  => G_MEM_DWIDTH
 )
-port map
-(
+port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
 p_in_rbuf_cfg         => i_rbuf_cfg,
 p_out_rbuf_status     => i_rbuf_status,
+p_in_lentrn_exp       => '1',
 
 --//--------------------------
 --//Связь с буфером видеоданных
@@ -531,6 +520,11 @@ p_in_vbuf_empty       => i_vbuf_empty,
 p_in_vbuf_full        => i_vbuf_full,
 p_in_vbuf_pfull       => i_vbuf_pfull,
 p_in_vbuf_wrcnt       => i_vbuf_wrcnt,
+
+p_out_vbufo_sel       => open,
+p_out_vbufo_din       => open,
+p_out_vbufo_wr        => open,
+p_in_vbufo_full       => '0',
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -549,26 +543,11 @@ p_in_hdd_rxbuf_pempty => i_sh_rxbuf_pempty,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_memarb_req      => open,
-p_in_memarb_en        => '1',
+p_out_memch0         => i_memwr_in,  --: out   TMemIN;
+p_in_memch0          => i_memwr_out, --: in    TMemOUT
 
-p_out_mem_bank1h      => i_hdd_mem_bank1h,
-p_out_mem_ce          => i_hdd_mem_ce,
-p_out_mem_cw          => i_hdd_mem_cw,
-p_out_mem_rd          => i_hdd_mem_rd,
-p_out_mem_wr          => i_hdd_mem_wr,
-p_out_mem_term        => i_hdd_mem_term,
-p_out_mem_adr         => i_hdd_mem_adr,
-p_out_mem_be          => i_hdd_mem_be,
-p_out_mem_din         => i_hdd_mem_din,
-p_in_mem_dout         => i_hdd_mem_dout,
-
-p_in_mem_wf           => i_hdd_mem_wf,
-p_in_mem_wpf          => i_hdd_mem_wpf,
-p_in_mem_re           => i_hdd_mem_re,
-p_in_mem_rpe          => i_hdd_mem_rpe,
-
-p_out_mem_clk         => open,
+p_out_memch1         => i_memrd_in,  --: out   TMemIN;
+p_in_memch1          => i_memrd_out, --: in    TMemOUT
 
 -------------------------------
 --Технологический
@@ -585,8 +564,7 @@ p_in_rst              => i_dsn_hdd_rst
 
 --//Видео Буфер
 m_vbuf : hdd_rambuf_infifo
-port map
-(
+port map(
 din        => i_vbuf_din_in,
 wr_en      => i_vbuf_wr_in,
 wr_clk     => i_vbuf_wrclk,
@@ -606,10 +584,15 @@ rst        => i_hdd_vbuf_rst
 --i_vbuf_pfull<=i_vbuf_wrcnt(1);
 
 
-i_hdd_mem_wf <='0';
---i_hdd_mem_wpf<='0';
-i_hdd_mem_rpe<='0';
+--i_hdd_mem_wf <='0';
+----i_mem_out.buf_wpf<='0';
+--i_hdd_mem_rpe<='0';
 
+i_memwr_out.req_en<='1';
+i_memwr_out.buf_re<='1';
+
+i_memrd_out.req_en<='1';
+i_memrd_out.buf_wpf<='0';
 
 m_hdd_testgen : sata_testgen
 generic map(
@@ -630,7 +613,7 @@ p_in_rst       => i_dsn_hdd_rst
 i_hdd_tst_on<=i_hdd_tst_on_tmp and i_rbuf_cfg.tstgen.con2rambuf;
 i_hdd_vbuf_rst<=i_dsn_hdd_rst or i_rbuf_cfg.tstgen.clr_err;
 
-i_vbuf_din_in<=i_hdd_tst_d   when i_hdd_tst_on='1' else i_vbuf_din;
+i_vbuf_din_in<=i_hdd_tst_d   when i_hdd_tst_on='1' else i_vbuf_din(i_vbuf_din_in'range);
 i_vbuf_wr_in <=i_hdd_tst_den when i_hdd_tst_on='1' else i_vbuf_wr;
 
 
@@ -705,8 +688,8 @@ begin
       dcnt:=0;
 
     else
-      if i_hdd_mem_wr='1' then
-        i_ram_rxbuf(dcnt)<=i_hdd_mem_din;
+      if i_memwr_in.wr='1' then
+        i_ram_rxbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_memwr_in.data(G_MEM_DWIDTH - 1 downto 0);
         if dcnt=i_ram_rxbuf'length-1 then
           dcnt:=0;
         else
@@ -723,14 +706,14 @@ end process lmem_trn_wr;
 
 process
 begin
-  i_hdd_mem_wpf<='0';
+  i_memwr_out.buf_wpf<='0';
 
   wait until i_dcntwr=16#0E# and p_in_clk'event and p_in_clk='1';
-    i_hdd_mem_wpf<='1';
+    i_memwr_out.buf_wpf<='1';
   wait for 200 ns;
 
   wait until  p_in_clk'event and p_in_clk='1';
-    i_hdd_mem_wpf<='0';
+    i_memwr_out.buf_wpf<='0';
 
   wait;
 end process;
@@ -748,8 +731,8 @@ lmem_trn_rd:process
   variable GUI_line   : LINE;--Строка для вывода в ModelSim
 begin
   tst_ramread<=(others=>'0');
-  i_hdd_mem_dout<=CONV_STD_LOGIC_VECTOR(1, i_hdd_mem_dout'length);
-  i_hdd_mem_re<='1';
+  i_memrd_out.data<=CONV_STD_LOGIC_VECTOR(1, i_memrd_out.data'length);
+  i_memrd_out.buf_re<='1';
   i_sim_ctrl.ram_txbuf_done<='0';
     memtrn_term:='0';
     srcambler:=srambler32_0(CONV_STD_LOGIC_VECTOR(16#1032#, 16));
@@ -771,7 +754,7 @@ begin
               if i_testdata_sel='0' then
                 i_ram_txbuf(i)<=CONV_STD_LOGIC_VECTOR(i+1, i_ram_txbuf(i)'length);--счетчик
               else
-                i_ram_txbuf(i)<=srcambler;--//Random Data
+                i_ram_txbuf(i)(srcambler'range)<=srcambler;--//Random Data
               end if;
               srcambler:=srambler32_0(srcambler(31 downto 16));--//Инкрементация скремблера
             end loop;
@@ -779,7 +762,7 @@ begin
 
           wait until p_in_clk'event and p_in_clk='1';
           dcnt:=1;
-          i_hdd_mem_dout<=i_ram_txbuf(0);
+          i_memrd_out.data(G_MEM_DWIDTH - 1 downto 0)<=i_ram_txbuf(0)(G_MEM_DWIDTH - 1 downto 0);
 
       if i_sw_mode='1' then
       --//-------------------------------------
@@ -790,14 +773,14 @@ begin
 
               i_tst_dcnt<=dcnt;
 
-              wait until i_hdd_mem_ce='1' and i_hdd_mem_cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
+              wait until i_memrd_in.ce='1' and i_memrd_in.cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
 
-              while i_hdd_mem_term='0' loop
+              while i_memrd_in.term='0' loop
                 wait until p_in_clk'event and p_in_clk='1';
-                  if i_hdd_mem_term='0' then
-                    i_hdd_mem_re<='0';
-                    if i_hdd_mem_rd='1' then
-                      i_hdd_mem_dout<=i_ram_txbuf(dcnt);
+                  if i_memrd_in.term='0' then
+                    i_memrd_out.buf_re<='0';
+                    if i_memrd_in.rd='1' then
+                      i_memrd_out.data(G_MEM_DWIDTH - 1 downto 0)<=i_ram_txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);
                       if dcnt=i_ram_txbuf'length-1 then
                         dcnt:=1;
                       else
@@ -805,9 +788,9 @@ begin
                       end if;
                     end if;
                   end if;
-              end loop;--//while i_hdd_mem_term='0' loop
+              end loop;--//while i_memrd_in.term='0' loop
 
-              i_hdd_mem_re<='1';
+              i_memrd_out.buf_re<='1';
 
           end loop;--//while dcnt<i_tstdata_dwsize+1 loop
 
@@ -818,15 +801,15 @@ begin
           --//Чтение данных ОЗУ
           while i_hw_mode_stop='0' loop
               tst_ramread(1)<='1';
-              wait until i_hdd_mem_ce='1' and i_hdd_mem_cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
+              wait until i_memrd_in.ce='1' and i_memrd_in.cw='0' and p_in_clk'event and p_in_clk='1';--//Ждем начала trn_mem_rd
               tst_ramread(2)<='1';
-              while i_hdd_mem_term='0' loop
+              while i_memrd_in.term='0' loop
               tst_ramread(3)<='1';
                 wait until p_in_clk'event and p_in_clk='1';
-                  if i_hdd_mem_term='0' then
-                    i_hdd_mem_re<='0';
-                    if i_hdd_mem_rd='1' then--//
-                      i_hdd_mem_dout<=i_ram_rxbuf(dcnt);
+                  if i_memrd_in.term='0' then
+                    i_memrd_out.buf_re<='0';
+                    if i_memrd_in.rd='1' then--//
+                      i_memrd_out.data(G_MEM_DWIDTH - 1 downto 0)<=i_ram_rxbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);
                       if dcnt=i_ram_txbuf'length-1 then
                         dcnt:=1;
                       else
@@ -834,14 +817,14 @@ begin
                       end if;
                     end if;--//
                   end if;
-              end loop;--//while i_hdd_mem_term='0' loop
+              end loop;--//while i_memrd_in.term='0' loop
 
               if dcnt=0 then
                 dcnt:=i_ram_txbuf'length-1;
 --              else
 --                dcnt:=dcnt - 1;
               end if;
-              i_hdd_mem_re<='1';
+              i_memrd_out.buf_re<='1';
           end loop;
 
 --      else
@@ -890,7 +873,7 @@ begin
                     wait until i_vbuf_wrclk'event and i_vbuf_wrclk='1';
                     i_vbuf_wr<='1';
                     if i_testdata_sel='0' then
-                      i_vbuf_din<=CONV_STD_LOGIC_VECTOR(dcnt, i_hdd_mem_dout'length);--счетчик
+                      i_vbuf_din<=CONV_STD_LOGIC_VECTOR(dcnt, i_vbuf_din'length);--счетчик
                     else
                       i_vbuf_din<=srcambler;--//Random Data
                     end if;
@@ -955,7 +938,7 @@ begin
   --//---------------------------------------------------
   --//настройка RAMBUF: направление RAM->HDD
 --  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memwr_lentrn_byte'length);
-  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(64, memwr_lentrn_byte'length);
+  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(4, memwr_lentrn_byte'length);
   memwr_lentrn_dw:=("00"&memwr_lentrn_byte(memwr_lentrn_byte'high downto 2));
 
   --//настройка RAMBUF: направление RAM<-HDD
@@ -966,16 +949,16 @@ begin
   --//Выбор режима:
   --C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
   i_testdata_sel<='0'; --//0/1 - Счетчик/Random DATA
-  i_sw_mode <='1';--//1/0 - sw_mode/hw_mode
+  i_sw_mode <='0';--//1/0 - sw_mode/hw_mode
   i_tst_mode<='0';--//режим тестирования
-  raid_mode:='0';
-  mnl_sata_cs:=16#01#; --//Только когда выключен режим raid_mode
+  raid_mode:='1';
+  mnl_sata_cs:=16#03#; --//Только когда выключен режим raid_mode
 
   --//Только для режима тестирования
   tst_cmd:=C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
 
   --//Только для режима HW(hw_mode)
-  hw_scount:=1;
+  hw_scount:=10;
   hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
   hw_lba_end  :=hw_lba_start + (hw_scount * 20);
@@ -995,7 +978,7 @@ begin
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
   --//1- min ... 256/0 - max
 --  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
@@ -1059,7 +1042,7 @@ begin
 
   --//Конфигурируем RAMBUF
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_CTRL_L, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_TRNLEN, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
@@ -1078,10 +1061,30 @@ begin
 
   wait for 0.5 us;
 
-  --//Конфигурируем тестовый режим
-  if i_tst_mode='1' then
   wait until g_host_clk'event and g_host_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_HWSTART_DLY, i_cfgdev_adr'length);
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_REQLEN, i_cfgdev_adr'length);
+    i_cfgdev_adr_ld<='1';
+    i_cfgdev_adr_fifo<='0';
+  wait until g_host_clk'event and g_host_clk='1';
+    i_cfgdev_adr_ld<='0';
+    i_cfgdev_adr_fifo<='0';
+    i_cfgdev_txdata(11 downto 0)<=CONV_STD_LOGIC_VECTOR(1024, 12);
+    i_cfgdev_txdata(15 downto 12)<=(others=>'0');
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+  wait until g_host_clk'event and g_host_clk='1';
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+  wait for 0.1 us;
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+  wait until g_host_clk'event and g_host_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+
+  wait for 0.5 us;
+
+--  --//Конфигурируем тестовый режим
+--  if i_tst_mode='1' then
+  wait until g_host_clk'event and g_host_clk='1';
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(16#88#, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
     i_cfgdev_adr_fifo<='0';
   wait until g_host_clk'event and g_host_clk='1';
@@ -1091,7 +1094,7 @@ begin
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
-  end if;--//if i_tst_mode='1' then
+--  end if;--//if i_tst_mode='1' then
   wait for 0.1 us;
   wait until g_host_clk'event and g_host_clk='1';
   i_dev_cfg_done(C_CFGDEV_HDD)<='1';
@@ -1100,8 +1103,8 @@ begin
 
   wait for 0.5 us;
 
-  --//Конфигурируем тестовый режим
-  if i_tst_mode='1' then
+--  --//Конфигурируем тестовый режим
+--  if i_tst_mode='1' then
   wait until g_host_clk'event and g_host_clk='1';
     i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_L, i_cfgdev_adr'length);
     i_cfgdev_adr_ld<='1';
@@ -1113,7 +1116,7 @@ begin
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_host_clk'event and g_host_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
-  end if;--//if i_tst_mode='1' then
+--  end if;--//if i_tst_mode='1' then
   wait for 0.1 us;
   wait until g_host_clk'event and g_host_clk='1';
   i_dev_cfg_done(C_CFGDEV_HDD)<='1';
@@ -1470,16 +1473,16 @@ begin
 
               write(GUI_line,string'(" i_ram_txbuf/i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'("): 0x"));
               --write(GUI_line,CONV_INTEGER(i_ram_txbuf(i)));
-              for y in 1 to 8 loop
-              string_value:=i_ram_txbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));
-              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));
-              end loop;
+              for y in 1 to (i_ram_txbuf(i)'length/8)*2 loop --                                                        -- for y in 1 to 8 loop                                             --
+              string_value:=i_ram_txbuf(i)((i_ram_txbuf(i)'length-(4*(y-1)))-1 downto (i_ram_txbuf(i)'length-(4*y)));  -- string_value:=i_ram_txbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));--
+              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));                                                  -- write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));          --
+              end loop;                                                                                                -- end loop;                                                        --
               write(GUI_line,string'("/0x"));
               --write(GUI_line,CONV_INTEGER(i_ram_rxbuf(i)));
-              for y in 1 to 8 loop
-              string_value:=i_ram_rxbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));
-              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));
-              end loop;
+              for y in 1 to (i_ram_rxbuf(i)'length/8)*2 loop --                                                        -- for y in 1 to 8 loop                                              --
+              string_value:=i_ram_rxbuf(i)((i_ram_rxbuf(i)'length-(4*(y-1)))-1 downto (i_ram_rxbuf(i)'length-(4*y)));  -- string_value:=i_ram_rxbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y))); --
+              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));                                                  -- write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));           --
+              end loop;                                                                                                -- end loop;                                                         --
               writeline(output, GUI_line);
 
             if i_ram_txbuf(i)/=i_ram_rxbuf(i) then
