@@ -198,6 +198,7 @@ G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23;
 G_DBGCS       : string:="OFF";
 G_SIM         : string:="OFF";
+G_USE_2CH     : string:="OFF";
 G_MEM_BANK_M_BIT : integer:=31;
 G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH  : integer:=32;
@@ -209,6 +210,7 @@ port(
 -------------------------------
 p_in_rbuf_cfg         : in    THDDRBufCfg;
 p_out_rbuf_status     : out   THDDRBufStatus;
+p_in_lentrn_exp       : in    std_logic;
 
 ----------------------------
 --Связь с буфером видеоданных
@@ -242,14 +244,11 @@ p_in_hdd_rxbuf_pempty : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
---p_out_mem             : out   TMemIN;
---p_in_mem              : in    TMemOUT;
---CH WRITE
-p_out_memwr           : out   TMemIN;
-p_in_memwr            : in    TMemOUT;
---CH READ
-p_out_memrd           : out   TMemIN;
-p_in_memrd            : in    TMemOUT;
+p_out_memch0           : out   TMemIN;
+p_in_memch0            : in    TMemOUT;
+
+p_out_memch1           : out   TMemIN;
+p_in_memch1            : in    TMemOUT;
 
 -------------------------------
 --Технологический

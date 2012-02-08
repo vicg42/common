@@ -89,6 +89,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../src/hdd/sata_player_s6gt_clkmux.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf.vhd"  $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/iodrp_controller.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/iodrp_mcb_controller.vhd" $_VHDMod ] \
@@ -98,6 +99,7 @@ set _projects [ list \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/memc5_wrapper.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vin_bufcam.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vin_bufhdd.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vin_bufout" $_VHDMod ] \
       [ list "../src/core_gen/vout_buf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \

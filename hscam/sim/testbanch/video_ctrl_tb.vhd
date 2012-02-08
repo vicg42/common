@@ -10,10 +10,6 @@
 -- Revision:
 -- Revision 0.01 - File Created
 -------------------------------------------------------------------------
---library ieee;
---use ieee.std_logic_1164.all;
---use ieee.std_logic_arith.all;
-----use ieee.std_logic_misc.all;
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -28,12 +24,13 @@ use work.vicg_common_pkg.all;
 use work.video_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
 use work.mem_ctrl_pkg.all;
+--use work.hdd_main_unit_pkg.all;
 
 entity video_ctrl_tb is
 generic(
 G_SIM    : string:="ON";
 G_MEM_AWIDTH : integer:=32;
-G_MEM_DWIDTH : integer:=32
+G_MEM_DWIDTH : integer:=64
 );
 end video_ctrl_tb;
 
@@ -42,12 +39,14 @@ architecture behavioral of video_ctrl_tb is
 component video_ctrl
 generic(
 G_SIM    : string:="OFF";
+G_MEM_BANK_M_BIT : integer:=32;
+G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH : integer:=32;
 G_MEM_DWIDTH : integer:=32
 );
 port(
 -------------------------------
---Параметры Видеокадра
+--
 -------------------------------
 p_in_vfr_prm          : in  TFrXY;
 
@@ -55,11 +54,11 @@ p_in_vfr_prm          : in  TFrXY;
 --Связь с вх/вых видеобуферами
 ----------------------------
 --Вх
-p_in_vbufin_d         : in    std_logic_vector(31 downto 0);
+p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbufin_rd       : out   std_logic;
 p_in_vbufin_empty     : in    std_logic;
 --Вых
-p_out_vbufout_d       : out   std_logic_vector(31 downto 0);
+p_out_vbufout_d       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_vbufout_wr      : out   std_logic;
 p_in_vbufout_full     : in    std_logic;
 
@@ -86,20 +85,39 @@ p_in_rst              : in    std_logic
 );
 end component;
 
-component vin_bufcam
+component vin_bufout
 port(
 din    : in std_logic_vector(31 downto 0);
 wr_en  : in std_logic;
 wr_clk : in std_logic;
 
-dout   : out std_logic_vector(31 downto 0);
+dout   : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 rd_en  : in std_logic;
 rd_clk : in std_logic;
 
-full   : out std_logic;
 empty  : out std_logic;
+full   : out std_logic;
 
+--clk    : in std_logic;
 rst    : in std_logic
+);
+end component;
+
+component vout_buf
+port(
+din       : in  std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+wr_en     : in  std_logic;
+wr_clk    : in  std_logic;
+
+dout      : out std_logic_vector(31 downto 0);
+rd_en     : in  std_logic;
+rd_clk    : in  std_logic;
+
+full      : out std_logic;
+prog_full : out std_logic;
+empty     : out std_logic;
+
+rst       : in  std_logic
 );
 end component;
 
@@ -165,10 +183,10 @@ signal i_vin_clk              : std_logic:='0';
 signal i_vout_d               : std_logic_vector(31 downto 0):=(others=>'0');
 signal i_vout_clk             : std_logic:='0';
 
-signal i_vbufin_d             : std_logic_vector(31 downto 0);
+signal i_vbufin_d             : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_vbufin_rd            : std_logic;
 signal i_vbufin_empty         : std_logic;
-signal i_vbufout_d            : std_logic_vector(31 downto 0);
+signal i_vbufout_d            : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_vbufout_wr           : std_logic;
 signal i_vbufout_full         : std_logic;
 
@@ -221,7 +239,8 @@ i_vctrl_rst<=not i_mem_ctrl_rdy(0) or p_in_rst;
 
 i_vfr_prm.pix     <=CONV_STD_LOGIC_VECTOR(CI_FRPIX, i_vfr_prm.pix'length);
 i_vfr_prm.row     <=CONV_STD_LOGIC_VECTOR(CI_FRROW, i_vfr_prm.pix'length);
-i_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR((CI_FRROW*CI_FRROW), i_vfr_prm.total_dw'length);
+--i_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR((CI_FRROW*CI_FRROW), i_vfr_prm.total_dw'length);
+i_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR(128, i_vfr_prm.total_dw'length);
 
 process(i_vctrl_rst,i_vin_clk)
 begin
@@ -238,7 +257,7 @@ begin
 end process;
 
 
-m_vin_buf : vin_bufcam
+m_vin_buf : vin_bufout
 port map(
 din    => i_vin_d,
 wr_en  => i_vin_dwr,
@@ -254,7 +273,7 @@ empty  => i_vbufin_empty,
 rst    => i_vctrl_rst
 );
 
-m_vout_buf : vin_bufcam
+m_vout_buf : vout_buf
 port map(
 din    => i_vbufout_d,
 wr_en  => i_vbufout_wr,
@@ -265,6 +284,7 @@ rd_en  => '1',
 rd_clk => i_vout_clk,
 
 full   => i_vbufout_full,
+prog_full => open,
 empty  => open,
 
 rst    => i_vctrl_rst
@@ -273,6 +293,8 @@ rst    => i_vctrl_rst
 m_vctrl : video_ctrl
 generic map(
 G_SIM => G_SIM,
+G_MEM_BANK_M_BIT => 31,
+G_MEM_BANK_L_BIT => 31,
 G_MEM_AWIDTH => G_MEM_AWIDTH,
 G_MEM_DWIDTH => G_MEM_DWIDTH
 )

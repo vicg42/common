@@ -27,7 +27,7 @@ use work.sata_unit_pkg.all;
 
 entity sata_raid_decoder is
 generic(
-G_USRBUF_DWIDTH : integer:=32;
+G_RAID_DWIDTH : integer:=32;
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_DBG       : string :="OFF";
 G_SIM       : string :="OFF"
@@ -47,11 +47,11 @@ p_in_usr_cxd_sof_n      : in    std_logic;
 p_in_usr_cxd_eof_n      : in    std_logic;
 p_in_usr_cxd_src_rdy_n  : in    std_logic;
 
-p_in_usr_txd            : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_in_usr_txd            : in    std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_in_usr_txd_wr         : in    std_logic;
 p_out_usr_txbuf_full    : out   std_logic;
 
-p_out_usr_rxd           : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_out_usr_rxd           : out   std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_in_usr_rxd_rd         : in    std_logic;
 p_out_usr_rxbuf_empty   : out   std_logic;
 
@@ -135,7 +135,7 @@ begin
     i_sh_txd_wr<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     p_out_sh_txd(i)<=p_in_usr_txd(32*(i+1)-1 downto 32*i);
-
+    i_sh_txbuf_full(i)<=p_in_sh_txbuf_status(i).pfull;
     if OR_reduce(p_in_sh_mask)='1' then
       i_sh_txd_wr<=p_in_usr_txd_wr;
     else
@@ -145,7 +145,7 @@ begin
 end process;
 
 p_out_sh_txd_wr(i)<=i_sh_txd_wr or p_in_sh_padding;
-i_sh_txbuf_full(i)<=p_in_sh_txbuf_status(i).pfull;
+
 end generate gen_hddon;
 
 gen_hddoff_en : if G_HDD_COUNT/=C_HDD_COUNT_MAX  generate

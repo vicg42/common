@@ -31,7 +31,7 @@ use work.sata_unit_pkg.all;
 
 entity sata_raid_ctrl is
 generic(
-G_USRBUF_DWIDTH : integer:=32;
+G_RAID_DWIDTH : integer:=32;
 G_HDD_COUNT : integer:=1;    --//Кол-во sata устр-в (min/max - 1/8)
 G_DBGCS     : string :="OFF";
 G_DBG       : string :="OFF";
@@ -54,12 +54,12 @@ p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
 
 --//txfifo
-p_in_usr_txd            : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_in_usr_txd            : in    std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_usr_txd_rd        : out   std_logic;
 p_in_usr_txbuf_empty    : in    std_logic;
 
 --//rxfifo
-p_out_usr_rxd           : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_out_usr_rxd           : out   std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_usr_rxd_wr        : out   std_logic;
 p_in_usr_rxbuf_full     : in    std_logic;
 
@@ -80,11 +80,11 @@ p_out_sh_cxd_sof_n      : out   std_logic;
 p_out_sh_cxd_eof_n      : out   std_logic;
 p_out_sh_cxd_src_rdy_n  : out   std_logic;
 
-p_out_sh_txd            : out   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_out_sh_txd            : out   std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_sh_txd_wr         : out   std_logic;
 p_in_sh_txbuf_full      : in    std_logic;
 
-p_in_sh_rxd             : in    std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+p_in_sh_rxd             : in    std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 p_out_sh_rxd_rd         : out   std_logic;
 p_in_sh_rxbuf_empty     : in    std_logic;
 
@@ -113,7 +113,7 @@ constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_
 signal i_err_clr                   : std_logic;
 signal i_err_streambuf             : std_logic;
 signal i_usr_status                : TUsrStatus;
-signal i_usr_rxd                   : std_logic_vector(G_USRBUF_DWIDTH-1 downto 0):=(others=>'0');
+signal i_usr_rxd                   : std_logic_vector(G_RAID_DWIDTH-1 downto 0):=(others=>'0');
 signal i_usr_rxd_wr                : std_logic:='0';
 
 signal i_dma_armed                 : std_logic;
@@ -159,11 +159,16 @@ signal i_sh_cxd_sof                : std_logic;
 signal i_sh_cxd_eof                : std_logic;
 signal i_sh_cxd_src_rdy            : std_logic;
 
+signal i_sh_trn_en                 : std_logic;
 signal i_sh_trn_den                : std_logic;
 signal i_sh_txd_wr                 : std_logic;
 signal i_sh_rxd_rd                 : std_logic;
 signal i_sh_padding                : std_logic;
 signal i_sh_padding_en             : std_logic;
+
+signal i_raid_cl_byte_count        : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+signal i_raid_cl_dw_count          : std_logic_vector(i_raid_cl_byte_count'range);
+signal i_raid_cl_cntdw             : std_logic_vector(i_raid_cl_dw_count'range);
 
 signal i_tst                       : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal sr_tst_bsy                  : std_logic_vector(0 to 1):=(others=>'0');
@@ -671,7 +676,7 @@ p_out_sh_padding<=i_sh_padding;
 p_out_sh_txd<=p_in_usr_txd;
 p_out_sh_txd_wr<=i_sh_txd_wr;
 
-i_sh_txd_wr<=not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full;
+i_sh_txd_wr<=not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full and i_sh_trn_en;
 
 p_out_usr_txd_rd<=i_sh_txd_wr;
 
@@ -687,7 +692,7 @@ begin
   end if;
 end process;
 
-i_sh_rxd_rd<=not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty;
+i_sh_rxd_rd<=not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty and i_sh_trn_en;
 
 p_out_sh_rxd_rd<=i_sh_rxd_rd;
 
@@ -695,6 +700,38 @@ p_out_sh_rxd_rd<=i_sh_rxd_rd;
 --//Формируем сигнал разрешения пермещения данных
 i_sh_trn_den<=i_sh_txd_wr or i_sh_rxd_rd;
 
+i_raid_cl_byte_count<=i_sh_atacmd.scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+i_raid_cl_dw_count<=("00"&i_raid_cl_byte_count(i_raid_cl_dw_count'high downto 2));
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+
+    i_sh_trn_en<='0';
+    i_raid_cl_cntdw<=(others=>'0');
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_sh_det.cmddone='1' or i_err_clr='1' then
+      i_sh_trn_en<='0';
+      i_raid_cl_cntdw<=(others=>'0');
+    else
+      if i_sh_cmd_start='1' then
+        i_sh_trn_en<='1';
+        i_raid_cl_cntdw<=(others=>'0');
+      else
+        if i_sh_trn_en='1' and i_sh_trn_den='1' then
+          if i_raid_cl_cntdw=(i_raid_cl_dw_count - 1) then
+            i_sh_trn_en<='0';
+            i_raid_cl_cntdw<=(others=>'0');
+          else
+            i_raid_cl_cntdw<=i_raid_cl_cntdw + 1;
+          end if;
+        end if;
+      end if;
+    end if;
+
+  end if;
+end process;
 
 
 --//-----------------------------------
@@ -758,7 +795,7 @@ p_out_dbgcs.data(20)<=i_usr_rxd_wr;
 p_out_dbgcs.data(21)<=p_in_usr_txbuf_empty;
 p_out_dbgcs.data(22)<='0';--i_raid_trn_done(1);--//detect raid_trn_sdone
 p_out_dbgcs.data(23)<='0';--sr_raid_trn_done;
-p_out_dbgcs.data(24)<='0';--i_sh_trn_en;
+p_out_dbgcs.data(24)<=i_sh_trn_en;
 p_out_dbgcs.data(25)<='0';--i_raid_cl_done;
 p_out_dbgcs.data(26)<=i_sh_padding_en;
 p_out_dbgcs.data(27)<=i_sh_padding;

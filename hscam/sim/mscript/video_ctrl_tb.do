@@ -18,6 +18,7 @@ vcom -93 "../../../common/lib/hw/mem/mem_glob_pkg.vhd"
 vcom -93 "../../../common/lib/hw/mem/xilinx/mem_wr_s6_pkg.vhd"
 vcom -93 "../../../common/lib/hw/mem/xilinx/mem_wr_s6.vhd"
 
+#vcom -93 "../../ise/src/hdd/hdd_main_unit_pkg.vhd"
 #vcom -93 "../../ise/src/hdd/video_ctrl_pkg.vhd"
 vcom -93 "../testbanch/video_ctrl_pkg_sim.vhd"
 vcom -93 "../../ise/src/hdd/video_reader.vhd"
@@ -27,7 +28,8 @@ vcom -93 "../../ise/src/hdd/video_ctrl.vhd"
 vcom -93 "../../ise/src/hdd/mem_ctrl_pkg.vhd"
 vcom -93 "../../ise/src/hdd/mem_ctrl.vhd"
 
-vcom -93 "../../ise/src/core_gen/vin_bufcam.vhd"
+vcom -93 "../../ise/src/core_gen/vin_bufout.vhd"
+vcom -93 "../../ise/src/core_gen/vout_buf.vhd"
 
 # Testbench
 vcom -93 "../testbanch/video_ctrl_tb.vhd"

@@ -32,7 +32,8 @@ use work.dsn_hdd_reg_def.all;
 
 entity dsn_hdd is
 generic(
-G_USRBUF_DWIDTH : integer:=32;
+G_MEM_DWIDTH : integer:=32;
+G_RAID_DWIDTH: integer:=32;
 G_MODULE_USE : string:="ON";
 G_HDD_COUNT  : integer:=1;
 G_GT_DBUS    : integer:=16;
@@ -78,14 +79,14 @@ p_out_rbuf_cfg            : out  THDDRBufCfg;                    --//Конфигуриро
 p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAMBUF
 
 --p_in_hdd_txd_wrclk        : in   std_logic;                      --//
-p_in_hdd_txd              : in   std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);  --//
+p_in_hdd_txd              : in   std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_pfull     : out  std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
 p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
 --p_in_hdd_rxd_rdclk        : in   std_logic;                      --//
-p_out_hdd_rxd             : out  std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);  --//
+p_out_hdd_rxd             : out  std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
 p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
 p_out_hdd_rxbuf_pempty    : out  std_logic;                      --//
@@ -141,8 +142,6 @@ end dsn_hdd;
 
 architecture behavioral of dsn_hdd is
 
-constant CI_USRBUF_DWIDTH : integer:=128;
-
 component mclk_gtp_wrap
 generic(
 G_SIM     : string:="OFF"
@@ -177,11 +176,11 @@ end component ;
 
 component hdd_txfifo
 port(
-din         : in std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+din         : in std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
+dout        : out std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 
@@ -197,11 +196,11 @@ end component;
 
 component hdd_rxfifo
 port(
-din         : in std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
+din         : in std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(G_USRBUF_DWIDTH-1 downto 0);
+dout        : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 
@@ -254,11 +253,11 @@ signal i_sh_cxd                         : std_logic_vector(15 downto 0);
 signal i_sh_cxd_wr                      : std_logic;
 signal i_sh_cxd_rd                      : std_logic;
 signal i_sh_cxbuf_empty                 : std_logic;
-signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
+signal i_sh_txd,i_sh_txd_tmp            : std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 signal i_sh_txd_rd                      : std_logic;
 signal i_sh_txbuf_empty                 : std_logic;
 signal i_sh_txbuf_empty_tmp             : std_logic;
-signal i_sh_rxd                         : std_logic_vector(CI_USRBUF_DWIDTH-1 downto 0);
+signal i_sh_rxd                         : std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 signal i_sh_rxd_wr                      : std_logic;
 signal i_sh_rxbuf_full                  : std_logic;
 
@@ -750,7 +749,7 @@ p_in_rst       => p_in_rst
 
 m_dsn_sata : dsn_raid_main
 generic map(
-G_USRBUF_DWIDTH => CI_USRBUF_DWIDTH,
+G_RAID_DWIDTH => G_RAID_DWIDTH,
 G_HDD_COUNT => G_HDD_COUNT,
 G_GT_DBUS   => G_GT_DBUS,
 G_DBG       => G_DBG,

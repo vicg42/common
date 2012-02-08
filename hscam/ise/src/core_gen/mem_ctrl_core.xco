@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.3
-# Date: Sat Jan 21 12:32:31 2012
+# Xilinx Core Generator version 13.4
+# Date: Sat Feb 04 07:11:31 2012
 #
 ##############################################################
 #
@@ -42,5 +42,8 @@ SELECT MIG_Virtex-6_and_Spartan-6 family Xilinx,_Inc. 3.9
 CSET component_name=mem_ctrl_core
 CSET xml_input_file=./mem_ctrl_core/user_design/mig.prj
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2012-01-07T15:29:19Z
+# END Extra information
 GENERATE
-# CRC: ac9f0c4f
+# CRC: 525fe87d
