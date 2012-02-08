@@ -198,6 +198,9 @@ component dbgcs_cfg
     );
 end component;
 
+signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
+signal i_hddraid_dbgcs                  : TSH_ila;
+
 signal i_dbgcs_memaxi                : std_logic_vector(35 downto 0);
 signal i_dbgcs_memaxi_trg            : std_logic_vector(41 downto 0);
 signal i_dbgcs_memaxi_view           : std_logic_vector(255 downto 0);
@@ -245,7 +248,9 @@ G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23;
 G_DBGCS       : string:="OFF";
 G_SIM         : string:="OFF";
-
+G_USE_2CH     : string:="ON";
+G_MEM_BANK_M_BIT : integer:=31;
+G_MEM_BANK_L_BIT : integer:=31;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=32
 );
@@ -255,6 +260,7 @@ port(
 -------------------------------
 p_in_rbuf_cfg         : in    THDDRBufCfg;
 p_out_rbuf_status     : out   THDDRBufStatus;
+p_in_lentrn_exp       : in    std_logic;
 
 --//--------------------------
 --//Связь с буфером видеоданных
@@ -265,6 +271,11 @@ p_in_vbuf_empty       : in    std_logic;
 p_in_vbuf_full        : in    std_logic;
 p_in_vbuf_pfull       : in    std_logic;
 p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+
+p_out_vbufo_sel       : out   std_logic;
+p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr        : out   std_logic;
+p_in_vbufo_full       : in    std_logic;
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -283,8 +294,11 @@ p_in_hdd_rxbuf_pempty : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_mem             : out   TMemIN;
-p_in_mem              : in    TMemOUT;
+p_out_memch0          : out   TMemIN;
+p_in_memch0           : in    TMemOUT;
+
+p_out_memch1          : out   TMemIN;
+p_in_memch1           : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -654,6 +668,7 @@ signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 
 signal i_hdd_memin                      : TMemIN;
 signal i_hdd_memout                     : TMemOUT;
+signal i_hdd_memout_null                : TMemOUT;
 
 signal i_dsntst_rst                     : std_logic;
 signal i_dsntst_txdata_rdy              : std_logic;
@@ -1355,6 +1370,8 @@ i_swt_hdd_tstgen_cfg<=i_hdd_rbuf_cfg.tstgen;
 
 m_hdd : dsn_hdd
 generic map(
+G_MEM_DWIDTH => C_HDEV_DWIDTH,
+G_RAID_DWIDTH=> 32,
 G_MODULE_USE=> C_PCFG_HDD_USE,
 G_HDD_COUNT => C_PCFG_HDD_COUNT,
 G_GT_DBUS   => C_PCFG_HDD_GT_DBUS,
@@ -1397,12 +1414,14 @@ p_out_hdd_done        => i_hdd_done,
 p_out_rbuf_cfg        => i_hdd_rbuf_cfg,
 p_in_rbuf_status      => i_hdd_rbuf_status,
 
+--p_in_hdd_txd_wrclk    => g_hclk,
 p_in_hdd_txd          => i_hdd_txdata,
 p_in_hdd_txd_wr       => i_hdd_txdata_wd,
 p_out_hdd_txbuf_pfull => i_hdd_txbuf_pfull,
 p_out_hdd_txbuf_full  => i_hdd_txbuf_full,
 p_out_hdd_txbuf_empty => i_hdd_txbuf_empty,
 
+--p_in_hdd_rxd_rdclk    => g_hclk,
 p_out_hdd_rxd         => i_hdd_rxdata,
 p_in_hdd_rxd_rd       => i_hdd_rxdata_rd,
 p_out_hdd_rxbuf_empty => i_hdd_rxbuf_empty,
@@ -1420,6 +1439,9 @@ p_in_sata_refclk      => i_hdd_gt_refclk150,
 p_out_sata_refclkout  => g_hdd_gt_refclkout,
 p_out_sata_gt_plldet  => i_hdd_gt_plldet,
 p_out_sata_dcm_lock   => i_hdd_dcm_lock,
+p_out_sata_dcm_gclk2div=> open,--g_hdd_dcm_gclk75M,
+p_out_sata_dcm_gclk2x  => open,--g_hdd_dcm_gclk300M,
+p_out_sata_dcm_gclk0   => open,--g_hdd_dcm_gclk150M,
 
 ---------------------------------------------------------------------------
 --Технологический порт
@@ -1469,7 +1491,9 @@ G_MODULE_USE  => C_PCFG_HDD_USE,
 G_RAMBUF_SIZE => C_PCFG_HDD_RAMBUF_SIZE,
 G_DBGCS       => C_PCFG_HDD_DBGCS,
 G_SIM         => G_SIM,
-
+G_USE_2CH     => "OFF",
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 G_MEM_AWIDTH  => C_HREG_MEM_ADR_LAST_BIT,
 G_MEM_DWIDTH  => C_HDEV_DWIDTH
 )
@@ -1479,6 +1503,7 @@ port map(
 -------------------------------
 p_in_rbuf_cfg       => i_hdd_rbuf_cfg,
 p_out_rbuf_status   => i_hdd_rbuf_status,
+p_in_lentrn_exp     => '1',
 
 --//--------------------------
 --//Upstream Port(Связь с буфером источника данных)
@@ -1489,6 +1514,11 @@ p_in_vbuf_empty     => i_hdd_vbuf_empty,
 p_in_vbuf_full      => i_hdd_vbuf_full,
 p_in_vbuf_pfull     => i_hdd_vbuf_pfull,
 p_in_vbuf_wrcnt     => i_hdd_vbuf_wrcnt,
+
+p_out_vbufo_sel     => open,
+p_out_vbufo_din     => open,
+p_out_vbufo_wr      => open,
+p_in_vbufo_full     => '0',
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -1507,8 +1537,11 @@ p_in_hdd_rxbuf_pempty=> i_hdd_rxbuf_pempty,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
-p_out_mem            => i_hdd_memin,
-p_in_mem             => i_hdd_memout,
+p_out_memch0         => i_hdd_memin,
+p_in_memch0          => i_hdd_memout,
+
+p_out_memch1         => open,
+p_in_memch1          => i_hdd_memout_null,
 
 -------------------------------
 --Технологический
@@ -2062,13 +2095,13 @@ pin_out_led_W<=i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
 pin_out_led_C<=not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
 pin_out_led(0)<=i_hdd_dbgled(1).busy;
-pin_out_led(1)<=i_hdd_dbgled(1).err;
-pin_out_led(2)<=i_hdd_dbgled(1).rdy;
+pin_out_led(1)<=i_hdd_dbgled(1).wr;
+pin_out_led(2)<=i_hdd_dbgled(1).rdy when i_hdd_dbgled(1).err='0' else i_test01_led;
 pin_out_led(3)<=i_hdd_dbgled(1).link;
 
 pin_out_led(4)<=i_hdd_dbgled(0).busy;
-pin_out_led(5)<=i_hdd_dbgled(0).err;
-pin_out_led(6)<=i_hdd_dbgled(0).rdy;
+pin_out_led(5)<=i_hdd_dbgled(0).wr;
+pin_out_led(6)<=i_hdd_dbgled(0).rdy when i_hdd_dbgled(0).err='0' else i_test01_led;
 pin_out_led(7)<=i_hdd_dbgled(0).link;
 
 m_gt_03_test: fpga_test_01
@@ -2093,6 +2126,92 @@ end generate gen_ml505;
 
 
 ----//DBG:
+
+gen_dbg_hdd : if strcmp(C_PCFG_HDD_DBGCS,"ON") generate
+
+m_dbgcs_icon : dbgcs_iconx1
+port map(
+CONTROL0 => i_dbgcs_hdd_raid
+);
+
+m_dbgcs_sh0_raid : dbgcs_sata_raid
+port map(
+CONTROL => i_dbgcs_hdd_raid,
+CLK     => i_hdd_dbgcs.raid.clk,
+DATA    => i_hddraid_dbgcs.data(172 downto 0),--(122 downto 0),
+TRIG0   => i_hddraid_dbgcs.trig0(41 downto 0)
+);
+
+--//-------- TRIG: ------------------
+i_hddraid_dbgcs.trig0(18 downto 0)<=i_hdd_dbgcs.raid.trig0(18 downto 0);
+i_hddraid_dbgcs.trig0(19)<=i_hdd_rbuf_status.err;--i_hdd_tst_out(5);--<=i_sh_cxd_rd;
+
+--//SH0
+i_hddraid_dbgcs.trig0(24 downto 20)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
+i_hddraid_dbgcs.trig0(29 downto 25)<=i_hdd_dbgcs.sh(0).layer.trig0(39 downto 35);--tlayer
+--//SH1
+i_hddraid_dbgcs.trig0(34 downto 30)<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30);--llayer
+i_hddraid_dbgcs.trig0(39 downto 35)<=i_hdd_dbgcs.sh(1).layer.trig0(39 downto 35);--tlayer
+
+i_hddraid_dbgcs.trig0(40)<=i_hdd_txbuf_empty;
+i_hddraid_dbgcs.trig0(41)<=i_hdd_txbuf_pfull;
+
+
+--//-------- VIEW: ------------------
+i_hddraid_dbgcs.data(28 downto 0)<=i_hdd_dbgcs.raid.data(28 downto 0);
+i_hddraid_dbgcs.data(29)<=i_hdd_txbuf_pfull;
+
+--//SH0
+i_hddraid_dbgcs.data(34 downto 30)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
+i_hddraid_dbgcs.data(39 downto 35)<=i_hdd_dbgcs.sh(0).layer.trig0(39 downto 35);--tlayer
+i_hddraid_dbgcs.data(55 downto 40)<=i_hdd_dbgcs.sh(0).layer.data(65 downto 50);
+i_hddraid_dbgcs.data(56)          <=i_hdd_dbgcs.sh(0).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
+i_hddraid_dbgcs.data(57)          <=i_hdd_dbgcs.sh(0).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
+i_hddraid_dbgcs.data(58)          <=i_hdd_dbgcs.sh(0).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
+i_hddraid_dbgcs.data(59)          <=i_hdd_dbgcs.sh(0).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
+i_hddraid_dbgcs.data(60)          <=i_hdd_dbgcs.sh(0).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
+i_hddraid_dbgcs.data(61)          <=i_hdd_dbgcs.sh(0).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
+i_hddraid_dbgcs.data(62)          <=i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+
+--//SH1
+i_hddraid_dbgcs.data(67 downto 63)<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30);--llayer
+i_hddraid_dbgcs.data(72 downto 68)<=i_hdd_dbgcs.sh(1).layer.trig0(39 downto 35);--tlayer
+i_hddraid_dbgcs.data(88 downto 73)<=i_hdd_dbgcs.sh(1).layer.data(65 downto 50);
+i_hddraid_dbgcs.data(89)          <=i_hdd_dbgcs.sh(1).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
+i_hddraid_dbgcs.data(90)          <=i_hdd_dbgcs.sh(1).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
+i_hddraid_dbgcs.data(91)          <=i_hdd_dbgcs.sh(1).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
+i_hddraid_dbgcs.data(92)          <=i_hdd_dbgcs.sh(1).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
+i_hddraid_dbgcs.data(93)          <=i_hdd_dbgcs.sh(1).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
+i_hddraid_dbgcs.data(94)          <=i_hdd_dbgcs.sh(1).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
+i_hddraid_dbgcs.data(95)          <=i_hdd_dbgcs.sh(1).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+
+--//RAMBUF
+i_hddraid_dbgcs.data(103 downto 100)<=i_hdd_rbuf_tst_out(29 downto 26);--<=tst_fsm_cs;
+i_hddraid_dbgcs.data(104)<=i_hdd_txbuf_empty;
+i_hddraid_dbgcs.data(105)<=i_hdd_rxbuf_empty;
+i_hddraid_dbgcs.data(106)<=i_hdd_rbuf_status.err_type.rambuf_full;--i_hdd_txdata_wd;--RAM->HDD
+i_hddraid_dbgcs.data(107)<=i_hdd_rbuf_status.err_type.vinbuf_full;--i_hdd_rxdata_rd;--RAM<-HDD
+i_hddraid_dbgcs.data(108)<=i_hdd_rbuf_tst_out(11);--<=tst_rambuf_empty;
+--i_hddraid_dbgcs.data(140 downto 109)<=i_hdd_dbgcs.raid.data(161 downto 130);--i_usr_rxd;--RAM<-HDD
+--i_hddraid_dbgcs.data(172 downto 141)<=i_hdd_rxdata(31 downto 0);--RAM<-HDD
+
+i_hddraid_dbgcs.data(109)<=i_hdd_memin.req;
+i_hddraid_dbgcs.data(110)<=i_hdd_memin.ce;
+i_hddraid_dbgcs.data(111)<=i_hdd_memin.cw;
+i_hddraid_dbgcs.data(112)<=i_hdd_memin.term;
+i_hddraid_dbgcs.data(113)<=i_hdd_memin.wr;
+i_hddraid_dbgcs.data(114)<=i_hdd_memin.rd;
+
+i_hddraid_dbgcs.data(115)<=i_arb_memin.req;
+i_hddraid_dbgcs.data(116)<=i_arb_memin.ce;
+i_hddraid_dbgcs.data(117)<=i_arb_memin.cw;
+i_hddraid_dbgcs.data(118)<=i_arb_memin.term;
+i_hddraid_dbgcs.data(119)<=i_arb_memin.wr;
+i_hddraid_dbgcs.data(120)<=i_arb_memin.rd;
+
+end generate gen_dbg_hdd;
+
+
 --m_dbgcs_icon : dbgcs_iconx2
 --port map(
 --CONTROL0 => i_dbgcs_memaxi,

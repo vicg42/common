@@ -149,6 +149,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \

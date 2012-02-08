@@ -342,6 +342,8 @@ p_in_sata_refclk      => i_hdd_gt_refclk150,
 p_out_sata_refclkout  => g_sata_refclkout,
 p_out_sata_gt_plldet  => i_hdd_gt_plldet,
 p_out_sata_dcm_lock   => i_hdd_dcm_lock,
+p_out_sata_dcm_gclk2div=> open,
+p_out_sata_dcm_gclk2x  => open,
 
 -------------------------------
 --Технологический порт
