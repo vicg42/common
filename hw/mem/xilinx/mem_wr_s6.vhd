@@ -91,15 +91,14 @@ signal i_mem_adr_update    : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_dir           : std_logic;
 signal i_mem_wr            : std_logic;
 signal i_mem_rd            : std_logic;
-signal i_mem_dlen_remain   : std_logic_vector(p_in_cfg_mem_dlen_rq'length-1 downto 0);
-signal i_mem_dlen_used     : std_logic_vector(p_in_cfg_mem_dlen_rq'length-1 downto 0);
+signal i_mem_dlen_remain   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
+signal i_mem_dlen_used     : std_logic_vector(i_mem_dlen_remain'range);
 signal i_mem_trn_work      : std_logic;
-signal i_mem_trn_len       : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
+signal i_mem_trn_len       : std_logic_vector(p_out_mem.cmd_bl'length+1 downto 0);
 signal i_mem_done          : std_logic;
 signal i_mem_cmden         : std_logic;
 signal i_mem_cmdwr         : std_logic;
-signal i_mem_cmdbl         : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
-signal i_mem_rxd_det       : std_logic;
+signal i_mem_cmdbl         : std_logic_vector(i_mem_dlen_remain'range);
 
 signal i_cfg_mem_dlen_rq   : std_logic_vector(p_in_cfg_mem_dlen_rq'range);
 signal i_cfg_mem_trn_len   : std_logic_vector(p_out_mem.cmd_bl'length downto 0);
@@ -164,22 +163,9 @@ p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 p_out_cfg_mem_done<=i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd<=i_mem_rxd_det and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full;
+i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full;
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full);
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_mem_rxd_det<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-    if p_in_mem.rxbuf_rdcount/=(p_in_mem.rxbuf_rdcount'range => '0') then
-      i_mem_rxd_det<='1';
-    else
-      i_mem_rxd_det<='0';
-    end if;
-  end if;
-end process;
 
 process(p_in_rst,p_in_clk)
 begin
@@ -189,7 +175,7 @@ begin
     if i_mem_cmden='0' then
       if i_mem_dir=C_MEMWR_WRITE then
         if fsm_state_cs=S_MEM_TRN then
-          if i_mem_wr='1' and i_mem_trn_len=(i_mem_trn_len'range => '0') then
+          if i_mem_wr='1' and EXT(i_mem_trn_len, i_mem_dlen_remain'length)=i_mem_dlen_remain - 1 then
             i_mem_cmden<='1';
           end if;
         end if;
@@ -225,8 +211,6 @@ begin
     i_mem_adr<=(others=>'0');
     i_mem_dir<='0';
     i_mem_dlen_remain<=(others=>'0');
-    i_mem_dlen_used<=(others=>'0');
-    i_mem_trn_len<=(others=>'0');
     i_mem_trn_work<='0';
     i_mem_done<='0';
 
@@ -241,9 +225,6 @@ begin
       when S_IDLE =>
 
         i_mem_done<='0';
-        i_mem_dlen_remain<=(others=>'0');
-        i_mem_dlen_used<=(others=>'0');
-
       --------------------------------------
       --Ждем сигнала запуска операции
       --------------------------------------
@@ -251,7 +232,9 @@ begin
           i_mem_adr<=p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
           i_mem_dir<=p_in_cfg_mem_wr;
           i_cfg_mem_dlen_rq<=p_in_cfg_mem_dlen_rq;
-          i_cfg_mem_trn_len<=p_in_cfg_mem_trn_len(i_cfg_mem_trn_len'range);
+          i_cfg_mem_trn_len<=p_in_cfg_mem_trn_len(i_cfg_mem_trn_len'range); --ВАЖНО: из предоставляемых 16 разрядов
+                                                                            --беру только такой диапозон p_out_mem.cmd_bl'range
+          i_mem_dlen_remain<=(others=>'0');
 
           --//Назначаем банк ОЗУ
           for i in 0 to i_mem_bank'high loop
@@ -270,7 +253,7 @@ begin
       --------------------------------------
       when S_MEM_REMAIN_SIZE_CALC =>
 
-        i_mem_dlen_remain <= EXT(i_cfg_mem_dlen_rq, i_mem_dlen_remain'length) - EXT(i_mem_dlen_used, i_mem_dlen_remain'length);
+        i_mem_dlen_remain <= i_cfg_mem_dlen_rq - i_mem_dlen_used;
         fsm_state_cs <= S_MEM_TRN_LEN_CALC;
 
       --------------------------------------
@@ -279,9 +262,7 @@ begin
       when S_MEM_TRN_LEN_CALC =>
 
         if i_mem_dlen_remain >= EXT(i_cfg_mem_trn_len, i_mem_dlen_remain'length) then
-            i_mem_trn_len <= i_cfg_mem_trn_len;
-        else
-            i_mem_trn_len <= i_mem_dlen_remain(i_mem_trn_len'range);
+            i_mem_dlen_remain <= EXT(i_cfg_mem_trn_len, i_mem_dlen_remain'length);
         end if;
 
         fsm_state_cs <= S_MEM_TRN_START;
@@ -292,9 +273,7 @@ begin
       when S_MEM_TRN_START =>
 
         i_mem_trn_work<='1';
-        i_mem_trn_len<=i_mem_trn_len - 1;
-        i_mem_cmdbl <= i_mem_trn_len - 1;
-
+        i_mem_cmdbl <= i_mem_dlen_remain - 1;
         fsm_state_cs <= S_MEM_TRN;
 
       ------------------------------------------------
@@ -303,13 +282,9 @@ begin
       when S_MEM_TRN =>
 
         if i_mem_wr='1' or i_mem_rd='1' then
-          i_mem_dlen_used<=i_mem_dlen_used+1;
-
-          if i_mem_trn_len=(i_mem_trn_len'range => '0') then
+          if EXT(i_mem_trn_len, i_mem_dlen_remain'length)=i_mem_dlen_remain - 1 then
             i_mem_trn_work<='0';
             fsm_state_cs <= S_MEM_TRN_END;
-          else
-            i_mem_trn_len<=i_mem_trn_len-1;
           end if;
         end if;
 
@@ -319,7 +294,6 @@ begin
       when S_MEM_TRN_END =>
 
         if (i_mem_cmdwr='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
-          i_mem_trn_len<=(others=>'0');
 
           if i_cfg_mem_dlen_rq=i_mem_dlen_used then
             fsm_state_cs <= S_IDLE;
@@ -336,6 +310,36 @@ begin
   end if;
 end process;
 
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_mem_trn_len<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_mem_trn_work='0' then
+      i_mem_trn_len<=(others=>'0');
+    else
+      if i_mem_wr='1' or i_mem_rd='1' then
+        i_mem_trn_len<=i_mem_trn_len + 1;
+      end if;
+    end if;
+  end if;
+end process;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_mem_dlen_used<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if p_in_cfg_mem_start='1' and fsm_state_cs=S_IDLE then
+      i_mem_dlen_used<=(others=>'0');
+    else
+      if i_mem_wr='1' or i_mem_rd='1' then
+        i_mem_dlen_used<=i_mem_dlen_used + 1;
+      end if;
+    end if;
+  end if;
+end process;
 
 --END MAIN
 end behavioral;
