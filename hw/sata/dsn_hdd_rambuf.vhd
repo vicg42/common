@@ -229,7 +229,7 @@ p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(10)<=tst_hw_stop;
 p_out_tst(11)<=tst_rambuf_empty;
 p_out_tst(13 downto 12)<=(others=>'0');
-p_out_tst(14)          <='0';--i_cr_start;
+p_out_tst(14)          <='0';--i_mem_dir;
 p_out_tst(15)          <='0';
 
 p_out_tst(16)          <=tst_vwr_out(5);
@@ -851,7 +851,7 @@ i_mem_din      <=i_mem_din_2tmp    ;
 --//from RAM
 p_out_hdd_txd<=i_mem_dout;
 p_out_hdd_txd_wr<=i_mem_dout_wr;
-i_mem_dout_wrdy_n<=p_in_hdd_txbuf_full and not i_padding;
+i_mem_dout_wrdy_n<=p_in_hdd_txbuf_full;-- and not i_padding;
 
 gen_mch_count1 : if strcmp(G_USE_2CH,"OFF") generate
 m_mem_wr : mem_wr
