@@ -335,6 +335,11 @@ signal t_vbufin_rd                      : std_logic;
 signal t_vbufin_empty                   : std_logic;
 
 
+signal i_tmrout_en                      : std_logic:='0';
+signal i_tmrout_cnt                     : std_logic_vector(15 downto 0):=(others=>'0');
+signal i_tmrout,sr_tmrout               : std_logic:='0';
+signal i_tmrout_det                     : std_logic:='0';
+
 
 --//MAIN
 begin
@@ -1047,7 +1052,7 @@ TRIG0   => i_hddraid_dbgcs.trig0(41 downto 0)
 --i_hddraid_dbgcs.trig0(14)<='0';
 
 i_hddraid_dbgcs.trig0(18 downto 0)<=i_hdd_dbgcs.raid.trig0(18 downto 0);
-i_hddraid_dbgcs.trig0(19)<=i_hdd_rbuf_status.err;--i_hdd_tst_out(5);--<=i_sh_cxd_rd;
+i_hddraid_dbgcs.trig0(19)<=i_tmrout_det;--i_hdd_rbuf_status.err;--i_hdd_tst_out(5);--<=i_sh_cxd_rd;
 
 --//SH0
 i_hddraid_dbgcs.trig0(24 downto 20)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
@@ -1057,7 +1062,7 @@ i_hddraid_dbgcs.trig0(34 downto 30)<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30)
 i_hddraid_dbgcs.trig0(39 downto 35)<=i_hdd_dbgcs.sh(1).layer.trig0(39 downto 35);--tlayer
 
 i_hddraid_dbgcs.trig0(40)<=i_hdd_txbuf_empty;--i_memch1_out_bank(1).rxbuf_err or i_memch1_out_bank (1).rxbuf_overflow or i_memch1_out_bank (1).cmdbuf_err;--
-i_hddraid_dbgcs.trig0(41)<=i_hdd_txbuf_pfull;
+i_hddraid_dbgcs.trig0(41)<=i_hdd_txbuf_full;--i_hdd_txbuf_pfull;
 
 
 --//-------- VIEW: ------------------
@@ -1068,25 +1073,25 @@ i_hddraid_dbgcs.data(29)<=i_hdd_txbuf_pfull;
 i_hddraid_dbgcs.data(34 downto 30)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
 i_hddraid_dbgcs.data(39 downto 35)<=i_hdd_dbgcs.sh(0).layer.trig0(39 downto 35);--tlayer
 i_hddraid_dbgcs.data(55 downto 40)<=i_hdd_dbgcs.sh(0).layer.data(65 downto 50);
-i_hddraid_dbgcs.data(56)          <=i_hdd_dbgcs.sh(0).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
-i_hddraid_dbgcs.data(57)          <=i_hdd_dbgcs.sh(0).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
-i_hddraid_dbgcs.data(58)          <=i_hdd_dbgcs.sh(0).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
+i_hddraid_dbgcs.data(56)          <='0';--i_hdd_dbgcs.sh(0).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
+i_hddraid_dbgcs.data(57)          <='0';--i_hdd_dbgcs.sh(0).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
+i_hddraid_dbgcs.data(58)          <='0';--i_hdd_dbgcs.sh(0).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
 i_hddraid_dbgcs.data(59)          <=i_hdd_dbgcs.sh(0).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
-i_hddraid_dbgcs.data(60)          <=i_hdd_dbgcs.sh(0).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
-i_hddraid_dbgcs.data(61)          <=i_hdd_dbgcs.sh(0).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
-i_hddraid_dbgcs.data(62)          <=i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+i_hddraid_dbgcs.data(60)          <='0';--i_hdd_dbgcs.sh(0).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
+i_hddraid_dbgcs.data(61)          <='0';--i_hdd_dbgcs.sh(0).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
+i_hddraid_dbgcs.data(62)          <='0';--i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 
 --//SH1
 i_hddraid_dbgcs.data(67 downto 63)<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30);--llayer
 i_hddraid_dbgcs.data(72 downto 68)<=i_hdd_dbgcs.sh(1).layer.trig0(39 downto 35);--tlayer
 i_hddraid_dbgcs.data(88 downto 73)<=i_hdd_dbgcs.sh(1).layer.data(65 downto 50);
-i_hddraid_dbgcs.data(89)          <=i_hdd_dbgcs.sh(1).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
-i_hddraid_dbgcs.data(90)          <=i_hdd_dbgcs.sh(1).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
-i_hddraid_dbgcs.data(91)          <=i_hdd_dbgcs.sh(1).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
+i_hddraid_dbgcs.data(89)          <='0';--i_hdd_dbgcs.sh(1).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
+i_hddraid_dbgcs.data(90)          <='0';--i_hdd_dbgcs.sh(1).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
+i_hddraid_dbgcs.data(91)          <='0';--i_hdd_dbgcs.sh(1).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
 i_hddraid_dbgcs.data(92)          <=i_hdd_dbgcs.sh(1).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
-i_hddraid_dbgcs.data(93)          <=i_hdd_dbgcs.sh(1).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
+i_hddraid_dbgcs.data(93)          <='0';--i_hdd_dbgcs.sh(1).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
 i_hddraid_dbgcs.data(94)          <=i_hdd_dbgcs.sh(1).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
-i_hddraid_dbgcs.data(95)          <=i_hdd_dbgcs.sh(1).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+i_hddraid_dbgcs.data(95)          <='0';--i_hdd_dbgcs.sh(1).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 
 --//RAMBUF
 i_hddraid_dbgcs.data(103 downto 100)<=tst_hdd_rambuf_out(29 downto 26);--<=tst_fsm_cs;
@@ -1128,18 +1133,62 @@ i_hddraid_dbgcs.data(156)<=i_memch0_in_bank (1).cmd_wr;--cmd for wr
 i_hddraid_dbgcs.data(157)<=i_memch0_in_bank (1).txd_wr;
 i_hddraid_dbgcs.data(158)<=i_memch1_in_bank (1).cmd_wr;--cmd for rd
 i_hddraid_dbgcs.data(159)<=i_memch1_in_bank (1).rxd_rd;
-i_hddraid_dbgcs.data(160)<=i_memch0_out_bank(1).txbuf_err or i_memch0_out_bank (1).txbuf_underrun or i_memch0_out_bank (1).cmdbuf_err;
-i_hddraid_dbgcs.data(161)<=i_memch1_out_bank(1).rxbuf_err or i_memch1_out_bank (1).rxbuf_overflow or i_memch1_out_bank (1).cmdbuf_err;
+i_hddraid_dbgcs.data(160)<='0';--i_memch0_out_bank(1).txbuf_err or i_memch0_out_bank (1).txbuf_underrun or i_memch0_out_bank (1).cmdbuf_err;
+i_hddraid_dbgcs.data(161)<='0';--i_memch1_out_bank(1).rxbuf_err or i_memch1_out_bank (1).rxbuf_overflow or i_memch1_out_bank (1).cmdbuf_err;
 
 
-i_hddraid_dbgcs.data(162)<='0';--i_memch1_out_bank(1).cmdbuf_full;
-i_hddraid_dbgcs.data(163)<='0';--i_memch1_out_bank(1).cmdbuf_empty;
-i_hddraid_dbgcs.data(164)<='0';--i_memch1_out_bank(1).rxbuf_full;
-i_hddraid_dbgcs.data(165)<='0';--i_memch1_out_bank(1).rxbuf_empty;
-i_hddraid_dbgcs.data(166)<='0';--i_memch1_out_bank(1).rxbuf_err;
-i_hddraid_dbgcs.data(167)<='0';--i_memch1_out_bank(1).rxbuf_overflow;
-i_hddraid_dbgcs.data(168)<='0';--i_memch1_out_bank(1).cmdbuf_err;
+i_hddraid_dbgcs.data(162)<='0';--i_hdd_vbufin_empty;--i_memch1_out_bank(1).cmdbuf_full;
+i_hddraid_dbgcs.data(163)<='0';--i_hdd_vbufin_full;--i_memch1_out_bank(1).cmdbuf_empty;
+i_hddraid_dbgcs.data(164)<='0';--tst_hdd_rambuf_out(14);-- <=i_mem_dir;
+i_hddraid_dbgcs.data(165)<=i_memch1_out_bank(1).rxbuf_empty;
+--i_hddraid_dbgcs.data(166)<='0';--i_memch1_out_bank(1).rxbuf_err;
+--i_hddraid_dbgcs.data(167)<='0';--i_memch1_out_bank(1).rxbuf_overflow;
+--i_hddraid_dbgcs.data(168)<='0';--i_memch1_out_bank(1).cmdbuf_err;
+i_hddraid_dbgcs.data(168 downto 166)<=tst_hdd_rambuf_out(9 downto 7);--mem_rd/fsm_cs
 
+process(i_hdd_dbgcs.raid.clk)
+begin
+  if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
+    if i_hdd_rbuf_cfg.dmacfg.clr_err='1' then
+      i_tmrout_en<='0';
+    elsif i_hdd_rbuf_cfg.dmacfg.hw_mode='1' and
+       (i_memch0_in_bank (1).cmd_wr='1' or i_memch1_in_bank (1).cmd_wr='1') then
+       i_tmrout_en<='1';
+    end if;
+  end if;
+end process;
+
+process(i_hdd_dbgcs.raid.clk)
+begin
+  if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
+    if i_tmrout_en='0' then
+     i_tmrout_cnt<=(others=>'0');
+     i_tmrout<='0';
+    else
+      if i_memch0_in_bank (1).cmd_wr='1' or i_memch0_in_bank (1).txd_wr='1' or
+         i_memch1_in_bank (1).cmd_wr='1' or i_memch1_in_bank (1).rxd_rd='1' then
+
+         i_tmrout_cnt<=(others=>'0');
+         i_tmrout<='0';
+      else
+        if i_tmrout_cnt=i_hdd_rbuf_cfg.usr(15 downto 0) then
+          i_tmrout_cnt<=i_tmrout_cnt;
+          i_tmrout<='1';
+        else
+          i_tmrout_cnt<=i_tmrout_cnt + 1;
+        end if;
+      end if;
+    end if;
+  end if;
+end process;
+
+process(i_hdd_dbgcs.raid.clk)
+begin
+  if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
+    sr_tmrout<=i_tmrout;
+    i_tmrout_det<=i_tmrout and not sr_tmrout;
+  end if;
+end process;
 
 end generate gen_dbgcs;
 

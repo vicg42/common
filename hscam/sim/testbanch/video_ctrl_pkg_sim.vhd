@@ -16,8 +16,8 @@ use ieee.std_logic_1164.all;
 
 package video_ctrl_pkg is
 
-constant C_VCTRL_MEMWR_TRN_SIZE  : integer:=64;
-constant C_VCTRL_MEMRD_TRN_SIZE  : integer:=16;
+constant C_VCTRL_MEMWR_TRN_SIZE  : integer:=9;
+constant C_VCTRL_MEMRD_TRN_SIZE  : integer:=3;
 
 --//Как поделена память ОЗУ для записи/чтение видеоинформации:
 --//                                          : integer:=0; --//Пиксели видеокадра(VLINE_LSB-1...0)
