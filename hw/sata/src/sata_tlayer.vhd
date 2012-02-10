@@ -216,7 +216,7 @@ p_out_ll_rxd_status.full<=p_in_rxfifo_status.full;
 p_out_ll_rxd_status.empty<=not OR_reduce(p_in_rxfifo_status.wrcount);
 p_out_ll_rxd_status.wrcount<=p_in_rxfifo_status.wrcount;
 
-p_out_ll_txd_status.full<=p_in_txfifo_status.full;
+p_out_ll_txd_status.full<=p_in_txfifo_status.pfull;
 p_out_ll_txd_status.pfull<=i_txfifo_pfull;
 p_out_ll_txd_status.aempty<=p_in_txfifo_status.aempty and not(i_fh2d_tx_en);
 p_out_ll_txd_status.empty <=p_in_txfifo_status.empty  and not(i_fh2d_tx_en);
