@@ -349,7 +349,7 @@ p_out_status.ataerror<=i_reg_shadow.error;
 p_out_status.sstatus<=i_reg_sstatus;
 p_out_status.serror<=i_reg_serror;
 p_out_status.ipf<=i_ata_ipf_bit;--//Прерывние
-p_out_status.fpdma<=p_in_reg_fpdma;
+--p_out_status.fpdma<=p_in_reg_fpdma;
 p_out_status.usr<=i_reg_usr_status;
 
 

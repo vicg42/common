@@ -245,12 +245,13 @@ i_piosetup_trncount_dw<="00"&i_piosetup_trncount_byte(15 downto 2);
 i_scount<=p_in_reg_shadow.scount_exp&p_in_reg_shadow.scount;
 i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 
-i_dma_trncount_byte<=EXT(i_scount_byte, i_dma_trncount_byte'length) when p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, p_in_reg_shadow.command'length) or
-                                                                         p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, p_in_reg_shadow.command'length) else
-                     i_reg_fpdma.trncount_byte;
-
+--i_dma_trncount_byte<=EXT(i_scount_byte, i_dma_trncount_byte'length) when p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, p_in_reg_shadow.command'length) or
+--                                                                         p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, p_in_reg_shadow.command'length) else
+--                     i_reg_fpdma.trncount_byte;
+--
+--i_dma_trncount_dw<="00"&i_dma_trncount_byte(31 downto 2);
+i_dma_trncount_byte<=EXT(i_scount_byte, i_dma_trncount_byte'length);
 i_dma_trncount_dw<="00"&i_dma_trncount_byte(31 downto 2);
-
 
 i_ll_state_illegal<=not p_in_pl_status(C_PSTAT_DET_ESTABLISH_ON_BIT) or
                         p_in_ll_status(C_LSTAT_RxERR_IDLE) or
@@ -306,10 +307,10 @@ if p_in_rst='1' then
   i_dma_dcnt<=(others=>'0');
   i_dma_txd<='0';
 
-  i_reg_fpdma.dir<='0';
-  i_reg_fpdma.addr<=(others=>'0');
-  i_reg_fpdma.offset<=(others=>'0');
-  i_reg_fpdma.trncount_byte<=(others=>'0');
+--  i_reg_fpdma.dir<='0';
+--  i_reg_fpdma.addr<=(others=>'0');
+--  i_reg_fpdma.offset<=(others=>'0');
+--  i_reg_fpdma.trncount_byte<=(others=>'0');
 
   i_reg_hold.device<=(others=>'0');
   i_reg_hold.status<=(others=>'0');
@@ -1268,11 +1269,11 @@ elsif p_in_clk'event and p_in_clk='1' then
               --//FIS length - OK!
                   if i_fdir_bit=C_DIR_H2D and i_fauto_activate_bit='1' then
                   --//Передача данных (FPGA -> HDD)
-                    i_reg_fpdma.dir<=C_DIR_H2D;
+--                    i_reg_fpdma.dir<=C_DIR_H2D;
                     fsm_tlayer_cs <= S_HT_DMAOTrans2;
                   else
                   --//Прием данных (FPGA <- HDD)
-                    i_reg_fpdma.dir<=C_DIR_D2H;
+--                    i_reg_fpdma.dir<=C_DIR_D2H;
                     fsm_tlayer_cs <= S_IDLE;
                   end if;
 
@@ -1293,23 +1294,23 @@ elsif p_in_clk'event and p_in_clk='1' then
         elsif sr_llrxd_en(0)='1' then
         --//Прием содержимого FIS
 
-            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
-              i_fdir_bit <= sr_llrxd(0)(C_FIS_DIR_BIT+8);
-              i_fauto_activate_bit <= sr_llrxd(0)(C_FIS_AUTO_ACTIVATE_BIT+8);
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#01#, 3) then
-              i_reg_fpdma.addr(31 downto 0)<=sr_llrxd(0);
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#02#, 3) then
-              i_reg_fpdma.addr(63 downto 32)<=sr_llrxd(0);
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
-              i_reg_fpdma.offset(31 downto 0)<=sr_llrxd(0);
-
-            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#05#, 3) then
-              i_reg_fpdma.trncount_byte <= sr_llrxd(0);
-
-            end if;
+--            if i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#00#, 3) then
+--              i_fdir_bit <= sr_llrxd(0)(C_FIS_DIR_BIT+8);
+--              i_fauto_activate_bit <= sr_llrxd(0)(C_FIS_AUTO_ACTIVATE_BIT+8);
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#01#, 3) then
+--              i_reg_fpdma.addr(31 downto 0)<=sr_llrxd(0);
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#02#, 3) then
+--              i_reg_fpdma.addr(63 downto 32)<=sr_llrxd(0);
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#04#, 3) then
+--              i_reg_fpdma.offset(31 downto 0)<=sr_llrxd(0);
+--
+--            elsif i_fdcnt(2 downto 0)=CONV_STD_LOGIC_VECTOR(10#05#, 3) then
+--              i_reg_fpdma.trncount_byte <= sr_llrxd(0);
+--
+--            end if;
 
             i_fdcnt<=i_fdcnt + 1;
 

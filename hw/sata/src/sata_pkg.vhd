@@ -620,7 +620,7 @@ ataerror  : std_logic_vector(7 downto 0);
 sstatus   : std_logic_vector(C_ALSSTAT_LAST_BIT downto 0);
 serror    : std_logic_vector(C_ALSERR_LAST_BIT downto 0);
 ipf       : std_logic;
-fpdma     : TRegFPDMASetup;
+--fpdma     : TRegFPDMASetup;
 usr       : std_logic_vector(C_ALUSR_LAST_BIT downto 0);
 end record;
 
