@@ -47,7 +47,7 @@ constant C_SH_MAIN_NUM       : integer:=C_PCFG_HDD_SH_MAIN_NUM;--0; --//определя
 --Константы
 ---------------------------------------------------------
 --//мах кол-во HDD:
-constant C_HDD_COUNT_MAX     : integer:=8;--//
+constant C_HDD_COUNT_MAX     : integer:=4;--//
 
 --//Кол-во каналов в одном модуле GT:
 constant C_SH_GTCH_COUNT_MAX_SEL: TSH_04GTCHCount:=(2, 2, 1, 2);--//Мax кол-во каналов для одного компонента GT(gig tx/rx)

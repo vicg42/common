@@ -132,14 +132,14 @@ p_out_hdd_done            : out  std_logic;
 p_out_rbuf_cfg            : out  THDDRBufCfg;
 p_in_rbuf_status          : in   THDDRBufStatus;
 
---p_in_hdd_txd_wrclk        : in   std_logic;
+p_in_hdd_txd_wrclk        : in   std_logic;
 p_in_hdd_txd              : in   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_hdd_txd_wr           : in   std_logic;
 p_out_hdd_txbuf_pfull     : out  std_logic;
 p_out_hdd_txbuf_full      : out  std_logic;
 p_out_hdd_txbuf_empty     : out  std_logic;
 
---p_in_hdd_rxd_rdclk        : in   std_logic;
+p_in_hdd_rxd_rdclk        : in   std_logic;
 p_out_hdd_rxd             : out  std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_hdd_rxd_rd           : in   std_logic;
 p_out_hdd_rxbuf_pempty    : out  std_logic;

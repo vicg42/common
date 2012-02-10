@@ -78,14 +78,14 @@ p_out_hdd_done            : out  std_logic;                      --//
 p_out_rbuf_cfg            : out  THDDRBufCfg;                    --//Конфигурирование RAMBUF
 p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAMBUF
 
---p_in_hdd_txd_wrclk        : in   std_logic;                      --//
+p_in_hdd_txd_wrclk        : in   std_logic;                      --//
 p_in_hdd_txd              : in   std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_in_hdd_txd_wr           : in   std_logic;                      --//
 p_out_hdd_txbuf_pfull     : out  std_logic;                      --//
 p_out_hdd_txbuf_full      : out  std_logic;                      --//
 p_out_hdd_txbuf_empty     : out  std_logic;                      --//
 
---p_in_hdd_rxd_rdclk        : in   std_logic;                      --//
+p_in_hdd_rxd_rdclk        : in   std_logic;                      --//
 p_out_hdd_rxd             : out  std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_in_hdd_rxd_rd           : in   std_logic;                      --//
 p_out_hdd_rxbuf_empty     : out  std_logic;                      --//
@@ -178,18 +178,18 @@ component hdd_txfifo
 port(
 din         : in std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
---wr_clk      : in std_logic;
+wr_clk      : in std_logic;
 
 dout        : out std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
---rd_clk      : in std_logic;
+rd_clk      : in std_logic;
 
 full        : out std_logic;
 almost_full : out std_logic;
 empty       : out std_logic;
 prog_full   : out std_logic;
 
-clk         : in std_logic;
+--clk         : in std_logic;
 rst         : in std_logic
 );
 end component;
@@ -198,18 +198,18 @@ component hdd_rxfifo
 port(
 din         : in std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
---wr_clk      : in std_logic;
+wr_clk      : in std_logic;
 
 dout        : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
---rd_clk      : in std_logic;
+rd_clk      : in std_logic;
 
 full        : out std_logic;
 almost_full : out std_logic;
 empty       : out std_logic;
 prog_empty  : out std_logic;
 
-clk         : in std_logic;
+--clk         : in std_logic;
 rst         : in std_logic
 );
 end component;
@@ -684,18 +684,18 @@ m_txfifo : hdd_txfifo
 port map(
 din         => p_in_hdd_txd,
 wr_en       => i_hdd_txd_wr,
---wr_clk      => p_in_clk, --p_in_hdd_txd_wrclk,
+wr_clk      => p_in_hdd_txd_wrclk, --p_in_clk, --
 
 dout        => i_sh_txd,
 rd_en       => i_sh_txd_rd,
---rd_clk      => p_in_clk,
+rd_clk      => p_in_clk,
 
 full        => open,
 almost_full => p_out_hdd_txbuf_full,
 empty       => i_sh_txbuf_empty_tmp,
 prog_full   => p_out_hdd_txbuf_pfull,
 
-clk         => p_in_clk,
+--clk         => p_in_clk,
 rst         => i_buf_rst
 );
 
@@ -708,18 +708,18 @@ m_rxfifo : hdd_rxfifo
 port map(
 din         => i_sh_rxd,
 wr_en       => i_sh_rxd_wr,
---wr_clk      => p_in_clk,
+wr_clk      => p_in_clk,
 
 dout        => p_out_hdd_rxd,
 rd_en       => i_hdd_rxd_rd,
---rd_clk      => p_in_clk,--p_in_hdd_rxd_rdclk,
+rd_clk      => p_in_hdd_rxd_rdclk,--p_in_clk, --
 
 full        => open,
 almost_full => i_sh_rxbuf_full,
 empty       => i_sh_rxbuf_empty,
 prog_empty  => p_out_hdd_rxbuf_pempty,
 
-clk         => p_in_clk,
+--clk         => p_in_clk,
 rst         => i_buf_rst
 );
 
