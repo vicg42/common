@@ -43,7 +43,7 @@ G_DBGCS       : string :="ON";
 G_DBG         : string :="ON";
 G_SIM         : string :="ON";
 G_RAMBUF_SIZE : integer:=11; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
-G_RAID_DWIDTH : integer:=64;
+G_RAID_DWIDTH : integer:=32;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=32
 );
@@ -133,15 +133,11 @@ p_in_hdd_rxbuf_pempty : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
---p_out_mem             : out   TMemIN;
---p_in_mem              : in    TMemOUT;
+p_out_memch0         : out   TMemIN;
+p_in_memch0          : in    TMemOUT;
 
---CH WRITE
-p_out_memwr           : out   TMemIN;
-p_in_memwr            : in    TMemOUT;
---CH READ
-p_out_memrd           : out   TMemIN;
-p_in_memrd            : in    TMemOUT;
+p_out_memch1         : out   TMemIN;
+p_in_memch1          : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -163,6 +159,7 @@ signal g_host_clk                 : std_logic;
 signal p_in_clk                   : std_logic;
 signal i_dsn_hdd_rst              : std_logic:='1';
 
+--signal i_raid_mode                  : std_logic:='0';
 signal i_tst_mode                 : std_logic;
 --signal i_tst_cmd                  : integer;
 signal i_sw_mode                  : std_logic;
@@ -433,12 +430,14 @@ p_out_hdd_done         => i_hdd_done,
 p_out_rbuf_cfg         => i_rbuf_cfg,
 p_in_rbuf_status       => i_rbuf_status,
 
+p_in_hdd_txd_wrclk     => p_in_clk,
 p_in_hdd_txd           => i_sh_txd,
 p_in_hdd_txd_wr        => i_sh_txd_wr,
 p_out_hdd_txbuf_pfull  => i_sh_txbuf_pfull,
 p_out_hdd_txbuf_full   => i_sh_txbuf_full,
 p_out_hdd_txbuf_empty  => i_sh_txbuf_empty,
 
+p_in_hdd_rxd_rdclk     => p_in_clk,
 p_out_hdd_rxd          => i_sh_rxd,
 p_in_hdd_rxd_rd        => i_sh_rxd_rd,
 p_out_hdd_rxbuf_empty  => i_sh_rxbuf_empty,
@@ -930,6 +929,7 @@ lmain_ctrl:process
   variable memwr_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
   variable memrd_lentrn_byte: std_logic_vector(memwr_lentrn_byte'range);
   variable memrd_lentrn_dw  : std_logic_vector(memwr_lentrn_byte'range);
+--  variable i_tst_mode       : std_logic;
 
 begin
 
@@ -938,7 +938,7 @@ begin
   --//---------------------------------------------------
   --//настройка RAMBUF: направление RAM->HDD
 --  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memwr_lentrn_byte'length);
-  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(4, memwr_lentrn_byte'length);
+  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(64, memwr_lentrn_byte'length);
   memwr_lentrn_dw:=("00"&memwr_lentrn_byte(memwr_lentrn_byte'high downto 2));
 
   --//настройка RAMBUF: направление RAM<-HDD
@@ -949,16 +949,16 @@ begin
   --//Выбор режима:
   --C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
   i_testdata_sel<='0'; --//0/1 - Счетчик/Random DATA
-  i_sw_mode <='0';--//1/0 - sw_mode/hw_mode
+  i_sw_mode <='1';--//1/0 - sw_mode/hw_mode
   i_tst_mode<='0';--//режим тестирования
-  raid_mode:='1';
-  mnl_sata_cs:=16#03#; --//Только когда выключен режим raid_mode
+  raid_mode:='0';
+  mnl_sata_cs:=16#01#; --//Только когда выключен режим raid_mode
 
   --//Только для режима тестирования
   tst_cmd:=C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
 
   --//Только для режима HW(hw_mode)
-  hw_scount:=10;
+  hw_scount:=2;
   hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
   hw_lba_end  :=hw_lba_start + (hw_scount * 20);
@@ -1190,26 +1190,26 @@ begin
   cfgCmdPkt(0).usr_ctrl(C_HDDPKT_SATA_CS_M_BIT downto C_HDDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sata_cs, C_HDDPKT_SATA_CS_M_BIT-C_HDDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(0).usr_ctrl(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(0).usr_ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT+1);
-  cfgCmdPkt(0).command:=C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_NOP;--
+  cfgCmdPkt(0).command:=C_ATA_CMD_DATA_SET_MANAGEMENT;--C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_NOP;--
   cfgCmdPkt(0).scount:=1;--//Кол-во секторов
-  cfgCmdPkt(0).raid_cl:=1;
+  cfgCmdPkt(0).raid_cl:=0;
   cfgCmdPkt(0).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
-  cfgCmdPkt(0).loopback:='1';
+  cfgCmdPkt(0).loopback:='0';
 
   cfgCmdPkt(1).usr_ctrl(C_HDDPKT_SATA_CS_M_BIT downto C_HDDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sata_cs, C_HDDPKT_SATA_CS_M_BIT-C_HDDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(1).usr_ctrl(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(1).usr_ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT+1);
-  cfgCmdPkt(1).command:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
+  cfgCmdPkt(1).command:=C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
   cfgCmdPkt(1).scount:=1;
   cfgCmdPkt(1).raid_cl:=1;
   cfgCmdPkt(1).lba:=CONV_STD_LOGIC_VECTOR(16#6655#, 16)&CONV_STD_LOGIC_VECTOR(16#4433#, 16)&CONV_STD_LOGIC_VECTOR(16#2211#, 16);--//LBA
-  cfgCmdPkt(1).loopback:='1';
+  cfgCmdPkt(1).loopback:='0';
 
   cfgCmdPkt(2).usr_ctrl(C_HDDPKT_SATA_CS_M_BIT downto C_HDDPKT_SATA_CS_L_BIT):=CONV_STD_LOGIC_VECTOR(i_sata_cs, C_HDDPKT_SATA_CS_M_BIT-C_HDDPKT_SATA_CS_L_BIT+1);
   cfgCmdPkt(2).usr_ctrl(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT+1);
   cfgCmdPkt(2).usr_ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT):=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT+1);
-  cfgCmdPkt(2).command:=C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--
-  cfgCmdPkt(2).scount:=4;
+  cfgCmdPkt(2).command:=C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--
+  cfgCmdPkt(2).scount:=1;
   cfgCmdPkt(2).raid_cl:=1;
   cfgCmdPkt(2).lba:=CONV_STD_LOGIC_VECTOR(16#0605#, 16)&CONV_STD_LOGIC_VECTOR(16#0403#, 16)&CONV_STD_LOGIC_VECTOR(16#0201#, 16);--//LBA
   cfgCmdPkt(2).loopback:='1';
@@ -1395,7 +1395,8 @@ begin
       end if;
 
 
-      if cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_DMA_EXT then
+      if cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(idx).command=C_ATA_CMD_WRITE_DMA_EXT or
+         cfgCmdPkt(idx).command=C_ATA_CMD_DATA_SET_MANAGEMENT  then
       --//Запускаем автомат записи данных
         wait until p_in_clk'event and p_in_clk='1';
         i_sim_ctrl.ram_txbuf_start<=not i_tst_mode;--'1';

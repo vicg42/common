@@ -1167,9 +1167,9 @@ elsif p_in_clk'event and p_in_clk='1' then
                     i_action.piomode<='1';
                     i_action.dmamode<='0';
 
-                elsif i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, 8) or
+                elsif i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, 8) or i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_DATA_SET_MANAGEMENT, 8) or
                       i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, 8) then
-                    if i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, 8) then
+                    if i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, 8) or i_rxd_out(8*(2+1)-1 downto 8*2)=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_DATA_SET_MANAGEMENT, 8) then
                       i_action.dir<=C_DIR_H2D;
                     else
                       i_action.dir<=C_DIR_D2H;

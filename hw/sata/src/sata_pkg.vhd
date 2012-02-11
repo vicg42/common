@@ -139,6 +139,7 @@ constant C_ATA_CMD_READ_DMA_EXT          : integer:=16#25#;--//DMA Read
 constant C_ATA_CMD_WRITE_FPDMA_QUEUED    : integer:=16#61#;--//QUEUED FPDMA Write
 constant C_ATA_CMD_READ_FPDMA_QUEUED     : integer:=16#60#;--//QUEUED FPDMA Read
 constant C_ATA_CMD_READ_LOG_EXT          : integer:=16#2F#;--//
+constant C_ATA_CMD_DATA_SET_MANAGEMENT   : integer:=16#06#;--//
 
 --//Регистр ATA_STATUS/Bit Map:
 constant C_ATA_STATUS_BUSY_BIT           : integer:=7;--уст-во занято

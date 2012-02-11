@@ -182,13 +182,18 @@ p_out_hdd_busy            => i_hdd_busy,
 p_out_rbuf_cfg            => open,
 p_in_rbuf_status          => i_rbuf_status,
 
+p_in_hdd_txd_wrclk        => p_in_clk,
 p_in_hdd_txd              => i_usr_txd,
 p_in_hdd_txd_wr           => i_usr_txd_wr,
+p_out_hdd_txbuf_pfull     => open,
 p_out_hdd_txbuf_full      => i_usr_txbuf_full,
+p_out_hdd_txbuf_empty     => open,
 
+p_in_hdd_rxd_rdclk        => p_in_clk,
 p_out_hdd_rxd             => i_usr_rxd,
 p_in_hdd_rxd_rd           => i_usr_rxd_rd,
 p_out_hdd_rxbuf_empty     => i_usr_rxbuf_empty,
+p_out_hdd_rxbuf_pempty    => open,
 
 --------------------------------------------------
 --SATA Driver

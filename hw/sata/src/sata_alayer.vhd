@@ -593,6 +593,8 @@ begin
         i_dbgtsf_type<="ATA_DMA_WRITE          ";
       elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_reg_shadow.command'length) then
         i_dbgtsf_type<="ATA_DMA_READ           ";
+      elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_DATA_SET_MANAGEMENT, i_reg_shadow.command'length) then
+        i_dbgtsf_type<="ATA_DATA_SET_MANAGEMENT";
 
       elsif i_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_FPDMA_QUEUED, i_reg_shadow.command'length) then
         i_dbgtsf_type<="ATA_FPDMA_WRITE        ";

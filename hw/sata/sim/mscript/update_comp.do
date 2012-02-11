@@ -26,10 +26,10 @@ vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd"
 vcom -93 "../../../xapp/xapp691/src/vhdl/ll_fifo.vhd"
 
-vcom -93 "../../../../veresk_m/prj_def.vhd"
-vcom -93 "../../../lib/alphadata/admxrc/vhdl/common/memif/memif_pkg.vhd"
-vcom -93 "../../../mem/alphadata/memory_ctrl_pkg.vhd"
-vcom -93 "../../../mem/alphadata/memory_ctrl_ch_wr.vhd"
+vcom -93 "../testbanch/prj_cfg_sim.vhd"
+vcom -93 "../../../mem/mem_glob_pkg.vhd"
+vcom -93 "../../../mem/alphadata/mem_wr_pkg.vhd"
+vcom -93 "../../../mem/alphadata/mem_wr.vhd"
 
 vcom -93 "../../dsn_hdd_reg_def.vhd"
 
