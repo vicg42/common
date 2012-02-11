@@ -119,7 +119,7 @@ signal i_fdone                     : std_logic;--//
 signal i_fdata_tx_en               : std_logic;--//Передача FISDATA
 signal i_fdata_txd_en              : std_logic;--//0/1 - FISDATA(header)/FISDATA(data)
 signal i_fdata_close               : std_logic;--//Закрыть FISDATA
-signal i_fdcnt                     : std_logic_vector(16 downto 0);--//Счетчик dword send/rcv FIS
+signal i_fdcnt                     : std_logic_vector(3 downto 0);--//Счетчик dword send/rcv FIS
 signal i_fh2d                      : std_logic_vector(31 downto 0);--//Регистр выдачи FIS_HOST2DEV
 signal i_fh2d_close                : std_logic;                    --//Закрыть FIS_HOST2DEV
 signal i_fh2d_tx_en                : std_logic;                    --//Сигнализирует что идет передача FIS_HOST2DEV
@@ -229,10 +229,9 @@ p_out_ll_txd <=p_in_txfifo_dout when i_fdata_txd_en='1' else i_fh2d;
 
 p_out_ll_txd_close <=i_fh2d_close or i_fdata_close;
 
-i_fdata_close<='1' when ( i_fpiosetup='1' and i_fdcnt=EXT(i_piosetup_trncount_dw, i_fdcnt'length) ) or
-                        ( i_dma_txd='1' and i_fdata_txd_en='1' and (i_dma_dcnt=i_dma_trncount_dw or OR_reduce(i_dma_dcnt(log2(CI_FR_DWORD_COUNT_MAX)-1 downto 0))='0') ) else
+i_fdata_close<='1' when ( i_fpiosetup='1' and i_fdata_txd_en='1' and i_dma_dcnt=EXT(i_piosetup_trncount_dw, i_dma_dcnt'length) ) or
+                        ( i_dma_txd='1'   and i_fdata_txd_en='1' and (i_dma_dcnt=i_dma_trncount_dw or OR_reduce(i_dma_dcnt(log2(CI_FR_DWORD_COUNT_MAX)-1 downto 0))='0') ) else
                '0';
-
 
 --//-----------------------------
 --//Инициализация
@@ -245,11 +244,6 @@ i_piosetup_trncount_dw<="00"&i_piosetup_trncount_byte(15 downto 2);
 i_scount<=p_in_reg_shadow.scount_exp&p_in_reg_shadow.scount;
 i_scount_byte<=i_scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
 
---i_dma_trncount_byte<=EXT(i_scount_byte, i_dma_trncount_byte'length) when p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, p_in_reg_shadow.command'length) or
---                                                                         p_in_reg_shadow.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, p_in_reg_shadow.command'length) else
---                     i_reg_fpdma.trncount_byte;
---
---i_dma_trncount_dw<="00"&i_dma_trncount_byte(31 downto 2);
 i_dma_trncount_byte<=EXT(i_scount_byte, i_dma_trncount_byte'length);
 i_dma_trncount_dw<="00"&i_dma_trncount_byte(31 downto 2);
 
@@ -273,7 +267,18 @@ begin
   end if;
 end process lsr_ll;
 
-
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_dma_dcnt<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_ll_state_illegal='1' or fsm_tlayer_cs=S_HT_DMAEnd or fsm_tlayer_cs=S_HT_PIOEnd then
+      i_dma_dcnt<=(others=>'0');
+    elsif p_in_ll_txd_rd='1' and i_fdata_tx_en='1' and i_fdata_close='0' and (i_dma_txd='1' or i_fpiosetup='1') then
+      i_dma_dcnt<=i_dma_dcnt + 1;
+    end if;
+  end if;
+end process;
 
 --//#########################################
 --//Transport Layer - Автомат управления
@@ -304,7 +309,7 @@ if p_in_rst='1' then
 --  i_fbist_pattern<=(others=>'0');
 --  i_fbist_rxd<=(others=>'0');
 
-  i_dma_dcnt<=(others=>'0');
+--  i_dma_dcnt<=(others=>'0');
   i_dma_txd<='0';
 
 --  i_reg_fpdma.dir<='0';
@@ -771,7 +776,7 @@ elsif p_in_clk'event and p_in_clk='1' then
               i_tl_status(C_TSTAT_RxFISLEN_ERR_BIT)<='1';
             else
               i_reg_update.fd2h<='1';
-              i_dma_dcnt<=(others=>'0');
+--              i_dma_dcnt<=(others=>'0');
             end if;
 
             i_ll_ctrl(C_LCTRL_TL_CHECK_DONE_BIT)<='1';--//Сигнал Link уровню отправить примитив подтверждения R_ERR/R_OK
@@ -1015,6 +1020,7 @@ elsif p_in_clk'event and p_in_clk='1' then
     --//------------------------------------------
     when S_HT_PIOOTrans2 =>
 
+      i_fdcnt<=(others=>'0');
       if i_ll_state_illegal='1' then
         i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
         i_fpiosetup<='0';
@@ -1027,7 +1033,7 @@ elsif p_in_clk'event and p_in_clk='1' then
         --//Link Layer сигнализирует о приеме примитива DMAT
             i_ll_ctrl(C_LCTRL_TxSTART_BIT)<='0';
 
-            i_fdcnt<=(others=>'0');
+--            i_fdcnt<=(others=>'0');
             i_fdata_txd_en<='0';
             i_fdata_tx_en<='0';
             fsm_tlayer_cs<=S_HT_PIOEnd;
@@ -1043,15 +1049,15 @@ elsif p_in_clk'event and p_in_clk='1' then
 
             else
             --//Данные
-                if i_fdcnt=EXT(i_piosetup_trncount_dw, i_fdcnt'length) then
-                  i_fdcnt<=(others=>'0');
+                if i_dma_dcnt=EXT(i_piosetup_trncount_dw, i_dma_dcnt'length) then --if i_fdcnt=EXT(i_piosetup_trncount_dw, i_fdcnt'length) then
+--                  i_fdcnt<=(others=>'0');
                   i_fdata_txd_en<='0';
                   i_fdata_tx_en<='0';
                   fsm_tlayer_cs<=S_HT_PIOEnd;
 
                 else
                   i_fdata_txd_en<='1';
-                  i_fdcnt<=i_fdcnt + 1;
+--                  i_fdcnt<=i_fdcnt + 1;
                 end if;
             end if;
 
@@ -1436,7 +1442,7 @@ elsif p_in_clk'event and p_in_clk='1' then
 
                     else
                       i_fdata_txd_en<='1';
-                      i_dma_dcnt<=i_dma_dcnt + 1;
+--                      i_dma_dcnt<=i_dma_dcnt + 1;
                     end if;
 
                 end if;--//if i_fdata_txd_en='0' then
@@ -1484,10 +1490,10 @@ elsif p_in_clk'event and p_in_clk='1' then
 
           else
           --Передача данных (FPGA -> HDD)
-              if i_dma_dcnt=i_dma_trncount_dw then
-              --//Передал все данные
-                i_dma_dcnt<=(others=>'0');
-              end if;
+--              if i_dma_dcnt=i_dma_trncount_dw then
+--              --//Передал все данные
+--                i_dma_dcnt<=(others=>'0');
+--              end if;
 
               if p_in_ll_status(C_LSTAT_TxERR_CRC)='1' then
                 i_dma_txd<='0';
@@ -1566,7 +1572,7 @@ p_out_dbg.piotrn_sizedw<=EXT(i_piosetup_trncount_dw, p_out_dbg.piotrn_sizedw'len
 p_out_dbg.other_status.firq_bit<=i_tl_status(C_TSTAT_FIS_I_BIT);
 p_out_dbg.other_status.fdir_bit<=i_fdir_bit;
 p_out_dbg.other_status.fpiosetup<=i_fpiosetup;
-p_out_dbg.other_status.dcnt     <=i_fdcnt(15 downto 0);
+p_out_dbg.other_status.dcnt     <=EXT(i_fdcnt, p_out_dbg.other_status.dcnt'length);--i_fdcnt(15 downto 0);
 p_out_dbg.other_status.altxbuf_rd<=p_in_ll_txd_rd and i_fdata_tx_en and not i_fdata_close;
 p_out_dbg.other_status.alrxbuf_wr<=p_in_ll_rxd_wr and i_rxd_en;
 
