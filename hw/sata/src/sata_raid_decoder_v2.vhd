@@ -132,6 +132,7 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     p_out_sh_txd(i)<=(others=>'0');
+    i_sh_txbuf_full(i)<='0';
     i_sh_txd_wr(i)<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     p_out_sh_txd(i)<=p_in_usr_txd(32*(i+1)-1 downto 32*i);
