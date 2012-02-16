@@ -24,7 +24,6 @@ set _projects [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/mclk_gtp_wrap.vhd" $_VHDMod ] \
-      [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/fifo_utils.vhd" $_VHDPkg ] \
@@ -59,7 +58,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/uart/src/kcuart_tx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/uart_rx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/uart/src/uart_tx.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_ram_hfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_ram_hfifo_rx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/hdd_ram_hfifo_tx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
@@ -92,11 +92,11 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_raid_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_hwstart_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
