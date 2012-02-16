@@ -29,41 +29,50 @@ use unisim.vcomponents.all;
 
 entity mem_ctrl is
 generic(
-G_BANK_COUNT : integer:=1;
-G_SIM        : string:="OFF"
+G_SIM : string:= "OFF"
 );
 port(
------------------------------
---Memory pins
------------------------------
-ra0        : out   std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
-rc0        : inout std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
-rd0        : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
+------------------------------------
+--User Post
+------------------------------------
+p_in_mem       : in    TMemIN;--TMemINBank;
+p_out_mem      : out   TMemOUT;--TMemOUTBank;
 
------------------------------
---User channel
------------------------------
-p_in_mem   : in    TMemIN;
-p_out_mem  : out   TMemOUT;
+------------------------------------
+--Memory physical interface
+------------------------------------
+p_out_phymem   : out   TMEMCTRL_phy_outs;
+p_inout_phymem : inout TMEMCTRL_phy_inouts;
 
------------------------------
---Status
------------------------------
-trained    : out   std_logic_vector(15 downto 0);
+------------------------------------
+--Memory status
+------------------------------------
+p_out_status   : out   TMEMCTRL_status;
 
------------------------------
+------------------------------------
 --System
------------------------------
-memclk0    : in    std_logic;
-memclk45   : in    std_logic;
-memclk2x0  : in    std_logic;
-memclk2x90 : in    std_logic;
-memrst     : in    std_logic;
-rst        : in    std_logic
+------------------------------------
+p_out_sys      : out   TMEMCTRL_sysout;
+p_in_sys       : in    TMEMCTRL_sysin
 );
 end entity;
 
 architecture mixed of mem_ctrl is
+
+component mem_pll
+port(
+mclk      : in  std_logic;
+rst       : in  std_logic;
+refclk200 : in  std_logic;
+
+clk0      : out std_logic;
+clk45     : out std_logic;
+clk2x0    : out std_logic;
+clk2x90   : out std_logic;
+locked    : out std_logic_vector(1 downto 0);
+memrst    : out std_logic
+);
+end component;
 
 constant bank0         : bank_t :=C_MEM_BANK0     ;
 constant bank1         : bank_t :=C_MEM_BANK1     ;
@@ -83,7 +92,7 @@ constant bank14        : bank_t :=C_MEM_BANK14    ;
 constant bank15        : bank_t :=C_MEM_BANK15    ;
 constant num_ramclk    : natural:=C_MEM_NUM_RAMCLK;
 
-    constant num_bank_dram        : natural := selval(1, 2, cmpval(1, G_BANK_COUNT));--2;
+    constant num_bank_dram        : natural := selval(1, 2, cmpval(1, C_MEM_BANK_COUNT));--2;
     constant num_bank_sram        : natural := 1;
     constant num_bank             : natural := num_bank_dram;-- + num_bank_sram;
 
@@ -309,7 +318,45 @@ signal rd15    : std_logic_vector(bank15.rd_width - 1 downto 0);
 signal ramclko : std_logic_vector(num_ramclk - 1 downto 0);
 signal ramclki : std_logic_vector(num_ramclk - 1 downto 0);
 
+
+signal memclk0    : std_logic;
+signal memclk45   : std_logic;
+signal memclk2x0  : std_logic;
+signal memclk2x90 : std_logic;
+signal memrst     : std_logic;
+signal i_memctrl_locked : std_logic_vector(7 downto 0);
+signal trained          : std_logic_vector(15 downto 0);
+signal i_in_rst   : std_logic;
+--
+-- If the synthesizer replicates an asynchronous reset signal due high fanout,
+-- this can prevent flip-flops being mapped into IOBs. We set the maximum
+-- fanout for such nets to a high enough value that replication never occurs.
+--
+attribute MAX_FANOUT : string;
+attribute MAX_FANOUT of i_in_rst : signal is "100000";
+
 begin
+
+i_in_rst<=p_in_sys.rst;
+
+--//PLL контроллера памяти
+m_pll : mem_pll
+port map(
+mclk      => p_in_sys.clk,
+rst       => i_in_rst,
+refclk200 => p_in_sys.clk,
+
+clk0      => memclk0,
+clk45     => memclk45,
+clk2x0    => memclk2x0,
+clk2x90   => memclk2x90,
+locked    => i_memctrl_locked(1 downto 0),
+memrst    => memrst
+);
+
+p_out_status.rdy<=i_memctrl_locked(0);
+p_out_status.trained<=trained;
+p_out_sys.clk<=memclk2x0;
 
     ramclki <= (others => '-');
 
@@ -367,11 +414,11 @@ begin
 --    --
 --    -- Output outbound data to local bus
 --    --
---gen_ch0_use0_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_ch0_use0_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    usr0_dout <= usr0_dout_SRAM when usr0_bank1h(num_bank_dram) = '1' else usr0_dout_DRAM;
 --end generate gen_ch0_use0_ssram_on;
 
-gen_ch0_use0_ssram_off : if G_BANK_COUNT<3  generate
+gen_ch0_use0_ssram_off : if C_MEM_BANK_COUNT<3  generate
     usr0_dout <= usr0_dout_DRAM;
 end generate gen_ch0_use0_ssram_off;
 
@@ -387,7 +434,7 @@ end generate gen_ch0_use0_ssram_off;
             out_width => port_width_dram,
             partial   => true)
         port map(
-            rst   => rst,
+            rst   => i_in_rst,
             clk   => usr0_clk,
 
             init  => usr0_cew,
@@ -425,7 +472,7 @@ end generate gen_ch0_use0_ssram_off;
             in_width  => port_width_dram,
             out_width => 32) --C_MEMCTRL_DATA_WIDTH )--,--
         port map(
-            rst  => rst,
+            rst  => i_in_rst,
             clk  => usr0_clk,
 
             init => usr0_ce,
@@ -438,7 +485,7 @@ end generate gen_ch0_use0_ssram_off;
 --    --
 --    -- Instantiate outbound data replicator for the DDR-II SSRAM banks
 --    --
---gen_ch0_use1_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_ch0_use1_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    port0_repl_sram : port_repl
 --        generic map(
 --            order     => mux_order_sram,
@@ -446,7 +493,7 @@ end generate gen_ch0_use0_ssram_off;
 --            out_width => port_width_sram,
 --            partial   => true)
 --        port map(
---            rst   => rst,
+--            rst   => i_in_rst,
 --            clk   => usr0_clk,
 --
 --            init  => usr0_cew,
@@ -484,7 +531,7 @@ end generate gen_ch0_use0_ssram_off;
 --            in_width  => port_width_sram,
 --            out_width => 32)
 --        port map(
---            rst  => rst,
+--            rst  => i_in_rst,
 --            clk  => usr0_clk,
 --
 --            init => usr0_ce,
@@ -521,7 +568,7 @@ end generate gen_ch0_use0_ssram_off;
                 data_width => port_width_dram,
                 tag_width  => 2)
             port map(
-                rst      => rst,
+                rst      => i_in_rst,
                 pclk     => usr0_clk,
                 psr      => logic0,
 
@@ -562,7 +609,7 @@ end generate gen_ch0_use0_ssram_off;
 --    -- These instances decouple the local bus clock domain from the
 --    -- memory interface clock domain.
 --    --
---gen_ch0_use2_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_ch0_use2_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    gen_async_ports0_sram : for i in 0 to num_bank_sram - 1 generate
 --        port0_pce(i + num_bank_dram)   <= usr0_bank1h(i + num_bank_dram) and usr0_ce;
 --        port0_pcw(i + num_bank_dram)   <= usr0_cw;
@@ -581,7 +628,7 @@ end generate gen_ch0_use0_ssram_off;
 --                data_width => port_width_sram,
 --                tag_width  => 2)
 --            port map(
---                rst      => rst,
+--                rst      => i_in_rst,
 --                pclk     => usr0_clk,
 --                psr      => logic0,
 --
@@ -627,11 +674,11 @@ end generate gen_ch0_use0_ssram_off;
 --    --
 --    -- Output outbound data to local bus
 --    --
---gen_ch1_use0_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_ch1_use0_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    usr1_dout <= usr1_dout_SRAM when usr1_bank1h(num_bank_dram) = '1' else usr1_dout_DRAM;
 --end generate gen_ch1_use0_ssram_on;
 --
---gen_ch1_use0_ssram_off : if G_BANK_COUNT<3  generate
+--gen_ch1_use0_ssram_off : if C_MEM_BANK_COUNT<3  generate
 --    usr1_dout <= usr1_dout_DRAM;
 --end generate gen_ch1_use0_ssram_off;
 --
@@ -647,7 +694,7 @@ end generate gen_ch0_use0_ssram_off;
 --            out_width => port_width_dram,
 --            partial   => true)
 --        port map(
---            rst   => rst,
+--            rst   => i_in_rst,
 --            clk   => usr1_clk,
 --
 --            init  => usr1_cew,
@@ -685,7 +732,7 @@ end generate gen_ch0_use0_ssram_off;
 --            in_width  => port_width_dram,
 --            out_width => 32)--C_MEMCTRL_DATA_WIDTH )--,--
 --        port map(
---            rst  => rst,
+--            rst  => i_in_rst,
 --            clk  => usr1_clk,
 --
 --            init => usr1_ce,
@@ -700,7 +747,7 @@ end generate gen_ch0_use0_ssram_off;
 --    --
 --    -- Instantiate outbound data replicator for the DDR-II SSRAM banks
 --    --
---gen_ch1_use1_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_ch1_use1_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    port1_repl_sram : port_repl
 --        generic map(
 --            order     => mux_order_sram,
@@ -708,7 +755,7 @@ end generate gen_ch0_use0_ssram_off;
 --            out_width => port_width_sram,
 --            partial   => true)
 --        port map(
---            rst   => rst,
+--            rst   => i_in_rst,
 --            clk   => usr1_clk,
 --
 --            init  => usr1_cew,
@@ -746,7 +793,7 @@ end generate gen_ch0_use0_ssram_off;
 --            in_width  => port_width_sram,
 --            out_width => 32)--C_MEMCTRL_DATA_WIDTH )--,--
 --        port map(
---            rst  => rst,
+--            rst  => i_in_rst,
 --            clk  => usr1_clk,
 --
 --            init => usr1_ce,
@@ -783,7 +830,7 @@ end generate gen_ch0_use0_ssram_off;
 --                data_width => port_width_dram,
 --                tag_width  => 2)
 --            port map(
---                rst      => rst,
+--                rst      => i_in_rst,
 --                pclk     => usr1_clk,
 --                psr      => logic0,
 --
@@ -827,7 +874,7 @@ end generate gen_ch0_use0_ssram_off;
 --    -- These instances decouple the local bus clock domain from the
 --    -- memory interface clock domain.
 --    --
---gen_ch1_use2_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_ch1_use2_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    gen_async_ports1_sram : for i in 0 to num_bank_sram - 1 generate
 --        port1_pce(i + num_bank_dram)   <= usr1_bank1h(i + num_bank_dram) and usr1_ce;
 --        port1_pcw(i + num_bank_dram)   <= usr1_cw;
@@ -846,7 +893,7 @@ end generate gen_ch0_use0_ssram_off;
 --                data_width => port_width_sram,
 --                tag_width  => 2)
 --            port map(
---                rst      => rst,
+--                rst      => i_in_rst,
 --                pclk     => usr1_clk,
 --                psr      => logic0,
 --
@@ -966,7 +1013,7 @@ end generate gen_ch0_use0_ssram_off;
 --                );
     end generate;
 
---gen_arb_ssram_on : if G_BANK_COUNT>=3  generate
+--gen_arb_ssram_on : if C_MEM_BANK_COUNT>=3  generate
 --    gen_arbiters_sram : for i in 0 to num_bank_sram - 1 generate
 --        U0 : arbiter_2
 --            generic map(
@@ -1060,11 +1107,11 @@ end generate gen_ch0_use0_ssram_off;
             pbank   => mode_reg(32 * 0 + 9 downto 32 * 0 + 8),
             trained => trained(0),
 
-            ra => ra0,
-            rc => rc0,
-            rd => rd0);
+            ra => p_out_phymem.ra0,
+            rc => p_inout_phymem.rc0,
+            rd => p_inout_phymem.rd0);
 
-gen_ddrsdram_port2_on : if G_BANK_COUNT>=2  generate
+gen_ddrsdram_port2_on : if C_MEM_BANK_COUNT>=2  generate
     dram_port_1 : ddr2sdram_port
         generic map(
             pinout    => ddr2sdram_pinout_admxrc5t1,
@@ -1104,7 +1151,7 @@ gen_ddrsdram_port2_on : if G_BANK_COUNT>=2  generate
             rd => rd1);
 end generate gen_ddrsdram_port2_on;
 
-gen_ddrsdram_port2_off : if G_BANK_COUNT<2  generate
+gen_ddrsdram_port2_off : if C_MEM_BANK_COUNT<2  generate
     ra2 <= (others => 'Z');
     rc2 <= (others => 'Z');
     rd2 <= (others => 'Z');
@@ -1113,7 +1160,7 @@ end generate gen_ddrsdram_port2_off;
 ----//----------------------------------------------------------------
 ---- Instantiate the DDR-II SSRAM memory port
 ----//----------------------------------------------------------------
---gen_ssram_port_on : if G_BANK_COUNT>=3  generate
+--gen_ssram_port_on : if C_MEM_BANK_COUNT>=3  generate
 --    sram_port_0 : ddr2sram_port_v4
 --        generic map(
 --            pinout    => ddr2sram_pinout_admxrc5t1,
@@ -1149,7 +1196,7 @@ end generate gen_ddrsdram_port2_off;
 --            rd => rd2);
 --end generate gen_ssram_port_on;
 --
---gen_ssram_port_off : if G_BANK_COUNT<3  generate
+--gen_ssram_port_off : if C_MEM_BANK_COUNT<3  generate
     ra2 <= (others => 'Z');
     rc2 <= (others => 'Z');
     rd2 <= (others => 'Z');

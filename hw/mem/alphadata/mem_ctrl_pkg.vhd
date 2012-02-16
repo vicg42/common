@@ -18,6 +18,7 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
+use work.prj_cfg.all;
 use work.memif.all;
 use work.mem_wr_pkg.all;
 
@@ -55,6 +56,7 @@ constant max_address_width : natural := 32;                 -- Maximum address w
 constant tag_width         : natural := 2;                  -- Change this if 2 tag bits is insufficient in your application
 
 
+constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 
 -- Used for address signal to a memory port
 type address_vector_t is array(natural range <>) of std_logic_vector(max_address_width - 1 downto 0);
@@ -70,6 +72,30 @@ type data_vector_t is array(natural range <>) of std_logic_vector(max_data_width
 
 -- Used for 'tag' and 'qtag' signals to and from a memory port
 type tag_vector_t is array(natural range <>) of std_logic_vector(tag_width - 1 downto 0);
+
+
+type TMEMCTRL_status is record
+rdy   : std_logic;
+trained : std_logic_vector(15 downto 0);
+end record;
+
+type TMEMCTRL_sysin is record
+clk   : std_logic;
+rst   : std_logic;
+end record;
+
+type TMEMCTRL_sysout is record
+clk   : std_logic;
+end record;
+
+type TMEMCTRL_phy_outs is record
+ra0   : std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
+end record;
+
+type TMEMCTRL_phy_inouts is record
+rc0   : std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
+rd0   : std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
+end record;
 
 
 component mem_arb
@@ -108,37 +134,31 @@ end component;
 
 component mem_ctrl
 generic(
-G_BANK_COUNT : integer:=1;
-G_SIM        : string:="OFF"
+G_SIM : string:="OFF"
 );
 port(
------------------------------
---Memory pins
------------------------------
-ra0        : out   std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
-rc0        : inout std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
-rd0        : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
+------------------------------------
+--User Post
+------------------------------------
+p_in_mem       : in    TMemIN;--TMemINBank;
+p_out_mem      : out   TMemOUT;--TMemOUTBank;
 
------------------------------
---User channel
------------------------------
-p_in_mem   : in    TMemIN;
-p_out_mem  : out   TMemOUT;
+------------------------------------
+--Memory physical interface
+------------------------------------
+p_out_phymem   : out   TMEMCTRL_phy_outs;
+p_inout_phymem : inout TMEMCTRL_phy_inouts;
 
------------------------------
---Status
------------------------------
-trained    : out   std_logic_vector(15 downto 0);
+------------------------------------
+--Memory status
+------------------------------------
+p_out_status   : out   TMEMCTRL_status;
 
------------------------------
+------------------------------------
 --System
------------------------------
-memclk0    : in    std_logic;
-memclk45   : in    std_logic;
-memclk2x0  : in    std_logic;
-memclk2x90 : in    std_logic;
-memrst     : in    std_logic;
-rst        : in    std_logic
+------------------------------------
+p_out_sys      : out   TMEMCTRL_sysout;
+p_in_sys       : in    TMEMCTRL_sysin
 );
 end component;
 
