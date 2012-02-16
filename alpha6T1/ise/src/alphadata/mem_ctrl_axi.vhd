@@ -30,25 +30,28 @@ generic(
 G_SIM : string:= "OFF"
 );
 port(
--- User Post
-p_in_mem        : in    TMemINBank;
-p_out_mem       : out   TMemOUTBank;
+------------------------------------
+--User Post
+------------------------------------
+p_in_mem       : in    TMemINBank;
+p_out_mem      : out   TMemOUTBank;
 
--- DDR3 clocking
-ddr3_rst        : in    std_logic;
-ddr3_ref_clk    : in    std_logic;
-ddr3_clk        : in    std_logic;
--- Memory status
-mem_if_rdy      : out   mem_if_rdy_array_t;
-mem_if_stat     : out   mem_if_stat_array_t;
-mem_if_err      : out   mem_if_err_array_t;
--- Memory physical interface
-mem_addr_out    : out   mem_addr_out_t;
-mem_ctrl_out    : out   mem_ctrl_out_t;
-mem_data_inout  : inout mem_data_inout_t;
-mem_clk_out     : out   mem_clk_out_t;
--- Debug info
-mem_if_err_info : out   mem_if_debug_array_t
+------------------------------------
+--Memory physical interface
+------------------------------------
+p_out_phymem   : out   TMEMCTRL_phy_outs;
+p_inout_phymem : inout TMEMCTRL_phy_inouts;
+
+------------------------------------
+--Memory status
+------------------------------------
+p_out_status   : out   TMEMCTRL_status;
+
+------------------------------------
+--System
+------------------------------------
+p_out_sys      : out   TMEMCTRL_sysout;
+p_in_sys       : in    TMEMCTRL_sysin
 );
 end;
 
@@ -95,11 +98,11 @@ begin
   -- lock signal will need to be incorporated in this.
   --*****************************************************************
 
-  process(ddr3_rst,ddr3_ref_clk)
+  process(p_in_sys.rst,p_in_sys.ref_clk)
   begin
-    if (ddr3_rst = '1') then
+    if (p_in_sys.rst = '1') then
       rst_ref_sync_r <= (others => '1');
-    elsif rising_edge(ddr3_ref_clk) then
+    elsif rising_edge(p_in_sys.ref_clk) then
       rst_ref_sync_r <= std_logic_vector(unsigned(rst_ref_sync_r) sll 1);
     end if;
   end process;
@@ -109,7 +112,7 @@ begin
   idelayctrl_i : IDELAYCTRL
   port map (
     RDY    => iodelay_ctrl_rdy,  -- out
-    REFCLK => ddr3_ref_clk,      -- in
+    REFCLK => p_in_sys.ref_clk,      -- in
     RST    => rst_ref);          -- in
 
 
@@ -177,21 +180,21 @@ begin
       p_in_saxi_rready   => p_in_mem(n).axir.rready ,                       --p_in_saxi_rready(n),
 
       -- DDR3 Clocking
-      ddr3_rst              => ddr3_rst,                          -- in    std_logic
-      ddr3_ref_clk          => ddr3_ref_clk,                      -- in    std_logic
-      ddr3_clk              => ddr3_clk,                          -- in    std_logic
+      ddr3_rst              => p_in_sys.rst,                          -- in    std_logic
+      ddr3_ref_clk          => p_in_sys.ref_clk,                      -- in    std_logic
+      ddr3_clk              => p_in_sys.clk,                          -- in    std_logic
       ddr3_iodelay_ctrl_rdy => iodelay_ctrl_rdy,                  -- in    std_logic
       -- DDR3 Status
-      ddr3_if_rdy           => mem_if_rdy(n),                     -- out   std_logic
-      ddr3_if_stat          => mem_if_stat(n),                    -- out   std_logic_vector(3 downto 0)
-      ddr3_if_err           => mem_if_err(n),                     -- out   std_logic_vector(3 downto 0)
+      ddr3_if_rdy           => p_out_status.rdy(n),                     -- out   std_logic
+      ddr3_if_stat          => p_out_status.stat(n),                    -- out   std_logic_vector(3 downto 0)
+      ddr3_if_err           => p_out_status.err(n),                     -- out   std_logic_vector(3 downto 0)
       -- DDR3 Physical Interface
-      ddr3_addr_out         => mem_addr_out.ddr3_addr_out(n),     -- out   ddr3_addr_out_t
-      ddr3_ctrl_out         => mem_ctrl_out.ddr3_ctrl_out(n),     -- out   ddr3_ctrl_out_t
-      ddr3_data_inout       => mem_data_inout.ddr3_data_inout(n), -- inout ddr3_data_inout_t
-      ddr3_clk_out          => mem_clk_out.ddr3_clk_out(n),       -- out   ddr3_clk_out_t
+      ddr3_addr_out         => p_out_phymem.adr   (n), --mem_addr_out.ddr3_addr_out(n),     -- out   ddr3_addr_out_t
+      ddr3_ctrl_out         => p_out_phymem.ctrl  (n),--mem_ctrl_out.ddr3_ctrl_out(n),     -- out   ddr3_ctrl_out_t
+      ddr3_data_inout       => p_inout_phymem.data(n),--mem_data_inout.ddr3_data_inout(n), -- inout ddr3_data_inout_t
+      ddr3_clk_out          => p_out_phymem.clk   (n),--mem_clk_out.ddr3_clk_out(n),       -- out   ddr3_clk_out_t
       -- DDR3 Interface Error info
-      ddr3_if_debug         => mem_if_err_info(n));               -- out   std_logic_vector(31 downto 0))
+      ddr3_if_debug         => p_out_status.err_info(n));               -- out   std_logic_vector(31 downto 0))
   end generate;
 
 end;

@@ -123,7 +123,7 @@ set _projects [ list \
       [ list "../../../common/vctrl/video_reader_r.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/video_writer.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
-      [ list "../src/vbuf_rotate.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vbuf_rotate.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \

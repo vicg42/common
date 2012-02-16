@@ -317,6 +317,32 @@ type mem_if_debug_array_t  is array(0 to MEM_BANKS-1) of std_logic_vector(31 dow
 Type TMemINBank is array (0 to MEM_BANKS-1) of TMemIN;
 Type TMemOUTBank is array (0 to MEM_BANKS-1) of TMemOUT;
 
+type TMEMCTRL_status is record
+rdy      : std_logic_vector(MEM_BANKS-1 downto 0);
+stat     : mem_if_stat_array_t;
+err      : mem_if_err_array_t;
+err_info : mem_if_debug_array_t;
+end record;
+
+type TMEMCTRL_sysin is record
+clk   : std_logic;
+ref_clk: std_logic;
+rst   : std_logic;
+end record;
+
+type TMEMCTRL_sysout is record
+clk   : std_logic;
+end record;
+
+type TMEMCTRL_phy_outs is record
+adr : ddr3_addr_out_array_t; --type ddr3_addr_out_array_t   is array (0 to DDR3_BANKS-1) of ddr3_addr_out_t;
+ctrl: ddr3_ctrl_out_array_t; --type ddr3_ctrl_out_array_t   is array (0 to DDR3_BANKS-1) of ddr3_ctrl_out_t;
+clk : ddr3_clk_out_array_t;  --type ddr3_clk_out_array_t    is array (0 to DDR3_BANKS-1) of ddr3_clk_out_t;
+end record;
+
+type TMEMCTRL_phy_inouts is record
+data: ddr3_data_inout_array_t; --type ddr3_data_inout_array_t is array (0 to DDR3_BANKS-1) of ddr3_data_inout_t;
+end record;
 
 component memory_ctrl_core
 generic(
@@ -395,28 +421,31 @@ end component;
 
 component mem_ctrl
 generic(
-G_SIM : string:= "OFF"
+G_SIM : string:="OFF"
 );
 port(
--- User Post
-p_in_mem        : in    TMemINBank;
-p_out_mem       : out   TMemOUTBank;
+------------------------------------
+--User Post
+------------------------------------
+p_in_mem       : in    TMemINBank;
+p_out_mem      : out   TMemOUTBank;
 
--- DDR3 clocking
-ddr3_rst        : in    std_logic;
-ddr3_ref_clk    : in    std_logic;
-ddr3_clk        : in    std_logic;
--- Memory status
-mem_if_rdy      : out   mem_if_rdy_array_t;
-mem_if_stat     : out   mem_if_stat_array_t;
-mem_if_err      : out   mem_if_err_array_t;
--- Memory physical interface
-mem_addr_out    : out   mem_addr_out_t;
-mem_ctrl_out    : out   mem_ctrl_out_t;
-mem_data_inout  : inout mem_data_inout_t;
-mem_clk_out     : out   mem_clk_out_t;
--- Debug info
-mem_if_err_info : out   mem_if_debug_array_t
+------------------------------------
+--Memory physical interface
+------------------------------------
+p_out_phymem   : out   TMEMCTRL_phy_outs;
+p_inout_phymem : inout TMEMCTRL_phy_inouts;
+
+------------------------------------
+--Memory status
+------------------------------------
+p_out_status   : out   TMEMCTRL_status;
+
+------------------------------------
+--System
+------------------------------------
+p_out_sys      : out   TMEMCTRL_sysout;
+p_in_sys       : in    TMEMCTRL_sysin
 );
 end component;
 

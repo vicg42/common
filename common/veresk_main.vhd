@@ -55,10 +55,8 @@ pin_out_led         : out   std_logic_vector(5 downto 0);
 --------------------------------------------------
 --Memory banks
 --------------------------------------------------
-mem_addr_out        : out   mem_addr_out_t;
-mem_ctrl_out        : out   mem_ctrl_out_t;
-mem_data_inout      : inout mem_data_inout_t;
-mem_clk_out         : out   mem_clk_out_t;
+pin_out_phymem      : out   TMEMCTRL_phy_outs;
+pin_inout_phymem    : inout TMEMCTRL_phy_inouts;
 
 --------------------------------------------------
 --Ethernet
@@ -385,20 +383,9 @@ signal i_swt_hdd_tstgen_cfg             : THDDTstGen;
 --signal i_dsntst_bufclk                  : std_logic;
 --signal i_dsntst_tst_out                 : std_logic_vector(31 downto 0);
 
--- Memory status
-signal i_mem_if_rdy     : mem_if_rdy_array_t;
---signal i_mem_if_stat    : mem_if_stat_array_t;
---signal i_mem_if_err     : mem_if_err_array_t;
----- Debug info
---signal i_mem_if_err_info : mem_if_debug_array_t;
-
---
--- If the synthesizer replicates an asynchronous reset signal due high fanout,
--- this can prevent flip-flops being mapped into IOBs. We set the maximum
--- fanout for such nets to a high enough value that replication never occurs.
---
-attribute MAX_FANOUT : string;
-attribute MAX_FANOUT of i_memctrl_rst : signal is "100000";
+signal i_mem_ctrl_status                : TMEMCTRL_status;
+signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
+signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
@@ -427,11 +414,11 @@ i_eth_rst    <=not i_host_rst_n or i_host_rst_all or i_host_rst_eth;
 i_vctrl_rst  <=not i_vctrlwr_memout.rstn;--<=not i_host_rst_n or i_host_rst_all;
 --i_trc_rst    <=not i_host_rst_n or i_host_rst_all;
 i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
-i_memctrl_rst<=not i_host_rst_n or i_host_rst_all or i_host_rst_mem or i_pll_rst_out;
+i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all or i_host_rst_mem or i_pll_rst_out;
 --i_dsntst_rst <=not i_host_rst_n or i_host_rst_all;
 --i_hdd_rst    <=not i_host_rst_n or i_host_rst_all or i_usr_rst;
 i_host_mem_rst<=not i_host_memout.rstn;--<=not i_host_rst_n or i_host_rst_all;
-i_arb_mem_rst<=i_memctrl_ready;
+i_arb_mem_rst<=OR_reduce(i_mem_ctrl_status.rdy);
 
 
 
@@ -482,6 +469,8 @@ p_out_pll_tmr_clk => g_pll_tmr_clk,
 p_in_clk          => i_refclk200MHz
 );
 
+i_mem_ctrl_sysin.ref_clk<=g_pll_clkin;
+i_mem_ctrl_sysin.clk<=g_pll_mem_clk;
 g_usr_highclk<=i_memout_bank(0).clk;
 i_tmr_clk<=g_pll_tmr_clk;--//100MHz
 
@@ -1274,7 +1263,7 @@ i_host_tst_in(71 downto 64)<=(others=>'0');
 i_host_tst_in(72)<='0';--i_eth_module_gt_plllkdet;
 i_host_tst_in(73)<='0';--lclk_dcm_lock;
 i_host_tst_in(74)<='0';--i_hdd_gt_plldet and i_hdd_dcm_lock;
-i_host_tst_in(75)<=i_memctrl_ready;
+i_host_tst_in(75)<=OR_reduce(i_mem_ctrl_status.rdy);
 i_host_tst_in(76)<='0';--AND_reduce(i_memctrl_trained(C_PCFG_MEMCTRL_BANK_COUNT downto 0));
 i_host_tst_in(126 downto 77)<=(others=>'0');
 i_host_tst_in(127)<=i_vctrl_tst_out(0);-- xor i_hdd_tst_out(0);
@@ -1295,7 +1284,7 @@ gen_status_vch : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
 i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(i);
 end generate gen_status_vch;
 
-i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=i_memctrl_ready;
+i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=OR_reduce(i_mem_ctrl_status.rdy);
 i_host_dev_status(C_HREG_DEV_STATUS_TRCNIK_DRDY_BIT)<='0';--i_trcnik_hdrdy;
 
 
@@ -1587,29 +1576,29 @@ generic map(
 G_SIM => G_SIM
 )
 port map(
--- User Post
+------------------------------------
+--User Post
+------------------------------------
 p_in_mem   => i_memin_bank,
 p_out_mem  => i_memout_bank,
 
--- DDR3 clocking
-ddr3_rst        => i_memctrl_rst,  --i_pll_rst_out,  -- in    std_logic
-ddr3_ref_clk    => g_pll_clkin,    -- in    std_logic
-ddr3_clk        => g_pll_mem_clk,  -- in    std_logic
--- Memory status
-mem_if_rdy      => i_mem_if_rdy ,  -- out   mem_if_rdy_array_t
-mem_if_stat     => open, --i_mem_if_stat,  -- out   mem_if_stat_array_t
-mem_if_err      => open, --i_mem_if_err ,  -- out   mem_if_err_array_t
--- Memory physical interface
-mem_addr_out    => mem_addr_out  , -- out   mem_addr_out_t
-mem_ctrl_out    => mem_ctrl_out  , -- out   mem_ctrl_out_t
-mem_data_inout  => mem_data_inout, -- inout mem_data_inout_t
-mem_clk_out     => mem_clk_out   , -- out   mem_clk_out_t
--- Debug info
-mem_if_err_info => open --i_mem_if_err_info -- out   mem_if_debug_array_t
+------------------------------------
+--Memory physical interface
+------------------------------------
+p_out_phymem    => pin_out_phymem,
+p_inout_phymem  => pin_inout_phymem,
+
+------------------------------------
+--Memory status
+------------------------------------
+p_out_status    => i_mem_ctrl_status,
+
+------------------------------------
+--System
+------------------------------------
+p_out_sys       => i_mem_ctrl_sysout,
+p_in_sys        => i_mem_ctrl_sysin
 );
-
-i_memctrl_ready<=i_mem_if_rdy(0);--OR_reduce(i_mem_if_rdy);
-
 
 
 

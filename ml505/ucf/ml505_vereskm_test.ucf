@@ -113,88 +113,88 @@ NET  lreset_l         LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CP
 
 ##   DDR-II SDRAM Bank 0
 #### Изменил пины DDR-II SDRAM Bank 0 на нужные для платы ML505
-NET "ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<14>"             LOC="F26"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<15>"             LOC="J25"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<*>"         IOSTANDARD = "SSTL18_I";
+NET "pin_out_phymem_ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<14>"             LOC="F26"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<15>"             LOC="J25"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<*>"         IOSTANDARD = "SSTL18_I";
 
 #DATA
-NET "rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<*>"         IOSTANDARD = "SSTL18_II";
+NET "pin_inout_phymem_rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<*>"         IOSTANDARD = "SSTL18_II";
 
 
-NET "rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 NET "pin_out_ddr2_cke1"   LOC="U30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE1            LOC="U30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 NET "pin_out_ddr2_cs1"    LOC="J29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS1_B           LOC="J29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DM4             LOC="V25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DM5             LOC="P24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DQS4_N          LOC="Y29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DQS4_P          LOC="Y28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DQS5_N          LOC="E27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
@@ -203,10 +203,10 @@ NET "rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P  
 #NET  DDR2_DQS6_P          LOC="H28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DQS7_N          LOC="H27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_DQS7_P          LOC="G27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 NET "pin_out_ddr2_odt1"   LOC="F30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT1            LOC="F30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-NET "rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_SCL             LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET  DDR2_SDA             LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 
@@ -272,20 +272,20 @@ TIMEGRP "LBUS_PADS"      = "LAD_PADS":
 #      tmclk' = 3.0 - 0.25 = 2.75ns                      #
 #                                                        #
 ##########################################################
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT0" TNM = "FFS:MEMCLK2X90_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT1" TNM = "FFS:MEMCLK45_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT2" TNM = "FFS:MEMCLK2X0_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT3" TNM = "FFS:MEMCLK0_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT3" TNM = "RAMS:MEMCLK0_RAMS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT0" TNM = "FFS:MEMCLK2X90_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT1" TNM = "FFS:MEMCLK45_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT2" TNM = "FFS:MEMCLK2X0_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT3" TNM = "FFS:MEMCLK0_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT3" TNM = "RAMS:MEMCLK0_RAMS";
 
 TIMEGRP "MEMCLK_FFS"     = "MEMCLK0_FFS":
                            "MEMCLK45_FFS":
                            "MEMCLK2X0_FFS":
                            "MEMCLK2X90_FFS";
 
-TIMEGRP "RA0_PADS"       = pads(ra0<*>);
-TIMEGRP "RC0_PADS"       = pads(rc0<*>);
-TIMEGRP "RD0_PADS"       = pads(rd0<*>);
+TIMEGRP "RA0_PADS"       = pads(pin_out_phymem_ra0<*>);
+TIMEGRP "RC0_PADS"       = pads(pin_inout_phymem_rc0<*>);
+TIMEGRP "RD0_PADS"       = pads(pin_inout_phymem_rd0<*>);
 #
 #TIMEGRP "RA1_PADS"       = pads(ra1<*>);
 #TIMEGRP "RC1_PADS"       = pads(rc1<*>);
@@ -961,88 +961,88 @@ NET pin_in_btn_W          LOC="AJ7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPI
 ###                                                        #
 ############################################################
 ##### Изменил пины DDR-II SDRAM Bank 0 на нужные для платы ML505
-#NET "ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<14>"             LOC="AH32" | IOSTANDARD=LVCMOS33;  #NET  HDR1_42              LOC="AH32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
-#NET "ra0<15>"             LOC="AK34" | IOSTANDARD=LVCMOS33;  #NET  HDR1_44              LOC="AK34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
-#NET "ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-##NET "ra0<*>"         IOSTANDARD = "SSTL18_I";
+#NET "pin_out_phymem_ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<14>"             LOC="AH32" | IOSTANDARD=LVCMOS33;  #NET  HDR1_42              LOC="AH32";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET "pin_out_phymem_ra0<15>"             LOC="AK34" | IOSTANDARD=LVCMOS33;  #NET  HDR1_44              LOC="AK34";  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20
+#NET "pin_out_phymem_ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;   #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET "pin_out_phymem_ra0<*>"         IOSTANDARD = "SSTL18_I";
 #
 ##DATA
-#NET "rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-##NET "rd0<*>"         IOSTANDARD = "SSTL18_II";
+#NET "pin_inout_phymem_rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+##NET "pin_inout_phymem_rd0<*>"         IOSTANDARD = "SSTL18_II";
 #
 #
-#NET "rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET "pin_out_ddr2_cke1"   LOC="U30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE1            LOC="U30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET "pin_out_ddr2_cs1"    LOC="J29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS1_B           LOC="J29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DM4             LOC="V25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DM5             LOC="P24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DQS4_N          LOC="Y29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DQS4_P          LOC="Y28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DQS5_N          LOC="E27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
@@ -1051,10 +1051,10 @@ NET pin_in_btn_W          LOC="AJ7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме:GPI
 ##NET  DDR2_DQS6_P          LOC="H28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DQS7_N          LOC="H27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_DQS7_P          LOC="G27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET "pin_out_ddr2_odt1"   LOC="F30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT1            LOC="F30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
-#NET "rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_SCL             LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 ##NET  DDR2_SDA             LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 

@@ -322,83 +322,83 @@ NET "finto_l"        LOC = "AF26"  | IOSTANDARD = "LVCMOS18";
 #                                                        #
 ##########################################################
 
-NET "ra0<0>"         LOC = "B16";
-NET "ra0<1>"         LOC = "B15";
-NET "ra0<2>"         LOC = "A15";
-NET "ra0<3>"         LOC = "A14";
-NET "ra0<4>"         LOC = "B17";
-NET "ra0<5>"         LOC = "A16";
-NET "ra0<6>"         LOC = "C14";
-NET "ra0<7>"         LOC = "C15";
-NET "ra0<8>"         LOC = "D24";
-NET "ra0<9>"         LOC = "E23";
-NET "ra0<10>"        LOC = "F14";
-NET "ra0<11>"        LOC = "F15";
-NET "ra0<12>"        LOC = "C20";
-NET "ra0<13>"        LOC = "L21";
-NET "ra0<14>"        LOC = "L20";
-NET "ra0<15>"        LOC = "L15";
-NET "ra0<16>"        LOC = "B20"; # BA<0>
-NET "ra0<17>"        LOC = "B21"; # BA<1>
-NET "ra0<18>"        LOC = "A21"; # BA<2>
-NET "ra0<*>"         IOSTANDARD = "SSTL18_I";
+NET "pin_out_phymem_ra0<0>"         LOC = "B16";
+NET "pin_out_phymem_ra0<1>"         LOC = "B15";
+NET "pin_out_phymem_ra0<2>"         LOC = "A15";
+NET "pin_out_phymem_ra0<3>"         LOC = "A14";
+NET "pin_out_phymem_ra0<4>"         LOC = "B17";
+NET "pin_out_phymem_ra0<5>"         LOC = "A16";
+NET "pin_out_phymem_ra0<6>"         LOC = "C14";
+NET "pin_out_phymem_ra0<7>"         LOC = "C15";
+NET "pin_out_phymem_ra0<8>"         LOC = "D24";
+NET "pin_out_phymem_ra0<9>"         LOC = "E23";
+NET "pin_out_phymem_ra0<10>"        LOC = "F14";
+NET "pin_out_phymem_ra0<11>"        LOC = "F15";
+NET "pin_out_phymem_ra0<12>"        LOC = "C20";
+NET "pin_out_phymem_ra0<13>"        LOC = "L21";
+NET "pin_out_phymem_ra0<14>"        LOC = "L20";
+NET "pin_out_phymem_ra0<15>"        LOC = "L15";
+NET "pin_out_phymem_ra0<16>"        LOC = "B20"; # BA<0>
+NET "pin_out_phymem_ra0<17>"        LOC = "B21"; # BA<1>
+NET "pin_out_phymem_ra0<18>"        LOC = "A21"; # BA<2>
+NET "pin_out_phymem_ra0<*>"         IOSTANDARD = "SSTL18_I";
 
-NET "rd0<0>"         LOC = "E19";
-NET "rd0<1>"         LOC = "C17";
-NET "rd0<2>"         LOC = "D17";
-NET "rd0<3>"         LOC = "E21";
-NET "rd0<4>"         LOC = "D20";
-NET "rd0<5>"         LOC = "D16";
-NET "rd0<6>"         LOC = "D15";
-NET "rd0<7>"         LOC = "G20";
-NET "rd0<8>"         LOC = "F21";
-NET "rd0<9>"         LOC = "G21";
-NET "rd0<10>"        LOC = "D21";
-NET "rd0<11>"        LOC = "D22";
-NET "rd0<12>"        LOC = "F18";
-NET "rd0<13>"        LOC = "E22";
-NET "rd0<14>"        LOC = "F23";
-NET "rd0<15>"        LOC = "G17";
-NET "rd0<16>"        LOC = "B18";
-NET "rd0<17>"        LOC = "C23";
-NET "rd0<18>"        LOC = "B23";
-NET "rd0<19>"        LOC = "A19";
-NET "rd0<20>"        LOC = "A20";
-NET "rd0<21>"        LOC = "A23";
-NET "rd0<22>"        LOC = "A24";
-NET "rd0<23>"        LOC = "C24";
-NET "rd0<24>"        LOC = "B25";
-NET "rd0<25>"        LOC = "C25";
-NET "rd0<26>"        LOC = "D26";
-NET "rd0<27>"        LOC = "C27";
-NET "rd0<28>"        LOC = "A29";
-NET "rd0<29>"        LOC = "C28";
-NET "rd0<30>"        LOC = "D27";
-NET "rd0<31>"        LOC = "B31";
-NET "rd0<*>"         IOSTANDARD = "SSTL18_II";
+NET "pin_inout_phymem_rd0<0>"         LOC = "E19";
+NET "pin_inout_phymem_rd0<1>"         LOC = "C17";
+NET "pin_inout_phymem_rd0<2>"         LOC = "D17";
+NET "pin_inout_phymem_rd0<3>"         LOC = "E21";
+NET "pin_inout_phymem_rd0<4>"         LOC = "D20";
+NET "pin_inout_phymem_rd0<5>"         LOC = "D16";
+NET "pin_inout_phymem_rd0<6>"         LOC = "D15";
+NET "pin_inout_phymem_rd0<7>"         LOC = "G20";
+NET "pin_inout_phymem_rd0<8>"         LOC = "F21";
+NET "pin_inout_phymem_rd0<9>"         LOC = "G21";
+NET "pin_inout_phymem_rd0<10>"        LOC = "D21";
+NET "pin_inout_phymem_rd0<11>"        LOC = "D22";
+NET "pin_inout_phymem_rd0<12>"        LOC = "F18";
+NET "pin_inout_phymem_rd0<13>"        LOC = "E22";
+NET "pin_inout_phymem_rd0<14>"        LOC = "F23";
+NET "pin_inout_phymem_rd0<15>"        LOC = "G17";
+NET "pin_inout_phymem_rd0<16>"        LOC = "B18";
+NET "pin_inout_phymem_rd0<17>"        LOC = "C23";
+NET "pin_inout_phymem_rd0<18>"        LOC = "B23";
+NET "pin_inout_phymem_rd0<19>"        LOC = "A19";
+NET "pin_inout_phymem_rd0<20>"        LOC = "A20";
+NET "pin_inout_phymem_rd0<21>"        LOC = "A23";
+NET "pin_inout_phymem_rd0<22>"        LOC = "A24";
+NET "pin_inout_phymem_rd0<23>"        LOC = "C24";
+NET "pin_inout_phymem_rd0<24>"        LOC = "B25";
+NET "pin_inout_phymem_rd0<25>"        LOC = "C25";
+NET "pin_inout_phymem_rd0<26>"        LOC = "D26";
+NET "pin_inout_phymem_rd0<27>"        LOC = "C27";
+NET "pin_inout_phymem_rd0<28>"        LOC = "A29";
+NET "pin_inout_phymem_rd0<29>"        LOC = "C28";
+NET "pin_inout_phymem_rd0<30>"        LOC = "D27";
+NET "pin_inout_phymem_rd0<31>"        LOC = "B31";
+NET "pin_inout_phymem_rd0<*>"         IOSTANDARD = "SSTL18_II";
 
-NET "rc0<0>"         LOC = "F20" | IOSTANDARD = "SSTL18_I";  # DM<0>
-NET "rc0<1>"         LOC = "F16" | IOSTANDARD = "SSTL18_I";  # DM<1>
-NET "rc0<2>"         LOC = "D25" | IOSTANDARD = "SSTL18_I";  # DM<2>
-NET "rc0<3>"         LOC = "A31" | IOSTANDARD = "SSTL18_I";  # DM<3>
-NET "rc0<4>"         LOC = "D14" | IOSTANDARD = "SSTL18_I";  # DQS<0>
-NET "rc0<5>"         LOC = "E17" | IOSTANDARD = "SSTL18_I";  # DQS<1>
-NET "rc0<6>"         LOC = "B26" | IOSTANDARD = "SSTL18_I";  # DQS<2>
-NET "rc0<7>"         LOC = "B27" | IOSTANDARD = "SSTL18_I";  # DQS<3>
-NET "rc0<8>"         LOC = "E14" | IOSTANDARD = "SSTL18_I";  # DQS#<0>
-NET "rc0<9>"         LOC = "E16" | IOSTANDARD = "SSTL18_I";  # DQS#<1>
-NET "rc0<10>"        LOC = "A25" | IOSTANDARD = "SSTL18_I";  # DQS#<2>
-NET "rc0<11>"        LOC = "A26" | IOSTANDARD = "SSTL18_I";  # DQS#<3>
-NET "rc0<12>"        LOC = "F24" | IOSTANDARD = "SSTL18_I";  # CK<0>
-NET "rc0<13>"        LOC = "A30" | IOSTANDARD = "SSTL18_I";  # CK<1>
-NET "rc0<14>"        LOC = "E24" | IOSTANDARD = "SSTL18_I";  # CK#<0>
-NET "rc0<15>"        LOC = "B30" | IOSTANDARD = "SSTL18_I";  # CK#<1>
-NET "rc0<16>"        LOC = "B22" | IOSTANDARD = "SSTL18_I";  # CKE
-NET "rc0<17>"        LOC = "D29" | IOSTANDARD = "SSTL18_I";  # ODT
-NET "rc0<18>"        LOC = "C22" | IOSTANDARD = "SSTL18_I";  # WE#
-NET "rc0<19>"        LOC = "C19" | IOSTANDARD = "SSTL18_I";  # CAS#
-NET "rc0<20>"        LOC = "C18" | IOSTANDARD = "SSTL18_I";  # RAS#
-NET "rc0<21>"        LOC = "C30" | IOSTANDARD = "SSTL18_I";  # CS#
+NET "pin_inout_phymem_rc0<0>"         LOC = "F20" | IOSTANDARD = "SSTL18_I";  # DM<0>
+NET "pin_inout_phymem_rc0<1>"         LOC = "F16" | IOSTANDARD = "SSTL18_I";  # DM<1>
+NET "pin_inout_phymem_rc0<2>"         LOC = "D25" | IOSTANDARD = "SSTL18_I";  # DM<2>
+NET "pin_inout_phymem_rc0<3>"         LOC = "A31" | IOSTANDARD = "SSTL18_I";  # DM<3>
+NET "pin_inout_phymem_rc0<4>"         LOC = "D14" | IOSTANDARD = "SSTL18_I";  # DQS<0>
+NET "pin_inout_phymem_rc0<5>"         LOC = "E17" | IOSTANDARD = "SSTL18_I";  # DQS<1>
+NET "pin_inout_phymem_rc0<6>"         LOC = "B26" | IOSTANDARD = "SSTL18_I";  # DQS<2>
+NET "pin_inout_phymem_rc0<7>"         LOC = "B27" | IOSTANDARD = "SSTL18_I";  # DQS<3>
+NET "pin_inout_phymem_rc0<8>"         LOC = "E14" | IOSTANDARD = "SSTL18_I";  # DQS#<0>
+NET "pin_inout_phymem_rc0<9>"         LOC = "E16" | IOSTANDARD = "SSTL18_I";  # DQS#<1>
+NET "pin_inout_phymem_rc0<10>"        LOC = "A25" | IOSTANDARD = "SSTL18_I";  # DQS#<2>
+NET "pin_inout_phymem_rc0<11>"        LOC = "A26" | IOSTANDARD = "SSTL18_I";  # DQS#<3>
+NET "pin_inout_phymem_rc0<12>"        LOC = "F24" | IOSTANDARD = "SSTL18_I";  # CK<0>
+NET "pin_inout_phymem_rc0<13>"        LOC = "A30" | IOSTANDARD = "SSTL18_I";  # CK<1>
+NET "pin_inout_phymem_rc0<14>"        LOC = "E24" | IOSTANDARD = "SSTL18_I";  # CK#<0>
+NET "pin_inout_phymem_rc0<15>"        LOC = "B30" | IOSTANDARD = "SSTL18_I";  # CK#<1>
+NET "pin_inout_phymem_rc0<16>"        LOC = "B22" | IOSTANDARD = "SSTL18_I";  # CKE
+NET "pin_inout_phymem_rc0<17>"        LOC = "D29" | IOSTANDARD = "SSTL18_I";  # ODT
+NET "pin_inout_phymem_rc0<18>"        LOC = "C22" | IOSTANDARD = "SSTL18_I";  # WE#
+NET "pin_inout_phymem_rc0<19>"        LOC = "C19" | IOSTANDARD = "SSTL18_I";  # CAS#
+NET "pin_inout_phymem_rc0<20>"        LOC = "C18" | IOSTANDARD = "SSTL18_I";  # RAS#
+NET "pin_inout_phymem_rc0<21>"        LOC = "C30" | IOSTANDARD = "SSTL18_I";  # CS#
 
 ###########################################################
 ##                                                        #
@@ -406,83 +406,83 @@ NET "rc0<21>"        LOC = "C30" | IOSTANDARD = "SSTL18_I";  # CS#
 ##                                                        #
 ###########################################################
 #
-#NET "ra1<0>"         LOC = "K24";
-#NET "ra1<1>"         LOC = "L24";
-#NET "ra1<2>"         LOC = "L25";
-#NET "ra1<3>"         LOC = "L26";
-#NET "ra1<4>"         LOC = "J24";
-#NET "ra1<5>"         LOC = "J25";
-#NET "ra1<6>"         LOC = "M25";
-#NET "ra1<7>"         LOC = "M26";
-#NET "ra1<8>"         LOC = "N24";
-#NET "ra1<9>"         LOC = "P24";
-#NET "ra1<10>"        LOC = "P25";
-#NET "ra1<11>"        LOC = "N25";
-#NET "ra1<12>"        LOC = "E29";
-#NET "ra1<13>"        LOC = "L16";
-#NET "ra1<14>"        LOC = "J22";
-#NET "ra1<15>"        LOC = "K21";
-#NET "ra1<16>"        LOC = "F29";  # BA<0>
-#NET "ra1<17>"        LOC = "G30";  # BA<1>
-#NET "ra1<18>"        LOC = "F30";  # BA<2>
-#NET "ra1<*>"         IOSTANDARD = "SSTL18_I";
+#NET "pin_out_phymem_ra1<0>"         LOC = "K24";
+#NET "pin_out_phymem_ra1<1>"         LOC = "L24";
+#NET "pin_out_phymem_ra1<2>"         LOC = "L25";
+#NET "pin_out_phymem_ra1<3>"         LOC = "L26";
+#NET "pin_out_phymem_ra1<4>"         LOC = "J24";
+#NET "pin_out_phymem_ra1<5>"         LOC = "J25";
+#NET "pin_out_phymem_ra1<6>"         LOC = "M25";
+#NET "pin_out_phymem_ra1<7>"         LOC = "M26";
+#NET "pin_out_phymem_ra1<8>"         LOC = "N24";
+#NET "pin_out_phymem_ra1<9>"         LOC = "P24";
+#NET "pin_out_phymem_ra1<10>"        LOC = "P25";
+#NET "pin_out_phymem_ra1<11>"        LOC = "N25";
+#NET "pin_out_phymem_ra1<12>"        LOC = "E29";
+#NET "pin_out_phymem_ra1<13>"        LOC = "L16";
+#NET "pin_out_phymem_ra1<14>"        LOC = "J22";
+#NET "pin_out_phymem_ra1<15>"        LOC = "K21";
+#NET "pin_out_phymem_ra1<16>"        LOC = "F29";  # BA<0>
+#NET "pin_out_phymem_ra1<17>"        LOC = "G30";  # BA<1>
+#NET "pin_out_phymem_ra1<18>"        LOC = "F30";  # BA<2>
+#NET "pin_out_phymem_ra1<*>"         IOSTANDARD = "SSTL18_I";
 #
-#NET "rd1<0>"         LOC = "J27";
-#NET "rd1<1>"         LOC = "G25";
-#NET "rd1<2>"         LOC = "G26";
-#NET "rd1<3>"         LOC = "H25";
-#NET "rd1<4>"         LOC = "H24";
-#NET "rd1<5>"         LOC = "F25";
-#NET "rd1<6>"         LOC = "F26";
-#NET "rd1<7>"         LOC = "G27";
-#NET "rd1<8>"         LOC = "E26";
-#NET "rd1<9>"         LOC = "E27";
-#NET "rd1<10>"        LOC = "K28";
-#NET "rd1<11>"        LOC = "L28";
-#NET "rd1<12>"        LOC = "K27";
-#NET "rd1<13>"        LOC = "M28";
-#NET "rd1<14>"        LOC = "N28";
-#NET "rd1<15>"        LOC = "P26";
-#NET "rd1<16>"        LOC = "L29";
-#NET "rd1<17>"        LOC = "H30";
-#NET "rd1<18>"        LOC = "G31";
-#NET "rd1<19>"        LOC = "J30";
-#NET "rd1<20>"        LOC = "J31";
-#NET "rd1<21>"        LOC = "L30";
-#NET "rd1<22>"        LOC = "M30";
-#NET "rd1<23>"        LOC = "N29";
-#NET "rd1<24>"        LOC = "M31";
-#NET "rd1<25>"        LOC = "N30";
-#NET "rd1<26>"        LOC = "T31";
-#NET "rd1<27>"        LOC = "R31";
-#NET "rd1<28>"        LOC = "U30";
-#NET "rd1<29>"        LOC = "T28";
-#NET "rd1<30>"        LOC = "T29";
-#NET "rd1<31>"        LOC = "U27";
-#NET "rd1<*>"         IOSTANDARD = "SSTL18_II";
+#NET "pin_inout_phymem_rd1<0>"         LOC = "J27";
+#NET "pin_inout_phymem_rd1<1>"         LOC = "G25";
+#NET "pin_inout_phymem_rd1<2>"         LOC = "G26";
+#NET "pin_inout_phymem_rd1<3>"         LOC = "H25";
+#NET "pin_inout_phymem_rd1<4>"         LOC = "H24";
+#NET "pin_inout_phymem_rd1<5>"         LOC = "F25";
+#NET "pin_inout_phymem_rd1<6>"         LOC = "F26";
+#NET "pin_inout_phymem_rd1<7>"         LOC = "G27";
+#NET "pin_inout_phymem_rd1<8>"         LOC = "E26";
+#NET "pin_inout_phymem_rd1<9>"         LOC = "E27";
+#NET "pin_inout_phymem_rd1<10>"        LOC = "K28";
+#NET "pin_inout_phymem_rd1<11>"        LOC = "L28";
+#NET "pin_inout_phymem_rd1<12>"        LOC = "K27";
+#NET "pin_inout_phymem_rd1<13>"        LOC = "M28";
+#NET "pin_inout_phymem_rd1<14>"        LOC = "N28";
+#NET "pin_inout_phymem_rd1<15>"        LOC = "P26";
+#NET "pin_inout_phymem_rd1<16>"        LOC = "L29";
+#NET "pin_inout_phymem_rd1<17>"        LOC = "H30";
+#NET "pin_inout_phymem_rd1<18>"        LOC = "G31";
+#NET "pin_inout_phymem_rd1<19>"        LOC = "J30";
+#NET "pin_inout_phymem_rd1<20>"        LOC = "J31";
+#NET "pin_inout_phymem_rd1<21>"        LOC = "L30";
+#NET "pin_inout_phymem_rd1<22>"        LOC = "M30";
+#NET "pin_inout_phymem_rd1<23>"        LOC = "N29";
+#NET "pin_inout_phymem_rd1<24>"        LOC = "M31";
+#NET "pin_inout_phymem_rd1<25>"        LOC = "N30";
+#NET "pin_inout_phymem_rd1<26>"        LOC = "T31";
+#NET "pin_inout_phymem_rd1<27>"        LOC = "R31";
+#NET "pin_inout_phymem_rd1<28>"        LOC = "U30";
+#NET "pin_inout_phymem_rd1<29>"        LOC = "T28";
+#NET "pin_inout_phymem_rd1<30>"        LOC = "T29";
+#NET "pin_inout_phymem_rd1<31>"        LOC = "U27";
+#NET "pin_inout_phymem_rd1<*>"         IOSTANDARD = "SSTL18_II";
 #
-#NET "rc1<0>"         LOC = "H27" | IOSTANDARD = "SSTL18_I";  # DM<0>
-#NET "rc1<1>"         LOC = "P27" | IOSTANDARD = "SSTL18_I";  # DM<1>
-#NET "rc1<2>"         LOC = "P29" | IOSTANDARD = "SSTL18_I";  # DM<2>
-#NET "rc1<3>"         LOC = "U28" | IOSTANDARD = "SSTL18_I";  # DM<3>
-#NET "rc1<4>"         LOC = "H28" | IOSTANDARD = "SSTL18_I";  # DQS<0>
-#NET "rc1<5>"         LOC = "E28" | IOSTANDARD = "SSTL18_I";  # DQS<1>
-#NET "rc1<6>"         LOC = "K31" | IOSTANDARD = "SSTL18_I";  # DQS<2>
-#NET "rc1<7>"         LOC = "P31" | IOSTANDARD = "SSTL18_I";  # DQS<3>
-#NET "rc1<8>"         LOC = "G28" | IOSTANDARD = "SSTL18_I";  # DQS#<0>
-#NET "rc1<9>"         LOC = "F28" | IOSTANDARD = "SSTL18_I";  # DQS#<1>
-#NET "rc1<10>"        LOC = "L31" | IOSTANDARD = "SSTL18_I";  # DQS#<2>
-#NET "rc1<11>"        LOC = "P30" | IOSTANDARD = "SSTL18_I";  # DQS#<3>
-#NET "rc1<12>"        LOC = "R24" | IOSTANDARD = "SSTL18_I";  # CK<0>
-#NET "rc1<13>"        LOC = "U25" | IOSTANDARD = "SSTL18_I";  # CK<1>
-#NET "rc1<14>"        LOC = "T24" | IOSTANDARD = "SSTL18_I";  # CK#<0>
-#NET "rc1<15>"        LOC = "T25" | IOSTANDARD = "SSTL18_I";  # CK#<1>
-#NET "rc1<16>"        LOC = "E31" | IOSTANDARD = "SSTL18_I";  # CKE
-#NET "rc1<17>"        LOC = "R27" | IOSTANDARD = "SSTL18_I";  # ODT
-#NET "rc1<18>"        LOC = "F31" | IOSTANDARD = "SSTL18_I";  # WE#
-#NET "rc1<19>"        LOC = "H29" | IOSTANDARD = "SSTL18_I";  # CAS#
-#NET "rc1<20>"        LOC = "J29" | IOSTANDARD = "SSTL18_I";  # RAS#
-#NET "rc1<21>"        LOC = "R26" | IOSTANDARD = "SSTL18_I";  # CS#
+#NET "pin_inout_phymem_rc1<0>"         LOC = "H27" | IOSTANDARD = "SSTL18_I";  # DM<0>
+#NET "pin_inout_phymem_rc1<1>"         LOC = "P27" | IOSTANDARD = "SSTL18_I";  # DM<1>
+#NET "pin_inout_phymem_rc1<2>"         LOC = "P29" | IOSTANDARD = "SSTL18_I";  # DM<2>
+#NET "pin_inout_phymem_rc1<3>"         LOC = "U28" | IOSTANDARD = "SSTL18_I";  # DM<3>
+#NET "pin_inout_phymem_rc1<4>"         LOC = "H28" | IOSTANDARD = "SSTL18_I";  # DQS<0>
+#NET "pin_inout_phymem_rc1<5>"         LOC = "E28" | IOSTANDARD = "SSTL18_I";  # DQS<1>
+#NET "pin_inout_phymem_rc1<6>"         LOC = "K31" | IOSTANDARD = "SSTL18_I";  # DQS<2>
+#NET "pin_inout_phymem_rc1<7>"         LOC = "P31" | IOSTANDARD = "SSTL18_I";  # DQS<3>
+#NET "pin_inout_phymem_rc1<8>"         LOC = "G28" | IOSTANDARD = "SSTL18_I";  # DQS#<0>
+#NET "pin_inout_phymem_rc1<9>"         LOC = "F28" | IOSTANDARD = "SSTL18_I";  # DQS#<1>
+#NET "pin_inout_phymem_rc1<10>"        LOC = "L31" | IOSTANDARD = "SSTL18_I";  # DQS#<2>
+#NET "pin_inout_phymem_rc1<11>"        LOC = "P30" | IOSTANDARD = "SSTL18_I";  # DQS#<3>
+#NET "pin_inout_phymem_rc1<12>"        LOC = "R24" | IOSTANDARD = "SSTL18_I";  # CK<0>
+#NET "pin_inout_phymem_rc1<13>"        LOC = "U25" | IOSTANDARD = "SSTL18_I";  # CK<1>
+#NET "pin_inout_phymem_rc1<14>"        LOC = "T24" | IOSTANDARD = "SSTL18_I";  # CK#<0>
+#NET "pin_inout_phymem_rc1<15>"        LOC = "T25" | IOSTANDARD = "SSTL18_I";  # CK#<1>
+#NET "pin_inout_phymem_rc1<16>"        LOC = "E31" | IOSTANDARD = "SSTL18_I";  # CKE
+#NET "pin_inout_phymem_rc1<17>"        LOC = "R27" | IOSTANDARD = "SSTL18_I";  # ODT
+#NET "pin_inout_phymem_rc1<18>"        LOC = "F31" | IOSTANDARD = "SSTL18_I";  # WE#
+#NET "pin_inout_phymem_rc1<19>"        LOC = "H29" | IOSTANDARD = "SSTL18_I";  # CAS#
+#NET "pin_inout_phymem_rc1<20>"        LOC = "J29" | IOSTANDARD = "SSTL18_I";  # RAS#
+#NET "pin_inout_phymem_rc1<21>"        LOC = "R26" | IOSTANDARD = "SSTL18_I";  # CS#
 #
 ############################################################
 ###                                                        #
@@ -490,61 +490,61 @@ NET "rc0<21>"        LOC = "C30" | IOSTANDARD = "SSTL18_I";  # CS#
 ###                                                        #
 ############################################################
 #
-#NET "ra2<0>"         LOC = "AH23";
-#NET "ra2<1>"         LOC = "AJ22";
-#NET "ra2<2>"         LOC = "AL13";
-#NET "ra2<3>"         LOC = "AK13";
-#NET "ra2<4>"         LOC = "AP16";
-#NET "ra2<5>"         LOC = "AP17";
-#NET "ra2<6>"         LOC = "AN15";
-#NET "ra2<7>"         LOC = "AP15";
-#NET "ra2<8>"         LOC = "AM17";
-#NET "ra2<9>"         LOC = "AN17";
-#NET "ra2<10>"        LOC = "AG22";
-#NET "ra2<11>"        LOC = "AH22";
-#NET "ra2<12>"        LOC = "AH12";
-#NET "ra2<13>"        LOC = "AG13";
-#NET "ra2<14>"        LOC = "AH20";
-#NET "ra2<15>"        LOC = "AH19";
-#NET "ra2<16>"        LOC = "AH14";
-#NET "ra2<17>"        LOC = "AH13";
-#NET "ra2<18>"        LOC = "AG21";
-#NET "ra2<19>"        LOC = "AH15";
-#NET "ra2<20>"        LOC = "AG15";
-#NET "ra2<21>"        LOC = "AG18";
-#NET "ra2<22>"        LOC = "AF19";
-#NET "ra2<23>"        LOC = "AF18";
-#NET "ra2<*>"         IOSTANDARD = "HSTL_I_DCI";
+#NET "pin_out_phymem_ra2<0>"         LOC = "AH23";
+#NET "pin_out_phymem_ra2<1>"         LOC = "AJ22";
+#NET "pin_out_phymem_ra2<2>"         LOC = "AL13";
+#NET "pin_out_phymem_ra2<3>"         LOC = "AK13";
+#NET "pin_out_phymem_ra2<4>"         LOC = "AP16";
+#NET "pin_out_phymem_ra2<5>"         LOC = "AP17";
+#NET "pin_out_phymem_ra2<6>"         LOC = "AN15";
+#NET "pin_out_phymem_ra2<7>"         LOC = "AP15";
+#NET "pin_out_phymem_ra2<8>"         LOC = "AM17";
+#NET "pin_out_phymem_ra2<9>"         LOC = "AN17";
+#NET "pin_out_phymem_ra2<10>"        LOC = "AG22";
+#NET "pin_out_phymem_ra2<11>"        LOC = "AH22";
+#NET "pin_out_phymem_ra2<12>"        LOC = "AH12";
+#NET "pin_out_phymem_ra2<13>"        LOC = "AG13";
+#NET "pin_out_phymem_ra2<14>"        LOC = "AH20";
+#NET "pin_out_phymem_ra2<15>"        LOC = "AH19";
+#NET "pin_out_phymem_ra2<16>"        LOC = "AH14";
+#NET "pin_out_phymem_ra2<17>"        LOC = "AH13";
+#NET "pin_out_phymem_ra2<18>"        LOC = "AG21";
+#NET "pin_out_phymem_ra2<19>"        LOC = "AH15";
+#NET "pin_out_phymem_ra2<20>"        LOC = "AG15";
+#NET "pin_out_phymem_ra2<21>"        LOC = "AG18";
+#NET "pin_out_phymem_ra2<22>"        LOC = "AF19";
+#NET "pin_out_phymem_ra2<23>"        LOC = "AF18";
+#NET "pin_out_phymem_ra2<*>"         IOSTANDARD = "HSTL_I_DCI";
 #
-#NET "rd2<0>"         LOC = "AK24";
-#NET "rd2<1>"         LOC = "AJ14";
-#NET "rd2<2>"         LOC = "AK14";
-#NET "rd2<3>"         LOC = "AK23";
-#NET "rd2<4>"         LOC = "AK22";
-#NET "rd2<5>"         LOC = "AL15";
-#NET "rd2<6>"         LOC = "AL14";
-#NET "rd2<7>"         LOC = "AJ21";
-##NET "rdp2<0>"        LOC = "AJ20"; # Parity bit
-#NET "rd2<8>"         LOC = "AK16";
-#NET "rd2<9>"         LOC = "AL16";
-#NET "rd2<10>"        LOC = "AL21";
-#NET "rd2<11>"        LOC = "AK21";
-#NET "rd2<12>"        LOC = "AL19";
-#NET "rd2<13>"        LOC = "AL20";
-#NET "rd2<14>"        LOC = "AK18";
-#NET "rd2<15>"        LOC = "AJ19";
-##NET "rdp2<1>"        LOC = "AK19"; # Parity bit
-#NET "rd2<*>"         IOSTANDARD = "HSTL_II";
+#NET "pin_inout_phymem_rd2<0>"         LOC = "AK24";
+#NET "pin_inout_phymem_rd2<1>"         LOC = "AJ14";
+#NET "pin_inout_phymem_rd2<2>"         LOC = "AK14";
+#NET "pin_inout_phymem_rd2<3>"         LOC = "AK23";
+#NET "pin_inout_phymem_rd2<4>"         LOC = "AK22";
+#NET "pin_inout_phymem_rd2<5>"         LOC = "AL15";
+#NET "pin_inout_phymem_rd2<6>"         LOC = "AL14";
+#NET "pin_inout_phymem_rd2<7>"         LOC = "AJ21";
+##NET "pin_inout_phymem_rdp2<0>"        LOC = "AJ20"; # Parity bit
+#NET "pin_inout_phymem_rd2<8>"         LOC = "AK16";
+#NET "pin_inout_phymem_rd2<9>"         LOC = "AL16";
+#NET "pin_inout_phymem_rd2<10>"        LOC = "AL21";
+#NET "pin_inout_phymem_rd2<11>"        LOC = "AK21";
+#NET "pin_inout_phymem_rd2<12>"        LOC = "AL19";
+#NET "pin_inout_phymem_rd2<13>"        LOC = "AL20";
+#NET "pin_inout_phymem_rd2<14>"        LOC = "AK18";
+#NET "pin_inout_phymem_rd2<15>"        LOC = "AJ19";
+##NET "pin_inout_phymem_rdp2<1>"        LOC = "AK19"; # Parity bit
+#NET "pin_inout_phymem_rd2<*>"         IOSTANDARD = "HSTL_II";
 #
-#NET "rc2<0>"         LOC = "AH24" | IOSTANDARD = "HSTL_I_DCI"; # BWE#<0>
-#NET "rc2<1>"         LOC = "AJ24" | IOSTANDARD = "HSTL_I_DCI"; # BWE#<0>
-#NET "rc2<2>"         LOC = "AK12" | IOSTANDARD = "HSTL_I_DCI"; # LD#
-#NET "rc2<3>"         LOC = "AJ12" | IOSTANDARD = "HSTL_I_DCI"; # RW#
-#NET "rc2<4>"         LOC = "AM15" | IOSTANDARD = "HSTL_I_DCI"; # K
-#NET "rc2<5>"         LOC = "AM16" | IOSTANDARD = "HSTL_I_DCI"; # K#
-#NET "rc2<6>"         LOC = "AJ16" | IOSTANDARD = "HSTL_I_DCI"; # CQ
-#NET "rc2<7>"         LOC = "AJ15" | IOSTANDARD = "HSTL_I_DCI"; # CQ#
-#NET "rc2<8>"         LOC = "AE18" | IOSTANDARD = "HSTL_I_DCI"; # DOFF#
+#NET "pin_inout_phymem_rc2<0>"         LOC = "AH24" | IOSTANDARD = "HSTL_I_DCI"; # BWE#<0>
+#NET "pin_inout_phymem_rc2<1>"         LOC = "AJ24" | IOSTANDARD = "HSTL_I_DCI"; # BWE#<0>
+#NET "pin_inout_phymem_rc2<2>"         LOC = "AK12" | IOSTANDARD = "HSTL_I_DCI"; # LD#
+#NET "pin_inout_phymem_rc2<3>"         LOC = "AJ12" | IOSTANDARD = "HSTL_I_DCI"; # RW#
+#NET "pin_inout_phymem_rc2<4>"         LOC = "AM15" | IOSTANDARD = "HSTL_I_DCI"; # K
+#NET "pin_inout_phymem_rc2<5>"         LOC = "AM16" | IOSTANDARD = "HSTL_I_DCI"; # K#
+#NET "pin_inout_phymem_rc2<6>"         LOC = "AJ16" | IOSTANDARD = "HSTL_I_DCI"; # CQ
+#NET "pin_inout_phymem_rc2<7>"         LOC = "AJ15" | IOSTANDARD = "HSTL_I_DCI"; # CQ#
+#NET "pin_inout_phymem_rc2<8>"         LOC = "AE18" | IOSTANDARD = "HSTL_I_DCI"; # DOFF#
 
 ##########################################################
 #                                                        #
@@ -633,28 +633,28 @@ TIMEGRP "LBUS_PADS" OFFSET = OUT 9.8ns AFTER  "lclk";
 #      tmclk' = 3.0 - 0.25 = 2.75ns                      #
 #                                                        #
 ##########################################################
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT0" TNM = "FFS:MEMCLK2X90_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT1" TNM = "FFS:MEMCLK45_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT2" TNM = "FFS:MEMCLK2X0_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT3" TNM = "FFS:MEMCLK0_FFS";
-PIN "m_pll_mem_ctrl/pll_0.CLKOUT3" TNM = "RAMS:MEMCLK0_RAMS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT0" TNM = "FFS:MEMCLK2X90_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT1" TNM = "FFS:MEMCLK45_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT2" TNM = "FFS:MEMCLK2X0_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT3" TNM = "FFS:MEMCLK0_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT3" TNM = "RAMS:MEMCLK0_RAMS";
 
 TIMEGRP "MEMCLK_FFS"     = "MEMCLK0_FFS":
                            "MEMCLK45_FFS":
                            "MEMCLK2X0_FFS":
                            "MEMCLK2X90_FFS";
 
-TIMEGRP "RA0_PADS"       = pads(ra0<*>);
-TIMEGRP "RC0_PADS"       = pads(rc0<*>);
-TIMEGRP "RD0_PADS"       = pads(rd0<*>);
+TIMEGRP "RA0_PADS"       = pads(pin_out_phymem_ra0<*>);
+TIMEGRP "RC0_PADS"       = pads(pin_inout_phymem_rc0<*>);
+TIMEGRP "RD0_PADS"       = pads(pin_inout_phymem_rd0<*>);
 
-#TIMEGRP "RA1_PADS"       = pads(ra1<*>);
-#TIMEGRP "RC1_PADS"       = pads(rc1<*>);
-#TIMEGRP "RD1_PADS"       = pads(rd1<*>);
+#TIMEGRP "RA1_PADS"       = pads(pin_out_phymem_ra1<*>);
+#TIMEGRP "RC1_PADS"       = pads(pin_inout_phymem_rc1<*>);
+#TIMEGRP "RD1_PADS"       = pads(pin_inout_phymem_rd1<*>);
 #
-#TIMEGRP "RA2_PADS"       = pads(ra2<*>);
-#TIMEGRP "RC2_PADS"       = pads(rc2<*>);
-#TIMEGRP "RD2_PADS"       = pads(rd2<*>);
+#TIMEGRP "RA2_PADS"       = pads(pin_out_phymem_ra2<*>);
+#TIMEGRP "RC2_PADS"       = pads(pin_inout_phymem_rc2<*>);
+#TIMEGRP "RD2_PADS"       = pads(pin_inout_phymem_rd2<*>);
 
 # Group together ZBT SRAM pads
 TIMEGRP "MEM_PADS"       = "RA0_PADS":
