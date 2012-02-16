@@ -34,6 +34,8 @@ use work.sata_unit_pkg.all;
 
 entity sata_player is
 generic(
+G_SATAH_NUM : integer:=0;--индекс модуля sata_host
+G_GT_CH_NUM : integer:=0;--индекс канала gt
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
@@ -251,6 +253,8 @@ p_in_rst            => p_in_rst
 --//----------------------------------
 m_phy_tx : sata_player_tx
 generic map(
+G_SATAH_NUM => G_SATAH_NUM,
+G_GT_CH_NUM => G_GT_CH_NUM,
 G_GT_DBUS  => G_GT_DBUS,
 G_DBG      => G_DBG,
 G_SIM      => G_SIM
@@ -259,7 +263,7 @@ port map(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign        => '0',--i_rxtype(C_TALIGN),
+--p_in_rxalign        => '0',--i_rxtype(C_TALIGN),
 p_in_linkup         => i_oob_status(C_PSTAT_DET_ESTABLISH_ON_BIT),
 p_in_dev_detect     => i_oob_status(C_PSTAT_DET_DEV_ON_BIT),
 p_in_d10_2_send_dis => i_d10_2_senddis,

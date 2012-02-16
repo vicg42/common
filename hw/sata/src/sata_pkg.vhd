@@ -458,7 +458,7 @@ constant C_OOB_TIMEOUT_10ms              : integer:=10#750000#;--=10ms на 75MHz
 constant C_FSATA_GEN1 : integer:=0;
 constant C_FSATA_GEN2 : integer:=1;
 constant C_FSATA_GEN_COUNT : integer:=2;
-constant C_FSATA_GEN_DEFAULT : integer:=C_FSATA_GEN2;
+constant C_FSATA_GEN_DEFAULT : integer:=C_SATA_GEN_DEFAULT;
 
 
 --тип символа в 8b/10b

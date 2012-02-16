@@ -112,20 +112,19 @@ p_out_tst(31 downto 16)<=(others=>'0');
 --//
 --//###################################
 gen_hddon : for i in 0 to G_HDD_COUNT-1 generate
-tst_hdd_wr(i)<=p_in_usr_txd_wr or p_in_usr_rxd_rd;
+tst_hdd_wr(i)<=(p_in_usr_txd_wr or p_in_usr_rxd_rd) and p_in_sh_mask(i);
 
 --//dsn_hdd_cmdbuf -> sh_cmdbuf
-p_out_sh_cxd_sof_n(i)<=p_in_usr_cxd_sof_n when p_in_sh_mask(i)='1' else '1';
-p_out_sh_cxd_eof_n(i)<=p_in_usr_cxd_eof_n when p_in_sh_mask(i)='1' else '1';
-p_out_sh_cxd_src_rdy_n(i)<=p_in_usr_cxd_src_rdy_n when p_in_sh_mask(i)='1' else '1';
+p_out_sh_cxd_sof_n(i)    <=p_in_usr_cxd_sof_n     or not p_in_sh_mask(i);
+p_out_sh_cxd_eof_n(i)    <=p_in_usr_cxd_eof_n     or not p_in_sh_mask(i);
+p_out_sh_cxd_src_rdy_n(i)<=p_in_usr_cxd_src_rdy_n or not p_in_sh_mask(i);
 p_out_sh_cxd(i)<=p_in_usr_cxd;
 
 --//dsn_hdd_rxbuf <- sh_rxbuf
-i_sh_rxd_rd(i)<=p_in_usr_rxd_rd when p_in_sh_mask(i)='1' else '0';
-p_out_sh_rxd_rd(i)<=i_sh_rxd_rd(i) or p_in_sh_padding;
+p_out_sh_rxd_rd(i)<=(p_in_usr_rxd_rd and p_in_sh_mask(i)) or p_in_sh_padding;
 
 p_out_usr_rxd(32*(i+1)-1 downto 32*i)<=p_in_sh_rxd(i);
-i_sh_rxbuf_empty(i)<=p_in_sh_rxbuf_status(i).empty;
+i_sh_rxbuf_empty(i)<=p_in_sh_rxbuf_status(i).empty and p_in_sh_mask(i);
 
 --//dsn_hdd_txbuf -> sh_txbuf
 process(p_in_rst,p_in_clk)
@@ -136,7 +135,7 @@ begin
     i_sh_txd_wr(i)<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     p_out_sh_txd(i)<=p_in_usr_txd(32*(i+1)-1 downto 32*i);
-    i_sh_txbuf_full(i)<=p_in_sh_txbuf_status(i).pfull;
+    i_sh_txbuf_full(i)<=p_in_sh_txbuf_status(i).pfull and p_in_sh_mask(i);
     if p_in_sh_mask(i)='1' then
       i_sh_txd_wr(i)<=p_in_usr_txd_wr;
     else

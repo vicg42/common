@@ -132,6 +132,8 @@ lbaend   : std_logic;
 stop     : std_logic;
 end record;
 signal i_usrmode                   : TUserMode;
+signal i_raidcmd                   : std_logic_vector(C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT downto 0);
+signal i_satacmd                   : std_logic_vector(C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT downto 0);
 
 signal i_lba_end                   : std_logic_vector(i_cmdpkt.lba'range);
 
@@ -418,8 +420,6 @@ end process;
 
 --//Прием командного пакета
 process(p_in_rst,p_in_clk)
-  variable raidcmd: std_logic_vector(C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT downto 0);
-  variable satacmd: std_logic_vector(C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT downto 0);
 begin
   if p_in_rst='1' then
     i_cmdpkt.ctrl<=(others=>'0');
@@ -431,54 +431,10 @@ begin
     i_cmdpkt.device<=(others=>'0');
     i_cmdpkt.raid_cl<=(others=>'0');
 
-    i_usrmode.stop<='0';
-    i_usrmode.sw<='0';
-    i_usrmode.hw<='0';
-    i_usrmode.lbaend<='0';
-
-    i_sh_cmd_en<='0';
-
   elsif p_in_clk'event and p_in_clk='1' then
 
     if p_in_usr_cxd_wr='1' then
       if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_USRCTRL, i_cmdpkt_cnt'length) then i_cmdpkt.ctrl<=p_in_usr_cxd;
-
-          --//Декодирование режима работы:
-          raidcmd:=p_in_usr_cxd(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT);
-          satacmd:=p_in_usr_cxd(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT);
-
-          if    raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, raidcmd'length) then
-            i_usrmode.stop<='1';
-            i_usrmode.sw<='0';
-            i_usrmode.hw<='0';
-            i_usrmode.lbaend<='0';
-
-          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, raidcmd'length) then
-            i_usrmode.stop<='0';
-            i_usrmode.sw<='1';
-            i_usrmode.hw<='0';
-            i_usrmode.lbaend<='0';
-
-          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HW, raidcmd'length) then
-            i_usrmode.stop<='0';
-            i_usrmode.sw<='0';
-            i_usrmode.hw<='1';
-            i_usrmode.lbaend<='0';
-
-          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_LBAEND, raidcmd'length) then
-            i_usrmode.stop<='0';
-            i_usrmode.sw<='0';
-            i_usrmode.hw<='0';
-            i_usrmode.lbaend<='1';
-
-          end if;
-
-          if    satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, satacmd'length) or
-                satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACONTROL, satacmd'length) then
-            i_sh_cmd_en<='1';
-          else
-            i_sh_cmd_en<='0';
-          end if;
 
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_FEATURE, i_cmdpkt_cnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd( 7 downto 0);
@@ -499,6 +455,18 @@ begin
 
   end if;
 end process;
+
+--//Декодирование режима работы:
+i_raidcmd<=i_cmdpkt.ctrl(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT);
+i_satacmd<=i_cmdpkt.ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT);
+
+i_usrmode.stop  <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP  , i_raidcmd'length) else '0';
+i_usrmode.sw    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW    , i_raidcmd'length) else '0';
+i_usrmode.hw    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HW    , i_raidcmd'length) else '0';
+i_usrmode.lbaend<='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_LBAEND, i_raidcmd'length) else '0';
+
+i_sh_cmd_en<='1' when i_satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, i_satacmd'length) or
+                      i_satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACONTROL, i_satacmd'length) else '0';
 
 
 --//Отправка командного пакета в модуль sata_host.vhd

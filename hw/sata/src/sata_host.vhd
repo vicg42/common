@@ -496,6 +496,8 @@ p_in_rst          => p_in_rst
 
 m_player : sata_player
 generic map(
+G_SATAH_NUM => G_SATAH_NUM,
+G_GT_CH_NUM => i,
 G_GT_DBUS   => G_GT_DBUS,
 G_DBG       => G_DBG,
 G_SIM       => G_SIM

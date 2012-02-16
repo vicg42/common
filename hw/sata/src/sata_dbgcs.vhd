@@ -234,10 +234,10 @@ i_dbgcs_data(149)<=p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FI
 i_dbgcs_data(150)<=p_in_reg_update.fpio_e;--//Обновление Shadow Reg в результате корректного завершения АТА комманды
 i_dbgcs_data(151)<=p_in_reg_update.fsdb;  --//Обновление Shadow Reg по приему FIS_SetDevice_Bits
 
-i_dbgcs_data(152)<=p_in_dbg.alayer.opt.link_up;
-i_dbgcs_data(153)<=p_in_dbg.alayer.opt.link_break;
-i_dbgcs_data(154)<=p_in_dbg.alayer.opt.reg_shadow_wr_done;
-i_dbgcs_data(155)<=p_in_dbg.alayer.opt.reg_shadow_wr;
+i_dbgcs_data(152)<=p_in_rxcharisk(0);--p_in_dbg.alayer.opt.link_up;
+i_dbgcs_data(153)<=p_in_rxcharisk(1);--p_in_dbg.alayer.opt.link_break;
+i_dbgcs_data(154)<=p_in_rxcharisk(2);--p_in_dbg.alayer.opt.reg_shadow_wr_done;
+i_dbgcs_data(155)<=p_in_rxcharisk(3);--p_in_dbg.alayer.opt.reg_shadow_wr;
 
 i_dbgcs_data(156)<=p_in_phy_sync;
 i_dbgcs_data(159 downto 157)<=(others=>'0');

@@ -46,7 +46,7 @@ end record;
 --//Запись чтение RAM через CFG/Map:
 type THDDCfgRAMI is record
 clk     : std_logic;
-din     : std_logic_vector(31 downto 0);
+din     : std_logic_vector(15 downto 0);
 wr      : std_logic;
 rd      : std_logic;
 
@@ -57,7 +57,7 @@ sel     : std_logic;--Подключение CFG к ОЗУ
 end record;
 
 type THDDCfgRAMO is record
-dout    : std_logic_vector(31 downto 0);
+dout    : std_logic_vector(15 downto 0);
 rd_rdy  : std_logic;
 wr_rdy  : std_logic;
 end record;
@@ -78,7 +78,6 @@ dmacfg  : TDMAcfg;
 tstgen  : THDDTstGen;
 hwlog   : THWLog;
 usr     : std_logic_vector(31 downto 0);
-usrif   : std_logic;         --//Пользовательский интерфейс
 ram_wr_i: THDDCfgRAMI;
 greset  : std_logic;         --//Глобальный сброс всего кроме CFG
 end record;
@@ -99,7 +98,6 @@ port(
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
-p_in_cfg_if               : in   std_logic;
 p_in_cfg_clk              : in   std_logic;
 
 p_in_cfg_adr              : in   std_logic_vector(7 downto 0);

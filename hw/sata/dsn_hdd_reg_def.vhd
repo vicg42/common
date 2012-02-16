@@ -71,8 +71,8 @@ constant C_HDD_REG_CTRLL_TST_SPD_L_BIT          : integer:=5;
 constant C_HDD_REG_CTRLL_TST_SPD_M_BIT          : integer:=12;
 constant C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT   : integer:=13;
 constant C_HDD_REG_CTRLL_HWLOG_ON_BIT           : integer:=14;
-constant C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT     : integer:=15;
-constant C_HDD_REG_CTRLL_LAST_BIT               : integer:=C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT;
+constant C_HDD_REG_CTRLL_DBGLED_OFF_BIT         : integer:=15;
+constant C_HDD_REG_CTRLL_LAST_BIT               : integer:=C_HDD_REG_CTRLL_DBGLED_OFF_BIT;
 
 --//Register C_HDD_REG_CTRL_M / Bit Map:
 constant C_HDD_REG_CTRLM_DIR                    : integer:=0; --0/1 - READ/WRITE

@@ -42,6 +42,7 @@ constant C_SH_FPGA_TYPE_COUNT: integer:=4;
 constant C_SH_FPGA_TYPE      : integer:=C_PCFG_HDD_FPGA_TYPE;  --0;
 constant C_SH_MAIN_NUM       : integer:=C_PCFG_HDD_SH_MAIN_NUM;--0; --//определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
 
+constant C_SATA_GEN_DEFAULT  : integer:=C_PCFG_HDD_SATA_GEN_DEFAULT;
 
 ---------------------------------------------------------
 --Константы

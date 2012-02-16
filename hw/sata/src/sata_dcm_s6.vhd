@@ -21,6 +21,7 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.sata_pkg.all;
 
 entity sata_dcm is
 generic (
@@ -41,7 +42,7 @@ end sata_dcm;
 
 architecture behavioral of sata_dcm is
 
-constant C_CLKDV_DIVIDE   : real:=selval_real(4.0, 2.0, cmpval(G_GT_DBUS, 32));
+constant CI_CLKDV_DIVIDE   : real:=selval_real(4.0, 2.0, (cmpval(G_GT_DBUS, 32) and cmpval(C_FSATA_GEN_DEFAULT, C_FSATA_GEN1)) );
 
 --signal g_dcm_clkin    : std_logic;
 signal g_dcm_clk0     : std_logic;
@@ -64,7 +65,7 @@ bufg_dcm_clkfb : BUFIO2FB port map (I=>g_dcm_clk0, O=>g_dcm_clkfb);
 
 m_dcm : DCM_SP
 generic map(
-CLKDV_DIVIDE           => C_CLKDV_DIVIDE,
+CLKDV_DIVIDE           => CI_CLKDV_DIVIDE,
 CLKFX_DIVIDE           => 1,
 CLKFX_MULTIPLY         => 2,
 CLKIN_DIVIDE_BY_2      => FALSE,  -- разреш./запр. делить CLKIN на 2

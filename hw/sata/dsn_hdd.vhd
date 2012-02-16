@@ -45,7 +45,6 @@ port(
 -------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 -------------------------------
-p_in_cfg_if               : in   std_logic;                      --//Выбор интерфейса управления:0/1 - PCIEXP/UART
 p_in_cfg_clk              : in   std_logic;                      --//
 
 p_in_cfg_adr              : in   std_logic_vector(7 downto 0);   --//
@@ -397,9 +396,9 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_ADR_M, i_cfg_adr_cnt'length) then rxd:=h_reg_rbuf_adr(31 downto 16);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_TRNLEN, i_cfg_adr_cnt'length) then rxd:=h_reg_rbuf_trnlen;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_REQLEN, i_cfg_adr_cnt'length) then rxd:=h_reg_rbuf_reqlen;
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) then
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) then
 --          if i_cr_dcnt='0' then
---            rxd:=p_in_rbuf_status.ram_wr_o.dout(15 downto 0);
+            rxd:=p_in_rbuf_status.ram_wr_o.dout(rxd'range);
 --          else
 --            rxd:=i_cr_dout_save;
 --          end if;
@@ -412,10 +411,12 @@ begin
   end if;
 end process;
 
+p_out_cfg_txrdy<='1' when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.wr_rdy;
+p_out_cfg_rxrdy<='1' when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.rd_rdy;
 
-p_out_cfg_txrdy<='1';-- when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.wr_rdy;
-p_out_cfg_rxrdy<='1';-- when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.rd_rdy or sr_cr_rd_rdy;
-
+--p_out_cfg_txrdy<='1';-- when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.wr_rdy;
+--p_out_cfg_rxrdy<='1';-- when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else p_in_rbuf_status.ram_wr_o.rd_rdy or sr_cr_rd_rdy;
+--
 ----//Запись/чтение ОЗУ через CFG
 --process(p_in_cfg_clk)
 --begin
@@ -476,7 +477,7 @@ i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_HDD_REG_CTRLL_ERR_CLR_BIT)
 i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=p_in_rbuf_status.err and not i_reg_ctrl_l(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<='0';
-i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<=i_reg_ctrl_l(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT);
+i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<='0';--i_reg_ctrl_l(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT);
 
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_FIX_BIT)<='0';
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)<=(others=>'0');
@@ -529,16 +530,15 @@ p_out_rbuf_cfg.usr    <=EXT(h_reg_rbuf_reqlen, p_out_rbuf_cfg.usr'length);
 
 --Доступ к ОЗУ через CFG
 p_out_rbuf_cfg.ram_wr_i.clk<=p_in_cfg_clk;
-p_out_rbuf_cfg.ram_wr_i.din<=(others=>'0');--p_in_cfg_txdata & i_cr_din_save;
-p_out_rbuf_cfg.ram_wr_i.wr<='0';--i_cr_wr;--p_in_cfg_wd;--
-p_out_rbuf_cfg.ram_wr_i.rd<='0';--i_cr_rd;--p_in_cfg_rd;--
+p_out_rbuf_cfg.ram_wr_i.din<=p_in_cfg_txdata;-- & i_cr_din_save;--(others=>'0');--
+p_out_rbuf_cfg.ram_wr_i.wr<=p_in_cfg_wd;--i_cr_wr;--
+p_out_rbuf_cfg.ram_wr_i.rd<=p_in_cfg_rd;--i_cr_rd;--
 p_out_rbuf_cfg.ram_wr_i.reqlen<=h_reg_rbuf_reqlen;
 p_out_rbuf_cfg.ram_wr_i.dir  <=i_reg_ctrl_m(C_HDD_REG_CTRLM_DIR);
 p_out_rbuf_cfg.ram_wr_i.start<=i_reg_ctrl_m(C_HDD_REG_CTRLM_START);
 p_out_rbuf_cfg.ram_wr_i.sel  <=i_reg_ctrl_m(C_HDD_REG_CTRLM_CFG2RAM);
 
-p_out_rbuf_cfg.usrif<=p_in_cfg_if;--//Интерфейс управления
-p_out_rbuf_cfg.greset<=i_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
+p_out_rbuf_cfg.greset<=h_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
 
 --//Статусы модуля
 p_out_hdd_rdy  <=i_sh_status.dev_rdy;
@@ -826,13 +826,13 @@ p_in_rst                => p_in_rst
 
 gen_hdd: for i in 0 to G_HDD_COUNT-1 generate
 --p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+0); --//Флаг C_PSTAT_DET_DEV_ON_BIT): Уст-во обнаружено
-p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1); --//Флаг C_PSTAT_DET_ESTABLISH_ON_BIT: Уст-во обнаружено + Соединение установлено
-p_out_dbgled(i).rdy<=i_sh_status.ch_rdy(i);--//Флаг C_ASSTAT_IPM_BIT_L: Уст-во обнаружено + Соединение установлено + сигнатура получена
-p_out_dbgled(i).err<=i_sh_status.ch_err(i);
-p_out_dbgled(i).busy<=i_sh_status.ch_bsy(i);
-p_out_dbgled(i).spd<=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+1 downto C_ASSTAT_SPD_BIT_L);--//Скорость соединения 1/2/3 - SATA-I/II/III
-p_out_dbgled(i).dly<=i_sh_measure.dly;
-p_out_dbgled(i).wr<=tst_hdd_out(8+i);--Активность записи/чтения соотвествующего HDD
+p_out_dbgled(i).link<=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1); --//Флаг C_PSTAT_DET_ESTABLISH_ON_BIT: Уст-во обнаружено + Соединение установлено
+p_out_dbgled(i).rdy <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_rdy(i);--//Флаг C_ASSTAT_IPM_BIT_L: Уст-во обнаружено + Соединение установлено + сигнатура получена
+p_out_dbgled(i).err <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_err(i);
+p_out_dbgled(i).busy<=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_bsy(i);
+p_out_dbgled(i).dly <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_measure.dly;
+p_out_dbgled(i).wr  <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and tst_hdd_out(8+i);--Активность записи/чтения соотвествующего HDD
+p_out_dbgled(i).spd <=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+1 downto C_ASSTAT_SPD_BIT_L);--//Скорость соединения 1/2/3 - SATA-I/II/III
 end generate gen_hdd;
 
 gen_nomax : if G_HDD_COUNT/=C_HDD_COUNT_MAX generate

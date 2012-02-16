@@ -144,7 +144,7 @@ signal i_sh_buf_rst                : TBusGTCH_SHCountMax;
 signal i_sh_status                 : TALStatusGTCH_SHCountMax;
 signal i_sh_ctrl                   : TALCtrlGTCH_SHCountMax;
 
-signal i_measure_dev_busy          : std_logic;
+--signal i_measure_dev_busy          : std_logic;
 signal i_measure_sh_status         : TMeasureALStatus_SHCountMax;
 signal i_measure_status_out        : TMeasureStatus;
 --signal i_hw_work                   : std_logic;
@@ -334,7 +334,7 @@ p_out_status   => i_measure_status_out,
 --Связь с модулям sata_host.vhd
 --------------------------------------------------
 p_in_sh_busy   => i_usr_status.ch_bsy,
-p_in_dev_busy  => i_measure_dev_busy,
+p_in_dev_busy  => i_usr_status.dev_bsy,--i_measure_dev_busy,
 p_in_sh_status => i_measure_sh_status,
 
 --------------------------------------------------
@@ -351,7 +351,7 @@ p_in_clk       => g_refclkout,--//150MHz
 p_in_rst       => p_in_rst
 );
 
-i_measure_dev_busy<=i_usr_status.dev_bsy and i_usr_status.dev_rdy;
+--i_measure_dev_busy<=i_usr_status.dev_bsy and i_usr_status.dev_rdy;
 
 p_out_measure<=i_measure_status_out;
 

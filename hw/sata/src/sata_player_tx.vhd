@@ -29,6 +29,8 @@ use work.sata_unit_pkg.all;
 
 entity sata_player_tx is
 generic(
+G_SATAH_NUM : integer:=0;--индекс модуля sata_host
+G_GT_CH_NUM : integer:=0;--индекс канала gt
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
@@ -37,7 +39,7 @@ port(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign        : in    std_logic;
+--p_in_rxalign        : in    std_logic;
 p_in_linkup         : in    std_logic;
 p_in_dev_detect     : in    std_logic;
 p_in_d10_2_send_dis : in    std_logic;                    --//Запрещение передачи кода D10.2
@@ -73,6 +75,19 @@ end sata_player_tx;
 architecture behavioral of sata_player_tx is
 
 constant CI_ALIGN_TMR   : integer:=selval(C_ALIGN_TMR, C_SIM_SATAHOST_TMR_ALIGN, strcmp(G_SIM,"OFF"));--//в DW
+
+type TScramblerInitVal is array (0 to 7) of integer;
+constant CI_SCRAMBLER_INIT_ARRAY : TScramblerInitVal:=(
+16#A015#,
+16#E244#,
+16#8090#,
+16#31AA#,
+16#C98B#,
+16#1234#,
+16#0670#,
+16#BD46#
+);
+constant CI_SCRAMBLER_INIT : integer:=CI_SCRAMBLER_INIT_ARRAY(2*G_SATAH_NUM + G_GT_CH_NUM);--16#F0F6#;--
 
 signal i_tmr_rst                  : std_logic_vector(1 downto 0);
 signal i_tmr_rst_en               : std_logic;
@@ -223,7 +238,7 @@ i_srambler_init<=not p_in_d10_2_send_dis;
 
 m_scrambler : sata_scrambler
 generic map(
-G_INIT_VAL   => 16#F0F6#
+G_INIT_VAL   => CI_SCRAMBLER_INIT
 )
 port map(
 p_in_SOF     => i_srambler_init,
@@ -334,9 +349,10 @@ begin
           end case;
       end if;
     else
+      if G_GT_DBUS/=32 then
         sr_txdata<=sr_txdata(G_GT_DBUS-1 downto 0) & sr_txdata(31 downto G_GT_DBUS);
         sr_txdtype<=sr_txdtype(G_GT_DBUS/8-1 downto 0) & sr_txdtype(3 downto G_GT_DBUS/8);
-
+      end if;
     end if;
   end if;
 end process ltxd;

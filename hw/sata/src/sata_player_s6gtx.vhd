@@ -111,6 +111,8 @@ architecture behavioral of sata_player_gt is
 --//1 - только для случая G_GT_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 4-17: Comma Alignment Boundaries ,
 --      ug386_Spartan6_GTP_Transceivers_User_Guide.pdf
+constant CI_SATA_GEN_DEFAULT       : integer := C_FSATA_GEN_DEFAULT;
+constant CI_PLL_DIV                : integer := selval(1, 2, cmpval(C_FSATA_GEN_DEFAULT,C_FSATA_GEN2));--(1/2 - SATA-II/I)
 constant CI_GT_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
 constant CI_GT_DATAWIDTH           : std_logic_vector(1 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, selval(1, 2, cmpval(G_GT_DBUS, 16)), cmpval(G_GT_DBUS, 8)), 2);
 constant CI_8B10BUSE               : std_logic:='1';
@@ -206,72 +208,48 @@ i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN
 --//GT: ШИНА ДАНЫХ=8bit (usrclk2=usrclk)
 --//------------------------------
 gen_gtp_w8 : if G_GT_DBUS=8 generate
---m_bufg_usrclk2 : BUFGMUX
---port map(
---S  => i_spdclk_sel(i),
---I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
---I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
---O  => g_gtp_usrclk2(i)
---);
---g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
+--Only SATA-I
+gen_sata1 : if CI_SATA_GEN_DEFAULT=C_FSATA_GEN1 generate
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;    --150M
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;    --150M
+end generate gen_sata1;
 --Only SATA-II
-g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2x;
-g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;
-----Only SATA-I
---g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
---g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;
+gen_sata2 : if CI_SATA_GEN_DEFAULT=C_FSATA_GEN2 generate
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2x;  --300M
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;  --300M
+end generate gen_sata2;
 end generate gen_gtp_w8;
 
 --//------------------------------
 --//GT: ШИНА ДАНЫХ=16bit (usrclk2=usrclk/2)
 --//------------------------------
 gen_gtp_w16 : if G_GT_DBUS=16 generate
---m_bufg_usrclk2 : BUFGMUX
---port map(
---S  => i_spdclk_sel(i),
---I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
---I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
---O  => g_gtp_usrclk2(i)
---);
---m_bufg_usrclk : BUFGMUX
---port map(
---S  => i_spdclk_sel(i),
---I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
---I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
---O  => g_gtp_usrclk(i)
---);
+--Only SATA-I
+gen_sata1 : if CI_SATA_GEN_DEFAULT=C_FSATA_GEN1 generate
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;--150M/2=75M
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;    --150M
+end generate gen_sata1;
 --Only SATA-II
-g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
-g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;
-----Only SATA-I
---g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;
---g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;
+gen_sata2 : if CI_SATA_GEN_DEFAULT=C_FSATA_GEN2 generate
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;    --300M/2=150M
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;  --300M
+end generate gen_sata2;
 end generate gen_gtp_w16;
 
 --//------------------------------
 --//GT: ШИНА ДАНЫХ=32bit (usrclk2=usrclk/4)
 --//------------------------------
 gen_gtp_w32 : if G_GT_DBUS=32 generate
---m_bufg_usrclk2 : BUFGMUX
---port map(
---S  => i_spdclk_sel(i),
---I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA Generation 2 (3Gb/s)
---I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA Generation 1 (1.5Gb/s)
---O  => g_gtp_usrclk2(i)
---);
---m_bufg_usrclk : BUFGMUX
---port map(
---S  => i_spdclk_sel(i),
---I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA Generation 2 (3Gb/s)
---I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA Generation 1 (1.5Gb/s)
---O  => g_gtp_usrclk(i)
---);
+--Only SATA-I
+gen_sata1 : if CI_SATA_GEN_DEFAULT=C_FSATA_GEN1 generate
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;--150M/4=37.5M
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;    --150M
+end generate gen_sata1;
 --Only SATA-II
-g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;
-g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;
-----Only SATA-I
---g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;
---g_gtp_usrclk(i) <=p_in_sys_dcm_gclk;
+gen_sata2 : if CI_SATA_GEN_DEFAULT=C_FSATA_GEN2 generate
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk2div;--300M/4=75M
+g_gtp_usrclk(i) <=p_in_sys_dcm_gclk2x;  --300M
+end generate gen_sata2;
 end generate gen_gtp_w32;
 
 p_out_usrclk2(i)<=g_gtp_usrclk2(i);
@@ -366,10 +344,10 @@ CLKRCV_TRST_0               =>     (TRUE),
 OOB_CLK_DIVIDER_0           =>     (6),
 PLL_COM_CFG_0               =>     (x"21680a"),
 PLL_CP_CFG_0                =>     (x"00"),
-PLL_RXDIVSEL_OUT_0          =>     1,                          --Изменил.(1/2 - SATA-II/I)
+PLL_RXDIVSEL_OUT_0          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
 PLL_SATA_0                  =>     FALSE,
 PLL_SOURCE_0                =>     ("PLL0"),
-PLL_TXDIVSEL_OUT_0          =>     1,                          --Изменил.(1/2 - SATA-II/I)
+PLL_TXDIVSEL_OUT_0          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
 PLLLKDET_CFG_0              =>     ("111"),
 
 --
@@ -378,10 +356,10 @@ CLKRCV_TRST_1               =>     (TRUE),
 OOB_CLK_DIVIDER_1           =>     (6),
 PLL_COM_CFG_1               =>     (x"21680a"),
 PLL_CP_CFG_1                =>     (x"00"),
-PLL_RXDIVSEL_OUT_1          =>     1,                          --Изменил.(1/2 - SATA-II/I)
+PLL_RXDIVSEL_OUT_1          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
 PLL_SATA_1                  =>     FALSE,
 PLL_SOURCE_1                =>     ("PLL1"),
-PLL_TXDIVSEL_OUT_1          =>     1,                          --Изменил.(1/2 - SATA-II/I)
+PLL_TXDIVSEL_OUT_1          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
 PLLLKDET_CFG_1              =>     ("111"),
 
 PMA_COM_CFG_EAST            =>     (x"000008000"),
@@ -812,8 +790,8 @@ TXKERR1                         =>      open,
 TXRUNDISP0                      =>      open,
 TXRUNDISP1                      =>      open,
 --------------- Transmit Ports - TX Buffer and Phase Alignment -------------
-TXBUFSTATUS0                    =>      open,
-TXBUFSTATUS1                    =>      open,
+TXBUFSTATUS0                    =>      i_txbufstatus_out(0),              --add vicg
+TXBUFSTATUS1                    =>      i_txbufstatus_out(1),              --add vicg
 TXENPMAPHASEALIGN0              =>      '0',
 TXENPMAPHASEALIGN1              =>      '0',
 TXPMASETPHASE0                  =>      '0',

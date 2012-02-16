@@ -252,6 +252,8 @@ end component;
 
 component sata_player_tx
 generic(
+G_SATAH_NUM : integer:=0;
+G_GT_CH_NUM : integer:=0;
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"
@@ -260,7 +262,7 @@ port(
 --------------------------------------------------
 --
 --------------------------------------------------
-p_in_rxalign        : in    std_logic;
+--p_in_rxalign        : in    std_logic;
 p_in_linkup         : in    std_logic;
 p_in_dev_detect     : in    std_logic;
 p_in_d10_2_send_dis : in    std_logic;
@@ -543,6 +545,8 @@ end component;
 
 component sata_player
 generic(
+G_SATAH_NUM : integer:=0;
+G_GT_CH_NUM : integer:=0;
 G_GT_DBUS : integer:=16;
 G_DBG     : string :="OFF";
 G_SIM     : string :="OFF"

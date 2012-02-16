@@ -111,8 +111,9 @@ architecture behavioral of sata_player_gt is
 --//1 - только для случая G_GT_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
 --      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-constant C_GTP_ALIGN_COMMA_WORD    : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
-constant C_GTP_DATAWIDTH           : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
+constant CI_PLL_DIV                : integer := selval(1, 2, cmpval(C_FSATA_GEN_DEFAULT,C_FSATA_GEN2));--(1/2 - SATA-II/I)
+constant CI_GTP_ALIGN_COMMA_WORD   : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
+constant CI_GTP_DATAWIDTH          : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
 
 signal i_rxenelecidleresetb        : std_logic;
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -341,9 +342,9 @@ TXRX_INVERT_1               =>       "00000",
 
 --------------------- TX Serial Line Rate settings ---------------------
 
-PLL_TXDIVSEL_OUT_0          =>       1,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
+PLL_TXDIVSEL_OUT_0          =>       CI_PLL_DIV,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 
-PLL_TXDIVSEL_OUT_1          =>       1,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
+PLL_TXDIVSEL_OUT_1          =>       CI_PLL_DIV,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 
 --------------------- TX Driver and OOB signalling --------------------
 
@@ -385,11 +386,11 @@ TERMINATION_OVRD            =>       FALSE,--/xapp870
 
 --------------------- RX Serial Line Rate Attributes ------------------
 
-PLL_RXDIVSEL_OUT_0          =>       1,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
+PLL_RXDIVSEL_OUT_0          =>       CI_PLL_DIV,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 PLL_SATA_0                  =>       FALSE,    --When FALSE, PLL_SATA allows TX SATA operations to work at
                                                --the SATA Generation 1 (1.5 Gb/s) or SATA Generation 2 (3 Gb/s) rate.
 
-PLL_RXDIVSEL_OUT_1          =>       1,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
+PLL_RXDIVSEL_OUT_1          =>       CI_PLL_DIV,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
 PLL_SATA_1                  =>       FALSE,    --When FALSE, PLL_SATA allows TX SATA operations to work at
                                                --the SATA Generation 1 (1.5 Gb/s) or SATA Generation 2 (3 Gb/s) rate.
 
@@ -400,7 +401,7 @@ PRBS_ERR_THRESHOLD_1        =>       x"00000001",--/Wizard   x"00000008",--/xapp
 
 ---------------- Comma Detection and Alignment Attributes -------------
 
-ALIGN_COMMA_WORD_0          =>       C_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
+ALIGN_COMMA_WORD_0          =>       CI_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
 COMMA_10B_ENABLE_0          =>       "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
 COMMA_DOUBLE_0              =>       FALSE,       --
 DEC_MCOMMA_DETECT_0         =>       TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a negative 8B/10B comma
@@ -412,7 +413,7 @@ PCOMMA_10B_VALUE_0          =>       "0101111100",--K28.5 rd-
 PCOMMA_DETECT_0             =>       TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd-
 RX_SLIDE_MODE_0             =>       "PCS",   --/xapp870
 
-ALIGN_COMMA_WORD_1          =>       C_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
+ALIGN_COMMA_WORD_1          =>       CI_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
 COMMA_10B_ENABLE_1          =>       "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
 COMMA_DOUBLE_1              =>       FALSE,       --
 DEC_MCOMMA_DETECT_1         =>       TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a negative 8B/10B comma
@@ -612,8 +613,8 @@ RXPRBSERR1                      =>      open,
 ------------------- Receive Ports - RX Data Path interface -----------------
 RXDATA0                         =>      i_rxdata_out(0)(15 downto 0),
 RXDATA1                         =>      i_rxdata_out(1)(15 downto 0),
-RXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
-RXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
+RXDATAWIDTH0                    =>      CI_GTP_DATAWIDTH(0),
+RXDATAWIDTH1                    =>      CI_GTP_DATAWIDTH(0),
 RXRECCLK0                       =>      open,
 RXRECCLK1                       =>      open,
 RXRESET0                        =>      i_rxreset_in(0),--p_in_rxreset(0),--
@@ -712,8 +713,8 @@ TXBUFSTATUS1                    =>      i_txbufstatus_out(1),--
 ------------------ Transmit Ports - TX Data Path interface -----------------
 TXDATA0                         =>      i_txdata_in(0)(15 downto 0),
 TXDATA1                         =>      i_txdata_in(1)(15 downto 0),
-TXDATAWIDTH0                    =>      C_GTP_DATAWIDTH(0),
-TXDATAWIDTH1                    =>      C_GTP_DATAWIDTH(0),
+TXDATAWIDTH0                    =>      CI_GTP_DATAWIDTH(0),
+TXDATAWIDTH1                    =>      CI_GTP_DATAWIDTH(0),
 TXOUTCLK0                       =>      open,
 TXOUTCLK1                       =>      open,
 TXRESET0                        =>      i_txreset_in(0),--p_in_txreset(0),--

@@ -195,7 +195,7 @@ signal tst_rambuf_pfull                : std_logic;
 signal tst_rambuf_empty                : std_logic;
 signal tst_vwr_out                     : std_logic_vector(31 downto 0);
 signal tst_vrd_out                     : std_logic_vector(31 downto 0);
-
+signal tst_rambuf_dcnt_max             : std_logic_vector(31 downto 0);
 
 --MAIN
 begin
@@ -251,6 +251,20 @@ elsif p_in_clk'event and p_in_clk='1' then
 end if;
 end process;
 
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    tst_rambuf_dcnt_max<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_memw_start='1' then
+      tst_rambuf_dcnt_max<=(others=>'0');
+    elsif i_memw_done='1'then
+      if i_rambuf_dcnt>tst_rambuf_dcnt_max then
+        tst_rambuf_dcnt_max<=i_rambuf_dcnt;
+      end if;
+    end if;
+  end if;
+end process;
 
 --//----------------------------------------------
 --//Инициализация
@@ -275,7 +289,7 @@ end process;
 p_out_rbuf_status.err<=i_err_det.rambuf_full;-- or i_err_det.vinbuf_full;
 p_out_rbuf_status.err_type<=i_err_det;
 p_out_rbuf_status.done<='0';
-p_out_rbuf_status.hwlog_size<=(others=>'0');
+p_out_rbuf_status.hwlog_size<=tst_rambuf_dcnt_max;--(others=>'0');
 
 p_out_rbuf_status.ram_wr_o.wr_rdy <='1';
 p_out_rbuf_status.ram_wr_o.rd_rdy <='1';
