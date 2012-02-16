@@ -37,6 +37,8 @@ constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=25;--//32MB : Определяется как
 constant C_PCFG_HDD_GT_DBUS            : integer:=16;--//Настройка шины данных GT (RocketIO)
 constant C_PCFG_HDD_FPGA_TYPE          : integer:=0; --0/1/2/3 - "V5_GTP"/"V5_GTX"/"V6_GTX"/"S6_GTPA"
 constant C_PCFG_HDD_SH_MAIN_NUM        : integer:=0; --определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
+constant C_PCFG_HDD_SATA_GEN_DEFAULT   : integer:=1; --0/1 - SATAI/II
+constant C_PCFG_HDD_RAID_DWIDTH        : integer:=32;
 
 --//cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
