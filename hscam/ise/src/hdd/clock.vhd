@@ -51,7 +51,7 @@ CLKIN1_PERIOD      => 6.6666, --150MHz
 CLKIN2_PERIOD      => 6.6666,
 CLKOUT0_DIVIDE     => 2, --clk0 = ((150MHz * 4)/1) /2 = 300MHz
 CLKOUT1_DIVIDE     => 9, --clk1 = ((150MHz * 4)/1) /9 = 66.6MHz
-CLKOUT2_DIVIDE     => 6, --clk2 = ((150MHz * 4)/1) /6 = 100MHz
+CLKOUT2_DIVIDE     => 3, --clk2 = ((150MHz * 4)/1) /3 = 200MHz
 CLKOUT3_DIVIDE     => 8,
 CLKOUT4_DIVIDE     => 8,
 CLKOUT5_DIVIDE     => 8,

@@ -76,6 +76,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_dcm_s6.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_spd_ctrl_s6gtp.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_s6gtx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_player_s6gt_clkmux_hscam.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_gtsim.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_oob.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_tx.vhd" $_VHDMod ] \
@@ -87,15 +88,14 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_dbgcs.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_host.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
-      [ list "../src/hdd/sata_raid_decoder.vhd" $_VHDMod ] \
-      [ list "../src/hdd/sata_raid_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_raid_decoder_v2.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_raid_ctrl_v2.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/hdd/dsn_hdd.vhd" $_VHDMod ] \
-      [ list "../src/hdd/sata_player_s6gt_clkmux.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \

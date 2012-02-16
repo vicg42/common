@@ -27,30 +27,25 @@ port(
 ------------------------------------
 --User Post
 ------------------------------------
-p_in_memch0     : in    TMemINBank;
-p_out_memch0    : out   TMemOUTBank;
-
-p_in_memch1     : in    TMemINBank;
-p_out_memch1    : out   TMemOUTBank;
+p_in_mem       : in    TMemINBank;
+p_out_mem      : out   TMemOUTBank;
 
 ------------------------------------
 --Memory physical interface
 ------------------------------------
-p_out_phymem    : out   TRam_outs  ;
-p_inout_phymem  : inout TRam_inouts;
+p_out_phymem   : out   TMEMCTRL_phy_outs;
+p_inout_phymem : inout TMEMCTRL_phy_inouts;
 
 ------------------------------------
 --Memory status
 ------------------------------------
-p_out_mem_rdy   : out   std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+p_out_status   : out   TMEMCTRL_status;
 
 ------------------------------------
 --System
 ------------------------------------
-p_out_pll_gclkusr : out   std_logic;
---c5_rst0         : out   std_logic;
-p_in_clk        : in    std_logic;
-p_in_rst        : in    std_logic
+p_out_sys      : out   TMEMCTRL_sysout;
+p_in_sys       : in    TMEMCTRL_sysin
 );
 end mem_ctrl;
 
@@ -383,9 +378,9 @@ C_INCLK_PERIOD    => C5_INCLK_PERIOD
 port map(
 sys_clk_p         => c5_sys_clk_p,
 sys_clk_n         => c5_sys_clk_n,
-sys_clk           => p_in_clk,--c5_sys_clk,
-sys_rst_i         => p_in_rst,--c5_sys_rst_i,
-clk0              => p_out_pll_gclkusr,--open,-- C5_CLKOUT2_DIVIDE,
+sys_clk           => p_in_sys.clk,--c5_sys_clk,
+sys_rst_i         => p_in_sys.rst,--c5_sys_rst_i,
+clk0              => p_out_sys.clk,--open,-- C5_CLKOUT2_DIVIDE,
 rst0              => open,--c5_rst0,
 async_rst         => c5_async_rst,
 sysclk_2x         => c5_sysclk_2x,
@@ -501,60 +496,60 @@ mcb5_dram_ck       => p_out_phymem  (i).ck,    --mcb5_dram_ck     : out   std_lo
 mcb5_dram_ck_n     => p_out_phymem  (i).ck_n,  --mcb5_dram_ck_n   : out   std_logic;
 mcb_drp_clk        => c5_mcb_drp_clk,
 
-p0_cmd_clk         => p_in_memch0 (i).clk,                                       --p0_cmd_clk       : in std_logic;
-p0_cmd_en          => p_in_memch0 (i).cmd_wr,                                    --p0_cmd_en        : in std_logic;
-p0_cmd_instr       => p_in_memch0 (i).cmd_i,                                     --p0_cmd_instr     : in std_logic_vector(2 downto 0);
-p0_cmd_bl          => p_in_memch0 (i).cmd_bl,                                    --p0_cmd_bl        : in std_logic_vector(5 downto 0);
-p0_cmd_byte_addr   => p_in_memch0 (i).adr(C_MEMCTRL_AWIDTH-1 downto 0),          --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
-p0_cmd_empty       => p_out_memch0(i).cmdbuf_empty,                              --p0_cmd_empty     : out std_logic;
-p0_cmd_full        => p_out_memch0(i).cmdbuf_full,                               --p0_cmd_full      : out std_logic;
-p0_wr_clk          => p_in_memch0 (i).clk,                                       --p0_wr_clk        : in std_logic;
-p0_wr_en           => p_in_memch0 (i).txd_wr,                                    --p0_wr_en         : in std_logic;
-p0_wr_mask         => p_in_memch0 (i).txd_be(C_MEMCTRL_CH0_BEWIDTH - 1 downto 0),--p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
-p0_wr_data         => p_in_memch0 (i).txd(C_MEMCTRL_CH0_DWIDTH - 1 downto 0),    --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
-p0_wr_full         => p_out_memch0(i).txbuf_full,                                --p0_wr_full       : out std_logic;
-p0_wr_empty        => p_out_memch0(i).txbuf_empty,                               --p0_wr_empty      : out std_logic;
-p0_wr_count        => p_out_memch0(i).txbuf_wrcount,                             --p0_wr_count      : out std_logic_vector(6 downto 0);
-p0_wr_underrun     => p_out_memch0(i).txbuf_underrun,                            --p0_wr_underrun   : out std_logic;
-p0_wr_error        => p_out_memch0(i).txbuf_err,                                 --p0_wr_error      : out std_logic;
-p0_rd_clk          => p_in_memch0 (i).clk,                                       --p0_rd_clk        : in std_logic;
-p0_rd_en           => p_in_memch0 (i).rxd_rd,                                    --p0_rd_en         : in std_logic;
-p0_rd_data         => p_out_memch0(i).rxd(C_MEMCTRL_CH0_DWIDTH - 1 downto 0),    --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
-p0_rd_full         => p_out_memch0(i).rxbuf_full,                                --p0_rd_full       : out std_logic;
-p0_rd_empty        => p_out_memch0(i).rxbuf_empty,                               --p0_rd_empty      : out std_logic;
-p0_rd_count        => p_out_memch0(i).rxbuf_rdcount,                             --p0_rd_count      : out std_logic_vector(6 downto 0);
-p0_rd_overflow     => p_out_memch0(i).rxbuf_overflow,                            --p0_rd_overflow   : out std_logic;
-p0_rd_error        => p_out_memch0(i).rxbuf_err,                                 --p0_rd_error      : out std_logic;
+p0_cmd_clk         => p_in_mem (i)(0).clk,                                       --p0_cmd_clk       : in std_logic;
+p0_cmd_en          => p_in_mem (i)(0).cmd_wr,                                    --p0_cmd_en        : in std_logic;
+p0_cmd_instr       => p_in_mem (i)(0).cmd_i,                                     --p0_cmd_instr     : in std_logic_vector(2 downto 0);
+p0_cmd_bl          => p_in_mem (i)(0).cmd_bl,                                    --p0_cmd_bl        : in std_logic_vector(5 downto 0);
+p0_cmd_byte_addr   => p_in_mem (i)(0).adr(C_MEMCTRL_AWIDTH-1 downto 0),          --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
+p0_cmd_empty       => p_out_mem(i)(0).cmdbuf_empty,                              --p0_cmd_empty     : out std_logic;
+p0_cmd_full        => p_out_mem(i)(0).cmdbuf_full,                               --p0_cmd_full      : out std_logic;
+p0_wr_clk          => p_in_mem (i)(0).clk,                                       --p0_wr_clk        : in std_logic;
+p0_wr_en           => p_in_mem (i)(0).txd_wr,                                    --p0_wr_en         : in std_logic;
+p0_wr_mask         => p_in_mem (i)(0).txd_be(C_MEMCTRL_CH0_BEWIDTH - 1 downto 0),--p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
+p0_wr_data         => p_in_mem (i)(0).txd(C_MEMCTRL_CH0_DWIDTH - 1 downto 0),    --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p0_wr_full         => p_out_mem(i)(0).txbuf_full,                                --p0_wr_full       : out std_logic;
+p0_wr_empty        => p_out_mem(i)(0).txbuf_empty,                               --p0_wr_empty      : out std_logic;
+p0_wr_count        => p_out_mem(i)(0).txbuf_wrcount,                             --p0_wr_count      : out std_logic_vector(6 downto 0);
+p0_wr_underrun     => p_out_mem(i)(0).txbuf_underrun,                            --p0_wr_underrun   : out std_logic;
+p0_wr_error        => p_out_mem(i)(0).txbuf_err,                                 --p0_wr_error      : out std_logic;
+p0_rd_clk          => p_in_mem (i)(0).clk,                                       --p0_rd_clk        : in std_logic;
+p0_rd_en           => p_in_mem (i)(0).rxd_rd,                                    --p0_rd_en         : in std_logic;
+p0_rd_data         => p_out_mem(i)(0).rxd(C_MEMCTRL_CH0_DWIDTH - 1 downto 0),    --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p0_rd_full         => p_out_mem(i)(0).rxbuf_full,                                --p0_rd_full       : out std_logic;
+p0_rd_empty        => p_out_mem(i)(0).rxbuf_empty,                               --p0_rd_empty      : out std_logic;
+p0_rd_count        => p_out_mem(i)(0).rxbuf_rdcount,                             --p0_rd_count      : out std_logic_vector(6 downto 0);
+p0_rd_overflow     => p_out_mem(i)(0).rxbuf_overflow,                            --p0_rd_overflow   : out std_logic;
+p0_rd_error        => p_out_mem(i)(0).rxbuf_err,                                 --p0_rd_error      : out std_logic;
 
-p1_cmd_clk         => p_in_memch1(i).clk,                                        --p0_cmd_clk       : in std_logic;
-p1_cmd_en          => p_in_memch1 (i).cmd_wr,                                    --p0_cmd_en        : in std_logic;
-p1_cmd_instr       => p_in_memch1 (i).cmd_i,                                     --p0_cmd_instr     : in std_logic_vector(2 downto 0);
-p1_cmd_bl          => p_in_memch1 (i).cmd_bl,                                    --p0_cmd_bl        : in std_logic_vector(5 downto 0);
-p1_cmd_byte_addr   => p_in_memch1 (i).adr(C_MEMCTRL_AWIDTH-1 downto 0),          --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
-p1_cmd_empty       => p_out_memch1(i).cmdbuf_empty,                              --p0_cmd_empty     : out std_logic;
-p1_cmd_full        => p_out_memch1(i).cmdbuf_full,                               --p0_cmd_full      : out std_logic;
-p1_wr_clk          => p_in_memch1 (i).clk,                                       --p0_wr_clk        : in std_logic;
-p1_wr_en           => p_in_memch1 (i).txd_wr,                                    --p0_wr_en         : in std_logic;
-p1_wr_mask         => p_in_memch1 (i).txd_be(C_MEMCTRL_CH1_BEWIDTH - 1 downto 0),--p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
-p1_wr_data         => p_in_memch1 (i).txd(C_MEMCTRL_CH1_DWIDTH - 1 downto 0),    --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
-p1_wr_full         => p_out_memch1(i).txbuf_full,                                --p0_wr_full       : out std_logic;
-p1_wr_empty        => p_out_memch1(i).txbuf_empty,                               --p0_wr_empty      : out std_logic;
-p1_wr_count        => p_out_memch1(i).txbuf_wrcount,                             --p0_wr_count      : out std_logic_vector(6 downto 0);
-p1_wr_underrun     => p_out_memch1(i).txbuf_underrun,                            --p0_wr_underrun   : out std_logic;
-p1_wr_error        => p_out_memch1(i).txbuf_err,                                 --p0_wr_error      : out std_logic;
-p1_rd_clk          => p_in_memch1 (i).clk,                                       --p0_rd_clk        : in std_logic;
-p1_rd_en           => p_in_memch1 (i).rxd_rd,                                    --p0_rd_en         : in std_logic;
-p1_rd_data         => p_out_memch1(i).rxd(C_MEMCTRL_CH1_DWIDTH - 1 downto 0),    --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
-p1_rd_full         => p_out_memch1(i).rxbuf_full,                                --p0_rd_full       : out std_logic;
-p1_rd_empty        => p_out_memch1(i).rxbuf_empty,                               --p0_rd_empty      : out std_logic;
-p1_rd_count        => p_out_memch1(i).rxbuf_rdcount,                             --p0_rd_count      : out std_logic_vector(6 downto 0);
-p1_rd_overflow     => p_out_memch1(i).rxbuf_overflow,                            --p0_rd_overflow   : out std_logic;
-p1_rd_error        => p_out_memch1(i).rxbuf_err,                                 --p0_rd_error      : out std_logic;
+p1_cmd_clk         => p_in_mem (i)(1).clk,                                        --p0_cmd_clk       : in std_logic;
+p1_cmd_en          => p_in_mem (i)(1).cmd_wr,                                    --p0_cmd_en        : in std_logic;
+p1_cmd_instr       => p_in_mem (i)(1).cmd_i,                                     --p0_cmd_instr     : in std_logic_vector(2 downto 0);
+p1_cmd_bl          => p_in_mem (i)(1).cmd_bl,                                    --p0_cmd_bl        : in std_logic_vector(5 downto 0);
+p1_cmd_byte_addr   => p_in_mem (i)(1).adr(C_MEMCTRL_AWIDTH-1 downto 0),          --p0_cmd_byte_addr : in std_logic_vector(29 downto 0);
+p1_cmd_empty       => p_out_mem(i)(1).cmdbuf_empty,                              --p0_cmd_empty     : out std_logic;
+p1_cmd_full        => p_out_mem(i)(1).cmdbuf_full,                               --p0_cmd_full      : out std_logic;
+p1_wr_clk          => p_in_mem (i)(1).clk,                                       --p0_wr_clk        : in std_logic;
+p1_wr_en           => p_in_mem (i)(1).txd_wr,                                    --p0_wr_en         : in std_logic;
+p1_wr_mask         => p_in_mem (i)(1).txd_be(C_MEMCTRL_CH1_BEWIDTH - 1 downto 0),--p0_wr_mask       : in std_logic_vector(C_P0_MASK_SIZE - 1 downto 0);
+p1_wr_data         => p_in_mem (i)(1).txd(C_MEMCTRL_CH1_DWIDTH - 1 downto 0),    --p0_wr_data       : in std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p1_wr_full         => p_out_mem(i)(1).txbuf_full,                                --p0_wr_full       : out std_logic;
+p1_wr_empty        => p_out_mem(i)(1).txbuf_empty,                               --p0_wr_empty      : out std_logic;
+p1_wr_count        => p_out_mem(i)(1).txbuf_wrcount,                             --p0_wr_count      : out std_logic_vector(6 downto 0);
+p1_wr_underrun     => p_out_mem(i)(1).txbuf_underrun,                            --p0_wr_underrun   : out std_logic;
+p1_wr_error        => p_out_mem(i)(1).txbuf_err,                                 --p0_wr_error      : out std_logic;
+p1_rd_clk          => p_in_mem (i)(1).clk,                                       --p0_rd_clk        : in std_logic;
+p1_rd_en           => p_in_mem (i)(1).rxd_rd,                                    --p0_rd_en         : in std_logic;
+p1_rd_data         => p_out_mem(i)(1).rxd(C_MEMCTRL_CH1_DWIDTH - 1 downto 0),    --p0_rd_data       : out std_logic_vector(C_P0_DATA_PORT_SIZE - 1 downto 0);
+p1_rd_full         => p_out_mem(i)(1).rxbuf_full,                                --p0_rd_full       : out std_logic;
+p1_rd_empty        => p_out_mem(i)(1).rxbuf_empty,                               --p0_rd_empty      : out std_logic;
+p1_rd_count        => p_out_mem(i)(1).rxbuf_rdcount,                             --p0_rd_count      : out std_logic_vector(6 downto 0);
+p1_rd_overflow     => p_out_mem(i)(1).rxbuf_overflow,                            --p0_rd_overflow   : out std_logic;
+p1_rd_error        => p_out_mem(i)(1).rxbuf_err,                                 --p0_rd_error      : out std_logic;
 
 selfrefresh_enter  => '0',--c5_selfrefresh_enter,
 selfrefresh_mode   => open,--c5_selfrefresh_mode,
 
-calib_done         => p_out_mem_rdy(i),--c5_calib_done,
+calib_done         => p_out_status.rdy(i),--c5_calib_done,
 async_rst          => c5_async_rst,
 sysclk_2x          => c5_sysclk_2x,
 sysclk_2x_180      => c5_sysclk_2x_180,
@@ -563,18 +558,18 @@ pll_ce_90          => c5_pll_ce_90,
 pll_lock           => c5_pll_lock
 );
 
---p_out_memch0(i).rxd<=(others=>'0');
---p_out_memch0(i).rxbuf_full<='1';
---p_out_memch0(i).rxbuf_empty<='1';
---p_out_memch0(i).rxbuf_rdcount<=(others=>'0');
---p_out_memch0(i).rxbuf_overflow<='0';
---p_out_memch0(i).rxbuf_err<='0';
+--p_out_mem(i).rxd<=(others=>'0');
+--p_out_mem(i).rxbuf_full<='1';
+--p_out_mem(i).rxbuf_empty<='1';
+--p_out_mem(i).rxbuf_rdcount<=(others=>'0');
+--p_out_mem(i).rxbuf_overflow<='0';
+--p_out_mem(i).rxbuf_err<='0';
 --
---p_out_memch1(i).txbuf_full<='1';
---p_out_memch1(i).txbuf_empty<='1';
---p_out_memch1(i).txbuf_wrcount<=(others=>'0');
---p_out_memch1(i).txbuf_underrun<='0';
---p_out_memch1(i).txbuf_err<='0';
+--p_out_mem(i).txbuf_full<='1';
+--p_out_mem(i).txbuf_empty<='1';
+--p_out_mem(i).txbuf_wrcount<=(others=>'0');
+--p_out_mem(i).txbuf_underrun<='0';
+--p_out_mem(i).txbuf_err<='0';
 
 end generate gen_bank;
 

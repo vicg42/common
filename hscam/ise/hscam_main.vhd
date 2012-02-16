@@ -249,7 +249,7 @@ begin
 
 i_vtg_rst <=not i_hdd_dcm_lock;--i_usrpll_lock;
 i_vin_clk <=g_usrpll_clk1;--62.5MHz  i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
-i_vout_clk<=i_hdd_dcm_gclk300M;--i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
+i_vout_clk<=g_usrpll_clk1;--i_hdd_dcm_gclk300M;--i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
 
 --Генератор тестовых данных (Вертикальные полоски!!!)
 gen_vd : for i in 1 to 10 generate
