@@ -908,7 +908,7 @@ i_sh_status.ch_ataerror(i)<=(others=>'0');
 i_sh_status.ch_atastatus(i)<=(others=>'0');
 i_sh_status.ch_serror(i)<=(others=>'0');
 i_sh_status.ch_sstatus(i)<=(others=>'0');
-i_sh_status.ch_usr(i)<=(others=>'0');
+--i_sh_status.ch_usr(i)<=(others=>'0');
 
 p_out_dbgled(i).link<='0';
 p_out_dbgled(i).rdy<='0';
@@ -922,7 +922,7 @@ end generate gen_null;
 i_sh_status.dev_bsy<='0';
 i_sh_status.dev_rdy <='0';
 i_sh_status.dev_err <='0';
-i_sh_status.usr <=(others=>'0');
+--i_sh_status.usr <=(others=>'0');
 i_sh_status.lba_bp <=(others=>'0');
 
 i_sh_measure.tdly  <=(others=>'0');

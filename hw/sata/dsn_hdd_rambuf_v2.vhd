@@ -496,7 +496,7 @@ p_in_rst             => p_in_rst
 --gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_dbgcs.clk<='0';
 p_out_dbgcs.trig0<=(others=>'0');
-p_out_dbgcs.data(31 downto 0)<=(others=>'0');--i_rambuf_dcnt;
+p_out_dbgcs.data(31 downto 0)<=i_rambuf_dcnt;
 p_out_dbgcs.data(p_out_dbgcs.data'length-1 downto 32)<=(others=>'0');
 --end generate gen_dbgcs_off;
 
