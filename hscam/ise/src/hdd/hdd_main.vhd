@@ -376,12 +376,11 @@ i_mem_ctrl_sysin.clk<=g_usrpll_clkout(0);
 p_out_usrpll_gclk1<=g_usrpll_clkout(1);
 
 g_cfg_clk<=g_sata_refclkout;--g_hdd_dcm_gclk75M;--
---g_hdd_clk<=g_hdd_dcm_gclk75M;
 
 --частота переписывания данных внутренних буферов для модулей vin_cam,vin_hdd
-g_vbuf_iclk<=g_usrpll_clkout(2);--200MHz --g_hdd_dcm_gclk300M;
+g_vbuf_iclk<=g_usrpll_clkout(2);
 --частота работы с ОЗУ
-g_hclk   <=g_usrpll_clkout(3);--120MHz  g_hdd_dcm_gclk75M;
+g_hclk   <=g_usrpll_clkout(3);
 
 
 --***********************************************************
