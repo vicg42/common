@@ -162,7 +162,15 @@ end generate gen_hddoff;
 end generate gen_hddoff_en;
 
 
-p_out_usr_txbuf_full<=OR_reduce(i_sh_txbuf_full);
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    p_out_usr_txbuf_full<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    p_out_usr_txbuf_full<=OR_reduce(i_sh_txbuf_full);
+  end if;
+end process;
+
 p_out_usr_rxbuf_empty<=OR_reduce(i_sh_rxbuf_empty);
 
 p_out_sh_num<=(others=>'0');
