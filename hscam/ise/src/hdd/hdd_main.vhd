@@ -361,10 +361,10 @@ i_usrpll_rst<=not i_hdd_dcm_lock;
 
 m_usrpll : clock
 generic map(
-G_USRCLK_COUNT => 3
+G_USRCLK_COUNT => 4
 )
 port map(
-p_out_gusrclk  => g_usrpll_clkout(3-1 downto 0),
+p_out_gusrclk  => g_usrpll_clkout(4-1 downto 0),
 p_out_pll_lock => i_usrpll_lock,
 
 p_in_clk       => g_sata_refclkout,
@@ -381,7 +381,7 @@ g_cfg_clk<=g_sata_refclkout;--g_hdd_dcm_gclk75M;--
 --частота переписывания данных внутренних буферов для модулей vin_cam,vin_hdd
 g_vbuf_iclk<=g_usrpll_clkout(2);--200MHz --g_hdd_dcm_gclk300M;
 --частота работы с ОЗУ
-g_hclk   <=g_hdd_dcm_gclk75M;
+g_hclk   <=g_usrpll_clkout(3);--120MHz  g_hdd_dcm_gclk75M;
 
 
 --***********************************************************
