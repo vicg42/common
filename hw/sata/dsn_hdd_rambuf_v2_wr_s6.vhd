@@ -81,7 +81,8 @@ type fsm_state is (
 S_IDLE,
 S_MEM_TRN_START,
 S_MEM_TRN,
-S_MEM_TRN_END
+S_MEM_TRN_END,
+S_MEM_WAIT
 );
 signal fsm_state_cs        : fsm_state;
 
@@ -97,7 +98,6 @@ signal i_mem_done          : std_logic;
 signal i_mem_cmden         : std_logic;
 signal i_mem_cmdwr         : std_logic;
 signal i_mem_cmdbl         : std_logic_vector(p_in_cfg_mem_trn_len'range);
-
 
 signal tst_fsm_cs          : std_logic_vector(2 downto 0);
 
@@ -121,6 +121,7 @@ p_out_tst(31 downto 22)<=(others=>'0');
 tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_START         else
             CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN               else
             CONV_STD_LOGIC_VECTOR(16#03#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_END           else
+            CONV_STD_LOGIC_VECTOR(16#04#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_WAIT              else
             CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_state_cs=S_IDLE               else
 
 
@@ -157,7 +158,7 @@ p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 p_out_cfg_mem_done<=i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full;
+i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty;-- and not p_in_usr_rxbuf_full;
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full);
 
@@ -174,8 +175,8 @@ begin
           end if;
         end if;
       else
-        if fsm_state_cs=S_MEM_TRN_START or
-          (fsm_state_cs=S_MEM_TRN_END and p_in_cfg_mem_stop='0') then
+        if fsm_state_cs=S_MEM_TRN_START then --or
+--          (fsm_state_cs=S_MEM_TRN_END and p_in_cfg_mem_stop='0') then
           i_mem_cmden<='1';
         end if;
       end if;
@@ -269,16 +270,33 @@ begin
             else
               i_mem_adr<=i_mem_adr + i_mem_adr_update;
             end if;
-            i_mem_trn_work<='1';
-            fsm_state_cs <= S_MEM_TRN;
 
+            if i_mem_dir=C_MEMWR_READ then
+              fsm_state_cs <= S_MEM_WAIT;
+            else
+              i_mem_trn_work<='1';
+              fsm_state_cs <= S_MEM_TRN;
+            end if;
           end if;
+        end if;
+
+      ------------------------------------------------
+      --
+      ------------------------------------------------
+      when S_MEM_WAIT =>
+
+        i_mem_done<='0';
+        if p_in_cfg_mem_stop='1' then
+          fsm_state_cs <= S_IDLE;
+
+        elsif p_in_usr_rxbuf_full='0' then
+          i_mem_trn_work<='1';
+          fsm_state_cs <= S_MEM_TRN_START;
         end if;
 
     end case;
   end if;
 end process;
-
 
 process(p_in_rst,p_in_clk)
 begin
