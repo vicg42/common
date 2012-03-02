@@ -311,7 +311,6 @@ end generate gen_dbus32;
 --//Debug/Sim
 --//-----------------------------------
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
-begin
 p_out_dbg.name<=(others=>'0');
 end generate gen_sim_off;
 

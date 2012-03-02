@@ -579,7 +579,6 @@ p_out_reg_shadow<=i_reg_shadow;
 --//Debug/Sim
 --//-----------------------------------
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
-begin
 p_out_dbg.cmd_name<=(others=>'0');
 end generate gen_sim_off;
 
