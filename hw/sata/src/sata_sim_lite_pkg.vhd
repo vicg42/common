@@ -212,7 +212,7 @@ alayer  : TAL_dbgport;
 tlayer  : TTL_dbgport;
 llayer  : TLL_dbgport;
 player  : TPL_dbgport;
-dbg_ila : TSH_dbgcs;
+--dbg_ila : TSH_dbgcs;
 end record;
 
 type TSH_dbgport_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of TSH_dbgport;
