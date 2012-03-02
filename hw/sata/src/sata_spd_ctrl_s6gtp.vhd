@@ -173,8 +173,8 @@ signal sr1_ctrl                 : TSpdCtrl_GTCH;
 signal i_spd_change_det         : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal tst_fms_cs               : std_logic_vector(5 downto 0);
-signal i_dbgcs_trig00           : std_logic_vector(41 downto 0);
-signal i_dbgcs_data             : std_logic_vector(122 downto 0);
+signal i_dbgcs_trig00           : std_logic_vector(15 downto 0);
+signal i_dbgcs_data             : std_logic_vector(60 downto 0);
 
 
 --MAIN
@@ -742,15 +742,15 @@ for e in 0 to C_GTCH_COUNT_MAX-1 loop
 i_dbgcs_trig00(8+e)<=i_phy_linkup(e);
 end loop;
 
-for c in 0 to C_GTCH_COUNT_MAX-1 loop
-i_dbgcs_data(10+c)<=p_in_gt_resetdone(c);
+for f in 0 to C_GTCH_COUNT_MAX-1 loop
+i_dbgcs_trig00(10+f)<=p_in_gt_resetdone(f);
 end loop;
 
 i_dbgcs_trig00(12)<=AND_reduce(i_phy_linkup(G_SATAH_CH_COUNT-1 downto 0));
 i_dbgcs_trig00(13)<=p_in_rst;
 i_dbgcs_trig00(14)<=p_in_gt_pll_lock;
 i_dbgcs_trig00(15)<=p_in_usr_dcm_lock;
-i_dbgcs_trig00(41 downto 16)<=(others=>'0');
+--i_dbgcs_trig00(41 downto 16)<=(others=>'0');
 
 
 i_dbgcs_data(5 downto 0)<=tst_fms_cs(5 downto 0);
@@ -772,14 +772,14 @@ i_dbgcs_data(23)<=p_in_gt_drprdy;
 i_dbgcs_data(39 downto 24)<=i_gt_drpdi;
 i_dbgcs_data(55 downto 40)<=p_in_gt_drpdo;
 
-for c in 0 to C_GTCH_COUNT_MAX-1 loop
-i_dbgcs_data(56+c)<=p_in_gt_resetdone(c);
+for g in 0 to C_GTCH_COUNT_MAX-1 loop
+i_dbgcs_data(56+g)<=p_in_gt_resetdone(g);
 end loop;
 
 i_dbgcs_data(58)<=p_in_gt_pll_lock;
 i_dbgcs_data(59)<=p_in_usr_dcm_lock;
 i_dbgcs_data(60)<=p_in_rst;
-i_dbgcs_data(122 downto 61)<=(others=>'0');
+--i_dbgcs_data(122 downto 61)<=(others=>'0');
 
 
 end if;
