@@ -141,6 +141,7 @@ signal i_atacmdw_start             : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_atacmdnew                 : std_logic;
 signal i_atacmdnew_cnt             : std_logic_vector(3 downto 0);
 signal i_atacmdtest                : std_logic;
+signal i_atacmdtest_cnt            : std_logic_vector(3 downto 0);
 
 signal i_sh_atacmd                 : THDDPkt;
 signal sr_sh_bsy                   : std_logic_vector(0 to 1);
@@ -226,6 +227,8 @@ begin
   if p_in_rst='1' then
     i_atacmdnew<='0';
     i_atacmdnew_cnt<=(others=>'0');
+    i_atacmdtest<='0';
+    i_atacmdtest_cnt<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -242,11 +245,27 @@ begin
       i_atacmdnew_cnt<=i_atacmdnew_cnt+1;
     end if;
 
+
+    --//Расширяем импульс
+    if OR_reduce(i_atacmdw_start)='1' and
+      (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
+      i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) then
+      i_atacmdtest<='1';
+    elsif i_atacmdtest_cnt(i_atacmdtest_cnt'high)='1' then
+      i_atacmdtest<='0';
+    end if;
+
+    if i_atacmdtest='0' then
+      i_atacmdtest_cnt<=(others=>'0');
+    else
+      i_atacmdtest_cnt<=i_atacmdtest_cnt+1;
+    end if;
+
   end if;
 end process;
 
-i_atacmdtest<=i_atacmdnew when (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
-                                i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) else '0';
+--i_atacmdtest<=i_atacmdnew when (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
+--                                i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) else '0';
 
 gen_sh_pout : for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sh_tst(i)<=(others=>'0'); --//технологические входы модулей sata_host
@@ -315,7 +334,7 @@ begin
     i_usr_status.dev_rdy<='0';
     i_usr_status.dev_err<='0';
     i_usr_status.dev_ipf<='0';
---    i_usr_status.usr<=(others=>'0');
+    i_usr_status.usr<=(others=>'0');
     for i in 0 to G_HDD_COUNT-1 loop
       i_usr_status.ch_bsy(i)<='0';
       i_usr_status.ch_rdy(i)<='0';
@@ -325,7 +344,7 @@ begin
       i_usr_status.ch_atastatus(i)<=(others=>'0');
       i_usr_status.ch_serror(i)<=(others=>'0');
       i_usr_status.ch_sstatus(i)<=(others=>'0');
---      i_usr_status.ch_usr(i)<=(others=>'0');
+      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
     i_atacmdw_start<=(others=>'0');
