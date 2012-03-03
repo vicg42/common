@@ -312,10 +312,10 @@ if p_in_rst='1' then
 --  i_dma_dcnt<=(others=>'0');
   i_dma_txd<='0';
 
---  i_reg_fpdma.dir<='0';
---  i_reg_fpdma.addr<=(others=>'0');
---  i_reg_fpdma.offset<=(others=>'0');
---  i_reg_fpdma.trncount_byte<=(others=>'0');
+  i_reg_fpdma.dir<='0';
+  i_reg_fpdma.addr<=(others=>'0');
+  i_reg_fpdma.offset<=(others=>'0');
+  i_reg_fpdma.trncount_byte<=(others=>'0');
 
   i_reg_hold.device<=(others=>'0');
   i_reg_hold.status<=(others=>'0');
