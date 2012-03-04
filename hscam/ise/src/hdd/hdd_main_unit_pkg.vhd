@@ -215,17 +215,17 @@ p_in_lentrn_exp       : in    std_logic;
 ----------------------------
 --Связь с буфером видеоданных
 ----------------------------
-p_in_vbuf_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbuf_rd         : out   std_logic;
-p_in_vbuf_empty       : in    std_logic;
-p_in_vbuf_full        : in    std_logic;
-p_in_vbuf_pfull       : in    std_logic;
-p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+p_in_bufi_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_bufi_rd         : out   std_logic;
+p_in_bufi_empty       : in    std_logic;
+p_in_bufi_full        : in    std_logic;
+p_in_bufi_pfull       : in    std_logic;
+p_in_bufi_wrcnt       : in    std_logic_vector(3 downto 0);
 
-p_out_vbufo_sel       : out   std_logic;
-p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufo_wr        : out   std_logic;
-p_in_vbufo_full       : in    std_logic;
+p_out_bufo_sel        : out   std_logic;
+p_out_bufo_din        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_bufo_wr         : out   std_logic;
+p_in_bufo_full        : in    std_logic;
 
 ----------------------------
 --Связь с модулем HDD
