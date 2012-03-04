@@ -264,8 +264,6 @@ begin
   end if;
 end process;
 
---i_atacmdtest<=i_atacmdnew when (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
---                                i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) else '0';
 
 gen_sh_pout : for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sh_tst(i)<=(others=>'0'); --//технологические входы модулей sata_host

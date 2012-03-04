@@ -373,7 +373,7 @@ begin
             rxd(6):=i_sh_status.dev_bsy;
             rxd(7):=i_hdd_done;
             rxd(8):=p_in_rbuf_status.err_type.rambuf_full;
-            rxd(9):=p_in_rbuf_status.err_type.vinbuf_full;
+            rxd(9):=p_in_rbuf_status.err_type.bufi_full;
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_STATUS_M, i_cfg_adr_cnt'length) then rxd:=EXT(i_sh_status.ch_err, 8)&EXT(i_sh_status.ch_rdy, 8);
 
