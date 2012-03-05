@@ -220,12 +220,14 @@ constant CI_MEM_DWIDTH     : integer:=C_MEMCTRL_DWIDTH;
 
 signal i_vfr_prm                        : TFrXY;
 
+signal i_vbufo_full                     : std_logic;
+
 signal i_vctrl_bufi_dout                : std_logic_vector(CI_MEM_DWIDTH-1 downto 0);
 signal i_vctrl_bufi_rd                  : std_logic;
 signal i_vctrl_bufi_empty               : std_logic;
 signal i_vctrl_bufo_din                 : std_logic_vector(CI_MEM_DWIDTH-1 downto 0);
 signal i_vctrl_bufo_wr                  : std_logic;
-signal i_vbufo_full                     : std_logic;
+
 signal i_hdd_bufi_dout                  : std_logic_vector(CI_MEM_DWIDTH-1 downto 0);
 signal i_hdd_bufi_rd                    : std_logic;
 signal i_hdd_bufi_empty                 : std_logic;
@@ -234,7 +236,6 @@ signal i_hdd_bufi_pfull                 : std_logic;
 signal i_hdd_bufi_wrcnt                 : std_logic_vector(3 downto 0);
 signal i_hdd_bufo_din                   : std_logic_vector(CI_MEM_DWIDTH-1 downto 0);
 signal i_hdd_bufo_wr                    : std_logic;
-signal i_hdd_bufo_sel                   : std_logic;
 
 signal i_mem_ctrl_status                : TMEMCTRL_status;
 signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
@@ -398,7 +399,7 @@ end process;
 
 i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.greset;
-i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy));-- or (i_hdd_bufo_sel and i_hdd_rbuf_cfg.dmacfg.clr_err);
+i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy));
 i_hdd_rambuf_rst<=i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy)) ;
 i_mem_ctrl_sysin.rst <= not i_usrpll_lock;
 
@@ -441,21 +442,21 @@ G_VBUF_OWIDTH => G_VOUT_DWIDTH,
 G_VSYN_ACTIVE => G_VSYN_ACTIVE
 )
 port map(
-p_out_vd           => p_out_vd,
-p_in_vs            => p_in_vout_vs,
-p_in_hs            => p_in_vout_hs,
-p_in_vclk          => p_in_vout_clk,
+p_out_vd         => p_out_vd,
+p_in_vs          => p_in_vout_vs,
+p_in_hs          => p_in_vout_hs,
+p_in_vclk        => p_in_vout_clk,
 
-p_in_vbufout_d     => i_vctrl_bufo_din,
-p_in_vbufout_wr    => i_vctrl_bufo_wr,
-p_out_vbufout_full => i_vbufo_full,
-p_in_vbufout_wrclk => g_hclk,
+p_in_vd          => i_vctrl_bufo_din,
+p_in_vd_wr       => i_vctrl_bufo_wr,
+p_in_hd          => i_hdd_bufo_din,
+p_in_hd_wr       => i_hdd_bufo_wr,
+p_in_sel         => i_hdd_rbuf_cfg.dmacfg.hw_mode,
 
-p_in_hbufout_d     => i_hdd_bufo_din,
-p_in_hbufout_wr    => i_hdd_bufo_wr,
-p_in_hsel          => i_hdd_bufo_sel,
+p_out_vbufo_full => i_vbufo_full,
+p_in_vbufo_wrclk => g_hclk,
 
-p_in_rst           => i_vctrl_rst
+p_in_rst         => i_vctrl_rst
 );
 
 m_vctrl : video_ctrl
@@ -766,7 +767,6 @@ p_in_bufi_full        => i_hdd_bufi_full,
 p_in_bufi_pfull       => i_hdd_bufi_pfull,
 p_in_bufi_wrcnt       => i_hdd_bufi_wrcnt,
 
-p_out_bufo_sel        => i_hdd_bufo_sel,
 p_out_bufo_din        => i_hdd_bufo_din,
 p_out_bufo_wr         => i_hdd_bufo_wr,
 p_in_bufo_full        => i_vbufo_full,
