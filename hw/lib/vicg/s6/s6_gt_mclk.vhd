@@ -70,7 +70,7 @@ end generate gen_sim_on;
 
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
 
-m_buffio2 : BUFIO2 port map (DIVCLK => clkout, IOCLK => open, SERDESSTROBE => open, I => i_gtpclkout0(0) );
+m_bufio2 : BUFIO2 port map (I => i_gtpclkout0(0), DIVCLK => clkout, IOCLK => open, SERDESSTROBE => open );
 
 m_gt : GTPA1_DUAL
 generic map(
