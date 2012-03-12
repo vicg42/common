@@ -296,7 +296,7 @@ end generate gen_ch;
 --//###########################
 
 p_out_plllock<=AND_reduce(i_plllkdet(G_GT_CH_COUNT-1 downto 0));
-m_buffio2 : BUFIO2 port map (DIVCLK => p_out_refclkout, IOCLK => open, SERDESSTROBE => open, I => i_refclkout(0)(0) );
+m_bufio2 : BUFIO2 port map (I => i_refclkout(0)(0), DIVCLK => p_out_refclkout, IOCLK => open, SERDESSTROBE => open );
 
 p_out_optrefclk(0)<=i_refclkpll(0);
 p_out_optrefclk(1)<=i_refclkpll(1);
