@@ -9,7 +9,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 06.12.2011 18:40:54
--- Module Name : s6_gt_mclk
+-- Module Name : mclk_gtp_wrap
 --
 -- Назначение/Описание :
 -- Выдача опорной частоты GT
@@ -29,7 +29,7 @@ use unisim.vcomponents.all;
 library work;
 use work.vicg_common_pkg.all;
 
-entity s6_gt_mclk is
+entity mclk_gtp_wrap is
 generic(
 G_SIM     : string:="OFF"
 );
@@ -43,7 +43,7 @@ clkout    : out   std_logic
 );
 end entity;
 
-architecture sparnat6_only of s6_gt_mclk is
+architecture sparnat6_only of mclk_gtp_wrap is
 
 signal i_gtpclkout0                 : std_logic_vector(1 downto 0);
 signal rxchariscomma0_float_i       : std_logic_vector(3 downto 0);

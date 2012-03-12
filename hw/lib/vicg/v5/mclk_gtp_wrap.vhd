@@ -25,8 +25,7 @@ library work;
 use work.vicg_common_pkg.all;
 
 entity mclk_gtp_wrap is
-generic
-(
+generic(
 G_SIM     : string:="OFF"
 );
 port(
