@@ -31,16 +31,15 @@ link: std_logic;--//Связь установлена
 rdy : std_logic;--//Канал готов к работе
 err : std_logic;--//
 busy: std_logic;--//
-spd : std_logic_vector(1 downto 0);
-dly : std_logic;--//
 wr  : std_logic;--//Активность записи/чтения
+--dly : std_logic;--//
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
 
 type THDDRBufErrDetect is record
 bufi_full  : std_logic;
-rambuf_full : std_logic;
+rambuf_full: std_logic;
 end record;
 
 --//Запись чтение RAM через CFG/Map:

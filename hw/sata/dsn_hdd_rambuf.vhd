@@ -52,17 +52,16 @@ p_in_lentrn_exp       : in    std_logic;
 ----------------------------
 --Связь с буфером видеоданных
 ----------------------------
-p_in_vbuf_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbuf_rd         : out   std_logic;
-p_in_vbuf_empty       : in    std_logic;
-p_in_vbuf_full        : in    std_logic;
-p_in_vbuf_pfull       : in    std_logic;
-p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+p_in_bufi_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_bufi_rd         : out   std_logic;
+p_in_bufi_empty       : in    std_logic;
+p_in_bufi_full        : in    std_logic;
+p_in_bufi_pfull       : in    std_logic;
+p_in_bufi_wrcnt       : in    std_logic_vector(3 downto 0);
 
-p_out_vbufo_sel       : out   std_logic;
-p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufo_wr        : out   std_logic;
-p_in_vbufo_full       : in    std_logic;
+p_out_bufo_din        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_bufo_wr         : out   std_logic;
+p_in_bufo_full        : in    std_logic;
 
 ----------------------------
 --Связь с модулем HDD
@@ -165,7 +164,7 @@ signal i_rambuf_done                   : std_logic;
 signal i_rambuf_full                   : std_logic;
 
 signal i_vbuf_pfull                    : std_logic:='0';
-signal i_vbuf_wrcnt                    : std_logic_vector(p_in_vbuf_wrcnt'range):=(others=>'0');
+signal i_vbuf_wrcnt                    : std_logic_vector(p_in_bufi_wrcnt'range):=(others=>'0');
 signal i_hdd_txbuf_pfull               : std_logic:='0';
 
 signal i_mem_adr_update                : std_logic_vector(31 downto 0);--//(BYTE)
@@ -230,7 +229,7 @@ p_out_tst(10)<=tst_hw_stop;
 p_out_tst(11)<=tst_rambuf_empty;
 p_out_tst(13 downto 12)<=(others=>'0');
 p_out_tst(14)          <='0';--i_mem_dir;
-p_out_tst(15)          <='0';
+p_out_tst(15)          <=i_padding;
 
 p_out_tst(16)          <=tst_vwr_out(5);
 p_out_tst(17)          <=tst_vrd_out(5);
@@ -290,8 +289,8 @@ end process;
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    i_vbuf_wrcnt<=p_in_vbuf_wrcnt;
-    i_vbuf_pfull<=p_in_vbuf_pfull;
+    i_vbuf_wrcnt<=p_in_bufi_wrcnt;
+    i_vbuf_pfull<=p_in_bufi_pfull;
     i_hdd_txbuf_pfull<=p_in_hdd_txbuf_pfull;
 
     i_rbuf_cfg<=p_in_rbuf_cfg.dmacfg;
@@ -312,7 +311,7 @@ i_hwlog_d(0)<=EXT(i_hwlog.tdly, i_hwlog_d(0)'length);
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.vinbuf_full;
+p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.bufi_full;
 p_out_rbuf_status.err_type<=i_err_det;
 p_out_rbuf_status.done<=i_rambuf_done;
 p_out_rbuf_status.hwlog_size<=i_wr_ptr;
@@ -326,7 +325,7 @@ p_out_rbuf_status.ram_wr_o.dout <=(others=>'0');
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    i_err_det.vinbuf_full<='0';
+    i_err_det.bufi_full<='0';
     i_err_det.rambuf_full<='0';
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -338,10 +337,10 @@ begin
     end if;
 
     if i_rbuf_cfg.clr_err='1' then
-      i_err_det.vinbuf_full<='0';
-    elsif p_in_vbuf_full='1' and
+      i_err_det.bufi_full<='0';
+    elsif p_in_bufi_full='1' and
           (i_rbuf_cfg.sw_mode='1' or i_rbuf_cfg.hw_mode='1') then
-      i_err_det.vinbuf_full<='1';
+      i_err_det.bufi_full<='1';
     end if;
 
   end if;
@@ -440,7 +439,7 @@ begin
       when S_IDLE =>
 
         i_rambuf_done<='0';
-
+        i_padding<='0';
         i_wr_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0); --Размер одиночной транзакций ОЗУ (DWORD)
         i_rd_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
 
@@ -727,7 +726,6 @@ begin
         end if;
 
         if i_rbuf_cfg.hw_mode='0' then
-          i_padding<='0';
           fsm_rambuf_cs <= S_IDLE;
         else
           i_mem_start<='1';
@@ -830,17 +828,16 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
-p_out_vbufo_din<=p_in_hdd_rxd;
-p_out_vbufo_wr<=(i_rbuf_cfg.hw_mode and not p_in_hdd_rxbuf_empty and not p_in_vbufo_full) or i_padding;
-p_out_vbufo_sel<=(i_rbuf_cfg.hw_mode and not p_in_hdd_rxbuf_empty);
+p_out_bufo_din<=p_in_hdd_rxd;
+p_out_bufo_wr<=(i_rbuf_cfg.hw_mode and not p_in_hdd_rxbuf_empty and not p_in_bufo_full) or i_padding;
 
-p_out_vbuf_rd<=(i_rbuf_cfg.hw_mode and i_mem_din_rd) or i_padding;
+p_out_bufi_rd<=(i_rbuf_cfg.hw_mode and i_mem_din_rd) or i_padding;
 
 p_out_hdd_rxd_rd<=(i_rbuf_cfg.sw_mode and i_mem_din_rd) or i_padding;
 
 --//to RAM
-i_mem_din_rdy_1tmp<=p_in_hdd_rxbuf_empty when i_rbuf_cfg.sw_mode='1' else p_in_vbuf_empty;
-i_mem_din_1tmp    <=p_in_hdd_rxd         when i_rbuf_cfg.sw_mode='1' else p_in_vbuf_dout;
+i_mem_din_rdy_1tmp<=p_in_hdd_rxbuf_empty when i_rbuf_cfg.sw_mode='1' else p_in_bufi_empty;
+i_mem_din_1tmp    <=p_in_hdd_rxd         when i_rbuf_cfg.sw_mode='1' else p_in_bufi_dout;
 
 i_mem_din_rdy_2tmp<=i_mem_din_rdy_1tmp when i_hwlog.log_on='0' else '0';
 i_mem_din_2tmp    <=i_mem_din_1tmp     when i_hwlog.log_on='0' else i_hwlog_d(0);
@@ -1022,20 +1019,20 @@ p_out_dbgcs.trig0<=(others=>'0');
 p_out_dbgcs.data<=(others=>'0');
 
 p_out_rbuf_status.err<='0';
-p_out_rbuf_status.err_type.vinbuf_full<='0';
+p_out_rbuf_status.err_type.bufi_full<='0';
 p_out_rbuf_status.err_type.rambuf_full<='0';
 p_out_rbuf_status.done<='0';
 p_out_rbuf_status.hwlog_size<=(others=>'0');
 
-p_out_vbuf_rd <= not p_in_vbuf_empty;
+p_out_bufi_rd <= not p_in_bufi_empty;
 
-p_out_hdd_txd <= p_in_vbuf_dout;
-p_out_hdd_txd_wr <= not p_in_vbuf_empty;
+p_out_hdd_txd <= p_in_bufi_dout;
+p_out_hdd_txd_wr <= not p_in_bufi_empty;
 
 
 p_out_hdd_rxd_rd<='0';
 
-p_out_tst(0)<=OR_reduce(p_in_vbuf_dout) or p_in_vbuf_empty or OR_reduce(p_in_vbuf_wrcnt) or
+p_out_tst(0)<=OR_reduce(p_in_bufi_dout) or p_in_bufi_empty or OR_reduce(p_in_bufi_wrcnt) or
               OR_reduce(p_in_hdd_rxd) or p_in_hdd_rxbuf_empty or p_in_hdd_txbuf_full;
 p_out_tst(31 downto 1) <= (others=>'0');
 

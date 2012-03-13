@@ -114,7 +114,8 @@ p_out_tst(1)<=i_mem_done;
 p_out_tst(4 downto 2)<=tst_fsm_cs;
 p_out_tst(5)<=i_mem_cmden;
 p_out_tst(6)<=i_mem_trn_work;
-p_out_tst(15 downto 7)<=(others=>'0');
+p_out_tst(7)<='1' when fsm_state_cs=S_IDLE else '0';
+p_out_tst(15 downto 8)<=(others=>'0');
 p_out_tst(21 downto 16)<=i_mem_trn_dcnt(5 downto 0);
 p_out_tst(31 downto 22)<=(others=>'0');
 
@@ -158,7 +159,7 @@ p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 p_out_cfg_mem_done<=i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty;-- and not p_in_usr_rxbuf_full;
+i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty when i_mem_dir=C_MEMWR_READ else '0';
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full);
 
@@ -175,8 +176,7 @@ begin
           end if;
         end if;
       else
-        if fsm_state_cs=S_MEM_TRN_START then --or
---          (fsm_state_cs=S_MEM_TRN_END and p_in_cfg_mem_stop='0') then
+        if fsm_state_cs=S_MEM_TRN_START then
           i_mem_cmden<='1';
         end if;
       end if;
@@ -195,7 +195,6 @@ end generate gen_memd8;
 gen_memd_more8 : if G_MEM_DWIDTH>8 generate
 i_mem_adr_update<=(CONV_STD_LOGIC_VECTOR(0, (i_mem_adr'length - i_mem_trn_len'length - log2(G_MEM_DWIDTH/8))) & i_mem_trn_len & CONV_STD_LOGIC_VECTOR(0,log2(G_MEM_DWIDTH/8)) );
 end generate gen_memd_more8;
-
 
 
 --Логика работы автомата

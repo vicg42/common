@@ -44,11 +44,6 @@ port(
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
 
---//ctrl - hw start
-p_out_hw_work           : out   std_logic;
-p_out_hw_start          : out   std_logic;
-p_in_hw_start           : in    std_logic;
-
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
 p_in_usr_cxd_wr         : in    std_logic;
@@ -131,8 +126,11 @@ hw       : std_logic;
 hw_work  : std_logic;
 lbaend   : std_logic;
 stop     : std_logic;
+hr       : std_logic;
 end record;
 signal i_usrmode                   : TUserMode;
+signal i_raidcmd                   : std_logic_vector(C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT downto 0);
+signal i_satacmd                   : std_logic_vector(C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT downto 0);
 
 signal i_lba_end                   : std_logic_vector(i_cmdpkt.lba'range);
 
@@ -140,6 +138,7 @@ signal i_atacmdw_start             : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_atacmdnew                 : std_logic;
 signal i_atacmdnew_cnt             : std_logic_vector(3 downto 0);
 signal i_atacmdtest                : std_logic;
+signal i_atacmdtest_cnt            : std_logic_vector(3 downto 0);
 
 signal i_sh_atacmd                 : THDDPkt;
 signal sr_sh_bsy                   : std_logic_vector(0 to 1);
@@ -149,11 +148,6 @@ err     : std_logic;--//Обнаружены ошибки
 end record;
 signal i_sh_det                    : TShDetect;
 signal sr_sh_cmddone               : std_logic_vector(0 to 4);
-
---signal i_sh_cmddone_width          : std_logic;
---signal i_sh_cmddone_width_cnt      : std_logic_vector(2 downto 0);
---signal i_hw_start_in               : std_logic;
---signal sr_hw_start_in              : std_logic_vector(0 to 1);
 
 signal i_sh_cmd_hw_start           : std_logic:='0';
 signal i_sh_cmd_en                 : std_logic;
@@ -232,13 +226,14 @@ end generate gen_dbg_on;
 --//------------------------------------------
 i_err_clr<=p_in_usr_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
 i_err_streambuf<=p_in_usr_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT);--//Только для режима HW
---i_hwstart_dly_on<=p_in_usr_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT);
 
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_atacmdnew<='0';
     i_atacmdnew_cnt<=(others=>'0');
+    i_atacmdtest<='0';
+    i_atacmdtest_cnt<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -255,11 +250,23 @@ begin
       i_atacmdnew_cnt<=i_atacmdnew_cnt+1;
     end if;
 
+    --//Расширяем импульс
+    if OR_reduce(i_atacmdw_start)='1' and
+      (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
+      i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) then
+      i_atacmdtest<='1';
+    elsif i_atacmdtest_cnt(i_atacmdtest_cnt'high)='1' then
+      i_atacmdtest<='0';
+    end if;
+
+    if i_atacmdtest='0' then
+      i_atacmdtest_cnt<=(others=>'0');
+    else
+      i_atacmdtest_cnt<=i_atacmdtest_cnt+1;
+    end if;
+
   end if;
 end process;
-
-i_atacmdtest<=i_atacmdnew when (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
-                                i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) else '0';
 
 gen_sh_pout : for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sh_tst(i)<=(others=>'0'); --//технологические входы модулей sata_host
@@ -285,6 +292,8 @@ i_usr_status.dmacfg.raid.used<=p_in_raid.used;
 i_usr_status.dmacfg.raid.hddcount<=p_in_raid.hddcount;
 i_usr_status.dmacfg.scount<=i_sh_atacmd.scount;
 i_usr_status.dmacfg.tstgen_start<=i_atacmdtest;
+i_usr_status.dmacfg.hm_w <=i_usrmode.hw_work and i_usrmode.hw;
+i_usr_status.dmacfg.hm_r <=i_usrmode.hw_work and i_usrmode.hr;
 
 process(p_in_rst,p_in_clk)
   variable dma_armed: std_logic;
@@ -329,7 +338,7 @@ begin
     i_usr_status.dev_rdy<='0';
     i_usr_status.dev_err<='0';
     i_usr_status.dev_ipf<='0';
---    i_usr_status.usr<=(others=>'0');
+    i_usr_status.usr<=(others=>'0');
     for i in 0 to G_HDD_COUNT-1 loop
       i_usr_status.ch_bsy(i)<='0';
       i_usr_status.ch_rdy(i)<='0';
@@ -339,7 +348,7 @@ begin
       i_usr_status.ch_atastatus(i)<=(others=>'0');
       i_usr_status.ch_serror(i)<=(others=>'0');
       i_usr_status.ch_sstatus(i)<=(others=>'0');
---      i_usr_status.ch_usr(i)<=(others=>'0');
+      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
     i_atacmdw_start<=(others=>'0');
@@ -434,8 +443,6 @@ end process;
 
 --//Прием командного пакета
 process(p_in_rst,p_in_clk)
-  variable raidcmd: std_logic_vector(C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT downto 0);
-  variable satacmd: std_logic_vector(C_HDDPKT_SATACMD_M_BIT-C_HDDPKT_SATACMD_L_BIT downto 0);
 begin
   if p_in_rst='1' then
     i_cmdpkt.ctrl<=(others=>'0');
@@ -447,54 +454,10 @@ begin
     i_cmdpkt.device<=(others=>'0');
     i_cmdpkt.raid_cl<=(others=>'0');
 
-    i_usrmode.stop<='0';
-    i_usrmode.sw<='0';
-    i_usrmode.hw<='0';
-    i_usrmode.lbaend<='0';
-
-    i_sh_cmd_en<='0';
-
   elsif p_in_clk'event and p_in_clk='1' then
 
     if p_in_usr_cxd_wr='1' then
       if    i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_USRCTRL, i_cmdpkt_cnt'length) then i_cmdpkt.ctrl<=p_in_usr_cxd;
-
-          --//Декодирование режима работы:
-          raidcmd:=p_in_usr_cxd(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT);
-          satacmd:=p_in_usr_cxd(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT);
-
-          if    raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, raidcmd'length) then
-            i_usrmode.stop<='1';
-            i_usrmode.sw<='0';
-            i_usrmode.hw<='0';
-            i_usrmode.lbaend<='0';
-
-          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW, raidcmd'length) then
-            i_usrmode.stop<='0';
-            i_usrmode.sw<='1';
-            i_usrmode.hw<='0';
-            i_usrmode.lbaend<='0';
-
-          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HW, raidcmd'length) then
-            i_usrmode.stop<='0';
-            i_usrmode.sw<='0';
-            i_usrmode.hw<='1';
-            i_usrmode.lbaend<='0';
-
-          elsif raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_LBAEND, raidcmd'length) then
-            i_usrmode.stop<='0';
-            i_usrmode.sw<='0';
-            i_usrmode.hw<='0';
-            i_usrmode.lbaend<='1';
-
-          end if;
-
-          if    satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, satacmd'length) or
-                satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACONTROL, satacmd'length) then
-            i_sh_cmd_en<='1';
-          else
-            i_sh_cmd_en<='0';
-          end if;
 
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_FEATURE, i_cmdpkt_cnt'length)      then i_cmdpkt.feature<=p_in_usr_cxd;
       elsif i_cmdpkt_cnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_LBA_LOW, i_cmdpkt_cnt'length)      then i_cmdpkt.lba(8*(0+1)-1 downto 8*0)<=p_in_usr_cxd( 7 downto 0);
@@ -516,49 +479,68 @@ begin
   end if;
 end process;
 
+--//Декодирование режима работы:
+i_raidcmd<=i_cmdpkt.ctrl(C_HDDPKT_RAIDCMD_M_BIT downto C_HDDPKT_RAIDCMD_L_BIT);
+i_satacmd<=i_cmdpkt.ctrl(C_HDDPKT_SATACMD_M_BIT downto C_HDDPKT_SATACMD_L_BIT);
+
+i_usrmode.stop  <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP  , i_raidcmd'length) else '0';
+i_usrmode.sw    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW    , i_raidcmd'length) else '0';
+i_usrmode.hw    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HW    , i_raidcmd'length) else '0';
+i_usrmode.lbaend<='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_LBAEND, i_raidcmd'length) else '0';
+i_usrmode.hr    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HR    , i_raidcmd'length) else '0';
+
+i_sh_cmd_en<='1' when i_satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, i_satacmd'length) or
+                      i_satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACONTROL, i_satacmd'length) else '0';
+
 
 --//Отправка командного пакета в модуль sata_host.vhd
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_sh_cmd_start<='0';
-    i_sh_cmdcnt<=(others=>'0');
     i_sh_cmdcnt_en<='0';
-    i_sh_cxd_sof<='0';
-    i_sh_cxd_eof<='0';
+--    i_sh_cxd_sof<='0';
+--    i_sh_cxd_eof<='0';
     i_sh_cxd_src_rdy<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_sh_cmd_start<=(i_cmdpkt_get_done and (i_usrmode.hw or i_usrmode.sw)) or
+    i_sh_cmd_start<=(i_cmdpkt_get_done and (i_usrmode.hw or i_usrmode.sw or i_usrmode.hr)) or
                     (i_sh_cmd_hw_start and i_usrmode.hw_work);
 
     if i_sh_cmd_start='1' then
       i_sh_cmdcnt_en<='1';
-    elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT, i_sh_cmdcnt'length) then
+    elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_sh_cmdcnt'length) then
       i_sh_cmdcnt_en<='0';
     end if;
 
+--    if i_sh_cmdcnt_en='1' and i_sh_cmdcnt=(i_sh_cmdcnt'range=>'0') then
+--      i_sh_cxd_sof<='1';
+--    else
+--      i_sh_cxd_sof<='0';
+--    end if;
+--
+--    if i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_sh_cmdcnt'length) then
+--      i_sh_cxd_eof<='1';
+--    else
+--      i_sh_cxd_eof<='0';
+--    end if;
+
+    i_sh_cxd_src_rdy<=i_sh_cmdcnt_en;
+
+  end if;
+end process;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_sh_cmdcnt<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
     if i_sh_cmdcnt_en='0' then
       i_sh_cmdcnt<=(others=>'0');
     else
       i_sh_cmdcnt<=i_sh_cmdcnt + 1;
     end if;
-
-    if i_sh_cmdcnt_en='1' and i_sh_cmdcnt=(i_sh_cmdcnt'range=>'0') then
-      i_sh_cxd_sof<='1';
-    else
-      i_sh_cxd_sof<='0';
-    end if;
-
-    if i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT, i_sh_cmdcnt'length) then
-      i_sh_cxd_eof<='1';
-    else
-      i_sh_cxd_eof<='0';
-    end if;
-
-    i_sh_cxd_src_rdy<=i_sh_cmdcnt_en;
-
   end if;
 end process;
 
@@ -594,66 +576,20 @@ end process;
 p_out_sh_mask<=i_cmdpkt.ctrl(G_HDD_COUNT+C_HDDPKT_SATA_CS_L_BIT-1 downto C_HDDPKT_SATA_CS_L_BIT);
 
 p_out_sh_cxd<=i_sh_cxdout;
-p_out_sh_cxd_sof_n<=not i_sh_cxd_sof;
-p_out_sh_cxd_eof_n<=not i_sh_cxd_eof;
+p_out_sh_cxd_sof_n<='0';--not i_sh_cxd_sof;
+p_out_sh_cxd_eof_n<='0';--not i_sh_cxd_eof;
 p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
 
 
 
 
 --//HW mode
-p_out_hw_work  <='0';
-p_out_hw_start <='0';
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
     i_sh_cmd_hw_start<=sr_sh_cmddone(4);
   end if;
 end process;
-
---p_out_hw_work  <=i_usrmode.hw_work;
---p_out_hw_start <=i_sh_cmddone_width;
---
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    i_sh_cmddone_width<='0';
---    i_sh_cmddone_width_cnt<=(others=>'0');
---
---    i_hw_start_in<='0';
---    sr_hw_start_in<=(others=>'0');
---
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    --//Расширяем импульс запуска задержки аппаратного пуска АТА команды,
---    --//т.к. модуль sata_hwstart_ctrl.vhd работает на другой частоте
---    if sr_sh_cmddone(4)='1' then
---      i_sh_cmddone_width<='1';
---    elsif i_sh_cmddone_width_cnt(i_sh_cmddone_width_cnt'high)='1' then
---      i_sh_cmddone_width<='0';
---    end if;
---
---    if i_sh_cmddone_width='0' then
---      i_sh_cmddone_width_cnt<=(others=>'0');
---    else
---      i_sh_cmddone_width_cnt<=i_sh_cmddone_width_cnt+1;
---    end if;
---
---    --//Выделяем задний фронт из полученой задержки
---    i_hw_start_in<=p_in_hw_start;
---    sr_hw_start_in<=i_hw_start_in & sr_hw_start_in(0 to 0);
---
---  end if;
---end process;
---
-----//Выбор аппаратного запуска: с управляемой задержкой или вообще без задержки
---process(p_in_clk)
---begin
---  if p_in_clk'event and p_in_clk='1' then
---    i_sh_cmd_hw_start<=(not i_hwstart_dly_on and sr_sh_cmddone(4)) or
---                       (    i_hwstart_dly_on and not sr_hw_start_in(0) and sr_hw_start_in(1));
---  end if;
---end process;
 
 --//Режим HW: Активная работа
 process(p_in_rst,p_in_clk)
@@ -665,7 +601,7 @@ begin
     --//Работа в HW режиме
     if (i_usrmode.stop='1' and i_cmdpkt_get_done='1') or (i_sh_atacmd.lba>=i_lba_end and sr_sh_cmddone(1)='1') or i_sh_det.err='1' then
       i_usrmode.hw_work<='0';
-    elsif i_usrmode.hw='1' and i_cmdpkt_get_done='1' then
+    elsif (i_usrmode.hw='1' or i_usrmode.hr='1') and i_cmdpkt_get_done='1' then
       i_usrmode.hw_work<='1';
     end if;
 
@@ -711,7 +647,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if (i_usrmode.sw='1' or i_usrmode.hw='1') and i_cmdpkt_get_done='1' then
+    if (i_usrmode.sw='1' or i_usrmode.hw='1' or i_usrmode.hr='1') and i_cmdpkt_get_done='1' then
     --//Параметы текущей АТА команды:
       i_sh_atacmd.lba<=i_cmdpkt.lba;
       i_sh_atacmd.scount<=i_cmdpkt.scount;

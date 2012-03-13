@@ -159,26 +159,29 @@ end generate gen_usrmode;
 --Связь с USR APP Layer
 --------------------------------------------------
 --//Чтение командного пакета
---p_out_cmdfifo_dst_rdy_n<=i_reg_shadow.status(C_ATA_STATUS_BUSY_BIT) or i_reg_shadow.status(C_ATA_STATUS_DRQ_BIT);
-
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_cmdfifo_dcnt<=(others=>'0');
-    i_cmdfifo_rd_done<='0';
-
   elsif p_in_clk'event and p_in_clk='1' then
-
-    i_cmdfifo_rd_done<=not p_in_cmdfifo_src_rdy_n and not p_in_cmdfifo_eof_n;
-
-    if p_in_cmdfifo_src_rdy_n='0' then
-      if p_in_cmdfifo_eof_n='0' then
-        i_cmdfifo_dcnt<=(others=>'0');
-      else
-        i_cmdfifo_dcnt<=i_cmdfifo_dcnt+1;
-      end if;
+    if i_cmdfifo_rd_done='1' then
+      i_cmdfifo_dcnt<=(others=>'0');
+    elsif p_in_cmdfifo_src_rdy_n='0' then
+      i_cmdfifo_dcnt<=i_cmdfifo_dcnt + 1;
     end if;
+  end if;
+end process;
 
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_cmdfifo_rd_done<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    if p_in_cmdfifo_src_rdy_n='0' and i_cmdfifo_dcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_cmdfifo_dcnt'length) then
+      i_cmdfifo_rd_done<='1';
+    else
+      i_cmdfifo_rd_done<='0';
+    end if;
   end if;
 end process;
 

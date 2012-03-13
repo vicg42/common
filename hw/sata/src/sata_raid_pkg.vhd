@@ -41,7 +41,8 @@ clr_err  : std_logic;
 raid     : TRaid;
 tstgen_start: std_logic;
 scount   : std_logic_vector(15 downto 0);
---tstgen   : THDDTstGen;
+hm_w     : std_logic;
+hm_r     : std_logic;
 end record;
 
 type TUsrStatus is record

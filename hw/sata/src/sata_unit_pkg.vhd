@@ -98,15 +98,15 @@ generic (
 G_GT_DBUS : integer:=16
 );
 port(
-p_out_dcm_gclk0     : out   std_logic;
-p_out_dcm_gclk2x    : out   std_logic;
-p_out_dcm_gclkdv    : out   std_logic;
+p_out_dcm_gclk0  : out   std_logic;
+p_out_dcm_gclk2x : out   std_logic;
+p_out_dcm_gclkdv : out   std_logic;
 
-p_out_dcmlock       : out   std_logic;
+p_out_dcmlock    : out   std_logic;
 
-p_out_refclkout     : out   std_logic;
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
+p_out_refclkout  : out   std_logic;
+p_in_clk         : in    std_logic;
+p_in_rst         : in    std_logic
 );
 end component;
 
@@ -122,50 +122,20 @@ p_in_optrefclk     : in    T04_SHCountMax
 );
 end component;
 
-
-component ll_fifo
-generic (
-MEM_TYPE       : integer:=0;
-BRAM_MACRO_NUM : integer:=1;
-DRAM_DEPTH     : integer:=16;
-WR_DWIDTH      : integer:=32;
-RD_DWIDTH      : integer:=32;
-RD_REM_WIDTH   : integer:=2;
-WR_REM_WIDTH   : integer:=2;
-USE_LENGTH     : boolean:=true;
-glbtm          : time   :=1 ns
-);
+component sata_cmdfifo
 port(
--- Reset
-areset_in:              in std_logic;
+din    : in  std_logic_vector(15 downto 0);
+wr_en  : in  std_logic;
+wr_clk : in  std_logic;
 
--- clocks
-write_clock_in:         in std_logic;
-read_clock_in:          in std_logic;
+dout   : out std_logic_vector(15 downto 0);
+rd_en  : in  std_logic;
+rd_clk : in  std_logic;
 
--- Interface to downstream user application
-data_out:               out std_logic_vector(0 to RD_DWIDTH-1);
-rem_out:                out std_logic_vector(0 to RD_REM_WIDTH-1);
-sof_out_n:              out std_logic;
-eof_out_n:              out std_logic;
-src_rdy_out_n:          out std_logic;
-dst_rdy_in_n:           in std_logic;
+full   : out std_logic;
+empty  : out std_logic;
 
--- Interface to upstream user application
-data_in:                in std_logic_vector(0 to WR_DWIDTH-1);
-rem_in:                 in std_logic_vector(0 to WR_REM_WIDTH-1);
-sof_in_n:               in std_logic;
-eof_in_n:               in std_logic;
-src_rdy_in_n:           in std_logic;
-dst_rdy_out_n:          out std_logic;
-
--- FIFO status signals
-fifostatus_out:         out std_logic_vector(0 to 3);
-
--- Length Status
-len_rdy_out:            out std_logic;
-len_out:                out std_logic_vector(0 to 15);
-len_err_out:            out std_logic
+rst    : in  std_logic
 );
 end component;
 
@@ -896,7 +866,7 @@ p_in_uap_rxd_rd         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
 p_in_sh_clk             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_sh_status          : in    TALStatus_GTCH;
+--p_in_sh_status          : in    TALStatus_GTCH;
 
 --//CMDFIFO
 p_out_sh_cxd            : out   TBus16_GTCH;
@@ -944,11 +914,6 @@ port(
 --------------------------------------------------
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
-
---//ctrl - hw start
-p_out_hw_work           : out   std_logic;
-p_out_hw_start          : out   std_logic;
-p_in_hw_start           : in    std_logic;
 
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);
@@ -1084,11 +1049,6 @@ port(
 --------------------------------------------------
 p_in_usr_ctrl           : in    std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 p_out_usr_status        : out   TUsrStatus;
-
---//ctrl - hw start
-p_out_hw_work           : out   std_logic;
-p_out_hw_start          : out   std_logic;
-p_in_hw_start           : in    std_logic;
 
 --//cmdpkt
 p_in_usr_cxd            : in    std_logic_vector(15 downto 0);

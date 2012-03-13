@@ -92,11 +92,11 @@ constant C_HDDPKT_LBA_MID                : integer:=16#03#;
 constant C_HDDPKT_LBA_HIGH               : integer:=16#04#;
 constant C_HDDPKT_SECTOR_COUNT           : integer:=16#05#;
 constant C_HDDPKT_DEVICE                 : integer:=16#06#;-- + C_HDDPKT_DEV_CONTROL
-constant C_HDDPKT_COMMAND                : integer:=16#07#;-- + (15..0)-неиспользуются
+constant C_HDDPKT_COMMAND                : integer:=16#07#;-- + (15..8)-неиспользуются
 constant C_HDDPKT_RAID_CL                : integer:=16#08#;--//Размер кластера данных RAID (в секторах)
 
 --//Кол-во полей HDDPKT:
-constant C_HDDPKT_DCOUNT                 : integer:=1 + C_HDDPKT_RAID_CL;
+constant C_HDDPKT_DCOUNT                 : integer:=C_HDDPKT_RAID_CL+1;
 
 --//User CMD Pkt :
 --//Поле UsrCtrl/ Bit Map:
@@ -114,6 +114,7 @@ constant C_RAIDCMD_STOP                  : integer:=0;--//работа от управляющей 
 constant C_RAIDCMD_SW                    : integer:=1;--//работа от управляющей программы
 constant C_RAIDCMD_HW                    : integer:=2;--//аппаратная запись
 constant C_RAIDCMD_LBAEND                : integer:=3;--//установка конечного адреса LBA (при работе в режиме HW)
+constant C_RAIDCMD_HR                    : integer:=4;--//аппаратное чтение
 
 --//(C_HDDPKT_SATACMD_M downto C_HDDPKT_SATACMD_L)/Map:
 constant C_SATACMD_NULL                  : integer:=0;

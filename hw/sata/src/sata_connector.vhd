@@ -55,7 +55,6 @@ p_in_uap_rxd_rd         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 --Связь с модулем sata_host.vhd
 --------------------------------------------------
 p_in_sh_clk             : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-p_in_sh_status          : in    TALStatus_GTCH;
 
 --//CMDFIFO
 p_out_sh_cxd            : out   TBus16_GTCH;
@@ -92,6 +91,9 @@ end sata_connector;
 architecture behavioral of sata_connector is
 
 signal i_txbuf_wrcount         : TBus04_GTCH;
+signal i_cmdbuf_empty          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_cmdbuf_wr             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_cmdbuf_rd             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 --MAIN
 begin
@@ -149,54 +151,24 @@ gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
 --//----------------------------
 --//Согласующие буфера:
 --//----------------------------
-m_cmdbuf : ll_fifo
-generic map(
-MEM_TYPE       => 0,     -- 0 choose BRAM, 1 choose Distributed RAM
-BRAM_MACRO_NUM => 1,     -- Memory Depth(Кол-во элементов BRAM (1BRAM-4kB). For BRAM only - Allowed: 1, 2, 4, 8, 16
-DRAM_DEPTH     => 16,    -- Memory Depth. For DRAM only
+p_out_sh_cxd_src_rdy_n(i)<=i_cmdbuf_empty(i);
+i_cmdbuf_wr(i)<=not p_in_uap_cxd_src_rdy_n(i);
+i_cmdbuf_rd(i)<=not i_cmdbuf_empty(i);
 
-WR_REM_WIDTH   => 1,     -- Remainder width of write data
-WR_DWIDTH      => 16,    -- FIFO write data width,
-                            -- Acceptable values are 8, 16, 32, 64, 128.
-
-RD_REM_WIDTH   => 1,     -- Remainder width of read data
-RD_DWIDTH      => 16,    -- FIFO read data width,
-                            -- Acceptable values are 8, 16, 32, 64, 128.
-
-USE_LENGTH     => false, -- Length FIFO option
-glbtm          => 1 ns   -- Global timing delay for simulation
-)
+m_cmdbuf : sata_cmdfifo
 port map(
--- Interface to downstream user application
-data_out       => p_out_sh_cxd(i),
-rem_out        => open,--ll_rcmdpkt_rem,
-sof_out_n      => open,--p_out_sh_cxd_sof_n(i),
-eof_out_n      => p_out_sh_cxd_eof_n(i),
-src_rdy_out_n  => p_out_sh_cxd_src_rdy_n(i),
-dst_rdy_in_n   => '0',
+din         => p_in_uap_cxd(i),
+wr_en       => i_cmdbuf_wr(i),
+wr_clk      => p_in_uap_clk,
 
-read_clock_in  => p_in_sh_clk(i),
+dout        => p_out_sh_cxd(i),
+rd_en       => i_cmdbuf_rd(i),
+rd_clk      => p_in_sh_clk(i),
 
--- Interface to upstream user application
-data_in        => p_in_uap_cxd(i),
-rem_in         => "0",
-sof_in_n       => p_in_uap_cxd_sof_n(i),
-eof_in_n       => p_in_uap_cxd_eof_n(i),
-src_rdy_in_n   => p_in_uap_cxd_src_rdy_n(i),
-dst_rdy_out_n  => open,--p_out_wcmdpkt_dst_rdy_n,
+full        => open,
+empty       => i_cmdbuf_empty(i),
 
-write_clock_in => p_in_uap_clk,
-
--- FIFO status signals
-fifostatus_out => open,
-
--- Length Status
-len_rdy_out    => open,
-len_out        => open,
-len_err_out    => open,
-
--- Reset
-areset_in      => p_in_rst(i)
+rst         => p_in_rst(i)
 );
 
 m_txbuf : sata_txfifo
