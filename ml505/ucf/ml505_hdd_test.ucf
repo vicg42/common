@@ -105,14 +105,14 @@ INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  L
 NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET = "TG_SATA_300MHz";
 NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET = "TG_SATA_150MHz";
 NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET = "TG_SATA_75MHz";
-TIMESPEC "TS_SATACLK_300MHz" = PERIOD "TG_SATA_300MHz" 300MHz;
-TIMESPEC "TS_SATACLK_150MHz" = PERIOD "TG_SATA_150MHz" 150MHz;
-TIMESPEC "TS_SATACLK_75MHz"  = PERIOD "TG_SATA_75MHz"  75MHz;
+TIMESPEC "TS_SATACLK_300MHz" = PERIOD "TG_SATA_300MHz" 3.3  ns;
+TIMESPEC "TS_SATACLK_150MHz" = PERIOD "TG_SATA_150MHz" 6.6  ns;
+TIMESPEC "TS_SATACLK_75MHz"  = PERIOD "TG_SATA_75MHz"  13.3 ns;
 
 NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_sim_off.m_gt/g_gtp_usrclk2<?>" TNM_NET=FFS "TG_SATA_FF";
 NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_sim_off.m_gt/g_gtp_usrclk2<?>" TNM_NET=HSIOS "TG_SATA_HSIOS";
 TIMEGRP "TG_SATA"="TG_SATA_FF" "TG_SATA_HSIOS";## "TG_BRAM_PORTA" "TG_BRAM_PORTB" "TG_SATA_RAM";
-TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 150MHz;
+TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 6.6  ns;
 
 #####INST m_hdd/LB_MOD_USE_ON.LB_DUAL_GTP[0].m_sata_host_i" AREA_GROUP = "AG_SATA_DUAL_GTP0";
 #####AREA_GROUP "AG_SATA_DUAL_GTP0" RANGE = SLICE_X20Y64:SLICE_X58Y36;

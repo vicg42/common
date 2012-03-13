@@ -261,17 +261,16 @@ p_in_lentrn_exp       : in    std_logic;
 --//--------------------------
 --//Связь с буфером видеоданных
 --//--------------------------
-p_in_vbuf_dout        : in    std_logic_vector(31 downto 0);
-p_out_vbuf_rd         : out   std_logic;
-p_in_vbuf_empty       : in    std_logic;
-p_in_vbuf_full        : in    std_logic;
-p_in_vbuf_pfull       : in    std_logic;
-p_in_vbuf_wrcnt       : in    std_logic_vector(3 downto 0);
+p_in_bufi_dout        : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_bufi_rd         : out   std_logic;
+p_in_bufi_empty       : in    std_logic;
+p_in_bufi_full        : in    std_logic;
+p_in_bufi_pfull       : in    std_logic;
+p_in_bufi_wrcnt       : in    std_logic_vector(3 downto 0);
 
-p_out_vbufo_sel       : out   std_logic;
-p_out_vbufo_din       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufo_wr        : out   std_logic;
-p_in_vbufo_full       : in    std_logic;
+p_out_bufo_din        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_bufo_wr         : out   std_logic;
+p_in_bufo_full        : in    std_logic;
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -1465,17 +1464,16 @@ p_in_lentrn_exp     => '1',
 --//--------------------------
 --//Upstream Port(Связь с буфером источника данных)
 --//--------------------------
-p_in_vbuf_dout      => i_hdd_vbuf_dout,
-p_out_vbuf_rd       => i_hdd_vbuf_rd,
-p_in_vbuf_empty     => i_hdd_vbuf_empty,
-p_in_vbuf_full      => i_hdd_vbuf_full,
-p_in_vbuf_pfull     => i_hdd_vbuf_pfull,
-p_in_vbuf_wrcnt     => i_hdd_vbuf_wrcnt,
+p_in_bufi_dout      => i_hdd_vbuf_dout,
+p_out_bufi_rd       => i_hdd_vbuf_rd,
+p_in_bufi_empty     => i_hdd_vbuf_empty,
+p_in_bufi_full      => i_hdd_vbuf_full,
+p_in_bufi_pfull     => i_hdd_vbuf_pfull,
+p_in_bufi_wrcnt     => i_hdd_vbuf_wrcnt,
 
-p_out_vbufo_sel     => open,
-p_out_vbufo_din     => open,
-p_out_vbufo_wr      => open,
-p_in_vbufo_full     => '0',
+p_out_bufo_din      => open,
+p_out_bufo_wr       => open,
+p_in_bufo_full      => '0',
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -2040,8 +2038,8 @@ pin_out_TP(7)<='0';         -- /pin26
 pin_out_led_E<=i_test01_led; --;
 pin_out_led_N<=i_eth1phy_out.opt(C_ETHPHY_OPTOUT_RST_BIT); --i_hdd_gt_plldet and i_hdd_dcm_lock;
 pin_out_led_S<=i_mem_ctrl_status.rdy;
-pin_out_led_W<=i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
-pin_out_led_C<=not lclk_dcm_lock or i_usr_rst when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
+pin_out_led_W<=i_usr_rst;-- when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(1);
+pin_out_led_C<=not lclk_dcm_lock or i_usr_rst;-- when pin_in_btn_W='0' else i_hdd_dbgled(1).spd(0);
 
 pin_out_led(0)<=i_hdd_dbgled(1).busy;
 pin_out_led(1)<=i_hdd_dbgled(1).wr;
@@ -2103,7 +2101,7 @@ i_hddraid_dbgcs.trig0(34 downto 30)<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30)
 i_hddraid_dbgcs.trig0(39 downto 35)<=i_hdd_dbgcs.sh(1).layer.trig0(39 downto 35);--tlayer
 
 i_hddraid_dbgcs.trig0(40)<=i_hdd_txbuf_empty;
-i_hddraid_dbgcs.trig0(41)<=i_hdd_txbuf_pfull;
+i_hddraid_dbgcs.trig0(41)<=i_hdd_vbuf_empty;--i_hdd_txbuf_pfull;
 
 
 --//-------- VIEW: ------------------
@@ -2139,7 +2137,7 @@ i_hddraid_dbgcs.data(103 downto 100)<=i_hdd_rbuf_tst_out(29 downto 26);--<=tst_f
 i_hddraid_dbgcs.data(104)<=i_hdd_txbuf_empty;
 i_hddraid_dbgcs.data(105)<=i_hdd_rxbuf_empty;
 i_hddraid_dbgcs.data(106)<=i_hdd_rbuf_status.err_type.rambuf_full;--i_hdd_txdata_wd;--RAM->HDD
-i_hddraid_dbgcs.data(107)<=i_hdd_rbuf_status.err_type.vinbuf_full;--i_hdd_rxdata_rd;--RAM<-HDD
+i_hddraid_dbgcs.data(107)<=i_hdd_rbuf_status.err_type.bufi_full;--i_hdd_rxdata_rd;--RAM<-HDD
 i_hddraid_dbgcs.data(108)<=i_hdd_rbuf_tst_out(11);--<=tst_rambuf_empty;
 --i_hddraid_dbgcs.data(140 downto 109)<=i_hdd_dbgcs.raid.data(161 downto 130);--i_usr_rxd;--RAM<-HDD
 --i_hddraid_dbgcs.data(172 downto 141)<=i_hdd_rxdata(31 downto 0);--RAM<-HDD
@@ -2157,6 +2155,15 @@ i_hddraid_dbgcs.data(117)<=i_arb_memin.cw;
 i_hddraid_dbgcs.data(118)<=i_arb_memin.term;
 i_hddraid_dbgcs.data(119)<=i_arb_memin.wr;
 i_hddraid_dbgcs.data(120)<=i_arb_memin.rd;
+
+i_hddraid_dbgcs.data(121)<=i_swt_tst_out(1);--<=i_hdd_tst_den;
+i_hddraid_dbgcs.data(122)<=i_hdd_vbuf_empty;
+i_hddraid_dbgcs.data(123)<=i_hdd_vbuf_full;
+
+i_hddraid_dbgcs.data(127 downto 124)<=(i_hdd_rbuf_tst_out(16) & i_hdd_rbuf_tst_out(4 downto 2));--write <=tst_fsm_cs(2 downto 0);
+i_hddraid_dbgcs.data(131 downto 128)<=(i_hdd_rbuf_tst_out(17) & i_hdd_rbuf_tst_out(9 downto 7));--read  <=tst_fsm_cs(2 downto 0);
+
+i_hddraid_dbgcs.data(132)<=i_hdd_rbuf_tst_out(15);--i_padding
 
 end generate gen_dbg_hdd;
 

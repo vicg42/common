@@ -429,7 +429,7 @@ i_hdd_sim_gt_rxbyteisaligned(i)<='0';
 end generate gen_satah;
 
 i_hdd_rbuf_status.err<='0';
-i_hdd_rbuf_status.err_type.vinbuf_full<='0';
+i_hdd_rbuf_status.err_type.bufi_full<='0';
 i_hdd_rbuf_status.err_type.rambuf_full<='0';
 i_hdd_rbuf_status.done <='0';
 i_hdd_rbuf_status.hwlog_size<=(others=>'0');
