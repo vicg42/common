@@ -328,7 +328,7 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 p_out_tst(0)<=i_hdd_vbuf_wr;
-p_out_tst(1)<='0';
+p_out_tst(1)<=i_hdd_tst_den;
 p_out_tst(31 downto 2)<=(others=>'0');
 
 
@@ -735,7 +735,7 @@ p_out_tdata    => i_hdd_tst_d,
 p_out_tdata_en => i_hdd_tst_den,
 
 p_in_clk       => p_in_eth_clk,
-p_in_rst       => p_in_rst --i_hdd_vbuf_rst
+p_in_rst       => i_hdd_vbuf_rst --p_in_rst --
 );
 
 i_hdd_tst_on<=i_hdd_tst_on_tmp and p_in_hdd_tstgen.con2rambuf;
