@@ -47,8 +47,8 @@ end generate gen_clk;
 m_pll_adv : PLL_ADV
 generic map(
 BANDWIDTH          => "OPTIMIZED",
-CLKIN1_PERIOD      => 6.6666, --150MHz
-CLKIN2_PERIOD      => 6.6666,
+CLKIN1_PERIOD      => 6.6, --150MHz
+CLKIN2_PERIOD      => 6.6,
 CLKOUT0_DIVIDE     => 2, --clk0 = ((150MHz * 4)/1) /2 = 300MHz
 CLKOUT1_DIVIDE     => 3, --clk1 = ((150MHz * 4)/1) /3 = 200MHz
 CLKOUT2_DIVIDE     => 5, --clk2 = ((150MHz * 4)/1) /5 = 120MHz
@@ -68,7 +68,7 @@ CLKOUT3_DUTY_CYCLE => 0.500,
 CLKOUT4_DUTY_CYCLE => 0.500,
 CLKOUT5_DUTY_CYCLE => 0.500,
 SIM_DEVICE         => "SPARTAN6",
-COMPENSATION       => "INTERNAL",
+COMPENSATION       => "INTERNAL",--"DCM2PLL",--
 DIVCLK_DIVIDE      => 1,
 CLKFBOUT_MULT      => 4,
 CLKFBOUT_PHASE     => 0.0,

@@ -97,6 +97,7 @@ signal i_mem_done                  : std_logic;
 
 signal i_vbufin_empty              : std_logic;
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
+signal i_vfr_rowcnt                : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
 
 signal tst_mem_wr_out              : std_logic_vector(31 downto 0);
 --signal tst_fsmstate                : std_logic_vector(3 downto 0);
@@ -136,7 +137,7 @@ begin
     fsm_state_cs <= S_IDLE;
     i_vfr_rdy<=(others=>'0');
       vfr_rdy:=(others=>'0');
-
+    i_vfr_rowcnt<=(others=>'0');
     i_vbufin_empty<='0';
 
     i_mem_ptr<=(others=>'0');
@@ -158,6 +159,7 @@ begin
       when S_IDLE =>
 
         --//Ждем когда появятся данные в буфере
+        i_vfr_rowcnt<=(others=>'0');
         if i_vbufin_empty='0' then
           fsm_state_cs <= S_MEM_START;
         end if;
@@ -170,10 +172,10 @@ begin
         i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
         i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=(others=>'0');
         i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(0);
-        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=(others=>'0');
+        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_rowcnt;
         i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');
 
-        i_mem_dlen_rq<=p_in_cfg_prm_vch(0).fr_size.total_dw; --//DW
+        i_mem_dlen_rq<=(CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) & p_in_cfg_prm_vch(0).fr_size.pix(p_in_cfg_prm_vch(0).fr_size.pix'high downto log2(G_MEM_DWIDTH/8)));
         i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
         i_mem_dir<=C_MEMWR_WRITE;
         i_mem_start<='1';
@@ -187,8 +189,13 @@ begin
 
         i_mem_start<='0';
         if i_mem_done='1' then
-          vfr_rdy(0):='1';
-          fsm_state_cs <= S_IDLE;
+          if i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1 then
+            vfr_rdy(0):='1';
+            fsm_state_cs <= S_IDLE;
+          else
+            i_vfr_rowcnt<=i_vfr_rowcnt + 1;
+            fsm_state_cs <= S_MEM_START;
+          end if;
         end if;
 
     end case;

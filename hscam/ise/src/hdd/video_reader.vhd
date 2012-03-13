@@ -44,11 +44,9 @@ port(
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
 p_in_cfg_prm_vch     : in    TReaderVCHParams;
-
-p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);--//номер видеоканала выбраного для чтения
-p_in_hrd_start       : in    std_logic;                   --//Запуск чтения кадра
-
-p_in_vfr_buf         : in    TVfrBufs;                    --//Номер видеобувера с готовым кадром для соответствующего видеоканала
+p_in_hm_r            : in    std_logic;--//HDD режим аппаратного чтения
+p_in_hrd_start       : in    std_logic;--//Запуск чтения кадра
+p_in_vfr_buf         : in    TVfrBufs; --//Номер видеобувера с готовым кадром для соответствующего видеоканала
 
 --//Статусы
 p_out_vch_rd_done    : out   std_logic;
@@ -88,11 +86,14 @@ constant dly : time := 1 ps;
 type fsm_state is (
 S_IDLE,
 S_MEM_START,
-S_MEM_RD
+S_MEM_RD,
+S_MEM_WAIT
 );
 signal fsm_state_cs: fsm_state;
 
 signal i_data_null                   : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+signal i_vfr_rowcnt                  : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
+signal i_vfr_rd_done                 : std_logic;
 
 signal i_mem_ptr                     : std_logic_vector(31 downto 0);
 signal i_mem_trn_len                 : std_logic_vector(15 downto 0);
@@ -100,6 +101,9 @@ signal i_mem_dlen_rq                 : std_logic_vector(15 downto 0);
 signal i_mem_start                   : std_logic;
 signal i_mem_dir                     : std_logic;
 signal i_mem_done                    : std_logic;
+
+signal i_hm_r                        : std_logic;
+signal i_vbufout_wr                  : std_logic;
 
 signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
 --signal tst_fsmstate                  : std_logic_vector(3 downto 0);
@@ -129,7 +133,7 @@ p_out_tst(31 downto 5)<=(others=>'0');
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_vch_rd_done<=i_mem_done;
+p_out_vch_rd_done<=i_vfr_rd_done;
 
 
 
@@ -142,12 +146,15 @@ begin
   if p_in_rst='1' then
 
     fsm_state_cs <= S_IDLE;
+    i_vfr_rowcnt<=(others=>'0');
+    i_vfr_rd_done<='0';
 
     i_mem_ptr<=(others=>'0');
     i_mem_trn_len<=(others=>'0');
     i_mem_dlen_rq<=(others=>'0');
     i_mem_dir<='0';
     i_mem_start<='0';
+    i_hm_r<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -158,7 +165,10 @@ begin
       --------------------------------------
       when S_IDLE =>
 
-        if p_in_hrd_start='1' then
+        i_hm_r<='0';
+        i_vfr_rd_done<='0';
+        i_vfr_rowcnt<=(others=>'0');
+        if p_in_hrd_start='1' and p_in_hm_r='0' then
           fsm_state_cs <= S_MEM_START;
         end if;
 
@@ -167,18 +177,25 @@ begin
       --------------------------------------
       when S_MEM_START =>
 
-        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
-        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=p_in_hrd_chsel(1 downto 0);
-        i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(0);
-        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=(others=>'0');
-        i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');
+        i_vfr_rd_done<='0';
+        if p_in_hm_r='1' then
+          i_hm_r<='1';
+          fsm_state_cs <= S_MEM_WAIT;
 
-        i_mem_dlen_rq<=p_in_cfg_prm_vch(0).fr_size.total_dw; --//DW
-        i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
-        i_mem_dir<=C_MEMWR_READ;
-        i_mem_start<='1';
+        elsif p_in_vbufout_full='0' then
+          i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
+          i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=(others=>'0');
+          i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(0);
+          i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_rowcnt;
+          i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');
 
-        fsm_state_cs <= S_MEM_RD;
+          i_mem_dlen_rq<=(CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) & p_in_cfg_prm_vch(0).fr_size.pix(p_in_cfg_prm_vch(0).fr_size.pix'high downto log2(G_MEM_DWIDTH/8)));
+          i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
+          i_mem_dir<=C_MEMWR_READ;
+          i_mem_start<='1';
+
+          fsm_state_cs <= S_MEM_RD;
+        end if;
 
       ------------------------------------------------
       --Чтение данных
@@ -186,7 +203,25 @@ begin
       when S_MEM_RD =>
 
         i_mem_start<='0';
+        if p_in_hm_r='1' then
+          i_hm_r<='1';
+          fsm_state_cs <= S_MEM_WAIT;
+
+        elsif i_mem_done='1' then
+          if i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1 then
+            i_vfr_rd_done<='1';
+            i_vfr_rowcnt<=(others=>'0');
+            fsm_state_cs <= S_MEM_START;--S_IDLE;
+          else
+            i_vfr_rowcnt<=i_vfr_rowcnt + 1;
+            fsm_state_cs <= S_MEM_START;
+          end if;
+        end if;
+
+      when S_MEM_WAIT =>
+
         if i_mem_done='1' then
+          i_vfr_rd_done<='1';
           fsm_state_cs <= S_IDLE;
         end if;
 
@@ -198,6 +233,8 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
+p_out_vbufout_wr<=i_vbufout_wr and not i_hm_r;
+
 m_mem_wr : mem_wr
 generic map(
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
@@ -225,8 +262,8 @@ p_out_usr_txbuf_rd   => open,
 p_in_usr_txbuf_empty => '0',
 
 p_out_usr_rxbuf_din  => p_out_vbufout_d,
-p_out_usr_rxbuf_wd   => p_out_vbufout_wr,
-p_in_usr_rxbuf_full  => p_in_vbufout_full,
+p_out_usr_rxbuf_wd   => i_vbufout_wr,
+p_in_usr_rxbuf_full  => '0',
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd

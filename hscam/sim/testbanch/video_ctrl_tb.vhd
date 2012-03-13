@@ -48,7 +48,9 @@ port(
 -------------------------------
 --
 -------------------------------
-p_in_vfr_prm          : in  TFrXY;
+p_in_vfr_prm          : in    TFrXY;
+p_in_mem_trn_len      : in    std_logic_vector(15 downto 0);
+p_in_hm_r             : in    std_logic;
 
 ----------------------------
 --Связь с вх/вых видеобуферами
@@ -141,58 +143,60 @@ odt     : in    std_logic
 );
 end component;
 
---constant C5_CLK_PERIOD_NS   : real := 3200.0 / 1000.0;
-constant C5_CLK_PERIOD_NS   : real := 2600.0 / 1000.0;
-constant C5_TCYC_SYS        : real := C5_CLK_PERIOD_NS/2.0;
-constant C5_TCYC_SYS_DIV2   : time := C5_TCYC_SYS * 1 ns;
+constant C5_CLK_PERIOD_NS    : real := 3300.0 / 1000.0;
+constant C5_TCYC_SYS         : real := C5_CLK_PERIOD_NS/2.0;
+constant C5_TCYC_SYS_DIV2    : time := C5_TCYC_SYS * 1 ns;
 
-constant PERIOD_VIN_CLK     : time := 30 * 1 ns;
-constant PERIOD_VOUT_CLK    : time := 60 * 1 ns;
+constant PERIOD_VIN_CLK      : time := 30 * 1 ns;
+constant PERIOD_VOUT_CLK     : time := 60 * 1 ns;
 
-signal i_rst                   : std_logic;
-signal p_in_rst                : std_logic;
-signal p_in_clk                : std_logic := '0';
+constant CI_PHY_MEM0         : integer:=0;
+constant CI_PHY_MEM1         : integer:=1;
+constant CI_FRPIX            : integer:=64;
+constant CI_FRROW            : integer:=4;
 
-signal i_memch0_in_bank        : TMemINBank;
-signal i_memch0_out_bank       : TMemOUTBank;
-signal i_memch1_in_bank        : TMemINBank;
-signal i_memch1_out_bank       : TMemOUTBank;
+signal i_rst                 : std_logic;
+signal p_in_rst              : std_logic;
+signal p_in_clk              : std_logic := '0';
 
-signal i_mem_ctrl_rdy          : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal p_out_phymem          : TMEMCTRL_phy_outs;
+signal p_inout_phymem        : TMEMCTRL_phy_inouts;
 
-signal p_out_phymem           : TRam_outs  ;
-signal p_inout_phymem         : TRam_inouts;
+type TV01 is array(0 to C_MEM_BANK_COUNT-1) of std_logic_vector(1 downto 0) ;
+type TV02 is array(0 to C_MEM_BANK_COUNT-1) of std_logic_vector(2 downto 0) ;
+signal mcb5_dram_dqs_vector  : TV01;
+signal mcb5_dram_dqs_n_vector: TV01;
+signal mcb5_dram_dm_vector   : TV01;
+signal mcb5_command          : TV02;
+signal mcb5_enable1          : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal mcb5_enable2          : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal rzq5                  : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal zio5                  : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
 
-type TV01   is array(0 to C_MEM_BANK_COUNT-1) of std_logic_vector(1 downto 0) ;
-type TV02   is array(0 to C_MEM_BANK_COUNT-1) of std_logic_vector(2 downto 0) ;
-signal mcb5_dram_dqs_vector   : TV01;
-signal mcb5_dram_dqs_n_vector : TV01;
-signal mcb5_dram_dm_vector    : TV01;
-signal mcb5_command           : TV02;
-signal mcb5_enable1           : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
-signal mcb5_enable2           : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
-signal rzq5                   : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
-signal zio5                   : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal i_mem_in_bank         : TMemINBank;
+signal i_mem_out_bank        : TMemOUTBank;
+signal i_mem_ctrl_status     : TMEMCTRL_status;
+signal i_mem_ctrl_sysin      : TMEMCTRL_sysin;
+signal i_mem_ctrl_sysout     : TMEMCTRL_sysout;
 
-signal i_vctrl_rst            : std_logic;
-signal i_vfr_prm              : TFrXY;
+signal i_vctrl_rst           : std_logic;
+signal i_vfr_prm             : TFrXY;
+signal i_vctrl_mem_trn_len   : std_logic_vector(15 downto 0);
+signal i_hm_r                : std_logic;
 
-signal i_vin_d                : std_logic_vector(31 downto 0):=(others=>'0');
-signal i_vin_dwr              : std_logic:='0';
-signal i_vin_clk              : std_logic:='0';
-signal i_vout_d               : std_logic_vector(31 downto 0):=(others=>'0');
-signal i_vout_clk             : std_logic:='0';
+signal i_vin_d               : std_logic_vector(31 downto 0):=(others=>'0');
+signal i_vin_dwr             : std_logic:='0';
+signal i_vin_clk             : std_logic:='0';
+signal i_vout_d              : std_logic_vector(31 downto 0):=(others=>'0');
+signal i_vout_clk            : std_logic:='0';
 
-signal i_vbufin_d             : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-signal i_vbufin_rd            : std_logic;
-signal i_vbufin_empty         : std_logic;
-signal i_vbufout_d            : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-signal i_vbufout_wr           : std_logic;
-signal i_vbufout_full         : std_logic;
+signal i_vbufin_d            : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+signal i_vbufin_rd           : std_logic;
+signal i_vbufin_empty        : std_logic;
+signal i_vbufout_d           : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+signal i_vbufout_wr          : std_logic;
+signal i_vbufout_full        : std_logic;
 
-
-constant CI_FRPIX : integer:=64;
-constant CI_FRROW : integer:=64;
 
 --MAIN
 begin
@@ -205,7 +209,7 @@ begin
   p_in_clk <= not p_in_clk;
   wait for (C5_TCYC_SYS_DIV2);
 end process;
-
+i_mem_ctrl_sysin.clk<=p_in_clk;
 
 process
 begin
@@ -225,22 +229,24 @@ end process;
 process
 begin
   i_rst <= '0';
-  wait for 200 ns;
+  wait for 5 us;--200 ns;
   i_rst <= '1';
   wait;
 end process;
 
 p_in_rst <= i_rst when (C5_RST_ACT_LOW = 1) else (not i_rst);
 
+i_mem_ctrl_sysin.rst<=p_in_rst;
 
+i_vctrl_rst<=not i_mem_ctrl_status.rdy(0) or p_in_rst;
 
-i_vctrl_rst<=not i_mem_ctrl_rdy(0) or p_in_rst;
+i_vfr_prm.pix<=CONV_STD_LOGIC_VECTOR(CI_FRPIX, i_vfr_prm.pix'length);
+i_vfr_prm.row<=CONV_STD_LOGIC_VECTOR(CI_FRROW, i_vfr_prm.pix'length);
 
+i_vctrl_mem_trn_len( 7 downto 0)<=CONV_STD_LOGIC_VECTOR(64, 8);--write
+i_vctrl_mem_trn_len(15 downto 8)<=CONV_STD_LOGIC_VECTOR(32, 8);--read
 
-i_vfr_prm.pix     <=CONV_STD_LOGIC_VECTOR(CI_FRPIX, i_vfr_prm.pix'length);
-i_vfr_prm.row     <=CONV_STD_LOGIC_VECTOR(CI_FRROW, i_vfr_prm.pix'length);
---i_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR((CI_FRROW*CI_FRROW), i_vfr_prm.total_dw'length);
-i_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR(128, i_vfr_prm.total_dw'length);
+i_hm_r<='0';
 
 process(i_vctrl_rst,i_vin_clk)
 begin
@@ -303,7 +309,8 @@ port map(
 --Параметры Видеокадра
 -------------------------------
 p_in_vfr_prm          => i_vfr_prm,
-
+p_in_mem_trn_len      => i_vctrl_mem_trn_len,
+p_in_hm_r             => i_hm_r,
 ----------------------------
 --Связь с вх/вых видеобуферами
 ----------------------------
@@ -319,12 +326,12 @@ p_in_vbufout_full     => i_vbufout_full,
 ---------------------------------
 --Связь с mem_ctrl.vhd
 ---------------------------------
---CH WRITE
-p_out_memwr           => i_memch0_in_bank(0), --: out   TMemIN;
-p_in_memwr            => i_memch0_out_bank(0),--: in    TMemOUT;
+--CH WRITE                                    --Bank|CH
+p_out_memwr           => i_mem_in_bank (CI_PHY_MEM0)(0),--: out   TMemIN;
+p_in_memwr            => i_mem_out_bank(CI_PHY_MEM0)(0),--: in    TMemOUT;
 --CH READ
-p_out_memrd           => i_memch1_in_bank(0), --: out   TMemIN;
-p_in_memrd            => i_memch1_out_bank(0),--: in    TMemOUT;
+p_out_memrd           => i_mem_in_bank (CI_PHY_MEM0)(1),--: out   TMemIN;
+p_in_memrd            => i_mem_out_bank(CI_PHY_MEM0)(1),--: in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -347,11 +354,8 @@ port map(
 ------------------------------------
 --User Post
 ------------------------------------
-p_in_memch0     => i_memch0_in_bank, --: in    TMemINBank;
-p_out_memch0    => i_memch0_out_bank,--: out   TMemOUTBank;
-
-p_in_memch1     => i_memch1_in_bank, --: in    TMemINBank;
-p_out_memch1    => i_memch1_out_bank,--: out   TMemOUTBank;
+p_in_mem        => i_mem_in_bank, --TMemINBank;
+p_out_mem       => i_mem_out_bank,--TMemOUTBank;
 
 ------------------------------------
 --Memory physical interface
@@ -362,15 +366,13 @@ p_inout_phymem  => p_inout_phymem,
 ------------------------------------
 --Memory status
 ------------------------------------
-p_out_mem_rdy   => i_mem_ctrl_rdy,
+p_out_status    => i_mem_ctrl_status,
 
 ------------------------------------
 --System
 ------------------------------------
---c5_clk0         : out   std_logic;
---c5_rst0         : out   std_logic;
-p_in_clk        => p_in_clk,
-p_in_rst        => p_in_rst
+p_out_sys       => i_mem_ctrl_sysout,
+p_in_sys        => i_mem_ctrl_sysin
 );
 
 
@@ -420,21 +422,21 @@ mcb5_dram_dm_vector(i) <= (p_out_phymem(i).udm & p_out_phymem(i).dm);
 
 u_mem_c5 : ddr2_model_c5
 port map(
-ck        => p_out_phymem(i).ck,--mcb5_dram_ck,
-ck_n      => p_out_phymem(i).ck_n,--mcb5_dram_ck_n,
-cke       => p_out_phymem(i).cke,--mcb5_dram_cke,
+ck        => p_out_phymem(i).ck,    --mcb5_dram_ck,
+ck_n      => p_out_phymem(i).ck_n,  --mcb5_dram_ck_n,
+cke       => p_out_phymem(i).cke,   --mcb5_dram_cke,
 cs_n      => '0',
-ras_n     => p_out_phymem(i).ras_n,--mcb5_dram_ras_n,
-cas_n     => p_out_phymem(i).cas_n,--mcb5_dram_cas_n,
-we_n      => p_out_phymem(i).we_n,--mcb5_dram_we_n,
+ras_n     => p_out_phymem(i).ras_n, --mcb5_dram_ras_n,
+cas_n     => p_out_phymem(i).cas_n, --mcb5_dram_cas_n,
+we_n      => p_out_phymem(i).we_n,  --mcb5_dram_we_n,
 dm_rdqs   => mcb5_dram_dm_vector(i),
-ba        => p_out_phymem(i).ba,--mcb5_dram_ba,
-addr      => p_out_phymem(i).a,--mcb5_dram_a,
-dq        => p_inout_phymem(i).dq,--mcb5_dram_dq,
+ba        => p_out_phymem(i).ba,    --mcb5_dram_ba,
+addr      => p_out_phymem(i).a,     --mcb5_dram_a,
+dq        => p_inout_phymem(i).dq,  --mcb5_dram_dq,
 dqs       => mcb5_dram_dqs_vector(i),
 dqs_n     => mcb5_dram_dqs_n_vector(i),
 rdqs_n    => open,
-odt       => p_out_phymem(i).odt --mcb5_dram_odt
+odt       => p_out_phymem(i).odt    --mcb5_dram_odt
 );
 
 zio_pulldown5 : PULLDOWN port map(O => p_inout_phymem(i).zio);--zio5);

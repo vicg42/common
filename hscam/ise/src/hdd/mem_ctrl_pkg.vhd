@@ -25,18 +25,8 @@ package mem_ctrl_pkg is
 constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 constant C_MEM_BANK_COUNT_MAX: integer := 2;
 
-----CLKOUT0_DIVIDE=(Fclkin * C5_CLKFBOUT_MULT) / (C5_DIVCLK_DIVIDE * C5_CLKOUT0_DIVIDE );
-----(150 * 5)/(1 * C5_CLKOUTxx_DIVIDE)
---
---constant C_MEMPLL_CLKOUT0_DIVIDE : integer := 2; --c5_sysclk_2x      =375MHZ
---constant C_MEMPLL_CLKOUT1_DIVIDE : integer := 2; --c5_sysclk_2x_180
---constant C_MEMPLL_CLKOUT2_DIVIDE : integer := 5; --p_out_pll_gclkusr =150MHZ) --(4; --p_out_pll_gclkusr =187,5MHZ)
---constant C_MEMPLL_CLKOUT3_DIVIDE : integer := 8; --c5_mcb_drp_clk = 93,75MHz
---constant C_MEMPLL_CLKFBOUT_MULT  : integer := 5;
---constant C_MEMPLL_DIVCLK_DIVIDE  : integer := 1;
 
-constant C5_MEMCLK_PERIOD          : integer := 3300;--2600;--3200;-- Memory data transfer clock period.
-
+constant C5_MEMCLK_PERIOD          : integer := 3300;-- Memory data transfer clock period.
 constant C5_P0_MASK_SIZE           : integer := 8;
 constant C5_P0_DATA_PORT_SIZE      : integer := 64;
 constant C5_P1_MASK_SIZE           : integer := 8;

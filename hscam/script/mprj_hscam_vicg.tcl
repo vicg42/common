@@ -29,29 +29,9 @@ set _projects [ list \
       [ list "../src/hdd/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_s6_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_s6.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/fifo_utils.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S8_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S72_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S36_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S18_S72.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/DRAM/RAM_64nX1.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S8_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S72_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S36_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S16_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_S144_S144.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_macro.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_macro.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/DRAM/DRAM_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/BRAM/BRAM_fifo.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo_DRAM.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo_BRAM.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/xapp/xapp691/src/vhdl/ll_fifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_ftdi.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/sata_cmdfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \

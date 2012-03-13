@@ -19,18 +19,21 @@ package prj_cfg is
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
 
-constant C_PCFG_FRPIX                  : integer:=110;--1280;
-constant C_PCFG_FRROW                  : integer:=8;--1024;
-constant C_PCFG_FR_PIXTOTAL            : integer:=32;
+constant C_PCFG_VCTRL_USE              : string:="OFF";
+constant C_PCFG_VCTRL_DBGCS            : string:="OFF";
+constant C_PCFG_FRPIX                  : integer:=1280;--110;--
+constant C_PCFG_FRROW                  : integer:=1024;--8;--
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller
-constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 1
+constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
 
 --//cfg HDD
 constant C_PCFG_HDD_USE                : string:="ON";
 constant C_PCFG_HDD_DBG                : string:="OFF";
-constant C_PCFG_HDD_DBGCS              : string:="ON";
+constant C_PCFG_HDD_DBGCS              : string:="OFF";
+constant C_PCFG_HDD_SH_DBGCS           : string:="OFF";
+constant C_PCFG_HDD_RAID_DBGCS         : string:="ON";
 constant C_PCFG_HDD_COUNT              : integer:=4;
 constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=28;--256MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_PCFG_HDD_GT_DBUS            : integer:=32;--Настройка шины данных GT (RocketIO)

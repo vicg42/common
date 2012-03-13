@@ -22,6 +22,10 @@ use ieee.std_logic_misc.all;
 library work;
 use work.prj_cfg.all;
 use work.sata_glob_pkg.all;
+use work.hdd_main_unit_pkg.all;
+
+library unisim;
+use unisim.vcomponents.all;
 
 entity hscam_main is
 generic(
@@ -81,6 +85,12 @@ pin_inout_mcb1_dqs    : inout std_logic;
 pin_inout_mcb1_dqs_n  : inout std_logic;
 pin_inout_mcb1_rzq    : inout std_logic;
 pin_inout_mcb1_zio    : inout std_logic;
+
+--------------------------------------------------
+-- Reference clock
+--------------------------------------------------
+pin_in_refclk_n       : in    std_logic;
+pin_in_refclk_p       : in    std_logic;
 
 --------------------------------------------------
 --Технологический порт
@@ -167,47 +177,47 @@ p_inout_mcb1_zio    : inout std_logic;
 --------------------------------------------------
 --SATA
 --------------------------------------------------
-p_out_sata_txn   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_out_sata_txp   : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_in_sata_rxn    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_in_sata_rxp    : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_in_sata_clk_n  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
-p_in_sata_clk_p  : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+p_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
+p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+
+--------------------------------------------------
+--Status
+--------------------------------------------------
+p_out_module_rdy    : out   std_logic;--Модуль готов к работе
+p_out_module_err    : out   std_logic;--Ошибки в работе
 
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_out_hdd_grefclk150M : out   std_logic;
-
-p_out_hdd_dcm_lock    : out   std_logic;
-p_out_hdd_dcm_gclk75M : out   std_logic;
-p_out_hdd_dcm_gclk300M: out   std_logic;
-p_out_hdd_dcm_gclk150M: out   std_logic;
-
-p_out_usrpll_lock     : out   std_logic;
-p_out_usrpll_gclk1    : out   std_logic;
+p_in_grefclk        : in    std_logic;
 
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
-p_inout_ftdi_d   : inout std_logic_vector(7 downto 0);
-p_out_ftdi_rd_n  : out   std_logic;
-p_out_ftdi_wr_n  : out   std_logic;
-p_in_ftdi_txe_n  : in    std_logic;
-p_in_ftdi_rxf_n  : in    std_logic;
-p_in_ftdi_pwren_n: in    std_logic;
-
-p_out_TP         : out   std_logic_vector(7 downto 0);
-p_out_led        : out   std_logic_vector(7 downto 0)
+p_inout_ftdi_d      : inout std_logic_vector(7 downto 0);
+p_out_ftdi_rd_n     : out   std_logic;
+p_out_ftdi_wr_n     : out   std_logic;
+p_in_ftdi_txe_n     : in    std_logic;
+p_in_ftdi_rxf_n     : in    std_logic;
+p_in_ftdi_pwren_n   : in    std_logic;
+p_in_tst            : in    std_logic_vector(31 downto 0);
+p_out_tst           : out   std_logic_vector(31 downto 0);
+p_out_TP            : out   std_logic_vector(7 downto 0);
+p_out_led           : out   std_logic_vector(7 downto 0)
 );
 end component;
 
 component vtiming_gen
 generic(
-G_TVS : integer:=32;
-G_THS : integer:=32;
-G_PIX_COUNT : integer:=32;
-G_ROW_COUNT : integer:=32
+G_VSYN_ACTIVE: std_logic:='1';
+G_VS_WIDTH   : integer:=32;
+G_HS_WIDTH   : integer:=32;
+G_PIX_COUNT  : integer:=32;
+G_ROW_COUNT  : integer:=32
 );
 port(
 p_out_vs : out  std_logic;
@@ -218,15 +228,13 @@ p_in_rst : in   std_logic
 );
 end component;
 
-signal i_hdd_grefclk150M              : std_logic;
+--signal i_sys_rst_cnt                  : std_logic_vector(5 downto 0):=(others=>'0');
+signal i_sys_rst                      : std_logic:='0';
 
-signal i_hdd_dcm_lock                 : std_logic;
-signal i_hdd_dcm_gclk75M              : std_logic;
-signal i_hdd_dcm_gclk300M             : std_logic;
-signal i_hdd_dcm_gclk150M             : std_logic;
-
+signal i_usrpll_clkfb                 : std_logic;
+signal i_usrpll_clkout                : std_logic_vector(0 downto 0);
+signal g_usrpll_clkout                : std_logic_vector(0 downto 0);
 signal i_usrpll_lock                  : std_logic;
-signal g_usrpll_clk1                  : std_logic;
 
 signal i_vtg_rst                      : std_logic;
 type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
@@ -242,14 +250,115 @@ signal i_vout_vs                      : std_logic;
 signal i_vout_hs                      : std_logic;
 signal i_vout_clk                     : std_logic;
 
+signal i_usr_refclk150                : std_logic;
+signal g_usr_refclk150                : std_logic;
+signal t_usr_refclk150                : std_logic;
+
+signal tst_out                        : std_logic_vector(31 downto 0);
+signal tst_in                         : std_logic_vector(31 downto 0);
+signal i_test02_led                   : std_logic;
+signal i_cntbase                      : std_logic_vector(7 downto 0);
+signal i_spd                          : std_logic_vector(7 downto 0);
+signal i_shim_hs                      : std_logic;
+signal i_shim_vs                      : std_logic;
+signal i_shim_vs_cnt                  : std_logic_vector(7 downto 0);
+
 
 --MAIN
 begin
 
+m_ibufds_refclk : IBUFDS port map (I => pin_in_refclk_p, IB => pin_in_refclk_n, O => i_usr_refclk150);
+m_bufio2_refclk : BUFIO2 port map (I => i_usr_refclk150, DIVCLK => t_usr_refclk150, IOCLK => open, SERDESSTROBE => open );
+m_bufg_refclk   : BUFG   port map (I => t_usr_refclk150, O => g_usr_refclk150);
 
-i_vtg_rst <=not i_hdd_dcm_lock;--i_usrpll_lock;
-i_vin_clk <=g_usrpll_clk1;--62.5MHz  i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
-i_vout_clk<=g_usrpll_clk1;--i_hdd_dcm_gclk300M;--i_hdd_dcm_gclk75M;--i_hdd_grefclk150M;--
+m_usrpll : PLL_ADV
+generic map(
+BANDWIDTH          => "OPTIMIZED",
+CLKIN1_PERIOD      => 6.6, --150MHz
+CLKIN2_PERIOD      => 6.6,
+CLKOUT0_DIVIDE     => 9, --clk0 = ((150MHz * 4)/1) /9 = 66.6MHz
+CLKOUT1_DIVIDE     => 3,
+CLKOUT2_DIVIDE     => 5,
+CLKOUT3_DIVIDE     => 9,
+CLKOUT4_DIVIDE     => 8,
+CLKOUT5_DIVIDE     => 8,
+CLKOUT0_PHASE      => 0.000,
+CLKOUT1_PHASE      => 0.000,
+CLKOUT2_PHASE      => 0.000,
+CLKOUT3_PHASE      => 0.000,
+CLKOUT4_PHASE      => 0.000,
+CLKOUT5_PHASE      => 0.000,
+CLKOUT0_DUTY_CYCLE => 0.500,
+CLKOUT1_DUTY_CYCLE => 0.500,
+CLKOUT2_DUTY_CYCLE => 0.500,
+CLKOUT3_DUTY_CYCLE => 0.500,
+CLKOUT4_DUTY_CYCLE => 0.500,
+CLKOUT5_DUTY_CYCLE => 0.500,
+SIM_DEVICE         => "SPARTAN6",
+COMPENSATION       => "INTERNAL",--"DCM2PLL",--
+DIVCLK_DIVIDE      => 1,
+CLKFBOUT_MULT      => 4,
+CLKFBOUT_PHASE     => 0.0,
+REF_JITTER         => 0.005000
+)
+port map(
+CLKFBIN          => i_usrpll_clkfb,
+CLKINSEL         => '1',
+CLKIN1           => t_usr_refclk150,--g_usr_refclk150,
+CLKIN2           => '0',
+DADDR            => (others => '0'),
+DCLK             => '0',
+DEN              => '0',
+DI               => (others => '0'),
+DWE              => '0',
+REL              => '0',
+RST              => i_sys_rst,
+CLKFBDCM         => open,
+CLKFBOUT         => i_usrpll_clkfb,
+CLKOUTDCM0       => open,
+CLKOUTDCM1       => open,
+CLKOUTDCM2       => open,
+CLKOUTDCM3       => open,
+CLKOUTDCM4       => open,
+CLKOUTDCM5       => open,
+CLKOUT0          => i_usrpll_clkout(0),
+CLKOUT1          => open,
+CLKOUT2          => open,
+CLKOUT3          => open,
+CLKOUT4          => open,
+CLKOUT5          => open,
+DO               => open,
+DRDY             => open,
+LOCKED           => i_usrpll_lock
+);
+
+--gen_clk : for i in 0 to 0 generate
+m_bufg : BUFG port map(I => i_usrpll_clkout(0), O => g_usrpll_clkout(0) );
+--end generate gen_clk;
+
+i_sys_rst <= '0';
+
+m_blink2 : fpga_test_01
+generic map(
+G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+)
+port map(
+p_out_test_led => i_test02_led,
+p_out_test_done=> open,
+
+p_out_1us      => open,
+p_out_1ms      => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clk       => g_usr_refclk150, --p_in_grefclk,
+p_in_rst       => i_sys_rst
+);
+
+i_vtg_rst <=i_sys_rst;
+i_vin_clk <=g_usrpll_clkout(0);
+i_vout_clk<=g_usrpll_clkout(0);
 
 --Генератор тестовых данных (Вертикальные полоски!!!)
 gen_vd : for i in 1 to 10 generate
@@ -272,10 +381,11 @@ end generate gen_vd;
 
 m_vtgen_high : vtiming_gen
 generic map(
-G_TVS => 32,
-G_THS => 16,
-G_PIX_COUNT => (C_PCFG_FRPIX/10),
-G_ROW_COUNT => C_PCFG_FRROW
+G_VSYN_ACTIVE=> G_VSYN_ACTIVE,
+G_VS_WIDTH   => 32,
+G_HS_WIDTH   => 16,
+G_PIX_COUNT  => (C_PCFG_FRPIX/10),
+G_ROW_COUNT  => C_PCFG_FRROW
 )
 port map(
 p_out_vs => i_vin_vs,
@@ -285,12 +395,46 @@ p_in_clk => i_vin_clk,
 p_in_rst => i_vtg_rst
 );
 
+--//Регулировка потока тестовых данных
+i_spd<=CONV_STD_LOGIC_VECTOR(255, i_spd'length) when tst_out(7 downto 0)=CONV_STD_LOGIC_VECTOR(0, 8) else tst_out(7 downto 0);
+process(i_usrpll_lock,i_vin_clk)
+begin
+  if i_usrpll_lock='0' then
+    i_cntbase<=(others=>'0');
+    i_shim_vs<=G_VSYN_ACTIVE;
+    i_shim_hs<='0';
+    i_shim_vs_cnt<=(others=>'0');
+  elsif i_vin_clk'event and i_vin_clk='1' then
+    if i_cntbase=i_spd then
+      i_shim_hs<='0';
+      i_shim_vs<=not G_VSYN_ACTIVE;
+    elsif i_cntbase=(i_cntbase'range => '0') then
+      i_shim_hs<='1';
+      i_shim_vs<=G_VSYN_ACTIVE;
+    else
+      i_shim_vs<=not G_VSYN_ACTIVE;
+    end if;
+
+    i_cntbase<=i_cntbase+1;
+
+    if i_shim_vs=G_VSYN_ACTIVE then
+      i_shim_vs_cnt<=i_shim_vs_cnt + 1;
+    end if;
+  end if;
+end process;
+
+tst_in(0)<=    i_shim_vs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';--i_vin_vs;--
+tst_in(1)<=not i_shim_hs;                                                                             --i_vin_hs;--
+tst_in(2)<=i_test02_led;
+tst_in(31 downto 3)<=(others=>'0');
+
 m_vtgen_low : vtiming_gen
 generic map(
-G_TVS => 32,
-G_THS => 8,
-G_PIX_COUNT => (C_PCFG_FRPIX/32),
-G_ROW_COUNT => C_PCFG_FRROW
+G_VSYN_ACTIVE=> G_VSYN_ACTIVE,
+G_VS_WIDTH   => 32,
+G_HS_WIDTH   => 8,
+G_PIX_COUNT  => (C_PCFG_FRPIX/(G_VOUT_DWIDTH/8)),
+G_ROW_COUNT  => C_PCFG_FRROW
 )
 port map(
 p_out_vs => i_vout_vs,
@@ -383,17 +527,15 @@ p_in_sata_clk_n     => pin_in_sata_clk_n,
 p_in_sata_clk_p     => pin_in_sata_clk_p,
 
 --------------------------------------------------
+--Status
+--------------------------------------------------
+p_out_module_rdy    => open,
+p_out_module_err    => open,
+
+--------------------------------------------------
 --System
 --------------------------------------------------
-p_out_hdd_grefclk150M => i_hdd_grefclk150M,
-
-p_out_hdd_dcm_lock    => i_hdd_dcm_lock,
-p_out_hdd_dcm_gclk75M => i_hdd_dcm_gclk75M,
-p_out_hdd_dcm_gclk300M=> i_hdd_dcm_gclk300M,
-p_out_hdd_dcm_gclk150M=> i_hdd_dcm_gclk150M,
-
-p_out_usrpll_lock     => i_usrpll_lock,
-p_out_usrpll_gclk1    => g_usrpll_clk1,
+p_in_grefclk        => g_usr_refclk150,
 
 --------------------------------------------------
 --Технологический порт
@@ -404,7 +546,8 @@ p_out_ftdi_wr_n     => pin_out_ftdi_wr_n,
 p_in_ftdi_txe_n     => pin_in_ftdi_txe_n,
 p_in_ftdi_rxf_n     => pin_in_ftdi_rxf_n,
 p_in_ftdi_pwren_n   => pin_in_ftdi_pwren_n,
-
+p_in_tst            => tst_in,
+p_out_tst           => tst_out,
 p_out_TP            => pin_out_TP,
 p_out_led           => pin_out_led
 );

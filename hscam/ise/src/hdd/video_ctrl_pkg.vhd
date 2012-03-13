@@ -16,9 +16,6 @@ use ieee.std_logic_1164.all;
 
 package video_ctrl_pkg is
 
-constant C_VCTRL_MEMWR_TRN_SIZE  : integer:=16;
-constant C_VCTRL_MEMRD_TRN_SIZE  : integer:=16;
-
 --//Как поделена память ОЗУ для записи/чтение видеоинформации:
 --//                                          : integer:=0; --//Пиксели видеокадра(VLINE_LSB-1...0)
 constant C_VCTRL_MEM_VLINE_L_BIT              : integer:=11;--//Строки видеокадра (MSB...LSB)
@@ -34,7 +31,6 @@ constant C_VCTRL_VCH_COUNT_MAX : integer:=1;
 type TFrXY is record
 pix : std_logic_vector(15 downto 0);
 row : std_logic_vector(15 downto 0);
-total_dw: std_logic_vector(15 downto 0);
 end record;
 
 --//Параметры модуля записи

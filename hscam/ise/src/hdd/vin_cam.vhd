@@ -112,7 +112,7 @@ begin
 
 p_out_vfr_prm.pix <=(others=>'0');
 p_out_vfr_prm.row <=(others=>'0');
-p_out_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR(C_PCFG_FR_PIXTOTAL, p_out_vfr_prm.total_dw'length);
+p_out_vfr_prm.total_dw<=CONV_STD_LOGIC_VECTOR(((C_PCFG_FRPIX/(G_VBUF_OWIDTH/8))*C_PCFG_FRROW), p_out_vfr_prm.total_dw'length);
 
 --//Запись:
 --//Берем 8 старших бит из пердолгаемых 10 бит на 1Pixel
@@ -132,12 +132,18 @@ process(p_in_rst,p_in_vclk)
 begin
   if p_in_rst='1' then
     i_buf_wr<='0';
+    i_buf_wr_en<='0';
+
   elsif p_in_vclk'event and p_in_vclk='1' then
 
-    if p_in_vs=G_VSYN_ACTIVE or p_in_hs=G_VSYN_ACTIVE then
-      i_buf_wr<='0';
-    else
+    if p_in_vs=G_VSYN_ACTIVE then
+      i_buf_wr_en<='1';
+    end if;
+
+    if i_buf_wr_en='1' and p_in_vs/=G_VSYN_ACTIVE and p_in_hs/=G_VSYN_ACTIVE then
       i_buf_wr<=not i_buf_wr;
+    else
+      i_buf_wr<='0';
     end if;
   end if;
 end process;

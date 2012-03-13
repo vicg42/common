@@ -39,6 +39,8 @@ p_in_hd_wr       : in   std_logic;
 p_in_sel         : in   std_logic;
 
 p_out_vbufo_full : out  std_logic;
+p_out_vbufo_pfull: out  std_logic;
+p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 
 p_in_rst         : in   std_logic
@@ -71,36 +73,18 @@ signal i_buf_wr           : std_logic;
 signal i_buf_rd           : std_logic;
 signal i_buf_rd_en        : std_logic;
 signal i_buf_empty        : std_logic;
-signal i_buf_rst          : std_logic;
 
 signal i_pix_en           : std_logic;
-
-signal sr_sel             : std_logic_vector(0 to 1);
-signal i_sel_falling      : std_logic;
-signal i_sel_rising       : std_logic;
 
 
 --MAIN
 begin
 
---Выделение фронтов
-process(p_in_rst,p_in_vbufo_wrclk)
-begin
-  if p_in_rst='1' then
-    sr_sel<=(others=>'0');
-    i_sel_falling<='0';
-    i_sel_rising<='0';
-  elsif p_in_vbufo_wrclk'event and p_in_vbufo_wrclk='1' then
-    sr_sel<=p_in_sel & sr_sel(0 to 0);
-    i_sel_falling<=not sr_sel(0) and     sr_sel(1);
-    i_sel_rising <=    sr_sel(0) and not sr_sel(1);
-  end if;
-end process;
 
 --Синхронизация чтения буфера
-process(i_buf_rst,p_in_vclk)
+process(p_in_rst,p_in_vclk)
 begin
-  if i_buf_rst='1' then
+  if p_in_rst='1' then
     i_buf_rd_en<='0';
   elsif p_in_vclk'event and p_in_vclk='1' then
     if p_in_vs=G_VSYN_ACTIVE and i_buf_empty='0' then
@@ -116,8 +100,6 @@ i_buf_rd<=i_pix_en and i_buf_rd_en;
 i_buf_wr <=p_in_hd_wr when p_in_sel='1' else p_in_vd_wr;
 i_buf_din<=p_in_hd    when p_in_sel='1' else p_in_vd;
 
-i_buf_rst<=p_in_rst or i_sel_falling or i_sel_rising;
-
 m_buf : vout_buf
 port map(
 din    => i_buf_din,
@@ -128,12 +110,14 @@ dout   => p_out_vd,
 rd_en  => i_buf_rd,
 rd_clk => p_in_vclk,
 
-full      => open,
+full      => p_out_vbufo_full,
 empty     => i_buf_empty,
-prog_full => p_out_vbufo_full,
+prog_full => p_out_vbufo_pfull,
 
-rst    => i_buf_rst
+rst    => p_in_rst
 );
+
+p_out_vbufo_empty<=i_buf_empty;
 
 --END MAIN
 end behavioral;

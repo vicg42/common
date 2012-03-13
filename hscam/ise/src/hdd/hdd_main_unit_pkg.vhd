@@ -90,23 +90,20 @@ G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
 --Вх. видеопоток
-p_in_vd            : in   std_logic_vector(99 downto 0);
+p_in_vd            : in   std_logic_vector((10*8*2)-1 downto 0);--(99 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
 
---Вых. видеобуфера
-p_in_vbufin_wrclk  : in   std_logic;
-p_in_vbufin_rdclk  : in   std_logic;
+p_out_vfr_prm      : out  TFrXY;
 
+--Вых. видеобуфера
 p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
 p_out_vbufin_full  : out  std_logic;
-p_out_vbufin_pfull : out  std_logic;
-p_out_vbufin_wrcnt : out  std_logic_vector(3 downto 0);
-
-p_in_hdd_tstgen    : in   THDDTstGen;
+p_in_vbufin_wrclk  : in   std_logic;
+p_in_vbufin_rdclk  : in   std_logic;
 
 --Технологический
 p_in_tst           : in    std_logic_vector(31 downto 0);
@@ -138,6 +135,8 @@ p_in_hd_wr       : in   std_logic;
 p_in_sel         : in   std_logic;
 
 p_out_vbufo_full : out  std_logic;
+p_out_vbufo_pfull: out  std_logic;
+p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 
 p_in_rst         : in   std_logic
@@ -156,7 +155,9 @@ port(
 -------------------------------
 --
 -------------------------------
-p_in_vfr_prm          : in  TFrXY;
+p_in_vfr_prm          : in    TFrXY;
+p_in_mem_trn_len      : in    std_logic_vector(15 downto 0);
+p_in_hm_r             : in    std_logic;
 
 ----------------------------
 --Связь с вх/вых видеобуферами
