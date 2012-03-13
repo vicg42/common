@@ -163,7 +163,7 @@ p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 p_out_cfg_mem_done<=i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full;
+i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full when i_mem_dir=C_MEMWR_READ  else '0';
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full);
 
