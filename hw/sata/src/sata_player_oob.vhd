@@ -72,10 +72,10 @@ architecture behavioral of sata_player_oob is
 
 signal fsm_ploob_cs             : TPLoob_fsm_state;
 
-signal i_gt_txelecidle         : std_logic;
-signal i_gt_txcomstart         : std_logic;
-signal i_gt_txcomtype          : std_logic;
-signal i_gt_pcm_rst            : std_logic;
+signal i_gt_txelecidle          : std_logic;
+signal i_gt_txcomstart          : std_logic;
+signal i_gt_txcomtype           : std_logic;
+signal i_gt_pcm_rst             : std_logic;
 
 signal i_tmr                    : std_logic_vector(19 downto 0);--//timer-timeout
 signal i_tmrout                 : std_logic;                    --//timeout - clk domane p_in_tmrclk
