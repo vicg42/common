@@ -191,7 +191,7 @@ signal i_rdprm_vch                       : TReaderVCHParams;
 
 signal i_vwr_fr_rdy                      : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vrd_fr_rddone                   : std_logic;
-signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+--signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
@@ -213,7 +213,7 @@ p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(11 downto 10)<=i_vbuf_wr(0);
 p_out_tst(13 downto 12)<=i_vbuf_rd(0);
 p_out_tst(14)          <=i_vwr_fr_rdy(0);
-p_out_tst(15)          <=i_vrd_hold(0);
+p_out_tst(15)          <='0';--i_vrd_hold(0);
 p_out_tst(21 downto 16)<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
 p_out_tst(22)          <=i_vrd_fr_rddone;
 p_out_tst(31 downto 23)<=(others=>'0');
