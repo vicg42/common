@@ -1,0 +1,327 @@
+###############################################################################
+# Define Device, Package And Speed Grade
+###############################################################################
+CONFIG PART = XC6SLX100T-FGG676-2;
+
+#Светодиоды
+NET pin_out_led<0>        LOC="A2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
+NET pin_out_led<1>        LOC="H9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
+NET pin_out_led<2>        LOC="G11" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED2
+NET pin_out_led<3>        LOC="J12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED3
+NET pin_out_led<4>        LOC="G10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED4
+NET pin_out_led<5>        LOC="B4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED5
+NET pin_out_led<6>        LOC="D5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
+NET pin_out_led<7>        LOC="K12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
+
+##Тестовые точки
+NET pin_out_TP<0>         LOC="V6"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_0
+NET pin_out_TP<1>         LOC="V5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_1
+NET pin_out_TP<2>         LOC="V7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_2
+NET pin_out_TP<3>         LOC="U8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_3
+NET pin_out_TP<4>         LOC="U7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_4
+NET pin_out_TP<5>         LOC="T8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_5
+NET pin_out_TP<6>         LOC="U9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_6
+NET pin_out_TP<7>         LOC="N8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_7
+
+NET pin_out_TP2<0>        LOC="J16" | IOSTANDARD=LVCMOS33;
+NET pin_out_TP2<1>        LOC="J17" | IOSTANDARD=LVCMOS33;
+
+#USB (FTDI)
+NET pin_inout_ftdi_d<0>   LOC="AA2" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D0_USB
+NET pin_inout_ftdi_d<1>   LOC="AA1" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D1_USB
+NET pin_inout_ftdi_d<2>   LOC="AA4" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D2_USB
+NET pin_inout_ftdi_d<3>   LOC="AA3" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D3_USB
+NET pin_inout_ftdi_d<4>   LOC="Y3"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D4_USB
+NET pin_inout_ftdi_d<5>   LOC="W3"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D5_USB
+NET pin_inout_ftdi_d<6>   LOC="V3"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D6_USB
+NET pin_inout_ftdi_d<7>   LOC="V4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D7_USB
+NET pin_out_ftdi_rd_n     LOC="T4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: RD_USB
+NET pin_out_ftdi_wr_n     LOC="U4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: WR_USB
+NET pin_in_ftdi_txe_n     LOC="W2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TXE_USB
+NET pin_in_ftdi_rxf_n     LOC="W1"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: RXF_USB
+NET pin_in_ftdi_pwren_n   LOC="Y1"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: PWREN_USB
+
+#############################################################################
+#############################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+NET "pin_in_sata_clk_p<0>" LOC="B16"; #Сигнал на схеме: REFCLKs1_P
+NET "pin_in_sata_clk_n<0>" LOC="A16"; #Сигнал на схеме: REFCLKs1_N
+#--------------------------------------------------------------------------
+#Расположение компоненов в кристале
+#--------------------------------------------------------------------------
+#INST "m_hdd/m_dsn_sata/m_dcm_sata"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
+##Для случая generic G_USE_HDD : string:="OFF";
+#INST "m_hdd/gen_use_off.m_sata_gt/m_gt"  LOC=GTPA1_DUAL_X1Y1;
+#Для случая generic G_USE_HDD : string:="ON";
+INST "m_hdd/m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X1Y1;
+#INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X0Y1;
+
+
+##--------------------------------------------------------------------------
+##Временные ограничения
+##--------------------------------------------------------------------------
+#NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_refclkout" TNM_NET = "TG_SATA_GREFCLKOUT";
+#TIMESPEC "TS_SATACLK_GREFCLKOUT" = PERIOD "TG_SATA_GREFCLKOUT" 6.6 ns;
+
+NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET = "TG_SATA_150MHz";
+NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET = "TG_SATA_300MHz";
+NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET = "TG_SATA_75MHz";
+TIMESPEC "TS_SATACLK_300MHz" = PERIOD "TG_SATA_300MHz" 3.3  ns;
+TIMESPEC "TS_SATACLK_150MHz" = PERIOD "TG_SATA_150MHz" 6.6  ns;
+TIMESPEC "TS_SATACLK_75MHz"  = PERIOD "TG_SATA_75MHz"  13.3 ns;
+
+NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET=FFS "TG_SATA_FF";
+NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET=HSIOS "TG_SATA_HSIOS";
+TIMEGRP "TG_SATA"="TG_SATA_FF" "TG_SATA_HSIOS";## "TG_BRAM_PORTA" "TG_BRAM_PORTB" "TG_SATA_RAM";
+TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 13.3 ns;
+#NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET=FFS "TG_SATA_FF";
+#NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET=HSIOS "TG_SATA_HSIOS";
+#TIMEGRP "TG_SATA"="TG_SATA_FF" "TG_SATA_HSIOS";## "TG_BRAM_PORTA" "TG_BRAM_PORTB" "TG_SATA_RAM";
+#TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 6.6 ns; #
+
+
+
+############################################################################
+# VCC AUX VOLTAGE
+############################################################################
+CONFIG VCCAUX=2.5; # Valid values are 2.5 and 3.3
+
+############################################################################
+# DDR2 requires the MCB to operate in Extended performance mode with higher Vccint
+# specification to achieve maximum frequency. Therefore, the following CONFIG constraint
+# follows the corresponding GUI option setting. However, DDR3 can operate at higher
+# frequencies with any Vcciint value by operating MCB in extended mode. Please do not
+# remove/edit the below constraint to avoid false errors.
+############################################################################
+CONFIG MCB_PERFORMANCE= STANDARD;
+
+
+##################################################################################
+# Timing Ignore constraints for paths crossing the clock domain
+##################################################################################
+#NET "memc?_wrapper_inst/memc?_mcb_raw_wrapper_inst/selfrefresh_mcb_mode" TIG;
+#NET "c?_pll_lock" TIG;
+#INST "memc?_wrapper_inst/memc?_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/DONE_SOFTANDHARD_CAL*" TIG;
+#
+##Please uncomment the below TIG if used in a design which enables self-refresh mode
+##NET "memc?_wrapper_inst/memc?_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/SELFREFRESH_MCB_REQ" TIG;
+#NET "memc?_wrapper_inst/memc?_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/CKE_Train" TIG; ## This path exists for DDR2 only
+
+NET "m_hdd/m_mem_ctrl/gen_bank[?].memc5_wrapper_inst/memc?_mcb_raw_wrapper_inst/selfrefresh_mcb_mode" TIG;
+NET "m_hdd/m_mem_ctrl/c?_pll_lock" TIG;
+INST "m_hdd/m_mem_ctrl/gen_bank[?].memc5_wrapper_inst/memc?_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/DONE_SOFTANDHARD_CAL*" TIG;
+
+#Please uncomment the below TIG if used in a design which enables self-refresh mode
+#NET "memc?_wrapper_inst/memc?_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/SELFREFRESH_MCB_REQ" TIG;
+NET "m_hdd/m_mem_ctrl/gen_bank[?].memc5_wrapper_inst/memc?_mcb_raw_wrapper_inst/gen_term_calib.mcb_soft_calibration_top_inst/mcb_soft_calibration_inst/CKE_Train" TIG; ## This path exists for DDR2 only
+
+############################################################################
+
+#############################################################################
+### Clock constraints
+#############################################################################
+NET "m_hdd/m_mem_ctrl/memc5_infrastructure_inst/sys_clk_ibufg" TNM_NET = "SYS_CLK5";
+TIMESPEC "TS_SYS_CLK5" = PERIOD "SYS_CLK5"  3.2  ns HIGH 50 %;
+
+############################################################################
+
+############################################################################
+## I/O TERMINATION
+############################################################################
+NET "pin_inout_mcb5_dq[*]"                          IN_TERM = NONE;
+NET "pin_inout_mcb5_dqs"                            IN_TERM = NONE;
+NET "pin_inout_mcb5_dqs_n"                          IN_TERM = NONE;
+NET "pin_inout_mcb5_udqs"                           IN_TERM = NONE;
+NET "pin_inout_mcb5_udqs_n"                         IN_TERM = NONE;
+
+############################################################################
+# I/O STANDARDS
+############################################################################
+
+NET  "pin_inout_mcb5_dq[*]"                         IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_a[*]"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_ba[*]"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb5_dqs"                           IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb5_udqs"                          IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb5_dqs_n"                         IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb5_udqs_n"                        IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_out_mcb5_ck"                              IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_out_mcb5_ck_n"                            IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_out_mcb5_cke"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_ras_n"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_cas_n"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_we_n"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_odt"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_dm"                              IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb5_udm"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb5_rzq"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb5_zio"                           IOSTANDARD = SSTL18_II ;
+#NET  "c5_sys_clk"                                   IOSTANDARD = LVCMOS25 ;
+#NET  "c5_sys_rst_i"                                 IOSTANDARD = LVCMOS18 ;
+############################################################################
+# MCB 5
+# Pin Location Constraints for Clock, Masks, Address, and Controls
+############################################################################
+
+NET  "pin_out_mcb5_a[0]"                            LOC = "C25" ;
+NET  "pin_out_mcb5_a[10]"                           LOC = "F22" ;
+NET  "pin_out_mcb5_a[11]"                           LOC = "K19" ;
+NET  "pin_out_mcb5_a[12]"                           LOC = "C24" ;
+NET  "pin_out_mcb5_a[1]"                            LOC = "C26" ;
+NET  "pin_out_mcb5_a[2]"                            LOC = "E24" ;
+NET  "pin_out_mcb5_a[3]"                            LOC = "K21" ;
+NET  "pin_out_mcb5_a[4]"                            LOC = "G23" ;
+NET  "pin_out_mcb5_a[5]"                            LOC = "M18" ;
+NET  "pin_out_mcb5_a[6]"                            LOC = "M19" ;
+NET  "pin_out_mcb5_a[7]"                            LOC = "E23" ;
+NET  "pin_out_mcb5_a[8]"                            LOC = "H21" ;
+NET  "pin_out_mcb5_a[9]"                            LOC = "H22" ;
+NET  "pin_out_mcb5_ba[0]"                           LOC = "L19" ;
+NET  "pin_out_mcb5_ba[1]"                           LOC = "K20" ;
+NET  "pin_out_mcb5_ba[2]"                           LOC = "J22" ;
+NET  "pin_out_mcb5_cas_n"                           LOC = "G24" ;
+NET  "pin_out_mcb5_ck"                              LOC = "B25" ;
+NET  "pin_out_mcb5_ck_n"                            LOC = "B26" ;
+NET  "pin_out_mcb5_cke"                             LOC = "D23" ;
+NET  "pin_out_mcb5_dm"                              LOC = "J24" ;
+NET  "pin_inout_mcb5_dq[0]"                         LOC = "G25" ;
+NET  "pin_inout_mcb5_dq[10]"                        LOC = "J25" ;
+NET  "pin_inout_mcb5_dq[11]"                        LOC = "J26" ;
+NET  "pin_inout_mcb5_dq[12]"                        LOC = "L25" ;
+NET  "pin_inout_mcb5_dq[13]"                        LOC = "L26" ;
+NET  "pin_inout_mcb5_dq[14]"                        LOC = "N25" ;
+NET  "pin_inout_mcb5_dq[15]"                        LOC = "N26" ;
+NET  "pin_inout_mcb5_dq[1]"                         LOC = "G26" ;
+NET  "pin_inout_mcb5_dq[2]"                         LOC = "H24" ;
+NET  "pin_inout_mcb5_dq[3]"                         LOC = "H26" ;
+NET  "pin_inout_mcb5_dq[4]"                         LOC = "E25" ;
+NET  "pin_inout_mcb5_dq[5]"                         LOC = "E26" ;
+NET  "pin_inout_mcb5_dq[6]"                         LOC = "D24" ;
+NET  "pin_inout_mcb5_dq[7]"                         LOC = "D26" ;
+NET  "pin_inout_mcb5_dq[8]"                         LOC = "K24" ;
+NET  "pin_inout_mcb5_dq[9]"                         LOC = "K26" ;
+NET  "pin_inout_mcb5_dqs"                           LOC = "F24" ;
+NET  "pin_inout_mcb5_dqs_n"                         LOC = "F26" ;
+NET  "pin_out_mcb5_odt"                             LOC = "K22" ;
+NET  "pin_out_mcb5_ras_n"                           LOC = "F23" ;
+NET  "pin_out_mcb5_udm"                             LOC = "J23" ;
+NET  "pin_inout_mcb5_udqs"                          LOC = "M24" ;
+NET  "pin_inout_mcb5_udqs_n"                        LOC = "M26" ;
+NET  "pin_out_mcb5_we_n"                            LOC = "J20" ;
+#NET  "c5_sys_clk"                                   LOC = "C13" ;
+#NET  "c5_sys_rst_i"                                 LOC = "J15" ;
+
+##################################################################################
+#RZQ is required for all MCB designs.   Do not move the location #
+#of this pin for ES devices.For production devices, RZQ can be moved to any #
+#valid package pin within the MCB bank.For designs using Calibrated Input Termination, #
+#a 2R resistor should be connected between RZQand ground, where R is the desired#
+#input termination value.  Otherwise, RZQ should be left as a no-connect (NC) pin.#
+##################################################################################
+NET  "pin_inout_mcb5_rzq"                           LOC = "H20" ;
+##################################################################################
+#ZIO is only required for MCB designs using Calibrated Input Termination.#
+#ZIO can be moved to any valid package pin (i.e. bonded IO) within the#
+#MCB bank but must be left as a no-connect (NC) pin.#
+##################################################################################
+NET  "pin_inout_mcb5_zio"                           LOC = "M21" ;
+
+
+############################################################################
+## I/O TERMINATION
+############################################################################
+NET "pin_inout_mcb1_dq[*]"                         IN_TERM = NONE;
+NET "pin_inout_mcb1_dqs"                           IN_TERM = NONE;
+NET "pin_inout_mcb1_dqs_n"                         IN_TERM = NONE;
+NET "pin_inout_mcb1_udqs"                          IN_TERM = NONE;
+NET "pin_inout_mcb1_udqs_n"                        IN_TERM = NONE;
+
+############################################################################
+# I/O STANDARDS
+############################################################################
+
+NET  "pin_inout_mcb1_dq[*]"                        IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_a[*]"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ba[*]"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_out_mcb1_ck"                             IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_out_mcb1_cke"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ras_n"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_cas_n"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_we_n"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_odt"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_dm"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_udm"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_rzq"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
+############################################################################
+# MCB 1
+# Pin Location Constraints for Clock, Masks, Address, and Controls
+############################################################################
+
+NET  "pin_out_mcb1_a[0]"                            LOC = "P24" ;
+NET  "pin_out_mcb1_a[10]"                           LOC = "N23" ;
+NET  "pin_out_mcb1_a[11]"                           LOC = "N20" ;
+NET  "pin_out_mcb1_a[12]"                           LOC = "N22" ;
+NET  "pin_out_mcb1_a[1]"                            LOC = "P26" ;
+NET  "pin_out_mcb1_a[2]"                            LOC = "P22" ;
+NET  "pin_out_mcb1_a[3]"                            LOC = "T22" ;
+NET  "pin_out_mcb1_a[4]"                            LOC = "N24" ;
+NET  "pin_out_mcb1_a[5]"                            LOC = "U23" ;
+NET  "pin_out_mcb1_a[6]"                            LOC = "U24" ;
+NET  "pin_out_mcb1_a[7]"                            LOC = "P21" ;
+NET  "pin_out_mcb1_a[8]"                            LOC = "P17" ;
+NET  "pin_out_mcb1_a[9]"                            LOC = "P19" ;
+NET  "pin_out_mcb1_ba[0]"                           LOC = "R20" ;
+NET  "pin_out_mcb1_ba[1]"                           LOC = "R21" ;
+NET  "pin_out_mcb1_ba[2]"                           LOC = "R19" ;
+NET  "pin_out_mcb1_cas_n"                           LOC = "R26" ;
+NET  "pin_out_mcb1_ck"                              LOC = "R23" ;
+NET  "pin_out_mcb1_ck_n"                            LOC = "R24" ;
+NET  "pin_out_mcb1_cke"                             LOC = "N21" ;
+NET  "pin_out_mcb1_dm"                              LOC = "W24" ;
+NET  "pin_inout_mcb1_dq[0]"                         LOC = "AA25" ;
+NET  "pin_inout_mcb1_dq[10]"                        LOC = "AB24" ;
+NET  "pin_inout_mcb1_dq[11]"                        LOC = "AB26" ;
+NET  "pin_inout_mcb1_dq[12]"                        LOC = "Y24" ;
+NET  "pin_inout_mcb1_dq[13]"                        LOC = "Y26" ;
+NET  "pin_inout_mcb1_dq[14]"                        LOC = "AE25" ;
+NET  "pin_inout_mcb1_dq[15]"                        LOC = "AE26" ;
+NET  "pin_inout_mcb1_dq[1]"                         LOC = "AA26" ;
+NET  "pin_inout_mcb1_dq[2]"                         LOC = "W25" ;
+NET  "pin_inout_mcb1_dq[3]"                         LOC = "W26" ;
+NET  "pin_inout_mcb1_dq[4]"                         LOC = "U25" ;
+NET  "pin_inout_mcb1_dq[5]"                         LOC = "U26" ;
+NET  "pin_inout_mcb1_dq[6]"                         LOC = "T24" ;
+NET  "pin_inout_mcb1_dq[7]"                         LOC = "T26" ;
+NET  "pin_inout_mcb1_dq[8]"                         LOC = "AD24" ;
+NET  "pin_inout_mcb1_dq[9]"                         LOC = "AD26" ;
+NET  "pin_inout_mcb1_dqs"                           LOC = "V24" ;
+NET  "pin_inout_mcb1_dqs_n"                         LOC = "V26" ;
+NET  "pin_out_mcb1_odt"                             LOC = "T23" ;
+NET  "pin_out_mcb1_ras_n"                           LOC = "R25" ;
+NET  "pin_out_mcb1_udm"                             LOC = "V23" ;
+NET  "pin_inout_mcb1_udqs"                          LOC = "AC25" ;
+NET  "pin_inout_mcb1_udqs_n"                        LOC = "AC26" ;
+NET  "pin_out_mcb1_we_n"                            LOC = "R18" ;
+
+##################################################################################
+#RZQ is required for all MCB designs.   Do not move the location #
+#of this pin for ES devices.For production devices, RZQ can be moved to any #
+#valid package pin within the MCB bank.For designs using Calibrated Input Termination, #
+#a 2R resistor should be connected between RZQand ground, where R is the desired#
+#input termination value.  Otherwise, RZQ should be left as a no-connect (NC) pin.#
+##################################################################################
+NET  "pin_inout_mcb1_rzq"                           LOC = "N17" ;
+##################################################################################
+#ZIO is only required for MCB designs using Calibrated Input Termination.#
+#ZIO can be moved to any valid package pin (i.e. bonded IO) within the#
+#MCB bank but must be left as a no-connect (NC) pin.#
+##################################################################################
+NET  "pin_inout_mcb1_zio"                           LOC = "U21" ;

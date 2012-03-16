@@ -12,8 +12,8 @@ set _usrdef_chip_family "s6lxt"
 set _usrdef_device "6slx100t"
 set _usrdef_speed  2
 set _usrdef_pkg    "fgg676"
-set _usrdef_ucf_filename "hscam"
-set _usrdef_ucf_filepath "..\ucf\hscam.ucf"
+set _usrdef_ucf_filename "hscam_vicg"
+set _usrdef_ucf_filepath "..\ucf\hscam_vicg.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -105,7 +105,7 @@ set _projects [ list \
       [ list "../src/hdd/hdd_main_cfg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main.vhd" $_VHDMod ] \
       [ list "../hscam_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/hscam.ucf" "hscam_main" ] \
+      [ list "../../ucf/hscam_vicg.ucf" "hscam_main" ] \
     ] \
   ] \
 ]
