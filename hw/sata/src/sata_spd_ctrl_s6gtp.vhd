@@ -426,25 +426,23 @@ begin
         if i_gt_drp_regsel=CI_REG_PLL_RXDIVSEL then
           i_gt_drpaddr<=CI_AREG_PLL_RXDIVSEL_OUT(CI_GT_CH0);
 
---          for i in 0 to C_FSATA_GEN_COUNT-1 loop
---            if i_phy_spd(CI_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH0).sata_ver'length) then
---              i_gt_drpdi(9 downto 8)<=CI_VAL_PLL_DIVSEL_OUT(i);
---            end if;
---          end loop;
-          i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
-          i_gt_drpdi(9 downto 8) <=CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+          i_gt_drpdi(7 downto 0)<=i_gt_drp_rdval(7 downto 0);
+          for i in 0 to C_FSATA_GEN_COUNT-1 loop
+            if i_phy_spd(CI_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH0).sata_ver'length) then
+              i_gt_drpdi(9 downto 8)<=CI_VAL_PLL_DIVSEL_OUT(i);--CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+            end if;
+          end loop;
           i_gt_drpdi(15 downto 10)<=i_gt_drp_rdval(15 downto 10);
 
         else
           i_gt_drpaddr<=CI_AREG_PLL_TXDIVSEL_OUT(CI_GT_CH0);
 
---          for i in 0 to C_FSATA_GEN_COUNT-1 loop
---            if i_phy_spd(CI_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH0).sata_ver'length) then
---              i_gt_drpdi(11 downto 10)<=CI_VAL_PLL_DIVSEL_OUT(i);
---            end if;
---          end loop;
-          i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
-          i_gt_drpdi(11 downto 10)<=CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+          i_gt_drpdi(9 downto 0)<=i_gt_drp_rdval(9 downto 0);
+          for i in 0 to C_FSATA_GEN_COUNT-1 loop
+            if i_phy_spd(CI_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH0).sata_ver'length) then
+              i_gt_drpdi(11 downto 10)<=CI_VAL_PLL_DIVSEL_OUT(i);--CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+            end if;
+          end loop;
           i_gt_drpdi(15 downto 12)<=i_gt_drp_rdval(15 downto 12);
 
         end if;
@@ -557,25 +555,23 @@ begin
           if i_gt_drp_regsel=CI_REG_PLL_RXDIVSEL then
             i_gt_drpaddr<=CI_AREG_PLL_RXDIVSEL_OUT(CI_GT_CH1);
 
---            for i in 0 to C_FSATA_GEN_COUNT-1 loop
---              if i_phy_spd(CI_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH1).sata_ver'length) then
---                i_gt_drpdi(9 downto 8)<=CI_VAL_PLL_DIVSEL_OUT(i);
---              end if;
---            end loop;
-            i_gt_drpdi(7 downto 0) <=i_gt_drp_rdval(7 downto 0);
-            i_gt_drpdi(9 downto 8) <=CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+            i_gt_drpdi(7 downto 0)<=i_gt_drp_rdval(7 downto 0);
+            for i in 0 to C_FSATA_GEN_COUNT-1 loop
+              if i_phy_spd(CI_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH1).sata_ver'length) then
+                i_gt_drpdi(9 downto 8)<=CI_VAL_PLL_DIVSEL_OUT(i);--CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+              end if;
+            end loop;
             i_gt_drpdi(15 downto 10)<=i_gt_drp_rdval(15 downto 10);
 
           else
             i_gt_drpaddr<=CI_AREG_PLL_TXDIVSEL_OUT(CI_GT_CH1);
 
---            for i in 0 to C_FSATA_GEN_COUNT-1 loop
---              if i_phy_spd(CI_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH1).sata_ver'length) then
---                i_gt_drpdi(11 downto 10)<=CI_VAL_PLL_DIVSEL_OUT(i);
---              end if;
---            end loop;
-            i_gt_drpdi(9 downto 0)  <=i_gt_drp_rdval(9 downto 0);
-            i_gt_drpdi(11 downto 10)<=CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+            i_gt_drpdi(9 downto 0)<=i_gt_drp_rdval(9 downto 0);
+            for i in 0 to C_FSATA_GEN_COUNT-1 loop
+              if i_phy_spd(CI_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(CI_GT_CH1).sata_ver'length) then
+                i_gt_drpdi(11 downto 10)<=CI_VAL_PLL_DIVSEL_OUT(i);--CI_VAL_PLL_DIVSEL_OUT(C_FSATA_GEN_DEFAULT);
+              end if;
+            end loop;
             i_gt_drpdi(15 downto 12)<=i_gt_drp_rdval(15 downto 12);
 
           end if;
