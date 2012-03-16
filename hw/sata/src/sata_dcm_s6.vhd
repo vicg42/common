@@ -55,13 +55,13 @@ signal g_dcm_clkfb    : std_logic;
 begin
 
 
---p_out_refclkout<=p_in_clk;
-bufg_refclk    : BUFG port map (I => p_in_clk, O => p_out_refclkout);
+p_out_refclkout<='0';--p_in_clk;
+--bufg_refclk    : BUFG port map (I => p_in_clk, O => p_out_refclkout);
 
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
-bufg_dcm_clkfb : BUFIO2FB port map (I=>g_dcm_clk0, O=>g_dcm_clkfb);
+--bufg_dcm_clkfb : BUFIO2FB port map (I=>g_dcm_clk0, O=>g_dcm_clkfb);
 
 m_dcm : DCM_SP
 generic map(
@@ -82,7 +82,7 @@ PHASE_SHIFT            => 0,      -- Amount of fixed phase shift from -255 to 10
 STARTUP_WAIT           => FALSE   -- Delay configuration DONE until DCM LOCK, TRUE/FALSE
 )
 port map(
-CLKFB    => g_dcm_clkfb,
+CLKFB    => g_dcm_clk0,
 
 CLK0     => i_dcm_clk0,
 CLK90    => open,
