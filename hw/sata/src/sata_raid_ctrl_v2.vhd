@@ -123,7 +123,8 @@ hw       : std_logic;
 hw_work  : std_logic;
 lbaend   : std_logic;
 stop     : std_logic;
-hr       : std_logic;
+hw_wr    : std_logic;
+hw_rd    : std_logic;
 end record;
 signal i_usrmode                   : TUserMode;
 signal i_raidcmd                   : std_logic_vector(C_HDDPKT_RAIDCMD_M_BIT-C_HDDPKT_RAIDCMD_L_BIT downto 0);
@@ -240,9 +241,7 @@ begin
 
 
     --//Расширяем импульс
-    if OR_reduce(i_atacmdw_start)='1' and
-      (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
-      i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) then
+    if OR_reduce(i_atacmdw_start)='1' and i_usrmode.hw_wr='1' then
       i_atacmdtest<='1';
     elsif i_atacmdtest_cnt(i_atacmdtest_cnt'high)='1' then
       i_atacmdtest<='0';
@@ -282,8 +281,8 @@ i_usr_status.dmacfg.raid.used<=p_in_raid.used;
 i_usr_status.dmacfg.raid.hddcount<=p_in_raid.hddcount;
 i_usr_status.dmacfg.scount<=(others=>'0');
 i_usr_status.dmacfg.tstgen_start<=i_atacmdtest;
-i_usr_status.dmacfg.hm_w <=i_usrmode.hw_work and i_usrmode.hw;
-i_usr_status.dmacfg.hm_r <=i_usrmode.hw_work and i_usrmode.hr;
+i_usr_status.dmacfg.hm_w <=i_usrmode.hw_work and i_usrmode.hw_wr;
+i_usr_status.dmacfg.hm_r <=i_usrmode.hw_work and i_usrmode.hw_rd;
 
 --//кол-во HDD подключенных к FPGA
 i_usr_status.hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.hdd_count'length);
@@ -451,7 +450,6 @@ i_usrmode.stop  <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP  , i_r
 i_usrmode.sw    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_SW    , i_raidcmd'length) else '0';
 i_usrmode.hw    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HW    , i_raidcmd'length) else '0';
 i_usrmode.lbaend<='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_LBAEND, i_raidcmd'length) else '0';
-i_usrmode.hr    <='1' when i_raidcmd=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_HR    , i_raidcmd'length) else '0';
 
 i_sh_cmd_en<='1' when i_satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, i_satacmd'length) or
                       i_satacmd=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACONTROL, i_satacmd'length) else '0';
@@ -469,7 +467,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_sh_cmd_start<=(i_cmdpkt_get_done and (i_usrmode.hw or i_usrmode.sw or i_usrmode.hr)) or
+    i_sh_cmd_start<=(i_cmdpkt_get_done and (i_usrmode.hw or i_usrmode.sw)) or
                     (i_sh_cmd_hw_start and i_usrmode.hw_work);
 
     if i_sh_cmd_start='1' then
@@ -561,12 +559,26 @@ begin
   if p_in_rst='1' then
     i_usrmode.hw_work<='0';
     i_sh_padding_en<='0';
+    i_usrmode.hw_wr<='0';
+    i_usrmode.hw_rd<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     --//Работа в HW режиме
     if (i_usrmode.stop='1' and i_cmdpkt_get_done='1') or (i_sh_atacmd.lba>=i_lba_end and sr_sh_cmddone(1)='1') or i_sh_det.err='1' then
       i_usrmode.hw_work<='0';
-    elsif (i_usrmode.hw='1' or i_usrmode.hr='1') and i_cmdpkt_get_done='1' then
+      i_usrmode.hw_wr<='0';
+      i_usrmode.hw_rd<='0';
+    elsif (i_usrmode.hw='1') and i_cmdpkt_get_done='1' then
       i_usrmode.hw_work<='1';
+
+      if (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length)) or
+         (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length)) then
+        i_usrmode.hw_wr<='1';
+      end if;
+
+      if (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_cmdpkt.command'length)) or
+         (i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_cmdpkt.command'length)) then
+        i_usrmode.hw_rd<='1';
+      end if;
     end if;
 
     if i_err_clr='1' or i_usrmode.sw='1' or i_usrmode.lbaend='1' or i_usr_status.dev_rdy='0' then
@@ -611,7 +623,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    if (i_usrmode.sw='1' or i_usrmode.hw='1' or i_usrmode.hr='1') and i_cmdpkt_get_done='1' then
+    if (i_usrmode.sw='1' or i_usrmode.hw='1') and i_cmdpkt_get_done='1' then
     --//Параметы текущей АТА команды:
       i_sh_atacmd.lba<=i_cmdpkt.lba;
       i_sh_atacmd.scount<=i_cmdpkt.scount;

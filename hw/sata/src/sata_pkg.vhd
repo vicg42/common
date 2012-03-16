@@ -114,7 +114,6 @@ constant C_RAIDCMD_STOP                  : integer:=0;--//работа от управл€ющей 
 constant C_RAIDCMD_SW                    : integer:=1;--//работа от управл€ющей программы
 constant C_RAIDCMD_HW                    : integer:=2;--//аппаратна€ запись
 constant C_RAIDCMD_LBAEND                : integer:=3;--//установка конечного адреса LBA (при работе в режиме HW)
-constant C_RAIDCMD_HR                    : integer:=4;--//аппаратное чтение
 
 --//(C_HDDPKT_SATACMD_M downto C_HDDPKT_SATACMD_L)/Map:
 constant C_SATACMD_NULL                  : integer:=0;
