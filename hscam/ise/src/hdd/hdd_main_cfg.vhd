@@ -31,7 +31,7 @@ constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
 --//cfg HDD
 constant C_PCFG_HDD_USE                : string:="ON";
 constant C_PCFG_HDD_DBG                : string:="OFF";
-constant C_PCFG_HDD_DBGCS              : string:="ON";
+constant C_PCFG_HDD_DBGCS              : string:="OFF";
 constant C_PCFG_HDD_SH_DBGCS           : string:="OFF";
 constant C_PCFG_HDD_RAID_DBGCS         : string:="ON";
 constant C_PCFG_HDD_COUNT              : integer:=2;
