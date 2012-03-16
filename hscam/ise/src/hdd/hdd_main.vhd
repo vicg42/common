@@ -394,9 +394,9 @@ i_mem_ctrl_sysin.clk<=g_usrpll_clkout(0);
 --частота переписывания данных внутренних буферов для модулей vin_cam,vin_hdd
 g_vbufi_wrclk<=g_usrpll_clkout(1);
 --частота работы с ОЗУ
-g_hclk<=g_usrpll_clkout(2);--p_in_grefclk;--
+g_hclk<=g_usrpll_clkout(2);
 
-g_cfg_clk<=p_in_grefclk;--g_sata_refclkout;--
+g_cfg_clk<=p_in_grefclk;
 
 
 --***********************************************************
@@ -921,7 +921,7 @@ p_out_1ms      => open,
 -------------------------------
 --System
 -------------------------------
-p_in_clk       => g_sata_refclkout,
+p_in_clk       => g_hdd_dcm_gclk150M,--g_sata_refclkout,
 p_in_rst       => i_sys_rst
 );
 

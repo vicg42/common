@@ -26,7 +26,7 @@ constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 constant C_MEM_BANK_COUNT_MAX: integer := 2;
 
 
-constant C5_MEMCLK_PERIOD          : integer := 3300;-- Memory data transfer clock period.
+constant C5_MEMCLK_PERIOD          : integer := 3200;-- Memory data transfer clock period.
 constant C5_P0_MASK_SIZE           : integer := 8;
 constant C5_P0_DATA_PORT_SIZE      : integer := 64;
 constant C5_P1_MASK_SIZE           : integer := 8;
