@@ -91,7 +91,7 @@ architecture behavioral of sata_raid_decoder is
 
 signal i_sh_rxd_rd    : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal i_sh_txd_wr    : std_logic_vector(G_HDD_COUNT-1 downto 0);
-
+signal i_sh_txbuf_full: std_logic;
 signal tst_hdd_wr     : std_logic_vector(G_HDD_COUNT-1 downto 0);--јктивность записи/чтени€ соотвествующего HDD
 
 --MAIN
@@ -155,6 +155,14 @@ end generate gen_hddoff;
 end generate gen_hddoff_en;
 
 
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    p_out_usr_txbuf_full<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    p_out_usr_txbuf_full<=i_sh_txbuf_full;
+  end if;
+end process;
 
 --//###################################
 --//
@@ -172,7 +180,7 @@ end generate gen_raidon;
 --//HDDCOUNT=1
 --//----------------------------------
 gen_hddcount1 : if G_HDD_COUNT=1  generate
-p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else '1';
+i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else '1';
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty;
 p_out_usr_rxd<=p_in_sh_rxd(0);
@@ -187,8 +195,8 @@ end generate gen_hddcount1;
 --//HDDCOUNT=2
 --//----------------------------------
 gen_hddcount2 : if G_HDD_COUNT=2  generate
-p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(1).pfull;
+i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+                 p_in_sh_txbuf_status(1).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty;
@@ -206,9 +214,9 @@ end generate gen_hddcount2;
 --//HDDCOUNT=3
 --//----------------------------------
 gen_hddcount3 : if G_HDD_COUNT=3  generate
-p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(2).pfull;
+i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+                 p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+                 p_in_sh_txbuf_status(2).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -229,10 +237,10 @@ end generate gen_hddcount3;
 --//HDDCOUNT=4
 --//----------------------------------
 gen_hddcount4 : if G_HDD_COUNT=4  generate
-p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
-                      p_in_sh_txbuf_status(3).pfull;
+i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+                 p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+                 p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
+                 p_in_sh_txbuf_status(3).pfull;
 
 p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
                        p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -256,11 +264,11 @@ end generate gen_hddcount4;
 ----//HDDCOUNT=5
 ----//----------------------------------
 --gen_hddcount5 : if G_HDD_COUNT=5  generate
---p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(4).pfull;
+--i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(4).pfull;
 --
 --p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
 --                       p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -288,12 +296,12 @@ end generate gen_hddcount4;
 ----//HDDCOUNT=6
 ----//----------------------------------
 --gen_hddcount6 : if G_HDD_COUNT=6  generate
---p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(5).pfull;
+--i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(5).pfull;
 --
 --p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
 --                       p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -323,13 +331,13 @@ end generate gen_hddcount4;
 ----//HDDCOUNT=7
 ----//----------------------------------
 --gen_hddcount7 : if G_HDD_COUNT=7  generate
---p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(5).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(6).pfull;
+--i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(5).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(6).pfull;
 --
 --p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
 --                       p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
@@ -362,14 +370,14 @@ end generate gen_hddcount4;
 ----//HDDCOUNT=8
 ----//----------------------------------
 --gen_hddcount8 : if G_HDD_COUNT=8  generate
---p_out_usr_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(5).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(6).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
---                      p_in_sh_txbuf_status(7).pfull;
+--i_sh_txbuf_full<=p_in_sh_txbuf_status(0).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(1).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(2).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#02#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(3).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#03#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(4).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#04#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(5).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#05#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(6).pfull when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#06#, p_in_sh_hdd'length) else
+--                 p_in_sh_txbuf_status(7).pfull;
 --
 --p_out_usr_rxbuf_empty<=p_in_sh_rxbuf_status(0).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#00#, p_in_sh_hdd'length) else
 --                       p_in_sh_rxbuf_status(1).empty when p_in_sh_hdd=CONV_STD_LOGIC_VECTOR(16#01#, p_in_sh_hdd'length) else
