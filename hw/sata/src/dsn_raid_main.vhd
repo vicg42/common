@@ -655,7 +655,7 @@ p_in_sys_dcm_lock           => i_sh_dcm_lock,
 
 p_out_gt_pllkdet            => i_sh_gt_pllkdet(sh_idx),
 p_out_gt_refclk             => i_sh_gt_refclkout(sh_idx),
-p_in_gt_drpclk              => g_sh_dcm_clk2div,--g_refclkout,--
+p_in_gt_drpclk              => g_sh_dcm_clk2div,
 p_in_gt_refclk              => p_in_sata_refclk(sh_idx),
 
 p_in_optrefclksel           => i_sh_gt_optrefclksel(sh_idx),
