@@ -262,6 +262,10 @@ signal i_spd                          : std_logic_vector(7 downto 0);
 signal i_shim_hs                      : std_logic;
 signal i_shim_vs                      : std_logic;
 signal i_shim_vs_cnt                  : std_logic_vector(7 downto 0);
+signal sr_shim_hs                     : std_logic_vector(0 to 1);
+
+signal tmp_vs                         : std_logic;
+signal tmp_hs                         : std_logic;
 
 
 --MAIN
@@ -404,6 +408,7 @@ begin
     i_shim_vs<=G_VSYN_ACTIVE;
     i_shim_hs<='0';
     i_shim_vs_cnt<=(others=>'0');
+    sr_shim_hs<=(others=>'0');
   elsif i_vin_clk'event and i_vin_clk='1' then
     if i_cntbase=i_spd then
       i_shim_hs<='0';
@@ -417,16 +422,26 @@ begin
 
     i_cntbase<=i_cntbase+1;
 
-    if i_shim_vs=G_VSYN_ACTIVE then
+    sr_shim_hs<=i_shim_hs & sr_shim_hs(0 to 0);
+    if sr_shim_hs(0)='0' and sr_shim_hs(1)='1' then
       i_shim_vs_cnt<=i_shim_vs_cnt + 1;
     end if;
+--    if i_shim_vs=G_VSYN_ACTIVE then
+--      i_shim_vs_cnt<=i_shim_vs_cnt + 1;
+--    end if;
   end if;
 end process;
 
-tst_in(0)<=    i_shim_vs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';--i_vin_vs;--
-tst_in(1)<=not i_shim_hs;                                                                             --i_vin_hs;--
+--tst_in(0)<=    i_shim_vs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';--i_vin_vs;--
+--tst_in(1)<=not i_shim_hs;                                                                             --i_vin_hs;--
+tmp_vs<=    i_shim_hs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';--i_vin_vs;--
+tmp_hs<=not i_shim_hs;
+
+tst_in(0)<=tmp_vs when tst_out(8)='1' else i_vin_vs;
+tst_in(1)<=tmp_hs when tst_out(8)='1' else i_vin_hs;
 tst_in(2)<=i_test02_led;
 tst_in(31 downto 3)<=(others=>'0');
+
 
 m_vtgen_low : vtiming_gen
 generic map(
@@ -463,8 +478,8 @@ port map(
 --VideoIN
 --------------------------------------------------
 p_in_vd       => i_vin_d,
-p_in_vin_vs   => i_vin_vs,
-p_in_vin_hs   => i_vin_hs,
+p_in_vin_vs   => tst_in(0),--i_vin_vs,
+p_in_vin_hs   => tst_in(1),--i_vin_hs,
 p_in_vin_clk  => i_vin_clk,
 
 --------------------------------------------------
