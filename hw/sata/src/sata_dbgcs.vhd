@@ -227,7 +227,9 @@ i_dbgcs_data(122)<=p_in_alstatus.atastatus(C_ATA_STATUS_BUSY_BIT);
 i_dbgcs_data(123)<=p_in_dbg.alayer.opt.err_clr;
 i_dbgcs_data(131 downto 124)<=p_in_alstatus.atastatus;--ATA reg
 i_dbgcs_data(139 downto 132)<=p_in_reg_hold.status;--tlayer
-i_dbgcs_data(147 downto 140)<=p_in_reg_hold.e_status;--tlayer
+--i_dbgcs_data(147 downto 140)<=p_in_reg_hold.e_status;--tlayer
+i_dbgcs_data(141 downto 140)<=p_in_txbufstatus(1 downto 0);
+i_dbgcs_data(147 downto 142)<=(others=>'0');
 
 i_dbgcs_data(148)<=p_in_reg_update.fd2h;  --//Обновление Shadow Reg по приему FIS_DEV2HOST
 i_dbgcs_data(149)<=p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FIS_PIOSETUP
@@ -240,7 +242,7 @@ i_dbgcs_data(154)<=p_in_rxcharisk(2);--p_in_dbg.alayer.opt.reg_shadow_wr_done;
 i_dbgcs_data(155)<=p_in_rxcharisk(3);--p_in_dbg.alayer.opt.reg_shadow_wr;
 
 i_dbgcs_data(156)<=p_in_phy_sync;
-i_dbgcs_data(159 downto 157)<=(others=>'0');
+i_dbgcs_data(159 downto 157)<=p_in_rxbufstatus;--(others=>'0');
 
 i_dbgcs_data(160)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
 i_dbgcs_data(161)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
