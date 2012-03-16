@@ -554,7 +554,7 @@ begin
   if p_in_rst='1' then
     p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN_DEFAULT, p_out_spd_ctrl.sata_ver'length);
   elsif p_in_clk'event and p_in_clk='1' then
-    if p_in_cmdfifo_src_rdy_n='0' and p_in_cmdfifo_eof_n='0' then
+    if i_reg_shadow_wr_done='1' then
       if    i_usrmode(C_SATACMD_SET_SATA2 downto C_SATACMD_SET_SATA1)="10" then
         p_out_spd_ctrl.sata_ver<=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_out_spd_ctrl.sata_ver'length);
       elsif i_usrmode(C_SATACMD_SET_SATA2 downto C_SATACMD_SET_SATA1)="01" then
