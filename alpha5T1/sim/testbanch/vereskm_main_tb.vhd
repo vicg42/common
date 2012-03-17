@@ -37,12 +37,13 @@ use work.sata_sim_pkg.all;
 use work.sata_raid_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
+use work.eth_phypin_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.vereskm_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.dsn_track_nik_pkg.all;
-
+use work.dsn_hdd_reg_def.all;
 
 entity vereskm_main_tb is
 generic(
@@ -100,6 +101,12 @@ constant bank13     : bank_t := C_MEM_BANK13;--no_bank;
 constant bank14     : bank_t := C_MEM_BANK14;--no_bank;
 constant bank15     : bank_t := C_MEM_BANK15;--no_bank;
 constant num_ramclk : natural:= C_MEM_NUM_RAMCLK;--1;
+
+signal i_ethphy_out        : TEthPhyFiberPinOUT;
+signal i_ethphy_in         : TEthPhyFiberPinIN;
+signal pin_out_phymem      : TMEMCTRL_phy_outs;
+signal pin_inout_phymem    : TMEMCTRL_phy_inouts;
+
 
 signal lclk, mclk:         std_logic := '1';
 signal lreset_l:           std_logic := '0';
@@ -184,10 +191,10 @@ signal bus_out : locbus_out_t := init_locbus_out;
 
 signal logic0, logic1 : std_logic;
 
-signal i_pciexp_txp   : std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-signal i_pciexp_txn   : std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-signal i_pciexp_rxp   : std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-signal i_pciexp_rxn   : std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+signal i_pciexp_txp   : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+signal i_pciexp_txn   : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+signal i_pciexp_rxp   : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+signal i_pciexp_rxn   : std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 signal i_pciexp_sys_clk_p       : std_logic;
 signal i_pciexp_sys_clk_n       : std_logic;
 
@@ -227,12 +234,12 @@ signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downt
 signal i_hdd_sim_gt_rst               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gt_clk               : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
-signal i_sata_txn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-signal i_sata_txp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-signal i_sata_rxn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-signal i_sata_rxp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-signal i_sata_gt_refclkmain_p         : std_logic_vector((C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0):=(others=>'1');
-signal i_sata_gt_refclkmain_n         : std_logic_vector((C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0):=(others=>'0');
+--signal i_sata_txn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--signal i_sata_txp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--signal i_sata_rxn                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--signal i_sata_rxp                     : std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--signal i_sata_gt_refclkmain_p         : std_logic_vector((C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0):=(others=>'1');
+--signal i_sata_gt_refclkmain_n         : std_logic_vector((C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0):=(others=>'0');
 
 
 
@@ -379,68 +386,68 @@ pin_out_ddr2_odt1 : out   std_logic;
 --------------------------------------------------
 --Memory banks (up to 16 supported by this design)
 --------------------------------------------------
-ra0               : out   std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
-rc0               : inout std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
-rd0               : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
-ra1               : out   std_logic_vector(C_MEM_BANK1.ra_width - 1 downto 0);
-rc1               : inout std_logic_vector(C_MEM_BANK1.rc_width - 1 downto 0);
-rd1               : inout std_logic_vector(C_MEM_BANK1.rd_width - 1 downto 0);
---ra2               : out   std_logic_vector(C_MEM_BANK2.ra_width - 1 downto 0);
---rc2               : inout std_logic_vector(C_MEM_BANK2.rc_width - 1 downto 0);
---rd2               : inout std_logic_vector(C_MEM_BANK2.rd_width - 1 downto 0);
---ra3               : out   std_logic_vector(C_MEM_BANK3.ra_width - 1 downto 0);
---rc3               : inout std_logic_vector(C_MEM_BANK3.rc_width - 1 downto 0);
---rd3               : inout std_logic_vector(C_MEM_BANK3.rd_width - 1 downto 0);
---ra4               : out   std_logic_vector(C_MEM_BANK4.ra_width - 1 downto 0);
---rc4               : inout std_logic_vector(C_MEM_BANK4.rc_width - 1 downto 0);
---rd4               : inout std_logic_vector(C_MEM_BANK4.rd_width - 1 downto 0);
---ra5               : out   std_logic_vector(C_MEM_BANK5.ra_width - 1 downto 0);
---rc5               : inout std_logic_vector(C_MEM_BANK5.rc_width - 1 downto 0);
---rd5               : inout std_logic_vector(C_MEM_BANK5.rd_width - 1 downto 0);
---ra6               : out   std_logic_vector(C_MEM_BANK6.ra_width - 1 downto 0);
---rc6               : inout std_logic_vector(C_MEM_BANK6.rc_width - 1 downto 0);
---rd6               : inout std_logic_vector(C_MEM_BANK6.rd_width - 1 downto 0);
---ra7               : out   std_logic_vector(C_MEM_BANK7.ra_width - 1 downto 0);
---rc7               : inout std_logic_vector(C_MEM_BANK7.rc_width - 1 downto 0);
---rd7               : inout std_logic_vector(C_MEM_BANK7.rd_width - 1 downto 0);
---ra8               : out   std_logic_vector(C_MEM_BANK8.ra_width - 1 downto 0);
---rc8               : inout std_logic_vector(C_MEM_BANK8.rc_width - 1 downto 0);
---rd8               : inout std_logic_vector(C_MEM_BANK8.rd_width - 1 downto 0);
---ra9               : out   std_logic_vector(C_MEM_BANK9.ra_width - 1 downto 0);
---rc9               : inout std_logic_vector(C_MEM_BANK9.rc_width - 1 downto 0);
---rd9               : inout std_logic_vector(C_MEM_BANK9.rd_width - 1 downto 0);
---ra10              : out   std_logic_vector(C_MEM_BANK10.ra_width - 1 downto 0);
---rc10              : inout std_logic_vector(C_MEM_BANK10.rc_width - 1 downto 0);
---rd10              : inout std_logic_vector(C_MEM_BANK10.rd_width - 1 downto 0);
---ra11              : out   std_logic_vector(C_MEM_BANK11.ra_width - 1 downto 0);
---rc11              : inout std_logic_vector(C_MEM_BANK11.rc_width - 1 downto 0);
---rd11              : inout std_logic_vector(C_MEM_BANK11.rd_width - 1 downto 0);
---ra12              : out   std_logic_vector(C_MEM_BANK12.ra_width - 1 downto 0);
---rc12              : inout std_logic_vector(C_MEM_BANK12.rc_width - 1 downto 0);
---rd12              : inout std_logic_vector(C_MEM_BANK12.rd_width - 1 downto 0);
---ra13              : out   std_logic_vector(C_MEM_BANK13.ra_width - 1 downto 0);
---rc13              : inout std_logic_vector(C_MEM_BANK13.rc_width - 1 downto 0);
---rd13              : inout std_logic_vector(C_MEM_BANK13.rd_width - 1 downto 0);
---ra14              : out   std_logic_vector(C_MEM_BANK14.ra_width - 1 downto 0);
---rc14              : inout std_logic_vector(C_MEM_BANK14.rc_width - 1 downto 0);
---rd14              : inout std_logic_vector(C_MEM_BANK14.rd_width - 1 downto 0);
---ra15              : out   std_logic_vector(C_MEM_BANK15.ra_width - 1 downto 0);
---rc15              : inout std_logic_vector(C_MEM_BANK15.rc_width - 1 downto 0);
---rd15              : inout std_logic_vector(C_MEM_BANK15.rd_width - 1 downto 0);
---ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
+pin_out_phymem    : out   TMEMCTRL_phy_outs;
+pin_inout_phymem  : inout TMEMCTRL_phy_inouts;
+
+--ra0               : out   std_logic_vector(C_MEM_BANK0.ra_width - 1 downto 0);
+--rc0               : inout std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
+--rd0               : inout std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
+--ra1               : out   std_logic_vector(C_MEM_BANK1.ra_width - 1 downto 0);
+--rc1               : inout std_logic_vector(C_MEM_BANK1.rc_width - 1 downto 0);
+--rd1               : inout std_logic_vector(C_MEM_BANK1.rd_width - 1 downto 0);
+----ra2               : out   std_logic_vector(C_MEM_BANK2.ra_width - 1 downto 0);
+----rc2               : inout std_logic_vector(C_MEM_BANK2.rc_width - 1 downto 0);
+----rd2               : inout std_logic_vector(C_MEM_BANK2.rd_width - 1 downto 0);
+----ra3               : out   std_logic_vector(C_MEM_BANK3.ra_width - 1 downto 0);
+----rc3               : inout std_logic_vector(C_MEM_BANK3.rc_width - 1 downto 0);
+----rd3               : inout std_logic_vector(C_MEM_BANK3.rd_width - 1 downto 0);
+----ra4               : out   std_logic_vector(C_MEM_BANK4.ra_width - 1 downto 0);
+----rc4               : inout std_logic_vector(C_MEM_BANK4.rc_width - 1 downto 0);
+----rd4               : inout std_logic_vector(C_MEM_BANK4.rd_width - 1 downto 0);
+----ra5               : out   std_logic_vector(C_MEM_BANK5.ra_width - 1 downto 0);
+----rc5               : inout std_logic_vector(C_MEM_BANK5.rc_width - 1 downto 0);
+----rd5               : inout std_logic_vector(C_MEM_BANK5.rd_width - 1 downto 0);
+----ra6               : out   std_logic_vector(C_MEM_BANK6.ra_width - 1 downto 0);
+----rc6               : inout std_logic_vector(C_MEM_BANK6.rc_width - 1 downto 0);
+----rd6               : inout std_logic_vector(C_MEM_BANK6.rd_width - 1 downto 0);
+----ra7               : out   std_logic_vector(C_MEM_BANK7.ra_width - 1 downto 0);
+----rc7               : inout std_logic_vector(C_MEM_BANK7.rc_width - 1 downto 0);
+----rd7               : inout std_logic_vector(C_MEM_BANK7.rd_width - 1 downto 0);
+----ra8               : out   std_logic_vector(C_MEM_BANK8.ra_width - 1 downto 0);
+----rc8               : inout std_logic_vector(C_MEM_BANK8.rc_width - 1 downto 0);
+----rd8               : inout std_logic_vector(C_MEM_BANK8.rd_width - 1 downto 0);
+----ra9               : out   std_logic_vector(C_MEM_BANK9.ra_width - 1 downto 0);
+----rc9               : inout std_logic_vector(C_MEM_BANK9.rc_width - 1 downto 0);
+----rd9               : inout std_logic_vector(C_MEM_BANK9.rd_width - 1 downto 0);
+----ra10              : out   std_logic_vector(C_MEM_BANK10.ra_width - 1 downto 0);
+----rc10              : inout std_logic_vector(C_MEM_BANK10.rc_width - 1 downto 0);
+----rd10              : inout std_logic_vector(C_MEM_BANK10.rd_width - 1 downto 0);
+----ra11              : out   std_logic_vector(C_MEM_BANK11.ra_width - 1 downto 0);
+----rc11              : inout std_logic_vector(C_MEM_BANK11.rc_width - 1 downto 0);
+----rd11              : inout std_logic_vector(C_MEM_BANK11.rd_width - 1 downto 0);
+----ra12              : out   std_logic_vector(C_MEM_BANK12.ra_width - 1 downto 0);
+----rc12              : inout std_logic_vector(C_MEM_BANK12.rc_width - 1 downto 0);
+----rd12              : inout std_logic_vector(C_MEM_BANK12.rd_width - 1 downto 0);
+----ra13              : out   std_logic_vector(C_MEM_BANK13.ra_width - 1 downto 0);
+----rc13              : inout std_logic_vector(C_MEM_BANK13.rc_width - 1 downto 0);
+----rd13              : inout std_logic_vector(C_MEM_BANK13.rd_width - 1 downto 0);
+----ra14              : out   std_logic_vector(C_MEM_BANK14.ra_width - 1 downto 0);
+----rc14              : inout std_logic_vector(C_MEM_BANK14.rc_width - 1 downto 0);
+----rd14              : inout std_logic_vector(C_MEM_BANK14.rd_width - 1 downto 0);
+----ra15              : out   std_logic_vector(C_MEM_BANK15.ra_width - 1 downto 0);
+----rc15              : inout std_logic_vector(C_MEM_BANK15.rc_width - 1 downto 0);
+----rd15              : inout std_logic_vector(C_MEM_BANK15.rd_width - 1 downto 0);
+----ramclko           : out   std_logic_vector(C_MEM_NUM_RAMCLK - 1 downto 0);
 
 --------------------------------------------------
 --Ethernet
 --------------------------------------------------
-pin_out_sfp_tx_dis    : out  std_logic;                      --//SFP - TX DISABLE
-pin_in_sfp_sd         : in   std_logic;                      --//SFP - SD signal detect
-
-pin_out_eth_txp       : out   std_logic_vector(1 downto 0);
-pin_out_eth_txn       : out   std_logic_vector(1 downto 0);
-pin_in_eth_rxp        : in    std_logic_vector(1 downto 0);
-pin_in_eth_rxn        : in    std_logic_vector(1 downto 0);
-pin_in_eth_clk_p      : in    std_logic;
-pin_in_eth_clk_n      : in    std_logic;
+--pin_out_eth_txp       : out   std_logic_vector(1 downto 0);
+--pin_out_eth_txn       : out   std_logic_vector(1 downto 0);
+--pin_in_eth_rxp        : in    std_logic_vector(1 downto 0);
+--pin_in_eth_rxn        : in    std_logic_vector(1 downto 0);
+--pin_in_eth_clk_p      : in    std_logic;
+--pin_in_eth_clk_n      : in    std_logic;
 
 pin_out_gt_X0Y6_txp   : out  std_logic_vector(1 downto 0);
 pin_out_gt_X0Y6_txn   : out  std_logic_vector(1 downto 0);
@@ -449,25 +456,31 @@ pin_in_gt_X0Y6_rxn    : in   std_logic_vector(1 downto 0);
 pin_in_gt_X0Y6_clk_p  : in   std_logic;
 pin_in_gt_X0Y6_clk_n  : in   std_logic;
 
+pin_out_sfp_tx_dis    : out  std_logic;                      --//SFP - TX DISABLE
+pin_in_sfp_sd         : in   std_logic;                      --//SFP - SD signal detect
+
+pin_out_ethphy        : out   TEthPhyFiberPinOUT;
+pin_in_ethphy         : in    TEthPhyFiberPinIN;
+
 --------------------------------------------------
 --PCI-EXPRESS
 --------------------------------------------------
-pin_out_pciexp_txp    : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-pin_out_pciexp_txn    : out   std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-pin_in_pciexp_rxp     : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
-pin_in_pciexp_rxn     : in    std_logic_vector(C_PCIEXPRESS_LINK_WIDTH-1 downto 0);
+pin_out_pciexp_txp    : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_out_pciexp_txn    : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_in_pciexp_rxp     : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
+pin_in_pciexp_rxn     : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_clk_p   : in    std_logic;
 pin_in_pciexp_clk_n   : in    std_logic;
 
---------------------------------------------------
---SATA
---------------------------------------------------
-pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
-pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
-pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+----------------------------------------------------
+----SATA
+----------------------------------------------------
+--pin_out_sata_txn      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_out_sata_txp      : out   std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_in_sata_rxn       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_in_sata_rxp       : in    std_logic_vector((C_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);
+--pin_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
+--pin_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);
 
 --------------------------------------------------
 -- Local bus
@@ -893,8 +906,8 @@ begin
   FrTxD_2DW_cnt :='0';--//передовать вместо видео информации счетчик. Начинается с 1
   AutoVCH_Change:='0';--//Изменение номерка видеоканала - 1/0 auto/mnl
   Pix8bit :='1';--//1 пиксель = 8 бит
-  PixLen  :=CONV_STD_LOGIC_VECTOR(10#128#, 32);--(10#20#, 32);--
-  RowLen  :=CONV_STD_LOGIC_VECTOR(10#016#, 32);
+  PixLen  :=CONV_STD_LOGIC_VECTOR(10#64#, 32);--(10#20#, 32);--
+  RowLen  :=CONV_STD_LOGIC_VECTOR(10#04#, 32);
   --0x584  - 1412pix
 
 
@@ -909,8 +922,8 @@ begin
   VctrlChParams(0).mem_addr_rd       :=CONV_STD_LOGIC_VECTOR(16#000#, 32);
   VctrlChParams(0).fr_size.skip.pix  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра X - значен. должно быть кратено 4
   VctrlChParams(0).fr_size.skip.row  :=CONV_STD_LOGIC_VECTOR(10#000#, 16);--//Начало активной зоны кадра Y
-  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
-  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#032#, 16);--//Размер активной зоны кадра Y
+  VctrlChParams(0).fr_size.activ.pix :=CONV_STD_LOGIC_VECTOR(10#016#, 16);--//Размер активной зоны кадра X - значен. должно быть кратено 4
+  VctrlChParams(0).fr_size.activ.row :=CONV_STD_LOGIC_VECTOR(10#004#, 16);--//Размер активной зоны кадра Y
   VctrlChParams(0).fr_mirror.pix     :='0';
   VctrlChParams(0).fr_mirror.row     :='0';
   VctrlChParams(0).fr_color_fst      :=CONV_STD_LOGIC_VECTOR(16#01#, 2);--//Первый пиксель 0/1/2 - R/G/B
@@ -921,6 +934,7 @@ begin
   VctrlRegTST0:=(others=>'0');
 --  VctrlRegTST0(C_VCTRL_REG_TST0_DBG_PICTURE_BIT):='0';
 --  VctrlRegTST0(C_VCTRL_REG_TST0_SKIPFR_CNT_CLR_BIT):='0';
+  VctrlRegTST0(C_VCTRL_REG_TST0_DBG_VCH3_BIT):='1';
 
 
   --------------------------------
@@ -2056,7 +2070,7 @@ begin
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
-  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#01#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#02#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
   User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
   User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
 
@@ -2173,6 +2187,169 @@ begin
 
 
 
+  --//Параметры VCH3
+  --//Установка адреса записи в ОЗУ
+  --//Готовим значения регистров:
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_wr(15 downto 0);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_wr(31 downto 16);--;--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_M
+--  User_Reg(0)(15 downto 0):=EXT(VctrlChParams(0).mem_addr_wr, 16);
+--  User_Reg(1)(15 downto 0):=(Others=>'0');
+
+  datasize:=2;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Готовим значения регистров:
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#03#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Установка адреса чтния в ОЗУ
+  --//Готовим значения регистров:
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).mem_addr_rd(15 downto 0);--CONV_STD_LOGIC_VECTOR(16#0000#, 16);  --//C_VCTRL_REG_DATA_L
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).mem_addr_rd(31 downto 16);--CONV_STD_LOGIC_VECTOR(16#0100#, 16);  --//C_VCTRL_REG_DATA_M
+
+  datasize:=2;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Готовим значения регистров:
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#03#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_RD, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Установка FR_OPTIONS
+  --//Готовим значения регистров:
+  User_Reg(0):=(others=>'0');
+  User_Reg(0)(4)         :=VctrlChParams(0).fr_mirror.pix;
+  User_Reg(0)(5)         :=VctrlChParams(0).fr_mirror.row;
+  User_Reg(0)(6)         :=VctrlChParams(0).fr_color_fst(0);
+  User_Reg(0)(7)         :=VctrlChParams(0).fr_color_fst(1);
+  User_Reg(0)(8)         :=VctrlChParams(0).fr_pcolor;
+  User_Reg(0)(14)        :=VctrlChParams(0).fr_color;
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Готовим значения регистров:
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#03#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+
+  --//Установка FR_ZONE_SKIP
+  --//Готовим значения регистров:
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).fr_size.skip.pix;--CONV_STD_LOGIC_VECTOR(10#0008#, 16);  --//Pix
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).fr_size.skip.row;--CONV_STD_LOGIC_VECTOR(10#0000#, 16);  --//Row
+
+  if Pix8bit='1' then
+  User_Reg(0)(15 downto 0):="00"&User_Reg(0)(15 downto 2);  --//fr_zone_skip.pix/4 (для кадра 1Pix=8bit)
+  else
+  User_Reg(0)(15 downto 0):=User_Reg(0)(15 downto 0);  --//fr_zone_skip.pix/1
+  end if;
+
+  datasize:=2;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Готовим значения регистров:
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#03#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_SKIP, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Установка FR_ZONE_ACTIVE
+  --//Готовим значения регистров:
+  User_Reg(0)(15 downto 0):=VctrlChParams(0).fr_size.activ.pix;--CONV_STD_LOGIC_VECTOR(10#056#, 16);  --//Pix
+  User_Reg(1)(15 downto 0):=VctrlChParams(0).fr_size.activ.row;--CONV_STD_LOGIC_VECTOR(10#000#, 16);  --//Row
+
+  if Pix8bit='1' then
+  User_Reg(0)(15 downto 0):="00"&User_Reg(0)(15 downto 2);  --// fr_zone_active.pix/4 (для кадра 1Pix=8bit)
+  else
+  User_Reg(0)(15 downto 0):=User_Reg(0)(15 downto 0);  --// fr_zone_active.pix/1
+  end if;
+
+  datasize:=2;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_DATA_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+  --//Готовим значения регистров:
+  User_Reg(0)(C_VCTRL_REG_CTRL_VCH_M_BIT downto C_VCTRL_REG_CTRL_VCH_L_BIT):=CONV_STD_LOGIC_VECTOR(16#03#, C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_PRM_M_BIT downto C_VCTRL_REG_CTRL_PRM_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_ZONE_ACTIVE, C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT+1);
+  User_Reg(0)(C_VCTRL_REG_CTRL_SET_BIT):='1';
+
+  datasize:=1;
+  for y in 0 to datasize - 1 loop
+    for i in 0 to 2 - 1 loop
+      data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
+    end loop;
+  end loop;
+
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+
+
+
   --//Готовим значения регистров:
   User_Reg(0):=(others=>'0');
   User_Reg(0)(15 downto 0):=VctrlRegTST0;
@@ -2185,7 +2362,6 @@ begin
   end loop;
 
   p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_VCTRL, C_VCTRL_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
-
 
 
   wait_cycles(4, lclk);
@@ -2203,31 +2379,31 @@ begin
   plxsim_write_const(C_LBUS_DATA_BITS, C_MULTBURST_OFF, (C_VM_USR_REG_BAR+CONV_STD_LOGIC_VECTOR(C_HREG_DEV_CTRL*C_VM_USR_REG_BCOUNT, 32)), be(0 to 3), data(0 to 3), n, bus_in, bus_out);
 
   --//Готовим значения регистров:
---  constant C_ETH_REG_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
---  constant C_ETH_REG_TX_PATRN_SIZE_MSB_BIT : integer:=3;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
---  constant C_ETH_REG_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
---  constant C_ETH_REG_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
-  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_ETH_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_ETH_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_ETH_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_ETH_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_ETH_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_ETH_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_ETH_REG_TX_PATRN_PARAM
---  User_Reg(0)(C_ETH_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
+----  constant C_ETH_REG_TX_PATRN_SIZE_LSB_BIT : integer:=0;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
+----  constant C_ETH_REG_TX_PATRN_SIZE_MSB_BIT : integer:=3;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
+----  constant C_ETH_REG_RX_PATRN_SIZE_LSB_BIT : integer:=4;--//constant C_PKT_MARKER_PATTERN_SIZE_LSB_BIT : integer:=0;
+----  constant C_ETH_REG_RX_PATRN_SIZE_MSB_BIT : integer:=7;--//constant C_PKT_MARKER_PATTERN_SIZE_MSB_BIT : integer:=3;
+--  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(10#0#, 16);  --//C_ETH_REG_TX_PATRN_PARAM
+----  User_Reg(0)(C_ETH_REG_MAC_TX_PATRN_SIZE_MSB_BIT downto C_ETH_REG_MAC_TX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_ETH_REG_TX_PATRN_PARAM
+----  User_Reg(0)(C_ETH_REG_MAC_RX_PATRN_SIZE_MSB_BIT downto C_ETH_REG_MAC_RX_PATRN_SIZE_LSB_BIT):=CONV_STD_LOGIC_VECTOR(10#12#, 4);--(10#14#, 4);--//C_ETH_REG_TX_PATRN_PARAM
+----  User_Reg(0)(C_ETH_REG_MAC_RX_PADDING_CLR_DIS_BIT):='0';--//Запрещение
 
-  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_ETH_REG_TX_PATRN0 - MAC DST
-  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_ETH_REG_TX_PATRN1
-  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_ETH_REG_TX_PATRN2
-  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_ETH_REG_TX_PATRN3 - MAC SRC
-  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_ETH_REG_TX_PATRN4
-  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_ETH_REG_TX_PATRN5
-  User_Reg(7)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_ETH_REG_TX_PATRN6 - MAC Length/Type
+  User_Reg(0)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_ETH_REG_TX_PATRN0 - MAC DST
+  User_Reg(1)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_ETH_REG_TX_PATRN1
+  User_Reg(2)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_ETH_REG_TX_PATRN2
+  User_Reg(3)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D1D0#, 16);  --//C_ETH_REG_TX_PATRN3 - MAC SRC
+  User_Reg(4)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D3D2#, 16);  --//C_ETH_REG_TX_PATRN4
+  User_Reg(5)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#D5D4#, 16);  --//C_ETH_REG_TX_PATRN5
+  User_Reg(6)(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0D0C#, 16);  --//C_ETH_REG_TX_PATRN6 - MAC Length/Type
 
-  datasize:=8;
+  datasize:=7;
   for y in 0 to datasize - 1 loop
     for i in 0 to 2 - 1 loop
       data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_USRCTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_ETH, C_ETH_REG_MAC_PATRN0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
   --// Настройка модуля DSN_ETH.VHD
@@ -2255,7 +2431,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_TRCNIK_REG_MEM_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRCNIK, C_TRCNIK_REG_MEM_CTRL, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   --//Готовим значения регистров:
   User_Reg(0):=(others=>'0');
@@ -2268,7 +2444,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_TRCNIK_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRCNIK, C_TRCNIK_REG_TST0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
 
   --//Установка параметров слежения
@@ -2310,7 +2486,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRACK_NIK, C_TRCNIK_REG_IP0, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_TRCNIK, C_TRCNIK_REG_IP0, datasize, i_dev_ctrl, data, bus_in, bus_out);
 
   wait_cycles(4, lclk);
 
@@ -2340,7 +2516,7 @@ begin
     end loop;
   end loop;
 
-  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_CTRL_L, datasize, i_dev_ctrl, data, bus_in, bus_out);
+  p_SendCfgPkt(C_WRITE, C_FIFO_OFF, C_CFGDEV_HDD, C_HDD_REG_RBUF_TRNLEN, datasize, i_dev_ctrl, data, bus_in, bus_out);
   wait_cycles(4, lclk);
 
   --//
@@ -2717,7 +2893,6 @@ begin
   --//1. Настройка модуля DSN_SWITCH.vhd
   datasize:=1;
   User_Reg(0)(15 downto 0):=(others=>'0');
-  User_Reg(0)(C_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='1';
   for y in 0 to datasize - 1 loop
     for i in 0 to 2 - 1 loop
       data((y*2)+i)(7 downto 0) := User_Reg(y)(8*(i+1)-1 downto 8*i);
@@ -2832,7 +3007,6 @@ begin
 --//1. Настройка модуля DSN_SWITCH.vhd
   datasize:=1;
   val32:=(others=>'0');
-  val32(C_SWT_REG_CTRL_ETHTXD_LOOPBACK_BIT):='0';
   for i in 0 to 4 - 1 loop
     data(i)(7 downto 0) := val32(8*(i+1)-1 downto 8*i);
   end loop;
@@ -3197,11 +3371,16 @@ end process p_mgtclk;
 mgtclk_n <= not mgtclk_p;
 
 
-i_eth_rxp<=i_eth_txp;
-i_eth_rxn<=i_eth_txn;
+--i_eth_rxp<=i_eth_txp;
+--i_eth_rxn<=i_eth_txn;
 
-i_pciexp_txp <=CONV_STD_LOGIC_VECTOR(0, C_PCIEXPRESS_LINK_WIDTH);
-i_pciexp_txn <=CONV_STD_LOGIC_VECTOR(0, C_PCIEXPRESS_LINK_WIDTH);
+i_ethphy_in.rxp<=i_ethphy_out.txp;
+i_ethphy_in.rxn<=i_ethphy_out.txn;
+i_ethphy_in.clk_p<=mgtclk_p;
+i_ethphy_in.clk_n<=mgtclk_n;
+
+i_pciexp_txp <=CONV_STD_LOGIC_VECTOR(0, C_PCGF_PCIE_LINK_WIDTH);
+i_pciexp_txn <=CONV_STD_LOGIC_VECTOR(0, C_PCGF_PCIE_LINK_WIDTH);
 
 
 
@@ -3244,13 +3423,13 @@ i_satadev_ctrl.link_establish<='0';
 i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не использовать
 i_satadev_ctrl.dbuf_ruse<='1';
 
-gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 generate
-i_sata_rxn<=(others=>'0');
-i_sata_rxp<=(others=>'1');
-
-i_sata_gt_refclkmain_p(i) <= not i_sata_gt_refclkmain_p(i) after C_SATACLK_PERIOD / 2;
-i_sata_gt_refclkmain_n(i) <= not i_sata_gt_refclkmain_n(i) after C_SATACLK_PERIOD / 2;
-end generate gen_sata_drv;
+--gen_sata_drv : for i in 0 to (C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 generate
+--i_sata_rxn<=(others=>'0');
+--i_sata_rxp<=(others=>'1');
+--
+--i_sata_gt_refclkmain_p(i) <= not i_sata_gt_refclkmain_p(i) after C_SATACLK_PERIOD / 2;
+--i_sata_gt_refclkmain_n(i) <= not i_sata_gt_refclkmain_n(i) after C_SATACLK_PERIOD / 2;
+--end generate gen_sata_drv;
 
 
 --gen_satad : for i in 0 to C_PCFG_HDD_COUNT-1 generate
@@ -3345,15 +3524,12 @@ pin_out_ddr2_odt1     => open,
 --------------------------------------------------
 --Ethernet
 --------------------------------------------------
-pin_out_sfp_tx_dis    => open,
-pin_in_sfp_sd         => '0',
-
-pin_out_eth_txp       => i_eth_txp,
-pin_out_eth_txn       => i_eth_txn,
-pin_in_eth_rxp        => i_eth_rxp,
-pin_in_eth_rxn        => i_eth_rxn,
-pin_in_eth_clk_p      => mgtclk_p,
-pin_in_eth_clk_n      => mgtclk_n,
+--pin_out_eth_txp       => i_eth_txp,
+--pin_out_eth_txn       => i_eth_txn,
+--pin_in_eth_rxp        => i_eth_rxp,
+--pin_in_eth_rxn        => i_eth_rxn,
+--pin_in_eth_clk_p      => mgtclk_p,
+--pin_in_eth_clk_n      => mgtclk_n,
 
 pin_out_gt_X0Y6_txp   => open,
 pin_out_gt_X0Y6_txn   => open,
@@ -3361,6 +3537,12 @@ pin_in_gt_X0Y6_rxp    => "11",
 pin_in_gt_X0Y6_rxn    => "00",
 pin_in_gt_X0Y6_clk_p  => mgtclk_p,
 pin_in_gt_X0Y6_clk_n  => mgtclk_n,
+
+pin_out_sfp_tx_dis    => open,
+pin_in_sfp_sd         => '0',
+
+pin_out_ethphy        => i_ethphy_out,
+pin_in_ethphy         => i_ethphy_in,
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -3375,13 +3557,13 @@ pin_in_pciexp_clk_n   => mgtclk_n,--cor_sys_clk_n,--mclka_p,--
 --------------------------------------------------
 --Driver
 --------------------------------------------------
-pin_out_sata_txn      => i_sata_txn,
-pin_out_sata_txp      => i_sata_txp,
-pin_in_sata_rxn       => i_sata_rxn,
-pin_in_sata_rxp       => i_sata_rxp,
-
-pin_in_sata_clk_n     => i_sata_gt_refclkmain_n,
-pin_in_sata_clk_p     => i_sata_gt_refclkmain_p,
+--pin_out_sata_txn      => i_sata_txn,
+--pin_out_sata_txp      => i_sata_txp,
+--pin_in_sata_rxn       => i_sata_rxn,
+--pin_in_sata_rxp       => i_sata_rxp,
+--
+--pin_in_sata_clk_n     => i_sata_gt_refclkmain_n,
+--pin_in_sata_clk_p     => i_sata_gt_refclkmain_p,
 
 
 lclk       => lclk,
@@ -3396,58 +3578,61 @@ lready_l   => lready_l,
 fholda     => fholda,
 finto_l    => finto_l,
 
-pin_in_refclk200M_p   => refclk_p,
-pin_in_refclk200M_n   => refclk_n,
+pin_out_phymem    => pin_out_phymem,
+pin_inout_phymem  => pin_inout_phymem,
 
-ra0        => ra0,
-rc0        => rc0,
-rd0        => rd0,
-ra1        => ra1,
-rc1        => rc1,
-rd1        => rd1,
---ra2        => ra2,
---rc2        => rc2,
---rd2        => rd2,
---ra3        => ra3,
---rc3        => rc3,
---rd3        => rd3,
---ra4        => ra4,
---rc4        => rc4,
---rd4        => rd4,
---ra5        => ra5,
---rc5        => rc5,
---rd5        => rd5,
---ra6        => ra6,
---rc6        => rc6,
---rd6        => rd6,
---ra7        => ra7,
---rc7        => rc7,
---rd7        => rd7,
---ra8        => ra8,
---rc8        => rc8,
---rd8        => rd8,
---ra9        => ra9,
---rc9        => rc9,
---rd9        => rd9,
---ra10       => ra10,
---rc10       => rc10,
---rd10       => rd10,
---ra11       => ra11,
---rc11       => rc11,
---rd11       => rd11,
---ra12       => ra12,
---rc12       => rc12,
---rd12       => rd12,
---ra13       => ra13,
---rc13       => rc13,
---rd13       => rd13,
---ra14       => ra14,
---rc14       => rc14,
---rd14       => rd14,
---ra15       => ra15,
---rc15       => rc15,
---rd15       => rd15,
---ramclko    => ramclk
+--ra0        => pin_out_phymem.ra0,
+--rc0        => pin_inout_phymem.rc0,
+--rd0        => pin_inout_phymem.rd0,
+--ra1        => pin_out_phymem.ra1,
+--rc1        => pin_inout_phymem.rc1,
+--rd1        => pin_inout_phymem.rd1,
+----ra2        => ra2,
+----rc2        => rc2,
+----rd2        => rd2,
+----ra3        => ra3,
+----rc3        => rc3,
+----rd3        => rd3,
+----ra4        => ra4,
+----rc4        => rc4,
+----rd4        => rd4,
+----ra5        => ra5,
+----rc5        => rc5,
+----rd5        => rd5,
+----ra6        => ra6,
+----rc6        => rc6,
+----rd6        => rd6,
+----ra7        => ra7,
+----rc7        => rc7,
+----rd7        => rd7,
+----ra8        => ra8,
+----rc8        => rc8,
+----rd8        => rd8,
+----ra9        => ra9,
+----rc9        => rc9,
+----rd9        => rd9,
+----ra10       => ra10,
+----rc10       => rc10,
+----rd10       => rd10,
+----ra11       => ra11,
+----rc11       => rc11,
+----rd11       => rd11,
+----ra12       => ra12,
+----rc12       => rc12,
+----rd12       => rd12,
+----ra13       => ra13,
+----rc13       => rc13,
+----rd13       => rd13,
+----ra14       => ra14,
+----rc14       => rc14,
+----rd14       => rd14,
+----ra15       => ra15,
+----rc15       => rc15,
+----rd15       => rd15,
+----ramclko    => ramclk
+
+pin_in_refclk200M_p   => refclk_p,
+pin_in_refclk200M_n   => refclk_n
 );
 
 
@@ -3467,20 +3652,20 @@ rd1        => rd1,
             t_trace_dq => 0.5 ns,
             t_trace_dqs => 0.5 ns)
         port map(
-            mk => rc0(13 downto 12),
-            mk_l => rc0(15 downto 14),
-            mcke => rc0(16 downto 16),
-            modt => rc0(17 downto 17),
-            mwe_l => rc0(18),
-            mcas_l => rc0(19),
-            mras_l => rc0(20),
-            mcs_l => rc0(21 downto 21),
-            mba => ra0(18 downto 16),
-            ma => ra0(15 downto 0),
-            mdq => rd0,
-            mdm => rc0(3 downto 0),
-            mdqs => rc0(7 downto 4),
-            mdqs_l => rc0(11 downto 8),
+            mk => pin_inout_phymem.rc0(13 downto 12),
+            mk_l => pin_inout_phymem.rc0(15 downto 14),
+            mcke => pin_inout_phymem.rc0(16 downto 16),
+            modt => pin_inout_phymem.rc0(17 downto 17),
+            mwe_l => pin_inout_phymem.rc0(18),
+            mcas_l => pin_inout_phymem.rc0(19),
+            mras_l => pin_inout_phymem.rc0(20),
+            mcs_l => pin_inout_phymem.rc0(21 downto 21),
+            mba => pin_out_phymem.ra0(18 downto 16),
+            ma => pin_out_phymem.ra0(15 downto 0),
+            mdq => pin_inout_phymem.rd0,
+            mdm => pin_inout_phymem.rc0(3 downto 0),
+            mdqs => pin_inout_phymem.rc0(7 downto 4),
+            mdqs_l => pin_inout_phymem.rc0(11 downto 8),
             dk => rc0_ram(13 downto 12),
             dk_l => rc0_ram(15 downto 14),
             dcke => rc0_ram(16 downto 16),
@@ -3519,50 +3704,50 @@ rd1        => rd1,
 --                CLKB => rc0_ram(i + 14));
 --    end generate;
 
-    trace_model_1 : ddr2sdram_trace_model
-        generic map(
-            max_bank_width => 3,
-            max_addr_width => 16,
-            num_phys_bank => 1,
-            dq_width => bank1.rd_width,
-            k_width => 2,
-            cke_width => 1,
-            odt_width => 1,
-            registered => false,
-            t_trace_k => 0.5 ns,
-            t_trace_ctl => 0.5 ns,
-            t_trace_dm => 0.5 ns,
-            t_trace_dq => 0.5 ns,
-            t_trace_dqs => 0.5 ns)
-        port map(
-            mk => rc1(13 downto 12),
-            mk_l => rc1(15 downto 14),
-            mcke => rc1(16 downto 16),
-            modt => rc1(17 downto 17),
-            mwe_l => rc1(18),
-            mcas_l => rc1(19),
-            mras_l => rc1(20),
-            mcs_l => rc1(21 downto 21),
-            mba => ra1(18 downto 16),
-            ma => ra1(15 downto 0),
-            mdq => rd1,
-            mdm => rc1(3 downto 0),
-            mdqs => rc1(7 downto 4),
-            mdqs_l => rc1(11 downto 8),
-            dk => rc1_ram(13 downto 12),
-            dk_l => rc1_ram(15 downto 14),
-            dcke => rc1_ram(16 downto 16),
-            dodt => rc1_ram(17 downto 17),
-            dwe_l => rc1_ram(18),
-            dcas_l => rc1_ram(19),
-            dras_l => rc1_ram(20),
-            dcs_l => rc1_ram(21 downto 21),
-            dba => ra1_ram(18 downto 16),
-            da => ra1_ram(15 downto 0),
-            ddq => rd1_ram,
-            ddm => rc1_ram(3 downto 0),
-            ddqs => rc1_ram(7 downto 4),
-            ddqs_l => rc1_ram(11 downto 8));
+------    trace_model_1 : ddr2sdram_trace_model
+------        generic map(
+------            max_bank_width => 3,
+------            max_addr_width => 16,
+------            num_phys_bank => 1,
+------            dq_width => bank1.rd_width,
+------            k_width => 2,
+------            cke_width => 1,
+------            odt_width => 1,
+------            registered => false,
+------            t_trace_k => 0.5 ns,
+------            t_trace_ctl => 0.5 ns,
+------            t_trace_dm => 0.5 ns,
+------            t_trace_dq => 0.5 ns,
+------            t_trace_dqs => 0.5 ns)
+------        port map(
+------            mk => pin_inout_phymem.rc1(13 downto 12),
+------            mk_l => pin_inout_phymem.rc1(15 downto 14),
+------            mcke => pin_inout_phymem.rc1(16 downto 16),
+------            modt => pin_inout_phymem.rc1(17 downto 17),
+------            mwe_l => pin_inout_phymem.rc1(18),
+------            mcas_l => pin_inout_phymem.rc1(19),
+------            mras_l => pin_inout_phymem.rc1(20),
+------            mcs_l => pin_inout_phymem.rc1(21 downto 21),
+------            mba => pin_out_phymem.ra1(18 downto 16),
+------            ma => pin_out_phymem.ra1(15 downto 0),
+------            mdq => pin_inout_phymem.rd1,
+------            mdm => pin_inout_phymem.rc1(3 downto 0),
+------            mdqs => pin_inout_phymem.rc1(7 downto 4),
+------            mdqs_l => pin_inout_phymem.rc1(11 downto 8),
+------            dk => rc1_ram(13 downto 12),
+------            dk_l => rc1_ram(15 downto 14),
+------            dcke => rc1_ram(16 downto 16),
+------            dodt => rc1_ram(17 downto 17),
+------            dwe_l => rc1_ram(18),
+------            dcas_l => rc1_ram(19),
+------            dras_l => rc1_ram(20),
+------            dcs_l => rc1_ram(21 downto 21),
+------            dba => ra1_ram(18 downto 16),
+------            da => ra1_ram(15 downto 0),
+------            ddq => rd1_ram,
+------            ddm => rc1_ram(3 downto 0),
+------            ddqs => rc1_ram(7 downto 4),
+------            ddqs_l => rc1_ram(11 downto 8));
 --
 --    mem_model_1 : for i in 0 to 1 generate
 --        chip0 : HY5PS121621F
