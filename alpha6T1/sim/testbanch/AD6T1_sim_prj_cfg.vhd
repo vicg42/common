@@ -24,7 +24,7 @@ constant C_PCFG_BOARD                  : string:="ALPHA_DATA";
 --//Конфигурирование модулей:
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
-constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=5; --//max 7: 0-8MB, 1-16MB, 2-32MB, ... 6-256MB, 7-512MB
+constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=5; --//max 7: 0-8MB, 1-16MB, 2-32MB, 4-64MB, 5-128MB, ...
 
 --//cfg TMR
 --constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
