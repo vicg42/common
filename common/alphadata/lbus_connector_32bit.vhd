@@ -173,7 +173,7 @@ finto_l                    : out   std_logic;
 --------------------------------------------------
 --Связь с уст-вами проекта Veresk-M
 --------------------------------------------------
-p_out_hclk_out         : out   std_logic;
+p_out_hclk                 : out   std_logic;
 
 p_out_gctrl                : out    std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 p_out_dev_ctrl             : out    std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
@@ -1181,7 +1181,7 @@ end process;
     end if;
   end process;
 
-  p_out_hclk_out  <= clk;
+  p_out_hclk  <= clk;
 
 
 --//----------------------------------------
