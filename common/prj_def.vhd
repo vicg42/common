@@ -111,7 +111,9 @@ constant C_HREG_DEV_STATUS_VCH0_FRRDY_BIT     : integer:=16;--//
 constant C_HREG_DEV_STATUS_VCH1_FRRDY_BIT     : integer:=17;
 constant C_HREG_DEV_STATUS_VCH2_FRRDY_BIT     : integer:=18;
 constant C_HREG_DEV_STATUS_VCH3_FRRDY_BIT     : integer:=19;
-constant C_HREG_DEV_STATUS_LAST_BIT           : integer:=C_HREG_DEV_STATUS_VCH3_FRRDY_BIT;
+constant C_HREG_DEV_STATUS_VCH4_FRRDY_BIT     : integer:=20;
+constant C_HREG_DEV_STATUS_VCH5_FRRDY_BIT     : integer:=21;
+constant C_HREG_DEV_STATUS_LAST_BIT           : integer:=C_HREG_DEV_STATUS_VCH5_FRRDY_BIT;
 
 
 --//Register C_HREG_IRQ / Bit Map:
@@ -135,7 +137,9 @@ constant C_HIRQ_VCH0                          : integer:=16#05#;
 constant C_HIRQ_VCH1                          : integer:=16#06#;
 constant C_HIRQ_VCH2                          : integer:=16#07#;
 constant C_HIRQ_VCH3                          : integer:=16#08#;
-constant C_HIRQ_COUNT                         : integer:=C_HIRQ_VCH3+1;
+constant C_HIRQ_VCH4                          : integer:=16#09#;
+constant C_HIRQ_VCH5                          : integer:=16#0A#;
+constant C_HIRQ_COUNT                         : integer:=C_HIRQ_VCH5+1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
 
@@ -287,7 +291,7 @@ constant C_SWT_FRR_COUNT_MAX                  : integer:=16#08#;
 
 --//
 constant C_SWT_ETH_HOST_FRR_COUNT             : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-HOST
-constant C_SWT_ETH_VCTRL_FRR_COUNT            : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-VCTRL
+constant C_SWT_ETH_VCTRL_FRR_COUNT            : integer:=C_PCFG_VCTRL_VCH_COUNT;--//Кол-во правил машрутизации пакетов ETH-VCTRL
 constant C_SWT_ETH_HDD_FRR_COUNT              : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-HDD
 
 Type TEthFRRGet is array (0 to C_SWT_FRR_COUNT_MAX-1) of integer;
@@ -372,11 +376,11 @@ constant C_VCTRL_MEM_VLINE_M_BIT              : integer:=21;
 constant C_VCTRL_MEM_VFR_L_BIT                : integer:=22;--//Номер кадра (MSB...LSB) - Видеобуфера
 constant C_VCTRL_MEM_VFR_M_BIT                : integer:=23;--//
 constant C_VCTRL_MEM_VCH_L_BIT                : integer:=24;--//Номер видео канала (MSB...LSB)
-constant C_VCTRL_MEM_VCH_M_BIT                : integer:=25;
+constant C_VCTRL_MEM_VCH_M_BIT                : integer:=26;
 
 --//Мах кол-во видео каналов:
 constant C_VCTRL_VCH_COUNT                    : integer:=C_PCFG_VCTRL_VCH_COUNT;
-constant C_VCTRL_VCH_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_MEM_VCH_M_BIT-C_VCTRL_MEM_VCH_L_BIT+1));
+constant C_VCTRL_VCH_COUNT_MAX                : integer:=6;--pwr(2, (C_VCTRL_MEM_VCH_M_BIT-C_VCTRL_MEM_VCH_L_BIT+1));
 
 
 --//Register C_VCTRL_REG_TST0 / Bit Map:
