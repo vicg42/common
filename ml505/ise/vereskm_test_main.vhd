@@ -527,6 +527,7 @@ signal i_eth_in                         : TEthINs;
 signal i_ethphy_out                     : TEthPhyOUT;
 signal i_ethphy_in                      : TEthPhyIN;
 signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
+signal dbg_eth_out                      : TEthDBG;
 
 signal i_tmr_rst                        : std_logic;
 signal i_tmr_clk                        : std_logic;
@@ -987,19 +988,19 @@ p_out_hdd_vbuf_wrcnt      => i_hdd_vbuf_wrcnt, --open, --
 -------------------------------
 -- Связь с Eth(dsn_eth.vhd) (ethg_clk domain)
 -------------------------------
-p_in_eth_clk              => i_ethphy_out.clk,                    --g_eth_gt_refclkout,
+p_in_eth_clk              => i_ethphy_out.clk,   --g_eth_gt_refclkout,
 
-p_in_eth_rxd_sof          => i_eth_out(0).rxbuf.sof,              --i_eth_rxd_sof,
-p_in_eth_rxd_eof          => i_eth_out(0).rxbuf.eof,              --i_eth_rxd_eof,
-p_in_eth_rxbuf_din        => i_eth_out(0).rxbuf.din(31 downto 0), --i_eth_rxbuf_din,
-p_in_eth_rxbuf_wr         => i_eth_out(0).rxbuf.wr,               --i_eth_rxbuf_wr,
-p_out_eth_rxbuf_empty     => i_eth_in(0).rxbuf.empty,             --i_host_rxbuf_empty(C_HDEV_ETH_DBUF),
-p_out_eth_rxbuf_full      => i_eth_in(0).rxbuf.full,              --i_eth_rxbuf_full,
+p_in_eth_rxd_sof          => i_eth_out(0).rxbuf.sof, --i_eth_rxd_sof,
+p_in_eth_rxd_eof          => i_eth_out(0).rxbuf.eof, --i_eth_rxd_eof,
+p_in_eth_rxbuf_din        => i_eth_out(0).rxbuf.din, --i_eth_rxbuf_din,
+p_in_eth_rxbuf_wr         => i_eth_out(0).rxbuf.wr,  --i_eth_rxbuf_wr,
+p_out_eth_rxbuf_empty     => i_eth_in(0).rxbuf.empty,--i_host_rxbuf_empty(C_HDEV_ETH_DBUF),
+p_out_eth_rxbuf_full      => i_eth_in(0).rxbuf.full, --i_eth_rxbuf_full,
 
-p_out_eth_txbuf_dout      => i_eth_in(0).txbuf.dout(31 downto 0), --i_eth_txbuf_dout,
-p_in_eth_txbuf_rd         => i_eth_out(0).txbuf.rd,               --i_eth_txbuf_rd,
-p_out_eth_txbuf_empty     => i_eth_in(0).txbuf.empty,             --i_eth_txbuf_empty,
-p_out_eth_txbuf_full      => i_eth_in(0).txbuf.full,              --i_host_txbuf_full(C_HDEV_ETH_DBUF),
+p_out_eth_txbuf_dout      => i_eth_in(0).txbuf.dout, --i_eth_txbuf_dout,
+p_in_eth_txbuf_rd         => i_eth_out(0).txbuf.rd,  --i_eth_txbuf_rd,
+p_out_eth_txbuf_empty     => i_eth_in(0).txbuf.empty,--i_eth_txbuf_empty,
+p_out_eth_txbuf_full      => i_eth_in(0).txbuf.full, --i_host_txbuf_full(C_HDEV_ETH_DBUF),
 
 
 -------------------------------
@@ -1095,41 +1096,41 @@ G_SIM        => G_SIM
 )
 port map(
 -------------------------------
---Конфигурирование
+-- Конфигурирование модуля dsn_eth.vhd (host_clk domain)
 -------------------------------
-p_in_cfg_clk      => g_host_clk,
+p_in_cfg_clk          => g_host_clk,
 
-p_in_cfg_adr      => i_cfg_radr(7 downto 0),
-p_in_cfg_adr_ld   => i_cfg_radr_ld,
-p_in_cfg_adr_fifo => i_cfg_radr_fifo,
+p_in_cfg_adr          => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld       => i_cfg_radr_ld,
+p_in_cfg_adr_fifo     => i_cfg_radr_fifo,
 
-p_in_cfg_txdata   => i_cfg_txd,
-p_in_cfg_wd       => i_cfg_wr_dev(C_CFGDEV_ETH),
+p_in_cfg_txdata       => i_cfg_txd,
+p_in_cfg_wd           => i_cfg_wr_dev(C_CFGDEV_ETH),
 
-p_out_cfg_rxdata  => i_cfg_rxd_dev(C_CFGDEV_ETH),
-p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_ETH),
+p_out_cfg_rxdata      => i_cfg_rxd_dev(C_CFGDEV_ETH),
+p_in_cfg_rd           => i_cfg_rd_dev(C_CFGDEV_ETH),
 
-p_in_cfg_done     => i_cfg_done_dev(C_CFGDEV_ETH),
-p_in_cfg_rst      => i_cfg_rst,
-
--------------------------------
---Связь с UsrBuf
--------------------------------
-p_out_eth         => i_eth_out,
-p_in_eth          => i_eth_in,
+p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETH),
+p_in_cfg_rst          => i_cfg_rst,
 
 -------------------------------
---ETH
+-- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_ethphy      => i_ethphy_out,
-p_in_ethphy       => i_ethphy_in,
+p_out_eth             => i_eth_out,
+p_in_eth              => i_eth_in,
+
+--------------------------------------------------
+--ETH Driver
+--------------------------------------------------
+p_out_ethphy          => i_ethphy_out,
+p_in_ethphy           => i_ethphy_in,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_out_dbg         => open,
-p_in_tst          => i_eth_tst_out,
-p_out_tst         => open,
+p_out_dbg         => dbg_eth_out,
+p_in_tst          => (others=>'0'),
+p_out_tst         => open,--i_eth_tst_out,
 
 -------------------------------
 --System
@@ -1644,7 +1645,8 @@ i_host_tst_in(74)<='0';--i_hdd_gt_plldet and i_hdd_dcm_lock;
 i_host_tst_in(75)<=i_mem_ctrl_status.rdy;
 i_host_tst_in(76)<='0';--AND_reduce(i_memctrl_trained(C_PCFG_MEMCTRL_BANK_COUNT downto 0));
 i_host_tst_in(126 downto 77)<=(others=>'0');
-i_host_tst_in(127)<=i_vctrl_tst_out(0);-- xor i_hdd_tst_out(0);
+i_host_tst_in(127)<=i_vctrl_tst_out(0) or
+                    dbg_eth_out.app(0).mac_tx(0) or dbg_eth_out.app(0).mac_rx(0);-- xor i_hdd_tst_out(0);
                     --i_arb_mem_tst_out(0)  i_hdd_rbuf_tst_out(0) or i_swt_tst_out(0);
 
 
