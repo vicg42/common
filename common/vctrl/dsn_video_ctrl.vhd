@@ -610,10 +610,10 @@ signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
 signal tst_vreader_out                   : std_logic_vector(31 downto 0);
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
 
-type TVfrSkipTst is array (0 to 3) of std_logic_vector(3 downto 0);
+type TVfrSkipTst is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(3 downto 0);
 signal tst_vfrskip_rd                    : TVfrSkipTst;
 signal tst_vfrskip_rd_out                : std_logic_vector(3 downto 0);
-signal tst_vfrskip_rd_err                : std_logic_vector(3 downto 0);
+signal tst_vfrskip_rd_err                : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 --signal tst_vbufout_wd_cnt                : std_logic_vector(15 downto 0);
 --signal tst_vbufout_din_wd                : std_logic;
