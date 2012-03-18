@@ -23,7 +23,7 @@ constant C_PCFG_BOARD                  : string:="ML505";
 --//Конфигурирование модулей:
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
-constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=5; --//max 7: 0-8MB, 1-16MB, 2-32MB, 4-64MB, 5-128MB, ...
+constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=4; --//max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
 
 --//cfg TMR
 --constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
@@ -45,7 +45,7 @@ constant C_PCGF_PCIE_RST_SEL           : integer:=0;--0/1 - Использовать сброс с
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
-constant C_PCFG_VCTRL_VCH_COUNT        : integer:=4; --//max 4
+constant C_PCFG_VCTRL_VCH_COUNT        : integer:=6; --//max 6
 constant C_PCFG_VCTRL_SIMPLE           : string:="ON";
 
 --//cfg ETH
