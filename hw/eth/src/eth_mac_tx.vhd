@@ -95,7 +95,7 @@ signal i_data_en              : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
-
+signal tst_txbuf_empty        : std_logic;
 
 --MAIN
 begin
@@ -115,8 +115,9 @@ begin
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
+    tst_txbuf_empty<=p_in_txbuf_empty;
     tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or p_in_txbuf_empty;
+    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty;
   end if;
 end process ltstout;
 
