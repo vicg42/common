@@ -420,27 +420,27 @@ begin
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH<->HOST
-          for i in 0 to C_SWT_ETH_HOST_FRR_COUNT-1 loop
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_host_frr(2*i);
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_host_frr(2*i)  ;
               p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_host_frr(2*i+1);
             end if;
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH->HDD
-          for i in 0 to C_SWT_ETH_HDD_FRR_COUNT-1 loop
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_frr(2*i);
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_frr(2*i)  ;
               p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_hdd_frr(2*i+1);
             end if;
           end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH->VCTRL
-          for i in 0 to C_SWT_ETH_VCTRL_FRR_COUNT-1 loop
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
             if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_vctrl_frr(2*i);
+              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_vctrl_frr(2*i)  ;
               p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_vctrl_frr(2*i+1);
             end if;
           end loop;
