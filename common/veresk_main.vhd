@@ -248,7 +248,8 @@ signal i_eth_out                        : TEthOUTs;
 signal i_eth_in                         : TEthINs;
 signal i_ethphy_out                     : TEthPhyOUT;
 signal i_ethphy_in                      : TEthPhyIN;
-signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
+--signal i_eth_tst_out                    : std_logic_vector(31 downto 0);
+--signal dbg_eth_out                      : TEthDBG;
 
 signal i_tmr_rst                        : std_logic;
 signal i_tmr_clk                        : std_logic;
@@ -764,9 +765,9 @@ p_in_ethphy           => i_ethphy_in,
 -------------------------------
 --Технологический
 -------------------------------
-p_out_dbg             => open,
-p_in_tst              => i_eth_tst_out,
-p_out_tst             => open,
+p_out_dbg             => open,--dbg_eth_out
+p_in_tst              => (others=>'0'),
+p_out_tst             => open,--i_eth_tst_out,
 
 -------------------------------
 --System
