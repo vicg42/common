@@ -44,10 +44,10 @@ port(
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
 p_in_cfg_prm_vch     : in    TReaderVCHParams;
-p_in_hm_r            : in    std_logic;--//HDD режим аппаратного чтения
 p_in_hrd_start       : in    std_logic;--//Запуск чтения кадра
 p_in_vfr_buf         : in    TVfrBufs; --//Номер видеобувера с готовым кадром для соответствующего видеоканала
-
+p_in_vch_off         : in    std_logic;
+p_in_vrd_off         : in    std_logic;
 --//Статусы
 p_out_vch_rd_done    : out   std_logic;
 
@@ -102,7 +102,7 @@ signal i_mem_start                   : std_logic;
 signal i_mem_dir                     : std_logic;
 signal i_mem_done                    : std_logic;
 
-signal i_hm_r                        : std_logic;
+signal i_padding                     : std_logic;
 signal i_vbufout_wr                  : std_logic;
 
 signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
@@ -154,7 +154,7 @@ begin
     i_mem_dlen_rq<=(others=>'0');
     i_mem_dir<='0';
     i_mem_start<='0';
-    i_hm_r<='0';
+    i_padding<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -165,10 +165,10 @@ begin
       --------------------------------------
       when S_IDLE =>
 
-        i_hm_r<='0';
         i_vfr_rd_done<='0';
+        i_padding<='0';
         i_vfr_rowcnt<=(others=>'0');
-        if p_in_hrd_start='1' and p_in_hm_r='0' then
+        if p_in_hrd_start='1' and (p_in_vrd_off='0' and p_in_vch_off='0') then
           fsm_state_cs <= S_MEM_START;
         end if;
 
@@ -178,9 +178,8 @@ begin
       when S_MEM_START =>
 
         i_vfr_rd_done<='0';
-        if p_in_hm_r='1' then
-          i_hm_r<='1';
-          fsm_state_cs <= S_MEM_WAIT;
+        if p_in_vrd_off='1' or p_in_vch_off='1' then
+          fsm_state_cs <= S_IDLE;
 
         elsif p_in_vbufout_full='0' then
           i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
@@ -203,11 +202,7 @@ begin
       when S_MEM_RD =>
 
         i_mem_start<='0';
-        if p_in_hm_r='1' then
-          i_hm_r<='1';
-          fsm_state_cs <= S_MEM_WAIT;
-
-        elsif i_mem_done='1' then
+        if i_mem_done='1' then
           if i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1 then
             i_vfr_rd_done<='1';
             i_vfr_rowcnt<=(others=>'0');
@@ -216,8 +211,16 @@ begin
             i_vfr_rowcnt<=i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
           end if;
+
+        elsif p_in_vrd_off='1' or p_in_vch_off='1' then
+          i_padding<='1';
+          fsm_state_cs <= S_MEM_WAIT;
+
         end if;
 
+      ------------------------------------------------
+      --Ждем завершения транзакции
+      ------------------------------------------------
       when S_MEM_WAIT =>
 
         if i_mem_done='1' then
@@ -233,7 +236,7 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
-p_out_vbufout_wr<=i_vbufout_wr and not i_hm_r;
+p_out_vbufout_wr<=i_vbufout_wr and not i_padding;
 
 m_mem_wr : mem_wr
 generic map(

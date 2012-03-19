@@ -157,7 +157,8 @@ port(
 -------------------------------
 p_in_vfr_prm          : in    TFrXY;
 p_in_mem_trn_len      : in    std_logic_vector(15 downto 0);
-p_in_hm_r             : in    std_logic;
+p_in_vch_off          : in    std_logic;
+p_in_vrd_off          : in    std_logic;
 
 ----------------------------
 --Связь с вх/вых видеобуферами

@@ -37,7 +37,8 @@ port(
 -------------------------------
 p_in_vfr_prm          : in    TFrXY;
 p_in_mem_trn_len      : in    std_logic_vector(15 downto 0);
-p_in_hm_r             : in    std_logic;--//HDD режим аппаратного чтения
+p_in_vch_off          : in    std_logic;
+p_in_vrd_off          : in    std_logic;
 
 ----------------------------
 --Связь с вх/вых видеобуферами
@@ -98,7 +99,7 @@ port(
 p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);
 p_in_cfg_prm_vch      : in    TWriterVCHParams;
 p_in_vfr_buf          : in    TVfrBufs;
-
+p_in_vch_off          : in    std_logic;
 --//Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
@@ -150,10 +151,10 @@ port(
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
 p_in_cfg_prm_vch     : in    TReaderVCHParams;
-p_in_hm_r            : in    std_logic;
 p_in_hrd_start       : in    std_logic;
 p_in_vfr_buf         : in    TVfrBufs;
-
+p_in_vch_off         : in    std_logic;
+p_in_vrd_off         : in    std_logic;
 --//Статусы
 p_out_vch_rd_done    : out   std_logic;
 
@@ -195,7 +196,7 @@ signal i_vrd_fr_rddone                   : std_logic;
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
-
+signal i_vch_off                         : std_logic:='1';
 signal tst_vwr_out                       : std_logic_vector(31 downto 0);
 signal tst_vrd_out                       : std_logic_vector(31 downto 0);
 --signal tst_ctrl                          : std_logic_vector(31 downto 0);
@@ -216,7 +217,10 @@ p_out_tst(14)          <=i_vwr_fr_rdy(0);
 p_out_tst(15)          <='0';--i_vrd_hold(0);
 p_out_tst(21 downto 16)<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
 p_out_tst(22)          <=i_vrd_fr_rddone;
-p_out_tst(31 downto 23)<=(others=>'0');
+p_out_tst(23)          <=tst_vwr_out(5);-- <=i_padding;
+p_out_tst(24)          <='0';--tst_vwr_out(6);-- <=i_vbufin_rd_rdy_n;
+p_out_tst(28 downto 25)<=(others=>'0');--tst_vwr_out(11 downto 8);--<=tst_fsmstate;;
+p_out_tst(31 downto 29)<=(others=>'0');
 
 
 
@@ -236,6 +240,12 @@ gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_rdprm_vch(i).fr_size <=p_in_vfr_prm;
 end generate gen_vrdprm;
 
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    i_vch_off<=p_in_vch_off;
+  end if;
+end process;
 
 --//--------------------------------------------------
 --//Управление видео буферами
@@ -358,7 +368,7 @@ port map(
 -------------------------------
 p_in_cfg_mem_trn_len  => i_mem_wr_trn_len,
 p_in_cfg_prm_vch      => i_wrprm_vch,
-
+p_in_vch_off          => i_vch_off,
 p_in_vfr_buf          => i_vbuf_wr,
 
 --//Статусы
@@ -415,10 +425,10 @@ port map(
 -------------------------------
 p_in_cfg_mem_trn_len  => i_mem_rd_trn_len,
 p_in_cfg_prm_vch      => i_rdprm_vch,
-p_in_hm_r             => p_in_hm_r,
 p_in_hrd_start        => i_vwr_fr_rdy(0),
 p_in_vfr_buf          => i_vbuf_rd,
-
+p_in_vch_off          => i_vch_off,
+p_in_vrd_off          => p_in_vrd_off,
 --//Статусы
 p_out_vch_rd_done     => i_vrd_fr_rddone,
 
