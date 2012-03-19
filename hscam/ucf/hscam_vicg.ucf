@@ -41,6 +41,13 @@ NET pin_in_ftdi_txe_n     LOC="W2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TXE
 NET pin_in_ftdi_rxf_n     LOC="W1"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: RXF_USB
 NET pin_in_ftdi_pwren_n   LOC="Y1"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: PWREN_USB
 
+
+#############################################################################
+#############################################################################
+NET "pin_in_refclk_p"     LOC="B12"; #Сигнал на схеме: REFCLK_P
+NET "pin_in_refclk_n"     LOC="A12"; #Сигнал на схеме: REFCLK_N
+
+
 #############################################################################
 #############################################################################
 #--------------------------------------------------------------------------
@@ -51,20 +58,16 @@ NET "pin_in_sata_clk_n<0>" LOC="A16"; #Сигнал на схеме: REFCLKs1_N
 #--------------------------------------------------------------------------
 #Расположение компоненов в кристале
 #--------------------------------------------------------------------------
-#INST "m_hdd/m_dsn_sata/m_dcm_sata"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 ##Для случая generic G_USE_HDD : string:="OFF";
-#INST "m_hdd/gen_use_off.m_sata_gt/m_gt"  LOC=GTPA1_DUAL_X1Y1;
+#INST "m_hdd/m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTPA1_DUAL_X1Y1;
 #Для случая generic G_USE_HDD : string:="ON";
 INST "m_hdd/m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X1Y1;
-#INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X0Y1;
+#INST "m_hdd/m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X0Y1;
 
 
 ##--------------------------------------------------------------------------
 ##Временные ограничения
 ##--------------------------------------------------------------------------
-#NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_refclkout" TNM_NET = "TG_SATA_GREFCLKOUT";
-#TIMESPEC "TS_SATACLK_GREFCLKOUT" = PERIOD "TG_SATA_GREFCLKOUT" 6.6 ns;
-
 NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET = "TG_SATA_150MHz";
 NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET = "TG_SATA_300MHz";
 NET "m_hdd/m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET = "TG_SATA_75MHz";
