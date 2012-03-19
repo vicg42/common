@@ -68,9 +68,8 @@ NET "pin_in_sata_clk_n<0>" LOC="A16"; #Сигнал на схеме: REFCLKs1_N
 #--------------------------------------------------------------------------
 #Расположение компоненов в кристале
 #--------------------------------------------------------------------------
-#INST "m_hdd/m_dsn_sata/m_dcm_sata"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
 ##Для случая generic G_USE_HDD : string:="OFF";
-#INST "m_hdd/gen_use_off.m_sata_gt/m_gt"  LOC=GTPA1_DUAL_X1Y1;
+#INST "m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTPA1_DUAL_X1Y1;
 #Для случая generic G_USE_HDD : string:="ON";
 INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X1Y1;
 #INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[1].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTPA1_DUAL_X0Y1;
