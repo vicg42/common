@@ -84,8 +84,8 @@ set _projects [ list \
       [ list "../src/core_gen/dbgcs_sata_rambuf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_raid.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_rbuf.vhd" $_VHDMod ] \
-      [ list "../hdd_test_prj_cfg.vhd" $_VHDPkg ] \
-      [ list "../hdd_test_main.vhd" $_VHDMod ] \
+      [ list "../src/hdd/test/hdd_test_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/test/hdd_test_main.vhd" $_VHDMod ] \
       [ list "../../ucf/hdd_test.ucf" "hdd_test_main" ] \
     ] \
   ] \

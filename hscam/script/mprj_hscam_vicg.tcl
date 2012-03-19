@@ -104,7 +104,7 @@ set _projects [ list \
       [ list "../src/hdd/hdd_main_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main_cfg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main.vhd" $_VHDMod ] \
-      [ list "../hscam_main.vhd" $_VHDMod ] \
+      [ list "../src/hdd/test/hscam_main.vhd" $_VHDMod ] \
       [ list "../../ucf/hscam_vicg.ucf" "hscam_main" ] \
     ] \
   ] \
