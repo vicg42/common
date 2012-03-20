@@ -16,7 +16,7 @@ use ieee.std_logic_1164.all;
 
 package dsn_hdd_reg_def is
 
-constant C_HDD_FIRMWARE                       : integer:=16#001#;
+constant C_HDD_VERSION                        : integer:=16#001#;
 
 constant C_HDD_REG_CTRL_L                     : integer:=16#000#;
 constant C_HDD_REG_CTRL_M                     : integer:=16#001#;
@@ -59,8 +59,8 @@ constant C_HDD_REG_RBUF_ADR_M                 : integer:=16#022#;
 constant C_HDD_REG_RBUF_TRNLEN                : integer:=16#023#;--//(15..8)(7..0) - trn_mem_rd;trn_mem_wr, бывший HDD_REG_RBUF_CTRL
 constant C_HDD_REG_RBUF_DATA                  : integer:=16#024#;
 constant C_HDD_REG_RBUF_REQLEN                : integer:=16#025#;--//data length request, бывший HDD_REG_ATADLY
-constant C_HDD_REG_FIRMWARE                   : integer:=16#027#;
-
+constant C_HDD_REG_VERSION                    : integer:=16#027#;--//Версия контроллера dsn_hdd
+constant C_HDD_REG_TP0                        : integer:=16#028#;
 
 
 --//Register C_HDD_REG_CTRL_L / Bit Map:

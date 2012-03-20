@@ -217,7 +217,7 @@ rst         : in std_logic
 end component;
 
 signal i_cfg_adr_cnt                    : std_logic_vector(7 downto 0);
-signal h_reg_firmware                   : std_logic_vector(15 downto 0);
+signal h_reg_firmware                   : std_logic_vector(7 downto 0);
 signal h_reg_ctrl_l                     : std_logic_vector(C_HDD_REG_CTRLL_LAST_BIT downto 0):=(others=>'0');
 signal h_reg_ctrl_m                     : std_logic_vector(C_HDD_REG_CTRLM_LAST_BIT downto 0):=(others=>'0');
 signal h_reg_rbuf_adr                   : std_logic_vector(31 downto 0):=(others=>'0');
@@ -291,7 +291,7 @@ signal i_testing_den                    : std_logic;
 --signal i_cr_din_save                    : std_logic_vector(15 downto 0):=(others=>'0');
 --signal i_cr_dout_save                   : std_logic_vector(15 downto 0):=(others=>'0');
 --signal sr_cr_rd_rdy                     : std_logic:='0';
-signal g_sata_refclkout                 : std_logic;
+--signal g_sata_refclkout                 : std_logic;
 signal tst_out                          : std_logic_vector(2 downto 0);
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 
@@ -359,7 +359,7 @@ begin
     if p_in_cfg_rd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then rxd(h_reg_ctrl_l'range):=h_reg_ctrl_l;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_M, i_cfg_adr_cnt'length) then rxd(h_reg_ctrl_m'range):=h_reg_ctrl_m;
-        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_FIRMWARE, i_cfg_adr_cnt'length) then rxd(h_reg_firmware'range):=h_reg_firmware;
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_VERSION, i_cfg_adr_cnt'length) then rxd(h_reg_firmware'range):=h_reg_firmware;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_LBA_BPOINT_L, i_cfg_adr_cnt'length)   then rxd:=i_sh_status.lba_bp(15 downto 0);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_LBA_BPOINT_MID, i_cfg_adr_cnt'length) then rxd:=i_sh_status.lba_bp(31 downto 16);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_LBA_BPOINT_M, i_cfg_adr_cnt'length)   then rxd:=i_sh_status.lba_bp(47 downto 32);
@@ -405,7 +405,7 @@ begin
 --          else
 --            rxd:=i_cr_dout_save;
 --          end if;
-
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_TP0, i_cfg_adr_cnt'length) then rxd(7 downto 0):=p_in_tst(31 downto 24);
         end if;
 
         p_out_cfg_rxdata<=rxd;
@@ -466,7 +466,7 @@ begin
   end if;
 end process;
 
-h_reg_firmware<=CONV_STD_LOGIC_VECTOR(C_HDD_FIRMWARE, h_reg_firmware'length);
+h_reg_firmware<=CONV_STD_LOGIC_VECTOR(C_HDD_VERSION, h_reg_firmware'length);
 
 i_tstgen.con2rambuf<=i_reg_ctrl_l(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);
 i_tstgen.tesing_on <=i_reg_ctrl_l(C_HDD_REG_CTRLL_TST_ON_BIT);
