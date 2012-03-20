@@ -106,29 +106,24 @@ p_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX
 p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 
---------------------------------------------------
---Статус модуля
---------------------------------------------------
-p_out_module_rdy    : out   std_logic;--Модуль готов к работе
-p_out_module_err    : out   std_logic;--Ошибки в работе
-
---------------------------------------------------
---Порт управления модулем
---------------------------------------------------
-p_in_clk            : in    std_logic;                    --частота тактирования p_in_txd/rxd/tx_wr/rx_rd
-p_in_txd            : in    std_logic_vector(15 downto 0);
-p_in_tx_wr          : in    std_logic;                    --строб записи txdata
-p_out_rxd           : out   std_logic_vector(15 downto 0);
-p_in_rx_rd          : in    std_logic;                    --строб чтения rxdata
-p_out_tx_rdy        : out   std_logic;                    --Статус txbuf
-p_out_rx_rdy        : out   std_logic;                    --Статус rxbuf
-
-p_in_ftdi_sel       : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
-
---------------------------------------------------
---System
+-------------------------------------------------
+--Порт управления модулем + Статусы
 --------------------------------------------------
 p_in_grefclk        : in    std_logic;
+
+--Интерфейс управления модулем
+p_in_usr_sel        : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
+p_in_usr_clk        : in    std_logic;                    --частота тактирования p_in_usr_txd/rxd/tx_wr/rx_rd
+p_in_usr_txd        : in    std_logic_vector(15 downto 0);
+p_in_usr_tx_wr      : in    std_logic;                    --строб записи txdata
+p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxdata
+p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
+p_out_usr_tx_rdy    : out   std_logic;                    --Статус txbuf
+p_out_usr_rx_rdy    : out   std_logic;                    --Статус rxbuf
+
+--Статусы модуля
+p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
+p_out_hdd_err       : out   std_logic;--Ошибки в работе
 
 --------------------------------------------------
 --Технологический порт
@@ -396,8 +391,8 @@ p_out_tst(31 downto 9)<=(others=>'0');
 --***********************************************************
 --STATUS
 --***********************************************************
-p_out_module_rdy<=i_hdd_module_rdy and AND_reduce(i_mem_ctrl_status.rdy);
-p_out_module_err<=i_hdd_module_error;
+p_out_hdd_rdy<=i_hdd_module_rdy and AND_reduce(i_mem_ctrl_status.rdy);
+p_out_hdd_err<=i_hdd_module_error;
 
 i_hdd_tst_in(23 downto  0)<=(others=>'0');
 i_hdd_tst_in(31 downto 24)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_HDD_VERSION, 8);
@@ -1035,16 +1030,16 @@ port map(
 -------------------------------
 --Связь с Хостом
 -------------------------------
-p_out_host_rxrdy     => p_out_rx_rdy,
-p_out_host_rxd       => p_out_rxd,
-p_in_host_rd         => p_in_rx_rd,
+p_out_host_rxrdy     => p_out_usr_rx_rdy,
+p_out_host_rxd       => p_out_usr_rxd,
+p_in_host_rd         => p_in_usr_rx_rd,
 
-p_out_host_txrdy     => p_out_tx_rdy,
-p_in_host_txd        => p_in_txd,
-p_in_host_wr         => p_in_tx_wr,
+p_out_host_txrdy     => p_out_usr_tx_rdy,
+p_in_host_txd        => p_in_usr_txd,
+p_in_host_wr         => p_in_usr_tx_wr,
 
 p_out_host_irq       => open,
-p_in_host_clk        => p_in_clk,
+p_in_host_clk        => p_in_usr_clk,
 
 -------------------------------
 --
@@ -1081,13 +1076,13 @@ p_out_tst            => open,--i_cfg_tst_out,
 p_in_rst => i_cfg_rst
 );
 
-i_cfg_adr     <=i_hcfg_adr      when p_in_ftdi_sel='0' else i_fcfg_adr      ;
-i_cfg_adr_ld  <=i_hcfg_adr_ld   when p_in_ftdi_sel='0' else i_fcfg_adr_ld   ;
-i_cfg_adr_fifo<=i_hcfg_adr_fifo when p_in_ftdi_sel='0' else i_fcfg_adr_fifo ;
-i_cfg_wr      <=i_hcfg_wr       when p_in_ftdi_sel='0' else i_fcfg_wr       ;
-i_cfg_rd      <=i_hcfg_rd       when p_in_ftdi_sel='0' else i_fcfg_rd       ;
-i_cfg_txd     <=i_hcfg_txd      when p_in_ftdi_sel='0' else i_fcfg_txd      ;
-i_cfg_done    <=i_hcfg_done     when p_in_ftdi_sel='0' else i_fcfg_done     ;
+i_cfg_adr     <=i_hcfg_adr      when p_in_usr_sel='0' else i_fcfg_adr      ;
+i_cfg_adr_ld  <=i_hcfg_adr_ld   when p_in_usr_sel='0' else i_fcfg_adr_ld   ;
+i_cfg_adr_fifo<=i_hcfg_adr_fifo when p_in_usr_sel='0' else i_fcfg_adr_fifo ;
+i_cfg_wr      <=i_hcfg_wr       when p_in_usr_sel='0' else i_fcfg_wr       ;
+i_cfg_rd      <=i_hcfg_rd       when p_in_usr_sel='0' else i_fcfg_rd       ;
+i_cfg_txd     <=i_hcfg_txd      when p_in_usr_sel='0' else i_fcfg_txd      ;
+i_cfg_done    <=i_hcfg_done     when p_in_usr_sel='0' else i_fcfg_done     ;
 
 
 --HDD LEDs:

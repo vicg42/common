@@ -185,29 +185,24 @@ p_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX
 p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 
---------------------------------------------------
---Статус модуля
---------------------------------------------------
-p_out_module_rdy    : out   std_logic;--Модуль готов к работе
-p_out_module_err    : out   std_logic;--Ошибки в работе
-
---------------------------------------------------
---Управление модулем
---------------------------------------------------
-p_in_clk            : in    std_logic;                    --частота тактирования p_in_txd/rxd/tx_wr/rx_rd
-p_in_txd            : in    std_logic_vector(15 downto 0);
-p_in_tx_wr          : in    std_logic;                    --строб записи txdata
-p_out_rxd           : out   std_logic_vector(15 downto 0);
-p_in_rx_rd          : in    std_logic;                    --строб чтения rxdata
-p_out_tx_rdy        : out   std_logic;                    --Статус txbuf
-p_out_rx_rdy        : out   std_logic;                    --Статус rxbuf
-
-p_in_ftdi_sel       : in    std_logic;                    --Управление модулем через USB
-
---------------------------------------------------
---System
+-------------------------------------------------
+--Порт управления модулем + Статусы
 --------------------------------------------------
 p_in_grefclk        : in    std_logic;
+
+--Интерфейс управления модулем
+p_in_usr_sel        : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
+p_in_usr_clk        : in    std_logic;                    --частота тактирования p_in_usr_txd/rxd/tx_wr/rx_rd
+p_in_usr_txd        : in    std_logic_vector(15 downto 0);
+p_in_usr_tx_wr      : in    std_logic;                    --строб записи txdata
+p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxdata
+p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
+p_out_usr_tx_rdy    : out   std_logic;                    --Статус txbuf
+p_out_usr_rx_rdy    : out   std_logic;                    --Статус rxbuf
+
+--Статусы модуля
+p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
+p_out_hdd_err       : out   std_logic;--Ошибки в работе
 
 --------------------------------------------------
 --Технологический порт
@@ -285,8 +280,8 @@ signal sr_shim_hs                     : std_logic_vector(0 to 1);
 signal tmp_vs                         : std_logic;
 signal tmp_hs                         : std_logic;
 
-signal i_rx_rdy,i_tx_rdy              : std_logic;
-signal i_rxd,i_txd                    : std_logic_vector(15 downto 0);
+signal i_usr_rx_rdy,i_usr_tx_rdy      : std_logic;
+signal i_usr_rxd,i_usr_txd            : std_logic_vector(15 downto 0);
 
 
 
@@ -482,11 +477,11 @@ p_in_rst => i_vtg_rst
 );
 
 
-pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_rxd) or i_tx_rdy or i_rx_rdy;
+pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_tx_rdy or i_usr_rx_rdy;
 pin_out_TP2(1)<='0';
 
 gen_tx: for i in 0 to 15 generate
-i_txd(i)<=pin_in_SW(1);
+i_usr_txd(i)<=pin_in_SW(1);
 end generate gen_tx;
 
 
@@ -567,29 +562,24 @@ p_in_sata_rxp       => pin_in_sata_rxp,
 p_in_sata_clk_n     => pin_in_sata_clk_n,
 p_in_sata_clk_p     => pin_in_sata_clk_p,
 
---------------------------------------------------
---Статус модуля
---------------------------------------------------
-p_out_module_rdy    => open,
-p_out_module_err    => open,
-
---------------------------------------------------
---Управление модулем
---------------------------------------------------
-p_in_clk            => g_usr_refclk150,
-p_in_txd            => i_txd,
-p_in_tx_wr          => pin_in_SW(2),
-p_out_rxd           => i_rxd,
-p_in_rx_rd          => pin_in_SW(3),
-p_out_tx_rdy        => i_tx_rdy,
-p_out_rx_rdy        => i_rx_rdy,
-
-p_in_ftdi_sel       => pin_in_SW(0),
-
---------------------------------------------------
---System
+-------------------------------------------------
+--Порт управления модулем + Статусы
 --------------------------------------------------
 p_in_grefclk        => g_usr_refclk150,
+
+--Интерфейс управления модулем
+p_in_usr_sel        => pin_in_SW(0),
+p_in_usr_clk        => g_usr_refclk150,
+p_in_usr_txd        => i_usr_txd,
+p_in_usr_tx_wr      => pin_in_SW(2),
+p_in_usr_rx_rd      => pin_in_SW(3),
+p_out_usr_rxd       => i_usr_rxd,
+p_out_usr_tx_rdy    => i_usr_tx_rdy,
+p_out_usr_rx_rdy    => i_usr_rx_rdy,
+
+--Статусы модуля
+p_out_hdd_rdy       => open,
+p_out_hdd_err       => open,
 
 --------------------------------------------------
 --Технологический порт
