@@ -211,8 +211,8 @@ p_in_rst       : in  std_logic
 );
 end component;
 
-constant CI_PHY_MEM0 : integer:=1;--0;--
-constant CI_PHY_MEM1 : integer:=0;--1;--
+constant CI_PHY_MEM_VCTRL : integer:=1;--0;--
+constant CI_PHY_MEM_HDD   : integer:=0;--1;--
 
 constant CI_MEM_BANK_M_BIT : integer:=C_MEMCTRL_AWIDTH+1;
 constant CI_MEM_BANK_L_BIT : integer:=C_MEMCTRL_AWIDTH+1;
@@ -266,7 +266,8 @@ signal sr_hdd_hr                        : std_logic_vector(0 to 1);
 signal i_hdd_hr_start                   : std_logic;
 signal i_hdd_hr_stop                    : std_logic;
 
-signal i_vin_hdd_rst                    : std_logic;
+signal i_hdd_bufi_rst                   : std_logic;
+signal i_vctrl_bufi_rst                 : std_logic;
 signal i_vbufo_rst                      : std_logic;
 signal i_hdd_rambuf_rst                 : std_logic;
 signal i_vctrl_rst                      : std_logic;
@@ -280,7 +281,7 @@ signal g_hdd_gt_refclkout               : std_logic;
 --signal i_hdd_gt_plldet                  : std_logic;
 signal i_hdd_dcm_lock                   : std_logic;
 --signal g_hdd_dcm_gclk75M                : std_logic;
---signal g_hdd_dcm_gclk300M               : std_logic;
+signal g_hdd_dcm_gclk300M               : std_logic;
 signal g_hdd_dcm_gclk150M               : std_logic;
 
 signal i_hdd_rbuf_cfg                   : THDDRBufCfg;
@@ -355,8 +356,8 @@ signal i_tmrout,sr_tmrout               : std_logic:='0';
 signal i_tmrout_det                     : std_logic:='0';
 signal sr_buf_wr_en                     : std_logic:='0';
 
-signal i_vs_tst                         : std_logic:='0';
-signal i_hs_tst                         : std_logic:='0';
+--signal i_vs_tst                         : std_logic:='0';
+--signal i_hs_tst                         : std_logic:='0';
 
 signal tst_hdd_bufi_full                : std_logic:='0';
 signal tst_hdd_bufi_empty               : std_logic:='1';
@@ -365,8 +366,8 @@ signal tst_hdd_bufi_empty               : std_logic:='1';
 --//MAIN
 begin
 
-i_vs_tst<=p_in_tst(0);
-i_hs_tst<=p_in_tst(1);
+--i_vs_tst<=p_in_tst(0);
+--i_hs_tst<=p_in_tst(1);
 
 p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
 p_out_tst( 8)<=i_hdd_rbuf_cfg.tstgen.tesing_on;
@@ -382,45 +383,46 @@ p_out_module_err<=i_hdd_module_error;
 --***********************************************************
 --CLOCKs
 --***********************************************************
-m_usrpll : clock
-generic map(
-G_USRCLK_COUNT => 3
-)
-port map(
-p_out_gusrclk  => g_usrpll_clkout(3-1 downto 0),
-p_out_pll_lock => i_usrpll_lock,
-
-p_in_clk       => p_in_grefclk, --g_sata_refclkout,--g_hdd_dcm_gclk150M,--
-p_in_rst       => '0' --i_usrpll_rst --i_sys_rst
-);
+--m_usrpll : clock
+--generic map(
+--G_USRCLK_COUNT => 3
+--)
+--port map(
+--p_out_gusrclk  => g_usrpll_clkout(3-1 downto 0),
+--p_out_pll_lock => i_usrpll_lock,
+--
+--p_in_clk       => p_in_grefclk, --g_sata_refclkout,--g_hdd_dcm_gclk150M,--
+--p_in_rst       => '0' --i_usrpll_rst --i_sys_rst
+--);
 --i_usrpll_rst<=not i_hdd_dcm_lock;
-i_mem_ctrl_sysin.clk<=g_usrpll_clkout(0);
+i_mem_ctrl_sysin.clk<=g_hdd_dcm_gclk300M;
 --частота переписывания данных внутренних буферов для модулей vin_cam,vin_hdd
-g_vbufi_wrclk<=g_usrpll_clkout(1);
+g_vbufi_wrclk<=i_mem_ctrl_sysout.gusrclk(0);
 --частота работы с ОЗУ
-g_hclk<=g_usrpll_clkout(2);
+g_hclk<=i_mem_ctrl_sysout.gusrclk(1);
 
-g_cfg_clk<=p_in_grefclk;
+g_cfg_clk<=g_sata_refclkout;
 
 
 --***********************************************************
 --RESET
 --***********************************************************
---process(p_in_grefclk)
---begin
---  if p_in_grefclk'event and p_in_grefclk = '1' then
---    if i_sys_rst_cnt(i_sys_rst_cnt'high) = '0' then
---      i_sys_rst_cnt <= i_sys_rst_cnt + 1;
---    end if;
---  end if;
---end process;
+process(g_sata_refclkout)
+begin
+  if g_sata_refclkout'event and g_sata_refclkout = '1' then
+    if i_sys_rst_cnt(i_sys_rst_cnt'high) = '0' then
+      i_sys_rst_cnt <= i_sys_rst_cnt + 1;
+    end if;
+  end if;
+end process;
 
-i_sys_rst <= not i_usrpll_lock;--i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
+i_mem_ctrl_sysin.rst <= not i_hdd_dcm_lock;--i_sys_rst;
+i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_cfg_rst <= i_sys_rst;
-i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.greset;
-i_vctrl_rst<= i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy));
+i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.grst_hdd;
+i_vctrl_rst<=i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy));--not i_mem_ctrl_sysout.pll_lock; --
+i_vctrl_bufi_rst<=i_vctrl_rst or i_hdd_rbuf_cfg.grst_vch;
 i_hdd_rambuf_rst<=i_vctrl_rst;
-i_mem_ctrl_sysin.rst <= not i_usrpll_lock;
 i_vbufo_rst <= i_vctrl_rst or i_hdd_hr_start or i_hdd_hr_stop;
 
 process(i_vctrl_rst,g_hclk)
@@ -429,20 +431,25 @@ begin
     sr_hdd_hr<=(others=>'0');
     i_hdd_hr_start<='0';
     i_hdd_hr_stop<='0';
-    i_vin_hdd_rst<='1';
-
   elsif g_hclk'event and g_hclk='1' then
     sr_hdd_hr<=i_hdd_rbuf_cfg.dmacfg.hm_r & sr_hdd_hr(0 to 0);
     i_hdd_hr_start<=    sr_hdd_hr(0) and not sr_hdd_hr(1);
     i_hdd_hr_stop <=not sr_hdd_hr(0) and     sr_hdd_hr(1);
+  end if;
+end process;
 
+process(i_hdd_rambuf_rst,g_hclk)
+begin
+  if i_hdd_rambuf_rst='1' then
+    i_hdd_bufi_rst<='1';
+  elsif g_hclk'event and g_hclk='1' then
     if (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') or
        (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='1' and i_hdd_rbuf_cfg.tstgen.con2rambuf='1') then
       if i_hdd_rbuf_cfg.dmacfg.atacmdw='1' then
-        i_vin_hdd_rst<='0';
+        i_hdd_bufi_rst<='0';
       end if;
     else
-      i_vin_hdd_rst<='1';
+      i_hdd_bufi_rst<='1';
     end if;
   end if;
 end process;
@@ -493,7 +500,7 @@ p_in_tst           => (others=>'0'),
 p_out_tst          => tst_vctrl_bufi_out,
 
 --System
-p_in_rst           => i_vctrl_rst
+p_in_rst           => i_vctrl_bufi_rst
 );
 
 i_vctrl_mem_trn_len( 7 downto 0)<=CONV_STD_LOGIC_VECTOR(64, 8);--write i_hdd_rbuf_cfg.mem_trn( 7 downto 0);
@@ -513,7 +520,8 @@ port map(
 -------------------------------
 p_in_vfr_prm         => i_vfr_prm,
 p_in_mem_trn_len     => i_vctrl_mem_trn_len,
-p_in_hm_r            => i_hdd_rbuf_cfg.dmacfg.hm_r,
+p_in_vch_off         => i_hdd_rbuf_cfg.grst_vch,
+p_in_vrd_off         => i_hdd_rbuf_cfg.dmacfg.hm_r,
 
 ----------------------------
 --Связь с вх/вых видеобуферами
@@ -531,11 +539,11 @@ p_in_vbufout_full     => i_vbufo_pfull,
 --Связь с mem_ctrl.vhd
 ---------------------------------
 --CH WRITE                                    --Bank|CH
-p_out_memwr           => i_mem_in_bank (CI_PHY_MEM0)(0),--: out   TMemIN;
-p_in_memwr            => i_mem_out_bank(CI_PHY_MEM0)(0),--: in    TMemOUT;
+p_out_memwr           => i_mem_in_bank (CI_PHY_MEM_VCTRL)(0),--: out   TMemIN;
+p_in_memwr            => i_mem_out_bank(CI_PHY_MEM_VCTRL)(0),--: in    TMemOUT;
 --CH READ
-p_out_memrd           => i_mem_in_bank (CI_PHY_MEM0)(1),--: out   TMemIN;
-p_in_memrd            => i_mem_out_bank(CI_PHY_MEM0)(1),--: in    TMemOUT;
+p_out_memrd           => i_mem_in_bank (CI_PHY_MEM_VCTRL)(1),--: out   TMemIN;
+p_in_memrd            => i_mem_out_bank(CI_PHY_MEM_VCTRL)(1),--: in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -551,6 +559,7 @@ p_in_rst              => i_vctrl_rst
 end generate gen_vctrl_on;
 
 gen_vctrl_off : if strcmp(C_PCFG_VCTRL_USE,"OFF") generate
+i_vctrl_bufi_empty<='1';
 i_vctrl_bufo_din<=(others=>'0');
 i_vctrl_bufo_wr<='0';
 end generate gen_vctrl_off;
@@ -618,43 +627,43 @@ p_out_sys       => i_mem_ctrl_sysout,
 p_in_sys        => i_mem_ctrl_sysin
 );
 
-p_out_mcb5_a        <= i_phymem_out  (0).a     ;
-p_out_mcb5_ba       <= i_phymem_out  (0).ba    ;
-p_out_mcb5_ras_n    <= i_phymem_out  (0).ras_n ;
-p_out_mcb5_cas_n    <= i_phymem_out  (0).cas_n ;
-p_out_mcb5_we_n     <= i_phymem_out  (0).we_n  ;
-p_out_mcb5_odt      <= i_phymem_out  (0).odt   ;
-p_out_mcb5_cke      <= i_phymem_out  (0).cke   ;
-p_out_mcb5_dm       <= i_phymem_out  (0).dm    ;
-p_out_mcb5_udm      <= i_phymem_out  (0).udm   ;
-p_out_mcb5_ck       <= i_phymem_out  (0).ck    ;
-p_out_mcb5_ck_n     <= i_phymem_out  (0).ck_n  ;
-p_inout_mcb5_dq     <= i_phymem_inout(0).dq    ;
-p_inout_mcb5_udqs   <= i_phymem_inout(0).udqs  ;
-p_inout_mcb5_udqs_n <= i_phymem_inout(0).udqs_n;
-p_inout_mcb5_dqs    <= i_phymem_inout(0).dqs   ;
-p_inout_mcb5_dqs_n  <= i_phymem_inout(0).dqs_n ;
-p_inout_mcb5_rzq    <= i_phymem_inout(0).rzq   ;
-p_inout_mcb5_zio    <= i_phymem_inout(0).zio   ;
-
-p_out_mcb1_a        <= i_phymem_out  (1).a     ;
-p_out_mcb1_ba       <= i_phymem_out  (1).ba    ;
-p_out_mcb1_ras_n    <= i_phymem_out  (1).ras_n ;
-p_out_mcb1_cas_n    <= i_phymem_out  (1).cas_n ;
-p_out_mcb1_we_n     <= i_phymem_out  (1).we_n  ;
-p_out_mcb1_odt      <= i_phymem_out  (1).odt   ;
-p_out_mcb1_cke      <= i_phymem_out  (1).cke   ;
-p_out_mcb1_dm       <= i_phymem_out  (1).dm    ;
-p_out_mcb1_udm      <= i_phymem_out  (1).udm   ;
-p_out_mcb1_ck       <= i_phymem_out  (1).ck    ;
-p_out_mcb1_ck_n     <= i_phymem_out  (1).ck_n  ;
-p_inout_mcb1_dq     <= i_phymem_inout(1).dq    ;
-p_inout_mcb1_udqs   <= i_phymem_inout(1).udqs  ;
-p_inout_mcb1_udqs_n <= i_phymem_inout(1).udqs_n;
-p_inout_mcb1_dqs    <= i_phymem_inout(1).dqs   ;
-p_inout_mcb1_dqs_n  <= i_phymem_inout(1).dqs_n ;
-p_inout_mcb1_rzq    <= i_phymem_inout(1).rzq   ;
-p_inout_mcb1_zio    <= i_phymem_inout(1).zio   ;
+p_out_mcb5_a        <= i_phymem_out  (0).a     ;--i_phymem_out  (1).a     ;--
+p_out_mcb5_ba       <= i_phymem_out  (0).ba    ;--i_phymem_out  (1).ba    ;--
+p_out_mcb5_ras_n    <= i_phymem_out  (0).ras_n ;--i_phymem_out  (1).ras_n ;--
+p_out_mcb5_cas_n    <= i_phymem_out  (0).cas_n ;--i_phymem_out  (1).cas_n ;--
+p_out_mcb5_we_n     <= i_phymem_out  (0).we_n  ;--i_phymem_out  (1).we_n  ;--
+p_out_mcb5_odt      <= i_phymem_out  (0).odt   ;--i_phymem_out  (1).odt   ;--
+p_out_mcb5_cke      <= i_phymem_out  (0).cke   ;--i_phymem_out  (1).cke   ;--
+p_out_mcb5_dm       <= i_phymem_out  (0).dm    ;--i_phymem_out  (1).dm    ;--
+p_out_mcb5_udm      <= i_phymem_out  (0).udm   ;--i_phymem_out  (1).udm   ;--
+p_out_mcb5_ck       <= i_phymem_out  (0).ck    ;--i_phymem_out  (1).ck    ;--
+p_out_mcb5_ck_n     <= i_phymem_out  (0).ck_n  ;--i_phymem_out  (1).ck_n  ;--
+p_inout_mcb5_dq     <= i_phymem_inout(0).dq    ;--i_phymem_inout(1).dq    ;--
+p_inout_mcb5_udqs   <= i_phymem_inout(0).udqs  ;--i_phymem_inout(1).udqs  ;--
+p_inout_mcb5_udqs_n <= i_phymem_inout(0).udqs_n;--i_phymem_inout(1).udqs_n;--
+p_inout_mcb5_dqs    <= i_phymem_inout(0).dqs   ;--i_phymem_inout(1).dqs   ;--
+p_inout_mcb5_dqs_n  <= i_phymem_inout(0).dqs_n ;--i_phymem_inout(1).dqs_n ;--
+p_inout_mcb5_rzq    <= i_phymem_inout(0).rzq   ;--i_phymem_inout(1).rzq   ;--
+p_inout_mcb5_zio    <= i_phymem_inout(0).zio   ;--i_phymem_inout(1).zio   ;--
+                                                --                         --
+p_out_mcb1_a        <= i_phymem_out  (1).a     ;--i_phymem_out  (0).a     ;--
+p_out_mcb1_ba       <= i_phymem_out  (1).ba    ;--i_phymem_out  (0).ba    ;--
+p_out_mcb1_ras_n    <= i_phymem_out  (1).ras_n ;--i_phymem_out  (0).ras_n ;--
+p_out_mcb1_cas_n    <= i_phymem_out  (1).cas_n ;--i_phymem_out  (0).cas_n ;--
+p_out_mcb1_we_n     <= i_phymem_out  (1).we_n  ;--i_phymem_out  (0).we_n  ;--
+p_out_mcb1_odt      <= i_phymem_out  (1).odt   ;--i_phymem_out  (0).odt   ;--
+p_out_mcb1_cke      <= i_phymem_out  (1).cke   ;--i_phymem_out  (0).cke   ;--
+p_out_mcb1_dm       <= i_phymem_out  (1).dm    ;--i_phymem_out  (0).dm    ;--
+p_out_mcb1_udm      <= i_phymem_out  (1).udm   ;--i_phymem_out  (0).udm   ;--
+p_out_mcb1_ck       <= i_phymem_out  (1).ck    ;--i_phymem_out  (0).ck    ;--
+p_out_mcb1_ck_n     <= i_phymem_out  (1).ck_n  ;--i_phymem_out  (0).ck_n  ;--
+p_inout_mcb1_dq     <= i_phymem_inout(1).dq    ;--i_phymem_inout(0).dq    ;--
+p_inout_mcb1_udqs   <= i_phymem_inout(1).udqs  ;--i_phymem_inout(0).udqs  ;--
+p_inout_mcb1_udqs_n <= i_phymem_inout(1).udqs_n;--i_phymem_inout(0).udqs_n;--
+p_inout_mcb1_dqs    <= i_phymem_inout(1).dqs   ;--i_phymem_inout(0).dqs   ;--
+p_inout_mcb1_dqs_n  <= i_phymem_inout(1).dqs_n ;--i_phymem_inout(0).dqs_n ;--
+p_inout_mcb1_rzq    <= i_phymem_inout(1).rzq   ;--i_phymem_inout(0).rzq   ;--
+p_inout_mcb1_zio    <= i_phymem_inout(1).zio   ;--i_phymem_inout(0).zio   ;--
 
 
 --***********************************************************
@@ -737,7 +746,7 @@ p_out_sata_refclkout  => g_sata_refclkout,
 p_out_sata_gt_plldet  => open,--i_hdd_gt_plldet,
 p_out_sata_dcm_lock   => i_hdd_dcm_lock,
 p_out_sata_dcm_gclk2div=> open,--g_hdd_dcm_gclk75M,
-p_out_sata_dcm_gclk2x => open,--g_hdd_dcm_gclk300M,
+p_out_sata_dcm_gclk2x => g_hdd_dcm_gclk300M,
 p_out_sata_dcm_gclk0  => g_hdd_dcm_gclk150M,
 
 -------------------------------
@@ -835,11 +844,11 @@ p_in_hdd_rxbuf_pempty => i_hdd_rxbuf_pempty,
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------             --Bank|CH
-p_out_memch0          => i_mem_in_bank (CI_PHY_MEM1)(0),--: out   TMemIN;
-p_in_memch0           => i_mem_out_bank(CI_PHY_MEM1)(0),--: in    TMemOUT;
+p_out_memch0          => i_mem_in_bank (CI_PHY_MEM_HDD)(0),--: out   TMemIN;
+p_in_memch0           => i_mem_out_bank(CI_PHY_MEM_HDD)(0),--: in    TMemOUT;
 
-p_out_memch1          => i_mem_in_bank (CI_PHY_MEM1)(1),--: out   TMemIN;
-p_in_memch1           => i_mem_out_bank(CI_PHY_MEM1)(1),--: in    TMemOUT;
+p_out_memch1          => i_mem_in_bank (CI_PHY_MEM_HDD)(1),--: out   TMemIN;
+p_in_memch1           => i_mem_out_bank(CI_PHY_MEM_HDD)(1),--: in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -882,7 +891,7 @@ p_in_tst           => (others=>'0'),
 p_out_tst          => tst_hdd_bufi_out,
 
 --System
-p_in_rst           => i_vin_hdd_rst
+p_in_rst           => i_hdd_bufi_rst
 );
 
 end generate gen_hdd_on;
@@ -1011,7 +1020,7 @@ p_out_TP(3) <=i_hdd_dbgled(1).busy;
 --SATA2 (На плате SATA3)
 p_out_led(0)<=i_hdd_dbgled(2).wr  when i_hdd_dbgled(2).err='0' else i_hdd_dbgled(2).link;
 p_out_led(7)<=i_hdd_dbgled(2).rdy when i_hdd_dbgled(2).err='0' else i_test01_led;
-p_out_TP(4) <=i_hdd_dcm_lock;
+p_out_TP(4) <=not i_vctrl_bufi_empty;--i_hdd_dcm_lock;
 p_out_TP(5) <=i_hdd_dbgled(2).busy;
 
 --SATA3 (На плате SATA2)
@@ -1122,8 +1131,8 @@ TRIG0   => i_hddraid_dbgcs.trig0(41 downto 0)
 
 --//-------- TRIG: ------------------
 i_hddraid_dbgcs.trig0(11 downto 0)<=i_hdd_dbgcs.raid.trig0(11 downto 0);
-i_hddraid_dbgcs.trig0(12)<=i_mem_out_bank(CI_PHY_MEM1)(0).txbuf_err or i_mem_out_bank(CI_PHY_MEM1)(0).txbuf_underrun or i_mem_out_bank(CI_PHY_MEM1)(0).cmdbuf_err; --tst_hdd_bufi_out(1);--i_buf_wr;;--;--
-i_hddraid_dbgcs.trig0(13)<=i_mem_out_bank(CI_PHY_MEM1)(1).rxbuf_err or i_mem_out_bank(CI_PHY_MEM1)(1).rxbuf_overflow or i_mem_out_bank(CI_PHY_MEM1)(1).cmdbuf_err; --tst_hdd_bufi_out(2);--i_buf_wr_en;
+i_hddraid_dbgcs.trig0(12)<=i_mem_out_bank(CI_PHY_MEM_HDD)(0).txbuf_err or i_mem_out_bank(CI_PHY_MEM_HDD)(0).txbuf_underrun or i_mem_out_bank(CI_PHY_MEM_HDD)(0).cmdbuf_err; --tst_hdd_bufi_out(1);--i_buf_wr;;--;--
+i_hddraid_dbgcs.trig0(13)<=i_mem_out_bank(CI_PHY_MEM_HDD)(1).rxbuf_err or i_mem_out_bank(CI_PHY_MEM_HDD)(1).rxbuf_overflow or i_mem_out_bank(CI_PHY_MEM_HDD)(1).cmdbuf_err; --tst_hdd_bufi_out(2);--i_buf_wr_en;
 i_hddraid_dbgcs.trig0(14)<=tst_hdd_bufi_empty;
 i_hddraid_dbgcs.trig0(15)<=i_hdd_dbgcs.raid.trig0(15);
 i_hddraid_dbgcs.trig0(16)<=i_hdd_txbuf_pfull;
@@ -1150,7 +1159,7 @@ i_hddraid_dbgcs.trig0(41)<=i_hdd_rbuf_status.err_type.bufi_full;
 
 --//-------- VIEW: ------------------
 i_hddraid_dbgcs.data(28 downto 0)<=i_hdd_dbgcs.raid.data(28 downto 0);
-i_hddraid_dbgcs.data(29)<=i_vin_hdd_rst;
+i_hddraid_dbgcs.data(29)<=i_hdd_bufi_rst;
 
 --//SH0
 i_hddraid_dbgcs.data(34 downto 30)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
@@ -1234,16 +1243,16 @@ i_hddraid_dbgcs.data(153)           <='0';          --i_hdd_dbgcs.sh(3).layer.da
 i_hddraid_dbgcs.data(154)           <='0';--i_hdd_dbgcs.sh(3).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
 i_hddraid_dbgcs.data(155)           <='0';          --i_hdd_dbgcs.sh(3).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 
-i_hddraid_dbgcs.data(156)<=i_mem_in_bank (CI_PHY_MEM1)(0).cmd_wr        ;--cmd for wr
-i_hddraid_dbgcs.data(157)<=i_mem_in_bank (CI_PHY_MEM1)(0).txd_wr        ;
-i_hddraid_dbgcs.data(158)<=i_mem_out_bank(CI_PHY_MEM1)(0).txbuf_err     ;
-i_hddraid_dbgcs.data(159)<=i_mem_out_bank(CI_PHY_MEM1)(0).txbuf_underrun;
-i_hddraid_dbgcs.data(160)<=i_mem_out_bank(CI_PHY_MEM1)(0).cmdbuf_err    ;
-i_hddraid_dbgcs.data(161)<=i_mem_in_bank (CI_PHY_MEM1)(1).cmd_wr        ;--cmd for rd
-i_hddraid_dbgcs.data(162)<=i_mem_in_bank (CI_PHY_MEM1)(1).rxd_rd        ;
-i_hddraid_dbgcs.data(163)<=i_mem_out_bank(CI_PHY_MEM1)(1).rxbuf_err     ;
-i_hddraid_dbgcs.data(164)<=i_mem_out_bank(CI_PHY_MEM1)(1).rxbuf_overflow;
-i_hddraid_dbgcs.data(165)<=i_mem_out_bank(CI_PHY_MEM1)(1).cmdbuf_err    ;
+i_hddraid_dbgcs.data(156)<=i_mem_in_bank (CI_PHY_MEM_HDD)(0).cmd_wr        ;--cmd for wr
+i_hddraid_dbgcs.data(157)<=i_mem_in_bank (CI_PHY_MEM_HDD)(0).txd_wr        ;
+i_hddraid_dbgcs.data(158)<=i_mem_out_bank(CI_PHY_MEM_HDD)(0).txbuf_err     ;
+i_hddraid_dbgcs.data(159)<=i_mem_out_bank(CI_PHY_MEM_HDD)(0).txbuf_underrun;
+i_hddraid_dbgcs.data(160)<=i_mem_out_bank(CI_PHY_MEM_HDD)(0).cmdbuf_err    ;
+i_hddraid_dbgcs.data(161)<=i_mem_in_bank (CI_PHY_MEM_HDD)(1).cmd_wr        ;--cmd for rd
+i_hddraid_dbgcs.data(162)<=i_mem_in_bank (CI_PHY_MEM_HDD)(1).rxd_rd        ;
+i_hddraid_dbgcs.data(163)<=i_mem_out_bank(CI_PHY_MEM_HDD)(1).rxbuf_err     ;
+i_hddraid_dbgcs.data(164)<=i_mem_out_bank(CI_PHY_MEM_HDD)(1).rxbuf_overflow;
+i_hddraid_dbgcs.data(165)<=i_mem_out_bank(CI_PHY_MEM_HDD)(1).cmdbuf_err    ;
 
 i_hddraid_dbgcs.data(168 downto 166)<=tst_hdd_rambuf_out(9 downto 7);--mem_rd/fsm_cs
 i_hddraid_dbgcs.data(171 downto 169)<=tst_hdd_rambuf_out(4 downto 2);--mem_wr/fsm_cs
@@ -1256,7 +1265,7 @@ i_hddraid_dbgcs.data(172)<='0';
 ----    if i_hdd_rbuf_cfg.dmacfg.clr_err='1' then
 ----      i_tmrout_en<='0';
 ----    elsif i_hdd_rbuf_cfg.dmacfg.hw_mode='1' and
-----       (i_mem_in_bank (CI_PHY_MEM1)(0).cmd_wr='1' or i_mem_in_bank (CI_PHY_MEM1)(1).cmd_wr='1') then
+----       (i_mem_in_bank (CI_PHY_MEM_HDD)(0).cmd_wr='1' or i_mem_in_bank (CI_PHY_MEM_HDD)(1).cmd_wr='1') then
 ----       i_tmrout_en<='1';
 ----    end if;
 ----  end if;
@@ -1271,8 +1280,8 @@ i_hddraid_dbgcs.data(172)<='0';
 --     i_tmrout_cnt<=(others=>'0');
 --     i_tmrout<='0';
 --    else
-----      if i_mem_in_bank (CI_PHY_MEM1)(0).cmd_wr='1' or i_mem_in_bank (CI_PHY_MEM1)(0).txd_wr='1' or
---      if i_mem_in_bank (CI_PHY_MEM1)(1).cmd_wr='1' or i_mem_in_bank (CI_PHY_MEM1)(1).rxd_rd='1' then
+----      if i_mem_in_bank (CI_PHY_MEM_HDD)(0).cmd_wr='1' or i_mem_in_bank (CI_PHY_MEM_HDD)(0).txd_wr='1' or
+--      if i_mem_in_bank (CI_PHY_MEM_HDD)(1).cmd_wr='1' or i_mem_in_bank (CI_PHY_MEM_HDD)(1).rxd_rd='1' then
 --
 --         i_tmrout_cnt<=(others=>'0');
 --         i_tmrout<='0';
@@ -1330,14 +1339,16 @@ i_vctrl_dbgcs.trig0(12)           <=p_in_vin_vs;
 i_vctrl_dbgcs.trig0(13)           <=p_in_vin_hs;
 i_vctrl_dbgcs.trig0(14)           <=p_in_vout_vs;
 i_vctrl_dbgcs.trig0(15)           <=p_in_vout_hs;
-i_vctrl_dbgcs.trig0(16)           <=i_mem_out_bank(CI_PHY_MEM0)(0).txbuf_err or i_mem_out_bank(CI_PHY_MEM0)(0).txbuf_underrun or i_mem_out_bank(CI_PHY_MEM0)(0).cmdbuf_err; --tst_hdd_bufi_out(1);--i_buf_wr;;--
-i_vctrl_dbgcs.trig0(17)           <=i_mem_out_bank(CI_PHY_MEM0)(1).rxbuf_err or i_mem_out_bank(CI_PHY_MEM0)(1).rxbuf_overflow or i_mem_out_bank(CI_PHY_MEM0)(1).cmdbuf_err; --tst_hdd_bufi_out(2);--i_buf_wr_en;--
+i_vctrl_dbgcs.trig0(16)           <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).txbuf_err or i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).txbuf_underrun or i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).cmdbuf_err; --tst_hdd_bufi_out(1);--i_buf_wr;;--
+i_vctrl_dbgcs.trig0(17)           <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxbuf_err or i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxbuf_overflow or i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).cmdbuf_err; --tst_hdd_bufi_out(2);--i_buf_wr_en;--
 i_vctrl_dbgcs.trig0(18)           <=i_vbufo_empty;   --
 i_vctrl_dbgcs.trig0(19)           <=i_vctrl_bufi_full;--err: bufi overflow
 i_vctrl_dbgcs.trig0(20)           <=i_vbufo_empty or i_vbufo_full or i_vctrl_bufi_full or tst_vctrl_bufi_out(3);
 i_vctrl_dbgcs.trig0(21)           <=tst_vctrl_out(22);--i_vrd_fr_rddone;--
 i_vctrl_dbgcs.trig0(22)           <=i_vbufo_full;
-i_vctrl_dbgcs.trig0(41 downto 23) <=(others=>'0');
+i_vctrl_dbgcs.trig0(23)           <=i_vctrl_bufi_rst;
+i_vctrl_dbgcs.trig0(24)           <=tst_vctrl_out(23);--<=i_vch_off;
+i_vctrl_dbgcs.trig0(41 downto 25) <=(others=>'0');
 
 
 --//-------- VIEW: ------------------
@@ -1352,28 +1363,28 @@ i_vctrl_dbgcs.data(11)            <=tst_vctrl_out(15)        ;--  <=i_vrd_hold(0
 i_vctrl_dbgcs.data(13 downto 12)  <=tst_vctrl_out(11 downto 10);--<=i_vbuf_wr(0);
 i_vctrl_dbgcs.data(15 downto 14)  <=tst_vctrl_out(13 downto 12);--<=i_vbuf_rd(0);
 i_vctrl_dbgcs.data(16)            <=tst_vctrl_out(22);        --<=i_vrd_fr_rddone;--
-i_vctrl_dbgcs.data(17)            <=i_vctrl_rst;
+i_vctrl_dbgcs.data(17)            <=i_vctrl_bufi_rst;--i_vctrl_rst;
 i_vctrl_dbgcs.data(18)            <=p_in_vin_vs;
 i_vctrl_dbgcs.data(19)            <=p_in_vin_hs;
 i_vctrl_dbgcs.data(20)            <=p_in_vout_vs;
 i_vctrl_dbgcs.data(21)            <=p_in_vout_hs;
 
-i_vctrl_dbgcs.data(27 downto 22)  <=(others=>'0');--i_mem_in_bank (CI_PHY_MEM0)(0).cmd_bl       ;
-i_vctrl_dbgcs.data(28)            <=i_mem_in_bank (CI_PHY_MEM0)(0).cmd_wr        ;
-i_vctrl_dbgcs.data(29)            <=i_mem_in_bank (CI_PHY_MEM0)(0).txd_wr        ;
+i_vctrl_dbgcs.data(27 downto 22)  <=(others=>'0');--i_mem_in_bank (CI_PHY_MEM_VCTRL)(0).cmd_bl       ;
+i_vctrl_dbgcs.data(28)            <=i_mem_in_bank (CI_PHY_MEM_VCTRL)(0).cmd_wr        ;
+i_vctrl_dbgcs.data(29)            <=i_mem_in_bank (CI_PHY_MEM_VCTRL)(0).txd_wr        ;
 i_vctrl_dbgcs.data(30)            <='0';
-i_vctrl_dbgcs.data(31)            <=i_mem_out_bank(CI_PHY_MEM0)(0).txbuf_err     ;
-i_vctrl_dbgcs.data(32)            <=i_mem_out_bank(CI_PHY_MEM0)(0).txbuf_underrun;
-i_vctrl_dbgcs.data(33)            <=i_mem_out_bank(CI_PHY_MEM0)(0).cmdbuf_err    ;--i_mem_out_bank(CI_PHY_MEM0)(0).txbuf_empty  ;
-i_vctrl_dbgcs.data(40 downto 34)  <=(others=>'0');--i_mem_out_bank(CI_PHY_MEM0)(0).txbuf_wrcount;
-i_vctrl_dbgcs.data(46 downto 41)  <=(others=>'0');--i_mem_in_bank (CI_PHY_MEM0)(1).cmd_bl       ;
-i_vctrl_dbgcs.data(47)            <=i_mem_in_bank (CI_PHY_MEM0)(1).cmd_wr        ;
-i_vctrl_dbgcs.data(48)            <=i_mem_in_bank (CI_PHY_MEM0)(1).rxd_rd        ;
+i_vctrl_dbgcs.data(31)            <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).txbuf_err     ;
+i_vctrl_dbgcs.data(32)            <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).txbuf_underrun;
+i_vctrl_dbgcs.data(33)            <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).cmdbuf_err    ;--i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).txbuf_empty  ;
+i_vctrl_dbgcs.data(40 downto 34)  <=(others=>'0');--i_mem_out_bank(CI_PHY_MEM_VCTRL)(0).txbuf_wrcount;
+i_vctrl_dbgcs.data(46 downto 41)  <=(others=>'0');--i_mem_in_bank (CI_PHY_MEM_VCTRL)(1).cmd_bl       ;
+i_vctrl_dbgcs.data(47)            <=i_mem_in_bank (CI_PHY_MEM_VCTRL)(1).cmd_wr        ;
+i_vctrl_dbgcs.data(48)            <=i_mem_in_bank (CI_PHY_MEM_VCTRL)(1).rxd_rd        ;
 i_vctrl_dbgcs.data(49)            <='0';
-i_vctrl_dbgcs.data(50)            <=i_mem_out_bank(CI_PHY_MEM0)(1).rxbuf_err     ;
-i_vctrl_dbgcs.data(51)            <=i_mem_out_bank(CI_PHY_MEM0)(1).rxbuf_overflow;
-i_vctrl_dbgcs.data(52)            <=i_mem_out_bank(CI_PHY_MEM0)(1).cmdbuf_err    ;--i_mem_out_bank(CI_PHY_MEM0)(1).rxbuf_empty  ;
-i_vctrl_dbgcs.data(59 downto 53)  <=(others=>'0');--i_mem_out_bank(CI_PHY_MEM0)(1).rxbuf_rdcount;
+i_vctrl_dbgcs.data(50)            <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxbuf_err     ;
+i_vctrl_dbgcs.data(51)            <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxbuf_overflow;
+i_vctrl_dbgcs.data(52)            <=i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).cmdbuf_err    ;--i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxbuf_empty  ;
+i_vctrl_dbgcs.data(59 downto 53)  <=(others=>'0');--i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxbuf_rdcount;
 
 i_vctrl_dbgcs.data(60)            <=i_vbufo_full;
 i_vctrl_dbgcs.data(61)            <=i_vbufo_empty;
@@ -1382,8 +1393,14 @@ i_vctrl_dbgcs.data(63)            <=i_vctrl_bufi_empty;
 i_vctrl_dbgcs.data(64)            <=i_vbufo_pfull;
 i_vctrl_dbgcs.data(65)            <=tst_vctrl_bufi_out(3);--OR_reduce(i_bufi_full);
 
-i_vctrl_dbgcs.data(69 downto 66)  <=(others=>'0');--tst_vctrl_out(21 downto 16);--<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
-i_vctrl_dbgcs.data(74 downto 70)  <=(others=>'0');
+i_vctrl_dbgcs.data(66)            <=tst_vctrl_out(23);-- <=tst_vwr_out(5);-- <=i_padding;
+i_vctrl_dbgcs.data(67)            <='0';--tst_vctrl_out(24);-- <=tst_vwr_out(6);-- <=i_vbufin_rd_rdy_n;
+
+i_vctrl_dbgcs.data(71 downto 68)  <=(others=>'0');--tst_vctrl_out(28 downto 25);--write <=tst_fsmstate;;
+
+i_vctrl_dbgcs.data(72)            <='0';--i_hdd_rbuf_cfg.dmacfg.hm_r;
+
+i_vctrl_dbgcs.data(74 downto 73)  <=(others=>'0');
 i_vctrl_dbgcs.data(75)            <='0';--tst_hdd_rambuf_out(10);--<=tst_hw_stop;
 i_vctrl_dbgcs.data(76)            <='0';--tst_hdd_rambuf_out(11);--<=tst_rambuf_empty;
 i_vctrl_dbgcs.data(77)            <='0';
@@ -1396,8 +1413,8 @@ i_vctrl_dbgcs.data(97)            <='0';--tst_vctrl_out(17);--<=tst_vrd_out(5);-
 i_vctrl_dbgcs.data(98)            <='0';
 i_vctrl_dbgcs.data(99)            <='0';
 
-i_vctrl_dbgcs.data(131 downto 100) <=(others=>'0');--i_mem_in_bank (CI_PHY_MEM0)(0).txd(31 downto 0) ;--i_vctrl_bufi_dout
-i_vctrl_dbgcs.data(163 downto 132) <=(others=>'0');--i_mem_out_bank(CI_PHY_MEM0)(1).rxd(31 downto 0);--i_vctrl_bufo_din;--Rx
+i_vctrl_dbgcs.data(131 downto 100) <=(others=>'0');--i_mem_in_bank (CI_PHY_MEM_VCTRL)(0).txd(31 downto 0) ;--i_vctrl_bufi_dout
+i_vctrl_dbgcs.data(163 downto 132) <=(others=>'0');--i_mem_out_bank(CI_PHY_MEM_VCTRL)(1).rxd(31 downto 0);--i_vctrl_bufo_din;--Rx
 
 i_vctrl_dbgcs.data(164)            <='0';
 i_vctrl_dbgcs.data(165)            <='0';

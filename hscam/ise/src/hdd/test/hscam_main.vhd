@@ -260,7 +260,7 @@ signal i_test02_led                   : std_logic;
 signal i_cntbase                      : std_logic_vector(7 downto 0);
 signal i_spd                          : std_logic_vector(7 downto 0);
 signal i_shim_hs                      : std_logic;
-signal i_shim_vs                      : std_logic;
+--signal i_shim_vs                      : std_logic;
 signal i_shim_vs_cnt                  : std_logic_vector(7 downto 0);
 signal sr_shim_hs                     : std_logic_vector(0 to 1);
 
@@ -405,19 +405,19 @@ process(i_usrpll_lock,i_vin_clk)
 begin
   if i_usrpll_lock='0' then
     i_cntbase<=(others=>'0');
-    i_shim_vs<=G_VSYN_ACTIVE;
+--    i_shim_vs<=G_VSYN_ACTIVE;
     i_shim_hs<='0';
     i_shim_vs_cnt<=(others=>'0');
     sr_shim_hs<=(others=>'0');
   elsif i_vin_clk'event and i_vin_clk='1' then
     if i_cntbase=i_spd then
       i_shim_hs<='0';
-      i_shim_vs<=not G_VSYN_ACTIVE;
+--      i_shim_vs<=not G_VSYN_ACTIVE;
     elsif i_cntbase=(i_cntbase'range => '0') then
       i_shim_hs<='1';
-      i_shim_vs<=G_VSYN_ACTIVE;
+--      i_shim_vs<=G_VSYN_ACTIVE;
     else
-      i_shim_vs<=not G_VSYN_ACTIVE;
+--      i_shim_vs<=not G_VSYN_ACTIVE;
     end if;
 
     i_cntbase<=i_cntbase+1;

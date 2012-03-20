@@ -126,7 +126,7 @@ NET "m_hdd/m_mem_ctrl/gen_bank[?].memc5_wrapper_inst/memc?_mcb_raw_wrapper_inst/
 ### Clock constraints
 #############################################################################
 NET "m_hdd/m_mem_ctrl/memc5_infrastructure_inst/sys_clk_ibufg" TNM_NET = "SYS_CLK5";
-TIMESPEC "TS_SYS_CLK5" = PERIOD "SYS_CLK5"  3.2  ns HIGH 50 %;
+TIMESPEC "TS_SYS_CLK5" = PERIOD "SYS_CLK5"  3.3  ns HIGH 50 %;
 
 ############################################################################
 
@@ -244,16 +244,36 @@ NET "pin_inout_mcb1_udqs_n"                        IN_TERM = NONE;
 ############################################################################
 # I/O STANDARDS
 ############################################################################
+##BANK - ON
+#NET  "pin_inout_mcb1_dq[*]"                        IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_a[*]"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_ba[*]"                          IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_out_mcb1_ck"                             IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_out_mcb1_cke"                            IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_ras_n"                          IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_cas_n"                          IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_we_n"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_odt"                            IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_dm"                             IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb1_udm"                            IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb1_rzq"                          IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
 
+##BANK - OFF
 NET  "pin_inout_mcb1_dq[*]"                        IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb1_a[*]"                           IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb1_ba[*]"                          IOSTANDARD = SSTL18_II ;
-NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_out_mcb1_ck"                             IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = DIFF_SSTL18_II ;
+NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ck"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb1_cke"                            IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb1_ras_n"                          IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb1_cas_n"                          IOSTANDARD = SSTL18_II ;
@@ -263,6 +283,7 @@ NET  "pin_out_mcb1_dm"                             IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb1_udm"                            IOSTANDARD = SSTL18_II ;
 NET  "pin_inout_mcb1_rzq"                          IOSTANDARD = SSTL18_II ;
 NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
+
 ############################################################################
 # MCB 1
 # Pin Location Constraints for Clock, Masks, Address, and Controls

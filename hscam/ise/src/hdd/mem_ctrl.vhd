@@ -68,6 +68,8 @@ component memc5_infrastructure is
 
       );
     port (
+      p_out_locked    : out std_logic;
+      p_out_gusrclk   : out std_logic_vector(1 downto 0);
       sys_clk_p                              : in    std_logic;
       sys_clk_n                              : in    std_logic;
       sys_clk                                : in    std_logic;
@@ -376,6 +378,8 @@ C_DIVCLK_DIVIDE   => C5_DIVCLK_DIVIDE,
 C_INCLK_PERIOD    => C5_INCLK_PERIOD
 )
 port map(
+p_out_locked    => p_out_sys.pll_lock,
+p_out_gusrclk   => p_out_sys.gusrclk,
 sys_clk_p         => c5_sys_clk_p,
 sys_clk_n         => c5_sys_clk_n,
 sys_clk           => p_in_sys.clk,--c5_sys_clk,

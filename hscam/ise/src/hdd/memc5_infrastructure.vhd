@@ -83,6 +83,8 @@ generic
   );
 port
 (
+    p_out_locked    : out std_logic;
+    p_out_gusrclk   : out std_logic_vector(1 downto 0);
     sys_clk_p       : in std_logic;
     sys_clk_n       : in std_logic;
     sys_clk       : in std_logic;
@@ -130,7 +132,7 @@ architecture syn of memc5_infrastructure is
   signal   locked              : std_logic;
   signal   bufpll_mcb_locked   : std_logic;
   signal   mcb_drp_clk_sig     : std_logic;
-
+  signal   i_usrclk            : std_logic_vector(1 downto 0);
   attribute max_fanout : string;
   attribute syn_maxfan : integer;
   attribute KEEP : string;
@@ -186,8 +188,8 @@ begin
          CLKOUT1_DIVIDE     => C_CLKOUT1_DIVIDE,
          CLKOUT2_DIVIDE     => C_CLKOUT2_DIVIDE,
          CLKOUT3_DIVIDE     => C_CLKOUT3_DIVIDE,
-         CLKOUT4_DIVIDE     => 1,
-         CLKOUT5_DIVIDE     => 1,
+         CLKOUT4_DIVIDE     => 3, --clk0 = ((300MHz * 2)/1) /3 = 200MHz
+         CLKOUT5_DIVIDE     => 5, --clk1 = ((300MHz * 2)/1) /5 = 120MHz
          CLKOUT0_PHASE      => 0.000,
          CLKOUT1_PHASE      => 180.000,
          CLKOUT2_PHASE      => 0.000,
@@ -201,7 +203,7 @@ begin
          CLKOUT4_DUTY_CYCLE => 0.500,
          CLKOUT5_DUTY_CYCLE => 0.500,
 	 SIM_DEVICE         => "SPARTAN6",
-         COMPENSATION       => "INTERNAL",
+         COMPENSATION       => "DCM2PLL",--"INTERNAL",
          DIVCLK_DIVIDE      => C_DIVCLK_DIVIDE,
          CLKFBOUT_MULT      => C_CLKFBOUT_MULT,
          CLKFBOUT_PHASE     => 0.0,
@@ -232,12 +234,17 @@ begin
            CLKOUT1          => clk_2x_180,
            CLKOUT2          => clk0_bufg_in,
            CLKOUT3          => mcb_drp_clk_bufg_in,
-           CLKOUT4          => open,
-           CLKOUT5          => open,
+           CLKOUT4          => i_usrclk(0),
+           CLKOUT5          => i_usrclk(1),
            DO               => open,
            DRDY             => open,
            LOCKED           => locked
            );
+
+gen_clk : for i in 0 to 1 generate
+m_bufg : BUFG port map(I => i_usrclk(i), O => p_out_gusrclk(i) );
+end generate gen_clk;
+p_out_locked<=locked;
 
     U_BUFG_CLK0 : BUFG
     port map

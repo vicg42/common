@@ -49,10 +49,10 @@ generic map(
 BANDWIDTH          => "OPTIMIZED",
 CLKIN1_PERIOD      => 8.8,--125MHz
 CLKIN2_PERIOD      => 8.8,
-CLKOUT0_DIVIDE     => 2, --clk0 = ((150MHz * 5)/1) /2 = 312,5MHz
-CLKOUT1_DIVIDE     => 3, --clk1 = ((150MHz * 5)/1) /3 = 208.3MHz
-CLKOUT2_DIVIDE     => 5, --clk2 = ((150MHz * 5)/1) /5 = 125MHz
-CLKOUT3_DIVIDE     => 9, --clk3 = ((150MHz * 5)/1) /9 = 69.4MHz
+CLKOUT0_DIVIDE     => 2, --clk0 = ((125MHz * 5)/1) /2 = 312,5MHz
+CLKOUT1_DIVIDE     => 3, --clk1 = ((125MHz * 5)/1) /3 = 208.3MHz
+CLKOUT2_DIVIDE     => 5, --clk2 = ((125MHz * 5)/1) /5 = 125MHz
+CLKOUT3_DIVIDE     => 9, --clk3 = ((125MHz * 5)/1) /9 = 69.4MHz
 CLKOUT4_DIVIDE     => 8,
 CLKOUT5_DIVIDE     => 8,
 CLKOUT0_PHASE      => 0.000,
