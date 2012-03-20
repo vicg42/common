@@ -16,6 +16,8 @@ use ieee.std_logic_1164.all;
 
 package prj_cfg is
 
+constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#01#; --Верисия модуля контроллера HDD для проекта HSCAM
+
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
 

@@ -3,6 +3,12 @@
 ###############################################################################
 CONFIG PART = XC6SLX100T-FGG676-2;
 
+#Переключатель
+NET pin_in_SW<0>          LOC="B5"  | IOSTANDARD=LVCMOS33 | PULLUP; #Сигнал на схеме: SW_0
+NET pin_in_SW<1>          LOC="A4"  | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_1
+NET pin_in_SW<2>          LOC="A5"  | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_2
+NET pin_in_SW<3>          LOC="H10" | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_3
+
 #Светодиоды
 NET pin_out_led<0>        LOC="A2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
 NET pin_out_led<1>        LOC="H9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
@@ -142,7 +148,7 @@ NET "pin_inout_mcb5_udqs_n"                         IN_TERM = NONE;
 ############################################################################
 # I/O STANDARDS
 ############################################################################
-
+#BANK -ON
 NET  "pin_inout_mcb5_dq[*]"                         IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb5_a[*]"                            IOSTANDARD = SSTL18_II ;
 NET  "pin_out_mcb5_ba[*]"                           IOSTANDARD = SSTL18_II ;
@@ -163,6 +169,29 @@ NET  "pin_inout_mcb5_rzq"                           IOSTANDARD = SSTL18_II ;
 NET  "pin_inout_mcb5_zio"                           IOSTANDARD = SSTL18_II ;
 #NET  "c5_sys_clk"                                   IOSTANDARD = LVCMOS25 ;
 #NET  "c5_sys_rst_i"                                 IOSTANDARD = LVCMOS18 ;
+
+##BANK - OFF
+#NET  "pin_inout_mcb5_dq[*]"                         IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_a[*]"                            IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_ba[*]"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb5_dqs"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb5_udqs"                          IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb5_dqs_n"                         IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb5_udqs_n"                        IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_ck"                              IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_ck_n"                            IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_cke"                             IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_ras_n"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_cas_n"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_we_n"                            IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_odt"                             IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_dm"                              IOSTANDARD = SSTL18_II ;
+#NET  "pin_out_mcb5_udm"                             IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb5_rzq"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb5_zio"                           IOSTANDARD = SSTL18_II ;
+##NET  "c5_sys_clk"                                   IOSTANDARD = LVCMOS25 ;
+##NET  "c5_sys_rst_i"                                 IOSTANDARD = LVCMOS18 ;
+
 ############################################################################
 # MCB 5
 # Pin Location Constraints for Clock, Masks, Address, and Controls

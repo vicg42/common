@@ -107,10 +107,23 @@ p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-
 p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
 
 --------------------------------------------------
---Status
+--Статус модуля
 --------------------------------------------------
 p_out_module_rdy    : out   std_logic;--Модуль готов к работе
 p_out_module_err    : out   std_logic;--Ошибки в работе
+
+--------------------------------------------------
+--Управление модулем
+--------------------------------------------------
+p_in_clk            : in    std_logic;                    --частота тактирования p_in_txd/rxd/tx_wr/rx_rd
+p_in_txd            : in    std_logic_vector(15 downto 0);
+p_in_tx_wr          : in    std_logic;                    --строб записи txdata
+p_out_rxd           : out   std_logic_vector(15 downto 0);
+p_in_rx_rd          : in    std_logic;                    --строб чтения rxdata
+p_out_tx_rdy        : out   std_logic;                    --Статус txbuf
+p_out_rx_rdy        : out   std_logic;                    --Статус rxbuf
+
+p_in_ftdi_sel       : in    std_logic;                    --Управление модулем через USB
 
 --------------------------------------------------
 --System
@@ -120,16 +133,20 @@ p_in_grefclk        : in    std_logic;
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
+--Интрефейс с USB(FTDI)
 p_inout_ftdi_d      : inout std_logic_vector(7 downto 0);
 p_out_ftdi_rd_n     : out   std_logic;
 p_out_ftdi_wr_n     : out   std_logic;
 p_in_ftdi_txe_n     : in    std_logic;
 p_in_ftdi_rxf_n     : in    std_logic;
 p_in_ftdi_pwren_n   : in    std_logic;
+
+--
 p_in_tst            : in    std_logic_vector(31 downto 0);
 p_out_tst           : out   std_logic_vector(31 downto 0);
-p_out_TP            : out   std_logic_vector(7 downto 0);
-p_out_led           : out   std_logic_vector(7 downto 0)
+
+p_out_TP            : out   std_logic_vector(7 downto 0); --вывод на контрольные точки платы
+p_out_led           : out   std_logic_vector(7 downto 0)  --выход на свтодиоды платы
 );
 end entity;
 
@@ -138,7 +155,6 @@ architecture struct of hdd_main is
 component dbgcs_iconx1
   PORT (
     CONTROL0 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
---    CONTROL1 : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0));
 
 end component;
 
@@ -175,41 +191,30 @@ component dbgcs_sata_raid
     );
 end component;
 
-component dbgcs_sata_rbuf
-  PORT (
-    CONTROL : INOUT STD_LOGIC_VECTOR(35 DOWNTO 0);
-    CLK : IN STD_LOGIC;
-    DATA : IN STD_LOGIC_VECTOR(136 downto 0); --(122 DOWNTO 0);
-    TRIG0 : IN STD_LOGIC_VECTOR(41 DOWNTO 0)
-    );
-end component;
-
 signal i_dbgcs_sh0_spd                  : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd0_layer               : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd1_layer               : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
-signal i_dbgcs_cfg                      : std_logic_vector(35 downto 0);
 signal i_dbgcs_vctrl                    : std_logic_vector(35 downto 0);
 
 signal i_hdd0layer_dbgcs                : TSH_ila;
 signal i_hdd1layer_dbgcs                : TSH_ila;
-signal i_cfg_dbgcs                      : TSH_ila;
 signal i_hddraid_dbgcs                  : TSH_ila;
 signal i_vctrl_dbgcs                    : TSH_ila;
 signal dbgcs_hdd_rambuf_out             : TSH_ila;
 
-component clock is
-generic(
-G_USRCLK_COUNT : integer:=1
-);
-port(
-p_out_gusrclk  : out std_logic_vector(G_USRCLK_COUNT-1 downto 0);
-p_out_pll_lock : out std_logic;
-
-p_in_clk       : in  std_logic;
-p_in_rst       : in  std_logic
-);
-end component;
+--component clock is
+--generic(
+--G_USRCLK_COUNT : integer:=1
+--);
+--port(
+--p_out_gusrclk  : out std_logic_vector(G_USRCLK_COUNT-1 downto 0);
+--p_out_pll_lock : out std_logic;
+--
+--p_in_clk       : in  std_logic;
+--p_in_rst       : in  std_logic
+--);
+--end component;
 
 constant CI_PHY_MEM_VCTRL : integer:=1;--0;--
 constant CI_PHY_MEM_HDD   : integer:=0;--1;--
@@ -301,20 +306,41 @@ signal i_hdd_rxbuf_pempty               : std_logic;
 signal i_hdd_tst_den                    : std_logic;
 signal i_hdd_tst_den_tmp                : std_logic;
 
+--signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
 signal i_cfg_rst                        : std_logic;
-signal i_dev_adr                        : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal g_cfg_clk                        : std_logic;
 signal i_cfg_adr                        : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
 signal i_cfg_adr_ld                     : std_logic;
 signal i_cfg_adr_fifo                   : std_logic;
-signal i_cfg_wd                         : std_logic;
+signal i_cfg_wr                         : std_logic;
 signal i_cfg_rd                         : std_logic;
 signal i_cfg_txd                        : std_logic_vector(15 downto 0);
 signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
 signal i_cfg_txrdy                      : std_logic;
 signal i_cfg_rxrdy                      : std_logic;
 signal i_cfg_done                       : std_logic;
-signal g_cfg_clk                        : std_logic;
---signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
+
+signal i_fcfg_adr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
+signal i_fcfg_adr_ld                    : std_logic;
+signal i_fcfg_adr_fifo                  : std_logic;
+signal i_fcfg_wr                        : std_logic;
+signal i_fcfg_rd                        : std_logic;
+signal i_fcfg_txd                       : std_logic_vector(15 downto 0);
+signal i_fcfg_rxd                       : std_logic_vector(15 downto 0);
+signal i_fcfg_txrdy                     : std_logic;
+signal i_fcfg_rxrdy                     : std_logic;
+signal i_fcfg_done                      : std_logic;
+
+signal i_hcfg_adr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
+signal i_hcfg_adr_ld                    : std_logic;
+signal i_hcfg_adr_fifo                  : std_logic;
+signal i_hcfg_wr                        : std_logic;
+signal i_hcfg_rd                        : std_logic;
+signal i_hcfg_txd                       : std_logic_vector(15 downto 0);
+signal i_hcfg_rxd                       : std_logic_vector(15 downto 0);
+signal i_hcfg_txrdy                     : std_logic;
+signal i_hcfg_rxrdy                     : std_logic;
+signal i_hcfg_done                      : std_logic;
 
 signal i_hdd_module_rdy                 : std_logic;
 signal i_hdd_module_error               : std_logic;
@@ -337,7 +363,7 @@ signal i_hdd_sim_gt_rxnotintable        : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 --signal i_hdd_sim_gt_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 --signal i_hdd_sim_gt_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
---signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
+signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_test01_led                     : std_logic;
@@ -356,18 +382,12 @@ signal i_tmrout,sr_tmrout               : std_logic:='0';
 signal i_tmrout_det                     : std_logic:='0';
 signal sr_buf_wr_en                     : std_logic:='0';
 
---signal i_vs_tst                         : std_logic:='0';
---signal i_hs_tst                         : std_logic:='0';
-
 signal tst_hdd_bufi_full                : std_logic:='0';
 signal tst_hdd_bufi_empty               : std_logic:='1';
 
 
 --//MAIN
 begin
-
---i_vs_tst<=p_in_tst(0);
---i_hs_tst<=p_in_tst(1);
 
 p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
 p_out_tst( 8)<=i_hdd_rbuf_cfg.tstgen.tesing_on;
@@ -378,6 +398,9 @@ p_out_tst(31 downto 9)<=(others=>'0');
 --***********************************************************
 p_out_module_rdy<=i_hdd_module_rdy and AND_reduce(i_mem_ctrl_status.rdy);
 p_out_module_err<=i_hdd_module_error;
+
+i_hdd_tst_in(23 downto  0)<=(others=>'0');
+i_hdd_tst_in(31 downto 24)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_HDD_VERSION, 8);
 
 
 --***********************************************************
@@ -416,11 +439,11 @@ begin
   end if;
 end process;
 
-i_mem_ctrl_sysin.rst <= not i_hdd_dcm_lock;--i_sys_rst;
+i_mem_ctrl_sysin.rst <= not i_hdd_dcm_lock;
 i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_cfg_rst <= i_sys_rst;
 i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.grst_hdd;
-i_vctrl_rst<=i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy));--not i_mem_ctrl_sysout.pll_lock; --
+i_vctrl_rst<=i_sys_rst or not (AND_reduce(i_mem_ctrl_status.rdy));
 i_vctrl_bufi_rst<=i_vctrl_rst or i_hdd_rbuf_cfg.grst_vch;
 i_hdd_rambuf_rst<=i_vctrl_rst;
 i_vbufo_rst <= i_vctrl_rst or i_hdd_hr_start or i_hdd_hr_stop;
@@ -627,43 +650,43 @@ p_out_sys       => i_mem_ctrl_sysout,
 p_in_sys        => i_mem_ctrl_sysin
 );
 
-p_out_mcb5_a        <= i_phymem_out  (0).a     ;--i_phymem_out  (1).a     ;--
-p_out_mcb5_ba       <= i_phymem_out  (0).ba    ;--i_phymem_out  (1).ba    ;--
-p_out_mcb5_ras_n    <= i_phymem_out  (0).ras_n ;--i_phymem_out  (1).ras_n ;--
-p_out_mcb5_cas_n    <= i_phymem_out  (0).cas_n ;--i_phymem_out  (1).cas_n ;--
-p_out_mcb5_we_n     <= i_phymem_out  (0).we_n  ;--i_phymem_out  (1).we_n  ;--
-p_out_mcb5_odt      <= i_phymem_out  (0).odt   ;--i_phymem_out  (1).odt   ;--
-p_out_mcb5_cke      <= i_phymem_out  (0).cke   ;--i_phymem_out  (1).cke   ;--
-p_out_mcb5_dm       <= i_phymem_out  (0).dm    ;--i_phymem_out  (1).dm    ;--
-p_out_mcb5_udm      <= i_phymem_out  (0).udm   ;--i_phymem_out  (1).udm   ;--
-p_out_mcb5_ck       <= i_phymem_out  (0).ck    ;--i_phymem_out  (1).ck    ;--
-p_out_mcb5_ck_n     <= i_phymem_out  (0).ck_n  ;--i_phymem_out  (1).ck_n  ;--
-p_inout_mcb5_dq     <= i_phymem_inout(0).dq    ;--i_phymem_inout(1).dq    ;--
-p_inout_mcb5_udqs   <= i_phymem_inout(0).udqs  ;--i_phymem_inout(1).udqs  ;--
-p_inout_mcb5_udqs_n <= i_phymem_inout(0).udqs_n;--i_phymem_inout(1).udqs_n;--
-p_inout_mcb5_dqs    <= i_phymem_inout(0).dqs   ;--i_phymem_inout(1).dqs   ;--
-p_inout_mcb5_dqs_n  <= i_phymem_inout(0).dqs_n ;--i_phymem_inout(1).dqs_n ;--
-p_inout_mcb5_rzq    <= i_phymem_inout(0).rzq   ;--i_phymem_inout(1).rzq   ;--
-p_inout_mcb5_zio    <= i_phymem_inout(0).zio   ;--i_phymem_inout(1).zio   ;--
-                                                --                         --
-p_out_mcb1_a        <= i_phymem_out  (1).a     ;--i_phymem_out  (0).a     ;--
-p_out_mcb1_ba       <= i_phymem_out  (1).ba    ;--i_phymem_out  (0).ba    ;--
-p_out_mcb1_ras_n    <= i_phymem_out  (1).ras_n ;--i_phymem_out  (0).ras_n ;--
-p_out_mcb1_cas_n    <= i_phymem_out  (1).cas_n ;--i_phymem_out  (0).cas_n ;--
-p_out_mcb1_we_n     <= i_phymem_out  (1).we_n  ;--i_phymem_out  (0).we_n  ;--
-p_out_mcb1_odt      <= i_phymem_out  (1).odt   ;--i_phymem_out  (0).odt   ;--
-p_out_mcb1_cke      <= i_phymem_out  (1).cke   ;--i_phymem_out  (0).cke   ;--
-p_out_mcb1_dm       <= i_phymem_out  (1).dm    ;--i_phymem_out  (0).dm    ;--
-p_out_mcb1_udm      <= i_phymem_out  (1).udm   ;--i_phymem_out  (0).udm   ;--
-p_out_mcb1_ck       <= i_phymem_out  (1).ck    ;--i_phymem_out  (0).ck    ;--
-p_out_mcb1_ck_n     <= i_phymem_out  (1).ck_n  ;--i_phymem_out  (0).ck_n  ;--
-p_inout_mcb1_dq     <= i_phymem_inout(1).dq    ;--i_phymem_inout(0).dq    ;--
-p_inout_mcb1_udqs   <= i_phymem_inout(1).udqs  ;--i_phymem_inout(0).udqs  ;--
-p_inout_mcb1_udqs_n <= i_phymem_inout(1).udqs_n;--i_phymem_inout(0).udqs_n;--
-p_inout_mcb1_dqs    <= i_phymem_inout(1).dqs   ;--i_phymem_inout(0).dqs   ;--
-p_inout_mcb1_dqs_n  <= i_phymem_inout(1).dqs_n ;--i_phymem_inout(0).dqs_n ;--
-p_inout_mcb1_rzq    <= i_phymem_inout(1).rzq   ;--i_phymem_inout(0).rzq   ;--
-p_inout_mcb1_zio    <= i_phymem_inout(1).zio   ;--i_phymem_inout(0).zio   ;--
+p_out_mcb5_a        <= i_phymem_out  (0).a     ;
+p_out_mcb5_ba       <= i_phymem_out  (0).ba    ;
+p_out_mcb5_ras_n    <= i_phymem_out  (0).ras_n ;
+p_out_mcb5_cas_n    <= i_phymem_out  (0).cas_n ;
+p_out_mcb5_we_n     <= i_phymem_out  (0).we_n  ;
+p_out_mcb5_odt      <= i_phymem_out  (0).odt   ;
+p_out_mcb5_cke      <= i_phymem_out  (0).cke   ;
+p_out_mcb5_dm       <= i_phymem_out  (0).dm    ;
+p_out_mcb5_udm      <= i_phymem_out  (0).udm   ;
+p_out_mcb5_ck       <= i_phymem_out  (0).ck    ;
+p_out_mcb5_ck_n     <= i_phymem_out  (0).ck_n  ;
+p_inout_mcb5_dq     <= i_phymem_inout(0).dq    ;
+p_inout_mcb5_udqs   <= i_phymem_inout(0).udqs  ;
+p_inout_mcb5_udqs_n <= i_phymem_inout(0).udqs_n;
+p_inout_mcb5_dqs    <= i_phymem_inout(0).dqs   ;
+p_inout_mcb5_dqs_n  <= i_phymem_inout(0).dqs_n ;
+p_inout_mcb5_rzq    <= i_phymem_inout(0).rzq   ;
+p_inout_mcb5_zio    <= i_phymem_inout(0).zio   ;
+
+p_out_mcb1_a        <= i_phymem_out  (1).a     ;
+p_out_mcb1_ba       <= i_phymem_out  (1).ba    ;
+p_out_mcb1_ras_n    <= i_phymem_out  (1).ras_n ;
+p_out_mcb1_cas_n    <= i_phymem_out  (1).cas_n ;
+p_out_mcb1_we_n     <= i_phymem_out  (1).we_n  ;
+p_out_mcb1_odt      <= i_phymem_out  (1).odt   ;
+p_out_mcb1_cke      <= i_phymem_out  (1).cke   ;
+p_out_mcb1_dm       <= i_phymem_out  (1).dm    ;
+p_out_mcb1_udm      <= i_phymem_out  (1).udm   ;
+p_out_mcb1_ck       <= i_phymem_out  (1).ck    ;
+p_out_mcb1_ck_n     <= i_phymem_out  (1).ck_n  ;
+p_inout_mcb1_dq     <= i_phymem_inout(1).dq    ;
+p_inout_mcb1_udqs   <= i_phymem_inout(1).udqs  ;
+p_inout_mcb1_udqs_n <= i_phymem_inout(1).udqs_n;
+p_inout_mcb1_dqs    <= i_phymem_inout(1).dqs   ;
+p_inout_mcb1_dqs_n  <= i_phymem_inout(1).dqs_n ;
+p_inout_mcb1_rzq    <= i_phymem_inout(1).rzq   ;
+p_inout_mcb1_zio    <= i_phymem_inout(1).zio   ;
 
 
 --***********************************************************
@@ -695,7 +718,7 @@ p_in_cfg_adr_ld       => i_cfg_adr_ld,
 p_in_cfg_adr_fifo     => i_cfg_adr_fifo,
 
 p_in_cfg_txdata       => i_cfg_txd,
-p_in_cfg_wd           => i_cfg_wd,
+p_in_cfg_wd           => i_cfg_wr,
 p_out_cfg_txrdy       => i_cfg_txrdy,
 
 p_out_cfg_rxdata      => i_cfg_rxd,
@@ -752,7 +775,7 @@ p_out_sata_dcm_gclk0  => g_hdd_dcm_gclk150M,
 -------------------------------
 --Технологический порт
 -------------------------------
-p_in_tst              => (others=>'0'),--i_hdd_tst_in,
+p_in_tst              => i_hdd_tst_in,
 p_out_tst             => i_hdd_tst_out,
 
 -------------------------------
@@ -872,8 +895,8 @@ G_VSYN_ACTIVE => G_VSYN_ACTIVE
 port map(
 --Вх. видеопоток
 p_in_vd            => i_vdi_vector,
-p_in_vs            => p_in_vin_vs,--i_vs_tst,--
-p_in_hs            => p_in_vin_hs,--i_hs_tst,--
+p_in_vs            => p_in_vin_vs,
+p_in_hs            => p_in_vin_hs,
 p_in_vclk          => p_in_vin_clk,
 
 p_out_vfr_prm      => open,--i_vfr_prm,
@@ -957,7 +980,7 @@ p_in_rst       => i_sys_rst
 --p_in_rst       => i_sys_rst
 --);
 
-m_cfg : cfgdev_ftdi
+m_cfg_ftdi : cfgdev_ftdi
 port map(
 -------------------------------
 --Связь с FTDI
@@ -978,18 +1001,18 @@ p_out_module_error   => open,
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_cfg_dadr       => i_dev_adr,
-p_out_cfg_radr       => i_cfg_adr,
-p_out_cfg_radr_ld    => i_cfg_adr_ld,
-p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
-p_out_cfg_wr         => i_cfg_wd,
-p_out_cfg_rd         => i_cfg_rd,
-p_out_cfg_txdata     => i_cfg_txd,
+p_out_cfg_dadr       => open,
+p_out_cfg_radr       => i_fcfg_adr,
+p_out_cfg_radr_ld    => i_fcfg_adr_ld,
+p_out_cfg_radr_fifo  => i_fcfg_adr_fifo,
+p_out_cfg_wr         => i_fcfg_wr,
+p_out_cfg_rd         => i_fcfg_rd,
+p_out_cfg_txdata     => i_fcfg_txd,
 p_in_cfg_rxdata      => i_cfg_rxd,
 p_in_cfg_txrdy       => i_cfg_txrdy,
 p_in_cfg_rxrdy       => i_cfg_rxrdy,
 
-p_out_cfg_done       => i_cfg_done,
+p_out_cfg_done       => i_fcfg_done,
 p_in_cfg_clk         => g_cfg_clk,
 
 -------------------------------
@@ -1003,6 +1026,69 @@ p_out_tst            => open,--i_cfg_tstout,
 -------------------------------
 p_in_rst => i_sys_rst
 );
+
+m_cfg_host : cfgdev_host
+generic map(
+G_HOST_DWIDTH => 16
+)
+port map(
+-------------------------------
+--Связь с Хостом
+-------------------------------
+p_out_host_rxrdy     => p_out_rx_rdy,
+p_out_host_rxd       => p_out_rxd,
+p_in_host_rd         => p_in_rx_rd,
+
+p_out_host_txrdy     => p_out_tx_rdy,
+p_in_host_txd        => p_in_txd,
+p_in_host_wr         => p_in_tx_wr,
+
+p_out_host_irq       => open,
+p_in_host_clk        => p_in_clk,
+
+-------------------------------
+--
+-------------------------------
+p_out_module_rdy     => open,
+p_out_module_error   => open,
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       => open,
+p_out_cfg_radr       => i_hcfg_adr,
+p_out_cfg_radr_ld    => i_hcfg_adr_ld,
+p_out_cfg_radr_fifo  => i_hcfg_adr_fifo,
+p_out_cfg_wr         => i_hcfg_wr,
+p_out_cfg_rd         => i_hcfg_rd,
+p_out_cfg_txdata     => i_hcfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
+p_in_cfg_txrdy       => i_cfg_txrdy,
+p_in_cfg_rxrdy       => i_cfg_rxrdy,
+
+p_out_cfg_done       => i_hcfg_done,
+p_in_cfg_clk         => g_cfg_clk,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => (others=>'0'),
+p_out_tst            => open,--i_cfg_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_cfg_rst
+);
+
+i_cfg_adr     <=i_hcfg_adr      when p_in_ftdi_sel='0' else i_fcfg_adr      ;
+i_cfg_adr_ld  <=i_hcfg_adr_ld   when p_in_ftdi_sel='0' else i_fcfg_adr_ld   ;
+i_cfg_adr_fifo<=i_hcfg_adr_fifo when p_in_ftdi_sel='0' else i_fcfg_adr_fifo ;
+i_cfg_wr      <=i_hcfg_wr       when p_in_ftdi_sel='0' else i_fcfg_wr       ;
+i_cfg_rd      <=i_hcfg_rd       when p_in_ftdi_sel='0' else i_fcfg_rd       ;
+i_cfg_txd     <=i_hcfg_txd      when p_in_ftdi_sel='0' else i_fcfg_txd      ;
+i_cfg_done    <=i_hcfg_done     when p_in_ftdi_sel='0' else i_fcfg_done     ;
+
 
 --HDD LEDs:
 --SATA0 (На плате SATA1)
@@ -1201,8 +1287,8 @@ end generate gen_hdd21;
 
 --//
 i_hddraid_dbgcs.data(96) <=tst_hdd_bufi_out(2);--i_buf_wr_en;
-i_hddraid_dbgcs.data(97) <=p_in_vin_vs;--i_vs_tst;--
-i_hddraid_dbgcs.data(98) <=p_in_vin_hs;--i_hs_tst;--
+i_hddraid_dbgcs.data(97) <=p_in_vin_vs;
+i_hddraid_dbgcs.data(98) <=p_in_vin_hs;
 
 i_hddraid_dbgcs.data(99) <=tst_hdd_bufi_empty;
 i_hddraid_dbgcs.data(100)<=tst_hdd_bufi_full;
