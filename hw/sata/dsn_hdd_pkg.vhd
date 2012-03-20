@@ -78,7 +78,8 @@ tstgen  : THDDTstGen;
 hwlog   : THWLog;
 usr     : std_logic_vector(31 downto 0);
 ram_wr_i: THDDCfgRAMI;
-greset  : std_logic;         --//Глобальный сброс всего кроме CFG
+grst_hdd: std_logic;         --//Глобальный сброс всего кроме CFG
+grst_vch: std_logic;
 end record;
 
 

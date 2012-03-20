@@ -135,7 +135,7 @@ signal g_sh_dcm_clk2div            : std_logic;
 signal g_sh_dcm_clk                : std_logic;
 signal g_sh_dcm_clk2x              : std_logic;
 signal i_sh_dcm_lock               : std_logic;
-
+signal i_sh_dcm_clk2x              : std_logic;
 signal i_sh_gt_optrefclksel        : T04_SHCountMax;
 signal i_sh_gt_optrefclkin         : T04_SHCountMax;
 signal i_sh_gt_optrefclkout        : T04_SHCountMax;
@@ -388,7 +388,7 @@ p_out_sata_refclkout<=g_refclkout;
 p_out_sata_gt_plldet<=AND_reduce(i_sh_gt_pllkdet(C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 downto 0));
 p_out_sata_dcm_lock<=i_sh_dcm_lock;
 p_out_sata_dcm_gclk2div<=g_sh_dcm_clk2div;
-p_out_sata_dcm_gclk2x  <=g_sh_dcm_clk2x;
+p_out_sata_dcm_gclk2x  <=i_sh_dcm_clk2x;
 p_out_sata_dcm_gclk0   <=g_sh_dcm_clk;
 
 p_out_dbgcs.sh<=i_dbgcs_satah;
@@ -409,7 +409,7 @@ port map(
 p_out_dcm_gclk0  => g_sh_dcm_clk,
 p_out_dcm_gclk2x => g_sh_dcm_clk2x,
 p_out_dcm_gclkdv => g_sh_dcm_clk2div,
-
+p_out_dcm_clk2x  => i_sh_dcm_clk2x,
 p_out_dcmlock    => i_sh_dcm_lock,
 
 p_out_refclkout  => g_refclkout,

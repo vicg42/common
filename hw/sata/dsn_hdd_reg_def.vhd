@@ -81,7 +81,8 @@ constant C_HDD_REG_CTRLM_GRESET                 : integer:=0;
 constant C_HDD_REG_CTRLM_DIR                    : integer:=1; --0/1 - READ/WRITE
 constant C_HDD_REG_CTRLM_START                  : integer:=2; --Пуск операции с ОЗУ через CFG
 constant C_HDD_REG_CTRLM_CFG2RAM                : integer:=3; --Подключение CFG для работы с ОЗУ(write/read)
-constant C_HDD_REG_CTRLM_LAST_BIT               : integer:=C_HDD_REG_CTRLM_CFG2RAM;
+constant C_HDD_REG_CTRLM_VCH_EN_BIT             : integer:=4;
+constant C_HDD_REG_CTRLM_LAST_BIT               : integer:=C_HDD_REG_CTRLM_VCH_EN_BIT;
 
 
 end dsn_hdd_reg_def;

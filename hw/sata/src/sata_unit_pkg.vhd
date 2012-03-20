@@ -101,7 +101,7 @@ port(
 p_out_dcm_gclk0  : out   std_logic;
 p_out_dcm_gclk2x : out   std_logic;
 p_out_dcm_gclkdv : out   std_logic;
-
+p_out_dcm_clk2x  : out   std_logic;
 p_out_dcmlock    : out   std_logic;
 
 p_out_refclkout  : out   std_logic;

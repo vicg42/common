@@ -291,7 +291,7 @@ signal i_testing_den                    : std_logic;
 --signal i_cr_din_save                    : std_logic_vector(15 downto 0):=(others=>'0');
 --signal i_cr_dout_save                   : std_logic_vector(15 downto 0):=(others=>'0');
 --signal sr_cr_rd_rdy                     : std_logic:='0';
-
+signal g_sata_refclkout                 : std_logic;
 signal tst_out                          : std_logic_vector(2 downto 0);
 signal tst_hdd_out                      : std_logic_vector(31 downto 0);
 
@@ -543,7 +543,8 @@ p_out_rbuf_cfg.ram_wr_i.dir  <=i_reg_ctrl_m(C_HDD_REG_CTRLM_DIR);
 p_out_rbuf_cfg.ram_wr_i.start<=i_reg_ctrl_m(C_HDD_REG_CTRLM_START);
 p_out_rbuf_cfg.ram_wr_i.sel  <=i_reg_ctrl_m(C_HDD_REG_CTRLM_CFG2RAM);
 
-p_out_rbuf_cfg.greset<=h_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
+p_out_rbuf_cfg.grst_hdd<=h_reg_ctrl_m(C_HDD_REG_CTRLM_GRESET);
+p_out_rbuf_cfg.grst_vch<=not h_reg_ctrl_m(C_HDD_REG_CTRLM_VCH_EN_BIT);
 
 --//Статусы модуля
 p_out_hdd_rdy  <=i_sh_status.dev_rdy;
@@ -895,7 +896,24 @@ clkout    => i_sata_gt_refclk(sh_idx)
 
 end generate gen_satah;
 
-m_bufg_refclk : BUFG port map (I => i_sata_gt_refclk(0), O => p_out_sata_refclkout);
+m_dcm : sata_dcm
+generic map(
+G_GT_DBUS => G_GT_DBUS
+)
+port map(
+p_out_dcm_gclk0  => p_out_sata_dcm_gclk0,
+p_out_dcm_gclk2x => open,
+p_out_dcm_gclkdv => p_out_sata_dcm_gclk2div,
+p_out_dcm_clk2x  => p_out_sata_dcm_gclk2x,
+p_out_dcmlock    => open,
+
+p_out_refclkout  => p_out_sata_refclkout,
+p_in_clk         => i_sata_gt_refclk(0), --//150MHz
+p_in_rst         => p_in_rst
+);
+
+--m_bufg_refclk : BUFG port map (I => i_sata_gt_refclk(0), O => g_sata_refclkout);
+--p_out_sata_refclkout<=g_sata_refclkout;
 
 p_out_sata_gt_plldet<='1';
 p_out_sata_dcm_lock<='1';
