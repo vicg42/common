@@ -113,7 +113,7 @@ p_out_module_rdy    : out   std_logic;--Модуль готов к работе
 p_out_module_err    : out   std_logic;--Ошибки в работе
 
 --------------------------------------------------
---Управление модулем
+--Порт управления модулем
 --------------------------------------------------
 p_in_clk            : in    std_logic;                    --частота тактирования p_in_txd/rxd/tx_wr/rx_rd
 p_in_txd            : in    std_logic_vector(15 downto 0);
@@ -123,7 +123,7 @@ p_in_rx_rd          : in    std_logic;                    --строб чтения rxdata
 p_out_tx_rdy        : out   std_logic;                    --Статус txbuf
 p_out_rx_rdy        : out   std_logic;                    --Статус rxbuf
 
-p_in_ftdi_sel       : in    std_logic;                    --Управление модулем через USB
+p_in_ftdi_sel       : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
 
 --------------------------------------------------
 --System
