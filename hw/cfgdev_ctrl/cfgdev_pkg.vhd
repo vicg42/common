@@ -145,16 +145,19 @@ end component;
 
 
 component cfgdev_host
+generic(
+G_HOST_DWIDTH : integer:=32
+);
 port(
 -------------------------------
 --Ñâÿçü ñ HOST
 -------------------------------
 p_out_host_rxrdy     : out  std_logic;
-p_out_host_rxd       : out  std_logic_vector(31 downto 0);
+p_out_host_rxd       : out  std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 p_in_host_rd         : in   std_logic;
 
 p_out_host_txrdy     : out  std_logic;
-p_in_host_txd        : in   std_logic_vector(31 downto 0);
+p_in_host_txd        : in   std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 p_in_host_wr         : in   std_logic;
 
 p_out_host_irq       : out  std_logic;

@@ -36,16 +36,19 @@ use unisim.vcomponents.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_host is
+generic(
+G_HOST_DWIDTH : integer:=32
+);
 port(
 -------------------------------
 --Связь с HOST
 -------------------------------
 p_out_host_rxrdy     : out  std_logic;                      --//1 - rdy to used
-p_out_host_rxd       : out  std_logic_vector(31 downto 0);  --//cfgdev -> host
+p_out_host_rxd       : out  std_logic_vector(G_HOST_DWIDTH-1 downto 0);  --//cfgdev -> host
 p_in_host_rd         : in   std_logic;                      --//
 
 p_out_host_txrdy     : out  std_logic;                      --//1 - rdy to used
-p_in_host_txd        : in   std_logic_vector(31 downto 0);  --//cfgdev <- host
+p_in_host_txd        : in   std_logic_vector(G_HOST_DWIDTH-1 downto 0);  --//cfgdev <- host
 p_in_host_wr         : in   std_logic;                      --//
 
 p_out_host_irq       : out  std_logic;                      --//прерывание
@@ -90,7 +93,7 @@ end cfgdev_host;
 
 architecture behavioral of cfgdev_host is
 
-constant CI_CFG_BUF_DWIDTH  : integer:=32;
+constant CI_CFG_BUF_DWIDTH  : integer:=G_HOST_DWIDTH;
 
 component cfgdev_2txfifo
 port(
