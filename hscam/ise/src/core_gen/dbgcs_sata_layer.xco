@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.4
-# Date: Sun Jan 29 05:37:33 2012
+# Xilinx Core Generator version 13.2
+# Date: Thu Oct 13 08:02:59 2011
 #
 ##############################################################
 #
@@ -30,7 +30,7 @@ SET foundationsym = false
 SET implementationfiletype = Ngc
 SET package = fgg676
 SET removerpms = false
-SET simulationfiles = Structural
+SET simulationfiles = Behavioral
 SET speedgrade = -2
 SET verilogsim = false
 SET vhdlsim = true
@@ -40,7 +40,7 @@ SELECT ILA_(ChipScope_Pro_-_Integrated_Logic_Analyzer) family Xilinx,_Inc. 1.04.
 # END Select
 # BEGIN Parameters
 CSET check_bramcount=false
-CSET component_name=dbgcs_sata_rbuf
+CSET component_name=dbgcs_sata_layer
 CSET counter_width_1=Disabled
 CSET counter_width_10=Disabled
 CSET counter_width_11=Disabled
@@ -57,7 +57,7 @@ CSET counter_width_6=Disabled
 CSET counter_width_7=Disabled
 CSET counter_width_8=Disabled
 CSET counter_width_9=Disabled
-CSET data_port_width=137
+CSET data_port_width=123
 CSET data_same_as_trigger=false
 CSET disable_save_keep=false
 CSET enable_storage_qualification=true
@@ -133,8 +133,5 @@ CSET trigger_port_width_8=8
 CSET trigger_port_width_9=8
 CSET use_rpms=true
 # END Parameters
-# BEGIN Extra information
-MISC pkg_timestamp=2012-01-07T09:20:01Z
-# END Extra information
 GENERATE
-# CRC: 8b8f6ceb
+# CRC: 12df4c07

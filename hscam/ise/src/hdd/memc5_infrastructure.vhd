@@ -242,7 +242,8 @@ begin
            );
 
 gen_clk : for i in 0 to 1 generate
-m_bufg : BUFG port map(I => i_usrclk(i), O => p_out_gusrclk(i) );
+--m_bufg : BUFG port map(I => i_usrclk(i), O => p_out_gusrclk(i) );
+m_bufg : BUFGCE port map(I => i_usrclk(i), O => p_out_gusrclk(i), CE => locked );
 end generate gen_clk;
 p_out_locked<=locked;
 
