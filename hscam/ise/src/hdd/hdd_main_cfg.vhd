@@ -5,7 +5,7 @@
 -- Create Date : 13.10.2011 15:15:44
 -- Module Name : prj_cfg
 --
--- Description : Конфигурирование проекта HSCAM (ОТЛАДКА НА РАБОЧЕЙ ПЛАТЕ!!!!!)
+-- Description : Конфигурирование модуля HDD для проекта HSCAM
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -16,17 +16,21 @@ use ieee.std_logic_1164.all;
 
 package prj_cfg is
 
-constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#02#; --Верисия модуля контроллера HDD для проекта HSCAM
+--//Версия реализации
+constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#03#; --Верисия модуля контроллера HDD для проекта HSCAM
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
 
+--//Конфигурирование модулей:
+--//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
 constant C_PCFG_VCTRL_DBGCS            : string:="OFF";
-constant C_PCFG_FRPIX                  : integer:=1280;--110;--
-constant C_PCFG_FRROW                  : integer:=1024;--8;--
+constant C_PCFG_VCTRL_MEMWR_TRN_LEN    : integer:=64;
+constant C_PCFG_VCTRL_MEMRD_TRN_LEN    : integer:=32;
+constant C_PCFG_FRPIX                  : integer:=1280;
+constant C_PCFG_FRROW                  : integer:=1024;
 
---//Конфигурирование модулей:
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
 constant C_PCFG_VCTRL_MEMBANK_NUM      : integer:=0;

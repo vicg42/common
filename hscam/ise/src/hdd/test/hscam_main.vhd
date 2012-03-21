@@ -113,26 +113,26 @@ architecture struct of hscam_main is
 
 component hdd_main
 generic(
-G_VOUT_DWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1';
-G_SIM : string:="OFF"
+G_VOUT_DWIDTH : integer:=16;
+G_VSYN_ACTIVE : std_logic:='0';
+G_SIM         : string:="OFF"
 );
 port(
 --------------------------------------------------
 --VideoIN
 --------------------------------------------------
-p_in_vd       : in   std_logic_vector(99 downto 0);
-p_in_vin_vs   : in   std_logic;
-p_in_vin_hs   : in   std_logic;
-p_in_vin_clk  : in   std_logic;
+p_in_vd             : in   std_logic_vector(99 downto 0);
+p_in_vin_vs         : in   std_logic;
+p_in_vin_hs         : in   std_logic;
+p_in_vin_clk        : in   std_logic;
 
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
-p_out_vd      : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
-p_in_vout_vs  : in   std_logic;
-p_in_vout_hs  : in   std_logic;
-p_in_vout_clk : in   std_logic;
+p_out_vd            : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
+p_in_vout_vs        : in   std_logic;
+p_in_vout_hs        : in   std_logic;
+p_in_vout_clk       : in   std_logic;
 
 --------------------------------------------------
 --RAM
@@ -182,13 +182,13 @@ p_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX
 p_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
 p_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
 p_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
-p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(1 downto 0);
+p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(1 downto 0);
 
 -------------------------------------------------
 --Порт управления модулем + Статусы
 --------------------------------------------------
-p_in_grefclk        : in    std_logic;
+--p_in_grefclk        : in    std_logic;
 
 --Интерфейс управления модулем
 p_in_usr_sel        : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
@@ -273,7 +273,6 @@ signal i_test02_led                   : std_logic;
 signal i_cntbase                      : std_logic_vector(7 downto 0);
 signal i_spd                          : std_logic_vector(7 downto 0);
 signal i_shim_hs                      : std_logic;
---signal i_shim_vs                      : std_logic;
 signal i_shim_vs_cnt                  : std_logic_vector(7 downto 0);
 signal sr_shim_hs                     : std_logic_vector(0 to 1);
 
@@ -422,19 +421,15 @@ process(i_usrpll_lock,i_vin_clk)
 begin
   if i_usrpll_lock='0' then
     i_cntbase<=(others=>'0');
---    i_shim_vs<=G_VSYN_ACTIVE;
     i_shim_hs<='0';
     i_shim_vs_cnt<=(others=>'0');
     sr_shim_hs<=(others=>'0');
   elsif i_vin_clk'event and i_vin_clk='1' then
     if i_cntbase=i_spd then
       i_shim_hs<='0';
---      i_shim_vs<=not G_VSYN_ACTIVE;
     elsif i_cntbase=(i_cntbase'range => '0') then
       i_shim_hs<='1';
---      i_shim_vs<=G_VSYN_ACTIVE;
     else
---      i_shim_vs<=not G_VSYN_ACTIVE;
     end if;
 
     i_cntbase<=i_cntbase+1;
@@ -443,15 +438,10 @@ begin
     if sr_shim_hs(0)='0' and sr_shim_hs(1)='1' then
       i_shim_vs_cnt<=i_shim_vs_cnt + 1;
     end if;
---    if i_shim_vs=G_VSYN_ACTIVE then
---      i_shim_vs_cnt<=i_shim_vs_cnt + 1;
---    end if;
   end if;
 end process;
 
---tst_in(0)<=    i_shim_vs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';--i_vin_vs;--
---tst_in(1)<=not i_shim_hs;                                                                             --i_vin_hs;--
-tmp_vs<=    i_shim_hs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';--i_vin_vs;--
+tmp_vs<=    i_shim_hs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';
 tmp_hs<=not i_shim_hs;
 
 tst_in(0)<=tmp_vs when tst_out(8)='1' else i_vin_vs;
@@ -565,7 +555,7 @@ p_in_sata_clk_p     => pin_in_sata_clk_p,
 -------------------------------------------------
 --Порт управления модулем + Статусы
 --------------------------------------------------
-p_in_grefclk        => g_usr_refclk150,
+--p_in_grefclk        => g_usr_refclk150,
 
 --Интерфейс управления модулем
 p_in_usr_sel        => pin_in_SW(0),

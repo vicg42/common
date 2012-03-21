@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------
 -- Company     : Linkos
--- Engineer    : Golovachenko Victor + Kukla Anatol
+-- Engineer    : Golovachenko Victor
 --
 -- Create Date : 18.01.2012 17:24:28
 -- Module Name : hdd_main
@@ -34,26 +34,26 @@ use work.sata_testgen_pkg.all;
 
 entity hdd_main is
 generic(
-G_VSYN_ACTIVE : std_logic:='1';
-G_VOUT_DWIDTH : integer:=32;
-G_SIM : string:="OFF"
+G_VSYN_ACTIVE : std_logic:='0';
+G_VOUT_DWIDTH : integer:=16;
+G_SIM         : string:="OFF"
 );
 port(
 --------------------------------------------------
 --VideoIN
 --------------------------------------------------
-p_in_vd       : in   std_logic_vector(99 downto 0);
-p_in_vin_vs   : in   std_logic;
-p_in_vin_hs   : in   std_logic;
-p_in_vin_clk  : in   std_logic;
+p_in_vd             : in   std_logic_vector(99 downto 0);
+p_in_vin_vs         : in   std_logic;
+p_in_vin_hs         : in   std_logic;
+p_in_vin_clk        : in   std_logic;
 
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
-p_out_vd      : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
-p_in_vout_vs  : in   std_logic;
-p_in_vout_hs  : in   std_logic;
-p_in_vout_clk : in   std_logic;
+p_out_vd            : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
+p_in_vout_vs        : in   std_logic;
+p_in_vout_hs        : in   std_logic;
+p_in_vout_clk       : in   std_logic;
 
 --------------------------------------------------
 --RAM
@@ -103,13 +103,13 @@ p_out_sata_txn      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX
 p_out_sata_txp      : out   std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
 p_in_sata_rxn       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
 p_in_sata_rxp       : in    std_logic_vector((C_SH_GTCH_COUNT_MAX*C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1))-1 downto 0);--std_logic_vector(3 downto 0);
-p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
-p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(0 downto 0);
+p_in_sata_clk_n     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(1 downto 0);
+p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-1 downto 0);                      --std_logic_vector(1 downto 0);
 
 -------------------------------------------------
 --Порт управления модулем + Статусы
 --------------------------------------------------
-p_in_grefclk        : in    std_logic;
+--p_in_grefclk        : in    std_logic;
 
 --Интерфейс управления модулем
 p_in_usr_sel        : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
@@ -264,9 +264,9 @@ signal i_mem_out_bank                   : TMemOUTBank;
 signal i_phymem_out                     : TMEMCTRL_phy_outs;
 signal i_phymem_inout                   : TMEMCTRL_phy_inouts;
 
-signal i_usrpll_rst                     : std_logic;
-signal i_usrpll_lock                    : std_logic;
-signal g_usrpll_clkout                  : std_logic_vector(5 downto 0);
+--signal i_usrpll_rst                     : std_logic;
+--signal i_usrpll_lock                    : std_logic;
+--signal g_usrpll_clkout                  : std_logic_vector(5 downto 0);
 signal g_hclk                           : std_logic;
 signal g_hdd_clk                        : std_logic;
 signal g_vbufi_wrclk                    : std_logic;
@@ -377,14 +377,6 @@ signal tst_hdd_bufi_out                 : std_logic_vector(31 downto 0);
 signal tst_hdd_rambuf_out               : std_logic_vector(31 downto 0);
 signal tst_vctrl_bufi_out               : std_logic_vector(31 downto 0);
 signal tst_vctrl_out                    : std_logic_vector(31 downto 0);
-signal sr_vctrl_rst                     : std_logic_vector(1 downto 0):=(others=>'0');
-signal tst_syn                          : std_logic:='0';
-
-signal i_tmrout_en                      : std_logic:='0';
-signal i_tmrout_cnt                     : std_logic_vector(15 downto 0):=(others=>'0');
-signal i_tmrout,sr_tmrout               : std_logic:='0';
-signal i_tmrout_det                     : std_logic:='0';
-signal sr_buf_wr_en                     : std_logic:='0';
 
 signal tst_hdd_bufi_full                : std_logic:='0';
 signal tst_hdd_bufi_empty               : std_logic:='1';
@@ -393,9 +385,6 @@ signal tst_hdd_bufi_empty               : std_logic:='1';
 --//MAIN
 begin
 
-p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
-p_out_tst( 8)<=i_hdd_rbuf_cfg.tstgen.tesing_on;
-p_out_tst(31 downto 9)<=(others=>'0');
 
 --***********************************************************
 --STATUS
@@ -410,20 +399,8 @@ i_hdd_tst_in(31 downto 24)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_HDD_VERSION, 8);
 --***********************************************************
 --CLOCKs
 --***********************************************************
---m_usrpll : clock
---generic map(
---G_USRCLK_COUNT => 3
---)
---port map(
---p_out_gusrclk  => g_usrpll_clkout(3-1 downto 0),
---p_out_pll_lock => i_usrpll_lock,
---
---p_in_clk       => p_in_grefclk, --g_sata_refclkout,--g_hdd_dcm_gclk150M,--
---p_in_rst       => '0' --i_usrpll_rst --i_sys_rst
---);
---i_usrpll_rst<=not i_hdd_dcm_lock;
 i_mem_ctrl_sysin.clk<=g_hdd_dcm_gclk300M;
---частота переписывания данных внутренних буферов для модулей vin_cam,vin_hdd
+--частота для переписывания данных внутренних буферов для модулей m_vctrl_bufi,m_hdd_bufi
 g_vbufi_wrclk<=i_mem_ctrl_sysout.gusrclk(0);
 --частота работы с ОЗУ
 g_hclk<=i_mem_ctrl_sysout.gusrclk(1);
@@ -530,8 +507,8 @@ p_out_tst          => tst_vctrl_bufi_out,
 p_in_rst           => i_vctrl_bufi_rst
 );
 
-i_vctrl_mem_trn_len( 7 downto 0)<=CONV_STD_LOGIC_VECTOR(64, 8);--write i_hdd_rbuf_cfg.mem_trn( 7 downto 0);
-i_vctrl_mem_trn_len(15 downto 8)<=CONV_STD_LOGIC_VECTOR(32, 8);--read  i_hdd_rbuf_cfg.mem_trn(15 downto 8);
+i_vctrl_mem_trn_len( 7 downto 0)<=CONV_STD_LOGIC_VECTOR(C_PCFG_VCTRL_MEMWR_TRN_LEN, 8);
+i_vctrl_mem_trn_len(15 downto 8)<=CONV_STD_LOGIC_VECTOR(C_PCFG_VCTRL_MEMRD_TRN_LEN, 8);
 
 m_vctrl : video_ctrl
 generic map(
@@ -1120,6 +1097,12 @@ p_out_TP(6) <=AND_reduce(i_mem_ctrl_status.rdy);
 p_out_TP(7) <=i_hdd_dbgled(3).busy;
 
 
+--//тестовый выход
+p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
+p_out_tst( 8)<=i_hdd_rbuf_cfg.tstgen.tesing_on;
+p_out_tst(31 downto 9)<=(others=>'0');
+
+
 --//### ChipScope DBG: ########
 gen_hdd_dbgcs : if strcmp(C_PCFG_HDD_DBGCS,"ON") generate
 
@@ -1348,50 +1331,9 @@ i_hddraid_dbgcs.data(168 downto 166)<=tst_hdd_rambuf_out(9 downto 7);--mem_rd/fs
 i_hddraid_dbgcs.data(171 downto 169)<=tst_hdd_rambuf_out(4 downto 2);--mem_wr/fsm_cs
 i_hddraid_dbgcs.data(172)<='0';
 
-
-----process(i_hdd_dbgcs.raid.clk)
-----begin
-----  if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
-----    if i_hdd_rbuf_cfg.dmacfg.clr_err='1' then
-----      i_tmrout_en<='0';
-----    elsif i_hdd_rbuf_cfg.dmacfg.hw_mode='1' and
-----       (i_mem_in_bank (CI_MEM_HDD)(0).cmd_wr='1' or i_mem_in_bank (CI_MEM_HDD)(1).cmd_wr='1') then
-----       i_tmrout_en<='1';
-----    end if;
-----  end if;
-----end process;
-----
---process(i_hdd_dbgcs.raid.clk)
---begin
---  if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
---    sr_buf_wr_en<=tst_hdd_bufi_out(2);--i_buf_wr_en;--
---
---    if i_tmrout_en='0' or sr_buf_wr_en='0' then
---     i_tmrout_cnt<=(others=>'0');
---     i_tmrout<='0';
---    else
-----      if i_mem_in_bank (CI_MEM_HDD)(0).cmd_wr='1' or i_mem_in_bank (CI_MEM_HDD)(0).txd_wr='1' or
---      if i_mem_in_bank (CI_MEM_HDD)(1).cmd_wr='1' or i_mem_in_bank (CI_MEM_HDD)(1).rxd_rd='1' then
---
---         i_tmrout_cnt<=(others=>'0');
---         i_tmrout<='0';
---      else
---        if i_tmrout_cnt=i_hdd_rbuf_cfg.usr(15 downto 0) then
---          i_tmrout_cnt<=i_tmrout_cnt;
---          i_tmrout<='1';
---        else
---          i_tmrout_cnt<=i_tmrout_cnt + 1;
---        end if;
---      end if;
---    end if;
---  end if;
---end process;
-
 process(i_hdd_dbgcs.raid.clk)
 begin
   if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
---    sr_tmrout<=i_tmrout;
---    i_tmrout_det<=i_tmrout and not sr_tmrout;
     tst_hdd_bufi_empty<=i_hdd_bufi_empty;
     tst_hdd_bufi_full<=i_hdd_bufi_full;
   end if;
@@ -1503,12 +1445,12 @@ i_vctrl_dbgcs.data(97)            <='0';--tst_vctrl_out(17);--<=tst_vrd_out(5);-
 i_vctrl_dbgcs.data(98)            <='0';
 i_vctrl_dbgcs.data(99)            <='0';
 
-i_vctrl_dbgcs.data(131 downto 100) <=(others=>'0');--i_mem_in_bank (CI_MEM_VCTRL)(0).txd(31 downto 0) ;--i_vctrl_bufi_dout
+i_vctrl_dbgcs.data(131 downto 100) <=(others=>'0');--i_mem_in_bank (CI_MEM_VCTRL)(0).txd(31 downto 0);--i_vctrl_bufi_dout
 i_vctrl_dbgcs.data(163 downto 132) <=(others=>'0');--i_mem_out_bank(CI_MEM_VCTRL)(1).rxd(31 downto 0);--i_vctrl_bufo_din;--Rx
 
 i_vctrl_dbgcs.data(164)            <='0';
 i_vctrl_dbgcs.data(165)            <='0';
-i_vctrl_dbgcs.data(166)            <='0';--i_vctrl_bufi_rd;--t_vbufin_rd;
+i_vctrl_dbgcs.data(166)            <='0';
 i_vctrl_dbgcs.data(167)            <='0';
 i_vctrl_dbgcs.data(168)            <='0';
 i_vctrl_dbgcs.data(169)            <='0';
