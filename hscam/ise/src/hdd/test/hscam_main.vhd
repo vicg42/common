@@ -121,18 +121,19 @@ port(
 --------------------------------------------------
 --VideoIN
 --------------------------------------------------
-p_in_vd             : in   std_logic_vector(99 downto 0);
-p_in_vin_vs         : in   std_logic;
-p_in_vin_hs         : in   std_logic;
-p_in_vin_clk        : in   std_logic;
+p_in_vd             : in   std_logic_vector((10*8)-1 downto 0);
+p_in_vin_vs         : in   std_logic;--//Строб кодровой синхронизации
+p_in_vin_hs         : in   std_logic;--//Строб строчной синхронизации
+p_in_vin_clk        : in   std_logic;--//Пиксельная частота
+p_in_vin_syn        : in   std_logic;--//Синхронизация записи
 
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
 p_out_vd            : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
-p_in_vout_vs        : in   std_logic;
-p_in_vout_hs        : in   std_logic;
-p_in_vout_clk       : in   std_logic;
+p_in_vout_vs        : in   std_logic;--//Строб кодровой синхронизации
+p_in_vout_hs        : in   std_logic;--//Строб строчной синхронизации
+p_in_vout_clk       : in   std_logic;--//Пиксельная частота
 
 --------------------------------------------------
 --RAM
@@ -188,17 +189,13 @@ p_in_sata_clk_p     : in    std_logic_vector(C_SH_COUNT_MAX(C_PCFG_HDD_COUNT-1)-
 -------------------------------------------------
 --Порт управления модулем + Статусы
 --------------------------------------------------
---p_in_grefclk        : in    std_logic;
-
 --Интерфейс управления модулем
-p_in_usr_sel        : in    std_logic;                    --1/0 - Управление модулем через USB/Порт управления модулем
 p_in_usr_clk        : in    std_logic;                    --частота тактирования p_in_usr_txd/rxd/tx_wr/rx_rd
+p_in_usr_tx_wr      : in    std_logic;                    --строб записи txd
+p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxd
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
-p_in_usr_tx_wr      : in    std_logic;                    --строб записи txdata
-p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxdata
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
-p_out_usr_tx_rdy    : out   std_logic;                    --Статус txbuf
-p_out_usr_rx_rdy    : out   std_logic;                    --Статус rxbuf
+p_out_usr_status    : out   std_logic_vector(15 downto 0);
 
 --Статусы модуля
 p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
@@ -215,9 +212,9 @@ p_in_ftdi_txe_n     : in    std_logic;
 p_in_ftdi_rxf_n     : in    std_logic;
 p_in_ftdi_pwren_n   : in    std_logic;
 
---
-p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(31 downto 0);
+----
+--p_in_tst            : in    std_logic_vector(31 downto 0);
+--p_out_tst           : out   std_logic_vector(31 downto 0);
 
 p_out_TP            : out   std_logic_vector(7 downto 0); --вывод на контрольные точки платы
 p_out_led           : out   std_logic_vector(7 downto 0)  --выход на свтодиоды платы
@@ -245,15 +242,15 @@ end component;
 signal i_sys_rst                      : std_logic:='0';
 
 signal i_usrpll_clkfb                 : std_logic;
-signal i_usrpll_clkout                : std_logic_vector(0 downto 0);
-signal g_usrpll_clkout                : std_logic_vector(0 downto 0);
+signal i_usrpll_clkout                : std_logic_vector(1 downto 0);
+signal g_usrpll_clkout                : std_logic_vector(1 downto 0);
 signal i_usrpll_lock                  : std_logic;
 
 signal i_vtg_rst                      : std_logic;
 type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
 signal i_tdata                        : TDtest;
 
-signal i_vin_d                        : std_logic_vector(99 downto 0):=(others=>'0');
+signal i_vin_d                        : std_logic_vector(79 downto 0):=(others=>'0');
 signal i_vin_vs                       : std_logic;
 signal i_vin_hs                       : std_logic;
 signal i_vin_clk                      : std_logic;
@@ -267,19 +264,12 @@ signal i_usr_refclk150                : std_logic;
 signal g_usr_refclk150                : std_logic;
 signal t_usr_refclk150                : std_logic;
 
+signal i_out_TP                       : std_logic_vector(7 downto 0);
 signal tst_out                        : std_logic_vector(31 downto 0);
 signal tst_in                         : std_logic_vector(31 downto 0);
 signal i_test02_led                   : std_logic;
-signal i_cntbase                      : std_logic_vector(7 downto 0);
-signal i_spd                          : std_logic_vector(7 downto 0);
-signal i_shim_hs                      : std_logic;
-signal i_shim_vs_cnt                  : std_logic_vector(7 downto 0);
-signal sr_shim_hs                     : std_logic_vector(0 to 1);
 
-signal tmp_vs                         : std_logic;
-signal tmp_hs                         : std_logic;
-
-signal i_usr_rx_rdy,i_usr_tx_rdy      : std_logic;
+signal i_usr_status                   : std_logic_vector(15 downto 0);
 signal i_usr_rxd,i_usr_txd            : std_logic_vector(15 downto 0);
 
 
@@ -296,8 +286,8 @@ generic map(
 BANDWIDTH          => "OPTIMIZED",
 CLKIN1_PERIOD      => 8.0, --125MHz
 CLKIN2_PERIOD      => 8.0,
-CLKOUT0_DIVIDE     => 9, --clk0 = ((125MHz * 5)/1) /9 = 69.4MHz
-CLKOUT1_DIVIDE     => 3,
+CLKOUT0_DIVIDE     => 8, --clk0 = ((125MHz * 21)/5) /8  = 65.625MHz - Clk_Vin
+CLKOUT1_DIVIDE     => 9, --clk1 = ((125MHz * 21)/5) /13 = 40.385MHz - Clk_Vout
 CLKOUT2_DIVIDE     => 5,
 CLKOUT3_DIVIDE     => 9,
 CLKOUT4_DIVIDE     => 8,
@@ -316,8 +306,8 @@ CLKOUT4_DUTY_CYCLE => 0.500,
 CLKOUT5_DUTY_CYCLE => 0.500,
 SIM_DEVICE         => "SPARTAN6",
 COMPENSATION       => "INTERNAL",--"DCM2PLL",--
-DIVCLK_DIVIDE      => 1,
-CLKFBOUT_MULT      => 5,
+DIVCLK_DIVIDE      => 5,
+CLKFBOUT_MULT      => 21,
 CLKFBOUT_PHASE     => 0.0,
 REF_JITTER         => 0.005000
 )
@@ -342,7 +332,7 @@ CLKOUTDCM3       => open,
 CLKOUTDCM4       => open,
 CLKOUTDCM5       => open,
 CLKOUT0          => i_usrpll_clkout(0),
-CLKOUT1          => open,
+CLKOUT1          => i_usrpll_clkout(1),
 CLKOUT2          => open,
 CLKOUT3          => open,
 CLKOUT4          => open,
@@ -352,9 +342,9 @@ DRDY             => open,
 LOCKED           => i_usrpll_lock
 );
 
---gen_clk : for i in 0 to 0 generate
-m_bufg : BUFG port map(I => i_usrpll_clkout(0), O => g_usrpll_clkout(0) );
---end generate gen_clk;
+gen_clk : for i in 0 to i_usrpll_clkout'length-1 generate
+m_bufg : BUFG port map(I => i_usrpll_clkout(i), O => g_usrpll_clkout(i) );
+end generate gen_clk;
 
 i_sys_rst <= '0';
 
@@ -378,7 +368,7 @@ p_in_rst       => i_sys_rst
 
 i_vtg_rst <=i_sys_rst;
 i_vin_clk <=g_usrpll_clkout(0);
-i_vout_clk<=g_usrpll_clkout(0);
+i_vout_clk<=g_usrpll_clkout(1);
 
 --Генератор тестовых данных (Вертикальные полоски!!!)
 gen_vd : for i in 1 to 10 generate
@@ -395,8 +385,7 @@ begin
   end if;
 end process;
 
-i_vin_d((10*i)-8-1 downto (10*i)-10)<=(others=>'0');
-i_vin_d((10*i)-1 downto (10*i)-8)<=i_tdata(i-1);
+i_vin_d((8*i)-1 downto (8*i)-8)<=i_tdata(i-1);
 end generate gen_vd;
 
 m_vtgen_high : vtiming_gen
@@ -415,41 +404,6 @@ p_in_clk => i_vin_clk,
 p_in_rst => i_vtg_rst
 );
 
---//Регулировка потока тестовых данных
-i_spd<=CONV_STD_LOGIC_VECTOR(255, i_spd'length) when tst_out(7 downto 0)=CONV_STD_LOGIC_VECTOR(0, 8) else tst_out(7 downto 0);
-process(i_usrpll_lock,i_vin_clk)
-begin
-  if i_usrpll_lock='0' then
-    i_cntbase<=(others=>'0');
-    i_shim_hs<='0';
-    i_shim_vs_cnt<=(others=>'0');
-    sr_shim_hs<=(others=>'0');
-  elsif i_vin_clk'event and i_vin_clk='1' then
-    if i_cntbase=i_spd then
-      i_shim_hs<='0';
-    elsif i_cntbase=(i_cntbase'range => '0') then
-      i_shim_hs<='1';
-    else
-    end if;
-
-    i_cntbase<=i_cntbase+1;
-
-    sr_shim_hs<=i_shim_hs & sr_shim_hs(0 to 0);
-    if sr_shim_hs(0)='0' and sr_shim_hs(1)='1' then
-      i_shim_vs_cnt<=i_shim_vs_cnt + 1;
-    end if;
-  end if;
-end process;
-
-tmp_vs<=    i_shim_hs when i_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, i_shim_vs_cnt'length) else '0';
-tmp_hs<=not i_shim_hs;
-
-tst_in(0)<=tmp_vs when tst_out(8)='1' else i_vin_vs;
-tst_in(1)<=tmp_hs when tst_out(8)='1' else i_vin_hs;
-tst_in(2)<=i_test02_led;
-tst_in(31 downto 3)<=(others=>'0');
-
-
 m_vtgen_low : vtiming_gen
 generic map(
 G_VSYN_ACTIVE=> G_VSYN_ACTIVE,
@@ -467,7 +421,11 @@ p_in_rst => i_vtg_rst
 );
 
 
-pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_tx_rdy or i_usr_rx_rdy;
+pin_out_TP(1 downto 0)<=i_out_TP(1 downto 0);
+pin_out_TP(2)<=i_test02_led;
+pin_out_TP(7 downto 3)<=i_out_TP(7 downto 3);
+
+pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_status(0) or i_usr_status(1) or pin_in_SW(0);
 pin_out_TP2(1)<='0';
 
 gen_tx: for i in 0 to 15 generate
@@ -488,18 +446,18 @@ port map(
 --------------------------------------------------
 --VideoIN
 --------------------------------------------------
-p_in_vd       => i_vin_d,
-p_in_vin_vs   => tst_in(0),--i_vin_vs,
-p_in_vin_hs   => tst_in(1),--i_vin_hs,
-p_in_vin_clk  => i_vin_clk,
-
+p_in_vd             => i_vin_d,
+p_in_vin_vs         => i_vin_vs,--tst_in(0),--
+p_in_vin_hs         => i_vin_hs,--tst_in(1),--
+p_in_vin_clk        => i_vin_clk,
+p_in_vin_syn        => '0',
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
-p_out_vd      => i_vout_d,
-p_in_vout_vs  => i_vout_vs,
-p_in_vout_hs  => i_vout_hs,
-p_in_vout_clk => i_vout_clk,
+p_out_vd            => i_vout_d,
+p_in_vout_vs        => i_vout_vs,
+p_in_vout_hs        => i_vout_hs,
+p_in_vout_clk       => i_vout_clk,
 
 --------------------------------------------------
 --RAM
@@ -555,17 +513,13 @@ p_in_sata_clk_p     => pin_in_sata_clk_p,
 -------------------------------------------------
 --Порт управления модулем + Статусы
 --------------------------------------------------
---p_in_grefclk        => g_usr_refclk150,
-
 --Интерфейс управления модулем
-p_in_usr_sel        => pin_in_SW(0),
 p_in_usr_clk        => g_usr_refclk150,
-p_in_usr_txd        => i_usr_txd,
 p_in_usr_tx_wr      => pin_in_SW(2),
 p_in_usr_rx_rd      => pin_in_SW(3),
+p_in_usr_txd        => i_usr_txd,
 p_out_usr_rxd       => i_usr_rxd,
-p_out_usr_tx_rdy    => i_usr_tx_rdy,
-p_out_usr_rx_rdy    => i_usr_rx_rdy,
+p_out_usr_status    => i_usr_status,
 
 --Статусы модуля
 p_out_hdd_rdy       => open,
@@ -581,10 +535,10 @@ p_in_ftdi_txe_n     => pin_in_ftdi_txe_n,
 p_in_ftdi_rxf_n     => pin_in_ftdi_rxf_n,
 p_in_ftdi_pwren_n   => pin_in_ftdi_pwren_n,
 
-p_in_tst            => tst_in,
-p_out_tst           => tst_out,
+--p_in_tst            => tst_in,
+--p_out_tst           => tst_out,
 
-p_out_TP            => pin_out_TP,
+p_out_TP            => i_out_TP,
 p_out_led           => pin_out_led
 );
 
