@@ -19,20 +19,23 @@ use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
+use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.video_ctrl_pkg.all;
 
 entity vin_hdd is
 generic(
 G_VBUF_OWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1'
+G_VSYN_ACTIVE : std_logic:='1';
+G_EXTSYN      : string:="OFF"
 );
 port(
 --Вх. видеопоток
-p_in_vd            : in   std_logic_vector((10*8*2)-1 downto 0);--(99 downto 0);
+p_in_vd            : in   std_logic_vector((10*8*2)-1 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
+p_in_ext_syn       : in   std_logic;--//Внешняя синхронизация
 
 p_out_vfr_prm      : out  TFrXY;
 
@@ -95,9 +98,7 @@ rst    : in std_logic
 );
 end component;
 
---signal i_vd                : std_logic_vector(p_in_vd'length-(10*2)-1 downto 0):=(others=>'0');
---signal i_vd_save           : std_logic_vector(p_in_vd'length-(10*2)-1 downto 0):=(others=>'0');
---signal i_bufi_din_vector    : std_logic_vector((i_vd'length*2)-1 downto 0);
+signal i_ext_syn_en         : std_logic;
 signal i_bufi_cnt           : integer range 0 to CI_BUF_COUNT;
 signal i_bufi_wr_en         : std_logic:='0';
 signal i_bufi_wr            : std_logic;
@@ -128,18 +129,22 @@ p_out_vfr_prm.pix<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRPIX, p_out_vfr_prm.pix'length)
 p_out_vfr_prm.row<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRROW, p_out_vfr_prm.row'length);
 
 --//BUFI - Запись:
-----//Берем 8 старших бит из пердолгаемых 10 бит на 1Pixel
---gen_vd : for i in 1 to 10 generate
---i_vd((8*i)-1 downto 8*(i-1))<=p_in_vd((10*i)-1 downto (10*i)-8);
---process(p_in_vclk)
---begin
---  if p_in_vclk'event and p_in_vclk='1' then
---    i_vd_save((8*i)-1 downto 8*(i-1))<=i_vd((8*i)-1 downto 8*(i-1));
---  end if;
---end process;
---end generate gen_vd;
---
---i_bufi_din_vector<=i_vd & i_vd_save;
+gen_extsyn_off : if strcmp(G_EXTSYN,"OFF") generate
+i_ext_syn_en<='1';
+end generate gen_extsyn_off;
+
+gen_extsyn_on : if strcmp(G_EXTSYN,"ON") generate
+process(p_in_rst,p_in_vclk)
+begin
+  if p_in_rst='1' then
+    i_ext_syn_en<='0';
+  elsif p_in_vclk'event and p_in_vclk='1' then
+    if p_in_ext_syn='1' then
+      i_ext_syn_en<='1';
+    end if;
+  end if;
+end process;
+end generate gen_extsyn_on;
 
 process(p_in_rst,p_in_vclk)
 begin
@@ -149,7 +154,7 @@ begin
 
   elsif p_in_vclk'event and p_in_vclk='1' then
 
-    if p_in_vs=G_VSYN_ACTIVE then
+    if p_in_vs=G_VSYN_ACTIVE and i_ext_syn_en='1' then
       i_bufi_wr_en<='1';
     end if;
 

@@ -47,7 +47,7 @@ p_in_vd             : in   std_logic_vector((10*8)-1 downto 0);
 p_in_vin_vs         : in   std_logic;--//Строб кодровой синхронизации
 p_in_vin_hs         : in   std_logic;--//Строб строчной синхронизации
 p_in_vin_clk        : in   std_logic;--//Пиксельная частота
-p_in_vin_syn        : in   std_logic;--//Синхронизация записи
+p_in_ext_syn        : in   std_logic;--//Внешняя синхронизация записи
 
 --------------------------------------------------
 --VideoOUT
@@ -469,7 +469,8 @@ gen_vctrl_on : if strcmp(C_PCFG_VCTRL_USE,"ON") generate
 m_vctrl_bufi : vin_hdd
 generic map(
 G_VBUF_OWIDTH => CI_MEM_DWIDTH,
-G_VSYN_ACTIVE => G_VSYN_ACTIVE
+G_VSYN_ACTIVE => G_VSYN_ACTIVE,
+G_EXTSYN      => "OFF"
 )
 port map(
 --Вх. видеопоток
@@ -477,6 +478,7 @@ p_in_vd            => i_vdi_vector,
 p_in_vs            => p_in_vin_vs,
 p_in_hs            => p_in_vin_hs,
 p_in_vclk          => p_in_vin_clk,
+p_in_ext_syn       => p_in_ext_syn,
 
 p_out_vfr_prm      => i_vfr_prm,
 
@@ -862,7 +864,8 @@ p_in_rst              => i_hdd_rambuf_rst
 m_hdd_bufi : vin_hdd
 generic map (
 G_VBUF_OWIDTH => CI_MEM_DWIDTH,
-G_VSYN_ACTIVE => G_VSYN_ACTIVE
+G_VSYN_ACTIVE => G_VSYN_ACTIVE,
+G_EXTSYN      => "ON"
 )
 port map(
 --Вх. видеопоток
@@ -870,6 +873,7 @@ p_in_vd            => i_vdi_vector,
 p_in_vs            => i_vin_vs_hdd,--p_in_vin_vs,
 p_in_hs            => i_vin_hs_hdd,--p_in_vin_hs,
 p_in_vclk          => p_in_vin_clk,
+p_in_ext_syn       => p_in_ext_syn,
 
 p_out_vfr_prm      => open,--i_vfr_prm,
 
@@ -1106,8 +1110,8 @@ begin
   end if;
 end process;
 
-tst_vs_hdd<=    tst_shim_hs when tst_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, tst_shim_vs_cnt'length) else '0';
-tst_hs_hdd<=not tst_shim_hs;
+tst_vs_hdd<=not tst_shim_hs when tst_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, tst_shim_vs_cnt'length) else '1';
+tst_hs_hdd<=tst_shim_hs;
 
 i_vin_vs_hdd<=tst_vs_hdd when tst_hdd_test_on='1' else p_in_vin_vs;
 i_vin_hs_hdd<=tst_hs_hdd when tst_hdd_test_on='1' else p_in_vin_hs;
@@ -1343,7 +1347,7 @@ i_hddraid_dbgcs.data(165)<=i_mem_out_bank(CI_MEM_HDD)(1).cmdbuf_err    ;
 
 i_hddraid_dbgcs.data(168 downto 166)<=tst_hdd_rambuf_out(9 downto 7);--mem_rd/fsm_cs
 i_hddraid_dbgcs.data(171 downto 169)<=tst_hdd_rambuf_out(4 downto 2);--mem_wr/fsm_cs
-i_hddraid_dbgcs.data(172)<='0';
+i_hddraid_dbgcs.data(172)<=tst_hdd_rambuf_out(13);-- <=i_hm_w_padding;
 
 process(i_hdd_dbgcs.raid.clk)
 begin

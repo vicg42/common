@@ -1,5 +1,5 @@
 #ChipScope Pro Analyzer Project File, Version 3.0
-#Mon Mar 19 18:04:31 GST 2012
+#Thu Mar 22 16:57:36 GST 2012
 deviceChain.deviceName0=XCF32P
 deviceChain.deviceName1=XC6SLX100T
 deviceChain.iRLength0=16
@@ -36,7 +36,7 @@ unit.1.0.1.HEIGHT1=1.0
 unit.1.0.1.WIDTH1=0.9944713
 unit.1.0.1.X1=0.0
 unit.1.0.1.Y1=0.0
-unit.1.0.MFBitsA0=XXXXXXXXXXXX1XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+unit.1.0.MFBitsA0=XXXXXXXXXXXX0XXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 unit.1.0.MFBitsB0=000000000000000000000000000000000000000000
 unit.1.0.MFCompareA0=0
 unit.1.0.MFCompareB0=999
@@ -60,7 +60,7 @@ unit.1.0.TCOutputEnable0=0
 unit.1.0.TCOutputHigh0=1
 unit.1.0.TCOutputMode0=0
 unit.1.0.browser_tree_state<Data\ Port>=1
-unit.1.0.browser_tree_state<Trigger\ Ports>=0
+unit.1.0.browser_tree_state<Trigger\ Ports>=1
 unit.1.0.browser_tree_state<TriggerPort0>=1
 unit.1.0.browser_tree_state<hdd_rambuf/tst_fsm_cs>=0
 unit.1.0.browser_tree_state<i_hdd_rbuf_status.err>=0
@@ -1320,7 +1320,7 @@ unit.1.0.port.-1.s.65.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.1.0.port.-1.s.65.name=DataPort[65]
 unit.1.0.port.-1.s.65.orderindex=-1
 unit.1.0.port.-1.s.65.visible=1
-unit.1.0.port.-1.s.66.alias=DP[66]-vwr/i_vch_off
+unit.1.0.port.-1.s.66.alias=DP[66]-vwr/i_padding
 unit.1.0.port.-1.s.66.color=java.awt.Color[r\=0,g\=0,b\=124]
 unit.1.0.port.-1.s.66.name=DataPort[66]
 unit.1.0.port.-1.s.66.orderindex=-1

@@ -53,40 +53,11 @@ p_in_rst       : in  std_logic
 );
 end component;
 
-component vin_cam
-generic(
-G_VBUF_OWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1'
-);
-port(
---Вх. видеопоток
-p_in_vd            : in   std_logic_vector(99 downto 0);
-p_in_vs            : in   std_logic;
-p_in_hs            : in   std_logic;
-p_in_vclk          : in   std_logic;
-
-p_out_vfr_prm      : out  TFrXY;
-
---Вых. видеобуфера
-p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
-p_in_vbufin_rd     : in   std_logic;
-p_out_vbufin_empty : out  std_logic;
-p_in_vbufin_rdclk  : in   std_logic;
-p_in_vbufin_wrclk  : in   std_logic;
-
---Технологический
-p_in_tst           : in    std_logic_vector(31 downto 0);
-p_out_tst          : out   std_logic_vector(31 downto 0);
-
---System
-p_in_rst           : in   std_logic
-);
-end component;
-
 component vin_hdd
 generic(
 G_VBUF_OWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1'
+G_VSYN_ACTIVE : std_logic:='1';
+G_EXTSYN      : string:="OFF"
 );
 port(
 --Вх. видеопоток
@@ -94,6 +65,7 @@ p_in_vd            : in   std_logic_vector((10*8*2)-1 downto 0);--(99 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
+p_in_ext_syn       : in   std_logic;
 
 p_out_vfr_prm      : out  TFrXY;
 

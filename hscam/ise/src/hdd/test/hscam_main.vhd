@@ -29,8 +29,8 @@ use unisim.vcomponents.all;
 
 entity hscam_main is
 generic(
-G_VOUT_DWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1';
+G_VOUT_DWIDTH : integer:=16;
+G_VSYN_ACTIVE : std_logic:='0';
 G_SIM : string:="OFF"
 );
 port
@@ -125,7 +125,7 @@ p_in_vd             : in   std_logic_vector((10*8)-1 downto 0);
 p_in_vin_vs         : in   std_logic;--//Строб кодровой синхронизации
 p_in_vin_hs         : in   std_logic;--//Строб строчной синхронизации
 p_in_vin_clk        : in   std_logic;--//Пиксельная частота
-p_in_vin_syn        : in   std_logic;--//Синхронизация записи
+p_in_ext_syn        : in   std_logic;--//Внешняя синхронизация записи
 
 --------------------------------------------------
 --VideoOUT
@@ -450,7 +450,8 @@ p_in_vd             => i_vin_d,
 p_in_vin_vs         => i_vin_vs,--tst_in(0),--
 p_in_vin_hs         => i_vin_hs,--tst_in(1),--
 p_in_vin_clk        => i_vin_clk,
-p_in_vin_syn        => '0',
+p_in_ext_syn        => '1',
+
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
