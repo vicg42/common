@@ -217,7 +217,7 @@ p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(10)          <='0';
 p_out_tst(11)          <=tst_rambuf_empty;
 p_out_tst(12)          <=tst_rambuf_pfull;
-p_out_tst(13)          <='0';
+p_out_tst(13)          <=i_hm_w_padding;
 p_out_tst(14)          <='0';
 p_out_tst(15)          <='0';
 
