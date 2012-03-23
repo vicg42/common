@@ -299,7 +299,7 @@ begin
 end process;
 
 i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
-i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.greset;
+i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.grst_hdd;
 i_ram_reset_buf<=i_hdd_rst or i_hdd_rbuf_cfg.dmacfg.clr_err;
 
 
