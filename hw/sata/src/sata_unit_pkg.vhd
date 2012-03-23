@@ -41,6 +41,8 @@ p_out_dbgcs_ila   : out  TSH_ila;
 --------------------------------------------------
 p_in_ctrl         : in   std_logic_vector(C_USR_GCTRL_LAST_BIT downto 0);
 
+p_player_rst      : in    std_logic;
+
 p_in_dbg          : in   TSH_dbgport;
 p_in_alstatus     : in   TALStatus;
 p_in_phy_txreq    : in   std_logic_vector(7 downto 0);

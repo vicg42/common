@@ -558,7 +558,7 @@ p_out_dbg               => i_dbg(i).player,
 --------------------------------------------------
 --System
 --------------------------------------------------
-p_in_tmrclk             => p_in_sys_dcm_gclk2div,
+p_in_tmrclk             => p_in_gt_drpclk,
 p_in_clk                => g_gt_usrclk2(i),
 p_in_rst                => i_phy_layer_rst(i)
 );
@@ -581,6 +581,8 @@ p_out_dbgcs_ila   => p_out_dbgcs(i).layer,
 --USR
 --------------------------------------------------
 p_in_ctrl         => p_in_ctrl(i),
+
+p_player_rst      => i_phy_layer_rst(i),
 
 p_in_dbg          => i_dbg(i),
 p_in_alstatus     => i_alstatus(i),

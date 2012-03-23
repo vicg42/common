@@ -186,6 +186,7 @@ type TPLoob_dbgport is record
 fsm    : TPLoob_fsm_state;
 status : TDbg_PLStatus;
 speed  : std_logic_vector(C_PCTRL_SPD_BIT_M-C_PCTRL_SPD_BIT_L downto 0);
+timeout: std_logic;
 end record;
 
 type TPLtx_dbgport is record
