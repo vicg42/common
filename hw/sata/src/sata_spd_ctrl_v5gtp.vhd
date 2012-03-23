@@ -88,7 +88,7 @@ end sata_speed_ctrl;
 
 architecture behavioral of sata_speed_ctrl is
 
-constant C_TIME_OUT        : integer := 16#00081EB4#; -- timeout 3.5ms на 150MHz
+constant C_TIME_OUT        : integer := (C_OOB_TIMEOUT_880us + 800)*4;
 
 constant C_SATAH_COUNT_MAX : integer :=G_SATAH_COUNT_MAX;
 constant C_SATAH_NUM       : integer :=G_SATAH_NUM;
@@ -575,26 +575,24 @@ begin
         if i_gt_drp_regsel=C_REG_PLL_RXDIVSEL then
           i_gt_drpaddr<=C_AREG_PLL_RXDIVSEL_OUT(C_GT_CH0);
 
+          i_gt_drpdi(1 downto 0) <=i_gt_drp_rdval(1 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
-              i_gt_drpdi(2)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(2)<=C_VAL_PLL_DIVSEL_OUT(i);--<=i_gt_drp_rdval(2);
             end if;
           end loop;
-          i_gt_drpdi(1 downto 0) <=i_gt_drp_rdval(1 downto 0);
---          i_gt_drpdi(2)          <=i_gt_drp_rdval(2);
           i_gt_drpdi(15 downto 3)<=i_gt_drp_rdval(15 downto 3);
 
         else
           i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH0);
 
+          i_gt_drpdi(14 downto 0)<=i_gt_drp_rdval(14 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH0).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH0).sata_ver'length) then
-              i_gt_drpdi(15)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(15)<=C_VAL_PLL_DIVSEL_OUT(i);--<=i_gt_drp_rdval(15);
             end if;
           end loop;
         end if;
-        i_gt_drpdi(14 downto 0)<=i_gt_drp_rdval(14 downto 0);
---        i_gt_drpdi(15)         <=i_gt_drp_rdval(15);
 
         i_gt_drpen<='1';
         i_gt_drpwe<='1';
@@ -692,22 +690,20 @@ begin
 
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
-              i_gt_drpdi(0)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(0)<=C_VAL_PLL_DIVSEL_OUT(i);--<=i_gt_drp_rdval(0);
             end if;
           end loop;
---          i_gt_drpdi(0)          <=i_gt_drp_rdval(0);
           i_gt_drpdi(15 downto 1)<=i_gt_drp_rdval(15 downto 1);
 
         else
           i_gt_drpaddr<=C_AREG_PLL_TXDIVSEL_OUT(C_GT_CH1);
 
+          i_gt_drpdi(3 downto 0) <=i_gt_drp_rdval(3 downto 0);
           for i in 0 to C_FSATA_GEN_COUNT-1 loop
             if i_phy_spd(C_GT_CH1).sata_ver=CONV_STD_LOGIC_VECTOR(i, i_phy_spd(C_GT_CH1).sata_ver'length) then
-              i_gt_drpdi(4)<=C_VAL_PLL_DIVSEL_OUT(i);
+              i_gt_drpdi(4)<=C_VAL_PLL_DIVSEL_OUT(i);--<=i_gt_drp_rdval(4);
             end if;
           end loop;
-          i_gt_drpdi(3 downto 0) <=i_gt_drp_rdval(3 downto 0);
---          i_gt_drpdi(4)          <=i_gt_drp_rdval(4);
           i_gt_drpdi(15 downto 5)<=i_gt_drp_rdval(15 downto 5);
 
         end if;
@@ -889,7 +885,7 @@ i_dbgcs_data(21)<=i_gt_drpen;
 i_dbgcs_data(22)<=i_gt_drpwe;
 i_dbgcs_data(23)<=p_in_gt_drprdy;
 i_dbgcs_data(39 downto 24)<=i_gt_drpdi;
-i_dbgcs_data(55 downto 40)<=p_in_gt_drpdo;
+i_dbgcs_data(55 downto 40)<=i_gt_drp_rdval;
 i_dbgcs_data(41)<=i_phy_spd(0).sata_ver(0);
 i_dbgcs_data(42)<=i_phy_spd(0).sata_ver(1);
 i_dbgcs_data(122 downto 43)<=(others=>'0');

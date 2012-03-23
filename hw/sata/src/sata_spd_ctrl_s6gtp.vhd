@@ -88,7 +88,7 @@ end sata_speed_ctrl;
 
 architecture behavioral of sata_speed_ctrl is
 
-constant CI_TIMEOUT       : integer := 16#00081EB4#;--16#00080EB4# - timeout для боевого проекта -3.5ms на 150MHz
+constant CI_TIMEOUT       : integer := (C_OOB_TIMEOUT_880us + 800)*4;
 
 constant CI_GT_CH0        : integer :=0;
 constant CI_GT_CH1        : integer :=1;
@@ -766,7 +766,7 @@ i_dbgcs_data(21)<=i_gt_drpen;
 i_dbgcs_data(22)<=i_gt_drpwe;
 i_dbgcs_data(23)<=p_in_gt_drprdy;
 i_dbgcs_data(39 downto 24)<=i_gt_drpdi;
-i_dbgcs_data(55 downto 40)<=p_in_gt_drpdo;
+i_dbgcs_data(55 downto 40)<=i_gt_drp_rdval;
 
 for g in 0 to C_GTCH_COUNT_MAX-1 loop
 i_dbgcs_data(56+g)<=p_in_gt_resetdone(g);

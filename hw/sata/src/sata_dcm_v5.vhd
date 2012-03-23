@@ -27,7 +27,7 @@ port(
 p_out_dcm_gclk0  : out   std_logic;
 p_out_dcm_gclk2x : out   std_logic;
 p_out_dcm_gclkdv : out   std_logic;
-
+p_out_dcm_clk2x  : out   std_logic;
 p_out_dcmlock    : out   std_logic;
 
 p_out_refclkout  : out   std_logic;
@@ -50,7 +50,7 @@ begin
 p_out_refclkout <=g_dcm_clkin;
 bufg_dcm_clkin : BUFG port map (I => p_in_clk, O => g_dcm_clkin);
 
-
+p_out_dcm_clk2x<=i_dcm_clk2x;
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
 bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
