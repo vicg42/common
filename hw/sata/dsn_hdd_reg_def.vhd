@@ -16,7 +16,7 @@ use ieee.std_logic_1164.all;
 
 package dsn_hdd_reg_def is
 
-constant C_HDD_VERSION                        : integer:=16#001#;
+constant C_HDD_VERSION                        : integer:=16#002#;
 
 constant C_HDD_REG_CTRL_L                     : integer:=16#000#;
 constant C_HDD_REG_CTRL_M                     : integer:=16#001#;
