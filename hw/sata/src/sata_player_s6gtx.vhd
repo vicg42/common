@@ -308,540 +308,529 @@ m_gt : GTPA1_DUAL
 generic map(
 --_______________________ Simulation-Only Attributes ___________________
 
-SIM_RECEIVER_DETECT_PASS    =>     (TRUE),
-SIM_TX_ELEC_IDLE_LEVEL      =>     ("Z"),
-SIM_VERSION                 =>     ("2.0"),
+SIM_RECEIVER_DETECT_PASS   => (TRUE),
+SIM_TX_ELEC_IDLE_LEVEL     => ("Z"),
+SIM_VERSION                => ("2.0"),
 
-SIM_REFCLK0_SOURCE          =>     ("000"),
-SIM_REFCLK1_SOURCE          =>     ("000"),
-SIM_GTPRESET_SPEEDUP        =>     1,                          --также как для V5
+SIM_REFCLK0_SOURCE         => ("000"),
+SIM_REFCLK1_SOURCE         => ("000"),
+SIM_GTPRESET_SPEEDUP       => 1,            --также как для V5
 
 --PRBS Detection Attributes
-RXPRBSERR_LOOPBACK_0        =>     ('0'),
-RXPRBSERR_LOOPBACK_1        =>     ('0'),
+RXPRBSERR_LOOPBACK_0       => ('0'),
+RXPRBSERR_LOOPBACK_1       => ('0'),
 
-CLK25_DIVIDER_0             =>     6,                          --также как для V5
-CLK25_DIVIDER_1             =>     6,                          --также как для V5
+CLK25_DIVIDER_0            => 6,            --также как для V5
+CLK25_DIVIDER_1            => 6,            --также как для V5
 
---PLL Attributes
---PLL_clkout=PLL_clkin * (N1*N2)/M , где N1 - if  INTDATAWIDTH_x=1 then N1=5 else N1=4
---                                       N2 - PLL_DIVSEL_FB_x
---                                       M  - PLL_DIVSEL_REF
---PLL_clkout=150MHz * (5*2)/1 = 1500MHz
---
---RATE_clk= PLL_clkout * 2/D - где D: (PLL_TXDIVSEL_OUT_x или PLL_RXDIVSEL_OUT_x)
---RATE_clk= 1500MHz * 2/1 = 3000MHz
---
---USRCLK=RATE_clk/(Internal Datapath Width), где Internal Datapath Width. INTDATAWIDTH=1 => значение =10
---USRCLK=3000MHz/10 = 300MHz
-PLL_DIVSEL_FB_0             =>     2,                          --Изменил.Также как для V5
-PLL_DIVSEL_REF_0            =>     1,                          --Изменил.Также как для V5
-PLL_DIVSEL_FB_1             =>     2,                          --Изменил.Также как для V5
-PLL_DIVSEL_REF_1            =>     1,                          --Изменил.Также как для V5
+PLL_DIVSEL_FB_0            => 2,            --Изменил.Также как для V5
+PLL_DIVSEL_REF_0           => 1,            --Изменил.Также как для V5
+PLL_DIVSEL_FB_1            => 2,            --Изменил.Также как для V5
+PLL_DIVSEL_REF_1           => 1,            --Изменил.Также как для V5
 
-CLKINDC_B_0                 =>     (TRUE),
-CLKRCV_TRST_0               =>     (TRUE),
-OOB_CLK_DIVIDER_0           =>     (6),
-PLL_COM_CFG_0               =>     (x"21680a"),
-PLL_CP_CFG_0                =>     (x"00"),
-PLL_RXDIVSEL_OUT_0          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
-PLL_SATA_0                  =>     FALSE,
-PLL_SOURCE_0                =>     ("PLL0"),
-PLL_TXDIVSEL_OUT_0          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
-PLLLKDET_CFG_0              =>     ("111"),
+CLKINDC_B_0                => (TRUE),
+CLKRCV_TRST_0              => (TRUE),
+OOB_CLK_DIVIDER_0          => (6),
+PLL_COM_CFG_0              => (x"21680a"),
+PLL_CP_CFG_0               => (x"00"),
+PLL_RXDIVSEL_OUT_0         => CI_PLL_DIV,   --Изменил.(1/2 - SATA-II/I)
+PLL_SATA_0                 => FALSE,
+PLL_SOURCE_0               => ("PLL0"),
+PLL_TXDIVSEL_OUT_0         => CI_PLL_DIV,   --Изменил.(1/2 - SATA-II/I)
+PLLLKDET_CFG_0             => ("111"),
 
 --
-CLKINDC_B_1                 =>     (TRUE),
-CLKRCV_TRST_1               =>     (TRUE),
-OOB_CLK_DIVIDER_1           =>     (6),
-PLL_COM_CFG_1               =>     (x"21680a"),
-PLL_CP_CFG_1                =>     (x"00"),
-PLL_RXDIVSEL_OUT_1          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
-PLL_SATA_1                  =>     FALSE,
-PLL_SOURCE_1                =>     ("PLL1"),
-PLL_TXDIVSEL_OUT_1          =>     CI_PLL_DIV,                 --Изменил.(1/2 - SATA-II/I)
-PLLLKDET_CFG_1              =>     ("111"),
+CLKINDC_B_1                => (TRUE),
+CLKRCV_TRST_1              => (TRUE),
+OOB_CLK_DIVIDER_1          => (6),
+PLL_COM_CFG_1              => (x"21680a"),
+PLL_CP_CFG_1               => (x"00"),
+PLL_RXDIVSEL_OUT_1         => CI_PLL_DIV,   --Изменил.(1/2 - SATA-II/I)
+PLL_SATA_1                 => FALSE,
+PLL_SOURCE_1               => ("PLL1"),
+PLL_TXDIVSEL_OUT_1         => CI_PLL_DIV,   --Изменил.(1/2 - SATA-II/I)
+PLLLKDET_CFG_1             => ("111"),
 
-PMA_COM_CFG_EAST            =>     (x"000008000"),
-PMA_COM_CFG_WEST            =>     (x"00000a000"),
-TST_ATTR_0                  =>     (x"00000000"),
-TST_ATTR_1                  =>     (x"00000000"),
+PMA_COM_CFG_EAST           => (x"000008000"),
+PMA_COM_CFG_WEST           => (x"00000a000"),
+TST_ATTR_0                 => (x"00000000"),
+TST_ATTR_1                 => (x"00000000"),
 
 --TX Interface Attributes
-CLK_OUT_GTP_SEL_0           =>     "REFCLKPLL0",--("TXOUTCLK0"),--Изменил.
-TX_TDCC_CFG_0               =>     ("00"),
-CLK_OUT_GTP_SEL_1           =>     "REFCLKPLL1",--("TXOUTCLK1"),--Изменил.
-TX_TDCC_CFG_1               =>     ("00"),
+CLK_OUT_GTP_SEL_0          => "REFCLKPLL0",--("TXOUTCLK0"),--Изменил.
+TX_TDCC_CFG_0              => ("00"),
+CLK_OUT_GTP_SEL_1          => "REFCLKPLL1",--("TXOUTCLK1"),--Изменил.
+TX_TDCC_CFG_1              => ("00"),
 
 --TX Buffer and Phase Alignment Attributes
-PMA_TX_CFG_0                =>     (x"00082"),
-TX_BUFFER_USE_0             =>     (TRUE),
-TX_XCLK_SEL_0               =>     ("TXOUT"),
-TXRX_INVERT_0               =>     ("011"),
+PMA_TX_CFG_0               => (x"00082"),
+TX_BUFFER_USE_0            => (TRUE),
+TX_XCLK_SEL_0              => ("TXOUT"),
+TXRX_INVERT_0              => ("011"),
 
-PMA_TX_CFG_1                =>     (x"00082"),
-TX_BUFFER_USE_1             =>     (TRUE),
-TX_XCLK_SEL_1               =>     ("TXOUT"),
-TXRX_INVERT_1               =>     ("011"),
+PMA_TX_CFG_1               => (x"00082"),
+TX_BUFFER_USE_1            => (TRUE),
+TX_XCLK_SEL_1              => ("TXOUT"),
+TXRX_INVERT_1              => ("011"),
 
 --TX Driver and OOB signalling Attributes
-CM_TRIM_0                   =>     ("00"),
-TX_IDLE_DELAY_0             =>     ("011"),
-CM_TRIM_1                   =>     ("00"),
-TX_IDLE_DELAY_1             =>     ("011"),
+CM_TRIM_0                  => ("00"),
+TX_IDLE_DELAY_0            => ("011"),
+CM_TRIM_1                  => ("00"),
+TX_IDLE_DELAY_1            => ("011"),
 
 --RX Driver,OOB signalling,Coupling and Eq,CDR Attributes
-AC_CAP_DIS_0                =>     (FALSE),
-OOBDETECT_THRESHOLD_0       =>     "111",--("110"),            --Изменил.Также как для V5
-PMA_CDR_SCAN_0              =>     (x"6404040"),
-PMA_RX_CFG_0                =>     (x"05ce089"),               --Изменил.
-PMA_RXSYNC_CFG_0            =>     (x"00"),
-RCV_TERM_GND_0              =>     (FALSE),                    --Также как для V5
-RCV_TERM_VTTRX_0            =>     TRUE,--(FALSE),             --Изменил.Также как для V5
-RXEQ_CFG_0                  =>     ("01111011"),
-TERMINATION_CTRL_0          =>     ("10100"),
-TERMINATION_OVRD_0          =>     (FALSE),
-TX_DETECT_RX_CFG_0          =>     (x"1832"),
+AC_CAP_DIS_0               => (FALSE),
+OOBDETECT_THRESHOLD_0      => "111",--("110"),         --Изменил.Также как для V5
+PMA_CDR_SCAN_0             => (x"6404040"),
+PMA_RX_CFG_0               => (x"05ce089"),            --Изменил.
+PMA_RXSYNC_CFG_0           => (x"00"),
+RCV_TERM_GND_0             => (FALSE),                 --Также как для V5
+RCV_TERM_VTTRX_0           => TRUE,--(FALSE),          --Изменил.Также как для V5
+RXEQ_CFG_0                 => ("01111011"),
+TERMINATION_CTRL_0         => ("10100"),
+TERMINATION_OVRD_0         => (FALSE),
+TX_DETECT_RX_CFG_0         => (x"1832"),
 
-AC_CAP_DIS_1                =>     (FALSE),
-OOBDETECT_THRESHOLD_1       =>     "111", --("110"),           --Изменил.Также как для V5
-PMA_CDR_SCAN_1              =>     (x"6404040"),
-PMA_RX_CFG_1                =>     (x"05ce089"),               --Изменил.
-PMA_RXSYNC_CFG_1            =>     (x"00"),
-RCV_TERM_GND_1              =>     (FALSE),                    --Также как для V5
-RCV_TERM_VTTRX_1            =>     TRUE,--(FALSE),             --Изменил.Также как для V5
-RXEQ_CFG_1                  =>     ("01111011"),
-TERMINATION_CTRL_1          =>     ("10100"),
-TERMINATION_OVRD_1          =>     (FALSE),
-TX_DETECT_RX_CFG_1          =>     (x"1832"),
+AC_CAP_DIS_1               => (FALSE),
+OOBDETECT_THRESHOLD_1      => "111", --("110"),        --Изменил.Также как для V5
+PMA_CDR_SCAN_1             => (x"6404040"),
+PMA_RX_CFG_1               => (x"05ce089"),            --Изменил.
+PMA_RXSYNC_CFG_1           => (x"00"),
+RCV_TERM_GND_1             => (FALSE),                 --Также как для V5
+RCV_TERM_VTTRX_1           => TRUE,--(FALSE),          --Изменил.Также как для V5
+RXEQ_CFG_1                 => ("01111011"),
+TERMINATION_CTRL_1         => ("10100"),
+TERMINATION_OVRD_1         => (FALSE),
+TX_DETECT_RX_CFG_1         => (x"1832"),
 
 --Comma Detection and Alignment Attributes
-ALIGN_COMMA_WORD_0          =>     CI_GT_ALIGN_COMMA_WORD,     --Изменил.
-COMMA_10B_ENABLE_0          =>     ("1111111111"),
-DEC_MCOMMA_DETECT_0         =>     (TRUE),
-DEC_PCOMMA_DETECT_0         =>     (TRUE),
-DEC_VALID_COMMA_ONLY_0      =>     (FALSE),
-MCOMMA_10B_VALUE_0          =>     ("1010000011"),
-MCOMMA_DETECT_0             =>     (TRUE),
-PCOMMA_10B_VALUE_0          =>     ("0101111100"),
-PCOMMA_DETECT_0             =>     (TRUE),
-RX_SLIDE_MODE_0             =>     ("PCS"),
+ALIGN_COMMA_WORD_0         => CI_GT_ALIGN_COMMA_WORD,  --Изменил.
+COMMA_10B_ENABLE_0         => ("1111111111"),
+DEC_MCOMMA_DETECT_0        => (TRUE),
+DEC_PCOMMA_DETECT_0        => (TRUE),
+DEC_VALID_COMMA_ONLY_0     => (FALSE),
+MCOMMA_10B_VALUE_0         => ("1010000011"),
+MCOMMA_DETECT_0            => (TRUE),
+PCOMMA_10B_VALUE_0         => ("0101111100"),
+PCOMMA_DETECT_0            => (TRUE),
+RX_SLIDE_MODE_0            => ("PCS"),
 
-ALIGN_COMMA_WORD_1          =>     CI_GT_ALIGN_COMMA_WORD,     --Изменил.
-COMMA_10B_ENABLE_1          =>     ("1111111111"),
-DEC_MCOMMA_DETECT_1         =>     (TRUE),
-DEC_PCOMMA_DETECT_1         =>     (TRUE),
-DEC_VALID_COMMA_ONLY_1      =>     (FALSE),
-MCOMMA_10B_VALUE_1          =>     ("1010000011"),
-MCOMMA_DETECT_1             =>     (TRUE),
-PCOMMA_10B_VALUE_1          =>     ("0101111100"),
-PCOMMA_DETECT_1             =>     (TRUE),
-RX_SLIDE_MODE_1             =>     ("PCS"),
+ALIGN_COMMA_WORD_1         => CI_GT_ALIGN_COMMA_WORD,  --Изменил.
+COMMA_10B_ENABLE_1         => ("1111111111"),
+DEC_MCOMMA_DETECT_1        => (TRUE),
+DEC_PCOMMA_DETECT_1        => (TRUE),
+DEC_VALID_COMMA_ONLY_1     => (FALSE),
+MCOMMA_10B_VALUE_1         => ("1010000011"),
+MCOMMA_DETECT_1            => (TRUE),
+PCOMMA_10B_VALUE_1         => ("0101111100"),
+PCOMMA_DETECT_1            => (TRUE),
+RX_SLIDE_MODE_1            => ("PCS"),
 
 --RX Loss-of-sync State Machine Attributes
-RX_LOSS_OF_SYNC_FSM_0       =>     (FALSE),
-RX_LOS_INVALID_INCR_0       =>     (8),
-RX_LOS_THRESHOLD_0          =>     (128),
+RX_LOSS_OF_SYNC_FSM_0      => (FALSE),
+RX_LOS_INVALID_INCR_0      => (8),
+RX_LOS_THRESHOLD_0         => (128),
 
-RX_LOSS_OF_SYNC_FSM_1       =>     (FALSE),
-RX_LOS_INVALID_INCR_1       =>     (8),
-RX_LOS_THRESHOLD_1          =>     (128),
+RX_LOSS_OF_SYNC_FSM_1      => (FALSE),
+RX_LOS_INVALID_INCR_1      => (8),
+RX_LOS_THRESHOLD_1         => (128),
 
 --RX Elastic Buffer and Phase alignment Attributes
-RX_BUFFER_USE_0             =>     (TRUE),
-RX_XCLK_SEL_0               =>     ("RXREC"),
-RX_EN_IDLE_RESET_BUF_0      =>     (TRUE),
-RX_IDLE_HI_CNT_0            =>     ("1000"),
-RX_IDLE_LO_CNT_0            =>     ("0000"),
+RX_BUFFER_USE_0            => (TRUE),
+RX_XCLK_SEL_0              => ("RXREC"),
+RX_EN_IDLE_RESET_BUF_0     => (TRUE),
+RX_IDLE_HI_CNT_0           => ("1000"),
+RX_IDLE_LO_CNT_0           => ("0000"),
 
-RX_BUFFER_USE_1             =>     (TRUE),
-RX_XCLK_SEL_1               =>     ("RXREC"),
-RX_EN_IDLE_RESET_BUF_1      =>     (TRUE),
-RX_IDLE_HI_CNT_1            =>     ("1000"),
-RX_IDLE_LO_CNT_1            =>     ("0000"),
+RX_BUFFER_USE_1            => (TRUE),
+RX_XCLK_SEL_1              => ("RXREC"),
+RX_EN_IDLE_RESET_BUF_1     => (TRUE),
+RX_IDLE_HI_CNT_1           => ("1000"),
+RX_IDLE_LO_CNT_1           => ("0000"),
 
 --Clock Correction Attributes
-CLK_CORRECT_USE_0           =>     (TRUE),
-CLK_COR_ADJ_LEN_0           =>     (4),
-CLK_COR_DET_LEN_0           =>     (4),
-CLK_COR_INSERT_IDLE_FLAG_0  =>     (FALSE),
-CLK_COR_KEEP_IDLE_0         =>     (FALSE),
-CLK_COR_MAX_LAT_0           =>     (18),
-CLK_COR_MIN_LAT_0           =>     (16),
-CLK_COR_PRECEDENCE_0        =>     (TRUE),
-CLK_COR_REPEAT_WAIT_0       =>     (0),
-CLK_COR_SEQ_1_1_0           =>     ("0110111100"),
-CLK_COR_SEQ_1_2_0           =>     ("0001001010"),
-CLK_COR_SEQ_1_3_0           =>     ("0001001010"),
-CLK_COR_SEQ_1_4_0           =>     ("0001111011"),
-CLK_COR_SEQ_1_ENABLE_0      =>     ("1111"),
-CLK_COR_SEQ_2_1_0           =>     ("0000000000"),
-CLK_COR_SEQ_2_2_0           =>     ("0000000000"),
-CLK_COR_SEQ_2_3_0           =>     ("0000000000"),
-CLK_COR_SEQ_2_4_0           =>     ("0000000000"),
-CLK_COR_SEQ_2_ENABLE_0      =>     ("0000"),
-CLK_COR_SEQ_2_USE_0         =>     (FALSE),
-RX_DECODE_SEQ_MATCH_0       =>     (TRUE),
+CLK_CORRECT_USE_0          => (TRUE),
+CLK_COR_ADJ_LEN_0          => (4),
+CLK_COR_DET_LEN_0          => (4),
+CLK_COR_INSERT_IDLE_FLAG_0 => (FALSE),
+CLK_COR_KEEP_IDLE_0        => (FALSE),
+CLK_COR_MAX_LAT_0          => (18),
+CLK_COR_MIN_LAT_0          => (16),
+CLK_COR_PRECEDENCE_0       => (TRUE),
+CLK_COR_REPEAT_WAIT_0      => (0),
+CLK_COR_SEQ_1_1_0          => ("0110111100"),
+CLK_COR_SEQ_1_2_0          => ("0001001010"),
+CLK_COR_SEQ_1_3_0          => ("0001001010"),
+CLK_COR_SEQ_1_4_0          => ("0001111011"),
+CLK_COR_SEQ_1_ENABLE_0     => ("1111"),
+CLK_COR_SEQ_2_1_0          => ("0000000000"),
+CLK_COR_SEQ_2_2_0          => ("0000000000"),
+CLK_COR_SEQ_2_3_0          => ("0000000000"),
+CLK_COR_SEQ_2_4_0          => ("0000000000"),
+CLK_COR_SEQ_2_ENABLE_0     => ("0000"),
+CLK_COR_SEQ_2_USE_0        => (FALSE),
+RX_DECODE_SEQ_MATCH_0      => (TRUE),
 
-CLK_CORRECT_USE_1           =>     (TRUE),
-CLK_COR_ADJ_LEN_1           =>     (4),
-CLK_COR_DET_LEN_1           =>     (4),
-CLK_COR_INSERT_IDLE_FLAG_1  =>     (FALSE),
-CLK_COR_KEEP_IDLE_1         =>     (FALSE),
-CLK_COR_MAX_LAT_1           =>     (18),
-CLK_COR_MIN_LAT_1           =>     (16),
-CLK_COR_PRECEDENCE_1        =>     (TRUE),
-CLK_COR_REPEAT_WAIT_1       =>     (0),
-CLK_COR_SEQ_1_1_1           =>     ("0110111100"),
-CLK_COR_SEQ_1_2_1           =>     ("0001001010"),
-CLK_COR_SEQ_1_3_1           =>     ("0001001010"),
-CLK_COR_SEQ_1_4_1           =>     ("0001111011"),
-CLK_COR_SEQ_1_ENABLE_1      =>     ("1111"),
-CLK_COR_SEQ_2_1_1           =>     ("0000000000"),
-CLK_COR_SEQ_2_2_1           =>     ("0000000000"),
-CLK_COR_SEQ_2_3_1           =>     ("0000000000"),
-CLK_COR_SEQ_2_4_1           =>     ("0000000000"),
-CLK_COR_SEQ_2_ENABLE_1      =>     ("0000"),
-CLK_COR_SEQ_2_USE_1         =>     (FALSE),
-RX_DECODE_SEQ_MATCH_1       =>     (TRUE),
+CLK_CORRECT_USE_1          => (TRUE),
+CLK_COR_ADJ_LEN_1          => (4),
+CLK_COR_DET_LEN_1          => (4),
+CLK_COR_INSERT_IDLE_FLAG_1 => (FALSE),
+CLK_COR_KEEP_IDLE_1        => (FALSE),
+CLK_COR_MAX_LAT_1          => (18),
+CLK_COR_MIN_LAT_1          => (16),
+CLK_COR_PRECEDENCE_1       => (TRUE),
+CLK_COR_REPEAT_WAIT_1      => (0),
+CLK_COR_SEQ_1_1_1          => ("0110111100"),
+CLK_COR_SEQ_1_2_1          => ("0001001010"),
+CLK_COR_SEQ_1_3_1          => ("0001001010"),
+CLK_COR_SEQ_1_4_1          => ("0001111011"),
+CLK_COR_SEQ_1_ENABLE_1     => ("1111"),
+CLK_COR_SEQ_2_1_1          => ("0000000000"),
+CLK_COR_SEQ_2_2_1          => ("0000000000"),
+CLK_COR_SEQ_2_3_1          => ("0000000000"),
+CLK_COR_SEQ_2_4_1          => ("0000000000"),
+CLK_COR_SEQ_2_ENABLE_1     => ("0000"),
+CLK_COR_SEQ_2_USE_1        => (FALSE),
+RX_DECODE_SEQ_MATCH_1      => (TRUE),
 
 --Channel Bonding Attributes
-CHAN_BOND_1_MAX_SKEW_0      =>     (1),
-CHAN_BOND_2_MAX_SKEW_0      =>     (1),
-CHAN_BOND_KEEP_ALIGN_0      =>     (FALSE),
-CHAN_BOND_SEQ_1_1_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_2_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_3_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_4_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_ENABLE_0    =>     ("0000"),
-CHAN_BOND_SEQ_2_1_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_2_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_3_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_4_0         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_ENABLE_0    =>     ("0000"),
-CHAN_BOND_SEQ_2_USE_0       =>     (FALSE),
-CHAN_BOND_SEQ_LEN_0         =>     (1),
-RX_EN_MODE_RESET_BUF_0      =>     (TRUE),     --
+CHAN_BOND_1_MAX_SKEW_0     => (1),
+CHAN_BOND_2_MAX_SKEW_0     => (1),
+CHAN_BOND_KEEP_ALIGN_0     => (FALSE),
+CHAN_BOND_SEQ_1_1_0        => ("0000000000"),
+CHAN_BOND_SEQ_1_2_0        => ("0000000000"),
+CHAN_BOND_SEQ_1_3_0        => ("0000000000"),
+CHAN_BOND_SEQ_1_4_0        => ("0000000000"),
+CHAN_BOND_SEQ_1_ENABLE_0   => ("0000"),
+CHAN_BOND_SEQ_2_1_0        => ("0000000000"),
+CHAN_BOND_SEQ_2_2_0        => ("0000000000"),
+CHAN_BOND_SEQ_2_3_0        => ("0000000000"),
+CHAN_BOND_SEQ_2_4_0        => ("0000000000"),
+CHAN_BOND_SEQ_2_ENABLE_0   => ("0000"),
+CHAN_BOND_SEQ_2_USE_0      => (FALSE),
+CHAN_BOND_SEQ_LEN_0        => (1),
+RX_EN_MODE_RESET_BUF_0     => (TRUE),     --
 
-CHAN_BOND_1_MAX_SKEW_1      =>     (1),
-CHAN_BOND_2_MAX_SKEW_1      =>     (1),
-CHAN_BOND_KEEP_ALIGN_1      =>     (FALSE),
-CHAN_BOND_SEQ_1_1_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_2_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_3_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_4_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_1_ENABLE_1    =>     ("0000"),
-CHAN_BOND_SEQ_2_1_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_2_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_3_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_4_1         =>     ("0000000000"),
-CHAN_BOND_SEQ_2_ENABLE_1    =>     ("0000"),
-CHAN_BOND_SEQ_2_USE_1       =>     (FALSE),
-CHAN_BOND_SEQ_LEN_1         =>     (1),
-RX_EN_MODE_RESET_BUF_1      =>     (TRUE),     --
+CHAN_BOND_1_MAX_SKEW_1     => (1),
+CHAN_BOND_2_MAX_SKEW_1     => (1),
+CHAN_BOND_KEEP_ALIGN_1     => (FALSE),
+CHAN_BOND_SEQ_1_1_1        => ("0000000000"),
+CHAN_BOND_SEQ_1_2_1        => ("0000000000"),
+CHAN_BOND_SEQ_1_3_1        => ("0000000000"),
+CHAN_BOND_SEQ_1_4_1        => ("0000000000"),
+CHAN_BOND_SEQ_1_ENABLE_1   => ("0000"),
+CHAN_BOND_SEQ_2_1_1        => ("0000000000"),
+CHAN_BOND_SEQ_2_2_1        => ("0000000000"),
+CHAN_BOND_SEQ_2_3_1        => ("0000000000"),
+CHAN_BOND_SEQ_2_4_1        => ("0000000000"),
+CHAN_BOND_SEQ_2_ENABLE_1   => ("0000"),
+CHAN_BOND_SEQ_2_USE_1      => (FALSE),
+CHAN_BOND_SEQ_LEN_1        => (1),
+RX_EN_MODE_RESET_BUF_1     => (TRUE),     --
 
 
 --RX PCI Express Attributes
-PCI_EXPRESS_MODE_0          =>     (FALSE),
-CB2_INH_CC_PERIOD_0         =>     (8),
-CDR_PH_ADJ_TIME_0           =>     ("01010"),
-RX_EN_IDLE_HOLD_CDR_0       =>     (FALSE),
-RX_EN_IDLE_RESET_FR_0       =>     (TRUE),     --
-RX_EN_IDLE_RESET_PH_0       =>     (TRUE),     --
+PCI_EXPRESS_MODE_0         => (FALSE),
+CB2_INH_CC_PERIOD_0        => (8),
+CDR_PH_ADJ_TIME_0          => ("01010"),
+RX_EN_IDLE_HOLD_CDR_0      => (FALSE),
+RX_EN_IDLE_RESET_FR_0      => (TRUE),     --
+RX_EN_IDLE_RESET_PH_0      => (TRUE),     --
 
-PCI_EXPRESS_MODE_1          =>     (FALSE),
-CB2_INH_CC_PERIOD_1         =>     (8),
-CDR_PH_ADJ_TIME_1           =>     ("01010"),
-RX_EN_IDLE_HOLD_CDR_1       =>     (FALSE),
-RX_EN_IDLE_RESET_FR_1       =>     (TRUE),     --
-RX_EN_IDLE_RESET_PH_1       =>     (TRUE),     --
+PCI_EXPRESS_MODE_1         => (FALSE),
+CB2_INH_CC_PERIOD_1        => (8),
+CDR_PH_ADJ_TIME_1          => ("01010"),
+RX_EN_IDLE_HOLD_CDR_1      => (FALSE),
+RX_EN_IDLE_RESET_FR_1      => (TRUE),     --
+RX_EN_IDLE_RESET_PH_1      => (TRUE),     --
 
 --RX SATA Attributes
-COM_BURST_VAL_0             =>     "0101",--("1111"),          --Изменил.Также как для V5
-RX_STATUS_FMT_0             =>     ("SATA"),
-SATA_BURST_VAL_0            =>     ("100"),
-SATA_IDLE_VAL_0             =>     ("100"),
-SATA_MAX_BURST_0            =>     (7),
-SATA_MAX_INIT_0             =>     (22),
-SATA_MAX_WAKE_0             =>     (7),
-SATA_MIN_BURST_0            =>     (4),
-SATA_MIN_INIT_0             =>     (12),
-SATA_MIN_WAKE_0             =>     (4),
-TRANS_TIME_FROM_P2_0        =>     (x"03c"),
-TRANS_TIME_NON_P2_0         =>     (x"19"),
-TRANS_TIME_TO_P2_0          =>     (x"064"),
+COM_BURST_VAL_0            => "0101",--("1111"),  --Изменил.Также как для V5
+RX_STATUS_FMT_0            => ("SATA"),
+SATA_BURST_VAL_0           => ("100"),
+SATA_IDLE_VAL_0            => ("100"),
+SATA_MAX_BURST_0           => (7),
+SATA_MAX_INIT_0            => (22),
+SATA_MAX_WAKE_0            => (7),
+SATA_MIN_BURST_0           => (4),
+SATA_MIN_INIT_0            => (12),
+SATA_MIN_WAKE_0            => (4),
+TRANS_TIME_FROM_P2_0       => (x"03c"),
+TRANS_TIME_NON_P2_0        => (x"19"),
+TRANS_TIME_TO_P2_0         => (x"064"),
 
-COM_BURST_VAL_1             =>     "0101",--("1111"),          --Изменил.Также как для V5
-RX_STATUS_FMT_1             =>     ("SATA"),
-SATA_BURST_VAL_1            =>     ("100"),
-SATA_IDLE_VAL_1             =>     ("100"),
-SATA_MAX_BURST_1            =>     (7),
-SATA_MAX_INIT_1             =>     (22),
-SATA_MAX_WAKE_1             =>     (7),
-SATA_MIN_BURST_1            =>     (4),
-SATA_MIN_INIT_1             =>     (12),
-SATA_MIN_WAKE_1             =>     (4),
-TRANS_TIME_FROM_P2_1        =>     (x"03c"),
-TRANS_TIME_NON_P2_1         =>     (x"19"),
-TRANS_TIME_TO_P2_1          =>     (x"064")
+COM_BURST_VAL_1            => "0101",--("1111"),  --Изменил.Также как для V5
+RX_STATUS_FMT_1            => ("SATA"),
+SATA_BURST_VAL_1           => ("100"),
+SATA_IDLE_VAL_1            => ("100"),
+SATA_MAX_BURST_1           => (7),
+SATA_MAX_INIT_1            => (22),
+SATA_MAX_WAKE_1            => (7),
+SATA_MIN_BURST_1           => (4),
+SATA_MIN_INIT_1            => (12),
+SATA_MIN_WAKE_1            => (4),
+TRANS_TIME_FROM_P2_1       => (x"03c"),
+TRANS_TIME_NON_P2_1        => (x"19"),
+TRANS_TIME_TO_P2_1         => (x"064")
 )
 port map(
 ------------------------ Loopback and Powerdown Ports ----------------------
-LOOPBACK0                       =>      (others=>'0'),
-LOOPBACK1                       =>      (others=>'0'),
-RXPOWERDOWN0                    =>      (others=>'0'),
-RXPOWERDOWN1                    =>      (others=>'0'),
-TXPOWERDOWN0                    =>      (others=>'0'),
-TXPOWERDOWN1                    =>      (others=>'0'),
+LOOPBACK0                  => (others=>'0'),
+LOOPBACK1                  => (others=>'0'),
+RXPOWERDOWN0               => (others=>'0'),
+RXPOWERDOWN1               => (others=>'0'),
+TXPOWERDOWN0               => (others=>'0'),
+TXPOWERDOWN1               => (others=>'0'),
 --------------------------------- PLL Ports --------------------------------
-CLK00                           =>      '0',                               --add vicg
-CLK01                           =>      '0',                               --add vicg
-CLK10                           =>      p_in_refclkin,
-CLK11                           =>      '0',
-CLKINEAST0                      =>      p_in_optrefclk(0),--'0',--
-CLKINEAST1                      =>      p_in_optrefclk(1),--'0',--
-CLKINWEST0                      =>      p_in_optrefclk(2),--'0',--
-CLKINWEST1                      =>      p_in_optrefclk(3),--'0',--
-GCLK00                          =>      '0',
-GCLK01                          =>      '0',
-GCLK10                          =>      '0',
-GCLK11                          =>      '0',
-GTPRESET0                       =>      p_in_rst,                          --add vicg
-GTPRESET1                       =>      p_in_rst,                          --add vicg
-GTPTEST0                        =>      "00010000",
-GTPTEST1                        =>      "00010000",
-INTDATAWIDTH0                   =>      '1',
-INTDATAWIDTH1                   =>      '1',
-PLLCLK00                        =>      '0',
-PLLCLK01                        =>      '0',
-PLLCLK10                        =>      '0',
-PLLCLK11                        =>      '0',
-PLLLKDET0                       =>      i_plllkdet(0),                     --add vicg
-PLLLKDET1                       =>      i_plllkdet(1),                     --add vicg
-PLLLKDETEN0                     =>      '1',
-PLLLKDETEN1                     =>      '1',
-PLLPOWERDOWN0                   =>      '0',
-PLLPOWERDOWN1                   =>      '0',
-REFCLKOUT0                      =>      open,
-REFCLKOUT1                      =>      open,
-REFCLKPLL0                      =>      i_refclkpll(0),                    --add vicg
-REFCLKPLL1                      =>      i_refclkpll(1),                    --add vicg
-REFCLKPWRDNB0                   =>      '1',
-REFCLKPWRDNB1                   =>      '1',
-REFSELDYPLL0                    =>      p_in_optrefclksel(2 downto 0),     --add vicg
-REFSELDYPLL1                    =>      p_in_optrefclksel(2 downto 0),     --add vicg
-RESETDONE0                      =>      i_resetdone(0),                    --add vicg
-RESETDONE1                      =>      i_resetdone(1),                    --add vicg
-TSTCLK0                         =>      '0',
-TSTCLK1                         =>      '0',
-TSTIN0                          =>      (others=>'0'),
-TSTIN1                          =>      (others=>'0'),
-TSTOUT0                         =>      open,
-TSTOUT1                         =>      open,
+CLK00                      => '0',                               --add vicg
+CLK01                      => '0',                               --add vicg
+CLK10                      => p_in_refclkin,
+CLK11                      => '0',
+CLKINEAST0                 => p_in_optrefclk(0),--'0',--
+CLKINEAST1                 => p_in_optrefclk(1),--'0',--
+CLKINWEST0                 => p_in_optrefclk(2),--'0',--
+CLKINWEST1                 => p_in_optrefclk(3),--'0',--
+GCLK00                     => '0',
+GCLK01                     => '0',
+GCLK10                     => '0',
+GCLK11                     => '0',
+GTPRESET0                  => p_in_rst,                          --add vicg
+GTPRESET1                  => p_in_rst,                          --add vicg
+GTPTEST0                   => "00010000",
+GTPTEST1                   => "00010000",
+INTDATAWIDTH0              => '1',
+INTDATAWIDTH1              => '1',
+PLLCLK00                   => '0',
+PLLCLK01                   => '0',
+PLLCLK10                   => '0',
+PLLCLK11                   => '0',
+PLLLKDET0                  => i_plllkdet(0),                     --add vicg
+PLLLKDET1                  => i_plllkdet(1),                     --add vicg
+PLLLKDETEN0                => '1',
+PLLLKDETEN1                => '1',
+PLLPOWERDOWN0              => '0',
+PLLPOWERDOWN1              => '0',
+REFCLKOUT0                 => open,
+REFCLKOUT1                 => open,
+REFCLKPLL0                 => i_refclkpll(0),                    --add vicg
+REFCLKPLL1                 => i_refclkpll(1),                    --add vicg
+REFCLKPWRDNB0              => '1',
+REFCLKPWRDNB1              => '1',
+REFSELDYPLL0               => p_in_optrefclksel(2 downto 0),     --add vicg
+REFSELDYPLL1               => p_in_optrefclksel(2 downto 0),     --add vicg
+RESETDONE0                 => i_resetdone(0),                    --add vicg
+RESETDONE1                 => i_resetdone(1),                    --add vicg
+TSTCLK0                    => '0',
+TSTCLK1                    => '0',
+TSTIN0                     => (others=>'0'),
+TSTIN1                     => (others=>'0'),
+TSTOUT0                    => open,
+TSTOUT1                    => open,
 ----------------------- Receive Ports - 8b10b Decoder ----------------------
-RXCHARISCOMMA0(3 downto 2)      =>      i_rxchariscomma(0)(3 downto 2),    --add vicg
-RXCHARISCOMMA0(1 downto 0)      =>      i_rxchariscomma(0)(1 downto 0),    --add vicg
-RXCHARISCOMMA1(3 downto 2)      =>      i_rxchariscomma(1)(3 downto 2),    --add vicg
-RXCHARISCOMMA1(1 downto 0)      =>      i_rxchariscomma(1)(1 downto 0),    --add vicg
-RXCHARISK0(3 downto 2)          =>      i_rxcharisk_out(0)(3 downto 2),    --add vicg
-RXCHARISK0(1 downto 0)          =>      i_rxcharisk_out(0)(1 downto 0),    --add vicg
-RXCHARISK1(3 downto 2)          =>      i_rxcharisk_out(1)(3 downto 2),    --add vicg
-RXCHARISK1(1 downto 0)          =>      i_rxcharisk_out(1)(1 downto 0),    --add vicg
-RXDEC8B10BUSE0                  =>      CI_8B10BUSE,
-RXDEC8B10BUSE1                  =>      CI_8B10BUSE,
-RXDISPERR0(3 downto 2)          =>      i_rxdisperr_out(0)(3 downto 2),    --add vicg
-RXDISPERR0(1 downto 0)          =>      i_rxdisperr_out(0)(1 downto 0),    --add vicg
-RXDISPERR1(3 downto 2)          =>      i_rxdisperr_out(1)(3 downto 2),    --add vicg
-RXDISPERR1(1 downto 0)          =>      i_rxdisperr_out(1)(1 downto 0),    --add vicg
-RXNOTINTABLE0(3 downto 2)       =>      i_rxnotintable_out(0)(3 downto 2), --add vicg
-RXNOTINTABLE0(1 downto 0)       =>      i_rxnotintable_out(0)(1 downto 0), --add vicg
-RXNOTINTABLE1(3 downto 2)       =>      i_rxnotintable_out(1)(3 downto 2), --add vicg
-RXNOTINTABLE1(1 downto 0)       =>      i_rxnotintable_out(1)(1 downto 0), --add vicg
-RXRUNDISP0                      =>      open,
-RXRUNDISP1                      =>      open,
-USRCODEERR0                     =>      '0',
-USRCODEERR1                     =>      '0',
+RXCHARISCOMMA0(3 downto 2) => i_rxchariscomma(0)(3 downto 2),    --add vicg
+RXCHARISCOMMA0(1 downto 0) => i_rxchariscomma(0)(1 downto 0),    --add vicg
+RXCHARISCOMMA1(3 downto 2) => i_rxchariscomma(1)(3 downto 2),    --add vicg
+RXCHARISCOMMA1(1 downto 0) => i_rxchariscomma(1)(1 downto 0),    --add vicg
+RXCHARISK0(3 downto 2)     => i_rxcharisk_out(0)(3 downto 2),    --add vicg
+RXCHARISK0(1 downto 0)     => i_rxcharisk_out(0)(1 downto 0),    --add vicg
+RXCHARISK1(3 downto 2)     => i_rxcharisk_out(1)(3 downto 2),    --add vicg
+RXCHARISK1(1 downto 0)     => i_rxcharisk_out(1)(1 downto 0),    --add vicg
+RXDEC8B10BUSE0             => CI_8B10BUSE,
+RXDEC8B10BUSE1             => CI_8B10BUSE,
+RXDISPERR0(3 downto 2)     => i_rxdisperr_out(0)(3 downto 2),    --add vicg
+RXDISPERR0(1 downto 0)     => i_rxdisperr_out(0)(1 downto 0),    --add vicg
+RXDISPERR1(3 downto 2)     => i_rxdisperr_out(1)(3 downto 2),    --add vicg
+RXDISPERR1(1 downto 0)     => i_rxdisperr_out(1)(1 downto 0),    --add vicg
+RXNOTINTABLE0(3 downto 2)  => i_rxnotintable_out(0)(3 downto 2), --add vicg
+RXNOTINTABLE0(1 downto 0)  => i_rxnotintable_out(0)(1 downto 0), --add vicg
+RXNOTINTABLE1(3 downto 2)  => i_rxnotintable_out(1)(3 downto 2), --add vicg
+RXNOTINTABLE1(1 downto 0)  => i_rxnotintable_out(1)(1 downto 0), --add vicg
+RXRUNDISP0                 => open,
+RXRUNDISP1                 => open,
+USRCODEERR0                => '0',
+USRCODEERR1                => '0',
 ---------------------- Receive Ports - Channel Bonding ---------------------
-RXCHANBONDSEQ0                  =>      open,
-RXCHANBONDSEQ1                  =>      open,
-RXCHANISALIGNED0                =>      open,
-RXCHANISALIGNED1                =>      open,
-RXCHANREALIGN0                  =>      open,
-RXCHANREALIGN1                  =>      open,
-RXCHBONDI                       =>      (others=>'0'),
-RXCHBONDMASTER0                 =>      '0',
-RXCHBONDMASTER1                 =>      '0',
-RXCHBONDO                       =>      open,
-RXCHBONDSLAVE0                  =>      '0',
-RXCHBONDSLAVE1                  =>      '0',
-RXENCHANSYNC0                   =>      '0',
-RXENCHANSYNC1                   =>      '0',
+RXCHANBONDSEQ0             => open,
+RXCHANBONDSEQ1             => open,
+RXCHANISALIGNED0           => open,
+RXCHANISALIGNED1           => open,
+RXCHANREALIGN0             => open,
+RXCHANREALIGN1             => open,
+RXCHBONDI                  => (others=>'0'),
+RXCHBONDMASTER0            => '0',
+RXCHBONDMASTER1            => '0',
+RXCHBONDO                  => open,
+RXCHBONDSLAVE0             => '0',
+RXCHBONDSLAVE1             => '0',
+RXENCHANSYNC0              => '0',
+RXENCHANSYNC1              => '0',
 ---------------------- Receive Ports - Clock Correction --------------------
-RXCLKCORCNT0                    =>      open,                              --add vicg
-RXCLKCORCNT1                    =>      open,                              --add vicg
+RXCLKCORCNT0               => open,                              --add vicg
+RXCLKCORCNT1               => open,                              --add vicg
 --------------- Receive Ports - Comma Detection and Alignment --------------
-RXBYTEISALIGNED0                =>      i_rxbyteisaligned_out(0),          --add vicg
-RXBYTEISALIGNED1                =>      i_rxbyteisaligned_out(1),          --add vicg
-RXBYTEREALIGN0                  =>      open,
-RXBYTEREALIGN1                  =>      open,
-RXCOMMADET0                     =>      open,
-RXCOMMADET1                     =>      open,
-RXCOMMADETUSE0                  =>      '1',                               --Также как для V5
-RXCOMMADETUSE1                  =>      '1',                               --Также как для V5
-RXENMCOMMAALIGN0                =>      '1',                               --Также как для V5
-RXENMCOMMAALIGN1                =>      '1',                               --Также как для V5
-RXENPCOMMAALIGN0                =>      '1',                               --Также как для V5
-RXENPCOMMAALIGN1                =>      '1',                               --Также как для V5
-RXSLIDE0                        =>      '0',
-RXSLIDE1                        =>      '0',
+RXBYTEISALIGNED0           => i_rxbyteisaligned_out(0),          --add vicg
+RXBYTEISALIGNED1           => i_rxbyteisaligned_out(1),          --add vicg
+RXBYTEREALIGN0             => open,
+RXBYTEREALIGN1             => open,
+RXCOMMADET0                => open,
+RXCOMMADET1                => open,
+RXCOMMADETUSE0             => '1',                               --Также как для V5
+RXCOMMADETUSE1             => '1',                               --Также как для V5
+RXENMCOMMAALIGN0           => '1',                               --Также как для V5
+RXENMCOMMAALIGN1           => '1',                               --Также как для V5
+RXENPCOMMAALIGN0           => '1',                               --Также как для V5
+RXENPCOMMAALIGN1           => '1',                               --Также как для V5
+RXSLIDE0                   => '0',
+RXSLIDE1                   => '0',
 ----------------------- Receive Ports - PRBS Detection ---------------------
-PRBSCNTRESET0                   =>      '0',
-PRBSCNTRESET1                   =>      '0',
-RXENPRBSTST0                    =>      (others=>'0'),
-RXENPRBSTST1                    =>      (others=>'0'),
-RXPRBSERR0                      =>      open,
-RXPRBSERR1                      =>      open,
+PRBSCNTRESET0              => '0',
+PRBSCNTRESET1              => '0',
+RXENPRBSTST0               => (others=>'0'),
+RXENPRBSTST1               => (others=>'0'),
+RXPRBSERR0                 => open,
+RXPRBSERR1                 => open,
 ------------------- Receive Ports - RX Data Path interface -----------------
-RXDATA0                         =>      i_rxdata_out(0),                   --add vicg
-RXDATA1                         =>      i_rxdata_out(1),                   --add vicg
-RXDATAWIDTH0                    =>      CI_GT_DATAWIDTH,                   --add vicg
-RXDATAWIDTH1                    =>      CI_GT_DATAWIDTH,                   --add vicg
-RXRECCLK0                       =>      open,                              --add vicg
-RXRECCLK1                       =>      open,                              --add vicg
-RXRESET0                        =>      i_rxreset_in(0),                   --add vicg
-RXRESET1                        =>      i_rxreset_in(1),                   --add vicg
-RXUSRCLK0                       =>      g_gtp_usrclk(0),                   --add vicg
-RXUSRCLK1                       =>      g_gtp_usrclk(1),                   --add vicg
-RXUSRCLK20                      =>      g_gtp_usrclk2(0),                  --add vicg
-RXUSRCLK21                      =>      g_gtp_usrclk2(1),                  --add vicg
+RXDATA0                    => i_rxdata_out(0),                   --add vicg
+RXDATA1                    => i_rxdata_out(1),                   --add vicg
+RXDATAWIDTH0               => CI_GT_DATAWIDTH,                   --add vicg
+RXDATAWIDTH1               => CI_GT_DATAWIDTH,                   --add vicg
+RXRECCLK0                  => open,                              --add vicg
+RXRECCLK1                  => open,                              --add vicg
+RXRESET0                   => i_rxreset_in(0),                   --add vicg
+RXRESET1                   => i_rxreset_in(1),                   --add vicg
+RXUSRCLK0                  => g_gtp_usrclk(0),                   --add vicg
+RXUSRCLK1                  => g_gtp_usrclk(1),                   --add vicg
+RXUSRCLK20                 => g_gtp_usrclk2(0),                  --add vicg
+RXUSRCLK21                 => g_gtp_usrclk2(1),                  --add vicg
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
-GATERXELECIDLE0                 =>      '0',                               --add vicg
-GATERXELECIDLE1                 =>      '0',                               --add vicg
-IGNORESIGDET0                   =>      '0',                               --add vicg
-IGNORESIGDET1                   =>      '0',                               --add vicg
-RCALINEAST                      =>      (others=>'0'),
-RCALINWEST                      =>      (others=>'0'),
-RCALOUTEAST                     =>      open,
-RCALOUTWEST                     =>      open,
-RXCDRRESET0                     =>      i_rxcdrreset_in(0),                --add vicg
-RXCDRRESET1                     =>      i_rxcdrreset_in(1),                --add vicg
-RXELECIDLE0                     =>      i_rxelecidle(0),                   --add vicg
-RXELECIDLE1                     =>      i_rxelecidle(1),                   --add vicg
-RXEQMIX0                        =>      "00",--"10",                       --Изменил.
-RXEQMIX1                        =>      "00",--"10",                       --Изменил.
-RXN0                            =>      p_in_rxn(0),
-RXN1                            =>      p_in_rxn(1),
-RXP0                            =>      p_in_rxp(0),
-RXP1                            =>      p_in_rxp(1),
+GATERXELECIDLE0            => '0',                               --add vicg
+GATERXELECIDLE1            => '0',                               --add vicg
+IGNORESIGDET0              => '0',                               --add vicg
+IGNORESIGDET1              => '0',                               --add vicg
+RCALINEAST                 => (others=>'0'),
+RCALINWEST                 => (others=>'0'),
+RCALOUTEAST                => open,
+RCALOUTWEST                => open,
+RXCDRRESET0                => i_rxcdrreset_in(0),                --add vicg
+RXCDRRESET1                => i_rxcdrreset_in(1),                --add vicg
+RXELECIDLE0                => i_rxelecidle(0),                   --add vicg
+RXELECIDLE1                => i_rxelecidle(1),                   --add vicg
+RXEQMIX0                   => "00",--"10",                       --Изменил.
+RXEQMIX1                   => "00",--"10",                       --Изменил.
+RXN0                       => p_in_rxn(0),
+RXN1                       => p_in_rxn(1),
+RXP0                       => p_in_rxp(0),
+RXP1                       => p_in_rxp(1),
 ----------- Receive Ports - RX Elastic Buffer and Phase Alignment ----------
-RXBUFRESET0                     =>      i_rxbufreset_in(0),                --add vicg
-RXBUFRESET1                     =>      i_rxbufreset_in(1),                --add vicg
-RXBUFSTATUS0                    =>      i_rxbufstatus_out(0),              --add vicg
-RXBUFSTATUS1                    =>      i_rxbufstatus_out(1),              --add vicg
-RXENPMAPHASEALIGN0              =>      '0',
-RXENPMAPHASEALIGN1              =>      '0',
-RXPMASETPHASE0                  =>      '0',
-RXPMASETPHASE1                  =>      '0',
-RXSTATUS0                       =>      i_rxstatus_out(0),                 --add vicg
-RXSTATUS1                       =>      i_rxstatus_out(1),                 --add vicg
+RXBUFRESET0                => i_rxbufreset_in(0),                --add vicg
+RXBUFRESET1                => i_rxbufreset_in(1),                --add vicg
+RXBUFSTATUS0               => i_rxbufstatus_out(0),              --add vicg
+RXBUFSTATUS1               => i_rxbufstatus_out(1),              --add vicg
+RXENPMAPHASEALIGN0         => '0',
+RXENPMAPHASEALIGN1         => '0',
+RXPMASETPHASE0             => '0',
+RXPMASETPHASE1             => '0',
+RXSTATUS0                  => i_rxstatus_out(0),                 --add vicg
+RXSTATUS1                  => i_rxstatus_out(1),                 --add vicg
 --------------- Receive Ports - RX Loss-of-sync State Machine --------------
-RXLOSSOFSYNC0                   =>      open,
-RXLOSSOFSYNC1                   =>      open,
+RXLOSSOFSYNC0              => open,
+RXLOSSOFSYNC1              => open,
 -------------- Receive Ports - RX Pipe Control for PCI Express -------------
-PHYSTATUS0                      =>      open,
-PHYSTATUS1                      =>      open,
-RXVALID0                        =>      open,
-RXVALID1                        =>      open,
+PHYSTATUS0                 => open,
+PHYSTATUS1                 => open,
+RXVALID0                   => open,
+RXVALID1                   => open,
 -------------------- Receive Ports - RX Polarity Control -------------------
-RXPOLARITY0                     =>      '0',
-RXPOLARITY1                     =>      '0',
+RXPOLARITY0                => '0',
+RXPOLARITY1                => '0',
 ------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
-DADDR                           =>      p_in_drpaddr(7 downto 0),          --add vicg
-DCLK                            =>      p_in_drpclk,                       --add vicg
-DEN                             =>      p_in_drpen,                        --add vicg
-DI                              =>      p_in_drpdi,                        --add vicg
-DRDY                            =>      p_out_drprdy,                      --add vicg
-DRPDO                           =>      p_out_drpdo,                       --add vicg
-DWE                             =>      p_in_drpwe,                        --add vicg
+DADDR                      => p_in_drpaddr(7 downto 0),          --add vicg
+DCLK                       => p_in_drpclk,                       --add vicg
+DEN                        => p_in_drpen,                        --add vicg
+DI                         => p_in_drpdi,                        --add vicg
+DRDY                       => p_out_drprdy,                      --add vicg
+DRPDO                      => p_out_drpdo,                       --add vicg
+DWE                        => p_in_drpwe,                        --add vicg
 ---------------------------- TX/RX Datapath Ports --------------------------
-GTPCLKFBEAST                    =>      open,
-GTPCLKFBSEL0EAST                =>      "10",
-GTPCLKFBSEL0WEST                =>      "00",
-GTPCLKFBSEL1EAST                =>      "11",
-GTPCLKFBSEL1WEST                =>      "01",
-GTPCLKFBWEST                    =>      open,
-GTPCLKOUT0                      =>      i_refclkout(0)(1 downto 0),        --add vicg
-GTPCLKOUT1                      =>      i_refclkout(1)(1 downto 0),        --add vicg
+GTPCLKFBEAST               => open,
+GTPCLKFBSEL0EAST           => "10",
+GTPCLKFBSEL0WEST           => "00",
+GTPCLKFBSEL1EAST           => "11",
+GTPCLKFBSEL1WEST           => "01",
+GTPCLKFBWEST               => open,
+GTPCLKOUT0                 => i_refclkout(0)(1 downto 0),        --add vicg
+GTPCLKOUT1                 => i_refclkout(1)(1 downto 0),        --add vicg
 ------------------- Transmit Ports - 8b10b Encoder Control -----------------
-TXBYPASS8B10B0                  =>      (others=>'0'),
-TXBYPASS8B10B1                  =>      (others=>'0'),
-TXCHARDISPMODE0                 =>      (others=>'0'),
-TXCHARDISPMODE1                 =>      (others=>'0'),
-TXCHARDISPVAL0                  =>      (others=>'0'),
-TXCHARDISPVAL1                  =>      (others=>'0'),
-TXCHARISK0(3 downto 2)          =>      i_txcharisk_in(0)(3 downto 2),     --add vicg
-TXCHARISK0(1 downto 0)          =>      i_txcharisk_in(0)(1 downto 0),     --add vicg
-TXCHARISK1(3 downto 2)          =>      i_txcharisk_in(1)(3 downto 2),     --add vicg
-TXCHARISK1(1 downto 0)          =>      i_txcharisk_in(1)(1 downto 0),     --add vicg
-TXENC8B10BUSE0                  =>      CI_8B10BUSE,
-TXENC8B10BUSE1                  =>      CI_8B10BUSE,
-TXKERR0                         =>      open,
-TXKERR1                         =>      open,
-TXRUNDISP0                      =>      open,
-TXRUNDISP1                      =>      open,
+TXBYPASS8B10B0             => (others=>'0'),
+TXBYPASS8B10B1             => (others=>'0'),
+TXCHARDISPMODE0            => (others=>'0'),
+TXCHARDISPMODE1            => (others=>'0'),
+TXCHARDISPVAL0             => (others=>'0'),
+TXCHARDISPVAL1             => (others=>'0'),
+TXCHARISK0(3 downto 2)     => i_txcharisk_in(0)(3 downto 2),     --add vicg
+TXCHARISK0(1 downto 0)     => i_txcharisk_in(0)(1 downto 0),     --add vicg
+TXCHARISK1(3 downto 2)     => i_txcharisk_in(1)(3 downto 2),     --add vicg
+TXCHARISK1(1 downto 0)     => i_txcharisk_in(1)(1 downto 0),     --add vicg
+TXENC8B10BUSE0             => CI_8B10BUSE,
+TXENC8B10BUSE1             => CI_8B10BUSE,
+TXKERR0                    => open,
+TXKERR1                    => open,
+TXRUNDISP0                 => open,
+TXRUNDISP1                 => open,
 --------------- Transmit Ports - TX Buffer and Phase Alignment -------------
-TXBUFSTATUS0                    =>      i_txbufstatus_out(0),              --add vicg
-TXBUFSTATUS1                    =>      i_txbufstatus_out(1),              --add vicg
-TXENPMAPHASEALIGN0              =>      '0',
-TXENPMAPHASEALIGN1              =>      '0',
-TXPMASETPHASE0                  =>      '0',
-TXPMASETPHASE1                  =>      '0',
+TXBUFSTATUS0               => i_txbufstatus_out(0),              --add vicg
+TXBUFSTATUS1               => i_txbufstatus_out(1),              --add vicg
+TXENPMAPHASEALIGN0         => '0',
+TXENPMAPHASEALIGN1         => '0',
+TXPMASETPHASE0             => '0',
+TXPMASETPHASE1             => '0',
 ------------------ Transmit Ports - TX Data Path interface -----------------
-TXDATA0                         =>      i_txdata_in(0)(31 downto 0),       --add vicg
-TXDATA1                         =>      i_txdata_in(1)(31 downto 0),       --add vicg
-TXDATAWIDTH0                    =>      CI_GT_DATAWIDTH,                   --add vicg
-TXDATAWIDTH1                    =>      CI_GT_DATAWIDTH,                   --add vicg
-TXOUTCLK0                       =>      open,                              --add vicg
-TXOUTCLK1                       =>      open,                              --add vicg
-TXRESET0                        =>      i_txreset_in(0),                   --add vicg
-TXRESET1                        =>      i_txreset_in(1),                   --add vicg
-TXUSRCLK0                       =>      g_gtp_usrclk(0),                   --add vicg
-TXUSRCLK1                       =>      g_gtp_usrclk(1),                   --add vicg
-TXUSRCLK20                      =>      g_gtp_usrclk2(0),                  --add vicg
-TXUSRCLK21                      =>      g_gtp_usrclk2(1),                  --add vicg
+TXDATA0                    => i_txdata_in(0)(31 downto 0),       --add vicg
+TXDATA1                    => i_txdata_in(1)(31 downto 0),       --add vicg
+TXDATAWIDTH0               => CI_GT_DATAWIDTH,                   --add vicg
+TXDATAWIDTH1               => CI_GT_DATAWIDTH,                   --add vicg
+TXOUTCLK0                  => open,                              --add vicg
+TXOUTCLK1                  => open,                              --add vicg
+TXRESET0                   => i_txreset_in(0),                   --add vicg
+TXRESET1                   => i_txreset_in(1),                   --add vicg
+TXUSRCLK0                  => g_gtp_usrclk(0),                   --add vicg
+TXUSRCLK1                  => g_gtp_usrclk(1),                   --add vicg
+TXUSRCLK20                 => g_gtp_usrclk2(0),                  --add vicg
+TXUSRCLK21                 => g_gtp_usrclk2(1),                  --add vicg
 --------------- Transmit Ports - TX Driver and OOB signalling --------------
-TXBUFDIFFCTRL0                  =>      "101",
-TXBUFDIFFCTRL1                  =>      "101",
-TXDIFFCTRL0                     =>      "0111",--"1010",                   --Изменил.Врезультате получаем значение приблизительно как для V5
-TXDIFFCTRL1                     =>      "0111",--"1010",                   --Изменил.Врезультате получаем значение приблизительно как для V5
-TXINHIBIT0                      =>      '0',
-TXINHIBIT1                      =>      '0',
-TXN0                            =>      p_out_txn(0),
-TXN1                            =>      p_out_txn(1),
-TXP0                            =>      p_out_txp(0),
-TXP1                            =>      p_out_txp(1),
-TXPREEMPHASIS0                  =>      "110",                             --add vicg
-TXPREEMPHASIS1                  =>      "110",                             --add vicg
+TXBUFDIFFCTRL0             => "101",
+TXBUFDIFFCTRL1             => "101",
+TXDIFFCTRL0                => "0111",--"1010",                   --Изменил.Врезультате получаем значение приблизительно как для V5
+TXDIFFCTRL1                => "0111",--"1010",                   --Изменил.Врезультате получаем значение приблизительно как для V5
+TXINHIBIT0                 => '0',
+TXINHIBIT1                 => '0',
+TXN0                       => p_out_txn(0),
+TXN1                       => p_out_txn(1),
+TXP0                       => p_out_txp(0),
+TXP1                       => p_out_txp(1),
+TXPREEMPHASIS0             => "110",                             --add vicg
+TXPREEMPHASIS1             => "110",                             --add vicg
 --------------------- Transmit Ports - TX PRBS Generator -------------------
-TXENPRBSTST0                    =>      (others=>'0'),
-TXENPRBSTST1                    =>      (others=>'0'),
-TXPRBSFORCEERR0                 =>      '0',
-TXPRBSFORCEERR1                 =>      '0',
+TXENPRBSTST0               => (others=>'0'),
+TXENPRBSTST1               => (others=>'0'),
+TXPRBSFORCEERR0            => '0',
+TXPRBSFORCEERR1            => '0',
 -------------------- Transmit Ports - TX Polarity Control ------------------
-TXPOLARITY0                     =>      '0',
-TXPOLARITY1                     =>      '0',
+TXPOLARITY0                => '0',
+TXPOLARITY1                => '0',
 ----------------- Transmit Ports - TX Ports for PCI Express ----------------
-TXDETECTRX0                     =>      '0',
-TXDETECTRX1                     =>      '0',
-TXELECIDLE0                     =>      i_txelecidle_in(0),                --add vicg
-TXELECIDLE1                     =>      i_txelecidle_in(1),                --add vicg
-TXPDOWNASYNCH0                  =>      '0',
-TXPDOWNASYNCH1                  =>      '0',
+TXDETECTRX0                => '0',
+TXDETECTRX1                => '0',
+TXELECIDLE0                => i_txelecidle_in(0),                --add vicg
+TXELECIDLE1                => i_txelecidle_in(1),                --add vicg
+TXPDOWNASYNCH0             => '0',
+TXPDOWNASYNCH1             => '0',
 --------------------- Transmit Ports - TX Ports for SATA -------------------
-TXCOMSTART0                     =>      i_txcomstart_in(0),                --add vicg
-TXCOMSTART1                     =>      i_txcomstart_in(1),                --add vicg
-TXCOMTYPE0                      =>      i_txcomtype_in(0),                 --add vicg
-TXCOMTYPE1                      =>      i_txcomtype_in(1)                  --add vicg
+TXCOMSTART0                => i_txcomstart_in(0),                --add vicg
+TXCOMSTART1                => i_txcomstart_in(1),                --add vicg
+TXCOMTYPE0                 => i_txcomtype_in(0),                 --add vicg
+TXCOMTYPE1                 => i_txcomtype_in(1)                  --add vicg
 
 );
 
