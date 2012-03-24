@@ -1372,13 +1372,13 @@ elsif p_in_clk'event and p_in_clk='1' then
     --//------------------------------------------
     when S_HT_DMAOTrans1 =>
 
+      i_tl_status(C_TSTAT_DWR_START_BIT)<='0';
+
       if i_ll_state_illegal='1' then
         fsm_tlayer_cs <= S_IDLE;
 
       else
           i_ll_ctrl(C_LCTRL_TL_CHECK_DONE_BIT)<='0';
-
-          i_tl_status(C_TSTAT_DWR_START_BIT)<='0';
 
           if i_txfifo_pfull='1' then
           --//∆дем когда в TxBUF накоп€тс€ данные дл€ предачи
