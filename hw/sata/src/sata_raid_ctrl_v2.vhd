@@ -761,8 +761,8 @@ i_dbgcs_data(6)<=p_in_sh_txbuf_full;
 i_dbgcs_data(7)<=i_sh_det.err;
 i_dbgcs_data(8)<=i_usr_status.ch_bsy(0);
 i_dbgcs_data(9)<=i_usr_status.ch_bsy(1);
-i_dbgcs_data(10)<='0';--i_sh_hddcnt(0);
-i_dbgcs_data(11)<='0';--i_sh_hddcnt(1);
+i_dbgcs_data(10)<=i_usr_status.ch_bsy(2);
+i_dbgcs_data(11)<=i_usr_status.ch_bsy(3);
 i_dbgcs_data(19 downto 12)<=(others=>'0');--i_raid_cl_cntdw(7 downto 0);--i_usr_rxd(7 downto 0);--
 i_dbgcs_data(20)<=i_usr_rxd_wr;
 --i_dbgcs_data(16 downto 12)<=i_raid_trn_cnts(4 downto 0);
