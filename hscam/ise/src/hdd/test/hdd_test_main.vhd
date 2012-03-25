@@ -737,13 +737,14 @@ DATA    => i_hdd_dbgcs.sh(0).layer.data(172 downto 0),--(122 downto 0),
 TRIG0   => i_hdd0layer_dbgcs.trig0(41 downto 0)
 );
 
-i_hdd0layer_dbgcs.trig0(19 downto 0)<=i_hdd_dbgcs.sh(0).layer.trig0(19 downto 0);--llayer
-i_hdd0layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(0).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_hdd0layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(0).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
-i_hdd0layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(0).layer.data(162);--<=p_in_txelecidle;
-i_hdd0layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(0).layer.data(163);--<=p_in_rxelecidle;
-i_hdd0layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(0).layer.data(164);--<=p_in_txcomstart;
-i_hdd0layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(0).layer.data(167);--<=p_in_rxcdrreset;
+i_hdd0layer_dbgcs.trig0(19 downto  0)<=i_hdd_dbgcs.sh(0).layer.trig0(19 downto  0);--llayer
+i_hdd0layer_dbgcs.trig0(25 downto 20)<=i_hdd_dbgcs.sh(0).layer.trig0(25 downto 20);--llayer
+--i_hdd0layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(0).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+--i_hdd0layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(0).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+--i_hdd0layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(0).layer.data(162);--<=p_in_txelecidle;
+--i_hdd0layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(0).layer.data(163);--<=p_in_rxelecidle;
+--i_hdd0layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(0).layer.data(164);--<=p_in_txcomstart;
+--i_hdd0layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(0).layer.data(167);--<=p_in_rxcdrreset;
 i_hdd0layer_dbgcs.trig0(41 downto 26)<=i_hdd_dbgcs.sh(0).layer.trig0(41 downto 26);--llayer
 
 --//### HDD1: ########
@@ -757,13 +758,14 @@ DATA    => i_hdd_dbgcs.sh(0).layer.data(172 downto 0),--(122 downto 0),
 TRIG0   => i_hdd1layer_dbgcs.trig0(41 downto 0)
 );
 
-i_hdd1layer_dbgcs.trig0(19 downto 0)<=i_hdd_dbgcs.sh(0).layer.trig0(19 downto 0);--llayer
-i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(0).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(0).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
-i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(0).layer.data(162);--<=p_in_txelecidle;
-i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(0).layer.data(163);--<=p_in_rxelecidle;
-i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(0).layer.data(164);--<=p_in_txcomstart;
-i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(0).layer.data(167);--<=p_in_rxcdrreset;
+i_hdd1layer_dbgcs.trig0(19 downto  0)<=i_hdd_dbgcs.sh(0).layer.trig0(19 downto  0);--llayer
+i_hdd1layer_dbgcs.trig0(25 downto 20)<=i_hdd_dbgcs.sh(0).layer.trig0(25 downto 20);--llayer
+--i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(0).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+--i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(0).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+--i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(0).layer.data(162);--<=p_in_txelecidle;
+--i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(0).layer.data(163);--<=p_in_rxelecidle;
+--i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(0).layer.data(164);--<=p_in_txcomstart;
+--i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(0).layer.data(167);--<=p_in_rxcdrreset;
 i_hdd1layer_dbgcs.trig0(41 downto 26)<=i_hdd_dbgcs.sh(0).layer.trig0(41 downto 26);--llayer
 end generate gen_hdd1;
 
@@ -777,13 +779,14 @@ DATA    => i_hdd_dbgcs.sh(1).layer.data(172 downto 0),--(122 downto 0),
 TRIG0   => i_hdd1layer_dbgcs.trig0(41 downto 0)
 );
 
-i_hdd1layer_dbgcs.trig0(19 downto 0)<=i_hdd_dbgcs.sh(1).layer.trig0(19 downto 0);--llayer
-i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(1).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(1).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
-i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(1).layer.data(162);--<=p_in_txelecidle;
-i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(1).layer.data(163);--<=p_in_rxelecidle;
-i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(1).layer.data(164);--<=p_in_txcomstart;
-i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(1).layer.data(167);--<=p_in_rxcdrreset;
+i_hdd1layer_dbgcs.trig0(19 downto  0)<=i_hdd_dbgcs.sh(1).layer.trig0(19 downto  0);--llayer
+i_hdd1layer_dbgcs.trig0(25 downto 20)<=i_hdd_dbgcs.sh(1).layer.trig0(25 downto 20);--llayer
+--i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(1).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+--i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(1).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+--i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(1).layer.data(162);--<=p_in_txelecidle;
+--i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(1).layer.data(163);--<=p_in_rxelecidle;
+--i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(1).layer.data(164);--<=p_in_txcomstart;
+--i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(1).layer.data(167);--<=p_in_rxcdrreset;
 i_hdd1layer_dbgcs.trig0(41 downto 26)<=i_hdd_dbgcs.sh(1).layer.trig0(41 downto 26);--llayer
 end generate gen_hdd2;
 
@@ -797,13 +800,14 @@ DATA    => i_hdd_dbgcs.sh(2).layer.data(172 downto 0),--(122 downto 0),
 TRIG0   => i_hdd1layer_dbgcs.trig0(41 downto 0)
 );
 
-i_hdd1layer_dbgcs.trig0(19 downto 0)<=i_hdd_dbgcs.sh(2).layer.trig0(19 downto 0);--llayer
-i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(2).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
-i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(2).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
-i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(2).layer.data(162);--<=p_in_txelecidle;
-i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(2).layer.data(163);--<=p_in_rxelecidle;
-i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(2).layer.data(164);--<=p_in_txcomstart;
-i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(2).layer.data(167);--<=p_in_rxcdrreset;
+i_hdd1layer_dbgcs.trig0(19 downto  0)<=i_hdd_dbgcs.sh(2).layer.trig0(19 downto  0);--llayer
+i_hdd1layer_dbgcs.trig0(25 downto 20)<=i_hdd_dbgcs.sh(2).layer.trig0(25 downto 20);--llayer
+--i_hdd1layer_dbgcs.trig0(20)<=i_hdd_dbgcs.sh(2).layer.data(160);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1);--//C_PSTAT_DET_ESTABLISH_ON_BIT
+--i_hdd1layer_dbgcs.trig0(21)<=i_hdd_dbgcs.sh(2).layer.data(161);--<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_DEV_ON_BIT
+--i_hdd1layer_dbgcs.trig0(22)<=i_hdd_dbgcs.sh(2).layer.data(162);--<=p_in_txelecidle;
+--i_hdd1layer_dbgcs.trig0(23)<=i_hdd_dbgcs.sh(2).layer.data(163);--<=p_in_rxelecidle;
+--i_hdd1layer_dbgcs.trig0(24)<=i_hdd_dbgcs.sh(2).layer.data(164);--<=p_in_txcomstart;
+--i_hdd1layer_dbgcs.trig0(25)<=i_hdd_dbgcs.sh(2).layer.data(167);--<=p_in_rxcdrreset;
 i_hdd1layer_dbgcs.trig0(41 downto 26)<=i_hdd_dbgcs.sh(2).layer.trig0(41 downto 26);--llayer
 
 end generate gen_hdd3;
