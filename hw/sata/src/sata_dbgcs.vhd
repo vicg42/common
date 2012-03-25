@@ -167,7 +167,7 @@ i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
 i_dbgcs_trig00(34 downto 30)<=i_fsm_llayer(4 downto 0);
 i_dbgcs_trig00(39 downto 35)<=i_fsm_tlayer(4 downto 0);
 i_dbgcs_trig00(40)<=p_player_rst;--tst_trm_timeout(7);--p_in_dbg.tlayer.other_status.fdir_bit;
-i_dbgcs_trig00(41)<=p_in_dbg.tlayer.other_status.fpiosetup;
+i_dbgcs_trig00(41)<=p_in_dbg.llayer.txbuf_status.empty;  --p_in_txcharisk(1);--
 
 
 
@@ -234,7 +234,7 @@ i_dbgcs_data(141 downto 140)<=p_in_txbufstatus(1 downto 0);
 i_dbgcs_data(142)           <=p_in_dbg.player.oob.timeout;
 i_dbgcs_data(143)           <=p_player_rst;
 i_dbgcs_data(146 downto 144)<=p_in_rxstatus;
-i_dbgcs_data(147)           <='0';
+i_dbgcs_data(147)           <=p_in_dbg.tlayer.other_status.altxbuf_rd;
 
 i_dbgcs_data(148)<=p_in_reg_update.fd2h;  --//Обновление Shadow Reg по приему FIS_DEV2HOST
 i_dbgcs_data(149)<=p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FIS_PIOSETUP
