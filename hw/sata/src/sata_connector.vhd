@@ -91,9 +91,10 @@ end sata_connector;
 architecture behavioral of sata_connector is
 
 signal i_txbuf_wrcount         : TBus04_GTCH;
-signal i_cmdbuf_empty          : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_cmdbuf_wr             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_cmdbuf_rd             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_txbuf_empty           : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
+signal i_cmdbuf_empty          : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
+signal i_cmdbuf_wr             : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
+signal i_cmdbuf_rd             : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
 
 --MAIN
 begin
@@ -184,7 +185,7 @@ rd_clk     => p_in_sh_clk(i),
 full        => p_out_txbuf_status(i).full,
 prog_full   => open,--p_out_txbuf_status(i).pfull,
 almost_full => open,--p_out_txbuf_status(i).pfull,
-empty       => p_out_txbuf_status(i).empty,
+empty       => i_txbuf_empty(i),--p_out_txbuf_status(i).empty,
 almost_empty=> p_out_txbuf_status(i).aempty,
 rd_data_count => p_out_txbuf_status(i).rdcount,
 wr_data_count => i_txbuf_wrcount(i),--p_out_txbuf_status(i).wrcount,
@@ -197,14 +198,14 @@ begin
   if p_in_rst(i)='1' then
     p_out_txbuf_status(i).pfull<='0';
   elsif p_in_uap_clk'event and p_in_uap_clk='1' then
-    if i_txbuf_wrcount(i)>="1100" then
+    if i_txbuf_wrcount(i)>="1101" then
     p_out_txbuf_status(i).pfull<='1';
-    elsif i_txbuf_wrcount(i)<="0111" then
+    elsif i_txbuf_wrcount(i)<="0111" then --elsif i_txbuf_wrcount(i)<"1101" then --
     p_out_txbuf_status(i).pfull<='0';
     end if;
   end if;
 end process;
---p_out_txbuf_status(i).pfull<='1' when i_txbuf_wrcount(i)>="0010" else '0';
+p_out_txbuf_status(i).empty<=i_txbuf_empty(i);
 
 m_rxbuf : sata_rxfifo
 port map(

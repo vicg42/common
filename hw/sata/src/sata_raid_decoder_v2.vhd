@@ -131,11 +131,9 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     p_out_sh_txd(i)<=(others=>'0');
-    i_sh_txbuf_full(i)<='0';
     i_sh_txd_wr(i)<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     p_out_sh_txd(i)<=p_in_usr_txd(32*(i+1)-1 downto 32*i);
-    i_sh_txbuf_full(i)<=p_in_sh_txbuf_status(i).pfull and p_in_sh_mask(i);
     if p_in_sh_mask(i)='1' then
       i_sh_txd_wr(i)<=p_in_usr_txd_wr;
     else
@@ -143,7 +141,7 @@ begin
     end if;
   end if;
 end process;
-
+i_sh_txbuf_full(i)<=p_in_sh_txbuf_status(i).pfull and p_in_sh_mask(i);
 p_out_sh_txd_wr(i)<=i_sh_txd_wr(i) or p_in_sh_padding;
 
 end generate gen_hddon;

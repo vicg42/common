@@ -1146,13 +1146,20 @@ if p_in_phy_sync='1' then
               i_rxp(C_TCONT)<='0';
 
           elsif i_return='1' then
-          --//¬озвращаюсь к передаче данных
+
             if p_in_phy_txrdy_n='0' then
               i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
               i_txp_cnt<=(others=>'0');
-              i_txd_en<='1';
               i_return<='0';
-              fsm_llayer_cs <= S_LT_SendData;
+              if p_in_txd_status.empty='1' and  p_in_txd_close='0' then
+                --//ѕерехожу к ожиданию данных sh_txbuf
+                i_txd_en<='0';
+                fsm_llayer_cs <= S_LT_SendHold;--(Ётот переход FSM не по стандарту!!!)
+              else
+                --//¬озвращаюсь к передаче данных
+                i_txd_en<='1';
+                fsm_llayer_cs <= S_LT_SendData;
+              end if;
             end if;
 
           elsif p_in_phy_rxtype(C_TCONT)='1' then
@@ -1178,9 +1185,16 @@ if p_in_phy_sync='1' then
               if p_in_phy_txrdy_n='0' then
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
                 i_txp_cnt<=(others=>'0');
-                i_txd_en<='1';
                 i_return<='0';
-                fsm_llayer_cs <= S_LT_SendData;
+                if p_in_txd_status.empty='1' and  p_in_txd_close='0' then
+                  --//ѕерехожу к ожиданию данных sh_txbuf
+                  i_txd_en<='0';
+                  fsm_llayer_cs <= S_LT_SendHold;--(Ётот переход FSM не по стандарту!!!)
+                else
+                  --//¬озвращаюсь к передаче данных
+                  i_txd_en<='1';
+                  fsm_llayer_cs <= S_LT_SendData;
+                end if;
               else
                 i_return<='1';
               end if;
