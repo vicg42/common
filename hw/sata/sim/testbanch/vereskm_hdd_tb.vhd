@@ -397,7 +397,6 @@ port map(
 --------------------------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
 --------------------------------------------------
-p_in_cfg_if            => i_cfgdev_if,
 p_in_cfg_clk           => g_host_clk,
 
 p_in_cfg_adr           => i_cfgdev_adr,
@@ -978,7 +977,7 @@ begin
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
   --//1- min ... 256/0 - max
 --  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);

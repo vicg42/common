@@ -2335,17 +2335,19 @@ begin
             C_PDAT_CONT, C_CHAR_K,
             p_out_gt_txdata, p_out_gt_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
-  for i in 0 to 1 loop
+  for i in 0 to 0 loop
   p_SetData(p_in_clk,
             i_txsrcambler, C_CHAR_D,
             p_out_gt_txdata, p_out_gt_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
   end loop;
+
+  for i in 0 to 3 loop
   p_SetData(p_in_clk,
             C_PDAT_R_IP, C_CHAR_K,
             p_out_gt_txdata, p_out_gt_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
-
+  end loop;
 
   --//SEND HOLD
   for i in 0 to 1 loop
@@ -2358,50 +2360,87 @@ begin
             C_PDAT_CONT, C_CHAR_K,
             p_out_gt_txdata, p_out_gt_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
-  for i in 0 to 6 loop
+  for i in 0 to 0 loop
   p_SetData(p_in_clk,
             i_txsrcambler, C_CHAR_D,
             p_out_gt_txdata, p_out_gt_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
   end loop;
 
-
-  --//SEND R_IP
-  p_SetData(p_in_clk,
-            C_PDAT_R_IP, C_CHAR_K,
-            p_out_gt_txdata, p_out_gt_txcharisk,
-            i_usropt_in, vusropt, i_usropt2_out);
-
-  --//SEND HOLD
   p_SetData(p_in_clk,
             C_PDAT_HOLD, C_CHAR_K,
             p_out_gt_txdata, p_out_gt_txcharisk,
             i_usropt_in, vusropt, i_usropt2_out);
+
 --
 ----  --//SEND R_IP
-----  for i in 0 to 1 loop
-----    p_SetData(p_in_clk,
-----              C_PDAT_R_IP, C_CHAR_K,
-----              p_out_gt_txdata, p_out_gt_txcharisk,
-----              i_usropt_in, vusropt, i_usropt2_out);
-----  end loop;
-----
-----  p_SetData(p_in_clk,
-----            C_PDAT_CONT, C_CHAR_K,
-----            p_out_gt_txdata, p_out_gt_txcharisk,
-----            i_usropt_in, vusropt, i_usropt2_out);
-----
-----  for i in 0 to 1 loop
-----  p_SetData(p_in_clk,
-----            i_txsrcambler, C_CHAR_D,
-----            p_out_gt_txdata, p_out_gt_txcharisk,
-----            i_usropt_in, vusropt, i_usropt2_out);
-----  end loop;
-----
 ----  p_SetData(p_in_clk,
 ----            C_PDAT_R_IP, C_CHAR_K,
 ----            p_out_gt_txdata, p_out_gt_txcharisk,
 ----            i_usropt_in, vusropt, i_usropt2_out);
+--
+--  --//SEND HOLD
+--  p_SetData(p_in_clk,
+--            C_PDAT_HOLD, C_CHAR_K,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
+--
+--    --//SEND R_IP
+--    for i in 0 to 3 loop
+--      p_SetData(p_in_clk,
+--                C_PDAT_R_IP, C_CHAR_K,
+--                p_out_gt_txdata, p_out_gt_txcharisk,
+--                i_usropt_in, vusropt, i_usropt2_out);
+--    end loop;
+--
+--  --//SEND HOLD
+--  for i in 0 to 1 loop
+--    p_SetData(p_in_clk,
+--              C_PDAT_HOLD, C_CHAR_K,
+--              p_out_gt_txdata, p_out_gt_txcharisk,
+--              i_usropt_in, vusropt, i_usropt2_out);
+--  end loop;
+--  p_SetData(p_in_clk,
+--            C_PDAT_CONT, C_CHAR_K,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
+--  for i in 0 to 3 loop
+--  p_SetData(p_in_clk,
+--            i_txsrcambler, C_CHAR_D,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
+--  end loop;
+--
+--  --//SEND HOLD
+--  p_SetData(p_in_clk,
+--            C_PDAT_HOLD, C_CHAR_K,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
+
+--  --//SEND R_IP
+--  for i in 0 to 1 loop
+--    p_SetData(p_in_clk,
+--              C_PDAT_R_IP, C_CHAR_K,
+--              p_out_gt_txdata, p_out_gt_txcharisk,
+--              i_usropt_in, vusropt, i_usropt2_out);
+--  end loop;
+--
+--  p_SetData(p_in_clk,
+--            C_PDAT_CONT, C_CHAR_K,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
+--
+--  for i in 0 to 1 loop
+--  p_SetData(p_in_clk,
+--            i_txsrcambler, C_CHAR_D,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
+--  end loop;
+--
+--  p_SetData(p_in_clk,
+--            C_PDAT_R_IP, C_CHAR_K,
+--            p_out_gt_txdata, p_out_gt_txcharisk,
+--            i_usropt_in, vusropt, i_usropt2_out);
 
   write(GUI_line,string'("RCV DATA. Wait EOF ...."));writeline(output, GUI_line);
   --//∆‰Û EOF

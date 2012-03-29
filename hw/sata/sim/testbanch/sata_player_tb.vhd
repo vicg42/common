@@ -108,6 +108,8 @@ player  : TPL_dbgport;
 end record;
 signal i_dbg : T_dbg_player_tb;
 
+signal i_sh_txbuf_aempty          : std_logic;
+signal i_sh_txbuf_empty           : std_logic;
 
 --Main
 begin
@@ -137,14 +139,21 @@ begin
     for i in 1 to tstdata'high loop
     tstdata(i):=CONV_STD_LOGIC_VECTOR(i+1, tstdata(i)'length);
     end loop;
-
+    i_sh_txbuf_aempty<='0';
+    i_sh_txbuf_empty<='0';
   elsif p_in_clk'event and p_in_clk='1' then
     if i_link_txd_rd(0)='1' then
-      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#22#, i_sim_txd_cnt'length) then
-        i_sim_txbuf_close<='1';
+      if i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#15#, i_sim_txd_cnt'length) then
+        i_sim_txbuf_close<='0';
+        i_sh_txbuf_aempty<='1';
         i_sim_txd_cnt<=i_sim_txd_cnt + 1;
 
-      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#23#, i_sim_txd_cnt'length) then
+      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#16#, i_sim_txd_cnt'length) then
+        i_sim_txbuf_close<='1';
+        i_sh_txbuf_empty<='1';
+        i_sim_txd_cnt<=i_sim_txd_cnt + 1;
+
+      elsif i_sim_txd_cnt=CONV_STD_LOGIC_VECTOR(16#17#, i_sim_txd_cnt'length) then
         i_sim_txbuf_close<='0';
         i_sim_txd_cnt<=(others=>'0');
       else
@@ -157,12 +166,11 @@ begin
   end if;
 end process;
 
-
 i_link_txd_status(0).pfull<='0';
 i_link_txd_close(0)<=i_sim_txbuf_close after dly;
 
-i_link_txd_status(0).aempty<='0';
-i_link_txd_status(0).empty<='1';
+i_link_txd_status(0).aempty<=i_sh_txbuf_aempty after dly;
+i_link_txd_status(0).empty<=i_sh_txbuf_empty after dly;
 i_link_rxd_status(0).pfull<='0';
 i_link_rxd_status(0).empty<='1';
 
