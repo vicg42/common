@@ -120,15 +120,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---p_out_tst(31 downto 0)<=(others=>'0');
-tstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    p_out_tst(0 downto 0)<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-    p_out_tst(0)<=i_ata_ipf_bit or i_reg_serror(C_ASERR_I_ERR_BIT);
-  end if;
-end process tstout;
+p_out_tst(0)<=i_ata_ipf_bit or i_reg_serror(C_ASERR_I_ERR_BIT);
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
