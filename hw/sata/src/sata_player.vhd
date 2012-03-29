@@ -133,31 +133,8 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-
---p_out_tst(31 downto 0)<=(others=>'0');
-ltstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
---    tst_rcv_aperiod<=(others=>'0');
-    p_out_tst<=(others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    p_out_tst(0)<=tst_player_oob_out(0) or tst_player_rcv_out(0);-- or OR_reduce(tst_rcv_aperiod);
-
---    if i_rxtype(C_TALIGN)='1' then
---      tst_rcv_aperiod<=(others=>'0');
---    else
---      if tst_rcv_aperiod=(tst_rcv_aperiod'range =>'1') then
---        tst_rcv_aperiod<=(others=>'1');
---      else
---        tst_rcv_aperiod<=tst_rcv_aperiod + 1;
---      end if;
---    end if;
-
-  end if;
-end process ltstout;
-
+p_out_tst(0)<=tst_player_oob_out(0) or tst_player_rcv_out(0);-- or OR_reduce(tst_rcv_aperiod);
+p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
 
@@ -217,7 +194,7 @@ port map(
 p_in_ctrl           => p_in_ctrl,
 p_out_status        => i_oob_status,
 
-p_in_primitive_det  => i_rxtype(C_TPMNAK downto C_TALIGN),
+p_in_primitive_det  => i_rxtype(C_TSYNC downto C_TALIGN),
 p_out_d10_2_senddis => i_d10_2_senddis,
 
 --------------------------------------------------

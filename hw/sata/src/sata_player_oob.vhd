@@ -37,7 +37,7 @@ port(
 p_in_ctrl           : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - PHY Layer/Управление/Map:
 p_out_status        : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);--//Константы см. sata_pkg.vhd/поле - PHY Layer/Статусы/Map
 
-p_in_primitive_det  : in    std_logic_vector(C_TPMNAK downto C_TALIGN);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
+p_in_primitive_det  : in    std_logic_vector(C_TSYNC downto C_TALIGN);--//Константы см. sata_pkg.vhd/поле - PHY Layer/номера примитивов
 p_out_d10_2_senddis : out   std_logic;                    --//Запрещение передачи кода D10.2
 
 --------------------------------------------------
@@ -101,15 +101,6 @@ end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_tst(31 downto 0)<=(others=>'0');
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(31 downto 1)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    p_out_tst(0)<='0';
---  end if;
---end process ltstout;
-
 end generate gen_dbg_on;
 
 
@@ -383,7 +374,7 @@ begin
           if p_in_primitive_det(C_TALIGN)='1' then
             i_tmr_dly<=(others=>'0');
 
-          elsif CONV_INTEGER(p_in_primitive_det)/=0 then
+          elsif p_in_primitive_det(C_TSYNC)='1' then
 
             if (i_tmr_dly=CONV_STD_LOGIC_VECTOR(3-1, i_tmr_dly'length)) then
               --Если принял вподряд 3 НЕ AILGN примитива, то

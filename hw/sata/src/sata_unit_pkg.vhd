@@ -322,7 +322,7 @@ port(
 p_in_ctrl           : in    std_logic_vector(C_PLCTRL_LAST_BIT downto 0);
 p_out_status        : out   std_logic_vector(C_PLSTAT_LAST_BIT downto 0);
 
-p_in_primitive_det  : in    std_logic_vector(C_TPMNAK downto C_TALIGN);
+p_in_primitive_det  : in    std_logic_vector(C_TSYNC downto C_TALIGN);
 p_out_d10_2_senddis : out   std_logic;
 
 --------------------------------------------------
