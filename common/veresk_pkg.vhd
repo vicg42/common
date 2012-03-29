@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 23.11.2011 17:11:04
