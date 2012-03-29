@@ -90,32 +90,13 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
---gen_dbg_off : if strcmp(G_DBG,"OFF") generate
---p_out_tst(31 downto 0)<=(others=>'0');
---end generate gen_dbg_off;
---
---gen_dbg_on : if strcmp(G_DBG,"ON") generate
---p_out_tst(31 downto 0)<=(others=>'0');
-----ltstout:process(p_in_rst,p_in_clk)
-----begin
-----  if p_in_rst='1' then
-----    for i in 0 to G_HDD_COUNT-1 loop
-----    i_tst(i)<='0';
-----    end loop;
-----  elsif p_in_clk'event and p_in_clk='1' then
-----    for i in 0 to G_HDD_COUNT-1 loop
-----    i_tst(i)<=OR_reduce(p_in_sh_tst(i)(2 downto 0));
-----    end loop;
-----  end if;
-----end process ltstout;
-----
-----p_out_tst(0)<='0';
-----p_out_tst(31 downto 1)<=(others=>'0');
---end generate gen_dbg_on;
-p_out_tst(0)<='0';
-p_out_tst(31 downto 1)<=(others=>'0');
+gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+p_out_tst(31 downto 0)<=(others=>'0');
+end generate gen_dbg_off;
 
-
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
+p_out_tst(31 downto 0)<=(others=>'0');
+end generate gen_dbg_on;
 
 
 --//------------------------------------------

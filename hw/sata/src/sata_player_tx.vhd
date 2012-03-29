@@ -128,17 +128,7 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---ltstout:process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(31 downto 2)<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    p_out_tst(1)<=tst_synch;
---  end if;
---end process ltstout;
-p_out_tst(0)<='0';
-p_out_tst(31 downto 1)<=(others=>'0');
-
+p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_on;
 
 
