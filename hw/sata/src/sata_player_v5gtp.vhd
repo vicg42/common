@@ -305,8 +305,8 @@ generic map(
 
 --_______________________ Simulation-Only Attributes ___________________
 SIM_MODE                    => G_SIM,
-SIM_GTPRESET_SPEEDUP        => 1,--G_SIM_GTPRESET_SPEEDUP,
-SIM_PLL_PERDIV2             => x"14d", -- Set to the VCO Unit Interval time --G_SIM_PLL_PERDIV2,
+SIM_GTPRESET_SPEEDUP        => 1,
+SIM_PLL_PERDIV2             => x"14d",
 SIM_RECEIVER_DETECT_PASS0   => TRUE,
 SIM_RECEIVER_DETECT_PASS1   => TRUE,
 
@@ -314,15 +314,14 @@ SIM_RECEIVER_DETECT_PASS1   => TRUE,
 
 -------------------------- Tile and PLL Attributes ---------------------
 
-CLK25_DIVIDER               => 6,      --Говорит что опорная частота GTP: 125MHz < p_GtpRefClk <= 150MHz
-                                             --см. Table 5-5, ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-CLKINDC_B                   => TRUE,   --Всегда должен быть в TRUE
-OOB_CLK_DIVIDER             => 6,      --см. Table 7-7, ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
+CLK25_DIVIDER               => 6,
+CLKINDC_B                   => TRUE,
+OOB_CLK_DIVIDER             => 6,
 OVERSAMPLE_MODE             => FALSE,
-PLL_DIVSEL_FB               => 2,      --см. Table 5-3, ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-PLL_DIVSEL_REF              => 1,      --см. Table 5-3, ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
+PLL_DIVSEL_FB               => 2,
+PLL_DIVSEL_REF              => 1,
 PLL_TXDIVSEL_COMM_OUT       => 1,
-TX_SYNC_FILTERB             => 1,      --Всегда должен в 1
+TX_SYNC_FILTERB             => 1,
 
 
 --____________________ Transmit Interface Attributes ___________________
@@ -330,11 +329,8 @@ TX_SYNC_FILTERB             => 1,      --Всегда должен в 1
 ------------------- TX Buffering and Phase Alignment -------------------
 
 TX_BUFFER_USE_0             => TRUE,
-TX_XCLK_SEL_0               => "TXOUT", --TXOUT: Use when TX_BUFFER_USE = TRUE
-                                              --TXUSR: Use when TX_BUFFER_USE = FALSE
-
-TXRX_INVERT_0               => "00000", --00000: Use when TX_BUFFER_USE = TRUE
-                                              --00100: Use when TX_BUFFER_USE = FALSE
+TX_XCLK_SEL_0               => "TXOUT",
+TXRX_INVERT_0               => "00000",
 
 TX_BUFFER_USE_1             => TRUE,
 TX_XCLK_SEL_1               => "TXOUT",
@@ -342,9 +338,9 @@ TXRX_INVERT_1               => "00000",
 
 --------------------- TX Serial Line Rate settings ---------------------
 
-PLL_TXDIVSEL_OUT_0          => CI_PLL_DIV,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
+PLL_TXDIVSEL_OUT_0          => CI_PLL_DIV,
 
-PLL_TXDIVSEL_OUT_1          => CI_PLL_DIV,--уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
+PLL_TXDIVSEL_OUT_1          => CI_PLL_DIV,
 
 --------------------- TX Driver and OOB signalling --------------------
 
@@ -354,76 +350,74 @@ TX_DIFF_BOOST_1             => TRUE,
 
 ------------------ TX Pipe Control for PCI Express/SATA ---------------
 
-COM_BURST_VAL_0             => "0101", --/xapp870
+COM_BURST_VAL_0             => "0101",
 
-COM_BURST_VAL_1             => "0101", --/xapp870
+COM_BURST_VAL_1             => "0101",
 
 --_______________________ Receive Interface Attributes ________________
 
 ------------ RX Driver,OOB signalling,Coupling and Eq,CDR -------------
 
-AC_CAP_DIS_0                => FALSE,--/xapp870
-OOBDETECT_THRESHOLD_0       => "111",--/xapp870 (Xilinx rpt087.pdf)-- "100",--/Wizard
-PMA_CDR_SCAN_0              => x"6c07640",--/Wizard  x"6c08040",--/xapp870
-PMA_RX_CFG_0                => x"09f0089",--/Wizard  x"0dce111",--/xapp870
-RCV_TERM_GND_0              => FALSE,--/xapp870
-RCV_TERM_MID_0              => TRUE, --/xapp870
-RCV_TERM_VTTRX_0            => TRUE, --/xapp870 (Xilinx rpt087.pdf)-- FALSE,--/Wizard
-TERMINATION_IMP_0           => 50,   --/xapp870
+AC_CAP_DIS_0                => FALSE,
+OOBDETECT_THRESHOLD_0       => "111",--/xapp870; "100",--/Wizard;
+PMA_CDR_SCAN_0              => x"6c07640",
+PMA_RX_CFG_0                => x"0dce111",--/xapp870; x"09f0089",--/Wizard;
+RCV_TERM_GND_0              => FALSE,
+RCV_TERM_MID_0              => TRUE,
+RCV_TERM_VTTRX_0            => TRUE,--/xapp870; FALSE,--/Wizard;
+TERMINATION_IMP_0           => 50,
 
-AC_CAP_DIS_1                => FALSE,--/xapp870
-OOBDETECT_THRESHOLD_1       => "111",--/xapp870 (Xilinx rpt087.pdf)-- "100",--/Wizard
-PMA_CDR_SCAN_1              => x"6c07640",--/Wizard  x"6c08040",--/xapp870
-PMA_RX_CFG_1                => x"09f0089",--/Wizard  x"0dce111",--/xapp870
-RCV_TERM_GND_1              => FALSE,--/xapp870
-RCV_TERM_MID_1              => TRUE, --/xapp870
-RCV_TERM_VTTRX_1            => TRUE, --/xapp870 (Xilinx rpt087.pdf)-- FALSE,--/Wizard
-TERMINATION_IMP_1           => 50,   --/xapp870
+AC_CAP_DIS_1                => FALSE,
+OOBDETECT_THRESHOLD_1       => "111",--/xapp870; "100",--/Wizard;
+PMA_CDR_SCAN_1              => x"6c07640",
+PMA_RX_CFG_1                => x"0dce111",--/xapp870; x"09f0089",--/Wizard;
+RCV_TERM_GND_1              => FALSE,
+RCV_TERM_MID_1              => TRUE,
+RCV_TERM_VTTRX_1            => TRUE,--/xapp870; FALSE,--/Wizard;
+TERMINATION_IMP_1           => 50,
 
-PCS_COM_CFG                 => x"1680a0e",--/Wizard   For PLL_DIVSEL_FB=1 (28’h1680A07) иначе 28’h1680A0E (default)
-TERMINATION_CTRL            => "10100",   --/xapp870
-TERMINATION_OVRD            => FALSE,--/xapp870
+PCS_COM_CFG                 => x"1680a0e",
+TERMINATION_CTRL            => "10100",
+TERMINATION_OVRD            => FALSE,
 
 --------------------- RX Serial Line Rate Attributes ------------------
 
-PLL_RXDIVSEL_OUT_0          => CI_PLL_DIV,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
-PLL_SATA_0                  => FALSE,    --When FALSE, PLL_SATA allows TX SATA operations to work at
-                                               --the SATA Generation 1 (1.5 Gb/s) or SATA Generation 2 (3 Gb/s) rate.
+PLL_RXDIVSEL_OUT_0          => CI_PLL_DIV,
+PLL_SATA_0                  => FALSE,
 
-PLL_RXDIVSEL_OUT_1          => CI_PLL_DIV,        --уст. дел. частоты по умолчанию:1/2 - SATA-II/SATA-I
-PLL_SATA_1                  => FALSE,    --When FALSE, PLL_SATA allows TX SATA operations to work at
-                                               --the SATA Generation 1 (1.5 Gb/s) or SATA Generation 2 (3 Gb/s) rate.
+PLL_RXDIVSEL_OUT_1          => CI_PLL_DIV,
+PLL_SATA_1                  => FALSE,
 
 ----------------------- PRBS Detection Attributes ---------------------
 
-PRBS_ERR_THRESHOLD_0        => x"00000001",--/Wizard   x"00000008",--/xapp870
-PRBS_ERR_THRESHOLD_1        => x"00000001",--/Wizard   x"00000008",--/xapp870
+PRBS_ERR_THRESHOLD_0        => x"00000001",
+PRBS_ERR_THRESHOLD_1        => x"00000001",
 
 ---------------- Comma Detection and Alignment Attributes -------------
 
-ALIGN_COMMA_WORD_0          => CI_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
-COMMA_10B_ENABLE_0          => "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
-COMMA_DOUBLE_0              => FALSE,       --
-DEC_MCOMMA_DETECT_0         => TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a negative 8B/10B comma
-DEC_PCOMMA_DETECT_0         => TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a positive 8B/10B comma
-DEC_VALID_COMMA_ONLY_0      => FALSE,       --port RXCHARISCOMMA='1' only for K28.1, K28.5, and K28.7
-MCOMMA_10B_VALUE_0          => "1010000011",--K28.5 rd+
-MCOMMA_DETECT_0             => TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd+
-PCOMMA_10B_VALUE_0          => "0101111100",--K28.5 rd-
-PCOMMA_DETECT_0             => TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd-
-RX_SLIDE_MODE_0             => "PCS",   --/xapp870
+ALIGN_COMMA_WORD_0          => CI_GTP_ALIGN_COMMA_WORD,
+COMMA_10B_ENABLE_0          => "1111111111",
+COMMA_DOUBLE_0              => FALSE,
+DEC_MCOMMA_DETECT_0         => TRUE,
+DEC_PCOMMA_DETECT_0         => TRUE,
+DEC_VALID_COMMA_ONLY_0      => FALSE,
+MCOMMA_10B_VALUE_0          => "1010000011",
+MCOMMA_DETECT_0             => TRUE,
+PCOMMA_10B_VALUE_0          => "0101111100",
+PCOMMA_DETECT_0             => TRUE,
+RX_SLIDE_MODE_0             => "PCS",
 
-ALIGN_COMMA_WORD_1          => CI_GTP_ALIGN_COMMA_WORD,--Если RXDATAWIDTH='0', то ALIGN_COMMA_WORD должен быть 1. (см.table 7-21/ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf)
-COMMA_10B_ENABLE_1          => "1111111111",--маска для MCOMMA_10B_VALUE_0/PCOMMA_10B_VALUE_0
-COMMA_DOUBLE_1              => FALSE,       --
-DEC_MCOMMA_DETECT_1         => TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a negative 8B/10B comma
-DEC_PCOMMA_DETECT_1         => TRUE,        --port RXCHARISCOMMA='1' when RXDATA is a positive 8B/10B comma
-DEC_VALID_COMMA_ONLY_1      => FALSE,       --port RXCHARISCOMMA='1' only for K28.1, K28.5, and K28.7
-MCOMMA_10B_VALUE_1          => "1010000011",--K28.5 rd+
-MCOMMA_DETECT_1             => TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd+
-PCOMMA_10B_VALUE_1          => "0101111100",--K28.5 rd-
-PCOMMA_DETECT_1             => TRUE,        --Разрешить уст. порт RXCOMMADET в '1' если обнаружен K28.5 rd-
-RX_SLIDE_MODE_1             => "PCS",   --/xapp870
+ALIGN_COMMA_WORD_1          => CI_GTP_ALIGN_COMMA_WORD,
+COMMA_10B_ENABLE_1          => "1111111111",
+COMMA_DOUBLE_1              => FALSE,
+DEC_MCOMMA_DETECT_1         => TRUE,
+DEC_PCOMMA_DETECT_1         => TRUE,
+DEC_VALID_COMMA_ONLY_1      => FALSE,
+MCOMMA_10B_VALUE_1          => "1010000011",
+MCOMMA_DETECT_1             => TRUE,
+PCOMMA_10B_VALUE_1          => "0101111100",
+PCOMMA_DETECT_1             => TRUE,
+RX_SLIDE_MODE_1             => "PCS",
 
 ------------------ RX Loss-of-sync State Machine Attributes -----------
 
@@ -438,14 +432,14 @@ RX_LOS_THRESHOLD_1          => 128,
 -------------- RX Elastic Buffer and Phase alignment Attributes -------
 
 RX_BUFFER_USE_0             => TRUE,
-RX_XCLK_SEL_0               => "RXREC", --"RXUSR" используется когда  RX elastic buffer is bypass
+RX_XCLK_SEL_0               => "RXREC",
 
 RX_BUFFER_USE_1             => TRUE,
-RX_XCLK_SEL_1               => "RXREC",--"RXUSR" используется когда  RX elastic buffer is bypass
+RX_XCLK_SEL_1               => "RXREC",
 
 ------------------------ Clock Correction Attributes ------------------
 
-CLK_CORRECT_USE_0           => TRUE, --Вкл. схемы востановления частоты (необходимо чтобы RX_BUFFER_USE=TRUE)
+CLK_CORRECT_USE_0           => TRUE,
 CLK_COR_ADJ_LEN_0           => 4,
 CLK_COR_DET_LEN_0           => 4,
 CLK_COR_INSERT_IDLE_FLAG_0  => FALSE,
@@ -454,10 +448,10 @@ CLK_COR_MAX_LAT_0           => 18,
 CLK_COR_MIN_LAT_0           => 16,
 CLK_COR_PRECEDENCE_0        => TRUE,
 CLK_COR_REPEAT_WAIT_0       => 0,
-CLK_COR_SEQ_1_1_0           => "0110111100",--xBC (Primitive ALIGN -clock correction sequences)
-CLK_COR_SEQ_1_2_0           => "0001001010",--x4A
-CLK_COR_SEQ_1_3_0           => "0001001010",--x4A
-CLK_COR_SEQ_1_4_0           => "0001111011",--x7B
+CLK_COR_SEQ_1_1_0           => "0110111100",
+CLK_COR_SEQ_1_2_0           => "0001001010",
+CLK_COR_SEQ_1_3_0           => "0001001010",
+CLK_COR_SEQ_1_4_0           => "0001111011",
 CLK_COR_SEQ_1_ENABLE_0      => "1111",
 CLK_COR_SEQ_2_1_0           => "0000000000",
 CLK_COR_SEQ_2_2_0           => "0000000000",
@@ -467,7 +461,7 @@ CLK_COR_SEQ_2_ENABLE_0      => "0000",
 CLK_COR_SEQ_2_USE_0         => FALSE,
 RX_DECODE_SEQ_MATCH_0       => TRUE,
 
-CLK_CORRECT_USE_1           => TRUE, --Вкл. схемы востановления частоты (необходимо чтобы RX_BUFFER_USE=TRUE)
+CLK_CORRECT_USE_1           => TRUE,
 CLK_COR_ADJ_LEN_1           => 4,
 CLK_COR_DET_LEN_1           => 4,
 CLK_COR_INSERT_IDLE_FLAG_1  => FALSE,
@@ -476,10 +470,10 @@ CLK_COR_MAX_LAT_1           => 18,
 CLK_COR_MIN_LAT_1           => 16,
 CLK_COR_PRECEDENCE_1        => TRUE,
 CLK_COR_REPEAT_WAIT_1       => 0,
-CLK_COR_SEQ_1_1_1           => "0110111100",--xBC (Primitive ALIGN -clock correction sequences)
-CLK_COR_SEQ_1_2_1           => "0001001010",--x4A
-CLK_COR_SEQ_1_3_1           => "0001001010",--x4A
-CLK_COR_SEQ_1_4_1           => "0001111011",--x7B
+CLK_COR_SEQ_1_1_1           => "0110111100",
+CLK_COR_SEQ_1_2_1           => "0001001010",
+CLK_COR_SEQ_1_3_1           => "0001001010",
+CLK_COR_SEQ_1_4_1           => "0001111011",
 CLK_COR_SEQ_1_ENABLE_1      => "1111",
 CLK_COR_SEQ_2_1_1           => "0000000000",
 CLK_COR_SEQ_2_2_1           => "0000000000",
@@ -491,8 +485,8 @@ RX_DECODE_SEQ_MATCH_1       => TRUE,
 
 ------------------------ Channel Bonding Attributes -------------------
 
-CHAN_BOND_1_MAX_SKEW_0      => 1,--/Wizard   7,--/xapp870
-CHAN_BOND_2_MAX_SKEW_0      => 1,--/Wizard   7,--/xapp870
+CHAN_BOND_1_MAX_SKEW_0      => 7,--/xapp870;  1,--/Wizard;
+CHAN_BOND_2_MAX_SKEW_0      => 7,--/xapp870;  1,--/Wizard;
 CHAN_BOND_LEVEL_0           => 0,
 CHAN_BOND_MODE_0            => "OFF",
 CHAN_BOND_SEQ_1_1_0         => "0000000000",
@@ -509,8 +503,8 @@ CHAN_BOND_SEQ_2_USE_0       => FALSE,
 CHAN_BOND_SEQ_LEN_0         => 1,
 PCI_EXPRESS_MODE_0          => FALSE,
 
-CHAN_BOND_1_MAX_SKEW_1      => 1,--/Wizard   7,--/xapp870
-CHAN_BOND_2_MAX_SKEW_1      => 1,--/Wizard   7,--/xapp870
+CHAN_BOND_1_MAX_SKEW_1      => 7,--/xapp870;  1,--/Wizard;
+CHAN_BOND_2_MAX_SKEW_1      => 7,--/xapp870;  1,--/Wizard;
 CHAN_BOND_LEVEL_1           => 0,
 CHAN_BOND_MODE_1            => "OFF",
 CHAN_BOND_SEQ_1_1_1         => "0000000000",
@@ -538,9 +532,9 @@ SATA_MAX_WAKE_0             => 7,
 SATA_MIN_BURST_0            => 4,
 SATA_MIN_INIT_0             => 12,
 SATA_MIN_WAKE_0             => 4,
-TRANS_TIME_FROM_P2_0        => x"003c",--/Wizard    x"0060",--/xapp870
-TRANS_TIME_NON_P2_0         => x"0019",--/Wizard    x"0025",--/xapp870
-TRANS_TIME_TO_P2_0          => x"0064",--/Wizard    x"0100",--/xapp870
+TRANS_TIME_FROM_P2_0        => x"0060",--/xapp870; x"003c",--/Wizard
+TRANS_TIME_NON_P2_0         => x"0025",--/xapp870; x"0019",--/Wizard
+TRANS_TIME_TO_P2_0          => x"0100",--/xapp870; x"0064",--/Wizard
 
 RX_STATUS_FMT_1             => "SATA",
 SATA_BURST_VAL_1            => "100",
@@ -551,9 +545,9 @@ SATA_MAX_WAKE_1             => 7,
 SATA_MIN_BURST_1            => 4,
 SATA_MIN_INIT_1             => 12,
 SATA_MIN_WAKE_1             => 4,
-TRANS_TIME_FROM_P2_1        => x"003c",--/Wizard    x"0060",--/xapp870
-TRANS_TIME_NON_P2_1         => x"0019",--/Wizard    x"0025",--/xapp870
-TRANS_TIME_TO_P2_1          => x"0064" --/Wizard    x"0100" --/xapp870
+TRANS_TIME_FROM_P2_1        => x"0060",--/xapp870; x"003c",--/Wizard
+TRANS_TIME_NON_P2_1         => x"0025",--/xapp870; x"0019",--/Wizard
+TRANS_TIME_TO_P2_1          => x"0100" --/xapp870; x"0064" --/Wizard
 )
 port map(
 ------------------------ Loopback and Powerdown Ports ----------------------
