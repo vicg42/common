@@ -71,12 +71,12 @@ p_out_txbufstatus      : out   TBus02_GTCH;
 p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS + PMA
 p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS
 p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
-p_out_rxstatus         : out   TBus03_GTCH;                                    --//Тип обнаруженного OOB сигнала
-p_out_rxdata           : out   TBus32_GTCH;                                    --//поток данных от приемника DUAL_GTP
-p_out_rxcharisk        : out   TBus04_GTCH;                                    --//признак наличия упр.символов в rxdata
-p_out_rxdisperr        : out   TBus04_GTCH;                                    --//Ошибка паритета в принятом данном
-p_out_rxnotintable     : out   TBus04_GTCH;                                    --//
-p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);  --//Данные выровнены по байтам
+p_out_rxstatus         : out   TBus03_GTCH;                                   --//Тип обнаруженного OOB сигнала
+p_out_rxdata           : out   TBus32_GTCH;                                   --//поток данных от приемника DUAL_GTP
+p_out_rxcharisk        : out   TBus04_GTCH;                                   --//признак наличия упр.символов в rxdata
+p_out_rxdisperr        : out   TBus04_GTCH;                                   --//Ошибка паритета в принятом данном
+p_out_rxnotintable     : out   TBus04_GTCH;                                   --//
+p_out_rxbyteisaligned  : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Данные выровнены по байтам
 
 p_in_rxbufreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 p_out_rxbufstatus      : out   TBus03_GTCH;
@@ -114,6 +114,8 @@ architecture behavioral of sata_player_gt is
 constant CI_PLL_DIV                : integer := selval(1, 2, cmpval(C_FSATA_GEN_DEFAULT,C_FSATA_GEN2));--(1/2 - SATA-II/I)
 constant CI_GTP_ALIGN_COMMA_WORD   : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
 constant CI_GTP_DATAWIDTH          : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
+constant CI_8B10BUSE               : std_logic:='1';--0/1 - bypassed/enabled for 8B/10B decoder(encoder)
+constant CI_INTDATAWIDTH           : std_logic:='1';--Подробнее см.стр.190 в ug196.pdf
 
 signal i_rxenelecidleresetb        : std_logic;
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -303,17 +305,18 @@ i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 
 m_gt : GTP_DUAL
 generic map(
 
---_______________________ Simulation-Only Attributes ___________________
+--Simulation-Only Attributes
 SIM_MODE                    => G_SIM,
 SIM_GTPRESET_SPEEDUP        => 1,
 SIM_PLL_PERDIV2             => x"14d",
 SIM_RECEIVER_DETECT_PASS0   => TRUE,
 SIM_RECEIVER_DETECT_PASS1   => TRUE,
 
---___________________________ Shared Attributes ________________________
+--PRBS Detection Attributes
+PRBS_ERR_THRESHOLD_0        => x"00000001",
+PRBS_ERR_THRESHOLD_1        => x"00000001",
 
--------------------------- Tile and PLL Attributes ---------------------
-
+--Tile and PLL Attributes
 CLK25_DIVIDER               => 6,
 CLKINDC_B                   => TRUE,
 OOB_CLK_DIVIDER             => 6,
@@ -323,11 +326,66 @@ PLL_DIVSEL_REF              => 1,
 PLL_TXDIVSEL_COMM_OUT       => 1,
 TX_SYNC_FILTERB             => 1,
 
+PLL_TXDIVSEL_OUT_0          => CI_PLL_DIV,
+PLL_TXDIVSEL_OUT_1          => CI_PLL_DIV,
 
---____________________ Transmit Interface Attributes ___________________
+PLL_RXDIVSEL_OUT_0          => CI_PLL_DIV,
+PLL_RXDIVSEL_OUT_1          => CI_PLL_DIV,
 
-------------------- TX Buffering and Phase Alignment -------------------
+PLL_SATA_0                  => FALSE,
+PLL_SATA_1                  => FALSE,
 
+--Channel Bonding Attributes
+CHAN_BOND_1_MAX_SKEW_0      => 1,
+CHAN_BOND_2_MAX_SKEW_0      => 1,
+CHAN_BOND_LEVEL_0           => 0,
+CHAN_BOND_MODE_0            => "OFF",
+CHAN_BOND_SEQ_1_1_0         => "0000000000",
+CHAN_BOND_SEQ_1_2_0         => "0000000000",
+CHAN_BOND_SEQ_1_3_0         => "0000000000",
+CHAN_BOND_SEQ_1_4_0         => "0000000000",
+CHAN_BOND_SEQ_1_ENABLE_0    => "0000",
+CHAN_BOND_SEQ_2_1_0         => "0000000000",
+CHAN_BOND_SEQ_2_2_0         => "0000000000",
+CHAN_BOND_SEQ_2_3_0         => "0000000000",
+CHAN_BOND_SEQ_2_4_0         => "0000000000",
+CHAN_BOND_SEQ_2_ENABLE_0    => "0000",
+CHAN_BOND_SEQ_2_USE_0       => FALSE,
+CHAN_BOND_SEQ_LEN_0         => 1,
+PCI_EXPRESS_MODE_0          => FALSE,
+
+CHAN_BOND_1_MAX_SKEW_1      => 1,
+CHAN_BOND_2_MAX_SKEW_1      => 1,
+CHAN_BOND_LEVEL_1           => 0,
+CHAN_BOND_MODE_1            => "OFF",
+CHAN_BOND_SEQ_1_1_1         => "0000000000",
+CHAN_BOND_SEQ_1_2_1         => "0000000000",
+CHAN_BOND_SEQ_1_3_1         => "0000000000",
+CHAN_BOND_SEQ_1_4_1         => "0000000000",
+CHAN_BOND_SEQ_1_ENABLE_1    => "0000",
+CHAN_BOND_SEQ_2_1_1         => "0000000000",
+CHAN_BOND_SEQ_2_2_1         => "0000000000",
+CHAN_BOND_SEQ_2_3_1         => "0000000000",
+CHAN_BOND_SEQ_2_4_1         => "0000000000",
+CHAN_BOND_SEQ_2_ENABLE_1    => "0000",
+CHAN_BOND_SEQ_2_USE_1       => FALSE,
+CHAN_BOND_SEQ_LEN_1         => 1,
+PCI_EXPRESS_MODE_1          => FALSE,
+
+--RX Loss-of-sync State Machine Attributes
+RX_LOSS_OF_SYNC_FSM_0       => FALSE,
+RX_LOS_INVALID_INCR_0       => 8,
+RX_LOS_THRESHOLD_0          => 128,
+
+RX_LOSS_OF_SYNC_FSM_1       => FALSE,
+RX_LOS_INVALID_INCR_1       => 8,
+RX_LOS_THRESHOLD_1          => 128,
+
+--TX Driver and OOB signalling Attributes
+TX_DIFF_BOOST_0             => TRUE,
+TX_DIFF_BOOST_1             => TRUE,
+
+--TX Buffering and Phase Alignment Attributes
 TX_BUFFER_USE_0             => TRUE,
 TX_XCLK_SEL_0               => "TXOUT",
 TXRX_INVERT_0               => "00000",
@@ -336,65 +394,7 @@ TX_BUFFER_USE_1             => TRUE,
 TX_XCLK_SEL_1               => "TXOUT",
 TXRX_INVERT_1               => "00000",
 
---------------------- TX Serial Line Rate settings ---------------------
-
-PLL_TXDIVSEL_OUT_0          => CI_PLL_DIV,
-
-PLL_TXDIVSEL_OUT_1          => CI_PLL_DIV,
-
---------------------- TX Driver and OOB signalling --------------------
-
-TX_DIFF_BOOST_0             => TRUE,
-
-TX_DIFF_BOOST_1             => TRUE,
-
------------------- TX Pipe Control for PCI Express/SATA ---------------
-
-COM_BURST_VAL_0             => "0101",
-
-COM_BURST_VAL_1             => "0101",
-
---_______________________ Receive Interface Attributes ________________
-
------------- RX Driver,OOB signalling,Coupling and Eq,CDR -------------
-
-AC_CAP_DIS_0                => FALSE,
-OOBDETECT_THRESHOLD_0       => "111",--/xapp870; "100",--/Wizard;
-PMA_CDR_SCAN_0              => x"6c07640",
-PMA_RX_CFG_0                => x"0dce111",--/xapp870; x"09f0089",--/Wizard;
-RCV_TERM_GND_0              => FALSE,
-RCV_TERM_MID_0              => TRUE,
-RCV_TERM_VTTRX_0            => TRUE,--/xapp870; FALSE,--/Wizard;
-TERMINATION_IMP_0           => 50,
-
-AC_CAP_DIS_1                => FALSE,
-OOBDETECT_THRESHOLD_1       => "111",--/xapp870; "100",--/Wizard;
-PMA_CDR_SCAN_1              => x"6c07640",
-PMA_RX_CFG_1                => x"0dce111",--/xapp870; x"09f0089",--/Wizard;
-RCV_TERM_GND_1              => FALSE,
-RCV_TERM_MID_1              => TRUE,
-RCV_TERM_VTTRX_1            => TRUE,--/xapp870; FALSE,--/Wizard;
-TERMINATION_IMP_1           => 50,
-
-PCS_COM_CFG                 => x"1680a0e",
-TERMINATION_CTRL            => "10100",
-TERMINATION_OVRD            => FALSE,
-
---------------------- RX Serial Line Rate Attributes ------------------
-
-PLL_RXDIVSEL_OUT_0          => CI_PLL_DIV,
-PLL_SATA_0                  => FALSE,
-
-PLL_RXDIVSEL_OUT_1          => CI_PLL_DIV,
-PLL_SATA_1                  => FALSE,
-
------------------------ PRBS Detection Attributes ---------------------
-
-PRBS_ERR_THRESHOLD_0        => x"00000001",
-PRBS_ERR_THRESHOLD_1        => x"00000001",
-
----------------- Comma Detection and Alignment Attributes -------------
-
+--Comma Detection and Alignment Attributes
 ALIGN_COMMA_WORD_0          => CI_GTP_ALIGN_COMMA_WORD,
 COMMA_10B_ENABLE_0          => "1111111111",
 COMMA_DOUBLE_0              => FALSE,
@@ -419,26 +419,14 @@ PCOMMA_10B_VALUE_1          => "0101111100",
 PCOMMA_DETECT_1             => TRUE,
 RX_SLIDE_MODE_1             => "PCS",
 
------------------- RX Loss-of-sync State Machine Attributes -----------
-
-RX_LOSS_OF_SYNC_FSM_0       => FALSE,
-RX_LOS_INVALID_INCR_0       => 8,
-RX_LOS_THRESHOLD_0          => 128,
-
-RX_LOSS_OF_SYNC_FSM_1       => FALSE,
-RX_LOS_INVALID_INCR_1       => 8,
-RX_LOS_THRESHOLD_1          => 128,
-
--------------- RX Elastic Buffer and Phase alignment Attributes -------
-
+--RX Elastic Buffer and Phase alignment Attributes
 RX_BUFFER_USE_0             => TRUE,
 RX_XCLK_SEL_0               => "RXREC",
 
 RX_BUFFER_USE_1             => TRUE,
 RX_XCLK_SEL_1               => "RXREC",
 
------------------------- Clock Correction Attributes ------------------
-
+--Clock Correction Attributes
 CLK_CORRECT_USE_0           => TRUE,
 CLK_COR_ADJ_LEN_0           => 4,
 CLK_COR_DET_LEN_0           => 4,
@@ -483,46 +471,30 @@ CLK_COR_SEQ_2_ENABLE_1      => "0000",
 CLK_COR_SEQ_2_USE_1         => FALSE,
 RX_DECODE_SEQ_MATCH_1       => TRUE,
 
------------------------- Channel Bonding Attributes -------------------
+--RX Driver,OOB signalling,Coupling and Eq,CDR Attributes
+AC_CAP_DIS_0                => FALSE,
+PMA_CDR_SCAN_0              => x"6c07640",
+PMA_RX_CFG_0                => x"09f0051",--ug196.pdf; x"0dce111",--xapp870; x"09f0089",--Wizard;
+RCV_TERM_GND_0              => FALSE,
+RCV_TERM_MID_0              => TRUE,
+RCV_TERM_VTTRX_0            => TRUE,--(Xilinx rpt087.pdf)
+TERMINATION_IMP_0           => 50,
 
-CHAN_BOND_1_MAX_SKEW_0      => 7,--/xapp870;  1,--/Wizard;
-CHAN_BOND_2_MAX_SKEW_0      => 7,--/xapp870;  1,--/Wizard;
-CHAN_BOND_LEVEL_0           => 0,
-CHAN_BOND_MODE_0            => "OFF",
-CHAN_BOND_SEQ_1_1_0         => "0000000000",
-CHAN_BOND_SEQ_1_2_0         => "0000000000",
-CHAN_BOND_SEQ_1_3_0         => "0000000000",
-CHAN_BOND_SEQ_1_4_0         => "0000000000",
-CHAN_BOND_SEQ_1_ENABLE_0    => "0000",
-CHAN_BOND_SEQ_2_1_0         => "0000000000",
-CHAN_BOND_SEQ_2_2_0         => "0000000000",
-CHAN_BOND_SEQ_2_3_0         => "0000000000",
-CHAN_BOND_SEQ_2_4_0         => "0000000000",
-CHAN_BOND_SEQ_2_ENABLE_0    => "0000",
-CHAN_BOND_SEQ_2_USE_0       => FALSE,
-CHAN_BOND_SEQ_LEN_0         => 1,
-PCI_EXPRESS_MODE_0          => FALSE,
+AC_CAP_DIS_1                => FALSE,
+PMA_CDR_SCAN_1              => x"6c07640",
+PMA_RX_CFG_1                => x"09f0051",--ug196.pdf; x"09f0089",--Wizard; x"0dce111",--xapp870;
+RCV_TERM_GND_1              => FALSE,
+RCV_TERM_MID_1              => TRUE,
+RCV_TERM_VTTRX_1            => TRUE,--(Xilinx rpt087.pdf)
+TERMINATION_IMP_1           => 50,
 
-CHAN_BOND_1_MAX_SKEW_1      => 7,--/xapp870;  1,--/Wizard;
-CHAN_BOND_2_MAX_SKEW_1      => 7,--/xapp870;  1,--/Wizard;
-CHAN_BOND_LEVEL_1           => 0,
-CHAN_BOND_MODE_1            => "OFF",
-CHAN_BOND_SEQ_1_1_1         => "0000000000",
-CHAN_BOND_SEQ_1_2_1         => "0000000000",
-CHAN_BOND_SEQ_1_3_1         => "0000000000",
-CHAN_BOND_SEQ_1_4_1         => "0000000000",
-CHAN_BOND_SEQ_1_ENABLE_1    => "0000",
-CHAN_BOND_SEQ_2_1_1         => "0000000000",
-CHAN_BOND_SEQ_2_2_1         => "0000000000",
-CHAN_BOND_SEQ_2_3_1         => "0000000000",
-CHAN_BOND_SEQ_2_4_1         => "0000000000",
-CHAN_BOND_SEQ_2_ENABLE_1    => "0000",
-CHAN_BOND_SEQ_2_USE_1       => FALSE,
-CHAN_BOND_SEQ_LEN_1         => 1,
-PCI_EXPRESS_MODE_1          => FALSE,
+PCS_COM_CFG                 => x"1680a0e",
+TERMINATION_CTRL            => "10100",
+TERMINATION_OVRD            => FALSE,
 
------------------- RX Attributes for PCI Express/SATA ---------------
-
+--RX Attributes for PCI Express/SATA Attributes
+OOBDETECT_THRESHOLD_0       => "100",--Wizard; "111",--(Xilinx rpt087.pdf);
+COM_BURST_VAL_0             => "0101",
 RX_STATUS_FMT_0             => "SATA",
 SATA_BURST_VAL_0            => "100",
 SATA_IDLE_VAL_0             => "100",
@@ -532,10 +504,12 @@ SATA_MAX_WAKE_0             => 7,
 SATA_MIN_BURST_0            => 4,
 SATA_MIN_INIT_0             => 12,
 SATA_MIN_WAKE_0             => 4,
-TRANS_TIME_FROM_P2_0        => x"0060",--/xapp870; x"003c",--/Wizard
-TRANS_TIME_NON_P2_0         => x"0025",--/xapp870; x"0019",--/Wizard
-TRANS_TIME_TO_P2_0          => x"0100",--/xapp870; x"0064",--/Wizard
+TRANS_TIME_FROM_P2_0        => x"003c",
+TRANS_TIME_NON_P2_0         => x"0019",
+TRANS_TIME_TO_P2_0          => x"0064",
 
+OOBDETECT_THRESHOLD_1       => "100",--Wizard; "111",--(Xilinx rpt087.pdf)
+COM_BURST_VAL_1             => "0101",
 RX_STATUS_FMT_1             => "SATA",
 SATA_BURST_VAL_1            => "100",
 SATA_IDLE_VAL_1             => "100",
@@ -545,66 +519,66 @@ SATA_MAX_WAKE_1             => 7,
 SATA_MIN_BURST_1            => 4,
 SATA_MIN_INIT_1             => 12,
 SATA_MIN_WAKE_1             => 4,
-TRANS_TIME_FROM_P2_1        => x"0060",--/xapp870; x"003c",--/Wizard
-TRANS_TIME_NON_P2_1         => x"0025",--/xapp870; x"0019",--/Wizard
-TRANS_TIME_TO_P2_1          => x"0100" --/xapp870; x"0064" --/Wizard
+TRANS_TIME_FROM_P2_1        => x"003c",
+TRANS_TIME_NON_P2_1         => x"0019",
+TRANS_TIME_TO_P2_1          => x"0064"
 )
 port map(
------------------------- Loopback and Powerdown Ports ----------------------
+------- Loopback and Powerdown Ports -------
 LOOPBACK0                   => "000",
 LOOPBACK1                   => "000",
 RXPOWERDOWN0                => "00",
 RXPOWERDOWN1                => "00",
 TXPOWERDOWN0                => "00",
 TXPOWERDOWN1                => "00",
------------------------ Receive Ports - 8b10b Decoder ----------------------
+------- Receive Ports - 8b10b Decoder -------
 RXCHARISCOMMA0              => open,
 RXCHARISCOMMA1              => open,
 RXCHARISK0                  => i_rxcharisk_out(0)(1 downto 0),
 RXCHARISK1                  => i_rxcharisk_out(1)(1 downto 0),
-RXDEC8B10BUSE0              => '1',--Разрешение или пропуск 8B/10B decoder (0/1-bypassed/enabled)
-RXDEC8B10BUSE1              => '1',
+RXDEC8B10BUSE0              => CI_8B10BUSE,
+RXDEC8B10BUSE1              => CI_8B10BUSE,
 RXDISPERR0                  => i_rxdisperr_out(0)(1 downto 0),
 RXDISPERR1                  => i_rxdisperr_out(1)(1 downto 0),
 RXNOTINTABLE0               => i_rxnotintable_out(0)(1 downto 0),
 RXNOTINTABLE1               => i_rxnotintable_out(1)(1 downto 0),
 RXRUNDISP0                  => open,
 RXRUNDISP1                  => open,
-------------------- Receive Ports - Channel Bonding Ports ------------------
+------- Receive Ports - Channel Bonding Ports -------
 RXCHANBONDSEQ0              => open,
 RXCHANBONDSEQ1              => open,
-RXCHBONDI0                  => "000",--FPGA channel bonding control. This signal is used only by slaves.
-RXCHBONDI1                  => "000",--It is driven from another transceiver's RXCHBONDO port that is the master in this configuration.
+RXCHBONDI0                  => "000",
+RXCHBONDI1                  => "000",
 RXCHBONDO0                  => open,
 RXCHBONDO1                  => open,
-RXENCHANSYNC0               => '1',--Enable channel bonding. '1' for slaves.
+RXENCHANSYNC0               => '1',
 RXENCHANSYNC1               => '1',
-------------------- Receive Ports - Clock Correction Ports -----------------
+------- Receive Ports - Clock Correction Ports -------
 RXCLKCORCNT0                => open,
 RXCLKCORCNT1                => open,
---------------- Receive Ports - Comma Detection and Alignment --------------
+------- Receive Ports - Comma Detection and Alignment -------
 RXBYTEISALIGNED0            => i_rxbyteisaligned_out(0),
 RXBYTEISALIGNED1            => i_rxbyteisaligned_out(1),
 RXBYTEREALIGN0              => open,
 RXBYTEREALIGN1              => open,
 RXCOMMADET0                 => open,
 RXCOMMADET1                 => open,
-RXCOMMADETUSE0              => '1',--1/0 use comma detection and alignment circuit/bypass the ciruit
+RXCOMMADETUSE0              => '1',
 RXCOMMADETUSE1              => '1',
-RXENMCOMMAALIGN0            => '1',--1/0 enbled aligned the byte boundary when comma minus is detected/diable
+RXENMCOMMAALIGN0            => '1',
 RXENMCOMMAALIGN1            => '1',
-RXENPCOMMAALIGN0            => '1',--1/0 enbled aligned the byte boundary when comma plus is detected/diable
+RXENPCOMMAALIGN0            => '1',
 RXENPCOMMAALIGN1            => '1',
 RXSLIDE0                    => '0',
 RXSLIDE1                    => '0',
------------------------ Receive Ports - PRBS Detection ---------------------
+------- Receive Ports - PRBS Detection -------
 PRBSCNTRESET0               => '0',
 PRBSCNTRESET1               => '0',
 RXENPRBSTST0                => "00",
 RXENPRBSTST1                => "00",
 RXPRBSERR0                  => open,
 RXPRBSERR1                  => open,
-------------------- Receive Ports - RX Data Path interface -----------------
+------- Receive Ports - RX Data Path interface -------
 RXDATA0                     => i_rxdata_out(0)(15 downto 0),
 RXDATA1                     => i_rxdata_out(1)(15 downto 0),
 RXDATAWIDTH0                => CI_GTP_DATAWIDTH(0),
@@ -617,53 +591,53 @@ RXUSRCLK0                   => g_gtp_usrclk(0),
 RXUSRCLK1                   => g_gtp_usrclk(1),
 RXUSRCLK20                  => g_gtp_usrclk2(0),
 RXUSRCLK21                  => g_gtp_usrclk2(1),
-------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR ------
+------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR -------
 RXCDRRESET0                 => p_in_rxcdrreset(0),--i_rxcdrreset_in(0),--
 RXCDRRESET1                 => p_in_rxcdrreset(1),--i_rxcdrreset_in(1),--
 RXELECIDLE0                 => i_rxelecidle(0),
 RXELECIDLE1                 => i_rxelecidle(1),
 RXELECIDLERESET0            => i_rxelecidlereset(0),
 RXELECIDLERESET1            => i_rxelecidlereset(1),
-RXENEQB0                    => '1',--0/1 - Receiver equalization is enabled/disable
+RXENEQB0                    => '1',
 RXENEQB1                    => '1',
-RXEQMIX0                    => "00",--wideband/high-pass mix ratio for the RX equalization circuit. Table 7-1 ug196.pdf
+RXEQMIX0                    => "00",
 RXEQMIX1                    => "00",
-RXEQPOLE0                   => "0000",--location of the pole in the RX equalizer high-pass filter. Table 7-1 ug196.pdf
+RXEQPOLE0                   => "0000",
 RXEQPOLE1                   => "0000",
 RXN0                        => p_in_rxn(0),
 RXN1                        => p_in_rxn(1),
 RXP0                        => p_in_rxp(0),
 RXP1                        => p_in_rxp(1),
--------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
+------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
 RXBUFRESET0                 => i_rxbufreset_in(0),--p_in_rxbufreset(0),--
 RXBUFRESET1                 => i_rxbufreset_in(1),--p_in_rxbufreset(1),--
-RXBUFSTATUS0                => i_rxbufstatus_out(0),--cм.стр.168  ug196.pdf
-RXBUFSTATUS1                => i_rxbufstatus_out(1),--
+RXBUFSTATUS0                => i_rxbufstatus_out(0),
+RXBUFSTATUS1                => i_rxbufstatus_out(1),
 RXCHANISALIGNED0            => open,
 RXCHANISALIGNED1            => open,
 RXCHANREALIGN0              => open,
 RXCHANREALIGN1              => open,
 RXPMASETPHASE0              => '0',
 RXPMASETPHASE1              => '0',
-RXSTATUS0                   => i_rxstatus_out(0),--cм.стр.123 Table 6-19. ug196.pdf
+RXSTATUS0                   => i_rxstatus_out(0),
 RXSTATUS1                   => i_rxstatus_out(1),
---------------- Receive Ports - RX Loss-of-sync State Machine --------------
+------- Receive Ports - RX Loss-of-sync State Machine -------
 RXLOSSOFSYNC0               => open,
 RXLOSSOFSYNC1               => open,
----------------------- Receive Ports - RX Oversampling ---------------------
-RXENSAMPLEALIGN0            => '0',--'0' it samples only at the point that was active before the port went Low
-RXENSAMPLEALIGN1            => '0',--'1' the 5x oversampler in the PCS continually adjusts its sample point.
+------- Receive Ports - RX Oversampling -------
+RXENSAMPLEALIGN0            => '0',
+RXENSAMPLEALIGN1            => '0',
 RXOVERSAMPLEERR0            => open,
 RXOVERSAMPLEERR1            => open,
--------------- Receive Ports - RX Pipe Control for PCI Express -------------
+------- Receive Ports - RX Pipe Control for PCI Express -------------
 PHYSTATUS0                  => open,
 PHYSTATUS1                  => open,
 RXVALID0                    => open,
 RXVALID1                    => open,
------------------ Receive Ports - RX Polarity Control Ports ----------------
-RXPOLARITY0                 => '0',--0/1 Not inverted RXP is positive, and RXN is negative/Inverted
+------- Receive Ports - RX Polarity Control Ports -------
+RXPOLARITY0                 => '0',
 RXPOLARITY1                 => '0',
-------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
+------- Shared Ports - Dynamic Reconfiguration Port (DRP) -------
 DADDR                       => p_in_drpaddr(6 downto 0),
 DCLK                        => p_in_drpclk,
 DEN                         => p_in_drpen,
@@ -671,23 +645,23 @@ DI                          => p_in_drpdi,
 DO                          => p_out_drpdo,
 DRDY                        => p_out_drprdy,
 DWE                         => p_in_drpwe,
---------------------- Shared Ports - Tile and PLL Ports --------------------
-CLKIN                       => p_in_refclkin,--Reference clock input to the shared PMA PLL.
-GTPRESET                    => p_in_rst,     --reset sequence takes about 160 us to complete.
+------- Shared Ports - Tile and PLL Ports -------
+CLKIN                       => p_in_refclkin,
+GTPRESET                    => p_in_rst,
 GTPTEST                     => "0000",
-INTDATAWIDTH                => '1',--Подробнее см.стр.190 в ug196.pdf
+INTDATAWIDTH                => CI_INTDATAWIDTH,
 PLLLKDET                    => p_out_plllock,
-PLLLKDETEN                  => '1',--enables the PLL lock detector. should always be tied High.
-PLLPOWERDOWN                => '0',--0/1 PMA PLL is powered up/power down,
-REFCLKOUT                   => p_out_refclkout,--NOTE: p_out_refclkout = p_in_refclkin !!!
-REFCLKPWRDNB                => '1',--0/1 Reference clock circuit is powered down/powered up
+PLLLKDETEN                  => '1',
+PLLPOWERDOWN                => '0',
+REFCLKOUT                   => p_out_refclkout,
+REFCLKPWRDNB                => '1',
 RESETDONE0                  => i_resetdone(0),
 RESETDONE1                  => i_resetdone(1),
 RXENELECIDLERESETB          => i_rxenelecidleresetb,
-TXENPMAPHASEALIGN           => '0',--'1' align their XCLKs with their TXUSRCLKs
-TXPMASETPHASE               => '0',--'1' aligns XCLK with TXUSRCLK for both GTP transceivers
----------------- Transmit Ports - 8b10b Encoder Control Ports --------------
-TXBYPASS8B10B0              => "00",--the operation of the TX 8B/10B encoder. Table 6-4. ug196.pdf
+TXENPMAPHASEALIGN           => '0',
+TXPMASETPHASE               => '0',
+------- Transmit Ports - 8b10b Encoder Control Ports -------
+TXBYPASS8B10B0              => "00",
 TXBYPASS8B10B1              => "00",
 TXCHARDISPMODE0             => "00",
 TXCHARDISPMODE1             => "00",
@@ -695,16 +669,16 @@ TXCHARDISPVAL0              => "00",
 TXCHARDISPVAL1              => "00",
 TXCHARISK0                  => i_txcharisk_in(0)(1 downto 0),
 TXCHARISK1                  => i_txcharisk_in(1)(1 downto 0),
-TXENC8B10BUSE0              => '1',--0/1 8B/10B encoder bypassed/enabled(when enabled INTDATAWIDTH must be 1)
-TXENC8B10BUSE1              => '1',--
+TXENC8B10BUSE0              => CI_8B10BUSE,
+TXENC8B10BUSE1              => CI_8B10BUSE,
 TXKERR0                     => open,
 TXKERR1                     => open,
 TXRUNDISP0                  => open,
 TXRUNDISP1                  => open,
-------------- Transmit Ports - TX Buffering and Phase Alignment ------------
-TXBUFSTATUS0                => i_txbufstatus_out(0),--cм.стр.111  ug196.pdf
-TXBUFSTATUS1                => i_txbufstatus_out(1),--
------------------- Transmit Ports - TX Data Path interface -----------------
+------- Transmit Ports - TX Buffering and Phase Alignment -------
+TXBUFSTATUS0                => i_txbufstatus_out(0),
+TXBUFSTATUS1                => i_txbufstatus_out(1),
+------- Transmit Ports - TX Data Path interface -------
 TXDATA0                     => i_txdata_in(0)(15 downto 0),
 TXDATA1                     => i_txdata_in(1)(15 downto 0),
 TXDATAWIDTH0                => CI_GTP_DATAWIDTH(0),
@@ -717,31 +691,31 @@ TXUSRCLK0                   => g_gtp_usrclk(0),
 TXUSRCLK1                   => g_gtp_usrclk(1),
 TXUSRCLK20                  => g_gtp_usrclk2(0),
 TXUSRCLK21                  => g_gtp_usrclk2(1),
---------------- Transmit Ports - TX Driver and OOB signalling --------------
-TXBUFDIFFCTRL0              => "001",--(Xilinx rpt087.pdf)-- strength of the pre-drivers.Table 6-17. ug196.pdf
-TXBUFDIFFCTRL1              => "001",--(Xilinx rpt087.pdf)--
-TXDIFFCTRL0                 => "100",--transmitter differential output swing.Table 6-18. ug196.pdf
-TXDIFFCTRL1                 => "100",
-TXINHIBIT0                  => '0', --'1' -TX diff pin pair is to a constant TXP='0', TXN='1'
+------- Transmit Ports - TX Driver and OOB signalling -------
+TXBUFDIFFCTRL0              => "001",--(Xilinx rpt087.pdf)
+TXBUFDIFFCTRL1              => "001",--(Xilinx rpt087.pdf)
+TXDIFFCTRL0                 => "100",--(Xilinx rpt087.pdf)
+TXDIFFCTRL1                 => "100",--(Xilinx rpt087.pdf)
+TXINHIBIT0                  => '0',
 TXINHIBIT1                  => '0',
 TXN0                        => p_out_txn(0),
 TXN1                        => p_out_txn(1),
 TXP0                        => p_out_txp(0),
 TXP1                        => p_out_txp(1),
-TXPREEMPHASIS0              => "011",--relative strength of the main drive and pre-emphasis.Table 6-18. ug196.pdf
-TXPREEMPHASIS1              => "011",
---------------------- Transmit Ports - TX PRBS Generator -------------------
+TXPREEMPHASIS0              => "011",--(Xilinx rpt087.pdf)
+TXPREEMPHASIS1              => "011",--(Xilinx rpt087.pdf)
+------- Transmit Ports - TX PRBS Generator -------
 TXENPRBSTST0                => "00",
 TXENPRBSTST1                => "00",
--------------------- Transmit Ports - TX Polarity Control ------------------
-TXPOLARITY0                 => '0',--0/1 Not inverted TXP is positive, and TXN is negative/Inverted
+------- Transmit Ports - TX Polarity Control -------
+TXPOLARITY0                 => '0',
 TXPOLARITY1                 => '0',
------------------ Transmit Ports - TX Ports for PCI Express ----------------
+------- Transmit Ports - TX Ports for PCI Express -------
 TXDETECTRX0                 => '0',
 TXDETECTRX1                 => '0',
 TXELECIDLE0                 => i_txelecidle_in(0),
 TXELECIDLE1                 => i_txelecidle_in(1),
---------------------- Transmit Ports - TX Ports for SATA -------------------
+------- Transmit Ports - TX Ports for SATA -------
 TXCOMSTART0                 => i_txcomstart_in(0),
 TXCOMSTART1                 => i_txcomstart_in(1),
 TXCOMTYPE0                  => i_txcomtype_in(0),
