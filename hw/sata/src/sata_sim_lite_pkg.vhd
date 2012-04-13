@@ -159,6 +159,7 @@ rxp          : TDbg_LLRxP;
 rxbuf_status : TRxBufStatus;
 txbuf_status : TTxBufStatus;
 txd_close    : std_logic;
+txd_close_opt: std_logic;
 end record;
 
 --//------------------------------
