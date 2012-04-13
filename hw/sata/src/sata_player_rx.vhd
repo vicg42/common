@@ -93,10 +93,14 @@ signal i_rxdata_out              : std_logic_vector(31 downto 0):=(others=>'0');
 signal i_rxdtype_out             : std_logic_vector(C_TDATA_EN downto C_TALIGN):=(others=>'0');
 signal i_rcv_error_out           : std_logic_vector(C_PRxSTAT_LAST_BIT downto 0):=(others=>'0');
 signal i_rxtype                  : std_logic_vector(C_TDATA_EN downto C_TALIGN):=(others=>'0');
+signal i_rxtype1                 : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
+signal i_rxtype2                 : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
+signal i_rxtype3                 : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
+signal i_rxdtype_out0            : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
+signal i_rxdtype_out1            : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
+signal i_rxdtype_out2            : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
+signal i_rxdtype_out3            : std_logic_vector(C_TPMNAK downto C_TALIGN):=(others=>'0');
 signal dbgrcv_type               : string(1 to 7);
-signal tst_rcv_error             : std_logic;
-signal tst_rcv_err_notintable    : std_logic;
-signal tst_rcv_err_disperr       : std_logic;
 
 
 
@@ -111,23 +115,8 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
---p_out_tst(31 downto 0)<=(others=>'0');
-ltstout:process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_rcv_error<='0';
-    tst_rcv_err_notintable<='0';
-    tst_rcv_err_disperr<='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-    tst_rcv_error<=OR_reduce(i_rcv_error_out) or not p_in_gt_rxbyteisaligned;
-    tst_rcv_err_disperr<=i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT);
-    tst_rcv_err_notintable<=i_rcv_error_out(C_PRxSTAT_ERR_NOTINTABLE_BIT);
-
-  end if;
-end process ltstout;
-p_out_tst(0)<=tst_rcv_error or
-              tst_rcv_err_disperr or tst_rcv_err_notintable;
+p_out_tst(0)<=OR_reduce(i_rcv_error_out) or not p_in_gt_rxbyteisaligned or
+              i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT) or i_rcv_error_out(C_PRxSTAT_ERR_NOTINTABLE_BIT);
 p_out_tst(31 downto 1)<=(others=>'0');
 end generate gen_dbg_on;
 
@@ -181,30 +170,9 @@ end process;
 
 p_out_gt_rxbufreset<=i_gt_rxbufreset;
 
-i_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1' else '0';
-i_rxtype(C_TSOF)     <='1' when i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TEOF)     <='1' when i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TDMAT)    <='1' when i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TCONT)    <='1' when i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TSYNC)    <='1' when i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_THOLD)    <='1' when i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_THOLDA)   <='1' when i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TX_RDY)   <='1' when i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TR_RDY)   <='1' when i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TR_IP)    <='1' when i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TR_OK)    <='1' when i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TR_ERR)   <='1' when i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TWTRM)    <='1' when i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TPMREQ_P) <='1' when i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TPMREQ_S) <='1' when i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TPMACK)   <='1' when i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TPMNAK)   <='1' when i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
-i_rxtype(C_TDATA_EN) <='1' when                             i_rxdtype=C_PDAT_TDATA                                  else '0';
-
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    i_rxdtype_out<=i_rxtype;
     i_rxdata_out<=i_rxdata;
 
     i_rcv_error_out(C_PRxSTAT_ERR_DISP_BIT)<=OR_reduce(i_gt_rxdisperr);
@@ -251,6 +219,36 @@ i_rxdata<=p_in_gt_rxdata(7 downto 0) & sr_rxdata(0) & sr_rxdata(1) & sr_rxdata(2
 i_gt_rxdisperr<=p_in_gt_rxdisperr(0) & sr_gt_rxdisperr(0) & sr_gt_rxdisperr(1) & sr_gt_rxdisperr(2);
 i_gt_rxnotintable<=p_in_gt_rxnotintable(0) & sr_gt_rxnotintable(0) & sr_gt_rxnotintable(1) & sr_gt_rxnotintable(2);
 
+i_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1' else '0';
+i_rxtype(C_TSOF)     <='1' when i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TEOF)     <='1' when i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TDMAT)    <='1' when i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TCONT)    <='1' when i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TSYNC)    <='1' when i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_THOLD)    <='1' when i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_THOLDA)   <='1' when i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TX_RDY)   <='1' when i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_RDY)   <='1' when i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_IP)    <='1' when i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_OK)    <='1' when i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_ERR)   <='1' when i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TWTRM)    <='1' when i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMREQ_P) <='1' when i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMREQ_S) <='1' when i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMACK)   <='1' when i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMNAK)   <='1' when i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TDATA_EN) <='1' when                             i_rxdtype=C_PDAT_TDATA                                  else '0';
+
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    for i in C_TALIGN to C_TDATA_EN-1 loop
+      i_rxdtype_out(i)<=i_rxtype(i);-- and not (OR_reduce(i_gt_rxdisperr) or OR_reduce(i_gt_rxnotintable));
+    end loop;
+    i_rxdtype_out(C_TDATA_EN)<=i_rxtype(C_TDATA_EN);
+  end if;
+end process;
+
 end generate gen_dbus8;
 
 --//------------------------------
@@ -289,6 +287,36 @@ i_rxdtype<=p_in_gt_rxcharisk(1) & p_in_gt_rxcharisk(0) & sr_rxdtype(1) & sr_rxdt
 i_gt_rxdisperr<=p_in_gt_rxdisperr(1) & p_in_gt_rxdisperr(0) & sr_gt_rxdisperr(1) & sr_gt_rxdisperr(0);
 i_gt_rxnotintable<=p_in_gt_rxnotintable(1) & p_in_gt_rxnotintable(0) & sr_gt_rxnotintable(1) & sr_gt_rxnotintable(0);
 
+i_rxtype(C_TALIGN)   <='1' when i_rxdata=C_PDAT_ALIGN   and i_rxdtype=C_PDAT_TPRM   and p_in_gt_rxbyteisaligned='1' else '0';
+i_rxtype(C_TSOF)     <='1' when i_rxdata=C_PDAT_SOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TEOF)     <='1' when i_rxdata=C_PDAT_EOF     and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TDMAT)    <='1' when i_rxdata=C_PDAT_DMAT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TCONT)    <='1' when i_rxdata=C_PDAT_CONT    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TSYNC)    <='1' when i_rxdata=C_PDAT_SYNC    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_THOLD)    <='1' when i_rxdata=C_PDAT_HOLD    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_THOLDA)   <='1' when i_rxdata=C_PDAT_HOLDA   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TX_RDY)   <='1' when i_rxdata=C_PDAT_X_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_RDY)   <='1' when i_rxdata=C_PDAT_R_RDY   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_IP)    <='1' when i_rxdata=C_PDAT_R_IP    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_OK)    <='1' when i_rxdata=C_PDAT_R_OK    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TR_ERR)   <='1' when i_rxdata=C_PDAT_R_ERR   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TWTRM)    <='1' when i_rxdata=C_PDAT_WTRM    and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMREQ_P) <='1' when i_rxdata=C_PDAT_PMREQ_P and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMREQ_S) <='1' when i_rxdata=C_PDAT_PMREQ_S and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMACK)   <='1' when i_rxdata=C_PDAT_PMACK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TPMNAK)   <='1' when i_rxdata=C_PDAT_PMNAK   and i_rxdtype=C_PDAT_TPRM                                   else '0';
+i_rxtype(C_TDATA_EN) <='1' when                             i_rxdtype=C_PDAT_TDATA                                  else '0';
+
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    for i in C_TALIGN to C_TDATA_EN-1 loop
+      i_rxdtype_out(i)<=i_rxtype(i);-- and not (OR_reduce(i_gt_rxdisperr) or OR_reduce(i_gt_rxnotintable));
+    end loop;
+    i_rxdtype_out(C_TDATA_EN)<=i_rxtype(C_TDATA_EN);
+  end if;
+end process;
+
 end generate gen_dbus16;
 
 
@@ -302,6 +330,120 @@ i_rxdtype<=p_in_gt_rxcharisk(3 downto 0);
 
 i_gt_rxdisperr<=p_in_gt_rxdisperr(3 downto 0);
 i_gt_rxnotintable<=p_in_gt_rxnotintable(3 downto 0);
+
+gen_typeout : for i in C_TALIGN to C_TDATA_EN-1 generate
+i_rxdtype_out(i)<=i_rxdtype_out0(i);-- or i_rxdtype_out1(i) or i_rxdtype_out2(i) or i_rxdtype_out3(i);
+end generate gen_typeout;
+
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+--    i_rxdtype_out(C_TALIGN)<=p_in_gt_rxbyteisaligned and (i_rxtype(C_TALIGN) or i_rxtype1(C_TALIGN) or i_rxtype2(C_TALIGN) or i_rxtype3(C_TALIGN));
+--    for i in C_TALIGN+1 to C_TDATA_EN-1 loop
+--      i_rxdtype_out(i)<=i_rxtype(i) or i_rxtype1(i) or i_rxtype2(i) or i_rxtype3(i); --not (OR_reduce(i_gt_rxdisperr) or OR_reduce(i_gt_rxnotintable)) and
+--    end loop;
+
+    i_rxdtype_out0(C_TALIGN)<=p_in_gt_rxbyteisaligned and i_rxtype(C_TALIGN);
+    for i in C_TALIGN+1 to C_TDATA_EN-1 loop
+      i_rxdtype_out0(i)<=i_rxtype(i);
+    end loop;
+
+--    i_rxdtype_out1(C_TALIGN)<=p_in_gt_rxbyteisaligned and i_rxtype1(C_TALIGN);
+--    for i in C_TALIGN+1 to C_TDATA_EN-1 loop
+--      i_rxdtype_out1(i)<=i_rxtype1(i);
+--    end loop;
+--
+--    i_rxdtype_out2(C_TALIGN)<=p_in_gt_rxbyteisaligned and i_rxtype2(C_TALIGN);
+--    for i in C_TALIGN+1 to C_TDATA_EN-1 loop
+--      i_rxdtype_out2(i)<=i_rxtype2(i);
+--    end loop;
+--
+--    i_rxdtype_out3(C_TALIGN)<=p_in_gt_rxbyteisaligned and i_rxtype3(C_TALIGN);
+--    for i in C_TALIGN+1 to C_TDATA_EN-1 loop
+--      i_rxdtype_out3(i)<=i_rxtype3(i);
+--    end loop;
+
+    i_rxdtype_out(C_TDATA_EN)<=i_rxtype(C_TDATA_EN);
+  end if;
+end process;
+
+i_rxtype (C_TDATA_EN) <='1' when i_rxdtype=C_PDAT_TDATA else '0';
+
+i_rxtype (C_TALIGN)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_ALIGN  (31 downto 24) & C_PDAT_ALIGN  (23 downto 16) & C_PDAT_ALIGN  (15 downto 8) & C_PDAT_ALIGN  (7 downto 0))  else '0';
+i_rxtype (C_TSOF)     <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_SOF    (31 downto 24) & C_PDAT_SOF    (23 downto 16) & C_PDAT_SOF    (15 downto 8) & C_PDAT_SOF    (7 downto 0))  else '0';
+i_rxtype (C_TEOF)     <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_EOF    (31 downto 24) & C_PDAT_EOF    (23 downto 16) & C_PDAT_EOF    (15 downto 8) & C_PDAT_EOF    (7 downto 0))  else '0';
+i_rxtype (C_TDMAT)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_DMAT   (31 downto 24) & C_PDAT_DMAT   (23 downto 16) & C_PDAT_DMAT   (15 downto 8) & C_PDAT_DMAT   (7 downto 0))  else '0';
+i_rxtype (C_TCONT)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_CONT   (31 downto 24) & C_PDAT_CONT   (23 downto 16) & C_PDAT_CONT   (15 downto 8) & C_PDAT_CONT   (7 downto 0))  else '0';
+i_rxtype (C_TSYNC)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_SYNC   (31 downto 24) & C_PDAT_SYNC   (23 downto 16) & C_PDAT_SYNC   (15 downto 8) & C_PDAT_SYNC   (7 downto 0))  else '0';
+i_rxtype (C_THOLD)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_HOLD   (31 downto 24) & C_PDAT_HOLD   (23 downto 16) & C_PDAT_HOLD   (15 downto 8) & C_PDAT_HOLD   (7 downto 0))  else '0';
+i_rxtype (C_THOLDA)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_HOLDA  (31 downto 24) & C_PDAT_HOLDA  (23 downto 16) & C_PDAT_HOLDA  (15 downto 8) & C_PDAT_HOLDA  (7 downto 0))  else '0';
+i_rxtype (C_TX_RDY)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_X_RDY  (31 downto 24) & C_PDAT_X_RDY  (23 downto 16) & C_PDAT_X_RDY  (15 downto 8) & C_PDAT_X_RDY  (7 downto 0))  else '0';
+i_rxtype (C_TR_RDY)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_R_RDY  (31 downto 24) & C_PDAT_R_RDY  (23 downto 16) & C_PDAT_R_RDY  (15 downto 8) & C_PDAT_R_RDY  (7 downto 0))  else '0';
+i_rxtype (C_TR_IP)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_R_IP   (31 downto 24) & C_PDAT_R_IP   (23 downto 16) & C_PDAT_R_IP   (15 downto 8) & C_PDAT_R_IP   (7 downto 0))  else '0';
+i_rxtype (C_TR_OK)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_R_OK   (31 downto 24) & C_PDAT_R_OK   (23 downto 16) & C_PDAT_R_OK   (15 downto 8) & C_PDAT_R_OK   (7 downto 0))  else '0';
+i_rxtype (C_TR_ERR)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_R_ERR  (31 downto 24) & C_PDAT_R_ERR  (23 downto 16) & C_PDAT_R_ERR  (15 downto 8) & C_PDAT_R_ERR  (7 downto 0))  else '0';
+i_rxtype (C_TWTRM)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_WTRM   (31 downto 24) & C_PDAT_WTRM   (23 downto 16) & C_PDAT_WTRM   (15 downto 8) & C_PDAT_WTRM   (7 downto 0))  else '0';
+i_rxtype (C_TPMREQ_P) <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_PMREQ_P(31 downto 24) & C_PDAT_PMREQ_P(23 downto 16) & C_PDAT_PMREQ_P(15 downto 8) & C_PDAT_PMREQ_P(7 downto 0))  else '0';
+i_rxtype (C_TPMREQ_S) <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_PMREQ_S(31 downto 24) & C_PDAT_PMREQ_S(23 downto 16) & C_PDAT_PMREQ_S(15 downto 8) & C_PDAT_PMREQ_S(7 downto 0))  else '0';
+i_rxtype (C_TPMACK)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_PMACK  (31 downto 24) & C_PDAT_PMACK  (23 downto 16) & C_PDAT_PMACK  (15 downto 8) & C_PDAT_PMACK  (7 downto 0))  else '0';
+i_rxtype (C_TPMNAK)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_D & C_CHAR_K ) and i_rxdata = (C_PDAT_PMNAK  (31 downto 24) & C_PDAT_PMNAK  (23 downto 16) & C_PDAT_PMNAK  (15 downto 8) & C_PDAT_PMNAK  (7 downto 0))  else '0';
+
+--i_rxtype1(C_TALIGN)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_ALIGN  (23 downto 16) & C_PDAT_ALIGN  (15 downto 8) & C_PDAT_ALIGN  (7 downto 0) & C_PDAT_ALIGN  (31 downto 24))  else '0';
+--i_rxtype1(C_TSOF)     <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_SOF    (23 downto 16) & C_PDAT_SOF    (15 downto 8) & C_PDAT_SOF    (7 downto 0) & C_PDAT_SOF    (31 downto 24))  else '0';
+--i_rxtype1(C_TEOF)     <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_EOF    (23 downto 16) & C_PDAT_EOF    (15 downto 8) & C_PDAT_EOF    (7 downto 0) & C_PDAT_EOF    (31 downto 24))  else '0';
+--i_rxtype1(C_TDMAT)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_DMAT   (23 downto 16) & C_PDAT_DMAT   (15 downto 8) & C_PDAT_DMAT   (7 downto 0) & C_PDAT_DMAT   (31 downto 24))  else '0';
+--i_rxtype1(C_TCONT)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_CONT   (23 downto 16) & C_PDAT_CONT   (15 downto 8) & C_PDAT_CONT   (7 downto 0) & C_PDAT_CONT   (31 downto 24))  else '0';
+--i_rxtype1(C_TSYNC)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_SYNC   (23 downto 16) & C_PDAT_SYNC   (15 downto 8) & C_PDAT_SYNC   (7 downto 0) & C_PDAT_SYNC   (31 downto 24))  else '0';
+--i_rxtype1(C_THOLD)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_HOLD   (23 downto 16) & C_PDAT_HOLD   (15 downto 8) & C_PDAT_HOLD   (7 downto 0) & C_PDAT_HOLD   (31 downto 24))  else '0';
+--i_rxtype1(C_THOLDA)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_HOLDA  (23 downto 16) & C_PDAT_HOLDA  (15 downto 8) & C_PDAT_HOLDA  (7 downto 0) & C_PDAT_HOLDA  (31 downto 24))  else '0';
+--i_rxtype1(C_TX_RDY)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_X_RDY  (23 downto 16) & C_PDAT_X_RDY  (15 downto 8) & C_PDAT_X_RDY  (7 downto 0) & C_PDAT_X_RDY  (31 downto 24))  else '0';
+--i_rxtype1(C_TR_RDY)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_R_RDY  (23 downto 16) & C_PDAT_R_RDY  (15 downto 8) & C_PDAT_R_RDY  (7 downto 0) & C_PDAT_R_RDY  (31 downto 24))  else '0';
+--i_rxtype1(C_TR_IP)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_R_IP   (23 downto 16) & C_PDAT_R_IP   (15 downto 8) & C_PDAT_R_IP   (7 downto 0) & C_PDAT_R_IP   (31 downto 24))  else '0';
+--i_rxtype1(C_TR_OK)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_R_OK   (23 downto 16) & C_PDAT_R_OK   (15 downto 8) & C_PDAT_R_OK   (7 downto 0) & C_PDAT_R_OK   (31 downto 24))  else '0';
+--i_rxtype1(C_TR_ERR)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_R_ERR  (23 downto 16) & C_PDAT_R_ERR  (15 downto 8) & C_PDAT_R_ERR  (7 downto 0) & C_PDAT_R_ERR  (31 downto 24))  else '0';
+--i_rxtype1(C_TWTRM)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_WTRM   (23 downto 16) & C_PDAT_WTRM   (15 downto 8) & C_PDAT_WTRM   (7 downto 0) & C_PDAT_WTRM   (31 downto 24))  else '0';
+--i_rxtype1(C_TPMREQ_P) <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_PMREQ_P(23 downto 16) & C_PDAT_PMREQ_P(15 downto 8) & C_PDAT_PMREQ_P(7 downto 0) & C_PDAT_PMREQ_P(31 downto 24))  else '0';
+--i_rxtype1(C_TPMREQ_S) <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_PMREQ_S(23 downto 16) & C_PDAT_PMREQ_S(15 downto 8) & C_PDAT_PMREQ_S(7 downto 0) & C_PDAT_PMREQ_S(31 downto 24))  else '0';
+--i_rxtype1(C_TPMACK)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_PMACK  (23 downto 16) & C_PDAT_PMACK  (15 downto 8) & C_PDAT_PMACK  (7 downto 0) & C_PDAT_PMACK  (31 downto 24))  else '0';
+--i_rxtype1(C_TPMNAK)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_D & C_CHAR_K & C_CHAR_D) and i_rxdata = (C_PDAT_PMNAK  (23 downto 16) & C_PDAT_PMNAK  (15 downto 8) & C_PDAT_PMNAK  (7 downto 0) & C_PDAT_PMNAK  (31 downto 24))  else '0';
+--
+--i_rxtype2(C_TALIGN)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_ALIGN  (15 downto 8) & C_PDAT_ALIGN  (7 downto 0) & C_PDAT_ALIGN  (31 downto 24) & C_PDAT_ALIGN  (23 downto 16))  else '0';
+--i_rxtype2(C_TSOF)     <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_SOF    (15 downto 8) & C_PDAT_SOF    (7 downto 0) & C_PDAT_SOF    (31 downto 24) & C_PDAT_SOF    (23 downto 16))  else '0';
+--i_rxtype2(C_TEOF)     <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_EOF    (15 downto 8) & C_PDAT_EOF    (7 downto 0) & C_PDAT_EOF    (31 downto 24) & C_PDAT_EOF    (23 downto 16))  else '0';
+--i_rxtype2(C_TDMAT)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_DMAT   (15 downto 8) & C_PDAT_DMAT   (7 downto 0) & C_PDAT_DMAT   (31 downto 24) & C_PDAT_DMAT   (23 downto 16))  else '0';
+--i_rxtype2(C_TCONT)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_CONT   (15 downto 8) & C_PDAT_CONT   (7 downto 0) & C_PDAT_CONT   (31 downto 24) & C_PDAT_CONT   (23 downto 16))  else '0';
+--i_rxtype2(C_TSYNC)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_SYNC   (15 downto 8) & C_PDAT_SYNC   (7 downto 0) & C_PDAT_SYNC   (31 downto 24) & C_PDAT_SYNC   (23 downto 16))  else '0';
+--i_rxtype2(C_THOLD)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_HOLD   (15 downto 8) & C_PDAT_HOLD   (7 downto 0) & C_PDAT_HOLD   (31 downto 24) & C_PDAT_HOLD   (23 downto 16))  else '0';
+--i_rxtype2(C_THOLDA)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_HOLDA  (15 downto 8) & C_PDAT_HOLDA  (7 downto 0) & C_PDAT_HOLDA  (31 downto 24) & C_PDAT_HOLDA  (23 downto 16))  else '0';
+--i_rxtype2(C_TX_RDY)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_X_RDY  (15 downto 8) & C_PDAT_X_RDY  (7 downto 0) & C_PDAT_X_RDY  (31 downto 24) & C_PDAT_X_RDY  (23 downto 16))  else '0';
+--i_rxtype2(C_TR_RDY)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_RDY  (15 downto 8) & C_PDAT_R_RDY  (7 downto 0) & C_PDAT_R_RDY  (31 downto 24) & C_PDAT_R_RDY  (23 downto 16))  else '0';
+--i_rxtype2(C_TR_IP)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_IP   (15 downto 8) & C_PDAT_R_IP   (7 downto 0) & C_PDAT_R_IP   (31 downto 24) & C_PDAT_R_IP   (23 downto 16))  else '0';
+--i_rxtype2(C_TR_OK)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_OK   (15 downto 8) & C_PDAT_R_OK   (7 downto 0) & C_PDAT_R_OK   (31 downto 24) & C_PDAT_R_OK   (23 downto 16))  else '0';
+--i_rxtype2(C_TR_ERR)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_ERR  (15 downto 8) & C_PDAT_R_ERR  (7 downto 0) & C_PDAT_R_ERR  (31 downto 24) & C_PDAT_R_ERR  (23 downto 16))  else '0';
+--i_rxtype2(C_TWTRM)    <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_WTRM   (15 downto 8) & C_PDAT_WTRM   (7 downto 0) & C_PDAT_WTRM   (31 downto 24) & C_PDAT_WTRM   (23 downto 16))  else '0';
+--i_rxtype2(C_TPMREQ_P) <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMREQ_P(15 downto 8) & C_PDAT_PMREQ_P(7 downto 0) & C_PDAT_PMREQ_P(31 downto 24) & C_PDAT_PMREQ_P(23 downto 16))  else '0';
+--i_rxtype2(C_TPMREQ_S) <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMREQ_S(15 downto 8) & C_PDAT_PMREQ_S(7 downto 0) & C_PDAT_PMREQ_S(31 downto 24) & C_PDAT_PMREQ_S(23 downto 16))  else '0';
+--i_rxtype2(C_TPMACK)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMACK  (15 downto 8) & C_PDAT_PMACK  (7 downto 0) & C_PDAT_PMACK  (31 downto 24) & C_PDAT_PMACK  (23 downto 16))  else '0';
+--i_rxtype2(C_TPMNAK)   <='1' when i_rxdtype=(C_CHAR_D & C_CHAR_K & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMNAK  (15 downto 8) & C_PDAT_PMNAK  (7 downto 0) & C_PDAT_PMNAK  (31 downto 24) & C_PDAT_PMNAK  (23 downto 16))  else '0';
+--
+--i_rxtype3(C_TALIGN)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_ALIGN  (7 downto 0) & C_PDAT_ALIGN  (31 downto 24) & C_PDAT_ALIGN  (23 downto 16) & C_PDAT_ALIGN  (15 downto 8))  else '0';
+--i_rxtype3(C_TSOF)     <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_SOF    (7 downto 0) & C_PDAT_SOF    (31 downto 24) & C_PDAT_SOF    (23 downto 16) & C_PDAT_SOF    (15 downto 8))  else '0';
+--i_rxtype3(C_TEOF)     <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_EOF    (7 downto 0) & C_PDAT_EOF    (31 downto 24) & C_PDAT_EOF    (23 downto 16) & C_PDAT_EOF    (15 downto 8))  else '0';
+--i_rxtype3(C_TDMAT)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_DMAT   (7 downto 0) & C_PDAT_DMAT   (31 downto 24) & C_PDAT_DMAT   (23 downto 16) & C_PDAT_DMAT   (15 downto 8))  else '0';
+--i_rxtype3(C_TCONT)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_CONT   (7 downto 0) & C_PDAT_CONT   (31 downto 24) & C_PDAT_CONT   (23 downto 16) & C_PDAT_CONT   (15 downto 8))  else '0';
+--i_rxtype3(C_TSYNC)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_SYNC   (7 downto 0) & C_PDAT_SYNC   (31 downto 24) & C_PDAT_SYNC   (23 downto 16) & C_PDAT_SYNC   (15 downto 8))  else '0';
+--i_rxtype3(C_THOLD)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_HOLD   (7 downto 0) & C_PDAT_HOLD   (31 downto 24) & C_PDAT_HOLD   (23 downto 16) & C_PDAT_HOLD   (15 downto 8))  else '0';
+--i_rxtype3(C_THOLDA)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_HOLDA  (7 downto 0) & C_PDAT_HOLDA  (31 downto 24) & C_PDAT_HOLDA  (23 downto 16) & C_PDAT_HOLDA  (15 downto 8))  else '0';
+--i_rxtype3(C_TX_RDY)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_X_RDY  (7 downto 0) & C_PDAT_X_RDY  (31 downto 24) & C_PDAT_X_RDY  (23 downto 16) & C_PDAT_X_RDY  (15 downto 8))  else '0';
+--i_rxtype3(C_TR_RDY)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_RDY  (7 downto 0) & C_PDAT_R_RDY  (31 downto 24) & C_PDAT_R_RDY  (23 downto 16) & C_PDAT_R_RDY  (15 downto 8))  else '0';
+--i_rxtype3(C_TR_IP)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_IP   (7 downto 0) & C_PDAT_R_IP   (31 downto 24) & C_PDAT_R_IP   (23 downto 16) & C_PDAT_R_IP   (15 downto 8))  else '0';
+--i_rxtype3(C_TR_OK)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_OK   (7 downto 0) & C_PDAT_R_OK   (31 downto 24) & C_PDAT_R_OK   (23 downto 16) & C_PDAT_R_OK   (15 downto 8))  else '0';
+--i_rxtype3(C_TR_ERR)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_R_ERR  (7 downto 0) & C_PDAT_R_ERR  (31 downto 24) & C_PDAT_R_ERR  (23 downto 16) & C_PDAT_R_ERR  (15 downto 8))  else '0';
+--i_rxtype3(C_TWTRM)    <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_WTRM   (7 downto 0) & C_PDAT_WTRM   (31 downto 24) & C_PDAT_WTRM   (23 downto 16) & C_PDAT_WTRM   (15 downto 8))  else '0';
+--i_rxtype3(C_TPMREQ_P) <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMREQ_P(7 downto 0) & C_PDAT_PMREQ_P(31 downto 24) & C_PDAT_PMREQ_P(23 downto 16) & C_PDAT_PMREQ_P(15 downto 8))  else '0';
+--i_rxtype3(C_TPMREQ_S) <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMREQ_S(7 downto 0) & C_PDAT_PMREQ_S(31 downto 24) & C_PDAT_PMREQ_S(23 downto 16) & C_PDAT_PMREQ_S(15 downto 8))  else '0';
+--i_rxtype3(C_TPMACK)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMACK  (7 downto 0) & C_PDAT_PMACK  (31 downto 24) & C_PDAT_PMACK  (23 downto 16) & C_PDAT_PMACK  (15 downto 8))  else '0';
+--i_rxtype3(C_TPMNAK)   <='1' when i_rxdtype=(C_CHAR_K & C_CHAR_D & C_CHAR_D & C_CHAR_D) and i_rxdata = (C_PDAT_PMNAK  (7 downto 0) & C_PDAT_PMNAK  (31 downto 24) & C_PDAT_PMNAK  (23 downto 16) & C_PDAT_PMNAK  (15 downto 8))  else '0';
 
 end generate gen_dbus32;
 
