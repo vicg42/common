@@ -272,6 +272,7 @@ signal i_test02_led                   : std_logic;
 signal i_usr_status                   : std_logic_vector(15 downto 0);
 signal i_usr_rxd,i_usr_txd            : std_logic_vector(15 downto 0);
 
+signal i_hdd_rdy,i_hdd_err            : std_logic;
 
 
 --MAIN
@@ -425,7 +426,7 @@ pin_out_TP(1 downto 0)<=i_out_TP(1 downto 0);
 pin_out_TP(2)<=i_test02_led;
 pin_out_TP(7 downto 3)<=i_out_TP(7 downto 3);
 
-pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_status(0) or i_usr_status(1) or pin_in_SW(0);
+pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_status(0) or i_usr_status(1) or pin_in_SW(0) or i_hdd_rdy or i_hdd_err;
 pin_out_TP2(1)<='0';
 
 gen_tx: for i in 0 to 15 generate
@@ -523,8 +524,8 @@ p_out_usr_rxd       => i_usr_rxd,
 p_out_usr_status    => i_usr_status,
 
 --Статусы модуля
-p_out_hdd_rdy       => open,
-p_out_hdd_err       => open,
+p_out_hdd_rdy       => i_hdd_rdy,
+p_out_hdd_err       => i_hdd_err,
 
 --------------------------------------------------
 --Технологический порт
