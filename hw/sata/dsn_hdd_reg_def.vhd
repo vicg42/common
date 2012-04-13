@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------
--- Company     : Telemix
+-- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 28.01.2012 10:30:56
@@ -16,7 +16,7 @@ use ieee.std_logic_1164.all;
 
 package dsn_hdd_reg_def is
 
-constant C_HDD_VERSION                        : integer:=16#003#;
+constant C_HDD_VERSION                        : integer:=16#004#;
 
 constant C_HDD_REG_CTRL_L                     : integer:=16#000#;
 constant C_HDD_REG_CTRL_M                     : integer:=16#001#;
