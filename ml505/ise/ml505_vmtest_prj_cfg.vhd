@@ -29,9 +29,11 @@ constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=4; --//max 7: 0-8MB, 1-16MB, 2
 --constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
 
 --//cfg HDD
-constant C_PCFG_HDD_USE                : string:="OFF";
+constant C_PCFG_HDD_USE                : string:="ON";
 constant C_PCFG_HDD_DBG                : string:="OFF";
-constant C_PCFG_HDD_DBGCS              : string:="OFF";
+constant C_PCFG_HDD_DBGCS              : string:="ON";
+constant C_PCFG_HDD_SH_DBGCS           : string:="ON";
+constant C_PCFG_HDD_RAID_DBGCS         : string:="OFF";
 constant C_PCFG_HDD_COUNT              : integer:=2;
 constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=25;--//32MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_PCFG_HDD_GT_DBUS            : integer:=16;--//Настройка шины данных GT (RocketIO)
@@ -45,7 +47,7 @@ constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс с
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
-constant C_PCFG_VCTRL_VCH_COUNT        : integer:=4; --//max 6
+constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 6
 constant C_PCFG_VCTRL_SIMPLE           : string:="ON";
 constant C_PCFG_VCTRL_ROTATE           : string:="OFF";--разворот на 90
 constant C_PCFG_VCTRL_ROTATE_BUF_COUNT : integer:=32; --//min/max 4/32
