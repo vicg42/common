@@ -1183,7 +1183,7 @@ end process;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
       i_vrd_frmrk(i)<=(others=>'0');
       i_vbuf_rd(i)<=(others=>'0');
       tst_vfrskip_rd(i)<=(others=>'0');
