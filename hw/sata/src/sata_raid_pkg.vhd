@@ -60,7 +60,7 @@ ch_ataerror  : TATAError_SHCountMax;
 ch_atastatus : TATAStatus_SHCountMax;
 ch_serror    : TSError_SHCountMax;
 ch_sstatus   : TSStatus_SHCountMax;
-ch_usr       : TBus32_SHCountMax;
+--ch_usr       : TBus32_SHCountMax;
 usr          : std_logic_vector(31 downto 0);
 lba_bp       : std_logic_vector(47 downto 0);--//Break Point
 end record;

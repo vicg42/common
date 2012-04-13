@@ -347,7 +347,6 @@ begin
       i_usr_status.ch_atastatus(i)<=(others=>'0');
       i_usr_status.ch_serror(i)<=(others=>'0');
       i_usr_status.ch_sstatus(i)<=(others=>'0');
-      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
     i_atacmdw_start<=(others=>'0');
@@ -360,7 +359,6 @@ begin
     i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_rdy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_ipf<=(AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0)) and i_usrmode.sw) or
                           (AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0)) and not i_usrmode.hw_work);
---    i_usr_status.usr<=(others=>'0');
 
     --//Статусы изпользуемых каналов:
     for i in 0 to G_HDD_COUNT-1 loop
@@ -374,7 +372,6 @@ begin
       i_usr_status.ch_atastatus(i)<=p_in_sh_status(i).atastatus;
       i_usr_status.ch_serror(i)   <=p_in_sh_status(i).serror;
       i_usr_status.ch_sstatus(i)  <=p_in_sh_status(i).sstatus;
---      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
   end if;

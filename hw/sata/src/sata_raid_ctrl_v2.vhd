@@ -153,20 +153,18 @@ signal i_sh_cmd_start              : std_logic;
 signal i_sh_cmdcnt                 : std_logic_vector(i_cmdpkt_cnt'range);
 signal i_sh_cmdcnt_en              : std_logic;
 signal i_sh_cxdout                 : std_logic_vector(p_in_usr_cxd'range);
---signal i_sh_cxd_sof                : std_logic;
---signal i_sh_cxd_eof                : std_logic;
 signal i_sh_cxd_src_rdy            : std_logic;
 
-signal i_sh_trn_en                 : std_logic;
+--signal i_sh_trn_en                 : std_logic;
 signal i_sh_trn_den                : std_logic;
 signal i_sh_txd_wr                 : std_logic;
 signal i_sh_rxd_rd                 : std_logic;
 signal i_sh_padding                : std_logic;
 signal i_sh_padding_en             : std_logic;
 
-signal i_raid_cl_byte_count        : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
-signal i_raid_cl_dw_count          : std_logic_vector(i_raid_cl_byte_count'range);
-signal i_raid_cl_cntdw             : std_logic_vector(i_raid_cl_dw_count'range);
+--signal i_raid_cl_byte_count        : std_logic_vector(i_cmdpkt.scount'length + log2(CI_SECTOR_SIZE_BYTE)-1 downto 0);
+--signal i_raid_cl_dw_count          : std_logic_vector(i_raid_cl_byte_count'range);
+--signal i_raid_cl_cntdw             : std_logic_vector(i_raid_cl_dw_count'range);
 
 signal i_tst                       : std_logic_vector(G_HDD_COUNT-1 downto 0);
 signal sr_tst_bsy                  : std_logic_vector(0 to 1):=(others=>'0');
@@ -308,7 +306,6 @@ begin
       i_usr_status.ch_atastatus(i)<=(others=>'0');
       i_usr_status.ch_serror(i)<=(others=>'0');
       i_usr_status.ch_sstatus(i)<=(others=>'0');
-      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
     i_atacmdw_start<=(others=>'0');
@@ -321,7 +318,6 @@ begin
     i_usr_status.dev_rdy<=AND_reduce(i_usr_status.ch_rdy(G_HDD_COUNT-1 downto 0));
     i_usr_status.dev_ipf<=(AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0)) and i_usrmode.sw) or
                           (AND_reduce(i_usr_status.ch_ipf(G_HDD_COUNT-1 downto 0)) and not i_usrmode.hw_work);
---    i_usr_status.usr<=(others=>'0');
 
     --//Статусы изпользуемых каналов:
     for i in 0 to G_HDD_COUNT-1 loop
@@ -335,7 +331,6 @@ begin
       i_usr_status.ch_atastatus(i)<=p_in_sh_status(i).atastatus;
       i_usr_status.ch_serror(i)   <=p_in_sh_status(i).serror;
       i_usr_status.ch_sstatus(i)  <=p_in_sh_status(i).sstatus;
---      i_usr_status.ch_usr(i)<=(others=>'0');
     end loop;
 
   end if;
@@ -367,9 +362,6 @@ begin
 
   end if;
 end process;
-
-
-
 
 
 
@@ -461,8 +453,6 @@ begin
   if p_in_rst='1' then
     i_sh_cmd_start<='0';
     i_sh_cmdcnt_en<='0';
---    i_sh_cxd_sof<='0';
---    i_sh_cxd_eof<='0';
     i_sh_cxd_src_rdy<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -475,18 +465,6 @@ begin
     elsif i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_sh_cmdcnt'length) then
       i_sh_cmdcnt_en<='0';
     end if;
-
---    if i_sh_cmdcnt_en='1' and i_sh_cmdcnt=(i_sh_cmdcnt'range=>'0') then
---      i_sh_cxd_sof<='1';
---    else
---      i_sh_cxd_sof<='0';
---    end if;
---
---    if i_sh_cmdcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_sh_cmdcnt'length) then
---      i_sh_cxd_eof<='1';
---    else
---      i_sh_cxd_eof<='0';
---    end if;
 
     i_sh_cxd_src_rdy<=i_sh_cmdcnt_en;
 
@@ -541,7 +519,6 @@ p_out_sh_cxd<=i_sh_cxdout;
 p_out_sh_cxd_sof_n<='0';--not i_sh_cxd_sof;
 p_out_sh_cxd_eof_n<='0';--not i_sh_cxd_eof;
 p_out_sh_cxd_src_rdy_n<=not i_sh_cxd_src_rdy;
-
 
 
 
@@ -652,7 +629,7 @@ p_out_sh_padding<=i_sh_padding;
 p_out_sh_txd<=p_in_usr_txd;
 p_out_sh_txd_wr<=i_sh_txd_wr;
 
-i_sh_txd_wr<=not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full and i_sh_trn_en;
+i_sh_txd_wr<=not p_in_usr_txbuf_empty and not p_in_sh_txbuf_full;-- and i_sh_trn_en;
 
 p_out_usr_txd_rd<=i_sh_txd_wr;
 
@@ -668,7 +645,7 @@ begin
   end if;
 end process;
 
-i_sh_rxd_rd<=not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty and i_sh_trn_en;
+i_sh_rxd_rd<=not p_in_usr_rxbuf_full and not p_in_sh_rxbuf_empty;-- and i_sh_trn_en;
 
 p_out_sh_rxd_rd<=i_sh_rxd_rd;
 
@@ -676,39 +653,39 @@ p_out_sh_rxd_rd<=i_sh_rxd_rd;
 --//Формируем сигнал разрешения пермещения данных
 i_sh_trn_den<=i_sh_txd_wr or i_sh_rxd_rd;
 
-i_raid_cl_byte_count<=i_sh_atacmd.scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
-i_raid_cl_dw_count<=("00"&i_raid_cl_byte_count(i_raid_cl_dw_count'high downto 2));
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_sh_trn_en<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    if i_sh_det.cmddone='1' or i_err_clr='1' then
-      i_sh_trn_en<='0';
-    else
-      if i_sh_cmd_start='1' then
-        i_sh_trn_en<='1';
-      elsif i_sh_trn_den='1' and i_raid_cl_cntdw=(i_raid_cl_dw_count - 1) then
-        i_sh_trn_en<='0';
-      end if;
-    end if;
-
-  end if;
-end process;
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_raid_cl_cntdw<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
-    if i_sh_trn_en='0' then
-      i_raid_cl_cntdw<=(others=>'0');
-    elsif i_sh_trn_den='1' then
-      i_raid_cl_cntdw<=i_raid_cl_cntdw + 1;
-    end if;
-  end if;
-end process;
+--i_raid_cl_byte_count<=i_sh_atacmd.scount&CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
+--i_raid_cl_dw_count<=("00"&i_raid_cl_byte_count(i_raid_cl_dw_count'high downto 2));
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_sh_trn_en<='0';
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+--    if i_sh_det.cmddone='1' or i_err_clr='1' then
+--      i_sh_trn_en<='0';
+--    else
+--      if i_sh_cmd_start='1' then
+--        i_sh_trn_en<='1';
+--      elsif i_sh_trn_den='1' and i_raid_cl_cntdw=(i_raid_cl_dw_count - 1) then
+--        i_sh_trn_en<='0';
+--      end if;
+--    end if;
+--
+--  end if;
+--end process;
+--
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    i_raid_cl_cntdw<=(others=>'0');
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if i_sh_trn_en='0' then
+--      i_raid_cl_cntdw<=(others=>'0');
+--    elsif i_sh_trn_den='1' then
+--      i_raid_cl_cntdw<=i_raid_cl_cntdw + 1;
+--    end if;
+--  end if;
+--end process;
 
 --//-----------------------------------
 --//Debug/Sim
@@ -770,7 +747,7 @@ i_dbgcs_data(20)<=i_usr_rxd_wr;
 i_dbgcs_data(21)<=p_in_usr_txbuf_empty;
 i_dbgcs_data(22)<='0';--i_raid_trn_done(1);--//detect raid_trn_sdone
 i_dbgcs_data(23)<='0';--sr_raid_trn_done;
-i_dbgcs_data(24)<=i_sh_trn_en;
+i_dbgcs_data(24)<='0';--i_sh_trn_en;
 i_dbgcs_data(25)<=i_usr_status.dmacfg.atacmdw;--i_raid_cl_done;
 i_dbgcs_data(26)<=i_sh_padding_en;
 i_dbgcs_data(27)<=i_sh_padding;
