@@ -439,7 +439,8 @@ gen_satah : for sh_idx in 0 to C_SH_COUNT_MAX(G_HDD_COUNT-1)-1 generate
 gen_satah_ch : for ch_idx in 0 to C_GTCH_COUNT_MAX-1 generate
 
 --//Для модуля измерения
-i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).usr<=i_sh_status(sh_idx)(ch_idx).usr;
+--i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).usr<=i_sh_status(sh_idx)(ch_idx).usr;
+i_measure_sh_status(C_GTCH_COUNT_MAX*sh_idx+ch_idx).sh_buf_wr<=i_sh_txd_rd(sh_idx)(ch_idx) or i_sh_rxd_wr(sh_idx)(ch_idx);
 
 --//Сброс sata_connector
 i_sh_buf_rst(sh_idx)(ch_idx)<=p_in_rst or

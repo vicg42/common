@@ -68,12 +68,7 @@ constant C_Tms                  : integer:=10#1000#;--1ms
 constant C_Tsec                 : integer:=10#1000#;--1sec
 constant C_Tmin                 : integer:=10#0060#;--1min
 
-signal i_sh_tlayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_tlayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_llayer_rxon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
-signal i_sh_llayer_txon         : std_logic_vector(G_HDD_COUNT-1 downto 0);
---signal i_sh_llayer_txhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
---signal i_sh_llayer_rxhold       : std_logic_vector(G_HDD_COUNT-1 downto 0);
+signal i_sh_buf_wr              : std_logic_vector(G_HDD_COUNT-1 downto 0);
 
 type TBus2 is array (0 to 1) of std_logic_vector(0 to 1);
 type TBusTDly is array (0 to 1) of std_logic_vector(p_out_status.tdly'range);
@@ -118,42 +113,33 @@ end generate gen_dbg_on;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
+
     for i in 0 to G_HDD_COUNT-1 loop
-      i_sh_tlayer_rxon(i)<='0';
-      i_sh_tlayer_txon(i)<='0';
-      i_sh_llayer_rxon(i)<='0';
-      i_sh_llayer_txon(i)<='0';
---      i_sh_llayer_txhold(i)<='0';
---      i_sh_llayer_rxhold(i)<='0';
+    i_sh_buf_wr(i)<='0';
     end loop;
     sr_stop<=(others=>'0');
     i_measure_stop<='0';
+    i_busy<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     for i in 0 to G_HDD_COUNT-1 loop
-      i_sh_tlayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_TLRX_ON_BIT);
-      i_sh_tlayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_TLTX_ON_BIT);
-      i_sh_llayer_rxon(i)<=p_in_sh_status(i).usr(C_AUSR_LLRX_ON_BIT);
-      i_sh_llayer_txon(i)<=p_in_sh_status(i).usr(C_AUSR_LLTX_ON_BIT);
---      i_sh_llayer_txhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLTXP_HOLD_BIT);
---      i_sh_llayer_rxhold(i)<=p_in_sh_status(i).usr(C_AUSR_LLRXP_HOLD_BIT);
+    i_sh_buf_wr(i)<=p_in_sh_status(i).sh_buf_wr;
     end loop;
 
     sr_stop<=i_busy(1) & sr_stop(0 to 1);
     i_measure_stop<=not sr_stop(0) and sr_stop(1);
+
+    i_busy(0)<=p_in_dev_busy;
+    i_busy(1)<=OR_reduce(p_in_sh_busy(G_HDD_COUNT-1 downto 0));
   end if;
 end process;
-
 
 
 
 --//-----------------------------------
 --//Измерения:
 --//-----------------------------------
-i_busy(0)<=p_in_dev_busy;
-i_busy(1)<=OR_reduce(p_in_sh_busy(G_HDD_COUNT-1 downto 0));
-
 gen : for i in 0 to 1 generate
 --//Формируем  start
 process(p_in_rst,p_in_clk)
@@ -166,8 +152,7 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_dly_on(i)<=(i_busy(i) xor ((OR_reduce(i_sh_tlayer_txon) and OR_reduce(i_sh_llayer_txon)) or
-                                 (OR_reduce(i_sh_tlayer_rxon) and OR_reduce(i_sh_llayer_rxon))) );
+    i_dly_on(i)<=(i_busy(i) xor OR_reduce(i_sh_buf_wr) );
 
     sr_measure_start(i)<=i_busy(i) & sr_measure_start(i)(0 to 0);
     i_measure_start(i)<=sr_measure_start(i)(0) and not sr_measure_start(i)(1);
@@ -315,9 +300,9 @@ p_out_dbgcs.data(2)<='0';--i_sh_llayer_txhold(0);
 p_out_dbgcs.data(3)<='0';--i_sh_llayer_txhold(1);
 p_out_dbgcs.data(4)<='0';--i_sh_llayer_rxhold(0);
 p_out_dbgcs.data(5)<='0';--i_sh_llayer_rxhold(1);
-p_out_dbgcs.data(6)<=i_sh_tlayer_txon(0);
+p_out_dbgcs.data(6)<='0';--i_sh_tlayer_txon(0);
 p_out_dbgcs.data(7)<='0';--i_sh_tlayer_txon(1);
-p_out_dbgcs.data(8)<=i_sh_tlayer_rxon(0);
+p_out_dbgcs.data(8)<='0';--i_sh_tlayer_rxon(0);
 p_out_dbgcs.data(9)<='0';--i_sh_tlayer_rxon(1);
 p_out_dbgcs.data(41 downto 10)<=i_measure_dly_tcnt(0);
 p_out_dbgcs.data(73 downto 42)<=i_measure_dly_time(0);

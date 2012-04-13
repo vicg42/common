@@ -705,7 +705,8 @@ type TATAStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector
 
 --//
 type TMeasureALStatus is record
-usr : std_logic_vector(C_ALUSR_LAST_BIT downto 0);
+--usr : std_logic_vector(C_ALUSR_LAST_BIT downto 0);
+sh_buf_wr : std_logic;
 end record;
 type TMeasureALStatus_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of TMeasureALStatus;
 
