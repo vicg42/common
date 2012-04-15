@@ -279,7 +279,7 @@ end process;
 --    elsif tst_det_rip='1' and p_in_phy_rxtype(C_TR_IP)='1' then
 --      tst_sync<='0';
 --      tst_det_rip<='0';
---    elsif p_in_dbg.llayer.fsm=S_LT_RcvrHold and p_in_phy_rxtype(C_TR_IP)='1' then
+--    elsif p_in_dbg.llayer.fsm=S_LT_RcvHold and p_in_phy_rxtype(C_TR_IP)='1' then
 --      tst_sync<='0';
 --      tst_det_rip<='1';
 --    end if;
@@ -335,19 +335,19 @@ i_fsm_llayer<=CONV_STD_LOGIC_VECTOR(16#01#, i_fsm_llayer'length) when p_in_dbg.l
               CONV_STD_LOGIC_VECTOR(16#02#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_L_SyncEscape    else
               CONV_STD_LOGIC_VECTOR(16#03#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_L_NoCommErr     else
               CONV_STD_LOGIC_VECTOR(16#04#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_L_NoComm        else
-              CONV_STD_LOGIC_VECTOR(16#05#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_H_SendChkRdy else
+              CONV_STD_LOGIC_VECTOR(16#05#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_RcvRdy       else
               CONV_STD_LOGIC_VECTOR(16#06#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_SendSOF      else
               CONV_STD_LOGIC_VECTOR(16#07#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_SendData     else
               CONV_STD_LOGIC_VECTOR(16#08#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_SendCRC      else
               CONV_STD_LOGIC_VECTOR(16#09#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_SendEOF      else
               CONV_STD_LOGIC_VECTOR(16#0A#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_Wait         else
-              CONV_STD_LOGIC_VECTOR(16#0B#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_RcvrHold     else
+              CONV_STD_LOGIC_VECTOR(16#0B#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_RcvHold      else
               CONV_STD_LOGIC_VECTOR(16#0C#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LT_SendHold     else
               CONV_STD_LOGIC_VECTOR(16#0D#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_RcvChkRdy    else
               CONV_STD_LOGIC_VECTOR(16#0E#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_RcvWaitFifo  else
               CONV_STD_LOGIC_VECTOR(16#0F#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_RcvData      else
-              CONV_STD_LOGIC_VECTOR(16#10#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_Hold         else
-              CONV_STD_LOGIC_VECTOR(16#11#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_SendHold     else
+              CONV_STD_LOGIC_VECTOR(16#10#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_SendHold     else
+              CONV_STD_LOGIC_VECTOR(16#11#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_RcvHold      else
               CONV_STD_LOGIC_VECTOR(16#12#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_RcvEOF       else
               CONV_STD_LOGIC_VECTOR(16#13#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_GoodCRC      else
               CONV_STD_LOGIC_VECTOR(16#14#, i_fsm_llayer'length) when p_in_dbg.llayer.fsm=S_LR_GoodEnd      else

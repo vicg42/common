@@ -375,13 +375,13 @@ S_L_SendAlign,
 ----------------------------------------------
 ---- Link transfer states.
 ----------------------------------------------
-S_LT_H_SendChkRdy,
+S_LT_RcvRdy,   --//LT_H_SendChkRdy
 S_LT_SendSOF,
 S_LT_SendData,
 S_LT_SendCRC,
 S_LT_SendEOF,
 S_LT_Wait,
-S_LT_RcvrHold, --//Передаю HOLDA, т.к. принял HOLD - Устро-во синализирует что действие FPGA->HDD отложено
+S_LT_RcvHold,  --//LT_RcvrHold Передаю HOLDA, т.к. принял HOLD - Устро-во синализирует что действие FPGA->HDD отложено
 S_LT_SendHold, --//Передаю HOLD, т.к. пока нету данных для передачи
 
 --------------------------------------------
@@ -390,8 +390,8 @@ S_LT_SendHold, --//Передаю HOLD, т.к. пока нету данных для передачи
 S_LR_RcvChkRdy,
 S_LR_RcvWaitFifo,
 S_LR_RcvData,
-S_LR_Hold,     --//Передаю HOLD, т.к. rxbuf не готов принимать данные
-S_LR_SendHold, --//Передаю HOLDA, т.к. принял HOLD - Устро-во синализирует что действие FPGA<-HDD отложено
+S_LR_SendHold, --//LR_Hold Передаю HOLD, т.к. rxbuf не готов принимать данные
+S_LR_RcvHold,  --//LR_SendHold Передаю HOLDA, т.к. принял HOLD - Устро-во синализирует что действие FPGA<-HDD отложено
 S_LR_RcvEOF,
 S_LR_GoodCRC,
 S_LR_GoodEnd,

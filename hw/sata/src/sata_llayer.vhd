@@ -509,7 +509,7 @@ if p_in_phy_sync='1' then
 
                 i_txp_retransmit_dis<='1';
                 i_txp_cnt<=(others=>'0');
-                fsm_llayer_cs <= S_LT_H_SendChkRdy;
+                fsm_llayer_cs <= S_LT_RcvRdy;
 
             else
                 if i_pcont_use='0' then
@@ -672,9 +672,9 @@ if p_in_phy_sync='1' then
     --$$$$$$$$ Link transfer states $$$$$$$$$$$$
     --$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
     --------------------------------------------
-    -- Link transfer. STATE: S_LT_H_SendChkRdy
+    -- Link transfer. STATE: S_LT_RcvRdy
     --------------------------------------------
-    when S_LT_H_SendChkRdy =>
+    when S_LT_RcvRdy =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
@@ -736,7 +736,7 @@ if p_in_phy_sync='1' then
 
         --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//when S_LT_H_SendChkRdy =>
+      --//when S_LT_RcvRdy =>
 
 
     --------------------------------------------
@@ -829,7 +829,7 @@ if p_in_phy_sync='1' then
               tst_txp_hold<='0';
               i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
               i_txp_cnt<=(others=>'0');
-              fsm_llayer_cs <= S_LT_RcvrHold;
+              fsm_llayer_cs <= S_LT_RcvHold;
 
           else
 
@@ -1000,7 +1000,7 @@ if p_in_phy_sync='1' then
                 i_txp_cnt<=(others=>'0');
                 i_txd_en<='0';
                 tst_txp_hold<='0';
-                fsm_llayer_cs <= S_LT_RcvrHold;
+                fsm_llayer_cs <= S_LT_RcvHold;
               end if;
 
               if p_in_phy_rxtype(C_THOLD)='1' then
@@ -1046,9 +1046,9 @@ if p_in_phy_sync='1' then
 
 
     --------------------------------------------
-    -- Link transfer. STATE: S_LT_RcvrHold
+    -- Link transfer. STATE: S_LT_RcvHold
     --------------------------------------------
-    when S_LT_RcvrHold =>
+    when S_LT_RcvHold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
@@ -1218,7 +1218,7 @@ if p_in_phy_sync='1' then
 
         --//end if;--//if p_in_phy_sync='1' then
       end if;--if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//when S_LT_RcvrHold =>
+      --//when S_LT_RcvHold =>
 
 
     --------------------------------------------
@@ -1714,7 +1714,7 @@ if p_in_phy_sync='1' then
               i_rxp<=(others=>'0');
               i_txp_cnt<=(others=>'0');
 --              i_rcv_en<='0';
-              fsm_llayer_cs <= S_LR_SendHold;
+              fsm_llayer_cs <= S_LR_RcvHold;
 
           elsif CONV_INTEGER(p_in_phy_rxtype(C_TDATA_EN-1 downto C_TSOF))/= 0 or i_rxp(C_TCONT)='1' then
           --//Принял некий примимив, но не SYNC, C_TWTRM, EOF, C_THOLD
@@ -1766,7 +1766,7 @@ if p_in_phy_sync='1' then
                       i_rxp(C_THOLD)<='0';
                       i_txp_cnt<=(others=>'0');
                       tst_txp_hold<='1';
-                      fsm_llayer_cs <= S_LR_Hold;
+                      fsm_llayer_cs <= S_LR_SendHold;
 
                   else
                   --//RXBUF готов к приему данных
@@ -1818,9 +1818,9 @@ if p_in_phy_sync='1' then
       --//when S_LR_RcvData =>
 
     --------------------------------------------
-    -- Link recieve. STATE: S_LR_Hold (Отправка примитва HOLD)
+    -- Link recieve. STATE: S_LR_SendHold (Отправка примитва HOLD)
     --------------------------------------------
-    when S_LR_Hold =>
+    when S_LR_SendHold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
@@ -1949,7 +1949,7 @@ if p_in_phy_sync='1' then
 
                     i_txp_cnt<=(others=>'0');
                     tst_txp_hold<='0';
-                    fsm_llayer_cs <= S_LR_SendHold;
+                    fsm_llayer_cs <= S_LR_RcvHold;
 
                 else
 
@@ -1989,7 +1989,7 @@ if p_in_phy_sync='1' then
                     if (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
                     --//Был прием примитива HOLD - Устро-во синализирует что передача отложена
                       tst_txp_hold<='0';
-                      fsm_llayer_cs <= S_LR_SendHold;
+                      fsm_llayer_cs <= S_LR_RcvHold;
 
                     else
                     --//Возвращаемся к приему данных
@@ -2021,13 +2021,13 @@ if p_in_phy_sync='1' then
 
           --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//when S_LR_Hold =>
+      --//when S_LR_SendHold =>
 
 
     --------------------------------------------
-    -- Link recieve. STATE: S_LR_SendHold (Прием примитва HOLD)
+    -- Link recieve. STATE: S_LR_RcvHold (Прием примитва HOLD)
     --------------------------------------------
-    when S_LR_SendHold =>
+    when S_LR_RcvHold =>
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
@@ -2162,7 +2162,7 @@ if p_in_phy_sync='1' then
 
           --//end if;--//if p_in_phy_sync='1' then
       end if;--if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-      --//when S_LR_SendHold =>
+      --//when S_LR_RcvHold =>
 
     --------------------------------------------
     -- Link recieve. STATE: S_LR_RcvEOF
