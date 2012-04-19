@@ -105,35 +105,30 @@ signal i_rxd_descr_en              : std_logic;
 signal i_rxd_only                  : std_logic;--//сигнал для отбрасывания CRC в выдоваемых данных транспортному уровню
 signal i_rxd_out                   : std_logic_vector(31 downto 0);
 signal i_rxd_en_out                : std_logic;
-signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_THOLD);--//флаги принятых примитивов
+signal i_rxp                       : std_logic_vector(C_TX_RDY downto C_THOLDA);--//флаги принятых примитивов
 signal i_return                    : std_logic;
 
 signal i_txd_en                    : std_logic;
 signal i_txd_out                   : std_logic_vector(31 downto 0);
 signal i_tx_close_opt              : std_logic;--//дополнительное закрытие FRAME
-signal i_txr_ip                    : std_logic;--//Сигнализирует что был выставлен запрос на передачу примитива R_IP
 signal i_txreq                     : std_logic_vector(p_out_phy_txreq'range);--//Запрос на передачу данных/примитивов
 
 signal i_txp_cnt                   : std_logic_vector(1 downto 0);--//счетчик переданых примитивов.
                                                                   --//Необходим для определения когда отправлять примитив CONT
-
+signal i_txp_retransmit_en         : std_logic;
+signal i_txp_retransmit            : std_logic;--//retransmit primitive after ALIGN (см. пп 9.4.5.2 Serial ATA Specification v2.5 (2005-10-27).pdf)
 signal i_trn_term                  : std_logic;--//Закрываю транзакцию передачи данных по причине приема приема примитива DMAT
                                                --//Для передоваемого FRAME подставляю CRC,EOF
 
 signal i_tmr                       : std_logic_vector(7 downto 0);--//timer
 
-signal i_pcont_use                 : std_logic;
-
 signal sr_phy_txrdy_n              : std_logic_vector(0 to 0);
-signal i_txp_cnt_clr               : std_logic;
-signal i_txp_retransmit_en         : std_logic;
-signal i_txp_retransmit_dis        : std_logic;
 
 signal i_tl_check_done             : std_logic;--//Обнаружил сигнал завершения проверки Transport Layer
 signal i_tl_check_ok               : std_logic;--//Результат проверки принятых данных Transport Layer
 
-signal tst_txp_hold                : std_logic;
-signal tst_tx_close_opt            : std_logic;
+--signal tst_txp_hold                : std_logic;
+--signal tst_tx_close_opt            : std_logic;
 
 
 --MAIN
@@ -356,6 +351,7 @@ p_in_rst      => p_in_rst
 --//Реализует управление согласно спецификации SATA
 --//(см. пп 9.6 Serial ATA Specification v2.5 (2005-10-27).pdf)
 --//#########################################
+--//Формируем сигнала для retransmit primitive after ALIGN
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -364,26 +360,7 @@ begin
       end if;
   end if;
 end process;
-i_txp_cnt_clr<=p_in_phy_txrdy_n and not sr_phy_txrdy_n(0);
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    i_txp_retransmit_en<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-    if i_pcont_use='1' then
-      if i_txp_retransmit_dis='1' then
-        i_txp_retransmit_en<='0';
-      elsif fsm_llayer_cs=S_L_IDLE then
-        if p_in_phy_txrdy_n='0' and sr_phy_txrdy_n(0)='1' then
-          i_txp_retransmit_en<='1';
-        end if;
-      end if;
-    else
-      i_txp_retransmit_en<='0';
-    end if;
-  end if;
-end process;
+i_txp_retransmit<=p_in_phy_txrdy_n and sr_phy_txrdy_n(0);--p_in_phy_txrdy_n and not sr_phy_txrdy_n(0);
 
 lfsm:process(p_in_rst,p_in_clk)
 begin
@@ -398,9 +375,8 @@ if p_in_rst='1' then
 
   i_txreq<=(others=>'0');
   i_txp_cnt<=(others=>'0');
+  i_txp_retransmit_en<='0';
   i_txd_en<='0';
-  i_txp_retransmit_dis<='0';
-  i_txr_ip<='0';
 
   i_rxp<=(others=>'0');
   i_rcv_en<='0';
@@ -409,12 +385,9 @@ if p_in_rst='1' then
 
   i_trn_term<='0';
 
-  i_pcont_use<='0';
-
-  tst_txp_hold<='0'; tst_tx_close_opt<='0';
+--  tst_txp_hold<='0'; tst_tx_close_opt<='0';
 
 elsif p_in_clk'event and p_in_clk='1' then
---if clk_en='1' then
 if p_in_phy_sync='1' then
 
   case fsm_llayer_cs is
@@ -432,11 +405,11 @@ if p_in_phy_sync='1' then
 
       i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
       i_txp_cnt<=(others=>'0');
+      i_txp_retransmit_en<='0';
       i_txd_en<='0';
 
       i_rcv_en<='0';
       i_rxp<=(others=>'0');
-      i_pcont_use<='0';
 
       fsm_llayer_cs <= S_L_NoComm;
 
@@ -455,100 +428,74 @@ if p_in_phy_sync='1' then
       i_status(C_LSTAT_TxERR_IDLE)<='0';
       i_status(C_LSTAT_TxERR_ABORT)<='0';
 
-      tst_txp_hold<='0';
+--      tst_txp_hold<='0';
+      i_return<='0';
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-          --//if p_in_phy_sync='1' then
-            i_txr_ip<='0';
 
-            if p_in_phy_rxtype(C_TX_RDY)='1' then
-            --Уст-во готово к передаче данных
-                i_pcont_use<='1';
---                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
+          if p_in_phy_rxtype(C_TX_RDY)='1' then
+          --Уст-во готово к передаче данных
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
                   else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
                 else
-                  --//Реализую retransmit SYNC после отправки ALIGN
-                  if i_txp_retransmit_en='1' then
-                    if i_txp_cnt_clr='1' then
-                      i_txp_cnt<=(others=>'0');
-                    else
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                  end if;
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_rxp(C_TX_RDY)<='1';
-                fsm_llayer_cs <= S_LR_RcvWaitFifo;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
 
-            elsif p_in_ctrl(C_LCTRL_TxSTART_BIT)='1' then
-            --Запрос на передачу данных
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+              end if;--//if p_in_phy_txrdy_n='0' then
+
+              i_rxp(C_TX_RDY)<='1';
+              fsm_llayer_cs <= S_LR_RcvWaitFifo;
+
+          elsif p_in_ctrl(C_LCTRL_TxSTART_BIT)='1' then
+          --Запрос на передачу данных
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              fsm_llayer_cs <= S_LT_RcvRdy;
+
+          else
+
+              if i_txp_retransmit_en='0' then
+              --Serial ATA Specification v2.5 (2005-10-27).pdf (пп 9.6.2 - Link IDLE state diagram/NOTE:4)
+              --Перед использованием примитива CONT, должен отправить минимум 10 не ALIGN примитивов,
+              --или принять примитив отличный от SYNC или ALIGN.
+              --(Я решил что, буду использовать CONT после приема сигнатуры)
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+
+              elsif p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
+                  else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
-
-                i_txp_retransmit_dis<='1';
-                i_txp_cnt<=(others=>'0');
-                fsm_llayer_cs <= S_LT_RcvRdy;
-
-            else
-                if i_pcont_use='0' then
-                --Serial ATA Specification v2.5 (2005-10-27).pdf (пп 9.6.2 - Link IDLE state diagram/NOTE:4)
-                --Перед использованием примитива CONT, должен отправить минимум 10 не ALIGN примитивов,
-                --или принять примитив отличный от SYNC или ALIGN.
-
-                --Я решил что, буду использовать CONT после приема сигнатуры
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-
-                elsif p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                  else
-                    i_txp_retransmit_dis<='0';
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
                 else
-                  --//Реализую retransmit SYNC после отправки ALIGN
-                  --//(см. пп 9.4.5.2 Serial ATA Specification v2.5 (2005-10-27).pdf)
-                  if i_txp_retransmit_en='1' then
-                    if i_txp_cnt_clr='1' then
-                      i_txp_cnt<=(others=>'0');
-                    else
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                  end if;
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-            end if;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
-          --//end if;--//if p_in_phy_sync='1' then
+              end if;
+          end if;
+
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_L_IDLE =>
 
@@ -563,16 +510,11 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';
-
           i_txd_en<='0';
-          i_txr_ip<='0';
-
           i_rcv_en<='0';
-
-          tst_txp_hold<='0';
+          i_return<='0'; --tst_txp_hold<='0';
 
           if p_in_phy_rxtype(C_TX_RDY)='1' or p_in_phy_rxtype(C_TSYNC)='1' then
               i_rxp<=(others=>'0');
@@ -589,7 +531,12 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
               fsm_llayer_cs <= S_L_IDLE;
           else
@@ -606,11 +553,15 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_L_SyncEscape =>
 
@@ -619,20 +570,18 @@ if p_in_phy_sync='1' then
     --------------------------------------------
     when S_L_NoCommErr =>
 
-      i_txp_retransmit_dis<='1';
       i_status<=(others=>'0');
 
       i_init_work<='0';
 
       i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
       i_txp_cnt<=(others=>'0');
+      i_txp_retransmit_en<='0';
       i_txd_en<='0';
 
       i_rxp<=(others=>'0');
       i_rcv_en<='0';
-      i_pcont_use<='0';
-
-      tst_txp_hold<='0';
+      i_return<='0'; --tst_txp_hold<='0';
 
       fsm_llayer_cs <= S_L_NoComm;
 
@@ -643,27 +592,24 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='1' then
       --Связь с утройством установлена
-        --//if p_in_phy_sync='1' then
-          fsm_llayer_cs <= S_L_SendAlign;--S_L_IDLE;
-        --//end if;--//if p_in_phy_sync='1' then
+        fsm_llayer_cs <= S_L_SendAlign;--S_L_IDLE;
       end if;
 
-      --------------------------------------------
-      -- Link idle. STATE: S_L_SendAlign
-      --------------------------------------------
-      when S_L_SendAlign =>
+    --------------------------------------------
+    -- Link idle. STATE: S_L_SendAlign
+    --------------------------------------------
+    when S_L_SendAlign =>
 
-        if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
-        --//Связь с устройством оборвана
-          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
+      if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
+      --//Связь с устройством оборвана
+        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TALIGN, i_txreq'length);
+        fsm_llayer_cs <= S_L_NoCommErr;
 
-          fsm_llayer_cs <= S_L_NoCommErr;
-
-        else
-        --Связь установлена
-          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-          fsm_llayer_cs <= S_L_IDLE;
-        end if;
+      else
+      --Связь установлена
+        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+        fsm_llayer_cs <= S_L_IDLE;
+      end if;
 
 
 
@@ -681,37 +627,17 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TX_RDY)='1' then
           --//Уст-во готово к передаче данных
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                    i_txp_cnt<=i_txp_cnt + 1;
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TX_RDY, i_txreq'length);
-                    i_txp_cnt<=i_txp_cnt+1;
-                  end if;
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TX_RDY, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
               i_rxp(C_TX_RDY)<='1';
               fsm_llayer_cs <= S_LR_RcvWaitFifo;
 
           elsif p_in_phy_rxtype(C_TR_RDY)='1' then
           --//Уст-во готово к приему данных
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TX_RDY, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TX_RDY, i_txreq'length);
               i_txp_cnt<=(others=>'0');
               i_init_work<='1';--//Инициализация модулей CRC,Scrambler
               fsm_llayer_cs <= S_LT_SendSOF;
@@ -730,11 +656,15 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TX_RDY, i_txreq'length); --retransmit primitive after ALIGN
+
               end if;
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_RcvRdy =>
 
@@ -749,12 +679,11 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';--//Инициализация модулей CRC,Scrambler
 
           if p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
+          --//Уст-во переывает текущую транзакцию
               if p_in_phy_txrdy_n='0' then
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSOF, i_txreq'length);
               end if;
@@ -770,7 +699,6 @@ if p_in_phy_sync='1' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_SendSOF =>
 
@@ -782,10 +710,9 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
-          fsm_llayer_cs <= S_L_NoCommErr;
+        fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
@@ -794,7 +721,7 @@ if p_in_phy_sync='1' then
               fsm_llayer_cs <= S_L_SyncEscape;
 
           elsif p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
+          --//Уст-во переывает текущую транзакцию
               i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
               i_txp_cnt<=(others=>'0');
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
@@ -802,12 +729,11 @@ if p_in_phy_sync='1' then
               fsm_llayer_cs <= S_L_IDLE;
 
           elsif p_in_phy_rxtype(C_TDMAT)='1' or i_rxp(C_TDMAT)='1' then
-          --//Уст-во просит завершить текущую транзакию
+          --//Уст-во просит завершить текущую транзакцию
               i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
               if p_in_phy_txrdy_n='0' then
                 if i_trn_term='1' then
-                  i_trn_term<='0';
-                  tst_txp_hold<='0';
+                  i_trn_term<='0'; --tst_txp_hold<='0';
                   fsm_llayer_cs <= S_LT_SendCRC;
                 else
                   i_trn_term<='1';
@@ -826,8 +752,7 @@ if p_in_phy_sync='1' then
                 i_rxp(C_TCONT)<='0';
                 i_rxp(C_THOLD)<='1';
               end if;
-              tst_txp_hold<='0';
-              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length); --tst_txp_hold<='0';
               i_txp_cnt<=(others=>'0');
               fsm_llayer_cs <= S_LT_RcvHold;
 
@@ -848,29 +773,25 @@ if p_in_phy_sync='1' then
               if p_in_txd_close='1' then
               --Передача данных ЗАКОНЧЕНА!!!
                   if p_in_phy_txrdy_n='0' then
-                    tst_txp_hold<='0';
-                    fsm_llayer_cs <= S_LT_SendCRC;
+                    fsm_llayer_cs <= S_LT_SendCRC; --tst_txp_hold<='0';
                   end if;
 
               elsif p_in_txd_status.aempty='1' then
               --Передача данных НЕ ЗАКОНЧЕНА!!!, буфер Tx почти пуст
               --перходим к сигнализации устройству о приостановке передачи до появления данных
-                  i_txd_en<='0';
-                  tst_txp_hold<='1';
+                  i_txd_en<='0'; --tst_txp_hold<='1';
                   fsm_llayer_cs <= S_LT_SendHold;
 
               else
 
                   if p_in_phy_txrdy_n='0' then
-                    tst_txp_hold<='0';
-                    i_txd_en<='1';
+                    i_txd_en<='1'; --tst_txp_hold<='0';
                   end if;
 
               end if;
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if; --//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_SendData =>
 
@@ -881,46 +802,30 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
-          fsm_llayer_cs <= S_L_NoCommErr;
+        fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
               i_txp_cnt<=(others=>'0');
               fsm_llayer_cs <= S_L_SyncEscape;
 
           elsif p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
 
           elsif p_in_phy_rxtype(C_TDMAT)='1' or i_rxp(C_TDMAT)='1' then
-          --//Уст-во просит завершить текущую транзакию
+          --//Уст-во просит завершить текущую транзакцию
               if p_in_phy_txrdy_n='0' then
                   if i_trn_term='1' then
                     i_trn_term<='0';
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length);
-                    tst_txp_hold<='0';
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TDATA_EN, i_txreq'length); --tst_txp_hold<='0';
                     fsm_llayer_cs <= S_LT_SendCRC;
 
                   else
@@ -966,7 +871,6 @@ if p_in_phy_sync='1' then
               if i_tmr>=CONV_STD_LOGIC_VECTOR(C_LL_TXDATA_RETURN_TMR, i_tmr'length) or p_in_txd_close='1' then
                   --//Переход к передаче данных
                   if p_in_phy_txrdy_n='0' then
-
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
                     i_txp_cnt<=(others=>'0');
                     i_txd_en<='1';
@@ -998,8 +902,7 @@ if p_in_phy_sync='1' then
               if p_in_phy_txrdy_n='0' then
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
                 i_txp_cnt<=(others=>'0');
-                i_txd_en<='0';
-                tst_txp_hold<='0';
+                i_txd_en<='0'; --tst_txp_hold<='0';
                 fsm_llayer_cs <= S_LT_RcvHold;
               end if;
 
@@ -1013,7 +916,6 @@ if p_in_phy_sync='1' then
               if i_tmr>=CONV_STD_LOGIC_VECTOR(C_LL_TXDATA_RETURN_TMR, i_tmr'length) or p_in_txd_close='1' then
                   --//Переход к передаче данных
                   if p_in_phy_txrdy_n='0' then
-
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
                     i_txp_cnt<=(others=>'0');
                     i_txd_en<='1';
@@ -1040,7 +942,6 @@ if p_in_phy_sync='1' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_SendHold =>
 
@@ -1052,41 +953,26 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
-          fsm_llayer_cs <= S_L_NoCommErr;
+        fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
               i_txp_cnt<=(others=>'0');
               fsm_llayer_cs <= S_L_SyncEscape;
 
           elsif p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
 
           elsif p_in_phy_rxtype(C_TDMAT)='1' or i_rxp(C_TDMAT)='1' then
-          --//Уст-во просит завершить текущую транзакию
+          --//Уст-во просит завершить текущую транзакцию
               if p_in_phy_txrdy_n='0' then
                   if i_trn_term='1' then
                     i_trn_term<='0';
@@ -1121,7 +1007,7 @@ if p_in_phy_sync='1' then
               i_return<='0';
               if i_tx_close_opt='1' then
                 --//Перехожу к передаче EOF
-                i_txd_en<='0'; tst_tx_close_opt<='1';
+                i_txd_en<='0'; --tst_tx_close_opt<='1';
                 fsm_llayer_cs <= S_LT_SendCRC;--(Этот переход FSM не по стандарту!!!)
               elsif p_in_txd_status.empty='1' and  p_in_txd_close='0' then
                 --//Перехожу к ожиданию данных sh_txbuf
@@ -1160,7 +1046,7 @@ if p_in_phy_sync='1' then
                 i_return<='0';
                 if i_tx_close_opt='1' then
                   --//Перехожу к передаче EOF
-                  i_txd_en<='0'; tst_tx_close_opt<='1';
+                  i_txd_en<='0'; --tst_tx_close_opt<='1';
                   fsm_llayer_cs <= S_LT_SendCRC;--(Этот переход FSM не по стандарту!!!)
                 elsif p_in_txd_status.empty='1' and  p_in_txd_close='0' then
                   --//Перехожу к ожиданию данных sh_txbuf
@@ -1216,7 +1102,6 @@ if p_in_phy_sync='1' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_RcvHold =>
 
@@ -1225,40 +1110,38 @@ if p_in_phy_sync='1' then
     -- Link transfer. STATE: S_LT_SendCRC
     --------------------------------------------
     when S_LT_SendCRC =>
-      tst_tx_close_opt<='0';
+      --tst_tx_close_opt<='0';
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
-          fsm_llayer_cs <= S_L_NoCommErr;
+        fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
-            i_rxp<=(others=>'0');
-            i_txd_en<='0';
-            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TEOF, i_txreq'length);
-            i_txp_cnt<=(others=>'0');
-            i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
-            fsm_llayer_cs <= S_L_IDLE;
-
-          else
-
-            if p_in_phy_txrdy_n='0' then
-              if i_rxp(C_TDMAT)='1' then
-                i_status(C_LSTAT_TxDMAT)<='1';--//Информ. Транспорный уровень
-              end if;
+          --//Уст-во переывает текущую транзакцию
               i_rxp<=(others=>'0');
               i_txd_en<='0';
               i_txreq<=CONV_STD_LOGIC_VECTOR(C_TEOF, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
+              fsm_llayer_cs <= S_L_IDLE;
 
-              fsm_llayer_cs <= S_LT_SendEOF;
-            end if;
+          else
+
+              if p_in_phy_txrdy_n='0' then
+                if i_rxp(C_TDMAT)='1' then
+                  i_status(C_LSTAT_TxDMAT)<='1';--//Информ. Транспорный уровень
+                end if;
+                i_rxp<=(others=>'0');
+                i_txd_en<='0';
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TEOF, i_txreq'length);
+                i_txp_cnt<=(others=>'0');
+
+                fsm_llayer_cs <= S_LT_SendEOF;
+              end if;
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_SendCRC =>
 
@@ -1272,12 +1155,11 @@ if p_in_phy_sync='1' then
           fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           i_status(C_LSTAT_TxDMAT)<='0';
 
           if p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
+          --//Уст-во переывает текущую транзакцию
               i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length);
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
@@ -1291,7 +1173,6 @@ if p_in_phy_sync='1' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_SendEOF =>
 
@@ -1302,21 +1183,13 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
-          fsm_llayer_cs <= S_L_NoCommErr;
+        fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length);
               i_txp_cnt<=(others=>'0');
               i_status(C_LSTAT_TxERR_ABORT)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
@@ -1363,11 +1236,15 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length); --retransmit primitive after ALIGN
+
               end if;
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LT_Wait =>
 
@@ -1388,15 +1265,14 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           if p_in_phy_rxtype(C_TCONT)='1' then
           --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
               if p_in_phy_txrdy_n='0' then
                 if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                   if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
                   else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
                     i_txp_cnt<=i_txp_cnt+1;
@@ -1404,31 +1280,20 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              else
-                --//Реализую retransmit SYNC после отправки ALIGN
-                if i_txp_cnt_clr='1' then
-                  i_txp_cnt<=(others=>'0');
-                else
-                  i_txp_cnt<=i_txp_cnt+1;
-                end if;
-                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
               i_rxp(C_TCONT)<='1';
 
           elsif CONV_INTEGER(p_in_phy_rxtype(C_TDATA_EN-1 downto C_TSOF))/= 0 and p_in_phy_rxtype(C_TX_RDY)='0' then
           --//ERROR!!! - Принял ошибочный примитив для этого сотояния автомата
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_txp_retransmit_dis<='1';
-              i_rxp<=(others=>'0');
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_status(C_LSTAT_RxERR_IDLE)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
 
@@ -1438,15 +1303,7 @@ if p_in_phy_sync='1' then
 
                   if p_in_rxd_status.pfull='0' then --if p_in_rxd_status.empty='1' then
                   --//RXBUF буфер готов к приему данных
-                      if p_in_phy_txrdy_n='0' then
-                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                        end if;
-                      end if;
-
-                      i_txp_retransmit_dis<='1';
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
                       i_txp_cnt<=(others=>'0');
                       i_init_work<='1';--//Инициализация модулей CRC,Scrambler
                       fsm_llayer_cs <= S_LR_RcvChkRdy;
@@ -1467,14 +1324,10 @@ if p_in_phy_sync='1' then
 
                   end if;--//if p_in_rxd_status.empty='1' then
 
-              else
-                --//Реализую retransmit SYNC после отправки ALIGN
-                if i_txp_cnt_clr='1' then
-                  i_txp_cnt<=(others=>'0');
-                else
-                  i_txp_cnt<=i_txp_cnt+1;
-                end if;
-                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
+
               end if;--//if p_in_phy_txrdy_n='0' then
 
               if p_in_phy_rxtype(C_TX_RDY)='1' then
@@ -1483,6 +1336,7 @@ if p_in_phy_sync='1' then
               end if;
 
           else
+
               if p_in_phy_txrdy_n='0' then
                 if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                   if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
@@ -1495,19 +1349,15 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              else
-                --//Реализую retransmit SYNC после отправки ALIGN
-                if i_txp_cnt_clr='1' then
-                  i_txp_cnt<=(others=>'0');
-                else
-                  i_txp_cnt<=i_txp_cnt+1;
-                end if;
-                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_RcvWaitFifo =>
 
@@ -1521,23 +1371,15 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           i_init_work<='0';--//Инициализация модулей CRC,Scrambler
 
           if p_in_phy_rxtype(C_TSOF)='1' then
           --//FRAME START
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_pcont_use<='1';
-              i_rxp<=(others=>'0');
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_txp_retransmit_en<='1';
+              i_rxp<=(others=>'0');
               i_rcv_en<='1';
               i_status(C_LSTAT_RxSTART)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_LR_RcvData;
@@ -1547,8 +1389,8 @@ if p_in_phy_sync='1' then
               if p_in_phy_txrdy_n='0' then
                 if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                   if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
                   else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
                     i_txp_cnt<=i_txp_cnt+1;
@@ -1556,22 +1398,20 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
               i_rxp(C_TCONT)<='1';
 
           elsif CONV_INTEGER(p_in_phy_rxtype(C_TDATA_EN-1 downto C_TSOF))/= 0 and p_in_phy_rxtype(C_TX_RDY)='0' then
           --//ERROR!!! - Принял ошибочный примитив для этого сотояния автомата
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_status(C_LSTAT_RxERR_IDLE)<='1';--//Информ. Транспорный уровень
               fsm_llayer_cs <= S_L_IDLE;
 
@@ -1589,7 +1429,12 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
               if p_in_phy_rxtype(C_TX_RDY)='1' then
                 i_rxp(C_TCONT)<='0';
@@ -1597,6 +1442,7 @@ if p_in_phy_sync='1' then
               end if;
 
           else
+
               if p_in_phy_txrdy_n='0' then
                 if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                   if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
@@ -1609,11 +1455,15 @@ if p_in_phy_sync='1' then
                 else
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
-              end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_RcvChkRdy =>
 
@@ -1624,56 +1474,34 @@ if p_in_phy_sync='1' then
 
       if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//Связь с устройством оборвана
-          fsm_llayer_cs <= S_L_NoCommErr;
+        fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
           i_status(C_LSTAT_RxSTART)<='0';
 
           if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
           --//Транспортный уровень хочет прервать текущую операцию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_rcv_en<='0';
               fsm_llayer_cs <= S_L_SyncEscape;
 
           elsif p_in_phy_rxtype(C_TSYNC)='1' then
-          --//Уст-во переывает текущую транзакию
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
               i_rcv_en<='0';
               fsm_llayer_cs <= S_L_IDLE;
 
           elsif p_in_phy_rxtype(C_TWTRM)='1' then
           --//ERROR!!! - прият примитив WTRM, но небыло приема EOF
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-              end if;
-
-              i_rxp<=(others=>'0');
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
               i_rcv_en<='0';
               fsm_llayer_cs <= S_LR_BadEnd;
 
@@ -1692,8 +1520,11 @@ if p_in_phy_sync='1' then
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_txr_ip<='1';
-              end if;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
               i_rxp<=(others=>'0');
               i_rcv_en<='0';
@@ -1701,18 +1532,9 @@ if p_in_phy_sync='1' then
 
           elsif p_in_phy_rxtype(C_THOLD)='1' then
           --//Устро-во синализирует что передача отложена
-              if p_in_phy_txrdy_n='0' then
-                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                else
-                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                end if;
-
-                i_txr_ip<='1';
-              end if;
-
-              i_rxp<=(others=>'0');
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
               i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
 --              i_rcv_en<='0';
               fsm_llayer_cs <= S_LR_RcvHold;
 
@@ -1731,8 +1553,11 @@ if p_in_phy_sync='1' then
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_txr_ip<='1';
-              end if;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
+
+              end if;--//if p_in_phy_txrdy_n='0' then
 
               if p_in_phy_rxtype(C_TCONT)='1' then
               --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
@@ -1752,44 +1577,33 @@ if p_in_phy_sync='1' then
                   if p_in_rxd_status.pfull='1' then
                   --//RXBUF не готов к приему данных
                   --//Сигнализирую уст-ву приостановить передачу данных
-                      if p_in_phy_txrdy_n='0' then
-                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                        end if;
-
-                        i_txr_ip<='1';
-                      end if;
-
-                      i_rxp(C_TCONT)<='0';
-                      i_rxp(C_THOLD)<='0';
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
                       i_txp_cnt<=(others=>'0');
-                      tst_txp_hold<='1';
+                      i_rxp<=(others=>'0'); --tst_txp_hold<='1';
                       fsm_llayer_cs <= S_LR_SendHold;
 
                   else
                   --//RXBUF готов к приему данных
                       i_rcv_en<='1';
 
-                      if p_in_phy_txrdy_n='0' then
-                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                          if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt + 1;
-                          else
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt+1;
-                          end if;
+                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                        if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                          i_txp_cnt<=i_txp_cnt + 1;
                         else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
+                          i_txp_cnt<=i_txp_cnt+1;
                         end if;
-
-                        i_txr_ip<='1';
-
+                      else
+                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                       end if;
 
                   end if;
+
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
+
               end if;--//if p_in_phy_txrdy_n='0' then
 
           else
@@ -1807,13 +1621,14 @@ if p_in_phy_sync='1' then
                   i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_txr_ip<='1';
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
-              end if;
+              end if;--//if p_in_phy_txrdy_n='0' then
 
           end if;
 
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_RcvData =>
 
@@ -1827,199 +1642,152 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-          --//if p_in_phy_sync='1' then
 
-            if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
-            --//Транспортный уровень хочет прервать текущую операцию
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+          if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
+          --//Транспортный уровень хочет прервать текущую операцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              i_rcv_en<='0';
+              fsm_llayer_cs <= S_L_SyncEscape;
+
+          elsif p_in_phy_rxtype(C_TSYNC)='1' then
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
+              i_rcv_en<='0';
+              fsm_llayer_cs <= S_L_IDLE;
+
+          elsif p_in_phy_rxtype(C_TEOF)='1' then
+          --//FRAME END
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              i_rcv_en<='0'; --tst_txp_hold<='0';
+              fsm_llayer_cs <= S_LR_RcvEOF;
+
+          elsif p_in_phy_rxtype(C_TCONT)='1' then
+          --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
+                  else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                i_rcv_en<='0';
-                fsm_llayer_cs <= S_L_SyncEscape;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
-            elsif p_in_phy_rxtype(C_TSYNC)='1' then
-            --//Уст-во переывает текущую транзакию
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
+              end if;--//if p_in_phy_txrdy_n='0' then
 
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
-                i_rcv_en<='0';
-                fsm_llayer_cs <= S_L_IDLE;
-
-            elsif p_in_phy_rxtype(C_TEOF)='1' then
-            --//FRAME END
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
-
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                i_rcv_en<='0';
-                tst_txp_hold<='0';
-                fsm_llayer_cs <= S_LR_RcvEOF;
-
-            elsif p_in_phy_rxtype(C_TCONT)='1' then
-            --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                        i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-
-                  i_txr_ip<='0';
-                end if;
-
-                i_rxp(C_TCONT)<='1';
+              i_rxp(C_TCONT)<='1';
 --                i_rcv_en<='0';
 
-            elsif CONV_INTEGER(p_in_phy_rxtype(C_TDATA_EN-1 downto C_TSOF))/= 0 and p_in_phy_rxtype(C_THOLD)='0' then
-            --//Принял некий примимив, но не SYNC, EOF, CONT, HOLD
-                if p_in_rxd_status.empty='1' then
-                --RXBUF готов к приему данных
-                    if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                      end if;
-                    end if;
+          elsif p_in_phy_rxtype(C_THOLDA)='1'then
 
-                    i_txp_cnt<=(others=>'0');
-                    tst_txp_hold<='0';
-                    fsm_llayer_cs <= S_LR_RcvData;
-
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
+                  else
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
+                  end if;
                 else
-                    if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                        if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt + 1;
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                          i_txp_cnt<=i_txp_cnt+1;
-                        end if;
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                      end if;
-
-                      i_txr_ip<='0';
-                    end if;
-
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_rxp<=(others=>'0');
-                i_rcv_en<='1';
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
-            elsif p_in_phy_rxtype(C_THOLD)='1' or (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
-            --//Устро-во синализирует что передача отложена
-                if p_in_rxd_status.empty='1' then
-                --//Ждем пока будет готов RxBUF
-                    if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+              end if;--//if p_in_phy_txrdy_n='0' then
+
+              if p_in_phy_rxtype(C_THOLDA)='1' then
+                i_rxp(C_TCONT)<='0';
+                i_rxp(C_THOLDA)<='1';
+                i_rxp(C_THOLD)<='0';
+              end if;
+
+          elsif p_in_phy_rxtype(C_THOLD)='1' or (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
+          --//Устро-во синализирует что передача отложена
+              if p_in_rxd_status.empty='1' then
+              --//Ждем пока будет готов RxBUF
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+                  i_txp_cnt<=(others=>'0'); --tst_txp_hold<='0';
+                  fsm_llayer_cs <= S_LR_RcvHold;
+
+              else
+
+                  if p_in_phy_txrdy_n='0' then
+                    if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                      if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                        i_txp_cnt<=i_txp_cnt + 1;
+                      else
                         i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                        i_txp_cnt<=i_txp_cnt+1;
                       end if;
-                    end if;
-
-                    i_txp_cnt<=(others=>'0');
-                    tst_txp_hold<='0';
-                    fsm_llayer_cs <= S_LR_RcvHold;
-
-                else
-
-                    if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                        if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt + 1;
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                          i_txp_cnt<=i_txp_cnt+1;
-                        end if;
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                      end if;
-                    end if;
-                end if;
-
-                if p_in_phy_rxtype(C_THOLD)='1' then
-                  i_rxp(C_TCONT)<='0';
-                  i_rxp(C_THOLD)<='1';
-                end if;
-
-            else
-
-                if p_in_rxd_status.empty='1' then
-                --RXBUF готов к приему данных
-                    if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                      end if;
-                    end if;
-
-                    i_txp_cnt<=(others=>'0');
-                    if (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
-                    --//Был прием примитива HOLD - Устро-во синализирует что передача отложена
-                      tst_txp_hold<='0';
-                      fsm_llayer_cs <= S_LR_RcvHold;
-
                     else
-                    --//Возвращаемся к приему данных
-                      tst_txp_hold<='0';
-                      fsm_llayer_cs <= S_LR_RcvData;
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                     end if;
 
-                else
+                  elsif i_txp_retransmit='1' then
+                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
-                    if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                        if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt + 1;
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
-                          i_txp_cnt<=i_txp_cnt+1;
-                        end if;
+                  end if;--//if p_in_phy_txrdy_n='0' then
+              end if;
+
+              if p_in_phy_rxtype(C_THOLD)='1' then
+                i_rxp(C_TCONT)<='0';
+                i_rxp(C_THOLD)<='1';
+                i_rxp(C_THOLDA)<='0';
+              end if;
+
+          else
+
+              if p_in_rxd_status.empty='1' then
+              --RXBUF готов к приему данных
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+                  i_txp_cnt<=(others=>'0'); --tst_txp_hold<='0';
+                  fsm_llayer_cs <= S_LR_RcvData;
+
+              else
+
+                  if p_in_phy_txrdy_n='0' then
+                    if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                      if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                        i_txp_cnt<=i_txp_cnt + 1;
                       else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length);
+                        i_txp_cnt<=i_txp_cnt+1;
                       end if;
-
-                      i_txr_ip<='0';
+                    else
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                     end if;
 
-                end if;
+                  elsif i_txp_retransmit='1' then
+                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
-            end if;
+                  end if;--//if p_in_phy_txrdy_n='0' then
 
-          --//end if;--//if p_in_phy_sync='1' then
+              end if;
+
+          end if;
+
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_SendHold =>
 
@@ -2034,133 +1802,114 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-          --//if p_in_phy_sync='1' then
 
-            if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
-            --//Транспортный уровень хочет прервать текущую операцию
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+          if p_in_ctrl(C_LCTRL_TRN_ESCAPE_BIT)='1' then
+          --//Транспортный уровень хочет прервать текущую операцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              i_rcv_en<='0';
+              fsm_llayer_cs <= S_L_SyncEscape;
+
+          elsif p_in_phy_rxtype(C_TSYNC)='1' then
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
+              i_rcv_en<='0';
+              fsm_llayer_cs <= S_L_IDLE;
+
+          elsif p_in_phy_rxtype(C_TEOF)='1' then
+          --//FRAME END
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              i_rcv_en<='0';
+              fsm_llayer_cs <= S_LR_RcvEOF;
+
+          elsif p_in_phy_rxtype(C_TCONT)='1' then
+          --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
+                  else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                i_rcv_en<='0';
-                fsm_llayer_cs <= S_L_SyncEscape;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length); --retransmit primitive after ALIGN
 
-            elsif p_in_phy_rxtype(C_TSYNC)='1' then
-            --//Уст-во переывает текущую транзакию
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
+              end if;--//if p_in_phy_txrdy_n='0' then
 
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
-                i_rcv_en<='0';
-                fsm_llayer_cs <= S_L_IDLE;
-
-            elsif p_in_phy_rxtype(C_TEOF)='1' then
-            --//FRAME END
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
-
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                i_rcv_en<='0';
-                fsm_llayer_cs <= S_LR_RcvEOF;
-
-            elsif p_in_phy_rxtype(C_TCONT)='1' then
-            --//ВАЖНО!!! - все последующие данные будут аналогичны приему предыдущего примитива
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
-
-                i_rxp(C_TCONT)<='1';
+              i_rxp(C_TCONT)<='1';
 --                i_rcv_en<='0';
 
-            elsif p_in_phy_rxtype(C_THOLD)='1' or (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
-            --//Устро-во синализирует что передача отложена
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
+          elsif p_in_phy_rxtype(C_THOLD)='1' or (i_rxp(C_THOLD)='1' and i_rxp(C_TCONT)='1') then
+          --//Устро-во синализирует что передача отложена
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
                   else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-
-                  i_txr_ip<='0';
-                end if;
-
-                if p_in_phy_rxtype(C_THOLD)='1' then
-                  i_rxp(C_TCONT)<='0';
-                  i_rxp(C_THOLD)<='1';
-                  i_rcv_en<='1';
-                end if;
-
-            elsif p_in_phy_rxtype(C_TDATA_EN)='1' and i_rxp(C_TCONT)='0' then
-            --//Принял некией DWORD, но не SYNC, EOF, CONT, HOLD
-            --//Возвращаемся к приему данных
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_rxp<=(others=>'0');
-                i_txp_cnt<=(others=>'0');
-                fsm_llayer_cs <= S_LR_RcvData;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length); --retransmit primitive after ALIGN
 
-            else
+              end if;--//if p_in_phy_txrdy_n='0' then
 
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
+              if p_in_phy_rxtype(C_THOLD)='1' then
+                i_rxp(C_TCONT)<='0';
+                i_rxp(C_THOLD)<='1';
+                i_rcv_en<='1';
+              end if;
+
+          elsif CONV_INTEGER(p_in_phy_rxtype(C_TDATA_EN downto C_TSOF))/= 0 and i_rxp(C_TCONT)='0' then --elsif p_in_phy_rxtype(C_TDATA_EN)='1' and i_rxp(C_TCONT)='0' then
+          --//Принял некией DWORD, но не SYNC, EOF, CONT, HOLD или принял C_TDATA_EN
+          --//Возвращаемся к приему данных
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_rxp<=(others=>'0');
+              fsm_llayer_cs <= S_LR_RcvData;
+
+          else
+
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
                   else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
-
-                  i_txr_ip<='0';
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-            end if;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length); --retransmit primitive after ALIGN
 
-          --//end if;--//if p_in_phy_sync='1' then
+              end if;--//if p_in_phy_txrdy_n='0' then
+
+          end if;
+
       end if;--if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_RcvHold =>
 
@@ -2174,55 +1923,23 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
-            if p_in_phy_txrdy_n='0' then
+          if p_in_phy_txrdy_n='0' then
 
-                --//Анализ принятого/расчтаного CRC
-                if i_crc_out=(i_crc_out'range =>'0') then
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
 
-                    if i_txr_ip='0' then
-                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                          if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt + 1;
-                          else
-                            i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                            i_txp_cnt<=i_txp_cnt+1;
-                          end if;
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                        end if;
+              --//Анализ принятого/расчтаного CRC
+              if i_crc_out=(i_crc_out'range =>'0') then
+                i_status(C_LSTAT_RxOK)<='1';--//Информ. Транспорный уровень
+                fsm_llayer_cs <= S_LR_GoodCRC;
+              else
+                i_status(C_LSTAT_RxERR_CRC)<='1';--//Информ. Транспорный уровень
+                fsm_llayer_cs <= S_LR_BadEnd;
+              end if;
 
-                    else
-                        if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                        else
-                          i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                        end if;
+          end if;--//if p_in_phy_txrdy_n='0' then
 
-                    end if;
-
-                    i_status(C_LSTAT_RxOK)<='1';--//Информ. Транспорный уровень
-                    fsm_llayer_cs <= S_LR_GoodCRC;
-
-                else
-
-                    if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                    end if;
-                    i_txp_cnt<=(others=>'0');
-
-                    i_status(C_LSTAT_RxERR_CRC)<='1';--//Информ. Транспорный уровень
-                    fsm_llayer_cs <= S_LR_BadEnd;
-
-                end if;
-
-            end if;--//if p_in_phy_txrdy_n='0' then
-
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_RcvEOF =>
 
@@ -2236,47 +1953,35 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
-            if p_in_phy_rxtype(C_TSYNC)='1' then
-            --//Уст-во переывает текущую транзакию
+          if p_in_phy_rxtype(C_TSYNC)='1' then
+          --//Уст-во переывает текущую транзакцию
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
+              fsm_llayer_cs <= S_L_IDLE;
 
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
+          else
 
-                i_txp_cnt<=(others=>'0');
-                i_status(C_LSTAT_RxERR_ABORT)<='1';--//Информ. Транспорный уровень
-                fsm_llayer_cs <= S_L_IDLE;
+              if i_tl_check_done='1' then
 
-            else
-
-                if i_tl_check_done='1' then
                   if p_in_phy_txrdy_n='0' then
-                      if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
-                      else
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                      end if;
 
+                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length);
                       i_txp_cnt<=(others=>'0');
 
                       --//Жду подтверждения от Транспортного уровня
                       if i_tl_check_ok='1' then
                         fsm_llayer_cs <= S_LR_GoodEnd;
-
                       else
                         fsm_llayer_cs <= S_LR_BadEnd;
-
                       end if;
 
                   end if;
 
-                else
+              else
+
+                  if p_in_phy_txrdy_n='0' then
                     if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
                       if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
                         i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
@@ -2289,11 +1994,16 @@ if p_in_phy_sync='1' then
                       i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                     end if;
 
-                end if;
+                  elsif i_txp_retransmit='1' then
+                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
-            end if;
+                  end if;--//if p_in_phy_txrdy_n='0' then
 
-        --//end if;--//if p_in_phy_sync='1' then
+              end if;--//if i_tl_check_done='1' then
+
+          end if;
+
       end if;--//if p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_GoodCRC =>
 
@@ -2307,40 +2017,35 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
+          --//Жду от устройства примитив SYNC
+          if p_in_phy_rxtype(C_TSYNC)='1' then
 
-            --//Жду от устройства примитив SYNC
-            if p_in_phy_rxtype(C_TSYNC)='1' then
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_OK, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              fsm_llayer_cs <= S_L_IDLE;
 
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+          else
+
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
+                  else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_OK, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_txp_cnt<=(others=>'0');
-                fsm_llayer_cs <= S_L_IDLE;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_OK, i_txreq'length); --retransmit primitive after ALIGN
 
-            else
+              end if;--//if p_in_phy_txrdy_n='0' then
+          end if;
 
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                        i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_OK, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
-            end if;
-
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//f p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_GoodEnd =>
 
@@ -2354,39 +2059,35 @@ if p_in_phy_sync='1' then
         fsm_llayer_cs <= S_L_NoCommErr;
 
       else
-        --//if p_in_phy_sync='1' then
 
-            if p_in_phy_rxtype(C_TSYNC)='1' then
+          if p_in_phy_rxtype(C_TSYNC)='1' then
 
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+              i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_ERR, i_txreq'length);
+              i_txp_cnt<=(others=>'0');
+              fsm_llayer_cs <= S_L_IDLE;
+
+          else
+
+              if p_in_phy_txrdy_n='0' then
+                if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
+                  if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
+                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt + 1;
+                  else
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_ERR, i_txreq'length);
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
+                    i_txp_cnt<=i_txp_cnt+1;
                   end if;
+                else
+                  i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
                 end if;
 
-                i_txp_cnt<=(others=>'0');
-                fsm_llayer_cs <= S_L_IDLE;
+              elsif i_txp_retransmit='1' then
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_ERR, i_txreq'length); --retransmit primitive after ALIGN
 
-            else
+              end if;--//if p_in_phy_txrdy_n='0' then
+          end if;
 
-                if p_in_phy_txrdy_n='0' then
-                  if i_txp_cnt/=CONV_STD_LOGIC_VECTOR(3, i_txp_cnt'length) then
-                    if i_txp_cnt=CONV_STD_LOGIC_VECTOR(2, i_txp_cnt'length) then
-                        i_txreq<=CONV_STD_LOGIC_VECTOR(C_TCONT, i_txreq'length);
-                        i_txp_cnt<=i_txp_cnt + 1;
-                    else
-                      i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_ERR, i_txreq'length);
-                      i_txp_cnt<=i_txp_cnt+1;
-                    end if;
-                  else
-                    i_txreq<=CONV_STD_LOGIC_VECTOR(C_TNONE, i_txreq'length);
-                  end if;
-                end if;
-            end if;
-
-        --//end if;--//if p_in_phy_sync='1' then
       end if;--//f p_in_phy_status(C_PSTAT_DET_ESTABLISH_ON_BIT)='0' then
       --//when S_LR_BadEnd =>
 
@@ -2407,6 +2108,7 @@ p_out_dbg.fsm<=fsm_llayer_cs;
 
 p_out_dbg.rxp.dmat<=i_rxp(C_TDMAT);
 p_out_dbg.rxp.hold<=i_rxp(C_THOLD);
+p_out_dbg.rxp.holda<=i_rxp(C_THOLDA);
 p_out_dbg.rxp.xrdy<=i_rxp(C_TX_RDY);
 p_out_dbg.rxp.cont<=i_rxp(C_TCONT);
 
@@ -2425,13 +2127,14 @@ p_out_dbg.status.txdmat<=i_status(C_LSTAT_TxDMAT);
 p_out_dbg.status.txerr_crc<=i_status(C_LSTAT_TxERR_CRC);
 p_out_dbg.status.txerr_idle<=i_status(C_LSTAT_TxERR_IDLE);
 p_out_dbg.status.txerr_abort<=i_status(C_LSTAT_TxERR_ABORT);
-p_out_dbg.status.txhold_on<=tst_txp_hold;
+p_out_dbg.status.txhold_on<='0';--tst_txp_hold;
 p_out_dbg.status.rxhold_on<=i_rxp(C_THOLD);
 
 p_out_dbg.rxbuf_status<=p_in_rxd_status;
 p_out_dbg.txbuf_status<=p_in_txd_status;
 p_out_dbg.txd_close<=p_in_txd_close;
-p_out_dbg.txd_close_opt<=tst_tx_close_opt;
+p_out_dbg.txd_close_opt<='0';--tst_tx_close_opt;
+p_out_dbg.txp_cnt<=i_txp_cnt;
 
 --end generate gen_sim_on;
 
