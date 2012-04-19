@@ -30,6 +30,7 @@ use work.sata_sim_lite_pkg.all;
 
 entity sata_tlayer is
 generic(
+G_CH_NUM : integer:=0;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
@@ -147,7 +148,9 @@ signal sr_llrxd_en                 : std_logic_vector(0 to 0);
 signal sr_ll_status_rcv_done       : std_logic;
 
 signal i_txfifo_pfull              : std_logic;
-
+--signal tst_rxd_err                 : std_logic:='0';
+--signal tst_rxd_cnt                 : std_logic_vector(31 downto 0);
+--signal tst_rxd_err_clr             : std_logic:='0';
 
 
 --MAIN
@@ -1564,7 +1567,24 @@ p_out_dbg.other_status.fpiosetup<=i_fpiosetup;
 p_out_dbg.other_status.dcnt     <=EXT(i_fdcnt, p_out_dbg.other_status.dcnt'length);--i_fdcnt(15 downto 0);
 p_out_dbg.other_status.altxbuf_rd<=p_in_ll_txd_rd and i_fdata_tx_en and not i_fdata_close;
 p_out_dbg.other_status.alrxbuf_wr<=p_in_ll_rxd_wr and i_rxd_en;
+p_out_dbg.other_status.rxd_err<='0';--tst_rxd_err;
 
+--tst_rxd_err_clr<='1' when fsm_tlayer_cs=S_HT_CmdFIS else '0';
+--
+--process(p_in_rst,tst_rxd_err_clr, p_in_clk)
+--begin
+--  if p_in_rst='1' or tst_rxd_err_clr='1' then
+--    tst_rxd_err<='0';
+--    tst_rxd_cnt<=CONV_STD_LOGIC_VECTOR(selval(1, 0, cmpval(G_CH_NUM, 0)), tst_rxd_cnt'length);
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if p_in_ll_rxd_wr='1' and i_rxd_en='1' then
+--      tst_rxd_cnt<=tst_rxd_cnt + 2;
+--      if p_in_ll_rxd/=tst_rxd_cnt then --(p_in_ll_rxd'range => '0') then
+--        tst_rxd_err<='1';
+--      end if;
+--    end if;
+--  end if;
+--end process;
 
 --end generate gen_sim_on;
 

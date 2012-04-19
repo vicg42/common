@@ -402,6 +402,7 @@ end component;
 
 component sata_tlayer
 generic(
+G_CH_NUM : integer:=0;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );

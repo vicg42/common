@@ -384,6 +384,7 @@ p_in_rst                => p_in_rst
 
 m_tlayer : sata_tlayer
 generic map(
+G_CH_NUM => i,
 G_DBG => G_DBG,
 G_SIM => G_SIM
 )
