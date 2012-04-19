@@ -376,9 +376,10 @@ end process;
 --//Автомат управления записю/чтение данных ОЗУ
 --//----------------------------------------------
 i_atacmd_dcount_byte<=i_atacmd_scount & CONV_STD_LOGIC_VECTOR(0, log2(CI_SECTOR_SIZE_BYTE));
-i_atacmd_dcount<=(CONV_STD_LOGIC_VECTOR(0, log2(32/8)) & i_atacmd_dcount_byte(i_atacmd_dcount_byte'high downto log2(32/8)));
 
 gen_memd8 : if G_MEM_DWIDTH=8 generate
+i_atacmd_dcount<=(i_atacmd_dcount_byte(i_atacmd_dcount_byte'high downto 0));
+
 i_mem_adr_update<=(CONV_STD_LOGIC_VECTOR(0, (i_mem_adr'length - i_mem_lenreq'length)) & i_mem_lenreq);
 
 i_ptr_updata<=(CONV_STD_LOGIC_VECTOR(0, (i_ptr_updata'length - i_lenreq'length)) & i_lenreq);
@@ -386,6 +387,8 @@ i_lenreq_a2_updata<=i_lenreq_a2_byte(i_lenreq_a2_updata'length-1 downto 0);
 end generate gen_memd8;
 
 gen_memd_more8 : if G_MEM_DWIDTH>8 generate
+i_atacmd_dcount<=(CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) & i_atacmd_dcount_byte(i_atacmd_dcount_byte'high downto log2(G_MEM_DWIDTH/8)));
+
 i_mem_adr_update<=(CONV_STD_LOGIC_VECTOR(0, (i_mem_adr'length - i_mem_lenreq'length - log2(G_MEM_DWIDTH/8))) & i_mem_lenreq & CONV_STD_LOGIC_VECTOR(0,log2(G_MEM_DWIDTH/8)) );
 
 i_ptr_updata<=(CONV_STD_LOGIC_VECTOR(0, (i_ptr_updata'length - i_lenreq'length - log2(G_MEM_DWIDTH/8))) & i_lenreq & CONV_STD_LOGIC_VECTOR(0,log2(G_MEM_DWIDTH/8)) );
@@ -483,7 +486,7 @@ begin
       --//Ждем сигнала запуска
       when S_SW_WAIT =>
 
-        i_rambuf_dcnt(15 downto 0)<=i_atacmd_dcount(15 downto 0);
+        i_rambuf_dcnt<=EXT(i_atacmd_dcount, i_rambuf_dcnt'length);
 
         if i_rbuf_cfg.atacmdw='1' then
         --//RAM->HDD
@@ -492,7 +495,7 @@ begin
           i_mem_dir<=C_MEMWR_READ;
           fsm_rambuf_cs <= S_SW_MEM_CHECK;
 
-        elsif p_in_hdd_rxbuf_pempty='0' or i_atadone='1' then
+        elsif p_in_hdd_rxbuf_empty='0' or i_atadone='1' then
         --//RAM<-HDD
           i_mem_lenreq<=i_wr_lentrn;
           i_mem_lentrn<=i_wr_lentrn;--//размер одиночной транзакции.(Устанавливается программно)
@@ -503,7 +506,7 @@ begin
       --//Проверка окончания записи/чтения
       when S_SW_MEM_CHECK =>
 
-        if i_rambuf_dcnt(15 downto 0)=(i_rambuf_dcnt'range =>'0') then
+        if i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') then
           if i_rbuf_cfg.raid.used='0' then
           --//Работа с одним HDD
             i_rambuf_done<='1';
@@ -514,13 +517,13 @@ begin
               i_rambuf_done<='1';
               fsm_rambuf_cs <= S_IDLE;
             else
-              i_rambuf_dcnt(15 downto 0)<=i_atacmd_dcount(15 downto 0);
+              i_rambuf_dcnt<=EXT(i_atacmd_dcount, i_rambuf_dcnt'length);
               i_hddcnt<=i_hddcnt + 1;
               fsm_rambuf_cs <= S_SW_MEM_START;
             end if;
           end if;
         else
-          if i_rambuf_dcnt(15 downto 0)<=i_mem_lenreq then
+          if i_rambuf_dcnt<=EXT(i_mem_lenreq, i_rambuf_dcnt'length) then
             i_mem_lenreq<=i_rambuf_dcnt(15 downto 0);
           end if;
           fsm_rambuf_cs <= S_SW_MEM_START;
@@ -533,7 +536,7 @@ begin
         if i_mem_dir=C_MEMWR_WRITE then
         --//RAM<-HDD
         --//Ждем когда в hdd_rxbuf накопится данные
-          if p_in_hdd_rxbuf_pempty='0' or i_atadone='1' then
+          if p_in_hdd_rxbuf_empty='0' or i_atadone='1' then
             i_mem_adr<=i_wr_ptr + p_in_rbuf_cfg.mem_adr;--указатель + базовый адрес буфера HDD в ОЗУ
             i_mem_start<='1';
             fsm_rambuf_cs <= S_SW_MEM_WORK;
