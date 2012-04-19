@@ -124,7 +124,7 @@ p_out_sh_cxd(i)<=p_in_usr_cxd;
 p_out_sh_rxd_rd(i)<=(p_in_usr_rxd_rd and p_in_sh_mask(i)) or p_in_sh_padding;
 
 p_out_usr_rxd(32*(i+1)-1 downto 32*i)<=p_in_sh_rxd(i);
-i_sh_rxbuf_empty(i)<=p_in_sh_rxbuf_status(i).empty and p_in_sh_mask(i);
+i_sh_rxbuf_empty(i)<=p_in_sh_rxbuf_status(i).empty;-- and p_in_sh_mask(i);
 
 --//dsn_hdd_txbuf -> sh_txbuf
 process(p_in_rst,p_in_clk)
@@ -173,7 +173,7 @@ p_out_usr_rxbuf_empty<=OR_reduce(i_sh_rxbuf_empty);
 
 p_out_sh_num<=(others=>'0');
 
-p_out_raid.used<='0';
+p_out_raid.used<='1';
 p_out_raid.hddcount<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT-1, p_out_raid.hddcount'length);
 
 

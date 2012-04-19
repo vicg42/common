@@ -111,6 +111,8 @@ signal i_usr_status                : TUsrStatus;
 signal i_usr_rxd                   : std_logic_vector(G_RAID_DWIDTH-1 downto 0):=(others=>'0');
 signal i_usr_rxd_wr                : std_logic:='0';
 
+signal i_dma_armed                 : std_logic;
+
 signal sr_dev_err                  : std_logic_vector(0 to 1);
 
 signal i_cmdpkt                    : THDDPkt;
@@ -269,7 +271,7 @@ p_out_usr_status<=i_usr_status;
 --//RAMBUF:
 i_usr_status.dmacfg.sw_mode<=i_usrmode.sw;
 i_usr_status.dmacfg.hw_mode<=i_usrmode.hw_work;
-i_usr_status.dmacfg.armed<='0';
+i_usr_status.dmacfg.armed<=i_dma_armed;
 i_usr_status.dmacfg.atacmdnew<=i_atacmdnew;
 i_usr_status.dmacfg.atacmdw<=OR_reduce(i_atacmdw_start);
 i_usr_status.dmacfg.atadone<=sr_sh_cmddone(2);
@@ -277,10 +279,36 @@ i_usr_status.dmacfg.error<='0';
 i_usr_status.dmacfg.clr_err<=i_err_clr;
 i_usr_status.dmacfg.raid.used<=p_in_raid.used;
 i_usr_status.dmacfg.raid.hddcount<=p_in_raid.hddcount;
-i_usr_status.dmacfg.scount<=(others=>'0');
+i_usr_status.dmacfg.scount<=i_sh_atacmd.scount;
 i_usr_status.dmacfg.tstgen_start<=i_atacmdtest;
-i_usr_status.dmacfg.hm_w <=i_usrmode.hw_work and i_usrmode.hw_wr;
-i_usr_status.dmacfg.hm_r <=i_usrmode.hw_work and i_usrmode.hw_rd;
+i_usr_status.dmacfg.hm_w<=i_usrmode.hw_work and i_usrmode.hw_wr;
+i_usr_status.dmacfg.hm_r<=i_usrmode.hw_work and i_usrmode.hw_rd;
+
+process(p_in_rst,p_in_clk)
+  variable dma_armed: std_logic;
+begin
+  if p_in_rst='1' then
+      dma_armed:='0';
+    i_dma_armed<='0';
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    dma_armed:='0';
+
+    if i_cmdpkt_get_done='1' then
+      if  i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_SECTORS_EXT, i_cmdpkt.command'length) or
+          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_SECTORS_EXT, i_cmdpkt.command'length) or
+          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_cmdpkt.command'length) or
+          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_cmdpkt.command'length) then
+--          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_IDENTIFY_DEV, i_cmdpkt.command'length) or
+--          i_cmdpkt.command=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_DATA_SET_MANAGEMENT, i_cmdpkt.command'length) then
+            dma_armed:='1';
+      end if;
+    end if;
+
+    i_dma_armed<=dma_armed;
+
+  end if;
+end process;
 
 --//кол-во HDD подключенных к FPGA
 i_usr_status.hdd_count<=CONV_STD_LOGIC_VECTOR(G_HDD_COUNT, i_usr_status.hdd_count'length);
@@ -736,12 +764,11 @@ i_dbgcs_data(4)<=i_sh_cmd_start;--p_in_usr_txbuf_empty;
 i_dbgcs_data(5)<=p_in_sh_rxbuf_empty;
 i_dbgcs_data(6)<=p_in_sh_txbuf_full;
 i_dbgcs_data(7)<=i_sh_det.err;
-i_dbgcs_data(8)<=i_usr_status.ch_bsy(0);
-i_dbgcs_data(9)<=i_usr_status.ch_bsy(1);
-i_dbgcs_data(10)<=i_usr_status.ch_bsy(2);
-i_dbgcs_data(11)<=i_usr_status.ch_bsy(3);
+for i in 0 to G_HDD_COUNT-1 loop
+i_dbgcs_data(8+i)<=i_usr_status.ch_bsy(i);
+end loop;
 i_dbgcs_data(19 downto 12)<=(others=>'0');--i_raid_cl_cntdw(7 downto 0);--i_usr_rxd(7 downto 0);--
-i_dbgcs_data(20)<=i_usr_rxd_wr;
+i_dbgcs_data(20)<='0';--i_usr_rxd_wr;
 --i_dbgcs_data(16 downto 12)<=i_raid_trn_cnts(4 downto 0);
 --i_dbgcs_data(20 downto 17)<=i_sh_atacmd.lba(3 downto 0);
 i_dbgcs_data(21)<=p_in_usr_txbuf_empty;
