@@ -171,8 +171,8 @@ i_link_txd_close(0)<=i_sim_txbuf_close after dly;
 
 i_link_txd_status(0).aempty<=i_sh_txbuf_aempty after dly;
 i_link_txd_status(0).empty<=i_sh_txbuf_empty after dly;
-i_link_rxd_status(0).pfull<='0';
-i_link_rxd_status(0).empty<='1';
+--i_link_rxd_status(0).pfull<='0';
+--i_link_rxd_status(0).empty<='1';
 
 
 ----//Вариант 2
@@ -188,9 +188,10 @@ i_link_rxd_status(0).empty<='1';
 --
 ----i_link_rxd_status(0).pfull<='0','1' after 8.312 us, '0' after 8.4 us;
 ----i_link_rxd_status(0).empty<='1','0' after 8.312 us, '1' after 8.5 us;
---
---i_link_rxd_status(0).pfull<='0','1' after 8.40 us, '0' after 8.46 us;
---i_link_rxd_status(0).empty<='1','0' after 8.40 us, '1' after 8.6 us;
+
+i_link_rxd_status(0).pfull<='0','1' after 8.73 us, '0' after 8.86 us;
+--i_link_rxd_status(0).empty<='1','0' after 8.73 us, '1' after 8.9 us;
+i_link_rxd_status(0).empty<='1','0' after 8.73 us, '1' after 8.79 us;
 --
 ----i_link_rxd_status(0).pfull<='0','1' after 8.43 us, '0' after 8.46 us;
 ----i_link_rxd_status(0).empty<='1','0' after 8.43 us, '1' after 8.6 us;
