@@ -166,7 +166,7 @@ i_dbgcs_trig00(25)<=p_in_dbg.player.oob.timeout;--i_ipf_bit_det;--tst_sync;--p_i
 i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
 i_dbgcs_trig00(34 downto 30)<=i_fsm_llayer(4 downto 0);
 i_dbgcs_trig00(39 downto 35)<=i_fsm_tlayer(4 downto 0);
-i_dbgcs_trig00(40)<=tst_rxcharisk2_det;--tst_trm_timeout(9);--p_in_dbg.tlayer.other_status.fdir_bit;--p_player_rst;--
+i_dbgcs_trig00(40)<=p_in_dbg.tlayer.other_status.rxd_err;--tst_rxcharisk2_det;--tst_trm_timeout(9);--p_in_dbg.tlayer.other_status.fdir_bit;--p_player_rst;--
 i_dbgcs_trig00(41)<=p_in_dbg.llayer.txd_close_opt;--p_in_phy_rxtype(C_THOLD) and p_in_dbg.llayer.txd_close;--p_in_dbg.llayer.txbuf_status.empty;  --tst_rxcharisk2_det;--
 
 
@@ -205,8 +205,8 @@ i_dbgcs_data(47)<=p_in_phy_txreq(3);
 i_dbgcs_data(48)<=p_in_phy_txreq(4);
 
 i_dbgcs_data(49)<=p_in_ll_rxd_wr;
---i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);--p_in_phy_rxdata;--p_in_ll_txd(31 downto 0);--
-i_dbgcs_data(81 downto 50)<=p_in_ll_txd;--p_in_dbg.tlayer.dmatrn_dcnt(31 downto 0);--p_in_ll_rxd(15 downto 0);
+i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);--p_in_phy_rxdata;--p_in_ll_txd(31 downto 0);--
+--i_dbgcs_data(81 downto 50)<=p_in_ll_txd;--p_in_dbg.tlayer.dmatrn_dcnt(31 downto 0);--p_in_ll_rxd(15 downto 0);
 
 i_dbgcs_data(89 downto 82)<=p_in_rxdata( 7 downto 0); --p_in_ll_txd(15 downto 0);--
 i_dbgcs_data(97 downto 90)<=p_in_rxdata(15 downto 8); --p_in_ll_txd(15 downto 0);--
@@ -221,7 +221,7 @@ i_dbgcs_data(117)<=p_in_dbg.llayer.txd_close;
 
 i_dbgcs_data(118)<=p_in_dbg.llayer.txbuf_status.aempty; --p_in_txcharisk(0);--
 i_dbgcs_data(119)<=p_in_dbg.llayer.txbuf_status.empty;  --p_in_txcharisk(1);--
-i_dbgcs_data(120)<='0';--p_in_alstatus.ipf;--p_in_dbg.tlayer.other_status.irq;
+i_dbgcs_data(120)<=p_in_dbg.llayer.rxbuf_status.empty;--p_in_alstatus.ipf;--p_in_dbg.tlayer.other_status.irq;
 i_dbgcs_data(121)<='0';--p_in_dbg.tlayer.other_status.firq_bit;
 i_dbgcs_data(122)<=p_in_alstatus.atastatus(C_ATA_STATUS_BUSY_BIT);
 
@@ -230,7 +230,13 @@ i_dbgcs_data(123)<='0';--p_in_dbg.alayer.opt.err_clr;
 i_dbgcs_data(127 downto 124)<=p_in_rxdisperr;
 i_dbgcs_data(131 downto 128)<=p_in_rxnotintable;
 --i_dbgcs_data(131 downto 124)<=(others=>'0');--p_in_alstatus.atastatus;--ATA reg
-i_dbgcs_data(139 downto 132)<=(others=>'0');--p_in_reg_hold.status;--tlayer
+--i_dbgcs_data(139 downto 132)<=(others=>'0');--p_in_reg_hold.status;--tlayer
+i_dbgcs_data(132)<=p_in_dbg.llayer.rxp.xrdy;
+i_dbgcs_data(133)<=p_in_dbg.llayer.rxp.hold;
+i_dbgcs_data(134)<=p_in_dbg.llayer.rxp.holda;
+i_dbgcs_data(135)<=p_in_dbg.llayer.rxp.cont;
+i_dbgcs_data(139 downto 136)<=(others=>'0');
+
 --i_dbgcs_data(147 downto 140)<=p_in_reg_hold.e_status;--tlayer
 i_dbgcs_data(141 downto 140)<=p_in_txbufstatus(1 downto 0);
 i_dbgcs_data(142)           <=p_in_dbg.player.oob.timeout;
@@ -238,10 +244,10 @@ i_dbgcs_data(143)           <=p_player_rst;
 i_dbgcs_data(146 downto 144)<=p_in_rxstatus;
 i_dbgcs_data(147)           <='0';--p_in_dbg.tlayer.other_status.altxbuf_rd;
 
-i_dbgcs_data(148)<='0';--p_in_reg_update.fd2h;  --//Обновление Shadow Reg по приему FIS_DEV2HOST
-i_dbgcs_data(149)<='0';--p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FIS_PIOSETUP
+i_dbgcs_data(148)<=p_in_dbg.llayer.txp_cnt(0);--p_in_reg_update.fd2h;  --//Обновление Shadow Reg по приему FIS_DEV2HOST
+i_dbgcs_data(149)<=p_in_dbg.llayer.txp_cnt(1);--p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FIS_PIOSETUP
 i_dbgcs_data(150)<='0';--p_in_reg_update.fpio_e;--//Обновление Shadow Reg в результате корректного завершения АТА комманды
-i_dbgcs_data(151)<='0';--p_in_reg_update.fsdb;  --//Обновление Shadow Reg по приему FIS_SetDevice_Bits
+i_dbgcs_data(151)<=p_in_dbg.tlayer.other_status.rxd_err;--p_in_reg_update.fsdb;  --//Обновление Shadow Reg по приему FIS_SetDevice_Bits
 
 i_dbgcs_data(152)<=p_in_rxcharisk(0);--p_in_dbg.alayer.opt.link_up;
 i_dbgcs_data(153)<=p_in_rxcharisk(1);--p_in_dbg.alayer.opt.link_break;

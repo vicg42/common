@@ -107,6 +107,7 @@ fpiosetup: std_logic;
 altxbuf_rd: std_logic;
 alrxbuf_wr: std_logic;
 dcnt      : std_logic_vector(15 downto 0);
+rxd_err   : std_logic;
 end record;
 
 type TTL_dbgport is record
@@ -149,6 +150,7 @@ dmat: std_logic;
 hold: std_logic;
 xrdy: std_logic;
 cont: std_logic;
+holda: std_logic;
 end record;
 
 type TLL_dbgport is record
@@ -160,6 +162,7 @@ rxbuf_status : TRxBufStatus;
 txbuf_status : TTxBufStatus;
 txd_close    : std_logic;
 txd_close_opt: std_logic;
+txp_cnt      : std_logic_vector(1 downto 0);
 end record;
 
 --//------------------------------
