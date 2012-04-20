@@ -586,7 +586,7 @@ p_out_tst(4)<='0';
 p_out_tst(5)<='0';
 p_out_tst(6)<='0';
 p_out_tst(7)<=i_reg_ctrl_m(C_HDD_REG_CTRLM_CFG2RAM);
-p_out_tst(8)<='0';--i_cr_dcnt;
+p_out_tst(8)<=i_testing_den;--i_cr_dcnt;
 p_out_tst(31 downto 9)<=(others=>'0');
 
 
@@ -731,7 +731,7 @@ rst         => i_buf_rst
 
 i_buf_rst<=p_in_rst or i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
 p_out_hdd_rxbuf_empty<=i_sh_rxbuf_empty;
-i_hdd_rxd_rd<=p_in_hdd_rxd_rd or i_testing_on;
+i_hdd_rxd_rd<=p_in_hdd_rxd_rd when i_testing_on='0' else i_testing_den;--p_in_hdd_rxd_rd or i_testing_on;--
 
 i_testing_on<=i_tstgen.tesing_on and not i_tstgen.con2rambuf and i_sh_status.dmacfg.hw_mode;
 
