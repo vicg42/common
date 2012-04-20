@@ -241,7 +241,7 @@ begin
 
 
     --//Расширяем импульс
-    if OR_reduce(i_atacmdw_start)='1' and i_usrmode.hw_wr='1' then
+    if (OR_reduce(i_atacmdw_start)='1' and i_usrmode.hw_wr='1') or i_usrmode.hw_rd='1' then
       i_atacmdtest<='1';
     elsif i_atacmdtest_cnt(i_atacmdtest_cnt'high)='1' then
       i_atacmdtest<='0';
@@ -733,7 +733,7 @@ if p_in_clk'event and p_in_clk='1' then
 
 i_dbgcs_trig00(0)<=i_sh_det.cmddone;
 i_dbgcs_trig00(1)<=i_sh_det.err;
-i_dbgcs_trig00(2)<='0';--sr_raid_trn_done;
+i_dbgcs_trig00(2)<=p_in_usr_rxbuf_full;--sr_raid_trn_done;
 i_dbgcs_trig00(3)<=i_atacmdnew;
 i_dbgcs_trig00(4)<=p_in_usr_txbuf_empty;--i_raid_trn_cnts(0);--
 i_dbgcs_trig00(5)<=tst_det_clr_err;
@@ -772,7 +772,7 @@ i_dbgcs_data(20)<='0';--i_usr_rxd_wr;
 --i_dbgcs_data(16 downto 12)<=i_raid_trn_cnts(4 downto 0);
 --i_dbgcs_data(20 downto 17)<=i_sh_atacmd.lba(3 downto 0);
 i_dbgcs_data(21)<=p_in_usr_txbuf_empty;
-i_dbgcs_data(22)<='0';--i_raid_trn_done(1);--//detect raid_trn_sdone
+i_dbgcs_data(22)<=p_in_usr_rxbuf_full;--i_raid_trn_done(1);--//detect raid_trn_sdone
 i_dbgcs_data(23)<='0';--sr_raid_trn_done;
 i_dbgcs_data(24)<='0';--i_sh_trn_en;
 i_dbgcs_data(25)<=i_usr_status.dmacfg.atacmdw;--i_raid_cl_done;
