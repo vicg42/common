@@ -199,9 +199,10 @@ p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.wrcount(1);
 end generate gen_bufstatus_sim_on;
 --//Рабочий вариант:
 gen_bufstatus_off : if strcmp(G_SIM,"OFF") generate
---//Один разряд fifo_status.xxcount = 256/16 + зависит от глубины самого FIFO
-p_out_ll_rxd_status.pfull<=    p_in_rxfifo_status.wrcount(3) and not p_in_rxfifo_status.wrcount(2) and
-                           not p_in_rxfifo_status.wrcount(1) and     p_in_rxfifo_status.wrcount(0);
+----//Один разряд fifo_status.xxcount = 256/16 + зависит от глубины самого FIFO
+--p_out_ll_rxd_status.pfull<=    p_in_rxfifo_status.wrcount(3) and not p_in_rxfifo_status.wrcount(2) and
+--                           not p_in_rxfifo_status.wrcount(1) and     p_in_rxfifo_status.wrcount(0);
+p_out_ll_rxd_status.pfull<=p_in_rxfifo_status.pfull;
 end generate gen_bufstatus_off;
 
 p_out_ll_rxd_status.full<=p_in_rxfifo_status.full;

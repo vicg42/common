@@ -91,6 +91,7 @@ end sata_connector;
 architecture behavioral of sata_connector is
 
 signal i_txbuf_wrcount         : TBus04_GTCH;
+signal i_rxbuf_wrcount         : TBus04_GTCH;
 signal i_txbuf_empty           : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
 signal i_cmdbuf_empty          : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
 signal i_cmdbuf_wr             : std_logic_vector(G_SATAH_CH_COUNT-1 downto 0);
@@ -136,11 +137,12 @@ p_out_rxbuf_status(C_GTCH_COUNT_MAX-1).empty<='0';
 end generate gen_ch0_only;
 
 
-gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
-
 --//----------------------------
 --//Согласующие буфера:
 --//----------------------------
+gen_ch : for i in 0 to G_SATAH_CH_COUNT-1 generate
+
+--//CmdBUF(Host->SH)
 p_out_sh_cxd_src_rdy_n(i)<=i_cmdbuf_empty(i);
 i_cmdbuf_wr(i)<=not p_in_uap_cxd_src_rdy_n(i);
 i_cmdbuf_rd(i)<=not i_cmdbuf_empty(i);
@@ -161,6 +163,7 @@ empty       => i_cmdbuf_empty(i),
 rst         => p_in_rst(i)
 );
 
+--//TxBUF(Host->SH)
 m_txbuf : sata_txfifo
 port map(
 din        => p_in_uap_txd(i),
@@ -172,12 +175,12 @@ rd_en      => p_in_sh_txd_rd(i),
 rd_clk     => p_in_sh_clk(i),
 
 full        => p_out_txbuf_status(i).full,
-prog_full   => open,--p_out_txbuf_status(i).pfull,
-almost_full => open,--p_out_txbuf_status(i).pfull,
-empty       => i_txbuf_empty(i),--p_out_txbuf_status(i).empty,
+prog_full   => open,
+almost_full => open,
+empty       => i_txbuf_empty(i),
 almost_empty=> p_out_txbuf_status(i).aempty,
 rd_data_count => p_out_txbuf_status(i).rdcount,
-wr_data_count => i_txbuf_wrcount(i),--p_out_txbuf_status(i).wrcount,
+wr_data_count => i_txbuf_wrcount(i),
 
 rst        => p_in_rst(i)
 );
@@ -189,13 +192,14 @@ begin
   elsif p_in_uap_clk'event and p_in_uap_clk='1' then
     if i_txbuf_wrcount(i)>="1101" then
     p_out_txbuf_status(i).pfull<='1';
-    elsif i_txbuf_wrcount(i)<="0111" then --elsif i_txbuf_wrcount(i)<"1101" then --
+    elsif i_txbuf_wrcount(i)<="0111" then
     p_out_txbuf_status(i).pfull<='0';
     end if;
   end if;
 end process;
 p_out_txbuf_status(i).empty<=i_txbuf_empty(i);
 
+--//RxBUF(Host<-SH)
 m_rxbuf : sata_rxfifo
 port map(
 din        => p_in_sh_rxd(i),
@@ -207,15 +211,30 @@ rd_en      => p_in_uap_rxd_rd(i),
 rd_clk     => p_in_uap_clk,
 
 full        => p_out_rxbuf_status(i).full,
-prog_full   => p_out_rxbuf_status(i).pfull,
---almost_full => i_txbuf_afull(0),
+prog_full   => open,
+--almost_full => open,
 empty       => p_out_rxbuf_status(i).empty,
---almost_empty=> i_rxbuf_aempty(0),
-wr_data_count => p_out_rxbuf_status(i).wrcount,
+--almost_empty=> open,
+--rd_data_count => open,
+wr_data_count => i_rxbuf_wrcount(i),
 
 rst        => p_in_rst(i)
 );
 
+process(p_in_rst(i),p_in_sh_clk(i))
+begin
+  if p_in_rst(i)='1' then
+    p_out_rxbuf_status(i).pfull<='0';
+  elsif p_in_sh_clk(i)'event and p_in_sh_clk(i)='1' then
+    if i_rxbuf_wrcount(i)>="1100" then
+    p_out_rxbuf_status(i).pfull<='1';
+    elsif i_rxbuf_wrcount(i)<="1010" then
+    p_out_rxbuf_status(i).pfull<='0';
+    end if;
+  end if;
+end process;
+
+p_out_rxbuf_status(i).wrcount<=i_rxbuf_wrcount(i);
 
 end generate gen_ch;
 
