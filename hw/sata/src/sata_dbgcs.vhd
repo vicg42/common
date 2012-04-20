@@ -160,7 +160,7 @@ i_dbgcs_trig00(21)<=p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+0);--//C_PSTAT_DET_
 i_dbgcs_trig00(22)<=OR_reduce(p_in_rxdisperr) or OR_reduce(p_in_rxnotintable);--p_in_alstatus.serror(C_ASERR_D_DIAG_BIT) or p_in_alstatus.serror(C_ASERR_B_DIAG_BIT);--p_in_pl_status(C_PRxSTAT_ERR_DISP_BIT)='1' or p_in_pl_status(C_PRxSTAT_ERR_NOTINTABLE_BIT)='1'
 i_dbgcs_trig00(23)<=p_in_alstatus.serror(C_ASERR_T_DIAG_BIT);--: integer:=24;--//if p_in_ll_status(C_LSTAT_RxERR_ABORT)='1' or p_in_ll_status(C_LSTAT_TxERR_ABORT)='1' then
 i_dbgcs_trig00(24)<=p_in_alstatus.serror(C_ASERR_S_DIAG_BIT);--: integer:=23;--//if p_in_ll_status(C_LSTAT_RxERR_IDLE)='1' or p_in_ll_status(C_LSTAT_TxERR_IDLE)='1' then
-i_dbgcs_trig00(25)<=p_in_dbg.player.oob.timeout;--i_ipf_bit_det;--tst_sync;--p_in_alstatus.serror(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
+i_dbgcs_trig00(25)<=p_in_dbg.llayer.rxbuf_status.full;--p_in_dbg.player.oob.timeout;--i_ipf_bit_det;--tst_sync;--p_in_alstatus.serror(C_ASERR_C_DIAG_BIT);--: integer:=21;--//Link Layer: --//CRC ERROR
 
 
 i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
@@ -242,7 +242,7 @@ i_dbgcs_data(141 downto 140)<=p_in_txbufstatus(1 downto 0);
 i_dbgcs_data(142)           <=p_in_dbg.player.oob.timeout;
 i_dbgcs_data(143)           <=p_player_rst;
 i_dbgcs_data(146 downto 144)<=p_in_rxstatus;
-i_dbgcs_data(147)           <='0';--p_in_dbg.tlayer.other_status.altxbuf_rd;
+i_dbgcs_data(147)           <=p_in_dbg.llayer.rxbuf_status.full;--p_in_dbg.tlayer.other_status.altxbuf_rd;
 
 i_dbgcs_data(148)<=p_in_dbg.llayer.txp_cnt(0);--p_in_reg_update.fd2h;  --//Обновление Shadow Reg по приему FIS_DEV2HOST
 i_dbgcs_data(149)<=p_in_dbg.llayer.txp_cnt(1);--p_in_reg_update.fpio;  --//Обновление Shadow Reg по приему FIS_PIOSETUP
