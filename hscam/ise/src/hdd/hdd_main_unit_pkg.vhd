@@ -201,6 +201,7 @@ p_in_bufi_wrcnt       : in    std_logic_vector(3 downto 0);
 p_out_bufo_din        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_bufo_wr         : out   std_logic;
 p_in_bufo_full        : in    std_logic;
+p_in_bufo_empty       : in    std_logic;
 
 ----------------------------
 --Связь с модулем HDD
