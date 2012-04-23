@@ -41,6 +41,7 @@ p_in_cfg_mem_wr      : in    std_logic;                    --//Тип операции
 p_in_cfg_mem_start   : in    std_logic;                    --//Строб: Пуск операции
 p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции завершена
 p_in_cfg_mem_stop    : in    std_logic;                    --//
+p_in_cfg_idle        : in    std_logic;
 
 -------------------------------
 --Связь с пользовательскими буферами
@@ -79,6 +80,7 @@ architecture behavioral of hdd_rambuf_wr is
 
 type fsm_state is (
 S_IDLE,
+S_MEM_NXT_START,
 S_MEM_TRN_START,
 S_MEM_TRN,
 S_MEM_TRN_END,
@@ -123,6 +125,7 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_
             CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN               else
             CONV_STD_LOGIC_VECTOR(16#03#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_END           else
             CONV_STD_LOGIC_VECTOR(16#04#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_WAIT              else
+            CONV_STD_LOGIC_VECTOR(16#05#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_NXT_START         else
             CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_state_cs=S_IDLE               else
 
 
@@ -218,7 +221,6 @@ begin
 
       when S_IDLE =>
 
-        i_mem_done<='0';
       --------------------------------------
       --Ждем сигнала запуска операции
       --------------------------------------
@@ -228,6 +230,18 @@ begin
           i_mem_trn_len<=p_in_cfg_mem_trn_len(i_mem_trn_len'range); --ВАЖНО: из предоставляемых 16 разрядов
                                                                     --беру только такой диапозон p_out_mem.cmd_bl'range
           i_mem_cmdbl <= p_in_cfg_mem_trn_len - 1;
+          fsm_state_cs <= S_MEM_TRN_START;
+        end if;
+
+      when S_MEM_NXT_START =>
+
+        i_mem_done<='0';
+      --------------------------------------
+      --Ждем сигнала запуска операции или перевода в исходное состояние
+      --------------------------------------
+        if p_in_cfg_idle='1' then
+          fsm_state_cs <= S_IDLE;
+        elsif p_in_cfg_mem_start='1' then
           fsm_state_cs <= S_MEM_TRN_START;
         end if;
 
@@ -260,16 +274,16 @@ begin
         if (i_mem_cmdwr='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
           i_mem_done<='1';
 
-          if p_in_cfg_mem_stop='1' then
-            fsm_state_cs <= S_IDLE;
+          if i_mem_adr(G_RAMBUF_SIZE)='1' then
+            --//Закольцовываю указатель записи
+            i_mem_adr<=(others=>'0');
           else
-            if i_mem_adr(G_RAMBUF_SIZE)='1' then
-              --//Закольцовываю указатель записи
-              i_mem_adr<=(others=>'0');
-            else
-              i_mem_adr<=i_mem_adr + i_mem_adr_update;
-            end if;
+            i_mem_adr<=i_mem_adr + i_mem_adr_update;
+          end if;
 
+          if p_in_cfg_mem_stop='1' then
+            fsm_state_cs <= S_MEM_NXT_START;
+          else
             if i_mem_dir=C_MEMWR_READ then
               fsm_state_cs <= S_MEM_WAIT;
             else
@@ -286,7 +300,7 @@ begin
 
         i_mem_done<='0';
         if p_in_cfg_mem_stop='1' then
-          fsm_state_cs <= S_IDLE;
+          fsm_state_cs <= S_MEM_NXT_START;
 
         elsif p_in_usr_rxbuf_full='0' then
           i_mem_trn_work<='1';

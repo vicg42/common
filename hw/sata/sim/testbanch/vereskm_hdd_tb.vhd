@@ -526,6 +526,7 @@ p_in_bufi_wrcnt       => i_vbuf_wrcnt,
 p_out_bufo_din        => open,
 p_out_bufo_wr         => open,
 p_in_bufo_full        => '0',
+p_in_bufo_empty       => '0',
 
 --//--------------------------
 --//Связь с модулем HDD
