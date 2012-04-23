@@ -37,13 +37,13 @@ use work.mem_wr_pkg.all;
 entity hdd_main_tb is
 generic(
 G_CFG_IF      : std_logic:='1';--//Выбор интерфейса управления:0/1 - PCIEXP/UART
-G_HDD_COUNT   : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
-G_GT_DBUS     : integer:=32;
-G_DBGCS       : string :="ON";
-G_DBG         : string :="ON";
+--G_HDD_COUNT   : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
+--G_GT_DBUS     : integer:=32;
+--G_DBGCS       : string :="ON";
+--G_DBG         : string :="ON";
 G_SIM         : string :="ON";
-G_RAMBUF_SIZE : integer:=11; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
-G_RAID_DWIDTH : integer:=128;
+--G_RAMBUF_SIZE : integer:=11; --//(в BYTE). Определяется как 2 в степени G_HDD_RAMBUF_SIZE
+--G_RAID_DWIDTH : integer:=128;
 G_MEM_AWIDTH  : integer:=32;
 G_MEM_DWIDTH  : integer:=64
 );
@@ -53,6 +53,13 @@ pin_out_tst: out std_logic
 end hdd_main_tb;
 
 architecture behavior of hdd_main_tb is
+
+constant G_GT_DBUS     : integer:=C_PCFG_HDD_GT_DBUS;
+constant G_DBGCS       : string :=C_PCFG_HDD_DBGCS;
+constant G_DBG         : string :=C_PCFG_HDD_DBG;
+constant G_HDD_COUNT   : integer:=C_PCFG_HDD_COUNT;
+constant G_RAMBUF_SIZE : integer:=C_PCFG_HDD_RAMBUF_SIZE;
+constant G_RAID_DWIDTH : integer:=C_PCFG_HDD_RAID_DWIDTH;
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
@@ -114,6 +121,7 @@ p_in_bufi_wrcnt       : in    std_logic_vector(3 downto 0);
 p_out_bufo_din        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_bufo_wr         : out   std_logic;
 p_in_bufo_full        : in    std_logic;
+p_in_bufo_empty       : in    std_logic;
 
 ----------------------------
 --Связь с модулем HDD
@@ -282,6 +290,8 @@ signal i_ltrn_count1  : std_logic;
 
 signal tst_ramread  : std_logic_vector(4 downto 0):=(others=>'0');
 
+
+signal i_hm_r  : std_logic:='0';
 
 
 --MAIN
@@ -520,6 +530,7 @@ p_in_bufi_wrcnt       => i_vbuf_wrcnt,
 p_out_bufo_din        => open,
 p_out_bufo_wr         => open,
 p_in_bufo_full        => '0',
+p_in_bufo_empty       => '0',
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -608,7 +619,7 @@ i_hdd_tst_on<=i_hdd_tst_on_tmp and i_rbuf_cfg.tstgen.con2rambuf;
 i_hdd_vbuf_rst<=i_dsn_hdd_rst or i_rbuf_cfg.tstgen.clr_err;
 
 i_vbuf_din_in<=i_hdd_tst_d   when i_hdd_tst_on='1' else i_vbuf_din(i_vbuf_din_in'range);
-i_vbuf_wr_in <=i_hdd_tst_den when i_hdd_tst_on='1' else i_vbuf_wr;
+i_vbuf_wr_in <=i_hdd_tst_den when i_hdd_tst_on='1' else (i_vbuf_wr and not i_hm_r);
 
 
 --//----------------------------------------
@@ -958,11 +969,17 @@ begin
   tst_cmd:=C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--C_ATA_CMD_WRITE_SECTORS_EXT;--
 
   --//Только для режима HW(hw_mode)
-  hw_scount:=3;
-  hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --C_ATA_CMD_WRITE_SECTORS_EXT;--//Только когда выключен режим i_tst_mode
+  hw_scount:=4;
+  hw_cmd:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_DMA_EXT; --C_ATA_CMD_WRITE_SECTORS_EXT;--//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
   hw_lba_end  :=hw_lba_start + (hw_scount * 20);
 
+
+  if hw_cmd=C_ATA_CMD_READ_DMA_EXT or hw_cmd=C_ATA_CMD_READ_SECTORS_EXT then
+    i_hm_r<='1';
+  else
+    i_hm_r<='0';
+  end if;
   i_cfgdev_if_tst<='0';
 
 
@@ -975,8 +992,8 @@ begin
 
   i_dsnhdd_reg_ctrl_val<=(others=>'0');
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='1';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
+  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
 --  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
   i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
@@ -1593,7 +1610,8 @@ begin
       i_tstdata_dwsize<=cfgCmdPkt(1).scount * C_SIM_SECTOR_SIZE_DWORD;--//Назначаем размер данных в DWORD
       wait until p_in_clk'event and p_in_clk='1';
 
-      if cfgCmdPkt(1).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_WRITE_DMA_EXT then
+      if cfgCmdPkt(1).command=C_ATA_CMD_WRITE_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_WRITE_DMA_EXT or
+         cfgCmdPkt(1).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_READ_DMA_EXT then
       --//Запускаем автомат записи данных
         wait until p_in_clk'event and p_in_clk='1';
         i_vdata_start<=not i_tst_mode or i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);--'1';
