@@ -159,6 +159,11 @@ p_out_sh_txd_wr(i)<='0';
 end generate gen_hddoff;
 end generate gen_hddoff_en;
 
+gen_dbus_null_en : if G_RAID_DWIDTH/=(G_HDD_COUNT*32)  generate
+gen_dbus_null : for i in G_HDD_COUNT to G_RAID_DWIDTH/32 - 1 generate
+p_out_usr_rxd(32*(i+1)-1 downto 32*i)<=(others=>'0');
+end generate gen_dbus_null;
+end generate gen_dbus_null_en;
 
 process(p_in_rst,p_in_clk)
 begin
