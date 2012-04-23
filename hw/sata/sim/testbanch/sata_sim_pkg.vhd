@@ -1064,6 +1064,7 @@ if p_in_usropt.rx.dname="HOLD   " then
             p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end loop;
+    p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 end if;
 det_warring:='0';
 txcomp_cnt:=0;
@@ -1091,6 +1092,7 @@ if p_in_usropt.rx.dname="HOLD   " then
             p_SetData(p_in_clk, p_in_usropt.tx.primitive.comp.srcambler, C_CHAR_D, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
         end if;
     end loop;
+    p_SetData(p_in_clk, C_PDAT_HOLDA, C_CHAR_K, p_out_gt_txdata, p_out_gt_txcharisk, p_in_usropt, vusropt, p_out_usropt);
 end if;
 det_warring:='0';
 txcomp_cnt:=0;
