@@ -360,7 +360,7 @@ begin
       end if;
   end if;
 end process;
-i_txp_retransmit<=p_in_phy_txrdy_n and sr_phy_txrdy_n(0);--p_in_phy_txrdy_n and not sr_phy_txrdy_n(0);
+i_txp_retransmit<=p_in_phy_txrdy_n and not sr_phy_txrdy_n(0);--p_in_phy_txrdy_n and sr_phy_txrdy_n(0);--
 
 lfsm:process(p_in_rst,p_in_clk)
 begin
@@ -453,7 +453,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length);
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -490,7 +490,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;
@@ -533,7 +533,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -555,7 +555,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -658,7 +658,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TX_RDY, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;
@@ -1238,7 +1238,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TWTRM, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;
@@ -1282,7 +1282,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1325,7 +1325,7 @@ if p_in_phy_sync='1' then
                   end if;--//if p_in_rxd_status.empty='1' then
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1351,7 +1351,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TSYNC, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1400,7 +1400,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1431,7 +1431,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1457,7 +1457,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_RDY, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1521,7 +1521,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1554,7 +1554,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1601,7 +1601,7 @@ if p_in_phy_sync='1' then
                   end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1622,7 +1622,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1684,7 +1684,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1708,7 +1708,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1743,7 +1743,7 @@ if p_in_phy_sync='1' then
                     end if;
 
                   elsif i_txp_retransmit='1' then
-                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
                   end if;--//if p_in_phy_txrdy_n='0' then
@@ -1779,7 +1779,7 @@ if p_in_phy_sync='1' then
                     end if;
 
                   elsif i_txp_retransmit='1' then
-                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLD, i_txreq'length); --retransmit primitive after ALIGN
 
                   end if;--//if p_in_phy_txrdy_n='0' then
@@ -1844,7 +1844,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1868,7 +1868,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1903,7 +1903,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_THOLDA, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -1995,7 +1995,7 @@ if p_in_phy_sync='1' then
                     end if;
 
                   elsif i_txp_retransmit='1' then
-                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                    i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                     i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_IP, i_txreq'length); --retransmit primitive after ALIGN
 
                   end if;--//if p_in_phy_txrdy_n='0' then
@@ -2040,7 +2040,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_OK, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
@@ -2082,7 +2082,7 @@ if p_in_phy_sync='1' then
                 end if;
 
               elsif i_txp_retransmit='1' then
-                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(1, i_txp_cnt'length);
+                i_txp_cnt<=CONV_STD_LOGIC_VECTOR(0, i_txp_cnt'length);
                 i_txreq<=CONV_STD_LOGIC_VECTOR(C_TR_ERR, i_txreq'length); --retransmit primitive after ALIGN
 
               end if;--//if p_in_phy_txrdy_n='0' then
