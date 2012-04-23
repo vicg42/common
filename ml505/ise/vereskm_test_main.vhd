@@ -285,6 +285,7 @@ p_in_bufi_wrcnt       : in    std_logic_vector(3 downto 0);
 p_out_bufo_din        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_bufo_wr         : out   std_logic;
 p_in_bufo_full        : in    std_logic;
+p_in_bufo_empty       : in    std_logic;
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -1489,6 +1490,7 @@ p_in_bufi_wrcnt     => i_hdd_vbuf_wrcnt,
 p_out_bufo_din      => open,
 p_out_bufo_wr       => open,
 p_in_bufo_full      => '0',
+p_in_bufo_empty     => '1',
 
 --//--------------------------
 --//Связь с модулем HDD
@@ -2247,7 +2249,8 @@ i_hddraid_dbgcs.data(132)<=i_hdd_rbuf_tst_out(15);--i_padding
 i_hddraid_dbgcs.data(133)<=i_hdd_rbuf_status.done;
 i_hddraid_dbgcs.data(134)<=i_hdd_dbgcs.sh(0).layer.data(120);--<=p_in_dbg.llayer.rxbuf_status.empty;--
 i_hddraid_dbgcs.data(135)<=i_hdd_dbgcs.sh(1).layer.data(120);--<=p_in_dbg.llayer.rxbuf_status.empty;--
-i_hddraid_dbgcs.data(172 downto 136)<=(others=>'0');
+i_hddraid_dbgcs.data(136)<=i_hdd_tst_out(8);--<=i_testing_den;
+i_hddraid_dbgcs.data(172 downto 137)<=(others=>'0');
 --i_hddraid_dbgcs.data(106)<=i_hdd_rbuf_status.err_type.rambuf_full;--i_hdd_txdata_wd;--RAM->HDD
 --i_hddraid_dbgcs.data(107)<=i_hdd_rbuf_status.err_type.bufi_full;--i_hdd_rxdata_rd;--RAM<-HDD
 --i_hddraid_dbgcs.data(140 downto 109)<=i_hdd_dbgcs.raid.data(161 downto 130);--i_usr_rxd;--RAM<-HDD

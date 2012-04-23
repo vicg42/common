@@ -25,9 +25,6 @@ constant C_PCFG_BOARD                  : string:="ML505";
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
 constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=4; --//max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
 
---//cfg TMR
---constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
-
 --//cfg HDD
 constant C_PCFG_HDD_USE                : string:="ON";
 constant C_PCFG_HDD_DBG                : string:="OFF";
@@ -40,7 +37,7 @@ constant C_PCFG_HDD_GT_DBUS            : integer:=16;--//Настройка шины данных G
 constant C_PCFG_HDD_FPGA_TYPE          : integer:=0; --0/1/2/3 - "V5_GTP"/"V5_GTX"/"V6_GTX"/"S6_GTPA"
 constant C_PCFG_HDD_SH_MAIN_NUM        : integer:=0; --определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
 constant C_PCFG_HDD_SATA_GEN_DEFAULT   : integer:=1; --0/1 - SATAI/II
-constant C_PCFG_HDD_RAID_DWIDTH        : integer:=32;
+constant C_PCFG_HDD_RAID_DWIDTH        : integer:=64;
 
 --//cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
