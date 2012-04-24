@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 31.03.2011 19:15:18
--- Module Name : hdd_main_tb
+-- Module Name : dsn_hdd_tb
 --
 -- Description : Моделирование работы модуля dsn_hdd.vhd
 --
@@ -34,7 +34,7 @@ use work.dsn_hdd_pkg.all;
 use work.sata_testgen_pkg.all;
 use work.mem_wr_pkg.all;
 
-entity hdd_main_tb is
+entity dsn_hdd_tb is
 generic(
 G_CFG_IF      : std_logic:='1';--//Выбор интерфейса управления:0/1 - PCIEXP/UART
 --G_HDD_COUNT   : integer:=2;    --//Кол-во sata устр-в (min/max - 1/8)
@@ -50,9 +50,9 @@ G_MEM_DWIDTH  : integer:=64
 port(
 pin_out_tst: out std_logic
 );
-end hdd_main_tb;
+end dsn_hdd_tb;
 
-architecture behavior of hdd_main_tb is
+architecture behavior of dsn_hdd_tb is
 
 constant G_GT_DBUS     : integer:=C_PCFG_HDD_GT_DBUS;
 constant G_DBGCS       : string :=C_PCFG_HDD_DBGCS;
