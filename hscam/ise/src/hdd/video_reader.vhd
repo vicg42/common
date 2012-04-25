@@ -104,6 +104,7 @@ signal i_mem_done                    : std_logic;
 
 signal i_padding                     : std_logic;
 signal i_vbufout_wr                  : std_logic;
+signal i_vbufout_rdy_n               : std_logic;
 
 signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
 --signal tst_fsmstate                  : std_logic_vector(3 downto 0);
@@ -181,7 +182,7 @@ begin
         if p_in_vrd_off='1' or p_in_vch_off='1' then
           fsm_state_cs <= S_IDLE;
 
-        elsif p_in_vbufout_full='0' then
+        else
           i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
           i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=(others=>'0');
           i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(0);
@@ -237,8 +238,9 @@ end process;
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
 p_out_vbufout_wr<=i_vbufout_wr and not i_padding;
+i_vbufout_rdy_n<=p_in_vbufout_full and not i_padding;
 
-m_mem_wr : mem_wr
+m_mem_rd : mem_wr
 generic map(
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
 G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
@@ -266,7 +268,7 @@ p_in_usr_txbuf_empty => '0',
 
 p_out_usr_rxbuf_din  => p_out_vbufout_d,
 p_out_usr_rxbuf_wd   => i_vbufout_wr,
-p_in_usr_rxbuf_full  => '0',
+p_in_usr_rxbuf_full  => i_vbufout_rdy_n,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
