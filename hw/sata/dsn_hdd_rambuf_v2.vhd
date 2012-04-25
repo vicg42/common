@@ -414,7 +414,7 @@ p_out_hdd_txd_wr <=i_mem_dout_wr and i_hm_w;
 p_out_bufo_din   <=i_mem_dout;
 p_out_bufo_wr    <=i_mem_dout_wr and i_hm_r;
 
-i_mem_dout_wrdy_n<=(p_in_hdd_txbuf_pfull or p_in_bufo_full) and not i_hm_padding;
+i_mem_dout_wrdy_n<=(p_in_hdd_txbuf_pfull or (p_in_bufo_full and i_hm_r)) and not i_hm_padding;
 
 m_mem_wr : hdd_rambuf_wr
 generic map(
