@@ -42,6 +42,12 @@ p_inout_phymem : inout TMEMCTRL_phy_inouts;
 p_out_status   : out   TMEMCTRL_status;
 
 ------------------------------------
+--Sim
+------------------------------------
+p_out_sim_mem  : out   TMemINBank;
+p_in_sim_mem   : in    TMemOUTBank;
+
+------------------------------------
 --System
 ------------------------------------
 p_out_sys      : out   TMEMCTRL_sysout;

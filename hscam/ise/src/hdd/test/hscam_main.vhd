@@ -23,6 +23,7 @@ library work;
 use work.prj_cfg.all;
 use work.sata_glob_pkg.all;
 use work.hdd_main_unit_pkg.all;
+use work.mem_ctrl_pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -33,8 +34,7 @@ G_VOUT_DWIDTH : integer:=16;
 G_VSYN_ACTIVE : std_logic:='0';
 G_SIM : string:="OFF"
 );
-port
-(
+port(
 --------------------------------------------------
 --SATA
 --------------------------------------------------
@@ -202,6 +202,39 @@ p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
 p_out_hdd_err       : out   std_logic;--Ошибки в работе
 
 --------------------------------------------------
+--Sim
+--------------------------------------------------
+p_out_sim_cfg_clk           : out  std_logic;
+p_in_sim_cfg_adr            : in   std_logic_vector(7 downto 0);
+p_in_sim_cfg_adr_ld         : in   std_logic;
+p_in_sim_cfg_adr_fifo       : in   std_logic;
+p_in_sim_cfg_txdata         : in   std_logic_vector(15 downto 0);
+p_in_sim_cfg_wd             : in   std_logic;
+p_out_sim_cfg_txrdy         : out  std_logic;
+p_out_sim_cfg_rxdata        : out  std_logic_vector(15 downto 0);
+p_in_sim_cfg_rd             : in   std_logic;
+p_out_sim_cfg_rxrdy         : out  std_logic;
+p_in_sim_cfg_done           : in   std_logic;
+p_in_sim_cfg_rst            : in   std_logic;
+
+p_out_sim_hdd_busy          : out   std_logic;
+p_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+p_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+p_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+p_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+p_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+p_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+
+p_out_sim_mem               : out   TMemINBank;
+p_in_sim_mem                : in    TMemOUTBank;
+
+--------------------------------------------------
 --Технологический порт
 --------------------------------------------------
 --Интрефейс с USB(FTDI)
@@ -211,10 +244,6 @@ p_out_ftdi_wr_n     : out   std_logic;
 p_in_ftdi_txe_n     : in    std_logic;
 p_in_ftdi_rxf_n     : in    std_logic;
 p_in_ftdi_pwren_n   : in    std_logic;
-
-----
---p_in_tst            : in    std_logic_vector(31 downto 0);
---p_out_tst           : out   std_logic_vector(31 downto 0);
 
 p_out_TP            : out   std_logic_vector(7 downto 0); --вывод на контрольные точки платы
 p_out_led           : out   std_logic_vector(7 downto 0)  --выход на свтодиоды платы
@@ -273,6 +302,22 @@ signal i_usr_status                   : std_logic_vector(15 downto 0);
 signal i_usr_rxd,i_usr_txd            : std_logic_vector(15 downto 0);
 
 signal i_hdd_rdy,i_hdd_err            : std_logic;
+
+
+--signal i_hdd_sim_gt_txdata            : TBus32_SHCountMax;
+--signal i_hdd_sim_gt_txcharisk         : TBus04_SHCountMax;
+--signal i_hdd_sim_gt_txcomstart        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdata            : TBus32_SHCountMax;
+signal i_hdd_sim_gt_rxcharisk         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxstatus          : TBus03_SHCountMax;
+signal i_hdd_sim_gt_rxelecidle        : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_rxdisperr         : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxnotintable      : TBus04_SHCountMax;
+signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gt_sim_rst           : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+--signal i_hdd_sim_gt_sim_clk           : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+
+signal i_sim_mem_out                  : TMemOUTBank;
 
 
 --MAIN
@@ -528,6 +573,39 @@ p_out_hdd_rdy       => i_hdd_rdy,
 p_out_hdd_err       => i_hdd_err,
 
 --------------------------------------------------
+--Sim
+--------------------------------------------------
+p_out_sim_cfg_clk           => open,
+p_in_sim_cfg_adr            => "00000000",
+p_in_sim_cfg_adr_ld         => '0',
+p_in_sim_cfg_adr_fifo       => '0',
+p_in_sim_cfg_txdata         => "0000000000000000",
+p_in_sim_cfg_wd             => '0',
+p_out_sim_cfg_txrdy         => open,
+p_out_sim_cfg_rxdata        => open,
+p_in_sim_cfg_rd             => '0',
+p_out_sim_cfg_rxrdy         => open,
+p_in_sim_cfg_done           => '0',
+p_in_sim_cfg_rst            => '0',
+
+p_out_sim_hdd_busy          => open,
+p_out_sim_gt_txdata         => open,
+p_out_sim_gt_txcharisk      => open,
+p_out_sim_gt_txcomstart     => open,
+p_in_sim_gt_rxdata          => i_hdd_sim_gt_rxdata,
+p_in_sim_gt_rxcharisk       => i_hdd_sim_gt_rxcharisk,
+p_in_sim_gt_rxstatus        => i_hdd_sim_gt_rxstatus,
+p_in_sim_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle,
+p_in_sim_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr,
+p_in_sim_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable,
+p_in_sim_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned,
+p_out_gt_sim_rst            => open,
+p_out_gt_sim_clk            => open,
+
+p_out_sim_mem               => open,
+p_in_sim_mem                => i_sim_mem_out,
+
+--------------------------------------------------
 --Технологический порт
 --------------------------------------------------
 p_inout_ftdi_d      => pin_inout_ftdi_d,
@@ -537,12 +615,20 @@ p_in_ftdi_txe_n     => pin_in_ftdi_txe_n,
 p_in_ftdi_rxf_n     => pin_in_ftdi_rxf_n,
 p_in_ftdi_pwren_n   => pin_in_ftdi_pwren_n,
 
---p_in_tst            => tst_in,
---p_out_tst           => tst_out,
-
 p_out_TP            => i_out_TP,
 p_out_led           => pin_out_led
 );
+
+--gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
+--i_hdd_sim_gt_rxdata(i)<=(others=>'0');
+--i_hdd_sim_gt_rxcharisk(i)<=(others=>'0');
+--i_hdd_sim_gt_rxstatus(i)<=(others=>'0');
+--i_hdd_sim_gt_rxelecidle(i)<='0';
+--i_hdd_sim_gt_rxdisperr(i)<=(others=>'0');
+--i_hdd_sim_gt_rxnotintable(i)<=(others=>'0');
+--i_hdd_sim_gt_rxbyteisaligned(i)<='0';
+--end generate gen_satah;
+
 
 
 

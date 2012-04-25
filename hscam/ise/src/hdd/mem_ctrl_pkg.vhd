@@ -91,8 +91,8 @@ end record;
 type TMEMCTRL_phy_outs   is array(0 to C_MEM_BANK_COUNT_MAX-1) of TMEMCTRL_phy_out  ;
 type TMEMCTRL_phy_inouts is array(0 to C_MEM_BANK_COUNT_MAX-1) of TMEMCTRL_phy_inout;
 
-Type TMemINBank  is array (0 to C_MEM_BANK_COUNT-1) of TMemINCh;
-Type TMemOUTBank is array (0 to C_MEM_BANK_COUNT-1) of TMemOUTCh;
+Type TMemINBank  is array (0 to C_MEM_BANK_COUNT_MAX-1) of TMemINCh;
+Type TMemOUTBank is array (0 to C_MEM_BANK_COUNT_MAX-1) of TMemOUTCh;
 
 
 
@@ -118,6 +118,12 @@ p_inout_phymem : inout TMEMCTRL_phy_inouts;
 ------------------------------------
 p_out_status   : out   TMEMCTRL_status;
 
+-----------------------------------
+--Sim
+-----------------------------------
+p_out_sim_mem  : out   TMemINBank;
+p_in_sim_mem   : in    TMemOUTBank;
+
 ------------------------------------
 --System
 ------------------------------------
@@ -126,5 +132,47 @@ p_in_sys       : in    TMEMCTRL_sysin
 );
 end component;
 
+component mem_mux
+generic(
+G_MEM_HDD   :integer:=0;
+G_MEM_VCTRL :integer:=1;
+G_SIM : string:= "OFF"
+);
+port(
+------------------------------------
+--”правление
+------------------------------------
+p_in_sel      : in    std_logic;
+
+------------------------------------
+--VCTRL
+------------------------------------
+p_in_memwr_v  : in    TMemIN;
+p_out_memwr_v : out   TMemOUT;
+
+p_in_memrd_v  : in    TMemIN;
+p_out_memrd_v : out   TMemOUT;
+
+------------------------------------
+--HDD
+------------------------------------
+p_in_memwr_h  : in    TMemIN;
+p_out_memwr_h : out   TMemOUT;
+
+p_in_memrd_h  : in    TMemIN;
+p_out_memrd_h : out   TMemOUT;
+
+------------------------------------
+--MEM_CTRL
+------------------------------------
+p_out_mem     : out   TMemINBank;
+p_in_mem      : in    TMemOUTBank;
+
+------------------------------------
+--System
+------------------------------------
+p_in_sys      : in    TMEMCTRL_sysin
+);
+end component;
 
 end;

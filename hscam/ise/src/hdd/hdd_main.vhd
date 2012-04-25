@@ -124,6 +124,39 @@ p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
 p_out_hdd_err       : out   std_logic;--Ошибки в работе
 
 --------------------------------------------------
+--Sim
+--------------------------------------------------
+p_out_sim_cfg_clk           : out  std_logic;
+p_in_sim_cfg_adr            : in   std_logic_vector(7 downto 0);
+p_in_sim_cfg_adr_ld         : in   std_logic;
+p_in_sim_cfg_adr_fifo       : in   std_logic;
+p_in_sim_cfg_txdata         : in   std_logic_vector(15 downto 0);
+p_in_sim_cfg_wd             : in   std_logic;
+p_out_sim_cfg_txrdy         : out  std_logic;
+p_out_sim_cfg_rxdata        : out  std_logic_vector(15 downto 0);
+p_in_sim_cfg_rd             : in   std_logic;
+p_out_sim_cfg_rxrdy         : out  std_logic;
+p_in_sim_cfg_done           : in   std_logic;
+p_in_sim_cfg_rst            : in   std_logic;
+
+p_out_sim_hdd_busy          : out   std_logic;
+p_out_sim_gt_txdata         : out   TBus32_SHCountMax;
+p_out_sim_gt_txcharisk      : out   TBus04_SHCountMax;
+p_out_sim_gt_txcomstart     : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdata          : in    TBus32_SHCountMax;
+p_in_sim_gt_rxcharisk       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxstatus        : in    TBus03_SHCountMax;
+p_in_sim_gt_rxelecidle      : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_in_sim_gt_rxdisperr       : in    TBus04_SHCountMax;
+p_in_sim_gt_rxnotintable    : in    TBus04_SHCountMax;
+p_in_sim_gt_rxbyteisaligned : in    std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_rst            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+
+p_out_sim_mem               : out   TMemINBank;
+p_in_sim_mem                : in    TMemOUTBank;
+
+--------------------------------------------------
 --Технологический порт
 --------------------------------------------------
 --Интрефейс с USB(FTDI)
@@ -133,10 +166,6 @@ p_out_ftdi_wr_n     : out   std_logic;
 p_in_ftdi_txe_n     : in    std_logic;
 p_in_ftdi_rxf_n     : in    std_logic;
 p_in_ftdi_pwren_n   : in    std_logic;
-
-----
---p_in_tst            : in    std_logic_vector(31 downto 0);
---p_out_tst           : out   std_logic_vector(31 downto 0);
 
 p_out_TP            : out   std_logic_vector(7 downto 0); --вывод на контрольные точки платы
 p_out_led           : out   std_logic_vector(7 downto 0)  --выход на свтодиоды платы
@@ -235,6 +264,7 @@ signal i_vdi                            : std_logic_vector((10*8)-1 downto 0):=(
 signal i_vdi_save                       : std_logic_vector((10*8)-1 downto 0):=(others=>'0');
 signal i_vdi_vector                     : std_logic_vector((10*8*2)-1 downto 0);
 
+signal i_vbufo_dout                     : std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
 signal i_vbufo_full                     : std_logic;
 signal i_vbufo_pfull                    : std_logic;
 signal i_vbufo_empty                    : std_logic;
@@ -260,6 +290,8 @@ signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 signal i_mem_in_bank                    : TMemINBank;
 signal i_mem_out_bank                   : TMemOUTBank;
+signal i_mem_in                         : TMemINBank;
+signal i_mem_out                        : TMemOUTBank;
 
 signal i_phymem_out                     : TMEMCTRL_phy_outs;
 signal i_phymem_inout                   : TMEMCTRL_phy_inouts;
@@ -326,16 +358,16 @@ signal i_cfg_done                       : std_logic;
 
 signal i_hdd_module_rdy                 : std_logic;
 signal i_hdd_module_error               : std_logic;
---signal i_hdd_busy                       : std_logic;
+signal i_hdd_busy                       : std_logic;
 --signal i_hdd_hirq                       : std_logic;
 --signal i_hdd_done                       : std_logic;
 
 signal i_hdd_dbgcs                      : TSH_dbgcs_exp;
 signal i_hdd_dbgled                     : THDDLed_SHCountMax;
 
---signal i_hdd_sim_gt_txdata              : TBus32_SHCountMax;
---signal i_hdd_sim_gt_txcharisk           : TBus04_SHCountMax;
---signal i_hdd_sim_gt_txcomstart          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_txdata              : TBus32_SHCountMax;
+signal i_hdd_sim_gt_txcharisk           : TBus04_SHCountMax;
+signal i_hdd_sim_gt_txcomstart          : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_sim_gt_rxdata              : TBus32_SHCountMax;
 signal i_hdd_sim_gt_rxcharisk           : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxstatus            : TBus03_SHCountMax;
@@ -343,8 +375,8 @@ signal i_hdd_sim_gt_rxelecidle          : std_logic_vector(C_HDD_COUNT_MAX-1 dow
 signal i_hdd_sim_gt_rxdisperr           : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxnotintable        : TBus04_SHCountMax;
 signal i_hdd_sim_gt_rxbyteisaligned     : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
---signal i_hdd_sim_gt_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
---signal i_hdd_sim_gt_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_sim_rst             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
+signal i_hdd_sim_gt_sim_clk             : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_hdd_tst_in                     : std_logic_vector(31 downto 0);
 signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 
@@ -361,13 +393,17 @@ signal tst_vctrl_out                    : std_logic_vector(31 downto 0);
 signal tst_hdd_bufi_full                : std_logic:='0';
 signal tst_hdd_bufi_empty               : std_logic:='1';
 
-signal tst_hdd_test_on                  : std_logic;
 signal tst_cntbase                      : std_logic_vector(7 downto 0);
 signal tst_spd                          : std_logic_vector(7 downto 0);
 signal tst_shim_hs                      : std_logic;
 signal tst_shim_vs_cnt                  : std_logic_vector(7 downto 0);
 signal tst_sr_shim_hs                   : std_logic_vector(0 to 1);
 signal tst_vs_hdd,tst_hs_hdd            : std_logic;
+
+type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
+signal tst_vin_data                     : TDtest;
+signal tst_vin_d                        : std_logic_vector(79 downto 0):=(others=>'0');
+signal tst_vbufo_dout                   : std_logic_vector(G_VOUT_DWIDTH-1 downto 0):=(others=>'0');
 
 
 
@@ -453,7 +489,7 @@ end process;
 --***********************************************************
 --//Берем 8 старших бит из пердолгаемых 10 бит на 1Pixel
 gen_vd : for i in 1 to 10 generate
-i_vdi((8*i)-1 downto 8*(i-1))<=p_in_vd((8*i)-1 downto (8*i)-8);
+i_vdi((8*i)-1 downto 8*(i-1))<=p_in_vd((8*i)-1 downto (8*i)-8) when i_hdd_rbuf_cfg.tstgen.tesing_on='0' else tst_vin_d((8*i)-1 downto (8*i)-8);
 process(p_in_vin_clk)
 begin
   if p_in_vin_clk'event and p_in_vin_clk='1' then
@@ -533,12 +569,12 @@ p_in_vbufout_full     => i_vbufo_pfull,
 ---------------------------------
 --Связь с mem_ctrl.vhd
 ---------------------------------
---CH WRITE                                    --Bank|CH
-p_out_memwr           => i_mem_in_bank (CI_MEM_VCTRL)(0),--: out   TMemIN;
-p_in_memwr            => i_mem_out_bank(CI_MEM_VCTRL)(0),--: in    TMemOUT;
---CH READ
-p_out_memrd           => i_mem_in_bank (CI_MEM_VCTRL)(1),--: out   TMemIN;
-p_in_memrd            => i_mem_out_bank(CI_MEM_VCTRL)(1),--: in    TMemOUT;
+--CH WRITE                              ,--                     --Bank|CH
+p_out_memwr           => i_mem_in (0)(0),--i_mem_in_bank (CI_MEM_VCTRL)(0),--: out   TMemIN ;
+p_in_memwr            => i_mem_out(0)(0),--i_mem_out_bank(CI_MEM_VCTRL)(0),--: in    TMemOUT;
+--CH READ                                --
+p_out_memrd           => i_mem_in (0)(1),--i_mem_in_bank (CI_MEM_VCTRL)(1),--: out   TMemIN ;
+p_in_memrd            => i_mem_out(0)(1),--i_mem_out_bank(CI_MEM_VCTRL)(1),--: in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -565,6 +601,8 @@ end generate gen_vctrl_off;
 --***********************************************************
 --VIDEO BUFOUT
 --***********************************************************
+p_out_vd<=i_vbufo_dout;
+
 m_vbufo : vout
 generic map(
 G_VBUF_IWIDTH => CI_MEM_DWIDTH,
@@ -572,7 +610,7 @@ G_VBUF_OWIDTH => G_VOUT_DWIDTH,
 G_VSYN_ACTIVE => G_VSYN_ACTIVE
 )
 port map(
-p_out_vd         => p_out_vd,
+p_out_vd         => i_vbufo_dout,--p_out_vd,
 p_in_vs          => p_in_vout_vs,
 p_in_hs          => p_in_vout_hs,
 p_in_vclk        => p_in_vout_clk,
@@ -595,6 +633,49 @@ p_in_rst         => i_vbufo_rst
 --***********************************************************
 --Контроллер ОЗУ
 --***********************************************************
+m_mem_mux : mem_mux
+generic map(
+G_MEM_HDD   => CI_MEM_HDD,
+G_MEM_VCTRL => CI_MEM_VCTRL,
+G_SIM => G_SIM
+)
+port map(
+------------------------------------
+--Управление
+------------------------------------
+p_in_sel      => '0',
+
+------------------------------------
+--VCTRL
+------------------------------------
+p_in_memwr_v  => i_mem_in (0)(0),--: out   TMemIN;
+p_out_memwr_v => i_mem_out(0)(0),--: in    TMemOUT;
+
+p_in_memrd_v  => i_mem_in (0)(1),--: out   TMemIN;
+p_out_memrd_v => i_mem_out(0)(1),--: in    TMemOUT;
+
+------------------------------------
+--HDD
+------------------------------------
+p_in_memwr_h  => i_mem_in (1)(0),--: out   TMemIN;
+p_out_memwr_h => i_mem_out(1)(0),--: in    TMemOUT;
+
+p_in_memrd_h  => i_mem_in (1)(1),--: out   TMemIN;
+p_out_memrd_h => i_mem_out(1)(1),--: in    TMemOUT;
+
+------------------------------------
+--MEM_CTRL
+------------------------------------
+p_out_mem     => i_mem_in_bank,  --: out   TMemINBank;
+p_in_mem      => i_mem_out_bank, --: in    TMemOUTBank;
+
+------------------------------------
+--System
+------------------------------------
+p_in_sys      => i_mem_ctrl_sysin
+);
+
+
 m_mem_ctrl : mem_ctrl
 generic map(
 G_SIM => G_SIM
@@ -616,6 +697,12 @@ p_inout_phymem  => i_phymem_inout,
 --Memory status
 ------------------------------------
 p_out_status    => i_mem_ctrl_status,
+
+-----------------------------------
+--Sim
+-----------------------------------
+p_out_sim_mem   => p_out_sim_mem,
+p_in_sim_mem    => p_in_sim_mem,
 
 ------------------------------------
 --System
@@ -707,7 +794,7 @@ p_in_cfg_rst          => i_cfg_rst,
 -------------------------------
 p_out_hdd_rdy         => i_hdd_module_rdy,
 p_out_hdd_error       => i_hdd_module_error,
-p_out_hdd_busy        => open,--i_hdd_busy,
+p_out_hdd_busy        => i_hdd_busy,
 p_out_hdd_irq         => open,--i_hdd_hirq,
 p_out_hdd_done        => open,--i_hdd_done,
 
@@ -758,9 +845,9 @@ p_out_tst             => i_hdd_tst_out,
 p_out_dbgcs                 => i_hdd_dbgcs,
 p_out_dbgled                => i_hdd_dbgled,
 
-p_out_sim_gt_txdata         => open,--i_hdd_sim_gt_txdata,
-p_out_sim_gt_txcharisk      => open,--i_hdd_sim_gt_txcharisk,
-p_out_sim_gt_txcomstart     => open,--i_hdd_sim_gt_txcomstart,
+p_out_sim_gt_txdata         => i_hdd_sim_gt_txdata,         --open,--
+p_out_sim_gt_txcharisk      => i_hdd_sim_gt_txcharisk,      --open,--
+p_out_sim_gt_txcomstart     => i_hdd_sim_gt_txcomstart,     --open,--
 p_in_sim_gt_rxdata          => i_hdd_sim_gt_rxdata,
 p_in_sim_gt_rxcharisk       => i_hdd_sim_gt_rxcharisk,
 p_in_sim_gt_rxstatus        => i_hdd_sim_gt_rxstatus,
@@ -768,8 +855,8 @@ p_in_sim_gt_rxelecidle      => i_hdd_sim_gt_rxelecidle,
 p_in_sim_gt_rxdisperr       => i_hdd_sim_gt_rxdisperr,
 p_in_sim_gt_rxnotintable    => i_hdd_sim_gt_rxnotintable,
 p_in_sim_gt_rxbyteisaligned => i_hdd_sim_gt_rxbyteisaligned,
-p_out_gt_sim_rst            => open,--i_hdd_sim_gt_sim_rst,
-p_out_gt_sim_clk            => open,--i_hdd_sim_gt_sim_clk,
+p_out_gt_sim_rst            => i_hdd_sim_gt_sim_rst,        --open,--
+p_out_gt_sim_clk            => i_hdd_sim_gt_sim_clk,        --open,--
 
 -------------------------------
 --System
@@ -778,15 +865,30 @@ p_in_clk           => g_hclk,
 p_in_rst           => i_hdd_rst
 );
 
-gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
-i_hdd_sim_gt_rxdata(i)<=(others=>'0');
-i_hdd_sim_gt_rxcharisk(i)<=(others=>'0');
-i_hdd_sim_gt_rxstatus(i)<=(others=>'0');
-i_hdd_sim_gt_rxelecidle(i)<='0';
-i_hdd_sim_gt_rxdisperr(i)<=(others=>'0');
-i_hdd_sim_gt_rxnotintable(i)<=(others=>'0');
-i_hdd_sim_gt_rxbyteisaligned(i)<='0';
-end generate gen_satah;
+--gen_satah: for i in 0 to C_HDD_COUNT_MAX-1 generate
+--i_hdd_sim_gt_rxdata(i)<=(others=>'0');
+--i_hdd_sim_gt_rxcharisk(i)<=(others=>'0');
+--i_hdd_sim_gt_rxstatus(i)<=(others=>'0');
+--i_hdd_sim_gt_rxelecidle(i)<='0';
+--i_hdd_sim_gt_rxdisperr(i)<=(others=>'0');
+--i_hdd_sim_gt_rxnotintable(i)<=(others=>'0');
+--i_hdd_sim_gt_rxbyteisaligned(i)<='0';
+--end generate gen_satah;
+p_out_sim_hdd_busy<=i_hdd_busy;
+p_out_sim_gt_txdata         <= i_hdd_sim_gt_txdata    ;     --open,--
+p_out_sim_gt_txcharisk      <= i_hdd_sim_gt_txcharisk ;     --open,--
+p_out_sim_gt_txcomstart     <= i_hdd_sim_gt_txcomstart;     --open,--
+i_hdd_sim_gt_rxdata         <= p_in_sim_gt_rxdata         ;
+i_hdd_sim_gt_rxcharisk      <= p_in_sim_gt_rxcharisk      ;
+i_hdd_sim_gt_rxstatus       <= p_in_sim_gt_rxstatus       ;
+i_hdd_sim_gt_rxelecidle     <= p_in_sim_gt_rxelecidle     ;
+i_hdd_sim_gt_rxdisperr      <= p_in_sim_gt_rxdisperr      ;
+i_hdd_sim_gt_rxnotintable   <= p_in_sim_gt_rxnotintable   ;
+i_hdd_sim_gt_rxbyteisaligned<= p_in_sim_gt_rxbyteisaligned;
+p_out_gt_sim_rst            <= i_hdd_sim_gt_sim_rst;        --open,--
+p_out_gt_sim_clk            <= i_hdd_sim_gt_sim_clk;        --open,--
+
+
 
 gen_hdd_on : if strcmp(C_PCFG_HDD_USE,"ON") generate
 
@@ -841,12 +943,12 @@ p_in_hdd_rxbuf_pempty => i_hdd_rxbuf_pempty,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
----------------------------------             --Bank|CH
-p_out_memch0          => i_mem_in_bank (CI_MEM_HDD)(0),--: out   TMemIN;
-p_in_memch0           => i_mem_out_bank(CI_MEM_HDD)(0),--: in    TMemOUT;
+---------------------------------                              --Bank|CH
+p_out_memch0          => i_mem_in (1)(0),--i_mem_in_bank (CI_MEM_HDD)(0),--: out   TMemIN ;
+p_in_memch0           => i_mem_out(1)(0),--i_mem_out_bank(CI_MEM_HDD)(0),--: in    TMemOUT;
 
-p_out_memch1          => i_mem_in_bank (CI_MEM_HDD)(1),--: out   TMemIN;
-p_in_memch1           => i_mem_out_bank(CI_MEM_HDD)(1),--: in    TMemOUT;
+p_out_memch1          => i_mem_in (1)(1),--i_mem_in_bank (CI_MEM_HDD)(1),--: out   TMemIN ;
+p_in_memch1           => i_mem_out(1)(1),--i_mem_out_bank(CI_MEM_HDD)(1),--: in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -925,6 +1027,8 @@ end generate gen_hdd_off;
 --Интерфейс управления модулем
 --***********************************************************
 gen_ftdi : if strcmp(C_HSCAM_USRIF,"FTDI") generate
+
+gen_sim_off : if strcmp(G_SIM,"OFF") generate
 m_cfg_ftdi : cfgdev_ftdi
 port map(
 -------------------------------
@@ -971,6 +1075,26 @@ p_out_tst            => open,--i_cfg_tstout,
 -------------------------------
 p_in_rst => i_sys_rst
 );
+end generate gen_sim_off;
+
+gen_sim_on : if strcmp(G_SIM,"ON") generate
+p_out_sim_cfg_clk    <= g_cfg_clk;
+p_out_sim_cfg_rxdata <= i_cfg_rxd;
+p_out_sim_cfg_txrdy  <= i_cfg_txrdy;
+p_out_sim_cfg_rxrdy  <= i_cfg_rxrdy;
+
+i_cfg_adr      <= EXT(p_in_sim_cfg_adr, i_cfg_adr'length);
+i_cfg_adr_ld   <= p_in_sim_cfg_adr_ld;
+i_cfg_adr_fifo <= p_in_sim_cfg_adr_fifo;
+i_cfg_wr       <= p_in_sim_cfg_wd;
+i_cfg_rd       <= p_in_sim_cfg_rd;
+i_cfg_txd      <= p_in_sim_cfg_txdata;
+i_cfg_done     <= p_in_sim_cfg_done;
+
+p_inout_ftdi_d<=(others=>'Z');
+p_out_ftdi_rd_n<='1';
+p_out_ftdi_wr_n<='1';
+end generate gen_sim_on;
 
 p_out_usr_status(0)<=p_in_usr_rx_rd;
 p_out_usr_status(1)<=p_in_usr_tx_wr;
@@ -1084,7 +1208,6 @@ p_out_TP(7) <=i_hdd_dbgled(3).busy;
 
 
 --//GenTest->RAMBUF - Эмуляция входного потока данных(можно регулировать скорость потока)
-tst_hdd_test_on<=i_hdd_rbuf_cfg.tstgen.tesing_on;
 tst_spd<=CONV_STD_LOGIC_VECTOR(255, tst_spd'length) when i_hdd_rbuf_cfg.tstgen.tesing_spd=CONV_STD_LOGIC_VECTOR(0, 8) else
          i_hdd_rbuf_cfg.tstgen.tesing_spd;
 process(i_vctrl_rst,p_in_vin_clk)
@@ -1114,8 +1237,27 @@ end process;
 tst_vs_hdd<=not tst_shim_hs when tst_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, tst_shim_vs_cnt'length) else '1';
 tst_hs_hdd<=tst_shim_hs;
 
-i_vin_vs_hdd<=tst_vs_hdd when tst_hdd_test_on='1' else p_in_vin_vs;
-i_vin_hs_hdd<=tst_hs_hdd when tst_hdd_test_on='1' else p_in_vin_hs;
+i_vin_vs_hdd<=tst_vs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_vs;
+i_vin_hs_hdd<=tst_hs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_hs;
+
+gen_tstvd : for i in 1 to 10 generate
+process(i_vctrl_rst,p_in_vin_clk)
+begin
+  if i_vctrl_rst='1' then
+    tst_vin_data(i-1)<=CONV_STD_LOGIC_VECTOR(i, tst_vin_data(i-1)'length);
+  elsif p_in_vin_clk'event and p_in_vin_clk='1' then
+    if i_hdd_rbuf_cfg.tstgen.tesing_on='1' then
+      if i_vin_vs_hdd=G_VSYN_ACTIVE or i_vin_hs_hdd=G_VSYN_ACTIVE then
+        tst_vin_data(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, tst_vin_data(i-1)'length);
+      else
+        tst_vin_data(i-1)<=tst_vin_data(i-1) + CONV_STD_LOGIC_VECTOR(10, tst_vin_data(i-1)'length);
+      end if;
+    end if;
+  end if;
+end process;
+
+tst_vin_d((8*i)-1 downto (8*i)-8)<=tst_vin_data(i-1);
+end generate gen_tstvd;
 
 --p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
 --p_out_tst( 8)<=i_hdd_rbuf_cfg.tstgen.tesing_on;
@@ -1226,8 +1368,8 @@ i_hddraid_dbgcs.trig0(11 downto 0)<=i_hdd_dbgcs.raid.trig0(11 downto 0);
 i_hddraid_dbgcs.trig0(12)<=i_mem_out_bank(CI_MEM_HDD)(0).txbuf_err or i_mem_out_bank(CI_MEM_HDD)(0).txbuf_underrun or i_mem_out_bank(CI_MEM_HDD)(0).cmdbuf_err; --tst_hdd_bufi_out(1);--i_buf_wr;;--;--
 i_hddraid_dbgcs.trig0(13)<=i_mem_out_bank(CI_MEM_HDD)(1).rxbuf_err or i_mem_out_bank(CI_MEM_HDD)(1).rxbuf_overflow or i_mem_out_bank(CI_MEM_HDD)(1).cmdbuf_err; --tst_hdd_bufi_out(2);--i_buf_wr_en;
 i_hddraid_dbgcs.trig0(14)<=tst_hdd_bufi_empty;
-i_hddraid_dbgcs.trig0(15)<=i_vbufo_empty and tst_hdd_rambuf_out(22);--i_hdd_dbgcs.raid.trig0(15);
-i_hddraid_dbgcs.trig0(16)<=i_hdd_txbuf_pfull;
+i_hddraid_dbgcs.trig0(15)<=i_vbufo_rst;--i_vbufo_empty and tst_hdd_rambuf_out(22);--i_hdd_dbgcs.raid.trig0(15);
+i_hddraid_dbgcs.trig0(16)<=i_vbufo_empty and tst_hdd_rambuf_out(22) and not p_in_vout_vs;--i_hdd_txbuf_pfull;
 i_hddraid_dbgcs.trig0(17)<=tst_hdd_bufi_full or i_hdd_rbuf_status.err_type.rambuf_full or i_hdd_rbuf_status.err_type.bufi_full or i_vbufo_full;
 --i_hddraid_dbgcs.trig0(18)<=i_hdd_dbgcs.raid.trig0(18);
 --i_hddraid_dbgcs.trig0(19)<=i_hdd_txbuf_full;-- or tst_hdd_bufi_out(3);--i_hdd_rbuf_status.err;
@@ -1258,7 +1400,7 @@ i_hddraid_dbgcs.data(29)<=i_hdd_bufi_rst;
 --//SH0
 i_hddraid_dbgcs.data(34 downto 30)<=i_hdd_dbgcs.sh(0).layer.trig0(34 downto 30);--llayer
 i_hddraid_dbgcs.data(39 downto 35)<=i_hdd_dbgcs.sh(0).layer.trig0(39 downto 35);--tlayer
-i_hddraid_dbgcs.data(55 downto 40)<=i_hdd_dbgcs.sh(0).layer.data(65 downto 50);
+i_hddraid_dbgcs.data(55 downto 40)<=tst_vbufo_dout(15 downto 0);--i_hdd_dbgcs.sh(0).layer.data(65 downto 50);
 i_hddraid_dbgcs.data(56)          <=i_vbufo_empty;--i_hdd_dbgcs.sh(0).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
 i_hddraid_dbgcs.data(57)          <=i_vbufo_pfull;--i_hdd_dbgcs.sh(0).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
 i_hddraid_dbgcs.data(58)          <=i_vbufo_full;--i_hdd_dbgcs.sh(0).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
@@ -1360,6 +1502,7 @@ begin
   if i_hdd_dbgcs.raid.clk'event and i_hdd_dbgcs.raid.clk='1' then
     tst_hdd_bufi_empty<=i_hdd_bufi_empty;
     tst_hdd_bufi_full<=i_hdd_bufi_full;
+    tst_vbufo_dout<=i_vbufo_dout;
   end if;
 end process;
 
