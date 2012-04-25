@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Tue Mar 27 10:55:55 2012
+# Date: Tue Apr 24 11:14:32 2012
 #
 ##############################################################
 #
@@ -124,7 +124,7 @@ CSET full_threshold_assert_value_rdch=1023
 CSET full_threshold_assert_value_wach=1023
 CSET full_threshold_assert_value_wdch=1023
 CSET full_threshold_assert_value_wrch=1023
-CSET full_threshold_negate_value=160
+CSET full_threshold_negate_value=179
 CSET id_width=4
 CSET inject_dbit_error=false
 CSET inject_dbit_error_axis=false
@@ -214,4 +214,4 @@ CSET wuser_width=1
 MISC pkg_timestamp=2011-03-14T07:12:32Z
 # END Extra information
 GENERATE
-# CRC: d4275091
+# CRC: fe9010be
