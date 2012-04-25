@@ -78,6 +78,9 @@ end hdd_rambuf_wr;
 
 architecture behavioral of hdd_rambuf_wr is
 
+-- Small delay for simulation purposes.
+constant dly : time := 1 ps;
+
 type fsm_state is (
 S_IDLE,
 S_MEM_NXT_START,
@@ -132,7 +135,7 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_
 --//-----------------------------
 --//Связь с пользовательскими буферами
 --//-----------------------------
-p_out_usr_txbuf_rd <=i_mem_wr;
+p_out_usr_txbuf_rd <=i_mem_wr after dly;
 
 p_out_usr_rxbuf_wd <=i_mem_rd;
 p_out_usr_rxbuf_din<=p_in_mem.rxd(p_out_usr_rxbuf_din'range);
@@ -162,7 +165,7 @@ p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 p_out_cfg_mem_done<=i_mem_done;
 
 --Стробы записи/чтения ОЗУ
-i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty when i_mem_dir=C_MEMWR_READ else '0';
+i_mem_rd<=i_mem_trn_work and not p_in_mem.rxbuf_empty and not p_in_usr_rxbuf_full when i_mem_dir=C_MEMWR_READ else '0';
 i_mem_wr<=i_mem_trn_work and not p_in_mem.txbuf_full and not p_in_usr_txbuf_empty when i_mem_dir=C_MEMWR_WRITE else '0';
 i_mem_cmdwr<=(i_mem_cmden and not p_in_mem.cmdbuf_full);
 
