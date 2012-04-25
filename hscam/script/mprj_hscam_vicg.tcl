@@ -91,6 +91,7 @@ set _projects [ list \
       [ list "../src/hdd/memc5_infrastructure.vhd" $_VHDMod ] \
       [ list "../src/hdd/mem_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/mem_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/hdd/mem_mux.vhd" $_VHDMod ] \
       [ list "../src/hdd/video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/video_reader.vhd" $_VHDMod ] \
       [ list "../src/hdd/video_writer.vhd" $_VHDMod ] \
