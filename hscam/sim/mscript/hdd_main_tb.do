@@ -14,7 +14,8 @@ vcom -93 "../testbanch/prj_cfg_sim.vhd"
 
 vcom -93 "../../../common/lib/hw/lib/vicg/s6/s6_gt_mclk.vhd"
 
-vcom -93 "../../../common/lib/hw/mem/mem_glob_pkg.vhd"
+#vcom -93 "../../../common/lib/hw/mem/mem_glob_pkg.vhd"
+vcom -93 "../../ise/src/hdd/mem_glob_pkg.vhd"
 vcom -93 "../../../common/lib/hw/mem/xilinx/mem_wr_s6_pkg.vhd"
 vcom -93 "../../../common/lib/hw/mem/xilinx/mem_wr_s6.vhd"
 

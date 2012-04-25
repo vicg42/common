@@ -36,6 +36,8 @@ architecture behavioral of hscam_main_tb is
 
 component hscam_main
 generic(
+G_VOUT_DWIDTH : integer:=16;
+G_VSYN_ACTIVE : std_logic:='0';
 G_SIM : string:="OFF"
 );
 port(
@@ -107,6 +109,7 @@ pin_in_ftdi_rxf_n  : in    std_logic;
 pin_in_ftdi_pwren_n: in    std_logic;
 
 pin_out_TP2        : out   std_logic_vector(1 downto 0);
+pin_in_SW          : in    std_logic_vector(3 downto 0);
 pin_out_TP         : out   std_logic_vector(7 downto 0);
 pin_out_led        : out   std_logic_vector(7 downto 0)
 );
@@ -199,6 +202,8 @@ p_in_rst <= i_rst when (C5_RST_ACT_LOW = 1) else (not i_rst);
 
 m_hscam_main : hscam_main
 generic map(
+G_VOUT_DWIDTH => 16,
+G_VSYN_ACTIVE => '0',
 G_SIM => G_SIM
 )
 port map(
@@ -270,6 +275,7 @@ pin_in_ftdi_rxf_n  => '1',
 pin_in_ftdi_pwren_n=> '1',
 
 pin_out_TP2        => open,
+pin_in_SW          => "0000",
 pin_out_TP         => open,
 pin_out_led        => open
 );

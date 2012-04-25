@@ -12,13 +12,12 @@ vlog     "c:/Xilinx/ISE_DS/ISE/verilog/src/glbl.v"
 vcom -93 "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd"
 vcom -93 "../testbanch/prj_cfg_sim.vhd"
 
-vcom -93 "../../ise/src/hdd/mem_glob_pkg.vhd"
+vcom -93 "../../../common/lib/hw/mem/mem_glob_pkg.vhd"
 vcom -93 "../../../common/lib/hw/mem/xilinx/mem_wr_s6_pkg.vhd"
 vcom -93 "../../../common/lib/hw/mem/xilinx/mem_wr_s6.vhd"
 
-vcom -93 "../../ise/src/core_gen/*.vhd"
-
 vcom -93 "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd"
+vcom -93 "../../ise/src/core_gen/*.vhd"
 vcom -93 "../../../common/lib/hw/sata/src/sata_glob_pkg.vhd"
 vcom -93 "../../../common/lib/hw/sata/src/sata_pkg.vhd"
 vcom -93 "../../../common/lib/hw/sata/src/sata_raid_pkg.vhd"
@@ -69,11 +68,12 @@ vcom "../../ise/src/core_gen/mem_ctrl_core/example_design/rtl/*.vhd"
 vcom -93 "../../ise/src/hdd/memc5_infrastructure.vhd"
 vcom -93 "../../ise/src/hdd/mem_ctrl_pkg.vhd"
 vcom -93 "../../ise/src/hdd/mem_ctrl.vhd"
+vcom -93 "../../ise/src/hdd/mem_mux.vhd"
 
 vcom -93 "../../ise/src/hdd/video_ctrl_pkg.vhd"
 vcom -93 "../../ise/src/hdd/hdd_main_unit_pkg.vhd"
 
-vcom -93 "../../ise/src/hdd/clock.vhd"
+#vcom -93 "../../ise/src/hdd/clock.vhd"
 
 vcom -93 "../../ise/src/hdd/video_reader.vhd"
 vcom -93 "../../ise/src/hdd/video_writer.vhd"
@@ -83,9 +83,10 @@ vcom -93 "../../ise/src/hdd/video_ctrl.vhd"
 vcom -93 "../../ise/src/hdd/vin_hdd.vhd"
 vcom -93 "../../ise/src/hdd/vout.vhd"
 vcom -93 "../../ise/src/hdd/test/vtiming_gen.vhd"
+vcom -93 "../../ise/src/hdd/test/hscam_main_usrif_cfg.vhd"
 
 vcom -93 "../../ise/src/hdd/hdd_main.vhd"
-vcom -93 "../../ise/hscam_main.vhd"
+vcom -93 "../../ise/src/hdd/test/hscam_main.vhd"
 
 
 # Testbench

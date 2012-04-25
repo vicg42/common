@@ -46,6 +46,9 @@ end hdd_main_tb;
 
 architecture behavioral of hdd_main_tb is
 
+-- Small delay for simulation purposes.
+constant dly : time := 1 ps;
+
 constant G_GT_DBUS     : integer:=C_PCFG_HDD_GT_DBUS;
 constant G_DBGCS       : string :=C_PCFG_HDD_DBGCS;
 constant G_DBG         : string :=C_PCFG_HDD_DBG;
@@ -53,14 +56,41 @@ constant G_HDD_COUNT   : integer:=C_PCFG_HDD_COUNT;
 constant G_RAMBUF_SIZE : integer:=C_PCFG_HDD_RAMBUF_SIZE;
 constant G_RAID_DWIDTH : integer:=C_PCFG_HDD_RAID_DWIDTH;
 
-
+constant C_VIN_CLK_PERIOD        : TIME := 9.3 ns;
+constant C_VOUT_CLK_PERIOD       : TIME := 6.3 ns;
 constant C_SATA_GT_REFCLK_PERIOD : TIME := 6.6 ns;--150MHz
 
+constant CI_MEM_VCTRL   : integer:=C_PCFG_VCTRL_MEMBANK_NUM;
+constant CI_MEM_HDD     : integer:=C_PCFG_HDD_MEMBANK_NUM;
+
+
+constant CI_HDD_MEMWR_TRN_SIZE: integer:=64;
+constant CI_HDD_MEMRD_TRN_SIZE: integer:=64;
+
+constant CI_VCTRL_MEMWR_TRN_SIZE: integer:=64;
+constant CI_VCTRL_MEMRD_TRN_SIZE: integer:=64;
 
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
 
 constant C_CFGDEV_COUNT :integer:=1;
 constant C_CFGDEV_HDD   :integer:=0;
+
+component vtiming_gen
+generic(
+G_VSYN_ACTIVE: std_logic:='1';
+G_VS_WIDTH   : integer:=32;
+G_HS_WIDTH   : integer:=32;
+G_PIX_COUNT  : integer:=32;
+G_ROW_COUNT  : integer:=32
+);
+port(
+p_out_vs : out  std_logic;
+p_out_hs : out  std_logic;
+
+p_in_clk : in   std_logic;
+p_in_rst : in   std_logic
+);
+end component;
 
 component hdd_main
 generic(
@@ -298,15 +328,23 @@ signal i_dev_cfg_wd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_rd               : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_dev_cfg_done             : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 
-signal i_dsnhdd_reg_ctrl_val      : std_logic_vector(15 downto 0);
+signal i_dsnhdd_reg_ctrl_l_val      : std_logic_vector(15 downto 0);
+signal i_dsnhdd_reg_ctrl_m_val      : std_logic_vector(15 downto 0);
 signal i_dsnhdd_reg_hwstart_dly_val: std_logic_vector(15 downto 0);
 
-type TSimBufData2 is array (0 to 6128) of std_logic_vector(128 downto 0);
-signal i_ram_txbuf                    : TSimBufData2;
+type TSimRAM is array (0 to 6128) of std_logic_vector(G_MEM_DWIDTH downto 0);
+type TSimRAMBanks is array (0 to 1) of TSimRAM;
+--signal i_ram_txbuf                    : TSimRAM;
 signal i_ram_txbuf_start              : std_logic:='0';
 signal i_testdata_sel                 : std_logic:='0';
-signal i_ram_rxbuf                    : TSimBufData2;
+--signal i_ram_rxbuf                    : TSimRAMBanks;
 signal i_ram_rxbuf_start              : std_logic:='0';
+signal i_ram                          : TSimRAMBanks;
+signal i_ram_cntwr                    : integer range 0 to 6128;
+signal i_ram_cntrd                    : integer range 0 to 6128;
+
+type TSimRAMdcnfwr is array (0 to 1) of integer;
+signal i_dcntwr                       : TSimRAMdcnfwr;
 
 signal i_vbuf_din,i_vbuf_din_in       : std_logic_vector(31 downto 0);
 signal i_vbuf_wr,i_vbuf_wr_in         : std_logic;
@@ -320,21 +358,31 @@ signal i_vbuf_wrcnt                   : std_logic_vector(3 downto 0);
 signal i_vdata_start                  : std_logic;
 signal i_vdata_done                   : std_logic;
 
+signal i_ltrn_count0                  : std_logic;
+signal i_ltrn_count1                  : std_logic;
 
-signal i_sim_mem_in               : TMemINBank;
-signal i_sim_mem_out              : TMemOUTBank;
+signal i_sim_mem_in                   : TMemINBank;
+signal i_sim_mem_out                  : TMemOUTBank;
 
+type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
+signal i_tdata                        : TDtest;
+signal i_vin_d                        : std_logic_vector(79 downto 0):=(others=>'0');
+signal i_vin_vs                       : std_logic;
+signal i_vin_hs                       : std_logic;
+signal i_vin_clk                      : std_logic;
 
-signal i_ltrn_count0  : std_logic;
-signal i_ltrn_count1  : std_logic;
+signal i_vout_vs                      : std_logic;
+signal i_vout_hs                      : std_logic;
+signal i_vout_clk                     : std_logic;
+
 
 
 --MAIN
 begin
 
--- ========================================================================== --
--- Clocks/Reset Generation                                                          --
--- ========================================================================== --
+-- ==========================================================================
+-- Clocks/Reset Generation
+-- ==========================================================================
 process
 begin
   p_in_clk <= not p_in_clk;
@@ -354,10 +402,80 @@ i_sataclk_p(i)<=    i_sata_gt_refclkmain(i);
 i_sataclk_n(i)<=not i_sata_gt_refclkmain(i);
 end generate gen_sata_clk;
 
+
+gen_vin_clk : process
+begin
+  i_vin_clk<='0';
+  wait for C_VIN_CLK_PERIOD/2;
+  i_vin_clk<='1';
+  wait for C_VIN_CLK_PERIOD/2;
+end process;
+
+gen_vout_clk : process
+begin
+  i_vout_clk<='0';
+  wait for C_VOUT_CLK_PERIOD/2;
+  i_vout_clk<='1';
+  wait for C_VOUT_CLK_PERIOD/2;
+end process;
+
 p_in_rst <= '1','0' after 3 us;
 i_dsn_hdd_rst<=p_in_rst;
 
 
+
+-- ==========================================================================
+--
+-- ==========================================================================
+--Генератор тестовых данных (Вертикальные полоски!!!)
+gen_vd : for i in 1 to 10 generate
+process(p_in_rst,i_vin_clk)
+begin
+  if p_in_rst='1' then
+    i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i, i_tdata(i-1)'length);
+  elsif i_vin_clk'event and i_vin_clk='1' then
+    if i_vin_vs=G_VSYN_ACTIVE or i_vin_hs=G_VSYN_ACTIVE then
+      i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, i_tdata(i-1)'length);
+    else
+      i_tdata(i-1)<=i_tdata(i-1) + CONV_STD_LOGIC_VECTOR(10, i_tdata(i-1)'length);
+    end if;
+  end if;
+end process;
+
+i_vin_d((8*i)-1 downto (8*i)-8)<=i_tdata(i-1);
+end generate gen_vd;
+
+m_vtgen_high : vtiming_gen
+generic map(
+G_VSYN_ACTIVE=> G_VSYN_ACTIVE,
+G_VS_WIDTH   => 32,
+G_HS_WIDTH   => 16,
+G_PIX_COUNT  => (C_PCFG_FRPIX/10),
+G_ROW_COUNT  => C_PCFG_FRROW
+)
+port map(
+p_out_vs => i_vin_vs,
+p_out_hs => i_vin_hs,
+
+p_in_clk => i_vin_clk,
+p_in_rst => p_in_rst
+);
+
+m_vtgen_low : vtiming_gen
+generic map(
+G_VSYN_ACTIVE=> G_VSYN_ACTIVE,
+G_VS_WIDTH   => 32,
+G_HS_WIDTH   => 8,
+G_PIX_COUNT  => (C_PCFG_FRPIX/(G_VOUT_DWIDTH/8)),
+G_ROW_COUNT  => C_PCFG_FRROW
+)
+port map(
+p_out_vs => i_vout_vs,
+p_out_hs => i_vout_hs,
+
+p_in_clk => i_vout_clk,
+p_in_rst => p_in_rst
+);
 
 m_hdd : hdd_main
 generic map(
@@ -369,19 +487,19 @@ port map(
 --------------------------------------------------
 --VideoIN
 --------------------------------------------------
-p_in_vd             => (others=>'0'),--i_vin_d,
-p_in_vin_vs         => '1',--i_vin_vs,--tst_in(0),--
-p_in_vin_hs         => '1',--i_vin_hs,--tst_in(1),--
-p_in_vin_clk        => p_in_clk,--i_vin_clk,
+p_in_vd             => i_vin_d,
+p_in_vin_vs         => i_vin_vs,--tst_in(0),--
+p_in_vin_hs         => i_vin_hs,--tst_in(1),--
+p_in_vin_clk        => i_vin_clk,
 p_in_ext_syn        => '1',
 
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
 p_out_vd            => open,
-p_in_vout_vs        => '1',--i_vout_vs,
-p_in_vout_hs        => '1',--i_vout_hs,
-p_in_vout_clk       => p_in_clk,--i_vout_clk,
+p_in_vout_vs        => i_vout_vs,
+p_in_vout_hs        => i_vout_hs,
+p_in_vout_clk       => i_vout_clk,
 
 --------------------------------------------------
 --RAM
@@ -614,8 +732,6 @@ p_in_rst                 => i_hdd_sim_gt_rst(i)
 );
 end generate gen_satad;
 
-
-
 --//Выделяем задний фронт из сигнала BUSY модуля m_sata_host.
 --//Для детектированя завершения АТА команды
 lcmddone:process(i_dsn_hdd_rst,p_in_clk)
@@ -661,12 +777,241 @@ i_satadev_ctrl.dbuf_ruse<='1';
 
 
 
+--//########################################
+--//ОЗУ : HDD
+--//########################################
+i_sim_mem_out(CI_MEM_HDD)(0).req_en      <='1';
+i_sim_mem_out(CI_MEM_HDD)(0).cmdbuf_full <='0';
+--i_sim_mem_out(CI_MEM_HDD)(0).txbuf_full  <='0';
+i_sim_mem_out(CI_MEM_HDD)(0).rxbuf_empty <='0';
+
+i_sim_mem_out(CI_MEM_HDD)(1).req_en      <='1';
+i_sim_mem_out(CI_MEM_HDD)(1).cmdbuf_full <='0';
+i_sim_mem_out(CI_MEM_HDD)(1).txbuf_full  <='0';
+i_sim_mem_out(CI_MEM_HDD)(1).txbuf_empty <='0';
+
+-------------------------------------
+--Запись данных в ОЗУ : HDD
+-------------------------------------
+process
+begin
+  i_sim_mem_out(CI_MEM_HDD)(0).txbuf_full<='0';
+
+  wait until i_dcntwr(CI_MEM_HDD)=16#0E# and i_sim_mem_in(CI_MEM_HDD)(0).clk'event and i_sim_mem_in(CI_MEM_HDD)(0).clk='1';
+    i_sim_mem_out(CI_MEM_HDD)(0).txbuf_full<='1';
+  wait for 200 ns;
+
+  wait until  i_sim_mem_in(CI_MEM_HDD)(0).clk'event and i_sim_mem_in(CI_MEM_HDD)(0).clk='1';
+    i_sim_mem_out(CI_MEM_HDD)(0).txbuf_full<='0';
+
+  wait;
+end process;
+
+process(i_hdd_rdy,i_sim_mem_in(CI_MEM_HDD)(0).clk)
+  variable dcnt : integer:=0;
+begin
+  if i_hdd_rdy='0' then
+    for i in 0 to i_ram(CI_MEM_HDD)'high loop
+    i_ram(CI_MEM_HDD)(i)<=(others=>'0');
+    end loop;
+    dcnt:=0;
+    i_dcntwr(CI_MEM_HDD)<=0;
+
+  elsif i_sim_mem_in(CI_MEM_HDD)(0).clk'event and i_sim_mem_in(CI_MEM_HDD)(0).clk='1' then
+
+    if i_sim_mem_in(CI_MEM_HDD)(0).txd_wr='1' then
+
+        i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_sim_mem_in(CI_MEM_HDD)(0).txd(G_MEM_DWIDTH - 1 downto 0);-- after dly;
+        if dcnt=i_ram(CI_MEM_HDD)'length-1 then
+          dcnt:=0;
+        else
+          dcnt:=dcnt + 1;
+        end if;
+
+    end if;
+
+    i_dcntwr(CI_MEM_HDD)<=i_ram_cntwr;
+
+  end if;
+end process;
+
+
+-------------------------------------
+--Чтение данных ОЗУ : HDD
+-------------------------------------
+process
+  variable dcnt : integer;
+  variable memrd_trnlen: integer;
+begin
+
+  wait until i_hdd_rdy='1' and i_sim_mem_in(CI_MEM_HDD)(1).clk'event and i_sim_mem_in(CI_MEM_HDD)(1).clk='1';
+
+    i_sim_mem_out(CI_MEM_HDD)(1).rxd<=i_ram(CI_MEM_HDD)(0)(G_MEM_DWIDTH - 1 downto 0);
+    i_sim_mem_out(CI_MEM_HDD)(1).rxbuf_empty<='1';
+      memrd_trnlen:=0;
+      dcnt:=0;
+
+  while true loop
+
+      i_sim_mem_out(CI_MEM_HDD)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+
+      wait until i_sim_mem_in(CI_MEM_HDD)(1).cmd_wr='1' and i_sim_mem_in(CI_MEM_HDD)(1).clk'event and i_sim_mem_in(CI_MEM_HDD)(1).clk='1';
+      i_sim_mem_out(CI_MEM_HDD)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+
+      wait until i_sim_mem_in(CI_MEM_HDD)(1).clk'event and i_sim_mem_in(CI_MEM_HDD)(1).clk='1';
+
+      i_sim_mem_out(CI_MEM_HDD)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+      i_sim_mem_out(CI_MEM_HDD)(1).rxbuf_empty<='0';
+
+--      if dcnt=i_ram(CI_MEM_HDD)'length-1 then
+--        dcnt:=0;
+--      else
+--        dcnt:=dcnt + 1;
+--      end if;
+
+      while memrd_trnlen/=CI_HDD_MEMRD_TRN_SIZE loop
+
+          wait until i_sim_mem_in(CI_MEM_HDD)(1).clk'event and i_sim_mem_in(CI_MEM_HDD)(1).clk='1';
+
+          if i_sim_mem_in(CI_MEM_HDD)(1).rxd_rd='1' then
+
+            i_sim_mem_out(CI_MEM_HDD)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+            if dcnt=i_ram(CI_MEM_HDD)'length-1 then
+              dcnt:=0;
+            else
+              dcnt:=dcnt + 1;
+            end if;
+
+            memrd_trnlen:=memrd_trnlen + 1;
+          end if;
+      end loop;--//while memrd_trnlen/=64 loop
+
+      i_sim_mem_out(CI_MEM_HDD)(1).rxbuf_empty<='1';
+        memrd_trnlen:=0;
+
+  end loop;--//while true loop
+
+  wait;
+end process;
 
 
 
+--//########################################
+--//ОЗУ : VCTRL
+--//########################################
+i_sim_mem_out(CI_MEM_VCTRL)(0).req_en      <='1';
+i_sim_mem_out(CI_MEM_VCTRL)(0).cmdbuf_full <='0';
+--i_sim_mem_out(CI_MEM_VCTRL)(0).txbuf_full  <='0';
+i_sim_mem_out(CI_MEM_VCTRL)(0).rxbuf_empty <='0';
+
+i_sim_mem_out(CI_MEM_VCTRL)(1).req_en      <='1';
+i_sim_mem_out(CI_MEM_VCTRL)(1).cmdbuf_full <='0';
+i_sim_mem_out(CI_MEM_VCTRL)(1).txbuf_full  <='0';
+i_sim_mem_out(CI_MEM_VCTRL)(1).txbuf_empty <='0';
+
+-------------------------------------
+--Запись данных в ОЗУ : VCTRL
+-------------------------------------
+process
+begin
+  i_sim_mem_out(CI_MEM_VCTRL)(0).txbuf_full<='0';
+
+  wait until i_dcntwr(CI_MEM_VCTRL)=16#0E# and i_sim_mem_in(CI_MEM_VCTRL)(0).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(0).clk='1';
+    i_sim_mem_out(CI_MEM_VCTRL)(0).txbuf_full<='1';
+  wait for 200 ns;
+
+  wait until  i_sim_mem_in(CI_MEM_VCTRL)(0).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(0).clk='1';
+    i_sim_mem_out(CI_MEM_VCTRL)(0).txbuf_full<='0';
+
+  wait;
+end process;
+
+process(i_hdd_rdy,i_sim_mem_in(CI_MEM_VCTRL)(0).clk)
+  variable dcnt : integer:=0;
+begin
+  if i_hdd_rdy='0' then
+    for i in 0 to i_ram(CI_MEM_VCTRL)'high loop
+    i_ram(CI_MEM_VCTRL)(i)<=(others=>'0');
+    end loop;
+    dcnt:=0;
+    i_dcntwr(CI_MEM_VCTRL)<=0;
+
+  elsif i_sim_mem_in(CI_MEM_VCTRL)(0).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(0).clk='1' then
+
+    if i_sim_mem_in(CI_MEM_VCTRL)(0).txd_wr='1' then
+
+        i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_sim_mem_in(CI_MEM_VCTRL)(0).txd(G_MEM_DWIDTH - 1 downto 0);-- after dly;
+        if dcnt=i_ram(CI_MEM_VCTRL)'length-1 then
+          dcnt:=0;
+        else
+          dcnt:=dcnt + 1;
+        end if;
+
+    end if;
+
+    i_dcntwr(CI_MEM_VCTRL)<=i_ram_cntwr;
+
+  end if;
+end process;
 
 
+-------------------------------------
+--Чтение данных ОЗУ : VCTRL
+-------------------------------------
+process
+  variable dcnt : integer;
+  variable memrd_trnlen: integer;
+begin
 
+  wait until i_hdd_rdy='1' and i_sim_mem_in(CI_MEM_VCTRL)(1).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(1).clk='1';
+
+    i_sim_mem_out(CI_MEM_VCTRL)(1).rxd<=i_ram(CI_MEM_VCTRL)(0)(G_MEM_DWIDTH - 1 downto 0);
+    i_sim_mem_out(CI_MEM_VCTRL)(1).rxbuf_empty<='1';
+      memrd_trnlen:=0;
+      dcnt:=0;
+
+  while true loop
+
+      i_sim_mem_out(CI_MEM_VCTRL)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+
+      wait until i_sim_mem_in(CI_MEM_VCTRL)(1).cmd_wr='1' and i_sim_mem_in(CI_MEM_VCTRL)(1).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(1).clk='1';
+      i_sim_mem_out(CI_MEM_VCTRL)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+
+      wait until i_sim_mem_in(CI_MEM_VCTRL)(1).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(1).clk='1';
+
+      i_sim_mem_out(CI_MEM_VCTRL)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+      i_sim_mem_out(CI_MEM_VCTRL)(1).rxbuf_empty<='0';
+
+--      if dcnt=i_ram(CI_MEM_VCTRL)'length-1 then
+--        dcnt:=0;
+--      else
+--        dcnt:=dcnt + 1;
+--      end if;
+
+      while memrd_trnlen/=CI_VCTRL_MEMRD_TRN_SIZE loop
+
+          wait until i_sim_mem_in(CI_MEM_VCTRL)(1).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(1).clk='1';
+
+          if i_sim_mem_in(CI_MEM_VCTRL)(1).rxd_rd='1' then
+
+            i_sim_mem_out(CI_MEM_VCTRL)(1).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);--txbuf(dcnt)(G_MEM_DWIDTH - 1 downto 0);--
+            if dcnt=i_ram(CI_MEM_VCTRL)'length-1 then
+              dcnt:=0;
+            else
+              dcnt:=dcnt + 1;
+            end if;
+
+            memrd_trnlen:=memrd_trnlen + 1;
+          end if;
+      end loop;--//while memrd_trnlen/=64 loop
+
+      i_sim_mem_out(CI_MEM_VCTRL)(1).rxbuf_empty<='1';
+        memrd_trnlen:=0;
+
+  end loop;--//while true loop
+
+  wait;
+end process;
 
 
 
@@ -706,13 +1051,13 @@ begin
 ----  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memwr_lentrn_byte'length);
 --  memwr_lentrn_byte:=CONV_STD_LOGIC_VECTOR(64, memwr_lentrn_byte'length);
 --  memwr_lentrn_dw:=("00"&memwr_lentrn_byte(memwr_lentrn_byte'high downto 2));
-  memwr_lentrn_dw:=CONV_STD_LOGIC_VECTOR(64, memwr_lentrn_byte'length);
+  memwr_lentrn_dw:=CONV_STD_LOGIC_VECTOR(CI_HDD_MEMWR_TRN_SIZE, memwr_lentrn_dw'length);
 
   --//настройка RAMBUF: направление RAM<-HDD
 ----  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(CI_SECTOR_SIZE_BYTE, memrd_lentrn_byte'length);
 --  memrd_lentrn_byte:=CONV_STD_LOGIC_VECTOR(64, memrd_lentrn_byte'length);
 --  memrd_lentrn_dw:=("00"&memrd_lentrn_byte(memrd_lentrn_byte'high downto 2));
-  memrd_lentrn_dw:=CONV_STD_LOGIC_VECTOR(64, memrd_lentrn_byte'length);
+  memrd_lentrn_dw:=CONV_STD_LOGIC_VECTOR(CI_HDD_MEMRD_TRN_SIZE, memrd_lentrn_dw'length);
 
   --//Выбор режима:
   --C_ATA_CMD_WRITE_SECTORS_EXT;--C_ATA_CMD_WRITE_DMA_EXT;--C_ATA_CMD_READ_SECTORS_EXT;--
@@ -748,16 +1093,19 @@ begin
   i_ltrn_count0<='0';
   i_ltrn_count1<='0';
 
-  i_dsnhdd_reg_ctrl_val<=(others=>'0');
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
---  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
+  i_dsnhdd_reg_ctrl_m_val<=(others=>'0');
+  i_dsnhdd_reg_ctrl_m_val(C_HDD_REG_CTRLM_VCH_EN_BIT)<='1';
+
+  i_dsnhdd_reg_ctrl_l_val<=(others=>'0');
+  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
+  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
+  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
+  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
+  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
   --//1- min ... 256/0 - max
---  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
   i_dsnhdd_reg_hwstart_dly_val(11 downto 0)<=CONV_STD_LOGIC_VECTOR(512, 12);--//фиксирования задержка
   i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(1, 4);--//фиксирования задержка
@@ -857,6 +1205,26 @@ begin
 
   wait for 0.5 us;
 
+
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_M, i_cfgdev_adr'length);
+    i_cfgdev_adr_ld<='1';
+    i_cfgdev_adr_fifo<='0';
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+    i_cfgdev_adr_ld<='0';
+    i_cfgdev_adr_fifo<='0';
+    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_m_val;
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+  wait for 0.1 us;
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+
+  wait for 20.5 us;
+
 --  --//Конфигурируем тестовый режим
 --  if i_tst_mode='1' then
   wait until g_cfg_clk'event and g_cfg_clk='1';
@@ -888,7 +1256,7 @@ begin
   wait until g_cfg_clk'event and g_cfg_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_val;
+    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_l_val;
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_cfg_clk'event and g_cfg_clk='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
@@ -1241,39 +1609,39 @@ begin
         cmd_write:='0';
         cmd_read:='0';
 
-      else
-
-        if cmd_write='1' and cmd_read='1' then
-          write(GUI_line,string'("COMPARE DATA: i_ram_txbuf,i_ram_rxbuf")); writeline(output, GUI_line);
-          for i in 0 to i_tstdata_dwsize-1 loop
-
-              write(GUI_line,string'(" i_ram_txbuf/i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'("): 0x"));
-              --write(GUI_line,CONV_INTEGER(i_ram_txbuf(i)));
-              for y in 1 to (i_ram_txbuf(i)'length/8)*2 loop --                                                        -- for y in 1 to 8 loop                                             --
-              string_value:=i_ram_txbuf(i)((i_ram_txbuf(i)'length-(4*(y-1)))-1 downto (i_ram_txbuf(i)'length-(4*y)));  -- string_value:=i_ram_txbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));--
-              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));                                                  -- write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));          --
-              end loop;                                                                                                -- end loop;                                                        --
-              write(GUI_line,string'("/0x"));
-              --write(GUI_line,CONV_INTEGER(i_ram_rxbuf(i)));
-              for y in 1 to (i_ram_rxbuf(i)'length/8)*2 loop --                                                        -- for y in 1 to 8 loop                                              --
-              string_value:=i_ram_rxbuf(i)((i_ram_rxbuf(i)'length-(4*(y-1)))-1 downto (i_ram_rxbuf(i)'length-(4*y)));  -- string_value:=i_ram_rxbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y))); --
-              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));                                                  -- write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));           --
-              end loop;                                                                                                -- end loop;                                                         --
-              writeline(output, GUI_line);
-
-            if i_ram_txbuf(i)/=i_ram_rxbuf(i) then
-              --//Завершаем модеоирование.
-              write(GUI_line,string'("COMPARE DATA:ERROR - i_ram_txbuf("));write(GUI_line,i);write(GUI_line,string'(")/= "));
-              write(GUI_line,string'("i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'(")"));
-              writeline(output, GUI_line);
-              p_SIM_STOP("Simulation of STOP: COMPARE DATA:ERROR i_ram_rxbuf/=i_ram_rxbuf");
-            end if;
-          end loop;
-
-          cmd_write:='0';
-          cmd_read:='0';
-          write(GUI_line,string'("COMPARE DATA: i_ram_txbuf/i_ram_rxbuf - OK.")); writeline(output, GUI_line);
-        end if;
+--      else
+--
+--        if cmd_write='1' and cmd_read='1' then
+--          write(GUI_line,string'("COMPARE DATA: i_ram_txbuf,i_ram_rxbuf")); writeline(output, GUI_line);
+--          for i in 0 to i_tstdata_dwsize-1 loop
+--
+--              write(GUI_line,string'(" i_ram_txbuf/i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'("): 0x"));
+--              --write(GUI_line,CONV_INTEGER(i_ram_txbuf(i)));
+--              for y in 1 to (i_ram_txbuf(i)'length/8)*2 loop --                                                        -- for y in 1 to 8 loop                                             --
+--              string_value:=i_ram_txbuf(i)((i_ram_txbuf(i)'length-(4*(y-1)))-1 downto (i_ram_txbuf(i)'length-(4*y)));  -- string_value:=i_ram_txbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y)));--
+--              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));                                                  -- write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));          --
+--              end loop;                                                                                                -- end loop;                                                        --
+--              write(GUI_line,string'("/0x"));
+--              --write(GUI_line,CONV_INTEGER(i_ram_rxbuf(i)));
+--              for y in 1 to (i_ram_rxbuf(i)'length/8)*2 loop --                                                        -- for y in 1 to 8 loop                                              --
+--              string_value:=i_ram_rxbuf(i)((i_ram_rxbuf(i)'length-(4*(y-1)))-1 downto (i_ram_rxbuf(i)'length-(4*y)));  -- string_value:=i_ram_rxbuf(i)((32-(4*(y-1)))-1 downto (32-(4*y))); --
+--              write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));                                                  -- write(GUI_line,Int2StrHEX(CONV_INTEGER(string_value)));           --
+--              end loop;                                                                                                -- end loop;                                                         --
+--              writeline(output, GUI_line);
+--
+--            if i_ram_txbuf(i)/=i_ram_rxbuf(i) then
+--              --//Завершаем модеоирование.
+--              write(GUI_line,string'("COMPARE DATA:ERROR - i_ram_txbuf("));write(GUI_line,i);write(GUI_line,string'(")/= "));
+--              write(GUI_line,string'("i_ram_rxbuf("));write(GUI_line,i);write(GUI_line,string'(")"));
+--              writeline(output, GUI_line);
+--              p_SIM_STOP("Simulation of STOP: COMPARE DATA:ERROR i_ram_rxbuf/=i_ram_rxbuf");
+--            end if;
+--          end loop;
+--
+--          cmd_write:='0';
+--          cmd_read:='0';
+--          write(GUI_line,string'("COMPARE DATA: i_ram_txbuf/i_ram_rxbuf - OK.")); writeline(output, GUI_line);
+--        end if;
       end if;
 
 
@@ -1372,7 +1740,7 @@ begin
          cfgCmdPkt(1).command=C_ATA_CMD_READ_SECTORS_EXT or cfgCmdPkt(1).command=C_ATA_CMD_READ_DMA_EXT then
       --//Запускаем автомат записи данных
         wait until p_in_clk'event and p_in_clk='1';
-        i_vdata_start<=not i_tst_mode or i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);--'1';
+        i_vdata_start<=not i_tst_mode or i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT);--'1';
         cmd_write:='1';
         wait until p_in_clk'event and p_in_clk='1';
         i_vdata_start<='0';
@@ -1461,7 +1829,7 @@ begin
   wait until g_cfg_clk'event and g_cfg_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_val;
+    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_l_val;
     i_cfgdev_txdata(C_HDD_REG_CTRLL_ERR_CLR_BIT)<='1';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_cfg_clk'event and g_cfg_clk='1';
@@ -1477,7 +1845,7 @@ begin
   wait until g_cfg_clk'event and g_cfg_clk='1';
     i_cfgdev_adr_ld<='0';
     i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_val;
+    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_l_val;
     i_cfgdev_txdata(C_HDD_REG_CTRLL_ERR_CLR_BIT)<='0';
     i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
   wait until g_cfg_clk'event and g_cfg_clk='1';
