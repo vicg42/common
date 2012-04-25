@@ -96,6 +96,8 @@ vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_64_64.vhd"
 vcom -93 "../testbanch/hdd_buf/hdd_txfifo_64_64.vhd"
 #vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_64_128.vhd"
 #vcom -93 "../testbanch/hdd_buf/hdd_txfifo_64_128.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_128_128.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_txfifo_128_128.vhd"
 vcom -93 "../testbanch/hdd_main_tb.vhd"
 
 ##Pass the parameters for memory model parameter file#
