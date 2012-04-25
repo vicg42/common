@@ -312,11 +312,11 @@ if p_in_clk'event and p_in_clk='1' then
     tst_trm_timeout<=(others=>'0');
   end if;
 
-  if p_in_rxcharisk(2)='1' and p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1)='1' then
-    tst_rxcharisk2_det<='1';
-  else
-    tst_rxcharisk2_det<='0';
-  end if;
+--  if p_in_rxcharisk(2)='1' and p_in_alstatus.sstatus(C_ASSTAT_DET_BIT_L+1)='1' then
+--    tst_rxcharisk2_det<='1';
+--  else
+--    tst_rxcharisk2_det<='0';
+--  end if;
 end if;
 end process;
 
