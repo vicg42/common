@@ -189,7 +189,7 @@ begin
          CLKOUT2_DIVIDE     => C_CLKOUT2_DIVIDE,
          CLKOUT3_DIVIDE     => C_CLKOUT3_DIVIDE,
          CLKOUT4_DIVIDE     => 3, --clk0 = ((300MHz * 2)/1) /3 = 200MHz
-         CLKOUT5_DIVIDE     => 5, --clk1 = ((300MHz * 2)/1) /5 = 120MHz
+         CLKOUT5_DIVIDE     => 5, --clk1 = ((300MHz * 2)/1) /4 = 150MHz
          CLKOUT0_PHASE      => 0.000,
          CLKOUT1_PHASE      => 180.000,
          CLKOUT2_PHASE      => 0.000,
