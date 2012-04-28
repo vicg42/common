@@ -32,7 +32,7 @@ constant C_PCFG_FRPIX                  : integer:=1280;
 constant C_PCFG_FRROW                  : integer:=1024;
 
 --//cfg Memory Controller
-constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
+constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 2
 constant C_PCFG_VCTRL_MEMBANK_NUM      : integer:=1;
 constant C_PCFG_HDD_MEMBANK_NUM        : integer:=0;
 constant C_PCFG_MEMPHY_SET             : integer:=0;--0 - (MEMBANK0<->MCB5; MEMBANK1<->MCB1)
@@ -44,12 +44,12 @@ constant C_PCFG_HDD_DBG                : string:="OFF";
 constant C_PCFG_HDD_DBGCS              : string:="ON";
 constant C_PCFG_HDD_SH_DBGCS           : string:="OFF";
 constant C_PCFG_HDD_RAID_DBGCS         : string:="ON";
-constant C_PCFG_HDD_COUNT              : integer:=2;
+constant C_PCFG_HDD_COUNT              : integer:=4;
 constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=27;--128MB : ќпредел€етс€ как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_PCFG_HDD_GT_DBUS            : integer:=32;--Ќастройка шины данных GT (RocketIO)
 constant C_PCFG_HDD_FPGA_TYPE          : integer:=3; --0/1/2/3 - "V5_GTP"/"V5_GTX"/"V6_GTX"/"S6_GTPA"
 constant C_PCFG_HDD_SH_MAIN_NUM        : integer:=0; --определ€ем индекс GT модул€ от которого будем брать частоту дл€ тактировани€ sata_dcm.vhd
 constant C_PCFG_HDD_SATA_GEN_DEFAULT   : integer:=0; --0/1 - SATAI/II
-constant C_PCFG_HDD_RAID_DWIDTH        : integer:=64;
+constant C_PCFG_HDD_RAID_DWIDTH        : integer:=128;
 
 end prj_cfg;

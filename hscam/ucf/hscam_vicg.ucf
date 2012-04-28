@@ -273,36 +273,16 @@ NET "pin_inout_mcb1_udqs_n"                        IN_TERM = NONE;
 ############################################################################
 # I/O STANDARDS
 ############################################################################
-#BANK - ON
-NET  "pin_inout_mcb1_dq[*]"                        IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_a[*]"                           IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_ba[*]"                          IOSTANDARD = SSTL18_II ;
-NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_out_mcb1_ck"                             IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = DIFF_SSTL18_II ;
-NET  "pin_out_mcb1_cke"                            IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_ras_n"                          IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_cas_n"                          IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_we_n"                           IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_odt"                            IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_dm"                             IOSTANDARD = SSTL18_II ;
-NET  "pin_out_mcb1_udm"                            IOSTANDARD = SSTL18_II ;
-NET  "pin_inout_mcb1_rzq"                          IOSTANDARD = SSTL18_II ;
-NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
-
-###BANK - OFF
+##BANK - ON
 #NET  "pin_inout_mcb1_dq[*]"                        IOSTANDARD = SSTL18_II ;
 #NET  "pin_out_mcb1_a[*]"                           IOSTANDARD = SSTL18_II ;
 #NET  "pin_out_mcb1_ba[*]"                          IOSTANDARD = SSTL18_II ;
-#NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = SSTL18_II ;
-#NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = SSTL18_II ;
-#NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = SSTL18_II ;
-#NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = SSTL18_II ;
-#NET  "pin_out_mcb1_ck"                             IOSTANDARD = SSTL18_II ;
-#NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = SSTL18_II ;
+#NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_out_mcb1_ck"                             IOSTANDARD = DIFF_SSTL18_II ;
+#NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = DIFF_SSTL18_II ;
 #NET  "pin_out_mcb1_cke"                            IOSTANDARD = SSTL18_II ;
 #NET  "pin_out_mcb1_ras_n"                          IOSTANDARD = SSTL18_II ;
 #NET  "pin_out_mcb1_cas_n"                          IOSTANDARD = SSTL18_II ;
@@ -312,6 +292,26 @@ NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
 #NET  "pin_out_mcb1_udm"                            IOSTANDARD = SSTL18_II ;
 #NET  "pin_inout_mcb1_rzq"                          IOSTANDARD = SSTL18_II ;
 #NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
+
+##BANK - OFF
+NET  "pin_inout_mcb1_dq[*]"                        IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_a[*]"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ba[*]"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_dqs"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_udqs"                         IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_dqs_n"                        IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_udqs_n"                       IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ck"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ck_n"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_cke"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_ras_n"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_cas_n"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_we_n"                           IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_odt"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_dm"                             IOSTANDARD = SSTL18_II ;
+NET  "pin_out_mcb1_udm"                            IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_rzq"                          IOSTANDARD = SSTL18_II ;
+NET  "pin_inout_mcb1_zio"                          IOSTANDARD = SSTL18_II ;
 
 ############################################################################
 # MCB 1
