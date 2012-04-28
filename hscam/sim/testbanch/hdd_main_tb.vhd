@@ -1202,24 +1202,24 @@ begin
   wait for 0.5 us;
 
 
---  wait until g_cfg_clk'event and g_cfg_clk='1';
---    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_M, i_cfgdev_adr'length);
---    i_cfgdev_adr_ld<='1';
---    i_cfgdev_adr_fifo<='0';
---  wait until g_cfg_clk'event and g_cfg_clk='1';
---    i_cfgdev_adr_ld<='0';
---    i_cfgdev_adr_fifo<='0';
---    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_m_val;
---    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
---  wait until g_cfg_clk'event and g_cfg_clk='1';
---    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
---  wait for 0.1 us;
---  wait until g_cfg_clk'event and g_cfg_clk='1';
---  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
---  wait until g_cfg_clk'event and g_cfg_clk='1';
---  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
---
---  wait for 20.5 us;
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_M, i_cfgdev_adr'length);
+    i_cfgdev_adr_ld<='1';
+    i_cfgdev_adr_fifo<='0';
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+    i_cfgdev_adr_ld<='0';
+    i_cfgdev_adr_fifo<='0';
+    i_cfgdev_txdata<=i_dsnhdd_reg_ctrl_m_val;
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+  wait for 0.1 us;
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+  wait until g_cfg_clk'event and g_cfg_clk='1';
+  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+
+  wait for 20.5 us;
 
 --  --//Конфигурируем тестовый режим
 --  if i_tst_mode='1' then

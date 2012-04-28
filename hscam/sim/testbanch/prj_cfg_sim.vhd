@@ -25,13 +25,15 @@ constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#05#; --Верисия модуля контр
 constant C_PCFG_BOARD                  : string:="HSCAM";
 
 --//Конфигурирование модулей:
+constant C_VIN_HDD_EXTSYN              : string:="OFF";
+
 --//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
 constant C_PCFG_VCTRL_DBGCS            : string:="OFF";
-constant C_PCFG_VCTRL_MEMWR_TRN_LEN    : integer:=64;
-constant C_PCFG_VCTRL_MEMRD_TRN_LEN    : integer:=32;
-constant C_PCFG_FRPIX                  : integer:=64;--1280;
-constant C_PCFG_FRROW                  : integer:=16;--1024;
+constant C_PCFG_VCTRL_MEMWR_TRN_LEN    : integer:=16#40#;
+constant C_PCFG_VCTRL_MEMRD_TRN_LEN    : integer:=16#40#;
+constant C_PCFG_FRPIX                  : integer:=1280;--1280;--
+constant C_PCFG_FRROW                  : integer:=4;--1024;--
 
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2

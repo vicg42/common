@@ -22,12 +22,19 @@ vcom -93 "../../ise/src/hdd/video_ctrl_pkg.vhd"
 vcom -93 "../../ise/src/hdd/video_reader.vhd"
 vcom -93 "../../ise/src/hdd/video_writer.vhd"
 vcom -93 "../../ise/src/hdd/video_ctrl.vhd"
+vcom -93 "../../ise/src/hdd/vin_hdd.vhd"
+vcom -93 "../../ise/src/hdd/vout.vhd"
 
 vcom -93 "../../ise/src/hdd/mem_ctrl_pkg.vhd"
 vcom -93 "../../ise/src/hdd/mem_ctrl.vhd"
+vcom -93 "../../ise/src/hdd/memc5_infrastructure.vhd"
 
-vcom -93 "../../ise/src/core_gen/vin_bufout.vhd"
-vcom -93 "../../ise/src/core_gen/vout_buf.vhd"
+vcom -93 "../../ise/src/core_gen/vin_bufhdd.vhd"
+#vcom -93 "../../ise/src/core_gen/vout_buf.vhd"
+
+vcom -93 "../../ise/src/hdd/test/vtiming_gen.vhd"
+vcom -93 "../testbanch/hdd_buf/hdd_rambuf_infifo_32_64.vhd"
+vcom -93 "../testbanch/hdd_buf/vout_buf_64_16.vhd"
 
 # Testbench
 vcom -93 "../testbanch/video_ctrl_tb.vhd"
