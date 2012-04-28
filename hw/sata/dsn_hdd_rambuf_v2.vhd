@@ -104,6 +104,7 @@ end dsn_hdd_rambuf;
 
 architecture behavioral of dsn_hdd_rambuf is
 
+--constant CI_RAMBUF_SIZE      : integer:=pwr(2,G_RAMBUF_SIZE-log2((G_MEM_DWIDTH/2)/8));--для mem_mux(arch2)!!!!
 constant CI_RAMBUF_SIZE      : integer:=pwr(2,G_RAMBUF_SIZE-log2(G_MEM_DWIDTH/8));
 constant CI_MEM_TRN_SIZE_MAX : integer:=64;
 --//selval(true, false , select(true/false) );
@@ -193,7 +194,7 @@ signal i_mem_dout_wrdy_n               : std_logic;
 
 signal sr_bufi_empty                   : std_logic_vector(0 to 1):=(others=>'1');
 
-signal sr_hm                           : std_logic_vector(0 to 1);
+signal sr_hm                           : std_logic_vector(0 to 2);
 signal i_hm_stop                       : std_logic;--Остановка режимов HM_W/R
 signal i_hm_padding                    : std_logic;--
 
@@ -219,7 +220,7 @@ p_out_tst(4 downto 0)  <=tst_vwr_out(4 downto 0);
 p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(10)          <='0';
 p_out_tst(11)          <=tst_rambuf_empty;
-p_out_tst(12)          <='0';
+p_out_tst(12)          <=OR_reduce(sr_hm) or i_hm_padding;--Управление модулем mem_mux.vhd
 p_out_tst(13)          <=i_hm_padding;
 p_out_tst(14)          <='0';
 p_out_tst(15)          <='0';
@@ -354,7 +355,7 @@ begin
     i_memr_start_hm_r<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
-    sr_hm<=(i_hm_w or i_hm_r) & sr_hm(0 to 0);
+    sr_hm<=(i_hm_w or i_hm_r) & sr_hm(0 to 1);
     i_hm_stop <=not sr_hm(0) and sr_hm(1);
 
     sr_bufi_empty<=p_in_bufi_empty & sr_bufi_empty(0 to 0);
