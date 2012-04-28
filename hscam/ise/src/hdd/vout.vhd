@@ -31,7 +31,7 @@ p_in_vs          : in   std_logic;
 p_in_hs          : in   std_logic;
 p_in_vclk        : in   std_logic;
 
---¬х. видеобуфера
+--¬х. видеопоток
 p_in_vd          : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vd_wr       : in   std_logic;
 p_in_hd          : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);

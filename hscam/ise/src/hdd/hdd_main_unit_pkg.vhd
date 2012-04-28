@@ -69,7 +69,7 @@ p_in_ext_syn       : in   std_logic;
 
 p_out_vfr_prm      : out  TFrXY;
 
---Вых. видеобуфера
+--Вых. видеопоток
 p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;
@@ -99,7 +99,7 @@ p_in_vs          : in   std_logic;
 p_in_hs          : in   std_logic;
 p_in_vclk        : in   std_logic;
 
---Вх. видеобуфера
+--Вх. видеопоток
 p_in_vd          : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vd_wr       : in   std_logic;
 p_in_hd          : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
