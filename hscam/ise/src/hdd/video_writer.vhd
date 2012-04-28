@@ -236,7 +236,7 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
-i_vbufin_rd_rdy_n<=p_in_vbufin_empty when p_in_vch_off='0' else not i_padding;
+i_vbufin_rd_rdy_n<=p_in_vbufin_empty and not i_padding;
 
 m_mem_wr : mem_wr
 generic map(
