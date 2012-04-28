@@ -25,6 +25,8 @@ package mem_ctrl_pkg is
 constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 constant C_MEM_BANK_COUNT_MAX: integer := 2;
 
+constant C_MEMCH_WR : integer:=0;
+constant C_MEMCH_RD : integer:=1;
 
 constant C5_MEMCLK_PERIOD          : integer := 3300;-- Memory data transfer clock period.
 constant C5_P0_MASK_SIZE           : integer := 8;
@@ -134,8 +136,8 @@ end component;
 
 component mem_mux
 generic(
-G_MEM_HDD   :integer:=0;
-G_MEM_VCTRL :integer:=1;
+G_MEMBANK_0 : integer:=0;
+G_MEMBANK_1 : integer:=1;
 G_SIM : string:= "OFF"
 );
 port(

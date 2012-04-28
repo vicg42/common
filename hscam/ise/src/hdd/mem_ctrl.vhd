@@ -568,19 +568,6 @@ pll_ce_90          => c5_pll_ce_90,
 pll_lock           => c5_pll_lock
 );
 
---p_out_mem(i).rxd<=(others=>'0');
---p_out_mem(i).rxbuf_full<='1';
---p_out_mem(i).rxbuf_empty<='1';
---p_out_mem(i).rxbuf_rdcount<=(others=>'0');
---p_out_mem(i).rxbuf_overflow<='0';
---p_out_mem(i).rxbuf_err<='0';
---
---p_out_mem(i).txbuf_full<='1';
---p_out_mem(i).txbuf_empty<='1';
---p_out_mem(i).txbuf_wrcount<=(others=>'0');
---p_out_mem(i).txbuf_underrun<='0';
---p_out_mem(i).txbuf_err<='0';
-
 end generate gen_bank;
 
 
@@ -603,6 +590,30 @@ p_inout_phymem(1).dqs    <= 'Z';
 p_inout_phymem(1).dqs_n  <= 'Z';
 p_inout_phymem(1).rzq    <= 'Z';
 p_inout_phymem(1).zio    <= 'Z';
+
+p_out_mem(1)(0).rxd<=(others=>'0');
+p_out_mem(1)(0).rxbuf_full<='1';
+p_out_mem(1)(0).rxbuf_empty<='1';
+p_out_mem(1)(0).rxbuf_rdcount<=(others=>'0');
+p_out_mem(1)(0).rxbuf_overflow<='0';
+p_out_mem(1)(0).rxbuf_err<='0';
+p_out_mem(1)(0).txbuf_full<='1';
+p_out_mem(1)(0).txbuf_empty<='1';
+p_out_mem(1)(0).txbuf_wrcount<=(others=>'0');
+p_out_mem(1)(0).txbuf_underrun<='0';
+p_out_mem(1)(0).txbuf_err<='0';
+
+p_out_mem(1)(1).rxd<=(others=>'0');
+p_out_mem(1)(1).rxbuf_full<='1';
+p_out_mem(1)(1).rxbuf_empty<='1';
+p_out_mem(1)(1).rxbuf_rdcount<=(others=>'0');
+p_out_mem(1)(1).rxbuf_overflow<='0';
+p_out_mem(1)(1).rxbuf_err<='0';
+p_out_mem(1)(1).txbuf_full<='1';
+p_out_mem(1)(1).txbuf_empty<='1';
+p_out_mem(1)(1).txbuf_wrcount<=(others=>'0');
+p_out_mem(1)(1).txbuf_underrun<='0';
+p_out_mem(1)(1).txbuf_err<='0';
 
 end generate gen_bank2_null;
 
