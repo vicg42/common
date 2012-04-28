@@ -39,7 +39,7 @@ p_in_ext_syn       : in   std_logic;--//Внешняя синхронизация
 
 p_out_vfr_prm      : out  TFrXY;
 
---Вых. видеобуфера
+--Вых. видеопоток
 p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 p_in_vbufin_rd     : in   std_logic;
 p_out_vbufin_empty : out  std_logic;

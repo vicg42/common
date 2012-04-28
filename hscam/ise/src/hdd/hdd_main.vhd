@@ -518,7 +518,7 @@ p_in_ext_syn       => p_in_ext_syn,
 
 p_out_vfr_prm      => i_vfr_prm,
 
---Вых. видеобуфера
+--Вых. видеопоток
 p_out_vbufin_d     => i_vctrl_bufi_dout,
 p_in_vbufin_rd     => i_vctrl_bufi_rd,
 p_out_vbufin_empty => i_vctrl_bufi_empty,
@@ -980,7 +980,7 @@ p_in_ext_syn       => p_in_ext_syn,
 
 p_out_vfr_prm      => open,--i_vfr_prm,
 
---Вых. видеобуфера
+--Вых. видеопоток
 p_out_vbufin_d     => i_hdd_bufi_dout,
 p_in_vbufin_rd     => i_hdd_bufi_rd,
 p_out_vbufin_empty => i_hdd_bufi_empty,
