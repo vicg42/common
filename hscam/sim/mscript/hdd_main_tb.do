@@ -72,6 +72,8 @@ vcom -93 "../../ise/src/hdd/mem_ctrl_pkg.vhd"
 #vcom -93 "../../ise/src/hdd/mem_ctrl.vhd"
 vcom -93 "../../ise/src/hdd/test/mem_ctrl_sim.vhd"
 vcom -93 "../../ise/src/hdd/mem_mux.vhd"
+#vcom -93 "../../ise/src/hdd/mem_mux_v2.vhd"
+#vcom -93 "../../ise/src/hdd/mem_mux_v3.vhd"
 
 vcom -93 "../../ise/src/hdd/video_ctrl_pkg.vhd"
 vcom -93 "../../ise/src/hdd/hdd_main_unit_pkg.vhd"
