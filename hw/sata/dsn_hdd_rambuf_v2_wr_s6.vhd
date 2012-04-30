@@ -6,8 +6,8 @@
 -- Module Name : hdd_rambuf_wr
 --
 -- Назначение/Описание :
---  Запись/Чтение данных ОЗУ
---
+--  Запись/Чтение данных ОЗУ.
+--  Модуль реализует кольцевой буфер.
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -24,7 +24,7 @@ use work.mem_wr_pkg.all;
 
 entity hdd_rambuf_wr is
 generic(
-G_RAMBUF_SIZE    : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
+G_RAMBUF_SIZE    : integer:=23;--//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
 G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
 G_MEM_BANK_L_BIT : integer:=28;
 G_MEM_AWIDTH     : integer:=32;
@@ -35,13 +35,13 @@ port(
 --Конфигурирование
 -------------------------------
 p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--//Адрес ОЗУ (в BYTE)
-p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--//Размер одиночной MEM_TRN (в DWORD)
-p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--//Размер запрашиваемых данных записи/чтения (в DWORD)
+p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--//Размер одиночной MEM_TRN
+p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--//Размер запрашиваемых данных записи/чтения
 p_in_cfg_mem_wr      : in    std_logic;                    --//Тип операции
-p_in_cfg_mem_start   : in    std_logic;                    --//Строб: Пуск операции
+p_in_cfg_mem_start   : in    std_logic;                    --//START
 p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции завершена
-p_in_cfg_mem_stop    : in    std_logic;                    --//
-p_in_cfg_idle        : in    std_logic;
+p_in_cfg_mem_stop    : in    std_logic;                    --//STOP
+p_in_cfg_idle        : in    std_logic;                    --//IDLE
 
 -------------------------------
 --Связь с пользовательскими буферами
@@ -149,7 +149,7 @@ p_out_mem.req   <='0';
 p_out_mem.req_type<=i_mem_dir;
 p_out_mem.bank  <=(others=>'0');
 p_out_mem.cmd_i <=C_MEM_CMD_WR_WITH_PRECHARGE when i_mem_dir=C_MEMWR_WRITE else C_MEM_CMD_RD_WITH_PRECHARGE;
-p_out_mem.cmd_bl<=i_mem_cmdbl(p_out_mem.cmd_bl'range);--MIN/MAX - 0/63 (соответствует 1 и 64)
+p_out_mem.cmd_bl<=i_mem_cmdbl(p_out_mem.cmd_bl'range);--Размер одинойчной транзакции: MIN/MAX - 0/63 (соответствует 1 и 64)
 p_out_mem.cmd_wr<=i_mem_cmdwr;
 p_out_mem.txd_wr<=i_mem_wr;
 p_out_mem.rxd_rd<=i_mem_rd;
@@ -231,19 +231,26 @@ begin
           i_mem_adr<=p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
           i_mem_dir<=p_in_cfg_mem_wr;
           i_mem_trn_len<=p_in_cfg_mem_trn_len(i_mem_trn_len'range); --ВАЖНО: из предоставляемых 16 разрядов
-                                                                    --беру только такой диапозон p_out_mem.cmd_bl'range
+                                                                    --беру только диапозон p_out_mem.cmd_bl'range
           i_mem_cmdbl <= p_in_cfg_mem_trn_len - 1;
           fsm_state_cs <= S_MEM_TRN_START;
         end if;
 
-      when S_MEM_NXT_START =>
-
-        i_mem_done<='0';
       --------------------------------------
       --Ждем сигнала запуска операции или перевода в исходное состояние
       --------------------------------------
+      when S_MEM_NXT_START =>
+
+        if i_mem_adr(G_RAMBUF_SIZE)='1' then
+          i_mem_adr<=(others=>'0');
+        end if;
+
+        i_mem_done<='0';
+
         if p_in_cfg_idle='1' then
-          fsm_state_cs <= S_IDLE;
+          if p_in_mem.cmdbuf_empty='1' and p_in_mem.rxbuf_empty='1' and p_in_mem.txbuf_empty='1' then
+            fsm_state_cs <= S_IDLE;
+          end if;
         elsif p_in_cfg_mem_start='1' then
           fsm_state_cs <= S_MEM_TRN_START;
         end if;
@@ -260,6 +267,10 @@ begin
       --Запись/Чтение данных ОЗУ
       ------------------------------------------------
       when S_MEM_TRN =>
+
+        if i_mem_adr(G_RAMBUF_SIZE)='1' then
+          i_mem_adr<=(others=>'0');
+        end if;
 
         i_mem_done<='0';
         if i_mem_wr='1' or i_mem_rd='1' then
@@ -278,7 +289,6 @@ begin
           i_mem_done<='1';
 
           if i_mem_adr(G_RAMBUF_SIZE)='1' then
-            --//Закольцовываю указатель записи
             i_mem_adr<=(others=>'0');
           else
             i_mem_adr<=i_mem_adr + i_mem_adr_update;
@@ -301,13 +311,20 @@ begin
       ------------------------------------------------
       when S_MEM_WAIT =>
 
-        i_mem_done<='0';
-        if p_in_cfg_mem_stop='1' then
-          fsm_state_cs <= S_MEM_NXT_START;
+        if i_mem_adr(G_RAMBUF_SIZE)='1' then
+          i_mem_adr<=(others=>'0');
+        end if;
 
-        elsif p_in_usr_rxbuf_full='0' then
-          i_mem_trn_work<='1';
-          fsm_state_cs <= S_MEM_TRN_START;
+        i_mem_done<='0';
+
+        if i_mem_done='0' then
+          if p_in_cfg_mem_stop='1' then
+            fsm_state_cs <= S_MEM_NXT_START;
+
+          elsif p_in_usr_rxbuf_full='0' then
+            i_mem_trn_work<='1';
+            fsm_state_cs <= S_MEM_TRN_START;
+          end if;
         end if;
 
     end case;
