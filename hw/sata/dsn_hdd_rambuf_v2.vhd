@@ -31,6 +31,7 @@ use work.dsn_hdd_pkg.all;
 
 entity dsn_hdd_rambuf is
 generic(
+G_MEMOPT      : string:="OFF";
 G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23; --//(в BYTE). Определяется как 2 в степени G_RAMBUF_SIZE
 G_DBGCS       : string:="OFF";
@@ -104,8 +105,8 @@ end dsn_hdd_rambuf;
 
 architecture behavioral of dsn_hdd_rambuf is
 
---constant CI_RAMBUF_SIZE      : integer:=pwr(2,G_RAMBUF_SIZE-log2((G_MEM_DWIDTH/2)/8));--для mem_mux(arch2)!!!!
-constant CI_RAMBUF_SIZE      : integer:=pwr(2,G_RAMBUF_SIZE-log2(G_MEM_DWIDTH/8));
+constant CI_MEMOPT           : integer:=selval(1, 2, strcmp(G_MEMOPT, "OFF"));
+constant CI_RAMBUF_SIZE      : integer:=pwr(2,G_RAMBUF_SIZE-log2((G_MEM_DWIDTH/CI_MEMOPT)/8));
 constant CI_MEM_TRN_SIZE_MAX : integer:=64;
 --//selval(true, false , select(true/false) );
 constant CI_SECTOR_SIZE_BYTE : integer:=selval(C_SECTOR_SIZE_BYTE, C_SIM_SECTOR_SIZE_DWORD*4, strcmp(G_SIM, "OFF"));
