@@ -37,8 +37,8 @@ constant C_PCFG_FRROW                  : integer:=4;--1024;--
 
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
-constant C_PCFG_VCTRL_MEMBANK_NUM      : integer:=1;
-constant C_PCFG_HDD_MEMBANK_NUM        : integer:=0;
+constant C_PCFG_MEMBANK_1              : integer:=1;
+constant C_PCFG_MEMBANK_0              : integer:=0;
 constant C_PCFG_MEMPHY_SET             : integer:=0;--0 - (MEMBANK0<->MCB5; MEMBANK1<->MCB1)
                                                     --1 - (MEMBANK0<->MCB1; MEMBANK1<->MCB5)
 

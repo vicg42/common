@@ -63,8 +63,8 @@ constant C_VIN_CLK_PERIOD        : TIME := 9.3 ns;
 constant C_VOUT_CLK_PERIOD       : TIME := 6.3 ns;
 constant C_SATA_GT_REFCLK_PERIOD : TIME := 6.6 ns;--150MHz
 
-constant CI_MEM_VCTRL   : integer:=C_PCFG_VCTRL_MEMBANK_NUM;
-constant CI_MEM_HDD     : integer:=C_PCFG_HDD_MEMBANK_NUM;
+constant CI_MEM_VCTRL   : integer:=C_PCFG_MEMBANK_1;
+constant CI_MEM_HDD     : integer:=C_PCFG_MEMBANK_0;
 
 
 constant CI_HDD_MEMWR_TRN_SIZE : integer:=64;
