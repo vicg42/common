@@ -223,7 +223,7 @@ signal h_reg_ctrl_m                     : std_logic_vector(C_HDD_REG_CTRLM_LAST_
 signal h_reg_rbuf_adr                   : std_logic_vector(31 downto 0):=(others=>'0');
 signal h_reg_rbuf_trnlen                : std_logic_vector(15 downto 0):=(others=>'0');
 signal h_reg_rbuf_reqlen                : std_logic_vector(15 downto 0):=(others=>'0');
-
+signal h_reg_cxd                        : std_logic_vector(15 downto 0):=(others=>'0');
 signal i_reg_ctrl_l                     : std_logic_vector(h_reg_ctrl_l'range):=(others=>'0');
 signal i_reg_ctrl_m                     : std_logic_vector(h_reg_ctrl_m'range):=(others=>'0');
 signal i_buf_rst                        : std_logic;
@@ -321,6 +321,7 @@ end process;
 
 --//Запись регистров
 process(p_in_cfg_rst,p_in_cfg_clk)
+  variable sh_cxd_wr : std_logic;
 begin
   if p_in_cfg_rst='1' then
     h_reg_ctrl_l<=(others=>'0');
@@ -328,8 +329,12 @@ begin
     h_reg_rbuf_trnlen<=(others=>'0');
     h_reg_rbuf_reqlen<=(others=>'0');
     h_reg_ctrl_m<=(others=>'0');
+    h_reg_cxd<=(others=>'0');
+    i_sh_cxd_wr<='0'; sh_cxd_wr:='0';
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
+
+    sh_cxd_wr:='0';
 
     if p_in_cfg_wd='1' then
         if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CTRL_L, i_cfg_adr_cnt'length) then h_reg_ctrl_l<=p_in_cfg_txdata(h_reg_ctrl_l'range);
@@ -340,8 +345,17 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_TRNLEN, i_cfg_adr_cnt'length) then h_reg_rbuf_trnlen<=p_in_cfg_txdata;
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_REQLEN, i_cfg_adr_cnt'length) then h_reg_rbuf_reqlen<=p_in_cfg_txdata;
 
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) then
+            if p_in_cfg_adr_fifo='1' then
+            --//Запись командного пакета
+                h_reg_cxd<=p_in_cfg_txdata;
+                  sh_cxd_wr:='1';
+            end if;
+
         end if;
     end if;
+
+    i_sh_cxd_wr<=sh_cxd_wr;
 
   end if;
 end process;
@@ -453,10 +467,6 @@ p_out_cfg_rxrdy<='1' when p_in_cfg_adr_fifo/='1' and i_cfg_adr_cnt/=CONV_STD_LOG
 --
 --i_cr_rd<=p_in_cfg_rd when i_cr_dcnt='0' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
 --i_cr_wr<=p_in_cfg_wd when i_cr_dcnt='1' and p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_DATA, i_cfg_adr_cnt'length) else '0';
-
-
---//Запись командного пакета
-i_sh_cxd_wr <=p_in_cfg_wd  when p_in_cfg_adr_fifo='1' and i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_HDD_REG_CMDFIFO, i_cfg_adr_cnt'length) else '0';
 
 process(p_in_clk)
 begin
@@ -583,8 +593,8 @@ end generate gen_dbg_on;
 p_out_tst(2 downto 0)<=tst_out;
 p_out_tst(3)<='0';
 p_out_tst(4)<='0';
-p_out_tst(5)<='0';
-p_out_tst(6)<='0';
+p_out_tst(5)<=i_sh_cxbuf_empty;
+p_out_tst(6)<=i_sh_cxd_wr;
 p_out_tst(7)<=i_reg_ctrl_m(C_HDD_REG_CTRLM_CFG2RAM);
 p_out_tst(8)<=i_testing_den;--i_cr_dcnt;
 p_out_tst(31 downto 9)<=(others=>'0');
@@ -669,7 +679,7 @@ end process;
 
 m_cmdfifo : hdd_cmdfifo
 port map(
-din         => p_in_cfg_txdata,
+din         => h_reg_cxd,--p_in_cfg_txdata,
 wr_en       => i_sh_cxd_wr,
 wr_clk      => p_in_cfg_clk,
 
