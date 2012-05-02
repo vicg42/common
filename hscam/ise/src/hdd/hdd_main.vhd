@@ -117,7 +117,7 @@ p_in_usr_tx_wr      : in    std_logic;                    --строб записи txd
 p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxd
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
-p_out_usr_status    : out   std_logic_vector(15 downto 0);
+p_out_usr_status    : out   std_logic_vector(7  downto 0);
 
 --Статусы модуля
 p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
@@ -256,11 +256,12 @@ constant CI_MEM_DWIDTH     : integer:=C_MEMCTRL_DWIDTH * CI_MEMOPT;
 signal i_vfr_prm                        : TFrXY;
 signal i_vctrl_mem_trn_len              : std_logic_vector(15 downto 0);
 
-signal i_vin_vs_hdd                     : std_logic;
-signal i_vin_hs_hdd                     : std_logic;
 signal i_vdi                            : std_logic_vector((10*8)-1 downto 0):=(others=>'0');
 signal i_vdi_save                       : std_logic_vector((10*8)-1 downto 0):=(others=>'0');
 signal i_vdi_vector                     : std_logic_vector((10*8*2)-1 downto 0);
+
+signal i_vbufi_rd                       : std_logic;
+signal i_vbufi_rst                      : std_logic;
 
 signal i_vbufo_dout                     : std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
 signal i_vbufo_full                     : std_logic;
@@ -302,9 +303,12 @@ signal g_hdd_clk                        : std_logic;
 signal g_vbufi_wrclk                    : std_logic;
 
 signal sr_hdd_hr                        : std_logic_vector(0 to 1);
-signal i_hdd_hr_start                   : std_logic;
-signal i_hdd_hr_stop                    : std_logic;
+signal i_hdd_hr                         : std_logic_vector(1 downto 0);
 
+signal sr_vch_rst                       : std_logic_vector(0 to 2);
+signal i_vch_rst                        : std_logic_vector(1 downto 0);
+
+signal i_hdd_bufi_rst0                  : std_logic;
 signal i_hdd_bufi_rst                   : std_logic;
 signal i_vctrl_bufi_rst                 : std_logic;
 signal i_vbufo_rst                      : std_logic;
@@ -397,6 +401,8 @@ signal tst_shim_hs                      : std_logic;
 signal tst_shim_vs_cnt                  : std_logic_vector(7 downto 0);
 signal tst_sr_shim_hs                   : std_logic_vector(0 to 1);
 signal tst_vs_hdd,tst_hs_hdd            : std_logic;
+signal tst_vin_vs_hdd                   : std_logic;
+signal tst_vin_hs_hdd                   : std_logic;
 
 type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
 signal tst_vin_data                     : TDtest;
@@ -450,34 +456,51 @@ i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.grst_hdd;
 i_vctrl_rst<=i_sys_rst or not i_mem_ctrl_sysout.pll_lock;--(AND_reduce(i_mem_ctrl_status.rdy));
 i_vctrl_bufi_rst<=i_vctrl_rst or i_hdd_rbuf_cfg.grst_vch;
 i_hdd_rambuf_rst<=i_vctrl_rst;
-i_vbufo_rst <= i_vctrl_rst or i_hdd_hr_start or i_hdd_hr_stop;
+i_vbufo_rst <= i_vctrl_rst or OR_reduce(i_hdd_hr);
+i_vbufi_rst<=i_vbufo_rst or i_hdd_bufi_rst or OR_reduce(i_vch_rst);
 
+--формирую сигналы для управления сбросами вх/вых видео буферов
 process(i_vctrl_rst,g_hclk)
 begin
   if i_vctrl_rst='1' then
     sr_hdd_hr<=(others=>'0');
-    i_hdd_hr_start<='0';
-    i_hdd_hr_stop<='0';
+    i_hdd_hr<=(others=>'0');
   elsif g_hclk'event and g_hclk='1' then
     sr_hdd_hr<=i_hdd_rbuf_cfg.dmacfg.hm_r & sr_hdd_hr(0 to 0);
-    i_hdd_hr_start<=    sr_hdd_hr(0) and not sr_hdd_hr(1);
-    i_hdd_hr_stop <=not sr_hdd_hr(0) and     sr_hdd_hr(1);
+    i_hdd_hr(0)<=    sr_hdd_hr(0) and not sr_hdd_hr(1);--on
+    i_hdd_hr(1)<=not sr_hdd_hr(0) and     sr_hdd_hr(1);--off
   end if;
 end process;
 
 process(i_hdd_rambuf_rst,g_hclk)
 begin
   if i_hdd_rambuf_rst='1' then
-    i_hdd_bufi_rst<='1';
+    i_hdd_bufi_rst0<='0';
   elsif g_hclk'event and g_hclk='1' then
-    if (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') or
-       (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='1' and i_hdd_rbuf_cfg.tstgen.con2rambuf='1') then
-      if i_hdd_rbuf_cfg.dmacfg.atacmdw='1' then
-        i_hdd_bufi_rst<='0';
-      end if;
+    if i_hdd_rbuf_cfg.dmacfg.hm_w='0' then
+      i_hdd_bufi_rst0<='0';
     else
-      i_hdd_bufi_rst<='1';
+      if (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') or
+         (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='1' and i_hdd_rbuf_cfg.tstgen.con2rambuf='1') then
+          if i_hdd_rbuf_cfg.dmacfg.atacmdw='1' then
+            i_hdd_bufi_rst0<='1';
+          end if;
+      end if;
     end if;
+  end if;
+end process;
+
+i_hdd_bufi_rst<=i_hdd_rbuf_cfg.dmacfg.hm_w and not i_hdd_bufi_rst0;
+
+process(i_vctrl_rst,g_hclk)
+begin
+  if i_vctrl_rst='1' then
+    sr_vch_rst<=(others=>'1');
+    i_vch_rst<=(others=>'0');
+  elsif g_hclk'event and g_hclk='1' then
+    sr_vch_rst<=i_hdd_rbuf_cfg.grst_vch & sr_vch_rst(0 to 1);
+    i_vch_rst(0)<=not sr_vch_rst(0) and     sr_vch_rst(1);--on
+    i_vch_rst(1)<=    sr_vch_rst(0) and not sr_vch_rst(1);--off
   end if;
 end process;
 
@@ -498,8 +521,54 @@ end generate gen_vd;
 
 i_vdi_vector<=i_vdi & i_vdi_save;
 
+gen_vinbuf_one_on : if strcmp(C_PCFG_VINBUF_ONE,"ON") generate
+--модулями VCTRL и HDD_RAMBUF используется один вх. вдеобуфер
+m_bufi : vin_hdd
+generic map(
+G_VBUF_OWIDTH => CI_MEM_DWIDTH,
+G_VSYN_ACTIVE => G_VSYN_ACTIVE,
+G_EXTSYN      => "ON"
+)
+port map(
+--Вх. видеопоток
+p_in_vd            => i_vdi_vector,
+p_in_vs            => tst_vin_vs_hdd,--p_in_vin_vs,
+p_in_hs            => tst_vin_hs_hdd,--p_in_vin_hs,
+p_in_vclk          => p_in_vin_clk,
+p_in_ext_syn       => p_in_ext_syn,
+
+p_out_vfr_prm      => i_vfr_prm,
+
+--Вых. видеопоток
+p_out_vbufin_d     => i_vctrl_bufi_dout,
+p_in_vbufin_rd     => i_vbufi_rd,--i_vctrl_bufi_rd,
+p_out_vbufin_empty => i_vctrl_bufi_empty,
+p_out_vbufin_full  => i_vctrl_bufi_full,
+p_in_vbufin_wrclk  => g_vbufi_wrclk,
+p_in_vbufin_rdclk  => g_hclk,
+
+--Технологический
+p_in_tst           => (others=>'0'),
+p_out_tst          => tst_vctrl_bufi_out,
+
+--System
+p_in_rst           => i_vbufi_rst --i_vctrl_bufi_rst
+);
+
+i_hdd_bufi_dout  <= i_vctrl_bufi_dout;
+i_hdd_bufi_empty <= i_vctrl_bufi_empty;
+i_hdd_bufi_full  <= i_vctrl_bufi_full;
+
+i_vbufi_rd <= i_vctrl_bufi_rd or i_hdd_bufi_rd;
+
+tst_hdd_bufi_out<=tst_vctrl_bufi_out;
+
+end generate gen_vinbuf_one_on;
+
 gen_vctrl_on : if strcmp(C_PCFG_VCTRL_USE,"ON") generate
---Video Input
+
+gen_vinbuf_one_off : if strcmp(C_PCFG_VINBUF_ONE,"OFF") generate
+--Для каждого модуля (VCTRL, HDD_RAMBUF )используется отдельный вх. вдеобуфер
 m_vctrl_bufi : vin_hdd
 generic map(
 G_VBUF_OWIDTH => CI_MEM_DWIDTH,
@@ -531,6 +600,7 @@ p_out_tst          => tst_vctrl_bufi_out,
 --System
 p_in_rst           => i_vctrl_bufi_rst
 );
+end generate gen_vinbuf_one_off;
 
 i_vctrl_mem_trn_len( 7 downto 0)<=i_hdd_rbuf_cfg.mem_trn(7  downto 0);--CONV_STD_LOGIC_VECTOR(C_PCFG_VCTRL_MEMWR_TRN_LEN, 8);
 i_vctrl_mem_trn_len(15 downto 8)<=i_hdd_rbuf_cfg.mem_trn(15 downto 8);--CONV_STD_LOGIC_VECTOR(C_PCFG_VCTRL_MEMRD_TRN_LEN, 8);
@@ -549,7 +619,7 @@ port map(
 -------------------------------
 p_in_vfr_prm         => i_vfr_prm,
 p_in_mem_trn_len     => i_vctrl_mem_trn_len,
-p_in_vch_off         => i_hdd_rbuf_cfg.grst_vch,
+p_in_vch_off         => sr_vch_rst(2),--i_hdd_rbuf_cfg.grst_vch,
 p_in_vrd_off         => i_hdd_rbuf_cfg.dmacfg.hm_r,
 
 ----------------------------
@@ -963,6 +1033,8 @@ p_in_clk              => g_hclk,
 p_in_rst              => i_hdd_rambuf_rst
 );
 
+gen_vinbuf_one_off : if strcmp(C_PCFG_VINBUF_ONE,"OFF") generate
+--Для каждого модуля (VCTRL, HDD_RAMBUF )используется отдельный вх. вдеобуфер
 m_hdd_bufi : vin_hdd
 generic map (
 G_VBUF_OWIDTH => CI_MEM_DWIDTH,
@@ -972,8 +1044,8 @@ G_EXTSYN      => "ON"
 port map(
 --Вх. видеопоток
 p_in_vd            => i_vdi_vector,
-p_in_vs            => i_vin_vs_hdd,--p_in_vin_vs,
-p_in_hs            => i_vin_hs_hdd,--p_in_vin_hs,
+p_in_vs            => tst_vin_vs_hdd,--p_in_vin_vs,
+p_in_hs            => tst_vin_hs_hdd,--p_in_vin_hs,
 p_in_vclk          => p_in_vin_clk,
 p_in_ext_syn       => p_in_ext_syn,
 
@@ -994,6 +1066,7 @@ p_out_tst          => tst_hdd_bufi_out,
 --System
 p_in_rst           => i_hdd_bufi_rst
 );
+end generate gen_vinbuf_one_off;
 
 tst_hdd_rambuf_in(0)<=AND_reduce(i_mem_ctrl_status.rdy);
 tst_hdd_rambuf_in(31 downto 1)<=(others=>'0');
@@ -1196,7 +1269,7 @@ p_out_TP(3) <=i_hdd_dbgled(1).busy;
 --SATA2 (На плате SATA3)
 p_out_led(0)<=i_hdd_dbgled(2).wr  when i_hdd_dbgled(2).err='0' else i_hdd_dbgled(2).link;
 p_out_led(7)<=i_hdd_dbgled(2).rdy when i_hdd_dbgled(2).err='0' else i_test01_led;
-p_out_TP(4) <=not i_vctrl_bufi_empty when tst_mem_err='0' else  i_test01_led;
+p_out_TP(4) <=(not i_vctrl_bufi_empty and not i_hdd_rbuf_cfg.grst_vch) when tst_mem_err='0' else  i_test01_led;
 p_out_TP(5) <=i_hdd_dbgled(2).busy;
 
 --SATA3 (На плате SATA2)
@@ -1240,8 +1313,8 @@ end process;
 tst_vs_hdd<=not tst_shim_hs when tst_shim_vs_cnt=CONV_STD_LOGIC_VECTOR(250, tst_shim_vs_cnt'length) else '1';
 tst_hs_hdd<=tst_shim_hs;
 
-i_vin_vs_hdd<=tst_vs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_vs;
-i_vin_hs_hdd<=tst_hs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_hs;
+tst_vin_vs_hdd<=tst_vs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_vs;
+tst_vin_hs_hdd<=tst_hs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_hs;
 
 gen_tstvd : for i in 1 to 10 generate
 process(i_vctrl_rst,p_in_vin_clk)
@@ -1250,7 +1323,7 @@ begin
     tst_vin_data(i-1)<=CONV_STD_LOGIC_VECTOR(i, tst_vin_data(i-1)'length);
   elsif p_in_vin_clk'event and p_in_vin_clk='1' then
     if i_hdd_rbuf_cfg.tstgen.tesing_on='1' then
-      if i_vin_vs_hdd=G_VSYN_ACTIVE or i_vin_hs_hdd=G_VSYN_ACTIVE then
+      if tst_vin_vs_hdd=G_VSYN_ACTIVE or tst_vin_hs_hdd=G_VSYN_ACTIVE then
         tst_vin_data(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, tst_vin_data(i-1)'length);
       else
         tst_vin_data(i-1)<=tst_vin_data(i-1) + CONV_STD_LOGIC_VECTOR(10, tst_vin_data(i-1)'length);
@@ -1371,12 +1444,12 @@ i_hddraid_dbgcs.trig0(11 downto 0)<=i_hdd_dbgcs.raid.trig0(11 downto 0);
 i_hddraid_dbgcs.trig0(12)<=i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_err or i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_underrun;
 i_hddraid_dbgcs.trig0(13)<=i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_err or i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_overflow;
 i_hddraid_dbgcs.trig0(14)<=tst_hdd_bufi_empty;
-i_hddraid_dbgcs.trig0(15)<=i_vbufo_rst;--i_vbufo_empty and tst_hdd_rambuf_out(22);--i_hdd_dbgcs.raid.trig0(15);
+i_hddraid_dbgcs.trig0(15)<=i_vbufo_rst or i_hdd_bufi_rst;--i_vbufo_empty and tst_hdd_rambuf_out(22);--i_hdd_dbgcs.raid.trig0(15);
 i_hddraid_dbgcs.trig0(16)<=i_vbufo_empty and tst_hdd_rambuf_out(22) and not p_in_vout_vs;--i_hdd_txbuf_pfull;
 i_hddraid_dbgcs.trig0(17)<=tst_hdd_bufi_full or i_hdd_rbuf_status.err_type.rambuf_full or i_hdd_rbuf_status.err_type.bufi_full or i_vbufo_full;
 --i_hddraid_dbgcs.trig0(18)<=i_hdd_dbgcs.raid.trig0(18);
 --i_hddraid_dbgcs.trig0(19)<=i_hdd_txbuf_full;-- or tst_hdd_bufi_out(3);--i_hdd_rbuf_status.err;
-i_hddraid_dbgcs.trig0(18)<=tst_hdd_rambuf_out(23);--<=i_memr_start_hm_r;  --i_hdd_dbgcs.sh(2).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
+i_hddraid_dbgcs.trig0(18)<=tst_hdd_bufi_out(2);--i_buf_wr_en;<=i_memr_start_hm_r;  --i_hdd_dbgcs.sh(2).layer.data(49);--p_in_ll_rxd_wr; --llayer->tlayer
 i_hddraid_dbgcs.trig0(19)<=i_hdd_tst_out(5);--<=i_sh_cxbuf_empty;--<=i_memw_stop_hm_r;   --i_hdd_dbgcs.sh(2).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
 
 --//SH0
@@ -1440,8 +1513,8 @@ end generate gen_hdd21;
 
 --//
 i_hddraid_dbgcs.data(96) <=tst_hdd_bufi_out(2);--i_buf_wr_en;
-i_hddraid_dbgcs.data(97) <=p_in_vout_vs when i_hdd_rbuf_cfg.dmacfg.hm_r='1' else i_vin_vs_hdd;--p_in_vin_vs;
-i_hddraid_dbgcs.data(98) <=p_in_vout_hs when i_hdd_rbuf_cfg.dmacfg.hm_r='1' else i_vin_hs_hdd;--p_in_vin_hs;
+i_hddraid_dbgcs.data(97) <=p_in_vout_vs when i_hdd_rbuf_cfg.dmacfg.hm_r='1' else tst_vin_vs_hdd;--p_in_vin_vs;
+i_hddraid_dbgcs.data(98) <=p_in_vout_hs when i_hdd_rbuf_cfg.dmacfg.hm_r='1' else tst_vin_hs_hdd;--p_in_vin_hs;
 
 i_hddraid_dbgcs.data(99) <=tst_hdd_bufi_empty;
 i_hddraid_dbgcs.data(100)<=tst_hdd_bufi_full;

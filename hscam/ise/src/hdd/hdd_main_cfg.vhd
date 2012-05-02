@@ -23,6 +23,8 @@ constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#05#; --Верисия модуля контр
 constant C_PCFG_BOARD                  : string:="HSCAM";
 
 --//Конфигурирование модулей:
+constant C_PCFG_VINBUF_ONE             : string:="ON";--ON/OFF - один вх видеобуфер для VCTRL и HDD/ для VCTRL и HDD отдельные вх. видео буфера
+
 --//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
 constant C_PCFG_VCTRL_DBGCS            : string:="OFF";

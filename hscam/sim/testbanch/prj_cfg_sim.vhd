@@ -26,6 +26,7 @@ constant C_PCFG_BOARD                  : string:="HSCAM";
 
 --//Конфигурирование модулей:
 constant C_VIN_HDD_EXTSYN              : string:="OFF";
+constant C_PCFG_VINBUF_ONE             : string:="ON";--ON/OFF - один вх видеобуфер для VCTRL и HDD/ для VCTRL и HDD отдельные вх. видео буфера
 
 --//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
@@ -36,6 +37,7 @@ constant C_PCFG_FRPIX                  : integer:=1280;--1280;--
 constant C_PCFG_FRROW                  : integer:=4;--1024;--
 
 --//cfg Memory Controller
+constant C_PCFG_MEMOPT                 : string:="OFF";--//ON - только если используется mem_mux_v3.vhd
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
 constant C_PCFG_MEMBANK_1              : integer:=1;
 constant C_PCFG_MEMBANK_0              : integer:=0;

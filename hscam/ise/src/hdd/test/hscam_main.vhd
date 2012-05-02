@@ -195,7 +195,7 @@ p_in_usr_tx_wr      : in    std_logic;                    --строб записи txd
 p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxd
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
-p_out_usr_status    : out   std_logic_vector(15 downto 0);
+p_out_usr_status    : out   std_logic_vector(7  downto 0);
 
 --Статусы модуля
 p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
@@ -298,7 +298,7 @@ signal tst_out                        : std_logic_vector(31 downto 0);
 signal tst_in                         : std_logic_vector(31 downto 0);
 signal i_test02_led                   : std_logic;
 
-signal i_usr_status                   : std_logic_vector(15 downto 0);
+signal i_usr_status                   : std_logic_vector(7  downto 0);
 signal i_usr_rxd,i_usr_txd            : std_logic_vector(15 downto 0);
 
 signal i_hdd_rdy,i_hdd_err            : std_logic;

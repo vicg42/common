@@ -37,10 +37,7 @@ set _projects [ list \
       [ list "../src/core_gen/sata_cmdfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_rxfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_rambuf_infifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
@@ -82,7 +79,6 @@ set _projects [ list \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_soft_calibration_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/memc5_wrapper.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vin_bufhdd.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vout_buf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
@@ -91,7 +87,7 @@ set _projects [ list \
       [ list "../src/hdd/memc5_infrastructure.vhd" $_VHDMod ] \
       [ list "../src/hdd/mem_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../src/hdd/mem_mux.vhd" $_VHDMod ] \
+      [ list "../src/hdd/mem_mux_v2.vhd" $_VHDMod ] \
       [ list "../src/hdd/video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/video_reader.vhd" $_VHDMod ] \
       [ list "../src/hdd/video_writer.vhd" $_VHDMod ] \

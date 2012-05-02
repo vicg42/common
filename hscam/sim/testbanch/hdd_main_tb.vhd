@@ -63,9 +63,6 @@ constant C_VIN_CLK_PERIOD        : TIME := 9.3 ns;
 constant C_VOUT_CLK_PERIOD       : TIME := 6.3 ns;
 constant C_SATA_GT_REFCLK_PERIOD : TIME := 6.6 ns;--150MHz
 
-constant CI_MEM_VCTRL   : integer:=C_PCFG_MEMBANK_1;
-constant CI_MEM_HDD     : integer:=C_PCFG_MEMBANK_0;
-
 
 constant CI_HDD_MEMWR_TRN_SIZE : integer:=64;
 constant CI_HDD_MEMRD_TRN_SIZE : integer:=64;
@@ -779,65 +776,65 @@ i_satadev_ctrl.dbuf_wuse<='1';--//1/0 - использовать модель sata_bufdata.vhd/ не
 i_satadev_ctrl.dbuf_ruse<='1';
 
 
-p_out_tst<='1' when i_ram_cntrd(CI_MEM_HDD)=2 else '0';
+p_out_tst<='1' when i_ram_cntrd(C_PCFG_MEMBANK_0)=2 else '0';
 
 --//########################################
 --//ОЗУ : HDD
 --//########################################
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).req_en      <='1';
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).cmdbuf_full <='0';
---i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).txbuf_full  <='0';
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).rxbuf_empty <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).req_en      <='1';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).cmdbuf_full <='0';
+--i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_full  <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).rxbuf_empty <='0';
 
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).req_en      <='1';
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).cmdbuf_full <='0';
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).txbuf_full  <='0';
-i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).txbuf_empty <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).req_en      <='1';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).cmdbuf_full <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).txbuf_full  <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).txbuf_empty <='0';
 
 -------------------------------------
 --Запись данных в ОЗУ : HDD
 -------------------------------------
 process
 begin
-  i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).txbuf_full<='0';
+  i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_full<='0';
 
-  wait until i_ram_cntwr(CI_MEM_HDD)=16#0E# and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk='1';
-    i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).txbuf_full<='1';
+  wait until i_ram_cntwr(C_PCFG_MEMBANK_0)=16#0E# and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk='1';
+    i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_full<='1';
   wait for 200 ns;
 
-  wait until  i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk='1';
-    i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).txbuf_full<='0';
+  wait until  i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk='1';
+    i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_full<='0';
 
   wait;
 end process;
 
-process(i_hdd_rdy,i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk)
+process(i_hdd_rdy,i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk)
   variable dcnt : integer:=0;
 begin
   if i_hdd_rdy='0' then
-    for i in 0 to i_ram(CI_MEM_HDD)'high loop
-    i_ram(CI_MEM_HDD)(i)<=(others=>'0');
+    for i in 0 to i_ram(C_PCFG_MEMBANK_0)'high loop
+    i_ram(C_PCFG_MEMBANK_0)(i)<=(others=>'0');
     end loop;
     dcnt:=0;
-    i_ram_cntwr(CI_MEM_HDD)<=0;
-    i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).txbuf_empty <='1';
+    i_ram_cntwr(C_PCFG_MEMBANK_0)<=0;
+    i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_empty <='1';
 
-  elsif i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).clk='1' then
+  elsif i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).clk='1' then
 
-    if i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).txd_wr='1' then
+    if i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txd_wr='1' then
 
-        i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_WR).txd(G_MEM_DWIDTH - 1 downto 0);-- after dly;
+        i_ram(C_PCFG_MEMBANK_0)(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txd(G_MEM_DWIDTH - 1 downto 0);-- after dly;
 
-        if dcnt=i_ram(CI_MEM_HDD)'length-1 then
+        if dcnt=i_ram(C_PCFG_MEMBANK_0)'length-1 then
           dcnt:=0;
         else
           dcnt:=dcnt + 1;
         end if;
 
-        i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_WR).txbuf_empty <='0';
+        i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_empty <='0';
     end if;
 
-    i_ram_cntwr(CI_MEM_HDD)<=dcnt;
+    i_ram_cntwr(C_PCFG_MEMBANK_0)<=dcnt;
 
   end if;
 end process;
@@ -850,55 +847,55 @@ process
   variable dcnt : integer:=0;
   variable mem_trnlen : integer:=0;
 begin
-  i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxbuf_empty<='1';
-  i_ram_cntrd(CI_MEM_HDD)<=dcnt;
-  i_ram_rd_fst(CI_MEM_HDD)<='1';
+  i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_empty<='1';
+  i_ram_cntrd(C_PCFG_MEMBANK_0)<=dcnt;
+  i_ram_rd_fst(C_PCFG_MEMBANK_0)<='1';
 
-  wait until i_hdd_rdy='1' and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk='1';
+  wait until i_hdd_rdy='1' and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk='1';
 
-    i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(0)(G_MEM_DWIDTH - 1 downto 0);
-    i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxbuf_empty<='1';
+    i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_0)(0)(G_MEM_DWIDTH - 1 downto 0);
+    i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_empty<='1';
       mem_trnlen:=0;
       dcnt:=0;
 
   while true loop
 
-      wait until i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).cmd_wr='1' and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk='1';
+      wait until i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).cmd_wr='1' and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk='1';
 
-      if i_ram_rd_fst(CI_MEM_HDD)='1' then
-          i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
-          if dcnt=i_ram(CI_MEM_HDD)'length-1 then
+      if i_ram_rd_fst(C_PCFG_MEMBANK_0)='1' then
+          i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_0)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
+          if dcnt=i_ram(C_PCFG_MEMBANK_0)'length-1 then
             dcnt:=0;
           else
             dcnt:=dcnt + 1;
           end if;
-          i_ram_rd_fst(CI_MEM_HDD)<='0';
+          i_ram_rd_fst(C_PCFG_MEMBANK_0)<='0';
       end if;
-      i_ram_cntrd(CI_MEM_HDD)<=dcnt;
+      i_ram_cntrd(C_PCFG_MEMBANK_0)<=dcnt;
 
-      wait until i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk='1';
+      wait until i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk='1';
 
-      i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxbuf_empty<='0';
+      i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_empty<='0';
 
       while mem_trnlen/=CI_HDD_MEMRD_TRN_SIZE loop
 
-          wait until i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).clk='1';
+          wait until i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).clk='1';
 
-          if i_sim_mem_in(CI_MEM_HDD)(C_MEMCH_RD).rxd_rd='1' then
+          if i_sim_mem_in(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxd_rd='1' then
 
-            i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_HDD)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
-            if dcnt=i_ram(CI_MEM_HDD)'length-1 then
+            i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_0)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
+            if dcnt=i_ram(C_PCFG_MEMBANK_0)'length-1 then
               dcnt:=0;
             else
               dcnt:=dcnt + 1;
             end if;
 
             mem_trnlen:=mem_trnlen + 1;
-            i_ram_cntrd(CI_MEM_HDD)<=dcnt;
+            i_ram_cntrd(C_PCFG_MEMBANK_0)<=dcnt;
           end if;
       end loop;--//mem_trnlen/=CI_HDD_MEMRD_TRN_SIZE
 
-      i_sim_mem_out(CI_MEM_HDD)(C_MEMCH_RD).rxbuf_empty<='1';
+      i_sim_mem_out(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_empty<='1';
         mem_trnlen:=0;
 
   end loop;--//while true loop
@@ -911,60 +908,60 @@ end process;
 --//########################################
 --//ОЗУ : VCTRL
 --//########################################
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).req_en      <='1';
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).cmdbuf_full <='0';
---i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).txbuf_full  <='0';
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).rxbuf_empty <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).req_en      <='1';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).cmdbuf_full <='0';
+--i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_full  <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).rxbuf_empty <='0';
 
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).req_en      <='1';
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).cmdbuf_full <='0';
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).txbuf_full  <='0';
-i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).txbuf_empty <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).req_en      <='1';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).cmdbuf_full <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).txbuf_full  <='0';
+i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).txbuf_empty <='0';
 
 -------------------------------------
 --Запись данных в ОЗУ : VCTRL
 -------------------------------------
 process
 begin
-  i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).txbuf_full<='0';
+  i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_full<='0';
 
-  wait until i_ram_cntwr(CI_MEM_VCTRL)=16#12# and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk='1';
-    i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).txbuf_full<='1';
+  wait until i_ram_cntwr(C_PCFG_MEMBANK_1)=16#12# and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk='1';
+    i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_full<='1';
   wait for 200 ns;
 
-  wait until  i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk='1';
-    i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).txbuf_full<='0';
+  wait until  i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk='1';
+    i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_full<='0';
 
   wait;
 end process;
 
-process(i_hdd_rdy,i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk)
+process(i_hdd_rdy,i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk)
   variable dcnt : integer:=0;
 begin
   if i_hdd_rdy='0' then
-    for i in 0 to i_ram(CI_MEM_VCTRL)'high loop
-    i_ram(CI_MEM_VCTRL)(i)<=(others=>'0');
+    for i in 0 to i_ram(C_PCFG_MEMBANK_1)'high loop
+    i_ram(C_PCFG_MEMBANK_1)(i)<=(others=>'0');
     end loop;
     dcnt:=0;
-    i_ram_cntwr(CI_MEM_VCTRL)<=0;
-    i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).txbuf_empty <='1';
+    i_ram_cntwr(C_PCFG_MEMBANK_1)<=0;
+    i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_empty <='1';
 
-  elsif i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).clk='1' then
+  elsif i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).clk='1' then
 
-    if i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).txd_wr='1' then
+    if i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txd_wr='1' then
 
-        i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_WR).txd(G_MEM_DWIDTH - 1 downto 0);
+        i_ram(C_PCFG_MEMBANK_1)(dcnt)(G_MEM_DWIDTH - 1 downto 0)<=i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txd(G_MEM_DWIDTH - 1 downto 0);
 
-        if dcnt=i_ram(CI_MEM_VCTRL)'length-1 then
+        if dcnt=i_ram(C_PCFG_MEMBANK_1)'length-1 then
           dcnt:=0;
         else
           dcnt:=dcnt + 1;
         end if;
 
-        i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_WR).txbuf_empty <='0';
+        i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_empty <='0';
     end if;
 
-    i_ram_cntwr(CI_MEM_VCTRL)<=dcnt;
+    i_ram_cntwr(C_PCFG_MEMBANK_1)<=dcnt;
 
   end if;
 end process;
@@ -978,47 +975,47 @@ process
   variable mem_trnlen : integer:=0;
 begin
 
-  i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxbuf_empty<='1';
-  i_ram_cntrd(CI_MEM_VCTRL)<=0;
+  i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxbuf_empty<='1';
+  i_ram_cntrd(C_PCFG_MEMBANK_1)<=0;
 
-  wait until i_hdd_rdy='1' and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk='1';
+  wait until i_hdd_rdy='1' and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk='1';
 
-    i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(0)(G_MEM_DWIDTH - 1 downto 0);
-    i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxbuf_empty<='1';
+    i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_1)(0)(G_MEM_DWIDTH - 1 downto 0);
+    i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxbuf_empty<='1';
       mem_trnlen:=0;
       dcnt:=0;
 
   while true loop
 
-      i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
+      i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_1)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
 
-      wait until i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).cmd_wr='1' and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk='1';
-      i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
+      wait until i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).cmd_wr='1' and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk='1';
+      i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_1)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
 
-      wait until i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk='1';
+      wait until i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk='1';
 
-      i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
-      i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxbuf_empty<='0';
+      i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_1)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
+      i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxbuf_empty<='0';
 
       while mem_trnlen/=CI_VCTRL_MEMRD_TRN_SIZE loop
 
-          wait until i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk'event and i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).clk='1';
+          wait until i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk'event and i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).clk='1';
 
-          if i_sim_mem_in(CI_MEM_VCTRL)(C_MEMCH_RD).rxd_rd='1' then
+          if i_sim_mem_in(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd_rd='1' then
 
-            i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(CI_MEM_VCTRL)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
-            if dcnt=i_ram(CI_MEM_VCTRL)'length-1 then
+            i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(G_MEM_DWIDTH - 1 downto 0)<=i_ram(C_PCFG_MEMBANK_1)(dcnt)(G_MEM_DWIDTH - 1 downto 0);
+            if dcnt=i_ram(C_PCFG_MEMBANK_1)'length-1 then
               dcnt:=0;
             else
               dcnt:=dcnt + 1;
             end if;
 
             mem_trnlen:=mem_trnlen + 1;
-            i_ram_cntrd(CI_MEM_VCTRL)<=dcnt;
+            i_ram_cntrd(C_PCFG_MEMBANK_1)<=dcnt;
           end if;
       end loop;--//mem_trnlen/=CI_VCTRL_MEMRD_TRN_SIZE loop
 
-      i_sim_mem_out(CI_MEM_VCTRL)(C_MEMCH_RD).rxbuf_empty<='1';
+      i_sim_mem_out(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxbuf_empty<='1';
         mem_trnlen:=0;
 
   end loop;--//while true loop
@@ -1086,7 +1083,7 @@ begin
 
   --//Только для режима HW(hw_mode)
   hw_scount:=4;
-  hw_cmd:=C_ATA_CMD_READ_DMA_EXT;--C_ATA_CMD_WRITE_DMA_EXT; --C_ATA_CMD_WRITE_SECTORS_EXT;--//Только когда выключен режим i_tst_mode
+  hw_cmd:=C_ATA_CMD_WRITE_DMA_EXT; --C_ATA_CMD_READ_DMA_EXT;-- C_ATA_CMD_WRITE_SECTORS_EXT;--//Только когда выключен режим i_tst_mode
   hw_lba_start:=16#000#;
   hw_lba_end  :=hw_lba_start + (hw_scount * 20);
 
