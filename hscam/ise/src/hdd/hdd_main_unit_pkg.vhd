@@ -170,6 +170,7 @@ end component;
 
 component dsn_hdd_rambuf
 generic(
+G_MEMOPT      : string:="OFF";
 G_MODULE_USE  : string:="ON";
 G_RAMBUF_SIZE : integer:=23;
 G_DBGCS       : string:="OFF";

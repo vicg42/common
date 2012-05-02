@@ -26,15 +26,14 @@ constant C_PCFG_BOARD                  : string:="HSCAM";
 --//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
 constant C_PCFG_VCTRL_DBGCS            : string:="OFF";
-constant C_PCFG_VCTRL_MEMWR_TRN_LEN    : integer:=64;
-constant C_PCFG_VCTRL_MEMRD_TRN_LEN    : integer:=32;
 constant C_PCFG_FRPIX                  : integer:=1280;
 constant C_PCFG_FRROW                  : integer:=1024;
 
 --//cfg Memory Controller
+constant C_PCFG_MEMOPT                 : string:="OFF";--//ON - только если используется mem_mux_v3.vhd
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 2
-constant C_PCFG_VCTRL_MEMBANK_NUM      : integer:=1;
-constant C_PCFG_HDD_MEMBANK_NUM        : integer:=0;
+constant C_PCFG_MEMBANK_1              : integer:=1;
+constant C_PCFG_MEMBANK_0              : integer:=0;
 constant C_PCFG_MEMPHY_SET             : integer:=0;--0 - (MEMBANK0<->MCB5; MEMBANK1<->MCB1)
                                                     --1 - (MEMBANK0<->MCB1; MEMBANK1<->MCB5)
 
