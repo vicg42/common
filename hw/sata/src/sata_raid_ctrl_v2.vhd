@@ -768,7 +768,7 @@ for i in 0 to G_HDD_COUNT-1 loop
 i_dbgcs_data(8+i)<=i_usr_status.ch_bsy(i);
 end loop;
 i_dbgcs_data(19 downto 12)<=(others=>'0');--i_raid_cl_cntdw(7 downto 0);--i_usr_rxd(7 downto 0);--
-i_dbgcs_data(20)<='0';--i_usr_rxd_wr;
+i_dbgcs_data(20)<=p_in_usr_cxd_wr;--i_usr_rxd_wr;
 --i_dbgcs_data(16 downto 12)<=i_raid_trn_cnts(4 downto 0);
 --i_dbgcs_data(20 downto 17)<=i_sh_atacmd.lba(3 downto 0);
 i_dbgcs_data(21)<=p_in_usr_txbuf_empty;
@@ -782,7 +782,8 @@ i_dbgcs_data(28)<='0';--i_raid_trn_done(0);
 i_dbgcs_data(29)<='0';--//зарезервировано
 i_dbgcs_data(122 downto 30)<=(others=>'0');--//зарезервировано
 i_dbgcs_data(129 downto 123)<=(others=>'0');
-i_dbgcs_data(161 downto 130)<=i_usr_rxd(31 downto 0);
+i_dbgcs_data(145 downto 130)<=p_in_usr_cxd(15 downto 0);--i_usr_rxd(15 downto  0);
+i_dbgcs_data(161 downto 146)<=i_usr_rxd(31 downto 16);
 
 
 tst_cmddone<=sr_tst_bsy(1) and not sr_tst_bsy(0);
