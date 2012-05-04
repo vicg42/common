@@ -5,7 +5,7 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "HTGV6_veresk"
+set _usrdef_design "htgv6_veresk"
 set _usrdef_entity "veresk_main"
 set _usrdef_xilinx_family "virtex6"
 set _usrdef_chip_family "v6lxt"
@@ -124,6 +124,10 @@ set _projects [ list \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
+      [ list "../src/clocks.vhd" $_VHDMod ] \
+      [ list "../src/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
+      [ list "../src/mem_ctrl_axi.vhd" $_VHDMod ] \
+      [ list "../src/mem_arb.vhd" $_VHDMod ] \
       [ list "../HTGV6_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
     ] \
