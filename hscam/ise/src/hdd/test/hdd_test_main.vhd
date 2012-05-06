@@ -230,14 +230,14 @@ signal i_dev_adr                        : std_logic_vector(C_CFGPKT_DADR_M_BIT-C
 signal i_cfg_adr                        : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
 signal i_cfg_adr_ld                     : std_logic;
 signal i_cfg_adr_fifo                   : std_logic;
-signal i_cfg_wd                         : std_logic;
+signal i_cfg_wr                         : std_logic;
 signal i_cfg_rd                         : std_logic;
 signal i_cfg_txd                        : std_logic_vector(15 downto 0);
 signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
 signal i_cfg_txrdy                      : std_logic;
 signal i_cfg_rxrdy                      : std_logic;
 signal i_cfg_done                       : std_logic;
---signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
+signal i_cfg_tstout                     : std_logic_vector(31 downto 0);
 
 signal i_hdd_module_rdy                 : std_logic;
 signal i_hdd_module_error               : std_logic;
@@ -339,7 +339,7 @@ p_in_cfg_adr_ld       => i_cfg_adr_ld,
 p_in_cfg_adr_fifo     => i_cfg_adr_fifo,
 
 p_in_cfg_txdata       => i_cfg_txd,
-p_in_cfg_wd           => i_cfg_wd,
+p_in_cfg_wd           => i_cfg_wr,
 p_out_cfg_txrdy       => i_cfg_txrdy,
 
 p_out_cfg_rxdata      => i_cfg_rxd,
@@ -560,7 +560,7 @@ p_out_cfg_dadr       => i_dev_adr,
 p_out_cfg_radr       => i_cfg_adr,
 p_out_cfg_radr_ld    => i_cfg_adr_ld,
 p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
-p_out_cfg_wr         => i_cfg_wd,
+p_out_cfg_wr         => i_cfg_wr,
 p_out_cfg_rd         => i_cfg_rd,
 p_out_cfg_txdata     => i_cfg_txd,
 p_in_cfg_rxdata      => i_cfg_rxd,
@@ -574,7 +574,7 @@ p_in_cfg_clk         => g_cfg_clk,
 --Технологический
 -------------------------------
 p_in_tst             => (others=>'0'),
-p_out_tst            => open,--i_cfg_tstout,
+p_out_tst            => i_cfg_tstout,
 
 -------------------------------
 --System
@@ -657,7 +657,7 @@ p_out_cfg_dadr       => i_dev_adr,
 p_out_cfg_radr       => i_cfg_adr,
 p_out_cfg_radr_ld    => i_cfg_adr_ld,
 p_out_cfg_radr_fifo  => i_cfg_adr_fifo,
-p_out_cfg_wr         => i_cfg_wd,
+p_out_cfg_wr         => i_cfg_wr,
 p_out_cfg_rd         => i_cfg_rd,
 p_out_cfg_txdata     => i_cfg_txd,
 p_in_cfg_rxdata      => i_cfg_rxd,
@@ -950,6 +950,57 @@ end generate gen_raid_dbgcs;
 end generate gen_dbgcs;
 
 
+--m_dbgcs_icon : dbgcs_iconx1
+--port map(
+--CONTROL0 => i_dbgcs_cfg
+--);
+--
+--m_dbgcs_cfg : dbgcs_sata_layer
+--port map(
+--CONTROL => i_dbgcs_cfg,
+--CLK     => i_cfg_dbgcs.clk,
+--DATA    => i_cfg_dbgcs.data(122 downto 0),
+--TRIG0   => i_cfg_dbgcs.trig0(41 downto 0)
+--);
+--
+--i_cfg_dbgcs.clk<=g_cfg_clk;
+--
+----//-------- TRIG: ------------------
+--i_cfg_dbgcs.trig0(0)<=i_cfg_adr_ld;
+--i_cfg_dbgcs.trig0(1)<=i_cfg_wr;
+--i_cfg_dbgcs.trig0(2)<=i_cfg_rd;
+--i_cfg_dbgcs.trig0(3)<=i_cfg_done;
+--i_cfg_dbgcs.trig0(4)<=i_cfg_txrdy;
+--i_cfg_dbgcs.trig0(5)<=i_cfg_rxrdy;
+--i_cfg_dbgcs.trig0(13 downto 6)<=i_cfg_adr(7 downto 0);
+--i_cfg_dbgcs.trig0(17 downto 14)<=i_cfg_tstout(9 downto 6);
+--i_cfg_dbgcs.trig0(18)<=i_cfg_tstout(11);--<=i_dv_rd;
+--i_cfg_dbgcs.trig0(19)<=i_cfg_tstout(12);--<=not i_dv_wr;
+--i_cfg_dbgcs.trig0(20)<=i_cfg_tstout(13);--<=p_in_ftdi_txe_n  ;
+--i_cfg_dbgcs.trig0(21)<=i_cfg_tstout(14);--<=p_in_ftdi_rxf_n  ;
+--i_cfg_dbgcs.trig0(22)<=i_cfg_tstout(15);--<=p_in_ftdi_pwren_n;
+--i_cfg_dbgcs.trig0(41 downto 23)<=(others=>'0');
+--
+----//-------- VIEW: ------------------
+--i_cfg_dbgcs.data(0)<=i_cfg_adr_ld;
+--i_cfg_dbgcs.data(1)<=i_cfg_wr;
+--i_cfg_dbgcs.data(2)<=i_cfg_rd;
+--i_cfg_dbgcs.data(3)<=i_cfg_done;
+--i_cfg_dbgcs.data(4)<=i_cfg_txrdy;
+--i_cfg_dbgcs.data(5)<=i_cfg_rxrdy;
+--i_cfg_dbgcs.data(13 downto 6)<=i_cfg_adr(7 downto 0);
+--i_cfg_dbgcs.data(29 downto 14)<=i_cfg_txd;
+--i_cfg_dbgcs.data(45 downto 30)<=i_cfg_rxd;
+--i_cfg_dbgcs.data(49 downto 46)<=i_cfg_tstout(9 downto 6);
+--i_cfg_dbgcs.data(50)<=i_cfg_tstout(11);--<=i_dv_rd;
+--i_cfg_dbgcs.data(51)<=i_cfg_tstout(12);--<=not i_dv_wr;
+--i_cfg_dbgcs.data(52)<=i_cfg_tstout(13);--<=p_in_ftdi_txe_n  ;
+--i_cfg_dbgcs.data(53)<=i_cfg_tstout(14);--<=p_in_ftdi_rxf_n  ;
+--i_cfg_dbgcs.data(54)<=i_cfg_tstout(15);--<=p_in_ftdi_pwren_n;
+--i_cfg_dbgcs.data(55)<=i_cfg_tstout(16);--<=i_pkt_field_data;
+--i_cfg_dbgcs.data(57 downto 56)<=i_cfg_tstout(19 downto 18);--i_cfg_dbyte
+--i_cfg_dbgcs.data(65 downto 58)<=i_cfg_tstout(27 downto 20);--i_pkt_cntd(7 downto 0)
+--i_cfg_dbgcs.data(122 downto 66)<=(others=>'0');
 
 
 end architecture;
