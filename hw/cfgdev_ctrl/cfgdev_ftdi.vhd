@@ -137,19 +137,19 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_rst,p_in_cfg_clk)
---begin
---  if p_in_rst='1' then
---    sr_dv_rdy<=(others=>'0');
---    tst_dv_rdy_edge<='0';
-----    p_out_tst(5 downto 0)<=(others=>'0');
---  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
-----    p_out_tst(0)<=OR_reduce(tst_fsm_cs);
-----    p_out_tst(4 downto 1)<=tst_fsm_cs;
---    sr_dv_rdy<=i_dv_rdy & sr_dv_rdy(0 to 1);
---    tst_dv_rdy_edge<=not sr_dv_rdy(1) and sr_dv_rdy(2);
---  end if;
---end process;
+----process(p_in_rst,p_in_cfg_clk)
+----begin
+----  if p_in_rst='1' then
+----    sr_dv_rdy<=(others=>'0');
+----    tst_dv_rdy_edge<='0';
+------    p_out_tst(5 downto 0)<=(others=>'0');
+----  elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
+------    p_out_tst(0)<=OR_reduce(tst_fsm_cs);
+------    p_out_tst(4 downto 1)<=tst_fsm_cs;
+----    sr_dv_rdy<=i_dv_rdy & sr_dv_rdy(0 to 1);
+----    tst_dv_rdy_edge<=not sr_dv_rdy(1) and sr_dv_rdy(2);
+----  end if;
+----end process;
 --p_out_tst(5 downto 0)<=(others=>'0');
 --p_out_tst(9 downto 6)<=tst_fsm_cs;
 --p_out_tst(10)<=i_dv_oe;
@@ -158,10 +158,11 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --p_out_tst(13)<=p_in_ftdi_txe_n  ;
 --p_out_tst(14)<=p_in_ftdi_rxf_n  ;
 --p_out_tst(15)<=p_in_ftdi_pwren_n;
---p_out_tst(16)<='0';
---p_out_tst(17)<='0';--tst_dv_rdy_edge;--
-----p_out_tst(25 downto 18)<=i_dv_din;
---p_out_tst(31 downto 18)<=(others=>'0');
+--p_out_tst(16)<=i_pkt_field_data;
+--p_out_tst(17)<='0';
+--p_out_tst(19 downto 18)<=CONV_STD_LOGIC_VECTOR(i_cfg_dbyte, 2);
+--p_out_tst(27 downto 20)<=i_pkt_cntd(7 downto 0);
+--p_out_tst(31 downto 28)<=(others=>'0');
 --
 --tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
 --            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
