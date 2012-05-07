@@ -25,6 +25,9 @@ constant C_PCFG_BOARD                  : string:="HSCAM";
 --//Конфигурирование модулей:
 constant C_PCFG_VINBUF_ONE             : string:="ON";--ON/OFF - один вх видеобуфер для VCTRL и HDD/ для VCTRL и HDD отдельные вх. видео буфера
 
+--//cfg CFG
+constant C_PCFG_CFG_DBGCS              : string:="OFF";
+
 --//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
 constant C_PCFG_VCTRL_DBGCS            : string:="OFF";

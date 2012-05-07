@@ -536,6 +536,9 @@ gen_hscam : if strcmp(C_PCFG_BOARD,"HSCAM") generate
 pin_out_uart0_tx <= pin_in_uart0_rx;
 
 m_cfgdev : cfgdev_ftdi
+generic map(
+G_DBG => C_PCFG_CFG_DBGCS
+)
 port map(
 -------------------------------
 --Связь с FTDI
@@ -629,12 +632,13 @@ pin_out_ftdi_wr_n<='1';
 
 m_cfgdev : cfgdev_uart
 generic map(
-G_BAUDCNT_VAL => 81   --p_in_uart_refclk=150Mhz - UART_BAUDRATE=115200
+G_BAUDCNT_VAL => 81,  --p_in_uart_refclk=150Mhz - UART_BAUDRATE=115200
 --G_BAUDCNT_VAL => 108  --p_in_uart_refclk=200Mhz - UART_BAUDRATE=115200
 
 --//G_BAUDCNT_VAL = Частота порта p_in_uart_refclk/(16 * UART_BAUDRATE)
 --//Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
 --//40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
+G_DBG => C_PCFG_CFG_DBGCS
 )
 port map(
 -------------------------------
@@ -671,7 +675,7 @@ p_in_cfg_clk         => g_cfg_clk,
 --Технологический
 -------------------------------
 p_in_tst             => (others=>'0'),
-p_out_tst            => open,--i_cfg_tstout(31 downto 0),
+p_out_tst            => i_cfg_tstout,
 
 -------------------------------
 --System
@@ -950,57 +954,61 @@ end generate gen_raid_dbgcs;
 end generate gen_dbgcs;
 
 
---m_dbgcs_icon : dbgcs_iconx1
---port map(
---CONTROL0 => i_dbgcs_cfg
---);
---
---m_dbgcs_cfg : dbgcs_sata_layer
---port map(
---CONTROL => i_dbgcs_cfg,
---CLK     => i_cfg_dbgcs.clk,
---DATA    => i_cfg_dbgcs.data(122 downto 0),
---TRIG0   => i_cfg_dbgcs.trig0(41 downto 0)
---);
---
---i_cfg_dbgcs.clk<=g_cfg_clk;
---
-----//-------- TRIG: ------------------
---i_cfg_dbgcs.trig0(0)<=i_cfg_adr_ld;
---i_cfg_dbgcs.trig0(1)<=i_cfg_wr;
---i_cfg_dbgcs.trig0(2)<=i_cfg_rd;
---i_cfg_dbgcs.trig0(3)<=i_cfg_done;
---i_cfg_dbgcs.trig0(4)<=i_cfg_txrdy;
---i_cfg_dbgcs.trig0(5)<=i_cfg_rxrdy;
---i_cfg_dbgcs.trig0(13 downto 6)<=i_cfg_adr(7 downto 0);
---i_cfg_dbgcs.trig0(17 downto 14)<=i_cfg_tstout(9 downto 6);
---i_cfg_dbgcs.trig0(18)<=i_cfg_tstout(11);--<=i_dv_rd;
---i_cfg_dbgcs.trig0(19)<=i_cfg_tstout(12);--<=not i_dv_wr;
---i_cfg_dbgcs.trig0(20)<=i_cfg_tstout(13);--<=p_in_ftdi_txe_n  ;
---i_cfg_dbgcs.trig0(21)<=i_cfg_tstout(14);--<=p_in_ftdi_rxf_n  ;
---i_cfg_dbgcs.trig0(22)<=i_cfg_tstout(15);--<=p_in_ftdi_pwren_n;
---i_cfg_dbgcs.trig0(41 downto 23)<=(others=>'0');
---
-----//-------- VIEW: ------------------
---i_cfg_dbgcs.data(0)<=i_cfg_adr_ld;
---i_cfg_dbgcs.data(1)<=i_cfg_wr;
---i_cfg_dbgcs.data(2)<=i_cfg_rd;
---i_cfg_dbgcs.data(3)<=i_cfg_done;
---i_cfg_dbgcs.data(4)<=i_cfg_txrdy;
---i_cfg_dbgcs.data(5)<=i_cfg_rxrdy;
---i_cfg_dbgcs.data(13 downto 6)<=i_cfg_adr(7 downto 0);
---i_cfg_dbgcs.data(29 downto 14)<=i_cfg_txd;
---i_cfg_dbgcs.data(45 downto 30)<=i_cfg_rxd;
---i_cfg_dbgcs.data(49 downto 46)<=i_cfg_tstout(9 downto 6);
---i_cfg_dbgcs.data(50)<=i_cfg_tstout(11);--<=i_dv_rd;
---i_cfg_dbgcs.data(51)<=i_cfg_tstout(12);--<=not i_dv_wr;
---i_cfg_dbgcs.data(52)<=i_cfg_tstout(13);--<=p_in_ftdi_txe_n  ;
---i_cfg_dbgcs.data(53)<=i_cfg_tstout(14);--<=p_in_ftdi_rxf_n  ;
---i_cfg_dbgcs.data(54)<=i_cfg_tstout(15);--<=p_in_ftdi_pwren_n;
---i_cfg_dbgcs.data(55)<=i_cfg_tstout(16);--<=i_pkt_field_data;
---i_cfg_dbgcs.data(57 downto 56)<=i_cfg_tstout(19 downto 18);--i_cfg_dbyte
---i_cfg_dbgcs.data(65 downto 58)<=i_cfg_tstout(27 downto 20);--i_pkt_cntd(7 downto 0)
---i_cfg_dbgcs.data(122 downto 66)<=(others=>'0');
+gen_cfg_dbgcs : if strcmp(C_PCFG_CFG_DBGCS,"ON") generate
+
+m_dbgcs_icon : dbgcs_iconx1
+port map(
+CONTROL0 => i_dbgcs_cfg
+);
+
+m_dbgcs_cfg : dbgcs_sata_layer
+port map(
+CONTROL => i_dbgcs_cfg,
+CLK     => i_cfg_dbgcs.clk,
+DATA    => i_cfg_dbgcs.data(122 downto 0),
+TRIG0   => i_cfg_dbgcs.trig0(41 downto 0)
+);
+
+i_cfg_dbgcs.clk<=g_cfg_clk;
+
+--//-------- TRIG: ------------------
+i_cfg_dbgcs.trig0(0)<=i_cfg_adr_ld;
+i_cfg_dbgcs.trig0(1)<=i_cfg_wr;
+i_cfg_dbgcs.trig0(2)<=i_cfg_rd;
+i_cfg_dbgcs.trig0(3)<=i_cfg_done;
+i_cfg_dbgcs.trig0(4)<=i_cfg_txrdy;
+i_cfg_dbgcs.trig0(5)<=i_cfg_rxrdy;
+i_cfg_dbgcs.trig0(13 downto 6)<=i_cfg_adr(7 downto 0);
+i_cfg_dbgcs.trig0(17 downto 14)<=i_cfg_tstout(9 downto 6);
+i_cfg_dbgcs.trig0(18)<=i_cfg_tstout(11);--<=i_dv_rd;
+i_cfg_dbgcs.trig0(19)<=i_cfg_tstout(12);--<=not i_dv_wr;
+i_cfg_dbgcs.trig0(20)<=i_cfg_tstout(13);--<=p_in_ftdi_txe_n  ;
+i_cfg_dbgcs.trig0(21)<=i_cfg_tstout(14);--<=p_in_ftdi_rxf_n  ;
+i_cfg_dbgcs.trig0(22)<=i_cfg_tstout(15);--<=p_in_ftdi_pwren_n;
+i_cfg_dbgcs.trig0(41 downto 23)<=(others=>'0');
+
+--//-------- VIEW: ------------------
+i_cfg_dbgcs.data(0)<=i_cfg_adr_ld;
+i_cfg_dbgcs.data(1)<=i_cfg_wr;
+i_cfg_dbgcs.data(2)<=i_cfg_rd;
+i_cfg_dbgcs.data(3)<=i_cfg_done;
+i_cfg_dbgcs.data(4)<=i_cfg_txrdy;
+i_cfg_dbgcs.data(5)<=i_cfg_rxrdy;
+i_cfg_dbgcs.data(13 downto 6)<=i_cfg_adr(7 downto 0);
+i_cfg_dbgcs.data(29 downto 14)<=i_cfg_txd;
+i_cfg_dbgcs.data(45 downto 30)<=i_cfg_rxd;
+i_cfg_dbgcs.data(49 downto 46)<=i_cfg_tstout(9 downto 6);
+i_cfg_dbgcs.data(50)<=i_cfg_tstout(11);--<=i_dv_rd;
+i_cfg_dbgcs.data(51)<=i_cfg_tstout(12);--<=not i_dv_wr;
+i_cfg_dbgcs.data(52)<=i_cfg_tstout(13);--<=p_in_ftdi_txe_n  ;
+i_cfg_dbgcs.data(53)<=i_cfg_tstout(14);--<=p_in_ftdi_rxf_n  ;
+i_cfg_dbgcs.data(54)<=i_cfg_tstout(15);--<=p_in_ftdi_pwren_n;
+i_cfg_dbgcs.data(55)<=i_cfg_tstout(16);--<=i_pkt_field_data;
+i_cfg_dbgcs.data(57 downto 56)<=i_cfg_tstout(19 downto 18);--i_cfg_dbyte
+i_cfg_dbgcs.data(65 downto 58)<=i_cfg_tstout(27 downto 20);--i_pkt_cntd(7 downto 0)
+i_cfg_dbgcs.data(122 downto 66)<=(others=>'0');
+
+end generate gen_cfg_dbgcs;
 
 
 end architecture;

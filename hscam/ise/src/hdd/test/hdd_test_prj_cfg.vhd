@@ -22,6 +22,9 @@ package prj_cfg is
 constant C_PCFG_BOARD                  : string:="HSCAM";
 
 --//Конфигурирование модулей:
+--//cfg CFG
+constant C_PCFG_CFG_DBGCS              : string:="OFF";
+
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 1
 constant C_PCFG_MEM_DWIDTH             : integer:=64;
