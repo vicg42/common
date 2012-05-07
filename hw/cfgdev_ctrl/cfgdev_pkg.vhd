@@ -46,6 +46,7 @@ constant C_CFGPKT_RD                : std_logic:='1';
 
 component cfgdev_uart
 generic(
+G_DBG : string:="OFF";
 G_BAUDCNT_VAL: integer:=64
 );
 port(
@@ -95,6 +96,9 @@ end component;
 
 
 component cfgdev_ftdi
+generic(
+G_DBG : string:="OFF"
+);
 port(
 -------------------------------
 --Ñâÿçü ñ FTDI
@@ -146,6 +150,7 @@ end component;
 
 component cfgdev_host
 generic(
+G_DBG : string:="OFF";
 G_HOST_DWIDTH : integer:=32
 );
 port(

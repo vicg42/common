@@ -33,10 +33,13 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library work;
+use work.vicg_common_pkg.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_uart is
 generic(
+G_DBG : string:="OFF";
 G_BAUDCNT_VAL: integer:=64 --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
                            --//Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
                            --//
@@ -229,7 +232,11 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
---p_out_tst(31 downto 0)<=(others=>'0');
+gen_dbg_off : if strcmp(G_DBG,"OFF") generate
+p_out_tst(31 downto 0)<=(others=>'0');
+end generate gen_dbg_off;
+
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
 process(p_in_rst,p_in_cfg_clk)
 begin
   if p_in_rst='1' then
@@ -257,6 +264,7 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S
             CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);--when fsm_state_cs=S_CFG_RXD       else
 
+end generate gen_dbg_on;
 
 
 --------------------------------------------------

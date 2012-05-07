@@ -33,10 +33,13 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library work;
+use work.vicg_common_pkg.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_host is
 generic(
+G_DBG : string:="OFF";
 G_HOST_DWIDTH : integer:=32
 );
 port(
@@ -175,13 +178,13 @@ signal i_irq_out                        : std_logic;
 signal i_irq_width                      : std_logic;
 signal i_irq_width_cnt                  : std_logic_vector(3 downto 0);
 
---signal tst_fsm_cs                       : std_logic_vector(3 downto 0):=(others=>'0');
---signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range):=(others=>'0');
---signal tst_rxbuf_empty                  : std_logic:='0';
---signal tst_rst0                         : std_logic:='0';
---signal tst_rst1                         : std_logic:='0';
---signal tst_rstup,tst_rstdown            : std_logic:='0';
---signal tst_host_rd                      : std_logic:='0';
+signal tst_fsm_cs                       : std_logic_vector(3 downto 0):=(others=>'0');
+signal tst_fsm_cs_dly                   : std_logic_vector(tst_fsm_cs'range):=(others=>'0');
+signal tst_rxbuf_empty                  : std_logic:='0';
+signal tst_rst0                         : std_logic:='0';
+signal tst_rst1                         : std_logic:='0';
+signal tst_rstup,tst_rstdown            : std_logic:='0';
+signal tst_host_rd                      : std_logic:='0';
 
 
 --MAIN
@@ -190,35 +193,40 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
+gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_cfg_clk)
---begin
---  if p_in_cfg_clk'event and p_in_cfg_clk='1' then
---
---    tst_rst0<=p_in_rst;
---    tst_rst1<=tst_rst0;
---    tst_rstup<=tst_rst0 and not tst_rst1;
---    tst_rstdown<=not tst_rst0 and tst_rst1;
---    tst_fsm_cs_dly<=tst_fsm_cs;
---    tst_rxbuf_empty<=i_rxbuf_empty;
---    p_out_tst(0)<=OR_reduce(tst_fsm_cs_dly) or i_cfg_done or tst_rxbuf_empty or tst_host_rd or tst_rstup or tst_rstdown;
---
---  end if;
---end process;
---p_out_tst(31 downto 1)<=(others=>'0');
---
---tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
---            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
---            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
---            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
---            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
---            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
---            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
---            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
---            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
---            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);
-----            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_RXD       else
+end generate gen_dbg_off;
 
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
+process(p_in_cfg_clk)
+begin
+  if p_in_cfg_clk'event and p_in_cfg_clk='1' then
+
+    tst_rst0<=p_in_rst;
+    tst_rst1<=tst_rst0;
+    tst_rstup<=tst_rst0 and not tst_rst1;
+    tst_rstdown<=not tst_rst0 and tst_rst1;
+    tst_fsm_cs_dly<=tst_fsm_cs;
+    tst_rxbuf_empty<=i_rxbuf_empty;
+    p_out_tst(0)<=OR_reduce(tst_fsm_cs_dly) or i_cfg_done or tst_rxbuf_empty or tst_rstup or tst_rstdown;--tst_host_rd or
+
+  end if;
+end process;
+p_out_tst(31 downto 1)<=(others=>'0');
+
+tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_TXRDY else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_TXD        else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_RXCHK     else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_cs'length) when fsm_state_cs=S_PKTH_TXCHK     else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_TXRDY else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_TXD        else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_WAIT_RXRDY else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length);
+--            CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_cs'length) when fsm_state_cs=S_CFG_RXD       else
+
+end generate gen_dbg_on;
 
 
 
