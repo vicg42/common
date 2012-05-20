@@ -176,7 +176,7 @@ p_in_usr_tx_wr      : in    std_logic;                    --строб записи txd
 p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxd
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
-p_out_usr_status    : out   std_logic_vector(15 downto 0);
+p_out_usr_status    : out   std_logic_vector(7 downto 0);
 
 --Статусы модуля
 p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
