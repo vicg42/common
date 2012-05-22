@@ -49,9 +49,9 @@ p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
-p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
-p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
-p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
+--p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
+--p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
+--p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
 p_in_txdata            : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
 p_in_txcharisk         : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
 
@@ -61,9 +61,9 @@ p_out_txbufstatus      : out   TBus02_GTCH;
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
-p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS + PMA
+--p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS + PMA
 p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS
-p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
+--p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
 p_out_rxstatus         : out   TBus03_GTCH;                                   --//Тип обнаруженного OOB сигнала
 p_out_rxdata           : out   TBus32_GTCH;                                   --//поток данных от приемника DUAL_GTP
 p_out_rxcharisk        : out   TBus04_GTCH;                                   --//признак наличия упр.символов в rxdata
@@ -104,32 +104,32 @@ architecture behavioral of gmii_pma is
 --//1 - только для случая G_GT_DBUS=8
 --//2 - для всех других случаев. Выравниваение по чётной границе. см Figure 7-15: Comma Alignment Boundaries ,
 --      ug196_Virtex-5 FPGA RocketIO GTP Transceiver User Guide.pdf
-constant CI_PLL_DIV                : integer := selval(1, 2, cmpval(C_FSATA_GEN_DEFAULT,C_FSATA_GEN2));--(1/2 - SATA-II/I)
-constant CI_GTP_ALIGN_COMMA_WORD   : integer := selval(1, 2, cmpval(G_GT_DBUS, 8));
+constant CI_PLL_DIV                : integer := 2;
+constant CI_GTP_ALIGN_COMMA_WORD   : integer := 1;
 constant CI_GTP_DATAWIDTH          : std_logic_vector(0 downto 0):=CONV_STD_LOGIC_VECTOR(selval(0, 1, cmpval(G_GT_DBUS, 8)), 1);
 constant CI_8B10BUSE               : std_logic:='1';--0/1 - bypassed/enabled for 8B/10B decoder(encoder)
 constant CI_INTDATAWIDTH           : std_logic:='1';--Подробнее см.стр.190 в ug196.pdf
 
-signal i_rxenelecidleresetb        : std_logic;
+--signal i_rxenelecidleresetb        : std_logic;
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 
-signal i_txelecidle_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_txcomstart_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-signal i_txcomtype_in              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--signal i_txelecidle_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--signal i_txcomstart_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--signal i_txcomtype_in              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_txdata_in                 : TBus32_GTCH;
 signal i_txcharisk_in              : TBus04_GTCH;
 
 signal i_txreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_txbufstatus_out           : TBus02_GTCH;
 
-signal i_rxcdrreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+--signal i_rxcdrreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_rxstatus_out              : TBus03_GTCH;
@@ -163,9 +163,9 @@ end generate gen_null;
 
 
 gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
-i_txelecidle_in(1)      <='0';
-i_txcomstart_in(1)      <='0';
-i_txcomtype_in(1)       <='0';
+--i_txelecidle_in(1)      <='0';
+--i_txcomstart_in(1)      <='0';
+--i_txcomtype_in(1)       <='0';
 i_txdata_in(1)(15 downto 0)  <=(others=>'0');
 i_txcharisk_in(1)(1 downto 0)<=(others=>'0');
 
@@ -254,18 +254,18 @@ begin
   if g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
       p_out_resetdone(i)      <=i_resetdone(i);
 
-      i_txelecidle_in(i)      <=p_in_txelecidle(i);
-      i_txcomstart_in(i)      <=p_in_txcomstart(i);
-      i_txcomtype_in(i)       <=p_in_txcomtype(i);
+--      i_txelecidle_in(i)      <=p_in_txelecidle(i);
+--      i_txcomstart_in(i)      <=p_in_txcomstart(i);
+--      i_txcomtype_in(i)       <=p_in_txcomtype(i);
       i_txdata_in(i)(15 downto 0)  <=p_in_txdata(i)(15 downto 0);
       i_txcharisk_in(i)(1 downto 0)<=p_in_txcharisk(i)(1 downto 0);
 
       i_txreset_in(i)         <=p_in_txreset(i);
       p_out_txbufstatus(i)    <=i_txbufstatus_out(i);
 
-      i_rxcdrreset_in(i)      <=p_in_rxcdrreset(i);
+--      i_rxcdrreset_in(i)      <=p_in_rxcdrreset(i);
       i_rxreset_in(i)         <=p_in_rxreset(i);
-      p_out_rxelecidle(i)     <=i_rxelecidle(i);
+--      p_out_rxelecidle(i)     <=i_rxelecidle(i);
       p_out_rxstatus(i)       <=i_rxstatus_out(i);
 
       p_out_rxdata(i)(15 downto 0)     <=i_rxdata_out(i)(15 downto 0);
@@ -279,7 +279,7 @@ begin
   end if;
 end process;
 
-i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
+--i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
 
 end generate gen_ch;
 
@@ -291,7 +291,7 @@ end generate gen_ch;
 --//###########################
 p_out_optrefclk<=(others=>'0');
 
-i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
+--i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 
 m_gt : GTP_DUAL
 generic map(
@@ -308,9 +308,9 @@ PRBS_ERR_THRESHOLD_0        => x"00000001",
 PRBS_ERR_THRESHOLD_1        => x"00000001",
 
 --Tile and PLL Attributes
-CLK25_DIVIDER               => 6,
+CLK25_DIVIDER               => 5,
 CLKINDC_B                   => TRUE,
-OOB_CLK_DIVIDER             => 6,
+OOB_CLK_DIVIDER             => 4,
 OVERSAMPLE_MODE             => FALSE,
 PLL_DIVSEL_FB               => 2,
 PLL_DIVSEL_REF              => 1,
@@ -387,7 +387,7 @@ TXRX_INVERT_1               => "00000",
 
 --Comma Detection and Alignment Attributes
 ALIGN_COMMA_WORD_0          => CI_GTP_ALIGN_COMMA_WORD,
-COMMA_10B_ENABLE_0          => "1111111111",
+COMMA_10B_ENABLE_0          => "0001111111",
 COMMA_DOUBLE_0              => FALSE,
 DEC_MCOMMA_DETECT_0         => TRUE,
 DEC_PCOMMA_DETECT_0         => TRUE,
@@ -399,7 +399,7 @@ PCOMMA_DETECT_0             => TRUE,
 RX_SLIDE_MODE_0             => "PCS",
 
 ALIGN_COMMA_WORD_1          => CI_GTP_ALIGN_COMMA_WORD,
-COMMA_10B_ENABLE_1          => "1111111111",
+COMMA_10B_ENABLE_1          => "0001111111",
 COMMA_DOUBLE_1              => FALSE,
 DEC_MCOMMA_DETECT_1         => TRUE,
 DEC_PCOMMA_DETECT_1         => TRUE,
@@ -419,8 +419,8 @@ RX_XCLK_SEL_1               => "RXREC",
 
 --Clock Correction Attributes
 CLK_CORRECT_USE_0           => TRUE,
-CLK_COR_ADJ_LEN_0           => 4,
-CLK_COR_DET_LEN_0           => 4,
+CLK_COR_ADJ_LEN_0           => 2,
+CLK_COR_DET_LEN_0           => 2,
 CLK_COR_INSERT_IDLE_FLAG_0  => FALSE,
 CLK_COR_KEEP_IDLE_0         => FALSE,
 CLK_COR_MAX_LAT_0           => 18,
@@ -428,21 +428,21 @@ CLK_COR_MIN_LAT_0           => 16,
 CLK_COR_PRECEDENCE_0        => TRUE,
 CLK_COR_REPEAT_WAIT_0       => 0,
 CLK_COR_SEQ_1_1_0           => "0110111100",
-CLK_COR_SEQ_1_2_0           => "0001001010",
-CLK_COR_SEQ_1_3_0           => "0001001010",
-CLK_COR_SEQ_1_4_0           => "0001111011",
-CLK_COR_SEQ_1_ENABLE_0      => "1111",
-CLK_COR_SEQ_2_1_0           => "0000000000",
-CLK_COR_SEQ_2_2_0           => "0000000000",
+CLK_COR_SEQ_1_2_0           => "0001010000",
+CLK_COR_SEQ_1_3_0           => "0000000000",
+CLK_COR_SEQ_1_4_0           => "0000000000",
+CLK_COR_SEQ_1_ENABLE_0      => "0011",
+CLK_COR_SEQ_2_1_0           => "0110111100",
+CLK_COR_SEQ_2_2_0           => "0010110101",
 CLK_COR_SEQ_2_3_0           => "0000000000",
 CLK_COR_SEQ_2_4_0           => "0000000000",
-CLK_COR_SEQ_2_ENABLE_0      => "0000",
-CLK_COR_SEQ_2_USE_0         => FALSE,
+CLK_COR_SEQ_2_ENABLE_0      => "0011",
+CLK_COR_SEQ_2_USE_0         => TRUE,
 RX_DECODE_SEQ_MATCH_0       => TRUE,
 
 CLK_CORRECT_USE_1           => TRUE,
-CLK_COR_ADJ_LEN_1           => 4,
-CLK_COR_DET_LEN_1           => 4,
+CLK_COR_ADJ_LEN_1           => 2,
+CLK_COR_DET_LEN_1           => 2,
 CLK_COR_INSERT_IDLE_FLAG_1  => FALSE,
 CLK_COR_KEEP_IDLE_1         => FALSE,
 CLK_COR_MAX_LAT_1           => 18,
@@ -450,33 +450,33 @@ CLK_COR_MIN_LAT_1           => 16,
 CLK_COR_PRECEDENCE_1        => TRUE,
 CLK_COR_REPEAT_WAIT_1       => 0,
 CLK_COR_SEQ_1_1_1           => "0110111100",
-CLK_COR_SEQ_1_2_1           => "0001001010",
-CLK_COR_SEQ_1_3_1           => "0001001010",
-CLK_COR_SEQ_1_4_1           => "0001111011",
-CLK_COR_SEQ_1_ENABLE_1      => "1111",
-CLK_COR_SEQ_2_1_1           => "0000000000",
-CLK_COR_SEQ_2_2_1           => "0000000000",
+CLK_COR_SEQ_1_2_1           => "0001010000",
+CLK_COR_SEQ_1_3_1           => "0000000000",
+CLK_COR_SEQ_1_4_1           => "0000000000",
+CLK_COR_SEQ_1_ENABLE_1      => "0011",
+CLK_COR_SEQ_2_1_1           => "0110111100",
+CLK_COR_SEQ_2_2_1           => "0010110101",
 CLK_COR_SEQ_2_3_1           => "0000000000",
 CLK_COR_SEQ_2_4_1           => "0000000000",
-CLK_COR_SEQ_2_ENABLE_1      => "0000",
-CLK_COR_SEQ_2_USE_1         => FALSE,
+CLK_COR_SEQ_2_ENABLE_1      => "0011",
+CLK_COR_SEQ_2_USE_1         => TRUE,
 RX_DECODE_SEQ_MATCH_1       => TRUE,
 
 --RX Driver,OOB signalling,Coupling and Eq,CDR Attributes
-AC_CAP_DIS_0                => FALSE,
+AC_CAP_DIS_0                => TRUE,
 PMA_CDR_SCAN_0              => x"6c07640",
-PMA_RX_CFG_0                => x"09f0051",--ug196.pdf; x"0dce111",--xapp870; x"09f0089",--Wizard;
+PMA_RX_CFG_0                => x"09f0088",
 RCV_TERM_GND_0              => FALSE,
-RCV_TERM_MID_0              => TRUE,
-RCV_TERM_VTTRX_0            => TRUE,--(Xilinx rpt087.pdf)
+RCV_TERM_MID_0              => FALSE,
+RCV_TERM_VTTRX_0            => FALSE
 TERMINATION_IMP_0           => 50,
 
-AC_CAP_DIS_1                => FALSE,
+AC_CAP_DIS_1                => TRUE,
 PMA_CDR_SCAN_1              => x"6c07640",
-PMA_RX_CFG_1                => x"09f0051",--ug196.pdf; x"09f0089",--Wizard; x"0dce111",--xapp870;
+PMA_RX_CFG_1                => x"09f0088",
 RCV_TERM_GND_1              => FALSE,
-RCV_TERM_MID_1              => TRUE,
-RCV_TERM_VTTRX_1            => TRUE,--(Xilinx rpt087.pdf)
+RCV_TERM_MID_1              => FALSE,
+RCV_TERM_VTTRX_1            => FALSE
 TERMINATION_IMP_1           => 50,
 
 PCS_COM_CFG                 => x"1680a0e",
@@ -484,35 +484,35 @@ TERMINATION_CTRL            => "10100",
 TERMINATION_OVRD            => FALSE,
 
 --RX Attributes for PCI Express/SATA Attributes
-OOBDETECT_THRESHOLD_0       => "100",--Wizard; "111",--(Xilinx rpt087.pdf);
-COM_BURST_VAL_0             => "0101",
-RX_STATUS_FMT_0             => "SATA",
+OOBDETECT_THRESHOLD_0       => "001",
+COM_BURST_VAL_0             => "1111",
+RX_STATUS_FMT_0             => "PCIE",
 SATA_BURST_VAL_0            => "100",
 SATA_IDLE_VAL_0             => "100",
-SATA_MAX_BURST_0            => 7,
-SATA_MAX_INIT_0             => 22,
-SATA_MAX_WAKE_0             => 7,
-SATA_MIN_BURST_0            => 4,
-SATA_MIN_INIT_0             => 12,
-SATA_MIN_WAKE_0             => 4,
-TRANS_TIME_FROM_P2_0        => x"003c",
-TRANS_TIME_NON_P2_0         => x"0019",
-TRANS_TIME_TO_P2_0          => x"0064",
+SATA_MAX_BURST_0            => 9,
+SATA_MAX_INIT_0             => 27,
+SATA_MAX_WAKE_0             => 9,
+SATA_MIN_BURST_0            => 5,
+SATA_MIN_INIT_0             => 15,
+SATA_MIN_WAKE_0             => 5,
+TRANS_TIME_FROM_P2_0        => x"0060",
+TRANS_TIME_NON_P2_0         => x"0025",
+TRANS_TIME_TO_P2_0          => x"0100",
 
-OOBDETECT_THRESHOLD_1       => "100",--Wizard; "111",--(Xilinx rpt087.pdf)
-COM_BURST_VAL_1             => "0101",
-RX_STATUS_FMT_1             => "SATA",
+OOBDETECT_THRESHOLD_1       => "001",
+COM_BURST_VAL_1             => "1111",
+RX_STATUS_FMT_1             => "PCIE",
 SATA_BURST_VAL_1            => "100",
 SATA_IDLE_VAL_1             => "100",
-SATA_MAX_BURST_1            => 7,
-SATA_MAX_INIT_1             => 22,
-SATA_MAX_WAKE_1             => 7,
-SATA_MIN_BURST_1            => 4,
-SATA_MIN_INIT_1             => 12,
-SATA_MIN_WAKE_1             => 4,
-TRANS_TIME_FROM_P2_1        => x"003c",
-TRANS_TIME_NON_P2_1         => x"0019",
-TRANS_TIME_TO_P2_1          => x"0064"
+SATA_MAX_BURST_1            => 9,
+SATA_MAX_INIT_1             => 27,
+SATA_MAX_WAKE_1             => 9,
+SATA_MIN_BURST_1            => 5,
+SATA_MIN_INIT_1             => 15,
+SATA_MIN_WAKE_1             => 5,
+TRANS_TIME_FROM_P2_1        => x"0060",
+TRANS_TIME_NON_P2_1         => x"0025",
+TRANS_TIME_TO_P2_1          => x"0100"
 )
 port map(
 ------- Loopback and Powerdown Ports -------
@@ -542,8 +542,8 @@ RXCHBONDI0                  => "000",
 RXCHBONDI1                  => "000",
 RXCHBONDO0                  => open,
 RXCHBONDO1                  => open,
-RXENCHANSYNC0               => '1',
-RXENCHANSYNC1               => '1',
+RXENCHANSYNC0               => '0',
+RXENCHANSYNC1               => '0',
 ------- Receive Ports - Clock Correction Ports -------
 RXCLKCORCNT0                => open,
 RXCLKCORCNT1                => open,
@@ -576,19 +576,19 @@ RXDATAWIDTH0                => CI_GTP_DATAWIDTH(0),
 RXDATAWIDTH1                => CI_GTP_DATAWIDTH(0),
 RXRECCLK0                   => open,
 RXRECCLK1                   => open,
-RXRESET0                    => i_rxreset_in(0),--p_in_rxreset(0),--
-RXRESET1                    => i_rxreset_in(1),--p_in_rxreset(1),--
+RXRESET0                    => i_rxreset_in(0),
+RXRESET1                    => i_rxreset_in(1),
 RXUSRCLK0                   => g_gtp_usrclk(0),
 RXUSRCLK1                   => g_gtp_usrclk(1),
 RXUSRCLK20                  => g_gtp_usrclk2(0),
 RXUSRCLK21                  => g_gtp_usrclk2(1),
 ------- Receive Ports - RX Driver,OOB signalling,Coupling and Eq.,CDR -------
-RXCDRRESET0                 => p_in_rxcdrreset(0),--i_rxcdrreset_in(0),--
-RXCDRRESET1                 => p_in_rxcdrreset(1),--i_rxcdrreset_in(1),--
+RXCDRRESET0                 => '0',
+RXCDRRESET1                 => '0',
 RXELECIDLE0                 => i_rxelecidle(0),
 RXELECIDLE1                 => i_rxelecidle(1),
-RXELECIDLERESET0            => i_rxelecidlereset(0),
-RXELECIDLERESET1            => i_rxelecidlereset(1),
+RXELECIDLERESET0            => '0',--i_rxelecidlereset(0),
+RXELECIDLERESET1            => '0',--i_rxelecidlereset(1),
 RXENEQB0                    => '1',
 RXENEQB1                    => '1',
 RXEQMIX0                    => "00",
@@ -600,8 +600,8 @@ RXN1                        => p_in_rxn(1),
 RXP0                        => p_in_rxp(0),
 RXP1                        => p_in_rxp(1),
 ------- Receive Ports - RX Elastic Buffer and Phase Alignment Ports -------
-RXBUFRESET0                 => i_rxbufreset_in(0),--p_in_rxbufreset(0),--
-RXBUFRESET1                 => i_rxbufreset_in(1),--p_in_rxbufreset(1),--
+RXBUFRESET0                 => i_rxbufreset_in(0),
+RXBUFRESET1                 => i_rxbufreset_in(1),
 RXBUFSTATUS0                => i_rxbufstatus_out(0),
 RXBUFSTATUS1                => i_rxbufstatus_out(1),
 RXCHANISALIGNED0            => open,
@@ -648,16 +648,16 @@ REFCLKOUT                   => p_out_refclkout,
 REFCLKPWRDNB                => '1',
 RESETDONE0                  => i_resetdone(0),
 RESETDONE1                  => i_resetdone(1),
-RXENELECIDLERESETB          => i_rxenelecidleresetb,
+RXENELECIDLERESETB          => '1',
 TXENPMAPHASEALIGN           => '0',
 TXPMASETPHASE               => '0',
 ------- Transmit Ports - 8b10b Encoder Control Ports -------
 TXBYPASS8B10B0              => "00",
 TXBYPASS8B10B1              => "00",
-TXCHARDISPMODE0             => "00",
-TXCHARDISPMODE1             => "00",
-TXCHARDISPVAL0              => "00",
-TXCHARDISPVAL1              => "00",
+TXCHARDISPMODE0             => i_txchadipmode_in(0)(1 downto 0),--(0x)
+TXCHARDISPMODE1             => i_txchadipmode_in(0)(1 downto 0),--(0x)
+TXCHARDISPVAL0              => i_txchadipval_in(0)(1 downto 0),--(0x)
+TXCHARDISPVAL1              => i_txchadipval_in(0)(1 downto 0),--(0x)
 TXCHARISK0                  => i_txcharisk_in(0)(1 downto 0),
 TXCHARISK1                  => i_txcharisk_in(1)(1 downto 0),
 TXENC8B10BUSE0              => CI_8B10BUSE,
@@ -676,25 +676,25 @@ TXDATAWIDTH0                => CI_GTP_DATAWIDTH(0),
 TXDATAWIDTH1                => CI_GTP_DATAWIDTH(0),
 TXOUTCLK0                   => open,
 TXOUTCLK1                   => open,
-TXRESET0                    => i_txreset_in(0),--p_in_txreset(0),--
-TXRESET1                    => i_txreset_in(1),--p_in_txreset(1),--
+TXRESET0                    => i_txreset_in(0),
+TXRESET1                    => i_txreset_in(1),
 TXUSRCLK0                   => g_gtp_usrclk(0),
 TXUSRCLK1                   => g_gtp_usrclk(1),
 TXUSRCLK20                  => g_gtp_usrclk2(0),
 TXUSRCLK21                  => g_gtp_usrclk2(1),
 ------- Transmit Ports - TX Driver and OOB signalling -------
-TXBUFDIFFCTRL0              => "001",--(Xilinx rpt087.pdf)
-TXBUFDIFFCTRL1              => "001",--(Xilinx rpt087.pdf)
-TXDIFFCTRL0                 => "100",--(Xilinx rpt087.pdf)
-TXDIFFCTRL1                 => "100",--(Xilinx rpt087.pdf)
+TXBUFDIFFCTRL0              => "000",
+TXBUFDIFFCTRL1              => "000",
+TXDIFFCTRL0                 => "000",
+TXDIFFCTRL1                 => "000",
 TXINHIBIT0                  => '0',
 TXINHIBIT1                  => '0',
 TXN0                        => p_out_txn(0),
 TXN1                        => p_out_txn(1),
 TXP0                        => p_out_txp(0),
 TXP1                        => p_out_txp(1),
-TXPREEMPHASIS0              => "011",--(Xilinx rpt087.pdf)
-TXPREEMPHASIS1              => "011",--(Xilinx rpt087.pdf)
+TXPREEMPHASIS0              => "000",
+TXPREEMPHASIS1              => "000",
 ------- Transmit Ports - TX PRBS Generator -------
 TXENPRBSTST0                => "00",
 TXENPRBSTST1                => "00",
@@ -704,13 +704,13 @@ TXPOLARITY1                 => '0',
 ------- Transmit Ports - TX Ports for PCI Express -------
 TXDETECTRX0                 => '0',
 TXDETECTRX1                 => '0',
-TXELECIDLE0                 => i_txelecidle_in(0),
-TXELECIDLE1                 => i_txelecidle_in(1),
+TXELECIDLE0                 => '0',
+TXELECIDLE1                 => '0',
 ------- Transmit Ports - TX Ports for SATA -------
-TXCOMSTART0                 => i_txcomstart_in(0),
-TXCOMSTART1                 => i_txcomstart_in(1),
-TXCOMTYPE0                  => i_txcomtype_in(0),
-TXCOMTYPE1                  => i_txcomtype_in(1)
+TXCOMSTART0                 => '0',
+TXCOMSTART1                 => '0',
+TXCOMTYPE0                  => '0',
+TXCOMTYPE1                  => '0'
 
 );
 
