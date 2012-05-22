@@ -90,8 +90,8 @@ module blextcontr(RCIN,clk,init,endet,igain,iexp,itemp,rdstat,istat,rdcfg,icfg,R
 		                   rc_out <= odata[0];
 								 rkorr <= korr;
 								 korr <= (rkorr)? 0: korr;
-//								 ogain <= (oregime[4])? igain: ogain;
-//								 oexp <= (oregime[3])? iexp: oexp;	
+//								 ogain <= (oregime[5])? igain: ogain;
+// 							    oexp <= (oregime[4])? iexp: oexp;	
 								 rdstat <= (state==s_end&&com==8'h60&&cbbyte==2)? 1: 0;
 								 rdcfg <= (state==s_end&&com==8'h62&&cbbyte==3)? 1: 0;
 								 wrcfg <= (state==s_end&&com==8'h22&&cbbyte==1)? 1: 0; end                   	    						    		 

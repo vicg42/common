@@ -1,5 +1,5 @@
 //Блок синхронизации
-module blsync(fr,IN,clk,inv,extsyn,midsyn,iexp,ah,av,ahlvds,avlvds,th,tv,e1sec,esyn,isyn);
+module blsync(fr,IN,clk,inv,extsyn,midsyn,iexp,ah,av,ahlvds,avlvds,th,tv,e1sec,esyn,isyn,otest,otestextsyn);
 	 input [1:0] fr;//частота кадров: 00-60Гц; 01-120Гц; 10-240Гц; 11-480Гц
     input IN;//120 герц
     input clk;//65.625MHz
@@ -13,15 +13,19 @@ module blsync(fr,IN,clk,inv,extsyn,midsyn,iexp,ah,av,ahlvds,avlvds,th,tv,e1sec,e
     output reg [10:0] avlvds;//Адрес строки для вывода в lvds
     output reg th;//Конец строки
     output reg tv;//Конец кадра
-    output e1sec,esyn,isyn;    
+    output e1sec,esyn,isyn,otest;
+	 output [2:0] otestextsyn;	
 //Внутренние переменные      
     wire uph;//Увеличение длительности строки +1
     wire downh;//Уменьшение длительности строки -1
     wire beginsyn;//Привязка синхронизации
     wire gate;//Ворота для строк
+
 //Компоненты
 blextsyn blextsyn(.clk(clk),.fr(fr),.inv(inv),.tv(tv),.th(th),.midsyn(midsyn),.in(IN),.ah(ah),.av(av),.iexp(iexp),.extsyn(extsyn),
-                  .uph(uph),.downh(downh),.beginsyn(beginsyn),.e1sec(e1sec),.esyn(esyn),.isyn(isyn),.tv60(tv60));
+                  .uph(uph),.downh(downh),.beginsyn(beginsyn),.e1sec(e1sec),.esyn(esyn),.isyn(isyn),.tv60(tv60),.otestextsyn(otestextsyn));
+
+assign otest = beginsyn;
 
 always @(posedge clk)
   begin begin  tv <= (av==0&&ah==1)? 1: 0;

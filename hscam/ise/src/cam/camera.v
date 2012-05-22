@@ -96,9 +96,18 @@ reg [27:0] d;
 reg [6:0]cbtest;
 reg [7:0] od9,od8,od7,od6,od5,od4,od3,od2,od1,od0;
 wire [79:0] dina;
+//Имитация 120Гц
+reg [19:0] cbpix120hz;
+reg [10:0] cb10us;
+reg [7:0] cb120hz;
+reg out120hz;
+reg in120hz;
+wire [2:0] otestextsyn;
+  
 //Компоненты
-blsync u2(.fr(oregime[1:0]),.IN(IN),.clk(clk),.inv(oregime[6]),.extsyn(oregime[2]),.midsyn(oregime[3]),.iexp(iexp),
-          .ah(ah),.av(av),.ahlvds(ahlvds),.avlvds(avlvds),.th(th),.tv(tv),.e1sec(e1sec),.esyn(esyn),.isyn(isyn));
+blsync u2(.fr(oregime[1:0]),.IN(in120hz),.clk(clk),.inv(oregime[6]),.extsyn(oregime[2]),.midsyn(oregime[3]),.iexp(iexp),
+          .ah(ah),.av(av),.ahlvds(ahlvds),.avlvds(avlvds),.th(th),.tv(tv),.e1sec(e1sec),.esyn(esyn),.isyn(isyn),.otest(otestsyn),
+			 .otestextsyn(otestextsyn));
 
 blextcontr u3(.RCIN(RC_IN),.clk(clk),.init(init),.endet(endet),.igain(igain),.iexp(iexp),.itemp(itemp),.rdstat(rdstat),.istat(istat),
               .rdcfg(rdcfg),.icfg(icfg),.RCOUT(RC_OUT),.oregime(oregime),.ogain(ogain),.oexp(oexp),.oneg(oneg),.opos(opos),
@@ -132,7 +141,7 @@ ser1 u7(.DATA_OUT_FROM_DEVICE({d[27],d[19],d[08],d[00],
         .IO_RESET(init));
 
 blautobr u8(.clk(clk),.init(init),.endet(endet),.tv(tv),.id({od8[7],od6[7],od4[7],od2[7],od0[7]}),
-            .extgain(oregime[4]),.extexp(oregime[3]),.ah(ah),.av(av),.igain(ogain),.iexp(oexp),.ogain(igain),.oexp(iexp));
+            .extgain(oregime[5]),.extexp(oregime[4]),.ah(ah),.av(av),.igain(ogain),.iexp(oexp),.ogain(igain),.oexp(iexp));
 
 //IBUFGDS #(.DIFF_TERM("TRUE"),.IOSTANDARD("LVDS_33")) u9(.O(iclk),.I(REFCLK_P),.IB(REFCLK_N));
 
@@ -174,12 +183,18 @@ begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
 //_______________27__26__25 ___24 _23:15_____14:12_______11:10________9:7_______6_______5_______4:0
 //Чтение из памяти и передача в LVDS младший байт младший пиксел старший байт-старший
       
-      TP3_1 <= dina[0];//2
-		TP3_2 <= dina[1];//3
-		TP3_3 <= TECP;//4
-		TP3_4 <= SCL;//5
-		TP3_5 <= insda;//6
-		TP3_6 <= tv;//7
-		TP3_7 <= otesti2c;//8
+		in120hz <= (oregime[7])? out120hz: IN;
+		cbpix120hz <= (cbpix120hz==546874)? 0: cbpix120hz+1;
+		cb120hz <= (cbpix120hz==546874&&cb120hz==119)? 0: (cbpix120hz==546874)? cb120hz+1: cb120hz;
+		cb10us <= (~out120hz||(cb120hz==119&&cb10us==656)||(cb120hz!=119&&cb10us==328))? 0: cb10us+1;
+		out120hz <= (cbpix120hz==546874)? 1: ((cb120hz==119&&cb10us==656)||(cb120hz!=119&&cb10us==328))? 0: out120hz;
+		
+      TP3_1 <= otestextsyn[0];//2 downh
+		TP3_2 <= otestextsyn[1];//3 err
+		TP3_3 <= otestextsyn[2];//4 frame
+		TP3_4 <= isyn;//5
+		TP3_5 <= esyn;//6
+		TP3_6 <= otestsyn;//7
+		TP3_7 <= oint;//8
 end  
 endmodule

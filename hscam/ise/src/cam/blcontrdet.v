@@ -47,8 +47,8 @@ always @(posedge clk)
 						 ldshft <= (ah==131)? 0: (ah==0)? 1: ldshft;
 						 enrd <= (ah==131)? 0: (ah==0)? 1: enrd;
 						 pg1 <= (av>iexp&&ah==1)? 0: 1;
-						 pg2 <= (av==iexp&&ah<=65&&ah>=1)? 0: 1;
-						 itx <= (av==0&&ah<=65&&ah>=1)? 0: 1;
+						 pg2 <= (av==iexp&&ah<=65&&ah>1)? 0: 1;
+						 itx <= (av==0&&ah<=65&&ah>1)? 0: 1;
 						 oint <= (av==iexp&&ah==1)? 1:(av==0&&ah==1)? 0: oint;	
 				 end
   end
