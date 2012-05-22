@@ -18,6 +18,7 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.gmii_pkg.all;
 
 entity gmii_pma is
 generic(
@@ -30,7 +31,6 @@ port(
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
-p_in_spd               : in    TSpdCtrl_GTCH;
 p_in_sys_dcm_gclk2div  : in    std_logic;--//dcm_clk0 /2
 p_in_sys_dcm_gclk      : in    std_logic;--//dcm_clk0
 p_in_sys_dcm_gclk2x    : in    std_logic;--//dcm_clk0 x 2
@@ -49,11 +49,10 @@ p_in_rxp               : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 ---------------------------------------------------------------------------
 --Tranceiver
 ---------------------------------------------------------------------------
---p_in_txelecidle        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Разрешение передачи OOB сигналов
---p_in_txcomstart        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Начать передачу OOB сигнала
---p_in_txcomtype         : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Выбор типа OOB сигнала
 p_in_txdata            : in    TBus32_GTCH;                                   --//поток данных для передатчика DUAL_GTP
 p_in_txcharisk         : in    TBus04_GTCH;                                   --//признак наличия упр.символов на порту txdata
+p_in_txchadipmode      : in    TBus02_GTCH;
+p_in_txchadipval       : in    TBus02_GTCH;
 
 p_in_txreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс передатчика
 p_out_txbufstatus      : out   TBus02_GTCH;
@@ -61,9 +60,7 @@ p_out_txbufstatus      : out   TBus02_GTCH;
 ---------------------------------------------------------------------------
 --Receiver
 ---------------------------------------------------------------------------
---p_in_rxcdrreset        : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS + PMA
 p_in_rxreset           : in    std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Сброс GT RxPCS
---p_out_rxelecidle       : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Обнаружение приемником OOB сигнала
 p_out_rxstatus         : out   TBus03_GTCH;                                   --//Тип обнаруженного OOB сигнала
 p_out_rxdata           : out   TBus32_GTCH;                                   --//поток данных от приемника DUAL_GTP
 p_out_rxcharisk        : out   TBus04_GTCH;                                   --//признак наличия упр.символов в rxdata
@@ -110,26 +107,23 @@ constant CI_GTP_DATAWIDTH          : std_logic_vector(0 downto 0):=CONV_STD_LOGI
 constant CI_8B10BUSE               : std_logic:='1';--0/1 - bypassed/enabled for 8B/10B decoder(encoder)
 constant CI_INTDATAWIDTH           : std_logic:='1';--Подробнее см.стр.190 в ug196.pdf
 
---signal i_rxenelecidleresetb        : std_logic;
+signal i_rxenelecidleresetb        : std_logic;
 signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
---signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-
---signal i_txelecidle_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
---signal i_txcomstart_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
---signal i_txcomtype_in              : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_txdata_in                 : TBus32_GTCH;
 signal i_txcharisk_in              : TBus04_GTCH;
+signal i_txchadipmode_in           : TBus02_GTCH;
+signal i_txchadipval_in            : TBus02_GTCH;
 
 signal i_txreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_txbufstatus_out           : TBus02_GTCH;
 
---signal i_rxcdrreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxreset_in                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
 signal i_rxstatus_out              : TBus03_GTCH;
@@ -143,8 +137,8 @@ signal i_rxbufreset_in             : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_rxbufstatus_out           : TBus03_GTCH;
 
 
-attribute keep : string;
-attribute keep of g_gtp_usrclk2 : signal is "true";
+--attribute keep : string;
+--attribute keep of g_gtp_usrclk2 : signal is "true";
 
 --MAIN
 begin
@@ -163,18 +157,14 @@ end generate gen_null;
 
 
 gen_gt_ch1 : if G_GT_CH_COUNT=1 generate
---i_txelecidle_in(1)      <='0';
---i_txcomstart_in(1)      <='0';
---i_txcomtype_in(1)       <='0';
 i_txdata_in(1)(15 downto 0)  <=(others=>'0');
 i_txcharisk_in(1)(1 downto 0)<=(others=>'0');
 
 i_txreset_in(1)         <='0';
 p_out_txbufstatus(1)    <=(others=>'0');
 
-i_rxcdrreset_in(1)      <='0';
 i_rxreset_in(1)         <='0';
-p_out_rxelecidle(1)     <='0';
+--p_out_rxelecidle(1)     <='0';
 p_out_rxstatus(1)       <=(others=>'0');
 p_out_rxdata(1)(15 downto 0)     <=(others=>'0');
 p_out_rxcharisk(1)(1 downto 0)   <=(others=>'0');
@@ -206,37 +196,9 @@ i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN
 --//GT: ШИНА ДАНЫХ=8bit
 --//------------------------------
 gen_gt_w8 : if G_GT_DBUS=8 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
+g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
-
 end generate gen_gt_w8;
-
---//------------------------------
---//GT: ШИНА ДАНЫХ=16bit
---//------------------------------
-gen_gt_w16 : if G_GT_DBUS=16 generate
-m_bufg_usrclk2 : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk,    --//S=0 - SATA-II (3Gb/s)
-I1 => p_in_sys_dcm_gclk2div,--//S=1 - SATA-I (1.5Gb/s)
-O  => g_gtp_usrclk2(i)
-);
-m_bufg_usrclk : BUFGMUX_CTRL
-port map(
-S  => i_spdclk_sel(i),
-I0 => p_in_sys_dcm_gclk2x,  --//S=0 - SATA-II (3Gb/s)
-I1 => p_in_sys_dcm_gclk,    --//S=1 - SATA-I (1.5Gb/s)
-O  => g_gtp_usrclk(i)
-);
-
-end generate gen_gt_w16;
 
 ----//------------------------------
 ----//GT: ШИНА ДАНЫХ=32bit
@@ -254,16 +216,14 @@ begin
   if g_gtp_usrclk2(i)'event and g_gtp_usrclk2(i)='1' then
       p_out_resetdone(i)      <=i_resetdone(i);
 
---      i_txelecidle_in(i)      <=p_in_txelecidle(i);
---      i_txcomstart_in(i)      <=p_in_txcomstart(i);
---      i_txcomtype_in(i)       <=p_in_txcomtype(i);
       i_txdata_in(i)(15 downto 0)  <=p_in_txdata(i)(15 downto 0);
       i_txcharisk_in(i)(1 downto 0)<=p_in_txcharisk(i)(1 downto 0);
+      i_txchadipmode_in(i)<=p_in_txchadipmode(i);
+      i_txchadipval_in(i) <=p_in_txchadipval(i);
 
       i_txreset_in(i)         <=p_in_txreset(i);
       p_out_txbufstatus(i)    <=i_txbufstatus_out(i);
 
---      i_rxcdrreset_in(i)      <=p_in_rxcdrreset(i);
       i_rxreset_in(i)         <=p_in_rxreset(i);
 --      p_out_rxelecidle(i)     <=i_rxelecidle(i);
       p_out_rxstatus(i)       <=i_rxstatus_out(i);
@@ -279,7 +239,7 @@ begin
   end if;
 end process;
 
---i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
+i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
 
 end generate gen_ch;
 
@@ -291,7 +251,7 @@ end generate gen_ch;
 --//###########################
 p_out_optrefclk<=(others=>'0');
 
---i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
+i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 
 m_gt : GTP_DUAL
 generic map(
@@ -587,8 +547,8 @@ RXCDRRESET0                 => '0',
 RXCDRRESET1                 => '0',
 RXELECIDLE0                 => i_rxelecidle(0),
 RXELECIDLE1                 => i_rxelecidle(1),
-RXELECIDLERESET0            => '0',--i_rxelecidlereset(0),
-RXELECIDLERESET1            => '0',--i_rxelecidlereset(1),
+RXELECIDLERESET0            => i_rxelecidlereset(0),
+RXELECIDLERESET1            => i_rxelecidlereset(1),
 RXENEQB0                    => '1',
 RXENEQB1                    => '1',
 RXEQMIX0                    => "00",
@@ -648,16 +608,16 @@ REFCLKOUT                   => p_out_refclkout,
 REFCLKPWRDNB                => '1',
 RESETDONE0                  => i_resetdone(0),
 RESETDONE1                  => i_resetdone(1),
-RXENELECIDLERESETB          => '1',
+RXENELECIDLERESETB          => i_rxenelecidleresetb,--'1',
 TXENPMAPHASEALIGN           => '0',
 TXPMASETPHASE               => '0',
 ------- Transmit Ports - 8b10b Encoder Control Ports -------
 TXBYPASS8B10B0              => "00",
 TXBYPASS8B10B1              => "00",
 TXCHARDISPMODE0             => i_txchadipmode_in(0)(1 downto 0),--(0x)
-TXCHARDISPMODE1             => i_txchadipmode_in(0)(1 downto 0),--(0x)
+TXCHARDISPMODE1             => i_txchadipmode_in(1)(1 downto 0),--(0x)
 TXCHARDISPVAL0              => i_txchadipval_in(0)(1 downto 0),--(0x)
-TXCHARDISPVAL1              => i_txchadipval_in(0)(1 downto 0),--(0x)
+TXCHARDISPVAL1              => i_txchadipval_in(1)(1 downto 0),--(0x)
 TXCHARISK0                  => i_txcharisk_in(0)(1 downto 0),
 TXCHARISK1                  => i_txcharisk_in(1)(1 downto 0),
 TXENC8B10BUSE0              => CI_8B10BUSE,
