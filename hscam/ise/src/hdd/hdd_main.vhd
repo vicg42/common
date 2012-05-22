@@ -219,6 +219,10 @@ signal i_dbgcs_hdd0_layer               : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd1_layer               : std_logic_vector(35 downto 0);
 signal i_dbgcs_hdd_raid                 : std_logic_vector(35 downto 0);
 signal i_dbgcs_vctrl                    : std_logic_vector(35 downto 0);
+signal i_dbgcs_vin                      : std_logic_vector(35 downto 0);
+signal i_dbgcs_vout                     : std_logic_vector(35 downto 0);
+signal i_vout_dbgcs                     : TSH_ila;
+signal i_vin_dbgcs                      : TSH_ila;
 signal i_cfg_dbgcs                      : TSH_ila;
 signal i_hdd0layer_dbgcs                : TSH_ila;
 signal i_hdd1layer_dbgcs                : TSH_ila;
@@ -259,7 +263,7 @@ signal i_vctrl_mem_trn_len              : std_logic_vector(15 downto 0);
 
 signal i_vdi                            : std_logic_vector((10*8)-1 downto 0):=(others=>'0');
 signal i_vdi_save                       : std_logic_vector((10*8)-1 downto 0):=(others=>'0');
-signal i_vdi_vector                     : std_logic_vector((10*8*2)-1 downto 0);
+signal i_vdi_vector                     : std_logic_vector((10*8)-1 downto 0);--((10*8*2)-1 downto 0);
 
 signal i_vbufi_rd                       : std_logic;
 signal i_vbufi_rst                      : std_logic;
@@ -386,7 +390,7 @@ signal i_hdd_tst_out                    : std_logic_vector(31 downto 0);
 signal tst_hdd_rambuf_in                : std_logic_vector(31 downto 0);
 
 signal i_test01_led                     : std_logic;
---signal i_test02_led                     : std_logic;
+signal i_test02_led                     : std_logic;
 
 signal tst_hdd_bufi_out                 : std_logic_vector(31 downto 0);
 signal tst_hdd_rambuf_out               : std_logic_vector(31 downto 0);
@@ -406,10 +410,29 @@ signal tst_vin_vs_hdd                   : std_logic;
 signal tst_vin_hs_hdd                   : std_logic;
 
 type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
+--type TDtest   is array(0 to 4) of std_logic_vector(15 downto 0);
 signal tst_vin_data                     : TDtest;
 signal tst_vin_d                        : std_logic_vector(79 downto 0):=(others=>'0');
 signal tst_vbufo_dout                   : std_logic_vector(G_VOUT_DWIDTH-1 downto 0):=(others=>'0');
 signal tst_mem_err                      : std_logic;
+signal tst_vout_vs                      : std_logic;
+signal tst_vout_hs                      : std_logic;
+signal tst_vin_vs                       : std_logic;
+signal tst_vin_hs                       : std_logic;
+signal tst_vdi                          : std_logic_vector(79 downto 0):=(others=>'0');
+signal tst_sr_vin_vs                    : std_logic_vector(0 to 1):=(others=>'0');
+signal tst_vin_vs_edge                  : std_logic:='0';
+signal tst_vin_vs_edge2                 : std_logic:='0';
+signal tst_sr_vout_vs                   : std_logic_vector(0 to 1):=(others=>'0');
+signal tst_vout_vs_edge                 : std_logic:='0';
+signal tst_sr_vin_vs_i                  : std_logic_vector(0 to 1):=(others=>'0');
+signal tst_vin_vs_edge_i                : std_logic:='0';
+signal tst_vin_vs_edge2_i               : std_logic:='0';
+signal tst_sr_vout_vs_i                 : std_logic_vector(0 to 1):=(others=>'0');
+signal tst_vout_vs_edge_i               : std_logic:='0';
+signal tst_sr_vin_hs                    : std_logic_vector(0 to 1):=(others=>'0');
+signal tst_sr_vin_hs_cnt                : std_logic_vector(10 downto 0):=(others=>'0');
+
 
 
 --//MAIN
@@ -457,7 +480,7 @@ i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.grst_hdd;
 i_vctrl_rst<=i_sys_rst or not i_mem_ctrl_sysout.pll_lock;--(AND_reduce(i_mem_ctrl_status.rdy));
 i_vctrl_bufi_rst<=i_vctrl_rst or i_hdd_rbuf_cfg.grst_vch;
 i_hdd_rambuf_rst<=i_vctrl_rst;
-i_vbufo_rst <= i_vctrl_rst or OR_reduce(i_hdd_hr);
+i_vbufo_rst <= i_vctrl_rst or OR_reduce(i_hdd_hr) or OR_reduce(i_vch_rst);
 i_vbufi_rst<=i_vbufo_rst or i_hdd_bufi_rst or OR_reduce(i_vch_rst);
 
 --формирую сигналы для управления сбросами вх/вых видео буферов
@@ -509,18 +532,7 @@ end process;
 --***********************************************************
 --VIDEO IN
 --***********************************************************
---//Берем 8 старших бит из пердолгаемых 10 бит на 1Pixel
-gen_vd : for i in 1 to 10 generate
-i_vdi((8*i)-1 downto 8*(i-1))<=p_in_vd((8*i)-1 downto (8*i)-8) when i_hdd_rbuf_cfg.tstgen.tesing_on='0' else tst_vin_d((8*i)-1 downto (8*i)-8);
-process(p_in_vin_clk)
-begin
-  if p_in_vin_clk'event and p_in_vin_clk='1' then
-    i_vdi_save((8*i)-1 downto 8*(i-1))<=i_vdi((8*i)-1 downto 8*(i-1));
-  end if;
-end process;
-end generate gen_vd;
-
-i_vdi_vector<=i_vdi & i_vdi_save;
+i_vdi_vector<=p_in_vd when i_hdd_tst_out(7)='0' else tst_vin_d;
 
 gen_vinbuf_one_on : if strcmp(C_PCFG_VINBUF_ONE,"ON") generate
 --модулями VCTRL и HDD_RAMBUF используется один вх. вдеобуфер
@@ -1257,6 +1269,24 @@ p_in_clk       => g_hdd_dcm_gclk150M,--g_sata_refclkout,
 p_in_rst       => i_sys_rst
 );
 
+m_blink2 : fpga_test_01
+generic map(
+G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+)
+port map(
+p_out_test_led => i_test02_led,
+p_out_test_done=> open,
+
+p_out_1us      => open,
+p_out_1ms      => open,
+-------------------------------
+--System
+-------------------------------
+p_in_clk       => p_in_vin_clk,
+p_in_rst       => i_sys_rst
+);
+
 --HDD LEDs:
 --SATA0 (На плате SATA1)
 p_out_led(2)<=i_hdd_dbgled(0).wr  when i_hdd_dbgled(0).err='0' else i_hdd_dbgled(0).link;
@@ -1267,7 +1297,7 @@ p_out_TP(1) <=i_hdd_dbgled(0).busy;
 --SATA1 (На плате SATA0)
 p_out_led(3)<=i_hdd_dbgled(1).wr  when i_hdd_dbgled(1).err='0' else i_hdd_dbgled(1).link;
 p_out_led(5)<=i_hdd_dbgled(1).rdy when i_hdd_dbgled(1).err='0' else i_test01_led;
-p_out_TP(2) <='0';--p_in_tst(2);--зарезервировано!!!
+p_out_TP(2) <=i_test02_led;
 p_out_TP(3) <=i_hdd_dbgled(1).busy;
 
 --SATA2 (На плате SATA3)
@@ -1320,23 +1350,23 @@ tst_hs_hdd<=tst_shim_hs;
 tst_vin_vs_hdd<=tst_vs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_vs;
 tst_vin_hs_hdd<=tst_hs_hdd when i_hdd_rbuf_cfg.tstgen.tesing_on='1' else p_in_vin_hs;
 
-gen_tstvd : for i in 1 to 10 generate
+gen_tstvd : for i in 1 to tst_vin_data'length generate
 process(i_vctrl_rst,p_in_vin_clk)
 begin
   if i_vctrl_rst='1' then
     tst_vin_data(i-1)<=CONV_STD_LOGIC_VECTOR(i, tst_vin_data(i-1)'length);
   elsif p_in_vin_clk'event and p_in_vin_clk='1' then
-    if i_hdd_rbuf_cfg.tstgen.tesing_on='1' then
+    if i_hdd_tst_out(7)='1' then
       if tst_vin_vs_hdd=G_VSYN_ACTIVE or tst_vin_hs_hdd=G_VSYN_ACTIVE then
         tst_vin_data(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, tst_vin_data(i-1)'length);
       else
-        tst_vin_data(i-1)<=tst_vin_data(i-1) + CONV_STD_LOGIC_VECTOR(10, tst_vin_data(i-1)'length);
+        tst_vin_data(i-1)<=tst_vin_data(i-1) + CONV_STD_LOGIC_VECTOR(tst_vin_data'length, tst_vin_data(i-1)'length);
       end if;
     end if;
   end if;
 end process;
 
-tst_vin_d((8*i)-1 downto (8*i)-8)<=tst_vin_data(i-1);
+tst_vin_d((tst_vin_data(i-1)'length*i)-1 downto (tst_vin_data(i-1)'length*i)-tst_vin_data(i-1)'length)<=tst_vin_data(i-1);
 end generate gen_tstvd;
 
 --p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
@@ -1653,10 +1683,17 @@ end generate gen_hdd_dbgcs;
 gen_vctrl_dbgcs : if strcmp(C_PCFG_VCTRL_DBGCS,"ON") generate
 
 --//### DBG VCTRL: ########
-m_dbgcs_icon : dbgcs_iconx1
+--m_dbgcs_icon : dbgcs_iconx1
+--port map(
+--CONTROL0 => i_dbgcs_vctrl
+--);
+m_dbgcs_icon : dbgcs_iconx3
 port map(
-CONTROL0 => i_dbgcs_vctrl
+CONTROL0 => i_dbgcs_vctrl,
+CONTROL1 => i_dbgcs_vin,
+CONTROL2 => i_dbgcs_vout
 );
+
 
 m_dbgcs_sh0_raid : dbgcs_sata_raid
 port map(
@@ -1677,8 +1714,8 @@ i_vctrl_dbgcs.trig0(10)           <=tst_vctrl_out(14)        ;--  <=i_vwr_fr_rdy
 i_vctrl_dbgcs.trig0(11)           <=tst_vctrl_out(15)        ;--  <=i_vrd_hold(0);
 i_vctrl_dbgcs.trig0(12)           <=p_in_vin_vs;
 i_vctrl_dbgcs.trig0(13)           <=p_in_vin_hs;
-i_vctrl_dbgcs.trig0(14)           <=p_in_vout_vs;
-i_vctrl_dbgcs.trig0(15)           <=p_in_vout_hs;
+i_vctrl_dbgcs.trig0(14)           <=p_in_vout_vs;--tst_vout_vs;--
+i_vctrl_dbgcs.trig0(15)           <=p_in_vout_hs;--tst_vout_hs;--
 i_vctrl_dbgcs.trig0(16)           <=i_mem_out_bank(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_err or i_mem_out_bank(C_PCFG_MEMBANK_1)(C_MEMCH_WR).txbuf_underrun;
 i_vctrl_dbgcs.trig0(17)           <=i_mem_out_bank(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxbuf_err or i_mem_out_bank(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxbuf_overflow;
 i_vctrl_dbgcs.trig0(18)           <=i_vbufo_empty;   --
@@ -1688,7 +1725,12 @@ i_vctrl_dbgcs.trig0(21)           <=tst_vctrl_out(22);--i_vrd_fr_rddone;--
 i_vctrl_dbgcs.trig0(22)           <=i_vbufo_full;
 i_vctrl_dbgcs.trig0(23)           <=i_vctrl_bufi_rst;
 i_vctrl_dbgcs.trig0(24)           <=tst_vctrl_out(23);--<=i_vch_off;
-i_vctrl_dbgcs.trig0(41 downto 25) <=(others=>'0');
+i_vctrl_dbgcs.trig0(25)           <=tst_vin_vs_edge_i;
+i_vctrl_dbgcs.trig0(26)           <=tst_vin_vs_edge2_i;
+i_vctrl_dbgcs.trig0(27)           <=tst_vctrl_bufi_out(4);--tst_hdd_bufi_out(4);--tst_bufi_wr_en;
+i_vctrl_dbgcs.trig0(28)           <=tst_vout_vs_edge_i;
+i_vctrl_dbgcs.trig0(29)           <=i_vbufo_rst;
+i_vctrl_dbgcs.trig0(41 downto 30) <=(others=>'0');
 
 
 --//-------- VIEW: ------------------
@@ -1734,37 +1776,122 @@ i_vctrl_dbgcs.data(64)            <=i_vbufo_pfull;
 i_vctrl_dbgcs.data(65)            <=tst_vctrl_bufi_out(3);--OR_reduce(i_bufi_full);
 
 i_vctrl_dbgcs.data(66)            <=tst_vctrl_out(23);-- <=tst_vwr_out(5);-- <=i_padding;
-i_vctrl_dbgcs.data(67)            <='0';--tst_vctrl_out(24);-- <=tst_vwr_out(6);-- <=i_vbufin_rd_rdy_n;
+i_vctrl_dbgcs.data(67)            <=i_hdd_rbuf_cfg.tstgen.tesing_on;--tst_vctrl_out(24);-- <=tst_vwr_out(6);-- <=i_vbufin_rd_rdy_n;
+
+--i_vctrl_dbgcs.data(92 downto 68)  <=(others=>'0');
+--i_vctrl_dbgcs.data(172 downto 93) <=tst_vdi;
 
 i_vctrl_dbgcs.data(71 downto 68)  <=(others=>'0');--tst_vctrl_out(28 downto 25);--write <=tst_fsmstate;;
-
-i_vctrl_dbgcs.data(72)            <='0';--i_hdd_rbuf_cfg.dmacfg.hm_r;
-
-i_vctrl_dbgcs.data(74 downto 73)  <=(others=>'0');
-i_vctrl_dbgcs.data(75)            <='0';--tst_hdd_rambuf_out(10);--<=tst_hw_stop;
-i_vctrl_dbgcs.data(76)            <='0';--tst_hdd_rambuf_out(11);--<=tst_rambuf_empty;
-i_vctrl_dbgcs.data(77)            <='0';
-i_vctrl_dbgcs.data(78)            <='0';
+i_vctrl_dbgcs.data(72)            <=tst_vctrl_bufi_out(4);--tst_hdd_bufi_out(4);--tst_bufi_wr_en;
+i_vctrl_dbgcs.data(78 downto 73)  <=(others=>'0');
 i_vctrl_dbgcs.data(79)            <='0';
 i_vctrl_dbgcs.data(95 downto 80)  <=(others=>'0');
 
 i_vctrl_dbgcs.data(96)            <='0';--tst_vctrl_out(16);--<=tst_vwr_out(5);--<=i_mem_cmden;
 i_vctrl_dbgcs.data(97)            <='0';--tst_vctrl_out(17);--<=tst_vrd_out(5);--<=i_mem_cmden;
-i_vctrl_dbgcs.data(98)            <='0';
-i_vctrl_dbgcs.data(99)            <='0';
+i_vctrl_dbgcs.data(98)            <=i_vctrl_bufo_wr;
+i_vctrl_dbgcs.data(99)            <=i_hdd_bufo_wr  ;
 
-i_vctrl_dbgcs.data(131 downto 100) <=(others=>'0');--i_mem_in_bank (C_PCFG_MEMBANK_1)(C_MEMCH_WR).txd(31 downto 0);--i_vctrl_bufi_dout
-i_vctrl_dbgcs.data(163 downto 132) <=(others=>'0');--i_mem_out_bank(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(31 downto 0);--i_vctrl_bufo_din;--Rx
+i_vctrl_dbgcs.data(131 downto 100)<=i_mem_in_bank (C_PCFG_MEMBANK_1)(C_MEMCH_WR).txd(31 downto 0);--(others=>'0');--i_vctrl_bufi_dout
+i_vctrl_dbgcs.data(163 downto 132)<=i_mem_in_bank (C_PCFG_MEMBANK_1)(C_MEMCH_WR).txd(63 downto 32);--(others=>'0');--(others=>'0');--i_mem_out_bank(C_PCFG_MEMBANK_1)(C_MEMCH_RD).rxd(31 downto 0);--i_vctrl_bufo_din;--Rx
 
-i_vctrl_dbgcs.data(164)            <='0';
-i_vctrl_dbgcs.data(165)            <='0';
-i_vctrl_dbgcs.data(166)            <='0';
-i_vctrl_dbgcs.data(167)            <='0';
-i_vctrl_dbgcs.data(168)            <='0';
-i_vctrl_dbgcs.data(169)            <='0';
-i_vctrl_dbgcs.data(170)            <='0';
-i_vctrl_dbgcs.data(171)            <='0';
-i_vctrl_dbgcs.data(172)            <='0';
+i_vctrl_dbgcs.data(168 downto 164)<=(others=>'0');
+i_vctrl_dbgcs.data(169)           <='0';
+i_vctrl_dbgcs.data(170)           <='0';
+i_vctrl_dbgcs.data(171)           <='0';
+i_vctrl_dbgcs.data(172)           <='0';
+
+process(g_hclk)
+begin
+  if g_hclk'event and g_hclk='1' then
+    tst_vout_vs<=p_in_vout_vs;
+    tst_vout_hs<=p_in_vout_hs;
+    tst_vbufo_dout<=i_vbufo_dout;
+
+--    tst_sr_vin_hs<=p_in_vin_hs & tst_sr_vin_hs(0 to 0);
+--    if tst_vin_vs_edge_i='1' then
+--      tst_sr_vin_hs_cnt<=(others=>'0');
+--    elsif tst_sr_vin_vs_i(0)='1' and (tst_sr_vin_hs(0)='0' and tst_sr_vin_hs(1)='1') then
+--      tst_sr_vin_hs_cnt<=tst_sr_vin_hs_cnt + 1;
+--    end if;
+
+    tst_sr_vin_vs_i<=p_in_vin_vs & tst_sr_vin_vs_i(0 to 0);
+    tst_vin_vs_edge_i<=tst_sr_vin_vs_i(0) and not tst_sr_vin_vs_i(1);
+    tst_vin_vs_edge2_i<=not tst_sr_vin_vs_i(0) and tst_sr_vin_vs_i(1);
+    tst_sr_vout_vs_i<=p_in_vout_vs & tst_sr_vout_vs_i(0 to 0);
+    tst_vout_vs_edge_i<=tst_sr_vout_vs_i(0) and not tst_sr_vout_vs_i(1);
+  end if;
+end process;
+
+m_dbgcs_vin : dbgcs_sata_raid
+port map(
+CONTROL => i_dbgcs_vin,
+CLK     => p_in_vin_clk,
+DATA    => i_vin_dbgcs.data(172 downto 0),
+TRIG0   => i_vin_dbgcs.trig0(41 downto 0)
+);
+
+--//-------- TRIG: ------------------
+i_vin_dbgcs.trig0(0)           <=p_in_vin_vs;
+i_vin_dbgcs.trig0(1)           <=p_in_vin_hs;
+i_vin_dbgcs.trig0(2)           <=tst_vin_vs_edge;
+i_vin_dbgcs.trig0(3)           <=tst_vin_vs_edge2;
+i_vin_dbgcs.trig0(4)           <=tst_vctrl_bufi_out(4);--tst_hdd_bufi_out(4);--tst_bufi_wr_en;
+i_vin_dbgcs.trig0(41 downto 5) <=(others=>'0');
+
+
+--//-------- VIEW: ------------------
+i_vin_dbgcs.data(0)            <=i_vctrl_bufi_rst;
+i_vin_dbgcs.data(1)            <=i_hdd_rbuf_cfg.tstgen.tesing_on;
+i_vin_dbgcs.data(2)            <=p_in_vin_vs;
+i_vin_dbgcs.data(3)            <=p_in_vin_hs;
+i_vin_dbgcs.data(4)            <=tst_vctrl_bufi_out(1);--tst_hdd_bufi_out(1);--i_bufi_wr;
+
+i_vin_dbgcs.data(92 downto 5)  <=(others=>'0');
+
+i_vin_dbgcs.data(172 downto 93)<=i_vdi_vector;
+
+process(p_in_vin_clk)
+begin
+  if p_in_vin_clk'event and p_in_vin_clk='1' then
+    tst_sr_vin_vs<=p_in_vin_vs & tst_sr_vin_vs(0 to 0);
+    tst_vin_vs_edge<=tst_sr_vin_vs(0) and not tst_sr_vin_vs(1);
+    tst_vin_vs_edge2<=not tst_sr_vin_vs(0) and tst_sr_vin_vs(1);
+  end if;
+end process;
+
+m_dbgcs_vout : dbgcs_sata_raid
+port map(
+CONTROL => i_dbgcs_vout,
+CLK     => p_in_vout_clk,
+DATA    => i_vout_dbgcs.data(172 downto 0),
+TRIG0   => i_vout_dbgcs.trig0(41 downto 0)
+);
+
+--//-------- TRIG: ------------------
+i_vout_dbgcs.trig0(0)           <=p_in_vout_vs;
+i_vout_dbgcs.trig0(1)           <=p_in_vout_hs;
+i_vout_dbgcs.trig0(2)           <=tst_vout_vs_edge;
+i_vout_dbgcs.trig0(41 downto 3) <=(others=>'0');
+
+
+--//-------- VIEW: ------------------
+i_vout_dbgcs.data(0)            <='0';
+i_vout_dbgcs.data(1)            <='0';
+i_vout_dbgcs.data(2)            <=p_in_vout_vs;
+i_vout_dbgcs.data(3)            <=p_in_vout_hs;
+i_vout_dbgcs.data(15 downto 4)  <=(others=>'0');
+
+i_vout_dbgcs.data(31 downto 16) <=i_vbufo_dout;
+i_vout_dbgcs.data(172 downto 32)<=(others=>'0');
+
+process(p_in_vout_clk)
+begin
+  if p_in_vout_clk'event and p_in_vout_clk='1' then
+    tst_sr_vout_vs<=p_in_vout_vs & tst_sr_vout_vs(0 to 0);
+    tst_vout_vs_edge<=tst_sr_vout_vs(0) and not tst_sr_vout_vs(1);
+  end if;
+end process;
 
 end generate gen_vctrl_dbgcs;
 

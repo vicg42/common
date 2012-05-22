@@ -61,7 +61,7 @@ G_EXTSYN      : string:="OFF"
 );
 port(
 --¬х. видеопоток
-p_in_vd            : in   std_logic_vector((10*8*2)-1 downto 0);--(99 downto 0);
+p_in_vd            : in   std_logic_vector((10*8)-1 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;

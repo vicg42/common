@@ -394,23 +394,23 @@ end generate gen_clk;
 
 i_sys_rst <= '0';
 
-m_blink2 : fpga_test_01
-generic map(
-G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
-G_CLK_T05us   =>10#75#   -- 05us - 150MHz
-)
-port map(
-p_out_test_led => i_test02_led,
-p_out_test_done=> open,
-
-p_out_1us      => open,
-p_out_1ms      => open,
--------------------------------
---System
--------------------------------
-p_in_clk       => g_usr_refclk150, --p_in_grefclk,
-p_in_rst       => i_sys_rst
-);
+--m_blink2 : fpga_test_01
+--generic map(
+--G_BLINK_T05   =>10#250#, -- 1/2 периода мигания светодиода.(время в ms)
+--G_CLK_T05us   =>10#75#   -- 05us - 150MHz
+--)
+--port map(
+--p_out_test_led => i_test02_led,
+--p_out_test_done=> open,
+--
+--p_out_1us      => open,
+--p_out_1ms      => open,
+---------------------------------
+----System
+---------------------------------
+--p_in_clk       => g_usr_refclk150, --p_in_grefclk,
+--p_in_rst       => i_sys_rst
+--);
 
 i_vtg_rst <=i_sys_rst;
 i_vin_clk <=g_usrpll_clkout(0);
@@ -468,7 +468,7 @@ p_in_rst => i_vtg_rst
 
 
 pin_out_TP(1 downto 0)<=i_out_TP(1 downto 0);
-pin_out_TP(2)<=i_test02_led;
+pin_out_TP(2)<=i_out_TP(2);--i_test02_led;
 pin_out_TP(7 downto 3)<=i_out_TP(7 downto 3);
 
 pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_status(0) or i_usr_status(1) or pin_in_SW(0) or i_hdd_rdy or i_hdd_err;
