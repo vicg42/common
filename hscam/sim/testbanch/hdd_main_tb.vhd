@@ -60,7 +60,7 @@ constant G_RAMBUF_SIZE : integer:=C_PCFG_HDD_RAMBUF_SIZE;
 constant G_RAID_DWIDTH : integer:=C_PCFG_HDD_RAID_DWIDTH;
 
 constant C_VIN_CLK_PERIOD        : TIME := 9.3 ns;
-constant C_VOUT_CLK_PERIOD       : TIME := 6.3 ns;
+constant C_VOUT_CLK_PERIOD       : TIME := 3.3 ns;
 constant C_SATA_GT_REFCLK_PERIOD : TIME := 6.6 ns;--150MHz
 
 
@@ -1104,6 +1104,7 @@ begin
   i_ltrn_count1<='0';
 
   i_dsnhdd_reg_ctrl_m_val<=(others=>'0');
+  i_dsnhdd_reg_ctrl_m_val(C_HDD_REG_CTRLM_CFG2RAM)<='1';
   i_dsnhdd_reg_ctrl_m_val(C_HDD_REG_CTRLM_VCH_EN_BIT)<='1';
 
   i_dsnhdd_reg_ctrl_l_val<=(others=>'0');
@@ -1234,7 +1235,7 @@ begin
   wait until g_cfg_clk'event and g_cfg_clk='1';
   i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
-  wait for 0.5 us;
+  wait for 90.5 us;
 
 --  --//Конфигурируем тестовый режим
 --  if i_tst_mode='1' then
