@@ -312,7 +312,7 @@ signal i_hdd_hr                         : std_logic_vector(1 downto 0);
 
 signal sr_vch_rst                       : std_logic_vector(0 to 2);
 signal i_vch_rst                        : std_logic_vector(1 downto 0);
-
+signal i_grst_vch                       : std_logic;
 signal i_hdd_bufi_rst0                  : std_logic;
 signal i_hdd_bufi_rst                   : std_logic;
 signal i_vctrl_bufi_rst                 : std_logic;
@@ -432,7 +432,7 @@ signal tst_sr_vout_vs_i                 : std_logic_vector(0 to 1):=(others=>'0'
 signal tst_vout_vs_edge_i               : std_logic:='0';
 signal tst_sr_vin_hs                    : std_logic_vector(0 to 1):=(others=>'0');
 signal tst_sr_vin_hs_cnt                : std_logic_vector(10 downto 0):=(others=>'0');
-
+--signal tst_sr_vin_vs_cnt                : std_logic_vector(10 downto 0):=(others=>'0');
 
 
 --//MAIN
@@ -478,10 +478,12 @@ i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
 i_cfg_rst <= i_sys_rst;
 i_hdd_rst <= i_sys_rst or i_hdd_rbuf_cfg.grst_hdd;
 i_vctrl_rst<=i_sys_rst or not i_mem_ctrl_sysout.pll_lock;--(AND_reduce(i_mem_ctrl_status.rdy));
-i_vctrl_bufi_rst<=i_vctrl_rst or i_hdd_rbuf_cfg.grst_vch;
+i_vctrl_bufi_rst<=i_vctrl_rst or i_grst_vch;
 i_hdd_rambuf_rst<=i_vctrl_rst;
 i_vbufo_rst <= i_vctrl_rst or OR_reduce(i_hdd_hr) or OR_reduce(i_vch_rst);
 i_vbufi_rst<=i_vbufo_rst or i_hdd_bufi_rst or OR_reduce(i_vch_rst);
+
+i_grst_vch<=i_hdd_rbuf_cfg.grst_vch;-- and not tst_sr_vin_vs_cnt(10);
 
 --формирую сигналы для управления сбросами вх/вых видео буферов
 process(i_vctrl_rst,g_hclk)
@@ -522,7 +524,7 @@ begin
     sr_vch_rst<=(others=>'1');
     i_vch_rst<=(others=>'0');
   elsif g_hclk'event and g_hclk='1' then
-    sr_vch_rst<=i_hdd_rbuf_cfg.grst_vch & sr_vch_rst(0 to 1);
+    sr_vch_rst<=i_grst_vch & sr_vch_rst(0 to 1);
     i_vch_rst(0)<=not sr_vch_rst(0) and     sr_vch_rst(1);--on
     i_vch_rst(1)<=    sr_vch_rst(0) and not sr_vch_rst(1);--off
   end if;
@@ -632,7 +634,7 @@ port map(
 -------------------------------
 p_in_vfr_prm         => i_vfr_prm,
 p_in_mem_trn_len     => i_vctrl_mem_trn_len,
-p_in_vch_off         => sr_vch_rst(2),--i_hdd_rbuf_cfg.grst_vch,
+p_in_vch_off         => sr_vch_rst(2),--i_grst_vch,
 p_in_vrd_off         => i_hdd_rbuf_cfg.dmacfg.hm_r,
 
 ----------------------------
@@ -1303,7 +1305,7 @@ p_out_TP(3) <=i_hdd_dbgled(1).busy;
 --SATA2 (На плате SATA3)
 p_out_led(0)<=i_hdd_dbgled(2).wr  when i_hdd_dbgled(2).err='0' else i_hdd_dbgled(2).link;
 p_out_led(7)<=i_hdd_dbgled(2).rdy when i_hdd_dbgled(2).err='0' else i_test01_led;
-p_out_TP(4) <=(not i_vctrl_bufi_empty and not i_hdd_rbuf_cfg.grst_vch) when tst_mem_err='0' else  i_test01_led;
+p_out_TP(4) <=(not i_vctrl_bufi_empty and not i_grst_vch) when tst_mem_err='0' else  i_test01_led;
 p_out_TP(5) <=i_hdd_dbgled(2).busy;
 
 --SATA3 (На плате SATA2)
@@ -1820,6 +1822,11 @@ begin
     tst_vin_vs_edge2_i<=not tst_sr_vin_vs_i(0) and tst_sr_vin_vs_i(1);
     tst_sr_vout_vs_i<=p_in_vout_vs & tst_sr_vout_vs_i(0 to 0);
     tst_vout_vs_edge_i<=tst_sr_vout_vs_i(0) and not tst_sr_vout_vs_i(1);
+--    if tst_vin_vs_edge_i='1' then
+--      if tst_sr_vin_vs_cnt(10)='0' then
+--      tst_sr_vin_vs_cnt<=tst_sr_vin_vs_cnt + 1;
+--      end if;
+--    end if;
   end if;
 end process;
 
