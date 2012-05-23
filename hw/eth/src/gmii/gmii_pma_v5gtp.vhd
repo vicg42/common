@@ -22,7 +22,7 @@ use work.gmii_pkg.all;
 
 entity gmii_pma is
 generic(
-G_SATAH_NUM   : integer:=0;
+G_GT_NUM      : integer:=0;
 G_GT_CH_COUNT : integer:=2;
 G_GT_DBUS     : integer:=16;
 G_SIM         : string :="OFF"
@@ -88,9 +88,9 @@ p_out_refclkout        : out   std_logic;--//Фактически дублирование p_in_refclk
 
 p_in_refclkin          : in    std_logic;--//Опорнач частоа для работы DUAL_GTP
 
-p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
-p_in_optrefclk         : in    std_logic_vector(3 downto 0);
-p_out_optrefclk        : out   std_logic_vector(3 downto 0);
+--p_in_optrefclksel      : in    std_logic_vector(3 downto 0);
+--p_in_optrefclk         : in    std_logic_vector(3 downto 0);
+--p_out_optrefclk        : out   std_logic_vector(3 downto 0);
 
 p_in_rst               : in    std_logic
 );
@@ -249,7 +249,7 @@ end generate gen_ch;
 --//###########################
 --//Gig Tx/Rx
 --//###########################
-p_out_optrefclk<=(others=>'0');
+--p_out_optrefclk<=(others=>'0');
 
 i_rxenelecidleresetb <= not (OR_reduce(i_rxelecidlereset(G_GT_CH_COUNT-1 downto 0)));
 
