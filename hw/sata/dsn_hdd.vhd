@@ -917,7 +917,7 @@ p_out_dcm_gclk0  => p_out_sata_dcm_gclk0,
 p_out_dcm_gclk2x => open,
 p_out_dcm_gclkdv => p_out_sata_dcm_gclk2div,
 p_out_dcm_clk2x  => p_out_sata_dcm_gclk2x,
-p_out_dcmlock    => open,
+p_out_dcmlock    => p_out_sata_dcm_lock,
 
 p_out_refclkout  => p_out_sata_refclkout,
 p_in_clk         => i_sata_gt_refclk(0), --//150MHz
@@ -928,7 +928,7 @@ p_in_rst         => p_in_rst
 --p_out_sata_refclkout<=g_sata_refclkout;
 
 p_out_sata_gt_plldet<='1';
-p_out_sata_dcm_lock<='1';
+
 
 gen_null: for i in 0 to C_HDD_COUNT_MAX-1 generate
 p_out_sim_gt_txdata(i)    <=(others=>'0');

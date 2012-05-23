@@ -167,7 +167,7 @@ i_dbgcs_trig00(29 downto 26)<=i_fsm_ploob(3 downto 0);
 i_dbgcs_trig00(34 downto 30)<=i_fsm_llayer(4 downto 0);
 i_dbgcs_trig00(39 downto 35)<=i_fsm_tlayer(4 downto 0);
 i_dbgcs_trig00(40)<=p_in_dbg.tlayer.other_status.rxd_err;--tst_rxcharisk2_det;--tst_trm_timeout(9);--p_in_dbg.tlayer.other_status.fdir_bit;--p_player_rst;--
-i_dbgcs_trig00(41)<=p_in_dbg.llayer.txd_close_opt;--p_in_phy_rxtype(C_THOLD) and p_in_dbg.llayer.txd_close;--p_in_dbg.llayer.txbuf_status.empty;  --tst_rxcharisk2_det;--
+i_dbgcs_trig00(41)<=OR_reduce(p_in_rxdisperr) or OR_reduce(p_in_rxnotintable);--p_in_dbg.llayer.txd_close_opt;--p_in_phy_rxtype(C_THOLD) and p_in_dbg.llayer.txd_close;--p_in_dbg.llayer.txbuf_status.empty;  --tst_rxcharisk2_det;--
 
 
 
