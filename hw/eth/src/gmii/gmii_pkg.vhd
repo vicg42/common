@@ -74,6 +74,11 @@ type TBus21_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (20 down
 type TBus32_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (31 downto 0);
 
 
+type TETH_ila is record
+clk   : std_logic;
+trig0 : std_logic_vector(63 downto 0);
+data  : std_logic_vector(180 downto 0);
+end record;
 
 
 ---------------------------------------------------------

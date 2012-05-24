@@ -22,7 +22,7 @@ use work.gmii_pkg.all;
 
 entity gmii_pcs_tx is
 generic(
-G_GT_DBUS : integer:=16;
+G_GT_DBUS : integer:=8;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
@@ -109,24 +109,19 @@ begin
     i_gt_txreset<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
-    if p_in_dev_detect='0' then
-      i_tmr_rst_en<='0';
+    if i_tmr_rst_en='0' then
       i_gt_txreset<='0';
-    else
-      if i_tmr_rst_en='0' then
-        i_gt_txreset<='0';
-        if p_in_gt_txbufstatus(1)='1' then
-        --gtp_txbufstatus(1)-'1'-буфер или переполнен или опусташен
-        --формирую сброс
-          i_tmr_rst_en<='1';
-        end if;
-      else
-        i_gt_txreset<='1';
-        if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
-          i_tmr_rst_en<='0';
-        end if;
+      if p_in_gt_txbufstatus(1)='1' then
+      --gtp_txbufstatus(1)-'1'-буфер или переполнен или опусташен
+      --формирую сброс
+        i_tmr_rst_en<='1';
       end if;
-    end if;--//if p_in_dev_detect='0' then
+    else
+      i_gt_txreset<='1';
+      if i_tmr_rst=CONV_STD_LOGIC_VECTOR(16#02#, i_tmr_rst'length) then
+        i_tmr_rst_en<='0';
+      end if;
+    end if;
   end if;
 end process;
 

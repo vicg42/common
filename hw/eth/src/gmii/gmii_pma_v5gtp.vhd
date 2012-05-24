@@ -16,6 +16,9 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
 library work;
 use work.vicg_common_pkg.all;
 use work.gmii_pkg.all;
@@ -24,16 +27,16 @@ entity gmii_pma is
 generic(
 G_GT_NUM      : integer:=0;
 G_GT_CH_COUNT : integer:=2;
-G_GT_DBUS     : integer:=16;
+G_GT_DBUS     : integer:=8;
 G_SIM         : string :="OFF"
 );
 port(
 ---------------------------------------------------------------------------
 --Usr Cfg
 ---------------------------------------------------------------------------
-p_in_sys_dcm_gclk2div  : in    std_logic;--//dcm_clk0 /2
-p_in_sys_dcm_gclk      : in    std_logic;--//dcm_clk0
-p_in_sys_dcm_gclk2x    : in    std_logic;--//dcm_clk0 x 2
+--p_in_sys_dcm_gclk2div  : in    std_logic;--//dcm_clk0 /2
+--p_in_sys_dcm_gclk      : in    std_logic;--//dcm_clk0
+--p_in_sys_dcm_gclk2x    : in    std_logic;--//dcm_clk0 x 2
 
 p_out_usrclk2          : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0); --//Тактирование модулей sata_host.vhd
 p_out_resetdone        : out   std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -112,7 +115,7 @@ signal i_rxelecidle                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 
 signal i_resetdone                 : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_rxelecidlereset           : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
-signal i_spdclk_sel                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_refclkout                 : std_logic;
 signal g_gtp_usrclk                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal g_gtp_usrclk2               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 
@@ -190,13 +193,11 @@ end generate gen_gt_ch1;
 --#########################################
 gen_ch : for i in 0 to G_GT_CH_COUNT-1 generate
 
-i_spdclk_sel(i)<='0' when p_in_spd(i).sata_ver=CONV_STD_LOGIC_VECTOR(C_FSATA_GEN2, p_in_spd(i).sata_ver'length) else '1';
-
 --//------------------------------
 --//GT: ШИНА ДАНЫХ=8bit
 --//------------------------------
 gen_gt_w8 : if G_GT_DBUS=8 generate
-g_gtp_usrclk2(i)<=p_in_sys_dcm_gclk;
+g_gtp_usrclk2(i)<=i_refclkout;--p_in_sys_dcm_gclk;
 g_gtp_usrclk(i)<=g_gtp_usrclk2(i);
 end generate gen_gt_w8;
 
@@ -244,7 +245,7 @@ i_rxelecidlereset(i)<=i_rxelecidle(i) and i_resetdone(i);
 end generate gen_ch;
 
 
-
+p_out_refclkout<=g_gtp_usrclk2(0);
 
 --//###########################
 --//Gig Tx/Rx
@@ -428,7 +429,7 @@ PMA_CDR_SCAN_0              => x"6c07640",
 PMA_RX_CFG_0                => x"09f0088",
 RCV_TERM_GND_0              => FALSE,
 RCV_TERM_MID_0              => FALSE,
-RCV_TERM_VTTRX_0            => FALSE
+RCV_TERM_VTTRX_0            => FALSE,
 TERMINATION_IMP_0           => 50,
 
 AC_CAP_DIS_1                => TRUE,
@@ -436,7 +437,7 @@ PMA_CDR_SCAN_1              => x"6c07640",
 PMA_RX_CFG_1                => x"09f0088",
 RCV_TERM_GND_1              => FALSE,
 RCV_TERM_MID_1              => FALSE,
-RCV_TERM_VTTRX_1            => FALSE
+RCV_TERM_VTTRX_1            => FALSE,
 TERMINATION_IMP_1           => 50,
 
 PCS_COM_CFG                 => x"1680a0e",
@@ -604,7 +605,7 @@ INTDATAWIDTH                => CI_INTDATAWIDTH,
 PLLLKDET                    => p_out_plllock,
 PLLLKDETEN                  => '1',
 PLLPOWERDOWN                => '0',
-REFCLKOUT                   => p_out_refclkout,
+REFCLKOUT                   => i_refclkout,--p_out_refclkout,
 REFCLKPWRDNB                => '1',
 RESETDONE0                  => i_resetdone(0),
 RESETDONE1                  => i_resetdone(1),
