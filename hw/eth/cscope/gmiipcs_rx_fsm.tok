@@ -1,0 +1,11 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+RX_WAIT_K=00\h
+RX_K=01\h
+RX_CB=02\h
+RX_CC=03\h
+RX_CD=04\h
+RX_INVALID=05\h

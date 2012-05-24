@@ -120,6 +120,8 @@ signal i_gt_txcharisk              : TBus04_GTCH;
 signal i_gt_txchadipmode           : TBus02_GTCH;
 signal i_gt_txchadipval            : TBus02_GTCH;
 
+signal i_rxcfg                     : TBus16_GTCH;
+
 signal tst_pcs_rx                  : TBus32_GTCH;
 signal tst_pcs_tx                  : TBus32_GTCH;
 signal tst_gt_ch_rst               : std_logic;
@@ -197,6 +199,11 @@ p_out_rxd              => p_out_rxd   (i),
 p_out_rx_dv            => p_out_rx_dv (i),
 p_out_rx_er            => p_out_rx_er (i),
 p_out_rx_crs           => p_out_rx_crs(i),
+
+--------------------------------------
+--
+--------------------------------------
+p_out_rxcfg            => i_rxcfg(i),
 
 --------------------------------------
 --RocketIO Receiver
@@ -374,9 +381,8 @@ p_out_dbgcs.data(60 downto 57) <=i_gt_rxdisperr(0);
 p_out_dbgcs.data(64 downto 61) <=i_gt_rxnotintable(0);
 p_out_dbgcs.data(65)           <=i_gt_rxbyteisaligned(0);
 
-p_out_dbgcs.data(107 downto 100)<=tst_pcs_rx(0)(23 downto 16);--<=i_rxd;
-p_out_dbgcs.data(108)           <=tst_pcs_rx(0)(24);--          <=i_rxdtype;
-p_out_dbgcs.data(172 downto 109)<=(others=>'0');
+p_out_dbgcs.data(115 downto 100)<=i_rxcfg(0)(15 downto 0);
+p_out_dbgcs.data(172 downto 116)<=(others=>'0');
 
 end generate gen_dbgcs;
 
