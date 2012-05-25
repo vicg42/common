@@ -36,6 +36,12 @@ p_in_tx_er          : in    std_logic;
 p_in_tx_col         : out   std_logic;
 
 --------------------------------------
+--
+--------------------------------------
+p_in_txcfg          : in    std_logic_vector(15 downto 0);
+p_in_xmit           : in    std_logic_vector(3 downto 0);
+
+--------------------------------------
 --RocketIO Transmiter
 --------------------------------------
 p_out_gt_txdata     : out   std_logic_vector(31 downto 0);

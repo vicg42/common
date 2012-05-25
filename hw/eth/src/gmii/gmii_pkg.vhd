@@ -28,6 +28,13 @@ constant C_GTCH_COUNT_MAX :integer:=2;
 
 
 ---------------------------------------------------
+--PCS_ANEG
+---------------------------------------------------
+constant C_PCS_XMIT_IDLE       : integer:=0;
+constant C_PCS_XMIT_DATA       : integer:=1;
+constant C_PCS_XMIT_CFG        : integer:=2;
+
+---------------------------------------------------
 --PCS_RX
 ---------------------------------------------------
 constant C_PCS_RxSTAT_SYNC     : integer:=0;
@@ -51,6 +58,7 @@ constant C_K28_7 : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#FC#, 8
 constant C_K29_7 : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#FD#, 8);
 constant C_K30_7 : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#FE#, 8);
 
+constant C_D0_0  : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#00#, 8);
 constant C_D2_2  : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#42#, 8);
 constant C_D5_6  : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#C5#, 8);
 constant C_D16_2 : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(16#50#, 8);
@@ -79,6 +87,7 @@ type TBus08_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (7 downt
 type TBus16_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (15 downto 0);
 type TBus21_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (20 downto 0);
 type TBus32_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (31 downto 0);
+type TBus40_GTCH is array (0 to C_GTCH_COUNT_MAX-1) of std_logic_vector (39 downto 0);
 
 
 type TETH_ila is record

@@ -90,6 +90,12 @@ p_in_tx_er          : in    std_logic;
 p_in_tx_col         : out   std_logic;
 
 --------------------------------------
+--
+--------------------------------------
+p_in_txcfg          : in    std_logic_vector(15 downto 0);
+p_in_xmit           : in    std_logic_vector(3 downto 0);
+
+--------------------------------------
 --RocketIO Transmiter
 --------------------------------------
 p_out_gt_txdata     : out   std_logic_vector(31 downto 0);
@@ -131,6 +137,7 @@ p_out_rx_crs            : out   std_logic;
 --
 --------------------------------------
 p_out_rxcfg             : out   std_logic_vector(15 downto 0);
+p_in_xmit               : in    std_logic_vector(3 downto 0);
 
 --------------------------------------
 --RocketIO Receiver
@@ -148,7 +155,7 @@ p_out_gt_rxbufreset     : out   std_logic;
 --Технологические сигналы
 --------------------------------------
 p_in_tst                : in    std_logic_vector(31 downto 0);
-p_out_tst               : out   std_logic_vector(31 downto 0);
+p_out_tst               : out   std_logic_vector(39 downto 0);
 
 --------------------------------------
 --SYSTEM
@@ -230,6 +237,38 @@ p_in_rst               : in    std_logic
 );
 end component;
 
+component gmii_pcs_aneg
+generic(
+G_GT_DBUS : integer:=8;
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
+);
+port(
+--------------------------------------
+--
+--------------------------------------
+p_in_ctrl    : in    std_logic_vector(15 downto 0);
+
+--------------------------------------
+--
+--------------------------------------
+p_out_xmit   : out   std_logic_vector(3 downto 0);
+p_in_rxcfg   : in    std_logic_vector(15 downto 0);
+p_out_txcfg  : out   std_logic_vector(15 downto 0);
+
+--------------------------------------
+--Технологические сигналы
+--------------------------------------
+p_in_tst     : in    std_logic_vector(31 downto 0);
+p_out_tst    : out   std_logic_vector(31 downto 0);
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk     : in    std_logic;
+p_in_rst     : in    std_logic
+);
+end component;
 
 
 end gmii_unit_pkg;

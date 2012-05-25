@@ -120,11 +120,25 @@ signal i_gt_txcharisk              : TBus04_GTCH;
 signal i_gt_txchadipmode           : TBus02_GTCH;
 signal i_gt_txchadipval            : TBus02_GTCH;
 
+signal i_xmit                      : TBus04_GTCH;
 signal i_rxcfg                     : TBus16_GTCH;
+signal i_txcfg                     : TBus16_GTCH;
 
-signal tst_pcs_rx                  : TBus32_GTCH;
+signal i_gmii_txd                  : TBus08_GTCH;
+signal i_gmii_tx_en                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_gmii_tx_er                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_gmii_tx_col               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_gmii_rxd                  : TBus08_GTCH;
+signal i_gmii_rx_dv                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_gmii_rx_er                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+signal i_gmii_rx_crs               : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+
+signal i_rst_done                  : std_logic;
+
+signal tst_pcs_rx                  : TBus40_GTCH;
 signal tst_pcs_tx                  : TBus32_GTCH;
-signal tst_gt_ch_rst               : std_logic;
+signal tst_pcs_aneg                : TBus32_GTCH;
+
 
 --MAIN
 begin
@@ -148,6 +162,16 @@ gen_ch: for i in 0 to G_GT_CH_COUNT-1 generate
 
 p_out_clk(i)<=g_gt_usrclk2(i);
 
+i_gmii_txd  (i)<=p_in_txd     (i);
+i_gmii_tx_en(i)<=p_in_tx_en   (i);
+i_gmii_tx_er(i)<=p_in_tx_er   (i);
+p_in_tx_col (i)<=i_gmii_tx_col(i);
+
+p_out_rxd   (i)<=i_gmii_rxd   (i);
+p_out_rx_dv (i)<=i_gmii_rx_dv (i);
+p_out_rx_er (i)<=i_gmii_rx_er (i);
+p_out_rx_crs(i)<=i_gmii_rx_crs(i);
+
 m_tx : gmii_pcs_tx
 generic map(
 G_GT_DBUS => G_GT_DBUS,
@@ -158,10 +182,16 @@ port map(
 --------------------------------------
 --GMII
 --------------------------------------
-p_in_txd             => p_in_txd   (i),
-p_in_tx_en           => p_in_tx_en (i),
-p_in_tx_er           => p_in_tx_er (i),
-p_in_tx_col          => p_in_tx_col(i),
+p_in_txd            => i_gmii_txd   (i),
+p_in_tx_en          => i_gmii_tx_en (i),
+p_in_tx_er          => i_gmii_tx_er (i),
+p_in_tx_col         => i_gmii_tx_col(i),
+
+--------------------------------------
+--
+--------------------------------------
+p_in_txcfg          => i_txcfg(i),
+p_in_xmit           => i_xmit(i),
 
 --------------------------------------
 --RocketIO Transmiter
@@ -195,15 +225,16 @@ port map(
 --------------------------------------
 --GMII
 --------------------------------------
-p_out_rxd              => p_out_rxd   (i),
-p_out_rx_dv            => p_out_rx_dv (i),
-p_out_rx_er            => p_out_rx_er (i),
-p_out_rx_crs           => p_out_rx_crs(i),
+p_out_rxd              => i_gmii_rxd   (i),
+p_out_rx_dv            => i_gmii_rx_dv (i),
+p_out_rx_er            => i_gmii_rx_er (i),
+p_out_rx_crs           => i_gmii_rx_crs(i),
 
 --------------------------------------
 --
 --------------------------------------
 p_out_rxcfg            => i_rxcfg(i),
+p_in_xmit              => i_xmit(i),
 
 --------------------------------------
 --RocketIO Receiver
@@ -229,6 +260,39 @@ p_out_tst => tst_pcs_rx(i),
 p_in_clk  => g_gt_usrclk2(i),
 p_in_rst  => i_gt_ch_rst(i)
 );
+
+m_aneg : gmii_pcs_aneg
+generic map(
+G_GT_DBUS => G_GT_DBUS,
+G_DBG => G_DBG,
+G_SIM => G_SIM
+)
+port map(
+--------------------------------------
+--
+--------------------------------------
+p_in_ctrl    => (others=>'0'),
+
+--------------------------------------
+--
+--------------------------------------
+p_out_xmit   => i_xmit(i),
+p_in_rxcfg   => i_rxcfg(i),
+p_out_txcfg  => i_txcfg(i),
+
+--------------------------------------
+--Технологические сигналы
+--------------------------------------
+p_in_tst     => (others=>'0'),
+p_out_tst    => tst_pcs_aneg(i),
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk  => g_gt_usrclk2(i),
+p_in_rst  => i_gt_ch_rst(i)
+);
+
 end generate gen_ch;
 
 
@@ -313,21 +377,22 @@ end generate gen_sim_off;
 p_out_gt_refclk<=i_gt_refclk;
 
 i_gt_rxreset<=(others=>'0');--i_gt_ch_rst;
---i_gt_ch_rst(0)<=not tst_gt_ch_rst or p_in_rst;
---i_gt_ch_rst(1)<=not tst_gt_ch_rst or p_in_rst;
 
 process(p_in_rst,i_gt_refclk)
 begin
   if p_in_rst='1' then
     i_gt_ch_rst<=(others=>'1');
-    tst_gt_ch_rst<='0';
+    i_rst_done<='0';
   elsif i_gt_refclk'event and i_gt_refclk='1' then
-
-    if i_gt_plllkdet='1' and AND_reduce(i_gt_resetdone)='1' then
-      tst_gt_ch_rst<='1';
-      i_gt_ch_rst<=(others=>'0');
+    if i_rst_done='0' then
+      if i_gt_plllkdet='1' and AND_reduce(i_gt_resetdone)='1' then
+        i_rst_done<='1';
+      end if;
+    else
+      if AND_reduce(i_gt_rxbyteisaligned)='1' then
+        i_gt_ch_rst<=(others=>'0');
+      end if;
     end if;
-
   end if;
 end process;
 
@@ -340,10 +405,9 @@ gen_dbgcs : if strcmp(G_DBGCS,"ON") generate
 p_out_dbgcs.clk <= g_gt_usrclk2(0);
 
 --//-------- TRIG: ------------------
-p_out_dbgcs.trig0(5 downto 0)  <=tst_pcs_rx(0)(5  downto 0);--<=tst_fsm_pcs_sync;
-p_out_dbgcs.trig0(11 downto 6) <=tst_pcs_rx(0)(11 downto 6);--<=tst_fsm_pcs_rx;
+p_out_dbgcs.trig0(5 downto 0)  <='0'&tst_pcs_rx(0)(4  downto 0);--<=tst_fsm_pcs_sync;
+p_out_dbgcs.trig0(11 downto 6) <='0'&tst_pcs_rx(0)(9 downto 5);--<=tst_fsm_pcs_rx;
 p_out_dbgcs.trig0(17 downto 12)<=tst_pcs_tx(0)(5 downto 0);--<=tst_fsm_pcs_tx;
-
 p_out_dbgcs.trig0(18)          <=i_gt_ch_rst(0);
 
 p_out_dbgcs.trig0(19)          <=i_gt_txreset(0);
@@ -356,13 +420,13 @@ p_out_dbgcs.trig0(41 downto 26)<=(others=>'0');
 
 
 --//-------- VIEW: ------------------
-p_out_dbgcs.data(5 downto 0)   <=tst_pcs_rx(0)(5  downto 0);--<=tst_fsm_pcs_sync;
-p_out_dbgcs.data(11 downto 6)  <=tst_pcs_rx(0)(11 downto 6);--<=tst_fsm_pcs_rx;
+p_out_dbgcs.data(5 downto 0)   <='0'&tst_pcs_rx(0)(4  downto 0);--<=tst_fsm_pcs_sync;
+p_out_dbgcs.data(11 downto 6)  <='0'&tst_pcs_rx(0)(9 downto 5);--<=tst_fsm_pcs_rx;
 p_out_dbgcs.data(17 downto 12) <=tst_pcs_tx(0)(5 downto 0);--<=tst_fsm_pcs_tx;
 
-p_out_dbgcs.data(18)           <=tst_pcs_rx(0)(12);--<=i_rx_even;
+p_out_dbgcs.data(18)           <=tst_pcs_rx(0)(10);--<=i_rx_even;
 p_out_dbgcs.data(19)           <=i_gt_ch_rst(0);
-p_out_dbgcs.data(20)           <=tst_gt_ch_rst;
+p_out_dbgcs.data(20)           <='0';
 p_out_dbgcs.data(31 downto 21) <=(others=>'0');
 
 
@@ -382,7 +446,22 @@ p_out_dbgcs.data(64 downto 61) <=i_gt_rxnotintable(0);
 p_out_dbgcs.data(65)           <=i_gt_rxbyteisaligned(0);
 
 p_out_dbgcs.data(115 downto 100)<=i_rxcfg(0)(15 downto 0);
-p_out_dbgcs.data(172 downto 116)<=(others=>'0');
+
+p_out_dbgcs.data(119 downto 116)<=tst_pcs_rx(0)(15 downto 12);--<=i_rx.dtype;
+p_out_dbgcs.data(127 downto 120)<=tst_pcs_rx(0)(23 downto 16);--<=i_rx.d(0);
+p_out_dbgcs.data(135 downto 128)<=tst_pcs_rx(0)(31 downto 24);--<=i_rx.d(1);
+p_out_dbgcs.data(143 downto 136)<=tst_pcs_rx(0)(39 downto 32);--<=i_rx.d(2);
+
+p_out_dbgcs.data(151 downto 144)<=i_gmii_txd   (0);
+p_out_dbgcs.data(152)           <=i_gmii_tx_en (0);
+p_out_dbgcs.data(153)           <=i_gmii_tx_er (0);
+p_out_dbgcs.data(154)           <=i_gmii_tx_col(0);
+p_out_dbgcs.data(162 downto 155)<=i_gmii_rxd   (0);
+p_out_dbgcs.data(163)           <=i_gmii_rx_dv (0);
+p_out_dbgcs.data(164)           <=i_gmii_rx_er (0);
+p_out_dbgcs.data(165)           <=i_gmii_rx_crs(0);
+
+p_out_dbgcs.data(172 downto 166)<=(others=>'0');
 
 end generate gen_dbgcs;
 

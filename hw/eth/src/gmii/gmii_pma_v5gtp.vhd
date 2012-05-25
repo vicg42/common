@@ -173,7 +173,7 @@ p_out_rxdata(1)(15 downto 0)     <=(others=>'0');
 p_out_rxcharisk(1)(1 downto 0)   <=(others=>'0');
 p_out_rxdisperr(1)(1 downto 0)   <=(others=>'0');
 p_out_rxnotintable(1)(1 downto 0)<=(others=>'0');
-p_out_rxbyteisaligned(1)<='0';
+p_out_rxbyteisaligned(1)<='1';
 
 i_rxbufreset_in(1)      <='0';
 p_out_rxbufstatus(1)    <=(others=>'0');
