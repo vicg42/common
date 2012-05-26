@@ -39,6 +39,7 @@ p_out_rx_crs            : out   std_logic;
 --
 --------------------------------------
 p_out_rxcfg             : out   std_logic_vector(15 downto 0);
+p_out_rxcfg_en          : out   std_logic;
 p_in_xmit               : in    std_logic_vector(3 downto 0);
 
 --------------------------------------
@@ -124,18 +125,19 @@ type TSrRx is array (1 downto 0) of std_logic_vector(7 downto 0);
 signal sr_rx_d             : TSrRx;
 signal sr_rx_dtype         : std_logic_vector(1 downto 0);
 
-type TPCS_RxTyte is record
-comma : std_logic;
-k : std_logic_vector(2 downto 0);
+type TPCS_Rx is record
 d : TSrRxD;
+k : std_logic_vector(2 downto 0);
+comma : std_logic;
 end record;
-signal i_rx                : TPCS_RxTyte;
+signal i_rx                : TPCS_Rx;
 signal i_rx_even           : std_logic;
 signal i_good_cgs          : std_logic_vector(2 downto 0):=(others=>'0');
 
 signal i_crs               : std_logic;
 signal i_rcv               : std_logic;
 signal i_regcfg            : std_logic_vector(15 downto 0);
+signal i_regcfg_en         : std_logic;
 type TGMII_Rx is record
 d  : std_logic_vector(7 downto 0);
 dv : std_logic;
@@ -252,6 +254,7 @@ p_out_rx_er <=i_gmii_rx.er;
 p_out_rx_crs<=i_crs;
 
 p_out_rxcfg <=i_regcfg;
+p_out_rxcfg_en <=i_regcfg_en;
 
 
 --//#########################################
@@ -503,6 +506,7 @@ begin
 
     fsm_rx_cs <= S_RX_WAIT;
     i_regcfg<=(others=>'0');
+    i_regcfg_en<='0';
     i_rcv <='0';
     i_crs <='0';
     i_gmii_rx.d  <=(others=>'0');
@@ -565,11 +569,13 @@ begin
 
         if i_rx.k(0)=C_CHAR_D then
           i_regcfg(15 downto 8)<=i_rx.d(0);
+          i_regcfg_en<='1';
           fsm_rx_cs <= S_RX_CD;
         end if;
 
       when S_RX_CD =>
 
+        i_regcfg_en<='0';
         if i_rx_even='1' and i_rx.k(0)=C_CHAR_K and i_rx.d(0)=C_K28_5 then
           fsm_rx_cs <= S_RX_K;
         else

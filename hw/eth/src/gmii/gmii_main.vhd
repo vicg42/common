@@ -122,7 +122,9 @@ signal i_gt_txchadipval            : TBus02_GTCH;
 
 signal i_xmit                      : TBus04_GTCH;
 signal i_rxcfg                     : TBus16_GTCH;
+signal i_rxcfg_en                  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 signal i_txcfg                     : TBus16_GTCH;
+signal i_anreg                     : TBus16_GTCH;
 
 signal i_gmii_txd                  : TBus08_GTCH;
 signal i_gmii_tx_en                : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
@@ -138,7 +140,7 @@ signal i_rst_done                  : std_logic;
 signal tst_pcs_rx                  : TBus40_GTCH;
 signal tst_pcs_tx                  : TBus32_GTCH;
 signal tst_pcs_aneg                : TBus32_GTCH;
-
+signal tst_gt_rx_s                 : std_logic;
 
 --MAIN
 begin
@@ -171,6 +173,8 @@ p_out_rxd   (i)<=i_gmii_rxd   (i);
 p_out_rx_dv (i)<=i_gmii_rx_dv (i);
 p_out_rx_er (i)<=i_gmii_rx_er (i);
 p_out_rx_crs(i)<=i_gmii_rx_crs(i);
+
+i_anreg(i)<=CONV_STD_LOGIC_VECTOR(16#1A#,i_anreg(i)'length);
 
 m_tx : gmii_pcs_tx
 generic map(
@@ -234,6 +238,7 @@ p_out_rx_crs           => i_gmii_rx_crs(i),
 --
 --------------------------------------
 p_out_rxcfg            => i_rxcfg(i),
+p_out_rxcfg_en         => i_rxcfg_en(i),
 p_in_xmit              => i_xmit(i),
 
 --------------------------------------
@@ -271,13 +276,14 @@ port map(
 --------------------------------------
 --
 --------------------------------------
-p_in_ctrl    => (others=>'0'),
+p_in_ctrl    => i_anreg(i),
 
 --------------------------------------
 --
 --------------------------------------
 p_out_xmit   => i_xmit(i),
 p_in_rxcfg   => i_rxcfg(i),
+p_in_rxcfg_en=> i_rxcfg_en(i),
 p_out_txcfg  => i_txcfg(i),
 
 --------------------------------------
@@ -407,7 +413,7 @@ p_out_dbgcs.clk <= g_gt_usrclk2(0);
 --//-------- TRIG: ------------------
 p_out_dbgcs.trig0(5 downto 0)  <='0'&tst_pcs_rx(0)(4  downto 0);--<=tst_fsm_pcs_sync;
 p_out_dbgcs.trig0(11 downto 6) <='0'&tst_pcs_rx(0)(9 downto 5);--<=tst_fsm_pcs_rx;
-p_out_dbgcs.trig0(17 downto 12)<=tst_pcs_tx(0)(5 downto 0);--<=tst_fsm_pcs_tx;
+p_out_dbgcs.trig0(17 downto 12)<='0'&tst_pcs_tx(0)(4 downto 0);--<=tst_fsm_pcs_tx;
 p_out_dbgcs.trig0(18)          <=i_gt_ch_rst(0);
 
 p_out_dbgcs.trig0(19)          <=i_gt_txreset(0);
@@ -416,18 +422,22 @@ p_out_dbgcs.trig0(21 downto 20)<=i_gt_txbufstatus(0);
 p_out_dbgcs.trig0(22)          <=i_gt_rxbufreset(0);
 p_out_dbgcs.trig0(25 downto 23)<=i_gt_rxbufstatus(0);
 
-p_out_dbgcs.trig0(41 downto 26)<=(others=>'0');
+p_out_dbgcs.trig0(31 downto 26)<='0'&tst_pcs_aneg(0)(4 downto 0);--<=tst_fsm_pcs_ang;
+
+p_out_dbgcs.trig0(32)          <=tst_gt_rx_s;
+p_out_dbgcs.trig0(41 downto 33)<=(others=>'0');
 
 
 --//-------- VIEW: ------------------
 p_out_dbgcs.data(5 downto 0)   <='0'&tst_pcs_rx(0)(4  downto 0);--<=tst_fsm_pcs_sync;
 p_out_dbgcs.data(11 downto 6)  <='0'&tst_pcs_rx(0)(9 downto 5);--<=tst_fsm_pcs_rx;
-p_out_dbgcs.data(17 downto 12) <=tst_pcs_tx(0)(5 downto 0);--<=tst_fsm_pcs_tx;
+p_out_dbgcs.data(17 downto 12) <='0'&tst_pcs_tx(0)(4 downto 0);--<=tst_fsm_pcs_tx;
 
 p_out_dbgcs.data(18)           <=tst_pcs_rx(0)(10);--<=i_rx_even;
 p_out_dbgcs.data(19)           <=i_gt_ch_rst(0);
-p_out_dbgcs.data(20)           <='0';
-p_out_dbgcs.data(31 downto 21) <=(others=>'0');
+p_out_dbgcs.data(25 downto 20)<='0'&tst_pcs_aneg(0)(4 downto 0);--<=tst_fsm_pcs_ang;
+p_out_dbgcs.data(26)          <=tst_gt_rx_s;
+p_out_dbgcs.data(31 downto 27) <=(others=>'0');
 
 
 p_out_dbgcs.data(39 downto 32) <=i_gt_txdata(0)(7 downto 0);
@@ -462,6 +472,23 @@ p_out_dbgcs.data(164)           <=i_gmii_rx_er (0);
 p_out_dbgcs.data(165)           <=i_gmii_rx_crs(0);
 
 p_out_dbgcs.data(172 downto 166)<=(others=>'0');
+
+
+
+
+process(i_gt_ch_rst,g_gt_usrclk2)
+begin
+  if i_gt_ch_rst(0)='1' then
+    tst_gt_rx_s<='0';
+  elsif g_gt_usrclk2(0)'event and g_gt_usrclk2(0)='1' then
+    if i_gt_rxcharisk(0)(0)='1' and i_gt_rxdata(0)(7 downto 0)=C_PDAT_S then
+      tst_gt_rx_s<='1';
+    else
+      tst_gt_rx_s<='0';
+    end if;
+  end if;
+end process;
+
 
 end generate gen_dbgcs;
 

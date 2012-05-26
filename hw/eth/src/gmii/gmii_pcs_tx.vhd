@@ -72,9 +72,29 @@ signal i_tmr_rst_en               : std_logic;
 signal i_gt_txreset               : std_logic;
 
 signal i_byte_cnt                 : std_logic;
-signal i_txd                      : std_logic_vector(7 downto 0);
-signal i_txdtype                  : std_logic;
+type TPCS_Tx is record
+d : std_logic_vector(7 downto 0);
+k : std_logic;
+end record;
+signal i_tx                       : TPCS_Tx;
 
+type fsm_txd_state is (
+S_TXD_IDLE   ,
+
+S_TXD_IDLE_1 ,
+
+S_TXD_CFG_C1B,
+S_TXD_CFG_C1C,
+S_TXD_CFG_C1D,
+
+S_TXD_CFG_C2A,
+S_TXD_CFG_C2B,
+S_TXD_CFG_C2C,
+S_TXD_CFG_C2D
+);
+signal fsm_txd_cs : fsm_txd_state;
+
+signal tst_fsm_txd_cs              : std_logic_vector(4 downto 0);
 
 --MAIN
 begin
@@ -87,7 +107,20 @@ p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+
+p_out_tst(4 downto 0)<=(others=>'0');--tst_fsm_txd_cs;
+p_out_tst(31 downto 5)<=(others=>'0');
+
+--tst_fsm_txd_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_IDLE_1      else
+--                CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C1B     else
+--                CONV_STD_LOGIC_VECTOR(16#03#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C1C     else
+--                CONV_STD_LOGIC_VECTOR(16#04#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C1D     else
+--                CONV_STD_LOGIC_VECTOR(16#05#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C2A     else
+--                CONV_STD_LOGIC_VECTOR(16#06#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C2B     else
+--                CONV_STD_LOGIC_VECTOR(16#07#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C2C     else
+--                CONV_STD_LOGIC_VECTOR(16#08#,tst_fsm_txd_cs'length) when fsm_txd_cs=S_TXD_CFG_C2D     else
+--                CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_txd_cs'length);-- when fsm_sync_cs=S_TXD_IDLE     else
+
 end generate gen_dbg_on;
 
 
@@ -142,29 +175,120 @@ process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     i_byte_cnt<='0';
-    i_txd<=C_PDAT_I1(7 downto 0);
-    i_txdtype<='0';
+    i_tx.d<=C_PDAT_I1(7 downto 0);
+    i_tx.k<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
     i_byte_cnt<=not i_byte_cnt;
 
     if i_byte_cnt='0' then
-      i_txd<=C_PDAT_I1(7 downto 0);
-      i_txdtype<='1';
+      i_tx.d<=C_K28_5;--C_PDAT_I2(7 downto 0);
+      i_tx.k<='1';
     else
-      i_txd<=C_PDAT_I1(15 downto 8);
-      i_txdtype<='0';
+      i_tx.d<=C_D16_2;--C_D5_6;--C_PDAT_I2(15 downto 8);
+      i_tx.k<='0';
     end if;
 
   end if;
 end process;
 
-p_out_gt_txdata(7  downto  0)<=i_txd;
+p_out_gt_txdata(7  downto  0)<=i_tx.d;
 p_out_gt_txdata(31 downto  8)<=(others=>'0');
-p_out_gt_txcharisk(0)<=i_txdtype;
+p_out_gt_txcharisk(0)<=i_tx.k;
 p_out_gt_txcharisk(3 downto 1)<=(others=>'0');
 
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    fsm_txd_cs <= S_TXD_IDLE;
+--
+--  elsif p_in_clk'event and p_in_clk='1' then
+--
+--    case fsm_txd_cs is
+--      --------------------------------------
+--      --
+--      --------------------------------------
+--      when S_TXD_IDLE =>
+--
+--        if p_in_xmit=CONV_STD_LOGIC_VECTOR(C_PCS_XMIT_CFG, p_in_xmit'length) then
+--
+--          i_tx.d<=C_K28_5;
+--          i_tx.k<=C_CHAR_K;
+--          fsm_txd_cs <= S_TXD_CFG_C1B;
+--
+--        elsif p_in_xmit=CONV_STD_LOGIC_VECTOR(C_PCS_XMIT_IDLE, p_in_xmit'length) or
+--              p_in_xmit=CONV_STD_LOGIC_VECTOR(C_PCS_XMIT_DATA, p_in_xmit'length) then
+--
+--          i_tx.d<=C_K28_5;
+--          i_tx.k<=C_CHAR_K;
+--          fsm_txd_cs <= S_TXD_IDLE_1;
+--
+--        end if;
+--
+--      --------------------------------------
+--      --
+--      --------------------------------------
+--      when S_TXD_IDLE_1 =>
+--
+--        i_tx.d<=C_D16_2;--C_D5_6;
+--        i_tx.k<=C_CHAR_D;
+--        fsm_txd_cs <= S_TXD_IDLE;
+--
+--      --------------------------------------
+--      -- Configurtion
+--      --------------------------------------
+--      when S_TXD_CFG_C1B =>
+--
+--        i_tx.d<=C_D21_5;
+--        i_tx.k<=C_CHAR_D;
+--        fsm_txd_cs <= S_TXD_CFG_C1C;
+--
+--      when S_TXD_CFG_C1C =>
+--
+--        i_tx.d<=p_in_txcfg(7 downto 0);
+--        i_tx.k<=C_CHAR_D;
+--        fsm_txd_cs <= S_TXD_CFG_C1D;
+--
+--      when S_TXD_CFG_C1D =>
+--
+--        i_tx.d<=p_in_txcfg(15 downto 8);
+--        i_tx.k<=C_CHAR_D;
+--
+--        if p_in_xmit=CONV_STD_LOGIC_VECTOR(C_PCS_XMIT_CFG, p_in_xmit'length) then
+--          fsm_txd_cs <= S_TXD_CFG_C2A;
+--        else
+--          fsm_txd_cs <= S_TXD_IDLE;
+--        end if;
+--
+--      when S_TXD_CFG_C2A =>
+--
+--        i_tx.d<=C_K28_5;
+--        i_tx.k<=C_CHAR_K;
+--        fsm_txd_cs <= S_TXD_CFG_C2B;
+--
+--      when S_TXD_CFG_C2B =>
+--
+--        i_tx.d<=C_D2_2;
+--        i_tx.k<=C_CHAR_D;
+--        fsm_txd_cs <= S_TXD_CFG_C1C;
+--
+--      when S_TXD_CFG_C2C =>
+--
+--        i_tx.d<=p_in_txcfg(7 downto 0);
+--        i_tx.k<=C_CHAR_D;
+--        fsm_txd_cs <= S_TXD_CFG_C2D;
+--
+--      when S_TXD_CFG_C2D =>
+--
+--        i_tx.d<=p_in_txcfg(15 downto 8);
+--        i_tx.k<=C_CHAR_D;
+--        fsm_txd_cs <= S_TXD_IDLE;
+--
+--    end case;
+--
+--  end if;
+--end process;
 
 --END MAIN
 end behavioral;

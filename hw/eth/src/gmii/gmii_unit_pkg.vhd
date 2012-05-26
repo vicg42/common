@@ -137,6 +137,7 @@ p_out_rx_crs            : out   std_logic;
 --
 --------------------------------------
 p_out_rxcfg             : out   std_logic_vector(15 downto 0);
+p_out_rxcfg_en          : out   std_logic;
 p_in_xmit               : in    std_logic_vector(3 downto 0);
 
 --------------------------------------
@@ -254,6 +255,7 @@ p_in_ctrl    : in    std_logic_vector(15 downto 0);
 --------------------------------------
 p_out_xmit   : out   std_logic_vector(3 downto 0);
 p_in_rxcfg   : in    std_logic_vector(15 downto 0);
+p_in_rxcfg_en: in    std_logic;
 p_out_txcfg  : out   std_logic_vector(15 downto 0);
 
 --------------------------------------
