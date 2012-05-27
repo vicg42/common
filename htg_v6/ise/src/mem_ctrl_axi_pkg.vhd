@@ -43,14 +43,14 @@ constant CI_nCS_PER_RANK  : integer:=1 ;--// # of unique CS outputs per Rank for
 --constant CI_DQS_CNT_WIDTH : integer:=3 ;--// # = ceil(log2(DQS_WIDTH)).
 --constant CI_RANK_WIDTH    : integer:=1 ;--// # = ceil(log2(RANKS)).
 constant CI_BANK_WIDTH    : integer:=3 ;--// # of memory Bank Address bits.
-constant CI_CK_WIDTH      : integer:=2 ;--// # of CK/CK# outputs to memory.
-constant CI_CKE_WIDTH     : integer:=2 ;--// # of CKE outputs to memory.
+constant CI_CK_WIDTH      : integer:=1 ;--// # of CK/CK# outputs to memory.
+constant CI_CKE_WIDTH     : integer:=1 ;--// # of CKE outputs to memory.
 --constant CI_COL_WIDTH     : integer:=10;--// # of memory Column Address bits.
-constant CI_CS_WIDTH      : integer:=2 ;--// # of unique CS outputs to memory.
+constant CI_CS_WIDTH      : integer:=1 ;--// # of unique CS outputs to memory.
 constant CI_DM_WIDTH      : integer:=8 ;--// # of Data Mask bits.
 constant CI_DQ_WIDTH      : integer:=64;--// # of Data (DQ) bits.
 constant CI_DQS_WIDTH     : integer:=8 ;--// # of DQS/DQS# bits.
-constant CI_ROW_WIDTH     : integer:=15;--// # of memory Row Address bits.
+constant CI_ROW_WIDTH     : integer:=14;--// # of memory Row Address bits.
 
 --Memory interface types
 type TMEMCTRL_phy_out is record
@@ -535,26 +535,26 @@ component mem_ctrl_core_axi
 port(
 sys_clk             : in     std_logic;
 clk_ref             : in     std_logic;
-ddr3_dq             : inout  std_logic_vector(63 downto 0);
-ddr3_addr           : out    std_logic_vector(14 downto 0);
-ddr3_ba             : out    std_logic_vector(2 downto 0);
+ddr3_dq             : inout  std_logic_vector(CI_DQ_WIDTH-1 downto 0);
+ddr3_addr           : out    std_logic_vector(CI_ROW_WIDTH-1 downto 0);
+ddr3_ba             : out    std_logic_vector(CI_BANK_WIDTH-1 downto 0);
 ddr3_ras_n          : out    std_logic;
 ddr3_cas_n          : out    std_logic;
 ddr3_we_n           : out    std_logic;
 ddr3_reset_n        : out    std_logic;
-ddr3_cs_n           : out    std_logic_vector(1 downto 0);
-ddr3_odt            : out    std_logic_vector(1 downto 0);
-ddr3_cke            : out    std_logic_vector(1 downto 0);
-ddr3_dm             : out    std_logic_vector(7 downto 0);
-ddr3_dqs_p          : inout  std_logic_vector(7 downto 0);
-ddr3_dqs_n          : inout  std_logic_vector(7 downto 0);
-ddr3_ck_p           : out    std_logic_vector(1 downto 0);
-ddr3_ck_n           : out    std_logic_vector(1 downto 0);
+ddr3_cs_n           : out    std_logic_vector((CI_CS_WIDTH*CI_nCS_PER_RANK)-1 downto 0);
+ddr3_odt            : out    std_logic_vector((CI_CS_WIDTH*CI_nCS_PER_RANK)-1 downto 0);
+ddr3_cke            : out    std_logic_vector(CI_CKE_WIDTH-1 downto 0);
+ddr3_dm             : out    std_logic_vector(CI_DM_WIDTH-1 downto 0);
+ddr3_dqs_p          : inout  std_logic_vector(CI_DQS_WIDTH-1 downto 0);
+ddr3_dqs_n          : inout  std_logic_vector(CI_DQS_WIDTH-1 downto 0);
+ddr3_ck_p           : out    std_logic_vector(CI_CK_WIDTH-1 downto 0);
+ddr3_ck_n           : out    std_logic_vector(CI_CK_WIDTH-1 downto 0);
 sda                 : inout  std_logic;
 scl                 : out    std_logic;
 aresetn             : in     std_logic;
-s_axi_awid          : in     std_logic_vector(8-1 downto 0);
-s_axi_awaddr        : in     std_logic_vector(32-1 downto 0);
+s_axi_awid          : in     std_logic_vector(C_AXIM_IDWIDTH-1 downto 0);
+s_axi_awaddr        : in     std_logic_vector(C_AXI_AWIDTH-1 downto 0);
 s_axi_awlen         : in     std_logic_vector(7 downto 0);
 s_axi_awsize        : in     std_logic_vector(2 downto 0);
 s_axi_awburst       : in     std_logic_vector(1 downto 0);
@@ -565,19 +565,19 @@ s_axi_awqos         : in     std_logic_vector(3 downto 0);
 s_axi_awvalid       : in     std_logic;
 s_axi_awready       : out    std_logic;
                     --// Slave Interface Write Data Ports
-s_axi_wdata         : in     std_logic_vector(32-1 downto 0);
-s_axi_wstrb         : in     std_logic_vector(32/8-1 downto 0);
+s_axi_wdata         : in     std_logic_vector(C_AXI_DWIDTH-1 downto 0);
+s_axi_wstrb         : in     std_logic_vector(C_AXI_DWIDTH/8-1 downto 0);
 s_axi_wlast         : in     std_logic;
 s_axi_wvalid        : in     std_logic;
 s_axi_wready        : out    std_logic;
                     --// Slave Interface Write Response Ports
-s_axi_bid           : out    std_logic_vector(8-1 downto 0);
+s_axi_bid           : out    std_logic_vector(C_AXIM_IDWIDTH-1 downto 0);
 s_axi_bresp         : out    std_logic_vector(1 downto 0);
 s_axi_bvalid        : out    std_logic;
 s_axi_bready        : in     std_logic;
                     --// Slave Interface Read Address Ports
-s_axi_arid          : in     std_logic_vector(8-1 downto 0);
-s_axi_araddr        : in     std_logic_vector(32-1 downto 0);
+s_axi_arid          : in     std_logic_vector(C_AXIM_IDWIDTH-1 downto 0);
+s_axi_araddr        : in     std_logic_vector(C_AXI_AWIDTH-1 downto 0);
 s_axi_arlen         : in     std_logic_vector(7 downto 0);
 s_axi_arsize        : in     std_logic_vector(2 downto 0);
 s_axi_arburst       : in     std_logic_vector(1 downto 0);
@@ -588,8 +588,8 @@ s_axi_arqos         : in     std_logic_vector(3 downto 0);
 s_axi_arvalid       : in     std_logic;
 s_axi_arready       : out    std_logic;
                     --// Slave Interface Read Data Ports
-s_axi_rid           : out    std_logic_vector(8-1 downto 0);
-s_axi_rdata         : out    std_logic_vector(32-1 downto 0);
+s_axi_rid           : out    std_logic_vector(C_AXIM_IDWIDTH-1 downto 0);
+s_axi_rdata         : out    std_logic_vector(C_AXI_DWIDTH-1 downto 0);
 s_axi_rresp         : out    std_logic_vector(1 downto 0);
 s_axi_rlast         : out    std_logic;
 s_axi_rvalid        : out    std_logic;
@@ -599,11 +599,11 @@ ui_clk              : out    std_logic;
                     --// AXI CTRL port
 s_axi_ctrl_awvalid  : in     std_logic;
 s_axi_ctrl_awready  : out    std_logic;
-s_axi_ctrl_awaddr   : in     std_logic_vector(32-1 downto 0);
+s_axi_ctrl_awaddr   : in     std_logic_vector(C_AXI_AWIDTH-1 downto 0);
                     --// Slave Interface Write Data Ports
 s_axi_ctrl_wvalid   : in     std_logic;
 s_axi_ctrl_wready   : out    std_logic;
-s_axi_ctrl_wdata    : in     std_logic_vector(32-1 downto 0);
+s_axi_ctrl_wdata    : in     std_logic_vector(C_AXI_DWIDTH-1 downto 0);
                     --// Slave Interface Write Response Ports
 s_axi_ctrl_bvalid   : out    std_logic;
 s_axi_ctrl_bready   : in     std_logic;
@@ -611,11 +611,11 @@ s_axi_ctrl_bresp    : out    std_logic_vector(1 downto 0);
                     --// Slave Interface Read Address Ports
 s_axi_ctrl_arvalid  : in     std_logic;
 s_axi_ctrl_arready  : out    std_logic;
-s_axi_ctrl_araddr   : in     std_logic_vector(32-1 downto 0);
+s_axi_ctrl_araddr   : in     std_logic_vector(C_AXI_AWIDTH-1 downto 0);
                     --// Slave Interface Read Data Ports
 s_axi_ctrl_rvalid   : out    std_logic;
 s_axi_ctrl_rready   : in     std_logic;
-s_axi_ctrl_rdata    : out    std_logic_vector(32-1 downto 0);
+s_axi_ctrl_rdata    : out    std_logic_vector(C_AXI_DWIDTH-1 downto 0);
 s_axi_ctrl_rresp    : out    std_logic_vector(1 downto 0);
                     --// Interrupt output
 interrupt           : out    std_logic;

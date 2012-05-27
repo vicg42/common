@@ -120,13 +120,13 @@ module mem_ctrl_core_axi #
                                        // # = ceil(log2(RANKS)).
    parameter BANK_WIDTH              = 3,
                                        // # of memory Bank Address bits.
-   parameter CK_WIDTH                = 2,
+   parameter CK_WIDTH                = 1,
                                        // # of CK/CK# outputs to memory.
-   parameter CKE_WIDTH               = 2,
+   parameter CKE_WIDTH               = 1,
                                        // # of CKE outputs to memory.
    parameter COL_WIDTH               = 10,
                                        // # of memory Column Address bits.
-   parameter CS_WIDTH                = 2,
+   parameter CS_WIDTH                = 1,
                                        // # of unique CS outputs to memory.
    parameter DM_WIDTH                = 8,
                                        // # of Data Mask bits.
@@ -134,7 +134,7 @@ module mem_ctrl_core_axi #
                                        // # of Data (DQ) bits.
    parameter DQS_WIDTH               = 8,
                                        // # of DQS/DQS# bits.
-   parameter ROW_WIDTH               = 15,
+   parameter ROW_WIDTH               = 14,
                                        // # of memory Row Address bits.
    parameter BURST_MODE              = "8",
                                        // Burst Length (Mode Register 0).
@@ -190,7 +190,7 @@ module mem_ctrl_core_axi #
                                        // memory tREFI paramter.
    parameter tZQI                    = 128_000_000,
                                        // memory tZQI paramter.
-   parameter ADDR_WIDTH              = 29,
+   parameter ADDR_WIDTH              = 27,
                                        // # = RANK_WIDTH + BANK_WIDTH
                                        //     + ROW_WIDTH + COL_WIDTH;
    parameter ECC                     = "OFF",

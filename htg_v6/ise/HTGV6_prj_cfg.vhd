@@ -19,7 +19,7 @@ use ieee.std_logic_arith.all;
 package prj_cfg is
 
 --//Тип используемой платы
-constant C_PCFG_BOARD                  : string:="ALPHA_DATA";
+constant C_PCFG_BOARD                  : string:="HTGV6";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller

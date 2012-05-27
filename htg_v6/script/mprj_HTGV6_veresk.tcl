@@ -10,7 +10,7 @@ set _usrdef_entity "veresk_main"
 set _usrdef_xilinx_family "virtex6"
 set _usrdef_chip_family "v6lxt"
 set _usrdef_device "6vlx240t"
-set _usrdef_speed  1
+set _usrdef_speed  2
 set _usrdef_pkg    "ff1759"
 set _usrdef_ucf_filename "veresk-6vlx240t-ff1759"
 
