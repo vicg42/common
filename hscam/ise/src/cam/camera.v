@@ -24,8 +24,8 @@ module camera(
     output DARK_OFF_IN,
     output STANDBY_IN,
     output reg EN,
-    output TECP,
-    output TECN,
+    output reg TECP,
+    output reg TECN,
     inout SDA,
     output SCL,
     output TP3_0,
@@ -113,10 +113,10 @@ blextcontr u3(.RCIN(RC_IN),.clk(clk),.init(init),.endet(endet),.igain(igain),.ie
               .rdcfg(rdcfg),.icfg(icfg),.RCOUT(RC_OUT),.oregime(oregime),.ogain(ogain),.oexp(oexp),.oneg(oneg),.opos(opos),
 				  .ocompen(ocompen),.korr(korr),.wrcfg(wrcfg),.ocfg(ocfg),.testser(testser));
 
-bli2c u4(.clk(clk),.init(init),.tv(tv),.fr(oregime[1:0]),.igain(igain[5:0]),.oneg(oneg),.opos(opos),.ocompen(ocompen),
-         .sda(SDA),.scl(SCL),.endet(endet),.tecp(TECP),.tecn(TECN),.in(insda),.itemp(itemp),.otest(otesti2c));
+bli2c u4(.clk(clk),.init(init),.tv(tv),.fr(oregime[1:0]),.igain(igain[5:0]),.oneg(ocompen),.opos(opos),.ocompen(oneg),
+         .sda(SDA),.scl(SCL),.endet(endet),.tecp(itecp),.tecn(itecn),.in(insda),.resdet(resdet),.itemp(itemp),.otest(otesti2c));
 
-blcontrdet u5(.clk(clk),.endet(endet),.ah(ah),.av(av),.iexp(iexp),.korr(korr),.arow(arow),.rstrt(rstrt),.ldshft(ldshft),
+blcontrdet u5(.clk(clk),.endet(endet),.ah(ah),.av(av),.iexp(iexp),.korr(korr),.arow(arow),.rstrt(rstrt),.ldshft(ldshft),.resdet(resdet),
 				  .enrd(enrd),.ipg(ipg),.itx(itx),.lrst(lrst),.oint(oint));
 
 bldata u6(.clk(clk),.clk1x(clk1x),.test(oregime[7]),.ah(ah),.av(av),.id({od9,od8,od7,od6,od5,od4,od3,od2,od1,od0}),
@@ -153,7 +153,7 @@ IBUFDS #(.DIFF_TERM("TRUE"),.IOSTANDARD("LVDS_33")) u12(.O(RC_IN),.I(SERTC_P),.I
 
 IBUFDS #(.DIFF_TERM("TRUE"),.IOSTANDARD("LVDS_33")) u13(.O(IN),.I(CC1_P),.IB(CC1_N));
 
-assign CLK_IN = (~endet)? 0: clk;
+assign CLK_IN = (~endet)? 0: ~clk;
 assign clkn = clk;
 assign clklvds = clk1x;
 assign DARK_OFF_IN = oregime[8];
@@ -164,16 +164,16 @@ always @(posedge clk)
 begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
 		cbinitframe <= (tv&&cbinitframe<12)? cbinitframe+1: cbinitframe;
 		id0 <= D0; id1 <= D1; id2 <=D2; id3 <= D3; id4 <= D4; id5 <= D5; id6 <= D6; id7 <= D7; id8 <= D8; id9 <= D9;
-		od0 <= (igain[7:6]==0)? id0[9:2]: (igain[7:6]==1)? id0[8:1]: id0[7:0];
-		od1 <= (igain[7:6]==0)? id1[9:2]: (igain[7:6]==1)? id1[8:1]: id1[7:0];
-		od2 <= (igain[7:6]==0)? id2[9:2]: (igain[7:6]==1)? id2[8:1]: id2[7:0];
-	   od3 <= (igain[7:6]==0)? id3[9:2]: (igain[7:6]==1)? id3[8:1]: id3[7:0];
-		od4 <= (igain[7:6]==0)? id4[9:2]: (igain[7:6]==1)? id4[8:1]: id4[7:0];
-	   od5 <= (igain[7:6]==0)? id5[9:2]: (igain[7:6]==1)? id5[8:1]: id5[7:0];
-      od6 <= (igain[7:6]==0)? id6[9:2]: (igain[7:6]==1)? id6[8:1]: id6[7:0];
-      od7 <= (igain[7:6]==0)? id7[9:2]: (igain[7:6]==1)? id7[8:1]: id7[7:0];
-      od8 <= (igain[7:6]==0)? id8[9:2]: (igain[7:6]==1)? id8[8:1]: id8[7:0];
-      od9 <= (igain[7:6]==0)? id9[9:2]: (igain[7:6]==1)? id9[8:1]: id9[7:0];
+		od0 <= (igain[7:6]==0)? id0[9:2]: (igain[7:6]==1&&id0[9])? 255: (igain[7:6]==1)? id0[8:1]: (id0[9:8]>0)? 255: id0[7:0];
+		od1 <= (igain[7:6]==0)? id1[9:2]: (igain[7:6]==1&&id1[9])? 255: (igain[7:6]==1)? id1[8:1]: (id1[9:8]>0)? 255: id1[7:0];
+		od2 <= (igain[7:6]==0)? id2[9:2]: (igain[7:6]==1&&id2[9])? 255: (igain[7:6]==1)? id2[8:1]: (id2[9:8]>0)? 255: id2[7:0];
+	   od3 <= (igain[7:6]==0)? id3[9:2]: (igain[7:6]==1&&id3[9])? 255: (igain[7:6]==1)? id3[8:1]: (id3[9:8]>0)? 255: id3[7:0];
+		od4 <= (igain[7:6]==0)? id4[9:2]: (igain[7:6]==1&&id4[9])? 255: (igain[7:6]==1)? id4[8:1]: (id4[9:8]>0)? 255: id4[7:0];
+	   od5 <= (igain[7:6]==0)? id5[9:2]: (igain[7:6]==1&&id5[9])? 255: (igain[7:6]==1)? id5[8:1]: (id5[9:8]>0)? 255: id5[7:0];
+      od6 <= (igain[7:6]==0)? id6[9:2]: (igain[7:6]==1&&id6[9])? 255: (igain[7:6]==1)? id6[8:1]: (id6[9:8]>0)? 255: id6[7:0];
+      od7 <= (igain[7:6]==0)? id7[9:2]: (igain[7:6]==1&&id7[9])? 255: (igain[7:6]==1)? id7[8:1]: (id7[9:8]>0)? 255: id7[7:0];
+      od8 <= (igain[7:6]==0)? id8[9:2]: (igain[7:6]==1&&id8[9])? 255: (igain[7:6]==1)? id8[8:1]: (id8[9:8]>0)? 255: id8[7:0];
+      od9 <= (igain[7:6]==0)? id9[9:2]: (igain[7:6]==1&&id9[9])? 255: (igain[7:6]==1)? id9[8:1]: (id9[9:8]>0)? 255: id9[7:0];
       oid <= dina; wrl <= wel;	wrf <= wef;
 		A <= arow; ROW_STRT_IN <= rstrt; LD_SHIFT_IN <= ldshft; DATA_READ_IN <= enrd; 
 		PG_IN <= ipg; TX_IN <= itx; LRST_IN <= lrst; EN <= endet;
@@ -182,16 +182,16 @@ begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
 		     {outd[6],1'h0,fval,lval,9'h0,outd[13:11],outd[15:14],outd[10:8],outd[5],outd[7],outd[4:0]};
 //_______________27__26__25 ___24 _23:15_____14:12_______11:10________9:7_______6_______5_______4:0
 //Чтение из памяти и передача в LVDS младший байт младший пиксел старший байт-старший
-      
+      TECP <= itecp; TECN <= itecn;
 		in120hz <= (oregime[7])? out120hz: IN;
 		cbpix120hz <= (cbpix120hz==546874)? 0: cbpix120hz+1;
 		cb120hz <= (cbpix120hz==546874&&cb120hz==119)? 0: (cbpix120hz==546874)? cb120hz+1: cb120hz;
 		cb10us <= (~out120hz||(cb120hz==119&&cb10us==656)||(cb120hz!=119&&cb10us==328))? 0: cb10us+1;
 		out120hz <= (cbpix120hz==546874)? 1: ((cb120hz==119&&cb10us==656)||(cb120hz!=119&&cb10us==328))? 0: out120hz;
 		
-      TP3_1 <= otestextsyn[0];//2 downh
-		TP3_2 <= otestextsyn[1];//3 err
-		TP3_3 <= otestextsyn[2];//4 frame
+      TP3_1 <= endet;//2 downh
+		TP3_2 <= ipg;//3 err
+		TP3_3 <= itecp;//4 frame
 		TP3_4 <= isyn;//5
 		TP3_5 <= esyn;//6
 		TP3_6 <= otestsyn;//7

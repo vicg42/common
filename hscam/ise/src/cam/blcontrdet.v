@@ -21,6 +21,7 @@
 module blcontrdet(
     input clk,
     input endet,//Разрешение по температуре
+	 input resdet,
     input [10:0] ah,
     input [10:0] av,
 	 input [10:0] iexp,
@@ -41,9 +42,9 @@ assign ipg = (pg1&pg2);
 
 always @(posedge clk)
   begin if (~endet) begin arow <= 0; rstrt <= 0; ldshft <= 0; enrd <= 0; pg1 <= 0; pg2 <= 0; itx <= 0; lrst <= 0; end
-        else begin lrst <= korr;
-						 arow <= (av==0&&ah==0)? 0: (ah==0)? arow+1: arow;
-						 rstrt <= (ah==129)? 0: (ah==127)? 1: rstrt;
+        else begin lrst <= (korr||resdet)? 0: 1;
+						 arow <= (av<=2&&ah==0)? 0: (ah==0)? arow+1: arow;
+						 rstrt <= (av>2&&ah==129)? 0: (ah==127)? 1: rstrt;
 						 ldshft <= (ah==131)? 0: (ah==0)? 1: ldshft;
 						 enrd <= (ah==131)? 0: (ah==0)? 1: enrd;
 						 pg1 <= (av>iexp&&ah==1)? 0: 1;

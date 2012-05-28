@@ -35,7 +35,7 @@ module bldata(
 	 output [79:0] dina
     );
 	 
-parameter firstpix = 122;//Первый пиксел с матрицы	 126
+parameter firstpix = 125;//Первый пиксел с матрицы	 был 126(дрожание в конце строки)
 //Компоненты
 
 reg [6 : 0] addra,addrb;
@@ -47,19 +47,19 @@ reg enmux;
 reg [7:0] avtest;
 ramdata dual(.clka(clk),.wea(wel),.addra(addra),.dina(dina),.clkb(clk1x),.enb(enb),.addrb(addrb),.doutb(doutb));
 
-assign dina = //(test)?{avtest,avtest,avtest,avtest,avtest,avtest,avtest,avtest,avtest,avtest}: &&av>=515
-              (test)?{addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0}:
+assign dina = (test&&av<515)?{avtest,avtest,avtest,avtest,avtest,avtest,avtest,avtest,avtest,avtest}: 
+              (test&&av>=515)?{addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0,addra,1'b0}:
 							id;
 
 always @(posedge clk)
 begin wel <= (ah==firstpix&&av<=1026&&av>=3)? 1: (addra==127)? 0: wel;
 		addra <= (addra==127||~wel)? 0: addra+1;
-		wef <= (ah==firstpix&&av==1026)? 1: (addra==127&&av==2)? 0: wef;
-		avtest <= (av<=1||av>1026)? 0: (addra==127)? avtest+8: avtest;
+		wef <= (ah==firstpix&&av==1026)? 1: (addra==127&&av==2)? 0: wef;//Запись заканчивается на следующей строке
+		avtest <= (av<=1||av>1026)? 0: (addra==127)? avtest+1: avtest;
 end
 
 always @(posedge clk1x)
-begin enb <= (ahlvds>=1061&&avlvds<=1025&&avlvds>=2)? 1: (addrb==127&&rgmux==3)? 0: enb;
+begin enb <= ((ahlvds==1063||ahlvds==1062)&&avlvds<=1025&&avlvds>=2)? 1: (addrb==127&&rgmux==3)? 0: enb;
 		addrb <= (~enb||(addrb==127&&rgmux==3))? 0: (rgmux==3)? addrb+1: addrb;
 		enmux <= (enb)? 1: 0;
 		rgmux <= (~enmux||rgmux==4)? 0: rgmux+1;

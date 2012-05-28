@@ -80,8 +80,8 @@ module blextcontr(RCIN,clk,init,endet,igain,iexp,itemp,rdstat,istat,rdcfg,icfg,R
   always @(posedge clk)
   begin if (init)//Проводим инициализацию
 	                begin state <= s_wait; cbsync <= 0; cbbit <= 0; cbbyte <= 0; com <= 0; 
-						       cbtout <= 0; tout <= 0; odata <= 9'h1ff; oregime <= 10'h80; oexp <= 1;
-								 ogain <= 0; oneg <= 0; opos <= 128; ocompen <= 128; end 
+						       cbtout <= 0; tout <= 0; odata <= 9'h1ff; oregime <= 10'h120; oexp <= 1;
+								 ogain <= 8'h0; oneg <= 8'h40; opos <= 128; ocompen <= 8'h40; end 
 		  else if (tout) begin state <= s_wait; cbsync <= 0; cbbit <= 0; cbbyte <= 0; com <= 0; 
 						       cbtout <= 0; tout <= 0; end							
         else begin begin rc_in <= irc_in; irc_in <= RCIN; RCOUT <= rc_out; 

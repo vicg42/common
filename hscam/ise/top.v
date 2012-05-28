@@ -83,7 +83,6 @@ input          pin_in_ftdi_pwren_n    ,
 
 output   [7:0] pin_out_led            ,
 
-
     input [9:0] D0,
     input [9:0] D1,
     input [9:0] D2,
@@ -137,10 +136,10 @@ output   [7:0] pin_out_led            ,
     output SERTFG_N,
     input CC1_P,
     input CC1_N,
-   output CC4_P,
+	 output CC4_P,
     output CC4_N,
-   input REFCLK_P,
-   input REFCLK_N
+	 input REFCLK_P,
+	 input REFCLK_N
     );
 
 wire [7:0] istat;
@@ -157,41 +156,36 @@ wire [7:0] od7;
 wire [7:0] od8;
 wire [7:0] od9;
 wire [15:0] idn;
-wire [7:0] i_out_TP; //add vicg
 
 
 //Компоненты
-  gen_base u0(.CLK_IN1_P(REFCLK_P),.CLK_IN1_N(REFCLK_N),.CLK_OUT1(clk),.CLK_OUT2(CLK_OUT2));//CLK_OUT1-65.625MHz
+	gen_base u0(.CLK_IN1_P(REFCLK_P),.CLK_IN1_N(REFCLK_N),.CLK_OUT1(clk),.CLK_OUT2(CLK_OUT2));//CLK_OUT1-65.625MHz
 
    gen_work u1(.CLK_IN1(CLK_OUT2),.CLK_OUT1(clk1x),.CLK_OUT2(clk7x),.LOCKED(LOCKED));//CLK_OUT2-41.015625MHz
 
 
-  camera u2(.D0(D0),.D1(D1),.D2(D2),.D3(D3),.D4(D4),.D5(D5),.D6(D6),.D7(D7),.D8(D8),.D9(D9),.A(A),/*.CALDONE(CALDONE),
-            .ROWDONE(ROWDONE),.CLKOUT(CLKOUT),*/.CAL_IN(CAL_IN),.LRST_IN(LRST_IN),.PG_IN(PG_IN),.TX_IN(TX_IN),.CLK_IN(CLK_IN),
-         .DATA_READ_IN(DATA_READ_IN),.LD_SHIFT_IN(LD_SHIFT_IN),.ROW_STRT_IN(ROW_STRT_IN),.DARK_OFF_IN(DARK_OFF_IN),
-         .STANDBY_IN(STANDBY_IN),.EN(EN),.TECP(TECP),.TECN(TECN),.SDA(SDA),.SCL(SCL),
-//         .TP3_0(TP3_0),.TP3_1(TP3_1),
-//         .TP3_2(TP3_2),.TP3_3(TP3_3),
-//         .TP3_4(TP3_4),.TP3_5(TP3_5),
-//         .TP3_6(TP3_6),.TP3_7(TP3_7),
-         .X0_P(X0_P),.X0_N(X0_N),
-         .X1_P(X1_P),.X1_N(X1_N),.X2_P(X2_P),.X2_N(X2_N),.X3_P(X3_P),.X3_N(X3_N),.XCLK_P(XCLK_P),.XCLK_N(XCLK_N),
-         .SERTC_P(SERTC_P),.SERTC_N(SERTC_N),.SERTFG_P(SERTFG_P),.SERTFG_N(SERTFG_N),.CC1_P(CC1_P),.CC1_N(CC1_N),
-         .CC4_P(CC4_P),.CC4_N(CC4_N),.clk(clk),.clk1x(clk1x),.clk7x(clk7x),.LOCKED(LOCKED),//.REFCLK_P(REFCLK_P),.REFCLK_N(REFCLK_N),
-         //Накопитель
-         .rdstat(rdstat),//Чтение регистра статуса
-            .istat(istat),//Данные от регистра статуса
-            .rdcfg(rdcfg),//Чтение регистра конфигурации
-            .icfg(icfg),//Данные от регистра конфигурации
-            .wrcfg(wrcfg),//Запись в регистр конфигурации
-            .ocfg(ocfg),//Данные записываемые в регистр конфигурации
-         .oid({od9,od8,od7,od6,od5,od4,od3,od2,od1,od0}),//Видеоданные с детектора
-            .wrl(wrl),//Бланковый линии для накопителя
-            .wrf(wrf),//Бланковый кадра для накопителя
-            .idn(idn),//Данные для LVDS
-            .lval(lval),//Бланковый линии для LVDS накопителю
-            .fval(fval),//Бланковый кадра для LVDS накопителю
-            .e1sec(e1sec)//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
+	camera camera(.D0(D0),.D1(D1),.D2(D2),.D3(D3),.D4(D4),.D5(D5),.D6(D6),.D7(D7),.D8(D8),.D9(D9),.A(A),/*.CALDONE(CALDONE),
+	          .ROWDONE(ROWDONE),.CLKOUT(CLKOUT),*/.CAL_IN(CAL_IN),.LRST_IN(LRST_IN),.PG_IN(PG_IN),.TX_IN(TX_IN),.CLK_IN(CLK_IN),
+				 .DATA_READ_IN(DATA_READ_IN),.LD_SHIFT_IN(LD_SHIFT_IN),.ROW_STRT_IN(ROW_STRT_IN),.DARK_OFF_IN(DARK_OFF_IN),
+				 .STANDBY_IN(STANDBY_IN),.EN(EN),.TECP(TECP),.TECN(TECN),.SDA(SDA),.SCL(SCL),/*.TP3_0(TP3_0),.TP3_1(TP3_1),
+				 .TP3_2(TP3_2),.TP3_3(TP3_3),.TP3_4(TP3_4),.TP3_5(TP3_5),.TP3_6(TP3_6),.TP3_7(TP3_7),*/.X0_P(X0_P),.X0_N(X0_N),
+				 .X1_P(X1_P),.X1_N(X1_N),.X2_P(X2_P),.X2_N(X2_N),.X3_P(X3_P),.X3_N(X3_N),.XCLK_P(XCLK_P),.XCLK_N(XCLK_N),
+				 .SERTC_P(SERTC_P),.SERTC_N(SERTC_N),.SERTFG_P(SERTFG_P),.SERTFG_N(SERTFG_N),.CC1_P(CC1_P),.CC1_N(CC1_N),
+				 .CC4_P(CC4_P),.CC4_N(CC4_N),.clk(clk),.clk1x(clk1x),.clk7x(clk7x),.LOCKED(LOCKED),
+				 //Накопитель
+				 .rdstat(rdstat),//Чтение регистра статуса
+	          .istat(istat),//Данные от регистра статуса
+	          .rdcfg(rdcfg),//Чтение регистра конфигурации
+	          .icfg(icfg),//Данные от регистра конфигурации
+	          .wrcfg(wrcfg),//Запись в регистр конфигурации
+	          .ocfg(ocfg),//Данные записываемые в регистр конфигурации
+				 .oid({od9,od8,od7,od6,od5,od4,od3,od2,od1,od0}),//Видеоданные с детектора
+	          .wrl(wrl),//Бланковый линии для накопителя
+	          .wrf(wrf),//Бланковый кадра для накопителя
+	          .idn(idn),//Данные для LVDS
+	          .lval(lval),//Бланковый линии для LVDS накопителю
+	          .fval(fval),//Бланковый кадра для LVDS накопителю
+	          .e1sec(e1sec)//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
              );
 
 //assign istat = 8'h20;
@@ -202,6 +196,8 @@ wire [7:0] i_out_TP; //add vicg
 //--***********************************************************
 //-- Модуль HDD:
 //--***********************************************************
+wire [7:0] i_out_TP; //add vicg
+
 hdd_main m_hdd(
 //--------------------------------------------------
 //--VideoIN

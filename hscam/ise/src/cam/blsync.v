@@ -30,8 +30,8 @@ assign otest = beginsyn;
 always @(posedge clk)
   begin begin  tv <= (av==0&&ah==1)? 1: 0;
                th <= (ah==1)? 1: 0; 
-					avlvds <= (ahlvds==0&&avlvds==0||tv60)? 1027: (ahlvds==0)? avlvds-1: avlvds;
-					ahlvds <= (ahlvds==0||tv60)? 1063: ahlvds-1; end
+					avlvds <= (tv60)? 1027: (ahlvds==0&&avlvds==0)? 1027: (ahlvds==0)? avlvds-1: avlvds;
+					ahlvds <= (tv60)? 1063: (ahlvds==0)? 1063: ahlvds-1; end
     begin if (extsyn)
           begin if (beginsyn)
 		      begin if (midsyn)
