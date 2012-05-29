@@ -22,12 +22,12 @@ module top(
 //--------------------------------------------------
 //--SATA
 //--------------------------------------------------
-output   [1:0]  pin_out_sata_txn      ,//output   [3:0]  pin_out_sata_txn      ,//
-output   [1:0]  pin_out_sata_txp      ,//output   [3:0]  pin_out_sata_txp      ,//
-input    [1:0]  pin_in_sata_rxn       ,//input    [3:0]  pin_in_sata_rxn       ,//
-input    [1:0]  pin_in_sata_rxp       ,//input    [3:0]  pin_in_sata_rxp       ,//
-input    [0:0]  pin_in_sata_clk_n     ,//input    [1:0]  pin_in_sata_clk_n     ,//
-input    [0:0]  pin_in_sata_clk_p     ,//input    [1:0]  pin_in_sata_clk_p     ,//
+output   [3:0]  pin_out_sata_txn      ,//output   [1:0]  pin_out_sata_txn      ,//
+output   [3:0]  pin_out_sata_txp      ,//output   [1:0]  pin_out_sata_txp      ,//
+input    [3:0]  pin_in_sata_rxn       ,//input    [1:0]  pin_in_sata_rxn       ,//
+input    [3:0]  pin_in_sata_rxp       ,//input    [1:0]  pin_in_sata_rxp       ,//
+input    [1:0]  pin_in_sata_clk_n     ,//input    [0:0]  pin_in_sata_clk_n     ,//
+input    [1:0]  pin_in_sata_clk_p     ,//input    [0:0]  pin_in_sata_clk_p     ,//
 
 //--------------------------------------------------
 //--RAM
@@ -156,7 +156,7 @@ wire [7:0] od7;
 wire [7:0] od8;
 wire [7:0] od9;
 wire [15:0] idn;
-
+wire [9:0] oregime;
 
 //Компоненты
 	gen_base u0(.CLK_IN1_P(REFCLK_P),.CLK_IN1_N(REFCLK_N),.CLK_OUT1(clk),.CLK_OUT2(CLK_OUT2));//CLK_OUT1-65.625MHz
@@ -185,7 +185,8 @@ wire [15:0] idn;
 	          .idn(idn),//Данные для LVDS
 	          .lval(lval),//Бланковый линии для LVDS накопителю
 	          .fval(fval),//Бланковый кадра для LVDS накопителю
-	          .e1sec(e1sec)//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
+	          .e1sec(e1sec),//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
+				 .oregime(oregime)//Регистр управления камеры
              );
 
 //assign istat = 8'h20;
@@ -270,50 +271,15 @@ hdd_main m_hdd(
 //-------------------------------------------------
 //--Порт управления модулем + Статусы
 //--------------------------------------------------
+//--Управление от модуля camemra.v
+.p_in_cam_ctrl       ({6'h00,oregime}),
 //--Интерфейс управления модулем
-.p_in_usr_clk        (clk),
+.p_in_usr_clk        (clk)  ,
 .p_in_usr_tx_wr      (wrcfg),//(pin_in_SW(2)   ),
 .p_in_usr_rx_rd      (rdcfg),//(pin_in_SW(3)   ),
-.p_in_usr_txd        (ocfg),//(i_usr_txd      ),
-.p_out_usr_rxd       (icfg),//(i_usr_rxd      ),
+.p_in_usr_txd        (ocfg) ,//(i_usr_txd      ),
+.p_out_usr_rxd       (icfg) ,//(i_usr_rxd      ),
 .p_out_usr_status    (istat),//(i_usr_status   ),
-
-////--Статусы модуля
-//.p_out_hdd_rdy       (i_hdd_rdy      ),
-//.p_out_hdd_err       (i_hdd_err      ),
-
-////--------------------------------------------------
-////--Sim
-////--------------------------------------------------
-//.p_out_sim_cfg_clk           (),
-//.p_in_sim_cfg_adr            ("00000000",
-//.p_in_sim_cfg_adr_ld         (1'b0),
-//.p_in_sim_cfg_adr_fifo       (1'b0),
-//.p_in_sim_cfg_txdata         ("0000000000000000",
-//.p_in_sim_cfg_wd             (1'b0),
-//.p_out_sim_cfg_txrdy         (),
-//.p_out_sim_cfg_rxdata        (),
-//.p_in_sim_cfg_rd             (1'b0),
-//.p_out_sim_cfg_rxrdy         (),
-//.p_in_sim_cfg_done           (1'b0),
-//.p_in_sim_cfg_rst            (1'b0),
-//
-//.p_out_sim_hdd_busy          (),
-//.p_out_sim_gt_txdata         (),
-//.p_out_sim_gt_txcharisk      (),
-//.p_out_sim_gt_txcomstart     (),
-//.p_in_sim_gt_rxdata          (i_hdd_sim_gt_rxdata,
-//.p_in_sim_gt_rxcharisk       (i_hdd_sim_gt_rxcharisk,
-//.p_in_sim_gt_rxstatus        (i_hdd_sim_gt_rxstatus,
-//.p_in_sim_gt_rxelecidle      (i_hdd_sim_gt_rxelecidle,
-//.p_in_sim_gt_rxdisperr       (i_hdd_sim_gt_rxdisperr,
-//.p_in_sim_gt_rxnotintable    (i_hdd_sim_gt_rxnotintable,
-//.p_in_sim_gt_rxbyteisaligned (i_hdd_sim_gt_rxbyteisaligned,
-//.p_out_gt_sim_rst            (),
-//.p_out_gt_sim_clk            (),
-//
-//.p_out_sim_mem               (),
-//.p_in_sim_mem                (i_sim_mem_out,
 
 //--------------------------------------------------
 //--Технологический порт

@@ -73,15 +73,16 @@ module camera(
 	 input [15:0] idn,//Данные для LVDS
 	 output lval,//Бланковый линии для LVDS накопителю
 	 output fval,//Бланковый кадра для LVDS накопителю
-	 output e1sec//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
+	 output e1sec,//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
 //    output clkn,//Частота для накопителя при записи
 //	 output clklvds//Частота чтения для вывода в LVDS
+	 output [9:0] oregime//Регистр управления камеры
 	 );
 //Переменные
 wire [7:0] igain;
 wire [10:0] iexp,oexp;
 wire [9:0] itemp;
-wire [9:0] oregime;
+//wire [9:0] oregime;
 wire [7:0] ogain;
 wire [7:0] oneg,opos,ocompen;
 wire [3:0] testser;
