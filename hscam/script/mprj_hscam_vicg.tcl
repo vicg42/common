@@ -5,7 +5,7 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "hscam"
+set _usrdef_design "hscam_vicg"
 set _usrdef_entity "hscam_main"
 set _usrdef_xilinx_family "spartan6"
 set _usrdef_chip_family "s6lxt"
