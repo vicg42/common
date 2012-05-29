@@ -23,6 +23,7 @@ constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#05#; --Верисия модуля контр
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
+constant C_PCFG_HDD_USRIF              : string:="FTDI";--"HOST";--
 
 --//Конфигурирование модулей:
 constant C_VIN_HDD_EXTSYN              : string:="OFF";
