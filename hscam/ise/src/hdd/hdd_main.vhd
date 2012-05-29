@@ -23,7 +23,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.usrif_cfg.all;
 use work.prj_cfg.all;
 use work.cfgdev_pkg.all;
 use work.sata_glob_pkg.all;
@@ -44,18 +43,18 @@ port(
 --VideoIN
 --------------------------------------------------
 p_in_vd             : in   std_logic_vector((10*8)-1 downto 0);
-p_in_vin_vs         : in   std_logic;--//Строб кодровой синхронизации
-p_in_vin_hs         : in   std_logic;--//Строб строчной синхронизации
-p_in_vin_clk        : in   std_logic;--//Пиксельная частота
-p_in_ext_syn        : in   std_logic;--//Внешняя синхронизация записи
+p_in_vin_vs         : in   std_logic;--Строб кадровой синхронизации
+p_in_vin_hs         : in   std_logic;--Строб строчной синхронизации
+p_in_vin_clk        : in   std_logic;--Пиксельная частота
+p_in_ext_syn        : in   std_logic;--Внешняя синхронизация записи
 
 --------------------------------------------------
 --VideoOUT
 --------------------------------------------------
 p_out_vd            : out  std_logic_vector(G_VOUT_DWIDTH-1 downto 0);
-p_in_vout_vs        : in   std_logic;--//Строб кодровой синхронизации
-p_in_vout_hs        : in   std_logic;--//Строб строчной синхронизации
-p_in_vout_clk       : in   std_logic;--//Пиксельная частота
+p_in_vout_vs        : in   std_logic;--Строб кадровой синхронизации
+p_in_vout_hs        : in   std_logic;--Строб строчной синхронизации
+p_in_vout_clk       : in   std_logic;--Пиксельная частота
 
 --------------------------------------------------
 --RAM
@@ -117,11 +116,12 @@ p_in_usr_tx_wr      : in    std_logic;                    --строб записи txd
 p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxd
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
-p_out_usr_status    : out   std_logic_vector(7  downto 0);
-
---Статусы модуля
-p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
-p_out_hdd_err       : out   std_logic;--Ошибки в работе
+p_out_usr_status    : out   std_logic_vector(7  downto 0);--(0) - usr_rx_rdy
+                                                          --(1) - usr_tx_rdy
+                                                          --(2) - i_hdd_module_rdy
+                                                          --(3) - i_hdd_module_err
+--Управление от модуля camemra.v
+p_in_cam_ctrl       : in    std_logic_vector(15 downto 0);
 
 --------------------------------------------------
 --Sim
@@ -434,6 +434,8 @@ signal tst_sr_vin_hs                    : std_logic_vector(0 to 1):=(others=>'0'
 signal tst_sr_vin_hs_cnt                : std_logic_vector(10 downto 0):=(others=>'0');
 --signal tst_sr_vin_vs_cnt                : std_logic_vector(10 downto 0):=(others=>'0');
 
+signal i_cam_ctrl                       : std_logic_vector(31 downto 0);
+
 
 --//MAIN
 begin
@@ -442,11 +444,15 @@ begin
 --***********************************************************
 --STATUS
 --***********************************************************
-p_out_hdd_rdy<=i_hdd_module_rdy and AND_reduce(i_mem_ctrl_status.rdy);
-p_out_hdd_err<=i_hdd_module_error;
+--p_out_usr_status(1 downto 0) - см. ниже
+p_out_usr_status(2)<=i_hdd_module_rdy and AND_reduce(i_mem_ctrl_status.rdy);
+p_out_usr_status(3)<=i_hdd_module_error;
+p_out_usr_status(p_out_usr_status'length-1 downto 4)<=(others=>'0');
 
 i_hdd_tst_in(23 downto  0)<=(others=>'0');
 i_hdd_tst_in(31 downto 24)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_HDD_VERSION, 8);
+
+i_cam_ctrl<=EXT(p_in_cam_ctrl, i_cam_ctrl'length);
 
 
 --***********************************************************
@@ -563,7 +569,7 @@ p_in_vbufin_wrclk  => g_vbufi_wrclk,
 p_in_vbufin_rdclk  => g_hclk,
 
 --Технологический
-p_in_tst           => (others=>'0'),
+p_in_tst           => i_cam_ctrl,
 p_out_tst          => tst_vctrl_bufi_out,
 
 --System
@@ -609,7 +615,7 @@ p_in_vbufin_wrclk  => g_vbufi_wrclk,
 p_in_vbufin_rdclk  => g_hclk,
 
 --Технологический
-p_in_tst           => (others=>'0'),
+p_in_tst           => i_cam_ctrl,
 p_out_tst          => tst_vctrl_bufi_out,
 
 --System
@@ -958,9 +964,9 @@ p_in_rst           => i_hdd_rst
 --i_hdd_sim_gt_rxbyteisaligned(i)<='0';
 --end generate gen_satah;
 p_out_sim_hdd_busy<=i_hdd_busy;
-p_out_sim_gt_txdata         <= i_hdd_sim_gt_txdata    ;     --open,--
-p_out_sim_gt_txcharisk      <= i_hdd_sim_gt_txcharisk ;     --open,--
-p_out_sim_gt_txcomstart     <= i_hdd_sim_gt_txcomstart;     --open,--
+p_out_sim_gt_txdata         <= i_hdd_sim_gt_txdata        ; --open,--
+p_out_sim_gt_txcharisk      <= i_hdd_sim_gt_txcharisk     ; --open,--
+p_out_sim_gt_txcomstart     <= i_hdd_sim_gt_txcomstart    ; --open,--
 i_hdd_sim_gt_rxdata         <= p_in_sim_gt_rxdata         ;
 i_hdd_sim_gt_rxcharisk      <= p_in_sim_gt_rxcharisk      ;
 i_hdd_sim_gt_rxstatus       <= p_in_sim_gt_rxstatus       ;
@@ -968,8 +974,8 @@ i_hdd_sim_gt_rxelecidle     <= p_in_sim_gt_rxelecidle     ;
 i_hdd_sim_gt_rxdisperr      <= p_in_sim_gt_rxdisperr      ;
 i_hdd_sim_gt_rxnotintable   <= p_in_sim_gt_rxnotintable   ;
 i_hdd_sim_gt_rxbyteisaligned<= p_in_sim_gt_rxbyteisaligned;
-p_out_gt_sim_rst            <= i_hdd_sim_gt_sim_rst;        --open,--
-p_out_gt_sim_clk            <= i_hdd_sim_gt_sim_clk;        --open,--
+p_out_gt_sim_rst            <= i_hdd_sim_gt_sim_rst       ; --open,--
+p_out_gt_sim_clk            <= i_hdd_sim_gt_sim_clk       ; --open,--
 
 
 
@@ -1075,7 +1081,7 @@ p_in_vbufin_wrclk  => g_vbufi_wrclk,
 p_in_vbufin_rdclk  => g_hclk,
 
 --Технологический
-p_in_tst           => (others=>'0'),
+p_in_tst           => i_cam_ctrl,
 p_out_tst          => tst_hdd_bufi_out,
 
 --System
@@ -1113,7 +1119,7 @@ end generate gen_hdd_off;
 --***********************************************************
 --Интерфейс управления модулем
 --***********************************************************
-gen_ftdi : if strcmp(C_HSCAM_USRIF,"FTDI") generate
+gen_ftdi : if strcmp(C_PCFG_HDD_USRIF,"FTDI") generate
 
 gen_sim_off : if strcmp(G_SIM,"OFF") generate
 m_cfg_ftdi : cfgdev_ftdi
@@ -1188,11 +1194,10 @@ end generate gen_sim_on;
 
 p_out_usr_status(0)<=p_in_usr_rx_rd;
 p_out_usr_status(1)<=p_in_usr_tx_wr;
-p_out_usr_status(p_out_usr_status'length-1 downto 2)<=(others=>'0');
 p_out_usr_rxd<=p_in_usr_txd;
 end generate gen_ftdi;
 
-gen_host : if strcmp(C_HSCAM_USRIF,"HOST") generate
+gen_host : if strcmp(C_PCFG_HDD_USRIF,"HOST") generate
 m_cfg_host : cfgdev_host
 generic map(
 G_HOST_DWIDTH => 16
@@ -1246,7 +1251,10 @@ p_out_tst            => open,--i_cfg_tst_out,
 -------------------------------
 p_in_rst => i_cfg_rst
 );
-p_out_usr_status(p_out_usr_status'length-1 downto 2)<=(others=>'0');
+
+p_inout_ftdi_d<=(others=>'Z');
+p_out_ftdi_rd_n<='1';
+p_out_ftdi_wr_n<='1';
 end generate gen_host;
 
 
@@ -1371,9 +1379,6 @@ end process;
 tst_vin_d((tst_vin_data(i-1)'length*i)-1 downto (tst_vin_data(i-1)'length*i)-tst_vin_data(i-1)'length)<=tst_vin_data(i-1);
 end generate gen_tstvd;
 
---p_out_tst( 7 downto 0)<=i_hdd_rbuf_cfg.tstgen.tesing_spd;
---p_out_tst( 8)<=i_hdd_rbuf_cfg.tstgen.tesing_on;
---p_out_tst(31 downto 9)<=(others=>'0');
 
 
 --//### ChipScope DBG: ########

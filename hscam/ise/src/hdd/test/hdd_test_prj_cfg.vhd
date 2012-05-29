@@ -20,6 +20,7 @@ package prj_cfg is
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
+constant C_PCFG_HDD_USRIF              : string:="FTDI";--"HOST";--
 
 --//Конфигурирование модулей:
 --//cfg CFG

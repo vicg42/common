@@ -16,7 +16,7 @@ use ieee.std_logic_1164.all;
 
 package usrif_cfg is
 
-constant C_HSCAM_USRIF : string:="HOST";
+constant C_HSCAM_USRIF : string:="HOST";--"FTDI";--
 
 end usrif_cfg;
 
