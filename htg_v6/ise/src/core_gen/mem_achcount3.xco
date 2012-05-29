@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Thu May 03 10:58:36 2012
+# Date: Sat May 26 05:43:20 2012
 #
 ##############################################################
 #
@@ -31,7 +31,7 @@ SET implementationfiletype = Ngc
 SET package = ff1759
 SET removerpms = false
 SET simulationfiles = Behavioral
-SET speedgrade = -1
+SET speedgrade = -2
 SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
@@ -252,4 +252,4 @@ CSET thread_id_width=4
 MISC pkg_timestamp=2011-09-10T01:01:17Z
 # END Extra information
 GENERATE
-# CRC: 23932543
+# CRC: ef65e1ef

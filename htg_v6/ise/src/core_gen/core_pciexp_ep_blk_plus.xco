@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Mon Mar 26 13:47:38 2012
+# Date: Sat May 26 05:26:53 2012
 #
 ##############################################################
 #
@@ -81,7 +81,7 @@ CSET bar5_type=N/A
 CSET base_class_menu=Simple_communication_controllers
 CSET buf_opt_bma=false
 CSET cardbus_cis_pointer=00000000
-CSET class_code_base=05
+CSET class_code_base=FF
 CSET class_code_interface=00
 CSET class_code_sub=00
 CSET component_name=core_pciexp_ep_blk_plus
@@ -205,4 +205,4 @@ CSET xlnx_ref_board=None
 MISC pkg_timestamp=2012-01-07T15:29:19Z
 # END Extra information
 GENERATE
-# CRC: 31cd3385
+# CRC: fbacd7ce

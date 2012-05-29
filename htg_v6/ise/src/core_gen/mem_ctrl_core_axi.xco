@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Sun May 27 14:17:33 2012
+# Date: Sat May 26 06:59:27 2012
 #
 ##############################################################
 #
@@ -31,7 +31,7 @@ SET implementationfiletype = Ngc
 SET package = ff1759
 SET removerpms = false
 SET simulationfiles = Behavioral
-SET speedgrade = -1
+SET speedgrade = -2
 SET verilogsim = true
 SET vhdlsim = false
 # END Project Options
@@ -46,4 +46,4 @@ CSET xml_input_file=./mem_ctrl_core_axi/user_design/mig.prj
 MISC pkg_timestamp=2012-01-07T15:29:19Z
 # END Extra information
 GENERATE
-# CRC: 3a0c43ed
+# CRC: 2238d787
