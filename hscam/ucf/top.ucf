@@ -212,7 +212,7 @@ NET "XCLK_P" LOC=C21;
 ###############################################################################
 # Define Device, Package And Speed Grade
 ###############################################################################
-CONFIG PART = XC6SLX150T-FGG676-3;
+CONFIG PART = XC6SLX100T-FGG676-2;
 
 ##Переключатель
 #NET pin_in_SW<0>          LOC="B5"  | IOSTANDARD=LVCMOS33 | PULLUP; #Сигнал на схеме: SW_0
