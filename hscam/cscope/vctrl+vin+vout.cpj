@@ -1,12 +1,12 @@
 #ChipScope Pro Analyzer Project File, Version 3.0
-#Wed May 23 14:30:55 GST 2012
+#Tue May 29 10:08:28 GST 2012
 deviceChain.deviceName0=XCF32P
-deviceChain.deviceName1=XC6SLX150T
+deviceChain.deviceName1=XC6SLX100T
 deviceChain.iRLength0=16
 deviceChain.iRLength1=6
 deviceChain.name0=MyDevice0
 deviceChain.name1=MyDevice1
-deviceIds=d50590933403d093
+deviceIds=d505909304031093
 mdiAreaHeight=0.831081081081081
 mdiAreaHeightLast=0.8214285714285714
 mdiCount=3
