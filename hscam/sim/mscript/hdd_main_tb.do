@@ -64,6 +64,7 @@ vcom -93 "../../../common/lib/hw/sata/sim/testbanch/sata_dev_model.vhd"
 
 vcom -93 "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd"
 vcom -93 "../../../common/lib/hw/cfgdev_ctrl/cfgdev_ftdi.vhd"
+vcom -93 "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd"
 
 # MIG Code
 #vcom "../../ise/src/core_gen/mem_ctrl_core/example_design/rtl/*.vhd"
@@ -85,7 +86,7 @@ vcom -93 "../../ise/src/hdd/video_ctrl.vhd"
 vcom -93 "../../ise/src/hdd/vin_hdd.vhd"
 vcom -93 "../../ise/src/hdd/vout.vhd"
 vcom -93 "../../ise/src/hdd/test/vtiming_gen.vhd"
-vcom -93 "../../ise/src/hdd/test/hscam_main_usrif_cfg.vhd"
+#vcom -93 "../../ise/src/hdd/test/hscam_main_cfg.vhd"
 
 vcom -93 "../../ise/src/hdd/hdd_main.vhd"
 #vcom -93 "../../ise/src/hdd/test/hscam_main.vhd"

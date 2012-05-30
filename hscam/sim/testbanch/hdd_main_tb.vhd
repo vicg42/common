@@ -32,6 +32,7 @@ use work.sata_sim_pkg.all;
 use work.sata_sim_lite_pkg.all;
 use work.sata_unit_pkg.all;
 use work.dsn_hdd_reg_def.all;
+use work.cfgdev_pkg.all;
 
 entity hdd_main_tb is
 generic(
@@ -62,6 +63,7 @@ constant G_RAID_DWIDTH : integer:=C_PCFG_HDD_RAID_DWIDTH;
 constant C_VIN_CLK_PERIOD        : TIME := 9.3 ns;
 constant C_VOUT_CLK_PERIOD       : TIME := 3.3 ns;
 constant C_SATA_GT_REFCLK_PERIOD : TIME := 6.6 ns;--150MHz
+constant C_USRIF_PERIOD          : TIME := 5 ns;
 
 
 constant CI_HDD_MEMWR_TRN_SIZE : integer:=64;
@@ -178,9 +180,8 @@ p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
 p_out_usr_status    : out   std_logic_vector(7 downto 0);
 
---Статусы модуля
-p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
-p_out_hdd_err       : out   std_logic;--Ошибки в работе
+--Управление от модуля camemra.v
+p_in_cam_ctrl       : in    std_logic_vector(15 downto 0);
 
 --------------------------------------------------
 --Sim
@@ -214,7 +215,7 @@ p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0)
 
 p_out_sim_mem               : out   TMemINBank;
 p_in_sim_mem                : in    TMemOUTBank;
-
+p_in_tst                    : in    std_logic_vector(31 downto 0);
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -377,7 +378,12 @@ signal i_vout_vs                      : std_logic;
 signal i_vout_hs                      : std_logic;
 signal i_vout_clk                     : std_logic;
 
-
+signal p_out_usr_status               : std_logic_vector(7 downto 0):=(others=>'0');
+signal i_usrif_clk                    : std_logic;
+signal i_usrif_tx_wr                  : std_logic;
+signal i_usrif_rx_rd                  : std_logic;
+signal i_usrif_txd                    : std_logic_vector(15 downto 0):=(others=>'0');
+signal i_usrif_rxd                    : std_logic_vector(15 downto 0):=(others=>'0');
 
 --MAIN
 begin
@@ -423,6 +429,16 @@ end process;
 
 p_in_rst <= '1','0' after 3 us;
 i_dsn_hdd_rst<=p_in_rst;
+
+
+gen_usrif_clk : process
+begin
+  i_usrif_clk<='0';
+  wait for C_USRIF_PERIOD/2;
+  i_usrif_clk<='1';
+  wait for C_USRIF_PERIOD/2;
+end process;
+
 
 
 
@@ -558,16 +574,19 @@ p_in_sata_clk_p  => i_sataclk_n,
 --Порт управления модулем + Статусы
 --------------------------------------------------
 --Интерфейс управления модулем
-p_in_usr_clk        => '0',
-p_in_usr_tx_wr      => '0',
-p_in_usr_rx_rd      => '0',
-p_in_usr_txd        => (others=>'0'),
-p_out_usr_rxd       => open,
-p_out_usr_status    => open,
+p_in_usr_clk        => i_usrif_clk,
+p_in_usr_tx_wr      => i_usrif_tx_wr,
+p_in_usr_rx_rd      => i_usrif_rx_rd,
+p_in_usr_txd        => i_usrif_txd,
+p_out_usr_rxd       => i_usrif_rxd,
+p_out_usr_status    => p_out_usr_status,
 
---Статусы модуля
-p_out_hdd_rdy       => i_hdd_rdy,
-p_out_hdd_err       => open,
+--Управление от модуля camemra.v
+p_in_cam_ctrl       => (others=>'0'),
+
+----Статусы модуля
+--p_out_hdd_rdy       => i_hdd_rdy,
+--p_out_hdd_err       => open,
 
 --------------------------------------------------
 --Sim
@@ -601,7 +620,7 @@ p_out_gt_sim_clk            => i_hdd_sim_gt_clk,
 
 p_out_sim_mem               => i_sim_mem_in,
 p_in_sim_mem                => i_sim_mem_out,
-
+p_in_tst                    => (others=>'0'),
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -616,7 +635,7 @@ p_out_TP         => open,
 p_out_led        => open
 );
 
-
+i_hdd_rdy<=p_out_usr_status(2);-- - i_hdd_module_rdy
 
 --gen_bank : for i in 0 to C_MEM_BANK_COUNT-1 generate
 ---- ========================================================================== --
@@ -1872,6 +1891,79 @@ begin
   wait;
 end process lmain_ctrl;
 
+
+process
+begin
+
+  i_usrif_tx_wr<='0';
+  i_usrif_rx_rd<='0';
+  i_usrif_txd<=(others=>'0');
+--  i_usrif_rxd<=(others=>'0');
+
+  wait for 4 us;
+
+--WRITE
+  --Header[0]/CTRL
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd(5 downto 0)<=CONV_STD_LOGIC_VECTOR(16#0A#, 6);
+  i_usrif_txd(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+  --Header[1]/START_REG
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd<=CONV_STD_LOGIC_VECTOR(16#00#, i_usrif_txd'length);
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+  --Header[2]/SIZE
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd<=CONV_STD_LOGIC_VECTOR(1, i_usrif_txd'length);
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+  --DATA[0]
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd<=CONV_STD_LOGIC_VECTOR(16#C8#, i_usrif_txd'length);
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+--WRITE DONE
+
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd<=CONV_STD_LOGIC_VECTOR(16#00#, i_usrif_txd'length);
+  wait for 2 us;
+
+--READ
+  --Header[0]/CTRL
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd(5 downto 0)<=CONV_STD_LOGIC_VECTOR(16#0B#, 6);
+  i_usrif_txd(C_CFGPKT_WR_BIT)<=C_CFGPKT_RD;
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+  --Header[1]/START_REG
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd<=CONV_STD_LOGIC_VECTOR(16#00#, i_usrif_txd'length);
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+  --Header[2]/SIZE
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_txd<=CONV_STD_LOGIC_VECTOR(1, i_usrif_txd'length);
+  i_usrif_tx_wr<='1';
+  wait until i_usrif_clk'event and i_usrif_clk='1';
+  i_usrif_tx_wr<='0';
+
+
+  wait;
+end process;
 
 
 --END MAIN

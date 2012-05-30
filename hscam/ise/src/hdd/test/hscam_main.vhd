@@ -24,6 +24,7 @@ use work.prj_cfg.all;
 use work.sata_glob_pkg.all;
 use work.hdd_main_unit_pkg.all;
 use work.mem_ctrl_pkg.all;
+use work.cfgdev_pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -195,11 +196,12 @@ p_in_usr_tx_wr      : in    std_logic;                    --строб записи txd
 p_in_usr_rx_rd      : in    std_logic;                    --строб чтения rxd
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
-p_out_usr_status    : out   std_logic_vector(7  downto 0);
-
---Статусы модуля
-p_out_hdd_rdy       : out   std_logic;--Модуль готов к работе
-p_out_hdd_err       : out   std_logic;--Ошибки в работе
+p_out_usr_status    : out   std_logic_vector(7  downto 0);--(0) - usr_rx_rdy
+                                                          --(1) - usr_tx_rdy
+                                                          --(2) - i_hdd_module_rdy
+                                                          --(3) - i_hdd_module_err
+--Управление от модуля camemra.v
+p_in_cam_ctrl       : in    std_logic_vector(15 downto 0);
 
 --------------------------------------------------
 --Sim
@@ -233,7 +235,7 @@ p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0)
 
 p_out_sim_mem               : out   TMemINBank;
 p_in_sim_mem                : in    TMemOUTBank;
-
+--p_in_tst                    : in    std_logic_vector(31 downto 0);
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -300,8 +302,7 @@ signal i_test02_led                   : std_logic;
 
 signal i_usr_status                   : std_logic_vector(7  downto 0);
 signal i_usr_rxd,i_usr_txd            : std_logic_vector(15 downto 0);
-
-signal i_hdd_rdy,i_hdd_err            : std_logic;
+signal i_usr_wr,i_usr_rd              : std_logic;
 
 
 --signal i_hdd_sim_gt_txdata            : TBus32_SHCountMax;
@@ -318,7 +319,15 @@ signal i_hdd_sim_gt_rxbyteisaligned   : std_logic_vector(C_HDD_COUNT_MAX-1 downt
 --signal i_hdd_sim_gt_sim_clk           : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal i_sim_mem_out                  : TMemOUTBank;
-
+signal i_cfg_tstout                   : std_logic_vector(31 downto 0);
+signal i_cfg_dev                      : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_adr                      : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
+signal i_cfg_adr_ld                   : std_logic;
+--signal i_cfg_tst,i_cfg_tst1           : std_logic_vector(31 downto 0);
+--signal i_cfghost_rst                  : std_logic:='0';
+--signal i_adr_cnt                      : std_logic_vector(i_cfg_adr'range):=(others=>'0');
+--signal i_1ms                          : std_logic;
+--signal i_1ms_cnt                      : std_logic_vector(15 downto 0):=(others=>'0');
 
 --MAIN
 begin
@@ -400,11 +409,11 @@ i_sys_rst <= '0';
 --G_CLK_T05us   =>10#75#   -- 05us - 150MHz
 --)
 --port map(
---p_out_test_led => i_test02_led,
+--p_out_test_led => open,--i_test02_led,
 --p_out_test_done=> open,
 --
 --p_out_1us      => open,
---p_out_1ms      => open,
+--p_out_1ms      => open,--i_1ms,
 ---------------------------------
 ----System
 ---------------------------------
@@ -471,12 +480,12 @@ pin_out_TP(1 downto 0)<=i_out_TP(1 downto 0);
 pin_out_TP(2)<=i_out_TP(2);--i_test02_led;
 pin_out_TP(7 downto 3)<=i_out_TP(7 downto 3);
 
-pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_status(0) or i_usr_status(1) or pin_in_SW(0) or i_hdd_rdy or i_hdd_err;
+pin_out_TP2(0)<=OR_reduce(i_vout_d) or OR_reduce(i_usr_rxd) or i_usr_status(0) or i_usr_status(1) or pin_in_SW(0);
 pin_out_TP2(1)<='0';
 
-gen_tx: for i in 0 to 15 generate
-i_usr_txd(i)<=pin_in_SW(1);
-end generate gen_tx;
+--gen_tx: for i in 0 to 15 generate
+--i_usr_txd(i)<=pin_in_SW(1);
+--end generate gen_tx;
 
 
 --***********************************************************
@@ -562,15 +571,14 @@ p_in_sata_clk_p     => pin_in_sata_clk_p,
 --------------------------------------------------
 --Интерфейс управления модулем
 p_in_usr_clk        => g_usr_refclk150,
-p_in_usr_tx_wr      => pin_in_SW(2),
-p_in_usr_rx_rd      => pin_in_SW(3),
+p_in_usr_tx_wr      => i_usr_wr,
+p_in_usr_rx_rd      => i_usr_rd,
 p_in_usr_txd        => i_usr_txd,
 p_out_usr_rxd       => i_usr_rxd,
 p_out_usr_status    => i_usr_status,
 
---Статусы модуля
-p_out_hdd_rdy       => i_hdd_rdy,
-p_out_hdd_err       => i_hdd_err,
+--Управление от модуля camemra.v
+p_in_cam_ctrl       => (others=>'0'),
 
 --------------------------------------------------
 --Sim
@@ -604,16 +612,16 @@ p_out_gt_sim_clk            => open,
 
 p_out_sim_mem               => open,
 p_in_sim_mem                => i_sim_mem_out,
-
+--p_in_tst                    => i_cfg_tstout,
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
-p_inout_ftdi_d      => pin_inout_ftdi_d,
-p_out_ftdi_rd_n     => pin_out_ftdi_rd_n,
-p_out_ftdi_wr_n     => pin_out_ftdi_wr_n,
-p_in_ftdi_txe_n     => pin_in_ftdi_txe_n,
-p_in_ftdi_rxf_n     => pin_in_ftdi_rxf_n,
-p_in_ftdi_pwren_n   => pin_in_ftdi_pwren_n,
+p_inout_ftdi_d      => pin_inout_ftdi_d,   --open,--
+p_out_ftdi_rd_n     => pin_out_ftdi_rd_n,  --open,--
+p_out_ftdi_wr_n     => pin_out_ftdi_wr_n,  --open,--
+p_in_ftdi_txe_n     => pin_in_ftdi_txe_n,  --'0', --
+p_in_ftdi_rxf_n     => pin_in_ftdi_rxf_n,  --'0', --
+p_in_ftdi_pwren_n   => pin_in_ftdi_pwren_n,--'0', --
 
 p_out_TP            => i_out_TP,
 p_out_led           => pin_out_led
@@ -629,6 +637,56 @@ p_out_led           => pin_out_led
 --i_hdd_sim_gt_rxbyteisaligned(i)<='0';
 --end generate gen_satah;
 
+
+--m_cfg_ftdi : cfgdev_ftdi
+--generic map(
+--G_DBG => C_PCFG_CFG_DBGCS
+--)
+--port map(
+---------------------------------
+----Связь с FTDI
+---------------------------------
+--p_inout_ftdi_d       => pin_inout_ftdi_d,
+--p_out_ftdi_rd_n      => pin_out_ftdi_rd_n,
+--p_out_ftdi_wr_n      => pin_out_ftdi_wr_n,
+--p_in_ftdi_txe_n      => pin_in_ftdi_txe_n,
+--p_in_ftdi_rxf_n      => pin_in_ftdi_rxf_n,
+--p_in_ftdi_pwren_n    => pin_in_ftdi_pwren_n,
+--
+---------------------------------
+----
+---------------------------------
+--p_out_module_rdy     => open,
+--p_out_module_error   => open,
+--
+---------------------------------
+----Запись/Чтение конфигурационных параметров уст-ва
+---------------------------------
+--p_out_cfg_dadr       => i_cfg_dev,
+--p_out_cfg_radr       => i_cfg_adr,
+--p_out_cfg_radr_ld    => i_cfg_adr_ld,
+--p_out_cfg_radr_fifo  => open,--i_cfg_adr_fifo,
+--p_out_cfg_wr         => i_usr_wr,
+--p_out_cfg_rd         => i_usr_rd,
+--p_out_cfg_txdata     => i_usr_txd,
+--p_in_cfg_rxdata      => i_usr_rxd,
+--p_in_cfg_txrdy       => i_usr_status(1),
+--p_in_cfg_rxrdy       => i_usr_status(0),
+--
+--p_out_cfg_done       => open,--i_cfg_done,
+--p_in_cfg_clk         => g_usr_refclk150,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst             => (others=>'0'),
+--p_out_tst            => i_cfg_tstout,--i_cfg_tst,--
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_rst => i_sys_rst
+--);
 
 
 

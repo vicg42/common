@@ -11,6 +11,37 @@ add wave -noupdate /hdd_main_tb/sr_cmdbusy
 add wave -noupdate /hdd_main_tb/i_cmddone_det
 add wave -noupdate -radix hexadecimal /hdd_main_tb/i_cfgdev_txdata
 add wave -noupdate /hdd_main_tb/i_sim_ctrl
+add wave -noupdate -divider USRIF
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/p_out_usr_status
+add wave -noupdate /hdd_main_tb/m_hdd/p_in_usr_rx_rd
+add wave -noupdate /hdd_main_tb/m_hdd/p_in_usr_tx_wr
+add wave -noupdate -radix hexadecimal -childformat {{/hdd_main_tb/m_hdd/p_in_usr_txd(15) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(14) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(13) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(12) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(11) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(10) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(9) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(8) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(7) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(6) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(5) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(4) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(3) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(2) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(1) -radix hexadecimal} {/hdd_main_tb/m_hdd/p_in_usr_txd(0) -radix hexadecimal}} -subitemconfig {/hdd_main_tb/m_hdd/p_in_usr_txd(15) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(14) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(13) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(12) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(11) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(10) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(9) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(8) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(7) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(6) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(5) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(4) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(3) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(2) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(1) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/p_in_usr_txd(0) {-height 15 -radix hexadecimal}} /hdd_main_tb/m_hdd/p_in_usr_txd
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/p_out_usr_rxd
+add wave -noupdate /hdd_main_tb/m_hdd/gen_host/m_cfg_host/p_in_host_rd
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/p_in_host_txd
+add wave -noupdate /hdd_main_tb/m_hdd/gen_host/m_cfg_host/p_in_host_wr
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/p_out_host_rxd
+add wave -noupdate /hdd_main_tb/m_hdd/gen_host/m_cfg_host/p_out_host_rxrdy
+add wave -noupdate /hdd_main_tb/m_hdd/gen_host/m_cfg_host/p_out_host_txrdy
+add wave -noupdate /hdd_main_tb/m_hdd/gen_host/m_cfg_host/fsm_state_cs
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_cfg_dbyte
+add wave -noupdate -radix hexadecimal -childformat {{/hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader(0) -radix hexadecimal} {/hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader(1) -radix hexadecimal} {/hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader(2) -radix hexadecimal}} -subitemconfig {/hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader(0) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader(1) {-height 15 -radix hexadecimal} /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader(2) {-height 15 -radix hexadecimal}} /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_dheader
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_pkt_cntd
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_dv_din
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_dv_dout
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_dv_rd
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_host/m_cfg_host/i_dv_wr
+add wave -noupdate -divider HDD_DSN
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_adr
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_adr_fifo
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_adr_ld
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_wd
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_rd
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_done
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/m_hdd/p_in_cfg_txdata
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/m_hdd/p_out_cfg_rxdata
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_out_cfg_rxrdy
+add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/p_out_cfg_txrdy
 add wave -noupdate -divider DCM
 add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/gen_use_on/m_dsn_sata/m_dcm/i_dcm_clk2x
 add wave -noupdate /hdd_main_tb/m_hdd/m_hdd/gen_use_on/m_dsn_sata/m_dcm/i_dcm_clk0
@@ -323,4 +354,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ns
 update
-WaveRestoreZoom {22115418 ps} {22189853 ps}
+WaveRestoreZoom {0 ps} {7350 ns}
