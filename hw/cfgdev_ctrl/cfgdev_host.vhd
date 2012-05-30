@@ -212,7 +212,19 @@ begin
 
   end if;
 end process;
-p_out_tst(31 downto 1)<=(others=>'0');
+p_out_tst(5 downto 1)<=(others=>'0');
+p_out_tst(9 downto 6)<=tst_fsm_cs;
+p_out_tst(10)<=i_rxbuf_empty;
+p_out_tst(11)<=i_dv_rd;
+p_out_tst(12)<=i_dv_wr;
+p_out_tst(13)<='0';
+p_out_tst(14)<='0';
+p_out_tst(15)<='0';
+p_out_tst(16)<=i_pkt_field_data;
+p_out_tst(17)<='0';
+p_out_tst(19 downto 18)<=CONV_STD_LOGIC_VECTOR(i_cfg_dbyte, 2);
+p_out_tst(27 downto 20)<=i_pkt_cntd(7 downto 0);
+p_out_tst(31 downto 28)<=(others=>'0');
 
 tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_WAIT_RXRDY else
             CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_cs'length) when fsm_state_cs=S_DEV_RXD        else
