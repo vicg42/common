@@ -36,6 +36,7 @@ NET "pin_out_led<5>" LOC = "M13";   ## 2   on LED DS25
 ###############################################################################
 #
 ###############################################################################
+NET "lclk" LOC = "E14"; ##ref_clk (100 MHz Oscillator)
 #ref_clk (200 MHz Oscillator) (chip - U9)
 NET "pin_in_refclk200M_p" LOC = "L12" | DIFF_TERM = TRUE;# | IOSTANDARD = "LVDS_25"; ## 6   on U55 SYNTHESIZER
 NET "pin_in_refclk200M_n" LOC = "M12" | DIFF_TERM = TRUE;# | IOSTANDARD = "LVDS_25"; ## 7   on U55 SYNTHESIZER switch

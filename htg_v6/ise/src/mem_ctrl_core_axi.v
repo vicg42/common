@@ -89,11 +89,11 @@ module mem_ctrl_core_axi #
                                        // clock frequency.
    parameter MMCM_ADV_BANDWIDTH      = "OPTIMIZED",
                                        // MMCM programming algorithm
-   parameter CLKFBOUT_MULT_F         = 6,
+   parameter CLKFBOUT_MULT_F         = 16, //OD was 8
                                        // write PLL VCO multiplier.
-   parameter DIVCLK_DIVIDE           = 2,
+   parameter DIVCLK_DIVIDE           = 2, // OD was 4
                                        // write PLL VCO divisor.
-   parameter CLKOUT_DIVIDE           = 3,
+   parameter CLKOUT_DIVIDE           = 2,
                                        // VCO output divisor for fast (memory) clocks.
    parameter nCK_PER_CLK             = 2,
                                        // # of memory CKs per fabric clock.
@@ -237,7 +237,7 @@ module mem_ctrl_core_axi #
    parameter CALIB_ROW_ADD             = 16'h0000,// Calibration row address
    parameter CALIB_COL_ADD             = 12'h000, // Calibration column address
    parameter CALIB_BA_ADD              = 3'h0,    // Calibration bank address
-   parameter RST_ACT_LOW             = 1,
+   parameter RST_ACT_LOW             = 0,
                                        // =1 for active low reset,
                                        // =0 for active high.
    parameter INPUT_CLK_TYPE          = "SINGLE_ENDED",
@@ -340,7 +340,8 @@ module mem_ctrl_core_axi #
 
 
 
-  localparam SYSCLK_PERIOD          = tCK * nCK_PER_CLK;
+//  localparam SYSCLK_PERIOD          = tCK * nCK_PER_CLK;
+  localparam SYSCLK_PERIOD          = 2 * tCK * nCK_PER_CLK; // OD change clock based on HTG 100 MHz on board oscillator
 
    // Traffic Gen related parameters
    localparam EYE_TEST                = "FALSE";
@@ -479,7 +480,7 @@ module mem_ctrl_core_axi #
   assign app_hi_pri = 1'b0;
 
   assign ui_clk = clk;
-  assign ui_clk_sync_rst = rst;
+  assign ui_clk_sync_rst = ~rst;
   MUXCY scl_inst
     (
      .O  (scl),
@@ -500,112 +501,43 @@ module mem_ctrl_core_axi #
   assign sys_clk_p = 1'b0;
   assign sys_clk_n = 1'b0;
 
-
-//  iodelay_ctrl #
-//    (
-//     .TCQ            (TCQ),
-//     .IODELAY_GRP    (IODELAY_GRP),
-//     .INPUT_CLK_TYPE (INPUT_CLK_TYPE),
-//     .RST_ACT_LOW    (RST_ACT_LOW)
-//     )
-//    u_iodelay_ctrl
-//      (
-//       .clk_ref_p        (clk_ref_p),
-//       .clk_ref_n        (clk_ref_n),
-//       .clk_ref          (clk_ref),
-//       .sys_rst          (sys_rst),
-//       .iodelay_ctrl_rdy (iodelay_ctrl_rdy)
-//       );
-//  clk_ibuf #
-//    (
-//     .INPUT_CLK_TYPE (INPUT_CLK_TYPE)
-//     )
-//    u_clk_ibuf
-//      (
-//       .sys_clk_p         (sys_clk_p),
-//       .sys_clk_n         (sys_clk_n),
-//       .sys_clk           (sys_clk),
-//       .mmcm_clk          (mmcm_clk)
-//       );
-
-//--------------------- Add0 vicg : begin
-  // # of clock cycles to delay deassertion of reset. Needs to be a fairly
-  // high number not so much for metastability protection, but to give time
-  // for reset (i.e. stable clock cycles) to propagate through all state
-  // machines and to all control signals (i.e. not all control signals have
-  // resets, instead they rely on base state logic being reset, and the effect
-  // of that reset propagating through the logic). Need this because we may not
-  // be getting stable clock cycles while reset asserted (i.e. since reset
-  // depends on DCM lock status)
-  // COMMENTED, RC, 01/13/09 - causes pack error in MAP w/ larger #
-  localparam RST_SYNC_NUM = 15;
-  //  localparam RST_SYNC_NUM = 25;
-
-  wire                   clk_ref_bufg;
-  wire                   clk_ref_ibufg;
-  wire                   rst_ref;
-  reg [RST_SYNC_NUM-1:0] rst_ref_sync_r /* synthesis syn_maxfan = 10 */;
-  wire                   rst_tmp_idelay;
-  wire                   sys_rst_act_hi;
-
-  //***************************************************************************
-
-  // Possible inversion of system reset as appropriate
-  assign  sys_rst_act_hi = RST_ACT_LOW ? ~sys_rst: sys_rst;
-
-  //***************************************************************************
-  // Global clock buffer for IDELAY reference clock
-  //***************************************************************************
-//
-//  BUFG u_bufg_clk_ref
-//    (
-//     .O (clk_ref_bufg),
-//     .I (clk_ref_ibufg)
-//     );
-  assign  clk_ref_bufg = clk_ref;
-
-  //*****************************************************************
-  // IDELAYCTRL reset
-  // This assumes an external clock signal driving the IDELAYCTRL
-  // blocks. Otherwise, if a PLL drives IDELAYCTRL, then the PLL
-  // lock signal will need to be incorporated in this.
-  //*****************************************************************
-
-  // Add PLL lock if PLL drives IDELAYCTRL in user design
-  assign rst_tmp_idelay = sys_rst_act_hi;
-
-  always @(posedge clk_ref_bufg or posedge rst_tmp_idelay)
-    if (rst_tmp_idelay)
-      rst_ref_sync_r <= #TCQ {RST_SYNC_NUM{1'b1}};
-    else
-      rst_ref_sync_r <= #TCQ rst_ref_sync_r << 1;
-
-  assign rst_ref  = rst_ref_sync_r[RST_SYNC_NUM-1];
-
-  //*****************************************************************
-
-  (* IODELAY_GROUP = IODELAY_GRP *) IDELAYCTRL u_idelayctrl
+  wire mmcm_lock;
+  iodelay_ctrl #
     (
-     .RDY    (iodelay_ctrl_rdy),
-     .REFCLK (clk_ref_bufg),
-     .RST    (rst_ref)
-     );
-//--------------------- Add0 vicg : end
-
-//--------------------- Add1 vicg : begin
-  assign mmcm_clk = sys_clk;
-//--------------------- Add1 vicg : end
-
+     .TCQ            (TCQ),
+     .IODELAY_GRP    (IODELAY_GRP),
+     .INPUT_CLK_TYPE (INPUT_CLK_TYPE),
+     .RST_ACT_LOW    (RST_ACT_LOW)
+     )
+    u_iodelay_ctrl
+      (
+       .clk_ref_p        (clk_ref_p),
+       .clk_ref_n        (clk_ref_n),
+       .clk_ref          (clk), // OD replacing clk_ref by clk at 200MHz. The clock is already buffered so the IBUFG needs to be removed in this module.
+       .sys_rst          (sys_rst),
+       .iodelay_ctrl_rdy (iodelay_ctrl_rdy),
+       .pll_lock         (mmcm_lock)
+       );
+  clk_ibuf #
+    (
+     .INPUT_CLK_TYPE (INPUT_CLK_TYPE)
+     )
+    u_clk_ibuf
+      (
+       .sys_clk_p         (sys_clk_p),
+       .sys_clk_n         (sys_clk_n),
+       .sys_clk           (sys_clk),
+       .mmcm_clk          (mmcm_clk)
+       );
   infrastructure #
     (
-     .TCQ                (TCQ),
-     .CLK_PERIOD         (SYSCLK_PERIOD),
-     .nCK_PER_CLK        (nCK_PER_CLK),
-     .MMCM_ADV_BANDWIDTH (MMCM_ADV_BANDWIDTH),
-     .CLKFBOUT_MULT_F    (CLKFBOUT_MULT_F),
-     .DIVCLK_DIVIDE      (DIVCLK_DIVIDE),
-     .CLKOUT_DIVIDE      (CLKOUT_DIVIDE),
-     .RST_ACT_LOW        (RST_ACT_LOW)
+     .TCQ             (TCQ),
+     .CLK_PERIOD      (SYSCLK_PERIOD),
+     .nCK_PER_CLK     (nCK_PER_CLK),
+     .CLKFBOUT_MULT_F (CLKFBOUT_MULT_F),
+     .DIVCLK_DIVIDE   (DIVCLK_DIVIDE),
+     .CLKOUT_DIVIDE   (CLKOUT_DIVIDE),
+     .RST_ACT_LOW     (RST_ACT_LOW)
      )
     u_infrastructure
       (
@@ -618,9 +550,9 @@ module mem_ctrl_core_axi #
        .iodelay_ctrl_rdy (iodelay_ctrl_rdy),
        .PSDONE           (pd_PSDONE),
        .PSEN             (pd_PSEN),
-       .PSINCDEC         (pd_PSINCDEC)
+       .PSINCDEC         (pd_PSINCDEC),
+       .lock(mmcm_lock)
        );
-
 
   memc_ui_top #
   (

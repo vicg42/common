@@ -24,7 +24,7 @@ constant C_PCFG_BOARD                  : string:="HTGV6";
 --//Конфигурирование модулей:
 --//cfg Memory Controller
 constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
-constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=4; --//max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
+constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=7; --//max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
 
 --//cfg TMR
 --constant C_PCFG_TMR_CLK_PERIOD         : integer:=0; --//0-100MHz
