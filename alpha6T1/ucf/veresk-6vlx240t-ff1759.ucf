@@ -15,12 +15,15 @@ NET "pin_out_led<2>" LOC = "P42"; ##Sematec pin: 16
 NET "pin_out_led<3>" LOC = "U41"; ##Sematec pin: 73
 NET "pin_out_led<4>" LOC = "U32"; ##Sematec pin: 71
 NET "pin_out_led<5>" LOC = "U33"; ##Sematec pin: 69
-
+NET "pin_out_led<6>" LOC = "AE42"; ##XRM Connector CN1, Field 3
+NET "pin_out_led<7>" LOC = "AD33"; ##XRM Connector CN1, Field 3
 
 
 ###############################################################################
 #
 ###############################################################################
+NET "lclk"  LOC = "AC34"; ##XRM Connector CN1, Field 3
+
 #ref_clk (200 MHz Oscillator)
 NET "pin_in_refclk200M_p" LOC = "AE30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 NET "pin_in_refclk200M_n" LOC = "AF30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
