@@ -24,6 +24,8 @@ set _projects [ list \
   [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/lib/vicg/v6/v6_diff_clkbuf.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/lib/vicg/v6/v6_gt_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
