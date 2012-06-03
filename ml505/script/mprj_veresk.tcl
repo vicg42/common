@@ -5,20 +5,20 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "AD5T1_veresk"
+set _usrdef_design "ml505_veresk"
 set _usrdef_entity "veresk_main"
 set _usrdef_xilinx_family "virtex5"
 set _usrdef_chip_family "v5lxt"
-set _usrdef_device "5vlx110t"
+set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "veresk-5vlx110t-ffg1136"
-set _usrdef_ucf_filepath "..\ucf\veresk-5vlx110t-ffg1136.ucf"
-
+set _usrdef_ucf_filename "ml505_veresk"
+set _usrdef_ucf_filepath "..\ucf\ml505_veresk.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
 set _VHDPkg $::projNav::VHDPkg
+set _MXCO $::projNav::MXCO
 
 set _projects [ list \
   [ list \
@@ -194,16 +194,16 @@ set _projects [ list \
       [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
-      [ list "../src/eth/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_locallink.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/emac_core.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/eth/veresk/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
+      [ list "../src/eth/veresk/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
+      [ list "../src/eth/veresk/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
+      [ list "../src/eth/veresk/emac_core_locallink.vhd" $_VHDMod ] \
+      [ list "../src/eth/veresk/emac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/veresk/emac_core.vhd" $_VHDMod ] \
+      [ list "../src/eth/veresk/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/veresk-5vlx110t-ffg1136.ucf" "veresk_main" ] \
+      [ list "../../ucf/ml505_veresk.ucf" "veresk_main" ] \
     ] \
   ] \
 ]

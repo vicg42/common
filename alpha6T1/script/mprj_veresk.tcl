@@ -208,7 +208,7 @@ set _projects [ list \
       [ list "../src/alphadata/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../src/alphadata/mem_arb.vhd" $_VHDMod ] \
       [ list "../src/alphadata/clocks.vhd" $_VHDMod ] \
-      [ list "../AD6T1_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk-6vlx240t-ff1759.ucf" "veresk_main" ] \
     ] \
