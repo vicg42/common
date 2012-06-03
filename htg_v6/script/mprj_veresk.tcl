@@ -215,6 +215,7 @@ set _projects [ list \
       [ list "../src/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
       [ list "../src/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../src/mem_arb.vhd" $_VHDMod ] \
+      [ list "../src/mem_ctrl_core_axi.v" $_VMod ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
