@@ -1,0 +1,7 @@
+<MemoryFile>
+    <MemoryType ClkType="Direct_clocking" FPGA="virtex6" HDL="verilog,vhdl" text="DDR3_SDRAM" tmin="1500" tmax="3300" >
+        <group text="Components" >
+            <Info clockingType="Direct_clocking" PartNumber="MT41J64M16XX-187E" tmin="1500" tmax="3300" />
+        </group>
+    </MemoryType>
+</MemoryFile>
