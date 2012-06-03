@@ -12,7 +12,8 @@ set _usrdef_chip_family "v6lxt"
 set _usrdef_device "6vlx240t"
 set _usrdef_speed  2
 set _usrdef_pkg    "ff1759"
-set _usrdef_ucf_filename "veresk-6vlx240t-ff1759"
+set _usrdef_ucf_filename "veresk_main"
+set _usrdef_ucf_filepath "..\ucf\veresk_main.ucf"
 
 
 set _VMod $::projNav::VMod
@@ -216,6 +217,7 @@ set _projects [ list \
       [ list "../src/mem_arb.vhd" $_VHDMod ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
+      [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
     ] \
   ] \
 ]

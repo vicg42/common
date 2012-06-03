@@ -12,8 +12,8 @@ set _usrdef_chip_family "v5lxt"
 set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "ml505_veresk"
-set _usrdef_ucf_filepath "..\ucf\ml505_veresk.ucf"
+set _usrdef_ucf_filename "veresk_main"
+set _usrdef_ucf_filepath "..\ucf\veresk_main.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -203,7 +203,7 @@ set _projects [ list \
       [ list "../src/eth/veresk/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/ml505_veresk.ucf" "veresk_main" ] \
+      [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
     ] \
   ] \
 ]
