@@ -1,6 +1,8 @@
 Как сделать проект:
 
-0.  Скорректировать пути в следующих файлах:
+0.  Выпистать из SVN репозиторий veresk_m
+
+1.  Скорректировать пути в следующих файлах:
     veresk_m/xxx/script/firmware_copy.bat
     veresk_m/xxx/make_project.bat
     veresk_m/xxx/updata_ngc.bat
@@ -10,7 +12,6 @@
     Переменная: XILINX
     Значение  : C:\Xilinx\ISE_DS\ISE
 
-1.  Выпистать из SVN репозиторий veresk_m
 2.  пекрейти к каталогу нужной платы (например veresk_m/alpha6T1)
 
 3   запустить core generator и перейти к каталогу core_gen соотв. платы (veresk_m/alpha6T1/ise/src/core_gen) и
