@@ -15,8 +15,8 @@ NET "pin_out_led<2>" LOC = "E12";   ## 2   on LED DS22
 NET "pin_out_led<3>" LOC = "F12";   ## 2   on LED DS23
 NET "pin_out_led<4>" LOC = "N13";   ## 2   on LED DS24
 NET "pin_out_led<5>" LOC = "M13";   ## 2   on LED DS25
-#NET "pin_out_led<6>" LOC = "N14";   ## 2   on LED DS26
-#NET "pin_out_led<7>" LOC = "M14";   ## 2   on LED DS27
+NET "pin_out_led<6>" LOC = "N14";   ## 2   on LED DS26
+NET "pin_out_led<7>" LOC = "M14";   ## 2   on LED DS27
 
 #NET "pin_in_sw<0>" LOC = "AA34";   ## 1   on SW6 DIP switch (active-high)
 #NET "pin_in_sw<1>" LOC = "W41";    ## 2   on SW6 DIP switch (active-high)
