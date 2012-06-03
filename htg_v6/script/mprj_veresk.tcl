@@ -5,7 +5,7 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "htgv6_veresk"
+set _usrdef_design "HTGV6_veresk"
 set _usrdef_entity "veresk_main"
 set _usrdef_xilinx_family "virtex6"
 set _usrdef_chip_family "v6lxt"
