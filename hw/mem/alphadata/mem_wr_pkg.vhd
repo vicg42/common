@@ -32,6 +32,7 @@ adr      : std_logic_vector(C_MEMWR_AWIDTH_MAX - 1 downto 0);
 dbe      : std_logic_vector(C_MEMWR_DWIDTH_MAX / 8 - 1 downto 0);
 data     : std_logic_vector(C_MEMWR_DWIDTH_MAX - 1 downto 0);
 clk      : std_logic;
+rstn     : std_logic;
 end record;
 
 type TMemOUT is record
@@ -41,6 +42,8 @@ data     : std_logic_vector(C_MEMWR_DWIDTH_MAX - 1 downto 0);
 buf_wpf  : std_logic;
 buf_re   : std_logic;
 --buf_rpe  : std_logic;
+clk      : std_logic;
+rstn     : std_logic;
 end record;
 
 Type TMemINCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemIN;

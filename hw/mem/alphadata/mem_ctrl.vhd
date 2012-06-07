@@ -35,8 +35,8 @@ port(
 ------------------------------------
 --User Post
 ------------------------------------
-p_in_mem       : in    TMemIN;--TMemINBank;
-p_out_mem      : out   TMemOUT;--TMemOUTBank;
+p_in_mem       : in    TMemINBank;--TMemIN;--
+p_out_mem      : out   TMemOUTBank;--TMemOUT;--
 
 ------------------------------------
 --Memory physical interface
@@ -354,7 +354,7 @@ locked    => i_memctrl_locked(1 downto 0),
 memrst    => memrst
 );
 
-p_out_status.rdy<=i_memctrl_locked(0);
+p_out_status.rdy(0)<=i_memctrl_locked(0);
 p_out_status.trained<=trained;
 p_out_sys.clk<=memclk2x0;
 
@@ -385,23 +385,23 @@ p_out_sys.clk<=memclk2x0;
     usr1_tag_mask <= EXT("11", tag_width);
 
 
-    usr0_clk      <=p_in_mem.clk;                                        --: in    std_logic;
+    usr0_clk      <=p_in_mem(0).clk;                                        --: in    std_logic;
     --”правление
-    usr0_bank1h   <=EXT(p_in_mem.bank, usr0_bank1h'length);              --: in    std_logic_vector(15 downto 0);
-    usr0_ce       <=p_in_mem.ce;                                         --: in    std_logic;
-    usr0_cw       <=p_in_mem.cw;                                         --: in    std_logic;
-    usr0_term     <=p_in_mem.term;                                       --: in    std_logic;
-    usr0_rd       <=p_in_mem.rd;                                         --: in    std_logic;
-    usr0_wr       <=p_in_mem.wr;                                         --: in    std_logic;
-    usr0_adr      <=p_in_mem.adr(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);     --: in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
-    usr0_be       <=p_in_mem.dbe(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0); --: in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
-    usr0_din      <=p_in_mem.data(C_MEMCTRL_DATA_WIDTH - 1 downto 0);    --: in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+    usr0_bank1h   <=EXT(p_in_mem(0).bank, usr0_bank1h'length);              --: in    std_logic_vector(15 downto 0);
+    usr0_ce       <=p_in_mem(0).ce;                                         --: in    std_logic;
+    usr0_cw       <=p_in_mem(0).cw;                                         --: in    std_logic;
+    usr0_term     <=p_in_mem(0).term;                                       --: in    std_logic;
+    usr0_rd       <=p_in_mem(0).rd;                                         --: in    std_logic;
+    usr0_wr       <=p_in_mem(0).wr;                                         --: in    std_logic;
+    usr0_adr      <=p_in_mem(0).adr(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);     --: in    std_logic_vector(C_MEMCTRL_ADDR_WIDTH - 1 downto 0);
+    usr0_be       <=p_in_mem(0).dbe(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0); --: in    std_logic_vector(C_MEMCTRL_DATA_WIDTH / 8 - 1 downto 0);
+    usr0_din      <=p_in_mem(0).data(C_MEMCTRL_DATA_WIDTH - 1 downto 0);    --: in    std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
 
-    p_out_mem.data    <=EXT(usr0_dout,p_out_mem.data'length);            --: out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
---    p_out_mem.buf_wf  <=usr0_wf ;                                       --: out   std_logic;
-    p_out_mem.buf_wpf <=usr0_wpf;                                        --: out   std_logic;
-    p_out_mem.buf_re  <=usr0_re ;                                        --: out   std_logic;
---    p_out_mem.buf_rpe <=usr0_rpe;                                       --: out   std_logic;
+    p_out_mem(0).data    <=EXT(usr0_dout,p_out_mem(0).data'length);            --: out   std_logic_vector(C_MEMCTRL_DATA_WIDTH - 1 downto 0);
+--    p_out_mem(0).buf_wf  <=usr0_wf ;                                       --: out   std_logic;
+    p_out_mem(0).buf_wpf <=usr0_wpf;                                        --: out   std_logic;
+    p_out_mem(0).buf_re  <=usr0_re ;                                        --: out   std_logic;
+--    p_out_mem(0).buf_rpe <=usr0_rpe;                                       --: out   std_logic;
 
 --//----------------------------------------------------------------------
 --//PORT-0

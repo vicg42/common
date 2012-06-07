@@ -75,16 +75,18 @@ type tag_vector_t is array(natural range <>) of std_logic_vector(tag_width - 1 d
 
 
 type TMEMCTRL_status is record
-rdy   : std_logic;
+rdy   : std_logic_vector(0 downto 0);
 trained : std_logic_vector(15 downto 0);
 end record;
 
 type TMEMCTRL_sysin is record
-clk   : std_logic;
-rst   : std_logic;
+ref_clk: std_logic;
+clk    : std_logic;
+rst    : std_logic;
 end record;
 
 type TMEMCTRL_sysout is record
+gusrclk: std_logic_vector(0 downto 0);
 clk   : std_logic;
 end record;
 
@@ -97,6 +99,13 @@ rc0   : std_logic_vector(C_MEM_BANK0.rc_width - 1 downto 0);
 rd0   : std_logic_vector(C_MEM_BANK0.rd_width - 1 downto 0);
 end record;
 
+--Type TMemINBank is array (0 to C_MEMCH_COUNT_MAX-1) of TMemIN;
+--Type TMemOUTBank is array (0 to C_MEMCH_COUNT_MAX-1) of TMemOUT;
+Type TMemINBank is array (0 to 8-1) of TMemIN;
+Type TMemOUTBank is array (0 to 8-1) of TMemOUT;
+
+constant C_AXI_AWIDTH      : integer:=32;
+constant C_AXI_DWIDTH      : integer:=32;
 
 component mem_arb
 generic(
@@ -140,8 +149,8 @@ port(
 ------------------------------------
 --User Post
 ------------------------------------
-p_in_mem       : in    TMemIN;--TMemINBank;
-p_out_mem      : out   TMemOUT;--TMemOUTBank;
+p_in_mem       : in    TMemINBank;--TMemIN;--
+p_out_mem      : out   TMemOUTBank;--TMemOUT;--
 
 ------------------------------------
 --Memory physical interface

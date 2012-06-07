@@ -743,7 +743,7 @@ begin
           txd(C_HREG_FUNC_TMR_BIT):='1';
           txd(C_HREG_FUNC_VCTRL_BIT):='1';
           txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
-          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
+--          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
@@ -751,10 +751,10 @@ begin
 
           txd(C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT downto C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT, C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT - C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT +1);
           txd(C_HREG_FUNCPRM_VCTRL_MIR_BIT)   :='1';
-          txd(C_HREG_FUNCPRM_VCTRL_ZOOM_BIT)  :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
-          txd(C_HREG_FUNCPRM_VCTRL_BAYER_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
-          txd(C_HREG_FUNCPRM_VCTRL_PCOLOR_BIT):=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
-          txd(C_HREG_FUNCPRM_VCTRL_GAMMA_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+--          txd(C_HREG_FUNCPRM_VCTRL_ZOOM_BIT)  :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+--          txd(C_HREG_FUNCPRM_VCTRL_BAYER_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+--          txd(C_HREG_FUNCPRM_VCTRL_PCOLOR_BIT):=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+--          txd(C_HREG_FUNCPRM_VCTRL_GAMMA_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
 
         end if;
 
