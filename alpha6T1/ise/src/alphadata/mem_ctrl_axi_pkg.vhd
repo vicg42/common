@@ -331,6 +331,7 @@ rst   : std_logic;
 end record;
 
 type TMEMCTRL_sysout is record
+gusrclk: std_logic_vector(0 downto 0);
 clk   : std_logic;
 end record;
 

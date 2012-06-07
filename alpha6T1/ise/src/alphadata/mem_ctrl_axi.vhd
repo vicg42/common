@@ -88,6 +88,7 @@ architecture synth of mem_ctrl is
   type TSAXI_ID_t is array (0 to DDR3_BANKS-1) of std_logic_vector(C_AXIM_IDWIDTH-1 downto 0);
   signal i_saxi_bid : TSAXI_ID_t;
   signal i_saxi_rid : TSAXI_ID_t;
+  signal i_clk      : std_logic_vector(DDR3_BANKS-1 downto 0);
 
 begin
 
@@ -115,11 +116,13 @@ begin
     REFCLK => p_in_sys.ref_clk,      -- in
     RST    => rst_ref);          -- in
 
+  p_out_sys.clk<=i_clk(0);
 
   ddr3_if_g : for n in 0 to DDR3_BANKS-1 generate
 
     p_out_mem(n).axiw.rid<=EXT(i_saxi_bid(n), p_out_mem(n).axiw.rid'length); --p_out_saxi_bid(n)<=EXT(i_saxi_bid(n), p_out_saxi_bid(n)'length);
     p_out_mem(n).axir.rid<=EXT(i_saxi_rid(n), p_out_mem(n).axir.rid'length); --p_out_saxi_rid(n)<=EXT(i_saxi_rid(n), p_out_saxi_rid(n)'length);
+    p_out_mem(n).clk<=i_clk(n);
 
     ddr3_if_bank_i : memory_ctrl_core
     generic map(
@@ -134,7 +137,7 @@ begin
       )
     port map(
       --// AXI Slave Interface:
-      p_out_saxi_clk     => p_out_mem(n).clk, --p_out_saxi_clk(n),
+      p_out_saxi_clk     => i_clk(n), --p_out_mem(n).clk, --p_out_saxi_clk(n),
       p_out_saxi_rstn    => p_out_mem(n).rstn,--p_out_saxi_rstn(n),
       --// Write Address Ports
       p_in_saxi_awid     => p_in_mem(n).axiw.aid(C_AXIM_IDWIDTH-1 downto 0), --p_in_saxi_awid(n)(G_AXI_IDWIDTH-1 downto 0),

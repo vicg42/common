@@ -224,7 +224,7 @@ architecture synth of memory_ctrl_core is
   signal dbg_wrlvl_start           : std_logic;
 
   attribute keep : string;
-  attribute keep of mig_ddr3_if_clk0 : signal is "true";
+--  attribute keep of mig_ddr3_if_clk0 : signal is "true";
   attribute keep of mig_ddr3_if_clk1 : signal is "true";
   attribute keep of mig_ddr3_if_clk2 : signal is "true";
   attribute keep of mig_ddr3_if_clk3 : signal is "true";

@@ -78,7 +78,7 @@ signal i_get_memch : TMemChIDWR_Get;
 
 signal i_in_memch           : TMemINCh;
 signal i_out_memch          : TMemOUTCh;
-
+signal i_rstn               : std_logic;
 
 --MAIN
 begin
@@ -94,6 +94,8 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --//--------------------------------------------------
 --//Связь с контроллером памяти mem_ctrl.vhd
 --//--------------------------------------------------
+i_rstn<=not p_in_rst;
+
 gen_chcount_1 : if G_CH_COUNT=1 generate
 
 p_out_mem <= p_in_memch(0);
@@ -116,7 +118,7 @@ end generate gen_idch;
 m_arb: mem_achcount3
 port map(
 INTERCONNECT_ACLK    => p_in_clk,                                           --: IN STD_LOGIC;
-INTERCONNECT_ARESETN => p_in_rst,                                           --: IN STD_LOGIC;
+INTERCONNECT_ARESETN => i_rstn,                                             --: IN STD_LOGIC;
 
 S00_AXI_ARESET_OUT_N => p_out_memch(0).rstn,                                --: OUT STD_LOGIC;
 S00_AXI_ACLK         => p_in_memch (0).clk,                                 --: IN STD_LOGIC;
@@ -296,7 +298,7 @@ end generate gen_idch;
 m_arb: mem_achcount4
 port map(
 INTERCONNECT_ACLK    => p_in_clk,                                           --: IN STD_LOGIC;
-INTERCONNECT_ARESETN => p_in_rst,                                           --: IN STD_LOGIC;
+INTERCONNECT_ARESETN => i_rstn,                                             --: IN STD_LOGIC;
 
 S00_AXI_ARESET_OUT_N => p_out_memch(0).rstn,                                --: OUT STD_LOGIC;
 S00_AXI_ACLK         => p_in_memch (0).clk,                                 --: IN STD_LOGIC;
@@ -622,7 +624,7 @@ end behavioral;
 --m_arb: mem_achcount4
 --port map(
 --INTERCONNECT_ACLK    => p_in_clk,                                           --: IN STD_LOGIC;
---INTERCONNECT_ARESETN => p_in_rst,                                           --: IN STD_LOGIC;
+--INTERCONNECT_ARESETN => i_rstn,                                             --: IN STD_LOGIC;
 --
 --S00_AXI_ARESET_OUT_N => i_out_memch(0).rstn,                                --: OUT STD_LOGIC;
 --S00_AXI_ACLK         => i_in_memch (0).clk,                                 --: IN STD_LOGIC;

@@ -15,8 +15,8 @@ NET "pin_out_led<2>" LOC = "P42"; ##Sematec pin: 16
 NET "pin_out_led<3>" LOC = "U41"; ##Sematec pin: 73
 NET "pin_out_led<4>" LOC = "U32"; ##Sematec pin: 71
 NET "pin_out_led<5>" LOC = "U33"; ##Sematec pin: 69
-NET "pin_out_led<6>" LOC = "AE42"; ##XRM Connector CN1, Field 3
-NET "pin_out_led<7>" LOC = "AD33"; ##XRM Connector CN1, Field 3
+NET "pin_out_led<6>" LOC = "AE42";##XRM Connector CN1, Field 3
+NET "pin_out_led<7>" LOC = "AD33";##XRM Connector CN1, Field 3
 
 
 ###############################################################################
@@ -29,44 +29,26 @@ NET "pin_in_refclk200M_p" LOC = "AE30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TR
 NET "pin_in_refclk200M_n" LOC = "AF30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 TIMEGRP "REF_CLK_PADS" = PADS(pin_in_refclk200M_?);
 
-# PLL (g_pll_mem_clk) 400 MHz =  2.5 ns, 400 MHz clock to DDR3 memory infrastructure
-# PLL (g_pll_clkin) 200 MHz =  5.0 ns, reference clock (200 MHz, direct from pin)
-NET "g_pll_mem_clk" TNM_NET = TNM_PLL_MEM_CLK;
-NET "g_pll_clkin" TNM_NET = TNM_PLL_REF_CLK;
-#NET "g_pll_tmr_clk" TNM_NET = TNM_PLL_TMR_CLK;
-TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5 ns HIGH 50%;
-TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0 ns HIGH 50%;
-#TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%;
+NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
+NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
+NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
+NET "g_host_clk"  TNM_NET = TNM_HOST_CLK;
+NET "g_usr_highclk" TNM_NET = TNM_USR_HIGH_CLK;
+TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5  ns HIGH 50%; # 400MHz clock to DDR3 memory infrastructure
+TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0  ns HIGH 50%; # 200MHz
+TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
+TIMESPEC TS_HOST_CLK    = PERIOD TNM_HOST_CLK     8.0  ns HIGH 50%; # 125Mhz
+
+# Create TIMEGRP for mig_ddr3_if_clk0
+NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0; ###NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
+TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
 
 
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
-##--------------------------
-##---- RGMII
-##--------------------------
-#NET "mdoi"   LOC = "R40"; ##Sematec pin: 24
-#NET "mdc"    LOC = "W36"; ##Sematec pin: 36
-#NET "rstn"   LOC = "T41"; ##Sematec pin: 30
-#NET "clk125" LOC = "W32"; ##Sematec pin: 89
-#NET "crs"    LOC = "T39"; ##Sematec pin: 27
-#NET "col"    LOC = "W37"; ##Sematec pin: 35
-#NET "actn"   LOC = "N41"; ##Sematec pin: 28
-#NET "txctrl" LOC = "N36"; ##Sematec pin: 23
-#NET "txc"    LOC = "Y33"; ##Sematec pin: 91
-#NET "txd<0>" LOC = "L39"; ##Sematec pin: 11
-#NET "txd<1>" LOC = "P38"; ##Sematec pin: 19
-#NET "txd<2>" LOC = "U36"; ##Sematec pin: 7
-#NET "txd<3>" LOC = "N38"; ##Sematec pin: 3
-#NET "rxd<0>" LOC = "R38"; ##Sematec pin: 25
-#NET "rxd<1>" LOC = "L40"; ##Sematec pin: 9
-#NET "rxd<2>" LOC = "P37"; ##Sematec pin: 21
-#NET "rxd<3>" LOC = "N35"; ##Sematec pin: 37
-#NET "rxctrl" LOC = "T35"; ##Sematec pin: 13
-#NET "rxc"    LOC = "P35"; ##Sematec pin: 40
-
 #--------------------------
-#---- 1000BASE-X (FIBER)
+#FIBER
 #--------------------------
 #Плата - OptoSATA
 NET "pin_out_sfp_tx_dis"  LOC = "W36"; ##Sematec pin: 36 (SFP - TX DISABLE)
@@ -76,31 +58,15 @@ NET "pin_in_sfp_sd"       LOC = "V36"; ##Sematec pin: 34 (SFP - SD signal detect
 #NET "pin_in_sfp_sd"       LOC = "AC41"; ##Sematec pin: 121 (SFP - SD signal detect)
 
 # MGTREFCLK0_117: Reference Clock from XRM (mgtclk_m2c_p/mgtclk_m2c_n)
-NET "pin_in_ethphy_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-NET "pin_in_ethphy_clk_n" LOC =  "G9"  | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-TIMEGRP "ETHPHY_CLK_PADS" = PADS(pin_in_ethphy_clk_?);
+NET "pin_in_ethphy_fiber_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_ethphy_fiber_clk_n" LOC =  "G9"  | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+TIMEGRP "ETHPHY_CLK_PADS" = PADS(pin_in_ethphy_fiber_clk_?);
 
 # Locate the Tri-Mode Ethernet MAC instance
 INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*v6_emac" LOC = "TEMAC_X0Y0";
 INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*gtx0_v6_gtxwizard_i?gtxe1_i" LOC = "GTXE1_X0Y18";
 
-## Group design elements around the Ethernet MAC to assist with timing
-## closure in this example design. These values may be modified or
-## removed to best suit your design.
-##INST "*" AREA_GROUP = "AG_example_design";
-##AREA_GROUP "AG_example_design" RANGE = CLOCKREGION_X1Y0:CLOCKREGION_X1Y3;
-#INST "*client_side_FIFO?tx_fifo_i?ramgen" LOC = "RAMB36_X7Y16";
-#INST "*client_side_FIFO?rx_fifo_i?ramgen" LOC = "RAMB36_X7Y17";
-
-# CLOCK CONSTRAINTS
-# The following constraints are required. If you choose to not use the example
-# design level of wrapper hierarchy, the net names should be translated to
-# match your design.
-
 # Ethernet MAC reference clock driven by transceiver
-#NET "clk125_o" TNM_NET = "clk_gt_clk";
-#TIMEGRP "emac_core_gt_clk" = "clk_gt_clk";
-#TIMESPEC "TS_emac_core_gt_clk" = PERIOD "emac_core_gt_clk" 8 ns HIGH 50 %;
 NET "i_ethphy_out_clk" TNM_NET = "clk_gt_clk";
 TIMEGRP  "emac_core_gt_clk"            = "clk_gt_clk";
 TIMESPEC "TS_emac_core_gt_clk"         = PERIOD "emac_core_gt_clk" 8 ns HIGH 50 %;
@@ -154,9 +120,6 @@ TIMESPEC "TS_rx_meta_protect" = FROM "rx_metastable" 5 ns;
 #############################################################################
 ###############       Проект PCI-Express     ################################
 #############################################################################
-#--------------------------------------------------------------------------
-#Назначение пинов
-#--------------------------------------------------------------------------
 # MGTREFCLK0_114: PCIe Reference Clock 250MHz (derived from 100MHz input on P5)
 NET "pin_in_pciexp_clk_p" LOC =  "AB8" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 NET "pin_in_pciexp_clk_n" LOC =  "AB7" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
@@ -165,9 +128,6 @@ TIMEGRP "PCIEXP_CLK_PADS" = PADS(pin_in_pciexp_clk_?);
 NET "pin_in_pciexp_rstn" TIG;
 NET "pin_in_pciexp_rstn" LOC =  "AC30" | IOSTANDARD = LVCMOS25 | PULLUP | NODELAY ;
 
-#--------------------------------------------------------------------------
-#Расположение компонентов в кристале
-#--------------------------------------------------------------------------
 INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[0].GTX" LOC = GTXE1_X0Y12; # PCIe Lane 0
 INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[1].GTX" LOC = GTXE1_X0Y13; # PCIe Lane 1
 INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[2].GTX" LOC = GTXE1_X0Y14; # PCIe Lane 2
@@ -176,9 +136,6 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[3].GTX
 INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_block_i" LOC = PCIE_X0Y1;
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i" LOC = MMCM_ADV_X0Y3;
 
-#--------------------------------------------------------------------------
-#Временные ограничения
-#--------------------------------------------------------------------------
 NET "i_pciexp_gt_refclk" TNM_NET = "PCIEXP_SYSCLK" ;
 #NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_125" TNM_NET = "PCIEXP_CLK_125" ;
 #NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
@@ -316,8 +273,8 @@ TIMEGRP "MEM0_PADS"      = "MEM0_DQ_PADS":
                            "MEM0_CTRL_PADS":
                            "MEM0_CLK_PADS";
 
-# Create TIMEGRP for mig_ddr3_if_clk0
-NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
+## Create TIMEGRP for mig_ddr3_if_clk0
+#NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
 
 # Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
 NET "*bank0_g.memc_ui_top_i/u_mem_intfc/phy_top0/clk_rsync<*>" TNM_NET = TNM_CLK_RSYNC0;

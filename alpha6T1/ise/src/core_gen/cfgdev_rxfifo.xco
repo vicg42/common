@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.2
-# Date: Sun Oct 16 12:51:12 2011
+# Xilinx Core Generator version 13.4
+# Date: Thu Jun 07 11:57:43 2012
 #
 ##############################################################
 #
@@ -12,7 +12,7 @@
 #
 ##############################################################
 #
-#  Generated from component: xilinx.com:ip:fifo_generator:8.2
+#  Generated from component: xilinx.com:ip:fifo_generator:8.4
 #
 ##############################################################
 #
@@ -36,7 +36,7 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT Fifo_Generator xilinx.com:ip:fifo_generator:8.2
+SELECT Fifo_Generator xilinx.com:ip:fifo_generator:8.4
 # END Select
 # BEGIN Parameters
 CSET add_ngc_constraint_axi=false
@@ -184,6 +184,8 @@ CSET register_slice_mode_wrch=Fully_Registered
 CSET reset_pin=true
 CSET reset_type=Asynchronous_Reset
 CSET ruser_width=1
+CSET synchronization_stages=2
+CSET synchronization_stages_axi=2
 CSET tdata_width=64
 CSET tdest_width=4
 CSET tid_width=8
@@ -211,7 +213,7 @@ CSET write_data_count_width=6
 CSET wuser_width=1
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2011-03-14T07:12:32.000Z
+MISC pkg_timestamp=2011-10-22T06:08:52Z
 # END Extra information
 GENERATE
-# CRC: d12e331b
+# CRC: 2e92ca9f
