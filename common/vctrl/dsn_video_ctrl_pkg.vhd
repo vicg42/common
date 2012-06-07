@@ -2,10 +2,13 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 2010.06
+-- Create Date : 05.06.2012 10:17:58
 -- Module Name : dsn_video_ctrl_pkg
 --
 -- Description :
+--
+--  s_dsn_video_ctrl_pkg.vhd - префикс (s) указывает на реализацию с
+--  минимальным набором функций видео обработки, только отзеркаливание по X,Y
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -47,11 +50,6 @@ mem_addr_wr    : std_logic_vector(31 downto 0);--//Базовый Адрес где будет форми
 mem_addr_rd    : std_logic_vector(31 downto 0);--//Базовый Адрес откуда будет вычитываться кадр
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
-fr_color_fst   : std_logic_vector(1 downto 0);
-fr_pcolor      : std_logic;
-fr_zoom        : std_logic_vector(3 downto 0);
-fr_zoom_type   : std_logic;
-fr_color       : std_logic;
 end record;
 type TVctrlChParams is array (0 to C_VCTRL_VCH_COUNT-1) of TVctrlChParam;
 
@@ -74,11 +72,6 @@ type TReaderVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
-fr_color_fst   : std_logic_vector(1 downto 0);
-fr_pcolor      : std_logic;
-fr_zoom        : std_logic_vector(3 downto 0);
-fr_zoom_type   : std_logic;
-fr_color       : std_logic;
 end record;
 Type TReaderVCHParams is array (0 to C_VCTRL_VCH_COUNT-1) of TReaderVCHParam;
 

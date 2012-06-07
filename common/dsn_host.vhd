@@ -93,96 +93,6 @@ end dsn_host;
 
 architecture behavioral of dsn_host is
 
-component lbus_connector_32bit_tst
-generic(
-la_top : in    natural
-);
-port(
---------------------------------------------------
--- Связь с хостом по Local bus
---------------------------------------------------
-lad      : inout std_logic_vector(31 downto 0);
-lbe_l    : in    std_logic_vector(32/8-1 downto 0);
-lads_l   : in    std_logic;
-lwrite   : in    std_logic;
-lblast_l : in    std_logic;
-lbterm_l : inout std_logic;
-lready_l : inout std_logic;
-fholda   : in    std_logic;
-finto_l  : out   std_logic;
-
---------------------------------------------------
---System
---------------------------------------------------
-clk        : in    std_logic;
-p_in_rst_n : in    std_logic
-);
-end component;
-
-component lbus_connector_32bit
-generic(
--- Bit of local bus address that is used to decode FPGA space
-la_top : in    natural
-);
-port(
---------------------------------------------------
--- Связь с хостом по Local bus
---------------------------------------------------
-lad              : inout std_logic_vector(31 downto 0);
-lbe_l            : in    std_logic_vector(32/8-1 downto 0);
-lads_l           : in    std_logic;
-lwrite           : in    std_logic;
-lblast_l         : in    std_logic;
-lbterm_l         : inout std_logic;
-lready_l         : inout std_logic;
-fholda           : in    std_logic;
-finto_l          : out   std_logic;
-
---------------------------------------------------
---Связь с уст-вами проекта Veresk-M
---------------------------------------------------
-p_out_hclk       : out   std_logic;
-p_out_gctrl      : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
-
-p_out_dev_ctrl   : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din    : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout    : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_out_dev_wr     : out   std_logic;
-p_out_dev_rd     : out   std_logic;
-p_in_dev_status  : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_out_dev_eof    : out   std_logic;
-
-p_in_tst_in      : in    std_logic_vector(127 downto 0);
-
-p_out_mem_bank1h : out   std_logic_vector(15 downto 0);
-p_out_mem_ce     : out   std_logic;
-p_out_mem_cw     : out   std_logic;
-p_out_mem_rd     : out   std_logic;
-p_out_mem_wr     : out   std_logic;
-p_out_mem_term   : out   std_logic;
-p_out_mem_adr    : out   std_logic_vector(32 -1  downto 0); --(G_MEM_AWIDTH - 1 downto 0);
-p_out_mem_be     : out   std_logic_vector(32/8 -1 downto 0); --(G_MEM_DWIDTH / 8 - 1 downto 0);
-p_out_mem_din    : out   std_logic_vector(32 -1  downto 0); --(G_MEM_DWIDTH - 1 downto 0);
-p_in_mem_dout    : in    std_logic_vector(32 -1  downto 0); --(G_MEM_DWIDTH - 1 downto 0);
-
-p_in_mem_wf      : in    std_logic;
-p_in_mem_wpf     : in    std_logic;
-p_in_mem_re      : in    std_logic;
-p_in_mem_rpe     : in    std_logic;
-
-scl_i            : in    std_logic;
-scl_o            : out   std_logic;
-sda_i            : in    std_logic;
-sda_o            : out   std_logic;
-
---------------------------------------------------
---System
---------------------------------------------------
-clk                : in    std_logic;
-p_in_rst_n         : in    std_logic
-);
-end component;
-
 component pcie_main
 generic(
 G_PCIE_LINK_WIDTH : integer:=1;
@@ -237,13 +147,10 @@ end component;
 signal scl                         : std_logic;
 signal sda                         : std_logic;
 
+
 --MAIN
 begin
 
-
---//###################################################
---//Рабочий вариант
---//###################################################
 gen_sim_off : if strcmp(G_SIM_HOST,"OFF") generate
 
 m_pcie : pcie_main
@@ -297,112 +204,7 @@ p_out_gtp_refclkout  => p_out_pciexp_gt_clkout
 
 );
 
-m_lbus : lbus_connector_32bit_tst
-generic map(
-la_top => 23
-)
-port map(
---------------------------------------------------
--- Связь с хостом по Local bus
---------------------------------------------------
-lad        => lad,
-lbe_l      => lbe_l,
-lads_l     => lads_l,
-lwrite     => lwrite,
-lblast_l   => lblast_l,
-lbterm_l   => lbterm_l,
-lready_l   => lready_l,
-fholda     => fholda,
-finto_l    => finto_l,
-
---------------------------------------------------
---System
---------------------------------------------------
-clk        => lclk,
-p_in_rst_n => p_in_rst_n
-);
-
 end generate gen_sim_off;
-
-
---//###################################################
---//Вариант для моделирования (Работа через LocalBus)
---//###################################################
-gen_sim_on : if strcmp(G_SIM_HOST,"ON") generate
-
-p_out_tst<=(others=>'0');
-p_out_usr_tst      <= (others=>'0');
-p_out_module_rdy <= not p_in_rst_n;
-
-p_out_pciexp_txp <=p_in_pciexp_rxp;
-p_out_pciexp_txn <=p_in_pciexp_rxn;
-
-p_out_pciexp_gt_clkout<=p_in_pciexp_gt_clkin;--lclk;
-
-m_lbus : lbus_connector_32bit
-generic map(
-la_top => 23
-)
-port map(
---------------------------------------------------
--- Связь с хостом по Local bus
---------------------------------------------------
-lad              => lad,
-lbe_l            => lbe_l,
-lads_l           => lads_l,
-lwrite           => lwrite,
-lblast_l         => lblast_l,
-lbterm_l         => lbterm_l,
-lready_l         => lready_l,
-fholda           => fholda,
-finto_l          => finto_l,
-
---------------------------------------------------
---Связь с уст-вами проекта Veresk-M
---------------------------------------------------
-p_out_hclk       => p_out_hclk,
-
-p_out_gctrl      => p_out_gctrl,
-p_out_dev_ctrl   => p_out_dev_ctrl,
-p_out_dev_din    => p_out_dev_din,
-p_in_dev_dout    => p_in_dev_dout,
-p_out_dev_wr     => p_out_dev_wr,
-p_out_dev_rd     => p_out_dev_rd,
-p_in_dev_status  => p_in_dev_status,
-p_out_dev_eof    => open,
-
-p_in_tst_in      => p_in_usr_tst,
-
-p_out_mem_bank1h => open,
-p_out_mem_ce     => open,
-p_out_mem_cw     => open,
-p_out_mem_rd     => open,
-p_out_mem_wr     => open,
-p_out_mem_term   => open,
-p_out_mem_adr    => open,
-p_out_mem_be     => open,
-p_out_mem_din    => open,
-p_in_mem_dout    => (others=>'0'),
-
-p_in_mem_wf      => '0',
-p_in_mem_wpf     => '0',
-p_in_mem_re      => '0',
-p_in_mem_rpe     => '0',
-
-scl_i            => scl,
-scl_o            => scl,
-sda_i            => sda,
-sda_o            => sda,
-
---------------------------------------------------
---System
---------------------------------------------------
-clk        => lclk,
-p_in_rst_n => p_in_rst_n
-);
-
-end generate gen_sim_on;
-
 
 
 --END MAIN

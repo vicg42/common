@@ -12,7 +12,7 @@
 --
 -------------------------------------------------------------------------
 library ieee;
-use ieee.STD_LOGIC_1164.all;
+use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
 
@@ -20,90 +20,10 @@ library work;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
-use work.sata_testgen_pkg.all;
 use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 
 package veresk_pkg is
-
-
-component dsn_track_nik
-generic(
-G_SIM             : string:="OFF";
-G_MODULE_USE      : string:="ON";
-
-G_MEM_BANK_M_BIT  : integer:=29;
-G_MEM_BANK_L_BIT  : integer:=28;
-
-G_MEM_VCH_M_BIT   : integer:=25;
-G_MEM_VCH_L_BIT   : integer:=24;
-G_MEM_VFR_M_BIT   : integer:=23;
-G_MEM_VFR_L_BIT   : integer:=23;
-G_MEM_VLINE_M_BIT : integer:=22;
-G_MEM_VLINE_L_BIT : integer:=12;
-
-G_MEM_AWIDTH      : integer:=32;
-G_MEM_DWIDTH      : integer:=32
-);
-port(
--------------------------------
--- Управление от Хоста
--------------------------------
-p_in_host_clk        : in   std_logic;
-
-p_in_cfg_adr         : in   std_logic_vector(7 downto 0);
-p_in_cfg_adr_ld      : in   std_logic;
-p_in_cfg_adr_fifo    : in   std_logic;
-
-p_in_cfg_txdata      : in   std_logic_vector(15 downto 0);
-p_in_cfg_wd          : in   std_logic;
-
-p_out_cfg_rxdata     : out  std_logic_vector(15 downto 0);
-p_in_cfg_rd          : in   std_logic;
-
-p_in_cfg_done        : in   std_logic;
-
--------------------------------
--- Связь с ХОСТ
--------------------------------
-p_out_trc_hirq       : out   std_logic;
-p_out_trc_hdrdy      : out   std_logic;
-p_out_trc_hfrmrk     : out   std_logic_vector(31 downto 0);
-p_in_trc_hrddone     : in    std_logic;
-
-p_out_trc_bufo_dout  : out   std_logic_vector(31 downto 0);
-p_in_trc_bufo_rd     : in    std_logic;
-p_out_trc_bufo_empty : out   std_logic;
-
-p_out_trc_busy       : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-
--------------------------------
--- Связь с VCTRL
--------------------------------
-p_in_vctrl_vrdprms   : in    TReaderVCHParams;
-p_in_vctrl_vfrrdy    : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-p_in_vctrl_vbuf      : in    TVfrBufs;
-p_in_vctrl_vrowmrk   : in    TVMrks;
-
----------------------------------
--- Связь с mem_ctrl.vhd
----------------------------------
-p_out_mem            : out   TMemIN;
-p_in_mem             : in    TMemOUT;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             : in    std_logic_vector(31 downto 0);
-p_out_tst            : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk             : in    std_logic;
-p_in_rst             : in    std_logic
-);
-end component;
 
 
 component dsn_host
@@ -248,18 +168,18 @@ p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);
 p_in_host_vbuf_rd         : in   std_logic;
 p_out_host_vbuf_empty     : out  std_logic;
 
--------------------------------
--- Связь с Накопителем(dsn_hdd.vhd)
--------------------------------
-p_in_hdd_tstgen           : in   THDDTstGen;
-p_in_hdd_vbuf_rdclk       : in   std_logic;
-
-p_out_hdd_vbuf_dout       : out  std_logic_vector(31 downto 0);
-p_in_hdd_vbuf_rd          : in   std_logic;
-p_out_hdd_vbuf_empty      : out  std_logic;
-p_out_hdd_vbuf_full       : out  std_logic;
-p_out_hdd_vbuf_pfull      : out  std_logic;
-p_out_hdd_vbuf_wrcnt      : out  std_logic_vector(3 downto 0);
+---------------------------------
+---- Связь с Накопителем(dsn_hdd.vhd)
+---------------------------------
+--p_in_hdd_tstgen           : in   THDDTstGen;
+--p_in_hdd_vbuf_rdclk       : in   std_logic;
+--
+--p_out_hdd_vbuf_dout       : out  std_logic_vector(31 downto 0);
+--p_in_hdd_vbuf_rd          : in   std_logic;
+--p_out_hdd_vbuf_empty      : out  std_logic;
+--p_out_hdd_vbuf_full       : out  std_logic;
+--p_out_hdd_vbuf_pfull      : out  std_logic;
+--p_out_hdd_vbuf_wrcnt      : out  std_logic_vector(3 downto 0);
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
@@ -297,17 +217,6 @@ p_out_vctrl_vbufout_empty : out  std_logic;
 p_out_vctrl_vbufout_full  : out  std_logic;
 
 -------------------------------
--- Связь с Модулем Тестирования(dsn_testing.vhd)
--------------------------------
-p_out_dsntst_bufclk       : out  std_logic;
-
-p_in_dsntst_txd_rdy       : in   std_logic;
-p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0);
-p_in_dsntst_txbuf_wr      : in   std_logic;
-p_out_dsntst_txbuf_empty  : out  std_logic;
-p_out_dsntst_txbuf_full   : out  std_logic;
-
--------------------------------
 --Технологический
 -------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
@@ -322,6 +231,7 @@ end component;
 
 component dsn_video_ctrl
 generic(
+G_DBGCS  : string:="OFF";
 G_ROTATE : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF";

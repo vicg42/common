@@ -2,12 +2,14 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 2010.06
+-- Create Date : 05.06.2012 10:18:05
 -- Module Name : video_reader
 --
 -- Назначение/Описание :
 --  Чтение кадра видеоканала из ОЗУ
 --
+--  s_video_reader.vhd - префикс (s) указывает на реализацию с
+--  минимальным набором функций видео обработки, только отзеркаливание по X,Y
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -19,9 +21,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
@@ -31,6 +30,7 @@ use work.dsn_video_ctrl_pkg.all;
 
 entity video_reader is
 generic(
+G_DBGCS           : string :="OFF";
 G_ROTATE          : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16; --min/max - 4/32
 G_MEM_BANK_M_BIT  : integer:=29;
@@ -64,13 +64,8 @@ p_in_vfr_nrow        : in    std_logic;                   --//Разрешение чтения 
 p_out_vch_fr_new     : out   std_logic;
 p_out_vch_rd_done    : out   std_logic;
 p_out_vch            : out   std_logic_vector(3 downto 0);
-p_out_vch_color_fst  : out   std_logic_vector(1 downto 0);
-p_out_vch_color      : out   std_logic;
-p_out_vch_pcolor     : out   std_logic;
 p_out_vch_active_pix : out   std_logic_vector(15 downto 0);
 p_out_vch_active_row : out   std_logic_vector(15 downto 0);
-p_out_vch_zoom       : out   std_logic_vector(3 downto 0);
-p_out_vch_zoom_type  : out   std_logic;
 p_out_vch_mirx       : out   std_logic;
 
 --//--------------------------
@@ -129,11 +124,6 @@ signal i_mem_dir                     : std_logic;
 signal i_mem_done                    : std_logic;
 
 signal i_vch_num                     : std_logic_vector(p_in_hrd_chsel'high downto 0);
-signal i_vfr_zoom                    : std_logic_vector(3 downto 0);
-signal i_vfr_zoom_type               : std_logic;
-signal i_vfr_pcolor                  : std_logic;
-signal i_vfr_color                   : std_logic;
-signal i_vfr_color_fst               : std_logic_vector(1 downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
 signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFR_L_BIT-G_MEM_VLINE_L_BIT downto 0);
 signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'range);
@@ -144,7 +134,8 @@ signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_
 signal i_vfr_skip_pix                : std_logic_vector(i_vfr_row_cnt'range);
 --signal tst_dbg_rdTBUF                : std_logic;
 --signal tst_dbg_rdEBUF                : std_logic;
---signal tst_fsmstate                  : std_logic_vector(3 downto 0);
+signal tst_fsmstate                  : std_logic_vector(3 downto 0);
+signal tst_fsmstate_out              : std_logic_vector(3 downto 0);
 --signal tst_fsmstate_dly              : std_logic_vector(3 downto 0);
 --signal tst_mem_ctrl_ch_wr_out        : std_logic_vector(31 downto 0);
 
@@ -155,31 +146,33 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
+gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    p_out_tst(0)<='0';
---    tst_fsmstate_dly<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    tst_fsmstate_dly<=tst_fsmstate;
---    p_out_tst(0) <=OR_reduce(tst_fsmstate_dly);-- or tst_mem_ctrl_ch_wr_out(0);--i_upp_data_wd;
---
---  end if;
---end process;
---p_out_tst(31 downto 1)<=(others=>'0');
---
---tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_LD_PRMS else
---              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED0 else
---              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED1 else
---              CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR else
---              CONV_STD_LOGIC_VECTOR(16#05#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START else
---              CONV_STD_LOGIC_VECTOR(16#06#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD else
---              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
---              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
---              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
---
+end generate gen_dbgcs_off;
+
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+p_out_tst(3  downto 0)<=tst_fsmstate_out;
+p_out_tst(4)          <=i_mem_start;
+p_out_tst(31 downto 5)<=(others=>'0');
+
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    tst_fsmstate_out<=tst_fsmstate;
+  end if;
+end process;
+
+tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_LD_PRMS else
+              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED0 else
+              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED1 else
+              CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR else
+              CONV_STD_LOGIC_VECTOR(16#05#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START else
+              CONV_STD_LOGIC_VECTOR(16#06#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD else
+              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
+              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
+              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
+end generate gen_dbgcs_on;
+
 --tst_dbg_rdTBUF<=p_in_tst(C_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
 --tst_dbg_rdEBUF<=p_in_tst(C_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
 
@@ -193,13 +186,8 @@ p_out_vch_fr_new<=i_vfr_new;
 --//параметры чтения текущего кадра
 p_out_vch <= i_vch_num;
 
-p_out_vch_color_fst <=i_vfr_color_fst;
-p_out_vch_color     <=i_vfr_color;
-p_out_vch_pcolor    <=i_vfr_pcolor;
 p_out_vch_active_pix<=i_mem_dlen_rq;
 p_out_vch_active_row<=EXT(i_vfr_active_row, p_out_vch_active_row'length);
-p_out_vch_zoom      <=i_vfr_zoom;
-p_out_vch_zoom_type <=i_vfr_zoom_type;
 p_out_vch_mirx      <=i_vfr_mirror.pix;
 
 
@@ -224,9 +212,6 @@ begin
     i_mem_start<='0';
 
     i_vfr_buf<=(others=>'0');
-    i_vfr_pcolor<='0';
-    i_vfr_color<='0';
-    i_vfr_color_fst<=(others=>'0');
     i_vfr_mirror.pix<='0';
     i_vfr_mirror.row<='0';
     i_vfr_row_cnt<=(others=>'0');
@@ -234,8 +219,6 @@ begin
       vfr_active_row_end:=(others=>'0');
     i_vfr_skip_row<=(others=>'0');
     i_vfr_skip_pix<=(others=>'0');
-    i_vfr_zoom<=(others=>'0');
-    i_vfr_zoom_type<='0';
 
     i_vfr_done<='0';
     i_vch_num<=(others=>'0');
@@ -279,19 +262,6 @@ begin
             --//Банк ОЗУ:
             --//--------------------------
             i_mem_rdbase<=p_in_cfg_prm_vch(i).mem_adr;
-
-            --//--------------------------
-            --//Цвет:
-            --//--------------------------
-            i_vfr_pcolor<=p_in_cfg_prm_vch(i).fr_pcolor;
-            i_vfr_color<=p_in_cfg_prm_vch(i).fr_color;
-            i_vfr_color_fst<=p_in_cfg_prm_vch(i).fr_color_fst;
-
-            --//--------------------------
-            --//ZOOM:
-            --//--------------------------
-            i_vfr_zoom<=p_in_cfg_prm_vch(i).fr_zoom;
-            i_vfr_zoom_type<=p_in_cfg_prm_vch(i).fr_zoom_type;
 
             --//--------------------------
             --//Отзеркаливание:

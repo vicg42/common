@@ -33,6 +33,7 @@ use work.mem_wr_pkg.all;
 
 entity video_writer is
 generic(
+G_DBGCS           : string :="OFF";
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -132,7 +133,8 @@ signal i_upp_buf_pfull             : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
 
 --signal tst_dbg_pictire             : std_logic;
---signal tst_fsmstate                : std_logic_vector(3 downto 0);
+signal tst_fsmstate                  : std_logic_vector(3 downto 0);
+signal tst_fsmstate_out              : std_logic_vector(3 downto 0);
 
 
 --MAIN
@@ -142,12 +144,27 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
+gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
+end generate gen_dbgcs_off;
 
---tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_PKT_HEADER_READ else
---              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
---              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WR          else
---              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+p_out_tst(3  downto 0)<=tst_fsmstate_out;
+p_out_tst(4)          <=i_mem_start;
+p_out_tst(31 downto 5)<=(others=>'0');
+
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    tst_fsmstate_out<=tst_fsmstate;
+  end if;
+end process;
+
+tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_PKT_HEADER_READ else
+              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
+              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WR          else
+              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
+end generate gen_dbgcs_on;
 
 --tst_dbg_pictire<=p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 

@@ -2,36 +2,23 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 10/26/2007
+-- Create Date : 05.06.2012 10:17:52
 -- Module Name : dsn_video_ctrl
 --
 -- Назначение/Описание :
 --  Формирование/Запись/Чтение кадров видеоканалов
 --
+--  s_dsn_video_ctrl.vhd - префикс (s) указывает на реализацию с
+--  минимальным набором функций видео обработки, только отзеркаливание по X,Y
 --
 -- Revision:
 -- Revision 0.01 - File Created
--- Revision 0.02 - add 17.01.2011 16:00:49
---            изменил управление счетчиками i_vbuf_wr, а также теперь работаю с 4-мя видеобуферами для каждого канала
---            добавил регистр i_vbuf_rd - для модуля video_reader.vhd
---            добавил регистр i_vbuf_trc - для модуля dsn_track_nik.vhd
---            добавил входной порт p_in_trc_busy : in   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--
--- Revision 0.03 - add 24.01.2011 16:48:50
---            поправил управление счетчиками i_vbuf_wr, добавил анализ условия
---            elsif p_in_trc_busy(i)='0' and i_vrd_hold_dly(i)='1' then
--- Revision 0.04 - add 03.02.2011 12:31:43
---            Доработал механизм выдачи ХОСТу статистики видеоканала:
---            маркер времени  +
---            кол-во кадров пропущеных в течении времени чтения видеоданных
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
-
-library unisim;
-use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
@@ -42,6 +29,7 @@ use work.mem_wr_pkg.all;
 
 entity dsn_video_ctrl is
 generic(
+G_DBGCS  : string:="OFF";
 G_ROTATE : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF"; --//ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
@@ -139,6 +127,7 @@ architecture behavioral of dsn_video_ctrl is
 
 component video_writer
 generic(
+G_DBGCS           : string :="OFF";
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -165,7 +154,7 @@ p_in_vfr_buf          : in    TVfrBufs;
 
 --//Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vrow_mrk        : out   TVMrks;--
+p_out_vrow_mrk        : out   TVMrks;
 
 --//--------------------------
 --//Upstream Port
@@ -199,6 +188,7 @@ end component;
 
 component video_reader
 generic(
+G_DBGCS           : string:="OFF";
 G_ROTATE          : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
 G_MEM_BANK_M_BIT  : integer:=29;
@@ -232,13 +222,8 @@ p_in_vfr_nrow        : in    std_logic;
 p_out_vch_fr_new     : out   std_logic;
 p_out_vch_rd_done    : out   std_logic;
 p_out_vch            : out   std_logic_vector(3 downto 0);
-p_out_vch_color_fst  : out   std_logic_vector(1 downto 0);
-p_out_vch_color      : out   std_logic;
-p_out_vch_pcolor     : out   std_logic;
 p_out_vch_active_pix : out   std_logic_vector(15 downto 0);
 p_out_vch_active_row : out   std_logic_vector(15 downto 0);
-p_out_vch_zoom       : out   std_logic_vector(3 downto 0);
-p_out_vch_zoom_type  : out   std_logic;
 p_out_vch_mirx       : out   std_logic;
 
 --//--------------------------
@@ -309,200 +294,6 @@ p_in_rst            : in    std_logic
 );
 end component;
 
-component vcoldemosaic_main
-generic(
-G_DOUT_WIDTH : integer:=32;
-G_SIM        : string :="OFF"
-);
-port(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_bypass    : in    std_logic;
-p_in_cfg_colorfst  : in    std_logic_vector(1 downto 0);
-p_in_cfg_pix_count : in    std_logic_vector(15 downto 0);
-p_in_cfg_row_count : in    std_logic_vector(15 downto 0);
-p_in_cfg_init      : in    std_logic;
-
---//--------------------------
---//Upstream Port
---//--------------------------
---p_in_upp_clk       : in    std_logic;
-p_in_upp_data      : in    std_logic_vector(31 downto 0);
-p_in_upp_wd        : in    std_logic;
-p_out_upp_rdy_n    : out   std_logic;
-
---//--------------------------
---//Downstream Port
---//--------------------------
---p_in_dwnp_clk      : in    std_logic;
-p_out_dwnp_data    : out   std_logic_vector(127 downto 0);
-p_out_dwnp_wd      : out   std_logic;
-p_in_dwnp_rdy_n    : in    std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst           : in    std_logic_vector(31 downto 0);
-p_out_tst          : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk           : in    std_logic;
-p_in_rst           : in    std_logic
-);
-end component;
-
-component vscaler_main
-generic(
-G_USE_COLOR : string:="OFF"
-);
-port(
--------------------------------
--- Управление
--------------------------------
---//Конфигурирование
-p_in_cfg_color      : in    std_logic;
-p_in_cfg_zoom_type  : in    std_logic;
-p_in_cfg_zoom       : in    std_logic_vector(3 downto 0);
-p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);
-p_in_cfg_row_count  : in    std_logic_vector(15 downto 0);
-p_in_cfg_init       : in    std_logic;
-
---//Статус
-p_out_cfg_zoom_done : out   std_logic;
-
---//Доступ к RAM коэфициентов
-p_in_cfg_acoe       : in    std_logic_vector(8 downto 0);
-p_in_cfg_acoe_ld    : in    std_logic;
-p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr    : in    std_logic;
-p_in_cfg_dcoe_rd    : in    std_logic;
-p_in_cfg_coe_wrclk  : in    std_logic;
-
---//--------------------------
---//Upstream Port (Связь с источником данных)
---//--------------------------
---p_in_upp_clk        : in    std_logic;
-p_in_upp_data       : in    std_logic_vector(31 downto 0);
-p_in_upp_wd         : in    std_logic;
-p_out_upp_rdy_n     : out   std_logic;
-
---//--------------------------
---//Downstream Port (Связь с приемником данных)
---//--------------------------
---p_in_dwnp_clk       : in    std_logic;
-p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd       : out   std_logic;
-p_in_dwnp_rdy_n     : in    std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
-);
-end component;
-
-component vpcolor_main
-port(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_bypass     : in    std_logic;
-
-p_in_cfg_coeram_num : in    std_logic_vector(1 downto 0);
-p_in_cfg_acoe       : in    std_logic_vector(6 downto 0);
-p_in_cfg_acoe_ld    : in    std_logic;
-p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr    : in    std_logic;
-p_in_cfg_dcoe_rd    : in    std_logic;
-p_in_cfg_coe_wrclk  : in    std_logic;
-
---//--------------------------
---//Upstream Port
---//--------------------------
---p_in_upp_clk        : in    std_logic;
-p_in_upp_data       : in    std_logic_vector(31 downto 0);
-p_in_upp_wd         : in    std_logic;
-p_out_upp_rdy_n     : out   std_logic;
-
---//--------------------------
---//Downstream Port
---//--------------------------
---p_in_dwnp_clk       : in    std_logic;
-p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd       : out   std_logic;
-p_in_dwnp_rdy_n     : in    std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
-);
-end component;
-
-component vgamma_main
-port(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_color      : in    std_logic;
-
-p_in_cfg_coeram_num : in    std_logic_vector(1 downto 0);
-p_in_cfg_acoe       : in    std_logic_vector(6 downto 0);
-p_in_cfg_acoe_ld    : in    std_logic;
-p_in_cfg_dcoe       : in    std_logic_vector(15 downto 0);
-p_out_cfg_dcoe      : out   std_logic_vector(15 downto 0);
-p_in_cfg_dcoe_wr    : in    std_logic;
-p_in_cfg_dcoe_rd    : in    std_logic;
-p_in_cfg_coe_wrclk  : in    std_logic;
-
---//--------------------------
---//Upstream Port
---//--------------------------
---p_in_upp_clk        : in    std_logic;
-p_in_upp_data       : in    std_logic_vector(31 downto 0);
-p_in_upp_wd         : in    std_logic;
-p_out_upp_rdy_n     : out   std_logic;
-
---//--------------------------
---//Downstream Port
---//--------------------------
---p_in_dwnp_clk       : in    std_logic;
-p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
-p_out_dwnp_wd       : out   std_logic;
-p_in_dwnp_rdy_n     : in    std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
-);
-end component;
 
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
@@ -547,13 +338,8 @@ signal i_vreader_fr_new                  : std_logic;
 signal i_vreader_rd_done                 : std_logic;
 signal i_vreader_rq_next_line            : std_logic;
 signal i_vreader_vch_num_out             : std_logic_vector(3 downto 0);
-signal i_vreader_color_fst_out           : std_logic_vector(1 downto 0);
-signal i_vreader_color_out               : std_logic;
-signal i_vreader_pcolor_out              : std_logic;
 signal i_vreader_active_pix_out          : std_logic_vector(15 downto 0);
 signal i_vreader_active_row_out          : std_logic_vector(15 downto 0);
-signal i_vreader_zoom_out                : std_logic_vector(3 downto 0);
-signal i_vreader_zoom_type_out           : std_logic;
 signal i_vreader_mirx_out                : std_logic;
 signal i_vreader_dout                    : std_logic_vector(31 downto 0);
 signal i_vreader_dout_en                 : std_logic;
@@ -562,47 +348,7 @@ signal i_vmir_rdy_n                      : std_logic;
 signal i_vmir_dout                       : std_logic_vector(31 downto 0);
 signal i_vmir_dout_en                    : std_logic;
 
-signal i_vcoldemasc_bypass               : std_logic;
 signal i_vcoldemasc_rdy_n                : std_logic;
-signal i_vcoldemasc_dout                 : std_logic_vector(127 downto 0);
-signal i_vcoldemasc_dout_en              : std_logic;
-
-signal i_vscale_coe_ram_en               : std_logic;
-signal i_vscale_coe_adr                  : std_logic_vector(8 downto 0);
-signal i_vscale_coe_adr_ld               : std_logic;
-signal i_vscale_coe_din                  : std_logic_vector(15 downto 0);
-signal i_vscale_coe_dout                 : std_logic_vector(15 downto 0);
-signal i_vscale_coe_wr                   : std_logic;
-signal i_vscale_coe_rd                   : std_logic;
-signal i_vscale_rdy_n                    : std_logic;
-signal i_vscale_dout                     : std_logic_vector(31 downto 0);
-signal i_vscale_dout_en                  : std_logic;
-signal i_vscale_pix_count                : std_logic_vector(15 downto 0);
-signal i_vscale_row_count                : std_logic_vector(15 downto 0);
-
-signal i_vpcolor_coe_ramnum              : std_logic_vector(2 downto 0);
-signal i_vpcolor_coe_adr                 : std_logic_vector(6 downto 0);
-signal i_vpcolor_coe_adr_ld              : std_logic;
-signal i_vpcolor_coe_din                 : std_logic_vector(15 downto 0);
-signal i_vpcolor_coe_dout                : std_logic_vector(15 downto 0);
-signal i_vpcolor_coe_wr                  : std_logic;
-signal i_vpcolor_coe_rd                  : std_logic;
-signal i_vpcolor_bypass                  : std_logic;
-signal i_vpcolor_rdy_n                   : std_logic;
-signal i_vpcolor_dout                    : std_logic_vector(31 downto 0);
-signal i_vpcolor_dout_en                 : std_logic;
-
-signal i_vgamma_coe_ramnum               : std_logic_vector(2 downto 0);
-signal i_vgamma_coe_adr                  : std_logic_vector(6 downto 0);
-signal i_vgamma_coe_adr_ld               : std_logic;
-signal i_vgamma_coe_din                  : std_logic_vector(15 downto 0);
-signal i_vgamma_coe_dout                 : std_logic_vector(15 downto 0);
-signal i_vgamma_coe_wr                   : std_logic;
-signal i_vgamma_coe_rd                   : std_logic;
-signal i_vgamma_color                    : std_logic;
-signal i_vgamma_rdy_n                    : std_logic;
---signal i_vgamma_dout                     : std_logic_vector(31 downto 0);
---signal i_vgamma_dout_en                  : std_logic;
 
 signal i_mem_null_dout                   : std_logic_vector(G_MEM_DWIDTH - 1 downto 0):=(others=>'0');
 
@@ -615,13 +361,9 @@ signal tst_vfrskip_rd                    : TVfrSkipTst;
 signal tst_vfrskip_rd_out                : std_logic_vector(3 downto 0);
 signal tst_vfrskip_rd_err                : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
---signal tst_vbufout_wd_cnt                : std_logic_vector(15 downto 0);
---signal tst_vbufout_din_wd                : std_logic;
-
-signal tst_dbg_sobel                     : std_logic;
 signal tst_dbg_pictire                   : std_logic;
 signal tst_dbg_rd_hold                   : std_logic;
-signal tst_dbg_trc_hold                  : std_logic;
+
 
 --MAIN
 begin
@@ -630,28 +372,23 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<=OR_reduce(tst_vfrskip_rd_err);-- or OR_reduce(tst_vbufout_wd_cnt); tst_vwriter_out(0) or
-
+gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
+p_out_tst(0)<=OR_reduce(tst_vfrskip_rd_err);
 p_out_tst(4 downto 1)  <=tst_vwriter_out(4 downto 1);
 p_out_tst(8 downto 5)  <=tst_vreader_out(3 downto 0);
 p_out_tst(15 downto 9) <=(others=>'0');
-p_out_tst(19 downto 16)<=tst_vfrskip_rd_out;--(others=>'0');
+p_out_tst(19 downto 16)<=tst_vfrskip_rd_out;
 p_out_tst(31 downto 20)<=(others=>'0');
+end generate gen_dbgcs_off;
 
---p_out_vbufout_din_wd<=tst_vbufout_din_wd;
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    tst_vbufout_wd_cnt<=(others=>'0');
---  elsif p_in_clk'event and p_in_clk='1' then
---    if i_vreader_rd_done='1' then
---      tst_vbufout_wd_cnt<=(others=>'0');
---    elsif tst_vbufout_din_wd='1' then
---      tst_vbufout_wd_cnt<=tst_vbufout_wd_cnt + 1;
---    end if;
---  end if;
---end process;
-
+gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+p_out_tst(0) <=OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out);
+p_out_tst(4 downto 1) <=tst_vwriter_out(3 downto 0);
+p_out_tst(8 downto 5) <=tst_vreader_out(3 downto 0);
+p_out_tst(9)          <=tst_vwriter_out(4);
+p_out_tst(10)         <=tst_vreader_out(4);
+p_out_tst(31 downto 11)<=(others=>'0');
+end generate gen_dbgcs_on;
 
 --//--------------------------------------------------
 --//Конфигурирование модуля
@@ -700,11 +437,6 @@ begin
         i_vprm.ch(i).fr_size.activ.row<=(others=>'0');
         i_vprm.ch(i).fr_mirror.pix<='0';
         i_vprm.ch(i).fr_mirror.row<='0';
-        i_vprm.ch(i).fr_color_fst<=(others=>'0');
-        i_vprm.ch(i).fr_pcolor    <='0';
-        i_vprm.ch(i).fr_zoom      <=(others=>'0');
-        i_vprm.ch(i).fr_zoom_type <='0';
-        i_vprm.ch(i).fr_color     <='0';
     end loop;
     i_vprm.mem_wd_trn_len<=(others=>'0');
     i_vprm.mem_rd_trn_len<=(others=>'0');
@@ -751,11 +483,6 @@ begin
                 elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
                   i_vprm.ch(i).fr_mirror.pix<=h_reg_prm_data(4);
                   i_vprm.ch(i).fr_mirror.row<=h_reg_prm_data(5);
-                  i_vprm.ch(i).fr_color_fst <=h_reg_prm_data(7 downto 6);
-                  i_vprm.ch(i).fr_pcolor    <=h_reg_prm_data(8);
-                  i_vprm.ch(i).fr_zoom      <=h_reg_prm_data(12 downto 9);
-                  i_vprm.ch(i).fr_zoom_type <=h_reg_prm_data(13);
-                  i_vprm.ch(i).fr_color     <=h_reg_prm_data(14);
 
                 end if;
               end if;
@@ -820,26 +547,16 @@ begin
                   elsif var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
                     p_out_cfg_rxdata(4)          <=i_vprm.ch(i).fr_mirror.pix;
                     p_out_cfg_rxdata(5)          <=i_vprm.ch(i).fr_mirror.row;
-                    p_out_cfg_rxdata(7 downto 6) <=i_vprm.ch(i).fr_color_fst;
-                    p_out_cfg_rxdata(8)          <=i_vprm.ch(i).fr_pcolor;
-                    p_out_cfg_rxdata(12 downto 9)<=i_vprm.ch(i).fr_zoom;
-                    p_out_cfg_rxdata(13)         <=i_vprm.ch(i).fr_zoom_type;
-                    p_out_cfg_rxdata(14)         <=i_vprm.ch(i).fr_color;
+                    p_out_cfg_rxdata(7 downto 6) <=(others=>'0');
+                    p_out_cfg_rxdata(8)          <='0';
+                    p_out_cfg_rxdata(12 downto 9)<=(others=>'0');
+                    p_out_cfg_rxdata(13)         <='0';
+                    p_out_cfg_rxdata(14)         <='0';
                     p_out_cfg_rxdata(15)         <='0';--(others=>'0');
 
                   end if;
                 end if;
               end loop;
-
-           elsif h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' then
-           --//Чтение BRAM коэфициентов
-                if i_vscale_coe_ram_en='1' then
-                  p_out_cfg_rxdata<=i_vscale_coe_dout(15 downto 0);
-                elsif i_vpcolor_coe_ramnum(2)='1' then
-                  p_out_cfg_rxdata<=i_vpcolor_coe_dout(15 downto 0);
-                elsif i_vgamma_coe_ramnum(2)='1' then
-                  p_out_cfg_rxdata<=i_vgamma_coe_dout(15 downto 0);
-                end if;
            end if;
 
       elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_M, i_cfg_adr_cnt'length) then
@@ -883,10 +600,9 @@ end process;
 
 tst_ctrl<=EXT(h_reg_tst0, tst_ctrl'length);
 tst_dbg_pictire<=tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
-tst_dbg_sobel<=tst_ctrl(C_VCTRL_REG_TST0_DBG_SOBEL_BIT);
 
 tst_dbg_rd_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
-tst_dbg_trc_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT);
+
 
 --//Пересинхронизация
 process(p_in_rst,p_in_clk)
@@ -915,11 +631,6 @@ gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_rdprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
 i_rdprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
 i_rdprm_vch(i).fr_mirror   <=i_vprm.ch(i).fr_mirror;
-i_rdprm_vch(i).fr_pcolor   <=i_vprm.ch(i).fr_pcolor;
-i_rdprm_vch(i).fr_zoom     <=i_vprm.ch(i).fr_zoom;
-i_rdprm_vch(i).fr_zoom_type<=i_vprm.ch(i).fr_zoom_type;
-i_rdprm_vch(i).fr_color    <=i_vprm.ch(i).fr_color;
-i_rdprm_vch(i).fr_color_fst<=i_vprm.ch(i).fr_color_fst;
 end generate gen_vrdprm;
 
 
@@ -934,11 +645,6 @@ gen_trcprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_trcprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_wr;
 i_trcprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
 i_trcprm_vch(i).fr_mirror   <=i_vprm.ch(i).fr_mirror;
-i_trcprm_vch(i).fr_pcolor   <=i_vprm.ch(i).fr_pcolor;
-i_trcprm_vch(i).fr_zoom     <=i_vprm.ch(i).fr_zoom;
-i_trcprm_vch(i).fr_zoom_type<=i_vprm.ch(i).fr_zoom_type;
-i_trcprm_vch(i).fr_color    <=i_vprm.ch(i).fr_color;
-i_trcprm_vch(i).fr_color_fst<=i_vprm.ch(i).fr_color_fst;
 end generate gen_trcprm;
 
 p_out_vctrl_vrdprm <= i_trcprm_vch;
@@ -999,7 +705,6 @@ end process;
 --//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
 
 gen_vhold : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
-i_vtrc_hold(i)<=p_in_trc_busy(i) or tst_dbg_trc_hold;
 tmp_vrd_hold(i)<=i_vrd_hold(i) or tst_dbg_rd_hold;
 end generate gen_vhold;
 
@@ -1026,125 +731,7 @@ begin
             i_vbuf_wr(i)<=(others=>'0');
           else
 
-            --//Если Модуль слежения заватил видеобуфер - ДА +
-            --//     Модуль Чтения Видео заватил видеобуфер - ДА, то ...
-            if i_vtrc_hold(i)='1' and i_vrd_hold_dly(i)='1' then
-                --//--------------
-                if    i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-
-                --//--------------
-                elsif ((i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length)) or
-                       (i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length))) then
-
-                       if    i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
-                       elsif i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-                       else
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-                       end if;
-
-                --//
-                elsif ((i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length)) or
-                       (i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length))) then
-
-                       if    i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
-                       elsif i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-                       else
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-                       end if;
-
-                --//
-                elsif ((i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length)) or
-                       (i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length))) then
-
-                       if    i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-                       elsif i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-                       else
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-                       end if;
-
-                --//--------------
-                elsif ((i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length)) or
-                       (i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length))) then
-
-                       if    i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
-                       elsif i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-                       else
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-                       end if;
-
-                --//
-                elsif ((i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length)) or
-                       (i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length))) then
-
-                       if    i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-                       elsif i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-                       else
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-                       end if;
-
-                --//
-                elsif ((i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length)) or
-                       (i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_trc(i)'length) and i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length))) then
-
-                       if    i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-                       elsif i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-                       else
-                          i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-                       end if;
-                end if;
-
-            --//Если Модуль Слежения заватил видеобуфер - ДА +
-            --//     Модуль Чтения Видео заватил видеобуфер - НЕТ, то ...
-            elsif i_vtrc_hold(i)='1' and i_vrd_hold_dly(i)='0' then
-                if    i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_trc(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_trc(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_trc(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_trc(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-
-                else
-                  i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
-                end if;
-
-            --//Если Модуль Слежения заватил видеобуфер - НЕТ +
-            --//     Модуль Чтения Видео заватил видеобуфер - ДА, то ...
-            elsif i_vtrc_hold(i)='0' and i_vrd_hold_dly(i)='1' then
+            if i_vrd_hold_dly(i)='1' then
                 if    i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length) and
                       i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
                   i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
@@ -1165,9 +752,7 @@ begin
                   i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
                 end if;
 
-            --//Если Модуль Слежения заватил видеобуфер - НЕТ +
-            --//     Модуль Чтения Видео заватил видеобуфер - НЕТ, то ...
-            elsif i_vtrc_hold(i)='0' and i_vrd_hold_dly(i)='0' then
+            else
               i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
 
             end if;
@@ -1249,31 +834,6 @@ begin
   end if;
 end process;
 
---//Модуль Слежения
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
-      i_vbuf_trc(i)<=(others=>'0');
-    end loop;
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-        --//Выдаем модулю слежения номер видеобуфера доступного для чтения
-        if i_vwrite_vfr_rdy_out(i)='1' then
-            if tst_dbg_pictire='1' then
-              i_vbuf_trc(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_trc(i)'length);
-            elsif i_vtrc_hold(i)='0' then
-              i_vbuf_trc(i)<=i_vbuf_wr(i);
-            end if;
-        end if;
-
-    end loop;--//for
-
-  end if;
-end process;
-
 
 
 -------------------------------
@@ -1281,6 +841,7 @@ end process;
 -------------------------------
 m_video_writer : video_writer
 generic map(
+G_DBGCS           => G_DBGCS,
 G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
 G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
 
@@ -1344,6 +905,7 @@ p_in_rst              => p_in_rst
 --//-----------------------------
 m_video_reader : video_reader
 generic map(
+G_DBGCS           => G_DBGCS,
 G_ROTATE          => G_ROTATE,
 G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
 G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
@@ -1377,13 +939,8 @@ p_in_vfr_nrow         => i_vreader_rq_next_line,
 p_out_vch_fr_new      => i_vreader_fr_new,
 p_out_vch_rd_done     => i_vreader_rd_done,
 p_out_vch             => i_vreader_vch_num_out,
-p_out_vch_color_fst   => i_vreader_color_fst_out,
-p_out_vch_color       => i_vreader_color_out,
-p_out_vch_pcolor      => i_vreader_pcolor_out,
 p_out_vch_active_pix  => i_vreader_active_pix_out,
 p_out_vch_active_row  => i_vreader_active_row_out,
-p_out_vch_zoom        => i_vreader_zoom_out,
-p_out_vch_zoom_type   => i_vreader_zoom_type_out,
 p_out_vch_mirx        => i_vreader_mirx_out,
 
 --//--------------------------
@@ -1456,301 +1013,9 @@ p_in_rst            => p_in_rst
 );
 
 
-gen_simple_off : if strcmp(G_SIMPLE,"OFF") generate
-
---//-----------------------------
---//Модуль интерполяции цвета
---//Конвертирование значений фильта Байера в правельный цвет RGB
---//-----------------------------
-i_vcoldemasc_bypass<=not i_vreader_color_out;
-
-m_vcoldemosaic : vcoldemosaic_main
-generic map(
-G_DOUT_WIDTH => 8,
-G_SIM        => G_SIM
-)
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_bypass     => i_vcoldemasc_bypass,
-p_in_cfg_colorfst   => i_vreader_color_fst_out,
-p_in_cfg_pix_count  => i_vreader_active_pix_out,
-p_in_cfg_row_count  => i_vreader_active_row_out,
-p_in_cfg_init       => i_vreader_fr_new,
-
---//--------------------------
---//Upstream Port
---//--------------------------
-p_in_upp_data       => i_vmir_dout,
-p_in_upp_wd         => i_vmir_dout_en,
-p_out_upp_rdy_n     => i_vcoldemasc_rdy_n,
-
---//--------------------------
---//Downstream Port
---//--------------------------
-p_out_dwnp_data     => i_vcoldemasc_dout,
-p_out_dwnp_wd       => i_vcoldemasc_dout_en,
-p_in_dwnp_rdy_n     => i_vscale_rdy_n,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-
-
---//-----------------------------
---//Модуль масштабирования изображения
---//-----------------------------
---//Доступ к BRAM коэфициентов
-i_vscale_coe_adr   <=p_in_cfg_txdata(i_vscale_coe_adr'high downto 0);
-i_vscale_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
-                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
-                                      i_vscale_coe_ram_en='1' else '0';
-
-i_vscale_coe_din<=p_in_cfg_txdata;
-i_vscale_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                   h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                   h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
-                                   i_vscale_coe_ram_en='1' else '0';
-
-i_vscale_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
-                                                      i_vscale_coe_ram_en='1' else '0';
-
-i_vscale_coe_ram_en<='1' when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_SCALE, h_ramcoe_num'length) else '0';
-
-i_vscale_pix_count <= i_vreader_active_pix_out when i_vreader_color_out='0' else (i_vreader_active_pix_out(13 downto 0)&"00");
-i_vscale_row_count <= i_vreader_active_row_out;
-
-m_vscaler : vscaler_main
-generic map(
-G_USE_COLOR => "ON"
-)
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_color      => i_vreader_color_out,
-p_in_cfg_zoom_type  => i_vreader_zoom_type_out,
-p_in_cfg_zoom       => i_vreader_zoom_out,
-p_in_cfg_pix_count  => i_vscale_pix_count,
-p_in_cfg_row_count  => i_vscale_row_count,
-p_in_cfg_init       => i_vreader_fr_new,
-
-p_out_cfg_zoom_done => open,
-
-p_in_cfg_acoe       => i_vscale_coe_adr,
-p_in_cfg_acoe_ld    => i_vscale_coe_adr_ld,
-p_in_cfg_dcoe       => i_vscale_coe_din,
-p_out_cfg_dcoe      => i_vscale_coe_dout,
-p_in_cfg_dcoe_wr    => i_vscale_coe_wr,
-p_in_cfg_dcoe_rd    => i_vscale_coe_rd,
-p_in_cfg_coe_wrclk  => p_in_host_clk,
-
---//--------------------------
---//Upstream Port
---//--------------------------
-p_in_upp_data       => i_vcoldemasc_dout(31 downto 0),
-p_in_upp_wd         => i_vcoldemasc_dout_en,
-p_out_upp_rdy_n     => i_vscale_rdy_n,
-
---//--------------------------
---//Downstream Port
---//--------------------------
-p_out_dwnp_data     => i_vscale_dout,
-p_out_dwnp_wd       => i_vscale_dout_en,
-p_in_dwnp_rdy_n     => i_vpcolor_rdy_n,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-
-
---//-----------------------------
---//Модуль формирования псевдоцвета.
---//Преобразование градаций серого в RGB
---//-----------------------------
-i_vpcolor_bypass<=not i_vreader_pcolor_out;
-
---//Доступ к BRAM коэфициентов
-i_vpcolor_coe_adr   <=p_in_cfg_txdata(i_vpcolor_coe_adr'high downto 0);
-i_vpcolor_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                       h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
-                                       h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
-                                       i_vpcolor_coe_ramnum(2)='1' else '0';
-
-i_vpcolor_coe_din<=p_in_cfg_txdata(15 downto 0);
-i_vpcolor_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                    h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                    h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
-                                    i_vpcolor_coe_ramnum(2)='1' else '0';
-
-i_vpcolor_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                                       h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                       h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
-                                                       i_vpcolor_coe_ramnum(2)='1' else '0';
-
-i_vpcolor_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLR, h_ramcoe_num'length) else
-                      "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLG, h_ramcoe_num'length) else
-                      "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_PCOLB, h_ramcoe_num'length) else
-                      "000";
-
-m_vpcolor : vpcolor_main
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_bypass     => i_vpcolor_bypass,
-
-p_in_cfg_coeram_num => i_vpcolor_coe_ramnum(1 downto 0),
-p_in_cfg_acoe       => i_vpcolor_coe_adr,
-p_in_cfg_acoe_ld    => i_vpcolor_coe_adr_ld,
-p_in_cfg_dcoe       => i_vpcolor_coe_din,
-p_out_cfg_dcoe      => i_vpcolor_coe_dout,
-p_in_cfg_dcoe_wr    => i_vpcolor_coe_wr,
-p_in_cfg_dcoe_rd    => i_vpcolor_coe_rd,
-p_in_cfg_coe_wrclk  => p_in_host_clk,
-
---//--------------------------
---//Upstream Port
---//--------------------------
-p_in_upp_data       => i_vscale_dout,
-p_in_upp_wd         => i_vscale_dout_en,
-p_out_upp_rdy_n     => i_vpcolor_rdy_n,
-
---//--------------------------
---//Downstream Port
---//--------------------------
-p_out_dwnp_data     => i_vpcolor_dout,
-p_out_dwnp_wd       => i_vpcolor_dout_en,
-p_in_dwnp_rdy_n     => i_vgamma_rdy_n,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-
-
---//-----------------------------
---//Модуль Gamma коррекции.
---//-----------------------------
-i_vgamma_color<=i_vreader_color_out or i_vreader_pcolor_out;
-
---//Доступ к BRAM коэфициентов
-i_vgamma_coe_adr   <=p_in_cfg_txdata(i_vgamma_coe_adr'high downto 0);
-i_vgamma_coe_adr_ld<=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='1' and
-                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
-                                      i_vgamma_coe_ramnum(2)='1' else '0';
-
-i_vgamma_coe_din<=p_in_cfg_txdata(15 downto 0);
-i_vgamma_coe_wr <=p_in_cfg_wd when i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                   h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                   h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='1' and
-                                   i_vgamma_coe_ramnum(2)='1' else '0';
-
-i_vgamma_coe_rd <=p_in_cfg_rd or p_in_cfg_adr_ld when p_in_cfg_adr=CONV_STD_LOGIC_VECTOR(C_VCTRL_REG_DATA_L, i_cfg_adr_cnt'length) and
-                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='1' and
-                                                      h_reg_ctrl(C_VCTRL_REG_CTRL_SET_BIT)='0' and
-                                                      i_vgamma_coe_ramnum(2)='1' else '0';
-
-i_vgamma_coe_ramnum<="100" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_GRAY, h_ramcoe_num'length) else
-                     "101" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLR, h_ramcoe_num'length) else
-                     "110" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLG, h_ramcoe_num'length) else
-                     "111" when h_ramcoe_num=CONV_STD_LOGIC_VECTOR(C_VCTRL_RAMCOE_GAMMA_COLB, h_ramcoe_num'length) else
-                     "000";
-
-
-m_vgamma: vgamma_main
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_color      => i_vgamma_color,
-
-p_in_cfg_coeram_num => i_vgamma_coe_ramnum(1 downto 0),
-p_in_cfg_acoe       => i_vgamma_coe_adr,
-p_in_cfg_acoe_ld    => i_vgamma_coe_adr_ld,
-p_in_cfg_dcoe       => i_vgamma_coe_din,
-p_out_cfg_dcoe      => i_vgamma_coe_dout,
-p_in_cfg_dcoe_wr    => i_vgamma_coe_wr,
-p_in_cfg_dcoe_rd    => i_vgamma_coe_rd,
-p_in_cfg_coe_wrclk  => p_in_host_clk,
-
---//--------------------------
---//Upstream Port
---//--------------------------
-p_in_upp_data       => i_vpcolor_dout,
-p_in_upp_wd         => i_vpcolor_dout_en,
-p_out_upp_rdy_n     => i_vgamma_rdy_n,
-
---//--------------------------
---//Downstream Port
---//--------------------------
-p_out_dwnp_data     => p_out_vbufout_din,
-p_out_dwnp_wd       => p_out_vbufout_din_wd,--tst_vbufout_din_wd,--
-p_in_dwnp_rdy_n     => p_in_vbufout_full,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-end generate gen_simple_off;
-
-
-
-gen_simple_on : if strcmp(G_SIMPLE,"ON") generate
-
-i_vscale_coe_dout <=(others=>'0');
-i_vpcolor_coe_dout<=(others=>'0');
-i_vgamma_coe_dout <=(others=>'0');
-
 p_out_vbufout_din   <=i_vmir_dout;
 p_out_vbufout_din_wd<=i_vmir_dout_en;
 i_vcoldemasc_rdy_n  <=p_in_vbufout_full;
-
-end generate gen_simple_on;
-
 
 
 --END MAIN

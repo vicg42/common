@@ -153,10 +153,10 @@ proc ::projNav::makeProject { _wd _design _entity _projDesc _verbose } {
   }
   project set "Unused IOB Pins" [ list Float ]
 
-  if [expr $_verbose >= 3] then {
+  if [expr $_verbose < 4] then {
     puts "Setting BITGEN property 'Enable BitStream Compression' to TRUE..."
+    project set "Enable BitStream Compression" true
   }
-  project set "Enable BitStream Compression" true
 
   if [expr $_verbose >= 3] then {
     puts "Setting PAR property 'Place & Route Effort Level (Overall)' to 'High'..."

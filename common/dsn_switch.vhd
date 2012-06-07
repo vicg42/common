@@ -18,12 +18,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
-use work.sata_testgen_pkg.all;
 
 entity dsn_switch is
 port(
@@ -64,18 +60,18 @@ p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);
 p_in_host_vbuf_rd         : in   std_logic;
 p_out_host_vbuf_empty     : out  std_logic;
 
--------------------------------
--- Связь с Накопителем(dsn_hdd.vhd)
--------------------------------
-p_in_hdd_tstgen           : in   THDDTstGen;                    --//
-p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
-
-p_out_hdd_vbuf_dout       : out  std_logic_vector(31 downto 0); --//
-p_in_hdd_vbuf_rd          : in   std_logic;                     --//
-p_out_hdd_vbuf_empty      : out  std_logic;                     --//
-p_out_hdd_vbuf_full       : out  std_logic;                     --//
-p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
-p_out_hdd_vbuf_wrcnt      : out  std_logic_vector(3 downto 0);  --//
+---------------------------------
+---- Связь с Накопителем(dsn_hdd.vhd)
+---------------------------------
+--p_in_hdd_tstgen           : in   THDDTstGen;                    --//
+--p_in_hdd_vbuf_rdclk       : in   std_logic;                     --//
+--
+--p_out_hdd_vbuf_dout       : out  std_logic_vector(31 downto 0); --//
+--p_in_hdd_vbuf_rd          : in   std_logic;                     --//
+--p_out_hdd_vbuf_empty      : out  std_logic;                     --//
+--p_out_hdd_vbuf_full       : out  std_logic;                     --//
+--p_out_hdd_vbuf_pfull      : out  std_logic;                     --//
+--p_out_hdd_vbuf_wrcnt      : out  std_logic_vector(3 downto 0);  --//
 
 -------------------------------
 -- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
@@ -112,17 +108,6 @@ p_out_vctrl_vbufout_empty : out  std_logic;                     --//
 p_out_vctrl_vbufout_full  : out  std_logic;                     --//
 
 -------------------------------
--- Связь с Модулем Тестирования(dsn_testing.vhd)
--------------------------------
-p_out_dsntst_bufclk       : out  std_logic;                     --//
-
-p_in_dsntst_txd_rdy       : in   std_logic;                     --//
-p_in_dsntst_txbuf_din     : in   std_logic_vector(31 downto 0); --//
-p_in_dsntst_txbuf_wr      : in   std_logic;                     --//
-p_out_dsntst_txbuf_empty  : out  std_logic;                     --//
-p_out_dsntst_txbuf_full   : out  std_logic;                     --//
-
--------------------------------
 --Технологический
 -------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
@@ -136,6 +121,25 @@ p_in_rst     : in    std_logic
 end dsn_switch;
 
 architecture behavioral of dsn_switch is
+
+--component hdd_rambuf_infifo
+--port(
+--din    : in std_logic_vector(31 downto 0);
+--wr_en  : in std_logic;
+--wr_clk : in std_logic;
+--
+--dout   : out std_logic_vector(31 downto 0);
+--rd_en  : in std_logic;
+--rd_clk : in std_logic;
+--
+--empty  : out std_logic;
+--full   : out std_logic;
+--prog_full     : out std_logic;
+--rd_data_count : out std_logic_vector(3 downto 0);
+--
+--rst    : in std_logic
+--);
+--end component;
 
 component host_vbuf
 port(
@@ -213,25 +217,6 @@ rst         : IN  std_logic
 );
 end component;
 
-component hdd_rambuf_infifo
-port(
-din    : in std_logic_vector(31 downto 0);
-wr_en  : in std_logic;
-wr_clk : in std_logic;
-
-dout   : out std_logic_vector(31 downto 0);
-rd_en  : in std_logic;
-rd_clk : in std_logic;
-
-empty  : out std_logic;
-full   : out std_logic;
-prog_full     : out std_logic;
-rd_data_count : out std_logic_vector(3 downto 0);
-
-rst    : in std_logic
-);
-end component;
-
 component video_pkt_filter
 generic(
 G_FRR_COUNT : integer:=3
@@ -276,29 +261,26 @@ signal i_cfg_adr_cnt                 : std_logic_vector(7 downto 0);
 
 signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
 signal h_reg_eth_host_frr            : TEthFRR;
-signal h_reg_eth_hdd_frr             : TEthFRR;
+--signal h_reg_eth_hdd_frr             : TEthFRR;
 signal h_reg_eth_vctrl_frr           : TEthFRR;
 
 signal b_rst_eth_bufs                : std_logic;
 signal b_rst_vctrl_bufs              : std_logic;
-signal b_tstdsn_to_ethtxbuf          : std_logic;
 
 signal syn_eth_rxd                   : std_logic_vector(31 downto 0);
 signal syn_eth_rxd_wr                : std_logic;
 signal syn_eth_rxd_sof               : std_logic;
 signal syn_eth_rxd_eof               : std_logic;
 signal syn_eth_host_frr              : TEthFRR;
-signal syn_eth_hdd_frr               : TEthFRR;
+--signal syn_eth_hdd_frr               : TEthFRR;
 signal syn_eth_vctrl_frr             : TEthFRR;
 
-signal i_hdd_vbuf_rst                : std_logic;
-signal i_hdd_vbuf_fltr_dout          : std_logic_vector(31 downto 0);
-signal i_hdd_vbuf_fltr_den           : std_logic;
-signal i_hdd_vbuf_din                : std_logic_vector(31 downto 0);
-signal i_hdd_vbuf_wr                 : std_logic;
+--signal i_hdd_vbuf_rst                : std_logic;
+--signal i_hdd_vbuf_fltr_dout          : std_logic_vector(31 downto 0);
+--signal i_hdd_vbuf_fltr_den           : std_logic;
+--signal i_hdd_vbuf_din                : std_logic_vector(31 downto 0);
+--signal i_hdd_vbuf_wr                 : std_logic;
 
-signal i_eth_txbuf_din               : std_logic_vector(31 downto 0);
-signal i_eth_txbuf_wr                : std_logic;
 signal i_eth_txbuf_empty             : std_logic;
 
 signal i_eth_rxbuf_empty             : std_logic;
@@ -315,11 +297,6 @@ signal i_vctrl_vbufin_fltr_den       : std_logic;
 
 signal i_vctrl_vbufout_empty         : std_logic;
 
-signal i_hdd_tst_on,i_hdd_tst_on_tmp : std_logic;
-signal i_hdd_tst_d                   : std_logic_vector(31 downto 0);
-signal i_hdd_tst_den                 : std_logic;
-signal i_hdd_hw_work                 : std_logic;
-
 
 --MAIN
 begin
@@ -327,8 +304,8 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<=i_hdd_vbuf_wr;
-p_out_tst(1)<=i_hdd_tst_den;
+p_out_tst(0)<='0';
+p_out_tst(1)<='0';
 p_out_tst(31 downto 2)<=(others=>'0');
 
 
@@ -363,10 +340,10 @@ begin
       h_reg_eth_host_frr(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
-      h_reg_eth_hdd_frr(2*i)  <=(others=>'0');
-      h_reg_eth_hdd_frr(2*i+1)<=(others=>'0');
-    end loop;
+--    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+--      h_reg_eth_hdd_frr(2*i)  <=(others=>'0');
+--      h_reg_eth_hdd_frr(2*i+1)<=(others=>'0');
+--    end loop;
 
     for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
       h_reg_eth_vctrl_frr(2*i)  <=(others=>'0');
@@ -386,14 +363,14 @@ begin
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
-        --//Заполняем маски фильтрации пакетов: ETH->HDD
-          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
-            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
-              h_reg_eth_hdd_frr(2*i)  <=p_in_cfg_txdata(7 downto 0);
-              h_reg_eth_hdd_frr(2*i+1)<=p_in_cfg_txdata(15 downto 8);
-            end if;
-          end loop;
+--        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
+--        --//Заполняем маски фильтрации пакетов: ETH->HDD
+--          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+--            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+--              h_reg_eth_hdd_frr(2*i)  <=p_in_cfg_txdata(7 downto 0);
+--              h_reg_eth_hdd_frr(2*i+1)<=p_in_cfg_txdata(15 downto 8);
+--            end if;
+--          end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Заполняем маски фильтрации пакетов: ETH->VCTRL
@@ -427,14 +404,14 @@ begin
             end if;
           end loop;
 
-        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
-        --//Читаем маски фильтрации пакетов: ETH->HDD
-          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
-            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
-              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_frr(2*i)  ;
-              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_hdd_frr(2*i+1);
-            end if;
-          end loop;
+--        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HDD/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
+--        --//Читаем маски фильтрации пакетов: ETH->HDD
+--          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+--            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+--              p_out_cfg_rxdata(7 downto 0) <=h_reg_eth_hdd_frr(2*i)  ;
+--              p_out_cfg_rxdata(15 downto 8)<=h_reg_eth_hdd_frr(2*i+1);
+--            end if;
+--          end loop;
 
         elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
         --//Читаем маски фильтрации пакетов: ETH->VCTRL
@@ -454,8 +431,6 @@ end process;
 b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
-b_tstdsn_to_ethtxbuf <= h_reg_ctrl(C_SWT_REG_CTRL_TSTDSN_2_ETHTXBUF_BIT);
-
 
 
 --//########################################################################
@@ -472,10 +447,10 @@ begin
       syn_eth_host_frr(2*i+1)<=(others=>'0');
     end loop;
 
-    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
-      syn_eth_hdd_frr(2*i)  <=(others=>'0');
-      syn_eth_hdd_frr(2*i+1)<=(others=>'0');
-    end loop;
+--    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+--      syn_eth_hdd_frr(2*i)  <=(others=>'0');
+--      syn_eth_hdd_frr(2*i+1)<=(others=>'0');
+--    end loop;
 
     for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
       syn_eth_vctrl_frr(2*i)  <=(others=>'0');
@@ -496,10 +471,10 @@ begin
         syn_eth_host_frr(2*i+1)<= h_reg_eth_host_frr(2*i+1);
       end loop;
 
-      for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
-        syn_eth_hdd_frr(2*i)  <= h_reg_eth_hdd_frr(2*i);
-        syn_eth_hdd_frr(2*i+1)<= h_reg_eth_hdd_frr(2*i+1);
-      end loop;
+--      for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HDD_FRR_COUNT)-1 loop
+--        syn_eth_hdd_frr(2*i)  <= h_reg_eth_hdd_frr(2*i);
+--        syn_eth_hdd_frr(2*i+1)<= h_reg_eth_hdd_frr(2*i+1);
+--      end loop;
 
       for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
         syn_eth_vctrl_frr(2*i)  <= h_reg_eth_vctrl_frr(2*i);
@@ -519,30 +494,18 @@ end process;
 
 
 
---//########################################################################
---//Обмен Хоста <-> EthG (dsn_eth.vhd)
---//########################################################################
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Хост -> ETHG_TXFIFO.(запись данных в Gigabit Ethernet)
+--//Хост -> ETHG
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
---//----------------------------------
---//Связь с модулем хоста dsn_host.vhd
---//----------------------------------
-i_eth_txbuf_din <=p_in_host_eth_txd     when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_din(31 downto 0);
-i_eth_txbuf_wr  <=p_in_host_eth_wr      when b_tstdsn_to_ethtxbuf='0' else p_in_dsntst_txbuf_wr;
-
-
 --//Сигнал хосту EthG TxBUF - готов принять данные
-p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty and not b_tstdsn_to_ethtxbuf;
+p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty;
+--//Связь с модулем dsn_eth.vhd
+p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
 
---//----------------------------------
---//Буфер TXDATA для модуля dsn_eth.vhd
---//----------------------------------
 m_eth_txbuf : host_ethg_txfifo
 port map(
-din     => i_eth_txbuf_din,
-wr_en   => i_eth_txbuf_wr,
+din     => p_in_host_eth_txd,
+wr_en   => p_in_host_eth_wr,
 wr_clk  => p_in_host_clk,
 
 dout    => p_out_eth_txbuf_dout,
@@ -556,19 +519,11 @@ almost_empty=> open,
 rst     => b_rst_eth_bufs
 );
 
---//----------------------------------
---//Связь с модулем dsn_eth.vhd
---//----------------------------------
-p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
-
-
-
 
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Хост <- ETHG_RXFIFO.(чтение данных из Gigabit Ethernet)
+--//Хост <- ETHG
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---//Фильтер пакетов от модуля dsn_eth.vhd
-m_host_eth_pkt_fltr: video_pkt_filter
+m_eth2host_pkt_fltr: video_pkt_filter
 generic map(
 G_FRR_COUNT => C_SWT_ETH_HOST_FRR_COUNT
 )
@@ -607,10 +562,6 @@ p_in_clk        => p_in_eth_clk,
 p_in_rst        => b_rst_eth_bufs
 );
 
-
---//----------------------------------
---//Буфер RXDATA для модуля dsn_eth.vhd
---//----------------------------------
 m_eth_rxbuf : host_ethg_rxfifo
 port map(
 din     => i_eth_rxbuf_fltr_dout,
@@ -627,13 +578,10 @@ full    => p_out_eth_rxbuf_full,
 rst     => b_rst_eth_bufs
 );
 
-
---//----------------------------------
 --//Связь с модулем хоста dsn_host.vhd
---//----------------------------------
 p_out_eth_rxbuf_empty<=i_eth_rxbuf_empty;
 
---//Сигнал Хосту: в RxBUF есть новые данные от Gigabit Ethernet
+--//Сигнал Хосту: в RxBUF есть новые данные от ETH
 p_out_host_eth_rxd_rdy<=not i_eth_rxbuf_empty;
 
 --//Формируем прерываение ETH_RXBUF
@@ -677,100 +625,10 @@ end process;
 p_out_host_eth_rxd_irq<=hclk_eth_rxd_rdy;
 
 
-
---//#############################################################################
---//Связь EthG->HDD(накопитель) (dsn_hdd.vhd)
---//#############################################################################
---//Фильтер пакетов от модуля dsn_eth.vhd
-m_eth_hdd_pkt_fltr: video_pkt_filter
-generic map(
-G_FRR_COUNT => C_SWT_ETH_HDD_FRR_COUNT
-)
-port map(
---//------------------------------------
---//Управление
---//------------------------------------
-p_in_frr        => syn_eth_hdd_frr,
-
---//------------------------------------
---//Upstream Port
---//------------------------------------
-p_in_upp_data   => syn_eth_rxd,
-p_in_upp_wr     => syn_eth_rxd_wr,
-p_in_upp_eof    => syn_eth_rxd_eof,
-p_in_upp_sof    => syn_eth_rxd_sof,
-
---//------------------------------------
---//Downstream Port
---//------------------------------------
-p_out_dwnp_data => i_hdd_vbuf_fltr_dout,
-p_out_dwnp_wr   => i_hdd_vbuf_fltr_den,
-p_out_dwnp_eof  => open,
-p_out_dwnp_sof  => open,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst        => (others=>'0'),
-p_out_tst       => open,
-
---//------------------------------------
---//SYSTEM
---//------------------------------------
-p_in_clk        => p_in_eth_clk,
-p_in_rst        => i_hdd_vbuf_rst
-);
-
-m_hdd_testgen : sata_testgen
-generic map(
-G_SCRAMBLER => "ON"
-)
-port map(
-p_in_gen_cfg   => p_in_hdd_tstgen,
-
-p_out_rdy      => i_hdd_tst_on_tmp,
-p_out_hwon     => i_hdd_hw_work,
-
-p_out_tdata    => i_hdd_tst_d,
-p_out_tdata_en => i_hdd_tst_den,
-
-p_in_clk       => p_in_eth_clk,
-p_in_rst       => i_hdd_vbuf_rst --p_in_rst --
-);
-
-i_hdd_tst_on<=i_hdd_tst_on_tmp and p_in_hdd_tstgen.con2rambuf;
-i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_tstgen.clr_err;
-
---//Выбор данных для модуля dsn_hdd.vhd
-i_hdd_vbuf_din<=i_hdd_tst_d          when i_hdd_tst_on='1'         else
-                i_hdd_vbuf_fltr_dout;
-i_hdd_vbuf_wr <=i_hdd_tst_den        when i_hdd_tst_on='1'         else
-                i_hdd_vbuf_fltr_den and i_hdd_hw_work;
-
-m_eth_hdd : hdd_rambuf_infifo
-port map(
-din       => i_hdd_vbuf_din,
-wr_en     => i_hdd_vbuf_wr,
-wr_clk    => p_in_eth_clk,
-
-dout      => p_out_hdd_vbuf_dout,
-rd_en     => p_in_hdd_vbuf_rd,
-rd_clk    => p_in_hdd_vbuf_rdclk,
-
-empty     => p_out_hdd_vbuf_empty,
-full      => p_out_hdd_vbuf_full,
-prog_full => p_out_hdd_vbuf_pfull,
-rd_data_count => p_out_hdd_vbuf_wrcnt,
-
-rst       => i_hdd_vbuf_rst
-);
-
-
---//#############################################################################
---//Связь EthG->VIDEO_CTRL(модуль видеоконтроллера) (dsn_video_ctrl.vhd)
---//#############################################################################
---//Фильтер пакетов от модуля dsn_eth.vhd
-m_eth_vbufin_pkt_fltr: video_pkt_filter
+--//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--//EthG->VIDEO_CTRL
+--//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+m_eth2vctrl_pkt_fltr: video_pkt_filter
 generic map(
 G_FRR_COUNT => C_SWT_ETH_VCTRL_FRR_COUNT
 )
@@ -809,13 +667,8 @@ p_in_clk        => p_in_eth_clk,
 p_in_rst        => b_rst_vctrl_bufs
 );
 
---//Выбор источника данных для буфера m_vctrl_vbufin модуля dsn_video_ctrl.vhd
-p_out_vctrl_vbufin_rdy<='0';
-
---//----------------------------------
---//Входной буфер для модуля dsn_video_ctrl.vhd
---//----------------------------------
-m_vctrl_vbufin : ethg_vctrl_rxfifo
+--//Входной буфер модуля dsn_video_ctrl.vhd
+m_vctrl_bufi : ethg_vctrl_rxfifo
 port map(
 din         => i_vctrl_vbufin_fltr_dout,
 wr_en       => i_vctrl_vbufin_fltr_den,
@@ -832,10 +685,8 @@ prog_full   => p_out_vctrl_vbufin_pfull,
 rst         => b_rst_vctrl_bufs
 );
 
---//----------------------------------
---//Выходной буфер для модуля dsn_video_ctrl.vhd
---//----------------------------------
-m_vctrl_vbufout : host_vbuf
+--//Выходной буфер модуля dsn_video_ctrl.vhd
+m_vctrl_bufo : host_vbuf
 port map(
 din         => p_in_vctrl_vbufout_din,
 wr_en       => p_in_vctrl_vbufout_wr,
@@ -856,18 +707,94 @@ rst         => b_rst_vctrl_bufs
 
 p_out_vctrl_vbufout_empty <=i_vctrl_vbufout_empty;
 p_out_host_vbuf_empty <=i_vctrl_vbufout_empty;
+p_out_vctrl_vbufin_rdy<='0';
 
 
-
---//#############################################################################
---//Связь с Модулем Тестирования(dsn_testing.vhd)
---//#############################################################################
-p_out_dsntst_bufclk <=p_in_host_clk;
-
-p_out_dsntst_txbuf_empty <=i_eth_txbuf_empty or not b_tstdsn_to_ethtxbuf;
-p_out_dsntst_txbuf_full  <='1';
-
-
+----//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+----//Связь EthG->HDD
+----//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--m_eth_hdd_pkt_fltr: video_pkt_filter
+--generic map(
+--G_FRR_COUNT => C_SWT_ETH_HDD_FRR_COUNT
+--)
+--port map(
+----//------------------------------------
+----//Управление
+----//------------------------------------
+--p_in_frr        => syn_eth_hdd_frr,
+--
+----//------------------------------------
+----//Upstream Port
+----//------------------------------------
+--p_in_upp_data   => syn_eth_rxd,
+--p_in_upp_wr     => syn_eth_rxd_wr,
+--p_in_upp_eof    => syn_eth_rxd_eof,
+--p_in_upp_sof    => syn_eth_rxd_sof,
+--
+----//------------------------------------
+----//Downstream Port
+----//------------------------------------
+--p_out_dwnp_data => i_hdd_vbuf_fltr_dout,
+--p_out_dwnp_wr   => i_hdd_vbuf_fltr_den,
+--p_out_dwnp_eof  => open,
+--p_out_dwnp_sof  => open,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst        => (others=>'0'),
+--p_out_tst       => open,
+--
+----//------------------------------------
+----//SYSTEM
+----//------------------------------------
+--p_in_clk        => p_in_eth_clk,
+--p_in_rst        => i_hdd_vbuf_rst
+--);
+--
+--m_hdd_testgen : sata_testgen
+--generic map(
+--G_SCRAMBLER => "ON"
+--)
+--port map(
+--p_in_gen_cfg   => p_in_hdd_tstgen,
+--
+--p_out_rdy      => i_hdd_tst_on_tmp,
+--p_out_hwon     => i_hdd_hw_work,
+--
+--p_out_tdata    => i_hdd_tst_d,
+--p_out_tdata_en => i_hdd_tst_den,
+--
+--p_in_clk       => p_in_eth_clk,
+--p_in_rst       => i_hdd_vbuf_rst --p_in_rst --
+--);
+--
+--i_hdd_tst_on<=i_hdd_tst_on_tmp and p_in_hdd_tstgen.con2rambuf;
+--i_hdd_vbuf_rst<=p_in_rst or p_in_hdd_tstgen.clr_err;
+--
+----//Выбор данных для модуля dsn_hdd.vhd
+--i_hdd_vbuf_din<=i_hdd_tst_d          when i_hdd_tst_on='1'         else
+--                i_hdd_vbuf_fltr_dout;
+--i_hdd_vbuf_wr <=i_hdd_tst_den        when i_hdd_tst_on='1'         else
+--                i_hdd_vbuf_fltr_den and i_hdd_hw_work;
+--
+--m_eth_hdd : hdd_rambuf_infifo
+--port map(
+--din       => i_hdd_vbuf_din,
+--wr_en     => i_hdd_vbuf_wr,
+--wr_clk    => p_in_eth_clk,
+--
+--dout      => p_out_hdd_vbuf_dout,
+--rd_en     => p_in_hdd_vbuf_rd,
+--rd_clk    => p_in_hdd_vbuf_rdclk,
+--
+--empty     => p_out_hdd_vbuf_empty,
+--full      => p_out_hdd_vbuf_full,
+--prog_full => p_out_hdd_vbuf_pfull,
+--rd_data_count => p_out_hdd_vbuf_wrcnt,
+--
+--rst       => i_hdd_vbuf_rst
+--);
 
 --END MAIN
 end behavioral;
