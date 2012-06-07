@@ -1,46 +1,56 @@
 -------------------------------------------------------------------------------
 -- Title      : 1000BASE-X RocketIO wrapper
--- Project    : Virtex-5 Ethernet MAC Wrappers
--------------------------------------------------------------------------------
+-- Project    : Virtex-5 Embedded Tri-Mode Ethernet MAC Wrapper
 -- File       : gtp_dual_1000X.vhd
--- Author     : Xilinx
+-- Version    : 1.8
 -------------------------------------------------------------------------------
--- Copyright (c) 2004-2008 by Xilinx, Inc. All rights reserved.
--- This text/file contains proprietary, confidential
--- information of Xilinx, Inc., is distributed under license
--- from Xilinx, Inc., and may be used, copied and/or
--- disclosed only pursuant to the terms of a valid license
--- agreement with Xilinx, Inc. Xilinx hereby grants you
--- a license to use this text/file solely for design, simulation,
--- implementation and creation of design files limited
--- to Xilinx devices or technologies. Use with non-Xilinx
--- devices or technologies is expressly prohibited and
--- immediately terminates your license unless covered by
--- a separate agreement.
 --
--- Xilinx is providing this design, code, or information
--- "as is" solely for use in developing programs and
--- solutions for Xilinx devices. By providing this design,
--- code, or information as one possible implementation of
--- this feature, application or standard, Xilinx is making no
--- representation that this implementation is free from any
--- claims of infringement. You are responsible for
--- obtaining any rights you may require for your implementation.
--- Xilinx expressly disclaims any warranty whatsoever with
--- respect to the adequacy of the implementation, including
--- but not limited to any warranties or representations that this
--- implementation is free from claims of infringement, implied
--- warranties of merchantability or fitness for a particular
--- purpose.
+-- (c) Copyright 2004-2010 Xilinx, Inc. All rights reserved.
 --
--- Xilinx products are not intended for use in life support
--- appliances, devices, or systems. Use in such applications are
--- expressly prohibited.
+-- This file contains confidential and proprietary information
+-- of Xilinx, Inc. and is protected under U.S. and
+-- international copyright and other intellectual property
+-- laws.
 --
--- This copyright and support notice must be retained as part
--- of this text at all times. (c) Copyright 2004-2008 Xilinx, Inc.
--- All rights reserved.
-
+-- DISCLAIMER
+-- This disclaimer is not a license and does not grant any
+-- rights to the materials distributed herewith. Except as
+-- otherwise provided in a valid license issued to you by
+-- Xilinx, and to the maximum extent permitted by applicable
+-- law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
+-- WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
+-- AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
+-- BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
+-- INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
+-- (2) Xilinx shall not be liable (whether in contract or tort,
+-- including negligence, or under any other theory of
+-- liability) for any loss or damage of any kind or nature
+-- related to, arising under or in connection with these
+-- materials, including for any direct, or any indirect,
+-- special, incidental, or consequential loss or damage
+-- (including loss of data, profits, goodwill, or any type of
+-- loss or damage suffered as a result of any action brought
+-- by a third party) even if such damage or loss was
+-- reasonably foreseeable or Xilinx had been advised of the
+-- possibility of the same.
+--
+-- CRITICAL APPLICATIONS
+-- Xilinx products are not designed or intended to be fail-
+-- safe, or for use in any application requiring fail-safe
+-- performance, such as life-support or safety devices or
+-- systems, Class III medical devices, nuclear facilities,
+-- applications related to the deployment of airbags, or any
+-- other applications that could lead to death, personal
+-- injury, or severe property or environmental damage
+-- (individually and collectively, "Critical
+-- Applications"). Customer assumes the sole risk and
+-- liability of any use of Xilinx products in Critical
+-- Applications, subject only to applicable laws and
+-- regulations governing limitations on product liability.
+--
+-- THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
+-- PART OF THIS FILE AT ALL TIMES.
+--
 ------------------------------------------------------------------------
 -- Description:  This is the VHDL instantiation of a Virtex-5 GTP
 --               RocketIO tile for the Embedded Ethernet MAC.
@@ -59,12 +69,15 @@ use UNISIM.Vcomponents.ALL;
 
 entity GTP_dual_1000X is
    port (
-          p_in_drp_ctrl         : in    std_logic_vector(31 downto 0);
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+      p_out_ust_tst                   : out std_logic_vector(31 downto 0);
 
           RESETDONE_0           : out   std_logic;
           ENMCOMMAALIGN_0       : in    std_logic;
           ENPCOMMAALIGN_0       : in    std_logic;
           LOOPBACK_0            : in    std_logic;
+          POWERDOWN_0           : in    std_logic;
           RXUSRCLK_0            : in    std_logic;
           RXUSRCLK2_0           : in    std_logic;
           RXRESET_0             : in    std_logic;
@@ -96,6 +109,7 @@ entity GTP_dual_1000X is
           ENMCOMMAALIGN_1       : in    std_logic;
           ENPCOMMAALIGN_1       : in    std_logic;
           LOOPBACK_1            : in    std_logic;
+          POWERDOWN_1           : in    std_logic;
           RXUSRCLK_1            : in    std_logic;
           RXUSRCLK2_1           : in    std_logic;
           RXRESET_1             : in    std_logic;
@@ -123,8 +137,10 @@ entity GTP_dual_1000X is
           RX1N_1                : in    std_logic;
           RX1P_1                : in    std_logic;
 
+
           CLK_DS                : in    std_logic;
           REFCLKOUT             : out   std_logic;
+          GTRESET               : in    std_logic;
           PMARESET              : in    std_logic;
           DCM_LOCKED            : in    std_logic
           );
@@ -168,9 +184,9 @@ architecture structural of GTP_dual_1000X is
   );
   port
   (
-
-    p_in_drp_ctrl                           : in    std_logic_vector(31 downto 0);
-
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+      p_out_ust_tst                   : out std_logic_vector(31 downto 0);
     --_________________________________________________________________________
     --_________________________________________________________________________
     --TILE0  (Location)
@@ -178,6 +194,10 @@ architecture structural of GTP_dual_1000X is
     ------------------------ Loopback and Powerdown Ports ----------------------
     TILE0_LOOPBACK0_IN                      : in   std_logic_vector(2 downto 0);
     TILE0_LOOPBACK1_IN                      : in   std_logic_vector(2 downto 0);
+    TILE0_RXPOWERDOWN0_IN                   : in   std_logic_vector(1 downto 0);
+    TILE0_TXPOWERDOWN0_IN                   : in   std_logic_vector(1 downto 0);
+    TILE0_RXPOWERDOWN1_IN                   : in   std_logic_vector(1 downto 0);
+    TILE0_TXPOWERDOWN1_IN                   : in   std_logic_vector(1 downto 0);
     ----------------------- Receive Ports - 8b10b Decoder ----------------------
     TILE0_RXCHARISCOMMA0_OUT                : out  std_logic;
     TILE0_RXCHARISCOMMA1_OUT                : out  std_logic;
@@ -293,11 +313,7 @@ architecture structural of GTP_dual_1000X is
    signal rxelecidle1_i         : std_logic;
    signal resetdone1_i          : std_logic;
 
-   signal pma_reset_i   : std_logic;
-   signal reset_r       : std_logic_vector(3 downto 0);
-   signal refclk_out    : std_logic;
    attribute ASYNC_REG                        : string;
-   attribute ASYNC_REG of reset_r             : signal is "TRUE";
 
 begin
 
@@ -334,36 +350,6 @@ begin
 
 
 
-   REFCLKOUT <= refclk_out;
-
---   --------------------------------------------------------------------
---   -- RocketIO PMA reset circuitry
---   --------------------------------------------------------------------
---   process(PMARESET, refclk_out)
---   begin
---     if (PMARESET = '1') then
---       reset_r <= "1111";
---     elsif refclk_out'event and refclk_out = '1' then
---       reset_r <= reset_r(2 downto 0) & PMARESET;
---     end if;
---   end process;
---
---   pma_reset_i <= reset_r(3);
-
-   --------------------------------------------------------------------
-   -- RocketIO PMA reset circuitry
-   --------------------------------------------------------------------
-   process(PMARESET, p_in_drp_ctrl(31))
-   begin
-     if (PMARESET = '1') then
-       reset_r <= "1111";
-     elsif p_in_drp_ctrl(31)'event and p_in_drp_ctrl(31) = '1' then
-       reset_r <= reset_r(2 downto 0) & PMARESET;
-     end if;
-   end process;
-
-   pma_reset_i <= reset_r(3);--//Полный сброс для GTP_DUAL
-
    ----------------------------------------------------------------------
    -- Instantiate the Virtex-5 GTP
    -- EMAC0 connects to GTP 0 and EMAC1 connects to GTP 1
@@ -376,16 +362,22 @@ begin
         WRAPPER_SIM_PLL_PERDIV2        => x"190"
     )
     port map (
-        p_in_drp_ctrl                  => p_in_drp_ctrl,
+      p_in_drp_ctrl      => p_in_drp_ctrl     ,
+      p_out_gtp_plllkdet => p_out_gtp_plllkdet,
+      p_out_ust_tst      => p_out_ust_tst     ,
 
         ------------------- Shared Ports - Tile and PLL Ports --------------------
         TILE0_CLKIN_IN                 => CLK_DS,
-        TILE0_GTPRESET_IN              => pma_reset_i,
+        TILE0_GTPRESET_IN              => GTRESET,
         TILE0_PLLLKDET_OUT             => PLLLOCK,
-        TILE0_REFCLKOUT_OUT            => refclk_out,
+        TILE0_REFCLKOUT_OUT            => REFCLKOUT,
         ---------------------- Loopback and Powerdown Ports ----------------------
 	TILE0_LOOPBACK0_IN(2 downto 1) => "00",
         TILE0_LOOPBACK0_IN(0)          => LOOPBACK_0,
+        TILE0_RXPOWERDOWN0_IN(0)       => POWERDOWN_0,
+        TILE0_RXPOWERDOWN0_IN(1)       => POWERDOWN_0,
+        TILE0_TXPOWERDOWN0_IN(0)       => POWERDOWN_0,
+        TILE0_TXPOWERDOWN0_IN(1)       => POWERDOWN_0,
         --------------------- Receive Ports - 8b10b Decoder ----------------------
         TILE0_RXCHARISCOMMA0_OUT       => RXCHARISCOMMA_0,
         TILE0_RXCHARISK0_OUT           => RXCHARISK_0_INT,
@@ -432,6 +424,10 @@ begin
         ---------------------- Loopback and Powerdown Ports ----------------------
         TILE0_LOOPBACK1_IN(2 downto 1) => "00",
         TILE0_LOOPBACK1_IN(0)          => LOOPBACK_1,
+        TILE0_RXPOWERDOWN1_IN(0)       => POWERDOWN_1,
+        TILE0_RXPOWERDOWN1_IN(1)       => POWERDOWN_1,
+        TILE0_TXPOWERDOWN1_IN(0)       => POWERDOWN_1,
+        TILE0_TXPOWERDOWN1_IN(1)       => POWERDOWN_1,
         --------------------- Receive Ports - 8b10b Decoder ----------------------
         TILE0_RXCHARISCOMMA1_OUT       => RXCHARISCOMMA_1,
         TILE0_RXCHARISK1_OUT           => RXCHARISK_1_INT,

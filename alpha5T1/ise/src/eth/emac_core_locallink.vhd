@@ -1,45 +1,56 @@
 -------------------------------------------------------------------------------
 -- Title      : Virtex-5 Ethernet MAC Local Link Wrapper
--- Project    : Virtex-5 Ethernet MAC Wrappers
--------------------------------------------------------------------------------
+-- Project    : Virtex-5 Embedded Tri-Mode Ethernet MAC Wrapper
 -- File       : emac_core_locallink.vhd
+-- Version    : 1.8
 -------------------------------------------------------------------------------
--- Copyright (c) 2004-2008 by Xilinx, Inc. All rights reserved.
--- This text/file contains proprietary, confidential
--- information of Xilinx, Inc., is distributed under license
--- from Xilinx, Inc., and may be used, copied and/or
--- disclosed only pursuant to the terms of a valid license
--- agreement with Xilinx, Inc. Xilinx hereby grants you
--- a license to use this text/file solely for design, simulation,
--- implementation and creation of design files limited
--- to Xilinx devices or technologies. Use with non-Xilinx
--- devices or technologies is expressly prohibited and
--- immediately terminates your license unless covered by
--- a separate agreement.
 --
--- Xilinx is providing this design, code, or information
--- "as is" solely for use in developing programs and
--- solutions for Xilinx devices. By providing this design,
--- code, or information as one possible implementation of
--- this feature, application or standard, Xilinx is making no
--- representation that this implementation is free from any
--- claims of infringement. You are responsible for
--- obtaining any rights you may require for your implementation.
--- Xilinx expressly disclaims any warranty whatsoever with
--- respect to the adequacy of the implementation, including
--- but not limited to any warranties or representations that this
--- implementation is free from claims of infringement, implied
--- warranties of merchantability or fitness for a particular
--- purpose.
+-- (c) Copyright 2004-2010 Xilinx, Inc. All rights reserved.
 --
--- Xilinx products are not intended for use in life support
--- appliances, devices, or systems. Use in such applications are
--- expressly prohibited.
+-- This file contains confidential and proprietary information
+-- of Xilinx, Inc. and is protected under U.S. and
+-- international copyright and other intellectual property
+-- laws.
 --
--- This copyright and support notice must be retained as part
--- of this text at all times. (c) Copyright 2004-2008 Xilinx, Inc.
--- All rights reserved.
-
+-- DISCLAIMER
+-- This disclaimer is not a license and does not grant any
+-- rights to the materials distributed herewith. Except as
+-- otherwise provided in a valid license issued to you by
+-- Xilinx, and to the maximum extent permitted by applicable
+-- law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
+-- WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
+-- AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
+-- BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
+-- INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
+-- (2) Xilinx shall not be liable (whether in contract or tort,
+-- including negligence, or under any other theory of
+-- liability) for any loss or damage of any kind or nature
+-- related to, arising under or in connection with these
+-- materials, including for any direct, or any indirect,
+-- special, incidental, or consequential loss or damage
+-- (including loss of data, profits, goodwill, or any type of
+-- loss or damage suffered as a result of any action brought
+-- by a third party) even if such damage or loss was
+-- reasonably foreseeable or Xilinx had been advised of the
+-- possibility of the same.
+--
+-- CRITICAL APPLICATIONS
+-- Xilinx products are not designed or intended to be fail-
+-- safe, or for use in any application requiring fail-safe
+-- performance, such as life-support or safety devices or
+-- systems, Class III medical devices, nuclear facilities,
+-- applications related to the deployment of airbags, or any
+-- other applications that could lead to death, personal
+-- injury, or severe property or environmental damage
+-- (individually and collectively, "Critical
+-- Applications"). Customer assumes the sole risk and
+-- liability of any use of Xilinx products in Critical
+-- Applications, subject only to applicable laws and
+-- regulations governing limitations on product liability.
+--
+-- THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
+-- PART OF THIS FILE AT ALL TIMES.
+--
 -------------------------------------------------------------------------------
 -- Description:  This level:
 --
@@ -123,13 +134,12 @@ entity emac_core_locallink is
       -- Clock Signals - EMAC0
 
       -- 1000BASE-X PCS/PMA Interface - EMAC0
-      RESETDONE_0                     : out std_logic;
-      PHYAD_0                         : in  std_logic_vector(4 downto 0);
       TXP_0                           : out std_logic;
       TXN_0                           : out std_logic;
       RXP_0                           : in  std_logic;
       RXN_0                           : in  std_logic;
-
+      PHYAD_0                         : in  std_logic_vector(4 downto 0);
+      RESETDONE_0                     : out std_logic;
 
 --      -- EMAC1 Clocking
 --
@@ -173,20 +183,24 @@ entity emac_core_locallink is
 --      EMAC1CLIENTSYNCACQSTATUS        : out std_logic;
 --      -- EMAC1 Interrupt
 --      EMAC1ANINTERRUPT                : out std_logic;
---
---
---      -- Clock Signals - EMAC1
---
---      -- 1000BASE-X PCS/PMA Interface - EMAC1
---      RESETDONE_1                     : out std_logic;
-      PHYAD_1                         : in  std_logic_vector(4 downto 0);
+
+
+      -- Clock Signals - EMAC1
+
+      -- 1000BASE-X PCS/PMA Interface - EMAC1
       TXP_1                           : out std_logic;
       TXN_1                           : out std_logic;
       RXP_1                           : in  std_logic;
       RXN_1                           : in  std_logic;
+      PHYAD_1                         : in  std_logic_vector(4 downto 0);
+      RESETDONE_1                     : out std_logic;
 
       -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
       CLK_DS                          : in  std_logic;
+
+      -- RocketIO Reset input
+      GTRESET                         : in  std_logic;
+
 
 
       -- Asynchronous Reset
@@ -205,6 +219,7 @@ architecture TOP_LEVEL of emac_core_locallink is
    port(
       p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
       p_out_gtp_plllkdet              : out std_logic;
+      p_out_ust_tst                   : out std_logic_vector(31 downto 0);
 
       -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
@@ -247,12 +262,12 @@ architecture TOP_LEVEL of emac_core_locallink is
 
       -- Clock Signals - EMAC0
       -- 1000BASE-X PCS/PMA Interface - EMAC0
-      RESETDONE_0                     : out std_logic;
-      PHYAD_0                         : in  std_logic_vector(4 downto 0);
       TXP_0                           : out std_logic;
       TXN_0                           : out std_logic;
       RXP_0                           : in  std_logic;
       RXN_0                           : in  std_logic;
+      PHYAD_0                         : in  std_logic_vector(4 downto 0);
+      RESETDONE_0                     : out std_logic;
 
       -- EMAC1 Clocking
 
@@ -291,15 +306,19 @@ architecture TOP_LEVEL of emac_core_locallink is
 
       -- Clock Signals - EMAC1
       -- 1000BASE-X PCS/PMA Interface - EMAC1
-      RESETDONE_1                     : out std_logic;
-      PHYAD_1                         : in  std_logic_vector(4 downto 0);
       TXP_1                           : out std_logic;
       TXN_1                           : out std_logic;
       RXP_1                           : in  std_logic;
       RXN_1                           : in  std_logic;
+      PHYAD_1                         : in  std_logic_vector(4 downto 0);
+      RESETDONE_1                     : out std_logic;
 
       -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
       CLK_DS                          : in  std_logic;
+
+      -- RocketIO Reset input
+      GTRESET                         : in  std_logic;
+
 
 
       -- Asynchronous Reset
@@ -404,43 +423,41 @@ architecture TOP_LEVEL of emac_core_locallink is
 
 
     -- client interface clocking signals - EMAC1
---    signal tx_clk_1_i            : std_logic;
---    signal rx_clk_1_i            : std_logic;
---
---    -- internal client interface connections - EMAC1
---    -- transmitter interface
---    signal tx_data_1_i           : std_logic_vector(7 downto 0);
---    signal tx_data_valid_1_i     : std_logic;
---    signal tx_underrun_1_i       : std_logic;
---    signal tx_ack_1_i            : std_logic;
---    signal tx_collision_1_i      : std_logic;
---    signal tx_retransmit_1_i     : std_logic;
---    -- receiver interface
---    signal rx_data_1_i           : std_logic_vector(7 downto 0);
---    signal rx_data_valid_1_i     : std_logic;
---    signal rx_good_frame_1_i     : std_logic;
---    signal rx_bad_frame_1_i      : std_logic;
---    -- registers for the MAC receiver output
---    signal rx_data_1_r           : std_logic_vector(7 downto 0);
---    signal rx_data_valid_1_r     : std_logic;
---    signal rx_good_frame_1_r     : std_logic;
---    signal rx_bad_frame_1_r      : std_logic;
---
---    -- create a synchronous reset in the transmitter clock domain
---    signal tx_pre_reset_1_i      : std_logic_vector(5 downto 0);
---    signal tx_reset_1_i          : std_logic;
---
---    -- create a synchronous reset in the receiver clock domain
---    signal rx_pre_reset_1_i      : std_logic_vector(5 downto 0);
---    signal rx_reset_1_i          : std_logic;
---
---    signal resetdone_1_i         : std_logic;
---
---    attribute async_reg of rx_pre_reset_1_i : signal is "true";
---    attribute async_reg of tx_pre_reset_1_i : signal is "true";
+    signal tx_clk_1_i            : std_logic;
+    signal rx_clk_1_i            : std_logic;
+
+    -- internal client interface connections - EMAC1
+    -- transmitter interface
+    signal tx_data_1_i           : std_logic_vector(7 downto 0);
+    signal tx_data_valid_1_i     : std_logic;
+    signal tx_underrun_1_i       : std_logic;
+    signal tx_ack_1_i            : std_logic;
+    signal tx_collision_1_i      : std_logic;
+    signal tx_retransmit_1_i     : std_logic;
+    -- receiver interface
+    signal rx_data_1_i           : std_logic_vector(7 downto 0);
+    signal rx_data_valid_1_i     : std_logic;
+    signal rx_good_frame_1_i     : std_logic;
+    signal rx_bad_frame_1_i      : std_logic;
+    -- registers for the MAC receiver output
+    signal rx_data_1_r           : std_logic_vector(7 downto 0);
+    signal rx_data_valid_1_r     : std_logic;
+    signal rx_good_frame_1_r     : std_logic;
+    signal rx_bad_frame_1_r      : std_logic;
+
+    -- create a synchronous reset in the transmitter clock domain
+    signal tx_pre_reset_1_i      : std_logic_vector(5 downto 0);
+    signal tx_reset_1_i          : std_logic;
+
+    -- create a synchronous reset in the receiver clock domain
+    signal rx_pre_reset_1_i      : std_logic_vector(5 downto 0);
+    signal rx_reset_1_i          : std_logic;
+
+    signal resetdone_1_i         : std_logic;
 
 
-
+    attribute async_reg of rx_pre_reset_1_i : signal is "true";
+    attribute async_reg of tx_pre_reset_1_i : signal is "true";
 
     attribute keep : string;
     attribute keep of tx_data_0_i : signal is "true";
@@ -448,26 +465,16 @@ architecture TOP_LEVEL of emac_core_locallink is
     attribute keep of tx_ack_0_i : signal is "true";
     attribute keep of rx_data_0_i : signal is "true";
     attribute keep of rx_data_valid_0_i : signal is "true";
-
---    attribute keep of tx_data_1_i : signal is "true";
---    attribute keep of tx_data_valid_1_i : signal is "true";
---    attribute keep of tx_ack_1_i : signal is "true";
---    attribute keep of rx_data_1_i : signal is "true";
---    attribute keep of rx_data_valid_1_i : signal is "true";
+    attribute keep of tx_data_1_i : signal is "true";
+    attribute keep of tx_data_valid_1_i : signal is "true";
+    attribute keep of tx_ack_1_i : signal is "true";
+    attribute keep of rx_data_1_i : signal is "true";
+    attribute keep of rx_data_valid_1_i : signal is "true";
 
 -------------------------------------------------------------------------------
 -- Main Body of Code
 -------------------------------------------------------------------------------
 begin
-
-    p_out_ust_tst(7 downto 0) <= tx_data_0_i;
-    p_out_ust_tst(15 downto 8)<= rx_data_0_r;
-    p_out_ust_tst(16)<= tx_data_valid_0_i;
-    p_out_ust_tst(17)<= rx_data_valid_0_r;
-    p_out_ust_tst(18)<= rx_good_frame_0_r;
-    p_out_ust_tst(19)<= rx_bad_frame_0_r;
-    p_out_ust_tst(31 downto 20)<=(others=>'0');
-
 
     ---------------------------------------------------------------------------
     -- Asynchronous Reset Input
@@ -477,120 +484,65 @@ begin
     --------------------------------------------------------------------------
     -- Instantiate the EMAC Wrapper (emac_core_block.vhd)
     --------------------------------------------------------------------------
-    v5_emac_block : emac_core_block
+    v5_emac_block_inst : emac_core_block
     port map (
-
-      p_in_drp_ctrl                   => p_in_drp_ctrl,
+      p_in_drp_ctrl                   => p_in_drp_ctrl     ,
       p_out_gtp_plllkdet              => p_out_gtp_plllkdet,
+      p_out_ust_tst                   => p_out_ust_tst     ,
 
+          -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
       CLK125_OUT                      => CLK125_OUT,
       -- 125MHz clock input from BUFG
       CLK125                          => CLK125,
 
-      --//---------------------------------------------
-      -- EMAC0 Clocking
-      --//---------------------------------------------
---//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---//Не использую канал0 модуля
---//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+----------------------------
+--AD5T1
+----------------------------
       -- Client Receiver Interface - EMAC0
-      EMAC0CLIENTRXD                  => open,
-      EMAC0CLIENTRXDVLD               => open,
-      EMAC0CLIENTRXGOODFRAME          => open,
-      EMAC0CLIENTRXBADFRAME           => open,
-      EMAC0CLIENTRXFRAMEDROP          => open,
-      EMAC0CLIENTRXSTATS              => open,
-      EMAC0CLIENTRXSTATSVLD           => open,
-      EMAC0CLIENTRXSTATSBYTEVLD       => open,
+      EMAC0CLIENTRXD                  => open,         --rx_data_1_i,              --EMAC1CLIENTRXD                  : out std_logic_vector(7 downto 0);
+      EMAC0CLIENTRXDVLD               => open,         --rx_data_valid_1_i,        --EMAC1CLIENTRXDVLD               : out std_logic;
+      EMAC0CLIENTRXGOODFRAME          => open,         --rx_good_frame_1_i,        --EMAC1CLIENTRXGOODFRAME          : out std_logic;
+      EMAC0CLIENTRXBADFRAME           => open,         --rx_bad_frame_1_i,         --EMAC1CLIENTRXBADFRAME           : out std_logic;
+      EMAC0CLIENTRXFRAMEDROP          => open,         --EMAC1CLIENTRXFRAMEDROP,   --EMAC1CLIENTRXFRAMEDROP          : out std_logic;
+      EMAC0CLIENTRXSTATS              => open,         --EMAC1CLIENTRXSTATS,       --EMAC1CLIENTRXSTATS              : out std_logic_vector(6 downto 0);
+      EMAC0CLIENTRXSTATSVLD           => open,         --EMAC1CLIENTRXSTATSVLD,    --EMAC1CLIENTRXSTATSVLD           : out std_logic;
+      EMAC0CLIENTRXSTATSBYTEVLD       => open,         --EMAC1CLIENTRXSTATSBYTEVLD,--EMAC1CLIENTRXSTATSBYTEVLD       : out std_logic;
 
       -- Client Transmitter Interface - EMAC0
-      CLIENTEMAC0TXD                  => "00000000",--: in  std_logic_vector(7 downto 0);
-      CLIENTEMAC0TXDVLD               => '0',--: in  std_logic;
-      EMAC0CLIENTTXACK                => open,
-      CLIENTEMAC0TXFIRSTBYTE          => '0',--: in  std_logic;
-      CLIENTEMAC0TXUNDERRUN           => '0',--: in  std_logic;
-      EMAC0CLIENTTXCOLLISION          => open,
-      EMAC0CLIENTTXRETRANSMIT         => open,
-      CLIENTEMAC0TXIFGDELAY           => "00000000",--: in  std_logic_vector(7 downto 0);
-      EMAC0CLIENTTXSTATS              => open,
-      EMAC0CLIENTTXSTATSVLD           => open,
-      EMAC0CLIENTTXSTATSBYTEVLD       => open,
+      CLIENTEMAC0TXD                  => (others=>'0'),--tx_data_1_i,              --CLIENTEMAC1TXD                  : in  std_logic_vector(7 downto 0);
+      CLIENTEMAC0TXDVLD               => '0',          --tx_data_valid_1_i,        --CLIENTEMAC1TXDVLD               : in  std_logic;
+      EMAC0CLIENTTXACK                => open,         --tx_ack_1_i,               --EMAC1CLIENTTXACK                : out std_logic;
+      CLIENTEMAC0TXFIRSTBYTE          => '0',          --'0',                      --CLIENTEMAC1TXFIRSTBYTE          : in  std_logic;
+      CLIENTEMAC0TXUNDERRUN           => '0',          --tx_underrun_1_i,          --CLIENTEMAC1TXUNDERRUN           : in  std_logic;
+      EMAC0CLIENTTXCOLLISION          => open,         --tx_collision_1_i,         --EMAC1CLIENTTXCOLLISION          : out std_logic;
+      EMAC0CLIENTTXRETRANSMIT         => open,         --tx_retransmit_1_i,        --EMAC1CLIENTTXRETRANSMIT         : out std_logic;
+      CLIENTEMAC0TXIFGDELAY           => (others=>'0'),--CLIENTEMAC1TXIFGDELAY,    --CLIENTEMAC1TXIFGDELAY           : in  std_logic_vector(7 downto 0);
+      EMAC0CLIENTTXSTATS              => open,         --EMAC1CLIENTTXSTATS,       --EMAC1CLIENTTXSTATS              : out std_logic;
+      EMAC0CLIENTTXSTATSVLD           => open,         --EMAC1CLIENTTXSTATSVLD,    --EMAC1CLIENTTXSTATSVLD           : out std_logic;
+      EMAC0CLIENTTXSTATSBYTEVLD       => open,         --EMAC1CLIENTTXSTATSBYTEVLD,--EMAC1CLIENTTXSTATSBYTEVLD       : out std_logic;
 
       -- MAC Control Interface - EMAC0
-      CLIENTEMAC0PAUSEREQ             => '0',--: in  std_logic;
-      CLIENTEMAC0PAUSEVAL             => "0000000000000000",--: in  std_logic_vector(15 downto 0);
+      CLIENTEMAC0PAUSEREQ             => '0',          --CLIENTEMAC1PAUSEREQ,      --CLIENTEMAC1PAUSEREQ             : in  std_logic;
+      CLIENTEMAC0PAUSEVAL             => (others=>'0'),--CLIENTEMAC1PAUSEVAL,      --CLIENTEMAC1PAUSEVAL             : in  std_logic_vector(15 downto 0);
 
       --EMAC-MGT link status
-      EMAC0CLIENTSYNCACQSTATUS        => open,
+      EMAC0CLIENTSYNCACQSTATUS        => open,         --EMAC1CLIENTSYNCACQSTATUS, --EMAC1CLIENTSYNCACQSTATUS        : out std_logic;
       -- EMAC0 Interrupt
-      EMAC0ANINTERRUPT                => open,
+      EMAC0ANINTERRUPT                => open,         --EMAC1ANINTERRUPT,         --EMAC1ANINTERRUPT                : out std_logic;
 
 
       -- Clock Signals - EMAC0
       -- 1000BASE-X PCS/PMA Interface - EMAC0
-      RESETDONE_0                     => open,--,
-      PHYAD_0                         => PHYAD_0,
---//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---//Только для проекта Veresk-M. Т.к. там Оптика пдключена к каналу 1 DUAL_GTP_X0Y7
---//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       TXP_0                           => TXP_1,
       TXN_0                           => TXN_1,
       RXP_0                           => RXP_1,
       RXN_0                           => RXN_1,
+      PHYAD_0                         => PHYAD_1,
+      RESETDONE_0                     => resetdone_1_i,
 
-----//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-----//Соединяю канал0 модуля TEMAC c каналом 0 DUAL_GTP
-----//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---      -- Client Receiver Interface - EMAC0
---      EMAC0CLIENTRXD                  => rx_data_0_i,
---      EMAC0CLIENTRXDVLD               => rx_data_valid_0_i,
---      EMAC0CLIENTRXGOODFRAME          => rx_good_frame_0_i,
---      EMAC0CLIENTRXBADFRAME           => rx_bad_frame_0_i,
---      EMAC0CLIENTRXFRAMEDROP          => EMAC0CLIENTRXFRAMEDROP,
---      EMAC0CLIENTRXSTATS              => EMAC0CLIENTRXSTATS,
---      EMAC0CLIENTRXSTATSVLD           => EMAC0CLIENTRXSTATSVLD,
---      EMAC0CLIENTRXSTATSBYTEVLD       => EMAC0CLIENTRXSTATSBYTEVLD,
---
---      -- Client Transmitter Interface - EMAC0
---      CLIENTEMAC0TXD                  => tx_data_0_i,
---      CLIENTEMAC0TXDVLD               => tx_data_valid_0_i,
---      EMAC0CLIENTTXACK                => tx_ack_0_i,
---      CLIENTEMAC0TXFIRSTBYTE          => '0',
---      CLIENTEMAC0TXUNDERRUN           => tx_underrun_0_i,
---      EMAC0CLIENTTXCOLLISION          => tx_collision_0_i,
---      EMAC0CLIENTTXRETRANSMIT         => tx_retransmit_0_i,
---      CLIENTEMAC0TXIFGDELAY           => CLIENTEMAC0TXIFGDELAY,
---      EMAC0CLIENTTXSTATS              => EMAC0CLIENTTXSTATS,
---      EMAC0CLIENTTXSTATSVLD           => EMAC0CLIENTTXSTATSVLD,
---      EMAC0CLIENTTXSTATSBYTEVLD       => EMAC0CLIENTTXSTATSBYTEVLD,
---
---      -- MAC Control Interface - EMAC0
---      CLIENTEMAC0PAUSEREQ             => CLIENTEMAC0PAUSEREQ,
---      CLIENTEMAC0PAUSEVAL             => CLIENTEMAC0PAUSEVAL,
---
---      --EMAC-MGT link status
---      EMAC0CLIENTSYNCACQSTATUS        => EMAC0CLIENTSYNCACQSTATUS,
---      -- EMAC0 Interrupt
---      EMAC0ANINTERRUPT                => EMAC0ANINTERRUPT,
---
---      -- Clock Signals - EMAC0
---      -- 1000BASE-X PCS/PMA Interface - EMAC0
---      RESETDONE_0                     => resetdone_0_i,
---      PHYAD_0                         => PHYAD_0,
---      TXP_0                           => TXP_0,
---      TXN_0                           => TXN_0,
---      RXP_0                           => RXP_0,
---      RXN_0                           => RXN_0,
-
-
-
-      --//---------------------------------------------
       -- EMAC1 Clocking
-      --//---------------------------------------------
---//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---//Только для проекта Veresk-M. Т.к. там Оптика пдключена к каналу 1 DUAL_GTP_X0Y7
---//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
       -- Client Receiver Interface - EMAC1
       EMAC1CLIENTRXD                  => rx_data_0_i,
       EMAC1CLIENTRXDVLD               => rx_data_valid_0_i,
@@ -623,109 +575,111 @@ begin
       -- EMAC1 Interrupt
       EMAC1ANINTERRUPT                => EMAC0ANINTERRUPT,
 
+
       -- Clock Signals - EMAC1
       -- 1000BASE-X PCS/PMA Interface - EMAC1
-      RESETDONE_1                     => resetdone_0_i,
-      PHYAD_1                         => PHYAD_1,
       TXP_1                           => TXP_0,
       TXN_1                           => TXN_0,
       RXP_1                           => RXP_0,
       RXN_1                           => RXN_0,
+      PHYAD_1                         => PHYAD_0,
+      RESETDONE_1                     => resetdone_0_i,
 
-----//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-----//Соединяю канал1 модуля TEMAC c каналом 1 DUAL_GTP
-----//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---      -- Client Receiver Interface - EMAC1
---      EMAC1CLIENTRXD                  => rx_data_1_i,
---      EMAC1CLIENTRXDVLD               => rx_data_valid_1_i,
---      EMAC1CLIENTRXGOODFRAME          => rx_good_frame_1_i,
---      EMAC1CLIENTRXBADFRAME           => rx_bad_frame_1_i,
---      EMAC1CLIENTRXFRAMEDROP          => EMAC1CLIENTRXFRAMEDROP,
---      EMAC1CLIENTRXSTATS              => EMAC1CLIENTRXSTATS,
---      EMAC1CLIENTRXSTATSVLD           => EMAC1CLIENTRXSTATSVLD,
---      EMAC1CLIENTRXSTATSBYTEVLD       => EMAC1CLIENTRXSTATSBYTEVLD,
+------------------------------
+----Проверка на ML505
+------------------------------
+--      -- Client Receiver Interface - EMAC0
+--      EMAC0CLIENTRXD                  => rx_data_0_i,
+--      EMAC0CLIENTRXDVLD               => rx_data_valid_0_i,
+--      EMAC0CLIENTRXGOODFRAME          => rx_good_frame_0_i,
+--      EMAC0CLIENTRXBADFRAME           => rx_bad_frame_0_i,
+--      EMAC0CLIENTRXFRAMEDROP          => EMAC0CLIENTRXFRAMEDROP,
+--      EMAC0CLIENTRXSTATS              => EMAC0CLIENTRXSTATS,
+--      EMAC0CLIENTRXSTATSVLD           => EMAC0CLIENTRXSTATSVLD,
+--      EMAC0CLIENTRXSTATSBYTEVLD       => EMAC0CLIENTRXSTATSBYTEVLD,
 --
---      -- Client Transmitter Interface - EMAC1
---      CLIENTEMAC1TXD                  => tx_data_1_i,
---      CLIENTEMAC1TXDVLD               => tx_data_valid_1_i,
---      EMAC1CLIENTTXACK                => tx_ack_1_i,
---      CLIENTEMAC1TXFIRSTBYTE          => '0',
---      CLIENTEMAC1TXUNDERRUN           => tx_underrun_1_i,
---      EMAC1CLIENTTXCOLLISION          => tx_collision_1_i,
---      EMAC1CLIENTTXRETRANSMIT         => tx_retransmit_1_i,
---      CLIENTEMAC1TXIFGDELAY           => CLIENTEMAC1TXIFGDELAY,
---      EMAC1CLIENTTXSTATS              => EMAC1CLIENTTXSTATS,
---      EMAC1CLIENTTXSTATSVLD           => EMAC1CLIENTTXSTATSVLD,
---      EMAC1CLIENTTXSTATSBYTEVLD       => EMAC1CLIENTTXSTATSBYTEVLD,
+--      -- Client Transmitter Interface - EMAC0
+--      CLIENTEMAC0TXD                  => tx_data_0_i,
+--      CLIENTEMAC0TXDVLD               => tx_data_valid_0_i,
+--      EMAC0CLIENTTXACK                => tx_ack_0_i,
+--      CLIENTEMAC0TXFIRSTBYTE          => '0',
+--      CLIENTEMAC0TXUNDERRUN           => tx_underrun_0_i,
+--      EMAC0CLIENTTXCOLLISION          => tx_collision_0_i,
+--      EMAC0CLIENTTXRETRANSMIT         => tx_retransmit_0_i,
+--      CLIENTEMAC0TXIFGDELAY           => CLIENTEMAC0TXIFGDELAY,
+--      EMAC0CLIENTTXSTATS              => EMAC0CLIENTTXSTATS,
+--      EMAC0CLIENTTXSTATSVLD           => EMAC0CLIENTTXSTATSVLD,
+--      EMAC0CLIENTTXSTATSBYTEVLD       => EMAC0CLIENTTXSTATSBYTEVLD,
 --
---      -- MAC Control Interface - EMAC1
---      CLIENTEMAC1PAUSEREQ             => CLIENTEMAC1PAUSEREQ,
---      CLIENTEMAC1PAUSEVAL             => CLIENTEMAC1PAUSEVAL,
+--      -- MAC Control Interface - EMAC0
+--      CLIENTEMAC0PAUSEREQ             => CLIENTEMAC0PAUSEREQ,
+--      CLIENTEMAC0PAUSEVAL             => CLIENTEMAC0PAUSEVAL,
 --
 --      --EMAC-MGT link status
---      EMAC1CLIENTSYNCACQSTATUS        => EMAC1CLIENTSYNCACQSTATUS,
---      -- EMAC1 Interrupt
---      EMAC1ANINTERRUPT                => EMAC1ANINTERRUPT,
---
---      -- Clock Signals - EMAC1
---      -- 1000BASE-X PCS/PMA Interface - EMAC1
---      RESETDONE_1                     => resetdone_1_i,
---      PHYAD_1                         => PHYAD_1,
---      TXP_1                           => TXP_1,
---      TXN_1                           => TXN_1,
---      RXP_1                           => RXP_1,
---      RXN_1                           => RXN_1,
-
-----//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-----//Не использую канал1 модуля
-----//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
---      -- Client Receiver Interface - EMAC1
---      EMAC1CLIENTRXD                  => open,
---      EMAC1CLIENTRXDVLD               => open,
---      EMAC1CLIENTRXGOODFRAME          => open,
---      EMAC1CLIENTRXBADFRAME           => open,
---      EMAC1CLIENTRXFRAMEDROP          => open,
---      EMAC1CLIENTRXSTATS              => open,
---      EMAC1CLIENTRXSTATSVLD           => open,
---      EMAC1CLIENTRXSTATSBYTEVLD       => open,
---
---      -- Client Transmitter Interface - EMAC1
---      CLIENTEMAC1TXD                  => "00000000",--: in  std_logic_vector(7 downto 0);
---      CLIENTEMAC1TXDVLD               => '0',--: in  std_logic;
---      EMAC1CLIENTTXACK                => open,
---      CLIENTEMAC1TXFIRSTBYTE          => '0',--: in  std_logic;
---      CLIENTEMAC1TXUNDERRUN           => '0',--: in  std_logic;
---      EMAC1CLIENTTXCOLLISION          => open,
---      EMAC1CLIENTTXRETRANSMIT         => open,
---      CLIENTEMAC1TXIFGDELAY           => "00000000",--: in  std_logic_vector(7 downto 0);
---      EMAC1CLIENTTXSTATS              => open,
---      EMAC1CLIENTTXSTATSVLD           => open,
---      EMAC1CLIENTTXSTATSBYTEVLD       => open,
---
---      -- MAC Control Interface - EMAC1
---      CLIENTEMAC1PAUSEREQ             => '0',--: in  std_logic;
---      CLIENTEMAC1PAUSEVAL             => "0000000000000000",--: in  std_logic_vector(15 downto 0);
---
---      --EMAC-MGT link status
---      EMAC1CLIENTSYNCACQSTATUS        => open,
+--      EMAC0CLIENTSYNCACQSTATUS        => EMAC0CLIENTSYNCACQSTATUS,
 --      -- EMAC0 Interrupt
---      EMAC1ANINTERRUPT                => open,
+--      EMAC0ANINTERRUPT                => EMAC0ANINTERRUPT,
+--
+--
+--      -- Clock Signals - EMAC0
+--      -- 1000BASE-X PCS/PMA Interface - EMAC0
+--      TXP_0                           => TXP_0,
+--      TXN_0                           => TXN_0,
+--      RXP_0                           => RXP_0,
+--      RXN_0                           => RXN_0,
+--      PHYAD_0                         => PHYAD_0,
+--      RESETDONE_0                     => resetdone_0_i,
+--
+--      -- EMAC1 Clocking
+--
+--      -- Client Receiver Interface - EMAC1
+--      EMAC1CLIENTRXD                  => open,         --rx_data_1_i,              --EMAC1CLIENTRXD                  : out std_logic_vector(7 downto 0);
+--      EMAC1CLIENTRXDVLD               => open,         --rx_data_valid_1_i,        --EMAC1CLIENTRXDVLD               : out std_logic;
+--      EMAC1CLIENTRXGOODFRAME          => open,         --rx_good_frame_1_i,        --EMAC1CLIENTRXGOODFRAME          : out std_logic;
+--      EMAC1CLIENTRXBADFRAME           => open,         --rx_bad_frame_1_i,         --EMAC1CLIENTRXBADFRAME           : out std_logic;
+--      EMAC1CLIENTRXFRAMEDROP          => open,         --EMAC1CLIENTRXFRAMEDROP,   --EMAC1CLIENTRXFRAMEDROP          : out std_logic;
+--      EMAC1CLIENTRXSTATS              => open,         --EMAC1CLIENTRXSTATS,       --EMAC1CLIENTRXSTATS              : out std_logic_vector(6 downto 0);
+--      EMAC1CLIENTRXSTATSVLD           => open,         --EMAC1CLIENTRXSTATSVLD,    --EMAC1CLIENTRXSTATSVLD           : out std_logic;
+--      EMAC1CLIENTRXSTATSBYTEVLD       => open,         --EMAC1CLIENTRXSTATSBYTEVLD,--EMAC1CLIENTRXSTATSBYTEVLD       : out std_logic;
+--
+--      -- Client Transmitter Interface - EMAC1
+--      CLIENTEMAC1TXD                  => (others=>'0'),--tx_data_1_i,              --CLIENTEMAC1TXD                  : in  std_logic_vector(7 downto 0);
+--      CLIENTEMAC1TXDVLD               => '0',          --tx_data_valid_1_i,        --CLIENTEMAC1TXDVLD               : in  std_logic;
+--      EMAC1CLIENTTXACK                => open,         --tx_ack_1_i,               --EMAC1CLIENTTXACK                : out std_logic;
+--      CLIENTEMAC1TXFIRSTBYTE          => '0',          --'0',                      --CLIENTEMAC1TXFIRSTBYTE          : in  std_logic;
+--      CLIENTEMAC1TXUNDERRUN           => '0',          --tx_underrun_1_i,          --CLIENTEMAC1TXUNDERRUN           : in  std_logic;
+--      EMAC1CLIENTTXCOLLISION          => open,         --tx_collision_1_i,         --EMAC1CLIENTTXCOLLISION          : out std_logic;
+--      EMAC1CLIENTTXRETRANSMIT         => open,         --tx_retransmit_1_i,        --EMAC1CLIENTTXRETRANSMIT         : out std_logic;
+--      CLIENTEMAC1TXIFGDELAY           => (others=>'0'),--CLIENTEMAC1TXIFGDELAY,    --CLIENTEMAC1TXIFGDELAY           : in  std_logic_vector(7 downto 0);
+--      EMAC1CLIENTTXSTATS              => open,         --EMAC1CLIENTTXSTATS,       --EMAC1CLIENTTXSTATS              : out std_logic;
+--      EMAC1CLIENTTXSTATSVLD           => open,         --EMAC1CLIENTTXSTATSVLD,    --EMAC1CLIENTTXSTATSVLD           : out std_logic;
+--      EMAC1CLIENTTXSTATSBYTEVLD       => open,         --EMAC1CLIENTTXSTATSBYTEVLD,--EMAC1CLIENTTXSTATSBYTEVLD       : out std_logic;
+--
+--      -- MAC Control Interface - EMAC1
+--      CLIENTEMAC1PAUSEREQ             => '0',          --CLIENTEMAC1PAUSEREQ,      --CLIENTEMAC1PAUSEREQ             : in  std_logic;
+--      CLIENTEMAC1PAUSEVAL             => (others=>'0'),--CLIENTEMAC1PAUSEVAL,      --CLIENTEMAC1PAUSEVAL             : in  std_logic_vector(15 downto 0);
+--
+--      --EMAC-MGT link status
+--      EMAC1CLIENTSYNCACQSTATUS        => open,         --EMAC1CLIENTSYNCACQSTATUS, --EMAC1CLIENTSYNCACQSTATUS        : out std_logic;
+--      -- EMAC1 Interrupt
+--      EMAC1ANINTERRUPT                => open,         --EMAC1ANINTERRUPT,         --EMAC1ANINTERRUPT                : out std_logic;
 --
 --
 --      -- Clock Signals - EMAC1
 --      -- 1000BASE-X PCS/PMA Interface - EMAC1
---      RESETDONE_1                     => open,
---      PHYAD_1                         => PHYAD_1,
 --      TXP_1                           => TXP_1,
 --      TXN_1                           => TXN_1,
 --      RXP_1                           => RXP_1,
 --      RXN_1                           => RXN_1,
+--      PHYAD_1                         => PHYAD_1,
+--      RESETDONE_1                     => resetdone_1_i,
 
-      --//---------------------------------------------
-      -- SYSTEM
-      --//---------------------------------------------
       -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
       CLK_DS                          => CLK_DS,
+
+      -- RocketIO Reset input
+      GTRESET                         => GTRESET,
+
 
 
       -- Asynchronous Reset
@@ -835,12 +789,6 @@ begin
      end if;
    end process regipgen_emac0;
 
-   -- EMAC0 Clocking
-   tx_clk_0_i  <= CLK125;
-   rx_clk_0_i  <= CLK125;
-   RESETDONE_0 <= resetdone_0_i;
-   EMAC0CLIENTRXDVLD <= rx_data_valid_0_i;
-
 --   ----------------------------------------------------------------------
 --   -- Instantiate the client side FIFO for EMAC1
 --   ----------------------------------------------------------------------
@@ -942,11 +890,18 @@ begin
 --       end if;
 --     end if;
 --   end process regipgen_emac1;
---
+
+   EMAC0CLIENTRXDVLD <= rx_data_valid_0_i;
+
+   -- EMAC0 Clocking
+   tx_clk_0_i  <= CLK125;
+   rx_clk_0_i  <= CLK125;
+   RESETDONE_0 <= resetdone_0_i;
+--   EMAC1CLIENTRXDVLD <= rx_data_valid_1_i;
+
 --   -- EMAC1 Clocking
 --   tx_clk_1_i  <= CLK125;
 --   rx_clk_1_i  <= CLK125;
---   RESETDONE_1 <= resetdone_1_i;
---   EMAC1CLIENTRXDVLD <= rx_data_valid_1_i;
+   RESETDONE_1 <= resetdone_1_i;
 
 end TOP_LEVEL;

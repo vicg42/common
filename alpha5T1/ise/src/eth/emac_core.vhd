@@ -1,45 +1,56 @@
 -------------------------------------------------------------------------------
 -- Title      : Virtex-5 Ethernet MAC Wrapper
+-- Project    : Virtex-5 Embedded Tri-Mode Ethernet MAC Wrapper
+-- File       : emac_core.vhd
+-- Version    : 1.8
 -------------------------------------------------------------------------------
--- File       : emac_core.v
--- Author     : Xilinx
--------------------------------------------------------------------------------
--- Copyright (c) 2004-2008 by Xilinx, Inc. All rights reserved.
--- This text/file contains proprietary, confidential
--- information of Xilinx, Inc., is distributed under license
--- from Xilinx, Inc., and may be used, copied and/or
--- disclosed only pursuant to the terms of a valid license
--- agreement with Xilinx, Inc. Xilinx hereby grants you
--- a license to use this text/file solely for design, simulation,
--- implementation and creation of design files limited
--- to Xilinx devices or technologies. Use with non-Xilinx
--- devices or technologies is expressly prohibited and
--- immediately terminates your license unless covered by
--- a separate agreement.
 --
--- Xilinx is providing this design, code, or information
--- "as is" solely for use in developing programs and
--- solutions for Xilinx devices. By providing this design,
--- code, or information as one possible implementation of
--- this feature, application or standard, Xilinx is making no
--- representation that this implementation is free from any
--- claims of infringement. You are responsible for
--- obtaining any rights you may require for your implementation.
--- Xilinx expressly disclaims any warranty whatsoever with
--- respect to the adequacy of the implementation, including
--- but not limited to any warranties or representations that this
--- implementation is free from claims of infringement, implied
--- warranties of merchantability or fitness for a particular
--- purpose.
+-- (c) Copyright 2004-2010 Xilinx, Inc. All rights reserved.
 --
--- Xilinx products are not intended for use in life support
--- appliances, devices, or systems. Use in such applications are
--- expressly prohibited.
+-- This file contains confidential and proprietary information
+-- of Xilinx, Inc. and is protected under U.S. and
+-- international copyright and other intellectual property
+-- laws.
 --
--- This copyright and support notice must be retained as part
--- of this text at all times. (c) Copyright 2004-2008 Xilinx, Inc.
--- All rights reserved.
-
+-- DISCLAIMER
+-- This disclaimer is not a license and does not grant any
+-- rights to the materials distributed herewith. Except as
+-- otherwise provided in a valid license issued to you by
+-- Xilinx, and to the maximum extent permitted by applicable
+-- law: (1) THESE MATERIALS ARE MADE AVAILABLE "AS IS" AND
+-- WITH ALL FAULTS, AND XILINX HEREBY DISCLAIMS ALL WARRANTIES
+-- AND CONDITIONS, EXPRESS, IMPLIED, OR STATUTORY, INCLUDING
+-- BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, NON-
+-- INFRINGEMENT, OR FITNESS FOR ANY PARTICULAR PURPOSE; and
+-- (2) Xilinx shall not be liable (whether in contract or tort,
+-- including negligence, or under any other theory of
+-- liability) for any loss or damage of any kind or nature
+-- related to, arising under or in connection with these
+-- materials, including for any direct, or any indirect,
+-- special, incidental, or consequential loss or damage
+-- (including loss of data, profits, goodwill, or any type of
+-- loss or damage suffered as a result of any action brought
+-- by a third party) even if such damage or loss was
+-- reasonably foreseeable or Xilinx had been advised of the
+-- possibility of the same.
+--
+-- CRITICAL APPLICATIONS
+-- Xilinx products are not designed or intended to be fail-
+-- safe, or for use in any application requiring fail-safe
+-- performance, such as life-support or safety devices or
+-- systems, Class III medical devices, nuclear facilities,
+-- applications related to the deployment of airbags, or any
+-- other applications that could lead to death, personal
+-- injury, or severe property or environmental damage
+-- (individually and collectively, "Critical
+-- Applications"). Customer assumes the sole risk and
+-- liability of any use of Xilinx products in Critical
+-- Applications, subject only to applicable laws and
+-- regulations governing limitations on product liability.
+--
+-- THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
+-- PART OF THIS FILE AT ALL TIMES.
+--
 --------------------------------------------------------------------------------
 -- Description:  This wrapper file instantiates the full Virtex-5 Ethernet
 --               MAC (EMAC) primitive.  For one or both of the two Ethernet MACs
@@ -211,9 +222,6 @@ entity emac_core is
         -- Asynchronous Reset
         RESET                           : in  std_logic
         );
-attribute X_CORE_INFO : string;
-attribute X_CORE_INFO of emac_core : entity is "v5_emac_v1_5, Coregen 10.1i_ip3";
-
 end emac_core;
 
 
@@ -222,7 +230,14 @@ architecture WRAPPER of emac_core is
 
     ----------------------------------------------------------------------------
     -- Attribute declarations
+
     ----------------------------------------------------------------------------
+    attribute X_CORE_INFO : string;
+    attribute X_CORE_INFO of WRAPPER : architecture is "v5_emac_v1_8, Coregen 13.1";
+
+    attribute CORE_GENERATION_INFO : string;
+    attribute CORE_GENERATION_INFO of WRAPPER : architecture is "emac_core,v5_emac_v1_8,{c_emac0=true,c_emac1=true,c_has_mii_emac0=false,c_has_mii_emac1=false,c_has_gmii_emac0=false,c_has_gmii_emac1=false,c_has_rgmii_v1_3_emac0=false,c_has_rgmii_v1_3_emac1=false,c_has_rgmii_v2_0_emac0=false,c_has_rgmii_v2_0_emac1=false,c_has_sgmii_emac0=false,c_has_sgmii_emac1=false,c_has_gpcs_emac0=true,c_has_gpcs_emac1=true,c_tri_speed_emac0=false,c_tri_speed_emac1=false,c_speed_10_emac0=false,c_speed_10_emac1=false,c_speed_100_emac0=false,c_speed_100_emac1=false,c_speed_1000_emac0=true,c_speed_1000_emac1=true,c_has_host=false,c_has_dcr=false,c_has_mdio_emac0=false,c_has_mdio_emac1=false,c_client_16_emac0=false,c_client_16_emac1=false,c_add_filter_emac0=false,c_add_filter_emac1=false,c_has_clock_enable_emac0=false,c_has_clock_enable_emac1=false,}";
+
     --------
     -- EMAC0
     --------
@@ -269,11 +284,11 @@ architecture WRAPPER of emac_core is
 
     -- MAC configuration defaults
     -- Rx Length/Type checking enabled (standard IEEE operation)
-    constant EMAC0_LTCHECK_DISABLE : boolean := TRUE;  --FALSE; ------------------------- LENGTH/TYPE_CHECK_DISABLE
-    -- Rx Flow Control (enabled)
-    constant EMAC0_RXFLOWCTRL_ENABLE : boolean := TRUE;
-    -- Tx Flow Control (enabled)
-    constant EMAC0_TXFLOWCTRL_ENABLE : boolean := TRUE;
+    constant EMAC0_LTCHECK_DISABLE : boolean := TRUE;  --FALSE; ------------------------- LENTH/TYPE_CHECK_DISABLE
+    -- Rx Flow Control (not enabled)
+    constant EMAC0_RXFLOWCTRL_ENABLE : boolean := FALSE;
+    -- Tx Flow Control (not enabled)
+    constant EMAC0_TXFLOWCTRL_ENABLE : boolean := FALSE;
     -- Transmitter is not held in reset not asserted (normal operating mode)
     constant EMAC0_TXRESET : boolean := FALSE;
     -- Transmitter Jumbo Frames (not enabled)
@@ -353,11 +368,11 @@ architecture WRAPPER of emac_core is
 
     -- MAC configuration defaults
     -- Rx Length/Type checking enabled (standard IEEE operation)
-    constant EMAC1_LTCHECK_DISABLE : boolean := TRUE;  --FALSE; ------------------------- LENGTH/TYPE_CHECK_DISABLE
-    -- Rx Flow Control (enabled)
-    constant EMAC1_RXFLOWCTRL_ENABLE : boolean := TRUE;
-    -- Tx Flow Control (enabled)
-    constant EMAC1_TXFLOWCTRL_ENABLE : boolean := TRUE;
+    constant EMAC1_LTCHECK_DISABLE : boolean := TRUE;  --FALSE; ------------------------- LENTH/TYPE_CHECK_DISABLE
+    -- Rx Flow Control (not enabled)
+    constant EMAC1_RXFLOWCTRL_ENABLE : boolean := FALSE;
+    -- Tx Flow Control (not enabled)
+    constant EMAC1_TXFLOWCTRL_ENABLE : boolean := FALSE;
     -- Transmitter is not held in reset not asserted (normal operating mode)
     constant EMAC1_TXRESET : boolean := FALSE;
     -- Transmitter Jumbo Frames (not enabled)

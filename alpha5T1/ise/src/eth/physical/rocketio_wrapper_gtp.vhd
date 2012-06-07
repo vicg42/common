@@ -1,8 +1,4 @@
 -------------------------------------------------------------------------------
---$Date: 2008/09/10 12:00:37 $
---$RCSfile: rocketio_wrapper_gtp_vhdl_vhd.ejava,v $
---$Revision: 1.3 $
--------------------------------------------------------------------------------
 --   ____  ____
 --  /   /\/   /
 -- /___/  \  /    Vendor: Xilinx
@@ -35,8 +31,9 @@ generic
 );
 port
 (
-    p_in_drp_ctrl                  : in   std_logic_vector(31 downto 0);
-
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+      p_out_ust_tst                   : out std_logic_vector(31 downto 0);
     --_________________________________________________________________________
     --_________________________________________________________________________
     --TILE0  (Location)
@@ -44,6 +41,10 @@ port
     ------------------------ Loopback and Powerdown Ports ----------------------
     TILE0_LOOPBACK0_IN                      : in   std_logic_vector(2 downto 0);
     TILE0_LOOPBACK1_IN                      : in   std_logic_vector(2 downto 0);
+    TILE0_RXPOWERDOWN0_IN                   : in   std_logic_vector(1 downto 0);
+    TILE0_TXPOWERDOWN0_IN                   : in   std_logic_vector(1 downto 0);
+    TILE0_RXPOWERDOWN1_IN                   : in   std_logic_vector(1 downto 0);
+    TILE0_TXPOWERDOWN1_IN                   : in   std_logic_vector(1 downto 0);
     ----------------------- Receive Ports - 8b10b Decoder ----------------------
     TILE0_RXCHARISCOMMA0_OUT                : out  std_logic;
     TILE0_RXCHARISCOMMA1_OUT                : out  std_logic;
@@ -159,11 +160,17 @@ generic
 );
 port
 (
-    p_in_drp_ctrl                  : in   std_logic_vector(31 downto 0);
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+      p_out_ust_tst                   : out std_logic_vector(31 downto 0);
 
     ------------------------ Loopback and Powerdown Ports ----------------------
     LOOPBACK0_IN                            : in   std_logic_vector(2 downto 0);
     LOOPBACK1_IN                            : in   std_logic_vector(2 downto 0);
+    RXPOWERDOWN0_IN                         : in   std_logic_vector(1 downto 0);
+    TXPOWERDOWN0_IN                         : in   std_logic_vector(1 downto 0);
+    RXPOWERDOWN1_IN                         : in   std_logic_vector(1 downto 0);
+    TXPOWERDOWN1_IN                         : in   std_logic_vector(1 downto 0);
     ----------------------- Receive Ports - 8b10b Decoder ----------------------
     RXCHARISCOMMA0_OUT                      : out  std_logic;
     RXCHARISCOMMA1_OUT                      : out  std_logic;
@@ -277,11 +284,17 @@ begin
     )
     port map
     (
-        p_in_drp_ctrl                  => p_in_drp_ctrl,
+      p_in_drp_ctrl      => p_in_drp_ctrl      ,
+      p_out_gtp_plllkdet => p_out_gtp_plllkdet ,
+      p_out_ust_tst      => p_out_ust_tst      ,
 
         ------------------------ Loopback and Powerdown Ports ----------------------
         LOOPBACK0_IN                    =>      TILE0_LOOPBACK0_IN,
         LOOPBACK1_IN                    =>      TILE0_LOOPBACK1_IN,
+        RXPOWERDOWN0_IN                 =>      TILE0_RXPOWERDOWN0_IN,
+        TXPOWERDOWN0_IN                 =>      TILE0_TXPOWERDOWN0_IN,
+        RXPOWERDOWN1_IN                 =>      TILE0_RXPOWERDOWN1_IN,
+        TXPOWERDOWN1_IN                 =>      TILE0_TXPOWERDOWN1_IN,
         ----------------------- Receive Ports - 8b10b Decoder ----------------------
         RXCHARISCOMMA0_OUT              =>      TILE0_RXCHARISCOMMA0_OUT,
         RXCHARISCOMMA1_OUT              =>      TILE0_RXCHARISCOMMA1_OUT,

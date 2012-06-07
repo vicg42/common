@@ -1,12 +1,8 @@
-------------------------------------------------------------------------------
---$Date: 2008/09/10 12:00:37 $
---$RCSfile: rocketio_wrapper_gtp_vhdl_tile_vhd.ejava,v $
---$Revision: 1.3 $
 -------------------------------------------------------------------------------
 --   __  __
 --  /   /\/   /
 -- /__/  \   /    Vendor: Xilinx
--- \   \   \/     Version : 1.8
+-- \   \   \/     Version : 1.9
 --  \   \         Application : GTP Wizard
 --  /   /         Filename : rocketio_wrapper_gtp_vhdl_tile.vhd
 -- /__/   /\      Timestamp : 02/08/2005 09:12:43
@@ -41,11 +37,17 @@ generic
 );
 port
 (
-    p_in_drp_ctrl                  : in   std_logic_vector(31 downto 0);
+      p_in_drp_ctrl                   : in  std_logic_vector(31 downto 0);
+      p_out_gtp_plllkdet              : out std_logic;
+      p_out_ust_tst                   : out std_logic_vector(31 downto 0);
 
     ------------------------ Loopback and Powerdown Ports ----------------------
     LOOPBACK0_IN                            : in   std_logic_vector(2 downto 0);
     LOOPBACK1_IN                            : in   std_logic_vector(2 downto 0);
+    RXPOWERDOWN0_IN                         : in   std_logic_vector(1 downto 0);
+    TXPOWERDOWN0_IN                         : in   std_logic_vector(1 downto 0);
+    RXPOWERDOWN1_IN                         : in   std_logic_vector(1 downto 0);
+    TXPOWERDOWN1_IN                         : in   std_logic_vector(1 downto 0);
     ----------------------- Receive Ports - 8b10b Decoder ----------------------
     RXCHARISCOMMA0_OUT                      : out  std_logic;
     RXCHARISCOMMA1_OUT                      : out  std_logic;
@@ -225,7 +227,6 @@ signal i_gtp_rst           : std_logic;
     signal rxelecidle1_i                    :   std_logic;
     signal resetdone1_i                     :   std_logic;
 
-
 --******************************** Main Body of Code***************************
 
 begin
@@ -269,7 +270,8 @@ begin
     (
 
         --_______________________ Simulation-Only Attributes ___________________
-
+        SIM_RECEIVER_DETECT_PASS0   =>       TRUE,
+        SIM_RECEIVER_DETECT_PASS1   =>       TRUE,
         SIM_GTPRESET_SPEEDUP        =>       TILE_SIM_GTPRESET_SPEEDUP,
         SIM_PLL_PERDIV2             =>       TILE_SIM_PLL_PERDIV2,
         SIM_MODE                    =>       "FAST",
@@ -346,10 +348,10 @@ begin
         --------------------- RX Serial Line Rate Attributes ------------------
 
         PLL_RXDIVSEL_OUT_0          =>       2,
-        PLL_SATA_0                  =>       TRUE,
+        PLL_SATA_0                  =>       FALSE,
 
         PLL_RXDIVSEL_OUT_1          =>       2,
-        PLL_SATA_1                  =>       TRUE,
+        PLL_SATA_1                  =>       FALSE,
 
         ----------------------- PRBS Detection Attributes ---------------------
 
@@ -518,10 +520,10 @@ begin
         ------------------------ Loopback and Powerdown Ports ----------------------
         LOOPBACK0                       =>      loopback0_i,
         LOOPBACK1                       =>      loopback1_i,
-        RXPOWERDOWN0                    =>      tied_to_ground_vec_i(1 downto 0),
-        RXPOWERDOWN1                    =>      tied_to_ground_vec_i(1 downto 0),
-        TXPOWERDOWN0                    =>      tied_to_ground_vec_i(1 downto 0),
-        TXPOWERDOWN1                    =>      tied_to_ground_vec_i(1 downto 0),
+        RXPOWERDOWN0                    =>      RXPOWERDOWN0_IN,
+        RXPOWERDOWN1                    =>      RXPOWERDOWN1_IN,
+        TXPOWERDOWN0                    =>      TXPOWERDOWN0_IN,
+        TXPOWERDOWN1                    =>      TXPOWERDOWN1_IN,
         ----------------------- Receive Ports - 8b10b Decoder ----------------------
         RXCHARISCOMMA0(1)               =>      rxchariscomma0_float_i,
         RXCHARISCOMMA0(0)               =>      RXCHARISCOMMA0_OUT,
@@ -646,7 +648,6 @@ begin
         DO                              => i_gtp_drpdo,--=>      open,
         DRDY                            => i_gtp_drprdy,--=>      open,
         DWE                             => i_gtp_drpwe,--=>      tied_to_ground_i,
-
         --------------------- Shared Ports - Tile and PLL Ports --------------------
         CLKIN                           =>      CLKIN_IN,
         GTPRESET                        =>      i_gtp_rst,--GTPRESET_IN,
@@ -773,8 +774,6 @@ p_out_tst         => open,
 p_in_clk          => p_in_drp_ctrl(31),
 p_in_rst          => GTPRESET_IN
 );
-
---i_gtp_rst <= GTPRESET_IN or i_gtp_rst_drp;
 
 end RTL;
 
