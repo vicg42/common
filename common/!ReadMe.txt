@@ -3,6 +3,8 @@
 0.  Выпистать из SVN репозиторий veresk_m
 
 1.  Скорректировать пути в следующих файлах:
+    (xxx - каталог соответствующей платы (alpha5T1,alpha6T1,htg_v6))
+
     veresk_m/xxx/script/firmware_copy.bat
     veresk_m/xxx/make_project.bat
     veresk_m/xxx/updata_ngc.bat
