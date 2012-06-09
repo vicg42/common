@@ -1,10 +1,10 @@
-# Date: Sat May 26 06:38:51 2012
+# Date: Tue Jun 05 12:41:48 2012
 
 SET addpads = false
 SET asysymbol = true
 SET busformat = BusFormatAngleBracketNotRipped
 SET createndf = false
-SET designentry = Verilog
+SET designentry = VHDL
 SET device = xc6vlx240t
 SET devicefamily = virtex6
 SET flowvendor = Other
@@ -15,8 +15,8 @@ SET package = ff1759
 SET removerpms = false
 SET simulationfiles = Behavioral
 SET speedgrade = -2
-SET verilogsim = true
-SET vhdlsim = false
+SET verilogsim = false
+SET vhdlsim = true
 SET workingdirectory = .\tmp\
 
-# CRC: 5be2d2a5
+# CRC: 6f77b880
