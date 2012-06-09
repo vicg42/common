@@ -1,16 +1,21 @@
  ак сделать проект:
 
-0.  ¬ыпистать из SVN репозиторий veresk_m
+*)  установить и запустить программу клиент SVN (например TortoiseSVN (http://tortoisesvn.net/downloads.html))
 
-1.  —корректировать пути в следующих файлах:
+*)  выпистать из SVN репозиторий veresk_m (или по не нашему SVN Checkout)
+    URL of repository: svn://10.1.7.240:3691/veresk_m
+    Checkout directory: путь куда копировать данные репозитори€ (например D:\Work\Linkos\veresk_m)
+    login   :guest
+    password:linkos
+
+*)  скорректировать пути в следующих файлах:
     veresk_m/xxx/script/firmware_copy.bat
     veresk_m/xxx/make_project.bat
     veresk_m/xxx/updata_ngc.bat
 
     где xxx - каталог соответствующей платы (alpha5T1,alpha6T1,htg_v6))
 
-    „то мен€ть, если нужно:
-    например make_project.bat - %XILINX%\bin\nt64\xtclsh D:\Work\Linkos\veresk_m\ml505\script\mprj_veresk.tcl
+    например. make_project.bat - %XILINX%\bin\nt64\xtclsh D:\Work\Linkos\veresk_m\ml505\script\mprj_veresk.tcl
 
     a)  %XILINX%\bin\nt64\xtclsh - путь к программе xtclsh (дл€ Win-64bit)
         %XILINX%\bin\nt\xtclsh   - путь к программе xtclsh (дл€ Win-32bit)
@@ -21,15 +26,15 @@
 
     б)  D:\Work\Linkos\veresk_m\ml505\script\mprj_veresk.tcl -> (какойто новый путь)\veresk_m\ml505\script\mprj_veresk.tcl
 
-2.  перейти к каталогу нужной платы (например veresk_m/alpha6T1)
+*)  перейти к каталогу нужной платы (например veresk_m/alpha6T1)
 
-3   запустить core generator и перейти к каталогу core_gen соотв. платы (veresk_m/alpha6T1/ise/src/core_gen).
-    открыть файл проекта core_gen.
-3.1 перегенерить все модули core_gen.
+*)  запустить core generator и перейти к каталогу core_gen соотв. платы (veresk_m/alpha6T1/ise/src/core_gen).
+*)  открыть файл проекта core generator
+*)  перегенерить все модули
 
-4.  ¬ каталоге ise создать папку prj (veresk_m/alpha6T1/ise/prj)
-4.1 запустить скрипт создани€ проекта ISE (veresk_m/alpha6T1/script/make_veresk.bat)
+*)  в каталоге ise создать папку prj (veresk_m/alpha6T1/ise/prj)
+*)  запустить скрипт создани€ проекта ISE (veresk_m/alpha6T1/script/make_veresk.bat)
 
-5.  запустить скрипт копировани€ файлов core_gen в каталог проекта ISE (veresk_m/alpha6T1/script/updata_ngc.bat)
+*)  запустить скрипт копировани€ файлов core generator в каталог проекта ISE (veresk_m/alpha6T1/script/updata_ngc.bat)
 
-6.  «апустить ISE, скомпелировть созданный проект
+*)  запустить ISE, скомпелировть созданный проект
