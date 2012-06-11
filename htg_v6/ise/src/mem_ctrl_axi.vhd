@@ -55,27 +55,30 @@ p_in_sys       : in    TMEMCTRL_sysin
 );
 end;
 
-
 architecture synth of mem_ctrl is
 
 type TSAXI_ID_t is array (0 to C_MEM_BANK_COUNT-1) of std_logic_vector(C_AXIM_IDWIDTH-1 downto 0);
 signal i_saxi_bid : TSAXI_ID_t;
 signal i_saxi_rid : TSAXI_ID_t;
+signal i_clk      : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal g_sys_clkout: std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
 
 --MAIN
 begin
 
+p_out_sys.clk<=i_clk(0);
+p_out_sys.gusrclk(0)<=g_sys_clkout(0);
 
 gen_bank : for i in 0 to C_MEM_BANK_COUNT-1 generate
 
 p_out_mem(i).axiw.rid<=EXT(i_saxi_bid(i), p_out_mem(i).axiw.rid'length); --p_out_saxi_bid(i)<=EXT(i_saxi_bid(i), p_out_saxi_bid(i)'length);
 p_out_mem(i).axir.rid<=EXT(i_saxi_rid(i), p_out_mem(i).axir.rid'length); --p_out_saxi_rid(i)<=EXT(i_saxi_rid(i), p_out_saxi_rid(i)'length);
+p_out_mem(i).clk<=i_clk(i);
 
 m_mem_core : mem_ctrl_core_axi
 port map(
-ui_clk          => p_out_mem(i).clk, --open,           --output
-ui_clk_sync_rst => p_out_mem(i).rstn,--open,           --output
-aresetn         => p_in_sys.rst,    --input
+s_axi_aresetn => p_out_mem(i).rstn,
+s_axi_clk     => i_clk(i),
 
 --// AXI Slave Interface:
 --s_axi_clk     => p_out_mem(i).clk, --p_out_saxi_clk(i),
@@ -124,28 +127,6 @@ s_axi_rlast    => p_out_mem(i).axir.dlast                         ,--p_out_saxi_
 s_axi_rvalid   => p_out_mem(i).axir.dvalid                        ,--p_out_saxi_rvalid(i),
 s_axi_rready   => p_in_mem (i).axir.rready                        ,--p_in_saxi_rready(i),
 
---// AXI CTRL port
-s_axi_ctrl_awvalid  => '0'                ,--: in     std_logic;
-s_axi_ctrl_awready  => open               ,--: out    std_logic;
-s_axi_ctrl_awaddr   => (others=>'0')      ,--: in     std_logic_vector(32-1 downto 0); "00000000000000000000000000000000",
---// Slave Interface Write Data Ports
-s_axi_ctrl_wvalid   => '0'                ,--: in     std_logic;
-s_axi_ctrl_wready   => open               ,--: out    std_logic;
-s_axi_ctrl_wdata    =>(others=>'0')       ,--: in     std_logic_vector(32-1 downto 0);  "00000000000000000000000000000000",--
---// Slave Interface Write Response Ports
-s_axi_ctrl_bvalid   => open               ,--: out    std_logic;
-s_axi_ctrl_bready   => '0'                ,--: in     std_logic;
-s_axi_ctrl_bresp    => open               ,--: out    std_logic_vector(1 downto 0);
---// Slave Interface Read Address Ports
-s_axi_ctrl_arvalid  => '0'                ,--: in     std_logic;
-s_axi_ctrl_arready  => open               ,--: out    std_logic;
-s_axi_ctrl_araddr   => (others=>'0')      ,--: in     std_logic_vector(32-1 downto 0); "00000000000000000000000000000000",--
---// Slave Interface Read Data Ports
-s_axi_ctrl_rvalid   => open               ,--: out    std_logic;
-s_axi_ctrl_rready   => '0'                ,--: in     std_logic;
-s_axi_ctrl_rdata    => open               ,--: out    std_logic_vector(32-1 downto 0);
-s_axi_ctrl_rresp    => open               ,--: out    std_logic_vector(1 downto 0);
-
 -- DDR3 Physical Interface
 ddr3_dq         => p_inout_phymem(i).dq   ,--inout  [DQ_WIDTH-1:0]
 ddr3_addr       => p_out_phymem  (i).a    ,--output [ROW_WIDTH-1:0]
@@ -166,10 +147,10 @@ sda             => open,--p_inout_phymem(i).sda  ,--inout
 scl             => open,--p_out_phymem  (i).scl  ,--out
 
 --Status
-interrupt       => open                   ,--output
 phy_init_done   => p_out_status.rdy(i)    ,--output
 
 --System
+sys_clkout      => g_sys_clkout(i),
 sys_clk         => p_in_sys.clk           ,--input   ,    //single ended system clocks
 clk_ref         => p_in_sys.ref_clk       ,--input   ,     //single ended iodelayctrl clk
 sys_rst         => p_in_sys.rst            --input

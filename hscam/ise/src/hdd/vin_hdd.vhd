@@ -121,6 +121,9 @@ S_WORK
 );
 signal fsm_cs : fsm_state;
 
+signal sr_hs                : std_logic_vector(0 to 1);
+signal i_skip_line          : std_logic;
+
 signal tst_bufi_wr_en       : std_logic;
 
 --MAIN
@@ -163,16 +166,38 @@ begin
     i_bufi_wr<='0';
     i_bufi_wr_en<='0'; tst_bufi_wr_en<='0';
     sr_vd<=(others=>'0');
+    sr_hs<=(others=>'0');
+    i_skip_line<='0';
   elsif p_in_vclk'event and p_in_vclk='1' then
+
+    sr_hs<=p_in_hs & sr_hs(0 to 0);
+    if p_in_vs=G_VSYN_ACTIVE then
+      i_skip_line<='0';
+    elsif sr_hs(0)='0' and sr_hs(1)='1' then
+      i_skip_line<=not i_skip_line;
+    end if;
 
     if p_in_vs=G_VSYN_ACTIVE and i_ext_syn_en='1' then
       i_bufi_wr_en<='1';
     end if;
 
     if i_bufi_wr_en='1' and p_in_vs/=G_VSYN_ACTIVE and p_in_hs/=G_VSYN_ACTIVE then
-      i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
-      if i_bufi_wr='0' then
-        sr_vd<=p_in_vd;
+      if p_in_tst(1 downto 0)="11" then
+      --480fps - прореживаем строки
+        if i_skip_line='0' then
+          i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
+          if i_bufi_wr='0' then
+            sr_vd<=p_in_vd;
+          end if;
+        else
+          i_bufi_wr<='0';
+        end if;
+      else
+      --60fps,120fps,240fps - без прореживаия строк
+        i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
+        if i_bufi_wr='0' then
+          sr_vd<=p_in_vd;
+        end if;
       end if;
     else
       i_bufi_wr<='0';
