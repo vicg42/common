@@ -22,12 +22,12 @@ NET "pin_out_led<7>" LOC = "AD33";##XRM Connector CN1, Field 3
 ###############################################################################
 #
 ###############################################################################
-NET "lclk"  LOC = "AC34"; ##XRM Connector CN1, Field 3
+#NET "pin_in_refclk_clk"  LOC = "AC34"; ##XRM Connector CN1, Field 3
 
 #ref_clk (200 MHz Oscillator)
-NET "pin_in_refclk200M_p" LOC = "AE30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-NET "pin_in_refclk200M_n" LOC = "AF30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-TIMEGRP "REF_CLK_PADS" = PADS(pin_in_refclk200M_?);
+NET "pin_in_refclk_clk_p" LOC = "AE30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_refclk_clk_n" LOC = "AF30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+#TIMEGRP "REF_CLK_PADS" = PADS(pin_in_refclk_?);
 
 NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
 NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
@@ -60,7 +60,7 @@ NET "pin_in_sfp_sd"       LOC = "V36"; ##Sematec pin: 34 (SFP - SD signal detect
 # MGTREFCLK0_117: Reference Clock from XRM (mgtclk_m2c_p/mgtclk_m2c_n)
 NET "pin_in_ethphy_fiber_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 NET "pin_in_ethphy_fiber_clk_n" LOC =  "G9"  | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-TIMEGRP "ETHPHY_CLK_PADS" = PADS(pin_in_ethphy_fiber_clk_?);
+#TIMEGRP "ETHPHY_CLK_PADS" = PADS(pin_in_ethphy_fiber_clk_?);
 
 # Locate the Tri-Mode Ethernet MAC instance
 INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*v6_emac" LOC = "TEMAC_X0Y0";
@@ -123,7 +123,7 @@ TIMESPEC "TS_rx_meta_protect" = FROM "rx_metastable" 5 ns;
 # MGTREFCLK0_114: PCIe Reference Clock 250MHz (derived from 100MHz input on P5)
 NET "pin_in_pciexp_clk_p" LOC =  "AB8" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 NET "pin_in_pciexp_clk_n" LOC =  "AB7" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-TIMEGRP "PCIEXP_CLK_PADS" = PADS(pin_in_pciexp_clk_?);
+#TIMEGRP "PCIEXP_CLK_PADS" = PADS(pin_in_pciexp_clk_?);
 
 NET "pin_in_pciexp_rstn" TIG;
 NET "pin_in_pciexp_rstn" LOC =  "AC30" | IOSTANDARD = LVCMOS25 | PULLUP | NODELAY ;
@@ -158,14 +158,14 @@ TIMEGRP "mem_arbch_reset_source" = FFS PADS;
 TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
 
 
-###############################################################################
-# Clock distribution constraints
-#
-# We don't care about absolute delays on these clock pads,
-# so they are flagged TIG (timing ignore).
-###############################################################################
-TIMEGRP "CLK_TIG_PADS" = "REF_CLK_PADS":"PCIEXP_CLK_PADS":"ETHPHY_CLK_PADS";
-TIMESPEC "TS_CLK_DIST_TIG" = FROM "CLK_TIG_PADS" TIG;
+################################################################################
+## Clock distribution constraints
+##
+## We don't care about absolute delays on these clock pads,
+## so they are flagged TIG (timing ignore).
+################################################################################
+#TIMEGRP "CLK_TIG_PADS" = "REF_CLK_PADS":"PCIEXP_CLK_PADS":"ETHPHY_CLK_PADS";
+#TIMESPEC "TS_CLK_DIST_TIG" = FROM "CLK_TIG_PADS" TIG;
 
 ###############################################################################
 # DDR3 SDRAM Bank pin 0 constraints

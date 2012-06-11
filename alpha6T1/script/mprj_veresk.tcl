@@ -188,8 +188,8 @@ set _projects [ list \
       [ list "../src/alphadata/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../src/alphadata/mem_arb.vhd" $_VHDMod ] \
       [ list "../src/clocks.vhd" $_VHDMod ] \
+      [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/lib/vicg/v6/v6_gt_clkbuf.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/lib/vicg/v6/v6_diff_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
     ] \
   ] \

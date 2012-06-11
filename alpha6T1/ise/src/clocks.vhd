@@ -19,17 +19,22 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+library work;
+use work.clocks_pkg.all;
+
 entity clocks is
 port(
 p_out_rst  : out   std_logic;
 p_out_gclk : out   std_logic_vector(7 downto 0);
 
-p_in_clk   : in    std_logic
+p_in_clkopt: in    std_logic_vector(3 downto 0);
+p_in_clk   : in    TRefClkPinIN
 );
 end;
 
 architecture synth of clocks is
 
+signal i_pll_clkin   : std_logic;
 signal g_pll_clkin   : std_logic;
 signal i_pll_rst_cnt : std_logic_vector(4 downto 0) := "11111";
 signal i_pll_rst     : std_logic := '1';
@@ -38,11 +43,10 @@ signal g_clk_fb      : std_logic;
 signal i_pll_locked  : std_logic;
 signal i_clk_out     : std_logic_vector(7 downto 0);
 
-
 begin
 
-
-bufg_pll_clkin : BUFG port map(I  => p_in_clk, O  => g_pll_clkin);
+m_buf : IBUFDS port map(I  => p_in_clk.clk_p, IB => p_in_clk.clk_n, O => i_pll_clkin);--200MHz
+bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
 
 process(g_pll_clkin)
 begin
@@ -100,7 +104,7 @@ STARTUP_WAIT       => FALSE)       -- boolean := FALSE
 port map(
 RST       => i_pll_rst,    -- in std_ulogic;
 PWRDWN    => '0',          -- in std_ulogic;
-CLKIN1    => p_in_clk,     -- in std_ulogic;
+CLKIN1    => i_pll_clkin,  -- in std_ulogic;
 CLKFBIN   => g_clk_fb,     -- in std_ulogic;
 CLKFBOUT  => i_clk_fb,     -- out std_ulogic;
 CLKFBOUTB => open,         -- out std_ulogic;
