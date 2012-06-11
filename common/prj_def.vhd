@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#033C#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#033D#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -145,9 +145,9 @@ constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_
 
 --//Register C_HREG_MEM_ADR / Bit Map:
 constant C_HREG_MEM_ADR_OFFSET_L_BIT          : integer:=0;
-constant C_HREG_MEM_ADR_OFFSET_M_BIT          : integer:=27;
-constant C_HREG_MEM_ADR_BANK_L_BIT            : integer:=28;
-constant C_HREG_MEM_ADR_BANK_M_BIT            : integer:=29;
+constant C_HREG_MEM_ADR_OFFSET_M_BIT          : integer:=29;
+constant C_HREG_MEM_ADR_BANK_L_BIT            : integer:=30;
+constant C_HREG_MEM_ADR_BANK_M_BIT            : integer:=30;
 constant C_HREG_MEM_ADR_LAST_BIT              : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 
 --//Register C_HREG_MEM_CTRL / Bit Map:

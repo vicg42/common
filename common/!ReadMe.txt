@@ -5,8 +5,8 @@
 *)  выпистать из SVN репозиторий veresk_m (или по не нашему SVN Checkout)
     URL of repository: svn://10.1.7.240:3691/veresk_m
     Checkout directory: путь куда копировать данные репозитория (например D:\Work\Linkos\veresk_m)
-    login   :guest
-    password:linkos
+    username : guest
+    password : linkos
 
 *)  скорректировать пути в следующих файлах:
     veresk_m/xxx/script/firmware_copy.bat
@@ -28,13 +28,19 @@
 
 *)  перейти к каталогу нужной платы (например veresk_m/alpha6T1)
 
-*)  запустить core generator и перейти к каталогу core_gen соотв. платы (veresk_m/alpha6T1/ise/src/core_gen).
+*)  запустить программу от Xilinx Core Generator и перейти к каталогу core_gen соотв. платы (veresk_m/alpha6T1/ise/src/core_gen).
 *)  открыть файл проекта core generator
-*)  перегенерить все модули
+*)  перегенерить все модули (в меню Core Generator выбрать Project/Regenerate all project IP(under curent project settings)
 
-*)  в каталоге ise создать папку prj (veresk_m/alpha6T1/ise/prj)
 *)  запустить скрипт создания проекта ISE (veresk_m/alpha6T1/script/make_veresk.bat)
 
 *)  запустить скрипт копирования файлов core generator в каталог проекта ISE (veresk_m/alpha6T1/script/updata_ngc.bat)
 
 *)  запустить ISE, скомпелировть созданный проект
+
+*)  запустить скрипт firmware_copy.bat (например для платы AD6T1 - veresk_m/alpha6T1/script/firmware_copy.bat)
+
+
+прошивка платы HTGV6:
+*)  подсоеденить JTAG к разъему J35
+*)  запустить скрипт veresk_m/htg_v6/script/prom_download.bat
