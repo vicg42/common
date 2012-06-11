@@ -75,7 +75,8 @@ constant C_ETHPHY_OPTIN_V5GT_SOUTH_MUX_CNG_BIT   : integer:=14;
 constant C_ETHPHY_OPTIN_V5GT_NORTH_MUX_CNG_BIT   : integer:=15;
 constant C_ETHPHY_OPTIN_DRPCLK_BIT               : integer:=31;
 
-constant C_ETHPHY_OPTOUT_RST_BIT                : integer:=0;
+constant C_ETHPHY_OPTOUT_RST_BIT                 : integer:=0;
+constant C_ETHPHY_OPTOUT_SFP_TXDIS_BIT           : integer:=1;
 
 type TEthPhyOUT is record
 pin : TEthPhyPinOUT;
