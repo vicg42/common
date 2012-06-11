@@ -32,23 +32,9 @@ G_SIM_HOST : string:="OFF";
 G_SIM_PCIE : std_logic:='0'
 );
 port(
---------------------------------------------------
--- Связь с хостом по Local bus
---------------------------------------------------
-lad               : inout std_logic_vector(31 downto 0);
-lbe_l             : in    std_logic_vector(32/8-1 downto 0);
-lads_l            : in    std_logic;
-lwrite            : in    std_logic;
-lblast_l          : in    std_logic;
-lbterm_l          : inout std_logic;
-lready_l          : inout std_logic;
-fholda            : in    std_logic;
-finto_l           : out   std_logic;
-lclk              : in    std_logic;
-
---//-----------------------------
---// PCI-Express
---//-----------------------------
+-------------------------------
+--PCI-Express
+-------------------------------
 p_out_pciexp_txp  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 p_out_pciexp_txn  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 p_in_pciexp_rxp   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
@@ -57,9 +43,9 @@ p_in_pciexp_rxn   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
 p_in_pciexp_gt_clkin   : in    std_logic;
 p_out_pciexp_gt_clkout : out   std_logic;
 
---//-----------------------------------------------------
---//Пользовательский порт
---//-----------------------------------------------------
+-------------------------------
+--Пользовательский порт
+-------------------------------
 p_out_hclk        : out   std_logic;
 p_out_gctrl       : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
@@ -77,17 +63,17 @@ p_out_dev_opt     : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 p_out_usr_tst     : out   std_logic_vector(127 downto 0);
 p_in_usr_tst      : in    std_logic_vector(127 downto 0);
 
---------------------------------------------------
---// Технологический
---------------------------------------------------
-p_in_tst         : in    std_logic_vector(31 downto 0);
-p_out_tst        : out   std_logic_vector(255 downto 0);
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst          : in    std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(255 downto 0);
 
---------------------------------------------------
+-------------------------------
 --System
---------------------------------------------------
-p_out_module_rdy : out   std_logic;
-p_in_rst_n       : in    std_logic
+-------------------------------
+p_out_module_rdy  : out   std_logic;
+p_in_rst_n        : in    std_logic
 );
 end dsn_host;
 

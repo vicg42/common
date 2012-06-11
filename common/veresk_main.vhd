@@ -31,6 +31,7 @@ use work.eth_pkg.all;
 use work.dsn_eth_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
+use work.clocks_pkg.all;
 
 entity veresk_main is
 generic(
@@ -72,40 +73,13 @@ pin_in_pciexp_clk_n : in    std_logic;
 pin_in_pciexp_rstn  : in    std_logic;
 
 --------------------------------------------------
--- Local bus
+--Reference clock
 --------------------------------------------------
---lreset_l            : in    std_logic;
-lclk                : in    std_logic;
---lwrite              : in    std_logic;
---lads_l              : in    std_logic;
---lblast_l            : in    std_logic;
---lbe_l               : in    std_logic_vector(32/8-1 downto 0);
---lad                 : inout std_logic_vector(32-1 downto 0);
---lbterm_l            : inout std_logic;
---lready_l            : inout std_logic;
---fholda              : in    std_logic;
---finto_l             : out   std_logic;
-
---------------------------------------------------
--- Reference clock 200MHz
---------------------------------------------------
-pin_in_refclk200M_n : in    std_logic;
-pin_in_refclk200M_p : in    std_logic
+pin_in_refclk       : in    TRefClkPinIN
 );
 end entity;
 
 architecture struct of veresk_main is
-
-signal lad         : std_logic_vector(31 downto 0);
-signal lbe_l       : std_logic_vector(32/8-1 downto 0);
-signal lads_l      : std_logic;
-signal lwrite      : std_logic;
-signal lblast_l    : std_logic;
-signal lbterm_l    : std_logic;
-signal lready_l    : std_logic;
-signal fholda      : std_logic;
-signal finto_l     : std_logic;
-signal g_lbus_clk  : std_logic;
 
 component fpga_test_01
 generic(
@@ -132,7 +106,8 @@ port(
 p_out_rst  : out   std_logic;
 p_out_gclk : out   std_logic_vector(7 downto 0);
 
-p_in_clk   : in    std_logic
+p_in_clkopt: in    std_logic_vector(3 downto 0);
+p_in_clk   : in    TRefClkPinIN
 );
 end component;
 
@@ -153,30 +128,14 @@ p_out_clk   : out   std_logic_vector(1 downto 0)
 );
 end component;
 
-component diff_clkbuf is
-port(
-p_in_clkp  : in    std_logic;
-p_in_clkn  : in    std_logic;
-p_out_clk  : out   std_logic;
-p_in_opt   : in    std_logic_vector(3 downto 0);
-p_out_opt  : out   std_logic_vector(3 downto 0)
-);
-end component;
-
 signal i_pll_rst_out                    : std_logic;
 signal g_pll_clkin                      : std_logic;
 signal g_pll_mem_clk                    : std_logic;
 signal g_pll_tmr_clk                    : std_logic;
 signal i_usrclk_rst                     : std_logic;
 signal g_usrclk                         : std_logic_vector(7 downto 0);
-
-signal i_usr_rst                        : std_logic;
-
-signal i_refclk200MHz                   : std_logic;
---signal g_refclk200MHz                   : std_logic;
-
 signal g_usr_highclk                    : std_logic;
-
+signal g_refclkopt                      : std_logic_vector(3 downto 0);
 signal i_pciexp_gt_refclk               : std_logic;
 signal g_pciexp_gt_refclkout            : std_logic;
 
@@ -321,9 +280,6 @@ attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
 attribute keep of g_usr_highclk : signal is "true";
 attribute keep of g_usrclk : signal is "true";
---attribute keep of g_pll_mem_clk : signal is "true";
---attribute keep of g_pll_clkin : signal is "true";
-----attribute keep of g_pll_tmr_clk : signal is "true";
 attribute keep of i_ethphy_out : signal is "true";
 
 signal i_test01_led     : std_logic;
@@ -353,15 +309,6 @@ i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 --***********************************************************
 --Установка частот проекта:
 --***********************************************************
-ibuf_refclk : diff_clkbuf
-port map(
-p_in_clkp  => pin_in_refclk200M_p,
-p_in_clkn  => pin_in_refclk200M_n,
-p_out_clk  => i_refclk200MHz,
-p_in_opt   => (others=>'0'),
-p_out_opt  => open
-);
-
 ibuf_pciexp_gt_refclk : gt_clkbuf
 port map(
 p_in_clkp  => pin_in_pciexp_clk_p,
@@ -382,26 +329,17 @@ port map(
 p_out_rst  => i_usrclk_rst,
 p_out_gclk => g_usrclk,
 
-p_in_clk   => i_refclk200MHz
+p_in_clkopt=> g_refclkopt,
+p_in_clk   => pin_in_refclk
 );
 
-gen_clk_board0 : if strcmp(C_PCFG_BOARD,"AD6T1") or strcmp(C_PCFG_BOARD,"AD5T1") or strcmp(C_PCFG_BOARD,"ML505") generate
+g_refclkopt(0)<=g_host_clk;
+g_refclkopt(1)<=i_ethphy_out.clk;
 
 g_usr_highclk<=i_mem_ctrl_sysout.clk;
-i_tmr_clk<=g_usrclk(2);--//100MHz
-i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);--g_refclk200MHz
-i_mem_ctrl_sysin.clk<=g_usrclk(1);--//400MHz
-
-end generate gen_clk_board0;
-
-gen_clk_board1 : if strcmp(C_PCFG_BOARD,"HTGV6") generate
-
-g_usr_highclk<=i_mem_ctrl_sysout.clk;
-i_tmr_clk<=i_mem_ctrl_sysout.gusrclk(0);--//100MHz
-i_mem_ctrl_sysin.ref_clk<=i_refclk200MHz;
-i_mem_ctrl_sysin.clk<=lclk;
-
-end generate gen_clk_board1;
+i_tmr_clk<=g_usrclk(2);
+i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);
+i_mem_ctrl_sysin.clk<=g_usrclk(1);
 
 
 --***********************************************************
@@ -621,13 +559,13 @@ i_ethphy_in.pin<=pin_in_ethphy;
 
 i_ethphy_in.clk<=i_eth_gt_refclk125(0);
 
-pin_out_sfp_tx_dis<='0';
+pin_out_sfp_tx_dis<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_SFP_TXDIS_BIT);
 
-i_ethphy_in.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT)<=i_refclk200MHz;
+i_ethphy_in.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT)<=g_usrclk(0);
 i_ethphy_in.opt(C_ETHPHY_OPTIN_SFP_SD_BIT)<=pin_in_sfp_sd;
 i_ethphy_in.opt(32)<=i_eth_gt_refclk125(1);
 i_ethphy_in.opt(33)<=i_usrclk_rst;--rst
-i_ethphy_in.opt(34)<=g_usrclk(2);--g_pll_tmr_clk;--clkdrp
+i_ethphy_in.opt(34)<=g_usrclk(2);--clkdrp
 
 m_eth : dsn_eth
 generic map(
@@ -799,23 +737,9 @@ G_SIM_HOST => G_SIM_HOST,
 G_SIM_PCIE => G_SIM_PCIE
 )
 port map(
---------------------------------------------------
--- Связь с хостом по Local bus
---------------------------------------------------
-lad                => lad,        --: inout std_logic_vector(31 downto 0);
-lbe_l              => lbe_l,      --: in    std_logic_vector(32/8-1 downto 0);
-lads_l             => lads_l,     --: in    std_logic;
-lwrite             => lwrite,     --: in    std_logic;
-lblast_l           => lblast_l,   --: in    std_logic;
-lbterm_l           => lbterm_l,   --: inout std_logic;
-lready_l           => lready_l,   --: inout std_logic;
-fholda             => fholda,     --: in    std_logic;
-finto_l            => finto_l,    --: out   std_logic;
-lclk               => g_lbus_clk, --: in    std_logic;
-
---------------------------------------------------
--- Связь с хостом по PCI-EXPRESS
---------------------------------------------------
+-------------------------------
+--PCI-Express
+-------------------------------
 p_out_pciexp_txp   => pin_out_pciexp_txp,
 p_out_pciexp_txn   => pin_out_pciexp_txn,
 p_in_pciexp_rxp    => pin_in_pciexp_rxp,
@@ -824,9 +748,9 @@ p_in_pciexp_rxn    => pin_in_pciexp_rxn,
 p_in_pciexp_gt_clkin   => i_pciexp_gt_refclk,
 p_out_pciexp_gt_clkout => g_pciexp_gt_refclkout,
 
---------------------------------------------------
---Связь с уст-вами проекта Veresk-M
---------------------------------------------------
+-------------------------------
+--Пользовательский порт
+-------------------------------
 p_out_hclk         => g_host_clk,
 p_out_gctrl        => i_host_gctrl,
 
@@ -840,17 +764,17 @@ p_in_dev_irq       => i_host_dev_irq,
 p_in_dev_opt       => i_host_dev_opt_in,
 p_out_dev_opt      => i_host_dev_opt_out,
 
---------------------------------------------------
+-------------------------------
 --Технологический
---------------------------------------------------
+-------------------------------
 p_in_usr_tst       => i_host_tst_in,
 p_out_usr_tst      => i_host_tst_out,
 p_in_tst           => (others=>'0'),
 p_out_tst          => i_host_tst2_out,
 
---------------------------------------------------
+-------------------------------
 --System
---------------------------------------------------
+-------------------------------
 p_out_module_rdy   => i_host_rdy,
 p_in_rst_n         => i_host_rst_n
 );
