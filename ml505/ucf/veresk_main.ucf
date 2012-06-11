@@ -136,11 +136,11 @@ NET "pin_inout_phymem_rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #N
 ##
 #######################################################################
 NET "pin_in_pciexp_rstn"  LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
-NET "lclk"                LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
+#NET "pin_in_refclk_clk"   LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
 
 #200MHz
-NET "pin_in_refclk200M_n" LOC="K19"; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
-NET "pin_in_refclk200M_p" LOC="L19"; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_clk_n" LOC="K19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_clk_p" LOC="L19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
 NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
 NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;

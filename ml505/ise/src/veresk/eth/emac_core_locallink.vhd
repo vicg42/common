@@ -689,7 +689,7 @@ begin
    ----------------------------------------------------------------------
    -- Instantiate the client side FIFO for EMAC0
    ----------------------------------------------------------------------
-   client_side_FIFO_emac0 : eth_fifo_8
+   client_side_FIFO : eth_fifo_8
      generic map (
        FULL_DUPLEX_ONLY     => false)
      port map (
