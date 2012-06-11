@@ -389,7 +389,7 @@ begin
   p_out_phy.rdy<='1';
   p_out_phy.clk<=ll_clk_0_i;
   p_out_phy.rst<=ll_reset_0_i;
-  p_out_phy.opt<=(others=>'0');
+  p_out_phy.opt(C_ETHPHY_OPTOUT_SFP_TXDIS_BIT)<='0';
 
   reset_i<=p_in_rst;
   clk_ds <=p_in_phy.clk;
@@ -467,7 +467,7 @@ m_bufg : BUFG port map(I => i_gt_clkout, O => i_drp_ctrl(C_ETHPHY_OPTIN_DRPCLK_B
     ------------------------------------------------------------------------
     -- Instantiate the LocalLink-level EMAC Wrapper (emac_core_locallink.vhd)
     ------------------------------------------------------------------------
-    v5_emac_ll : emac_core_locallink port map (
+    m_emac_ll : emac_core_locallink port map (
 
       p_in_drp_ctrl                   => i_drp_ctrl,
       p_out_gtp_plllkdet              => open,

@@ -168,10 +168,10 @@ set _projects [ list \
       [ list "../src/eth/eth_phy.vhd" $_VHDPkg ] \
       [ list "../src/eth/eth_gt_clkbuf_v5.vhd" $_VHDMod ] \
       [ list "../src/clocks.vhd" $_VHDMod ] \
+      [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/v5_gt_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/gtp_drp_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/gtp_prog_clkmux.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/lib/vicg/v5/v5_diff_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/v5_gt_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
     ] \
