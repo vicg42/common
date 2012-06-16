@@ -290,7 +290,7 @@ signal i_ltrn_count1  : std_logic;
 
 signal tst_ramread  : std_logic_vector(4 downto 0):=(others=>'0');
 
-
+signal i_hdd_tstin : std_logic_vector(31 downto 0);
 signal i_hm_r  : std_logic:='0';
 
 
@@ -375,7 +375,7 @@ p_out_status             => i_satadev_status(i),
 --------------------------------------------------
 --Технологические сигналы
 --------------------------------------------------
-p_in_tst                 => "00000000000000000000000000000000",
+p_in_tst                 => (others=>'0'),
 p_out_tst                => open,
 
 ----------------------------
@@ -469,7 +469,7 @@ p_out_sata_dcm_gclk0   => open,
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
-p_in_tst               => "00000000000000000000000000000000",--tst_hdd_in,
+p_in_tst               => i_hdd_tstin,
 p_out_tst              => tst_hdd_out,
 
 --------------------------------------------------
@@ -941,6 +941,8 @@ lmain_ctrl:process
 
 begin
 
+  i_hdd_tstin<=(others=>'0');
+
   --//---------------------------------------------------
   --/Настраиваем Параметры моделирования:
   --//---------------------------------------------------
@@ -991,15 +993,15 @@ begin
   i_ltrn_count1<='0';
 
   i_dsnhdd_reg_ctrl_val<=(others=>'0');
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
---  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
-  --//1- min ... 256/0 - max
---  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
-  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
+----  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
+--  --//1- min ... 256/0 - max
+----  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+--  i_dsnhdd_reg_ctrl_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
   i_dsnhdd_reg_hwstart_dly_val(11 downto 0)<=CONV_STD_LOGIC_VECTOR(512, 12);--//фиксирования задержка
   i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(1, 4);--//фиксирования задержка
@@ -1056,7 +1058,6 @@ begin
 
   wait until i_dsn_hdd_rst='0';
   wait until i_hdd_busy='0';
-
 
   --//Конфигурируем RAMBUF
   wait until g_cfg_clk'event and g_cfg_clk='1';
@@ -1142,6 +1143,39 @@ begin
   i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
   wait for 0.5 us;
+
+
+  write(GUI_line,string'("HWCFG_CMD: WR"));writeline(output, GUI_line);
+--  i_hdd_tstin(23 downto 21)<="001";--WR
+--  i_hdd_tstin(23 downto 21)<="010";--RD
+--  i_hdd_tstin(23 downto 21)<="011";--STOP
+  i_hdd_tstin(23 downto 21)<="100";--TEST
+
+  wait for 20.5 us;
+
+  write(GUI_line,string'("HWCFG_CMD: STOP."));writeline(output, GUI_line);
+--  i_hdd_tstin(23 downto 21)<="001";--WR
+--  i_hdd_tstin(23 downto 21)<="010";--RD
+  i_hdd_tstin(23 downto 21)<="011";--STOP
+--  i_hdd_tstin(23 downto 21)<="100";--TEST
+
+  wait for 10.5 us;
+
+  write(GUI_line,string'("HWCFG_CMD: RD"));writeline(output, GUI_line);
+--  i_hdd_tstin(23 downto 21)<="001";--WR
+  i_hdd_tstin(23 downto 21)<="010";--RD
+--  i_hdd_tstin(23 downto 21)<="011";--STOP
+--  i_hdd_tstin(23 downto 21)<="100";--TEST
+
+  wait for 20.5 us;
+
+  write(GUI_line,string'("HWCFG_CMD: STOP."));writeline(output, GUI_line);
+--  i_hdd_tstin(23 downto 21)<="001";--WR
+--  i_hdd_tstin(23 downto 21)<="010";--RD
+  i_hdd_tstin(23 downto 21)<="011";--STOP
+--  i_hdd_tstin(23 downto 21)<="100";--TEST
+
+  wait for 200.5 us;
 
 --          --//Тестирование записи данных в ОЗУ через CFG
 --          if i_cfgdev_if=C_HDD_CFGIF_UART then

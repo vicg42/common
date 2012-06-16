@@ -6,9 +6,20 @@ file delete -force -- work
 vlib work
 
 do updata_dsn_hdd_tb.do
+# Testbench
+#vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_64_32.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_txfifo_64_32.vhd"
+vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_64_64.vhd"
+vcom -93 "../testbanch/hdd_buf/hdd_txfifo_64_64.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_64_128.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_txfifo_64_128.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_rxfifo_128_128.vhd"
+#vcom -93 "../testbanch/hdd_buf/hdd_txfifo_128_128.vhd"
+vcom -93 "../testbanch/hdd_buf/hdd_rambuf_infifo_32_64.vhd"
+vcom -93 "../testbanch/hdd_buf/vout_buf_64_16.vhd"
 
 vsim -t 1ps   -lib work dsn_hdd_tb
-do hdd_main3_tb_wave.do
+do dsn_hdd_tb_wave.do
 view wave
 view structure
 view signals
