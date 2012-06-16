@@ -192,14 +192,14 @@ signal i_rdprm_vch                       : TReaderVCHParams;
 
 signal i_vwr_fr_rdy                      : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vrd_fr_rddone                   : std_logic;
---signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
 signal i_vch_off                         : std_logic:='1';
 signal tst_vwr_out                       : std_logic_vector(31 downto 0);
 signal tst_vrd_out                       : std_logic_vector(31 downto 0);
---signal tst_ctrl                          : std_logic_vector(31 downto 0);
+
 
 
 --MAIN
@@ -214,12 +214,12 @@ p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(11 downto 10)<=i_vbuf_wr(0);
 p_out_tst(13 downto 12)<=i_vbuf_rd(0);
 p_out_tst(14)          <=i_vwr_fr_rdy(0);
-p_out_tst(15)          <='0';--i_vrd_hold(0);
+p_out_tst(15)          <='0';
 p_out_tst(21 downto 16)<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
 p_out_tst(22)          <=i_vrd_fr_rddone;
-p_out_tst(23)          <=tst_vwr_out(5);-- <=i_padding;
-p_out_tst(24)          <='0';--tst_vwr_out(6);-- <=i_vbufin_rd_rdy_n;
-p_out_tst(28 downto 25)<=(others=>'0');--tst_vwr_out(11 downto 8);--<=tst_fsmstate;;
+p_out_tst(23)          <=tst_vwr_out(5);--i_padding;
+p_out_tst(24)          <='0';
+p_out_tst(28 downto 25)<=(others=>'0');
 p_out_tst(31 downto 29)<=(others=>'0');
 
 
@@ -227,8 +227,8 @@ p_out_tst(31 downto 29)<=(others=>'0');
 --//--------------------------------------------------
 --//Конфигурирование модуля
 --//--------------------------------------------------
-i_mem_wr_trn_len<=p_in_mem_trn_len( 7 downto 0);--CONV_STD_LOGIC_VECTOR(C_VCTRL_MEMWR_TRN_SIZE, i_mem_wr_trn_len'length);
-i_mem_rd_trn_len<=p_in_mem_trn_len(15 downto 8);--CONV_STD_LOGIC_VECTOR(C_VCTRL_MEMRD_TRN_SIZE, i_mem_rd_trn_len'length);
+i_mem_wr_trn_len<=p_in_mem_trn_len( 7 downto 0);
+i_mem_rd_trn_len<=p_in_mem_trn_len(15 downto 8);
 
 --//Готовим параметры для модуля записи
 gen_vwrprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
@@ -250,97 +250,97 @@ end process;
 --//--------------------------------------------------
 --//Управление видео буферами
 --//--------------------------------------------------
-gen_vbuf: for i in 0 to C_VCTRL_VCH_COUNT-1 generate
-i_vbuf_wr(i)<=(others=>'0');
-i_vbuf_rd(i)<=(others=>'0');
-end generate gen_vbuf;
+--gen_vbuf: for i in 0 to C_VCTRL_VCH_COUNT-1 generate
+--i_vbuf_wr(i)<=(others=>'0');
+--i_vbuf_rd(i)<=(others=>'0');
+--end generate gen_vbuf;
 
-----//Варианты захвата видеобуфера:
-----//x, 0, 0, 0
-----//1, x, 1, 1
-----//2, 2, x, 2
-----//3, 3, 3, x
---
-----//где 0,1,2,3 - индексы свободных видеобуферов соответствующего видеоканала
-----//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
---
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---
---    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
---      i_vbuf_wr(i)<=(others=>'0');
---    end loop;
---
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
---
---        --//Назначаем видеобуфер для записи видео
---        if i_vwr_fr_rdy(i)='1' then
---            --//Если Модуль Чтения Видео заватил видеобуфер, то ...
---            if i_vrd_hold(i)='1' then
---                if    i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length) and
---                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
---                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
---
---                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length) and
---                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
---                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
---
---                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length) and
---                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
---                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
---
---                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length) and
---                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
---                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
---
---                else
---                  i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
---                end if;
---
---            else
---              i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
---            end if;
---        end if;
---
---    end loop;--//for
---
---  end if;
---end process;
---
-----//Чтение Видео
---process(p_in_rst,p_in_clk)
---begin
---  if p_in_rst='1' then
---    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
---      i_vbuf_rd(i)<=(others=>'0');
---    end loop;
---    i_vrd_hold<=(others=>'0');
---
---  elsif p_in_clk'event and p_in_clk='1' then
---
---    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
---
---        --//Выдаем номер видеобуфера модулю чтение видео video_reader.vhd
---        if i_vwr_fr_rdy(i)='1' then
---            if i_vrd_hold(i)='0' then
---              i_vbuf_rd(i)<=i_vbuf_wr(i);
---            end if;
---        end if;
---
---        --//Захват видеобуфера для Чтения
---        if i_vwr_fr_rdy(i)='1' then
---          i_vrd_hold(i)<='1';
---        elsif i_vrd_fr_rddone='1' then
---          i_vrd_hold(i)<='0';
---        end if;
---
---    end loop;--//for
---
---  end if;
---end process;
+--//Варианты захвата видеобуфера:
+--//x, 0, 0, 0
+--//1, x, 1, 1
+--//2, 2, x, 2
+--//3, 3, 3, x
+
+--//где 0,1,2,3 - индексы свободных видеобуферов соответствующего видеоканала
+--//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+
+    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
+      i_vbuf_wr(i)<=(others=>'0');
+    end loop;
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
+
+        --//Назначаем видеобуфер для записи видео
+        if i_vwr_fr_rdy(i)='1' then
+            --//Если Модуль Чтения Видео заватил видеобуфер, то ...
+            if i_vrd_hold(i)='1' then
+                if    i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length) and
+                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
+                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
+
+                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length) and
+                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
+                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
+
+                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length) and
+                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
+                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
+
+                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length) and
+                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
+                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
+
+                else
+                  i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
+                end if;
+
+            else
+              i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
+            end if;
+        end if;
+
+    end loop;
+
+  end if;
+end process;
+
+--//Чтение Видео
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
+      i_vbuf_rd(i)<=(others=>'0');
+    end loop;
+    i_vrd_hold<=(others=>'0');
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
+
+        --//Выдаем номер видеобуфера модулю чтение видео video_reader.vhd
+        if i_vwr_fr_rdy(i)='1' then
+            if i_vrd_hold(i)='0' then
+              i_vbuf_rd(i)<=i_vbuf_wr(i);
+            end if;
+        end if;
+
+        --//Захват видеобуфера для Чтения
+        if i_vwr_fr_rdy(i)='1' then
+          i_vrd_hold(i)<='1';
+        elsif i_vrd_fr_rddone='1' then
+          i_vrd_hold(i)<='0';
+        end if;
+
+    end loop;
+
+  end if;
+end process;
 
 
 
@@ -390,7 +390,7 @@ p_in_mem              => p_in_memwr,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => (others=>'0'),--tst_ctrl(31 downto 0),--
+p_in_tst              => (others=>'0'),
 p_out_tst             => tst_vwr_out,
 
 -------------------------------
@@ -448,7 +448,7 @@ p_in_mem              => p_in_memrd,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => (others=>'0'),--tst_ctrl(31 downto 0),--
+p_in_tst              => (others=>'0'),
 p_out_tst             => tst_vrd_out,
 
 -------------------------------

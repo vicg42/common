@@ -204,7 +204,7 @@ begin
           if i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1 then
             i_vfr_rd_done<='1';
             i_vfr_rowcnt<=(others=>'0');
-            fsm_state_cs <= S_MEM_START;--S_IDLE;
+            fsm_state_cs <= S_MEM_START;
           else
             i_vfr_rowcnt<=i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
