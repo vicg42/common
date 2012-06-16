@@ -13,7 +13,7 @@
     veresk_m/xxx/make_project.bat
     veresk_m/xxx/updata_ngc.bat
 
-    где xxx - каталог соответствующей платы (alpha5T1,alpha6T1,htg_v6))
+    где xxx - каталог проекта VERESK для соответствующей платы (alpha5T1,alpha6T1,htg_v6))
 
     например. make_project.bat - %XILINX%\bin\nt64\xtclsh D:\Work\Linkos\veresk_m\ml505\script\mprj_veresk.tcl
 
