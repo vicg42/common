@@ -57,6 +57,7 @@ component vin_hdd
 generic(
 G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1';
+G_SKIP_VH     : std_logic:='1';
 G_EXTSYN      : string:="OFF"
 );
 port(
@@ -107,7 +108,6 @@ p_in_hd_wr       : in   std_logic;
 p_in_sel         : in   std_logic;
 
 p_out_vbufo_full : out  std_logic;
-p_out_vbufo_pfull: out  std_logic;
 p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 
@@ -239,6 +239,64 @@ p_out_dbgcs           : out   TSH_ila;
 -------------------------------
 p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
+);
+end component;
+
+
+component hdd_usrif
+generic(
+C_USRIF : string:="FTDI";
+C_CFG_DBGCS : string:="OFF";
+G_SIM   : string:="OFF"
+);
+port(
+-------------------------------------------------
+--Порт управления модулем + Статусы
+--------------------------------------------------
+--Управление от модуля camemra.v
+p_in_cam_ctrl       : in    std_logic_vector(31 downto 0);
+
+--Управление HDD от camera.v
+p_in_usr_clk        : in    std_logic;
+p_in_usr_tx_wr      : in    std_logic;
+p_in_usr_rx_rd      : in    std_logic;
+p_in_usr_txd        : in    std_logic_vector(15 downto 0);
+p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
+p_out_usr_status    : out   std_logic_vector(1  downto 0);
+
+--Управление HDD через USB(FTDI)
+p_inout_ftdi_d      : inout std_logic_vector(7 downto 0);
+p_out_ftdi_rd_n     : out   std_logic;
+p_out_ftdi_wr_n     : out   std_logic;
+p_in_ftdi_txe_n     : in    std_logic;
+p_in_ftdi_rxf_n     : in    std_logic;
+p_in_ftdi_pwren_n   : in    std_logic;
+
+-------------------------------
+--связь с DSN_HDD.VHD
+-------------------------------
+p_out_cfg_adr       : out  std_logic_vector(15 downto 0);
+p_out_cfg_adr_ld    : out  std_logic;
+p_out_cfg_adr_fifo  : out  std_logic;
+
+p_out_cfg_txdata    : out  std_logic_vector(15 downto 0);
+p_out_cfg_wr        : out  std_logic;
+p_in_cfg_txrdy      : in   std_logic;
+
+p_in_cfg_rxdata     : in   std_logic_vector(15 downto 0);
+p_out_cfg_rd        : out  std_logic;
+p_in_cfg_rxrdy      : in   std_logic;
+
+p_out_cfg_done      : out  std_logic;
+
+p_in_cfg_clk        : in   std_logic;
+p_in_cfg_rst        : in   std_logic;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst            : in   std_logic_vector(31 downto 0);
+p_out_tst           : out  std_logic_vector(31 downto 0)
 );
 end component;
 
