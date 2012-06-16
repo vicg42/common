@@ -215,7 +215,7 @@ p_out_gt_sim_clk            : out   std_logic_vector(C_HDD_COUNT_MAX-1 downto 0)
 
 p_out_sim_mem               : out   TMemINBank;
 p_in_sim_mem                : in    TMemOUTBank;
-p_in_tst                    : in    std_logic_vector(31 downto 0);
+
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -226,10 +226,6 @@ p_out_ftdi_wr_n     : out   std_logic;
 p_in_ftdi_txe_n     : in    std_logic;
 p_in_ftdi_rxf_n     : in    std_logic;
 p_in_ftdi_pwren_n   : in    std_logic;
-
-----
---p_in_tst            : in    std_logic_vector(31 downto 0);
---p_out_tst           : out   std_logic_vector(31 downto 0);
 
 p_out_TP            : out   std_logic_vector(7 downto 0); --вывод на контрольные точки платы
 p_out_led           : out   std_logic_vector(7 downto 0)  --выход на свтодиоды платы
@@ -384,6 +380,9 @@ signal i_usrif_tx_wr                  : std_logic;
 signal i_usrif_rx_rd                  : std_logic;
 signal i_usrif_txd                    : std_logic_vector(15 downto 0):=(others=>'0');
 signal i_usrif_rxd                    : std_logic_vector(15 downto 0):=(others=>'0');
+
+signal i_cam_ctrl                     : std_logic_vector(15 downto 0);
+
 
 --MAIN
 begin
@@ -582,11 +581,7 @@ p_out_usr_rxd       => i_usrif_rxd,
 p_out_usr_status    => p_out_usr_status,
 
 --Управление от модуля camemra.v
-p_in_cam_ctrl       => (others=>'0'),
-
-----Статусы модуля
---p_out_hdd_rdy       => i_hdd_rdy,
---p_out_hdd_err       => open,
+p_in_cam_ctrl       => i_cam_ctrl,
 
 --------------------------------------------------
 --Sim
@@ -620,7 +615,7 @@ p_out_gt_sim_clk            => i_hdd_sim_gt_clk,
 
 p_out_sim_mem               => i_sim_mem_in,
 p_in_sim_mem                => i_sim_mem_out,
-p_in_tst                    => (others=>'0'),
+
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -1073,6 +1068,8 @@ lmain_ctrl:process
 
 begin
 
+  i_cam_ctrl<=(others=>'0');
+
   --//---------------------------------------------------
   --/Настраиваем Параметры моделирования:
   --//---------------------------------------------------
@@ -1124,19 +1121,19 @@ begin
 
   i_dsnhdd_reg_ctrl_m_val<=(others=>'0');
   i_dsnhdd_reg_ctrl_m_val(C_HDD_REG_CTRLM_CFG2RAM)<='1';
-  i_dsnhdd_reg_ctrl_m_val(C_HDD_REG_CTRLM_VCH_EN_BIT)<='1';
+--  i_dsnhdd_reg_ctrl_m_val(C_HDD_REG_CTRLM_VCH_EN_BIT)<='1';
 
   i_dsnhdd_reg_ctrl_l_val<=(others=>'0');
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_GEND0_BIT)<='1';
---  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
-  --//1- min ... 256/0 - max
---  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
-  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_ON_BIT)<='1';
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_GEN2RAMBUF_BIT)<='1';
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT)<='0'; --1/0 -Disable/Enable
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_HWLOG_ON_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_GEND0_BIT)<='1';
+----  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT)<='0';
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_DBGLED_OFF_BIT)<='0';
+--  --//1- min ... 256/0 - max
+----  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(((2**(C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1))*100)/128, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
+--  i_dsnhdd_reg_ctrl_l_val(C_HDD_REG_CTRLL_TST_SPD_M_BIT downto C_HDD_REG_CTRLL_TST_SPD_L_BIT)<=CONV_STD_LOGIC_VECTOR(250, C_HDD_REG_CTRLL_TST_SPD_M_BIT-C_HDD_REG_CTRLL_TST_SPD_L_BIT+1);
 
   i_dsnhdd_reg_hwstart_dly_val(11 downto 0)<=CONV_STD_LOGIC_VECTOR(512, 12);--//фиксирования задержка
   i_dsnhdd_reg_hwstart_dly_val(15 downto 12)<=CONV_STD_LOGIC_VECTOR(1, 4);--//фиксирования задержка
@@ -1194,47 +1191,46 @@ begin
   wait until i_dsn_hdd_rst='0';
   wait until i_hdd_busy='0';
 
-
-  --//Конфигурируем RAMBUF
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_TRNLEN, i_cfgdev_adr'length);
-    i_cfgdev_adr_ld<='1';
-    i_cfgdev_adr_fifo<='0';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_cfgdev_adr_ld<='0';
-    i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata(7 downto 0) <=memwr_lentrn_dw(7 downto 0);
-    i_cfgdev_txdata(15 downto 8)<=memrd_lentrn_dw(7 downto 0);
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
-  wait for 0.1 us;
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
-
-  wait for 0.5 us;
-
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_REQLEN, i_cfgdev_adr'length);
-    i_cfgdev_adr_ld<='1';
-    i_cfgdev_adr_fifo<='0';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_cfgdev_adr_ld<='0';
-    i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata(11 downto 0)<=CONV_STD_LOGIC_VECTOR(1024, 12);
-    i_cfgdev_txdata(15 downto 12)<=(others=>'0');
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
-  wait for 0.1 us;
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
-
-  wait for 0.5 us;
+--  --//Конфигурируем RAMBUF
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_TRNLEN, i_cfgdev_adr'length);
+--    i_cfgdev_adr_ld<='1';
+--    i_cfgdev_adr_fifo<='0';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_cfgdev_adr_ld<='0';
+--    i_cfgdev_adr_fifo<='0';
+--    i_cfgdev_txdata(7 downto 0) <=memwr_lentrn_dw(7 downto 0);
+--    i_cfgdev_txdata(15 downto 8)<=memrd_lentrn_dw(7 downto 0);
+--    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+--  wait for 0.1 us;
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+--
+--  wait for 0.5 us;
+--
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(C_HDD_REG_RBUF_REQLEN, i_cfgdev_adr'length);
+--    i_cfgdev_adr_ld<='1';
+--    i_cfgdev_adr_fifo<='0';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_cfgdev_adr_ld<='0';
+--    i_cfgdev_adr_fifo<='0';
+--    i_cfgdev_txdata(11 downto 0)<=CONV_STD_LOGIC_VECTOR(1024, 12);
+--    i_cfgdev_txdata(15 downto 12)<=(others=>'0');
+--    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+--  wait for 0.1 us;
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+--
+--  wait for 0.5 us;
 
 
   wait until g_cfg_clk'event and g_cfg_clk='1';
@@ -1254,29 +1250,29 @@ begin
   wait until g_cfg_clk'event and g_cfg_clk='1';
   i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
-  wait for 90.5 us;
-
---  --//Конфигурируем тестовый режим
---  if i_tst_mode='1' then
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(16#88#, i_cfgdev_adr'length);
-    i_cfgdev_adr_ld<='1';
-    i_cfgdev_adr_fifo<='0';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_cfgdev_adr_ld<='0';
-    i_cfgdev_adr_fifo<='0';
-    i_cfgdev_txdata<=i_dsnhdd_reg_hwstart_dly_val;
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
---  end if;--//if i_tst_mode='1' then
-  wait for 0.1 us;
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
-  wait until g_cfg_clk'event and g_cfg_clk='1';
-  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
-
   wait for 0.5 us;
+
+----  --//Конфигурируем тестовый режим
+----  if i_tst_mode='1' then
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_cfgdev_adr<=CONV_STD_LOGIC_VECTOR(16#88#, i_cfgdev_adr'length);
+--    i_cfgdev_adr_ld<='1';
+--    i_cfgdev_adr_fifo<='0';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_cfgdev_adr_ld<='0';
+--    i_cfgdev_adr_fifo<='0';
+--    i_cfgdev_txdata<=i_dsnhdd_reg_hwstart_dly_val;
+--    i_dev_cfg_wd(C_CFGDEV_HDD)<='1';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--    i_dev_cfg_wd(C_CFGDEV_HDD)<='0';
+----  end if;--//if i_tst_mode='1' then
+--  wait for 0.1 us;
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--  i_dev_cfg_done(C_CFGDEV_HDD)<='1';
+--  wait until g_cfg_clk'event and g_cfg_clk='1';
+--  i_dev_cfg_done(C_CFGDEV_HDD)<='0';
+--
+--  wait for 0.5 us;
 
 --  --//Конфигурируем тестовый режим
 --  if i_tst_mode='1' then
@@ -1299,6 +1295,39 @@ begin
   i_dev_cfg_done(C_CFGDEV_HDD)<='0';
 
   wait for 0.5 us;
+
+
+  write(GUI_line,string'("HWCFG_CMD: WR"));writeline(output, GUI_line);
+  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="001";--WR
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="010";--RD
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="011";--STOP
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="100";--TEST
+
+  wait for 20.5 us;
+
+  write(GUI_line,string'("HWCFG_CMD: STOP."));writeline(output, GUI_line);
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="001";--WR
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="010";--RD
+  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="011";--STOP
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="100";--TEST
+
+  wait for 10.5 us;
+
+  write(GUI_line,string'("HWCFG_CMD: RD"));writeline(output, GUI_line);
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="001";--WR
+  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="010";--RD
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="011";--STOP
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="100";--TEST
+
+  wait for 20.5 us;
+
+  write(GUI_line,string'("HWCFG_CMD: STOP."));writeline(output, GUI_line);
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="001";--WR
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="010";--RD
+  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="011";--STOP
+--  i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)<="100";--TEST
+
+  wait for 200.5 us;
 
 --          --//Тестирование записи данных в ОЗУ через CFG
 --          if i_cfgdev_if=C_HDD_CFGIF_UART then
