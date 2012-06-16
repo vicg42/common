@@ -27,6 +27,7 @@ entity vin_hdd is
 generic(
 G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1';
+G_SKIP_VH     : std_logic:='1';
 G_EXTSYN      : string:="OFF"
 );
 port(
@@ -123,7 +124,7 @@ signal fsm_cs : fsm_state;
 
 signal sr_hs                : std_logic_vector(0 to 1);
 signal i_skip_line          : std_logic;
-
+signal i_mode_fps           : std_logic_vector(C_CAM_CTRL_MODE_FPS_M_BIT-C_CAM_CTRL_MODE_FPS_L_BIT downto 0);
 signal tst_bufi_wr_en       : std_logic;
 
 --MAIN
@@ -141,6 +142,8 @@ p_out_tst(31 downto 5)<=(others=>'0');
 
 p_out_vfr_prm.pix<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRPIX, p_out_vfr_prm.pix'length);
 p_out_vfr_prm.row<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRROW, p_out_vfr_prm.row'length);
+
+i_mode_fps<=p_in_tst(C_CAM_CTRL_MODE_FPS_M_BIT downto C_CAM_CTRL_MODE_FPS_L_BIT);
 
 --//BUFI - Запись:
 gen_extsyn_off : if strcmp(G_EXTSYN,"OFF") generate
@@ -182,8 +185,8 @@ begin
     end if;
 
     if i_bufi_wr_en='1' and p_in_vs/=G_VSYN_ACTIVE and p_in_hs/=G_VSYN_ACTIVE then
-      if p_in_tst(1 downto 0)="11" then
-      --480fps - прореживаем строки
+      if i_mode_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_mode_fps'length) and G_SKIP_VH='1' then
+      --прореживаем строки
         if i_skip_line='0' then
           i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
           if i_bufi_wr='0' then
@@ -193,7 +196,7 @@ begin
           i_bufi_wr<='0';
         end if;
       else
-      --60fps,120fps,240fps - без прореживаия строк
+      --без прореживаия строк
         i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
         if i_bufi_wr='0' then
           sr_vd<=p_in_vd;

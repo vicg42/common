@@ -39,7 +39,6 @@ p_in_hd_wr       : in   std_logic;
 p_in_sel         : in   std_logic;
 
 p_out_vbufo_full : out  std_logic;
-p_out_vbufo_pfull: out  std_logic;
 p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 
@@ -113,9 +112,9 @@ dout   => p_out_vd,
 rd_en  => i_buf_rd,
 rd_clk => p_in_vclk,
 
-full      => p_out_vbufo_full,
+full      => open,--p_out_vbufo_full,
 empty     => i_buf_empty,
-prog_full => p_out_vbufo_pfull,
+prog_full => p_out_vbufo_full,
 
 rst    => p_in_rst
 );
