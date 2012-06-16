@@ -1259,6 +1259,33 @@ p_in_rst                : in    std_logic
 );
 end component;
 
+
+component sata_hwcfg
+generic(
+G_HDD_COUNT : integer:=1;
+G_DBGCS: string:="OFF";
+G_SIM : string:="OFF"
+);
+port(
+p_in_cmd        : in    std_logic_vector(2 downto 0);
+p_in_hdd_lba_bp : in    std_logic_vector(47 downto 0);
+p_in_hdd_err    : in    std_logic;
+p_in_hdd_done   : in    std_logic;
+
+p_out_sh_cxd    : out   std_logic_vector(15 downto 0);
+p_out_sh_cxd_wr : out   std_logic;
+p_out_sh_cxd_en : out   std_logic;
+p_out_test_on   : out   std_logic;
+p_out_clr       : out   std_logic;
+p_out_clr_done_dis : out   std_logic;
+
+p_out_dbgcs     : out   TSH_ila;
+
+p_in_clk        : in    std_logic;
+p_in_rst        : in    std_logic
+);
+end component;
+
 end sata_unit_pkg;
 
 
