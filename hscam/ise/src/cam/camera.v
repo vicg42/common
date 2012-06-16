@@ -67,7 +67,7 @@ module camera(
 	 input [15:0] icfg,//Данные от регистра конфигурации
 	 output wrcfg,//Запись в регистр конфигурации
 	 output [15:0] ocfg,//Данные записываемые в регистр конфигурации
-	 output reg [79:0] oid,//Видеоданные с детектора	 
+	 output reg [79:0] oid,//Видеоданные с детектора
 	 output reg wrl,//Бланковый линии для накопителя
 	 output reg wrf,//Бланковый кадра для накопителя
 	 input [15:0] idn,//Данные для LVDS
@@ -76,7 +76,7 @@ module camera(
 	 output e1sec,//Сигнал секунды при внешней синхронизации, tv(60HZ) если нет внешней синхронизации
 //    output clkn,//Частота для накопителя при записи
 //	 output clklvds//Частота чтения для вывода в LVDS
-	 output [9:0] oregime//Регистр управления камеры
+	 output [15:0] oregime//Регистр управления камеры
 	 );
 //Переменные
 wire [7:0] igain;
@@ -104,7 +104,7 @@ reg [7:0] cb120hz;
 reg out120hz;
 reg in120hz;
 wire [2:0] otestextsyn;
-  
+
 //Компоненты
 blsync u2(.fr(oregime[1:0]),.IN(in120hz),.clk(clk),.inv(oregime[6]),.extsyn(oregime[2]),.midsyn(oregime[3]),.iexp(iexp),
           .ah(ah),.av(av),.ahlvds(ahlvds),.avlvds(avlvds),.th(th),.tv(tv),.e1sec(e1sec),.esyn(esyn),.isyn(isyn),.otest(otestsyn),
@@ -121,7 +121,7 @@ blcontrdet u5(.clk(clk),.endet(endet),.ah(ah),.av(av),.iexp(iexp),.korr(korr),.a
 				  .enrd(enrd),.ipg(ipg),.itx(itx),.lrst(lrst),.oint(oint));
 
 bldata u6(.clk(clk),.clk1x(clk1x),.test(oregime[7]),.ah(ah),.av(av),.id({od9,od8,od7,od6,od5,od4,od3,od2,od1,od0}),
-          .ahlvds(ahlvds),.avlvds(avlvds),.outd(outd),.lval(lval),.fval(fval),.wel(wel),.wef(wef),.dina(dina));				  
+          .ahlvds(ahlvds),.avlvds(avlvds),.outd(outd),.lval(lval),.fval(fval),.wel(wel),.wef(wef),.dina(dina));
 
 ser1 u7(.DATA_OUT_FROM_DEVICE({d[27],d[19],d[08],d[00],
 									    d[05],d[20],d[09],d[01],
@@ -160,7 +160,7 @@ assign clklvds = clk1x;
 assign DARK_OFF_IN = oregime[8];
 assign STANDBY_IN = endet;
 assign CAL_IN = endet;
-assign TP3_0 = clk;//1 
+assign TP3_0 = clk;//1
 always @(posedge clk)
 begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
 		cbinitframe <= (tv&&cbinitframe<12)? cbinitframe+1: cbinitframe;
@@ -176,7 +176,7 @@ begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
       od8 <= (igain[7:6]==0)? id8[9:2]: (igain[7:6]==1&&id8[9])? 255: (igain[7:6]==1)? id8[8:1]: (id8[9:8]>0)? 255: id8[7:0];
       od9 <= (igain[7:6]==0)? id9[9:2]: (igain[7:6]==1&&id9[9])? 255: (igain[7:6]==1)? id9[8:1]: (id9[9:8]>0)? 255: id9[7:0];
       oid <= dina; wrl <= wel;	wrf <= wef;
-		A <= arow; ROW_STRT_IN <= rstrt; LD_SHIFT_IN <= ldshft; DATA_READ_IN <= enrd; 
+		A <= arow; ROW_STRT_IN <= rstrt; LD_SHIFT_IN <= ldshft; DATA_READ_IN <= enrd;
 		PG_IN <= ipg; TX_IN <= itx; LRST_IN <= lrst; EN <= endet;
 //		d <= {outd[6],ihs,ovb,ohb,ivs,16'h0,outd[5],outd[7],outd[4:0]};
 		d <= (oregime[1:0]!=0||oregime[9]==1)? {idn[6],1'h0,fval,lval,9'h0,idn[13:11],idn[15:14],idn[10:8],idn[5],idn[7],idn[4:0]}:
@@ -189,7 +189,7 @@ begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
 		cb120hz <= (cbpix120hz==546874&&cb120hz==119)? 0: (cbpix120hz==546874)? cb120hz+1: cb120hz;
 		cb10us <= (~out120hz||(cb120hz==119&&cb10us==656)||(cb120hz!=119&&cb10us==328))? 0: cb10us+1;
 		out120hz <= (cbpix120hz==546874)? 1: ((cb120hz==119&&cb10us==656)||(cb120hz!=119&&cb10us==328))? 0: out120hz;
-		
+
       TP3_1 <= endet;//2 downh
 		TP3_2 <= ipg;//3 err
 		TP3_3 <= itecp;//4 frame
@@ -197,5 +197,5 @@ begin init <= (cbinitframe<2)? 1: (cbinitframe>9)? 0: init;
 		TP3_5 <= esyn;//6
 		TP3_6 <= otestsyn;//7
 		TP3_7 <= oint;//8
-end  
+end
 endmodule

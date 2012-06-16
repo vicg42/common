@@ -156,7 +156,7 @@ wire [7:0] od7;
 wire [7:0] od8;
 wire [7:0] od9;
 wire [15:0] idn;
-wire [9:0] oregime;
+wire [15:0] oregime;
 
 //Компоненты
 	gen_base u0(.CLK_IN1_P(REFCLK_P),.CLK_IN1_N(REFCLK_N),.CLK_OUT1(clk),.CLK_OUT2(CLK_OUT2));//CLK_OUT1-65.625MHz
@@ -272,7 +272,7 @@ hdd_main m_hdd(
 //--Порт управления модулем + Статусы
 //--------------------------------------------------
 //--Управление от модуля camemra.v
-.p_in_cam_ctrl       ({6'h00,oregime}),
+.p_in_cam_ctrl       (oregime),
 //--Интерфейс управления модулем
 .p_in_usr_clk        (clk)  ,
 .p_in_usr_tx_wr      (wrcfg),//(pin_in_SW(2)   ),
