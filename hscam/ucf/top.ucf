@@ -221,14 +221,14 @@ NET "XCLK_P" LOC=C21;
 #NET pin_in_SW<3>          LOC="H10" | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_3
 
 #Светодиоды
-NET pin_out_led<0>        LOC="A2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
-NET pin_out_led<1>        LOC="H9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
-NET pin_out_led<2>        LOC="G11" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED2
-NET pin_out_led<3>        LOC="J12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED3
-NET pin_out_led<4>        LOC="G10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED4
-NET pin_out_led<5>        LOC="B4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED5
-NET pin_out_led<6>        LOC="D5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
-NET pin_out_led<7>        LOC="K12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
+NET pin_out_led<7>        LOC="A2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
+NET pin_out_led<6>        LOC="H9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
+NET pin_out_led<4>        LOC="G11" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED2
+NET pin_out_led<5>        LOC="J12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED3
+NET pin_out_led<2>        LOC="G10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED4
+NET pin_out_led<3>        LOC="B4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED5
+NET pin_out_led<1>        LOC="D5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
+NET pin_out_led<0>        LOC="K12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
 
 ###Тестовые точки
 #NET pin_out_TP<0>         LOC="V6"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_0

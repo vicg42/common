@@ -6,13 +6,13 @@ set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
 set _usrdef_design "hscam"
-set _usrdef_entity "top"
+set _usrdef_entity "hscam_main"
 set _usrdef_xilinx_family "spartan6"
 set _usrdef_chip_family "s6lxt"
 set _usrdef_device "6slx100t"
 set _usrdef_speed  2
 set _usrdef_pkg    "fgg676"
-set _usrdef_ucf_filename "top"
+set _usrdef_ucf_filename "hscam"
 set _usrdef_ucf_filepath "..\ucf\top.ucf"
 
 set _VMod $::projNav::VMod
@@ -24,6 +24,7 @@ set _projects [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/lib/vicg/s6/s6_gt_mclk.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/lib/vicg/s6/s6_gt_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
       [ list "../src/hdd/mem_glob_pkg.vhd" $_VHDPkg ] \
@@ -67,6 +68,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_s6gt_clkmux_hscam.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_hwcfg.vhd"  $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf_v2_wr_s6.vhd"  $_VHDMod ] \
@@ -94,22 +96,24 @@ set _projects [ list \
       [ list "../src/hdd/video_ctrl.vhd" $_VHDMod ] \
       [ list "../src/hdd/vin_hdd.vhd" $_VHDMod ] \
       [ list "../src/hdd/vout.vhd" $_VHDMod ] \
+      [ list "../src/hdd/hdd_usrif.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main_cfg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main.vhd" $_VHDMod ] \
-      [ list "../src/cam/blautobr.v" $_VMod ] \
-      [ list "../src/cam/blcontrdet.v" $_VMod ] \
-      [ list "../src/cam/bldata.v" $_VMod ] \
-      [ list "../src/cam/blextcontr.v" $_VMod ] \
-      [ list "../src/cam/blextsyn.v" $_VMod ] \
-      [ list "../src/cam/bli2c.v" $_VMod ] \
-      [ list "../src/cam/camera.v" $_VMod ] \
-      [ list "../src/cam/ser1.v" $_VMod ] \
-      [ list "../src/core_gen/gen_base.v" $_VMod ] \
-      [ list "../src/core_gen/gen_work.v" $_VMod ] \
       [ list "../src/core_gen/ramdata.v" $_VMod ] \
+      [ list "../src/cam/blextsyn.v" $_VMod ] \
+      [ list "../src/cam/ser1.v" $_VMod ] \
+      [ list "../src/cam/blsync.v" $_VMod ] \
+      [ list "../src/cam/bli2c.v" $_VMod ] \
+      [ list "../src/cam/blextcontr.v" $_VMod ] \
+      [ list "../src/cam/bldata.v" $_VMod ] \
+      [ list "../src/cam/blcontrdet.v" $_VMod ] \
+      [ list "../src/cam/blautobr.v" $_VMod ] \
+      [ list "../src/core_gen/gen_work.v" $_VMod ] \
+      [ list "../src/core_gen/gen_base.v" $_VMod ] \
+      [ list "../src/cam/camera.v" $_VMod ] \
       [ list "../top.v" $_VMod ] \
-      [ list "../../ucf/hscam_vicg.ucf" "hscam_main" ] \
+      [ list "../../ucf/top.ucf" "top" ] \
     ] \
   ] \
 ]
