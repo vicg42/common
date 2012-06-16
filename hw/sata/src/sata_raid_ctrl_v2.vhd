@@ -746,7 +746,7 @@ i_dbgcs_trig00(11)<=i_sh_cmd_start;
 i_dbgcs_trig00(14 downto 12)<=(others=>'0');--зарезервировано
 i_dbgcs_trig00(15)          <=i_usr_status.dmacfg.atacmdw;
 i_dbgcs_trig00(16)          <=p_in_usr_cxd_wr;--i_sh_atacmd.lba(1);--
-i_dbgcs_trig00(17)          <=i_sh_atacmd.lba(2);
+i_dbgcs_trig00(17)<=i_cmdpkt_get_done;--i_sh_atacmd.lba(2);
 i_dbgcs_trig00(18)<=tst_cmddone;--(dev_done)
 --i_dbgcs_trig00(19)<='0';--зарезервировано для tmr_timeout
 --i_dbgcs_trig00(24 downto 20)<=(others=>'0');--зарезервировано для i_fsm_llayer(4 downto 0);--sh0
