@@ -66,7 +66,7 @@ rst       : in  std_logic
 );
 end component;
 
-
+signal i_buf_dout         : std_logic_vector(p_out_vd'range);
 signal i_buf_din          : std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 signal i_buf_wr           : std_logic;
 signal i_buf_rd           : std_logic;
@@ -74,6 +74,12 @@ signal i_buf_rd_en        : std_logic;
 signal i_buf_empty        : std_logic;
 
 signal i_pix_en           : std_logic;
+
+signal sr_sel             : std_logic_vector(0 to 1);
+signal sr_vs              : std_logic_vector(0 to 1);
+signal i_vfr              : std_logic;
+signal i_vfr_mrk          : std_logic;
+signal i_vfr_cnt          : std_logic_vector(1 downto 0);
 
 
 --MAIN
@@ -108,7 +114,7 @@ din    => i_buf_din,
 wr_en  => i_buf_wr,
 wr_clk => p_in_vbufo_wrclk,
 
-dout   => p_out_vd,
+dout   => i_buf_dout,
 rd_en  => i_buf_rd,
 rd_clk => p_in_vclk,
 
@@ -120,6 +126,47 @@ rst    => p_in_rst
 );
 
 p_out_vbufo_empty<=i_buf_empty;
+
+p_out_vd<=EXT(i_vfr_cnt,8)&EXT(i_vfr_cnt,8) when i_vfr_mrk='1' and i_buf_rd_en='1' else i_buf_dout;
+
+process(p_in_rst,p_in_vclk)
+begin
+  if p_in_rst='1' then
+    sr_sel<=(others=>'0');
+    sr_vs<=(others=>'0');
+    i_vfr<='0';
+    i_vfr_mrk<='0';
+    i_vfr_cnt<=(others=>'0');
+
+  elsif p_in_vclk'event and p_in_vclk='1' then
+
+    sr_sel<=p_in_sel & sr_sel(0 to 0);
+    sr_vs<=p_in_vs & sr_vs(0 to 0);
+
+    if G_VSYN_ACTIVE='0' then
+    i_vfr<=not sr_vs(0) and sr_vs(1);
+    else
+    i_vfr<=sr_vs(0) and not sr_vs(1);
+    end if;
+
+    if i_vfr_mrk='0' then
+        if sr_sel(0)='1' and sr_sel(1)='0' then
+          i_vfr_mrk<='1';--Разрешение выдачи маркера перед выводом записаного видео
+        end if;
+    else
+        if i_vfr='1' then
+          if i_vfr_cnt=CONV_STD_LOGIC_VECTOR(3, i_vfr_cnt'length) then
+            i_vfr_mrk<='0';
+            i_vfr_cnt<=(others=>'0');
+          else
+            i_vfr_cnt<=i_vfr_cnt+1;
+          end if;
+        end if;
+    end if;
+
+  end if;
+end process;
+
 
 --END MAIN
 end behavioral;

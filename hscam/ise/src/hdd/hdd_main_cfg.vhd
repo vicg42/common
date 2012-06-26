@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Версия реализации
-constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#06#; --Верисия модуля контроллера HDD для проекта HSCAM
+constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#07#; --Верисия модуля контроллера HDD для проекта HSCAM
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
@@ -79,7 +79,7 @@ constant C_CAM_CTRL_HDD_WR             : integer:=1;
 constant C_CAM_CTRL_HDD_RD             : integer:=2;
 constant C_CAM_CTRL_HDD_STOP           : integer:=3;
 constant C_CAM_CTRL_HDD_TEST           : integer:=4;
-constant C_CAM_CTRL_HDD_CLR_ERR        : integer:=5;
+constant C_CAM_CTRL_VCH_OFF            : integer:=5;
 constant C_CAM_CTRL_VCH_ON             : integer:=6;
 constant C_CAM_CTRL_CFGFTDI            : integer:=7;
 

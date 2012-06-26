@@ -256,6 +256,11 @@ constant CI_MEM_DWIDTH     : integer:=C_MEMCTRL_DWIDTH * CI_MEMOPT;
 
 signal i_vfr_prm                        : TFrXY;
 signal i_cam_ctrl                       : std_logic_vector(31 downto 0);
+signal i_cam_ctrl_hdd                   : std_logic_vector(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT);
+type TSrCamCtrlHdd is array (0 to 1) of std_logic_vector(i_cam_ctrl_hdd'range);
+signal sr_cam_ctrl_hdd                  : TSrCamCtrlHdd;
+signal i_cam_ctrl_vch_on                : std_logic;
+
 signal i_vdi_vector                     : std_logic_vector((10*8)-1 downto 0);
 
 signal i_vbufi_rd                       : std_logic;
@@ -446,15 +451,37 @@ p_out_usr_status(4)<=i_hdd_done;
 p_out_usr_status(7 downto 5)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HDD_COUNT, 3);
 
 i_hdd_tst_in(20 downto  0)<=(others=>'0');
-i_hdd_tst_in(23 downto 21)<=i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT);
+i_hdd_tst_in(23 downto 21)<=i_cam_ctrl_hdd;
 i_hdd_tst_in(31 downto 24)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_HDD_VERSION, 8);
 
 i_cam_ctrl<=EXT(p_in_cam_ctrl, i_cam_ctrl'length);
+i_cam_ctrl_hdd<=i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT);
 
 i_hdd_led_off<=i_cam_ctrl(C_CAM_CTRL_HDD_LEDOFF_BIT);
-i_grst_vch<=i_hdd_rbuf_cfg.grst_vch when i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT)/=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_VCH_ON, C_CAM_CTRL_HDD_MODE_M_BIT-C_CAM_CTRL_HDD_MODE_L_BIT+1) else '0';
+i_grst_vch<=i_hdd_rbuf_cfg.grst_vch and not i_cam_ctrl_vch_on;
 i_sys_rst2<=i_cam_ctrl(C_CAM_CTRL_HDD_RST_BIT);
 
+process(i_sys_rst,p_in_usr_clk)
+begin
+  if i_sys_rst='1' then
+    for i in 0 to sr_cam_ctrl_hdd'length-1 loop
+    sr_cam_ctrl_hdd(i)<=(others=>'0');
+    end loop;
+    i_cam_ctrl_vch_on<='0';
+
+  elsif p_in_usr_clk'event and p_in_usr_clk='1' then
+
+    sr_cam_ctrl_hdd<=i_cam_ctrl_hdd & sr_cam_ctrl_hdd(0 to 0);
+
+    if sr_cam_ctrl_hdd(0)/=sr_cam_ctrl_hdd(1) then
+        if    sr_cam_ctrl_hdd(0)=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_VCH_ON, sr_cam_ctrl_hdd(0)'length) then
+          i_cam_ctrl_vch_on<='1';
+        elsif sr_cam_ctrl_hdd(0)=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_VCH_OFF, sr_cam_ctrl_hdd(0)'length) then
+          i_cam_ctrl_vch_on<='0';
+        end if;
+    end if;
+  end if;
+end process;
 
 --***********************************************************
 --CLOCKs
