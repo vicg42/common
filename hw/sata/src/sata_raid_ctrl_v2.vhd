@@ -7,13 +7,8 @@
 --
 -- Назначение : Управление модулями sata_host.vhd
 --
--- ВАЖНО: Использование RAMBUF возможно не для всех АТА команд, более подробно см.
---        коментарий --//Разрешаем использование RAMBUF только для пречисленых ниже команд:
---
 -- Revision:
 -- Revision 0.01 - File Created
---
---
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -773,8 +768,8 @@ i_dbgcs_data(20)<=p_in_usr_cxd_wr;--i_usr_rxd_wr;
 --i_dbgcs_data(20 downto 17)<=i_sh_atacmd.lba(3 downto 0);
 i_dbgcs_data(21)<=p_in_usr_txbuf_empty;
 i_dbgcs_data(22)<=p_in_usr_rxbuf_full;--i_raid_trn_done(1);--//detect raid_trn_sdone
-i_dbgcs_data(23)<='0';--sr_raid_trn_done;
-i_dbgcs_data(24)<='0';--i_sh_trn_en;
+i_dbgcs_data(23)<=i_usr_status.dmacfg.hm_w;--sr_raid_trn_done;
+i_dbgcs_data(24)<=i_usr_status.dmacfg.hm_r;--i_sh_trn_en;
 i_dbgcs_data(25)<=i_usr_status.dmacfg.atacmdw;--i_raid_cl_done;
 i_dbgcs_data(26)<=i_sh_padding_en;
 i_dbgcs_data(27)<=i_sh_padding;

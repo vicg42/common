@@ -38,6 +38,7 @@ type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
 
 type THDDRBufErrDetect is record
+bufo_empty : std_logic;
 bufi_full  : std_logic;
 rambuf_full: std_logic;
 end record;

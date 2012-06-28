@@ -84,7 +84,7 @@ type TBus04_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(3 d
 type TSH_ila is record
 clk   : std_logic;
 trig0 : std_logic_vector(63 downto 0);
-data  : std_logic_vector(180 downto 0);
+data  : std_logic_vector(255 downto 0);
 end record;
 
 type TSH_dbgcs is record

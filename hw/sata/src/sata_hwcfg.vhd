@@ -5,7 +5,7 @@
 -- Create Date : 14.06.2012 8:28:35
 -- Module Name : sata_hwcfg
 --
--- Description :
+-- Description : Аппаратное управление режимами записи/чтения HDD
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -52,7 +52,7 @@ end sata_hwcfg;
 architecture behavioral of sata_hwcfg is
 
 constant CI_SLBA_DEFAULT   : integer:=16#00000000#;--Start LBA
-constant CI_ELBA_DEFAULT   : integer:=16#1DC00000#;--End LBA  (238*C_1GB)/512;
+constant CI_ELBA_DEFAULT   : integer:=16#1DC00000#;--End LBA  (SizeHDD*1GB)/512=(238*C_1GB)/512;
 constant CI_SCOUNT_DEFAULT : integer:=selval(1,1024, strcmp(G_SIM,"ON"));
 
 constant CI_HDD_WR    : integer:=1;
@@ -61,7 +61,7 @@ constant CI_HDD_STOP  : integer:=3;
 constant CI_HDD_TEST  : integer:=4;
 constant CI_HDD_CLR   : integer:=5;
 
-type TPktHWR is array (0 to C_HDDPKT_DCOUNT-1) of std_logic_vector(15 downto 0);
+type TPktHWR is array (0 to C_HDDPKT_DCOUNT-1) of std_logic_vector(p_out_sh_cxd'range);
 type TSrCmd is array (0 to 1) of std_logic_vector(p_in_cmd'range);
 
 type THW_commad is record
@@ -74,7 +74,7 @@ type TSH_cfg is record
 dcnt: std_logic_vector(3 downto 0);
 en  : std_logic;
 wr  : std_logic;
-d   : std_logic_vector(15 downto 0);
+d   : std_logic_vector(p_out_sh_cxd'range);
 end record;
 
 signal i_pkt_hdd         : TPktHWR;
@@ -179,6 +179,7 @@ begin
     i_raid_cmd<=(others=>'0');
     i_sata_cmd<=(others=>'0');
     i_lba<=(others=>'0');
+    i_lba_bp<=CONV_STD_LOGIC_VECTOR(CI_ELBA_DEFAULT, i_lba_bp'length);
     i_ata_cmd<=(others=>'0');
     i_clr_done_dis<='0';
 
@@ -211,10 +212,11 @@ begin
               fsm_hwcfg<= S_HDD_ELBA;
 
             elsif sr_cmd(0)=CONV_STD_LOGIC_VECTOR(CI_HDD_TEST, sr_cmd(0)'length) then
-              i_cmd.wr<='1';
+              i_lba<=CONV_STD_LOGIC_VECTOR(CI_ELBA_DEFAULT, i_lba'length);
               i_cmd.test<='1';
+              i_cmd.wr<='1';
               i_sh_cfg.en<='1';
-              fsm_hwcfg<= S_IDLE;
+              fsm_hwcfg<= S_HDD_ELBA;
 
             elsif sr_cmd(0)=CONV_STD_LOGIC_VECTOR(CI_HDD_CLR, sr_cmd(0)'length) then
               i_cmd.clr<='1';
@@ -222,7 +224,6 @@ begin
             end if;
         else
           i_cmd.wr<='0';
-          i_cmd.test<='0';
           i_cmd.clr<='0';
           i_sh_cfg.en<='0';
         end if;
@@ -232,13 +233,13 @@ begin
       --------------------------------
       when S_HDD_ELBA =>
 
-        for i in 0 to C_HDDPKT_DCOUNT-1 loop
+        for i in 0 to i_pkt_hdd'length-1 loop
           if i_sh_cfg.dcnt=i then
             i_sh_cfg.d<=i_pkt_hdd(i);
           end if;
         end loop;
 
-        if i_sh_cfg.dcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_sh_cfg.dcnt'length) then
+        if i_sh_cfg.dcnt=CONV_STD_LOGIC_VECTOR(i_pkt_hdd'length-1, i_sh_cfg.dcnt'length) then
           i_sh_cfg.dcnt<=(others=>'0');
           fsm_hwcfg<= S_HDD_DLY0;
         else
@@ -263,7 +264,7 @@ begin
         i_sata_cmd<=CONV_STD_LOGIC_VECTOR(C_SATACMD_ATACOMMAND, i_sata_cmd'length);
         i_lba<=CONV_STD_LOGIC_VECTOR(CI_SLBA_DEFAULT, i_lba'length);
 
-        if i_cmd.wr='1' or i_cmd.test='1' then
+        if i_cmd.wr='1' then
         i_ata_cmd<=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_WRITE_DMA_EXT, i_ata_cmd'length);
         else
         i_ata_cmd<=CONV_STD_LOGIC_VECTOR(C_ATA_CMD_READ_DMA_EXT, i_ata_cmd'length);
@@ -280,13 +281,13 @@ begin
 
       when S_HDD_CMD =>
 
-        for i in 0 to C_HDDPKT_DCOUNT-1 loop
+        for i in 0 to i_pkt_hdd'length-1 loop
           if i_sh_cfg.dcnt=i then
             i_sh_cfg.d<=i_pkt_hdd(i);
           end if;
         end loop;
 
-        if i_sh_cfg.dcnt=CONV_STD_LOGIC_VECTOR(C_HDDPKT_DCOUNT-1, i_sh_cfg.dcnt'length) then
+        if i_sh_cfg.dcnt=CONV_STD_LOGIC_VECTOR(i_pkt_hdd'length-1, i_sh_cfg.dcnt'length) then
           i_sh_cfg.dcnt<=(others=>'0');
           fsm_hwcfg<= S_HDD_DLY2;
         else
@@ -313,6 +314,7 @@ begin
             i_cmd.clr<='1';
           end if;
           i_lba_bp<=p_in_hdd_lba_bp;
+          i_cmd.test<='0';
           fsm_hwcfg<= S_IDLE;
 
         elsif sr_cmd(0)/=sr_cmd(1) then

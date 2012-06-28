@@ -205,9 +205,9 @@ i_dbgcs_data(47)<=p_in_phy_txreq(3);
 i_dbgcs_data(48)<=p_in_phy_txreq(4);
 
 i_dbgcs_data(49)<=p_in_ll_rxd_wr;
-i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);--p_in_phy_rxdata;--p_in_ll_txd(31 downto 0);--
---i_dbgcs_data(81 downto 50)<=p_in_ll_txd;--p_in_dbg.tlayer.dmatrn_dcnt(31 downto 0);--p_in_ll_rxd(15 downto 0);
-
+--i_dbgcs_data(81 downto 50)<=p_in_ll_rxd(31 downto 0);--p_in_phy_rxdata;--p_in_ll_txd(31 downto 0);--
+i_dbgcs_data(65 downto 50)<=p_in_ll_txd(15 downto 0);--p_in_dbg.tlayer.dmatrn_dcnt(31 downto 0);--p_in_ll_rxd(15 downto 0);
+i_dbgcs_data(81 downto 66)<=p_in_ll_rxd(15 downto 0);--
 i_dbgcs_data(89 downto 82)<=p_in_rxdata( 7 downto 0); --p_in_ll_txd(15 downto 0);--
 i_dbgcs_data(97 downto 90)<=p_in_rxdata(15 downto 8); --p_in_ll_txd(15 downto 0);--
 i_dbgcs_data(98)          <=p_in_dbg.llayer.rxbuf_status.pfull;--p_in_rxcharisk(0);--

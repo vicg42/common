@@ -171,8 +171,9 @@ end component;
 
 signal i_data_null                     : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 
-signal i_hm_w                          : std_logic:='0';--Режим аппараной записи (Host->HDD)
-signal i_hm_r                          : std_logic:='0';--Режим аппараного чтения (Host<-HDD)
+signal i_hm                            : std_logic:='0';--hardware mode (i_hm_w or i_hm_r)
+signal i_hm_w                          : std_logic:='0';--запись (Host->HDD)
+signal i_hm_r                          : std_logic:='0';--чтение (Host<-HDD)
 signal i_clr_err                       : std_logic:='0';
 signal i_err_det                       : THDDRBufErrDetect;
 
@@ -192,34 +193,18 @@ signal i_mem_din_rd                    : std_logic;
 signal i_mem_dout                      : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_mem_dout_wr                   : std_logic;
 signal i_mem_dout_wrdy_n               : std_logic;
-
+signal i_mem_mux_sel                   : std_logic;
 signal sr_bufi_empty                   : std_logic_vector(0 to 1):=(others=>'1');
 
 signal sr_hm                           : std_logic_vector(0 to 2);
-signal i_hm_stop                       : std_logic;--Остановка режимов HM_W/R
-signal i_hm_padding                    : std_logic;--
+signal i_hm_stop                       : std_logic;
+signal i_hm_padding                    : std_logic;
 
 signal i_hm_r_err_det_en               : std_logic;
 
 signal tst_rambuf_empty                : std_logic;
 signal tst_vwr_out                     : std_logic_vector(31 downto 0);
 signal tst_vrd_out                     : std_logic_vector(31 downto 0);
-
---Тестирование RAMBUF:
-constant CI_RAMBUF_TEST                : string:="OFF";
-constant CI_RAMBUF_TSTCNT_DWIDTH       : integer:=32;--Шина данных тестового счетчика
-constant CI_RAMBUF_TSTCNT_COUNT        : integer:=G_MEM_DWIDTH/CI_RAMBUF_TSTCNT_DWIDTH;--Кол-во тестовых счетчиков
-type TMEMTstD is array (0 to CI_RAMBUF_TSTCNT_COUNT - 1) of std_logic_vector(CI_RAMBUF_TSTCNT_DWIDTH-1 downto 0);
---type TScramberInit is array (0 to CI_RAMBUF_TSTCNT_COUNT - 1) of integer;
---constant CI_RAMBUF_TSTINIT             : TScramberInit:=(16#FF00#,16#1F34#);
-signal i_rambuf_test_di                : TMEMTstD;
-signal i_rambuf_test_do                : TMEMTstD;
-signal i_rambuf_test_din               : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-signal i_rambuf_test_dout              : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-signal i_rambuf_test_err               : std_logic:='0';
-signal i_rambuf_test_en                : std_logic:='0';
-
-signal tst_awr_out,tst_ard_out         : std_logic_vector(31 downto 0);
 
 
 --MAIN
@@ -236,9 +221,9 @@ p_out_tst(4 downto 0)  <=tst_vwr_out(4 downto 0);
 p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(10)          <='0';
 p_out_tst(11)          <=tst_rambuf_empty;
-p_out_tst(12)          <=OR_reduce(sr_hm) or i_hm_padding;--Управление модулем mem_mux.vhd
+p_out_tst(12)          <=i_mem_mux_sel;--Управление модулем mem_mux.vhd
 p_out_tst(13)          <=i_hm_padding;
-p_out_tst(14)          <=i_rambuf_test_err;
+p_out_tst(14)          <='0';--i_rambuf_test_err;
 p_out_tst(15)          <=i_hm_stop;
 
 p_out_tst(16)          <=tst_vwr_out(5);
@@ -252,7 +237,7 @@ p_out_tst(23)          <=i_memr_start;
 p_out_tst(24)          <=i_memr_stop;
 p_out_tst(25)          <=i_memw_start;
 p_out_tst(26)          <=i_memw_stop;
-p_out_tst(30 downto 27)<=(others=>'0');--tst_fsm_cs;
+p_out_tst(30 downto 27)<=(others=>'0');
 p_out_tst(31)<='0';
 
 
@@ -264,13 +249,14 @@ tst_rambuf_empty<='1' when i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') else '0';
 --//----------------------------------------------
 i_mem_adr<=(others=>'0');
 
-i_memw_trnlen<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0); --Размер одиночной транзакций ОЗУ (DWORD)
+i_memw_trnlen<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0); --Размер одиночной транзакций ОЗУ
 i_memr_trnlen<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
 
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
     i_clr_err<=p_in_rbuf_cfg.dmacfg.clr_err;
+    i_hm<=p_in_rbuf_cfg.dmacfg.hw_mode;
     i_hm_w<=p_in_rbuf_cfg.dmacfg.hm_w;
     i_hm_r<=p_in_rbuf_cfg.dmacfg.hm_r;
   end if;
@@ -280,7 +266,7 @@ end process;
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.bufi_full;
+p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.bufi_full or i_err_det.bufo_empty;
 p_out_rbuf_status.err_type<=i_err_det;
 p_out_rbuf_status.done<='0';
 p_out_rbuf_status.hwlog_size<=i_rambuf_dcnt_log;
@@ -293,6 +279,7 @@ p_out_rbuf_status.ram_wr_o.dout <=(others=>'0');
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
+    i_err_det.bufo_empty<='0';
     i_err_det.bufi_full<='0';
     i_err_det.rambuf_full<='0';
     i_hm_r_err_det_en<='0';
@@ -307,9 +294,14 @@ begin
 
     if i_clr_err='1' then
       i_err_det.bufi_full<='0';
-    elsif (p_in_bufi_full='1'  and i_hm_w='1') or
-          (p_in_bufo_empty='1' and i_hm_r='1' and i_hm_r_err_det_en='1') then
+    elsif p_in_bufi_full='1'  and i_hm_w='1' then
       i_err_det.bufi_full<='1';
+    end if;
+
+    if i_clr_err='1' then
+      i_err_det.bufo_empty<='0';
+    elsif p_in_bufo_empty='1' and i_hm_r='1' and i_hm_r_err_det_en='1' then
+      i_err_det.bufo_empty<='1';
     end if;
 
     if i_hm_r='0' then
@@ -327,7 +319,7 @@ begin
   if p_in_rst='1' then
     i_rambuf_dcnt<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
-    if i_hm_w='0' and i_hm_r='0' then
+    if i_hm='0' then
       i_rambuf_dcnt<=(others=>'0');
     else
       if i_memw_done='1' and i_memr_done='1' then
@@ -370,9 +362,9 @@ begin
     sr_bufi_empty<=(others=>'1');
     i_memw_start_hm_w<='0';
     i_memr_start_hm_r<='0';
-
+    i_mem_mux_sel<='0';
   elsif p_in_clk'event and p_in_clk='1' then
-    sr_hm<=(i_hm_w or i_hm_r) & sr_hm(0 to 1);
+    sr_hm<=i_hm & sr_hm(0 to 1);
     i_hm_stop <=not sr_hm(0) and sr_hm(1);
 
     sr_bufi_empty<=p_in_bufi_empty & sr_bufi_empty(0 to 0);
@@ -381,6 +373,7 @@ begin
     if tst_vwr_out(7)='1' and tst_vrd_out(7)='1' then
     --модули m_mem_wr, m_mem_rd в исходном состоянии (IDLE)
       i_hm_padding<='0';
+      i_mem_mux_sel<=i_hm;
     elsif i_hm_stop='1' then
       i_hm_padding<='1';
     end if;
@@ -423,11 +416,7 @@ p_out_bufi_rd    <=i_mem_din_rd and i_hm_w;
 p_out_hdd_rxd_rd <=i_mem_din_rd and i_hm_r;
 
 i_mem_din_rdy_n  <=(p_in_bufi_empty and p_in_hdd_rxbuf_empty) and not i_hm_padding;
-i_mem_din_tmp    <=p_in_bufi_dout when i_hm_w='1' else p_in_hdd_rxd;
-
-gen_rambuf_test_off : if strcmp(CI_RAMBUF_TEST,"OFF") generate
-i_mem_din        <=i_mem_din_tmp;
-end generate gen_rambuf_test_off;
+i_mem_din        <=p_in_bufi_dout when i_hm_w='1' else p_in_hdd_rxd;
 
 --(HM_W:RAM -> HDD) or (HM_R:RAM->BUFO)
 p_out_hdd_txd    <=i_mem_dout;
@@ -542,89 +531,6 @@ p_in_rst             => p_in_rst
 );
 
 
---//------------------------------------------------------
---//Тест RAMBUF
---//------------------------------------------------------
-gen_rambuf_test_on : if strcmp(CI_RAMBUF_TEST,"ON") generate
-
-process(p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_rambuf_test_en<=p_in_rbuf_cfg.tstgen.td_zero;
-  end if;
-end process;
-
-i_mem_din <=i_mem_din_tmp when i_rambuf_test_en='0' else i_rambuf_test_din;
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-      for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 loop
-      i_rambuf_test_di(i)<=CONV_STD_LOGIC_VECTOR(i, i_rambuf_test_di(i)'length);
---      i_rambuf_test_di(i)<=srambler32_0(CONV_STD_LOGIC_VECTOR(CI_RAMBUF_TSTINIT(i), 16));
-      end loop;
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    if i_clr_err='1' then
-        for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 loop
-          i_rambuf_test_di(i)<=CONV_STD_LOGIC_VECTOR(i, i_rambuf_test_di(i)'length);
---          i_rambuf_test_di(i)<=srambler32_0(CONV_STD_LOGIC_VECTOR(CI_RAMBUF_TSTINIT(i), 16));
-        end loop;
-
-    elsif i_hm_w='1' or i_hm_r='1' then
-        if i_mem_din_rd='1' then
-          for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 loop
-            i_rambuf_test_di(i)<=i_rambuf_test_di(i) + CI_RAMBUF_TSTCNT_COUNT;
---            i_rambuf_test_di(i)<=srambler32_0(i_rambuf_test_di(i)(31 downto 16));
-          end loop;
-        end if;
-
-    end if;
-  end if;
-end process;
-
-gen_rambuf_test_d : for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 generate
-i_rambuf_test_din(CI_RAMBUF_TSTCNT_DWIDTH*(i+1)-1 downto CI_RAMBUF_TSTCNT_DWIDTH*i)<=i_rambuf_test_di(i);
-i_rambuf_test_dout(CI_RAMBUF_TSTCNT_DWIDTH*(i+1)-1 downto CI_RAMBUF_TSTCNT_DWIDTH*i)<=i_rambuf_test_do(i);
-end generate gen_rambuf_test_d;
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-      for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 loop
-      i_rambuf_test_do(i)<=CONV_STD_LOGIC_VECTOR(i, i_rambuf_test_do(i)'length);
---      i_rambuf_test_do(i)<=srambler32_0(CONV_STD_LOGIC_VECTOR(CI_RAMBUF_TSTINIT(i), 16));
-      end loop;
-      i_rambuf_test_err<='0';
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    if i_clr_err='1' then
-        for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 loop
-        i_rambuf_test_do(i)<=CONV_STD_LOGIC_VECTOR(i, i_rambuf_test_do(i)'length);
---        i_rambuf_test_do(i)<=srambler32_0(CONV_STD_LOGIC_VECTOR(CI_RAMBUF_TSTINIT(i), 16));
-        end loop;
-        i_rambuf_test_err<='0';
-
-    elsif i_hm_w='1' or i_hm_r='1' then
-        if i_mem_dout_wr='1' then
-            for i in 0 to CI_RAMBUF_TSTCNT_COUNT - 1 loop
-            i_rambuf_test_do(i)<=i_rambuf_test_do(i) + CI_RAMBUF_TSTCNT_COUNT;
---            i_rambuf_test_do(i)<=srambler32_0(i_rambuf_test_do(i)(31 downto 16));
-            end loop;
-
-            if i_mem_dout/=i_rambuf_test_dout then
-            i_rambuf_test_err<='1';
-            end if;
-        end if;
-
-    end if;
-  end if;
-end process;
-
-end generate gen_rambuf_test_on;
-
 
 --//----------------------------------
 --//DBG: ChipScoupe
@@ -632,8 +538,7 @@ end generate gen_rambuf_test_on;
 --gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_dbgcs.clk<='0';
 p_out_dbgcs.trig0<=(others=>'0');
-p_out_dbgcs.data(31 downto 0)<=i_rambuf_dcnt;
-p_out_dbgcs.data(p_out_dbgcs.data'length-1 downto 32)<=(others=>'0');
+p_out_dbgcs.data<=(others=>'0');
 --end generate gen_dbgcs_off;
 
 --gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
