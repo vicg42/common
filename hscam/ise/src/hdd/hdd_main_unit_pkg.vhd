@@ -111,6 +111,11 @@ p_out_vbufo_full : out  std_logic;
 p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 
+--Технологический
+p_in_tst         : in   std_logic_vector(31 downto 0);
+p_out_tst        : out  std_logic_vector(31 downto 0);
+
+--System
 p_in_rst         : in   std_logic
 );
 end component;

@@ -42,7 +42,7 @@ constant C_PCFG_FRROW                  : integer:=4;--1024;--
 
 --//cfg Memory Controller
 constant C_PCFG_MEMOPT                 : string:="OFF";--//ON - только если используется mem_mux_v3.vhd
-constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=2; --//max 2
+constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 2
 constant C_PCFG_MEMBANK_1              : integer:=1;
 constant C_PCFG_MEMBANK_0              : integer:=0;
 constant C_PCFG_MEMPHY_SET             : integer:=0;--0 - (MEMBANK0<->MCB5; MEMBANK1<->MCB1)
@@ -87,7 +87,7 @@ constant C_CAM_CTRL_HDD_WR             : integer:=1;
 constant C_CAM_CTRL_HDD_RD             : integer:=2;
 constant C_CAM_CTRL_HDD_STOP           : integer:=3;
 constant C_CAM_CTRL_HDD_TEST           : integer:=4;
-constant C_CAM_CTRL_HDD_CLR_ERR        : integer:=5;
+constant C_CAM_CTRL_VCH_OFF            : integer:=5;
 constant C_CAM_CTRL_VCH_ON             : integer:=6;
 constant C_CAM_CTRL_CFGFTDI            : integer:=7;
 

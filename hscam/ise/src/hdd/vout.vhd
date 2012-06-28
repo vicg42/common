@@ -42,6 +42,11 @@ p_out_vbufo_full : out  std_logic;
 p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
 
+--Технологический
+p_in_tst         : in   std_logic_vector(31 downto 0);
+p_out_tst        : out  std_logic_vector(31 downto 0);
+
+--System
 p_in_rst         : in   std_logic
 );
 end vout;
@@ -75,16 +80,23 @@ signal i_buf_empty        : std_logic;
 
 signal i_pix_en           : std_logic;
 
-signal sr_sel             : std_logic_vector(0 to 1);
-signal sr_vs              : std_logic_vector(0 to 1);
-signal i_vfr              : std_logic;
-signal i_vfr_mrk          : std_logic;
-signal i_vfr_cnt          : std_logic_vector(1 downto 0);
-
+signal sr_sel             : std_logic_vector(0 to 1):=(others=>'0');
+signal sr_vs              : std_logic_vector(0 to 1):=(others=>'0');
+signal i_vs               : std_logic;
+signal i_vs_edge          : std_logic;
+signal i_hd_mrk_cnt       : std_logic_vector(2 downto 0);
+signal i_hd_mrk           : std_logic;
+signal i_hd_vden          : std_logic;
 
 --MAIN
 begin
 
+--Технологические сигналы
+p_out_tst(0)<=i_hd_mrk;
+p_out_tst(1)<=i_buf_rd_en;
+p_out_tst(2)<=i_vs_edge;
+p_out_tst(3)<=i_hd_vden;
+p_out_tst(31 downto 4)<=(others=>'0');
 
 --Синхронизация чтения буфера
 process(p_in_rst,p_in_vclk)
@@ -100,7 +112,7 @@ end process;
 
 --Управление буфером
 i_pix_en<='1' when p_in_hs/=G_VSYN_ACTIVE and p_in_vs/=G_VSYN_ACTIVE else '0';
-i_buf_rd<=i_pix_en and i_buf_rd_en;
+i_buf_rd<=i_pix_en and i_buf_rd_en when p_in_sel='0' else i_pix_en and i_buf_rd_en and i_hd_vden;
 
 i_buf_wr <=p_in_hd_wr when p_in_sel='1' else p_in_vd_wr;
 i_buf_din(63 downto 48)<=p_in_hd(47 downto 32) when p_in_sel='1' else p_in_vd(47 downto 32);--(15 downto  0)
@@ -127,39 +139,40 @@ rst    => p_in_rst
 
 p_out_vbufo_empty<=i_buf_empty;
 
-p_out_vd<=EXT(i_vfr_cnt,8)&EXT(i_vfr_cnt,8) when i_vfr_mrk='1' and i_buf_rd_en='1' else i_buf_dout;
+p_out_vd<=(EXT(i_hd_mrk_cnt,8)&EXT(i_hd_mrk_cnt,8)) when i_hd_mrk='1' else i_buf_dout;
+
+i_vs<='1' when p_in_vs=G_VSYN_ACTIVE else '0';
+i_vs_edge<=sr_vs(0) and not sr_vs(1);
+
+process(p_in_vclk)
+begin
+  if p_in_vclk'event and p_in_vclk='1' then
+    sr_sel<=(p_in_sel and i_buf_rd_en) & sr_sel(0 to 0);
+    sr_vs<=i_vs & sr_vs(0 to 0);
+  end if;
+end process;
 
 process(p_in_rst,p_in_vclk)
 begin
   if p_in_rst='1' then
-    sr_sel<=(others=>'0');
-    sr_vs<=(others=>'0');
-    i_vfr<='0';
-    i_vfr_mrk<='0';
-    i_vfr_cnt<=(others=>'0');
+    i_hd_mrk_cnt<=(others=>'0');
+    i_hd_mrk<='0';
+    i_hd_vden<='0';
 
   elsif p_in_vclk'event and p_in_vclk='1' then
 
-    sr_sel<=p_in_sel & sr_sel(0 to 0);
-    sr_vs<=p_in_vs & sr_vs(0 to 0);
-
-    if G_VSYN_ACTIVE='0' then
-    i_vfr<=not sr_vs(0) and sr_vs(1);
-    else
-    i_vfr<=sr_vs(0) and not sr_vs(1);
-    end if;
-
-    if i_vfr_mrk='0' then
+    if i_hd_mrk='0' then
         if sr_sel(0)='1' and sr_sel(1)='0' then
-          i_vfr_mrk<='1';--Разрешение выдачи маркера перед выводом записаного видео
+          i_hd_mrk<='1';--Разрешение выдачи маркера перед выводом записаного видео
         end if;
     else
-        if i_vfr='1' then
-          if i_vfr_cnt=CONV_STD_LOGIC_VECTOR(3, i_vfr_cnt'length) then
-            i_vfr_mrk<='0';
-            i_vfr_cnt<=(others=>'0');
+        if i_vs_edge='1' then
+          if i_hd_mrk_cnt=CONV_STD_LOGIC_VECTOR(4, i_hd_mrk_cnt'length) then
+            i_hd_mrk<='0';
+            i_hd_vden<='1';--Разрешение выдачи записаного видео
+            i_hd_mrk_cnt<=(others=>'0');
           else
-            i_vfr_cnt<=i_vfr_cnt+1;
+            i_hd_mrk_cnt<=i_hd_mrk_cnt+1;
           end if;
         end if;
     end if;
