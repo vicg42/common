@@ -181,7 +181,7 @@ signal i_rambuf_dcnt                   : std_logic_vector(31 downto 0);--(Размер
 signal i_rambuf_dcnt_log               : std_logic_vector(31 downto 0);--Мониторинг уровня данных
 signal i_rambuf_full                   : std_logic;
 
-signal i_mem_adr                       : std_logic_vector(G_MEM_AWIDTH-1 downto 0);--//(BYTE)
+signal i_mem_adr                       : std_logic_vector(G_MEM_AWIDTH-1 downto 0);--BYTE
 signal i_memw_trnlen,i_memr_trnlen     : std_logic_vector(15 downto 0);--Размер одиночной транзакции (Размер в G_MEM_DWIDTH/8)
 signal i_memw_start,i_memr_start,i_memw_start_hm_w,i_memw_start_hm_r,i_memr_start_hm_w,i_memr_start_hm_r : std_logic;
 signal i_memw_stop,i_memr_stop,i_memw_stop_hm_w,i_memw_stop_hm_r,i_memr_stop_hm_w,i_memr_stop_hm_r : std_logic;
