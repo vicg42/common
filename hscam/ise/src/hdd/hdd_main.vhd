@@ -7,6 +7,14 @@
 --
 -- Назначение/Описание :
 --
+-- Управление модулем hdd через порт p_in_cam_ctrl (биты и коды команд см. hdd_main_cfg.vhd) :
+-- Выдача видео: VCH_ON
+-- Остановка видео: VCH_OFF
+-- Запись видео: VCH_OFF + HDD_WR
+-- Чтение видео: VCH_OFF + HDD_RD
+-- Тест HDD: VCH_OFF + HDD_TEST
+-- Остановка записи/чтения/теста: HDD_STOP
+-- Изменение частоты кадров камера: VCH_OFF + VCH_ON с новым параметром fps
 --
 -- Revision:
 -- Revision 0.01 - File Created
