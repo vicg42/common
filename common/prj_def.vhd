@@ -71,10 +71,10 @@ constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_RDDONE_TRCN
 --//Register C_HREG_DEV_CTRL / Bit Map:
 constant C_HREG_DEV_CTRL_DRDY_BIT             : integer:=0; --//(Драйвером не используется)
 constant C_HREG_DEV_CTRL_DMA_START_BIT        : integer:=1; --//(Передний фронт)Запуск текущей операции
-constant C_HREG_DEV_CTRL_DMA_DIR_BIT          : integer:=2; --//1/0 – Чтение/Запись данных в пользовательское устройство
+constant C_HREG_DEV_CTRL_DMA_DIR_BIT          : integer:=2; --//1/0 – Чтение/Запись данных пользовательского устройства
 constant C_HREG_DEV_CTRL_DMABUF_L_BIT         : integer:=3; --//Стартовый номер буфера с параметрами PCIE_DMA
 constant C_HREG_DEV_CTRL_DMABUF_M_BIT         : integer:=10;--//
-constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT   : integer:=11;--//Общее кол-во буфера с параметрами PCIE_DMA
+constant C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT   : integer:=11;--//Общее кол-во буферов с параметрами PCIE_DMA
 constant C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT   : integer:=18;--//
 constant C_HREG_DEV_CTRL_ADR_L_BIT            : integer:=19;--//Номер пользовательского устройства:(C_HDEV_xxx)
 constant C_HREG_DEV_CTRL_ADR_M_BIT            : integer:=22;--//
