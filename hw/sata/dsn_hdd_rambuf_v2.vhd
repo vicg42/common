@@ -192,7 +192,7 @@ signal i_mem_din_rdy_n                 : std_logic;
 signal i_mem_din_rd                    : std_logic;
 signal i_mem_dout                      : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_mem_dout_wr                   : std_logic;
-signal i_mem_dout_wrdy_n               : std_logic;
+signal i_mem_dout_rdy_n                : std_logic;
 signal i_mem_mux_sel                   : std_logic;
 signal sr_bufi_empty                   : std_logic_vector(0 to 1):=(others=>'1');
 
@@ -425,7 +425,7 @@ p_out_hdd_txd_wr <=i_mem_dout_wr and i_hm_w;
 p_out_bufo_din   <=i_mem_dout;
 p_out_bufo_wr    <=i_mem_dout_wr and i_hm_r;
 
-i_mem_dout_wrdy_n<=(p_in_hdd_txbuf_pfull or (p_in_bufo_full and i_hm_r)) and not i_hm_padding;
+i_mem_dout_rdy_n <=(p_in_hdd_txbuf_pfull or (p_in_bufo_full and i_hm_r)) and not i_hm_padding;
 
 m_mem_wr : hdd_rambuf_wr
 generic map(
@@ -509,7 +509,7 @@ p_in_usr_txbuf_empty => '0',
 
 p_out_usr_rxbuf_din  => i_mem_dout,
 p_out_usr_rxbuf_wd   => i_mem_dout_wr,
-p_in_usr_rxbuf_full  => i_mem_dout_wrdy_n,
+p_in_usr_rxbuf_full  => i_mem_dout_rdy_n,
 
 ---------------------------------
 -- Ñâÿçü ñ mem_ctrl.vhd
