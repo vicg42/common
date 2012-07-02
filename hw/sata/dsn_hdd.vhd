@@ -241,8 +241,6 @@ signal i_sh_status_ch                   : TChStatus;
 
 signal sr_sh_busy                       : std_logic_vector(0 to 1);
 signal i_hdd_done                       : std_logic;
-signal i_hdd_busy                       : std_logic;
-signal i_hdd_busy_clr                   : std_logic;
 
 type THDDBufChk_state is (
 S_IDLE,
@@ -569,8 +567,8 @@ p_out_rbuf_cfg.grst_vch<=not h_reg_ctrl_m(C_HDD_REG_CTRLM_VCH_EN_BIT);
 --//Статусы модуля
 p_out_hdd_rdy  <=i_sh_status.dev_rdy;
 p_out_hdd_error<=i_sh_status.dev_err;
-p_out_hdd_busy <=i_hdd_busy;
-p_out_hdd_irq  <=not i_hdd_busy;--i_sh_irq_width;
+p_out_hdd_busy <=i_sh_status.dev_bsy;
+p_out_hdd_irq  <=not i_sh_status.dev_bsy;
 p_out_hdd_done <=i_hdd_done;
 
 
@@ -610,14 +608,12 @@ p_out_tst(8)<=i_testing_den;--i_cr_dcnt;
 p_out_tst(31 downto 9)<=(others=>'0');
 
 
---//Формирование i_hdd_busy,i_hdd_done
+--//Формирование i_hdd_done
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     sr_sh_rxbuf_empty<=(others=>'1');
     sr_sh_busy<=(others=>'0');
-    i_hdd_busy<='0';
-    i_hdd_busy_clr<='0';
     i_hdd_done<='0';
 
     fsm_state_cs<= S_IDLE;
@@ -628,21 +624,12 @@ begin
 
     if i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)='1' and i_sh_hwcfg_clr_done_dis='0' then
       sr_sh_busy<=(others=>'0');
-      i_hdd_busy<='0';
-
-      fsm_state_cs<= S_IDLE;
-      i_hdd_busy_clr<='0';
       i_hdd_done<='0';
+      fsm_state_cs<= S_IDLE;
 
     else
         --//Формируем сигнал BUSY
         sr_sh_busy<=i_sh_status.dev_bsy & sr_sh_busy(0 to 0);
-        if sr_sh_busy(0)='1' and sr_sh_busy(1)='0' then
-        --Ловим задний фронт сигнала АТА BUSY
-          i_hdd_busy<='1';
-        elsif i_hdd_busy_clr='1' then
-          i_hdd_busy<='0';
-        end if;
 
         case fsm_state_cs is
 
@@ -663,7 +650,6 @@ begin
           when S_CHEK_BUF =>
             --Ждем пока из буферов уйдут все данные
             if (sr_sh_rxbuf_empty(0)='1' and i_sh_txbuf_empty='1') or i_tstgen.tesing_on='1' then
-              i_hdd_busy_clr<='1';
               i_hdd_done<='1';
               fsm_state_cs<= S_CHEK_BUF_DONE;
             end if;
@@ -671,13 +657,11 @@ begin
           when S_WAIT_HW_DONE =>
             if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
             --Ловим задний фронт сигнала АТА BUSY
-              i_hdd_busy_clr<='1';
               i_hdd_done<='1';
               fsm_state_cs<= S_CHEK_BUF_DONE;
             end if;
 
           when S_CHEK_BUF_DONE =>
-            i_hdd_busy_clr<='0';
             fsm_state_cs<= S_IDLE;
 
         end case;
@@ -1046,7 +1030,6 @@ p_out_hdd_rxd <=(others=>'0');
 p_out_hdd_rxbuf_empty<=i_sh_cxd_wr;
 --p_out_hdd_rxbuf_pempty<=i_sh_cxd_wr;
 
-i_hdd_busy<='0';
 i_hdd_done<='0';
 
 

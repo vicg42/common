@@ -93,6 +93,8 @@ signal fsm_state_cs        : fsm_state;
 
 signal i_mem_adr           : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_adr_update    : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
+signal i_mem_adr_offset    : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
+signal i_mem_adr_out       : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_dir           : std_logic;
 signal i_mem_wr            : std_logic;
 signal i_mem_rd            : std_logic;
@@ -154,9 +156,10 @@ p_out_mem.cmd_wr<=i_mem_cmdwr;
 p_out_mem.txd_wr<=i_mem_wr;
 p_out_mem.rxd_rd<=i_mem_rd;
 p_out_mem.txd_be<=(others=>'0');
-p_out_mem.adr   <=EXT(i_mem_adr, p_out_mem.adr'length);
+p_out_mem.adr   <=EXT(i_mem_adr_out, p_out_mem.adr'length);
 p_out_mem.txd   <=EXT(p_in_usr_txbuf_dout, p_out_mem.txd'length);
 
+i_mem_adr_out<=i_mem_adr + i_mem_adr_offset;
 
 --//----------------------------------------------
 --//Автомат записи/чтения данных ОЗУ
@@ -209,7 +212,7 @@ begin
   if p_in_rst='1' then
 
     fsm_state_cs <= S_IDLE;
-
+    i_mem_adr_offset<=(others=>'0');
     i_mem_adr<=(others=>'0');
     i_mem_dir<='0';
     i_mem_trn_work<='0';
@@ -228,7 +231,8 @@ begin
       --Ждем сигнала запуска операции
       --------------------------------------
         if p_in_cfg_mem_start='1' then
-          i_mem_adr<=p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
+          i_mem_adr_offset<=p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
+          i_mem_adr<=(others=>'0');
           i_mem_dir<=p_in_cfg_mem_wr;
           i_mem_trn_len<=p_in_cfg_mem_trn_len(i_mem_trn_len'range); --ВАЖНО: из предоставляемых 16 разрядов
                                                                     --беру только диапозон p_out_mem.cmd_bl'range
