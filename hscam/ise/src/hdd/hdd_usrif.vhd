@@ -118,9 +118,9 @@ i_sel_ftdi <='1' when i_hdd_mode_sel=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_CFGFTDI, i
 --######################################
 --######################################
 --######################################
-gen_ftdi : if strcmp(C_PCFG_HDD_USRIF,"FTDI") generate
+gen_ftdi : if strcmp(C_USRIF,"FTDI") generate
 
-m_cfg_ftdi : cfgdev_ftdi
+m_ftdi : cfgdev_ftdi
 generic map(
 G_DBG => C_CFG_DBGCS
 )
@@ -179,9 +179,9 @@ end generate gen_ftdi;
 --######################################
 --######################################
 --######################################
-gen_host : if strcmp(C_PCFG_HDD_USRIF,"HOST") generate
+gen_host : if strcmp(C_USRIF,"HOST") generate
 
-m_cfg_host : cfgdev_host
+m_host : cfgdev_host
 generic map(
 G_HOST_DWIDTH => 16,
 G_DBG => C_CFG_DBGCS
@@ -245,9 +245,9 @@ end generate gen_host;
 --######################################
 --######################################
 --######################################
-gen_all : if strcmp(C_PCFG_HDD_USRIF,"ALL") generate
+gen_all : if strcmp(C_USRIF,"ALL") generate
 
-m_cfg_ftdi : cfgdev_ftdi
+m_ftdi : cfgdev_ftdi
 generic map(
 G_DBG => C_CFG_DBGCS
 )
@@ -297,7 +297,7 @@ p_out_tst            => i_fcfg_tstout,
 p_in_rst => p_in_cfg_rst
 );
 
-m_cfg_host : cfgdev_host
+m_host : cfgdev_host
 generic map(
 G_HOST_DWIDTH => 16,
 G_DBG => C_CFG_DBGCS

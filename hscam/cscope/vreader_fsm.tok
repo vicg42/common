@@ -1,0 +1,9 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+MEMR_IDLE=00\h
+MEMR_START=01\h
+MEMR_RD=02\h
+MEMR_WAIT=03\h

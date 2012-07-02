@@ -80,7 +80,7 @@ set _projects [ list \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_soft_calibration.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_soft_calibration_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/memc5_wrapper.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vin_bufhdd.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vin_buf.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \

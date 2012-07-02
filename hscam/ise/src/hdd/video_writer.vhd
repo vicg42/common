@@ -46,15 +46,16 @@ p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);--//Размер одиночной 
 p_in_cfg_prm_vch      : in    TWriterVCHParams;            --//Параметры записи видео каналов
 p_in_vfr_buf          : in    TVfrBufs;                    --//Номер буфера где будет формироваться текущий кадр
 p_in_vch_off          : in    std_logic;
---//Статусы
+--Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
 
 ----------------------------
 --Связь с входным буфером видео
 ----------------------------
-p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufin_rd       : out   std_logic;
-p_in_vbufin_empty     : in    std_logic;
+p_in_vbufi_s          : in    TVSync;
+p_in_vbufi_d          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufi_rd        : out   std_logic;
+p_in_vbufi_empty      : in    std_logic;
 
 ---------------------------------
 --Связь с mem_ctrl.vhd
@@ -84,8 +85,7 @@ constant dly : time := 1 ps;
 type fsm_state is (
 S_IDLE,
 S_MEM_START,
-S_MEM_WR,
-S_MEM_WAIT
+S_MEM_WR
 );
 signal fsm_state_cs: fsm_state;
 
@@ -96,15 +96,14 @@ signal i_mem_start                 : std_logic;
 signal i_mem_dir                   : std_logic;
 signal i_mem_done                  : std_logic;
 
-signal i_vbufin_empty              : std_logic;
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
 signal i_vfr_rowcnt                : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
 
 signal i_padding                   : std_logic;
-signal i_vbufin_rd_rdy_n           : std_logic;
+signal i_vbufi_rd_rdy_n            : std_logic;
 
 signal tst_mem_wr_out              : std_logic_vector(31 downto 0);
---signal tst_fsmstate                : std_logic_vector(3 downto 0);
+signal tst_fsmstate                : std_logic_vector(3 downto 0);
 
 
 --MAIN
@@ -116,22 +115,20 @@ begin
 --//----------------------------------
 --p_out_tst(31 downto 0)<=(others=>'0');
 p_out_tst(4 downto 0)<=tst_mem_wr_out(4 downto 0);
-p_out_tst(5)         <=i_padding;
-p_out_tst(6)         <=i_vbufin_rd_rdy_n;
-p_out_tst(7)         <='0';
-p_out_tst(11 downto 8)<=(others=>'0');--tst_fsmstate;
-p_out_tst(31 downto 12)<=(others=>'0');
+p_out_tst(7 downto 5)<=(others=>'0');
+p_out_tst(10 downto 8)<=tst_fsmstate(2 downto 0);
+p_out_tst(11)         <=i_padding;
+p_out_tst(21 downto 16)<=tst_mem_wr_out(21 downto 16);--i_mem_trn_len(5 downto 0);
+p_out_tst(31 downto 22)<=(others=>'0');
 
---tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
---              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WR          else
---              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WAIT        else
---              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
-
+tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
+              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WR          else
+              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
 
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_vfr_rdy<=i_vfr_rdy;--//Прерывание: кадр записан в ОЗУ
+p_out_vfr_rdy<=i_vfr_rdy;
 
 
 --//----------------------------------------------
@@ -146,7 +143,6 @@ begin
     i_vfr_rdy<=(others=>'0');
       vfr_rdy:=(others=>'0');
     i_vfr_rowcnt<=(others=>'0');
-    i_vbufin_empty<='0';
 
     i_mem_ptr<=(others=>'0');
     i_mem_dlen_rq<=(others=>'0');
@@ -158,7 +154,6 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     vfr_rdy:=(others=>'0');
-    i_vbufin_empty<=p_in_vbufin_empty;
 
     case fsm_state_cs is
 
@@ -167,10 +162,10 @@ begin
       --------------------------------------
       when S_IDLE =>
 
-        --//Ждем когда появятся данные в буфере
+        --Ждем когда появятся данные в буфере
         i_padding<='0';
         i_vfr_rowcnt<=(others=>'0');
-        if i_vbufin_empty='0' and p_in_vch_off='0' then
+        if p_in_vbufi_empty='0' and p_in_vch_off='0' and p_in_vbufi_s.v='0' and p_in_vbufi_s.h='0' then
           fsm_state_cs <= S_MEM_START;
         end if;
 
@@ -202,28 +197,22 @@ begin
       ------------------------------------------------
       when S_MEM_WR =>
 
+        if p_in_vch_off='1' then
+          i_padding<='1';
+        end if;
+
         i_mem_start<='0';
         if i_mem_done='1' then
-          if i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1 then
+          if (i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1) or i_padding='1' or
+             (p_in_vbufi_s.v='1' and p_in_vbufi_s.h='1') then
+
             vfr_rdy(0):='1';
             fsm_state_cs <= S_IDLE;
+
           else
             i_vfr_rowcnt<=i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
           end if;
-
-        elsif p_in_vch_off='1' then
-          i_padding<='1';
-          fsm_state_cs <= S_MEM_WAIT;
-        end if;
-
-      ------------------------------------------------
-      --Ждем завершения транзакции
-      ------------------------------------------------
-      when S_MEM_WAIT =>
-
-        if i_mem_done='1' then
-          fsm_state_cs <= S_IDLE;
         end if;
 
     end case;
@@ -236,7 +225,7 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
-i_vbufin_rd_rdy_n<=p_in_vbufin_empty and not i_padding;
+i_vbufi_rd_rdy_n<=p_in_vbufi_empty and not i_padding;
 
 m_mem_wr : mem_wr
 generic map(
@@ -259,9 +248,9 @@ p_out_cfg_mem_done   => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout  => p_in_vbufin_d,
-p_out_usr_txbuf_rd   => p_out_vbufin_rd,
-p_in_usr_txbuf_empty => i_vbufin_rd_rdy_n,
+p_in_usr_txbuf_dout  => p_in_vbufi_d,
+p_out_usr_txbuf_rd   => p_out_vbufi_rd,
+p_in_usr_txbuf_empty => i_vbufi_rd_rdy_n,
 
 p_out_usr_rxbuf_din  => open,
 p_out_usr_rxbuf_wd   => open,

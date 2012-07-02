@@ -55,6 +55,7 @@ end component;
 
 component vin_hdd
 generic(
+G_VBUF_IWIDTH : integer:=80;
 G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1';
 G_SKIP_VH     : std_logic:='1';
@@ -62,7 +63,7 @@ G_EXTSYN      : string:="OFF"
 );
 port(
 --Вх. видеопоток
-p_in_vd            : in   std_logic_vector((10*8)-1 downto 0);
+p_in_vd            : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
@@ -71,12 +72,13 @@ p_in_ext_syn       : in   std_logic;
 p_out_vfr_prm      : out  TFrXY;
 
 --Вых. видеопоток
-p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
-p_in_vbufin_rd     : in   std_logic;
-p_out_vbufin_empty : out  std_logic;
-p_out_vbufin_full  : out  std_logic;
-p_in_vbufin_wrclk  : in   std_logic;
-p_in_vbufin_rdclk  : in   std_logic;
+p_out_vsync        : out  TVSync;
+p_out_vbufi_d      : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
+p_in_vbufi_rd      : in   std_logic;
+p_out_vbufi_empty  : out  std_logic;
+p_out_vbufi_full   : out  std_logic;
+p_in_vbufi_wrclk   : in   std_logic;
+p_in_vbufi_rdclk   : in   std_logic;
 
 --Технологический
 p_in_tst           : in    std_logic_vector(31 downto 0);
@@ -110,6 +112,7 @@ p_in_sel         : in   std_logic;
 p_out_vbufo_full : out  std_logic;
 p_out_vbufo_empty: out  std_logic;
 p_in_vbufo_wrclk : in   std_logic;
+p_out_vsync      : out  TVSync;
 
 --Технологический
 p_in_tst         : in   std_logic_vector(31 downto 0);
@@ -134,20 +137,22 @@ port(
 -------------------------------
 p_in_vfr_prm          : in    TFrXY;
 p_in_mem_trn_len      : in    std_logic_vector(15 downto 0);
-p_in_vch_off          : in    std_logic;
+p_in_vwr_off          : in    std_logic;
 p_in_vrd_off          : in    std_logic;
 
 ----------------------------
 --Связь с вх/вых видеобуферами
 ----------------------------
 --Вх
-p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufin_rd       : out   std_logic;
-p_in_vbufin_empty     : in    std_logic;
+p_in_vbufi_s          : in    TVSync;
+p_in_vbufi_d          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufi_rd        : out   std_logic;
+p_in_vbufi_empty      : in    std_logic;
 --Вых
-p_out_vbufout_d       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufout_wr      : out   std_logic;
-p_in_vbufout_full     : in    std_logic;
+p_in_vbufo_s          : in    TVSync;
+p_out_vbufo_d         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr        : out   std_logic;
+p_in_vbufo_full       : in    std_logic;
 
 ---------------------------------
 --Связь с mem_ctrl.vhd

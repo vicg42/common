@@ -25,6 +25,7 @@ use work.video_ctrl_pkg.all;
 
 entity vin_hdd is
 generic(
+G_VBUF_IWIDTH : integer:=80;
 G_VBUF_OWIDTH : integer:=32;
 G_VSYN_ACTIVE : std_logic:='1';
 G_SKIP_VH     : std_logic:='1';
@@ -32,7 +33,7 @@ G_EXTSYN      : string:="OFF"
 );
 port(
 --Вх. видеопоток
-p_in_vd            : in   std_logic_vector((10*8)-1 downto 0);
+p_in_vd            : in   std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
 p_in_vs            : in   std_logic;
 p_in_hs            : in   std_logic;
 p_in_vclk          : in   std_logic;
@@ -41,12 +42,13 @@ p_in_ext_syn       : in   std_logic;--//Внешняя синхронизация
 p_out_vfr_prm      : out  TFrXY;
 
 --Вых. видеопоток
-p_out_vbufin_d     : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
-p_in_vbufin_rd     : in   std_logic;
-p_out_vbufin_empty : out  std_logic;
-p_out_vbufin_full  : out  std_logic;
-p_in_vbufin_wrclk  : in   std_logic;
-p_in_vbufin_rdclk  : in   std_logic;
+p_out_vsync        : out  TVSync;
+p_out_vbufi_d      : out  std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
+p_in_vbufi_rd      : in   std_logic;
+p_out_vbufi_empty  : out  std_logic;
+p_out_vbufi_full   : out  std_logic;
+p_in_vbufi_wrclk   : in   std_logic;
+p_in_vbufi_rdclk   : in   std_logic;
 
 --Технологический
 p_in_tst           : in    std_logic_vector(31 downto 0);
@@ -59,9 +61,7 @@ end vin_hdd;
 
 architecture behavioral of vin_hdd is
 
-constant CI_BUF_COUNT : integer:=5;
-
-component vin_bufhdd
+component vin_bufi
 port(
 din    : in  std_logic_vector(31 downto 0);
 wr_en  : in  std_logic;
@@ -78,7 +78,7 @@ rst    : in  std_logic
 );
 end component;
 
-component hdd_rambuf_infifo
+component vin_bufc
 port(
 din    : in std_logic_vector(31 downto 0);
 wr_en  : in std_logic;
@@ -90,42 +90,64 @@ rd_clk : in std_logic;
 
 empty  : out std_logic;
 full   : out std_logic;
-prog_full     : out std_logic;
-rd_data_count : out std_logic_vector(3 downto 0);
---data_count : out std_logic_vector(3 downto 0);
 
 --clk    : in std_logic;
 rst    : in std_logic
 );
 end component;
 
-signal i_ext_syn_en         : std_logic;
---signal i_bufi_cnt           : integer range 0 to CI_BUF_COUNT;
-signal i_bufi_cnt           : std_logic_vector(2 downto 0);
+component vin_bufo
+port(
+din    : in std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
+wr_en  : in std_logic;
+--wr_clk : in std_logic;
+
+dout   : out std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
+rd_en  : in std_logic;
+--rd_clk : in std_logic;
+
+empty  : out std_logic;
+full   : out std_logic;
+
+clk    : in std_logic;
+srst   : in std_logic
+);
+end component;
+
+signal i_det_ext_syn        : std_logic;
+
+signal sr_vd                : std_logic_vector(G_VBUF_IWIDTH-1 downto 0);
+signal i_vd_vector          : std_logic_vector((G_VBUF_IWIDTH*2)-1 downto 0);
+signal i_vsync              : TVSync;
+
+constant CI_BUF_COUNT       : integer:=selval(1, (G_VBUF_IWIDTH*2)/32, (G_VBUF_IWIDTH<16));
+
+signal i_bufi_cnt           : std_logic_vector(log2(CI_BUF_COUNT) downto 0);
 signal i_bufi_wr_en         : std_logic:='0';
 signal i_bufi_wr            : std_logic;
 signal i_bufi_rd            : std_logic_vector(CI_BUF_COUNT-1 downto 0);
-type TBufData  is array (0 to CI_BUF_COUNT-1) of std_logic_vector(31 downto 0);
-signal i_bufi_din           : TBufData;
-signal i_bufi_dout          : TBufData;
+type TBufD  is array (0 to CI_BUF_COUNT-1) of std_logic_vector(31 downto 0);
+signal i_bufi_din           : TBufD;
+signal i_bufi_dout          : TBufD;
 signal i_bufi_empty         : std_logic_vector(CI_BUF_COUNT-1 downto 0);
 signal i_bufi_full          : std_logic_vector(CI_BUF_COUNT-1 downto 0);
 signal i_bufo_din           : std_logic_vector(31 downto 0);
 signal i_bufo_wr_tmp        : std_logic_vector(CI_BUF_COUNT-1 downto 0);
 signal i_bufo_wr            : std_logic;
-signal sr_vd                : std_logic_vector((10*8)-1 downto 0);
-signal i_vd_vector          : std_logic_vector((10*8*2)-1 downto 0);
 
 type fsm_state is (
 S_IDLE,
-S_WORK
+S_RD
 );
 signal fsm_cs : fsm_state;
 
 signal sr_hs                : std_logic_vector(0 to 1);
 signal i_skip_line          : std_logic;
 signal i_mode_fps           : std_logic_vector(C_CAM_CTRL_MODE_FPS_M_BIT-C_CAM_CTRL_MODE_FPS_L_BIT downto 0);
-signal tst_bufi_wr_en       : std_logic;
+signal i_buf2i_dout         : std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
+signal i_buf2i_rd           : std_logic;
+signal i_buf2i_empty        : std_logic;
+
 
 --MAIN
 begin
@@ -137,8 +159,9 @@ p_out_tst(0)<=i_bufo_wr;
 p_out_tst(1)<=i_bufi_wr;
 p_out_tst(2)<=i_bufi_wr_en;
 p_out_tst(3)<=OR_reduce(i_bufi_full);
-p_out_tst(4)<=tst_bufi_wr_en;
-p_out_tst(31 downto 5)<=(others=>'0');
+p_out_tst(4)<='0';
+p_out_tst(5)<=i_det_ext_syn;
+p_out_tst(31 downto 6)<=(others=>'0');
 
 p_out_vfr_prm.pix<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRPIX, p_out_vfr_prm.pix'length);
 p_out_vfr_prm.row<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRROW, p_out_vfr_prm.row'length);
@@ -147,17 +170,17 @@ i_mode_fps<=p_in_tst(C_CAM_CTRL_MODE_FPS_M_BIT downto C_CAM_CTRL_MODE_FPS_L_BIT)
 
 --//BUFI - Запись:
 gen_extsyn_off : if strcmp(G_EXTSYN,"OFF") generate
-i_ext_syn_en<='1';
+i_det_ext_syn<='1';
 end generate gen_extsyn_off;
 
 gen_extsyn_on : if strcmp(G_EXTSYN,"ON") generate
 process(p_in_rst,p_in_vclk)
 begin
   if p_in_rst='1' then
-    i_ext_syn_en<='0';
+    i_det_ext_syn<='0';
   elsif p_in_vclk'event and p_in_vclk='1' then
     if p_in_ext_syn='1' then
-      i_ext_syn_en<='1';
+      i_det_ext_syn<='1';
     end if;
   end if;
 end process;
@@ -167,7 +190,7 @@ process(p_in_rst,p_in_vclk)
 begin
   if p_in_rst='1' then
     i_bufi_wr<='0';
-    i_bufi_wr_en<='0'; tst_bufi_wr_en<='0';
+    i_bufi_wr_en<='0';
     sr_vd<=(others=>'0');
     sr_hs<=(others=>'0');
     i_skip_line<='0';
@@ -180,7 +203,7 @@ begin
       i_skip_line<=not i_skip_line;
     end if;
 
-    if p_in_vs=G_VSYN_ACTIVE and i_ext_syn_en='1' then
+    if p_in_vs=G_VSYN_ACTIVE and i_det_ext_syn='1' then
       i_bufi_wr_en<='1';
     end if;
 
@@ -188,7 +211,7 @@ begin
       if i_mode_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_mode_fps'length) and G_SKIP_VH='1' then
       --прореживаем строки
         if i_skip_line='0' then
-          i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
+          i_bufi_wr<=not i_bufi_wr;
           if i_bufi_wr='0' then
             sr_vd<=p_in_vd;
           end if;
@@ -197,7 +220,7 @@ begin
         end if;
       else
       --без прореживаия строк
-        i_bufi_wr<=not i_bufi_wr; tst_bufi_wr_en<='1';
+        i_bufi_wr<=not i_bufi_wr;
         if i_bufi_wr='0' then
           sr_vd<=p_in_vd;
         end if;
@@ -205,25 +228,26 @@ begin
     else
       i_bufi_wr<='0';
     end if;
+
   end if;
 end process;
 
 i_vd_vector<=p_in_vd & sr_vd;
 
---//Буфера:
+--Входные буфера:
 gen_bufi : for i in 0 to CI_BUF_COUNT-1 generate
 
 i_bufi_din(i)<=i_vd_vector(32*(i+1)-1 downto 32*i);
 
-m_bufi : vin_bufhdd
+m_bufi : vin_bufi
 port map(
 din    => i_bufi_din(i),
 wr_en  => i_bufi_wr,
 wr_clk => p_in_vclk,
 
-dout   => i_bufi_dout(i)(31 downto 0),
+dout   => i_bufi_dout(i),
 rd_en  => i_bufi_rd(i),
-rd_clk => p_in_vbufin_wrclk,
+rd_clk => p_in_vbufi_wrclk,
 
 full   => i_bufi_full(i),
 empty  => i_bufi_empty(i),
@@ -231,12 +255,12 @@ empty  => i_bufi_empty(i),
 rst    => p_in_rst
 );
 
-i_bufi_rd(i)<=not i_bufi_empty(i) when fsm_cs=S_WORK and i_bufi_cnt=i else '0';
+i_bufi_rd(i)<=not i_bufi_empty(i) when fsm_cs=S_RD and i_bufi_cnt=i else '0';
 
 end generate gen_bufi;
 
 --//BUFI - Чтение:
-process(p_in_rst,p_in_vbufin_wrclk)
+process(p_in_rst,p_in_vbufi_wrclk)
   variable update : std_logic;
 begin
   if p_in_rst='1' then
@@ -246,23 +270,23 @@ begin
     fsm_cs <= S_IDLE;
       update:='0';
 
-  elsif p_in_vbufin_wrclk'event and p_in_vbufin_wrclk='1' then
+  elsif p_in_vbufi_wrclk'event and p_in_vbufi_wrclk='1' then
       update:='0';
 
     case fsm_cs is
       --------------------------------------
-      --Исходное состояние
+      --
       --------------------------------------
       when S_IDLE =>
           if OR_reduce(i_bufi_empty)='0' then
             i_bufi_cnt<=(others=>'0');
-            fsm_cs <= S_WORK;
+            fsm_cs <= S_RD;
           end if;
 
       --------------------------------------
-      --Запись данных в m_bufo
+      --Перемещение данных m_bufi -> m_bufo
       --------------------------------------
-      when S_WORK =>
+      when S_RD =>
 
           for i in 0 to i_bufi_dout'length-1 loop
             if i_bufi_cnt=i then
@@ -290,27 +314,60 @@ end process;
 
 i_bufo_wr<=OR_reduce(i_bufo_wr_tmp);
 
-
-m_bufo : hdd_rambuf_infifo
+--Конвертация шины данных 32bit -> G_VBUF_OWIDTH bit
+m_bufc : vin_bufc
 port map(
-din       => i_bufo_din,
-wr_en     => i_bufo_wr,
-wr_clk    => p_in_vbufin_wrclk,
+din    => i_bufo_din,
+wr_en  => i_bufo_wr,
+wr_clk => p_in_vbufi_wrclk,
 
-dout      => p_out_vbufin_d,
-rd_en     => p_in_vbufin_rd,
-rd_clk    => p_in_vbufin_rdclk,
+dout   => i_buf2i_dout,
+rd_en  => i_buf2i_rd,
+rd_clk => p_in_vbufi_rdclk,
 
-empty     => p_out_vbufin_empty,
-full      => p_out_vbufin_full,
-prog_full => open,
-rd_data_count => open,
---data_count => p_out_vbufin_wrcnt,
+empty  => i_buf2i_empty,
+full   => open,
 
---clk       => p_in_vbufin_rdclk,
-rst       => p_in_rst
+rst    => p_in_rst
 );
 
+i_buf2i_rd<=not i_buf2i_empty;
+
+--Выходной буфер
+m_bufo : vin_bufo
+port map(
+din    => i_buf2i_dout,
+wr_en  => i_buf2i_rd,
+
+dout   => p_out_vbufi_d,
+rd_en  => p_in_vbufi_rd,
+
+empty  => p_out_vbufi_empty,
+full   => p_out_vbufi_full,
+
+clk    => p_in_vbufi_rdclk,
+srst   => p_in_rst
+);
+
+--Пересинхронизация КСИ,CСИ
+process(p_in_vbufi_rdclk)
+begin
+  if p_in_vbufi_rdclk'event and p_in_vbufi_rdclk='1' then
+    if p_in_vs=G_VSYN_ACTIVE then
+      i_vsync.v<='1';
+    else
+      i_vsync.v<='0';
+    end if;
+
+    if p_in_hs=G_VSYN_ACTIVE then
+      i_vsync.h<='1';
+    else
+      i_vsync.h<='0';
+    end if;
+  end if;
+end process;
+
+p_out_vsync<=i_vsync;
 
 --END MAIN
 end behavioral;

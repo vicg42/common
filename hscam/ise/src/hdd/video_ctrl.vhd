@@ -37,20 +37,22 @@ port(
 -------------------------------
 p_in_vfr_prm          : in    TFrXY;
 p_in_mem_trn_len      : in    std_logic_vector(15 downto 0);
-p_in_vch_off          : in    std_logic;
+p_in_vwr_off          : in    std_logic;
 p_in_vrd_off          : in    std_logic;
 
 ----------------------------
 --Связь с вх/вых видеобуферами
 ----------------------------
 --Вх
-p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufin_rd       : out   std_logic;
-p_in_vbufin_empty     : in    std_logic;
+p_in_vbufi_s          : in    TVSync;
+p_in_vbufi_d          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufi_rd        : out   std_logic;
+p_in_vbufi_empty      : in    std_logic;
 --Вых
-p_out_vbufout_d       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufout_wr      : out   std_logic;
-p_in_vbufout_full     : in    std_logic;
+p_in_vbufo_s          : in    TVSync;
+p_out_vbufo_d         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr        : out   std_logic;
+p_in_vbufo_full       : in    std_logic;
 
 ---------------------------------
 --Связь с mem_ctrl.vhd
@@ -106,9 +108,10 @@ p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 ----------------------------
 --Связь с входным буфером видео
 ----------------------------
-p_in_vbufin_d         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufin_rd       : out   std_logic;
-p_in_vbufin_empty     : in    std_logic;
+p_in_vbufi_s          : in    TVSync;
+p_in_vbufi_d          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufi_rd        : out   std_logic;
+p_in_vbufi_empty      : in    std_logic;
 
 ---------------------------------
 --Связь с mem_ctrl.vhd
@@ -154,16 +157,16 @@ p_in_cfg_prm_vch     : in    TReaderVCHParams;
 p_in_hrd_start       : in    std_logic;
 p_in_vfr_buf         : in    TVfrBufs;
 p_in_vch_off         : in    std_logic;
-p_in_vrd_off         : in    std_logic;
 --//Статусы
 p_out_vch_rd_done    : out   std_logic;
 
 ----------------------------
 --Связь с выходным буфером видео
 ----------------------------
-p_out_vbufout_d      : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufout_wr     : out   std_logic;
-p_in_vbufout_full    : in    std_logic;
+p_in_vbufo_s         : in    TVSync;
+p_out_vbufo_d        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr       : out   std_logic;
+p_in_vbufo_full      : in    std_logic;
 
 ---------------------------------
 --Связь с mem_ctrl.vhd
@@ -196,7 +199,6 @@ signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
-signal i_vch_off                         : std_logic:='1';
 signal tst_vwr_out                       : std_logic_vector(31 downto 0);
 signal tst_vrd_out                       : std_logic_vector(31 downto 0);
 
@@ -217,10 +219,9 @@ p_out_tst(14)          <=i_vwr_fr_rdy(0);
 p_out_tst(15)          <='0';
 p_out_tst(21 downto 16)<=tst_vwr_out(21 downto 16);--i_mem_trn_len;
 p_out_tst(22)          <=i_vrd_fr_rddone;
-p_out_tst(23)          <=tst_vwr_out(5);--i_padding;
-p_out_tst(24)          <='0';
-p_out_tst(28 downto 25)<=(others=>'0');
-p_out_tst(31 downto 29)<=(others=>'0');
+p_out_tst(23)          <='0';
+p_out_tst(27 downto 24)<=tst_vwr_out(11 downto 8);
+p_out_tst(31 downto 28)<=tst_vrd_out(11 downto 8);
 
 
 
@@ -230,39 +231,27 @@ p_out_tst(31 downto 29)<=(others=>'0');
 i_mem_wr_trn_len<=p_in_mem_trn_len( 7 downto 0);
 i_mem_rd_trn_len<=p_in_mem_trn_len(15 downto 8);
 
---//Готовим параметры для модуля записи
+--Готовим параметры для модуля записи
 gen_vwrprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_wrprm_vch(i).fr_size <=p_in_vfr_prm;
 end generate gen_vwrprm;
 
---//Готовим параметры для модуля чтения
+--Готовим параметры для модуля чтения
 gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_rdprm_vch(i).fr_size <=p_in_vfr_prm;
 end generate gen_vrdprm;
 
-process(p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_vch_off<=p_in_vch_off;
-  end if;
-end process;
-
 --//--------------------------------------------------
 --//Управление видео буферами
 --//--------------------------------------------------
---gen_vbuf: for i in 0 to C_VCTRL_VCH_COUNT-1 generate
---i_vbuf_wr(i)<=(others=>'0');
---i_vbuf_rd(i)<=(others=>'0');
---end generate gen_vbuf;
+--Варианты захвата видеобуфера:
+--x, 0, 0, 0
+--1, x, 1, 1
+--2, 2, x, 2
+--3, 3, 3, x
 
---//Варианты захвата видеобуфера:
---//x, 0, 0, 0
---//1, x, 1, 1
---//2, 2, x, 2
---//3, 3, 3, x
-
---//где 0,1,2,3 - индексы свободных видеобуферов соответствующего видеоканала
---//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
+--где 0,1,2,3 - индексы свободных видеобуферов
+--    x - видеобуфер захваченый модулем чтения (video_reader.vhd)
 
 process(p_in_rst,p_in_clk)
 begin
@@ -276,9 +265,9 @@ begin
 
     for i in 0 to C_VCTRL_VCH_COUNT-1 loop
 
-        --//Назначаем видеобуфер для записи видео
+        --Назначаем видеобуфер для записи видео
         if i_vwr_fr_rdy(i)='1' then
-            --//Если Модуль Чтения Видео заватил видеобуфер, то ...
+            --Если модуль чтения заватил видеобуфер, то ...
             if i_vrd_hold(i)='1' then
                 if    i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length) and
                       i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
@@ -310,7 +299,7 @@ begin
   end if;
 end process;
 
---//Чтение Видео
+--чтение видео
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -323,14 +312,14 @@ begin
 
     for i in 0 to C_VCTRL_VCH_COUNT-1 loop
 
-        --//Выдаем номер видеобуфера модулю чтение видео video_reader.vhd
+        --Выдаем номер видеобуфера модулю чтения (video_reader.vhd)
         if i_vwr_fr_rdy(i)='1' then
             if i_vrd_hold(i)='0' then
               i_vbuf_rd(i)<=i_vbuf_wr(i);
             end if;
         end if;
 
-        --//Захват видеобуфера для Чтения
+        --Захват видеобуфера для чтения кадра
         if i_vwr_fr_rdy(i)='1' then
           i_vrd_hold(i)<='1';
         elsif i_vrd_fr_rddone='1' then
@@ -344,9 +333,9 @@ end process;
 
 
 
--------------------------------
--- Запись видео в ОЗУ
--------------------------------
+--//--------------------------------------------------
+--// Запись видео в ОЗУ
+--//--------------------------------------------------
 m_vwriter : video_writer
 generic map(
 G_MEM_BANK_M_BIT  => G_MEM_BANK_M_BIT,
@@ -368,7 +357,7 @@ port map(
 -------------------------------
 p_in_cfg_mem_trn_len  => i_mem_wr_trn_len,
 p_in_cfg_prm_vch      => i_wrprm_vch,
-p_in_vch_off          => i_vch_off,
+p_in_vch_off          => p_in_vwr_off,
 p_in_vfr_buf          => i_vbuf_wr,
 
 --//Статусы
@@ -377,9 +366,10 @@ p_out_vfr_rdy         => i_vwr_fr_rdy,
 ----------------------------
 --Связь с входным буфером видео
 ----------------------------
-p_in_vbufin_d         => p_in_vbufin_d,
-p_out_vbufin_rd       => p_out_vbufin_rd,
-p_in_vbufin_empty     => p_in_vbufin_empty,
+p_in_vbufi_s          => p_in_vbufi_s,
+p_in_vbufi_d          => p_in_vbufi_d,
+p_out_vbufi_rd        => p_out_vbufi_rd,
+p_in_vbufi_empty      => p_in_vbufi_empty,
 
 ---------------------------------
 --Связь с mem_ctrl.vhd
@@ -401,9 +391,9 @@ p_in_rst              => p_in_rst
 );
 
 
---//-----------------------------
+--//--------------------------------------------------
 --//Чтение видео из ОЗУ
---//-----------------------------
+--//--------------------------------------------------
 m_vreader : video_reader
 generic map(
 G_MEM_BANK_M_BIT  => G_MEM_BANK_M_BIT,
@@ -427,17 +417,17 @@ p_in_cfg_mem_trn_len  => i_mem_rd_trn_len,
 p_in_cfg_prm_vch      => i_rdprm_vch,
 p_in_hrd_start        => i_vwr_fr_rdy(0),
 p_in_vfr_buf          => i_vbuf_rd,
-p_in_vch_off          => i_vch_off,
-p_in_vrd_off          => p_in_vrd_off,
+p_in_vch_off          => p_in_vrd_off,
 --//Статусы
 p_out_vch_rd_done     => i_vrd_fr_rddone,
 
 ----------------------------
 --Связь с выходным буфером видео
 ----------------------------
-p_out_vbufout_d      => p_out_vbufout_d,
-p_out_vbufout_wr     => p_out_vbufout_wr,
-p_in_vbufout_full    => p_in_vbufout_full,
+p_in_vbufo_s          => p_in_vbufo_s,
+p_out_vbufo_d         => p_out_vbufo_d,
+p_out_vbufo_wr        => p_out_vbufo_wr,
+p_in_vbufo_full       => p_in_vbufo_full,
 
 ---------------------------------
 --Связь с mem_ctrl.vhd

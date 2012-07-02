@@ -1,0 +1,9 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+MEMW_IDLE=00\h
+MEMW_START=01\h
+MEMW_WR=02\h
+MEMW_WAIT=03\h

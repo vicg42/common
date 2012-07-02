@@ -32,7 +32,7 @@ vcom -93 "../../ise/src/hdd/memc5_infrastructure.vhd"
 vcom -93 "../../ise/src/core_gen/vin_bufhdd.vhd"
 #vcom -93 "../../ise/src/core_gen/vout_buf.vhd"
 
-vcom -93 "../../ise/src/hdd/test/vtiming_gen.vhd"
+vcom -93 "../testbanch/vtiming_gen.vhd"
 vcom -93 "../testbanch/hdd_buf/hdd_rambuf_infifo_32_64.vhd"
 vcom -93 "../testbanch/hdd_buf/vout_buf_64_16.vhd"
 

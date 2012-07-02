@@ -47,16 +47,16 @@ p_in_cfg_prm_vch     : in    TReaderVCHParams;
 p_in_hrd_start       : in    std_logic;--//Запуск чтения кадра
 p_in_vfr_buf         : in    TVfrBufs; --//Номер видеобувера с готовым кадром для соответствующего видеоканала
 p_in_vch_off         : in    std_logic;
-p_in_vrd_off         : in    std_logic;
 --//Статусы
 p_out_vch_rd_done    : out   std_logic;
 
 ----------------------------
 --Связь с выходным буфером видео
 ----------------------------
-p_out_vbufout_d      : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_out_vbufout_wr     : out   std_logic;
-p_in_vbufout_full    : in    std_logic;
+p_in_vbufo_s         : in    TVSync;
+p_out_vbufo_d        : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_vbufo_wr       : out   std_logic;
+p_in_vbufo_full      : in    std_logic;
 
 ---------------------------------
 --Связь с mem_ctrl.vhd
@@ -86,8 +86,7 @@ constant dly : time := 1 ps;
 type fsm_state is (
 S_IDLE,
 S_MEM_START,
-S_MEM_RD,
-S_MEM_WAIT
+S_MEM_RD
 );
 signal fsm_state_cs: fsm_state;
 
@@ -103,11 +102,11 @@ signal i_mem_dir                     : std_logic;
 signal i_mem_done                    : std_logic;
 
 signal i_padding                     : std_logic;
-signal i_vbufout_wr                  : std_logic;
-signal i_vbufout_rdy_n               : std_logic;
+signal i_vbufo_wr                    : std_logic;
+signal i_vbufo_rdy_n                 : std_logic;
 
 signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
---signal tst_fsmstate                  : std_logic_vector(3 downto 0);
+signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 
 --MAIN
 begin
@@ -120,12 +119,14 @@ i_data_null<=(others=>'0');
 --//----------------------------------
 --p_out_tst(31 downto 0)<=(others=>'0');
 p_out_tst(4 downto 0)<=tst_mem_wr_out(4 downto 0);
-p_out_tst(31 downto 5)<=(others=>'0');
+p_out_tst(7 downto 5)<=(others=>'0');
+p_out_tst(10 downto 8)<=tst_fsmstate(2 downto 0);
+p_out_tst(11)         <=i_padding;
+p_out_tst(31 downto 12)<=(others=>'0');
 
---tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
---              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD          else
---              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WAIT        else
---              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
+tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
+              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD          else
+              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
 
 
 --//----------------------------------------------
@@ -166,7 +167,7 @@ begin
         i_vfr_rd_done<='0';
         i_padding<='0';
         i_vfr_rowcnt<=(others=>'0');
-        if p_in_hrd_start='1' and (p_in_vrd_off='0' and p_in_vch_off='0') then
+        if p_in_hrd_start='1' and p_in_vch_off='0' then
           fsm_state_cs <= S_MEM_START;
         end if;
 
@@ -176,7 +177,7 @@ begin
       when S_MEM_START =>
 
         i_vfr_rd_done<='0';
-        if p_in_vrd_off='1' or p_in_vch_off='1' then
+        if p_in_vch_off='1' then
           fsm_state_cs <= S_IDLE;
 
         else
@@ -199,31 +200,20 @@ begin
       ------------------------------------------------
       when S_MEM_RD =>
 
+        if p_in_vch_off='1' then
+          i_padding<='1';
+        end if;
+
         i_mem_start<='0';
         if i_mem_done='1' then
-          if i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1 then
+          if (i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1) or i_padding='1' then
             i_vfr_rd_done<='1';
             i_vfr_rowcnt<=(others=>'0');
-            fsm_state_cs <= S_MEM_START;
+            fsm_state_cs <= S_IDLE;
           else
             i_vfr_rowcnt<=i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
           end if;
-
-        elsif p_in_vrd_off='1' or p_in_vch_off='1' then
-          i_padding<='1';
-          fsm_state_cs <= S_MEM_WAIT;
-
-        end if;
-
-      ------------------------------------------------
-      --Ждем завершения транзакции
-      ------------------------------------------------
-      when S_MEM_WAIT =>
-
-        if i_mem_done='1' then
-          i_vfr_rd_done<='1';
-          fsm_state_cs <= S_IDLE;
         end if;
 
     end case;
@@ -234,8 +224,8 @@ end process;
 --//------------------------------------------------------
 --//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
 --//------------------------------------------------------
-p_out_vbufout_wr<=i_vbufout_wr and not i_padding;
-i_vbufout_rdy_n<=p_in_vbufout_full and not i_padding;
+p_out_vbufo_wr<=i_vbufo_wr and not i_padding;
+i_vbufo_rdy_n<=p_in_vbufo_full and not i_padding;
 
 m_mem_rd : mem_wr
 generic map(
@@ -263,9 +253,9 @@ p_in_usr_txbuf_dout  => i_data_null,
 p_out_usr_txbuf_rd   => open,
 p_in_usr_txbuf_empty => '0',
 
-p_out_usr_rxbuf_din  => p_out_vbufout_d,
-p_out_usr_rxbuf_wd   => i_vbufout_wr,
-p_in_usr_rxbuf_full  => i_vbufout_rdy_n,
+p_out_usr_rxbuf_din  => p_out_vbufo_d,
+p_out_usr_rxbuf_wd   => i_vbufo_wr,
+p_in_usr_rxbuf_full  => i_vbufo_rdy_n,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd

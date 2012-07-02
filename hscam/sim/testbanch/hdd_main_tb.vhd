@@ -96,15 +96,15 @@ end component;
 
 component hdd_main
 generic(
-G_VOUT_DWIDTH : integer:=16;
-G_VSYN_ACTIVE : std_logic:='0';
+--G_VOUT_DWIDTH : integer:=16;
+--G_VSYN_ACTIVE : std_logic:='0';
 G_SIM         : string:="OFF"
 );
 port(
 --------------------------------------------------
 --VideoIN
 --------------------------------------------------
-p_in_vd             : in   std_logic_vector((10*8)-1 downto 0);
+p_in_vd             : in   std_logic_vector(C_PCFG_VIN_DWIDTH-1 downto 0);
 p_in_vin_vs         : in   std_logic;--//Строб кодровой синхронизации
 p_in_vin_hs         : in   std_logic;--//Строб строчной синхронизации
 p_in_vin_clk        : in   std_logic;--//Пиксельная частота
@@ -363,9 +363,9 @@ signal i_ltrn_count1                  : std_logic;
 signal i_sim_mem_in                   : TMemINBank;
 signal i_sim_mem_out                  : TMemOUTBank;
 
-type TDtest   is array(0 to 9) of std_logic_vector(7 downto 0);
+type TDtest is array(0 to C_PCFG_VIN_DWIDTH/8 -1) of std_logic_vector(7 downto 0);
 signal i_tdata                        : TDtest;
-signal i_vin_d                        : std_logic_vector(79 downto 0):=(others=>'0');
+signal i_vin_d                        : std_logic_vector(C_PCFG_VIN_DWIDTH-1 downto 0):=(others=>'0');
 signal i_vin_vs                       : std_logic;
 signal i_vin_hs                       : std_logic;
 signal i_vin_clk                      : std_logic;
@@ -445,21 +445,22 @@ end process;
 --
 -- ==========================================================================
 --Генератор тестовых данных (Вертикальные полоски!!!)
-gen_vd : for i in 1 to 10 generate
+gen_vd : for i in 1 to i_tdata'length generate
 process(p_in_rst,i_vin_clk)
 begin
   if p_in_rst='1' then
-    i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i, i_tdata(i-1)'length);
+    i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, i_tdata(i-1)'length);
   elsif i_vin_clk'event and i_vin_clk='1' then
     if i_vin_vs=G_VSYN_ACTIVE or i_vin_hs=G_VSYN_ACTIVE then
       i_tdata(i-1)<=CONV_STD_LOGIC_VECTOR(i-1, i_tdata(i-1)'length);
     else
-      i_tdata(i-1)<=i_tdata(i-1) + CONV_STD_LOGIC_VECTOR(10, i_tdata(i-1)'length);
+      i_tdata(i-1)<=i_tdata(i-1) + CONV_STD_LOGIC_VECTOR(i_tdata'length, i_tdata(i-1)'length);
     end if;
   end if;
 end process;
 
-i_vin_d((8*i)-1 downto (8*i)-8)<=i_tdata(i-1);
+--i_vin_d((8*i)-1 downto (8*i)-8)<=i_tdata(i-1);
+i_vin_d((i_tdata(i-1)'length*i)-1 downto (i_tdata(i-1)'length*i)-i_tdata(i-1)'length)<=i_tdata(i-1);
 end generate gen_vd;
 
 m_vtgen_high : vtiming_gen
@@ -496,8 +497,8 @@ p_in_rst => p_in_rst
 
 m_hdd : hdd_main
 generic map(
-G_VOUT_DWIDTH => G_VOUT_DWIDTH,
-G_VSYN_ACTIVE => G_VSYN_ACTIVE,
+--G_VOUT_DWIDTH => G_VOUT_DWIDTH,
+--G_VSYN_ACTIVE => G_VSYN_ACTIVE,
 G_SIM => G_SIM
 )
 port map(

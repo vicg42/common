@@ -83,7 +83,7 @@ vcom -93 "../../ise/src/hdd/video_ctrl.vhd"
 #vcom -93 "../../ise/src/hdd/vin_cam.vhd"
 vcom -93 "../../ise/src/hdd/vin_hdd.vhd"
 vcom -93 "../../ise/src/hdd/vout.vhd"
-vcom -93 "../../ise/src/hdd/test/vtiming_gen.vhd"
+vcom -93 "../testbanch/vtiming_gen.vhd"
 
 vcom -93 "../../ise/src/hdd/hdd_main.vhd"
 vcom -93 "../../ise/src/hdd/test/hscam_main.vhd"

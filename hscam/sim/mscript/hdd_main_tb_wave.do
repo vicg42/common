@@ -88,7 +88,7 @@ add wave -noupdate -divider VINBUF_VCTRL
 add wave -noupdate /hdd_main_tb/m_hdd/gen_vinbuf_one_on/m_bufi/p_in_vclk
 add wave -noupdate /hdd_main_tb/m_hdd/p_in_vin_vs
 add wave -noupdate /hdd_main_tb/m_hdd/p_in_vin_hs
-add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/i_vdi_vector
+add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/i_vin_d
 add wave -noupdate /hdd_main_tb/m_hdd/gen_vinbuf_one_on/m_bufi/p_in_rst
 add wave -noupdate -color {Cornflower Blue} -itemcolor Gold /hdd_main_tb/m_hdd/gen_vinbuf_one_on/m_bufi/fsm_cs
 add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/gen_vinbuf_one_on/m_bufi/p_in_ext_syn
@@ -129,7 +129,7 @@ add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_memw_start
 add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_memw_stop
 add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_memr_start
 add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_memr_stop
-add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_hm_padding
+add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_padding
 add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_mem_dout_wrdy_n
 add wave -noupdate /hdd_main_tb/m_hdd/gen_hdd_on/m_hdd_rambuf/i_mem_din_rdy_n
 add wave -noupdate -radix hexadecimal /hdd_main_tb/m_hdd/m_hdd/p_out_hdd_rxd
