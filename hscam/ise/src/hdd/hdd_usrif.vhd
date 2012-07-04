@@ -103,16 +103,14 @@ signal i_hcfg_rd            : std_logic;
 signal i_hcfg_txd           : std_logic_vector(15 downto 0);
 signal i_hcfg_done          : std_logic;
 
-signal i_hdd_mode_sel       : std_logic_vector(C_CAM_CTRL_HDD_MODE_M_BIT-C_CAM_CTRL_HDD_MODE_L_BIT downto 0);
+type TSrCamCtrlHdd is array (0 to 1) of std_logic_vector(C_CAM_CTRL_HDD_MODE_M_BIT-C_CAM_CTRL_HDD_MODE_L_BIT downto 0);
+signal sr_cam_ctrl_hdd      : TSrCamCtrlHdd;
 signal i_sel_ftdi           : std_logic;
 
 
 --//MAIN
 begin
 
-
-i_hdd_mode_sel<=p_in_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT);
-i_sel_ftdi <='1' when i_hdd_mode_sel=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_CFGFTDI, i_hdd_mode_sel'length) else '0';
 
 
 --######################################
@@ -352,14 +350,38 @@ p_out_tst            => i_hcfg_tstout,
 p_in_rst => p_in_cfg_rst
 );
 
-p_out_cfg_adr     <=i_fcfg_adr      when i_sel_ftdi='1' else i_hcfg_adr      ;
-p_out_cfg_adr_ld  <=i_fcfg_adr_ld   when i_sel_ftdi='1' else i_hcfg_adr_ld   ;
-p_out_cfg_adr_fifo<=i_fcfg_adr_fifo when i_sel_ftdi='1' else i_hcfg_adr_fifo ;
-p_out_cfg_wr      <=i_fcfg_wr       when i_sel_ftdi='1' else i_hcfg_wr       ;
-p_out_cfg_rd      <=i_fcfg_rd       when i_sel_ftdi='1' else i_hcfg_rd       ;
-p_out_cfg_txdata  <=i_fcfg_txd      when i_sel_ftdi='1' else i_hcfg_txd      ;
+process(p_in_cfg_rst,p_in_usr_clk)
+begin
+  if p_in_cfg_rst='1' then
+    for i in 0 to sr_cam_ctrl_hdd'length-1 loop
+    sr_cam_ctrl_hdd(i)<=(others=>'0');
+    end loop;
+    i_sel_ftdi<=C_PCFG_DEFAULT;
 
-p_out_tst(30 downto 0) <=i_fcfg_tstout(30 downto 0) when i_sel_ftdi='1' else i_hcfg_tstout(30 downto 0);
+  elsif p_in_usr_clk'event and p_in_usr_clk='1' then
+
+    sr_cam_ctrl_hdd<=p_in_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT) & sr_cam_ctrl_hdd(0 to 0);
+
+    if sr_cam_ctrl_hdd(0)/=sr_cam_ctrl_hdd(1) then
+        if    sr_cam_ctrl_hdd(0)=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_CFGFTDI, sr_cam_ctrl_hdd(0)'length) then
+          if i_sel_ftdi='1' then
+            i_sel_ftdi<='0';
+          else
+            i_sel_ftdi<='1';
+          end if;
+        end if;
+    end if;
+  end if;
+end process;
+
+p_out_cfg_adr     <=i_fcfg_adr      when i_sel_ftdi='0' else i_hcfg_adr      ;
+p_out_cfg_adr_ld  <=i_fcfg_adr_ld   when i_sel_ftdi='0' else i_hcfg_adr_ld   ;
+p_out_cfg_adr_fifo<=i_fcfg_adr_fifo when i_sel_ftdi='0' else i_hcfg_adr_fifo ;
+p_out_cfg_wr      <=i_fcfg_wr       when i_sel_ftdi='0' else i_hcfg_wr       ;
+p_out_cfg_rd      <=i_fcfg_rd       when i_sel_ftdi='0' else i_hcfg_rd       ;
+p_out_cfg_txdata  <=i_fcfg_txd      when i_sel_ftdi='0' else i_hcfg_txd      ;
+
+p_out_tst(30 downto 0) <=i_fcfg_tstout(30 downto 0) when i_sel_ftdi='0' else i_hcfg_tstout(30 downto 0);
 p_out_tst(31)<=i_sel_ftdi;
 end generate gen_all;
 

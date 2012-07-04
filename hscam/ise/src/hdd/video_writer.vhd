@@ -187,9 +187,11 @@ begin
           i_mem_dlen_rq<=(CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) & p_in_cfg_prm_vch(0).fr_size.pix(p_in_cfg_prm_vch(0).fr_size.pix'high downto log2(G_MEM_DWIDTH/8)));
           i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
           i_mem_dir<=C_MEMWR_WRITE;
-          i_mem_start<='1';
 
+          if p_in_vbufi_empty='0' and p_in_vbufi_s.h='0' then
+          i_mem_start<='1';
           fsm_state_cs <= S_MEM_WR;
+          end if;
         end if;
 
       ------------------------------------------------
@@ -203,8 +205,7 @@ begin
 
         i_mem_start<='0';
         if i_mem_done='1' then
-          if (i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1) or i_padding='1' or
-             (p_in_vbufi_s.v='1' and p_in_vbufi_s.h='1') then
+          if (i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1) or i_padding='1' then
 
             vfr_rdy(0):='1';
             fsm_state_cs <= S_IDLE;

@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Версия реализации
-constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#09#; --Версия модуля hdd_main.vhd
+constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#0A#; --Версия модуля hdd_main.vhd
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
@@ -37,9 +37,10 @@ constant C_PCFG_CFG                    : string:="ALL";--"HOST"/"FTDI"/"ALL"
                                                        --"FTDI" - работа с модулем dsn_hdd.vhd через порт p_inout_ftdi_d модуля hdd_main.vhd
                                                        --"ALL"  - работа с модулем dsn_hdd.vhd через оба порта "HOST" или "FTDI"
 
+constant C_PCFG_DEFAULT                : std_logic:='0';--0/1 - FTDI/HOST (действительно только при C_PCFG_CFG="ALL")
+
 --//cfg VCTRL
 constant C_PCFG_VCTRL_USE              : string:="ON";
-constant C_PCFG_VCTRL_DBGCS            : string:="OFF";
 constant C_PCFG_FRPIX                  : integer:=1280;
 constant C_PCFG_FRROW                  : integer:=1024;
 
@@ -65,13 +66,12 @@ constant C_PCFG_HDD_SH_MAIN_NUM        : integer:=0; --определяем индекс GT моду
 constant C_PCFG_HDD_SATA_GEN_DEFAULT   : integer:=0; --0/1 - SATAI/II
 constant C_PCFG_HDD_RAID_DWIDTH        : integer:=128;
 
-constant C_PCFG_HDD_SKIP_VH            : std_logic:='1';--разрешение работы через строку при 480fps
-
 
 --//Bitmap порта p_in_cam_ctrl
 constant C_CAM_CTRL_MODE_FPS_L_BIT     : integer:=0; --Коды входного потока данных
 constant C_CAM_CTRL_MODE_FPS_M_BIT     : integer:=1;
 constant C_CAM_CTRL_TST_PATTERN_BIT    : integer:=7; --Тест (полоски по диагонали)
+constant C_CAM_CTRL_HDD_VDOUT_BIT      : integer:=9; --1/0 - вывод данных от модуля hdd_main.vhd/camera.v
 constant C_CAM_CTRL_HDD_LEDOFF_BIT     : integer:=11;--Вкл/Выкл светодиодов HDD
 constant C_CAM_CTRL_HDD_RST_BIT        : integer:=12;--Сброс модуля hdd_main.vhd
 constant C_CAM_CTRL_HDD_MODE_L_BIT     : integer:=13;--Коды команд для модуля HDD
@@ -90,6 +90,6 @@ constant C_CAM_CTRL_HDD_STOP           : integer:=3;--также CI_HDD_STOP (см sata
 constant C_CAM_CTRL_HDD_TEST           : integer:=4;--также CI_HDD_TEST (см sata_hwcfg.vhd)
 constant C_CAM_CTRL_VCH_OFF            : integer:=5;--также CI_HDD_CLR  (см sata_hwcfg.vhd)
 constant C_CAM_CTRL_VCH_ON             : integer:=6;
-constant C_CAM_CTRL_CFGFTDI            : integer:=7;
+constant C_CAM_CTRL_CFGFTDI            : integer:=7;--Доступ к dsn_hdd.vhd через USB(FTDI)
 
 end prj_cfg;

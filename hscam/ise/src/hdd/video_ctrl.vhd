@@ -196,7 +196,7 @@ signal i_rdprm_vch                       : TReaderVCHParams;
 signal i_vwr_fr_rdy                      : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vrd_fr_rddone                   : std_logic;
 signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-
+signal i_vrd_off                         : std_logic;
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
 signal tst_vwr_out                       : std_logic_vector(31 downto 0);
@@ -331,6 +331,21 @@ begin
   end if;
 end process;
 
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_vrd_off<='1';
+  elsif p_in_clk'event and p_in_clk='1' then
+    if p_in_vrd_off='1' then
+      i_vrd_off<='1';
+    else
+      if (p_in_vbufi_s.v='1' and p_in_vbufi_s.h='1') and
+         (p_in_vbufo_s.v='1' and p_in_vbufo_s.h='1') then
+          i_vrd_off<='0';
+      end if;
+    end if;
+  end if;
+end process;
 
 
 --//--------------------------------------------------
@@ -417,7 +432,7 @@ p_in_cfg_mem_trn_len  => i_mem_rd_trn_len,
 p_in_cfg_prm_vch      => i_rdprm_vch,
 p_in_hrd_start        => i_vwr_fr_rdy(0),
 p_in_vfr_buf          => i_vbuf_rd,
-p_in_vch_off          => p_in_vrd_off,
+p_in_vch_off          => i_vrd_off,--p_in_vrd_off,
 --//Статусы
 p_out_vch_rd_done     => i_vrd_fr_rddone,
 

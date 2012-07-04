@@ -141,10 +141,15 @@ i_pix_en<='1' when p_in_hs/=G_VSYN_ACTIVE and p_in_vs/=G_VSYN_ACTIVE else '0';
 i_buf_rd<=i_pix_en and i_buf_rd_en when p_in_sel='0' else i_pix_en and i_buf_rd_en and i_hd_vden;
 
 i_buf_wr <=p_in_hd_wr when p_in_sel='1' else p_in_vd_wr;
-i_buf_din(63 downto 48)<=p_in_hd(47 downto 32) when p_in_sel='1' else p_in_vd(47 downto 32);--(15 downto  0)
-i_buf_din(47 downto 32)<=p_in_hd(63 downto 48) when p_in_sel='1' else p_in_vd(63 downto 48);--(31 downto 16)
-i_buf_din(31 downto 16)<=p_in_hd(15 downto  0) when p_in_sel='1' else p_in_vd(15 downto  0);--(47 downto 32)
-i_buf_din(15 downto  0)<=p_in_hd(31 downto 16) when p_in_sel='1' else p_in_vd(31 downto 16);--(63 downto 48)
+i_buf_din(64+(64*0)-1 downto 48+(64*0))<=p_in_hd(48+(64*0)-1 downto 32+(64*0)) when p_in_sel='1' else p_in_vd(48+(64*0)-1 downto 32+(64*0));--(15 downto  0)
+i_buf_din(48+(64*0)-1 downto 32+(64*0))<=p_in_hd(64+(64*0)-1 downto 48+(64*0)) when p_in_sel='1' else p_in_vd(64+(64*0)-1 downto 48+(64*0));--(31 downto 16)
+i_buf_din(32+(64*0)-1 downto 16+(64*0))<=p_in_hd(16+(64*0)-1 downto  0+(64*0)) when p_in_sel='1' else p_in_vd(16+(64*0)-1 downto  0+(64*0));--(47 downto 32)
+i_buf_din(16+(64*0)-1 downto  0+(64*0))<=p_in_hd(32+(64*0)-1 downto 16+(64*0)) when p_in_sel='1' else p_in_vd(32+(64*0)-1 downto 16+(64*0));--(63 downto 48)
+
+--i_buf_din(64+(64*1)-1 downto 48+(64*1))<=p_in_hd(48+(64*1)-1 downto 32+(64*1)) when p_in_sel='1' else p_in_vd(48+(64*1)-1 downto 32+(64*1));--(15 downto  0)
+--i_buf_din(48+(64*1)-1 downto 32+(64*1))<=p_in_hd(64+(64*1)-1 downto 48+(64*1)) when p_in_sel='1' else p_in_vd(64+(64*1)-1 downto 48+(64*1));--(31 downto 16)
+--i_buf_din(32+(64*1)-1 downto 16+(64*1))<=p_in_hd(16+(64*1)-1 downto  0+(64*1)) when p_in_sel='1' else p_in_vd(16+(64*1)-1 downto  0+(64*1));--(47 downto 32)
+--i_buf_din(16+(64*1)-1 downto  0+(64*1))<=p_in_hd(32+(64*1)-1 downto 16+(64*1)) when p_in_sel='1' else p_in_vd(32+(64*1)-1 downto 16+(64*1));--(63 downto 48)
 
 m_bufi : vout_bufi
 port map(

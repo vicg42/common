@@ -57,9 +57,7 @@ component vin_hdd
 generic(
 G_VBUF_IWIDTH : integer:=80;
 G_VBUF_OWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1';
-G_SKIP_VH     : std_logic:='1';
-G_EXTSYN      : string:="OFF"
+G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
 --¬х. видеопоток

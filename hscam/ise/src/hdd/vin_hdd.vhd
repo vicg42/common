@@ -27,9 +27,7 @@ entity vin_hdd is
 generic(
 G_VBUF_IWIDTH : integer:=80;
 G_VBUF_OWIDTH : integer:=32;
-G_VSYN_ACTIVE : std_logic:='1';
-G_SKIP_VH     : std_logic:='1';
-G_EXTSYN      : string:="OFF"
+G_VSYN_ACTIVE : std_logic:='1'
 );
 port(
 --Вх. видеопоток
@@ -143,7 +141,6 @@ signal fsm_cs : fsm_state;
 
 signal sr_hs                : std_logic_vector(0 to 1);
 signal i_skip_line          : std_logic;
-signal i_mode_fps           : std_logic_vector(C_CAM_CTRL_MODE_FPS_M_BIT-C_CAM_CTRL_MODE_FPS_L_BIT downto 0);
 signal i_buf2i_dout         : std_logic_vector(G_VBUF_OWIDTH-1 downto 0);
 signal i_buf2i_rd           : std_logic;
 signal i_buf2i_empty        : std_logic;
@@ -166,14 +163,8 @@ p_out_tst(31 downto 6)<=(others=>'0');
 p_out_vfr_prm.pix<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRPIX, p_out_vfr_prm.pix'length);
 p_out_vfr_prm.row<=CONV_STD_LOGIC_VECTOR(C_PCFG_FRROW, p_out_vfr_prm.row'length);
 
-i_mode_fps<=p_in_tst(C_CAM_CTRL_MODE_FPS_M_BIT downto C_CAM_CTRL_MODE_FPS_L_BIT);
 
 --//BUFI - Запись:
-gen_extsyn_off : if strcmp(G_EXTSYN,"OFF") generate
-i_det_ext_syn<='1';
-end generate gen_extsyn_off;
-
-gen_extsyn_on : if strcmp(G_EXTSYN,"ON") generate
 process(p_in_rst,p_in_vclk)
 begin
   if p_in_rst='1' then
@@ -184,7 +175,6 @@ begin
     end if;
   end if;
 end process;
-end generate gen_extsyn_on;
 
 process(p_in_rst,p_in_vclk)
 begin
@@ -200,7 +190,7 @@ begin
     if p_in_vs=G_VSYN_ACTIVE then
       i_skip_line<='0';
     elsif sr_hs(0)='0' and sr_hs(1)='1' then
-      i_skip_line<=not i_skip_line;
+      i_skip_line<=not i_skip_line and p_in_tst(0);
     end if;
 
     if p_in_vs=G_VSYN_ACTIVE and i_det_ext_syn='1' then
@@ -208,22 +198,13 @@ begin
     end if;
 
     if i_bufi_wr_en='1' and p_in_vs/=G_VSYN_ACTIVE and p_in_hs/=G_VSYN_ACTIVE then
-      if i_mode_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_mode_fps'length) and G_SKIP_VH='1' then
-      --прореживаем строки
-        if i_skip_line='0' then
-          i_bufi_wr<=not i_bufi_wr;
-          if i_bufi_wr='0' then
-            sr_vd<=p_in_vd;
-          end if;
-        else
-          i_bufi_wr<='0';
-        end if;
-      else
-      --без прореживаия строк
+      if i_skip_line='0' then
         i_bufi_wr<=not i_bufi_wr;
         if i_bufi_wr='0' then
           sr_vd<=p_in_vd;
         end if;
+      else
+        i_bufi_wr<='0';
       end if;
     else
       i_bufi_wr<='0';
