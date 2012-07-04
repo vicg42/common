@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Fri Jun 29 14:55:27 2012
+# Date: Wed Jul 04 04:42:38 2012
 #
 ##############################################################
 #
@@ -30,7 +30,7 @@ SET foundationsym = false
 SET implementationfiletype = Ngc
 SET package = fgg676
 SET removerpms = false
-SET simulationfiles = Structural
+SET simulationfiles = Behavioral
 SET speedgrade = -2
 SET verilogsim = false
 SET vhdlsim = true
@@ -137,4 +137,4 @@ CSET use_rpms=true
 MISC pkg_timestamp=2012-01-07T09:20:01Z
 # END Extra information
 GENERATE
-# CRC: 518f8a62
+# CRC: 48f2f257
