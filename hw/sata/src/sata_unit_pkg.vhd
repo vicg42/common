@@ -1279,7 +1279,7 @@ p_out_test_on   : out   std_logic;
 p_out_clr       : out   std_logic;
 p_out_clr_done_dis : out   std_logic;
 
-p_out_dbgcs     : out   TSH_ila;
+--p_out_dbgcs     : out   TSH_ila;
 
 p_in_clk        : in    std_logic;
 p_in_rst        : in    std_logic

@@ -42,7 +42,7 @@ p_out_test_on   : out   std_logic;
 p_out_clr       : out   std_logic;
 p_out_clr_done_dis   : out   std_logic;
 
-p_out_dbgcs     : out   TSH_ila;
+--p_out_dbgcs     : out   TSH_ila;
 
 p_in_clk        : in    std_logic;
 p_in_rst        : in    std_logic
@@ -108,8 +108,8 @@ signal i_clr_done_dis    : std_logic;
 signal i_lba             : std_logic_vector(47 downto 0);
 signal i_lba_bp          : std_logic_vector(47 downto 0);
 
-signal tst_fsm_hwcfg     : std_logic_vector(3 downto 0);
-signal tst_cmd_new       : std_logic;
+--signal tst_fsm_hwcfg     : std_logic_vector(3 downto 0);
+--signal tst_cmd_new       : std_logic;
 
 --//MAIN
 begin
@@ -341,64 +341,64 @@ p_out_sh_cxd_en<=i_sh_cfg.en;
 
 
 
-gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
-p_out_dbgcs.clk   <=p_in_clk;
-p_out_dbgcs.trig0 <=(others=>'0');
-p_out_dbgcs.data  <=(others=>'0');
-end generate gen_dbgcs_off;
-
-
-gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    tst_cmd_new<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-    if sr_cmd(0)/=sr_cmd(1) then
-      tst_cmd_new<='1';
-    else
-      tst_cmd_new<='0';
-    end if;
-  end if;
-end process;
-
-tst_fsm_hwcfg<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_ELBA  else
-               CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_CMD   else
-               CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DONE  else
-               CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY0  else
-               CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY1  else
-               CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY2  else
-               CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY3  else
-               CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_hwcfg'length) ; --//when fsm_hwcfg=S_IDLE else
-
-p_out_dbgcs.clk<=p_in_clk;
-
-p_out_dbgcs.trig0(3 downto 0)<=tst_fsm_hwcfg;
-p_out_dbgcs.trig0(4)<=tst_cmd_new;
-p_out_dbgcs.trig0(5)<=i_hdd_done;
-p_out_dbgcs.trig0(6)<=i_hdd_err;
-p_out_dbgcs.trig0(7)<='0';--зарезервировано
-p_out_dbgcs.trig0(8)<='0';--зарезервировано
-p_out_dbgcs.trig0(9)<='0';--зарезервировано
-p_out_dbgcs.trig0(63 downto 10)<=(others=>'0');
-
-p_out_dbgcs.data(3 downto 0)<=tst_fsm_hwcfg;
-p_out_dbgcs.data(4)<=tst_cmd_new;
-p_out_dbgcs.data(5)<=i_cmd.clr;
-p_out_dbgcs.data(6)<=i_cmd.test;
-p_out_dbgcs.data(7)<=i_sh_cfg.wr;
-p_out_dbgcs.data(23 downto 8)<=i_sh_cfg.d;
-p_out_dbgcs.data(24)<=i_sh_cfg.en;
-p_out_dbgcs.data(27 downto 25)<=sr_cmd(0);
-p_out_dbgcs.data(31 downto 28)<=(others=>'0');
-p_out_dbgcs.data(47 downto 32)<=(others=>'0');--зарезервировано
-p_out_dbgcs.data(48)<='0';--зарезервировано
-p_out_dbgcs.data(49)<='0';--зарезервировано
-p_out_dbgcs.data(50)<='0';--зарезервировано
-p_out_dbgcs.data(180 downto 51)<=(others=>'0');
-
-end generate gen_dbgcs_on;
+--gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
+--p_out_dbgcs.clk   <=p_in_clk;
+--p_out_dbgcs.trig0 <=(others=>'0');
+--p_out_dbgcs.data  <=(others=>'0');
+--end generate gen_dbgcs_off;
+--
+--
+--gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+--
+--process(p_in_rst,p_in_clk)
+--begin
+--  if p_in_rst='1' then
+--    tst_cmd_new<='0';
+--  elsif p_in_clk'event and p_in_clk='1' then
+--    if sr_cmd(0)/=sr_cmd(1) then
+--      tst_cmd_new<='1';
+--    else
+--      tst_cmd_new<='0';
+--    end if;
+--  end if;
+--end process;
+--
+--tst_fsm_hwcfg<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_ELBA  else
+--               CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_CMD   else
+--               CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DONE  else
+--               CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY0  else
+--               CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY1  else
+--               CONV_STD_LOGIC_VECTOR(16#06#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY2  else
+--               CONV_STD_LOGIC_VECTOR(16#07#, tst_fsm_hwcfg'length) when fsm_hwcfg=S_HDD_DLY3  else
+--               CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_hwcfg'length) ; --//when fsm_hwcfg=S_IDLE else
+--
+--p_out_dbgcs.clk<=p_in_clk;
+--
+--p_out_dbgcs.trig0(3 downto 0)<=tst_fsm_hwcfg;
+--p_out_dbgcs.trig0(4)<=tst_cmd_new;
+--p_out_dbgcs.trig0(5)<=i_hdd_done;
+--p_out_dbgcs.trig0(6)<=i_hdd_err;
+--p_out_dbgcs.trig0(7)<='0';--зарезервировано
+--p_out_dbgcs.trig0(8)<='0';--зарезервировано
+--p_out_dbgcs.trig0(9)<='0';--зарезервировано
+--p_out_dbgcs.trig0(63 downto 10)<=(others=>'0');
+--
+--p_out_dbgcs.data(3 downto 0)<=tst_fsm_hwcfg;
+--p_out_dbgcs.data(4)<=tst_cmd_new;
+--p_out_dbgcs.data(5)<=i_cmd.clr;
+--p_out_dbgcs.data(6)<=i_cmd.test;
+--p_out_dbgcs.data(7)<=i_sh_cfg.wr;
+--p_out_dbgcs.data(23 downto 8)<=i_sh_cfg.d;
+--p_out_dbgcs.data(24)<=i_sh_cfg.en;
+--p_out_dbgcs.data(27 downto 25)<=sr_cmd(0);
+--p_out_dbgcs.data(31 downto 28)<=(others=>'0');
+--p_out_dbgcs.data(47 downto 32)<=(others=>'0');--зарезервировано
+--p_out_dbgcs.data(48)<='0';--зарезервировано
+--p_out_dbgcs.data(49)<='0';--зарезервировано
+--p_out_dbgcs.data(50)<='0';--зарезервировано
+--p_out_dbgcs.data(180 downto 51)<=(others=>'0');
+--
+--end generate gen_dbgcs_on;
 
 --//END MAIN
 end behavioral;

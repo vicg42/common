@@ -101,7 +101,7 @@ type TSH_dbgcs_exp is record
 sh    : TSH_dbgcs_SHCountMax;
 raid  : TSH_ila;
 measure : TSH_ila;
-hwcfg  : TSH_ila;
+--hwcfg  : TSH_ila;
 end record;
 
 

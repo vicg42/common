@@ -690,7 +690,7 @@ p_out_test_on   => i_sh_hwcfg_test,
 p_out_clr       => i_sh_hwcfg_clr,
 p_out_clr_done_dis => i_sh_hwcfg_clr_done_dis,
 
-p_out_dbgcs     => i_hwcfg_dbgcs,
+--p_out_dbgcs     => i_hwcfg_dbgcs,
 
 p_in_clk        => p_in_cfg_clk,
 p_in_rst        => p_in_rst
@@ -903,19 +903,19 @@ p_out_gt_sim_clk           <= i_sh_sim_gt_sim_clk;
 p_out_dbgcs.sh     <=i_sh_dbgcs.sh;
 p_out_dbgcs.raid   <=i_sh_dbgcs.raid;
 p_out_dbgcs.measure<=i_sh_dbgcs.measure;
-p_out_dbgcs.hwcfg.clk<=i_hwcfg_dbgcs.clk;
-p_out_dbgcs.hwcfg.trig0(6 downto 0)<=i_hwcfg_dbgcs.trig0(6 downto 0);
-p_out_dbgcs.hwcfg.trig0(7)<=i_buf_rst;
-p_out_dbgcs.hwcfg.trig0(8)<=p_in_cfg_adr_fifo;
-p_out_dbgcs.hwcfg.trig0(9)<=i_sh_cxd_wr;
-p_out_dbgcs.hwcfg.trig0(p_out_dbgcs.hwcfg.trig0'length-1 downto 10)<=i_hwcfg_dbgcs.trig0(p_out_dbgcs.hwcfg.trig0'length-1 downto 10);
-
-p_out_dbgcs.hwcfg.data(31 downto 0)<=i_hwcfg_dbgcs.data(31 downto 0);
-p_out_dbgcs.hwcfg.data(47 downto 32)<=i_sh_cxdi;
-p_out_dbgcs.hwcfg.data(48)<=i_sh_cxd_wr;
-p_out_dbgcs.hwcfg.data(49)<=p_in_cfg_adr_fifo;
-p_out_dbgcs.hwcfg.data(50)<='0';
-p_out_dbgcs.hwcfg.data(p_out_dbgcs.hwcfg.data'length-1 downto 51)<=i_hwcfg_dbgcs.data(p_out_dbgcs.hwcfg.data'length-1 downto 51);
+--p_out_dbgcs.hwcfg.clk<=i_hwcfg_dbgcs.clk;
+--p_out_dbgcs.hwcfg.trig0(6 downto 0)<=i_hwcfg_dbgcs.trig0(6 downto 0);
+--p_out_dbgcs.hwcfg.trig0(7)<=i_buf_rst;
+--p_out_dbgcs.hwcfg.trig0(8)<=p_in_cfg_adr_fifo;
+--p_out_dbgcs.hwcfg.trig0(9)<=i_sh_cxd_wr;
+--p_out_dbgcs.hwcfg.trig0(p_out_dbgcs.hwcfg.trig0'length-1 downto 10)<=i_hwcfg_dbgcs.trig0(p_out_dbgcs.hwcfg.trig0'length-1 downto 10);
+--
+--p_out_dbgcs.hwcfg.data(31 downto 0)<=i_hwcfg_dbgcs.data(31 downto 0);
+--p_out_dbgcs.hwcfg.data(47 downto 32)<=i_sh_cxdi;
+--p_out_dbgcs.hwcfg.data(48)<=i_sh_cxd_wr;
+--p_out_dbgcs.hwcfg.data(49)<=p_in_cfg_adr_fifo;
+--p_out_dbgcs.hwcfg.data(50)<='0';
+--p_out_dbgcs.hwcfg.data(p_out_dbgcs.hwcfg.data'length-1 downto 51)<=i_hwcfg_dbgcs.data(p_out_dbgcs.hwcfg.data'length-1 downto 51);
 
 end generate gen_use_on;
 
