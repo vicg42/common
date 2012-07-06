@@ -187,10 +187,10 @@ begin
   elsif p_in_vclk'event and p_in_vclk='1' then
 
     sr_hs<=p_in_hs & sr_hs(0 to 0);
-    if p_in_vs=G_VSYN_ACTIVE then
+    if p_in_vs=G_VSYN_ACTIVE or p_in_tst(0)='0' then
       i_skip_line<='0';
     elsif sr_hs(0)='0' and sr_hs(1)='1' then
-      i_skip_line<=not i_skip_line and p_in_tst(0);
+      i_skip_line<=not i_skip_line;
     end if;
 
     if p_in_vs=G_VSYN_ACTIVE and i_det_ext_syn='1' then
