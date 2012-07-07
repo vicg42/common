@@ -41,9 +41,9 @@ constant C_PCFG_MEMPHY_SET             : integer:=0;--0 - (MEMBANK0<->MCB5; MEMB
 
 --//cfg HDD
 constant C_PCFG_HDD_DBG                : string:="OFF";
-constant C_PCFG_HDD_DBGCS              : string:="ON";
+constant C_PCFG_HDD_DBGCS              : string:="OFF";
 constant C_PCFG_HDD_SH_DBGCS           : string:="OFF";
-constant C_PCFG_HDD_RAID_DBGCS         : string:="ON";
+constant C_PCFG_HDD_RAID_DBGCS         : string:="OFF";
 constant C_PCFG_HDD_COUNT              : integer:=4;
 constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=27;--128MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_PCFG_HDD_GT_DBUS            : integer:=32;--Настройка шины данных GT (RocketIO)
