@@ -241,9 +241,9 @@ i_memw_trnlen<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0); --Размер одиночной 
 i_memr_trnlen<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
 
 i_clr_err<=p_in_rbuf_cfg.dmacfg.clr_err;
-i_hm<=p_in_rbuf_cfg.dmacfg.hw_mode;
-i_hm_w<=p_in_rbuf_cfg.dmacfg.hm_w;
-i_hm_r<=p_in_rbuf_cfg.dmacfg.hm_r;
+i_hm<=p_in_rbuf_cfg.dmacfg.hw_mode and not p_in_rbuf_cfg.dmacfg.hm_test;
+i_hm_w<=p_in_rbuf_cfg.dmacfg.hm_w and not p_in_rbuf_cfg.dmacfg.hm_test;
+i_hm_r<=p_in_rbuf_cfg.dmacfg.hm_r and not p_in_rbuf_cfg.dmacfg.hm_test;
 
 
 --//----------------------------------------------
@@ -251,12 +251,8 @@ i_hm_r<=p_in_rbuf_cfg.dmacfg.hm_r;
 --//----------------------------------------------
 p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.bufi_full or i_err_det.bufo_empty;
 p_out_rbuf_status.err_type<=i_err_det;
-p_out_rbuf_status.done<='0';
 p_out_rbuf_status.hwlog_size<=i_rambuf_dcnt_log;
 
-p_out_rbuf_status.ram_wr_o.wr_rdy<='1';
-p_out_rbuf_status.ram_wr_o.rd_rdy<='1';
-p_out_rbuf_status.ram_wr_o.dout <=(others=>'0');
 
 --Ошибки
 process(p_in_rst,p_in_clk)
@@ -534,7 +530,6 @@ p_out_dbgcs.data<=(others=>'0');
 p_out_rbuf_status.err<='0';
 p_out_rbuf_status.err_type.bufi_full<='0';
 p_out_rbuf_status.err_type.rambuf_full<='0';
-p_out_rbuf_status.done<='0';
 p_out_rbuf_status.hwlog_size<=(others=>'0');
 
 p_out_bufi_rd <= not p_in_bufi_empty;
