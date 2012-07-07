@@ -38,11 +38,9 @@ set _projects [ list \
       [ list "../src/core_gen/sata_cmdfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/sata_txfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/hdd_cmdfifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/sata/src/sata_testgen_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/sata/src/sata_raid_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/sata_raid_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_sim_lite_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/sata/src/sata_scrambler.vhd" $_VHDMod ] \
@@ -62,15 +60,14 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_host.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid_decoder_v2.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_raid_ctrl_v2.vhd" $_VHDMod ] \
+      [ list "../src/hdd/sata_raid_ctrl_v2.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_s6gt_clkmux_hscam.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_hwcfg.vhd"  $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
+      [ list "../src/hdd/dsn_hdd_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/hdd/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf_v2_wr_s6.vhd"  $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf_v2.vhd"  $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
@@ -94,7 +91,7 @@ set _projects [ list \
       [ list "../src/hdd/video_reader.vhd" $_VHDMod ] \
       [ list "../src/hdd/video_writer.vhd" $_VHDMod ] \
       [ list "../src/hdd/video_ctrl.vhd" $_VHDMod ] \
-      [ list "../src/hdd/vin_hdd.vhd" $_VHDMod ] \
+      [ list "../src/hdd/vin.vhd" $_VHDMod ] \
       [ list "../src/hdd/vout.vhd" $_VHDMod ] \
       [ list "../src/hdd/hdd_usrif.vhd" $_VHDPkg ] \
       [ list "../src/hdd/hdd_main_unit_pkg.vhd" $_VHDPkg ] \
