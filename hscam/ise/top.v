@@ -74,12 +74,12 @@ inout           pin_inout_mcb1_zio    ,
 //--------------------------------------------------
 //--Технологический порт
 //--------------------------------------------------
-inout    [7:0] pin_inout_ftdi_d       ,
-output         pin_out_ftdi_rd_n      ,
-output         pin_out_ftdi_wr_n      ,
-input          pin_in_ftdi_txe_n      ,
-input          pin_in_ftdi_rxf_n      ,
-input          pin_in_ftdi_pwren_n    ,
+//inout    [7:0] pin_inout_ftdi_d       ,
+//output         pin_out_ftdi_rd_n      ,
+//output         pin_out_ftdi_wr_n      ,
+//input          pin_in_ftdi_txe_n      ,
+//input          pin_in_ftdi_rxf_n      ,
+//input          pin_in_ftdi_pwren_n    ,
 
 output   [7:0] pin_out_led            ,
 
@@ -284,12 +284,12 @@ hdd_main m_hdd(
 //--------------------------------------------------
 //--Технологический порт
 //--------------------------------------------------
-.p_inout_ftdi_d      (pin_inout_ftdi_d   ),
-.p_out_ftdi_rd_n     (pin_out_ftdi_rd_n  ),
-.p_out_ftdi_wr_n     (pin_out_ftdi_wr_n  ),
-.p_in_ftdi_txe_n     (pin_in_ftdi_txe_n  ),
-.p_in_ftdi_rxf_n     (pin_in_ftdi_rxf_n  ),
-.p_in_ftdi_pwren_n   (pin_in_ftdi_pwren_n),
+//.p_inout_ftdi_d      (pin_inout_ftdi_d   ),
+//.p_out_ftdi_rd_n     (pin_out_ftdi_rd_n  ),
+//.p_out_ftdi_wr_n     (pin_out_ftdi_wr_n  ),
+//.p_in_ftdi_txe_n     (pin_in_ftdi_txe_n  ),
+//.p_in_ftdi_rxf_n     (pin_in_ftdi_rxf_n  ),
+//.p_in_ftdi_pwren_n   (pin_in_ftdi_pwren_n),
 
 .p_out_TP            (i_out_TP           ),
 .p_out_led           (pin_out_led        )

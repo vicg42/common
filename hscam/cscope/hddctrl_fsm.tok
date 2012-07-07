@@ -1,0 +1,11 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+S_HDDCTRL_IDLE=00\h
+S_HDDCTRL_ELBA=01\h
+S_HDDCTRL_DLY0=02\h
+S_HDDCTRL_CMD=03\h
+S_HDDCTRL_DLY1=04\h
+S_HDDCTRL_DONE=05\h

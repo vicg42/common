@@ -339,9 +339,8 @@ begin
     if p_in_vrd_off='1' then
       i_vrd_off<='1';
     else
-      if (p_in_vbufi_s.v='1' and p_in_vbufi_s.h='1') and
-         (p_in_vbufo_s.v='1' and p_in_vbufo_s.h='1') then
-          i_vrd_off<='0';
+      if p_in_vbufo_s.v='1' then
+        i_vrd_off<='0';
       end if;
     end if;
   end if;

@@ -92,7 +92,7 @@ signal fsm_state_cs: fsm_state;
 
 signal i_data_null                   : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_vfr_rowcnt                  : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
-signal i_vfr_rd_done                 : std_logic;
+signal i_vfr_rdy                     : std_logic;
 
 signal i_mem_ptr                     : std_logic_vector(31 downto 0);
 signal i_mem_trn_len                 : std_logic_vector(15 downto 0);
@@ -132,7 +132,7 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_c
 --//----------------------------------------------
 --//Статусы
 --//----------------------------------------------
-p_out_vch_rd_done<=i_vfr_rd_done;
+p_out_vch_rd_done<=i_vfr_rdy;
 
 
 
@@ -141,12 +141,14 @@ p_out_vch_rd_done<=i_vfr_rd_done;
 --//----------------------------------------------
 --Логика работы автомата
 process(p_in_rst,p_in_clk)
+  variable vfr_rdy : std_logic;
 begin
   if p_in_rst='1' then
 
     fsm_state_cs <= S_IDLE;
+    i_vfr_rdy<='0';
+      vfr_rdy:='0';
     i_vfr_rowcnt<=(others=>'0');
-    i_vfr_rd_done<='0';
 
     i_mem_ptr<=(others=>'0');
     i_mem_trn_len<=(others=>'0');
@@ -157,6 +159,8 @@ begin
 
   elsif p_in_clk'event and p_in_clk='1' then
 
+    vfr_rdy:='0';
+
     case fsm_state_cs is
 
       --------------------------------------
@@ -164,7 +168,6 @@ begin
       --------------------------------------
       when S_IDLE =>
 
-        i_vfr_rd_done<='0';
         i_padding<='0';
         i_vfr_rowcnt<=(others=>'0');
         if p_in_hrd_start='1' and p_in_vch_off='0' then
@@ -176,7 +179,6 @@ begin
       --------------------------------------
       when S_MEM_START =>
 
-        i_vfr_rd_done<='0';
         if p_in_vch_off='1' then
           fsm_state_cs <= S_IDLE;
 
@@ -207,8 +209,7 @@ begin
         i_mem_start<='0';
         if i_mem_done='1' then
           if (i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1) or i_padding='1' then
-            i_vfr_rd_done<='1';
-            i_vfr_rowcnt<=(others=>'0');
+            vfr_rdy:='1';
             fsm_state_cs <= S_IDLE;
           else
             i_vfr_rowcnt<=i_vfr_rowcnt + 1;
@@ -217,6 +218,8 @@ begin
         end if;
 
     end case;
+
+    i_vfr_rdy<=vfr_rdy;
   end if;
 end process;
 

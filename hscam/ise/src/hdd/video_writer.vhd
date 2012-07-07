@@ -206,10 +206,8 @@ begin
         i_mem_start<='0';
         if i_mem_done='1' then
           if (i_vfr_rowcnt=p_in_cfg_prm_vch(0).fr_size.row(i_vfr_rowcnt'range)-1) or i_padding='1' then
-
             vfr_rdy(0):='1';
             fsm_state_cs <= S_IDLE;
-
           else
             i_vfr_rowcnt<=i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
