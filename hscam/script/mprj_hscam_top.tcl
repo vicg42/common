@@ -23,7 +23,6 @@ set _projects [ list \
   [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/lib/vicg/s6/s6_gt_mclk.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/s6/s6_gt_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
@@ -31,7 +30,6 @@ set _projects [ list \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_s6_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_s6.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_ftdi.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
       [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
@@ -57,13 +55,13 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_tlayer.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_alayer.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_dbgcs.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/sata/src/sata_testgen_pkg.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_host.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_connector.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid_decoder_v2.vhd" $_VHDMod ] \
       [ list "../src/hdd/sata_raid_ctrl_v2.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_raid.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/sata/src/sata_testgen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_s6gt_clkmux_hscam.vhd" $_VHDMod ] \
       [ list "../src/hdd/dsn_hdd_pkg.vhd" $_VHDPkg ] \
@@ -78,7 +76,6 @@ set _projects [ list \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/mcb_soft_calibration_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_ctrl_core/user_design/rtl/memc5_wrapper.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vin_bufi.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
