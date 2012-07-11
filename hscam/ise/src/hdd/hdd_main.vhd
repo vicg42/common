@@ -247,6 +247,7 @@ signal i_cam_ctrl_fps                   : std_logic_vector(C_CAM_CTRL_MODE_FPS_M
 type TSrCamCtrlHdd is array (0 to 1) of std_logic_vector(i_cam_ctrl_hdd'range);
 signal sr_cam_ctrl_hdd                  : TSrCamCtrlHdd;
 signal i_cam_ctrl_vch_on                : std_logic;
+signal i_cam_ctrl_hdd_update            : std_logic;
 
 signal i_vin_d                          : std_logic_vector(C_PCFG_VIN_DWIDTH-1 downto 0);
 signal i_vin_vs                         : std_logic;
@@ -565,10 +566,17 @@ begin
     end loop;
     i_cam_ctrl_hdd<=(others=>'0');
     sr_hdd_rdy<=(others=>'0');
+    i_cam_ctrl_hdd_update<='0';
   elsif g_hclk'event and g_hclk='1' then
     i_cam_ctrl_hdd<=i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT);
     sr_cam_ctrl_hdd<=i_cam_ctrl_hdd & sr_cam_ctrl_hdd(0 to 0);
     sr_hdd_rdy<=(i_hdd_rdy and AND_reduce(i_mem_ctrl_status.rdy)) & sr_hdd_rdy(0 to 1);
+
+    if sr_cam_ctrl_hdd(0)/=sr_cam_ctrl_hdd(1) then
+      i_cam_ctrl_hdd_update<='1';
+    else
+      i_cam_ctrl_hdd_update<='0';
+    end if;
   end if;
 end process;
 
@@ -631,7 +639,7 @@ begin
         i_hdd_cmd_ata<=(others=>'0');
         i_hdd_pkt_dcnt<=(others=>'0');
 
-        if sr_cam_ctrl_hdd(0)/=sr_cam_ctrl_hdd(1) then
+        if i_cam_ctrl_hdd_update='1' then
             if    sr_cam_ctrl_hdd(0)=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_HDD_WR, sr_cam_ctrl_hdd(0)'length) then
               i_hdd_lba<=CONV_STD_LOGIC_VECTOR(CI_ELBA_DEFAULT, i_hdd_lba'length);
               i_hdd_cmd_wr<='1';
@@ -746,7 +754,7 @@ begin
           i_hdd_cmd_test<='0';
           fsm_hddctrl<= S_IDLE;
 
-        elsif sr_cam_ctrl_hdd(0)/=sr_cam_ctrl_hdd(1) then
+        elsif i_cam_ctrl_hdd_update='1' then
           if sr_cam_ctrl_hdd(0)=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_HDD_STOP, sr_cam_ctrl_hdd(0)'length) then
             i_hdd_msk<=(others=>'0');
             i_hdd_raid_cmd<=CONV_STD_LOGIC_VECTOR(C_RAIDCMD_STOP, i_hdd_raid_cmd'length);
@@ -1595,7 +1603,7 @@ i_hddraid_dbgcs.data(58)          <='0';--i_hdd_dbgcs.sh(0).layer.data(118);--<=
 i_hddraid_dbgcs.data(59)          <=i_hdd_dbgcs.sh(0).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
 i_hddraid_dbgcs.data(60)          <=tst_vbufi_out(5);--i_det_ext_syn; --i_hdd_dbgcs.sh(0).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
 i_hddraid_dbgcs.data(61)          <=i_hdd_dbgcs.sh(0).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
-i_hddraid_dbgcs.data(62)          <='0';--i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+i_hddraid_dbgcs.data(62)          <=i_hdd_dbgcs.sh(0).layer.data(33);--sh_err_det   --i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 
 --//SH1
 gen_hdd11 : if C_PCFG_HDD_COUNT=1 generate
