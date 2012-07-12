@@ -58,38 +58,38 @@ constant C_PCFG_HDD_DBG                : string:="OFF";
 constant C_PCFG_HDD_DBGCS              : string:="ON";
 constant C_PCFG_HDD_SH_DBGCS           : string:="OFF";
 constant C_PCFG_HDD_RAID_DBGCS         : string:="ON";
-constant C_PCFG_HDD_COUNT              : integer:=2;
+constant C_PCFG_HDD_COUNT              : integer:=4;
 constant C_PCFG_HDD_RAMBUF_SIZE        : integer:=27;--128MB : Определяется как 2 в степени G_HDD_RAMBUF_SIZE
 constant C_PCFG_HDD_GT_DBUS            : integer:=32;--Настройка шины данных GT (RocketIO)
 constant C_PCFG_HDD_FPGA_TYPE          : integer:=3; --0/1/2/3 - "V5_GTP"/"V5_GTX"/"V6_GTX"/"S6_GTPA"
 constant C_PCFG_HDD_SH_MAIN_NUM        : integer:=0; --определяем индекс GT модуля от которого будем брать частоту для тактирования sata_dcm.vhd
 constant C_PCFG_HDD_SATA_GEN_DEFAULT   : integer:=0; --0/1 - SATAI/II
-constant C_PCFG_HDD_RAID_DWIDTH        : integer:=64;
+constant C_PCFG_HDD_RAID_DWIDTH        : integer:=128;
 
 
 --//Bitmap порта p_in_cam_ctrl
-constant C_CAM_CTRL_MODE_FPS_L_BIT     : integer:=0; --Коды входного потока данных
+constant C_CAM_CTRL_MODE_FPS_L_BIT     : integer:=0; --Управление входным потоком видео данных
 constant C_CAM_CTRL_MODE_FPS_M_BIT     : integer:=1;
-constant C_CAM_CTRL_TST_PATTERN_BIT    : integer:=7; --Тест (полоски по диагонали)
+constant C_CAM_CTRL_TST_PATTERN_BIT    : integer:=7; --Тестовый кадр
 constant C_CAM_CTRL_HDD_VDOUT_BIT      : integer:=9; --1/0 - вывод данных от модуля hdd_main.vhd/camera.v
 constant C_CAM_CTRL_HDD_LEDOFF_BIT     : integer:=11;--Вкл/Выкл светодиодов HDD
 constant C_CAM_CTRL_HDD_RST_BIT        : integer:=12;--Сброс модуля hdd_main.vhd
-constant C_CAM_CTRL_HDD_MODE_L_BIT     : integer:=13;--Коды команд для модуля HDD
+constant C_CAM_CTRL_HDD_MODE_L_BIT     : integer:=13;--Команды модуля hdd_main.vhd
 constant C_CAM_CTRL_HDD_MODE_M_BIT     : integer:=15;
 
---Коды входного потока данных
+--Коды управления входным потоком видео данных
 constant C_CAM_CTRL_60FPS              : integer:=0;
 constant C_CAM_CTRL_120FPS             : integer:=1;
 constant C_CAM_CTRL_240FPS             : integer:=2;
 constant C_CAM_CTRL_480FPS             : integer:=3;
 
---Коды команд для модуля HDD
-constant C_CAM_CTRL_HDD_WR             : integer:=1;--также CI_HDD_WR   (см sata_hwcfg.vhd)
-constant C_CAM_CTRL_HDD_RD             : integer:=2;--также CI_HDD_RD   (см sata_hwcfg.vhd)
-constant C_CAM_CTRL_HDD_STOP           : integer:=3;--также CI_HDD_STOP (см sata_hwcfg.vhd)
-constant C_CAM_CTRL_HDD_TEST           : integer:=4;--также CI_HDD_TEST (см sata_hwcfg.vhd)
-constant C_CAM_CTRL_VCH_OFF            : integer:=5;--также CI_HDD_CLR  (см sata_hwcfg.vhd)
+--Коды команд модуля hdd_main.vhd
+constant C_CAM_CTRL_HDD_WR             : integer:=1;
+constant C_CAM_CTRL_HDD_RD             : integer:=2;
+constant C_CAM_CTRL_HDD_STOP           : integer:=3;
+constant C_CAM_CTRL_HDD_TEST           : integer:=4;
+constant C_CAM_CTRL_VCH_OFF            : integer:=5;
 constant C_CAM_CTRL_VCH_ON             : integer:=6;
-constant C_CAM_CTRL_CFGFTDI            : integer:=7;--Доступ к dsn_hdd.vhd через USB(FTDI)
+constant C_CAM_CTRL_CFGFTDI            : integer:=7;
 
 end prj_cfg;

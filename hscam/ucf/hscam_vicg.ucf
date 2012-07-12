@@ -1,36 +1,247 @@
-###############################################################################
-# Define Device, Package And Speed Grade
-###############################################################################
-CONFIG PART = XC6SLX100T-FGG676-2;
+#net clk period = 150 Mhz ;
+#net clk tnm_net = clk ;
+#net clk7x tnm_net = clk7x ;
+CONFIG VCCAUX=3.3;
+#timespec tstx00 = period clk7x 300 MHz ;
+#timespec tstx04 = from clk to clk7x = 1.7 ;
+#timespec tstx05 = from clk7x to clk7x = 1.7 ;
 
-#Переключатель
-NET pin_in_SW<0>          LOC="B5"  | IOSTANDARD=LVCMOS33 | PULLUP; #Сигнал на схеме: SW_0
-NET pin_in_SW<1>          LOC="A4"  | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_1
-NET pin_in_SW<2>          LOC="A5"  | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_2
-NET pin_in_SW<3>          LOC="H10" | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_3
+TIMEGRP "TGRP_CAMERA_FFS" = FFS("camera/*");
+TIMEGRP "TGRP_CAMERA_RAMS" = RAMS("camera/*");
+TIMESPEC TS01 = FROM "TGRP_CAMERA_FFS" TO "TGRP_CAMERA_FFS" 16;
+TIMESPEC TS02 = FROM "TGRP_CAMERA_RAMS" TO "TGRP_CAMERA_FFS" 14;
+TIMESPEC TS03 = FROM "TGRP_CAMERA_FFS" TO "TGRP_CAMERA_RAMS" 14;
+
+TIMESPEC TS04 = FROM "TGRP_CAMERA_FFS" TO "PADS" 6;
+TIMESPEC TS05 = FROM "PADS" TO "TGRP_CAMERA_FFS" 6;
+
+
+
+#INPUT CLK
+NET "REFCLK_N" LOC=A12 | IOSTANDARD=LVDS_33 | DIFF_TERM=TRUE;
+NET "REFCLK_P" LOC=B12 | IOSTANDARD=LVDS_33 | DIFF_TERM=TRUE;
+
+PIN "u0/clkout1_buf.O" CLOCK_DEDICATED_ROUTE = FALSE;
+PIN "u1/clkout1_buf.O" CLOCK_DEDICATED_ROUTE = FALSE;
+#DETECTOR
+#########
+#CONTROL POWER
+NET "SCL" LOC=C5 | IOSTANDARD=LVCMOS33;
+NET "SDA" LOC=F6 | IOSTANDARD=LVCMOS33;
+NET "EN" LOC=E6 | IOSTANDARD=LVCMOS33;
+#CONTROL SENSOR
+#NET "CALDONE" LOC=R10 | IOSTANDARD=LVCMOS33;
+NET "CAL_IN" LOC=R2 | IOSTANDARD=LVCMOS33;
+#NET "CLKOUT" LOC=P8 | IOSTANDARD=LVCMOS33;
+NET "CLK_IN" LOC=T3 | SLEW=FAST | IOSTANDARD=LVCMOS33;
+#NET "ROWDONE" LOC=R9 | IOSTANDARD=LVCMOS33;
+NET "LRST_IN" LOC=R1 | IOSTANDARD=LVCMOS33;
+NET "PG_IN" LOC=R7 | IOSTANDARD=LVCMOS33;
+NET "TX_IN" LOC=R8 | IOSTANDARD=LVCMOS33;
+NET "DARK_OFF_IN" LOC=U3 | IOSTANDARD=LVCMOS33;
+NET "DATA_READ_IN" LOC=U2 | IOSTANDARD=LVCMOS33;
+NET "LD_SHIFT_IN" LOC=V1 | IOSTANDARD=LVCMOS33;
+NET "ROW_STRT_IN" LOC=U1 | IOSTANDARD=LVCMOS33;
+NET "STANDBY_IN" LOC=T1 | IOSTANDARD=LVCMOS33;
+#ADRR ROW
+NET "A<0>" LOC=AB21 | IOSTANDARD=LVCMOS33;
+NET "A<1>" LOC=AF22 | IOSTANDARD=LVCMOS33;
+NET "A<2>" LOC=Y16  | IOSTANDARD=LVCMOS33;
+NET "A<3>" LOC=V16  | IOSTANDARD=LVCMOS33;
+NET "A<4>" LOC=Y17  | IOSTANDARD=LVCMOS33;
+NET "A<5>" LOC=W17  | IOSTANDARD=LVCMOS33;
+NET "A<6>" LOC=AB19 | IOSTANDARD=LVCMOS33;
+NET "A<7>" LOC=Y13  | IOSTANDARD=LVCMOS33;
+NET "A<8>" LOC=AB17 | IOSTANDARD=LVCMOS33;
+NET "A<9>" LOC=W14  | IOSTANDARD=LVCMOS33;
+#DATA
+NET "D0<0>" LOC=K6 | IOSTANDARD=LVCMOS33;
+NET "D0<1>" LOC=C1 | IOSTANDARD=LVCMOS33;
+NET "D0<2>" LOC=E4 | IOSTANDARD=LVCMOS33;
+NET "D0<3>" LOC=J5 | IOSTANDARD=LVCMOS33;
+NET "D0<4>" LOC=B2 | IOSTANDARD=LVCMOS33;
+NET "D0<5>" LOC=E2 | IOSTANDARD=LVCMOS33;
+NET "D0<6>" LOC=D3 | IOSTANDARD=LVCMOS33;
+NET "D0<7>" LOC=G2 | IOSTANDARD=LVCMOS33;
+NET "D0<8>" LOC=B1 | IOSTANDARD=LVCMOS33;
+NET "D0<9>" LOC=C2 | IOSTANDARD=LVCMOS33;
+
+NET "D1<0>" LOC=AA15 | IOSTANDARD=LVCMOS33;
+NET "D1<1>" LOC=AA21 | IOSTANDARD=LVCMOS33;
+NET "D1<2>" LOC=AA19 | IOSTANDARD=LVCMOS33;
+NET "D1<3>" LOC=AF15 | IOSTANDARD=LVCMOS33;
+NET "D1<4>" LOC=W16  | IOSTANDARD=LVCMOS33;
+NET "D1<5>" LOC=AC22 | IOSTANDARD=LVCMOS33;
+NET "D1<6>" LOC=AB15 | IOSTANDARD=LVCMOS33;
+NET "D1<7>" LOC=AB22 | IOSTANDARD=LVCMOS33;
+NET "D1<8>" LOC=AA22 | IOSTANDARD=LVCMOS33;
+NET "D1<9>" LOC=AA18 | IOSTANDARD=LVCMOS33;
+
+NET "D2<0>" LOC=G4 | IOSTANDARD=LVCMOS33;
+NET "D2<1>" LOC=J4 | IOSTANDARD=LVCMOS33;
+NET "D2<2>" LOC=G3 | IOSTANDARD=LVCMOS33;
+NET "D2<3>" LOC=F1 | IOSTANDARD=LVCMOS33;
+NET "D2<4>" LOC=H5 | IOSTANDARD=LVCMOS33;
+NET "D2<5>" LOC=D1 | IOSTANDARD=LVCMOS33;
+NET "D2<6>" LOC=E3 | IOSTANDARD=LVCMOS33;
+NET "D2<7>" LOC=H6 | IOSTANDARD=LVCMOS33;
+NET "D2<8>" LOC=E1 | IOSTANDARD=LVCMOS33;
+NET "D2<9>" LOC=F3 | IOSTANDARD=LVCMOS33;
+
+NET "D3<0>" LOC=V10  | IOSTANDARD=LVCMOS33;
+NET "D3<1>" LOC=AA12 | IOSTANDARD=LVCMOS33;
+NET "D3<2>" LOC=AB14 | IOSTANDARD=LVCMOS33;
+NET "D3<3>" LOC=AA11 | IOSTANDARD=LVCMOS33;
+NET "D3<4>" LOC=AF14 | IOSTANDARD=LVCMOS33;
+NET "D3<5>" LOC=AC14 | IOSTANDARD=LVCMOS33;
+NET "D3<6>" LOC=AA17 | IOSTANDARD=LVCMOS33;
+NET "D3<7>" LOC=AD14 | IOSTANDARD=LVCMOS33;
+NET "D3<8>" LOC=AE15 | IOSTANDARD=LVCMOS33;
+NET "D3<9>" LOC=W18  | IOSTANDARD=LVCMOS33;
+
+NET "D4<0>" LOC=K8  | IOSTANDARD=LVCMOS33;
+NET "D4<1>" LOC=M6  | IOSTANDARD=LVCMOS33;
+NET "D4<2>" LOC=H3  | IOSTANDARD=LVCMOS33;
+NET "D4<3>" LOC=H1  | IOSTANDARD=LVCMOS33;
+NET "D4<4>" LOC=L9  | IOSTANDARD=LVCMOS33;
+NET "D4<5>" LOC=L10 | IOSTANDARD=LVCMOS33;
+NET "D4<6>" LOC=J3  | IOSTANDARD=LVCMOS33;
+NET "D4<7>" LOC=L8  | IOSTANDARD=LVCMOS33;
+NET "D4<8>" LOC=K5  | IOSTANDARD=LVCMOS33;
+NET "D4<9>" LOC=G1  | IOSTANDARD=LVCMOS33;
+
+NET "D5<0>" LOC=W10  | IOSTANDARD=LVCMOS33;
+NET "D5<1>" LOC=AD4  | IOSTANDARD=LVCMOS33;
+NET "D5<2>" LOC=V11  | IOSTANDARD=LVCMOS33;
+NET "D5<3>" LOC=AF13 | IOSTANDARD=LVCMOS33;
+NET "D5<4>" LOC=AA8  | IOSTANDARD=LVCMOS33;
+NET "D5<5>" LOC=AC5  | IOSTANDARD=LVCMOS33;
+NET "D5<6>" LOC=Y12  | IOSTANDARD=LVCMOS33;
+NET "D5<7>" LOC=AE13 | IOSTANDARD=LVCMOS33;
+NET "D5<8>" LOC=AB7  | IOSTANDARD=LVCMOS33;
+NET "D5<9>" LOC=AA9  | IOSTANDARD=LVCMOS33;
+
+NET "D6<0>" LOC=M10 | IOSTANDARD=LVCMOS33;
+NET "D6<1>" LOC=K1  | IOSTANDARD=LVCMOS33;
+NET "D6<2>" LOC=N9  | IOSTANDARD=LVCMOS33;
+NET "D6<3>" LOC=N5  | IOSTANDARD=LVCMOS33;
+NET "D6<4>" LOC=J2  | IOSTANDARD=LVCMOS33;
+NET "D6<5>" LOC=L7  | IOSTANDARD=LVCMOS33;
+NET "D6<6>" LOC=R6  | IOSTANDARD=LVCMOS33;
+NET "D6<7>" LOC=L4  | IOSTANDARD=LVCMOS33;
+NET "D6<8>" LOC=J1  | IOSTANDARD=LVCMOS33;
+NET "D6<9>" LOC=R5  | IOSTANDARD=LVCMOS33;
+
+NET "D7<0>" LOC=AC4 | IOSTANDARD=LVCMOS33;
+NET "D7<1>" LOC=AD1 | IOSTANDARD=LVCMOS33;
+NET "D7<2>" LOC=AC1 | IOSTANDARD=LVCMOS33;
+NET "D7<3>" LOC=AB4 | IOSTANDARD=LVCMOS33;
+NET "D7<4>" LOC=AC6 | IOSTANDARD=LVCMOS33;
+NET "D7<5>" LOC=AE1 | IOSTANDARD=LVCMOS33;
+NET "D7<6>" LOC=AB5 | IOSTANDARD=LVCMOS33;
+NET "D7<7>" LOC=AC3 | IOSTANDARD=LVCMOS33;
+NET "D7<8>" LOC=AD5 | IOSTANDARD=LVCMOS33;
+NET "D7<9>" LOC=AB3 | IOSTANDARD=LVCMOS33;
+
+NET "D8<0>" LOC=L2 | IOSTANDARD=LVCMOS33;
+NET "D8<1>" LOC=P1 | IOSTANDARD=LVCMOS33;
+NET "D8<2>" LOC=M1 | IOSTANDARD=LVCMOS33;
+NET "D8<3>" LOC=N3 | IOSTANDARD=LVCMOS33;
+NET "D8<4>" LOC=L1 | IOSTANDARD=LVCMOS33;
+NET "D8<5>" LOC=N1 | IOSTANDARD=LVCMOS33;
+NET "D8<6>" LOC=L6 | IOSTANDARD=LVCMOS33;
+NET "D8<7>" LOC=L3 | IOSTANDARD=LVCMOS33;
+NET "D8<8>" LOC=N2 | IOSTANDARD=LVCMOS33;
+NET "D8<9>" LOC=M4 | IOSTANDARD=LVCMOS33;
+
+NET "D9<0>" LOC=Y11 | IOSTANDARD=LVCMOS33;
+NET "D9<1>" LOC=AB9 | IOSTANDARD=LVCMOS33;
+NET "D9<2>" LOC=AE5 | IOSTANDARD=LVCMOS33;
+NET "D9<3>" LOC=AF4 | IOSTANDARD=LVCMOS33;
+NET "D9<4>" LOC=AF5 | IOSTANDARD=LVCMOS33;
+NET "D9<5>" LOC=AB1 | IOSTANDARD=LVCMOS33;
+NET "D9<6>" LOC=AE2 | IOSTANDARD=LVCMOS33;
+NET "D9<7>" LOC=AF3 | IOSTANDARD=LVCMOS33;
+NET "D9<8>" LOC=AC2 | IOSTANDARD=LVCMOS33;
+NET "D9<9>" LOC=AD3 | IOSTANDARD=LVCMOS33;
+
+
+##TEST
+NET "TP3_0" LOC=V6 | IOSTANDARD=LVCMOS33;
+NET "TP3_1" LOC=V5 | IOSTANDARD=LVCMOS33;
+NET "TP3_2" LOC=V7 | IOSTANDARD=LVCMOS33;
+NET "TP3_3" LOC=U8 | IOSTANDARD=LVCMOS33;
+NET "TP3_4" LOC=U7 | IOSTANDARD=LVCMOS33;
+NET "TP3_5" LOC=T8 | IOSTANDARD=LVCMOS33;
+NET "TP3_6" LOC=U9 | IOSTANDARD=LVCMOS33;
+NET "TP3_7" LOC=N8 | IOSTANDARD=LVCMOS33;
+
+##PELTIER
+NET "TECP" LOC=J9  | IOSTANDARD=LVCMOS33;
+NET "TECN" LOC=K10 | IOSTANDARD=LVCMOS33;
+
+##LVDS
+NET "CC1_N" LOC=E16 | IOSTANDARD=LVDS_33 | DIFF_TERM=TRUE;
+NET "CC1_P" LOC=F16 | IOSTANDARD=LVDS_33 | DIFF_TERM=TRUE;
+NET "CC4_N" LOC=H15;
+NET "CC4_P" LOC=J15;
+NET "SERTC_N" LOC=A22 | IOSTANDARD=LVDS_33 | DIFF_TERM=TRUE;
+NET "SERTC_P" LOC=B22 | IOSTANDARD=LVDS_33 | DIFF_TERM=TRUE;
+NET "SERTFG_N" LOC=G17;
+NET "SERTFG_P" LOC=H17;
+NET "X0_N" LOC=E20 | SLEW = FAST;
+NET "X0_P" LOC=F20 | SLEW = FAST;
+NET "X1_N" LOC=A23 | SLEW = FAST;
+NET "X1_P" LOC=B23 | SLEW = FAST;
+NET "X2_N" LOC=D22 | SLEW = FAST;
+NET "X2_P" LOC=D21 | SLEW = FAST;
+NET "X3_N" LOC=F19 | SLEW = FAST;
+NET "X3_P" LOC=G19 | SLEW = FAST;
+NET "XCLK_N" LOC=B21;
+NET "XCLK_P" LOC=C21;
+
+
+
+
+
+
+
+### ----------------------------------------------------------------
+### VICG
+### ----------------------------------------------------------------
+################################################################################
+## Define Device, Package And Speed Grade
+################################################################################
+#CONFIG PART = XC6SLX100T-FGG676-2;
+
+##Переключатель
+#NET pin_in_SW<0>          LOC="B5"  | IOSTANDARD=LVCMOS33 | PULLUP; #Сигнал на схеме: SW_0
+#NET pin_in_SW<1>          LOC="A4"  | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_1
+#NET pin_in_SW<2>          LOC="A5"  | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_2
+#NET pin_in_SW<3>          LOC="H10" | IOSTANDARD=LVCMOS33;          #Сигнал на схеме: SW_3
 
 #Светодиоды
-NET pin_out_led<0>        LOC="A2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
-NET pin_out_led<1>        LOC="H9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
-NET pin_out_led<2>        LOC="G11" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED2
-NET pin_out_led<3>        LOC="J12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED3
-NET pin_out_led<4>        LOC="G10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED4
-NET pin_out_led<5>        LOC="B4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED5
-NET pin_out_led<6>        LOC="D5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
-NET pin_out_led<7>        LOC="K12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
+NET pin_out_led<7>        LOC="A2"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED0
+NET pin_out_led<6>        LOC="H9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED1
+NET pin_out_led<4>        LOC="G11" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED2
+NET pin_out_led<5>        LOC="J12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED3
+NET pin_out_led<2>        LOC="G10" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED4
+NET pin_out_led<3>        LOC="B4"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED5
+NET pin_out_led<1>        LOC="D5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED6
+NET pin_out_led<0>        LOC="K12" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: LED7
 
-##Тестовые точки
-NET pin_out_TP<0>         LOC="V6"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_0
-NET pin_out_TP<1>         LOC="V5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_1
-NET pin_out_TP<2>         LOC="V7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_2
-NET pin_out_TP<3>         LOC="U8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_3
-NET pin_out_TP<4>         LOC="U7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_4
-NET pin_out_TP<5>         LOC="T8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_5
-NET pin_out_TP<6>         LOC="U9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_6
-NET pin_out_TP<7>         LOC="N8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_7
-
-NET pin_out_TP2<0>        LOC="J16" | IOSTANDARD=LVCMOS33;
-NET pin_out_TP2<1>        LOC="J17" | IOSTANDARD=LVCMOS33;
+###Тестовые точки
+#NET pin_out_TP<0>         LOC="V6"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_0
+#NET pin_out_TP<1>         LOC="V5"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_1
+#NET pin_out_TP<2>         LOC="V7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_2
+#NET pin_out_TP<3>         LOC="U8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_3
+#NET pin_out_TP<4>         LOC="U7"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_4
+#NET pin_out_TP<5>         LOC="T8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_5
+#NET pin_out_TP<6>         LOC="U9"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_6
+#NET pin_out_TP<7>         LOC="N8"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: TP3_7
+#
+#NET pin_out_TP2<0>        LOC="J16" | IOSTANDARD=LVCMOS33;
+#NET pin_out_TP2<1>        LOC="J17" | IOSTANDARD=LVCMOS33;
 
 #USB (FTDI)
 NET pin_inout_ftdi_d<0>   LOC="AA2" | IOSTANDARD=LVCMOS33; #Сигнал на схеме: D0_USB
@@ -48,10 +259,10 @@ NET pin_in_ftdi_rxf_n     LOC="W1"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: RXF
 NET pin_in_ftdi_pwren_n   LOC="Y1"  | IOSTANDARD=LVCMOS33; #Сигнал на схеме: PWREN_USB
 
 
-#############################################################################
-#############################################################################
-NET "pin_in_refclk_p"     LOC="B12"; #Сигнал на схеме: REFCLK_P
-NET "pin_in_refclk_n"     LOC="A12"; #Сигнал на схеме: REFCLK_N
+##############################################################################
+##############################################################################
+#NET "pin_in_refclk_p"     LOC="B12"; #Сигнал на схеме: REFCLK_P
+#NET "pin_in_refclk_n"     LOC="A12"; #Сигнал на схеме: REFCLK_N
 
 
 #############################################################################
@@ -92,10 +303,10 @@ TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 13.3 ns;
 
 
 
-############################################################################
-# VCC AUX VOLTAGE
-############################################################################
-CONFIG VCCAUX=2.5; # Valid values are 2.5 and 3.3
+#############################################################################
+## VCC AUX VOLTAGE
+#############################################################################
+#CONFIG VCCAUX=2.5; # Valid values are 2.5 and 3.3
 
 ############################################################################
 # DDR2 requires the MCB to operate in Extended performance mode with higher Vccint
