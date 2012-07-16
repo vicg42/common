@@ -287,6 +287,8 @@ signal i_hdd_bufi_dout                  : std_logic_vector(CI_MEM_DWIDTH-1 downt
 signal i_hdd_bufi_rd                    : std_logic;
 signal i_hdd_bufi_empty                 : std_logic;
 signal i_hdd_bufi_full                  : std_logic;
+signal i_hdd_bufi_empty_tmp             : std_logic;
+signal i_hdd_bufi_full_tmp              : std_logic;
 signal i_hdd_bufo_din                   : std_logic_vector(CI_MEM_DWIDTH-1 downto 0);
 signal i_hdd_bufo_wr                    : std_logic;
 
@@ -392,6 +394,8 @@ signal tst_hdd_bufi_out                 : std_logic_vector(31 downto 0);
 signal tst_hdd_rambuf_out               : std_logic_vector(31 downto 0);
 signal tst_vctrl_bufi_out               : std_logic_vector(31 downto 0);
 signal tst_vctrl_out                    : std_logic_vector(31 downto 0);
+
+signal tst_hdd_rambuf_dbgcs             : TSH_ila;
 
 type TDtst is array(0 to C_PCFG_VIN_DWIDTH/8 -1) of std_logic_vector(7 downto 0);
 --type TDtst is array(0 to C_PCFG_VIN_DWIDTH/16 -1) of std_logic_vector(15 downto 0);
@@ -512,8 +516,8 @@ i_vctrl_vrd_off <=sr_vch_rst(0) or not i_cam_ctrl(C_CAM_CTRL_HDD_VDOUT_BIT);
 --Для случая : C_PCFG_VINBUF_ONE="ON"
 i_vbufi_ext_sync<=p_in_ext_syn or i_cam_ctrl_vch_on;
 
-tst_vbufi_in(0)<='1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) and
-                          (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') else '0';
+tst_vbufi_in(0)<='0';--'1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) and
+--                          (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') else '0';
 tst_vbufi_in(tst_vbufi_in'length-1 downto 1)<=CONV_STD_LOGIC_VECTOR(0, tst_vbufi_in'length-1);
 
 --Для случая : C_PCFG_VINBUF_ONE="OFF"
@@ -523,7 +527,7 @@ i_hdd_ext_sync<=p_in_ext_syn;
 tst_vctrl_bufi_in(0)<='0';--для вывода на монитор нет прореживания
 tst_vctrl_bufi_in(tst_vctrl_bufi_in'length-1 downto 1)<=CONV_STD_LOGIC_VECTOR(0, tst_vctrl_bufi_in'length-1);
 
-tst_hdd_bufi_in(0)<='1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) else '0';
+tst_hdd_bufi_in(0)<='0';--'1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) else '0';
 tst_hdd_bufi_in(tst_hdd_bufi_in'length-1 downto 1)<=CONV_STD_LOGIC_VECTOR(0, tst_hdd_bufi_in'length-1);
 --
 
@@ -891,8 +895,8 @@ p_in_rst           => i_vbufi_rst
 );
 
 i_hdd_bufi_dout  <= i_vctrl_bufi_dout;
-i_hdd_bufi_empty <= i_vctrl_bufi_empty;
-i_hdd_bufi_full  <= i_vctrl_bufi_full;
+i_hdd_bufi_empty_tmp <= i_vctrl_bufi_empty;
+i_hdd_bufi_full_tmp  <= i_vctrl_bufi_full;
 
 i_vbufi_rd(0)<=i_vctrl_bufi_rd;
 i_vbufi_rd(1)<=i_hdd_bufi_rd;
@@ -1314,6 +1318,9 @@ p_out_gt_sim_clk            <= i_hdd_sim_gt_sim_clk       ; --open,--
 
 gen_hdd_on : if strcmp(C_PCFG_HDD_USE,"ON") generate
 
+i_hdd_bufi_empty<=i_hdd_bufi_empty_tmp when i_hdd_rbuf_cfg.tstgen.tesing_on='0' else not i_tstgen_shim;
+i_hdd_bufi_full <=i_hdd_bufi_full_tmp  when i_hdd_rbuf_cfg.tstgen.tesing_on='0' else '0';
+
 m_hdd_rambuf : dsn_hdd_rambuf
 generic map(
 G_MEMOPT     => C_PCFG_MEMOPT,
@@ -1378,7 +1385,7 @@ p_in_memch1           => i_mem_out(1)(C_MEMCH_RD),--TMemOUT;
 -------------------------------
 p_in_tst              => (others=>'0'),
 p_out_tst             => tst_hdd_rambuf_out,
-p_out_dbgcs           => open,
+p_out_dbgcs           => tst_hdd_rambuf_dbgcs,
 
 -------------------------------
 --System
@@ -1603,7 +1610,7 @@ tst_mem_err<=i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_err or i_mem_out
 i_tstgen_spd<=CONV_STD_LOGIC_VECTOR(255, i_tstgen_spd'length) when i_hdd_rbuf_cfg.tstgen.tesing_spd=CONV_STD_LOGIC_VECTOR(0, 8) else
               i_hdd_rbuf_cfg.tstgen.tesing_spd;
 
-process(i_vctrl_rst,p_in_vin_clk)
+process(i_vctrl_rst,g_hclk) --p_in_vin_clk)
 begin
   if i_vctrl_rst='1' then
     i_tstgen_cntbase<=(others=>'0');
@@ -1611,15 +1618,15 @@ begin
     i_tstgen_vs_cnt<=(others=>'0');
     sr_tstgen_shim<=(others=>'0');
 
-  elsif p_in_vin_clk'event and p_in_vin_clk='1' then
+  elsif g_hclk'event and g_hclk='1' then  --elsif p_in_vin_clk'event and p_in_vin_clk='1' then
 
     if i_hdd_rbuf_cfg.tstgen.tesing_on='0' then
       i_tstgen_cntbase<=(others=>'0');
-    elsif i_hdd_rbuf_cfg.tstgen.con2rambuf='1' then
+    elsif i_hdd_rbuf_cfg.tstgen.con2rambuf='1' and i_hdd_tx_rdy='1' then
       i_tstgen_cntbase<=i_tstgen_cntbase+1;
     end if;
 
-    if i_tstgen_cntbase=i_tstgen_spd then
+    if i_tstgen_cntbase=i_tstgen_spd or i_hdd_tx_rdy='0' then
       i_tstgen_shim<='0';
     elsif i_tstgen_cntbase=(i_tstgen_cntbase'range => '0') then
       i_tstgen_shim<='1';
@@ -1930,9 +1937,9 @@ i_hddraid_dbgcs.data(89)          <='0';--i_hdd_dbgcs.sh(0).layer.data(49);--p_i
 i_hddraid_dbgcs.data(90)          <='0';--i_hdd_dbgcs.sh(0).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
 i_hddraid_dbgcs.data(91)          <='0';--i_hdd_dbgcs.sh(0).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
 i_hddraid_dbgcs.data(92)          <=i_hdd_dbgcs.sh(0).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
-i_hddraid_dbgcs.data(93)          <='0';--i_hdd_dbgcs.sh(0).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
+i_hddraid_dbgcs.data(93)          <='0';  --i_hdd_dbgcs.sh(0).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
 i_hddraid_dbgcs.data(94)          <=i_hdd_dbgcs.sh(0).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
-i_hddraid_dbgcs.data(95)          <='0';--i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+i_hddraid_dbgcs.data(95)          <='0';  --i_hdd_dbgcs.sh(0).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 end generate gen_hdd11;
 gen_hdd21 : if C_PCFG_HDD_COUNT>1 generate
 i_hddraid_dbgcs.data(67 downto 63)<=i_hdd_dbgcs.sh(1).layer.trig0(34 downto 30);--llayer
@@ -1942,9 +1949,9 @@ i_hddraid_dbgcs.data(89)          <=p_in_vout_hs;--i_hdd_dbgcs.sh(1).layer.data(
 i_hddraid_dbgcs.data(90)          <=p_in_vout_vs;--i_hdd_dbgcs.sh(1).layer.data(116);--p_in_ll_txd_rd; --llayer<-tlayer
 i_hddraid_dbgcs.data(91)          <='0';--i_hdd_dbgcs.sh(1).layer.data(118);--<=p_in_dbg.llayer.txbuf_status.aempty;
 i_hddraid_dbgcs.data(92)          <=i_hdd_dbgcs.sh(1).layer.data(119);--<=p_in_dbg.llayer.txbuf_status.empty;
-i_hddraid_dbgcs.data(93)          <='0';--i_hdd_dbgcs.sh(1).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
+i_hddraid_dbgcs.data(93)          <='0';  --i_hdd_dbgcs.sh(1).layer.data(98);--<=p_in_dbg.llayer.rxbuf_status.pfull;
 i_hddraid_dbgcs.data(94)          <=i_hdd_dbgcs.sh(1).layer.data(99);--<=p_in_dbg.llayer.txbuf_status.pfull;
-i_hddraid_dbgcs.data(95)          <='0';--i_hdd_dbgcs.sh(1).layer.data(117);--<=p_in_dbg.llayer.txd_close;
+i_hddraid_dbgcs.data(95)          <='0';  --i_hdd_dbgcs.sh(1).layer.data(117);--<=p_in_dbg.llayer.txd_close;
 end generate gen_hdd21;
 
 --//
@@ -1954,7 +1961,7 @@ i_hddraid_dbgcs.data(98) <=i_vin_hs;
 
 i_hddraid_dbgcs.data(99) <=i_vbufi_empty;
 i_hddraid_dbgcs.data(100)<=i_vbufi_full;
-i_hddraid_dbgcs.data(101)<=tst_vbufi_out(3);--OR_reduce(i_bufi_full);
+i_hddraid_dbgcs.data(101)<=tst_vbufi_out(4);-- tst_vbufi_out(3);--OR_reduce(i_bufi_full);
 
 i_hddraid_dbgcs.data(102)<=i_hdd_txbuf_pfull;
 i_hddraid_dbgcs.data(103)<='0';--i_hdd_txbuf_full;
@@ -2013,7 +2020,7 @@ i_hddraid_dbgcs.data(245 downto 243)<=tst_vctrl_out(4 downto 2);--vwriter/mem_wr
 i_hddraid_dbgcs.data(248 downto 246)<=tst_vctrl_out(9 downto 7);--vreader/mem_wr/fsm_cs
 i_hddraid_dbgcs.data(249)<=tst_vctrl_out(27);--vwriter/padding
 i_hddraid_dbgcs.data(250)<=tst_vctrl_out(31);--vreader/padding
-i_hddraid_dbgcs.data(251)<=i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_full;
+i_hddraid_dbgcs.data(251)<=i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_RD).cmdbuf_full;--i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_WR).txbuf_full;
 i_hddraid_dbgcs.data(252)<=i_mem_out_bank(C_PCFG_MEMBANK_0)(C_MEMCH_RD).rxbuf_empty;
 i_hddraid_dbgcs.data(255 downto 253)<=i_hdd_dbgcs.raid.data(145 downto 143);
 
