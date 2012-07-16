@@ -43,6 +43,7 @@ tstgen_start: std_logic;
 scount   : std_logic_vector(15 downto 0);
 hm_w     : std_logic;
 hm_r     : std_logic;
+hm_test  : std_logic;
 end record;
 
 type TUsrStatus is record

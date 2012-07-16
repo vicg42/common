@@ -96,9 +96,9 @@ G_DBGCS      : string:="OFF";
 G_SIM        : string:="OFF"
 );
 port(
---------------------------------------------------
+-------------------------------
 -- Конфигурирование модуля DSN_HDD.VHD (p_in_cfg_clk domain)
---------------------------------------------------
+-------------------------------
 p_in_cfg_clk              : in   std_logic;
 
 p_in_cfg_adr              : in   std_logic_vector(7 downto 0);
@@ -116,20 +116,26 @@ p_out_cfg_rxrdy           : out  std_logic;
 p_in_cfg_done             : in   std_logic;
 p_in_cfg_rst              : in   std_logic;
 
---------------------------------------------------
+-------------------------------
 -- STATUS модуля DSN_HDD.VHD
---------------------------------------------------
+-------------------------------
 p_out_hdd_rdy             : out  std_logic;
 p_out_hdd_error           : out  std_logic;
 p_out_hdd_busy            : out  std_logic;
 p_out_hdd_irq             : out  std_logic;
 p_out_hdd_done            : out  std_logic;
+p_out_hdd_lba_bp          : out  std_logic_vector(47 downto 0);
+p_in_hdd_test             : in   std_logic;
+p_in_hdd_clr_err          : in   std_logic;
 
-----------------------------------------------------
+-------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
---------------------------------------------------
+-------------------------------
 p_out_rbuf_cfg            : out  THDDRBufCfg;
 p_in_rbuf_status          : in   THDDRBufStatus;
+
+p_in_sh_cxd               : in   std_logic_vector(15 downto 0);
+p_in_sh_cxd_wr            : in   std_logic;
 
 p_in_hdd_txd_wrclk        : in   std_logic;
 p_in_hdd_txd              : in   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
@@ -141,8 +147,8 @@ p_out_hdd_txbuf_empty     : out  std_logic;
 p_in_hdd_rxd_rdclk        : in   std_logic;
 p_out_hdd_rxd             : out  std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_hdd_rxd_rd           : in   std_logic;
-p_out_hdd_rxbuf_pempty    : out  std_logic;
 p_out_hdd_rxbuf_empty     : out  std_logic;
+p_out_hdd_rxbuf_pempty    : out  std_logic;
 
 --------------------------------------------------
 --SATA Driver
@@ -160,11 +166,11 @@ p_out_sata_dcm_gclk2div   : out   std_logic;
 p_out_sata_dcm_gclk2x     : out   std_logic;
 p_out_sata_dcm_gclk0      : out   std_logic;
 
---------------------------------------------------
+---------------------------------------------------------------------------
 --Технологический порт
---------------------------------------------------
-p_in_tst                 : in    std_logic_vector(31 downto 0);
-p_out_tst                : out   std_logic_vector(31 downto 0);
+---------------------------------------------------------------------------
+p_in_tst                  : in    std_logic_vector(31 downto 0);
+p_out_tst                 : out   std_logic_vector(31 downto 0);
 
 --------------------------------------------------
 --//Debug/Sim

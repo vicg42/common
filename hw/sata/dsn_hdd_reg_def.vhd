@@ -62,6 +62,10 @@ constant C_HDD_REG_RBUF_REQLEN                : integer:=16#025#;--//data length
 constant C_HDD_REG_VERSION                    : integer:=16#027#;--//Версия контроллера dsn_hdd
 constant C_HDD_REG_TP0                        : integer:=16#028#;
 
+constant C_HDD_REG_TPA                        : integer:=16#030#;
+constant C_HDD_REG_TPB                        : integer:=16#031#;
+constant C_HDD_REG_TPC                        : integer:=16#032#;
+
 
 --//Register C_HDD_REG_CTRL_L / Bit Map:
 constant C_HDD_REG_CTRLL_ERR_CLR_BIT            : integer:=0;--//Сброс ошибок
@@ -82,7 +86,10 @@ constant C_HDD_REG_CTRLM_DIR                    : integer:=1; --0/1 - READ/WRITE
 constant C_HDD_REG_CTRLM_START                  : integer:=2; --Пуск операции с ОЗУ через CFG
 constant C_HDD_REG_CTRLM_CFG2RAM                : integer:=3; --Подключение CFG для работы с ОЗУ(write/read)
 constant C_HDD_REG_CTRLM_VCH_EN_BIT             : integer:=4;
-constant C_HDD_REG_CTRLM_LAST_BIT               : integer:=C_HDD_REG_CTRLM_VCH_EN_BIT;
+constant C_HDD_REG_CTRLM_CMD_SRC_SEL_BIT        : integer:=5;
+constant C_HDD_REG_CTRLM_TST_L_BIT              : integer:=8;
+constant C_HDD_REG_CTRLM_TST_M_BIT              : integer:=9;
+constant C_HDD_REG_CTRLM_LAST_BIT               : integer:=C_HDD_REG_CTRLM_TST_M_BIT;
 
 
 end dsn_hdd_reg_def;

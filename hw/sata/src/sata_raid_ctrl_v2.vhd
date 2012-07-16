@@ -278,6 +278,7 @@ i_usr_status.dmacfg.scount<=i_sh_atacmd.scount;
 i_usr_status.dmacfg.tstgen_start<=i_atacmdtest;
 i_usr_status.dmacfg.hm_w<=i_usrmode.hw_work and i_usrmode.hw_wr;
 i_usr_status.dmacfg.hm_r<=i_usrmode.hw_work and i_usrmode.hw_rd;
+i_usr_status.dmacfg.hm_test<=p_in_usr_ctrl(C_USR_GCTRL_TST_ON_BIT);
 
 process(p_in_rst,p_in_clk)
   variable dma_armed: std_logic;
