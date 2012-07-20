@@ -1,0 +1,330 @@
+###########################################
+#UCF файл для Отладочной платы ML505 (Virtex5)
+#FPGA: XC5VLX50T-1FFG1136
+###########################################
+###############################################################################
+# Define Device, Package And Speed Grade
+###############################################################################
+CONFIG PART = XC5VLX50T-FF1136-1;
+
+##########################################################
+#                                                        #
+#   Set stepping level to ES, so that bitstream is       #
+#   compatible with devices of all steppings.            #
+#                                                        #
+##########################################################
+CONFIG STEPPING = ES;
+
+
+####################################################################
+##
+####################################################################
+#Светодиоды
+NET "pin_out_led<0>"        LOC="H18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<1>"        LOC="L18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<2>"        LOC="G15"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<3>"        LOC="AD26" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_3     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<4>"        LOC="G16"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<5>"        LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<6>"        LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<7>"        LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+
+#######################################################################
+##   DDR-II SDRAM
+#######################################################################
+#### Изменил пины DDR-II SDRAM Bank 0 на нужные для платы ML505
+NET "pin_out_phymem_ra0<0>"              LOC="L30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A0              LOC="L30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<1>"              LOC="M30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A1              LOC="M30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<2>"              LOC="N29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A2              LOC="N29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<3>"              LOC="P29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A3              LOC="P29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<4>"              LOC="K31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A4              LOC="K31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<5>"              LOC="L31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A5              LOC="L31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<6>"              LOC="P31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A6              LOC="P31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<7>"              LOC="P30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A7              LOC="P30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<8>"              LOC="M31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A8              LOC="M31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<9>"              LOC="R28"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A9              LOC="R28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<10>"             LOC="J31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A10             LOC="J31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<11>"             LOC="R29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A11             LOC="R29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<12>"             LOC="T31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A12             LOC="T31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<13>"             LOC="H29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_A13             LOC="H29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<14>"             LOC="F26"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<15>"             LOC="J25"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<16>"             LOC="G31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA0             LOC="G31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<17>"             LOC="J30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA1             LOC="J30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_phymem_ra0<18>"             LOC="R31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_BA2             LOC="R31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_out_phymem_ra0<*>"         IOSTANDARD = "SSTL18_I";
+
+#DATA
+NET "pin_inout_phymem_rd0<0>"              LOC="AF30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D0              LOC="AF30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<1>"              LOC="AK31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D1              LOC="AK31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<2>"              LOC="AF31" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D2              LOC="AF31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<3>"              LOC="AD30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D3              LOC="AD30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<4>"              LOC="AJ30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D4              LOC="AJ30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<5>"              LOC="AF29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D5              LOC="AF29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<6>"              LOC="AD29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D6              LOC="AD29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<7>"              LOC="AE29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D7              LOC="AE29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<8>"              LOC="AH27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D8              LOC="AH27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<9>"              LOC="AF28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D9              LOC="AF28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<10>"             LOC="AH28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D10             LOC="AH28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<11>"             LOC="AA28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D11             LOC="AA28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<12>"             LOC="AG25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D12             LOC="AG25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<13>"             LOC="AJ26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D13             LOC="AJ26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<14>"             LOC="AG28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D14             LOC="AG28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<15>"             LOC="AB28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D15             LOC="AB28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<16>"             LOC="AC28" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D16             LOC="AC28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<17>"             LOC="AB25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D17             LOC="AB25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<18>"             LOC="AC27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D18             LOC="AC27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<19>"             LOC="AA26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D19             LOC="AA26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<20>"             LOC="AB26" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D20             LOC="AB26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<21>"             LOC="AA24" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D21             LOC="AA24";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<22>"             LOC="AB27" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D22             LOC="AB27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<23>"             LOC="AA25" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D23             LOC="AA25";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<24>"             LOC="AC29" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D24             LOC="AC29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<25>"             LOC="AB30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D25             LOC="AB30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<26>"             LOC="W31"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D26             LOC="W31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<27>"             LOC="V30"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D27             LOC="V30";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<28>"             LOC="AC30" | IOSTANDARD=SSTL18_II;  #NET  DDR2_D28             LOC="AC30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<29>"             LOC="W29"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D29             LOC="W29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<30>"             LOC="V27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D30             LOC="V27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rd0<31>"             LOC="W27"  | IOSTANDARD=SSTL18_II;  #NET  DDR2_D31             LOC="W27";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET "pin_inout_phymem_rd0<*>"         IOSTANDARD = "SSTL18_II";
+
+
+NET "pin_inout_phymem_rc0<19>"             LOC="E31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CAS_B           LOC="E31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<16>"             LOC="T28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE0            LOC="T28";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_TP<5>"   LOC="U30"  | IOSTANDARD=SSTL18_II; #NET "pin_out_ddr2_cke1"   LOC="U30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CKE1            LOC="U30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<14>"             LOC="AJ29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_N          LOC="AJ29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<12>"             LOC="AK29" | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK0_P          LOC="AK29";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<15>"             LOC="F28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_N          LOC="F28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<13>"             LOC="E28"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CLK1_P          LOC="E28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<21>"             LOC="L29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS0_B           LOC="L29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_TP<6>"    LOC="J29"  | IOSTANDARD=SSTL18_II; #NET "pin_out_ddr2_cs1"    LOC="J29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_CS1_B           LOC="J29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<0>"              LOC="AJ31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM0             LOC="AJ31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<1>"              LOC="AE28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DM1             LOC="AE28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<2>"              LOC="Y24"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM2             LOC="Y24";   # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<3>"              LOC="Y31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_DM3             LOC="Y31";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM4             LOC="V25";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM5             LOC="P24";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM6             LOC="F26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DM7             LOC="J25";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<8>"              LOC="AA30" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_N          LOC="AA30";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<4>"              LOC="AA29" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS0_P          LOC="AA29";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<9>"              LOC="AK27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_N          LOC="AK27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<5>"              LOC="AK28" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS1_P          LOC="AK28";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<10>"             LOC="AJ27" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_N          LOC="AJ27";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<6>"              LOC="AK26" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS2_P          LOC="AK26";  # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<11>"             LOC="AA31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_N          LOC="AA31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<7>"              LOC="AB31" | IOSTANDARD=SSTL18_II; #NET  DDR2_DQS3_P          LOC="AB31";  # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS4_N          LOC="Y29";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS4_P          LOC="Y28";   # Bank 17, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS5_N          LOC="E27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS5_P          LOC="E26";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS6_N          LOC="G28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS6_P          LOC="H28";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS7_N          LOC="H27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_DQS7_P          LOC="G27";   # Bank 19, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<17>"             LOC="F31"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT0            LOC="F31";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_TP<7>"   LOC="F30"  | IOSTANDARD=SSTL18_II; #NET "pin_out_ddr2_odt1"   LOC="F30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_ODT1            LOC="F30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<20>"             LOC="H30"  | IOSTANDARD=SSTL18_II; #NET  DDR2_RAS_B           LOC="H30";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_inout_phymem_rc0<18>"             LOC="K29"  | IOSTANDARD=SSTL18_II; #NET  DDR2_WE_B            LOC="K29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_SCL             LOC="E29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+#NET  DDR2_SDA             LOC="F29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+
+#######################################################################
+##
+#######################################################################
+NET "pin_in_pciexp_rstn"  LOC="E9"   | IOSTANDARD=LVCMOS33; #Сигнал на схеме:FPGA_CPU_RESET_B  # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET "pin_in_refclk_clk"   LOC="AH15" | IOSTANDARD=LVCMOS33; #Сигнал на схеме:USER_CLK /100MHz       # Bank 4, Vcco=3.3V, No DCI
+
+#200MHz
+NET "pin_in_refclk_clk_n" LOC="K19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_clk_p" LOC="L19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+
+NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
+NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
+NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
+NET "g_host_clk"  TNM_NET = TNM_HOST_CLK;
+TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  3.3  ns HIGH 50%; # 300MHz
+TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0  ns HIGH 50%; # 200MHz
+TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
+TIMESPEC TS_HOST_CLK    = PERIOD TNM_HOST_CLK     10.0 ns HIGH 50%; # 100Mhz
+
+NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0;
+TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 4.4 ns HIGH 50%; #225MHz
+
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT0" TNM = "FFS:MEMCLK2X90_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT1" TNM = "FFS:MEMCLK45_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT2" TNM = "FFS:MEMCLK2X0_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT3" TNM = "FFS:MEMCLK0_FFS";
+PIN "m_mem_ctrl/m_pll/pll_0.CLKOUT3" TNM = "RAMS:MEMCLK0_RAMS";
+
+TIMEGRP "MEMCLK_FFS" = "MEMCLK0_FFS":
+                       "MEMCLK45_FFS":
+                       "MEMCLK2X0_FFS":
+                       "MEMCLK2X90_FFS";
+
+TIMEGRP "RA0_PADS"   = pads(pin_out_phymem_ra0<*>);
+TIMEGRP "RC0_PADS"   = pads(pin_inout_phymem_rc0<*>);
+TIMEGRP "RD0_PADS"   = pads(pin_inout_phymem_rd0<*>);
+
+TIMEGRP "MEM_PADS"   = "RA0_PADS":
+                       "RC0_PADS":
+                       "RD0_PADS";
+
+# Clock-to-out for memory pads
+TIMESPEC "TS_FFS_MEM_PADS" = FROM "MEMCLK_FFS" TO "MEM_PADS" 3.5 ns;
+
+
+
+#############################################################################
+###############       Проект Ethernet        ################################
+#############################################################################
+NET "pin_in_ethphy_fiber_clk2_p" LOC = "P4";#"GTP_DUAL_X0Y3" - SGMII : 125MHz
+NET "pin_in_ethphy_fiber_clk2_n" LOC = "P3";
+INST "ibuf_eth_gt_refclk/m_buf1"  DIFF_TERM = "TRUE";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/m_gt_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y3";#"GTP_DUAL_X0Y3" - SGMII
+
+#--------------------------
+#(FIBER)
+#--------------------------
+NET "pin_out_sfp_tx_dis" LOC = "K24" | IOSTANDARD=SSTL18_II; #;##//SFP - TX DISABLE
+NET "pin_in_sfp_sd"      LOC = "E7";##//SFP - SD signal detect #NET  CPU_TDO              LOC="E7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+
+NET "pin_in_ethphy_fiber_clk_p" LOC = "H4";#"GTP_DUAL_X0Y4" - SFP : частоту задает SW6
+NET "pin_in_ethphy_fiber_clk_n" LOC = "H3";
+INST "ibuf_eth_gt_refclk/m_buf0"  DIFF_TERM = "TRUE";
+
+###НЕ ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="OFF";)
+#INST "m_eth/gen_use_off.m_gtp_dual_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y4";
+###ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="ON";)
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y4";#"GTP_DUAL_X0Y4" -SFP
+
+
+# EMAC0 Clocking
+# 125MHz clock input from BUFG
+NET "i_ethphy_out_clk" TNM_NET          = "clk_gtp";
+TIMEGRP  "emac_core_gtp_clk"            = "clk_gtp";
+TIMESPEC "TS_emac_core_gtp_clk"         = PERIOD "emac_core_gtp_clk" 8 ns HIGH 50 %;
+
+# EMAC0 LocalLink client FIFO constraints.
+
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?rd_tran_frame_tog"    TNM = "tx_fifo_rd_to_wr_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?rd_retran_frame_tog"  TNM = "tx_fifo_rd_to_wr_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?rd_col_window_pipe_1" TNM = "tx_fifo_rd_to_wr_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?rd_addr_txfer*"       TNM = "tx_fifo_rd_to_wr_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?rd_txfer_tog"         TNM = "tx_fifo_rd_to_wr_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_frame_in_fifo"     TNM = "tx_fifo_wr_to_rd_0";
+
+TIMESPEC "TS_tx_fifo_rd_to_wr_0" = FROM "tx_fifo_rd_to_wr_0" TO "emac_core_gtp_clk" 8 ns DATAPATHONLY;
+TIMESPEC "TS_tx_fifo_wr_to_rd_0" = FROM "tx_fifo_wr_to_rd_0" TO "emac_core_gtp_clk" 8 ns DATAPATHONLY;
+
+
+# Reduce clock period to allow 3 ns for metastability settling time
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_tran_frame_tog"    TNM = "tx_metastable_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_rd_addr*"          TNM = "tx_metastable_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_txfer_tog"         TNM = "tx_metastable_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?frame_in_fifo"        TNM = "tx_metastable_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_retran_frame_tog*" TNM = "tx_metastable_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_col_window_pipe_0" TNM = "tx_metastable_0";
+
+TIMESPEC "ts_tx_meta_protect_0" = FROM "tx_metastable_0" 5 ns DATAPATHONLY;
+
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?rd_addr_txfer*"       TNM = "tx_addr_rd_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?tx_fifo_i?wr_rd_addr*"          TNM = "tx_addr_wr_0";
+TIMESPEC "TS_tx_fifo_addr_0" = FROM "tx_addr_rd_0" TO "tx_addr_wr_0" 10ns;
+
+## RX Client FIFO
+# Group the clock crossing signals into timing groups
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?rx_fifo_i?wr_store_frame_tog"   TNM = "rx_fifo_wr_to_rd_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?rx_fifo_i?rd_addr_gray*"        TNM = "rx_fifo_rd_to_wr_0";
+
+TIMESPEC "TS_rx_fifo_wr_to_rd_0" = FROM "rx_fifo_wr_to_rd_0" TO "emac_core_gtp_clk" 8 ns DATAPATHONLY;
+TIMESPEC "TS_rx_fifo_rd_to_wr_0" = FROM "rx_fifo_rd_to_wr_0" TO "emac_core_gtp_clk" 8 ns DATAPATHONLY;
+
+
+# Reduce clock period to allow for metastability settling time
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?rx_fifo_i?wr_rd_addr_gray_sync*" TNM = "rx_metastable_0";
+INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*client_side_FIFO?rx_fifo_i?rd_store_frame_tog"    TNM = "rx_metastable_0";
+
+TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
+
+
+#############################################################################
+###############       Проект PCI-Express     ################################
+#############################################################################
+NET  "pin_in_pciexp_clk_p"        LOC="AF4"  ;
+NET  "pin_in_pciexp_clk_n"        LOC="AF3"  ;
+INST "ibuf_pciexp_gt_refclk/m_buf"  DIFF_TERM = "TRUE";
+
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 0, 1
+
+NET "i_pciexp_gt_refclk" PERIOD = 10ns;
+
+NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";## if PCIe Lanes = 1
+TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
+
+NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
+
+
+#############################################################################
+###############       Проект SATA       #####################################
+#############################################################################
+#--------------------------------------------------------------------------
+#Назначение пинов
+#--------------------------------------------------------------------------
+NET "pin_in_sata_clk_p<0>" LOC="Y4"; #Сигнал на схеме:SATACLK_QO_N    # Bank 114, MGTREFCLKN_114, GTP_DUAL_X0Y2
+NET "pin_in_sata_clk_n<0>" LOC="Y3"; #Сигнал на схеме:SATACLK_QO_P    # Bank 114, MGTREFCLKP_114, GTP_DUAL_X0Y2
+#INST "gen_sata_gt[0].ibufds_hdd_gt_refclk"   DIFF_TERM = "TRUE" ;
+
+##SATA1 - Разъем J40
+##SATA2 - Разъем J41
+#--------------------------------------------------------------------------
+#Расположение компоненов в кристале
+#--------------------------------------------------------------------------
+#INST "m_dcm_sata/m_0_dcm_base"     LOC=DCM_ADV_X0Y4; #Модуль sata_dcm.vhd
+
+##НЕ ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="OFF";)
+#INST "m_hdd/gen_use_off.gen_satah[0].m_sata_gt/gen_sim_off.m_gt"  LOC=GTP_DUAL_X0Y2;
+
+#ИСПОЛЬЗОВАТЬ модуль dsn_hdd.vhd в проекте (vereskm_main.vhd generic G_USE_HDD : string:="ON";)
+INST "m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/m_gt"  LOC=GTP_DUAL_X0Y2;
+
+
+##--------------------------------------------------------------------------
+##Временные ограничения
+##--------------------------------------------------------------------------
+NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET = "TG_SATA_150MHz";
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET = "TG_SATA_300MHz";
+NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET = "TG_SATA_75MHz";
+#TIMESPEC "TS_SATACLK_300MHz" = PERIOD "TG_SATA_300MHz" 3.3  ns;
+TIMESPEC "TS_SATACLK_150MHz" = PERIOD "TG_SATA_150MHz" 6.6  ns;
+TIMESPEC "TS_SATACLK_75MHz"  = PERIOD "TG_SATA_75MHz"  13.3 ns;
+
+NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_sim_off.m_gt/g_gtp_usrclk2<?>" TNM_NET=FFS "TG_SATA_FF";
+NET "m_hdd/gen_use_on.m_dsn_sata/gen_satah[?].m_satah/gen_sim_off.m_gt/g_gtp_usrclk2<?>" TNM_NET=HSIOS "TG_SATA_HSIOS";
+TIMEGRP "TG_SATA"="TG_SATA_FF" "TG_SATA_HSIOS";## "TG_BRAM_PORTA" "TG_BRAM_PORTB" "TG_SATA_RAM";
+TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 6.6 ns;
+
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" PERIOD = 6.666 ns;
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" PERIOD = 3.333 ns;
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" PERIOD = 13.332 ns;
+#
+####SATA_CH0,1
+##TIMEGRP SATA0_PHY_FFS = FFS (m_hdd/gen_use_on.m_dsn_sata/gen_satah[0].m_satah/gen_sim_off.m_gt/*);
+##TIMESPEC "TS_SATA0_PHY_FFS2MGT" = FROM SATA0_PHY_FFS  TO HSIOS           6.666ns;
+##TIMESPEC "TS_MGT2SATA0_PHY_FFS" = FROM HSIOS          TO SATA0_PHY_FFS   6.666ns;
+
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk" TNM_NET = "TG_SATA_150MHz";
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET = "TG_SATA_300MHz";
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2div" TNM_NET = "TG_SATA_75MHz";
+#TIMESPEC "TS_SATACLK_300MHz" = PERIOD "TG_SATA_300MHz" 3.3  ns;
+#TIMESPEC "TS_SATACLK_150MHz" = PERIOD "TG_SATA_150MHz" 6.6  ns;
+#TIMESPEC "TS_SATACLK_75MHz"  = PERIOD "TG_SATA_75MHz"  13.3 ns;
+#
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET=FFS "TG_SATA_FF";
+#NET "m_hdd/gen_use_on.m_dsn_sata/g_sh_dcm_clk2x" TNM_NET=HSIOS "TG_SATA_HSIOS";
+#TIMEGRP "TG_SATA"="TG_SATA_FF" "TG_SATA_HSIOS";## "TG_BRAM_PORTA" "TG_BRAM_PORTB" "TG_SATA_RAM";
+#TIMESPEC "TS_SATA" = PERIOD "TG_SATA" 6.6 ns;
+
