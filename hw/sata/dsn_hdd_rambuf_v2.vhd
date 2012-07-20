@@ -183,7 +183,7 @@ signal i_rambuf_mem_adr                : std_logic_vector(G_MEM_AWIDTH-1 downto 
 
 signal i_memw_trnlen,i_memr_trnlen     : std_logic_vector(15 downto 0);--Размер одиночной транзакции (Размер в G_MEM_DWIDTH/8)
 signal i_memw_start,i_memr_start,i_memw_start_hm_w,i_memw_start_hm_r,i_memr_start_hm_w,i_memr_start_hm_r : std_logic;
-signal i_memw_stop,i_memr_stop,i_memw_stop_hm_w,i_memw_stop_hm_r,i_memr_stop_hm_w,i_memr_stop_hm_r : std_logic;
+signal i_memw_stop,i_memr_stop         : std_logic;
 signal i_memw_done,i_memr_done         : std_logic;
 signal i_memwr_idle                    : std_logic;
 signal i_mem_din                       : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
@@ -363,25 +363,20 @@ end process;
 
 --HM_W
 i_memw_start_hm_w<=i_mem_mux_sel and i_hm_w and not p_in_bufi_empty;
-i_memw_stop_hm_w <= not i_hm_w;
 
-i_memr_start_hm_w<='1' when i_hm_w='1' and i_rambuf_dcnt>CONV_STD_LOGIC_VECTOR(CI_MEM_TRN_SIZE_MAX*8,i_rambuf_dcnt'length) else '0';
-i_memr_stop_hm_w <='1' when i_hm_w='0' or  i_rambuf_dcnt<CONV_STD_LOGIC_VECTOR(CI_MEM_TRN_SIZE_MAX*4,i_rambuf_dcnt'length) else '0';
+i_memr_start_hm_w<='1' when i_hm_w='1' and i_rambuf_dcnt/=(i_rambuf_dcnt'range => '0') else '0';
 
 --HM_R
 i_memw_start_hm_r<='1' when i_hm_r='1' and i_rambuf_dcnt<=CONV_STD_LOGIC_VECTOR(CI_RAMBUF_SIZE/2, i_rambuf_dcnt'length) else '0';
-i_memw_stop_hm_r <='1' when i_hm_r='0' or  i_rambuf_dcnt>CONV_STD_LOGIC_VECTOR(CI_RAMBUF_SIZE/2, i_rambuf_dcnt'length) else '0';
-
-i_memr_stop_hm_r <= not i_memr_start_hm_r;
 
 --Старт/Стоп RAM W/R
-i_memw_start<=i_memw_start_hm_w when i_hm_w='1' else i_memw_start_hm_r;
-i_memw_stop <=i_memw_stop_hm_w  when i_hm_w='1' else i_memw_stop_hm_r;
+i_memw_start<=i_memw_start_hm_w when i_hm_w='1' else     i_memw_start_hm_r;
+i_memw_stop <='0'               when i_hm_w='1' else not i_memw_start_hm_r;
 
-i_memr_start<=i_memr_start_hm_w when i_hm_w='1' else i_memr_start_hm_r;
-i_memr_stop <=i_memr_stop_hm_w  when i_hm_w='1' else i_memr_stop_hm_r;
+i_memr_start<=i_memr_start_hm_w when i_hm_w='1' else     i_memr_start_hm_r;
+i_memr_stop <= not i_memr_start;
 
-i_memwr_idle<=not i_hm_w and not i_hm_r;
+i_memwr_idle<=not i_hm;
 
 
 --//RAM WRITER/READER

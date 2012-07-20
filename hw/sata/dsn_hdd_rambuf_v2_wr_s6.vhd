@@ -83,7 +83,6 @@ constant dly : time := 1 ps;
 
 type fsm_state is (
 S_IDLE,
-S_MEM_NXT_START,
 S_MEM_TRN_START,
 S_MEM_TRN,
 S_MEM_TRN_END,
@@ -130,7 +129,6 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_
             CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN               else
             CONV_STD_LOGIC_VECTOR(16#03#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_END           else
             CONV_STD_LOGIC_VECTOR(16#04#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_WAIT              else
-            CONV_STD_LOGIC_VECTOR(16#05#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_NXT_START         else
             CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_state_cs=S_IDLE               else
 
 
@@ -240,25 +238,6 @@ begin
           fsm_state_cs <= S_MEM_TRN_START;
         end if;
 
-      --------------------------------------
-      --Ждем сигнала запуска операции или перевода в исходное состояние
-      --------------------------------------
-      when S_MEM_NXT_START =>
-
-        if i_mem_adr(G_RAMBUF_SIZE)='1' then
-          i_mem_adr<=(others=>'0');
-        end if;
-
-        i_mem_done<='0';
-
-        if p_in_cfg_idle='1' then
-          if p_in_mem.cmdbuf_empty='1' and p_in_mem.rxbuf_empty='1' and p_in_mem.txbuf_empty='1' then
-            fsm_state_cs <= S_IDLE;
-          end if;
-        elsif p_in_cfg_mem_start='1' then
-          fsm_state_cs <= S_MEM_TRN_START;
-        end if;
-
       ------------------------------------------------
       --
       ------------------------------------------------
@@ -272,11 +251,6 @@ begin
       ------------------------------------------------
       when S_MEM_TRN =>
 
-        if i_mem_adr(G_RAMBUF_SIZE)='1' then
-          i_mem_adr<=(others=>'0');
-        end if;
-
-        i_mem_done<='0';
         if i_mem_wr='1' or i_mem_rd='1' then
           if i_mem_trn_dcnt=i_mem_trn_len - 1 then
             i_mem_trn_work<='0';
@@ -285,29 +259,14 @@ begin
         end if;
 
       ------------------------------------------------
-      --Анализ завершения текущей транзакции write/read ОЗУ
+      --
       ------------------------------------------------
       when S_MEM_TRN_END =>
 
         if (i_mem_cmdwr='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
           i_mem_done<='1';
-
-          if i_mem_adr(G_RAMBUF_SIZE)='1' then
-            i_mem_adr<=(others=>'0');
-          else
-            i_mem_adr<=i_mem_adr + i_mem_adr_update;
-          end if;
-
-          if p_in_cfg_mem_stop='1' then
-            fsm_state_cs <= S_MEM_NXT_START;
-          else
-            if i_mem_dir=C_MEMWR_READ then
-              fsm_state_cs <= S_MEM_WAIT;
-            else
-              i_mem_trn_work<='1';
-              fsm_state_cs <= S_MEM_TRN;
-            end if;
-          end if;
+          i_mem_adr<=i_mem_adr + i_mem_adr_update;
+          fsm_state_cs <= S_MEM_WAIT;
         end if;
 
       ------------------------------------------------
@@ -322,13 +281,24 @@ begin
         i_mem_done<='0';
 
         if i_mem_done='0' then
-          if p_in_cfg_mem_stop='1' then
-            fsm_state_cs <= S_MEM_NXT_START;
+            if p_in_cfg_idle='1' then
+              if p_in_mem.cmdbuf_empty='1' and p_in_mem.rxbuf_empty='1' and p_in_mem.txbuf_empty='1' then
+                fsm_state_cs <= S_IDLE;
+              end if;
 
-          elsif p_in_usr_rxbuf_full='0' then
-            i_mem_trn_work<='1';
-            fsm_state_cs <= S_MEM_TRN_START;
-          end if;
+            elsif p_in_cfg_mem_stop='1' then
+              fsm_state_cs <= S_MEM_WAIT;
+
+            else
+                if i_mem_dir=C_MEMWR_READ then
+                  if p_in_usr_rxbuf_full='0' then
+                    fsm_state_cs <= S_MEM_TRN_START;
+                  end if;
+                else
+                  i_mem_trn_work<='1';
+                  fsm_state_cs <= S_MEM_TRN;
+                end if;
+            end if;
         end if;
 
     end case;
