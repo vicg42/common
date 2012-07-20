@@ -40,6 +40,7 @@ architecture behavioral of sata_dcm is
 
 signal g_dcm_clkin    : std_logic;
 signal g_dcm_clk0     : std_logic;
+signal g_dcm_clk2x    : std_logic;
 signal i_dcm_clk0     : std_logic;
 signal i_dcm_clk2x    : std_logic;
 signal i_dcm_clkdv    : std_logic;
@@ -50,9 +51,10 @@ begin
 p_out_refclkout <=g_dcm_clkin;
 bufg_dcm_clkin : BUFG port map (I => p_in_clk, O => g_dcm_clkin);
 
-p_out_dcm_clk2x<=i_dcm_clk2x;
+p_out_dcm_clk2x<=g_dcm_clk2x;
+p_out_dcm_gclk2x<=g_dcm_clk2x;
 bufg_dcm_clk0  : BUFG port map (I=>i_dcm_clk0,  O=>g_dcm_clk0); p_out_dcm_gclk0<=g_dcm_clk0;
-bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>p_out_dcm_gclk2x);
+bufg_dcm_clk2x : BUFG port map (I=>i_dcm_clk2x, O=>g_dcm_clk2x);
 bufg_dcm_clkdv : BUFG port map (I=>i_dcm_clkdv, O=>p_out_dcm_gclkdv);
 
 m_dcm : DCM_BASE
