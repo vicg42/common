@@ -30,9 +30,6 @@ use work.sata_testgen_pkg.all;
 use work.dsn_hdd_pkg.all;
 use work.dsn_hdd_reg_def.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity dsn_hdd is
 generic(
 G_MEM_DWIDTH : integer:=32;
@@ -500,8 +497,7 @@ i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)   <=i_reg_ctrl_l(C_HDD_REG_CTRLL_ERR_CLR_BIT)
 i_sh_ctrl(C_USR_GCTRL_ERR_STREAMBUF_BIT)<=p_in_rbuf_status.err and not i_reg_ctrl_l(C_HDD_REG_CTRLL_ERR_STREMBUF_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_TXHOLD_DIS_BIT)<=i_reg_ctrl_l(C_HDD_REG_CTRLL_MEASURE_TXHOLD_DIS_BIT);
 i_sh_ctrl(C_USR_GCTRL_MEASURE_RXHOLD_DIS_BIT)<='0';
-i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<='0';--i_reg_ctrl_l(C_HDD_REG_CTRLL_HWSTART_DLY_ON_BIT);
-
+i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_ON_BIT)<='0';
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_FIX_BIT)<='0';
 i_sh_ctrl(C_USR_GCTRL_HWSTART_DLY_M_BIT downto C_USR_GCTRL_HWSTART_DLY_L_BIT)<=(others=>'0');
 
@@ -817,14 +813,12 @@ p_in_rst                => p_in_rst
 );
 
 gen_hdd: for i in 0 to G_HDD_COUNT-1 generate
---p_out_dbgled(i).link<=i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+0); --//Флаг C_PSTAT_DET_DEV_ON_BIT): Уст-во обнаружено
 p_out_dbgled(i).link<=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_sstatus(i)(C_ASSTAT_DET_BIT_L+1); --//Флаг C_PSTAT_DET_ESTABLISH_ON_BIT: Уст-во обнаружено + Соединение установлено
 p_out_dbgled(i).rdy <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_rdy(i);--//Флаг C_ASSTAT_IPM_BIT_L: Уст-во обнаружено + Соединение установлено + сигнатура получена
 p_out_dbgled(i).err <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_ch_err(i);--i_sh_status.ch_err(i);
 p_out_dbgled(i).busy<=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_status.ch_bsy(i);
---p_out_dbgled(i).dly <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and i_sh_measure.dly;
 p_out_dbgled(i).wr  <=not i_reg_ctrl_l(C_HDD_REG_CTRLL_DBGLED_OFF_BIT) and tst_hdd_out(8+i);--Активность записи/чтения соотвествующего HDD
---p_out_dbgled(i).spd <=i_sh_status.ch_sstatus(i)(C_ASSTAT_SPD_BIT_L+1 downto C_ASSTAT_SPD_BIT_L);--//Скорость соединения 1/2/3 - SATA-I/II/III
+
 i_sh_ch_err(i)<=i_sh_status.ch_err(i) or i_sh_status.ch_serror(i)(C_ASERR_I_ERR_BIT);
 end generate gen_hdd;
 
@@ -834,8 +828,7 @@ p_out_dbgled(i).link<='0';
 p_out_dbgled(i).rdy<='0';
 p_out_dbgled(i).err<='0';
 p_out_dbgled(i).busy<='0';
---p_out_dbgled(i).spd<=(others=>'0');
---p_out_dbgled(i).dly<='0';
+
 i_sh_ch_err(i)<='0';
 end generate gen_null;
 end generate gen_nomax;
@@ -857,19 +850,6 @@ p_out_gt_sim_clk           <= i_sh_sim_gt_sim_clk;
 p_out_dbgcs.sh     <=i_sh_dbgcs.sh;
 p_out_dbgcs.raid   <=i_sh_dbgcs.raid;
 p_out_dbgcs.measure<=i_sh_dbgcs.measure;
---p_out_dbgcs.hwcfg.clk<=i_hwcfg_dbgcs.clk;
---p_out_dbgcs.hwcfg.trig0(6 downto 0)<=i_hwcfg_dbgcs.trig0(6 downto 0);
---p_out_dbgcs.hwcfg.trig0(7)<=i_buf_rst;
---p_out_dbgcs.hwcfg.trig0(8)<=p_in_cfg_adr_fifo;
---p_out_dbgcs.hwcfg.trig0(9)<=i_sh_cxd_wr;
---p_out_dbgcs.hwcfg.trig0(p_out_dbgcs.hwcfg.trig0'length-1 downto 10)<=i_hwcfg_dbgcs.trig0(p_out_dbgcs.hwcfg.trig0'length-1 downto 10);
---
---p_out_dbgcs.hwcfg.data(31 downto 0)<=i_hwcfg_dbgcs.data(31 downto 0);
---p_out_dbgcs.hwcfg.data(47 downto 32)<=i_sh_cxdi;
---p_out_dbgcs.hwcfg.data(48)<=i_sh_cxd_wr;
---p_out_dbgcs.hwcfg.data(49)<=p_in_cfg_adr_fifo;
---p_out_dbgcs.hwcfg.data(50)<='0';
---p_out_dbgcs.hwcfg.data(p_out_dbgcs.hwcfg.data'length-1 downto 51)<=i_hwcfg_dbgcs.data(p_out_dbgcs.hwcfg.data'length-1 downto 51);
 
 end generate gen_use_on;
 
@@ -943,8 +923,6 @@ p_out_dbgled(i).link<='0';
 p_out_dbgled(i).rdy<='0';
 p_out_dbgled(i).err<='0';
 p_out_dbgled(i).busy<='0';
---p_out_dbgled(i).spd<=(others=>'0');
---p_out_dbgled(i).dly<='0';
 
 end generate gen_null;
 
@@ -985,7 +963,6 @@ p_out_hdd_rxbuf_empty<=i_sh_cxd_wr;
 --p_out_hdd_rxbuf_pempty<=i_sh_cxd_wr;
 
 i_hdd_done<='0';
-
 
 end generate gen_use_off;
 
