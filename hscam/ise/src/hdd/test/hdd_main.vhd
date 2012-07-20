@@ -502,7 +502,7 @@ p_out_usr_status(0)<=i_usr_status(0);--i_usr_rx_rdy (HOST<-HDD)
 p_out_usr_status(1)<=i_usr_status(1);--i_usr_tx_rdy (HOST->HDD)
 p_out_usr_status(2)<=i_hdd_rdy and AND_reduce(i_mem_ctrl_status.rdy);
 p_out_usr_status(3)<=i_hdd_err;
-p_out_usr_status(4)<=i_hdd_bsy and not i_hdd_err;
+p_out_usr_status(4)<=i_hdd_bsy and not i_hdd_err and i_hdd_rdy;
 p_out_usr_status(7 downto 5)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HDD_COUNT, 3);
 
 
@@ -513,31 +513,39 @@ i_mem_mux_sel<=tst_hdd_rambuf_out(12);
 i_vctrl_vwr_off <=sr_vch_rst(1) or not i_cam_ctrl(C_CAM_CTRL_HDD_VDOUT_BIT);
 i_vctrl_vrd_off <=sr_vch_rst(0) or not i_cam_ctrl(C_CAM_CTRL_HDD_VDOUT_BIT);
 
---Для случая : C_PCFG_VINBUF_ONE="ON"
+gen_vinbuf_one_on_init : if strcmp(C_PCFG_VINBUF_ONE,"ON") generate
+--для модулей (VCTRL, HDD_RAMBUF) используется один вх. буфер (запись без одновременной выдачей видео в PC)
+p_out_vd<=(others=>'0') when i_hdd_rbuf_cfg.dmacfg.hm_w='1' else i_vbufo_dout;
+
 i_vbufi_ext_sync<=p_in_ext_syn or i_cam_ctrl_vch_on;
 
-tst_vbufi_in(0)<='0';--'1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) and
---                          (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') else '0';
+tst_vbufi_in(0)<='1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) and
+                          (i_hdd_rbuf_cfg.dmacfg.hm_w='1' and i_hdd_rbuf_cfg.tstgen.tesing_on='0') else '0';
 tst_vbufi_in(tst_vbufi_in'length-1 downto 1)<=CONV_STD_LOGIC_VECTOR(0, tst_vbufi_in'length-1);
 
---Для случая : C_PCFG_VINBUF_ONE="OFF"
+end generate gen_vinbuf_one_on_init;
+
+gen_vinbuf_one_off_init : if strcmp(C_PCFG_VINBUF_ONE,"OFF") generate
+--для каждого модуля (VCTRL, HDD_RAMBUF) используется отдельный вх. буфер (запись с одновременной выдачей видео в PC)
+p_out_vd<=i_vbufo_dout;
+
 i_vctrl_ext_sync<='1';
 i_hdd_ext_sync<=p_in_ext_syn;
 
 tst_vctrl_bufi_in(0)<='0';--для вывода на монитор нет прореживания
 tst_vctrl_bufi_in(tst_vctrl_bufi_in'length-1 downto 1)<=CONV_STD_LOGIC_VECTOR(0, tst_vctrl_bufi_in'length-1);
 
-tst_hdd_bufi_in(0)<='0';--'1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) else '0';
+tst_hdd_bufi_in(0)<='1' when i_cam_ctrl_fps=CONV_STD_LOGIC_VECTOR(C_CAM_CTRL_480FPS, i_cam_ctrl_fps'length) else '0';
 tst_hdd_bufi_in(tst_hdd_bufi_in'length-1 downto 1)<=CONV_STD_LOGIC_VECTOR(0, tst_hdd_bufi_in'length-1);
---
+
+i_vbufi_ext_sync<=i_vctrl_ext_sync;
+end generate gen_vinbuf_one_off_init;
 
 i_vin_tstpattern_en<=i_hdd_tst_out(7);
 
 i_vin_vs<=p_in_vin_vs when i_hdd_rbuf_cfg.tstgen.tesing_on='0' else i_vin_vs_tstgen;
 i_vin_hs<=p_in_vin_hs when i_hdd_rbuf_cfg.tstgen.tesing_on='0' else i_vin_hs_tstgen;
 i_vin_d <=p_in_vd     when i_vin_tstpattern_en='0' else i_vin_dtst_vect;
-
-p_out_vd<=(others=>'0') when i_hdd_rbuf_cfg.dmacfg.hm_w='1' else i_vbufo_dout;
 
 i_hdd_tst_in(23 downto  0)<=(others=>'0');
 i_hdd_tst_in(31 downto 24)<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_HDD_VERSION, 8);
@@ -650,7 +658,7 @@ begin
   elsif g_hclk'event and g_hclk='1' then
     i_cam_ctrl_hdd<=i_cam_ctrl(C_CAM_CTRL_HDD_MODE_M_BIT downto C_CAM_CTRL_HDD_MODE_L_BIT);
     sr_cam_ctrl_hdd<=i_cam_ctrl_hdd & sr_cam_ctrl_hdd(0 to 0);
-    sr_hdd_rdy<=(i_hdd_rdy and AND_reduce(i_mem_ctrl_status.rdy)) & sr_hdd_rdy(0 to 1);
+    sr_hdd_rdy<=i_hdd_rdy & sr_hdd_rdy(0 to 1);
 
     if sr_cam_ctrl_hdd(0)/=sr_cam_ctrl_hdd(1) then
       i_cam_ctrl_hdd_update<='1';
@@ -669,7 +677,7 @@ begin
     i_hdd_cmd_clr_err_cnt<=(others=>'0');
     i_hdd_cmd_clr_err<='0';
   elsif g_hclk'event and g_hclk='1' then
-    if i_hdd_clr_err='1' or i_hdd_rdy_redge='1' then
+    if (i_hdd_clr_err='1' and i_hdd_rdy='1') or i_hdd_rdy_redge='1' then
       i_hdd_cmd_clr_err_cnt<=(others=>'0');
       i_hdd_cmd_clr_err<='1';
     elsif i_hdd_cmd_clr_err_cnt=CONV_STD_LOGIC_VECTOR(16#F#, i_hdd_cmd_clr_err_cnt'length) then
@@ -1416,8 +1424,8 @@ p_out_vfr_prm      => open,
 p_out_vsync        => open,
 p_out_vbufi_d      => i_hdd_bufi_dout,
 p_in_vbufi_rd      => i_hdd_bufi_rd,
-p_out_vbufi_empty  => i_hdd_bufi_empty,
-p_out_vbufi_full   => i_hdd_bufi_full,
+p_out_vbufi_empty  => i_hdd_bufi_empty_tmp,
+p_out_vbufi_full   => i_hdd_bufi_full_tmp,
 p_in_vbufi_wrclk   => g_vbufi_wrclk,
 p_in_vbufi_rdclk   => g_hclk,
 
@@ -1901,7 +1909,7 @@ i_hddraid_dbgcs.trig0(39 downto 35)<=i_hdd_dbgcs.sh(1).layer.trig0(39 downto 35)
 end generate gen_hdd2;
 
 i_hddraid_dbgcs.trig0(40)<=i_hdd_rbuf_status.err_type.rambuf_full;
-i_hddraid_dbgcs.trig0(41)<=p_in_vout_hs;
+i_hddraid_dbgcs.trig0(41)<=tst_start_wr;--p_in_vout_hs;
 i_hddraid_dbgcs.trig0(42)<=i_hdd_rbuf_cfg.dmacfg.hm_w and OR_reduce(i_vbufi_rd);--start hdd_wr
 i_hddraid_dbgcs.trig0(43)<=i_hdd_rbuf_cfg.dmacfg.hm_r and i_hdd_bufo_wr;--start hdd_rd
 i_hddraid_dbgcs.trig0(44)<=i_hdd_dbgcs.raid.trig0(17);--i_cmdpkt_get_done
@@ -2036,11 +2044,11 @@ begin
     tst_hddbufi_rst_fedge<=not sr_hddbufi_rst(0) and     sr_hddbufi_rst(1);--falling edge
     tst_hddbufi_rst_redge<=    sr_hddbufi_rst(0) and not sr_hddbufi_rst(1);--rissing edge
 
---    if sr_vch_rst(0)='0' and sr_vch_rst(1)='1' then
---      tst_start_wr<='1';
---    elsif i_vbufi_empty='0' then
---      tst_start_wr<='0';
---    end if;
+    if tst_hddbufi_rst_redge='1' then
+      tst_start_wr<='1';
+    elsif i_vbufi_empty='0' then
+      tst_start_wr<='0';
+    end if;
   end if;
 end process;
 

@@ -251,6 +251,8 @@ port(
 -------------------------------------------------
 --Порт управления модулем + Статусы
 --------------------------------------------------
+p_in_sel            : in    std_logic;
+
 --Управление HDD от camera.v
 p_in_usr_clk        : in    std_logic;
 p_in_usr_tx_wr      : in    std_logic;
@@ -258,6 +260,14 @@ p_in_usr_rx_rd      : in    std_logic;
 p_in_usr_txd        : in    std_logic_vector(15 downto 0);
 p_out_usr_rxd       : out   std_logic_vector(15 downto 0);
 p_out_usr_status    : out   std_logic_vector(1  downto 0);
+
+----Управление HDD через USB(FTDI)
+--p_inout_ftdi_d      : inout std_logic_vector(7 downto 0);
+--p_out_ftdi_rd_n     : out   std_logic;
+--p_out_ftdi_wr_n     : out   std_logic;
+--p_in_ftdi_txe_n     : in    std_logic;
+--p_in_ftdi_rxf_n     : in    std_logic;
+--p_in_ftdi_pwren_n   : in    std_logic;
 
 -------------------------------
 --связь с DSN_HDD.VHD

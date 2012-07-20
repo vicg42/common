@@ -64,7 +64,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/src/sata_measure.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/dsn_raid_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/src/sata_player_s6gt_clkmux_hscam.vhd" $_VHDMod ] \
-      [ list "../src/hdd/dsn_hdd_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/sata/dsn_hdd_pkg.vhd" $_VHDPkg ] \
       [ list "../src/hdd/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf_v2_wr_s6.vhd"  $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf_v2.vhd"  $_VHDMod ] \

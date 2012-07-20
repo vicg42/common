@@ -22,12 +22,12 @@ module test_top(
 //--------------------------------------------------
 //--SATA
 //--------------------------------------------------
-output   [1:0]  pin_out_sata_txn      ,//output   [3:0]  pin_out_sata_txn      ,//output   [0:0]  pin_out_sata_txn      ,//
-output   [1:0]  pin_out_sata_txp      ,//output   [3:0]  pin_out_sata_txp      ,//output   [0:0]  pin_out_sata_txp      ,//
-input    [1:0]  pin_in_sata_rxn       ,//input    [3:0]  pin_in_sata_rxn       ,//input    [0:0]  pin_in_sata_rxn       ,//
-input    [1:0]  pin_in_sata_rxp       ,//input    [3:0]  pin_in_sata_rxp       ,//input    [0:0]  pin_in_sata_rxp       ,//
-input    [0:0]  pin_in_sata_clk_n     ,//input    [1:0]  pin_in_sata_clk_n     ,//input    [0:0]  pin_in_sata_clk_n     ,//
-input    [0:0]  pin_in_sata_clk_p     ,//input    [1:0]  pin_in_sata_clk_p     ,//input    [0:0]  pin_in_sata_clk_p     ,//
+output   [3:0]  pin_out_sata_txn      ,//output   [0:0]  pin_out_sata_txn      ,//output   [1:0]  pin_out_sata_txn      ,//
+output   [3:0]  pin_out_sata_txp      ,//output   [0:0]  pin_out_sata_txp      ,//output   [1:0]  pin_out_sata_txp      ,//
+input    [3:0]  pin_in_sata_rxn       ,//input    [0:0]  pin_in_sata_rxn       ,//input    [1:0]  pin_in_sata_rxn       ,//
+input    [3:0]  pin_in_sata_rxp       ,//input    [0:0]  pin_in_sata_rxp       ,//input    [1:0]  pin_in_sata_rxp       ,//
+input    [1:0]  pin_in_sata_clk_n     ,//input    [0:0]  pin_in_sata_clk_n     ,//input    [0:0]  pin_in_sata_clk_n     ,//
+input    [1:0]  pin_in_sata_clk_p     ,//input    [0:0]  pin_in_sata_clk_p     ,//input    [0:0]  pin_in_sata_clk_p     ,//
 
 //--------------------------------------------------
 //--RAM

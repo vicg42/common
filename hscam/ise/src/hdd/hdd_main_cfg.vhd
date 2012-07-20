@@ -17,15 +17,27 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Версия реализации
-constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#0C#; --Версия модуля hdd_main.vhd
+constant C_PCFG_HSCAM_HDD_VERSION      : integer:=16#0D#; --Версия модуля hdd_main.vhd
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
+
+constant C_PCFG_VINBUF_ONE             : string:="ON";--ON/OFF - (один вх. буфер для VCTRL и HDD (запись без одновременной выдачи видео в PC)) /
+                                                       --         (VCTRL и HDD имеют отдельные вх. буфера (запись с одновременной выдачей видео в PC)
 
 --//Вх/вых видео
 constant C_PCFG_VSYN_ACTIVE            : std_logic:='0';--Активный уровень для КСИ,ССИ вх/вых видео
 constant C_PCFG_VOUT_DWIDTH            : integer:=16;--Шина данных для вых. видео потока
 constant C_PCFG_VIN_DWIDTH             : integer:=80;--Шина данных для вх. видео потока
+
+--//cfg CFG
+constant C_PCFG_CFG_DBGCS              : string:="OFF";
+constant C_PCFG_CFG                    : string:="HOST";--"HOST"/"FTDI"/"ALL"
+                                                       --"HOST" - работа с модулем dsn_hdd.vhd через порты p_in_usr_txd/rxd модуля hdd_main.vhd
+                                                       --"FTDI" - работа с модулем dsn_hdd.vhd через порт p_inout_ftdi_d модуля hdd_main.vhd
+                                                       --"ALL"  - работа с модулем dsn_hdd.vhd через оба порта "HOST" или "FTDI"
+
+constant C_PCFG_DEFAULT                : std_logic:='0';--0/1 - FTDI/HOST (действительно только при C_PCFG_CFG="ALL")
 
 --//cfg VCTRL
 constant C_PCFG_FRPIX                  : integer:=1280;
@@ -40,6 +52,7 @@ constant C_PCFG_MEMPHY_SET             : integer:=0;--0 - (MEMBANK0<->MCB5; MEMB
                                                     --1 - (MEMBANK0<->MCB1; MEMBANK1<->MCB5)
 
 --//cfg HDD
+constant C_PCFG_HDD_USE                : string:="ON";
 constant C_PCFG_HDD_DBG                : string:="OFF";
 constant C_PCFG_HDD_DBGCS              : string:="OFF";
 constant C_PCFG_HDD_SH_DBGCS           : string:="OFF";
