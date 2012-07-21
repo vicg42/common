@@ -175,6 +175,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/lib/vicg/v5/v5_gt_clkbuf.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/mclk_gtp_wrap.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/dbgcs_iconx1.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx2.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_iconx3.vhd" $_VHDMod ] \
       [ list "../src/core_gen/dbgcs_sata_layer.vhd" $_VHDMod ] \
