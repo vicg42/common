@@ -32,7 +32,6 @@ rdy : std_logic;--//Канал готов к работе
 err : std_logic;--//
 busy: std_logic;--//
 wr  : std_logic;--//Активность записи/чтения
---dly : std_logic;--//
 end record;
 type THDDLed_SHCountMax is array (0 to C_HDD_COUNT_MAX-1) of THDDLed;
 
@@ -66,7 +65,6 @@ end record;
 type THDDRBufStatus is record
 err      : std_logic;
 err_type : THDDRBufErrDetect;
-done     : std_logic;
 hwlog_size : std_logic_vector(31 downto 0);
 ram_wr_o : THDDCfgRAMO;
 end record;

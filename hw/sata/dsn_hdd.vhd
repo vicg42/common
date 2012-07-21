@@ -77,8 +77,8 @@ p_in_hdd_clr_err          : in   std_logic;
 -------------------------------
 -- Связь с Источниками/Приемниками данных накопителя
 -------------------------------
-p_out_rbuf_cfg            : out  THDDRBufCfg;                    --//Конфигурирование RAMBUF
-p_in_rbuf_status          : in   THDDRBufStatus;                 --//Статусы RAMBUF
+p_out_rbuf_cfg            : out  THDDRBufCfg;
+p_in_rbuf_status          : in   THDDRBufStatus;
 
 p_in_sh_cxd               : in   std_logic_vector(15 downto 0);
 p_in_sh_cxd_wr            : in   std_logic;
@@ -242,17 +242,6 @@ signal i_sh_measure                     : TMeasureStatus;
 type TChStatus is array (0 to C_HDD_COUNT_MAX-1) of std_logic_vector(31 downto 0);
 signal i_sh_status_ch                   : TChStatus;
 
-signal sr_sh_busy                       : std_logic_vector(0 to 1);
-signal i_hdd_done                       : std_logic;
-
-type THDDBufChk_state is (
-S_IDLE,
-S_CHEK_BUF,
-S_WAIT_HW_DONE,
-S_CHEK_BUF_DONE
-);
-signal fsm_state_cs                     : THDDBufChk_state;
-
 signal i_sh_cxbuf_do                    : std_logic_vector(15 downto 0);
 signal i_sh_cxbuf_rd                    : std_logic;
 signal i_sh_cxbuf_empty                 : std_logic;
@@ -264,9 +253,8 @@ signal i_sh_txbuf_empty                 : std_logic;
 signal i_sh_rxd                         : std_logic_vector(G_RAID_DWIDTH-1 downto 0);
 signal i_sh_rxd_wr                      : std_logic;
 signal i_sh_rxbuf_full                  : std_logic;
-signal i_sh_ch_err                      : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 signal i_sh_rxbuf_empty                 : std_logic;
-signal sr_sh_rxbuf_empty                : std_logic_vector(0 downto 0);
+signal i_sh_ch_err                      : std_logic_vector(C_HDD_COUNT_MAX-1 downto 0);
 
 signal i_sh_sim_gt_txdata               : TBus32_SHCountMax;
 signal i_sh_sim_gt_txcharisk            : TBus04_SHCountMax;
@@ -388,7 +376,7 @@ begin
             rxd(4):=i_sh_status.dev_rdy;
             rxd(5):=i_sh_status.dev_err;
             rxd(6):=i_sh_status.dev_bsy;
-            rxd(7):=not i_sh_status.dev_bsy;--i_hdd_done;
+            rxd(7):=not i_sh_status.dev_bsy;
             rxd(8):=p_in_rbuf_status.err_type.rambuf_full;
             rxd(9):=p_in_rbuf_status.err_type.bufi_full;
             rxd(10):=p_in_rbuf_status.err_type.bufo_empty;
@@ -565,7 +553,7 @@ p_out_hdd_rdy  <=i_sh_status.dev_rdy;
 p_out_hdd_error<=i_sh_status.dev_err;
 p_out_hdd_busy <=i_sh_status.dev_bsy;
 p_out_hdd_irq  <=not i_sh_status.dev_bsy;
-p_out_hdd_done <=i_hdd_done;
+p_out_hdd_done <='0';
 
 p_out_hdd_lba_bp<=i_sh_status.lba_bp;
 
@@ -601,71 +589,8 @@ p_out_tst(4)<='0';
 p_out_tst(5)<=i_sh_cxbuf_empty;
 p_out_tst(6)<=h_reg_cxd_wr;
 p_out_tst(7)<=i_reg_ctrl_m(C_HDD_REG_CTRLM_CFG2RAM);
-p_out_tst(8)<='0';--i_cr_dcnt;
+p_out_tst(8)<='0';
 p_out_tst(31 downto 9)<=(others=>'0');
-
-
---//Формирование i_hdd_done
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    sr_sh_rxbuf_empty<=(others=>'1');
-    sr_sh_busy<=(others=>'0');
-    i_hdd_done<='0';
-
-    fsm_state_cs<= S_IDLE;
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    sr_sh_rxbuf_empty(0)<=i_sh_rxbuf_empty;
-
-    if i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT)='1' then
-      sr_sh_busy<=(others=>'0');
-      i_hdd_done<='0';
-      fsm_state_cs<= S_IDLE;
-
-    else
-        --//Формируем сигнал BUSY
-        sr_sh_busy<=i_sh_status.dev_bsy & sr_sh_busy(0 to 0);
-
-        case fsm_state_cs is
-
-          when S_IDLE =>
-
-            if i_sh_status.dmacfg.atacmdnew='1' then
-              i_hdd_done<='0';
-            end if;
-
-            if i_sh_status.dmacfg.hw_mode='1' then
-               fsm_state_cs<= S_WAIT_HW_DONE;
-
-            elsif sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
-              --Ловим задний фронт сигнала АТА BUSY
-              fsm_state_cs<= S_CHEK_BUF;
-            end if;
-
-          when S_CHEK_BUF =>
-            --Ждем пока из буферов уйдут все данные
-            if (sr_sh_rxbuf_empty(0)='1' and i_sh_txbuf_empty='1') or i_tstgen.tesing_on='1' then
-              i_hdd_done<='1';
-              fsm_state_cs<= S_CHEK_BUF_DONE;
-            end if;
-
-          when S_WAIT_HW_DONE =>
-            if sr_sh_busy(0)='0' and sr_sh_busy(1)='1' then
-            --Ловим задний фронт сигнала АТА BUSY
-              i_hdd_done<='1';
-              fsm_state_cs<= S_CHEK_BUF_DONE;
-            end if;
-
-          when S_CHEK_BUF_DONE =>
-            fsm_state_cs<= S_IDLE;
-
-        end case;
-
-    end if;
-  end if;
-end process;
 
 
 i_buf_rst<=p_in_rst or i_sh_ctrl(C_USR_GCTRL_ERR_CLR_BIT);
@@ -961,8 +886,6 @@ p_out_hdd_txbuf_pfull<=i_sh_cxd_wr;
 p_out_hdd_rxd <=(others=>'0');
 p_out_hdd_rxbuf_empty<=i_sh_cxd_wr;
 --p_out_hdd_rxbuf_pempty<=i_sh_cxd_wr;
-
-i_hdd_done<='0';
 
 end generate gen_use_off;
 

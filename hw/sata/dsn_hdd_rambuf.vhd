@@ -161,8 +161,8 @@ signal i_wr_ptr                        : std_logic_vector(31 downto 0);--//(BYTE
 signal i_rd_ptr                        : std_logic_vector(31 downto 0);--//(BYTE)
 
 signal i_rambuf_dcnt                   : std_logic_vector(31 downto 0);--//(Размер в G_MEM_DWIDTH/8) - счтечик данных в RAMBUF
-signal i_rambuf_done                   : std_logic;
 signal i_rambuf_full                   : std_logic;
+--signal i_rambuf_done                   : std_logic;
 
 signal i_vbuf_pfull                    : std_logic:='0';
 signal i_vbuf_wrcnt                    : std_logic_vector(p_in_bufi_wrcnt'range):=(others=>'0');
@@ -202,7 +202,6 @@ signal i_hwlog_d                       : THWlogData;
 signal i_hw_p0                         : std_logic_vector(11 downto 0):=(others=>'0');
 signal i_hw_p1                         : std_logic_vector(3 downto 0):=(others=>'0');
 
-signal tst_rambuf_empty                : std_logic;
 signal tst_rambuf_pfull                : std_logic:='0';
 signal tst_fsm_cs                      : std_logic_vector(4 downto 0);
 signal sr_hw_work                      : std_logic_vector(0 to 1):=(others=>'0');
@@ -227,10 +226,11 @@ gen_use_on : if strcmp(G_MODULE_USE,"ON") generate
 p_out_tst(4 downto 0)  <=tst_vwr_out(4 downto 0);
 p_out_tst(9 downto 5)  <=tst_vrd_out(4 downto 0);
 p_out_tst(10)<=tst_hw_stop;
-p_out_tst(11)<=tst_rambuf_empty;
-p_out_tst(13 downto 12)<=(others=>'0');
-p_out_tst(14)          <='0';--i_mem_dir;
-p_out_tst(15)          <=i_padding;
+p_out_tst(11)<='1' when i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') else '0';
+p_out_tst(12)          <='0';
+p_out_tst(13)          <=i_padding;
+p_out_tst(14)          <='0';
+p_out_tst(15)          <='0';
 
 p_out_tst(16)          <=tst_vwr_out(5);
 p_out_tst(17)          <=tst_vrd_out(5);
@@ -267,19 +267,9 @@ begin
 if p_in_rst='1' then
   sr_hw_work<=(others=>'0');
   tst_hw_stop<='0';
-  tst_rambuf_empty<='1';
-
 elsif p_in_clk'event and p_in_clk='1' then
-
   sr_hw_work<=i_rbuf_cfg.hw_mode & sr_hw_work(0 to 0);
   tst_hw_stop<=not sr_hw_work(0) and sr_hw_work(1);
-
-  if i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') then
-    tst_rambuf_empty<='1';
-  else
-    tst_rambuf_empty<='0';
-  end if;
-
 end if;
 end process;
 
@@ -314,8 +304,8 @@ i_hwlog_d(0)<=EXT(i_hwlog.tdly, i_hwlog_d(0)'length);
 --//----------------------------------------------
 p_out_rbuf_status.err<=i_err_det.rambuf_full or i_err_det.bufi_full;
 p_out_rbuf_status.err_type<=i_err_det;
-p_out_rbuf_status.done<=i_rambuf_done;
-p_out_rbuf_status.hwlog_size<=i_wr_ptr;
+--p_out_rbuf_status.done<=i_rambuf_done;
+p_out_rbuf_status.hwlog_size<=i_rambuf_dcnt;
 
 p_out_rbuf_status.ram_wr_o.wr_rdy <='1';
 p_out_rbuf_status.ram_wr_o.rd_rdy <='1';
@@ -326,6 +316,7 @@ p_out_rbuf_status.ram_wr_o.dout <=(others=>'0');
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
+    i_err_det.bufo_empty<='0';
     i_err_det.bufi_full<='0';
     i_err_det.rambuf_full<='0';
   elsif p_in_clk'event and p_in_clk='1' then
@@ -412,7 +403,7 @@ begin
     i_lenreq_a1<=(others=>'0');
 
     i_rambuf_dcnt<=(others=>'0');
-    i_rambuf_done<='0';
+--    i_rambuf_done<='0';
     i_rambuf_full<='0';
 
     i_lenreq<=(others=>'0');
@@ -442,7 +433,7 @@ begin
       --//####################################
       when S_IDLE =>
 
-        i_rambuf_done<='0';
+--        i_rambuf_done<='0';
         i_padding<='0';
         i_wr_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(7 downto 0); --Размер одиночной транзакций ОЗУ (DWORD)
         i_rd_lentrn<="00000000"&p_in_rbuf_cfg.mem_trn(15 downto 8);
@@ -510,12 +501,12 @@ begin
         if i_rambuf_dcnt=(i_rambuf_dcnt'range =>'0') then
           if i_rbuf_cfg.raid.used='0' then
           --//Работа с одним HDD
-            i_rambuf_done<='1';
+--            i_rambuf_done<='1';
             fsm_rambuf_cs <= S_IDLE;
           else
           --//Работа с RAID
             if i_hddcnt=i_rbuf_cfg.raid.hddcount then
-              i_rambuf_done<='1';
+--              i_rambuf_done<='1';
               fsm_rambuf_cs <= S_IDLE;
             else
               i_rambuf_dcnt<=EXT(i_atacmd_dcount, i_rambuf_dcnt'length);
@@ -1025,7 +1016,7 @@ p_out_dbgcs.data<=(others=>'0');
 p_out_rbuf_status.err<='0';
 p_out_rbuf_status.err_type.bufi_full<='0';
 p_out_rbuf_status.err_type.rambuf_full<='0';
-p_out_rbuf_status.done<='0';
+--p_out_rbuf_status.done<='0';
 p_out_rbuf_status.hwlog_size<=(others=>'0');
 
 p_out_bufi_rd <= not p_in_bufi_empty;
