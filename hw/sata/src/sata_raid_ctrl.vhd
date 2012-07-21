@@ -891,7 +891,7 @@ i_dbgcs_trig00(11)<=i_sh_cmd_start;
 i_dbgcs_trig00(14 downto 12)<=i_sh_hddcnt(2 downto 0);
 i_dbgcs_trig00(15)          <=i_usr_status.dmacfg.atacmdw;--i_raid_cl_done;
 i_dbgcs_trig00(16)          <=p_in_usr_cxd_wr;--i_sh_atacmd.lba(1);--
-i_dbgcs_trig00(17)          <=i_sh_atacmd.lba(2);
+i_dbgcs_trig00(17)          <=i_cmdpkt_get_done;
 i_dbgcs_trig00(18)<=tst_cmddone;--(dev_done)
 i_dbgcs_trig00(19)<='0';--зарезервировано для tmr_timeout
 i_dbgcs_trig00(24 downto 20)<=(others=>'0');--зарезервировано для i_fsm_llayer(4 downto 0);--sh0
@@ -912,22 +912,22 @@ i_dbgcs_data(7)<=i_sh_det.err;
 for i in 0 to G_HDD_COUNT-1 loop
 i_dbgcs_data(8+i)<=i_usr_status.ch_bsy(i);
 end loop;
-i_dbgcs_data(19 downto 12)<=i_usr_rxd(7 downto 0);--i_raid_cl_cntdw(8 downto 0);
-i_dbgcs_data(20)<=i_usr_rxd_wr;
+i_dbgcs_data(19 downto 12)<=(others=>'0');--i_raid_cl_cntdw(8 downto 0);
+i_dbgcs_data(20)<=p_in_usr_cxd_wr;
 --i_dbgcs_data(16 downto 12)<=i_raid_trn_cnts(4 downto 0);
 --i_dbgcs_data(20 downto 17)<=i_sh_atacmd.lba(3 downto 0);
 i_dbgcs_data(21)<=p_in_usr_txbuf_empty;
-i_dbgcs_data(22)<=i_raid_trn_done(1);--//detect raid_trn_sdone
-i_dbgcs_data(23)<=sr_raid_trn_done;
-i_dbgcs_data(24)<=i_sh_trn_en;
+i_dbgcs_data(22)<=p_in_usr_rxbuf_full;--i_raid_trn_done(1);--//detect raid_trn_sdone
+i_dbgcs_data(23)<=i_usr_status.dmacfg.hm_w;--sr_raid_trn_done;
+i_dbgcs_data(24)<=i_usr_status.dmacfg.hm_r;--i_sh_trn_en;
 i_dbgcs_data(25)<=i_usr_status.dmacfg.atacmdw;--i_raid_cl_done;
 i_dbgcs_data(26)<=i_sh_padding_en;
 i_dbgcs_data(27)<=i_sh_padding;
 i_dbgcs_data(28)<=i_raid_trn_done(0);
 i_dbgcs_data(29)<='0';--//зарезервировано
 i_dbgcs_data(122 downto 30)<=(others=>'0');--//зарезервировано
-i_dbgcs_data(129 downto 123)<=(others=>'0');
-i_dbgcs_data(161 downto 130)<=i_usr_rxd(31 downto 0);
+i_dbgcs_data(145 downto 130)<=p_in_usr_cxd(15 downto 0);--i_usr_rxd(15 downto  0);
+i_dbgcs_data(161 downto 146)<=i_usr_rxd(31 downto 16);
 
 
 tst_cmddone<=sr_tst_bsy(1) and not sr_tst_bsy(0);
