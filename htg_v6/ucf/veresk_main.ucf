@@ -9,14 +9,14 @@ CONFIG PART = XC6VLX240T-FF1759-2;
 ###############################################################################
 #
 ###############################################################################
-NET "pin_out_led<5>" LOC = "N13" ;  #Bank 35 USR_LED1 DS24    +
-NET "pin_out_led<1>" LOC = "M13" ;  #Bank 35 USR_LED2 DS25    -
-NET "pin_out_led<2>" LOC = "N14" ;  #Bank 35 USR_LED3 DS26    -
-NET "pin_out_led<3>" LOC = "M14" ;  #Bank 35 USR_LED4 DS27    -
-NET "pin_out_led<4>" LOC = "B16" ;  #Bank 35 USR_LED5 DS20    +
-NET "pin_out_led<0>" LOC = "A16" ;  #Bank 35 USR_LED6 DS21    +
-NET "pin_out_led<6>" LOC = "E12" ;  #Bank 35 USR_LED7 DS22    +
-NET "pin_out_led<7>" LOC = "F12" ;  #Bank 35 USR_LED8 DS23    +
+NET "pin_out_led<4>" LOC = "N13" ;  #Bank 35 USR_LED1 DS24    +
+NET "pin_out_led<5>" LOC = "M13" ;  #Bank 35 USR_LED2 DS25    -
+NET "pin_out_led<6>" LOC = "N14" ;  #Bank 35 USR_LED3 DS26    -
+NET "pin_out_led<7>" LOC = "M14" ;  #Bank 35 USR_LED4 DS27    -
+NET "pin_out_led<0>" LOC = "B16" ;  #Bank 35 USR_LED5 DS20    +
+NET "pin_out_led<1>" LOC = "A16" ;  #Bank 35 USR_LED6 DS21    +
+NET "pin_out_led<2>" LOC = "E12" ;  #Bank 35 USR_LED7 DS22    +
+NET "pin_out_led<3>" LOC = "F12" ;  #Bank 35 USR_LED8 DS23    +
 NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 
 #NET "pin_in_sw<0>" LOC = "AA34";   ## 1   on SW6 DIP switch (active-high)

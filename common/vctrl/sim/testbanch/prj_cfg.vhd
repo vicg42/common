@@ -43,7 +43,7 @@ constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс с
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=1;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
-constant C_PCFG_VCTRL_VCH_COUNT        : integer:=6; --//max 6
+constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 6
 constant C_PCFG_VCTRL_SIMPLE           : string:="ON";
 
 --//cfg ETH

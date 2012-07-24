@@ -378,7 +378,8 @@ p_out_tst(4 downto 1)  <=tst_vwriter_out(4 downto 1);
 p_out_tst(8 downto 5)  <=tst_vreader_out(3 downto 0);
 p_out_tst(15 downto 9) <=(others=>'0');
 p_out_tst(19 downto 16)<=tst_vfrskip_rd_out;
-p_out_tst(31 downto 20)<=(others=>'0');
+p_out_tst(26 downto 20)<=(others=>'0');
+p_out_tst(31 downto 27)<=tst_vwriter_out(31 downto 27);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
@@ -387,7 +388,8 @@ p_out_tst(4 downto 1) <=tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <=tst_vreader_out(3 downto 0);
 p_out_tst(9)          <=tst_vwriter_out(4);
 p_out_tst(10)         <=tst_vreader_out(4);
-p_out_tst(31 downto 11)<=(others=>'0');
+p_out_tst(26 downto 11)<=(others=>'0');
+p_out_tst(31 downto 27)<=tst_vwriter_out(31 downto 27);
 end generate gen_dbgcs_on;
 
 --//--------------------------------------------------
