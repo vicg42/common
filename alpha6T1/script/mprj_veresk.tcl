@@ -160,17 +160,17 @@ set _projects [ list \
       [ list "../src/alphadata/axi/axi_mc_aw_channel.v" $_VMod ] \
       [ list "../src/alphadata/axi/axi_mc_ar_channel.v" $_VMod ] \
       [ list "../src/alphadata/axi/axi_mc.v" $_VMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_16.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_16.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_16.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/physical/double_reset.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_gtx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/emac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/coregen_emac_core_d8.vhd" $_VHDMod ] \
-      [ list "../src/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_emac_core_d16.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
+      [ list "../src/eth/v6_gtxwizard_gtx_2G.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/eth/eth_gt_clkbuf_v6.vhd" $_VHDMod ] \
