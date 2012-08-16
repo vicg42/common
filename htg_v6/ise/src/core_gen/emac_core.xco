@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Fri Jun 08 09:29:08 2012
+# Date: Sun Aug 12 12:02:24 2012
 #
 ##############################################################
 #
@@ -41,13 +41,13 @@ SELECT Virtex-6_Embedded_Tri-Mode_Ethernet_MAC_Wrapper xilinx.com:ip:v6_emac:1.5
 # BEGIN Parameters
 CSET address_filter_enable=false
 CSET byte_phy=false
-CSET client_side_data_width=8_bit
+CSET client_side_data_width=16_bit
 CSET clock_enable=false
 CSET component_name=emac_core
 CSET dcr_base_address=00
 CSET host_type=None
 CSET mdio=false
-CSET overclocking=None
+CSET overclocking=2000_Mbps
 CSET phy_an_enable=false
 CSET phy_ignore_adzero=false
 CSET phy_isolate=false
@@ -89,4 +89,4 @@ CSET unicast_pause_mac_address_6=FF
 MISC pkg_timestamp=2012-01-07T13:55:09Z
 # END Extra information
 GENERATE
-# CRC: d61501be
+# CRC: 348727ad

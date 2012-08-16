@@ -72,6 +72,12 @@ set _projects [ list \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/sync_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/trn_rx_128.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/trn_tx_128.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_trn_128.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_128_if.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_cfg_128.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_bram_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_tx_sync_rate_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_rx_valid_filter_v6.vhd" $_VHDMod ] \
@@ -88,12 +94,11 @@ set _projects [ list \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_clocking_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_2_0_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_16.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_16.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_16.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/physical/double_reset.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_gtx.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/physical/v6_gtxwizard_top.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/emac_core_locallink.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_core/example_design/emac_core_block.vhd" $_VHDMod ] \
@@ -190,8 +195,9 @@ set _projects [ list \
       [ list "../src/mem_arb.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
-      [ list "../src/eth/coregen_emac_core_d8.vhd" $_VHDMod ] \
-      [ list "../src/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_emac_core_d16.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
+      [ list "../src/eth/v6_gtxwizard_gtx_2G.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_gt_clkbuf_v6.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \

@@ -26,7 +26,7 @@ constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=5; --//max 7: 0-8MB, 1-16MB, 2
 
 --//cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
-constant C_PCGF_PCIE_LINK_WIDTH        : integer:=4;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
+constant C_PCGF_PCIE_LINK_WIDTH        : integer:=8;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=6; --//max 6
@@ -35,6 +35,7 @@ constant C_PCFG_VCTRL_VCH_COUNT        : integer:=6; --//max 6
 constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
 constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=1; --Кол-во каналов в одном GT(RocketIO) модуле
+constant C_PCFG_ETH_PHY_DWIDTH         : integer:=16;
 
 end prj_cfg;
 
