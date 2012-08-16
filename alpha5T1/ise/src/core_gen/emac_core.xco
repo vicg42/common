@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 13.4
-# Date: Sat Jun 02 12:43:31 2012
+# Date: Fri Aug 10 14:51:52 2012
 #
 ##############################################################
 #
@@ -43,7 +43,7 @@ CSET address_filter_enable_0=false
 CSET address_filter_enable_1=false
 CSET byte_phy_0=false
 CSET byte_phy_1=false
-CSET client_side_data_width_0=8_bit
+CSET client_side_data_width_0=16_bit
 CSET client_side_data_width_1=8_bit
 CSET clock_enable_0=false
 CSET clock_enable_1=false
@@ -126,4 +126,4 @@ CSET unicast_pause_mac_address_1_6=FF
 MISC pkg_timestamp=2012-01-07T13:56:13Z
 # END Extra information
 GENERATE
-# CRC: 90b0994a
+# CRC: ea82ffed
