@@ -154,16 +154,16 @@ set _projects [ list \
       [ list "../../../common/lib/hw/mem/alphadata/mem_wr.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/alphadata/mem_arb.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/alphadata/mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/eth_fifo_16.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/tx_client_fifo_16.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core/example_design/client/fifo/rx_client_fifo_16.vhd" $_VHDMod ] \
       [ list "../src/veresk/eth/physical/gtp_dual_1000X.vhd" $_VHDMod ] \
       [ list "../src/veresk/eth/physical/rocketio_wrapper_gtp.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/physical/rocketio_wrapper_gtp_tile.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/emac_core.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/emac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/emac_core_locallink.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/coregen_eth_phy_fiber_d8.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/physical/rocketio_wrapper_gtp_tile_2G.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/emac_core_d16.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/emac_core_block_d16.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/emac_core_locallink_d16.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
       [ list "../src/veresk/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/veresk/eth/eth_phy.vhd" $_VHDPkg ] \
       [ list "../src/veresk/eth/eth_gt_clkbuf_v5.vhd" $_VHDMod ] \

@@ -641,16 +641,16 @@ begin
         RXPOLARITY0                     =>      tied_to_ground_i,
         RXPOLARITY1                     =>      tied_to_ground_i,
         ------------- Shared Ports - Dynamic Reconfiguration Port (DRP) ------------
-        DADDR                           => i_gtp_drpaddr,--=>      tied_to_ground_vec_i(6 downto 0),
-        DCLK                            => i_gtp_drpclk,--=>      tied_to_ground_i,
-        DEN                             => i_gtp_drpen,--=>      tied_to_ground_i,
-        DI                              => i_gtp_drpdi,--=>      tied_to_ground_vec_i(15 downto 0),
-        DO                              => i_gtp_drpdo,--=>      open,
-        DRDY                            => i_gtp_drprdy,--=>      open,
-        DWE                             => i_gtp_drpwe,--=>      tied_to_ground_i,
+        DADDR                           =>      i_gtp_drpaddr,--tied_to_ground_vec_i(6 downto 0) ,--
+        DCLK                            =>      i_gtp_drpclk ,--tied_to_ground_i                 ,--
+        DEN                             =>      i_gtp_drpen  ,--tied_to_ground_i                 ,--
+        DI                              =>      i_gtp_drpdi  ,--tied_to_ground_vec_i(15 downto 0),--
+        DO                              =>      i_gtp_drpdo  ,--open                             ,--
+        DRDY                            =>      i_gtp_drprdy ,--open                             ,--
+        DWE                             =>      i_gtp_drpwe  ,--tied_to_ground_i                 ,--
         --------------------- Shared Ports - Tile and PLL Ports --------------------
         CLKIN                           =>      CLKIN_IN,
-        GTPRESET                        =>      i_gtp_rst,--GTPRESET_IN,
+        GTPRESET                        =>      i_gtp_rst    ,--GTPRESET_IN                      ,--
         GTPTEST                         =>      tied_to_ground_vec_i(3 downto 0),
         INTDATAWIDTH                    =>      tied_to_vcc_i,
         PLLLKDET                        =>      PLLLKDET_OUT,
