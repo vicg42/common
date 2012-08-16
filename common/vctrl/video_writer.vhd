@@ -134,23 +134,33 @@ signal i_upp_buf_pfull             : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
 
 signal i_upp_pkt_skip_rd_out       : std_logic;
-signal i_pkt_type_err              : std_logic_vector(4 downto 0);
+signal i_pkt_type_err              : std_logic_vector(3 downto 0);
 signal i_pkt_size_byte             : std_logic_vector(15 downto 0);
-signal i_pkt_size_dw               : std_logic_vector(15 downto 0);
-signal i_pkt_sizetotal_byte        : std_logic_vector(15+1 downto 0);
-signal i_pkt_skip_dw_calc          : std_logic_vector(15+1+2 downto 0);
-signal i_pkt_skip_dw_calc_int      : std_logic_vector(15+1 downto 0);
-signal i_pkt_skip_dw_calc_rem      : std_logic_vector(1 downto 0);
-signal i_pkt_skip_dw               : std_logic_vector(15+1+1 downto 0);
-signal i_pkt_skip_dw_dcnt          : std_logic_vector(15+1+1 downto 0);
-signal i_vpkt_size_dw              : std_logic_vector(15 downto 0);
+signal i_pkt_size_byte_calc        : std_logic_vector(15 downto 0);
+signal i_pkt_skip_byte             : std_logic_vector(15+1 downto 0);
+signal i_pkt_skip_dw               : std_logic_vector(15 downto 0);
+signal i_pkt_skip_dw_dcnt          : std_logic_vector(15 downto 0);
 signal i_vpkt_skip_rd              : std_logic;
 signal i_vfr_pix_count_dw          : std_logic_vector(15 downto 0);
+signal i_vfr_pix_count_calc        : std_logic_vector(15 downto 0);
+signal i_pix_num                   : std_logic_vector(15 downto 0);
+signal i_pix_count_byte            : std_logic_vector(15+1 downto 0);
+signal i_pix_count_dw              : std_logic_vector(15 downto 0);
 
 --signal tst_dbg_pictire             : std_logic;
 signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 signal tst_fsmstate_out              : std_logic_vector(3 downto 0);
 signal tst_upp_buf_empty             : std_logic;
+signal tst_vfr_npkt                  : std_logic;
+signal tst_vfr_npkt2                 : std_logic;
+signal tst_err_det                   : std_logic;
+signal tst_d_err                     : std_logic:='0';
+signal tst_data_err                  : std_logic_vector(3 downto 0);
+Type TTstCnt is array (0 to 3) of std_logic_vector(7 downto 0);
+signal tst_cnt                       : TTstCnt;
+signal tst_upp_data                  : std_logic_vector(31 downto 0);
+signal tst_upp_data_rd               : std_logic;
+signal tst_upp_buf_full              : std_logic;
 
 
 --MAIN
@@ -162,20 +172,43 @@ begin
 --//----------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(26 downto 0)<=(others=>'0');
-p_out_tst(31 downto 27)<=i_pkt_type_err;
+p_out_tst(31 downto 27)<=tst_upp_buf_full & i_pkt_type_err(3 downto 0);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(3  downto 0)<=tst_fsmstate_out;
-p_out_tst(4)          <=i_mem_start or OR_reduce(i_pkt_type_err) or tst_upp_buf_empty;
-p_out_tst(26 downto 5) <=(others=>'0');
-p_out_tst(31 downto 27)<=i_pkt_type_err;
+p_out_tst(4)          <=i_mem_start or tst_upp_buf_empty or tst_vfr_npkt2 or tst_err_det or Or_reduce(tst_upp_data) or tst_upp_data_rd;
+p_out_tst(25 downto 5) <=(others=>'0');
+p_out_tst(31 downto 26)<=tst_upp_buf_full & i_pkt_type_err(3 downto 0) & tst_d_err;
 
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
     tst_fsmstate_out<=tst_fsmstate;
     tst_upp_buf_empty<=p_in_upp_buf_empty;
+    tst_vfr_npkt2<=tst_vfr_npkt;
+    if p_in_upp_buf_full='1' then
+      tst_upp_buf_full<='1';
+    elsif fsm_state_cs=S_IDLE then
+      tst_upp_buf_full<='0';
+    end if;
+    tst_err_det<=OR_reduce(i_pkt_type_err) or tst_upp_buf_full;-- or tst_d_err;
+    tst_d_err<=OR_reduce(tst_data_err);
+    tst_upp_data_rd<=i_upp_data_rd;
+    tst_upp_data<=p_in_upp_data;
+
+    for i in 0 to 3 loop
+      if fsm_state_cs=S_IDLE then
+        tst_cnt(i)<=CONV_STD_LOGIC_VECTOR(i ,tst_cnt(i)'length);
+        tst_data_err(i)<='0';
+      elsif i_upp_data_rd='1' then
+        tst_cnt(i)<=tst_cnt(i) + CONV_STD_LOGIC_VECTOR(4 ,tst_cnt(i)'length);
+        if tst_cnt(i)/=p_in_upp_data(8*(i+1)-1 downto 8*i) then
+          tst_data_err(i)<='1';
+        end if;
+      end if;
+    end loop;
+
   end if;
 end process;
 
@@ -187,6 +220,7 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_c
 end generate gen_dbgcs_on;
 
 --tst_dbg_pictire<=p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
+tst_vfr_npkt<=p_in_tst(C_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
 
 
 --//----------------------------------------------
@@ -208,19 +242,21 @@ i_upp_pkt_skip_rd_out <=(i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 
 
 --//----------------------------------------------
---//
+--//¬ычислени€
 --//----------------------------------------------
---вычисл€ем сколько DW нужно пробросить чтобы перейти к новому pkt, если обнаружи ошибки в прин€том пакете
-i_pkt_sizetotal_byte<=EXT(i_pkt_size_byte, i_pkt_sizetotal_byte'length) + 2;--кол-во байт пакета + кол-во байт пол€ length
-i_pkt_skip_dw_calc<="00"&i_pkt_sizetotal_byte(i_pkt_sizetotal_byte'length-1 downto 0);--i_pkt_sizetotal_byte/4
---                                        цела€ часть от делени€ на 4                              |  остаток от делени€ на 4
-i_pkt_skip_dw<=EXT(i_pkt_skip_dw_calc(i_pkt_skip_dw_calc'length-1 downto 2), i_pkt_skip_dw'length) + OR_reduce(i_pkt_skip_dw_calc(1 downto 0));
+--вычисл€ем сколько DW нужно пробросить чтобы перейти к новому pkt, если обнаружил ошибки в прин€том пакете
+i_pkt_skip_byte<=EXT(i_pkt_size_byte, i_pkt_skip_byte'length) + 2;--кол-во байт пакета + кол-во байт пол€ length
+i_pkt_skip_dw<=EXT(i_pkt_skip_byte(i_pkt_skip_byte'length-1 downto 2), i_pkt_skip_dw'length) + OR_reduce(i_pkt_skip_byte(1 downto 0));--(цела€ часть от делени€ на 4) + (остаток от делени€ на 4)
 
---готовим данные дл€ сравнени€
-i_vfr_pix_count_dw<=EXT(i_vfr_pix_count(i_vfr_pix_count'high downto 2), i_vfr_pix_count_dw'length) + OR_reduce(i_vfr_pix_count(1 downto 0));
-i_vpkt_size_dw<=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE, i_vpkt_size_dw'length) + EXT(i_vfr_pix_count_dw, i_vpkt_size_dw'length);
---                                        цела€ часть от делени€ на 4                        |  остаток от делени€ на 4
-i_pkt_size_dw<=EXT(i_pkt_size_byte(i_pkt_size_byte'length-1 downto 2), i_pkt_size_dw'length) + OR_reduce(i_pkt_size_byte(1 downto 0));
+--вычисл€ем кол-во пикселей которое надо записать в ќ«”
+i_pix_count_byte<=i_pkt_skip_byte - CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE*4, i_pix_count_byte'length);
+i_pix_count_dw<=EXT(i_pix_count_byte(i_pix_count_byte'high downto 2), i_pix_count_dw'length) + OR_reduce(i_pix_count_byte(1 downto 0));--(цела€ часть от делени€ на 4) + (остаток от делени€ на 4)
+
+--расчетный размер пакета
+i_pkt_size_byte_calc<=CONV_STD_LOGIC_VECTOR((C_VIDEO_PKT_HEADER_SIZE*4) - 2, i_pkt_size_byte_calc'length) + EXT(i_vfr_pix_count, i_pkt_size_byte_calc'length);
+
+i_vfr_pix_count_calc<=i_pix_count_byte(i_vfr_pix_count_calc'range) + i_pix_num;
+
 
 --//----------------------------------------------
 --//јвтомат записи видео информации
@@ -262,7 +298,8 @@ begin
 
     i_vpkt_skip_rd<='0';
     i_pkt_size_byte<=(others=>'0');
-    i_pkt_skip_dw_dcnt<=(others=>'0'); i_pkt_type_err<=(others=>'0');
+    i_pkt_skip_dw_dcnt<=(others=>'0'); i_pkt_type_err(3 downto 0)<=(others=>'0');
+    i_pix_num<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -277,7 +314,7 @@ begin
       --//------------------------------------
       when S_IDLE =>
 
-        i_pkt_skip_dw_dcnt<=(others=>'0'); --i_pkt_type_err<=(others=>'0');
+        i_pkt_skip_dw_dcnt<=(others=>'0');
 
         --//«агрузка праметров ¬идео канала
         if p_in_cfg_load='1' then
@@ -295,11 +332,6 @@ begin
           i_vpkt_cnt<=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-1, i_vpkt_cnt'length);
 
           i_pkt_type_err(3 downto 0)<=(others=>'0');
-          if p_in_upp_buf_full='1' then
-             i_pkt_type_err(4)<='1';
-          else
-            i_pkt_type_err(4)<='0';
-          end if;
 
           fsm_state_cs <= S_PKT_HEADER_READ;
         end if;
@@ -336,14 +368,19 @@ begin
             --//адрес ќ«”:
             i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
             i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row((G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT)+0 downto 0);
-            i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=(others=>'0');--//Pix
+            i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_pix_num(G_MEM_VLINE_L_BIT-1 downto 0);
 
-            if i_pkt_size_dw=i_vpkt_size_dw then
+            if tst_vfr_npkt='1' then
+              --дл€ случа€ если vfr_line передаетс€ за 2 пакета
               fsm_state_cs <= S_MEM_START;
             else
-            --Pkt Lenth/4 != (C_VIDEO_PKT_HEADER_SIZE + PIXCOUNT/4)
-              i_vpkt_skip_rd<='1'; i_pkt_type_err(3)<='1';
-              fsm_state_cs <= S_PKT_SKIP;
+                --дл€ случа€ если vfr_line передаетс€ за 1 пакет
+                if i_pkt_size_byte=i_pkt_size_byte_calc then
+                  fsm_state_cs <= S_MEM_START;
+                else
+                  i_vpkt_skip_rd<='1'; i_pkt_type_err(3)<='1';
+                  fsm_state_cs <= S_PKT_SKIP;
+                end if;
             end if;
 
           else
@@ -412,6 +449,8 @@ begin
 
               --//—охран€ем маркер строки (младша€ часть)
               i_vfr_row_mrk_l(15 downto 0)<=p_in_upp_data(31 downto 16);
+              --//Ќомер начального пиксел€ в строке
+              i_pix_num(15 downto 0)<=p_in_upp_data(15 downto 0);
 
             end if;
 
@@ -428,7 +467,7 @@ begin
       when S_MEM_START =>
 
         i_vpkt_payload_rd<='1';
-        i_mem_dlen_rq<="00"&i_vfr_pix_count(i_vfr_pix_count'high downto 2); --//DW
+        i_mem_dlen_rq<=i_pix_count_dw;
         i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
         i_mem_adr<=i_mem_wrbase + i_mem_ptr;
         i_mem_dir<=C_MEMWR_WRITE;
@@ -449,11 +488,13 @@ begin
           if i_vfr_row=(i_vfr_row_count - 1) then
           --//ќбработал последнюю строку кадра.
           --//¬ыдаем прерывание:
-            for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-              if i_vch_num=i then
-                vfr_rdy(i):='1';
-              end if;
-            end loop;
+            if i_vfr_pix_count=i_vfr_pix_count_calc then
+              for i in 0 to C_VCTRL_VCH_COUNT-1 loop
+                if i_vch_num=i then
+                  vfr_rdy(i):='1';
+                end if;
+              end loop;
+            end if;
           end if;
 
           fsm_state_cs <= S_IDLE;

@@ -388,8 +388,8 @@ p_out_tst(4 downto 1) <=tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <=tst_vreader_out(3 downto 0);
 p_out_tst(9)          <=tst_vwriter_out(4);
 p_out_tst(10)         <=tst_vreader_out(4);
-p_out_tst(26 downto 11)<=(others=>'0');
-p_out_tst(31 downto 27)<=tst_vwriter_out(31 downto 27);
+p_out_tst(25 downto 11)<=(others=>'0');
+p_out_tst(31 downto 26)<=tst_vwriter_out(31 downto 26);
 end generate gen_dbgcs_on;
 
 --//--------------------------------------------------

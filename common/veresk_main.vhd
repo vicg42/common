@@ -571,7 +571,7 @@ m_eth : dsn_eth
 generic map(
 G_ETH.gtch_count_max  => C_PCFG_ETH_GTCH_COUNT_MAX,
 G_ETH.usrbuf_dwidth   => 32,
-G_ETH.phy_dwidth      => 8,
+G_ETH.phy_dwidth      => C_PCFG_ETH_PHY_DWIDTH,
 G_ETH.phy_select      => C_ETH_PHY_FIBER,
 G_ETH.mac_length_swap => 1, --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_MODULE_USE => C_PCFG_ETH_USE,

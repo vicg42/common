@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --¬ерси€ прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#033E#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#033F#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -398,7 +398,7 @@ constant C_VCTRL_REG_TST0_SKIPFR_CNT_CLR_BIT  : integer:=8;--//ѕри 1 - происходи
 --constant RESERV                               : integer:=9;
 constant C_VCTRL_REG_TST0_DBG_RDHOLD_BIT      : integer:=10;--//Ёмул€ци€ захвата видеобуфера модулем чтени€
 constant C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT     : integer:=11;--//Ёмул€ци€ захвата видеобуфера модулем слежени€
-constant C_VCTRL_REG_TST0_LAST_BIT            : integer:=12;
+constant C_VCTRL_REG_TST0_LAST_BIT            : integer:=C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT;
 
 
 
