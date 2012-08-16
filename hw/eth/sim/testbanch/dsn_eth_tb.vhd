@@ -96,8 +96,7 @@ begin
 
 
 m_eth : dsn_eth
-generic map
-(
+generic map(
 G_MODULE_USE => C_PCFG_ETH_USE,
 G_DBG        => G_DBG,
 G_SIM        => G_SIM

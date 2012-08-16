@@ -80,22 +80,27 @@ S_TX_DONE
 );
 signal fsm_eth_tx_cs: TEth_fsm_tx;
 
-signal i_bcnt                 : std_logic_vector(1 downto 0);
+signal i_bcnt                 : std_logic_vector(selval(0, 1, (p_out_txll_data'length=16)) downto 0);
 signal i_dcnt                 : std_logic_vector(15 downto 0);
-signal i_pkt_len              : std_logic_vector(15 downto 0);--//кол-во передоваемых байт
+signal i_dcnt_len             : std_logic_vector(15 downto 0);
+signal i_pkt_lentotal_byte    : std_logic_vector(15 downto 0);--//кол-во передоваемых байт
+signal i_pkt_len              : std_logic_vector(15 downto 0);
 
 signal i_usr_txd_rd           : std_logic;--//строб дополнительного чтения
 signal i_usr_txd_rden         : std_logic;--//разрешение чтения данных из usr_txbuf
 
-signal i_ll_data              : std_logic_vector(7 downto 0);
+signal i_ll_data_swp          : std_logic_vector(15 downto 0);
+signal i_ll_data              : std_logic_vector(p_out_txll_data'range);
 signal i_ll_sof_n             : std_logic;
 signal i_ll_eof_n             : std_logic;
 signal i_ll_src_rdy_n         : std_logic;
+signal i_ll_rem               : std_logic_vector(p_out_txll_rem'range);
 signal i_data_en              : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
 signal tst_txbuf_empty        : std_logic;
+signal tst_ll_dst_rdy_n       : std_logic;
 
 --MAIN
 begin
@@ -111,13 +116,14 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
+    tst_txbuf_empty<='0'; tst_ll_dst_rdy_n<='0';
     tst_fms_cs_dly<=(others=>'0');
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
-    tst_txbuf_empty<=p_in_txbuf_empty;
+    tst_txbuf_empty<=p_in_txbuf_empty; tst_ll_dst_rdy_n<=p_in_txll_dst_rdy_n;
     tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty;
+    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or OR_reduce(i_ll_rem) or tst_ll_dst_rdy_n;
   end if;
 end process ltstout;
 
@@ -131,6 +137,18 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_tx_cs=
 end generate gen_dbg_on;
 
 
+i_ll_data_swp<=p_in_txbuf_dout(7 downto 0)&p_in_txbuf_dout(15 downto 8);
+
+i_pkt_lentotal_byte<=p_in_txbuf_dout(15 downto 0) + CONV_STD_LOGIC_VECTOR(p_in_cfg.mac.lentype'length/8, i_pkt_len'length);
+
+gen_ll_d8 : if i_ll_data'length/8=1 generate
+i_pkt_len<=i_pkt_lentotal_byte;
+end generate gen_ll_d8;
+
+gen_ll_d16 : if i_ll_data'length/8=2 generate
+i_pkt_len<=EXT(i_pkt_lentotal_byte(15 downto 1), i_dcnt_len'length) + i_pkt_lentotal_byte(0);
+end generate gen_ll_d16;
+
 --//-------------------------------------------
 --//Автомат загрузки данных в ядро ETH
 --//-------------------------------------------
@@ -143,10 +161,11 @@ begin
     i_ll_sof_n<='1';
     i_ll_eof_n<='1';
     i_ll_src_rdy_n<='1';
+    i_ll_rem<=(others=>'0');
 
     i_usr_txd_rd<='0';
     i_usr_txd_rden<='0';
-    i_pkt_len<=(others=>'0');
+    i_dcnt_len<=(others=>'0');
     i_dcnt<=(others=>'0');
     i_bcnt<=(others=>'0');
     i_data_en<='0';
@@ -168,8 +187,7 @@ begin
 
           if p_in_txbuf_empty='0' then
             --//кол-во передоваемых байт данных
-            i_pkt_len<=p_in_txbuf_dout(15 downto 0);
-
+            i_dcnt_len<=i_pkt_len;
             fsm_eth_tx_cs<=S_TX_MACA_DST0;
           end if;
 
@@ -179,10 +197,15 @@ begin
         --//------------------------------------
         when S_TX_MACA_DST0 =>
 
-          i_ll_data<=p_in_cfg.mac.dst(0);
           i_ll_src_rdy_n<='0';
           i_ll_sof_n<='0';
           i_ll_eof_n<='1';
+
+          for i in 0 to 0 loop
+            for y in 0 to (i_ll_data'length/8)-1 loop
+            i_ll_data(8*(y+1)-1 downto 8*y)<=p_in_cfg.mac.dst(i+y);
+            end loop;
+          end loop;
 
           i_dcnt<=i_dcnt + 1;
 
@@ -190,17 +213,19 @@ begin
 
         when S_TX_MACA_DST1 =>
 
-          for i in 1 to p_in_cfg.mac.dst'high loop
-            if i_dcnt(3 downto 0)=i then
-              i_ll_data<=p_in_cfg.mac.dst(i);
-            end if;
-          end loop;
-
           i_ll_src_rdy_n<='0';
           i_ll_sof_n<='1';
           i_ll_eof_n<='1';
 
-          if i_dcnt=CONV_STD_LOGIC_VECTOR(p_in_cfg.mac.dst'high, i_dcnt'length) then
+          for i in 1 to (p_in_cfg.mac.dst'length/(i_ll_data'length/8))-1 loop
+            if i_dcnt(3 downto 0)=i then
+              for y in 0 to (i_ll_data'length/8)-1 loop
+              i_ll_data(8*(y+1)-1 downto 8*y)<=p_in_cfg.mac.dst((i_ll_data'length/8)*i+y);
+              end loop;
+            end if;
+          end loop;
+
+          if i_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.dst'length/(i_ll_data'length/8))-1, i_dcnt'length) then
             i_dcnt<=(others=>'0');
             fsm_eth_tx_cs<=S_TX_MACA_SRC;
           else
@@ -212,17 +237,19 @@ begin
         --//------------------------------------
         when S_TX_MACA_SRC =>
 
-          for i in 0 to p_in_cfg.mac.src'high loop
-            if i_dcnt(3 downto 0)=i then
-              i_ll_data<=p_in_cfg.mac.src(i);
-            end if;
-          end loop;
-
           i_ll_src_rdy_n<='0';
           i_ll_sof_n<='1';
           i_ll_eof_n<='1';
 
-          if i_dcnt=CONV_STD_LOGIC_VECTOR(p_in_cfg.mac.src'high, i_dcnt'length) then
+          for i in 0 to (p_in_cfg.mac.dst'length/(i_ll_data'length/8))-1 loop
+            if i_dcnt(3 downto 0)=i then
+              for y in 0 to (i_ll_data'length/8)-1 loop
+              i_ll_data(8*(y+1)-1 downto 8*y)<=p_in_cfg.mac.src((i_ll_data'length/8)*i+y);
+              end loop;
+            end if;
+          end loop;
+
+          if i_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.src'length/(i_ll_data'length/8))-1, i_dcnt'length) then
             i_dcnt<=(others=>'0');
             i_usr_txd_rden<='1';
             fsm_eth_tx_cs<=S_TX_MACD;
@@ -242,7 +269,8 @@ begin
 
           if p_in_txbuf_empty='0' then
 
-              if i_dcnt=i_pkt_len+1 then
+              if i_dcnt=i_dcnt_len - 1 then
+                i_ll_rem<=i_dcnt(0 downto 0);
                 i_dcnt<=(others=>'0');
                 i_ll_eof_n<='0';
 
@@ -261,18 +289,28 @@ begin
                 for i in 0 to 1 loop
                   if i_bcnt=i then
                     if G_ETH.mac_length_swap=0 then
-                      i_ll_data<=p_in_txbuf_dout((16-(8*i))-1 downto 16-(8*(i+1)));--Отправка: первый ст. байт
+                      --Отправка: первый ст. байт
+                      if (i_ll_data'length/8)=1 then
+                        i_ll_data<=p_in_txbuf_dout((16-(8*i))-1 downto 16-(8*(i+1)));
+                      else
+                        if i_bcnt=0 then
+                          i_ll_data<=i_ll_data_swp(i_ll_data'range);
+                        else
+                          i_ll_data<=p_in_txbuf_dout(8*(i_ll_data'length/8)*(i+1)-1 downto 8*(i_ll_data'length/8)*i);
+                        end if;
+                      end if;
                     else
-                      i_ll_data<=p_in_txbuf_dout((8*(i+1))-1 downto 8*i);--Отправка: первый мл. байт
+                      --Отправка: первый мл. байт
+                      i_ll_data<=p_in_txbuf_dout(8*(i_ll_data'length/8)*(i+1)-1 downto 8*(i_ll_data'length/8)*i);
                     end if;
                   end if;
                 end loop;
                 i_data_en<=OR_reduce(i_bcnt);
               else
               --//Данные
-                for i in 0 to 3 loop
+                for i in 0 to p_in_txbuf_dout'length/i_ll_data'length - 1 loop
                   if i_bcnt=i then
-                    i_ll_data<=p_in_txbuf_dout((8*(i+1))-1 downto 8*i);
+                    i_ll_data<=p_in_txbuf_dout(8*(i_ll_data'length/8)*(i+1)-1 downto 8*(i_ll_data'length/8)*i);
                   end if;
                 end loop;
               end if;
@@ -289,6 +327,7 @@ begin
           i_ll_sof_n<='1';
           i_ll_eof_n<='1';
           i_ll_src_rdy_n<='1';
+          i_ll_rem<=(others=>'0');
 
           i_usr_txd_rd<='0';
           i_usr_txd_rden<='0';
@@ -307,7 +346,7 @@ p_out_txll_data<=i_ll_data;
 p_out_txll_sof_n<=i_ll_sof_n;
 p_out_txll_eof_n<=i_ll_eof_n;
 p_out_txll_src_rdy_n<=i_ll_src_rdy_n;
-
+p_out_txll_rem<=i_ll_rem;
 
 --END MAIN
 end behavioral;
