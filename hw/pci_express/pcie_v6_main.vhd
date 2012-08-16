@@ -75,7 +75,7 @@ end pcie_main;
 architecture behavioral of pcie_main is
 
 constant CI_PCIEXP_TRN_DBUS       : integer:= 64;
-constant CI_PCIEXP_TRN_REMBUS_OLD : integer:= 8;
+constant CI_PCIEXP_TRN_REMBUS_OLD : integer:= CI_PCIEXP_TRN_DBUS/8;
 constant CI_PCIEXP_TRN_REMBUS_NEW : integer:= 1;
 constant CI_PCIEXP_TRN_BUFAV_BUS  : integer:= 6;
 constant CI_PCIEXP_BARHIT_BUS     : integer:= 7;
@@ -239,6 +239,7 @@ end component;
 
 component pcie_ctrl
 generic(
+G_PCIEXP_TRN_DBUS : integer:=64;
 G_DBG : string :="OFF"
 );
 port(
@@ -265,8 +266,8 @@ p_in_tst                  : in    std_logic_vector(127 downto 0);
 --------------------------------------
 --Tx
 --------------------------------------
-trn_td_o                  : out   std_logic_vector(63 downto 0);
-trn_trem_n_o              : out   std_logic_vector(7 downto 0);
+trn_td_o                  : out   std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
+trn_trem_n_o              : out   std_logic_vector(G_PCIEXP_TRN_DBUS/8-1 downto 0);
 trn_tsof_n_o              : out   std_logic;
 trn_teof_n_o              : out   std_logic;
 trn_tsrc_rdy_n_o          : out   std_logic;
@@ -279,8 +280,8 @@ trn_tbuf_av_i             : in    std_logic_vector(5 downto 0);
 --------------------------------------
 --Rx
 --------------------------------------
-trn_rd_i                  : in    std_logic_vector(63 downto 0);
-trn_rrem_n_i              : in    std_logic_vector(7 downto 0);
+trn_rd_i                  : in    std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
+trn_rrem_n_i              : in    std_logic_vector(G_PCIEXP_TRN_DBUS/8-1 downto 0);
 trn_rsof_n_i              : in    std_logic;
 trn_reof_n_i              : in    std_logic;
 trn_rsrc_rdy_n_i          : in    std_logic;
@@ -508,20 +509,17 @@ p_out_tst(13)<=trn_rdst_rdy_n;
 p_out_tst(14)<=trn_rbar_hit_n(0);
 p_out_tst(15)<=trn_rbar_hit_n(1);
 p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
-p_out_tst(19 downto 17)<=cfg_interrupt_mmenable(2 downto 0);
-p_out_tst(20)<=cfg_status(3);--//Interrupt Status
-p_out_tst(21)<=trn_rcpl_streaming_n;
-p_out_tst(22)<=trn_rnp_ok_n;
-p_out_tst(31 downto 23)<=(others=>'0');
-p_out_tst(95 downto 32)<=trn_td;
-p_out_tst(159 downto 96)<=trn_rd;
-p_out_tst(160)<=trn_rrem_n(0);
-p_out_tst(161)<=trn_terr_drop_n;
-p_out_tst(199 downto 162)<=(others=>'0');
+p_out_tst(17)<=trn_rrem_n(0);
+p_out_tst(18)<='0';--trn_rrem_n(1);
+p_out_tst(82 downto 19)<=trn_td(63 downto 0);--trn_td(127 downto 64);
+p_out_tst(146 downto 83)<=trn_rd(63 downto 0);--trn_rd(127 downto 64);
+p_out_tst(162 downto 147)<=EXT(trn_rrem_n_old, 16);--(others=>'0');
+p_out_tst(168 downto 163)<=trn_tbuf_av;
+p_out_tst(199 downto 169)<=(others=>'0');
 p_out_tst(215 downto 200)<=(others=>'0');
 p_out_tst(231 downto 216)<=(others=>'0');
 p_out_tst(249 downto 248)<=(others=>'0');
-p_out_tst(255 downto 250)<=trn_tbuf_av;
+p_out_tst(255 downto 250)<=(others=>'0');
 
 
 --//#############################################
@@ -679,6 +677,7 @@ pl_upstream_prefer_deemph      => pl_upstream_prefer_deemph      --: in  std_log
 --//#############################################
 m_ctrl : pcie_ctrl
 generic map(
+G_PCIEXP_TRN_DBUS => CI_PCIEXP_TRN_DBUS,
 G_DBG => G_DBG
 )
 port map(

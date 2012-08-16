@@ -1103,8 +1103,8 @@ p_out_tst(121)           <=i_mrd_rcv_size_ok;
 p_out_tst(122)           <=i_dmatrn_mrd_done;
 p_out_tst(123)           <=i_dmatrn_init;
 p_out_tst(124)           <=i_dma_start;
-p_out_tst(125)           <=p_in_rx_engine_tst(0);--cpld_tpl_work;
-p_out_tst(126)           <=p_in_rx_engine_tst(1);--trn_rdw_sel
+p_out_tst(125)           <=p_in_txbuf_wr or p_in_rxbuf_rd;
+p_out_tst(126)           <=p_in_rxbuf_rd_last;
 p_out_tst(127)           <=p_in_txbuf_wr_last;
 
 
