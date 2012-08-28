@@ -54,8 +54,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_tx.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_rx.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_tx_128.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_rx_128.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
@@ -203,7 +203,7 @@ set _projects [ list \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/clocks.vhd" $_VHDMod ] \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v6_main_128.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v6/v6_gt_clkbuf.vhd" $_VHDMod ] \
     ] \
   ] \
