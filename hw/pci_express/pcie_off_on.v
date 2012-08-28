@@ -12,7 +12,6 @@
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
-`include "../../../common/lib/hw/pci_express/pcie_def.v"
 
 module pcie_off_on
 (

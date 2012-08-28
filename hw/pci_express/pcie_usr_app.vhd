@@ -81,7 +81,7 @@ p_in_reg_rd                    : in    std_logic;
 p_out_dmatrn_init              : out   std_logic;
 
 --Управление DMATRN_WR (PC<-FPGA) (MEMORY WRITE)
-p_out_mwr_work                 : out   std_logic;
+p_out_mwr_en                   : out   std_logic;
 p_in_mwr_done                  : in    std_logic;
 p_out_mwr_addr_up              : out   std_logic_vector(7 downto 0);
 p_out_mwr_addr                 : out   std_logic_vector(31 downto 0);
@@ -97,7 +97,7 @@ p_out_mwr_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mwr_fbe                  : out   std_logic_vector(3 downto 0);
 
 --Управление DMATRN_RD (PC->FPGA) (MEMORY READ)
-p_out_mrd_work                 : out   std_logic;
+p_out_mrd_en                   : out   std_logic;
 p_out_mrd_addr_up              : out   std_logic_vector(7 downto 0);
 p_out_mrd_addr                 : out   std_logic_vector(31 downto 0);
 p_out_mrd_len                  : out   std_logic_vector(31 downto 0);
@@ -289,7 +289,7 @@ p_out_hclk <= p_in_clk;
 p_out_dmatrn_init <= i_dmatrn_init or i_usr_grst;
 
 --//Управление DMATRN_WR (PC<-FPGA) (MEMORY WRITE)
-p_out_mwr_work          <=i_dmatrn_work and     v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC<-FPGA
+p_out_mwr_en            <=i_dmatrn_work and     v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC<-FPGA
 p_out_mwr_addr_up       <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mwr_addr_up'length);
 p_out_mwr_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --//Адрес системной памяти ХОСТА
 p_out_mwr_len           <=EXT(i_mwr_payload_dw_result, p_out_mwr_len'length);--//Len(DW) для последнего пакета
@@ -304,7 +304,7 @@ p_out_mwr_fbe           <=i_mwr_fbe;
 p_out_mwr_lbe           <=i_mwr_lbe;
 
 --//Управление DMATRN_RD (PC->FPGA) (MEMORY READ)
-p_out_mrd_work          <=i_dmatrn_work and not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC->FPGA
+p_out_mrd_en          <=i_dmatrn_work and not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC->FPGA
 p_out_mrd_addr_up       <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_addr_up'length);
 p_out_mrd_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --//Адрес системной памяти ХОСТА
 p_out_mrd_len           <=EXT(i_mrd_payload_dw_result, p_out_mrd_len'length);--//Len(DW) для последнего пакета

@@ -74,8 +74,8 @@ end pcie_main;
 
 architecture behavioral of pcie_main is
 
-constant CI_PCIEXP_TRN_DBUS       : integer:= 64;--128;--
-constant CI_PCIEXP_TRN_REMBUS_NEW : integer:= 1 ;--2  ;--
+constant CI_PCIEXP_TRN_DBUS       : integer:= 128;--64;--
+constant CI_PCIEXP_TRN_REMBUS_NEW : integer:= 2  ;--1 ;--
 constant CI_PCIEXP_TRN_BUFAV_BUS  : integer:= 6  ;
 constant CI_PCIEXP_BARHIT_BUS     : integer:= 7  ;
 constant CI_PCIEXP_FC_HDR_BUS     : integer:= 8  ;
@@ -107,7 +107,7 @@ pci_exp_rxn             : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0); 
 --Tx
 --------------------------------------
 trn_td                  : in    std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);         --trn_td                  : in  std_logic_vector(63 downto 0);
-trn_trem_n              : in    std_logic;--_vector(1 downto 0);                            --trn_trem_n              : in  std_logic;
+trn_trem_n              : in    std_logic_vector(1 downto 0);                            --trn_trem_n              : in  std_logic;
 trn_tsof_n              : in    std_logic;                                               --trn_tsof_n              : in  std_logic;
 trn_teof_n              : in    std_logic;                                               --trn_teof_n              : in  std_logic;
 trn_tsrc_rdy_n          : in    std_logic;                                               --trn_tsrc_rdy_n          : in  std_logic;
@@ -121,7 +121,7 @@ trn_tbuf_av             : out   std_logic_vector(CI_PCIEXP_TRN_BUFAV_BUS-1 downt
 --Rx
 --------------------------------------
 trn_rd                  : out   std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);         --trn_rd                  : out std_logic_vector(63 downto 0);
-trn_rrem_n              : out   std_logic;--_vector(1 downto 0);                            --trn_rrem_n              : out std_logic;
+trn_rrem_n              : out   std_logic_vector(1 downto 0);                            --trn_rrem_n              : out std_logic;
 trn_rsof_n              : out   std_logic;                                               --trn_rsof_n              : out std_logic;
 trn_reof_n              : out   std_logic;                                               --trn_reof_n              : out std_logic;
 trn_rsrc_rdy_n          : out   std_logic;                                               --trn_rsrc_rdy_n          : out std_logic;
@@ -195,10 +195,10 @@ sys_reset_n             : in    std_logic;                                      
 --------------------------------------
 --New Signal
 --------------------------------------
-trn_tcfg_req_n                 : out std_logic; --только для core/=x8
+--trn_tcfg_req_n                 : out std_logic; --только для core/=x8
 trn_terr_drop_n                : out std_logic;
 
-trn_tcfg_gnt_n                 : in  std_logic; --только для core/=x8
+--trn_tcfg_gnt_n                 : in  std_logic; --только для core/=x8
 trn_tstr_n                     : in  std_logic;
 
 trn_fc_cpld                    : out std_logic_vector(11 downto 0);
@@ -543,7 +543,7 @@ pci_exp_rxn             => p_in_pciexp_rxn,
 --Tx
 --------------------------------------
 trn_td                  => trn_td,
-trn_trem_n              => trn_trem_n_core(0),
+trn_trem_n              => trn_trem_n_core,--(0),
 trn_tsof_n              => trn_tsof_n,
 trn_teof_n              => trn_teof_n,
 trn_tsrc_rdy_n          => trn_tsrc_rdy_n,
@@ -557,7 +557,7 @@ trn_tbuf_av             => trn_tbuf_av,
 --Rx
 --------------------------------------
 trn_rd                  => trn_rd,
-trn_rrem_n              => trn_rrem_n_core(0),
+trn_rrem_n              => trn_rrem_n_core,--(0),
 trn_rsof_n              => trn_rsof_n,
 trn_reof_n              => trn_reof_n,
 trn_rsrc_rdy_n          => trn_rsrc_rdy_n,
@@ -631,10 +631,10 @@ sys_reset_n             => sys_reset_n,
 --------------------------------------
 --//New Signal
 --------------------------------------
-trn_tcfg_req_n                 => trn_tcfg_req_n                ,--: out std_logic;  --только для core/=x8
+--trn_tcfg_req_n                 => trn_tcfg_req_n                ,--: out std_logic;  --только для core/=x8
 trn_terr_drop_n                => trn_terr_drop_n               ,--: out std_logic;
 
-trn_tcfg_gnt_n                 => trn_tcfg_gnt_n                ,--: in  std_logic;  --только для core/=x8
+--trn_tcfg_gnt_n                 => trn_tcfg_gnt_n                ,--: in  std_logic;  --только для core/=x8
 trn_tstr_n                     => trn_tstr_n                    ,--: in  std_logic;
 
 trn_fc_cpld                    => trn_fc_cpld                   ,--: out std_logic_vector(11 downto 0);

@@ -74,20 +74,20 @@ end pcie_main;
 
 architecture behavioral of pcie_main is
 
-constant GI_PCI_EXP_TRN_DATA_WIDTH       : integer:= 64;
-constant GI_PCI_EXP_TRN_REM_WIDTH        : integer:= 8;
-constant GI_PCI_EXP_TRN_BUF_AV_WIDTH     : integer:= 4;
-constant GI_PCI_EXP_BAR_HIT_WIDTH        : integer:= 7;
-constant GI_PCI_EXP_FC_HDR_WIDTH         : integer:= 8;
-constant GI_PCI_EXP_FC_DATA_WIDTH        : integer:= 12;
-constant GI_PCI_EXP_CFG_DATA_WIDTH       : integer:= 32;
-constant GI_PCI_EXP_CFG_ADDR_WIDTH       : integer:= 10;
-constant GI_PCI_EXP_CFG_CPLHDR_WIDTH     : integer:= 48;
-constant GI_PCI_EXP_CFG_BUSNUM_WIDTH     : integer:= 8;
-constant GI_PCI_EXP_CFG_DEVNUM_WIDTH     : integer:= 5;
-constant GI_PCI_EXP_CFG_FUNNUM_WIDTH     : integer:= 3;
-constant GI_PCI_EXP_CFG_CAP_WIDTH        : integer:= 16;
 
+constant CI_PCIEXP_TRN_DBUS       : integer:= 64;
+constant CI_PCIEXP_TRN_REMBUS     : integer:= CI_PCIEXP_TRN_DBUS/8;
+constant CI_PCIEXP_TRN_BUFAV_BUS  : integer:= 4;
+constant CI_PCIEXP_BARHIT_BUS     : integer:= 7;
+constant CI_PCIEXP_FC_HDR_BUS     : integer:= 8;
+constant CI_PCIEXP_FC_DBUS        : integer:= 12;
+constant CI_PCIEXP_CFG_DBUS       : integer:= 32;
+constant CI_PCIEXP_CFG_ABUS       : integer:= 10;
+constant CI_PCIEXP_CFG_CPLHDR_BUS : integer:= 48;
+constant CI_PCIEXP_CFG_BUSNUM_BUS : integer:= 8;
+constant CI_PCIEXP_CFG_DEVNUM_BUS : integer:= 5;
+constant CI_PCIEXP_CFG_FUNNUM_BUS : integer:= 3;
+constant CI_PCIEXP_CFG_CAP_BUS    : integer:= 16;
 
 component core_pciexp_ep_blk_plus
 --generic(
@@ -107,8 +107,8 @@ pci_exp_rxn                : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0
 --------------------------------------
 --Tx
 --------------------------------------
-trn_td                     : in    std_logic_vector(GI_PCI_EXP_TRN_DATA_WIDTH-1 downto 0);
-trn_trem_n                 : in    std_logic_vector(GI_PCI_EXP_TRN_REM_WIDTH-1 downto 0);
+trn_td                     : in    std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+trn_trem_n                 : in    std_logic_vector(CI_PCIEXP_TRN_REMBUS-1 downto 0);
 trn_tsof_n                 : in    std_logic;
 trn_teof_n                 : in    std_logic;
 trn_tsrc_rdy_n             : in    std_logic;
@@ -116,13 +116,13 @@ trn_tdst_rdy_n             : out   std_logic;
 trn_tdst_dsc_n             : out   std_logic;
 trn_tsrc_dsc_n             : in    std_logic;
 trn_terrfwd_n              : in    std_logic;
-trn_tbuf_av                : out   std_logic_vector(GI_PCI_EXP_TRN_BUF_AV_WIDTH-1 downto 0);
+trn_tbuf_av                : out   std_logic_vector(CI_PCIEXP_TRN_BUFAV_BUS-1 downto 0);
 
 --------------------------------------
 --Rx
 --------------------------------------
-trn_rd                     : out   std_logic_vector(GI_PCI_EXP_TRN_DATA_WIDTH-1 downto 0);
-trn_rrem_n                 : out   std_logic_vector(GI_PCI_EXP_TRN_REM_WIDTH-1 downto 0);
+trn_rd                     : out   std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+trn_rrem_n                 : out   std_logic_vector(CI_PCIEXP_TRN_REMBUS-1 downto 0);
 trn_rsof_n                 : out   std_logic;
 trn_reof_n                 : out   std_logic;
 trn_rsrc_rdy_n             : out   std_logic;
@@ -130,21 +130,21 @@ trn_rsrc_dsc_n             : out   std_logic;
 trn_rdst_rdy_n             : in    std_logic;
 trn_rerrfwd_n              : out   std_logic;
 trn_rnp_ok_n               : in    std_logic;
-trn_rbar_hit_n             : out   std_logic_vector(GI_PCI_EXP_BAR_HIT_WIDTH-1 downto 0);
-trn_rfc_nph_av             : out   std_logic_vector(GI_PCI_EXP_FC_HDR_WIDTH-1 downto 0);
-trn_rfc_npd_av             : out   std_logic_vector(GI_PCI_EXP_FC_DATA_WIDTH-1 downto 0);
-trn_rfc_ph_av              : out   std_logic_vector(GI_PCI_EXP_FC_HDR_WIDTH-1 downto 0);
-trn_rfc_pd_av              : out   std_logic_vector(GI_PCI_EXP_FC_DATA_WIDTH-1 downto 0);
+trn_rbar_hit_n             : out   std_logic_vector(CI_PCIEXP_BARHIT_BUS-1 downto 0);
+trn_rfc_nph_av             : out   std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
+trn_rfc_npd_av             : out   std_logic_vector(CI_PCIEXP_FC_DBUS-1 downto 0);
+trn_rfc_ph_av              : out   std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
+trn_rfc_pd_av              : out   std_logic_vector(CI_PCIEXP_FC_DBUS-1 downto 0);
 trn_rcpl_streaming_n       : in    std_logic;
 
 --------------------------------------
 --CFG Interface
 --------------------------------------
-cfg_do                     : out   std_logic_vector(GI_PCI_EXP_CFG_DATA_WIDTH-1 downto 0);
+cfg_do                     : out   std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
 cfg_rd_wr_done_n           : out   std_logic;
-cfg_di                     : in    std_logic_vector(GI_PCI_EXP_CFG_DATA_WIDTH-1 downto 0);
-cfg_byte_en_n              : in    std_logic_vector(GI_PCI_EXP_CFG_DATA_WIDTH/8-1 downto 0);
-cfg_dwaddr                 : in    std_logic_vector(GI_PCI_EXP_CFG_ADDR_WIDTH-1 downto 0);
+cfg_di                     : in    std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
+cfg_byte_en_n              : in    std_logic_vector(CI_PCIEXP_CFG_DBUS/8-1 downto 0);
+cfg_dwaddr                 : in    std_logic_vector(CI_PCIEXP_CFG_ABUS-1 downto 0);
 cfg_wr_en_n                : in    std_logic;
 cfg_rd_en_n                : in    std_logic;
 cfg_err_cor_n              : in    std_logic;
@@ -154,7 +154,7 @@ cfg_err_cpl_timeout_n      : in    std_logic;
 cfg_err_cpl_abort_n        : in    std_logic;
 cfg_err_cpl_unexpect_n     : in    std_logic;
 cfg_err_posted_n           : in    std_logic;
-cfg_err_tlp_cpl_header     : in    std_logic_vector(GI_PCI_EXP_CFG_CPLHDR_WIDTH-1 downto 0);
+cfg_err_tlp_cpl_header     : in    std_logic_vector(CI_PCIEXP_CFG_CPLHDR_BUS-1 downto 0);
 
 cfg_err_cpl_rdy_n          : out   std_logic;
 cfg_err_locked_n           : in    std_logic;
@@ -169,16 +169,16 @@ cfg_to_turnoff_n           : out   std_logic;
 cfg_pm_wake_n              : in    std_logic;
 cfg_pcie_link_state_n      : out   std_logic_vector(2 downto 0);
 cfg_trn_pending_n          : in    std_logic;
-cfg_bus_number             : out   std_logic_vector(GI_PCI_EXP_CFG_BUSNUM_WIDTH-1 downto 0);
-cfg_device_number          : out   std_logic_vector(GI_PCI_EXP_CFG_DEVNUM_WIDTH-1 downto 0);
-cfg_function_number        : out   std_logic_vector(GI_PCI_EXP_CFG_FUNNUM_WIDTH-1 downto 0);
+cfg_bus_number             : out   std_logic_vector(CI_PCIEXP_CFG_BUSNUM_BUS-1 downto 0);
+cfg_device_number          : out   std_logic_vector(CI_PCIEXP_CFG_DEVNUM_BUS-1 downto 0);
+cfg_function_number        : out   std_logic_vector(CI_PCIEXP_CFG_FUNNUM_BUS-1 downto 0);
 cfg_dsn                    : in    std_logic_vector(63 downto 0);
-cfg_status                 : out   std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-cfg_command                : out   std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-cfg_dstatus                : out   std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-cfg_dcommand               : out   std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-cfg_lstatus                : out   std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-cfg_lcommand               : out   std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
+cfg_status                 : out   std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+cfg_command                : out   std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+cfg_dstatus                : out   std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+cfg_dcommand               : out   std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+cfg_lstatus                : out   std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+cfg_lcommand               : out   std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
 fast_train_simulation_only : in    std_logic;
 
 --------------------------------------
@@ -196,6 +196,7 @@ end component;
 
 component pcie_ctrl
 generic(
+G_PCIEXP_TRN_DBUS : integer:=64;
 G_DBG : string :="OFF"
 );
 port(
@@ -222,8 +223,8 @@ p_in_tst                  : in    std_logic_vector(127 downto 0);
 --------------------------------------
 --Tx
 --------------------------------------
-trn_td_o                  : out   std_logic_vector(63 downto 0);
-trn_trem_n_o              : out   std_logic_vector(7 downto 0);
+trn_td_o                  : out   std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
+trn_trem_n_o              : out   std_logic_vector(3 downto 0);
 trn_tsof_n_o              : out   std_logic;
 trn_teof_n_o              : out   std_logic;
 trn_tsrc_rdy_n_o          : out   std_logic;
@@ -236,8 +237,8 @@ trn_tbuf_av_i             : in    std_logic_vector(5 downto 0);
 --------------------------------------
 --Rx
 --------------------------------------
-trn_rd_i                  : in    std_logic_vector(63 downto 0);
-trn_rrem_n_i              : in    std_logic_vector(7 downto 0);
+trn_rd_i                  : in    std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
+trn_rrem_n_i              : in    std_logic_vector(3 downto 0);
 trn_rsof_n_i              : in    std_logic;
 trn_reof_n_i              : in    std_logic;
 trn_rsrc_rdy_n_i          : in    std_logic;
@@ -334,9 +335,10 @@ signal trn_tdst_rdy_n             : std_logic;
 signal trn_tsrc_dsc_n             : std_logic;
 signal trn_terrfwd_n              : std_logic;
 signal trn_tdst_dsc_n             : std_logic;
-signal trn_td                     : std_logic_vector(GI_PCI_EXP_TRN_DATA_WIDTH-1 downto 0);
-signal trn_trem_n                 : std_logic_vector(GI_PCI_EXP_TRN_REM_WIDTH-1 downto 0);
-signal trn_tbuf_av                : std_logic_vector(GI_PCI_EXP_TRN_BUF_AV_WIDTH-1 downto 0);
+signal trn_td                     : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+signal trn_trem_n                 : std_logic_vector(3 downto 0);
+signal trn_tbuf_av                : std_logic_vector(CI_PCIEXP_TRN_BUFAV_BUS-1 downto 0);
+signal trn_trem_n_core            : std_logic_vector(CI_PCIEXP_TRN_REMBUS-1 downto 0);
 
 signal trn_rsof_n                 : std_logic;
 signal trn_reof_n                 : std_logic;
@@ -345,24 +347,25 @@ signal trn_rsrc_dsc_n             : std_logic;
 signal trn_rdst_rdy_n             : std_logic;
 signal trn_rerrfwd_n              : std_logic;
 signal trn_rnp_ok_n               : std_logic;
-signal trn_rd                     : std_logic_vector(GI_PCI_EXP_TRN_DATA_WIDTH-1 downto 0);
-signal trn_rrem_n                 : std_logic_vector(GI_PCI_EXP_TRN_REM_WIDTH-1 downto 0);
-signal trn_rbar_hit_n             : std_logic_vector(GI_PCI_EXP_BAR_HIT_WIDTH-1 downto 0);
-signal trn_rfc_nph_av             : std_logic_vector(GI_PCI_EXP_FC_HDR_WIDTH-1 downto 0);
-signal trn_rfc_npd_av             : std_logic_vector(GI_PCI_EXP_FC_DATA_WIDTH-1 downto 0);
-signal trn_rfc_ph_av              : std_logic_vector(GI_PCI_EXP_FC_HDR_WIDTH-1 downto 0);
-signal trn_rfc_pd_av              : std_logic_vector(GI_PCI_EXP_FC_DATA_WIDTH-1 downto 0);
+signal trn_rd                     : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+signal trn_rrem_n                 : std_logic_vector(3 downto 0);
+signal trn_rrem_n_core            : std_logic_vector(CI_PCIEXP_TRN_REMBUS-1 downto 0);
+signal trn_rbar_hit_n             : std_logic_vector(CI_PCIEXP_BARHIT_BUS-1 downto 0);
+signal trn_rfc_nph_av             : std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
+signal trn_rfc_npd_av             : std_logic_vector(CI_PCIEXP_FC_DBUS-1 downto 0);
+signal trn_rfc_ph_av              : std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
+signal trn_rfc_pd_av              : std_logic_vector(CI_PCIEXP_FC_DBUS-1 downto 0);
 signal trn_rcpl_streaming_n       : std_logic;
 
-signal cfg_do                     : std_logic_vector(GI_PCI_EXP_CFG_DATA_WIDTH-1 downto 0);
-signal cfg_di                     : std_logic_vector(GI_PCI_EXP_CFG_DATA_WIDTH-1 downto 0);
-signal cfg_dwaddr                 : std_logic_vector(GI_PCI_EXP_CFG_ADDR_WIDTH-1 downto 0);
-signal cfg_byte_en_n              : std_logic_vector(GI_PCI_EXP_CFG_DATA_WIDTH/8-1 downto 0);
+signal cfg_do                     : std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
+signal cfg_di                     : std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
+signal cfg_dwaddr                 : std_logic_vector(CI_PCIEXP_CFG_ABUS-1 downto 0);
+signal cfg_byte_en_n              : std_logic_vector(CI_PCIEXP_CFG_DBUS/8-1 downto 0);
 signal cfg_wr_en_n                : std_logic;
 signal cfg_rd_en_n                : std_logic;
 signal cfg_rd_wr_done_n           : std_logic;
 
-signal cfg_err_tlp_cpl_header     : std_logic_vector(GI_PCI_EXP_CFG_CPLHDR_WIDTH-1 downto 0);
+signal cfg_err_tlp_cpl_header     : std_logic_vector(CI_PCIEXP_CFG_CPLHDR_BUS-1 downto 0);
 signal cfg_err_cor_n              : std_logic;
 signal cfg_err_ur_n               : std_logic;
 signal cfg_err_cpl_rdy_n          : std_logic;
@@ -388,15 +391,15 @@ signal cfg_trn_pending_n          : std_logic;
 signal cfg_dsn                    : std_logic_vector(63 downto 0);
 
 signal cfg_pcie_link_state_n      : std_logic_vector(2 downto 0);
-signal cfg_bus_number             : std_logic_vector(GI_PCI_EXP_CFG_BUSNUM_WIDTH-1 downto 0);
-signal cfg_device_number          : std_logic_vector(GI_PCI_EXP_CFG_DEVNUM_WIDTH-1 downto 0);
-signal cfg_function_number        : std_logic_vector(GI_PCI_EXP_CFG_FUNNUM_WIDTH-1 downto 0);
-signal cfg_status                 : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-signal cfg_command                : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-signal cfg_dstatus                : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-signal cfg_dcommand               : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-signal cfg_lstatus                : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
-signal cfg_lcommand               : std_logic_vector(GI_PCI_EXP_CFG_CAP_WIDTH-1 downto 0);
+signal cfg_bus_number             : std_logic_vector(CI_PCIEXP_CFG_BUSNUM_BUS-1 downto 0);
+signal cfg_device_number          : std_logic_vector(CI_PCIEXP_CFG_DEVNUM_BUS-1 downto 0);
+signal cfg_function_number        : std_logic_vector(CI_PCIEXP_CFG_FUNNUM_BUS-1 downto 0);
+signal cfg_status                 : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+signal cfg_command                : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+signal cfg_dstatus                : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+signal cfg_dcommand               : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+signal cfg_lstatus                : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+signal cfg_lcommand               : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
 
 signal user_trn_tbuf_av           : std_logic_vector(5 downto 0);--(15 downto 0);
 
@@ -425,19 +428,17 @@ p_out_tst(13)<=trn_rdst_rdy_n;
 p_out_tst(14)<=trn_rbar_hit_n(0);
 p_out_tst(15)<=trn_rbar_hit_n(1);
 p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
-p_out_tst(19 downto 17)<=cfg_interrupt_mmenable(2 downto 0);
-p_out_tst(20)<=cfg_status(3);--//Interrupt Status
-p_out_tst(21)<=trn_rcpl_streaming_n;
-p_out_tst(22)<=trn_rnp_ok_n;
-p_out_tst(31 downto 23)<=(others=>'0');
-p_out_tst(95 downto 32)<=trn_td;
-p_out_tst(159 downto 96)<=trn_rd;
-p_out_tst(160)<=trn_rrem_n(0);
-p_out_tst(199 downto 161)<=(others=>'0');
+p_out_tst(18 downto 17)<=trn_rrem_n_core(4)&trn_rrem_n_core(0);--EXT(trn_rrem_n, 18-17+1);
+p_out_tst(146 downto 19)<=EXT(trn_rd, 128);
+--p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
+p_out_tst(162 downto 147)<=(others=>'0');--EXT(trn_rrem_n_old, 162-147+1);--
+p_out_tst(168 downto 163)<=user_trn_tbuf_av;--trn_tbuf_av;
+p_out_tst(170 downto 169)<=trn_trem_n(1)&trn_trem_n(0);--EXT(trn_trem_n, 170-169+1);
+p_out_tst(199 downto 171)<=(others=>'0');
 p_out_tst(215 downto 200)<=(others=>'0');
 p_out_tst(231 downto 216)<=(others=>'0');
-p_out_tst(248)           <='0';
-p_out_tst(255 downto 249)<=(others=>'0');
+p_out_tst(249 downto 248)<=(others=>'0');
+p_out_tst(255 downto 250)<=(others=>'0');
 
 
 --//#############################################
@@ -462,7 +463,7 @@ pci_exp_rxn                => p_in_pciexp_rxn,
 --Tx
 --------------------------------------
 trn_td                     => trn_td,
-trn_trem_n                 => trn_trem_n,
+trn_trem_n                 => trn_trem_n_core,
 trn_tsof_n                 => trn_tsof_n,
 trn_teof_n                 => trn_teof_n,
 trn_tsrc_rdy_n             => trn_tsrc_rdy_n,
@@ -476,7 +477,7 @@ trn_tbuf_av                => trn_tbuf_av,
 --Rx
 --------------------------------------
 trn_rd                     => trn_rd,
-trn_rrem_n                 => trn_rrem_n,
+trn_rrem_n                 => trn_rrem_n_core,
 trn_rsof_n                 => trn_rsof_n,
 trn_reof_n                 => trn_reof_n,
 trn_rsrc_rdy_n             => trn_rsrc_rdy_n,
@@ -553,6 +554,7 @@ sys_reset_n                => sys_reset_n
 --//#############################################
 m_ctrl : pcie_ctrl
 generic map(
+G_PCIEXP_TRN_DBUS => CI_PCIEXP_TRN_DBUS,
 G_DBG => G_DBG
 )
 port map(
@@ -687,6 +689,8 @@ module_rdy_o       => p_out_module_rdy
 
 end generate gen_intr_rst;
 
+trn_trem_n_core <= CONV_STD_LOGIC_VECTOR(16#0F#, trn_trem_n_core'length) when (trn_trem_n(0) = '1') else (others=>'0');
+trn_rrem_n      <= CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length) when trn_rrem_n_core = CONV_STD_LOGIC_VECTOR(16#0F#, trn_trem_n_core'length) else (others=>'0');
 
 --END MAIN
 end behavioral;

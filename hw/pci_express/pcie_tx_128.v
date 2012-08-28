@@ -5,7 +5,7 @@
 //-- Create Date : 25.08.2012 17:22:12
 //-- Module Name : pcie_tx.v
 //--
-//-- Description : PCI core data bus 64bit
+//-- Description : PCI core data bus 128bit
 //--
 //-- Revision:
 //-- Revision 0.01 - File Created
@@ -20,9 +20,9 @@
 `define STATE_TX_MWR_QW1    4'h2 //8'b00000100 //
 `define STATE_TX_MWR_QWN    4'h3 //8'b00001000 //
 `define STATE_TX_MRD_QW1    4'h4 //8'b00010000 //
-`define STATE_TX_CPLD_WT0   4'h5 //8'b00100000 //
-`define STATE_TX_MRD_QW0    4'h6 //8'b01000000 //
-`define STATE_TX_MWR_QW0    4'h7 //8'b10000000 //
+//`define STATE_TX_CPLD_WT0   4'h5 //8'b00100000 //
+//`define STATE_TX_MRD_QW0    4'h6 //8'b01000000 //
+//`define STATE_TX_MWR_QW0    4'h7 //8'b10000000 //
 
 
 module pcie_tx(
@@ -36,7 +36,7 @@ output             usr_rxbuf_rd_last_o,
 input              usr_rxbuf_empty_i,
 
 //pci_core <- usr_app
-output reg [63:0]  trn_td,
+output reg [127:0] trn_td,
 output reg [3:0]   trn_trem_n,
 output reg         trn_tsof_n,
 output reg         trn_teof_n,
@@ -153,7 +153,7 @@ reg [10:0]   mrd_len_dw_req;
 reg [10:0]   mrd_len_dw;
 
 reg          mwr_work;
-reg [0:0]    trn_dw_sel;
+reg [1:0]    trn_dw_sel;
 
 assign trn_tsrc_dsc_n = 1'b1;
 
@@ -307,43 +307,11 @@ begin
                 if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_COMPLETION_QUEUE]) &&
                     sr_req_compl && !compl_done_o)
                 begin
-//                    trn_tsof_n     <= 1'b0;
-//                    trn_teof_n     <= 1'b0;
-//                    trn_tsrc_rdy_n <= 1'b0;
-//                    trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-//                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h01;
-//
-//                    trn_td <= {{1'b0},         //Reserved
-//                               {((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-//                                 (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? `C_FMT_TYPE_CPLD_3DW_WD : `C_FMT_TYPE_CPL_3DW_ND},
-//                               {1'b0},         //Reserved
-//                                req_tc_i,      //TC (Traffic Class)
-//                               {4'b0},         //Reserved
-//                                req_td_i,      //TD (TLP Digest Field present)
-//                                req_ep_i,      //EP (Poisend Data)
-//                                req_attr_i,    //Attr (Attributes)
-//                               {2'b0},         //Reserved
-//                                req_len_i,     //Length data payload (DW)
-//                                completer_id_i,
-//                               {3'b0},         //CS (Completion Status Code)
-//                               {1'b0},         //BCM (Byte Count Modified)
-//                               byte_count,
-//                               req_rid_i,
-//                               req_tag_i,
-//                               {1'b0},          //Reserved
-//                               lower_addr,
-//                               {req_exprom_i ? 32'b0 : {usr_reg_dout_i[07:00],
-//                                                        usr_reg_dout_i[15:08],
-//                                                        usr_reg_dout_i[23:16],
-//                                                        usr_reg_dout_i[31:24]}}
-//                               };
-//
-//                    compl_done_o <= 1'b1;
-//                    fsm_state <= `STATE_TX_CPLD_WT1;
                     trn_tsof_n     <= 1'b0;
-                    trn_teof_n     <= 1'b1;
+                    trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= 0;
+                    trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
+                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h01;
 
                     trn_td <= {{1'b0},         //Reserved
                                {((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
@@ -359,11 +327,43 @@ begin
                                 completer_id_i,
                                {3'b0},         //CS (Completion Status Code)
                                {1'b0},         //BCM (Byte Count Modified)
-                               byte_count
+                               byte_count,
+                               req_rid_i,
+                               req_tag_i,
+                               {1'b0},          //Reserved
+                               lower_addr,
+                               {req_exprom_i ? 32'b0 : {usr_reg_dout_i[07:00],
+                                                        usr_reg_dout_i[15:08],
+                                                        usr_reg_dout_i[23:16],
+                                                        usr_reg_dout_i[31:24]}}
                                };
 
-                    compl_done_o <= 1'b0;
-                    fsm_state <= `STATE_TX_CPLD_WT0;
+                    compl_done_o <= 1'b1;
+                    fsm_state <= `STATE_TX_CPLD_WT1;
+//                    trn_tsof_n     <= 1'b0;
+//                    trn_teof_n     <= 1'b1;
+//                    trn_tsrc_rdy_n <= 1'b0;
+//                    trn_trem_n     <= 0;
+//
+//                    trn_td <= {{1'b0},         //Reserved
+//                               {((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
+//                                 (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? `C_FMT_TYPE_CPLD_3DW_WD : `C_FMT_TYPE_CPL_3DW_ND},
+//                               {1'b0},         //Reserved
+//                                req_tc_i,      //TC (Traffic Class)
+//                               {4'b0},         //Reserved
+//                                req_td_i,      //TD (TLP Digest Field present)
+//                                req_ep_i,      //EP (Poisend Data)
+//                                req_attr_i,    //Attr (Attributes)
+//                               {2'b0},         //Reserved
+//                                req_len_i,     //Length data payload (DW)
+//                                completer_id_i,
+//                               {3'b0},         //CS (Completion Status Code)
+//                               {1'b0},         //BCM (Byte Count Modified)
+//                               byte_count
+//                               };
+//
+//                    compl_done_o <= 1'b0;
+//                    fsm_state <= `STATE_TX_CPLD_WT0;
                 end
                 else
                   //-----------------------------------------------------
@@ -395,17 +395,17 @@ begin
                       else if (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
                       else                                                          mwr_len_byte <= 13'h80; //4 * mwr_len_dw
 
-//                      trn_tsof_n     <= 1'b1;
-//                      trn_teof_n     <= 1'b1;
-//                      trn_tsrc_rdy_n <= 1'b1;
-//                      trn_trem_n     <= 0;
-//                      mwr_work <= 1'b1;
-//                      fsm_state <= `STATE_TX_MWR_QW1;
                       trn_tsof_n     <= 1'b1;
                       trn_teof_n     <= 1'b1;
                       trn_tsrc_rdy_n <= 1'b1;
                       trn_trem_n     <= 0;
-                      fsm_state <= `STATE_TX_MWR_QW0;
+                      mwr_work <= 1'b1;
+                      fsm_state <= `STATE_TX_MWR_QW1;
+//                      trn_tsof_n     <= 1'b1;
+//                      trn_teof_n     <= 1'b1;
+//                      trn_tsrc_rdy_n <= 1'b1;
+//                      trn_trem_n     <= 0;
+//                      fsm_state <= `STATE_TX_MWR_QW0;
                   end
                   else
                     //-----------------------------------------------------
@@ -437,16 +437,16 @@ begin
                         else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
                         else                                                          mrd_len_byte <= 13'h80; //4 * mrd_len_dw
 
-//                        trn_tsof_n     <= 1'b1;
-//                        trn_teof_n     <= 1'b1;
-//                        trn_tsrc_rdy_n <= 1'b1;
-//                        trn_trem_n     <= 0;
-//                        fsm_state <= `STATE_TX_MRD_QW1;
                         trn_tsof_n     <= 1'b1;
                         trn_teof_n     <= 1'b1;
                         trn_tsrc_rdy_n <= 1'b1;
                         trn_trem_n     <= 0;
-                        fsm_state <= `STATE_TX_MRD_QW0;
+                        fsm_state <= `STATE_TX_MRD_QW1;
+//                        trn_tsof_n     <= 1'b1;
+//                        trn_teof_n     <= 1'b1;
+//                        trn_tsrc_rdy_n <= 1'b1;
+//                        trn_trem_n     <= 0;
+//                        fsm_state <= `STATE_TX_MRD_QW0;
                     end
                     else
                       begin
@@ -466,35 +466,35 @@ begin
             //#######################################################################
             //CplD - 3DW, +data;  Cpl - 3DW (PC<-FPGA)
             //#######################################################################
-            `STATE_TX_CPLD_WT0 :
-            begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n)
-                begin
-                    trn_tsof_n     <= 1'b1;
-                    trn_teof_n     <= 1'b0;
-                    trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h1;
-
-                    trn_td <= {req_rid_i,
-                               req_tag_i,
-                               {1'b0},          //Reserved
-                               lower_addr,
-                               {req_exprom_i ? 32'b0 : {usr_reg_dout_i[07:00],
-                                                        usr_reg_dout_i[15:08],
-                                                        usr_reg_dout_i[23:16],
-                                                        usr_reg_dout_i[31:24]}}
-                               };
-
-                    compl_done_o <= 1'b1;
-                    fsm_state <= `STATE_TX_CPLD_WT1;
-                end
-                else
-                  if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
-                    fsm_state <= `STATE_TX_CPLD_WT1;
-                  else
-                    fsm_state <= `STATE_TX_CPLD_WT0;
-            end
+//            `STATE_TX_CPLD_WT0 :
+//            begin
+//                if (!trn_tdst_rdy_n && trn_tdst_dsc_n)
+//                begin
+//                    trn_tsof_n     <= 1'b1;
+//                    trn_teof_n     <= 1'b0;
+//                    trn_tsrc_rdy_n <= 1'b0;
+//                    trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
+//                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h1;
+//
+//                    trn_td <= {req_rid_i,
+//                               req_tag_i,
+//                               {1'b0},          //Reserved
+//                               lower_addr,
+//                               {req_exprom_i ? 32'b0 : {usr_reg_dout_i[07:00],
+//                                                        usr_reg_dout_i[15:08],
+//                                                        usr_reg_dout_i[23:16],
+//                                                        usr_reg_dout_i[31:24]}}
+//                               };
+//
+//                    compl_done_o <= 1'b1;
+//                    fsm_state <= `STATE_TX_CPLD_WT1;
+//                end
+//                else
+//                  if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
+//                    fsm_state <= `STATE_TX_CPLD_WT1;
+//                  else
+//                    fsm_state <= `STATE_TX_CPLD_WT0;
+//            end
 
             `STATE_TX_CPLD_WT1 :
             begin
@@ -515,55 +515,13 @@ begin
             //#######################################################################
             //MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
             //#######################################################################
-            `STATE_TX_MWR_QW0 :
-            begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
-                begin
-                    trn_tsof_n     <= 1'b0;
-                    trn_teof_n     <= 1'b1;
-                    trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= 0;
-
-                    trn_td <= {{1'b0},          //Reserved
-                               {mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
-                               {1'b0},          //Reserved
-                               mwr_tlp_tc_i,    //TC (Traffic Class)
-                               {4'b0},          //Reserved
-                               1'b0,            //TD (TLP Digest Field present)
-                               1'b0,            //EP (Poisend Data)
-                               {mwr_relaxed_order_i, mwr_nosnoop_i}, //Attr (Attributes)
-                               {2'b0},          //Reserved
-                               mwr_len_dw[9:0], //Length data payload (DW)
-                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b00},
-                               {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
-                               {mwr_lbe, mwr_fbe}
-                               };
-
-                    mwr_work <= 1'b1;
-                    fsm_state <= `STATE_TX_MWR_QW1;
-                end
-                else
-                  if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
-                  begin
-                      mwr_work <= 1'b0;
-                      fsm_state <= `STATE_TX_IDLE;
-                  end
-                  else
-                    fsm_state <= `STATE_TX_MWR_QW0;
-            end //`STATE_TX_MWR_QW0 :
-
-            `STATE_TX_MWR_QW1 :
-            begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
-                begin
-                    if (mwr_pkt_count == 0)
-                      tmwr_addr = mwr_addr_req;
-                    else
-                      tmwr_addr = pmwr_addr + mwr_len_byte;
-
+//            `STATE_TX_MWR_QW0 :
+//            begin
+//                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
+//                begin
 //                    trn_tsof_n     <= 1'b0;
-//                    //trn_teof_n     <= 1'b1;
-//                    //trn_tsrc_rdy_n <= 1'b0;
+//                    trn_teof_n     <= 1'b1;
+//                    trn_tsrc_rdy_n <= 1'b0;
 //                    trn_trem_n     <= 0;
 //
 //                    trn_td <= {{1'b0},          //Reserved
@@ -578,25 +536,67 @@ begin
 //                               mwr_len_dw[9:0], //Length data payload (DW)
 //                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b00},
 //                               {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
-//                               {mwr_lbe, mwr_fbe},
-//
-//                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b00}} }, //Ќачальный адрес записи в пам€ть хоста
-//                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
-//                                                                             usr_rxbuf_dout_i[15:08],
-//                                                                             usr_rxbuf_dout_i[23:16],
-//                                                                             usr_rxbuf_dout_i[31:24]}}
+//                               {mwr_lbe, mwr_fbe}
 //                               };
-                    trn_tsof_n     <= 1'b1;
+//
+//                    mwr_work <= 1'b1;
+//                    fsm_state <= `STATE_TX_MWR_QW1;
+//                end
+//                else
+//                  if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
+//                  begin
+//                      mwr_work <= 1'b0;
+//                      fsm_state <= `STATE_TX_IDLE;
+//                  end
+//                  else
+//                    fsm_state <= `STATE_TX_MWR_QW0;
+//            end //`STATE_TX_MWR_QW0 :
+
+            `STATE_TX_MWR_QW1 :
+            begin
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
+                begin
+                    if (mwr_pkt_count == 0)
+                      tmwr_addr = mwr_addr_req;
+                    else
+                      tmwr_addr = pmwr_addr + mwr_len_byte;
+
+                    trn_tsof_n     <= 1'b0;
                     //trn_teof_n     <= 1'b1;
                     //trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= 0;
 
-                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b00}} }, //Ќачальный адрес записи в пам€ть хоста
+                    trn_td <= {{1'b0},          //Reserved
+                               {mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
+                               {1'b0},          //Reserved
+                               mwr_tlp_tc_i,    //TC (Traffic Class)
+                               {4'b0},          //Reserved
+                               1'b0,            //TD (TLP Digest Field present)
+                               1'b0,            //EP (Poisend Data)
+                               {mwr_relaxed_order_i, mwr_nosnoop_i}, //Attr (Attributes)
+                               {2'b0},          //Reserved
+                               mwr_len_dw[9:0], //Length data payload (DW)
+                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b00},
+                               {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
+                               {mwr_lbe, mwr_fbe},
+
+                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b00}} }, //Ќачальный адрес записи в пам€ть хоста
                                {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
                                                                              usr_rxbuf_dout_i[15:08],
                                                                              usr_rxbuf_dout_i[23:16],
                                                                              usr_rxbuf_dout_i[31:24]}}
                                };
+//                    trn_tsof_n     <= 1'b1;
+//                    //trn_teof_n     <= 1'b1;
+//                    //trn_tsrc_rdy_n <= 1'b0;
+//                    trn_trem_n     <= 0;
+//
+//                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b00}} }, //Ќачальный адрес записи в пам€ть хоста
+//                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+//                                                                             usr_rxbuf_dout_i[15:08],
+//                                                                             usr_rxbuf_dout_i[23:16],
+//                                                                             usr_rxbuf_dout_i[31:24]}}
+//                               };
 
                     pmwr_addr<= tmwr_addr;
 
@@ -635,14 +635,14 @@ begin
                 else
                   if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
                   begin
-////                      trn_teof_n <= 1'b0;
-//                      trn_dw_sel <= 0;
-//                      mwr_work <= 1'b0;
-//                      fsm_state <= `STATE_TX_IDLE;
-                      trn_teof_n <= 1'b0;
+//                      trn_teof_n <= 1'b0;
                       trn_dw_sel <= 0;
                       mwr_work <= 1'b0;
                       fsm_state <= `STATE_TX_IDLE;
+//                      trn_teof_n <= 1'b0;
+//                      trn_dw_sel <= 0;
+//                      mwr_work <= 1'b0;
+//                      fsm_state <= `STATE_TX_IDLE;
                   end
                   else
                     fsm_state <= `STATE_TX_MWR_QW1;
@@ -652,42 +652,7 @@ begin
             begin
                 if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
                 begin
-//                    if (trn_dw_sel == 2'h1)
-//                    begin
-//                      trn_trem_n <= 4'h0;
-//                      trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
-//                                       usr_rxbuf_dout_i[15: 8],
-//                                       usr_rxbuf_dout_i[23:16],
-//                                       usr_rxbuf_dout_i[31:24]};
-//                    end
-//                    else
-//                      if (trn_dw_sel == 2'h2)
-//                      begin
-//                        trn_trem_n <= 4'h1;
-//                        trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
-//                                          usr_rxbuf_dout_i[15: 8],
-//                                          usr_rxbuf_dout_i[23:16],
-//                                          usr_rxbuf_dout_i[31:24]};
-//                      end
-//                      else
-//                        if (trn_dw_sel == 2'h3)
-//                        begin
-//                          trn_trem_n <= 4'h2;
-//                          trn_td[31+64 : 0+64] <= {usr_rxbuf_dout_i[ 7: 0],
-//                                                   usr_rxbuf_dout_i[15: 8],
-//                                                   usr_rxbuf_dout_i[23:16],
-//                                                   usr_rxbuf_dout_i[31:24]};
-//                        end
-//                        else
-//                          if (trn_dw_sel == 4'h0)
-//                          begin
-//                            trn_trem_n <= 2'h3;
-//                            trn_td[63+64 : 32+64] <= {usr_rxbuf_dout_i[ 7: 0],
-//                                                      usr_rxbuf_dout_i[15: 8],
-//                                                      usr_rxbuf_dout_i[23:16],
-//                                                      usr_rxbuf_dout_i[31:24]};
-//                          end
-                    if (trn_dw_sel == 1'h1)
+                    if (trn_dw_sel == 2'h1)
                     begin
                       trn_trem_n <= 4'h0;
                       trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
@@ -696,7 +661,7 @@ begin
                                        usr_rxbuf_dout_i[31:24]};
                     end
                     else
-                      if (trn_dw_sel == 1'h0)
+                      if (trn_dw_sel == 2'h2)
                       begin
                         trn_trem_n <= 4'h1;
                         trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
@@ -704,6 +669,41 @@ begin
                                           usr_rxbuf_dout_i[23:16],
                                           usr_rxbuf_dout_i[31:24]};
                       end
+                      else
+                        if (trn_dw_sel == 2'h3)
+                        begin
+                          trn_trem_n <= 4'h2;
+                          trn_td[31+64 : 0+64] <= {usr_rxbuf_dout_i[ 7: 0],
+                                                   usr_rxbuf_dout_i[15: 8],
+                                                   usr_rxbuf_dout_i[23:16],
+                                                   usr_rxbuf_dout_i[31:24]};
+                        end
+                        else
+                          if (trn_dw_sel == 4'h0)
+                          begin
+                            trn_trem_n <= 2'h3;
+                            trn_td[63+64 : 32+64] <= {usr_rxbuf_dout_i[ 7: 0],
+                                                      usr_rxbuf_dout_i[15: 8],
+                                                      usr_rxbuf_dout_i[23:16],
+                                                      usr_rxbuf_dout_i[31:24]};
+                          end
+//                    if (trn_dw_sel == 1'h1)
+//                    begin
+//                      trn_trem_n <= 4'h0;
+//                      trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
+//                                       usr_rxbuf_dout_i[15: 8],
+//                                       usr_rxbuf_dout_i[23:16],
+//                                       usr_rxbuf_dout_i[31:24]};
+//                    end
+//                    else
+//                      if (trn_dw_sel == 1'h0)
+//                      begin
+//                        trn_trem_n <= 4'h1;
+//                        trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
+//                                          usr_rxbuf_dout_i[15: 8],
+//                                          usr_rxbuf_dout_i[23:16],
+//                                          usr_rxbuf_dout_i[31:24]};
+//                      end
 
                     //—четчик DW(payload) в текущем пакете MWr
                     if (mwr_len_dw == 11'h1)
@@ -758,54 +758,14 @@ begin
             //#######################################################################
             //MRd - 3DW, no data  (PC<-FPGA) (запрос записи в пам€ть PC)
             //#######################################################################
-            `STATE_TX_MRD_QW0 :
-            begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
-                begin
-                    trn_tsof_n     <= 1'b0;
-                    trn_teof_n     <= 1'b1;
-                    trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= 0;
-
-                    trn_td <= {{1'b0},          //Reserved
-                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
-                               {1'b0},          //Reserved
-                               mrd_tlp_tc_i,    //TC (Traffic Class)
-                               {4'b0},          //Reserved
-                               1'b0,            //TD (TLP Digest Field present)
-                               1'b0,            //EP (Poisend Data)
-                               {mrd_relaxed_order_i, mrd_nosnoop_i}, //Attr (Attributes)
-                               {2'b0},          //Reserved
-                               mrd_len_dw[9:0], //Length data payload (DW)
-                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b00},
-                               {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
-                               {mrd_lbe, mrd_fbe}
-                               };
-
-                    fsm_state <= `STATE_TX_MRD_QW1;
-                end
-                else
-                  if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
-                    fsm_state <= `STATE_TX_IDLE;
-                  else
-                    fsm_state <= `STATE_TX_MRD_QW0;
-            end //`STATE_TX_MRD_QW0 :
-
-            `STATE_TX_MRD_QW1 :
-            begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
-                begin
-                    if (mrd_pkt_count == 0)
-                      tmrd_addr = mrd_addr_req;
-                    else
-                      tmrd_addr = pmrd_addr + mrd_len_byte;
-
-                    pmrd_addr <= tmrd_addr;
-
+//            `STATE_TX_MRD_QW0 :
+//            begin
+//                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
+//                begin
 //                    trn_tsof_n     <= 1'b0;
-//                    trn_teof_n     <= 1'b0;
+//                    trn_teof_n     <= 1'b1;
 //                    trn_tsrc_rdy_n <= 1'b0;
-//                    trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
+//                    trn_trem_n     <= 0;
 //
 //                    trn_td <= {{1'b0},          //Reserved
 //                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
@@ -819,19 +779,59 @@ begin
 //                               mrd_len_dw[9:0], //Length data payload (DW)
 //                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b00},
 //                               {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
-//                               {mrd_lbe, mrd_fbe},
-//
-//                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-//                                               {tmrd_addr[31:2], {2'b00}, {32'b0}} }
+//                               {mrd_lbe, mrd_fbe}
 //                               };
-                    trn_tsof_n     <= 1'b1;
+//
+//                    fsm_state <= `STATE_TX_MRD_QW1;
+//                end
+//                else
+//                  if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
+//                    fsm_state <= `STATE_TX_IDLE;
+//                  else
+//                    fsm_state <= `STATE_TX_MRD_QW0;
+//            end //`STATE_TX_MRD_QW0 :
+
+            `STATE_TX_MRD_QW1 :
+            begin
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
+                begin
+                    if (mrd_pkt_count == 0)
+                      tmrd_addr = mrd_addr_req;
+                    else
+                      tmrd_addr = pmrd_addr + mrd_len_byte;
+
+                    pmrd_addr <= tmrd_addr;
+
+                    trn_tsof_n     <= 1'b0;
                     trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
 
-                    trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
+                    trn_td <= {{1'b0},          //Reserved
+                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
+                               {1'b0},          //Reserved
+                               mrd_tlp_tc_i,    //TC (Traffic Class)
+                               {4'b0},          //Reserved
+                               1'b0,            //TD (TLP Digest Field present)
+                               1'b0,            //EP (Poisend Data)
+                               {mrd_relaxed_order_i, mrd_nosnoop_i}, //Attr (Attributes)
+                               {2'b0},          //Reserved
+                               mrd_len_dw[9:0], //Length data payload (DW)
+                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b00},
+                               {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
+                               {mrd_lbe, mrd_fbe},
+
+                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
                                                {tmrd_addr[31:2], {2'b00}, {32'b0}} }
                                };
+//                    trn_tsof_n     <= 1'b1;
+//                    trn_teof_n     <= 1'b0;
+//                    trn_tsrc_rdy_n <= 1'b0;
+//                    trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
+//
+//                    trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
+//                                               {tmrd_addr[31:2], {2'b00}, {32'b0}} }
+//                               };
 
                     //—четчик отправленых пакетов MRd
                     if (mrd_pkt_count == (mrd_pkt_count_req - 1'b1))
@@ -851,10 +851,10 @@ begin
                 else
                   if (!trn_tdst_dsc_n) //ядро прерывало передачу данных
                   begin
-////                    trn_teof_n     <= 1'b0;
-//                    fsm_state <= `STATE_TX_IDLE;
-                    trn_teof_n     <= 1'b0;
+//                    trn_teof_n     <= 1'b0;
                     fsm_state <= `STATE_TX_IDLE;
+//                    trn_teof_n     <= 1'b0;
+//                    fsm_state <= `STATE_TX_IDLE;
                   end
                   else
                     fsm_state <= `STATE_TX_MRD_QW1;

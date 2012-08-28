@@ -80,7 +80,7 @@ p_in_reg_rd                    : in    std_logic;
 p_out_dmatrn_init              : out   std_logic;
 
 --”правление DMATRN_WR (PC<-FPGA) (MEMORY WRITE)
-p_out_mwr_work                 : out   std_logic;
+p_out_mwr_en                   : out   std_logic;
 p_in_mwr_done                  : in    std_logic;
 p_out_mwr_addr_up              : out   std_logic_vector(7 downto 0);
 p_out_mwr_addr                 : out   std_logic_vector(31 downto 0);
@@ -96,7 +96,7 @@ p_out_mwr_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mwr_fbe                  : out   std_logic_vector(3 downto 0);
 
 --”правление DMATRN_RD (PC->FPGA) (MEMORY READ)
-p_out_mrd_work                 : out   std_logic;
+p_out_mrd_en                   : out   std_logic;
 p_out_mrd_addr_up              : out   std_logic_vector(7 downto 0);
 p_out_mrd_addr                 : out   std_logic_vector(31 downto 0);
 p_out_mrd_len                  : out   std_logic_vector(31 downto 0);

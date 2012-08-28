@@ -53,7 +53,7 @@ p_in_tst                   : in    std_logic_vector(127 downto 0);
 --Tx
 --------------------------------------
 trn_td_o                  : out   std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
-trn_trem_n_o              : out   std_logic_vector(G_PCIEXP_TRN_DBUS/8-1 downto 0);
+trn_trem_n_o              : out   std_logic_vector(3 downto 0);
 trn_tsof_n_o              : out   std_logic;
 trn_teof_n_o              : out   std_logic;
 trn_tsrc_rdy_n_o          : out   std_logic;
@@ -67,7 +67,7 @@ trn_tbuf_av_i             : in    std_logic_vector(5 downto 0);
 --Rx
 --------------------------------------
 trn_rd_i                  : in    std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
-trn_rrem_n_i              : in    std_logic_vector(G_PCIEXP_TRN_DBUS/8-1 downto 0);
+trn_rrem_n_i              : in    std_logic_vector(3 downto 0);
 trn_rsof_n_i              : in    std_logic;
 trn_reof_n_i              : in    std_logic;
 trn_rsrc_rdy_n_i          : in    std_logic;
@@ -148,14 +148,14 @@ usr_reg_din_o       : out std_logic_vector(31 downto 0);
 usr_reg_wr_o        : out std_logic;
 usr_reg_rd_o        : out std_logic;
 
+--usr_txbuf_dbe_o     : out  std_logic_vector(7 downto 0);
 usr_txbuf_din_o     : out std_logic_vector(31 downto 0);
 usr_txbuf_wr_o      : out std_logic;
 usr_txbuf_wr_last_o : out std_logic;
 usr_txbuf_full_i    : in  std_logic;
---usr_txbuf_dbe_o     : out  std_logic_vector(7 downto 0);
 
-trn_rd              : in  std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
-trn_rrem_n          : in  std_logic_vector(G_PCIEXP_TRN_DBUS/8-1 downto 0);
+trn_rd              : in  std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0);
+trn_rrem_n          : in  std_logic_vector(3 downto 0);
 trn_rsof_n          : in  std_logic;
 trn_reof_n          : in  std_logic;
 trn_rsrc_rdy_n      : in  std_logic;
@@ -167,7 +167,7 @@ req_compl_o         : out std_logic;
 compl_done_i        : in  std_logic;
 
 req_addr_o          : out std_logic_vector(29 downto 0);
-req_fmt_type_o      : out std_logic_vector(6 downto 0);
+req_pkt_type_o      : out std_logic_vector(6 downto 0);
 req_tc_o            : out std_logic_vector(2 downto 0);
 req_td_o            : out std_logic;
 req_ep_o            : out std_logic;
@@ -176,15 +176,15 @@ req_len_o           : out std_logic_vector(9 downto 0);
 req_rid_o           : out std_logic_vector(15 downto 0);
 req_tag_o           : out std_logic_vector(7 downto 0);
 req_be_o            : out std_logic_vector(7 downto 0);
-req_expansion_rom_o : out std_logic;
+req_exprom_o        : out std_logic;
 
-trn_dma_init_i      : in  std_logic;
+dma_init_i          : in  std_logic;
 
 cpld_total_size_o   : out std_logic_vector(31 downto 0);
 cpld_malformed_o    : out std_logic;
 
-tst_o               : out std_logic_vector(1 downto 0);
-tst2_o              : out std_logic_vector(9 downto 0);
+tst_o               : out std_logic_vector(31 downto 0);
+tst_i               : in  std_logic_vector(31 downto 0);
 
 clk                 : in  std_logic;
 rst_n               : in  std_logic
@@ -199,11 +199,10 @@ usr_reg_dout_i       : in  std_logic_vector(31 downto 0);
 usr_rxbuf_dout_i     : in  std_logic_vector(31 downto 0);
 usr_rxbuf_rd_o       : out std_logic;
 usr_rxbuf_rd_last_o  : out std_logic;
-usr_rxbuf_rd_fst_o   : out std_logic;
 usr_rxbuf_empty_i    : in  std_logic;
 
-trn_td               : out std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
-trn_trem_n           : out std_logic_vector(G_PCIEXP_TRN_DBUS/8-1 downto 0);
+trn_td               : out std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0);
+trn_trem_n           : out std_logic_vector(3 downto 0);
 trn_tsof_n           : out std_logic;
 trn_teof_n           : out std_logic;
 trn_tsrc_rdy_n_o     : out std_logic;
@@ -216,7 +215,7 @@ req_compl_i          : in  std_logic;
 compl_done_o         : out std_logic;
 
 req_addr_i           : in  std_logic_vector(29 downto 0);
-req_fmt_type_i       : in  std_logic_vector(6 downto 0);
+req_pkt_type_i       : in  std_logic_vector(6 downto 0);
 req_tc_i             : in  std_logic_vector(2 downto 0);
 req_td_i             : in  std_logic;
 req_ep_i             : in  std_logic;
@@ -225,11 +224,11 @@ req_len_i            : in  std_logic_vector(9 downto 0);
 req_rid_i            : in  std_logic_vector(15 downto 0);
 req_tag_i            : in  std_logic_vector(7 downto 0);
 req_be_i             : in  std_logic_vector(7 downto 0);
-req_expansion_rom_i  : in  std_logic;
+req_exprom_i         : in  std_logic;
 
-trn_dma_init_i       : in  std_logic;
+dma_init_i           : in  std_logic;
 
-mwr_work_i           : in  std_logic;
+mwr_en_i             : in  std_logic;
 mwr_len_i            : in  std_logic_vector(31 downto 0);
 mwr_tag_i            : in  std_logic_vector(7 downto 0);
 mwr_lbe_i            : in  std_logic_vector(3 downto 0);
@@ -244,7 +243,7 @@ mwr_addr_up_i        : in  std_logic_vector(7 downto 0);
 mwr_relaxed_order_i  : in  std_logic;
 mwr_nosnoop_i        : in  std_logic;
 
-mrd_work_i           : in  std_logic;
+mrd_en_i             : in  std_logic;
 mrd_len_i            : in  std_logic_vector(31 downto 0);
 mrd_tag_i            : in  std_logic_vector(7 downto 0);
 mrd_lbe_i            : in  std_logic_vector(3 downto 0);
@@ -262,9 +261,13 @@ mrd_pkt_count_o      : out std_logic_vector(15 downto 0);
 
 completer_id_i       : in  std_logic_vector(15 downto 0);
 tag_ext_en_i         : in  std_logic;
-mstr_enable_i        : in  std_logic;
+master_en_i          : in  std_logic;
 max_payload_size_i   : in  std_logic_vector(2 downto 0);
 max_rd_req_size_i    : in  std_logic_vector(2 downto 0);
+
+--Технологический
+tst_o                : out std_logic_vector(31 downto 0);
+tst_i                : in  std_logic_vector(31 downto 0);
 
 clk                  : in  std_logic;
 rst_n                : in  std_logic
@@ -296,7 +299,7 @@ signal i_req_compl                : std_logic;
 signal i_compl_done               : std_logic;
 
 signal i_req_addr                 : std_logic_vector(29 downto 0);
-signal i_req_fmt_type             : std_logic_vector(6 downto 0);
+signal i_req_pkt_type             : std_logic_vector(6 downto 0);
 signal i_req_tc                   : std_logic_vector(2 downto 0);
 signal i_req_td                   : std_logic;
 signal i_req_ep                   : std_logic;
@@ -305,11 +308,11 @@ signal i_req_len                  : std_logic_vector(9 downto 0);
 signal i_req_rid                  : std_logic_vector(15 downto 0);
 signal i_req_tag                  : std_logic_vector(7 downto 0);
 signal i_req_be                   : std_logic_vector(7 downto 0);
-signal i_req_expansion_rom        : std_logic;
+signal i_req_exprom               : std_logic;
 
 signal i_dmatrn_init              : std_logic;
 
-signal i_mwr_work                 : std_logic;
+signal i_mwr_en                   : std_logic;
 signal i_mwr_done                 : std_logic;
 signal i_mwr_addr                 : std_logic_vector(31 downto 0);
 signal i_mwr_len                  : std_logic_vector(31 downto 0);
@@ -324,7 +327,7 @@ signal i_mwr_tag                  : std_logic_vector(7 downto 0);
 signal i_mwr_lbe                  : std_logic_vector(3 downto 0);
 signal i_mwr_fbe                  : std_logic_vector(3 downto 0);
 
-signal i_mrd_work                 : std_logic;
+signal i_mrd_en                   : std_logic;
 signal i_mrd_addr                 : std_logic_vector(31 downto 0);
 signal i_mrd_len                  : std_logic_vector(31 downto 0);
 signal i_mrd_count                : std_logic_vector(31 downto 0);
@@ -339,7 +342,7 @@ signal i_mrd_lbe                  : std_logic_vector(3 downto 0);
 signal i_mrd_fbe                  : std_logic_vector(3 downto 0);
 signal i_mrd_rcv_size             : std_logic_vector(31 downto 0);
 signal i_mrd_rcv_err              : std_logic;
-signal i_mrd_work_throttle        : std_logic;
+signal i_mrd_en_throttle          : std_logic;
 signal i_mrd_pkt_count            : std_logic_vector(15 downto 0);
 signal i_mrd_pkt_len              : std_logic_vector(31 downto 0);
 
@@ -368,8 +371,7 @@ signal i_cfg_bus_mstr_enable      : std_logic;
 signal i_cfg_intrrupt_disable     : std_logic;
 
 
-signal i_rx_engine_tst_out        : std_logic_vector(1 downto 0);
-signal i_rx_engine_tst2_out       : std_logic_vector(9 downto 0);
+signal i_rx_engine_tst_out        : std_logic_vector(31 downto 0);
 signal i_rd_throttle_tst_out      : std_logic_vector(1 downto 0);
 signal i_pice_irq_tst_in          : std_logic_vector(31 downto 0);
 signal i_pice_irq_tst_out         : std_logic_vector(31 downto 0);
@@ -382,7 +384,7 @@ begin
 --//--------------------------------------
 --//Технологические
 --//--------------------------------------
-i_rd_throttle_tst_out(0) <= i_mrd_work_throttle;
+i_rd_throttle_tst_out(0) <= i_mrd_en_throttle;
 i_rd_throttle_tst_out(1) <='0';
 
 
@@ -499,7 +501,7 @@ p_in_reg_din                  => i_usr_reg_din,
 
 p_out_dmatrn_init             => i_dmatrn_init,
 
-p_out_mwr_work                => i_mwr_work,
+p_out_mwr_en                  => i_mwr_en,
 p_in_mwr_done                 => i_mwr_done,
 p_out_mwr_addr_up             => i_mwr_addr_up,
 p_out_mwr_addr                => i_mwr_addr,
@@ -514,7 +516,7 @@ p_out_mwr_tag                 => i_mwr_tag,
 p_out_mwr_lbe                 => i_mwr_lbe,
 p_out_mwr_fbe                 => i_mwr_fbe,
 
-p_out_mrd_work                => i_mrd_work,
+p_out_mrd_en                  => i_mrd_en,
 p_out_mrd_addr_up             => i_mrd_addr_up,
 p_out_mrd_addr                => i_mrd_addr,
 p_out_mrd_len                 => i_mrd_len,
@@ -552,8 +554,8 @@ p_in_cfg_phant_func_en        => i_cfg_phant_func_en,
 p_in_cfg_no_snoop_en          => i_cfg_no_snoop_en,
 p_in_cfg_ext_tag_en           => i_cfg_ext_tag_en,
 
-p_in_rx_engine_tst            => i_rx_engine_tst_out,
-p_in_rx_engine_tst2           => i_rx_engine_tst2_out,
+p_in_rx_engine_tst            => i_rx_engine_tst_out(11 downto 10),
+p_in_rx_engine_tst2           => i_rx_engine_tst_out(9 downto 0),
 p_in_throttle_tst             => i_rd_throttle_tst_out,
 p_in_mrd_pkt_len_tst          => i_mrd_pkt_len,
 
@@ -570,9 +572,6 @@ p_in_rst_n                    => i_rst_n
 --//----------------------------------
 m_rx : pcie_rx
 port map(
-tst_o               => i_rx_engine_tst_out,
-tst2_o              => i_rx_engine_tst2_out,
-
 --режим Target
 usr_reg_adr_o       => i_usr_reg_adr,
 usr_reg_din_o       => i_usr_reg_din,
@@ -601,7 +600,7 @@ req_compl_o         => i_req_compl,
 compl_done_i        => i_compl_done,
 
 req_addr_o          => i_req_addr,
-req_fmt_type_o      => i_req_fmt_type,
+req_pkt_type_o      => i_req_pkt_type,
 req_tc_o            => i_req_tc,
 req_td_o            => i_req_td,
 req_ep_o            => i_req_ep,
@@ -610,14 +609,18 @@ req_len_o           => i_req_len,
 req_rid_o           => i_req_rid,
 req_tag_o           => i_req_tag,
 req_be_o            => i_req_be,
-req_expansion_rom_o => i_req_expansion_rom,
+req_exprom_o        => i_req_exprom,
 
 --Completion with Data
 cpld_total_size_o   => i_mrd_rcv_size,
 cpld_malformed_o    => i_mrd_rcv_err,
 
 --Initiator reset
-trn_dma_init_i      => i_dmatrn_init,
+dma_init_i          => i_dmatrn_init,
+
+--Технологический
+tst_o               => i_rx_engine_tst_out,
+tst_i               => (others=>'0'),
 
 clk                 => trn_clk_i,
 rst_n               => i_rst_n
@@ -632,7 +635,6 @@ usr_reg_dout_i       => i_usr_reg_dout,
 --Режим Master
 usr_rxbuf_dout_i     => i_usr_rxbuf_dout,
 usr_rxbuf_rd_o       => i_usr_rxbuf_rd,
-usr_rxbuf_rd_fst_o   => open,
 usr_rxbuf_rd_last_o  => i_usr_rxbuf_rd_last,
 usr_rxbuf_empty_i    => i_usr_rxbuf_empty,
 
@@ -652,7 +654,7 @@ req_compl_i          => i_req_compl,           --// I
 compl_done_o         => i_compl_done,          --// 0
 
 req_addr_i           => i_req_addr,            --// I [29:0]
-req_fmt_type_i       => i_req_fmt_type,        --
+req_pkt_type_i       => i_req_pkt_type,        --
 req_tc_i             => i_req_tc,              --// I [2:0]
 req_td_i             => i_req_td,              --// I
 req_ep_i             => i_req_ep,              --// I
@@ -661,13 +663,13 @@ req_len_i            => i_req_len,             --// I [9:0]
 req_rid_i            => i_req_rid,             --// I [15:0]
 req_tag_i            => i_req_tag,             --// I [7:0]
 req_be_i             => i_req_be,              --// I [7:0]
-req_expansion_rom_i  => i_req_expansion_rom,   --// I
+req_exprom_i         => i_req_exprom,   --// I
 
 --Initiator Controls
-trn_dma_init_i       => i_dmatrn_init,         --// I
+dma_init_i           => i_dmatrn_init,         --// I
 
 --Write Initiator
-mwr_work_i           => i_mwr_work,            --// I
+mwr_en_i             => i_mwr_en,            --// I
 mwr_done_o           => i_mwr_done,            --// O
 mwr_addr_up_i        => i_mwr_addr_up,         --// I [7:0]
 mwr_addr_i           => i_mwr_addr,            --// I [31:0]
@@ -683,7 +685,7 @@ mwr_relaxed_order_i  => i_mwr_relaxed_order,   --// I
 mwr_nosnoop_i        => i_mwr_nosnoop,         --// I
 
 --Read Initiator
-mrd_work_i           => i_mrd_work_throttle,   --// I
+mrd_en_i             => i_mrd_en_throttle,   --// I
 mrd_addr_up_i        => i_mrd_addr_up,         --// I [7:0]
 mrd_addr_i           => i_mrd_addr,            --// I [31:0]
 mrd_len_i            => i_mrd_len,             --// I [31:0]
@@ -701,9 +703,13 @@ mrd_pkt_count_o      => i_mrd_pkt_count,       --// O[15:0]
 
 completer_id_i       => i_cfg_completer_id,    --// I [15:0]
 tag_ext_en_i         => i_cfg_ext_tag_en,      --// I
-mstr_enable_i        => i_cfg_bus_mstr_enable, --// I
+master_en_i          => i_cfg_bus_mstr_enable, --// I
 max_payload_size_i   => i_usr_max_payload_size,--i_cfg_prg_max_payload_size, // I [2:0]
 max_rd_req_size_i    => i_usr_max_rd_req_size, --i_cfg_prg_max_rd_req_size,  // I [2:0]
+
+--Технологический
+tst_o                => open,
+tst_i                => (others=>'0'),
 
 clk                  => trn_clk_i,
 rst_n                => i_rst_n
@@ -717,7 +723,7 @@ m_mrd_throttle : pcie_mrd_throttle
 port map(
 init_rst_i          => i_dmatrn_init,       --// I
 
-mrd_work_i          => i_mrd_work,          --// I
+mrd_work_i          => i_mrd_en,          --// I
 mrd_len_i           => i_mrd_pkt_len,       --//(mrd_len,                        // I [31:0]
 mrd_pkt_count_i     => i_mrd_pkt_count,     --// I [15:0] - сигнал от модуля TX_ENGINE (Кол-во переданых запросов Чтения (пакетов MRr))
 
@@ -729,7 +735,7 @@ cpld_data_err_i     => '0',                 --// I
 cfg_rd_comp_bound_i => i_cfg_rcb,           --// I //Read Completion Boundary.(RCB = 0=64Byte or 1=128Byte)
 rd_metering_i       => i_rd_metering,       --// I
 
-mrd_work_o          => i_mrd_work_throttle, --// O
+mrd_work_o          => i_mrd_en_throttle, --// O
 
 clk                 =>  trn_clk_i ,
 rst_n               =>  i_rst_n

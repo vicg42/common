@@ -5,7 +5,7 @@
 //-- Create Date : 25.08.2012 17:56:21
 //-- Module Name : pcie_rx.v
 //--
-//-- Description : PCI core data bus 64bit
+//-- Description : PCI core data bus 128bit
 //--
 //-- Revision:
 //-- Revision 0.01 - File Created
@@ -42,7 +42,7 @@ output             usr_txbuf_wr_last_o,
 input              usr_txbuf_full_i,
 
 //pci_core -> usr_app
-input [63:0]       trn_rd,
+input [127:0]      trn_rd,
 input [3:0]        trn_rrem_n,
 input              trn_rsof_n,
 input              trn_reof_n,
@@ -101,16 +101,16 @@ reg [31:0]   usr_rxd;
 reg          usr_txbuf_wr;
 
 reg          trn_dw_skip;
-reg [0:0]    trn_dw_sel;
+reg [1:0]    trn_dw_sel;
 
 
 assign tst_o[5:0] = cpld_tlp_cnt[5:0];
 assign tst_o[6] = trn_rdst_rdy_n;
 assign tst_o[7] = usr_txbuf_full_i;
 assign tst_o[8] = trn_dw_sel[0];
-assign tst_o[9] = trn_dw_sel[0];
+assign tst_o[9] = trn_dw_sel[1];
 assign tst_o[10] = trn_dw_sel[0];
-assign tst_o[11] = trn_dw_sel[0];
+assign tst_o[11] = trn_dw_sel[1];
 
 assign  bar_exprom =!trn_rbar_hit_n[6];
 assign  bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
@@ -189,8 +189,8 @@ begin
             begin
                 if (!trn_rsof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
-//                  if (trn_rrem_n[1])
-//                  begin
+                  if (trn_rrem_n[1])
+                  begin
                     case (trn_rd[62 : 56]) //поле FMT (Формат пакета) + поле TYPE (Тип пакета)
                         //-----------------------------------------------------------------------
                         //IORd - 3DW, no data (PC<-FPGA)
@@ -288,193 +288,193 @@ begin
                         //-----------------------------------------------------------------------
                         `C_FMT_TYPE_CPLD_3DW_WD :
                         begin
-                            cpld_total_size_o <= cpld_total_size_o + trn_rd[41 : 32];
-                            cpld_tlp_len <= trn_rd[41 : 32]; //Length data payload (DW)
-                            cpld_tlp_cnt <= 0;
-                            cpld_tlp_work <= 1'b1;
-                            trn_dw_sel <= 1'h1;
-                            trn_dw_skip <= 1'b1;
-                            fsm_state <= `STATE_RX_CPLD_QWN;
 //                            cpld_total_size_o <= cpld_total_size_o + trn_rd[41 : 32];
 //                            cpld_tlp_len <= trn_rd[41 : 32]; //Length data payload (DW)
 //                            cpld_tlp_cnt <= 0;
 //                            cpld_tlp_work <= 1'b1;
-//                            trn_dw_sel <= 2'h3;
+//                            trn_dw_sel <= 1'h1;
 //                            trn_dw_skip <= 1'b1;
 //                            fsm_state <= `STATE_RX_CPLD_QWN;
+                            cpld_total_size_o <= cpld_total_size_o + trn_rd[41 : 32];
+                            cpld_tlp_len <= trn_rd[41 : 32]; //Length data payload (DW)
+                            cpld_tlp_cnt <= 0;
+                            cpld_tlp_work <= 1'b1;
+                            trn_dw_sel <= 2'h3;
+                            trn_dw_skip <= 1'b1;
+                            fsm_state <= `STATE_RX_CPLD_QWN;
                         end
 
                         default :
                           fsm_state <= `STATE_RX_IDLE;
                     endcase //case (trn_rd[62 : 56])
-//                end
-//                else //if (trn_rrem_n[1] == 0)
-//                  begin
-//                      case (trn_rd[62+64 : 56+64]) //поле FMT (Формат пакета) + поле TYPE (Тип пакета)
-//                          //-----------------------------------------------------------------------
-//                          //IORd - 3DW, no data (PC<-FPGA)
-//                          //-----------------------------------------------------------------------
-//                         `C_FMT_TYPE_IORD_3DW_ND :
-//                          begin
-//                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
-//                            begin
-//                              req_pkt_type_o <= trn_rd[62+64 : 56+64];
-//                              req_tc_o       <= trn_rd[54+64 : 52+64];
-//                              req_td_o       <= trn_rd[47+64];
-//                              req_ep_o       <= trn_rd[46+64];
-//                              req_attr_o     <= trn_rd[45+64 : 44+64];
-//                              req_len_o      <= trn_rd[41+64 : 32+64]; //Length data payload (DW)
-//                              req_rid_o      <= trn_rd[31+64 : 16+64];
-//                              req_tag_o      <= trn_rd[15+64 :  8+64];
-//                              req_be_o       <= trn_rd[ 7+64 :  0+64];
-//
-//                              req_addr_o     <= trn_rd[31+32 :  2+32];
-//
-//                              trn_rdst_rdy_n <= 1'b1;
-//
-//                              if (!bar_exprom)
-//                                if (bar_usr)
-//                                usr_reg_rd_o <= 1'b1;
-//                                else
-//                                usr_reg_rd_o <= 1'b0;
-//
-//                              fsm_state <= `STATE_RX_MRD_WT1;
-//                            end
-//                            else
-//                              fsm_state <= `STATE_RX_IDLE;
-//                          end
-//
-//                          //-----------------------------------------------------------------------
-//                          //IOWr - 3DW, +data (PC->FPGA)
-//                          //-----------------------------------------------------------------------
-//                          `C_FMT_TYPE_IOWR_3DW_WD :
-//                          begin
-//                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
-//                            begin
-//                              req_pkt_type_o <= trn_rd[62+64 :56+64];
-//                              req_tc_o       <= trn_rd[54+64 :52+64];
-//                              req_td_o       <= trn_rd[47+64];
-//                              req_ep_o       <= trn_rd[46+64];
-//                              req_attr_o     <= trn_rd[45+64 :44+64];
-//                              req_len_o      <= trn_rd[41+64 :32+64]; //Length data payload (DW)
-//                              req_rid_o      <= trn_rd[31+64 :16+64];
-//                              req_tag_o      <= trn_rd[15+64 : 8+64];
-//                              req_be_o       <= trn_rd[ 7+64 : 0+64];
-//
-//                              req_addr_o     <= trn_rd[31+32 : 2+32];
-//                              usr_rxd        <= trn_rd[31:0];
-//
-//                              trn_rdst_rdy_n <= 1'b1;
-//
-//                              if (bar_usr)
-//                              usr_reg_wr_o <= 1'b1;
-//                              else
-//                              usr_reg_wr_o <= 1'b0;
-//
-//                              req_compl_o <= 1'b1;//Запрос на отправку пакета Cpl
-//
-//                              fsm_state <= `STATE_RX_IOWR_WT;
-//                            end
-//                            else
-//                              fsm_state <= `STATE_RX_IDLE;
-//                          end
-//
-//                          //-----------------------------------------------------------------------
-//                          //MRd - 3DW, no data  (PC<-FPGA)
-//                          //-----------------------------------------------------------------------
-//                          `C_FMT_TYPE_MRD_3DW_ND :
-//                          begin
-//                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
-//                            begin
-//                              req_pkt_type_o <= trn_rd[62+64 : 56+64];
-//                              req_tc_o       <= trn_rd[54+64 : 52+64];
-//                              req_td_o       <= trn_rd[47+64];
-//                              req_ep_o       <= trn_rd[46+64];
-//                              req_attr_o     <= trn_rd[45+64 : 44+64];
-//                              req_len_o      <= trn_rd[41+64 : 32+64]; //Length data payload (DW)
-//                              req_rid_o      <= trn_rd[31+64 : 16+64];
-//                              req_tag_o      <= trn_rd[15+64 :  8+64];
-//                              req_be_o       <= trn_rd[ 7+64 :  0+64];
-//
-//                              req_addr_o     <= trn_rd[31+32 :  2+32];
-//
-//                              trn_rdst_rdy_n <= 1'b1;
-//
-//                              if (bar_exprom)
-//                                req_exprom_o <= 1'b1;
-//
-//                              if (!bar_exprom)
-//                                if (bar_usr)
-//                                usr_reg_rd_o <= 1'b1;
-//                                else
-//                                usr_reg_rd_o <= 1'b0;
-//
-//                              fsm_state <= `STATE_RX_MRD_WT1;
-//                            end
-//                            else
-//                              fsm_state <= `STATE_RX_IDLE;
-//                          end
-//
-//                          //-----------------------------------------------------------------------
-//                          //MWr - 3DW, +data (PC->FPGA)
-//                          //-----------------------------------------------------------------------
-//                         `C_FMT_TYPE_MWR_3DW_WD :
-//                          begin
-//                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
-//                            begin
-//                              req_addr_o <= trn_rd[63 : 34];
-//                              usr_rxd    <= trn_rd[31 :  0];
-//
-//                              if (bar_usr)
-//                              usr_reg_wr_o <= 1'b1;
-//                              else
-//                              usr_reg_wr_o <= 1'b0;
-//
-//                              fsm_state <= `STATE_RX_IDLE;
-//                            end
-//                            else
-//                              fsm_state <= `STATE_RX_IDLE;
-//                          end
-//
-//                          //-----------------------------------------------------------------------
-//                          //Cpl - 3DW, no data
-//                          //-----------------------------------------------------------------------
-//                          `C_FMT_TYPE_CPL_3DW_ND :
-//                          begin
-//                            if (trn_rd[15+64 : 13+64] != `C_COMPLETION_STATUS_SC)
-//                              fsm_state <= `STATE_RX_CPL_QW1;
-//                            else
-//                              fsm_state <= `STATE_RX_IDLE;
-//                          end
-//
-//                          //-----------------------------------------------------------------------
-//                          //CplD - 3DW, +data
-//                          //-----------------------------------------------------------------------
-//                          `C_FMT_TYPE_CPLD_3DW_WD :
-//                          begin
-//                              cpld_total_size_o <= cpld_total_size_o + trn_rd[41+64 : 32+64];
-//                              cpld_tlp_len <= trn_rd[41+64 : 32+64]; //Length data payload (DW)
-//                              cpld_tlp_cnt <= 10'h1;
-//                              cpld_tlp_work <= 1'b1;
-//                              trn_dw_sel <= 2'h3;
-//                              trn_dw_skip <= 1'b0;
-//                              usr_txbuf_wr <= 1'b1;
-//                              usr_rxd <= trn_rd[31:0];
-//
-//                              if (!trn_reof_n && (trn_rd[41+64 : 32+64] == 10'b1))
-//                              begin
-//                                cpld_tlp_dlast <= 1'b1;
-//                                trn_rdst_rdy_n <= 1'b1;
-//                                fsm_state <= `STATE_RX_CPLD_WT;
-//                              end
-//                              else
-//                                fsm_state <= `STATE_RX_CPLD_QWN;
-//                          end
-//
-//                          default :
-//                            fsm_state <= `STATE_RX_IDLE;
-//                      endcase //case (trn_rd[62+64 : 56+64])
-//                  end //if (trn_rrem_n[1] == 0)
+                end
+                else //if (trn_rrem_n[1] == 0)
+                  begin
+                      case (trn_rd[62+64 : 56+64]) //поле FMT (Формат пакета) + поле TYPE (Тип пакета)
+                          //-----------------------------------------------------------------------
+                          //IORd - 3DW, no data (PC<-FPGA)
+                          //-----------------------------------------------------------------------
+                         `C_FMT_TYPE_IORD_3DW_ND :
+                          begin
+                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
+                            begin
+                              req_pkt_type_o <= trn_rd[62+64 : 56+64];
+                              req_tc_o       <= trn_rd[54+64 : 52+64];
+                              req_td_o       <= trn_rd[47+64];
+                              req_ep_o       <= trn_rd[46+64];
+                              req_attr_o     <= trn_rd[45+64 : 44+64];
+                              req_len_o      <= trn_rd[41+64 : 32+64]; //Length data payload (DW)
+                              req_rid_o      <= trn_rd[31+64 : 16+64];
+                              req_tag_o      <= trn_rd[15+64 :  8+64];
+                              req_be_o       <= trn_rd[ 7+64 :  0+64];
+
+                              req_addr_o     <= trn_rd[31+32 :  2+32];
+
+                              trn_rdst_rdy_n <= 1'b1;
+
+                              if (!bar_exprom)
+                                if (bar_usr)
+                                usr_reg_rd_o <= 1'b1;
+                                else
+                                usr_reg_rd_o <= 1'b0;
+
+                              fsm_state <= `STATE_RX_MRD_WT1;
+                            end
+                            else
+                              fsm_state <= `STATE_RX_IDLE;
+                          end
+
+                          //-----------------------------------------------------------------------
+                          //IOWr - 3DW, +data (PC->FPGA)
+                          //-----------------------------------------------------------------------
+                          `C_FMT_TYPE_IOWR_3DW_WD :
+                          begin
+                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
+                            begin
+                              req_pkt_type_o <= trn_rd[62+64 :56+64];
+                              req_tc_o       <= trn_rd[54+64 :52+64];
+                              req_td_o       <= trn_rd[47+64];
+                              req_ep_o       <= trn_rd[46+64];
+                              req_attr_o     <= trn_rd[45+64 :44+64];
+                              req_len_o      <= trn_rd[41+64 :32+64]; //Length data payload (DW)
+                              req_rid_o      <= trn_rd[31+64 :16+64];
+                              req_tag_o      <= trn_rd[15+64 : 8+64];
+                              req_be_o       <= trn_rd[ 7+64 : 0+64];
+
+                              req_addr_o     <= trn_rd[31+32 : 2+32];
+                              usr_rxd        <= trn_rd[31:0];
+
+                              trn_rdst_rdy_n <= 1'b1;
+
+                              if (bar_usr)
+                              usr_reg_wr_o <= 1'b1;
+                              else
+                              usr_reg_wr_o <= 1'b0;
+
+                              req_compl_o <= 1'b1;//Запрос на отправку пакета Cpl
+
+                              fsm_state <= `STATE_RX_IOWR_WT;
+                            end
+                            else
+                              fsm_state <= `STATE_RX_IDLE;
+                          end
+
+                          //-----------------------------------------------------------------------
+                          //MRd - 3DW, no data  (PC<-FPGA)
+                          //-----------------------------------------------------------------------
+                          `C_FMT_TYPE_MRD_3DW_ND :
+                          begin
+                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
+                            begin
+                              req_pkt_type_o <= trn_rd[62+64 : 56+64];
+                              req_tc_o       <= trn_rd[54+64 : 52+64];
+                              req_td_o       <= trn_rd[47+64];
+                              req_ep_o       <= trn_rd[46+64];
+                              req_attr_o     <= trn_rd[45+64 : 44+64];
+                              req_len_o      <= trn_rd[41+64 : 32+64]; //Length data payload (DW)
+                              req_rid_o      <= trn_rd[31+64 : 16+64];
+                              req_tag_o      <= trn_rd[15+64 :  8+64];
+                              req_be_o       <= trn_rd[ 7+64 :  0+64];
+
+                              req_addr_o     <= trn_rd[31+32 :  2+32];
+
+                              trn_rdst_rdy_n <= 1'b1;
+
+                              if (bar_exprom)
+                                req_exprom_o <= 1'b1;
+
+                              if (!bar_exprom)
+                                if (bar_usr)
+                                usr_reg_rd_o <= 1'b1;
+                                else
+                                usr_reg_rd_o <= 1'b0;
+
+                              fsm_state <= `STATE_RX_MRD_WT1;
+                            end
+                            else
+                              fsm_state <= `STATE_RX_IDLE;
+                          end
+
+                          //-----------------------------------------------------------------------
+                          //MWr - 3DW, +data (PC->FPGA)
+                          //-----------------------------------------------------------------------
+                         `C_FMT_TYPE_MWR_3DW_WD :
+                          begin
+                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
+                            begin
+                              req_addr_o <= trn_rd[63 : 34];
+                              usr_rxd    <= trn_rd[31 :  0];
+
+                              if (bar_usr)
+                              usr_reg_wr_o <= 1'b1;
+                              else
+                              usr_reg_wr_o <= 1'b0;
+
+                              fsm_state <= `STATE_RX_IDLE;
+                            end
+                            else
+                              fsm_state <= `STATE_RX_IDLE;
+                          end
+
+                          //-----------------------------------------------------------------------
+                          //Cpl - 3DW, no data
+                          //-----------------------------------------------------------------------
+                          `C_FMT_TYPE_CPL_3DW_ND :
+                          begin
+                            if (trn_rd[15+64 : 13+64] != `C_COMPLETION_STATUS_SC)
+                              fsm_state <= `STATE_RX_CPL_QW1;
+                            else
+                              fsm_state <= `STATE_RX_IDLE;
+                          end
+
+                          //-----------------------------------------------------------------------
+                          //CplD - 3DW, +data
+                          //-----------------------------------------------------------------------
+                          `C_FMT_TYPE_CPLD_3DW_WD :
+                          begin
+                              cpld_total_size_o <= cpld_total_size_o + trn_rd[41+64 : 32+64];
+                              cpld_tlp_len <= trn_rd[41+64 : 32+64]; //Length data payload (DW)
+                              cpld_tlp_cnt <= 10'h1;
+                              cpld_tlp_work <= 1'b1;
+                              trn_dw_sel <= 2'h3;
+                              trn_dw_skip <= 1'b0;
+                              usr_txbuf_wr <= 1'b1;
+                              usr_rxd <= trn_rd[31:0];
+
+                              if (!trn_reof_n && (trn_rd[41+64 : 32+64] == 10'b1))
+                              begin
+                                cpld_tlp_dlast <= 1'b1;
+                                trn_rdst_rdy_n <= 1'b1;
+                                fsm_state <= `STATE_RX_CPLD_WT;
+                              end
+                              else
+                                fsm_state <= `STATE_RX_CPLD_QWN;
+                          end
+
+                          default :
+                            fsm_state <= `STATE_RX_IDLE;
+                      endcase //case (trn_rd[62+64 : 56+64])
+                  end //if (trn_rrem_n[1] == 0)
                 end
                 else
                   begin
@@ -536,8 +536,8 @@ begin
             begin
                 if (!trn_reof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
-                  req_addr_o     <= trn_rd[63 : 34];
-//                  req_addr_o     <= trn_rd[63+64 : 34+64];
+//                  req_addr_o     <= trn_rd[63 : 34];
+                  req_addr_o     <= trn_rd[63+64 : 34+64];
                   trn_rdst_rdy_n <= 1'b1;
 
                   if (!bar_exprom)
@@ -589,10 +589,10 @@ begin
             begin
                 if (!trn_reof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
-                  req_addr_o <= trn_rd[63 : 34];
-                  usr_rxd    <= trn_rd[31 :  0];
-//                  req_addr_o <= trn_rd[63+64 : 34+64];
-//                  usr_rxd    <= trn_rd[31+64 :  0+64];
+//                  req_addr_o <= trn_rd[63 : 34];
+//                  usr_rxd    <= trn_rd[31 :  0];
+                  req_addr_o <= trn_rd[63+64 : 34+64];
+                  usr_rxd    <= trn_rd[31+64 :  0+64];
 
                   if (bar_usr)
                   usr_reg_wr_o <= 1'b1;
@@ -646,12 +646,12 @@ begin
                     else
                       if (trn_dw_sel == 1'h1)
                         usr_rxd <= trn_rd[63:32];
-//                      else
-//                        if (trn_dw_sel == 2'h2)
-//                          usr_rxd <= trn_rd[31+64 : 0+64];
-//                        else
-//                          if (trn_dw_sel == 2'h3)
-//                            usr_rxd <= trn_rd[63+64 : 32+64];
+                      else
+                        if (trn_dw_sel == 2'h2)
+                          usr_rxd <= trn_rd[31+64 : 0+64];
+                        else
+                          if (trn_dw_sel == 2'h3)
+                            usr_rxd <= trn_rd[63+64 : 32+64];
 
                     if (!trn_reof_n) //EOF
                     begin
@@ -667,9 +667,9 @@ begin
                           usr_txbuf_wr <= 1'b0;
 
                         if (((trn_rrem_n == 4'h0) && (trn_dw_sel == 1'h0)) ||
-                            ((trn_rrem_n == 4'h1) && (trn_dw_sel == 1'h1)))// ||
-//                            ((trn_rrem_n == 4'h2) && (trn_dw_sel == 2'h2)) ||
-//                            ((trn_rrem_n == 4'h3) && (trn_dw_sel == 2'h3)))
+                            ((trn_rrem_n == 4'h1) && (trn_dw_sel == 1'h1)) ||
+                            ((trn_rrem_n == 4'h2) && (trn_dw_sel == 2'h2)) ||
+                            ((trn_rrem_n == 4'h3) && (trn_dw_sel == 2'h3)))
                         begin
                           cpld_tlp_dlast <= 1'b1;
                           trn_rdst_rdy_n <= 1'b1;
