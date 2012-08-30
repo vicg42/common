@@ -369,7 +369,10 @@ begin
                   //-----------------------------------------------------
                   //MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
                   //-----------------------------------------------------
-                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) &&
+//                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) &&
+//                      !sr_req_compl && !compl_done_o &&
+//                      mwr_en_i && !mwr_done_o && master_en_i)
+                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]) &&
                       !sr_req_compl && !compl_done_o &&
                       mwr_en_i && !mwr_done_o && master_en_i)
                   begin
@@ -554,7 +557,7 @@ begin
 
             `STATE_TX_MWR_QW1 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
                 begin
                     if (mwr_pkt_count == 0)
                       tmwr_addr = mwr_addr_req;
@@ -650,7 +653,7 @@ begin
 
             `STATE_TX_MWR_QWN :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE])
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
                 begin
 //                    if (trn_dw_sel == 2'h1)
 //                    begin
@@ -733,7 +736,7 @@ begin
                           trn_tsrc_rdy_n <= 1'b0;
 
                           trn_dw_sel <= trn_dw_sel - 1'b1;
-                          mwr_len_dw <= mwr_len_dw - 1'h1;
+                          mwr_len_dw <= mwr_len_dw - 1'b1;
 
                           fsm_state <= `STATE_TX_MWR_QWN;
                       end

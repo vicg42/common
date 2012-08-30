@@ -97,7 +97,8 @@ reg [9:0]    cpld_tlp_len;
 reg          cpld_tlp_dlast;
 reg          cpld_tlp_work;
 
-reg [31:0]   usr_rxd;
+reg [31:0]   usr_reg_di;
+reg [31:0]   usr_txbuf_di;
 reg          usr_txbuf_wr;
 
 reg          trn_dw_skip;
@@ -117,15 +118,15 @@ assign  bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
 
 assign usr_reg_adr_o = {{req_addr_o[5:0]},{2'b0}};
 
-assign usr_reg_din_o = {{usr_rxd[07:0]},
-                        {usr_rxd[15:08]},
-                        {usr_rxd[23:16]},
-                        {usr_rxd[31:24]}};
+assign usr_reg_din_o = {{usr_reg_di[07:0]},
+                        {usr_reg_di[15:08]},
+                        {usr_reg_di[23:16]},
+                        {usr_reg_di[31:24]}};
 
-assign usr_txbuf_din_o = {{usr_rxd[07:0]},
-                          {usr_rxd[15:08]},
-                          {usr_rxd[23:16]},
-                          {usr_rxd[31:24]}};
+assign usr_txbuf_din_o = {{usr_txbuf_di[07:0]},
+                          {usr_txbuf_di[15:08]},
+                          {usr_txbuf_di[23:16]},
+                          {usr_txbuf_di[31:24]}};
 
 assign usr_txbuf_wr_o = usr_txbuf_wr;
 
@@ -165,7 +166,8 @@ begin
       trn_dw_sel <= 0;
       trn_dw_skip <= 1'b0;
 
-      usr_rxd <= 0;
+      usr_txbuf_di <= 0;
+      usr_reg_di <= 0;
       usr_reg_wr_o <= 1'b0;
       usr_reg_rd_o <= 1'b0;
       usr_txbuf_wr <= 1'b0;
@@ -266,6 +268,9 @@ begin
                             req_tag_o      <= trn_rd[15 :  8];
                             req_be_o       <= trn_rd[ 7 :  0];
 
+                            if (bar_exprom)
+                              req_exprom_o <= 1'b1;
+
                             fsm_state <= `STATE_RX_MRD_QW1;
                           end
                           else
@@ -362,7 +367,7 @@ begin
 //                              req_be_o       <= trn_rd[ 7+64 : 0+64];
 //
 //                              req_addr_o     <= trn_rd[31+32 : 2+32];
-//                              usr_rxd        <= trn_rd[31:0];
+//                              usr_reg_di     <= trn_rd[31:0];
 //
 //                              trn_rdst_rdy_n <= 1'b1;
 //
@@ -423,7 +428,7 @@ begin
 //                            if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
 //                            begin
 //                              req_addr_o <= trn_rd[63 : 34];
-//                              usr_rxd    <= trn_rd[31 :  0];
+//                              usr_reg_di <= trn_rd[31 :  0];
 //
 //                              if (bar_usr)
 //                              usr_reg_wr_o <= 1'b1;
@@ -459,7 +464,7 @@ begin
 //                              trn_dw_sel <= 2'h3;
 //                              trn_dw_skip <= 1'b0;
 //                              usr_txbuf_wr <= 1'b1;
-//                              usr_rxd <= trn_rd[31:0];
+//                              usr_txbuf_di <= trn_rd[31:0];
 //
 //                              if (!trn_reof_n && (trn_rd[41+64 : 32+64] == 10'b1))
 //                              begin
@@ -492,7 +497,7 @@ begin
                 if (!trn_reof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
                   req_addr_o <= trn_rd[63 : 34];
-                  usr_rxd    <= trn_rd[31 :  0];
+                  usr_reg_di <= trn_rd[31 :  0];
 
                   if (bar_usr)
                   usr_reg_wr_o <= 1'b1;
@@ -590,9 +595,9 @@ begin
                 if (!trn_reof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
                   req_addr_o <= trn_rd[63 : 34];
-                  usr_rxd    <= trn_rd[31 :  0];
+                  usr_reg_di <= trn_rd[31 :  0];
 //                  req_addr_o <= trn_rd[63+64 : 34+64];
-//                  usr_rxd    <= trn_rd[31+64 :  0+64];
+//                  usr_reg_di <= trn_rd[31+64 :  0+64];
 
                   if (bar_usr)
                   usr_reg_wr_o <= 1'b1;
@@ -642,16 +647,16 @@ begin
                 if (!trn_rsrc_rdy_n && trn_rsrc_dsc_n && !usr_txbuf_full_i)
                 begin
                     if (trn_dw_sel == 1'h0)
-                      usr_rxd <= trn_rd[31:0];
+                      usr_txbuf_di <= trn_rd[31:0];
                     else
                       if (trn_dw_sel == 1'h1)
-                        usr_rxd <= trn_rd[63:32];
+                        usr_txbuf_di <= trn_rd[63:32];
 //                      else
 //                        if (trn_dw_sel == 2'h2)
-//                          usr_rxd <= trn_rd[31+64 : 0+64];
+//                          usr_txbuf_di <= trn_rd[31+64 : 0+64];
 //                        else
 //                          if (trn_dw_sel == 2'h3)
-//                            usr_rxd <= trn_rd[63+64 : 32+64];
+//                            usr_txbuf_di <= trn_rd[63+64 : 32+64];
 
                     if (!trn_reof_n) //EOF
                     begin
