@@ -170,7 +170,7 @@ reg [6:0]    lower_addr;
 
 reg [3:0]    fsm_state;
 
-reg [7:0]    mwr_addr_up_req;
+//reg [7:0]    mwr_addr_up_req;
 reg [31:0]   mwr_addr_req;
 reg [3:0]    mwr_fbe;
 reg [3:0]    mwr_lbe;
@@ -183,7 +183,7 @@ reg [12:0]   mwr_len_byte;     //Размер одного пакета MWr в байт (учавствует в в
 reg [10:0]   mwr_len_dw_req;
 reg [10:0]   mwr_len_dw;       //Сколько DW осталось отправить в текущем пакете.
 
-reg [7:0]    mrd_addr_up_req;
+//reg [7:0]    mrd_addr_up_req;
 reg [31:0]   mrd_addr_req;
 reg          mrd_done;
 reg [3:0]    mrd_fbe;
@@ -255,7 +255,7 @@ begin
       trn_td         <= 0;
       trn_trem_n     <= 0;
 
-      mwr_addr_up_req   <= 0;
+      //mwr_addr_up_req   <= 0;
       mwr_addr_req      <= 0;
       mwr_done_o        <= 1'b0;
       mwr_pkt_count_req <= 0;
@@ -269,7 +269,7 @@ begin
       mwr_fbe           <= 0;
       mwr_lbe           <= 0;
 
-      mrd_addr_up_req   <= 0;
+      //mrd_addr_up_req   <= 0;
       mrd_addr_req      <= 0;
       mrd_done          <= 1'b0;
       mrd_pkt_count_req <= 0;
@@ -294,7 +294,7 @@ begin
     begin
         if (dma_init_i) //Инициализация перед началом DMA транзакции
         begin
-            mwr_addr_up_req   <= mwr_addr_up_i;
+            //mwr_addr_up_req   <= mwr_addr_up_i;
             mwr_addr_req      <= mwr_addr_i;
             mwr_done_o        <= 1'b0;
             mwr_pkt_count_req <= mwr_count_i[15:0];
@@ -303,7 +303,7 @@ begin
             mwr_fbe_req       <= mwr_fbe_i;
             mwr_lbe_req       <= mwr_lbe_i;
 
-            mrd_addr_up_req   <= mrd_addr_up_i;
+            //mrd_addr_up_req   <= mrd_addr_up_i;
             mrd_addr_req      <= mrd_addr_i;
             mrd_done          <= 1'b0;
             mrd_pkt_count_req <= mrd_count_i[15:0];
@@ -559,7 +559,7 @@ begin
                     trn_trem_n     <= 0;
 
                     trn_td <= {{1'b0},          //Reserved
-                               {mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
+                               {`C_FMT_TYPE_MWR_3DW_WD},//{mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
                                {1'b0},          //Reserved
                                mwr_tlp_tc_i,    //TC (Traffic Class)
                                {4'b0},          //Reserved
@@ -596,7 +596,7 @@ begin
 //                    trn_trem_n     <= 0;
 //
 //                    trn_td <= {{1'b0},          //Reserved
-//                               {mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
+//                               {`C_FMT_TYPE_MWR_3DW_WD},//{mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
 //                               {1'b0},          //Reserved
 //                               mwr_tlp_tc_i,    //TC (Traffic Class)
 //                               {4'b0},          //Reserved
@@ -609,23 +609,23 @@ begin
 //                               {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
 //                               {mwr_lbe, mwr_fbe},
 //
-//                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
-//                               {mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
-//                                                                             usr_rxbuf_dout_i[15:08],
-//                                                                             usr_rxbuf_dout_i[23:16],
-//                                                                             usr_rxbuf_dout_i[31:24]}}
-//                               };
+//                               {pmwr_addr[31:2], {2'b0}}, //{mwr_64b_en_i ? {{24'b0}, mwr_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
+//                               {usr_rxbuf_dout_i[07:00],  //{mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+//                                usr_rxbuf_dout_i[15:08],  //                                              usr_rxbuf_dout_i[15:08],
+//                                usr_rxbuf_dout_i[23:16],  //                                              usr_rxbuf_dout_i[23:16],
+//                                usr_rxbuf_dout_i[31:24]}  //                                              usr_rxbuf_dout_i[31:24]}}
+//                               };                         //};
                     trn_tsof_n     <= 1'b1;
                     //trn_teof_n     <= 1'b1;
                     //trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= 0;
 
-                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
-                               {mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
-                                                                             usr_rxbuf_dout_i[15:08],
-                                                                             usr_rxbuf_dout_i[23:16],
-                                                                             usr_rxbuf_dout_i[31:24]}}
-                               };
+                    trn_td <= {{pmwr_addr[31:2], {2'b0}}, //{{mwr_64b_en_i ? {{24'b0}, mwr_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
+                               {usr_rxbuf_dout_i[07:00],  // {mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+                                usr_rxbuf_dout_i[15:08],  //                                               usr_rxbuf_dout_i[15:08],
+                                usr_rxbuf_dout_i[23:16],  //                                               usr_rxbuf_dout_i[23:16],
+                                usr_rxbuf_dout_i[31:24]}  //                                               usr_rxbuf_dout_i[31:24]}}
+                               };                         // };
 
                     pmwr_addr <= pmwr_addr + mwr_len_byte;
 
@@ -796,7 +796,7 @@ begin
                     trn_trem_n     <= 0;
 
                     trn_td <= {{1'b0},          //Reserved
-                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
+                               {`C_FMT_TYPE_MRD_3DW_ND},//{mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
                                {1'b0},          //Reserved
                                mrd_tlp_tc_i,    //TC (Traffic Class)
                                {4'b0},          //Reserved
@@ -826,10 +826,10 @@ begin
 //                    trn_tsof_n     <= 1'b0;
 //                    trn_teof_n     <= 1'b0;
 //                    trn_tsrc_rdy_n <= 1'b0;
-//                    trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
+//                    trn_trem_n     <= 4'h1;//mrd_64b_en_i ? 4'h0 : 4'h1;
 //
 //                    trn_td <= {{1'b0},          //Reserved
-//                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
+//                               {`C_FMT_TYPE_MRD_3DW_ND},//{mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
 //                               {1'b0},          //Reserved
 //                               mrd_tlp_tc_i,    //TC (Traffic Class)
 //                               {4'b0},          //Reserved
@@ -842,17 +842,17 @@ begin
 //                               {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
 //                               {mrd_lbe, mrd_fbe},
 //
-//                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
-//                                               {pmrd_addr[31:2], {2'b0}, {32'b0}} }
-//                               };
+//                               {pmrd_addr[31:2], {2'b0}, {32'b0}} //{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
+//                               };                                 //                {pmrd_addr[31:2], {2'b0}, {32'b0}} }
+//                                                                  //};
                     trn_tsof_n     <= 1'b1;
                     trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= mrd_64b_en_i ? 4'h0 : 4'h1;
+                    trn_trem_n     <= 4'h1;//mrd_64b_en_i ? 4'h0 : 4'h1;
 
-                    trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
-                                               {pmrd_addr[31:2], {2'b0}, {32'b0}} }
-                               };
+                    trn_td <= {pmrd_addr[31:2], {2'b0}, {32'b0}}; //{{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
+                                                                  //                 {pmrd_addr[31:2], {2'b0}, {32'b0}} }
+                                                                  //};
 
                     pmrd_addr <= pmrd_addr + mrd_len_byte;
 
