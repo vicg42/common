@@ -728,9 +728,9 @@ begin
 //                                                   usr_rxbuf_dout_i[31:24]};
 //                        end
 //                        else
-//                          if (trn_dw_sel == 4'h0)
+//                          if (trn_dw_sel == 2'h0)
 //                          begin
-//                            trn_trem_n <= 2'h3;
+//                            trn_trem_n <= 4'h3;
 //                            trn_td[63+64 : 32+64] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                                      usr_rxbuf_dout_i[15: 8],
 //                                                      usr_rxbuf_dout_i[23:16],

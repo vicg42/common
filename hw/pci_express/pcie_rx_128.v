@@ -220,8 +220,6 @@ begin
   end
   else
     begin
-        req_compl_o <= 1'b0;
-
         if (dma_init_i) //Инициализация перед началом DMA транзакции
         begin
           cpld_tlp_len <= 0;
@@ -383,11 +381,8 @@ begin
 
                               trn_rdst_rdy_n <= 1'b1;
 
-                              if (!bar_exprom)
-                                if (bar_usr)
+                              if (bar_usr)
                                 usr_rd <= 1'b1;
-                                else
-                                usr_rd <= 1'b0;
 
                               fsm_state <= `STATE_RX_MRD_WT1;
                             end
@@ -418,9 +413,7 @@ begin
                               trn_rdst_rdy_n <= 1'b1;
 
                               if (bar_usr)
-                              usr_wr <= 1'b1;
-                              else
-                              usr_wr <= 1'b0;
+                                usr_wr <= 1'b1;
 
                               req_compl_o <= 1'b1;//Запрос на отправку пакета Cpl
 
@@ -456,9 +449,7 @@ begin
 
                               if (!bar_exprom)
                                 if (bar_usr)
-                                usr_rd <= 1'b1;
-                                else
-                                usr_rd <= 1'b0;
+                                  usr_rd <= 1'b1;
 
                               fsm_state <= `STATE_RX_MRD_WT1;
                             end
@@ -477,11 +468,10 @@ begin
                               usr_di <= trn_rd[31 :  0];
 
                               if (bar_usr)
-                              usr_wr <= 1'b1;
-                              else
-                              usr_wr <= 1'b0;
+                                usr_wr <= 1'b1;
 
-                              fsm_state <= `STATE_RX_IDLE;
+                              trn_rdst_rdy_n <= 1'b1;
+                              fsm_state <= `STATE_RX_MWR_WT;
                             end
                             else
                               fsm_state <= `STATE_RX_IDLE;
@@ -528,10 +518,8 @@ begin
                   end //if (trn_rrem_n[1] == 0)
                 end
                 else
-                  begin
-                    usr_wr <= 1'b0;
-                    fsm_state <= `STATE_RX_IDLE;
-                  end //((!trn_rsof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n)
+                  fsm_state <= `STATE_RX_IDLE;
+                  //((!trn_rsof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n)
             end //`STATE_RX_IDLE :
 
 
@@ -546,9 +534,7 @@ begin
                   usr_di <= trn_rd[31 :  0];
 
                   if (bar_usr)
-                  usr_wr <= 1'b1;
-                  else
-                  usr_wr <= 1'b0;
+                    usr_wr <= 1'b1;
 
                   req_compl_o <= 1'b1;//Запрос передачи пакета Cpl
                   trn_rdst_rdy_n <= 1'b1;
@@ -564,18 +550,14 @@ begin
             `STATE_RX_IOWR_WT:
             begin
                 usr_wr <= 1'b0;
-
                 if (compl_done_i) //отправка пакета Cpl завершена
                 begin
+                  req_compl_o <= 1'b0;
                   trn_rdst_rdy_n <= 1'b0;
                   fsm_state <= `STATE_RX_IDLE;
                 end
                 else
-                  begin
-                    req_compl_o <= 1'b1;
-                    trn_rdst_rdy_n <= 1'b1;
-                    fsm_state <= `STATE_RX_IOWR_WT;
-                  end
+                  fsm_state <= `STATE_RX_IOWR_WT;
             end
             //END: IOWr - 3DW, +data
 
@@ -591,17 +573,18 @@ begin
                   req_addr_o     <= trn_rd[63+64 : 34+64];
                   trn_rdst_rdy_n <= 1'b1;
 
-                  if (!bar_exprom)
+                  if (!req_exprom_o)
                     if (bar_usr)
-                    usr_rd <= 1'b1;
-                    else
-                    usr_rd <= 1'b0;
+                      usr_rd <= 1'b1;
 
                   fsm_state <= `STATE_RX_MRD_WT1;
                 end
                 else
                   if (!trn_rsrc_dsc_n) //Ядро прерывало прием данных
+                  begin
+                    req_exprom_o <= 1'b0;
                     fsm_state <= `STATE_RX_IDLE;
+                  end
                   else
                     fsm_state <= `STATE_RX_MRD_QW1;
             end
@@ -615,20 +598,15 @@ begin
 
             `STATE_RX_MRD_WT:
             begin
-                usr_rd <= 1'b0;
-
                 if (compl_done_i) //отправка пакета CplD завершена
                 begin
                   req_exprom_o <= 1'b0;
+                  req_compl_o <= 1'b0;
                   trn_rdst_rdy_n <= 1'b0;
                   fsm_state <= `STATE_RX_IDLE;
                 end
                 else
-                  begin
-                    req_compl_o    <= 1'b1;
-                    trn_rdst_rdy_n <= 1'b1;
-                    fsm_state <= `STATE_RX_MRD_WT;
-                  end
+                  fsm_state <= `STATE_RX_MRD_WT;
             end
             //END: MRd - 3DW, no data
 
@@ -646,9 +624,7 @@ begin
                   usr_di <= trn_rd[31+64 :  0+64];
 
                   if (bar_usr)
-                  usr_wr <= 1'b1;
-                  else
-                  usr_wr <= 1'b0;
+                    usr_wr <= 1'b1;
 
                   trn_rdst_rdy_n <= 1'b1;
                   fsm_state <= `STATE_RX_MWR_WT;
@@ -692,6 +668,11 @@ begin
             begin
                 if (!trn_rsrc_rdy_n && trn_rsrc_dsc_n && !usr_txbuf_full_i)
                 begin
+//                    if (trn_dw_sel == 1'h0)
+//                      usr_di <= trn_rd[31:0];
+//                    else
+//                      if (trn_dw_sel == 1'h1)
+//                        usr_di <= trn_rd[63:32];
                     if (trn_dw_sel == 2'h0)
                       usr_di <= trn_rd[31:0];
                     else
@@ -717,6 +698,8 @@ begin
                         else
                           usr_wr <= 1'b0;
 
+//                        if (((trn_rrem_n == 4'h0) && (trn_dw_sel == 1'h0)) ||
+//                            ((trn_rrem_n == 4'h1) && (trn_dw_sel == 1'h1)))
                         if (((trn_rrem_n == 4'h0) && (trn_dw_sel == 2'h0)) ||
                             ((trn_rrem_n == 4'h1) && (trn_dw_sel == 2'h1)) ||
                             ((trn_rrem_n == 4'h2) && (trn_dw_sel == 2'h2)) ||
