@@ -40,7 +40,7 @@ module pcie_cfg (
                     clk,
                     rst_n,
 
-                    cfg_bus_mstr_enable,
+                    cfg_bus_master_en,
 
                     cfg_dwaddr,
                     cfg_rd_en_n,
@@ -62,7 +62,7 @@ module pcie_cfg (
 input               clk;
 input               rst_n;
 
-input               cfg_bus_mstr_enable;
+input               cfg_bus_master_en;
 
 output [9:0]        cfg_dwaddr;
 output              cfg_rd_en_n;
@@ -147,15 +147,15 @@ always @(posedge clk or negedge rst_n) begin
     cfg_cap_max_lnk_width <= 6'b0;
     cfg_cap_max_payload_size <= 3'b0;
     cfg_intf_state <= `BMD_CFG_STATE_RESET;
-    cfg_bme_state <= 0;//cfg_bus_mstr_enable;
+    cfg_bme_state <= 0;//cfg_bus_master_en;
 
   end else begin
 
     case ( cfg_intf_state )
 
       `BMD_CFG_STATE_RESET : begin
-        cfg_bme_state <= cfg_bus_mstr_enable;
-        if (cfg_rd_wr_done_n == 1'b1 && cfg_bus_mstr_enable) begin
+        cfg_bme_state <= cfg_bus_master_en;
+        if (cfg_rd_wr_done_n == 1'b1 && cfg_bus_master_en) begin
           cfg_dwaddr <= `BMD_CFG_MSI_CAP0_ADDR;
           cfg_rd_en_n <= 1'b0;
           cfg_intf_state <= `BMD_CFG_STATE_MSI;
@@ -199,7 +199,7 @@ always @(posedge clk or negedge rst_n) begin
       `BMD_CFG_STATE_END : begin
         cfg_dwaddr <= 0;
         cfg_rd_en_n <= 1'b1;
-        if (cfg_bme_state != cfg_bus_mstr_enable)
+        if (cfg_bme_state != cfg_bus_master_en)
           cfg_intf_state <= `BMD_CFG_STATE_RESET;
         else
           cfg_intf_state <= `BMD_CFG_STATE_END;

@@ -220,7 +220,7 @@ end component;
 
 component pcie_cfg
 port(
-cfg_bus_mstr_enable : in   std_logic;
+cfg_bus_master_en   : in   std_logic;
 
 cfg_dwaddr          : out  std_logic_vector(9 downto 0);
 cfg_rd_en_n         : out  std_logic;

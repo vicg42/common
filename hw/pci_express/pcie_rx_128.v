@@ -12,7 +12,56 @@
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
-`include "../../../common/lib/hw/pci_express/pcie_def.v"
+//`include "../../../common/lib/hw/pci_express/pcie_def.v"
+
+//Номера буферов передатчика ядра PCI-Express:
+`define C_BUF_NON_POSTED_QUEUE     0
+`define C_BUF_POSTED_QUEUE         1
+`define C_BUF_COMPLETION_QUEUE     2
+`define C_BUF_LOOK_AHEAD           3
+
+//Константы заголовка пакета:
+//(поле FMT)
+`define C_FMT_MSG_4DW              2'b10   //Msg  - 4DW, no data
+`define C_FMT_MSGD_4DW             2'b11   //MsgD - 4DW, w/ data
+
+//(поле FMT + поле TYPE)
+`define C_FMT_TYPE_IORD_3DW_ND     7'b00_00010 //(0x02) IORd   - 3DW, no data
+`define C_FMT_TYPE_IOWR_3DW_WD     7'b10_00010 //(0x42) IOWr   - 3DW, w/data
+`define C_FMT_TYPE_MWR_3DW_WD      7'b10_00000 //(0x40) MWr    - 3DW, w/data
+`define C_FMT_TYPE_MWR_4DW_WD      7'b11_00000 //(0x60) MWr    - 4DW, w/data
+`define C_FMT_TYPE_MRD_3DW_ND      7'b00_00000 //(0x00) MRd    - 3DW, no data
+`define C_FMT_TYPE_MRD_4DW_ND      7'b01_00000 //(0x20) MRd    - 4DW, no data
+`define C_FMT_TYPE_MRDLK_3DW_ND    7'b00_00001 //(0x01) MRdLk  - 3DW, no data
+`define C_FMT_TYPE_MRDLK_4DW_ND    7'b01_00001 //(0x21) MRdLk  - 4DW, no data
+`define C_FMT_TYPE_CPLLK_3DW_ND    7'b00_01011 //(0x0B) CplLk  - 3DW, no data
+`define C_FMT_TYPE_CPLDLK_3DW_WD   7'b10_01011 //(0x4B) CplDLk - 3DW, w/ data
+`define C_FMT_TYPE_CPL_3DW_ND      7'b00_01010 //(0x0A) Cpl    - 3DW, no data
+`define C_FMT_TYPE_CPLD_3DW_WD     7'b10_01010 //(0x4A) CplD   - 3DW, w/ data
+`define C_FMT_TYPE_CFGRD0_3DW_ND   7'b00_00100 //(0x04) CfgRd0 - 3DW, no data
+`define C_FMT_TYPE_CFGWR0_3DW_WD   7'b10_00100 //(0x44) CfgwR0 - 3DW, w/ data
+`define C_FMT_TYPE_CFGRD1_3DW_ND   7'b00_00101 //(0x05) CfgRd1 - 3DW, no data
+`define C_FMT_TYPE_CFGWR1_3DW_WD   7'b10_00101 //(0x45) CfgwR1 - 3DW, w/ data
+
+
+`define C_MAX_PAYLOAD_128_BYTE     3'b000
+`define C_MAX_PAYLOAD_256_BYTE     3'b001
+`define C_MAX_PAYLOAD_512_BYTE     3'b010
+`define C_MAX_PAYLOAD_1024_BYTE    3'b011
+`define C_MAX_PAYLOAD_2048_BYTE    3'b100
+`define C_MAX_PAYLOAD_4096_BYTE    3'b101
+
+`define C_MAX_READ_REQ_128_BYTE    3'b000
+`define C_MAX_READ_REQ_256_BYTE    3'b001
+`define C_MAX_READ_REQ_512_BYTE    3'b010
+`define C_MAX_READ_REQ_1024_BYTE   3'b011
+`define C_MAX_READ_REQ_2048_BYTE   3'b100
+`define C_MAX_READ_REQ_4096_BYTE   3'b101
+
+`define C_COMPLETION_STATUS_SC     3'b000
+`define C_COMPLETION_STATUS_UR     3'b001
+`define C_COMPLETION_STATUS_CRS    3'b010
+`define C_COMPLETION_STATUS_CA     3'b011
 
 //Состояния автомата управления
 `define STATE_RX_IDLE       4'h0 //11'b00000000001 //
@@ -32,8 +81,8 @@ module pcie_rx(
 //usr app
 output [7:0]       usr_reg_adr_o,
 output [31:0]      usr_reg_din_o,
-output reg         usr_reg_wr_o,
-output reg         usr_reg_rd_o,
+output             usr_reg_wr_o,
+output             usr_reg_rd_o,
 
 //output [7:0]       usr_txbuf_dbe_o,
 output [31:0]      usr_txbuf_din_o,
@@ -97,8 +146,9 @@ reg [9:0]    cpld_tlp_len;
 reg          cpld_tlp_dlast;
 reg          cpld_tlp_work;
 
-reg [31:0]   usr_rxd;
-reg          usr_txbuf_wr;
+reg [31:0]   usr_di;
+reg          usr_wr;
+reg          usr_rd;
 
 reg          trn_dw_skip;
 reg [1:0]    trn_dw_sel;
@@ -117,19 +167,18 @@ assign  bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
 
 assign usr_reg_adr_o = {{req_addr_o[5:0]},{2'b0}};
 
-assign usr_reg_din_o = {{usr_rxd[07:0]},
-                        {usr_rxd[15:08]},
-                        {usr_rxd[23:16]},
-                        {usr_rxd[31:24]}};
+assign usr_reg_din_o = usr_txbuf_din_o;
 
-assign usr_txbuf_din_o = {{usr_rxd[07:0]},
-                          {usr_rxd[15:08]},
-                          {usr_rxd[23:16]},
-                          {usr_rxd[31:24]}};
-
-assign usr_txbuf_wr_o = usr_txbuf_wr;
+assign usr_txbuf_din_o = {{usr_di[07:0]},
+                          {usr_di[15:08]},
+                          {usr_di[23:16]},
+                          {usr_di[31:24]}};
 
 assign usr_txbuf_wr_last_o = cpld_tlp_dlast;
+
+assign usr_txbuf_wr_o = (usr_wr && cpld_tlp_work);
+assign usr_reg_wr_o = (usr_wr && !cpld_tlp_work);
+assign usr_reg_rd_o = usr_rd;
 
 assign trn_rdst_rdy_n_o = trn_rdst_rdy_n || (trn_dw_sel != 0) || (usr_txbuf_full_i && cpld_tlp_work);
 
@@ -165,10 +214,9 @@ begin
       trn_dw_sel <= 0;
       trn_dw_skip <= 1'b0;
 
-      usr_rxd <= 0;
-      usr_reg_wr_o <= 1'b0;
-      usr_reg_rd_o <= 1'b0;
-      usr_txbuf_wr <= 1'b0;
+      usr_di <= 0;
+      usr_wr <= 1'b0;
+      usr_rd <= 1'b0;
   end
   else
     begin
@@ -266,6 +314,9 @@ begin
                             req_tag_o      <= trn_rd[15 :  8];
                             req_be_o       <= trn_rd[ 7 :  0];
 
+                            if (bar_exprom)
+                              req_exprom_o <= 1'b1;
+
                             fsm_state <= `STATE_RX_MRD_QW1;
                           end
                           else
@@ -334,9 +385,9 @@ begin
 
                               if (!bar_exprom)
                                 if (bar_usr)
-                                usr_reg_rd_o <= 1'b1;
+                                usr_rd <= 1'b1;
                                 else
-                                usr_reg_rd_o <= 1'b0;
+                                usr_rd <= 1'b0;
 
                               fsm_state <= `STATE_RX_MRD_WT1;
                             end
@@ -362,14 +413,14 @@ begin
                               req_be_o       <= trn_rd[ 7+64 : 0+64];
 
                               req_addr_o     <= trn_rd[31+32 : 2+32];
-                              usr_rxd        <= trn_rd[31:0];
+                              usr_di         <= trn_rd[31:0];
 
                               trn_rdst_rdy_n <= 1'b1;
 
                               if (bar_usr)
-                              usr_reg_wr_o <= 1'b1;
+                              usr_wr <= 1'b1;
                               else
-                              usr_reg_wr_o <= 1'b0;
+                              usr_wr <= 1'b0;
 
                               req_compl_o <= 1'b1;//Запрос на отправку пакета Cpl
 
@@ -405,9 +456,9 @@ begin
 
                               if (!bar_exprom)
                                 if (bar_usr)
-                                usr_reg_rd_o <= 1'b1;
+                                usr_rd <= 1'b1;
                                 else
-                                usr_reg_rd_o <= 1'b0;
+                                usr_rd <= 1'b0;
 
                               fsm_state <= `STATE_RX_MRD_WT1;
                             end
@@ -423,12 +474,12 @@ begin
                             if (trn_rd[41+64 : 32+64] == 10'b1) //Length data payload (DW)
                             begin
                               req_addr_o <= trn_rd[63 : 34];
-                              usr_rxd    <= trn_rd[31 :  0];
+                              usr_di <= trn_rd[31 :  0];
 
                               if (bar_usr)
-                              usr_reg_wr_o <= 1'b1;
+                              usr_wr <= 1'b1;
                               else
-                              usr_reg_wr_o <= 1'b0;
+                              usr_wr <= 1'b0;
 
                               fsm_state <= `STATE_RX_IDLE;
                             end
@@ -458,8 +509,8 @@ begin
                               cpld_tlp_work <= 1'b1;
                               trn_dw_sel <= 2'h3;
                               trn_dw_skip <= 1'b0;
-                              usr_txbuf_wr <= 1'b1;
-                              usr_rxd <= trn_rd[31:0];
+                              usr_wr <= 1'b1;
+                              usr_di <= trn_rd[31:0];
 
                               if (!trn_reof_n && (trn_rd[41+64 : 32+64] == 10'b1))
                               begin
@@ -478,7 +529,7 @@ begin
                 end
                 else
                   begin
-                    usr_reg_wr_o <= 1'b0;
+                    usr_wr <= 1'b0;
                     fsm_state <= `STATE_RX_IDLE;
                   end //((!trn_rsof_n) && (!trn_rsrc_rdy_n) && trn_rsrc_dsc_n)
             end //`STATE_RX_IDLE :
@@ -492,12 +543,12 @@ begin
                 if (!trn_reof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
                   req_addr_o <= trn_rd[63 : 34];
-                  usr_rxd    <= trn_rd[31 :  0];
+                  usr_di <= trn_rd[31 :  0];
 
                   if (bar_usr)
-                  usr_reg_wr_o <= 1'b1;
+                  usr_wr <= 1'b1;
                   else
-                  usr_reg_wr_o <= 1'b0;
+                  usr_wr <= 1'b0;
 
                   req_compl_o <= 1'b1;//Запрос передачи пакета Cpl
                   trn_rdst_rdy_n <= 1'b1;
@@ -512,7 +563,7 @@ begin
 
             `STATE_RX_IOWR_WT:
             begin
-                usr_reg_wr_o <= 1'b0;
+                usr_wr <= 1'b0;
 
                 if (compl_done_i) //отправка пакета Cpl завершена
                 begin
@@ -542,9 +593,9 @@ begin
 
                   if (!bar_exprom)
                     if (bar_usr)
-                    usr_reg_rd_o <= 1'b1;
+                    usr_rd <= 1'b1;
                     else
-                    usr_reg_rd_o <= 1'b0;
+                    usr_rd <= 1'b0;
 
                   fsm_state <= `STATE_RX_MRD_WT1;
                 end
@@ -557,14 +608,14 @@ begin
 
             `STATE_RX_MRD_WT1:
             begin
-                usr_reg_rd_o <= 1'b0;
+                usr_rd <= 1'b0;
                 req_compl_o <= 1'b1;//Запрос передачи пакета CplD
                 fsm_state <= `STATE_RX_MRD_WT;
             end
 
             `STATE_RX_MRD_WT:
             begin
-                usr_reg_rd_o <= 1'b0;
+                usr_rd <= 1'b0;
 
                 if (compl_done_i) //отправка пакета CplD завершена
                 begin
@@ -590,14 +641,14 @@ begin
                 if (!trn_reof_n && !trn_rsrc_rdy_n && trn_rsrc_dsc_n)
                 begin
 //                  req_addr_o <= trn_rd[63 : 34];
-//                  usr_rxd    <= trn_rd[31 :  0];
+//                  usr_di <= trn_rd[31 :  0];
                   req_addr_o <= trn_rd[63+64 : 34+64];
-                  usr_rxd    <= trn_rd[31+64 :  0+64];
+                  usr_di <= trn_rd[31+64 :  0+64];
 
                   if (bar_usr)
-                  usr_reg_wr_o <= 1'b1;
+                  usr_wr <= 1'b1;
                   else
-                  usr_reg_wr_o <= 1'b0;
+                  usr_wr <= 1'b0;
 
                   trn_rdst_rdy_n <= 1'b1;
                   fsm_state <= `STATE_RX_MWR_WT;
@@ -611,7 +662,7 @@ begin
 
             `STATE_RX_MWR_WT:
             begin
-                usr_reg_wr_o <= 1'b0;
+                usr_wr <= 1'b0;
                 trn_rdst_rdy_n <= 1'b0;
                 fsm_state <= `STATE_RX_IDLE;
             end
@@ -641,17 +692,17 @@ begin
             begin
                 if (!trn_rsrc_rdy_n && trn_rsrc_dsc_n && !usr_txbuf_full_i)
                 begin
-                    if (trn_dw_sel == 1'h0)
-                      usr_rxd <= trn_rd[31:0];
+                    if (trn_dw_sel == 2'h0)
+                      usr_di <= trn_rd[31:0];
                     else
-                      if (trn_dw_sel == 1'h1)
-                        usr_rxd <= trn_rd[63:32];
+                      if (trn_dw_sel == 2'h1)
+                        usr_di <= trn_rd[63:32];
                       else
                         if (trn_dw_sel == 2'h2)
-                          usr_rxd <= trn_rd[31+64 : 0+64];
+                          usr_di <= trn_rd[31+64 : 0+64];
                         else
                           if (trn_dw_sel == 2'h3)
-                            usr_rxd <= trn_rd[63+64 : 32+64];
+                            usr_di <= trn_rd[63+64 : 32+64];
 
                     if (!trn_reof_n) //EOF
                     begin
@@ -660,14 +711,14 @@ begin
 
                         if (!trn_dw_skip)
                         begin
-                          usr_txbuf_wr <= 1'b1;
+                          usr_wr <= 1'b1;
                           cpld_tlp_cnt <= cpld_tlp_cnt + 1'b1;
                         end
                         else
-                          usr_txbuf_wr <= 1'b0;
+                          usr_wr <= 1'b0;
 
-                        if (((trn_rrem_n == 4'h0) && (trn_dw_sel == 1'h0)) ||
-                            ((trn_rrem_n == 4'h1) && (trn_dw_sel == 1'h1)) ||
+                        if (((trn_rrem_n == 4'h0) && (trn_dw_sel == 2'h0)) ||
+                            ((trn_rrem_n == 4'h1) && (trn_dw_sel == 2'h1)) ||
                             ((trn_rrem_n == 4'h2) && (trn_dw_sel == 2'h2)) ||
                             ((trn_rrem_n == 4'h3) && (trn_dw_sel == 2'h3)))
                         begin
@@ -684,17 +735,17 @@ begin
 
                           if (!trn_dw_skip)
                           begin
-                            usr_txbuf_wr <= 1'b1;
+                            usr_wr <= 1'b1;
                             cpld_tlp_cnt <= cpld_tlp_cnt + 1'b1;
                           end
                           else
-                            usr_txbuf_wr <= 1'b0;
+                            usr_wr <= 1'b0;
 
                           fsm_state <= `STATE_RX_CPLD_QWN;
                       end
                       else
                         begin
-                            usr_txbuf_wr <= 1'b0;
+                            usr_wr <= 1'b0;
                             fsm_state <= `STATE_RX_CPLD_QWN;
                         end
                 end
@@ -702,12 +753,12 @@ begin
                   if (!trn_rsrc_dsc_n) //Ядро прерывало прием данных
                   begin
                       cpld_tlp_dlast <= 1'b1;
-                      usr_txbuf_wr <= 1'b0;
+                      usr_wr <= 1'b0;
                       fsm_state <= `STATE_RX_CPLD_WT;
                   end
                   else
                     begin
-                      usr_txbuf_wr <= 1'b0;
+                      usr_wr <= 1'b0;
                       fsm_state <= `STATE_RX_CPLD_QWN;
                     end
             end //`STATE_RX_CPLD_QWN :
@@ -722,7 +773,7 @@ begin
                 cpld_tlp_work <= 1'b0;
                 trn_rdst_rdy_n <= 1'b0;
                 trn_dw_sel <= 0;
-                usr_txbuf_wr <= 1'b0;
+                usr_wr <= 1'b0;
                 fsm_state <= `STATE_RX_IDLE;
             end
             //END: CplD - 3DW, +data

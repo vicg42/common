@@ -12,7 +12,56 @@
 //--
 //-------------------------------------------------------------------------
 `timescale 1ns/1ns
-`include "../../../common/lib/hw/pci_express/pcie_def.v"
+//`include "../../../common/lib/hw/pci_express/pcie_def.v"
+
+//Номера буферов передатчика ядра PCI-Express:
+`define C_BUF_NON_POSTED_QUEUE     0
+`define C_BUF_POSTED_QUEUE         1
+`define C_BUF_COMPLETION_QUEUE     2
+`define C_BUF_LOOK_AHEAD           3
+
+//Константы заголовка пакета:
+//(поле FMT)
+`define C_FMT_MSG_4DW              2'b10   //Msg  - 4DW, no data
+`define C_FMT_MSGD_4DW             2'b11   //MsgD - 4DW, w/ data
+
+//(поле FMT + поле TYPE)
+`define C_FMT_TYPE_IORD_3DW_ND     7'b00_00010 //(0x02) IORd   - 3DW, no data
+`define C_FMT_TYPE_IOWR_3DW_WD     7'b10_00010 //(0x42) IOWr   - 3DW, w/data
+`define C_FMT_TYPE_MWR_3DW_WD      7'b10_00000 //(0x40) MWr    - 3DW, w/data
+`define C_FMT_TYPE_MWR_4DW_WD      7'b11_00000 //(0x60) MWr    - 4DW, w/data
+`define C_FMT_TYPE_MRD_3DW_ND      7'b00_00000 //(0x00) MRd    - 3DW, no data
+`define C_FMT_TYPE_MRD_4DW_ND      7'b01_00000 //(0x20) MRd    - 4DW, no data
+`define C_FMT_TYPE_MRDLK_3DW_ND    7'b00_00001 //(0x01) MRdLk  - 3DW, no data
+`define C_FMT_TYPE_MRDLK_4DW_ND    7'b01_00001 //(0x21) MRdLk  - 4DW, no data
+`define C_FMT_TYPE_CPLLK_3DW_ND    7'b00_01011 //(0x0B) CplLk  - 3DW, no data
+`define C_FMT_TYPE_CPLDLK_3DW_WD   7'b10_01011 //(0x4B) CplDLk - 3DW, w/ data
+`define C_FMT_TYPE_CPL_3DW_ND      7'b00_01010 //(0x0A) Cpl    - 3DW, no data
+`define C_FMT_TYPE_CPLD_3DW_WD     7'b10_01010 //(0x4A) CplD   - 3DW, w/ data
+`define C_FMT_TYPE_CFGRD0_3DW_ND   7'b00_00100 //(0x04) CfgRd0 - 3DW, no data
+`define C_FMT_TYPE_CFGWR0_3DW_WD   7'b10_00100 //(0x44) CfgwR0 - 3DW, w/ data
+`define C_FMT_TYPE_CFGRD1_3DW_ND   7'b00_00101 //(0x05) CfgRd1 - 3DW, no data
+`define C_FMT_TYPE_CFGWR1_3DW_WD   7'b10_00101 //(0x45) CfgwR1 - 3DW, w/ data
+
+
+`define C_MAX_PAYLOAD_128_BYTE     3'b000
+`define C_MAX_PAYLOAD_256_BYTE     3'b001
+`define C_MAX_PAYLOAD_512_BYTE     3'b010
+`define C_MAX_PAYLOAD_1024_BYTE    3'b011
+`define C_MAX_PAYLOAD_2048_BYTE    3'b100
+`define C_MAX_PAYLOAD_4096_BYTE    3'b101
+
+`define C_MAX_READ_REQ_128_BYTE    3'b000
+`define C_MAX_READ_REQ_256_BYTE    3'b001
+`define C_MAX_READ_REQ_512_BYTE    3'b010
+`define C_MAX_READ_REQ_1024_BYTE   3'b011
+`define C_MAX_READ_REQ_2048_BYTE   3'b100
+`define C_MAX_READ_REQ_4096_BYTE   3'b101
+
+`define C_COMPLETION_STATUS_SC     3'b000
+`define C_COMPLETION_STATUS_UR     3'b001
+`define C_COMPLETION_STATUS_CRS    3'b010
+`define C_COMPLETION_STATUS_CA     3'b011
 
 //Состояния автомата управления
 `define STATE_TX_IDLE       4'h0 //8'b00000001 //
@@ -159,7 +208,7 @@ assign trn_tsrc_dsc_n = 1'b1;
 
 assign mrd_pkt_len_o = {21'b0, mrd_len_dw};
 
-assign usr_rxbuf_rd_o = (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) && mwr_work;
+assign usr_rxbuf_rd_o = (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i) && mwr_work;
 
 assign usr_rxbuf_rd_last_o = usr_rxbuf_rd_o && (mwr_len_dw == 11'h1);
 
@@ -241,7 +290,7 @@ begin
       mrd_lbe_req       <= 0;
       mrd_fbe           <= 0;
       mrd_lbe           <= 0;
-      mrd_pkt_count_o   <= 16'b1;
+      mrd_pkt_count_o   <= 16'h1;
 
       compl_done_o <= 1'b0;
       trn_dw_sel <= 0;
@@ -279,16 +328,16 @@ begin
             mrd_lbe_req       <= mrd_lbe_i;
             mrd_fbe           <= 0;
             mrd_lbe           <= 0;
-            mrd_pkt_count_o   <= 16'b1;
+            mrd_pkt_count_o   <= 16'h1;
 
-            if ((mrd_count_i - 1'b1) == 16'b0)
+            if ((mrd_count_i - 1'b1) == 16'h0)
               mrd_len_dw[10:0] <= mrd_len_i[10:0];
             else
             begin
-              if      (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_dw <= 11'h100;
-              else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_dw <= 11'h80;
-              else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_dw <= 11'h40;
-              else                                                          mrd_len_dw <= 11'h20;
+              if      (max_rd_req_size_i == `C_MAX_READ_REQ_1024_BYTE) mrd_len_dw <= 11'h100;
+              else if (max_rd_req_size_i == `C_MAX_READ_REQ_512_BYTE)  mrd_len_dw <= 11'h80;
+              else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_dw <= 11'h40;
+              else                                                     mrd_len_dw <= 11'h20;
             end
 
             mwr_work <= 1'b0;
@@ -304,7 +353,7 @@ begin
                 //-----------------------------------------------------
                 //CplD - 3DW, +data;  Cpl - 3DW
                 //-----------------------------------------------------
-                if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_COMPLETION_QUEUE]) &&
+                if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_COMPLETION_QUEUE]) &&
                     sr_req_compl && !compl_done_o)
                 begin
 //                    trn_tsof_n     <= 1'b0;
@@ -369,10 +418,7 @@ begin
                   //-----------------------------------------------------
                   //MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
                   //-----------------------------------------------------
-//                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) &&
-//                      !sr_req_compl && !compl_done_o &&
-//                      mwr_en_i && !mwr_done_o && master_en_i)
-                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE]) &&
+                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) &&
                       !sr_req_compl && !compl_done_o &&
                       mwr_en_i && !mwr_done_o && master_en_i)
                   begin
@@ -387,16 +433,16 @@ begin
                           mwr_fbe <=4'hF;
                           mwr_lbe <=4'hF;
 
-                          if      (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_1024_BYTE) mwr_len_dw <= 11'h100;
-                          else if (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_512_BYTE)  mwr_len_dw <= 11'h80;
-                          else if (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_dw <= 11'h40;
-                          else                                                          mwr_len_dw <= 11'h20;
+                          if      (max_payload_size_i == `C_MAX_PAYLOAD_1024_BYTE) mwr_len_dw <= 11'h100;
+                          else if (max_payload_size_i == `C_MAX_PAYLOAD_512_BYTE)  mwr_len_dw <= 11'h80;
+                          else if (max_payload_size_i == `C_MAX_PAYLOAD_256_BYTE)  mwr_len_dw <= 11'h40;
+                          else                                                     mwr_len_dw <= 11'h20;
                         end
 
-                      if      (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_1024_BYTE) mwr_len_byte <= 13'h400;//4 * mwr_len_dw;
-                      else if (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_512_BYTE)  mwr_len_byte <= 13'h200;//4 * mwr_len_dw
-                      else if (max_payload_size_i == `C_MAX_PAYLOAD_SIZE_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
-                      else                                                          mwr_len_byte <= 13'h80; //4 * mwr_len_dw
+                      if      (max_payload_size_i == `C_MAX_PAYLOAD_1024_BYTE) mwr_len_byte <= 13'h400;//4 * mwr_len_dw;
+                      else if (max_payload_size_i == `C_MAX_PAYLOAD_512_BYTE)  mwr_len_byte <= 13'h200;//4 * mwr_len_dw
+                      else if (max_payload_size_i == `C_MAX_PAYLOAD_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
+                      else                                                     mwr_len_byte <= 13'h80; //4 * mwr_len_dw
 
 //                      trn_tsof_n     <= 1'b1;
 //                      trn_teof_n     <= 1'b1;
@@ -414,7 +460,7 @@ begin
                     //-----------------------------------------------------
                     //MRd - 3DW, no data (PC<-FPGA) FPGA is PCIe master
                     //-----------------------------------------------------
-                    if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE]) &&
+                    if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_NON_POSTED_QUEUE]) &&
                         !sr_req_compl && !compl_done_o &&
                         mrd_en_i && !mrd_done && master_en_i)
                     begin
@@ -429,16 +475,16 @@ begin
                             mrd_fbe <= 4'hF;
                             mrd_lbe <= 4'hF;
 
-                            if      (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_dw <= 11'h100;
-                            else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_dw <= 11'h80;
-                            else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_dw <= 11'h40;
-                            else                                                          mrd_len_dw <= 11'h20;
+                            if      (max_rd_req_size_i == `C_MAX_READ_REQ_1024_BYTE) mrd_len_dw <= 11'h100;
+                            else if (max_rd_req_size_i == `C_MAX_READ_REQ_512_BYTE)  mrd_len_dw <= 11'h80;
+                            else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_dw <= 11'h40;
+                            else                                                     mrd_len_dw <= 11'h20;
                           end
 
-                        if      (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_1024_BYTE) mrd_len_byte <= 13'h400;//4 * mrd_len_dw;
-                        else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_512_BYTE)  mrd_len_byte <= 13'h200;//4 * mrd_len_dw
-                        else if (max_rd_req_size_i == `C_MAX_READ_REQ_SIZE_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
-                        else                                                          mrd_len_byte <= 13'h80; //4 * mrd_len_dw
+                        if      (max_rd_req_size_i == `C_MAX_READ_REQ_1024_BYTE) mrd_len_byte <= 13'h400;//4 * mrd_len_dw;
+                        else if (max_rd_req_size_i == `C_MAX_READ_REQ_512_BYTE)  mrd_len_byte <= 13'h200;//4 * mrd_len_dw
+                        else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
+                        else                                                     mrd_len_byte <= 13'h80; //4 * mrd_len_dw
 
 //                        trn_tsof_n     <= 1'b1;
 //                        trn_teof_n     <= 1'b1;
@@ -520,7 +566,7 @@ begin
             //#######################################################################
             `STATE_TX_MWR_QW0 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
                 begin
                     trn_tsof_n     <= 1'b0;
                     trn_teof_n     <= 1'b1;
@@ -537,7 +583,7 @@ begin
                                {mwr_relaxed_order_i, mwr_nosnoop_i}, //Attr (Attributes)
                                {2'b0},          //Reserved
                                mwr_len_dw[9:0], //Length data payload (DW)
-                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b00},
+                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b0},
                                {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
                                {mwr_lbe, mwr_fbe}
                                };
@@ -557,7 +603,7 @@ begin
 
             `STATE_TX_MWR_QW1 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
                 begin
                     if (mwr_pkt_count == 0)
                       tmwr_addr = mwr_addr_req;
@@ -579,11 +625,11 @@ begin
 //                               {mwr_relaxed_order_i, mwr_nosnoop_i}, //Attr (Attributes)
 //                               {2'b0},          //Reserved
 //                               mwr_len_dw[9:0], //Length data payload (DW)
-//                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b00},
+//                               {completer_id_i[15:3], mwr_phant_func_en1_i, 2'b0},
 //                               {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
 //                               {mwr_lbe, mwr_fbe},
 //
-//                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b00}} }, //Начальный адрес записи в память хоста
+//                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
 //                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
 //                                                                             usr_rxbuf_dout_i[15:08],
 //                                                                             usr_rxbuf_dout_i[23:16],
@@ -594,7 +640,7 @@ begin
                     //trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= 0;
 
-                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b00}} }, //Начальный адрес записи в память хоста
+                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
                                {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
                                                                              usr_rxbuf_dout_i[15:08],
                                                                              usr_rxbuf_dout_i[23:16],
@@ -653,7 +699,7 @@ begin
 
             `STATE_TX_MWR_QWN :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i)
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
                 begin
 //                    if (trn_dw_sel == 2'h1)
 //                    begin
@@ -763,7 +809,7 @@ begin
             //#######################################################################
             `STATE_TX_MRD_QW0 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n)
                 begin
                     trn_tsof_n     <= 1'b0;
                     trn_teof_n     <= 1'b1;
@@ -780,7 +826,7 @@ begin
                                {mrd_relaxed_order_i, mrd_nosnoop_i}, //Attr (Attributes)
                                {2'b0},          //Reserved
                                mrd_len_dw[9:0], //Length data payload (DW)
-                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b00},
+                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b0},
                                {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
                                {mrd_lbe, mrd_fbe}
                                };
@@ -796,7 +842,7 @@ begin
 
             `STATE_TX_MRD_QW1 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_IDX_BUF_NON_POSTED_QUEUE])
+                if (!trn_tdst_rdy_n && trn_tdst_dsc_n)
                 begin
                     if (mrd_pkt_count == 0)
                       tmrd_addr = mrd_addr_req;
@@ -820,12 +866,12 @@ begin
 //                               {mrd_relaxed_order_i, mrd_nosnoop_i}, //Attr (Attributes)
 //                               {2'b0},          //Reserved
 //                               mrd_len_dw[9:0], //Length data payload (DW)
-//                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b00},
+//                               {completer_id_i[15:3], mrd_phant_func_en1_i, 2'b0},
 //                               {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
 //                               {mrd_lbe, mrd_fbe},
 //
 //                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-//                                               {tmrd_addr[31:2], {2'b00}, {32'b0}} }
+//                                               {tmrd_addr[31:2], {2'b0}, {32'b0}} }
 //                               };
                     trn_tsof_n     <= 1'b1;
                     trn_teof_n     <= 1'b0;
@@ -833,7 +879,7 @@ begin
                     trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
 
                     trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-                                               {tmrd_addr[31:2], {2'b00}, {32'b0}} }
+                                               {tmrd_addr[31:2], {2'b0}, {32'b0}} }
                                };
 
                     //Счетчик отправленых пакетов MRd
