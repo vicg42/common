@@ -180,7 +180,7 @@ assign usr_txbuf_wr_o = (usr_wr && cpld_tlp_work);
 assign usr_reg_wr_o = (usr_wr && !cpld_tlp_work);
 assign usr_reg_rd_o = usr_rd;
 
-assign trn_rdst_rdy_n_o = trn_rdst_rdy_n || (trn_dw_sel != 0) || (usr_txbuf_full_i && cpld_tlp_work);
+assign trn_rdst_rdy_n_o = trn_rdst_rdy_n || (|trn_dw_sel) || (usr_txbuf_full_i && cpld_tlp_work);
 
 //Rx State Machine
 always @ ( posedge clk or negedge rst_n )

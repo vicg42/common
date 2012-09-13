@@ -170,8 +170,6 @@ reg [6:0]    lower_addr;
 
 reg [3:0]    fsm_state;
 
-reg          sr_req_compl;
-
 reg [7:0]    mwr_addr_up_req;
 reg [31:0]   mwr_addr_req;
 reg [3:0]    mwr_fbe;
@@ -203,24 +201,20 @@ reg [10:0]   mrd_len_dw;
 
 reg          mwr_work;
 reg [0:0]    trn_dw_sel;
+wire         usr_rxbuf_rd;
 
 assign trn_tsrc_dsc_n = 1'b1;
 
 assign mrd_pkt_len_o = {21'b0, mrd_len_dw};
 
-assign usr_rxbuf_rd_o = (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i) && mwr_work;
+assign usr_rxbuf_rd = (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i);
+
+assign usr_rxbuf_rd_o = (usr_rxbuf_rd) && mwr_work;
 
 assign usr_rxbuf_rd_last_o = usr_rxbuf_rd_o && (mwr_len_dw == 11'h1);
 
-assign trn_tsrc_rdy_n_o = trn_tsrc_rdy_n || (trn_dw_sel != 0) || (usr_rxbuf_empty_i && mwr_work);
+assign trn_tsrc_rdy_n_o = trn_tsrc_rdy_n || (|trn_dw_sel) || (usr_rxbuf_empty_i && mwr_work);
 
-always @ ( posedge clk or negedge rst_n )
-begin
-  if (!rst_n )
-    sr_req_compl <= 1'b0;
-  else
-    sr_req_compl <= req_compl_i;
-end
 
 //Calculate byte count based on byte enable
 always @ (req_be_i)
@@ -354,7 +348,7 @@ begin
                 //CplD - 3DW, +data;  Cpl - 3DW
                 //-----------------------------------------------------
                 if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_COMPLETION_QUEUE]) &&
-                    sr_req_compl && !compl_done_o)
+                    req_compl_i && !compl_done_o)
                 begin
 //                    trn_tsof_n     <= 1'b0;
 //                    trn_teof_n     <= 1'b0;
@@ -411,15 +405,14 @@ begin
                                byte_count
                                };
 
-                    compl_done_o <= 1'b0;
                     fsm_state <= `STATE_TX_CPLD_WT0;
                 end
                 else
                   //-----------------------------------------------------
                   //MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
                   //-----------------------------------------------------
-                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) &&
-                      !sr_req_compl && !compl_done_o &&
+                  if ((usr_rxbuf_rd) && trn_tbuf_av[`C_BUF_POSTED_QUEUE] &&
+                      !req_compl_i && !compl_done_o &&
                       mwr_en_i && !mwr_done_o && master_en_i)
                   begin
                       if (mwr_pkt_count == (mwr_pkt_count_req - 1'b1))
@@ -461,7 +454,7 @@ begin
                     //MRd - 3DW, no data (PC<-FPGA) FPGA is PCIe master
                     //-----------------------------------------------------
                     if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_NON_POSTED_QUEUE]) &&
-                        !sr_req_compl && !compl_done_o &&
+                        !req_compl_i && !compl_done_o &&
                         mrd_en_i && !mrd_done && master_en_i)
                     begin
                         if (mrd_pkt_count == (mrd_pkt_count_req - 1'b1))
@@ -506,7 +499,6 @@ begin
                             trn_tsrc_rdy_n <= 1'b1;
                             trn_trem_n     <= 0;
                         end
-                        compl_done_o <= 1'b0;
                         fsm_state <= `STATE_TX_IDLE;
                       end
             end //`STATE_TX_IDLE :
@@ -552,6 +544,7 @@ begin
                     trn_tsof_n     <= 1'b1;
                     trn_teof_n     <= 1'b1;
                     trn_tsrc_rdy_n <= 1'b1;
+                    compl_done_o <= 1'b0;
 
                     fsm_state <= `STATE_TX_IDLE;
                 end
@@ -566,7 +559,7 @@ begin
             //#######################################################################
             `STATE_TX_MWR_QW0 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
+                if (usr_rxbuf_rd)
                 begin
                     trn_tsof_n     <= 1'b0;
                     trn_teof_n     <= 1'b1;
@@ -603,7 +596,7 @@ begin
 
             `STATE_TX_MWR_QW1 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
+                if (usr_rxbuf_rd_o)
                 begin
                     if (mwr_pkt_count == 0)
                       tmwr_addr = mwr_addr_req;
@@ -675,7 +668,6 @@ begin
                           trn_tsrc_rdy_n <= 1'b0;
                           trn_dw_sel <= 0;
 
-                          mwr_work <= 1'b1;
                           mwr_len_dw <= mwr_len_dw - 1'h1;
 
                           fsm_state <= `STATE_TX_MWR_QWN;
@@ -699,7 +691,7 @@ begin
 
             `STATE_TX_MWR_QWN :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
+                if (usr_rxbuf_rd_o)
                 begin
 //                    if (trn_dw_sel == 2'h1)
 //                    begin
