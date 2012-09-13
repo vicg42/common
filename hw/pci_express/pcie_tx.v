@@ -177,7 +177,6 @@ reg [3:0]    mwr_lbe;
 reg [3:0]    mwr_fbe_req;
 reg [3:0]    mwr_lbe_req;
 reg [31:0]   pmwr_addr;        //Указатель адреса записи данных в память хоста
-reg [31:0]   tmwr_addr;
 reg [15:0]   mwr_pkt_count_req;//Кол-во пакетов MWr которые необходимо отправить PC
 reg [15:0]   mwr_pkt_count;    //Кол-во отправленых пакетов MWr
 reg [12:0]   mwr_len_byte;     //Размер одного пакета MWr в байт (учавствует в вычислении pmwr_addr)
@@ -192,7 +191,6 @@ reg [3:0]    mrd_lbe;
 reg [3:0]    mrd_fbe_req;
 reg [3:0]    mrd_lbe_req;
 reg [31:0]   pmrd_addr;        //Указатель адреса чтения данных памяти PC
-reg [31:0]   tmrd_addr;
 reg [15:0]   mrd_pkt_count_req;//Кол-во пакетов MRd которые необходимо отправить PC
 reg [15:0]   mrd_pkt_count;    //Кол-во отправлены пакетов MRr (запрос чтения)
 reg [12:0]   mrd_len_byte;     //Размер одного пакета MRd в байт (учавствует в вычислении pmrd_addr)
@@ -301,27 +299,18 @@ begin
             mwr_done_o        <= 1'b0;
             mwr_pkt_count_req <= mwr_count_i[15:0];
             mwr_pkt_count     <= 0;
-            mwr_len_byte      <= 0;
             mwr_len_dw_req    <= mwr_len_i[10:0];
-            mwr_len_dw        <= 0;
-            pmwr_addr         <= 0;
             mwr_fbe_req       <= mwr_fbe_i;
             mwr_lbe_req       <= mwr_lbe_i;
-            mwr_fbe           <= 0;
-            mwr_lbe           <= 0;
 
             mrd_addr_up_req   <= mrd_addr_up_i;
             mrd_addr_req      <= mrd_addr_i;
             mrd_done          <= 1'b0;
             mrd_pkt_count_req <= mrd_count_i[15:0];
             mrd_pkt_count     <= 0;
-            mrd_len_byte      <= 0;
-            pmrd_addr         <= 0;
             mrd_len_dw_req    <= mrd_len_i[10:0];
             mrd_fbe_req       <= mrd_fbe_i;
             mrd_lbe_req       <= mrd_lbe_i;
-            mrd_fbe           <= 0;
-            mrd_lbe           <= 0;
             mrd_pkt_count_o   <= 16'h1;
 
             if ((mrd_count_i - 1'b1) == 16'h0)
@@ -333,9 +322,6 @@ begin
               else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_dw <= 11'h40;
               else                                                     mrd_len_dw <= 11'h20;
             end
-
-            mwr_work <= 1'b0;
-            trn_dw_sel <= 0;
         end
 
         case (fsm_state)
@@ -437,6 +423,9 @@ begin
                       else if (max_payload_size_i == `C_MAX_PAYLOAD_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
                       else                                                     mwr_len_byte <= 13'h80; //4 * mwr_len_dw
 
+                      if (mwr_pkt_count == 0)
+                        pmwr_addr <= mwr_addr_req;
+
 //                      trn_tsof_n     <= 1'b1;
 //                      trn_teof_n     <= 1'b1;
 //                      trn_tsrc_rdy_n <= 1'b1;
@@ -479,6 +468,9 @@ begin
                         else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
                         else                                                     mrd_len_byte <= 13'h80; //4 * mrd_len_dw
 
+                        if (mrd_pkt_count == 0)
+                          pmrd_addr <= mrd_addr_req;
+
 //                        trn_tsof_n     <= 1'b1;
 //                        trn_teof_n     <= 1'b1;
 //                        trn_tsrc_rdy_n <= 1'b1;
@@ -515,7 +507,7 @@ begin
                     trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h1;
+                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 4'h0 : 4'h1;
 
                     trn_td <= {req_rid_i,
                                req_tag_i,
@@ -598,11 +590,6 @@ begin
             begin
                 if (usr_rxbuf_rd_o)
                 begin
-                    if (mwr_pkt_count == 0)
-                      tmwr_addr = mwr_addr_req;
-                    else
-                      tmwr_addr = pmwr_addr + mwr_len_byte;
-
 //                    trn_tsof_n     <= 1'b0;
 //                    //trn_teof_n     <= 1'b1;
 //                    //trn_tsrc_rdy_n <= 1'b0;
@@ -622,8 +609,8 @@ begin
 //                               {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
 //                               {mwr_lbe, mwr_fbe},
 //
-//                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
-//                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+//                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
+//                               {mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
 //                                                                             usr_rxbuf_dout_i[15:08],
 //                                                                             usr_rxbuf_dout_i[23:16],
 //                                                                             usr_rxbuf_dout_i[31:24]}}
@@ -633,14 +620,14 @@ begin
                     //trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= 0;
 
-                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
-                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
+                               {mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
                                                                              usr_rxbuf_dout_i[15:08],
                                                                              usr_rxbuf_dout_i[23:16],
                                                                              usr_rxbuf_dout_i[31:24]}}
                                };
 
-                    pmwr_addr<= tmwr_addr;
+                    pmwr_addr <= pmwr_addr + mwr_len_byte;
 
                     //Счетчик DW(payload) в текущем пакете MWr
                     if (mwr_len_dw == 11'h1)
@@ -836,13 +823,6 @@ begin
             begin
                 if (!trn_tdst_rdy_n && trn_tdst_dsc_n)
                 begin
-                    if (mrd_pkt_count == 0)
-                      tmrd_addr = mrd_addr_req;
-                    else
-                      tmrd_addr = pmrd_addr + mrd_len_byte;
-
-                    pmrd_addr <= tmrd_addr;
-
 //                    trn_tsof_n     <= 1'b0;
 //                    trn_teof_n     <= 1'b0;
 //                    trn_tsrc_rdy_n <= 1'b0;
@@ -862,17 +842,19 @@ begin
 //                               {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
 //                               {mrd_lbe, mrd_fbe},
 //
-//                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-//                                               {tmrd_addr[31:2], {2'b0}, {32'b0}} }
+//                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
+//                                               {pmrd_addr[31:2], {2'b0}, {32'b0}} }
 //                               };
                     trn_tsof_n     <= 1'b1;
                     trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
+                    trn_trem_n     <= mrd_64b_en_i ? 4'h0 : 4'h1;
 
-                    trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-                                               {tmrd_addr[31:2], {2'b0}, {32'b0}} }
+                    trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
+                                               {pmrd_addr[31:2], {2'b0}, {32'b0}} }
                                };
+
+                    pmrd_addr <= pmrd_addr + mrd_len_byte;
 
                     //Счетчик отправленых пакетов MRd
                     if (mrd_pkt_count == (mrd_pkt_count_req - 1'b1))
