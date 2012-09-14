@@ -170,6 +170,8 @@ reg [6:0]    lower_addr;
 
 reg [3:0]    fsm_state;
 
+reg          sr_req_compl;
+
 //reg [7:0]    mwr_addr_up_req;
 reg [31:0]   mwr_addr_req;
 reg [3:0]    mwr_fbe;
@@ -213,6 +215,13 @@ assign usr_rxbuf_rd_last_o = usr_rxbuf_rd_o && (mwr_len_dw == 11'h1);
 
 assign trn_tsrc_rdy_n_o = trn_tsrc_rdy_n || (|trn_dw_sel) || (usr_rxbuf_empty_i && mwr_work);
 
+always @ ( posedge clk or negedge rst_n )
+begin
+  if (!rst_n )
+    sr_req_compl <= 1'b0;
+  else
+    sr_req_compl <= req_compl_i;
+end
 
 //Calculate byte count based on byte enable
 always @ (req_be_i)
@@ -334,13 +343,13 @@ begin
                 //CplD - 3DW, +data;  Cpl - 3DW
                 //-----------------------------------------------------
                 if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_COMPLETION_QUEUE]) &&
-                    req_compl_i && !compl_done_o)
+                    sr_req_compl && !compl_done_o)
                 begin
 //                    trn_tsof_n     <= 1'b0;
 //                    trn_teof_n     <= 1'b0;
 //                    trn_tsrc_rdy_n <= 1'b0;
 //                    trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-//                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h01;
+//                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 4'h0 : 4'h1;
 //
 //                    trn_td <= {{1'b0},         //Reserved
 //                               {((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
@@ -398,7 +407,7 @@ begin
                   //MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
                   //-----------------------------------------------------
                   if ((usr_rxbuf_rd) && trn_tbuf_av[`C_BUF_POSTED_QUEUE] &&
-                      !req_compl_i && !compl_done_o &&
+                      !sr_req_compl && !compl_done_o &&
                       mwr_en_i && !mwr_done_o && master_en_i)
                   begin
                       if (mwr_pkt_count == (mwr_pkt_count_req - 1'b1))
@@ -443,7 +452,7 @@ begin
                     //MRd - 3DW, no data (PC<-FPGA) FPGA is PCIe master
                     //-----------------------------------------------------
                     if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_NON_POSTED_QUEUE]) &&
-                        !req_compl_i && !compl_done_o &&
+                        !sr_req_compl && !compl_done_o &&
                         mrd_en_i && !mrd_done && master_en_i)
                     begin
                         if (mrd_pkt_count == (mrd_pkt_count_req - 1'b1))
@@ -491,6 +500,7 @@ begin
                             trn_tsrc_rdy_n <= 1'b1;
                             trn_trem_n     <= 0;
                         end
+                        compl_done_o <= 1'b0;
                         fsm_state <= `STATE_TX_IDLE;
                       end
             end //`STATE_TX_IDLE :
@@ -536,8 +546,6 @@ begin
                     trn_tsof_n     <= 1'b1;
                     trn_teof_n     <= 1'b1;
                     trn_tsrc_rdy_n <= 1'b1;
-                    compl_done_o <= 1'b0;
-
                     fsm_state <= `STATE_TX_IDLE;
                 end
                 else
@@ -680,9 +688,10 @@ begin
             begin
                 if (usr_rxbuf_rd_o)
                 begin
+//                    trn_trem_n[1:0] <= trn_dw_sel - 1'b1;
+//
 //                    if (trn_dw_sel == 2'h1)
 //                    begin
-//                      trn_trem_n <= 4'h0;
 //                      trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                       usr_rxbuf_dout_i[15: 8],
 //                                       usr_rxbuf_dout_i[23:16],
@@ -691,7 +700,6 @@ begin
 //                    else
 //                      if (trn_dw_sel == 2'h2)
 //                      begin
-//                        trn_trem_n <= 4'h1;
 //                        trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                          usr_rxbuf_dout_i[15: 8],
 //                                          usr_rxbuf_dout_i[23:16],
@@ -700,7 +708,6 @@ begin
 //                      else
 //                        if (trn_dw_sel == 2'h3)
 //                        begin
-//                          trn_trem_n <= 4'h2;
 //                          trn_td[31+64 : 0+64] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                                   usr_rxbuf_dout_i[15: 8],
 //                                                   usr_rxbuf_dout_i[23:16],
@@ -709,15 +716,15 @@ begin
 //                        else
 //                          if (trn_dw_sel == 2'h0)
 //                          begin
-//                            trn_trem_n <= 4'h3;
 //                            trn_td[63+64 : 32+64] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                                      usr_rxbuf_dout_i[15: 8],
 //                                                      usr_rxbuf_dout_i[23:16],
 //                                                      usr_rxbuf_dout_i[31:24]};
 //                          end
+                    trn_trem_n[0] <= !trn_dw_sel[0];
+
                     if (trn_dw_sel == 1'h1)
                     begin
-                      trn_trem_n <= 4'h0;
                       trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
                                        usr_rxbuf_dout_i[15: 8],
                                        usr_rxbuf_dout_i[23:16],
@@ -726,7 +733,6 @@ begin
                     else
                       if (trn_dw_sel == 1'h0)
                       begin
-                        trn_trem_n <= 4'h1;
                         trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
                                           usr_rxbuf_dout_i[15: 8],
                                           usr_rxbuf_dout_i[23:16],

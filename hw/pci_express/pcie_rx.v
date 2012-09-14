@@ -446,8 +446,7 @@ begin
 //
 //                              if (bar_exprom)
 //                                req_exprom_o <= 1'b1;
-//
-//                              if (!bar_exprom)
+//                              else
 //                                if (bar_usr)
 //                                  usr_rd <= 1'b1;
 //
