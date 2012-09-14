@@ -143,7 +143,7 @@ input  [7:0]       mrd_addr_up_i,
 input              mrd_relaxed_order_i,
 input              mrd_nosnoop_i,
 output [31:0]      mrd_pkt_len_o,
-output reg [15:0]  mrd_pkt_count_o, //Кол-во отправленых пакетов MRr
+output [15:0]      mrd_pkt_count_o, //Кол-во отправленых пакетов MRr
 
 input  [15:0]      completer_id_i,
 input              tag_ext_en_i,
@@ -203,16 +203,14 @@ reg          mwr_work;
 reg [0:0]    trn_dw_sel;
 wire         usr_rxbuf_rd;
 
-assign trn_tsrc_dsc_n = 1'b1;
-
+assign mrd_pkt_count_o = mrd_pkt_count + 1'b1;
 assign mrd_pkt_len_o = {21'b0, mrd_len_dw};
 
 assign usr_rxbuf_rd = (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i);
-
 assign usr_rxbuf_rd_o = (usr_rxbuf_rd) && mwr_work;
-
 assign usr_rxbuf_rd_last_o = usr_rxbuf_rd_o && (mwr_len_dw == 11'h1);
 
+assign trn_tsrc_dsc_n = 1'b1;
 assign trn_tsrc_rdy_n_o = trn_tsrc_rdy_n || (|trn_dw_sel) || (usr_rxbuf_empty_i && mwr_work);
 
 always @ ( posedge clk or negedge rst_n )
@@ -291,7 +289,6 @@ begin
       mrd_lbe_req       <= 0;
       mrd_fbe           <= 0;
       mrd_lbe           <= 0;
-      mrd_pkt_count_o   <= 16'h1;
 
       compl_done_o <= 1'b0;
       trn_dw_sel <= 0;
@@ -320,9 +317,8 @@ begin
             mrd_len_dw_req    <= mrd_len_i[10:0];
             mrd_fbe_req       <= mrd_fbe_i;
             mrd_lbe_req       <= mrd_lbe_i;
-            mrd_pkt_count_o   <= 16'h1;
 
-            if ((mrd_count_i - 1'b1) == 16'h0)
+            if ((mrd_count_i[15:0] - 1'b1) == 16'h0)
               mrd_len_dw[10:0] <= mrd_len_i[10:0];
             else
             begin
@@ -867,13 +863,9 @@ begin
                     begin
                         mrd_done <= 1'b1; //Транзакция завершена (запрет генерации запросов MRd)
                         mrd_pkt_count <= 0;
-                        mrd_pkt_count_o <= 0;
                     end
                     else
-                      begin
-                          mrd_pkt_count <= mrd_pkt_count + 1'b1;
-                          mrd_pkt_count_o <= mrd_pkt_count_o + 1'b1;
-                      end
+                        mrd_pkt_count <= mrd_pkt_count + 1'b1;
 
                     fsm_state <= `STATE_TX_IDLE;
                 end

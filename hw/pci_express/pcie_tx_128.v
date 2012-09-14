@@ -143,7 +143,7 @@ input  [7:0]       mrd_addr_up_i,
 input              mrd_relaxed_order_i,
 input              mrd_nosnoop_i,
 output [31:0]      mrd_pkt_len_o,
-output reg [15:0]  mrd_pkt_count_o, //Кол-во отправленых пакетов MRr
+output [15:0]      mrd_pkt_count_o, //Кол-во отправленых пакетов MRr
 
 input  [15:0]      completer_id_i,
 input              tag_ext_en_i,
@@ -172,21 +172,20 @@ reg [3:0]    fsm_state;
 
 reg          sr_req_compl;
 
-reg [7:0]    mwr_addr_up_req;
+//reg [7:0]    mwr_addr_up_req;
 reg [31:0]   mwr_addr_req;
 reg [3:0]    mwr_fbe;
 reg [3:0]    mwr_lbe;
 reg [3:0]    mwr_fbe_req;
 reg [3:0]    mwr_lbe_req;
 reg [31:0]   pmwr_addr;        //Указатель адреса записи данных в память хоста
-reg [31:0]   tmwr_addr;
 reg [15:0]   mwr_pkt_count_req;//Кол-во пакетов MWr которые необходимо отправить PC
 reg [15:0]   mwr_pkt_count;    //Кол-во отправленых пакетов MWr
 reg [12:0]   mwr_len_byte;     //Размер одного пакета MWr в байт (учавствует в вычислении pmwr_addr)
 reg [10:0]   mwr_len_dw_req;
 reg [10:0]   mwr_len_dw;       //Сколько DW осталось отправить в текущем пакете.
 
-reg [7:0]    mrd_addr_up_req;
+//reg [7:0]    mrd_addr_up_req;
 reg [31:0]   mrd_addr_req;
 reg          mrd_done;
 reg [3:0]    mrd_fbe;
@@ -194,7 +193,6 @@ reg [3:0]    mrd_lbe;
 reg [3:0]    mrd_fbe_req;
 reg [3:0]    mrd_lbe_req;
 reg [31:0]   pmrd_addr;        //Указатель адреса чтения данных памяти PC
-reg [31:0]   tmrd_addr;
 reg [15:0]   mrd_pkt_count_req;//Кол-во пакетов MRd которые необходимо отправить PC
 reg [15:0]   mrd_pkt_count;    //Кол-во отправлены пакетов MRr (запрос чтения)
 reg [12:0]   mrd_len_byte;     //Размер одного пакета MRd в байт (учавствует в вычислении pmrd_addr)
@@ -203,16 +201,17 @@ reg [10:0]   mrd_len_dw;
 
 reg          mwr_work;
 reg [1:0]    trn_dw_sel;
+wire         usr_rxbuf_rd;
 
-assign trn_tsrc_dsc_n = 1'b1;
-
+assign mrd_pkt_count_o = mrd_pkt_count + 1'b1;
 assign mrd_pkt_len_o = {21'b0, mrd_len_dw};
 
-assign usr_rxbuf_rd_o = (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i) && mwr_work;
-
+assign usr_rxbuf_rd = (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i);
+assign usr_rxbuf_rd_o = (usr_rxbuf_rd) && mwr_work;
 assign usr_rxbuf_rd_last_o = usr_rxbuf_rd_o && (mwr_len_dw == 11'h1);
 
-assign trn_tsrc_rdy_n_o = trn_tsrc_rdy_n || (trn_dw_sel != 0) || (usr_rxbuf_empty_i && mwr_work);
+assign trn_tsrc_dsc_n = 1'b1;
+assign trn_tsrc_rdy_n_o = trn_tsrc_rdy_n || (|trn_dw_sel) || (usr_rxbuf_empty_i && mwr_work);
 
 always @ ( posedge clk or negedge rst_n )
 begin
@@ -263,7 +262,7 @@ begin
       trn_td         <= 0;
       trn_trem_n     <= 0;
 
-      mwr_addr_up_req   <= 0;
+      //mwr_addr_up_req   <= 0;
       mwr_addr_req      <= 0;
       mwr_done_o        <= 1'b0;
       mwr_pkt_count_req <= 0;
@@ -277,7 +276,7 @@ begin
       mwr_fbe           <= 0;
       mwr_lbe           <= 0;
 
-      mrd_addr_up_req   <= 0;
+      //mrd_addr_up_req   <= 0;
       mrd_addr_req      <= 0;
       mrd_done          <= 1'b0;
       mrd_pkt_count_req <= 0;
@@ -290,7 +289,6 @@ begin
       mrd_lbe_req       <= 0;
       mrd_fbe           <= 0;
       mrd_lbe           <= 0;
-      mrd_pkt_count_o   <= 16'h1;
 
       compl_done_o <= 1'b0;
       trn_dw_sel <= 0;
@@ -302,35 +300,25 @@ begin
     begin
         if (dma_init_i) //Инициализация перед началом DMA транзакции
         begin
-            mwr_addr_up_req   <= mwr_addr_up_i;
+            //mwr_addr_up_req   <= mwr_addr_up_i;
             mwr_addr_req      <= mwr_addr_i;
             mwr_done_o        <= 1'b0;
             mwr_pkt_count_req <= mwr_count_i[15:0];
             mwr_pkt_count     <= 0;
-            mwr_len_byte      <= 0;
             mwr_len_dw_req    <= mwr_len_i[10:0];
-            mwr_len_dw        <= 0;
-            pmwr_addr         <= 0;
             mwr_fbe_req       <= mwr_fbe_i;
             mwr_lbe_req       <= mwr_lbe_i;
-            mwr_fbe           <= 0;
-            mwr_lbe           <= 0;
 
-            mrd_addr_up_req   <= mrd_addr_up_i;
+            //mrd_addr_up_req   <= mrd_addr_up_i;
             mrd_addr_req      <= mrd_addr_i;
             mrd_done          <= 1'b0;
             mrd_pkt_count_req <= mrd_count_i[15:0];
             mrd_pkt_count     <= 0;
-            mrd_len_byte      <= 0;
-            pmrd_addr         <= 0;
             mrd_len_dw_req    <= mrd_len_i[10:0];
             mrd_fbe_req       <= mrd_fbe_i;
             mrd_lbe_req       <= mrd_lbe_i;
-            mrd_fbe           <= 0;
-            mrd_lbe           <= 0;
-            mrd_pkt_count_o   <= 16'h1;
 
-            if ((mrd_count_i - 1'b1) == 16'h0)
+            if ((mrd_count_i[15:0] - 1'b1) == 16'h0)
               mrd_len_dw[10:0] <= mrd_len_i[10:0];
             else
             begin
@@ -339,9 +327,6 @@ begin
               else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_dw <= 11'h40;
               else                                                     mrd_len_dw <= 11'h20;
             end
-
-            mwr_work <= 1'b0;
-            trn_dw_sel <= 0;
         end
 
         case (fsm_state)
@@ -360,7 +345,7 @@ begin
                     trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h01;
+                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 4'h0 : 4'h1;
 
                     trn_td <= {{1'b0},         //Reserved
                                {((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
@@ -411,14 +396,13 @@ begin
 //                               byte_count
 //                               };
 //
-//                    compl_done_o <= 1'b0;
 //                    fsm_state <= `STATE_TX_CPLD_WT0;
                 end
                 else
                   //-----------------------------------------------------
                   //MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
                   //-----------------------------------------------------
-                  if ((!trn_tdst_rdy_n && trn_tdst_dsc_n && trn_tbuf_av[`C_BUF_POSTED_QUEUE] && !usr_rxbuf_empty_i) &&
+                  if ((usr_rxbuf_rd) && trn_tbuf_av[`C_BUF_POSTED_QUEUE] &&
                       !sr_req_compl && !compl_done_o &&
                       mwr_en_i && !mwr_done_o && master_en_i)
                   begin
@@ -443,6 +427,9 @@ begin
                       else if (max_payload_size_i == `C_MAX_PAYLOAD_512_BYTE)  mwr_len_byte <= 13'h200;//4 * mwr_len_dw
                       else if (max_payload_size_i == `C_MAX_PAYLOAD_256_BYTE)  mwr_len_byte <= 13'h100;//4 * mwr_len_dw
                       else                                                     mwr_len_byte <= 13'h80; //4 * mwr_len_dw
+
+                      if (mwr_pkt_count == 0)
+                        pmwr_addr <= mwr_addr_req;
 
                       trn_tsof_n     <= 1'b1;
                       trn_teof_n     <= 1'b1;
@@ -486,6 +473,9 @@ begin
                         else if (max_rd_req_size_i == `C_MAX_READ_REQ_256_BYTE)  mrd_len_byte <= 13'h100;//4 * mrd_len_dw
                         else                                                     mrd_len_byte <= 13'h80; //4 * mrd_len_dw
 
+                        if (mrd_pkt_count == 0)
+                          pmrd_addr <= mrd_addr_req;
+
                         trn_tsof_n     <= 1'b1;
                         trn_teof_n     <= 1'b1;
                         trn_tsrc_rdy_n <= 1'b1;
@@ -523,7 +513,7 @@ begin
 //                    trn_teof_n     <= 1'b0;
 //                    trn_tsrc_rdy_n <= 1'b0;
 //                    trn_trem_n     <= ((req_pkt_type_i == `C_FMT_TYPE_IORD_3DW_ND) ||
-//                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 0 : 4'h1;
+//                                       (req_pkt_type_i == `C_FMT_TYPE_MRD_3DW_ND)) ? 4'h0 : 4'h1;
 //
 //                    trn_td <= {req_rid_i,
 //                               req_tag_i,
@@ -552,7 +542,6 @@ begin
                     trn_tsof_n     <= 1'b1;
                     trn_teof_n     <= 1'b1;
                     trn_tsrc_rdy_n <= 1'b1;
-
                     fsm_state <= `STATE_TX_IDLE;
                 end
                 else
@@ -566,7 +555,7 @@ begin
             //#######################################################################
 //            `STATE_TX_MWR_QW0 :
 //            begin
-//                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
+//                if (usr_rxbuf_rd)
 //                begin
 //                    trn_tsof_n     <= 1'b0;
 //                    trn_teof_n     <= 1'b1;
@@ -574,7 +563,7 @@ begin
 //                    trn_trem_n     <= 0;
 //
 //                    trn_td <= {{1'b0},          //Reserved
-//                               {mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
+//                               {`C_FMT_TYPE_MWR_3DW_WD},//{mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
 //                               {1'b0},          //Reserved
 //                               mwr_tlp_tc_i,    //TC (Traffic Class)
 //                               {4'b0},          //Reserved
@@ -603,20 +592,15 @@ begin
 
             `STATE_TX_MWR_QW1 :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
+                if (usr_rxbuf_rd_o)
                 begin
-                    if (mwr_pkt_count == 0)
-                      tmwr_addr = mwr_addr_req;
-                    else
-                      tmwr_addr = pmwr_addr + mwr_len_byte;
-
                     trn_tsof_n     <= 1'b0;
                     //trn_teof_n     <= 1'b1;
                     //trn_tsrc_rdy_n <= 1'b0;
                     trn_trem_n     <= 0;
 
                     trn_td <= {{1'b0},          //Reserved
-                               {mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
+                               {`C_FMT_TYPE_MWR_3DW_WD},//{mwr_64b_en_i ? `C_FMT_TYPE_MWR_4DW_WD : `C_FMT_TYPE_MWR_3DW_WD},
                                {1'b0},          //Reserved
                                mwr_tlp_tc_i,    //TC (Traffic Class)
                                {4'b0},          //Reserved
@@ -629,25 +613,25 @@ begin
                                {tag_ext_en_i ? mwr_pkt_count[7:0] : {3'b0, mwr_pkt_count[4:0]}},
                                {mwr_lbe, mwr_fbe},
 
-                               {mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
-                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
-                                                                             usr_rxbuf_dout_i[15:08],
-                                                                             usr_rxbuf_dout_i[23:16],
-                                                                             usr_rxbuf_dout_i[31:24]}}
-                               };
+                               {pmwr_addr[31:2], {2'b0}}, //{mwr_64b_en_i ? {{24'b0}, mwr_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
+                               {usr_rxbuf_dout_i[07:00],  //{mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+                                usr_rxbuf_dout_i[15:08],  //                                              usr_rxbuf_dout_i[15:08],
+                                usr_rxbuf_dout_i[23:16],  //                                              usr_rxbuf_dout_i[23:16],
+                                usr_rxbuf_dout_i[31:24]}  //                                              usr_rxbuf_dout_i[31:24]}}
+                               };                         //};
 //                    trn_tsof_n     <= 1'b1;
 //                    //trn_teof_n     <= 1'b1;
 //                    //trn_tsrc_rdy_n <= 1'b0;
 //                    trn_trem_n     <= 0;
 //
-//                    trn_td <= {{mwr_64b_en_i ? {{24'b0}, mrd_addr_up_req} : {tmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
-//                               {mwr_64b_en_i ? {tmrd_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
-//                                                                             usr_rxbuf_dout_i[15:08],
-//                                                                             usr_rxbuf_dout_i[23:16],
-//                                                                             usr_rxbuf_dout_i[31:24]}}
-//                               };
+//                    trn_td <= {{pmwr_addr[31:2], {2'b0}}, //{{mwr_64b_en_i ? {{24'b0}, mwr_addr_up_req} : {pmwr_addr[31:2], {2'b0}} }, //Начальный адрес записи в память хоста
+//                               {usr_rxbuf_dout_i[07:00],  // {mwr_64b_en_i ? {pmwr_addr[31:2], {2'b0}}  : {usr_rxbuf_dout_i[07:00],
+//                                usr_rxbuf_dout_i[15:08],  //                                               usr_rxbuf_dout_i[15:08],
+//                                usr_rxbuf_dout_i[23:16],  //                                               usr_rxbuf_dout_i[23:16],
+//                                usr_rxbuf_dout_i[31:24]}  //                                               usr_rxbuf_dout_i[31:24]}}
+//                               };                         // };
 
-                    pmwr_addr<= tmwr_addr;
+                    pmwr_addr <= pmwr_addr + mwr_len_byte;
 
                     //Счетчик DW(payload) в текущем пакете MWr
                     if (mwr_len_dw == 11'h1)
@@ -675,7 +659,6 @@ begin
                           trn_tsrc_rdy_n <= 1'b0;
                           trn_dw_sel <= 0;
 
-                          mwr_work <= 1'b1;
                           mwr_len_dw <= mwr_len_dw - 1'h1;
 
                           fsm_state <= `STATE_TX_MWR_QWN;
@@ -699,11 +682,12 @@ begin
 
             `STATE_TX_MWR_QWN :
             begin
-                if (!trn_tdst_rdy_n && trn_tdst_dsc_n && !usr_rxbuf_empty_i)
+                if (usr_rxbuf_rd_o)
                 begin
+                    trn_trem_n[1:0] <= trn_dw_sel - 1'b1;
+
                     if (trn_dw_sel == 2'h1)
                     begin
-                      trn_trem_n <= 4'h0;
                       trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
                                        usr_rxbuf_dout_i[15: 8],
                                        usr_rxbuf_dout_i[23:16],
@@ -712,7 +696,6 @@ begin
                     else
                       if (trn_dw_sel == 2'h2)
                       begin
-                        trn_trem_n <= 4'h1;
                         trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
                                           usr_rxbuf_dout_i[15: 8],
                                           usr_rxbuf_dout_i[23:16],
@@ -721,7 +704,6 @@ begin
                       else
                         if (trn_dw_sel == 2'h3)
                         begin
-                          trn_trem_n <= 4'h2;
                           trn_td[31+64 : 0+64] <= {usr_rxbuf_dout_i[ 7: 0],
                                                    usr_rxbuf_dout_i[15: 8],
                                                    usr_rxbuf_dout_i[23:16],
@@ -730,15 +712,15 @@ begin
                         else
                           if (trn_dw_sel == 2'h0)
                           begin
-                            trn_trem_n <= 4'h3;
                             trn_td[63+64 : 32+64] <= {usr_rxbuf_dout_i[ 7: 0],
                                                       usr_rxbuf_dout_i[15: 8],
                                                       usr_rxbuf_dout_i[23:16],
                                                       usr_rxbuf_dout_i[31:24]};
                           end
+//                    trn_trem_n[0] <= !trn_dw_sel[0];
+//
 //                    if (trn_dw_sel == 1'h1)
 //                    begin
-//                      trn_trem_n <= 4'h0;
 //                      trn_td[31:0] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                       usr_rxbuf_dout_i[15: 8],
 //                                       usr_rxbuf_dout_i[23:16],
@@ -747,7 +729,6 @@ begin
 //                    else
 //                      if (trn_dw_sel == 1'h0)
 //                      begin
-//                        trn_trem_n <= 4'h1;
 //                        trn_td[63:32] <= {usr_rxbuf_dout_i[ 7: 0],
 //                                          usr_rxbuf_dout_i[15: 8],
 //                                          usr_rxbuf_dout_i[23:16],
@@ -817,7 +798,7 @@ begin
 //                    trn_trem_n     <= 0;
 //
 //                    trn_td <= {{1'b0},          //Reserved
-//                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
+//                               {`C_FMT_TYPE_MRD_3DW_ND},//{mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
 //                               {1'b0},          //Reserved
 //                               mrd_tlp_tc_i,    //TC (Traffic Class)
 //                               {4'b0},          //Reserved
@@ -844,20 +825,13 @@ begin
             begin
                 if (!trn_tdst_rdy_n && trn_tdst_dsc_n)
                 begin
-                    if (mrd_pkt_count == 0)
-                      tmrd_addr = mrd_addr_req;
-                    else
-                      tmrd_addr = pmrd_addr + mrd_len_byte;
-
-                    pmrd_addr <= tmrd_addr;
-
                     trn_tsof_n     <= 1'b0;
                     trn_teof_n     <= 1'b0;
                     trn_tsrc_rdy_n <= 1'b0;
-                    trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
+                    trn_trem_n     <= 4'h1;//mrd_64b_en_i ? 4'h0 : 4'h1;
 
                     trn_td <= {{1'b0},          //Reserved
-                               {mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
+                               {`C_FMT_TYPE_MRD_3DW_ND},//{mrd_64b_en_i ? `C_FMT_TYPE_MRD_4DW_ND : `C_FMT_TYPE_MRD_3DW_ND},
                                {1'b0},          //Reserved
                                mrd_tlp_tc_i,    //TC (Traffic Class)
                                {4'b0},          //Reserved
@@ -870,30 +844,28 @@ begin
                                {tag_ext_en_i ? mrd_pkt_count[7:0] : {3'b0, mrd_pkt_count[4:0]}},
                                {mrd_lbe, mrd_fbe},
 
-                               {mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-                                               {tmrd_addr[31:2], {2'b0}, {32'b0}} }
-                               };
+                               {pmrd_addr[31:2], {2'b0}, {32'b0}} //{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
+                               };                                 //                {pmrd_addr[31:2], {2'b0}, {32'b0}} }
+                                                                  //};
 //                    trn_tsof_n     <= 1'b1;
 //                    trn_teof_n     <= 1'b0;
 //                    trn_tsrc_rdy_n <= 1'b0;
-//                    trn_trem_n     <= mrd_64b_en_i ? 0 : 4'h1;
+//                    trn_trem_n     <= 4'h1;//mrd_64b_en_i ? 4'h0 : 4'h1;
 //
-//                    trn_td <= {{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, tmrd_addr[31:2], {2'b0}} :
-//                                               {tmrd_addr[31:2], {2'b0}, {32'b0}} }
-//                               };
+//                    trn_td <= {pmrd_addr[31:2], {2'b0}, {32'b0}}; //{{mrd_64b_en_i ? {{24'b0}, mrd_addr_up_req, pmrd_addr[31:2], {2'b0}} :
+//                                                                  //                 {pmrd_addr[31:2], {2'b0}, {32'b0}} }
+//                                                                  //};
+
+                    pmrd_addr <= pmrd_addr + mrd_len_byte;
 
                     //Счетчик отправленых пакетов MRd
                     if (mrd_pkt_count == (mrd_pkt_count_req - 1'b1))
                     begin
                         mrd_done <= 1'b1; //Транзакция завершена (запрет генерации запросов MRd)
                         mrd_pkt_count <= 0;
-                        mrd_pkt_count_o <= 0;
                     end
                     else
-                      begin
-                          mrd_pkt_count <= mrd_pkt_count + 1'b1;
-                          mrd_pkt_count_o <= mrd_pkt_count_o + 1'b1;
-                      end
+                        mrd_pkt_count <= mrd_pkt_count + 1'b1;
 
                     fsm_state <= `STATE_TX_IDLE;
                 end

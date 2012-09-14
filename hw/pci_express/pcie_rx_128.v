@@ -162,25 +162,19 @@ assign tst_o[9] = trn_dw_sel[1];
 assign tst_o[10] = trn_dw_sel[0];
 assign tst_o[11] = trn_dw_sel[1];
 
-assign  bar_exprom =!trn_rbar_hit_n[6];
-assign  bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
+assign bar_exprom =!trn_rbar_hit_n[6];
+assign bar_usr =!trn_rbar_hit_n[0] || !trn_rbar_hit_n[1];
 
 assign usr_reg_adr_o = {{req_addr_o[5:0]},{2'b0}};
+assign usr_reg_din_o = {{usr_di[07:0]},{usr_di[15:08]},{usr_di[23:16]},{usr_di[31:24]}};
+assign usr_reg_rd_o = usr_rd;
+assign usr_reg_wr_o = (usr_wr && !cpld_tlp_work);
 
-assign usr_reg_din_o = usr_txbuf_din_o;
-
-assign usr_txbuf_din_o = {{usr_di[07:0]},
-                          {usr_di[15:08]},
-                          {usr_di[23:16]},
-                          {usr_di[31:24]}};
-
+assign usr_txbuf_din_o = usr_reg_din_o;
+assign usr_txbuf_wr_o = (usr_wr && cpld_tlp_work);
 assign usr_txbuf_wr_last_o = cpld_tlp_dlast;
 
-assign usr_txbuf_wr_o = (usr_wr && cpld_tlp_work);
-assign usr_reg_wr_o = (usr_wr && !cpld_tlp_work);
-assign usr_reg_rd_o = usr_rd;
-
-assign trn_rdst_rdy_n_o = trn_rdst_rdy_n || (trn_dw_sel != 0) || (usr_txbuf_full_i && cpld_tlp_work);
+assign trn_rdst_rdy_n_o = trn_rdst_rdy_n || (|trn_dw_sel) || (usr_txbuf_full_i && cpld_tlp_work);
 
 //Rx State Machine
 always @ ( posedge clk or negedge rst_n )
@@ -222,7 +216,6 @@ begin
     begin
         if (dma_init_i) //Инициализация перед началом DMA транзакции
         begin
-          cpld_tlp_len <= 0;
           cpld_total_size_o <= 0;
           cpld_malformed_o <= 1'b0;
         end
@@ -446,8 +439,7 @@ begin
 
                               if (bar_exprom)
                                 req_exprom_o <= 1'b1;
-
-                              if (!bar_exprom)
+                              else
                                 if (bar_usr)
                                   usr_rd <= 1'b1;
 
