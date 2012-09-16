@@ -216,6 +216,7 @@ begin
     begin
         if (dma_init_i) //Инициализация перед началом DMA транзакции
         begin
+          cpld_tlp_len <= 0;
           cpld_total_size_o <= 0;
           cpld_malformed_o <= 1'b0;
         end
