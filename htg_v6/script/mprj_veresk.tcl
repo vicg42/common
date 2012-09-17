@@ -54,8 +54,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_tx_128.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_rx_128.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_rx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
@@ -72,12 +72,6 @@ set _projects [ list \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/sync_fifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/trn_rx_128.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/trn_tx_128.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_trn_128.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_128_if.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_cfg_128.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_bram_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_tx_sync_rate_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/gtx_rx_valid_filter_v6.vhd" $_VHDMod ] \
@@ -203,7 +197,7 @@ set _projects [ list \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/clocks.vhd" $_VHDMod ] \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_v6_main_128.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v6/v6_gt_clkbuf.vhd" $_VHDMod ] \
     ] \
   ] \

@@ -54,8 +54,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_tx.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_rx.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_rx.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
