@@ -37,6 +37,25 @@ clk_n: std_logic;
 end record;
 
 ----------------------------
+--GMII
+----------------------------
+type TEthPhyGMIIPinOUT is record
+txd    : std_logic_vector(7 downto 0);
+tx_en  : std_logic;
+tx_er  : std_logic;
+txc    : std_logic;--//txclk
+end record;
+type TEthPhyGMIIPinIN is record
+rxd    : std_logic_vector(3 downto 0);
+rx_dv  : std_logic;
+rx_er  : std_logic;
+rxc    : std_logic;--//rxclk
+end record;
+
+type TEthPhyGMIIPinOUTs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyGMIIPinOUT;
+type TEthPhyGMIIPinINs is array (0 to C_GTCH_COUNT_MAX-1) of TEthPhyGMIIPinIN;
+
+----------------------------
 --RGMII
 ----------------------------
 type TEthPhyRGMIIPinOUT is record
@@ -73,11 +92,13 @@ end record;
 ----------------------------
 type TEthPhyPinOUT is record
 fiber : TEthPhyFiberPinOUT;
+gmii  : TEthPhyGMIIPinOUTs;
 rgmii : TEthPhyRGMIIPinOUTs;
 sgmii : TEthPhySGMIIPinOUT;
 end record;
 type TEthPhyPinIN is record
 fiber : TEthPhyFiberPinIN;
+gmii  : TEthPhyGMIIPinINs;
 rgmii : TEthPhyRGMIIPinINs;
 sgmii : TEthPhySGMIIPinIN;
 end record;
