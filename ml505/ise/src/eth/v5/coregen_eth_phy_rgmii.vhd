@@ -119,7 +119,7 @@ use work.eth_pkg.all;
 -------------------------------------------------------------------------------
 -- The entity declaration for the example design.
 -------------------------------------------------------------------------------
-entity eth_phy_rgmii is
+entity eth_mii is
   generic (
   G_ETH : TEthGeneric
   );
@@ -176,10 +176,10 @@ entity eth_phy_rgmii is
 --      -- Asynchronous Reset
 --      RESET                           : in  std_logic
    );
-end eth_phy_rgmii;
+end eth_mii;
 
 
-architecture TOP_LEVEL of eth_phy_rgmii is
+architecture TOP_LEVEL of eth_mii is
 
 -------------------------------------------------------------------------------
 -- Component Declarations for lower hierarchial level entities
@@ -242,40 +242,31 @@ architecture TOP_LEVEL of eth_phy_rgmii is
       RGMII_RX_CTL_0                  : in  std_logic;
       RGMII_RXC_0                     : in  std_logic;
 
---      -- Generic Host Interface
---      HOSTCLK                         : in  std_logic;
---      HOSTOPCODE                      : in  std_logic_vector(1 downto 0);
---      HOSTREQ                         : in  std_logic;
---      HOSTMIIMSEL                     : in  std_logic;
---      HOSTADDR                        : in  std_logic_vector(9 downto 0);
---      HOSTWRDATA                      : in  std_logic_vector(31 downto 0);
---      HOSTMIIMRDY                     : out std_logic;
---      HOSTRDDATA                      : out std_logic_vector(31 downto 0);
---      HOSTEMAC1SEL                    : in  std_logic;
+
 
       -- Asynchronous Reset
       RESET                           : in  std_logic
    );
   end component;
 
---   ---------------------------------------------------------------------
---   --  Component Declaration for 8-bit address swapping module
---   ---------------------------------------------------------------------
---   component address_swap_module_8
---   port (
---      rx_ll_clock         : in  std_logic;                     -- Input CLK from MAC Reciever
---      rx_ll_reset         : in  std_logic;                     -- Synchronous reset signal
---      rx_ll_data_in       : in  std_logic_vector(7 downto 0);  -- Input data
---      rx_ll_sof_in_n      : in  std_logic;                     -- Input start of frame
---      rx_ll_eof_in_n      : in  std_logic;                     -- Input end of frame
---      rx_ll_src_rdy_in_n  : in  std_logic;                     -- Input source ready
---      rx_ll_data_out      : out std_logic_vector(7 downto 0);  -- Modified output data
---      rx_ll_sof_out_n     : out std_logic;                     -- Output start of frame
---      rx_ll_eof_out_n     : out std_logic;                     -- Output end of frame
---      rx_ll_src_rdy_out_n : out std_logic;                     -- Output source ready
---      rx_ll_dst_rdy_in_n  : in  std_logic                      -- Input destination ready
---      );
---   end component;
+   ---------------------------------------------------------------------
+   --  Component Declaration for 8-bit address swapping module
+   ---------------------------------------------------------------------
+   component address_swap_module_8
+   port (
+      rx_ll_clock         : in  std_logic;                     -- Input CLK from MAC Reciever
+      rx_ll_reset         : in  std_logic;                     -- Synchronous reset signal
+      rx_ll_data_in       : in  std_logic_vector(7 downto 0);  -- Input data
+      rx_ll_sof_in_n      : in  std_logic;                     -- Input start of frame
+      rx_ll_eof_in_n      : in  std_logic;                     -- Input end of frame
+      rx_ll_src_rdy_in_n  : in  std_logic;                     -- Input source ready
+      rx_ll_data_out      : out std_logic_vector(7 downto 0);  -- Modified output data
+      rx_ll_sof_out_n     : out std_logic;                     -- Output start of frame
+      rx_ll_eof_out_n     : out std_logic;                     -- Output end of frame
+      rx_ll_src_rdy_out_n : out std_logic;                     -- Output source ready
+      rx_ll_dst_rdy_in_n  : in  std_logic                      -- Input destination ready
+      );
+   end component;
 
 -----------------------------------------------------------------------
 -- Signal Declarations
@@ -335,30 +326,10 @@ architecture TOP_LEVEL of eth_phy_rgmii is
     signal gtx_clk_0_i               : std_logic;
     attribute buffer_type of gtx_clk_0_i  : signal is "none";
 
+-----------
+    signal RGMII_RXC_0               : std_logic;
+    signal i_CLIENTEMACTXIFGDELAY    : std_logic_vector(7 downto 0);
 
-    signal GTX_CLK_0           : std_logic;
-    signal RGMII_RXC_0           : std_logic;
-    attribute keep : string;
-    attribute keep of RGMII_RXC_0 : signal is "true";
---    attribute keep of tx_clk_0 : signal is "true";
-
-    signal REFCLK            : std_logic;
-    signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
-
-    signal i_phy_rst_cnt : std_logic_vector(7 downto 0);
-    signal i_phy_rst    : std_logic;
-    signal i_rx_clk_cnt : std_logic_vector(10 downto 0);
-
---      -- Generic Host Interface
---    signal HOSTCLK                         : std_logic;
---    signal HOSTOPCODE                      : std_logic_vector(1 downto 0);
---    signal HOSTREQ                         : std_logic;
---    signal HOSTMIIMSEL                     : std_logic;
---    signal HOSTADDR                        : std_logic_vector(9 downto 0);
---    signal HOSTWRDATA                      : std_logic_vector(31 downto 0);
---    signal HOSTMIIMRDY                     : std_logic;
---    signal HOSTRDDATA                      : std_logic_vector(31 downto 0);
---    signal HOSTEMAC1SEL                    : std_logic;
 -------------------------------------------------------------------------------
 -- Main Body of Code
 -------------------------------------------------------------------------------
@@ -368,58 +339,18 @@ begin
 
   p_out_tst <=(others=>'0');
 
---  i_PHYAD<=CONV_STD_LOGIC_VECTOR(16#01#, i_PHYAD'length);
   i_CLIENTEMACTXIFGDELAY<=CONV_STD_LOGIC_VECTOR(16#0D#, i_CLIENTEMACTXIFGDELAY'length);
 
   p_out_phy.link<='1';
   p_out_phy.rdy<='1';
   p_out_phy.clk<=ll_clk_0_i;
   p_out_phy.rst<=ll_reset_0_i;
-  p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=i_phy_rst;
---  p_out_phy.opt(p_out_phy.opt'high-1 downto C_ETHPHY_OPTOUT_RST_BIT+1)<=(others=>'0');
+  p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_0_i;
 
   reset_i<=p_in_rst;
-  gtx_clk_0_i<=p_in_phy.clk; --GTX_CLK_0 <=p_in_phy.clk;
-  refclk_ibufg_i<=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);--REFCLK  <=p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
+  gtx_clk_0_i<=p_in_phy.clk; --GTX_CLK_0
+  refclk_ibufg_i<=p_in_phy.clk; --REFCLK
   RGMII_RXC_0<=p_in_phy.pin.rgmii(0).rxc;
-
-
-    --Reset Marvel 88E1111
-    process (reset_i,ll_clk_0_i)
-    begin
-      if reset_i = '1' then
-        i_phy_rst_cnt<=(others=>'0');
-        i_phy_rst<='0';
-      elsif ll_clk_0_i'event and ll_clk_0_i = '1' then
-
-        if i_phy_rst_cnt(7)='1' then
-          i_phy_rst<='0';
-        else
-          if ll_reset_0_i='1' and ll_pre_reset_0_i(5)='0' then
-            i_phy_rst<='1';
-          end if;
-        end if;
-
-        if i_phy_rst='0' then
-          i_phy_rst_cnt<=(others=>'0');
-        else
-          i_phy_rst_cnt<=i_phy_rst_cnt + 1;
-        end if;
-
-      end if;
-    end process;
-
---HOSTEMAC1SEL           <='0';
---HOSTMIIMSEL            <=p_in_phy.opt(32);          --miimsel
---HOSTREQ                <=p_in_phy.opt(33);          --req
---HOSTOPCODE             <=p_in_phy.opt(35 downto 34);--opcode
---HOSTADDR(9 downto 0)   <=p_in_phy.opt(45 downto 36);--PHYADR
---HOSTWRDATA             <=p_in_phy.opt(77 downto 46);--WRDATA
---HOSTCLK                <=p_in_phy.opt(78);          --: in  std_logic;
---
---p_out_phy.opt(33)          <=HOSTMIIMRDY; --: out std_logic;
---p_out_phy.opt(77 downto 46)<=HOSTRDDATA ; --: out std_logic_vector(31 downto 0);
-
 
     ---------------------------------------------------------------------------
     -- Reset Input Buffer
@@ -490,7 +421,7 @@ begin
     -- Instantiate the EMAC Wrapper with LL FIFO
     -- (emac_core_rgmii_locallink.v)
     ------------------------------------------------------------------------
-    v5_emac_ll : emac_core_rgmii_locallink
+    emac_core_locallink_inst : emac_core_rgmii_locallink
     port map (
       -- EMAC0 Clocking
       -- TX Clock output from EMAC
@@ -543,17 +474,6 @@ begin
       RGMII_RXD_0                     => p_in_phy.pin.rgmii(0).rxd,    --RGMII_RXD_0,
       RGMII_RX_CTL_0                  => p_in_phy.pin.rgmii(0).rx_ctl, --RGMII_RX_CTL_0,
       RGMII_RXC_0                     => rx_clk_0_i,
-
---      -- Generic Host Interface
---      HOSTCLK                         => HOSTCLK     , --: in  std_logic;
---      HOSTOPCODE                      => HOSTOPCODE  , --: in  std_logic_vector(1 downto 0);
---      HOSTREQ                         => HOSTREQ     , --: in  std_logic;
---      HOSTMIIMSEL                     => HOSTMIIMSEL , --: in  std_logic;
---      HOSTADDR                        => HOSTADDR    , --: in  std_logic_vector(9 downto 0);
---      HOSTWRDATA                      => HOSTWRDATA  , --: in  std_logic_vector(31 downto 0);
---      HOSTMIIMRDY                     => HOSTMIIMRDY , --: out std_logic;
---      HOSTRDDATA                      => HOSTRDDATA  , --: out std_logic_vector(31 downto 0);
---      HOSTEMAC1SEL                    => HOSTEMAC1SEL, --: in  std_logic;
 
       -- Asynchronous Reset
       RESET                           => reset_i

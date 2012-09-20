@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Virtex-5 Ethernet MAC Example Design Wrapper
 -- Project    : Virtex-5 Embedded Tri-Mode Ethernet MAC Wrapper
--- File       : emac_core_example_design.vhd
+-- File       : eth_mii.vhd
 -- Version    : 1.8
 -------------------------------------------------------------------------------
 --
@@ -119,7 +119,7 @@ use work.eth_pkg.all;
 -------------------------------------------------------------------------------
 -- The entity declaration for the example design.
 -------------------------------------------------------------------------------
-entity eth_phy_fiber is
+entity eth_mii is
   generic (
   G_ETH : TEthGeneric
   );
@@ -157,53 +157,44 @@ entity eth_phy_fiber is
 --      CLIENTEMAC0PAUSEREQ             : in  std_logic;
 --      CLIENTEMAC0PAUSEVAL             : in  std_logic_vector(15 downto 0);
 --
---      --EMAC-MGT link status
---      EMAC0CLIENTSYNCACQSTATUS        : out std_logic;
---      -- EMAC0 Interrupt
---      EMAC0ANINTERRUPT                : out std_logic;
---
 --
 --      -- Clock Signals - EMAC0
+--      GTX_CLK_0                       : in  std_logic;
 --
---      -- 1000BASE-X PCS/PMA Interface - EMAC0
---      TXP_0                           : out std_logic;
---      TXN_0                           : out std_logic;
---      RXP_0                           : in  std_logic;
---      RXN_0                           : in  std_logic;
---      PHYAD_0                         : in  std_logic_vector(4 downto 0);
+--      -- GMII Interface - EMAC0
+--      GMII_TXD_0                      : out std_logic_vector(7 downto 0);
+--      GMII_TX_EN_0                    : out std_logic;
+--      GMII_TX_ER_0                    : out std_logic;
+--      GMII_TX_CLK_0                   : out std_logic;
+--      GMII_RXD_0                      : in  std_logic_vector(7 downto 0);
+--      GMII_RX_DV_0                    : in  std_logic;
+--      GMII_RX_ER_0                    : in  std_logic;
+--      GMII_RX_CLK_0                   : in  std_logic;
 --
---      -- unused transceiver
---      TXN_1_UNUSED                    : out std_logic;
---      TXP_1_UNUSED                    : out std_logic;
---      RXN_1_UNUSED                    : in  std_logic;
---      RXP_1_UNUSED                    : in  std_logic;
---
---      -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
---      MGTCLK_P                        : in  std_logic;
---      MGTCLK_N                        : in  std_logic;
---
+--      -- Reference clock for RGMII IODELAYs
+--      REFCLK                          : in  std_logic;
 --
 --
 --      -- Asynchronous Reset
 --      RESET                           : in  std_logic
    );
-end eth_phy_fiber;
+end eth_mii;
 
 
-architecture TOP_LEVEL of eth_phy_fiber is
+architecture TOP_LEVEL of eth_mii is
 
 -------------------------------------------------------------------------------
 -- Component Declarations for lower hierarchial level entities
 -------------------------------------------------------------------------------
   -- Component Declaration for the TEMAC wrapper with
   -- Local Link FIFO.
-  component emac_core_locallink is
+  component emac_core_gmii_locallink is
    port(
       -- EMAC0 Clocking
-      -- 125MHz clock output from transceiver
-      CLK125_OUT                       : out std_logic;
-      -- 125MHz clock input from BUFG
-      CLK125                           : in  std_logic;
+      -- TX Clock output from EMAC
+      TX_CLK_OUT                       : out std_logic;
+      -- EMAC0 TX Clock input from BUFG
+      TX_CLK_0                         : in  std_logic;
 
       -- Local link Receiver Interface - EMAC0
       RX_LL_CLOCK_0                   : in  std_logic;
@@ -241,33 +232,19 @@ architecture TOP_LEVEL of eth_phy_fiber is
       CLIENTEMAC0PAUSEREQ             : in  std_logic;
       CLIENTEMAC0PAUSEVAL             : in  std_logic_vector(15 downto 0);
 
-      --EMAC-MGT link status
-      EMAC0CLIENTSYNCACQSTATUS        : out std_logic;
-      -- EMAC0 Interrupt
-      EMAC0ANINTERRUPT                : out std_logic;
-
 
       -- Clock Signals - EMAC0
+      GTX_CLK_0                       : in  std_logic;
 
-      -- 1000BASE-X PCS/PMA Interface - EMAC0
-      TXP_0                           : out std_logic;
-      TXN_0                           : out std_logic;
-      RXP_0                           : in  std_logic;
-      RXN_0                           : in  std_logic;
-      PHYAD_0                         : in  std_logic_vector(4 downto 0);
-      RESETDONE_0                     : out std_logic;
-
-      -- unused transceiver
-      TXN_1_UNUSED                    : out std_logic;
-      TXP_1_UNUSED                    : out std_logic;
-      RXN_1_UNUSED                    : in  std_logic;
-      RXP_1_UNUSED                    : in  std_logic;
-
-      -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
-      CLK_DS                          : in  std_logic;
-
-      -- RocketIO Reset input
-      GTRESET                         : in  std_logic;
+      -- GMII Interface - EMAC0
+      GMII_TXD_0                      : out std_logic_vector(7 downto 0);
+      GMII_TX_EN_0                    : out std_logic;
+      GMII_TX_ER_0                    : out std_logic;
+      GMII_TX_CLK_0                   : out std_logic;
+      GMII_RXD_0                      : in  std_logic_vector(7 downto 0);
+      GMII_RX_DV_0                    : in  std_logic;
+      GMII_RX_ER_0                    : in  std_logic;
+      GMII_RX_CLK_0                   : in  std_logic;
 
 
 
@@ -279,21 +256,21 @@ architecture TOP_LEVEL of eth_phy_fiber is
    ---------------------------------------------------------------------
    --  Component Declaration for 8-bit address swapping module
    ---------------------------------------------------------------------
---   component address_swap_module_8
---   port (
---      rx_ll_clock         : in  std_logic;                     -- Input CLK from MAC Reciever
---      rx_ll_reset         : in  std_logic;                     -- Synchronous reset signal
---      rx_ll_data_in       : in  std_logic_vector(7 downto 0);  -- Input data
---      rx_ll_sof_in_n      : in  std_logic;                     -- Input start of frame
---      rx_ll_eof_in_n      : in  std_logic;                     -- Input end of frame
---      rx_ll_src_rdy_in_n  : in  std_logic;                     -- Input source ready
---      rx_ll_data_out      : out std_logic_vector(7 downto 0);  -- Modified output data
---      rx_ll_sof_out_n     : out std_logic;                     -- Output start of frame
---      rx_ll_eof_out_n     : out std_logic;                     -- Output end of frame
---      rx_ll_src_rdy_out_n : out std_logic;                     -- Output source ready
---      rx_ll_dst_rdy_in_n  : in  std_logic                      -- Input destination ready
---      );
---   end component;
+   component address_swap_module_8
+   port (
+      rx_ll_clock         : in  std_logic;                     -- Input CLK from MAC Reciever
+      rx_ll_reset         : in  std_logic;                     -- Synchronous reset signal
+      rx_ll_data_in       : in  std_logic_vector(7 downto 0);  -- Input data
+      rx_ll_sof_in_n      : in  std_logic;                     -- Input start of frame
+      rx_ll_eof_in_n      : in  std_logic;                     -- Input end of frame
+      rx_ll_src_rdy_in_n  : in  std_logic;                     -- Input source ready
+      rx_ll_data_out      : out std_logic_vector(7 downto 0);  -- Modified output data
+      rx_ll_sof_out_n     : out std_logic;                     -- Output start of frame
+      rx_ll_eof_out_n     : out std_logic;                     -- Output end of frame
+      rx_ll_src_rdy_out_n : out std_logic;                     -- Output source ready
+      rx_ll_dst_rdy_in_n  : in  std_logic                      -- Input destination ready
+      );
+   end component;
 
 -----------------------------------------------------------------------
 -- Signal Declarations
@@ -326,121 +303,144 @@ architecture TOP_LEVEL of eth_phy_fiber is
     attribute async_reg : string;
     attribute async_reg of ll_pre_reset_0_i : signal is "true";
 
-    signal resetdone_0_i             : std_logic;
 
+    -- Reference clock for RGMII IODELAYs
+    signal refclk_ibufg_i            : std_logic;
+    signal refclk_bufg_i             : std_logic;
 
     -- EMAC0 Clocking signals
 
-    -- Transceiver output clock (REFCLKOUT at 125MHz)
-    signal clk125_o                  : std_logic;
-    -- 125MHz clock input to wrappers
-    signal clk125                    : std_logic;
-    -- Input 125MHz differential clock for transceiver
-    signal clk_ds                    : std_logic;
+    -- GMII input clocks to wrappers
+    signal tx_clk_0                  : std_logic;
+    signal rx_clk_0_i                : std_logic;
+    signal gmii_rx_clk_0_delay       : std_logic;
 
-    -- GT reset signal
-   signal gtreset                    : std_logic;
-   signal reset_r                    : std_logic_vector(3 downto 0);
-   attribute async_reg of reset_r    : signal is "TRUE";
+    -- IDELAY controller
+    signal idelayctrl_reset_0_r      : std_logic_vector(12 downto 0);
+    signal idelayctrl_reset_0_i      : std_logic;
+
+    -- Setting attribute for RGMII/GMII IDELAY
+    -- For more information on IDELAYCTRL and IDELAY, please refer to
+    -- the Virtex-5 User Guide.
+    attribute syn_noprune              : boolean;
+    attribute syn_noprune of dlyctrl0  : label is true;
 
 
+    attribute buffer_type : string;
+    signal gtx_clk_0_i               : std_logic;
+    attribute buffer_type of gtx_clk_0_i  : signal is "none";
 
-
---    attribute keep : string;
---    attribute keep of clk125 : signal is "true";
-    signal i_PHYAD                 : std_logic_vector(4 downto 0);
+------
     signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
+    signal GMII_RX_CLK_0           : std_logic;
+
 -------------------------------------------------------------------------------
 -- Main Body of Code
 -------------------------------------------------------------------------------
 
 
 begin
+
   p_out_tst <=(others=>'0');
 
-  i_PHYAD<=CONV_STD_LOGIC_VECTOR(16#01#, i_PHYAD'length);
   i_CLIENTEMACTXIFGDELAY<=CONV_STD_LOGIC_VECTOR(16#0D#, i_CLIENTEMACTXIFGDELAY'length);
 
-  p_out_phy.link<=p_in_phy.opt(C_ETHPHY_OPTIN_SFP_SD_BIT);
+  p_out_phy.link<='1';
   p_out_phy.rdy<='1';
   p_out_phy.clk<=ll_clk_0_i;
   p_out_phy.rst<=ll_reset_0_i;
-  p_out_phy.opt<=(others=>'0');
+  p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_0_i;
 
   reset_i<=p_in_rst;
-  clk_ds <=p_in_phy.clk;
-
---  p_out_phy2app(0).rxrem<=(others=>'0');
---
---  p_out_phy2app(1).rxd<=(others=>'0');
---  p_out_phy2app(1).rxsof_n<='0';
---  p_out_phy2app(1).rxeof_n<='0';
---  p_out_phy2app(1).rxsrc_rdy_n<='0';
---  p_out_phy2app(1).rxbuf_status<=(others=>'0');
---  p_out_phy2app(1).rxrem<=(others=>'0');
---
---  p_out_phy2app(1).txdst_rdy_n<='0';
-
-
+  gtx_clk_0_i<=p_in_phy.clk; --GTX_CLK_0
+  refclk_ibufg_i<=p_in_phy.clk; --REFCLK
+  GMII_RX_CLK_0<=p_in_phy.pin.gmii(0).rxc;
 
 --    ---------------------------------------------------------------------------
 --    -- Reset Input Buffer
 --    ---------------------------------------------------------------------------
 --    reset_ibuf : IBUF port map (I => RESET, O => reset_i);
---
---    -- EMAC0 Clocking
---
---    -- Generate the clock input to the GTP
---    -- clk_ds can be shared between multiple MAC instances.
---    clkingen : IBUFDS port map (
---      I  => MGTCLK_P,
---      IB => MGTCLK_N,
---      O  => clk_ds);
 
-    -- 125MHz from transceiver is routed through a BUFG and
-    -- input to the MAC wrappers.
+    -- EMAC0 Clocking
+
+    -- Use IDELAY on GMII_RX_CLK_0 to move the clock into
+    -- alignment with the data
+
+    -- Instantiate IDELAYCTRL for the IDELAY in Fixed Tap Delay Mode
+    dlyctrl0 : IDELAYCTRL port map (
+        RDY    => open,
+        REFCLK => refclk_bufg_i,
+        RST    => idelayctrl_reset_0_i
+        );
+
+    delay0rstgen :process (refclk_bufg_i, reset_i)
+    begin
+      if (reset_i = '1') then
+        idelayctrl_reset_0_r(0)           <= '0';
+        idelayctrl_reset_0_r(12 downto 1) <= (others => '1');
+      elsif refclk_bufg_i'event and refclk_bufg_i = '1' then
+        idelayctrl_reset_0_r(0)           <= '0';
+        idelayctrl_reset_0_r(12 downto 1) <= idelayctrl_reset_0_r(11 downto 0);
+      end if;
+    end process delay0rstgen;
+
+    idelayctrl_reset_0_i <= idelayctrl_reset_0_r(12);
+
+    -- Please modify the value of the IOBDELAYs according to your design.
+    -- For more information on IDELAYCTRL and IODELAY, please refer to
+    -- the Virtex-5 User Guide.
+    gmii_rxc0_delay : IODELAY
+    generic map (
+        IDELAY_TYPE    => "FIXED",
+        IDELAY_VALUE   => 0,
+        DELAY_SRC      => "I",
+        SIGNAL_PATTERN => "CLOCK"
+        )
+    port map (
+        IDATAIN    => GMII_RX_CLK_0,
+        ODATAIN    => '0',
+        DATAOUT    => gmii_rx_clk_0_delay,
+        DATAIN     => '0',
+        C          => '0',
+        T          => '0',
+        CE         => '0',
+        INC        => '0',
+        RST        => '0'
+        );
+
+
+    -- Put the 125MHz reference clock through a BUFG.
+    -- Used to clock the TX section of the EMAC wrappers.
     -- This clock can be shared between multiple MAC instances.
-    bufg_clk125 : BUFG port map (I => clk125_o, O => clk125);
+    bufg_tx_0 : BUFG port map (I => gtx_clk_0_i, O => tx_clk_0);
 
+    -- Put the RX PHY clock through a BUFG.
+    -- Used to clock the RX section of the EMAC wrappers.
+    bufg_rx_0 : BUFG port map (I => gmii_rx_clk_0_delay, O => rx_clk_0_i);
 
-    ll_clk_0_i <= clk125;
-
-   --------------------------------------------------------------------
-   -- RocketIO PMA reset circuitry
-   --------------------------------------------------------------------
-   process(reset_i, clk125)
-   begin
-     if (reset_i = '1') then
-       reset_r <= "1111";
-     elsif clk125'event and clk125 = '1' then
-       reset_r <= reset_r(2 downto 0) & reset_i;
-     end if;
-   end process;
-
-   gtreset <= reset_r(3);
-
+    ll_clk_0_i <= tx_clk_0;
 
 
     ------------------------------------------------------------------------
     -- Instantiate the EMAC Wrapper with LL FIFO
-    -- (emac_core_locallink.v)
+    -- (emac_core_gmii_locallink.v)
     ------------------------------------------------------------------------
-    v5_emac_ll : emac_core_locallink
+    emac_core_locallink_inst : emac_core_gmii_locallink
     port map (
       -- EMAC0 Clocking
-      -- 125MHz clock output from transceiver
-      CLK125_OUT                      => clk125_o,
-      -- 125MHz clock input from BUFG
-      CLK125                          => clk125,
+      -- TX Clock output from EMAC
+      TX_CLK_OUT                      => open,
+      -- EMAC0 TX Clock input from BUFG
+      TX_CLK_0                        => tx_clk_0,
       -- Local link Receiver Interface - EMAC0
-      RX_LL_CLOCK_0                   => ll_clk_0_i,                                                              --: in  std_logic;
-      RX_LL_RESET_0                   => ll_reset_0_i,                                                            --: in  std_logic;
-      RX_LL_DATA_0                    => p_out_phy2app(0).rxd(G_ETH.phy_dwidth-1 downto 0),--rx_ll_data_0_i,      --: out std_logic_vector(7 downto 0);
-      RX_LL_SOF_N_0                   => p_out_phy2app(0).rxsof_n,                         --rx_ll_sof_n_0_i,     --: out std_logic;
-      RX_LL_EOF_N_0                   => p_out_phy2app(0).rxeof_n,                         --rx_ll_eof_n_0_i,     --: out std_logic;
-      RX_LL_SRC_RDY_N_0               => p_out_phy2app(0).rxsrc_rdy_n,                     --rx_ll_src_rdy_n_0_i, --: out std_logic;
-      RX_LL_DST_RDY_N_0               => p_in_phy2app (0).rxdst_rdy_n,                     --rx_ll_dst_rdy_n_0_i, --: in  std_logic;
-      RX_LL_FIFO_STATUS_0             => p_out_phy2app(0).rxbuf_status,                    --open,                --: out std_logic_vector(3 downto 0);
+      RX_LL_CLOCK_0                   => ll_clk_0_i,
+      RX_LL_RESET_0                   => ll_reset_0_i,
+      RX_LL_DATA_0                    => p_out_phy2app(0).rxd(G_ETH.phy_dwidth-1 downto 0),--rx_ll_data_0_i,
+      RX_LL_SOF_N_0                   => p_out_phy2app(0).rxsof_n,                         --rx_ll_sof_n_0_i,
+      RX_LL_EOF_N_0                   => p_out_phy2app(0).rxeof_n,                         --rx_ll_eof_n_0_i,
+      RX_LL_SRC_RDY_N_0               => p_out_phy2app(0).rxsrc_rdy_n,                     --rx_ll_src_rdy_n_0_i,
+      RX_LL_DST_RDY_N_0               => p_in_phy2app (0).rxdst_rdy_n,                     --rx_ll_dst_rdy_n_0_i,
+      RX_LL_FIFO_STATUS_0             => p_out_phy2app(0).rxbuf_status,                    --open,
 
       -- Unused Receiver signals - EMAC0
       EMAC0CLIENTRXDVLD               => open, --EMAC0CLIENTRXDVLD,
@@ -468,32 +468,18 @@ begin
       CLIENTEMAC0PAUSEREQ             => '0',           --CLIENTEMAC0PAUSEREQ,
       CLIENTEMAC0PAUSEVAL             => (others=>'0'), --CLIENTEMAC0PAUSEVAL,
 
-      --EMAC-MGT link status
-      EMAC0CLIENTSYNCACQSTATUS        => open,  --EMAC0CLIENTSYNCACQSTATUS,
-      -- EMAC0 Interrupt
-      EMAC0ANINTERRUPT                => open,  --EMAC0ANINTERRUPT,
-
 
       -- Clock Signals - EMAC0
-      -- 1000BASE-X PCS/PMA Interface - EMAC0
-      TXP_0                           => p_out_phy.pin.fiber.txp(0), --TXP_0,
-      TXN_0                           => p_out_phy.pin.fiber.txn(0), --TXN_0,
-      RXP_0                           => p_in_phy.pin.fiber.rxp(0),  --RXP_0,
-      RXN_0                           => p_in_phy.pin.fiber.rxn(0),  --RXN_0,
-      PHYAD_0                         => i_PHYAD,                    --PHYAD_0,
-      RESETDONE_0                     => resetdone_0_i,
-
-      -- unused transceiver
-      TXN_1_UNUSED                    => p_out_phy.pin.fiber.txp(1), --TXN_1_UNUSED,
-      TXP_1_UNUSED                    => p_out_phy.pin.fiber.txn(1), --TXP_1_UNUSED,
-      RXN_1_UNUSED                    => p_in_phy.pin.fiber.rxp(1),  --RXN_1_UNUSED,
-      RXP_1_UNUSED                    => p_in_phy.pin.fiber.rxn(1),  --RXP_1_UNUSED,
-
-      -- 1000BASE-X PCS/PMA RocketIO Reference Clock buffer inputs
-      CLK_DS                          => clk_ds,
-
-      -- RocketIO Reset input
-      GTRESET                         => gtreset,
+      GTX_CLK_0                       => '0',
+      -- GMII Interface - EMAC0
+      GMII_TXD_0                      => p_out_phy.pin.gmii(0).txd,  --GMII_TXD_0,
+      GMII_TX_EN_0                    => p_out_phy.pin.gmii(0).tx_en,--GMII_TX_EN_0,
+      GMII_TX_ER_0                    => p_out_phy.pin.gmii(0).tx_er,--GMII_TX_ER_0,
+      GMII_TX_CLK_0                   => p_out_phy.pin.gmii(0).txc,  --GMII_TX_CLK_0,
+      GMII_RXD_0                      => p_in_phy.pin.gmii(0).rxd,   --GMII_RXD_0,
+      GMII_RX_DV_0                    => p_in_phy.pin.gmii(0).rx_dv, --GMII_RX_DV_0,
+      GMII_RX_ER_0                    => p_in_phy.pin.gmii(0).rx_er, --GMII_RX_ER_0,
+      GMII_RX_CLK_0                   => rx_clk_0_i,
 
 
 
@@ -529,14 +515,23 @@ begin
         ll_pre_reset_0_i <= (others => '1');
         ll_reset_0_i     <= '1';
       elsif ll_clk_0_i'event and ll_clk_0_i = '1' then
-      if resetdone_0_i = '1' then
         ll_pre_reset_0_i(0)          <= '0';
         ll_pre_reset_0_i(5 downto 1) <= ll_pre_reset_0_i(4 downto 0);
         ll_reset_0_i                 <= ll_pre_reset_0_i(5);
       end if;
-      end if;
     end process gen_ll_reset_emac0;
 
+--    ------------------------------------------------------------------------
+--    -- REFCLK used for RGMII IODELAYCTRL primitive - Need to supply a 200MHz clock
+--    ------------------------------------------------------------------------
+--    refclk_ibufg : IBUFG port map(I => REFCLK, O => refclk_ibufg_i);
+    refclk_bufg  : BUFG  port map(I => refclk_ibufg_i, O => refclk_bufg_i);
+
+--    ----------------------------------------------------------------------
+--    -- Stop the tools from automatically adding in a BUFG on the
+--    -- GTX_CLK_0 line.
+--    ----------------------------------------------------------------------
+--    gtx_clk0_ibuf : IBUF port map (I => GTX_CLK_0, O => gtx_clk_0_i);
 
 
 
