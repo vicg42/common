@@ -260,6 +260,10 @@ p_in_ethphy => pin_in_ethphy,
 p_out_clk   => i_eth_gt_refclk125_in
 );
 
+----//Только для SGMII
+--i_eth_gt_refclk125_out<=i_eth_gt_refclk125_in(0);
+
+--//Только для GMII/RGMII
 pin_out_ethphy.fiber.txp <= i_eth_gt_txp(pin_out_ethphy.fiber.txp'range);
 pin_out_ethphy.fiber.txn <= i_eth_gt_txn(pin_out_ethphy.fiber.txn'range);
 
@@ -283,16 +287,21 @@ clkout    => i_eth_gt_refclk125_out
 --***********************************************************
 --Проект Ethernet - dsn_eth.vhd
 --***********************************************************
---pin_out_ethphy.rgmii(0).tx_ctl<=i_ethphy_out.pin.rgmii(0).tx_ctl;
---pin_out_ethphy.rgmii(0).txc   <=i_ethphy_out.pin.rgmii(0).txc;
---pin_out_ethphy.rgmii(0).txd   <=i_ethphy_out.pin.rgmii(0).txd;
---i_ethphy_in.pin.rgmii(0)<=pin_in_ethphy.rgmii(0);
+pin_out_ethphy.rgmii(0).tx_ctl<=i_ethphy_out.pin.rgmii(0).tx_ctl;
+pin_out_ethphy.rgmii(0).txc   <=i_ethphy_out.pin.rgmii(0).txc;
+pin_out_ethphy.rgmii(0).txd   <=i_ethphy_out.pin.rgmii(0).txd;
+i_ethphy_in.pin.rgmii(0)<=pin_in_ethphy.rgmii(0);
 
-pin_out_ethphy.gmii(0).tx_er <=i_ethphy_out.pin.gmii(0).tx_er;
-pin_out_ethphy.gmii(0).tx_en <=i_ethphy_out.pin.gmii(0).tx_en;
-pin_out_ethphy.gmii(0).txc   <=i_ethphy_out.pin.gmii(0).txc;
-pin_out_ethphy.gmii(0).txd   <=i_ethphy_out.pin.gmii(0).txd;
-i_ethphy_in.pin.gmii(0)<=pin_in_ethphy.gmii(0);
+--pin_out_ethphy.gmii(0).tx_er <=i_ethphy_out.pin.gmii(0).tx_er;
+--pin_out_ethphy.gmii(0).tx_en <=i_ethphy_out.pin.gmii(0).tx_en;
+--pin_out_ethphy.gmii(0).txc   <=i_ethphy_out.pin.gmii(0).txc;
+--pin_out_ethphy.gmii(0).txd   <=i_ethphy_out.pin.gmii(0).txd;
+--i_ethphy_in.pin.gmii(0)<=pin_in_ethphy.gmii(0);
+
+--pin_out_ethphy.sgmii.txp <=i_ethphy_out.pin.sgmii.txp;
+--pin_out_ethphy.sgmii.txn <=i_ethphy_out.pin.sgmii.txn;
+--i_ethphy_in.pin.sgmii.rxp<=pin_in_ethphy.sgmii.rxp;
+--i_ethphy_in.pin.sgmii.rxn<=pin_in_ethphy.sgmii.rxn;
 
 pin_out_ethphy_rst <=not i_ethphy_rst;
 

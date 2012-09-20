@@ -31,41 +31,41 @@ NET "pin_in_ethphy_fiber_clk_p" LOC = "P4";
 NET "pin_in_ethphy_fiber_clk_n" LOC = "P3";
 INST "m_gt_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y3";
 
-#NET "pin_in_ethphy_crs"     LOC = "E34"  | IOSTANDARD = "LVCMOS25";#; #NET  PHY_CRS
-#NET "pin_in_ethphy_col"     LOC = "B32"  | IOSTANDARD = "LVCMOS25";#; #NET  PHY_COL
-#NET "pin_in_ethphy_actn"    LOC = "H20"  | IOSTANDARD = "LVCMOS25";#; #NET  PHY_INT
-NET "pin_out_ethphy_rst"    LOC = "J14"  | PULLUP | IOSTANDARD = "LVCMOS25";  #NET  PHY_RESET
-NET "pin_inout_ethphy_mdio" LOC = "H13"  | IOSTANDARD = "LVCMOS25";# #NET  PHY_MDIO
-NET "pin_out_ethphy_mdc"    LOC = "H19"  | IOSTANDARD = "LVCMOS25";# #NET  PHY_MDC
+#NET "pin_in_ethphy_crs"     LOC = "E34"  ;#NET  PHY_CRS
+#NET "pin_in_ethphy_col"     LOC = "B32"  ;#NET  PHY_COL
+#NET "pin_in_ethphy_actn"    LOC = "H20"  ;#NET  PHY_INT
+NET "pin_out_ethphy_rst"    LOC = "J14"  | PULLUP ;#NET  PHY_RESET
+NET "pin_inout_ethphy_mdio" LOC = "H13"  ;# #NET  PHY_MDIO
+NET "pin_out_ethphy_mdc"    LOC = "H19"  ;# #NET  PHY_MDC
 
 
 
 #--------------------------
 #---- GMII
 #--------------------------
-NET "pin_out_ethphy_gmii<0>_tx_en"  LOC = "AJ10" | IOSTANDARD = "LVCMOS25";#NET  PHY_TXCTL_TXEN
-NET "pin_out_ethphy_gmii<0>_txc"    LOC = "J16"  | IOSTANDARD = "LVCMOS25";#NET  PHY_TXC_GTXCLK
-NET "pin_out_ethphy_gmii<0>_txd<0>" LOC = "AF11" | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD0
-NET "pin_out_ethphy_gmii<0>_txd<1>" LOC = "AE11" | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD1
-NET "pin_out_ethphy_gmii<0>_txd<2>" LOC = "AH9"  | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD2
-NET "pin_out_ethphy_gmii<0>_txd<3>" LOC = "AH10" | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD3
-NET "pin_out_ethphy_gmii<0>_txd<4>" LOC = "AG8"  | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD4
-NET "pin_out_ethphy_gmii<0>_txd<5>" LOC = "AH8"  | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD5
-NET "pin_out_ethphy_gmii<0>_txd<6>" LOC = "AG10" | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD6
-NET "pin_out_ethphy_gmii<0>_txd<7>" LOC = "AG11" | IOSTANDARD = "LVCMOS25";#NET  PHY_TXD7
-NET "pin_out_ethphy_gmii<0>_tx_er"  LOC = "AJ9"  | IOSTANDARD = "LVCMOS25";#NET  PHY_TXER
+NET "pin_out_ethphy_gmii<0>_tx_en"  LOC = "AJ10" ;#NET  PHY_TXCTL_TXEN
+NET "pin_out_ethphy_gmii<0>_txc"    LOC = "J16"  ;#NET  PHY_TXC_GTXCLK
+NET "pin_out_ethphy_gmii<0>_txd<0>" LOC = "AF11" ;#NET  PHY_TXD0
+NET "pin_out_ethphy_gmii<0>_txd<1>" LOC = "AE11" ;#NET  PHY_TXD1
+NET "pin_out_ethphy_gmii<0>_txd<2>" LOC = "AH9"  ;#NET  PHY_TXD2
+NET "pin_out_ethphy_gmii<0>_txd<3>" LOC = "AH10" ;#NET  PHY_TXD3
+NET "pin_out_ethphy_gmii<0>_txd<4>" LOC = "AG8"  ;#NET  PHY_TXD4
+NET "pin_out_ethphy_gmii<0>_txd<5>" LOC = "AH8"  ;#NET  PHY_TXD5
+NET "pin_out_ethphy_gmii<0>_txd<6>" LOC = "AG10" ;#NET  PHY_TXD6
+NET "pin_out_ethphy_gmii<0>_txd<7>" LOC = "AG11" ;#NET  PHY_TXD7
+NET "pin_out_ethphy_gmii<0>_tx_er"  LOC = "AJ9"  ;#NET  PHY_TXER
 
-NET "pin_in_ethphy_gmii<0>_rx_dv"   LOC = "E32"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXCTL_RXDV
-NET "pin_in_ethphy_gmii<0>_rxc"     LOC = "H17"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXCLK
-NET "pin_in_ethphy_gmii<0>_rxd<0>"  LOC = "A33"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD0
-NET "pin_in_ethphy_gmii<0>_rxd<1>"  LOC = "B33"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD1
-NET "pin_in_ethphy_gmii<0>_rxd<2>"  LOC = "C33"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD2
-NET "pin_in_ethphy_gmii<0>_rxd<3>"  LOC = "C32"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD3
-NET "pin_in_ethphy_gmii<0>_rxd<4>"  LOC = "D32"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD4
-NET "pin_in_ethphy_gmii<0>_rxd<5>"  LOC = "C34"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD5
-NET "pin_in_ethphy_gmii<0>_rxd<6>"  LOC = "D34"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD6
-NET "pin_in_ethphy_gmii<0>_rxd<7>"  LOC = "F33"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXD7
-NET "pin_in_ethphy_gmii<0>_rx_er"   LOC = "E33"  | IOSTANDARD = "LVCMOS25";#NET  PHY_RXER
+NET "pin_in_ethphy_gmii<0>_rx_dv"   LOC = "E32"  ;#NET  PHY_RXCTL_RXDV
+NET "pin_in_ethphy_gmii<0>_rxc"     LOC = "H17"  ;#NET  PHY_RXCLK
+NET "pin_in_ethphy_gmii<0>_rxd<0>"  LOC = "A33"  ;#NET  PHY_RXD0
+NET "pin_in_ethphy_gmii<0>_rxd<1>"  LOC = "B33"  ;#NET  PHY_RXD1
+NET "pin_in_ethphy_gmii<0>_rxd<2>"  LOC = "C33"  ;#NET  PHY_RXD2
+NET "pin_in_ethphy_gmii<0>_rxd<3>"  LOC = "C32"  ;#NET  PHY_RXD3
+NET "pin_in_ethphy_gmii<0>_rxd<4>"  LOC = "D32"  ;#NET  PHY_RXD4
+NET "pin_in_ethphy_gmii<0>_rxd<5>"  LOC = "C34"  ;#NET  PHY_RXD5
+NET "pin_in_ethphy_gmii<0>_rxd<6>"  LOC = "D34"  ;#NET  PHY_RXD6
+NET "pin_in_ethphy_gmii<0>_rxd<7>"  LOC = "F33"  ;#NET  PHY_RXD7
+NET "pin_in_ethphy_gmii<0>_rx_er"   LOC = "E33"  ;#NET  PHY_RXER
 
 
 ##--------------------------
