@@ -1,0 +1,1 @@
+%XILINX%\bin\nt64\impact -batch D:\Work\Linkos\veresk_m\htg_v6\script\jtag_download.cmd
