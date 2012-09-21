@@ -41,7 +41,11 @@ p_out_cfg_done : out   std_logic;
 --------------------------------------
 --Eth PHY (Managment Interface)
 --------------------------------------
-p_inout_mdio   : inout  std_logic;
+--p_inout_mdio   : inout  std_logic;
+--p_out_mdc      : out    std_logic;
+p_out_mdio_t   : out    std_logic;
+p_out_mdio     : out    std_logic;
+p_in_mdio      : in     std_logic;
 p_out_mdc      : out    std_logic;
 
 --------------------------------------------------
@@ -94,7 +98,7 @@ signal sr_rxd          : std_logic_vector(15 downto 0):=(others=>'0'); --Сдиговы
 signal sr_en           : std_logic;
 
 signal i_mdc           : std_logic:='0';
-
+signal i_mdio_in       : std_logic;
 signal tst_fms_cs      : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly  : std_logic_vector(tst_fms_cs'range);
 
@@ -323,7 +327,7 @@ begin
   if p_in_clk'event and p_in_clk='1' then
     if sr_en='1' and i_mdc='0' then
       if i_rxd_en='1' then
-        sr_rxd<=sr_rxd(sr_rxd'length-2 downto 0)&p_inout_mdio;
+        sr_rxd<=sr_rxd(sr_rxd'length-2 downto 0)&i_mdio_in;
       end if;
     end if;
   end if;
@@ -343,8 +347,14 @@ p_out_cfg_done<=i_mdio_done;
 
 
 --//Managment Interface
-p_inout_mdio<=sr_txd(15) when i_txd_en='1' else 'Z';
+--p_inout_mdio<=sr_txd(15) when i_txd_en='1' else 'Z';
+--p_out_mdc<=i_mdc;
+--i_mdio_in<=p_inout_mdio;
+
+p_out_mdio<=sr_txd(15);
 p_out_mdc<=i_mdc;
+i_mdio_in<=p_in_mdio;
+p_out_mdio_t<=i_txd_en;
 
 
 --END MAIN

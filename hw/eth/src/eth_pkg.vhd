@@ -85,12 +85,16 @@ rdy : std_logic; --//Готов к работе
 link: std_logic; --//Есть соедитение с другой стороной
 clk : std_logic;
 rst : std_logic;
+mdc : std_logic;
+mdio: std_logic;
+mdio_t: std_logic;
 end record;
 
 type TEthPhyIN is record
 pin : TEthPhyPinIN;
 opt : std_logic_vector(127 downto 0);
 clk : std_logic;
+mdio :std_logic;
 --rst : std_logic;
 end record;
 
