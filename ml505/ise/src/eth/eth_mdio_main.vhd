@@ -22,7 +22,8 @@ use work.eth_pkg.all;
 
 entity eth_mdio_main is
 generic(
-G_PHYADR : integer:=16#07#;
+G_PHY_ADR : integer:=16#07#;
+G_PHY_ID  : std_logic_vector(11 downto 0):="000011001100";
 G_DIV : integer:=2; --Делитель частоты p_in_clk. Нужен для формирования сигнала MDC
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
@@ -31,18 +32,19 @@ port(
 --------------------------------------
 --Управление
 --------------------------------------
-p_in_start     : in    std_logic;
-
-p_out_done     : out   std_logic;
-p_out_err      : out   std_logic;
-p_out_link     : out   std_logic;
-p_out_change   : out   std_logic;
-p_in_change    : in    std_logic;
+p_out_phy_rst      : out   std_logic;
+p_out_phy_err      : out   std_logic;
+p_out_phy_link     : out   std_logic;
+p_out_phy_cfg_done : out   std_logic;
 
 --------------------------------------
 --Eth PHY (Managment Interface)
 --------------------------------------
-p_inout_mdio   : inout  std_logic;
+--p_inout_mdio   : inout  std_logic;
+--p_out_mdc      : out    std_logic;
+p_out_mdio_t   : out    std_logic;
+p_out_mdio     : out    std_logic;
+p_in_mdio      : in     std_logic;
 p_out_mdc      : out    std_logic;
 
 --------------------------------------------------
@@ -61,15 +63,17 @@ end eth_mdio_main;
 
 architecture behavioral of eth_mdio_main is
 
+--Значения задержек для p_in_clk=125MHz
+constant CI_RST_WIDTH       : integer:=6250000;--50ms
+constant CI_RST_DLY         : integer:=2500000;--20ms
+constant CI_MDIO_DLY        : integer:=2500000;--20ms
+constant CI_RD_STATUS_DLY   : integer:=62500000;--500ms
+
 --Register Map:
 constant CI_RPHY_CTRL       : integer:=0;--Глобальное управление
 constant CI_RPHY_IDENTIFIER : integer:=3;
 constant CI_RPHY_STATUS     : integer:=1;--Статус для Eth Copper
 constant CI_RPHY_SCTRL      : integer:=20;--Управление RGMII
-
---CI_RPHY_IDENTIFIER BitMap:
-constant CI_PHY_ID : std_logic_vector(11 downto 0):="000011001100";--ID for chip Marvel 88E1111
-
 
 component eth_mdio
 generic(
@@ -92,7 +96,11 @@ p_out_cfg_done : out   std_logic;
 --------------------------------------
 --Связь с PHY
 --------------------------------------
-p_inout_mdio   : inout  std_logic;
+--p_inout_mdio   : inout  std_logic;
+--p_out_mdc      : out    std_logic;
+p_out_mdio_t   : out    std_logic;
+p_out_mdio     : out    std_logic;
+p_in_mdio      : in     std_logic;
 p_out_mdc      : out    std_logic;
 
 --------------------------------------------------
@@ -109,9 +117,10 @@ p_in_rst       : in    std_logic
 );
 end component;
 
-type TEth_fsm_mdioctrl is (
-S_IDLE,
+type TCtrl_fsm is (
+S_PHY_RST,
 S_PHY_ID_RD,
+S_PHY_ID_RD_DONE,
 S_PHY_SCTRL_RD,
 S_PHY_SCTRL_RD_DONE,
 S_PHY_SCTRL_WR,
@@ -123,26 +132,26 @@ S_PHY_CTRL_WR_DONE,
 S_PHY_STATUS_RD,
 S_PHY_STATUS_RD_DONE
 );
-signal fsm_ethmio_ctrl_cs: TEth_fsm_mdioctrl;
+signal fsm_ctrl_cs: TCtrl_fsm;
 
-signal i_tmr_cnt       : integer range 0 to G_DIV-1;
+signal i_mdio_start      : std_logic;
+signal i_mdio_wr         : std_logic;
+signal i_mdio_aphy       : std_logic_vector(4 downto 0);
+signal i_mdio_areg       : std_logic_vector(4 downto 0);
+signal i_mdio_done       : std_logic;
+signal i_mdio_txd        : std_logic_vector(15 downto 0);
+signal i_mdio_rxd        : std_logic_vector(15 downto 0);
 
-signal i_mdio_start    : std_logic;
-signal i_mdio_wr       : std_logic;
-signal i_mdio_aphy     : std_logic_vector(4 downto 0);
-signal i_mdio_areg     : std_logic_vector(4 downto 0);
-signal i_mdio_done     : std_logic;
-signal i_mdio_txd      : std_logic_vector(15 downto 0);
-signal i_mdio_rxd      : std_logic_vector(15 downto 0);
+signal i_phy_err         : std_logic;
+signal i_phy_link        : std_logic;
+signal i_phy_cfg_done    : std_logic;
+signal i_phy_rst         : std_logic;
 
-signal i_err           : std_logic;
-signal i_link          : std_logic;
+signal i_cntdly          : std_logic_vector(31 downto 0);
 
-signal i_change_done   : std_logic;
-
-signal tst_fms_cs      : std_logic_vector(3 downto 0);
-signal tst_fms_cs_dly  : std_logic_vector(3 downto 0);
-signal i_tst_out       : std_logic_vector(31 downto 0);
+signal tst_fms_cs        : std_logic_vector(3 downto 0);
+signal tst_fms_cs_dly    : std_logic_vector(3 downto 0);
+signal i_tst_out         : std_logic_vector(31 downto 0);
 
 --MAIN
 begin
@@ -168,26 +177,27 @@ begin
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_ID_RD           else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_STATUS_RD       else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_STATUS_RD_DONE  else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_SCTRL_RD        else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_SCTRL_RD_DONE   else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_SCTRL_WR        else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_SCTRL_WR_DONE   else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_CTRL_RD         else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_CTRL_RD_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_CTRL_WR         else
-            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_ethmio_ctrl_cs=S_PHY_CTRL_WR_DONE    else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_ethmio_ctrl_cs=S_IDLE             else
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_ID_RD           else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_ID_RD_DONE      else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_STATUS_RD       else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_STATUS_RD_DONE  else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_SCTRL_RD        else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_SCTRL_RD_DONE   else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_SCTRL_WR        else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_SCTRL_WR_DONE   else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_CTRL_RD         else
+            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_CTRL_RD_DONE    else
+            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_CTRL_WR         else
+            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_ctrl_cs=S_PHY_CTRL_WR_DONE    else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_ctrl_cs=S_PHY_RST             else
 
 end generate gen_dbg_on;
 
 
-p_out_done<=i_mdio_done;
-p_out_err <=i_err;
-p_out_link<=i_link;
-p_out_change<=i_change_done;
+p_out_phy_rst<=i_phy_rst;
+p_out_phy_err <=i_phy_err;
+p_out_phy_link<=i_phy_link;
+p_out_phy_cfg_done<=i_phy_cfg_done;
 
 --//-------------------------------------------
 --//Автомат управления
@@ -195,7 +205,7 @@ p_out_change<=i_change_done;
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    fsm_ethmio_ctrl_cs<=S_IDLE;
+    fsm_ctrl_cs<=S_PHY_RST;
 
     i_mdio_start<='0';
     i_mdio_wr<='0';
@@ -203,70 +213,96 @@ begin
     i_mdio_areg<=(others=>'0');
     i_mdio_txd <=(others=>'0');
 
-    i_err<='0';
-    i_link<='0';
-    i_change_done<='0';
+    i_phy_err<='0';
+    i_phy_link<='0';
+    i_phy_cfg_done<='0';
+    i_phy_rst<='0';
+
+    i_cntdly<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    case fsm_ethmio_ctrl_cs is
+    case fsm_ctrl_cs is
 
       --------------------------------------
-      --
+      --Сброс
       --------------------------------------
-      when S_IDLE =>
+      when S_PHY_RST =>
 
-        if p_in_start='1' then
-          i_mdio_start<='1';
-          i_mdio_wr<=C_ETH_MDIO_RD;
-          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHYADR,i_mdio_aphy'length);
-          i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_IDENTIFIER,i_mdio_areg'length);
-          i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
-
-          fsm_ethmio_ctrl_cs<=S_PHY_ID_RD;
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_RST_WIDTH, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+          i_phy_rst<='0';
+          fsm_ctrl_cs<=S_PHY_ID_RD;
+        else
+          i_phy_rst<='1';
+          i_cntdly<=i_cntdly + 1;
         end if;
 
+      --------------------------------------
+      --Чтение ID
+      --------------------------------------
       when S_PHY_ID_RD =>
+
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_RST_DLY, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+
+          i_mdio_start<='1';
+          i_mdio_wr<=C_ETH_MDIO_RD;
+          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
+          i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_IDENTIFIER,i_mdio_areg'length);
+          i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
+          fsm_ctrl_cs<=S_PHY_ID_RD_DONE;
+        else
+          i_cntdly<=i_cntdly + 1;
+        end if;
+
+      when S_PHY_ID_RD_DONE =>
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          if i_mdio_rxd(15 downto 4)/=CI_PHY_ID then
-            i_err<='1';
-            fsm_ethmio_ctrl_cs<=S_IDLE;
+          if i_mdio_rxd(15 downto 4)/=G_PHY_ID then
+            i_phy_err<='1';
+            fsm_ctrl_cs<=S_PHY_ID_RD;
           else
-            i_err<='0';
-            fsm_ethmio_ctrl_cs<=S_PHY_SCTRL_RD;--Переходим к установке парвметров для интерфейса с PHY (GMII/RGMII/SGMII)
+            i_phy_err<='0';
+            fsm_ctrl_cs<=S_PHY_SCTRL_RD;--Переходим к установке парвметров для интерфейса с PHY (GMII/RGMII/SGMII)
           end if;
         end if;
 
       --------------------------------------
-      --Управление для RGMII
+      --Конфигурирование PHY
       --------------------------------------
       when S_PHY_SCTRL_RD =>
 
-        if p_in_start='1' then
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+
           i_mdio_start<='1';
           i_mdio_wr<=C_ETH_MDIO_RD;
-          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHYADR,i_mdio_aphy'length);
+          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
           i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_SCTRL,i_mdio_areg'length);
           i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
 
-          fsm_ethmio_ctrl_cs<=S_PHY_SCTRL_RD_DONE;
+          fsm_ctrl_cs<=S_PHY_SCTRL_RD_DONE;
+        else
+          i_cntdly<=i_cntdly + 1;
         end if;
 
       when S_PHY_SCTRL_RD_DONE =>
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          fsm_ethmio_ctrl_cs<=S_PHY_SCTRL_WR;
+          fsm_ctrl_cs<=S_PHY_SCTRL_WR;
         end if;
 
       when S_PHY_SCTRL_WR =>
 
-        if p_in_start='1' then
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+
           i_mdio_start<='1';
           i_mdio_wr<=C_ETH_MDIO_WR;
-          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHYADR,i_mdio_aphy'length);
+          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
           i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_SCTRL,i_mdio_areg'length);
 
           i_mdio_txd(15)<=i_mdio_rxd(15);
@@ -278,16 +314,18 @@ begin
           i_mdio_txd(1)<='1';--1 - Add delay to GTX_CLK for TxD output
           i_mdio_txd(0)<='1';--1/0 - Transmiter disable/enable
 
-          fsm_ethmio_ctrl_cs<=S_PHY_SCTRL_WR_DONE;
+          fsm_ctrl_cs<=S_PHY_SCTRL_WR_DONE;
+        else
+          i_cntdly<=i_cntdly + 1;
         end if;
 
       when S_PHY_SCTRL_WR_DONE =>
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          i_change_done<='1';
+          i_phy_cfg_done<='1';
 
-          fsm_ethmio_ctrl_cs<=S_PHY_CTRL_RD;
+          fsm_ctrl_cs<=S_PHY_CTRL_RD;
         end if;
 
 
@@ -296,42 +334,50 @@ begin
       --------------------------------------
       when S_PHY_CTRL_RD =>
 
-        if p_in_start='1' then
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+
           i_mdio_start<='1';
           i_mdio_wr<=C_ETH_MDIO_RD;
-          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHYADR,i_mdio_aphy'length);
+          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
           i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_CTRL,i_mdio_areg'length);
           i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
 
-          fsm_ethmio_ctrl_cs<=S_PHY_CTRL_RD_DONE;
+          fsm_ctrl_cs<=S_PHY_CTRL_RD_DONE;
+        else
+          i_cntdly<=i_cntdly + 1;
         end if;
 
       when S_PHY_CTRL_RD_DONE =>
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          fsm_ethmio_ctrl_cs<=S_PHY_CTRL_WR;
+          fsm_ctrl_cs<=S_PHY_CTRL_WR;
         end if;
 
       when S_PHY_CTRL_WR =>
 
-        if p_in_start='1' then
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+
           i_mdio_start<='1';
           i_mdio_wr<=C_ETH_MDIO_WR;
-          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHYADR,i_mdio_aphy'length);
+          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
           i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_CTRL,i_mdio_areg'length);
           i_mdio_txd(15)<='1';--SW_RESET
           i_mdio_txd(14 downto 0)<=i_mdio_rxd(14 downto 0);
 
-          fsm_ethmio_ctrl_cs<=S_PHY_CTRL_WR_DONE;
+          fsm_ctrl_cs<=S_PHY_CTRL_WR_DONE;
+        else
+          i_cntdly<=i_cntdly + 1;
         end if;
 
       when S_PHY_CTRL_WR_DONE =>
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          i_change_done<='1';
-           fsm_ethmio_ctrl_cs<=S_PHY_STATUS_RD;
+            i_phy_cfg_done<='1';
+           fsm_ctrl_cs<=S_PHY_STATUS_RD;
         end if;
 
 
@@ -340,22 +386,26 @@ begin
       --------------------------------------
       when S_PHY_STATUS_RD =>
 
-        if p_in_start='1' then
+        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_RD_STATUS_DLY, i_cntdly'length) then
+          i_cntdly<=(others=>'0');
+
           i_mdio_start<='1';
           i_mdio_wr<=C_ETH_MDIO_RD;
-          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHYADR,i_mdio_aphy'length);
+          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
           i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_STATUS,i_mdio_areg'length);
           i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
 
-          fsm_ethmio_ctrl_cs<=S_PHY_STATUS_RD_DONE;
+          fsm_ctrl_cs<=S_PHY_STATUS_RD_DONE;
+        else
+          i_cntdly<=i_cntdly + 1;
         end if;
 
       when S_PHY_STATUS_RD_DONE =>
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          i_link<=i_mdio_rxd(2);
-          fsm_ethmio_ctrl_cs<=S_PHY_STATUS_RD;
+          i_phy_link<=i_mdio_rxd(2);
+          fsm_ctrl_cs<=S_PHY_STATUS_RD;
         end if;
     end case;
   end if;
@@ -383,7 +433,11 @@ p_out_cfg_done => i_mdio_done,
 --------------------------------------
 --Связь с PHY
 --------------------------------------
-p_inout_mdio   => p_inout_mdio,
+--p_inout_mdio   => p_inout_mdio,
+--p_out_mdc      => p_out_mdc,
+p_out_mdio_t   => p_out_mdio_t,
+p_out_mdio     => p_out_mdio,
+p_in_mdio      => p_in_mdio,
 p_out_mdc      => p_out_mdc,
 
 --------------------------------------------------

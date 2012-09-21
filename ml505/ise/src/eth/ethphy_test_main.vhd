@@ -54,45 +54,6 @@ end entity;
 
 architecture struct of ethphy_test_main is
 
-component eth_mdio_main
-generic(
-G_PHYADR : integer:=16#07#;
-G_DIV : integer:=2; --Делитель частоты p_in_clk. Нужен для формирования сигнала MDC
-G_DBG : string:="OFF";
-G_SIM : string:="OFF"
-);
-port(
---------------------------------------
---Управление
---------------------------------------
-p_in_start     : in    std_logic;
-
-p_out_done     : out   std_logic;
-p_out_err      : out   std_logic;
-p_out_link     : out   std_logic;
-p_out_change   : out   std_logic;
-p_in_change    : in    std_logic;
-
---------------------------------------
---Eth PHY (Managment Interface)
---------------------------------------
-p_inout_mdio   : inout  std_logic;
-p_out_mdc      : out    std_logic;
-
---------------------------------------------------
---Технологические сигналы
---------------------------------------------------
-p_in_tst       : in    std_logic_vector(31 downto 0);
-p_out_tst      : out   std_logic_vector(31 downto 0);
-
---------------------------------------
---SYSTEM
---------------------------------------
-p_in_clk       : in    std_logic;
-p_in_rst       : in    std_logic
-);
-end component;
-
 component host_ethg_txfifo
 port(
 din         : IN  std_logic_vector(31 downto 0);
@@ -170,14 +131,6 @@ S_USR_PKT_TX1
 );
 signal fsm_usrpkt_tx_cs: TUsrpkt_tx_fsm;
 
-type TEth_mdio_fsm is (
-S_MDIO_PHY_RST,
-S_MDIO_DLY,
-S_MDIO_START,
-S_MDIO_DONE
-);
-signal fsm_ethmdio_cs: TEth_mdio_fsm;
-
 signal i_sys_rst_cnt                   : std_logic_vector(5 downto 0):=(others=>'0');
 signal i_sys_rst                       : std_logic;
 signal i_usr_rst                       : std_logic;
@@ -204,15 +157,6 @@ signal i_ethphy_in                     : TEthPhyIN;
 signal dbg_eth_out                     : TEthDBG;
 signal i_eth_tst_out                   : std_logic_vector(31 downto 0);
 signal i_eth_cfg_done                  : std_logic;
-signal i_ethphy_rst                    : std_logic;
-
-signal i_eth_mdio_dlycnt               : std_logic_vector(15 downto 0);
-signal i_eth_mdio_start                : std_logic;
-signal i_eth_mdio_done                 : std_logic;
-signal i_eth_mdio_err                  : std_logic;
-signal i_eth_mdio_link                 : std_logic;
-signal i_eth_mdio_change               : std_logic;
-signal i_eth_mdio_tst_out              : std_logic_vector(31 downto 0);
 
 signal i_eth_txpkt_dcnt                : std_logic_vector(15 downto 0);
 signal i_eth_txpkt_d                   : std_logic_vector(31 downto 0);
@@ -303,9 +247,12 @@ i_ethphy_in.pin.rgmii(0)<=pin_in_ethphy.rgmii(0);
 --i_ethphy_in.pin.sgmii.rxp<=pin_in_ethphy.sgmii.rxp;
 --i_ethphy_in.pin.sgmii.rxn<=pin_in_ethphy.sgmii.rxn;
 
-pin_out_ethphy_rst <=not i_ethphy_rst;
-
 i_ethphy_in.clk<=i_eth_gt_refclk125_out;
+
+pin_out_ethphy_rst<=not i_ethphy_out.rst;
+pin_inout_ethphy_mdio<=i_ethphy_out.mdio when i_ethphy_out.mdio_t='1' else 'Z';
+pin_out_ethphy_mdc<=i_ethphy_out.mdc;
+i_ethphy_in.mdio<=pin_inout_ethphy_mdio;
 
 m_eth : dsn_eth
 generic map(
@@ -386,7 +333,7 @@ begin
       --
       when S_CFG_ETH_START =>
 
-        if i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT)='0' then
+        if i_ethphy_out.rdy='1' then
         i_eth_cfg_radr_ld<='1';
         i_eth_cfg_radr_fifo<='0';
         i_eth_cfg_wr<='0';
@@ -462,8 +409,8 @@ begin
       -----------------------------------
       when S_USR_PKT_TXDLY =>
 
-        if i_eth_cfg_done='1' and i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT)='0' then
-          if i_eth_mdio_link='1' then
+        if i_eth_cfg_done='1' and i_ethphy_out.rdy='1' then
+          if i_ethphy_out.link='1' then
 
               if i_t1ms='1' then
                 if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(250,i_eth_txpkt_tx_dlycnt'length) then
@@ -526,120 +473,6 @@ rst     => i_sys_rst
 );
 
 
---***********************************************************
---Доступ к ETHPHY через MDIO
---***********************************************************
-m_mdio_ctrl : eth_mdio_main
-generic map (
-G_PHYADR => 16#07#,
-G_DIV => 16,
-G_DBG => C_PCFG_ETH_DBG,
-G_SIM => G_SIM
-)
-port map(
---------------------------------------
---Управление
---------------------------------------
-p_in_start     => i_eth_mdio_start,
-
-p_out_done     => i_eth_mdio_done,
-p_out_err      => i_eth_mdio_err,
-p_out_link     => i_eth_mdio_link,
-p_out_change   => i_eth_mdio_change,
-p_in_change    => '0',
-
---------------------------------------
---Eth PHY (Managment Interface)
---------------------------------------
-p_inout_mdio   => pin_inout_ethphy_mdio,
-p_out_mdc      => pin_out_ethphy_mdc,
-
---------------------------------------------------
---Технологические сигналы
---------------------------------------------------
-p_in_tst       => (others=>'0'),
-p_out_tst      => i_eth_mdio_tst_out,
-
---------------------------------------
---SYSTEM
---------------------------------------
-p_in_clk       => i_ethphy_out.clk,
-p_in_rst       => i_mnl_rst
-);
-
-process(i_mnl_rst,i_ethphy_out)
-begin
-  if i_mnl_rst='1' then
-    fsm_ethmdio_cs<=S_MDIO_PHY_RST;
-    i_eth_mdio_dlycnt<=(others=>'0');
-    i_eth_mdio_start<='0';
-    i_ethphy_rst<='0';
-
-  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
-
-    case fsm_ethmdio_cs is
-
-      -----------------------------------
-      --Сброс ETHPHY
-      -----------------------------------
-      when S_MDIO_PHY_RST =>
-
-          if i_eth_cfg_done='1' and i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT)='0' then
-
-              if i_t1ms='1' then
-                if i_eth_mdio_dlycnt=CONV_STD_LOGIC_VECTOR(250,i_eth_mdio_dlycnt'length) then
-                  i_eth_mdio_dlycnt<=(others=>'0');
-                  i_ethphy_rst<='0';
-                  fsm_ethmdio_cs<=S_MDIO_DLY;
-                else
-                  i_ethphy_rst<='1';
-                  i_eth_mdio_dlycnt<=i_eth_mdio_dlycnt + 1;
-                end if;
-              end if;
-
-          end if;
-
-      -----------------------------------
-      --Задержка перед началом обмена с EHTPHY
-      -----------------------------------
-      when S_MDIO_DLY =>
-
-          if i_t1ms='1' then
-            if i_eth_mdio_dlycnt=CONV_STD_LOGIC_VECTOR(100,i_eth_mdio_dlycnt'length) then
-              i_eth_mdio_dlycnt<=(others=>'0');
-              fsm_ethmdio_cs<=S_MDIO_START;
-            else
-              i_eth_mdio_dlycnt<=i_eth_mdio_dlycnt + 1;
-            end if;
-          end if;
-
-      -----------------------------------
-      --Обмен с EHTPHY через интерфейс MDIO
-      -----------------------------------
-      when S_MDIO_START =>
-
-          if i_t1ms='1' then
-            if i_eth_mdio_dlycnt=CONV_STD_LOGIC_VECTOR(1000,i_eth_mdio_dlycnt'length) then
-              i_eth_mdio_dlycnt<=(others=>'0');
-              i_eth_mdio_start<='1';
-              fsm_ethmdio_cs<=S_MDIO_DONE;
-            else
-              i_eth_mdio_dlycnt<=i_eth_mdio_dlycnt + 1;
-            end if;
-          end if;
-
-      when S_MDIO_DONE =>
-
-          i_eth_mdio_start<='0';
-          if i_eth_mdio_done='1' then
-            fsm_ethmdio_cs<=S_MDIO_START;
-          end if;
-
-    end case;
-  end if;
-end process;
-
-
 --//#########################################
 --//DBG
 --//#########################################
@@ -654,14 +487,14 @@ end generate gen_htgv6;
 i_mnl_rst<=i_sys_rst or i_usr_rst;
 
 pin_out_led(0)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT) and
-                (OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx) or i_eth_mdio_tst_out(0));
+                (OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx));
 pin_out_led(1)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT);
 pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 
-pin_out_led(4)<=i_eth_mdio_change;--Были изменены регистры PHY
-pin_out_led(5)<=i_eth_mdio_err;--read bad ID from ETHPHY
-pin_out_led(6)<=i_eth_mdio_link;--
+pin_out_led(4)<='0';
+pin_out_led(5)<=not i_ethphy_out.rdy;--read bad ID from ETHPHY
+pin_out_led(6)<=i_ethphy_out.link;
 pin_out_led(7)<=i_test01_led;
 
 m_gt_03_test: fpga_test_01
