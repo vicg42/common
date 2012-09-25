@@ -1,12 +1,19 @@
+-------------------------------------------------------------------------
+-- Company     : Linkos
+-- Engineer    : Golovachenko Victor
 --
--- VHDL Architecture rada_comp_lib.i2c_master_v01.arc
+-- Create Date : 25.09.2012 10:51:25
+-- Module Name : i2c_core_master
 --
--- Created:
---          by - elis@(ELIS-WXP)
---          at - 15:30:47 01/03/2009
+-- Назначение/Описание :
+--  Модернизация ядра http://opencores.org/project,i2c_master_slave
 --
--- using Mentor Graphics HDL Designer(TM) 2008.1 (Build 17)
+--  модуль выполняет следующие атоманые операции:
 --
+--
+-- Revision:
+-- Revision 0.01 - File Created
+-------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
@@ -15,6 +22,7 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
+use work.i2c_core_pkg.all;
 
 entity i2c_core_master is
 generic(
@@ -24,13 +32,12 @@ G_DBG      : string:="OFF";
 G_SIM      : string:="OFF"
 );
 port(
-p_in_start  : in    std_logic;--Send START/RESTART condition
-p_in_stop   : in    std_logic;--Send STOP condition
-p_in_cmd_wr : in    std_logic;
-p_in_cmd_rd : in    std_logic;
+p_in_start  : in    std_logic;
+p_in_cmd    : in    std_logic_vector(3 downto 0);
+p_out_done  : out   std_logic;
+
 p_in_txack  : in    std_logic;
 p_out_rxack : out   std_logic;
-p_out_done  : out   std_logic;
 
 p_in_di     : in    std_logic_vector (7 downto 0);
 p_out_do    : out   std_logic_vector (7 downto 0);
@@ -86,6 +93,7 @@ S_RD_WAIT_ACK,
 S_RD_GET_ACK,
 S_RESTART,
 S_RESTART_1,
+S_RESTART_2,
 S_GAP,
 S_STOP_1,
 S_RD_WAIT_LAST_HALF,
@@ -140,7 +148,8 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_i2c_cs=S_S
             CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_i2c_cs=S_STOP_1               else
             CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_WAIT_LAST_HALF    else
             CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_CLK_HIGH     else
-            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_1            else
+            CONV_STD_LOGIC_VECTOR(16#16#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_1            else
+            CONV_STD_LOGIC_VECTOR(16#17#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_2            else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_i2c_cs=S_IDLE             else
 
 end generate gen_dbg_on;
@@ -181,43 +190,55 @@ begin
             i_sda <= 'Z';
             i_scl <= 'Z';
             if p_in_start = '1' then
-              fsm_i2c_cs <= S_START;
+              if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_WR, p_in_cmd'length) or
+                 p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_RD, p_in_cmd'length) then
+                fsm_i2c_cs <= S_START;
+              end if;
             end if;
 
         -------------------------------------
-        --START
+        --START_WR
         -------------------------------------
         when S_START =>
 
             i_sda <= '0';
-            i_scl <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
+              i_scl <= '1';
             else
+              i_bit_cnt <= 7;
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_ACTIVE;
               i_scl <= '0';
+              i_txd <= p_in_di;
+              if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_WR, p_in_cmd'length) then
+                fsm_i2c_cs <= S_WAIT_1_HALF;
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_RD, p_in_cmd'length) then
+                fsm_i2c_cs <= S_RD_WAIT_LOW;
+              end if;
             end if;
 
         when S_ACTIVE =>
 
+            i_done <= '0';
             i_bit_cnt <= 7;
             i_sda <= '0';
             i_scl <= '0';
 
-            if p_in_cmd_rd = '1' then
-              fsm_i2c_cs <= S_RD_WAIT_LOW;
+            if p_in_start = '1' then
+              if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RD, p_in_cmd'length) then --if p_in_cmd_rd = '1' then
+                fsm_i2c_cs <= S_RD_WAIT_LOW;
 
-            elsif p_in_cmd_wr = '1' then
-              i_txd <= p_in_di;
-              fsm_i2c_cs <= S_WAIT_1_HALF;
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_WR, p_in_cmd'length) then --elsif p_in_cmd_wr = '1' then
+                i_txd <= p_in_di;
+                fsm_i2c_cs <= S_WAIT_1_HALF;
 
-            elsif p_in_stop = '1' then
-              fsm_i2c_cs <= S_STOP_1;
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_STOP, p_in_cmd'length) then --elsif p_in_stop = '1' then
+                fsm_i2c_cs <= S_STOP_1;
 
-            elsif p_in_start = '1' then
-              fsm_i2c_cs <= S_RESTART;
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RESTART, p_in_cmd'length) then --elsif p_in_start = '1' then
+                fsm_i2c_cs <= S_RESTART;
 
+              end if;
             end if;
 
 
@@ -293,7 +314,6 @@ begin
               i_scl_cnt <= 0;
               i_sda <= 'Z';
               i_rxack <= p_inout_sda;--to_x01( p_inout_sda );--
-              i_done <= '1';
               fsm_i2c_cs <= S_WAIT_ACK_4_HALF;
             end if;
 
@@ -305,6 +325,7 @@ begin
             else
               i_scl_cnt <= 0;
               i_sda <= 'Z';
+              i_done <= '1';
               fsm_i2c_cs <= S_ACTIVE;
             end if;
 
@@ -372,7 +393,6 @@ begin
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
-              i_done <= '1';
               i_scl_cnt <= 0;
               --i_rxack <= p_inout_sda;
               fsm_i2c_cs <= S_RD_WAIT_ACK_BIT;
@@ -380,7 +400,7 @@ begin
 
         when S_RD_WAIT_ACK_BIT =>
 
-            i_done <= '0';
+--            i_done <= '0';
             i_scl <= '1';
             if i_scl_cnt < CI_FULL_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
@@ -399,9 +419,9 @@ begin
             else
               i_scl_cnt <= 0;
               i_sda <= 'Z';
+              i_done <= '1';
               fsm_i2c_cs <= S_ACTIVE;
             end if;
-
 
         -------------------------------------
         --STOP
@@ -486,20 +506,33 @@ begin
               i_scl_cnt <= 0;
               i_scl <= '1';
               i_sda <= '1';
-              i_done <= '1';
-              fsm_i2c_cs <= S_RESTART_CLK_HIGH;
+--              i_done <= '1';
+              fsm_i2c_cs <= S_RESTART_2;
             end if;
 
-        when S_RESTART_CLK_HIGH =>
+        when S_RESTART_2 =>
 
-            i_done <= '0';
+--            i_done <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
               i_scl <= '1';
               i_sda <= '0';
-              fsm_i2c_cs <= S_START;
+              fsm_i2c_cs <= S_RESTART_CLK_HIGH;
+            end if;
+
+        when S_RESTART_CLK_HIGH =>
+
+--            i_done <= '0';
+            if i_scl_cnt < CI_HALF_BIT then
+              i_scl_cnt <= i_scl_cnt + 1;
+            else
+              i_scl_cnt <= 0;
+              i_scl <= '0';
+              i_sda <= '0';
+              i_done <= '1';
+              fsm_i2c_cs <= S_ACTIVE;
             end if;
 
 
