@@ -9,6 +9,12 @@
 --  Модернизация ядра http://opencores.org/project,i2c_master_slave
 --
 --  модуль выполняет следующие атоманые операции:
+--  C_I2C_CORE_CMD_START_WR - Отправка Start состояния + отправка данных
+--  C_I2C_CORE_CMD_START_RD - Отправка Start состояния + отправка данных
+--  C_I2C_CORE_CMD_RESTART  - Отправка Retart состояния
+--  C_I2C_CORE_CMD_STOP     - Отправка Stop состояния
+--  C_I2C_CORE_CMD_WR       - Отправка данных
+--  C_I2C_CORE_CMD_RD       - Прием данных
 --
 --
 -- Revision:
@@ -26,25 +32,24 @@ use work.i2c_core_pkg.all;
 
 entity i2c_core_master is
 generic(
-G_CLK_FREQ : natural := 25000000;
+G_CLK_FREQ : natural := 25000000; --Определяет частоту для прота p_in_clk
 G_BAUD     : natural := 100000;
 G_DBG      : string:="OFF";
 G_SIM      : string:="OFF"
 );
 port(
-p_in_start  : in    std_logic;
-p_in_cmd    : in    std_logic_vector(3 downto 0);
-p_out_done  : out   std_logic;
+p_in_cmd    : in    std_logic_vector(3 downto 0);--Тип операции
+p_in_start  : in    std_logic;--Старт опрерации
+p_out_done  : out   std_logic;--Операция закончена
+p_in_txack  : in    std_logic;--Задаем уровень для ответа(acknowlege) slave устройству
+p_out_rxack : out   std_logic;--Принятый ответ(acknowlege) от slave устройства
 
-p_in_txack  : in    std_logic;
-p_out_rxack : out   std_logic;
-
-p_in_di     : in    std_logic_vector (7 downto 0);
-p_out_do    : out   std_logic_vector (7 downto 0);
+p_in_txd    : in    std_logic_vector(7 downto 0);
+p_out_rxd   : out   std_logic_vector(7 downto 0);
 
 --I2C
 p_inout_sda : inout std_logic;
-p_out_scl   : out   std_logic;
+p_inout_scl : inout std_logic;
 
 --Технологический
 p_in_tst    : in    std_logic_vector(31 downto 0);
@@ -58,25 +63,14 @@ end i2c_core_master;
 
 architecture behavioral of i2c_core_master is
 
--- constant BAUD      : natural := 100000;
-constant CI_FULL_BIT  : natural := ( G_CLK_FREQ / G_BAUD - 1 ) / 2;
+constant CI_FULL_BIT  : natural := (G_CLK_FREQ / G_BAUD - 1) / 2;
 constant CI_HALF_BIT  : natural := CI_FULL_BIT / 2;
 constant CI_GAP_WIDTH : natural := CI_FULL_BIT * 4;
-
-signal i_sda        : std_logic;
-signal i_scl        : std_logic;
-signal i_scl_cnt    : natural;
-signal i_bit_cnt    : natural range 0 to 7;
-signal i_rxack      : std_logic;
-signal i_done       : std_logic;
-signal i_rxd        : std_logic_vector(7 downto 0);
-signal i_txd        : std_logic_vector(7 downto 0); --latched address and data
-alias  fld_rd_wr    : std_logic is i_txd( 0 ); --1 - read, 0 - write
 
 type TI2C_master_state is (
 S_IDLE,
 S_START,
-S_ACTIVE,
+S_ACTION,
 S_WAIT_1_HALF,
 S_WAIT_2_HALF,
 S_WAIT_FULL,
@@ -100,9 +94,22 @@ S_RD_WAIT_LAST_HALF,
 S_RESTART_CLK_HIGH
 );
 
-signal fsm_i2c_cs : TI2C_master_state;
+signal fsm_i2c_cs     : TI2C_master_state;
+
+signal i_sda_out_en   : std_logic;
+signal i_scl_out_en   : std_logic;
+signal i_sda_out      : std_logic;
+signal i_sda_in       : std_logic;
+signal i_scl_out      : std_logic;
+signal i_scl_cnt      : natural;
+signal i_bit_cnt      : natural range 0 to 7;
+signal i_rxack        : std_logic;
+signal i_done         : std_logic;
+signal i_rxd          : std_logic_vector(7 downto 0);
+signal i_txd          : std_logic_vector(7 downto 0); --ADEV or user data
 
 signal tst_fms_cs_dly,tst_fms_cs    : std_logic_vector(4 downto 0);
+
 
 --MAIN
 begin
@@ -128,7 +135,7 @@ begin
 end process ltstout;
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_i2c_cs=S_START                else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_i2c_cs=S_ACTIVE               else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_i2c_cs=S_ACTION               else
             CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_1_HALF          else
             CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_2_HALF          else
             CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_FULL            else
@@ -155,24 +162,26 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_i2c_cs=S_S
 end generate gen_dbg_on;
 
 
-p_inout_sda <= i_sda;
-p_out_scl <= i_scl;
+p_inout_scl <= i_scl_out when i_scl_out_en='1' else 'Z';
+p_inout_sda <= i_sda_out when i_sda_out_en='1' else 'Z';
+i_sda_in <= p_inout_sda;
 
 p_out_rxack <= i_rxack;
 p_out_done  <= i_done;
 
-i2c_master:
 process( p_in_clk , p_in_rst )
 begin
   if p_in_rst = '1' then
     fsm_i2c_cs <= S_IDLE;
-    i_sda <= 'Z';
-    i_scl <= 'Z';
+    i_sda_out_en <= '0';
+    i_scl_out_en <= '0';
+    i_sda_out <= '1';
+    i_scl_out <= '1';
     i_scl_cnt <= 0;
     i_bit_cnt <= 7;
     i_rxack <= '0';
     i_rxd <= (others=>'0');
-    p_out_do <= (others=>'0');
+    p_out_rxd <= (others=>'0');
     i_txd <= (others=>'0');
 
     i_done <='0';
@@ -187,8 +196,11 @@ begin
         when S_IDLE =>
 
             i_done <= '0';
-            i_sda <= 'Z';
-            i_scl <= 'Z';
+            i_sda_out_en <= '0';
+            i_scl_out_en <= '0';
+            i_sda_out <= '0';
+            i_scl_out <= '0';
+
             if p_in_start = '1' then
               if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_WR, p_in_cmd'length) or
                  p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_RD, p_in_cmd'length) then
@@ -201,15 +213,17 @@ begin
         -------------------------------------
         when S_START =>
 
-            i_sda <= '0';
+            i_scl_out_en <= '1';
+            i_sda_out_en <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
-              i_scl <= '1';
+              i_scl_out <= '1';
             else
               i_bit_cnt <= 7;
               i_scl_cnt <= 0;
-              i_scl <= '0';
-              i_txd <= p_in_di;
+              i_scl_out <= '0';
+              i_txd <= p_in_txd;
+
               if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_WR, p_in_cmd'length) then
                 fsm_i2c_cs <= S_WAIT_1_HALF;
               elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_RD, p_in_cmd'length) then
@@ -217,25 +231,27 @@ begin
               end if;
             end if;
 
-        when S_ACTIVE =>
+        when S_ACTION =>
 
             i_done <= '0';
             i_bit_cnt <= 7;
-            i_sda <= '0';
-            i_scl <= '0';
+
+            i_sda_out_en <= '1';
+            i_sda_out <= '0';
+            i_scl_out <= '0';
 
             if p_in_start = '1' then
-              if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RD, p_in_cmd'length) then --if p_in_cmd_rd = '1' then
+              if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RD, p_in_cmd'length) then
                 fsm_i2c_cs <= S_RD_WAIT_LOW;
 
-              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_WR, p_in_cmd'length) then --elsif p_in_cmd_wr = '1' then
-                i_txd <= p_in_di;
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_WR, p_in_cmd'length) then
+                i_txd <= p_in_txd;
                 fsm_i2c_cs <= S_WAIT_1_HALF;
 
-              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_STOP, p_in_cmd'length) then --elsif p_in_stop = '1' then
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_STOP, p_in_cmd'length) then
                 fsm_i2c_cs <= S_STOP_1;
 
-              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RESTART, p_in_cmd'length) then --elsif p_in_start = '1' then
+              elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RESTART, p_in_cmd'length) then
                 fsm_i2c_cs <= S_RESTART;
 
               end if;
@@ -248,12 +264,12 @@ begin
         when S_WAIT_1_HALF =>
 
             if i_scl_cnt < CI_HALF_BIT then
-              i_scl <= '0';
+              i_scl_out <= '0';
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
               fsm_i2c_cs <= S_WAIT_2_HALF;
-              i_sda <= i_txd(i_bit_cnt);
+              i_sda_out <= i_txd(i_bit_cnt);
             end if;
 
         when S_WAIT_2_HALF =>
@@ -268,7 +284,7 @@ begin
         when S_WAIT_FULL =>
 
             if i_scl_cnt < CI_FULL_BIT then
-              i_scl <= '1';
+              i_scl_out <= '1';
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
@@ -276,7 +292,6 @@ begin
                 i_bit_cnt <= i_bit_cnt - 1;
                 fsm_i2c_cs <= S_WAIT_1_HALF;
               elsif i_bit_cnt = 0 then
-                --i_sda <= 'Z';
                 fsm_i2c_cs <= S_WAIT_ACK;
               end if;
             end if;
@@ -286,12 +301,13 @@ begin
         -------------------------------------
         when S_WAIT_ACK =>
 
-            i_scl <= '0';
+            i_scl_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_sda <= 'Z';
+              i_sda_out_en <= '0';
+              i_sda_out <= '0';
               fsm_i2c_cs <= S_WAIT_ACK_2_HALF;
             end if;
 
@@ -301,19 +317,17 @@ begin
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_sda <= 'Z';
               fsm_i2c_cs <= S_WAIT_ACK_3_HALF;
             end if;
 
         when S_WAIT_ACK_3_HALF =>
 
-            i_scl <= '1';
+            i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_sda <= 'Z';
-              i_rxack <= p_inout_sda;--to_x01( p_inout_sda );--
+              i_rxack <= i_sda_in;
               fsm_i2c_cs <= S_WAIT_ACK_4_HALF;
             end if;
 
@@ -324,9 +338,8 @@ begin
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_sda <= 'Z';
               i_done <= '1';
-              fsm_i2c_cs <= S_ACTIVE;
+              fsm_i2c_cs <= S_ACTION;
             end if;
 
 
@@ -335,8 +348,8 @@ begin
         -------------------------------------
         when S_RD_WAIT_LOW =>
 
-            i_scl <= '0';
-            i_sda <= 'Z';
+            i_scl_out <= '0';
+            i_sda_out <= '0'; i_sda_out_en <= '0';
             if i_scl_cnt < CI_FULL_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
@@ -346,29 +359,29 @@ begin
 
         when S_RD_WAIT_HALF =>
 
-            i_scl <= '1';
+            i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_rxd <= i_rxd( 6 downto 0 ) & to_x01( p_inout_sda );
+              i_rxd <= i_rxd( 6 downto 0 ) & i_sda_in;
               fsm_i2c_cs <= S_RD_READ;
             end if;
 
         when S_RD_READ =>
 
-            i_scl <= '1';
+            i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
               if i_bit_cnt > 0 then
                 i_bit_cnt <= i_bit_cnt - 1;
-                i_scl <= '0';
+                i_scl_out <= '0';
                 fsm_i2c_cs <= S_RD_WAIT_LOW;
               else
                 i_txd <= (others=>'0');
-                p_out_do <= i_rxd;
+                p_out_rxd <= i_rxd;
                 fsm_i2c_cs <= S_RD_WAIT_ACK;
               end if;
             end if;
@@ -378,30 +391,29 @@ begin
         -------------------------------------
         when S_RD_WAIT_ACK =>
 
-            i_scl <= '0';
+            i_scl_out <= '0';
+            i_sda_out_en <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_sda <= p_in_txack;
+              i_sda_out <= p_in_txack;
               fsm_i2c_cs <= S_RD_GET_ACK;
             end if;
 
         when S_RD_GET_ACK =>
 
-            i_scl <= '0';
+            i_scl_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              --i_rxack <= p_inout_sda;
               fsm_i2c_cs <= S_RD_WAIT_ACK_BIT;
             end if;
 
         when S_RD_WAIT_ACK_BIT =>
 
---            i_done <= '0';
-            i_scl <= '1';
+            i_scl_out <= '1';
             if i_scl_cnt < CI_FULL_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
               fsm_i2c_cs <= S_RD_WAIT_ACK_BIT;
@@ -412,15 +424,14 @@ begin
 
         when S_RD_WAIT_LAST_HALF =>
 
-            i_scl <= '0';
+            i_scl_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
               fsm_i2c_cs <= S_RD_WAIT_LAST_HALF;
             else
               i_scl_cnt <= 0;
-              i_sda <= 'Z';
               i_done <= '1';
-              fsm_i2c_cs <= S_ACTIVE;
+              fsm_i2c_cs <= S_ACTION;
             end if;
 
         -------------------------------------
@@ -428,8 +439,8 @@ begin
         -------------------------------------
         when S_STOP_1 =>
 
-            i_scl <= '0';
-            i_sda <= '0';
+            i_scl_out <= '0';
+            i_sda_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
@@ -439,13 +450,12 @@ begin
 
         when S_STOP =>
 
-            i_scl <= '1';
---            i_sda <= '0';
+            i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_sda <= '1';
+              i_sda_out <= '1';
               fsm_i2c_cs <= S_GAP;
             end if;
 
@@ -462,39 +472,14 @@ begin
         -------------------------------------
         --RESTART
         -------------------------------------
---        when S_RESTART =>
---
---            i_scl <= '0';
---            i_sda <= '1';
---            if i_scl_cnt < CI_FULL_BIT then
---              i_scl_cnt <= i_scl_cnt + 1;
---            else
---              i_scl_cnt <= 0;
---              i_sda <= '1';
---              i_done <= '0';
---              fsm_i2c_cs <= S_RESTART_CLK_HIGH;
---            end if;
---
---        when S_RESTART_CLK_HIGH =>
---
---            i_scl <= '1';
---            i_sda <= '1';
---            i_done <= '0';
---            if i_scl_cnt < CI_HALF_BIT then
---              i_scl_cnt <= i_scl_cnt + 1;
---            else
---              i_scl_cnt <= 0;
---              fsm_i2c_cs <= S_START;
---            end if;
-
         when S_RESTART =>
 
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_scl <= '0';
-              i_sda <= '1';
+              i_scl_out <= '0';
+              i_sda_out <= '1';
               fsm_i2c_cs <= S_RESTART_1;
             end if;
 
@@ -504,43 +489,41 @@ begin
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_scl <= '1';
-              i_sda <= '1';
---              i_done <= '1';
+              i_scl_out <= '1';
+              i_sda_out <= '1';
               fsm_i2c_cs <= S_RESTART_2;
             end if;
 
         when S_RESTART_2 =>
 
---            i_done <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_scl <= '1';
-              i_sda <= '0';
+              i_scl_out <= '1';
+              i_sda_out <= '0';
               fsm_i2c_cs <= S_RESTART_CLK_HIGH;
             end if;
 
         when S_RESTART_CLK_HIGH =>
 
---            i_done <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_scl <= '0';
-              i_sda <= '0';
+              i_scl_out <= '0';
+              i_sda_out <= '0';
               i_done <= '1';
-              fsm_i2c_cs <= S_ACTIVE;
+              fsm_i2c_cs <= S_ACTION;
             end if;
 
+        when others =>
+            fsm_i2c_cs <= S_IDLE;
 
-        when others => fsm_i2c_cs <= S_IDLE;
     end case;
 
   end if;
-end process i2c_master;
+end process;
 
 --END MAIN
 end behavioral;
