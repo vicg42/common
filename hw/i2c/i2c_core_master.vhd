@@ -71,27 +71,27 @@ type TI2C_master_state is (
 S_IDLE,
 S_START,
 S_ACTION,
-S_WAIT_1_HALF,
-S_WAIT_2_HALF,
-S_WAIT_FULL,
-S_WAIT_ACK,
-S_WAIT_ACK_2_HALF,
-S_WAIT_ACK_3_HALF,
-S_WAIT_ACK_4_HALF,
-S_RD_WAIT_LOW,
-S_RD_WAIT_HALF,
-S_RD_READ,
-S_STOP,
-S_RD_WAIT_ACK_BIT,
-S_RD_WAIT_ACK,
-S_RD_GET_ACK,
-S_RESTART,
+S_TXD_1,
+S_TXD_2,
+S_TXD_3,
+S_TX_WAIT_ACK1,
+S_TX_WAIT_ACK2,
+S_TX_WAIT_ACK3,
+S_TX_WAIT_ACK4,
+S_RXD_1,
+S_RXD_2,
+S_RXD_3,
+S_RX_SEND_ACK1,
+S_RX_SEND_ACK2,
+S_RX_SEND_ACK3,
+S_RX_SEND_ACK4,
 S_RESTART_1,
 S_RESTART_2,
-S_GAP,
+S_RESTART_3,
+S_RESTART_4,
 S_STOP_1,
-S_RD_WAIT_LAST_HALF,
-S_RESTART_CLK_HIGH
+S_STOP_2,
+S_STOP_3
 );
 
 signal fsm_i2c_cs     : TI2C_master_state;
@@ -134,30 +134,30 @@ begin
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_i2c_cs=S_START                else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_i2c_cs=S_ACTION               else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_1_HALF          else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_2_HALF          else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_FULL            else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_ACK             else
-            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_ACK_2_HALF      else
-            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_ACK_3_HALF      else
-            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_i2c_cs=S_WAIT_ACK_4_HALF      else
-            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_WAIT_LOW          else
-            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_WAIT_HALF         else
-            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_READ              else
-            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_i2c_cs=S_STOP                 else
-            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_WAIT_ACK_BIT      else
-            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_WAIT_ACK          else
-            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_GET_ACK           else
-            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART              else
-            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_i2c_cs=S_GAP                  else
-            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_i2c_cs=S_STOP_1               else
-            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_i2c_cs=S_RD_WAIT_LAST_HALF    else
-            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_CLK_HIGH     else
-            CONV_STD_LOGIC_VECTOR(16#16#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_1            else
-            CONV_STD_LOGIC_VECTOR(16#17#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_2            else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_i2c_cs=S_IDLE             else
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_i2c_cs=S_START          else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_i2c_cs=S_ACTION         else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_i2c_cs=S_TXD_1          else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_i2c_cs=S_TXD_2          else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_i2c_cs=S_TXD_3          else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_i2c_cs=S_TX_WAIT_ACK1   else
+            CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs'length) when fsm_i2c_cs=S_TX_WAIT_ACK2   else
+            CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs'length) when fsm_i2c_cs=S_TX_WAIT_ACK3   else
+            CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs'length) when fsm_i2c_cs=S_TX_WAIT_ACK4   else
+            CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs'length) when fsm_i2c_cs=S_RXD_1          else
+            CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs'length) when fsm_i2c_cs=S_RXD_2          else
+            CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs'length) when fsm_i2c_cs=S_RXD_3          else
+            CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs'length) when fsm_i2c_cs=S_RX_SEND_ACK1   else
+            CONV_STD_LOGIC_VECTOR(16#0E#, tst_fms_cs'length) when fsm_i2c_cs=S_RX_SEND_ACK2   else
+            CONV_STD_LOGIC_VECTOR(16#0F#, tst_fms_cs'length) when fsm_i2c_cs=S_RX_SEND_ACK3   else
+            CONV_STD_LOGIC_VECTOR(16#10#, tst_fms_cs'length) when fsm_i2c_cs=S_RX_SEND_ACK4   else
+            CONV_STD_LOGIC_VECTOR(16#11#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_1      else
+            CONV_STD_LOGIC_VECTOR(16#12#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_4      else
+            CONV_STD_LOGIC_VECTOR(16#13#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_2      else
+            CONV_STD_LOGIC_VECTOR(16#14#, tst_fms_cs'length) when fsm_i2c_cs=S_RESTART_3      else
+            CONV_STD_LOGIC_VECTOR(16#15#, tst_fms_cs'length) when fsm_i2c_cs=S_STOP_1         else
+            CONV_STD_LOGIC_VECTOR(16#16#, tst_fms_cs'length) when fsm_i2c_cs=S_STOP_2         else
+            CONV_STD_LOGIC_VECTOR(16#17#, tst_fms_cs'length) when fsm_i2c_cs=S_STOP_3         else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);--when fsm_i2c_cs=S_IDLE           else
 
 end generate gen_dbg_on;
 
@@ -204,6 +204,8 @@ begin
             if p_in_start = '1' then
               if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_WR, p_in_cmd'length) or
                  p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_RD, p_in_cmd'length) then
+
+                i_txd <= p_in_txd;
                 fsm_i2c_cs <= S_START;
               end if;
             end if;
@@ -222,12 +224,11 @@ begin
               i_bit_cnt <= 7;
               i_scl_cnt <= 0;
               i_scl_out <= '0';
-              i_txd <= p_in_txd;
 
               if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_WR, p_in_cmd'length) then
-                fsm_i2c_cs <= S_WAIT_1_HALF;
+                fsm_i2c_cs <= S_TXD_1;
               elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_START_RD, p_in_cmd'length) then
-                fsm_i2c_cs <= S_RD_WAIT_LOW;
+                fsm_i2c_cs <= S_RXD_1;
               end if;
             end if;
 
@@ -242,17 +243,17 @@ begin
 
             if p_in_start = '1' then
               if p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RD, p_in_cmd'length) then
-                fsm_i2c_cs <= S_RD_WAIT_LOW;
+                fsm_i2c_cs <= S_RXD_1;
 
               elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_WR, p_in_cmd'length) then
                 i_txd <= p_in_txd;
-                fsm_i2c_cs <= S_WAIT_1_HALF;
+                fsm_i2c_cs <= S_TXD_1;
 
               elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_STOP, p_in_cmd'length) then
                 fsm_i2c_cs <= S_STOP_1;
 
               elsif p_in_cmd = CONV_STD_LOGIC_VECTOR(C_I2C_CORE_CMD_RESTART, p_in_cmd'length) then
-                fsm_i2c_cs <= S_RESTART;
+                fsm_i2c_cs <= S_RESTART_1;
 
               end if;
             end if;
@@ -261,45 +262,46 @@ begin
         -------------------------------------
         --WRITE BYTE
         -------------------------------------
-        when S_WAIT_1_HALF =>
+        when S_TXD_1 =>
 
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_out <= '0';
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_WAIT_2_HALF;
-              i_sda_out <= i_txd(i_bit_cnt);
+              fsm_i2c_cs <= S_TXD_2;
+              i_sda_out <= i_txd(7);
             end if;
 
-        when S_WAIT_2_HALF =>
+        when S_TXD_2 =>
 
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_WAIT_FULL;
+              fsm_i2c_cs <= S_TXD_3;
             end if;
 
-        when S_WAIT_FULL =>
+        when S_TXD_3 =>
 
             if i_scl_cnt < CI_FULL_BIT then
               i_scl_out <= '1';
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
+              i_txd<=i_txd(6 downto 0) & '0';--Shift left
               if i_bit_cnt >= 1 then
                 i_bit_cnt <= i_bit_cnt - 1;
-                fsm_i2c_cs <= S_WAIT_1_HALF;
+                fsm_i2c_cs <= S_TXD_1;
               elsif i_bit_cnt = 0 then
-                fsm_i2c_cs <= S_WAIT_ACK;
+                fsm_i2c_cs <= S_TX_WAIT_ACK1;
               end if;
             end if;
 
         -------------------------------------
         --WAIT ACKNOWLEDGE
         -------------------------------------
-        when S_WAIT_ACK =>
+        when S_TX_WAIT_ACK1 =>
 
             i_scl_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
@@ -308,19 +310,19 @@ begin
               i_scl_cnt <= 0;
               i_sda_out_en <= '0';
               i_sda_out <= '0';
-              fsm_i2c_cs <= S_WAIT_ACK_2_HALF;
+              fsm_i2c_cs <= S_TX_WAIT_ACK2;
             end if;
 
-        when S_WAIT_ACK_2_HALF =>
+        when S_TX_WAIT_ACK2 =>
 
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_WAIT_ACK_3_HALF;
+              fsm_i2c_cs <= S_TX_WAIT_ACK3;
             end if;
 
-        when S_WAIT_ACK_3_HALF =>
+        when S_TX_WAIT_ACK3 =>
 
             i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
@@ -328,10 +330,10 @@ begin
             else
               i_scl_cnt <= 0;
               i_rxack <= i_sda_in;
-              fsm_i2c_cs <= S_WAIT_ACK_4_HALF;
+              fsm_i2c_cs <= S_TX_WAIT_ACK4;
             end if;
 
-        when S_WAIT_ACK_4_HALF =>
+        when S_TX_WAIT_ACK4 =>
 
             i_done <= '0';
             if i_scl_cnt < CI_HALF_BIT then
@@ -346,7 +348,7 @@ begin
         -------------------------------------
         --READ BYTE
         -------------------------------------
-        when S_RD_WAIT_LOW =>
+        when S_RXD_1 =>
 
             i_scl_out <= '0';
             i_sda_out <= '0'; i_sda_out_en <= '0';
@@ -354,10 +356,10 @@ begin
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_RD_WAIT_HALF;
+              fsm_i2c_cs <= S_RXD_2;
             end if;
 
-        when S_RD_WAIT_HALF =>
+        when S_RXD_2 =>
 
             i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
@@ -365,10 +367,10 @@ begin
             else
               i_scl_cnt <= 0;
               i_rxd <= i_rxd( 6 downto 0 ) & i_sda_in;
-              fsm_i2c_cs <= S_RD_READ;
+              fsm_i2c_cs <= S_RXD_3;
             end if;
 
-        when S_RD_READ =>
+        when S_RXD_3 =>
 
             i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
@@ -378,18 +380,18 @@ begin
               if i_bit_cnt > 0 then
                 i_bit_cnt <= i_bit_cnt - 1;
                 i_scl_out <= '0';
-                fsm_i2c_cs <= S_RD_WAIT_LOW;
+                fsm_i2c_cs <= S_RXD_1;
               else
                 i_txd <= (others=>'0');
                 p_out_rxd <= i_rxd;
-                fsm_i2c_cs <= S_RD_WAIT_ACK;
+                fsm_i2c_cs <= S_RX_SEND_ACK1;
               end if;
             end if;
 
         -------------------------------------
         --SEND ACKNOWELEDGE
         -------------------------------------
-        when S_RD_WAIT_ACK =>
+        when S_RX_SEND_ACK1 =>
 
             i_scl_out <= '0';
             i_sda_out_en <= '1';
@@ -398,36 +400,36 @@ begin
             else
               i_scl_cnt <= 0;
               i_sda_out <= p_in_txack;
-              fsm_i2c_cs <= S_RD_GET_ACK;
+              fsm_i2c_cs <= S_RX_SEND_ACK2;
             end if;
 
-        when S_RD_GET_ACK =>
+        when S_RX_SEND_ACK2 =>
 
             i_scl_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_RD_WAIT_ACK_BIT;
+              fsm_i2c_cs <= S_RX_SEND_ACK3;
             end if;
 
-        when S_RD_WAIT_ACK_BIT =>
+        when S_RX_SEND_ACK3 =>
 
             i_scl_out <= '1';
             if i_scl_cnt < CI_FULL_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
-              fsm_i2c_cs <= S_RD_WAIT_ACK_BIT;
+              fsm_i2c_cs <= S_RX_SEND_ACK3;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_RD_WAIT_LAST_HALF;
+              fsm_i2c_cs <= S_RX_SEND_ACK4;
             end if;
 
-        when S_RD_WAIT_LAST_HALF =>
+        when S_RX_SEND_ACK4 =>
 
             i_scl_out <= '0';
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
-              fsm_i2c_cs <= S_RD_WAIT_LAST_HALF;
+              fsm_i2c_cs <= S_RX_SEND_ACK4;
             else
               i_scl_cnt <= 0;
               i_done <= '1';
@@ -445,10 +447,10 @@ begin
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              fsm_i2c_cs <= S_STOP;
+              fsm_i2c_cs <= S_STOP_2;
             end if;
 
-        when S_STOP =>
+        when S_STOP_2 =>
 
             i_scl_out <= '1';
             if i_scl_cnt < CI_HALF_BIT then
@@ -456,10 +458,10 @@ begin
             else
               i_scl_cnt <= 0;
               i_sda_out <= '1';
-              fsm_i2c_cs <= S_GAP;
+              fsm_i2c_cs <= S_STOP_3;
             end if;
 
-        when S_GAP =>
+        when S_STOP_3 =>
 
             if i_scl_cnt < CI_GAP_WIDTH then
               i_scl_cnt <= i_scl_cnt + 1;
@@ -472,24 +474,13 @@ begin
         -------------------------------------
         --RESTART
         -------------------------------------
-        when S_RESTART =>
-
-            if i_scl_cnt < CI_HALF_BIT then
-              i_scl_cnt <= i_scl_cnt + 1;
-            else
-              i_scl_cnt <= 0;
-              i_scl_out <= '0';
-              i_sda_out <= '1';
-              fsm_i2c_cs <= S_RESTART_1;
-            end if;
-
         when S_RESTART_1 =>
 
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
             else
               i_scl_cnt <= 0;
-              i_scl_out <= '1';
+              i_scl_out <= '0';
               i_sda_out <= '1';
               fsm_i2c_cs <= S_RESTART_2;
             end if;
@@ -501,11 +492,22 @@ begin
             else
               i_scl_cnt <= 0;
               i_scl_out <= '1';
-              i_sda_out <= '0';
-              fsm_i2c_cs <= S_RESTART_CLK_HIGH;
+              i_sda_out <= '1';
+              fsm_i2c_cs <= S_RESTART_3;
             end if;
 
-        when S_RESTART_CLK_HIGH =>
+        when S_RESTART_3 =>
+
+            if i_scl_cnt < CI_HALF_BIT then
+              i_scl_cnt <= i_scl_cnt + 1;
+            else
+              i_scl_cnt <= 0;
+              i_scl_out <= '1';
+              i_sda_out <= '0';
+              fsm_i2c_cs <= S_RESTART_4;
+            end if;
+
+        when S_RESTART_4 =>
 
             if i_scl_cnt < CI_HALF_BIT then
               i_scl_cnt <= i_scl_cnt + 1;
