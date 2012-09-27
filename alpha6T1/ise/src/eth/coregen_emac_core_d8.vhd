@@ -172,7 +172,7 @@ architecture WRAPPER of emac_core is
     -- PCS/PMA reset is not asserted
     constant EMAC_PHYRESET : boolean := FALSE;
     -- PCS/PMA Auto-Negotiation is not enabled
-    constant EMAC_PHYINITAUTONEG_ENABLE : boolean := TRUE;  --FALSE; ------------------------- PHYINITAUTONEG
+    constant EMAC_PHYINITAUTONEG_ENABLE : boolean := FALSE; ------------------------- PHYINITAUTONEG
     -- PCS/PMA isolate is not enabled
     constant EMAC_PHYISOLATE : boolean := FALSE;
     -- PCS/PMA is not held in powerdown mode

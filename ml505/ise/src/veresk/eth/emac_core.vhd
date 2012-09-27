@@ -245,7 +245,7 @@ architecture WRAPPER of emac_core is
     -- PCS/PMA Reset not asserted (normal operating mode)
     constant EMAC0_PHYRESET : boolean := FALSE;
     -- PCS/PMA Auto-Negotiation Enable (not enabled)
-    constant EMAC0_PHYINITAUTONEG_ENABLE : boolean := TRUE;  --FALSE; ------------------------- PHYINITAUTONEG
+    constant EMAC0_PHYINITAUTONEG_ENABLE : boolean := FALSE; ------------------------- PHYINITAUTONEG
     -- PCS/PMA Isolate (not enabled)
     constant EMAC0_PHYISOLATE : boolean := FALSE;
     -- PCS/PMA Powerdown (not in power down: normal operating mode)
@@ -329,7 +329,7 @@ architecture WRAPPER of emac_core is
     -- PCS/PMA Reset not asserted (normal operating mode)
     constant EMAC1_PHYRESET : boolean := FALSE;
     -- PCS/PMA Auto-Negotiation Enable (not enabled)
-    constant EMAC1_PHYINITAUTONEG_ENABLE : boolean := TRUE;  --FALSE; ------------------------- PHYINITAUTONEG
+    constant EMAC1_PHYINITAUTONEG_ENABLE : boolean := FALSE; ------------------------- PHYINITAUTONEG
     -- PCS/PMA Isolate (not enabled)
     constant EMAC1_PHYISOLATE : boolean := FALSE;
     -- PCS/PMA Powerdown (not in power down: normal operating mode)
