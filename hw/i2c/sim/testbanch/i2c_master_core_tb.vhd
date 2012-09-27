@@ -27,11 +27,17 @@ library unisim;
 use unisim.vcomponents.all;
 
 entity i2c_master_core_tb is
+port(
+p_out_dvi_clk : out   std_logic_vector(1 downto 0);
+p_out_dvi_d   : out   std_logic_vector(11 downto 0);
+p_out_dvi_hs  : out   std_logic;
+p_out_dvi_vs  : out   std_logic
+);
 end i2c_master_core_tb;
 
 architecture behavior of i2c_master_core_tb is
 
-constant C_SYSCLK_PERIOD        : TIME := 6.6 ns; --150MHz
+constant C_SYSCLK_PERIOD        : TIME := 5.0 ns; --200MHz
 
 constant CI_I2C_ADRDEV          : integer:=16#06#;
 
@@ -108,7 +114,14 @@ G_DBG      : string:="OFF";
 G_SIM      : string:="OFF"
 );
 port(
+p_in_mode   : in    std_logic_vector(2 downto 0);
 p_out_err   : out   std_logic;
+
+--VOUT
+p_out_dvi_clk : out   std_logic_vector(1 downto 0);
+p_out_dvi_d   : out   std_logic_vector(11 downto 0);
+p_out_dvi_hs  : out   std_logic;
+p_out_dvi_vs  : out   std_logic;
 
 --I2C
 p_inout_sda : inout std_logic;
@@ -190,7 +203,14 @@ G_DBG      => "OFF",
 G_SIM      => "ON"
 )
 port map(
+p_in_mode   => "000",
 p_out_err   => open,
+
+--VOUT
+p_out_dvi_clk => p_out_dvi_clk,
+p_out_dvi_d   => p_out_dvi_d  ,
+p_out_dvi_hs  => p_out_dvi_hs ,
+p_out_dvi_vs  => p_out_dvi_vs ,
 
 --I2C
 p_inout_sda => p_inout_sda,

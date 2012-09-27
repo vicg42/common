@@ -5,6 +5,11 @@ add wave -noupdate /i2c_master_core_tb/i_sys_clk
 add wave -noupdate /i2c_master_core_tb/p_inout_sda
 add wave -noupdate /i2c_master_core_tb/p_inout_scl
 add wave -noupdate -radix hexadecimal /i2c_master_core_tb/i_txd
+add wave -noupdate /i2c_master_core_tb/m_dvi7301/i_dcm_lock
+add wave -noupdate /i2c_master_core_tb/m_dvi7301/i_dvi_timig_rst
+add wave -noupdate /i2c_master_core_tb/m_dvi7301/i_clk25M
+add wave -noupdate /i2c_master_core_tb/m_dvi7301/i_clk40M
+add wave -noupdate /i2c_master_core_tb/m_dvi7301/i_clk65M
 add wave -noupdate -divider I2C_master
 add wave -noupdate -radix hexadecimal /i2c_master_core_tb/m_dvi7301/i_txd
 add wave -noupdate -radix hexadecimal /i2c_master_core_tb/m_dvi7301/i_rxd
@@ -32,8 +37,7 @@ add wave -noupdate /i2c_master_core_tb/m_i2c_slave/en_dout
 add wave -noupdate /i2c_master_core_tb/m_i2c_slave/slave_sda
 add wave -noupdate /i2c_master_core_tb/m_i2c_slave/din
 TreeUpdate [SetDefaultTree]
-WaveRestoreCursors {{Cursor 1} {0 ps} 0}
-configure wave -namecolwidth 150
+configure wave -namecolwidth 175
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
 configure wave -signalnamewidth 1
@@ -47,4 +51,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {21640 ns} {55240 ns}
+WaveRestoreZoom {984688 ps} {1154208 ps}
