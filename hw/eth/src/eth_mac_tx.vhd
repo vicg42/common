@@ -270,7 +270,7 @@ begin
           if p_in_txbuf_empty='0' then
 
               if i_dcnt=i_dcnt_len - 1 then
-                i_ll_rem<=i_dcnt(0 downto 0);
+                i_ll_rem<=not i_dcnt(0 downto 0);
                 i_dcnt<=(others=>'0');
                 i_ll_eof_n<='0';
 

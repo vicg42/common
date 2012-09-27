@@ -99,7 +99,7 @@ POWER_SAVE                              =>     "0000110100",--(GTX_POWER_SAVE)
 GEN_TXUSRCLK                            =>     (TRUE),
 TX_DATA_WIDTH                           =>     (20),
 TX_USRCLK_CFG                           =>     (x"00"),
-TXOUTCLK_CTRL                           =>     ("TXOUTCLKPMA_DIV2"),
+TXOUTCLK_CTRL                           =>     ("TXOUTCLKPMA_DIV1"),
 TXOUTCLK_DLY                            =>     ("0000000000"),
 
 --------------TX Buffering and Phase Alignment----------------
@@ -156,7 +156,7 @@ RX_CLK25_DIVIDER                        =>     (6),
 -------------------------RX Interface-------------------------
 GEN_RXUSRCLK                            =>     (TRUE),
 RX_DATA_WIDTH                           =>     (20),
-RXRECCLK_CTRL                           =>     ("RXRECCLKPMA_DIV2"),
+RXRECCLK_CTRL                           =>     ("RXRECCLKPMA_DIV1"),
 RXRECCLK_DLY                            =>     ("0000000000"),
 RXUSRCLK_DLY                            =>     (x"0000"),
 
