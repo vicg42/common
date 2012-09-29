@@ -506,7 +506,7 @@ p_in_rst       => p_in_rst
     -- Instantiate the EMAC Wrapper with LL FIFO
     -- (emac_core_rgmii_locallink.v)
     ------------------------------------------------------------------------
-    emac_core_locallink_inst : emac_core_rgmii_locallink
+    emac_ll : emac_core_rgmii_locallink
     port map (
       -- EMAC0 Clocking
       -- TX Clock output from EMAC
