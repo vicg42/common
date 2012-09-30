@@ -206,9 +206,9 @@ TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
 #INST "gmii_tx_clk_0"     IOSTANDARD = LVTTL;
 #INST "gmii_rx_clk_0"     IOSTANDARD = LVTTL;
 #
-## Set IODELAY_GROUP constraint for IDELAYCTRL
-#INST "*dlyctrl0"   IODELAY_GROUP = IG_v5_emac;
-#
+# Set IODELAY_GROUP constraint for IDELAYCTRL
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*dlyctrl0"   IODELAY_GROUP = IG_v5_emac;
+
 #INST "gmii_rxd_0<0>"     LOC = "BANK3";
 #INST "gmii_rxd_0<1>"     LOC = "BANK3";
 #INST "gmii_rxd_0<2>"     LOC = "BANK3";
