@@ -31,6 +31,8 @@ NET "pin_in_ethphy_fiber_clk_p" LOC = "P4";
 NET "pin_in_ethphy_fiber_clk_n" LOC = "P3";
 INST "m_gt_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y3";
 
+#NET "pin_out_ethphy_rset"    LOC = "AN34"; #NET  HDR1_62
+#NET "pin_out_ethphy_coma"    LOC = "AN33"; #NET  HDR1_64
 #NET "pin_in_ethphy_crs"     LOC = "E34"  ;#NET  PHY_CRS
 #NET "pin_in_ethphy_col"     LOC = "B32"  ;#NET  PHY_COL
 #NET "pin_in_ethphy_actn"    LOC = "H20"  ;#NET  PHY_INT
@@ -68,9 +70,9 @@ NET "pin_in_ethphy_gmii<0>_rxd<7>"  LOC = "F33"  ;#NET  PHY_RXD7
 NET "pin_in_ethphy_gmii<0>_rx_er"   LOC = "E33"  ;#NET  PHY_RXER
 
 
-##--------------------------
-##---- GMII(1000Mb)
-##--------------------------
+#--------------------------
+#---- GMII(1000Mb)
+#--------------------------
 # EMAC0 Clocking
 # EMAC0 TX Clock input from BUFG
 NET "i_ethphy_out_clk" TNM_NET        = "clk_tx0";#NET "TX_CLK_0" TNM_NET        = "clk_tx0";

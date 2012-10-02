@@ -318,9 +318,55 @@ architecture TOP_LEVEL of eth_mii is
     -- GTX reference clock
     signal gtx_clk_i           : std_logic;
 
------------
-    signal RGMII_RXC                 : std_logic;
-    signal i_CLIENTEMACTXIFGDELAY    : std_logic_vector(7 downto 0);
+------
+component eth_mdio_main
+generic(
+G_PHY_ADR : integer:=16#07#;
+G_PHY_ID  : std_logic_vector(11 downto 0):="000011001100";
+G_DIV : integer:=2; --Делитель частоты p_in_clk. Нужен для формирования сигнала MDC
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
+);
+port(
+--------------------------------------
+--Управление
+--------------------------------------
+p_out_phy_rst      : out   std_logic;
+p_out_phy_err      : out   std_logic;
+p_out_phy_link     : out   std_logic;
+p_out_phy_cfg_done : out   std_logic;
+
+--------------------------------------
+--Eth PHY (Managment Interface)
+--------------------------------------
+--p_inout_mdio   : inout  std_logic;
+--p_out_mdc      : out    std_logic;
+p_out_mdio_t   : out    std_logic;
+p_out_mdio     : out    std_logic;
+p_in_mdio      : in     std_logic;
+p_out_mdc      : out    std_logic;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst       : in    std_logic_vector(31 downto 0);
+p_out_tst      : out   std_logic_vector(31 downto 0);
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk       : in    std_logic;
+p_in_rst       : in    std_logic
+);
+end component;
+
+signal RGMII_RXC                 : std_logic;
+signal i_CLIENTEMACTXIFGDELAY    : std_logic_vector(7 downto 0);
+
+signal i_phy_rst                 : std_logic;
+signal i_phy_err                 : std_logic;
+signal i_phy_link                : std_logic;
+signal i_phy_cfg_done            : std_logic;
 
 -------------------------------------------------------------------------------
 -- Main body of code
@@ -328,22 +374,60 @@ architecture TOP_LEVEL of eth_mii is
 
 begin
 
-  p_out_tst <=(others=>'0');
+p_out_tst <=(others=>'0');
 
---  i_PHYAD<=CONV_STD_LOGIC_VECTOR(16#01#, i_PHYAD'length);
-  i_CLIENTEMACTXIFGDELAY<=CONV_STD_LOGIC_VECTOR(16#0D#, i_CLIENTEMACTXIFGDELAY'length);
+i_CLIENTEMACTXIFGDELAY<=CONV_STD_LOGIC_VECTOR(16#0D#, i_CLIENTEMACTXIFGDELAY'length);
 
-  p_out_phy.link<='1';
-  p_out_phy.rdy<='1';
-  p_out_phy.clk<=ll_clk_i;
-  p_out_phy.rst<=ll_reset_i;
-  p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_i;
+--p_out_phy.link<=i_phy_link and i_phy_cfg_done;
+--p_out_phy.rdy<=not i_phy_err and i_phy_cfg_done;
+p_out_phy.clk<=ll_clk_i;
+p_out_phy.rst<=i_phy_rst;
+p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_i;
 
-  reset_i<=p_in_rst;
-  gtx_clk_i<=p_in_phy.clk; --GTX_CLK_0
-  refclk_ibufg_i<=p_in_phy.clk; --REFCLK
-  RGMII_RXC<=p_in_phy.pin.rgmii(0).rxc;
+reset_i<=p_in_rst;
+gtx_clk_i<=p_in_phy.clk; --GTX_CLK_0
+refclk_ibufg_i<=p_in_phy.clk; --REFCLK
+RGMII_RXC<=p_in_phy.pin.rgmii(0).rxc;
 
+--m_mdio_ctrl : eth_mdio_main
+--generic map(
+--G_PHY_ADR => 16#07#,
+--G_PHY_ID  => "000011001100", --ID for chip Marvel 88E1111
+--G_DIV => 16,
+--G_DBG => "OFF",
+--G_SIM => "OFF"
+--)
+--port map(
+----------------------------------------
+----Управление
+----------------------------------------
+--p_out_phy_rst      => i_phy_rst,
+--p_out_phy_err      => i_phy_err,
+--p_out_phy_link     => i_phy_link,
+--p_out_phy_cfg_done => i_phy_cfg_done,
+--
+----------------------------------------
+----Eth PHY (Managment Interface)
+----------------------------------------
+----p_inout_mdio   => pin_inout_ethphy_mdio,
+----p_out_mdc      => pin_out_ethphy_mdc,
+--p_out_mdio_t   => p_out_phy.mdio_t,
+--p_out_mdio     => p_out_phy.mdio,
+--p_in_mdio      => p_in_phy.mdio,
+--p_out_mdc      => p_out_phy.mdc,
+--
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_in_tst       => (others=>'0'),
+--p_out_tst      => open,
+--
+----------------------------------------
+----SYSTEM
+----------------------------------------
+--p_in_clk       => ll_clk_i,
+--p_in_rst       => p_in_rst
+--);
 
 --    -- Reset input buffer
 --    reset_ibuf : IBUF port map (
@@ -432,7 +516,7 @@ begin
     ------------------------------------------------------------------------
     -- Instantiate the LocalLink-level EMAC Wrapper (emac_rgmii_core_locallink.vhd)
     ------------------------------------------------------------------------
-    emac_core_locallink_inst : emac_rgmii_core_locallink port map (
+    m_emac_ll : emac_rgmii_core_locallink port map (
       -- TX clock output
       TX_CLK_OUT               => open,
       -- TX clock input from BUFG

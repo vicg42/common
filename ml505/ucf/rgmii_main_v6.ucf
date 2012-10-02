@@ -31,30 +31,63 @@ NET "pin_in_btn_N"   LOC = "Y33";   ## 2   on SW9
 INST "ibuf_eth_gt_refclk/m_buf0"  LOC = "IBUFDS_GTXE1_X0Y5";
 INST "m_gt_clk/gen_sim_off.m_gt"  LOC = "GTXE1_X0Y10"; #SGMII A
 
+##------------------------
+##PHY_A
+##------------------------
+##NET "pin_in_ethphy_rset"    LOC = "H21" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_RSET
+##NET "pin_in_ethphy_coma"    LOC = "E24" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_COMA
+##NET "pin_in_ethphy_crs"     LOC = "B22" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_CRS
+##NET "pin_in_ethphy_col"     LOC = "B23" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_COL
+##NET "pin_in_ethphy_actn"    LOC = "E23" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_INIT_B
+#NET "pin_out_ethphy_rst"    LOC = "J21" | PULLUP | IOSTANDARD = "LVCMOS25"; #NET  PHYA_RESET
+#NET "pin_inout_ethphy_mdio" LOC = "D20" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDIO
+#NET "pin_out_ethphy_mdc"    LOC = "C20" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDC
+#
+##------------------------
+##-- RGMII
+##------------------------
+#NET "pin_out_ethphy_rgmii[0]_tx_ctl" LOC = "F21" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_TXEN
+#NET "pin_out_ethphy_rgmii[0]_txc"    LOC = "J22" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_GTXCLK
+#NET "pin_out_ethphy_rgmii[0]_txd<0>" LOC = "C23" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_TXD0
+#NET "pin_out_ethphy_rgmii[0]_txd<1>" LOC = "C24" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_TXD1
+#NET "pin_out_ethphy_rgmii[0]_txd<2>" LOC = "F22" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_TXD2
+#NET "pin_out_ethphy_rgmii[0]_txd<3>" LOC = "G22" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_TXD3
+#
+#NET "pin_in_ethphy_rgmii[0]_rx_ctl"  LOC = "H19" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXDV
+#NET "pin_in_ethphy_rgmii[0]_rxc"     LOC = "D23" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXCLK
+#NET "pin_in_ethphy_rgmii[0]_rxd<0>"  LOC = "L19" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXD0
+#NET "pin_in_ethphy_rgmii[0]_rxd<1>"  LOC = "K19" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXD1
+#NET "pin_in_ethphy_rgmii[0]_rxd<2>"  LOC = "D21" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXD2
+#NET "pin_in_ethphy_rgmii[0]_rxd<3>"  LOC = "C21" | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXD3
+
+#------------------------
+#PHY_B
+#------------------------
+#NET "pin_out_ethphy_rset"    LOC = "K17" | IOSTANDARD = "LVCMOS25"; #NET  PHYB_RSET
+#NET "pin_out_ethphy_coma"    LOC = "C19" | IOSTANDARD = "LVCMOS25"; #NET  PHYB_COMA
+#NET "pin_in_ethphy_crs"     LOC = "E18" | IOSTANDARD = "LVCMOS25"; #NET  PHYB_CRS
+#NET "pin_in_ethphy_col"     LOC = "E19" | IOSTANDARD = "LVCMOS25"; #NET  PHYB_COL
+#NET "pin_in_ethphy_actn"    LOC = "B19" | IOSTANDARD = "LVCMOS25"; #NET  PHYB_INIT_B
+NET "pin_out_ethphy_rst"    LOC = "J17" | PULLUP ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYB_RESET
+NET "pin_inout_ethphy_mdio" LOC = "E17" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYB_MDIO
+NET "pin_out_ethphy_mdc"    LOC = "D17" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYB_MDC
+
 #------------------------
 #-- RGMII
 #------------------------
-NET "pin_out_ethphy_rgmii[0]_tx_ctl" LOC = "F21" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_TXCTL_TXEN
-NET "pin_out_ethphy_rgmii[0]_txc"    LOC = "J22" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_TXC_GTXCLK
-NET "pin_out_ethphy_rgmii[0]_txd<0>" LOC = "C23" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_TXD0
-NET "pin_out_ethphy_rgmii[0]_txd<1>" LOC = "C24" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_TXD1
-NET "pin_out_ethphy_rgmii[0]_txd<2>" LOC = "F22" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_TXD2
-NET "pin_out_ethphy_rgmii[0]_txd<3>" LOC = "G22" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_TXD3
+NET "pin_out_ethphy_rgmii[0]_tx_ctl" LOC = "J16" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_TXEN
+NET "pin_out_ethphy_rgmii[0]_txc"    LOC = "N16" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_GTXCLK
+NET "pin_out_ethphy_rgmii[0]_txd<0>" LOC = "F19" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_TXD0
+NET "pin_out_ethphy_rgmii[0]_txd<1>" LOC = "G19" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_TXD1
+NET "pin_out_ethphy_rgmii[0]_txd<2>" LOC = "F16" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_TXD2
+NET "pin_out_ethphy_rgmii[0]_txd<3>" LOC = "G16" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_TXD3
 
-NET "pin_in_ethphy_rgmii[0]_rx_ctl"  LOC = "H19" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_RXCTL_RXDV
-NET "pin_in_ethphy_rgmii[0]_rxc"     LOC = "D23" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_RXCLK
-NET "pin_in_ethphy_rgmii[0]_rxd<0>"  LOC = "L19" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_RXD0
-NET "pin_in_ethphy_rgmii[0]_rxd<1>"  LOC = "K19" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_RXD1
-NET "pin_in_ethphy_rgmii[0]_rxd<2>"  LOC = "D21" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_RXD2
-NET "pin_in_ethphy_rgmii[0]_rxd<3>"  LOC = "C21" | IOSTANDARD = "LVCMOS25" ; #NET  PHY_RXD3
-
-#NET "pin_in_ethphy_crs"     LOC = "B22" | IOSTANDARD = "LVCMOS25"; #NET  PHY_CRS
-#NET "pin_in_ethphy_col"     LOC = "B23" | IOSTANDARD = "LVCMOS25"; #NET  PHY_COL
-#NET "pin_in_ethphy_actn"    LOC = "E23" | IOSTANDARD = "LVCMOS25"; #NET  PHY_INT
-NET "pin_out_ethphy_rst"    LOC = "J21" | PULLUP | IOSTANDARD = "LVCMOS25"; #NET  PHY_RESET
-NET "pin_inout_ethphy_mdio" LOC = "D20" | IOSTANDARD = "LVCMOS25"; #NET  PHY_MDIO
-NET "pin_out_ethphy_mdc"    LOC = "C20" | IOSTANDARD = "LVCMOS25"; #NET  PHY_MDC
-
+NET "pin_in_ethphy_rgmii[0]_rx_ctl"  LOC = "K15" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_RXDV
+NET "pin_in_ethphy_rgmii[0]_rxc"     LOC = "F17" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_RXCLK
+NET "pin_in_ethphy_rgmii[0]_rxd<0>"  LOC = "N15" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_RXD0
+NET "pin_in_ethphy_rgmii[0]_rxd<1>"  LOC = "M16" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_RXD1
+NET "pin_in_ethphy_rgmii[0]_rxd<2>"  LOC = "B17" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_RXD2
+NET "pin_in_ethphy_rgmii[0]_rxd<3>"  LOC = "A17" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYB_RXD3
 
 #--------------------------
 #---- RGMII(v1.3 - 1000Mb)
