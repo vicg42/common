@@ -55,6 +55,10 @@ p_out_cfg_done : out   std_logic;
 --------------------------------------
 p_inout_mdio   : inout  std_logic;
 p_out_mdc      : out    std_logic;
+--p_out_mdio_t   : out    std_logic;
+--p_out_mdio     : out    std_logic;
+--p_in_mdio      : in     std_logic;
+--p_out_mdc      : out    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
@@ -94,7 +98,7 @@ begin
 
 m_mdio : eth_mdio
 generic map (
-G_DIV => 2,
+G_DIV => 4,
 G_DBG => "ON",
 G_SIM => "OFF"
 )
@@ -115,6 +119,10 @@ p_out_cfg_done => i_cfg_done,
 --------------------------------------
 p_inout_mdio   => i_mdio,
 p_out_mdc      => p_out_mdc,
+--p_out_mdio_t   : out    std_logic;
+--p_out_mdio     : out    std_logic;
+--p_in_mdio      : in     std_logic;
+--p_out_mdc      : out    std_logic;
 
 --------------------------------------------------
 --Технологические сигналы
