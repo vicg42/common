@@ -12,7 +12,7 @@
 #
 ##############################################################
 #
-#  Generated from component: xilinx.com:ip:mig:3.9
+#  Generated from component: xilinx.com:ip:mig:3.91
 #
 ##############################################################
 #
@@ -36,11 +36,11 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT MIG_Virtex-6_and_Spartan-6 family Xilinx,_Inc. 3.9
+SELECT MIG_Virtex-6_and_Spartan-6 family Xilinx,_Inc. 3.91
 # END Select
 # BEGIN Parameters
 CSET component_name=mem_ctrl_core
-CSET xml_input_file=./mem_ctrl_core/user_design/mig.prj
+CSET xml_input_file=./mem_ctrl_core/mig.prj
 # END Parameters
 # BEGIN Extra information
 MISC pkg_timestamp=2012-01-07T15:29:19Z
