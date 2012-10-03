@@ -371,7 +371,7 @@ signal i_phy_rst                 : std_logic;
 signal i_phy_err                 : std_logic;
 signal i_phy_link                : std_logic;
 signal i_phy_cfg_done            : std_logic;
-
+signal i_tst_out                 : std_logic_vector(31 downto 0);
 -------------------------------------------------------------------------------
 -- Main body of code
 -------------------------------------------------------------------------------
@@ -383,56 +383,56 @@ p_out_tst <=(others=>'0');
 
 i_CLIENTEMACTXIFGDELAY<=CONV_STD_LOGIC_VECTOR(16#0D#, i_CLIENTEMACTXIFGDELAY'length);
 
---p_out_phy.link<=i_phy_link and i_phy_cfg_done;
---p_out_phy.rdy<=not i_phy_err and i_phy_cfg_done;
+p_out_phy.link<=i_phy_link and i_phy_cfg_done;
+p_out_phy.rdy<=not i_phy_err and i_phy_cfg_done;
 p_out_phy.clk<=ll_clk_i;
 p_out_phy.rst<=i_phy_rst;
-p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_i;
+p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_i or i_tst_out(0);
 
 reset_i<=p_in_rst;
 gtx_clk_i<=p_in_phy.clk; --GTX_CLK_0
 refclk_ibufg_i<=p_in_phy.clk; --REFCLK
 GMII_RX_CLK<=p_in_phy.pin.gmii(0).rxc;
 
---m_mdio_ctrl : eth_mdio_main
---generic map(
---G_PHY_ADR => 16#02#,--7/2 - PHYA/B
---G_PHY_ID  => "000011001100", --ID for chip Marvel 88E1111
---G_DIV => 16,
---G_DBG => "OFF",
---G_SIM => "OFF"
---)
---port map(
-----------------------------------------
-----Управление
-----------------------------------------
---p_out_phy_rst      => i_phy_rst,
---p_out_phy_err      => i_phy_err,
---p_out_phy_link     => i_phy_link,
---p_out_phy_cfg_done => i_phy_cfg_done,
---
-----------------------------------------
-----Eth PHY (Managment Interface)
-----------------------------------------
-----p_inout_mdio   => pin_inout_ethphy_mdio,
-----p_out_mdc      => pin_out_ethphy_mdc,
---p_out_mdio_t   => p_out_phy.mdio_t,
---p_out_mdio     => p_out_phy.mdio,
---p_in_mdio      => p_in_phy.mdio,
---p_out_mdc      => p_out_phy.mdc,
---
-----------------------------------------------------
-----Технологические сигналы
-----------------------------------------------------
---p_in_tst       => (others=>'0'),
---p_out_tst      => open,
---
-----------------------------------------
-----SYSTEM
-----------------------------------------
---p_in_clk       => ll_clk_i,
---p_in_rst       => p_in_rst
---);
+m_mdio_ctrl : eth_mdio_main
+generic map(
+G_PHY_ADR => 16#02#,--7/2 - PHYA/B
+G_PHY_ID  => "000011001100", --ID for chip Marvel 88E1111
+G_DIV => 16,
+G_DBG => "ON",
+G_SIM => "OFF"
+)
+port map(
+--------------------------------------
+--Управление
+--------------------------------------
+p_out_phy_rst      => i_phy_rst,
+p_out_phy_err      => i_phy_err,
+p_out_phy_link     => i_phy_link,
+p_out_phy_cfg_done => i_phy_cfg_done,
+
+--------------------------------------
+--Eth PHY (Managment Interface)
+--------------------------------------
+--p_inout_mdio   => pin_inout_ethphy_mdio,
+--p_out_mdc      => pin_out_ethphy_mdc,
+p_out_mdio_t   => p_out_phy.mdio_t,
+p_out_mdio     => p_out_phy.mdio,
+p_in_mdio      => p_in_phy.mdio,
+p_out_mdc      => p_out_phy.mdc,
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst       => (others=>'0'),
+p_out_tst      => i_tst_out,
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk       => ll_clk_i,
+p_in_rst       => p_in_rst
+);
 
 --    -- Reset input buffer
 --    reset_ibuf : IBUF port map (

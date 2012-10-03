@@ -25,7 +25,6 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
---use work.cfgdev_pkg.all;
 use work.eth_phypin_pkg.all;
 use work.eth_pkg.all;
 use work.dsn_eth_pkg.all;
@@ -306,7 +305,7 @@ p_out_tst         => open,
 -------------------------------
 --System
 -------------------------------
-p_in_rst          => i_sys_rst
+p_in_rst          => i_mnl_rst
 );
 
 
@@ -413,7 +412,7 @@ begin
           if i_ethphy_out.link='1' then
 
               if i_t1ms='1' then
-                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(250,i_eth_txpkt_tx_dlycnt'length) then
+                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(2250,i_eth_txpkt_tx_dlycnt'length) then
                   i_eth_txpkt_tx_dlycnt<=(others=>'0');
                   i_eth_txpkt_len<=CONV_STD_LOGIC_VECTOR(2 + 128, 16);
                   i_eth_txpkt_dcnt<=(others=>'0');
