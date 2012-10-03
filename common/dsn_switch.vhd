@@ -297,6 +297,11 @@ signal i_vctrl_vbufin_fltr_den       : std_logic;
 
 signal i_vctrl_vbufout_empty         : std_logic;
 
+signal hclk_tmr_en,i_tmr_en          : std_logic;
+signal hclk_eth_tx_start             : std_logic;
+signal sr_eth_tx_start               : std_logic_vector(0 to 2):=(others=>'0');
+signal i_eth_txbuf_empty_en          : std_logic;
+
 
 --MAIN
 begin
@@ -431,6 +436,9 @@ end process;
 b_rst_eth_bufs  <=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_ETH_BUFS_BIT);
 b_rst_vctrl_bufs<=p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
+hclk_eth_tx_start<=p_in_tst(0);
+hclk_tmr_en<=p_in_tst(1);
+
 
 
 --//########################################################################
@@ -500,7 +508,22 @@ end process;
 --//Сигнал хосту EthG TxBUF - готов принять данные
 p_out_host_eth_txbuf_rdy<=i_eth_txbuf_empty;
 --//Связь с модулем dsn_eth.vhd
-p_out_eth_txbuf_empty<=i_eth_txbuf_empty;
+p_out_eth_txbuf_empty<=not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en) when i_tmr_en='1' else
+                      i_eth_txbuf_empty;
+
+process(p_in_eth_clk)
+begin
+  if p_in_eth_clk'event and p_in_eth_clk='1' then
+    i_tmr_en <= hclk_tmr_en;
+    sr_eth_tx_start<=hclk_eth_tx_start & sr_eth_tx_start(0 to 1);
+
+    if i_eth_txbuf_empty='1' then
+      i_eth_txbuf_empty_en<='0';
+    elsif i_tmr_en='1' and sr_eth_tx_start(1)='1' and sr_eth_tx_start(2)='0' then
+      i_eth_txbuf_empty_en<='1';
+    end if;
+  end if;
+end process;
 
 m_eth_txbuf : host_ethg_txfifo
 port map(

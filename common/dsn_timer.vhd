@@ -51,6 +51,7 @@ p_out_tmr_rdy         : out  std_logic;                     --//
 p_out_tmr_error       : out  std_logic;                     --//
 
 p_out_tmr_irq         : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
+p_out_tmr_en          : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 -------------------------------
 --System
@@ -249,6 +250,7 @@ p_out_tmr_rdy  <='0';
 p_out_tmr_error<='0';
 
 p_out_tmr_irq<=hclk_tmr_irq_width;
+p_out_tmr_en<=h_tmr_en;
 
 
 --END MAIN
