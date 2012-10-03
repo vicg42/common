@@ -70,12 +70,14 @@ type TEth_fsm_mdio is (
 S_IDLE,
 S_LD_PREAMBULE,
 S_TX_PREAMBULE,
+S_TX_LD_DONE,
 S_TX_CTRL,
 S_DATA,
-S_RxD_LATCH,
 S_EXIT
 );
 signal fsm_ethmdio_cs: TEth_fsm_mdio;
+
+signal i_fsm_en        : std_logic;
 
 signal i_tmr_cnt       : integer range 0 to G_DIV-1;
 
@@ -93,7 +95,6 @@ signal i_txd_en        : std_logic;
 signal i_txd           : std_logic_vector(15 downto 0);
 signal sr_txd          : std_logic_vector(15 downto 0):=(others=>'0'); --Сдиговый регистр отправки данных
 signal i_rxd_en        : std_logic;
-signal i_rxd_latch     : std_logic;
 signal sr_rxd          : std_logic_vector(15 downto 0):=(others=>'0'); --Сдиговый регистр приема данных
 signal sr_en           : std_logic;
 
@@ -101,6 +102,8 @@ signal i_mdc           : std_logic:='0';
 signal i_mdio_in       : std_logic;
 signal tst_fms_cs      : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly  : std_logic_vector(tst_fms_cs'range);
+signal sr_rxd_en       : std_logic;
+signal tst_txd_en      : std_logic;
 
 
 --MAIN
@@ -118,20 +121,23 @@ ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(31 downto 2)<=(others=>'0');
+    p_out_tst<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
     p_out_tst(0)<=i_rxd_en;
     p_out_tst(1)<=OR_reduce(tst_fms_cs_dly);
+    p_out_tst(2)<=tst_txd_en;
+
   end if;
 end process ltstout;
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ethmdio_cs=S_LD_PREAMBULE  else
             CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ethmdio_cs=S_TX_PREAMBULE  else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ethmdio_cs=S_TX_CTRL       else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ethmdio_cs=S_DATA          else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ethmdio_cs=S_EXIT          else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ethmdio_cs=S_TX_LD_DONE    else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ethmdio_cs=S_TX_CTRL       else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ethmdio_cs=S_DATA          else
+            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_ethmdio_cs=S_EXIT          else
             CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_ethmdio_cs=S_IDLE         else
 
 end generate gen_dbg_on;
@@ -152,11 +158,9 @@ begin
     i_mdio_done<='0';
 
     i_rxd_en<='0';
-    i_txd_en<='0';
+    i_txd_en<='0';tst_txd_en<='0';
     i_txd_ld<='0';
     i_txd<=(others=>'0');
-    i_bitcnt<=(others=>'0');
-    i_rxd_latch<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -185,18 +189,16 @@ begin
         --------------------------------------
         when S_LD_PREAMBULE =>
 
-          if sr_en='1' and i_mdc='1' then
+          if i_fsm_en='1' then
             i_txd_ld<='1';
             i_txd<=(others=>'1');
-            i_bitcnt<=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length);
             fsm_ethmdio_cs<=S_TX_PREAMBULE;
           end if;
 
         when S_TX_PREAMBULE =>
 
-          if sr_en='1' and i_mdc='1' then
+          if i_fsm_en='1' then
             if i_bitcnt=CONV_STD_LOGIC_VECTOR(CI_PREAMBULE-1, i_bitcnt'length) then
-              i_txd_en<='1';
               i_txd_ld<='1';
               i_txd(15 downto 14)<="01";          --Start
               i_txd(13)          <=not i_mdio_dir;--opcode(1);--//"10" -Read
@@ -204,37 +206,40 @@ begin
               i_txd(11 downto 7) <=i_mdio_aphy;
               i_txd(6 downto 2)  <=i_mdio_areg;
               i_txd(1 downto 0)  <="10";          --TA
-              i_bitcnt<=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length);
-              fsm_ethmdio_cs<=S_TX_CTRL;
+              fsm_ethmdio_cs<=S_TX_LD_DONE;
 
             else
               i_txd_en<='1';
               i_txd_ld<='0';
-              i_bitcnt<=i_bitcnt + 1;
             end if;
           end if;
 
         --------------------------------------
         --
         --------------------------------------
+        when S_TX_LD_DONE =>
+
+          if i_fsm_en='1' then
+            i_txd_ld<='0'; tst_txd_en<='1';
+            fsm_ethmdio_cs<=S_TX_CTRL;
+          end if;
+
         when S_TX_CTRL =>
 
-          if sr_en='1' and i_mdc='1' then
-            if i_bitcnt=CONV_STD_LOGIC_VECTOR(16-1, i_bitcnt'length) then
+          if i_fsm_en='1' then
+            if i_bitcnt=CONV_STD_LOGIC_VECTOR(15, i_bitcnt'length) then
+              i_txd_en<=i_mdio_dir;  tst_txd_en<=i_mdio_dir;
+              i_rxd_en<=not i_mdio_dir;
+              i_txd_ld<='0';
+              fsm_ethmdio_cs<=S_DATA;
+
+            elsif i_bitcnt=CONV_STD_LOGIC_VECTOR(14, i_bitcnt'length) then
               i_txd_en<=i_mdio_dir;
               i_txd_ld<=i_mdio_dir;
               i_txd<=i_mdio_txd;
-              i_bitcnt<=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length);
-              fsm_ethmdio_cs<=S_DATA;
 
-            elsif i_mdio_dir='0' and i_bitcnt>=CONV_STD_LOGIC_VECTOR(15-1, i_bitcnt'length) then
-              i_txd_en<='0';
-              i_bitcnt<=i_bitcnt + 1;
-
-            else
-              i_txd_en<='1';
-              i_txd_ld<='0';
-              i_bitcnt<=i_bitcnt + 1;
+            elsif i_bitcnt=CONV_STD_LOGIC_VECTOR(13, i_bitcnt'length) then
+              i_txd_en<=i_mdio_dir;
             end if;
           end if;
 
@@ -243,26 +248,12 @@ begin
         --------------------------------------
         when S_DATA =>
 
-          if sr_en='1' and i_mdc='1' then
-            if i_bitcnt=CONV_STD_LOGIC_VECTOR(16-1, i_bitcnt'length) then
-              i_txd_en<=i_mdio_dir;
-              i_bitcnt<=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length);
-              fsm_ethmdio_cs<=S_RxD_LATCH;
-            else
-              i_rxd_en<=not i_mdio_dir;
-              i_txd_en<=i_mdio_dir;
-              i_txd_ld<='0';
-              i_bitcnt<=i_bitcnt + 1;
+          if i_fsm_en='1' then
+            if i_bitcnt=CONV_STD_LOGIC_VECTOR(15, i_bitcnt'length) then
+              i_txd_en<='0'; tst_txd_en<='0';
+              i_rxd_en<='0';
+              fsm_ethmdio_cs<=S_EXIT;
             end if;
-          end if;
-
-        when S_RxD_LATCH =>
-
-          if sr_en='1' and i_mdc='1' then
-            i_rxd_en<='0';
-            i_txd_en<='0';
-            i_rxd_latch<='1';
-            fsm_ethmdio_cs<=S_EXIT;
           end if;
 
         --------------------------------------
@@ -270,14 +261,10 @@ begin
         --------------------------------------
         when S_EXIT =>
 
-          i_rxd_latch<='0';
-          if sr_en='1' and i_mdc='1' then
-            if i_bitcnt=CONV_STD_LOGIC_VECTOR(32-1, i_bitcnt'length) then
-              i_bitcnt<=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length);
+          if i_fsm_en='1' then
+            if i_bitcnt=CONV_STD_LOGIC_VECTOR(15, i_bitcnt'length) then
               i_mdio_done<='1';
               fsm_ethmdio_cs<=S_IDLE;
-            else
-              i_bitcnt<=i_bitcnt + 1;
             end if;
           end if;
 
@@ -307,11 +294,32 @@ begin
   end if;
 end process;
 
+--//BIT counter            (fsm_ethmdio_cs=S_TX_LD_DONE and i_bitcnt=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length)) or
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_bitcnt<=(others=>'0');
+  elsif p_in_clk'event and p_in_clk='1' then
+    if i_fsm_en='1' then
+      if (fsm_ethmdio_cs=S_TX_PREAMBULE and i_bitcnt=CONV_STD_LOGIC_VECTOR(CI_PREAMBULE-1, i_bitcnt'length)) or
+         ((fsm_ethmdio_cs=S_TX_CTRL or fsm_ethmdio_cs=S_DATA or fsm_ethmdio_cs=S_EXIT) and i_bitcnt=CONV_STD_LOGIC_VECTOR(15, i_bitcnt'length)) then
+        i_bitcnt<=(others=>'0');
+      else
+        if fsm_ethmdio_cs=S_TX_PREAMBULE or fsm_ethmdio_cs=S_TX_CTRL or fsm_ethmdio_cs=S_DATA or fsm_ethmdio_cs=S_EXIT then
+          i_bitcnt<=i_bitcnt + 1;
+        end if;
+      end if;
+    end if;
+  end if;
+end process;
+
 --//Отправка данных
+i_fsm_en <= sr_en and i_mdc;
+
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    if sr_en='1' and i_mdc='1' then
+    if i_fsm_en='1' then
       if i_txd_ld='1' then
         sr_txd<=i_txd;
       else
@@ -322,13 +330,13 @@ begin
 end process;
 
 --//Прием данных
+sr_rxd_en <= i_rxd_en and sr_en and not i_mdc;
+
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    if sr_en='1' and i_mdc='0' then
-      if i_rxd_en='1' then
-        sr_rxd<=sr_rxd(sr_rxd'length-2 downto 0)&i_mdio_in;
-      end if;
+    if sr_rxd_en='1' then
+      sr_rxd<=sr_rxd(sr_rxd'length-2 downto 0)&i_mdio_in;
     end if;
   end if;
 end process;
@@ -336,7 +344,7 @@ end process;
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
-    if i_rxd_latch='1' then
+    if fsm_ethmdio_cs=S_EXIT and i_fsm_en='1' and i_mdio_dir='0' then
       i_mdio_rxd<=sr_rxd;
     end if;
   end if;

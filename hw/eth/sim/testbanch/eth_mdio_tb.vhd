@@ -26,6 +26,7 @@ use work.eth_pkg.all;
 
 entity eth_mdio_tb is
 port(
+p_out_tst            : out    std_logic_vector(31 downto 0);
 p_out_mdc            : out    std_logic
 );
 end eth_mdio_tb;
@@ -89,6 +90,8 @@ signal i_cfg_done       : std_logic;
 
 signal i_mdio           : std_logic;
 signal i_tst_out        : std_logic_vector(31 downto 0);
+signal i_mdc            : std_logic;
+signal sr_mdio          : std_logic_vector(15 downto 0);
 
 
 --MAIN
@@ -98,7 +101,7 @@ begin
 
 m_mdio : eth_mdio
 generic map (
-G_DIV => 4,
+G_DIV => 2,
 G_DBG => "ON",
 G_SIM => "OFF"
 )
@@ -118,7 +121,7 @@ p_out_cfg_done => i_cfg_done,
 --Ñâÿçü ñ PHY
 --------------------------------------
 p_inout_mdio   => i_mdio,
-p_out_mdc      => p_out_mdc,
+p_out_mdc      => i_mdc,
 --p_out_mdio_t   : out    std_logic;
 --p_out_mdio     : out    std_logic;
 --p_in_mdio      : in     std_logic;
@@ -149,7 +152,7 @@ end process;
 
 
 i_rst<='1','0' after 1 us;
-
+p_out_mdc <= i_mdc;
 i_mdio<='1' when i_tst_out(0)='1' else 'Z';
 
 --//########################################
@@ -170,8 +173,8 @@ begin
   wait until i_clk'event and i_clk='1';
   i_cfg_start<='1';
   i_cfg_aphy<=CONV_STD_LOGIC_VECTOR(16#06#, i_cfg_aphy'length);
-  i_cfg_areg<=CONV_STD_LOGIC_VECTOR(16#0A#, i_cfg_areg'length);
-  i_cfg_txd <=CONV_STD_LOGIC_VECTOR(16#7FFA#, i_cfg_txd'length);
+  i_cfg_areg<=CONV_STD_LOGIC_VECTOR(16#0B#, i_cfg_areg'length);
+  i_cfg_txd <=CONV_STD_LOGIC_VECTOR(16#8FFA#, i_cfg_txd'length);
   i_cfg_wr<=C_ETH_MDIO_WR;
   wait until i_clk'event and i_clk='1';
   i_cfg_start<='0';
@@ -194,6 +197,18 @@ begin
 end process;
 
 
+process(i_rst,i_mdc)
+begin
+  if i_rst='1' then
+    sr_mdio <= (others=>'0');
+  elsif i_mdc'event and i_mdc='1' then
+    if i_tst_out(2)='1' then
+      sr_mdio <= sr_mdio(14 downto 0) & i_mdio;
+    end if;
+  end if;
+end process;
+
+p_out_tst(0) <= OR_reduce(sr_mdio);
 
 --END MAIN
 end;
