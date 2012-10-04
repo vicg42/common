@@ -108,6 +108,7 @@ p_out_tmr_rdy         : out  std_logic;
 p_out_tmr_error       : out  std_logic;
 
 p_out_tmr_irq         : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
+p_out_tmr_en          : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 -------------------------------
 --System

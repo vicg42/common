@@ -35,6 +35,7 @@ constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 6
 constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="OFF";
 constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=2; --Кол-во каналов в одном GT(RocketIO) модуле
+constant C_PCFG_ETH_PHY_DWIDTH         : integer:=16;
 
 --//cfg HDD
 constant C_PCFG_HDD_USE                : string:="ON";

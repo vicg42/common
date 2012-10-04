@@ -290,7 +290,7 @@ signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 down
 signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_swt_rst                        : std_logic;
-signal i_swt_tst_out                    : std_logic_vector(31 downto 0);
+signal i_swt_tst_out,i_swt_tst_in       : std_logic_vector(31 downto 0);
 signal i_eth_gt_refclk125               : std_logic_vector(1 downto 0);
 signal i_eth_rst                        : std_logic;
 signal i_eth_out                        : TEthOUTs;
@@ -303,6 +303,7 @@ signal dbg_eth_out                      : TEthDBG;
 signal i_tmr_rst                        : std_logic;
 signal i_tmr_clk                        : std_logic;
 signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT-1 downto 0);
+signal i_tmr_en                         : std_logic_vector(C_TMR_COUNT-1 downto 0);
 
 signal i_vctrl_rst                      : std_logic;
 signal hclk_hrddone_vctrl_cnt           : std_logic_vector(2 downto 0);
@@ -757,7 +758,7 @@ p_out_vctrl_vbufout_full  => i_vctrl_vbufout_full,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                  => (others=>'0'),
+p_in_tst                  => i_swt_tst_in,
 p_out_tst                 => i_swt_tst_out,
 
 -------------------------------
@@ -765,6 +766,10 @@ p_out_tst                 => i_swt_tst_out,
 -------------------------------
 p_in_rst => i_swt_rst
 );
+
+i_swt_tst_in(0)<=i_tmr_hirq(0);
+i_swt_tst_in(1)<=i_tmr_en(0);
+i_swt_tst_in(31 downto 2)<=(others=>'0');
 
 --***********************************************************
 --Проект Ethernet - dsn_eth.vhd
@@ -786,7 +791,7 @@ m_eth : dsn_eth
 generic map(
 G_ETH.gtch_count_max  => C_PCFG_ETH_GTCH_COUNT_MAX,
 G_ETH.usrbuf_dwidth   => 32,
-G_ETH.phy_dwidth      => 8,
+G_ETH.phy_dwidth      => C_PCFG_ETH_PHY_DWIDTH,
 G_ETH.phy_select      => C_ETH_PHY_FIBER,
 G_ETH.mac_length_swap => 1, --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_MODULE_USE => C_PCFG_ETH_USE,
