@@ -60,9 +60,9 @@ begin
   end if;
 end process;
 
--- Reference clock MMCM (CLKFBOUT range 600 MHz to 1200 MHz)
--- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F
--- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F/CLKOUTn_DIVIDE
+-- Reference clock PLL (CLKFBOUT range 400 MHz to 1000 MHz)
+-- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT
+-- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT/CLKOUTn_DIVIDE
 -- CLKFBOUT = (200 MHz/2) * 9.000       = 900 MHz
 -- CLKOUT1  = (200 MHz/2) * 9.000/3     = 300 MHz (mem_clk)
 -- CLKOUT2  = (200 MHz/2) * 9.000/9     = 100 MHz (tmr_clk)
@@ -70,12 +70,12 @@ end process;
 m_pll : PLL_BASE
 generic map(
 CLKIN_PERIOD   => 5.00,
-DIVCLK_DIVIDE  => 2,
-CLKFBOUT_MULT  => 9,
-CLKOUT0_DIVIDE => 1,
-CLKOUT1_DIVIDE => 3,
-CLKOUT2_DIVIDE => 9,
-CLKOUT3_DIVIDE => 1,
+DIVCLK_DIVIDE  => 2,     --integer : 1 to 52
+CLKFBOUT_MULT  => 9,     --integer : 1 to 64
+CLKOUT0_DIVIDE => 1,     --integer : 1 to 128
+CLKOUT1_DIVIDE => 3,     --integer : 1 to 128
+CLKOUT2_DIVIDE => 9,     --integer : 1 to 128
+CLKOUT3_DIVIDE => 1,     --integer : 1 to 128
 CLKOUT0_PHASE  => 0.000,
 CLKOUT1_PHASE  => 0.000,
 CLKOUT2_PHASE  => 0.000,
