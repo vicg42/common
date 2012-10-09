@@ -193,12 +193,20 @@ set _projects [ list \
       [ list "../src/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
       [ list "../src/eth/v6_gtxwizard_gtx_2G.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_gt_clkbuf_v6.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/clocks.vhd" $_VHDMod ] \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/lib/vicg/v6/v6_gt_clkbuf.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mdio.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_mdio_main.vhd" $_VHDMod ] \
+      [ list "../src/eth/coregen_eth_phy_gmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/physical/gmii_if.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/emac_gmii_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/emac_gmii_core_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_gmii_core/example_design/emac_gmii_core_locallink.vhd" $_VHDMod ] \
     ] \
   ] \
 ]

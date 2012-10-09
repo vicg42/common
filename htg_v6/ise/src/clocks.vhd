@@ -21,6 +21,8 @@ use unisim.vcomponents.all;
 
 library work;
 use work.clocks_pkg.all;
+use work.eth_pkg.all;
+use work.prj_cfg.all;
 
 entity clocks is
 port(
@@ -41,6 +43,7 @@ signal i_clk_fb      : std_logic;
 signal g_clk_fb      : std_logic;
 signal i_pll_locked  : std_logic;
 signal i_clk_out     : std_logic_vector(7 downto 0);
+signal i_eth_clk     : std_logic;
 
 begin
 
@@ -63,9 +66,10 @@ end process;
 -- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F
 -- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F/CLKOUTn_DIVIDE
 -- CLKFBOUT = (100 MHz/2) * 16.000       = 800 MHz
--- CLKOUT0  = (100 MHz/2) * 16.000/4.000 = 200 MHz
--- CLKOUT1  = (100 MHz/2) * 16.000/2     = 400 MHz
--- CLKOUT2  = (100 MHz/2) * 16.000/8     = 100 MHz
+-- CLKOUT0  = (100 MHz/2) * 16.000/6.400 = 125 MHz
+-- CLKOUT1  = (100 MHz/2) * 16.000/4     = 200 MHz
+-- CLKOUT2  = (100 MHz/2) * 16.000/2     = 400 MHz
+-- CLKOUT3  = (100 MHz/2) * 16.000/8     = 100 MHz
 
 mmcm_ref_clk_i : MMCM_BASE
 generic map(
@@ -73,10 +77,10 @@ BANDWIDTH          => "OPTIMIZED", -- string := "OPTIMIZED"
 CLKIN1_PERIOD      => 10.000,       -- real := 0.0
 DIVCLK_DIVIDE      => 2,           -- integer := 1 (1 to 128)
 CLKFBOUT_MULT_F    => 16.000,      -- real := 1.0  (5.0 to 64.0)
-CLKOUT0_DIVIDE_F   => 4.000,       -- real := 1.0  (1.0 to 128.0)
-CLKOUT1_DIVIDE     => 2,           -- integer := 1
-CLKOUT2_DIVIDE     => 8,           -- integer := 1
-CLKOUT3_DIVIDE     => 2,           -- integer := 1
+CLKOUT0_DIVIDE_F   => 6.400,       -- real := 1.0  (1.0 to 128.0)
+CLKOUT1_DIVIDE     => 4,           -- integer := 1
+CLKOUT2_DIVIDE     => 2,           -- integer := 1
+CLKOUT3_DIVIDE     => 8,           -- integer := 1
 CLKOUT4_DIVIDE     => 1,           -- integer := 1
 CLKOUT5_DIVIDE     => 1,           -- integer := 1
 CLKOUT6_DIVIDE     => 1,           -- integer := 1
@@ -112,7 +116,7 @@ CLKOUT1   => i_clk_out(1), -- out std_ulogic;
 CLKOUT1B  => open,         -- out std_ulogic;
 CLKOUT2   => i_clk_out(2), -- out std_ulogic;
 CLKOUT2B  => open,         -- out std_ulogic;
-CLKOUT3   => open,         -- out std_ulogic;
+CLKOUT3   => i_clk_out(3), -- out std_ulogic;
 CLKOUT3B  => open,         -- out std_ulogic;
 CLKOUT4   => open,         -- out std_ulogic;
 CLKOUT5   => open,         -- out std_ulogic;
@@ -126,9 +130,34 @@ g_clk_fb <= i_clk_fb;
 p_out_rst <= not(i_pll_locked);
 
 --p_out_gclk(0)<=p_in_clk.clk;
-bufg_clk0: BUFG port map(I => i_clk_out(0), O => p_out_gclk(0)); --200MHz
-bufg_clk1: BUFG port map(I => i_clk_out(1), O => p_out_gclk(1)); --400MHz
-bufg_clk2: BUFG port map(I => i_clk_out(2), O => p_out_gclk(2)); --100MHz
-p_out_gclk(7 downto 3)<=(others=>'0');
+bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
+bufg_clk1: BUFG port map(I => i_clk_out(2), O => p_out_gclk(1)); --400MHz
+bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
+                                                 p_out_gclk(3)<=i_clk_out(4);
+                                                 p_out_gclk(4)<=i_eth_clk; --125MHz
+
+p_out_gclk(7 downto 5)<=(others=>'0');
+
+m_buf_pciexp : IBUFDS_GTXE1 port map (
+I     => p_in_clk.pciexp_clk_p,
+IB    => p_in_clk.pciexp_clk_n,
+CEB   => '0',
+O     => i_clk_out(4),
+ODIV2 => open
+);
+
+gen_eth_fiber : if C_PCFG_ETH_PHY_SEL=C_ETH_PHY_FIBER generate
+m_buf_fiber : IBUFDS_GTXE1 port map (
+I     => p_in_clk.fiber_clk_p,
+IB    => p_in_clk.fiber_clk_n,
+CEB   => '0',
+O     => i_eth_clk,
+ODIV2 => open
+);
+end generate gen_eth_fiber;
+
+gen_eth_copper : if C_PCFG_ETH_PHY_SEL/=C_ETH_PHY_FIBER generate
+i_eth_clk <= i_clk_out(0);
+end generate gen_eth_copper;
 
 end;
