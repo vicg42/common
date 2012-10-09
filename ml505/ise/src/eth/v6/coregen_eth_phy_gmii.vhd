@@ -396,7 +396,7 @@ GMII_RX_CLK<=p_in_phy.pin.gmii(0).rxc;
 
 m_mdio_ctrl : eth_mdio_main
 generic map(
-G_PHY_ADR => 16#02#,--7/2 - PHYA/B
+G_PHY_ADR => 16#07#,--7/2 - PHYA/B
 G_PHY_ID  => "000011001100", --ID for chip Marvel 88E1111
 G_DIV => 16,
 G_DBG => "ON",

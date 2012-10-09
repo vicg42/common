@@ -26,10 +26,9 @@ NET "pin_in_btn_N"   LOC="U8"   | IOSTANDARD=LVCMOS33;
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
-# 125MHz (SGMII)
-NET "pin_in_ethphy_fiber_clk_p" LOC = "P4";
-NET "pin_in_ethphy_fiber_clk_n" LOC = "P3";
-INST "m_gt_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y3";
+#200MHz
+NET "pin_in_ethphy_fiber_clk_n" LOC="K19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_ethphy_fiber_clk_p" LOC="L19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
 #NET "pin_out_ethphy_rset"    LOC = "AN34"; #NET  HDR1_62
 #NET "pin_out_ethphy_coma"    LOC = "AN33"; #NET  HDR1_64

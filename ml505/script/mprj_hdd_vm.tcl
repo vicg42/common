@@ -59,7 +59,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_usr_app.vhd" $_VHDMod ] \
+      [ list "../src/hdd/pcie_usr_app.vhd" $_VHDMod ] \
       [ list "../src/core_gen/ethg_vctrl_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
@@ -166,7 +166,6 @@ set _projects [ list \
       [ list "../src/veresk/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
       [ list "../src/veresk/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/veresk/eth/eth_phy.vhd" $_VHDPkg ] \
-      [ list "../src/veresk/eth/eth_gt_clkbuf_v5.vhd" $_VHDMod ] \
       [ list "../src/veresk/clocks.vhd" $_VHDMod ] \
       [ list "../src/veresk/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/v5_gt_pkg.vhd" $_VHDPkg ] \
@@ -218,6 +217,16 @@ set _projects [ list \
       [ list "../../../common/lib/hw/sata/dsn_hdd.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_rambuf.vhd"  $_VHDMod ] \
       [ list "../../../common/lib/hw/sata/dsn_hdd_reg_def.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mdio.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_mdio_main.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/coregen_eth_phy_gmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/physical/gmii_if.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/emac_core_gmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/emac_core_gmii_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_gmii/example_design/emac_core_gmii_locallink.vhd" $_VHDMod ] \
     ] \
   ] \
 ]

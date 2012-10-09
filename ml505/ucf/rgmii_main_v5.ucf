@@ -26,10 +26,13 @@ NET "pin_in_btn_N"   LOC="U8"   | IOSTANDARD=LVCMOS33;
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
-# 125MHz (SGMII)
-NET "pin_in_ethphy_fiber_clk_p" LOC = "P4";
-NET "pin_in_ethphy_fiber_clk_n" LOC = "P3";
-INST "m_gt_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y3";
+## 125MHz (SGMII)
+#NET "pin_in_ethphy_fiber_clk_p" LOC = "P4";
+#NET "pin_in_ethphy_fiber_clk_n" LOC = "P3";
+#INST "m_gt_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y3";
+#200MHz
+NET "pin_in_ethphy_fiber_clk_n" LOC="K19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_ethphy_fiber_clk_p" LOC="L19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
 
 #NET "pin_in_ethphy_crs"     LOC = "E34"  ;#NET  PHY_CRS
 #NET "pin_in_ethphy_col"     LOC = "B32"  ;#NET  PHY_COL
@@ -80,11 +83,11 @@ TIMESPEC "TS_emac_core_rgmii_clk_phy_rx0"     = PERIOD "emac_core_rgmii_clk_phy_
 
 # Set the IDELAY values on the data inputs.
 # Please modify to suit your design.
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_ctl_delay" IDELAY_VALUE = 27;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d0_delay"  IDELAY_VALUE = 27;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d1_delay"  IDELAY_VALUE = 27;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d2_delay"  IDELAY_VALUE = 27;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d3_delay"  IDELAY_VALUE = 27;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_ctl_delay" IDELAY_VALUE = 20;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d0_delay"  IDELAY_VALUE = 20;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d1_delay"  IDELAY_VALUE = 20;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d2_delay"  IDELAY_VALUE = 20;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii0?rgmii_rx_d3_delay"  IDELAY_VALUE = 20;
 
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii_rxc0_delay"          IDELAY_VALUE = 0;
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*rgmii_rxc0_delay"          SIGNAL_PATTERN = CLOCK;
@@ -174,8 +177,8 @@ TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
 
 
 ## Set IODELAY_GROUP constraint for IDELAYCTRL
-#INST "*dlyctrl0"   IODELAY_GROUP = IG_v5_emac;
-#
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*dlyctrl0"   IODELAY_GROUP = IG_v5_emac;
+
 #INST "rgmii_rxd_0<0>"    LOC = "BANK3";
 #INST "rgmii_rxd_0<1>"    LOC = "BANK3";
 #INST "rgmii_rxd_0<2>"    LOC = "BANK3";

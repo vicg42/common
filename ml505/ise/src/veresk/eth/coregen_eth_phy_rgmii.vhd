@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- Title      : Virtex-5 Ethernet MAC Example Design Wrapper
 -- Project    : Virtex-5 Embedded Tri-Mode Ethernet MAC Wrapper
--- File       : eth_phy_copper.vhd
+-- File       : emac_core_rgmii_example_design.vhd
 -- Version    : 1.8
 -------------------------------------------------------------------------------
 --
@@ -113,7 +113,6 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.eth_pkg.all;
-use work.eth_phypin_pkg.all;
 
 
 
@@ -162,15 +161,13 @@ entity eth_phy_copper is
 --      -- Clock Signals - EMAC0
 --      GTX_CLK_0                       : in  std_logic;
 --
---      -- GMII Interface - EMAC0
---      GMII_TXD_0                      : out std_logic_vector(7 downto 0);
---      GMII_TX_EN_0                    : out std_logic;
---      GMII_TX_ER_0                    : out std_logic;
---      GMII_TX_CLK_0                   : out std_logic;
---      GMII_RXD_0                      : in  std_logic_vector(7 downto 0);
---      GMII_RX_DV_0                    : in  std_logic;
---      GMII_RX_ER_0                    : in  std_logic;
---      GMII_RX_CLK_0                   : in  std_logic;
+--      -- RGMII Interface - EMAC0
+--      RGMII_TXD_0                     : out std_logic_vector(3 downto 0);
+--      RGMII_TX_CTL_0                  : out std_logic;
+--      RGMII_TXC_0                     : out std_logic;
+--      RGMII_RXD_0                     : in  std_logic_vector(3 downto 0);
+--      RGMII_RX_CTL_0                  : in  std_logic;
+--      RGMII_RXC_0                     : in  std_logic;
 --
 --      -- Reference clock for RGMII IODELAYs
 --      REFCLK                          : in  std_logic;
@@ -189,7 +186,7 @@ architecture TOP_LEVEL of eth_phy_copper is
 -------------------------------------------------------------------------------
   -- Component Declaration for the TEMAC wrapper with
   -- Local Link FIFO.
-  component emac_core_gmii_locallink is
+  component emac_core_rgmii_locallink is
    port(
       -- EMAC0 Clocking
       -- TX Clock output from EMAC
@@ -237,15 +234,13 @@ architecture TOP_LEVEL of eth_phy_copper is
       -- Clock Signals - EMAC0
       GTX_CLK_0                       : in  std_logic;
 
-      -- GMII Interface - EMAC0
-      GMII_TXD_0                      : out std_logic_vector(7 downto 0);
-      GMII_TX_EN_0                    : out std_logic;
-      GMII_TX_ER_0                    : out std_logic;
-      GMII_TX_CLK_0                   : out std_logic;
-      GMII_RXD_0                      : in  std_logic_vector(7 downto 0);
-      GMII_RX_DV_0                    : in  std_logic;
-      GMII_RX_ER_0                    : in  std_logic;
-      GMII_RX_CLK_0                   : in  std_logic;
+      -- RGMII Interface - EMAC0
+      RGMII_TXD_0                     : out std_logic_vector(3 downto 0);
+      RGMII_TX_CTL_0                  : out std_logic;
+      RGMII_TXC_0                     : out std_logic;
+      RGMII_RXD_0                     : in  std_logic_vector(3 downto 0);
+      RGMII_RX_CTL_0                  : in  std_logic;
+      RGMII_RXC_0                     : in  std_logic;
 
 
 
@@ -311,10 +306,10 @@ architecture TOP_LEVEL of eth_phy_copper is
 
     -- EMAC0 Clocking signals
 
-    -- GMII input clocks to wrappers
+    -- RGMII input clocks to wrappers
     signal tx_clk_0                  : std_logic;
     signal rx_clk_0_i                : std_logic;
-    signal gmii_rx_clk_0_delay       : std_logic;
+    signal rgmii_rxc_0_delay         : std_logic;
 
     -- IDELAY controller
     signal idelayctrl_reset_0_r      : std_logic_vector(12 downto 0);
@@ -331,7 +326,7 @@ architecture TOP_LEVEL of eth_phy_copper is
     signal gtx_clk_0_i               : std_logic;
     attribute buffer_type of gtx_clk_0_i  : signal is "none";
 
-------
+-----------
 component eth_mdio_main
 generic(
 G_PHY_ADR : integer:=16#07#;
@@ -373,8 +368,22 @@ p_in_rst       : in    std_logic
 );
 end component;
 
-signal i_CLIENTEMACTXIFGDELAY  : std_logic_vector(7 downto 0);
-signal GMII_RX_CLK_0           : std_logic;
+--component mclk_gtp_wrap
+--generic(
+--G_SIM  : string:="OFF"
+--);
+--port(
+--p_out_txn : out   std_logic_vector(1 downto 0);
+--p_out_txp : out   std_logic_vector(1 downto 0);
+--p_in_rxn  : in    std_logic_vector(1 downto 0);
+--p_in_rxp  : in    std_logic_vector(1 downto 0);
+--clkin     : in    std_logic;
+--clkout    : out   std_logic
+--);
+--end component;
+
+signal RGMII_RXC_0               : std_logic;
+signal i_CLIENTEMACTXIFGDELAY    : std_logic_vector(7 downto 0);
 
 signal i_phy_rst                 : std_logic;
 signal i_phy_err                 : std_logic;
@@ -397,12 +406,11 @@ p_out_phy.rdy<=not i_phy_err;--not i_phy_err and i_phy_cfg_done;
 p_out_phy.clk<=ll_clk_0_i;
 p_out_phy.rst<=i_phy_rst;
 p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_0_i;
-p_out_phy.opt(C_ETHPHY_OPTOUT_SFP_TXDIS_BIT)<='0';
 
 reset_i<=p_in_rst;
 gtx_clk_0_i<=p_in_phy.clk; --GTX_CLK_0
 refclk_ibufg_i<=p_in_phy.clk; --REFCLK
-GMII_RX_CLK_0<=p_in_phy.pin.gmii(0).rxc;
+RGMII_RXC_0<=p_in_phy.pin.rgmii(0).rxc;
 
 m_mdio_ctrl : eth_mdio_main
 generic map(
@@ -444,14 +452,14 @@ p_in_clk       => ll_clk_0_i,
 p_in_rst       => p_in_rst
 );
 
---    ---------------------------------------------------------------------------
---    -- Reset Input Buffer
---    ---------------------------------------------------------------------------
+    ---------------------------------------------------------------------------
+    -- Reset Input Buffer
+    ---------------------------------------------------------------------------
 --    reset_ibuf : IBUF port map (I => RESET, O => reset_i);
 
     -- EMAC0 Clocking
 
-    -- Use IDELAY on GMII_RX_CLK_0 to move the clock into
+    -- Use IDELAY on RGMII_RXC_0 to move the clock into
     -- alignment with the data
 
     -- Instantiate IDELAYCTRL for the IDELAY in Fixed Tap Delay Mode
@@ -477,17 +485,17 @@ p_in_rst       => p_in_rst
     -- Please modify the value of the IOBDELAYs according to your design.
     -- For more information on IDELAYCTRL and IODELAY, please refer to
     -- the Virtex-5 User Guide.
-    gmii_rxc0_delay : IODELAY
+    rgmii_rxc0_delay : IODELAY
     generic map (
         IDELAY_TYPE    => "FIXED",
-        IDELAY_VALUE   => 0,
+       	IDELAY_VALUE   => 0,
         DELAY_SRC      => "I",
         SIGNAL_PATTERN => "CLOCK"
         )
     port map (
-        IDATAIN    => GMII_RX_CLK_0,
+        IDATAIN    => RGMII_RXC_0,
         ODATAIN    => '0',
-        DATAOUT    => gmii_rx_clk_0_delay,
+        DATAOUT    => rgmii_rxc_0_delay,
         DATAIN     => '0',
         C          => '0',
         T          => '0',
@@ -504,16 +512,16 @@ p_in_rst       => p_in_rst
 
     -- Put the RX PHY clock through a BUFG.
     -- Used to clock the RX section of the EMAC wrappers.
-    bufg_rx_0 : BUFG port map (I => gmii_rx_clk_0_delay, O => rx_clk_0_i);
+    bufg_rx_0 : BUFG port map (I => rgmii_rxc_0_delay, O => rx_clk_0_i);
 
     ll_clk_0_i <= tx_clk_0;
 
 
     ------------------------------------------------------------------------
     -- Instantiate the EMAC Wrapper with LL FIFO
-    -- (emac_core_gmii_locallink.v)
+    -- (emac_core_rgmii_locallink.v)
     ------------------------------------------------------------------------
-    m_emac_ll : emac_core_gmii_locallink
+    m_emac_ll : emac_core_rgmii_locallink
     port map (
       -- EMAC0 Clocking
       -- TX Clock output from EMAC
@@ -559,17 +567,13 @@ p_in_rst       => p_in_rst
 
       -- Clock Signals - EMAC0
       GTX_CLK_0                       => '0',
-      -- GMII Interface - EMAC0
-      GMII_TXD_0                      => p_out_phy.pin.gmii(0).txd,  --GMII_TXD_0,
-      GMII_TX_EN_0                    => p_out_phy.pin.gmii(0).tx_en,--GMII_TX_EN_0,
-      GMII_TX_ER_0                    => p_out_phy.pin.gmii(0).tx_er,--GMII_TX_ER_0,
-      GMII_TX_CLK_0                   => p_out_phy.pin.gmii(0).txc,  --GMII_TX_CLK_0,
-      GMII_RXD_0                      => p_in_phy.pin.gmii(0).rxd,   --GMII_RXD_0,
-      GMII_RX_DV_0                    => p_in_phy.pin.gmii(0).rx_dv, --GMII_RX_DV_0,
-      GMII_RX_ER_0                    => p_in_phy.pin.gmii(0).rx_er, --GMII_RX_ER_0,
-      GMII_RX_CLK_0                   => rx_clk_0_i,
-
-
+      -- RGMII Interface - EMAC0
+      RGMII_TXD_0                     => p_out_phy.pin.rgmii(0).txd,   --RGMII_TXD_0,
+      RGMII_TX_CTL_0                  => p_out_phy.pin.rgmii(0).tx_ctl,--RGMII_TX_CTL_0,
+      RGMII_TXC_0                     => p_out_phy.pin.rgmii(0).txc,   --RGMII_TXC_0,
+      RGMII_RXD_0                     => p_in_phy.pin.rgmii(0).rxd,    --RGMII_RXD_0,
+      RGMII_RX_CTL_0                  => p_in_phy.pin.rgmii(0).rx_ctl, --RGMII_RX_CTL_0,
+      RGMII_RXC_0                     => rx_clk_0_i,
 
       -- Asynchronous Reset
       RESET                           => reset_i
@@ -609,19 +613,17 @@ p_in_rst       => p_in_rst
       end if;
     end process gen_ll_reset_emac0;
 
---    ------------------------------------------------------------------------
---    -- REFCLK used for RGMII IODELAYCTRL primitive - Need to supply a 200MHz clock
---    ------------------------------------------------------------------------
+    ------------------------------------------------------------------------
+    -- REFCLK used for RGMII IODELAYCTRL primitive - Need to supply a 200MHz clock
+    ------------------------------------------------------------------------
 --    refclk_ibufg : IBUFG port map(I => REFCLK, O => refclk_ibufg_i);
     refclk_bufg  : BUFG  port map(I => refclk_ibufg_i, O => refclk_bufg_i);
 
 --    ----------------------------------------------------------------------
---    -- Stop the tools from automatically adding in a BUFG on the
+--    -- Cause the tools to automatically choose a GC pin for the
 --    -- GTX_CLK_0 line.
 --    ----------------------------------------------------------------------
---    gtx_clk0_ibuf : IBUF port map (I => GTX_CLK_0, O => gtx_clk_0_i);
-
-
+--    gtx_clk0_ibuf : IBUFG port map (I => GTX_CLK_0, O => gtx_clk_0_i);
 
 
 end TOP_LEVEL;

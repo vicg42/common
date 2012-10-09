@@ -53,6 +53,32 @@ end entity;
 
 architecture struct of ethphy_test_main is
 
+--Таймер отправки тестовых EthPkt
+constant CI_ETH_TX_TMR : integer:=2250;--1 такт = 1ms
+
+--MAC FRAME: CI_ETH_MAC_DST/CI_ETH_MAC_SRC/LEN/CI_ETH_TSTDATA_COUNT
+constant CI_ETH_TSTDATA_COUNT : integer:=1424;--860;--
+
+--MAC для PC
+constant CI_ETH_MAC_DST: TEthMacAdr:=(
+CONV_STD_LOGIC_VECTOR(16#90#, 8),
+CONV_STD_LOGIC_VECTOR(16#E6#, 8),
+CONV_STD_LOGIC_VECTOR(16#BA#, 8),
+CONV_STD_LOGIC_VECTOR(16#CE#, 8),
+CONV_STD_LOGIC_VECTOR(16#31#, 8),
+CONV_STD_LOGIC_VECTOR(16#DA#, 8)
+);
+
+--MAC для FPGA
+constant CI_ETH_MAC_SRC: TEthMacAdr:=(
+CONV_STD_LOGIC_VECTOR(16#A0#, 8),
+CONV_STD_LOGIC_VECTOR(16#A1#, 8),
+CONV_STD_LOGIC_VECTOR(16#A2#, 8),
+CONV_STD_LOGIC_VECTOR(16#A3#, 8),
+CONV_STD_LOGIC_VECTOR(16#A4#, 8),
+CONV_STD_LOGIC_VECTOR(16#A5#, 8)
+);
+
 component host_ethg_txfifo
 port(
 din         : IN  std_logic_vector(31 downto 0);
@@ -163,6 +189,8 @@ signal i_eth_txpkt_wr                  : std_logic;
 signal i_eth_txpkt_len                 : std_logic_vector(15 downto 0);
 signal i_eth_txpkt_tx_dlycnt           : std_logic_vector(15 downto 0);
 
+type TEthTstData is array (0 to i_eth_txpkt_d'length/8 - 1) of std_logic_vector(7 downto 0);
+
 signal i_t1ms                          : std_logic;
 signal i_test01_led                    : std_logic;
 signal i_mnl_rst                       : std_logic;
@@ -191,7 +219,7 @@ begin
   end if;
 end process;
 
-i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1);
+i_sys_rst <= i_sys_rst_cnt(i_sys_rst_cnt'high - 1) or i_eth_gt_refclk125_in(1);
 
 
 --***********************************************************
@@ -203,43 +231,43 @@ p_in_ethphy => pin_in_ethphy,
 p_out_clk   => i_eth_gt_refclk125_in
 );
 
-----//Только для SGMII
---i_eth_gt_refclk125_out<=i_eth_gt_refclk125_in(0);
+--//Только для SGMII + когда Eth clk использую DCM
+i_eth_gt_refclk125_out<=i_eth_gt_refclk125_in(0);
 
---//Только для GMII/RGMII
-pin_out_ethphy.fiber.txp <= i_eth_gt_txp(pin_out_ethphy.fiber.txp'range);
-pin_out_ethphy.fiber.txn <= i_eth_gt_txn(pin_out_ethphy.fiber.txn'range);
-
-i_eth_gt_rxn <= EXT(pin_in_ethphy.fiber.rxn, i_eth_gt_rxp'length);
-i_eth_gt_rxp <= EXT(pin_in_ethphy.fiber.rxp, i_eth_gt_rxp'length);
-
-m_gt_clk : mclk_gtp_wrap
-generic map(
-G_SIM => G_SIM
-)
-port map(
-p_out_txn => i_eth_gt_txn,
-p_out_txp => i_eth_gt_txp,
-p_in_rxn  => i_eth_gt_rxn,
-p_in_rxp  => i_eth_gt_rxp,
-clkin     => i_eth_gt_refclk125_in(0),
-clkout    => i_eth_gt_refclk125_out
-);
+----//Только для GMII/RGMII + когда Eth clk использую GT
+--pin_out_ethphy.fiber.txp <= i_eth_gt_txp(pin_out_ethphy.fiber.txp'range);
+--pin_out_ethphy.fiber.txn <= i_eth_gt_txn(pin_out_ethphy.fiber.txn'range);
+--
+--i_eth_gt_rxn <= EXT(pin_in_ethphy.fiber.rxn, i_eth_gt_rxp'length);
+--i_eth_gt_rxp <= EXT(pin_in_ethphy.fiber.rxp, i_eth_gt_rxp'length);
+--
+--m_gt_clk : mclk_gtp_wrap
+--generic map(
+--G_SIM => G_SIM
+--)
+--port map(
+--p_out_txn => i_eth_gt_txn,
+--p_out_txp => i_eth_gt_txp,
+--p_in_rxn  => i_eth_gt_rxn,
+--p_in_rxp  => i_eth_gt_rxp,
+--clkin     => i_eth_gt_refclk125_in(0),
+--clkout    => i_eth_gt_refclk125_out
+--);
 
 
 --***********************************************************
 --Проект Ethernet - dsn_eth.vhd
 --***********************************************************
---pin_out_ethphy.rgmii(0).tx_ctl<=i_ethphy_out.pin.rgmii(0).tx_ctl;
---pin_out_ethphy.rgmii(0).txc   <=i_ethphy_out.pin.rgmii(0).txc;
---pin_out_ethphy.rgmii(0).txd   <=i_ethphy_out.pin.rgmii(0).txd;
---i_ethphy_in.pin.rgmii(0)<=pin_in_ethphy.rgmii(0);
+pin_out_ethphy.rgmii(0).tx_ctl<=i_ethphy_out.pin.rgmii(0).tx_ctl;
+pin_out_ethphy.rgmii(0).txc   <=i_ethphy_out.pin.rgmii(0).txc;
+pin_out_ethphy.rgmii(0).txd   <=i_ethphy_out.pin.rgmii(0).txd;
+i_ethphy_in.pin.rgmii(0)<=pin_in_ethphy.rgmii(0);
 
-pin_out_ethphy.gmii(0).tx_er <=i_ethphy_out.pin.gmii(0).tx_er;
-pin_out_ethphy.gmii(0).tx_en <=i_ethphy_out.pin.gmii(0).tx_en;
-pin_out_ethphy.gmii(0).txc   <=i_ethphy_out.pin.gmii(0).txc;
-pin_out_ethphy.gmii(0).txd   <=i_ethphy_out.pin.gmii(0).txd;
-i_ethphy_in.pin.gmii(0)<=pin_in_ethphy.gmii(0);
+--pin_out_ethphy.gmii(0).tx_er <=i_ethphy_out.pin.gmii(0).tx_er;
+--pin_out_ethphy.gmii(0).tx_en <=i_ethphy_out.pin.gmii(0).tx_en;
+--pin_out_ethphy.gmii(0).txc   <=i_ethphy_out.pin.gmii(0).txc;
+--pin_out_ethphy.gmii(0).txd   <=i_ethphy_out.pin.gmii(0).txd;
+--i_ethphy_in.pin.gmii(0)<=pin_in_ethphy.gmii(0);
 
 --pin_out_ethphy.sgmii.txp <=i_ethphy_out.pin.sgmii.txp;
 --pin_out_ethphy.sgmii.txn <=i_ethphy_out.pin.sgmii.txn;
@@ -345,34 +373,34 @@ begin
         i_eth_cfg_radr_ld<='0';
         i_eth_cfg_radr_fifo<='0';
         i_eth_cfg_wr<='1';
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(16#90#, 8);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CONV_STD_LOGIC_VECTOR(16#E6#, 8);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_DST(0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_DST(1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST1;
 
       when S_CFG_ETH_MAC_DST1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(16#BA#, 8);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CONV_STD_LOGIC_VECTOR(16#CE#, 8);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_DST(2);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_DST(3);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST2;
 
       when S_CFG_ETH_MAC_DST2 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(16#31#, 8);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CONV_STD_LOGIC_VECTOR(16#DA#, 8);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_DST(4);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_DST(5);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC0;
 
       --Set MAC/SRC
       when S_CFG_ETH_MAC_SRC0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(16#A0#, 8);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CONV_STD_LOGIC_VECTOR(16#A1#, 8);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_SRC(0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_SRC(1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC1;
 
       when S_CFG_ETH_MAC_SRC1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(16#A2#, 8);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CONV_STD_LOGIC_VECTOR(16#A3#, 8);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_SRC(2);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_SRC(3);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC2;
 
       when S_CFG_ETH_MAC_SRC2 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CONV_STD_LOGIC_VECTOR(16#A4#, 8);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CONV_STD_LOGIC_VECTOR(16#A5#, 8);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_SRC(4);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_SRC(5);
         fsm_ethcfg_cs<=S_CFG_ETH_DONE;
 
       when S_CFG_ETH_DONE =>
@@ -389,6 +417,7 @@ end process;
 --и отправляем в модуль m_eth1
 --***********************************************************
 process(i_sys_rst,i_ethphy_out)
+variable eth_tstd : TEthTstData;
 begin
   if i_sys_rst='1' then
     fsm_usrpkt_tx_cs<=S_USR_PKT_TXDLY;
@@ -398,6 +427,9 @@ begin
     i_eth_txpkt_wr<='0';
     i_eth_txpkt_len<=(others=>'0');
     i_eth_txpkt_tx_dlycnt<=(others=>'0');
+    for i in 0 to eth_tstd'length-1 loop
+    eth_tstd(i):=(others=>'0');
+    end loop;
 
   elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
 
@@ -412,9 +444,9 @@ begin
           if i_ethphy_out.link='1' then
 
               if i_t1ms='1' then
-                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(2250,i_eth_txpkt_tx_dlycnt'length) then
+                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(CI_ETH_TX_TMR,i_eth_txpkt_tx_dlycnt'length) then
                   i_eth_txpkt_tx_dlycnt<=(others=>'0');
-                  i_eth_txpkt_len<=CONV_STD_LOGIC_VECTOR(2 + 128, 16);
+                  i_eth_txpkt_len<=CONV_STD_LOGIC_VECTOR(2 + CI_ETH_TSTDATA_COUNT, 16);
                   i_eth_txpkt_dcnt<=(others=>'0');
                   fsm_usrpkt_tx_cs<=S_USR_PKT_TX0;
                 else
@@ -432,21 +464,30 @@ begin
 
           if i_eth_in(0).txbuf.full='0' then
             i_eth_txpkt_d(15 downto 0)<=i_eth_txpkt_len;
-            i_eth_txpkt_d(31 downto 16)<=CONV_STD_LOGIC_VECTOR(16#0000#, 16);
+            i_eth_txpkt_d(31 downto 16)<=CONV_STD_LOGIC_VECTOR(16#0504#, 16);
             i_eth_txpkt_wr<='1';
-            i_eth_txpkt_dcnt<=i_eth_txpkt_dcnt + 2;
+            i_eth_txpkt_dcnt<=CONV_STD_LOGIC_VECTOR(16#00#, 16);
+
+            for i in 0 to eth_tstd'length-1 loop
+            eth_tstd(i):=CONV_STD_LOGIC_VECTOR(2 + i , eth_tstd(i)'length);
+            end loop;
+
             fsm_usrpkt_tx_cs<=S_USR_PKT_TX1;
           end if;
 
       when S_USR_PKT_TX1 =>
 
           if i_eth_in(0).txbuf.full='0' then
-            if i_eth_txpkt_dcnt=i_eth_txpkt_len then
+            if ("00"&i_eth_txpkt_dcnt(i_eth_txpkt_dcnt'length-1 downto 2))=CONV_STD_LOGIC_VECTOR(CI_ETH_TSTDATA_COUNT/4, i_eth_txpkt_dcnt'length) then
               i_eth_txpkt_dcnt<=(others=>'0');
               i_eth_txpkt_wr<='0';
               fsm_usrpkt_tx_cs<=S_USR_PKT_TXDLY;
             else
-              i_eth_txpkt_d<=EXT(i_eth_txpkt_dcnt, i_eth_txpkt_d'length);
+              for i in 0 to eth_tstd'length-1 loop
+                eth_tstd(i):=eth_tstd(i) + CONV_STD_LOGIC_VECTOR(eth_tstd'length, eth_tstd(i)'length);
+              i_eth_txpkt_d(8*(i+1)-1 downto 8*i)<=eth_tstd(i);
+              end loop;
+
               i_eth_txpkt_dcnt<=i_eth_txpkt_dcnt + 4;
             end if;
           end if;
@@ -485,9 +526,9 @@ end generate gen_htgv6;
 
 i_mnl_rst<=i_sys_rst or i_usr_rst;
 
-pin_out_led(0)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT) and
+pin_out_led(0)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT) and i_usr_rst and
                 (OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx));
-pin_out_led(1)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT);
+pin_out_led(1)<='0';
 pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 

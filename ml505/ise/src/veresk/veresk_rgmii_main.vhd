@@ -2,7 +2,7 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 21.09.2012 15:24:15
+-- Create Date : 23.11.2011 18:05:23
 -- Module Name : veresk_rgmii_main
 --
 -- Назначение/Описание :
@@ -45,7 +45,6 @@ port(
 --Технологический порт
 --------------------------------------------------
 pin_out_led         : out   std_logic_vector(7 downto 0);
-pin_in_btn_N        : in    std_logic;
 
 --------------------------------------------------
 --Memory banks
@@ -72,8 +71,6 @@ pin_out_pciexp_txp  : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_out_pciexp_txn  : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_rxp   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_rxn   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
-pin_in_pciexp_clk_p : in    std_logic;
-pin_in_pciexp_clk_n : in    std_logic;
 pin_in_pciexp_rstn  : in    std_logic;
 
 --------------------------------------------------
@@ -84,20 +81,6 @@ pin_in_refclk       : in    TRefClkPinIN
 end entity;
 
 architecture struct of veresk_rgmii_main is
-
-component mclk_gtp_wrap
-generic(
-G_SIM  : string:="OFF"
-);
-port(
-p_out_txn : out   std_logic_vector(1 downto 0);
-p_out_txp : out   std_logic_vector(1 downto 0);
-p_in_rxn  : in    std_logic_vector(1 downto 0);
-p_in_rxp  : in    std_logic_vector(1 downto 0);
-clkin     : in    std_logic;
-clkout    : out   std_logic
-);
-end component;
 
 component fpga_test_01
 generic(
@@ -126,23 +109,6 @@ p_out_gclk : out   std_logic_vector(7 downto 0);
 
 p_in_clkopt: in    std_logic_vector(3 downto 0);
 p_in_clk   : in    TRefClkPinIN
-);
-end component;
-
-component gt_clkbuf is
-port(
-p_in_clkp  : in    std_logic;
-p_in_clkn  : in    std_logic;
-p_out_clk  : out   std_logic;
-p_in_opt   : in    std_logic_vector(3 downto 0);
-p_out_opt  : out   std_logic_vector(3 downto 0)
-);
-end component;
-
-component eth_gt_clkbuf is
-port(
-p_in_ethphy : in    TEthPhyPinIN;
-p_out_clk   : out   std_logic_vector(1 downto 0)
 );
 end component;
 
@@ -302,7 +268,7 @@ attribute keep of g_usrclk : signal is "true";
 attribute keep of i_ethphy_out : signal is "true";
 
 signal i_test01_led     : std_logic;
-signal i_usr_rst        : std_logic;
+signal tst_clr          : std_logic;
 
 
 --//MAIN
@@ -312,19 +278,11 @@ begin
 --***********************************************************
 --//RESET модулей
 --***********************************************************
-gen_ml505 : if strcmp(C_PCFG_BOARD,"ML505") generate
-i_usr_rst <= pin_in_btn_N;
-end generate gen_ml505;
-
-gen_htgv6 : if strcmp(C_PCFG_BOARD,"HTGV6") generate
-i_usr_rst <= not pin_in_btn_N;
-end generate gen_htgv6;
-
 i_host_rst_n <=pin_in_pciexp_rstn;
 
 i_tmr_rst    <=not i_host_rst_n or i_host_rst_all;
 i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
-i_eth_rst    <=not i_host_rst_n or i_host_rst_all or i_host_rst_eth or i_usr_rst;
+i_eth_rst    <=not i_host_rst_n or i_host_rst_all or i_host_rst_eth or i_usrclk_rst;
 i_vctrl_rst  <=not OR_reduce(i_mem_ctrl_status.rdy);
 i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
@@ -336,21 +294,6 @@ i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 --***********************************************************
 --Установка частот проекта:
 --***********************************************************
-ibuf_pciexp_gt_refclk : gt_clkbuf
-port map(
-p_in_clkp  => pin_in_pciexp_clk_p,
-p_in_clkn  => pin_in_pciexp_clk_n,
-p_out_clk  => i_pciexp_gt_refclk,
-p_in_opt   => (others=>'0'),
-p_out_opt  => open
-);
-
-ibuf_eth_gt_refclk : eth_gt_clkbuf
-port map(
-p_in_ethphy => pin_in_ethphy,
-p_out_clk   => i_eth_gt_refclk125
-);
-
 m_clocks : clocks
 port map(
 p_out_rst  => i_usrclk_rst,
@@ -367,6 +310,9 @@ g_usr_highclk<=i_mem_ctrl_sysout.clk;
 i_tmr_clk<=g_usrclk(2);
 i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);
 i_mem_ctrl_sysin.clk<=g_usrclk(1);
+
+i_pciexp_gt_refclk <= g_usrclk(3);
+i_ethphy_in.clk<=g_usrclk(4);
 
 
 --***********************************************************
@@ -586,32 +532,14 @@ i_swt_tst_in(31 downto 2)<=(others=>'0');
 --***********************************************************
 --Проект Ethernet - dsn_eth.vhd
 --***********************************************************
-pin_out_ethphy.gmii<=i_ethphy_out.pin.gmii;
-i_ethphy_in.pin.gmii<=pin_in_ethphy.gmii;
-
-m_gt_0 : mclk_gtp_wrap
-generic map(
-G_SIM => "OFF"
-)
-port map(
-p_out_txn => pin_out_ethphy.fiber.txn,
-p_out_txp => pin_out_ethphy.fiber.txp,
-p_in_rxn  => pin_in_ethphy.fiber.rxn,
-p_in_rxp  => pin_in_ethphy.fiber.rxp,
-clkin     => i_eth_gt_refclk125(0),
-clkout    => i_ethphy_in.clk
-);
-
---pin_out_ethphy<=i_ethphy_out.pin;
---i_ethphy_in.pin<=pin_in_ethphy;
---
---i_ethphy_in.clk<=i_eth_gt_refclk125(0);
+pin_out_ethphy<=i_ethphy_out.pin;
+i_ethphy_in.pin<=pin_in_ethphy;
 
 pin_out_sfp_tx_dis<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_SFP_TXDIS_BIT);
 
 i_ethphy_in.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT)<=g_usrclk(0);
 i_ethphy_in.opt(C_ETHPHY_OPTIN_SFP_SD_BIT)<=pin_in_sfp_sd;
-i_ethphy_in.opt(32)<=i_eth_gt_refclk125(1);
+i_ethphy_in.opt(32)<=g_usrclk(6);
 i_ethphy_in.opt(33)<=i_usrclk_rst;--rst
 i_ethphy_in.opt(34)<=g_usrclk(2);--clkdrp
 
@@ -624,8 +552,8 @@ m_eth : dsn_eth
 generic map(
 G_ETH.gtch_count_max  => C_PCFG_ETH_GTCH_COUNT_MAX,
 G_ETH.usrbuf_dwidth   => 32,
-G_ETH.phy_dwidth      => C_PCFG_ETH_PHY_DWIDTH,
-G_ETH.phy_select      => C_ETH_PHY_FIBER,
+G_ETH.phy_dwidth      => selval (16, 8 , cmpval (C_PCFG_ETH_PHY_SEL, C_ETH_PHY_FIBER)),
+G_ETH.phy_select      => C_PCFG_ETH_PHY_SEL,
 G_ETH.mac_length_swap => 1, --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_MODULE_USE => C_PCFG_ETH_USE,
 G_DBG        => C_PCFG_ETH_DBG,
@@ -1131,8 +1059,8 @@ p_in_sys        => i_mem_ctrl_sysin
 --//DBG
 --//#########################################
 pin_out_led(0)<=i_test01_led;
-pin_out_led(1)<=i_ethphy_out.link;
-pin_out_led(2)<=not i_ethphy_out.rdy;--read bad ID from ETHPHY
+pin_out_led(1)<='0';
+pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 pin_out_led(4)<='0';
 pin_out_led(5)<='0';

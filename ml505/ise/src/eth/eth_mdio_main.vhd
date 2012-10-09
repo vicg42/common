@@ -64,16 +64,17 @@ end eth_mdio_main;
 architecture behavioral of eth_mdio_main is
 
 --Значения задержек для p_in_clk=125MHz
-constant CI_RST_WIDTH       : integer:=6250000;--50ms
-constant CI_RST_DLY         : integer:=2500000;--20ms
-constant CI_MDIO_DLY        : integer:=2500000;--20ms
-constant CI_RD_STATUS_DLY   : integer:=62500000;--500ms
+constant CI_RST_WIDTH       : integer:=2500000;--20ms (min 10 ms!!! - form datasheet 88E1111)
+constant CI_RST_DLY         : integer:=2500000;--20ms (min 5 ms!!! - form datasheet 88E1111)
+constant CI_MDIO_DLY        : integer:=250;--2us (задержка между записью/чением регистров 88E1111 при конфигурировании)
+constant CI_RD_STATUS_DLY   : integer:=62500000;--500ms (период опроса регистра CI_RPHY_STATUS)
 
 --Register Map:
 constant CI_RPHY_CTRL       : integer:=0;--Глобальное управление
 constant CI_RPHY_IDENTIFIER : integer:=3;
 constant CI_RPHY_STATUS     : integer:=1;--Статус для Eth Copper
 constant CI_RPHY_SCTRL      : integer:=20;--Управление RGMII
+constant CI_RPHY_PAGE       : integer:=22;--Управление страницами
 
 component eth_mdio
 generic(
@@ -131,6 +132,11 @@ S_PHY_CTRL_WR,
 S_PHY_CTRL_WR_DONE,
 S_PHY_STATUS_RD,
 S_PHY_STATUS_RD_DONE
+
+--S_PHY_LB_RD,
+--S_PHY_LB_RD_DONE,
+--S_PHY_LB_WR,
+--S_PHY_LB_WR_DONE
 );
 signal fsm_ctrl_cs: TCtrl_fsm;
 
@@ -146,7 +152,7 @@ signal i_phy_err         : std_logic;
 signal i_phy_link        : std_logic;
 signal i_phy_cfg_done    : std_logic;
 signal i_phy_rst         : std_logic;
-
+signal i_phy_loopback_on : std_logic;
 signal i_cntdly          : std_logic_vector(31 downto 0);
 
 signal tst_fms_cs        : std_logic_vector(3 downto 0);
@@ -217,7 +223,7 @@ begin
     i_phy_link<='0';
     i_phy_cfg_done<='0';
     i_phy_rst<='0';
-
+    i_phy_loopback_on<='0';
     i_cntdly<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -306,7 +312,7 @@ begin
           i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_SCTRL,i_mdio_areg'length);
 
           i_mdio_txd(15)<=i_mdio_rxd(15);
-          i_mdio_txd(14)<='0';--1/0 - Enable/Disable Loopback
+          i_mdio_txd(14)<=i_mdio_rxd(14);
           i_mdio_txd(13 downto 8)<=i_mdio_rxd(13 downto 8);
           i_mdio_txd(7)<='1';--1 - Add delay to RX_CLK for RxD output
           i_mdio_txd(6 downto 4)<=i_mdio_rxd(6 downto 4);
@@ -323,8 +329,6 @@ begin
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          i_phy_cfg_done<='1';
-
           fsm_ctrl_cs<=S_PHY_CTRL_RD;
         end if;
 
@@ -376,7 +380,6 @@ begin
 
         i_mdio_start<='0';
         if i_mdio_done='1' then
-            i_phy_cfg_done<='1';
            fsm_ctrl_cs<=S_PHY_STATUS_RD;
         end if;
 
@@ -402,11 +405,129 @@ begin
 
       when S_PHY_STATUS_RD_DONE =>
 
+        i_phy_cfg_done<='1';
         i_mdio_start<='0';
         if i_mdio_done='1' then
           i_phy_link<=i_mdio_rxd(2);
-          fsm_ctrl_cs<=S_PHY_STATUS_RD;
+--          if i_phy_link='0' then
+--            i_phy_loopback_on<='0';
+            fsm_ctrl_cs<=S_PHY_STATUS_RD;
+--          else
+--            if i_phy_loopback_on='0' then
+--              fsm_ctrl_cs<=S_PHY_LB_RD;
+--            else
+--              fsm_ctrl_cs<=S_PHY_STATUS_RD;
+--            end if;
+--          end if;
         end if;
+
+
+--      --------------------------------------
+--      --Loopback Data from RJ45
+--      --------------------------------------
+--      when S_PHY_LB_RD =>
+--
+--        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+--          i_cntdly<=(others=>'0');
+--
+--          i_mdio_start<='1';
+--          i_mdio_wr<=C_ETH_MDIO_RD;
+--          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
+--          i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_SCTRL,i_mdio_areg'length);
+--          i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
+--
+--          fsm_ctrl_cs<=S_PHY_LB_RD_DONE;
+--        else
+--          i_cntdly<=i_cntdly + 1;
+--        end if;
+--
+--      when S_PHY_LB_RD_DONE =>
+--
+--        i_mdio_start<='0';
+--        if i_mdio_done='1' then
+--          fsm_ctrl_cs<=S_PHY_LB_WR;
+--        end if;
+--
+--      when S_PHY_LB_WR =>
+--
+--        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+--          i_cntdly<=(others=>'0');
+--
+--          i_mdio_start<='1';
+--          i_mdio_wr<=C_ETH_MDIO_WR;
+--          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
+--          i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_SCTRL,i_mdio_areg'length);
+--
+--          i_mdio_txd(15)<=i_mdio_rxd(15);
+--          i_mdio_txd(14)<='1';--Enable Loopback Data from RJ45
+--          i_mdio_txd(13 downto 0)<=i_mdio_rxd(13 downto 0);
+--
+--          fsm_ctrl_cs<=S_PHY_LB_WR_DONE;
+--        else
+--          i_cntdly<=i_cntdly + 1;
+--        end if;
+--
+--      when S_PHY_LB_WR_DONE =>
+--
+--        i_mdio_start<='0';
+--        if i_mdio_done='1' then
+--            i_phy_loopback_on<='1';
+--           fsm_ctrl_cs<=S_PHY_STATUS_RD;
+--        end if;
+
+--      --------------------------------------
+--      --Loopback Data from FPGA
+--      --------------------------------------
+--      when S_PHY_LB_RD =>
+--
+--        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+--          i_cntdly<=(others=>'0');
+--
+--          i_mdio_start<='1';
+--          i_mdio_wr<=C_ETH_MDIO_RD;
+--          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
+--          i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_CTRL,i_mdio_areg'length);
+--          i_mdio_txd <=CONV_STD_LOGIC_VECTOR(16#0000#,i_mdio_txd'length);
+--
+--          fsm_ctrl_cs<=S_PHY_LB_RD_DONE;
+--        else
+--          i_cntdly<=i_cntdly + 1;
+--        end if;
+--
+--      when S_PHY_LB_RD_DONE =>
+--
+--        i_mdio_start<='0';
+--        if i_mdio_done='1' then
+--          fsm_ctrl_cs<=S_PHY_LB_WR;
+--        end if;
+--
+--      when S_PHY_LB_WR =>
+--
+--        if i_cntdly=CONV_STD_LOGIC_VECTOR(CI_MDIO_DLY, i_cntdly'length) then
+--          i_cntdly<=(others=>'0');
+--
+--          i_mdio_start<='1';
+--          i_mdio_wr<=C_ETH_MDIO_WR;
+--          i_mdio_aphy<=CONV_STD_LOGIC_VECTOR(G_PHY_ADR,i_mdio_aphy'length);
+--          i_mdio_areg<=CONV_STD_LOGIC_VECTOR(CI_RPHY_CTRL,i_mdio_areg'length);
+--
+--          i_mdio_txd(15)<=i_mdio_rxd(15);
+--          i_mdio_txd(14)<='1';--Enable Loopback Data from FPGA
+--          i_mdio_txd(13 downto 0)<=i_mdio_rxd(13 downto 0);
+--
+--          fsm_ctrl_cs<=S_PHY_LB_WR_DONE;
+--        else
+--          i_cntdly<=i_cntdly + 1;
+--        end if;
+--
+--      when S_PHY_LB_WR_DONE =>
+--
+--        i_mdio_start<='0';
+--        if i_mdio_done='1' then
+--            i_phy_loopback_on<='1';
+--           fsm_ctrl_cs<=S_PHY_STATUS_RD;
+--        end if;
+
     end case;
   end if;
 end process;
