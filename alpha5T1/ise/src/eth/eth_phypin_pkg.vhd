@@ -34,13 +34,8 @@ end record;
 type TEthPhyFiberPinIN is record
 rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-clk_p: std_logic;
-clk_n: std_logic;
-
 rx2p  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rx2n  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-clk2_p: std_logic;
-clk2_n: std_logic;
 end record;
 
 ----------------------------

@@ -60,7 +60,7 @@ begin
   end if;
 end process;
 
--- Reference clock MMCM (CLKFBOUT range 600 MHz to 1200 MHz)
+-- Reference clock PLL (CLKFBOUT range 400 MHz to 1000 MHz)
 -- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F
 -- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F/CLKOUTn_DIVIDE
 -- CLKFBOUT = (200 MHz/2) * 9.000       = 900 MHz
@@ -70,12 +70,12 @@ end process;
 m_pll : PLL_BASE
 generic map(
 CLKIN_PERIOD   => 5.00,
-DIVCLK_DIVIDE  => 2,
-CLKFBOUT_MULT  => 9,
-CLKOUT0_DIVIDE => 1,
-CLKOUT1_DIVIDE => 3,
-CLKOUT2_DIVIDE => 9,
-CLKOUT3_DIVIDE => 1,
+DIVCLK_DIVIDE  => 2,     --integer : 1 to 52
+CLKFBOUT_MULT  => 9,     --integer : 1 to 64
+CLKOUT0_DIVIDE => 1,     --integer : 1 to 128
+CLKOUT1_DIVIDE => 3,     --integer : 1 to 128
+CLKOUT2_DIVIDE => 9,     --integer : 1 to 128
+CLKOUT3_DIVIDE => 1,     --integer : 1 to 128
 CLKOUT0_PHASE  => 0.000,
 CLKOUT1_PHASE  => 0.000,
 CLKOUT2_PHASE  => 0.000,
@@ -104,6 +104,15 @@ p_out_rst <= not(i_pll_locked);
 p_out_gclk(0) <= g_pll_clkin;
 bufg_clk1: BUFG port map(I => i_clk_out(1), O => p_out_gclk(1)); --300MHz
 bufg_clk2: BUFG port map(I => i_clk_out(2), O => p_out_gclk(2)); --100MHz
-p_out_gclk(7 downto 3)<=(others=>'0');
+                                                 p_out_gclk(3)<=i_clk_out(3);
+                                                 p_out_gclk(4)<=i_clk_out(4); --125MHz
+                                                 p_out_gclk(5)<='0';
+                                                 p_out_gclk(6)<=i_clk_out(6);
+p_out_gclk(7 downto 7)<=(others=>'0');
+
+m_buf_pciexp : IBUFDS port map(I  => p_in_clk.pciexp_clk_p, IB => p_in_clk.pciexp_clk_n, O => i_clk_out(3));
+
+m_buf_fiber0 : IBUFDS port map(I  => p_in_clk.fiber_clk_p(0), IB => p_in_clk.fiber_clk_n(0), O => i_clk_out(4));
+m_buf_fiber1 : IBUFDS port map(I  => p_in_clk.fiber_clk_p(1), IB => p_in_clk.fiber_clk_n(1), O => i_clk_out(6));
 
 end;

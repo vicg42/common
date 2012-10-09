@@ -25,9 +25,12 @@ NET "pin_out_led<7>"        LOC="J10";
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
-NET "pin_in_ethphy_fiber_clk2_p" LOC = "E4";##"GTP_DUAL_X0Y6";
-NET "pin_in_ethphy_fiber_clk2_n" LOC = "D4";
-INST "ibuf_eth_gt_refclk/m_buf1"  DIFF_TERM = "TRUE";
+NET "pin_out_ethphy_rst"    LOC = "AB5"; #XRM Interface - part 2
+NET "pin_out_ethphy_mdc"    LOC = "AA5"; #XRM Interface - part 2
+
+NET "pin_in_refclk_fiber_clk_p<1>" LOC = "E4";##"GTP_DUAL_X0Y6";
+NET "pin_in_refclk_fiber_clk_n<1>" LOC = "D4";
+INST "m_clocks/m_buf_fiber1"  DIFF_TERM = "TRUE";
 INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/m_gt_refclkout/m_gt"  LOC = "GTP_DUAL_X0Y6";
 
 #--------------------------------------------------------------------------
@@ -36,9 +39,9 @@ INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/m_gt_refclkout/m_gt"  LOC = "
 NET "pin_out_sfp_tx_dis" LOC = "AB6";##//SFP - TX DISABLE
 NET "pin_in_sfp_sd"      LOC = "AB7";##//SFP - SD signal detect
 
-NET "pin_in_ethphy_fiber_clk_p" LOC = "D8";##"GTP_DUAL_X0Y7";
-NET "pin_in_ethphy_fiber_clk_n" LOC = "C8";
-INST "ibuf_eth_gt_refclk/m_buf0"  DIFF_TERM = "TRUE";
+NET "pin_in_refclk_fiber_clk_p<0>" LOC = "D8";##"GTP_DUAL_X0Y7";
+NET "pin_in_refclk_fiber_clk_n<0>" LOC = "C8";
+INST "m_clocks/m_buf_fiber0"  DIFF_TERM = "TRUE";
 
 ###НЕ ИСПОЛЬЗОВАТЬ модуль в проекте (vereskm_main.vhd generic G_USE_ETH : string:="OFF";)
 #INST "m_eth/gen_use_off.m_gtp_dual_clk/gen_sim_off.m_gt"  LOC = "GTP_DUAL_X0Y7";
@@ -149,9 +152,9 @@ TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
 #############################################################################
 ###############       Проект PCI-Express     ################################
 #############################################################################
-NET "pin_in_pciexp_clk_p"      LOC = "AL7";
-NET "pin_in_pciexp_clk_n"      LOC = "AM7";
-INST "ibuf_pciexp_gt_refclk/m_buf"  DIFF_TERM = "TRUE";
+NET "pin_in_refclk_pciexp_clk_p"      LOC = "AL7";
+NET "pin_in_refclk_pciexp_clk_n"      LOC = "AM7";
+INST "m_clocks/m_buf_pciexp"  DIFF_TERM = "TRUE";
 
 INST "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[0].GT_i" LOC = GTP_DUAL_X0Y0;# PCIe Lanes 1, 2
 INST "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/GTD[2].GT_i" LOC = GTP_DUAL_X0Y1;# PCIe Lanes 3, 4
@@ -169,7 +172,7 @@ NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/g
 #NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_refclk_out" TNM_NET = "MGTCLK";##//if PCIe Lines==1
 TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 
-NET "i_pciexp_gt_refclk" PERIOD = 10 ns;
+NET "g_usrclk<3>" PERIOD = 10 ns;
 
 
 
@@ -408,7 +411,7 @@ NET "pin_inout_phymem_rc0<21>"        LOC = "C30" | IOSTANDARD = "SSTL18_I";  # 
 ##
 #######################################################################
 NET "pin_in_pciexp_rstn"  LOC = "AE26" | IOSTANDARD = "LVCMOS18"; #lreset_l
-NET "pin_in_refclk_clk"   LOC = "H17"  | IOSTANDARD = "LVCMOS33"; #lclk
+#NET "pin_in_refclk_clk"   LOC = "H17"  | IOSTANDARD = "LVCMOS33"; #lclk
 
 #200MHz
 NET "pin_in_refclk_clk_p" LOC = "G15" | IOSTANDARD = "LVPECL_25";
