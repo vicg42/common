@@ -48,6 +48,9 @@ TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
 #--------------------------
 #FIBER
 #--------------------------
+NET "pin_out_ethphy_rst"    LOC = "AG37"; #XRM Connector CN1, Field 3
+NET "pin_out_ethphy_mdc"    LOC = "AF37"; #XRM Connector CN1, Field 3
+
 #Плата - OptoSATA
 NET "pin_out_sfp_tx_dis"  LOC = "W36"; ##Sematec pin: 36 (SFP - TX DISABLE)
 NET "pin_in_sfp_sd"       LOC = "V36"; ##Sematec pin: 34 (SFP - SD signal detect)
@@ -56,8 +59,8 @@ NET "pin_in_sfp_sd"       LOC = "V36"; ##Sematec pin: 34 (SFP - SD signal detect
 #NET "pin_in_sfp_sd"       LOC = "AC41"; ##Sematec pin: 121 (SFP - SD signal detect)
 
 # MGTREFCLK0_117: Reference Clock from XRM (mgtclk_m2c_p/mgtclk_m2c_n)
-NET "pin_in_ethphy_fiber_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-NET "pin_in_ethphy_fiber_clk_n" LOC =  "G9"  | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_refclk_fiber_clk_p" LOC =  "G10" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_refclk_fiber_clk_n" LOC =  "G9"  | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 #TIMEGRP "ETHPHY_CLK_PADS" = PADS(pin_in_ethphy_fiber_clk_?);
 
 # Locate the Tri-Mode Ethernet MAC instance
@@ -175,8 +178,8 @@ TIMESPEC "TS_rx_meta_protect" = FROM "rx_metastable" 5 ns;
 ###############       Проект PCI-Express     ################################
 #############################################################################
 # MGTREFCLK0_114: PCIe Reference Clock 250MHz (derived from 100MHz input on P5)
-NET "pin_in_pciexp_clk_p" LOC =  "AB8" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
-NET "pin_in_pciexp_clk_n" LOC =  "AB7" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_refclk_pciexp_clk_p" LOC =  "AB8" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
+NET "pin_in_refclk_pciexp_clk_n" LOC =  "AB7" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 #TIMEGRP "PCIEXP_CLK_PADS" = PADS(pin_in_pciexp_clk_?);
 
 NET "pin_in_pciexp_rstn" TIG;
@@ -191,7 +194,7 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_block_i" LOC = PCIE_X0Y1;
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i" LOC = MMCM_ADV_X0Y3;
 
 ##-----------  For PCIE-Express (x4) - 2.5G (pcie refclk - 250MHz) -----------
-NET "i_pciexp_gt_refclk" TNM_NET = "PCIEXP_SYSCLK" ;
+NET "g_usrclk<3>" TNM_NET = "PCIEXP_SYSCLK" ;
 NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_125" TNM_NET = "PCIEXP_CLK_125" ;
 NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
 

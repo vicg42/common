@@ -130,6 +130,25 @@ p_out_rst <= not(i_pll_locked);
 p_out_gclk(0) <= g_pll_clkin;
 bufg_clk1: BUFG port map(I => i_clk_out(1), O => p_out_gclk(1)); --400MHz
 bufg_clk2: BUFG port map(I => i_clk_out(2), O => p_out_gclk(2)); --100MHz
-p_out_gclk(7 downto 3)<=(others=>'0');
+                                                 p_out_gclk(3)<=i_clk_out(3);
+                                                 p_out_gclk(4)<=i_clk_out(4); --125MHz
+p_out_gclk(7 downto 5)<=(others=>'0');
+
+
+m_buf_pciexp : IBUFDS_GTXE1 port map (
+I     => p_in_clk.pciexp_clk_p,
+IB    => p_in_clk.pciexp_clk_n,
+CEB   => '0',
+O     => i_clk_out(3),
+ODIV2 => open
+);
+
+m_buf_fiber : IBUFDS_GTXE1 port map (
+I     => p_in_clk.fiber_clk_p,
+IB    => p_in_clk.fiber_clk_n,
+CEB   => '0',
+O     => i_clk_out(4),
+ODIV2 => open
+);
 
 end;
