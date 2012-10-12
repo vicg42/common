@@ -328,7 +328,7 @@ gen_mac_a : for i in 0 to i_eth_tx_cfg.mac.dst'length-1 generate
 i_eth_tx_cfg.mac.dst(i)<=CONV_STD_LOGIC_VECTOR(i+10, i_eth_tx_cfg.mac.dst(i)'length) ;
 i_eth_tx_cfg.mac.src(i)<=CONV_STD_LOGIC_VECTOR(i+10+i_eth_tx_cfg.mac.dst'length, i_eth_tx_cfg.mac.src(i)'length) ;
 end generate gen_mac_a;
-i_eth_tx_cfg.mac.lentype<=CONV_STD_LOGIC_VECTOR(9, i_eth_tx_cfg.mac.lentype'length);
+i_eth_tx_cfg.mac.lentype<=CONV_STD_LOGIC_VECTOR(16#000A#, i_eth_tx_cfg.mac.lentype'length);
 i_eth_tx_cfg.usrctrl<=(others=>'0');
 
 i_eth_rx_cfg.mac.dst<=i_eth_tx_cfg.mac.src;
