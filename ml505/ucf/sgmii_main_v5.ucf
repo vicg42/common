@@ -44,17 +44,9 @@ NET "i_ethphy_out_clk" TNM_NET          = "clk_gtp";#NET "CLK125" TNM_NET       
 TIMEGRP  "emac_core_sgmii_gtp_clk"            = "clk_gtp";
 TIMESPEC "TS_emac_core_sgmii_gtp_clk"         = PERIOD "emac_core_sgmii_gtp_clk" 8 ns HIGH 50 %;
 
-
-
-
-
-
-
 ##################################
 # LocalLink Level constraints
 ##################################
-
-
 # EMAC0 LocalLink client FIFO constraints.
 
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?tx_fifo_i?rd_tran_frame_tog"    TNM = "tx_fifo_rd_to_wr_0";
@@ -66,7 +58,6 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?tx_fifo_i?wr_frame_in
 
 TIMESPEC "TS_tx_fifo_rd_to_wr_0" = FROM "tx_fifo_rd_to_wr_0" TO "emac_core_sgmii_gtp_clk" 8 ns DATAPATHONLY;
 TIMESPEC "TS_tx_fifo_wr_to_rd_0" = FROM "tx_fifo_wr_to_rd_0" TO "emac_core_sgmii_gtp_clk" 8 ns DATAPATHONLY;
-
 
 # Reduce clock period to allow 3 ns for metastability settling time
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?tx_fifo_i?wr_tran_frame_tog"    TNM = "tx_metastable_0";
@@ -90,7 +81,6 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?rx_fifo_i?rd_addr_gra
 TIMESPEC "TS_rx_fifo_wr_to_rd_0" = FROM "rx_fifo_wr_to_rd_0" TO "emac_core_sgmii_gtp_clk" 8 ns DATAPATHONLY;
 TIMESPEC "TS_rx_fifo_rd_to_wr_0" = FROM "rx_fifo_rd_to_wr_0" TO "emac_core_sgmii_gtp_clk" 8 ns DATAPATHONLY;
 
-
 # Reduce clock period to allow for metastability settling time
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?rx_fifo_i?wr_rd_addr_gray_sync*" TNM = "rx_metastable_0";
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?rx_fifo_i?rd_store_frame_tog"    TNM = "rx_metastable_0";
@@ -106,8 +96,6 @@ TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
 ##################################
 # EXAMPLE DESIGN Level constraints
 ##################################
-
-
 # Place the transceiver components. Please alter to your chosen transceiver.
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y3";
 INST "pin_in_ethphy_sgmii_clk_p" LOC = "P4";#INST "MGTCLK_N" LOC = "Y3";
@@ -121,10 +109,6 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_ins
 ##--------------------------
 ##---- SGMII(Tri-Mode)
 ##--------------------------
-###################################
-## BLOCK Level constraints
-###################################
-#
 ## EMAC0 Clocking
 ## 125MHz clock input from BUFG
 #NET "i_ethphy_out_clk" TNM_NET          = "clk_gtp";#NET "CLK125" TNM_NET          = "clk_gtp";
@@ -134,7 +118,6 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_ins
 #NET "m_eth/gen_use_on.m_main/m_phy/m_if/client_clk_0" TNM_NET    = "clk_client0";
 #TIMEGRP  "emac_core_sgmii_gtp_clk_client0"    = "clk_client0";
 #TIMESPEC "TS_emac_core_sgmii_gtp_clk_client0" = PERIOD "emac_core_sgmii_gtp_clk_client0" 8 ns HIGH 50 %;
-#
 #
 ##-----------------------------------------------------------
 ## EMAC0 Fabric Rx Elastic Buffer Timing Constraints:       -
@@ -150,20 +133,13 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_ins
 #TIMESPEC "ts_elastic_meta_protect_0" = FROM "elastic_metastable_0" 5 ns DATAPATHONLY;
 #
 ## Reduce clock period to allow 3 ns for metastability settling time
-#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*GTP_DUAL_1000X_inst?rx_elastic_buffer_inst_0?rd_wr_addr_gray*" TNM = "rx_graycode_0";
-#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*GTP_DUAL_1000X_inst?rx_elastic_buffer_inst_0?rd_occupancy*"    TNM = "rx_binary_0";
+#INST "*GTP_DUAL_1000X_inst?rx_elastic_buffer_inst_0?rd_wr_addr_gray*" TNM = "rx_graycode_0";
+#INST "*GTP_DUAL_1000X_inst?rx_elastic_buffer_inst_0?rd_occupancy*"    TNM = "rx_binary_0";
 #TIMESPEC "ts_rx_buf_meta_protect_0" = FROM "rx_graycode_0" TO "rx_binary_0" 5 ns;
-#
-#
-#
-#
-#
 #
 ###################################
 ## LocalLink Level constraints
 ###################################
-#
-#
 ## EMAC0 LocalLink client FIFO constraints.
 #
 #INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?tx_fifo_i?rd_tran_frame_tog"    TNM = "tx_fifo_rd_to_wr_0";
@@ -175,7 +151,6 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_ins
 #
 #TIMESPEC "TS_tx_fifo_rd_to_wr_0" = FROM "tx_fifo_rd_to_wr_0" TO "emac_core_sgmii_gtp_clk_client0" 8 ns DATAPATHONLY;
 #TIMESPEC "TS_tx_fifo_wr_to_rd_0" = FROM "tx_fifo_wr_to_rd_0" TO "emac_core_sgmii_gtp_clk_client0" 8 ns DATAPATHONLY;
-#
 #
 ## Reduce clock period to allow 3 ns for metastability settling time
 #INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?tx_fifo_i?wr_tran_frame_tog"    TNM = "tx_metastable_0";
@@ -199,13 +174,11 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_ins
 #TIMESPEC "TS_rx_fifo_wr_to_rd_0" = FROM "rx_fifo_wr_to_rd_0" TO "emac_core_sgmii_gtp_clk_client0" 8 ns DATAPATHONLY;
 #TIMESPEC "TS_rx_fifo_rd_to_wr_0" = FROM "rx_fifo_rd_to_wr_0" TO "emac_core_sgmii_gtp_clk_client0" 8 ns DATAPATHONLY;
 #
-#
 ## Reduce clock period to allow for metastability settling time
 #INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?rx_fifo_i?wr_rd_addr_gray_sync*" TNM = "rx_metastable_0";
 #INST "m_eth/gen_use_on.m_main/m_phy/m_if/*client_side_FIFO?rx_fifo_i?rd_store_frame_tog"    TNM = "rx_metastable_0";
 #
 #TIMESPEC "ts_rx_meta_protect_0" = FROM "rx_metastable_0" 5 ns;
-#
 #
 ### Area constaint to place example design near embedded TEMAC. Constraint is
 ### optional and not necessary for a successful implementation of the design.
@@ -215,10 +188,12 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_ins
 ###################################
 ## EXAMPLE DESIGN Level constraints
 ###################################
-#
-#
 ## Place the transceiver components. Please alter to your chosen transceiver.
 #INST "m_eth/gen_use_on.m_main/m_phy/m_if/*GTP_DUAL_1000X_inst?GTP_1000X?tile0_rocketio_wrapper_i?gtp_dual_i" LOC = "GTP_DUAL_X0Y3";
 #INST "pin_in_ethphy_sgmii_clk_p" LOC = "P4";#INST "MGTCLK_N" LOC = "Y3";
 #INST "pin_in_ethphy_sgmii_clk_n" LOC = "P3";#INST "MGTCLK_P" LOC = "Y4";
-
+#
+#
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_PHYINITAUTONEG_ENABLE = TRUE;
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_TXFLOWCTRL_ENABLE = TRUE;
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_RXFLOWCTRL_ENABLE = TRUE;
