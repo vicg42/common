@@ -568,7 +568,9 @@ end generate gen_htgv6;
 
 i_mnl_rst<=i_sys_rst or i_usr_rst;
 
+
 pin_out_led(0)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT) and i_usr_rst and
+                (i_eth_out(0).rxbuf.sof or i_eth_out(0).rxbuf.eof or OR_reduce(i_eth_out(0).rxbuf.din) or i_eth_out(0).rxbuf.wr) and
                 (OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx));
 pin_out_led(1)<='0';
 pin_out_led(2)<='0';
