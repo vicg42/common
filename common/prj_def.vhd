@@ -315,6 +315,12 @@ constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
 constant C_ETH_REG_MAC_PATRN3                 : integer:=16#004#;--//SRC MAC
 constant C_ETH_REG_MAC_PATRN4                 : integer:=16#005#;
 constant C_ETH_REG_MAC_PATRN5                 : integer:=16#006#;
+constant C_ETH_REG_IP_PATRN0                  : integer:=16#007#;--//DST IP
+constant C_ETH_REG_IP_PATRN1                  : integer:=16#008#;
+constant C_ETH_REG_IP_PATRN2                  : integer:=16#009#;--//SRC IP
+constant C_ETH_REG_IP_PATRN3                  : integer:=16#00A#;
+constant C_ETH_REG_PORT_PATRN0                : integer:=16#00B#;--//DST PORT
+constant C_ETH_REG_PORT_PATRN1                : integer:=16#00C#;--//SRC PORT
 --constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;
 
 
