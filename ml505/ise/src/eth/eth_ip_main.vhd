@@ -95,6 +95,11 @@ CONV_STD_LOGIC_VECTOR(7  , 8),
 CONV_STD_LOGIC_VECTOR(232, 8)
 );
 
+--Port на стороне PC
+constant CI_ETH_PORT_DST: TEthPort:=CONV_STD_LOGIC_VECTOR(10 , 16);
+--Port на стороне FPGA
+constant CI_ETH_PORT_SRC: TEthPort:=CONV_STD_LOGIC_VECTOR(200 , 16);
+
 component host_ethg_txfifo
 port(
 din         : IN  std_logic_vector(31 downto 0);
@@ -165,6 +170,8 @@ S_CFG_ETH_IP_DST0,
 S_CFG_ETH_IP_DST1,
 S_CFG_ETH_IP_SRC0,
 S_CFG_ETH_IP_SRC1,
+S_CFG_ETH_PORT_DST,
+S_CFG_ETH_PORT_SRC,
 S_CFG_ETH_DONE
 );
 signal fsm_ethcfg_cs: TEth_cfg_fsm;
@@ -443,6 +450,16 @@ begin
       when S_CFG_ETH_IP_SRC1 =>
         i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_IP_SRC(2);
         i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_IP_SRC(3);
+        fsm_ethcfg_cs<=S_CFG_ETH_PORT_DST;
+
+      --Set PORT/DST
+      when S_CFG_ETH_PORT_DST =>
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=CI_ETH_PORT_DST;
+        fsm_ethcfg_cs<=S_CFG_ETH_PORT_SRC;
+
+      --Set PORT/SRC
+      when S_CFG_ETH_PORT_SRC =>
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=CI_ETH_PORT_SRC;
         fsm_ethcfg_cs<=S_CFG_ETH_DONE;
 
       when S_CFG_ETH_DONE =>
