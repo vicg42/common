@@ -155,6 +155,11 @@ begin
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_IP_PATRN3, i_cfg_adr_cnt'length) then h_reg_ethcfg.ip.src(2)<=p_in_cfg_txdata(7 downto 0);
                                                                                                   h_reg_ethcfg.ip.src(3)<=p_in_cfg_txdata(15 downto 8);
 
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_PORT_PATRN0, i_cfg_adr_cnt'length) then h_reg_ethcfg.prt.dst( 7 downto 0)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                    h_reg_ethcfg.prt.dst(15 downto 8)<=p_in_cfg_txdata(15 downto 8);
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_PORT_PATRN1, i_cfg_adr_cnt'length) then h_reg_ethcfg.prt.src( 7 downto 0)<=p_in_cfg_txdata(7 downto 0);
+                                                                                                    h_reg_ethcfg.prt.src(15 downto 8)<=p_in_cfg_txdata(15 downto 8);
+
         end if;
     end if;
   end if;
