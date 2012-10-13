@@ -54,9 +54,22 @@ src     : TEthMacAdr;
 lentype : std_logic_vector(15 downto 0);
 end record;
 
+type TEthIPv4 is array (0 to 3) of std_logic_vector(7 downto 0);
+type TEthIP is record
+dst     : TEthIPv4;
+src     : TEthIPv4;
+end record;
+
+type TEthPort is record
+dst     : std_logic_vector(15 downto 0);
+src     : std_logic_vector(15 downto 0);
+end record;
+
 type TEthCfg is record
 usrctrl  : std_logic_vector(15 downto 0);
 mac      : TEthMAC;
+ip       : TEthIP;
+prt      : TEthPort;
 end record;
 type TEthCfgs is array (0 to 1) of TEthCfg;
 
