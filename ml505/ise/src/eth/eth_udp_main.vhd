@@ -3,7 +3,7 @@
 -- Engineer    : Golovachenko Victor
 --
 -- Create Date : 12.10.2012 14:41:56
--- Module Name : eth_ip_main
+-- Module Name : eth_udp_main
 --
 -- Назначение/Описание :
 --
@@ -29,7 +29,7 @@ use work.eth_phypin_pkg.all;
 use work.eth_pkg.all;
 use work.dsn_eth_pkg.all;
 
-entity eth_ip_main is
+entity eth_udp_main is
 generic(
 G_SIM      : string:="OFF"
 );
@@ -51,7 +51,7 @@ pin_out_ethphy_rst    : out   std_logic
 );
 end entity;
 
-architecture struct of eth_ip_main is
+architecture struct of eth_udp_main is
 
 --Таймер отправки тестовых EthPkt
 constant CI_ETH_TX_TMR : integer:=2250;--1 такт = 1ms
