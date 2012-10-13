@@ -56,7 +56,7 @@ architecture struct of eth_ip_main is
 --Таймер отправки тестовых EthPkt
 constant CI_ETH_TX_TMR : integer:=2250;--1 такт = 1ms
 
---MAC FRAME: CI_ETH_MAC_DST/CI_ETH_MAC_SRC/LEN/CI_ETH_TSTDATA_COUNT
+--Кол-во байт тестовых данных
 constant CI_ETH_TSTDATA_COUNT : integer:=1424;--860;--
 
 --MAC для PC
@@ -96,9 +96,9 @@ CONV_STD_LOGIC_VECTOR(232, 8)
 );
 
 --Port на стороне PC
-constant CI_ETH_PORT_DST: TEthPort:=CONV_STD_LOGIC_VECTOR(10 , 16);
+constant CI_ETH_PORT_DST: std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(3000 , 16);
 --Port на стороне FPGA
-constant CI_ETH_PORT_SRC: TEthPort:=CONV_STD_LOGIC_VECTOR(200 , 16);
+constant CI_ETH_PORT_SRC: std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(3000 , 16);
 
 component host_ethg_txfifo
 port(
@@ -475,90 +475,93 @@ end process;
 --Формируем данные для MAC FRAME (Length + UsrDATA)
 --и отправляем в модуль m_eth1
 --***********************************************************
-process(i_sys_rst,i_ethphy_out)
-variable eth_tstd : TEthTstData;
-begin
-  if i_sys_rst='1' then
-    fsm_usrpkt_tx_cs<=S_USR_PKT_TXDLY;
-
-    i_eth_txpkt_dcnt<=(others=>'0');
-    i_eth_txpkt_d<=(others=>'0');
-    i_eth_txpkt_wr<='0';
-    i_eth_txpkt_len<=(others=>'0');
-    i_eth_txpkt_tx_dlycnt<=(others=>'0');
-    for i in 0 to eth_tstd'length-1 loop
-    eth_tstd(i):=(others=>'0');
-    end loop;
-
-  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
-
-    case fsm_usrpkt_tx_cs is
-
-      -----------------------------------
-      --Задержка между TxPKT
-      -----------------------------------
-      when S_USR_PKT_TXDLY =>
-
-        if i_eth_cfg_done='1' and i_ethphy_out.rdy='1' then
-          if i_ethphy_out.link='1' then
-
-              if i_t1ms='1' then
-                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(CI_ETH_TX_TMR,i_eth_txpkt_tx_dlycnt'length) then
-                  i_eth_txpkt_tx_dlycnt<=(others=>'0');
-                  i_eth_txpkt_len<=CONV_STD_LOGIC_VECTOR(2 + CI_ETH_TSTDATA_COUNT, 16);
-                  i_eth_txpkt_dcnt<=(others=>'0');
-                  fsm_usrpkt_tx_cs<=S_USR_PKT_TX0;
-                else
-                  i_eth_txpkt_tx_dlycnt<=i_eth_txpkt_tx_dlycnt + 1;
-                end if;
-              end if;
-
-          end if;
-        end if;
-
-      -----------------------------------
-      --Отправляем TxPKT
-      -----------------------------------
-      when S_USR_PKT_TX0 =>
-
-          if i_eth_in(0).txbuf.full='0' then
-            i_eth_txpkt_d(15 downto 0)<=i_eth_txpkt_len;
-            i_eth_txpkt_d(31 downto 16)<=CONV_STD_LOGIC_VECTOR(16#0504#, 16);
-            i_eth_txpkt_wr<='1';
-            i_eth_txpkt_dcnt<=CONV_STD_LOGIC_VECTOR(16#00#, 16);
-
-            for i in 0 to eth_tstd'length-1 loop
-            eth_tstd(i):=CONV_STD_LOGIC_VECTOR(2 + i , eth_tstd(i)'length);
-            end loop;
-
-            fsm_usrpkt_tx_cs<=S_USR_PKT_TX1;
-          end if;
-
-      when S_USR_PKT_TX1 =>
-
-          if i_eth_in(0).txbuf.full='0' then
-            if ("00"&i_eth_txpkt_dcnt(i_eth_txpkt_dcnt'length-1 downto 2))=CONV_STD_LOGIC_VECTOR(CI_ETH_TSTDATA_COUNT/4, i_eth_txpkt_dcnt'length) then
-              i_eth_txpkt_dcnt<=(others=>'0');
-              i_eth_txpkt_wr<='0';
-              fsm_usrpkt_tx_cs<=S_USR_PKT_TXDLY;
-            else
-              for i in 0 to eth_tstd'length-1 loop
-                eth_tstd(i):=eth_tstd(i) + CONV_STD_LOGIC_VECTOR(eth_tstd'length, eth_tstd(i)'length);
-              i_eth_txpkt_d(8*(i+1)-1 downto 8*i)<=eth_tstd(i);
-              end loop;
-
-              i_eth_txpkt_dcnt<=i_eth_txpkt_dcnt + 4;
-            end if;
-          end if;
-
-    end case;
-  end if;
-end process;
+--process(i_sys_rst,i_ethphy_out)
+--variable eth_tstd : TEthTstData;
+--begin
+--  if i_sys_rst='1' then
+--    fsm_usrpkt_tx_cs<=S_USR_PKT_TXDLY;
+--
+--    i_eth_txpkt_dcnt<=(others=>'0');
+--    i_eth_txpkt_d<=(others=>'0');
+--    i_eth_txpkt_wr<='0';
+--    i_eth_txpkt_len<=(others=>'0');
+--    i_eth_txpkt_tx_dlycnt<=(others=>'0');
+--    for i in 0 to eth_tstd'length-1 loop
+--    eth_tstd(i):=(others=>'0');
+--    end loop;
+--
+--  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
+--
+--    case fsm_usrpkt_tx_cs is
+--
+--      -----------------------------------
+--      --Задержка между TxPKT
+--      -----------------------------------
+--      when S_USR_PKT_TXDLY =>
+--
+--        if i_eth_cfg_done='1' and i_ethphy_out.rdy='1' then
+--          if i_ethphy_out.link='1' then
+--
+--              if i_t1ms='1' then
+--                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(CI_ETH_TX_TMR,i_eth_txpkt_tx_dlycnt'length) then
+--                  i_eth_txpkt_tx_dlycnt<=(others=>'0');
+--                  i_eth_txpkt_len<=CONV_STD_LOGIC_VECTOR(2 + CI_ETH_TSTDATA_COUNT, 16);
+--                  i_eth_txpkt_dcnt<=(others=>'0');
+--                  fsm_usrpkt_tx_cs<=S_USR_PKT_TX0;
+--                else
+--                  i_eth_txpkt_tx_dlycnt<=i_eth_txpkt_tx_dlycnt + 1;
+--                end if;
+--              end if;
+--
+--          end if;
+--        end if;
+--
+--      -----------------------------------
+--      --Отправляем TxPKT
+--      -----------------------------------
+--      when S_USR_PKT_TX0 =>
+--
+--          if i_eth_in(0).txbuf.full='0' then
+--            i_eth_txpkt_d(15 downto 0)<=i_eth_txpkt_len;
+--            i_eth_txpkt_d(31 downto 16)<=CONV_STD_LOGIC_VECTOR(16#0504#, 16);
+--            i_eth_txpkt_wr<='1';
+--            i_eth_txpkt_dcnt<=CONV_STD_LOGIC_VECTOR(16#00#, 16);
+--
+--            for i in 0 to eth_tstd'length-1 loop
+--            eth_tstd(i):=CONV_STD_LOGIC_VECTOR(2 + i , eth_tstd(i)'length);
+--            end loop;
+--
+--            fsm_usrpkt_tx_cs<=S_USR_PKT_TX1;
+--          end if;
+--
+--      when S_USR_PKT_TX1 =>
+--
+--          if i_eth_in(0).txbuf.full='0' then
+--            if ("00"&i_eth_txpkt_dcnt(i_eth_txpkt_dcnt'length-1 downto 2))=CONV_STD_LOGIC_VECTOR(CI_ETH_TSTDATA_COUNT/4, i_eth_txpkt_dcnt'length) then
+--              i_eth_txpkt_dcnt<=(others=>'0');
+--              i_eth_txpkt_wr<='0';
+--              fsm_usrpkt_tx_cs<=S_USR_PKT_TXDLY;
+--            else
+--              for i in 0 to eth_tstd'length-1 loop
+--                eth_tstd(i):=eth_tstd(i) + CONV_STD_LOGIC_VECTOR(eth_tstd'length, eth_tstd(i)'length);
+--              i_eth_txpkt_d(8*(i+1)-1 downto 8*i)<=eth_tstd(i);
+--              end loop;
+--
+--              i_eth_txpkt_dcnt<=i_eth_txpkt_dcnt + 4;
+--            end if;
+--          end if;
+--
+--    end case;
+--  end if;
+--end process;
 
 m_eth_txbuf : host_ethg_txfifo
 port map(
-din     => i_eth_txpkt_d,
-wr_en   => i_eth_txpkt_wr,
+--din     => i_eth_txpkt_d,
+--wr_en   => i_eth_txpkt_wr,
+--wr_clk  => i_ethphy_out.clk,
+din     => i_eth_out(0).rxbuf.din,
+wr_en   => i_eth_out(0).rxbuf.wr,
 wr_clk  => i_ethphy_out.clk,
 
 dout    => i_eth_in(0).txbuf.dout(31 downto 0),
@@ -571,6 +574,7 @@ full    => i_eth_in(0).txbuf.full,
 rst     => i_sys_rst
 );
 
+i_eth_in(0).rxbuf.full<=i_eth_in(0).txbuf.full;
 
 --//#########################################
 --//DBG
