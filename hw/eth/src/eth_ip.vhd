@@ -85,8 +85,6 @@ end eth_ip;
 
 architecture behavioral of eth_ip is
 
-constant CI_UDP_PORT             : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(200, 16);
-
 constant CI_HREG_ETH_TYPE        : integer:=12;--6;
 constant CI_HREG_ARP_HTYPE       : integer:=14;--7;
 constant CI_HREG_ARP_PTYPE       : integer:=16;--8;
@@ -432,7 +430,7 @@ begin
                 i_hreg_a=CONV_STD_LOGIC_VECTOR(37, i_hreg_a'length) then
 
                   --Проверяем DST PORT
-                  if (i_hreg_d(36) & p_in_rxll_data)=CI_UDP_PORT then
+                  if (i_hreg_d(36) & p_in_rxll_data)=p_in_cfg.prt.src then
                     fsm_ip_rx_cs <= S_RX_UDP_DLEN;
                   else
                     fsm_ip_rx_cs <= S_RX_IDLE;

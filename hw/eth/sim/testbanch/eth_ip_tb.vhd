@@ -185,8 +185,9 @@ signal i_icmp_ack,i_icmp_ack2,i_icmp_ack3 : TICMP_ask;
 signal i_udp : TICMP_ask;
 
 type TDev is record
-mac     : TEthMacAdr;
-ip      : TEthIPv4;
+mac : TEthMacAdr;
+ip  : TEthIPv4;
+prt : std_logic_vector(15 downto 0);
 end record;
 signal i_dev                  : TDev;
 
@@ -312,6 +313,9 @@ i_eth_cfg.ip.dst(1)<=CONV_STD_LOGIC_VECTOR(16#EB#, i_eth_cfg.ip.src(0)'length);
 i_eth_cfg.ip.dst(2)<=CONV_STD_LOGIC_VECTOR(16#EC#, i_eth_cfg.ip.src(0)'length);
 i_eth_cfg.ip.dst(3)<=CONV_STD_LOGIC_VECTOR(16#ED#, i_eth_cfg.ip.src(0)'length);
 
+i_eth_cfg.prt.dst<=CONV_STD_LOGIC_VECTOR(0, i_eth_cfg.prt.dst'length);
+i_eth_cfg.prt.src<=CONV_STD_LOGIC_VECTOR(200, i_eth_cfg.prt.src'length);
+
 
 
 i_dev.mac(0)<=CONV_STD_LOGIC_VECTOR(16#90#, i_dev.mac(0)'length);--(16#00#, i_dev.mac(0)'length);
@@ -325,6 +329,8 @@ i_dev.ip(0)<=CONV_STD_LOGIC_VECTOR(10 , i_dev.ip(0)'length);--(10 , i_dev.ip(0)'
 i_dev.ip(1)<=CONV_STD_LOGIC_VECTOR(1  , i_dev.ip(0)'length);--(1  , i_dev.ip(0)'length);
 i_dev.ip(2)<=CONV_STD_LOGIC_VECTOR(7  , i_dev.ip(0)'length);--(7  , i_dev.ip(0)'length);
 i_dev.ip(3)<=CONV_STD_LOGIC_VECTOR(125, i_dev.ip(0)'length);--(240, i_dev.ip(0)'length);
+
+i_dev.prt<=CONV_STD_LOGIC_VECTOR(11, i_dev.prt'length);
 
 
 process
@@ -859,10 +865,10 @@ i_udp(31) <= i_eth_cfg.ip.src(1);
 i_udp(32) <= i_eth_cfg.ip.src(2);
 i_udp(33) <= i_eth_cfg.ip.src(3);
 --UDP
-i_udp(34) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: SRC PORT
-i_udp(35) <= CONV_STD_LOGIC_VECTOR(16#01#, 8);
-i_udp(36) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: DST PORT
-i_udp(37) <= CONV_STD_LOGIC_VECTOR(200, 8);
+i_udp(34) <= i_dev.prt(15 downto 8);--UDP: SRC PORT
+i_udp(35) <= i_dev.prt( 7 downto 0);
+i_udp(36) <= i_eth_cfg.prt.src(15 downto 8);--UDP: DST PORT
+i_udp(37) <= i_eth_cfg.prt.src( 7 downto 0);
 i_udp(38) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: DLEN=Data(byte) + 8(UDP header)
 i_udp(39) <= CONV_STD_LOGIC_VECTOR(10 + 8, 8);
 i_udp(40) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: CRC
