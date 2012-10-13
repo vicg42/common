@@ -6,7 +6,10 @@
 -- Module Name : eth_ip
 --
 -- Ќазначение/ќписание :
---
+--  ћодуль отвечает на запросы ARP(Broadcast) + ARP(MAC_DST=MAC_FPGA)
+--  + отвечает на запрос ICMP(ping)
+--  + прием UDP пакетов
+--  + отправка UDP пакетов
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -84,13 +87,13 @@ end eth_ip;
 
 architecture behavioral of eth_ip is
 
-constant CI_HREG_ETH_TYPE        : integer:=12;--6;
-constant CI_HREG_ARP_HTYPE       : integer:=14;--7;
-constant CI_HREG_ARP_PTYPE       : integer:=16;--8;
-constant CI_HREG_ARP_HPLEN       : integer:=18;--9;
-constant CI_HREG_ARP_OPER        : integer:=20;--10;
-constant CI_HREG_IP_PROTOCOL     : integer:=23;--11;
-constant CI_HREG_ICMP_OPER       : integer:=34;--17;
+constant CI_HREG_ETH_TYPE        : integer:=12;
+constant CI_HREG_ARP_HTYPE       : integer:=14;
+constant CI_HREG_ARP_PTYPE       : integer:=16;
+constant CI_HREG_ARP_HPLEN       : integer:=18;
+constant CI_HREG_ARP_OPER        : integer:=20;
+constant CI_HREG_IP_PROTOCOL     : integer:=23;
+constant CI_HREG_ICMP_OPER       : integer:=34;
 
 constant CI_TX_REQ_ARP_ACK       : integer:=1;
 constant CI_TX_REQ_ICMP_ACK      : integer:=2;
@@ -116,7 +119,6 @@ constant CI_ICMP_OPER_REQUST     : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_
 constant CI_ICMP_OPER_ECHO_REPLY : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(0, 8);
 
 constant CI_UDP_HEADER_SIZE      : integer:=8;--byte
-
 
 type TEth_fsm_rx is (
 S_RX_IDLE       ,
@@ -535,7 +537,6 @@ p_out_txll_rem       <= i_txll_rem;
 
 p_out_txbuf_rd<=not p_in_txbuf_empty and i_usr_txd_rden and (i_usr_txd_rd or AND_reduce(i_tx_bcnt)) and not p_in_txll_dst_rdy_n;
 
-
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -579,8 +580,8 @@ begin
               fsm_ip_tx_cs <= S_TX_ACK_DLY;
 
             elsif p_in_txbuf_empty='0' then
-              --//кол-во передоваемых байт данных
-              i_tx_dlen<=p_in_txbuf_dout(15 downto 0);
+
+              i_tx_dlen<=p_in_txbuf_dout(15 downto 0);--usr dlen (byte)
               i_udpip_crc_start <= '1';
               i_udpip_id <= i_udpip_id + 1;
               fsm_ip_tx_cs<=S_TX_UDP_H0;
@@ -794,6 +795,7 @@ gen_ack_null : for i in 42 to i_hreg_d'length-1 generate
 i_arp_ack(i)  <= (others=>'0');
 end generate gen_ack_null;
 
+
 ----------------------------------
 --ICMP ответ
 ----------------------------------
@@ -944,7 +946,7 @@ end process;
 
 
 ----------------------------------
---UDP
+--UDP: usrdata -> UDP Pkt
 ----------------------------------
 --MAC адреса
 i_udp_pkt(0)  <= p_in_cfg.mac.dst(0); --MAC Dst:
