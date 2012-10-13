@@ -296,24 +296,24 @@ i_eth_cfg.mac.src(3)<=CONV_STD_LOGIC_VECTOR(16#A3#, i_eth_cfg.mac.src(0)'length)
 i_eth_cfg.mac.src(4)<=CONV_STD_LOGIC_VECTOR(16#A4#, i_eth_cfg.mac.src(0)'length);--(16#31#, i_eth_cfg.mac.src(0)'length);
 i_eth_cfg.mac.src(5)<=CONV_STD_LOGIC_VECTOR(16#A5#, i_eth_cfg.mac.src(0)'length);--(16#DA#, i_eth_cfg.mac.src(0)'length);
 
-i_eth_cfg.mac.dst(0)<=CONV_STD_LOGIC_VECTOR(16#2A#, i_eth_cfg.mac.dst(0)'length);
-i_eth_cfg.mac.dst(1)<=CONV_STD_LOGIC_VECTOR(16#2B#, i_eth_cfg.mac.dst(0)'length);
-i_eth_cfg.mac.dst(2)<=CONV_STD_LOGIC_VECTOR(16#2C#, i_eth_cfg.mac.dst(0)'length);
-i_eth_cfg.mac.dst(3)<=CONV_STD_LOGIC_VECTOR(16#2D#, i_eth_cfg.mac.dst(0)'length);
-i_eth_cfg.mac.dst(4)<=CONV_STD_LOGIC_VECTOR(16#2E#, i_eth_cfg.mac.dst(0)'length);
-i_eth_cfg.mac.dst(5)<=CONV_STD_LOGIC_VECTOR(16#2F#, i_eth_cfg.mac.dst(0)'length);
+i_eth_cfg.mac.dst(0)<=CONV_STD_LOGIC_VECTOR(16#90#, i_eth_cfg.mac.dst(0)'length);
+i_eth_cfg.mac.dst(1)<=CONV_STD_LOGIC_VECTOR(16#E6#, i_eth_cfg.mac.dst(0)'length);
+i_eth_cfg.mac.dst(2)<=CONV_STD_LOGIC_VECTOR(16#BA#, i_eth_cfg.mac.dst(0)'length);
+i_eth_cfg.mac.dst(3)<=CONV_STD_LOGIC_VECTOR(16#CE#, i_eth_cfg.mac.dst(0)'length);
+i_eth_cfg.mac.dst(4)<=CONV_STD_LOGIC_VECTOR(16#31#, i_eth_cfg.mac.dst(0)'length);
+i_eth_cfg.mac.dst(5)<=CONV_STD_LOGIC_VECTOR(16#DA#, i_eth_cfg.mac.dst(0)'length);
 
 i_eth_cfg.ip.src(0)<=CONV_STD_LOGIC_VECTOR(10 , i_eth_cfg.ip.src(0)'length);--(10 , i_eth_cfg.ip.src(0)'length);
 i_eth_cfg.ip.src(1)<=CONV_STD_LOGIC_VECTOR(1  , i_eth_cfg.ip.src(0)'length);--(1  , i_eth_cfg.ip.src(0)'length);
 i_eth_cfg.ip.src(2)<=CONV_STD_LOGIC_VECTOR(7  , i_eth_cfg.ip.src(0)'length);--(7  , i_eth_cfg.ip.src(0)'length);
 i_eth_cfg.ip.src(3)<=CONV_STD_LOGIC_VECTOR(232, i_eth_cfg.ip.src(0)'length);--(125, i_eth_cfg.ip.src(0)'length);
 
-i_eth_cfg.ip.dst(0)<=CONV_STD_LOGIC_VECTOR(16#EA#, i_eth_cfg.ip.src(0)'length);
-i_eth_cfg.ip.dst(1)<=CONV_STD_LOGIC_VECTOR(16#EB#, i_eth_cfg.ip.src(0)'length);
-i_eth_cfg.ip.dst(2)<=CONV_STD_LOGIC_VECTOR(16#EC#, i_eth_cfg.ip.src(0)'length);
-i_eth_cfg.ip.dst(3)<=CONV_STD_LOGIC_VECTOR(16#ED#, i_eth_cfg.ip.src(0)'length);
+i_eth_cfg.ip.dst(0)<=CONV_STD_LOGIC_VECTOR(10 , i_eth_cfg.ip.src(0)'length);
+i_eth_cfg.ip.dst(1)<=CONV_STD_LOGIC_VECTOR(1  , i_eth_cfg.ip.src(0)'length);
+i_eth_cfg.ip.dst(2)<=CONV_STD_LOGIC_VECTOR(7  , i_eth_cfg.ip.src(0)'length);
+i_eth_cfg.ip.dst(3)<=CONV_STD_LOGIC_VECTOR(125, i_eth_cfg.ip.src(0)'length);
 
-i_eth_cfg.prt.dst<=CONV_STD_LOGIC_VECTOR(0, i_eth_cfg.prt.dst'length);
+i_eth_cfg.prt.dst<=CONV_STD_LOGIC_VECTOR(200, i_eth_cfg.prt.dst'length);
 i_eth_cfg.prt.src<=CONV_STD_LOGIC_VECTOR(200, i_eth_cfg.prt.src'length);
 
 

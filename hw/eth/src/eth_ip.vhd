@@ -23,8 +23,7 @@ entity eth_ip is
 generic(
 G_ETH : TEthGeneric;
 G_DBG : string:="OFF";
-G_SIM : string:="OFF"
-);
+G_SIM : string:="OFF");
 port(
 --------------------------------------
 --Управление
@@ -99,6 +98,7 @@ constant CI_TX_REQ_ICMP_ACK      : integer:=2;
 constant CI_ETH_TYPE_ARP         : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0806#, 16);
 constant CI_ETH_TYPE_IP          : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(16#0800#, 16);
 
+constant CI_IP_HEADER_SIZE       : integer:=20;--byte
 constant CI_IP_VER               : std_logic_vector(3 downto 0):=CONV_STD_LOGIC_VECTOR(4, 4);
 constant CI_IP_HEADER_LEN        : std_logic_vector(3 downto 0):=CONV_STD_LOGIC_VECTOR(20/4, 4);
 constant CI_IP_TTL               : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(64, 8);
@@ -114,6 +114,9 @@ constant CI_ARP_OPER_REPLY       : std_logic_vector(15 downto 0):=CONV_STD_LOGIC
 
 constant CI_ICMP_OPER_REQUST     : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(8, 8);
 constant CI_ICMP_OPER_ECHO_REPLY : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(0, 8);
+
+constant CI_UDP_HEADER_SIZE      : integer:=8;--byte
+
 
 type TEth_fsm_rx is (
 S_RX_IDLE       ,
@@ -133,10 +136,9 @@ S_TX_IDLE     ,
 S_TX_ACK_DLY  ,
 S_TX_ACK      ,
 S_TX_DONE     ,
-S_TX_MACA_DST0,
-S_TX_MACA_DST1,
-S_TX_MACA_SRC ,
-S_TX_MACD
+S_TX_UDP_H0   ,
+S_TX_UDP_HN   ,
+S_TX_UDP_D
 );
 signal fsm_ip_tx_cs: TEth_fsm_tx;
 
@@ -164,6 +166,7 @@ signal i_rx_mac_broadcast     : std_logic_vector(p_in_cfg.mac.src'length - 1 dow
 
 signal i_arp_ack              : THReg;
 signal i_icmp_ack             : THReg;
+signal i_udp_pkt              : THReg;
 
 signal i_ip_crc_dcnt          : std_logic_vector(i_hreg_a'range);
 signal i_ip_crc_tmp           : std_logic_vector(31 downto 0);
@@ -184,12 +187,8 @@ signal sr_icmp_ack            : std_logic_vector(p_out_txll_data'range);
 
 signal i_crc_start            : std_logic;
 
-signal i_txll_data_swp        : std_logic_vector(15 downto 0);
-signal i_pkt_lentotal_byte    : std_logic_vector(15 downto 0);--//кол-во передоваемых байт
-signal i_pkt_len              : std_logic_vector(15 downto 0);
 signal i_usr_txd_rd           : std_logic;--//строб дополнительного чтения
 signal i_usr_txd_rden         : std_logic;--//разрешение чтения данных из usr_txbuf
-signal i_data_en              : std_logic;
 
 signal i_rx_bcnt              : std_logic_vector(1 downto 0);
 signal i_rx_fst               : std_logic;
@@ -199,6 +198,19 @@ signal i_rx_sof               : std_logic;
 signal i_rx_eof               : std_logic;
 signal i_rx_sof_ext           : std_logic;
 signal sr_rx_d                : std_logic_vector(p_out_txll_data'range);
+
+signal i_udpip_crc_start      : std_logic;
+signal i_udpip_id             : std_logic_vector(15 downto 0);
+signal i_udpip_crc_dcnt       : std_logic_vector(i_hreg_a'range);
+signal i_udpip_crc_tmp        : std_logic_vector(31 downto 0);
+signal i_udpip_crc_tmp2       : std_logic_vector(15 downto 0);
+signal i_udpip_crc            : std_logic_vector(15 downto 0);
+signal i_udpip_crc_calc       : std_logic;
+signal i_udpip_crc_rdy        : std_logic;
+signal sr_udp_pkt             : std_logic_vector(p_out_txll_data'range);
+signal i_udpip_len            : std_logic_vector(15 downto 0);
+signal i_udp_len              : std_logic_vector(15 downto 0);
+signal i_udp_done             : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
@@ -429,7 +441,7 @@ begin
               if p_in_rxll_src_rdy_n='0' and
                 i_hreg_a=CONV_STD_LOGIC_VECTOR(37, i_hreg_a'length) then
 
-                  --Проверяем DST PORT
+                  --Проверяем DST PORT принимаемого UDP Pkt
                   if (i_hreg_d(36) & p_in_rxll_data)=p_in_cfg.prt.src then
                     fsm_ip_rx_cs <= S_RX_UDP_DLEN;
                   else
@@ -523,17 +535,6 @@ p_out_txll_rem       <= i_txll_rem;
 
 p_out_txbuf_rd<=not p_in_txbuf_empty and i_usr_txd_rden and (i_usr_txd_rd or AND_reduce(i_tx_bcnt)) and not p_in_txll_dst_rdy_n;
 
-i_txll_data_swp<=p_in_txbuf_dout(7 downto 0)&p_in_txbuf_dout(15 downto 8);
-
-i_pkt_lentotal_byte<=p_in_txbuf_dout(15 downto 0) + CONV_STD_LOGIC_VECTOR(p_in_cfg.mac.lentype'length/8, i_pkt_len'length);
-
-gen_ll_d8 : if i_txll_data'length/8=1 generate
-i_pkt_len<=i_pkt_lentotal_byte;
-end generate gen_ll_d8;
-
-gen_ll_d16 : if i_txll_data'length/8=2 generate
-i_pkt_len<=EXT(i_pkt_lentotal_byte(15 downto 1), i_tx_dlen'length) + i_pkt_lentotal_byte(0);
-end generate gen_ll_d16;
 
 process(p_in_rst,p_in_clk)
 begin
@@ -554,7 +555,10 @@ begin
     i_usr_txd_rd<='0';
     i_usr_txd_rden<='0';
     i_tx_bcnt<=(others=>'0');
-    i_data_en<='0';
+
+    i_udpip_id <= (others=>'0');
+    i_udpip_crc_start <= '0';
+    i_udp_done <= '0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -576,8 +580,10 @@ begin
 
             elsif p_in_txbuf_empty='0' then
               --//кол-во передоваемых байт данных
-              i_tx_dlen<=i_pkt_len;
-              fsm_ip_tx_cs<=S_TX_MACA_DST0;
+              i_tx_dlen<=p_in_txbuf_dout(15 downto 0);
+              i_udpip_crc_start <= '1';
+              i_udpip_id <= i_udpip_id + 1;
+              fsm_ip_tx_cs<=S_TX_UDP_H0;
 
             end if;
 
@@ -640,7 +646,7 @@ begin
 
               i_tx_bcnt<=(others=>'0');
               i_tx_dcnt<=(others=>'0');
-              i_data_en<='0';
+
               i_txll_sof_n<='1';
               i_txll_eof_n<='1';
               i_txll_src_rdy_n<='1';
@@ -650,82 +656,52 @@ begin
               i_usr_txd_rden<='0';
 
               i_tx_done <= '0';
+              i_udp_done <= '0';
 
               fsm_ip_tx_cs <= S_TX_IDLE;
 
 
+          --------------------------------------
+          --UDP Pkt: Заголовок - MAC+EthType+IP(header)+UDP(header)
+          --------------------------------------
+          when S_TX_UDP_H0 =>
 
-          --//------------------------------------
-          --//MACFRAME: отправка mac_dst
-          --//------------------------------------
-          when S_TX_MACA_DST0 =>
+              i_udpip_crc_start <= '0';
+              i_txll_src_rdy_n<='0';
+              i_txll_sof_n<='0';
+              i_txll_eof_n<='1';
+              i_txll_data<=i_udp_pkt(0);
 
-            i_txll_src_rdy_n<='0';
-            i_txll_sof_n<='0';
-            i_txll_eof_n<='1';
+              i_tx_dcnt<=i_tx_dcnt + 1;
 
-            for i in 0 to 0 loop
-              for y in 0 to (i_txll_data'length/8)-1 loop
-              i_txll_data(8*(y+1)-1 downto 8*y)<=p_in_cfg.mac.dst(i+y);
+              fsm_ip_tx_cs<=S_TX_UDP_HN;
+
+          when S_TX_UDP_HN =>
+
+              i_txll_src_rdy_n<='0';
+              i_txll_sof_n<='1';
+              i_txll_eof_n<='1';
+
+              for i in 0 to 42-1 loop
+                if i_tx_dcnt=i then
+                  i_txll_data<=i_udp_pkt(i);
+                end if;
               end loop;
-            end loop;
 
-            i_tx_dcnt<=i_tx_dcnt + 1;
+              if i_tx_dcnt=CONV_STD_LOGIC_VECTOR(42-1, i_tx_dcnt'length) then
+                i_tx_dcnt<=(others=>'0');
+                i_tx_bcnt<=CONV_STD_LOGIC_VECTOR(2, i_tx_bcnt'length);
 
-            fsm_ip_tx_cs<=S_TX_MACA_DST1;
-
-          when S_TX_MACA_DST1 =>
-
-            i_txll_src_rdy_n<='0';
-            i_txll_sof_n<='1';
-            i_txll_eof_n<='1';
-
-            for i in 1 to (p_in_cfg.mac.dst'length/(i_txll_data'length/8))-1 loop
-              if i_tx_dcnt(3 downto 0)=i then
-                for y in 0 to (i_txll_data'length/8)-1 loop
-                i_txll_data(8*(y+1)-1 downto 8*y)<=p_in_cfg.mac.dst((i_txll_data'length/8)*i+y);
-                end loop;
+                i_usr_txd_rden<='1';
+                fsm_ip_tx_cs<=S_TX_UDP_D;
+              else
+                i_tx_dcnt<=i_tx_dcnt + 1;
               end if;
-            end loop;
 
-            if i_tx_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.dst'length/(i_txll_data'length/8))-1, i_tx_dcnt'length) then
-              i_tx_dcnt<=(others=>'0');
-              fsm_ip_tx_cs<=S_TX_MACA_SRC;
-            else
-              i_tx_dcnt<=i_tx_dcnt + 1;
-            end if;
-
-          --//------------------------------------
-          --//MACFRAME: отправка mac_src
-          --//------------------------------------
-          when S_TX_MACA_SRC =>
-
-            i_txll_src_rdy_n<='0';
-            i_txll_sof_n<='1';
-            i_txll_eof_n<='1';
-
-            for i in 0 to (p_in_cfg.mac.dst'length/(i_txll_data'length/8))-1 loop
-              if i_tx_dcnt(3 downto 0)=i then
-                for y in 0 to (i_txll_data'length/8)-1 loop
-                i_txll_data(8*(y+1)-1 downto 8*y)<=p_in_cfg.mac.src((i_txll_data'length/8)*i+y);
-                end loop;
-              end if;
-            end loop;
-
-            if i_tx_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.src'length/(i_txll_data'length/8))-1, i_tx_dcnt'length) then
-              i_tx_dcnt<=(others=>'0');
-              i_usr_txd_rden<='1';
-              fsm_ip_tx_cs<=S_TX_MACD;
-            else
-              i_tx_dcnt<=i_tx_dcnt + 1;
-            end if;
-
-          --//------------------------------------
-          --//MACFRAME: отправка данных
-          --//------------------------------------
-          when S_TX_MACD =>
-
-            i_usr_txd_rd<='0';
+          --------------------------------------
+          --UDP Pkt: User DATA
+          --------------------------------------
+          when S_TX_UDP_D =>
 
             i_txll_src_rdy_n<=p_in_txbuf_empty;
             i_txll_sof_n<='1';
@@ -741,42 +717,19 @@ begin
                     i_usr_txd_rd<='1';
                   end if;
 
+                  i_udp_done <= '1';
                   fsm_ip_tx_cs<=S_TX_DONE;
                 else
                   i_tx_dcnt<=i_tx_dcnt + 1;--//счетчик байт передоваемых данных
                   i_txll_eof_n<='1';
                 end if;
 
-                if i_data_en='0' then
-                --//поле Type/Length
-                  for i in 0 to 1 loop
-                    if i_tx_bcnt=i then
-                      if G_ETH.mac_length_swap=0 then
-                        --Отправка: первый ст. байт
-                        if (i_txll_data'length/8)=1 then
-                          i_txll_data<=p_in_txbuf_dout((16-(8*i))-1 downto 16-(8*(i+1)));
-                        else
-                          if i_tx_bcnt=0 then
-                            i_txll_data<=i_txll_data_swp(i_txll_data'range);
-                          else
-                            i_txll_data<=p_in_txbuf_dout(8*(i_txll_data'length/8)*(i+1)-1 downto 8*(i_txll_data'length/8)*i);
-                          end if;
-                        end if;
-                      else
-                        --Отправка: первый мл. байт
-                        i_txll_data<=p_in_txbuf_dout(8*(i_txll_data'length/8)*(i+1)-1 downto 8*(i_txll_data'length/8)*i);
-                      end if;
-                    end if;
-                  end loop;
-                  i_data_en<=OR_reduce(i_tx_bcnt);
-                else
                 --//Данные
                   for i in 0 to p_in_txbuf_dout'length/i_txll_data'length - 1 loop
                     if i_tx_bcnt=i then
                       i_txll_data<=p_in_txbuf_dout(8*(i_txll_data'length/8)*(i+1)-1 downto 8*(i_txll_data'length/8)*i);
                     end if;
                   end loop;
-                end if;
 
                 i_tx_bcnt<=i_tx_bcnt + 1;--//счетчик байт порта входных данных p_in_txbuf_dout
 
@@ -792,7 +745,7 @@ end process;
 ----------------------------------
 --ARP ответ
 ----------------------------------
--- MAC адреса
+--MAC адреса
 i_arp_ack(0)  <= i_hreg_d(6); --MAC Dst: адрес отправителя ARP запроса
 i_arp_ack(1)  <= i_hreg_d(7);
 i_arp_ack(2)  <= i_hreg_d(8);
@@ -844,7 +797,7 @@ end generate gen_ack_null;
 ----------------------------------
 --ICMP ответ
 ----------------------------------
--- MAC адреса
+--MAC адреса
 i_icmp_ack(0)  <= i_hreg_d(6);  --MAC Dst: адрес отправителя ICMP запроса
 i_icmp_ack(1)  <= i_hreg_d(7);
 i_icmp_ack(2)  <= i_hreg_d(8);
@@ -989,6 +942,111 @@ begin
   end if;
 end process;
 
+
+----------------------------------
+--UDP
+----------------------------------
+--MAC адреса
+i_udp_pkt(0)  <= p_in_cfg.mac.dst(0); --MAC Dst:
+i_udp_pkt(1)  <= p_in_cfg.mac.dst(1);
+i_udp_pkt(2)  <= p_in_cfg.mac.dst(2);
+i_udp_pkt(3)  <= p_in_cfg.mac.dst(3);
+i_udp_pkt(4)  <= p_in_cfg.mac.dst(4);
+i_udp_pkt(5)  <= p_in_cfg.mac.dst(5);
+i_udp_pkt(6)  <= p_in_cfg.mac.src(0); --MAC Src: FPGA
+i_udp_pkt(7)  <= p_in_cfg.mac.src(1);
+i_udp_pkt(8)  <= p_in_cfg.mac.src(2);
+i_udp_pkt(9)  <= p_in_cfg.mac.src(3);
+i_udp_pkt(10) <= p_in_cfg.mac.src(4);
+i_udp_pkt(11) <= p_in_cfg.mac.src(5);
+--Eth type
+i_udp_pkt(12) <= CI_ETH_TYPE_IP(15 downto 8);
+i_udp_pkt(13) <= CI_ETH_TYPE_IP( 7 downto 0);
+--IP
+i_udp_pkt(14) <= CONV_STD_LOGIC_VECTOR(16#45#, 8); --IP: ver
+i_udp_pkt(15) <= (others=>'0'); --IP: ToS (тип обслуживания)
+i_udp_pkt(16) <= i_udpip_len(15 downto 8); --IP: dlen
+i_udp_pkt(17) <= i_udpip_len( 7 downto 0);
+i_udp_pkt(18) <= i_udpip_id(15 downto 8);--IP: id
+i_udp_pkt(19) <= i_udpip_id( 7 downto 0);
+i_udp_pkt(20) <= (others=>'0'); --IP: flag
+i_udp_pkt(21) <= (others=>'0');
+i_udp_pkt(22) <= CI_IP_TTL;
+i_udp_pkt(23) <= CI_IP_PTYPE_UDP; --IP: protocol
+i_udp_pkt(24) <= (others=>'0') when i_udpip_crc_rdy='0' else i_udpip_crc(15 downto 8); --IP: CRC
+i_udp_pkt(25) <= (others=>'0') when i_udpip_crc_rdy='0' else i_udpip_crc( 7 downto 0);
+i_udp_pkt(26) <= p_in_cfg.ip.src(0); --IP: ip_src
+i_udp_pkt(27) <= p_in_cfg.ip.src(1);
+i_udp_pkt(28) <= p_in_cfg.ip.src(2);
+i_udp_pkt(29) <= p_in_cfg.ip.src(3);
+i_udp_pkt(30) <= p_in_cfg.ip.dst(0); --IP: ip_dst
+i_udp_pkt(31) <= p_in_cfg.ip.dst(1);
+i_udp_pkt(32) <= p_in_cfg.ip.dst(2);
+i_udp_pkt(33) <= p_in_cfg.ip.dst(3);
+--UDP
+i_udp_pkt(34) <= p_in_cfg.prt.src(15 downto 8);--UDP: PORT SRC
+i_udp_pkt(35) <= p_in_cfg.prt.src( 7 downto 0);
+i_udp_pkt(36) <= p_in_cfg.prt.dst(15 downto 8);--UDP: PORT DST
+i_udp_pkt(37) <= p_in_cfg.prt.dst( 7 downto 0);
+i_udp_pkt(38) <= i_udp_len(15 downto 8);       --UDP: PKT_LEN
+i_udp_pkt(39) <= i_udp_len( 7 downto 0);
+i_udp_pkt(40) <= (others=>'0');                --UDP: CRC
+i_udp_pkt(41) <= (others=>'0');
+gen_udp : for i in 42 to i_hreg_d'length-1 generate
+i_udp_pkt(i)  <= (others=>'0');
+end generate gen_udp;
+
+i_udp_len <= i_tx_dlen + CONV_STD_LOGIC_VECTOR(CI_UDP_HEADER_SIZE, i_udp_len'length);
+i_udpip_len <= i_udp_len + CONV_STD_LOGIC_VECTOR(CI_IP_HEADER_SIZE, i_udpip_len'length);
+
+--Расчет CRC:
+i_udpip_crc_tmp2<=i_udpip_crc_tmp(31 downto 16) + i_udpip_crc_tmp(15 downto 0);
+gen_ipudp_crc : for i in 0 to i_ip_crc'length-1 generate
+i_udpip_crc(i) <= not i_udpip_crc_tmp2(i);
+end generate gen_ipudp_crc;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_udpip_crc_dcnt <= (others=>'0');
+    i_udpip_crc_tmp <= (others=>'0');
+    i_udpip_crc_rdy <= '0';
+    i_udpip_crc_calc <= '0';
+    sr_udp_pkt <= (others=>'0');
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_udp_done='1' then
+        i_udpip_crc_rdy <= '0';
+
+    elsif i_udpip_crc_start='1' then
+        i_udpip_crc_tmp <= (others=>'0');
+        i_udpip_crc_dcnt <= CONV_STD_LOGIC_VECTOR(14, i_ip_crc_dcnt'length);
+        i_udpip_crc_calc <= '1';
+
+    else
+      if i_udpip_crc_calc='1' then
+          for i in 14 to 33 loop
+            if i_udpip_crc_dcnt=i then
+              if i_udpip_crc_dcnt(0)='1' then
+                i_udpip_crc_tmp <= i_udpip_crc_tmp + (CONV_STD_LOGIC_VECTOR(0, 16) & sr_udp_pkt & i_udp_pkt(i));
+              else
+                sr_udp_pkt <= i_udp_pkt(i);
+              end if;
+            end if;
+          end loop;
+
+          if i_udpip_crc_dcnt=CONV_STD_LOGIC_VECTOR(33, i_udpip_crc_dcnt'length)  then
+            i_udpip_crc_calc <= '0';
+            i_udpip_crc_rdy <= '1';
+          end if;
+
+          i_udpip_crc_dcnt <= i_udpip_crc_dcnt + 1;
+      end if;
+    end if;
+
+  end if;
+end process;
 
 
 --END MAIN
