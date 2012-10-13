@@ -85,6 +85,8 @@ end eth_ip;
 
 architecture behavioral of eth_ip is
 
+constant CI_UDP_PORT             : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(200, 16);
+
 constant CI_HREG_ETH_TYPE        : integer:=12;--6;
 constant CI_HREG_ARP_HTYPE       : integer:=14;--7;
 constant CI_HREG_ARP_PTYPE       : integer:=16;--8;
@@ -103,6 +105,7 @@ constant CI_IP_VER               : std_logic_vector(3 downto 0):=CONV_STD_LOGIC_
 constant CI_IP_HEADER_LEN        : std_logic_vector(3 downto 0):=CONV_STD_LOGIC_VECTOR(20/4, 4);
 constant CI_IP_TTL               : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(64, 8);
 constant CI_IP_PTYPE_ICMP        : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(1, 8);
+constant CI_IP_PTYPE_UDP         : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(17, 8);
 
 constant CI_ARP_HTYPE            : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(1, 16);
 constant CI_ARP_HLEN             : std_logic_vector( 7 downto 0):=CONV_STD_LOGIC_VECTOR(6, 8);
@@ -116,6 +119,13 @@ constant CI_ICMP_OPER_ECHO_REPLY : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_
 
 type TEth_fsm_rx is (
 S_RX_IDLE       ,
+S_RX_ARP_CHK    ,
+S_RX_IP_CHK     ,
+S_RX_ICMP       ,
+S_RX_UDP_CHK    ,
+S_RX_UDP_DLEN   ,
+S_RX_UDP_CRC    ,
+S_RX_UDP_DATA   ,
 S_RX_SEND_DONE
 );
 signal fsm_ip_rx_cs: TEth_fsm_rx;
@@ -150,6 +160,7 @@ signal i_tx_dcnt              : std_logic_vector(15 downto 0);
 signal i_tx_done              : std_logic;
 signal i_tx_bcnt              : std_logic_vector(selval(0, 1, (p_out_txll_data'length=16)) downto 0);
 
+signal i_rx_ip_valid          : std_logic_vector(p_in_cfg.ip.src'length - 1 downto 0);
 signal i_rx_mac_valid         : std_logic_vector(p_in_cfg.mac.src'length - 1 downto 0);
 signal i_rx_mac_broadcast     : std_logic_vector(p_in_cfg.mac.src'length - 1 downto 0);
 
@@ -182,8 +193,18 @@ signal i_usr_txd_rd           : std_logic;--//строб дополнительного чтени€
 signal i_usr_txd_rden         : std_logic;--//разрешение чтени€ данных из usr_txbuf
 signal i_data_en              : std_logic;
 
+signal i_rx_bcnt              : std_logic_vector(1 downto 0);
+signal i_rx_fst               : std_logic;
+signal i_rx_d                 : std_logic_vector(31 downto 0);
+signal i_rx_en                : std_logic;
+signal i_rx_sof               : std_logic;
+signal i_rx_eof               : std_logic;
+signal i_rx_sof_ext           : std_logic;
+signal sr_rx_d                : std_logic_vector(p_out_txll_data'range);
+
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
+signal tst_udp                : std_logic;
 
 
 --MAIN
@@ -204,8 +225,9 @@ begin
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
-    tst_fms_cs_dly<=tst_fms_cs;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
+--    tst_fms_cs_dly<=tst_fms_cs;
+--    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
+    p_out_tst(0)<=tst_udp;
   end if;
 end process ltstout;
 
@@ -263,14 +285,17 @@ i_rx_mac_valid(i)<='1' when i_hreg_d(i) = p_in_cfg.mac.src(i) else '0';
 i_rx_mac_broadcast(i)<='1' when i_hreg_d(i) = CONV_STD_LOGIC_VECTOR(16#FF#, i_hreg_d(i)'length) else '0';
 end generate gen_rx_mac_check;
 
+gen_rx_ip_check : for i in 0 to p_in_cfg.ip.src'length - 1 generate
+i_rx_ip_valid(i)<='1' when i_hreg_d(30+i) = p_in_cfg.ip.src(i) else '0';
+end generate gen_rx_ip_check;
 
 --//-------------------------------------------
 --//јнализ прин€того EthPkt
 --//-------------------------------------------
-p_out_rxbuf_din <= EXT(p_in_rxll_data, p_out_rxbuf_din'length);
-p_out_rxbuf_wr <= not p_in_rxll_src_rdy_n;
-p_out_rxd_sof <= not p_in_rxll_sof_n;
-p_out_rxd_eof <= not p_in_rxll_eof_n;
+p_out_rxbuf_din <=i_rx_d;
+p_out_rxbuf_wr <= i_rx_en or i_rx_eof;
+p_out_rxd_sof <= i_rx_sof when i_rx_sof_ext='0' else i_rx_eof;
+p_out_rxd_eof <= i_rx_eof;
 
 p_out_rxll_dst_rdy_n <= i_rxll_dst_rdy_n;
 
@@ -283,6 +308,15 @@ begin
     i_tx_req <= (others=>'0');
     i_crc_start <= '0';
 
+    i_rx_bcnt <= (others=>'0');
+    i_rx_fst <= '0';
+    i_rx_d <= (others=>'0');
+    i_rx_en <= '0';
+    i_rx_sof <= '0';
+    i_rx_eof <= '0';
+    i_rx_sof_ext <= '0';
+    sr_rx_d <= (others=>'0'); tst_udp<='0';
+
   elsif p_in_clk'event and p_in_clk='1' then
 
         case fsm_ip_rx_cs is
@@ -292,38 +326,173 @@ begin
           --------------------------------------
           when S_RX_IDLE =>
 
-              if (p_in_rxll_eof_n='0' and p_in_rxll_src_rdy_n='0') then
---                  i_hreg_a=CONV_STD_LOGIC_VECTOR(i_hreg_d'length - 1, i_hreg_a'length) then
+              i_rxll_dst_rdy_n <= '0'; tst_udp<='0';
+
+              i_rx_bcnt <= (others=>'0');
+              i_rx_fst <= '0';
+              i_rx_d <= (others=>'0');
+              i_rx_en <= '0';
+              i_rx_sof <= '0';
+              i_rx_eof <= '0';
+              i_rx_sof_ext <= '0';
+
+              if p_in_rxll_src_rdy_n='0' and i_rxll_dst_rdy_n='0' and
+                  i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ETH_TYPE+2, i_hreg_a'length) then
 
                   --MAC: анализ
                   if (AND_reduce(i_rx_mac_broadcast)='1' or AND_reduce(i_rx_mac_valid)='1') then
 
-                      --ARP: анализ + ответ
-                      if (i_hreg_d(CI_HREG_ETH_TYPE+0)&i_hreg_d(CI_HREG_ETH_TYPE+1))=CI_ETH_TYPE_ARP and
-                         (i_hreg_d(CI_HREG_ARP_HTYPE+0)&i_hreg_d(CI_HREG_ARP_HTYPE+1))=CI_ARP_HTYPE and
-                         (i_hreg_d(CI_HREG_ARP_PTYPE+0)&i_hreg_d(CI_HREG_ARP_PTYPE+1))=CI_ETH_TYPE_IP and
-                         (i_hreg_d(CI_HREG_ARP_HPLEN+0)&i_hreg_d(CI_HREG_ARP_HPLEN+1))=CI_ARP_HPLEN and
-                         (i_hreg_d(CI_HREG_ARP_OPER+0) &i_hreg_d(CI_HREG_ARP_OPER+1) )=CI_ARP_OPER_REQUST then
+                      --EthPkt Type: анализ
+                      if (i_hreg_d(CI_HREG_ETH_TYPE+0)&i_hreg_d(CI_HREG_ETH_TYPE+1))=CI_ETH_TYPE_ARP then
+                        fsm_ip_rx_cs <= S_RX_ARP_CHK;
 
-                            i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length);
-                            i_rxll_dst_rdy_n <= '1';
+                      elsif (i_hreg_d(CI_HREG_ETH_TYPE+0)&i_hreg_d(CI_HREG_ETH_TYPE+1))=CI_ETH_TYPE_IP then
+                        fsm_ip_rx_cs <= S_RX_IP_CHK;
 
-                            fsm_ip_rx_cs <= S_RX_SEND_DONE;
-
-                      --ICMP: анализ + ответ (ping)
-                      elsif (i_hreg_d(CI_HREG_ETH_TYPE+0)&i_hreg_d(CI_HREG_ETH_TYPE+1))=CI_ETH_TYPE_IP and
-                            i_hreg_d(CI_HREG_IP_PROTOCOL)=CI_IP_PTYPE_ICMP and
-                            i_hreg_d(CI_HREG_ICMP_OPER)=CI_ICMP_OPER_REQUST then
-
-                            i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length);
-                            i_rxll_dst_rdy_n <= '1';
-                            i_crc_start <= '1';
-
-                            fsm_ip_rx_cs <= S_RX_SEND_DONE;
-
-                      --UDP: анализ + прием
                       end if;
                   end if;
+
+              end if;
+
+          --------------------------------------
+          --
+          --------------------------------------
+          when S_RX_ARP_CHK =>
+
+              if (p_in_rxll_eof_n='0' and p_in_rxll_src_rdy_n='0') then
+
+                  if (i_hreg_d(CI_HREG_ARP_HTYPE+0)&i_hreg_d(CI_HREG_ARP_HTYPE+1))=CI_ARP_HTYPE and
+                     (i_hreg_d(CI_HREG_ARP_PTYPE+0)&i_hreg_d(CI_HREG_ARP_PTYPE+1))=CI_ETH_TYPE_IP and
+                     (i_hreg_d(CI_HREG_ARP_HPLEN+0)&i_hreg_d(CI_HREG_ARP_HPLEN+1))=CI_ARP_HPLEN and
+                     (i_hreg_d(CI_HREG_ARP_OPER+0) &i_hreg_d(CI_HREG_ARP_OPER+1) )=CI_ARP_OPER_REQUST then
+
+                        i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length);
+                        i_rxll_dst_rdy_n <= '1';
+
+                        fsm_ip_rx_cs <= S_RX_SEND_DONE;
+                    else
+                        fsm_ip_rx_cs <= S_RX_IDLE;
+                    end if;
+
+              end if;
+
+          --------------------------------------
+          --
+          --------------------------------------
+          when S_RX_IP_CHK =>
+
+              if p_in_rxll_src_rdy_n='0' and
+                 i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ICMP_OPER, i_hreg_a'length) then
+
+                  --IP: јнализ
+                  if AND_reduce(i_rx_ip_valid)='1' then
+
+                      if i_hreg_d(CI_HREG_IP_PROTOCOL)=CI_IP_PTYPE_ICMP then
+                        fsm_ip_rx_cs <= S_RX_ICMP;
+
+                      elsif i_hreg_d(CI_HREG_IP_PROTOCOL)=CI_IP_PTYPE_UDP then
+                        fsm_ip_rx_cs <= S_RX_UDP_CHK; tst_udp<='1';
+
+                      else
+                        fsm_ip_rx_cs <= S_RX_IDLE;
+                      end if;
+                  else
+                    fsm_ip_rx_cs <= S_RX_IDLE;
+                  end if;
+
+              end if;
+
+          --------------------------------------
+          --ICMP: анализ + ответ (ping)
+          --------------------------------------
+          when S_RX_ICMP =>
+
+              if p_in_rxll_src_rdy_n='0' then
+
+                  if i_hreg_d(CI_HREG_ICMP_OPER)=CI_ICMP_OPER_REQUST then
+
+                      if p_in_rxll_eof_n='0' then
+                          i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length);
+                          i_rxll_dst_rdy_n <= '1';
+                          i_crc_start <= '1';
+                          fsm_ip_rx_cs <= S_RX_SEND_DONE;
+                      end if;
+                  else
+                     fsm_ip_rx_cs <= S_RX_IDLE;
+                  end if;
+
+              end if;
+
+          --------------------------------------
+          --UDP: анализ + прием
+          --------------------------------------
+          when S_RX_UDP_CHK =>
+
+              if p_in_rxll_src_rdy_n='0' and
+                i_hreg_a=CONV_STD_LOGIC_VECTOR(37, i_hreg_a'length) then
+
+                  --ѕровер€ем DST PORT
+                  if (i_hreg_d(36) & p_in_rxll_data)=CI_UDP_PORT then
+                    fsm_ip_rx_cs <= S_RX_UDP_DLEN;
+                  else
+                    fsm_ip_rx_cs <= S_RX_IDLE;
+                  end if;
+
+              end if;
+
+          when S_RX_UDP_DLEN =>
+
+              if p_in_rxll_src_rdy_n='0' then
+                if i_rx_bcnt(0)='1' then
+                  i_rx_d(15 downto 0) <= (sr_rx_d & p_in_rxll_data) - 8;
+                  fsm_ip_rx_cs <= S_RX_UDP_CRC;
+                else
+                  sr_rx_d <= p_in_rxll_data;
+                end if;
+
+                i_rx_bcnt <= i_rx_bcnt + 1;
+              end if;
+
+          when S_RX_UDP_CRC =>
+
+              if p_in_rxll_src_rdy_n='0' then
+                if i_rx_bcnt=CONV_STD_LOGIC_VECTOR(4-1, i_rx_bcnt'length) then
+                  i_rx_bcnt <= CONV_STD_LOGIC_VECTOR(2, i_rx_bcnt'length);
+                  fsm_ip_rx_cs <= S_RX_UDP_DATA;
+                else
+                  i_rx_bcnt <= i_rx_bcnt + 1;
+                end if;
+
+                if i_rx_d(15 downto 0)<CONV_STD_LOGIC_VECTOR(2, i_rx_d'length) then
+                  i_rx_sof_ext <= '1';
+                end if;
+              end if;
+
+          when S_RX_UDP_DATA =>
+
+              if p_in_rxll_src_rdy_n='0' then
+
+                  for i in 0 to 3 loop
+                    if i_rx_bcnt=i then
+                      i_rx_d(8*(i+1)-1 downto 8*i) <= p_in_rxll_data;
+                    end if;
+                  end loop;
+
+                  i_rx_bcnt <= i_rx_bcnt + 1;
+
+                  if AND_reduce(i_rx_bcnt)='1' then
+                    i_rx_fst <= '1';
+                  end if;
+
+                  i_rx_en <= AND_reduce(i_rx_bcnt);
+                  i_rx_sof <= AND_reduce(i_rx_bcnt) and not i_rx_fst;
+
+                  if p_in_rxll_eof_n='0' then
+                    i_rx_eof <= '1';
+                    i_rxll_dst_rdy_n <= '1';
+                    fsm_ip_rx_cs <= S_RX_IDLE;
+                  end if;
+
               end if;
 
           --------------------------------------
@@ -334,7 +503,6 @@ begin
             i_crc_start <= '0';
 
             if i_tx_done='1' then
-              i_rxll_dst_rdy_n <= '0';
               i_tx_req <= (others=> '0');
               fsm_ip_rx_cs <= S_RX_IDLE;
             end if;
@@ -615,7 +783,6 @@ begin
                 i_tx_bcnt<=i_tx_bcnt + 1;--//счетчик байт порта входных данных p_in_txbuf_dout
 
             end if;--//if p_in_txbuf_empty='0' then
-
 
           end case;
 

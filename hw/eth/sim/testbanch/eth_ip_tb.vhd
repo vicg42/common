@@ -181,7 +181,8 @@ signal i_rxll_dst_rdy_n           : std_logic;
 type TARP_ask is array (0 to 21*2-1) of std_logic_vector(G_ETH_CORE_DBUS-1 downto 0);
 type TICMP_ask is array (0 to 37*2-1) of std_logic_vector(G_ETH_CORE_DBUS-1 downto 0);
 signal i_arp_ack              : TARP_ask;
-signal i_icmp_ack,i_icmp_ack2,i_icmp_ack3             : TICMP_ask;
+signal i_icmp_ack,i_icmp_ack2,i_icmp_ack3 : TICMP_ask;
+signal i_udp : TICMP_ask;
 
 type TDev is record
 mac     : TEthMacAdr;
@@ -378,25 +379,25 @@ begin
 
   wait for 2 us;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_arp_ack(0);
   i_rxll_sof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
   for i in 1 to i_arp_ack'length-2 loop
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_arp_ack(i);
   i_rxll_sof_n <= '1';
   i_rxll_src_rdy_n <= '0';
   end loop;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_arp_ack(20);
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= (others=>'0');
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '1';
@@ -404,25 +405,25 @@ begin
 
   wait for 2 us;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack(0);
   i_rxll_sof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
   for i in 1 to i_icmp_ack'length-2 loop
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack(i);
   i_rxll_sof_n <= '1';
   i_rxll_src_rdy_n <= '0';
   end loop;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack(73);
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= (others=>'0');
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '1';
@@ -432,25 +433,25 @@ begin
 
   wait for 2 us;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack2(0);
   i_rxll_sof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
   for i in 1 to i_icmp_ack'length-2 loop
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack2(i);
   i_rxll_sof_n <= '1';
   i_rxll_src_rdy_n <= '0';
   end loop;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack2(73);
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= (others=>'0');
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '1';
@@ -460,19 +461,19 @@ begin
 
   wait for 2 us;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack3(0);
   i_rxll_sof_n <= '0';
   i_rxll_src_rdy_n <= '0';
 
   for i in 1 to i_icmp_ack'length-2 loop
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack3(i);
   i_rxll_sof_n <= '1';
   i_rxll_src_rdy_n <= '0';
   end loop;
 
-  wait until i_clk'event and i_clk='1';
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
   i_rxll_data <= i_icmp_ack3(73);
   i_rxll_sof_n <= '1';
   i_rxll_eof_n <= '0';
@@ -484,6 +485,34 @@ begin
   i_rxll_eof_n <= '1';
   i_rxll_src_rdy_n <= '1';
 
+
+
+
+  wait for 2 us;
+
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
+  i_rxll_data <= i_udp(0);
+  i_rxll_sof_n <= '0';
+  i_rxll_src_rdy_n <= '0';
+
+  for i in 1 to 50 loop--41 loop --
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
+  i_rxll_data <= i_udp(i);
+  i_rxll_sof_n <= '1';
+  i_rxll_src_rdy_n <= '0';
+  end loop;
+
+  wait until i_clk'event and i_clk='1' and i_rxll_dst_rdy_n='0';
+  i_rxll_data <= i_udp(51);--i_udp(42);--
+  i_rxll_sof_n <= '1';
+  i_rxll_eof_n <= '0';
+  i_rxll_src_rdy_n <= '0';
+
+  wait until i_clk'event and i_clk='1';
+  i_rxll_data <= (others=>'0');
+  i_rxll_sof_n <= '1';
+  i_rxll_eof_n <= '1';
+  i_rxll_src_rdy_n <= '1';
   wait;
 end process;
 
@@ -787,57 +816,89 @@ i_icmp_ack3(71) <= CONV_STD_LOGIC_VECTOR(16#67#, 8);
 i_icmp_ack3(72) <= CONV_STD_LOGIC_VECTOR(16#68#, 8);
 i_icmp_ack3(73) <= CONV_STD_LOGIC_VECTOR(16#69#, 8);
 
-------------------------------------
-----ARP запрос
-------------------------------------
---i_arp_ack(0)  <= CONV_STD_LOGIC_VECTOR(16#FFFF#, i_arp_ack(0)'length);--MAC Dst
---i_arp_ack(1)  <= CONV_STD_LOGIC_VECTOR(16#FFFF#, i_arp_ack(0)'length);
---i_arp_ack(2)  <= CONV_STD_LOGIC_VECTOR(16#FFFF#, i_arp_ack(0)'length);
---i_arp_ack(3)  <= i_dev.mac(1) & i_dev.mac(0); --MAC Src
---i_arp_ack(4)  <= i_dev.mac(3) & i_dev.mac(2);
---i_arp_ack(5)  <= i_dev.mac(5) & i_dev.mac(4);
---i_arp_ack(6)  <= CONV_STD_LOGIC_VECTOR(CI_ETH_TYPE_ARP, i_arp_ack(0)'length); --Eth type
---i_arp_ack(7)  <= CONV_STD_LOGIC_VECTOR(CI_ARP_HTYPE, i_arp_ack(0)'length); --ARP - HTYPE
---i_arp_ack(8)  <= CONV_STD_LOGIC_VECTOR(CI_ETH_TYPE_IP, i_arp_ack(0)'length); --ARP - PTYPE
---i_arp_ack(9)  <= CONV_STD_LOGIC_VECTOR(16#0406#, i_arp_ack(0)'length); --ARP - HPLEN
---i_arp_ack(10) <= CONV_STD_LOGIC_VECTOR(CI_ARP_OPER_REQUST, i_arp_ack(0)'length);
---i_arp_ack(11) <= i_dev.mac(1) & i_dev.mac(0); --Src: MAC адрес
---i_arp_ack(12) <= i_dev.mac(3) & i_dev.mac(2);
---i_arp_ack(13) <= i_dev.mac(5) & i_dev.mac(4);
---i_arp_ack(14) <= i_dev.ip(1) & i_dev.ip(0);  --Src: IP адрес
---i_arp_ack(15) <= i_dev.ip(3) & i_dev.ip(2);
---i_arp_ack(16) <= (others=>'0'); --Dst: MAC адрес
---i_arp_ack(17) <= (others=>'0');
---i_arp_ack(18) <= (others=>'0');
---i_arp_ack(19) <= (others=>'0'); --Dst: IP адрес
---i_arp_ack(20) <= (others=>'1');
---
---
---------------------------------------
-------ICMP запрос
---------------------------------------
-----i_icmp_ack(0)  <= i_icmp_ack(3); --MAC адрес отправителя ARP запроса
-----i_icmp_ack(1)  <= i_icmp_ack(4);
-----i_icmp_ack(2)  <= i_icmp_ack(5);
-----i_icmp_ack(3)  <= p_in_cfg.mac.src(1) & p_in_cfg.mac.src(0);
-----i_icmp_ack(4)  <= p_in_cfg.mac.src(3) & p_in_cfg.mac.src(2);
-----i_icmp_ack(5)  <= p_in_cfg.mac.src(5) & p_in_cfg.mac.src(4);
-----i_icmp_ack(6)  <= i_icmp_ack(6);  --Eth type
-----i_icmp_ack(7)  <= i_icmp_ack(7);  --IP:
-----i_icmp_ack(8)  <= i_icmp_ack(8);  --IP: dlen
-----i_icmp_ack(9)  <= i_icmp_ack(9);  --IP: id
-----i_icmp_ack(10) <= i_icmp_ack(10); --IP: flag
-----i_icmp_ack(11) <= i_icmp_ack(11)(15 downto 8) & CONV_STD_LOGIC_VECTOR(CI_IP_TTL, 8);
-----i_icmp_ack(12) <= CONV_STD_LOGIC_VECTOR(0, i_icmp_ack(12)'length) when i_ip_crc_rdy='0' else i_ip_crc; --IP: CRC
-----i_icmp_ack(13) <= i_icmp_ack(15); --IP адрес отправителя ARP запроса
-----i_icmp_ack(14) <= i_icmp_ack(16);
-----i_icmp_ack(15) <= p_in_cfg.ip.src(1) & p_in_cfg.ip.src(0);
-----i_icmp_ack(16) <= p_in_cfg.ip.src(3) & p_in_cfg.ip.src(2);
-----i_icmp_ack(17) <= i_icmp_ack(17)(15 downto 8) & CONV_STD_LOGIC_VECTOR(CI_ICMP_OPER_ECHO_REPLY, 8);
-----i_icmp_ack(18) <= CONV_STD_LOGIC_VECTOR(0, i_icmp_ack(18)'length) when i_ip_crc_rdy='0' else i_icmp_crc; --ICMP: CRC
-----gen_icmp_ack : for i in 19 to i_icmp_ack'length-1 generate
-----i_icmp_ack(i)  <= i_icmp_ack(i);
-----end generate gen_icmp_ack;
+
+
+----------------------------------
+--UDP
+----------------------------------
+-- MAC адреса
+i_udp(0)  <= i_eth_cfg.mac.src(0);
+i_udp(1)  <= i_eth_cfg.mac.src(1);
+i_udp(2)  <= i_eth_cfg.mac.src(2);
+i_udp(3)  <= i_eth_cfg.mac.src(3);
+i_udp(4)  <= i_eth_cfg.mac.src(4);
+i_udp(5)  <= i_eth_cfg.mac.src(5);
+i_udp(6)  <= i_dev.mac(0);
+i_udp(7)  <= i_dev.mac(1);
+i_udp(8)  <= i_dev.mac(2);
+i_udp(9)  <= i_dev.mac(3);
+i_udp(10) <= i_dev.mac(4);
+i_udp(11) <= i_dev.mac(5);
+--Eth type
+i_udp(12) <= CI_ETH_TYPE_IP(15 downto 8);
+i_udp(13) <= CI_ETH_TYPE_IP( 7 downto 0);
+--IP
+i_udp(14) <= CONV_STD_LOGIC_VECTOR(16#45#, 8); --IP: ver
+i_udp(15) <= (others=>'0'); --IP: ToS (тип обслуживания)
+i_udp(16) <= (others=>'0'); --IP: dlen
+i_udp(17) <= CONV_STD_LOGIC_VECTOR(16#3C#, 8);
+i_udp(18) <= CONV_STD_LOGIC_VECTOR(16#1F#, 8); --IP: id
+i_udp(19) <= CONV_STD_LOGIC_VECTOR(16#93#, 8);
+i_udp(20) <= (others=>'0'); --IP: flag
+i_udp(21) <= (others=>'0');
+i_udp(22) <= CONV_STD_LOGIC_VECTOR(16#80#, 8);--CI_IP_TTL;
+i_udp(23) <= CONV_STD_LOGIC_VECTOR(17, 8);--; --IP: protocol
+i_udp(24) <= (others=>'0');-- when i_ip_crc_rdy='0' else i_ip_crc(15 downto 8); --IP: CRC
+i_udp(25) <= (others=>'0');-- when i_ip_crc_rdy='0' else i_ip_crc( 7 downto 0);
+i_udp(26) <= i_dev.ip(0); --IP: ip адрес отправителя ARP запроса
+i_udp(27) <= i_dev.ip(1);
+i_udp(28) <= i_dev.ip(2);
+i_udp(29) <= i_dev.ip(3);
+i_udp(30) <= i_eth_cfg.ip.src(0);
+i_udp(31) <= i_eth_cfg.ip.src(1);
+i_udp(32) <= i_eth_cfg.ip.src(2);
+i_udp(33) <= i_eth_cfg.ip.src(3);
+--UDP
+i_udp(34) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: SRC PORT
+i_udp(35) <= CONV_STD_LOGIC_VECTOR(16#01#, 8);
+i_udp(36) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: DST PORT
+i_udp(37) <= CONV_STD_LOGIC_VECTOR(200, 8);
+i_udp(38) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: DLEN=Data(byte) + 8(UDP header)
+i_udp(39) <= CONV_STD_LOGIC_VECTOR(10 + 8, 8);
+i_udp(40) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);--UDP: CRC
+i_udp(41) <= CONV_STD_LOGIC_VECTOR(16#00#, 8);
+i_udp(42) <= CONV_STD_LOGIC_VECTOR(16#61#, 8);--UDP: DATA
+i_udp(43) <= CONV_STD_LOGIC_VECTOR(16#62#, 8);
+i_udp(44) <= CONV_STD_LOGIC_VECTOR(16#63#, 8);
+i_udp(45) <= CONV_STD_LOGIC_VECTOR(16#64#, 8);
+i_udp(46) <= CONV_STD_LOGIC_VECTOR(16#65#, 8);
+i_udp(47) <= CONV_STD_LOGIC_VECTOR(16#66#, 8);
+i_udp(48) <= CONV_STD_LOGIC_VECTOR(16#67#, 8);
+i_udp(49) <= CONV_STD_LOGIC_VECTOR(16#68#, 8);
+i_udp(50) <= CONV_STD_LOGIC_VECTOR(16#69#, 8);
+i_udp(51) <= CONV_STD_LOGIC_VECTOR(16#6A#, 8);
+i_udp(52) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#6B#, 8);
+i_udp(53) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#6C#, 8);
+i_udp(54) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#6D#, 8);
+i_udp(55) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#6E#, 8);
+i_udp(56) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#6F#, 8);
+i_udp(57) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#70#, 8);
+i_udp(58) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#71#, 8);
+i_udp(59) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#72#, 8);
+i_udp(60) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#73#, 8);
+i_udp(61) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#74#, 8);
+i_udp(62) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#75#, 8);
+i_udp(63) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#76#, 8);
+i_udp(64) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#77#, 8);
+i_udp(65) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#61#, 8);
+i_udp(66) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#62#, 8);
+i_udp(67) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#63#, 8);
+i_udp(68) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#64#, 8);
+i_udp(69) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#65#, 8);
+i_udp(70) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#66#, 8);
+i_udp(71) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#67#, 8);
+i_udp(72) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#68#, 8);
+i_udp(73) <= (others=>'0');--CONV_STD_LOGIC_VECTOR(16#69#, 8);
 
 
 
