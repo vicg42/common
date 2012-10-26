@@ -151,7 +151,7 @@ signal i_txll_eof_n           : std_logic;
 signal i_txll_src_rdy_n       : std_logic;
 signal i_txll_rem             : std_logic_vector(p_out_txll_rem'range);
 
-type THReg is array (0 to 74-1) of std_logic_vector(p_out_txll_data'range);
+type THReg is array (0 to 128-1) of std_logic_vector(p_out_txll_data'range);
 signal i_hreg_d               : THReg;
 signal i_hreg_a               : std_logic_vector(6 downto 0);
 signal i_hreg_wr              : std_logic;
@@ -177,6 +177,7 @@ signal i_ip_crc               : std_logic_vector(15 downto 0);
 signal i_ip_crc_calc          : std_logic;
 signal i_ip_crc_rdy           : std_logic;
 signal sr_ip_ack              : std_logic_vector(p_out_txll_data'range);
+signal i_arp_ack_ereg         : std_logic_vector(15 downto 0);
 
 signal i_icmp_id              : std_logic_vector(15 downto 0);
 signal i_icmp_crc_dcnt        : std_logic_vector(i_hreg_a'range);
@@ -186,6 +187,7 @@ signal i_icmp_crc             : std_logic_vector(15 downto 0);
 signal i_icmp_crc_calc        : std_logic;
 signal i_icmp_crc_rdy         : std_logic;
 signal sr_icmp_ack            : std_logic_vector(p_out_txll_data'range);
+signal i_icmp_ack_ereg        : std_logic_vector(15 downto 0);
 
 signal i_crc_start            : std_logic;
 
@@ -628,8 +630,8 @@ begin
               i_txll_sof_n <= '1';
               i_txll_src_rdy_n <= '0';
 
-              if (i_tx_dcnt=CONV_STD_LOGIC_VECTOR(i_arp_ack'length - 1, i_tx_dcnt'length) and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length)) or
-                 (i_tx_dcnt=CONV_STD_LOGIC_VECTOR(i_icmp_ack'length - 1, i_tx_dcnt'length) and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length)) then
+              if (i_tx_dcnt=(i_arp_ack_ereg - 1) and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length)) or
+                 (i_tx_dcnt=(i_icmp_ack_ereg - 1) and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length)) then
 
                 i_tx_dcnt <= (others=>'0');
                 i_tx_done <= '1';
@@ -795,6 +797,8 @@ gen_ack_null : for i in 42 to i_hreg_d'length-1 generate
 i_arp_ack(i)  <= (others=>'0');
 end generate gen_ack_null;
 
+--вычисляем адрес последнего региста в котором содержатся данные ARP запроса: i_arp_ack_ereg = кол-во байт(ARP запроса) + кол-во байт(MAC_DST+MAC_DST+ETH_TYPE)
+i_arp_ack_ereg <= CONV_STD_LOGIC_VECTOR(28, i_arp_ack_ereg'length) + CONV_STD_LOGIC_VECTOR(14, i_arp_ack_ereg'length);
 
 ----------------------------------
 --ICMP ответ
@@ -845,6 +849,8 @@ gen_icmp_ack : for i in 38 to i_hreg_d'length-1 generate
 i_icmp_ack(i)  <= i_hreg_d(i);
 end generate gen_icmp_ack;
 
+--вычисляем адрес последнего региста в котором содержатся данные ICMP запроса: i_icmp_ack_ereg = IP_totallen + кол-во байт(MAC_DST+MAC_DST+ETH_TYPE)
+i_icmp_ack_ereg <= (i_hreg_d(16)&i_hreg_d(17)) + CONV_STD_LOGIC_VECTOR(14, i_icmp_ack_ereg'length);
 
 --Расчет CRC:
 i_icmp_crc_tmp2<=i_icmp_crc_tmp(31 downto 16) + i_icmp_crc_tmp(15 downto 0);
@@ -883,7 +889,7 @@ begin
             end if;
           end loop;
 
-          if i_icmp_crc_dcnt=CONV_STD_LOGIC_VECTOR(i_icmp_ack'length-1, i_icmp_crc_dcnt'length)  then
+          if EXT(i_icmp_crc_dcnt, i_icmp_ack_ereg'length)=(i_icmp_ack_ereg - 1)  then
             i_icmp_crc_calc <= '0';
             i_icmp_crc_rdy <= '1';
           end if;
