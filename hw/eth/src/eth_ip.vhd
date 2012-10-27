@@ -216,8 +216,10 @@ signal i_udpip_len            : std_logic_vector(15 downto 0);
 signal i_udp_len              : std_logic_vector(15 downto 0);
 signal i_udp_done             : std_logic;
 
-signal tst_fms_cs             : std_logic_vector(2 downto 0);
-signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
+signal tst_fms_cs_rx          : std_logic_vector(3 downto 0);
+signal tst_fms_cs_tx          : std_logic_vector(3 downto 0);
+signal tst_fms_cs_rx_dly      : std_logic_vector(3 downto 0);
+signal tst_fms_cs_tx_dly      : std_logic_vector(3 downto 0);
 signal tst_udp                : std_logic;
 
 
@@ -235,22 +237,34 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
-    tst_fms_cs_dly<=(others=>'0');
+    tst_fms_cs_rx_dly<=(others=>'0');
+    tst_fms_cs_tx_dly<=(others=>'0');
     p_out_tst(31 downto 1)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
---    tst_fms_cs_dly<=tst_fms_cs;
---    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly);
-    p_out_tst(0)<=tst_udp;
+    tst_fms_cs_rx_dly<=tst_fms_cs_rx;
+    tst_fms_cs_tx_dly<=tst_fms_cs_tx;
+    p_out_tst(0)<=tst_udp or OR_reduce(tst_fms_cs_rx_dly) or OR_reduce(tst_fms_cs_tx_dly);
   end if;
 end process ltstout;
 
---tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ip_rx_cs=S_TX_MACA_DST0 else
---            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_ip_rx_cs=S_TX_MACA_DST1 else
---            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_ip_rx_cs=S_TX_MACA_SRC  else
---            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_ip_rx_cs=S_TX_MACD      else
---            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_ip_rx_cs=S_TX_DONE      else
---            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_ip_rx_cs=S_TX_IP_IDLE         else
+tst_fms_cs_rx<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_ARP_CHK    else
+               CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_IP_CHK     else
+               CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_ICMP       else
+               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_CHK    else
+               CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_DLEN   else
+               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_CRC    else
+               CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_DATA   else
+               CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_SEND_DONE  else
+               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs_rx'length);-- when fsm_ip_rx_cs=S_RX_IDLE       else
+
+tst_fms_cs_tx<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_ACK_DLY  else
+               CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_ACK      else
+               CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_DONE     else
+               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_UDP_H0   else
+               CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_UDP_HN   else
+               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_UDP_D    else
+               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs_tx'length);-- when fsm_ip_tx_cs=S_TX_IDLE     else
 
 end generate gen_dbg_on;
 
