@@ -161,6 +161,7 @@ signal i_tx_dlen              : std_logic_vector(15 downto 0);
 signal i_tx_dcnt              : std_logic_vector(15 downto 0);
 signal i_tx_done              : std_logic;
 signal i_tx_bcnt              : std_logic_vector(selval(0, 1, (p_out_txll_data'length=16)) downto 0);
+signal i_tx_pktid             : std_logic_vector(15 downto 0);
 
 signal i_rx_ip_valid          : std_logic_vector(p_in_cfg.ip.src'length - 1 downto 0);
 signal i_rx_mac_valid         : std_logic_vector(p_in_cfg.mac.src'length - 1 downto 0);
@@ -170,6 +171,8 @@ signal i_arp_ack              : THReg;
 signal i_icmp_ack             : THReg;
 signal i_udp_pkt              : THReg;
 
+type TCRCData is array (14 to 33) of std_logic_vector(p_out_txll_data'range);
+signal i_ip_crc_d             : TCRCData;
 signal i_ip_crc_dcnt          : std_logic_vector(i_hreg_a'range);
 signal i_ip_crc_tmp           : std_logic_vector(31 downto 0);
 signal i_ip_crc_tmp2          : std_logic_vector(15 downto 0);
@@ -179,7 +182,6 @@ signal i_ip_crc_rdy           : std_logic;
 signal sr_ip_ack              : std_logic_vector(p_out_txll_data'range);
 signal i_arp_ack_ereg         : std_logic_vector(15 downto 0);
 
-signal i_icmp_id              : std_logic_vector(15 downto 0);
 signal i_icmp_crc_dcnt        : std_logic_vector(i_hreg_a'range);
 signal i_icmp_crc_tmp         : std_logic_vector(31 downto 0);
 signal i_icmp_crc_tmp2        : std_logic_vector(15 downto 0);
@@ -191,8 +193,8 @@ signal i_icmp_ack_ereg        : std_logic_vector(15 downto 0);
 
 signal i_crc_start            : std_logic;
 
-signal i_usr_txd_rd           : std_logic;--//строб дополнительного чтения
-signal i_usr_txd_rden         : std_logic;--//разрешение чтения данных из usr_txbuf
+signal i_usr_txd_rd           : std_logic;--строб дополнительного чтения
+signal i_usr_txd_rden         : std_logic;--разрешение чтения данных из usr_txbuf
 
 signal i_rx_bcnt              : std_logic_vector(1 downto 0);
 signal i_rx_fst               : std_logic;
@@ -204,7 +206,6 @@ signal i_rx_sof_ext           : std_logic;
 signal sr_rx_d                : std_logic_vector(p_out_txll_data'range);
 
 signal i_udpip_crc_start      : std_logic;
-signal i_udpip_id             : std_logic_vector(15 downto 0);
 signal i_udpip_crc_dcnt       : std_logic_vector(i_hreg_a'range);
 signal i_udpip_crc_tmp        : std_logic_vector(31 downto 0);
 signal i_udpip_crc_tmp2       : std_logic_vector(15 downto 0);
@@ -321,7 +322,7 @@ end generate gen_rx_ip_check;
 --//Анализ принятого EthPkt
 --//-------------------------------------------
 p_out_rxbuf_din <=i_rx_d;
-p_out_rxbuf_wr <= i_rx_en or i_rx_eof;
+p_out_rxbuf_wr <= (i_rx_en or i_rx_eof);
 p_out_rxd_sof <= i_rx_sof when i_rx_sof_ext='0' else i_rx_eof;
 p_out_rxd_eof <= i_rx_eof;
 
@@ -365,16 +366,16 @@ begin
               i_rx_sof_ext <= '0';
 
               if p_in_rxll_src_rdy_n='0' and i_rxll_dst_rdy_n='0' and
-                  i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ETH_TYPE+2, i_hreg_a'length) then
+                  i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ETH_TYPE + 2, i_hreg_a'length) then
 
                   --MAC: анализ
                   if (AND_reduce(i_rx_mac_broadcast)='1' or AND_reduce(i_rx_mac_valid)='1') then
 
                       --EthPkt Type: анализ
-                      if (i_hreg_d(CI_HREG_ETH_TYPE+0)&i_hreg_d(CI_HREG_ETH_TYPE+1))=CI_ETH_TYPE_ARP then
+                      if (i_hreg_d(CI_HREG_ETH_TYPE + 0) & i_hreg_d(CI_HREG_ETH_TYPE + 1))=CI_ETH_TYPE_ARP then
                         fsm_ip_rx_cs <= S_RX_ARP_CHK;
 
-                      elsif (i_hreg_d(CI_HREG_ETH_TYPE+0)&i_hreg_d(CI_HREG_ETH_TYPE+1))=CI_ETH_TYPE_IP then
+                      elsif (i_hreg_d(CI_HREG_ETH_TYPE + 0) & i_hreg_d(CI_HREG_ETH_TYPE + 1))=CI_ETH_TYPE_IP then
                         fsm_ip_rx_cs <= S_RX_IP_CHK;
 
                       end if;
@@ -389,10 +390,10 @@ begin
 
               if (p_in_rxll_eof_n='0' and p_in_rxll_src_rdy_n='0') then
 
-                  if (i_hreg_d(CI_HREG_ARP_HTYPE+0)&i_hreg_d(CI_HREG_ARP_HTYPE+1))=CI_ARP_HTYPE and
-                     (i_hreg_d(CI_HREG_ARP_PTYPE+0)&i_hreg_d(CI_HREG_ARP_PTYPE+1))=CI_ETH_TYPE_IP and
-                     (i_hreg_d(CI_HREG_ARP_HPLEN+0)&i_hreg_d(CI_HREG_ARP_HPLEN+1))=CI_ARP_HPLEN and
-                     (i_hreg_d(CI_HREG_ARP_OPER+0) &i_hreg_d(CI_HREG_ARP_OPER+1) )=CI_ARP_OPER_REQUST then
+                  if (i_hreg_d(CI_HREG_ARP_HTYPE + 0) & i_hreg_d(CI_HREG_ARP_HTYPE + 1))=CI_ARP_HTYPE and
+                     (i_hreg_d(CI_HREG_ARP_PTYPE + 0) & i_hreg_d(CI_HREG_ARP_PTYPE + 1))=CI_ETH_TYPE_IP and
+                     (i_hreg_d(CI_HREG_ARP_HPLEN + 0) & i_hreg_d(CI_HREG_ARP_HPLEN + 1))=CI_ARP_HPLEN and
+                     (i_hreg_d(CI_HREG_ARP_OPER  + 0) & i_hreg_d(CI_HREG_ARP_OPER  + 1))=CI_ARP_OPER_REQUST then
 
                         i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length);
                         i_rxll_dst_rdy_n <= '1';
@@ -462,6 +463,7 @@ begin
                   --Проверяем DST PORT принимаемого UDP Pkt
                   if (i_hreg_d(36) & p_in_rxll_data)=p_in_cfg.prt.src then
                     fsm_ip_rx_cs <= S_RX_UDP_DLEN;
+
                   else
                     fsm_ip_rx_cs <= S_RX_IDLE;
                   end if;
@@ -472,7 +474,7 @@ begin
 
               if p_in_rxll_src_rdy_n='0' then
                 if i_rx_bcnt(0)='1' then
-                  i_rx_d(15 downto 0) <= (sr_rx_d & p_in_rxll_data) - 8;
+                  i_rx_d(15 downto 0) <= (sr_rx_d & p_in_rxll_data) - CONV_STD_LOGIC_VECTOR(CI_UDP_HEADER_SIZE, 16);
                   fsm_ip_rx_cs <= S_RX_UDP_CRC;
                 else
                   sr_rx_d <= p_in_rxll_data;
@@ -567,13 +569,12 @@ begin
     i_txll_eof_n <= '1';
     i_txll_src_rdy_n <= '1';
 
-    i_icmp_id <= (others=>'0');
+    i_tx_pktid <=(others=>'0');
 
     i_usr_txd_rd<='0';
     i_usr_txd_rden<='0';
     i_tx_bcnt<=(others=>'0');
 
-    i_udpip_id <= (others=>'0');
     i_udpip_crc_start <= '0';
     i_udp_done <= '0';
 
@@ -599,7 +600,7 @@ begin
 
               i_tx_dlen<=p_in_txbuf_dout(15 downto 0);--usr dlen (byte)
               i_udpip_crc_start <= '1';
-              i_udpip_id <= i_udpip_id + 1;
+              i_tx_pktid <= i_tx_pktid + 1;
               fsm_ip_tx_cs<=S_TX_UDP_H0;
 
             end if;
@@ -616,7 +617,7 @@ begin
                     i_txll_data <= i_arp_ack(0);
                   else
                     i_txll_data <= i_icmp_ack(0);
-                    i_icmp_id <= i_icmp_id + 1;
+                    i_tx_pktid <= i_tx_pktid + 1;
                   end if;
                   i_txll_sof_n <= '0';
                   i_txll_src_rdy_n <= '0';
@@ -737,7 +738,7 @@ begin
                   i_udp_done <= '1';
                   fsm_ip_tx_cs<=S_TX_DONE;
                 else
-                  i_tx_dcnt<=i_tx_dcnt + 1;--//счетчик байт передоваемых данных
+                  i_tx_dcnt<=i_tx_dcnt + 1;--счетчик байт передоваемых данных
                   i_txll_eof_n<='1';
                 end if;
 
@@ -748,9 +749,9 @@ begin
                     end if;
                   end loop;
 
-                i_tx_bcnt<=i_tx_bcnt + 1;--//счетчик байт порта входных данных p_in_txbuf_dout
+                i_tx_bcnt<=i_tx_bcnt + 1;--счетчик байт порта входных данных p_in_txbuf_dout
 
-            end if;--//if p_in_txbuf_empty='0' then
+            end if;--if p_in_txbuf_empty='0' then
 
           end case;
 
@@ -811,8 +812,9 @@ gen_ack_null : for i in 42 to i_hreg_d'length-1 generate
 i_arp_ack(i)  <= (others=>'0');
 end generate gen_ack_null;
 
---вычисляем адрес последнего региста в котором содержатся данные ARP запроса: i_arp_ack_ereg = кол-во байт(ARP запроса) + кол-во байт(MAC_DST+MAC_DST+ETH_TYPE)
-i_arp_ack_ereg <= CONV_STD_LOGIC_VECTOR(28, i_arp_ack_ereg'length) + CONV_STD_LOGIC_VECTOR(14, i_arp_ack_ereg'length);
+--вычисляем адрес последнего региста в котором содержатся данные ARP запроса:
+--i_arp_ack_ereg = кол-во байт(ARP запроса) + кол-во байт(MAC_DST+MAC_DST+ETH_TYPE)
+i_arp_ack_ereg <= CONV_STD_LOGIC_VECTOR(28 + 14, i_arp_ack_ereg'length);
 
 ----------------------------------
 --ICMP ответ
@@ -838,8 +840,8 @@ i_icmp_ack(14) <= i_hreg_d(14); --IP: ver
 i_icmp_ack(15) <= i_hreg_d(15); --IP: ToS (тип обслуживания)
 i_icmp_ack(16) <= i_hreg_d(16); --IP: dlen
 i_icmp_ack(17) <= i_hreg_d(17);
-i_icmp_ack(18) <= i_icmp_id(15 downto 8);--IP: id  --i_hreg_d(18);--
-i_icmp_ack(19) <= i_icmp_id( 7 downto 0);          --i_hreg_d(19);--
+i_icmp_ack(18) <= i_tx_pktid(15 downto 8);--IP: id
+i_icmp_ack(19) <= i_tx_pktid( 7 downto 0);
 i_icmp_ack(20) <= i_hreg_d(20); --IP: flag
 i_icmp_ack(21) <= i_hreg_d(21);
 i_icmp_ack(22) <= CI_IP_TTL;
@@ -863,7 +865,8 @@ gen_icmp_ack : for i in 38 to i_hreg_d'length-1 generate
 i_icmp_ack(i)  <= i_hreg_d(i);
 end generate gen_icmp_ack;
 
---вычисляем адрес последнего региста в котором содержатся данные ICMP запроса: i_icmp_ack_ereg = IP_totallen + кол-во байт(MAC_DST+MAC_DST+ETH_TYPE)
+--вычисляем адрес последнего региста в котором содержатся данные ICMP запроса:
+--i_icmp_ack_ereg = IP_totallen + кол-во байт(MAC_DST+MAC_DST+ETH_TYPE)
 i_icmp_ack_ereg <= (i_hreg_d(16)&i_hreg_d(17)) + CONV_STD_LOGIC_VECTOR(14, i_icmp_ack_ereg'length);
 
 --Расчет CRC:
@@ -921,6 +924,10 @@ gen_ip_crc : for i in 0 to i_ip_crc'length-1 generate
 i_ip_crc(i) <= not i_ip_crc_tmp2(i);
 end generate gen_ip_crc;
 
+gen_ip_crc_d : for i in 14 to 33 generate
+i_ip_crc_d(i) <= i_icmp_ack(i);
+end generate gen_ip_crc_d;
+
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -945,9 +952,9 @@ begin
           for i in 14 to 33 loop
             if i_ip_crc_dcnt=i then
               if i_ip_crc_dcnt(0)='1' then
-                i_ip_crc_tmp <= i_ip_crc_tmp + (CONV_STD_LOGIC_VECTOR(0, 16) & sr_ip_ack & i_icmp_ack(i));
+                i_ip_crc_tmp <= i_ip_crc_tmp + (CONV_STD_LOGIC_VECTOR(0, 16) & sr_ip_ack & i_ip_crc_d(i));
               else
-                sr_ip_ack <= i_icmp_ack(i);
+                sr_ip_ack <= i_ip_crc_d(i);
               end if;
             end if;
           end loop;
@@ -989,8 +996,8 @@ i_udp_pkt(14) <= CONV_STD_LOGIC_VECTOR(16#45#, 8); --IP: ver
 i_udp_pkt(15) <= (others=>'0'); --IP: ToS (тип обслуживания)
 i_udp_pkt(16) <= i_udpip_len(15 downto 8); --IP: dlen
 i_udp_pkt(17) <= i_udpip_len( 7 downto 0);
-i_udp_pkt(18) <= i_udpip_id(15 downto 8);--IP: id
-i_udp_pkt(19) <= i_udpip_id( 7 downto 0);
+i_udp_pkt(18) <= i_tx_pktid(15 downto 8);--IP: id
+i_udp_pkt(19) <= i_tx_pktid( 7 downto 0);
 i_udp_pkt(20) <= (others=>'0'); --IP: flag
 i_udp_pkt(21) <= (others=>'0');
 i_udp_pkt(22) <= CI_IP_TTL;
@@ -1023,9 +1030,9 @@ i_udpip_len <= i_udp_len + CONV_STD_LOGIC_VECTOR(CI_IP_HEADER_SIZE, i_udpip_len'
 
 --Расчет CRC:
 i_udpip_crc_tmp2<=i_udpip_crc_tmp(31 downto 16) + i_udpip_crc_tmp(15 downto 0);
-gen_ipudp_crc : for i in 0 to i_ip_crc'length-1 generate
+gen_udpip_crc : for i in 0 to i_ip_crc'length-1 generate
 i_udpip_crc(i) <= not i_udpip_crc_tmp2(i);
-end generate gen_ipudp_crc;
+end generate gen_udpip_crc;
 
 process(p_in_rst,p_in_clk)
 begin
