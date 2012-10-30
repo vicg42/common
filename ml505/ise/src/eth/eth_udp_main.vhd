@@ -100,7 +100,7 @@ constant CI_ETH_PORT_DST: std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(3
 --Port на стороне FPGA
 constant CI_ETH_PORT_SRC: std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(3000 , 16);
 
-component host_ethg_txfifo
+component host_ethg_txudp
 port(
 din         : IN  std_logic_vector(31 downto 0);
 wr_en       : IN  std_logic;
@@ -112,8 +112,42 @@ rd_clk      : IN  std_logic;
 
 empty       : OUT std_logic;
 full        : OUT std_logic;
+prog_full   : OUT std_logic;
 
 rst         : IN  std_logic
+);
+end component;
+
+component eth_tst_gen
+generic(
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
+);
+port(
+--------------------------------------
+--Управление
+--------------------------------------
+p_in_pkt_dly     : in    std_logic_vector(31 downto 0);
+p_in_work        : in    std_logic;
+
+--------------------------------------
+--Связь с пользовательским TXBUF
+--------------------------------------
+p_out_txbuf_din  : out   std_logic_vector(31 downto 0);
+p_out_txbuf_wr   : out   std_logic;
+p_in_txbuf_full  : in    std_logic;
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(31 downto 0);
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk         : in    std_logic;
+p_in_rst         : in    std_logic
 );
 end component;
 
@@ -214,13 +248,17 @@ signal i_eth_txpkt_dcnt                : std_logic_vector(15 downto 0);
 signal i_eth_txpkt_d                   : std_logic_vector(31 downto 0);
 signal i_eth_txpkt_wr                  : std_logic;
 signal i_eth_txpkt_len                 : std_logic_vector(15 downto 0);
-signal i_eth_txpkt_tx_dlycnt           : std_logic_vector(15 downto 0);
-
+signal i_eth_txpkt_dlycnt              : std_logic_vector(31 downto 0);
+signal i_eth_txpkt_work                : std_logic;
+signal i_eth_txbuf_err                 : std_logic;
 type TEthTstData is array (0 to i_eth_txpkt_d'length/8 - 1) of std_logic_vector(7 downto 0);
 
 signal i_t1ms                          : std_logic;
 signal i_test01_led                    : std_logic;
 signal i_mnl_rst                       : std_logic;
+signal tst_txbuf_empty                 : std_logic;
+signal tst_txbuf_full                  : std_logic;
+signal i_eth_tstgen_tst_out            : std_logic_vector(31 downto 0);
 
 --
 -- If the synthesizer replicates an asynchronous reset signal due high fanout,
@@ -485,7 +523,7 @@ end process;
 --    i_eth_txpkt_d<=(others=>'0');
 --    i_eth_txpkt_wr<='0';
 --    i_eth_txpkt_len<=(others=>'0');
---    i_eth_txpkt_tx_dlycnt<=(others=>'0');
+--    i_eth_txpkt_dlycnt<=(others=>'0');
 --    for i in 0 to eth_tstd'length-1 loop
 --    eth_tstd(i):=(others=>'0');
 --    end loop;
@@ -503,13 +541,13 @@ end process;
 --          if i_ethphy_out.link='1' then
 --
 --              if i_t1ms='1' then
---                if i_eth_txpkt_tx_dlycnt=CONV_STD_LOGIC_VECTOR(CI_ETH_TX_TMR,i_eth_txpkt_tx_dlycnt'length) then
---                  i_eth_txpkt_tx_dlycnt<=(others=>'0');
+--                if i_eth_txpkt_dlycnt=CONV_STD_LOGIC_VECTOR(CI_ETH_TX_TMR,i_eth_txpkt_dlycnt'length) then
+--                  i_eth_txpkt_dlycnt<=(others=>'0');
 --                  i_eth_txpkt_len<=CONV_STD_LOGIC_VECTOR(2 + CI_ETH_TSTDATA_COUNT, 16);
 --                  i_eth_txpkt_dcnt<=(others=>'0');
 --                  fsm_usrpkt_tx_cs<=S_USR_PKT_TX0;
 --                else
---                  i_eth_txpkt_tx_dlycnt<=i_eth_txpkt_tx_dlycnt + 1;
+--                  i_eth_txpkt_dlycnt<=i_eth_txpkt_dlycnt + 1;
 --                end if;
 --              end if;
 --
@@ -555,7 +593,7 @@ end process;
 --  end if;
 --end process;
 
-m_eth_txbuf : host_ethg_txfifo
+m_eth_txbuf : host_ethg_txudp
 port map(
 --din     => i_eth_txpkt_d,
 --wr_en   => i_eth_txpkt_wr,
@@ -569,12 +607,62 @@ rd_en   => i_eth_out(0).txbuf.rd,
 rd_clk  => i_ethphy_out.clk,
 
 empty   => i_eth_in(0).txbuf.empty,
-full    => i_eth_in(0).txbuf.full,
+full    => open,
+prog_full => i_eth_in(0).txbuf.full,
 
 rst     => i_sys_rst
 );
-
 i_eth_in(0).rxbuf.full<=i_eth_in(0).txbuf.full;
+
+--process(i_mnl_rst,i_ethphy_out)
+--begin
+--  if i_mnl_rst='1' then
+--    i_eth_txpkt_work <= '0';
+--    i_eth_txbuf_err <= '0';
+--  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
+--    if i_eth_out(0).rxbuf.wr='1' then
+--      i_eth_txpkt_work <= '1';
+--    end if;
+--    if i_eth_in(0).txbuf.full='1' then
+--      i_eth_txbuf_err <= '1';
+--    end if;
+--  end if;
+--end process;
+--
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(74125, i_eth_txpkt_dlycnt'length);
+--
+--m_tst_gen : eth_tst_gen
+--generic map(
+--G_DBG => C_PCFG_ETH_DBG,
+--G_SIM => G_SIM
+--)
+--port map(
+----------------------------------------
+----Управление
+----------------------------------------
+--p_in_pkt_dly     => i_eth_txpkt_dlycnt,
+--p_in_work        => i_eth_txpkt_work,
+--
+----------------------------------------
+----Связь с пользовательским TXBUF
+----------------------------------------
+--p_out_txbuf_din  => i_eth_txpkt_d,
+--p_out_txbuf_wr   => i_eth_txpkt_wr,
+--p_in_txbuf_full  => i_eth_in(0).txbuf.full,
+--
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_in_tst         => (others=>'0'),
+--p_out_tst        => i_eth_tstgen_tst_out,
+--
+----------------------------------------
+----SYSTEM
+----------------------------------------
+--p_in_clk         => i_ethphy_out.clk,
+--p_in_rst         => i_mnl_rst
+--);
+
 
 --//#########################################
 --//DBG
@@ -590,14 +678,14 @@ end generate gen_htgv6;
 i_mnl_rst<=i_sys_rst or i_usr_rst;
 
 
-pin_out_led(0)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT) and i_usr_rst and
+pin_out_led(0)<=i_ethphy_out.opt(C_ETHPHY_OPTOUT_RST_BIT) and i_usr_rst and i_eth_tstgen_tst_out(0) and tst_txbuf_full and tst_txbuf_empty and
                 (i_eth_out(0).rxbuf.sof or i_eth_out(0).rxbuf.eof or OR_reduce(i_eth_out(0).rxbuf.din) or i_eth_out(0).rxbuf.wr) and
                 (OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx));
 pin_out_led(1)<='0';
 pin_out_led(2)<='0';
-pin_out_led(3)<='0';
+pin_out_led(3)<=dbg_eth_out.app(0).mac_rx(1);--i_dhcp_done
 
-pin_out_led(4)<='0';
+pin_out_led(4)<=i_eth_txbuf_err;
 pin_out_led(5)<=not i_ethphy_out.rdy;--read bad ID from ETHPHY
 pin_out_led(6)<=i_ethphy_out.link;
 pin_out_led(7)<=i_test01_led;
@@ -619,5 +707,16 @@ p_out_1ms      => i_t1ms,
 p_in_clk       => i_ethphy_out.clk,
 p_in_rst       => i_mnl_rst
 );
+
+process(i_mnl_rst,i_ethphy_out)
+begin
+  if i_mnl_rst='1' then
+    tst_txbuf_empty <= '0';
+    tst_txbuf_full <= '0';
+  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
+    tst_txbuf_empty <= i_eth_in(0).txbuf.empty;
+    tst_txbuf_full <= i_eth_in(0).txbuf.full;
+  end if;
+end process;
 
 end architecture;
