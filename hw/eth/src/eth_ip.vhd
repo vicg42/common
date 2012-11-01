@@ -89,8 +89,6 @@ end eth_ip;
 
 architecture behavioral of eth_ip is
 
-constant CI_DHCP_USE             : std_logic:='1';
-
 constant CI_HREG_ETH_TYPE        : integer:=12;
 constant CI_HREG_ARP_HTYPE       : integer:=14;
 constant CI_HREG_IP_VER          : integer:=14;
@@ -128,6 +126,7 @@ constant CI_UDP_HEADER_SIZE      : integer:=8;--byte
 constant CI_UDP_PORT_DHCP_SERVER : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(67, 16);
 constant CI_UDP_PORT_DHCP_CLIENT : std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(68, 16);
 
+constant CI_DHCP_TIMEOUT         : integer:=16#1DCD6500#;--4sec для 125MHZ
 constant CI_DHCP_FIELD_SNAME_SIZE: integer:=64;
 constant CI_DHCP_FIELD_FILE_SIZE : integer:=128;
 constant CI_DHCP_OPER_REQUEST    : std_logic_vector(7 downto 0):=CONV_STD_LOGIC_VECTOR(1, 8);
@@ -267,6 +266,11 @@ signal i_dhcp_get_prm_done    : std_logic;
 signal i_dhcp_server_ip       : TEthIPv4;
 signal i_dhcp_client_ip       : TEthIPv4;
 signal i_dhcp_server_mac      : TEthMacAdr;
+signal i_dhcp_on              : std_logic;
+signal i_dhcp_tmr             : std_logic_vector(31 downto 0);
+signal i_dhcp_tmr_en          : std_logic;
+signal i_dhcp_discover_update : std_logic;
+signal i_dhcp_proffer_rx_done : std_logic;
 
 signal tst_fms_cs_rx          : std_logic_vector(3 downto 0);
 signal tst_fms_cs_tx          : std_logic_vector(3 downto 0);
@@ -381,30 +385,17 @@ end generate gen_rx_ip_check;
 --Установка IP + MAC адресов + UDP портов
 i_fpga_udp_port <= p_in_cfg.prt.src;
 i_host_udp_port <= p_in_cfg.prt.dst;
+i_dhcp_on <= p_in_cfg.usrctrl(C_ETH_CTRL_DHCP_EN_BIT);
 
-gen_dhcp_use_on : if CI_DHCP_USE='1' generate
 gen_set_ip : for i in 0 to i_fpga_ip'length-1 generate
-i_fpga_ip(i) <= i_dhcp_client_ip(i);
-i_host_ip(i) <= i_dhcp_server_ip(i);
+i_fpga_ip(i) <= p_in_cfg.ip.src(i) when i_dhcp_on='0' else i_dhcp_client_ip(i);
+i_host_ip(i) <= p_in_cfg.ip.dst(i) when i_dhcp_on='0' else i_dhcp_server_ip(i);
 end generate gen_set_ip;
 
 gen_set_mac : for i in 0 to i_host_mac'length-1 generate
 i_fpga_mac(i) <= p_in_cfg.mac.src(i);
-i_host_mac(i) <= i_dhcp_server_mac(i);
+i_host_mac(i) <= p_in_cfg.mac.dst(i) when i_dhcp_on='0' else i_dhcp_server_mac(i);
 end generate gen_set_mac;
-end generate gen_dhcp_use_on;
-
-gen_dhcp_use_off : if CI_DHCP_USE='0' generate
-gen_set_ip : for i in 0 to i_fpga_ip'length-1 generate
-i_fpga_ip(i) <= p_in_cfg.ip.src(i);
-i_host_ip(i) <= p_in_cfg.ip.dst(i);
-end generate gen_set_ip;
-
-gen_set_mac : for i in 0 to i_host_mac'length-1 generate
-i_fpga_mac(i) <= p_in_cfg.mac.src(i);
-i_host_mac(i) <= p_in_cfg.mac.dst(i);
-end generate gen_set_mac;
-end generate gen_dhcp_use_off;
 
 
 --//-------------------------------------------
@@ -447,6 +438,7 @@ begin
     for i in 0 to i_dhcp_server_mac'length-1 loop
     i_dhcp_server_mac(i) <= (others=>'0');
     end loop;
+    i_dhcp_proffer_rx_done <= '0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -467,14 +459,6 @@ begin
               i_rx_eof <= '0';
               i_rx_sof_ext <= '0';
 
-            if i_dhcp_discover_tx_done='0' and CI_DHCP_USE='1' then
-                if p_in_link='1' then
-                    i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length);
-                    i_rxll_dst_rdy_n <= '1';
-                    i_crc_start <= '1';
-                    fsm_ip_rx_cs <= S_RX_WAIT_TX_DONE;
-                end if;
-            else
               if p_in_rxll_src_rdy_n='0' and i_rxll_dst_rdy_n='0' and
                   i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ETH_TYPE + 2, i_hreg_a'length) then
 
@@ -493,15 +477,25 @@ begin
 
                     fsm_ip_rx_cs <= S_RX_WAIT_DONE;
                   end if;
-
+              else
+                  if (i_dhcp_discover_tx_done='0' or i_dhcp_discover_update='1') and i_dhcp_on='1' then
+                      if p_in_link='1' then
+                          i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length);
+                          i_rxll_dst_rdy_n <= '1';
+                          i_crc_start <= '1';
+                          fsm_ip_rx_cs <= S_RX_WAIT_TX_DONE;
+                      end if;
+                      i_dhcp_discover_tx_done <= '0';
+                      i_dhcp_proffer_rx_done <= '0';
+                  end if;
               end if;
-            end if;
+
           --------------------------------------
           --ARP:
           --------------------------------------
           when S_RX_ARP =>
 
-            if i_dhcp_get_prm_done='0' and  CI_DHCP_USE='1' then
+            if i_dhcp_get_prm_done='0' and i_dhcp_on='1' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
               if (p_in_rxll_src_rdy_n='0' and p_in_rxll_eof_n='0') then
@@ -530,7 +524,7 @@ begin
               if p_in_rxll_src_rdy_n='0' and
                  i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ICMP_OPER, i_hreg_a'length) then
 
-                  if (AND_reduce(i_rx_ip_valid)='1' or (AND_reduce(i_rx_ip_broadcast)='1' and i_dhcp_get_prm_done='0' and  CI_DHCP_USE='1')) and
+                  if (AND_reduce(i_rx_ip_valid)='1' or (AND_reduce(i_rx_ip_broadcast)='1' and i_dhcp_get_prm_done='0' and i_dhcp_on='1')) and
                       i_hreg_d(CI_HREG_IP_VER)=(CONV_STD_LOGIC_VECTOR(CI_IP_VER, 4) & CONV_STD_LOGIC_VECTOR(CI_IP_HEADER_SIZE/4, 4)) then
 
                       if i_hreg_d(CI_HREG_IP_PROTOCOL)=CI_IP_PTYPE_ICMP then
@@ -553,7 +547,7 @@ begin
           --------------------------------------
           when S_RX_ICMP =>
 
-            if i_dhcp_get_prm_done='0' and  CI_DHCP_USE='1' then
+            if i_dhcp_get_prm_done='0' and i_dhcp_on='1' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
               if p_in_rxll_src_rdy_n='0' then
@@ -601,7 +595,7 @@ begin
           --вычисляем размер пользовательских данных и выдаем полученое значение в USR RxBUF
           when S_RX_UDP_DLEN =>
 
-            if i_dhcp_get_prm_done='0' and  CI_DHCP_USE='1' then
+            if i_dhcp_get_prm_done='0' and i_dhcp_on='1' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
               if p_in_rxll_src_rdy_n='0' then
@@ -690,7 +684,7 @@ begin
           --------------------------------------
           when S_RX_DHCP_0 =>
 
-            if CI_DHCP_USE='0' then
+            if i_dhcp_on='0' then
               fsm_ip_rx_cs <= S_RX_DHCP_1;
             else
               if p_in_rxll_src_rdy_n='0' then
@@ -711,7 +705,7 @@ begin
           --Ищем DHCP_MAGIC_COOKIE
           when S_RX_DHCP_1 =>
 
-            if CI_DHCP_USE='0' then
+            if i_dhcp_on='0' then
               fsm_ip_rx_cs <= S_RX_DHCP_2;
             else
               if p_in_rxll_src_rdy_n='0' then
@@ -736,7 +730,7 @@ begin
           --Ищем тип ответа
           when S_RX_DHCP_2 =>
 
-            if CI_DHCP_USE='0' then
+            if i_dhcp_on='0' then
               fsm_ip_rx_cs <= S_RX_DHCP_3;
             else
               if p_in_rxll_src_rdy_n='0' then
@@ -744,7 +738,7 @@ begin
                   if p_in_rxll_data = CI_DHCP_DHCPOFFER and
                          sr_rx_d(0) = CONV_STD_LOGIC_VECTOR(1, 8) and
                          sr_rx_d(1) = CI_DHCP_CODE_53 then
-
+                    i_dhcp_proffer_rx_done <= '1';
                     fsm_ip_rx_cs <= S_RX_DHCP_3;
 
                   elsif p_in_rxll_data = CI_DHCP_DHCPACK and
@@ -767,7 +761,7 @@ begin
           --Ждем завершения текущего пакета и копируем принятые параметры
           when S_RX_DHCP_3 =>
 
-            if CI_DHCP_USE='0' then
+            if i_dhcp_on='0' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
               if p_in_rxll_src_rdy_n='0' and p_in_rxll_eof_n='0' then
@@ -1539,6 +1533,45 @@ i_dhcp_ereg0 <= CONV_STD_LOGIC_VECTOR(86, i_dhcp_ereg0'length);
 
 i_dhcp_ereg1 <= CONV_STD_LOGIC_VECTOR(109 - 1, i_dhcp_ereg1'length) when i_dhcp_discover_tx_done='0' else
                 CONV_STD_LOGIC_VECTOR(115 - 1, i_dhcp_ereg1'length);
+
+--timeout приема CI_DHCP_DHCPOFFER.
+--По истечению timeout снова отправляем CI_TX_REQ_DHCP_DISCOVER
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst='1' then
+    i_dhcp_tmr <= (others=>'0');
+    i_dhcp_tmr_en <= '0';
+    i_dhcp_discover_update <= '0';
+
+  elsif p_in_clk'event and p_in_clk='1' then
+
+    if i_dhcp_on='0' or i_dhcp_proffer_rx_done='1' then
+        i_dhcp_tmr <= (others=>'0');
+        i_dhcp_tmr_en <= '0';
+    else
+      if fsm_ip_tx_cs=S_TX_ACK and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) then
+        i_dhcp_tmr_en <= '1';
+      else
+        if i_dhcp_tmr_en='1' then
+          if i_dhcp_tmr=CONV_STD_LOGIC_VECTOR(CI_DHCP_TIMEOUT, i_dhcp_tmr'length) then
+            i_dhcp_tmr <= (others=>'0');
+            i_dhcp_tmr_en <= '0';
+          else
+            i_dhcp_tmr <= i_dhcp_tmr + 1;
+          end if;
+        end if;
+      end if;
+    end if;
+
+    if (fsm_ip_tx_cs=S_TX_ACK and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length)) or
+       i_dhcp_proffer_rx_done='1' then
+      i_dhcp_discover_update <= '0';
+    elsif i_dhcp_tmr_en='1' and i_dhcp_tmr=CONV_STD_LOGIC_VECTOR(CI_DHCP_TIMEOUT, i_dhcp_tmr'length) then
+      i_dhcp_discover_update <= '1';
+    end if;
+
+  end if;
+end process;
 
 
 --END MAIN

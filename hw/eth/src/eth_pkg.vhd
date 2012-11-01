@@ -30,7 +30,6 @@ constant C_ETH_PHY_RGMII : integer:=1;
 constant C_ETH_PHY_SGMII : integer:=2;
 constant C_ETH_PHY_GMII  : integer:=3;
 
-
 --//Структура параметров настройки модуля ETH (Generic)
 type TEthGeneric is record
 gtch_count_max : integer;--Кол-во каналов в модуле GT(RocketIO)
@@ -72,6 +71,9 @@ ip       : TEthIP;
 prt      : TEthPort;
 end record;
 type TEthCfgs is array (0 to 1) of TEthCfg;
+
+--//Константы для TEthCfg/usrctrl:
+constant C_ETH_CTRL_DHCP_EN_BIT : integer:=0;
 
 
 -------------------------------------
