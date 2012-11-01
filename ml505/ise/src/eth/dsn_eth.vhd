@@ -130,7 +130,10 @@ begin
 
   elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
     if p_in_cfg_wd='1' then
-        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then h_reg_ethcfg.mac.dst(0)<=p_in_cfg_txdata(7 downto 0);
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ethcfg.usrctrl( 7 downto 0)<=p_in_cfg_txdata(7 downto 0);
+                                                                                             h_reg_ethcfg.usrctrl(15 downto 8)<=p_in_cfg_txdata(15 downto 8);
+
+        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_cfg_adr_cnt'length) then h_reg_ethcfg.mac.dst(0)<=p_in_cfg_txdata(7 downto 0);
                                                                                                    h_reg_ethcfg.mac.dst(1)<=p_in_cfg_txdata(15 downto 8);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN1, i_cfg_adr_cnt'length) then h_reg_ethcfg.mac.dst(2)<=p_in_cfg_txdata(7 downto 0);
                                                                                                    h_reg_ethcfg.mac.dst(3)<=p_in_cfg_txdata(15 downto 8);
@@ -143,8 +146,6 @@ begin
                                                                                                    h_reg_ethcfg.mac.src(3)<=p_in_cfg_txdata(15 downto 8);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN5, i_cfg_adr_cnt'length) then h_reg_ethcfg.mac.src(4)<=p_in_cfg_txdata(7 downto 0);
                                                                                                    h_reg_ethcfg.mac.src(5)<=p_in_cfg_txdata(15 downto 8);
-
---        elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN6, i_cfg_adr_cnt'length) then h_reg_ethcfg.mac.lentype<=p_in_cfg_txdata(15 downto 0);
 
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_IP_PATRN0, i_cfg_adr_cnt'length) then h_reg_ethcfg.ip.dst(0)<=p_in_cfg_txdata(7 downto 0);
                                                                                                   h_reg_ethcfg.ip.dst(1)<=p_in_cfg_txdata(15 downto 8);
@@ -159,7 +160,6 @@ begin
                                                                                                     h_reg_ethcfg.prt.dst(15 downto 8)<=p_in_cfg_txdata(15 downto 8);
         elsif i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_ETH_REG_PORT_PATRN1, i_cfg_adr_cnt'length) then h_reg_ethcfg.prt.src( 7 downto 0)<=p_in_cfg_txdata(7 downto 0);
                                                                                                     h_reg_ethcfg.prt.src(15 downto 8)<=p_in_cfg_txdata(15 downto 8);
-
         end if;
     end if;
   end if;

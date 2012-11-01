@@ -59,46 +59,14 @@ constant CI_ETH_TX_TMR : integer:=2250;--1 такт = 1ms
 --Кол-во байт тестовых данных
 constant CI_ETH_TSTDATA_COUNT : integer:=1424;--860;--
 
---MAC для PC
-constant CI_ETH_MAC_DST: TEthMacAdr:=(
-CONV_STD_LOGIC_VECTOR(16#90#, 8),
-CONV_STD_LOGIC_VECTOR(16#E6#, 8),
-CONV_STD_LOGIC_VECTOR(16#BA#, 8),
-CONV_STD_LOGIC_VECTOR(16#CE#, 8),
-CONV_STD_LOGIC_VECTOR(16#31#, 8),
-CONV_STD_LOGIC_VECTOR(16#DA#, 8)
+component eth_bram_prm
+port (
+addra : in  std_logic_vector(4 downto 0);
+douta : out std_logic_vector(15 downto 0);
+clka  : in  std_logic;
+rsta  : in  std_logic
 );
-
---MAC для FPGA
-constant CI_ETH_MAC_SRC: TEthMacAdr:=(
-CONV_STD_LOGIC_VECTOR(16#A0#, 8),
-CONV_STD_LOGIC_VECTOR(16#A1#, 8),
-CONV_STD_LOGIC_VECTOR(16#A2#, 8),
-CONV_STD_LOGIC_VECTOR(16#A3#, 8),
-CONV_STD_LOGIC_VECTOR(16#A4#, 8),
-CONV_STD_LOGIC_VECTOR(16#A5#, 8)
-);
-
---IP для PC
-constant CI_ETH_IP_DST: TEthIPv4:=(
-CONV_STD_LOGIC_VECTOR(10 , 8),
-CONV_STD_LOGIC_VECTOR(1  , 8),
-CONV_STD_LOGIC_VECTOR(7  , 8),
-CONV_STD_LOGIC_VECTOR(125, 8)
-);
-
---IP для FPGA
-constant CI_ETH_IP_SRC: TEthIPv4:=(
-CONV_STD_LOGIC_VECTOR(10 , 8),
-CONV_STD_LOGIC_VECTOR(1  , 8),
-CONV_STD_LOGIC_VECTOR(7  , 8),
-CONV_STD_LOGIC_VECTOR(234, 8)
-);
-
---Port на стороне PC
-constant CI_ETH_PORT_DST: std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(3000 , 16);
---Port на стороне FPGA
-constant CI_ETH_PORT_SRC: std_logic_vector(15 downto 0):=CONV_STD_LOGIC_VECTOR(3000 , 16);
+end component;
 
 component host_ethg_txudp
 port(
@@ -206,6 +174,7 @@ S_CFG_ETH_IP_SRC0,
 S_CFG_ETH_IP_SRC1,
 S_CFG_ETH_PORT_DST,
 S_CFG_ETH_PORT_SRC,
+S_CFG_ETH_CTRL,
 S_CFG_ETH_DONE
 );
 signal fsm_ethcfg_cs: TEth_cfg_fsm;
@@ -259,7 +228,8 @@ signal i_mnl_rst                       : std_logic;
 signal tst_txbuf_empty                 : std_logic;
 signal tst_txbuf_full                  : std_logic;
 signal i_eth_tstgen_tst_out            : std_logic_vector(31 downto 0);
-
+signal i_eth_prm_a                     : std_logic_vector(4 downto 0);
+signal i_eth_prm_d                     : std_logic_vector(15 downto 0);
 --
 -- If the synthesizer replicates an asynchronous reset signal due high fanout,
 -- this can prevent flip-flops being mapped into IOBs. We set the maximum
@@ -405,9 +375,30 @@ p_in_rst          => i_mnl_rst
 --***********************************************************
 --Назначаем MAC (DST/SCR) для модуля m_eth1
 --***********************************************************
-process(i_sys_rst,i_ethphy_out)
+m_eth_prm : eth_bram_prm
+port map(
+addra => i_eth_prm_a,
+douta => i_eth_prm_d,
+clka  => i_ethphy_out.clk,
+rsta  => i_sys_rst
+);
+
+process(i_mnl_rst,i_ethphy_out)
 begin
-  if i_sys_rst='1' then
+  if i_mnl_rst='1' then
+    i_eth_prm_a <= (others=>'0');
+  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
+    if fsm_ethcfg_cs/=S_CFG_ETH_DONE and i_ethphy_out.rdy='1' then
+      i_eth_prm_a <= i_eth_prm_a + 1;
+    else
+      i_eth_prm_a <= (others=>'0');
+    end if;
+  end if;
+end process;
+
+process(i_mnl_rst,i_ethphy_out)
+begin
+  if i_mnl_rst='1' then
     fsm_ethcfg_cs<=S_CFG_ETH_START;
 
     i_eth_cfg_radr<=(others=>'0');
@@ -429,75 +420,83 @@ begin
         i_eth_cfg_radr_ld<='1';
         i_eth_cfg_radr_fifo<='0';
         i_eth_cfg_wr<='0';
-        i_eth_cfg_radr<=CONV_STD_LOGIC_VECTOR(C_ETH_REG_MAC_PATRN0, i_eth_cfg_radr'length);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST0;
+        i_eth_cfg_radr<=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_eth_cfg_radr'length);
+        fsm_ethcfg_cs<=S_CFG_ETH_CTRL;
         end if;
+
+      --Set CTRL
+      when S_CFG_ETH_CTRL =>
+        i_eth_cfg_radr_ld<='0';
+        i_eth_cfg_radr_fifo<='0';
+        i_eth_cfg_wr<='1';
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST0;
 
       --Set MAC/DST
       when S_CFG_ETH_MAC_DST0 =>
         i_eth_cfg_radr_ld<='0';
         i_eth_cfg_radr_fifo<='0';
         i_eth_cfg_wr<='1';
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_DST(0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_DST(1);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST1;
 
       when S_CFG_ETH_MAC_DST1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_DST(2);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_DST(3);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST2;
 
       when S_CFG_ETH_MAC_DST2 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_DST(4);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_DST(5);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC0;
 
       --Set MAC/SRC
       when S_CFG_ETH_MAC_SRC0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_SRC(0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_SRC(1);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC1;
 
       when S_CFG_ETH_MAC_SRC1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_SRC(2);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_SRC(3);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC2;
 
       when S_CFG_ETH_MAC_SRC2 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_MAC_SRC(4);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_MAC_SRC(5);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_IP_DST0;
 
       --Set IP/DST
       when S_CFG_ETH_IP_DST0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_IP_DST(0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_IP_DST(1);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_IP_DST1;
 
       when S_CFG_ETH_IP_DST1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_IP_DST(2);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_IP_DST(3);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_IP_SRC0;
 
       --Set IP/SRC
       when S_CFG_ETH_IP_SRC0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_IP_SRC(0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_IP_SRC(1);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_IP_SRC1;
 
       when S_CFG_ETH_IP_SRC1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=CI_ETH_IP_SRC(2);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=CI_ETH_IP_SRC(3);
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
         fsm_ethcfg_cs<=S_CFG_ETH_PORT_DST;
 
       --Set PORT/DST
       when S_CFG_ETH_PORT_DST =>
-        i_eth_cfg_txd(8*2-1 downto 8*0)<=CI_ETH_PORT_DST;
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
         fsm_ethcfg_cs<=S_CFG_ETH_PORT_SRC;
 
       --Set PORT/SRC
       when S_CFG_ETH_PORT_SRC =>
-        i_eth_cfg_txd(8*2-1 downto 8*0)<=CI_ETH_PORT_SRC;
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
         fsm_ethcfg_cs<=S_CFG_ETH_DONE;
 
       when S_CFG_ETH_DONE =>
@@ -595,12 +594,12 @@ end process;
 
 m_eth_txbuf : host_ethg_txudp
 port map(
---din     => i_eth_txpkt_d,
---wr_en   => i_eth_txpkt_wr,
---wr_clk  => i_ethphy_out.clk,
-din     => i_eth_out(0).rxbuf.din,
-wr_en   => i_eth_out(0).rxbuf.wr,
+din     => i_eth_txpkt_d,
+wr_en   => i_eth_txpkt_wr,
 wr_clk  => i_ethphy_out.clk,
+--din     => i_eth_out(0).rxbuf.din,
+--wr_en   => i_eth_out(0).rxbuf.wr,
+--wr_clk  => i_ethphy_out.clk,
 
 dout    => i_eth_in(0).txbuf.dout(31 downto 0),
 rd_en   => i_eth_out(0).txbuf.rd,
@@ -614,54 +613,59 @@ rst     => i_sys_rst
 );
 i_eth_in(0).rxbuf.full<=i_eth_in(0).txbuf.full;
 
---process(i_mnl_rst,i_ethphy_out)
---begin
---  if i_mnl_rst='1' then
---    i_eth_txpkt_work <= '0';
---    i_eth_txbuf_err <= '0';
---  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
---    if i_eth_out(0).rxbuf.wr='1' then
---      i_eth_txpkt_work <= '1';
---    end if;
---    if i_eth_in(0).txbuf.full='1' then
---      i_eth_txbuf_err <= '1';
---    end if;
---  end if;
---end process;
---
---i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(74125, i_eth_txpkt_dlycnt'length);
---
---m_tst_gen : eth_tst_gen
---generic map(
---G_DBG => C_PCFG_ETH_DBG,
---G_SIM => G_SIM
---)
---port map(
-----------------------------------------
-----Управление
-----------------------------------------
---p_in_pkt_dly     => i_eth_txpkt_dlycnt,
---p_in_work        => i_eth_txpkt_work,
---
-----------------------------------------
-----Связь с пользовательским TXBUF
-----------------------------------------
---p_out_txbuf_din  => i_eth_txpkt_d,
---p_out_txbuf_wr   => i_eth_txpkt_wr,
---p_in_txbuf_full  => i_eth_in(0).txbuf.full,
---
-----------------------------------------------------
-----Технологические сигналы
-----------------------------------------------------
---p_in_tst         => (others=>'0'),
---p_out_tst        => i_eth_tstgen_tst_out,
---
-----------------------------------------
-----SYSTEM
-----------------------------------------
---p_in_clk         => i_ethphy_out.clk,
---p_in_rst         => i_mnl_rst
---);
+process(i_mnl_rst,i_ethphy_out)
+begin
+  if i_mnl_rst='1' then
+    i_eth_txpkt_work <= '0';
+    i_eth_txbuf_err <= '0';
+  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
+    if i_eth_out(0).rxbuf.wr='1' then
+      i_eth_txpkt_work <= '1';
+    end if;
+    if i_eth_in(0).txbuf.full='1' then
+      i_eth_txbuf_err <= '1';
+    end if;
+  end if;
+end process;
+
+i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(74125, i_eth_txpkt_dlycnt'length);--1.625 fps
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(36500, i_eth_txpkt_dlycnt'length);--3.75 fps
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(15250, i_eth_txpkt_dlycnt'length);--7.5 fps
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(7125 , i_eth_txpkt_dlycnt'length);--15 fps
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(3000 , i_eth_txpkt_dlycnt'length);--30 fps
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(1000 , i_eth_txpkt_dlycnt'length);--60 fps
+
+m_tst_gen : eth_tst_gen
+generic map(
+G_DBG => C_PCFG_ETH_DBG,
+G_SIM => G_SIM
+)
+port map(
+--------------------------------------
+--Управление
+--------------------------------------
+p_in_pkt_dly     => i_eth_txpkt_dlycnt,
+p_in_work        => i_eth_txpkt_work,
+
+--------------------------------------
+--Связь с пользовательским TXBUF
+--------------------------------------
+p_out_txbuf_din  => i_eth_txpkt_d,
+p_out_txbuf_wr   => i_eth_txpkt_wr,
+p_in_txbuf_full  => i_eth_in(0).txbuf.full,
+
+--------------------------------------------------
+--Технологические сигналы
+--------------------------------------------------
+p_in_tst         => (others=>'0'),
+p_out_tst        => i_eth_tstgen_tst_out,
+
+--------------------------------------
+--SYSTEM
+--------------------------------------
+p_in_clk         => i_ethphy_out.clk,
+p_in_rst         => i_mnl_rst
+);
 
 
 --//#########################################

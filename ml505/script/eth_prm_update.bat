@@ -1,0 +1,1 @@
+%XILINX%\bin\nt64\data2mem -bm d:\Work\Linkos\veresk_m\ml505\ise\src\eth\eth_bram_prm.bmm -bd d:\Work\Linkos\veresk_m\ml505\ise\src\eth\eth_bram_prm.mem tag eth_param_rom -bt d:\Work\Linkos\veresk_m\ml505\firmware\eth_udp_main.bit -o b d:\Work\Linkos\veresk_m\ml505\firmware\eth_udp_main_update.bit

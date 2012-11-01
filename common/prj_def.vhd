@@ -309,6 +309,7 @@ Type TEthFRR is array (0 to C_SWT_FRR_COUNT_MAX-1) of std_logic_vector(7 downto 
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_eth.vhd
 --//--------------------------------------------------------------
+constant C_ETH_REG_CTRL                       : integer:=16#000#;
 constant C_ETH_REG_MAC_PATRN0                 : integer:=16#001#;--//DST MAC
 constant C_ETH_REG_MAC_PATRN1                 : integer:=16#002#;
 constant C_ETH_REG_MAC_PATRN2                 : integer:=16#003#;
@@ -321,8 +322,6 @@ constant C_ETH_REG_IP_PATRN2                  : integer:=16#009#;--//SRC IP
 constant C_ETH_REG_IP_PATRN3                  : integer:=16#00A#;
 constant C_ETH_REG_PORT_PATRN0                : integer:=16#00B#;--//DST PORT
 constant C_ETH_REG_PORT_PATRN1                : integer:=16#00C#;--//SRC PORT
---constant C_ETH_REG_MAC_PATRN6                 : integer:=16#007#;
-
 
 
 --//--------------------------------------------------------------
