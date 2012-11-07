@@ -11,9 +11,10 @@ module pult_io(rst,clk_io,trans_ack,
                data_i,data_o,dir_485,
                host_clk_wr,wr_en,data_from_host,
                host_clk_rd,rd_en,data_to_host,
-               busy,ready
+               busy,ready,
+               clk_io_en,tmr_en,tmr_stb
                );
-
+   input clk_io_en,tmr_en,tmr_stb;             //add vicg
    input rst,clk_io;            //сброс и тактовая для обмена с пультом
    input trans_ack;             //контроллер PCI совершил обмен с кем-то
 
@@ -60,26 +61,50 @@ module pult_io(rst,clk_io,trans_ack,
    reg busy;                  //мы заняты обменом
    wire ready;                //готовность данных от пульта
 
+   wire empty_i_tmp;
+   reg [0:2] sr_tx_start;
+   reg empty_i_en;
+
+assign empty_i = !(!empty_i_tmp && empty_i_en);
+
+always @(posedge rst or posedge host_clk_wr)
+begin
+   if (rst)
+   begin
+     sr_tx_start <= 3'b0;
+     empty_i_en <= 1'b0;
+   end
+   else
+     begin
+        sr_tx_start <= {tmr_stb, sr_tx_start[0:1]};
+
+        if (empty_i_tmp)
+          empty_i_en <= 1'b0;
+        else if (tmr_en && sr_tx_start[1] && !sr_tx_start[2])
+          empty_i_en <= 1'b1;
+     end
+end //always @
+
 // Данные от PCI для светодиодов
-fifo511x32th To_pult_fifo (
+pult_buf m_txbuf (
     .din(data_from_host),
     .rd_clk(clk_io),
-    .rd_en(rd_en_m),
+    .rd_en(rd_en_m && clk_io_en),
     .rst(rst | rst_ififo),
     .wr_clk(host_clk_wr),
     .wr_en(wr_en),
     .dout(dout),
-    .empty(empty_i),
+    .empty(empty_i_tmp),
     .full());
 
 // Данные для PCI (кнопки, АЦП и признаки об обменах с МУПами)
-fifo511x32th From_pult_fifo (
+pult_buf m_rxbuf (
     .din(din),
     .rd_clk(host_clk_rd),
     .rd_en(rd_en),
     .rst(rst),
     .wr_clk(clk_io),
-    .wr_en(wr_en_m),
+    .wr_en(wr_en_m && clk_io_en),
     .dout(data_to_host),
     .empty(empty_o),
     .full());
@@ -89,6 +114,7 @@ assign ready = ~empty_o & ~busy;
 // Поочередное общение со всеми МУПами пульта
 // Первое данное из фифо не читаем (fall-through) !!
 always @(posedge rst or posedge clk_io)
+begin
    if(rst) begin
          state <= S_W;
          start_mup <= 0;
@@ -98,7 +124,7 @@ always @(posedge rst or posedge clk_io)
          rst_ififo <= 0;
          busy <= 0;
       end
-   else case(state)
+   else if (clk_io_en) case(state)
       S_W: if(trans_ack && ~empty_i) begin
             state <= S_1;
             start_mup <= 1;
@@ -134,11 +160,13 @@ always @(posedge rst or posedge clk_io)
             wr_en_m <= 0;
          end
       endcase
+end //always @
 
 // Установим устройство обмена с МУПами по 485 интерфейсу
-mup_io My_mup_io (
+mup_io m_io (
     .rst(rst),
     .clk(clk_io),
+    .clk_en(clk_io_en),
     .data_i(data_i),
     .data_o(data_o),
     .dir_485(dir_485),

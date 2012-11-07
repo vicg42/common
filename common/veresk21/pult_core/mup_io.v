@@ -12,10 +12,12 @@
 //---------------------------------------------------------
 module mup_io(rst,clk,data_i,data_o,dir_485,
               start,busy,error,answer,
-              n_mup,led,but,an_data
+              n_mup,led,but,an_data,
+              clk_en
               );
 
    input rst;             //сброс FSM
+   input clk_en;          //add vicg
    input clk;             //тактова€ (4х битовой частоты обмена)
    input data_i;          //данные из 485 приемника
    output data_o;         //данные на 485 передатчик
@@ -57,6 +59,7 @@ module mup_io(rst,clk,data_i,data_o,dir_485,
 // ¬ходной триггер и задержка на такт дл€ определени€ начала старт-бита
 always @(posedge clk)
    begin
+      if (clk_en)
       data_rec <= data_i;
       data_rec1 <= data_rec;
    end
@@ -72,7 +75,7 @@ always @(posedge rst or posedge clk)
          error <= 0;
          answer <= 0;
       end
-   else case(state)
+   else if (clk_en) case(state)
       S_W: begin
             if(start) state <= S_S_NMUP;    //ждем начала обмена
             count <= 0;
