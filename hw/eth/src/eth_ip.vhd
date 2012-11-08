@@ -766,12 +766,12 @@ begin
             else
               if p_in_rxll_src_rdy_n='0' and p_in_rxll_eof_n='0' then
 
-                  i_dhcp_server_mac(0) <= i_hreg_d(0); --MAC Dst:
-                  i_dhcp_server_mac(1) <= i_hreg_d(1);
-                  i_dhcp_server_mac(2) <= i_hreg_d(2);
-                  i_dhcp_server_mac(3) <= i_hreg_d(3);
-                  i_dhcp_server_mac(4) <= i_hreg_d(4);
-                  i_dhcp_server_mac(5) <= i_hreg_d(5);
+                  i_dhcp_server_mac(0) <= i_hreg_d(6); --MAC Src:
+                  i_dhcp_server_mac(1) <= i_hreg_d(7);
+                  i_dhcp_server_mac(2) <= i_hreg_d(8);
+                  i_dhcp_server_mac(3) <= i_hreg_d(9);
+                  i_dhcp_server_mac(4) <= i_hreg_d(10);
+                  i_dhcp_server_mac(5) <= i_hreg_d(11);
 
                   i_dhcp_server_ip(0) <= i_hreg_d(26); --IP: ip_src
                   i_dhcp_server_ip(1) <= i_hreg_d(27);
