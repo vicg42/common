@@ -619,7 +619,7 @@ begin
     i_eth_txpkt_work <= '0';
     i_eth_txbuf_err <= '0';
   elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
-    if i_eth_out(0).rxbuf.wr='1' then
+    if dbg_eth_out.app(0).mac_rx(1)='1' then
       i_eth_txpkt_work <= '1';
     end if;
     if i_eth_in(0).txbuf.full='1' then
@@ -628,12 +628,13 @@ begin
   end if;
 end process;
 
-i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(74125, i_eth_txpkt_dlycnt'length);--1.625 fps
---i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(36500, i_eth_txpkt_dlycnt'length);--3.75 fps
---i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(15250, i_eth_txpkt_dlycnt'length);--7.5 fps
---i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(7125 , i_eth_txpkt_dlycnt'length);--15 fps
---i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(3000 , i_eth_txpkt_dlycnt'length);--30 fps
---i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(1000 , i_eth_txpkt_dlycnt'length);--60 fps
+--1.625 fps = 74125
+--3.75  fps = 36500
+--7.5   fps = 15250
+--15    fps = 7125
+--30    fps = 3000
+--60    fps = 1000
+i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(3000 , i_eth_txpkt_dlycnt'length);
 
 m_tst_gen : eth_tst_gen
 generic map(
