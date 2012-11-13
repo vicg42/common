@@ -2,10 +2,10 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 27.01.2011 16:46:48
+-- Create Date : 03.11.2012 10:39:55
 -- Module Name : prj_cfg
 --
--- Description : Конфигурирование проекта VERESK
+-- Description : Конфигурирование проекта VERESK(21) - модернизация старой машины
 --
 -- Revision:
 -- Revision 0.01 - File Created
@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Тип используемой платы
-constant C_PCFG_BOARD                  : string:="HTGV6";
+constant C_PCFG_BOARD                  : string:="VERESK21";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller

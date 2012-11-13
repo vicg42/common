@@ -357,6 +357,68 @@ p_in_rst          : in    std_logic
 );
 end component;
 
+component pult_io
+port(
+trans_ack      : in  std_logic;
+
+data_i         : in  std_logic;
+data_o         : out std_logic;
+dir_485        : out std_logic;
+
+host_clk_wr    : in  std_logic;
+wr_en          : in  std_logic;
+data_from_host : in  std_logic_vector(31 downto 0);
+
+host_clk_rd    : in  std_logic;
+rd_en          : in  std_logic;
+data_to_host   : out std_logic_vector(31 downto 0);
+
+busy           : out std_logic;
+ready          : out std_logic;
+
+tmr_en         : in  std_logic;
+tmr_stb        : in  std_logic;
+clk_io_en      : in  std_logic;
+clk_io         : in  std_logic;
+rst            : in  std_logic
+);
+end component;
+
+component sync_u
+port(
+i_pps         : in  std_logic;
+i_ext_1s      : in  std_logic;
+i_ext_1m      : in  std_logic;
+
+sync_iedge    : in  std_logic;
+sync_oedge    : in  std_logic;
+sync_time_en  : in  std_logic;
+mode_set_time : in  std_logic;
+type_of_sync  : in  std_logic_vector(1 downto 0);
+
+sync_win      : out  std_logic;
+
+stime         : out  std_logic_vector(31 downto 0);
+n_sync        : out  std_logic_vector(7 downto 0);
+sync_cou_err  : out  std_logic_vector(7 downto 0);
+
+sync_out1     : out  std_logic;
+out_1s        : out  std_logic;
+out_1m        : out  std_logic;
+sync_out2     : out  std_logic;
+sync_ld       : out  std_logic;
+sync_pic      : out  std_logic;
+--sync_piezo    : out  std_logic;
+--sync_cam_ir   : out  std_logic;
+
+host_wr_data  : in  std_logic_vector(31 downto 0);
+wr_en_time    : in  std_logic;
+host_clk      : in  std_logic;
+
+clk           : in  std_logic
+);
+end component;
+
 
 end veresk_pkg;
 

@@ -69,6 +69,10 @@ set _projects [ list \
       [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_switch.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/pult_buf.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk21/pult_core/mup_io.v" $_VMod ] \
+      [ list "../../../common/veresk21/pult_core/pult_io.v" $_VMod ] \
+      [ list "../../../common/veresk21/sync_u.v" $_VMod ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \

@@ -74,6 +74,24 @@ pin_in_pciexp_rxn   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_rstn  : in    std_logic;
 
 --------------------------------------------------
+--PULT
+--------------------------------------------------
+pin_in_pult_rx      : in    std_logic;
+pin_out_pult_tx     : out   std_logic;
+pin_out_pult_dir    : out   std_logic;
+
+--------------------------------------------------
+--SYNC
+--------------------------------------------------
+pin_in_pps          : in  std_logic;
+pin_in_1s           : in  std_logic;
+pin_in_1m           : in  std_logic;
+pin_out_1s          : out std_logic;
+pin_out_1m          : out std_logic;
+pin_out_s120Hz      : out std_logic;
+pin_out_s120SAU     : out std_logic;
+
+--------------------------------------------------
 --Reference clock
 --------------------------------------------------
 pin_in_refclk       : in    TRefClkPinIN
@@ -122,6 +140,7 @@ signal g_usr_highclk                    : std_logic;
 signal g_refclkopt                      : std_logic_vector(3 downto 0);
 signal i_pciexp_gt_refclk               : std_logic;
 signal g_pciexp_gt_refclkout            : std_logic;
+signal i_usrclk5_div                    : std_logic_vector(6 downto 0):=(others=>'0');
 
 signal i_host_rdy                       : std_logic;
 signal i_host_rst_n                     : std_logic;
@@ -151,11 +170,14 @@ signal i_host_txrdy                     : THostDCtrl;
 signal i_host_rxbuf_empty               : THostDCtrl;
 signal i_host_txbuf_full                : THostDCtrl;
 signal i_host_irq                       : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+--signal i_host_txd_rdy                   : THostDCtrl;
 
 signal i_host_rst_all                   : std_logic;
 signal i_host_rst_eth                   : std_logic;
 signal i_host_rst_mem                   : std_logic;
 signal i_host_rddone_vctrl              : std_logic;
+signal i_host_rst_pult                  : std_logic;
+signal i_host_rst_edev                  : std_logic;
 
 Type THDevWidthCnt is array (0 to C_HDEV_COUNT-1) of std_logic_vector(2 downto 0);
 signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_COUNT-1 downto 0);
@@ -261,6 +283,12 @@ signal i_mem_ctrl_status                : TMEMCTRL_status;
 signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
+signal i_sync_out                       : std_logic_vector(0 downto 0);
+
+signal i_pult_rst                       : std_logic;
+signal i_edev_rst                       : std_logic;
+signal i_pult_clk_en                    : std_logic;
+
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
 attribute keep of g_usr_highclk : signal is "true";
@@ -288,6 +316,8 @@ i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all or i_pll_rst_out;
 i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
+i_pult_rst<=i_usrclk_rst or i_host_rst_pult;
+i_edev_rst<=i_usrclk_rst or i_host_rst_edev;
 
 
 
@@ -525,8 +555,8 @@ p_out_tst                 => i_swt_tst_out,
 p_in_rst => i_swt_rst
 );
 
-i_swt_tst_in(0)<=i_tmr_hirq(0);
-i_swt_tst_in(1)<=i_tmr_en(0);
+i_swt_tst_in(0)<=i_tmr_hirq(C_TMR_ETH);
+i_swt_tst_in(1)<=i_tmr_en(C_TMR_ETH);
 i_swt_tst_in(31 downto 2)<=(others=>'0');
 
 --***********************************************************
@@ -788,27 +818,28 @@ i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(i);
 end generate gen_status_vch;
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=OR_reduce(i_mem_ctrl_status.rdy);
-
+i_host_dev_status(C_HREG_DEV_STATUS_PULT_TXRDY_BIT)<=not i_host_txrdy(C_HDEV_PULT_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_PULT_RXRDY_BIT)<=i_host_rxrdy(C_HDEV_PULT_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_EDEV_TXRDY_BIT)<='0';--i_host_txrdy(C_HDEV_EDEV_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXRDY_BIT)<='0';--i_host_txrdy(C_HDEV_EDEV_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_TXRDY_BIT)<='0';--i_host_txrdy(C_HDEV_VIZIR_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT)<='0';--i_host_txrdy(C_HDEV_VIZIR_DBUF);
 
 --//Запись/Чтение данных устройств хоста
-i_host_wr(C_HDEV_MEM_DBUF) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else '0';
-i_host_rd(C_HDEV_MEM_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else '0';
-i_host_txd(C_HDEV_MEM_DBUF)<=i_host_dev_txd;
-
-i_host_wr(C_HDEV_CFG_DBUF) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else '0';
-i_host_rd(C_HDEV_CFG_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else '0';
-i_host_txd(C_HDEV_CFG_DBUF)<=i_host_dev_txd;
-
-i_host_wr(C_HDEV_ETH_DBUF) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else '0';
-i_host_rd(C_HDEV_ETH_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else '0';
-i_host_txd(C_HDEV_ETH_DBUF)<=i_host_dev_txd;
-
-i_host_rd(C_HDEV_VCH_DBUF) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else '0';
+gen_dev_dbuf : for i in 0 to i_host_wr'length-1 generate
+i_host_wr(i) <=i_host_dev_wr when i_host_devadr=CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
+i_host_rd(i) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
+i_host_txd(i)<=i_host_dev_txd;
+--i_host_txd_rdy(i) <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) when i_host_devadr=CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
+end generate gen_dev_dbuf;
 
 i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_PULT_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PULT_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_EDEV_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_EDEV_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_VIZIR_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VIZIR_DBUF, i_host_devadr'length) else
                 (others=>'0');
 
 
@@ -828,13 +859,14 @@ i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSK
 
 
 --//Прерывания
-i_host_dev_irq(C_HIRQ_TMR0)  <=i_tmr_hirq(0);
 i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
 i_host_dev_irq(C_HIRQ_ETH_RX)<=i_host_irq(C_HIRQ_ETH_RX);
 gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
 i_host_dev_irq(C_HIRQ_VCH0 + i)<=i_vctrl_hirq_out(i);
 end generate gen_irq_vch;
-
+i_host_dev_irq(C_HIRQ_PULT_RX)<=i_host_rxrdy(C_HDEV_PULT_DBUF);
+i_host_dev_irq(C_HIRQ_EDEV_RX)<='0';--i_host_irq(C_HIRQ_EDEV_RX);
+i_host_dev_irq(C_HIRQ_VIZIR_RX)<='0';--i_host_irq(C_HIRQ_VIZIR_RX);
 
 --//Обработка управляющих сигналов Хоста
 i_host_mem_ctrl.dir       <=not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
@@ -1085,5 +1117,90 @@ p_out_1ms      => open,
 p_in_clk       => g_host_clk,
 p_in_rst       => i_cfg_rst
 );
+
+
+--***********************************************************
+--Модуль управления пультом
+--***********************************************************
+process(g_usrclk)
+begin
+  if g_usrclk(5)'event and g_usrclk(5)='1' then
+    i_usrclk5_div <= i_usrclk5_div + 1;
+    if i_usrclk5_div=CONV_STD_LOGIC_VECTOR(16#40#, i_usrclk5_div'length) then
+    i_pult_clk_en <= '1'; --1MHz/4 = 250kHz (bit clk)
+    else
+    i_pult_clk_en <= '0';
+    end if;
+  end if;
+end process;
+
+m_pult : pult_io
+port map(
+trans_ack      => '1',
+
+data_i         => pin_in_pult_rx  ,
+data_o         => pin_out_pult_tx ,
+dir_485        => pin_out_pult_dir,
+
+host_clk_wr    => g_host_clk,
+wr_en          => i_host_wr(C_HDEV_PULT_DBUF),
+data_from_host => i_host_txd(C_HDEV_PULT_DBUF),
+
+host_clk_rd    => g_host_clk,
+rd_en          => i_host_rd(C_HDEV_PULT_DBUF),
+data_to_host   => i_host_rxd(C_HDEV_PULT_DBUF),
+
+busy           => i_host_txrdy(C_HDEV_PULT_DBUF),
+ready          => i_host_rxrdy(C_HDEV_PULT_DBUF),
+
+tmr_en         => i_tmr_en(C_TMR_PULT),
+tmr_stb        => i_tmr_hirq(C_TMR_PULT),
+clk_io_en      => i_pult_clk_en,
+clk_io         => g_usrclk(5),
+rst            => i_pult_rst
+);
+
+
+--***********************************************************
+--Модуль управления синхронизацией
+--***********************************************************
+m_sync : sync_u
+port map(
+i_pps         => pin_in_pps,
+i_ext_1s      => pin_in_1s,
+i_ext_1m      => pin_in_1m,
+
+sync_iedge    => i_host_gctrl(C_HREG_CTRL_ESYNC_IEDGE_BIT),
+sync_oedge    => i_host_gctrl(C_HREG_CTRL_ESYNC_OEDGE_BIT),
+sync_time_en  => i_host_gctrl(C_HREG_CTRL_TIME_EN_BIT),
+mode_set_time => i_host_gctrl(C_HREG_CTRL_TIME_MODE_BIT),
+type_of_sync  => i_host_gctrl(C_HREG_CTRL_ESYNC_MODE_M_BIT downto C_HREG_CTRL_ESYNC_MODE_L_BIT),
+
+sync_win      => open,
+
+stime         => i_host_dev_opt_in(C_HDEV_OPTIN_TIME_M_BIT downto C_HDEV_OPTIN_TIME_L_BIT),
+n_sync        => open,
+sync_cou_err  => open,
+
+sync_out1     => open,
+out_1s        => pin_out_1s,
+out_1m        => pin_out_1m,
+sync_out2     => i_sync_out(0),
+sync_ld       => open,
+sync_pic      => open,
+--sync_piezo    => open,
+--sync_cam_ir   => open,
+
+host_wr_data  => i_host_dev_opt_out(C_HDEV_OPTOUT_TIME_M_BIT downto C_HDEV_OPTOUT_TIME_L_BIT),
+wr_en_time    => i_host_dev_opt_out(C_HDEV_OPTOUT_TIME_SET_BIT),
+host_clk      => g_host_clk,
+
+clk           => g_usrclk(6)
+);
+
+pin_out_s120Hz  <= i_sync_out(0);
+pin_out_s120SAU <= i_sync_out(0);
+
+
 
 end architecture;

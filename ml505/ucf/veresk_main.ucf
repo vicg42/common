@@ -15,6 +15,21 @@ CONFIG PART = XC5VLX50T-FF1136-1;
 ##########################################################
 CONFIG STEPPING = ES;
 
+NET "pin_in_pult_rx"    LOC = "M32";
+NET "pin_out_pult_tx"   LOC = "P34";
+NET "pin_out_pult_dir"  LOC = "N34";
+
+NET "pin_in_pps"        LOC = "AA34";
+NET "pin_in_1s"         LOC = "Y34";
+NET "pin_in_1m"         LOC = "Y32";
+NET "pin_out_1s"        LOC = "W32";
+NET "pin_out_1m"        LOC = "AH34";
+NET "pin_out_s120Hz"    LOC = "AJ32";
+NET "pin_out_s120SAU"   LOC = "AG32";
+
+#NET "pin_in_edev_rx"    LOC = "AH32";
+#NET "pin_out_edev_tx"   LOC = "AK34";
+#NET "pin_out_edev_dir"  LOC = "AK33";
 
 ####################################################################
 ##

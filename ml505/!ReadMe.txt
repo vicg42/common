@@ -35,3 +35,36 @@ scripts/eth_prm_update.bat -- обновляет значения ETH_BRAM_PRM
 scripts/eth_prm_dump.bat   -- можно проверить (через поиск) правильно ли обновились значения ETH_BRAM_PRM
 
 
+5. DHCP server:
+--- windows ---
+http://sourceforge.net/projects/dhcp-dns-server/
+в config файле DualServer.ini прописать:
+[RANGE_SET]
+DHCPRange=10.1.7.233-10.1.7.234
+
+[GLOBAL_OPTIONS]
+[00:08:dc:00:00:00]
+#This is a client with MAC addr 00:41:42:41:42:00
+IP=10.1.7.234
+
+---  linux (slackware) ---
+cd /etc/
+mc -e dhcpd.conf
+вписываем следующие настройки:
+
+ddns-update-style ad-hoc;
+subnet 10.1.7.0 netmask 255.255.255.0 {
+  range 10.1.7.233 10.1.7.234;
+
+  host fpga {
+    hardware ethernet 00:08:DC:00:00:00;
+    fixed-address 10.1.7.234;
+  }
+}
+
+запуск dhcpd сервера
+cd /etc/
+dhcpd
+
+
+

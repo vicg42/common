@@ -5,7 +5,7 @@ cd ../ise/prj
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "HTGV6_veresk"
+set _usrdef_design "HTGV6_veresk21"
 set _usrdef_entity "veresk_main"
 set _usrdef_xilinx_family "virtex6"
 set _usrdef_chip_family "v6lxt"
@@ -73,7 +73,7 @@ set _projects [ list \
       [ list "../../../common/veresk21/pult_core/mup_io.v" $_VMod ] \
       [ list "../../../common/veresk21/pult_core/pult_io.v" $_VMod ] \
       [ list "../../../common/veresk21/sync_u.v" $_VMod ] \
-      [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../veresk21_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
       [ list "../src/core_gen/core_pciexp_ep_blk_plus/source/pcie_bram_v6.vhd" $_VHDMod ] \
