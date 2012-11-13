@@ -63,24 +63,26 @@ module pult_io(rst,clk_io,trans_ack,
 
    wire empty_i_tmp;
    reg [0:2] sr_tx_start;
-   reg empty_i_en;
+   reg empty_i_en,sr_tmr_en;
 
-assign empty_i = !(!empty_i_tmp && empty_i_en);
+//Отправка данных по таймеру или програмно
+assign empty_i = !( (!empty_i_tmp && empty_i_en && sr_tmr_en) || (!empty_i_tmp && !sr_tmr_en) );
 
-always @(posedge rst or posedge host_clk_wr)
+always @(posedge rst or posedge clk_io)
 begin
    if (rst)
    begin
+     sr_tmr_en <= 1'b0;
      sr_tx_start <= 3'b0;
      empty_i_en <= 1'b0;
    end
    else
      begin
+        sr_tmr_en <= tmr_en;
         sr_tx_start <= {tmr_stb, sr_tx_start[0:1]};
-
         if (empty_i_tmp)
           empty_i_en <= 1'b0;
-        else if (tmr_en && sr_tx_start[1] && !sr_tx_start[2])
+        else if (sr_tmr_en && sr_tx_start[1] && !sr_tx_start[2])
           empty_i_en <= 1'b1;
      end
 end //always @
@@ -125,7 +127,7 @@ begin
          busy <= 0;
       end
    else if (clk_io_en) case(state)
-      S_W: if(trans_ack && ~empty_i) begin
+      S_W: if (trans_ack && ~empty_i) begin
             state <= S_1;
             start_mup <= 1;
             n_mup <= 0;

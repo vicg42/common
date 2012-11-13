@@ -58,14 +58,16 @@ module mup_io(rst,clk,data_i,data_o,dir_485,
 
 // Входной триггер и задержка на такт для определения начала старт-бита
 always @(posedge clk)
-   begin
-      if (clk_en)
-      data_rec <= data_i;
-      data_rec1 <= data_rec;
-   end
+begin
+  if (clk_en) begin
+  data_rec <= data_i;
+  data_rec1 <= data_rec;
+  end
+end //always @
 
 // FSM для обмена с МУП
 always @(posedge rst or posedge clk)
+begin
    if(rst) begin
          state <= S_W;
          count <= 0;
@@ -80,7 +82,7 @@ always @(posedge rst or posedge clk)
             if(start) state <= S_S_NMUP;    //ждем начала обмена
             count <= 0;
             dir_485 <= outside;
-            busy <= 0;
+            busy <= 1;       //мы заняты
             data_o <= 1;
          end
 // пересылка адресного байта
@@ -89,7 +91,6 @@ always @(posedge rst or posedge clk)
          case(count)
             0,1,2,3: begin     //старт-бит -> на выход
               data_o <= 0;
-              busy <= 1;       //мы заняты
               error <= 0;      //сбросили ошибку
               answer <= 0;     //сбросили признак ответа респондента
              end
@@ -255,12 +256,18 @@ always @(posedge rst or posedge clk)
 // Пауза для сброса всех МУП
        S_TO: begin
           count <= count+1;
-          if(count==63) state <= S_W;
+          if(count==63) begin
+            busy <= 0;
+            state <= S_W;
+          end
        end
 // Ждем ответа от МУП в течение 64 тактов либо ждем
 //  прихода очередного байта посылки
        S_W_ANS: begin
-          if(count==63) state <= S_W;  //мы ждали, а нам не ответили
+          if(count==63) begin
+            busy <= 0;
+            state <= S_W;  //мы ждали, а нам не ответили
+          end
           else if(~data_rec && data_rec1) begin
                     state <= state_ret; //есть обмен
                     count <= 0;
@@ -268,5 +275,6 @@ always @(posedge rst or posedge clk)
           else count <= count+1;
        end        //end of S_W_ANS
    endcase       //end of FSM
+end //always @
 
 endmodule
