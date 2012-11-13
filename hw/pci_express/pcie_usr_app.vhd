@@ -212,7 +212,7 @@ signal v_reg_irq                   : std_logic_vector(C_HREG_IRQ_LAST_WBIT downt
 signal v_reg_pcie                  : std_logic_vector(C_HREG_PCIE_LAST_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT);
 signal v_reg_tst0                  : std_logic_vector(31 downto 0);
 signal v_reg_tst1                  : std_logic_vector(31 downto 0);
---signal v_reg_tst2                  : std_logic_vector(31 downto 0);
+signal v_reg_time                  : std_logic_vector(31 downto 0);
 
 signal i_hdev_adr                  : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 signal i_irq_num                   : std_logic_vector(C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT downto 0);
@@ -269,7 +269,7 @@ Type TSRIrqSet is array (0 to C_HIRQ_COUNT-1) of std_logic_vector(0 to 2);
 signal sr_irq_set                  : TSRIrqSet;
 
 signal i_rddone_vctrl              : std_logic;
-signal i_rddone_trcnik             : std_logic;
+signal i_time_set                  : std_logic;
 signal sr_rxbuf_rd_last            : std_logic;
 
 signal i_dev_drdy                  : std_logic;
@@ -527,7 +527,7 @@ process(p_in_rst_n,p_in_clk)
   variable dmaprm_wr : std_logic;
   variable dma_irq_clr : std_logic;
   variable rddone_vctrl_edge : std_logic;
-  variable rddone_trcnik_edge : std_logic;
+  variable time_set : std_logic;
   variable usr_grst : std_logic;
 begin
   if p_in_rst_n='0' then
@@ -538,7 +538,7 @@ begin
     v_reg_irq<=(others=>'0');
     v_reg_tst0<=(others=>'0');
     v_reg_tst1<=(others=>'0');
---    v_reg_tst2<=(others=>'0');
+    v_reg_time<=(others=>'0');
 
       dma_start:='0';
     i_dma_start<='0';
@@ -557,8 +557,8 @@ begin
       dmaprm_wr:='0';
       rddone_vctrl_edge:='0';
     i_rddone_vctrl<='0';
-      rddone_trcnik_edge:='0';
-    i_rddone_trcnik<='0';
+      time_set:='0';
+    i_time_set<='0';
       usr_grst:='0';
     i_usr_grst<='0';
 
@@ -569,7 +569,7 @@ begin
       dma_start:='0';
       irq_clr:='0';
       rddone_vctrl_edge:='0';
-      rddone_trcnik_edge:='0';
+      time_set:='0';
       dma_irq_clr:='0';
       usr_grst:='0';
 
@@ -581,7 +581,6 @@ begin
         if    vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_CTRL, 5)  then v_reg_ctrl<=p_in_reg_din(v_reg_ctrl'high downto 0);
             usr_grst:=p_in_reg_din(C_HREG_CTRL_RST_ALL_BIT);
             rddone_vctrl_edge:=p_in_reg_din(C_HREG_CTRL_RDDONE_VCTRL_BIT);
-            rddone_trcnik_edge:=p_in_reg_din(C_HREG_CTRL_RDDONE_TRCNIK_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_ADR, 5) then i_host_dmaprm_din<=p_in_reg_din;
         --в байтах
@@ -621,7 +620,9 @@ begin
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5) then v_reg_tst0<=p_in_reg_din;
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then v_reg_tst1<=p_in_reg_din;
---        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST2, 5) then v_reg_tst2<=p_in_reg_din;
+
+        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TIME, 5) then v_reg_time<=p_in_reg_din;
+          time_set:='1';
 
         end if;
 
@@ -633,7 +634,7 @@ begin
     i_dma_start<=dma_start;
     i_irq_clr<=irq_clr;
     i_rddone_vctrl<=rddone_vctrl_edge;
-    i_rddone_trcnik<=rddone_trcnik_edge;
+    i_time_set<=time_set;
     i_usr_grst<=usr_grst;
     i_dma_irq_clr<=dma_irq_clr;
 
@@ -720,7 +721,7 @@ begin
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRERR, 5) then
           txd(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT - C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT downto 0):=p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT);
 
-        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TRCNIK_DSIZE, 5) then txd:=p_in_dev_opt(C_HDEV_OPTIN_TRC_DSIZE_M_BIT downto C_HDEV_OPTIN_TRC_DSIZE_L_BIT);
+        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TIME, 5) then txd:=p_in_dev_opt(C_HDEV_OPTIN_TIME_M_BIT downto C_HDEV_OPTIN_TIME_L_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST0, 5) then
           txd:=EXT(v_reg_tst0, txd'length);
@@ -744,6 +745,10 @@ begin
           txd(C_HREG_FUNC_VCTRL_BIT):='1';
           txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
 --          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
+          txd(C_HREG_FUNC_PULT_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+          txd(C_HREG_FUNC_SYNC_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+--          txd(C_HREG_FUNC_EDEV_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+--          txd(C_HREG_FUNC_VIZIR_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
@@ -1053,7 +1058,7 @@ p_out_gctrl(C_HREG_CTRL_RST_ALL_BIT)<=v_reg_ctrl(C_HREG_CTRL_RST_ALL_BIT);
 p_out_gctrl(C_HREG_CTRL_RST_MEM_BIT)<=v_reg_ctrl(C_HREG_CTRL_RST_MEM_BIT);
 p_out_gctrl(C_HREG_CTRL_RST_ETH_BIT)<=v_reg_ctrl(C_HREG_CTRL_RST_ETH_BIT);
 p_out_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT)<=i_rddone_vctrl;
-p_out_gctrl(C_HREG_CTRL_RDDONE_TRCNIK_BIT)<=i_rddone_trcnik;
+p_out_gctrl(C_HREG_CTRL_LAST_BIT downto C_HREG_CTRL_RDDONE_VCTRL_BIT + 1)<=v_reg_ctrl(C_HREG_CTRL_LAST_BIT downto C_HREG_CTRL_RDDONE_VCTRL_BIT + 1);
 
 
 --Доп. информация для управления умаройствами
@@ -1075,6 +1080,8 @@ p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT)<=i
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT)<=i_dmatrn_len(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT - C_HDEV_OPTOUT_MEM_RQLEN_L_BIT downto 0);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT)<=v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT)<=v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT);
+p_out_dev_opt(C_HDEV_OPTOUT_TIME_M_BIT downto C_HDEV_OPTOUT_TIME_L_BIT)<=v_reg_time;
+p_out_dev_opt(C_HDEV_OPTOUT_TIME_SET_BIT)<=i_time_set;
 
 
 --//-------------------------------------------------------------------
