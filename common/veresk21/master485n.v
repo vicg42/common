@@ -1,306 +1,480 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company:
-// Engineer:
-//
-// Create Date:    18:48:45 07/11/2007
-// Design Name:
-// Module Name:    master485n
-// Project Name:
-// Target Devices:
-// Tool versions:
-// Description:
-//
-// Dependencies:
-//
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-//
-//////////////////////////////////////////////////////////////////////////////////
-module master485n(rst,clk,
-         ro,di,rede,
-         rdy_in,rd_en,data_in,rst_ipack,
-         wr_en,data_out,rst_pack,
-         status
-         );
+//-------------------------------------------------------------------------
+//-- Company     : Linkos
+//-- Engineer    :
+//--
+//-- Create Date : 16.11.2012 8:55:58
+//-- Module Name :
+//--
+//-- Назначение/Описание :
+//--
+//--
+//-------------------------------------------------------------------------
+module master485n(
+p_in_phy_rx,p_out_phy_tx,p_out_phy_dir,
+p_in_txd_rdy,p_out_txd_rd,p_in_txd,p_out_txd_clr,
+p_out_rxd_wr,p_out_rxd,p_out_rcv_err,
+p_out_status,
+p_out_tst,
+p_in_clk_en,
+p_in_clk,
+p_in_rst
+);
 
-   input rst;
-   input clk;                 //4x битового интервала
+output [3:0] p_out_tst;
+input p_in_clk_en;
+input p_in_clk;             //4x битового интервала
+input p_in_rst;
 
-   input ro;                  //данные от приемопередатчика RS485
-   output di;                 //данные для приемопередатчика RS485
-   output rede;               //режим работы приемопередатчика RS485
+input p_in_phy_rx;          //данные от приемопередатчика RS485
+output reg p_out_phy_tx;    //данные для приемопередатчика RS485
+output reg p_out_phy_dir;   //режим работы приемопередатчика RS485
 
-   input rdy_in;            //готовность данных для передачи в канал
-   output rd_en;            //чтение данных для передачи в канал (фифо)
-   input [15:0] data_in;    //данные дя передачи в канал
-   output rst_ipack;        //сбросить лишние данные на входе
+input p_in_txd_rdy;         //готовность данных для передачи в канал
+output p_out_txd_rd;        //чтение данных для передачи в канал (фифо)
+input [15:0] p_in_txd;      //данные дя передачи в канал
+output p_out_txd_clr;       //сбросить лишние данные на входе
 
-   output wr_en;            //запись принятых данных
-   output [7:0] data_out;   //принятые данные
-   output rst_pack;         //сбросить принятые данные из-за ошибки четности
+output p_out_rxd_wr;        //запись принятых данных
+output reg [7:0] p_out_rxd; //принятые данные
+output p_out_rcv_err;       //ошибка четности
 
-   output [2:0] status;     //статус модуля
+output reg [2:0] p_out_status; //статус модуля
 
-// внутреннее
-   reg rdy;                 //входной триггер для готовности
-   reg di,rede;
-   parameter insid=0;      //направление работы 485 приемопередатчика
-   parameter outside=1;
+// внутреннее:
+//направление работы 485 приемопередатчика
+parameter CI_PHY_DIR_RX=0; //FPGA<-PHY
+parameter CI_PHY_DIR_TX=1; //FPGA->PHY
 
-   reg [3:0] state;        //переменная FSM
-   parameter S_W=0;
-   parameter S_s1=1;
-   parameter S_s2=2;
-   parameter S_s3=3;
-   parameter S_s4=4;
-   parameter S_s5=5;
-   parameter S_wans=6;
-   parameter S_r1=7;
-   parameter S_r2=8;
-   parameter S_r3=9;
-   parameter S_release=10;
+reg [3:0] i_fsm_cs;
+parameter S_TX_WAIT=0;
+parameter S_TX_0=1;
+parameter S_TX_1=2;
+parameter S_TX_2=3;
+parameter S_TX_DONE=4;
+parameter S_RX_WAIT=5;
+parameter S_RX_0=6;
+parameter S_RX_1=7;
+parameter S_RX_2=8;
+parameter S_RX_DONE=9;
 
-   reg [5:0] count;            //счетчик подсостояний
-   reg [3:0] cou_sp;           //сколько байт надо послать
+reg [5:0] i_clkx4_cnt;          //счетчик подсостояний
+reg [3:0] i_byte_cnt;
 
-   reg data_rec;               //входная защелка данных из RS485
-   reg [7:0] t_rec;            //принятое слово
-   wire [7:0] data_out;        //принятые данные из RS485
+reg [0:1] sr_phy_rx;
+reg i_rxd_wr,i_rcv_err;
 
-   reg rd_en,wr_en,rst_pack;   //чтение, запись и сброс данных
-   reg rst_ipack;            //сброс остатков входного пакета
+reg i_txd_rd,i_txd_clr;
 
-   reg [2:0] status;
-//   parameter [3:0] ST_WAIT=4'b0000;
-   parameter [2:0] ST_SEND=3'b100;
-   parameter [2:0] ST_REC=3'b101;
-   parameter [2:0] ST_REC_OK=3'b000;
-   parameter [2:0] ST_REC_ERR=3'b001;
-   parameter [2:0] ST_NO_ANS=3'b010;
+parameter [2:0] CI_STATUS_TX=3'h01;
+parameter [2:0] CI_STATUS_RX=3'h02;
+parameter [2:0] CI_STATUS_RX_OK=3'h03;
+parameter [2:0] CI_STATUS_RX_ERR=3'h04;
+parameter [2:0] CI_STATUS_RX_NO_ACK=3'h05;
+
+parameter CI_RCV_TIMEOUT=64;
+
+reg i_parity_calc,i_parity_rcv;
+reg i_rcv_detect;
+reg [4:0] i_rcv_div_clk;
+reg i_rcv_clk_en;
+reg i_rxd_bit_tmp;
 
 
-//приведем входные сигналы к местной частоте
-always @(posedge clk)
+//входной сдвиговый регистр
+always @(posedge p_in_rst, posedge p_in_clk)
 begin
-  rdy <= rdy_in;
-  data_rec <= ro;
+  if (p_in_rst)
+    sr_phy_rx <= 0;
+  else begin
+    sr_phy_rx <= {p_in_phy_rx, sr_phy_rx[0:0]};
+  end
 end //always @
 
-// FSM обмена данными через RS485
-always @(posedge rst, posedge clk)
-   if(rst) begin
-      state <= S_W;
-      di <= 1;
-      rede <= insid;
-      count <= 0;
-      rd_en <= 0;
-      wr_en <= 0;
-      rst_ipack <= 0;
-      rst_pack <= 0;
-      status <= ST_NO_ANS;
-   end
-   else case(state)
-      S_W: if (rdy) begin   //есть данные на пересылку, читаем 1-е слово
-            state <= S_s1;
-            rd_en <= 1;
-            rede <= outside;
-            status <= ST_SEND;
-         end
-      S_s1: begin         //пауза на чтение из фифо
-            state <= S_s2;
-            rd_en <= 0;
-         end
-      S_s2: begin
-// пересылаем старший байт 1-го слова
-          if(count==38) count <= 0; else count <= count+1;
-          case(count)
-             0,1:     di <= 1;        //старт-бит по Манчестеру !!!!!
-             2:       di <= 0;              //старт-бит
-             3:   cou_sp[3:0] <= data_in[3:0]; //сколько байт осталось
-             4,5,6,7:     di <= data_in[15];
-             8,9,10,11:   di <= data_in[14];
-             12,13,14,15: di <= data_in[13];
-             16,17,18,19: di <= data_in[12];
-             20,21,22,23: di <= data_in[11];
-             24,25,26,27: di <= data_in[10];
-             28,29,30,31: di <= data_in[9];
-             32,33,34,35: di <= data_in[8];
-             36: begin di <= ^data_in[15:8]; cou_sp <= cou_sp-1; end
-             37:   if(cou_sp[3:0]!=4'b0000) rd_en <= 1;
-             38:  begin
-                     rd_en <= 0;
-                     if(cou_sp[3:0]==4'b0000) begin
-                        state <= S_s5;
-                        rst_ipack <= 1;   //сбросили остатки
+always @(posedge p_in_rst, posedge p_in_clk)
+begin
+  if (p_in_rst) begin
+    i_rcv_div_clk <= 0;
+    i_rcv_clk_en <= 0;
+  end
+  else
+  if (p_out_phy_dir==CI_PHY_DIR_RX) begin
+      if (~sr_phy_rx[0] && sr_phy_rx[1])
+        i_rcv_detect <= 1;
+
+      if (!i_rcv_detect)
+        i_rcv_div_clk <= 0;
+      else begin
+        i_rcv_div_clk <= i_rcv_div_clk + 1;
+
+        if (i_rcv_div_clk[4:0]==5'h10)
+          i_rcv_clk_en <= 1;
+        else
+          i_rcv_clk_en <= 0;
+      end
+  end
+  else begin
+    i_rcv_detect <= 0;
+    i_rcv_div_clk <= 0;
+    i_rcv_clk_en <= 0;
+  end
+end //always @
+
+
+//FSM обмена данными
+always @(posedge p_in_rst, posedge p_in_clk)
+begin
+  if (p_in_rst) begin
+    i_fsm_cs <= S_TX_WAIT;
+    i_byte_cnt <= 0;
+    i_clkx4_cnt <= 0;
+    i_parity_calc <= 0;
+    i_parity_rcv <= 0;
+    i_txd_clr <= 0;
+    i_txd_rd <= 0;
+    i_rxd_wr <= 0;
+    i_rcv_err <= 0;
+    i_rxd_bit_tmp <= 0;
+    p_out_phy_tx <= 1;
+    p_out_phy_dir <= CI_PHY_DIR_RX;
+    p_out_status <= 0;//CI_STATUS_RX_NO_ACK;
+  end
+  else begin
+      case(i_fsm_cs)
+
+          S_TX_WAIT:
+            begin
+//              if (p_in_clk_en) begin
+                if (p_in_txd_rdy) begin
+                  p_out_phy_dir <= CI_PHY_DIR_TX;
+                  p_out_status <= CI_STATUS_TX;
+                  i_byte_cnt[3:0] <= p_in_txd[3:0];
+                  i_fsm_cs <= S_TX_0;
+                end
+//              end
+            end //S_TX_WAIT
+
+          S_TX_0:
+            begin
+              if (p_in_clk_en) begin
+                if (i_clkx4_cnt==39)
+                  i_clkx4_cnt <= 0;
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
+
+                case(i_clkx4_cnt)
+                  //Старт бит
+                  0,1:   begin p_out_phy_tx <= 1; end
+                  2,3:   begin p_out_phy_tx <= 0; end
+                  //Данные
+                  4,5:   begin p_out_phy_tx <= !p_in_txd[15]; end
+                  6,7:   begin p_out_phy_tx <=  p_in_txd[15]; end
+                  8,9:   begin p_out_phy_tx <= !p_in_txd[14]; end
+                  10,11: begin p_out_phy_tx <=  p_in_txd[14]; end
+                  12,13: begin p_out_phy_tx <= !p_in_txd[13]; end
+                  14,15: begin p_out_phy_tx <=  p_in_txd[13]; end
+                  16,17: begin p_out_phy_tx <= !p_in_txd[12]; end
+                  18,19: begin p_out_phy_tx <=  p_in_txd[12]; end
+                  20,21: begin p_out_phy_tx <= !p_in_txd[11]; end
+                  22,23: begin p_out_phy_tx <=  p_in_txd[11]; end
+                  24,25: begin p_out_phy_tx <= !p_in_txd[10]; end
+                  26,27: begin p_out_phy_tx <=  p_in_txd[10]; end
+                  28,29: begin p_out_phy_tx <= !p_in_txd[9];  end
+                  30,31: begin p_out_phy_tx <=  p_in_txd[9];  end
+                  32,33: begin p_out_phy_tx <= !p_in_txd[8];  end
+                  34,35: begin p_out_phy_tx <=  p_in_txd[8]; i_parity_calc <= ^p_in_txd[15:8]; end
+                  //бит четности
+                  36:    begin p_out_phy_tx <= !i_parity_calc; i_byte_cnt <= i_byte_cnt - 1; end
+                  37:    begin p_out_phy_tx <= !i_parity_calc; i_txd_rd <= |i_byte_cnt; end
+                  38:    begin p_out_phy_tx <=  i_parity_calc; i_txd_rd <= 0; end
+                  39:    begin p_out_phy_tx <=  i_parity_calc;
+                          if ( &i_byte_cnt ) begin  //tx byte cnt = 0
+                            i_txd_clr <= 1;
+                            i_fsm_cs <= S_TX_DONE;
+                          end
+                          else
+                            i_fsm_cs <= S_TX_1;
+                         end
+                endcase
+              end
+            end //S_TX_0
+
+          S_TX_1:
+            begin
+              if (p_in_clk_en) begin
+                if ((i_clkx4_cnt==39) || (i_clkx4_cnt==35))
+                  i_clkx4_cnt <= 0;
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
+
+                case(i_clkx4_cnt)
+                  //Старт бит - Нету!!!!
+                  //Данные
+                  0,1:   begin p_out_phy_tx <= !p_in_txd[7]; end
+                  2,3:   begin p_out_phy_tx <=  p_in_txd[7]; end
+                  4,5:   begin p_out_phy_tx <= !p_in_txd[6]; end
+                  6,7:   begin p_out_phy_tx <=  p_in_txd[6]; end
+                  8,9:   begin p_out_phy_tx <= !p_in_txd[5]; end
+                  10,11: begin p_out_phy_tx <=  p_in_txd[5]; end
+                  12,13: begin p_out_phy_tx <= !p_in_txd[4]; end
+                  14,15: begin p_out_phy_tx <=  p_in_txd[4]; end
+                  16,17: begin p_out_phy_tx <= !p_in_txd[3]; end
+                  18,19: begin p_out_phy_tx <=  p_in_txd[3]; end
+                  20,21: begin p_out_phy_tx <= !p_in_txd[2]; end
+                  22,23: begin p_out_phy_tx <=  p_in_txd[2]; end
+                  24,25: begin p_out_phy_tx <= !p_in_txd[1]; end
+                  26,27: begin p_out_phy_tx <=  p_in_txd[1]; end
+                  28,29: begin p_out_phy_tx <= !p_in_txd[0]; end
+                  30,31: begin p_out_phy_tx <=  p_in_txd[0]; i_parity_calc <= ^p_in_txd[7:0]; end
+                  //Бит четности
+                  32:    begin p_out_phy_tx <= !i_parity_calc; end
+                  33:    begin p_out_phy_tx <= !i_parity_calc; end
+                  34:    begin p_out_phy_tx <=  i_parity_calc; i_byte_cnt <= i_byte_cnt - 1; end
+                  35:    begin p_out_phy_tx <=  i_parity_calc;
+                           if ( &i_byte_cnt ) begin  //tx byte cnt = 0
+                             i_txd_clr <= 1;
+                             i_fsm_cs <= S_TX_DONE;
+                           end
+                           else
+                             i_fsm_cs <= S_TX_2;
+                         end
+                endcase
+              end
+            end //S_TX_1
+
+          S_TX_2:
+            begin
+              if (p_in_clk_en) begin
+                if (i_clkx4_cnt==35)
+                  i_clkx4_cnt <= 0;
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
+
+                case(i_clkx4_cnt)
+                  //Старт бит - Нету!!!!
+                  //Данные
+                  0,1:   begin p_out_phy_tx <= !p_in_txd[15]; end
+                  2,3:   begin p_out_phy_tx <=  p_in_txd[15]; end
+                  4,5:   begin p_out_phy_tx <= !p_in_txd[14]; end
+                  6,7:   begin p_out_phy_tx <=  p_in_txd[14]; end
+                  8,9:   begin p_out_phy_tx <= !p_in_txd[13]; end
+                  10,11: begin p_out_phy_tx <=  p_in_txd[13]; end
+                  12,13: begin p_out_phy_tx <= !p_in_txd[12]; end
+                  14,15: begin p_out_phy_tx <=  p_in_txd[12]; end
+                  16,17: begin p_out_phy_tx <= !p_in_txd[11]; end
+                  18,19: begin p_out_phy_tx <=  p_in_txd[11]; end
+                  20,21: begin p_out_phy_tx <= !p_in_txd[10]; end
+                  22,23: begin p_out_phy_tx <=  p_in_txd[10]; end
+                  24,25: begin p_out_phy_tx <= !p_in_txd[9];  end
+                  26,27: begin p_out_phy_tx <=  p_in_txd[9];  end
+                  28,29: begin p_out_phy_tx <= !p_in_txd[8];  end
+                  30,31: begin p_out_phy_tx <=  p_in_txd[8]; i_parity_calc <= ^p_in_txd[15:8]; end
+                  //Бит четности
+                  32:    begin p_out_phy_tx <= !i_parity_calc; i_byte_cnt <= i_byte_cnt - 1; end
+                  33:    begin p_out_phy_tx <= !i_parity_calc; i_txd_rd <= |i_byte_cnt; end
+                  34:    begin p_out_phy_tx <=  i_parity_calc; i_txd_rd <= 0; end
+                  35:    begin p_out_phy_tx <=  i_parity_calc;
+                          if ( &i_byte_cnt ) begin  //tx byte cnt = 0
+                             i_txd_clr <= 1;
+                             i_fsm_cs <= S_TX_DONE;
+                          end
+                          else i_fsm_cs <= S_TX_1;
+                         end
+                endcase
+              end
+            end //S_TX_2
+
+          S_TX_DONE:
+            begin
+              if (p_in_clk_en) begin
+                i_txd_clr <= 0;
+                p_out_phy_tx <= 1;
+
+                if (i_clkx4_cnt==3) begin
+                  i_clkx4_cnt <= 0;
+                  p_out_phy_dir <= CI_PHY_DIR_RX;
+                  p_out_status <= CI_STATUS_RX;
+                  i_fsm_cs <= S_RX_WAIT;
+                end
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
+              end
+            end //S_TX_DONE
+
+
+          S_RX_WAIT:
+            begin
+              if (i_rcv_detect) begin
+                if (i_rcv_clk_en) begin
+                  i_fsm_cs <= S_RX_0;
+                  i_clkx4_cnt <= 0;
+                end
+              end
+              else
+                if (p_in_clk_en) begin
+                  if (i_clkx4_cnt==CI_RCV_TIMEOUT-1) begin
+                     i_fsm_cs <= S_RX_DONE;
+                  end
+                  else
+                    i_clkx4_cnt <= i_clkx4_cnt + 1;
+                end
+            end //S_RX_WAIT
+
+          S_RX_0:
+            begin
+              if (i_rcv_clk_en) begin
+                if (i_clkx4_cnt==36)
+                  i_clkx4_cnt <= 0;
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
+
+                case(i_clkx4_cnt)
+                  //Старт бит - пропускаем
+//                  0,1,2:   p_out_rxd[7] <= sr_phy_rx[0];
+                  //Данные
+                  3:  begin p_out_rxd[7] <= sr_phy_rx[0]; end //4,5,6
+                  7:  begin p_out_rxd[6] <= sr_phy_rx[0]; end //8,9,10
+                  11: begin p_out_rxd[5] <= sr_phy_rx[0]; end //12,13,14
+                  15: begin p_out_rxd[4] <= sr_phy_rx[0]; end //16,17,18
+                  19: begin p_out_rxd[3] <= sr_phy_rx[0]; end //20,21,22
+                  23: begin p_out_rxd[2] <= sr_phy_rx[0]; end //24,25,26
+                  27: begin p_out_rxd[1] <= sr_phy_rx[0]; end //28,29,30
+                  31: begin p_out_rxd[0] <= sr_phy_rx[0]; end //32,33,34
+                  //Бит четности
+                  35: begin
+                        if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
+                          i_rcv_err <= 1;
+                          i_fsm_cs <= S_RX_DONE;
+                        end
+                        else
+                          i_rxd_wr <= 1;
                       end
-                     else state <= S_s3;
-                  end
-          endcase
-       end
+                  36: begin
+                        i_rxd_wr <= 0;
+                        i_rxd_bit_tmp <= sr_phy_rx[0];  //для проверки есть ли еще байт?
+                        i_fsm_cs <= S_RX_1;
+                      end
+                endcase
+              end
+            end //S_RX_0
 
-// пересылаем младший байт очередного слова
-      S_s3: begin
-          if(count==34) count <= 0; else count <= count+1;
-          case(count)
-            0,1,2,3:     di <= data_in[7];
-            4,5,6,7:     di <= data_in[6];
-            8,9,10,11:   di <= data_in[5];
-            12,13,14,15: di <= data_in[4];
-            16,17,18,19: di <= data_in[3];
-            20,21,22,23: di <= data_in[2];
-            24,25,26,27: di <= data_in[1];
-            28,29,30,31: di <= data_in[0];
-            32: di <= ^data_in[7:0];   //БЧ
-            33: cou_sp <= cou_sp-1;
-            34: if(cou_sp[3:0]==4'b0000) begin       //может уже все?
-                  state <= S_s5;
-                  rst_ipack <= 1;
-                end
-                else state <= S_s4;
-          endcase
-       end
+          S_RX_1:
+            begin
+              if (i_rcv_clk_en) begin
+                if (i_clkx4_cnt==36)
+                  i_clkx4_cnt <= 0;
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
 
-      S_s4: begin
-// пересылаем старший байт очередного слова
-          if(count==34) count <= 0; else count <= count+1;
-          case(count)
-             0,1,2,3:     di <= data_in[15];
-             4,5,6,7:     di <= data_in[14];
-             8,9,10,11:   di <= data_in[13];
-             12,13,14,15: di <= data_in[12];
-             16,17,18,19: di <= data_in[11];
-             20,21,22,23: di <= data_in[10];
-             24,25,26,27: di <= data_in[9];
-             28,29,30,31: di <= data_in[8];
-             32: begin di <= ^data_in[15:8]; cou_sp <= cou_sp-1; end
-             33: if(cou_sp[3:0]!=4'b0000) rd_en <= 1;
-             34: begin
-                    rd_en <= 0;
-                    if(cou_sp[3:0]==4'b0000) begin   //может уже все?
-                       state <= S_s5;
-                       rst_ipack <= 1;
+                case(i_clkx4_cnt)
+                  //Старт бит - Нету!!!
+                  //Данные
+                  0:  begin p_out_rxd[7] <= sr_phy_rx[0]; end
+                  2:  begin
+                        if (p_out_rxd[7] && sr_phy_rx[0])
+                          i_fsm_cs <= S_RX_DONE;
+                      end
+                  3:  begin p_out_rxd[7] <= sr_phy_rx[0]; end
+                  7:  begin p_out_rxd[6] <= sr_phy_rx[0]; end
+                  11: begin p_out_rxd[5] <= sr_phy_rx[0]; end
+                  15: begin p_out_rxd[4] <= sr_phy_rx[0]; end
+                  19: begin p_out_rxd[3] <= sr_phy_rx[0]; end
+                  23: begin p_out_rxd[2] <= sr_phy_rx[0]; end
+                  27: begin p_out_rxd[1] <= sr_phy_rx[0]; end
+                  31: begin p_out_rxd[0] <= sr_phy_rx[0]; end
+                  //Бит четности
+                  35: begin
+                      if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
+                        i_rcv_err <= 1;
+                        i_fsm_cs <= S_RX_DONE;
+                      end
+                      else
+                        i_rxd_wr <= 1;
                      end
-                    else state <= S_s3;
-                 end
-          endcase
-       end
-
-//переходим в состояние ожидания ответа
-      S_s5: begin
-            state <= S_wans;
-            rede <= insid;
-            rst_ipack <= 0;
-            status <= ST_REC;
-        end
-
-// Ждем ответа от респондента в течение 64 тактов
-       S_wans: begin
-          if(count==63) begin
-             state <= S_release;            //мы ждали, а нам не ответили
-             status <= ST_NO_ANS;
-           end
-          else if(!data_rec) begin
-                    state <= S_r1;      //есть обмен
-                    count <= 0;
-                 end
-          else count <= count+1;
-       end        //end of S_W_ANS
-
-//принимаем первый байт из канала
-      S_r1: begin
-          if(count==36) count <= 0; else count <= count+1;
-          case(count)
-//           0,1,2:    //пропускаем старт-бит
-             3:  t_rec[7] <= data_rec;
-             7:  t_rec[6] <= data_rec;
-             11: t_rec[5] <= data_rec;
-             15: t_rec[4] <= data_rec;
-             19: t_rec[3] <= data_rec;
-             23: t_rec[2] <= data_rec;
-             27: t_rec[1] <= data_rec;
-             31: t_rec[0] <= data_rec;
-             35: if(data_rec==^t_rec[7:0]) begin
-                      wr_en <= 1;          //запишем что приняли
+                  36: begin
+                        i_rxd_wr <= 0;
+                        i_rxd_bit_tmp <= sr_phy_rx[0];  //для проверки есть ли еще байт?
+                        i_fsm_cs <= S_RX_2;
                     end
-                 else begin
-                      state <= S_release;
-                      rst_pack <= 1;
-                      status <= ST_REC_ERR;
-                      count <= 0;
-                  end
-             36: begin wr_en <= 0; state <= S_r2; end
-          endcase
-       end
+                endcase
+              end
+            end //S_RX_1
 
-//принимаем 2-й байт из канала
-      S_r2: begin
-          if(count==34) count <= 0; else count <= count+1;
-          case(count)
-             1:  t_rec[7] <= data_rec;
-             5:  t_rec[6] <= data_rec;
-             9:  t_rec[5] <= data_rec;
-             13: t_rec[4] <= data_rec;
-             17: t_rec[3] <= data_rec;
-             21: t_rec[2] <= data_rec;
-             25: t_rec[1] <= data_rec;
-             29: t_rec[0] <= data_rec;
-             33: if(data_rec==^t_rec[7:0]) wr_en <= 1;
-                 else begin
-                      state <= S_release;
-                      rst_pack <= 1;
-                      status <= ST_REC_ERR;
-                      count <= 0;
-                  end
-             34: begin
-                   wr_en <= 0;
-                   state <= S_r3;
-                   t_rec[0] <= data_rec;  //для проверки есть ли еще байт?
-                end
-          endcase
-       end
+          S_RX_2:
+            begin
+              if (i_rcv_clk_en) begin
+                if (i_clkx4_cnt==34)
+                  i_clkx4_cnt <= 0;
+                else
+                  i_clkx4_cnt <= i_clkx4_cnt + 1;
 
-//принимаем 3-й байт из канала (без четности!!!)
-      S_r3: begin
-          if(count==34) count <= 0; else count <= count+1;
-          case(count)
-             1:  if(t_rec[0]!=data_rec) t_rec[7] <= data_rec;
-                 else begin
-                    state <= S_release;
-                    status <= ST_REC_OK;
-                 end
-             5:  t_rec[6] <= data_rec;
-             9:  t_rec[5] <= data_rec;
-             13: t_rec[4] <= data_rec;
-             17: t_rec[3] <= data_rec;
-             21: t_rec[2] <= data_rec;
-             25: t_rec[1] <= data_rec;
-             29: t_rec[0] <= data_rec;
-             33: wr_en <= 1;
-             34: begin
-                    wr_en <= 0;
-                    state <= S_release;
-                    status <= ST_REC_OK;
-                    count <= 0;
-                end
-          endcase
-       end
+                case(i_clkx4_cnt)
+                  //Старт бит - Нету!!!
+                  //Данные
+                  1:  begin
+                      if (i_rxd_bit_tmp!=sr_phy_rx[0])
+                        p_out_rxd[7] <= sr_phy_rx[0];
+                      else
+                        i_fsm_cs <= S_RX_DONE;
+                      end
+                  5:  begin p_out_rxd[6] <= sr_phy_rx[0]; end
+                  9:  begin p_out_rxd[5] <= sr_phy_rx[0]; end
+                  13: begin p_out_rxd[4] <= sr_phy_rx[0]; end
+                  17: begin p_out_rxd[3] <= sr_phy_rx[0]; end
+                  21: begin p_out_rxd[2] <= sr_phy_rx[0]; end
+                  25: begin p_out_rxd[1] <= sr_phy_rx[0]; end
+                  29: begin p_out_rxd[0] <= sr_phy_rx[0]; end
+                  //Бит четности
+                  33: begin
+                      if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
+                        i_rcv_err <= 1;
+                        i_fsm_cs <= S_RX_DONE;
+                      end
+                      else
+                        i_rxd_wr <= 1;
+                      end
+                  34: begin
+                        i_rxd_wr <= 0;
+                        i_rxd_bit_tmp <= sr_phy_rx[0];  //для проверки есть ли еще байт?
+                        i_fsm_cs <= S_RX_1;
+                      end
+                endcase
+              end
+            end //S_RX_2
 
-// отпускаем шину, сбрасываем управление
-      S_release: begin
-            state <= S_W;
-            di <= 1;
-            rede <= insid;
-            count <= 0;
-            rd_en <= 0;
-            wr_en <= 0;
-            rst_ipack <= 0;
-            rst_pack <= 0;
-         end
-   endcase
+          S_RX_DONE:
+            begin
+              if (p_in_clk_en) begin
+                i_clkx4_cnt <= 0;
+                i_txd_rd <= 0;
+                i_rxd_wr <= 0;
+                i_txd_clr <= 0;
 
-assign data_out = t_rec;
+                if (i_clkx4_cnt==CI_RCV_TIMEOUT-1)
+                  p_out_status <= CI_STATUS_RX_NO_ACK;
+                else
+                  if (i_rcv_err)
+                    p_out_status <= CI_STATUS_RX_ERR;
+                  else
+                    p_out_status <= CI_STATUS_RX_OK;
 
+                i_rcv_err <= 0;
+                p_out_phy_tx <= 1;
+                p_out_phy_dir <= CI_PHY_DIR_RX;
+
+                i_fsm_cs <= S_TX_WAIT;
+              end
+            end //S_RX_DONE
+      endcase
+  end
+end //always @
+
+assign p_out_rxd_wr = i_rxd_wr && p_in_clk_en;
+
+assign p_out_txd_rd = i_txd_rd && p_in_clk_en;
+assign p_out_txd_clr = i_txd_clr && p_in_clk_en;
+assign p_out_rcv_err = i_rcv_err && p_in_clk_en;
+
+assign p_out_tst = i_fsm_cs;
 
 endmodule
