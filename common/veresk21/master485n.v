@@ -34,8 +34,8 @@ output reg [2:0] p_out_status, //статус модуля
 
 output [31:0]    p_out_tst,
 
-input p_in_clk_en, // p_in_clk_en = p_in_clk * 4
-input p_in_clk,
+input p_in_bitclk, //Выбор baudrate: 1/0 - 1MHz/250kHz
+input p_in_clk,    //128MHz!!!!!
 input p_in_rst
 );
 
@@ -46,9 +46,6 @@ parameter CI_PHY_DIR_TX=1; //FPGA->PHY
 
 parameter [2:0] CI_STATUS_RX_OK=3'h01;
 parameter [2:0] CI_STATUS_RX_ERR=3'h02; //Ошибка четности
-//parameter [2:0] CI_STATUS_RX_NO_ACK=3'h03;
-
-//parameter CI_RCV_TIMEOUT=64;
 
 parameter S_TX_WAIT=0;
 parameter S_TX_0=1;
@@ -59,9 +56,9 @@ parameter S_RX_0=5;
 parameter S_RX_1=6;
 parameter S_RX_2=7;
 parameter S_RX_DONE=8;
+parameter S_RX_DONE2=9;
 
 reg [3:0] i_fsm_cs;
-
 reg [5:0] i_clkx4_cnt;
 
 reg [0:1] sr_phy_rx;
@@ -71,14 +68,16 @@ reg i_rcv_err;
 
 reg i_parity;
 reg i_rcv_detect;
-reg [6:0] i_rcv_div_clk;
-reg i_rcv_clk_en;
+reg i_clk4x_en;
+reg [6:0] i_clkdiv_cnt;
+reg i_clkdiv_rst;
 
 
 assign p_out_tst[3:0] = i_fsm_cs;
+assign p_out_tst[4] = i_clk4x_en;
 
-assign p_out_rxd_wr = i_rxd_wr && p_in_clk_en;
-assign p_out_txd_rd = i_txd_rd && p_in_clk_en;
+assign p_out_rxd_wr = i_rxd_wr && i_clk4x_en;
+assign p_out_txd_rd = i_txd_rd && i_clk4x_en;
 
 //входной сдвиговый регистр + детектор приема данных
 always @(posedge p_in_rst, posedge p_in_clk)
@@ -100,30 +99,33 @@ begin
   end
 end //always @
 
+
+//Делитель частоты
 always @(posedge p_in_rst, posedge p_in_clk)
 begin
   if (p_in_rst) begin
-    i_rcv_div_clk <= 0;
-    i_rcv_clk_en <= 0;
-  end
-  else
-  if (p_out_phy_dir==CI_PHY_DIR_RX) begin
-
-      if (!i_rcv_detect)
-        i_rcv_div_clk <= 0;
-      else begin
-        i_rcv_div_clk <= i_rcv_div_clk + 1;
-
-        if (i_rcv_div_clk[4:0] == 5'h10)
-//        if (i_rcv_div_clk == 5'h40)
-          i_rcv_clk_en <= 1;
-        else
-          i_rcv_clk_en <= 0;
-      end
+    i_clkdiv_cnt <= 0;
+    i_clk4x_en <= 0;
   end
   else begin
-    i_rcv_div_clk <= 0;
-    i_rcv_clk_en <= 0;
+
+      if (i_clkdiv_rst) begin
+        i_clkdiv_cnt <= 0;
+        i_clk4x_en <= 0;
+      end
+      else begin
+          if (!i_rcv_detect && (p_out_phy_dir==CI_PHY_DIR_RX))
+            i_clkdiv_cnt <= 0;
+          else
+            i_clkdiv_cnt <= i_clkdiv_cnt + 1;
+
+          if ( ((i_clkdiv_cnt[4:0] == 5'h10) && p_in_bitclk) ||
+               ((i_clkdiv_cnt == 7'h40) && !p_in_bitclk) )
+            i_clk4x_en <= 1;
+          else
+            i_clk4x_en <= 0;
+      end
+
   end
 end //always @
 
@@ -141,24 +143,26 @@ begin
     p_out_phy_tx <= 1;
     p_out_phy_dir <= CI_PHY_DIR_RX;
     p_out_status <= 0;
+    i_clkdiv_rst <= 0;
   end
   else begin
       case (i_fsm_cs)
 
           S_TX_WAIT:
             begin
-              if (p_in_clk_en) begin
+
                 if (p_in_txd_rdy) begin
+                  i_clkdiv_rst <= 0;
                   p_out_status <= 0;
                   p_out_phy_dir <= CI_PHY_DIR_TX;
                   i_fsm_cs <= S_TX_0;
                 end
-              end
+
             end //S_TX_WAIT
 
           S_TX_0:
             begin
-              if (p_in_clk_en) begin
+              if (i_clk4x_en) begin
                 if (i_clkx4_cnt == 39)
                   i_clkx4_cnt <= 0;
                 else
@@ -201,7 +205,7 @@ begin
 
           S_TX_1:
             begin
-              if (p_in_clk_en) begin
+              if (i_clk4x_en) begin
                 if (i_clkx4_cnt == 35)
                   i_clkx4_cnt <= 0;
                 else
@@ -240,10 +244,11 @@ begin
 
           S_TX_DONE:
             begin
-              if (p_in_clk_en) begin
+              if (i_clk4x_en) begin
                 p_out_phy_tx <= 1;
 
                 if (i_clkx4_cnt == 3) begin
+                  i_clkdiv_rst <= 1;
                   i_clkx4_cnt <= 0;
                   p_out_phy_dir <= CI_PHY_DIR_RX;
                   i_fsm_cs <= S_RX_WAIT;
@@ -256,29 +261,24 @@ begin
 
           S_RX_WAIT:
             begin
+
+              i_clkdiv_rst <= 0;
+
               if (i_rcv_detect) begin
-                if (i_rcv_clk_en) begin
+                if (i_clk4x_en) begin
                   i_fsm_cs <= S_RX_0;
                   i_clkx4_cnt <= 0;
                 end
               end
-              else
-                if (p_in_clk_en) begin
+              else begin
                   if (p_in_txd_rdy)
                     i_fsm_cs <= S_TX_WAIT;
-
-//                  if (i_clkx4_cnt==CI_RCV_TIMEOUT-1) begin
-//                    p_out_status <= CI_STATUS_RX_NO_ACK;
-//                    i_fsm_cs <= S_RX_DONE;
-//                  end
-//                  else
-//                    i_clkx4_cnt <= i_clkx4_cnt + 1;
-                end
+              end
             end //S_RX_WAIT
 
           S_RX_0:
             begin
-              if (i_rcv_clk_en) begin
+              if (i_clk4x_en) begin
                 if (i_clkx4_cnt == 36)
                   i_clkx4_cnt <= 0;
                 else
@@ -315,7 +315,7 @@ begin
 
           S_RX_1:
             begin
-              if (i_rcv_clk_en) begin
+              if (i_clk4x_en) begin
                 if (i_clkx4_cnt == 36)
                   i_clkx4_cnt <= 0;
                 else
@@ -360,7 +360,7 @@ begin
 
           S_RX_2:
             begin
-              if (i_rcv_clk_en) begin
+              if (i_clk4x_en) begin
                 if (i_clkx4_cnt == 34)
                   i_clkx4_cnt <= 0;
                 else
@@ -404,7 +404,8 @@ begin
 
           S_RX_DONE:
             begin
-              if (p_in_clk_en) begin
+              if (i_clk4x_en) begin
+//                i_clkdiv_rst <= 1;
                 i_clkx4_cnt <= 0;
                 i_txd_rd <= 0;
                 i_rxd_wr <= 0;
@@ -416,9 +417,17 @@ begin
                 else
                   p_out_status <= CI_STATUS_RX_OK;
 
-                i_fsm_cs <= S_TX_WAIT;
+                i_fsm_cs <= S_RX_DONE2; //S_TX_WAIT;
               end
             end //S_RX_DONE
+
+          S_RX_DONE2:
+            begin
+              if (i_clk4x_en) begin
+                i_clkdiv_rst <= 1;
+                i_fsm_cs <= S_TX_WAIT;
+              end
+            end //S_RX_DONE2
       endcase
   end
 end //always @

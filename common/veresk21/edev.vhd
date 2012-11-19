@@ -52,16 +52,16 @@ p_in_phy_rx       : in   std_logic;
 p_out_phy_tx      : out  std_logic;
 p_out_phy_dir     : out  std_logic;
 
---------------------------------------
---
---------------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 p_in_tst          : in   std_logic_vector(31 downto 0);
 p_out_tst         : out  std_logic_vector(31 downto 0);
 
 --------------------------------------
 --System
 --------------------------------------
-p_in_clk_en       : in   std_logic; --
+p_in_bitclk       : in   std_logic; -- 1/0  = bitclk 1MHz/ bitclk 250kHz
 p_in_clk          : in   std_logic; --128MHz
 p_in_rst          : in   std_logic
 );
@@ -90,7 +90,7 @@ p_out_status  : out std_logic_vector(2 downto 0);
 
 p_out_tst     : out std_logic_vector(31 downto 0);
 
-p_in_clk_en   : in  std_logic;
+p_in_bitclk   : in  std_logic;
 p_in_clk      : in  std_logic;
 p_in_rst      : in  std_logic
 );
@@ -132,11 +132,9 @@ signal i_host_rxd        : std_logic_vector(31 downto 0);
 signal i_txbuf_do        : std_logic_vector(31 downto 0);
 signal i_txbuf_rd        : std_logic;
 signal i_txbuf_empty     : std_logic;
-signal i_txbuf_full      : std_logic;
 signal i_rxbuf_wr        : std_logic;
 signal i_rxbuf_di        : std_logic_vector(31 downto 0);
 signal i_rxbuf_empty     : std_logic;
-signal i_rxbuf_full      : std_logic;
 signal i_rxbuf_rst       : std_logic;
 
 signal i_core_txd_rdy    : std_logic;
@@ -162,7 +160,9 @@ signal tst_rxbufh_empty : std_logic;
 --MAIN
 begin
 
-
+------------------------------------
+--Технологические сигналы
+------------------------------------
 p_out_tst(0) <= OR_reduce(tst_fms_core_dly) or OR_reduce(tst_fsm_edev_dly) or
                 tst_rxbufh_empty or tst_txbufh_empty;
 
@@ -201,7 +201,7 @@ tst_fms_core<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(3 
 --//Связь с Host
 --//----------------------------------
 p_out_host_txrdy <= i_txbuf_empty;
-p_out_host_rxrdy <= i_rxbuf_empty;
+p_out_host_rxrdy <= not i_rxbuf_empty;
 
 p_out_herr <= i_rcv_err;
 p_out_hirq <= i_rcv_irq;
@@ -218,7 +218,7 @@ dout   => i_txbuf_do,
 rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
-full   => i_txbuf_full,
+full   => open,
 empty  => i_txbuf_empty,
 
 rst    => p_in_rst
@@ -235,7 +235,7 @@ dout   => i_host_rxd,
 rd_en  => p_in_host_rd,
 rd_clk => p_in_host_clk,
 
-full   => i_rxbuf_full,
+full   => open,
 empty  => i_rxbuf_empty,
 
 rst    => i_rxbuf_rst
@@ -368,9 +368,12 @@ begin
                 i_lencnt <= i_lencnt + 1;--Rx byte count
               end if;
 
-              if i_txbuf_empty='0' or
-                 i_core_status=CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) then
+              if i_txbuf_empty='0' then
+                i_rxbuf_wr <= '0';
+                i_fsm_edev_cs <= S_TX_IDLE;
 
+              elsif i_core_status=CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) then
+                i_rcv_irq <= '1';
                 i_rxbuf_wr <= '0';
                 i_fsm_edev_cs <= S_TX_IDLE;
 
@@ -386,7 +389,7 @@ begin
 
               i_rxbuf_wr <= '0';
 
-              if p_in_clk_en='1' then
+              if tst_out(4)='1' then --i_rxbuf_empty='0' then
                 i_rcv_irq <= '1';
                 i_fsm_edev_cs <= S_TX_IDLE;
               end if;
@@ -416,7 +419,7 @@ p_out_status  => i_core_status,
 
 p_out_tst     => tst_out,
 
-p_in_clk_en   => p_in_clk_en,
+p_in_bitclk   => p_in_bitclk,
 p_in_clk      => p_in_clk,
 p_in_rst      => p_in_rst
 );
