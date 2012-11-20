@@ -75,6 +75,7 @@ reg i_clkdiv_rst;
 
 assign p_out_tst[3:0] = i_fsm_cs;
 assign p_out_tst[4] = i_clk4x_en;
+assign p_out_tst[5] = 0;
 
 assign p_out_rxd_wr = i_rxd_wr && i_clk4x_en;
 assign p_out_txd_rd = i_txd_rd && i_clk4x_en;
@@ -114,16 +115,22 @@ begin
         i_clk4x_en <= 0;
       end
       else begin
-          if (!i_rcv_detect && (p_out_phy_dir==CI_PHY_DIR_RX))
+          if ( (p_out_phy_dir==CI_PHY_DIR_RX) &&
+               ((^sr_phy_rx) || !i_rcv_detect) )
+          //В случае Манчестерского кодирования
+          //при приеме данных производим подсинхривание
+          //счетчика i_clkdiv_cnt передним/задним фронтами сингала p_in_phy_rx
+          //(выделение фронтов - (^sr_phy_rx))
             i_clkdiv_cnt <= 0;
           else
             i_clkdiv_cnt <= i_clkdiv_cnt + 1;
 
           if ( ((i_clkdiv_cnt[4:0] == 5'h10) && p_in_bitclk) ||
-               ((i_clkdiv_cnt == 7'h40) && !p_in_bitclk) )
+               ((i_clkdiv_cnt[6:0] == 7'h40) && !p_in_bitclk) )
             i_clk4x_en <= 1;
           else
             i_clk4x_en <= 0;
+
       end
 
   end
