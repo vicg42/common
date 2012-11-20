@@ -71,7 +71,6 @@ architecture behavioral of edev is
 
 constant CI_STATUS_RX_OK     : integer:=16#01#;
 constant CI_STATUS_RX_ERR    : integer:=16#02#;
---constant CI_STATUS_RX_NO_ACK : integer:=16#03#;
 
 component master485n
 port(
@@ -88,6 +87,7 @@ p_out_rxd_wr  : out std_logic;
 
 p_out_status  : out std_logic_vector(2 downto 0);
 
+p_in_tst      : in  std_logic_vector(31 downto 0);
 p_out_tst     : out std_logic_vector(31 downto 0);
 
 p_in_bitclk   : in  std_logic;
@@ -96,7 +96,7 @@ p_in_rst      : in  std_logic
 );
 end component;
 
-component pult_buf
+component edev_buf
 port (
 din    : in  std_logic_vector(31 downto 0);
 wr_en  : in  std_logic;
@@ -208,7 +208,7 @@ p_out_hirq <= i_rcv_irq;
 i_rcv_err <= '1' when i_core_status=CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) else '0';
 
 --host->edev
-m_txbuf : pult_buf
+m_txbuf : edev_buf
 port map(
 din    => p_in_host_txd,
 wr_en  => p_in_host_wr,
@@ -225,7 +225,7 @@ rst    => p_in_rst
 );
 
 --host<-edev
-m_rxbuf : pult_buf
+m_rxbuf : edev_buf
 port map(
 din    => i_rxbuf_di,
 wr_en  => i_rxbuf_wr,
@@ -389,7 +389,7 @@ begin
 
               i_rxbuf_wr <= '0';
 
-              if tst_out(4)='1' then --i_rxbuf_empty='0' then
+              if tst_out(4)='1' then
                 i_rcv_irq <= '1';
                 i_fsm_edev_cs <= S_TX_IDLE;
               end if;
@@ -417,6 +417,7 @@ p_out_rxd_wr  => i_core_rx_wr,
 
 p_out_status  => i_core_status,
 
+p_in_tst      => (others=>'0'),
 p_out_tst     => tst_out,
 
 p_in_bitclk   => p_in_bitclk,

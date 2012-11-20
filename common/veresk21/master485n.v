@@ -32,6 +32,7 @@ output           p_out_rxd_wr,
 
 output reg [2:0] p_out_status, //статус модуля
 
+input  [31:0]    p_in_tst,
 output [31:0]    p_out_tst,
 
 input p_in_bitclk, //Выбор baudrate: 1/0 - 1MHz/250kHz
@@ -115,12 +116,12 @@ begin
         i_clk4x_en <= 0;
       end
       else begin
-          if ( (p_out_phy_dir==CI_PHY_DIR_RX) &&
-               ((^sr_phy_rx) || !i_rcv_detect) )
           //В случае Манчестерского кодирования
           //при приеме данных производим подсинхривание
           //счетчика i_clkdiv_cnt передним/задним фронтами сингала p_in_phy_rx
           //(выделение фронтов - (^sr_phy_rx))
+          if ( (p_out_phy_dir==CI_PHY_DIR_RX) &&
+               ((^sr_phy_rx) || !i_rcv_detect) )
             i_clkdiv_cnt <= 0;
           else
             i_clkdiv_cnt <= i_clkdiv_cnt + 1;
@@ -412,7 +413,6 @@ begin
           S_RX_DONE:
             begin
               if (i_clk4x_en) begin
-//                i_clkdiv_rst <= 1;
                 i_clkx4_cnt <= 0;
                 i_txd_rd <= 0;
                 i_rxd_wr <= 0;
