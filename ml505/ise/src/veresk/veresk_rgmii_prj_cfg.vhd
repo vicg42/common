@@ -35,7 +35,7 @@ constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 6
 constant C_PCFG_ETH_USE                : string:="ON";
 constant C_PCFG_ETH_DBG                : string:="ON";
 constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=2; --Кол-во каналов в одном GT(RocketIO) модуле
-constant C_PCFG_ETH_PHY_SEL            : integer:=3;--0/1/2/3/ - FIBER/RGMII/SGMII/GMII
+constant C_PCFG_ETH_PHY_SEL            : integer:=1 ;--0/1/2/3/ - FIBER/RGMII/SGMII/GMII
 
 
 end prj_cfg;

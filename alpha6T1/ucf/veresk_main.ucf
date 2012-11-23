@@ -10,6 +10,19 @@ NET "pin_in_pult_rx"    LOC = "N39";
 NET "pin_out_pult_tx"   LOC = "N38";
 NET "pin_out_pult_dir"  LOC = "T36";
 
+NET "pin_in_edev_rx"    LOC = "N36";
+NET "pin_out_edev_tx"   LOC = "P37";
+NET "pin_out_edev_dir"  LOC = "T39";
+
+NET "pin_in_vizir_rx"   LOC = "R38";
+NET "pin_out_vizir_tx"  LOC = "M36";
+NET "pin_out_vizir_dir" LOC = "M37";
+
+NET "pin_in_bup_rx"     LOC = "P40";
+NET "pin_out_bup_tx"    LOC = "M38";
+NET "pin_out_bup_dir"   LOC = "M39";
+
+#SYNC
 NET "pin_in_pps"        LOC = "U36";
 NET "pin_in_1s"         LOC = "L40";
 NET "pin_in_1m"         LOC = "L39";
@@ -17,10 +30,6 @@ NET "pin_out_1s"        LOC = "T35";
 NET "pin_out_1m"        LOC = "T34";
 NET "pin_out_s120Hz"    LOC = "R39";
 NET "pin_out_s120SAU"   LOC = "P38";
-
-#NET "pin_in_edev_rx"    LOC = "P37";
-#NET "pin_out_edev_tx"   LOC = "N36";
-#NET "pin_out_edev_dir"  LOC = "R38";
 
 ###############################################################################
 #

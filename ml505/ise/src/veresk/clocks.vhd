@@ -111,9 +111,9 @@ bufg_clk1: BUFG port map(I => i_clk_out(1), O => p_out_gclk(1)); --300MHz
 bufg_clk2: BUFG port map(I => i_clk_out(2), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(3);
                                                  p_out_gclk(4)<=i_eth_clk; --125MHz
-                                                 p_out_gclk(5)<='0';
+                                                 p_out_gclk(5)<='0';--зарезервировано 128MHz для pult, edev!!!
                                                  p_out_gclk(6)<=i_clk_out(6);
-p_out_gclk(7 downto 7)<=(others=>'0');
+p_out_gclk(7 downto 7)<=(others=>'0');--зарезервировано 14,401440MHz для sync!!!
 
 
 m_buf_pciexp : IBUFDS port map(I  => p_in_clk.pciexp_clk_p, IB => p_in_clk.pciexp_clk_n, O => i_clk_out(3));

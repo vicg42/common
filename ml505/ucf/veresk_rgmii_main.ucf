@@ -15,6 +15,30 @@ CONFIG PART = XC5VLX50T-FF1136-1;
 ##########################################################
 CONFIG STEPPING = ES;
 
+NET "pin_in_pult_rx"    LOC = "M32";
+NET "pin_out_pult_tx"   LOC = "P34";
+NET "pin_out_pult_dir"  LOC = "N34";
+
+NET "pin_in_edev_rx"    LOC = "AK33";
+NET "pin_out_edev_tx"   LOC = "AG32";
+NET "pin_out_edev_dir"  LOC = "AH32";
+
+NET "pin_in_vizir_rx"   LOC = "L33";
+NET "pin_out_vizir_tx"  LOC = "K34";
+NET "pin_out_vizir_dir" LOC = "L34";
+
+NET "pin_in_bup_rx"     LOC = "K33";
+NET "pin_out_bup_tx"    LOC = "K32";
+NET "pin_out_bup_dir"   LOC = "U33";
+
+#SYNC
+NET "pin_in_pps"        LOC = "AA34";
+NET "pin_in_1s"         LOC = "Y34";
+NET "pin_in_1m"         LOC = "Y32";
+NET "pin_out_1s"        LOC = "W32";
+NET "pin_out_1m"        LOC = "AH34";
+NET "pin_out_s120Hz"    LOC = "T34";
+NET "pin_out_s120SAU"   LOC = "AK34";
 
 ####################################################################
 ##
@@ -28,8 +52,6 @@ NET "pin_out_led<4>"        LOC="G16"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:G
 #NET "pin_out_led<5>"        LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET "pin_out_led<6>"        LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
 #NET "pin_out_led<7>"        LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
-
-#NET "pin_in_btn_N"          LOC="U8"   | IOSTANDARD=LVCMOS33;
 
 
 #######################################################################

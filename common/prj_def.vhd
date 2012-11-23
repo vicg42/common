@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0346#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0347#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -72,7 +72,10 @@ constant C_HREG_CTRL_ESYNC_MODE_L_BIT         : integer:=8;--'10'-внешняя, '01'-
 constant C_HREG_CTRL_ESYNC_MODE_M_BIT         : integer:=9;--
 constant C_HREG_CTRL_TIME_MODE_BIT            : integer:=10;--установка часов (0-сразу и поехали, 1-по сигналу минутки)
 constant C_HREG_CTRL_TIME_EN_BIT              : integer:=11;--разрешение работы часов (1-разрешить)
-constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_TIME_EN_BIT;
+constant C_HREG_CTRL_RST_BUP_BIT              : integer:=12;--//
+constant C_HREG_CTRL_RST_VIZIR_BIT            : integer:=13;--//
+constant C_HREG_CTRL_BITCLK_VIZIR_BIT         : integer:=14;--//1/0  = bitclk 1MHz/ bitclk 250kHz
+constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_BITCLK_VIZIR_BIT;
 
 
 --//Register C_HREG_DEV_CTRL / Bit Map:
@@ -97,7 +100,8 @@ constant C_HDEV_VCH_DBUF                      : integer:=3;--//Буфер Видеоинформ
 constant C_HDEV_EDEV_DBUF                     : integer:=4;--External Device (камеры, объективы...)
 constant C_HDEV_PULT_DBUF                     : integer:=5;--
 constant C_HDEV_VIZIR_DBUF                    : integer:=6;--
-constant C_HDEV_COUNT                         : integer:=C_HDEV_VIZIR_DBUF+1;
+constant C_HDEV_BUP_DBUF                      : integer:=7;--Блок управления приводами
+constant C_HDEV_COUNT                         : integer:=C_HDEV_BUP_DBUF+1;
 constant C_HDEV_COUNT_MAX                     : integer:=pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT+1));
 
 --//Register C_HOST_REG_STATUS_DEV / Bit Map:
@@ -116,7 +120,7 @@ constant C_HREG_DEV_STATUS_ETH_TXRDY_BIT      : integer:=11;
 constant C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT    : integer:=12;--//
 constant C_HREG_DEV_STATUS_EDEV_TXRDY_BIT     : integer:=13;
 constant C_HREG_DEV_STATUS_EDEV_RXRDY_BIT     : integer:=14;
---constant RESERV                               : integer:=15;
+constant C_HREG_DEV_STATUS_EDEV_RXERR_BIT     : integer:=15;
 constant C_HREG_DEV_STATUS_VCH0_FRRDY_BIT     : integer:=16;--//
 constant C_HREG_DEV_STATUS_VCH1_FRRDY_BIT     : integer:=17;
 constant C_HREG_DEV_STATUS_VCH2_FRRDY_BIT     : integer:=18;
@@ -127,18 +131,22 @@ constant C_HREG_DEV_STATUS_PULT_TXRDY_BIT     : integer:=22;
 constant C_HREG_DEV_STATUS_PULT_RXRDY_BIT     : integer:=23;
 constant C_HREG_DEV_STATUS_VIZIR_TXRDY_BIT    : integer:=24;
 constant C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT    : integer:=25;
-constant C_HREG_DEV_STATUS_LAST_BIT           : integer:=C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT;
+constant C_HREG_DEV_STATUS_VIZIR_RXERR_BIT    : integer:=26;
+constant C_HREG_DEV_STATUS_BUP_TXRDY_BIT      : integer:=27;
+constant C_HREG_DEV_STATUS_BUP_RXRDY_BIT      : integer:=28;
+constant C_HREG_DEV_STATUS_BUP_RXERR_BIT      : integer:=29;
+constant C_HREG_DEV_STATUS_LAST_BIT           : integer:=C_HREG_DEV_STATUS_BUP_RXERR_BIT;
 
 
 --//Register C_HREG_IRQ / Bit Map:
 constant C_HREG_IRQ_NUM_L_WBIT                : integer:=0; --//Номер источника прерывания
-constant C_HREG_IRQ_NUM_M_WBIT                : integer:=3; --//
-constant C_HREG_IRQ_EN_WBIT                   : integer:=4; --//Разрешение прерывания от соответствующего источника
-constant C_HREG_IRQ_DIS_WBIT                  : integer:=5; --//Зпрещение прерывания от соответствующего источника
-constant C_HREG_IRQ_CLR_WBIT                  : integer:=6; --//Сброс статуса активности соотв. источника прерывания
+constant C_HREG_IRQ_NUM_M_WBIT                : integer:=4; --//
+constant C_HREG_IRQ_EN_WBIT                   : integer:=13; --//Разрешение прерывания от соответствующего источника
+constant C_HREG_IRQ_DIS_WBIT                  : integer:=14; --//Зпрещение прерывания от соответствующего источника
+constant C_HREG_IRQ_CLR_WBIT                  : integer:=15; --//Сброс статуса активности соотв. источника прерывания
 constant C_HREG_IRQ_LAST_WBIT                 : integer:=C_HREG_IRQ_CLR_WBIT;
 
-constant C_HREG_IRQ_STATUS_L_RBIT             : integer:=16;--//Статус активности прерывания от соотв. источника
+constant C_HREG_IRQ_STATUS_L_RBIT             : integer:=0; --//Статус активности прерывания от соотв. источника
 constant C_HREG_IRQ_STATUS_M_RBIT             : integer:=31;--//
 
 --//Поле C_HREG_IRQ_NUM - Номера источников прерываний:
@@ -154,7 +162,8 @@ constant C_HIRQ_VCH3                          : integer:=16#08#;
 constant C_HIRQ_VCH4                          : integer:=16#09#;
 constant C_HIRQ_VCH5                          : integer:=16#0A#;
 constant C_HIRQ_VIZIR_RX                      : integer:=16#0B#;
-constant C_HIRQ_COUNT                         : integer:=C_HIRQ_VIZIR_RX+1;
+constant C_HIRQ_BUP_RX                        : integer:=16#0C#;
+constant C_HIRQ_COUNT                         : integer:=C_HIRQ_BUP_RX+1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
 
@@ -201,11 +210,8 @@ constant C_HREG_FUNC_TMR_BIT                  : integer:=1;
 constant C_HREG_FUNC_VCTRL_BIT                : integer:=2;
 constant C_HREG_FUNC_ETH_BIT                  : integer:=3;
 constant C_HREG_FUNC_HDD_BIT                  : integer:=4;
-constant C_HREG_FUNC_EDEV_BIT                 : integer:=5;
-constant C_HREG_FUNC_PULT_BIT                 : integer:=6;
-constant C_HREG_FUNC_VIZIR_BIT                : integer:=7;
-constant C_HREG_FUNC_SYNC_BIT                 : integer:=8;
-constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_SYNC_BIT;
+constant C_HREG_FUNC_VRESEK21_BIT             : integer:=5;
+constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_VRESEK21_BIT;
 
 
 --//Register C_HREG_FUNCPRM / Bit Map:
@@ -279,22 +285,23 @@ constant C_TMR_REG_CMP_M                      : integer:=16#002#;
 
 --//Register C_TMR_REG_CTRL / Bit Map:
 constant C_TMR_REG_CTRL_NUM_L_BIT             : integer:=0;--//Номер таймера
-constant C_TMR_REG_CTRL_NUM_M_BIT             : integer:=1;
-constant C_TMR_REG_CTRL_EN_BIT                : integer:=2;
-constant C_TMR_REG_CTRL_DIS_BIT               : integer:=3;
+constant C_TMR_REG_CTRL_NUM_M_BIT             : integer:=3;
+constant C_TMR_REG_CTRL_EN_BIT                : integer:=14;
+constant C_TMR_REG_CTRL_DIS_BIT               : integer:=15;
 --constant C_TMR_REG_CTRL_STATUS_EN_L_RBIT      : integer:=0;--//только при чтении рег. C_TMR_REG_CTRL
---constant C_TMR_REG_CTRL_STATUS_EN_M_RBIT      : integer:=3;
+--constant C_TMR_REG_CTRL_STATUS_EN_M_RBIT      : integer:=xxx;
 constant C_TMR_REG_CTRL_LAST_BIT              : integer:=C_TMR_REG_CTRL_DIS_BIT;
 
 
 --//Определяем кол-во таймеров в dsn_timer.vhd
-constant C_TMR_COUNT                          : integer:=4;
+constant C_TMR_COUNT                          : integer:=6;
 constant C_TMR_COUNT_MAX                      : integer:=pwr(2, (C_TMR_REG_CTRL_NUM_M_BIT-C_TMR_REG_CTRL_NUM_L_BIT+1));
 
 constant C_TMR_ETH                            : integer:=0;
 constant C_TMR_EDEV                           : integer:=1;
 constant C_TMR_PULT                           : integer:=2;
-constant C_TMR_VIZIR                          : integer:=3;
+constant C_TMR_BUP                            : integer:=3;
+constant C_TMR_VIZIR                          : integer:=4;
 
 
 --//--------------------------------------------------------------

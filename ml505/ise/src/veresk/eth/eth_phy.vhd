@@ -124,7 +124,7 @@ p_in_rst      => p_in_rst
 end generate gen_fiber;
 
 
-gen_copper : if cmpval(G_ETH.phy_select, C_ETH_PHY_GMII) generate
+gen_copper : if cmpval(G_ETH.phy_select, C_ETH_PHY_RGMII) generate
 
 m_if : eth_phy_copper
 generic map(

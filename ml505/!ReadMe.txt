@@ -67,4 +67,6 @@ cd /etc/
 dhcpd
 
 
-
+--- Linux sysctl man ----
+sysctl -a | grep net.core.*mem*
+sysctl -w .....

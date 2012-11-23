@@ -73,6 +73,9 @@ set _projects [ list \
       [ list "../../../common/veresk21/pult_core/mup_io.v" $_VMod ] \
       [ list "../../../common/veresk21/pult_core/pult_io.v" $_VMod ] \
       [ list "../../../common/veresk21/sync_u.v" $_VMod ] \
+      [ list "../../../common/veresk21/master485n.v" $_VMod ] \
+      [ list "../../../common/veresk21/edev.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/edev_buf.vhd" $_VHDMod ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
@@ -178,14 +181,15 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_mdio.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_mdio_main.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/coregen_eth_phy_gmii.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/physical/gmii_if.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/emac_core_gmii.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/emac_core_gmii_block.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_gmii/example_design/emac_core_gmii_locallink.vhd" $_VHDMod ] \
+      [ list "../src/veresk/eth/coregen_eth_phy_rgmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/physical/emac0_fcs_blk_rgmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/physical/rgmii_if.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii_locallink.vhd" $_VHDMod ] \
     ] \
   ] \
 ]

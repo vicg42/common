@@ -7,6 +7,19 @@ NET "pin_in_pult_rx"    LOC = "AL14";
 NET "pin_out_pult_tx"   LOC = "AR17";
 NET "pin_out_pult_dir"  LOC = "AL15";
 
+NET "pin_in_edev_rx"    LOC = "AM18";
+NET "pin_out_edev_tx"   LOC = "AV19";
+NET "pin_out_edev_dir"  LOC = "AM17";
+
+NET "pin_in_vizir_rx"   LOC = "AT19";
+NET "pin_out_vizir_tx"  LOC = "AJ18";
+NET "pin_out_vizir_dir" LOC = "AU19";
+
+NET "pin_in_bup_rx"     LOC = "AK14";
+NET "pin_out_bup_tx"    LOC = "AK18";
+NET "pin_out_bup_dir"   LOC = "AK15";
+
+#SYNC
 NET "pin_in_pps"        LOC = "AN15";
 NET "pin_in_1s"         LOC = "BB18";
 NET "pin_in_1m"         LOC = "BB19";
@@ -24,8 +37,8 @@ NET "pin_out_led<6>" LOC = "N14" ;  #Bank 35 USR_LED3 DS26    -
 NET "pin_out_led<7>" LOC = "M14" ;  #Bank 35 USR_LED4 DS27    -
 NET "pin_out_led<0>" LOC = "B16" ;  #Bank 35 USR_LED5 DS20    +
 NET "pin_out_led<1>" LOC = "A16" ;  #Bank 35 USR_LED6 DS21    +
-NET "pin_out_led<2>" LOC = "E12" ;  #Bank 35 USR_LED7 DS22    +
-NET "pin_out_led<3>" LOC = "F12" ;  #Bank 35 USR_LED8 DS23    +
+NET "pin_out_led<2>" LOC = "F12" ;  #Bank 35 USR_LED8 DS23    +
+NET "pin_out_led<3>" LOC = "E12" ;  #Bank 35 USR_LED7 DS22    +
 NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 
 

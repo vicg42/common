@@ -11,6 +11,19 @@ NET "pin_in_pult_rx"    LOC = "AP14";
 NET "pin_out_pult_tx"   LOC = "AN14";
 NET "pin_out_pult_dir"  LOC = "AM13";
 
+NET "pin_in_edev_rx"    LOC = "AK9";
+NET "pin_out_edev_tx"   LOC = "AK8";
+NET "pin_out_edev_dir"  LOC = "AE11";
+
+NET "pin_in_vizir_rx"   LOC = "AF11";
+NET "pin_out_vizir_tx"  LOC = "AH8";
+NET "pin_out_vizir_dir" LOC = "AG8";
+
+NET "pin_in_bup_rx"     LOC = "AC5";
+NET "pin_out_bup_tx"    LOC = "AC4";
+NET "pin_out_bup_dir"   LOC = "AA10";
+
+#SYNC
 NET "pin_in_pps"        LOC = "AN13";
 NET "pin_in_1s"         LOC = "AB8";
 NET "pin_in_1m"         LOC = "AC8";
@@ -18,10 +31,6 @@ NET "pin_out_1s"        LOC = "AC9";
 NET "pin_out_1m"        LOC = "AC10";
 NET "pin_out_s120Hz"    LOC = "AE8";
 NET "pin_out_s120SAU"   LOC = "AD9";
-
-#NET "pin_in_edev_rx"    LOC = "AK9";
-#NET "pin_out_edev_tx"   LOC = "AK8";
-#NET "pin_out_edev_dir"  LOC = "AE11";
 
 #######################################################################
 ##

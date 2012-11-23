@@ -419,6 +419,52 @@ clk           : in  std_logic
 );
 end component;
 
+component edev
+generic(
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
+);
+port(
+p_in_tmr_en       : in   std_logic;
+p_in_tmr_stb      : in   std_logic;
+
+-------------------------------
+--Связь с HOST
+-------------------------------
+p_out_host_rxrdy  : out  std_logic;
+p_out_host_rxd    : out  std_logic_vector(31 downto 0);
+p_in_host_rd      : in   std_logic;
+
+p_out_host_txrdy  : out  std_logic;
+p_in_host_txd     : in   std_logic_vector(31 downto 0);
+p_in_host_wr      : in   std_logic;
+
+p_in_host_clk     : in   std_logic;
+
+p_out_hirq        : out  std_logic;
+p_out_herr        : out  std_logic;
+
+--------------------------------------
+--PHY (half-duplex)
+--------------------------------------
+p_in_phy_rx       : in   std_logic;
+p_out_phy_tx      : out  std_logic;
+p_out_phy_dir     : out  std_logic;
+
+------------------------------------
+--Технологические сигналы
+------------------------------------
+p_in_tst          : in   std_logic_vector(31 downto 0);
+p_out_tst         : out  std_logic_vector(31 downto 0);
+
+--------------------------------------
+--System
+--------------------------------------
+p_in_bitclk       : in   std_logic;
+p_in_clk          : in   std_logic;
+p_in_rst          : in   std_logic
+);
+end component;
 
 end veresk_pkg;
 

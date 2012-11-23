@@ -19,17 +19,26 @@ NET "pin_in_pult_rx"    LOC = "M32";
 NET "pin_out_pult_tx"   LOC = "P34";
 NET "pin_out_pult_dir"  LOC = "N34";
 
+NET "pin_in_edev_rx"    LOC = "AK33";
+NET "pin_out_edev_tx"   LOC = "AG32";
+NET "pin_out_edev_dir"  LOC = "AH32";
+
+NET "pin_in_vizir_rx"   LOC = "AN34";
+NET "pin_out_vizir_tx"  LOC = "AK32";
+NET "pin_out_vizir_dir" LOC = "AL34";
+
+NET "pin_in_bup_rx"     LOC = "AL33";
+NET "pin_out_bup_tx"    LOC = "AM33";
+NET "pin_out_bup_dir"   LOC = "AM32";
+
+#SYNC
 NET "pin_in_pps"        LOC = "AA34";
 NET "pin_in_1s"         LOC = "Y34";
 NET "pin_in_1m"         LOC = "Y32";
 NET "pin_out_1s"        LOC = "W32";
 NET "pin_out_1m"        LOC = "AH34";
 NET "pin_out_s120Hz"    LOC = "AJ32";
-NET "pin_out_s120SAU"   LOC = "AG32";
-
-#NET "pin_in_edev_rx"    LOC = "AH32";
-#NET "pin_out_edev_tx"   LOC = "AK34";
-#NET "pin_out_edev_dir"  LOC = "AK33";
+NET "pin_out_s120SAU"   LOC = "AK34";
 
 ####################################################################
 ##
@@ -198,17 +207,12 @@ TIMESPEC "TS_FFS_MEM_PADS" = FROM "MEMCLK_FFS" TO "MEM_PADS" 3.5 ns;
 #############################################################################
 NET "pin_out_ethphy_rst"    LOC = "J14" ;#NET  PHY_RESET
 NET "pin_out_ethphy_mdc"    LOC = "H19" ;#NET  PHY_MDC
-NET "pin_out_ethphy_gmii<0>_tx_en"  LOC = "AJ10" ;#NET  PHY_TXCTL_TXEN
-NET "pin_out_ethphy_gmii<0>_txc"    LOC = "J16"  ;#NET  PHY_TXC_GTXCLK
-NET "pin_out_ethphy_gmii<0>_txd<0>" LOC = "AF11" ;#NET  PHY_TXD0
-NET "pin_out_ethphy_gmii<0>_txd<1>" LOC = "AE11" ;#NET  PHY_TXD1
-NET "pin_out_ethphy_gmii<0>_txd<2>" LOC = "AH9"  ;#NET  PHY_TXD2
-NET "pin_out_ethphy_gmii<0>_txd<3>" LOC = "AH10" ;#NET  PHY_TXD3
-NET "pin_out_ethphy_gmii<0>_txd<4>" LOC = "AG8"  ;#NET  PHY_TXD4
-NET "pin_out_ethphy_gmii<0>_txd<5>" LOC = "AH8"  ;#NET  PHY_TXD5
-NET "pin_out_ethphy_gmii<0>_txd<6>" LOC = "AG10" ;#NET  PHY_TXD6
-NET "pin_out_ethphy_gmii<0>_txd<7>" LOC = "AG11" ;#NET  PHY_TXD7
-NET "pin_out_ethphy_gmii<0>_tx_er"  LOC = "AJ9"  ;#NET  PHY_TXER
+NET "pin_out_ethphy_rgmii<0>_tx_ctl" LOC = "AJ10" ;#NET  PHY_TXCTL_TXEN
+NET "pin_out_ethphy_rgmii<0>_txc"    LOC = "J16"  ;#NET  PHY_TXC_GTXCLK
+NET "pin_out_ethphy_rgmii<0>_txd<0>" LOC = "AF11" ;#NET  PHY_TXD0
+NET "pin_out_ethphy_rgmii<0>_txd<1>" LOC = "AE11" ;#NET  PHY_TXD1
+NET "pin_out_ethphy_rgmii<0>_txd<2>" LOC = "AH9"  ;#NET  PHY_TXD2
+NET "pin_out_ethphy_rgmii<0>_txd<3>" LOC = "AH10" ;#NET  PHY_TXD3
 
 NET "pin_in_refclk_fiber_clk_p<1>" LOC = "P4";#"GTP_DUAL_X0Y3" - SGMII : 125MHz
 NET "pin_in_refclk_fiber_clk_n<1>" LOC = "P3";

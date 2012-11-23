@@ -137,9 +137,8 @@ bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
                                                  p_out_gclk(4)<=i_eth_clk; --125MHz
 bufg_clk5: BUFG port map(I => i_clk_out(5), O => p_out_gclk(5));--128MHz
-bufg_clk6: BUFG port map(I => i_clk_out(6), O => p_out_gclk(6));--
-
-p_out_gclk(7 downto 7)<=(others=>'0');
+--                                               p_out_gclk(6));--зарезервировано!!!
+bufg_clk7: BUFG port map(I => i_clk_out(7), O => p_out_gclk(7));--14,401440MHz
 
 m_buf_pciexp : IBUFDS_GTXE1 port map (
 I     => p_in_clk.pciexp_clk_p,
@@ -274,7 +273,7 @@ CLKIN1    => p_in_clk.clk, -- in std_ulogic;
 CLKFBIN   => g_clk_fb(2),  -- in std_ulogic;
 CLKFBOUT  => i_clk_fb(2),  -- out std_ulogic;
 CLKFBOUTB => open,         -- out std_ulogic;
-CLKOUT0   => i_clk_out(6), -- out std_ulogic;
+CLKOUT0   => i_clk_out(7), -- out std_ulogic;
 CLKOUT0B  => open,         -- out std_ulogic;
 CLKOUT1   => open,         -- out std_ulogic;
 CLKOUT1B  => open,         -- out std_ulogic;
