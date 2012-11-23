@@ -745,10 +745,7 @@ begin
           txd(C_HREG_FUNC_VCTRL_BIT):='1';
           txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
 --          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
-          txd(C_HREG_FUNC_PULT_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
-          txd(C_HREG_FUNC_SYNC_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
---          txd(C_HREG_FUNC_EDEV_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
---          txd(C_HREG_FUNC_VIZIR_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+          txd(C_HREG_FUNC_VRESEK21_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
