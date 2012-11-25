@@ -43,9 +43,10 @@ output reg        p_out_phy_dio_t,
 output reg        p_out_phy_oe_n,
 output reg        p_out_phy_we_n, // latches addr and data on rising edge
 output reg        p_out_phy_cs_n,
+input             p_in_phy_wait,
 
 output            p_out_rdy,
-output     [2:0]  p_out_status,
+output     [3:0]  p_out_status,
 
 output     [31:0] p_out_tst,
 input      [31:0] p_in_tst,
@@ -91,6 +92,8 @@ reg         test_cnt_en;
 reg         byte_sel_reg, byte_sel_en;
 reg         prog_ready;
 reg         prog_done;
+reg         i_irq;
+reg         i_irq_out;
 
 wire        last_blk;
 wire [7:0]  end_blk, start_blk;
@@ -178,6 +181,7 @@ begin : SM_mux
   error_flag = 3'b0;
   error_reg_en = 1'b0;
   byte_sel_en = 1'b0;
+  i_irq = 1'b0;
 
   case (i_fsm_cs)
 
@@ -231,11 +235,13 @@ begin : SM_mux
           end
           else if (p_in_usr_txd[7:0] == `CI_USR_CMD_ADR_START) begin
             start_addr_reg_en = 1'b1;
-            i_fsm_ns = S_IDLE;
+            i_fsm_ns = S_IDLE; //ADR_START DONE!!!!
+            i_irq = 1'b1;
           end
           else if (p_in_usr_txd[7:0] == `CI_USR_CMD_ADR_END) begin
             end_addr_reg_en = 1'b1;
-            i_fsm_ns = S_IDLE;
+            i_fsm_ns = S_IDLE; //ADR_END DONE!!!!
+            i_irq = 1'b1;
           end
           else begin
             CS_N_reg= 1'b1;
@@ -315,7 +321,8 @@ begin : SM_mux
           begin
             WE_N_reg = 1'b1;
             CS_N_reg= 1'b1;
-            i_fsm_ns = S_IDLE;
+            i_fsm_ns = S_IDLE; //UNLOCK DONE!!!!
+            i_irq = 1'b1;
           end
           else
           begin
@@ -338,7 +345,7 @@ begin : SM_mux
         begin
           error_flag = 3'b001;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR; //UNLOCK ERROR!!!!
         end
         else
         begin
@@ -404,43 +411,43 @@ begin : SM_mux
       end
     S_ERASE_CHK_SR :
       begin
-        `ifdef SIMULATION
-        if (SR_reg[7] == 1'b1) //SR.7 = 1
-        `else
-        if (SR_reg == 8'h80)
-        `endif
-        begin
-                A_reg_en = 1'b1;
-          A_inc = A_inc_blk_unlk;
-          if (last_blk)
+          `ifdef SIMULATION
+          if (SR_reg[7] == 1'b1) //SR.7 = 1
+          `else
+          if (SR_reg == 8'h80)
+          `endif
           begin
-            WE_N_reg = 1'b1;
-            CS_N_reg= 1'b1;
-            blk_cnt_en = 1'b0;
-            i_fsm_ns = S_IDLE;
+            A_reg_en = 1'b1;
+            A_inc = A_inc_blk_unlk;
+            if (last_blk)
+            begin
+              WE_N_reg = 1'b1;
+              CS_N_reg= 1'b1;
+              blk_cnt_en = 1'b0;
+              i_fsm_ns = S_IDLE; //ERASE DONE!!!!
+              i_irq = 1'b1;
+            end
+            else
+            begin
+              WE_N_reg = 1'b0;
+              DQ_O_reg = 16'h50;
+              blk_cnt_en = 1'b1;
+              rst_poll_cnt = 1'b1;
+              i_fsm_ns = S_ERASE_CLR_SR;
+            end
+          end
+          else
+          if (SR_reg[7] == 1'b1) //SR.7 = 1
+          begin
+            error_flag = 3'b010;
+            error_reg_en = 1'b1;
+            i_fsm_ns = S_ERR;  //ERASE ERROR!!!!
           end
           else
           begin
-            WE_N_reg = 1'b0;
-            DQ_O_reg = 16'h50;
-            blk_cnt_en = 1'b1;
-            rst_poll_cnt = 1'b1;
-            i_fsm_ns = S_ERASE_CLR_SR;
+            poll_cnt_en = 1'b1;
+            i_fsm_ns = S_ERASE_CHK_POLLCNT;
           end
-        end
-        else
-        if (SR_reg[7] == 1'b1) //SR.7 = 1
-        begin
-          error_flag = 3'b010;
-          error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
-        end
-        else
-        begin
-
-          poll_cnt_en = 1'b1;
-          i_fsm_ns = S_ERASE_CHK_POLLCNT;
-        end
       end
     S_ERASE_CHK_POLLCNT :
       begin
@@ -448,7 +455,7 @@ begin : SM_mux
         begin
           error_flag = 3'b011;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR;  //ERASE ERROR!!!!
         end
         else
         begin
@@ -506,7 +513,7 @@ begin : SM_mux
         begin
           error_flag = 3'b100;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR; //WRITE ERROR!!!!
         end
         else
         begin
@@ -679,7 +686,8 @@ begin : SM_mux
             if (prog_done) begin
               WE_N_reg = 1'b1;
               CS_N_reg= 1'b1;
-              i_fsm_ns = S_IDLE;
+              i_fsm_ns = S_IDLE; //WRITE DONE!!!!
+              i_irq = 1'b1;
             end
             else begin
               A_inc = 17'h00001;
@@ -701,7 +709,7 @@ begin : SM_mux
         if (poll_cnt[14:0] == `CI_BUFFER_READY_CHK_COUNT_MAX) begin
           error_flag = 3'b101;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR; //WRITE ERROR!!!!
         end
         else begin
           i_fsm_ns = S_PROG_BUFPROG_RD_SR;
@@ -883,9 +891,24 @@ assign end_addr = end_addr_reg; //convert from word to byte
 assign end_addr_reached = (p_out_phy_adr == end_addr && (i_fsm_cs == S_PROG_CHK_DCOUNT || i_fsm_cs == S_PROG_LD_BUFFER_UNDERRUN)) ? 1'b1 : 1'b0;
 assign p_out_rdy = prog_ready;
 //assign PROM_SR = SR_reg;
-assign p_out_status = error_reg;
+assign p_out_status[2:0] = error_reg;
+assign p_out_status[3] = i_irq_out;
 
 
 
 //
 assign p_out_tst = 0;
+
+always@(posedge p_in_clk or posedge p_in_rst)
+begin
+  if (p_in_rst)
+    i_irq_out <= 1'b0;
+  else
+    if (i_irq || error_reg_en)
+      i_irq_out <= 1'b1;
+    else
+      if ((i_fsm_cs == S_IDLE) && (~p_in_usr_txrdy_n))
+        i_irq_out <= 1'b0;
+
+end //always@
+
