@@ -35,7 +35,7 @@ module sync_u(clk,i_pps,i_ext_1s,i_ext_1m,
    input [1:0] type_of_sync; //выбор источника внешней синхронизации,
 // '10'-внешняя, '01'-PPS, '11','00'-внутренняя синхронизация
 
-   output reg sync_win;         //разрешение передачи синхро пакетов (1 Гц)   //не используем
+   output reg sync_win;         //разрешение передачи синхро пакетов (1 Гц)
 
    input host_clk;               //тактовая от хоста
    input wr_en_time;             //установка времени
@@ -47,8 +47,8 @@ module sync_u(clk,i_pps,i_ext_1s,i_ext_1m,
 
    output sync_out1,out_1s,out_1m;    //синхронизация для внешних устройств
 	output sync_out2;
-	output sync_ld;  //синхронизация ЛД     //не используем
-	output sync_pic; //синхронизация PIC    //не используем
+	output sync_ld;  //синхронизация ЛД 
+	output sync_pic; //синхронизация PIC 
    
 //   output reg sync_piezo;        //синхронизация для компенсатора смаза ТПВ
 //   output reg sync_cam_ir;       //синхронизация для камеры ТПВ
@@ -99,6 +99,7 @@ module sync_u(clk,i_pps,i_ext_1s,i_ext_1m,
    reg [3:0] p_cou100us;  //задержанный счетчик cou100us
    reg c100us;            //импульсы с частотой 10кГц
    reg c1s,c1m;	        //переносы на секунды и минуты
+	//wire c1s,c1m;	        //переносы на секунды и минуты
    reg out_1s,out_1m;     //выходы для внешней синхронизации
    reg [15:0] cou_c1s,cou_c1m; //счетчик длительности импульсов 
                                // на выходах внешней синхронизации
@@ -113,9 +114,19 @@ module sync_u(clk,i_pps,i_ext_1s,i_ext_1m,
    wire minutka;     //сигнал установки часов по минутке
 	reg breset_ =0;
 	reg breset_z =0;
+	reg [10:0] cou_sync_pulse =0;
+//--------------------------------------------------------------------------------
+// Подгоню длительность синхроимпульсов под стандарт 5мкс не нулевой, 10мкс нулевой
+always @(posedge clk)
+begin
+if (sync_corr) cou_sync_pulse <= cou_sync_pulse + 1;
+else cou_sync_pulse <=0;
+end
+assign sync_out1 = ((n_sync_corr==119)&& sync_corr &&(cou_sync_pulse < 144))? 1:   //10мкс
+                   ((n_sync_corr!=119)&& sync_corr &&(cou_sync_pulse < 72))?  1:0; //5мкс
 
-
-assign sync_out1 = sync_corr;
+//--------------------------------------------------------------------------------
+//assign sync_out1 = sync_corr;
 assign sync_out2 = sync;
 
 
@@ -193,7 +204,10 @@ always @(posedge clk)
 // Синхронизирующий сигнал (119-й импульс длинее)
 always @(posedge clk)
    if((n_sync==119 && sync_cou < st_0s)||(n_sync!=119 && sync_cou < st_s)) sync <= 1;
-   else sync <= 0;	
+   else sync <= 0;
+
+
+	
 //-------------------------------------------------------------------------------------------	
 // подстройка 120 Гц
 // создадим параллельную ветку счетчика синхроимпульсов, которую будем корректировать по 
@@ -326,17 +340,23 @@ always @(posedge clk)
 always @(posedge clk)
    if(breset_z || new_time ||(c100us && stime[3:0]==9)) stime[3:0] <= 0;
    else if(c100us) stime[3:0] <= stime[3:0]+1;
+	
+// Не понятно но при такой реализации сбивается синхронизация камер???????	
+//assign c1s = (breset_z && (stime[13:4]>500))? ~new_time :
+//             (c100us && stime[3:0]==9 && stime[13:4]==999)? ~new_time : 0;
+	
+//assign c1m = (c1s && stime[19:14]==59)? ~new_time : 0;	
+
 // Считаем мс и выдаем импульс на инкремент секунд
 //импульс переноса в секунды не формируется, если устанавливается новое время
 always @(posedge clk)
       if(new_time && minutka) stime[13:4] <= t_time[13:4];
       else if(breset_z) begin
            stime[13:4] <= 0;
-           //c1s <= (stime[13:4]>500)? ~new_time: 0;
-			  c1s <= ~new_time;
+           c1s <= (stime[13:4]>500)? ~new_time: 0;
+			  ////////////c1s <= ~new_time;
            end
            else if(c100us && stime[3:0]==9 && stime[13:4]==999) begin
-//   if(new_time ||(c100us && stime[3:0]==9 && stime[13:4]==999)) begin
                 stime[13:4] <= 0;
 	             c1s <= ~new_time;
                 end
@@ -352,9 +372,8 @@ always @(posedge clk)
 //импульс переноса в минуты не формируется, если устанавливается новое время
       if(new_time && minutka) stime[19:14] <= t_time[19:14];
       else if(c1s && stime[19:14]==59) begin 
-//      if(new_time ||(c1s && stime[19:14]==59)) begin
-	       stime[19:14] <= 0;
-		    c1m <= ~new_time;	
+	          stime[19:14] <= 0;
+		       c1m <= ~new_time;	
 	     end
 	   else if(c1s) begin 
 	            stime[19:14] <= stime[19:14]+1;
