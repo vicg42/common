@@ -201,7 +201,7 @@ begin : SM_mux
             FIFO_RD_EN_reg = 1'b1;
             i_fsm_ns = S_CMD;
           end
-          else
+          else begin
             i_fsm_ns = S_IDLE;
           end
       end //S_IDLE
