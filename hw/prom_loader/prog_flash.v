@@ -6,14 +6,18 @@
 // Description:  low level P30 BPI PROM prog_flash
 //
 // xapp518
+// usr_ctrl[31:0] + data[]
+//
+// usr_ctrl[7 :0] - usr cmd
+// usr_ctrl[31:8] - adr start/end
 //
 //////////////////////////////////////////////////////////////////////////////////
 
-`define CI_USR_CMD_START_ADR 16'h5341
-`define CI_USR_CMD_END_ADR   8'h45
-`define CI_USR_CMD_UNLOCK    32'h556E6C6B
-`define CI_USR_CMD_ERASE     32'h45726173
-`define CI_USR_CMD_PROGRAM   32'h50726F67
+`define CI_USR_CMD_ADR_START 8'h00
+`define CI_USR_CMD_ADR_END   8'h01
+`define CI_USR_CMD_UNLOCK    8'h02
+`define CI_USR_CMD_ERASE     8'h03
+`define CI_USR_CMD_WRITE     8'h04
 //`define End_Program  32'h446F6E65 //Done
 `define CI_UNLOCK_POLLCNT_MAX 9'h100
 //`define unlock_wait_count 15'h0004
@@ -32,22 +36,23 @@ output            p_out_usr_rd,
 input      [31:0] p_in_usr_txd,
 input             p_in_usr_txrdy_n,
 
-output     [24:1] p_out_phy_adr,
+output     [23:0] p_out_phy_adr,
 input      [15:0] p_in_phy_d,
 output reg [15:0] p_out_phy_d,
 output reg        p_out_phy_dio_t,
 output reg        p_out_phy_oe_n,
 output reg        p_out_phy_we_n, // latches addr and data on rising edge
 output reg        p_out_phy_cs_n,
+input             p_in_phy_wait,
 
 output            p_out_rdy,
-output     [2:0]  p_out_err,
+output     [3:0]  p_out_status,
 
 output     [31:0] p_out_tst,
 input      [31:0] p_in_tst,
 
-input p_in_clk,
-input p_in_rst
+input             p_in_clk,
+input             p_in_rst
 );
 
 reg [5:0]   i_fsm_cs, i_fsm_ns;
@@ -87,6 +92,8 @@ reg         test_cnt_en;
 reg         byte_sel_reg, byte_sel_en;
 reg         prog_ready;
 reg         prog_done;
+reg         i_irq;
+reg         i_irq_out;
 
 wire        last_blk;
 wire [7:0]  end_blk, start_blk;
@@ -174,6 +181,7 @@ begin : SM_mux
   error_flag = 3'b0;
   error_reg_en = 1'b0;
   byte_sel_en = 1'b0;
+  i_irq = 1'b0;
 
   case (i_fsm_cs)
 
@@ -193,7 +201,7 @@ begin : SM_mux
             FIFO_RD_EN_reg = 1'b1;
             i_fsm_ns = S_CMD;
           end
-          else
+          else begin
             i_fsm_ns = S_IDLE;
           end
       end //S_IDLE
@@ -201,7 +209,7 @@ begin : SM_mux
     S_CMD :
       begin
           prog_ready = 1'b1;
-          if (p_in_usr_txd == `CI_USR_CMD_UNLOCK) begin
+          if (p_in_usr_txd[7:0] == `CI_USR_CMD_UNLOCK) begin
             WE_N_reg = 1'b0;
             DQ_O_reg = 16'h60;
             A_reg_en = 1'b1;
@@ -209,7 +217,7 @@ begin : SM_mux
             load_blk_cnt = 1'b1;
             i_fsm_ns = S_CMD_BLOCK_LOCK_SETUP;
           end
-          else if (p_in_usr_txd == `CI_USR_CMD_ERASE) begin
+          else if (p_in_usr_txd[7:0] == `CI_USR_CMD_ERASE) begin
             WE_N_reg = 1'b0;
             DQ_O_reg = 16'h50;
             A_reg_en = 1'b1;
@@ -217,7 +225,7 @@ begin : SM_mux
             load_blk_cnt = 1'b1;
             i_fsm_ns = S_ERASE_CLR_SR;
           end
-          else if (p_in_usr_txd == `CI_USR_CMD_PROGRAM) begin
+          else if (p_in_usr_txd[7:0] == `CI_USR_CMD_WRITE) begin
             WE_N_reg = 1'b0;
             DQ_O_reg = 16'hE8;
             load_blk_cnt = 1'b1;
@@ -225,13 +233,15 @@ begin : SM_mux
             A_inc = start_addr;
             i_fsm_ns = S_PROG_SETUP;
           end
-          else if (p_in_usr_txd[31:16] == `CI_USR_CMD_START_ADR) begin
+          else if (p_in_usr_txd[7:0] == `CI_USR_CMD_ADR_START) begin
             start_addr_reg_en = 1'b1;
-            i_fsm_ns = S_IDLE;
+            i_fsm_ns = S_IDLE; //ADR_START DONE!!!!
+            i_irq = 1'b1;
           end
-          else if (p_in_usr_txd[31:24] == `CI_USR_CMD_END_ADR) begin
+          else if (p_in_usr_txd[7:0] == `CI_USR_CMD_ADR_END) begin
             end_addr_reg_en = 1'b1;
-            i_fsm_ns = S_IDLE;
+            i_fsm_ns = S_IDLE; //ADR_END DONE!!!!
+            i_irq = 1'b1;
           end
           else begin
             CS_N_reg= 1'b1;
@@ -311,7 +321,8 @@ begin : SM_mux
           begin
             WE_N_reg = 1'b1;
             CS_N_reg= 1'b1;
-            i_fsm_ns = S_IDLE;
+            i_fsm_ns = S_IDLE; //UNLOCK DONE!!!!
+            i_irq = 1'b1;
           end
           else
           begin
@@ -334,7 +345,7 @@ begin : SM_mux
         begin
           error_flag = 3'b001;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR; //UNLOCK ERROR!!!!
         end
         else
         begin
@@ -400,43 +411,43 @@ begin : SM_mux
       end
     S_ERASE_CHK_SR :
       begin
-        `ifdef SIMULATION
-        if (SR_reg[7] == 1'b1) //SR.7 = 1
-        `else
-        if (SR_reg == 8'h80)
-        `endif
-        begin
-                A_reg_en = 1'b1;
-          A_inc = A_inc_blk_unlk;
-          if (last_blk)
+          `ifdef SIMULATION
+          if (SR_reg[7] == 1'b1) //SR.7 = 1
+          `else
+          if (SR_reg == 8'h80)
+          `endif
           begin
-            WE_N_reg = 1'b1;
-            CS_N_reg= 1'b1;
-            blk_cnt_en = 1'b0;
-            i_fsm_ns = S_IDLE;
+            A_reg_en = 1'b1;
+            A_inc = A_inc_blk_unlk;
+            if (last_blk)
+            begin
+              WE_N_reg = 1'b1;
+              CS_N_reg= 1'b1;
+              blk_cnt_en = 1'b0;
+              i_fsm_ns = S_IDLE; //ERASE DONE!!!!
+              i_irq = 1'b1;
+            end
+            else
+            begin
+              WE_N_reg = 1'b0;
+              DQ_O_reg = 16'h50;
+              blk_cnt_en = 1'b1;
+              rst_poll_cnt = 1'b1;
+              i_fsm_ns = S_ERASE_CLR_SR;
+            end
+          end
+          else
+          if (SR_reg[7] == 1'b1) //SR.7 = 1
+          begin
+            error_flag = 3'b010;
+            error_reg_en = 1'b1;
+            i_fsm_ns = S_ERR;  //ERASE ERROR!!!!
           end
           else
           begin
-            WE_N_reg = 1'b0;
-            DQ_O_reg = 16'h50;
-            blk_cnt_en = 1'b1;
-            rst_poll_cnt = 1'b1;
-            i_fsm_ns = S_ERASE_CLR_SR;
+            poll_cnt_en = 1'b1;
+            i_fsm_ns = S_ERASE_CHK_POLLCNT;
           end
-        end
-        else
-        if (SR_reg[7] == 1'b1) //SR.7 = 1
-        begin
-          error_flag = 3'b010;
-          error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
-        end
-        else
-        begin
-
-          poll_cnt_en = 1'b1;
-          i_fsm_ns = S_ERASE_CHK_POLLCNT;
-        end
       end
     S_ERASE_CHK_POLLCNT :
       begin
@@ -444,7 +455,7 @@ begin : SM_mux
         begin
           error_flag = 3'b011;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR;  //ERASE ERROR!!!!
         end
         else
         begin
@@ -502,7 +513,7 @@ begin : SM_mux
         begin
           error_flag = 3'b100;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR; //WRITE ERROR!!!!
         end
         else
         begin
@@ -617,7 +628,7 @@ begin : SM_mux
           end
           else
           begin
-            if (prog_done && (data_cnt == `prog_word_count - 1)) // CI_USR_CMD_PROGRAM if last address has been reached
+            if (prog_done && (data_cnt == `prog_word_count - 1)) // CI_USR_CMD_WRITE if last address has been reached
             begin
 
               WE_N_reg = 1'b1;
@@ -675,7 +686,8 @@ begin : SM_mux
             if (prog_done) begin
               WE_N_reg = 1'b1;
               CS_N_reg= 1'b1;
-              i_fsm_ns = S_IDLE;
+              i_fsm_ns = S_IDLE; //WRITE DONE!!!!
+              i_irq = 1'b1;
             end
             else begin
               A_inc = 17'h00001;
@@ -697,7 +709,7 @@ begin : SM_mux
         if (poll_cnt[14:0] == `CI_BUFFER_READY_CHK_COUNT_MAX) begin
           error_flag = 3'b101;
           error_reg_en = 1'b1;
-          i_fsm_ns = S_ERR;
+          i_fsm_ns = S_ERR; //WRITE ERROR!!!!
         end
         else begin
           i_fsm_ns = S_PROG_BUFPROG_RD_SR;
@@ -804,7 +816,7 @@ begin : start_address_reg
     start_addr_reg = 8'b0;
   else
   if (start_addr_reg_en)
-    start_addr_reg = p_in_usr_txd[15:8];
+    start_addr_reg = p_in_usr_txd[15+8 :8+8];
 end //always@
 
 always@(posedge p_in_clk)
@@ -813,7 +825,7 @@ begin : end_address_reg
     end_addr_reg = 24'b0;
   else
   if (end_addr_reg_en)
-    end_addr_reg = p_in_usr_txd[23:0];
+    end_addr_reg = p_in_usr_txd[23+8 : 0+8];
 end //always@
 
 always@(posedge p_in_clk)
@@ -873,15 +885,32 @@ assign p_out_usr_rd = FIFO_RD_EN_reg;
 assign A_inc_blk_unlk = (blk_cnt[7:0]== 8'hFF || blk_cnt[8] == 1'b1) ? `addr_increment_16kW: `addr_increment_64kW;
 assign start_blk = start_addr_reg;
 assign end_blk = (end_addr_reg[23:16]); //convert from word to byte
-assign last_blk = (p_out_phy_adr[24:17] == end_blk ) ? 1'b1 : 1'b0;
+assign last_blk = (p_out_phy_adr[23:16] == end_blk ) ? 1'b1 : 1'b0;
 assign start_addr = {start_addr_reg, 16'h0000};
 assign end_addr = end_addr_reg; //convert from word to byte
 assign end_addr_reached = (p_out_phy_adr == end_addr && (i_fsm_cs == S_PROG_CHK_DCOUNT || i_fsm_cs == S_PROG_LD_BUFFER_UNDERRUN)) ? 1'b1 : 1'b0;
 assign p_out_rdy = prog_ready;
 //assign PROM_SR = SR_reg;
-assign p_out_err = error_reg;
+assign p_out_status[2:0] = error_reg;
+assign p_out_status[3] = i_irq_out;
 
 
 
 //
 assign p_out_tst = 0;
+
+always@(posedge p_in_clk or posedge p_in_rst)
+begin
+  if (p_in_rst)
+    i_irq_out <= 1'b0;
+  else
+    if (i_irq || error_reg_en)
+      i_irq_out <= 1'b1;
+    else
+      if ((i_fsm_cs == S_IDLE) && (~p_in_usr_txrdy_n))
+        i_irq_out <= 1'b0;
+
+end //always@
+
+
+endmodule
