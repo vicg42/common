@@ -161,6 +161,8 @@ signal tst_cnt                       : TTstCnt;
 signal tst_upp_data                  : std_logic_vector(31 downto 0);
 signal tst_upp_data_rd               : std_logic;
 signal tst_upp_buf_full              : std_logic;
+--signal tst_timestamp                 : std_logic_vector(31 downto 0);
+--signal tst2_upp_data                 : std_logic_vector(31 downto 0);
 
 
 --MAIN
@@ -221,7 +223,7 @@ end generate gen_dbgcs_on;
 
 --tst_dbg_pictire<=p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 tst_vfr_npkt<=p_in_tst(C_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
-
+--tst2_upp_data <= p_in_upp_data when i_vfr_row/=(i_vfr_row_count - 1) else tst_timestamp;
 
 --//----------------------------------------------
 --//Статусы
@@ -299,7 +301,7 @@ begin
     i_vpkt_skip_rd<='0';
     i_pkt_size_byte<=(others=>'0');
     i_pkt_skip_dw_dcnt<=(others=>'0'); i_pkt_type_err(3 downto 0)<=(others=>'0');
-    i_pix_num<=(others=>'0');
+    i_pix_num<=(others=>'0'); --tst_timestamp <= (others => '0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -359,7 +361,7 @@ begin
                 --//сохраняем маркер текущей строки кадра :
                 i_vfr_row_mrk(i)(31 downto 16)<=p_in_upp_data(15 downto 0);--//(старшая часть)
                 i_vfr_row_mrk(i)(15 downto 0)<=i_vfr_row_mrk_l;            --//(младшая часть)
-
+--                tst_timestamp <= (p_in_upp_data(15 downto 0) & i_vfr_row_mrk_l);
                 --//адрес ОЗУ:
                 i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
               end if;
@@ -543,7 +545,7 @@ p_out_cfg_mem_done   => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout  => p_in_upp_data,
+p_in_usr_txbuf_dout  => p_in_upp_data, --tst2_upp_data
 p_out_usr_txbuf_rd   => i_upp_data_rd,
 p_in_usr_txbuf_empty => p_in_upp_buf_empty,
 
@@ -566,6 +568,7 @@ p_out_tst            => open,--tst_mem_ctrl_ch_wr_out,
 p_in_clk             => p_in_clk,
 p_in_rst             => p_in_rst
 );
+
 
 --END MAIN
 end behavioral;

@@ -316,21 +316,22 @@ signal i_trcprm_vch                      : TReaderVCHParams;
 
 signal i_vtrc_hold                       : std_logic_vector(p_in_trc_busy'range);
 
+constant CI_VBUF_COUNT                   : integer := pwr(2, (C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT+1));
+Type TVMrks_vbuf is array (0 to CI_VBUF_COUNT - 1) of std_logic_vector(31 downto 0);
+Type TVMrks_vbufs is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of TVMrks_vbuf;
+
 type TArrayCntWidth is array (0 to C_VCTRL_VCH_COUNT_MAX-1) of std_logic_vector(3 downto 0);
 signal i_vrd_irq_width_cnt               : TArrayCntWidth;
 signal i_vrd_irq_width                   : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vrd_irq                         : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vrd_hold                        : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal tmp_vrd_hold                      : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vrd_hold_dly                    : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal i_vrd_frmrk                       : TVMrks;
+signal i_vrd_frmrk                       : TVMrks_vbufs;
 signal i_vrd_frmrk_out                   : std_logic_vector(31 downto 0);
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
 signal i_vbuf_trc                        : TVfrBufs;
 
-signal i_vwrite_vfr_rdy_out_dly          : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vwrite_vfr_rdy_out              : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vwrite_vrow_mrk                 : TVMrks;
 
@@ -357,7 +358,7 @@ signal tst_vreader_out                   : std_logic_vector(31 downto 0);
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
 
 type TVfrSkipTst is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(3 downto 0);
-signal tst_vfrskip_rd                    : TVfrSkipTst;
+signal i_vfrskip_rd                      : TVfrSkipTst;
 signal tst_vfrskip_rd_out                : std_logic_vector(3 downto 0);
 signal tst_vfrskip_rd_err                : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
@@ -696,140 +697,134 @@ end process;
 --//Управление видео буферами
 --//--------------------------------------------------
 --//Запись Видео
-
---//Варианты захвата видеобуфера:
---//x, 0, 0, 0, x, 0, 0, x, 0, x
---//1, x, 1, 1, x, x, 1, 1, x, 1
---//2, 2, x, 2, 2, x, x, x, 2, 2
---//3, 3, 3, x, 3, 3, x, 3, x, x
-
---//где 0,1,2,3 - индексы свободных видеобуферов соответствующего видеоканала
---//    x - видеобуфер захваченый модулем чтения видео(video_reader.vhd) или слежения
-
-gen_vhold : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
-tmp_vrd_hold(i)<=i_vrd_hold(i) or tst_dbg_rd_hold;
-end generate gen_vhold;
-
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 begin
-  if p_in_rst='1' then
-
-    for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 loop
-      i_vbuf_wr(i)<=(others=>'0');
+  if p_in_rst = '1' then
+    for ch in 0 to C_VCTRL_VCH_COUNT_MAX - 1 loop
+      i_vbuf_wr(ch) <= (others=>'0');
     end loop;
-    i_vwrite_vfr_rdy_out_dly<=(others=>'0');
-    i_vrd_hold_dly<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    i_vwrite_vfr_rdy_out_dly<=i_vwrite_vfr_rdy_out;
-    i_vrd_hold_dly<=tmp_vrd_hold;
-
-    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-
-        --//Назначаем видеобуфер для записи видео
-        if i_vwrite_vfr_rdy_out_dly(i)='1' then
-          if tst_dbg_pictire='1' then
-            i_vbuf_wr(i)<=(others=>'0');
+    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+        --Выбираем видеобуфер для записи
+        if i_vwrite_vfr_rdy_out(ch) = '1' then
+          if tst_dbg_pictire = '1' then
+            i_vbuf_wr(ch) <= (others=>'0');
           else
-
-            if i_vrd_hold_dly(i)='1' then
-                if    i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(1, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(3, i_vbuf_wr(i)'length);
-
-                elsif i_vbuf_rd(i)=CONV_STD_LOGIC_VECTOR(3, i_vbuf_rd(i)'length) and
-                      i_vbuf_wr(i)=CONV_STD_LOGIC_VECTOR(2, i_vbuf_wr(i)'length) then
-                  i_vbuf_wr(i)<=CONV_STD_LOGIC_VECTOR(0, i_vbuf_wr(i)'length);
-
+            if i_vrd_hold(ch) = '1' or tst_dbg_rd_hold = '1' then
+                if i_vbuf_wr(ch) = i_vbuf_rd(ch) then
+                --Переполнение!!! Указатель записи догнал указатель чтения
+                  i_vbuf_wr(ch) <= i_vbuf_wr(ch);
                 else
-                  i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
+                  i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
                 end if;
-
             else
-              i_vbuf_wr(i)<=i_vbuf_wr(i)+1;
-
+              i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
             end if;
           end if;
         end if;
-
     end loop;--//for
 
   end if;
 end process;
 
 --//Чтение Видео
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 begin
-  if p_in_rst='1' then
-    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-      i_vrd_frmrk(i)<=(others=>'0');
-      i_vbuf_rd(i)<=(others=>'0');
-      tst_vfrskip_rd(i)<=(others=>'0');
-      tst_vfrskip_rd_err(i)<='0';
+  if p_in_rst = '1' then
+    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+      for buf in 0 to CI_VBUF_COUNT - 1 loop
+      i_vrd_frmrk(ch)(buf) <= (others=>'0');
+      end loop;
+      i_vbuf_rd(ch) <= (others=>'0');
+      i_vfrskip_rd(ch) <= (others=>'0');
+      tst_vfrskip_rd_err(ch) <= '0';
     end loop;
-    i_vrd_hold<=(others=>'0');
-    i_vrd_irq<=(others=>'0');
-    i_vrd_frmrk_out<=(others=>'0');
-    tst_vfrskip_rd_out<=(others=>'0');
+    i_vrd_hold <= (others=>'0');
+    i_vrd_irq <= (others=>'0');
+    i_vrd_frmrk_out <= (others=>'0');
+    tst_vfrskip_rd_out <= (others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
-    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
+    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
 
-        --//Выдаем номер видеобуфера модулю чтение видео video_reader.vhd
-        if i_vwrite_vfr_rdy_out(i)='1' then
-            if tst_dbg_pictire='1' then
-              i_vbuf_rd(i)<=CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(i)'length);
-            elsif i_vrd_hold(i)='0' then
-              i_vbuf_rd(i)<=i_vbuf_wr(i);
-            end if;
+        --Выбираем видеобуфер для чтения
+        if tst_dbg_pictire = '1' then
+          i_vbuf_rd(ch) <= CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(ch)'length);
+
+        elsif i_vfrskip_rd(ch) /= (i_vfrskip_rd(ch)'range => '0') then
+          if i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' then
+            i_vbuf_rd(ch) <= i_vbuf_rd(ch) + 1;
+          end if;
+
+        elsif i_vwrite_vfr_rdy_out(ch) = '1' and i_vrd_hold(ch) = '0' then
+          i_vbuf_rd(ch) <= i_vbuf_wr(ch);
+
         end if;
 
         --//Захват видеобуфера для Чтения ХОСТОМ
-        if i_vwrite_vfr_rdy_out(i)='1' then
-          i_vrd_hold(i)<='1';
-        elsif (i_vreader_vch_num_out=i and i_vreader_rd_done='1') or vclk_set_idle_vch(i)='1' then
-          i_vrd_hold(i)<='0';
+        if i_vwrite_vfr_rdy_out(ch) = '1' then
+          i_vrd_hold(ch) <= '1';
+        elsif (i_vfrskip_rd(ch) = (i_vfrskip_rd(ch)'range => '0') and
+               i_vreader_vch_num_out = ch and i_vreader_rd_done = '1') or vclk_set_idle_vch(ch) = '1' then
+          i_vrd_hold(ch) <= '0';
         end if;
 
         --//Прерываение - Можно вычитывать кадр
-        i_vrd_irq(i)<=i_vwrite_vfr_rdy_out(i) and not i_vrd_hold(i);
+        if i_vfrskip_rd(ch) = (i_vfrskip_rd(ch)'range => '0') then
+          i_vrd_irq(ch) <= i_vwrite_vfr_rdy_out(ch) and not i_vrd_hold(ch);
+        else
+          if i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' then
+            i_vrd_irq(ch) <= '1';
+          else
+            i_vrd_irq(ch) <= '0';
+          end if;
+        end if;
 
 
         --//Защелкиваем маркер текущего кадра для выдачи ХОСТУ
-        if i_vwrite_vfr_rdy_out(i)='1' then
-          i_vrd_frmrk(i)<=i_vwrite_vrow_mrk(i);
-        end if;
-
-        --//Подсчет пропущеных кадров в течении чтения данных ХОСТОМ
-        if i_vrd_hold(i)='1' then
-          if i_vwrite_vfr_rdy_out(i)='1' then
-            if tst_vfrskip_rd(i)=(tst_vfrskip_rd(i)'range =>'1') then
-              tst_vfrskip_rd(i)<=(others=>'1');
-            else
-              tst_vfrskip_rd(i)<=tst_vfrskip_rd(i)+1;
+        if i_vwrite_vfr_rdy_out(ch) = '1' then
+          for buf in 0 to CI_VBUF_COUNT - 1 loop
+            if i_vbuf_wr(ch) = buf then
+              i_vrd_frmrk(ch)(buf) <= i_vwrite_vrow_mrk(ch);
             end if;
-          end if;
-        else
-          tst_vfrskip_rd(i)<=(others=>'0');
+          end loop;
         end if;
-        tst_vfrskip_rd_err(i)<=OR_reduce(tst_vfrskip_rd(i));
 
-        --//add 03.02.2011 12:31:43
-        --//Выдаем ХОСТУ статистику текущего видеоканала:
-        if i_vreader_vch_num_out=i then
-          tst_vfrskip_rd_out<=tst_vfrskip_rd(i);--//Кол-во пропущеных кадров
-          i_vrd_frmrk_out<=i_vrd_frmrk(i);      --//Маркер времени
+        --//Подсчет записаных кадров в течении чтения данных ХОСТОМ
+        if i_vrd_hold(ch) = '1' then
+          if i_vfrskip_rd(ch) /= (i_vfrskip_rd(ch)'range =>'0') then
+              if i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' then
+                if i_vwrite_vfr_rdy_out(ch) = '1' then
+                  i_vfrskip_rd(ch) <= i_vfrskip_rd(ch);
+                elsif i_vfrskip_rd(ch) = CONV_STD_LOGIC_VECTOR(3, i_vfrskip_rd(ch)'length) then
+                  i_vfrskip_rd(ch) <= (others => '0');
+                else
+                  i_vfrskip_rd(ch) <= i_vfrskip_rd(ch) - 1;
+                end if;
+              end if;
+
+          elsif i_vwrite_vfr_rdy_out(ch) = '1' then
+              if i_vfrskip_rd(ch) = CONV_STD_LOGIC_VECTOR(3, i_vfrskip_rd(ch)'length) then
+                i_vfrskip_rd(ch) <= i_vfrskip_rd(ch);
+              else
+                i_vfrskip_rd(ch) <= i_vfrskip_rd(ch) + 1;
+              end if;
+          end if;
         end if;
+
+        --//Выдаем ХОСТУ статистику текущего видеоканала:
+        if i_vreader_vch_num_out = ch then
+          tst_vfrskip_rd_out <= i_vfrskip_rd(ch);--//Кол-во пропущеных кадров
+          for buf in 0 to CI_VBUF_COUNT - 1 loop
+            if i_vbuf_rd(ch) = buf then
+              i_vrd_frmrk_out <= i_vrd_frmrk(ch)(buf);--//Маркер времени вычитываемого кадра
+            end if;
+          end loop;
+        end if;
+        tst_vfrskip_rd_err(ch) <= OR_reduce(i_vfrskip_rd(ch));
 
     end loop;--//for
 
