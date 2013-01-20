@@ -27,7 +27,8 @@ port(
 p_in_mode     : in   std_logic_vector(15 downto 0);--Режимы
 p_in_vpix     : in   std_logic_vector(15 downto 0);--Кол-во pix
 p_in_vrow     : in   std_logic_vector(15 downto 0);--Кол-во строк
-p_in_syn      : in   std_logic_vector(15 downto 0);--Ширина VS,HS (кол-во тактов)
+p_in_syn_h    : in   std_logic_vector(15 downto 0);--Ширина HS (кол-во тактов)
+p_in_syn_v    : in   std_logic_vector(15 downto 0);--Ширина VS (кол-во тактов)
 
 --Test Video
 p_out_vd      : out  std_logic_vector(G_VD_WIDTH - 1 downto 0);
@@ -50,7 +51,8 @@ architecture behavioral of vfr_gen is
 
 type fsm_state is (
 S_PIX,
-S_SYN
+S_SYN_H,
+S_SYN_V
 );
 signal fsm_cs : fsm_state;
 
@@ -80,7 +82,8 @@ begin
     tst_fsm_cs_dly <= tst_fsm_cs;
   end if;
 end process;
-tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_cs = S_SYN       else
+tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_cs = S_SYN_V     else
+              CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_cs = S_SYN_H     else
               CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length);   --fsm_cs = S_PIX       else
 
 
@@ -133,8 +136,7 @@ end process;
 --//Video
 --//----------------------------------
 gen_vd : for i in 0 to G_VD_WIDTH/8 - 1 generate
---p_out_vd((i_vd(i)'length * (i+1)) - 1 downto (i_vd(i)'length * i)) <= i_vd(i);
-p_out_vd((8 * (i+1)) - 1 downto (8* i)) <= i_pix_cnt(7 downto 0);
+p_out_vd((i_vd(i)'length * (i+1)) - 1 downto (i_vd(i)'length * i)) <= i_vd(i);
 end generate gen_vd;
 p_out_vs <= i_vs when G_VSYN_ACTIVE = '1' else not i_vs;
 p_out_hs <= i_hs when G_VSYN_ACTIVE = '1' else not i_hs;
@@ -144,9 +146,9 @@ p_out_vclk_en <= i_div;
 process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
---    for i in 0 to i_vd'length - 1 loop
---    i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
---    end loop;
+    for i in 0 to G_VD_WIDTH/8 - 1 loop
+    i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
+    end loop;
     i_hs <= '0';
     i_vs <= '0';
 
@@ -164,35 +166,47 @@ begin
       when S_PIX =>
           if i_pix_cnt = (p_in_vpix - 1) then
             i_pix_cnt <= (others=>'0');
---            for i in 0 to i_vd'length - 1 loop
---            i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
---            end loop;
-            i_hs <= '1';
+            for i in 0 to G_VD_WIDTH/8 - 1 loop
+            i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
+            end loop;
 
             if i_row_cnt = (p_in_vrow - 1) then
               i_vs <= '1';
               i_row_cnt <= (others=>'0');
+              fsm_cs <= S_SYN_V;
             else
+              i_hs <= '1';
               i_row_cnt <= i_row_cnt + 1;
+              fsm_cs <= S_SYN_H;
             end if;
-
-            fsm_cs <= S_SYN;
 
           else
             i_pix_cnt <= i_pix_cnt + 1;
---            for i in 0 to i_vd'length - 1 loop
---            i_vd(i) <= CONV_STD_LOGIC_VECTOR(i_vd'length, i_vd(i)'length);
---            end loop;
+            for i in 0 to G_VD_WIDTH/8 - 1 loop
+            i_vd(i) <= i_vd(i) + CONV_STD_LOGIC_VECTOR(G_VD_WIDTH/8, i_vd(i)'length);
+            end loop;
           end if;
 
       --------------------------------------
       --
       --------------------------------------
-      when S_SYN =>
+      when S_SYN_H =>
 
-          if i_pix_cnt = (p_in_syn - 1) then
+          if i_pix_cnt = (p_in_syn_h - 1) then
             i_pix_cnt <= (others=>'0');
             i_hs <= '0';
+            fsm_cs <= S_PIX;
+          else
+            i_pix_cnt <= i_pix_cnt + 1;
+          end if;
+
+      --------------------------------------
+      --
+      --------------------------------------
+      when S_SYN_V =>
+
+          if i_pix_cnt = (p_in_syn_v - 1) then
+            i_pix_cnt <= (others=>'0');
             i_vs <= '0';
             fsm_cs <= S_PIX;
           else
