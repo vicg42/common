@@ -35,7 +35,7 @@ constant C_PCGF_PCIE_LINK_WIDTH        : integer:=8;--При изменении кол-ва линий
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 6
 
 --//cfg ETH
-constant C_PCFG_ETH_USE                : string:="OFF";
+constant C_PCFG_ETH_USE                : string:="ON";
 
 --//Bitmap порта p_in_cam_ctrl
 constant C_CAM_CTRL_MODE_FPS_L_BIT     : integer:=0; --Управление входным потоком видео данных
