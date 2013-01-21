@@ -3,6 +3,14 @@
 ###############################################################################
 CONFIG PART = XC5VLX50T-FF1136-1;
 
+NET "pin_out_TP<0>"    LOC="H33"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_2   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<1>"    LOC="H34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<2>"    LOC="G32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<3>"    LOC="H32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_12  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<4>"    LOC="J34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<5>"    LOC="M32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<6>"    LOC="N34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET "pin_out_TP<7>"    LOC="AA34" | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
 
 ####################################################################
 ##

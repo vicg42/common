@@ -131,7 +131,7 @@ set _projects [ list \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.v" $_VMod ] \
       [ list "../src/pcie/v5/hscam_pcie_cfg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v5/clocks.vhd" $_VHDMod ] \
-      [ list "../src/pcie/clocks_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/v5/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
