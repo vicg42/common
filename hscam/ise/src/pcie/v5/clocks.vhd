@@ -2,7 +2,7 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 18.10.2011 15:59:43
+-- Create Date : 20.01.2013 15:47:02
 -- Module Name : clocks
 --
 -- Назначение/Описание :
@@ -73,7 +73,7 @@ bufg_clk2: BUFG port map(I => i_clk_out(0), O => g_clk(0)); p_out_gclk(2) <= g_c
 m_buf_pciexp : IBUFDS port map(I  => p_in_clk.pciexp_clk_p, IB => p_in_clk.pciexp_clk_n, O => p_out_gclk(3));
 bufg_clk4: BUFG port map(I => i_clk_out(4), O => g_clk(4)); p_out_gclk(4) <= g_clk(4); --125MHz
 bufg_clk5: BUFG port map(I => i_clk_out(5), O => p_out_gclk(5));--65,625MHz
-                                                 p_out_gclk(6) <= g_pll_clkin; --200MHz
+p_out_gclk(6) <= g_pll_clkin;--200MHz   --bufg_clk6: BUFG port map(I => i_clk_out(2), O => p_out_gclk(6));--450 MHz
 p_out_gclk(7 downto 7)<=(others=>'0');
 
 -- Reference clock PLL (CLKFBOUT range 400 MHz to 1000 MHz)
@@ -82,6 +82,7 @@ p_out_gclk(7 downto 7)<=(others=>'0');
 -- CLKFBOUT = (200 MHz/2) * 9.000       = 900 MHz
 -- CLKOUT0  = (200 MHz/2) * 9.000/9     = 100 MHz
 -- CLKOUT1  = (200 MHz/2) * 9.000/3     = 300 MHz (mem_clk)
+-- CLKOUT2  = (200 MHz/2) * 9.000/2     = 450 MHz
 
 m_pll0 : PLL_BASE
 generic map(
@@ -90,7 +91,7 @@ DIVCLK_DIVIDE  => 2,     --integer : 1 to 52
 CLKFBOUT_MULT  => 9,     --integer : 1 to 64
 CLKOUT0_DIVIDE => 9,     --integer : 1 to 128
 CLKOUT1_DIVIDE => 3,     --integer : 1 to 128
-CLKOUT2_DIVIDE => 9,     --integer : 1 to 128
+CLKOUT2_DIVIDE => 2,     --integer : 1 to 128
 CLKOUT3_DIVIDE => 1,     --integer : 1 to 128
 CLKOUT0_PHASE  => 0.000,
 CLKOUT1_PHASE  => 0.000,
@@ -101,7 +102,7 @@ port map(
 CLKFBOUT => i_clk_fb(0),
 CLKOUT0  => i_clk_out(0),
 CLKOUT1  => i_clk_out(1),
-CLKOUT2  => open,
+CLKOUT2  => i_clk_out(2),
 CLKOUT3  => open,
 CLKOUT4  => open,
 CLKOUT5  => open,
