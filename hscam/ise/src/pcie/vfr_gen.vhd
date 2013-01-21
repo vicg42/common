@@ -63,6 +63,7 @@ signal i_row_cnt            : std_logic_vector(15 downto 0);
 signal i_hs                 : std_logic;
 signal i_vs                 : std_logic;
 
+signal i_div                : std_logic;
 signal tst_fsm_cs,tst_fsm_cs_dly: std_logic_vector(1 downto 0);
 
 
@@ -86,6 +87,12 @@ tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_cs = S_SY
 
 
 --//----------------------------------
+--//CFG
+--//----------------------------------
+i_div <= '1';
+
+
+--//----------------------------------
 --//Video
 --//----------------------------------
 gen_vd : for i in 0 to G_VD_WIDTH/8 - 1 generate
@@ -94,7 +101,7 @@ end generate gen_vd;
 p_out_vs <= i_vs when G_VSYN_ACTIVE = '1' else not i_vs;
 p_out_hs <= i_hs when G_VSYN_ACTIVE = '1' else not i_hs;
 p_out_vclk <= p_in_clk;
-p_out_vclk_en <= '1';
+p_out_vclk_en <= i_div;
 
 process(p_in_rst, p_in_clk)
 begin
