@@ -100,7 +100,7 @@ rd_en  : in std_logic;
 
 empty  : out std_logic;
 full   : out std_logic;
-
+prog_full: out std_logic;
 clk    : in std_logic;
 rst    : in std_logic
 );
@@ -135,7 +135,7 @@ signal i_skip_line          : std_logic;
 signal i_buf2i_dout         : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 signal i_buf2i_rd           : std_logic;
 signal i_buf2i_empty        : std_logic;
-
+signal i_vbufi_pfull        : std_logic;
 
 --MAIN
 begin
@@ -147,7 +147,7 @@ p_out_tst(0) <= i_bufo_wr;
 p_out_tst(1) <= i_bufi_wr(1);
 p_out_tst(2) <= i_bufi_wr_en;
 p_out_tst(3) <= OR_reduce(i_bufi_full);
-p_out_tst(4) <= '0';
+p_out_tst(4) <= i_vbufi_pfull;
 p_out_tst(5) <= p_in_ext_syn;
 p_out_tst(31 downto 6) <= (others=>'0');
 
@@ -156,8 +156,18 @@ p_out_tst(31 downto 6) <= (others=>'0');
 process(p_in_rst, p_in_vclk)
 begin
   if p_in_rst = '1' then
-    i_bufi_wr(0) <= '0';
     i_bufi_wr_en <= '0';
+  elsif rising_edge(p_in_vclk) then
+    if p_in_vs = G_VSYN_ACTIVE then
+      i_bufi_wr_en <= p_in_ext_syn;
+    end if;
+  end if;
+end process;
+
+process(p_in_rst, p_in_vclk)
+begin
+  if p_in_rst = '1' then
+    i_bufi_wr(0) <= '0';
     sr_vd <= (others=>'0');
     sr_hs <= (others=>'0');
     i_skip_line <= '0';
@@ -169,10 +179,6 @@ begin
       i_skip_line <= '0';
     elsif sr_hs(0) = '0' and sr_hs(1) = '1' then
       i_skip_line <= not i_skip_line;
-    end if;
-
-    if p_in_vs = G_VSYN_ACTIVE then
-      i_bufi_wr_en <= p_in_ext_syn;
     end if;
 
     if i_bufi_wr_en = '1' and p_in_vs /= G_VSYN_ACTIVE and p_in_hs /= G_VSYN_ACTIVE then
@@ -305,6 +311,7 @@ rd_en  => p_in_vbufi_rd,
 
 empty  => p_out_vbufi_empty,
 full   => p_out_vbufi_full,
+prog_full   => i_vbufi_pfull,
 
 clk    => p_in_vbufi_rdclk,
 rst    => p_in_rst

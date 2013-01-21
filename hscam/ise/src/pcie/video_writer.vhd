@@ -106,13 +106,16 @@ signal i_mem_dlen_rq               : std_logic_vector(15 downto 0);
 signal i_mem_start                 : std_logic;
 signal i_mem_dir                   : std_logic;
 signal i_mem_done                  : std_logic;
-
+signal i_upp_buf_pfull             : std_logic;
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
 signal i_vfr_rowcnt                : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
 
 signal tst_mem_wr_out              : std_logic_vector(31 downto 0);
 signal tst_fsmstate,tst_fsm_cs_dly                : std_logic_vector(3 downto 0);
-
+signal tst_dbg                     : std_logic;
+signal i_upp_data_rd               : std_logic;
+signal sr_ccd_vs : std_logic_vector(0 to 1);
+signal i_ccd_vs  : std_logic;
 
 --MAIN
 begin
@@ -128,7 +131,8 @@ p_out_tst(10 downto 8 )<= tst_fsm_cs_dly(2 downto 0);
 p_out_tst(11) <= '0';
 p_out_tst(21 downto 16) <= tst_mem_wr_out(21 downto 16);--i_mem_trn_len(5 downto 0);
 p_out_tst(31 downto 22) <= (others=>'0');
-
+tst_dbg <= p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT); --1/0: 1 - выдаю только сигнал i_vfr_rdy, без записи видео в ОЗУ,
+                                                       --     0 - выдаю сигнал i_vfr_rdy + запись видео в ОЗУ,
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -138,6 +142,17 @@ end process;
 tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs = S_MEM_START       else
                 CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs = S_MEM_WR          else
                 CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs = S_IDLE              else
+
+process(p_in_rst, p_in_clk)
+begin
+  if p_in_rst = '1' then
+    sr_ccd_vs <= (others=>'0');
+    i_ccd_vs <= '0';
+  elsif p_in_clk'event and p_in_clk='1' then
+    sr_ccd_vs <= p_in_tst(31) & sr_ccd_vs(0 to 0);
+    i_ccd_vs <= not sr_ccd_vs(1) and sr_ccd_vs(0);
+  end if;
+end process;
 
 --//----------------------------------------------
 --//Статусы
@@ -163,10 +178,12 @@ begin
     i_mem_trn_len <= (others=>'0');
     i_mem_dir <= '0';
     i_mem_start <= '0';
-
+    i_upp_buf_pfull <= '0';
   elsif rising_edge(p_in_clk) then
 
     vfr_rdy := (others=>'0');
+
+    i_upp_buf_pfull <= p_in_upp_buf_pfull;
 
     case fsm_state_cs is
 
@@ -177,8 +194,15 @@ begin
 
         --Ждем когда появятся данные в буфере
         i_vfr_rowcnt <= (others=>'0');
-        if p_in_upp_buf_empty = '0' then
+        if tst_dbg = '0' then
+        if p_in_upp_buf_empty = '0' and i_upp_buf_pfull = '1' then
           fsm_state_cs <= S_MEM_START;
+
+        end if;
+        else
+          if i_ccd_vs = '1' then
+            vfr_rdy(0) := '1';
+          end if;
         end if;
 
       --------------------------------------
@@ -192,8 +216,6 @@ begin
           i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_rowcnt;
           i_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0) <= (others=>'0');
 
---          i_mem_dlen_rq <= (CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) &
---                            p_in_cfg_prm_vch(0).fr_size.activ.pix(p_in_cfg_prm_vch(0).fr_size.activ.pix'high downto log2(G_MEM_DWIDTH/8)));
           i_mem_dlen_rq <= p_in_cfg_prm_vch(0).fr_size.activ.pix;
           i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
           i_mem_dir <= C_MEMWR_WRITE;
@@ -249,7 +271,7 @@ p_out_cfg_mem_done   => i_mem_done,
 -- Связь с пользовательскими буферами
 -------------------------------
 p_in_usr_txbuf_dout  => p_in_upp_data,
-p_out_usr_txbuf_rd   => p_out_upp_data_rd,
+p_out_usr_txbuf_rd   => i_upp_data_rd,
 p_in_usr_txbuf_empty => p_in_upp_buf_empty,
 
 p_out_usr_rxbuf_din  => open,
@@ -272,7 +294,7 @@ p_in_clk             => p_in_clk,
 p_in_rst             => p_in_rst
 );
 
-
+p_out_upp_data_rd <= i_upp_data_rd or tst_dbg;
 --END MAIN
 end behavioral;
 

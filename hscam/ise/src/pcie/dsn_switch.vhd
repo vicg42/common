@@ -60,6 +60,7 @@ p_out_vctrl_vbufin_dout   : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 p_in_vctrl_vbufin_rd      : in   std_logic;
 p_out_vctrl_vbufin_empty  : out  std_logic;
 p_out_vctrl_vbufin_full   : out  std_logic;
+p_out_vctrl_vbufin_pfull  : out  std_logic;
 
 p_in_vctrl_vbufout_din    : in   std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 p_in_vctrl_vbufout_wr     : in   std_logic;
@@ -152,7 +153,7 @@ signal b_rst_vctrl_bufs              : std_logic;
 signal i_en_video                    : std_logic;
 
 signal i_vctrl_vbufout_empty         : std_logic;
-
+signal tst_vin_out                   : std_logic_vector(31 downto 0);
 
 
 --MAIN
@@ -161,10 +162,11 @@ begin
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<='0';
-p_out_tst(1)<='0';
+p_out_tst(0)<=b_rst_vctrl_bufs;
+p_out_tst(1)<=tst_vin_out(3);
 p_out_tst(31 downto 2)<=(others=>'0');
 
+p_out_vctrl_vbufin_pfull <= tst_vin_out(4);
 
 
 --//--------------------------------------------------
@@ -241,26 +243,16 @@ end process;
 
 b_rst_vctrl_bufs <= p_in_rst or h_reg_ctrl(C_SWT_REG_CTRL_RST_VCTRL_BUFS_BIT);
 
-
 process(p_in_rst,p_in_cfg_clk)
-  variable en_video : std_logic_vector(C_SWT_ETH_VCTRL_FRR_COUNT-1 downto 0);
 begin
   if p_in_rst='1' then
-
     i_en_video <= '0';
-      en_video := (others=>'0');
-
   elsif rising_edge(p_in_cfg_clk) then
-
-      --//Ищем правило машрутизации
-      for i in 0 to C_SWT_ETH_VCTRL_FRR_COUNT-1 loop
-        if h_reg_eth_vctrl_frr(i)/=(h_reg_eth_vctrl_frr(i)'range => '0') then
-            en_video(i):='1';
-        end if;
-      end loop;
-
-      i_en_video <= OR_reduce(en_video);
-
+    if h_reg_eth_vctrl_frr(0) /= (h_reg_eth_vctrl_frr(0)'range => '0') then
+      i_en_video <= '1';
+    else
+      i_en_video <= '0';
+    end if;
   end if;
 end process;
 
@@ -281,7 +273,7 @@ p_in_vs            => p_in_vs,
 p_in_hs            => p_in_hs,
 p_in_vclk          => p_in_vclk,
 p_in_vclk_en       => p_in_vclk_en,
-p_in_ext_syn       => i_en_video,
+p_in_ext_syn       => i_en_video, -- разрешение записи в вх. буфер (подсинхривается сигналом p_in_vs)
 
 --Вых. видеопоток
 p_out_vbufi_d      => p_out_vctrl_vbufin_dout,
@@ -293,7 +285,7 @@ p_in_vbufi_rdclk   => p_in_vctrl_clk,
 
 --Технологический
 p_in_tst           => (others => '0'),
-p_out_tst          => open,
+p_out_tst          => tst_vin_out,
 
 --System
 p_in_rst           => b_rst_vctrl_bufs

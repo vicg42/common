@@ -107,6 +107,7 @@ p_in_memrd            : in    TMemOUT;
 --Технологический
 -------------------------------
 p_out_tst             : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -301,7 +302,7 @@ type TVfrSkipTst is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(3 downt
 signal i_vfrskip_rd                      : TVfrSkipTst;
 signal tst_vfrskip_rd_out                : std_logic_vector(3 downto 0);
 signal tst_vfrskip_rd_err                : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-
+signal tst_vbuf_overflow                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX-1 downto 0);
 signal tst_dbg_pictire                   : std_logic;
 signal tst_dbg_rd_hold                   : std_logic;
 
@@ -324,7 +325,7 @@ p_out_tst(31 downto 27)<=tst_vwriter_out(31 downto 27);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(0) <=OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out);
+p_out_tst(0) <=OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out) or OR_reduce(tst_vbuf_overflow(C_VCTRL_VCH_COUNT-1 downto 0));
 p_out_tst(4 downto 1) <=tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <=tst_vreader_out(3 downto 0);
 p_out_tst(9)          <=tst_vwriter_out(4);
@@ -539,10 +540,12 @@ begin
 end process;
 
 
-tst_ctrl <= EXT(h_reg_tst0, tst_ctrl'length);
+tst_ctrl(30 downto 0) <= EXT(h_reg_tst0, 31);
+tst_ctrl(31) <= p_in_tst(0);--i_ccd_vs;
 tst_dbg_pictire <= tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 
 tst_dbg_rd_hold <= tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
+
 
 
 --//Пересинхронизация
@@ -569,7 +572,7 @@ end generate gen_vwrprm;
 
 --//Готовим параметры для модуля чтения
 gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
-i_rdprm_vch(i).mem_adr <= i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
+i_rdprm_vch(i).mem_adr <= i_vprm.ch(i).mem_addr_rd;
 i_rdprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
 i_rdprm_vch(i).fr_mirror <= i_vprm.ch(i).fr_mirror;
 end generate gen_vrdprm;
@@ -624,7 +627,7 @@ process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
     for ch in 0 to C_VCTRL_VCH_COUNT_MAX - 1 loop
-      i_vbuf_wr(ch) <= (others=>'0');
+      i_vbuf_wr(ch) <= (others=>'0'); tst_vbuf_overflow(ch) <= '0';
     end loop;
 
   elsif p_in_clk'event and p_in_clk='1' then
@@ -632,20 +635,20 @@ begin
     for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
         --Выбираем видеобуфер для записи
         if i_vwrite_vfr_rdy_out(ch) = '1' then
-          if tst_dbg_pictire = '1' then
-            i_vbuf_wr(ch) <= (others=>'0');
-          else
+--          if tst_dbg_pictire = '1' then
+--            i_vbuf_wr(ch) <= (others=>'0');
+--          else
             if i_vrd_hold(ch) = '1' or tst_dbg_rd_hold = '1' then
                 if i_vbuf_wr(ch) = i_vbuf_rd(ch) then
                 --Переполнение!!! Указатель записи догнал указатель чтения
-                  i_vbuf_wr(ch) <= i_vbuf_wr(ch);
+                  i_vbuf_wr(ch) <= i_vbuf_wr(ch); tst_vbuf_overflow(ch) <= '1';
                 else
-                  i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
+                  i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1; tst_vbuf_overflow(ch) <= '0';
                 end if;
             else
-              i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
+              i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1; tst_vbuf_overflow(ch) <= '0';
             end if;
-          end if;
+--          end if;
         end if;
     end loop;--//for
 
@@ -674,10 +677,10 @@ begin
     for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
 
         --Выбираем видеобуфер для чтения
-        if tst_dbg_pictire = '1' then
-          i_vbuf_rd(ch) <= CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(ch)'length);
+--        if tst_dbg_pictire = '1' then
+--          i_vbuf_rd(ch) <= CONV_STD_LOGIC_VECTOR(1, i_vbuf_rd(ch)'length);
 
-        elsif i_vfrskip_rd(ch) /= (i_vfrskip_rd(ch)'range => '0') then
+        if i_vfrskip_rd(ch) /= (i_vfrskip_rd(ch)'range => '0') then
           if i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' then
             i_vbuf_rd(ch) <= i_vbuf_rd(ch) + 1;
           end if;
@@ -808,7 +811,7 @@ p_in_mem              => p_in_memwr,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
+p_in_tst              => tst_ctrl(31 downto 0),
 p_out_tst             => tst_vwriter_out,
 
 -------------------------------
@@ -877,7 +880,7 @@ p_in_mem              => p_in_memrd,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
+p_in_tst              => tst_ctrl(31 downto 0),
 p_out_tst             => tst_vreader_out,
 
 -------------------------------
@@ -886,7 +889,6 @@ p_out_tst             => tst_vreader_out,
 p_in_clk              => p_in_clk,
 p_in_rst              => p_in_rst
 );
-
 
 --END MAIN
 end behavioral;

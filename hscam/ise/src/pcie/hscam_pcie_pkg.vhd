@@ -145,6 +145,7 @@ p_in_memrd            : in  TMemOUT;
 --Технологический
 -------------------------------
 p_out_tst             : out   std_logic_vector(31 downto 0);
+p_in_tst              : in    std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -241,6 +242,7 @@ p_out_vctrl_vbufin_dout   : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 p_in_vctrl_vbufin_rd      : in   std_logic;
 p_out_vctrl_vbufin_empty  : out  std_logic;
 p_out_vctrl_vbufin_full   : out  std_logic;
+p_out_vctrl_vbufin_pfull  : out  std_logic;
 
 p_in_vctrl_vbufout_din    : in   std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 p_in_vctrl_vbufout_wr     : in   std_logic;
@@ -279,10 +281,11 @@ G_VSYN_ACTIVE : std_logic := '1'
 );
 port(
 --CFG
-p_in_mode     : in   std_logic_vector(15 downto 0);
+p_in_cfg      : in   std_logic_vector(15 downto 0);
 p_in_vpix     : in   std_logic_vector(15 downto 0);
 p_in_vrow     : in   std_logic_vector(15 downto 0);
-p_in_syn      : in   std_logic_vector(15 downto 0);
+p_in_syn_h    : in   std_logic_vector(15 downto 0);
+p_in_syn_v    : in   std_logic_vector(15 downto 0);
 
 --Test Video
 p_out_vd      : out  std_logic_vector(G_VD_WIDTH - 1 downto 0);

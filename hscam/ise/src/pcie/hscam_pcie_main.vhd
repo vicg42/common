@@ -38,7 +38,7 @@ port(
 --Технологический порт
 --------------------------------------------------
 pin_out_led         : out   std_logic_vector(7 downto 0);
-
+pin_out_TP          : out   std_logic_vector(7 downto 0);
 --------------------------------------------------
 --Memory banks
 --------------------------------------------------
@@ -180,7 +180,7 @@ signal hclk_hrddone_vctrl               : std_logic;
 signal i_vctrl_vbufin_dout              : std_logic_vector(31 downto 0);
 signal i_vctrl_vbufin_rd                : std_logic;
 signal i_vctrl_vbufin_empty             : std_logic;
---signal i_vctrl_vbufin_pfull             : std_logic;
+signal i_vctrl_vbufin_pfull             : std_logic;
 signal i_vctrl_vbufin_full              : std_logic;
 signal i_vctrl_vbufout_din              : std_logic_vector(31 downto 0);
 signal i_vctrl_vbufout_wd               : std_logic;
@@ -198,6 +198,7 @@ signal i_vctrl_hrdy_out                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX
 --signal i_vctrl_hfrmrk                   : std_logic_vector(31 downto 0);
 signal i_vctrl_vrd_done                 : std_logic;
 signal i_vctrl_tst_out                  : std_logic_vector(31 downto 0);
+signal i_vctrl_tst_in                   : std_logic_vector(31 downto 0);
 signal i_vctrlwr_memin                  : TMemIN;
 signal i_vctrlwr_memout                 : TMemOUT;
 signal i_vctrlrd_memin                  : TMemIN;
@@ -233,12 +234,25 @@ signal i_ccd_vs                         : std_logic;
 signal i_ccd_hs                         : std_logic;
 signal i_ccd_vclk                       : std_logic;
 signal i_ccd_vclk_en                    : std_logic;
-signal i_ccd_mode                       : std_logic_vector(15 downto 0);
+signal i_ccd_cfg                        : std_logic_vector(15 downto 0);
 signal i_ccd_vpix                       : std_logic_vector(15 downto 0);
 signal i_ccd_vrow                       : std_logic_vector(15 downto 0);
-signal i_ccd_syn                        : std_logic_vector(15 downto 0);
-signal i_ccd_dconvert_clk               : std_logic;
+signal i_ccd_syn_h                      : std_logic_vector(15 downto 0);
+signal i_ccd_syn_v                      : std_logic_vector(15 downto 0);
+signal i_ccd_d80_d32_clk                : std_logic;
 signal i_ccd_tst_out                    : std_logic_vector(31 downto 0);
+
+
+signal tst_vbufin_dout                  : std_logic_vector(31 downto 0);
+signal tst_vbufin_dout_rd               : std_logic;
+signal tst_vbufin_empty                 : std_logic;
+signal tst_vbufin_full                  : std_logic;
+
+signal tst_rst_vctrl_bufs               : std_logic;
+signal tst_swt_tst_out                  : std_logic_vector(31 downto 0);
+
+signal sr_ccd_vs                        : std_logic_vector(1 downto 0);
+signal i_ccd_vs_m                       : std_logic;
 
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
@@ -258,9 +272,9 @@ begin
 --***********************************************************
 i_host_rst_n <=pin_in_pciexp_rstn;
 
-i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
-i_vctrl_rst  <=not OR_reduce(i_mem_ctrl_status.rdy);
-i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
+i_cfg_rst    <=not i_host_rst_n or i_host_rst_all or i_usrclk_rst;
+i_vctrl_rst  <=not OR_reduce(i_mem_ctrl_status.rdy) or i_usrclk_rst;
+i_swt_rst    <=not i_host_rst_n or i_host_rst_all or i_usrclk_rst;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all or i_pll_rst_out;
 i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
@@ -286,8 +300,8 @@ i_mem_ctrl_sysin.clk<=g_usrclk(1);
 
 i_pciexp_gt_refclk <= g_usrclk(3);
 
-i_ccd_vclk <= g_usrclk(5);
-i_ccd_dconvert_clk <= g_usrclk(6);--частота конвертирования данных 80bit -> 32bit
+i_ccd_vclk <= g_usrclk(5);--pixclk
+i_ccd_d80_d32_clk <= g_usrclk(6);--частота конвертирования данных 80bit -> 32bit
 
 
 --***********************************************************
@@ -395,12 +409,13 @@ p_out_host_vbuf_empty     => i_host_rxbuf_empty(C_HDEV_VCH_DBUF),
 -------------------------------
 -- Связь с VCTRL(dsn_video_ctrl.vhd) (vctrl_clk domain)
 -------------------------------
-p_in_vctrl_clk            => g_vctrl_swt_bufclk,
+p_in_vctrl_clk            => g_usr_highclk,--g_vctrl_swt_bufclk,
 
 p_out_vctrl_vbufin_dout   => i_vctrl_vbufin_dout,
 p_in_vctrl_vbufin_rd      => i_vctrl_vbufin_rd,
 p_out_vctrl_vbufin_empty  => i_vctrl_vbufin_empty,
 p_out_vctrl_vbufin_full   => i_vctrl_vbufin_full,
+p_out_vctrl_vbufin_pfull  => i_vctrl_vbufin_pfull,
 
 p_in_vctrl_vbufout_din    => i_vctrl_vbufout_din,
 p_in_vctrl_vbufout_wr     => i_vctrl_vbufout_wd,
@@ -417,7 +432,7 @@ p_in_vclk          => i_ccd_vclk,
 p_in_vclk_en       => i_ccd_vclk_en,
 p_in_ext_syn       => '0',
 
-p_in_convert_clk   => i_ccd_dconvert_clk,--частота конвертирования данных 80bit -> 32bit
+p_in_convert_clk   => i_ccd_d80_d32_clk,
 
 -------------------------------
 --Технологический
@@ -484,7 +499,7 @@ p_in_vbufin_dout     => i_vctrl_vbufin_dout,
 p_out_vbufin_dout_rd => i_vctrl_vbufin_rd,
 p_in_vbufin_empty    => i_vctrl_vbufin_empty,
 p_in_vbufin_full     => i_vctrl_vbufin_full,
-p_in_vbufin_pfull    => '0',--i_vctrl_vbufin_pfull,
+p_in_vbufin_pfull    => i_vctrl_vbufin_pfull,
 
 p_out_vbufout_din    => i_vctrl_vbufout_din,
 p_out_vbufout_din_wd => i_vctrl_vbufout_wd,
@@ -505,6 +520,7 @@ p_in_memrd           => i_vctrlrd_memout,
 --Технологический
 -------------------------------
 p_out_tst            => i_vctrl_tst_out,
+p_in_tst             => i_vctrl_tst_in,
 
 -------------------------------
 --System
@@ -574,9 +590,11 @@ i_host_tst_in(72)<='0';
 i_host_tst_in(73)<='0';
 i_host_tst_in(74)<='0';
 i_host_tst_in(75)<='0';
-i_host_tst_in(76)<='0';
+i_host_tst_in(76)<=OR_reduce(tst_vbufin_dout) or tst_vbufin_dout_rd or tst_vbufin_empty or tst_vbufin_full or tst_rst_vctrl_bufs;
 i_host_tst_in(126 downto 77)<=(others=>'0');
-i_host_tst_in(127)<=i_vctrl_tst_out(0) or i_swt_tst_out(0) or OR_reduce(i_ccd_tst_out);
+i_host_tst_in(127)<=i_vctrl_tst_out(0) or OR_reduce(tst_swt_tst_out(4 downto 0)) or OR_reduce(i_ccd_tst_out);
+
+
 
 
 --//Статусы устройств
@@ -847,11 +865,18 @@ p_in_sys        => i_mem_ctrl_sysin
 --//#########################################
 --//Генератор видеопотока
 --//#########################################
-i_ccd_mode(2 downto 0) <= (others=>'0');
-i_ccd_mode(i_ccd_mode'length - 1 downto 3) <= (others=>'0');
-i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(128, i_ccd_vpix'length);
+i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
 i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
-i_ccd_syn  <= CONV_STD_LOGIC_VECTOR(5, i_ccd_syn'length);
+
+i_ccd_cfg(2 downto 0) <= i_host_tst_out(2 downto 0); --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
+i_ccd_cfg(i_ccd_cfg'length - 1 downto 3) <= (others=>'0');
+
+i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "000" else
+               CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "001" else
+               CONV_STD_LOGIC_VECTOR( 394, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "010" else
+               CONV_STD_LOGIC_VECTOR( 132, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "011" else
+               CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_cfg(2 downto 0) = "011" else
+i_ccd_syn_v <= i_ccd_syn_h;
 
 m_vfr_gen : vfr_gen
 generic map(
@@ -860,16 +885,17 @@ G_VSYN_ACTIVE => '1'
 )
 port map(
 --CFG
-p_in_mode     => i_ccd_mode,
+p_in_cfg      => i_ccd_cfg,
 p_in_vpix     => i_ccd_vpix,
 p_in_vrow     => i_ccd_vrow,
-p_in_syn      => i_ccd_syn,
+p_in_syn_h    => i_ccd_syn_h,
+p_in_syn_v    => i_ccd_syn_v,
 
 --Test Video
 p_out_vd      => i_ccd_vd,
 p_out_vs      => i_ccd_vs,
 p_out_hs      => i_ccd_hs,
-p_out_vclk    => open,--
+p_out_vclk    => open,
 p_out_vclk_en => i_ccd_vclk_en,
 
 --Технологический
@@ -886,14 +912,13 @@ p_in_rst      => i_host_rst_all
 --//DBG
 --//#########################################
 pin_out_led(0)<=i_test01_led;
-pin_out_led(1)<='0';
+pin_out_led(1)<=tst_vbufin_full;
 pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 pin_out_led(4)<='0';
 pin_out_led(5)<='0';
 pin_out_led(6)<='0';
 pin_out_led(7)<='0';
-
 
 m_gt_03_test: fpga_test_01
 generic map(
@@ -914,6 +939,42 @@ p_in_rst       => i_cfg_rst
 );
 
 
+process(g_usr_highclk)
+begin
+  if rising_edge(g_usr_highclk) then
+  tst_vbufin_dout    <= i_vctrl_vbufin_dout ;
+  tst_vbufin_dout_rd <= i_vctrl_vbufin_rd   ;
+  tst_vbufin_empty   <= i_vctrl_vbufin_empty;
+  tst_vbufin_full    <= i_vctrl_vbufin_full ;
 
+  tst_rst_vctrl_bufs <= i_swt_tst_out(0);
+  tst_swt_tst_out <= i_swt_tst_out;
+  end if;
+end process;
+
+pin_out_TP(0) <= '0';
+pin_out_TP(1) <= i_ccd_vs_m;
+pin_out_TP(2) <= i_ccd_hs;
+pin_out_TP(3) <= '0';
+pin_out_TP(4) <= '0';
+pin_out_TP(5) <= '0';
+pin_out_TP(6) <= '0';
+pin_out_TP(7) <= '0';
+
+
+process(i_ccd_vclk)
+begin
+  if rising_edge(i_ccd_vclk) then
+    sr_ccd_vs(0) <= i_ccd_vs;
+    sr_ccd_vs(1) <= sr_ccd_vs(0);
+
+    if sr_ccd_vs(1) = '0' and sr_ccd_vs(0) = '1' then
+      i_ccd_vs_m <= not i_ccd_vs_m;
+    end if;
+  end if;
+end process;
+
+i_vctrl_tst_in(0) <= i_ccd_vs;
+i_vctrl_tst_in(31 downto 1) <= (others=>'0');
 
 end architecture;

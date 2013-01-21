@@ -96,7 +96,8 @@ constant dly : time := 1 ps;
 type fsm_state is (
 S_IDLE,
 S_MEM_START,
-S_MEM_RD
+S_MEM_RD,
+S_WAIT_HOST_ACK
 );
 signal fsm_state_cs: fsm_state;
 
@@ -113,6 +114,8 @@ signal i_mem_done                    : std_logic;
 
 signal tst_mem_wr_out                : std_logic_vector(31 downto 0);
 signal tst_fsmstate,tst_fsm_cs_dly                  : std_logic_vector(3 downto 0);
+signal tst_dbg                       : std_logic;
+
 
 --MAIN
 begin
@@ -129,7 +132,8 @@ p_out_tst(7 downto 6) <= (others=>'0');
 p_out_tst(10 downto 8) <= tst_fsm_cs_dly(2 downto 0);
 p_out_tst(11) <= '0';
 p_out_tst(31 downto 12) <= (others=>'0');
-
+tst_dbg <= p_in_tst(C_VCTRL_REG_TST0_DBG_SOBEL_BIT); --1/0: 1 - использую состояние fsm = S_WAIT_HOST_ACK,
+                                                     --     0 - работа без состояния fsm = S_WAIT_HOST_ACK,
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -196,8 +200,6 @@ begin
           i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_rowcnt;
           i_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0) <= (others=>'0');
 
---          i_mem_dlen_rq <= (CONV_STD_LOGIC_VECTOR(0, log2(G_MEM_DWIDTH/8)) &
---                            p_in_cfg_prm_vch(0).fr_size.activ.pix(p_in_cfg_prm_vch(0).fr_size.activ.pix'high downto log2(G_MEM_DWIDTH/8)));
           i_mem_dlen_rq <= p_in_cfg_prm_vch(0).fr_size.activ.pix;
           i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
           i_mem_dir <= C_MEMWR_READ;
@@ -214,22 +216,26 @@ begin
         if i_mem_done = '1' then
           if (i_vfr_rowcnt = p_in_cfg_prm_vch(0).fr_size.activ.row(i_vfr_rowcnt'range) - 1) then
             i_vfr_done <= '1';
-            fsm_state_cs <= S_IDLE;--S_WAIT_HOST_ACK;
+            if tst_dbg = '0' then
+            fsm_state_cs <= S_WAIT_HOST_ACK;--S_IDLE;--
+            else
+            fsm_state_cs <= S_IDLE;--
+            end if;
           else
             i_vfr_rowcnt <= i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
           end if;
         end if;
 
---      --//----------------------------------------------
---      --//Ждем ответ от ХОСТА - данные принял
---      --//----------------------------------------------
---      when S_WAIT_HOST_ACK =>
---
---        if p_in_hrd_done = '1' then
---          i_vfr_done <= '1';
---          fsm_state_cs <= S_IDLE;
---        end if;
+      --//----------------------------------------------
+      --//Ждем ответ от ХОСТА - данные принял
+      --//----------------------------------------------
+      when S_WAIT_HOST_ACK =>
+
+        if p_in_hrd_done = '1' then
+          i_vfr_done <= '1';
+          fsm_state_cs <= S_IDLE;
+        end if;
 
     end case;
 

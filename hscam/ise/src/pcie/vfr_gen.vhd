@@ -24,7 +24,7 @@ G_VSYN_ACTIVE : std_logic := '1'
 );
 port(
 --CFG
-p_in_mode     : in   std_logic_vector(15 downto 0);--Режимы
+p_in_cfg      : in   std_logic_vector(15 downto 0);
 p_in_vpix     : in   std_logic_vector(15 downto 0);--Кол-во pix
 p_in_vrow     : in   std_logic_vector(15 downto 0);--Кол-во строк
 p_in_syn_h    : in   std_logic_vector(15 downto 0);--Ширина HS (кол-во тактов)
@@ -62,8 +62,9 @@ signal i_pix_cnt            : std_logic_vector(15 downto 0);
 signal i_row_cnt            : std_logic_vector(15 downto 0);
 signal i_hs                 : std_logic;
 signal i_vs                 : std_logic;
-
+signal i_vd_out             : std_logic_vector(G_VD_WIDTH - 1 downto 0);
 signal i_div                : std_logic;
+
 signal tst_fsm_cs,tst_fsm_cs_dly: std_logic_vector(1 downto 0);
 
 
@@ -95,20 +96,16 @@ i_div <= '1';
 --//----------------------------------
 --//Video
 --//----------------------------------
-gen_vd : for i in 0 to G_VD_WIDTH/8 - 1 generate
-p_out_vd((i_vd(i)'length * (i+1)) - 1 downto (i_vd(i)'length * i)) <= i_vd(i);
-end generate gen_vd;
+p_out_vd <= i_vd_out;
 p_out_vs <= i_vs when G_VSYN_ACTIVE = '1' else not i_vs;
 p_out_hs <= i_hs when G_VSYN_ACTIVE = '1' else not i_hs;
 p_out_vclk <= p_in_clk;
 p_out_vclk_en <= i_div;
 
+--vsync
 process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
-    for i in 0 to G_VD_WIDTH/8 - 1 loop
-    i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
-    end loop;
     i_hs <= '0';
     i_vs <= '0';
 
@@ -126,9 +123,6 @@ begin
       when S_PIX =>
           if i_pix_cnt = (p_in_vpix - 1) then
             i_pix_cnt <= (others=>'0');
-            for i in 0 to G_VD_WIDTH/8 - 1 loop
-            i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
-            end loop;
 
             if i_row_cnt = (p_in_vrow - 1) then
               i_vs <= '1';
@@ -142,9 +136,6 @@ begin
 
           else
             i_pix_cnt <= i_pix_cnt + 1;
-            for i in 0 to G_VD_WIDTH/8 - 1 loop
-            i_vd(i) <= i_vd(i) + CONV_STD_LOGIC_VECTOR(G_VD_WIDTH/8, i_vd(i)'length);
-            end loop;
           end if;
 
       --------------------------------------
@@ -179,6 +170,31 @@ begin
   end if;
 end process;
 
+--gen test data (вертикальные полоски)
+process(p_in_rst, p_in_clk)
+begin
+  if p_in_rst = '1' then
+    for i in 0 to G_VD_WIDTH/8 - 1 loop
+    i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
+    end loop;
+  elsif rising_edge(p_in_clk) then
+  if i_div = '1' then
+      if i_hs = '1' or i_vs = '1' then
+        for i in 0 to G_VD_WIDTH/8 - 1 loop
+        i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
+        end loop;
+      else
+        for i in 0 to G_VD_WIDTH/8 - 1 loop
+        i_vd(i) <= i_vd(i) + CONV_STD_LOGIC_VECTOR(G_VD_WIDTH/8, i_vd(i)'length);
+        end loop;
+      end if;
+  end if;
+  end if;
+end process;
+
+gen_vd : for i in 0 to G_VD_WIDTH/8 - 1 generate
+i_vd_out((i_vd(i)'length * (i+1)) - 1 downto (i_vd(i)'length * i)) <= i_vd(i);
+end generate gen_vd;
 
 --END MAIN
 end behavioral;
