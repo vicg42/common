@@ -12,8 +12,8 @@ set _usrdef_chip_family "v6lxt"
 set _usrdef_device "6vlx240t"
 set _usrdef_speed  2
 set _usrdef_pkg    "ff1759"
-set _usrdef_ucf_filename "hscam_pcie_v6"
-set _usrdef_ucf_filepath "..\ucf\hscam_pcie_v6.ucf"
+set _usrdef_ucf_filename "hscam_pcie_v6_htg"
+set _usrdef_ucf_filepath "..\ucf\hscam_pcie_v6_htg.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -167,7 +167,7 @@ set _projects [ list \
       [ list "../src/pcie/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/hscam_pcie_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/hscam_pcie_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/hscam_pcie_v6.ucf" "hscam_pcie_main" ] \
+      [ list "../../ucf/hscam_pcie_v6_htg.ucf" "hscam_pcie_main" ] \
     ] \
   ] \
 ]
