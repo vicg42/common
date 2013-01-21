@@ -63,8 +63,6 @@ signal i_row_cnt            : std_logic_vector(15 downto 0);
 signal i_hs                 : std_logic;
 signal i_vs                 : std_logic;
 
-signal i_div_cnt            : std_logic_vector(5 downto 0);
-signal i_div                : std_logic;
 signal tst_fsm_cs,tst_fsm_cs_dly: std_logic_vector(1 downto 0);
 
 
@@ -88,51 +86,6 @@ tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_cs = S_SY
 
 
 --//----------------------------------
---//CFG
---//----------------------------------
-process(p_in_rst, p_in_clk)
-begin
-  if p_in_rst = '1' then
-    i_div <= '0';
-    i_div_cnt <= (others=>'0');
-
-  elsif rising_edge(p_in_clk) then
-    i_div_cnt <= i_div_cnt + 1;
-
-
-    if p_in_mode(2 downto 0) = "100" then --480 fps
-          i_div <= '1';
-
-    elsif p_in_mode(2 downto 0) = "011" then --240 fps
-          i_div <= i_div_cnt(0);
-
-    elsif p_in_mode(2 downto 0) = "010" then --120 fps
-        if i_div_cnt(1 downto 0) = "11" then
-          i_div <= '1';
-        else
-          i_div <= '0';
-        end if;
-
-    elsif p_in_mode(2 downto 0) = "001" then --60 fps
-        if i_div_cnt(2 downto 0) = "111" then
-          i_div <= '1';
-        else
-          i_div <= '0';
-        end if;
-
-    elsif p_in_mode(2 downto 0) = "000" then --30 fps
-        if i_div_cnt(3 downto 0) = "1111" then
-          i_div <= '1';
-        else
-          i_div <= '0';
-        end if;
-
-    end if;
-  end if;
-end process;
-
-
---//----------------------------------
 --//Video
 --//----------------------------------
 gen_vd : for i in 0 to G_VD_WIDTH/8 - 1 generate
@@ -141,7 +94,7 @@ end generate gen_vd;
 p_out_vs <= i_vs when G_VSYN_ACTIVE = '1' else not i_vs;
 p_out_hs <= i_hs when G_VSYN_ACTIVE = '1' else not i_hs;
 p_out_vclk <= p_in_clk;
-p_out_vclk_en <= i_div;
+p_out_vclk_en <= '1';
 
 process(p_in_rst, p_in_clk)
 begin
