@@ -132,8 +132,8 @@ p_out_tst(7 downto 6) <= (others=>'0');
 p_out_tst(10 downto 8) <= tst_fsm_cs_dly(2 downto 0);
 p_out_tst(11) <= '0';
 p_out_tst(31 downto 12) <= (others=>'0');
-tst_dbg <= p_in_tst(C_VCTRL_REG_TST0_DBG_SOBEL_BIT); --1/0: 1 - использую состояние fsm = S_WAIT_HOST_ACK,
-                                                     --     0 - работа без состояния fsm = S_WAIT_HOST_ACK,
+
+
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -215,12 +215,7 @@ begin
         i_mem_start <= '0';
         if i_mem_done = '1' then
           if (i_vfr_rowcnt = p_in_cfg_prm_vch(0).fr_size.activ.row(i_vfr_rowcnt'range) - 1) then
-            i_vfr_done <= '1';
-            if tst_dbg = '0' then
-            fsm_state_cs <= S_WAIT_HOST_ACK;--S_IDLE;--
-            else
-            fsm_state_cs <= S_IDLE;--
-            end if;
+            fsm_state_cs <= S_WAIT_HOST_ACK;
           else
             i_vfr_rowcnt <= i_vfr_rowcnt + 1;
             fsm_state_cs <= S_MEM_START;
