@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Версия реализации
-constant C_PCFG_HSCAM_PCIE_VERSION     : integer:=16#01#;  --Версия прошивки
+constant C_PCFG_HSCAM_PCIE_VERSION     : integer:=16#002#;  --Версия прошивки
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
@@ -32,6 +32,7 @@ constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс с
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=8;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
 
 --//cfg VCTRL
+constant C_PCFG_VCTRL_DBGCS            : string:="ON";
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 6
 
 --//cfg ETH
