@@ -113,6 +113,7 @@ p_in_vctrl_hrdstart   : in    std_logic;
 p_in_vctrl_hrddone    : in    std_logic;
 p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd

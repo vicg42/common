@@ -56,7 +56,7 @@ p_in_vfr_buf          : in    TVfrBufs;                    --//Номер буфера где 
 
 --//Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
---p_out_vrow_mrk        : out   TVMrks;                      --//Маркер строки
+p_out_vrow_mrk        : out   TVMrks;                      --//Маркер строки
 
 --//--------------------------
 --//Upstream Port (Связь с буфером видеопакетов)
@@ -109,7 +109,7 @@ signal i_mem_done                  : std_logic;
 signal i_upp_buf_pfull             : std_logic;
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
 signal i_vfr_rowcnt                : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
-
+signal i_vfr_row_mrk               : TVMrks;
 signal tst_mem_wr_out              : std_logic_vector(31 downto 0);
 signal tst_fsmstate,tst_fsm_cs_dly                : std_logic_vector(3 downto 0);
 signal tst_dbg                     : std_logic;
@@ -158,6 +158,7 @@ end process;
 --//Статусы
 --//----------------------------------------------
 p_out_vfr_rdy <= i_vfr_rdy;
+p_out_vrow_mrk <= i_vfr_row_mrk;--//Маркер кадра. Счетчик. Значение обновляется по завершению записи кадра в ОЗУ
 
 
 --//----------------------------------------------
@@ -172,7 +173,9 @@ begin
     i_vfr_rdy <= (others=>'0');
       vfr_rdy := (others=>'0');
     i_vfr_rowcnt <= (others=>'0');
-
+    for i in 0 to C_VCTRL_VCH_COUNT-1 loop
+      i_vfr_row_mrk(i)<=(others=>'0');
+    end loop;
     i_mem_adr <= (others=>'0');
     i_mem_dlen_rq <= (others=>'0');
     i_mem_trn_len <= (others=>'0');
@@ -232,6 +235,7 @@ begin
         if i_mem_done = '1' then
           if (i_vfr_rowcnt = p_in_cfg_prm_vch(0).fr_size.activ.row(i_vfr_rowcnt'range) - 1) then
             vfr_rdy(0) := '1';
+            i_vfr_row_mrk(0) <= i_vfr_row_mrk(0) + 1;
             fsm_state_cs <= S_IDLE;
           else
             i_vfr_rowcnt <= i_vfr_rowcnt + 1;

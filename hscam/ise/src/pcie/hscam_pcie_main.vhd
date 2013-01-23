@@ -195,7 +195,7 @@ signal i_vctrl_hirq                     : std_logic_vector(C_VCTRL_VCH_COUNT-1 d
 signal i_vctrl_hrdy                     : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal i_vctrl_hirq_out                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX-1 downto 0);
 signal i_vctrl_hrdy_out                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX-1 downto 0);
---signal i_vctrl_hfrmrk                   : std_logic_vector(31 downto 0);
+signal i_vctrl_hfrmrk                   : std_logic_vector(31 downto 0);
 signal i_vctrl_vrd_done                 : std_logic;
 signal i_vctrl_tst_out                  : std_logic_vector(31 downto 0);
 signal i_vctrl_tst_in                   : std_logic_vector(31 downto 0);
@@ -455,7 +455,7 @@ i_vctrl_hrdy_out<=EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 m_vctrl : dsn_video_ctrl
 generic map(
-G_DBGCS  => "ON",
+G_DBGCS  => C_PCFG_VCTRL_DBGCS,
 G_SIM    => G_SIM,
 
 G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
@@ -487,7 +487,7 @@ p_in_vctrl_hrdstart  => i_vctrl_hrd_start,
 p_in_vctrl_hrddone   => i_vctrl_hrd_done,
 p_out_vctrl_hirq     => i_vctrl_hirq,
 p_out_vctrl_hdrdy    => i_vctrl_hrdy,
---p_out_vctrl_hfrmrk   => i_vctrl_hfrmrk,
+p_out_vctrl_hfrmrk   => i_vctrl_hfrmrk,
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
@@ -588,7 +588,7 @@ i_host_tst_in(63 downto 0)<=(others=>'0');
 i_host_tst_in(71 downto 64)<=(others=>'0');
 i_host_tst_in(72)<='0';
 i_host_tst_in(73)<='0';
-i_host_tst_in(74)<='0';
+i_host_tst_in(74)<=OR_reduce(i_vctrl_tst_out(19 downto 11));
 i_host_tst_in(75)<='0';
 i_host_tst_in(76)<=OR_reduce(tst_vbufin_dout) or tst_vbufin_dout_rd or tst_vbufin_empty or tst_vbufin_full or tst_rst_vctrl_bufs;
 i_host_tst_in(126 downto 77)<=(others=>'0');
@@ -635,6 +635,7 @@ i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_VCH_
                                                   '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
+i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT)<=i_vctrl_hfrmrk;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT)<=i_vctrl_tst_out(23 downto 16);
 
 
