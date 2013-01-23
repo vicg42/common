@@ -64,7 +64,7 @@ signal i_hs                 : std_logic;
 signal i_vs                 : std_logic;
 signal i_vd_out             : std_logic_vector(G_VD_WIDTH - 1 downto 0);
 signal i_div                : std_logic;
-
+signal i_row_half           : std_logic;
 signal tst_fsm_cs,tst_fsm_cs_dly: std_logic_vector(1 downto 0);
 
 
@@ -108,7 +108,7 @@ begin
   if p_in_rst = '1' then
     i_hs <= '0';
     i_vs <= '0';
-
+    i_row_half <= '0';
     i_pix_cnt <= (others=>'0');
     i_row_cnt <= (others=>'0');
     fsm_cs <= S_PIX;
@@ -132,6 +132,10 @@ begin
               i_hs <= '1';
               i_row_cnt <= i_row_cnt + 1;
               fsm_cs <= S_SYN_H;
+            end if;
+
+            if i_row_cnt = ( ('0'&p_in_vrow(p_in_vrow'length - 1 downto 1)) - 1) then
+              i_row_half <= '1';
             end if;
 
           else
@@ -158,7 +162,7 @@ begin
 
           if i_pix_cnt = (p_in_syn_v - 1) then
             i_pix_cnt <= (others=>'0');
-            i_vs <= '0';
+            i_vs <= '0'; i_row_half <= '0';
             fsm_cs <= S_PIX;
           else
             i_pix_cnt <= i_pix_cnt + 1;
@@ -179,6 +183,7 @@ begin
     end loop;
   elsif rising_edge(p_in_clk) then
   if i_div = '1' then
+    if i_row_half = '0' then
       if i_hs = '1' or i_vs = '1' then
         for i in 0 to G_VD_WIDTH/8 - 1 loop
         i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
@@ -188,6 +193,17 @@ begin
         i_vd(i) <= i_vd(i) + CONV_STD_LOGIC_VECTOR(G_VD_WIDTH/8, i_vd(i)'length);
         end loop;
       end if;
+    else
+      if i_vs = '1' then
+        for i in 0 to G_VD_WIDTH/8 - 1 loop
+        i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
+        end loop;
+      elsif i_hs = '1' then
+        for i in 0 to G_VD_WIDTH/8 - 1 loop
+        i_vd(i) <= i_row_cnt(i_vd(i)'range);
+        end loop;
+      end if;
+    end if;
   end if;
   end if;
 end process;
