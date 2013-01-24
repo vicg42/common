@@ -241,7 +241,7 @@ signal i_ccd_syn_h                      : std_logic_vector(15 downto 0);
 signal i_ccd_syn_v                      : std_logic_vector(15 downto 0);
 signal i_ccd_d80_d32_clk                : std_logic;
 signal i_ccd_tst_out                    : std_logic_vector(31 downto 0);
-
+signal i_ccd_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
 
 signal tst_vbufin_dout                  : std_logic_vector(31 downto 0);
 signal tst_vbufin_dout_rd               : std_logic;
@@ -870,14 +870,24 @@ p_in_sys        => i_mem_ctrl_sysin
 i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
 i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
 
-i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0); --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
+--3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
+--7..4 -  --0/1/2/    - Test picture Vertical Counter/ Horizontal Counter/ V+H Counter
+i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0);
 i_ccd_cfg(i_ccd_cfg'length - 1 downto 8) <= (others=>'0');
+process(i_ccd_vclk)
+begin
+  if rising_edge(i_ccd_vclk) then
+    if i_ccd_vs = '1' then
+      i_ccd_fps <= i_ccd_cfg(3 downto 0);
+    end if;
+  end if;
+end process;
 
-i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "000" else
-               CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "001" else
-               CONV_STD_LOGIC_VECTOR( 394, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "010" else
-               CONV_STD_LOGIC_VECTOR( 132, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "011" else
-               CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_cfg(2 downto 0) = "011" else
+i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(0, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(1, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 394, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(2, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 132, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(3, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd_fps'length) else
 i_ccd_syn_v <= i_ccd_syn_h;
 
 m_vfr_gen : vfr_gen

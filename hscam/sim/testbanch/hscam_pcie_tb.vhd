@@ -251,8 +251,8 @@ i_ccd_dconvert_clk <= g_usrclk(6);--частота конвертирования данных 80bit -> 32bi
 --//#########################################
 --//Генератор видеопотока
 --//#########################################
-i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
-i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1, i_ccd_vrow'length);
+i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(960/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
+i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(4, i_ccd_vrow'length);
 i_ccd_syn  <= CONV_STD_LOGIC_VECTOR(5, i_ccd_syn'length);
 
 i_ccd_cfg(2 downto 0) <= (others=>'0');
@@ -403,7 +403,7 @@ p_in_vctrl_hrdstart  => i_vctrl_hrd_start,
 p_in_vctrl_hrddone   => i_vctrl_hrd_done,
 p_out_vctrl_hirq     => open,--i_vctrl_hirq,
 p_out_vctrl_hdrdy    => open,--i_vctrl_hrdy,
---p_out_vctrl_hfrmrk   => i_vctrl_hfrmrk,
+p_out_vctrl_hfrmrk   => open,--i_vctrl_hfrmrk,
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
