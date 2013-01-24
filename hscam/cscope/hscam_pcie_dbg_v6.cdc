@@ -1,5 +1,5 @@
 #ChipScope Core Inserter Project File Version 3.0
-#Wed Jan 23 13:06:56 GST 2013
+#Thu Jan 24 11:19:08 GST 2013
 Project.device.designInputFile=D\:\\Work\\Linkos\\veresk_m\\hscam\\ise\\prj\\hscam_pcie_main_cs.ngc
 Project.device.designOutputFile=D\:\\Work\\Linkos\\veresk_m\\hscam\\ise\\prj\\hscam_pcie_main_cs.ngc
 Project.device.deviceFamily=17
