@@ -152,13 +152,11 @@ p_out_vrow_mrk <= i_vfr_row_mrk;--//Маркер кадра. Счетчик. Значение обновляется 
 --//Автомат записи видео информации
 --//----------------------------------------------
 process(p_in_rst,p_in_clk)
-  variable vfr_rdy : std_logic_vector(p_out_vfr_rdy'range);
 begin
   if p_in_rst='1' then
 
     fsm_state_cs <= S_IDLE;
     i_vfr_rdy <= (others=>'0');
-      vfr_rdy := (others=>'0');
     i_vfr_rowcnt <= (others=>'0');
     for i in 0 to C_VCTRL_VCH_COUNT-1 loop
       i_vfr_row_mrk(i)<=(others=>'0');
@@ -171,8 +169,6 @@ begin
 
   elsif rising_edge(p_in_clk) then
 
-    vfr_rdy := (others=>'0');
-
     case fsm_state_cs is
 
       --------------------------------------
@@ -181,6 +177,7 @@ begin
       when S_IDLE =>
 
         --Ждем когда появятся данные в буфере
+        i_vfr_rdy <= (others=>'0');
         i_vfr_rowcnt <= (others=>'0');
         if p_in_upp_buf_empty = '0' then
           fsm_state_cs <= S_MEM_START;
@@ -212,7 +209,7 @@ begin
         i_mem_start <= '0';
         if i_mem_done = '1' then
           if (i_vfr_rowcnt = p_in_cfg_prm_vch(0).fr_size.activ.row(i_vfr_rowcnt'range) - 1) then
-            vfr_rdy(0) := '1';
+            i_vfr_rdy(0) <= '1';
             i_vfr_row_mrk(0) <= i_vfr_row_mrk(0) + 1;
             fsm_state_cs <= S_IDLE;
           else
@@ -223,7 +220,6 @@ begin
 
     end case;
 
-    i_vfr_rdy <= vfr_rdy;
   end if;
 end process;
 

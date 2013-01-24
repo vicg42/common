@@ -1535,9 +1535,9 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INTERFACE_TYPE">Native</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PERFORMANCE_OPTIONS">First_Word_Fall_Through</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INPUT_DATA_WIDTH">32</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INPUT_DEPTH">8192</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INPUT_DEPTH">4096</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OUTPUT_DATA_WIDTH">32</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OUTPUT_DEPTH">8192</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.OUTPUT_DEPTH">4096</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ENABLE_ECC">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USE_EMBEDDED_REGISTERS">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.RESET_PIN">true</spirit:configurableElementValue>
@@ -1560,17 +1560,17 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.INJECT_DBIT_ERROR">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.USE_EXTRA_LOGIC">true</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.DATA_COUNT">false</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.DATA_COUNT_WIDTH">14</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.DATA_COUNT_WIDTH">13</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.WRITE_DATA_COUNT">false</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.WRITE_DATA_COUNT_WIDTH">14</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.WRITE_DATA_COUNT_WIDTH">13</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_DATA_COUNT">false</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_DATA_COUNT_WIDTH">14</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_DATA_COUNT_WIDTH">13</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.DISABLE_TIMING_VIOLATIONS">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.READ_CLOCK_FREQUENCY">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.WRITE_CLOCK_FREQUENCY">1</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PROGRAMMABLE_FULL_TYPE">Single_Programmable_Full_Threshold_Constant</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.FULL_THRESHOLD_ASSERT_VALUE">64</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.FULL_THRESHOLD_NEGATE_VALUE">63</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PROGRAMMABLE_FULL_TYPE">No_Programmable_Full_Threshold</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.FULL_THRESHOLD_ASSERT_VALUE">4095</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.FULL_THRESHOLD_NEGATE_VALUE">4094</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PROGRAMMABLE_EMPTY_TYPE">No_Programmable_Empty_Threshold</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.EMPTY_THRESHOLD_ASSERT_VALUE">4</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.EMPTY_THRESHOLD_NEGATE_VALUE">5</spirit:configurableElementValue>
@@ -1701,7 +1701,7 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ENABLE_COMMON_OVERFLOW">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ENABLE_READ_POINTER_INCREMENT_BY2">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_COMMON_CLOCK">1</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DATA_COUNT_WIDTH">14</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DATA_COUNT_WIDTH">13</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DIN_WIDTH">32</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DOUT_RST_VAL">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DOUT_WIDTH">32</spirit:configurableElementValue>
@@ -1724,17 +1724,17 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_OVERFLOW_LOW">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PRELOAD_LATENCY">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PRELOAD_REGS">1</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PRIM_FIFO_TYPE">8kx4</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PRIM_FIFO_TYPE">4kx9</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_EMPTY_THRESH_ASSERT_VAL">4</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_EMPTY_THRESH_NEGATE_VAL">5</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_EMPTY_TYPE">0</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_FULL_THRESH_ASSERT_VAL">64</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_FULL_THRESH_NEGATE_VAL">63</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_FULL_TYPE">1</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_DATA_COUNT_WIDTH">14</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_DEPTH">8192</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_FULL_THRESH_ASSERT_VAL">4095</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_FULL_THRESH_NEGATE_VAL">4094</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PROG_FULL_TYPE">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_DATA_COUNT_WIDTH">13</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_DEPTH">4096</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_FREQ">1</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_PNTR_WIDTH">13</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RD_PNTR_WIDTH">12</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_UNDERFLOW_LOW">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_USE_DOUT_RST">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_USE_ECC">0</spirit:configurableElementValue>
@@ -1742,10 +1742,10 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_USE_FWFT_DATA_COUNT">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_VALID_LOW">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_ACK_LOW">0</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_DATA_COUNT_WIDTH">14</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_DEPTH">8192</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_DATA_COUNT_WIDTH">13</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_DEPTH">4096</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_FREQ">1</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_PNTR_WIDTH">13</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_WR_PNTR_WIDTH">12</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSGON_VAL">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ENABLE_RST_SYNC">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ERROR_INJECTION_TYPE">0</spirit:configurableElementValue>
@@ -1922,9 +1922,9 @@
                   <xilinx:file>
                      <xilinx:name>./vin_bufo.xco</xilinx:name>
                      <xilinx:userFileType>xco</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:33 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xB0C833C3</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:25 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x0947889C</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -1934,14 +1934,14 @@
                      <xilinx:userFileType>pdf</xilinx:userFileType>
                      <xilinx:timeStamp>Sat Jul 21 06:05:56 GMT 2012</xilinx:timeStamp>
                      <xilinx:checkSum>0x500E4105</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./fifo_generator_v8_2_readme.txt</xilinx:name>
                      <xilinx:userFileType>txt</xilinx:userFileType>
                      <xilinx:timeStamp>Sat Jul 21 06:05:55 GMT 2012</xilinx:timeStamp>
                      <xilinx:checkSum>0x453529E2</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -1950,81 +1950,81 @@
                      <xilinx:name>./vin_bufo_ste/example_design/vin_bufo_top.ucf</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>ucf</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x3C560FD9</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/example_design/vin_bufo_top.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xD7FDB61C</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x0D1FA4E3</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/example_design/vin_bufo_top.xdc</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>xdc</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xFA2BDC02</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/implement.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x7A6C4083</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/implement.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x31AC5672</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/planAhead_rdn.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x8CB4043A</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/planAhead_rdn.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x9C87900D</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/planAhead_rdn.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xF536B182</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/xst.prj</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xC85EC9F0</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo_ste/implement/xst.scr</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:21:35 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:38:26 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x9A940210</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2032,9 +2032,9 @@
                   <xilinx:file>
                      <xilinx:name>./vin_bufo.ngc</xilinx:name>
                      <xilinx:userFileType>ngc</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:21 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x8CE9200D</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:21 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x5165E6A7</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2048,9 +2048,9 @@
                   <xilinx:file>
                      <xilinx:name>./vin_bufo.vho</xilinx:name>
                      <xilinx:userFileType>vho</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:23 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xB0389050</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:22 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xB456D9D0</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2058,9 +2058,9 @@
                   <xilinx:file>
                      <xilinx:name>./vin_bufo.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:23 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xE524E422</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:23 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x87D5CB0A</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2068,9 +2068,9 @@
                   <xilinx:file>
                      <xilinx:name>./vin_bufo.asy</xilinx:name>
                      <xilinx:userFileType>asy</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:38 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xBB88F269</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:27 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xFDBA440E</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2079,9 +2079,9 @@
                      <xilinx:name>./vin_bufo_xmdf.tcl</xilinx:name>
                      <xilinx:userFileType>tclXmdf</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:38 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:27 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xAE004939</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2090,17 +2090,17 @@
                      <xilinx:name>./vin_bufo.gise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>gise</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:46 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:33 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x10C8F434</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./vin_bufo.xise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>xise</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:46 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x4C14BDF2</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:33 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x35AE37A2</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>
@@ -2113,9 +2113,9 @@
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>txtFlist</xilinx:userFileType>
                      <xilinx:userFileType>txt</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jan 20 14:26:47 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Thu Jan 24 11:40:33 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xE30756C3</xilinx:checkSum>
-                     <xilinx:generationId>generationID_2476798672</xilinx:generationId>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
                <xilinx:fileSet>

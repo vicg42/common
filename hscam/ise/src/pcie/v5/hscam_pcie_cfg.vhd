@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Версия реализации
-constant C_PCFG_HSCAM_PCIE_VERSION     : integer:=16#003#; --Версия прошивки
+constant C_PCFG_HSCAM_PCIE_VERSION     : integer:=16#004#; --Версия прошивки
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
