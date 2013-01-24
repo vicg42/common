@@ -252,6 +252,7 @@ i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_DWR, 4);
 i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK_64KW*1 , 28);
 wait until i_clk'event and i_clk='1';
 i_txbuf_empty <= '0';
+wait for 100 us;
 wait until i_clk'event and i_clk='1';
 i_txbuf_empty <= '1';
 

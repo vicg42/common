@@ -195,7 +195,7 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(10#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
 p_out_status(0) <= i_irq;
 p_out_status(1 downto 1) <= i_err;
 
-p_out_txbuf_rd <= i_txbuf_rd and p_in_clk_en;
+p_out_txbuf_rd <= i_txbuf_rd and p_in_clk_en when i_fsm_cs /= S_WR_DATA else (not i_flash_we_n and AND_reduce(i_bcnt) and p_in_clk_en);
 
 i_flash_wait <= p_in_phy_wait;
 i_flash_di <= p_in_phy_d;
