@@ -870,6 +870,7 @@ p_in_sys        => i_mem_ctrl_sysin
 i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
 i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
 
+--”правление через рег. C_HREG_TST0
 --3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
 --7..4 -  --0/1/2/    - Test picture Vertical Counter/ Horizontal Counter/ V+H Counter
 i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0);

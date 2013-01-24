@@ -166,8 +166,6 @@ p_out_tst(0)<=b_rst_vctrl_bufs;
 p_out_tst(1)<=tst_vin_out(3);
 p_out_tst(31 downto 2)<=(others=>'0');
 
-p_out_vctrl_vbufin_pfull <= tst_vin_out(4);
-
 
 --//--------------------------------------------------
 --//Конфигурирование модуля dsn_switch.vhd

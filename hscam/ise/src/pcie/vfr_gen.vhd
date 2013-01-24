@@ -7,6 +7,8 @@
 --
 -- Назначение/Описание :
 --
+--7..4 -  --0/1/2/    - Test picture Vertical Counter/ Horizontal Counter/ V+H Counter
+--
 --------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -213,7 +215,7 @@ begin
 
       elsif i_cfg(5 downto 4) = "01" then
       --(горизонтальные полоски)
-          if i_hs = '1' or i_vs = '1' then
+          if i_vs = '1' then
             for i in 0 to G_VD_WIDTH/8 - 1 loop
             i_vd(i) <= (others=>'0');
             end loop;
@@ -224,7 +226,7 @@ begin
           end if;
 
       elsif i_cfg(5 downto 4) = "10" then
-      --(вертикальные + горизонтальные полоски)
+      --(1/2 vfr - вертикальные полоски; 1/2 vfr - горизонтальные полоски)
         if i_row_half = '0' then
           if i_hs = '1' or i_vs = '1' then
             for i in 0 to G_VD_WIDTH/8 - 1 loop
