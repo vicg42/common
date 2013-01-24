@@ -250,7 +250,8 @@ signal tst_vbufin_full                  : std_logic;
 
 signal tst_rst_vctrl_bufs               : std_logic;
 signal tst_swt_tst_out                  : std_logic_vector(31 downto 0);
-
+signal sr_row_half                      : std_logic_vector(0 to 2);
+signal tst_row_half                     : std_logic;
 signal sr_ccd_vs                        : std_logic_vector(1 downto 0);
 signal i_ccd_vs_m                       : std_logic;
 
@@ -869,8 +870,8 @@ p_in_sys        => i_mem_ctrl_sysin
 i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
 i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
 
-i_ccd_cfg(2 downto 0) <= i_host_tst_out(2 downto 0); --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
-i_ccd_cfg(i_ccd_cfg'length - 1 downto 3) <= (others=>'0');
+i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0); --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
+i_ccd_cfg(i_ccd_cfg'length - 1 downto 8) <= (others=>'0');
 
 i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "000" else
                CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_cfg(2 downto 0) = "001" else
@@ -950,6 +951,8 @@ begin
 
   tst_rst_vctrl_bufs <= i_swt_tst_out(0);
   tst_swt_tst_out <= i_swt_tst_out;
+  sr_row_half <= i_ccd_tst_out(2) & sr_row_half(0 to 1);
+  tst_row_half <= sr_row_half(1) and not sr_row_half(2);
   end if;
 end process;
 
@@ -960,7 +963,7 @@ pin_out_TP(3) <= '0';
 pin_out_TP(4) <= '0';
 pin_out_TP(5) <= '0';
 pin_out_TP(6) <= '0';
-pin_out_TP(7) <= '0';
+pin_out_TP(7) <=  tst_row_half;
 
 
 process(i_ccd_vclk)
