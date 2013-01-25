@@ -638,35 +638,6 @@ begin
             i_dma_init_clr<='0';
             if usr_rxbuf_rd='1' and mwr_work='1' then
 
---                i_trn_tsof_n <= '0';
---                --i_trn_teof_n <= '1';
---                --i_trn_tsrc_rdy_n <= '0';
---                i_trn_trem_n <= (others=>'0');
---
---                i_trn_td(127 downto 80) <= ('0' &
---                           C_PCIE_PKT_TYPE_MWR_3DW_WD &
---                           '0' &
---                           mwr_tlp_tc_i &
---                           "0000" &
---                           '0' &
---                           '0' &
---                           mwr_relaxed_order_i & mwr_nosnoop_i &
---                           "00" &
---                           mwr_len_dw(9 downto 0) &
---                           completer_id_i(15 downto 3) & mwr_phant_func_en1_i & "00");
---
---                if tag_ext_en_i='1' then
---                i_trn_td(79 downto 72) <= mwr_pkt_count(7 downto 0);
---                else
---                i_trn_td(79 downto 72) <= EXT(mwr_pkt_count(4 downto 0), 8);
---                end if;
---
---                i_trn_td(71 downto 0) <= (mwr_lbe & mwr_fbe &
---                           pmwr_addr(31 downto 2) & "00" &
---                           usr_rxbuf_dout_i( 7 downto  0) &
---                           usr_rxbuf_dout_i(15 downto  8) &
---                           usr_rxbuf_dout_i(23 downto 16) &
---                           usr_rxbuf_dout_i(31 downto 24) );
                 i_trn_tsof_n <= '1';
                 --i_trn_teof_n <= '1';
                 --i_trn_tsrc_rdy_n <= '0';
@@ -708,10 +679,6 @@ begin
                 end if;
             else
               if trn_tdst_dsc_n='0' then --ядро прерывало передачу данных
-----                  i_trn_teof_n <= '0';
---                  trn_dw_sel <= (others=>'0');
---                  mwr_work <= '0';
---                  fsm_state <= S_TX_IDLE;
                   i_trn_teof_n <= '0';
                   trn_dw_sel <= (others=>'0');
                   mwr_work <= '0';
@@ -723,27 +690,6 @@ begin
         when S_TX_MWR_QWN =>
 
             if usr_rxbuf_rd='1' and mwr_work='1' then
---                if    trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
---                  i_trn_td(31 downto 0) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                          usr_rxbuf_dout_i(15 downto  8) &
---                                          usr_rxbuf_dout_i(23 downto 16) &
---                                          usr_rxbuf_dout_i(31 downto 24));
---                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#02#, trn_dw_sel'length) then
---                  i_trn_td(63 downto 32) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                           usr_rxbuf_dout_i(15 downto  8) &
---                                           usr_rxbuf_dout_i(23 downto 16) &
---                                           usr_rxbuf_dout_i(31 downto 24));
---                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#03#, trn_dw_sel'length) then
---                  i_trn_td(31+64 downto 0+64) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                                usr_rxbuf_dout_i(15 downto  8) &
---                                                usr_rxbuf_dout_i(23 downto 16) &
---                                                usr_rxbuf_dout_i(31 downto 24));
---                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, trn_dw_sel'length) then
---                  i_trn_td(63+64 downto 32+64) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                                 usr_rxbuf_dout_i(15 downto  8) &
---                                                 usr_rxbuf_dout_i(23 downto 16) &
---                                                 usr_rxbuf_dout_i(31 downto 24));
---                end if;
 
                 if trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
                   i_trn_td(31 downto  0) <= (usr_rxbuf_dout_i( 7 downto  0) &
