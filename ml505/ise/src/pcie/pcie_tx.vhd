@@ -170,7 +170,7 @@ signal usr_rxbuf_rd         : std_logic;
 signal i_dma_init           : std_logic;
 signal i_dma_init_clr       : std_logic;
 signal i_compl_done         : std_logic;
-
+signal usr_rxbuf_dout_swap  : std_logic_vector(usr_rxbuf_dout_i'range);
 
 --//MAIN
 begin
@@ -195,6 +195,12 @@ trn_td <= i_trn_td;
 
 mwr_done_o <= mwr_done;
 compl_done_o <= i_compl_done;
+
+--gen_swap : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
+--usr_rxbuf_dout_swap(8*((usr_rxbuf_dout_i'length/8 - 1) + 1) - 1 downto 8*(usr_rxbuf_dout_i'length/8 - 1)) <= usr_rxbuf_dout_i(8*(i + 1) - 1 downto 8*i);
+--end generate gen_swap;
+usr_rxbuf_dout_swap <= usr_rxbuf_dout_i( 7 downto  0) & usr_rxbuf_dout_i(15 downto  8) & usr_rxbuf_dout_i(23 downto 16) & usr_rxbuf_dout_i(31 downto 24);
+
 
 -- Calculate byte count based on byte enable
 process (req_be_i)
@@ -604,7 +610,7 @@ begin
                 i_trn_trem_n <= (others=>'0');
 
                 i_trn_td(63 downto 16) <= ('0' &
-                           C_PCIE_PKT_TYPE_MWR_3DW_WD &
+                           C_PCIE_PKT_TYPE_MWR_4DW_WD &
                            '0' &
                            mwr_tlp_tc_i &
                            "0000" &
@@ -623,7 +629,6 @@ begin
 
                 i_trn_td(7 downto 0) <= mwr_lbe & mwr_fbe;
 
-                mwr_work <= '1';
                 fsm_state <= S_TX_MWR_QW1;
             else
               if trn_tdst_dsc_n='0' then --ядро прерывало передачу данных
@@ -636,47 +641,22 @@ begin
         when S_TX_MWR_QW1 =>
 
             i_dma_init_clr<='0';
-            if usr_rxbuf_rd='1' and mwr_work='1' then
+            if usr_rxbuf_rd='1' then
 
                 i_trn_tsof_n <= '1';
                 --i_trn_teof_n <= '1';
                 --i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= (others=>'0');
 
-                i_trn_td <= (pmwr_addr(31 downto 2) & "00" &
-                           usr_rxbuf_dout_i( 7 downto  0) &
-                           usr_rxbuf_dout_i(15 downto  8) &
-                           usr_rxbuf_dout_i(23 downto 16) &
-                           usr_rxbuf_dout_i(31 downto 24) );
+                i_trn_td <= (CONV_STD_LOGIC_VECTOR(0, 32) & pmwr_addr(31 downto 2) & "00");
 
                 pmwr_addr <= pmwr_addr + EXT(mwr_len_byte, pmwr_addr'length);
-
-                --—четчик DW(payload) в текущем пакете MWr
-                if mwr_len_dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_dw'length) then
-
-                    i_trn_teof_n <= '0';
-                    i_trn_tsrc_rdy_n <= '0';
-                    trn_dw_sel <= (others=>'0');
-
-                    mwr_work <= '0';
-
-                    --—четчик отправленых пакетов MWr
-                    if mwr_pkt_count = (mwr_pkt_count_req - 1) then
-                      mwr_pkt_count <= (others=>'0');
-                    else
-                      mwr_pkt_count <= mwr_pkt_count + 1;
-                    end if;
-
-                    fsm_state <= S_TX_IDLE;
-                else
+                mwr_work <= '1';
                     i_trn_teof_n <= '1';
                     i_trn_tsrc_rdy_n <= '0';
                     trn_dw_sel <= (others=>'0');
 
-                    mwr_len_dw <= mwr_len_dw - 1;
-
                     fsm_state <= S_TX_MWR_QWN;
-                end if;
             else
               if trn_tdst_dsc_n='0' then --ядро прерывало передачу данных
                   i_trn_teof_n <= '0';
@@ -692,15 +672,9 @@ begin
             if usr_rxbuf_rd='1' and mwr_work='1' then
 
                 if trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
-                  i_trn_td(31 downto  0) <= (usr_rxbuf_dout_i( 7 downto  0) &
-                                           usr_rxbuf_dout_i(15 downto  8) &
-                                           usr_rxbuf_dout_i(23 downto 16) &
-                                           usr_rxbuf_dout_i(31 downto 24));
+                  i_trn_td(31 downto  0) <= usr_rxbuf_dout_swap;
                 else
-                  i_trn_td(63 downto 32) <= (usr_rxbuf_dout_i( 7 downto  0) &
-                                           usr_rxbuf_dout_i(15 downto  8) &
-                                           usr_rxbuf_dout_i(23 downto 16) &
-                                           usr_rxbuf_dout_i(31 downto 24));
+                  i_trn_td(63 downto 32) <= usr_rxbuf_dout_swap;
                 end if;
 
                 i_trn_trem_n <= trn_dw_sel - 1;
