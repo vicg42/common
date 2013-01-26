@@ -149,7 +149,7 @@ usr_reg_wr_o        : out std_logic;
 usr_reg_rd_o        : out std_logic;
 
 --usr_txbuf_dbe_o     : out  std_logic_vector(7 downto 0);
-usr_txbuf_din_o     : out std_logic_vector(31 downto 0);
+usr_txbuf_din_o     : out std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 usr_txbuf_wr_o      : out std_logic;
 usr_txbuf_wr_last_o : out std_logic;
 usr_txbuf_full_i    : in  std_logic;
@@ -196,7 +196,7 @@ port(
 usr_reg_dout_i       : in  std_logic_vector(31 downto 0);
 
 --usr_rxbuf_dbe        : out std_logic_vector(3 downto 0);
-usr_rxbuf_dout_i     : in  std_logic_vector(31 downto 0);
+usr_rxbuf_dout_i     : in  std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 usr_rxbuf_rd_o       : out std_logic;
 usr_rxbuf_rd_last_o  : out std_logic;
 usr_rxbuf_empty_i    : in  std_logic;
@@ -282,12 +282,12 @@ signal i_usr_reg_dout             : std_logic_vector(31 downto 0);
 signal i_usr_reg_wr               : std_logic;
 signal i_usr_reg_rd               : std_logic;
 
-signal i_usr_txbuf_din            : std_logic_vector(31 downto 0);
+signal i_usr_txbuf_din            : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 signal i_usr_txbuf_wr             : std_logic;
 signal i_usr_txbuf_wr_last        : std_logic;
 signal i_usr_txbuf_full           : std_logic;
 
-signal i_usr_rxbuf_dout           : std_logic_vector(31 downto 0);
+signal i_usr_rxbuf_dout           : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 signal i_usr_rxbuf_rd             : std_logic;
 signal i_usr_rxbuf_rd_last        : std_logic;
 signal i_usr_rxbuf_empty          : std_logic;

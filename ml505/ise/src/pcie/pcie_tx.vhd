@@ -196,10 +196,9 @@ trn_td <= i_trn_td;
 mwr_done_o <= mwr_done;
 compl_done_o <= i_compl_done;
 
---gen_swap : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
---usr_rxbuf_dout_swap(8*((usr_rxbuf_dout_i'length/8 - 1) + 1) - 1 downto 8*(usr_rxbuf_dout_i'length/8 - 1)) <= usr_rxbuf_dout_i(8*(i + 1) - 1 downto 8*i);
---end generate gen_swap;
-usr_rxbuf_dout_swap <= usr_rxbuf_dout_i( 7 downto  0) & usr_rxbuf_dout_i(15 downto  8) & usr_rxbuf_dout_i(23 downto 16) & usr_rxbuf_dout_i(31 downto 24);
+gen_swap : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
+usr_rxbuf_dout_swap(8*(((usr_rxbuf_dout_i'length/8 - 1) - i) + 1) - 1 downto 8*((usr_rxbuf_dout_i'length/8 - 1) - i)) <= usr_rxbuf_dout_i(8*(i + 1) - 1 downto 8*i);
+end generate gen_swap;
 
 
 -- Calculate byte count based on byte enable
@@ -368,51 +367,6 @@ begin
             if trn_tdst_rdy_n='0' and trn_tdst_dsc_n='1' and trn_tbuf_av(C_PCIE_BUF_COMPLETION_QUEUE)='1' and
                 sr_req_compl='1' and i_compl_done='0' then
 
---                i_trn_tsof_n <= '0';
---                i_trn_teof_n <= '0';
---                i_trn_tsrc_rdy_n <= '0';
---                if (req_pkt_type_i = C_PCIE_PKT_TYPE_IORD_3DW_ND) or (req_pkt_type_i = C_PCIE_PKT_TYPE_MRD_3DW_ND) then
---                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#00#, i_trn_trem_n'length);
---                else
---                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
---                end if;
---
---                i_trn_td(127) <= '0';
---
---                if (req_pkt_type_i = C_PCIE_PKT_TYPE_IORD_3DW_ND) or (req_pkt_type_i = C_PCIE_PKT_TYPE_MRD_3DW_ND) then
---                  i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_CPLD_3DW_WD;
---                else
---                  i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_CPL_3DW_ND;
---                end if;
---
---                i_trn_td(119 downto 32) <= ('0' &
---                           req_tc_i &
---                           "0000" &
---                           req_td_i &
---                           req_ep_i &
---                           req_attr_i &
---                           "00" &
---                           req_len_i &
---                           completer_id_i &
---                           "000" &
---                           '0' &
---                           byte_count &
---                           req_rid_i &
---                           req_tag_i &
---                           '0' &
---                           lower_addr);
---
---                if req_exprom_i='1' then
---                  i_trn_td(31 downto 0) <= (others=>'0');
---                else
---                  i_trn_td(31 downto 0) <= usr_reg_dout_i( 7 downto  0) &
---                                           usr_reg_dout_i(15 downto  8) &
---                                           usr_reg_dout_i(23 downto 16) &
---                                           usr_reg_dout_i(31 downto 24);
---                end if;
---
---                i_compl_done <= '1';
---                fsm_state <= S_TX_CPLD_WT1;
                 i_trn_tsof_n <= '0';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '0';
@@ -475,12 +429,6 @@ begin
                 end if;
                 i_dma_init_clr<='1';
 
---                i_trn_tsof_n <= '1';
---                i_trn_teof_n <= '1';
---                i_trn_tsrc_rdy_n <= '1';
---                i_trn_trem_n <= (others=>'0');
---                mwr_work <= '1';
---                fsm_state <= S_TX_MWR_QW1;
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
@@ -522,11 +470,6 @@ begin
                 end if;
                 i_dma_init_clr<='1';
 
---                i_trn_tsof_n <= '1';
---                i_trn_teof_n <= '1';
---                i_trn_tsrc_rdy_n <= '1';
---                i_trn_trem_n <= (others=>'0');
---                fsm_state <= S_TX_MRD_QW1;
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
@@ -736,7 +679,7 @@ begin
                 i_trn_trem_n <= (others=>'0');
 
                 i_trn_td(63 downto 16) <= ('0' &
-                           C_PCIE_PKT_TYPE_MRD_3DW_ND &
+                           C_PCIE_PKT_TYPE_MRD_4DW_ND &
                            '0' &
                            mrd_tlp_tc_i &
                            "0000" &
@@ -768,40 +711,12 @@ begin
             i_dma_init_clr<='0';
             if trn_tdst_rdy_n='0' and trn_tdst_dsc_n='1' then
 
---                i_trn_tsof_n <= '0';
---                i_trn_teof_n <= '0';
---                i_trn_tsrc_rdy_n <= '0';
---                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
---
---                i_trn_td(127 downto 80) <= ('0' &
---                           C_PCIE_PKT_TYPE_MRD_3DW_ND &
---                           '0' &
---                           mrd_tlp_tc_i &
---                           "0000" &
---                           '0' &
---                           '0' &
---                           mrd_relaxed_order_i & mrd_nosnoop_i &
---                           "00" &
---                           mrd_len_dw(9 downto 0) &
---                           completer_id_i(15 downto 3) & mrd_phant_func_en1_i & "00");
---
---                if tag_ext_en_i='1' then
---                i_trn_td(79 downto 72) <= mrd_pkt_count(7 downto 0);
---                else
---                i_trn_td(79 downto 72) <= EXT(mrd_pkt_count(4 downto 0), 8);
---                end if;
---
---                i_trn_td(71 downto 0) <= (mrd_lbe & mrd_fbe &
---                           pmrd_addr(31 downto 2) & "00" &
---                           CONV_STD_LOGIC_VECTOR(16#00#, 32));
-
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '0';
                 i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
 
-                i_trn_td <= (pmrd_addr(31 downto 2) & "00" &
-                           CONV_STD_LOGIC_VECTOR(16#00#, 32));
+                i_trn_td <= (CONV_STD_LOGIC_VECTOR(16#00#, 32) & pmrd_addr(31 downto 2) & "00");
 
                 pmrd_addr <= pmrd_addr + EXT(mrd_len_byte, pmrd_addr'length);
 
@@ -815,8 +730,6 @@ begin
                 fsm_state <= S_TX_IDLE;
             else
               if trn_tdst_dsc_n='0' then --ядро прерывало передачу данных
-----                i_trn_teof_n <= '0';
---                fsm_state <= S_TX_IDLE;
                 i_trn_teof_n <= '0';
                 fsm_state <= S_TX_IDLE;
               end if;
