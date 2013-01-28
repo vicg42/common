@@ -147,16 +147,14 @@ tst_o(11 downto 8) <= EXT(trn_dw_sel, 4);
 --//
 --//--------------------------------------
 bar_exprom <=not trn_rbar_hit_n(6);
-bar_usr <=not trn_rbar_hit_n(0) or not trn_rbar_hit_n(1);
+bar_usr <=not AND_reduce(trn_rbar_hit_n(2 downto 0));
 
 usr_reg_adr_o <= (i_req_addr(5 downto 0) & "00");
 usr_reg_din_o <= usr_di(7 downto 0) & usr_di(15 downto 8) & usr_di(23 downto 16) & usr_di(31 downto 24);
 usr_reg_rd_o <= usr_rd;
 usr_reg_wr_o <= usr_wr and not cpld_tlp_work;
 
-gen_txbuf_swap : for i in 0 to usr_txbuf_din_o'length/8 - 1 generate
-usr_txbuf_din_o(8*(((usr_txbuf_din_o'length/8 - 1) - i) + 1) - 1 downto 8*((usr_txbuf_din_o'length/8 - 1) - i)) <= usr_di(8*(i + 1) - 1 downto 8*i);
-end generate gen_txbuf_swap;
+usr_txbuf_din_o <= usr_di(7 downto 0) & usr_di(15 downto 8) & usr_di(23 downto 16) & usr_di(31 downto 24);
 usr_txbuf_wr_o <= usr_wr and cpld_tlp_work;
 usr_txbuf_wr_last_o <= cpld_tlp_dlast;
 
@@ -255,7 +253,7 @@ begin
         when S_RX_IDLE =>
 
             if trn_rsof_n='0' and trn_rsrc_rdy_n='0' and trn_rsrc_dsc_n='1' then
-
+--              if trn_rrem_n(1)='1' then
                 case trn_rd(62 downto 56) is --поле FMT (Формат пакета) + поле TYPE (Тип пакета)
                     -------------------------------------------------------------------------
                     --IORd - 3DW, no data (PC<-FPGA)
@@ -353,6 +351,152 @@ begin
 
                 end case; --case (trn_rd(62 downto 56))
 
+--            else --if trn_rrem_n(1) = '0'
+--                case trn_rd(62+64 downto 56+64) is --поле FMT (Формат пакета) + поле TYPE (Тип пакета)
+--                    -------------------------------------------------------------------------
+--                    --IORd - 3DW, no data (PC<-FPGA)
+--                    -------------------------------------------------------------------------
+--                   when C_PCIE_PKT_TYPE_IORD_3DW_ND =>
+--
+--                      if trn_rd(41+64 downto 32+64) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+--
+--                        i_req_pkt_type <= trn_rd(62+64 downto 56+64);
+--                        i_req_tc       <= trn_rd(54+64 downto 52+64);
+--                        i_req_td       <= trn_rd(47+64);
+--                        i_req_ep       <= trn_rd(46+64);
+--                        i_req_attr     <= trn_rd(45+64 downto 44+64);
+--                        i_req_len      <= trn_rd(41+64 downto 32+64); --Length data payload (DW)
+--                        i_req_rid      <= trn_rd(31+64 downto 16+64);
+--                        i_req_tag      <= trn_rd(15+64 downto  8+64);
+--                        i_req_be       <= trn_rd( 7+64 downto  0+64);
+--
+--                        i_req_addr     <= trn_rd(31+32 downto  2+32);
+--
+--                        trn_rdst_rdy_n <= '1';
+--
+--                        if bar_usr='1' then
+--                          usr_rd <= '1';
+--                        end if;
+--
+--                        fsm_state <= S_RX_MRD_WT1;
+--                      end if;
+--
+--                    -------------------------------------------------------------------------
+--                    --IOWr - 3DW, +data (PC->FPGA)
+--                    -------------------------------------------------------------------------
+--                    when C_PCIE_PKT_TYPE_IOWR_3DW_WD =>
+--
+--                      if trn_rd(41+64 downto 32+64) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+--
+--                        i_req_pkt_type <= trn_rd(62+64 downto 56+64);
+--                        i_req_tc       <= trn_rd(54+64 downto 52+64);
+--                        i_req_td       <= trn_rd(47+64);
+--                        i_req_ep       <= trn_rd(46+64);
+--                        i_req_attr     <= trn_rd(45+64 downto 44+64);
+--                        i_req_len      <= trn_rd(41+64 downto 32+64); --Length data payload (DW)
+--                        i_req_rid      <= trn_rd(31+64 downto 16+64);
+--                        i_req_tag      <= trn_rd(15+64 downto  8+64);
+--                        i_req_be       <= trn_rd( 7+64 downto  0+64);
+--
+--                        i_req_addr     <= trn_rd(31+32 downto  2+32);
+--                        usr_di         <= trn_rd(31 downto 0);
+--
+--                        trn_rdst_rdy_n <= '1';
+--
+--                        if bar_usr='1' then
+--                          usr_wr <= '1';
+--                        end if;
+--
+--                        i_req_compl <= '1'; --Запрос на отправку пакета Cpl
+--
+--                        fsm_state <= S_RX_IOWR_WT;
+--                      end if;
+--
+--                    -------------------------------------------------------------------------
+--                    --MRd - 3DW, no data  (PC<-FPGA)
+--                    -------------------------------------------------------------------------
+--                    when C_PCIE_PKT_TYPE_MRD_3DW_ND =>
+--
+--                      if trn_rd(41+64 downto 32+64) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+--
+--                        i_req_pkt_type <= trn_rd(62+64 downto 56+64);
+--                        i_req_tc       <= trn_rd(54+64 downto 52+64);
+--                        i_req_td       <= trn_rd(47+64);
+--                        i_req_ep       <= trn_rd(46+64);
+--                        i_req_attr     <= trn_rd(45+64 downto 44+64);
+--                        i_req_len      <= trn_rd(41+64 downto 32+64); --Length data payload (DW)
+--                        i_req_rid      <= trn_rd(31+64 downto 16+64);
+--                        i_req_tag      <= trn_rd(15+64 downto  8+64);
+--                        i_req_be       <= trn_rd( 7+64 downto  0+64);
+--
+--                        i_req_addr     <= trn_rd(31+32 downto  2+32);
+--
+--                        trn_rdst_rdy_n <= '1';
+--
+--                        if bar_exprom='1' then
+--                          i_req_exprom <= '1';
+--                        else
+--                          if bar_usr='1' then
+--                            usr_rd <= '1';
+--                          end if;
+--                        end if;
+--
+--                        fsm_state <= S_RX_MRD_WT1;
+--                      end if;
+--
+--                    -------------------------------------------------------------------------
+--                    --MWr - 3DW, +data (PC->FPGA)
+--                    -------------------------------------------------------------------------
+--                   when C_PCIE_PKT_TYPE_MWR_3DW_WD =>
+--
+--                      if trn_rd(41+64 downto 32+64) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+--
+--                        i_req_addr <= trn_rd(63 downto 34);
+--                        usr_di <= trn_rd(31 downto 0);
+--
+--                        if bar_usr='1' then
+--                          usr_wr <= '1';
+--                        end if;
+--
+--                        trn_rdst_rdy_n <= '1';
+--                        fsm_state <= S_RX_MWR_WT;
+--                      end if;
+--
+--                    -------------------------------------------------------------------------
+--                    --Cpl - 3DW, no data
+--                    -------------------------------------------------------------------------
+--                    when C_PCIE_PKT_TYPE_CPL_3DW_ND =>
+--
+--                      --if trn_rd(15+64 downto 13+64) /= C_PCIE_COMPL_STATUS_SC then
+--                        fsm_state <= S_RX_CPL_QW1;
+--                      --end if;
+--
+--                    -------------------------------------------------------------------------
+--                    --CplD - 3DW, +data
+--                    -------------------------------------------------------------------------
+--                    when C_PCIE_PKT_TYPE_CPLD_3DW_WD =>
+--
+--                        cpld_tlp_len <= trn_rd(41+64 downto 32+64); --Length data payload (DW)
+--                        cpld_tlp_cnt <= CONV_STD_LOGIC_VECTOR(16#01#, cpld_tlp_cnt'length);
+--                        cpld_tlp_work <= '1';
+--                        trn_dw_sel <= (others=>'1');
+--                        trn_dw_skip <= '0';
+--                        usr_wr <= '1';
+--                        usr_di <= trn_rd(31 downto 0);
+--
+--                        if trn_reof_n='0' and (trn_rd(41+64 downto 32+64) = CONV_STD_LOGIC_VECTOR(16#01#, 10)) then
+--                          cpld_tlp_dlast <= '1';
+--                          trn_rdst_rdy_n <= '1';
+--                          fsm_state <= S_RX_CPLD_WT;
+--                        else
+--                          fsm_state <= S_RX_CPLD_QWN;
+--                        end if;
+--
+--                   when others =>
+--                      fsm_state <= S_RX_IDLE;
+--                end case; --case trn_rd(62+64 : 56+64)
+--              end if; --if trn_rrem_n(1)='1' then
+
             end if; --if trn_rsof_n='0' and trn_rsrc_rdy_n='0' and trn_rsrc_dsc_n='1' then
         --end S_RX_IDLE :
 
@@ -398,6 +542,8 @@ begin
             if trn_reof_n='0' and trn_rsrc_rdy_n='0' and trn_rsrc_dsc_n='1' then
               i_req_addr <= trn_rd(63 downto 34);
               trn_rdst_rdy_n <= '1';
+--              i_req_addr <= trn_rd(63+64 downto 34+64);
+--              trn_rdst_rdy_n <= '1';
 
               if i_req_exprom='0' then
                 if bar_usr='1' then
@@ -438,6 +584,8 @@ begin
             if trn_reof_n='0' and trn_rsrc_rdy_n='0' and trn_rsrc_dsc_n='1' then
               i_req_addr <= trn_rd(63 downto 34);
               usr_di <= trn_rd(31 downto 0);
+--              i_req_addr <= trn_rd(63+64 downto 34+64);
+--              usr_di <= trn_rd(31+64 downto 0+64);
 
               if bar_usr='1' then
                 usr_wr <= '1';
@@ -484,6 +632,14 @@ begin
                   usr_di <= trn_rd(31 downto 0);
                 elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,trn_dw_sel'length) then
                   usr_di <= trn_rd(63 downto 32);
+--                if    trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#,trn_dw_sel'length) then
+--                  usr_di <= trn_rd(31 downto 0);
+--                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,trn_dw_sel'length) then
+--                  usr_di <= trn_rd(63 downto 32);
+--                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#02#,trn_dw_sel'length) then
+--                  usr_di <= trn_rd(31+64 downto 0+64);
+--                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#03#,trn_dw_sel'length) then
+--                   usr_di <= trn_rd(63+64 downto 32+64);
                 end if;
 
                 if trn_reof_n='0' then --EOF
@@ -499,6 +655,10 @@ begin
 
                     if ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#00#,trn_rrem_n'length)) and (trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#,trn_dw_sel'length))) or
                        ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#01#,trn_rrem_n'length)) and (trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,trn_dw_sel'length))) then
+--                    if ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#00#,trn_rrem_n'length)) and (trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#,trn_dw_sel'length))) or
+--                       ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#01#,trn_rrem_n'length)) and (trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,trn_dw_sel'length))) or
+--                       ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#02#,trn_rrem_n'length)) and (trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#02#,trn_dw_sel'length))) or
+--                       ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#03#,trn_rrem_n'length)) and (trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#03#,trn_dw_sel'length))) then
                       cpld_tlp_dlast <= '1';
                       trn_rdst_rdy_n <= '1';
                       fsm_state <= S_RX_CPLD_WT;
