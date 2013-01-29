@@ -748,8 +748,8 @@ tst_usr_rxbuf_empty_i            <=i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_B
 
 tst_host_dev_rd                  <=i_host_dev_rd;
 tst_host_dev_wr                  <=i_host_dev_wr;
-tst_reg_val                      <=i_host_dev_txd;
-tst_dma_rxd                      <=i_host_dev_rxd;
+tst_reg_val                      <=i_host_dev_txd(31 downto 0);
+tst_dma_rxd                      <=i_host_dev_rxd(31 downto 0);
 
 tst_dmatrn_init                  <=i_host_tst_out(123)           ;--p_out_tst(123)           <=i_dmatrn_init;
 tst_dma_start                    <=i_host_tst_out(124)           ;--p_out_tst(124)           <=i_dma_start;

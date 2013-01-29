@@ -56,7 +56,7 @@ p_in_tst        : in    std_logic_vector(127 downto 0);
 --------------------------------------
 --Буфера данных Запись/Чтение (Режим Master)
 --(PC->FPGA)
-p_in_txbuf_din                 : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_in_txbuf_din                 : in    std_logic_vector(31 downto 0);
 p_in_txbuf_wr                  : in    std_logic;
 p_in_txbuf_wr_last             : in    std_logic;
 p_out_txbuf_full               : out   std_logic;

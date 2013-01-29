@@ -212,7 +212,7 @@ i_mem_wr<=i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty w
 
 --Логика работы автомата
 process(p_in_rst,p_in_clk)
-  variable update_addr: std_logic_vector(i_mem_trn_len'length+1 downto 0);
+  variable update_addr: std_logic_vector(i_mem_trn_len'length + G_MEM_DWIDTH/32 downto 0);
 begin
   if p_in_rst='1' then
 
@@ -351,7 +351,7 @@ begin
 
         --Вычисляем значение для обнавления адреса ОЗУ
         update_addr(G_MEM_DWIDTH/32 downto 0):=(others=>'0');
-        update_addr(i_mem_trn_len'length+1 downto G_MEM_DWIDTH/32+1):=i_cfg_mem_trn_len;
+        update_addr(update_addr'high downto G_MEM_DWIDTH/32 + 1):=i_cfg_mem_trn_len;
 
         if (p_in_mem.axiw.rvalid='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
           i_axiw_rready<='0';
