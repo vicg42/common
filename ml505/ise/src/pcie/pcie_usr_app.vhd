@@ -64,7 +64,7 @@ p_out_txbuf_full               : out   std_logic;
 --p_in_txbuf_din_be              : in    std_logic_vector(3 downto 0);
 
 --(PC<-FPGA)
-p_out_rxbuf_dout               : out   std_logic_vector(31 downto 0);
+p_out_rxbuf_dout               : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_in_rxbuf_rd                  : in    std_logic;
 p_in_rxbuf_rd_last             : in    std_logic;
 p_out_rxbuf_empty              : out   std_logic;
@@ -1041,7 +1041,7 @@ p_out_dev_wr  <= p_in_txbuf_wr  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BI
 p_out_dev_rd  <= p_in_rxbuf_rd  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  i_reg_rd       when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
 
-p_out_dev_din <= p_in_txbuf_din when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else p_in_reg_din;
+p_out_dev_din <= EXT(p_in_txbuf_din, p_out_dev_din'length) when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else EXT(p_in_reg_din, p_out_dev_din'length);
 
 
 --¬ывод регистра управлени€ устройствами
