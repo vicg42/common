@@ -109,7 +109,6 @@ signal i_mem_dir                       : std_logic:='0';
 signal i_mem_start                     : std_logic:='0';
 signal i_mem_done                      : std_logic;
 
-signal h_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');
 signal h_mem_start_wcnt                : std_logic_vector(2 downto 0):=(others=>'0');
 signal h_mem_start_w                   : std_logic:='0';
 signal sr_mem_start                    : std_logic_vector(0 to 2):=(others=>'0');
@@ -222,17 +221,6 @@ p_in_rst             => p_in_rst
 --//----------------------------------------------
 --//Инициализация
 --//----------------------------------------------
-process(p_in_hclk)
-begin
-  if p_in_hclk'event and p_in_hclk='1' then
-    if p_in_ctrl.dir=C_MEMWR_WRITE then
-    h_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, h_mem_lentrn'length);
-    else
-    h_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, h_mem_lentrn'length);
-    end if;
-  end if;
-end process;
-
 --//Растягиваем импульс
 process(p_in_rst,p_in_hclk)
 begin
@@ -262,7 +250,11 @@ begin
   if p_in_clk'event and p_in_clk='1' then
     i_mem_adr <= p_in_ctrl.adr;
     i_mem_lenreq <= EXT(p_in_ctrl.req_len(p_in_ctrl.req_len'high downto G_MEM_DWIDTH/32+1), i_mem_lenreq'length) + OR_reduce(p_in_ctrl.req_len(G_MEM_DWIDTH/32 downto 0));
-    i_mem_lentrn <= h_mem_lentrn;
+    if p_in_ctrl.dir=C_MEMWR_WRITE then
+    i_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, i_mem_lentrn'length);
+    else
+    i_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, i_mem_lentrn'length);
+    end if;
     i_mem_dir <= p_in_ctrl.dir;
 
     sr_mem_start<=h_mem_start_w & sr_mem_start(0 to 1);

@@ -151,7 +151,7 @@ p_out_mem.clk        <=p_in_clk;
 p_out_mem.axiw.aid   <=CONV_STD_LOGIC_VECTOR(G_MEM_IDW_NUM, p_out_mem.axiw.aid'length);
 p_out_mem.axiw.adr   <=EXT(i_mem_adr, p_out_mem.axiw.adr'length);
 p_out_mem.axiw.trnlen<=i_axi_trnlen(p_out_mem.axiw.trnlen'range);
-p_out_mem.axiw.dbus  <=CONV_STD_LOGIC_VECTOR(G_MEM_DWIDTH/32 + 1, p_out_mem.axiw.dbus'length); --//2/3 - BusData=32bit/64bit;
+p_out_mem.axiw.dbus  <=CONV_STD_LOGIC_VECTOR(G_MEM_DWIDTH/32 + 1, p_out_mem.axiw.dbus'length); --//2/3/... - BusData=32bit/64bit/...
 p_out_mem.axiw.burst <=CONV_STD_LOGIC_VECTOR(1, p_out_mem.axiw.burst'length);--//0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
 p_out_mem.axiw.lock  <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.lock'length);
 p_out_mem.axiw.cache <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.cache'length);
@@ -172,7 +172,7 @@ p_out_mem.axiw.rready<=i_axiw_rready;
 p_out_mem.axir.aid   <=CONV_STD_LOGIC_VECTOR(G_MEM_IDR_NUM, p_out_mem.axir.aid'length);
 p_out_mem.axir.adr   <=EXT(i_mem_adr, p_out_mem.axir.adr'length);
 p_out_mem.axir.trnlen<=i_axi_trnlen(p_out_mem.axir.trnlen'range);
-p_out_mem.axir.dbus  <=CONV_STD_LOGIC_VECTOR(G_MEM_DWIDTH/32 + 1, p_out_mem.axir.dbus'length); --//2/3 - BusData=32bit/64bit;
+p_out_mem.axir.dbus  <=CONV_STD_LOGIC_VECTOR(G_MEM_DWIDTH/32 + 1, p_out_mem.axir.dbus'length); --//2/3/... - BusData=32bit/64bit/...
 p_out_mem.axir.burst <=CONV_STD_LOGIC_VECTOR(1, p_out_mem.axir.burst'length);--//0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
 p_out_mem.axir.lock  <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.lock'length);
 p_out_mem.axir.cache <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.cache'length);
