@@ -525,11 +525,11 @@ i_host_tst_in(74)<= tst_reg_wr              or
 
 i_host_tst_in(75)<= tst_trn_tdst_rdy_n or
                     tst_trn_rsof_n          or
-                    tst_trn_reof_n          ;--or
+                    tst_trn_reof_n          or
 
---                    tst_trn_tsof_n          or
---                    tst_trn_teof_n          or
---                    tst_trn_tsrc_rdy_n      or
+                    tst_trn_tsof_n          or
+                    tst_trn_teof_n          or
+                    tst_trn_tsrc_rdy_n;--      or
 --
 --                    tst_trn_tsrc_dsc_n;--     or
 
