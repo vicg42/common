@@ -279,6 +279,10 @@ signal i_mem_adr_en                : std_logic;
 signal i_mem_adr                   : std_logic_vector(31 downto 0):=(others=>'0');
 --signal i_tst_rd                    : std_logic;
 
+signal sr_txbuf_din                : std_logic_vector(31 downto 0);
+signal i_txbuf_din                 : std_logic_vector(63 downto 0);
+signal i_txbuf_wr                  : std_logic;
+signal i_txbuf_wr_sel              : std_logic;
 
 --MAIN
 begin
@@ -1035,13 +1039,32 @@ p_out_rxbuf_empty<=p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=
 --//Связь с внешним устройствам
 --//-------------------------------------------------------------------
 --Выбор доступа к внешним устройствам. Через DMA транзакцию или через регистр C_HREG_DEV_DATA
-p_out_dev_wr  <= p_in_txbuf_wr  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
+p_out_dev_wr  <= i_txbuf_wr     when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  p_in_reg_wr    when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
 
 p_out_dev_rd  <= p_in_rxbuf_rd  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  i_reg_rd       when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
 
-p_out_dev_din <= EXT(p_in_txbuf_din, p_out_dev_din'length) when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else EXT(p_in_reg_din, p_out_dev_din'length);
+p_out_dev_din <= i_txbuf_din when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else EXT(p_in_reg_din, p_out_dev_din'length);
+
+
+i_txbuf_din <= p_in_txbuf_din & sr_txbuf_din;
+i_txbuf_wr <= (i_txbuf_wr_sel and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    if i_dma_start='1' then
+      i_txbuf_wr_sel <= '0';
+    else
+      if p_in_txbuf_wr = '1' then
+        i_txbuf_wr_sel <= not i_txbuf_wr_sel;
+      end if;
+
+      sr_txbuf_din <= p_in_txbuf_din;
+
+    end if;
+  end if;
+end process;
 
 
 --Вывод регистра управления устройствами
@@ -1107,7 +1130,7 @@ p_out_tst(121)           <=i_mrd_rcv_size_ok;
 p_out_tst(122)           <=i_dmatrn_mrd_done;
 p_out_tst(123)           <=i_dmatrn_init;
 p_out_tst(124)           <=i_dma_start;
-p_out_tst(125)           <=p_in_txbuf_wr or p_in_rxbuf_rd;
+p_out_tst(125)           <=i_txbuf_wr or p_in_rxbuf_rd;
 p_out_tst(126)           <=p_in_rxbuf_rd_last;
 p_out_tst(127)           <=p_in_txbuf_wr_last;
 

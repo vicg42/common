@@ -164,7 +164,7 @@ parameter C_S_AXI_ADDR_WIDTH        = 32,
                                    // Width of S_AXI_AWADDR, S_AXI_ARADDR, M_AXI_AWADDR and
                                    // M_AXI_ARADDR for all SI/MI slots.
                                    // # = 32.
-parameter C_S_AXI_DATA_WIDTH        = 32,
+parameter C_S_AXI_DATA_WIDTH        = 64,
                                    // Width of WDATA and RDATA on SI slot.
                                    // Must be less or equal to APP_DATA_WIDTH.
                                    // # = 32, 64, 128, 256.

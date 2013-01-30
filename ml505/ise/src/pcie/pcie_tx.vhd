@@ -30,7 +30,7 @@ port(
 usr_reg_dout_i         : in   std_logic_vector(31 downto 0);
 
 --usr_rxbuf_dbe          : out  std_logic_vector(3 downto 0);
-usr_rxbuf_dout_i       : in   std_logic_vector(31 downto 0);
+usr_rxbuf_dout_i       : in   std_logic_vector(63 downto 0);
 usr_rxbuf_rd_o         : out  std_logic;
 usr_rxbuf_rd_last_o    : out  std_logic;
 usr_rxbuf_empty_i      : in   std_logic;
@@ -149,7 +149,7 @@ signal mwr_pkt_count        : std_logic_vector(15 downto 0); -- ол-во отправлены
 signal mwr_len_byte         : std_logic_vector(12 downto 0); --–азмер одного пакета MWr в байт (учавствует в вычислении pmwr_addr)
 signal mwr_len_dw_req       : std_logic_vector(10 downto 0);
 signal mwr_len_dw           : std_logic_vector(10 downto 0); --—колько DW осталось отправить в текущем пакете.
-
+signal mwr_len_2dw          : std_logic_vector(10 downto 0);
 signal mrd_done             : std_logic;
 signal mrd_addr_req         : std_logic_vector(31 downto 0);
 signal mrd_fbe              : std_logic_vector(3 downto 0);
@@ -170,7 +170,7 @@ signal usr_rxbuf_rd         : std_logic;
 signal i_dma_init           : std_logic;
 signal i_dma_init_clr       : std_logic;
 signal i_compl_done         : std_logic;
-
+signal usr_rxbuf_dout_swap  : std_logic_vector(usr_rxbuf_dout_i'range);
 
 --//MAIN
 begin
@@ -184,7 +184,7 @@ mrd_pkt_len_o <= EXT(mrd_len_dw_init, mrd_pkt_len_o'length) when i_dma_init='1' 
 
 usr_rxbuf_rd <= (not trn_tdst_rdy_n and trn_tdst_dsc_n and not usr_rxbuf_empty_i);
 usr_rxbuf_rd_o <= usr_rxbuf_rd and mwr_work;
-usr_rxbuf_rd_last_o <= usr_rxbuf_rd and mwr_work when mwr_len_dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_dw'length) else '0';
+usr_rxbuf_rd_last_o <= usr_rxbuf_rd and mwr_work when mwr_len_2dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_2dw'length) else '0';
 
 trn_tsrc_dsc_n <= '1';
 trn_tsrc_rdy_n_o <= i_trn_tsrc_rdy_n or OR_reduce(trn_dw_sel) or (usr_rxbuf_empty_i and mwr_work);
@@ -195,6 +195,10 @@ trn_td <= i_trn_td;
 
 mwr_done_o <= mwr_done;
 compl_done_o <= i_compl_done;
+
+gen_swap : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
+usr_rxbuf_dout_swap(8*(((usr_rxbuf_dout_i'length/8 - 1) - i) + 1) - 1 downto 8*((usr_rxbuf_dout_i'length/8 - 1) - i)) <= usr_rxbuf_dout_i(8*(i + 1) - 1 downto 8*i);
+end generate gen_swap;
 
 -- Calculate byte count based on byte enable
 process (req_be_i)
@@ -305,7 +309,7 @@ begin
 
     elsif ((fsm_state = S_TX_MWR_QW1) or (fsm_state = S_TX_MWR_QWN)) and
           usr_rxbuf_rd='1' and mwr_work='1' and
-          (mwr_len_dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_dw'length)) and (mwr_pkt_count = (mwr_pkt_count_req - 1)) then
+          (mwr_len_2dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_2dw'length)) and (mwr_pkt_count = (mwr_pkt_count_req - 1)) then
           mwr_done <= '1'; --“ранзакци€ завершена
 
     elsif fsm_state = S_TX_MRD_QW1 and
@@ -604,7 +608,7 @@ begin
                 i_trn_trem_n <= (others=>'0');
 
                 i_trn_td(63 downto 16) <= ('0' &
-                           C_PCIE_PKT_TYPE_MWR_3DW_WD &
+                           C_PCIE_PKT_TYPE_MWR_4DW_WD &
                            '0' &
                            mwr_tlp_tc_i &
                            "0000" &
@@ -623,7 +627,7 @@ begin
 
                 i_trn_td(7 downto 0) <= mwr_lbe & mwr_fbe;
 
-                mwr_work <= '1';
+                mwr_work <= '0';
                 fsm_state <= S_TX_MWR_QW1;
             else
               if trn_tdst_dsc_n='0' then --ядро прерывало передачу данных
@@ -636,7 +640,7 @@ begin
         when S_TX_MWR_QW1 =>
 
             i_dma_init_clr<='0';
-            if usr_rxbuf_rd='1' and mwr_work='1' then
+            if usr_rxbuf_rd='1' and mwr_work='0' then
 
 --                i_trn_tsof_n <= '0';
 --                --i_trn_teof_n <= '1';
@@ -672,40 +676,20 @@ begin
                 --i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= (others=>'0');
 
-                i_trn_td <= (pmwr_addr(31 downto 2) & "00" &
-                           usr_rxbuf_dout_i( 7 downto  0) &
-                           usr_rxbuf_dout_i(15 downto  8) &
-                           usr_rxbuf_dout_i(23 downto 16) &
-                           usr_rxbuf_dout_i(31 downto 24) );
+                i_trn_td <= (CONV_STD_LOGIC_VECTOR(0, 32) &
+                             pmwr_addr(31 downto 2) & "00");
 
                 pmwr_addr <= pmwr_addr + EXT(mwr_len_byte, pmwr_addr'length);
 
-                --—четчик DW(payload) в текущем пакете MWr
-                if mwr_len_dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_dw'length) then
+                mwr_work <= '1';
 
-                    i_trn_teof_n <= '0';
-                    i_trn_tsrc_rdy_n <= '0';
-                    trn_dw_sel <= (others=>'0');
+                i_trn_teof_n <= '1';
+                i_trn_tsrc_rdy_n <= '0';
+                trn_dw_sel <= (others=>'0');
+                mwr_len_2dw <= EXT(mwr_len_dw(mwr_len_dw'high downto 1), mwr_len_2dw'length) + mwr_len_dw(0);
 
-                    mwr_work <= '0';
+                fsm_state <= S_TX_MWR_QWN;
 
-                    --—четчик отправленых пакетов MWr
-                    if mwr_pkt_count = (mwr_pkt_count_req - 1) then
-                      mwr_pkt_count <= (others=>'0');
-                    else
-                      mwr_pkt_count <= mwr_pkt_count + 1;
-                    end if;
-
-                    fsm_state <= S_TX_IDLE;
-                else
-                    i_trn_teof_n <= '1';
-                    i_trn_tsrc_rdy_n <= '0';
-                    trn_dw_sel <= (others=>'0');
-
-                    mwr_len_dw <= mwr_len_dw - 1;
-
-                    fsm_state <= S_TX_MWR_QWN;
-                end if;
             else
               if trn_tdst_dsc_n='0' then --ядро прерывало передачу данных
 ----                  i_trn_teof_n <= '0';
@@ -745,27 +729,22 @@ begin
 --                                                 usr_rxbuf_dout_i(31 downto 24));
 --                end if;
 
-                if trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
-                  i_trn_td(31 downto  0) <= (usr_rxbuf_dout_i( 7 downto  0) &
-                                           usr_rxbuf_dout_i(15 downto  8) &
-                                           usr_rxbuf_dout_i(23 downto 16) &
-                                           usr_rxbuf_dout_i(31 downto 24));
-                else
-                  i_trn_td(63 downto 32) <= (usr_rxbuf_dout_i( 7 downto  0) &
-                                           usr_rxbuf_dout_i(15 downto  8) &
-                                           usr_rxbuf_dout_i(23 downto 16) &
-                                           usr_rxbuf_dout_i(31 downto 24));
-                end if;
+--                if trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
+--                  i_trn_td(31 downto  0) <= usr_rxbuf_dout_swap;
+--                else
+--                  i_trn_td(63 downto 32) <= usr_rxbuf_dout_swap;
+--                end if;
+                i_trn_td(63 downto 0) <= usr_rxbuf_dout_swap;
 
-                i_trn_trem_n <= trn_dw_sel - 1;
+--                i_trn_trem_n <= trn_dw_sel - 0;
 
                 --—четчик DW(payload) в текущем пакете MWr
-                if mwr_len_dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_dw'length) then
+                if mwr_len_2dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_2dw'length) then
 
                     i_trn_tsof_n <= '1';
                     i_trn_teof_n <= '0';
                     i_trn_tsrc_rdy_n <= '0';
-
+                    i_trn_trem_n(0) <= mwr_len_dw(0);
                     trn_dw_sel <= (others=>'0');
                     mwr_work <= '0';
 
@@ -783,8 +762,8 @@ begin
                     i_trn_teof_n <= '1';
                     i_trn_tsrc_rdy_n <= '0';
 
-                    trn_dw_sel <= trn_dw_sel - 1;
-                    mwr_len_dw <= mwr_len_dw - 1;
+--                    trn_dw_sel <= trn_dw_sel - 0;
+                    mwr_len_2dw <= mwr_len_2dw - 1;
 
                     fsm_state <= S_TX_MWR_QWN;
                 end if;
