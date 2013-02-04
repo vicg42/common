@@ -774,7 +774,7 @@ begin
   end if;
 end process;
 
-i_pce_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+i_pce_testing <= not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 --//--------------------------------------------------------------------------------------------
 --//Управление DMA транзакцией (режим Master)
