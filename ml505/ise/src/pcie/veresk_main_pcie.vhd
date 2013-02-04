@@ -42,11 +42,11 @@ port(
 pin_out_led         : out   std_logic_vector(7 downto 0);
 --pin_out_TP          : out   std_logic_vector(7 downto 5);
 
---------------------------------------------------
---Memory banks
---------------------------------------------------
-pin_out_phymem      : out   TMEMCTRL_phy_outs;
-pin_inout_phymem    : inout TMEMCTRL_phy_inouts;
+----------------------------------------------------
+----Memory banks
+----------------------------------------------------
+--pin_out_phymem      : out   TMEMCTRL_phy_outs;
+--pin_inout_phymem    : inout TMEMCTRL_phy_inouts;
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -152,50 +152,50 @@ p_in_rst_n        : in    std_logic
 );
 end component;
 
-component pcie2mem_ctrl
-generic(
-G_MEM_AWIDTH     : integer:=32;
-G_MEM_DWIDTH     : integer:=32;
-G_MEM_BANK_M_BIT : integer:=29;
-G_MEM_BANK_L_BIT : integer:=28;
-G_DBG            : string :="OFF"
-);
-port(
--------------------------------
---Управление
--------------------------------
-p_in_ctrl         : in    TPce2Mem_Ctrl;
-p_out_status      : out   TPce2Mem_Status;
-
-p_in_txd          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_in_txd_wr       : in    std_logic;
-p_out_txbuf_full  : out   std_logic;
-
-p_out_rxd         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_in_rxd_rd       : in    std_logic;
-p_out_rxbuf_empty : out   std_logic;
-
-p_in_hclk         : in    std_logic;
-
--------------------------------
---Связь с mem_ctrl
--------------------------------
-p_out_mem         : out   TMemIN;
-p_in_mem          : in    TMemOUT;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst          : in    std_logic_vector(31 downto 0);
-p_out_tst         : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk          : in    std_logic;
-p_in_rst          : in    std_logic
-);
-end component;
+--component pcie2mem_ctrl
+--generic(
+--G_MEM_AWIDTH     : integer:=32;
+--G_MEM_DWIDTH     : integer:=32;
+--G_MEM_BANK_M_BIT : integer:=29;
+--G_MEM_BANK_L_BIT : integer:=28;
+--G_DBG            : string :="OFF"
+--);
+--port(
+---------------------------------
+----Управление
+---------------------------------
+--p_in_ctrl         : in    TPce2Mem_Ctrl;
+--p_out_status      : out   TPce2Mem_Status;
+--
+--p_in_txd          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+--p_in_txd_wr       : in    std_logic;
+--p_out_txbuf_full  : out   std_logic;
+--
+--p_out_rxd         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+--p_in_rxd_rd       : in    std_logic;
+--p_out_rxbuf_empty : out   std_logic;
+--
+--p_in_hclk         : in    std_logic;
+--
+---------------------------------
+----Связь с mem_ctrl
+---------------------------------
+--p_out_mem         : out   TMemIN;
+--p_in_mem          : in    TMemOUT;
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst          : in    std_logic_vector(31 downto 0);
+--p_out_tst         : out   std_logic_vector(31 downto 0);
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk          : in    std_logic;
+--p_in_rst          : in    std_logic
+--);
+--end component;
 
 signal g_pll_clkin                      : std_logic;
 signal g_pll_mem_clk                    : std_logic;
@@ -375,72 +375,72 @@ i_mem_ctrl_sysin.clk<=g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
 
 
---***********************************************************
---Модуль конфигурирования устр-в
---***********************************************************
-m_cfg : cfgdev_host
-generic map(
-G_DBG => "OFF",
-G_HOST_DWIDTH => C_HDEV_DWIDTH
-)
-port map(
--------------------------------
---Связь с Хостом
--------------------------------
-p_out_host_rxrdy     => i_host_rxrdy(C_HDEV_CFG_DBUF),
-p_out_host_rxd       => i_host_rxd(C_HDEV_CFG_DBUF),
-p_in_host_rd         => i_host_rd(C_HDEV_CFG_DBUF),
-
-p_out_host_txrdy     => i_host_txrdy(C_HDEV_CFG_DBUF),
-p_in_host_txd        => i_host_txd(C_HDEV_CFG_DBUF),
-p_in_host_wr         => i_host_wr(C_HDEV_CFG_DBUF),
-
-p_out_host_irq       => i_host_irq(C_HIRQ_CFG_RX),
-p_in_host_clk        => g_host_clk,
-
--------------------------------
+----***********************************************************
+----Модуль конфигурирования устр-в
+----***********************************************************
+--m_cfg : cfgdev_host
+--generic map(
+--G_DBG => "OFF",
+--G_HOST_DWIDTH => C_HDEV_DWIDTH
+--)
+--port map(
+---------------------------------
+----Связь с Хостом
+---------------------------------
+--p_out_host_rxrdy     => i_host_rxrdy(C_HDEV_CFG_DBUF),
+--p_out_host_rxd       => i_host_rxd(C_HDEV_CFG_DBUF),
+--p_in_host_rd         => i_host_rd(C_HDEV_CFG_DBUF),
 --
--------------------------------
-p_out_module_rdy     => i_cfg_rdy,
-p_out_module_error   => open,
-
--------------------------------
---Запись/Чтение конфигурационных параметров уст-ва
--------------------------------
-p_out_cfg_dadr       => i_cfg_dadr,
-p_out_cfg_radr       => i_cfg_radr,
-p_out_cfg_radr_ld    => i_cfg_radr_ld,
-p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
-p_out_cfg_wr         => i_cfg_wr,
-p_out_cfg_rd         => i_cfg_rd,
-p_out_cfg_txdata     => i_cfg_txd,
-p_in_cfg_rxdata      => i_cfg_rxd,
-p_in_cfg_txrdy       => '1',
-p_in_cfg_rxrdy       => '1',
-
-p_out_cfg_done       => i_cfg_done,
-p_in_cfg_clk         => g_host_clk,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst             => (others=>'0'),
-p_out_tst            => i_cfg_tst_out,
-
--------------------------------
---System
--------------------------------
-p_in_rst => i_cfg_rst
-);
-
---//Распределяем управление от блока конфигурирования(cfgdev.vhd):
-i_cfg_rxd<=(others=>'0');
-
-gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
-i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
-i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr=i else '0';
-i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr=i else '0';
-end generate gen_cfg_dev;
+--p_out_host_txrdy     => i_host_txrdy(C_HDEV_CFG_DBUF),
+--p_in_host_txd        => i_host_txd(C_HDEV_CFG_DBUF),
+--p_in_host_wr         => i_host_wr(C_HDEV_CFG_DBUF),
+--
+--p_out_host_irq       => i_host_irq(C_HIRQ_CFG_RX),
+--p_in_host_clk        => g_host_clk,
+--
+---------------------------------
+----
+---------------------------------
+--p_out_module_rdy     => i_cfg_rdy,
+--p_out_module_error   => open,
+--
+---------------------------------
+----Запись/Чтение конфигурационных параметров уст-ва
+---------------------------------
+--p_out_cfg_dadr       => i_cfg_dadr,
+--p_out_cfg_radr       => i_cfg_radr,
+--p_out_cfg_radr_ld    => i_cfg_radr_ld,
+--p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
+--p_out_cfg_wr         => i_cfg_wr,
+--p_out_cfg_rd         => i_cfg_rd,
+--p_out_cfg_txdata     => i_cfg_txd,
+--p_in_cfg_rxdata      => i_cfg_rxd,
+--p_in_cfg_txrdy       => '1',
+--p_in_cfg_rxrdy       => '1',
+--
+--p_out_cfg_done       => i_cfg_done,
+--p_in_cfg_clk         => g_host_clk,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst             => (others=>'0'),
+--p_out_tst            => i_cfg_tst_out,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_rst => i_cfg_rst
+--);
+--
+----//Распределяем управление от блока конфигурирования(cfgdev.vhd):
+--i_cfg_rxd<=(others=>'0');
+--
+--gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
+--i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
+--i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr=i else '0';
+--i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr=i else '0';
+--end generate gen_cfg_dev;
 
 --***********************************************************
 --Проект модуля хоста - dsn_host.vhd
@@ -542,9 +542,9 @@ i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or i_host_tst2_out(14)  or i_host_ts
 
 
 --//Статусы устройств
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <=i_cfg_rdy;
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DBUF);
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <='1';--i_cfg_rdy;
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <='1';--i_host_rxrdy(C_HDEV_CFG_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <='1';--i_host_txrdy(C_HDEV_CFG_DBUF);
 
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT)    <='1';
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT)   <='0';
@@ -560,18 +560,18 @@ i_host_txd(i)<=i_host_dev_txd;
 end generate gen_dev_dbuf;
 
 i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
-                i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                 (others=>'0');
+--                i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
 
 --//Флаги (Host<-dev)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=not i_host_txrdy(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
-                                                  i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                                                   '0';
+--                                                  i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=not i_host_rxrdy(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
-                                                  i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                                                   '0';
+--                                                  i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
 
-i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
+i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<='0';--i_host_mem_status.done;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT)<=(others=>'0');
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT)<=(others=>'0');
 
@@ -594,87 +594,87 @@ i_host_devadr<=i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_
 
 
 
---***********************************************************
---Модуль Контроллера памяти
---***********************************************************
---Связь модуля dsn_host c ОЗУ
-m_host2mem : pcie2mem_ctrl
-generic map(
-G_MEM_AWIDTH     => C_HREG_MEM_ADR_LAST_BIT,
-G_MEM_DWIDTH     => C_HDEV_DWIDTH,
-G_MEM_BANK_M_BIT => C_HREG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT => C_HREG_MEM_ADR_BANK_L_BIT,
-G_DBG            => G_SIM
-)
-port map(
--------------------------------
---Управление
--------------------------------
-p_in_ctrl         => i_host_mem_ctrl,
-p_out_status      => i_host_mem_status,
-
-p_in_txd          => i_host_txd(C_HDEV_MEM_DBUF),
-p_in_txd_wr       => i_host_wr(C_HDEV_MEM_DBUF),
-p_out_txbuf_full  => i_host_txbuf_full(C_HDEV_MEM_DBUF),
-
-p_out_rxd         => i_host_rxd(C_HDEV_MEM_DBUF),
-p_in_rxd_rd       => i_host_rd(C_HDEV_MEM_DBUF),
-p_out_rxbuf_empty => i_host_rxbuf_empty(C_HDEV_MEM_DBUF),
-
-p_in_hclk         => g_host_clk,
-
--------------------------------
---Связь с mem_ctrl
--------------------------------
-p_out_mem         => i_host_memin,
-p_in_mem          => i_host_memout,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst          => (others=>'0'),
-p_out_tst         => i_host_mem_tst_out,
-
--------------------------------
---System
--------------------------------
-p_in_clk         => g_usr_highclk,
-p_in_rst         => i_host_mem_rst
-);
-
---//Подключаем арбитра ОЗУ к соотв банку
-i_memin_bank(0)<=i_host_memin;
-i_host_memout   <=i_memout_bank(0);
-
---//Core Memory controller
-m_mem_ctrl : mem_ctrl
-generic map(
-G_SIM => G_SIM
-)
-port map(
-------------------------------------
---User Post
-------------------------------------
-p_in_mem   => i_memin_bank,
-p_out_mem  => i_memout_bank,
-
-------------------------------------
---Memory physical interface
-------------------------------------
-p_out_phymem    => pin_out_phymem,
-p_inout_phymem  => pin_inout_phymem,
-
-------------------------------------
---Memory status
-------------------------------------
-p_out_status    => i_mem_ctrl_status,
-
-------------------------------------
---System
-------------------------------------
-p_out_sys       => i_mem_ctrl_sysout,
-p_in_sys        => i_mem_ctrl_sysin
-);
+----***********************************************************
+----Модуль Контроллера памяти
+----***********************************************************
+----Связь модуля dsn_host c ОЗУ
+--m_host2mem : pcie2mem_ctrl
+--generic map(
+--G_MEM_AWIDTH     => C_HREG_MEM_ADR_LAST_BIT,
+--G_MEM_DWIDTH     => C_HDEV_DWIDTH,
+--G_MEM_BANK_M_BIT => C_HREG_MEM_ADR_BANK_M_BIT,
+--G_MEM_BANK_L_BIT => C_HREG_MEM_ADR_BANK_L_BIT,
+--G_DBG            => G_SIM
+--)
+--port map(
+---------------------------------
+----Управление
+---------------------------------
+--p_in_ctrl         => i_host_mem_ctrl,
+--p_out_status      => i_host_mem_status,
+--
+--p_in_txd          => i_host_txd(C_HDEV_MEM_DBUF),
+--p_in_txd_wr       => i_host_wr(C_HDEV_MEM_DBUF),
+--p_out_txbuf_full  => i_host_txbuf_full(C_HDEV_MEM_DBUF),
+--
+--p_out_rxd         => i_host_rxd(C_HDEV_MEM_DBUF),
+--p_in_rxd_rd       => i_host_rd(C_HDEV_MEM_DBUF),
+--p_out_rxbuf_empty => i_host_rxbuf_empty(C_HDEV_MEM_DBUF),
+--
+--p_in_hclk         => g_host_clk,
+--
+---------------------------------
+----Связь с mem_ctrl
+---------------------------------
+--p_out_mem         => i_host_memin,
+--p_in_mem          => i_host_memout,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst          => (others=>'0'),
+--p_out_tst         => i_host_mem_tst_out,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk         => g_usr_highclk,
+--p_in_rst         => i_host_mem_rst
+--);
+--
+----//Подключаем арбитра ОЗУ к соотв банку
+--i_memin_bank(0)<=i_host_memin;
+--i_host_memout   <=i_memout_bank(0);
+--
+----//Core Memory controller
+--m_mem_ctrl : mem_ctrl
+--generic map(
+--G_SIM => G_SIM
+--)
+--port map(
+--------------------------------------
+----User Post
+--------------------------------------
+--p_in_mem   => i_memin_bank,
+--p_out_mem  => i_memout_bank,
+--
+--------------------------------------
+----Memory physical interface
+--------------------------------------
+--p_out_phymem    => pin_out_phymem,
+--p_inout_phymem  => pin_inout_phymem,
+--
+--------------------------------------
+----Memory status
+--------------------------------------
+--p_out_status    => i_mem_ctrl_status,
+--
+--------------------------------------
+----System
+--------------------------------------
+--p_out_sys       => i_mem_ctrl_sysout,
+--p_in_sys        => i_mem_ctrl_sysin
+--);
 
 
 
