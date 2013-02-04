@@ -22,7 +22,7 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
---use work.cfgdev_pkg.all;
+use work.cfgdev_pkg.all;
 use work.mem_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
 use work.pcie_pkg.all;
@@ -240,23 +240,23 @@ signal i_host_tst_in                    : std_logic_vector(127 downto 0);
 signal i_host_tst_out                   : std_logic_vector(127 downto 0);
 signal i_host_tst2_out                  : std_logic_vector(255 downto 0);
 
---signal i_cfg_rst                        : std_logic;
---signal i_cfg_rdy                        : std_logic;
---signal i_cfg_dadr                       : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
---signal i_cfg_radr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
---signal i_cfg_radr_ld                    : std_logic;
---signal i_cfg_radr_fifo                  : std_logic;
---signal i_cfg_wr                         : std_logic;
---signal i_cfg_rd                         : std_logic;
---signal i_cfg_txd                        : std_logic_vector(15 downto 0);
---signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
---Type TCfgRxD is array (0 to C_CFGDEV_COUNT-1) of std_logic_vector(i_cfg_rxd'range);
---signal i_cfg_rxd_dev                    : TCfgRxD;
---signal i_cfg_done                       : std_logic;
---signal i_cfg_wr_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
---signal i_cfg_rd_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
---signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
---signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
+signal i_cfg_rst                        : std_logic;
+signal i_cfg_rdy                        : std_logic;
+signal i_cfg_dadr                       : std_logic_vector(C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT downto 0);
+signal i_cfg_radr                       : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
+signal i_cfg_radr_ld                    : std_logic;
+signal i_cfg_radr_fifo                  : std_logic;
+signal i_cfg_wr                         : std_logic;
+signal i_cfg_rd                         : std_logic;
+signal i_cfg_txd                        : std_logic_vector(15 downto 0);
+signal i_cfg_rxd                        : std_logic_vector(15 downto 0);
+Type TCfgRxD is array (0 to C_CFGDEV_COUNT-1) of std_logic_vector(i_cfg_rxd'range);
+signal i_cfg_rxd_dev                    : TCfgRxD;
+signal i_cfg_done                       : std_logic;
+signal i_cfg_wr_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
+signal i_cfg_rd_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
+signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
+signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
@@ -352,7 +352,7 @@ begin
 --***********************************************************
 i_host_rst_n <=pin_in_pciexp_rstn;
 
---i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
+i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all;
 
@@ -375,72 +375,72 @@ i_mem_ctrl_sysin.clk<=g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
 
 
-----***********************************************************
-----Модуль конфигурирования устр-в
-----***********************************************************
---m_cfg : cfgdev_host
---generic map(
---G_DBG => "OFF",
---G_HOST_DWIDTH => C_HDEV_DWIDTH
---)
---port map(
----------------------------------
-----Связь с Хостом
----------------------------------
---p_out_host_rxrdy     => i_host_rxrdy(C_HDEV_CFG_DBUF),
---p_out_host_rxd       => i_host_rxd(C_HDEV_CFG_DBUF),
---p_in_host_rd         => i_host_rd(C_HDEV_CFG_DBUF),
+--***********************************************************
+--Модуль конфигурирования устр-в
+--***********************************************************
+m_cfg : cfgdev_host
+generic map(
+G_DBG => "OFF",
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--Связь с Хостом
+-------------------------------
+p_out_host_rxrdy     => i_host_rxrdy(C_HDEV_CFG_DBUF),
+p_out_host_rxd       => i_host_rxd(C_HDEV_CFG_DBUF),
+p_in_host_rd         => i_host_rd(C_HDEV_CFG_DBUF),
+
+p_out_host_txrdy     => i_host_txrdy(C_HDEV_CFG_DBUF),
+p_in_host_txd        => i_host_txd(C_HDEV_CFG_DBUF),
+p_in_host_wr         => i_host_wr(C_HDEV_CFG_DBUF),
+
+p_out_host_irq       => i_host_irq(C_HIRQ_CFG_RX),
+p_in_host_clk        => g_host_clk,
+
+-------------------------------
 --
---p_out_host_txrdy     => i_host_txrdy(C_HDEV_CFG_DBUF),
---p_in_host_txd        => i_host_txd(C_HDEV_CFG_DBUF),
---p_in_host_wr         => i_host_wr(C_HDEV_CFG_DBUF),
---
---p_out_host_irq       => i_host_irq(C_HIRQ_CFG_RX),
---p_in_host_clk        => g_host_clk,
---
----------------------------------
-----
----------------------------------
---p_out_module_rdy     => i_cfg_rdy,
---p_out_module_error   => open,
---
----------------------------------
-----Запись/Чтение конфигурационных параметров уст-ва
----------------------------------
---p_out_cfg_dadr       => i_cfg_dadr,
---p_out_cfg_radr       => i_cfg_radr,
---p_out_cfg_radr_ld    => i_cfg_radr_ld,
---p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
---p_out_cfg_wr         => i_cfg_wr,
---p_out_cfg_rd         => i_cfg_rd,
---p_out_cfg_txdata     => i_cfg_txd,
---p_in_cfg_rxdata      => i_cfg_rxd,
---p_in_cfg_txrdy       => '1',
---p_in_cfg_rxrdy       => '1',
---
---p_out_cfg_done       => i_cfg_done,
---p_in_cfg_clk         => g_host_clk,
---
----------------------------------
-----Технологический
----------------------------------
---p_in_tst             => (others=>'0'),
---p_out_tst            => i_cfg_tst_out,
---
----------------------------------
-----System
----------------------------------
---p_in_rst => i_cfg_rst
---);
---
-----//Распределяем управление от блока конфигурирования(cfgdev.vhd):
---i_cfg_rxd<=(others=>'0');
---
---gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
---i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
---i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr=i else '0';
---i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr=i else '0';
---end generate gen_cfg_dev;
+-------------------------------
+p_out_module_rdy     => i_cfg_rdy,
+p_out_module_error   => open,
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       => i_cfg_dadr,
+p_out_cfg_radr       => i_cfg_radr,
+p_out_cfg_radr_ld    => i_cfg_radr_ld,
+p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
+p_out_cfg_wr         => i_cfg_wr,
+p_out_cfg_rd         => i_cfg_rd,
+p_out_cfg_txdata     => i_cfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
+p_in_cfg_txrdy       => '1',
+p_in_cfg_rxrdy       => '1',
+
+p_out_cfg_done       => i_cfg_done,
+p_in_cfg_clk         => g_host_clk,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => (others=>'0'),
+p_out_tst            => i_cfg_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_cfg_rst
+);
+
+--//Распределяем управление от блока конфигурирования(cfgdev.vhd):
+i_cfg_rxd<=(others=>'0');
+
+gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
+i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
+i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr=i else '0';
+i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr=i else '0';
+end generate gen_cfg_dev;
 
 --***********************************************************
 --Проект модуля хоста - dsn_host.vhd
@@ -519,7 +519,7 @@ i_host_tst_in(74)<= tst_reg_wr              or
                     tst_usr_rxbuf_empty_i or OR_reduce(tst_irq_clr_cnt) or
                     tst_host_dev_rd or
 
-                    tst_cfg_interrupt_n         or
+                    tst_cfg_interrupt_n         or i_host_tst_out(57) or
                     tst_cfg_interrupt_rdy_n     or
                     tst_cfg_interrupt_assert_n;
 
@@ -533,23 +533,23 @@ i_host_tst_in(75)<= tst_trn_tdst_rdy_n or
 --
 --                    tst_trn_tsrc_dsc_n;--     or
 
-i_host_tst_in(76)<= OR_reduce(tst_trn_tbuf_av) or
+i_host_tst_in(76)<= OR_reduce(tst_trn_tbuf_av) or i_host_tst_out(56) or
                     OR_reduce(tst_dma_rxd);
 
 i_host_tst_in(126 downto 77)<=(others=>'0');
-i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or
+i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or i_host_tst2_out(14)  or i_host_tst2_out(15) or
                     tst_trn_rdst_rdy_n;-- or
 
 
 --//Статусы устройств
---i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <=i_cfg_rdy;
---i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DBUF);
---i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <=i_cfg_rdy;
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
 
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT)    <='1';
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT)   <='0';
 
-i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=OR_reduce(i_mem_ctrl_status.rdy);
+i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<='1';--OR_reduce(i_mem_ctrl_status.rdy);
 
 
 --//Запись/Чтение данных устройств хоста
@@ -559,15 +559,16 @@ i_host_rd(i) <=i_host_dev_rd when i_host_devadr=CONV_STD_LOGIC_VECTOR(i, i_host_
 i_host_txd(i)<=i_host_dev_txd;
 end generate gen_dev_dbuf;
 
-i_host_dev_rxd<=i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                 (others=>'0');
 
-
 --//Флаги (Host<-dev)
-i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=not i_host_txrdy(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
+                                                  i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                                                   '0';
-
-i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=not i_host_rxrdy(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
+                                                  i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
                                                   '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
@@ -705,7 +706,7 @@ p_out_1ms      => open,
 --System
 -------------------------------
 p_in_clk       => g_host_clk,
-p_in_rst       => i_mem_ctrl_sysin.rst
+p_in_rst       => i_host_rst_all
 );
 
 

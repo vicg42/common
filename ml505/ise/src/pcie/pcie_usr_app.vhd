@@ -283,6 +283,7 @@ signal sr_txbuf_din                : std_logic_vector(31 downto 0);
 signal i_txbuf_din                 : std_logic_vector(63 downto 0);
 signal i_txbuf_wr                  : std_logic;
 signal i_txbuf_wr_sel              : std_logic;
+signal i_pce_testing               : std_logic;
 
 --MAIN
 begin
@@ -698,7 +699,7 @@ begin
             txd(C_HREG_PCIE_NOSNOOP_RBIT)        :=p_in_cfg_no_snoop_en;
             txd(C_HREG_PCIE_CPL_STREAMING_BIT)   :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);
             txd(C_HREG_PCIE_METRING_BIT)         :=v_reg_pcie(C_HREG_PCIE_METRING_BIT);
-            txd(C_HREG_PCIE_SPEED_TESTING_BIT)   :=v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+            txd(C_HREG_PCIE_SPEED_TESTING_BIT)   :=i_pce_testing;
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_MEM_ADR, 5) then
             txd:=EXT(v_reg_mem_adr, txd'length);
@@ -773,7 +774,7 @@ begin
   end if;
 end process;
 
-
+i_pce_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 --//--------------------------------------------------------------------------------------------
 --//Управление DMA транзакцией (режим Master)
@@ -809,7 +810,7 @@ begin
     end if ;
 
     --DMATRN_WR/RD завершена
-    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT)='1' then
+    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or i_pce_testing='1' then
       i_dmatrn_mrd_done_tmp<=i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
       i_dmatrn_mwr_done_tmp<=p_in_mwr_done and sr_rxbuf_rd_last;
       i_dmatrn_mem_done<=(others=>'0');
@@ -1030,9 +1031,9 @@ end generate gen_irq;
 --//-------------------------------------------------------------------
 p_out_rxbuf_dout <=p_in_dev_dout;
 p_out_txbuf_full <=p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
-                   p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+                   p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not i_pce_testing;
 p_out_rxbuf_empty<=p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
-                   p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+                   p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pce_testing;
 
 
 --//-------------------------------------------------------------------
@@ -1069,7 +1070,7 @@ end process;
 
 --Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dmatrn_mrd_done when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init and not i_pce_testing;
 p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1)<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1);
 
 
@@ -1121,11 +1122,11 @@ p_out_tst(95 downto 64) <=p_in_mrd_rcv_size;
 p_out_tst(96)           <=i_irq_clr;
 p_out_tst(100 downto 97)<=i_irq_num(3 downto 0);
 p_out_tst(108 downto 101)<=p_in_irq_status(7 downto 0);
-p_out_tst(116 downto 109)<=EXT(i_irq_set(7 downto 0), 8);
+p_out_tst(116 downto 109)<=EXT(i_irq_set(C_HIRQ_COUNT - 1 downto 0), 8);
 p_out_tst(117)           <=i_dma_mwr_done and sr_dmatrn_mwr_done;
 p_out_tst(118)           <=i_dma_mrd_done and sr_dmatrn_mrd_done;
 p_out_tst(119)           <=i_dmatrn_mwr_done;
-p_out_tst(120)           <=p_in_throttle_tst(0); --//mrd_work_throttle
+p_out_tst(120)           <=OR_reduce(p_in_throttle_tst); --//mrd_work_throttle
 p_out_tst(121)           <=i_mrd_rcv_size_ok;
 p_out_tst(122)           <=i_dmatrn_mrd_done;
 p_out_tst(123)           <=i_dmatrn_init;

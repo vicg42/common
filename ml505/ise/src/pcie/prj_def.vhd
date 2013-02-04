@@ -23,11 +23,13 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#034C#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#034A#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
 
+--//HOST
+constant C_HDEV_DWIDTH           : integer:=64;--шина портов p_out_dev_din/p_in_dev_dout модуля dsn_host.vhd
 
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_host.vhd: (max count HREG - 0x1F)
@@ -101,7 +103,7 @@ constant C_HDEV_EDEV_DBUF                     : integer:=4;--External Device (ка
 constant C_HDEV_PULT_DBUF                     : integer:=5;--
 constant C_HDEV_VIZIR_DBUF                    : integer:=6;--
 constant C_HDEV_BUP_DBUF                      : integer:=7;--Блок управления приводами
-constant C_HDEV_COUNT                         : integer:=C_HDEV_BUP_DBUF+1;
+constant C_HDEV_COUNT                         : integer:=3;--C_HDEV_BUP_DBUF+1;
 constant C_HDEV_COUNT_MAX                     : integer:=pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT+1));
 
 --//Register C_HOST_REG_STATUS_DEV / Bit Map:
@@ -163,7 +165,7 @@ constant C_HIRQ_VCH4                          : integer:=9;
 constant C_HIRQ_VCH5                          : integer:=10;
 constant C_HIRQ_VIZIR_RX                      : integer:=11;
 constant C_HIRQ_BUP_RX                        : integer:=12;
-constant C_HIRQ_COUNT                         : integer:=C_HIRQ_BUP_RX+1;
+constant C_HIRQ_COUNT                         : integer:=1;--C_HIRQ_BUP_RX+1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
 
@@ -227,9 +229,6 @@ constant C_HREG_FUNCPRM_VCTRL_GAMMA_BIT       : integer:=10;
 constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_VCTRL_GAMMA_BIT;
 
 
---//Порт модуля dsn_host.vhd /p_out_dev_din/out/ Bit Map:
-constant C_HDEV_DWIDTH                        : integer:=64;
-
 --//Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
 constant C_HDEV_OPTIN_TXFIFO_PFULL_BIT        : integer:=0;
 constant C_HDEV_OPTIN_RXFIFO_EMPTY_BIT        : integer:=1;
@@ -246,11 +245,11 @@ constant C_HDEV_OPTIN_LAST_BIT                : integer:=C_HDEV_OPTIN_TIME_M_BIT
 constant C_HDEV_OPTOUT_MEM_ADR_L_BIT          : integer:=0;
 constant C_HDEV_OPTOUT_MEM_ADR_M_BIT          : integer:=31;
 constant C_HDEV_OPTOUT_MEM_RQLEN_L_BIT        : integer:=32;
-constant C_HDEV_OPTOUT_MEM_RQLEN_M_BIT        : integer:=49;--C_HDEV_OPTOUT_MEM_RQLEN_L_BIT + 21 (mem_rqlen - значение в BYTE. max 2MB)
+constant C_HDEV_OPTOUT_MEM_RQLEN_M_BIT        : integer:=49;--C_HDEV_OPTOUT_MEM_RQLEN_L_BIT + 17 (mem_rqlen - значение в BYTE. max 128KB)
 constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT    : integer:=50;
-constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT    : integer:=57;--C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT + 8 (mem_trnwr - значение в DWORD.)
+constant C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT    : integer:=57;--C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT + 7 (mem_trnwr - значение в DWORD.)
 constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT    : integer:=58;
-constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT    : integer:=65;--C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT + 8 (mem_trnrd - значение в DWORD.)
+constant C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT    : integer:=65;--C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT + 7 (mem_trnrd - значение в DWORD.)
 constant C_HDEV_OPTOUT_TIME_L_BIT             : integer:=66;
 constant C_HDEV_OPTOUT_TIME_M_BIT             : integer:=97;--C_HDEV_OPTOUT_TIME_L_BIT + 31
 constant C_HDEV_OPTOUT_TIME_SET_BIT           : integer:=98;
