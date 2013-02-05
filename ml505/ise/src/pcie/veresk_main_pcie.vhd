@@ -375,72 +375,72 @@ i_mem_ctrl_sysin.clk<=g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
 
 
-----***********************************************************
-----Модуль конфигурирования устр-в
-----***********************************************************
---m_cfg : cfgdev_host
---generic map(
---G_DBG => "OFF",
---G_HOST_DWIDTH => C_HDEV_DWIDTH
---)
---port map(
----------------------------------
-----Связь с Хостом
----------------------------------
---p_out_host_rxrdy     => i_host_rxrdy(C_HDEV_CFG_DBUF),
---p_out_host_rxd       => i_host_rxd(C_HDEV_CFG_DBUF),
---p_in_host_rd         => i_host_rd(C_HDEV_CFG_DBUF),
+--***********************************************************
+--Модуль конфигурирования устр-в
+--***********************************************************
+m_cfg : cfgdev_host
+generic map(
+G_DBG => "OFF",
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--Связь с Хостом
+-------------------------------
+p_out_host_rxrdy     => i_host_rxrdy(C_HDEV_CFG_DBUF),
+p_out_host_rxd       => i_host_rxd(C_HDEV_CFG_DBUF),
+p_in_host_rd         => i_host_rd(C_HDEV_CFG_DBUF),
+
+p_out_host_txrdy     => i_host_txrdy(C_HDEV_CFG_DBUF),
+p_in_host_txd        => i_host_txd(C_HDEV_CFG_DBUF),
+p_in_host_wr         => i_host_wr(C_HDEV_CFG_DBUF),
+
+p_out_host_irq       => i_host_irq(C_HIRQ_CFG_RX),
+p_in_host_clk        => g_host_clk,
+
+-------------------------------
 --
---p_out_host_txrdy     => i_host_txrdy(C_HDEV_CFG_DBUF),
---p_in_host_txd        => i_host_txd(C_HDEV_CFG_DBUF),
---p_in_host_wr         => i_host_wr(C_HDEV_CFG_DBUF),
---
---p_out_host_irq       => i_host_irq(C_HIRQ_CFG_RX),
---p_in_host_clk        => g_host_clk,
---
----------------------------------
-----
----------------------------------
---p_out_module_rdy     => i_cfg_rdy,
---p_out_module_error   => open,
---
----------------------------------
-----Запись/Чтение конфигурационных параметров уст-ва
----------------------------------
---p_out_cfg_dadr       => i_cfg_dadr,
---p_out_cfg_radr       => i_cfg_radr,
---p_out_cfg_radr_ld    => i_cfg_radr_ld,
---p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
---p_out_cfg_wr         => i_cfg_wr,
---p_out_cfg_rd         => i_cfg_rd,
---p_out_cfg_txdata     => i_cfg_txd,
---p_in_cfg_rxdata      => i_cfg_rxd,
---p_in_cfg_txrdy       => '1',
---p_in_cfg_rxrdy       => '1',
---
---p_out_cfg_done       => i_cfg_done,
---p_in_cfg_clk         => g_host_clk,
---
----------------------------------
-----Технологический
----------------------------------
---p_in_tst             => (others=>'0'),
---p_out_tst            => i_cfg_tst_out,
---
----------------------------------
-----System
----------------------------------
---p_in_rst => i_cfg_rst
---);
---
-----//Распределяем управление от блока конфигурирования(cfgdev.vhd):
---i_cfg_rxd<=(others=>'0');
---
---gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
---i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
---i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr=i else '0';
---i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr=i else '0';
---end generate gen_cfg_dev;
+-------------------------------
+p_out_module_rdy     => i_cfg_rdy,
+p_out_module_error   => open,
+
+-------------------------------
+--Запись/Чтение конфигурационных параметров уст-ва
+-------------------------------
+p_out_cfg_dadr       => i_cfg_dadr,
+p_out_cfg_radr       => i_cfg_radr,
+p_out_cfg_radr_ld    => i_cfg_radr_ld,
+p_out_cfg_radr_fifo  => i_cfg_radr_fifo,
+p_out_cfg_wr         => i_cfg_wr,
+p_out_cfg_rd         => i_cfg_rd,
+p_out_cfg_txdata     => i_cfg_txd,
+p_in_cfg_rxdata      => i_cfg_rxd,
+p_in_cfg_txrdy       => '1',
+p_in_cfg_rxrdy       => '1',
+
+p_out_cfg_done       => i_cfg_done,
+p_in_cfg_clk         => g_host_clk,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => (others=>'0'),
+p_out_tst            => i_cfg_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_rst => i_cfg_rst
+);
+
+--//Распределяем управление от блока конфигурирования(cfgdev.vhd):
+i_cfg_rxd<=(others=>'0');
+
+gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
+i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
+i_cfg_rd_dev(i)   <=i_cfg_rd   when i_cfg_dadr=i else '0';
+i_cfg_done_dev(i) <=i_cfg_done when i_cfg_dadr=i else '0';
+end generate gen_cfg_dev;
 
 --***********************************************************
 --Проект модуля хоста - dsn_host.vhd
@@ -542,9 +542,9 @@ i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or i_host_tst2_out(14)  or i_host_ts
 
 
 --//Статусы устройств
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <='1';--i_cfg_rdy;
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <='1';--i_host_rxrdy(C_HDEV_CFG_DBUF);
-i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <='1';--i_host_txrdy(C_HDEV_CFG_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RDY_BIT)    <=i_cfg_rdy;
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_RXRDY_BIT)  <=i_host_rxrdy(C_HDEV_CFG_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_CFG_TXRDY_BIT)  <=i_host_txrdy(C_HDEV_CFG_DBUF);
 
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_RDY_BIT)    <='1';
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_LINK_BIT)   <='0';
