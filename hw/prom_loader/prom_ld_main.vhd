@@ -20,10 +20,13 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_cfg.all;
+--use work.prj_cfg.all;
 use work.prom_phypin_pkg.all;
 
 entity prom_ld is
+generic(
+G_HOST_DWIDTH : integer:=32
+);
 port(
 p_in_tmr_en      : in    std_logic;
 p_in_tmr_stb     : in    std_logic;
@@ -31,18 +34,19 @@ p_in_tmr_stb     : in    std_logic;
 -------------------------------
 --Связь с HOST
 -------------------------------
-p_out_host_rxrdy : out   std_logic;                      --//1 - rdy to used
-p_out_host_rxd   : out   std_logic_vector(31 downto 0);  --//cfgdev -> host
-p_in_host_rd     : in    std_logic;                      --//
+p_out_host_rxd   : out   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_host_rd     : in    std_logic;
+p_out_rxbuf_full : out   std_logic;
+p_out_rxbuf_empty: out   std_logic;
 
+p_in_host_txd    : in    std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_host_wr     : in    std_logic;
 p_out_txbuf_full : out   std_logic;
-p_out_host_txrdy : out   std_logic;                      --//1 - rdy to used
-p_in_host_txd    : in    std_logic_vector(31 downto 0);  --//cfgdev <- host
-p_in_host_wr     : in    std_logic;                      --//
+p_out_txbuf_empty: out   std_logic;
 
 p_in_host_clk    : in    std_logic;
 
-p_out_hirq       : out   std_logic;                      --//прерывание
+p_out_hirq       : out   std_logic;
 p_out_herr       : out   std_logic;
 
 -------------------------------
@@ -68,68 +72,57 @@ end prom_ld;
 
 architecture behavioral of prom_ld is
 
---component prog_flash
---port (
---p_out_usr_rd     : out  std_logic;
---p_in_usr_txd     : in   std_logic_vector(31 downto 0);
---p_in_usr_txrdy_n : in   std_logic;
---
---p_out_phy_adr    : out  std_logic_vector(23 downto 0);
---p_in_phy_d       : in   std_logic_vector(15 downto 0);
---p_out_phy_d      : out  std_logic_vector(15 downto 0);
---p_out_phy_dio_t  : out  std_logic;
---p_out_phy_oe_n   : out  std_logic;
---p_out_phy_we_n   : out  std_logic;
---p_out_phy_cs_n   : out  std_logic;
---p_in_phy_wait    : in   std_logic;
---
---p_out_rdy        : out  std_logic;
---p_out_status     : out  std_logic_vector(3 downto 0);
---
---p_out_tst        : out  std_logic_vector(31 downto 0);
---p_in_tst         : in   std_logic_vector(31 downto 0);
---
---p_in_clk         : in   std_logic;
---p_in_rst         : in   std_logic
---);
---end component;
-
 component prog_flash
+generic(
+G_USRBUF_DWIDTH : integer := 32;
+G_FLASH_AWIDTH : integer := 24;
+G_FLASH_DWIDTH : integer := 16
+);
 port(
-p_out_usr_rd     : out  std_logic;
-p_in_usr_txd     : in   std_logic_vector(31 downto 0);
-p_in_usr_txrdy_n : in   std_logic;
+--
+p_in_txbuf_d      : in    std_logic_vector(G_USRBUF_DWIDTH - 1 downto 0);
+p_out_txbuf_rd    : out   std_logic;
+p_in_txbuf_empty  : in    std_logic;
 
-p_out_phy_adr    : out  std_logic_vector(23 downto 0);
-p_in_phy_d       : in   std_logic_vector(15 downto 0);
-p_out_phy_d      : out  std_logic_vector(15 downto 0);
-p_out_phy_dio_t  : out  std_logic;
-p_out_phy_oe_n   : out  std_logic;
-p_out_phy_we_n   : out  std_logic;
-p_out_phy_cs_n   : out  std_logic;
-p_in_phy_wait    : in   std_logic;
+p_out_rxbuf_d     : out   std_logic_vector(G_USRBUF_DWIDTH - 1 downto 0);
+p_out_rxbuf_wr    : out   std_logic;
+p_in_rxbuf_full   : in    std_logic;
 
-p_out_rdy        : out  std_logic;
-p_out_status     : out  std_logic_vector(3 downto 0);
+--
+p_out_irq         : out   std_logic;
+p_out_status      : out   std_logic_vector(15 downto 0);
 
-p_out_tst        : out  std_logic_vector(31 downto 0);
-p_in_tst         : in   std_logic_vector(31 downto 0);
+--PHY
+p_out_phy_a       : out   std_logic_vector(G_FLASH_AWIDTH - 1 downto 0);
+p_in_phy_d        : in    std_logic_vector(G_FLASH_DWIDTH - 1 downto 0);
+p_out_phy_d       : out   std_logic_vector(G_FLASH_DWIDTH - 1 downto 0);
+p_out_phy_oe      : out   std_logic;
+p_out_phy_we      : out   std_logic;
+p_out_phy_cs      : out   std_logic;
+p_in_phy_wait     : in    std_logic;
 
-p_in_clk         : in   std_logic;
-p_in_rst         : in   std_logic
+--Технологический
+p_in_tst          : in    std_logic_vector(31 downto 0);
+p_out_tst         : out   std_logic_vector(31 downto 0);
+
+--System
+p_in_clk_en       : in    std_logic;
+p_in_clk          : in    std_logic;
+p_in_rst          : in    std_logic
 );
 end component;
 
 component prom_buf
 port (
-din    : in  std_logic_vector(31 downto 0);
+din    : in  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 wr_en  : in  std_logic;
 wr_clk : in  std_logic;
 
-dout   : out std_logic_vector(31 downto 0);
+dout   : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 rd_en  : in  std_logic;
 rd_clk : in  std_logic;
 
+almost_full : out std_logic;
 full   : out std_logic;
 empty  : out std_logic;
 
@@ -140,25 +133,35 @@ end component;
 signal i_tmr_en         : std_logic;
 signal sr_core_start    : std_logic_vector(0 to 2);
 
-signal i_txbuf_do       : std_logic_vector(31 downto 0);
+signal i_txbuf_do       : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_txbuf_rd       : std_logic;
+signal i_txbuf_full     : std_logic;
 signal i_txbuf_empty    : std_logic;
 signal i_txbuf_empty_tmp: std_logic;
 signal i_txbuf_empty_en : std_logic;
+signal i_rxbuf_di       : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+signal i_rxbuf_wr       : std_logic;
+signal i_rxbuf_full     : std_logic;
+signal i_rxbuf_empty    : std_logic;
 
-signal i_phy_di         : std_logic_vector(15 downto 0);
-signal i_phy_do         : std_logic_vector(15 downto 0);
-signal i_phy_dt         : std_logic;
-
+signal i_phy_di         : std_logic_vector(C_PROG_PHY_DWIDTH - 1 downto 0);
+signal i_phy_do         : std_logic_vector(C_PROG_PHY_DWIDTH - 1 downto 0);
+signal i_phy_oe_n       : std_logic;
+signal i_phy_we_n,i_phy_we_n_out       : std_logic;
 signal i_core_rdy       : std_logic;
-signal i_core_status    : std_logic_vector(3 downto 0);
+signal i_core_irq       : std_logic;
+signal i_core_status    : std_logic_vector(15 downto 0);
 
+signal i_buf_rst        : std_logic;
+signal i_flash_rst_cnt  : std_logic_vector(12 downto 0);
+signal i_divcnt         : std_logic_vector(4 downto 0);
+signal i_clk_en         : std_logic;
+signal sr_phy_we_n      : std_logic_vector(0 to 4);
 signal i_tst_out        : std_logic_vector(31 downto 0);
 
 
 --MAIN
 begin
-
 
 --//----------------------------------
 --//Технологические сигналы
@@ -169,28 +172,32 @@ p_out_tst(31 downto 0) <= i_tst_out;
 --//----------------------------------
 --//
 --//----------------------------------
-p_out_hirq <= i_core_status(3);
-p_out_herr <= OR_reduce(i_core_status(2 downto 0));
+p_out_hirq <= i_core_irq;
+p_out_herr <= OR_reduce(i_core_status);
 
-p_out_host_rxrdy <= '0';
-p_out_host_txrdy <= i_txbuf_empty;
+p_out_rxbuf_full  <= i_rxbuf_full;
+p_out_rxbuf_empty <= i_rxbuf_empty;
 
-process(p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_tmr_en <= p_in_tmr_en;
-    sr_core_start <= p_in_tmr_stb & sr_core_start(0 to 1);
+p_out_txbuf_full  <= i_txbuf_full;
+p_out_txbuf_empty <= i_txbuf_empty;--i_txbuf_empty_tmp;
 
-    if i_txbuf_empty_tmp = '1' then
-      i_txbuf_empty_en <= '0';
-    elsif i_tmr_en = '1' and sr_core_start(1) = '1' and sr_core_start(2) = '0' then
-      i_txbuf_empty_en <= '1';
-    end if;
-  end if;
-end process;
+--process(p_in_clk)
+--begin
+--  if p_in_clk'event and p_in_clk='1' then
+--    i_tmr_en <= p_in_tmr_en;
+--    sr_core_start <= p_in_tmr_stb & sr_core_start(0 to 1);
+--
+--    if i_txbuf_empty_tmp = '1' then
+--      i_txbuf_empty_en <= '0';
+--    elsif i_tmr_en = '1' and sr_core_start(1) = '1' and sr_core_start(2) = '0' then
+--      i_txbuf_empty_en <= '1';
+--    end if;
+--  end if;
+--end process;
+--
+--i_txbuf_empty <= not (not i_txbuf_empty_tmp and i_txbuf_empty_en) when i_tmr_en = '1' else i_txbuf_empty_tmp;
 
-i_txbuf_empty<=not (not i_txbuf_empty_tmp and i_txbuf_empty_en) when i_tmr_en = '1' else i_txbuf_empty_tmp;
-
+--fpga -> flash
 m_txbuf : prom_buf
 port map(
 din    => p_in_host_txd,
@@ -201,67 +208,113 @@ dout   => i_txbuf_do,
 rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
-full   => p_out_txbuf_full,
-empty  => i_txbuf_empty_tmp,
+almost_full => i_txbuf_full,
+full   => open,--i_txbuf_full,
+empty  => i_txbuf_empty, --i_txbuf_empty_tmp,
 
 rst    => p_in_rst
 );
 
-
---mmm : prog_flash
---port map(
---p_out_usr_rd     => open,
---p_in_usr_txd     => (others=>'0'),
---p_in_usr_txrdy_n => '0',
---
---p_out_phy_adr    => open,
---p_in_phy_d       => (others=>'0'),
---p_out_phy_d      => open,
---p_out_phy_dio_t  => open,
---p_out_phy_oe_n   => open,
---p_out_phy_we_n   => open,
---p_out_phy_cs_n   => open,
---p_in_phy_wait    => '0',
---
---p_out_rdy        => open,
---p_out_status     => open,
---
---p_out_tst        => open,
---p_in_tst         => (others=>'0'),
---
---p_in_clk         => p_in_clk,
---p_in_rst         => p_in_rst
---);
-
-
-m_core : prog_flash
+--fpga <- flash
+m_rxbuf : prom_buf
 port map(
-p_out_usr_rd     => i_txbuf_rd,
-p_in_usr_txd     => i_txbuf_do,
-p_in_usr_txrdy_n => i_txbuf_empty,
+din    => i_rxbuf_di,
+wr_en  => i_rxbuf_wr,
+wr_clk => p_in_clk,
 
-p_out_phy_adr    => p_out_phy.a,
-p_in_phy_d       => i_phy_di,
-p_out_phy_d      => i_phy_do,
-p_out_phy_dio_t  => i_phy_dt,
-p_out_phy_oe_n   => p_out_phy.oe_n,
-p_out_phy_we_n   => p_out_phy.we_n,
-p_out_phy_cs_n   => p_out_phy.cs_n,
-p_in_phy_wait    => p_in_phy.wt,
+dout   => p_out_host_rxd,
+rd_en  => p_in_host_rd,
+rd_clk => p_in_host_clk,
 
-p_out_rdy        => i_core_rdy,
-p_out_status     => i_core_status,
+almost_full => open,
+full   => i_rxbuf_full,
+empty  => i_rxbuf_empty,
 
-p_out_tst        => i_tst_out,
-p_in_tst         => (others=>'0'),
-
-p_in_clk         => p_in_clk,
-p_in_rst         => p_in_rst
+rst    => p_in_rst --i_buf_rst
 );
 
-p_inout_phy.d <= i_phy_do when i_phy_dt = '1' else (others => 'Z');
+i_buf_rst <= '0';--p_in_rst when i_core_status = (i_core_status'range => '0') else;
+
+------------------------------------
+--
+------------------------------------
+--p_out_phy.we_n <= i_phy_we_n_out;
+p_out_phy.rst_n <= '1';--i_flash_rst_cnt(12);
+p_out_phy.adv_n <= '0';
+p_out_phy.oe_n <= i_phy_oe_n;
+p_inout_phy.d <= i_phy_do when i_phy_oe_n = '1' else (others => 'Z');
 i_phy_di <= p_inout_phy.d;
 
+m_core : prog_flash
+generic map(
+G_USRBUF_DWIDTH => G_HOST_DWIDTH,
+G_FLASH_AWIDTH => C_PROG_PHY_AWIDTH,
+G_FLASH_DWIDTH => C_PROG_PHY_DWIDTH
+)
+port map(
+p_in_txbuf_d      => i_txbuf_do,
+p_out_txbuf_rd    => i_txbuf_rd,
+p_in_txbuf_empty  => i_txbuf_empty,
+
+p_out_rxbuf_d     => i_rxbuf_di,
+p_out_rxbuf_wr    => i_rxbuf_wr,
+p_in_rxbuf_full   => i_rxbuf_full,
+
+--
+p_out_irq         => i_core_irq,
+p_out_status      => i_core_status,
+
+--PHY
+p_out_phy_a       => p_out_phy.a,
+p_in_phy_d        => i_phy_di,
+p_out_phy_d       => i_phy_do,
+p_out_phy_oe      => i_phy_oe_n,
+p_out_phy_we      => p_out_phy.we_n,--i_phy_we_n, --
+p_out_phy_cs      => p_out_phy.cs_n,
+p_in_phy_wait     => p_in_phy.wt,
+
+--Технологический
+p_in_tst          => (others=>'0'),
+p_out_tst         => i_tst_out,
+
+--System
+p_in_clk_en       => i_clk_en,
+p_in_clk          => p_in_clk,
+p_in_rst          => p_in_rst
+);
+
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst = '1' then
+    i_divcnt <= (others=>'0');
+    i_clk_en <= '0';
+    i_flash_rst_cnt <= (others=>'0');
+    sr_phy_we_n <= (others=>'1');
+    i_phy_we_n_out <= '1';
+
+  elsif rising_edge(p_in_clk) then
+    i_divcnt <= i_divcnt + 1;
+
+    --
+    if i_divcnt = (i_divcnt'range => '1') then
+    i_clk_en <= '1';
+    else
+    i_clk_en <= '0';
+    end if;
+
+    if i_clk_en = '1' then
+      if i_flash_rst_cnt(12) /= '1' then
+      i_flash_rst_cnt <= i_flash_rst_cnt + 1;
+      end if;
+    end if;
+
+    sr_phy_we_n <= i_phy_we_n & sr_phy_we_n(0 to 3);
+    i_phy_we_n_out <= sr_phy_we_n(4);
+  end if;
+end process;
+
+--i_clk_en <= '1';
 
 
 --END MAIN
