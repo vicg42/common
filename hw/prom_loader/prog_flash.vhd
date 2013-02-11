@@ -770,7 +770,7 @@ begin
                   i_flash_a <= i_flash_a + 1;
                   i_size_cnt <= i_size_cnt + 1;
                 end if;
-
+                i_irq <= '1';
                 i_bcnt <= i_bcnt + 1;
 
             else
@@ -832,7 +832,7 @@ begin
                   i_flash_a <= i_flash_a + 1;
                   i_size_cnt <= i_size_cnt + 1;
                 end if;
-
+                i_irq <= '1';
                 i_cfi_bcnt <= i_cfi_bcnt + 1;
 
             else
