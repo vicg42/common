@@ -1,0 +1,96 @@
+###########################################
+#UCF файл для Отладочной платы ML505 (Virtex5)
+#FPGA: XC5VLX50T-1FFG1136
+###########################################
+###############################################################################
+# Define Device, Package And Speed Grade
+###############################################################################
+CONFIG PART = XC5VLX50T-FF1136-1;
+
+##########################################################
+#                                                        #
+#   Set stepping level to ES, so that bitstream is       #
+#   compatible with devices of all steppings.            #
+#                                                        #
+##########################################################
+CONFIG STEPPING = ES;
+
+
+####################################################################
+##
+####################################################################
+#Светодиоды
+NET "pin_out_led<0>" LOC="H18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<1>" LOC="L18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<2>" LOC="G15"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<3>" LOC="AD26" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_3     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<4>" LOC="G16"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<5>" LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<6>" LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<7>" LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+NET "pin_in_btn_N"   LOC="U8"   | IOSTANDARD=LVCMOS33;
+NET "pin_in_btn_C"   LOC="AJ6"  | IOSTANDARD=LVCMOS33;
+
+NET pin_out_TP<0>    LOC="H33"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_2   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET pin_out_TP<1>    LOC="H34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<2>    LOC="G32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<3>    LOC="H32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_12  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<4>    LOC="J34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<5>    LOC="M32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+
+
+#200MHz
+NET "pin_in_refclk_clk_n" LOC="K19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_clk_p" LOC="L19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+
+#FLASH 32MB
+NET  "pin_out_prom_a<0>"        LOC="K12";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<1>"        LOC="K13";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<2>"        LOC="H23";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<3>"        LOC="G23";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<4>"        LOC="H12";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<5>"        LOC="J12";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<6>"        LOC="K22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<7>"        LOC="K23";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<8>"        LOC="K14";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<9>"        LOC="L14";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<10>"       LOC="H22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<11>"       LOC="G22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<12>"       LOC="J15";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<13>"       LOC="K16";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<14>"       LOC="K21";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<15>"       LOC="J22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<16>"       LOC="L16";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<17>"       LOC="L15";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<18>"       LOC="L20";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<19>"       LOC="L21";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<20>"       LOC="AE23";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_a<21>"       LOC="AE22";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_a<22>"       LOC="N34";   #no used!!! NET pin_out_TP<6>    LOC="N34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+NET  "pin_out_prom_a<23>"       LOC="AA34";  #no used!!! NET pin_out_TP<7>    LOC="AA34" | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
+
+NET  "pin_inout_prom_d<0>"      LOC="AD19";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<1>"      LOC="AE19";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<2>"      LOC="AE17";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<3>"      LOC="AF16";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<4>"      LOC="AD20";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<5>"      LOC="AE21";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<6>"      LOC="AE16";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<7>"      LOC="AF15";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<8>"      LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<9>"      LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<10>"     LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<11>"     LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<12>"     LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<13>"     LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<14>"     LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<15>"     LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
+
+NET  "pin_out_prom_we_n"        LOC="AF20";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_cs_n"        LOC="AE14";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_oe_n"        LOC="AF14";  # Bank 2, Vcco=3.3V
+NET  "pin_in_prom_wt"           LOC="G13";   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+
+#NET  "pin_out_prom_rst_n"       LOC="AG17";
+#NET  "pin_out_prom_adv_n"       LOC="F13";
