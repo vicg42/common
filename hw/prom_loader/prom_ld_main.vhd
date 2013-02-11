@@ -153,7 +153,6 @@ signal i_core_rdy       : std_logic;
 signal i_core_irq       : std_logic;
 signal i_core_status    : std_logic_vector(7 downto 0);
 
-signal i_buf_rst        : std_logic;
 signal i_divcnt         : std_logic_vector(4 downto 0);
 signal i_clk_en         : std_logic;
 signal i_tst_out        : std_logic_vector(31 downto 0);
@@ -178,23 +177,23 @@ p_out_rxbuf_full  <= i_rxbuf_full;
 p_out_rxbuf_empty <= i_rxbuf_empty;
 
 p_out_txbuf_full  <= i_txbuf_full;
-p_out_txbuf_empty <= i_txbuf_empty;--i_txbuf_empty_tmp;
+p_out_txbuf_empty <= i_txbuf_empty_tmp;--i_txbuf_empty;--
 
---process(p_in_clk)
---begin
---  if p_in_clk'event and p_in_clk='1' then
---    i_tmr_en <= p_in_tmr_en;
---    sr_core_start <= p_in_tmr_stb & sr_core_start(0 to 1);
---
---    if i_txbuf_empty_tmp = '1' then
---      i_txbuf_empty_en <= '0';
---    elsif i_tmr_en = '1' and sr_core_start(1) = '1' and sr_core_start(2) = '0' then
---      i_txbuf_empty_en <= '1';
---    end if;
---  end if;
---end process;
---
---i_txbuf_empty <= not (not i_txbuf_empty_tmp and i_txbuf_empty_en) when i_tmr_en = '1' else i_txbuf_empty_tmp;
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    i_tmr_en <= p_in_tmr_en;
+    sr_core_start <= p_in_tmr_stb & sr_core_start(0 to 1);
+
+    if i_txbuf_empty_tmp = '1' then
+      i_txbuf_empty_en <= '0';
+    elsif i_tmr_en = '1' and sr_core_start(1) = '1' and sr_core_start(2) = '0' then
+      i_txbuf_empty_en <= '1';
+    end if;
+  end if;
+end process;
+
+i_txbuf_empty <= not (not i_txbuf_empty_tmp and i_txbuf_empty_en) when i_tmr_en = '1' else i_txbuf_empty_tmp;
 
 --fpga -> flash
 m_txbuf : prom_buf
@@ -209,7 +208,7 @@ rd_clk => p_in_clk,
 
 almost_full => i_txbuf_full,
 full   => open,--i_txbuf_full,
-empty  => i_txbuf_empty, --i_txbuf_empty_tmp,
+empty  => i_txbuf_empty_tmp, --i_txbuf_empty, --
 
 rst    => p_in_rst
 );
@@ -229,10 +228,9 @@ almost_full => i_rxbuf_full,
 full   => open,
 empty  => i_rxbuf_empty,
 
-rst    => p_in_rst --i_buf_rst
+rst    => p_in_rst
 );
 
-i_buf_rst <= '0';--p_in_rst when i_core_status = (i_core_status'range => '0') else;
 
 ------------------------------------
 --

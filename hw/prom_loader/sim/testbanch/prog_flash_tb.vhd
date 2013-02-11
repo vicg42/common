@@ -34,11 +34,11 @@ architecture behavioral of prog_flash_tb is
 constant C_USRCLK_PERIOD  : TIME := 100 ns;
 
 constant CI_USR_CMD_ADR     : integer:=1;
-constant CI_USR_CMD_UNLOCK  : integer:=2;
-constant CI_USR_CMD_ERASE   : integer:=3;
-constant CI_USR_CMD_DWR     : integer:=4;
-constant CI_USR_CMD_DRD     : integer:=5;
-constant CI_USR_CMD_DRD_CFI : integer:=6;
+constant CI_USR_CMD_DWR     : integer:=2;
+constant CI_USR_CMD_DRD     : integer:=3;
+constant CI_USR_CMD_DRD_CFI : integer:=4;
+constant CI_USR_CMD_UNLOCK  : integer:=5;
+constant CI_USR_CMD_ERASE   : integer:=6;
 
 constant CI_PHY_DIR_TX      : std_logic:='1';
 constant CI_PHY_DIR_RX      : std_logic:='0';
@@ -178,7 +178,7 @@ G_USRBUF_DWIDTH => 32,
 G_FLASH_AWIDTH => 24,
 G_FLASH_DWIDTH => 16,
 G_FLASH_BUF_SIZE_MAX => 32,
-G_FLASH_OPT => "0001" --(others=>'0')
+G_FLASH_OPT => "0000" --(others=>'0')
 )
 port map(
 p_out_txbuf_rd    => i_txbuf_rd,
@@ -269,26 +269,26 @@ i_txbuf_empty <= '1';
 wait until rising_edge(i_clk) and i_core_irq = '1';
 
 
---UNLOCK
-i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4);
-i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*6 , 28);--size (byte) //(CI_FLASH_BLOCK_64KW*1 , 28); //
-wait until rising_edge(i_clk) and i_clk_en = '1';
-i_txbuf_empty <= '0';
-wait until rising_edge(i_clk) and i_clk_en = '1';
-i_txbuf_empty <= '1';
-
-wait until rising_edge(i_clk) and i_core_irq = '1';
-
-
---ERASE
-i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4);
-i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*1 , 28);--size (byte) //(CI_FLASH_BLOCK_64KW*1 , 28);
-wait until rising_edge(i_clk) and i_clk_en = '1';
-i_txbuf_empty <= '0';
-wait until rising_edge(i_clk) and i_clk_en = '1';
-i_txbuf_empty <= '1';
-
-wait until rising_edge(i_clk) and i_core_irq = '1';
+----UNLOCK
+--i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4);
+--i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*6 , 28);--size (byte) //(CI_FLASH_BLOCK_64KW*1 , 28); //
+--wait until rising_edge(i_clk) and i_clk_en = '1';
+--i_txbuf_empty <= '0';
+--wait until rising_edge(i_clk) and i_clk_en = '1';
+--i_txbuf_empty <= '1';
+--
+--wait until rising_edge(i_clk) and i_core_irq = '1';
+--
+--
+----ERASE
+--i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4);
+--i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*1 , 28);--size (byte) //(CI_FLASH_BLOCK_64KW*1 , 28);
+--wait until rising_edge(i_clk) and i_clk_en = '1';
+--i_txbuf_empty <= '0';
+--wait until rising_edge(i_clk) and i_clk_en = '1';
+--i_txbuf_empty <= '1';
+--
+--wait until rising_edge(i_clk) and i_core_irq = '1';
 
 
 --CMD WRITE DATA + DSIZE

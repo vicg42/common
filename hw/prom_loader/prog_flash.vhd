@@ -9,9 +9,10 @@
 -- FLASH device : JS28F256P30TF
 --
 -- WRITE: 1 - USR_CMD_ADR + ADR(byte)
---        2 - USR_CMD_UNLOCK + SIZE(byte)
---        3 - USR_CMD_ERASE + SIZE(byte)
---        4 - USR_CMD_DWR + SIZE(byte)
+--        2 - USR_CMD_DWR + SIZE(byte)
+--         hardware:1. blocks unlock
+--                  2. blocks erase
+--                  3. write data
 --
 -- READ:  1 - USR_CMD_ADR + ADR(byte)
 --        2 - USR_CMD_DRD + SIZE(byte)
@@ -74,11 +75,11 @@ end prog_flash;
 architecture behavioral of prog_flash is
 
 constant CI_USR_CMD_ADR     : integer:=1;
-constant CI_USR_CMD_UNLOCK  : integer:=2;
-constant CI_USR_CMD_ERASE   : integer:=3;
-constant CI_USR_CMD_DWR     : integer:=4;
-constant CI_USR_CMD_DRD     : integer:=5;
-constant CI_USR_CMD_DRD_CFI : integer:=6;
+constant CI_USR_CMD_DWR     : integer:=2;
+constant CI_USR_CMD_DRD     : integer:=3;
+constant CI_USR_CMD_DRD_CFI : integer:=4;
+constant CI_USR_CMD_UNLOCK  : integer:=5;
+constant CI_USR_CMD_ERASE   : integer:=6;
 
 constant CI_PHY_DIR_TX      : std_logic:='1';
 constant CI_PHY_DIR_RX      : std_logic:='0';
@@ -98,7 +99,6 @@ S_UNLOCK_CONFIRM      ,
 S_UNLOCK_DEV_ID_S     ,
 S_UNLOCK_DEV_ID_G     ,
 S_UNLOCK_DEV_ID_CHK   ,
-S_UNLOCK_DONE         ,
 
 S_ERASE_STATUS_REG_CLR,
 S_ERASE_SETUP         ,
@@ -128,7 +128,8 @@ S_CFI_RD_START        ,
 S_CFI_RD_N            ,
 S_CFI_RD_WAIT         ,
 
-S_CMD_DONE
+S_CMD_DONE,
+S_CMD_ERR
 );
 signal i_fsm_cs           : TFsm_state;
 signal i_fsm_return       : std_logic_vector(0 downto 0);
@@ -208,7 +209,7 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
          CONV_STD_LOGIC_VECTOR(16#03#, tst_fms'length) when i_fsm_cs = S_UNLOCK_DEV_ID_S      else
          CONV_STD_LOGIC_VECTOR(16#04#, tst_fms'length) when i_fsm_cs = S_UNLOCK_DEV_ID_G      else
          CONV_STD_LOGIC_VECTOR(16#05#, tst_fms'length) when i_fsm_cs = S_UNLOCK_DEV_ID_CHK    else
-         CONV_STD_LOGIC_VECTOR(16#06#, tst_fms'length) when i_fsm_cs = S_UNLOCK_DONE          else
+         CONV_STD_LOGIC_VECTOR(16#06#, tst_fms'length) when i_fsm_cs = S_CMD_ERR              else
          CONV_STD_LOGIC_VECTOR(16#07#, tst_fms'length) when i_fsm_cs = S_ERASE_STATUS_REG_CLR else
          CONV_STD_LOGIC_VECTOR(16#08#, tst_fms'length) when i_fsm_cs = S_ERASE_SETUP          else
          CONV_STD_LOGIC_VECTOR(16#09#, tst_fms'length) when i_fsm_cs = S_ERASE_CONFIRM        else
@@ -269,7 +270,7 @@ p_out_phy_cs <= i_flash_ce_n;
 i_adr_end <= i_adr + i_size_tmp;
 i_size_tmp <= i_size - 1;
 
-i_size <= ('0' & i_size_byte(23 downto 1));
+i_size <= ('0' & i_size_byte(23 downto 1)) + i_size_byte(0);
 i_adr <= ('0' & i_adr_byte(23 downto 1));
 
 --номер последнего блока
@@ -338,50 +339,39 @@ begin
               i_txbuf_rd <= '1';
               i_irq <= '0';
               i_size_cnt <= (others=>'0');
---              i_err <= (others=>'0');
+              i_err <= (others=>'0');
 
               if p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ADR, 4) then
-                i_err <= (others=>'0');
                 i_adr_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
                 i_fsm_cs <= S_CMD_DONE;
-
-              elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4) then
-                i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
-                i_adr_cnt <= i_adr;
-                if i_err = (i_err'range =>'0') then
-                i_flash_ce_n <= '0';
-                i_fsm_cs <= S_UNLOCK_SETUP;
-                end if;
-
-              elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4) then
-                i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
-                i_adr_cnt <= i_adr;
-                if i_err = (i_err'range =>'0') then
-                i_flash_ce_n <= '0';
-                i_fsm_cs <= S_ERASE_STATUS_REG_CLR;
-                end if;
 
               elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_DWR, 4) then
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
                 i_adr_cnt <= i_adr;
-                if i_err = (i_err'range =>'0') then
                 i_flash_ce_n <= '0';
-                i_fsm_cs <= S_WR_SETUP;
-                end if;
+                i_fsm_cs <= S_UNLOCK_SETUP;--S_WR_SETUP;
 
               elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_DRD, 4) then
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
-                if i_err = (i_err'range =>'0') then
                 i_flash_ce_n <= '0';
                 i_fsm_cs <= S_RD_SETUP;
-                end if;
 
               elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_DRD_CFI, 4) then
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
-                if i_err = (i_err'range =>'0') then
                 i_flash_ce_n <= '0';
                 i_fsm_cs <= S_CFI_SETUP;
-                end if;
+--
+--              elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4) then
+--                i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
+--                i_adr_cnt <= i_adr;
+--                i_flash_ce_n <= '0';
+--                i_fsm_cs <= S_UNLOCK_SETUP;
+--
+--              elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4) then
+--                i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
+--                i_adr_cnt <= i_adr;
+--                i_flash_ce_n <= '0';
+--                i_fsm_cs <= S_ERASE_STATUS_REG_CLR;
 
               end if;
           end if;
@@ -449,7 +439,8 @@ begin
               i_flash_oe_n <= CI_PHY_DIR_TX;
 
               if i_block_num = i_block_end then
-                i_fsm_cs <= S_UNLOCK_DONE;
+                i_adr_cnt <= i_adr;
+                i_fsm_cs <= S_ERASE_STATUS_REG_CLR; --S_CMD_DONE;
               else
                 --для Top Boot
                 if i_adr_cnt < CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_BOUNDARY, i_adr_cnt'length) then
@@ -463,22 +454,10 @@ begin
 
             else
             --BLOCK - LOCKED
-              i_err <= i_flash_di(7 downto 0);
-              i_fsm_cs <= S_UNLOCK_SETUP;
+              i_err <= EXT(i_flash_di(6 downto 0), i_err'length);
+              i_fsm_cs <= S_CMD_DONE;
             end if;
             --end if;
-
-        when S_UNLOCK_DONE =>
-
-            i_flash_a <= i_block_adr;
-            i_flash_do <= (others=>'1');
-
-            if i_flash_we_n = '0' then
-              i_flash_we_n <= '1';
-              i_fsm_cs <= S_CMD_DONE;
-            else
-              i_flash_we_n <= '0';
-            end if;
 
         ---------------------------------------------
         --BLOCK ERASE
@@ -539,7 +518,8 @@ begin
                 --BLOCK ERASE - OK
                 if i_flash_di(7 downto 0) = CONV_STD_LOGIC_VECTOR(16#80#, 8) then
                     if i_block_num = i_block_end then
-                      i_fsm_cs <= S_CMD_DONE;
+                      i_adr_cnt <= i_adr;
+                      i_fsm_cs <= S_WR_SETUP; --S_CMD_DONE;
                     else
                       if i_adr_cnt < CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_BOUNDARY, i_adr_cnt'length) then
                         i_adr_cnt <= i_adr_cnt + CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_INC, i_adr_cnt'length);
@@ -551,7 +531,7 @@ begin
                     end if; --tst_done <= '1';
                 else
                 --BLOCK ERASE - ERROR
-                  i_err <= i_flash_di(7 downto 0);
+                  i_err <= EXT(i_flash_di(6 downto 0), i_err'length);
                   i_fsm_cs <= S_CMD_DONE; --tst_done <= '1';
                 end if;
             else
@@ -722,7 +702,7 @@ begin
                     end if; tst_done <= '1';
                 else
                 --BLOCK WRITE - ERROR
-                  i_err <= i_flash_di(7 downto 0);
+                  i_err <= EXT(i_flash_di(6 downto 0), i_err'length);
                   i_fsm_cs <= S_CMD_DONE; tst_done <= '1';
                 end if;
             else
@@ -876,11 +856,29 @@ begin
         when S_CMD_DONE =>
 
           i_flash_ce_n <= '1';
-          i_txbuf_rd <= '0';
           i_irq <= '1';
           i_bcnt <= (others=>'0'); tst_done <= '0';
           i_cfi_bcnt <= (others=>'0');
+
+          if OR_reduce(i_err) = '0' then
+            i_txbuf_rd <= '0';
+            i_fsm_cs <= S_IDLE;
+          else
+              --При обнаружении ощибки нужно чистим TxBUF от данных
+              i_txbuf_rd <= '1';
+              if (i_size_cnt = i_size - 1) then
+                i_fsm_cs <= S_CMD_ERR;
+              else
+                i_size_cnt <= i_size_cnt + 1;
+              end if;
+          end if;
+
+        when S_CMD_ERR =>
+
+          if p_in_txbuf_empty = '1' then
+          i_txbuf_rd <= '0';
           i_fsm_cs <= S_IDLE;
+          end if;
 
     end case;
   end if;--if p_in_clk_en = '1' then
