@@ -20,14 +20,15 @@ package prom_phypin_pkg is
 
 constant C_PROG_PHY_AWIDTH : integer := 24;
 constant C_PROG_PHY_DWIDTH : integer := 16;
+constant G_PROG_PHY_BUF_SIZE_MAX : integer := 32;
 
 type TPromPhyOUT is record
 a    : std_logic_vector(C_PROG_PHY_AWIDTH - 1 downto 0);
 oe_n : std_logic;
 we_n : std_logic;
 cs_n : std_logic;
-rst_n : std_logic;
-adv_n : std_logic;
+--rst_n : std_logic;
+--adv_n : std_logic;
 end record;
 
 type TPromPhyIN is record

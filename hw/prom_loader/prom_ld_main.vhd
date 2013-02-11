@@ -76,7 +76,9 @@ component prog_flash
 generic(
 G_USRBUF_DWIDTH : integer := 32;
 G_FLASH_AWIDTH : integer := 24;
-G_FLASH_DWIDTH : integer := 16
+G_FLASH_DWIDTH : integer := 16;
+G_FLASH_BUF_SIZE_MAX : integer := 32;
+G_FLASH_OPT : std_logic_vector(3 downto 0) := (others=>'0')
 );
 port(
 --
@@ -90,7 +92,7 @@ p_in_rxbuf_full   : in    std_logic;
 
 --
 p_out_irq         : out   std_logic;
-p_out_status      : out   std_logic_vector(15 downto 0);
+p_out_status      : out   std_logic_vector(7 downto 0);
 
 --PHY
 p_out_phy_a       : out   std_logic_vector(G_FLASH_AWIDTH - 1 downto 0);
@@ -147,16 +149,13 @@ signal i_rxbuf_empty    : std_logic;
 signal i_phy_di         : std_logic_vector(C_PROG_PHY_DWIDTH - 1 downto 0);
 signal i_phy_do         : std_logic_vector(C_PROG_PHY_DWIDTH - 1 downto 0);
 signal i_phy_oe_n       : std_logic;
-signal i_phy_we_n,i_phy_we_n_out       : std_logic;
 signal i_core_rdy       : std_logic;
 signal i_core_irq       : std_logic;
-signal i_core_status    : std_logic_vector(15 downto 0);
+signal i_core_status    : std_logic_vector(7 downto 0);
 
 signal i_buf_rst        : std_logic;
-signal i_flash_rst_cnt  : std_logic_vector(12 downto 0);
 signal i_divcnt         : std_logic_vector(4 downto 0);
 signal i_clk_en         : std_logic;
-signal sr_phy_we_n      : std_logic_vector(0 to 4);
 signal i_tst_out        : std_logic_vector(31 downto 0);
 
 
@@ -226,8 +225,8 @@ dout   => p_out_host_rxd,
 rd_en  => p_in_host_rd,
 rd_clk => p_in_host_clk,
 
-almost_full => open,
-full   => i_rxbuf_full,
+almost_full => i_rxbuf_full,
+full   => open,
 empty  => i_rxbuf_empty,
 
 rst    => p_in_rst --i_buf_rst
@@ -238,9 +237,6 @@ i_buf_rst <= '0';--p_in_rst when i_core_status = (i_core_status'range => '0') el
 ------------------------------------
 --
 ------------------------------------
---p_out_phy.we_n <= i_phy_we_n_out;
-p_out_phy.rst_n <= '1';--i_flash_rst_cnt(12);
-p_out_phy.adv_n <= '0';
 p_out_phy.oe_n <= i_phy_oe_n;
 p_inout_phy.d <= i_phy_do when i_phy_oe_n = '1' else (others => 'Z');
 i_phy_di <= p_inout_phy.d;
@@ -249,7 +245,9 @@ m_core : prog_flash
 generic map(
 G_USRBUF_DWIDTH => G_HOST_DWIDTH,
 G_FLASH_AWIDTH => C_PROG_PHY_AWIDTH,
-G_FLASH_DWIDTH => C_PROG_PHY_DWIDTH
+G_FLASH_DWIDTH => C_PROG_PHY_DWIDTH,
+G_FLASH_BUF_SIZE_MAX => G_PROG_PHY_BUF_SIZE_MAX,
+G_FLASH_OPT => (others=>'0')
 )
 port map(
 p_in_txbuf_d      => i_txbuf_do,
@@ -269,7 +267,7 @@ p_out_phy_a       => p_out_phy.a,
 p_in_phy_d        => i_phy_di,
 p_out_phy_d       => i_phy_do,
 p_out_phy_oe      => i_phy_oe_n,
-p_out_phy_we      => p_out_phy.we_n,--i_phy_we_n, --
+p_out_phy_we      => p_out_phy.we_n,
 p_out_phy_cs      => p_out_phy.cs_n,
 p_in_phy_wait     => p_in_phy.wt,
 
@@ -289,9 +287,6 @@ begin
   if p_in_rst = '1' then
     i_divcnt <= (others=>'0');
     i_clk_en <= '0';
-    i_flash_rst_cnt <= (others=>'0');
-    sr_phy_we_n <= (others=>'1');
-    i_phy_we_n_out <= '1';
 
   elsif rising_edge(p_in_clk) then
     i_divcnt <= i_divcnt + 1;
@@ -303,14 +298,6 @@ begin
     i_clk_en <= '0';
     end if;
 
-    if i_clk_en = '1' then
-      if i_flash_rst_cnt(12) /= '1' then
-      i_flash_rst_cnt <= i_flash_rst_cnt + 1;
-      end if;
-    end if;
-
-    sr_phy_we_n <= i_phy_we_n & sr_phy_we_n(0 to 3);
-    i_phy_we_n_out <= sr_phy_we_n(4);
   end if;
 end process;
 
