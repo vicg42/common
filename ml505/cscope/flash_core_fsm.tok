@@ -1,0 +1,37 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+S_IDLE=00\h
+S_UNLOCK_SETUP         =01\h
+S_UNLOCK_CONFIRM       =02\h
+S_UNLOCK_DEV_ID_S      =03\h
+S_UNLOCK_DEV_ID_G      =04\h
+S_UNLOCK_DEV_ID_CHK    =05\h
+S_CMD_ERR              =06\h
+S_ERASE_STATUS_REG_CLR =07\h
+S_ERASE_SETUP          =08\h
+S_ERASE_CONFIRM        =09\h
+S_ERASE_STATUS_REG_G   =0A\h
+S_ERASE_STATUS_REG_CHK =0B\h
+S_ERASE_WAIT           =0C\h
+S_WR_SETUP             =0D\h
+S_WR_STATUS_REG_G      =0E\h
+S_WR_STATUS_REG_CHK    =0F\h
+S_WR_DCOUNT            =10\h
+S_WR_DATA0             =11\h
+S_WR_DATAN             =12\h
+S_WR_CONFIRM           =13\h
+S_WR_STATUS_REG_G2     =14\h
+S_WR_STATUS_REG_CHK2   =15\h
+S_WR_WAIT              =16\h
+S_RD_SETUP             =17\h
+S_RD_START             =18\h
+S_RD_N                 =19\h
+S_RD_WAIT              =1A\h
+S_CFI_SETUP            =1B\h
+S_CFI_RD_START         =1C\h
+S_CFI_RD_N             =1D\h
+S_CFI_RD_WAIT          =1E\h
+S_CMD_DONE             =1F\h
