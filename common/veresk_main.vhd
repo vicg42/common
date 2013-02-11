@@ -151,7 +151,6 @@ p_in_clk   : in    TRefClkPinIN
 );
 end component;
 
-signal i_pll_rst_out                    : std_logic;
 signal g_pll_clkin                      : std_logic;
 signal g_pll_mem_clk                    : std_logic;
 signal g_pll_tmr_clk                    : std_logic;
@@ -324,7 +323,7 @@ attribute keep of i_ethphy_out : signal is "true";
 
 signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
-
+signal tst_edev_out     : std_logic_vector(31 downto 0);
 
 --//MAIN
 begin
@@ -341,7 +340,7 @@ i_eth_rst    <=not i_host_rst_n or i_host_rst_all or i_host_rst_eth or i_usrclk_
 i_vctrl_rst  <=not OR_reduce(i_mem_ctrl_status.rdy);
 i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
-i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all or i_pll_rst_out;
+i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all;
 i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_pult_rst<=i_usrclk_rst or i_host_rst_pult;
 i_edev_rst<=i_usrclk_rst or i_host_rst_edev;
@@ -377,6 +376,10 @@ i_ethphy_in.clk<=g_usrclk(4);
 --Модуль конфигурирования устр-в
 --***********************************************************
 m_cfg : cfgdev_host
+generic map(
+G_DBG => "OFF",
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
 port map(
 -------------------------------
 --Связь с Хостом
@@ -538,18 +541,18 @@ p_out_host_vbuf_empty     => i_host_rxbuf_empty(C_HDEV_VCH_DBUF),
 -------------------------------
 -- Связь с Eth(dsn_eth.vhd) (ethg_clk domain)
 -------------------------------
-p_in_eth_clk              => i_ethphy_out.clk,       --g_eth_gt_refclkout,
+p_in_eth_clk              => i_ethphy_out.clk,
 
-p_in_eth_rxd_sof          => i_eth_out(0).rxbuf.sof, --i_eth_rxd_sof,
-p_in_eth_rxd_eof          => i_eth_out(0).rxbuf.eof, --i_eth_rxd_eof,
-p_in_eth_rxbuf_din        => i_eth_out(0).rxbuf.din, --i_eth_rxbuf_din,
-p_in_eth_rxbuf_wr         => i_eth_out(0).rxbuf.wr,  --i_eth_rxbuf_wr,
+p_in_eth_rxd_sof          => i_eth_out(0).rxbuf.sof,
+p_in_eth_rxd_eof          => i_eth_out(0).rxbuf.eof,
+p_in_eth_rxbuf_din        => i_eth_out(0).rxbuf.din,
+p_in_eth_rxbuf_wr         => i_eth_out(0).rxbuf.wr,
 p_out_eth_rxbuf_empty     => i_eth_in(0).rxbuf.empty,--i_host_rxbuf_empty(C_HDEV_ETH_DBUF),
-p_out_eth_rxbuf_full      => i_eth_in(0).rxbuf.full, --i_eth_rxbuf_full,
+p_out_eth_rxbuf_full      => i_eth_in(0).rxbuf.full,
 
-p_out_eth_txbuf_dout      => i_eth_in(0).txbuf.dout, --i_eth_txbuf_dout,
-p_in_eth_txbuf_rd         => i_eth_out(0).txbuf.rd,  --i_eth_txbuf_rd,
-p_out_eth_txbuf_empty     => i_eth_in(0).txbuf.empty,--i_eth_txbuf_empty,
+p_out_eth_txbuf_dout      => i_eth_in(0).txbuf.dout,
+p_in_eth_txbuf_rd         => i_eth_out(0).txbuf.rd,
+p_out_eth_txbuf_empty     => i_eth_in(0).txbuf.empty,
 p_out_eth_txbuf_full      => i_eth_in(0).txbuf.full, --i_host_txbuf_full(C_HDEV_ETH_DBUF),
 
 
@@ -586,6 +589,9 @@ p_in_rst => i_swt_rst
 i_swt_tst_in(0)<=i_tmr_hirq(C_TMR_ETH);
 i_swt_tst_in(1)<=i_tmr_en(C_TMR_ETH);
 i_swt_tst_in(31 downto 2)<=(others=>'0');
+
+i_host_rxbuf_empty(C_HDEV_ETH_DBUF) <= i_eth_in(0).rxbuf.empty;
+i_host_txbuf_full(C_HDEV_ETH_DBUF) <= i_eth_in(0).txbuf.full;
 
 --***********************************************************
 --Проект Ethernet - dsn_eth.vhd
@@ -849,13 +855,13 @@ i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=OR_reduce(i_mem_ctrl_statu
 i_host_dev_status(C_HREG_DEV_STATUS_PULT_TXRDY_BIT)<=not i_host_txrdy(C_HDEV_PULT_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_PULT_RXRDY_BIT)<=i_host_rxrdy(C_HDEV_PULT_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_EDEV_TXRDY_BIT)<=i_host_txrdy(C_HDEV_EDEV_DBUF);
-i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXRDY_BIT)<=i_host_txrdy(C_HDEV_EDEV_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXRDY_BIT)<=i_host_rxrdy(C_HDEV_EDEV_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXERR_BIT)<=i_host_rxerr(C_HDEV_EDEV_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_TXRDY_BIT)<=i_host_txrdy(C_HDEV_VIZIR_DBUF);
-i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT)<=i_host_txrdy(C_HDEV_VIZIR_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT)<=i_host_rxrdy(C_HDEV_VIZIR_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXERR_BIT)<=i_host_rxerr(C_HDEV_VIZIR_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_BUP_TXRDY_BIT)<=i_host_txrdy(C_HDEV_BUP_DBUF);
-i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXRDY_BIT)<=i_host_txrdy(C_HDEV_BUP_DBUF);
+i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXRDY_BIT)<=i_host_rxrdy(C_HDEV_BUP_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXERR_BIT)<=i_host_rxerr(C_HDEV_BUP_DBUF);
 
 --//Запись/Чтение данных устройств хоста
@@ -1279,7 +1285,7 @@ p_out_phy_dir     => pin_out_edev_dir,
 --
 --------------------------------------
 p_in_tst          => (others=>'0'),
-p_out_tst         => open,
+p_out_tst         => open,--tst_edev_out,
 
 --------------------------------------
 --System

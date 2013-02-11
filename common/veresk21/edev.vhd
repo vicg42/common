@@ -1,3 +1,4 @@
+
 -------------------------------------------------------------------------
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
@@ -155,7 +156,8 @@ signal tst_fsm_edev,tst_fsm_edev_dly: std_logic_vector(3 downto 0);
 signal tst_fms_core,tst_fms_core_dly: std_logic_vector(3 downto 0);
 signal tst_txbufh_empty : std_logic;
 signal tst_rxbufh_empty : std_logic;
-
+signal sr_rcv_irq       : std_logic_vector(0 to 0);
+signal tst_rcv_irq      : std_logic;
 
 --MAIN
 begin
@@ -164,7 +166,7 @@ begin
 --Технологические сигналы
 ------------------------------------
 p_out_tst(0) <= OR_reduce(tst_fms_core_dly) or OR_reduce(tst_fsm_edev_dly) or
-                tst_rxbufh_empty or tst_txbufh_empty;
+tst_rxbufh_empty or tst_txbufh_empty or tst_rcv_irq;
 
 process(p_in_rst,p_in_clk)
 begin
@@ -173,18 +175,25 @@ begin
     tst_fms_core_dly <= (others=>'0');
     tst_txbufh_empty <= '0';
     tst_rxbufh_empty <= '0';
+    sr_rcv_irq <= (others=>'0');
+    tst_rcv_irq <= '0';
+
   elsif p_in_clk'event and p_in_clk='1' then
     tst_fsm_edev_dly <= tst_fsm_edev;
     tst_fms_core_dly <= tst_fms_core;
     tst_txbufh_empty <= i_txbuf_empty;
     tst_rxbufh_empty <= i_rxbuf_empty;
 
+    sr_rcv_irq(0) <= i_rcv_irq;
+    tst_rcv_irq <= i_rcv_irq and not sr_rcv_irq(0);
+
   end if;
 end process;
 
-tst_fsm_edev<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_edev'length) when i_fsm_edev_cs=S_TX_D else
+tst_fsm_edev<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_edev'length) when i_fsm_edev_cs=S_TX_D     else
               CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_edev'length) when i_fsm_edev_cs=S_TX_DONE  else
-              CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_edev'length) when i_fsm_edev_cs=S_RX_D  else
+              CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_edev'length) when i_fsm_edev_cs=S_RX_D     else
+              CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_edev'length) when i_fsm_edev_cs=S_RX_DONE  else
               CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_edev'length);-- when fsm_tx_cs=S_TX_IDLE else
 
 tst_fms_core<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(1 , 4) else
@@ -195,6 +204,7 @@ tst_fms_core<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(3 
               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(6 , 4) else
               CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(7 , 4) else
               CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(8 , 4) else
+              CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(9 , 4) else
               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_core'length);-- when i_fsm_state=CONV_STD_LOGIC_VECTOR(0 , i_fsm_state'length);
 
 --//----------------------------------

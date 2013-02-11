@@ -23,11 +23,13 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0349#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#034A#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
 
+--//HOST
+constant C_HDEV_DWIDTH           : integer:=32;--шина портов p_out_dev_din/p_in_dev_dout модуля dsn_host.vhd
 
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_host.vhd: (max count HREG - 0x1F)
@@ -150,19 +152,19 @@ constant C_HREG_IRQ_STATUS_L_RBIT             : integer:=0; --//Статус активност
 constant C_HREG_IRQ_STATUS_M_RBIT             : integer:=31;--//
 
 --//Поле C_HREG_IRQ_NUM - Номера источников прерываний:
-constant C_HIRQ_PCIE_DMA                      : integer:=16#00#;
-constant C_HIRQ_CFG_RX                        : integer:=16#01#;
-constant C_HIRQ_ETH_RX                        : integer:=16#02#;
-constant C_HIRQ_EDEV_RX                       : integer:=16#03#;
-constant C_HIRQ_PULT_RX                       : integer:=16#04#;
-constant C_HIRQ_VCH0                          : integer:=16#05#;
-constant C_HIRQ_VCH1                          : integer:=16#06#;
-constant C_HIRQ_VCH2                          : integer:=16#07#;
-constant C_HIRQ_VCH3                          : integer:=16#08#;
-constant C_HIRQ_VCH4                          : integer:=16#09#;
-constant C_HIRQ_VCH5                          : integer:=16#0A#;
-constant C_HIRQ_VIZIR_RX                      : integer:=16#0B#;
-constant C_HIRQ_BUP_RX                        : integer:=16#0C#;
+constant C_HIRQ_PCIE_DMA                      : integer:=0;
+constant C_HIRQ_CFG_RX                        : integer:=1;
+constant C_HIRQ_ETH_RX                        : integer:=2;
+constant C_HIRQ_EDEV_RX                       : integer:=3;
+constant C_HIRQ_PULT_RX                       : integer:=4;
+constant C_HIRQ_VCH0                          : integer:=5;
+constant C_HIRQ_VCH1                          : integer:=6;
+constant C_HIRQ_VCH2                          : integer:=7;
+constant C_HIRQ_VCH3                          : integer:=8;
+constant C_HIRQ_VCH4                          : integer:=9;
+constant C_HIRQ_VCH5                          : integer:=10;
+constant C_HIRQ_VIZIR_RX                      : integer:=11;
+constant C_HIRQ_BUP_RX                        : integer:=12;
 constant C_HIRQ_COUNT                         : integer:=C_HIRQ_BUP_RX+1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
@@ -226,9 +228,6 @@ constant C_HREG_FUNCPRM_VCTRL_PCOLOR_BIT      : integer:=9;
 constant C_HREG_FUNCPRM_VCTRL_GAMMA_BIT       : integer:=10;
 constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_VCTRL_GAMMA_BIT;
 
-
---//Порт модуля dsn_host.vhd /p_out_dev_din/out/ Bit Map:
-constant C_HDEV_DWIDTH                        : integer:=32;
 
 --//Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
 constant C_HDEV_OPTIN_TXFIFO_PFULL_BIT        : integer:=0;
@@ -321,12 +320,12 @@ constant C_SWT_REG_CTRL_LAST_BIT              : integer:=C_SWT_REG_CTRL_TSTDSN_2
 
 
 --//Мах кол-во правил машрутиразции:
-constant C_SWT_FRR_COUNT_MAX                  : integer:=16#08#;
+constant C_SWT_FRR_COUNT_MAX                  : integer:=8;
 
 --//
-constant C_SWT_ETH_HOST_FRR_COUNT             : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-HOST
+constant C_SWT_ETH_HOST_FRR_COUNT             : integer:=3;--//Кол-во правил машрутизации пакетов ETH-HOST
 constant C_SWT_ETH_VCTRL_FRR_COUNT            : integer:=C_PCFG_VCTRL_VCH_COUNT;--//Кол-во правил машрутизации пакетов ETH-VCTRL
-constant C_SWT_ETH_HDD_FRR_COUNT              : integer:=16#03#;--//Кол-во правил машрутизации пакетов ETH-HDD
+constant C_SWT_ETH_HDD_FRR_COUNT              : integer:=3;--//Кол-во правил машрутизации пакетов ETH-HDD
 
 Type TEthFRRGet is array (0 to C_SWT_FRR_COUNT_MAX-1) of integer;
 ----------------------------------------------------------------------------------------
