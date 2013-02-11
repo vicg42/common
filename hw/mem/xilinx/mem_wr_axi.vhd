@@ -45,12 +45,12 @@ p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции з
 --Связь с пользовательскими буферами
 -------------------------------
 --usr_buf->mem
-p_in_usr_txbuf_dout  : in    std_logic_vector(31 downto 0);
+p_in_usr_txbuf_dout  : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_usr_txbuf_rd   : out   std_logic;
 p_in_usr_txbuf_empty : in    std_logic;
 
 --usr_buf<-mem
-p_out_usr_rxbuf_din  : out   std_logic_vector(31 downto 0);
+p_out_usr_rxbuf_din  : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_usr_rxbuf_wd   : out   std_logic;
 p_in_usr_rxbuf_full  : in    std_logic;
 
@@ -151,7 +151,7 @@ p_out_mem.clk        <=p_in_clk;
 p_out_mem.axiw.aid   <=CONV_STD_LOGIC_VECTOR(G_MEM_IDW_NUM, p_out_mem.axiw.aid'length);
 p_out_mem.axiw.adr   <=EXT(i_mem_adr, p_out_mem.axiw.adr'length);
 p_out_mem.axiw.trnlen<=i_axi_trnlen(p_out_mem.axiw.trnlen'range);
-p_out_mem.axiw.dbus  <=CONV_STD_LOGIC_VECTOR(2, p_out_mem.axiw.dbus'length); --//2/3 - BusData=32bit/64bit;
+p_out_mem.axiw.dbus  <=CONV_STD_LOGIC_VECTOR(G_MEM_DWIDTH/32 + 1, p_out_mem.axiw.dbus'length); --//2/3/... - BusData=32bit/64bit/...
 p_out_mem.axiw.burst <=CONV_STD_LOGIC_VECTOR(1, p_out_mem.axiw.burst'length);--//0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
 p_out_mem.axiw.lock  <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.lock'length);
 p_out_mem.axiw.cache <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.cache'length);
@@ -172,7 +172,7 @@ p_out_mem.axiw.rready<=i_axiw_rready;
 p_out_mem.axir.aid   <=CONV_STD_LOGIC_VECTOR(G_MEM_IDR_NUM, p_out_mem.axir.aid'length);
 p_out_mem.axir.adr   <=EXT(i_mem_adr, p_out_mem.axir.adr'length);
 p_out_mem.axir.trnlen<=i_axi_trnlen(p_out_mem.axir.trnlen'range);
-p_out_mem.axir.dbus  <=CONV_STD_LOGIC_VECTOR(2, p_out_mem.axir.dbus'length); --//2/3 - BusData=32bit/64bit;
+p_out_mem.axir.dbus  <=CONV_STD_LOGIC_VECTOR(G_MEM_DWIDTH/32 + 1, p_out_mem.axir.dbus'length); --//2/3/... - BusData=32bit/64bit/...
 p_out_mem.axir.burst <=CONV_STD_LOGIC_VECTOR(1, p_out_mem.axir.burst'length);--//0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
 p_out_mem.axir.lock  <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.lock'length);
 p_out_mem.axir.cache <=CONV_STD_LOGIC_VECTOR(0, p_out_mem.axir.cache'length);
@@ -212,7 +212,7 @@ i_mem_wr<=i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty w
 
 --Логика работы автомата
 process(p_in_rst,p_in_clk)
-  variable update_addr: std_logic_vector(i_mem_trn_len'length+1 downto 0);
+  variable update_addr: std_logic_vector(i_mem_trn_len'length + G_MEM_DWIDTH/32 downto 0);
 begin
   if p_in_rst='1' then
 
@@ -350,8 +350,8 @@ begin
       when S_MEM_TRN_END =>
 
         --Вычисляем значение для обнавления адреса ОЗУ
-        update_addr(1 downto 0):=(others=>'0');--//Если i_cfg_mem_trn_len в DW
-        update_addr(i_mem_trn_len'length+1 downto 2):=i_cfg_mem_trn_len;
+        update_addr(G_MEM_DWIDTH/32 downto 0):=(others=>'0');
+        update_addr(update_addr'high downto G_MEM_DWIDTH/32 + 1):=i_cfg_mem_trn_len;
 
         if (p_in_mem.axiw.rvalid='1' and i_mem_dir=C_MEMWR_WRITE) or i_mem_dir=C_MEMWR_READ then
           i_axiw_rready<='0';
