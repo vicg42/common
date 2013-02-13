@@ -7,8 +7,8 @@
 --
 -- Назначение/Описание :
 --
--- Revision:
--- Revision 0.01 - File Created
+-- DVI OUT: 1024x768@70MHz (PixClk=75MHz)
+--
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -68,18 +68,6 @@ constant CI_DID : std_logic_vector(7 downto 0):="00010111";
 --Register Map:
 constant CI_REG_VID    : std_logic_vector(7 downto 0):='1'&CONV_STD_LOGIC_VECTOR(16#4A#, 7);
 constant CI_REG_DID    : std_logic_vector(7 downto 0):='1'&CONV_STD_LOGIC_VECTOR(16#4B#, 7);
-
-----640x480@60MHz (PixClk=25MHz)
---Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
---constant CI_REG_ARRAY : TReg := (
-----            REG ADR                    |             REG DATA
---('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register
---('1' & CONV_STD_LOGIC_VECTOR(16#49#, 7) & CONV_STD_LOGIC_VECTOR(16#C0#, 8)), --Power Management Register
---('1' & CONV_STD_LOGIC_VECTOR(16#21#, 7) & CONV_STD_LOGIC_VECTOR(16#09#, 8)), --DAC Control Register
---('1' & CONV_STD_LOGIC_VECTOR(16#33#, 7) & CONV_STD_LOGIC_VECTOR(16#08#, 8)), --DVI PLL Charge Pump Control Register
---('1' & CONV_STD_LOGIC_VECTOR(16#34#, 7) & CONV_STD_LOGIC_VECTOR(16#16#, 8)), --DVI PLL Divider Register
---('1' & CONV_STD_LOGIC_VECTOR(16#36#, 7) & CONV_STD_LOGIC_VECTOR(16#60#, 8))  --DVI PLL Supply Control Register
---);
 
 --1024x768@70MHz (PixClk=75MHz)
 Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
@@ -609,19 +597,6 @@ i_vga_vs_e <= CONV_STD_LOGIC_VECTOR(6 - 1, i_vga_vs_e'length);
 i_vga_va_b <= CONV_STD_LOGIC_VECTOR(6 + 29 - 1, i_vga_va_b'length);
 i_vga_va_e <= CONV_STD_LOGIC_VECTOR(6 + 29 + 768 - 1, i_vga_va_e'length);
 i_vga_vend <= CONV_STD_LOGIC_VECTOR(6 + 29 + 768 + 3 - 1, i_vga_vend'length);
-
-----640x480@60MHz (PixClk=25MHz)
---bufg_clk_pix: BUFG port map(I => i_clk_out(3), O => g_clk_pix);
---
---i_vga_hs_e <= CONV_STD_LOGIC_VECTOR(96 - 1, i_vga_hs_e'length);
---i_vga_ha_b <= CONV_STD_LOGIC_VECTOR(96 + 48 - 1, i_vga_ha_b'length);
---i_vga_ha_e <= CONV_STD_LOGIC_VECTOR(96 + 48 + 640 - 1, i_vga_ha_e'length);
---i_vga_hend <= CONV_STD_LOGIC_VECTOR(96 + 48 + 640 + 16 - 1, i_vga_hend'length);
---
---i_vga_vs_e <= CONV_STD_LOGIC_VECTOR(2 - 1, i_vga_vs_e'length);
---i_vga_va_b <= CONV_STD_LOGIC_VECTOR(2 + 31 - 1, i_vga_va_b'length);
---i_vga_va_e <= CONV_STD_LOGIC_VECTOR(2 + 31 + 480 - 1, i_vga_va_e'length);
---i_vga_vend <= CONV_STD_LOGIC_VECTOR(2 + 31 + 480 + 12 - 1, i_vga_vend'length);
 
 process(i_dvi_rst, g_clk_pix)
 begin
