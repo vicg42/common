@@ -39,7 +39,6 @@ pin_out_dvi_d    : out   std_logic_vector(11 downto 0);
 pin_out_dvi_de   : out   std_logic;
 pin_out_dvi_hs   : out   std_logic;
 pin_out_dvi_vs   : out   std_logic;
---pin_out_dvi_rst_n: out   std_logic;
 
 --------------------------------------------------
 --Reference clock
@@ -188,8 +187,6 @@ p_out_tst     => tst_div_ctrl_out,
 p_in_clk      => i_dvi_ctrl_clk,
 p_in_rst      => g_rst
 );
-
---pin_out_dvi_rst_n <= '1';
 
 
 --//#########################################
