@@ -1,0 +1,68 @@
+###########################################
+#UCF файл для Отладочной платы ML505 (Virtex5)
+#FPGA: XC5VLX50T-1FFG1136
+###########################################
+###############################################################################
+# Define Device, Package And Speed Grade
+###############################################################################
+CONFIG PART = XC5VLX50T-FF1136-1;
+
+##########################################################
+#                                                        #
+#   Set stepping level to ES, so that bitstream is       #
+#   compatible with devices of all steppings.            #
+#                                                        #
+##########################################################
+CONFIG STEPPING = ES;
+
+
+####################################################################
+##
+####################################################################
+#Светодиоды
+NET "pin_out_led<0>" LOC="H18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_0     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<1>" LOC="L18"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_1     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<2>" LOC="G15"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_2     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<3>" LOC="AD26" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_3     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<4>" LOC="G16"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:GPIO_LED_4     # Bank 3,  Vcco=2.5V, No DCI
+NET "pin_out_led<5>" LOC="AD25" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_5     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<6>" LOC="AD24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_6     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET "pin_out_led<7>" LOC="AE24" | IOSTANDARD=LVCMOS18; #Сигнал на схеме:GPIO_LED_7     # Bank 21, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+NET "pin_in_btn_N"   LOC="U8"   | IOSTANDARD=LVCMOS33;
+#NET "pin_in_btn_C"   LOC="AJ6"  | IOSTANDARD=LVCMOS33;
+
+NET pin_out_TP<0>    LOC="H33"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_2   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<1>    LOC="H34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<2>    LOC="G32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<3>    LOC="H32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_12  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<4>    LOC="J34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_16  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+#NET pin_out_TP<5>    LOC="M32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_20  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
+
+
+#200MHz
+NET "pin_in_refclk_clk_n" LOC="K19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_N           LOC="K19";   # Bank 3, Vcco=2.5V, No DCI
+NET "pin_in_refclk_clk_p" LOC="L19" | DIFF_TERM = TRUE; #Сигнал на схеме:CLK_FPGA_P           LOC="L19";   # Bank 3, Vcco=2.5V, No DCI
+
+#DVI
+NET  pin_out_dvi_d<0>     LOC="AB8" ;# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<1>     LOC="AC8" ;# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<2>     LOC="AN12";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<3>     LOC="AP12";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<4>     LOC="AA9" ;# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<5>     LOC="AA8" ;# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<6>     LOC="AM13";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<7>     LOC="AN13";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<8>     LOC="AA10";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<9>     LOC="AB10";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<10>    LOC="AP14";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_d<11>    LOC="AN14";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_hs       LOC="AM12";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_vs       LOC="AM11";# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_clk<1>   LOC="AL10";# | IOSTANDARD=LVCMOS33;  # DVI_XCLK_N Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_clk<0>   LOC="AL11";# | IOSTANDARD=LVCMOS33;  # DVI_XCLK_P Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET  pin_out_dvi_de       LOC="AE8" ;# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3.3V, DCI using 49.9 ohm resistors
+#NET  pin_out_dvi_rst_n    LOC="AK6"  | IOSTANDARD=LVCMOS33;  # Bank 18, Vcco=3.3V, No DCI
+
+NET  pin_inout_dvi_scl    LOC="U27";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+NET  pin_inout_dvi_sda    LOC="T29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
