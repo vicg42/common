@@ -38,7 +38,7 @@ G_DBG      : string:="OFF";
 G_SIM      : string:="OFF"
 );
 port(
-p_in_cmd    : in    std_logic_vector(3 downto 0);--Тип операции
+p_in_cmd    : in    std_logic_vector(2 downto 0);--Тип операции
 p_in_start  : in    std_logic;--Старт опрерации
 p_out_done  : out   std_logic;--Операция закончена
 p_in_txack  : in    std_logic;--Задаем уровень для ответа(acknowlege) slave устройству
@@ -126,7 +126,7 @@ ltstout:process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
     tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(31 downto 1)<=(others=>'0');
+    p_out_tst(0 downto 0)<=(others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
 
     tst_fms_cs_dly<=tst_fms_cs;
