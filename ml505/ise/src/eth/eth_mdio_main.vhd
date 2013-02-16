@@ -72,7 +72,7 @@ constant CI_RD_STATUS_DLY   : integer:=62500000;--500ms (период опроса регистра 
 --Register Map:
 constant CI_RPHY_CTRL       : integer:=0;--Глобальное управление
 constant CI_RPHY_IDENTIFIER : integer:=3;
-constant CI_RPHY_STATUS     : integer:=1;--Статус для Eth Copper
+constant CI_RPHY_STATUS     : integer:=17;--Статус для Eth Copper
 constant CI_RPHY_SCTRL      : integer:=20;--Управление RGMII
 constant CI_RPHY_PAGE       : integer:=22;--Управление страницами
 
@@ -408,7 +408,7 @@ begin
         i_phy_cfg_done<='1';
         i_mdio_start<='0';
         if i_mdio_done='1' then
-          i_phy_link<=i_mdio_rxd(2);
+          i_phy_link<=i_mdio_rxd(10);
 --          if i_phy_link='0' then
 --            i_phy_loopback_on<='0';
             fsm_ctrl_cs<=S_PHY_STATUS_RD;

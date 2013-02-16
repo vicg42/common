@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.2
-# Date: Tue Oct 09 14:50:33 2012
+# Date: Sat Feb 16 10:55:22 2013
 #
 ##############################################################
 #
@@ -91,7 +91,7 @@ CSET rx_vlan_enable_0=false
 CSET rx_vlan_enable_1=false
 CSET sgmii_mode_0=No_clock
 CSET sgmii_mode_1=No_clock
-CSET speed_0=1000_Mbps
+CSET speed_0=Tri_speed
 CSET speed_1=1000_Mbps
 CSET tx_enable_0=true
 CSET tx_enable_1=true
@@ -126,4 +126,4 @@ CSET unicast_pause_mac_address_1_6=FF
 MISC pkg_timestamp=2012-07-21T06:18:49Z
 # END Extra information
 GENERATE
-# CRC:  9551f6c
+# CRC: 9009b981

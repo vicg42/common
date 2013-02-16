@@ -166,7 +166,7 @@ entity eth_mii is
 --      -- Clock Signals - EMAC0
 --
 --      -- SGMII Interface - EMAC0
---      TXP_0                           : out std_logic;
+  --      TXP_0                           : out std_logic;
 --      TXN_0                           : out std_logic;
 --      RXP_0                           : in  std_logic;
 --      RXN_0                           : in  std_logic;
@@ -204,6 +204,10 @@ architecture TOP_LEVEL of eth_mii is
       CLK125_OUT                       : out std_logic;
       -- 125MHz clock input from BUFG
       CLK125                           : in  std_logic;
+      -- Tri-speed clock output from EMAC0
+      CLIENT_CLK_OUT_0                 : out std_logic;
+      -- EMAC0 Tri-speed clock input from BUFG
+      client_clk_0                     : in  std_logic;
 
       -- Local link Receiver Interface - EMAC0
       RX_LL_CLOCK_0                   : in  std_logic;
@@ -263,6 +267,16 @@ architecture TOP_LEVEL of eth_mii is
       RXN_1_UNUSED                    : in  std_logic;
       RXP_1_UNUSED                    : in  std_logic;
 
+--      -- Generic Host Interface
+--      HOSTCLK                         : in  std_logic;
+--      HOSTOPCODE                      : in  std_logic_vector(1 downto 0);
+--      HOSTREQ                         : in  std_logic;
+--      HOSTMIIMSEL                     : in  std_logic;
+--      HOSTADDR                        : in  std_logic_vector(9 downto 0);
+--      HOSTWRDATA                      : in  std_logic_vector(31 downto 0);
+--      HOSTMIIMRDY                     : out std_logic;
+--      HOSTRDDATA                      : out std_logic_vector(31 downto 0);
+--      HOSTEMAC1SEL                    : in  std_logic;
       -- SGMII RocketIO Reference Clock buffer inputs
       CLK_DS                          : in  std_logic;
 
@@ -328,6 +342,8 @@ architecture TOP_LEVEL of eth_mii is
 
     signal resetdone_0_i             : std_logic;
 
+    -- HOSTCLK input to MAC
+    signal host_clk_i                : std_logic;
 
     -- EMAC0 Clocking signals
 
@@ -338,10 +354,21 @@ architecture TOP_LEVEL of eth_mii is
     -- Input 125MHz differential clock for transceiver
     signal clk_ds                    : std_logic;
 
+    -- 1.25/12.5/125MHz clock signals for tri-speed SGMII
+    signal client_clk_0_o            : std_logic;
+    signal client_clk_0              : std_logic;
+
+
     -- GT reset signal
    signal gtreset                    : std_logic;
    signal reset_r                    : std_logic_vector(3 downto 0);
    attribute async_reg of reset_r    : signal is "TRUE";
+
+
+
+--    attribute buffer_type : string;
+--
+--    attribute buffer_type of host_clk_i  : signal is "none";
 
 
 -----------
@@ -393,6 +420,36 @@ signal i_phy_rst                 : std_logic;
 signal i_phy_err                 : std_logic;
 signal i_phy_link                : std_logic;
 signal i_phy_cfg_done            : std_logic;
+
+---- Generic Host Interface
+--signal HOSTCLK                   : std_logic;
+--signal HOSTOPCODE                : std_logic_vector(1 downto 0);
+--signal HOSTREQ                   : std_logic;
+--signal HOSTMIIMSEL               : std_logic;
+--signal HOSTADDR                  : std_logic_vector(9 downto 0);
+--signal HOSTWRDATA                : std_logic_vector(31 downto 0);
+--signal HOSTMIIMRDY               : std_logic;
+--signal HOSTRDDATA                : std_logic_vector(31 downto 0);
+--signal HOSTEMAC1SEL              : std_logic;
+--
+--type TCtrl_fsm is (
+--S_IDLE,
+--S_HREG_WR,
+--S_DONE
+----S_DONE1
+--);
+--signal fsm_ifhost_cs: TCtrl_fsm;
+--
+--Type TReg is array (0 to 2) of std_logic_vector(41 downto 0);
+--constant CI_REG_ARRAY : TReg := (
+----            REG ADR               |             REG DATA
+--(CONV_STD_LOGIC_VECTOR(16#240#, 10) & CONV_STD_LOGIC_VECTOR(16#1000#, 16) & CONV_STD_LOGIC_VECTOR(16#0000#, 16)), --Receiver Configuration Register (Word 1)
+--(CONV_STD_LOGIC_VECTOR(16#280#, 10) & CONV_STD_LOGIC_VECTOR(16#1000#, 16) & CONV_STD_LOGIC_VECTOR(16#0000#, 16)), --Transmitter Configuration Registe
+--(CONV_STD_LOGIC_VECTOR(16#300#, 10) & CONV_STD_LOGIC_VECTOR(16#9400#, 16) & CONV_STD_LOGIC_VECTOR(16#0000#, 16))  --Ethernet MAC Mode Configuration Register
+--);
+--signal i_hreg_cnt                : std_logic_vector(1 downto 0);
+----signal i_gtp_rst                 : std_logic;
+signal tst_mdio_out              : std_logic_vector(31 downto 0);
 
 
 -------------------------------------------------------------------------------
@@ -449,7 +506,7 @@ p_out_mdc      => p_out_phy.mdc,
 --Технологические сигналы
 --------------------------------------------------
 p_in_tst       => (others=>'0'),
-p_out_tst      => open,
+p_out_tst      => tst_mdio_out,
 
 --------------------------------------
 --SYSTEM
@@ -480,6 +537,10 @@ p_in_rst       => p_in_rst
 
     ll_clk_0_i <= clk125;
 
+    -- 1.25/12.5/125MHz clock from the MAC is routed through a BUFG and
+    -- input to the MAC wrappers to clock the client interface.
+    bufg_client_0 : BUFG port map (I => client_clk_0_o, O => client_clk_0);
+
    --------------------------------------------------------------------
    -- RocketIO PMA reset circuitry
    --------------------------------------------------------------------
@@ -507,6 +568,10 @@ p_in_rst       => p_in_rst
       CLK125_OUT                      => clk125_o,
       -- 125MHz clock input from BUFG
       CLK125                          => clk125,
+      -- Tri-speed clock output from EMAC0
+      CLIENT_CLK_OUT_0                => client_clk_0_o,
+      -- EMAC0 Tri-speed clock input from BUFG
+      CLIENT_CLK_0                    => client_clk_0,
       -- Local link Receiver Interface - EMAC0
       RX_LL_CLOCK_0                   => ll_clk_0_i,
       RX_LL_RESET_0                   => ll_reset_0_i,
@@ -564,6 +629,16 @@ p_in_rst       => p_in_rst
       RXN_1_UNUSED                    => p_in_phy.pin.sgmii.rxp(1),  --RXN_1_UNUSED,
       RXP_1_UNUSED                    => p_in_phy.pin.sgmii.rxn(1),  --RXP_1_UNUSED,
 
+--      -- Generic Host Interface
+--      HOSTCLK                         => host_clk_i,   --: in  std_logic;
+--      HOSTOPCODE                      => HOSTOPCODE,   --: in  std_logic_vector(1 downto 0);
+--      HOSTREQ                         => HOSTREQ,      --: in  std_logic;
+--      HOSTMIIMSEL                     => HOSTMIIMSEL,  --: in  std_logic;
+--      HOSTADDR                        => HOSTADDR,     --: in  std_logic_vector(9 downto 0);
+--      HOSTWRDATA                      => HOSTWRDATA,   --: in  std_logic_vector(31 downto 0);
+--      HOSTMIIMRDY                     => HOSTMIIMRDY,  --: out std_logic;
+--      HOSTRDDATA                      => HOSTRDDATA,   --: out std_logic_vector(31 downto 0);
+--      HOSTEMAC1SEL                    => HOSTEMAC1SEL, --: in  std_logic;
       -- SGMII RocketIO Reference Clock buffer inputs
       CLK_DS                          => clk_ds,
 
@@ -611,6 +686,76 @@ p_in_rst       => p_in_rst
       end if;
       end if;
     end process gen_ll_reset_emac0;
+
+----    ------------------------------------------------------------------------
+----    -- HOSTCLK Clock Management - Clock input for the generic management
+----    -- interface. This clock could be tied to a 125MHz reference clock
+----    -- to save on clocking resources
+----    ------------------------------------------------------------------------
+----    host_clk : IBUF port map(I => HOSTCLK, O => host_clk_i);
+--
+--host_clk_i <= clk125;--p_in_phy.opt(C_ETHPHY_OPTIN_DRPCLK_BIT);--
+----HOSTOPCODE  <= (others=>'0');--: in  std_logic_vector(1 downto 0);
+----HOSTADDR    <= (others=>'0');     --: in  std_logic_vector(9 downto 0);
+----HOSTWRDATA  <= (others=>'0');   --: in  std_logic_vector(31 downto 0);
+--HOSTREQ     <= '0';--: in  std_logic;
+--HOSTMIIMSEL <= '0';--: in  std_logic;
+--HOSTEMAC1SEL <= '0'; --: in  std_logic;
+----HOSTMIIMRDY,  --: out std_logic;
+----HOSTRDDATA,   --: out std_logic_vector(31 downto 0);
+--
+--process(ll_reset_0_i, host_clk_i)
+--begin
+--  if ll_reset_0_i = '1' then
+--
+--    fsm_ifhost_cs <= S_IDLE;
+--    HOSTOPCODE  <= (others=>'0');
+--    HOSTADDR    <= (others=>'0');
+--    HOSTWRDATA  <= (others=>'0');
+--    i_hreg_cnt <= (others=>'0');
+----    i_gtp_rst <= '0';
+--
+--  elsif rising_edge(host_clk_i) then
+--
+--    case fsm_ifhost_cs is
+--
+--      when S_IDLE =>
+--
+--        fsm_ifhost_cs <= S_HREG_WR;
+--
+--      when S_HREG_WR =>
+--
+--        for n in 0 to CI_REG_ARRAY'length - 1 loop
+--          if i_hreg_cnt = n then
+--            HOSTADDR <= CI_REG_ARRAY(n)(41 downto 32);
+--            HOSTWRDATA <= CI_REG_ARRAY(n)(31 downto 0);
+--          end if;
+--        end loop;
+--
+--        HOSTOPCODE <= (others=>'0');
+--
+--        if i_hreg_cnt = CONV_STD_LOGIC_VECTOR(CI_REG_ARRAY'length - 1, i_hreg_cnt'length) then
+--          i_hreg_cnt <= (others=>'0');
+--          fsm_ifhost_cs <= S_DONE;
+--        else
+--          i_hreg_cnt <= i_hreg_cnt + 1;
+--        end if;
+--
+--      when S_DONE =>
+--
+--        HOSTOPCODE <= (others=>'1');
+----        i_gtp_rst <= '1';
+--        fsm_ifhost_cs <= S_DONE;
+--
+----      when S_DONE1 =>
+----
+----        HOSTOPCODE <= (others=>'1');
+----        i_gtp_rst <= '0';
+----        fsm_ifhost_cs <= S_DONE1;
+--
+--    end case;
+--  end if;
+--end process;
 
 
 
