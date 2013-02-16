@@ -20,7 +20,6 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
---use work.prj_cfg.all;
 use work.prom_phypin_pkg.all;
 
 entity prom_ld is
@@ -28,9 +27,6 @@ generic(
 G_HOST_DWIDTH : integer:=32
 );
 port(
-p_in_tmr_en      : in    std_logic;
-p_in_tmr_stb     : in    std_logic;
-
 -------------------------------
 --Ñâÿçü ñ HOST
 -------------------------------
@@ -132,15 +128,10 @@ rst    : in  std_logic
 );
 end component;
 
-signal i_tmr_en         : std_logic;
-signal sr_core_start    : std_logic_vector(0 to 2);
-
 signal i_txbuf_do       : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_txbuf_rd       : std_logic;
 signal i_txbuf_full     : std_logic;
 signal i_txbuf_empty    : std_logic;
-signal i_txbuf_empty_tmp: std_logic;
-signal i_txbuf_empty_en : std_logic;
 signal i_rxbuf_di       : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_rxbuf_wr       : std_logic;
 signal i_rxbuf_full     : std_logic;
@@ -177,23 +168,7 @@ p_out_rxbuf_full  <= i_rxbuf_full;
 p_out_rxbuf_empty <= i_rxbuf_empty;
 
 p_out_txbuf_full  <= i_txbuf_full;
-p_out_txbuf_empty <= i_txbuf_empty_tmp;--i_txbuf_empty;--
-
-process(p_in_clk)
-begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_tmr_en <= p_in_tmr_en;
-    sr_core_start <= p_in_tmr_stb & sr_core_start(0 to 1);
-
-    if i_txbuf_empty_tmp = '1' then
-      i_txbuf_empty_en <= '0';
-    elsif i_tmr_en = '1' and sr_core_start(1) = '1' and sr_core_start(2) = '0' then
-      i_txbuf_empty_en <= '1';
-    end if;
-  end if;
-end process;
-
-i_txbuf_empty <= not (not i_txbuf_empty_tmp and i_txbuf_empty_en) when i_tmr_en = '1' else i_txbuf_empty_tmp;
+p_out_txbuf_empty <= i_txbuf_empty;
 
 --fpga -> flash
 m_txbuf : prom_buf
@@ -207,8 +182,8 @@ rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
 almost_full => i_txbuf_full,
-full   => open,--i_txbuf_full,
-empty  => i_txbuf_empty_tmp, --i_txbuf_empty, --
+full   => open,
+empty  => i_txbuf_empty,
 
 rst    => p_in_rst
 );
@@ -289,7 +264,7 @@ begin
   elsif rising_edge(p_in_clk) then
     i_divcnt <= i_divcnt + 1;
 
-    --
+    --p_in_clk=100MHz
     if i_divcnt = (i_divcnt'range => '1') then
     i_clk_en <= '1';
     else
@@ -298,8 +273,6 @@ begin
 
   end if;
 end process;
-
---i_clk_en <= '1';
 
 
 --END MAIN
