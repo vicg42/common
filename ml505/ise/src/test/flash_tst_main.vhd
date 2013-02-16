@@ -101,9 +101,6 @@ generic(
 G_HOST_DWIDTH : integer:=32
 );
 port(
-p_in_tmr_en      : in    std_logic;
-p_in_tmr_stb     : in    std_logic;
-
 -------------------------------
 --Связь с HOST
 -------------------------------
@@ -238,8 +235,8 @@ p_in_clkopt=> g_refclkopt,
 p_in_clk   => pin_in_refclk
 );
 
-i_hclk <= g_usrclk(0);--<= g_usrclk(1);
-i_prom_clk <= g_usrclk(0);
+i_hclk <= g_usrclk(2);--<= g_usrclk(1);
+i_prom_clk <= g_usrclk(2);
 
 --***********************************************************
 --Блок обновления прошивки
@@ -249,9 +246,6 @@ generic map(
 G_HOST_DWIDTH => CI_HOST_DWIDTH
 )
 port map(
-p_in_tmr_en      => '0',
-p_in_tmr_stb     => '0',
-
 -------------------------------
 --Связь с HOST
 -------------------------------
@@ -403,7 +397,7 @@ begin
 
         if i_htxbuf_empty = '1' and sr_herr = '0' then
           i_htxbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ADR, 4);
-          i_htxbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR(16#27#, 28);
+          i_htxbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR(16#10#, 28);--(16#27#, 28);
           i_htxbuf_wr <= '1';
           i_fsm_cs <= S_FLASH_CFI_ADR_DONE;
         end if;
