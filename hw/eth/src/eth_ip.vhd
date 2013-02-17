@@ -286,49 +286,49 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
-    tst_fms_cs_rx_dly<=(others=>'0');
-    tst_fms_cs_tx_dly<=(others=>'0');
-    p_out_tst(31 downto 1)<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
+  if p_in_rst = '1' then
+    tst_fms_cs_rx_dly <= (others=>'0');
+    tst_fms_cs_tx_dly <= (others=>'0');
+    p_out_tst(31 downto 1) <= (others=>'0');
+  elsif rising_edge(p_in_clk) then
 
-    tst_fms_cs_rx_dly<=tst_fms_cs_rx;
-    tst_fms_cs_tx_dly<=tst_fms_cs_tx;
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_rx_dly) or OR_reduce(tst_fms_cs_tx_dly) or tst_dhcp;
-    p_out_tst(1)<=i_dhcp_get_prm_done;
+    tst_fms_cs_rx_dly <= tst_fms_cs_rx;
+    tst_fms_cs_tx_dly <= tst_fms_cs_tx;
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_rx_dly) or OR_reduce(tst_fms_cs_tx_dly) or tst_dhcp;
+    p_out_tst(1) <= i_dhcp_get_prm_done;
   end if;
 end process ltstout;
 
-tst_fms_cs_rx<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_ARP       else
-               CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_IP        else
-               CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_ICMP      else
-               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_PORT  else
-               CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_DLEN  else
-               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_CRC   else
-               CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_UDP_D     else
-               CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_WAIT_TX_DONE else
-               CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_WAIT_DONE else
-               CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_DHCP_0    else
-               CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_DHCP_1    else
-               CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_DHCP_2    else
-               CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs_rx'length) when fsm_ip_rx_cs=S_RX_DHCP_3    else
-               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs_rx'length);-- when fsm_ip_rx_cs=S_RX_IDLE      else
+tst_fms_cs_rx <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_ARP       else
+                 CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_IP        else
+                 CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_ICMP      else
+                 CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_UDP_PORT  else
+                 CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_UDP_DLEN  else
+                 CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_UDP_CRC   else
+                 CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_UDP_D     else
+                 CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_WAIT_TX_DONE else
+                 CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_WAIT_DONE else
+                 CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_DHCP_0    else
+                 CONV_STD_LOGIC_VECTOR(16#0B#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_DHCP_1    else
+                 CONV_STD_LOGIC_VECTOR(16#0C#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_DHCP_2    else
+                 CONV_STD_LOGIC_VECTOR(16#0D#, tst_fms_cs_rx'length) when fsm_ip_rx_cs = S_RX_DHCP_3    else
+                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs_rx'length);-- when fsm_ip_rx_cs = S_RX_IDLE      else
 
-tst_fms_cs_tx<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_ACK_DLY  else
-               CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_ACK      else
-               CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_DONE     else
-               CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_UDP_H0   else
-               CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_UDP_HN   else
-               CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_UDP_D    else
-               CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_DHCP_0   else
-               CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs_tx'length) when fsm_ip_tx_cs=S_TX_DHCP_1   else
-               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs_tx'length);-- when fsm_ip_tx_cs=S_TX_IDLE     else
+tst_fms_cs_tx <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_ACK_DLY  else
+                 CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_ACK      else
+                 CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_DONE     else
+                 CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_UDP_H0   else
+                 CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_UDP_HN   else
+                 CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_UDP_D    else
+                 CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_DHCP_0   else
+                 CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_cs_tx'length) when fsm_ip_tx_cs = S_TX_DHCP_1   else
+                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs_tx'length);-- when fsm_ip_tx_cs = S_TX_IDLE     else
 
 end generate gen_dbg_on;
 
@@ -338,29 +338,31 @@ end generate gen_dbg_on;
 --//-------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
-    for i in 0 to i_hreg_d'length-1 loop
+  if p_in_rst = '1' then
+    for i in 0 to i_hreg_d'length - 1 loop
     i_hreg_d(i) <= (others=>'0');
     end loop;
     i_hreg_a <= (others=>'0');
     i_hreg_wr <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
-    if i_hreg_wr='0' and p_in_rxll_sof_n='0' and p_in_rxll_src_rdy_n='0' then
+    if i_hreg_wr = '0' and p_in_rxll_sof_n = '0' and p_in_rxll_src_rdy_n = '0' then
       i_hreg_wr <= '1';
       i_hreg_a <= i_hreg_a + 1;
       i_hreg_d(0) <= p_in_rxll_data;
 
-    elsif i_hreg_wr='1' and p_in_rxll_src_rdy_n='0' then
+    elsif i_hreg_wr = '1' and p_in_rxll_src_rdy_n = '0' then
 
-        for i in 1 to i_hreg_d'length-1 loop
-          if i_hreg_a=i then
+        for i in 1 to i_hreg_d'length - 1 loop
+          if i_hreg_a = i then
             i_hreg_d(i) <= p_in_rxll_data;
           end if;
         end loop;
 
-        if i_hreg_a=CONV_STD_LOGIC_VECTOR(i_hreg_d'length - 1, i_hreg_a'length) or p_in_rxll_eof_n='0' then
+        if i_hreg_a = CONV_STD_LOGIC_VECTOR(i_hreg_d'length - 1, i_hreg_a'length) or
+           p_in_rxll_eof_n = '0' then
+
           i_hreg_a <= (others=>'0');
           i_hreg_wr <= '0';
         else
@@ -371,15 +373,16 @@ begin
 
   end if;
 end process;
+
 --Детектирование IP + MAC адресов
 gen_rx_mac_check : for i in 0 to i_fpga_mac'length - 1 generate
-i_rx_mac_valid(i)<='1' when i_hreg_d(i) = i_fpga_mac(i) else '0';
-i_rx_mac_broadcast(i)<='1' when i_hreg_d(i) = CONV_STD_LOGIC_VECTOR(16#FF#, i_hreg_d(i)'length) else '0';
+i_rx_mac_valid(i) <='1' when i_hreg_d(i) = i_fpga_mac(i) else '0';
+i_rx_mac_broadcast(i) <='1' when i_hreg_d(i) = CONV_STD_LOGIC_VECTOR(16#FF#, i_hreg_d(i)'length) else '0';
 end generate gen_rx_mac_check;
 
 gen_rx_ip_check : for i in 0 to i_fpga_ip'length - 1 generate
-i_rx_ip_valid(i)<='1' when i_hreg_d(30 + i) = i_fpga_ip(i) else '0';
-i_rx_ip_broadcast(i)<='1' when i_hreg_d(30 + i) = CONV_STD_LOGIC_VECTOR(16#FF#, i_hreg_d(i)'length) else '0';
+i_rx_ip_valid(i) <='1' when i_hreg_d(30 + i) = i_fpga_ip(i) else '0';
+i_rx_ip_broadcast(i) <='1' when i_hreg_d(30 + i) = CONV_STD_LOGIC_VECTOR(16#FF#, i_hreg_d(i)'length) else '0';
 end generate gen_rx_ip_check;
 
 --Установка IP + MAC адресов + UDP портов
@@ -387,31 +390,31 @@ i_fpga_udp_port <= p_in_cfg.prt.src;
 i_host_udp_port <= p_in_cfg.prt.dst;
 i_dhcp_on <= p_in_cfg.usrctrl(C_ETH_CTRL_DHCP_EN_BIT);
 
-gen_set_ip : for i in 0 to i_fpga_ip'length-1 generate
-i_fpga_ip(i) <= p_in_cfg.ip.src(i) when i_dhcp_on='0' else i_dhcp_client_ip(i);
-i_host_ip(i) <= p_in_cfg.ip.dst(i) when i_dhcp_on='0' else i_dhcp_server_ip(i);
+gen_set_ip : for i in 0 to i_fpga_ip'length - 1 generate
+i_fpga_ip(i) <= p_in_cfg.ip.src(i) when i_dhcp_on = '0' else i_dhcp_client_ip(i);
+i_host_ip(i) <= p_in_cfg.ip.dst(i) when i_dhcp_on = '0' else i_dhcp_server_ip(i);
 end generate gen_set_ip;
 
-gen_set_mac : for i in 0 to i_host_mac'length-1 generate
+gen_set_mac : for i in 0 to i_host_mac'length - 1 generate
 i_fpga_mac(i) <= p_in_cfg.mac.src(i);
-i_host_mac(i) <= p_in_cfg.mac.dst(i) when i_dhcp_on='0' else i_dhcp_server_mac(i);
+i_host_mac(i) <= p_in_cfg.mac.dst(i) when i_dhcp_on = '0' else i_dhcp_server_mac(i);
 end generate gen_set_mac;
 
 
 --//-------------------------------------------
 --//RxEthPkt
 --//-------------------------------------------
-p_out_rxbuf_din <=i_rx_d;
+p_out_rxbuf_din <= i_rx_d;
 p_out_rxbuf_wr <= (i_rx_en or i_rx_eof);
-p_out_rxd_sof <= i_rx_sof when i_rx_sof_ext='0' else i_rx_eof;
+p_out_rxd_sof <= i_rx_sof when i_rx_sof_ext = '0' else i_rx_eof;
 p_out_rxd_eof <= i_rx_eof;
 
 p_out_rxll_dst_rdy_n <= i_rxll_dst_rdy_n;
 
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
-    fsm_ip_rx_cs<=S_RX_IDLE;
+  if p_in_rst = '1' then
+    fsm_ip_rx_cs <= S_RX_IDLE;
 
     i_rxll_dst_rdy_n <= '0';
     i_tx_req <= (others=>'0');
@@ -424,23 +427,23 @@ begin
     i_rx_sof <= '0';
     i_rx_eof <= '0';
     i_rx_sof_ext <= '0';
-    for i in 0 to sr_rx_d'length-1 loop
+    for i in 0 to sr_rx_d'length - 1 loop
     sr_rx_d(i) <= (others=>'0');
     end loop;
 
     i_dhcp_discover_tx_done <= '0'; tst_dhcp <= '0';
     i_dhcp_get_prm_done <= '0';
-    for i in 0 to i_dhcp_server_ip'length-1 loop
+    for i in 0 to i_dhcp_server_ip'length - 1 loop
     i_dhcp_server_ip(i) <= (others=>'0');
     i_dhcp_client_ip(i) <= (others=>'0');
     end loop;
 
-    for i in 0 to i_dhcp_server_mac'length-1 loop
+    for i in 0 to i_dhcp_server_mac'length - 1 loop
     i_dhcp_server_mac(i) <= (others=>'0');
     end loop;
     i_dhcp_proffer_rx_done <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
         case fsm_ip_rx_cs is
 
@@ -459,17 +462,17 @@ begin
               i_rx_eof <= '0';
               i_rx_sof_ext <= '0';
 
-              if p_in_rxll_src_rdy_n='0' and i_rxll_dst_rdy_n='0' and
-                  i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ETH_TYPE + 2, i_hreg_a'length) then
+              if p_in_rxll_src_rdy_n = '0' and i_rxll_dst_rdy_n = '0' and
+                  i_hreg_a = CONV_STD_LOGIC_VECTOR(CI_HREG_ETH_TYPE + 2, i_hreg_a'length) then
 
                   --MAC: (Dst)
-                  if (AND_reduce(i_rx_mac_broadcast)='1' or AND_reduce(i_rx_mac_valid)='1') then
+                  if (AND_reduce(i_rx_mac_broadcast) = '1' or AND_reduce(i_rx_mac_valid) = '1') then
 
                       --EthPkt Type:
-                      if (i_hreg_d(CI_HREG_ETH_TYPE + 0) & i_hreg_d(CI_HREG_ETH_TYPE + 1))=CI_ETH_TYPE_ARP then
+                      if (i_hreg_d(CI_HREG_ETH_TYPE + 0) & i_hreg_d(CI_HREG_ETH_TYPE + 1)) = CI_ETH_TYPE_ARP then
                         fsm_ip_rx_cs <= S_RX_ARP;
 
-                      elsif (i_hreg_d(CI_HREG_ETH_TYPE + 0) & i_hreg_d(CI_HREG_ETH_TYPE + 1))=CI_ETH_TYPE_IP then
+                      elsif (i_hreg_d(CI_HREG_ETH_TYPE + 0) & i_hreg_d(CI_HREG_ETH_TYPE + 1)) = CI_ETH_TYPE_IP then
                         fsm_ip_rx_cs <= S_RX_IP;
 
                       end if;
@@ -478,8 +481,8 @@ begin
                     fsm_ip_rx_cs <= S_RX_WAIT_DONE;
                   end if;
               else
-                  if (i_dhcp_discover_tx_done='0' or i_dhcp_discover_update='1') and i_dhcp_on='1' then
-                      if p_in_link='1' then
+                  if (i_dhcp_discover_tx_done = '0' or i_dhcp_discover_update = '1') and i_dhcp_on = '1' then
+                      if p_in_link = '1' then
                           i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length);
                           i_rxll_dst_rdy_n <= '1';
                           i_crc_start <= '1';
@@ -495,15 +498,15 @@ begin
           --------------------------------------
           when S_RX_ARP =>
 
-            if i_dhcp_get_prm_done='0' and i_dhcp_on='1' then
+            if i_dhcp_get_prm_done = '0' and i_dhcp_on = '1' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
-              if (p_in_rxll_src_rdy_n='0' and p_in_rxll_eof_n='0') then
+              if (p_in_rxll_src_rdy_n = '0' and p_in_rxll_eof_n = '0') then
 
-                  if (i_hreg_d(CI_HREG_ARP_HTYPE + 0) & i_hreg_d(CI_HREG_ARP_HTYPE + 1))=CI_ARP_HTYPE and
-                     (i_hreg_d(CI_HREG_ARP_PTYPE + 0) & i_hreg_d(CI_HREG_ARP_PTYPE + 1))=CI_ETH_TYPE_IP and
-                     (i_hreg_d(CI_HREG_ARP_HPLEN + 0) & i_hreg_d(CI_HREG_ARP_HPLEN + 1))=CI_ARP_HPLEN and
-                     (i_hreg_d(CI_HREG_ARP_OPER  + 0) & i_hreg_d(CI_HREG_ARP_OPER  + 1))=CI_ARP_OPER_REQUEST then
+                  if (i_hreg_d(CI_HREG_ARP_HTYPE + 0) & i_hreg_d(CI_HREG_ARP_HTYPE + 1)) = CI_ARP_HTYPE and
+                     (i_hreg_d(CI_HREG_ARP_PTYPE + 0) & i_hreg_d(CI_HREG_ARP_PTYPE + 1)) = CI_ETH_TYPE_IP and
+                     (i_hreg_d(CI_HREG_ARP_HPLEN + 0) & i_hreg_d(CI_HREG_ARP_HPLEN + 1)) = CI_ARP_HPLEN and
+                     (i_hreg_d(CI_HREG_ARP_OPER  + 0) & i_hreg_d(CI_HREG_ARP_OPER  + 1)) = CI_ARP_OPER_REQUEST then
 
                         i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length);
                         i_rxll_dst_rdy_n <= '1';
@@ -521,16 +524,18 @@ begin
           --------------------------------------
           when S_RX_IP =>
 
-              if p_in_rxll_src_rdy_n='0' and
-                 i_hreg_a=CONV_STD_LOGIC_VECTOR(CI_HREG_ICMP_OPER, i_hreg_a'length) then
+              if p_in_rxll_src_rdy_n = '0' and
+                 i_hreg_a = CONV_STD_LOGIC_VECTOR(CI_HREG_ICMP_OPER, i_hreg_a'length) then
 
-                  if (AND_reduce(i_rx_ip_valid)='1' or (AND_reduce(i_rx_ip_broadcast)='1' and i_dhcp_get_prm_done='0' and i_dhcp_on='1')) and
-                      i_hreg_d(CI_HREG_IP_VER)=(CONV_STD_LOGIC_VECTOR(CI_IP_VER, 4) & CONV_STD_LOGIC_VECTOR(CI_IP_HEADER_SIZE/4, 4)) then
+                  if (AND_reduce(i_rx_ip_valid) = '1' or
+                      (AND_reduce(i_rx_ip_broadcast) = '1' and i_dhcp_get_prm_done = '0' and i_dhcp_on = '1')) and
+                      i_hreg_d(CI_HREG_IP_VER) = (CONV_STD_LOGIC_VECTOR(CI_IP_VER, 4) &
+                                                  CONV_STD_LOGIC_VECTOR(CI_IP_HEADER_SIZE/4, 4)) then
 
-                      if i_hreg_d(CI_HREG_IP_PROTOCOL)=CI_IP_PTYPE_ICMP then
+                      if i_hreg_d(CI_HREG_IP_PROTOCOL) = CI_IP_PTYPE_ICMP then
                         fsm_ip_rx_cs <= S_RX_ICMP;
 
-                      elsif i_hreg_d(CI_HREG_IP_PROTOCOL)=CI_IP_PTYPE_UDP then
+                      elsif i_hreg_d(CI_HREG_IP_PROTOCOL) = CI_IP_PTYPE_UDP then
                         fsm_ip_rx_cs <= S_RX_UDP_PORT;
 
                       else
@@ -547,14 +552,14 @@ begin
           --------------------------------------
           when S_RX_ICMP =>
 
-            if i_dhcp_get_prm_done='0' and i_dhcp_on='1' then
+            if i_dhcp_get_prm_done = '0' and i_dhcp_on = '1' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
-              if p_in_rxll_src_rdy_n='0' then
+              if p_in_rxll_src_rdy_n = '0' then
 
-                  if i_hreg_d(CI_HREG_ICMP_OPER)=CI_ICMP_OPER_REQUEST then
+                  if i_hreg_d(CI_HREG_ICMP_OPER) = CI_ICMP_OPER_REQUEST then
 
-                      if p_in_rxll_eof_n='0' then
+                      if p_in_rxll_eof_n = '0' then
                           i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length);
                           i_rxll_dst_rdy_n <= '1';
                           i_crc_start <= '1';
@@ -572,21 +577,21 @@ begin
           --------------------------------------
           when S_RX_UDP_PORT =>
 
-              if p_in_rxll_src_rdy_n='0' and
+              if p_in_rxll_src_rdy_n = '0' and
                 i_hreg_a=CONV_STD_LOGIC_VECTOR(37, i_hreg_a'length) then
 
                   --Проверяем DST PORT принимаемого UDP Pkt
-                  if (i_hreg_d(36) & p_in_rxll_data)=i_fpga_udp_port then
+                  if (i_hreg_d(36) & p_in_rxll_data) = i_fpga_udp_port then
                     fsm_ip_rx_cs <= S_RX_UDP_DLEN;
 
-                  elsif (i_hreg_d(36) & p_in_rxll_data)=CI_UDP_PORT_DHCP_CLIENT and i_dhcp_get_prm_done='0' then
+                  elsif (i_hreg_d(36) & p_in_rxll_data) = CI_UDP_PORT_DHCP_CLIENT and i_dhcp_get_prm_done = '0' then
                     fsm_ip_rx_cs <= S_RX_DHCP_0; tst_dhcp <= '1';
 
                   else
                     fsm_ip_rx_cs <= S_RX_IDLE;
                   end if;
 
-                  for i in 0 to sr_rx_d'length-1 loop
+                  for i in 0 to sr_rx_d'length - 1 loop
                   sr_rx_d(i) <= (others=>'0');
                   end loop;
 
@@ -595,11 +600,11 @@ begin
           --вычисляем размер пользовательских данных и выдаем полученое значение в USR RxBUF
           when S_RX_UDP_DLEN =>
 
-            if i_dhcp_get_prm_done='0' and i_dhcp_on='1' then
+            if i_dhcp_get_prm_done = '0' and i_dhcp_on = '1' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
-              if p_in_rxll_src_rdy_n='0' then
-                if i_rx_bcnt(0)='1' then
+              if p_in_rxll_src_rdy_n = '0' then
+                if i_rx_bcnt(0) = '1' then
                   i_rx_d(15 downto 0) <= (sr_rx_d(0) & p_in_rxll_data) - CONV_STD_LOGIC_VECTOR(CI_UDP_HEADER_SIZE, 16);
                   fsm_ip_rx_cs <= S_RX_UDP_CRC;
                 else
@@ -613,15 +618,15 @@ begin
           --пропускаем данные CRC
           when S_RX_UDP_CRC =>
 
-              if p_in_rxll_src_rdy_n='0' then
-                if i_rx_bcnt=CONV_STD_LOGIC_VECTOR(4-1, i_rx_bcnt'length) then
+              if p_in_rxll_src_rdy_n = '0' then
+                if i_rx_bcnt = CONV_STD_LOGIC_VECTOR(4-1, i_rx_bcnt'length) then
                   i_rx_bcnt <= CONV_STD_LOGIC_VECTOR(2, i_rx_bcnt'length);
                   fsm_ip_rx_cs <= S_RX_UDP_D;
                 else
                   i_rx_bcnt <= i_rx_bcnt + 1;
                 end if;
 
-                if i_rx_d(15 downto 0)<CONV_STD_LOGIC_VECTOR(2, i_rx_d'length) then
+                if i_rx_d(15 downto 0) < CONV_STD_LOGIC_VECTOR(2, i_rx_d'length) then
                   i_rx_sof_ext <= '1';
                 end if;
               end if;
@@ -629,24 +634,24 @@ begin
           --принимаем пользовательские данные в USR RxBUF
           when S_RX_UDP_D =>
 
-              if p_in_rxll_src_rdy_n='0' then
+              if p_in_rxll_src_rdy_n = '0' then
 
                   for i in 0 to 3 loop
-                    if i_rx_bcnt=i then
+                    if i_rx_bcnt = i then
                       i_rx_d(8*(i+1)-1 downto 8*i) <= p_in_rxll_data;
                     end if;
                   end loop;
 
                   i_rx_bcnt <= i_rx_bcnt + 1;
 
-                  if AND_reduce(i_rx_bcnt)='1' then
+                  if AND_reduce(i_rx_bcnt) = '1' then
                     i_rx_fst <= '1';
                   end if;
 
                   i_rx_en <= AND_reduce(i_rx_bcnt);
                   i_rx_sof <= AND_reduce(i_rx_bcnt) and not i_rx_fst;
 
-                  if p_in_rxll_eof_n='0' then
+                  if p_in_rxll_eof_n = '0' then
                     i_rx_eof <= '1';
                     i_rxll_dst_rdy_n <= '1';
                     fsm_ip_rx_cs <= S_RX_IDLE;
@@ -661,7 +666,7 @@ begin
 
             i_crc_start <= '0';
 
-            if i_tx_done='1' then
+            if i_tx_done = '1' then
               i_tx_req <= (others=> '0');
               if i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) then
                 i_dhcp_discover_tx_done <= '1';
@@ -675,7 +680,7 @@ begin
           --------------------------------------
           when S_RX_WAIT_DONE =>
 
-            if (p_in_rxll_src_rdy_n='0' and p_in_rxll_eof_n='0') then
+            if (p_in_rxll_src_rdy_n = '0' and p_in_rxll_eof_n = '0') then
               fsm_ip_rx_cs <= S_RX_IDLE;
             end if;
 
@@ -684,18 +689,18 @@ begin
           --------------------------------------
           when S_RX_DHCP_0 =>
 
-            if i_dhcp_on='0' then
+            if i_dhcp_on = '0' then
               fsm_ip_rx_cs <= S_RX_DHCP_1;
             else
-              if p_in_rxll_src_rdy_n='0' then
-                if i_hreg_a=CONV_STD_LOGIC_VECTOR(i_hreg_d'length - 1, i_hreg_a'length) and
-                  i_hreg_d(42)=CI_DHCP_OPER_REPLY and
-                  i_hreg_d(43)=CONV_STD_LOGIC_VECTOR(1, 8) and
-                  i_hreg_d(44)=CONV_STD_LOGIC_VECTOR(6, 8) and
-                  i_hreg_d(46)=i_dhcp_xid( 7 downto  0) and
-                  i_hreg_d(47)=i_dhcp_xid(15 downto  8) and
-                  i_hreg_d(48)=i_dhcp_xid(23 downto 16) and
-                  i_hreg_d(49)=i_dhcp_xid(31 downto 24) then
+              if p_in_rxll_src_rdy_n = '0' then
+                if i_hreg_a = CONV_STD_LOGIC_VECTOR(i_hreg_d'length - 1, i_hreg_a'length) and
+                  i_hreg_d(42) = CI_DHCP_OPER_REPLY and
+                  i_hreg_d(43) = CONV_STD_LOGIC_VECTOR(1, 8) and
+                  i_hreg_d(44) = CONV_STD_LOGIC_VECTOR(6, 8) and
+                  i_hreg_d(46) = i_dhcp_xid( 7 downto  0) and
+                  i_hreg_d(47) = i_dhcp_xid(15 downto  8) and
+                  i_hreg_d(48) = i_dhcp_xid(23 downto 16) and
+                  i_hreg_d(49) = i_dhcp_xid(31 downto 24) then
 
                   fsm_ip_rx_cs <= S_RX_DHCP_1;
                 end if;
@@ -705,10 +710,10 @@ begin
           --Ищем DHCP_MAGIC_COOKIE
           when S_RX_DHCP_1 =>
 
-            if i_dhcp_on='0' then
+            if i_dhcp_on = '0' then
               fsm_ip_rx_cs <= S_RX_DHCP_2;
             else
-              if p_in_rxll_src_rdy_n='0' then
+              if p_in_rxll_src_rdy_n = '0' then
 
                   if p_in_rxll_data = CI_DHCP_MAGIC_COOKIE(31 downto 24) and
                          sr_rx_d(0) = CI_DHCP_MAGIC_COOKIE(23 downto 16) and
@@ -717,7 +722,7 @@ begin
 
                     fsm_ip_rx_cs <= S_RX_DHCP_2;
 
-                  elsif p_in_rxll_eof_n='0' then
+                  elsif p_in_rxll_eof_n = '0' then
                     fsm_ip_rx_cs <= S_RX_IDLE;
 
                   end if;
@@ -730,10 +735,10 @@ begin
           --Ищем тип ответа
           when S_RX_DHCP_2 =>
 
-            if i_dhcp_on='0' then
+            if i_dhcp_on = '0' then
               fsm_ip_rx_cs <= S_RX_DHCP_3;
             else
-              if p_in_rxll_src_rdy_n='0' then
+              if p_in_rxll_src_rdy_n = '0' then
 
                   if p_in_rxll_data = CI_DHCP_DHCPOFFER and
                          sr_rx_d(0) = CONV_STD_LOGIC_VECTOR(1, 8) and
@@ -748,7 +753,7 @@ begin
                     i_dhcp_get_prm_done <= '1';
                     fsm_ip_rx_cs <= S_RX_DHCP_3;
 
-                  elsif p_in_rxll_eof_n='0' then
+                  elsif p_in_rxll_eof_n = '0' then
                     fsm_ip_rx_cs <= S_RX_IDLE;
 
                   end if;
@@ -761,10 +766,10 @@ begin
           --Ждем завершения текущего пакета и копируем принятые параметры
           when S_RX_DHCP_3 =>
 
-            if i_dhcp_on='0' then
+            if i_dhcp_on = '0' then
               fsm_ip_rx_cs <= S_RX_WAIT_DONE;
             else
-              if p_in_rxll_src_rdy_n='0' and p_in_rxll_eof_n='0' then
+              if p_in_rxll_src_rdy_n = '0' and p_in_rxll_eof_n = '0' then
 
                   i_dhcp_server_mac(0) <= i_hreg_d(6); --MAC Src:
                   i_dhcp_server_mac(1) <= i_hreg_d(7);
@@ -783,7 +788,7 @@ begin
                   i_dhcp_client_ip(2) <= i_hreg_d(60);
                   i_dhcp_client_ip(3) <= i_hreg_d(61);
 
-                  if i_dhcp_get_prm_done='0' then
+                  if i_dhcp_get_prm_done = '0' then
                     i_tx_req <= CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length);
                     i_rxll_dst_rdy_n <= '1';
                     i_crc_start <= '1';
@@ -814,12 +819,13 @@ p_out_txll_eof_n     <= i_txll_eof_n;
 p_out_txll_src_rdy_n <= i_txll_src_rdy_n;
 p_out_txll_rem       <= i_txll_rem;
 
-p_out_txbuf_rd<=not p_in_txbuf_empty and i_usr_txd_rden and (i_usr_txd_rd or AND_reduce(i_tx_bcnt)) and not p_in_txll_dst_rdy_n;
+p_out_txbuf_rd <= not p_in_txbuf_empty and i_usr_txd_rden and
+                 (i_usr_txd_rd or AND_reduce(i_tx_bcnt)) and not p_in_txll_dst_rdy_n;
 
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
-    fsm_ip_tx_cs<=S_TX_IDLE;
+  if p_in_rst = '1' then
+    fsm_ip_tx_cs <= S_TX_IDLE;
 
     i_tx_dlen <= (others=>'0');
     i_tx_dcnt <= (others=>'0');
@@ -832,15 +838,15 @@ begin
 
     i_tx_pktid <=(others=>'0');
 
-    i_usr_txd_rd<='0';
-    i_usr_txd_rden<='0';
-    i_tx_bcnt<=(others=>'0');
+    i_usr_txd_rd <= '0';
+    i_usr_txd_rden <= '0';
+    i_tx_bcnt <= (others=>'0');
 
     i_udpip_crc_start <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
-    if p_in_txll_dst_rdy_n='0' then
+    if p_in_txll_dst_rdy_n = '0' then
 
         case fsm_ip_tx_cs is
 
@@ -858,12 +864,12 @@ begin
 
               fsm_ip_tx_cs <= S_TX_ACK_DLY;
 
-            elsif p_in_txbuf_empty='0' then
+            elsif p_in_txbuf_empty = '0' then
 
-              i_tx_dlen<=p_in_txbuf_dout(15 downto 0);--usr dlen (byte)
+              i_tx_dlen <= p_in_txbuf_dout(15 downto 0);--usr dlen (byte)
               i_udpip_crc_start <= '1';
               i_tx_pktid <= i_tx_pktid + 1;
-              fsm_ip_tx_cs<=S_TX_UDP_H0;
+              fsm_ip_tx_cs <= S_TX_UDP_H0;
 
             end if;
 
@@ -872,17 +878,17 @@ begin
           --------------------------------------
           when S_TX_ACK_DLY =>
 
-              if i_tx_dcnt=CONV_STD_LOGIC_VECTOR(16#04#, i_tx_dcnt'length) then
+              if i_tx_dcnt = CONV_STD_LOGIC_VECTOR(16#04#, i_tx_dcnt'length) then
 
                   i_tx_dcnt <= CONV_STD_LOGIC_VECTOR(16#01#, i_tx_dcnt'length);
-                  if i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length) then
+                  if i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length) then
                     i_txll_data <= i_arp_ack(0);
 
-                  elsif i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length) then
+                  elsif i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length) then
                     i_txll_data <= i_icmp_ack(0);
 
-                  elsif i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) or
-                        i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length) then
+                  elsif i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) or
+                        i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length) then
                     i_txll_data <= i_dhcp_pkt(0);
 
                   end if;
@@ -901,16 +907,16 @@ begin
           --------------------------------------
           when S_TX_ACK =>
 
-              for i in 0 to i_hreg_d'length-1 loop
-                if i_tx_dcnt=i then
-                  if i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length) then
+              for i in 0 to i_hreg_d'length - 1 loop
+                if i_tx_dcnt = i then
+                  if i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length) then
                     i_txll_data <= i_arp_ack(i);
 
-                  elsif i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length) then
+                  elsif i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length) then
                     i_txll_data <= i_icmp_ack(i);
 
-                  elsif i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) or
-                        i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length) then
+                  elsif i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) or
+                        i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length) then
 
                     i_txll_data <= i_dhcp_pkt(i);
                   end if;
@@ -920,13 +926,13 @@ begin
               i_txll_sof_n <= '1';
               i_txll_src_rdy_n <= '0';
 
-              if (i_tx_dcnt=(i_arp_ack_ereg - 1) and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length)) or
-                 (i_tx_dcnt=(i_icmp_ack_ereg - 1) and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length)) or
-                 (i_tx_dcnt=(i_dhcp_ereg0 - 1) and (i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) or
-                                                    i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length))) then
+              if (i_tx_dcnt = (i_arp_ack_ereg - 1) and i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length)) or
+                 (i_tx_dcnt = (i_icmp_ack_ereg - 1) and i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length)) or
+                 (i_tx_dcnt = (i_dhcp_ereg0 - 1) and (i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) or
+                                                    i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_REQUEST, i_tx_req'length))) then
 
-                  if i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length) or
-                     i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length) then
+                  if i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ARP_ACK, i_tx_req'length) or
+                     i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_ICMP_ACK, i_tx_req'length) then
                     i_tx_dcnt <= (others=>'0');
                     i_tx_done <= '1';
                     i_txll_eof_n <= '0';
@@ -944,16 +950,16 @@ begin
           --------------------------------------
           when S_TX_DONE =>
 
-              i_tx_bcnt<=(others=>'0');
-              i_tx_dcnt<=(others=>'0');
+              i_tx_bcnt <= (others=>'0');
+              i_tx_dcnt <= (others=>'0');
 
-              i_txll_sof_n<='1';
-              i_txll_eof_n<='1';
-              i_txll_src_rdy_n<='1';
-              i_txll_rem<=(others=>'0');
+              i_txll_sof_n <= '1';
+              i_txll_eof_n <= '1';
+              i_txll_src_rdy_n <= '1';
+              i_txll_rem <= (others=>'0');
 
-              i_usr_txd_rd<='0';
-              i_usr_txd_rden<='0';
+              i_usr_txd_rd <= '0';
+              i_usr_txd_rden <= '0';
 
               i_tx_done <= '0';
 
@@ -966,69 +972,69 @@ begin
           when S_TX_UDP_H0 =>
 
               i_udpip_crc_start <= '0';
-              i_txll_src_rdy_n<='0';
-              i_txll_sof_n<='0';
-              i_txll_eof_n<='1';
-              i_txll_data<=i_udp_pkt(0);
+              i_txll_src_rdy_n <= '0';
+              i_txll_sof_n <= '0';
+              i_txll_eof_n <= '1';
+              i_txll_data <= i_udp_pkt(0);
 
-              i_tx_dcnt<=i_tx_dcnt + 1;
+              i_tx_dcnt <= i_tx_dcnt + 1;
 
-              fsm_ip_tx_cs<=S_TX_UDP_HN;
+              fsm_ip_tx_cs <= S_TX_UDP_HN;
 
           when S_TX_UDP_HN =>
 
-              i_txll_src_rdy_n<='0';
-              i_txll_sof_n<='1';
-              i_txll_eof_n<='1';
+              i_txll_src_rdy_n <= '0';
+              i_txll_sof_n <= '1';
+              i_txll_eof_n <= '1';
 
               for i in 0 to 42-1 loop
-                if i_tx_dcnt=i then
-                  i_txll_data<=i_udp_pkt(i);
+                if i_tx_dcnt = i then
+                  i_txll_data <= i_udp_pkt(i);
                 end if;
               end loop;
 
-              if i_tx_dcnt=CONV_STD_LOGIC_VECTOR(42-1, i_tx_dcnt'length) then
-                i_tx_dcnt<=(others=>'0');
-                i_tx_bcnt<=CONV_STD_LOGIC_VECTOR(2, i_tx_bcnt'length);
+              if i_tx_dcnt = CONV_STD_LOGIC_VECTOR(42-1, i_tx_dcnt'length) then
+                i_tx_dcnt <= (others=>'0');
+                i_tx_bcnt <= CONV_STD_LOGIC_VECTOR(2, i_tx_bcnt'length);
 
-                i_usr_txd_rden<='1';
-                fsm_ip_tx_cs<=S_TX_UDP_D;
+                i_usr_txd_rden <= '1';
+                fsm_ip_tx_cs <= S_TX_UDP_D;
               else
-                i_tx_dcnt<=i_tx_dcnt + 1;
+                i_tx_dcnt <= i_tx_dcnt + 1;
               end if;
 
           --Usr data
           when S_TX_UDP_D =>
 
-            i_txll_src_rdy_n<=p_in_txbuf_empty;
-            i_txll_sof_n<='1';
+            i_txll_src_rdy_n <= p_in_txbuf_empty;
+            i_txll_sof_n <= '1';
 
-            if p_in_txbuf_empty='0' then
+            if p_in_txbuf_empty = '0' then
 
-                if i_tx_dcnt=i_tx_dlen - 1 then
-                  i_txll_rem<=not i_tx_dcnt(0 downto 0);
-                  i_tx_dcnt<=(others=>'0');
-                  i_txll_eof_n<='0';
+                if i_tx_dcnt = i_tx_dlen - 1 then
+                  i_txll_rem <= not i_tx_dcnt(0 downto 0);
+                  i_tx_dcnt <= (others=>'0');
+                  i_txll_eof_n <= '0';
 
-                  if AND_reduce(i_tx_bcnt)='0' then
-                    i_usr_txd_rd<='1';
+                  if AND_reduce(i_tx_bcnt) = '0' then
+                    i_usr_txd_rd <= '1';
                   end if;
 
                   i_tx_done <= '1';
-                  fsm_ip_tx_cs<=S_TX_DONE;
+                  fsm_ip_tx_cs <= S_TX_DONE;
                 else
-                  i_tx_dcnt<=i_tx_dcnt + 1;--счетчик байт передоваемых данных
-                  i_txll_eof_n<='1';
+                  i_tx_dcnt <= i_tx_dcnt + 1;--счетчик байт передоваемых данных
+                  i_txll_eof_n <= '1';
                 end if;
 
                 --//Данные
                   for i in 0 to p_in_txbuf_dout'length/i_txll_data'length - 1 loop
-                    if i_tx_bcnt=i then
-                      i_txll_data<=p_in_txbuf_dout(8*(i_txll_data'length/8)*(i+1)-1 downto 8*(i_txll_data'length/8)*i);
+                    if i_tx_bcnt = i then
+                      i_txll_data <= p_in_txbuf_dout(8*(i_txll_data'length/8)*(i+1)-1 downto 8*(i_txll_data'length/8)*i);
                     end if;
                   end loop;
 
-                i_tx_bcnt<=i_tx_bcnt + 1;--счетчик байт порта входных данных p_in_txbuf_dout
+                i_tx_bcnt <= i_tx_bcnt + 1;--счетчик байт порта входных данных p_in_txbuf_dout
 
             end if;--if p_in_txbuf_empty='0' then
 
@@ -1037,7 +1043,7 @@ begin
           --------------------------------------
           when S_TX_DHCP_0 =>
 
-              if i_tx_dcnt=CONV_STD_LOGIC_VECTOR(CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE - 1, i_tx_dcnt'length) then
+              if i_tx_dcnt = CONV_STD_LOGIC_VECTOR(CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE - 1, i_tx_dcnt'length) then
                 i_tx_dcnt <= CONV_STD_LOGIC_VECTOR(86, i_tx_dcnt'length);
                 i_txll_data <= i_dhcp_pkt(86);
                 fsm_ip_tx_cs <= S_TX_DHCP_1;
@@ -1048,13 +1054,13 @@ begin
 
           when S_TX_DHCP_1 =>
 
-              for i in 86 to i_hreg_d'length-1 loop
-                if i_tx_dcnt=i then
+              for i in 86 to i_hreg_d'length - 1 loop
+                if i_tx_dcnt = i then
                   i_txll_data <= i_dhcp_pkt(i);
                 end if;
               end loop;
 
-              if i_tx_dcnt=(i_dhcp_ereg1) then
+              if i_tx_dcnt = (i_dhcp_ereg1) then
                 i_txll_data <= (others=>'1');
                 i_tx_dcnt <= (others=>'0');
                 i_tx_done <= '1';
@@ -1119,7 +1125,7 @@ i_arp_ack(38) <= i_hreg_d(28); --ARP: IP dst
 i_arp_ack(39) <= i_hreg_d(29);
 i_arp_ack(40) <= i_hreg_d(30);
 i_arp_ack(41) <= i_hreg_d(31);
-gen_ack_null : for i in 42 to i_hreg_d'length-1 generate
+gen_ack_null : for i in 42 to i_hreg_d'length - 1 generate
 i_arp_ack(i) <= (others=>'0');
 end generate gen_ack_null;
 
@@ -1157,8 +1163,8 @@ i_icmp_ack(20) <= i_hreg_d(20); --IP: flag
 i_icmp_ack(21) <= i_hreg_d(21);
 i_icmp_ack(22) <= CI_IP_TTL;
 i_icmp_ack(23) <= i_hreg_d(23); --IP: protocol
-i_icmp_ack(24) <= (others=>'0') when i_ip_crc_rdy='0' else i_ip_crc(15 downto 8); --IP: CRC
-i_icmp_ack(25) <= (others=>'0') when i_ip_crc_rdy='0' else i_ip_crc( 7 downto 0);
+i_icmp_ack(24) <= (others=>'0') when i_ip_crc_rdy = '0' else i_ip_crc(15 downto 8); --IP: CRC
+i_icmp_ack(25) <= (others=>'0') when i_ip_crc_rdy = '0' else i_ip_crc( 7 downto 0);
 i_icmp_ack(26) <= i_hreg_d(30); --IP: ip_src - для кого ICMP ответ
 i_icmp_ack(27) <= i_hreg_d(31);
 i_icmp_ack(28) <= i_hreg_d(32);
@@ -1170,9 +1176,9 @@ i_icmp_ack(33) <= i_hreg_d(29);
 --ICMP
 i_icmp_ack(34) <= CI_ICMP_OPER_ECHO_REPLY;--ICMP: Operation
 i_icmp_ack(35) <= i_hreg_d(35);
-i_icmp_ack(36) <= (others=>'0') when i_icmp_crc_rdy='0' else i_icmp_crc(15 downto 8); --ICMP: CRC
-i_icmp_ack(37) <= (others=>'0') when i_icmp_crc_rdy='0' else i_icmp_crc( 7 downto 0);
-gen_icmp_ack : for i in 38 to i_hreg_d'length-1 generate
+i_icmp_ack(36) <= (others=>'0') when i_icmp_crc_rdy = '0' else i_icmp_crc(15 downto 8); --ICMP: CRC
+i_icmp_ack(37) <= (others=>'0') when i_icmp_crc_rdy = '0' else i_icmp_crc( 7 downto 0);
+gen_icmp_ack : for i in 38 to i_hreg_d'length - 1 generate
 i_icmp_ack(i) <= i_hreg_d(i);
 end generate gen_icmp_ack;
 
@@ -1181,35 +1187,35 @@ end generate gen_icmp_ack;
 i_icmp_ack_ereg <= (i_hreg_d(16)&i_hreg_d(17)) + CONV_STD_LOGIC_VECTOR(14, i_icmp_ack_ereg'length);
 
 --Расчет CRC:
-i_icmp_crc_tmp2<=i_icmp_crc_tmp(31 downto 16) + i_icmp_crc_tmp(15 downto 0);
-gen_icmp_crc : for i in 0 to i_icmp_crc'length-1 generate
+i_icmp_crc_tmp2 <= i_icmp_crc_tmp(31 downto 16) + i_icmp_crc_tmp(15 downto 0);
+gen_icmp_crc : for i in 0 to i_icmp_crc'length - 1 generate
 i_icmp_crc(i) <= not i_icmp_crc_tmp2(i);
 end generate gen_icmp_crc;
 
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_icmp_crc_dcnt <= (others=>'0');
     i_icmp_crc_tmp <= (others=>'0');
     i_icmp_crc_rdy <= '0';
     i_icmp_crc_calc <= '0';
     sr_icmp_ack <= (others=>'0');
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
-    if i_tx_done='1' then
+    if i_tx_done = '1' then
         i_icmp_crc_rdy <= '0';
 
-    elsif i_crc_start='1' then
+    elsif i_crc_start = '1' then
         i_icmp_crc_tmp <= (others=>'0');
         i_icmp_crc_dcnt <= CONV_STD_LOGIC_VECTOR(34, i_icmp_crc_dcnt'length);
         i_icmp_crc_calc <= '1';
 
     else
-      if i_icmp_crc_calc='1' then
-          for i in 34 to i_icmp_ack'length-1 loop
-            if i_icmp_crc_dcnt=i then
-              if i_icmp_crc_dcnt(0)='1' then
+      if i_icmp_crc_calc = '1' then
+          for i in 34 to i_icmp_ack'length - 1 loop
+            if i_icmp_crc_dcnt = i then
+              if i_icmp_crc_dcnt(0) = '1' then
                 i_icmp_crc_tmp <= i_icmp_crc_tmp + (CONV_STD_LOGIC_VECTOR(0, 16) & sr_icmp_ack & i_icmp_ack(i));
               else
                 sr_icmp_ack <= i_icmp_ack(i);
@@ -1217,7 +1223,7 @@ begin
             end if;
           end loop;
 
-          if EXT(i_icmp_crc_dcnt, i_icmp_ack_ereg'length)=(i_icmp_ack_ereg - 1)  then
+          if EXT(i_icmp_crc_dcnt, i_icmp_ack_ereg'length) = (i_icmp_ack_ereg - 1)  then
             i_icmp_crc_calc <= '0';
             i_icmp_crc_rdy <= '1';
           end if;
@@ -1230,8 +1236,8 @@ begin
 end process;
 
 
-i_ip_crc_tmp2<=i_ip_crc_tmp(31 downto 16) + i_ip_crc_tmp(15 downto 0);
-gen_ip_crc : for i in 0 to i_ip_crc'length-1 generate
+i_ip_crc_tmp2 <= i_ip_crc_tmp(31 downto 16) + i_ip_crc_tmp(15 downto 0);
+gen_ip_crc : for i in 0 to i_ip_crc'length - 1 generate
 i_ip_crc(i) <= not i_ip_crc_tmp2(i);
 end generate gen_ip_crc;
 
@@ -1241,28 +1247,28 @@ end generate gen_ip_crc_d;
 
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_ip_crc_dcnt <= (others=>'0');
     i_ip_crc_tmp <= (others=>'0');
     i_ip_crc_rdy <= '0';
     i_ip_crc_calc <= '0';
     sr_ip_ack <= (others=>'0');
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
-    if i_tx_done='1' then
+    if i_tx_done = '1' then
         i_ip_crc_rdy <= '0';
 
-    elsif i_crc_start='1' then
+    elsif i_crc_start = '1' then
         i_ip_crc_tmp <= (others=>'0');
         i_ip_crc_dcnt <= CONV_STD_LOGIC_VECTOR(14, i_ip_crc_dcnt'length);
         i_ip_crc_calc <= '1';
 
     else
-      if i_ip_crc_calc='1' then
+      if i_ip_crc_calc = '1' then
           for i in 14 to 33 loop
-            if i_ip_crc_dcnt=i then
-              if i_ip_crc_dcnt(0)='1' then
+            if i_ip_crc_dcnt = i then
+              if i_ip_crc_dcnt(0) = '1' then
                 i_ip_crc_tmp <= i_ip_crc_tmp + (CONV_STD_LOGIC_VECTOR(0, 16) & sr_ip_ack & i_ip_crc_d(i));
               else
                 sr_ip_ack <= i_ip_crc_d(i);
@@ -1270,7 +1276,7 @@ begin
             end if;
           end loop;
 
-          if i_ip_crc_dcnt=CONV_STD_LOGIC_VECTOR(33, i_ip_crc_dcnt'length)  then
+          if i_ip_crc_dcnt = CONV_STD_LOGIC_VECTOR(33, i_ip_crc_dcnt'length)  then
             i_ip_crc_calc <= '0';
             i_ip_crc_rdy <= '1';
           end if;
@@ -1313,8 +1319,8 @@ i_udp_pkt(20) <= (others=>'0'); --IP: flag
 i_udp_pkt(21) <= (others=>'0');
 i_udp_pkt(22) <= CI_IP_TTL;
 i_udp_pkt(23) <= CI_IP_PTYPE_UDP; --IP: protocol
-i_udp_pkt(24) <= (others=>'0') when i_udpip_crc_rdy='0' else i_udpip_crc(15 downto 8); --IP: CRC
-i_udp_pkt(25) <= (others=>'0') when i_udpip_crc_rdy='0' else i_udpip_crc( 7 downto 0);
+i_udp_pkt(24) <= (others=>'0') when i_udpip_crc_rdy = '0' else i_udpip_crc(15 downto 8); --IP: CRC
+i_udp_pkt(25) <= (others=>'0') when i_udpip_crc_rdy = '0' else i_udpip_crc( 7 downto 0);
 i_udp_pkt(26) <= i_fpga_ip(0); --IP: ip_src
 i_udp_pkt(27) <= i_fpga_ip(1);
 i_udp_pkt(28) <= i_fpga_ip(2);
@@ -1332,7 +1338,7 @@ i_udp_pkt(38) <= i_udp_len(15 downto 8);      --UDP: PKT_LEN
 i_udp_pkt(39) <= i_udp_len( 7 downto 0);
 i_udp_pkt(40) <= (others=>'0');               --UDP: CRC
 i_udp_pkt(41) <= (others=>'0');
-gen_udp : for i in 42 to i_hreg_d'length-1 generate
+gen_udp : for i in 42 to i_hreg_d'length - 1 generate
 i_udp_pkt(i) <= (others=>'0');
 end generate gen_udp;
 
@@ -1340,35 +1346,35 @@ i_udp_len <= i_tx_dlen + CONV_STD_LOGIC_VECTOR(CI_UDP_HEADER_SIZE, i_udp_len'len
 i_udpip_len <= i_udp_len + CONV_STD_LOGIC_VECTOR(CI_IP_HEADER_SIZE, i_udpip_len'length);
 
 --Расчет CRC:
-i_udpip_crc_tmp2<=i_udpip_crc_tmp(31 downto 16) + i_udpip_crc_tmp(15 downto 0);
-gen_udpip_crc : for i in 0 to i_ip_crc'length-1 generate
+i_udpip_crc_tmp2 <= i_udpip_crc_tmp(31 downto 16) + i_udpip_crc_tmp(15 downto 0);
+gen_udpip_crc : for i in 0 to i_ip_crc'length - 1 generate
 i_udpip_crc(i) <= not i_udpip_crc_tmp2(i);
 end generate gen_udpip_crc;
 
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_udpip_crc_dcnt <= (others=>'0');
     i_udpip_crc_tmp <= (others=>'0');
     i_udpip_crc_rdy <= '0';
     i_udpip_crc_calc <= '0';
     sr_udp_pkt <= (others=>'0');
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
-    if i_tx_done='1' then
+    if i_tx_done = '1' then
         i_udpip_crc_rdy <= '0';
 
-    elsif i_udpip_crc_start='1' then
+    elsif i_udpip_crc_start = '1' then
         i_udpip_crc_tmp <= (others=>'0');
         i_udpip_crc_dcnt <= CONV_STD_LOGIC_VECTOR(14, i_ip_crc_dcnt'length);
         i_udpip_crc_calc <= '1';
 
     else
-      if i_udpip_crc_calc='1' then
+      if i_udpip_crc_calc = '1' then
           for i in 14 to 33 loop
-            if i_udpip_crc_dcnt=i then
-              if i_udpip_crc_dcnt(0)='1' then
+            if i_udpip_crc_dcnt = i then
+              if i_udpip_crc_dcnt(0) = '1' then
                 i_udpip_crc_tmp <= i_udpip_crc_tmp + (CONV_STD_LOGIC_VECTOR(0, 16) & sr_udp_pkt & i_udp_pkt(i));
               else
                 sr_udp_pkt <= i_udp_pkt(i);
@@ -1376,7 +1382,7 @@ begin
             end if;
           end loop;
 
-          if i_udpip_crc_dcnt=CONV_STD_LOGIC_VECTOR(33, i_udpip_crc_dcnt'length)  then
+          if i_udpip_crc_dcnt = CONV_STD_LOGIC_VECTOR(33, i_udpip_crc_dcnt'length)  then
             i_udpip_crc_calc <= '0';
             i_udpip_crc_rdy <= '1';
           end if;
@@ -1419,8 +1425,8 @@ i_dhcp_pkt(20) <= (others=>'0'); --IP: flag
 i_dhcp_pkt(21) <= (others=>'0');
 i_dhcp_pkt(22) <= CI_IP_TTL;
 i_dhcp_pkt(23) <= CI_IP_PTYPE_UDP; --IP: protocol
-i_dhcp_pkt(24) <= (others=>'0') when i_ip_crc_rdy='0' else i_ip_crc(15 downto 8); --IP: CRC
-i_dhcp_pkt(25) <= (others=>'0') when i_ip_crc_rdy='0' else i_ip_crc( 7 downto 0);
+i_dhcp_pkt(24) <= (others=>'0') when i_ip_crc_rdy = '0' else i_ip_crc(15 downto 8); --IP: CRC
+i_dhcp_pkt(25) <= (others=>'0') when i_ip_crc_rdy = '0' else i_ip_crc( 7 downto 0);
 i_dhcp_pkt(26) <= (others=>'0'); --IP: ip_src
 i_dhcp_pkt(27) <= (others=>'0');
 i_dhcp_pkt(28) <= (others=>'0');
@@ -1489,7 +1495,7 @@ i_dhcp_pkt(88) <= CI_DHCP_MAGIC_COOKIE(23 downto 16);
 i_dhcp_pkt(89) <= CI_DHCP_MAGIC_COOKIE(31 downto 24);
 i_dhcp_pkt(90) <= CI_DHCP_CODE_53;                   --DHCP: Message Type(COD)
 i_dhcp_pkt(91) <= CONV_STD_LOGIC_VECTOR(1, 8);       --DHCP: Message Type(LEN)
-i_dhcp_pkt(92) <= CI_DHCP_DHCPDISCOVER when i_dhcp_discover_tx_done='0' else CI_DHCP_DHCPREQUEST; --DHCP: DHCP Message Type(VALUE)
+i_dhcp_pkt(92) <= CI_DHCP_DHCPDISCOVER when i_dhcp_discover_tx_done = '0' else CI_DHCP_DHCPREQUEST; --DHCP: DHCP Message Type(VALUE)
 i_dhcp_pkt(93) <= CI_DHCP_CODE_61;                   --DHCP: Client Identifier(COD)
 i_dhcp_pkt(94) <= CONV_STD_LOGIC_VECTOR(7, 8);       --DHCP: Client Identifier(LEN)
 i_dhcp_pkt(95) <= CONV_STD_LOGIC_VECTOR(1, 8);       --DHCP: Client Identifier(VALUE)
@@ -1505,14 +1511,14 @@ i_dhcp_pkt(104)<= i_dhcp_client_ip(0);               --DHCP: Requested IP Addres
 i_dhcp_pkt(105)<= i_dhcp_client_ip(1);               --...
 i_dhcp_pkt(106)<= i_dhcp_client_ip(2);               --...
 i_dhcp_pkt(107)<= i_dhcp_client_ip(3);               --DHCP: Requested IP Address(VALUE)
-i_dhcp_pkt(108)<= CI_DHCP_CODE_255 when i_dhcp_discover_tx_done='0' else CI_DHCP_CODE_54; --DHCP: End Option/Server Identifier(COD)
+i_dhcp_pkt(108)<= CI_DHCP_CODE_255 when i_dhcp_discover_tx_done = '0' else CI_DHCP_CODE_54; --DHCP: End Option/Server Identifier(COD)
 i_dhcp_pkt(109)<= CONV_STD_LOGIC_VECTOR(4, 8);       --DHCP: Server Identifier(LEN)
 i_dhcp_pkt(110)<= i_dhcp_server_ip(0);               --DHCP: Server Identifier(VALUE)
 i_dhcp_pkt(111)<= i_dhcp_server_ip(1);               --...
 i_dhcp_pkt(112)<= i_dhcp_server_ip(2);               --...
 i_dhcp_pkt(113)<= i_dhcp_server_ip(3);               --DHCP: Server Identifier(VALUE)
 i_dhcp_pkt(114)<= CI_DHCP_CODE_255;                  --DHCP: End Option
-gen_dhcp : for i in 115 to i_hreg_d'length-1 generate
+gen_dhcp : for i in 115 to i_hreg_d'length - 1 generate
 i_dhcp_pkt(i) <= (others=>'0');
 end generate gen_dhcp;
 
@@ -1522,10 +1528,12 @@ end generate gen_dhcp_xid;
 
 i_dhcp_flags <= CONV_STD_LOGIC_VECTOR(16#80#, i_dhcp_flags'length);--x80/0x00 - type broadcast/unicast
 
-i_dhcpip_len <= CONV_STD_LOGIC_VECTOR(86 - 14 + CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE + (109 - 86), i_dhcpip_len'length) when i_dhcp_discover_tx_done='0' else
+i_dhcpip_len <= CONV_STD_LOGIC_VECTOR(86 - 14 + CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE + (109 - 86), i_dhcpip_len'length)
+                when i_dhcp_discover_tx_done='0' else
                 CONV_STD_LOGIC_VECTOR(86 - 14 + CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE + (115 - 86), i_dhcpip_len'length);
 
-i_dhcp_len <= CONV_STD_LOGIC_VECTOR(86 - 34 + CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE + (109 - 86), i_dhcp_len'length) when i_dhcp_discover_tx_done='0' else
+i_dhcp_len <= CONV_STD_LOGIC_VECTOR(86 - 34 + CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE + (109 - 86), i_dhcp_len'length)
+              when i_dhcp_discover_tx_done='0' else
               CONV_STD_LOGIC_VECTOR(86 - 34 + CI_DHCP_FIELD_SNAME_SIZE + CI_DHCP_FIELD_FILE_SIZE + (115 - 86), i_dhcp_len'length);
 
 --вычисляем адрес последнего региста
@@ -1538,22 +1546,24 @@ i_dhcp_ereg1 <= CONV_STD_LOGIC_VECTOR(109 - 1, i_dhcp_ereg1'length) when i_dhcp_
 --По истечению timeout снова отправляем CI_TX_REQ_DHCP_DISCOVER
 process(p_in_rst,p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_dhcp_tmr <= (others=>'0');
     i_dhcp_tmr_en <= '0';
     i_dhcp_discover_update <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
-    if i_dhcp_on='0' or i_dhcp_proffer_rx_done='1' then
+    if i_dhcp_on = '0' or i_dhcp_proffer_rx_done = '1' then
         i_dhcp_tmr <= (others=>'0');
         i_dhcp_tmr_en <= '0';
     else
-      if fsm_ip_tx_cs=S_TX_ACK and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) then
+      if fsm_ip_tx_cs = S_TX_ACK and
+         i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length) then
+
         i_dhcp_tmr_en <= '1';
       else
-        if i_dhcp_tmr_en='1' then
-          if i_dhcp_tmr=CONV_STD_LOGIC_VECTOR(CI_DHCP_TIMEOUT, i_dhcp_tmr'length) then
+        if i_dhcp_tmr_en = '1' then
+          if i_dhcp_tmr = CONV_STD_LOGIC_VECTOR(CI_DHCP_TIMEOUT, i_dhcp_tmr'length) then
             i_dhcp_tmr <= (others=>'0');
             i_dhcp_tmr_en <= '0';
           else
@@ -1563,10 +1573,15 @@ begin
       end if;
     end if;
 
-    if (fsm_ip_tx_cs=S_TX_ACK and i_tx_req=CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length)) or
-       i_dhcp_proffer_rx_done='1' then
+    if (fsm_ip_tx_cs = S_TX_ACK and
+        i_tx_req = CONV_STD_LOGIC_VECTOR(CI_TX_REQ_DHCP_DISCOVER, i_tx_req'length)) or
+        i_dhcp_proffer_rx_done = '1' then
+
       i_dhcp_discover_update <= '0';
-    elsif i_dhcp_tmr_en='1' and i_dhcp_tmr=CONV_STD_LOGIC_VECTOR(CI_DHCP_TIMEOUT, i_dhcp_tmr'length) then
+
+    elsif i_dhcp_tmr_en = '1' and
+          i_dhcp_tmr = CONV_STD_LOGIC_VECTOR(CI_DHCP_TIMEOUT, i_dhcp_tmr'length) then
+
       i_dhcp_discover_update <= '1';
     end if;
 
