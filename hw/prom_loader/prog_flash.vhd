@@ -9,10 +9,10 @@
 -- FLASH device : JS28F256P30TF
 --
 -- WRITE: 1 - USR_CMD_ADR + ADR(byte)
---        2 - USR_CMD_DWR + SIZE(byte)
+--        2 - USR_CMD_ERASE + SIZE(byte)
 --         hardware:1. blocks unlock
 --                  2. blocks erase
---                  3. write data
+--        3 - USR_CMD_DWR + SIZE(byte)
 --
 -- READ:  1 - USR_CMD_ADR + ADR(byte)
 --        2 - USR_CMD_DRD + SIZE(byte)
