@@ -313,8 +313,8 @@ begin
               --Отправка данных по сигналу от внешнего таймера или сразу как данные появились в TXBUF хоста
                 i_lencnt <= i_txbuf_do(7 downto 0);--Tx byte count
                 i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_txbuf_do
-                                                                  --с которого модуль m_core
-                                                                  --начинает чтение данных для передачи в PHY
+                                                                  --с которого начинаются данные,
+                                                                  --индекс 0 в первом DWORD - кол-во данных в byte
 
                 i_rcv_irq <= '0';
                 i_fsm_edev_cs <= S_TX_D;
@@ -334,7 +334,7 @@ begin
               if i_txbuf_empty = '0' then
                   if i_core_txd_rdy = '0' then
                       i_lencnt <= i_lencnt - 1;
-                      i_core_txd_rdy <= '1';--Сигнализируем о готовности данных для передачи
+                      i_core_txd_rdy <= '1';--Сигнализируем о готовности txdata
                   else
                       if i_core_tx_rd = '1' then
                           if i_lencnt = (i_lencnt'range => '0') then
@@ -355,8 +355,8 @@ begin
               if i_txbuf_empty = '1' then
                 i_lencnt <= (others=>'0');
                 i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_rxbuf_di
-                                                                  --с которого модуль m_core
-                                                                  --начинает запись принятых данных от PHY
+                                                                  --с которого начинаются данные,
+                                                                  --индекс 0 в первом DWORD - кол-во данных в byte
                 --i_rxbuf_di(7 downto 0) - зарезервировано для Rx byte count!!!
                 i_fsm_edev_cs <= S_RX_D;
               end if;
