@@ -322,7 +322,7 @@ begin
 
           when S_TX_D =>
 
-              for idx in 0 to i_txbuf_do'length/8 - 1 loop
+              for idx in 0 to i_txbuf_do'length / 8 - 1 loop
                 if i_bcnt = idx then
                   i_core_txd <= i_txbuf_do(8 * (idx + 1) - 1 downto 8 * idx);
                 end if;
@@ -367,7 +367,7 @@ begin
           when S_RX_D =>
 
               if i_core_rx_wr = '1' then
-                for idx in 0 to i_rxbuf_di'length/8 - 1 loop
+                for idx in 0 to i_rxbuf_di'length / 8 - 1 loop
                   if i_bcnt = idx then
                     i_rxbuf_di(8 * (idx + 1) - 1 downto 8 * idx) <= i_core_rxd;
                   end if;
