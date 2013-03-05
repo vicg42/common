@@ -1,4 +1,3 @@
-
 -------------------------------------------------------------------------
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
@@ -168,9 +167,9 @@ begin
 p_out_tst(0) <= OR_reduce(tst_fms_core_dly) or OR_reduce(tst_fsm_edev_dly) or
 tst_rxbufh_empty or tst_txbufh_empty or tst_rcv_irq;
 
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     tst_fsm_edev_dly <= (others=>'0');
     tst_fms_core_dly <= (others=>'0');
     tst_txbufh_empty <= '0';
@@ -178,7 +177,7 @@ begin
     sr_rcv_irq <= (others=>'0');
     tst_rcv_irq <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
     tst_fsm_edev_dly <= tst_fsm_edev;
     tst_fms_core_dly <= tst_fms_core;
     tst_txbufh_empty <= i_txbuf_empty;
@@ -190,22 +189,22 @@ begin
   end if;
 end process;
 
-tst_fsm_edev<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_edev'length) when i_fsm_edev_cs=S_TX_D     else
-              CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_edev'length) when i_fsm_edev_cs=S_TX_DONE  else
-              CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_edev'length) when i_fsm_edev_cs=S_RX_D     else
-              CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_edev'length) when i_fsm_edev_cs=S_RX_DONE  else
-              CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_edev'length);-- when fsm_tx_cs=S_TX_IDLE else
+tst_fsm_edev <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_edev'length) when i_fsm_edev_cs = S_TX_D     else
+                CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_edev'length) when i_fsm_edev_cs = S_TX_DONE  else
+                CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_edev'length) when i_fsm_edev_cs = S_RX_D     else
+                CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_edev'length) when i_fsm_edev_cs = S_RX_DONE  else
+                CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_edev'length);-- when fsm_tx_cs = S_TX_IDLE else
 
-tst_fms_core<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(1 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(2 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(3 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(4 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(5 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(6 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(7 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(8 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_core'length) when tst_out(3 downto 0)=CONV_STD_LOGIC_VECTOR(9 , 4) else
-              CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_core'length);-- when i_fsm_state=CONV_STD_LOGIC_VECTOR(0 , i_fsm_state'length);
+tst_fms_core <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(1 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(2 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(3 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(4 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(5 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(6 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#07#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(7 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#08#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(8 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(9 , 4) else
+                CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_core'length);-- when i_fsm_state = CONV_STD_LOGIC_VECTOR(0 , i_fsm_state'length);
 
 --//----------------------------------
 --//Связь с Host
@@ -215,7 +214,7 @@ p_out_host_rxrdy <= not i_rxbuf_empty;
 
 p_out_herr <= i_rcv_err;
 p_out_hirq <= i_rcv_irq;
-i_rcv_err <= '1' when i_core_status=CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) else '0';
+i_rcv_err <= '1' when i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) else '0';
 
 --host->edev
 m_txbuf : edev_buf
@@ -254,19 +253,19 @@ rst    => i_rxbuf_rst
 i_rxbuf_rst <= p_in_rst or i_rcv_err;
 
 --Встраивание в выходные данные Rx byte count
-p_out_host_rxd( 7 downto 0) <= i_host_rxd( 7 downto 0) when i_host_rxd_en='1' else i_lencnt(7 downto 0);
+p_out_host_rxd( 7 downto 0) <= i_host_rxd( 7 downto 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
 p_out_host_rxd(31 downto 8) <= i_host_rxd(31 downto 8);
 
-process(p_in_rst,p_in_host_clk)
+process(p_in_rst, p_in_host_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_host_rxd_en <= '0';
 
-  elsif p_in_host_clk'event and p_in_host_clk='1' then
-    if p_in_host_wr='1' then
+  elsif rising_edge(p_in_host_clk) then
+    if p_in_host_wr = '1' then
       i_host_rxd_en <= '0';
 
-    elsif p_in_host_rd='1' then
+    elsif p_in_host_rd = '1' then
       i_host_rxd_en <= '1';
     end if;
   end if;
@@ -275,9 +274,9 @@ end process;
 --//----------------------------------
 --//Управнение приемом/передачей
 --//----------------------------------
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
     i_fsm_edev_cs <= S_TX_IDLE;
 
     i_lencnt <= (others=>'0');
@@ -295,10 +294,10 @@ begin
 
     i_rcv_irq <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
       i_tmr_en <= p_in_tmr_en;
-      sr_tx_start<=p_in_tmr_stb & sr_tx_start(0 to 1);
+      sr_tx_start <= p_in_tmr_stb & sr_tx_start(0 to 1);
 
       case i_fsm_edev_cs is
 
@@ -309,8 +308,8 @@ begin
 
               i_rxbuf_wr <= '0';
 
-              if (i_tmr_en='0' and i_txbuf_empty='0') or
-                 (i_tmr_en='1' and sr_tx_start(1)='1' and sr_tx_start(2)='0') then
+              if (i_tmr_en = '0' and i_txbuf_empty = '0') or
+                 (i_tmr_en = '1' and sr_tx_start(1) = '1' and sr_tx_start(2) = '0') then
               --Отправка данных по сигналу от внешнего таймера или сразу как данные появились в TXBUF хоста
                 i_lencnt <= i_txbuf_do(7 downto 0);--Tx byte count
                 i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_txbuf_do
@@ -323,22 +322,22 @@ begin
 
           when S_TX_D =>
 
-              for i in 0 to i_txbuf_do'length/8 - 1 loop
-                if i_bcnt=i then
-                  i_core_txd <= i_txbuf_do(8*(i+1)-1 downto 8*i);
+              for idx in 0 to i_txbuf_do'length/8 - 1 loop
+                if i_bcnt = idx then
+                  i_core_txd <= i_txbuf_do(8 * (idx + 1) - 1 downto 8 * idx);
                 end if;
               end loop;
 
               i_txbuf_rd <= (not i_txbuf_empty and i_core_tx_rd and
                             (AND_reduce(i_bcnt) or not OR_reduce(i_lencnt)) );
 
-              if i_txbuf_empty='0' then
-                  if i_core_txd_rdy='0' then
+              if i_txbuf_empty = '0' then
+                  if i_core_txd_rdy = '0' then
                       i_lencnt <= i_lencnt - 1;
                       i_core_txd_rdy <= '1';--Сигнализируем о готовности данных для передачи
                   else
-                      if i_core_tx_rd='1' then
-                          if i_lencnt=(i_lencnt'range => '0') then
+                      if i_core_tx_rd = '1' then
+                          if i_lencnt = (i_lencnt'range => '0') then
                             i_core_txd_rdy <= '0';
                             i_fsm_edev_cs <= S_TX_DONE;
                           else
@@ -353,7 +352,7 @@ begin
           when S_TX_DONE =>
 
               i_txbuf_rd <= '0';
-              if i_txbuf_empty='1' then
+              if i_txbuf_empty = '1' then
                 i_lencnt <= (others=>'0');
                 i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_rxbuf_di
                                                                   --с которого модуль m_core
@@ -367,10 +366,10 @@ begin
           ------------------------------------
           when S_RX_D =>
 
-              if i_core_rx_wr='1' then
-                for i in 0 to i_rxbuf_di'length/8 - 1 loop
-                  if i_bcnt=i then
-                    i_rxbuf_di(8*(i+1)-1 downto 8*i) <= i_core_rxd;
+              if i_core_rx_wr = '1' then
+                for idx in 0 to i_rxbuf_di'length/8 - 1 loop
+                  if i_bcnt = idx then
+                    i_rxbuf_di(8 * (idx + 1) - 1 downto 8 * idx) <= i_core_rxd;
                   end if;
                 end loop;
 
@@ -378,16 +377,16 @@ begin
                 i_lencnt <= i_lencnt + 1;--Rx byte count
               end if;
 
-              if i_txbuf_empty='0' then
+              if i_txbuf_empty = '0' then
                 i_rxbuf_wr <= '0';
                 i_fsm_edev_cs <= S_TX_IDLE;
 
-              elsif i_core_status=CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) then
+              elsif i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) then
                 i_rcv_irq <= '1';
                 i_rxbuf_wr <= '0';
                 i_fsm_edev_cs <= S_TX_IDLE;
 
-              elsif i_core_status=CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_OK, i_core_status'length) then
+              elsif i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_OK, i_core_status'length) then
                 i_rxbuf_wr <= OR_reduce(i_bcnt);
                 i_fsm_edev_cs <= S_RX_DONE;
 
@@ -399,7 +398,7 @@ begin
 
               i_rxbuf_wr <= '0';
 
-              if tst_out(4)='1' then
+              if tst_out(4) = '1' then
                 i_rcv_irq <= '1';
                 i_fsm_edev_cs <= S_TX_IDLE;
               end if;

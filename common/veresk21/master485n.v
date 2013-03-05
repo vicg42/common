@@ -120,7 +120,7 @@ begin
           //при приеме данных производим подсинхривание
           //счетчика i_clkdiv_cnt передним/задним фронтами сингала p_in_phy_rx
           //(выделение фронтов - (^sr_phy_rx))
-          if ( (p_out_phy_dir==CI_PHY_DIR_RX) &&
+          if ( (p_out_phy_dir == CI_PHY_DIR_RX) &&
                ((^sr_phy_rx) || !i_rcv_detect) )
             i_clkdiv_cnt <= 0;
           else
