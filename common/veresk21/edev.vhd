@@ -149,7 +149,7 @@ signal i_rcv_irq         : std_logic;
 
 signal i_tmr_en          : std_logic;
 signal sr_tx_start       : std_logic_vector(0 to 2);
-signal tmp_host_rxd      : std_logic_vector(31 downto 0);
+
 signal tst_out           : std_logic_vector(31 downto 0);
 signal tst_fsm_edev,tst_fsm_edev_dly: std_logic_vector(3 downto 0);
 signal tst_fms_core,tst_fms_core_dly: std_logic_vector(3 downto 0);
@@ -157,9 +157,7 @@ signal tst_txbufh_empty : std_logic;
 signal tst_rxbufh_empty : std_logic;
 signal sr_rcv_irq       : std_logic_vector(0 to 0);
 signal tst_rcv_irq      : std_logic;
-signal tst_host_rd      : std_logic;
-signal tst_host_dev_adr : std_logic_vector(7 downto 0);
-signal tst_host_rxd     : std_logic_vector(31 downto 0);
+
 
 --MAIN
 begin
@@ -167,9 +165,8 @@ begin
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-p_out_tst(0) <= OR_reduce(tst_fms_core_dly) or OR_reduce(tst_fsm_edev_dly) or OR_reduce(tst_out(15 downto 8)) or
-tst_rxbufh_empty or tst_txbufh_empty or tst_rcv_irq or tst_host_rd or OR_reduce(tst_host_dev_adr) or
-OR_reduce(tst_host_rxd);
+p_out_tst(0) <= OR_reduce(tst_fms_core_dly) or OR_reduce(tst_fsm_edev_dly) or
+tst_rxbufh_empty or tst_txbufh_empty or tst_rcv_irq;
 
 process(p_in_rst, p_in_clk)
 begin
@@ -190,15 +187,6 @@ begin
     sr_rcv_irq(0) <= i_rcv_irq;
     tst_rcv_irq <= i_rcv_irq and not sr_rcv_irq(0);
 
-  end if;
-end process;
-
-process(p_in_host_clk)
-begin
-  if rising_edge(p_in_host_clk) then
-  tst_host_rd <= p_in_host_rd;
-  tst_host_dev_adr <= tst_out(15 downto 8);
-  tst_host_rxd <= tmp_host_rxd;
   end if;
 end process;
 
@@ -223,8 +211,8 @@ tst_fms_core <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(
 --//Связь с Host
 --//----------------------------------
 p_out_host_txrdy <= i_txbuf_empty;
-p_out_host_rxrdy <= not i_rxbuf_empty and i_rcv_irq;
-
+p_out_host_rxrdy <= not i_rxbuf_empty and i_rcv_irq;--ВАЖНО!!! Взводим флаг готовности RXD
+                                                    --одновременно с выдачей прерывания
 p_out_herr <= i_rcv_err;
 p_out_hirq <= i_rcv_irq;
 i_rcv_err <= '1' when i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) else '0';
@@ -266,9 +254,9 @@ rst    => i_rxbuf_rst
 i_rxbuf_rst <= p_in_rst or i_rcv_err;
 
 --Встраивание в выходные данные Rx byte count
-tmp_host_rxd( 7 downto 0) <= i_host_rxd( 7 downto 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
-tmp_host_rxd(31 downto 8) <= i_host_rxd(31 downto 8);
-p_out_host_rxd <= tmp_host_rxd;
+p_out_host_rxd( 7 downto 0) <= i_host_rxd( 7 downto 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
+p_out_host_rxd(31 downto 8) <= i_host_rxd(31 downto 8);
+
 process(p_in_rst, p_in_host_clk)
 begin
   if p_in_rst = '1' then
