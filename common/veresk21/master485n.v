@@ -72,11 +72,13 @@ reg i_rcv_detect;
 reg i_clk4x_en;
 reg [6:0] i_clkdiv_cnt;
 reg i_clkdiv_rst;
-
+reg [7:0] tst_dev_adr;
 
 assign p_out_tst[3:0] = i_fsm_cs;
 assign p_out_tst[4] = i_clk4x_en;
 assign p_out_tst[5] = 0;
+assign p_out_tst[7:6] = 0;
+assign p_out_tst[15:8] = tst_dev_adr;
 
 assign p_out_rxd_wr = i_rxd_wr && i_clk4x_en;
 assign p_out_txd_rd = i_txd_rd && i_clk4x_en;
@@ -142,7 +144,7 @@ end //always @
 always @(posedge p_in_rst, posedge p_in_clk)
 begin
   if (p_in_rst) begin
-    i_fsm_cs <= S_TX_WAIT;
+    i_fsm_cs <= S_TX_WAIT; tst_dev_adr <= 0;
     i_clkx4_cnt <= 0;
     i_parity <= 0;
     i_txd_rd <= 0;
@@ -160,7 +162,7 @@ begin
             begin
 
                 if (p_in_txd_rdy) begin
-                  i_clkdiv_rst <= 0;
+                  i_clkdiv_rst <= 0; tst_dev_adr <= p_in_txd;
                   p_out_status <= 0;
                   p_out_phy_dir <= CI_PHY_DIR_TX;
                   i_fsm_cs <= S_TX_0;
