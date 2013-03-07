@@ -669,6 +669,11 @@ begin
             txd(C_HREG_CTRL_RST_ALL_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_ALL_BIT);
             txd(C_HREG_CTRL_RST_MEM_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_MEM_BIT);
             txd(C_HREG_CTRL_RST_ETH_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_ETH_BIT);
+            txd(C_HREG_CTRL_ESYNC_IEDGE_BIT):=v_reg_ctrl(C_HREG_CTRL_ESYNC_IEDGE_BIT);
+            txd(C_HREG_CTRL_ESYNC_OEDGE_BIT):=v_reg_ctrl(C_HREG_CTRL_ESYNC_OEDGE_BIT);
+            txd(C_HREG_CTRL_ESYNC_MODE_M_BIT downto
+                C_HREG_CTRL_ESYNC_MODE_L_BIT):=v_reg_ctrl(C_HREG_CTRL_ESYNC_MODE_M_BIT downto
+                                                          C_HREG_CTRL_ESYNC_MODE_L_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_ADR, 5) then
             txd:=EXT(i_host_dmaprm_dout, txd'length);
@@ -709,9 +714,9 @@ begin
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_STATUS, 5) then
             txd(C_HREG_DEV_STATUS_INT_ACT_BIT)        :=OR_reduce(p_in_irq_status(C_HIRQ_COUNT-1 downto 0));
-            txd(C_HREG_DEV_STATUS_PCIE_DMAWR_DONE_BIT):=i_dma_mwr_done;
-            txd(C_HREG_DEV_STATUS_PCIE_DMARD_DONE_BIT):=i_dma_mrd_done;
-            txd(C_HREG_DEV_STATUS_PCIE_ERR_BIT)       :=p_in_mrd_rcv_err;
+            txd(C_HREG_DEV_STATUS_PROM_TXRDY_BIT):=p_in_dev_status(C_HREG_DEV_STATUS_PROM_TXRDY_BIT);
+            txd(C_HREG_DEV_STATUS_PROM_RXRDY_BIT):=p_in_dev_status(C_HREG_DEV_STATUS_PROM_RXRDY_BIT);
+            txd(C_HREG_DEV_STATUS_PROM_ERR_BIT)       :=p_in_dev_status(C_HREG_DEV_STATUS_PROM_ERR_BIT);
             txd(C_HREG_DEV_STATUS_DMA_BUSY_BIT)       :=i_dma_work;
             txd(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT):=p_in_dev_status(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT);
 
@@ -746,6 +751,8 @@ begin
           txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
 --          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
           txd(C_HREG_FUNC_VRESEK21_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+          txd(C_HREG_FUNC_PROM):=strcmp2(C_PCFG_BOARD, "ML505");-- or strcmp2(C_PCFG_BOARD, "VERESK21") or strcmp2(C_PCFG_BOARD, "HTGV6");
+          txd(C_HREG_FUNC_PULT):=strcmp2(C_PCFG_BOARD, "VERESK21");
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
