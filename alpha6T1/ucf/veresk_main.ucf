@@ -1153,3 +1153,25 @@ TIMESPEC "TS_MEM_PADS_LOOPBACK" = FROM "FFS"      THRU "TPTHRU_ODATAIN" TO "FFS"
 # Flag unused paths with TIG.
 TIMESPEC "TS_MEM_PADS_TIG"      = FROM "MEM_PADS" THRU "TPTHRU_IDATAIN" TO "MEM_PADS" TIG;
 
+
+##############################################################################
+################            FLASH             ################################
+##############################################################################
+#NET  "pin_out_prom_a<0>"        LOC="";
+#NET  "pin_out_prom_a<1>"        LOC="";
+#NET  "pin_out_prom_a<2>"        LOC="";
+#NET  "pin_out_prom_a<3>"        LOC="";
+#
+#NET  "pin_inout_prom_d<0>"      LOC="";
+#NET  "pin_inout_prom_d<1>"      LOC="";
+#NET  "pin_inout_prom_d<2>"      LOC="";
+#NET  "pin_inout_prom_d<3>"      LOC="";
+#NET  "pin_inout_prom_d<4>"      LOC="";
+#NET  "pin_inout_prom_d<5>"      LOC="";
+#NET  "pin_inout_prom_d<6>"      LOC="";
+#NET  "pin_inout_prom_d<7>"      LOC="";
+#
+#NET  "pin_out_prom_we_n"        LOC="";
+#NET  "pin_out_prom_cs_n"        LOC="";
+#NET  "pin_out_prom_oe_n"        LOC="";
+#NET  "pin_in_prom_wt"           LOC="";
