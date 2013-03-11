@@ -847,7 +847,7 @@ i_host_tst_in(74)<='0';
 i_host_tst_in(75)<='0';
 i_host_tst_in(76)<='0';
 i_host_tst_in(126 downto 77)<=(others=>'0');
-i_host_tst_in(127)<=i_vctrl_tst_out(0) or OR_reduce(tst_prom_out) or
+i_host_tst_in(127)<=i_vctrl_tst_out(0) or
                     OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx);-- or
                     --i_arb_mem_tst_out(0) or i_swt_tst_out(0);
 
@@ -898,20 +898,18 @@ i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VE
                 i_host_rxd(C_HDEV_EDEV_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_EDEV_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_VIZIR_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VIZIR_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_BUP_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_BUP_DBUF, i_host_devadr'length) else
-                i_host_rxd(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                 (others=>'0');
-
+--                i_host_rxd(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
 --//дыруш (Host<-dev)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
                                                   i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
---                                                  i_host_txbuf_full(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                                                   '0';
-
+--                                                  i_host_txbuf_full(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
                                                   i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
                                                   i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
---                                                  i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                                                   '0';
+--                                                  i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT)<=i_vctrl_hfrmrk;
