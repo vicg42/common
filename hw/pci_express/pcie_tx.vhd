@@ -67,7 +67,6 @@ dma_init_i             : in   std_logic;
 
 mwr_en_i               : in   std_logic;
 mwr_len_i              : in   std_logic_vector(31 downto 0);
-mwr_tag_i              : in   std_logic_vector(7 downto 0);
 mwr_lbe_i              : in   std_logic_vector(3 downto 0);
 mwr_fbe_i              : in   std_logic_vector(3 downto 0);
 mwr_addr_i             : in   std_logic_vector(31 downto 0);
@@ -82,7 +81,6 @@ mwr_nosnoop_i          : in   std_logic;
 
 mrd_en_i               : in   std_logic;
 mrd_len_i              : in   std_logic_vector(31 downto 0);
-mrd_tag_i              : in   std_logic_vector(7 downto 0);
 mrd_lbe_i              : in   std_logic_vector(3 downto 0);
 mrd_fbe_i              : in   std_logic_vector(3 downto 0);
 mrd_addr_i             : in   std_logic_vector(31 downto 0);

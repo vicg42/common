@@ -92,7 +92,6 @@ p_out_mwr_64b                  : out   std_logic;
 p_out_mwr_phant_func_en1       : out   std_logic;
 p_out_mwr_relaxed_order        : out   std_logic;
 p_out_mwr_nosnoop              : out   std_logic;
-p_out_mwr_tag                  : out   std_logic_vector(7 downto 0);
 p_out_mwr_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mwr_fbe                  : out   std_logic_vector(3 downto 0);
 
@@ -107,7 +106,6 @@ p_out_mrd_64b                  : out   std_logic;
 p_out_mrd_phant_func_en1       : out   std_logic;
 p_out_mrd_relaxed_order        : out   std_logic;
 p_out_mrd_nosnoop              : out   std_logic;
-p_out_mrd_tag                  : out   std_logic_vector(7 downto 0);
 p_out_mrd_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mrd_fbe                  : out   std_logic_vector(3 downto 0);
 p_in_mrd_rcv_size              : in    std_logic_vector(31 downto 0);
@@ -134,9 +132,6 @@ p_in_cfg_neg_max_lnk_width     : in    std_logic_vector(5 downto 0);--//Разрешон
 p_in_cfg_cap_max_payload_size  : in    std_logic_vector(2 downto 0);--//Запрашиваемый max_payload_size пакета у системы
 p_in_cfg_prg_max_payload_size  : in    std_logic_vector(2 downto 0);--//Разрешонный max_payload_size пакета системой
 p_in_cfg_prg_max_rd_req_size   : in    std_logic_vector(2 downto 0);--//Max read request size for the device when acting as the Requester
-p_in_cfg_phant_func_en         : in    std_logic;                   --//
-p_in_cfg_no_snoop_en           : in    std_logic;                   --//
-p_in_cfg_ext_tag_en            : in    std_logic;                   --//
 
 --//Тестирование
 p_in_rx_engine_tst      : in    std_logic_vector(1 downto 0);
@@ -299,7 +294,6 @@ p_out_mwr_64b           <='0';--//1/0 - 64b/32b
 p_out_mwr_phant_func_en1<='0';--//p_in_cfg_phant_func_en
 p_out_mwr_relaxed_order <='0';--v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
 p_out_mwr_nosnoop       <='0';--v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
-p_out_mwr_tag           <=CONV_STD_LOGIC_VECTOR(16#00#, p_out_mwr_tag'length);
 p_out_mwr_fbe           <=i_mwr_fbe;
 p_out_mwr_lbe           <=i_mwr_lbe;
 
@@ -314,7 +308,6 @@ p_out_mrd_64b           <='0';--//1/0 - 64b/32b
 p_out_mrd_phant_func_en1<='0';--//p_in_cfg_phant_func_en
 p_out_mrd_relaxed_order <='0';--v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
 p_out_mrd_nosnoop       <='0';--v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
-p_out_mrd_tag           <=CONV_STD_LOGIC_VECTOR(16#00#, p_out_mrd_tag'length);
 p_out_mrd_fbe           <=i_mrd_fbe;
 p_out_mrd_lbe           <=i_mrd_lbe;
 
@@ -666,14 +659,9 @@ begin
             txd:=EXT(v_reg_firmware, txd'length); --tst_rd:='1';
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_CTRL, 5) then
-            txd(C_HREG_CTRL_RST_ALL_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_ALL_BIT);
-            txd(C_HREG_CTRL_RST_MEM_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_MEM_BIT);
-            txd(C_HREG_CTRL_RST_ETH_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_ETH_BIT);
-            txd(C_HREG_CTRL_ESYNC_IEDGE_BIT):=v_reg_ctrl(C_HREG_CTRL_ESYNC_IEDGE_BIT);
-            txd(C_HREG_CTRL_ESYNC_OEDGE_BIT):=v_reg_ctrl(C_HREG_CTRL_ESYNC_OEDGE_BIT);
-            txd(C_HREG_CTRL_ESYNC_MODE_M_BIT downto
-                C_HREG_CTRL_ESYNC_MODE_L_BIT):=v_reg_ctrl(C_HREG_CTRL_ESYNC_MODE_M_BIT downto
-                                                          C_HREG_CTRL_ESYNC_MODE_L_BIT);
+            txd(C_HREG_CTRL_TIME_EN_BIT downto C_HREG_CTRL_ESYNC_IEDGE_BIT):=v_reg_ctrl(C_HREG_CTRL_TIME_EN_BIT downto C_HREG_CTRL_ESYNC_IEDGE_BIT);
+            txd(C_HREG_CTRL_BITCLK_VIZIR_BIT):=v_reg_ctrl(C_HREG_CTRL_BITCLK_VIZIR_BIT);
+            txd(C_HREG_CTRL_EN_SYN120_BUP_BIT):=v_reg_ctrl(C_HREG_CTRL_EN_SYN120_BUP_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_ADR, 5) then
             txd:=EXT(i_host_dmaprm_dout, txd'length);
@@ -694,9 +682,6 @@ begin
             txd(C_HREG_PCIE_REQ_MAX_PAYLOAD_M_RBIT downto C_HREG_PCIE_REQ_MAX_PAYLOAD_L_RBIT):=p_in_cfg_cap_max_payload_size(2 downto 0);
             txd(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT)  :=p_in_cfg_prg_max_payload_size(2 downto 0);
             txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)    :=p_in_cfg_prg_max_rd_req_size(2 downto 0);
-            txd(C_HREG_PCIE_PHANT_FUNC_RBIT)     :=p_in_cfg_phant_func_en;
-            txd(C_HREG_PCIE_TAG_EXT_EN_RBIT)     :=p_in_cfg_ext_tag_en;
-            txd(C_HREG_PCIE_NOSNOOP_RBIT)        :=p_in_cfg_no_snoop_en;
             txd(C_HREG_PCIE_CPL_STREAMING_BIT)   :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);
             txd(C_HREG_PCIE_METRING_BIT)         :=v_reg_pcie(C_HREG_PCIE_METRING_BIT);
             txd(C_HREG_PCIE_SPEED_TESTING_BIT)   :=v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
@@ -751,8 +736,8 @@ begin
           txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
 --          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
           txd(C_HREG_FUNC_VRESEK21_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
-          txd(C_HREG_FUNC_PROM):=strcmp2(C_PCFG_BOARD, "ML505");-- or strcmp2(C_PCFG_BOARD, "VERESK21") or strcmp2(C_PCFG_BOARD, "HTGV6");
-          txd(C_HREG_FUNC_PULT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+          txd(C_HREG_FUNC_PROM_BIT):=strcmp2(C_PCFG_BOARD, "ML505");-- or strcmp2(C_PCFG_BOARD, "VERESK21") or strcmp2(C_PCFG_BOARD, "HTGV6");
+          txd(C_HREG_FUNC_PULT_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
