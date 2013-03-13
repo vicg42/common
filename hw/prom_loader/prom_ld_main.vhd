@@ -70,6 +70,7 @@ architecture behavioral of prom_ld is
 
 component prog_flash
 generic(
+G_DBG : string:="OFF";
 G_USRBUF_DWIDTH : integer := 32;
 G_FLASH_AWIDTH : integer := 24;
 G_FLASH_DWIDTH : integer := 16;
@@ -216,6 +217,7 @@ i_phy_di <= p_inout_phy.d;
 
 m_core : prog_flash
 generic map(
+G_DBG => "OFF",
 G_USRBUF_DWIDTH => G_HOST_DWIDTH,
 G_FLASH_AWIDTH => C_PROG_PHY_AWIDTH,
 G_FLASH_DWIDTH => C_PROG_PHY_DWIDTH,

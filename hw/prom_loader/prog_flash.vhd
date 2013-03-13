@@ -32,6 +32,7 @@ use work.vicg_common_pkg.all;
 
 entity prog_flash is
 generic(
+G_DBG : string:="OFF";
 G_USRBUF_DWIDTH : integer := 32;
 G_FLASH_AWIDTH : integer := 24;
 G_FLASH_DWIDTH : integer := 16;
@@ -172,8 +173,8 @@ signal tst_fms_out,tst_fms: std_logic_vector(4 downto 0);
 signal tst_flash_di       : std_logic_vector(i_flash_di'range);
 signal tst_txbuf_rd       : std_logic;
 signal tst_txbuf_empty    : std_logic;
-signal tst_done           : std_logic;
 signal tst_err            : std_logic;
+signal tst_irq            : std_logic;
 
 
 --MAIN
@@ -201,7 +202,7 @@ begin
     tst_txbuf_rd <= (i_txbuf_rd and p_in_clk_en);
     end if;
     tst_err <= OR_reduce(i_err);
-    p_out_tst(0) <= OR_reduce(tst_fms_out) or OR_reduce(tst_flash_di) or tst_txbuf_rd or tst_txbuf_empty or tst_done or tst_err;
+    p_out_tst(0) <= OR_reduce(tst_fms_out) or OR_reduce(tst_flash_di) or tst_txbuf_rd or tst_txbuf_empty or tst_err;
   end if;
 end process;
 
@@ -242,7 +243,12 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
 --//----------------------------------
 --//
 --//----------------------------------
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
+p_out_irq <= i_irq or tst_irq;
+end generate gen_dbg_on;
+gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_irq <= i_irq;
+end generate gen_dbg_off;
 p_out_status <= i_err;
 
 p_out_txbuf_rd <= (not i_flash_we_n and not p_in_txbuf_empty and
@@ -327,7 +333,7 @@ begin
     i_rxbuf_di <= (others=>'0');
 
     i_irq <= '0';
-    i_err <= (others=>'0'); tst_done <= '0';
+    i_err <= (others=>'0'); tst_irq <= '0';
 
   elsif rising_edge(p_in_clk) then
   if p_in_clk_en = '1' then
@@ -345,7 +351,7 @@ begin
           if p_in_txbuf_empty ='0' then
 
               i_txbuf_rd <= '1';
-              i_irq <= '0';
+              i_irq <= '0'; tst_irq <= '0';
               i_size_cnt <= (others=>'0');
               i_err <= (others=>'0');
 
@@ -361,6 +367,7 @@ begin
 
               elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_DRD, 4) then
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
+                i_adr_cnt <= i_adr;
                 i_flash_ce_n <= '0';
                 i_fsm_cs <= S_RD_SETUP;
 
@@ -537,11 +544,11 @@ begin
                       end if;
 
                       i_fsm_cs <= S_ERASE_STATUS_REG_CLR;
-                    end if; --tst_done <= '1';
+                    end if;
                 else
                 --BLOCK ERASE - ERROR
                   i_err <= EXT(i_flash_di(6 downto 0), i_err'length);
-                  i_fsm_cs <= S_CMD_DONE; --tst_done <= '1';
+                  i_fsm_cs <= S_CMD_DONE;
                   i_irq <= '1';
                 end if;
             else
@@ -563,7 +570,7 @@ begin
         ---------------------------------------------
         when S_WR_SETUP =>
 
-            i_txbuf_rd <= '0'; tst_done <= '0';
+            i_txbuf_rd <= '0';
 
             i_flash_a <= i_block_adr;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#E8#, i_flash_do'length);
@@ -706,14 +713,14 @@ begin
                 if i_flash_di(7 downto 0) = CONV_STD_LOGIC_VECTOR(16#80#, 8) then
                     if i_size_cnt = i_size then
                     --Записал все данные
-                      i_fsm_cs <= S_CMD_DONE;
+                      i_fsm_cs <= S_CMD_DONE; tst_irq <= '1';
                     else
                       i_fsm_cs <= S_WR_SETUP;
-                    end if; tst_done <= '1';
+                    end if;
                 else
                 --BLOCK WRITE - ERROR
                   i_err <= EXT(i_flash_di(6 downto 0), i_err'length);
-                  i_fsm_cs <= S_CMD_DONE; tst_done <= '1';
+                  i_fsm_cs <= S_CMD_DONE;
                 end if;
             else
               i_fsm_cs <= S_WR_WAIT;
@@ -780,7 +787,7 @@ begin
                   i_flash_a <= i_flash_a + 1;
                   i_size_cnt <= i_size_cnt + 1;
                   i_flash_oe_n <= CI_PHY_DIR_TX;
-                  i_fsm_cs <= S_CFI_RD_WAIT;
+                  i_fsm_cs <= S_RD_WAIT;
                 end if;
                 i_irq <= '1';
                 i_bcnt <= i_bcnt + 1;
@@ -864,7 +871,7 @@ begin
         when S_CMD_DONE =>
 
           i_flash_ce_n <= '1';
-          i_bcnt <= (others=>'0'); tst_done <= '0';
+          i_bcnt <= (others=>'0');
           i_cfi_bcnt <= (others=>'0');
 
           if OR_reduce(i_err) = '0' then
