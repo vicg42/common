@@ -336,12 +336,6 @@ i_txbuf_empty <= '1';
 
 
 
-
-
-
-
-
-
 --SET ADR START
 i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ADR, 4);
 i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*4, 28);--адрес (byte)
