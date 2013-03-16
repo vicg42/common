@@ -8,17 +8,23 @@
 -- Назначение/Описание :
 -- FLASH device : JS28F256P30TF
 --
--- WRITE: 1 - USR_CMD_ADR + ADR(byte)
---        2 - USR_CMD_ERASE + SIZE(byte)
---         hardware:1. blocks unlock
---                  2. blocks erase
---        3 - USR_CMD_DWR + SIZE(byte)
---
--- READ:  1 - USR_CMD_ADR + ADR(byte)
---        2 - USR_CMD_DRD + SIZE(byte)
---
--- READ CFI:  1 - USR_CMD_DRD_CFI + ADR(byte)
---            2 - USR_CMD_DRD + SIZE(byte)
+--Запись данных :
+--  Очистка данных :
+--   PC -> FPGA : DATA0[31:4]=стартовый адрес(byte) + DATA0[3:0]=USR_CMD_ADR
+--   PC -> FPGA : DATA0[31:4]=Кол-во данных(byte) + DATA0[3:0]=USR_CMD_ERASE
+--   PC <- FPGA : IRQ(команда завершена)
+--  PC -> FPGA : DATA0[31:4]=Кол-во данных(byte) + DATA0[3:0]=USR_CMD_DWR
+--  PC -> FPGA : DATAN[] - данные
+--Чтение данных :
+--  PC -> FPGA : DATA0[31:4]=стартовый адрес(byte) + DATA0[3:0]=USR_CMD_ADR
+--  PC -> FPGA : DATA0[31:4]=Кол-во данных(byte) + DATA0[3:0]=USR_CMD_DRD
+--  PC <- FPGA : IRQ (начата запись в usr rxbuf)
+--  PC <- FPGA : DATA[] - данные
+--Чтение параметров FLASH :
+--  PC -> FPGA : DATA0[31:4]=стартовый адрес(byte) + DATA0[3:0]=USR_CMD_ADR
+--  PC -> FPGA : DATA0[31:4]=Кол-во данных(byte) + DATA0[3:0]=USR_CMD_DRD_CFI
+--  PC <- FPGA : IRQ (начата запись в usr rxbuf)
+--  PC <- FPGA : DATA[] - данные
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -85,8 +91,8 @@ constant CI_USR_CMD_ERASE   : integer:=5;
 constant CI_PHY_DIR_TX      : std_logic:='1';
 constant CI_PHY_DIR_RX      : std_logic:='0';
 
-constant CI_FLASH_BLOCK_16KW : integer:=16#04000#;
-constant CI_FLASH_BLOCK_64KW : integer:=16#10000#;
+constant CI_FLASH_BLOCK_16KW : integer:=(1024 * 16);
+constant CI_FLASH_BLOCK_64KW : integer:=(1024 * 64);
 
 constant CI_FLASH_BLOCK0_INC : integer := selval (CI_FLASH_BLOCK_64KW, CI_FLASH_BLOCK_16KW, (G_FLASH_OPT(0)/='1'));
 constant CI_FLASH_BLOCK1_INC : integer := selval (CI_FLASH_BLOCK_16KW, CI_FLASH_BLOCK_64KW, (G_FLASH_OPT(0)/='1'));
@@ -375,13 +381,13 @@ begin
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
                 i_flash_ce_n <= '0';
                 i_fsm_cs <= S_CFI_SETUP;
---
---              elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4) then
---                i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
---                i_adr_cnt <= i_adr;
---                i_flash_ce_n <= '0';
---                i_fsm_cs <= S_UNLOCK_SETUP;
---
+
+              --elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4) then
+              --  i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
+              --  i_adr_cnt <= i_adr;
+              --  i_flash_ce_n <= '0';
+              --  i_fsm_cs <= S_UNLOCK_SETUP;
+
               elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4) then
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
                 i_adr_cnt <= i_adr;
@@ -774,7 +780,7 @@ begin
 
             --if i_flash_wait = '1' then
             if p_in_rxbuf_full = '0' then
-                for i in 0 to i_rxbuf_di'length/8 - 1 loop
+                for i in 0 to i_rxbuf_di'length/i_flash_di'length - 1 loop
                   if i_bcnt = i then
                     i_rxbuf_di(i_flash_di'length*(i+1)-1 downto i_flash_di'length*i) <= i_flash_di;
                   end if;

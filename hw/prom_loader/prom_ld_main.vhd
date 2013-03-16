@@ -145,7 +145,7 @@ signal i_core_rdy       : std_logic;
 signal i_core_irq       : std_logic;
 signal i_core_status    : std_logic_vector(7 downto 0);
 
-signal i_divcnt         : std_logic_vector(4 downto 0);
+signal i_divcnt         : std_logic_vector(3 downto 0);
 signal i_clk_en         : std_logic;
 signal i_tst_out        : std_logic_vector(31 downto 0);
 
