@@ -73,7 +73,7 @@ constant CI_REG_DID    : std_logic_vector(7 downto 0):='1'&CONV_STD_LOGIC_VECTOR
 Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
 constant CI_REG_ARRAY : TReg := (
 --            REG ADR                    |             REG DATA
-('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register
+('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register (IDF)
 ('1' & CONV_STD_LOGIC_VECTOR(16#49#, 7) & CONV_STD_LOGIC_VECTOR(16#C0#, 8)), --Power Management Register
 ('1' & CONV_STD_LOGIC_VECTOR(16#21#, 7) & CONV_STD_LOGIC_VECTOR(16#09#, 8)), --DAC Control Register
 ('1' & CONV_STD_LOGIC_VECTOR(16#33#, 7) & CONV_STD_LOGIC_VECTOR(16#06#, 8)), --DVI PLL Charge Pump Control Register
