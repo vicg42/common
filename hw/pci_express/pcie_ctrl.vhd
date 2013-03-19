@@ -290,8 +290,8 @@ signal i_usr_rxbuf_rd             : std_logic;
 signal i_usr_rxbuf_rd_last        : std_logic;
 signal i_usr_rxbuf_empty          : std_logic;
 
-signal i_usr_max_payload_size     : std_logic_vector(2 downto 0);
-signal i_usr_max_rd_req_size      : std_logic_vector(2 downto 0);
+--signal i_usr_max_payload_size     : std_logic_vector(2 downto 0);
+--signal i_usr_max_rd_req_size      : std_logic_vector(2 downto 0);
 
 signal i_req_compl                : std_logic;
 signal i_compl_done               : std_logic;
@@ -342,9 +342,7 @@ signal i_mrd_en_throttle          : std_logic;
 signal i_mrd_pkt_count            : std_logic_vector(15 downto 0);
 signal i_mrd_pkt_len              : std_logic_vector(31 downto 0);
 
-signal i_cpl_streaming            : std_logic;
 signal i_rd_metering              : std_logic;
-signal i_trn_rnp_ok_n             : std_logic;
 
 signal i_irq_ctrl_rst             : std_logic;
 signal i_irq_clr                  : std_logic;
@@ -353,8 +351,6 @@ signal i_irq_set                  : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0
 signal i_irq_status               : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 
 signal i_cfg_msi_enable           : std_logic;
-signal i_cfg_cap_max_lnk_width    : std_logic_vector(5 downto 0);
-signal i_cfg_cap_max_payload_size : std_logic_vector(2 downto 0);
 signal i_cfg_completer_id         : std_logic_vector(15 downto 0);
 signal i_cfg_neg_max_lnk_width    : std_logic_vector(5 downto 0);
 signal i_cfg_rcb                  : std_logic;
@@ -385,8 +381,8 @@ i_rd_throttle_tst_out(1) <='0';
 --//--------------------------------------
 --//Выходные сигналы
 --//--------------------------------------
-trn_rnp_ok_n_o <= i_trn_rnp_ok_n;
-trn_rcpl_streaming_n_o <= i_cpl_streaming;
+trn_rnp_ok_n_o <= '0';
+trn_rcpl_streaming_n_o <= '1';
 
 cfg_pm_wake_n_o        <='1';
 trn_terrfwd_n_o        <='1';
@@ -529,17 +525,11 @@ p_out_irq_num                 => i_irq_num,
 p_out_irq_set                 => i_irq_set,
 p_in_irq_status               => i_irq_status,
 
-p_out_cpl_streaming           => i_cpl_streaming,
 p_out_rd_metering             => i_rd_metering,
-p_out_trn_rnp_ok_n            => i_trn_rnp_ok_n,
-p_out_usr_max_payload_size    => i_usr_max_payload_size,
-p_out_usr_max_rd_req_size     => i_usr_max_rd_req_size,
+--p_out_usr_max_payload_size    => i_usr_max_payload_size,
+--p_out_usr_max_rd_req_size     => i_usr_max_rd_req_size,
 
-p_in_cfg_irq_disable          => i_cfg_intrrupt_disable,
-p_in_cfg_msi_enable           => i_cfg_msi_enable,
-p_in_cfg_cap_max_lnk_width    => i_cfg_cap_max_lnk_width,
 p_in_cfg_neg_max_lnk_width    => i_cfg_neg_max_lnk_width,
-p_in_cfg_cap_max_payload_size => i_cfg_cap_max_payload_size,
 p_in_cfg_prg_max_payload_size => i_cfg_prg_max_payload_size,
 p_in_cfg_prg_max_rd_req_size  => i_cfg_prg_max_rd_req_size,
 
@@ -691,8 +681,8 @@ mrd_pkt_count_o      => i_mrd_pkt_count,       --// O[15:0]
 completer_id_i       => i_cfg_completer_id,    --// I [15:0]
 tag_ext_en_i         => i_cfg_ext_tag_en,      --// I
 master_en_i          => i_cfg_bus_master_en,   --// I
-max_payload_size_i   => i_usr_max_payload_size,--i_cfg_prg_max_payload_size, // I [2:0]
-max_rd_req_size_i    => i_usr_max_rd_req_size, --i_cfg_prg_max_rd_req_size,  // I [2:0]
+max_payload_size_i   => i_cfg_prg_max_payload_size, --// I [2:0]  i_usr_max_payload_size,--
+max_rd_req_size_i    => i_cfg_prg_max_rd_req_size,  --// I [2:0]  i_usr_max_rd_req_size, --
 
 --Технологический
 tst_o                => open,
@@ -770,9 +760,9 @@ cfg_wr_en_n         => cfg_wr_en_n_o,
 cfg_rd_en_n         => cfg_rd_en_n_o,
 cfg_rd_wr_done_n    => cfg_rd_wr_done_n_i,
 
-cfg_cap_max_lnk_width    => i_cfg_cap_max_lnk_width,    --// O [5:0]
-cfg_cap_max_payload_size => i_cfg_cap_max_payload_size, --// O [2:0]
-cfg_msi_enable           => open, --i_cfg_msi_enable_tmp,  // O
+cfg_cap_max_lnk_width    => open, --// O [5:0]
+cfg_cap_max_payload_size => open, --// O [2:0]
+cfg_msi_enable           => open, --// O
 
 rst_n               => i_rst_n,
 clk                 => trn_clk_i
