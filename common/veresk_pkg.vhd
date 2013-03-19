@@ -22,7 +22,7 @@ use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
---use work.prom_phypin_pkg.all;
+use work.prom_phypin_pkg.all;
 
 package veresk_pkg is
 
@@ -467,49 +467,49 @@ p_in_rst          : in   std_logic
 );
 end component;
 
---component prom_ld is
---generic(
---G_HOST_DWIDTH : integer:=32
---);
---port(
----------------------------------
-----Связь с HOST
----------------------------------
---p_out_host_rxd   : out   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
---p_in_host_rd     : in    std_logic;
---p_out_rxbuf_full : out   std_logic;
---p_out_rxbuf_empty: out   std_logic;
---
---p_in_host_txd    : in    std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
---p_in_host_wr     : in    std_logic;
---p_out_txbuf_full : out   std_logic;
---p_out_txbuf_empty: out   std_logic;
---
---p_in_host_clk    : in    std_logic;
---
---p_out_hirq       : out   std_logic;
---p_out_herr       : out   std_logic;
---
----------------------------------
-----PHY
----------------------------------
---p_in_phy         : in    TPromPhyIN;
---p_out_phy        : out   TPromPhyOUT;
---p_inout_phy      : inout TPromPhyINOUT;
---
----------------------------------
-----Технологический
----------------------------------
---p_in_tst         : in    std_logic_vector(31 downto 0);
---p_out_tst        : out   std_logic_vector(31 downto 0);
---
----------------------------------
-----System
----------------------------------
---p_in_clk         : in    std_logic;
---p_in_rst         : in    std_logic
---);
---end component;
+component prom_ld is
+generic(
+G_HOST_DWIDTH : integer:=32
+);
+port(
+-------------------------------
+--Связь с HOST
+-------------------------------
+p_out_host_rxd   : out   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_host_rd     : in    std_logic;
+p_out_rxbuf_full : out   std_logic;
+p_out_rxbuf_empty: out   std_logic;
+
+p_in_host_txd    : in    std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_host_wr     : in    std_logic;
+p_out_txbuf_full : out   std_logic;
+p_out_txbuf_empty: out   std_logic;
+
+p_in_host_clk    : in    std_logic;
+
+p_out_hirq       : out   std_logic;
+p_out_herr       : out   std_logic;
+
+-------------------------------
+--PHY
+-------------------------------
+p_in_phy         : in    TPromPhyIN;
+p_out_phy        : out   TPromPhyOUT;
+p_inout_phy      : inout TPromPhyINOUT;
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst         : in    std_logic_vector(31 downto 0);
+p_out_tst        : out   std_logic_vector(31 downto 0);
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk         : in    std_logic;
+p_in_rst         : in    std_logic
+);
+end component;
 
 end veresk_pkg;
 

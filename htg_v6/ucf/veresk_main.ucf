@@ -579,53 +579,53 @@ INST "m_mem_ctrl/gen_bank[0].m_mem_core/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy
 INST "m_mem_ctrl/gen_bank[0].m_mem_core/u_infrastructure/u_mmcm_adv"      LOC = "MMCM_ADV_X0Y6"; #Banks 15, 25, 35
 
 
-##############################################################################
-################            FLASH             ################################
-##############################################################################
-#NET  "pin_out_prom_a<0>"        LOC="AW13";
-#NET  "pin_out_prom_a<1>"        LOC="AW12";
-#NET  "pin_out_prom_a<2>"        LOC="BB14";
-#NET  "pin_out_prom_a<3>"        LOC="BB13";
-#NET  "pin_out_prom_a<4>"        LOC="AU13";
-#NET  "pin_out_prom_a<5>"        LOC="AU12";
-#NET  "pin_out_prom_a<6>"        LOC="AW15";
-#NET  "pin_out_prom_a<7>"        LOC="AY15";
-#NET  "pin_out_prom_a<8>"        LOC="AR13";
-#NET  "pin_out_prom_a<9>"        LOC="AP13";
-#NET  "pin_out_prom_a<10>"       LOC="AU14";
-#NET  "pin_out_prom_a<11>"       LOC="AV15";
-#NET  "pin_out_prom_a<12>"       LOC="AT12";
-#NET  "pin_out_prom_a<13>"       LOC="AR12";
-#NET  "pin_out_prom_a<14>"       LOC="BA14";
-#NET  "pin_out_prom_a<15>"       LOC="BA15";
-#NET  "pin_out_prom_a<16>"       LOC="AW17";
-#NET  "pin_out_prom_a<17>"       LOC="AY17";
-#NET  "pin_out_prom_a<18>"       LOC="AR15";
-#NET  "pin_out_prom_a<19>"       LOC="AP15";
-#NET  "pin_out_prom_a<20>"       LOC="BB17";
-#NET  "pin_out_prom_a<21>"       LOC="BB16";
-#NET  "pin_out_prom_a<22>"       LOC="AT14";
-#NET  "pin_out_prom_a<23>"       LOC="AJ31";
-#
-#NET  "pin_inout_prom_d<0>"      LOC="U31";
-#NET  "pin_inout_prom_d<1>"      LOC="T31";
-#NET  "pin_inout_prom_d<2>"      LOC="AL32";
-#NET  "pin_inout_prom_d<3>"      LOC="AK32";
-#NET  "pin_inout_prom_d<4>"      LOC="R33";
-#NET  "pin_inout_prom_d<5>"      LOC="P32";
-#NET  "pin_inout_prom_d<6>"      LOC="AH33";
-#NET  "pin_inout_prom_d<7>"      LOC="AJ33";
-#NET  "pin_inout_prom_d<8>"      LOC="P33";
-#NET  "pin_inout_prom_d<9>"      LOC="N33";
-#NET  "pin_inout_prom_d<10>"     LOC="AG31";
-#NET  "pin_inout_prom_d<11>"     LOC="AH31";
-#NET  "pin_inout_prom_d<12>"     LOC="R30";
-#NET  "pin_inout_prom_d<13>"     LOC="T30";
-#NET  "pin_inout_prom_d<14>"     LOC="AF31";
-#NET  "pin_inout_prom_d<15>"     LOC="AG32";
-#
-#NET  "pin_out_prom_we_n"        LOC="V31";
-#NET  "pin_out_prom_cs_n"        LOC="AH30";
-#NET  "pin_out_prom_oe_n"        LOC="AJ30";
-#NET  "pin_in_prom_wt"           LOC="R32";
+#############################################################################
+###############            FLASH             ################################
+#############################################################################
+NET  "pin_out_prom_a<0>"        LOC="AW13";
+NET  "pin_out_prom_a<1>"        LOC="AW12";
+NET  "pin_out_prom_a<2>"        LOC="BB14";
+NET  "pin_out_prom_a<3>"        LOC="BB13";
+NET  "pin_out_prom_a<4>"        LOC="AU13";
+NET  "pin_out_prom_a<5>"        LOC="AU12";
+NET  "pin_out_prom_a<6>"        LOC="AW15";
+NET  "pin_out_prom_a<7>"        LOC="AY15";
+NET  "pin_out_prom_a<8>"        LOC="AR13";
+NET  "pin_out_prom_a<9>"        LOC="AP13";
+NET  "pin_out_prom_a<10>"       LOC="AU14";
+NET  "pin_out_prom_a<11>"       LOC="AV15";
+NET  "pin_out_prom_a<12>"       LOC="AT12";
+NET  "pin_out_prom_a<13>"       LOC="AR12";
+NET  "pin_out_prom_a<14>"       LOC="BA14";
+NET  "pin_out_prom_a<15>"       LOC="BA15";
+NET  "pin_out_prom_a<16>"       LOC="AW17";
+NET  "pin_out_prom_a<17>"       LOC="AY17";
+NET  "pin_out_prom_a<18>"       LOC="AR15";
+NET  "pin_out_prom_a<19>"       LOC="AP15";
+NET  "pin_out_prom_a<20>"       LOC="BB17";
+NET  "pin_out_prom_a<21>"       LOC="BB16";
+NET  "pin_out_prom_a<22>"       LOC="AT14";
+NET  "pin_out_prom_a<23>"       LOC="AJ31";
+
+NET  "pin_inout_prom_d<0>"      LOC="U31";
+NET  "pin_inout_prom_d<1>"      LOC="T31";
+NET  "pin_inout_prom_d<2>"      LOC="AL32";
+NET  "pin_inout_prom_d<3>"      LOC="AK32";
+NET  "pin_inout_prom_d<4>"      LOC="R33";
+NET  "pin_inout_prom_d<5>"      LOC="P32";
+NET  "pin_inout_prom_d<6>"      LOC="AH33";
+NET  "pin_inout_prom_d<7>"      LOC="AJ33";
+NET  "pin_inout_prom_d<8>"      LOC="P33";
+NET  "pin_inout_prom_d<9>"      LOC="N33";
+NET  "pin_inout_prom_d<10>"     LOC="AG31";
+NET  "pin_inout_prom_d<11>"     LOC="AH31";
+NET  "pin_inout_prom_d<12>"     LOC="R30";
+NET  "pin_inout_prom_d<13>"     LOC="T30";
+NET  "pin_inout_prom_d<14>"     LOC="AF31";
+NET  "pin_inout_prom_d<15>"     LOC="AG32";
+
+NET  "pin_out_prom_we_n"        LOC="V31";
+NET  "pin_out_prom_cs_n"        LOC="AH30";
+NET  "pin_out_prom_oe_n"        LOC="AJ30";
+NET  "pin_in_prom_wt"           LOC="R32";
 

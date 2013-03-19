@@ -353,52 +353,52 @@ TIMESPEC "TS_MGTCLK"  = PERIOD "MGTCLK" 100.00 MHz HIGH 50 % ;
 NET "m_host/gen_sim_off.m_pcie/m_core/pcie_ep0/pcie_blk/SIO/.pcie_gt_wrapper_i/gt_tx_elec_idle_reg*"  MAXDELAY = 1.0 ns;
 
 
-##############################################################################
-################            FLASH             ################################
-##############################################################################
-#NET  "pin_out_prom_a<0>"        LOC="K12";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<1>"        LOC="K13";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<2>"        LOC="H23";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<3>"        LOC="G23";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<4>"        LOC="H12";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<5>"        LOC="J12";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<6>"        LOC="K22";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<7>"        LOC="K23";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<8>"        LOC="K14";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<9>"        LOC="L14";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<10>"       LOC="H22";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<11>"       LOC="G22";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<12>"       LOC="J15";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<13>"       LOC="K16";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<14>"       LOC="K21";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<15>"       LOC="J22";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<16>"       LOC="L16";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<17>"       LOC="L15";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<18>"       LOC="L20";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<19>"       LOC="L21";   # Bank 1, Vcco=3.3V
-#NET  "pin_out_prom_a<20>"       LOC="AE23";  # Bank 2, Vcco=3.3V
-#NET  "pin_out_prom_a<21>"       LOC="AE22";  # Bank 2, Vcco=3.3V
-#NET  "pin_out_prom_a<22>"       LOC="AN32" | IOSTANDARD=LVCMOS25;
-#NET  "pin_out_prom_a<23>"       LOC="AP32" | IOSTANDARD=LVCMOS25;  # Bank 4, Vcco=3.3V, No DCI
-#
-#NET  "pin_inout_prom_d<0>"      LOC="AD19";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<1>"      LOC="AE19";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<2>"      LOC="AE17";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<3>"      LOC="AF16";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<4>"      LOC="AD20";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<5>"      LOC="AE21";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<6>"      LOC="AE16";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<7>"      LOC="AF15";  # Bank 2, Vcco=3.3V
-#NET  "pin_inout_prom_d<8>"      LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<9>"      LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<10>"     LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<11>"     LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<12>"     LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<13>"     LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<14>"     LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
-#NET  "pin_inout_prom_d<15>"     LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
-#
-#NET  "pin_out_prom_we_n"        LOC="AF20";  # Bank 2, Vcco=3.3V
-#NET  "pin_out_prom_cs_n"        LOC="AE14";  # Bank 2, Vcco=3.3V
-#NET  "pin_out_prom_oe_n"        LOC="AF14";  # Bank 2, Vcco=3.3V
-#NET  "pin_in_prom_wt"           LOC="G13"  | IOSTANDARD=LVCMOS33; #;   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors
+#############################################################################
+###############            FLASH             ################################
+#############################################################################
+NET  "pin_out_prom_a<0>"        LOC="K12";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<1>"        LOC="K13";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<2>"        LOC="H23";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<3>"        LOC="G23";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<4>"        LOC="H12";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<5>"        LOC="J12";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<6>"        LOC="K22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<7>"        LOC="K23";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<8>"        LOC="K14";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<9>"        LOC="L14";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<10>"       LOC="H22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<11>"       LOC="G22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<12>"       LOC="J15";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<13>"       LOC="K16";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<14>"       LOC="K21";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<15>"       LOC="J22";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<16>"       LOC="L16";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<17>"       LOC="L15";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<18>"       LOC="L20";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<19>"       LOC="L21";   # Bank 1, Vcco=3.3V
+NET  "pin_out_prom_a<20>"       LOC="AE23";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_a<21>"       LOC="AE22";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_a<22>"       LOC="AN32" | IOSTANDARD=LVCMOS25;
+NET  "pin_out_prom_a<23>"       LOC="AP32" | IOSTANDARD=LVCMOS25;  # Bank 4, Vcco=3.3V, No DCI
+
+NET  "pin_inout_prom_d<0>"      LOC="AD19";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<1>"      LOC="AE19";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<2>"      LOC="AE17";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<3>"      LOC="AF16";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<4>"      LOC="AD20";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<5>"      LOC="AE21";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<6>"      LOC="AE16";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<7>"      LOC="AF15";  # Bank 2, Vcco=3.3V
+NET  "pin_inout_prom_d<8>"      LOC="AH13";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<9>"      LOC="AH14";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<10>"     LOC="AH19";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<11>"     LOC="AH20";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<12>"     LOC="AG13";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<13>"     LOC="AH12";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<14>"     LOC="AH22";  # Bank 4, Vcco=3.3V, No DCI
+NET  "pin_inout_prom_d<15>"     LOC="AG22";  # Bank 4, Vcco=3.3V, No DCI
+
+NET  "pin_out_prom_we_n"        LOC="AF20";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_cs_n"        LOC="AE14";  # Bank 2, Vcco=3.3V
+NET  "pin_out_prom_oe_n"        LOC="AF14";  # Bank 2, Vcco=3.3V
+NET  "pin_in_prom_wt"           LOC="G13"  | IOSTANDARD=LVCMOS33; #;   # Bank 20, Vcco=3.3V, DCI using 49.9 ohm resistors

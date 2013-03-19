@@ -175,6 +175,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/lib/vicg/v5/gtp_drp_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/gtp_prog_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
+      [ list "../src/prom_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/prom_ld_main.vhd" $_VHDMod ] \
     ] \
   ] \
 ]

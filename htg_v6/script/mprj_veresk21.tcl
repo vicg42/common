@@ -214,11 +214,15 @@ set _projects [ list \
       [ list "../src/core_gen/emac_gmii_core/example_design/emac_gmii_core.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_gmii_core/example_design/emac_gmii_core_block.vhd" $_VHDMod ] \
       [ list "../src/core_gen/emac_gmii_core/example_design/emac_gmii_core_locallink.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/prom_loader/prom_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/prom_loader/prom_ld_main.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/prom_buf.vhd" $_VHDMod ] \
     ] \
   ] \
 ]
 
-::projNav::makeProjects $_cwd $_usrdef_design $_usrdef_entity $_projects 4
+::projNav::makeProjects $_cwd $_usrdef_design $_usrdef_entity $_projects 3
 
 #cd ../src
 #exec "updata_ngc.bat"

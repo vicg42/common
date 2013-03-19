@@ -32,7 +32,7 @@ use work.dsn_eth_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
 use work.clocks_pkg.all;
---use work.prom_phypin_pkg.all;
+use work.prom_phypin_pkg.all;
 
 entity veresk_main is
 generic(
@@ -113,12 +113,12 @@ pin_out_1m          : out std_logic;
 pin_out_s120Hz      : out std_logic;
 pin_out_s120SAU     : out std_logic;
 
-----------------------------------------------------
-----PROM
-----------------------------------------------------
---pin_in_prom         : in    TPromPhyIN;
---pin_out_prom        : out   TPromPhyOUT;
---pin_inout_prom      : inout TPromPhyINOUT;
+--------------------------------------------------
+--PROM
+--------------------------------------------------
+pin_in_prom         : in    TPromPhyIN;
+pin_out_prom        : out   TPromPhyOUT;
+pin_inout_prom      : inout TPromPhyINOUT;
 
 --------------------------------------------------
 --Reference clock
@@ -337,7 +337,7 @@ attribute keep of i_ethphy_out : signal is "true";
 signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
-signal tst_prom_out     : std_logic_vector(31 downto 0);
+--signal tst_prom_out     : std_logic_vector(31 downto 0);
 
 --//MAIN
 begin
@@ -848,8 +848,7 @@ i_host_tst_in(75)<='0';
 i_host_tst_in(76)<='0';
 i_host_tst_in(126 downto 77)<=(others=>'0');
 i_host_tst_in(127)<=i_vctrl_tst_out(0) or
-                    OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx);-- or
-                    --i_arb_mem_tst_out(0) or i_swt_tst_out(0);
+                    OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx);
 
 
 --//Статусы устройств
@@ -878,9 +877,9 @@ i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXERR_BIT)<=i_host_err(C_HDEV_VIZIR_DB
 i_host_dev_status(C_HREG_DEV_STATUS_BUP_TXRDY_BIT)<=i_host_txrdy(C_HDEV_BUP_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXRDY_BIT)<=i_host_rxrdy(C_HDEV_BUP_DBUF);
 i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXERR_BIT)<=i_host_err(C_HDEV_BUP_DBUF);
---i_host_dev_status(C_HREG_DEV_STATUS_PROM_TXRDY_BIT)<=i_host_txrdy(C_HDEV_PROM);
---i_host_dev_status(C_HREG_DEV_STATUS_PROM_RXRDY_BIT)<=not i_host_rxbuf_empty(C_HDEV_PROM);
---i_host_dev_status(C_HREG_DEV_STATUS_PROM_ERR_BIT)<=i_host_err(C_HDEV_PROM);
+i_host_dev_status(C_HREG_DEV_STATUS_PROM_TXRDY_BIT)<=i_host_txrdy(C_HDEV_PROM);
+i_host_dev_status(C_HREG_DEV_STATUS_PROM_RXRDY_BIT)<=not i_host_rxbuf_empty(C_HDEV_PROM);
+i_host_dev_status(C_HREG_DEV_STATUS_PROM_ERR_BIT)<=i_host_err(C_HDEV_PROM);
 
 --//Запись/Чтение данных устройств хоста
 gen_dev_dbuf : for i in 0 to i_host_wr'length-1 generate
@@ -898,18 +897,20 @@ i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VE
                 i_host_rxd(C_HDEV_EDEV_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_EDEV_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_VIZIR_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VIZIR_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_BUP_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_BUP_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                 (others=>'0');
---                i_host_rxd(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
+
 --//Флаги (Host<-dev)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
                                                   i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                  i_host_txbuf_full(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                                                   '0';
---                                                  i_host_txbuf_full(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
+
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_ETH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_ETH_DBUF, i_host_devadr'length) else
                                                   i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
                                                   i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                  i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                                                   '0';
---                                                  i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT)<=i_vctrl_hfrmrk;
@@ -926,7 +927,7 @@ i_host_dev_irq(C_HIRQ_PULT_RX)<=i_host_rxrdy(C_HDEV_PULT_DBUF);
 i_host_dev_irq(C_HIRQ_EDEV_RX)<=i_host_irq(C_HIRQ_EDEV_RX);
 i_host_dev_irq(C_HIRQ_VIZIR_RX)<=i_host_irq(C_HIRQ_VIZIR_RX);
 i_host_dev_irq(C_HIRQ_BUP_RX)<=i_host_irq(C_HIRQ_BUP_RX);
---i_host_dev_irq(C_HIRQ_PROM)<=i_host_irq(C_HIRQ_PROM);
+i_host_dev_irq(C_HIRQ_PROM)<=i_host_irq(C_HIRQ_PROM);
 
 --//Обработка управляющих сигналов Хоста
 i_host_mem_ctrl.dir       <=not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
@@ -1413,51 +1414,51 @@ p_in_rst          => i_vizir_rst
 );
 
 
-----***********************************************************
-----FLASH with firmware
-----***********************************************************
---m_prom : prom_ld
---generic map(
---G_HOST_DWIDTH => C_HDEV_DWIDTH
---)
---port map(
----------------------------------
-----Связь с HOST
----------------------------------
---p_out_host_rxd    => i_host_rxd(C_HDEV_PROM),
---p_in_host_rd      => i_host_rd(C_HDEV_PROM),
---p_out_rxbuf_full  => open,
---p_out_rxbuf_empty => i_host_rxbuf_empty(C_HDEV_PROM),
---
---p_in_host_txd     => i_host_txd(C_HDEV_PROM),
---p_in_host_wr      => i_host_wr(C_HDEV_PROM),
---p_out_txbuf_full  => i_host_txbuf_full(C_HDEV_PROM),
---p_out_txbuf_empty => i_host_txrdy(C_HDEV_PROM),
---
---p_in_host_clk     => g_host_clk,
---
---p_out_hirq        => i_host_irq(C_HIRQ_PROM),
---p_out_herr        => i_host_err(C_HDEV_PROM),
---
----------------------------------
-----PHY
----------------------------------
---p_in_phy         => pin_in_prom,
---p_out_phy        => pin_out_prom,
---p_inout_phy      => pin_inout_prom,
---
----------------------------------
-----Технологический
----------------------------------
---p_in_tst         => (others=>'0'),
---p_out_tst        => tst_prom_out,
---
----------------------------------
-----System
----------------------------------
---p_in_clk         => i_tmr_clk,
---p_in_rst         => i_prom_rst
---);
+--***********************************************************
+--FLASH with firmware
+--***********************************************************
+m_prom : prom_ld
+generic map(
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--Связь с HOST
+-------------------------------
+p_out_host_rxd    => i_host_rxd(C_HDEV_PROM),
+p_in_host_rd      => i_host_rd(C_HDEV_PROM),
+p_out_rxbuf_full  => open,
+p_out_rxbuf_empty => i_host_rxbuf_empty(C_HDEV_PROM),
+
+p_in_host_txd     => i_host_txd(C_HDEV_PROM),
+p_in_host_wr      => i_host_wr(C_HDEV_PROM),
+p_out_txbuf_full  => i_host_txbuf_full(C_HDEV_PROM),
+p_out_txbuf_empty => i_host_txrdy(C_HDEV_PROM),
+
+p_in_host_clk     => g_host_clk,
+
+p_out_hirq        => i_host_irq(C_HIRQ_PROM),
+p_out_herr        => i_host_err(C_HDEV_PROM),
+
+-------------------------------
+--PHY
+-------------------------------
+p_in_phy         => pin_in_prom,
+p_out_phy        => pin_out_prom,
+p_inout_phy      => pin_inout_prom,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst         => (others=>'0'),
+p_out_tst        => open,--tst_prom_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk         => i_tmr_clk,
+p_in_rst         => i_prom_rst
+);
 
 
 end architecture;

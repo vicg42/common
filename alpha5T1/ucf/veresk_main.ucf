@@ -477,3 +477,10 @@ TIMEGRP "MEM_PADS"   = "RA0_PADS":
 
 # Clock-to-out for memory pads
 TIMESPEC "TS_FFS_MEM_PADS" = FROM "MEMCLK_FFS" TO "MEM_PADS" 3.5 ns;
+
+#############################################################################
+###############            FLASH             ################################
+#############################################################################
+NET  "pin_out_prom_a<0>"        LOC="E11";
+NET  "pin_inout_prom_d<0>"      LOC="F11";
+NET  "pin_in_prom_wt"           LOC="E13";

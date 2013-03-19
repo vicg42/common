@@ -192,6 +192,8 @@ set _projects [ list \
       [ list "../src/clocks.vhd" $_VHDMod ] \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
+      [ list "../src/prom_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/prom_ld_main.vhd" $_VHDMod ] \
     ] \
   ] \
 ]
