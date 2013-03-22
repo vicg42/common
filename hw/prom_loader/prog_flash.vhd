@@ -85,7 +85,7 @@ constant CI_USR_CMD_ADR     : integer:=1;
 constant CI_USR_CMD_DWR     : integer:=2;
 constant CI_USR_CMD_DRD     : integer:=3;
 constant CI_USR_CMD_DRD_CFI : integer:=4;
-constant CI_USR_CMD_UNLOCK  : integer:=6;
+constant CI_USR_CMD_FLASH_BUF : integer:=6;
 constant CI_USR_CMD_ERASE   : integer:=5;
 
 constant CI_PHY_DIR_TX      : std_logic:='1';
@@ -124,6 +124,7 @@ S_WR_CONFIRM          ,
 S_WR_STATUS_REG_G2    ,
 S_WR_STATUS_REG_CHK2  ,
 S_WR_WAIT             ,
+S_WR_STATUS_REG_CLR   ,
 
 S_RD_SETUP            ,
 S_RD_START            ,
@@ -148,7 +149,10 @@ signal i_flash_oe_n       : std_logic;
 signal i_flash_do         : std_logic_vector(p_out_phy_d'range);
 signal i_flash_di         : std_logic_vector(p_in_phy_d'range);
 signal i_flash_a          : std_logic_vector(p_out_phy_a'range);
-
+signal i_fash_buf_byte    : std_logic_vector(15 downto 0);
+signal i_fash_buf_size    : std_logic_vector(15 downto 0);
+signal sr_flash_we_n      : std_logic_vector(0 to 1) := (others=>'1');
+signal sr_flash_oe_n      : std_logic_vector(0 to 1) := (others=>'1');
 signal i_cfi_bcnt         : std_logic_vector(log2(G_USRBUF_DWIDTH / 8) - 1 downto 0);
 signal i_bcnt             : std_logic_vector(log2(G_USRBUF_DWIDTH / G_FLASH_DWIDTH) - 1 downto 0);
 signal i_adr_byte         : std_logic_vector(p_out_phy_a'range);
@@ -243,6 +247,7 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
          CONV_STD_LOGIC_VECTOR(16#1D#, tst_fms'length) when i_fsm_cs = S_CFI_RD_N             else
          CONV_STD_LOGIC_VECTOR(16#1E#, tst_fms'length) when i_fsm_cs = S_CFI_RD_WAIT          else
          CONV_STD_LOGIC_VECTOR(16#1F#, tst_fms'length) when i_fsm_cs = S_CMD_DONE             else
+         CONV_STD_LOGIC_VECTOR(16#20#, tst_fms'length) when i_fsm_cs = S_WR_STATUS_REG_CLR    else
          CONV_STD_LOGIC_VECTOR(16#00#, tst_fms'length);
 
 
@@ -251,9 +256,13 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
 --//----------------------------------
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 p_out_irq <= i_irq or tst_irq;
+p_out_phy_oe <= i_flash_oe_n;
+p_out_phy_we <= i_flash_we_n;
 end generate gen_dbg_on;
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_irq <= i_irq;
+p_out_phy_oe <= sr_flash_oe_n(sr_flash_oe_n'high);
+p_out_phy_we <= sr_flash_we_n(sr_flash_we_n'high);
 end generate gen_dbg_off;
 p_out_status <= i_err;
 
@@ -269,6 +278,8 @@ process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
     i_rxbuf_wr_out <= i_rxbuf_wr;
+    sr_flash_oe_n <= i_flash_oe_n & sr_flash_oe_n(0 to sr_flash_oe_n'high - 1);
+    sr_flash_we_n <= i_flash_we_n & sr_flash_we_n(0 to sr_flash_we_n'high - 1);
   end if;
 end process;
 i_rxbuf_wr <= not i_flash_oe_n and (not p_in_rxbuf_full) and
@@ -282,8 +293,6 @@ i_rxbuf_wr_last <= '1' when ((i_size_cnt = i_size - 1) and i_fsm_cs = S_RD_N) or
 i_flash_di <= p_in_phy_d;
 p_out_phy_d <= i_flash_do;
 p_out_phy_a <= i_flash_a;
-p_out_phy_oe <= i_flash_oe_n;
-p_out_phy_we <= i_flash_we_n;
 p_out_phy_cs <= i_flash_ce_n;
 
 
@@ -292,6 +301,7 @@ i_size_tmp <= i_size - 1;
 
 i_size <= ('0' & i_size_byte(23 downto 1)) + i_size_byte(0);
 i_adr <= ('0' & i_adr_byte(23 downto 1));
+i_fash_buf_size <= ('0' & i_fash_buf_byte(15 downto 1));
 
 --номер последнего блока
 i_block_end <= EXT(i_adr_end(23 downto 16), i_block_end'length)
@@ -334,6 +344,7 @@ begin
     i_flash_oe_n <= CI_PHY_DIR_TX;
     i_flash_do <= (others=>'0');
     i_flash_a <= (others=>'0');
+    i_fash_buf_byte <= CONV_STD_LOGIC_VECTOR(G_FLASH_BUF_SIZE_MAX, i_fash_buf_byte'length);
 
     i_txbuf_rd <= '0';
     i_rxbuf_di <= (others=>'0');
@@ -382,11 +393,9 @@ begin
                 i_flash_ce_n <= '0';
                 i_fsm_cs <= S_CFI_SETUP;
 
-              --elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_UNLOCK, 4) then
-              --  i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
-              --  i_adr_cnt <= i_adr;
-              --  i_flash_ce_n <= '0';
-              --  i_fsm_cs <= S_UNLOCK_SETUP;
+              elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_FLASH_BUF, 4) then
+                i_fash_buf_byte <= p_in_txbuf_d(15 + 4 downto 0 + 4);
+                i_fsm_cs <= S_CMD_DONE;
 
               elsif p_in_txbuf_d(3 downto 0) = CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4) then
                 i_size_byte <= p_in_txbuf_d(23 + 4 downto 0 + 4);
@@ -416,7 +425,6 @@ begin
 
         when S_UNLOCK_CONFIRM =>
 
-            i_flash_a <= i_block_adr;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#D0#, i_flash_do'length);--block unlock
             --i_flash_do <= CONV_STD_LOGIC_VECTOR(16#01#, i_flash_do'length);--block lock
             --i_flash_do <= CONV_STD_LOGIC_VECTOR(16#2F#, i_flash_do'length);--block lockdown
@@ -443,7 +451,6 @@ begin
 
         when S_UNLOCK_DEV_ID_G =>
         --Read Device Identifier register (Cycles=2/2)
-            i_flash_a <= i_block_adr + 2;
 
             if i_flash_we_n = '1' then
               i_flash_oe_n <= CI_PHY_DIR_RX;
@@ -461,7 +468,7 @@ begin
 
               if i_block_num = i_block_end then
                 i_adr_cnt <= i_adr;
-                i_fsm_cs <= S_ERASE_STATUS_REG_CLR; --S_CMD_DONE;
+                i_fsm_cs <= S_ERASE_STATUS_REG_CLR;
               else
                 --для Top Boot
                 if i_adr_cnt < CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_BOUNDARY, i_adr_cnt'length) then
@@ -499,7 +506,6 @@ begin
 
         when S_ERASE_SETUP =>
 
-            i_flash_a <= i_block_adr;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#20#, i_flash_do'length);
 
             if i_flash_we_n = '0' then
@@ -511,7 +517,6 @@ begin
 
         when S_ERASE_CONFIRM =>
 
-            i_flash_a <= i_block_adr;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#D0#, i_flash_do'length);
 
             if i_flash_we_n = '0' then
@@ -522,8 +527,6 @@ begin
             end if;
 
         when S_ERASE_STATUS_REG_G =>
-
-            i_flash_a <= i_block_adr;
 
             if i_flash_we_n = '1' then
               i_flash_oe_n <= CI_PHY_DIR_RX;
@@ -566,7 +569,6 @@ begin
 
             if i_flash_oe_n = CI_PHY_DIR_TX then
             --OE# to update Status Register
-              i_flash_a <= i_block_adr;
               i_flash_oe_n <= CI_PHY_DIR_RX;
               i_fsm_cs <= S_ERASE_STATUS_REG_CHK;
             end if;
@@ -592,8 +594,6 @@ begin
             --Вычисляем сколько данных осталось передать
             i_size_remain <= EXT(i_size, i_size_remain'length) - EXT(i_size_cnt, i_size_remain'length);
 
-            i_flash_a <= i_block_adr;
-
             if i_flash_we_n = '1' then
               i_flash_oe_n <= CI_PHY_DIR_RX;
               i_fsm_cs <= S_WR_STATUS_REG_CHK;
@@ -601,8 +601,8 @@ begin
 
         when S_WR_STATUS_REG_CHK =>
             --Формируем размер одиночной транзакции (--0 is corresponds to count = 1)
-            if i_size_remain >= CONV_STD_LOGIC_VECTOR(G_FLASH_BUF_SIZE_MAX, i_size_remain'length) then
-              i_trn_size <= CONV_STD_LOGIC_VECTOR(G_FLASH_BUF_SIZE_MAX - 1, i_trn_size'length);
+            if i_size_remain >= EXT(i_fash_buf_size, i_size_remain'length) then
+              i_trn_size <= EXT(i_fash_buf_size, i_size_remain'length) - 1;
             else
               i_trn_size <= i_size_remain - 1;
             end if;
@@ -620,7 +620,6 @@ begin
 
         when S_WR_DCOUNT =>
 
-            i_flash_a <= i_block_adr;
             i_flash_do <= i_trn_size(i_flash_do'range);--Назначаю кол-во отправляемых данных
 
             if i_flash_we_n = '0' then
@@ -672,7 +671,6 @@ begin
 
                 if i_flash_we_n = '0' then
                     i_flash_we_n <= '1';
-                    i_adr_cnt <= i_adr_cnt + 1;
                     i_bcnt <= i_bcnt + 1;
                     --считаем общее кол-во переданых данных
                     i_size_cnt <= i_size_cnt + 1;
@@ -681,6 +679,7 @@ begin
                       i_fsm_cs <= S_WR_CONFIRM;
                     else
                       i_trn_size <= i_trn_size - 1;
+                      i_adr_cnt <= i_adr_cnt + 1;
                     end if;
 
                 else
@@ -690,7 +689,7 @@ begin
 
         when S_WR_CONFIRM =>
 
-            i_flash_a <= i_block_adr;
+            i_flash_a <= i_adr_cnt;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#D0#, i_flash_do'length);
 
             if i_flash_we_n = '0' then
@@ -701,8 +700,6 @@ begin
             end if;
 
         when S_WR_STATUS_REG_G2 =>
-
-            i_flash_a <= i_block_adr;
 
             if i_flash_we_n = '1' then
               i_flash_oe_n <= CI_PHY_DIR_RX;
@@ -721,12 +718,13 @@ begin
                     --Записал все данные
                       i_fsm_cs <= S_CMD_DONE; tst_irq <= '1';
                     else
+                      i_adr_cnt <= i_adr_cnt + 1;
                       i_fsm_cs <= S_WR_SETUP;
                     end if;
                 else
                 --BLOCK WRITE - ERROR
                   i_err <= EXT(i_flash_di(6 downto 0), i_err'length);
-                  i_fsm_cs <= S_CMD_DONE;
+                  i_fsm_cs <= S_WR_STATUS_REG_CLR;
                 end if;
             else
               i_fsm_cs <= S_WR_WAIT;
@@ -736,7 +734,6 @@ begin
 
             if i_flash_oe_n = CI_PHY_DIR_TX then
             --OE# to update Status Register
-              i_flash_a <= i_block_adr;
               i_flash_oe_n <= CI_PHY_DIR_RX;
 
               if i_fsm_return(0) = '1' then
@@ -747,6 +744,17 @@ begin
 
               i_fsm_return <= (others=>'0');
 
+            end if;
+
+        when S_WR_STATUS_REG_CLR =>
+
+            i_flash_do <= CONV_STD_LOGIC_VECTOR(16#50#, i_flash_do'length);
+
+            if i_flash_we_n = '0' then
+              i_flash_we_n <= '1';
+              i_fsm_cs <= S_CMD_DONE;
+            else
+              i_flash_we_n <= '0';
             end if;
 
         ---------------------------------------------
@@ -768,7 +776,6 @@ begin
 
         when S_RD_START =>
 
-            i_flash_a <= i_block_adr;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#FF#, i_flash_do'length);
 
             if i_flash_we_n = '1' then
