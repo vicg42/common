@@ -27,7 +27,8 @@
 --  PC <- FPGA : DATA[] - данные
 --Set FLASH BUFSIZE:
 --  PC -> FPGA : DATA0[31:4]=flash_bufsize(byte) + DATA0[3:0]=CMD_FLASH_BUF
---
+--ERROR Detect:
+--  PC <- FPGA : IRQ(команда завершена)
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -109,7 +110,6 @@ S_UNLOCK_DEV_ID_S     ,
 S_UNLOCK_DEV_ID_G     ,
 S_UNLOCK_DEV_ID_CHK   ,
 
-S_ERASE_STATUS_REG_CLR,
 S_ERASE_SETUP         ,
 S_ERASE_CONFIRM       ,
 S_ERASE_STATUS_REG_G  ,
@@ -161,15 +161,15 @@ signal i_adr_byte         : std_logic_vector(31 - 4 downto 0);
 signal i_adr              : std_logic_vector(i_adr_byte'range);
 signal i_adr_cnt          : std_logic_vector(i_adr_byte'range);
 signal i_adr_end          : std_logic_vector(i_adr_byte'range);
+signal i_adr_end_inc      : std_logic_vector(1 downto 0);
 signal i_size_byte        : std_logic_vector(31 - 4 downto 0);
 signal i_size             : std_logic_vector(i_size_byte'range);
-signal i_size_tmp         : std_logic_vector(i_size_byte'range);
 signal i_size_cnt         : std_logic_vector(i_size_byte'range);
 signal i_size_remain      : std_logic_vector(i_size_byte'range);
 signal i_trn_size         : std_logic_vector(i_size_byte'range);
 signal i_block_adr        : std_logic_vector(p_out_phy_a'range);
-signal i_block_num        : std_logic_vector(8 downto 0);
-signal i_block_end        : std_logic_vector(8 downto 0);
+signal i_block_num        : std_logic_vector(9 downto 0);
+signal i_block_end        : std_logic_vector(9 downto 0);
 
 signal i_rxbuf_di         : std_logic_vector(p_out_rxbuf_d'range);
 signal i_txbuf_rd         : std_logic;
@@ -187,8 +187,8 @@ signal tst_txbuf_rd       : std_logic;
 signal tst_txbuf_empty    : std_logic;
 signal tst_err            : std_logic;
 signal tst_irq            : std_logic;
-signal tst_block_num      : std_logic_vector(i_block_num'range);
-signal tst_block_end      : std_logic_vector(i_block_end'range);
+
+
 
 --MAIN
 begin
@@ -203,8 +203,6 @@ begin
     tst_flash_di <= (others=>'0');
     tst_txbuf_rd <= '0';
     tst_fms_out <= (others=>'0');
-    tst_block_num <= (others=>'0');
-    tst_block_end <= (others=>'0');
     tst_err <= '0';
     p_out_tst <= (others=>'0');
   elsif p_in_clk'event and p_in_clk='1' then
@@ -216,11 +214,8 @@ begin
     else
     tst_txbuf_rd <= (i_txbuf_rd and p_in_clk_en);
     end if;
-    tst_block_num <= i_block_num;
-    tst_block_end <= i_block_end;
     tst_err <= OR_reduce(i_err);
-    p_out_tst(0) <= OR_reduce(tst_fms_out) or OR_reduce(tst_flash_di) or tst_txbuf_rd or tst_txbuf_empty or tst_err or
-    OR_reduce(tst_block_num) or OR_reduce(tst_block_end);
+    p_out_tst(0) <= OR_reduce(tst_fms_out) or OR_reduce(tst_flash_di) or tst_txbuf_rd or tst_txbuf_empty or tst_err;
   end if;
 end process;
 
@@ -230,7 +225,7 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
          CONV_STD_LOGIC_VECTOR(16#04#, tst_fms'length) when i_fsm_cs = S_UNLOCK_DEV_ID_G      else
          CONV_STD_LOGIC_VECTOR(16#05#, tst_fms'length) when i_fsm_cs = S_UNLOCK_DEV_ID_CHK    else
          CONV_STD_LOGIC_VECTOR(16#06#, tst_fms'length) when i_fsm_cs = S_CMD_ERR              else
-         CONV_STD_LOGIC_VECTOR(16#07#, tst_fms'length) when i_fsm_cs = S_ERASE_STATUS_REG_CLR else
+         CONV_STD_LOGIC_VECTOR(16#07#, tst_fms'length) when i_fsm_cs = S_ERR_STATUS_REG_CLR   else
          CONV_STD_LOGIC_VECTOR(16#08#, tst_fms'length) when i_fsm_cs = S_ERASE_SETUP          else
          CONV_STD_LOGIC_VECTOR(16#09#, tst_fms'length) when i_fsm_cs = S_ERASE_CONFIRM        else
          CONV_STD_LOGIC_VECTOR(16#0A#, tst_fms'length) when i_fsm_cs = S_ERASE_STATUS_REG_G   else
@@ -255,7 +250,6 @@ tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_
          CONV_STD_LOGIC_VECTOR(16#1D#, tst_fms'length) when i_fsm_cs = S_CFI_RD_N             else
          CONV_STD_LOGIC_VECTOR(16#1E#, tst_fms'length) when i_fsm_cs = S_CFI_RD_WAIT          else
          CONV_STD_LOGIC_VECTOR(16#1F#, tst_fms'length) when i_fsm_cs = S_CMD_DONE             else
-         CONV_STD_LOGIC_VECTOR(16#20#, tst_fms'length) when i_fsm_cs = S_ERR_STATUS_REG_CLR   else
          CONV_STD_LOGIC_VECTOR(16#00#, tst_fms'length);
 
 
@@ -304,28 +298,28 @@ p_out_phy_a <= i_flash_a;
 p_out_phy_cs <= i_flash_ce_n;
 
 
-i_adr_end <= i_adr + EXT(i_size_tmp, i_adr_end'length);
-i_size_tmp <= i_size - 1;
+i_adr_end <= i_adr + EXT(i_size, i_adr_end'length);
 
-i_size <= EXT(i_size_byte(i_size_byte'length - 1 downto 1), i_size'length) + i_size_byte(0);
-i_adr <= EXT(i_adr_byte(i_adr_byte'length - 1 downto 1), i_adr'length);
+i_size <= EXT(i_size_byte(i_size_byte'high downto 1), i_size'length) + i_size_byte(0);
+i_adr <= EXT(i_adr_byte(i_adr_byte'high downto 1), i_adr'length);
 i_fash_buf_size <= EXT(i_fash_buf_byte(15 downto 1), i_fash_buf_size'length);
 
 --номер последнего блока
-i_block_end <= EXT(i_adr_end(23 downto 16), i_block_end'length) + EXT(i_adr_end(15 downto 14), i_block_end'length)
+i_adr_end_inc <= (i_adr_end(15) or i_adr_end(24)) & (i_adr_end(14) or i_adr_end(24));
+i_block_end <= EXT(i_adr_end(24 downto 16), i_block_end'length) + EXT(i_adr_end_inc, i_block_end'length)
             when (G_FLASH_OPT(0) = '0') else
               EXT(i_adr_end(15 downto 14), i_block_end'length)
                 when (G_FLASH_OPT(0) = '1' and
                   i_adr_end < CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_BOUNDARY, i_adr_end'length)) else
-                    EXT(i_adr_end(23 downto 16), i_block_end'length) + CONV_STD_LOGIC_VECTOR(3, i_block_end'length);
+                    EXT(i_adr_end(24 downto 16), i_block_end'length) + CONV_STD_LOGIC_VECTOR(3, i_block_end'length);
 
 --номер текущего блока
-i_block_num <= EXT(i_adr_cnt(23 downto 16), i_block_num'length) + EXT(i_adr_cnt(15 downto 14), i_block_num'length)
+i_block_num <= EXT(i_adr_cnt(24 downto 16), i_block_num'length) + EXT(i_adr_cnt(15 downto 14), i_block_num'length)
             when (G_FLASH_OPT(0) = '0') else
               EXT(i_adr_cnt(15 downto 14), i_block_num'length)
                 when (G_FLASH_OPT(0) = '1' and
                   i_adr_cnt < CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_BOUNDARY, i_adr_cnt'length)) else
-                    EXT(i_adr_cnt(23 downto 16), i_block_num'length) + CONV_STD_LOGIC_VECTOR(3, i_block_num'length);
+                    EXT(i_adr_cnt(24 downto 16), i_block_num'length) + CONV_STD_LOGIC_VECTOR(3, i_block_num'length);
 
 --адрес блока
 i_block_adr <= i_adr_cnt(23 downto 14) & CONV_STD_LOGIC_VECTOR(0, 14);
@@ -475,9 +469,9 @@ begin
             --BLOCK - UNLOCKED
               i_flash_oe_n <= CI_PHY_DIR_TX;
 
-              if i_block_num = i_block_end then
+              if i_block_num = i_block_end - 1 then
                 i_adr_cnt <= i_adr;
-                i_fsm_cs <= S_ERASE_STATUS_REG_CLR;
+                i_fsm_cs <= S_ERASE_SETUP;
               else
                 if i_adr_cnt < CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_BOUNDARY, i_adr_cnt'length) then
                   i_adr_cnt <= i_adr_cnt + CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK0_INC, i_adr_cnt'length);
@@ -498,22 +492,9 @@ begin
         ---------------------------------------------
         --BLOCK ERASE
         ---------------------------------------------
-        when S_ERASE_STATUS_REG_CLR =>
-
-            i_txbuf_rd <= '0';
-
-            i_flash_a <= i_block_adr;
-            i_flash_do <= CONV_STD_LOGIC_VECTOR(16#50#, i_flash_do'length);
-
-            if i_flash_we_n = '0' then
-              i_flash_we_n <= '1';
-              i_fsm_cs <= S_ERASE_SETUP;
-            else
-              i_flash_we_n <= '0';
-            end if;
-
         when S_ERASE_SETUP =>
 
+            i_flash_a <= i_block_adr;
             i_flash_do <= CONV_STD_LOGIC_VECTOR(16#20#, i_flash_do'length);
 
             if i_flash_we_n = '0' then
@@ -549,7 +530,7 @@ begin
             if i_flash_di(7) = '1' then --Device is ready
                 --BLOCK ERASE - OK
                 if i_flash_di(7 downto 0) = CONV_STD_LOGIC_VECTOR(16#80#, 8) then
-                    if i_block_num = i_block_end then
+                    if i_block_num = i_block_end - 1 then
                       i_adr_cnt <= i_adr;
                       i_fsm_cs <= S_CMD_DONE;
                       i_irq <= '1';
@@ -560,7 +541,7 @@ begin
                         i_adr_cnt <= i_adr_cnt + CONV_STD_LOGIC_VECTOR(CI_FLASH_BLOCK1_INC, i_adr_cnt'length);
                       end if;
 
-                      i_fsm_cs <= S_ERASE_STATUS_REG_CLR;
+                      i_fsm_cs <= S_ERASE_SETUP;
                     end if;
                 else
                 --BLOCK ERASE - ERROR
