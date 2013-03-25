@@ -132,12 +132,10 @@ signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
 signal i_vfr_skip_pix                : std_logic_vector(i_vfr_row_cnt'range);
---signal tst_dbg_rdTBUF                : std_logic;
---signal tst_dbg_rdEBUF                : std_logic;
+
 signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 signal tst_fsmstate_out              : std_logic_vector(3 downto 0);
---signal tst_fsmstate_dly              : std_logic_vector(3 downto 0);
---signal tst_mem_ctrl_ch_wr_out        : std_logic_vector(31 downto 0);
+
 
 --MAIN
 begin
@@ -172,9 +170,6 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_c
               CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
               CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE else
 end generate gen_dbgcs_on;
-
---tst_dbg_rdTBUF<=p_in_tst(C_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
---tst_dbg_rdEBUF<=p_in_tst(C_VCTRL_REG_TST0_DBG_EBUFRD_BIT);
 
 
 --//----------------------------------------------
@@ -225,7 +220,6 @@ begin
     i_vfr_new<='0';
 
   elsif p_in_clk'event and p_in_clk='1' then
-  --  if clk_en='1' then
 
     case fsm_state_cs is
 
@@ -438,7 +432,7 @@ p_in_mem             => p_in_mem,
 --System
 -------------------------------
 p_in_tst             => p_in_tst,
-p_out_tst            => open,--tst_mem_ctrl_ch_wr_out,
+p_out_tst            => open,
 
 p_in_clk             => p_in_clk,
 p_in_rst             => p_in_rst

@@ -82,10 +82,11 @@ end vmirx_main;
 architecture behavioral of vmirx_main is
 
 constant dly : time := 1 ps;
+constant CI_BRAM_AWIDTH : integer := 12;
 
 component vmirx_bram
 port(
-addra: in  std_logic_vector(9 downto 0);
+addra: in  std_logic_vector(CI_BRAM_AWIDTH - 1 downto 0);
 dina : in  std_logic_vector(31 downto 0);
 douta: out std_logic_vector(31 downto 0);
 ena  : in  std_logic;
@@ -93,7 +94,7 @@ wea  : in  std_logic_vector(0 downto 0);
 clka : in  std_logic;
 rsta : in  std_logic;
 
-addrb: in  std_logic_vector(9 downto 0);
+addrb: in  std_logic_vector(CI_BRAM_AWIDTH - 1 downto 0);
 dinb : in  std_logic_vector(31 downto 0);
 doutb: out std_logic_vector(31 downto 0);
 enb  : in  std_logic;
@@ -283,7 +284,7 @@ i_tmpbuf_enb<=(not p_in_dwnp_rdy_n or not i_tmpbuf_dir) and i_read_en;--//add 19
 --//ÁÓÔÅÐ ÍÀ ÑÒÐÎÊÓ
 m_bufline : vmirx_bram
 port map(
-addra => i_tmpbuf_addra(9 downto 0),
+addra => i_tmpbuf_addra(CI_BRAM_AWIDTH - 1 downto 0),
 dina  => i_tmpbuf_din,
 douta => open,
 ena   => i_tmpbuf_ena,
@@ -291,7 +292,7 @@ wea   => "1",
 clka  => p_in_clk,
 rsta  => p_in_rst,
 
-addrb => i_tmpbuf_addra(9 downto 0),
+addrb => i_tmpbuf_addra(CI_BRAM_AWIDTH - 1 downto 0),
 dinb  => "00000000000000000000000000000000",
 doutb => i_tmpbuf_dout,
 enb   => i_tmpbuf_enb,

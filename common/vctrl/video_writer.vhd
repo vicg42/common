@@ -136,7 +136,7 @@ signal i_upp_hd_data_rd_out        : std_logic;
 signal i_upp_pkt_skip_rd_out       : std_logic;
 signal i_pkt_type_err              : std_logic_vector(3 downto 0);
 signal i_pkt_size_byte             : std_logic_vector(15 downto 0);
-signal i_pkt_size_byte_calc        : std_logic_vector(15 downto 0);
+
 signal i_pkt_skip_byte             : std_logic_vector(15+1 downto 0);
 signal i_pkt_skip_dw               : std_logic_vector(15 downto 0);
 signal i_pkt_skip_dw_dcnt          : std_logic_vector(15 downto 0);
@@ -147,22 +147,10 @@ signal i_pix_num                   : std_logic_vector(15 downto 0);
 signal i_pix_count_byte            : std_logic_vector(15+1 downto 0);
 signal i_pix_count_dw              : std_logic_vector(15 downto 0);
 
---signal tst_dbg_pictire             : std_logic;
-signal tst_fsmstate                  : std_logic_vector(3 downto 0);
-signal tst_fsmstate_out              : std_logic_vector(3 downto 0);
-signal tst_upp_buf_empty             : std_logic;
-signal tst_vfr_npkt                  : std_logic;
-signal tst_vfr_npkt2                 : std_logic;
-signal tst_err_det                   : std_logic;
-signal tst_d_err                     : std_logic:='0';
-signal tst_data_err                  : std_logic_vector(3 downto 0);
-Type TTstCnt is array (0 to 3) of std_logic_vector(7 downto 0);
-signal tst_cnt                       : TTstCnt;
-signal tst_upp_data                  : std_logic_vector(31 downto 0);
-signal tst_upp_data_rd               : std_logic;
-signal tst_upp_buf_full              : std_logic;
---signal tst_timestamp                 : std_logic_vector(31 downto 0);
---signal tst2_upp_data                 : std_logic_vector(31 downto 0);
+signal tst_fsmstate                : std_logic_vector(3 downto 0);
+signal tst_fsmstate_out            : std_logic_vector(3 downto 0);
+signal tst_err_det                 : std_logic;
+signal tst_upp_buf_full            : std_logic;
 
 
 --MAIN
@@ -174,42 +162,26 @@ begin
 --//----------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(26 downto 0)<=(others=>'0');
-p_out_tst(31 downto 27)<=tst_upp_buf_full & i_pkt_type_err(3 downto 0);
+p_out_tst(31 downto 27)<='0' & i_pkt_type_err(3 downto 0);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(3  downto 0)<=tst_fsmstate_out;
-p_out_tst(4)          <=i_mem_start or tst_upp_buf_empty or tst_vfr_npkt2 or tst_err_det or Or_reduce(tst_upp_data) or tst_upp_data_rd;
+p_out_tst(4)          <=i_mem_start or tst_err_det;
 p_out_tst(25 downto 5) <=(others=>'0');
-p_out_tst(31 downto 26)<=tst_upp_buf_full & i_pkt_type_err(3 downto 0) & tst_d_err;
+p_out_tst(31 downto 26)<='0' & i_pkt_type_err(3 downto 0) & '0';
 
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
     tst_fsmstate_out<=tst_fsmstate;
-    tst_upp_buf_empty<=p_in_upp_buf_empty;
-    tst_vfr_npkt2<=tst_vfr_npkt;
+
     if p_in_upp_buf_full='1' then
       tst_upp_buf_full<='1';
     elsif fsm_state_cs=S_IDLE then
       tst_upp_buf_full<='0';
     end if;
-    tst_err_det<=OR_reduce(i_pkt_type_err) or tst_upp_buf_full;-- or tst_d_err;
-    tst_d_err<=OR_reduce(tst_data_err);
-    tst_upp_data_rd<=i_upp_data_rd;
-    tst_upp_data<=p_in_upp_data;
-
-    for i in 0 to 3 loop
-      if fsm_state_cs=S_IDLE then
-        tst_cnt(i)<=CONV_STD_LOGIC_VECTOR(i ,tst_cnt(i)'length);
-        tst_data_err(i)<='0';
-      elsif i_upp_data_rd='1' then
-        tst_cnt(i)<=tst_cnt(i) + CONV_STD_LOGIC_VECTOR(4 ,tst_cnt(i)'length);
-        if tst_cnt(i)/=p_in_upp_data(8*(i+1)-1 downto 8*i) then
-          tst_data_err(i)<='1';
-        end if;
-      end if;
-    end loop;
+    tst_err_det<=OR_reduce(i_pkt_type_err) or tst_upp_buf_full;
 
   end if;
 end process;
@@ -221,9 +193,6 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_c
               CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
 end generate gen_dbgcs_on;
 
---tst_dbg_pictire<=p_in_tst(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
-tst_vfr_npkt<=p_in_tst(C_VCTRL_REG_TST0_DBG_TBUFRD_BIT);
---tst2_upp_data <= p_in_upp_data when i_vfr_row/=(i_vfr_row_count - 1) else tst_timestamp;
 
 --//----------------------------------------------
 --//Статусы
@@ -253,9 +222,6 @@ i_pkt_skip_dw<=EXT(i_pkt_skip_byte(i_pkt_skip_byte'length-1 downto 2), i_pkt_ski
 --вычисляем кол-во пикселей которое надо записать в ОЗУ
 i_pix_count_byte<=i_pkt_skip_byte - CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE*4, i_pix_count_byte'length);
 i_pix_count_dw<=EXT(i_pix_count_byte(i_pix_count_byte'high downto 2), i_pix_count_dw'length) + OR_reduce(i_pix_count_byte(1 downto 0));--(целая часть от деления на 4) + (остаток от деления на 4)
-
---расчетный размер пакета
-i_pkt_size_byte_calc<=CONV_STD_LOGIC_VECTOR((C_VIDEO_PKT_HEADER_SIZE*4) - 2, i_pkt_size_byte_calc'length) + EXT(i_vfr_pix_count, i_pkt_size_byte_calc'length);
 
 i_vfr_pix_count_calc<=i_pix_count_byte(i_vfr_pix_count_calc'range) + i_pix_num;
 
@@ -301,7 +267,7 @@ begin
     i_vpkt_skip_rd<='0';
     i_pkt_size_byte<=(others=>'0');
     i_pkt_skip_dw_dcnt<=(others=>'0'); i_pkt_type_err(3 downto 0)<=(others=>'0');
-    i_pix_num<=(others=>'0'); --tst_timestamp <= (others => '0');
+    i_pix_num<=(others=>'0');
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -326,7 +292,7 @@ begin
         end if;
 
         --//Ждем когда появятся данные в буфере
-        if i_upp_buf_pfull='1' then --//if p_in_upp_buf_pfull='1' then
+        if i_upp_buf_pfull='1' then
         --//Ждем когда в входном буфере накопится нужное кол-во данных (0x40 DWORD)
 
           i_vpkt_header_rd<='1';
@@ -361,7 +327,7 @@ begin
                 --//сохраняем маркер текущей строки кадра :
                 i_vfr_row_mrk(i)(31 downto 16)<=p_in_upp_data(15 downto 0);--//(старшая часть)
                 i_vfr_row_mrk(i)(15 downto 0)<=i_vfr_row_mrk_l;            --//(младшая часть)
---                tst_timestamp <= (p_in_upp_data(15 downto 0) & i_vfr_row_mrk_l);
+
                 --//адрес ОЗУ:
                 i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
               end if;
@@ -372,18 +338,7 @@ begin
             i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row((G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT)+0 downto 0);
             i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_pix_num(G_MEM_VLINE_L_BIT-1 downto 0);
 
-            if tst_vfr_npkt='1' then
-              --для случая если vfr_line передается за 2 пакета
-              fsm_state_cs <= S_MEM_START;
-            else
-                --для случая если vfr_line передается за 1 пакет
-                if i_pkt_size_byte=i_pkt_size_byte_calc then
-                  fsm_state_cs <= S_MEM_START;
-                else
-                  i_vpkt_skip_rd<='1'; i_pkt_type_err(3)<='1';
-                  fsm_state_cs <= S_PKT_SKIP;
-                end if;
-            end if;
+            fsm_state_cs <= S_MEM_START;
 
           else
           --//-------------------------
@@ -545,7 +500,7 @@ p_out_cfg_mem_done   => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout  => p_in_upp_data, --tst2_upp_data
+p_in_usr_txbuf_dout  => p_in_upp_data,
 p_out_usr_txbuf_rd   => i_upp_data_rd,
 p_in_usr_txbuf_empty => p_in_upp_buf_empty,
 
@@ -563,7 +518,7 @@ p_in_mem             => p_in_mem,
 --System
 -------------------------------
 p_in_tst             => p_in_tst,
-p_out_tst            => open,--tst_mem_ctrl_ch_wr_out,
+p_out_tst            => open,
 
 p_in_clk             => p_in_clk,
 p_in_rst             => p_in_rst
