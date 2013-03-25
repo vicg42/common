@@ -74,7 +74,7 @@ G_DBG : string:="OFF";
 G_USRBUF_DWIDTH : integer := 32;
 G_FLASH_AWIDTH : integer := 24;
 G_FLASH_DWIDTH : integer := 16;
-G_FLASH_BUF_SIZE_MAX : integer := 32;
+G_FLASH_BUFSIZE_DEFAULT : integer := 32;
 G_FLASH_OPT : std_logic_vector(3 downto 0) := (others=>'0')
 );
 port(
@@ -221,7 +221,7 @@ G_DBG => "OFF",
 G_USRBUF_DWIDTH => G_HOST_DWIDTH,
 G_FLASH_AWIDTH => C_PROG_PHY_AWIDTH,
 G_FLASH_DWIDTH => C_PROG_PHY_DWIDTH,
-G_FLASH_BUF_SIZE_MAX => G_PROG_PHY_BUF_SIZE_MAX,
+G_FLASH_BUFSIZE_DEFAULT => C_PROG_PHY_BUFSIZE_DEFAULT,
 G_FLASH_OPT => (others=>'0')
 )
 port map(

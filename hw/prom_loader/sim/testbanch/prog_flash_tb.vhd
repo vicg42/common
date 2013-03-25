@@ -53,7 +53,7 @@ G_DBG : string:="OFF";
 G_USRBUF_DWIDTH : integer := 32;
 G_FLASH_AWIDTH : integer := 24;
 G_FLASH_DWIDTH : integer := 16;
-G_FLASH_BUF_SIZE_MAX : integer := 32;
+G_FLASH_BUFSIZE_DEFAULT : integer := 32;
 G_FLASH_OPT : std_logic_vector(3 downto 0) := (others=>'0')
 );
 port(
@@ -179,7 +179,7 @@ G_DBG => "ON",
 G_USRBUF_DWIDTH => 32,
 G_FLASH_AWIDTH => 24,
 G_FLASH_DWIDTH => 16,
-G_FLASH_BUF_SIZE_MAX => 32,
+G_FLASH_BUFSIZE_DEFAULT => 32,
 G_FLASH_OPT => "0000" --(others=>'0')
 )
 port map(
@@ -266,7 +266,8 @@ wait for 310 us;
 
 --SET ADR START
 i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ADR, 4);
-i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*2, 28);--адрес (byte)
+i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*1, 28);--адрес (byte) : max=(64*1024*2)*256
+--i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((16*1024*2)*1012, 28);--адрес (byte) : max=(16*1024*2)*1024
 wait until rising_edge(i_clk) and i_clk_en = '1';
 i_txbuf_empty <= '0';
 wait until rising_edge(i_clk) and i_clk_en = '1' and i_txbuf_rd = '1';
@@ -277,6 +278,7 @@ i_txbuf_empty <= '1';
 --ERASE
 i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ERASE, 4);
 i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((64*1024*2)*1 , 28);--size (byte) //(CI_FLASH_BLOCK_64KW*1 , 28);
+--i_txbuf_do(31 downto 4) <= CONV_STD_LOGIC_VECTOR((16*1024*2)*4*2 , 28);--size (byte) //(CI_FLASH_BLOCK_64KW*1 , 28);
 wait until rising_edge(i_clk) and i_clk_en = '1';
 i_txbuf_empty <= '0';
 wait until rising_edge(i_clk) and i_clk_en = '1' and i_txbuf_rd = '1';
@@ -316,7 +318,7 @@ end loop;
 
 --SET ADR START
 i_txbuf_do(3 downto 0) <= CONV_STD_LOGIC_VECTOR(CI_USR_CMD_ADR, 4);
-i_txbuf_do(31 downto 4) <=  CONV_STD_LOGIC_VECTOR((64*1024*2)*2, 28);--адрес (byte)
+i_txbuf_do(31 downto 4) <=  CONV_STD_LOGIC_VECTOR((64*1024*2)*255, 28);--адрес (byte)
 wait until rising_edge(i_clk) and i_clk_en = '1';
 i_txbuf_empty <= '0';
 wait until rising_edge(i_clk) and i_clk_en = '1' and i_txbuf_rd = '1';

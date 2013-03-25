@@ -20,7 +20,7 @@ package prom_phypin_pkg is
 
 constant C_PROG_PHY_AWIDTH : integer := 24;
 constant C_PROG_PHY_DWIDTH : integer := 16;
-constant G_PROG_PHY_BUF_SIZE_MAX : integer := 32;
+constant C_PROG_PHY_BUFSIZE_DEFAULT : integer := 32; --Byte
 
 type TPromPhyOUT is record
 a    : std_logic_vector(C_PROG_PHY_AWIDTH - 1 downto 0);

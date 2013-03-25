@@ -10,6 +10,8 @@ add wave -noupdate -color {Dark Orchid} -itemcolor Gold /prog_flash_tb/m_core/i_
 add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_block_num
 add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_block_end
 add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_block_adr
+add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_adr_byte
+add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_size_byte
 add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_adr_cnt
 add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_adr
 add wave -noupdate -radix hexadecimal /prog_flash_tb/m_core/i_adr_end
@@ -41,4 +43,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {307945400 ps} {352213400 ps}
+WaveRestoreZoom {310042887 ps} {316751240 ps}
