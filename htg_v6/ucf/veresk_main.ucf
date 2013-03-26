@@ -52,10 +52,10 @@ NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
 TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5  ns HIGH 50%; # 400MHz clock to DDR3 memory infrastructure
 TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
 
-
 # Create TIMEGRP for mig_ddr3_if_clk0
 NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0; ###NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
-TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
+#TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
+TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 3.33  ns HIGH 50%; # 300MHz
 
 
 #############################################################################

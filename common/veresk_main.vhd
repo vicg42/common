@@ -1221,7 +1221,7 @@ host_wr_data  => i_host_dev_opt_out(C_HDEV_OPTOUT_TIME_M_BIT downto C_HDEV_OPTOU
 wr_en_time    => i_host_dev_opt_out(C_HDEV_OPTOUT_TIME_SET_BIT),
 host_clk      => g_host_clk,
 
-clk           => g_usrclk(7)
+i_clk         => g_usrclk(7)
 );
 
 pin_out_s120Hz  <= i_sync_out(0);

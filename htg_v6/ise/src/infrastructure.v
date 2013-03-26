@@ -72,9 +72,12 @@ module infrastructure #
   // consider route delay - add one or two extra cycles to be sure!)
   localparam RST_DIV_SYNC_NUM = (RST_SYNC_NUM+1)/2;
 
+//  localparam real CLKIN1_PERIOD
+//             = (CLKFBOUT_MULT_F * CLK_PERIOD)/
+//             ( DIVCLK_DIVIDE * CLKOUT_DIVIDE * nCK_PER_CLK * 1000.0);  // in ns
   localparam real CLKIN1_PERIOD
-             = (CLKFBOUT_MULT_F * CLK_PERIOD)/
-             ( DIVCLK_DIVIDE * CLKOUT_DIVIDE * nCK_PER_CLK * 1000.0);  // in ns
+             = (CLK_PERIOD)/
+             (nCK_PER_CLK * 1000.0);  // in ns
 
   localparam integer VCO_PERIOD
              = (DIVCLK_DIVIDE * CLK_PERIOD)/(CLKFBOUT_MULT_F * nCK_PER_CLK);
@@ -87,7 +90,7 @@ module infrastructure #
   localparam CLKOUT1_PERIOD = VCO_PERIOD * CLKOUT1_DIVIDE;
   localparam CLKOUT2_PERIOD = VCO_PERIOD * CLKOUT2_DIVIDE;
 
-  //synthesis translate_off
+//  //synthesis translate_off
   initial begin
     $display("############# Write Clocks MMCM_ADV Parameters #############\n");
     $display("nCK_PER_CLK      = %7d",   nCK_PER_CLK     );
@@ -104,7 +107,7 @@ module infrastructure #
     $display("CLKOUT2_PERIOD   = %7d",   CLKOUT2_PERIOD  );
     $display("############################################################\n");
   end
-  //synthesis translate_on
+//  //synthesis translate_on
 
   wire                       clk_bufg;
   wire                       clk_mem_bufg;

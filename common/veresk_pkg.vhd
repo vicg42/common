@@ -416,7 +416,7 @@ host_wr_data  : in  std_logic_vector(31 downto 0);
 wr_en_time    : in  std_logic;
 host_clk      : in  std_logic;
 
-clk           : in  std_logic
+i_clk         : in  std_logic
 );
 end component;
 
