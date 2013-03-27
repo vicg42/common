@@ -147,7 +147,7 @@ tst_o(11 downto 8) <= EXT(trn_dw_sel, 4);
 --//
 --//--------------------------------------
 bar_exprom <=not trn_rbar_hit_n(6);
-bar_usr <=not AND_reduce(trn_rbar_hit_n(2 downto 0));
+bar_usr <=not trn_rbar_hit_n(0);-- or not trn_rbar_hit_n(2);
 
 usr_reg_adr_o <= (i_req_addr(5 downto 0) & "00");
 usr_reg_din_o <= usr_di(7 downto 0) & usr_di(15 downto 8) & usr_di(23 downto 16) & usr_di(31 downto 24);

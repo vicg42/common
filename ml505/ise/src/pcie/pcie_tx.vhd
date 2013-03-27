@@ -22,15 +22,15 @@ use work.vicg_common_pkg.all;
 use work.pcie_pkg.all;
 
 entity pcie_tx is
---generic(
---G_PCIE_TRN_DBUS : integer:=64
---);
+generic(
+G_USR_DBUS : integer:=64
+);
 port(
 --usr app
 usr_reg_dout_i         : in   std_logic_vector(31 downto 0);
 
 --usr_rxbuf_dbe          : out  std_logic_vector(3 downto 0);
-usr_rxbuf_dout_i       : in   std_logic_vector(63 downto 0);
+usr_rxbuf_dout_i       : in   std_logic_vector(G_USR_DBUS - 1 downto 0);
 usr_rxbuf_rd_o         : out  std_logic;
 usr_rxbuf_rd_last_o    : out  std_logic;
 usr_rxbuf_empty_i      : in   std_logic;
@@ -67,7 +67,6 @@ dma_init_i             : in   std_logic;
 
 mwr_en_i               : in   std_logic;
 mwr_len_i              : in   std_logic_vector(31 downto 0);
-mwr_tag_i              : in   std_logic_vector(7 downto 0);
 mwr_lbe_i              : in   std_logic_vector(3 downto 0);
 mwr_fbe_i              : in   std_logic_vector(3 downto 0);
 mwr_addr_i             : in   std_logic_vector(31 downto 0);
@@ -82,7 +81,6 @@ mwr_nosnoop_i          : in   std_logic;
 
 mrd_en_i               : in   std_logic;
 mrd_len_i              : in   std_logic_vector(31 downto 0);
-mrd_tag_i              : in   std_logic_vector(7 downto 0);
 mrd_lbe_i              : in   std_logic_vector(3 downto 0);
 mrd_fbe_i              : in   std_logic_vector(3 downto 0);
 mrd_addr_i             : in   std_logic_vector(31 downto 0);
@@ -171,9 +169,18 @@ signal i_dma_init           : std_logic;
 signal i_dma_init_clr       : std_logic;
 signal i_compl_done         : std_logic;
 signal usr_rxbuf_dout_swap  : std_logic_vector(usr_rxbuf_dout_i'range);
+signal sr_trn_td            : std_logic_vector(trn_td'range);
 
 --//MAIN
 begin
+
+tst_o(0) <= OR_reduce(sr_trn_td);
+process(clk)
+begin
+  if clk'event and clk='1' then
+    sr_trn_td <= i_trn_td;
+  end if;
+end process;
 
 --//--------------------------------------
 --//
@@ -627,6 +634,12 @@ begin
 
                 i_trn_td(7 downto 0) <= mwr_lbe & mwr_fbe;
 
+                if G_USR_DBUS = 32 then
+                mwr_len_2dw <= mwr_len_dw;
+                else
+                mwr_len_2dw <= EXT(mwr_len_dw(mwr_len_dw'high downto 1), mwr_len_2dw'length) + mwr_len_dw(0);
+                end if;
+
                 mwr_work <= '0';
                 fsm_state <= S_TX_MWR_QW1;
             else
@@ -686,7 +699,6 @@ begin
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '0';
                 trn_dw_sel <= (others=>'0');
-                mwr_len_2dw <= EXT(mwr_len_dw(mwr_len_dw'high downto 1), mwr_len_2dw'length) + mwr_len_dw(0);
 
                 fsm_state <= S_TX_MWR_QWN;
 
@@ -707,36 +719,29 @@ begin
         when S_TX_MWR_QWN =>
 
             if usr_rxbuf_rd='1' and mwr_work='1' then
+--                -----  PCI core data width x128  -----
 --                if    trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
---                  i_trn_td(31 downto 0) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                          usr_rxbuf_dout_i(15 downto  8) &
---                                          usr_rxbuf_dout_i(23 downto 16) &
---                                          usr_rxbuf_dout_i(31 downto 24));
+--                  i_trn_td(31 downto 0) <= usr_rxbuf_dout_swap;
 --                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#02#, trn_dw_sel'length) then
---                  i_trn_td(63 downto 32) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                           usr_rxbuf_dout_i(15 downto  8) &
---                                           usr_rxbuf_dout_i(23 downto 16) &
---                                           usr_rxbuf_dout_i(31 downto 24));
---                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#03#, trn_dw_sel'length) then
---                  i_trn_td(31+64 downto 0+64) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                                usr_rxbuf_dout_i(15 downto  8) &
---                                                usr_rxbuf_dout_i(23 downto 16) &
---                                                usr_rxbuf_dout_i(31 downto 24));
---                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, trn_dw_sel'length) then
---                  i_trn_td(63+64 downto 32+64) <= (usr_rxbuf_dout_i( 7 downto  0) &
---                                                 usr_rxbuf_dout_i(15 downto  8) &
---                                                 usr_rxbuf_dout_i(23 downto 16) &
---                                                 usr_rxbuf_dout_i(31 downto 24));
---                end if;
-
---                if trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
---                  i_trn_td(31 downto  0) <= usr_rxbuf_dout_swap;
---                else
 --                  i_trn_td(63 downto 32) <= usr_rxbuf_dout_swap;
+--                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#03#, trn_dw_sel'length) then
+--                  i_trn_td(31+64 downto 0+64) <= usr_rxbuf_dout_swap;
+--                elsif trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, trn_dw_sel'length) then
+--                  i_trn_td(63+64 downto 32+64) <= usr_rxbuf_dout_swap;
 --                end if;
-                i_trn_td(63 downto 0) <= usr_rxbuf_dout_swap;
 
---                i_trn_trem_n <= trn_dw_sel - 0;
+                -----  PCI core data width x64  -----
+              if G_USR_DBUS = 32 then
+                --usr_buf data width x32
+                if trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, trn_dw_sel'length) then
+                  i_trn_td(31 downto  0) <= usr_rxbuf_dout_swap(31 downto 0);
+                else
+                  i_trn_td(63 downto 32) <= usr_rxbuf_dout_swap(31 downto 0);
+                end if;
+                i_trn_trem_n <= trn_dw_sel - 1;
+              else
+                i_trn_td(63 downto 0) <= EXT(usr_rxbuf_dout_swap, 64);
+              end if;
 
                 --—четчик DW(payload) в текущем пакете MWr
                 if mwr_len_2dw = CONV_STD_LOGIC_VECTOR(16#01#, mwr_len_2dw'length) then
@@ -744,7 +749,9 @@ begin
                     i_trn_tsof_n <= '1';
                     i_trn_teof_n <= '0';
                     i_trn_tsrc_rdy_n <= '0';
-                    i_trn_trem_n(0) <= mwr_len_dw(0);
+                    if G_USR_DBUS /= 32 then
+                    i_trn_trem_n(0) <= mwr_len_dw(0);--!!!Only for usr_buf data width x64
+                    end if;
                     trn_dw_sel <= (others=>'0');
                     mwr_work <= '0';
 
@@ -762,7 +769,9 @@ begin
                     i_trn_teof_n <= '1';
                     i_trn_tsrc_rdy_n <= '0';
 
---                    trn_dw_sel <= trn_dw_sel - 0;
+                    if G_USR_DBUS = 32 then
+                    trn_dw_sel <= trn_dw_sel - 1;--!!!Only for usr_buf data width x32
+                    end if;
                     mwr_len_2dw <= mwr_len_2dw - 1;
 
                     fsm_state <= S_TX_MWR_QWN;
@@ -778,7 +787,7 @@ begin
               end if;
             end if;
         --end S_TX_MWR_QWN :
-        --END: MWr - 3DW, +data
+        --END: MWr - 4DW, +data
 
 
         --#######################################################################

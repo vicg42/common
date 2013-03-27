@@ -91,7 +91,6 @@ p_out_mwr_64b                  : out   std_logic;
 p_out_mwr_phant_func_en1       : out   std_logic;
 p_out_mwr_relaxed_order        : out   std_logic;
 p_out_mwr_nosnoop              : out   std_logic;
-p_out_mwr_tag                  : out   std_logic_vector(7 downto 0);
 p_out_mwr_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mwr_fbe                  : out   std_logic_vector(3 downto 0);
 
@@ -106,7 +105,6 @@ p_out_mrd_64b                  : out   std_logic;
 p_out_mrd_phant_func_en1       : out   std_logic;
 p_out_mrd_relaxed_order        : out   std_logic;
 p_out_mrd_nosnoop              : out   std_logic;
-p_out_mrd_tag                  : out   std_logic_vector(7 downto 0);
 p_out_mrd_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mrd_fbe                  : out   std_logic_vector(3 downto 0);
 p_in_mrd_rcv_size              : in    std_logic_vector(31 downto 0);
@@ -119,23 +117,14 @@ p_out_irq_set                  : out   std_logic_vector(C_HIRQ_COUNT_MAX-1 downt
 p_in_irq_status                : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 
 --Сигналы управления работой ядра PCI-Express
-p_out_trn_rnp_ok_n             : out   std_logic;
-p_out_cpl_streaming            : out   std_logic;
 p_out_rd_metering              : out   std_logic;
-p_out_usr_max_payload_size     : out   std_logic_vector(2 downto 0);
-p_out_usr_max_rd_req_size      : out   std_logic_vector(2 downto 0);
+--p_out_usr_max_payload_size     : out   std_logic_vector(2 downto 0);
+--p_out_usr_max_rd_req_size      : out   std_logic_vector(2 downto 0);
 
 --Инф. ядра PCI-Express
-p_in_cfg_irq_disable           : in    std_logic;
-p_in_cfg_msi_enable            : in    std_logic;
-p_in_cfg_cap_max_lnk_width     : in    std_logic_vector(5 downto 0);
 p_in_cfg_neg_max_lnk_width     : in    std_logic_vector(5 downto 0);
-p_in_cfg_cap_max_payload_size  : in    std_logic_vector(2 downto 0);
 p_in_cfg_prg_max_payload_size  : in    std_logic_vector(2 downto 0);
 p_in_cfg_prg_max_rd_req_size   : in    std_logic_vector(2 downto 0);
-p_in_cfg_phant_func_en         : in    std_logic;
-p_in_cfg_no_snoop_en           : in    std_logic;
-p_in_cfg_ext_tag_en            : in    std_logic;
 
 --//Тестирование
 p_in_rx_engine_tst      : in    std_logic_vector(1 downto 0);

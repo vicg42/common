@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#034A#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0343#;
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--//DWORD
@@ -77,7 +77,10 @@ constant C_HREG_CTRL_TIME_EN_BIT              : integer:=11;--разрешение работы 
 constant C_HREG_CTRL_RST_BUP_BIT              : integer:=12;--//
 constant C_HREG_CTRL_RST_VIZIR_BIT            : integer:=13;--//
 constant C_HREG_CTRL_BITCLK_VIZIR_BIT         : integer:=14;--//1/0  = bitclk 1MHz/ bitclk 250kHz
-constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_BITCLK_VIZIR_BIT;
+constant C_HREG_CTRL_RST_PROM_BIT             : integer:=15;
+constant C_HREG_CTRL_EN_SYN120_BUP_BIT        : integer:=16;--Разрешение обмена с BUP по сигналу 120 Гц
+                                                            --привязанного к PPS GPS (сигнал 120Гц берется из модуля m_sync)
+constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_EN_SYN120_BUP_BIT;
 
 
 --//Register C_HREG_DEV_CTRL / Bit Map:
@@ -103,14 +106,15 @@ constant C_HDEV_EDEV_DBUF                     : integer:=4;--External Device (ка
 constant C_HDEV_PULT_DBUF                     : integer:=5;--
 constant C_HDEV_VIZIR_DBUF                    : integer:=6;--
 constant C_HDEV_BUP_DBUF                      : integer:=7;--Блок управления приводами
-constant C_HDEV_COUNT                         : integer:=3;--C_HDEV_BUP_DBUF+1;
+constant C_HDEV_PROM                          : integer:=8;
+constant C_HDEV_COUNT                         : integer:=C_HDEV_PROM+1;
 constant C_HDEV_COUNT_MAX                     : integer:=pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT+1));
 
 --//Register C_HOST_REG_STATUS_DEV / Bit Map:
 constant C_HREG_DEV_STATUS_INT_ACT_BIT        : integer:=0; --//Не используется драйвером
-constant C_HREG_DEV_STATUS_PCIE_DMAWR_DONE_BIT: integer:=1; --//Не используется драйвером
-constant C_HREG_DEV_STATUS_PCIE_DMARD_DONE_BIT: integer:=2; --//Не используется драйвером
-constant C_HREG_DEV_STATUS_PCIE_ERR_BIT       : integer:=3; --//Не используется драйвером
+constant C_HREG_DEV_STATUS_PROM_TXRDY_BIT     : integer:=1;
+constant C_HREG_DEV_STATUS_PROM_RXRDY_BIT     : integer:=2;
+constant C_HREG_DEV_STATUS_PROM_ERR_BIT       : integer:=3;
 constant C_HREG_DEV_STATUS_DMA_BUSY_BIT       : integer:=4; --//PCIE_DMA
 constant C_HREG_DEV_STATUS_CFG_RDY_BIT        : integer:=5; --//CFG
 constant C_HREG_DEV_STATUS_CFG_RXRDY_BIT      : integer:=6;
@@ -165,15 +169,14 @@ constant C_HIRQ_VCH4                          : integer:=9;
 constant C_HIRQ_VCH5                          : integer:=10;
 constant C_HIRQ_VIZIR_RX                      : integer:=11;
 constant C_HIRQ_BUP_RX                        : integer:=12;
-constant C_HIRQ_COUNT                         : integer:=1;--C_HIRQ_BUP_RX+1;
+constant C_HIRQ_PROM                          : integer:=13;
+constant C_HIRQ_COUNT                         : integer:=2;--C_HIRQ_PROM+1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
 
 --//Register C_HREG_MEM_ADR / Bit Map:
-constant C_HREG_MEM_ADR_OFFSET_L_BIT          : integer:=0;
-constant C_HREG_MEM_ADR_OFFSET_M_BIT          : integer:=29;
-constant C_HREG_MEM_ADR_BANK_L_BIT            : integer:=30;
-constant C_HREG_MEM_ADR_BANK_M_BIT            : integer:=30;
+constant C_HREG_MEM_ADR_BANK_L_BIT            : integer:=31;--MEM_ADR_OFFSET[30..0]
+constant C_HREG_MEM_ADR_BANK_M_BIT            : integer:=31;
 constant C_HREG_MEM_ADR_LAST_BIT              : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 
 --//Register C_HREG_MEM_CTRL / Bit Map:
@@ -185,22 +188,22 @@ constant C_HREG_MEM_CTRL_LAST_BIT             : integer:=C_HREG_MEM_CTRL_TRNRD_M
 
 
 --//Register C_HREG_PCIE / Bit Map:
-constant C_HREG_PCIE_REQ_LINK_L_RBIT          : integer:=0;
-constant C_HREG_PCIE_REQ_LINK_M_RBIT          : integer:=5;
-constant C_HREG_PCIE_NEG_LINK_L_RBIT          : integer:=6; --//исользуется Максом
-constant C_HREG_PCIE_NEG_LINK_M_RBIT          : integer:=11;--//исользуется Максом
-constant C_HREG_PCIE_REQ_MAX_PAYLOAD_L_RBIT   : integer:=12;--//исользуется Максом
-constant C_HREG_PCIE_REQ_MAX_PAYLOAD_M_RBIT   : integer:=14;--//исользуется Максом
-constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer:=15;--//исользуется Максом
-constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer:=17;--//исользуется Максом
-constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer:=18;--//исользуется Максом
-constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer:=20;--//исользуется Максом
-constant C_HREG_PCIE_TAG_EXT_EN_RBIT          : integer:=21;
-constant C_HREG_PCIE_PHANT_FUNC_RBIT          : integer:=22;
-constant C_HREG_PCIE_NOSNOOP_RBIT             : integer:=23;
---constant RESERV                               : integer:=24;
-constant C_HREG_PCIE_CPL_STREAMING_BIT        : integer:=26;--//исользуется Максом
-constant C_HREG_PCIE_METRING_BIT              : integer:=27;--//исользуется Максом
+--constant RESERV                             : integer:=0;
+--constant RESERV                             : integer:=5;
+constant C_HREG_PCIE_NEG_LINK_L_RBIT          : integer:=6;
+constant C_HREG_PCIE_NEG_LINK_M_RBIT          : integer:=11;
+--constant RESERV                             : integer:=12;
+--constant RESERV                             : integer:=14;
+constant C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT    : integer:=15;
+constant C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT    : integer:=17;
+constant C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT     : integer:=18;
+constant C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT     : integer:=20;
+--constant RESERV                             : integer:=21;
+--constant RESERV                             : integer:=22;
+--constant RESERV                             : integer:=23;
+--constant RESERV                             : integer:=24;
+--constant RESERV                             : integer:=26;
+--constant RESERV                             : integer:=27;
 constant C_HREG_PCIE_SPEED_TESTING_BIT        : integer:=28;
 constant C_HREG_PCIE_LAST_BIT                 : integer:=C_HREG_PCIE_SPEED_TESTING_BIT;
 
@@ -213,7 +216,9 @@ constant C_HREG_FUNC_VCTRL_BIT                : integer:=2;
 constant C_HREG_FUNC_ETH_BIT                  : integer:=3;
 constant C_HREG_FUNC_HDD_BIT                  : integer:=4;
 constant C_HREG_FUNC_VRESEK21_BIT             : integer:=5;
-constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_VRESEK21_BIT;
+constant C_HREG_FUNC_PROM_BIT                 : integer:=6;
+constant C_HREG_FUNC_PULT_BIT                 : integer:=7;
+constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_PULT_BIT;
 
 
 --//Register C_HREG_FUNCPRM / Bit Map:
@@ -401,24 +406,22 @@ constant C_VCTRL_PRM_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_REG_CTR
 
 
 --//Register VCTRL_REG_MEM_ADDR / Bit Map:
-constant C_VCTRL_REG_MEM_ADR_OFFSET_L_BIT     : integer:=C_HREG_MEM_ADR_OFFSET_L_BIT;
-constant C_VCTRL_REG_MEM_ADR_OFFSET_M_BIT     : integer:=C_HREG_MEM_ADR_OFFSET_M_BIT;
 constant C_VCTRL_REG_MEM_ADR_BANK_L_BIT       : integer:=C_HREG_MEM_ADR_BANK_L_BIT;
 constant C_VCTRL_REG_MEM_ADR_BANK_M_BIT       : integer:=C_HREG_MEM_ADR_BANK_M_BIT;
 constant C_VCTRL_REG_MEM_LAST_BIT             : integer:=C_VCTRL_REG_MEM_ADR_BANK_M_BIT;
 
---//Как поделена память ОЗУ для записи/чтение видеоинформации:
+--//Memory map for video: (max frame size: 2048x2048)
 --//                                          : integer:=0; --//Пиксели видеокадра(VLINE_LSB-1...0)
-constant C_VCTRL_MEM_VLINE_L_BIT              : integer:=11;--//Строки видеокадра (MSB...LSB)
-constant C_VCTRL_MEM_VLINE_M_BIT              : integer:=21;
-constant C_VCTRL_MEM_VFR_L_BIT                : integer:=22;--//Номер кадра (MSB...LSB) - Видеобуфера
-constant C_VCTRL_MEM_VFR_M_BIT                : integer:=23;--//
-constant C_VCTRL_MEM_VCH_L_BIT                : integer:=24;--//Номер видео канала (MSB...LSB)
-constant C_VCTRL_MEM_VCH_M_BIT                : integer:=26;
+constant C_VCTRL_MEM_VLINE_L_BIT              : integer:=C_PCFG_VCTRL_MEM_VLINE_L_BIT;--//Строки видеокадра (MSB...LSB)
+constant C_VCTRL_MEM_VLINE_M_BIT              : integer:=C_PCFG_VCTRL_MEM_VLINE_M_BIT;
+constant C_VCTRL_MEM_VFR_L_BIT                : integer:=C_PCFG_VCTRL_MEM_VFR_L_BIT  ;--//Номер кадра (MSB...LSB) - Видеобуфера
+constant C_VCTRL_MEM_VFR_M_BIT                : integer:=C_PCFG_VCTRL_MEM_VFR_M_BIT  ;
+constant C_VCTRL_MEM_VCH_L_BIT                : integer:=C_PCFG_VCTRL_MEM_VCH_L_BIT  ;--//Номер видео канала (MSB...LSB)
+constant C_VCTRL_MEM_VCH_M_BIT                : integer:=C_PCFG_VCTRL_MEM_VCH_M_BIT  ;
 
 --//Мах кол-во видео каналов:
 constant C_VCTRL_VCH_COUNT                    : integer:=C_PCFG_VCTRL_VCH_COUNT;
-constant C_VCTRL_VCH_COUNT_MAX                : integer:=6;--pwr(2, (C_VCTRL_MEM_VCH_M_BIT-C_VCTRL_MEM_VCH_L_BIT+1));
+constant C_VCTRL_VCH_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_MEM_VCH_M_BIT-C_VCTRL_MEM_VCH_L_BIT+1));
 
 
 --//Register C_VCTRL_REG_TST0 / Bit Map:

@@ -532,8 +532,9 @@ PL_FAST_TRAIN => FALSE,
 --BAR0          => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
 --BAR1          => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
 
-BAR0          => X"FFFFFF04", --Memory: Size 256 byte, --bit_vector
-BAR2          => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
+BAR0          => X"FFFFFF00" --Memory 32b: Size 256 byte
+--BAR0          => X"FFFFFF04", --Memory 64b: Size 256 byte
+--BAR2          => X"FFFFFF01"  --IO    : Size 256 byte
 )
 port map(
 --------------------------------------

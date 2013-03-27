@@ -23,8 +23,8 @@ use work.vicg_common_pkg.all;
 use work.prj_cfg.all;
 use work.prj_def.all;
 use work.cfgdev_pkg.all;
-use work.mem_ctrl_pkg.all;
-use work.mem_wr_pkg.all;
+--use work.mem_ctrl_pkg.all;
+--use work.mem_wr_pkg.all;
 use work.pcie_pkg.all;
 use work.clocks_pkg.all;
 
@@ -258,23 +258,23 @@ signal i_cfg_rd_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 down
 signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 
-signal i_host_mem_rst                   : std_logic;
+--signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
-signal i_host_mem_status                : TPce2Mem_Status;
-signal i_host_memin                     : TMemIN;
-signal i_host_memout                    : TMemOUT;
-signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
-
-signal i_memin_bank                     : TMemINBank;
-signal i_memout_bank                    : TMemOUTBank;
-
-signal i_mem_ctrl_status                : TMEMCTRL_status;
-signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
-signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
+--signal i_host_mem_status                : TPce2Mem_Status;
+--signal i_host_memin                     : TMemIN;
+--signal i_host_memout                    : TMemOUT;
+--signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
+--
+--signal i_memin_bank                     : TMemINBank;
+--signal i_memout_bank                    : TMemOUTBank;
+--
+--signal i_mem_ctrl_status                : TMEMCTRL_status;
+--signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
+--signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
-attribute keep of g_usr_highclk : signal is "true";
+--attribute keep of g_usr_highclk : signal is "true";
 attribute keep of g_usrclk : signal is "true";
 
 signal i_test01_led     : std_logic;
@@ -353,8 +353,8 @@ begin
 i_host_rst_n <=pin_in_pciexp_rstn;
 
 i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
-i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
-i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all;
+--i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
+--i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all;
 
 
 --***********************************************************
@@ -369,9 +369,9 @@ p_in_clkopt=> (others=>'0'),
 p_in_clk   => pin_in_refclk
 );
 
-g_usr_highclk<=i_mem_ctrl_sysout.clk;
-i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);
-i_mem_ctrl_sysin.clk<=g_usrclk(1);
+--g_usr_highclk<=i_mem_ctrl_sysout.clk;
+--i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);
+--i_mem_ctrl_sysin.clk<=g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
 
 
@@ -520,7 +520,7 @@ i_host_tst_in(74)<= tst_reg_wr              or
                     tst_host_dev_rd or
 
                     tst_cfg_interrupt_n         or i_host_tst_out(57) or
-                    tst_cfg_interrupt_rdy_n     or
+                    tst_cfg_interrupt_rdy_n     or tst_cfg_interrupt_msienable or
                     tst_cfg_interrupt_assert_n;
 
 i_host_tst_in(75)<= tst_trn_tdst_rdy_n or
@@ -718,7 +718,7 @@ if g_host_clk'event and g_host_clk='1' then
 tst_cfg_interrupt_n              <=i_host_tst2_out(0)             ;--p_out_tst(0)             <=cfg_interrupt_n;
 tst_cfg_interrupt_rdy_n          <=i_host_tst2_out(1)             ;--p_out_tst(1)             <=cfg_interrupt_rdy_n;
 tst_cfg_interrupt_assert_n       <=i_host_tst2_out(2)             ;--p_out_tst(2)             <=cfg_interrupt_assert_n;
-
+tst_cfg_interrupt_msienable      <=i_host_tst2_out(3)             ;--p_out_tst(3)             <=cfg_interrupt_msienable;--cfg_command(10);
 tst_trn_tsof_n                   <=i_host_tst2_out(4)             ;--p_out_tst(4)             <=trn_tsof_n;
 tst_trn_teof_n                   <=i_host_tst2_out(5)             ;--p_out_tst(5)             <=trn_teof_n;
 tst_trn_tsrc_rdy_n               <=i_host_tst2_out(6)             ;--p_out_tst(6)             <=trn_tsrc_rdy_n;
