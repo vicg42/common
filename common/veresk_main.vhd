@@ -327,7 +327,7 @@ signal i_vizir_rst                      : std_logic;
 signal i_vizir_bitclk                   : std_logic;
 
 signal i_out_1s                         : std_logic;
-signal i_in_pps,i_pps                   : std_logic;
+signal i_pps                            : std_logic;
 
 signal i_prom_rst                       : std_logic;
 
@@ -1227,16 +1227,15 @@ host_clk      => g_host_clk,
 i_clk         => g_usrclk(7)
 );
 
-pin_out_s120Hz  <= not i_sync_out(0);
-pin_out_s120SAU <= not i_sync_out(0);
+pin_out_s120Hz  <= i_sync_out(0);
+pin_out_s120SAU <= i_sync_out(0);
 
 pin_out_1s <= i_out_1s;
-i_in_pps <= pin_in_pps;
-i_pps <= not i_in_pps;
+i_pps <= not pin_in_pps;
 
 pin_out_TP(0) <= not i_out_1s;
 pin_out_TP(1) <= not i_sync_out(0);
-pin_out_TP(2) <= i_in_pps;
+pin_out_TP(2) <= pin_in_pps;
 
 
 --***********************************************************

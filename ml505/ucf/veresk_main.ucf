@@ -40,9 +40,6 @@ NET "pin_out_1m"        LOC = "AH34";
 NET "pin_out_s120Hz"    LOC = "AJ32";
 NET "pin_out_s120SAU"   LOC = "AK34";
 
-#NET "pin_out_TP<0>"   LOC = "AN33";
-#NET "pin_out_TP<1>"   LOC = "V32";
-#NET "pin_out_TP<2>"   LOC = "V33";
 NET "pin_out_TP<0>"         LOC="H33"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_2   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 NET "pin_out_TP<1>"         LOC="H34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 NET "pin_out_TP<2>"         LOC="G32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
