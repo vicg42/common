@@ -130,7 +130,9 @@ module sync_u
    wire minutka;     //сигнал установки часов по минутке
 	reg breset_ =0;
 	reg breset_z =0;
-	reg [10:0] cou_sync_pulse =0;
+	reg [15:0] cou_sync_pulse =0;
+
+	reg sync_inv =0;
 
 //--------------------------------------------------------------------------------
 // получим частоту 45МГц из 100МГц
@@ -216,12 +218,14 @@ begin
 if (sync_corr) cou_sync_pulse <= cou_sync_pulse + 1;
 else cou_sync_pulse <=0;
 end
-assign sync_out1 = ((n_sync_corr==119)&& sync_corr &&(cou_sync_pulse < 144))? 1:   //10мкс
-                   ((n_sync_corr!=119)&& sync_corr &&(cou_sync_pulse < 72))?  1:0; //5мкс
+assign sync_out1 = ((n_sync_corr==119)&& sync_corr &&(cou_sync_pulse < 450))? 1:    //10мкс
+                   ((n_sync_corr!=119)&& sync_corr &&(cou_sync_pulse < 225))?  1:0; //5мкс
 
 //--------------------------------------------------------------------------------
 //assign sync_out1 = sync_corr;
-assign sync_out2 = sync;
+//тестовый
+always @(posedge clk) if(sync_pulse) sync_inv<=!sync_inv;
+assign sync_out2 = sync_inv;//sync;
 
 
 // Запись извне во внутренние регистры

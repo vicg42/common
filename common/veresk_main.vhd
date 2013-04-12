@@ -46,7 +46,7 @@ port(
 --Технологический порт
 --------------------------------------------------
 pin_out_led         : out   std_logic_vector(7 downto 0);
-
+pin_out_TP          : out   std_logic_vector(2 downto 0);
 --------------------------------------------------
 --Memory banks
 --------------------------------------------------
@@ -325,6 +325,9 @@ signal i_bup_syn                        : std_logic;
 signal i_bup_en_sync120                 : std_logic;
 signal i_vizir_rst                      : std_logic;
 signal i_vizir_bitclk                   : std_logic;
+
+signal i_out_1s                         : std_logic;
+signal i_in_pps,i_pps                   : std_logic;
 
 signal i_prom_rst                       : std_logic;
 
@@ -1192,7 +1195,7 @@ p_in_rst       => i_cfg_rst
 --***********************************************************
 m_sync : sync_u
 port map(
-i_pps         => pin_in_pps,
+i_pps         => i_pps,
 i_ext_1s      => pin_in_1s,
 i_ext_1m      => pin_in_1m,
 
@@ -1208,10 +1211,10 @@ stime         => i_host_dev_opt_in(C_HDEV_OPTIN_TIME_M_BIT downto C_HDEV_OPTIN_T
 n_sync        => open,
 sync_cou_err  => open,
 
-sync_out1     => open,
-out_1s        => pin_out_1s,
+sync_out1     => i_sync_out(0),
+out_1s        => i_out_1s,
 out_1m        => pin_out_1m,
-sync_out2     => i_sync_out(0),
+sync_out2     => open,
 sync_ld       => open,
 sync_pic      => open,
 --sync_piezo    => open,
@@ -1224,8 +1227,16 @@ host_clk      => g_host_clk,
 i_clk         => g_usrclk(7)
 );
 
-pin_out_s120Hz  <= i_sync_out(0);
-pin_out_s120SAU <= i_sync_out(0);
+pin_out_s120Hz  <= not i_sync_out(0);
+pin_out_s120SAU <= not i_sync_out(0);
+
+pin_out_1s <= i_out_1s;
+i_in_pps <= pin_in_pps;
+i_pps <= not i_in_pps;
+
+pin_out_TP(0) <= not i_out_1s;
+pin_out_TP(1) <= not i_sync_out(0);
+pin_out_TP(2) <= i_in_pps;
 
 
 --***********************************************************
