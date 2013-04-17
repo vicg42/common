@@ -17,6 +17,13 @@ J40 - SATA-HOST1 - от PCI-express разъем -2 (DUAL_GTP:CH0)
 J41 - SATA-HOST2 - от PCI-express разъем -1 (DUAL_GTP:CH1)
 
 
+*. ETH: GMII/MII   | SGMII  | RGMII
+        J22 *-* *  | * *-*  | *-* *
+        J23 *-* *  | * *-*  | * * *
+        J24 * * *  | * * *  | *-* *
+                |  |     |  |     |
+                *  |     *  |     *
+
 3. Светодиды:
 
 Расположение:
