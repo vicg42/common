@@ -242,6 +242,8 @@ signal i_usr_txd_rden         : std_logic;--разрешение чтения данных из usr_txbu
 signal i_rx_bcnt              : std_logic_vector(1 downto 0);
 signal i_rx_fst               : std_logic;
 signal i_rx_d                 : std_logic_vector(31 downto 0);
+signal i_rx_dlen              : std_logic_vector(15 downto 0);
+signal i_rx_dlen_cnt          : std_logic_vector(15 downto 0);
 signal i_rx_en                : std_logic;
 signal i_rx_sof               : std_logic;
 signal i_rx_eof               : std_logic;
@@ -282,6 +284,7 @@ signal tst_fms_cs_tx          : std_logic_vector(3 downto 0);
 signal tst_fms_cs_rx_dly      : std_logic_vector(3 downto 0);
 signal tst_fms_cs_tx_dly      : std_logic_vector(3 downto 0);
 signal tst_dhcp               : std_logic;
+signal tst_txbuf_empty        : std_logic;
 
 
 --MAIN
@@ -305,7 +308,8 @@ begin
 
     tst_fms_cs_rx_dly <= tst_fms_cs_rx;
     tst_fms_cs_tx_dly <= tst_fms_cs_tx;
-    p_out_tst(0) <= OR_reduce(tst_fms_cs_rx_dly) or OR_reduce(tst_fms_cs_tx_dly) or tst_dhcp;
+    tst_txbuf_empty <= p_in_txbuf_empty;
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_rx_dly) or OR_reduce(tst_fms_cs_tx_dly) or tst_dhcp or tst_txbuf_empty;
     p_out_tst(1) <= i_dhcp_get_prm_done;
   end if;
 end process ltstout;
@@ -428,6 +432,8 @@ begin
     i_rx_bcnt <= (others=>'0');
     i_rx_fst <= '0';
     i_rx_d <= (others=>'0');
+    i_rx_dlen <= (others=>'0');
+    i_rx_dlen_cnt <= (others=>'0');
     i_rx_en <= '0';
     i_rx_sof <= '0';
     i_rx_eof <= '0';
@@ -459,6 +465,7 @@ begin
 
               i_rxll_dst_rdy_n <= '0'; tst_dhcp <= '0';
 
+              i_rx_dlen_cnt <= (others=>'0');
               i_rx_bcnt <= (others=>'0');
               i_rx_fst <= '0';
               i_rx_d <= (others=>'0');
@@ -611,6 +618,7 @@ begin
               if p_in_rxll_src_rdy_n = '0' then
                 if i_rx_bcnt(0) = '1' then
                   i_rx_d(15 downto 0) <= (sr_rx_d(0) & p_in_rxll_data) - CONV_STD_LOGIC_VECTOR(CI_UDP_HEADER_SIZE, 16);
+                  i_rx_dlen <= (sr_rx_d(0) & p_in_rxll_data) - CONV_STD_LOGIC_VECTOR(CI_UDP_HEADER_SIZE, 16);
                   fsm_ip_rx_cs <= S_RX_UDP_CRC;
                 else
                   sr_rx_d(0) <= p_in_rxll_data;
@@ -653,11 +661,20 @@ begin
                     i_rx_fst <= '1';
                   end if;
 
+                  if i_rx_dlen_cnt = i_rx_dlen then
+                  i_rx_en <= '0';
+                  i_rx_eof <= '0';
+                  elsif i_rx_dlen_cnt = i_rx_dlen - 1 then
+                  i_rx_en <= '1';
+                  i_rx_eof <= '1';
+                  i_rx_dlen_cnt <= i_rx_dlen_cnt + 1;
+                  else
+                  i_rx_dlen_cnt <= i_rx_dlen_cnt + 1;
                   i_rx_en <= AND_reduce(i_rx_bcnt);
                   i_rx_sof <= AND_reduce(i_rx_bcnt) and not i_rx_fst;
+                  end if;
 
                   if p_in_rxll_eof_n = '0' then
-                    i_rx_eof <= '1';
                     i_rxll_dst_rdy_n <= '1';
                     fsm_ip_rx_cs <= S_RX_IDLE;
                   end if;
