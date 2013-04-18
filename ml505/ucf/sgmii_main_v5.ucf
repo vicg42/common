@@ -202,12 +202,12 @@ INST "pin_in_ethphy_sgmii_clk_n" LOC = "P3";#INST "MGTCLK_P" LOC = "Y4";
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_PHYINITAUTONEG_ENABLE = TRUE;
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_TXFLOWCTRL_ENABLE = TRUE;
 INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_RXFLOWCTRL_ENABLE = TRUE;
-##Only 100 Mbps
-#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_LSB = TRUE;
-#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_MSB = FALSE;
-#Only 1000 Mbps
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_LSB = FALSE;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_MSB = TRUE;
+#Only 100 Mbps
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_LSB = TRUE;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_MSB = FALSE;
+##Only 1000 Mbps
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_LSB = FALSE;
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*v5_emac_block_inst?v5_emac_wrapper_inst?v5_emac" EMAC0_SPEED_MSB = TRUE;
 
 
 ##--------------------------
