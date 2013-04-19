@@ -1,4 +1,7 @@
 #include "wmain.h"
+#include "timestamp.h"
+
+namespace LDCU = Linkos::DCU;
 
 MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
@@ -56,8 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
     QGroupBox *grbox_log = new QGroupBox(tr("&Log"));
     grbox_log->setLayout(lvbox_log);
 
-//    //--- ImageViewer group ---
-//    imgview = new QLabel;
+    //--- ImageViewer group ---
+    lbimage = new QLabel;
 
 //    QVBoxLayout *lvbox_imgview = new QVBoxLayout;
 //    lvbox_imgview->addWidget(imgview);
@@ -98,6 +101,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(btn_eth, SIGNAL(clicked()),
             this, SLOT(eth_on_off()));
+
+    connect(btn_img_open, SIGNAL(clicked()),
+            this, SLOT(img_open()));
+
 
 }
 
@@ -166,5 +173,111 @@ void MainWindow::eth_on_off()
                           .arg("closed"));
     }
 
+}
+
+
+void MainWindow::img_open()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    trUtf8("Select files"),
+                                                    trUtf8(""),
+                                                    trUtf8("Images (*.png *.jpeg *.jpg);;All (*.*)"));
+    if (!fileName.isEmpty()) {
+        QImage img(fileName);
+        if (img.isNull()) {
+            QMessageBox::information(this, tr("Image Viewer"),
+                                     tr("Cannot load %1.").arg(fileName));
+            return;
+        }
+
+        if	(	(img.width() > 0xFFFF)
+            ||	(img.height() > 0xFFFF)
+            )
+        {
+            QMessageBox::information(this, tr("Image Viewer"),
+                                     tr("Too big image (isn't compatible with \"video row\" format)"));
+            return;
+        }
+
+        lbimage->setPixmap(QPixmap::fromImage(img));
+        qint8 pix = qGray(img.pixel(0, 0));
+        etext_log->append(QString("%1: %2")
+                          .arg(__func__)
+                          .arg(pix, 0 , 10));
+/*        scaleFactor = 1.0;
+
+        printAct->setEnabled(true);
+        fitToWindowAct->setEnabled(true);
+        updateActions();
+
+        if (!fitToWindowAct->isChecked())
+            imageLabel->adjustSize();*/
+
+        imgToboard(&img);
+    }
+
+}
+
+bool MainWindow::imgToboard(QImage *img)
+{
+    size_t frame = 0;
+    size_t split = 0;
+    size_t width = img->width();
+
+    if (width % 4)
+    {
+        width += 4 - width % 4;
+        //cout << "Warning: Image width is realigned, new width is " << width << endl;
+    }
+
+    if (!split)
+        split = width;
+    else
+    if (split >= width)
+    {
+        split = width;
+        //cout << "Warning: Too small image width (will not be splitted)" << endl;
+    }
+
+    const QTime ct = QTime::currentTime();
+    //cout << "Image timestamp: " << qPrintable(ct.toString("hh:mm:ss.zzz")) << endl;
+    const uint32_t ts = LDCU::Timestamp::Make(ct);
+
+    const size_t HEAD_SIZE = 16;
+    std::vector<uint8_t> buffer;
+
+    for (size_t y = 0, ylim = img->height(); y < ylim; ++y)
+    {
+        //cout << L::Console::Cursor::Restore << (y * 100 / ylim) << "%" << flush;
+
+        for (size_t chunk = 0, clim = (width + split - 1) / split; chunk < clim; ++chunk)
+        {
+            size_t chunk_width = (width - chunk * split >= split) ? split : width - chunk * split;
+
+            buffer.resize(HEAD_SIZE + chunk_width);
+
+            *reinterpret_cast<uint16_t *>(&buffer[0]) = frame;
+            *reinterpret_cast<uint16_t *>(&buffer[2]) = width;
+            *reinterpret_cast<uint16_t *>(&buffer[4]) = img->height();
+            *reinterpret_cast<uint16_t *>(&buffer[6]) = y;
+            *reinterpret_cast<uint16_t *>(&buffer[8]) = chunk * split;
+            *reinterpret_cast<uint16_t *>(&buffer[10]) = ts & 0x0000ffff;
+            *reinterpret_cast<uint16_t *>(&buffer[12]) = ts >> 16;
+            *reinterpret_cast<uint16_t *>(&buffer[14]) = 0; // alignment
+
+            for (size_t x = 0, xlim = chunk_width; x < xlim; ++x)
+                buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
+
+            /*const ssize_t written = write(fd, &buffer[0], buffer.size());
+
+            if (written == -1)
+                throw L::system_error();
+
+            if (static_cast<size_t>(written) != buffer.size())
+                throw runtime_error("Writing error");*/
+        }
+    }
+
+    return true;
 }
 

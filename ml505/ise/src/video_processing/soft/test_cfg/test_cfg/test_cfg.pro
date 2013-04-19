@@ -14,8 +14,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        wmain.cpp
+        wmain.cpp \
+    timestamp.cpp
 
-HEADERS  += wmain.h
+HEADERS  += wmain.h \
+    timestamp.h
 
 FORMS    += wmain.ui

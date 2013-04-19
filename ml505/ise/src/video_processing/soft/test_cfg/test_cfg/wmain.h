@@ -50,13 +50,16 @@ private:
 
     QTextEdit *etext_log;
 
-    QLabel *imgview;
+    QLabel *lbimage;
+
+    bool imgToboard(QImage *img);
 
 private slots:
 
     void cfg_txd();
     void eth_rxd();
     void eth_on_off();
+    void img_open();
 
 };
 
