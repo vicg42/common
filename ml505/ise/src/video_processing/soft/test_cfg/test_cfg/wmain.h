@@ -21,10 +21,13 @@
 #define C_CFGPKT_DLEN_L_BIT        0 //Кол-во данных для записи/чтения
 #define C_CFGPKT_DLEN_MASK         0xFFFF
 
-struct TEth{
-    QUdpSocket *udpSocket;
-    QHostAddress ip;
-    qint16 port;
+
+struct TUDev{
+    struct TEth{
+        QUdpSocket *udpSocket;
+        QHostAddress ip;
+        qint16 port;
+    }eth;
 };
 
 class MainWindow : public QWidget
@@ -37,7 +40,7 @@ public:
 
 private:
 
-    TEth eth;
+    TUDev udev;
 
     QLineEdit *eline_eth_ip;
     QLineEdit *eline_eth_port;
@@ -53,6 +56,9 @@ private:
     QLabel *lbimage;
 
     bool imgToboard(QImage *img);
+
+//    void dev_pkt(unsigned char *data, unsigned char *dir, unsigned char dev);
+    qint64 dev_transport(unsigned char *data, long long dlen, unsigned char interface);
 
 private slots:
 

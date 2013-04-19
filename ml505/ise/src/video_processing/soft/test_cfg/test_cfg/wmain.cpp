@@ -91,9 +91,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     //---
-    eth.udpSocket = new QUdpSocket(this);
+    udev.eth.udpSocket = new QUdpSocket(this);
 
-    connect(eth.udpSocket, SIGNAL(readyRead()),
+    connect(udev.eth.udpSocket, SIGNAL(readyRead()),
             this, SLOT(eth_rxd()));
 
     connect(btn_usr_set, SIGNAL(clicked()),
@@ -116,10 +116,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::eth_rxd()
 {
-    while (eth.udpSocket->hasPendingDatagrams()) {
+    while (udev.eth.udpSocket->hasPendingDatagrams()) {
         QByteArray rxd;
-        rxd.resize(eth.udpSocket->pendingDatagramSize());
-        eth.udpSocket->readDatagram(rxd.data(), rxd.size());
+        rxd.resize(udev.eth.udpSocket->pendingDatagramSize());
+        udev.eth.udpSocket->readDatagram(rxd.data(), rxd.size());
 
         etext_log->append(QString("%1: size=0x%2")
                           .arg(__func__)
@@ -138,7 +138,8 @@ void MainWindow::cfg_txd()
     txd16[2] = (1 & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
     txd16[3] = 5;
 
-    eth.udpSocket->writeDatagram(txd, eth.ip, eth.port);
+    //eth.udpSocket->writeDatagram(txd, eth.ip, eth.port);
+    dev_transport((quint8 *) txd.data(), (qint64) txd.size(), 0);
 
     etext_log->append(QString("%1: data=0x%2,0x%3,0x%4,0x%5")
                       .arg(__func__)
@@ -153,20 +154,20 @@ void MainWindow::eth_on_off()
 {
     bool ok;
     QString str = eline_eth_port->text();
-    eth.ip = QHostAddress(eline_eth_ip->text());
-    eth.port = str.toInt(&ok, 10);
+    udev.eth.ip = QHostAddress(eline_eth_ip->text());
+    udev.eth.port = str.toInt(&ok, 10);
 
     if ( btn_eth->isChecked() ){
-        eth.udpSocket->bind(eth.port);
+        udev.eth.udpSocket->bind(udev.eth.port);
         btn_eth->setText("Close");
         etext_log->append(QString("%1: %2 %3/%4")
                           .arg(__func__)
                           .arg("open")
-                          .arg(eth.ip.toString())
-                          .arg(eth.port, 0 , 10));
+                          .arg(udev.eth.ip.toString())
+                          .arg(udev.eth.port, 0 , 10));
     }
     else {
-        eth.udpSocket->close();
+        udev.eth.udpSocket->close();
         btn_eth->setText("Open");
         etext_log->append(QString("%1: %2")
                           .arg(__func__)
@@ -199,11 +200,7 @@ void MainWindow::img_open()
             return;
         }
 
-        lbimage->setPixmap(QPixmap::fromImage(img));
-        qint8 pix = qGray(img.pixel(0, 0));
-        etext_log->append(QString("%1: %2")
-                          .arg(__func__)
-                          .arg(pix, 0 , 10));
+//        lbimage->setPixmap(QPixmap::fromImage(img));
 /*        scaleFactor = 1.0;
 
         printAct->setEnabled(true);
@@ -221,7 +218,7 @@ void MainWindow::img_open()
 bool MainWindow::imgToboard(QImage *img)
 {
     size_t frame = 0;
-    size_t split = 0;
+    size_t split = 1024;
     size_t width = img->width();
 
     if (width % 4)
@@ -268,16 +265,31 @@ bool MainWindow::imgToboard(QImage *img)
             for (size_t x = 0, xlim = chunk_width; x < xlim; ++x)
                 buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
 
-            /*const ssize_t written = write(fd, &buffer[0], buffer.size());
+            //const ssize_t written = write(fd, &buffer[0], buffer.size());
+            const ssize_t written = dev_transport(&buffer[0], (qint64) buffer.size(), 0);
 
             if (written == -1)
-                throw L::system_error();
+                return false; //throw L::system_error();
 
             if (static_cast<size_t>(written) != buffer.size())
-                throw runtime_error("Writing error");*/
+                return false; //throw runtime_error("Writing error");*/
         }
     }
 
+    etext_log->append(QString("%1: image:%2 x %3")
+                      .arg(__func__)
+                      .arg(img->width(), 0 , 10)
+                      .arg(img->height(), 0 , 10));
     return true;
 }
 
+qint64 MainWindow::dev_transport(unsigned char *data, long long int dlen, unsigned char interface)
+{
+    etext_log->append(QString("%1: %2")
+                      .arg(__func__)
+                      .arg(dlen, 0 , 10));
+    //if (interface == 0) {
+        return dlen;//udev.eth.udpSocket->writeDatagram((char *)data, (qint64) dlen, udev.eth.ip, udev.eth.port);
+    //}
+
+}
