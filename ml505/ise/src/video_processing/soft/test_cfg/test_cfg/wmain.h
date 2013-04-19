@@ -1,8 +1,10 @@
 #ifndef WMAIN_H
 #define WMAIN_H
 
-#include <QMainWindow>
+#include <QWidget>
 #include <QtNetwork>
+#include <QtGui>
+
 
 //C_CFGPKT_WR_BIT/ Bit Map:
 #define C_CFGPKT_WR                0
@@ -19,34 +21,42 @@
 #define C_CFGPKT_DLEN_L_BIT        0 //Кол-во данных для записи/чтения
 #define C_CFGPKT_DLEN_MASK         0xFFFF
 
-struct TEth_dev{
+struct TEth{
+    QUdpSocket *udpSocket;
     QHostAddress ip;
     qint16 port;
 };
 
-namespace Ui {
-class MainWindow;
-}
-
-class MainWindow : public QMainWindow
+class MainWindow : public QWidget
 {
     Q_OBJECT
-    
+
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    
+
 private:
-    Ui::MainWindow *ui;
-    QUdpSocket *udpSocket;
-    TEth_dev eth_dev;
+
+    TEth eth;
+
+    QLineEdit *eline_eth_ip;
+    QLineEdit *eline_eth_port;
+    QPushButton *btn_eth;
+
+    QPushButton *btn_img_open;
+    QCheckBox *chbox_img;
+
+    QPushButton *btn_usr_set;
+
+    QTextEdit *etext_log;
+
+    QLabel *imgview;
 
 private slots:
 
     void cfg_txd();
-    void cfg_rxd();
-
     void eth_rxd();
+    void eth_on_off();
 
 };
 
