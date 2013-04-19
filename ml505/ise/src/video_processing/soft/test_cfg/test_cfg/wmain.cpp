@@ -138,8 +138,7 @@ void MainWindow::cfg_txd()
     txd16[2] = (1 & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
     txd16[3] = 5;
 
-    //eth.udpSocket->writeDatagram(txd, eth.ip, eth.port);
-    dev_transport((quint8 *) txd.data(), (qint64) txd.size(), 0);
+    dev_write((quint8 *) txd.data(), (qint64) txd.size(), 0);
 
     etext_log->append(QString("%1: data=0x%2,0x%3,0x%4,0x%5")
                       .arg(__func__)
@@ -266,7 +265,7 @@ bool MainWindow::imgToboard(QImage *img)
                 buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
 
             //const ssize_t written = write(fd, &buffer[0], buffer.size());
-            const ssize_t written = dev_transport(&buffer[0], (qint64) buffer.size(), 0);
+            const ssize_t written = dev_write(&buffer[0], (qint64) buffer.size(), 0);
 
             if (written == -1)
                 return false; //throw L::system_error();
@@ -283,7 +282,7 @@ bool MainWindow::imgToboard(QImage *img)
     return true;
 }
 
-qint64 MainWindow::dev_transport(unsigned char *data, long long int dlen, unsigned char interface)
+qint64 MainWindow::dev_write(unsigned char *data, long long int dlen, unsigned char interface)
 {
     etext_log->append(QString("%1: %2")
                       .arg(__func__)

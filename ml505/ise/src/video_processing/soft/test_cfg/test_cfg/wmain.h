@@ -58,7 +58,7 @@ private:
     bool imgToboard(QImage *img);
 
 //    void dev_pkt(unsigned char *data, unsigned char *dir, unsigned char dev);
-    qint64 dev_transport(unsigned char *data, long long dlen, unsigned char interface);
+    qint64 dev_write(unsigned char *data, long long dlen, unsigned char interface);
 
 private slots:
 
