@@ -76,6 +76,7 @@ private slots:
     void eth_rxd();
     void eth_on_off();
     void img_open();
+    bool get_firmware();
 
 };
 

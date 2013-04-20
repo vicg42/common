@@ -97,7 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(eth_rxd()));
 
     connect(btn_usr_set, SIGNAL(clicked()),
-            this, SLOT(cfg_txd()));
+            this, SLOT(get_firmware()));
 
     connect(btn_eth, SIGNAL(clicked()),
             this, SLOT(eth_on_off()));
@@ -121,9 +121,18 @@ void MainWindow::eth_rxd()
         rxd.resize(udev.eth.udpSocket->pendingDatagramSize());
         udev.eth.udpSocket->readDatagram(rxd.data(), rxd.size());
 
-        etext_log->append(QString("%1: size=0x%2")
-                          .arg(__func__)
-                          .arg(rxd.size(), 0 , 16));
+//        etext_log->append(QString("%1: size=0x%2")
+//                          .arg(__func__)
+//                          .arg(rxd.size(), 0 , 16));
+
+        qint16 *rxd16 = (qint16 *)rxd.data();
+
+        if ((rxd16[0] & 0xF) == C_ETH_PKT_TYPE_CFG){
+            etext_log->append(QString("%1: firmware=0x%2")
+                              .arg(__func__)
+                              .arg(rxd16[3], 0 , 16));
+        }
+
     }
 }
 
@@ -150,6 +159,27 @@ void MainWindow::cfg_txd()
                       .arg(txd16[3], 0 , 16));
 }
 
+bool MainWindow::get_firmware()
+{
+    QByteArray txd;
+    txd.resize((3 + 0) * sizeof(qint16));
+    qint16 *txd16 = (qint16 *)txd.data();
+    txd16[0] = (C_ETH_PKT_TYPE_CFG << C_CFGPKT_TYPE_BIT) |
+            (C_CFGPKT_RD << C_CFGPKT_WR_BIT) |
+            (0 << C_CFGPKT_FIFO_BIT) |
+            ((C_CFGDEV_TESTING & C_CFGPKT_DADR_MASK) << C_CFGPKT_DADR_L_BIT);
+    txd16[1] = (0 & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
+    txd16[2] = (1 & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
+
+    const ssize_t written = dev_write((quint8 *) txd.data(), (qint64) txd.size(), 0);
+    if (written == -1)
+        return false; //throw L::system_error();
+
+    if (static_cast<size_t>(written) != (size_t)txd.size())
+        return false; //throw runtime_error("Writing error");*/
+    else
+        return true;
+}
 
 void MainWindow::eth_on_off()
 {
@@ -166,6 +196,8 @@ void MainWindow::eth_on_off()
                           .arg("open")
                           .arg(udev.eth.ip.toString())
                           .arg(udev.eth.port, 0 , 10));
+
+        ok = get_firmware();
     }
     else {
         udev.eth.udpSocket->close();
