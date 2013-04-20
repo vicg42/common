@@ -396,7 +396,7 @@ attribute keep of g_usr_highclk : signal is "true";
 
 signal i_test01_led     : std_logic;
 signal tst_reg_adr_cnt  : std_logic_vector(C_CFGPKT_RADR_M_BIT-C_CFGPKT_RADR_L_BIT downto 0);
-Type TCfg_tstreg is array (0 to 3) of std_logic_vector(i_cfg_rxd'range);
+Type TCfg_tstreg is array (0 to 0) of std_logic_vector(i_cfg_rxd'range);
 signal tst_reg          : TCfg_tstreg;
 
 
@@ -686,7 +686,7 @@ G_ROTATE_BUF_COUNT => 16,
 G_SIMPLE => "ON",
 G_SIM    => G_SIM,
 
-G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
+G_MEM_AWIDTH => C_VCTRL_REG_MEM_LAST_BIT,
 G_MEM_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
@@ -950,7 +950,7 @@ p_in_rst       => i_mnl_rst
 
 
 --***********************************************************
---Test Registers
+--Firmware + Test Register
 --***********************************************************
 --//—четчик адреса регистров
 process(i_mnl_rst, g_usr_highclk)
@@ -972,19 +972,13 @@ end process;
 process(i_mnl_rst, g_usr_highclk)
 begin
   if i_mnl_rst = '1' then
-    for i in 0 to 3 loop
+    for i in 0 to 0 loop
       tst_reg(i) <= (others=>'0');
     end loop;
   elsif rising_edge(g_usr_highclk) then
     if i_cfg_wr_dev(C_CFGDEV_TESTING) = '1' then
-      if tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, tst_reg_adr_cnt'length) then
+      if tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, tst_reg_adr_cnt'length) then
           tst_reg(0) <= i_cfg_txd;
-      elsif tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, tst_reg_adr_cnt'length) then
-          tst_reg(1) <= i_cfg_txd;
-      elsif tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, tst_reg_adr_cnt'length) then
-          tst_reg(2) <= i_cfg_txd;
-      elsif tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, tst_reg_adr_cnt'length) then
-          tst_reg(3) <= i_cfg_txd;
       end if;
     end if;
   end if;
@@ -998,16 +992,13 @@ begin
   elsif rising_edge(g_usr_highclk) then
     if i_cfg_rd_dev(C_CFGDEV_TESTING) = '1' then
       if tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(0, tst_reg_adr_cnt'length) then
-         i_cfg_rxd_dev(C_CFGDEV_TESTING) <= tst_reg(0);
+         i_cfg_rxd_dev(C_CFGDEV_TESTING) <= CONV_STD_LOGIC_VECTOR(C_FPGA_FIRMWARE_VERSION, i_cfg_rxd_dev(C_CFGDEV_TESTING)'length);
       elsif tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(1, tst_reg_adr_cnt'length) then
-         i_cfg_rxd_dev(C_CFGDEV_TESTING) <= tst_reg(1);
-      elsif tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(2, tst_reg_adr_cnt'length) then
-         i_cfg_rxd_dev(C_CFGDEV_TESTING) <= tst_reg(2);
-      elsif tst_reg_adr_cnt = CONV_STD_LOGIC_VECTOR(3, tst_reg_adr_cnt'length) then
-         i_cfg_rxd_dev(C_CFGDEV_TESTING) <= tst_reg(3);
+         i_cfg_rxd_dev(C_CFGDEV_TESTING) <= tst_reg(0);
       end if;
     end if;
   end if;
 end process;
+
 
 end architecture;
