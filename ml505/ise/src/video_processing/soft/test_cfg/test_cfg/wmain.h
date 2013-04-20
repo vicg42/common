@@ -6,10 +6,13 @@
 #include <QtGui>
 
 
+#define C_ETH_PKT_TYPE_CFG         0xA
+
 //C_CFGPKT_WR_BIT/ Bit Map:
 #define C_CFGPKT_WR                0
 #define C_CFGPKT_RD                1
 //HEADER(0)/ Bit map:
+#define C_CFGPKT_TYPE_BIT          0 //Тип пакета
 #define C_CFGPKT_FIFO_BIT          6 //Тип адресации 1 - FIFO/0 - Регистр(авто инкрементация адреса)
 #define C_CFGPKT_WR_BIT            7 //Тип пакета - запись/чтение
 #define C_CFGPKT_DADR_L_BIT        8 //Адрес модуля в проекте FPGA
@@ -20,6 +23,13 @@
 //HEADER(2)/ Bit map:
 #define C_CFGPKT_DLEN_L_BIT        0 //Кол-во данных для записи/чтения
 #define C_CFGPKT_DLEN_MASK         0xFFFF
+
+#define C_CFGDEV_SWT               0
+#define C_CFGDEV_ETH               1
+#define C_CFGDEV_VCTRL             2
+#define C_CFGDEV_TMR               3
+#define C_CFGDEV_HDD               5
+#define C_CFGDEV_TESTING           6
 
 
 struct TUDev{

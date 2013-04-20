@@ -132,8 +132,10 @@ void MainWindow::cfg_txd()
     QByteArray txd;
     txd.resize((3 + 1) * sizeof(qint16));
     qint16 *txd16 = (qint16 *)txd.data();
-    txd16[0] = ((0 & C_CFGPKT_DADR_MASK) << 1) |
-            (C_CFGPKT_WR << C_CFGPKT_WR_BIT) | (0 << C_CFGPKT_FIFO_BIT);
+    txd16[0] = (C_ETH_PKT_TYPE_CFG << C_CFGPKT_TYPE_BIT) |
+            (C_CFGPKT_WR << C_CFGPKT_WR_BIT) |
+            (0 << C_CFGPKT_FIFO_BIT) |
+            ((C_CFGDEV_TESTING & C_CFGPKT_DADR_MASK) << C_CFGPKT_DADR_L_BIT);
     txd16[1] = (1 & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
     txd16[2] = (1 & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
     txd16[3] = 5;
@@ -284,11 +286,11 @@ bool MainWindow::imgToboard(QImage *img)
 
 qint64 MainWindow::dev_write(unsigned char *data, long long int dlen, unsigned char interface)
 {
-    etext_log->append(QString("%1: %2")
-                      .arg(__func__)
-                      .arg(dlen, 0 , 10));
-    //if (interface == 0) {
-        return dlen;//udev.eth.udpSocket->writeDatagram((char *)data, (qint64) dlen, udev.eth.ip, udev.eth.port);
-    //}
+    qint64 write;
 
+    if (interface == 0) {
+        write = udev.eth.udpSocket->writeDatagram((char *)data, (qint64) dlen, udev.eth.ip, udev.eth.port);
+    }
+
+    return write;
 }
