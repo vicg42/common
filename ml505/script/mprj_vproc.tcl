@@ -100,7 +100,7 @@ set _projects [ list \
       [ list "../src/eth/eth_phy.vhd" $_VHDPkg ] \
       [ list "../src/eth/eth_mdio_main.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_app.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_bram_prm2.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_bram_prm.vhd" $_VHDMod ] \
       [ list "../src/eth/dsn_eth.vhd" $_VHDMod ] \
       [ list "../src/eth/v5/eth_gt_clkbuf_v5_sgmii.vhd" $_VHDMod ] \
       [ list "../src/eth/v5/coregen_eth_phy_sgmii_trimode.vhd" $_VHDMod ] \
