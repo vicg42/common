@@ -60,11 +60,16 @@ constant CI_ETH_TX_TMR : integer:=2250;--1 такт = 1ms
 constant CI_ETH_TSTDATA_COUNT : integer:=1424;--860;--
 
 component eth_bram_prm
-port (
-addra : in  std_logic_vector(4 downto 0);
-douta : out std_logic_vector(15 downto 0);
-clka  : in  std_logic;
-rsta  : in  std_logic
+port(
+p_out_cfg_adr      : out  std_logic_vector(7 downto 0);
+p_out_cfg_adr_ld   : out  std_logic;
+p_out_cfg_adr_fifo : out  std_logic;
+
+p_out_cfg_txdata   : out  std_logic_vector(15 downto 0);
+p_out_cfg_wr       : out  std_logic;
+
+p_in_clk  : in  std_logic;
+p_in_rst  : in  std_logic
 );
 end component;
 
@@ -316,6 +321,20 @@ pin_inout_ethphy_mdio<=i_ethphy_out.mdio when i_ethphy_out.mdio_t='1' else 'Z';
 pin_out_ethphy_mdc<=i_ethphy_out.mdc;
 i_ethphy_in.mdio<=pin_inout_ethphy_mdio;
 
+--Модуль настройки параметров работы dsn_eth.vhd
+m_eth_prm : eth_bram_prm
+port map(
+p_out_cfg_adr      => i_eth_cfg_radr,
+p_out_cfg_adr_ld   => i_eth_cfg_radr_ld,
+p_out_cfg_adr_fifo => i_eth_cfg_radr_fifo,
+
+p_out_cfg_txdata   => i_eth_cfg_txd,
+p_out_cfg_wr       => i_eth_cfg_wr,
+
+p_in_clk  => i_ethphy_out.clk,
+p_in_rst  => i_mnl_rst
+);
+
 m_eth : dsn_eth
 generic map(
 G_ETH.gtch_count_max  => C_PCFG_ETH_GTCH_COUNT_MAX,
@@ -370,142 +389,6 @@ p_out_tst         => open,
 -------------------------------
 p_in_rst          => i_mnl_rst
 );
-
-
---***********************************************************
---Назначаем MAC (DST/SCR) для модуля m_eth1
---***********************************************************
-m_eth_prm : eth_bram_prm
-port map(
-addra => i_eth_prm_a,
-douta => i_eth_prm_d,
-clka  => i_ethphy_out.clk,
-rsta  => i_sys_rst
-);
-
-process(i_mnl_rst,i_ethphy_out)
-begin
-  if i_mnl_rst='1' then
-    i_eth_prm_a <= (others=>'0');
-  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
-    if fsm_ethcfg_cs/=S_CFG_ETH_DONE and i_ethphy_out.rdy='1' then
-      i_eth_prm_a <= i_eth_prm_a + 1;
-    else
-      i_eth_prm_a <= (others=>'0');
-    end if;
-  end if;
-end process;
-
-process(i_mnl_rst,i_ethphy_out)
-begin
-  if i_mnl_rst='1' then
-    fsm_ethcfg_cs<=S_CFG_ETH_START;
-
-    i_eth_cfg_radr<=(others=>'0');
-    i_eth_cfg_radr_ld<='0';
-    i_eth_cfg_radr_fifo<='0';
-
-    i_eth_cfg_txd<=(others=>'0');
-    i_eth_cfg_wr<='0';
-    i_eth_cfg_done<='0';
-
-  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
-
-    case fsm_ethcfg_cs is
-
-      --
-      when S_CFG_ETH_START =>
-
-        if i_ethphy_out.rdy='1' then
-        i_eth_cfg_radr_ld<='1';
-        i_eth_cfg_radr_fifo<='0';
-        i_eth_cfg_wr<='0';
-        i_eth_cfg_radr<=CONV_STD_LOGIC_VECTOR(C_ETH_REG_CTRL, i_eth_cfg_radr'length);
-        fsm_ethcfg_cs<=S_CFG_ETH_CTRL;
-        end if;
-
-      --Set CTRL
-      when S_CFG_ETH_CTRL =>
-        i_eth_cfg_radr_ld<='0';
-        i_eth_cfg_radr_fifo<='0';
-        i_eth_cfg_wr<='1';
-        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST0;
-
-      --Set MAC/DST
-      when S_CFG_ETH_MAC_DST0 =>
-        i_eth_cfg_radr_ld<='0';
-        i_eth_cfg_radr_fifo<='0';
-        i_eth_cfg_wr<='1';
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST1;
-
-      when S_CFG_ETH_MAC_DST1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST2;
-
-      when S_CFG_ETH_MAC_DST2 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC0;
-
-      --Set MAC/SRC
-      when S_CFG_ETH_MAC_SRC0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC1;
-
-      when S_CFG_ETH_MAC_SRC1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC2;
-
-      when S_CFG_ETH_MAC_SRC2 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_IP_DST0;
-
-      --Set IP/DST
-      when S_CFG_ETH_IP_DST0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_IP_DST1;
-
-      when S_CFG_ETH_IP_DST1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_IP_SRC0;
-
-      --Set IP/SRC
-      when S_CFG_ETH_IP_SRC0 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_IP_SRC1;
-
-      when S_CFG_ETH_IP_SRC1 =>
-        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
-        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
-        fsm_ethcfg_cs<=S_CFG_ETH_PORT_DST;
-
-      --Set PORT/DST
-      when S_CFG_ETH_PORT_DST =>
-        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
-        fsm_ethcfg_cs<=S_CFG_ETH_PORT_SRC;
-
-      --Set PORT/SRC
-      when S_CFG_ETH_PORT_SRC =>
-        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
-        fsm_ethcfg_cs<=S_CFG_ETH_DONE;
-
-      when S_CFG_ETH_DONE =>
-        i_eth_cfg_wr<='0';
-        i_eth_cfg_done<='1';
-
-    end case;
-  end if;
-end process;
 
 
 --***********************************************************
@@ -594,12 +477,12 @@ end process;
 
 m_eth_txbuf : host_ethg_txudp
 port map(
-din     => i_eth_txpkt_d,
-wr_en   => i_eth_txpkt_wr,
-wr_clk  => i_ethphy_out.clk,
---din     => i_eth_out(0).rxbuf.din,
---wr_en   => i_eth_out(0).rxbuf.wr,
+--din     => i_eth_txpkt_d,
+--wr_en   => i_eth_txpkt_wr,
 --wr_clk  => i_ethphy_out.clk,
+din     => i_eth_out(0).rxbuf.din,
+wr_en   => i_eth_out(0).rxbuf.wr,
+wr_clk  => i_ethphy_out.clk,
 
 dout    => i_eth_in(0).txbuf.dout(31 downto 0),
 rd_en   => i_eth_out(0).txbuf.rd,
@@ -613,60 +496,60 @@ rst     => i_sys_rst
 );
 i_eth_in(0).rxbuf.full<=i_eth_in(0).txbuf.full;
 
-process(i_mnl_rst,i_ethphy_out)
-begin
-  if i_mnl_rst='1' then
-    i_eth_txpkt_work <= '0';
-    i_eth_txbuf_err <= '0';
-  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
-    if dbg_eth_out.app(0).mac_rx(1)='1' then
-      i_eth_txpkt_work <= '1';
-    end if;
-    if i_eth_in(0).txbuf.full='1' then
-      i_eth_txbuf_err <= '1';
-    end if;
-  end if;
-end process;
-
---1.625 fps = 74125
---3.75  fps = 36500
---7.5   fps = 15250
---15    fps = 7125
---30    fps = 3000
---60    fps = 1000
-i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(3000 , i_eth_txpkt_dlycnt'length);
-
-m_tst_gen : eth_tst_gen
-generic map(
-G_DBG => C_PCFG_ETH_DBG,
-G_SIM => G_SIM
-)
-port map(
---------------------------------------
---Управление
---------------------------------------
-p_in_pkt_dly     => i_eth_txpkt_dlycnt,
-p_in_work        => i_eth_txpkt_work,
-
---------------------------------------
---Связь с пользовательским TXBUF
---------------------------------------
-p_out_txbuf_din  => i_eth_txpkt_d,
-p_out_txbuf_wr   => i_eth_txpkt_wr,
-p_in_txbuf_full  => i_eth_in(0).txbuf.full,
-
---------------------------------------------------
---Технологические сигналы
---------------------------------------------------
-p_in_tst         => (others=>'0'),
-p_out_tst        => i_eth_tstgen_tst_out,
-
---------------------------------------
---SYSTEM
---------------------------------------
-p_in_clk         => i_ethphy_out.clk,
-p_in_rst         => i_mnl_rst
-);
+--process(i_mnl_rst,i_ethphy_out)
+--begin
+--  if i_mnl_rst='1' then
+--    i_eth_txpkt_work <= '0';
+--    i_eth_txbuf_err <= '0';
+--  elsif i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
+--    if dbg_eth_out.app(0).mac_rx(1)='1' then
+--      i_eth_txpkt_work <= '1';
+--    end if;
+--    if i_eth_in(0).txbuf.full='1' then
+--      i_eth_txbuf_err <= '1';
+--    end if;
+--  end if;
+--end process;
+--
+----1.625 fps = 74125
+----3.75  fps = 36500
+----7.5   fps = 15250
+----15    fps = 7125
+----30    fps = 3000
+----60    fps = 1000
+--i_eth_txpkt_dlycnt <= CONV_STD_LOGIC_VECTOR(3000 , i_eth_txpkt_dlycnt'length);
+--
+--m_tst_gen : eth_tst_gen
+--generic map(
+--G_DBG => C_PCFG_ETH_DBG,
+--G_SIM => G_SIM
+--)
+--port map(
+----------------------------------------
+----Управление
+----------------------------------------
+--p_in_pkt_dly     => i_eth_txpkt_dlycnt,
+--p_in_work        => i_eth_txpkt_work,
+--
+----------------------------------------
+----Связь с пользовательским TXBUF
+----------------------------------------
+--p_out_txbuf_din  => i_eth_txpkt_d,
+--p_out_txbuf_wr   => i_eth_txpkt_wr,
+--p_in_txbuf_full  => i_eth_in(0).txbuf.full,
+--
+----------------------------------------------------
+----Технологические сигналы
+----------------------------------------------------
+--p_in_tst         => (others=>'0'),
+--p_out_tst        => i_eth_tstgen_tst_out,
+--
+----------------------------------------
+----SYSTEM
+----------------------------------------
+--p_in_clk         => i_ethphy_out.clk,
+--p_in_rst         => i_mnl_rst
+--);
 
 
 --//#########################################

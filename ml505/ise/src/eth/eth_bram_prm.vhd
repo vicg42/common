@@ -19,20 +19,189 @@ use unisim.vcomponents.all;
 
 entity eth_bram_prm is
 port(
-addra : in  std_logic_vector(4 downto 0);
-douta : out std_logic_vector(15 downto 0);
-clka  : in  std_logic;
-rsta  : in  std_logic
+p_out_cfg_adr      : out  std_logic_vector(7 downto 0);
+p_out_cfg_adr_ld   : out  std_logic;
+p_out_cfg_adr_fifo : out  std_logic;
+
+p_out_cfg_txdata   : out  std_logic_vector(15 downto 0);
+p_out_cfg_wr       : out  std_logic;
+
+p_in_clk  : in  std_logic;
+p_in_rst  : in  std_logic
 );
 end eth_bram_prm;
 
 architecture behavioral of eth_bram_prm is
 
+constant CI_ETH_REG_CTRL : integer := 0;
+
 signal i_addra : std_logic_vector(15 downto 0);
 signal i_douta : std_logic_vector(31 downto 0);
 
+type TEth_cfg_fsm is (
+S_CFG_ETH_START,
+S_CFG_ETH_MAC_DST0,
+S_CFG_ETH_MAC_DST1,
+S_CFG_ETH_MAC_DST2,
+S_CFG_ETH_MAC_SRC0,
+S_CFG_ETH_MAC_SRC1,
+S_CFG_ETH_MAC_SRC2,
+S_CFG_ETH_IP_DST0,
+S_CFG_ETH_IP_DST1,
+S_CFG_ETH_IP_SRC0,
+S_CFG_ETH_IP_SRC1,
+S_CFG_ETH_PORT_DST,
+S_CFG_ETH_PORT_SRC,
+S_CFG_ETH_CTRL,
+S_CFG_ETH_DONE
+);
+signal fsm_ethcfg_cs: TEth_cfg_fsm;
+
+signal i_eth_prm_a   : std_logic_vector(4 downto 0);
+signal i_eth_prm_d   : std_logic_vector(15 downto 0);
+
+signal i_eth_cfg_radr                  : std_logic_vector(7 downto 0);
+signal i_eth_cfg_radr_ld               : std_logic;
+signal i_eth_cfg_radr_fifo             : std_logic;
+signal i_eth_cfg_wr                    : std_logic;
+signal i_eth_cfg_txd                   : std_logic_vector(15 downto 0);
+
+
 --MAIN
 begin
+
+
+p_out_cfg_adr      <= i_eth_cfg_radr;
+p_out_cfg_adr_ld   <= i_eth_cfg_radr_ld;
+p_out_cfg_adr_fifo <= i_eth_cfg_radr_fifo;
+
+p_out_cfg_txdata   <= i_eth_cfg_txd;
+p_out_cfg_wr       <= i_eth_cfg_wr;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst = '1' then
+    i_eth_prm_a <= (others=>'0');
+  elsif rising_edge(p_in_clk) then
+    if fsm_ethcfg_cs /= S_CFG_ETH_DONE then --and p_in_clk.rdy='1' then
+      i_eth_prm_a <= i_eth_prm_a + 1;
+    else
+      i_eth_prm_a <= (others=>'0');
+    end if;
+  end if;
+end process;
+
+process(p_in_rst,p_in_clk)
+begin
+  if p_in_rst = '1' then
+    fsm_ethcfg_cs<=S_CFG_ETH_START;
+
+    i_eth_cfg_radr<=(others=>'0');
+    i_eth_cfg_radr_ld<='0';
+    i_eth_cfg_radr_fifo<='0';
+
+    i_eth_cfg_txd<=(others=>'0');
+    i_eth_cfg_wr<='0';
+--    i_eth_cfg_done<='0';
+
+  elsif rising_edge(p_in_clk) then
+
+    case fsm_ethcfg_cs is
+
+      --
+      when S_CFG_ETH_START =>
+
+--        if p_in_rdy='1' then
+        i_eth_cfg_radr_ld<='1';
+        i_eth_cfg_radr_fifo<='0';
+        i_eth_cfg_wr<='0';
+        i_eth_cfg_radr<=CONV_STD_LOGIC_VECTOR(CI_ETH_REG_CTRL, i_eth_cfg_radr'length);
+        fsm_ethcfg_cs<=S_CFG_ETH_CTRL;
+--        end if;
+
+      --Set CTRL
+      when S_CFG_ETH_CTRL =>
+        i_eth_cfg_radr_ld<='0';
+        i_eth_cfg_radr_fifo<='0';
+        i_eth_cfg_wr<='1';
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST0;
+
+      --Set MAC/DST
+      when S_CFG_ETH_MAC_DST0 =>
+        i_eth_cfg_radr_ld<='0';
+        i_eth_cfg_radr_fifo<='0';
+        i_eth_cfg_wr<='1';
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST1;
+
+      when S_CFG_ETH_MAC_DST1 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_DST2;
+
+      when S_CFG_ETH_MAC_DST2 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC0;
+
+      --Set MAC/SRC
+      when S_CFG_ETH_MAC_SRC0 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC1;
+
+      when S_CFG_ETH_MAC_SRC1 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_MAC_SRC2;
+
+      when S_CFG_ETH_MAC_SRC2 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_IP_DST0;
+
+      --Set IP/DST
+      when S_CFG_ETH_IP_DST0 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_IP_DST1;
+
+      when S_CFG_ETH_IP_DST1 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_IP_SRC0;
+
+      --Set IP/SRC
+      when S_CFG_ETH_IP_SRC0 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_IP_SRC1;
+
+      when S_CFG_ETH_IP_SRC1 =>
+        i_eth_cfg_txd(8*1-1 downto 8*0)<=i_eth_prm_d(8*1-1 downto 8*0);
+        i_eth_cfg_txd(8*2-1 downto 8*1)<=i_eth_prm_d(8*2-1 downto 8*1);
+        fsm_ethcfg_cs<=S_CFG_ETH_PORT_DST;
+
+      --Set PORT/DST
+      when S_CFG_ETH_PORT_DST =>
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
+        fsm_ethcfg_cs<=S_CFG_ETH_PORT_SRC;
+
+      --Set PORT/SRC
+      when S_CFG_ETH_PORT_SRC =>
+        i_eth_cfg_txd(8*2-1 downto 8*0)<=i_eth_prm_d(8*2-1 downto 8*0);
+        fsm_ethcfg_cs<=S_CFG_ETH_DONE;
+
+      when S_CFG_ETH_DONE =>
+        i_eth_cfg_wr<='0';
+--        i_eth_cfg_done<='1';
+
+    end case;
+  end if;
+end process;
+
 
    m_core : RAMB36
    generic map (
@@ -215,8 +384,8 @@ begin
       CASCADEINLATB => '0',--CASCADEINLATB,  -- 1-bit cascade B latch input
       CASCADEINREGA => '0',--CASCADEINREGA,  -- 1-bit cascade A register input
       CASCADEINREGB => '0',--CASCADEINREGB,  -- 1-bit cascade B register input
-      CLKA => clka,  -- 1-bit A port clock input
-      CLKB => clka,  -- 1 bit B port clock input
+      CLKA => p_in_clk,  -- 1-bit A port clock input
+      CLKB => p_in_clk,  -- 1 bit B port clock input
       DIA => (others=>'0'), -- 32-bit A port data input
       DIB => (others=>'0'), -- 32-bit B port data input
       DIPA => (others=>'0'),  -- 4-bit A port parity data input
@@ -231,10 +400,10 @@ begin
       WEB => (others=>'0')  -- 4-bit B port write enable input
    );
 
-i_addra <= '0' & "000000" & addra(4 downto 0) & "0000";
+i_addra <= '0' & "000000" & i_eth_prm_a(4 downto 0) & "0000";
 
 gen : for i in 0 to 15 generate
-douta(i) <= i_douta(i);
+i_eth_prm_d(i) <= i_douta(i);
 end generate gen;
 
 --END MAIN
