@@ -154,7 +154,7 @@ void MainWindow::cfg_txd()
     txd16[2] = (1 & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
     txd16[3] = 5;
 
-    dev_write((quint8 *) txd.data(), (qint64) txd.size(), 0);
+    //dev_write((quint8 *) txd.data(), (qint64) txd.size(), 0);
 
     etext_log->append(QString("%1: data=0x%2,0x%3,0x%4,0x%5")
                       .arg(__func__)
@@ -168,9 +168,9 @@ void MainWindow::cfg_txd()
 bool MainWindow::board_init(void) {
   bool result;
 
-  result = get_firmware();
-  if (!result)
-    return result;
+  int16_t firmware = get_firmware();
+  if (firmware == -1)
+    return false;
 
   const uint8_t vch_count = 1;
 
@@ -184,13 +184,16 @@ bool MainWindow::board_init(void) {
 }
 
 
-bool MainWindow::get_firmware(void) {
+int16_t MainWindow::get_firmware(void) {
   bool result;
-  result = cfg_read(C_CFGDEV_TESTING, 0,
-                    C_PKT_TYPE_CFG, NULL, 1, 0,
-                    C_BOARD_IF);
+  uint16_t firmware;
 
-  return result;
+  result = cfg_read(C_CFGDEV_TESTING, 0,
+                    C_PKT_TYPE_CFG, (uint8_t *) &firmware, (uint16_t) sizeof(uint16_t), 0);
+  if (!result)
+    return -1;
+
+  return firmware;
 }
 
 void MainWindow::eth_on_off() {
@@ -310,7 +313,7 @@ bool MainWindow::imgToboard(QImage *img)
           for (size_t x = 0, xlim = chunk_width; x < xlim; ++x)
               buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
 
-          result = dev_write(&buffer[0], (qint64) buffer.size(), C_BOARD_IF);
+          //result = dev_write(&buffer[0], (qint64) buffer.size());
           if (!result)
             return result;
       }
@@ -319,17 +322,21 @@ bool MainWindow::imgToboard(QImage *img)
   return true;
 }
 
-bool MainWindow::dev_write(uint8_t *data, uint64_t dlen, uint8_t interface) {
+bool MainWindow::dev_write(TUDevWR rq) {
   uint64_t write;
 
-  if (interface == 0) {
-    write = udev.eth.udpSocket->writeDatagram((char *)data, dlen, udev.eth.ip, udev.eth.port);
-    if (write != dlen)
+//  if (rq.transport == C_BOARD_IF) {
+    if (rq.dir == C_UDEV_REQ_WRITE) {
+    write = udev.eth.udpSocket->writeDatagram((char *)rq.tx.data, rq.tx.size, udev.eth.ip, udev.eth.port);
+    if (write != rq.tx.size)
       return false;
-  }
+    }
+
+//  }
 
   return true;
 }
+
 
 bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
   uint32_t txd;
@@ -340,8 +347,7 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
   txd = ((val.fr_size.activ.x & 0xFFFF) << 0)
         | ((val.fr_size.activ.y & 0xFFFF) << 16);
   result = cfg_write(C_CFGDEV_FG, C_FR_REG_DATA_L,
-                     C_PKT_TYPE_CFG, (uint8_t *) &txd, (uint16_t) sizeof(uint32_t), 0,
-                     C_BOARD_IF);
+                     C_PKT_TYPE_CFG, (uint8_t *) &txd, (uint16_t) sizeof(uint32_t), 0);
   if (!result) {
     return false;
   }
@@ -351,8 +357,7 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
         | ((C_FG_PRM_FR_ZONE_ACTIVE & C_FG_REG_CTRL_PRM_MASK) << C_FG_REG_CTRL_PRM_L_BIT)
         | (1 << C_FG_REG_CTRL_SET_BIT);
   result = cfg_write(C_CFGDEV_FG, C_FR_REG_CTRL,
-                     C_PKT_TYPE_CFG, (uint8_t *) txd, (uint16_t) sizeof(uint16_t), 0,
-                     C_BOARD_IF);
+                     C_PKT_TYPE_CFG, (uint8_t *) &txd, (uint16_t) sizeof(uint16_t), 0);
   if (!result) {
     return false;
   }
@@ -362,8 +367,7 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
   txd = ((val.fr_size.skip.x & 0xFFFF) << 0)
         | ((val.fr_size.skip.y & 0xFFFF) << 16);
   result = cfg_write(C_CFGDEV_FG, C_FR_REG_DATA_L,
-                     C_PKT_TYPE_CFG, (uint8_t *) &txd, (uint16_t) sizeof(uint32_t), 0,
-                     C_BOARD_IF);
+                     C_PKT_TYPE_CFG, (uint8_t *) &txd, (uint16_t) sizeof(uint32_t), 0);
   if (!result) {
     return false;
   }
@@ -373,8 +377,7 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
         | ((C_FG_PRM_FR_ZONE_SKIP & C_FG_REG_CTRL_PRM_MASK) << C_FG_REG_CTRL_PRM_L_BIT)
         | (1 << C_FG_REG_CTRL_SET_BIT);
   result = cfg_write(C_CFGDEV_FG, C_FR_REG_CTRL,
-                     C_PKT_TYPE_CFG, (uint8_t *) txd, (uint16_t) sizeof(uint16_t), 0,
-                     C_BOARD_IF);
+                     C_PKT_TYPE_CFG, (uint8_t *) &txd, (uint16_t) sizeof(uint16_t), 0);
   if (!result) {
     return false;
   }
@@ -384,55 +387,52 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
 
 
 bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
-                           uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo,
-                           uint8_t interface) {
+                           uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo) {
   bool result = true;
-  const uint16_t CI_BUFFER_SIZE = ((3 * sizeof(uint16_t)) + (dlen / sizeof(uint16_t)));
+  TUDevWR rq;
 
-  uint8_t *buf;
-
-  if((buf = (uint8_t*) malloc(CI_BUFFER_SIZE)) == NULL) {
+  rq.tx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN + dlen;
+  if((rq.tx.data = (uint8_t*) malloc(rq.tx.size)) == NULL) {
     return false;
   }
 
-  *(uint16_t *)(&buf[0])= ((tpkt & C_CFGPKT_TYPE_MASK) << C_CFGPKT_TYPE_BIT)
+  *(uint16_t *)(&rq.tx.data[0])= ((tpkt & C_CFGPKT_TYPE_MASK) << C_CFGPKT_TYPE_BIT)
                           | (C_CFGPKT_WR << C_CFGPKT_WR_BIT)
                           | (fifo << C_CFGPKT_FIFO_BIT)
                           | ((cfgdev & C_CFGPKT_DADR_MASK) << C_CFGPKT_DADR_L_BIT);
-  *(uint16_t *)(&buf[2]) = (sreg & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
-  *(uint16_t *)(&buf[4]) = (dlen & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
+  *(uint16_t *)(&rq.tx.data[2]) = (sreg & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
+  *(uint16_t *)(&rq.tx.data[4]) = ((dlen / C_CFGPKT_DATA_ALIGN) & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
 
-  memcpy(&buf[6], data, dlen);
+  memcpy(&rq.tx.data[6], data, dlen);
 
-  result = dev_write(&buf[0], (uint64_t) CI_BUFFER_SIZE, interface);
+  rq.dir = C_UDEV_REQ_WRITE;
+  result = dev_write(rq);
 
-  free(buf);
+  free(rq.tx.data);
   return result;
 }
 
 bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
-                          uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo,
-                          uint8_t interface) {
+                          uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo) {
   bool result = true;
-  const uint16_t CI_BUFFER_SIZE = ((3 * sizeof(uint16_t)));
+  TUDevWR rq;
 
-  uint8_t *buf;
-
-  if((buf = (uint8_t*) malloc(CI_BUFFER_SIZE)) == NULL) {
+  rq.tx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN;
+  if((rq.tx.data = (uint8_t*) malloc(rq.tx.size)) == NULL) {
     return false;
   }
 
-  *(uint16_t *)(&buf[0])= ((tpkt & C_CFGPKT_TYPE_MASK) << C_CFGPKT_TYPE_BIT)
+  *(uint16_t *)(&rq.tx.data[0])= ((tpkt & C_CFGPKT_TYPE_MASK) << C_CFGPKT_TYPE_BIT)
                           | (C_CFGPKT_RD << C_CFGPKT_WR_BIT)
                           | (fifo << C_CFGPKT_FIFO_BIT)
                           | ((cfgdev & C_CFGPKT_DADR_MASK) << C_CFGPKT_DADR_L_BIT);
-  *(uint16_t *)(&buf[2]) = (sreg & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
-  *(uint16_t *)(&buf[4]) = (dlen & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
+  *(uint16_t *)(&rq.tx.data[2]) = (sreg & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
+  *(uint16_t *)(&rq.tx.data[4]) = ((dlen / C_CFGPKT_DATA_ALIGN) & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
 
-  result = dev_write(&buf[0], (uint64_t) CI_BUFFER_SIZE, interface);
+  rq.dir = C_UDEV_REQ_WRITE;
+  result = dev_write(rq);
 
-  free(buf);
-
+  free(rq.tx.data);
   return result;
 }
 
