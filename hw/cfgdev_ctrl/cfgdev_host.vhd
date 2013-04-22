@@ -6,7 +6,6 @@
 -- Module Name : cfgdev_host
 --
 -- Назначение/Описание :
---  Реализация протокола записи/чтения данных модулей FPGA через Host интерфейс
 --
 --  CfgPkt: (описание полей Header см. cfgdev_pkt.vhd)
 --  Header[]-16bit
@@ -14,11 +13,11 @@
 --
 --  Протокол обмена:
 --  Write:  SW -> FPGA
---   1. Управляющая программа формирует CfgPkt и передает его в FPGA
+--   1. SW (CfgPkt(Header + data)) -> FPGA
 --
 --  Read :  SW <- FPGA
---   1. Управляющая программа формирует запрос чтения CfgPkt(header) и передает его в FPGA
---   2. На запрос FPGA передает CfgPkt с прочитаными данными. Заголовок аналогичен заголовку запроса чтения.
+--   1. SW (CfgPkt(Header) -> FPGA
+--   2. SW  <- FPGA (CfgPkt(Header + Data) Заголовок аналогичен заголовку запроса
 --
 -- Revision:
 -- Revision 0.01 - File Created
