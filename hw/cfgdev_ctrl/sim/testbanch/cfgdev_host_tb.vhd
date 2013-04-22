@@ -258,16 +258,16 @@ for i in 0 to i_pkts'length-1 loop
   end loop;
 end loop;
 
-i_host_rd <= '0';
+i_host_rd <= '1';
 i_host_wr <= '0';
 i_host_txd <= (others=>'0');
 
 --//Pkt0
-i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
+i_pkts(0)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#0A#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
-i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#00#, i_pkts(0)(1)'length);--//Start Adr
+i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
 i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#05#, i_pkts(0)(2)'length);--//Len
 --if CI_OPT = 1 then
 i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 5) * 2, i_pkts(0)(0)'length);
@@ -386,7 +386,7 @@ i_host_wr <= '0';
 
 
 wait until rising_edge(i_host_clk) and i_cfg_done = '1';
-
+wait for 1 us;
 
 wait until rising_edge(i_host_clk);
 i_host_txd(31 downto 0) <= i_pkts(1)(1) & i_pkts(1)(0);
