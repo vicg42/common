@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QtNetwork>
 #include <QtGui>
+#include <QDebug>
 
 
 #define C_BOARD_IF                 0 //Интерфейс обмена с платой
@@ -135,14 +136,12 @@ private:
     bool cfg_read(uint16_t cfgdev, uint16_t sreg,
                    uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo);
 
-    bool dev_write(TUDevWR rq);
+    bool dev_wr(TUDevWR rq);
 
 
 private slots:
 
-    void cfg_txd();
-    void eth_rxd();
-    void eth_on_off();
+    void eth_connect();
     void img_open();
 
 };

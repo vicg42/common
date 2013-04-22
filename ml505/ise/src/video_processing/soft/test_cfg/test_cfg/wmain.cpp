@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QWidget(parent)
 {
     //--- ETH group ---
-    eline_eth_ip = new QLineEdit("10.1.7.234");
+    eline_eth_ip = new QLineEdit("10.1.7.235");
     eline_eth_port = new QLineEdit("3000");
     btn_eth = new QPushButton(tr("&Open"));
     btn_eth->setCheckable(true);
@@ -93,14 +93,11 @@ MainWindow::MainWindow(QWidget *parent)
     //---
     udev.eth.udpSocket = new QUdpSocket(this);
 
-    connect(udev.eth.udpSocket, SIGNAL(readyRead()),
-            this, SLOT(eth_rxd()));
-
 //    connect(btn_usr_set, SIGNAL(clicked()),
 //            this, SLOT(board_init()));
 
     connect(btn_eth, SIGNAL(clicked()),
-            this, SLOT(eth_on_off()));
+            this, SLOT(eth_connect()));
 
     connect(btn_img_open, SIGNAL(clicked()),
             this, SLOT(img_open()));
@@ -123,61 +120,28 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::eth_rxd()
-{
-    while (udev.eth.udpSocket->hasPendingDatagrams()) {
-        QByteArray rxd;
-        rxd.resize(udev.eth.udpSocket->pendingDatagramSize());
-        udev.eth.udpSocket->readDatagram(rxd.data(), rxd.size());
-
-        qint16 *rxd16 = (qint16 *)rxd.data();
-
-        if ((rxd16[0] & 0xF) == C_PKT_TYPE_CFG){
-            etext_log->append(QString("%1: firmware=0x%2")
-                              .arg(__func__)
-                              .arg(rxd16[3], 0 , 16));
-        }
-
-    }
-}
-
-void MainWindow::cfg_txd()
-{
-    QByteArray txd;
-    txd.resize((3 + 1) * sizeof(qint16));
-    qint16 *txd16 = (qint16 *)txd.data();
-    txd16[0] = (C_PKT_TYPE_CFG << C_CFGPKT_TYPE_BIT) |
-            (C_CFGPKT_WR << C_CFGPKT_WR_BIT) |
-            (0 << C_CFGPKT_FIFO_BIT) |
-            ((C_CFGDEV_TESTING & C_CFGPKT_DADR_MASK) << C_CFGPKT_DADR_L_BIT);
-    txd16[1] = (1 & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
-    txd16[2] = (1 & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
-    txd16[3] = 5;
-
-    //dev_write((quint8 *) txd.data(), (qint64) txd.size(), 0);
-
-    etext_log->append(QString("%1: data=0x%2,0x%3,0x%4,0x%5")
-                      .arg(__func__)
-                      .arg(txd16[0], 0 , 16)
-                      .arg(txd16[1], 0 , 16)
-                      .arg(txd16[2], 0 , 16)
-                      .arg(txd16[3], 0 , 16));
-}
-
 
 bool MainWindow::board_init(void) {
-  bool result;
+  bool result = true;
 
   int16_t firmware = get_firmware();
   if (firmware == -1)
     return false;
 
-  const uint8_t vch_count = 1;
+  etext_log->append(QString("%1: firmware=0x%2")
+                    .arg(__func__)
+                    .arg(firmware, 0 , 16));
 
+
+  const uint8_t vch_count = 1;
   for (uint8_t idx = 0; idx < vch_count; idx++){
     result = set_vch_prm(idx, fg.vch[idx]);
-    if (!result)
+    if (!result) {
+      etext_log->append(QString("%1: error init vch%2")
+                        .arg(__func__)
+                        .arg(idx, 0 , 10));
       return result;
+    }
   }
 
   return result;
@@ -196,7 +160,7 @@ int16_t MainWindow::get_firmware(void) {
   return firmware;
 }
 
-void MainWindow::eth_on_off() {
+void MainWindow::eth_connect() {
     bool ok;
     QString str = eline_eth_port->text();
     udev.eth.ip = QHostAddress(eline_eth_ip->text());
@@ -211,7 +175,9 @@ void MainWindow::eth_on_off() {
                           .arg(udev.eth.ip.toString())
                           .arg(udev.eth.port, 0 , 10));
 
-        ok = board_init();
+        if (!board_init()) {
+            etext_log->append("Not detected Board!!!");
+        }
     }
     else {
         udev.eth.udpSocket->close();
@@ -219,6 +185,7 @@ void MainWindow::eth_on_off() {
         etext_log->append(QString("%1: %2")
                           .arg(__func__)
                           .arg("closed"));
+        //qDebug() << udev.eth.udpSocket->isValid();
     }
 
 }
@@ -313,26 +280,11 @@ bool MainWindow::imgToboard(QImage *img)
           for (size_t x = 0, xlim = chunk_width; x < xlim; ++x)
               buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
 
-          //result = dev_write(&buffer[0], (qint64) buffer.size());
+          //result = dev_wr(&buffer[0], (qint64) buffer.size());
           if (!result)
             return result;
       }
   }
-
-  return true;
-}
-
-bool MainWindow::dev_write(TUDevWR rq) {
-  uint64_t write;
-
-//  if (rq.transport == C_BOARD_IF) {
-    if (rq.dir == C_UDEV_REQ_WRITE) {
-    write = udev.eth.udpSocket->writeDatagram((char *)rq.tx.data, rq.tx.size, udev.eth.ip, udev.eth.port);
-    if (write != rq.tx.size)
-      return false;
-    }
-
-//  }
 
   return true;
 }
@@ -396,6 +348,9 @@ bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
     return false;
   }
 
+  rq.rx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN;
+  rq.rx.data = rq.tx.data;
+
   *(uint16_t *)(&rq.tx.data[0])= ((tpkt & C_CFGPKT_TYPE_MASK) << C_CFGPKT_TYPE_BIT)
                           | (C_CFGPKT_WR << C_CFGPKT_WR_BIT)
                           | (fifo << C_CFGPKT_FIFO_BIT)
@@ -405,8 +360,20 @@ bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
 
   memcpy(&rq.tx.data[6], data, dlen);
 
+  //send txreq(header + data)
   rq.dir = C_UDEV_REQ_WRITE;
-  result = dev_write(rq);
+  result = dev_wr(rq);
+  if (!result)
+    return false;
+
+  //recieve txack(header)
+  rq.dir = C_UDEV_REQ_READ;
+  result = dev_wr(rq);
+  if (!result)
+    return false;
+
+  if ( memcmp(rq.tx.data, rq.rx.data, (C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN)) != 0 )
+    return false;
 
   free(rq.tx.data);
   return result;
@@ -417,10 +384,12 @@ bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
   bool result = true;
   TUDevWR rq;
 
-  rq.tx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN;
-  if((rq.tx.data = (uint8_t*) malloc(rq.tx.size)) == NULL) {
+  rq.rx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN + dlen;
+  if((rq.rx.data = (uint8_t*) malloc(rq.rx.size)) == NULL) {
     return false;
   }
+  rq.tx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN;
+  rq.tx.data = rq.rx.data;
 
   *(uint16_t *)(&rq.tx.data[0])= ((tpkt & C_CFGPKT_TYPE_MASK) << C_CFGPKT_TYPE_BIT)
                           | (C_CFGPKT_RD << C_CFGPKT_WR_BIT)
@@ -429,10 +398,56 @@ bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
   *(uint16_t *)(&rq.tx.data[2]) = (sreg & C_CFGPKT_RADR_MASK) << C_CFGPKT_RADR_L_BIT;
   *(uint16_t *)(&rq.tx.data[4]) = ((dlen / C_CFGPKT_DATA_ALIGN) & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
 
+  //send rxreq(header)
   rq.dir = C_UDEV_REQ_WRITE;
-  result = dev_write(rq);
+  result = dev_wr(rq);
+  if (!result)
+    return false;
 
-  free(rq.tx.data);
+  //recieve rxack(header + data)
+  rq.dir = C_UDEV_REQ_READ;
+  result = dev_wr(rq);
+  if (!result)
+    return false;
+
+  if ( memcmp(rq.tx.data, rq.rx.data, (C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN)) != 0 )
+    return false;
+
+  rq.rx.data = rq.rx.data + rq.tx.size;
+  memcpy(data, rq.rx.data, dlen);
+
+  free(rq.rx.data);
   return result;
 }
 
+bool MainWindow::dev_wr(TUDevWR rq) {
+  uint64_t write;
+  int16_t timeout;
+
+//  if (rq.transport == C_BOARD_IF) {
+    if (!udev.eth.udpSocket->isValid())
+      return false;
+
+    if (rq.dir == C_UDEV_REQ_WRITE) {
+      write = udev.eth.udpSocket->writeDatagram((char *)rq.tx.data, rq.tx.size, udev.eth.ip, udev.eth.port);
+      if (write != rq.tx.size)
+        return false;
+    }
+    else {
+      timeout = 100;//msec
+      if (!udev.eth.udpSocket->waitForReadyRead(timeout)) {
+        //timeout
+        return false;
+      }
+      while (udev.eth.udpSocket->hasPendingDatagrams()) {
+          if (udev.eth.udpSocket->pendingDatagramSize() != (int64_t) rq.rx.size)
+            return false;
+          else
+            udev.eth.udpSocket->readDatagram((char *)rq.tx.data, udev.eth.udpSocket->pendingDatagramSize());
+          return true;
+      }
+    }
+//  }
+
+  return true;
+}
