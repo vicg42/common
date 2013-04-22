@@ -91,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     //---
-    udev.eth.udpSocket = new QUdpSocket(this);
+    bif.eth.udpSocket = new QUdpSocket(this);
 
 //    connect(btn_usr_set, SIGNAL(clicked()),
 //            this, SLOT(board_init()));
@@ -102,16 +102,17 @@ MainWindow::MainWindow(QWidget *parent)
     connect(btn_img_open, SIGNAL(clicked()),
             this, SLOT(img_open()));
 
-    TVCH_prm  vch;
+    TVch vch;
     vch.fr_size.activ.x = 1024/4;
     vch.fr_size.activ.y = 1024;
     vch.fr_size.skip.x = 0;
     vch.fr_size.skip.y = 0;
 
-    fg.vch_count = C_BOARD_VCH_COUNT_MAX;
+    fg.vch_count = C_VCH_COUNT_MAX;
     for (uint8_t idx = 0; idx < fg.vch_count; idx++){
       fg.vch[idx] = vch;
     }
+    fg.mem_trn_len = 0x4040;//(15..8)(7..0) - trn_mem_rd;trn_mem_wr
 }
 
 MainWindow::~MainWindow()
@@ -132,6 +133,11 @@ bool MainWindow::board_init(void) {
                     .arg(__func__)
                     .arg(firmware, 0 , 16));
 
+  result = cfg_write(C_CFGDEV_FG, C_FR_REG_MEM_CTRL,
+                     C_PKT_TYPE_CFG, (uint8_t *) &fg.mem_trn_len, (uint16_t) sizeof(uint16_t), 0);
+  if (!result) {
+    return false;
+  }
 
   const uint8_t vch_count = 1;
   for (uint8_t idx = 0; idx < vch_count; idx++){
@@ -163,29 +169,29 @@ int16_t MainWindow::get_firmware(void) {
 void MainWindow::eth_connect() {
     bool ok;
     QString str = eline_eth_port->text();
-    udev.eth.ip = QHostAddress(eline_eth_ip->text());
-    udev.eth.port = str.toInt(&ok, 10);
+    bif.eth.ip = QHostAddress(eline_eth_ip->text());
+    bif.eth.port = str.toInt(&ok, 10);
 
     if ( btn_eth->isChecked() ){
-        udev.eth.udpSocket->bind(udev.eth.port);
+        bif.eth.udpSocket->bind(bif.eth.port);
         btn_eth->setText("Close");
         etext_log->append(QString("%1: %2 %3/%4")
                           .arg(__func__)
                           .arg("open")
-                          .arg(udev.eth.ip.toString())
-                          .arg(udev.eth.port, 0 , 10));
+                          .arg(bif.eth.ip.toString())
+                          .arg(bif.eth.port, 0 , 10));
 
         if (!board_init()) {
             etext_log->append("Not detected Board!!!");
         }
     }
     else {
-        udev.eth.udpSocket->close();
+        bif.eth.udpSocket->close();
         btn_eth->setText("Open");
         etext_log->append(QString("%1: %2")
                           .arg(__func__)
                           .arg("closed"));
-        //qDebug() << udev.eth.udpSocket->isValid();
+        //qDebug() << bif.eth.udpSocket->isValid();
     }
 
 }
@@ -229,6 +235,7 @@ void MainWindow::img_open()
 
 }
 
+
 bool MainWindow::imgToboard(QImage *img)
 {
   bool result = true;
@@ -257,6 +264,7 @@ bool MainWindow::imgToboard(QImage *img)
 
   const size_t HEAD_SIZE = 16;
   std::vector<uint8_t> buffer;
+  TBifRq rq;
 
   for (size_t y = 0, ylim = img->height(); y < ylim; ++y)
   {
@@ -280,7 +288,10 @@ bool MainWindow::imgToboard(QImage *img)
           for (size_t x = 0, xlim = chunk_width; x < xlim; ++x)
               buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
 
-          //result = dev_wr(&buffer[0], (qint64) buffer.size());
+          rq.tx.data = &buffer[0];
+          rq.tx.size = (uint64_t) buffer.size();
+          rq.dir = C_BIF_REQ_WRITE;
+          result = bif_wr(rq);
           if (!result)
             return result;
       }
@@ -290,7 +301,7 @@ bool MainWindow::imgToboard(QImage *img)
 }
 
 
-bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
+bool MainWindow::set_vch_prm(uint8_t vch, TVch val) {
   uint32_t txd;
   bool result = true;
 
@@ -341,7 +352,7 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVCH_prm val) {
 bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
                            uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo) {
   bool result = true;
-  TUDevWR rq;
+  TBifRq rq;
 
   rq.tx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN + dlen;
   if((rq.tx.data = (uint8_t*) malloc(rq.tx.size)) == NULL) {
@@ -361,14 +372,14 @@ bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
   memcpy(&rq.tx.data[6], data, dlen);
 
   //send txreq(header + data)
-  rq.dir = C_UDEV_REQ_WRITE;
-  result = dev_wr(rq);
+  rq.dir = C_BIF_REQ_WRITE;
+  result = bif_wr(rq);
   if (!result)
     return false;
 
   //recieve txack(header)
-  rq.dir = C_UDEV_REQ_READ;
-  result = dev_wr(rq);
+  rq.dir = C_BIF_REQ_READ;
+  result = bif_wr(rq);
   if (!result)
     return false;
 
@@ -379,10 +390,11 @@ bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
   return result;
 }
 
+
 bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
                           uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo) {
   bool result = true;
-  TUDevWR rq;
+  TBifRq rq;
 
   rq.rx.size = C_CFGPKT_HEADER_SIZE * C_CFGPKT_DATA_ALIGN + dlen;
   if((rq.rx.data = (uint8_t*) malloc(rq.rx.size)) == NULL) {
@@ -399,14 +411,14 @@ bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
   *(uint16_t *)(&rq.tx.data[4]) = ((dlen / C_CFGPKT_DATA_ALIGN) & C_CFGPKT_DLEN_MASK) << C_CFGPKT_DLEN_L_BIT;
 
   //send rxreq(header)
-  rq.dir = C_UDEV_REQ_WRITE;
-  result = dev_wr(rq);
+  rq.dir = C_BIF_REQ_WRITE;
+  result = bif_wr(rq);
   if (!result)
     return false;
 
   //recieve rxack(header + data)
-  rq.dir = C_UDEV_REQ_READ;
-  result = dev_wr(rq);
+  rq.dir = C_BIF_REQ_READ;
+  result = bif_wr(rq);
   if (!result)
     return false;
 
@@ -420,34 +432,33 @@ bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
   return result;
 }
 
-bool MainWindow::dev_wr(TUDevWR rq) {
+
+bool MainWindow::bif_wr(TBifRq rq) {
   uint64_t write;
   int16_t timeout;
 
-//  if (rq.transport == C_BOARD_IF) {
-    if (!udev.eth.udpSocket->isValid())
+    if (!bif.eth.udpSocket->isValid())
       return false;
 
-    if (rq.dir == C_UDEV_REQ_WRITE) {
-      write = udev.eth.udpSocket->writeDatagram((char *)rq.tx.data, rq.tx.size, udev.eth.ip, udev.eth.port);
+    if (rq.dir == C_BIF_REQ_WRITE) {
+      write = bif.eth.udpSocket->writeDatagram((char *)rq.tx.data, rq.tx.size, bif.eth.ip, bif.eth.port);
       if (write != rq.tx.size)
         return false;
     }
     else {
       timeout = 100;//msec
-      if (!udev.eth.udpSocket->waitForReadyRead(timeout)) {
+      if (!bif.eth.udpSocket->waitForReadyRead(timeout)) {
         //timeout
         return false;
       }
-      while (udev.eth.udpSocket->hasPendingDatagrams()) {
-          if (udev.eth.udpSocket->pendingDatagramSize() != (int64_t) rq.rx.size)
+      while (bif.eth.udpSocket->hasPendingDatagrams()) {
+          if (bif.eth.udpSocket->pendingDatagramSize() != (int64_t) rq.rx.size)
             return false;
           else
-            udev.eth.udpSocket->readDatagram((char *)rq.tx.data, udev.eth.udpSocket->pendingDatagramSize());
+            bif.eth.udpSocket->readDatagram((char *)rq.tx.data, bif.eth.udpSocket->pendingDatagramSize());
           return true;
       }
     }
-//  }
 
   return true;
 }

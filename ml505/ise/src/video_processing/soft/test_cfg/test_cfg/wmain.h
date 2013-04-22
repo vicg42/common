@@ -7,12 +7,9 @@
 #include <QDebug>
 
 
-#define C_BOARD_IF                 0 //Интерфейс обмена с платой
-#define C_BOARD_VCH_COUNT_MAX      4
-
 #define C_PKT_TYPE_CFG             0xA
 
-//--- CFG ---
+//--- CFG (configuration)---
 #define C_CFGPKT_HEADER_SIZE       3
 #define C_CFGPKT_DATA_ALIGN        sizeof(uint16_t)
 //C_CFGPKT_WR_BIT/ Bit Map:
@@ -40,7 +37,9 @@
 #define C_CFGDEV_TESTING           6
 
 
-//--- FG ---
+//--- FG (frame grabber)---
+#define C_VCH_COUNT_MAX            4
+
 #define C_FR_REG_CTRL                     0
 #define C_FR_REG_DATA_L                   1
 #define C_FR_REG_DATA_M                   2
@@ -64,28 +63,8 @@
 #define C_FG_PRM_FR_ZONE_ACTIVE           3
 #define C_FG_PRM_FR_OPTIONS               4
 
-
-#define C_UDEV_REQ_WRITE                  1
-#define C_UDEV_REQ_READ                   0
-
-struct TUDevWR {
-  struct TReq {
-    uint8_t *data;
-    uint64_t size;
-  }tx,rx;
-  uint8_t dir; //1/0 - wr/rd request
-};
-
-struct TUDev {
-  struct TEth {
-    QUdpSocket *udpSocket;
-    QHostAddress ip;
-    qint16 port;
-  }eth;
-};
-
-struct TVCH_prm {
-  struct TVFr_size {
+struct TVch {
+  struct TVfrsize {
     struct TXY {
       uint16_t x;
       uint16_t y;
@@ -93,9 +72,31 @@ struct TVCH_prm {
   }fr_size;
 };
 
-struct TFG_prm {
-  TVCH_prm  vch[C_BOARD_VCH_COUNT_MAX];
+struct TFG {
+  TVch  vch[C_VCH_COUNT_MAX];
   uint8_t  vch_count;
+  uint16_t  mem_trn_len;
+};
+
+
+//--- BIF (Borad Interface) ---
+#define C_BIF_REQ_WRITE                  1
+#define C_BIF_REQ_READ                   0
+
+struct TBifRq {
+  struct TRq {
+    uint8_t *data;
+    uint64_t size;
+  }tx,rx;
+  uint8_t dir; //1/0 - wr/rd request
+};
+
+struct TBif {
+  struct TEth {
+    QUdpSocket *udpSocket;
+    QHostAddress ip;
+    qint16 port;
+  }eth;
 };
 
 
@@ -108,9 +109,6 @@ public:
     ~MainWindow();
 
 private:
-
-    TUDev  udev;
-    TFG_prm  fg;
 
     QLineEdit *eline_eth_ip;
     QLineEdit *eline_eth_port;
@@ -127,16 +125,19 @@ private:
 
     bool imgToboard(QImage *img);
 
+    TFG fg;
+
     bool board_init(void);
     int16_t get_firmware(void);
-    bool set_vch_prm(uint8_t vch, TVCH_prm  val);
+    bool set_vch_prm(uint8_t vch, TVch val);
     bool cfg_write(uint16_t cfgdev, uint16_t sreg,
                    uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo);
 
     bool cfg_read(uint16_t cfgdev, uint16_t sreg,
                    uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo);
 
-    bool dev_wr(TUDevWR rq);
+    TBif  bif;
+    bool bif_wr(TBifRq rq);
 
 
 private slots:
