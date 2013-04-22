@@ -247,6 +247,9 @@ bool MainWindow::imgToboard(QImage *img)
   {
       width += 4 - width % 4;
       //cout << "Warning: Image width is realigned, new width is " << width << endl;
+      etext_log->append(QString("Warning: Image width is realigned, new width is %1")
+                        .arg(__func__)
+                        .arg(width, 0 , 10));
   }
 
   if (!split)
@@ -256,11 +259,14 @@ bool MainWindow::imgToboard(QImage *img)
   {
       split = width;
       //cout << "Warning: Too small image width (will not be splitted)" << endl;
+      etext_log->append(QString("Warning: Too small image width (will not be splitted)")
+                        .arg(__func__));
   }
 
   const QTime ct = QTime::currentTime();
-  //cout << "Image timestamp: " << qPrintable(ct.toString("hh:mm:ss.zzz")) << endl;
+  etext_log->append(qPrintable(ct.toString("hh:mm:ss.zzz")));
   const uint32_t ts = LDCU::Timestamp::Make(ct);
+
 
   const size_t HEAD_SIZE = 16;
   std::vector<uint8_t> buffer;
