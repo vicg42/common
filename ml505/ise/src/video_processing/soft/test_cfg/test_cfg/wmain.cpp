@@ -355,6 +355,9 @@ bool MainWindow::set_vch_prm(uint8_t vch, TVch val) {
 }
 
 
+//----------------------------------------------
+//Write/Read CFGPKT
+//----------------------------------------------
 bool MainWindow::cfg_write(uint16_t cfgdev, uint16_t sreg,
                            uint8_t tpkt, uint8_t *data, uint16_t dlen, uint8_t fifo) {
   bool result = true;
@@ -438,7 +441,9 @@ bool MainWindow::cfg_read(uint16_t cfgdev, uint16_t sreg,
   return result;
 }
 
-
+//----------------------------------------------
+//Write/Read data over select board interface
+//----------------------------------------------
 bool MainWindow::bif_wr(TBifRq rq) {
   uint64_t write;
   int16_t timeout;
