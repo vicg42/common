@@ -359,10 +359,10 @@ i_swt_rst    <=not i_host_rst_n or i_host_rst_all;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all;
 i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
-i_pult_rst<=i_usrclk_rst or i_host_rst_pult;
-i_edev_rst<=i_usrclk_rst or i_host_rst_edev;
-i_vizir_rst<=i_usrclk_rst or i_host_rst_vizir;
-i_bup_rst<=i_usrclk_rst or i_host_rst_bup;
+i_pult_rst<=i_usrclk_rst or i_host_rst_pult or i_host_rst_all;
+i_edev_rst<=i_usrclk_rst or i_host_rst_edev or i_host_rst_all;
+i_vizir_rst<=i_usrclk_rst or i_host_rst_vizir or i_host_rst_all;
+i_bup_rst<=i_usrclk_rst or i_host_rst_bup or i_host_rst_all;
 i_prom_rst<=i_usrclk_rst or i_host_rst_prom;
 
 

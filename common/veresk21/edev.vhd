@@ -5,11 +5,22 @@
 -- Create Date : 17.11.2012 13:43:05
 -- Module Name : edev
 --
--- Ќазначение/ќписание :
+--ќбмен - запрос/ответ
+--             ----------------------------
+--             [31:24] [23:16] [15:8] [7:0]
+--             ----------------------------
+--HOST -> FPGA: BYTE2  BYTE1  BYTE0   DLEN(ByteCount)
+--              BYTEN  ...    ...     ...
 --
--- Revision:
--- Revision 0.01 - File Created
+--HOST <- FPGA(irq + data):
+--              BYTE2  BYTE1  BYTE0   DLEN(ByteCount)
+--              BYTEN  ...    ...     ...
 --
+--≈сли HOST долго не получал прерывани€(не было ответа на его запрос), то
+--он имеет право делать следующий запрос
+--
+--≈сли модуль m_core ошибки:
+--HOST <- FPGA(irq + err_bit + rxbuf reset)
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -116,6 +127,7 @@ end component;
 
 type TFsmEdev is (
 S_TX_IDLE     ,
+S_TX_D_WAIT   ,
 S_TX_D        ,
 S_TX_DONE     ,
 S_RX_D        ,
@@ -194,6 +206,7 @@ tst_fsm_edev <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_edev'length) when i_fsm_ed
                 CONV_STD_LOGIC_VECTOR(16#02#, tst_fsm_edev'length) when i_fsm_edev_cs = S_TX_DONE  else
                 CONV_STD_LOGIC_VECTOR(16#03#, tst_fsm_edev'length) when i_fsm_edev_cs = S_RX_D     else
                 CONV_STD_LOGIC_VECTOR(16#04#, tst_fsm_edev'length) when i_fsm_edev_cs = S_RX_DONE  else
+                CONV_STD_LOGIC_VECTOR(16#05#, tst_fsm_edev'length) when i_fsm_edev_cs = S_TX_D_WAIT else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fsm_edev'length);-- when fsm_tx_cs = S_TX_IDLE else
 
 tst_fms_core <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(1 , 4) else
@@ -314,14 +327,22 @@ begin
 
               if (i_tmr_en = '0' and i_txbuf_empty = '0') or
                  (i_tmr_en = '1' and sr_tx_start(1) = '1' and sr_tx_start(2) = '0') then
-              --ќтправка данных по сигналу от внешнего таймера или сразу как данные по€вились в TXBUF хоста
-                i_lencnt <= i_txbuf_do(7 downto 0);--Tx byte count
-                i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_txbuf_do
-                                                                  --с которого начинаютс€ данные,
-                                                                  --индекс 0 в первом DWORD - кол-во данных в byte
+                --ќтправка данных сразу как данные по€вились в TXBUF хоста или
+                --по сигналу от внешнего таймера
+                i_fsm_edev_cs <= S_TX_D_WAIT;
+              end if;
 
-                i_rcv_irq <= '0';
-                i_fsm_edev_cs <= S_TX_D;
+          when S_TX_D_WAIT =>
+
+              if i_txbuf_empty = '0' then
+                  i_lencnt <= i_txbuf_do(7 downto 0);--Tx byte count
+                  i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_txbuf_do
+                                                                    --с которого начинаютс€ данные,
+                                                                    --индекс 0 в первом DWORD - кол-во
+                                                                    --данных в byte
+
+                  i_rcv_irq <= '0';
+                  i_fsm_edev_cs <= S_TX_D;
               end if;
 
           when S_TX_D =>
@@ -360,7 +381,8 @@ begin
                 i_lencnt <= (others=>'0');
                 i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_rxbuf_di
                                                                   --с которого начинаютс€ данные,
-                                                                  --индекс 0 в первом DWORD - кол-во данных в byte
+                                                                  --индекс 0 в первом DWORD - кол-во
+                                                                  --данных в byte
                 --i_rxbuf_di(7 downto 0) - зарезервировано дл€ Rx byte count!!!
                 i_fsm_edev_cs <= S_RX_D;
               end if;
