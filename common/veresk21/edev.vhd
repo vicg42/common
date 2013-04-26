@@ -73,7 +73,7 @@ p_out_tst         : out  std_logic_vector(31 downto 0);
 --System
 --------------------------------------
 p_in_bitclk       : in   std_logic; -- 1/0  = bitclk 1MHz/ bitclk 250kHz
-p_in_clk          : in   std_logic; --128MHz
+p_in_clk          : in   std_logic;
 p_in_rst          : in   std_logic
 );
 end edev;
