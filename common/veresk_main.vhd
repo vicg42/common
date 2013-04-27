@@ -168,7 +168,7 @@ signal g_usr_highclk                    : std_logic;
 signal g_refclkopt                      : std_logic_vector(3 downto 0);
 signal i_pciexp_gt_refclk               : std_logic;
 signal g_pciexp_gt_refclkout            : std_logic;
-signal i_usrclk5_div                    : std_logic_vector(6 downto 0):=(others=>'0');
+signal i_usrclk5_div                    : std_logic_vector(4 downto 0):=(others=>'0');
 
 signal i_host_rdy                       : std_logic;
 signal i_host_rst_n                     : std_logic;
@@ -1246,7 +1246,7 @@ begin
   if g_usrclk(5)'event and g_usrclk(5)='1' then
     i_usrclk5_div <= i_usrclk5_div + 1;
 
-    if i_usrclk5_div=CONV_STD_LOGIC_VECTOR(16#40#, i_usrclk5_div'length) then
+    if i_usrclk5_div=CONV_STD_LOGIC_VECTOR(16#10#, i_usrclk5_div'length) then
     i_clk1MHz_en <= '1'; --1MHz/4 = 250kHz (bit clk)
     else
     i_clk1MHz_en <= '0';

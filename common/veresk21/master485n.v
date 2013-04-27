@@ -36,7 +36,7 @@ input  [31:0]    p_in_tst,
 output [31:0]    p_out_tst,
 
 input p_in_bitclk, //Выбор baudrate: 1/0 - 1MHz/250kHz
-input p_in_clk,    //128MHz!!!!!
+input p_in_clk,    //32MHz!!!!!
 input p_in_rst
 );
 
@@ -70,7 +70,7 @@ reg i_rcv_err;
 reg i_parity;
 reg i_rcv_detect;
 reg i_clk4x_en;
-reg [6:0] i_clkdiv_cnt;
+reg [4:0] i_clkdiv_cnt;
 reg i_clkdiv_rst;
 
 assign p_out_tst[3:0] = i_fsm_cs;
@@ -125,8 +125,8 @@ begin
           else
             i_clkdiv_cnt <= i_clkdiv_cnt + 1;
 
-          if ( ((i_clkdiv_cnt[4:0] == 5'h10) && p_in_bitclk) ||
-               ((i_clkdiv_cnt[6:0] == 7'h40) && !p_in_bitclk) )
+          if ( ((i_clkdiv_cnt[2:0] == 3'h04) && p_in_bitclk) ||
+               ((i_clkdiv_cnt[4:0] == 5'h10) && !p_in_bitclk) )
             i_clk4x_en <= 1;
           else
             i_clk4x_en <= 0;
