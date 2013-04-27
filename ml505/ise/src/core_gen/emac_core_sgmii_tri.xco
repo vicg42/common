@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.2
-# Date: Sat Feb 16 10:55:22 2013
+# Date: Sun Mar 17 13:50:46 2013
 #
 ##############################################################
 #
@@ -47,7 +47,7 @@ CSET client_side_data_width_0=8_bit
 CSET client_side_data_width_1=8_bit
 CSET clock_enable_0=false
 CSET clock_enable_1=false
-CSET component_name=emac_core_sgmii
+CSET component_name=emac_core_sgmii_tri
 CSET dcr_base_address_0=00
 CSET dcr_base_address_1=01
 CSET enable_emac0=true
@@ -77,7 +77,7 @@ CSET rx_disable_length_0=false
 CSET rx_disable_length_1=false
 CSET rx_enable_0=true
 CSET rx_enable_1=true
-CSET rx_flow_control_enable_0=false
+CSET rx_flow_control_enable_0=true
 CSET rx_flow_control_enable_1=false
 CSET rx_half_duplex_enable_0=false
 CSET rx_half_duplex_enable_1=false
@@ -95,7 +95,7 @@ CSET speed_0=Tri_speed
 CSET speed_1=1000_Mbps
 CSET tx_enable_0=true
 CSET tx_enable_1=true
-CSET tx_flow_control_enable_0=false
+CSET tx_flow_control_enable_0=true
 CSET tx_flow_control_enable_1=false
 CSET tx_half_duplex_enable_0=false
 CSET tx_half_duplex_enable_1=false
@@ -126,4 +126,4 @@ CSET unicast_pause_mac_address_1_6=FF
 MISC pkg_timestamp=2012-07-21T06:18:49Z
 # END Extra information
 GENERATE
-# CRC: 9009b981
+# CRC: 9b8b9c47

@@ -197,7 +197,7 @@ architecture TOP_LEVEL of eth_mii is
 -------------------------------------------------------------------------------
   -- Component Declaration for the TEMAC wrapper with
   -- Local Link FIFO.
-  component emac_core_sgmii_100Mb_locallink is
+  component emac_core_sgmii_tri_locallink is
    port(
       -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
@@ -267,6 +267,18 @@ architecture TOP_LEVEL of eth_mii is
       RXN_1_UNUSED                    : in  std_logic;
       RXP_1_UNUSED                    : in  std_logic;
 
+--      -- DCR Interface
+--      HOSTCLK                         : in  std_logic;
+--      DCREMACCLK                      : in  std_logic;
+--      DCREMACABUS                     : in  std_logic_vector(0 to 9);
+--      DCREMACREAD                     : in  std_logic;
+--      DCREMACWRITE                    : in  std_logic;
+--      DCREMACDBUS                     : in  std_logic_vector(0 to 31);
+--      EMACDCRACK                      : out std_logic;
+--      EMACDCRDBUS                     : out std_logic_vector(0 to 31);
+--      DCREMACENABLE                   : in  std_logic;
+--      DCRHOSTDONEIR                   : out std_logic;
+
       -- SGMII RocketIO Reference Clock buffer inputs
       CLK_DS                          : in  std_logic;
 
@@ -332,6 +344,9 @@ architecture TOP_LEVEL of eth_mii is
 
     signal resetdone_0_i             : std_logic;
 
+    -- DCR bus signals
+    signal host_clk_i                : std_logic;
+    signal dcr_clk_i                 : std_logic;
 
     -- EMAC0 Clocking signals
 
@@ -351,6 +366,15 @@ architecture TOP_LEVEL of eth_mii is
    signal gtreset                    : std_logic;
    signal reset_r                    : std_logic_vector(3 downto 0);
    attribute async_reg of reset_r    : signal is "TRUE";
+
+
+
+    attribute buffer_type : string;
+
+    attribute buffer_type of dcr_clk_i  : signal is "none";
+
+
+
 
 -----------
 component eth_mdio_main
@@ -510,9 +534,9 @@ p_in_rst       => p_in_rst
 
     ------------------------------------------------------------------------
     -- Instantiate the EMAC Wrapper with LL FIFO
-    -- (emac_core_sgmii_100Mb_locallink.v)
+    -- (emac_core_sgmii_locallink.v)
     ------------------------------------------------------------------------
-    m_emac_ll : emac_core_sgmii_100Mb_locallink
+    m_emac_ll : emac_core_sgmii_tri_locallink
     port map (
       -- EMAC0 Clocking
       -- 125MHz clock output from transceiver
@@ -580,6 +604,18 @@ p_in_rst       => p_in_rst
       RXN_1_UNUSED                    => p_in_phy.pin.sgmii.rxp(1),  --RXN_1_UNUSED,
       RXP_1_UNUSED                    => p_in_phy.pin.sgmii.rxn(1),  --RXP_1_UNUSED,
 
+--      -- DCR Interface
+--      HOSTCLK                         => host_clk_i,
+--      DCREMACCLK                      => dcr_clk_i,
+--      DCREMACABUS                     => DCREMACABUS,
+--      DCREMACREAD                     => DCREMACREAD,
+--      DCREMACWRITE                    => DCREMACWRITE,
+--      DCREMACDBUS                     => DCREMACDBUS,
+--      EMACDCRACK                      => EMACDCRACK,
+--      EMACDCRDBUS                     => EMACDCRDBUS,
+--      DCREMACENABLE                   => DCREMACENABLE,
+--      DCRHOSTDONEIR                   => DCRHOSTDONEIR,
+
       -- SGMII RocketIO Reference Clock buffer inputs
       CLK_DS                          => clk_ds,
 
@@ -627,6 +663,17 @@ p_in_rst       => p_in_rst
       end if;
       end if;
     end process gen_ll_reset_emac0;
+
+--    ------------------------------------------------------------------------
+--    -- DCR Clock Management - dcr_clk_i is input to The DCREMACCLK port
+--    -- of the MAC. This clock could be tied to a 125MHz reference clock
+--    -- to save on clocking resources. A DCM is used to provide a phase
+--    -- aligned half frequency clock. This is input to the HOSTCLK
+--    -- port of the MAC.
+--    ------------------------------------------------------------------------
+--    dcr_clk : IBUF port map(I => DCREMACCLK, O => dcr_clk_i);
+--
+--    host_clk_i <= dcr_clk_i;
 
 
 
