@@ -91,10 +91,10 @@ constant CI_PCIEXP_CFG_CAP_BUS    : integer:= 16 ;
 component core_pciexp_ep_blk_plus
 generic(
 PL_FAST_TRAIN  : boolean;
-BAR0           : bit_vector := X"FFFFFF04";
-BAR2           : bit_vector := X"FFFFFF01"
---BAR0           : bit_vector := X"FFFFFF00";
---BAR1           : bit_vector := X"FFFFFF01"
+--BAR0           : bit_vector := X"FFFFFF04";
+--BAR2           : bit_vector := X"FFFFFF01"
+BAR0           : bit_vector := X"FFFFFF00";
+BAR1           : bit_vector := X"FFFFFF01"
 );
 port(
 --------------------------------------
@@ -529,12 +529,12 @@ p_out_tst(255 downto 250)<=(others=>'0');
 m_core : core_pciexp_ep_blk_plus
 generic map(
 PL_FAST_TRAIN => FALSE,
---BAR0          => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
---BAR1          => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
+BAR0          => X"FFFFFF00", --Memory: Size 256 byte, --bit_vector
+BAR1          => X"FFFFFF01"  --IO    : Size 256 byte, --bit_vector
 
-BAR0          => X"FFFFFF00" --Memory 32b: Size 256 byte
---BAR0          => X"FFFFFF04", --Memory 64b: Size 256 byte
---BAR2          => X"FFFFFF01"  --IO    : Size 256 byte
+--BAR0          => X"FFFFFF00" --Memory 32b: Size 256 byte
+----BAR0          => X"FFFFFF04", --Memory 64b: Size 256 byte
+----BAR2          => X"FFFFFF01"  --IO    : Size 256 byte
 )
 port map(
 --------------------------------------

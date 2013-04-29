@@ -72,7 +72,7 @@ end pcie2mem_ctrl;
 
 architecture behavioral of pcie2mem_ctrl is
 
-component pcie2mem_fifo
+component pcie2mem_fifo_tst
 port(
 din         : in std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
@@ -124,7 +124,7 @@ begin
 --//Согласующие буфера
 --//--------------------------------------------------
 --//RAM<-PCIE
-m_txbuf : pcie2mem_fifo
+m_txbuf : pcie2mem_fifo_tst
 port map(
 din         => p_in_txd,
 wr_en       => p_in_txd_wr,
@@ -144,7 +144,7 @@ rst         => p_in_rst
 );
 
 --//RAM->PCIE
-m_rxbuf : pcie2mem_fifo
+m_rxbuf : pcie2mem_fifo_tst
 port map(
 din         => i_rxbuf_din,
 wr_en       => i_rxbuf_din_wr,
