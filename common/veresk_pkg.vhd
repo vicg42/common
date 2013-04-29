@@ -467,7 +467,7 @@ p_in_rst          : in   std_logic
 );
 end component;
 
-component prom_ld is
+component prom_ld
 generic(
 G_HOST_DWIDTH : integer:=32
 );
