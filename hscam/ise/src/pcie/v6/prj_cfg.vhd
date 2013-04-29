@@ -16,8 +16,8 @@ use ieee.std_logic_1164.all;
 
 package prj_cfg is
 
---//Версия реализации
-constant C_PCFG_HSCAM_PCIE_VERSION     : integer:=16#004#;  --Версия прошивки
+--//HOST
+constant C_PCFG_HDEV_DWIDTH           : integer:=64;
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";
@@ -65,6 +65,5 @@ constant C_CAM_CTRL_CFGFTDI            : integer:=7;
 
 constant C_PCFG_VBUF_IWIDTH : integer := 80;
 constant C_PCFG_VBUF_OWIDTH : integer := 32;
-
 
 end prj_cfg;
