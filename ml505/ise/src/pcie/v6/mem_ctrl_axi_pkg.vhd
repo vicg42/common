@@ -29,7 +29,7 @@ constant C_AXIS_IDWIDTH    : integer:=4;
 constant C_AXIM_IDWIDTH    : integer:=4;--8;
 
 constant C_AXI_AWIDTH      : integer:=32;
-constant C_AXI_DWIDTH      : integer:=64;
+constant C_AXI_DWIDTH      : integer:=C_PCFG_HDEV_DWIDTH;
 
 constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 constant C_MEM_BANK_COUNT_MAX: integer := C_MEM_BANK_COUNT;
