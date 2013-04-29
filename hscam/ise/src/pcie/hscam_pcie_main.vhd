@@ -933,7 +933,7 @@ pin_out_led(5)<='0';
 pin_out_led(6)<='0';
 pin_out_led(7)<='0';
 
-m_gt_03_test: fpga_test_01
+m_led_tst : fpga_test_01
 generic map(
 G_BLINK_T05   =>10#250#,
 G_CLK_T05us   =>10#75#
