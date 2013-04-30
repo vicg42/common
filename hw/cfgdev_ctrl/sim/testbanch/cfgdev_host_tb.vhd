@@ -33,6 +33,8 @@ architecture behavior of cfgdev_host_tb is
 
 constant CI_OPT : integer := 1;
 
+constant C_HOST_DWIDTH    : integer:=32;
+
 constant C_HOSTCLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_USRCLK_PERIOD  : TIME := 10 ns;
 
@@ -82,15 +84,15 @@ signal i_reg4                   : std_logic_vector(i_cfg_rxd'range);
 constant CI_USRD_COUNT_MAX : integer := 6;
 constant CI_CFGPKT_HEADER_DCOUNT : integer := C_CFGPKT_HEADER_DCOUNT + CI_OPT;
 type TUsrPkt is array (0 to C_CFGPKT_HEADER_DCOUNT + CI_OPT + CI_USRD_COUNT_MAX - 1) of std_logic_vector(15 downto 0);
-type TUsrPkts is array (0 to 7) of TUsrPkt;
+type TUsrPkts is array (0 to 10) of TUsrPkt;
 signal i_pkts     : TUsrPkts;
 
 signal i_host_rxrdy : std_logic;
-signal i_host_rxd   : std_logic_vector(31 downto 0);
+signal i_host_rxd   : std_logic_vector(63 downto 0);
 signal i_host_rd    : std_logic;
 
 signal i_host_txrdy : std_logic;
-signal i_host_txd   : std_logic_vector(31 downto 0);
+signal i_host_txd   : std_logic_vector(63 downto 0);
 signal i_host_wr    : std_logic;
 
 signal i_host_clk   : std_logic;
@@ -120,17 +122,21 @@ p_in_rst<='1','0' after 1 us;
 p_out_tst<=i_cfg_done;
 
 m_devcfg : cfgdev_host
+generic map(
+G_DBG => "OFF",
+G_HOST_DWIDTH => C_HOST_DWIDTH
+)
 port map
 (
 -------------------------------
 --Ñâÿçü ñ HOST
 -------------------------------
 p_out_host_rxrdy     => i_host_rxrdy,
-p_out_host_rxd       => i_host_rxd  ,
+p_out_host_rxd       => i_host_rxd(C_HOST_DWIDTH - 1 downto 0),
 p_in_host_rd         => i_host_rd   ,
 
 p_out_host_txrdy     => i_host_txrdy,
-p_in_host_txd        => i_host_txd  ,
+p_in_host_txd        => i_host_txd(C_HOST_DWIDTH - 1 downto 0),
 p_in_host_wr         => i_host_wr  ,
 
 p_out_host_irq       => open,
@@ -268,15 +274,17 @@ i_pkts(0)(0 + CI_OPT)(C_CFGPKT_WR_BIT)<=C_CFGPKT_WR;
 i_pkts(0)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
 i_pkts(0)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
-i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#05#, i_pkts(0)(2)'length);--//Len
---if CI_OPT = 1 then
-i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 5) * 2, i_pkts(0)(0)'length);
+i_pkts(0)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#06#, i_pkts(0)(2)'length);--//Len
+if CI_OPT = 1 then
+i_pkts(0)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 6) * 2, i_pkts(0)(0)'length);
+end if;
 
 i_pkts(0)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1011#, i_pkts(0)(0)'length);
 i_pkts(0)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2012#, i_pkts(0)(0)'length);
 i_pkts(0)(5 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#3013#, i_pkts(0)(0)'length);
 i_pkts(0)(6 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#4014#, i_pkts(0)(0)'length);
 i_pkts(0)(7 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#5015#, i_pkts(0)(0)'length);
+i_pkts(0)(8 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#6016#, i_pkts(0)(0)'length);
 
 --//Pkt1
 i_pkts(1)(0 + CI_OPT)(C_CFGPKT_DADR_M_BIT downto C_CFGPKT_DADR_L_BIT)<=CONV_STD_LOGIC_VECTOR(16#00#, C_CFGPKT_DADR_M_BIT-C_CFGPKT_DADR_L_BIT+1);
@@ -285,8 +293,9 @@ i_pkts(1)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
 i_pkts(1)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
 i_pkts(1)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--//Len
---if CI_OPT = 1 then
+if CI_OPT = 1 then
 i_pkts(1)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(1)(0)'length);
+end if;
 
 i_pkts(1)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(0)'length);
 i_pkts(1)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(0)'length);
@@ -301,8 +310,9 @@ i_pkts(2)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
 i_pkts(2)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--//Start Adr
 i_pkts(2)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--//Len
---if CI_OPT = 1 then
+if CI_OPT = 1 then
 i_pkts(2)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT) * 2, i_pkts(2)(0)'length);
+end if;
 
 i_pkts(2)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(0)'length);
 i_pkts(2)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(0)'length);
@@ -318,8 +328,9 @@ i_pkts(3)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
 i_pkts(3)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#01#, i_pkts(0)(1)'length);--//Start Adr
 i_pkts(3)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#02#, i_pkts(0)(2)'length);--//Len
---if CI_OPT = 1 then
+if CI_OPT = 1 then
 i_pkts(3)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 2) * 2, i_pkts(3)(0)'length);
+end if;
 
 i_pkts(3)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1021#, i_pkts(0)(0)'length);
 i_pkts(3)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2022#, i_pkts(0)(0)'length);
@@ -335,8 +346,9 @@ i_pkts(4)(0 + CI_OPT)(C_CFGPKT_FIFO_BIT)<='0';
 
 i_pkts(4)(1 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#02#, i_pkts(0)(1)'length);--//Start Adr
 i_pkts(4)(2 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(10#03#, i_pkts(0)(2)'length);--//Len
---if CI_OPT = 1 then
+if CI_OPT = 1 then
 i_pkts(4)(0) <= CONV_STD_LOGIC_VECTOR((C_CFGPKT_HEADER_DCOUNT + 3) * 2, i_pkts(4)(0)'length);
+end if;
 
 i_pkts(4)(3 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#1031#, i_pkts(0)(0)'length);
 i_pkts(4)(4 + CI_OPT)<=CONV_STD_LOGIC_VECTOR(16#2032#, i_pkts(0)(0)'length);
@@ -352,6 +364,10 @@ wait until p_in_rst='0';
 wait for 1 us;
 
 
+--------------------------------------
+--DWIDTH 32Bit
+--------------------------------------
+if C_HOST_DWIDTH = 32 then
 --//PKT(Write)
 wait until rising_edge(i_host_clk);
 i_host_txd(31 downto 0) <= i_pkts(0)(1) & i_pkts(0)(0);
@@ -400,6 +416,46 @@ i_host_wr <= '1';
 wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
 
+end if; --if C_HOST_DWIDTH = 32 then
+
+
+
+
+--------------------------------------
+--DWIDTH 64Bit
+--------------------------------------
+if C_HOST_DWIDTH = 64 then
+--//PKT(Write)
+wait until rising_edge(i_host_clk);
+i_host_txd(63 downto 0) <= i_pkts(0)(3) & i_pkts(0)(2) & i_pkts(0)(1) & i_pkts(0)(0);
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
+
+wait until rising_edge(i_host_clk);
+i_host_txd(63 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6) & i_pkts(0)(5) & i_pkts(0)(4);
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
+
+wait until rising_edge(i_host_clk);
+i_host_txd(63 downto 0) <= EXT(i_pkts(0)(8), 64);
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
+
+
+
+wait until rising_edge(i_host_clk) and i_cfg_done = '1';
+wait for 1 us;
+
+wait until rising_edge(i_host_clk);
+i_host_txd(63 downto 0) <= i_pkts(1)(3) & i_pkts(1)(2) & i_pkts(1)(1) & i_pkts(1)(0);
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
+
+end if; --if C_HOST_DWIDTH = 64 then
 
 wait;
 
