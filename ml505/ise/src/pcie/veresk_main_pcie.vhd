@@ -258,6 +258,11 @@ signal i_cfg_rd_dev                     : std_logic_vector(C_CFGDEV_COUNT-1 down
 signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT-1 downto 0);
 signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 
+signal i_tmr_rst                        : std_logic;
+signal i_tmr_clk                        : std_logic;
+signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT-1 downto 0);
+signal i_tmr_en                         : std_logic_vector(C_TMR_COUNT-1 downto 0);
+
 --signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
 --signal i_host_mem_status                : TPce2Mem_Status;
@@ -343,6 +348,12 @@ signal tst_irq_clr_det         : std_logic;
 signal tst_irq_clr_cnt         : std_logic_vector(1 downto 0);
 signal tst_fw_rd               : std_logic;
 
+signal i_cfg_adr_cnt                 : std_logic_vector(7 downto 0);
+signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
+signal h_reg_eth_host_frr            : TEthFRR;
+signal h_reg_eth_vctrl_frr           : TEthFRR;
+
+
 --//MAIN
 begin
 
@@ -370,6 +381,7 @@ p_in_clk   => pin_in_refclk
 );
 
 --g_usr_highclk<=i_mem_ctrl_sysout.clk;
+i_tmr_clk<=g_usrclk(2);
 --i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);
 --i_mem_ctrl_sysin.clk<=g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
@@ -434,7 +446,9 @@ p_in_rst => i_cfg_rst
 );
 
 --//Распределяем управление от блока конфигурирования(cfgdev.vhd):
-i_cfg_rxd<=(others=>'0');
+--//Распределяем управление от блока конфигурирования(cfgdev.vhd):
+i_cfg_rxd<=i_cfg_rxd_dev(C_CFGDEV_SWT)     when i_cfg_dadr(3 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, 4)     else
+           (others=>'0');
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT-1 generate
 i_cfg_wr_dev(i)   <=i_cfg_wr   when i_cfg_dadr=i else '0';
@@ -577,7 +591,8 @@ i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSK
 
 
 ----//Прерывания
---i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
+i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
+
 
 --//Обработка управляющих сигналов Хоста
 i_host_mem_ctrl.dir       <=not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
@@ -764,6 +779,102 @@ end if;
 end if;
 end process;
 
+
+
+
+--***********************************************************
+--Firmware + Test Register
+--***********************************************************
+--//Счетчик адреса регистров
+process(i_cfg_rst,g_host_clk)
+begin
+  if i_cfg_rst='1' then
+    i_cfg_adr_cnt<=(others=>'0');
+  elsif g_host_clk'event and g_host_clk='1' then
+    if i_cfg_radr_ld='1' then
+      i_cfg_adr_cnt<=i_cfg_radr(7 downto 0);
+    else
+      if i_cfg_radr_fifo='0' and (i_cfg_wr_dev(C_CFGDEV_SWT)='1' or i_cfg_rd_dev(C_CFGDEV_SWT)='1') then
+        i_cfg_adr_cnt<=i_cfg_adr_cnt+1;
+      end if;
+    end if;
+  end if;
+end process;
+
+--//Запись регистров
+process(i_cfg_rst,g_host_clk)
+begin
+  if i_cfg_rst='1' then
+    h_reg_ctrl<=(others=>'0');
+
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+      h_reg_eth_host_frr(2*i)  <=(others=>'0');
+      h_reg_eth_host_frr(2*i+1)<=(others=>'0');
+    end loop;
+
+    for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+      h_reg_eth_vctrl_frr(2*i)  <=(others=>'0');
+      h_reg_eth_vctrl_frr(2*i+1)<=(others=>'0');
+    end loop;
+
+  elsif g_host_clk'event and g_host_clk='1' then
+    if i_cfg_wr_dev(C_CFGDEV_SWT)='1' then
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then h_reg_ctrl<=i_cfg_txd(h_reg_ctrl'high downto 0);
+
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
+        --//Заполняем маски фильтрации пакетов: ETH<->HOST
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              h_reg_eth_host_frr(2*i)  <=i_cfg_txd(7 downto 0);
+              h_reg_eth_host_frr(2*i+1)<=i_cfg_txd(15 downto 8);
+            end if;
+          end loop;
+
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
+        --//Заполняем маски фильтрации пакетов: ETH->VCTRL
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              h_reg_eth_vctrl_frr(2*i)  <=i_cfg_txd(7 downto 0);
+              h_reg_eth_vctrl_frr(2*i+1)<=i_cfg_txd(15 downto 8);
+            end if;
+          end loop;
+
+        end if;
+    end if;
+  end if;
+end process;
+
+--//Чтение регистров
+process(i_cfg_rst,g_host_clk)
+begin
+  if i_cfg_rst='1' then
+    i_cfg_rxd_dev(C_CFGDEV_SWT)<=(others=>'0');
+  elsif g_host_clk'event and g_host_clk='1' then
+    if i_cfg_rd_dev(C_CFGDEV_SWT)='1' then
+        if    i_cfg_adr_cnt=CONV_STD_LOGIC_VECTOR(C_SWT_REG_CTRL, i_cfg_adr_cnt'length) then i_cfg_rxd_dev(C_CFGDEV_SWT)<=EXT(h_reg_ctrl, i_cfg_rxd_dev(C_CFGDEV_SWT)'length);
+
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_HOST/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
+        --//Читаем маски фильтрации пакетов: ETH<->HOST
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              i_cfg_rxd_dev(C_CFGDEV_SWT)(7 downto 0) <=h_reg_eth_host_frr(2*i)  ;
+              i_cfg_rxd_dev(C_CFGDEV_SWT)(15 downto 8)<=h_reg_eth_host_frr(2*i+1);
+            end if;
+          end loop;
+
+        elsif i_cfg_adr_cnt(i_cfg_adr_cnt'high downto log2(C_SWT_FRR_COUNT_MAX))=CONV_STD_LOGIC_VECTOR(C_SWT_REG_FRR_ETHG_VCTRL/C_SWT_FRR_COUNT_MAX, (i_cfg_adr_cnt'high - log2(C_SWT_FRR_COUNT_MAX)+1)) then
+        --//Читаем маски фильтрации пакетов: ETH->VCTRL
+          for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_VCTRL_FRR_COUNT)-1 loop
+            if i_cfg_adr_cnt(log2(C_SWT_FRR_COUNT_MAX)-1 downto 0)=i then
+              i_cfg_rxd_dev(C_CFGDEV_SWT)(7 downto 0) <=h_reg_eth_vctrl_frr(2*i)  ;
+              i_cfg_rxd_dev(C_CFGDEV_SWT)(15 downto 8)<=h_reg_eth_vctrl_frr(2*i+1);
+            end if;
+          end loop;
+
+        end if;
+    end if;
+  end if;
+end process;
 
 end architecture;
 

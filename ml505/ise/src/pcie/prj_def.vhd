@@ -170,7 +170,7 @@ constant C_HIRQ_VCH5                          : integer:=10;
 constant C_HIRQ_VIZIR_RX                      : integer:=11;
 constant C_HIRQ_BUP_RX                        : integer:=12;
 constant C_HIRQ_PROM                          : integer:=13;
-constant C_HIRQ_COUNT                         : integer:=2;--C_HIRQ_PROM+1;
+constant C_HIRQ_COUNT                         : integer:=3;--C_HIRQ_PROM+1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT-C_HREG_IRQ_NUM_L_WBIT+1));
 
 

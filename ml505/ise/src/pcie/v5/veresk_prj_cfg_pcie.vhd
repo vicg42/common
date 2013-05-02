@@ -39,6 +39,7 @@ constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=24;--//Номер видео канала (MSB
 constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=25;
 
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 4
+constant C_PCFG_VCTRL_DBGCS            : string:="ON";
 
 --//cfg ETH
 constant C_PCFG_ETH_USE                : string:="ON";

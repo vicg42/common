@@ -1042,10 +1042,8 @@ begin
     else
       if p_in_txbuf_wr = '1' then
         i_txbuf_wr_sel <= not i_txbuf_wr_sel;
+        sr_txbuf_din <= p_in_txbuf_din;
       end if;
-
-      sr_txbuf_din <= p_in_txbuf_din;
-
     end if;
   end if;
 end process;
