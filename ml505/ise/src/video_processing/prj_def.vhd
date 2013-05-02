@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0001#;--Распологается в C_CFGDEV_TESTING/рег. 0x00
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0003#;--Распологается в C_CFGDEV_TESTING/рег. 0x00
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--DWORD

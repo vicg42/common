@@ -171,6 +171,7 @@ G_DBG : string := "OFF";
 G_SIM : string := "OFF"
 );
 port(
+p_in_ctrl     : in    std_logic_vector(15 downto 0);
 p_out_err     : out   std_logic;
 
 --VIN
@@ -352,15 +353,17 @@ signal i_eth_fltr_do                    : std_logic_vector(31 downto 0);
 signal i_eth_fltr_wr_cfg                : std_logic;
 signal i_eth_fltr_wr_vctrl              : std_logic;
 
-signal i_vctrl_vbufi_do                 : std_logic_vector(31 downto 0);
-signal i_vctrl_vbufi_rd                 : std_logic;
-signal i_vctrl_vbufi_empty              : std_logic;
-signal i_vctrl_vbufi_pfull              : std_logic;
-signal i_vctrl_vbufi_full               : std_logic;
-signal i_vctrl_vbufo_di                 : std_logic_vector(31 downto 0);
-signal i_vctrl_vbufo_wr                 : std_logic;
-signal i_vctrl_vbufo_empty              : std_logic;
-signal i_vctrl_vbufo_full               : std_logic;
+signal i_vbufi_do                       : std_logic_vector(31 downto 0);
+signal i_vbufi_rd                       : std_logic;
+signal i_vbufi_empty                    : std_logic;
+signal i_vbufi_pfull                    : std_logic;
+signal i_vbufi_full                     : std_logic;
+signal i_vbufo_di                       : std_logic_vector(31 downto 0);
+signal i_vbufo_wr                       : std_logic;
+signal i_vbufo_empty                    : std_logic;
+signal i_vbufo_full                     : std_logic;
+signal i_vbufo_do                       : std_logic_vector(31 downto 0);
+signal i_vbufo_rd                       : std_logic;
 
 signal i_vctrl_vchsel                   : std_logic_vector(3 downto 0);
 signal i_vctrl_hrd_start                : std_logic;
@@ -386,9 +389,15 @@ signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
 signal i_dvi_clk_in                     : std_logic;
+signal i_dvi_di_clk                     : std_logic;
 signal i_dvi_di                         : std_logic_vector(31 downto 0);
+signal i_dvi_di_rd                      : std_logic;
+signal i_dvi_di_bcnt                    : std_logic_vector(1 downto 0);
+signal i_dvi_pix                        : std_logic_vector(31 downto 0);
 signal i_dvi_vs                         : std_logic;
+signal sr_dvi_vs                        : std_logic_vector(0 to 2);
 signal i_dvi_hs                         : std_logic;
+signal i_dvi_de                         : std_logic;
 
 attribute keep : string;
 attribute keep of i_ethphy_out : signal is "true";
@@ -665,22 +674,32 @@ din         => i_eth_fltr_do,
 wr_en       => i_eth_fltr_wr_vctrl,
 wr_clk      => i_ethphy_out.clk,
 
-dout        => i_vctrl_vbufi_do,
-rd_en       => i_vctrl_vbufi_rd,
+dout        => i_vbufi_do,
+rd_en       => i_vbufi_rd,
 rd_clk      => g_usr_highclk,
 
-empty       => i_vctrl_vbufi_empty,
-full        => i_vctrl_vbufi_full,
-prog_full   => i_vctrl_vbufi_pfull,
+empty       => i_vbufi_empty,
+full        => i_vbufi_full,
+prog_full   => i_vbufi_pfull,
 
 rst         => i_mnl_rst
 );
 
 i_vctrl_vchsel <= (others=>'0');
-i_vctrl_hrd_start <= not i_vctrl_vbufi_empty;
+
+process(i_mnl_rst, g_usr_highclk)
+begin
+  if i_mnl_rst = '1' then
+    i_vctrl_hrd_start <= '0';
+  elsif rising_edge(g_usr_highclk) then
+    i_vctrl_hrd_start <= not sr_dvi_vs(1) and sr_dvi_vs(2);
+  end if;
+end process;
+
 
 m_vctrl : dsn_video_ctrl
 generic map(
+G_DBGCS  => "ON",
 G_ROTATE => "OFF",
 G_ROTATE_BUF_COUNT => 16,
 G_SIMPLE => "ON",
@@ -740,16 +759,16 @@ p_out_trc_vbuf       => open,
 p_out_vbuf_clk       => open,
 
 p_in_vbufin_rdy      => '1',
-p_in_vbufin_dout     => i_vctrl_vbufi_do,
-p_out_vbufin_dout_rd => i_vctrl_vbufi_rd,
-p_in_vbufin_empty    => i_vctrl_vbufi_empty,
-p_in_vbufin_full     => i_vctrl_vbufi_full,
-p_in_vbufin_pfull    => i_vctrl_vbufi_pfull,
+p_in_vbufin_dout     => i_vbufi_do,
+p_out_vbufin_dout_rd => i_vbufi_rd,
+p_in_vbufin_empty    => i_vbufi_empty,
+p_in_vbufin_full     => i_vbufi_full,
+p_in_vbufin_pfull    => i_vbufi_pfull,
 
-p_out_vbufout_din    => i_vctrl_vbufo_di,
-p_out_vbufout_din_wd => i_vctrl_vbufo_wr,
-p_in_vbufout_empty   => i_vctrl_vbufo_empty,
-p_in_vbufout_full    => i_vctrl_vbufo_full,
+p_out_vbufout_din    => i_vbufo_di,
+p_out_vbufout_din_wd => i_vbufo_wr,
+p_in_vbufout_empty   => i_vbufo_empty,
+p_in_vbufout_full    => i_vbufo_full,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
@@ -860,23 +879,59 @@ p_in_sys        => i_mem_ctrl_sysin
 --Выдаем данные VCTRL на монитор
 --***********************************************************
 --//Выходной буфер модуля dsn_video_ctrl.vhd
-m_vctrl_bufo : host_vbuf
+m_vbufo : host_vbuf
 port map(
-din         => i_vctrl_vbufo_di,
-wr_en       => i_vctrl_vbufo_wr,
+din         => i_vbufo_di,
+wr_en       => i_vbufo_wr,
 wr_clk      => g_usr_highclk,
 
-dout        => i_dvi_di,
-rd_en       => i_dvi_vs,
-rd_clk      => g_usr_highclk,
+dout        => i_vbufo_do,
+rd_en       => i_vbufo_rd,
+rd_clk      => i_dvi_di_clk,
 
-empty       => i_vctrl_vbufo_empty,
+empty       => i_vbufo_empty,
 full        => open,
-prog_full   => i_vctrl_vbufo_full,
+prog_full   => i_vbufo_full,
 
 rst         => i_mnl_rst
 );
 
+i_vbufo_rd <= AND_reduce(i_dvi_di_bcnt);
+
+process(i_mnl_rst, i_dvi_di_clk)
+begin
+  if i_mnl_rst = '1' then
+    i_dvi_di_bcnt <= (others=>'0');
+  elsif rising_edge(i_dvi_di_clk) then
+    if i_dvi_di_rd = '1' then
+      i_dvi_di_bcnt <= i_dvi_di_bcnt + 1;
+    end if;
+  end if;
+end process;
+
+i_dvi_pix <= CONV_STD_LOGIC_VECTOR(0, 24) & i_vbufo_do((8 * 4) - 1 downto (8 * 3))
+              when i_dvi_di_bcnt = CONV_STD_LOGIC_VECTOR(3, i_dvi_di_bcnt'length) else
+                CONV_STD_LOGIC_VECTOR(0, 24) & i_vbufo_do((8 * 3) - 1 downto (8 * 2))
+                  when i_dvi_di_bcnt = CONV_STD_LOGIC_VECTOR(2, i_dvi_di_bcnt'length) else
+                    CONV_STD_LOGIC_VECTOR(0, 24) & i_vbufo_do((8 * 2) - 1 downto (8 * 1))
+                      when i_dvi_di_bcnt = CONV_STD_LOGIC_VECTOR(1, i_dvi_di_bcnt'length) else
+                        CONV_STD_LOGIC_VECTOR(0, 24) & i_vbufo_do((8 * 1) - 1 downto (8 * 0));
+
+i_dvi_di(31 downto 0) <= "00000000"
+                         & i_dvi_pix(7 downto 0)
+                         & i_dvi_pix(7 downto 0)
+                         & i_dvi_pix(7 downto 0);
+
+process(i_mnl_rst, g_usr_highclk)
+begin
+  if i_mnl_rst = '1' then
+    sr_dvi_vs <= (others=>'0');
+  elsif rising_edge(g_usr_highclk) then
+    sr_dvi_vs <= not i_dvi_vs & sr_dvi_vs(0 to 1);
+  end if;
+end process;
+
+pin_out_dvi_de <= i_dvi_de;
 pin_out_dvi_hs <= i_dvi_hs;
 pin_out_dvi_vs <= i_dvi_vs;
 
@@ -886,17 +941,18 @@ G_DBG => "OFF",
 G_SIM => "OFF"
 )
 port map(
+p_in_ctrl     => tst_reg(0),
 p_out_err     => open,--i_dvi_ctrl_err,
 
 --VIN
-p_in_vdi      => (others=>'0'),
-p_out_vdi_rd  => open,
-p_out_vdi_clk => open,
+p_in_vdi      => i_dvi_di,
+p_out_vdi_rd  => i_dvi_di_rd,
+p_out_vdi_clk => i_dvi_di_clk,
 
 --VOUT
 p_out_clk     => pin_out_dvi_clk,
-p_out_vd      => pin_out_dvi_d  ,
-p_out_vde     => pin_out_dvi_de ,
+p_out_vd      => pin_out_dvi_d,
+p_out_vde     => i_dvi_de ,
 p_out_hs      => i_dvi_hs ,
 p_out_vs      => i_dvi_vs ,
 
@@ -918,7 +974,7 @@ p_in_rst      => i_mnl_rst
 --//#########################################
 --//DBG
 --//#########################################
-pin_out_led(0)<=OR_reduce(i_dvi_di);
+pin_out_led(0)<=OR_reduce(i_dvi_di) or OR_reduce(i_vctrl_tst_out);
 pin_out_led(1)<=OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx) or i_cfg_tst_out(0);
 pin_out_led(2)<='0';
 pin_out_led(3)<=dbg_eth_out.app(0).mac_rx(1);--i_dhcp_done
