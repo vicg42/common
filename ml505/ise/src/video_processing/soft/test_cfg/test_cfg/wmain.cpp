@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     //--- Image group ---
     btn_img_open = new QPushButton(tr("&Open"));
-    chbox_img = new QCheckBox(tr("&View"));
+    chbox_img = new QCheckBox(tr("&X"));
 
     QVBoxLayout *lvbox_img = new QVBoxLayout;
     lvbox_img->addWidget(btn_img_open);
@@ -104,7 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     TVch vch;
     vch.fr_size.activ.x = 1024/4;
-    vch.fr_size.activ.y = 1024;
+    vch.fr_size.activ.y = 768;
     vch.fr_size.skip.x = 0;
     vch.fr_size.skip.y = 0;
 
@@ -230,7 +230,11 @@ void MainWindow::img_open()
         if (!fitToWindowAct->isChecked())
             imageLabel->adjustSize();*/
 
-        imgToboard(&img);
+        if (!imgToboard(&img)){
+          etext_log->append(QString("%1: send error")
+                            .arg(__func__));
+        }
+
     }
 
 }
@@ -247,7 +251,7 @@ bool MainWindow::imgToboard(QImage *img)
   {
       width += 4 - width % 4;
       //cout << "Warning: Image width is realigned, new width is " << width << endl;
-      etext_log->append(QString("Warning: Image width is realigned, new width is %1")
+      etext_log->append(QString("%1 Warning: Image width is realigned, new width is %2")
                         .arg(__func__)
                         .arg(width, 0 , 10));
   }
@@ -259,7 +263,7 @@ bool MainWindow::imgToboard(QImage *img)
   {
       split = width;
       //cout << "Warning: Too small image width (will not be splitted)" << endl;
-      etext_log->append(QString("Warning: Too small image width (will not be splitted)")
+      etext_log->append(QString("%1 Warning: Too small image width (will not be splitted)")
                         .arg(__func__));
   }
 
@@ -268,31 +272,40 @@ bool MainWindow::imgToboard(QImage *img)
   const uint32_t ts = LDCU::Timestamp::Make(ct);
 
 
-  const size_t HEAD_SIZE = 16;
+  uint16_t pkt_type = 0x0301;
+  uint8_t vch = 0;
+  const size_t HEAD_SIZE = 16 + 1;
   std::vector<uint8_t> buffer;
   TBifRq rq;
 
   for (size_t y = 0, ylim = img->height(); y < ylim; ++y)
   {
       //cout << L::Console::Cursor::Restore << (y * 100 / ylim) << "%" << flush;
-
+      etext_log->append(QString("%1: send img(y%2)")
+                        .arg(__func__)
+                        .arg(y, 0 , 10));
       for (size_t chunk = 0, clim = (width + split - 1) / split; chunk < clim; ++chunk)
       {
           size_t chunk_width = (width - chunk * split >= split) ? split : width - chunk * split;
 
           buffer.resize(HEAD_SIZE + chunk_width);
 
-          *reinterpret_cast<uint16_t *>(&buffer[0]) = frame;
-          *reinterpret_cast<uint16_t *>(&buffer[2]) = width;
-          *reinterpret_cast<uint16_t *>(&buffer[4]) = img->height();
-          *reinterpret_cast<uint16_t *>(&buffer[6]) = y;
-          *reinterpret_cast<uint16_t *>(&buffer[8]) = chunk * split;
-          *reinterpret_cast<uint16_t *>(&buffer[10]) = ts & 0x0000ffff;
-          *reinterpret_cast<uint16_t *>(&buffer[12]) = ts >> 16;
-          *reinterpret_cast<uint16_t *>(&buffer[14]) = 0; // alignment
+          *reinterpret_cast<uint16_t *>(&buffer[0]) = (pkt_type << 0) | ((vch & 0x3) << 4);
+          *reinterpret_cast<uint16_t *>(&buffer[0 + 2]) = frame;
+          *reinterpret_cast<uint16_t *>(&buffer[2 + 2]) = width;
+          *reinterpret_cast<uint16_t *>(&buffer[4 + 2]) = img->height();
+          *reinterpret_cast<uint16_t *>(&buffer[6 + 2]) = y;
+          *reinterpret_cast<uint16_t *>(&buffer[8 + 2]) = chunk * split;
+          *reinterpret_cast<uint16_t *>(&buffer[10 + 2]) = ts & 0x0000ffff;
+          *reinterpret_cast<uint16_t *>(&buffer[12 + 2]) = ts >> 16;
+          *reinterpret_cast<uint16_t *>(&buffer[14 + 2]) = 0; // alignment
 
-          for (size_t x = 0, xlim = chunk_width; x < xlim; ++x)
-              buffer[HEAD_SIZE + x] = qGray(img->pixel(x + chunk * split, y));
+          for (size_t x = 0, xlim = chunk_width; x < xlim; ++x){
+              if (chbox_img->isChecked())
+              buffer[HEAD_SIZE + x] = x;//qGray(img->pixel(x + chunk * split, y));
+              else
+                  buffer[HEAD_SIZE + x] = y;//qGray(img->pixel(x + chunk * split, y));
+          }
 
           rq.tx.data = &buffer[0];
           rq.tx.size = (uint64_t) buffer.size();
@@ -303,6 +316,8 @@ bool MainWindow::imgToboard(QImage *img)
       }
   }
 
+  etext_log->append(QString("%1: img send successful")
+                    .arg(__func__));
   return true;
 }
 
