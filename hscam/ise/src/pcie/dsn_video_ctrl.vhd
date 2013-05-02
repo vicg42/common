@@ -82,13 +82,13 @@ p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);  --//
 p_out_vbuf_clk        : out   std_logic;                      --//
 
 p_in_vbufin_rdy       : in    std_logic;                      --//Связь в буфером входной видеоинформации
-p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);  --//
+p_in_vbufin_dout      : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//
 p_out_vbufin_dout_rd  : out   std_logic;                      --//
 p_in_vbufin_empty     : in    std_logic;                      --//
 p_in_vbufin_full      : in    std_logic;                      --//
 p_in_vbufin_pfull     : in    std_logic;                      --//
 
-p_out_vbufout_din     : out   std_logic_vector(31 downto 0);  --//Связь с буферов видео данных для ХОСТА
+p_out_vbufout_din     : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);  --//Связь с буферов видео данных для ХОСТА
 p_out_vbufout_din_wd  : out   std_logic;                      --//
 p_in_vbufout_empty    : in    std_logic;                      --//
 p_in_vbufout_full     : in    std_logic;                      --//
@@ -154,7 +154,7 @@ p_out_vrow_mrk        : out   TVMrks;
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_in_upp_data         : in    std_logic_vector(31 downto 0);
+p_in_upp_data         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_upp_data_rd     : out   std_logic;
 p_in_upp_data_rdy     : in    std_logic;
 p_in_upp_buf_empty    : in    std_logic;
@@ -222,7 +222,7 @@ p_out_vch_mirx       : out   std_logic;
 --//--------------------------
 --//Upstream Port
 --//--------------------------
-p_out_upp_data       : out   std_logic_vector(31 downto 0);
+p_out_upp_data       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_upp_data_wd    : out   std_logic;
 p_in_upp_buf_empty   : in    std_logic;
 p_in_upp_buf_full    : in    std_logic;
@@ -637,12 +637,20 @@ end process;
 gen_vwrprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_wrprm_vch(i).mem_adr <= i_vprm.ch(i).mem_addr_wr;
 i_wrprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
+--i_wrprm_vch(i).fr_size.activ.pix <= CONV_STD_LOGIC_VECTOR(1280, i_wrprm_vch(i).fr_size.activ.pix'length);
+--i_wrprm_vch(i).fr_size.activ.row <= CONV_STD_LOGIC_VECTOR(1024, i_wrprm_vch(i).fr_size.activ.row'length);
+--i_wrprm_vch(i).fr_size.skip.pix <= (others=>'0');
+--i_wrprm_vch(i).fr_size.skip.row <= (others=>'0');
 end generate gen_vwrprm;
 
 --//Готовим параметры для модуля чтения
 gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_rdprm_vch(i).mem_adr <= i_vprm.ch(i).mem_addr_rd;
 i_rdprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
+--i_rdprm_vch(i).fr_size.activ.pix <= CONV_STD_LOGIC_VECTOR(1280, i_wrprm_vch(i).fr_size.activ.pix'length);
+--i_rdprm_vch(i).fr_size.activ.row <= CONV_STD_LOGIC_VECTOR(1024, i_wrprm_vch(i).fr_size.activ.row'length);
+--i_rdprm_vch(i).fr_size.skip.pix <= (others=>'0');
+--i_rdprm_vch(i).fr_size.skip.row <= (others=>'0');
 i_rdprm_vch(i).fr_mirror <= i_vprm.ch(i).fr_mirror;
 end generate gen_vrdprm;
 

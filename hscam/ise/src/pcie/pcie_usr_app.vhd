@@ -64,7 +64,7 @@ p_out_txbuf_full               : out   std_logic;
 --p_in_txbuf_din_be              : in    std_logic_vector(3 downto 0);
 
 --(PC<-FPGA)
-p_out_rxbuf_dout               : out   std_logic_vector(31 downto 0);
+p_out_rxbuf_dout               : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_in_rxbuf_rd                  : in    std_logic;
 p_in_rxbuf_rd_last             : in    std_logic;
 p_out_rxbuf_empty              : out   std_logic;
@@ -92,7 +92,6 @@ p_out_mwr_64b                  : out   std_logic;
 p_out_mwr_phant_func_en1       : out   std_logic;
 p_out_mwr_relaxed_order        : out   std_logic;
 p_out_mwr_nosnoop              : out   std_logic;
-p_out_mwr_tag                  : out   std_logic_vector(7 downto 0);
 p_out_mwr_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mwr_fbe                  : out   std_logic_vector(3 downto 0);
 
@@ -107,7 +106,6 @@ p_out_mrd_64b                  : out   std_logic;
 p_out_mrd_phant_func_en1       : out   std_logic;
 p_out_mrd_relaxed_order        : out   std_logic;
 p_out_mrd_nosnoop              : out   std_logic;
-p_out_mrd_tag                  : out   std_logic_vector(7 downto 0);
 p_out_mrd_lbe                  : out   std_logic_vector(3 downto 0);
 p_out_mrd_fbe                  : out   std_logic_vector(3 downto 0);
 p_in_mrd_rcv_size              : in    std_logic_vector(31 downto 0);
@@ -120,23 +118,14 @@ p_out_irq_set                  : out   std_logic_vector(C_HIRQ_COUNT_MAX-1 downt
 p_in_irq_status                : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 
 --Сигналы управления работой ядра PCI-Express
-p_out_trn_rnp_ok_n             : out   std_logic;
-p_out_cpl_streaming            : out   std_logic;
 p_out_rd_metering              : out   std_logic;
-p_out_usr_max_payload_size     : out   std_logic_vector(2 downto 0);
-p_out_usr_max_rd_req_size      : out   std_logic_vector(2 downto 0);
+--p_out_usr_max_payload_size     : out   std_logic_vector(2 downto 0);
+--p_out_usr_max_rd_req_size      : out   std_logic_vector(2 downto 0);
 
 --Инф. ядра PCI-Express
-p_in_cfg_irq_disable           : in    std_logic;
-p_in_cfg_msi_enable            : in    std_logic;                   --//(0/1 - Legacy Interrupt/MSI) Тип прерывания
-p_in_cfg_cap_max_lnk_width     : in    std_logic_vector(5 downto 0);--//Запрашиваемое кол-во link линий у системы
 p_in_cfg_neg_max_lnk_width     : in    std_logic_vector(5 downto 0);--//Разрешонное кол-во link линий системой
-p_in_cfg_cap_max_payload_size  : in    std_logic_vector(2 downto 0);--//Запрашиваемый max_payload_size пакета у системы
 p_in_cfg_prg_max_payload_size  : in    std_logic_vector(2 downto 0);--//Разрешонный max_payload_size пакета системой
 p_in_cfg_prg_max_rd_req_size   : in    std_logic_vector(2 downto 0);--//Max read request size for the device when acting as the Requester
-p_in_cfg_phant_func_en         : in    std_logic;                   --//
-p_in_cfg_no_snoop_en           : in    std_logic;                   --//
-p_in_cfg_ext_tag_en            : in    std_logic;                   --//
 
 --//Тестирование
 p_in_rx_engine_tst      : in    std_logic_vector(1 downto 0);
@@ -279,6 +268,12 @@ signal i_mem_adr_en                : std_logic;
 signal i_mem_adr                   : std_logic_vector(31 downto 0):=(others=>'0');
 --signal i_tst_rd                    : std_logic;
 
+signal sr_txbuf_din                : std_logic_vector(31 downto 0);
+signal i_txbuf_din                 : std_logic_vector(63 downto 0);
+signal i_txbuf_wr                  : std_logic;
+signal i_txbuf_wr_sel              : std_logic;
+signal i_pce_testing               : std_logic;
+signal tst_mem_dcnt,tst_mem_dcnt_swap : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 
 --MAIN
 begin
@@ -296,10 +291,9 @@ p_out_mwr_len           <=EXT(i_mwr_payload_dw_result, p_out_mwr_len'length);--/
 p_out_mwr_count         <=EXT(i_mwr_count_result, p_out_mwr_count'length);   --//Кол-во пакетов
 p_out_mwr_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mwr_tlp_tc'length);
 p_out_mwr_64b           <='0';--//1/0 - 64b/32b
-p_out_mwr_phant_func_en1<='0';--//p_in_cfg_phant_func_en
-p_out_mwr_relaxed_order <='0';--v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
-p_out_mwr_nosnoop       <='0';--v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
-p_out_mwr_tag           <=CONV_STD_LOGIC_VECTOR(16#00#, p_out_mwr_tag'length);
+p_out_mwr_phant_func_en1<='0';
+p_out_mwr_relaxed_order <='0';
+p_out_mwr_nosnoop       <='0';
 p_out_mwr_fbe           <=i_mwr_fbe;
 p_out_mwr_lbe           <=i_mwr_lbe;
 
@@ -311,19 +305,16 @@ p_out_mrd_len           <=EXT(i_mrd_payload_dw_result, p_out_mrd_len'length);--/
 p_out_mrd_count         <=EXT(i_mrd_count_result, p_out_mrd_count'length);   --//Кол-во пакетов
 p_out_mrd_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_tlp_tc'length);
 p_out_mrd_64b           <='0';--//1/0 - 64b/32b
-p_out_mrd_phant_func_en1<='0';--//p_in_cfg_phant_func_en
-p_out_mrd_relaxed_order <='0';--v_reg_pcie(C_HREG_PCIE_DMA_RELEX_ORDER_WBIT);
-p_out_mrd_nosnoop       <='0';--v_reg_pcie(C_HREG_PCIE_DMA_NOSNOOP_WBIT);
-p_out_mrd_tag           <=CONV_STD_LOGIC_VECTOR(16#00#, p_out_mrd_tag'length);
+p_out_mrd_phant_func_en1<='0';
+p_out_mrd_relaxed_order <='0';
+p_out_mrd_nosnoop       <='0';
 p_out_mrd_fbe           <=i_mrd_fbe;
 p_out_mrd_lbe           <=i_mrd_lbe;
 
 
-p_out_cpl_streaming     <=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);--//1/0 - рапрещено/разрешено
-p_out_rd_metering       <=v_reg_pcie(C_HREG_PCIE_METRING_BIT);      --//0/1 - запрещено/разрешено
-p_out_trn_rnp_ok_n      <='0';
-p_out_usr_max_payload_size <=i_max_payload_size;
-p_out_usr_max_rd_req_size  <=i_max_rd_req_size;
+p_out_rd_metering       <='1';
+--p_out_usr_max_payload_size <=i_max_payload_size;
+--p_out_usr_max_rd_req_size  <=i_max_rd_req_size;
 
 
 --//--------------------------------------------------------------
@@ -338,7 +329,7 @@ p_out_usr_max_rd_req_size  <=i_max_rd_req_size;
 --//--------------------------------------------------------------
 --//Вычисляем размер payload для последнего пакета(в DWORD)
 --//--------------------------------------------------------------
-i_max_payload_size<=v_reg_pcie(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT);
+i_max_payload_size<=p_in_cfg_prg_max_payload_size;--v_reg_pcie(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT);
 
 --//Выделяем кол-во байт одного пакета TPL из общего размера данных(i_dmatrn_len) установленых Хостом
 --//В зависимости от значения (p_in_cfg_prg_max_payload_size) CFG региста PCI устройства
@@ -427,7 +418,7 @@ i_mwr_lbe<="0000" when i_mwr_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(1
 --//--------------------------------------------------------------
 --//Вычисляем размер payload для последнего пакета(в DWORD)
 --//--------------------------------------------------------------
-i_max_rd_req_size<=v_reg_pcie(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT);
+i_max_rd_req_size<=p_in_cfg_prg_max_rd_req_size;--v_reg_pcie(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT);
 
 --Выделяем кол-во байт одного пакета TPL из общего размера данных(i_dmatrn_len) установленых Хостом
 --В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
@@ -517,7 +508,7 @@ i_hdev_adr     <= v_reg_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTR
 
 i_irq_num      <= v_reg_irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
 
-v_reg_firmware<=CONV_STD_LOGIC_VECTOR(C_PCFG_HSCAM_PCIE_VERSION, v_reg_firmware'length);
+v_reg_firmware<=CONV_STD_LOGIC_VECTOR(C_FPGA_FIRMWARE_VERSION, v_reg_firmware'length);
 
 --Запись:
 process(p_in_rst_n,p_in_clk)
@@ -666,9 +657,9 @@ begin
             txd:=EXT(v_reg_firmware, txd'length); --tst_rd:='1';
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_CTRL, 5) then
-            txd(C_HREG_CTRL_RST_ALL_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_ALL_BIT);
-            txd(C_HREG_CTRL_RST_MEM_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_MEM_BIT);
-            txd(C_HREG_CTRL_RST_ETH_BIT):=v_reg_ctrl(C_HREG_CTRL_RST_ETH_BIT);
+            txd(C_HREG_CTRL_TIME_EN_BIT downto C_HREG_CTRL_ESYNC_IEDGE_BIT):=v_reg_ctrl(C_HREG_CTRL_TIME_EN_BIT downto C_HREG_CTRL_ESYNC_IEDGE_BIT);
+            txd(C_HREG_CTRL_BITCLK_VIZIR_BIT):=v_reg_ctrl(C_HREG_CTRL_BITCLK_VIZIR_BIT);
+            txd(C_HREG_CTRL_EN_SYN120_BUP_BIT):=v_reg_ctrl(C_HREG_CTRL_EN_SYN120_BUP_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DMAPRM_ADR, 5) then
             txd:=EXT(i_host_dmaprm_dout, txd'length);
@@ -684,17 +675,10 @@ begin
             txd(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT) := v_reg_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_PCIE, 5) then
-            txd(C_HREG_PCIE_REQ_LINK_M_RBIT downto C_HREG_PCIE_REQ_LINK_L_RBIT)              :=p_in_cfg_cap_max_lnk_width(5 downto 0);
             txd(C_HREG_PCIE_NEG_LINK_M_RBIT downto C_HREG_PCIE_NEG_LINK_L_RBIT)              :=p_in_cfg_neg_max_lnk_width(5 downto 0);
-            txd(C_HREG_PCIE_REQ_MAX_PAYLOAD_M_RBIT downto C_HREG_PCIE_REQ_MAX_PAYLOAD_L_RBIT):=p_in_cfg_cap_max_payload_size(2 downto 0);
             txd(C_HREG_PCIE_NEG_MAX_PAYLOAD_M_BIT downto C_HREG_PCIE_NEG_MAX_PAYLOAD_L_BIT)  :=p_in_cfg_prg_max_payload_size(2 downto 0);
             txd(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT)    :=p_in_cfg_prg_max_rd_req_size(2 downto 0);
-            txd(C_HREG_PCIE_PHANT_FUNC_RBIT)     :=p_in_cfg_phant_func_en;
-            txd(C_HREG_PCIE_TAG_EXT_EN_RBIT)     :=p_in_cfg_ext_tag_en;
-            txd(C_HREG_PCIE_NOSNOOP_RBIT)        :=p_in_cfg_no_snoop_en;
-            txd(C_HREG_PCIE_CPL_STREAMING_BIT)   :=v_reg_pcie(C_HREG_PCIE_CPL_STREAMING_BIT);
-            txd(C_HREG_PCIE_METRING_BIT)         :=v_reg_pcie(C_HREG_PCIE_METRING_BIT);
-            txd(C_HREG_PCIE_SPEED_TESTING_BIT)   :=v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+            txd(C_HREG_PCIE_SPEED_TESTING_BIT)   :=i_pce_testing;
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_MEM_ADR, 5) then
             txd:=EXT(v_reg_mem_adr, txd'length);
@@ -708,14 +692,13 @@ begin
             end loop;
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_STATUS, 5) then
-            txd(C_HREG_DEV_STATUS_INT_ACT_BIT)        :=OR_reduce(p_in_irq_status(C_HIRQ_COUNT-1 downto 0));
-            txd(C_HREG_DEV_STATUS_PCIE_DMAWR_DONE_BIT):=i_dma_mwr_done;
-            txd(C_HREG_DEV_STATUS_PCIE_DMARD_DONE_BIT):=i_dma_mrd_done;
-            txd(C_HREG_DEV_STATUS_PCIE_ERR_BIT)       :=p_in_mrd_rcv_err;
+            txd(C_HREG_DEV_STATUS_PROM_TXRDY_BIT):=p_in_dev_status(C_HREG_DEV_STATUS_PROM_TXRDY_BIT);
+            txd(C_HREG_DEV_STATUS_PROM_RXRDY_BIT):=p_in_dev_status(C_HREG_DEV_STATUS_PROM_RXRDY_BIT);
+            txd(C_HREG_DEV_STATUS_PROM_ERR_BIT)       :=p_in_dev_status(C_HREG_DEV_STATUS_PROM_ERR_BIT);
             txd(C_HREG_DEV_STATUS_DMA_BUSY_BIT)       :=i_dma_work;
             txd(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT):=p_in_dev_status(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT);
 
-        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) then txd:=EXT(p_in_dev_dout, txd'length);
+        elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) then txd:=p_in_dev_dout(txd'range);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK, 5) then txd:=p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT);
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRERR, 5) then
@@ -727,12 +710,12 @@ begin
           txd:=EXT(v_reg_tst0, txd'length);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then
-          txd(0):=p_in_tst(72);--i_eth_module_gt_plllkdet;
-          txd(1):=p_in_tst(73);--lclk_dcm_lock;
-          txd(2):=p_in_tst(74);--i_hdd_gt_plldet;
-          txd(3):=p_in_tst(75);--i_hdd_dcm_lock;
-          txd(4):=p_in_tst(76);--i_memctrl_dcm_lock;
-          txd(5):=p_in_tst(77);--AND_reduce(i_host_mem_trained(C_PCFG_MEMCTRL_BANK_COUNT downto 0));
+          txd(0):=p_in_tst(72);
+          txd(1):=p_in_tst(73);
+          txd(2):=p_in_tst(74);
+          txd(3):=p_in_tst(75);
+          txd(4):=p_in_tst(76);
+          txd(5):=p_in_tst(77);
           txd(31 downto 6):=p_in_tst(103 downto 78);
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_TST2, 5) then
@@ -746,17 +729,18 @@ begin
           txd(C_HREG_FUNC_ETH_BIT):=strcmp2(C_PCFG_ETH_USE, "ON");
 --          txd(C_HREG_FUNC_HDD_BIT):=strcmp2(C_PCFG_HDD_USE, "ON");
           txd(C_HREG_FUNC_VRESEK21_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
+          txd(C_HREG_FUNC_PROM_BIT):=strcmp2(C_PCFG_BOARD, "ML505")
+                                  or strcmp2(C_PCFG_BOARD, "VERESK21")
+                                  or strcmp2(C_PCFG_BOARD, "HTGV6")
+                                  or strcmp2(C_PCFG_BOARD, "HSCAM");
+          txd(C_HREG_FUNC_PULT_BIT):=strcmp2(C_PCFG_BOARD, "VERESK21");
 
         elsif vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
           txd(C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT downto C_HREG_FUNCPRM_MEMBANK_SIZE_L_BIT):=CONV_STD_LOGIC_VECTOR(C_PCFG_MEMCTRL_BANK_SIZE, C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT - C_HREG_FUNCPRM_MEMBANK_SIZE_L_BIT +1);
 
           txd(C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT downto C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT):=CONV_STD_LOGIC_VECTOR(C_VCTRL_VCH_COUNT, C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT - C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT +1);
-          txd(C_HREG_FUNCPRM_VCTRL_MIR_BIT)   :='0';
---          txd(C_HREG_FUNCPRM_VCTRL_ZOOM_BIT)  :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
---          txd(C_HREG_FUNCPRM_VCTRL_BAYER_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
---          txd(C_HREG_FUNCPRM_VCTRL_PCOLOR_BIT):=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
---          txd(C_HREG_FUNCPRM_VCTRL_GAMMA_BIT) :=strcmp2(C_PCFG_VCTRL_SIMPLE, "OFF");
+          txd(C_HREG_FUNCPRM_VCTRL_MIR_BIT)   :='1';
 
         end if;
 
@@ -769,7 +753,7 @@ begin
   end if;
 end process;
 
-
+i_pce_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 --//--------------------------------------------------------------------------------------------
 --//Управление DMA транзакцией (режим Master)
@@ -805,7 +789,7 @@ begin
     end if ;
 
     --DMATRN_WR/RD завершена
-    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT)='1' then
+    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or i_pce_testing='1' then
       i_dmatrn_mrd_done_tmp<=i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
       i_dmatrn_mwr_done_tmp<=p_in_mwr_done and sr_rxbuf_rd_last;
       i_dmatrn_mem_done<=(others=>'0');
@@ -1026,27 +1010,51 @@ end generate gen_irq;
 --//-------------------------------------------------------------------
 p_out_rxbuf_dout <=p_in_dev_dout;
 p_out_txbuf_full <=p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
-                   p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+                   p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not i_pce_testing;
 p_out_rxbuf_empty<=p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
-                   p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+                   p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pce_testing;
 
 
 --//-------------------------------------------------------------------
 --//Связь с внешним устройствам
 --//-------------------------------------------------------------------
 --Выбор доступа к внешним устройствам. Через DMA транзакцию или через регистр C_HREG_DEV_DATA
-p_out_dev_wr  <= p_in_txbuf_wr  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
+p_out_dev_wr  <= i_txbuf_wr     when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  p_in_reg_wr    when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
 
 p_out_dev_rd  <= p_in_rxbuf_rd  when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  i_reg_rd       when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
 
-p_out_dev_din <= p_in_txbuf_din when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else p_in_reg_din;
+p_out_dev_din <= i_txbuf_din(p_out_dev_din'range) when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else EXT(p_in_reg_din, p_out_dev_din'length);
 
+--usr_buf data width x32
+gen_usrd_x32 : if C_HDEV_DWIDTH = 32 generate
+i_txbuf_din <= EXT(p_in_txbuf_din, i_txbuf_din'length);
+i_txbuf_wr <= p_in_txbuf_wr;
+end generate gen_usrd_x32;
+
+--usr_buf data width x64
+gen_usrd_x64 : if C_HDEV_DWIDTH = 64 generate
+i_txbuf_din <= p_in_txbuf_din & sr_txbuf_din;
+i_txbuf_wr <= (i_txbuf_wr_sel and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
+process(p_in_clk)
+begin
+  if p_in_clk'event and p_in_clk='1' then
+    if i_dma_start='1' then
+      i_txbuf_wr_sel <= '0';
+    else
+      if p_in_txbuf_wr = '1' then
+        i_txbuf_wr_sel <= not i_txbuf_wr_sel;
+        sr_txbuf_din <= p_in_txbuf_din;
+      end if;
+    end if;
+  end if;
+end process;
+end generate gen_usrd_x64;
 
 --Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dmatrn_mrd_done when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init and not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)<=sr_dma_start when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else i_dmatrn_init and not i_pce_testing;
 p_out_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1)<=v_reg_dev_ctrl(C_HREG_DEV_CTRL_LAST_BIT downto C_HREG_DEV_CTRL_DMA_START_BIT+1);
 
 
@@ -1085,31 +1093,31 @@ p_out_dev_opt(C_HDEV_OPTOUT_TIME_SET_BIT)<=i_time_set;
 --//DBG
 --//-------------------------------------------------------------------
 p_out_tst(31 downto 0)  <=v_reg_tst0;
---p_out_tst(63 downto 32) <=v_reg_tst1;
-p_out_tst(47 downto 32) <=EXT(p_in_rx_engine_tst2, 16);--p_in_mrd_pkt_len_tst(15 downto 0);
---p_out_tst(39 downto 32) <=i_dmabuf_num_cnt;
---p_out_tst(47 downto 40) <=i_dmabuf_done_cnt;
-p_out_tst(55 downto 48) <=i_dmabuf_count;
-p_out_tst(57 downto 56) <=i_dmatrn_mem_done;
-p_out_tst(61 downto 58) <=i_hdev_adr;
-p_out_tst(62)           <=p_in_mrd_rcv_err;
-p_out_tst(63)           <=vrsk_reg_bar and (p_in_reg_wr or i_reg_rd);
-p_out_tst(95 downto 64) <=p_in_mrd_rcv_size;
-p_out_tst(96)           <=i_irq_clr;
-p_out_tst(100 downto 97)<=i_irq_num(3 downto 0);
-p_out_tst(108 downto 101)<=p_in_irq_status(7 downto 0);
-p_out_tst(116 downto 109)<=EXT(i_irq_set(7 downto 0), 8);
-p_out_tst(117)           <=i_dma_mwr_done and sr_dmatrn_mwr_done;
-p_out_tst(118)           <=i_dma_mrd_done and sr_dmatrn_mrd_done;
-p_out_tst(119)           <=i_dmatrn_mwr_done;
-p_out_tst(120)           <=p_in_throttle_tst(0); --//mrd_work_throttle
-p_out_tst(121)           <=i_mrd_rcv_size_ok;
-p_out_tst(122)           <=i_dmatrn_mrd_done;
-p_out_tst(123)           <=i_dmatrn_init;
-p_out_tst(124)           <=i_dma_start;
-p_out_tst(125)           <=p_in_txbuf_wr or p_in_rxbuf_rd;
-p_out_tst(126)           <=p_in_rxbuf_rd_last;
-p_out_tst(127)           <=p_in_txbuf_wr_last;
+----p_out_tst(63 downto 32) <=v_reg_tst1;
+--p_out_tst(47 downto 32) <=EXT(p_in_rx_engine_tst2, 16);--p_in_mrd_pkt_len_tst(15 downto 0);
+----p_out_tst(39 downto 32) <=i_dmabuf_num_cnt;
+----p_out_tst(47 downto 40) <=i_dmabuf_done_cnt;
+--p_out_tst(55 downto 48) <=i_dmabuf_count;
+--p_out_tst(57 downto 56) <=i_dmatrn_mem_done;
+--p_out_tst(61 downto 58) <=i_hdev_adr;
+--p_out_tst(62)           <=p_in_mrd_rcv_err;
+--p_out_tst(63)           <=vrsk_reg_bar and (p_in_reg_wr or i_reg_rd);
+--p_out_tst(95 downto 64) <=p_in_mrd_rcv_size;
+--p_out_tst(96)           <=i_irq_clr;
+--p_out_tst(100 downto 97)<=i_irq_num(3 downto 0);
+--p_out_tst(108 downto 101)<=p_in_irq_status(7 downto 0);
+--p_out_tst(116 downto 109)<=EXT(i_irq_set(7 downto 0), 8);
+--p_out_tst(117)           <=i_dma_mwr_done and sr_dmatrn_mwr_done;
+--p_out_tst(118)           <=i_dma_mrd_done and sr_dmatrn_mrd_done;
+--p_out_tst(119)           <=i_dmatrn_mwr_done;
+--p_out_tst(120)           <=p_in_throttle_tst(0); --//mrd_work_throttle
+--p_out_tst(121)           <=i_mrd_rcv_size_ok;
+--p_out_tst(122)           <=i_dmatrn_mrd_done;
+--p_out_tst(123)           <=i_dmatrn_init;
+--p_out_tst(124)           <=i_dma_start;
+--p_out_tst(125)           <=p_in_txbuf_wr or p_in_rxbuf_rd;
+--p_out_tst(126)           <=p_in_rxbuf_rd_last;
+--p_out_tst(127)           <=p_in_txbuf_wr_last;
 
 
 

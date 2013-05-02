@@ -201,7 +201,7 @@ begin
   elsif rising_edge(p_in_clk) then
   if i_div = '1' then
 
-      if i_cfg(5 downto 4) = "00" then
+      if i_cfg(5 downto 4) = "01" then
       --(вертикальные полоски)
           if i_hs = '1' or i_vs = '1' then
             for i in 0 to G_VD_WIDTH/8 - 1 loop
@@ -213,7 +213,7 @@ begin
             end loop;
           end if;
 
-      elsif i_cfg(5 downto 4) = "01" then
+      elsif i_cfg(5 downto 4) = "10" then
       --(горизонтальные полоски)
           if i_vs = '1' then
             for i in 0 to G_VD_WIDTH/8 - 1 loop
@@ -225,7 +225,7 @@ begin
             end loop;
           end if;
 
-      elsif i_cfg(5 downto 4) = "10" then
+      elsif i_cfg(5 downto 4) = "00" then
       --(1/2 vfr - вертикальные полоски; 1/2 vfr - горизонтальные полоски)
         if i_row_half = '0' then
           if i_hs = '1' or i_vs = '1' then

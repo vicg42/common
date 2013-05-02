@@ -259,7 +259,8 @@ begin
             if i_bufi_cnt = idx then
               if i_bufi_rd(idx) = '1' then
                   update := '1';
-               i_bufo_din <= i_bufi_dout(idx);
+
+               i_bufo_din <= i_bufi_dout(idx);
               end if;
             end if;
           end loop;

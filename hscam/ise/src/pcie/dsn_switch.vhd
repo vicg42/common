@@ -46,8 +46,8 @@ p_in_cfg_done             : in   std_logic;
 -------------------------------
 p_in_host_clk             : in   std_logic;
 
--- Связь Хост <-> VideoBUF
-p_out_host_vbuf_dout      : out  std_logic_vector(31 downto 0);
+--HOST <- VCTRL_BUFO
+p_out_host_vbuf_dout      : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 p_in_host_vbuf_rd         : in   std_logic;
 p_out_host_vbuf_empty     : out  std_logic;
 
@@ -112,7 +112,7 @@ rst         : IN  std_logic
 );
 end component;
 
-component vin is
+component vin
 generic(
 G_VBUF_IWIDTH : integer:=80;
 G_VBUF_OWIDTH : integer:=32;
@@ -258,7 +258,7 @@ end process;
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --//ImageSensor->VCTRL
 --//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-m_vctrl_bufi : vin
+m_vbufi : vin
 generic map(
 G_VBUF_IWIDTH => G_VBUF_IWIDTH,
 G_VBUF_OWIDTH => G_VBUF_OWIDTH,
@@ -290,7 +290,7 @@ p_in_rst           => b_rst_vctrl_bufs
 );
 
 --//Выходной буфер модуля dsn_video_ctrl.vhd
-m_vctrl_bufo : host_vbuf
+m_vbufo : host_vbuf
 port map(
 din         => p_in_vctrl_vbufout_din,
 wr_en       => p_in_vctrl_vbufout_wr,

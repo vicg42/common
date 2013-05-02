@@ -23,13 +23,13 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0402#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#00A#;  --Версия прошивки
 
 --//VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--DWORD
 
 --//HOST
-constant C_HDEV_DWIDTH           : integer:=32;--шина портов p_out_dev_din/p_in_dev_dout модуля dsn_host.vhd
+constant C_HDEV_DWIDTH           : integer:=C_PCFG_HDEV_DWIDTH;--шина портов p_out_dev_din/p_in_dev_dout модуля dsn_host.vhd
 
 --//--------------------------------------------------------------
 --//Регистры модуля dsn_host.vhd: (max count HREG - 0x1F)

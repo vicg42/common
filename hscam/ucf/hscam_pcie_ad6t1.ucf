@@ -31,6 +31,15 @@ CONFIG PART = XC6VLX240T-FF1759-2;
 #NET "pin_out_s120Hz"    LOC = "R39";
 #NET "pin_out_s120SAU"   LOC = "P38";
 
+NET "pin_out_TP<0>"   LOC = "M41";
+NET "pin_out_TP<1>"   LOC = "M42";
+NET "pin_out_TP<2>"   LOC = "T40";
+NET "pin_out_TP<3>"   LOC = "L39";
+NET "pin_out_TP<4>"   LOC = "T35";
+NET "pin_out_TP<5>"   LOC = "T34";
+NET "pin_out_TP<6>"   LOC = "R39";
+NET "pin_out_TP<7>"   LOC = "P38";
+
 ###############################################################################
 #
 ###############################################################################
@@ -54,7 +63,7 @@ NET "pin_in_refclk_clk_p" LOC = "AE30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TR
 NET "pin_in_refclk_clk_n" LOC = "AF30" | IOSTANDARD = "LVDS_25" | DIFF_TERM = TRUE;
 #TIMEGRP "REF_CLK_PADS" = PADS(pin_in_refclk_?);
 
-NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
+NET "g_usrclk<6>" TNM_NET = TNM_PLL_REF_CLK;
 NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
 #NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
 NET "g_usr_highclk" TNM_NET = TNM_USR_HIGH_CLK;
@@ -235,15 +244,15 @@ NET "g_host_clk" TNM_NET = "HOST_CLK";
 TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 125 MHz HIGH 50 % ;
 
 
-################################################################################
-#### AXI: MEMEORY ARBITER BANK0
-################################################################################
-#NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
-#NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
-#TIMEGRP "mem_arbch_reset_source" = FFS PADS;
-#TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
-#
-#
+###############################################################################
+### AXI: MEMEORY ARBITER BANK0
+###############################################################################
+NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
+TIMEGRP "mem_arbch_reset_source" = FFS PADS;
+TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
+
+
 ################################################################################
 ## Clock distribution constraints
 ##
@@ -359,7 +368,7 @@ TIMEGRP "MEM0_PADS"      = "MEM0_DQ_PADS":
                            "MEM0_CTRL_PADS":
                            "MEM0_CLK_PADS";
 
-# Create TIMEGRP for mig_ddr3_if_clk0
+## Create TIMEGRP for mig_ddr3_if_clk0
 #NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
 
 # Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
@@ -1153,3 +1162,9 @@ INST "*bank0_g.infrastructure_i/u_mmcm_adv" LOC = "MMCM_ADV_X0Y11"; #Banks 17, 2
 ## Flag unused paths with TIG.
 #TIMESPEC "TS_MEM_PADS_TIG"      = FROM "MEM_PADS" THRU "TPTHRU_IDATAIN" TO "MEM_PADS" TIG;
 
+#############################################################################
+###############            FLASH             ################################
+#############################################################################
+NET  "pin_out_prom_a<0>"        LOC="Y39";
+NET  "pin_inout_prom_d<0>"      LOC="Y40";
+NET  "pin_in_prom_wt"           LOC="Y35";

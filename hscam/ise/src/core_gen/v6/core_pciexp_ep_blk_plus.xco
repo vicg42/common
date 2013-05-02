@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.2
-# Date: Sun Jan 20 11:27:05 2013
+# Date: Thu May 02 09:27:31 2013
 #
 ##############################################################
 #
@@ -46,8 +46,8 @@ CSET ack_nak_timeout_value=0000
 CSET bar0_64bit=false
 CSET bar0_enabled=true
 CSET bar0_prefetchable=false
-CSET bar0_scale=Kilobytes
-CSET bar0_size=1
+CSET bar0_scale=Bytes
+CSET bar0_size=256
 CSET bar0_type=Memory
 CSET bar1_64bit=false
 CSET bar1_enabled=false
@@ -148,7 +148,7 @@ CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
 CSET link_speed=2.5_GT/s
 CSET max_payload_size=512_bytes
-CSET maximum_link_width=X8
+CSET maximum_link_width=X4
 CSET msi_64b=true
 CSET msi_enabled=true
 CSET msi_vec_mask=false
@@ -194,7 +194,7 @@ CSET trans_buf_pipeline=None
 CSET trgt_link_speed=4'h1
 CSET trim_tlp_digest=false
 CSET upconfigure_capable=true
-CSET user_clk_freq=250_default
+CSET user_clk_freq=125_default
 CSET vc_cap_enabled=false
 CSET vc_cap_reject_snoop=false
 CSET vendor_id=0777
@@ -205,4 +205,4 @@ CSET xlnx_ref_board=None
 MISC pkg_timestamp=2012-07-21T06:31:03Z
 # END Extra information
 GENERATE
-# CRC: f287e19f
+# CRC: 2e6885a6

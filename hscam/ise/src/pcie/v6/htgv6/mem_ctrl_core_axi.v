@@ -46,12 +46,12 @@ parameter CLKFBOUT_MULT_F         = 6, //OD was 8
                                    // write PLL VCO multiplier.
 parameter DIVCLK_DIVIDE           = 2, // OD was 4
                                    // write PLL VCO divisor.
-parameter CLKOUT_DIVIDE           = 3,
+parameter CLKOUT_DIVIDE           = 4,
                                    // VCO output divisor for fast (memory) clocks.
 parameter nCK_PER_CLK             = 2,
                                    // # of memory CKs per fabric clock.
                                    // # = 2, 1.
-parameter tCK                     = 2500,
+parameter tCK                     = 3330,
                                    // memory tCK paramter.
                                    // # = Clock Period.
 parameter DEBUG_PORT              = "OFF",
@@ -164,7 +164,7 @@ parameter C_S_AXI_ADDR_WIDTH        = 32,
                                    // Width of S_AXI_AWADDR, S_AXI_ARADDR, M_AXI_AWADDR and
                                    // M_AXI_ARADDR for all SI/MI slots.
                                    // # = 32.
-parameter C_S_AXI_DATA_WIDTH        = 64,
+parameter C_S_AXI_DATA_WIDTH        = 32,
                                    // Width of WDATA and RDATA on SI slot.
                                    // Must be less or equal to APP_DATA_WIDTH.
                                    // # = 32, 64, 128, 256.
@@ -296,7 +296,7 @@ input                                sys_rst   // System reset
 );
 
 
-localparam SYSCLK_PERIOD        = tCK * nCK_PER_CLK;
+localparam SYSCLK_PERIOD        = 2500 * nCK_PER_CLK;
 
 // Traffic Gen related parameters
 localparam EYE_TEST             = "FALSE";

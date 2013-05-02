@@ -61,7 +61,7 @@ p_out_vrow_mrk        : out   TVMrks;                      --//Маркер строки
 --//--------------------------
 --//Upstream Port (Связь с буфером видеопакетов)
 --//--------------------------
-p_in_upp_data         : in    std_logic_vector(31 downto 0);
+p_in_upp_data         : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_upp_data_rd     : out   std_logic;
 p_in_upp_data_rdy     : in    std_logic;
 p_in_upp_buf_empty    : in    std_logic;
@@ -106,7 +106,7 @@ signal i_mem_dlen_rq               : std_logic_vector(15 downto 0);
 signal i_mem_start                 : std_logic;
 signal i_mem_dir                   : std_logic;
 signal i_mem_done                  : std_logic;
-
+signal i_pix_count_byte            : std_logic_vector(15 downto 0);
 signal i_vfr_rdy                   : std_logic_vector(p_out_vfr_rdy'range);
 signal i_vfr_rowcnt                : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
 signal i_vfr_row_mrk               : TVMrks;
@@ -151,6 +151,8 @@ p_out_vrow_mrk <= i_vfr_row_mrk;--//Маркер кадра. Счетчик. Значение обновляется 
 --//----------------------------------------------
 --//Автомат записи видео информации
 --//----------------------------------------------
+i_pix_count_byte <= p_in_cfg_prm_vch(0).fr_size.activ.pix(p_in_cfg_prm_vch(0).fr_size.activ.pix'high - 2 downto 0) & "00";
+
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -194,7 +196,8 @@ begin
           i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_rowcnt;
           i_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0) <= (others=>'0');
 
-          i_mem_dlen_rq <= p_in_cfg_prm_vch(0).fr_size.activ.pix;
+          i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto G_MEM_DWIDTH/32 + 1), i_mem_dlen_rq'length)
+                           + OR_reduce(i_pix_count_byte(G_MEM_DWIDTH/32 downto 0));
           i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
           i_mem_dir <= C_MEMWR_WRITE;
 

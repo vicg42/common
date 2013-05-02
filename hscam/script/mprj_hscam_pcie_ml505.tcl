@@ -1,19 +1,19 @@
 source "../../common/script/projnav.tcl"
 #file mkdir "../ise/prj
-cd ../ise/prj
+cd ../ise/prj_
 
 set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
-set _usrdef_design "hscam_pcie"
+set _usrdef_design "hscam_pcie_ml505"
 set _usrdef_entity "hscam_pcie_main"
 set _usrdef_xilinx_family "virtex5"
 set _usrdef_chip_family "v5lxt"
 set _usrdef_device "5vlx50t"
 set _usrdef_speed  1
 set _usrdef_pkg    "ff1136"
-set _usrdef_ucf_filename "hscam_pcie_v5"
-set _usrdef_ucf_filepath "..\ucf\hscam_pcie_v5.ucf"
+set _usrdef_ucf_filename "hscam_pcie_ml505"
+set _usrdef_ucf_filepath "..\ucf\hscam_pcie_ml505.ucf"
 
 set _VMod $::projNav::VMod
 set _VHDMod $::projNav::VHDMod
@@ -25,7 +25,6 @@ set _projects [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
-      [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/alphadata/admxrc/vhdl/common/dpmem/dpmem_pkg.vhd" $_VHDPkg ] \
@@ -65,25 +64,7 @@ set _projects [ list \
       [ list "../../../common/lib/hw/mem/alphadata/mem_wr.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/alphadata/mem_arb.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/alphadata/mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_tx.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_rx.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
-      [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
-      [ list "../src/pcie/pcie_usr_app.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v5/bram_dma_params.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/v5/pcie2mem_fifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/v5/cfgdev_2txfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/v5/cfgdev_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/use_newinterrupt.v" $_VMod ] \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/pcie_blk_if.v" $_VMod ] \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/pcie_blk_ll.v" $_VMod ] \
@@ -129,9 +110,24 @@ set _projects [ list \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/extend_clk.v" $_VMod ] \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/pcie_ep.v" $_VMod ] \
       [ list "../src/core_gen/v5/core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.v" $_VMod ] \
-      [ list "../src/pcie/v5/hscam_pcie_cfg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v5/clocks.vhd" $_VHDMod ] \
       [ list "../src/pcie/v5/clocks_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/v5/prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
+      [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_unit_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/pcie_tx.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_rx.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_usr_app.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_v5_main.vhd" $_VHDMod ] \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
@@ -141,7 +137,10 @@ set _projects [ list \
       [ list "../src/pcie/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/hscam_pcie_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/hscam_pcie_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/hscam_pcie_v5.ucf" "hscam_pcie_main" ] \
+      [ list "../src/pcie/prj_def.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/prom_phypin_pkg_null.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/prom_ld_main_null.vhd" $_VHDMod ] \
+      [ list "../../ucf/hscam_pcie_ml505.ucf" "hscam_pcie_main" ] \
     ] \
   ] \
 ]

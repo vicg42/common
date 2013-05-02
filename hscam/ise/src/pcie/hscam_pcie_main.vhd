@@ -25,6 +25,7 @@ use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
 use work.clocks_pkg.all;
+use work.prom_phypin_pkg.all;
 
 entity hscam_pcie_main is
 generic(
@@ -53,6 +54,13 @@ pin_out_pciexp_txn  : out   std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_rxp   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_rxn   : in    std_logic_vector(C_PCGF_PCIE_LINK_WIDTH-1 downto 0);
 pin_in_pciexp_rstn  : in    std_logic;
+
+--------------------------------------------------
+--PROM
+--------------------------------------------------
+pin_in_prom         : in    TPromPhyIN;
+pin_out_prom        : out   TPromPhyOUT;
+pin_inout_prom      : inout TPromPhyINOUT;
 
 --------------------------------------------------
 --Reference clock
@@ -122,8 +130,8 @@ signal i_host_dev_opt_out               : std_logic_vector(C_HDEV_OPTOUT_LAST_BI
 signal i_host_devadr                    : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT-C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 signal i_host_vchsel                    : std_logic_vector(3 downto 0);
 
-Type THostDCtrl is array (0 to C_HDEV_VCH_DBUF) of std_logic;
-Type THostDWR is array (0 to C_HDEV_VCH_DBUF) of std_logic_vector(i_host_dev_txd'range);
+Type THostDCtrl is array (0 to C_HDEV_COUNT-1) of std_logic;
+Type THostDWR is array (0 to C_HDEV_COUNT-1) of std_logic_vector(i_host_dev_txd'range);
 signal i_host_wr                        : THostDCtrl;
 signal i_host_rd                        : THostDCtrl;
 signal i_host_txd                       : THostDWR;
@@ -134,12 +142,13 @@ signal i_host_rxbuf_empty               : THostDCtrl;
 signal i_host_txbuf_full                : THostDCtrl;
 signal i_host_irq                       : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
 --signal i_host_txd_rdy                   : THostDCtrl;
---signal i_host_rxerr                    : THostDCtrl;
+signal i_host_err                       : THostDCtrl;
 
 signal i_host_rst_all                   : std_logic;
 --signal i_host_rst_eth                   : std_logic;
 signal i_host_rst_mem                   : std_logic;
 signal i_host_rddone_vctrl              : std_logic;
+signal i_host_rst_prom                  : std_logic;
 
 Type THDevWidthCnt is array (0 to C_HDEV_COUNT-1) of std_logic_vector(2 downto 0);
 signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_COUNT-1 downto 0);
@@ -177,12 +186,12 @@ signal i_vctrl_rst                      : std_logic;
 signal hclk_hrddone_vctrl_cnt           : std_logic_vector(2 downto 0);
 signal hclk_hrddone_vctrl               : std_logic;
 --signal i_vctrl_vbufin_rdy               : std_logic;
-signal i_vctrl_vbufin_dout              : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufin_dout              : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 signal i_vctrl_vbufin_rd                : std_logic;
 signal i_vctrl_vbufin_empty             : std_logic;
 signal i_vctrl_vbufin_pfull             : std_logic;
 signal i_vctrl_vbufin_full              : std_logic;
-signal i_vctrl_vbufout_din              : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufout_din              : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 signal i_vctrl_vbufout_wd               : std_logic;
 signal i_vctrl_vbufout_empty            : std_logic;
 signal i_vctrl_vbufout_full             : std_logic;
@@ -229,6 +238,8 @@ signal i_mem_ctrl_status                : TMEMCTRL_status;
 signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
+signal i_prom_rst                       : std_logic;
+
 signal i_ccd_vd                         : std_logic_vector(C_PCFG_VBUF_IWIDTH-1 downto 0);
 signal i_ccd_vs                         : std_logic;
 signal i_ccd_hs                         : std_logic;
@@ -243,7 +254,7 @@ signal i_ccd_d80_d32_clk                : std_logic;
 signal i_ccd_tst_out                    : std_logic_vector(31 downto 0);
 signal i_ccd_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
 
-signal tst_vbufin_dout                  : std_logic_vector(31 downto 0);
+signal tst_vbufin_dout                  : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 signal tst_vbufin_dout_rd               : std_logic;
 signal tst_vbufin_empty                 : std_logic;
 signal tst_vbufin_full                  : std_logic;
@@ -279,7 +290,7 @@ i_swt_rst    <=not i_host_rst_n or i_host_rst_all or i_usrclk_rst;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all or i_pll_rst_out;
 i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
-
+i_prom_rst<=i_usrclk_rst or i_host_rst_prom;
 
 --***********************************************************
 --Установка частот проекта:
@@ -295,7 +306,7 @@ p_in_clk   => pin_in_refclk
 
 
 g_usr_highclk<=i_mem_ctrl_sysout.clk;
-
+i_tmr_clk<=g_usrclk(2);
 i_mem_ctrl_sysin.ref_clk<=g_usrclk(0);
 i_mem_ctrl_sysin.clk<=g_usrclk(1);
 
@@ -309,6 +320,10 @@ i_ccd_d80_d32_clk <= g_usrclk(6);--частота конвертирования данных 80bit -> 32bit
 --Модуль конфигурирования устр-в
 --***********************************************************
 m_cfg : cfgdev_host
+generic map(
+G_DBG => "OFF",
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
 port map(
 -------------------------------
 --Связь с Хостом
@@ -377,7 +392,7 @@ end generate gen_cfg_dev;
 m_swt : dsn_switch
 generic map(
 G_VBUF_IWIDTH => C_PCFG_VBUF_IWIDTH,
-G_VBUF_OWIDTH => C_PCFG_VBUF_OWIDTH
+G_VBUF_OWIDTH => C_PCFG_HDEV_DWIDTH
 )
 port map(
 -------------------------------
@@ -438,7 +453,7 @@ p_in_convert_clk   => i_ccd_d80_d32_clk,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst           => (others => '0'),
+p_in_tst           => (others=>'0'),
 p_out_tst          => i_swt_tst_out,
 
 -------------------------------
@@ -613,6 +628,9 @@ i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i)<=i_vctrl_hrdy_out(i);
 end generate gen_status_vch;
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT)<=OR_reduce(i_mem_ctrl_status.rdy);
+i_host_dev_status(C_HREG_DEV_STATUS_PROM_TXRDY_BIT)<=i_host_txrdy(C_HDEV_PROM);
+i_host_dev_status(C_HREG_DEV_STATUS_PROM_RXRDY_BIT)<=not i_host_rxbuf_empty(C_HDEV_PROM);
+i_host_dev_status(C_HREG_DEV_STATUS_PROM_ERR_BIT)<=i_host_err(C_HDEV_PROM);
 
 --//Запись/Чтение данных устройств хоста
 gen_dev_dbuf : for i in 0 to i_host_wr'length-1 generate
@@ -624,15 +642,18 @@ end generate gen_dev_dbuf;
 i_host_dev_rxd<=i_host_rxd(C_HDEV_CFG_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_CFG_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
                 i_host_rxd(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                i_host_rxd(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                 (others=>'0');
 
 
 --//Флаги (Host<-dev)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)<=i_host_txbuf_full(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                  i_host_txbuf_full(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                                                   '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)<=i_host_rxbuf_empty(C_HDEV_VCH_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_VCH_DBUF, i_host_devadr'length) else
                                                   i_host_rxbuf_empty(C_HDEV_MEM_DBUF) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_host_devadr'length) else
+                                                  i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr=CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
                                                   '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT)<=i_host_mem_status.done;
@@ -645,7 +666,7 @@ i_host_dev_irq(C_HIRQ_CFG_RX)<=i_host_irq(C_HIRQ_CFG_RX);
 gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT_MAX-1 generate
 i_host_dev_irq(C_HIRQ_VCH0 + i)<=i_vctrl_hirq_out(i);
 end generate gen_irq_vch;
-
+i_host_dev_irq(C_HIRQ_PROM)<=i_host_irq(C_HIRQ_PROM);
 
 --//Обработка управляющих сигналов Хоста
 i_host_mem_ctrl.dir       <=not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
@@ -658,6 +679,7 @@ i_host_mem_ctrl.trnrd_len <=i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT
 i_host_rst_all<=i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_host_rst_mem<=i_host_gctrl(C_HREG_CTRL_RST_MEM_BIT);
 i_host_rddone_vctrl<=i_host_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT);
+i_host_rst_prom<=i_host_gctrl(C_HREG_CTRL_RST_PROM_BIT);
 
 i_host_devadr<=i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
 i_host_vchsel<=EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
@@ -787,14 +809,14 @@ p_in_rst         => i_host_mem_rst
 );
 
 --//Подключаем устройства к арбитру ОЗУ
-i_memin_ch(0) <= i_host_memin;
-i_host_memout <= i_memout_ch(0);
+i_memin_ch(2) <= i_host_memin;
+i_host_memout <= i_memout_ch(2);
 
-i_memin_ch(1)    <= i_vctrlwr_memin;
-i_vctrlwr_memout <= i_memout_ch(1);
+i_memin_ch(0)    <= i_vctrlwr_memin;
+i_vctrlwr_memout <= i_memout_ch(0);
 
-i_memin_ch(2)    <= i_vctrlrd_memin;
-i_vctrlrd_memout <= i_memout_ch(2);
+i_memin_ch(1)    <= i_vctrlrd_memin;
+i_vctrlrd_memout <= i_memout_ch(1);
 
 --//Арбитр контроллера памяти
 m_mem_arb : mem_arb
@@ -864,60 +886,50 @@ p_in_sys        => i_mem_ctrl_sysin
 );
 
 
---//#########################################
---//Генератор видеопотока
---//#########################################
-i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
-i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
-
---Управление через рег. C_HREG_TST0
---3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
---7..4 -  --0/1/2/    - Test picture Vertical Counter/ Horizontal Counter/ V+H Counter
-i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0);
-i_ccd_cfg(i_ccd_cfg'length - 1 downto 8) <= (others=>'0');
-process(i_ccd_vclk)
-begin
-  if rising_edge(i_ccd_vclk) then
-    if i_ccd_vs = '1' then
-      i_ccd_fps <= i_ccd_cfg(3 downto 0);
-    end if;
-  end if;
-end process;
-
-i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(0, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(1, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 394, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(2, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 132, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(3, i_ccd_fps'length) else
-               CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd_fps'length) else
-i_ccd_syn_v <= i_ccd_syn_h;
-
-m_vfr_gen : vfr_gen
+--***********************************************************
+--FLASH with firmware
+--***********************************************************
+m_prom : prom_ld
 generic map(
-G_VD_WIDTH => C_PCFG_VBUF_IWIDTH,
-G_VSYN_ACTIVE => '1'
+G_HOST_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
---CFG
-p_in_cfg      => i_ccd_cfg,
-p_in_vpix     => i_ccd_vpix,
-p_in_vrow     => i_ccd_vrow,
-p_in_syn_h    => i_ccd_syn_h,
-p_in_syn_v    => i_ccd_syn_v,
+-------------------------------
+--Связь с HOST
+-------------------------------
+p_out_host_rxd    => i_host_rxd(C_HDEV_PROM),
+p_in_host_rd      => i_host_rd(C_HDEV_PROM),
+p_out_rxbuf_full  => open,
+p_out_rxbuf_empty => i_host_rxbuf_empty(C_HDEV_PROM),
 
---Test Video
-p_out_vd      => i_ccd_vd,
-p_out_vs      => i_ccd_vs,
-p_out_hs      => i_ccd_hs,
-p_out_vclk    => open,
-p_out_vclk_en => i_ccd_vclk_en,
+p_in_host_txd     => i_host_txd(C_HDEV_PROM),
+p_in_host_wr      => i_host_wr(C_HDEV_PROM),
+p_out_txbuf_full  => i_host_txbuf_full(C_HDEV_PROM),
+p_out_txbuf_empty => i_host_txrdy(C_HDEV_PROM),
 
+p_in_host_clk     => g_host_clk,
+
+p_out_hirq        => i_host_irq(C_HIRQ_PROM),
+p_out_herr        => i_host_err(C_HDEV_PROM),
+
+-------------------------------
+--PHY
+-------------------------------
+p_in_phy         => pin_in_prom,
+p_out_phy        => pin_out_prom,
+p_inout_phy      => pin_inout_prom,
+
+-------------------------------
 --Технологический
-p_in_tst      => (others=>'0'),
-p_out_tst     => i_ccd_tst_out,
+-------------------------------
+p_in_tst         => (others=>'0'),
+p_out_tst        => open,--tst_prom_out,
 
+-------------------------------
 --System
-p_in_clk      => i_ccd_vclk,
-p_in_rst      => i_host_rst_all
+-------------------------------
+p_in_clk         => i_tmr_clk,
+p_in_rst         => i_prom_rst
 );
 
 
@@ -991,5 +1003,62 @@ end process;
 
 i_vctrl_tst_in(0) <= i_ccd_vs;
 i_vctrl_tst_in(31 downto 1) <= (others=>'0');
+
+
+--//#########################################
+--//Генератор видеопотока
+--//#########################################
+i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_VBUF_IWIDTH/8), i_ccd_vpix'length);
+i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
+
+--Управление через рег. C_HREG_TST0
+--3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
+--7..4 -  --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
+i_ccd_cfg(7 downto 0) <= i_host_tst_out(7 downto 0);
+i_ccd_cfg(i_ccd_cfg'length - 1 downto 8) <= (others=>'0');
+process(i_ccd_vclk)
+begin
+  if rising_edge(i_ccd_vclk) then
+    if i_ccd_vs = '1' then
+      i_ccd_fps <= i_ccd_cfg(3 downto 0);
+    end if;
+  end if;
+end process;
+
+i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(0, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 919, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(1, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 394, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(2, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 132, i_ccd_syn_h'length) when i_ccd_fps = CONV_STD_LOGIC_VECTOR(3, i_ccd_fps'length) else
+               CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd_fps'length) else
+i_ccd_syn_v <= i_ccd_syn_h;
+
+m_vfr_gen : vfr_gen
+generic map(
+G_VD_WIDTH => C_PCFG_VBUF_IWIDTH,
+G_VSYN_ACTIVE => '1'
+)
+port map(
+--CFG
+p_in_cfg      => i_ccd_cfg,
+p_in_vpix     => i_ccd_vpix,
+p_in_vrow     => i_ccd_vrow,
+p_in_syn_h    => i_ccd_syn_h,
+p_in_syn_v    => i_ccd_syn_v,
+
+--Test Video
+p_out_vd      => i_ccd_vd,
+p_out_vs      => i_ccd_vs,
+p_out_hs      => i_ccd_hs,
+p_out_vclk    => open,
+p_out_vclk_en => i_ccd_vclk_en,
+
+--Технологический
+p_in_tst      => (others=>'0'),
+p_out_tst     => i_ccd_tst_out,
+
+--System
+p_in_clk      => i_ccd_vclk,
+p_in_rst      => i_host_rst_all
+);
 
 end architecture;

@@ -107,7 +107,7 @@ module memc_ui_top #
                                        // # of memory Bank Address bits.
    parameter CK_WIDTH                = 1,
                                        // # of CK/CK# outputs to memory.
-   parameter CKE_WIDTH               = 2,
+   parameter CKE_WIDTH               = 1,
                                        // # of CKE outputs to memory.
    parameter COL_WIDTH               = 10,
                                        // # of memory Column Address bits.
@@ -155,13 +155,13 @@ module memc_ui_top #
    parameter nAL                     = 0,
                                        // # Additive Latency in number of clock
                                        // cycles.
-   parameter CL                      = 5,
+   parameter CL                      = 7,
                                        // DDR3 SDRAM: CAS Latency (Mode Register 0).
                                        // DDR2 SDRAM: CAS Latency (Mode Register).
-   parameter CWL                     = 5,
+   parameter CWL                     = 6,
                                        // DDR3 SDRAM: CAS Write Latency (Mode Register 2).
                                        // DDR2 SDRAM: Can be ignored
-   parameter DATA_BUF_ADDR_WIDTH     = 4,
+   parameter DATA_BUF_ADDR_WIDTH     = 8,
    parameter DATA_BUF_OFFSET_WIDTH   = 1,
                                        // # = 0,1.
    //parameter DELAY_WR_DATA_CNTRL     = 0, //This parameter is made as MC local parameter
@@ -221,30 +221,30 @@ module memc_ui_top #
    parameter REG_CTRL                = "OFF",
                                        // # = "ON" - RDIMMs,
                                        //   = "OFF" - Components, SODIMMs, UDIMMs.
-   parameter nDQS_COL0               = 0,
+   parameter nDQS_COL0               = 3,
                                        // Number of DQS groups in I/O column #1.
-   parameter nDQS_COL1               = 0,
+   parameter nDQS_COL1               = 5,
                                        // Number of DQS groups in I/O column #2.
-   parameter nDQS_COL2               = 8,
+   parameter nDQS_COL2               = 0,
                                        // Number of DQS groups in I/O column #3.
    parameter nDQS_COL3               = 0,
                                        // Number of DQS groups in I/O column #4.
-   parameter DQS_LOC_COL0            = 0,
+   parameter DQS_LOC_COL0            = 24'h020100,
                                        // DQS groups in column #1.
-   parameter DQS_LOC_COL1            = 0,
+   parameter DQS_LOC_COL1            = 24'h020100,
                                        // DQS groups in column #2.
-   parameter DQS_LOC_COL2            = 0,
+   parameter DQS_LOC_COL2            = 24'h020100,
                                        // DQS groups in column #3.
-   parameter DQS_LOC_COL3            = 0,
+   parameter DQS_LOC_COL3            = 24'h020100,
                                        // DQS groups in column #4.
-   parameter tCK                     = 3300,
+   parameter tCK                     = 1875,
                                        // memory tCK paramter.
                                        // # = Clock Period.
-   parameter tFAW                    = 37500,
+   parameter tFAW                    = 45000,
                                        // memory tRAW paramter.
    parameter tPRDI                   = 1_000_000,
                                        // memory tPRDI paramter.
-   parameter tRRD                    = 10000,
+   parameter tRRD                    = 7500,
                                        // memory tRRD paramter.
    parameter tRAS                    = 37500,
                                        // memory tRAS paramter.
@@ -338,11 +338,11 @@ module memc_ui_top #
                                        // Indicates the Arbitration
                                        // Allowed values - "TDM", "ROUND_ROBIN",
                                        // "RD_PRI_REG", "RD_PRI_REG_STARVE_LIMIT"
- parameter integer C_S_AXI_CTRL_ADDR_WIDTH = 32, 
+ parameter integer C_S_AXI_CTRL_ADDR_WIDTH = 32,
                                        // Width of AXI-4-Lite address bus
- parameter integer C_S_AXI_CTRL_DATA_WIDTH = 32, 
+ parameter integer C_S_AXI_CTRL_DATA_WIDTH = 32,
                                        // Width of AXI-4-Lite data buses
- parameter         C_S_AXI_BASEADDR        = 32'h0000_0000, 
+ parameter         C_S_AXI_BASEADDR        = 32'h0000_0000,
                                        // Base address of AXI4 Memory Mapped bus.
  parameter integer C_ECC_ONOFF_RESET_VALUE = 1,
                                        // Controls ECC on/off value at startup/reset
@@ -454,28 +454,28 @@ module memc_ui_top #
    output wire                               s_axi_rvalid      ,
    input  wire                               s_axi_rready      ,
    // AXI CTRL port
-   input  wire                               s_axi_ctrl_awvalid , 
-   output wire                               s_axi_ctrl_awready , 
-   input  wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0] s_axi_ctrl_awaddr  , 
+   input  wire                               s_axi_ctrl_awvalid ,
+   output wire                               s_axi_ctrl_awready ,
+   input  wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0] s_axi_ctrl_awaddr  ,
    // Slave Interface Write Data Ports
-   input  wire                               s_axi_ctrl_wvalid  , 
-   output wire                               s_axi_ctrl_wready  , 
-   input  wire [C_S_AXI_CTRL_DATA_WIDTH-1:0] s_axi_ctrl_wdata   , 
+   input  wire                               s_axi_ctrl_wvalid  ,
+   output wire                               s_axi_ctrl_wready  ,
+   input  wire [C_S_AXI_CTRL_DATA_WIDTH-1:0] s_axi_ctrl_wdata   ,
    // Slave Interface Write Response Ports
-   output wire                               s_axi_ctrl_bvalid  , 
-   input  wire                               s_axi_ctrl_bready  , 
-   output wire [1:0]                         s_axi_ctrl_bresp   , 
+   output wire                               s_axi_ctrl_bvalid  ,
+   input  wire                               s_axi_ctrl_bready  ,
+   output wire [1:0]                         s_axi_ctrl_bresp   ,
    // Slave Interface Read Address Ports
-   input  wire                               s_axi_ctrl_arvalid , 
-   output wire                               s_axi_ctrl_arready , 
-   input  wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0] s_axi_ctrl_araddr  , 
+   input  wire                               s_axi_ctrl_arvalid ,
+   output wire                               s_axi_ctrl_arready ,
+   input  wire [C_S_AXI_CTRL_ADDR_WIDTH-1:0] s_axi_ctrl_araddr  ,
    // Slave Interface Read Data Ports
-   output wire                               s_axi_ctrl_rvalid  , 
-   input  wire                               s_axi_ctrl_rready  , 
-   output wire [C_S_AXI_CTRL_DATA_WIDTH-1:0] s_axi_ctrl_rdata   , 
-   output wire [1:0]                         s_axi_ctrl_rresp   , 
+   output wire                               s_axi_ctrl_rvalid  ,
+   input  wire                               s_axi_ctrl_rready  ,
+   output wire [C_S_AXI_CTRL_DATA_WIDTH-1:0] s_axi_ctrl_rdata   ,
+   output wire [1:0]                         s_axi_ctrl_rresp   ,
    // Interrupt output
-   output wire                               interrupt          
+   output wire                               interrupt
 
    );
 
@@ -913,7 +913,7 @@ module memc_ui_top #
       .C_ECC_ONOFF_RESET_VALUE ( C_ECC_ONOFF_RESET_VALUE ) ,
       .C_ECC_CE_COUNTER_WIDTH  ( C_ECC_CE_COUNTER_WIDTH  ) ,
       .C_NCK_PER_CLK           ( nCK_PER_CLK             ) ,
-      .C_MC_ERR_ADDR_WIDTH     ( MC_ERR_ADDR_WIDTH       ) 
+      .C_MC_ERR_ADDR_WIDTH     ( MC_ERR_ADDR_WIDTH       )
     )
     axi_ctrl_top_0
     (
@@ -943,7 +943,7 @@ module memc_ui_top #
       .app_correct_en ( app_correct_en ) ,
       .dfi_rddata     ( dbg_rddata_r   ) ,
       .fi_xor_we      ( fi_xor_we      ) ,
-      .fi_xor_wrdata  ( fi_xor_wrdata  ) 
+      .fi_xor_wrdata  ( fi_xor_wrdata  )
     );
 
     // dbg_rddata delayed one cycle to match ecc_*

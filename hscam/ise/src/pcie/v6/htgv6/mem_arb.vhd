@@ -96,15 +96,15 @@ p_out_tst(31 downto 0)<=(others=>'0');
 --//--------------------------------------------------
 i_rstn<=not p_in_rst;
 
---gen_chcount_1 : if G_CH_COUNT=1 generate
---
---p_out_mem <= p_in_memch(0);
---p_out_memch(0) <= p_in_mem;
---
---end generate gen_chcount_1;
+gen_chcount_1 : if G_CH_COUNT=1 generate
+
+p_out_mem <= p_in_memch(0);
+p_out_memch(0) <= p_in_mem;
+
+end generate gen_chcount_1;
 
 
---gen_chcount_3 : if G_CH_COUNT=3 generate
+gen_chcount_3 : if G_CH_COUNT=3 generate
 
 gen_idch : for i in 0 to G_CH_COUNT-1 generate
 i_set_memch(i).axiw_id<=CONV_STD_LOGIC_VECTOR(2*i+0, i_set_memch(i).axiw_id'length);
@@ -281,7 +281,7 @@ M00_AXI_RVALID       => p_in_mem.axir.dvalid,                               --: 
 M00_AXI_RREADY       => p_out_mem.axir.rready                               --: OUT STD_LOGIC
 );
 
---end generate gen_chcount_3;
+end generate gen_chcount_3;
 
 
 --END MAIN
