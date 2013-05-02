@@ -26,6 +26,7 @@ G_DBG : string := "OFF";
 G_SIM : string := "OFF"
 );
 port(
+p_in_ctrl     : in    std_logic_vector(15 downto 0);
 p_out_err     : out   std_logic;
 
 --VIN
@@ -204,6 +205,8 @@ signal i_green               : std_logic_vector(7 downto 0);
 signal i_red                 : std_logic_vector(7 downto 0);
 signal i_blue                : std_logic_vector(7 downto 0);
 
+signal i_ctrl                : std_logic_vector(0 downto 0);
+
 signal tst_core_out          : std_logic_vector(31 downto 0);
 signal tst_fms_cs            : std_logic_vector(3 downto 0);
 signal tst_fms_cs_dly        : std_logic_vector(3 downto 0);
@@ -220,7 +223,7 @@ begin
 --Технологические сигналы
 ------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst<=(others=>'0');
+p_out_tst <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
@@ -640,13 +643,27 @@ end process;
 
 i_dvi_de <=i_dvi_ha and i_dvi_va;
 
-i_red   <= "00000" & i_vga_xcnt(7 downto 5);
-i_green <= "00000" & i_vga_xcnt(7 downto 5);
-i_blue  <= "00000" & i_vga_xcnt(7 downto 5);
+i_red   <= p_in_vdi((8 * 1) - 1 downto 8 * 0) when i_ctrl(0) = '0' else "00000" & i_vga_xcnt(7 downto 5);
+i_green <= p_in_vdi((8 * 2) - 1 downto 8 * 1) when i_ctrl(0) = '0' else "00000" & i_vga_xcnt(7 downto 5);
+i_blue  <= p_in_vdi((8 * 3) - 1 downto 8 * 2) when i_ctrl(0) = '0' else "00000" & i_vga_xcnt(7 downto 5);
+
+p_out_vdi_rd  <= i_dvi_de;
+p_out_vdi_clk <= g_clk_pix;
+
+process(i_dvi_rst, g_clk_pix)
+begin
+  if i_dvi_rst = '1' then
+    i_ctrl <= (others=>'0');
+  elsif rising_edge(g_clk_pix) then
+    if i_dvi_vs = '0' then
+      i_ctrl(0) <= p_in_ctrl(0);
+    end if;
+  end if;
+end process;
 
 --Input Data Format(IDF) = 0
-i_dvi_d0(11 downto 0) <= i_green(3 downto 0) & i_blue(7 downto 0);
-i_dvi_d1(11 downto 0) <= i_red(7 downto 0) & i_green(7 downto 4);
+i_dvi_d0(11 downto 0) <= i_green(3 downto 0) & i_blue(7 downto 0) when i_dvi_de = '1' else (others=>'0');
+i_dvi_d1(11 downto 0) <= i_red(7 downto 0) & i_green(7 downto 4) when i_dvi_de = '1' else (others=>'0');
 
 ---------------------------------------
 --DVI PHY
