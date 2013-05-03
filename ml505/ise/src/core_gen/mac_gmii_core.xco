@@ -1,0 +1,55 @@
+##############################################################
+#
+# Xilinx Core Generator version 14.2
+# Date: Sun Apr 28 06:00:20 2013
+#
+##############################################################
+#
+#  This file contains the customisation parameters for a
+#  Xilinx CORE Generator IP GUI. It is strongly recommended
+#  that you do not manually alter this file as it may cause
+#  unexpected and unsupported behavior.
+#
+##############################################################
+#
+#  Generated from component: xilinx.com:ip:tri_mode_eth_mac:4.6
+#
+##############################################################
+#
+# BEGIN Project Options
+SET addpads = false
+SET asysymbol = true
+SET busformat = BusFormatAngleBracketNotRipped
+SET createndf = false
+SET designentry = VHDL
+SET device = xc5vlx50t
+SET devicefamily = virtex5
+SET flowvendor = Other
+SET formalverification = false
+SET foundationsym = false
+SET implementationfiletype = Ngc
+SET package = ff1136
+SET removerpms = false
+SET simulationfiles = Structural
+SET speedgrade = -1
+SET verilogsim = false
+SET vhdlsim = true
+# END Project Options
+# BEGIN Select
+SELECT Tri_Mode_Ethernet_MAC family Xilinx,_Inc. 4.6
+# END Select
+# BEGIN Parameters
+CSET address_filter=true
+CSET clock_enables=true
+CSET component_name=mac_gmii_core
+CSET half_duplex=false
+CSET mac_speed=Tri_speed
+CSET management_interface=false
+CSET number_of_address_table_entries=0
+CSET physical_interface=GMII
+# END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2012-07-21T06:31:03Z
+# END Extra information
+GENERATE
+# CRC: 87e4d1f7
