@@ -48,7 +48,7 @@ constant C_PCFG_ETH_GTCH_COUNT_MAX     : integer:=2; --Кол-во каналов в одном GT
 constant C_PCFG_ETH_PHY_DWIDTH         : integer:=16;
 
 --//HOST
-constant C_PCFG_HDEV_DWIDTH           : integer:=32;
+constant C_PCFG_HDEV_DWIDTH           : integer:=64;
 
 end prj_cfg;
 
