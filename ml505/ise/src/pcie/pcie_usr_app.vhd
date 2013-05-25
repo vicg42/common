@@ -158,35 +158,7 @@ clkb  : in   std_logic
 );
 end component;
 
-signal i_mwr_payload_dw_result     : std_logic_vector(10 downto 0);
-signal i_mwr_payload_dw_lsb        : std_logic_vector(10 downto 0);
-signal i_mwr_payload_dw_msb        : std_logic;
-signal i_mwr_payload_dw_lsb_ziro   : std_logic;
-signal i_mwr_payload_byte_mux      : std_logic_vector(11 downto 0);
-signal i_mwr_payload_byte_mux_ziro : std_logic;
-signal i_mwr_payload_dw_carry      : std_logic;
-signal i_mwr_count_result          : std_logic_vector(25 downto 0);
-signal i_mwr_count_mux             : std_logic_vector(24 downto 0);
-signal i_mwr_count_ziro            : std_logic;
-signal i_mwr_fbe                   : std_logic_vector(3 downto 0);
-signal i_mwr_lbe                   : std_logic_vector(3 downto 0);
-
-signal i_mrd_payload_dw_result     : std_logic_vector(10 downto 0);
-signal i_mrd_payload_dw_lsb        : std_logic_vector(10 downto 0);
-signal i_mrd_payload_dw_msb        : std_logic;
-signal i_mrd_payload_dw_lsb_ziro   : std_logic;
-signal i_mrd_payload_byte_mux      : std_logic_vector(11 downto 0);
-signal i_mrd_payload_byte_mux_ziro : std_logic;
-signal i_mrd_payload_dw_carry      : std_logic;
-signal i_mrd_count_result          : std_logic_vector(25 downto 0);
-signal i_mrd_count_mux             : std_logic_vector(24 downto 0);
-signal i_mrd_count_ziro            : std_logic;
-signal i_mrd_fbe                   : std_logic_vector(3 downto 0);
-signal i_mrd_lbe                   : std_logic_vector(3 downto 0);
 signal i_mrd_rcv_size_ok           : std_logic;
-
-signal i_max_payload_size          : std_logic_vector(2 downto 0);
-signal i_max_rd_req_size           : std_logic_vector(2 downto 0);
 
 signal i_reg_rd                    : std_logic;
 signal vrsk_reg_bar                : std_logic;
@@ -301,108 +273,21 @@ p_out_mwr_lbe           <=(others=>'0');
 p_out_mrd_en          <=i_dmatrn_work and not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC->FPGA
 p_out_mrd_addr_up       <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_addr_up'length);
 p_out_mrd_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --//Адрес системной памяти ХОСТА
-p_out_mrd_len           <=EXT(i_mrd_payload_dw_result, p_out_mrd_len'length);--//Len(DW) для последнего пакета
-p_out_mrd_count         <=EXT(i_mrd_count_result, p_out_mrd_count'length);   --//Кол-во пакетов
+p_out_mrd_len           <=i_dmatrn_len;
+p_out_mrd_count         <=(others=>'0');
 p_out_mrd_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_tlp_tc'length);
 p_out_mrd_64b           <='0';--//1/0 - 64b/32b
 p_out_mrd_phant_func_en1<='0';
 p_out_mrd_relaxed_order <='0';
 p_out_mrd_nosnoop       <='0';
-p_out_mrd_fbe           <=i_mrd_fbe;
-p_out_mrd_lbe           <=i_mrd_lbe;
+p_out_mrd_fbe           <=(others=>'0');
+p_out_mrd_lbe           <=(others=>'0');
 
 
 p_out_rd_metering       <='1';
 --p_out_usr_max_payload_size <=i_max_payload_size;
 --p_out_usr_max_rd_req_size  <=i_max_rd_req_size;
 
-
---//--------------------------------------------------------------
---//Memory Read Request:
---//--------------------------------------------------------------
---//max_rd_req_size : 000b = 128  byte max payload size
---//                  001b = 256  byte max payload size
---//                  010b = 512  byte max payload size
---//                  011b = 1024 byte max payload size
---//                  100b = 2048 byte max payload size
---//                  101b = 4096 byte max payload size
---//--------------------------------------------------------------
---//Вычисляем размер payload для последнего пакета(в DWORD)
---//--------------------------------------------------------------
-i_max_rd_req_size<=p_in_cfg_prg_max_rd_req_size;--v_reg_pcie(C_HREG_PCIE_NEG_MAX_RD_REQ_M_BIT downto C_HREG_PCIE_NEG_MAX_RD_REQ_L_BIT);
-
---Выделяем кол-во байт одного пакета TPL из общего размера данных(i_dmatrn_len) установленых Хостом
---В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
---i_mwr_payload_byte_mux(11 downto 0)<=(    i_dmatrn_len(11 downto 0)) when i_max_rd_req_size="101" else
-i_mrd_payload_byte_mux(11 downto 0)<=('0' & i_dmatrn_len(10 downto 0)) when i_max_rd_req_size="100" else
-                                     ("00" & i_dmatrn_len(9 downto 0))  when i_max_rd_req_size="011" else
-                                     ("000" & i_dmatrn_len(8 downto 0))  when i_max_rd_req_size="010" else
-                                     ("0000" & i_dmatrn_len(7 downto 0))  when i_max_rd_req_size="001" else
-                                     ("00000" & i_dmatrn_len(6 downto 0));--  when i_max_rd_req_size="000" else
-
-i_mrd_payload_byte_mux_ziro <='1' when i_mrd_payload_byte_mux=CONV_STD_LOGIC_VECTOR(16#00#,12) else '0';
-
---Вычисляем сколько DWORD должен содержать один пакет
-i_mrd_payload_dw_lsb(10 downto 0)<=('0'&i_mrd_payload_byte_mux(11 downto 2)) + ('0'&CONV_STD_LOGIC_VECTOR(16#00#, 9)&(i_dmatrn_len(1) or i_dmatrn_len(0)));
-
---i_mrd_payload_dw_lsb_ziro <='1' when (i_mrd_payload_dw_lsb(9 downto 0)="0000000000" and i_max_rd_req_size="101") or
-i_mrd_payload_dw_lsb_ziro <='1' when (i_mrd_payload_dw_lsb(8 downto 0)="000000000" and i_max_rd_req_size="100") or
-                                     (i_mrd_payload_dw_lsb(7 downto 0)="00000000" and i_max_rd_req_size="011") or
-                                     (i_mrd_payload_dw_lsb(6 downto 0)="0000000" and i_max_rd_req_size="010") or
-                                     (i_mrd_payload_dw_lsb(5 downto 0)="000000" and i_max_rd_req_size="001") or
-                                     (i_mrd_payload_dw_lsb(4 downto 0)="00000" and i_max_rd_req_size="000") else '0';
-
---Выделяем бит переноса в зависимости от i_max_rd_req_size
---i_mrd_payload_dw_carry <= i_mrd_payload_dw_lsb(10) when i_max_rd_req_size="101" else
-i_mrd_payload_dw_carry <= i_mrd_payload_dw_lsb(9)  when i_max_rd_req_size="100" else
-                          i_mrd_payload_dw_lsb(8)  when i_max_rd_req_size="011" else
-                          i_mrd_payload_dw_lsb(7)  when i_max_rd_req_size="010" else
-                          i_mrd_payload_dw_lsb(6)  when i_max_rd_req_size="001" else
-                          i_mrd_payload_dw_lsb(5);
-
-i_mrd_payload_dw_msb<='1' when i_mrd_count_ziro='0' and i_mrd_payload_dw_lsb_ziro='1' else i_mrd_payload_dw_carry;
-
---Результат вычислений:
---i_mrd_payload_dw_result(10 downto 0)<=(     i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(9 downto 0)) when i_max_rd_req_size="101" else
-i_mrd_payload_dw_result(10 downto 0)<=('0' & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(8 downto 0)) when i_max_rd_req_size="100" else
-                                      ("00" & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(7 downto 0)) when i_max_rd_req_size="011" else
-                                      ("000" & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(6 downto 0)) when i_max_rd_req_size="010" else
-                                      ("0000" & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(5 downto 0)) when i_max_rd_req_size="001" else
-                                      ("00000" & i_mrd_payload_dw_msb & i_mrd_payload_dw_lsb(4 downto 0));
-
-
---//--------------------------------------------------------------------------------------------
---//Вычисляем кол-во пакетов, необходимое для передачи/чтения всего запрошеного размера данных
---//--------------------------------------------------------------------------------------------
---Выделяем кол-во пакетов TPL из общего размера данных(i_dmatrn_len) установленых Хостом
---В зависимости от значения (i_max_rd_req_size) CFG региста PCI устройства
---i_mrd_count_mux(24 downto 0)<=("00000" & i_dmatrn_len(31 downto 12)) when i_max_rd_req_size="101" else
-i_mrd_count_mux(24 downto 0)<=("0000" & i_dmatrn_len(31 downto 11)) when i_max_rd_req_size="100" else
-                              ("000" & i_dmatrn_len(31 downto 10)) when i_max_rd_req_size="011" else
-                              ("00" & i_dmatrn_len(31 downto 9))  when i_max_rd_req_size="010" else
-                              ('0' & i_dmatrn_len(31 downto 8))  when i_max_rd_req_size="001" else
-                              (     i_dmatrn_len(31 downto 7));--  when i_max_rd_req_size="000" else
-
-i_mrd_count_ziro<='1' when i_mrd_count_mux=CONV_STD_LOGIC_VECTOR(16#00#,32) else '0';
-
---Результат вычислений:
-i_mrd_count_result(25 downto 0)<=('0'&i_mrd_count_mux) + ('0'& CONV_STD_LOGIC_VECTOR(16#00#, 24)& not i_mrd_payload_byte_mux_ziro);
-
---//--------------------------------------------------------------------------------------------
---//Вычисляем значения для ByteEnable для последнего пакета данных:
---//--------------------------------------------------------------------------------------------
-i_mrd_fbe<="1111" when i_mrd_payload_dw_lsb(10 downto 0)>CONV_STD_LOGIC_VECTOR(16#01#,11) else
-           "1111" when i_dmatrn_len(1 downto 0)="00" else
-           "0001" when i_dmatrn_len(1 downto 0)="01" else
-           "0011" when i_dmatrn_len(1 downto 0)="10" else
-           "0111";
-
---Byte enable last DWORD (TPL payload)
-i_mrd_lbe<="0000" when i_mrd_payload_dw_lsb(10 downto 0)=CONV_STD_LOGIC_VECTOR(16#01#,11) else
-           "1111" when i_dmatrn_len(1 downto 0)="00" else
-           "0001" when i_dmatrn_len(1 downto 0)="01" else
-           "0011" when i_dmatrn_len(1 downto 0)="10" else
-           "0111";
 
 
 --//--------------------------------------------------------------------------------------------

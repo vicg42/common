@@ -121,7 +121,8 @@ S_TX_MRD_QW1 ,
 S_TX_CPLD_WT0,
 S_TX_MRD_QW0 ,
 S_TX_MWR_QW0,
-S_TX_MWR_QW00
+S_TX_MWR_QW00,
+S_TX_MRD_QW00
 );
 signal fsm_state            : TFsm_state;
 
@@ -137,37 +138,36 @@ signal lower_addr           : std_logic_vector(6 downto 0);
 signal sr_req_compl         : std_logic;
 
 signal mwr_done             : std_logic;
-signal mwr_fbe_rq           : std_logic_vector(3 downto 0);
-signal mwr_lbe_rq           : std_logic_vector(3 downto 0);
 signal i_mwr_adr_cnt        : std_logic_vector(31 downto 0);
 signal mwr_adr_rq           : std_logic_vector(31 downto 0);
 signal i_mwr_tx             : std_logic_vector(31 downto 0);
 signal i_mwr_remain         : std_logic_vector(31 downto 0);
 signal i_mwr_remain_byte    : std_logic_vector(31 downto 0);
-signal i_cfg_mwr_rq         : std_logic_vector(31 downto 0);
-signal i_cfg_mwr_rq_byte    : std_logic_vector(31 downto 0);
+signal i_mwr_len_rq         : std_logic_vector(31 downto 0);
+signal i_mwr_len_rq_byte    : std_logic_vector(31 downto 0);
 signal i_mwr_tpl_max        : std_logic_vector(12 downto 0);--i_mwr_tpl - memory wr transaction payload
 signal i_mwr_tpl_max_byte   : std_logic_vector(12 downto 0);
 signal i_mwr_tpl_cnt        : std_logic_vector(12 downto 0);
 signal i_mwr_tpl_byte       : std_logic_vector(12 downto 0);
+signal i_mwr_tpl_dw_tmp     : std_logic_vector(12 downto 0);
 signal i_mwr_tpl_dw         : std_logic_vector(12 downto 0);
-signal i_mwr_tpl            : std_logic_vector(12 downto 0);
-signal i_mwr_tpl_last       : std_logic;
 signal i_mwr_tpl_tag        : std_logic_vector(7 downto 0);
 
 signal mrd_done             : std_logic;
-signal mrd_addr_req         : std_logic_vector(31 downto 0);
-signal mrd_fbe              : std_logic_vector(3 downto 0);
-signal mrd_lbe              : std_logic_vector(3 downto 0);
-signal mrd_fbe_req          : std_logic_vector(3 downto 0);
-signal mrd_lbe_req          : std_logic_vector(3 downto 0);
-signal pmrd_addr            : std_logic_vector(31 downto 0); --Указатель адреса чтения данных памяти PC
-signal mrd_pkt_count_req    : std_logic_vector(15 downto 0); --Кол-во пакетов MRd которые необходимо отправить PC
-signal mrd_pkt_count        : std_logic_vector(15 downto 0); --Кол-во отправлены пакетов MRr (запрос чтения)
-signal mrd_len_byte         : std_logic_vector(12 downto 0); --Размер одного пакета MRd в байт (учавствует в вычислении pmrd_addr)
-signal mrd_len_dw_req       : std_logic_vector(10 downto 0);
-signal mrd_len_dw           : std_logic_vector(10 downto 0);
-signal mrd_len_dw_init      : std_logic_vector(10 downto 0);
+signal i_mrd_adr_cnt        : std_logic_vector(31 downto 0);
+signal mrd_adr_rq           : std_logic_vector(31 downto 0);
+signal i_mrd_tx             : std_logic_vector(31 downto 0);
+signal i_mrd_remain         : std_logic_vector(31 downto 0);
+signal i_mrd_remain_byte    : std_logic_vector(31 downto 0);
+signal i_mrd_len_rq         : std_logic_vector(31 downto 0);
+signal i_mrd_len_rq_byte    : std_logic_vector(31 downto 0);
+signal i_mrd_tpl_max        : std_logic_vector(12 downto 0);--i_mrd_tpl - memory rd transaction payload
+signal i_mrd_tpl_max_byte   : std_logic_vector(12 downto 0);
+signal i_mrd_tpl_cnt        : std_logic_vector(12 downto 0);
+signal i_mrd_tpl_byte       : std_logic_vector(12 downto 0);
+signal i_mrd_tpl_dw_tmp     : std_logic_vector(12 downto 0);
+signal i_mrd_tpl_dw         : std_logic_vector(12 downto 0);
+signal i_mrd_tpl_tag        : std_logic_vector(15 downto 0);
 
 signal mwr_work             : std_logic;
 signal trn_dw_sel           : std_logic_vector(trn_td'length/64-1 downto 0);
@@ -192,13 +192,13 @@ end process;
 --//--------------------------------------
 --//
 --//--------------------------------------
-mrd_pkt_count_o <= mrd_pkt_count + 1;
-mrd_pkt_len_o <= EXT(mrd_len_dw_init, mrd_pkt_len_o'length) when i_dma_init='1' else
-                 EXT(mrd_len_dw, mrd_pkt_len_o'length);
+mrd_pkt_count_o <= i_mrd_tpl_tag + 1;
+mrd_pkt_len_o <= EXT(i_mrd_tpl_max, mrd_pkt_len_o'length) when i_dma_init='1' else
+                 EXT(i_mrd_tpl_dw, mrd_pkt_len_o'length);
 
 usr_rxbuf_rd <= (not trn_tdst_rdy_n and trn_tdst_dsc_n and not usr_rxbuf_empty_i);
 usr_rxbuf_rd_o <= usr_rxbuf_rd and mwr_work;
-usr_rxbuf_rd_last_o <= usr_rxbuf_rd and mwr_work when (i_mwr_tx = i_cfg_mwr_rq - 1) else '0';
+usr_rxbuf_rd_last_o <= usr_rxbuf_rd and mwr_work when (i_mwr_tx = i_mwr_len_rq - 1) else '0';
 
 trn_tsrc_dsc_n <= '1';
 trn_tsrc_rdy_n_o <= i_trn_tsrc_rdy_n or OR_reduce(trn_dw_sel) or (usr_rxbuf_empty_i and mwr_work);
@@ -275,17 +275,11 @@ begin
 
     mwr_done <= '0';
     mwr_adr_rq <= (others=>'0');
-    mwr_fbe_rq <= (others=>'0');
-    mwr_lbe_rq <= (others=>'0');
+    i_mwr_len_rq_byte <= (others=>'0');
 
     mrd_done <= '0';
-    mrd_addr_req <= (others=>'0');
-    mrd_pkt_count_req <= (others=>'0');
-    mrd_len_dw_req <= (others=>'0');
-    mrd_fbe_req <= (others=>'0');
-    mrd_lbe_req <= (others=>'0');
-
-    i_cfg_mwr_rq_byte <= (others=>'0');
+    mrd_adr_rq <= (others=>'0');
+    i_mrd_len_rq_byte <= (others=>'0');
 
   elsif clk'event and clk='1' then
 
@@ -300,10 +294,7 @@ begin
     if dma_init_i='1' then --Инициализация перед началом DMA транзакции
         mwr_done <= '0';
         mwr_adr_rq <= mwr_addr_i;
-        mwr_fbe_rq <= mwr_fbe_i;
-        mwr_lbe_rq <= mwr_lbe_i;
-
-        i_cfg_mwr_rq_byte <= mwr_len_i;
+        i_mwr_len_rq_byte <= mwr_len_i;
 
         case max_payload_size_i is
         when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mwr_tpl_max_byte'length);
@@ -315,53 +306,65 @@ begin
         end case;
 
         mrd_done <= '0';
-        mrd_addr_req <= mrd_addr_i;
-        mrd_pkt_count_req <= mrd_count_i(15 downto 0);
-        mrd_len_dw_req <= mrd_len_i(10 downto 0);
-        mrd_fbe_req <= mrd_fbe_i;
-        mrd_lbe_req <= mrd_lbe_i;
+        mrd_adr_rq <= mrd_addr_i;
+        i_mrd_len_rq_byte <= mrd_len_i;
 
-        if (mrd_count_i(15 downto 0) - 1) = CONV_STD_LOGIC_VECTOR(16#00#, 16) then
-          mrd_len_dw_init(10 downto 0) <= mrd_len_i(10 downto 0);
-        else
-          if    max_rd_req_size_i = C_PCIE_MAX_RD_REQ_1024_BYTE then mrd_len_dw_init <= CONV_STD_LOGIC_VECTOR(16#100#, mrd_len_dw_init'length);
-          elsif max_rd_req_size_i = C_PCIE_MAX_RD_REQ_512_BYTE  then mrd_len_dw_init <= CONV_STD_LOGIC_VECTOR(16#080#, mrd_len_dw_init'length);
-          elsif max_rd_req_size_i = C_PCIE_MAX_RD_REQ_256_BYTE  then mrd_len_dw_init <= CONV_STD_LOGIC_VECTOR(16#040#, mrd_len_dw_init'length);
-          else                                                       mrd_len_dw_init <= CONV_STD_LOGIC_VECTOR(16#020#, mrd_len_dw_init'length);
-          end if;
-        end if;
+        case max_rd_req_size_i is
+        when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mrd_tpl_max_byte'length);
+        when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mrd_tpl_max_byte'length);
+        when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mrd_tpl_max_byte'length);
+        when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mrd_tpl_max_byte'length);
+        when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mrd_tpl_max_byte'length);
+        when others => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mrd_tpl_max_byte'length);
+        end case;
 
     elsif ((fsm_state = S_TX_MWR_QW1) or (fsm_state = S_TX_MWR_QWN)) and
           usr_rxbuf_rd='1' and mwr_work='1' and
-          (i_mwr_tx = i_cfg_mwr_rq - 1) then
+          (i_mwr_tx = i_mwr_len_rq - 1) then
           mwr_done <= '1'; --Транзакция завершена
 
     elsif fsm_state = S_TX_MRD_QW1 and
           trn_tdst_rdy_n='0' and trn_tdst_dsc_n='1' and
-          (mrd_pkt_count = (mrd_pkt_count_req - 1)) then
+          (i_mrd_tx = i_mrd_len_rq) then
           mrd_done <= '1'; --Транзакция завершена
     end if;
   end if;
 end process;
 
-i_cfg_mwr_rq <= (CONV_STD_LOGIC_VECTOR(0, log2(G_USR_DBUS/8)) &
-                 i_cfg_mwr_rq_byte(i_cfg_mwr_rq_byte'high downto log2(G_USR_DBUS/8)))
-                + OR_reduce(i_cfg_mwr_rq_byte(log2(G_USR_DBUS/8) - 1 downto 0));
+i_mwr_len_rq <= (CONV_STD_LOGIC_VECTOR(0, log2(G_USR_DBUS/8)) &
+                 i_mwr_len_rq_byte(i_mwr_len_rq_byte'high downto log2(G_USR_DBUS/8)))
+                + OR_reduce(i_mwr_len_rq_byte(log2(G_USR_DBUS/8) - 1 downto 0));
 
 i_mwr_tpl_max <= (CONV_STD_LOGIC_VECTOR(0, log2(G_USR_DBUS/8)) &
                  i_mwr_tpl_max_byte(i_mwr_tpl_max_byte'high downto log2(G_USR_DBUS/8)))
                 + OR_reduce(i_mwr_tpl_max_byte(log2(G_USR_DBUS/8) - 1 downto 0));
 
-i_mwr_tpl_dw <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
+i_mwr_tpl_dw_tmp <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
                  i_mwr_tpl_byte(i_mwr_tpl_byte'high downto log2(32/8)))
                 + OR_reduce(i_mwr_tpl_byte(log2(32/8) - 1 downto 0));
 
-i_mwr_tpl <= i_mwr_tpl_dw;
+i_mwr_tpl_dw <= i_mwr_tpl_dw_tmp;
 
 i_mwr_remain_byte <= i_mwr_remain(i_mwr_remain'high - log2(G_USR_DBUS/8) downto 0)
                      & CONV_STD_LOGIC_VECTOR(0, log2(G_USR_DBUS/8));
 
-i_mwr_tpl_last <= '1' when i_mwr_remain <= EXT(i_mwr_tpl_max, i_mwr_remain'length) else '0';
+
+i_mrd_len_rq <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
+                 i_mrd_len_rq_byte(i_mrd_len_rq_byte'high downto log2(32/8)))
+                + OR_reduce(i_mrd_len_rq_byte(log2(32/8) - 1 downto 0));
+
+i_mrd_tpl_max <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
+                 i_mrd_tpl_max_byte(i_mrd_tpl_max_byte'high downto log2(32/8)))
+                + OR_reduce(i_mrd_tpl_max_byte(log2(32/8) - 1 downto 0));
+
+i_mrd_tpl_dw_tmp <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
+                 i_mrd_tpl_byte(i_mrd_tpl_byte'high downto log2(32/8)))
+                + OR_reduce(i_mrd_tpl_byte(log2(32/8) - 1 downto 0));
+
+i_mrd_tpl_dw <= i_mrd_tpl_dw_tmp;
+
+i_mrd_remain_byte <= i_mrd_remain(i_mrd_remain'high - log2(32/8) downto 0)
+                     & CONV_STD_LOGIC_VECTOR(0, log2(32/8));
 
 --Tx State Machine
 process(rst_n, clk)
@@ -381,11 +384,10 @@ begin
     i_mwr_tx <= (others=>'0');
     i_mwr_remain <= (others=>'0');
 
-    mrd_pkt_count <= (others=>'0');
-    pmrd_addr <= (others=>'0');
-    mrd_len_dw <= (others=>'0');
-    mrd_fbe <= (others=>'0');
-    mrd_lbe <= (others=>'0');
+    i_mrd_adr_cnt <= (others=>'0');
+    i_mrd_tpl_tag <= (others=>'0');
+    i_mrd_tx <= (others=>'0');
+    i_mrd_remain <= (others=>'0');
 
     i_compl_done <= '0';
     trn_dw_sel <= (others=>'0');
@@ -489,9 +491,9 @@ begin
                   i_mwr_adr_cnt <= mwr_adr_rq;
                   i_mwr_tpl_tag <= (others=>'0');
                   i_mwr_tx <= (others=>'0');
-                  i_mwr_remain <= EXT(i_cfg_mwr_rq, i_mwr_remain'length);
+                  i_mwr_remain <= EXT(i_mwr_len_rq, i_mwr_remain'length);
                 else
-                  i_mwr_remain <= EXT(i_cfg_mwr_rq, i_mwr_remain'length) - EXT(i_mwr_tx, i_mwr_remain'length);
+                  i_mwr_remain <= EXT(i_mwr_len_rq, i_mwr_remain'length) - EXT(i_mwr_tx, i_mwr_remain'length);
                 end if;
                 i_dma_init_clr<='1';
 
@@ -514,31 +516,13 @@ begin
                 sr_req_compl='0' and i_compl_done='0' and
                 mrd_en_i='1' and mrd_done='0' and master_en_i='1' then
 
-                if (i_dma_init='0' and (mrd_pkt_count = (mrd_pkt_count_req - 1))) or
-                   (i_dma_init='1' and ((mrd_pkt_count_req - 1)=CONV_STD_LOGIC_VECTOR(16#00#, mrd_pkt_count_req'length))) then
-                  mrd_len_dw(10 downto 0) <= mrd_len_dw_req(10 downto 0);
-                  mrd_fbe <= mrd_fbe_req;
-                  mrd_lbe <= mrd_lbe_req;
-                else
-                    mrd_fbe <= CONV_STD_LOGIC_VECTOR(16#0F#, mrd_fbe'length);
-                    mrd_lbe <= CONV_STD_LOGIC_VECTOR(16#0F#, mrd_lbe'length);
-
-                    if    max_rd_req_size_i = C_PCIE_MAX_RD_REQ_1024_BYTE then mrd_len_dw <= CONV_STD_LOGIC_VECTOR(16#100#, mrd_len_dw'length);
-                    elsif max_rd_req_size_i = C_PCIE_MAX_RD_REQ_512_BYTE  then mrd_len_dw <= CONV_STD_LOGIC_VECTOR(16#080#, mrd_len_dw'length);
-                    elsif max_rd_req_size_i = C_PCIE_MAX_RD_REQ_256_BYTE  then mrd_len_dw <= CONV_STD_LOGIC_VECTOR(16#040#, mrd_len_dw'length);
-                    else                                                       mrd_len_dw <= CONV_STD_LOGIC_VECTOR(16#020#, mrd_len_dw'length);
-                    end if;
-                end if;
-
-                if    max_rd_req_size_i = C_PCIE_MAX_RD_REQ_1024_BYTE then mrd_len_byte <= CONV_STD_LOGIC_VECTOR(16#400#, mrd_len_byte'length);--4 * mrd_len_dw;
-                elsif max_rd_req_size_i = C_PCIE_MAX_RD_REQ_512_BYTE  then mrd_len_byte <= CONV_STD_LOGIC_VECTOR(16#200#, mrd_len_byte'length);--4 * mrd_len_dw
-                elsif max_rd_req_size_i = C_PCIE_MAX_RD_REQ_256_BYTE  then mrd_len_byte <= CONV_STD_LOGIC_VECTOR(16#100#, mrd_len_byte'length);--4 * mrd_len_dw
-                else                                                       mrd_len_byte <= CONV_STD_LOGIC_VECTOR(16#080#, mrd_len_byte'length);--4 * mrd_len_dw
-                end if;
-
                 if i_dma_init='1' then
-                  pmrd_addr <= mrd_addr_req;
-                  mrd_pkt_count <= (others=>'0');
+                  i_mrd_adr_cnt <= mrd_adr_rq;
+                  i_mrd_tpl_tag <= (others=>'0');
+                  i_mrd_tx <= (others=>'0');
+                  i_mrd_remain <= EXT(i_mrd_len_rq, i_mrd_remain'length);
+                else
+                  i_mwr_remain <= EXT(i_mrd_len_rq, i_mrd_remain'length) - EXT(i_mrd_tx, i_mrd_remain'length);
                 end if;
                 i_dma_init_clr<='1';
 
@@ -551,7 +535,7 @@ begin
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
                 i_trn_trem_n <= (others=>'0');
-                fsm_state <= S_TX_MRD_QW0;
+                fsm_state <= S_TX_MRD_QW00;
 
             else
                 if trn_tdst_rdy_n='0' then
@@ -622,7 +606,7 @@ begin
 --        when S_TX_MWR_QW00 =>
 --
 --          i_dma_init_clr<='0';
---          if i_mwr_tpl_last = '1' then
+--          if i_mwr_remain <= EXT(i_mwr_tpl_max, i_mwr_remain'length) then
 --              i_mwr_tpl_cnt <= i_mwr_remain(12 downto 0) - 1;
 --              i_mwr_tpl_byte <= i_mwr_remain_byte(12 downto 0);
 --          else
@@ -652,7 +636,7 @@ begin
 --                           '0' &
 --                           mwr_relaxed_order_i & mwr_nosnoop_i &
 --                           "00" &
---                           i_mwr_tpl(9 downto 0) &
+--                           i_mwr_tpl_dw(9 downto 0) &
 --                           completer_id_i(15 downto 3) & mwr_phant_func_en1_i & "00");
 --
 --                if tag_ext_en_i='1' then
@@ -826,7 +810,7 @@ begin
         when S_TX_MWR_QW00 =>
 
           i_dma_init_clr<='0';
-          if i_mwr_tpl_last = '1' then
+          if i_mwr_remain <= EXT(i_mwr_tpl_max, i_mwr_remain'length) then
               i_mwr_tpl_cnt <= i_mwr_remain(12 downto 0) - 1;
               i_mwr_tpl_byte <= i_mwr_remain_byte(12 downto 0);
           else
@@ -856,7 +840,7 @@ begin
                            '0' &
                            mwr_relaxed_order_i & mwr_nosnoop_i &
                            "00" &
-                           i_mwr_tpl(9 downto 0) &
+                           i_mwr_tpl_dw(9 downto 0) &
                            completer_id_i(15 downto 3) & mwr_phant_func_en1_i & "00");
 
                 if tag_ext_en_i='1' then
@@ -1003,6 +987,19 @@ begin
         --#######################################################################
         --MRd - 3DW, no data  (PC<-FPGA) (запрос записи в память PC)
         --#######################################################################
+        when S_TX_MRD_QW00 =>
+          i_dma_init_clr<='0';
+          if i_mrd_remain <= EXT(i_mrd_tpl_max, i_mrd_remain'length) then
+              i_mrd_tpl_cnt <= i_mrd_remain(12 downto 0);
+              i_mrd_tpl_byte <= i_mrd_remain_byte(12 downto 0);
+          else
+              i_mrd_tpl_cnt <= i_mrd_tpl_max;
+              i_mrd_tpl_byte <= i_mrd_tpl_max_byte;
+          end if;
+
+          fsm_state <= S_TX_MRD_QW0;
+        --end S_TX_MWR_QW00 :
+
         when S_TX_MRD_QW0 =>
 
             i_dma_init_clr<='0';
@@ -1022,16 +1019,25 @@ begin
                            '0' &
                            mrd_relaxed_order_i & mrd_nosnoop_i &
                            "00" &
-                           mrd_len_dw(9 downto 0) &
+                           i_mrd_tpl_dw(9 downto 0) &
                            completer_id_i(15 downto 3) & mrd_phant_func_en1_i & "00");
 
                 if tag_ext_en_i='1' then
-                i_trn_td(15 downto 8) <= mrd_pkt_count(7 downto 0);
+                i_trn_td(15 downto 8) <= i_mrd_tpl_tag(7 downto 0);
                 else
-                i_trn_td(15 downto 8) <= EXT(mrd_pkt_count(4 downto 0), 8);
+                i_trn_td(15 downto 8) <= EXT(i_mrd_tpl_tag(4 downto 0), 8);
                 end if;
 
-                i_trn_td(7 downto 0) <= mrd_lbe & mrd_fbe;
+                if i_mrd_tpl_cnt = CONV_STD_LOGIC_VECTOR(1, i_mrd_tpl_cnt'length) then
+                i_trn_td(7 downto 4) <= CONV_STD_LOGIC_VECTOR(16#0#, 4);--Last DW Byte Enable
+                i_trn_td(3 downto 0) <= CONV_STD_LOGIC_VECTOR(16#F#, 4);--1st DW Byte Enable
+                else
+                i_trn_td(7 downto 4) <= CONV_STD_LOGIC_VECTOR(16#F#, 4);--Last DW Byte Enable
+                i_trn_td(3 downto 0) <= CONV_STD_LOGIC_VECTOR(16#F#, 4);--1st DW Byte Enable
+                end if;
+
+                --Счетчик запрошенных данных (Total)
+                i_mrd_tx <= i_mrd_tx + EXT(i_mrd_tpl_cnt, i_mrd_tx'length);
 
                 fsm_state <= S_TX_MRD_QW1;
             else
@@ -1060,7 +1066,7 @@ begin
 --                           '0' &
 --                           mrd_relaxed_order_i & mrd_nosnoop_i &
 --                           "00" &
---                           mrd_len_dw(9 downto 0) &
+--                           i_mrd_tpl_dw(9 downto 0) &
 --                           completer_id_i(15 downto 3) & mrd_phant_func_en1_i & "00");
 --
 --                if tag_ext_en_i='1' then
@@ -1078,17 +1084,18 @@ begin
                 i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
 
-                i_trn_td <= (pmrd_addr(31 downto 2) & "00" &
-                           CONV_STD_LOGIC_VECTOR(16#00#, 32));
+                i_trn_td(63 downto 32) <= (i_mrd_adr_cnt(31 downto 2) & "00");
+                i_trn_td(31 downto 0) <= (others=>'0');
 
-                pmrd_addr <= pmrd_addr + EXT(mrd_len_byte, pmrd_addr'length);
-
-                --Счетчик отправленых пакетов MRd
-                if mrd_pkt_count = (mrd_pkt_count_req - 1) then
-                  mrd_pkt_count <= (others=>'0');
+                --индетификатор пакета
+                if i_mrd_tx = i_mrd_len_rq then
+                i_mrd_tpl_tag <= (others=>'0');
                 else
-                  mrd_pkt_count <= mrd_pkt_count + 1;
+                i_mrd_tpl_tag <= i_mrd_tpl_tag + 1;
                 end if;
+
+                --Счетчик адреса (byte)
+                i_mrd_adr_cnt <= i_mrd_adr_cnt + EXT(i_mrd_tpl_byte, i_mrd_adr_cnt'length);
 
                 fsm_state <= S_TX_IDLE;
             else
