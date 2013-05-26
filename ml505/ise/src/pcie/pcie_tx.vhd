@@ -139,7 +139,6 @@ signal sr_req_compl         : std_logic;
 
 signal mwr_done             : std_logic;
 signal i_mwr_adr_cnt        : std_logic_vector(31 downto 0);
-signal mwr_adr_rq           : std_logic_vector(31 downto 0);
 signal i_mwr_tx             : std_logic_vector(31 downto 0);
 signal i_mwr_remain         : std_logic_vector(31 downto 0);
 signal i_mwr_remain_byte    : std_logic_vector(31 downto 0);
@@ -155,7 +154,6 @@ signal i_mwr_tpl_tag        : std_logic_vector(7 downto 0);
 
 signal mrd_done             : std_logic;
 signal i_mrd_adr_cnt        : std_logic_vector(31 downto 0);
-signal mrd_adr_rq           : std_logic_vector(31 downto 0);
 signal i_mrd_tx             : std_logic_vector(31 downto 0);
 signal i_mrd_remain         : std_logic_vector(31 downto 0);
 signal i_mrd_remain_byte    : std_logic_vector(31 downto 0);
@@ -274,11 +272,9 @@ begin
     i_dma_init <= '0';
 
     mwr_done <= '0';
-    mwr_adr_rq <= (others=>'0');
     i_mwr_len_rq_byte <= (others=>'0');
 
     mrd_done <= '0';
-    mrd_adr_rq <= (others=>'0');
     i_mrd_len_rq_byte <= (others=>'0');
 
   elsif clk'event and clk='1' then
@@ -293,7 +289,6 @@ begin
 
     if dma_init_i='1' then --Инициализация перед началом DMA транзакции
         mwr_done <= '0';
-        mwr_adr_rq <= mwr_addr_i;
         i_mwr_len_rq_byte <= mwr_len_i;
 
         case max_payload_size_i is
@@ -306,7 +301,6 @@ begin
         end case;
 
         mrd_done <= '0';
-        mrd_adr_rq <= mrd_addr_i;
         i_mrd_len_rq_byte <= mrd_len_i;
 
         case max_rd_req_size_i is
@@ -488,7 +482,7 @@ begin
                 mwr_en_i='1' and mwr_done='0' and master_en_i='1' then
 
                 if i_dma_init='1' then
-                  i_mwr_adr_cnt <= mwr_adr_rq;
+                  i_mwr_adr_cnt <= mwr_addr_i;
                   i_mwr_tpl_tag <= (others=>'0');
                   i_mwr_tx <= (others=>'0');
                   i_mwr_remain <= EXT(i_mwr_len_rq, i_mwr_remain'length);
@@ -517,7 +511,7 @@ begin
                 mrd_en_i='1' and mrd_done='0' and master_en_i='1' then
 
                 if i_dma_init='1' then
-                  i_mrd_adr_cnt <= mrd_adr_rq;
+                  i_mrd_adr_cnt <= mrd_addr_i;
                   i_mrd_tpl_tag <= (others=>'0');
                   i_mrd_tx <= (others=>'0');
                   i_mrd_remain <= EXT(i_mrd_len_rq, i_mrd_remain'length);
@@ -600,23 +594,23 @@ begin
         --END: CplD - 3DW, +data;  Cpl - 3DW
 
 
+        when S_TX_MWR_QW00 =>
+
+          i_dma_init_clr<='0';
+          if i_mwr_remain <= EXT(i_mwr_tpl_max, i_mwr_remain'length) then
+              i_mwr_tpl_cnt <= i_mwr_remain(i_mwr_tpl_cnt'range) - 1;
+              i_mwr_tpl_byte <= i_mwr_remain_byte(i_mwr_tpl_byte'range);
+          else
+              i_mwr_tpl_cnt <= i_mwr_tpl_max - 1;
+              i_mwr_tpl_byte <= i_mwr_tpl_max_byte;
+          end if;
+
+          fsm_state <= S_TX_MWR_QW0;
+        --end S_TX_MWR_QW00 :
+
 --        --#######################################################################
 --        --MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
 --        --#######################################################################
---        when S_TX_MWR_QW00 =>
---
---          i_dma_init_clr<='0';
---          if i_mwr_remain <= EXT(i_mwr_tpl_max, i_mwr_remain'length) then
---              i_mwr_tpl_cnt <= i_mwr_remain(12 downto 0) - 1;
---              i_mwr_tpl_byte <= i_mwr_remain_byte(12 downto 0);
---          else
---              i_mwr_tpl_cnt <= i_mwr_tpl_max - 1;
---              i_mwr_tpl_byte <= i_mwr_tpl_max_byte;
---          end if;
---
---          fsm_state <= S_TX_MWR_QW0;
---        --end S_TX_MWR_QW00 :
---
 --        when S_TX_MWR_QW0 =>
 --
 --            i_dma_init_clr<='0';
@@ -807,20 +801,6 @@ begin
         --#######################################################################
         --MWr - 4DW, +data (PC<-FPGA) FPGA is PCIe master
         --#######################################################################
-        when S_TX_MWR_QW00 =>
-
-          i_dma_init_clr<='0';
-          if i_mwr_remain <= EXT(i_mwr_tpl_max, i_mwr_remain'length) then
-              i_mwr_tpl_cnt <= i_mwr_remain(12 downto 0) - 1;
-              i_mwr_tpl_byte <= i_mwr_remain_byte(12 downto 0);
-          else
-              i_mwr_tpl_cnt <= i_mwr_tpl_max - 1;
-              i_mwr_tpl_byte <= i_mwr_tpl_max_byte;
-          end if;
-
-          fsm_state <= S_TX_MWR_QW0;
-        --end S_TX_MWR_QW00 :
-
         when S_TX_MWR_QW0 =>
 
             i_dma_init_clr<='0';
@@ -990,8 +970,8 @@ begin
         when S_TX_MRD_QW00 =>
           i_dma_init_clr<='0';
           if i_mrd_remain <= EXT(i_mrd_tpl_max, i_mrd_remain'length) then
-              i_mrd_tpl_cnt <= i_mrd_remain(12 downto 0);
-              i_mrd_tpl_byte <= i_mrd_remain_byte(12 downto 0);
+              i_mrd_tpl_cnt <= i_mrd_remain(i_mrd_tpl_cnt'range);
+              i_mrd_tpl_byte <= i_mrd_remain_byte(i_mrd_tpl_byte'range);
           else
               i_mrd_tpl_cnt <= i_mrd_tpl_max;
               i_mrd_tpl_byte <= i_mrd_tpl_max_byte;
