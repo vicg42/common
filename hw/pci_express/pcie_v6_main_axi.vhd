@@ -501,7 +501,7 @@ begin
 p_out_tst(0)<=cfg_interrupt_n;
 p_out_tst(1)<=cfg_interrupt_rdy_n;
 p_out_tst(2)<=cfg_interrupt_assert_n;
-p_out_tst(3)<=cfg_interrupt_msienable;--cfg_command(10);
+p_out_tst(3)<=cfg_interrupt_msienable;
 p_out_tst(4)<=trn_tsof_n;
 p_out_tst(5)<=trn_teof_n;
 p_out_tst(6)<=trn_tsrc_rdy_n;
@@ -518,11 +518,20 @@ p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
 p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18-17+1);
 p_out_tst(146 downto 19)<=EXT(trn_rd, 128);
 --p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
-p_out_tst(162 downto 147)<=EXT(trn_rrem_n_core, 162-147+1);--(others=>'0');
+p_out_tst(162 downto 147)<=EXT(trn_rrem_n, 162-147+1);--(others=>'0');
 p_out_tst(168 downto 163)<=trn_tbuf_av;
-p_out_tst(170 downto 169)<=EXT(trn_trem_n_core, 170-169+1);
-p_out_tst(199 downto 171)<=(others=>'0');
-p_out_tst(215 downto 200)<=(others=>'0');
+p_out_tst(170 downto 169)<=EXT(trn_trem_n, 170-169+1);
+p_out_tst(171)<=s_axis_tx_tready;
+p_out_tst(172)<=s_axis_tx_tlast ;
+p_out_tst(173)<=s_axis_tx_tvalid;
+p_out_tst(181 downto 174)<=s_axis_tx_tkeep(7 downto 0);
+p_out_tst(185 downto 182)<=s_axis_tx_tuser(3 downto 0);
+p_out_tst(186)<=m_axis_rx_tready;
+p_out_tst(187)<=m_axis_rx_tvalid;
+p_out_tst(188)<=m_axis_rx_tlast;
+p_out_tst(196 downto 189)<=m_axis_rx_tkeep(7 downto 0);
+p_out_tst(200 downto 197)<=m_axis_rx_tuser(3 downto 0);
+p_out_tst(215 downto 201)<=(others=>'0');
 p_out_tst(231 downto 216)<=(others=>'0');
 p_out_tst(249 downto 248)<=(others=>'0');
 p_out_tst(255 downto 250)<=(others=>'0');
@@ -803,7 +812,6 @@ end generate gen_intr_rst;
 
 
 trn_fc_sel                <= "000";
-trn_tcfg_gnt_n            <= '0';
 trn_tstr_n                <= trn_rcpl_streaming_n;
 
 pl_directed_link_change   <= "00";
@@ -828,8 +836,8 @@ cfg_byte_en(i) <=not cfg_byte_en_n(i);
 end generate gen_cfg_byte_en;
 cfg_wr_en <=not cfg_wr_en_n;
 cfg_rd_en <=not cfg_rd_en_n;
+cfg_rd_wr_done_n <=not cfg_rd_wr_done;
 
-cfg_rd_wr_done_n   <=not cfg_rd_wr_done;
 cfg_to_turnoff_n   <=not cfg_to_turnoff;
 cfg_err_cpl_rdy_n  <=not cfg_err_cpl_rdy;
 
@@ -864,20 +872,16 @@ s_axis_tx_tuser(2)<=not trn_tstr_n;
 s_axis_tx_tuser(1)<=not trn_terrfwd_n;
 s_axis_tx_tuser(0)<='0';
 
---s_axis_tx_tkeep<=(others=>'1') when s_axis_tx_tlast='0' else
---                 CONV_STD_LOGIC_VECTOR(16#0F#, s_axis_tx_tkeep'length) when trn_trem_n=(trn_trem_n'range =>'1') else
---                 CONV_STD_LOGIC_VECTOR(16#FF#, s_axis_tx_tkeep'length);
-s_axis_tx_tkeep<=CONV_STD_LOGIC_VECTOR(16#0F#, s_axis_tx_tkeep'length) when s_axis_tx_tlast='1' and trn_trem_n=CONV_STD_LOGIC_VECTOR(16#03#, trn_trem_n'length) else
-                 CONV_STD_LOGIC_VECTOR(16#FF#, s_axis_tx_tkeep'length);
+s_axis_tx_tkeep <= CONV_STD_LOGIC_VECTOR(16#0F#, s_axis_tx_tkeep'length)
+                    when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, trn_trem_n'length) else
+                      CONV_STD_LOGIC_VECTOR(16#FF#, s_axis_tx_tkeep'length);
 
 --Rx
 m_axis_rx_tready <=not trn_rdst_rdy_n;
 
---trn_rrem_n<=(others=>'1') when m_axis_rx_tlast='0' else
---            (others=>'0') when m_axis_rx_tkeep(7 downto 4)=CONV_STD_LOGIC_VECTOR(16#F#, 4) else
---            (others=>'1');
-trn_rrem_n<=(others=>'0') when m_axis_rx_tlast='1' and m_axis_rx_tkeep(7 downto 4)=CONV_STD_LOGIC_VECTOR(16#F#, 4) else
-            (others=>'1');
+trn_rrem_n <= CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length)
+              when m_axis_rx_tlast = '1' and m_axis_rx_tkeep = CONV_STD_LOGIC_VECTOR(16#0F#, m_axis_rx_tkeep'length) else
+                CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length);
 
 trn_rsrc_dsc_n <='1';
 trn_reof_n     <=not m_axis_rx_tlast;
@@ -891,7 +895,7 @@ end generate gen_trn_rbar_hit;
 process(sys_reset,trn_clk)
 begin
   if sys_reset='1' then
-    in_pkt_reg<='0';
+    in_pkt_reg<='1';
   elsif trn_clk'event and trn_clk='1' then
     if m_axis_rx_tvalid='1' and m_axis_rx_tready='1' then
       in_pkt_reg <=not m_axis_rx_tlast;
@@ -900,11 +904,10 @@ begin
 end process;
 trn_rsof_n <= not(m_axis_rx_tvalid and not in_pkt_reg);
 
-gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 -1 generate
-trn_rd(32*((CI_PCIEXP_TRN_DBUS/32-1 - i)+1)-1 downto 32*(CI_PCIEXP_TRN_DBUS/32-1 - i)) <= m_axis_rx_tdata(32*(i+1)-1 downto 32*i);
-s_axis_tx_tdata(32*(i+1)-1 downto 32*i) <= trn_td(32*((CI_PCIEXP_TRN_DBUS/32-1 - i)+1)-1 downto 32*(CI_PCIEXP_TRN_DBUS/32-1 - i));
+gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 - 1 generate
+trn_rd((trn_rd'length - 32*i) - 1 downto (trn_rd'length - 32*(i+1))) <= m_axis_rx_tdata(32*(i+1) - 1 downto 32*i);
+s_axis_tx_tdata(32*(i+1) - 1 downto 32*i) <= trn_td((trn_td'length - 32*i) - 1 downto (trn_td'length - 32*(i+1)));
 end generate gen_trn_d;
-
 
 --END MAIN
 end behavioral;
