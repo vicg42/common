@@ -175,17 +175,6 @@ set _projects [ list \
       [ list "../../../common/lib/hw/lib/vicg/v5/gtp_drp_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/lib/vicg/v5/gtp_prog_clkmux.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/src/eth_mdio.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_mdio_main.vhd" $_VHDMod ] \
-      [ list "../src/veresk/eth/coregen_eth_phy_rgmii.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/client/fifo/eth_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/client/fifo/tx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/client/fifo/rx_client_fifo_8.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/physical/emac0_fcs_blk_rgmii.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/physical/rgmii_if.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii_block.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/emac_core_rgmii/example_design/emac_core_rgmii_locallink.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prom_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prom_ld_main.vhd" $_VHDMod ] \
