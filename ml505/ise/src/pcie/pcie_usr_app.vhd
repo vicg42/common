@@ -546,7 +546,7 @@ begin
   end if;
 end process;
 
-i_pce_testing <= not v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
+i_pce_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
 --//--------------------------------------------------------------------------------------------
 --//Управление DMA транзакцией (режим Master)
@@ -801,7 +801,7 @@ end generate gen_irq;
 --//-------------------------------------------------------------------
 --//Сигналы для модулей TX/RX PCI-Express
 --//-------------------------------------------------------------------
-p_out_rxbuf_dout <=p_in_dev_dout when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else tst_mem_dcnt_swap;
+p_out_rxbuf_dout <=p_in_dev_dout;-- when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else tst_mem_dcnt_swap;
 p_out_txbuf_full <=p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
                    p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not i_pce_testing;
 p_out_rxbuf_empty<=p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
@@ -845,23 +845,23 @@ begin
 end process;
 end generate gen_usrd_x64;
 
-process(p_in_rst_n,i_usr_grst,p_in_clk)
-begin
-  if p_in_rst_n='0' or i_usr_grst='1' then
-      for i in 0 to tst_mem_dcnt'length/8 - 1 loop
-      tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
-      end loop;
-  elsif p_in_clk'event and p_in_clk='1' then
-      if p_in_rxbuf_rd = '1' and i_hdev_adr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
-        for i in 0 to tst_mem_dcnt'length/8 - 1 loop
-        tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i+1) - 1 downto 8*i) + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
-        end loop;
-      end if;
-  end if;
-end process;
-gen_swap : for i in 0 to tst_mem_dcnt'length/8 - 1 generate
-tst_mem_dcnt_swap(8*(((tst_mem_dcnt'length/8 - 1) - i) + 1) - 1 downto 8*((tst_mem_dcnt'length/8 - 1) - i)) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i);
-end generate gen_swap;
+--process(p_in_rst_n,i_usr_grst,p_in_clk)
+--begin
+--  if p_in_rst_n='0' or i_usr_grst='1' then
+--      for i in 0 to tst_mem_dcnt'length/8 - 1 loop
+--      tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
+--      end loop;
+--  elsif p_in_clk'event and p_in_clk='1' then
+--      if p_in_rxbuf_rd = '1' and i_hdev_adr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
+--        for i in 0 to tst_mem_dcnt'length/8 - 1 loop
+--        tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i+1) - 1 downto 8*i) + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
+--        end loop;
+--      end if;
+--  end if;
+--end process;
+--gen_swap : for i in 0 to tst_mem_dcnt'length/8 - 1 generate
+--tst_mem_dcnt_swap(8*(((tst_mem_dcnt'length/8 - 1) - i) + 1) - 1 downto 8*((tst_mem_dcnt'length/8 - 1) - i)) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i);
+--end generate gen_swap;
 
 --Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dmatrn_mrd_done when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;

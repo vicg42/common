@@ -113,6 +113,7 @@ signal h_mem_start_wcnt                : std_logic_vector(2 downto 0):=(others=>
 signal h_mem_start_w                   : std_logic:='0';
 signal sr_mem_start                    : std_logic_vector(0 to 2):=(others=>'0');
 signal i_mem_done_out                  : std_logic:='0';
+signal h_mem_done_out                  : std_logic:='0';
 
 signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
 
@@ -227,49 +228,53 @@ begin
   if p_in_rst='1' then
     h_mem_start_wcnt<=(others=>'0');
     h_mem_start_w<='0';
+    h_mem_done_out <= '0';
 
-  elsif p_in_hclk'event and p_in_hclk='1' then
+  elsif rising_edge(p_in_hclk) then
 
-    if p_in_ctrl.start='1' then
-      h_mem_start_w<='1';
+    if p_in_ctrl.start = '1' then
+      h_mem_start_w <= '1';
     elsif h_mem_start_wcnt(2)='1' then
-      h_mem_start_w<='0';
+      h_mem_start_w <= '0';
     end if;
 
-    if h_mem_start_w='0' then
-      h_mem_start_wcnt<=(others=>'0');
+    if h_mem_start_w = '0' then
+      h_mem_start_wcnt <= (others=>'0');
     else
-      h_mem_start_wcnt<=h_mem_start_wcnt+1;
+      h_mem_start_wcnt <= h_mem_start_wcnt+1;
     end if;
+
+    h_mem_done_out <= i_mem_done_out;
   end if;
 end process;
 
 --//Пересинхронизация на частоту mem_ctrl
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
+  if rising_edge(p_in_clk) then
+    i_mem_dir <= p_in_ctrl.dir;
     i_mem_adr <= p_in_ctrl.adr;
-    i_mem_lenreq <= EXT(p_in_ctrl.req_len(p_in_ctrl.req_len'high downto G_MEM_DWIDTH/32+1), i_mem_lenreq'length) + OR_reduce(p_in_ctrl.req_len(G_MEM_DWIDTH/32 downto 0));
-    if p_in_ctrl.dir=C_MEMWR_WRITE then
+    i_mem_lenreq <= EXT(p_in_ctrl.req_len(p_in_ctrl.req_len'high downto G_MEM_DWIDTH/32+1), i_mem_lenreq'length)
+                    + OR_reduce(p_in_ctrl.req_len(G_MEM_DWIDTH/32 downto 0));
+
+    if i_mem_dir = C_MEMWR_WRITE then
     i_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, i_mem_lentrn'length);
     else
     i_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, i_mem_lentrn'length);
     end if;
-    i_mem_dir <= p_in_ctrl.dir;
 
-    sr_mem_start<=h_mem_start_w & sr_mem_start(0 to 1);
-    i_mem_start<=sr_mem_start(1) and not sr_mem_start(2);
+    sr_mem_start <= h_mem_start_w & sr_mem_start(0 to 1);
+    i_mem_start <= sr_mem_start(1) and not sr_mem_start(2);
 
-    if i_mem_start='1' then
-      i_mem_done_out<='0';
-    elsif i_mem_done='1' then
-      i_mem_done_out<='1';
+    if i_mem_start = '1' then
+      i_mem_done_out <= '0';
+    elsif i_mem_done = '1' then
+      i_mem_done_out <= '1';
     end if;
   end if;
 end process;
 
-
-p_out_status.done<=i_mem_done_out;
+p_out_status.done<=h_mem_done_out;
 
 
 --//----------------------------------
