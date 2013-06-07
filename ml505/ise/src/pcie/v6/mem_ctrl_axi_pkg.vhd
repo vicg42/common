@@ -26,7 +26,7 @@ use work.mem_wr_pkg.all;
 package mem_ctrl_pkg is
 
 constant C_AXIS_IDWIDTH    : integer:=4;
-constant C_AXIM_IDWIDTH    : integer:=4;--8;
+constant C_AXIM_IDWIDTH    : integer:=8;
 
 constant C_AXI_AWIDTH      : integer:=32;
 constant C_AXI_DWIDTH      : integer:=C_PCFG_HDEV_DWIDTH;

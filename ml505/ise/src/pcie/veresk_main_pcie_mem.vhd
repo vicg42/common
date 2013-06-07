@@ -265,8 +265,14 @@ signal i_host_memin                     : TMemIN;
 signal i_host_memout                    : TMemOUT;
 signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
 
+signal i_memin_ch                       : TMemINCh;
+signal i_memout_ch                      : TMemOUTCh;
 signal i_memin_bank                     : TMemINBank;
 signal i_memout_bank                    : TMemOUTBank;
+
+signal i_arb_mem_rst                    : std_logic;
+signal i_arb_memin                      : TMemIN;
+signal i_arb_memout                     : TMemOUT;
 
 signal i_mem_ctrl_status                : TMEMCTRL_status;
 signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
@@ -330,8 +336,8 @@ signal tst_buf_wr              : std_logic;
 signal tst_rxbuf_rd_last       : std_logic;
 signal tst_txbuf_wr_last       : std_logic;
 signal tst_rx_engine_tst2      : std_logic_vector(9 downto 0);
-signal tst_reg_val             : std_logic_vector(31 downto 0);
-signal tst_dma_rxd             : std_logic_vector(31 downto 0);
+signal tst_host_dev_txd        : std_logic_vector(31 downto 0);
+signal tst_host_dev_rxd        : std_logic_vector(31 downto 0);
 signal tst_dmatrn_init         : std_logic;
 signal tst_dma_start           : std_logic;
 signal tst_rx_trn_dw_sel       : std_logic_vector(1 downto 0);
@@ -342,6 +348,18 @@ signal tst_host_dev_rd         : std_logic;
 signal tst_irq_clr_det         : std_logic;
 signal tst_irq_clr_cnt         : std_logic_vector(1 downto 0);
 signal tst_fw_rd               : std_logic;
+
+signal tst_axis_tx_tuser2      : std_logic:='0';
+signal tst_axis_tx_tready      : std_logic:='0';
+signal tst_axis_tx_tlast       : std_logic:='0';
+signal tst_axis_tx_tvalid      : std_logic:='0';
+signal tst_axis_tx_tkeep       : std_logic_vector(7 downto 0);
+signal tst_axis_tx_tuser       : std_logic_vector(3 downto 0);
+signal tst_axis_rx_tready      : std_logic:='0';
+signal tst_axis_rx_tvalid      : std_logic:='0';
+signal tst_axis_rx_tlast       : std_logic:='0';
+signal tst_axis_rx_tkeep       : std_logic_vector(7 downto 0);
+signal tst_axis_rx_tuser       : std_logic_vector(3 downto 0);
 
 --//MAIN
 begin
@@ -355,6 +373,7 @@ i_host_rst_n <=pin_in_pciexp_rstn;
 i_cfg_rst    <=not i_host_rst_n or i_host_rst_all;
 i_host_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst<=not i_host_rst_n or i_host_rst_all;
+i_arb_mem_rst<=not OR_reduce(i_mem_ctrl_status.rdy);
 
 
 --***********************************************************
@@ -534,7 +553,7 @@ i_host_tst_in(75)<= tst_trn_tdst_rdy_n or
 --                    tst_trn_tsrc_dsc_n;--     or
 
 i_host_tst_in(76)<= OR_reduce(tst_trn_tbuf_av) or i_host_tst_out(56) or
-                    OR_reduce(tst_dma_rxd);
+                    OR_reduce(tst_host_dev_rxd);
 
 i_host_tst_in(126 downto 77)<=(others=>'0');
 i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or i_host_tst2_out(14)  or i_host_tst2_out(15) or
@@ -642,9 +661,46 @@ p_in_clk         => g_usr_highclk,
 p_in_rst         => i_host_mem_rst
 );
 
+--//Подключаем устройства к арбитру ОЗУ
+i_memin_ch(0) <= i_host_memin;
+i_host_memout <= i_memout_ch(0);
+
+--//Арбитр контроллера памяти
+m_mem_arb : mem_arb
+generic map(
+G_CH_COUNT   => 1,
+G_MEM_AWIDTH => C_AXI_AWIDTH,
+G_MEM_DWIDTH => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--Связь с пользователями ОЗУ
+-------------------------------
+p_in_memch  => i_memin_ch,
+p_out_memch => i_memout_ch,
+
+-------------------------------
+--Связь с mem_ctrl.vhd
+-------------------------------
+p_out_mem   => i_arb_memin,
+p_in_mem    => i_arb_memout,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst    => (others=>'0'),
+p_out_tst   => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk    => g_usr_highclk,
+p_in_rst    => i_arb_mem_rst
+);
+
 --//Подключаем арбитра ОЗУ к соотв банку
-i_memin_bank(0)<=i_host_memin;
-i_host_memout   <=i_memout_bank(0);
+i_memin_bank(0)<=i_arb_memin;
+i_arb_memout   <=i_memout_bank(0);
 
 --//Core Memory controller
 m_mem_ctrl : mem_ctrl
@@ -686,9 +742,9 @@ pin_out_led(1)<='0';
 pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 pin_out_led(4)<='0';
-pin_out_led(5)<='0';
-pin_out_led(6)<='0';
-pin_out_led(7)<='0';
+pin_out_led(5)<= OR_reduce(tst_host_dev_txd);
+pin_out_led(6)<= tst_axis_rx_tready or tst_axis_rx_tvalid or tst_axis_rx_tlast or tst_axis_tx_tkeep(4);
+pin_out_led(7)<= tst_axis_tx_tready or tst_axis_tx_tvalid or tst_axis_tx_tlast or tst_axis_tx_tuser2;
 
 
 m_led_tst : fpga_test_01
@@ -749,8 +805,8 @@ tst_usr_rxbuf_empty_i            <=i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_B
 
 tst_host_dev_rd                  <=i_host_dev_rd;
 tst_host_dev_wr                  <=i_host_dev_wr;
-tst_reg_val                      <=i_host_dev_txd(31 downto 0);
-tst_dma_rxd                      <=i_host_dev_rxd(31 downto 0);
+tst_host_dev_txd                 <=i_host_dev_txd(31 downto 0);
+tst_host_dev_rxd                 <=i_host_dev_rxd(31 downto 0);
 
 tst_dmatrn_init                  <=i_host_tst_out(123)           ;--p_out_tst(123)           <=i_dmatrn_init;
 tst_dma_start                    <=i_host_tst_out(124)           ;--p_out_tst(124)           <=i_dma_start;
@@ -760,6 +816,18 @@ tst_fw_rd <= i_host_tst_out(120);--p_out_tst(120)           <=p_in_throttle_tst(
 if i_host_tst_out(96)='1' then
   tst_irq_clr_cnt<=tst_irq_clr_cnt + 1;
 end if;
+
+tst_axis_tx_tuser2 <= i_host_tst2_out(184);
+tst_axis_tx_tready            <= i_host_tst2_out(171)           ;--p_out_tst(171)           <=s_axis_tx_tready;
+tst_axis_tx_tlast             <= i_host_tst2_out(172)           ;--p_out_tst(172)           <=s_axis_tx_tlast ;
+tst_axis_tx_tvalid            <= i_host_tst2_out(173)           ;--p_out_tst(173)           <=s_axis_tx_tvalid;
+tst_axis_tx_tkeep(7 downto 0) <= i_host_tst2_out(181 downto 174);--p_out_tst(181 downto 174)<=s_axis_tx_tkeep(7 downto 0);
+--tst_axis_tx_tuser(3 downto 0) <= i_host_tst2_out(185 downto 182);--p_out_tst(185 downto 182)<=s_axis_tx_tuser(3 downto 0);
+tst_axis_rx_tready            <= i_host_tst2_out(186)           ;--p_out_tst(186)           <=m_axis_rx_tready;
+tst_axis_rx_tvalid            <= i_host_tst2_out(187)           ;--p_out_tst(187)           <=m_axis_rx_tvalid;
+tst_axis_rx_tlast             <= i_host_tst2_out(188)           ;--p_out_tst(188)           <=m_axis_rx_tlast;
+--tst_axis_rx_tkeep(7 downto 0) <= i_host_tst2_out(196 downto 189);--p_out_tst(196 downto 189)<=m_axis_rx_tkeep(7 downto 0);
+--tst_axis_rx_tuser(3 downto 0) <= i_host_tst2_out(200 downto 197);--p_out_tst(200 downto 197)<=m_axis_rx_tuser(3 downto 0);
 
 end if;
 end process;

@@ -328,7 +328,7 @@ signal tst_trn_trem_n          : std_logic_vector(1 downto 0);
 signal tst_trn_td              : std_logic_vector(63 downto 0);
 signal tst_trn_rd              : std_logic_vector(127 downto 0);
 signal tst_trn_rrem_n_old      : std_logic_vector(15 downto 0);
-signal tst_trn_tbuf_av         : std_logic_vector(4 downto 0);
+signal tst_trn_tbuf_av         : std_logic_vector(5 downto 0);
 
 signal tst_reg_wr              : std_logic;
 signal tst_buf_wr              : std_logic;
@@ -347,6 +347,20 @@ signal tst_host_dev_rd         : std_logic;
 signal tst_irq_clr_det         : std_logic;
 signal tst_irq_clr_cnt         : std_logic_vector(1 downto 0);
 signal tst_fw_rd               : std_logic;
+
+signal tst_axis_tx_tuser2      : std_logic:='0';
+signal tst_axis_tx_tready      : std_logic:='0';
+signal tst_axis_tx_tlast       : std_logic:='0';
+signal tst_axis_tx_tvalid      : std_logic:='0';
+signal tst_axis_tx_tkeep       : std_logic_vector(7 downto 0);
+signal tst_axis_tx_tuser       : std_logic_vector(3 downto 0);
+signal tst_axis_rx_tready      : std_logic:='0';
+signal tst_axis_rx_tvalid      : std_logic:='0';
+signal tst_axis_rx_tlast       : std_logic:='0';
+signal tst_axis_rx_tkeep       : std_logic_vector(7 downto 0);
+signal tst_axis_rx_tuser       : std_logic_vector(3 downto 0);
+
+
 
 signal i_cfg_adr_cnt                 : std_logic_vector(7 downto 0);
 signal h_reg_ctrl                    : std_logic_vector(C_SWT_REG_CTRL_LAST_BIT downto 0);
@@ -543,16 +557,18 @@ i_host_tst_in(75)<= tst_trn_tdst_rdy_n or
 
                     tst_trn_tsof_n          or
                     tst_trn_teof_n          or
-                    tst_trn_tsrc_rdy_n;--      or
+                    tst_trn_tsrc_rdy_n;
 --
 --                    tst_trn_tsrc_dsc_n;--     or
+
+
+
 
 i_host_tst_in(76)<= OR_reduce(tst_trn_tbuf_av) or i_host_tst_out(56) or
                     OR_reduce(tst_dma_rxd);
 
 i_host_tst_in(126 downto 77)<=(others=>'0');
-i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or i_host_tst2_out(14)  or i_host_tst2_out(15) or
-                    tst_trn_rdst_rdy_n;-- or
+i_host_tst_in(127)<=tst_trn_rsrc_rdy_n      or i_host_tst2_out(14)  or i_host_tst2_out(15) or tst_trn_rdst_rdy_n;
 
 
 --//Статусы устройств
@@ -702,8 +718,9 @@ pin_out_led(2)<='0';
 pin_out_led(3)<='0';
 pin_out_led(4)<='0';
 pin_out_led(5)<='0';
-pin_out_led(6)<='0';
-pin_out_led(7)<='0';
+pin_out_led(6)<= tst_axis_rx_tready or tst_axis_rx_tvalid or tst_axis_rx_tlast;
+pin_out_led(7)<= tst_axis_tx_tready or tst_axis_tx_tvalid or tst_axis_tx_tlast or tst_axis_tx_tuser2;
+
 
 
 m_led_tst : fpga_test_01
@@ -749,7 +766,7 @@ tst_trn_rdst_rdy_n               <=i_host_tst2_out(13)            ;--p_out_tst(1
 tst_trn_rrem_n(0)                <=i_host_tst2_out(17)            ;--p_out_tst(17)            <=trn_rrem_n(0);
 tst_trn_rrem_n(1)                <=i_host_tst2_out(18)            ;--p_out_tst(18)            <=trn_rrem_n(1);
 tst_trn_rd                       <=i_host_tst2_out(146 downto 19) ;--p_out_tst(146 downto 83) <=trn_rd(127 downto 64);
-tst_trn_tbuf_av                  <=i_host_tst2_out(167 downto 163);--p_out_tst(167 downto 163)<=trn_tbuf_av;
+tst_trn_tbuf_av                  <=i_host_tst2_out(168 downto 163);--p_out_tst(167 downto 163)<=trn_tbuf_av;
 tst_trn_trem_n                   <=i_host_tst2_out(170 downto 169);--<=trn_trem_n;
 
 
@@ -775,6 +792,19 @@ tst_fw_rd <= i_host_tst_out(120);--p_out_tst(120)           <=p_in_throttle_tst(
 if i_host_tst_out(96)='1' then
   tst_irq_clr_cnt<=tst_irq_clr_cnt + 1;
 end if;
+
+
+tst_axis_tx_tuser2 <= i_host_tst2_out(184);
+tst_axis_tx_tready            <= i_host_tst2_out(171)           ;--p_out_tst(171)           <=s_axis_tx_tready;
+tst_axis_tx_tlast             <= i_host_tst2_out(172)           ;--p_out_tst(172)           <=s_axis_tx_tlast ;
+tst_axis_tx_tvalid            <= i_host_tst2_out(173)           ;--p_out_tst(173)           <=s_axis_tx_tvalid;
+--tst_axis_tx_tkeep(7 downto 0) <= i_host_tst2_out(181 downto 174);--p_out_tst(181 downto 174)<=s_axis_tx_tkeep(7 downto 0);
+--tst_axis_tx_tuser(3 downto 0) <= i_host_tst2_out(185 downto 182);--p_out_tst(185 downto 182)<=s_axis_tx_tuser(3 downto 0);
+tst_axis_rx_tready            <= i_host_tst2_out(186)           ;--p_out_tst(186)           <=m_axis_rx_tready;
+tst_axis_rx_tvalid            <= i_host_tst2_out(187)           ;--p_out_tst(187)           <=m_axis_rx_tvalid;
+tst_axis_rx_tlast             <= i_host_tst2_out(188)           ;--p_out_tst(188)           <=m_axis_rx_tlast;
+--tst_axis_rx_tkeep(7 downto 0) <= i_host_tst2_out(196 downto 189);--p_out_tst(196 downto 189)<=m_axis_rx_tkeep(7 downto 0);
+--tst_axis_rx_tuser(3 downto 0) <= i_host_tst2_out(200 downto 197);--p_out_tst(200 downto 197)<=m_axis_rx_tuser(3 downto 0);
 
 end if;
 end process;
