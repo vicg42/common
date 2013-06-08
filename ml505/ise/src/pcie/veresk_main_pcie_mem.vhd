@@ -661,46 +661,49 @@ p_in_clk         => g_usr_highclk,
 p_in_rst         => i_host_mem_rst
 );
 
---//Подключаем устройства к арбитру ОЗУ
-i_memin_ch(0) <= i_host_memin;
-i_host_memout <= i_memout_ch(0);
+----//Подключаем устройства к арбитру ОЗУ
+--i_memin_ch(0) <= i_host_memin;
+--i_host_memout <= i_memout_ch(0);
+--
+----//Арбитр контроллера памяти
+--m_mem_arb : mem_arb
+--generic map(
+--G_CH_COUNT   => 1,
+--G_MEM_AWIDTH => C_AXI_AWIDTH,
+--G_MEM_DWIDTH => C_HDEV_DWIDTH
+--)
+--port map(
+---------------------------------
+----Связь с пользователями ОЗУ
+---------------------------------
+--p_in_memch  => i_memin_ch,
+--p_out_memch => i_memout_ch,
+--
+---------------------------------
+----Связь с mem_ctrl.vhd
+---------------------------------
+--p_out_mem   => i_arb_memin,
+--p_in_mem    => i_arb_memout,
+--
+---------------------------------
+----Технологический
+---------------------------------
+--p_in_tst    => (others=>'0'),
+--p_out_tst   => open,
+--
+---------------------------------
+----System
+---------------------------------
+--p_in_clk    => g_usr_highclk,
+--p_in_rst    => i_arb_mem_rst
+--);
+--
+----//Подключаем арбитра ОЗУ к соотв банку
+--i_memin_bank(0)<=i_arb_memin;
+--i_arb_memout   <=i_memout_bank(0);
 
---//Арбитр контроллера памяти
-m_mem_arb : mem_arb
-generic map(
-G_CH_COUNT   => 1,
-G_MEM_AWIDTH => C_AXI_AWIDTH,
-G_MEM_DWIDTH => C_HDEV_DWIDTH
-)
-port map(
--------------------------------
---Связь с пользователями ОЗУ
--------------------------------
-p_in_memch  => i_memin_ch,
-p_out_memch => i_memout_ch,
-
--------------------------------
---Связь с mem_ctrl.vhd
--------------------------------
-p_out_mem   => i_arb_memin,
-p_in_mem    => i_arb_memout,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst    => (others=>'0'),
-p_out_tst   => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk    => g_usr_highclk,
-p_in_rst    => i_arb_mem_rst
-);
-
---//Подключаем арбитра ОЗУ к соотв банку
-i_memin_bank(0)<=i_arb_memin;
-i_arb_memout   <=i_memout_bank(0);
+i_memin_bank(0)<= i_host_memin;
+i_host_memout <=i_memout_bank(0);
 
 --//Core Memory controller
 m_mem_ctrl : mem_ctrl

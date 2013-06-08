@@ -188,10 +188,13 @@ signal i_dmatrn_adr                : std_logic_vector(31 downto 0);
 signal i_dmatrn_init               : std_logic;
 signal i_dmatrn_start              : std_logic;
 signal i_dmatrn_work               : std_logic;
-signal i_dmatrn_mrd_done_tmp       : std_logic;
+signal i_dmatrn_done               : std_logic;
 signal i_dmatrn_mrd_done           : std_logic;
-signal i_dmatrn_mwr_done_tmp       : std_logic;
 signal i_dmatrn_mwr_done           : std_logic;
+signal sr_mrd_done                 : std_logic;
+signal i_mrd_done                  : std_logic;
+signal sr_mwr_done                 : std_logic;
+signal i_mwr_done                  : std_logic;
 signal sr_dmatrn_done              : std_logic;
 signal i_dmatrn_mem_done           : std_logic_vector(1 downto 0);
 signal i_dma_work                  : std_logic;
@@ -227,7 +230,6 @@ signal sr_irq_set                  : TSRIrqSet;
 
 signal i_rddone_vctrl              : std_logic;
 signal i_time_set                  : std_logic;
-signal sr_rxbuf_rd_last            : std_logic;
 
 signal i_dev_drdy                  : std_logic;
 signal i_dev_drdy_out              : std_logic;
@@ -236,6 +238,7 @@ signal i_mem_adr_en                : std_logic;
 signal i_mem_adr                   : std_logic_vector(31 downto 0):=(others=>'0');
 --signal i_tst_rd                    : std_logic;
 
+signal sr_rxbuf_rd_last            : std_logic;
 signal sr_txbuf_din                : std_logic_vector(31 downto 0);
 signal i_txbuf_din                 : std_logic_vector(63 downto 0);
 signal i_txbuf_wr                  : std_logic;
@@ -249,7 +252,7 @@ begin
 
 p_out_hclk <= p_in_clk;
 
-p_out_dmatrn_init <= i_dmatrn_init or i_usr_grst;
+p_out_dmatrn_init <= i_dmatrn_init;
 
 --//Управление DMATRN_WR (PC<-FPGA) (MEMORY WRITE)
 p_out_mwr_en            <=i_dmatrn_work and     v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC<-FPGA
@@ -547,121 +550,126 @@ i_pce_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 --//--------------------------------------------------------------------------------------------
 --//Управление DMA транзакцией (режим Master)
 --//--------------------------------------------------------------------------------------------
---Стробы выполнения DMATRN_WR/RD
-i_dmatrn_mrd_done<=(not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done)) or i_dmatrn_mrd_done_tmp;--TRN: PC->FPGA
-i_dmatrn_mwr_done<=(    v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done)) or i_dmatrn_mwr_done_tmp;--TRN: PC<-FPGA
+--TRN DONE: PC->FPGA
+i_dmatrn_mrd_done <= i_mrd_done
+                      when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or i_pce_testing='1'
+                        else (not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done));
+--TRN DONE: PC->FPGA
+i_dmatrn_mwr_done <= i_mwr_done
+                      when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or i_pce_testing='1'
+                        else ( v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT) and AND_reduce(i_dmatrn_mem_done));
 
-process(p_in_rst_n,i_usr_grst,p_in_clk)
+i_dmatrn_done <= i_dmatrn_mwr_done or i_dmatrn_mrd_done;
+
+process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
-  if p_in_rst_n='0' or i_usr_grst='1' then
+  if p_in_rst_n = '0' or i_usr_grst = '1' then
     i_mrd_rcv_size_ok <='0';
-    i_dmatrn_mem_done<=(others=>'0');
-    sr_memtrn_done<=(others=>'0');
-    i_memtrn_done<='0';
-    i_dmatrn_mrd_done_tmp<='0';
-    i_dmatrn_mwr_done_tmp<='0';
+    i_dmatrn_mem_done <= (others=>'0');
+    sr_memtrn_done <= (others=>'0');
+    i_memtrn_done <= '0';
 
-    sr_rxbuf_rd_last<='0';
+    sr_mrd_done <= '0';
+    i_mrd_done <= '0';
+
+    sr_mwr_done <= '0';
+    i_mwr_done <= '0';
 
   elsif rising_edge(p_in_clk) then
 
-    sr_rxbuf_rd_last<=p_in_rxbuf_rd_last;
-
     --Анализ размера принятых данных DMATRN_RD
-    if i_dmatrn_init='1' then
-      i_mrd_rcv_size_ok <='0';
+    if i_dmatrn_init = '1' then
+      i_mrd_rcv_size_ok <= '0';
     else
-      if p_in_mrd_rcv_size(31 downto 0)/=(p_in_mrd_rcv_size'range => '0') then
-        if ("00"&i_dmatrn_len(31 downto 2))=p_in_mrd_rcv_size(31 downto 0) then
+      if p_in_mrd_rcv_size(31 downto 0) /= (p_in_mrd_rcv_size'range => '0') then
+        if ("00" & i_dmatrn_len(31 downto 2)) = p_in_mrd_rcv_size(31 downto 0) then
           i_mrd_rcv_size_ok <= '1';
         end if;
       end if;
     end if ;
 
-    --DMATRN_WR/RD завершена
-    if i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or i_pce_testing='1' then
-      i_dmatrn_mrd_done_tmp<=i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
-      i_dmatrn_mwr_done_tmp<=p_in_mwr_done and sr_rxbuf_rd_last;
-      i_dmatrn_mem_done<=(others=>'0');
+    sr_mrd_done <= i_mrd_rcv_size_ok;
+    i_mrd_done <= i_mrd_rcv_size_ok and not sr_mrd_done;
 
-    else
-      i_dmatrn_mrd_done_tmp<='0';
-      i_dmatrn_mwr_done_tmp<='0';
+    sr_mwr_done <= p_in_mwr_done;
+    i_mwr_done <= p_in_mwr_done and not sr_mwr_done;
 
-      if AND_reduce(i_dmatrn_mem_done)='1' or i_dma_start='1' then
-        i_dmatrn_mem_done<=(others=>'0');
+    --DMATRN <-> MEM завершена
+    if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
+
+      if AND_reduce(i_dmatrn_mem_done) = '1' or i_dma_start = '1' then
+        i_dmatrn_mem_done <= (others=>'0');
       else
         --Core PCIExpress отработало DMATRN
-        if ((i_mrd_rcv_size_ok='1' and p_in_txbuf_wr_last ='1') and v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)='0') or
-           ((p_in_mwr_done='1' and sr_rxbuf_rd_last ='1') and v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)='1') then
-          i_dmatrn_mem_done(0)<='1';
+        if i_mwr_done = '1' or i_mrd_done = '1' then
+          i_dmatrn_mem_done(0)<= '1';
         end if;
 
         --Принял ответ от контроллера pcie2mem_ctrl.vhd
-        if i_memtrn_done='1' then
-          i_dmatrn_mem_done(1)<='1';
+        if i_memtrn_done = '1' then
+          i_dmatrn_mem_done(1) <= '1';
         end if;
       end if;
     end if;
 
-    sr_memtrn_done<=p_in_dev_opt(C_HDEV_OPTIN_MEMTRN_DONE_BIT) & sr_memtrn_done(0 to 1);
-    i_memtrn_done<=sr_memtrn_done(1) and not sr_memtrn_done(2);
+    sr_memtrn_done <= p_in_dev_opt(C_HDEV_OPTIN_MEMTRN_DONE_BIT) & sr_memtrn_done(0 to 1);
+    i_memtrn_done <= sr_memtrn_done(1) and not sr_memtrn_done(2);
 
   end if;
 end process;
 
 
-process(p_in_rst_n,i_usr_grst,p_in_clk)
+process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
-  if p_in_rst_n='0' or i_usr_grst='1' then
+  if p_in_rst_n = '0' or i_usr_grst = '1' then
 
     i_dmatrn_init <= '0';
-    i_dmatrn_start<='0';
-    i_dmatrn_work<='0';
-    sr_dmatrn_done<='0';
+    i_dmatrn_start <= '0';
+    i_dmatrn_work <= '0';
+    sr_dmatrn_done <= '0';
 
-    i_dma_work<='0';
+    i_dma_work <= '0';
     sr_dma_work <= '0';
     i_dma_irq <= '0';
 
-    i_dmatrn_adr<=(others=>'0');
-    i_dmatrn_len<=(others=>'0');
+    i_dmatrn_adr <= (others=>'0');
+    i_dmatrn_len <= (others=>'0');
 
-    i_dmabuf_num_cnt<=(others=>'0');
-    i_dmabuf_done_cnt<=(others=>'0');
+    i_dmabuf_num_cnt <= (others=>'0');
+    i_dmabuf_done_cnt <= (others=>'0');
 
-    i_hw_dmaprm_cnt<=(others=>'0');
-    i_hw_dmaprm_rd<=(others=>'0');
-    i_hw_dmaprm_rd_done<='0';
-    sr_hw_dmaprm_rd_done<='0';
+    i_hw_dmaprm_cnt <= (others=>'0');
+    i_hw_dmaprm_rd <= (others=>'0');
+    i_hw_dmaprm_rd_done <= '0';
+    sr_hw_dmaprm_rd_done <= '0';
 
-    sr_hw_dmaprm_cnt<=(others=>'0');
-    sr_hw_dmaprm_rd<=(others=>'0');
+    sr_hw_dmaprm_cnt <= (others=>'0');
+    sr_hw_dmaprm_rd <=( others=>'0');
 
   elsif rising_edge(p_in_clk) then
 
     ---------------------------------------------
     --Инициализация и запуск DMATRN
     ---------------------------------------------
-    i_dmatrn_start <=i_dmatrn_init;
+    i_dmatrn_start <= i_dmatrn_init;
 
     ---------------------------------------------
     --Отработка буфера DMA
     ---------------------------------------------
-    if i_dmatrn_start='1' then
-      i_dmatrn_work<='1';
-    elsif i_dmatrn_mrd_done='1' or i_dmatrn_mwr_done='1' then
-      i_dmatrn_work<='0';
+    if i_dmatrn_start = '1' then
+      i_dmatrn_work <= '1';
+    elsif i_dmatrn_done = '1' then
+      i_dmatrn_work <= '0';
     end if;
-    sr_dmatrn_done<=i_dmatrn_mwr_done or i_dmatrn_mrd_done;
+    sr_dmatrn_done <= i_dmatrn_done;
 
     ---------------------------------------------
     --Отработка установленого кол-ва буферов DMA
     ---------------------------------------------
-    if i_dmatrn_start='1' then
-      i_dma_work<='1';
-    elsif (i_dmabuf_count=i_dmabuf_done_cnt and (i_dmatrn_mrd_done='1' or i_dmatrn_mwr_done='1')) or i_dma_irq_clr='1' then
-      i_dma_work<='0';
+    if i_dmatrn_start = '1' then
+      i_dma_work <= '1';
+    elsif (i_dmabuf_count = i_dmabuf_done_cnt and i_dmatrn_done = '1') or i_dma_irq_clr = '1' then
+      i_dma_work <= '0';
     end if;
 
     sr_dma_work <= i_dma_work;
@@ -670,32 +678,32 @@ begin
     ---------------------------------------------
     --Чтение параметров DMATRN
     ---------------------------------------------
-    if i_dma_start='1' or (i_dma_work='1' and sr_dmatrn_done='1') then
-       i_hw_dmaprm_rd(0)<='1';
-    elsif i_hw_dmaprm_cnt="01" then
-       i_hw_dmaprm_rd(0)<='0';
-       i_hw_dmaprm_rd_done<='1';
+    if i_dma_start = '1' or (i_dma_work = '1' and sr_dmatrn_done = '1') then
+       i_hw_dmaprm_rd(0) <= '1';
+    elsif i_hw_dmaprm_cnt = "01" then
+       i_hw_dmaprm_rd(0) <= '0';
+       i_hw_dmaprm_rd_done <= '1';
     else
-      i_hw_dmaprm_rd_done<='0';
+      i_hw_dmaprm_rd_done <= '0';
     end if;
 
-    if i_hw_dmaprm_rd(0)='1' then
-      i_hw_dmaprm_cnt<=i_hw_dmaprm_cnt+1;
+    if i_hw_dmaprm_rd(0) = '1' then
+      i_hw_dmaprm_cnt <= i_hw_dmaprm_cnt + 1;
     else
-      i_hw_dmaprm_cnt<=(others=>'0');
+      i_hw_dmaprm_cnt <= (others=>'0');
     end if;
 
-    sr_hw_dmaprm_cnt<=i_hw_dmaprm_cnt;
-    sr_hw_dmaprm_rd<=i_hw_dmaprm_rd;
-    sr_hw_dmaprm_rd_done<=i_hw_dmaprm_rd_done;
+    sr_hw_dmaprm_cnt <= i_hw_dmaprm_cnt;
+    sr_hw_dmaprm_rd <= i_hw_dmaprm_rd;
+    sr_hw_dmaprm_rd_done <= i_hw_dmaprm_rd_done;
 
     --Загрузка параметров DMA
-    if sr_hw_dmaprm_rd(0)='1' then
-      if sr_hw_dmaprm_cnt="00" then
-        i_dmatrn_adr<=i_hw_dmaprm_dout;--Адрес в байтах
+    if sr_hw_dmaprm_rd(0) = '1' then
+      if sr_hw_dmaprm_cnt = "00" then
+        i_dmatrn_adr <= i_hw_dmaprm_dout;--Адрес в байтах
         i_dmatrn_init <= '0';
-      elsif sr_hw_dmaprm_cnt="01" then
-        i_dmatrn_len<=i_hw_dmaprm_dout;--Размер в байтах
+      elsif sr_hw_dmaprm_cnt = "01" then
+        i_dmatrn_len <= i_hw_dmaprm_dout;--Размер в байтах
         i_dmatrn_init <= '1';
       end if;
     else
@@ -704,13 +712,13 @@ begin
 
     --Подсчет кол-ва тработаных буферов +
     --загрузка индекса стартового буфера
-    if i_dma_start='1' then
-      i_dmabuf_num_cnt<=i_dmabuf_num;   --Загружаем индекс стартового буфера
-      i_dmabuf_done_cnt<=(others=>'0'); --Очищаем счетчик отработаных буферов
+    if i_dma_start = '1' then
+      i_dmabuf_num_cnt <= i_dmabuf_num;   --Загружаем индекс стартового буфера
+      i_dmabuf_done_cnt <= (others=>'0'); --Очищаем счетчик отработаных буферов
 
-    elsif (i_dmatrn_mwr_done='1' or i_dmatrn_mrd_done='1') then
-      i_dmabuf_num_cnt<=i_dmabuf_num_cnt+1;
-      i_dmabuf_done_cnt<=i_dmabuf_done_cnt+1;
+    elsif i_dmatrn_done = '1' then
+      i_dmabuf_num_cnt <= i_dmabuf_num_cnt + 1;
+      i_dmabuf_done_cnt <= i_dmabuf_done_cnt + 1;
     end if;
 
   end if;
@@ -877,10 +885,7 @@ p_out_dev_opt(C_HDEV_OPTOUT_TIME_SET_BIT)<=i_time_set;
 --//DBG
 --//-------------------------------------------------------------------
 p_out_tst(31 downto 0)  <=v_reg_tst0;
---p_out_tst(63 downto 32) <=v_reg_tst1;
-p_out_tst(47 downto 32) <=EXT(p_in_rx_engine_tst2, 16);--p_in_mrd_pkt_len_tst(15 downto 0);
---p_out_tst(39 downto 32) <=i_dmabuf_num_cnt;
---p_out_tst(47 downto 40) <=i_dmabuf_done_cnt;
+p_out_tst(47 downto 32) <=EXT(p_in_rx_engine_tst2, 16);
 p_out_tst(55 downto 48) <=i_dmabuf_count;
 p_out_tst(57 downto 56) <=i_dmatrn_mem_done;
 p_out_tst(61 downto 58) <=i_hdev_adr;
