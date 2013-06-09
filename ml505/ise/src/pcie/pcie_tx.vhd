@@ -446,6 +446,7 @@ begin
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '0';
                 i_trn_tsrc_rdy_n <= '0';
+
                 if (req_pkt_type_i = C_PCIE_PKT_TYPE_IORD_3DW_ND)
                   or (req_pkt_type_i = C_PCIE_PKT_TYPE_MRD_3DW_ND) then
 
@@ -681,11 +682,15 @@ begin
                 else
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                      i_trn_tsrc_rdy_n <= '0';
+                    if G_USR_DBUS = 32 then
+                      if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
+                        i_trn_tsrc_rdy_n <= '0';
+                      else
+                        i_trn_tsrc_rdy_n <= '1';
+                      end if;
                     else
-                      i_trn_tsrc_rdy_n <= '1';
-                    end if;
+                      i_trn_tsrc_rdy_n <= '0';
+                    end if;--if G_USR_DBUS = 32 then
 
                     i_trn_teof_n <= '1';
 
