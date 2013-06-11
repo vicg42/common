@@ -866,16 +866,19 @@ s_axis_tx_tuser(2)<=not trn_tstr_n;
 s_axis_tx_tuser(1)<=not trn_terrfwd_n;
 s_axis_tx_tuser(0)<='0';
 
-s_axis_tx_tkeep<=CONV_STD_LOGIC_VECTOR(16#000F#, s_axis_tx_tkeep'length) when s_axis_tx_tlast='1' and trn_trem_n=CONV_STD_LOGIC_VECTOR(16#03#, trn_trem_n'length) else
-                 CONV_STD_LOGIC_VECTOR(16#00FF#, s_axis_tx_tkeep'length) when s_axis_tx_tlast='1' and trn_trem_n=CONV_STD_LOGIC_VECTOR(16#02#, trn_trem_n'length) else
-                 CONV_STD_LOGIC_VECTOR(16#0FFF#, s_axis_tx_tkeep'length) when s_axis_tx_tlast='1' and trn_trem_n=CONV_STD_LOGIC_VECTOR(16#01#, trn_trem_n'length) else
-                 CONV_STD_LOGIC_VECTOR(16#FFFF#, s_axis_tx_tkeep'length);
+s_axis_tx_tkeep <= CONV_STD_LOGIC_VECTOR(16#0FFF#, s_axis_tx_tkeep'length)
+                    when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, trn_trem_n'length) else
+                      CONV_STD_LOGIC_VECTOR(16#00FF#, s_axis_tx_tkeep'length)
+                        when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, trn_trem_n'length) else
+                          CONV_STD_LOGIC_VECTOR(16#000F#, s_axis_tx_tkeep'length)
+                            when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#03#, trn_trem_n'length) else
+                              CONV_STD_LOGIC_VECTOR(16#FFFF#, s_axis_tx_tkeep'length);
 
 --Rx
 m_axis_rx_tready <=not trn_rdst_rdy_n;
 
 trn_rrem_n(0) <=not is_eof(2);
-trn_rrem_n(1) <=(not is_sof(4) and not is_eof(4)) or (not is_sof(3) and not is_eof(4)) or (not is_eof(4) and not is_eof(4));
+trn_rrem_n(1) <=(not is_sof(4) and not is_eof(4)) or (not is_sof(3) and not is_eof(4)) or (not is_eof(4) and not is_eof(3));
 trn_rrem_n(3 downto 2)<=(others=>'0');
 
 is_sof(4 downto 0)<=m_axis_rx_tuser(14 downto 10);
@@ -892,9 +895,9 @@ end generate gen_trn_rbar_hit;
 
 trn_rsof_n <= not is_sof(4);
 
-gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 -1 generate
-trn_rd(32*((CI_PCIEXP_TRN_DBUS/32-1 - i)+1)-1 downto 32*(CI_PCIEXP_TRN_DBUS/32-1 - i)) <= m_axis_rx_tdata(32*(i+1)-1 downto 32*i);
-s_axis_tx_tdata(32*(i+1)-1 downto 32*i) <= trn_td(32*((CI_PCIEXP_TRN_DBUS/32-1 - i)+1)-1 downto 32*(CI_PCIEXP_TRN_DBUS/32-1 - i));
+gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 - 1 generate
+trn_rd((trn_rd'length - 32*i) - 1 downto (trn_rd'length - 32*(i+1))) <= m_axis_rx_tdata(32*(i+1) - 1 downto 32*i);
+s_axis_tx_tdata(32*(i+1) - 1 downto 32*i) <= trn_td((trn_td'length - 32*i) - 1 downto (trn_td'length - 32*(i+1)));
 end generate gen_trn_d;
 
 

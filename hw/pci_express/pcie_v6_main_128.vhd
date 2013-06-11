@@ -509,7 +509,7 @@ p_out_tst(14)<=trn_rbar_hit_n(0);
 p_out_tst(15)<=trn_rbar_hit_n(1);
 p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
 p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18-17+1);
-p_out_tst(146 downto 19)<=EXT(trn_rd, 128);
+p_out_tst(146 downto 19)<=trn_rd(63 downto 0) & trn_rd(127 downto 64);
 --p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
 p_out_tst(162 downto 147)<=EXT(trn_rrem_n_core, 162-147+1);--(others=>'0');
 p_out_tst(168 downto 163)<=trn_tbuf_av;
