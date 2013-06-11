@@ -329,7 +329,7 @@ signal tst_trn_trem_n          : std_logic_vector(1 downto 0);
 signal tst_trn_td              : std_logic_vector(63 downto 0);
 signal tst_trn_rd              : std_logic_vector(127 downto 0);
 signal tst_trn_rrem_n_old      : std_logic_vector(15 downto 0);
-signal tst_trn_tbuf_av         : std_logic_vector(4 downto 0);
+signal tst_trn_tbuf_av         : std_logic_vector(5 downto 0);
 
 signal tst_reg_wr              : std_logic;
 signal tst_buf_wr              : std_logic;
@@ -793,7 +793,7 @@ tst_trn_rdst_rdy_n               <=i_host_tst2_out(13)            ;--p_out_tst(1
 tst_trn_rrem_n(0)                <=i_host_tst2_out(17)            ;--p_out_tst(17)            <=trn_rrem_n(0);
 tst_trn_rrem_n(1)                <=i_host_tst2_out(18)            ;--p_out_tst(18)            <=trn_rrem_n(1);
 tst_trn_rd                       <=i_host_tst2_out(146 downto 19) ;--p_out_tst(146 downto 83) <=trn_rd(127 downto 64);
-tst_trn_tbuf_av                  <=i_host_tst2_out(167 downto 163);--p_out_tst(167 downto 163)<=trn_tbuf_av;
+tst_trn_tbuf_av                  <=i_host_tst2_out(168 downto 163);--p_out_tst(167 downto 163)<=trn_tbuf_av;
 tst_trn_trem_n                   <=i_host_tst2_out(170 downto 169);--<=trn_trem_n;
 
 
