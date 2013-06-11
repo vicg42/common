@@ -113,7 +113,6 @@ signal h_mem_start_wcnt                : std_logic_vector(2 downto 0):=(others=>
 signal h_mem_start_w                   : std_logic:='0';
 signal sr_mem_start                    : std_logic_vector(0 to 2):=(others=>'0');
 signal i_mem_done_out                  : std_logic:='0';
-signal h_mem_done_out                  : std_logic:='0';
 
 signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
 
@@ -164,8 +163,8 @@ empty       => i_rxbuf_empty,
 rst         => p_in_rst
 );
 
-p_out_rxbuf_empty<=i_rxbuf_empty;
-p_out_txbuf_full<=i_txbuf_full;
+p_out_rxbuf_empty <= i_rxbuf_empty;
+p_out_txbuf_full <= i_txbuf_full;
 
 --//--------------------------------------------------
 --//Контроллер записи/чтения ОЗУ
@@ -228,7 +227,6 @@ begin
   if p_in_rst='1' then
     h_mem_start_wcnt<=(others=>'0');
     h_mem_start_w<='0';
-    h_mem_done_out <= '0';
 
   elsif rising_edge(p_in_hclk) then
 
@@ -244,7 +242,6 @@ begin
       h_mem_start_wcnt <= h_mem_start_wcnt+1;
     end if;
 
-    h_mem_done_out <= i_mem_done_out;
   end if;
 end process;
 
@@ -274,21 +271,21 @@ begin
   end if;
 end process;
 
-p_out_status.done<=h_mem_done_out;
+p_out_status.done <= i_mem_done_out;--Пересихр не нужна, т.к. она делается в host модуле
 
 
 --//----------------------------------
 --//Технологические сигналы
 --//----------------------------------
-p_out_tst(0)<=i_mem_start;
-p_out_tst(1)<=i_mem_done;
-p_out_tst(5 downto 2)<=tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-p_out_tst(6)<=i_rxbuf_empty;
-p_out_tst(7)<=i_rxbuf_full;
-p_out_tst(8)<=i_txbuf_empty;
-p_out_tst(9)<=i_txbuf_full;
-p_out_tst(25 downto 10)<=i_mem_lenreq;
-p_out_tst(31 downto 26)<=tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
+p_out_tst(0) <= i_mem_start;
+p_out_tst(1) <= i_mem_done;
+p_out_tst(5 downto 2) <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
+p_out_tst(6) <= i_rxbuf_empty;
+p_out_tst(7) <= i_rxbuf_full;
+p_out_tst(8) <= i_txbuf_empty;
+p_out_tst(9) <= i_txbuf_full;
+p_out_tst(25 downto 10)<= i_mem_lenreq;
+p_out_tst(31 downto 26)<= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
 
 
 
