@@ -525,12 +525,12 @@ begin
 
                 i_trn_td(63) <= '0';
 
-                if G_USR_DBUS = 32 then
+                -- if G_USR_DBUS = 32 then
                 i_mwr_work <= '1';
                 i_trn_td(62 downto 56) <= C_PCIE_PKT_TYPE_MWR_3DW_WD;
-                else
-                i_trn_td(62 downto 56) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
-                end if;--if G_USR_DBUS = 32 then
+                -- else
+                -- i_trn_td(62 downto 56) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
+                -- end if;--if G_USR_DBUS = 32 then
 
                 i_trn_td(55 downto 16) <= ('0' &
                            mwr_tlp_tc_i &
@@ -549,18 +549,22 @@ begin
                 end if;
 
                 --Last DW Byte Enable
-                if    i_mem_tpl_byte(1 downto 0) = "00" then i_trn_td(7 downto 4) <= "1111";
-                elsif i_mem_tpl_byte(1 downto 0) = "01" then i_trn_td(7 downto 4) <= "0001";
-                elsif i_mem_tpl_byte(1 downto 0) = "10" then i_trn_td(7 downto 4) <= "0011";
-                else                                         i_trn_td(7 downto 4) <= "0111";
-                end if;
+                case i_mem_tpl_byte(1 downto 0) is
+                when "00" => i_trn_td(7 downto 4) <= "1111";
+                when "01" => i_trn_td(7 downto 4) <= "0001";
+                when "10" => i_trn_td(7 downto 4) <= "0011";
+                when "11" => i_trn_td(7 downto 4) <= "0111";
+                when others => null;
+                end case;
 
                 --1st DW Byte Enable
-                if    i_mem_adr_byte(1 downto 0) = "00" then i_trn_td(3 downto 0) <= "1111";
-                elsif i_mem_adr_byte(1 downto 0) = "01" then i_trn_td(3 downto 0) <= "1110";
-                elsif i_mem_adr_byte(1 downto 0) = "10" then i_trn_td(3 downto 0) <= "1100";
-                else                                         i_trn_td(3 downto 0) <= "1000";
-                end if;
+                case i_mem_adr_byte(1 downto 0) is
+                when "00" => i_trn_td(3 downto 0) <= "1111";
+                when "01" => i_trn_td(3 downto 0) <= "1110";
+                when "10" => i_trn_td(3 downto 0) <= "1100";
+                when "11" => i_trn_td(3 downto 0) <= "1000";
+                when others => null;
+                end case;
 
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
@@ -589,7 +593,7 @@ begin
                 --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                if G_USR_DBUS = 32 then
+                -- if G_USR_DBUS = 32 then
                   i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
                   i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap;
 
@@ -616,14 +620,14 @@ begin
                       i_fsm_cs <= S_TX_MWR_QWN;
                   end if;
 
-                else
-                  i_trn_td(63 downto 32) <= (others=>'0');
-                  i_trn_td(31 downto 0)  <= (i_mem_adr_byte(31 downto 2) & "00");
-                  i_mwr_work <= '1';
+                -- else
+                --   i_trn_td(63 downto 32) <= (others=>'0');
+                --   i_trn_td(31 downto 0)  <= (i_mem_adr_byte(31 downto 2) & "00");
+                --   i_mwr_work <= '1';
 
-                  i_fsm_cs <= S_TX_MWR_QWN;
+                --   i_fsm_cs <= S_TX_MWR_QWN;
 
-                end if;--if G_USR_DBUS = 32 then
+                -- end if;--if G_USR_DBUS = 32 then
 
             else
               if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
@@ -647,19 +651,19 @@ begin
 
                 i_trn_tsof_n <= '1';
 
-                if G_USR_DBUS = 32 then
+                -- if G_USR_DBUS = 32 then
                     if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                    i_trn_td(31 downto  0) <= i_usr_rxbuf_do_swap;
+                    i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
                   else
-                    i_trn_td(63 downto 32) <= i_usr_rxbuf_do_swap;
+                    i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
                   end if;
 
                   i_trn_trem_n <= i_trn_trem_n - 1;
-                else
-                  i_trn_td(63 downto 0) <= i_usr_rxbuf_do_swap;
-                  i_trn_trem_n <= (others=>'0');
+                -- else
+                --   i_trn_td(63 downto 0) <= i_usr_rxbuf_do_swap;
+                --   i_trn_trem_n <= (others=>'0');
 
-                end if;--if G_USR_DBUS = 32 then
+                -- end if;--if G_USR_DBUS = 32 then
 
                 --—четчик отправленых данных (текущей транзакции)
                 if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
@@ -682,15 +686,15 @@ begin
                 else
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    if G_USR_DBUS = 32 then
+                    -- if G_USR_DBUS = 32 then
                       if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
                         i_trn_tsrc_rdy_n <= '0';
                       else
                         i_trn_tsrc_rdy_n <= '1';
                       end if;
-                    else
-                      i_trn_tsrc_rdy_n <= '0';
-                    end if;--if G_USR_DBUS = 32 then
+                    -- else
+                    --   i_trn_tsrc_rdy_n <= '0';
+                    -- end if;--if G_USR_DBUS = 32 then
 
                     i_trn_teof_n <= '1';
 
@@ -769,18 +773,22 @@ begin
                 end if;
 
                 --Last DW Byte Enable
-                if    i_mem_tpl_byte(1 downto 0) = "00" then i_trn_td(7 downto 4) <= "1111";
-                elsif i_mem_tpl_byte(1 downto 0) = "01" then i_trn_td(7 downto 4) <= "0001";
-                elsif i_mem_tpl_byte(1 downto 0) = "10" then i_trn_td(7 downto 4) <= "0011";
-                else                                         i_trn_td(7 downto 4) <= "0111";
-                end if;
+                case i_mem_tpl_byte(1 downto 0) is
+                when "00" => i_trn_td(7 downto 4) <= "1111";
+                when "01" => i_trn_td(7 downto 4) <= "0001";
+                when "10" => i_trn_td(7 downto 4) <= "0011";
+                when "11" => i_trn_td(7 downto 4) <= "0111";
+                when others => null;
+                end case;
 
                 --1st DW Byte Enable
-                if    i_mem_adr_byte(1 downto 0) = "00" then i_trn_td(3 downto 0) <= "1111";
-                elsif i_mem_adr_byte(1 downto 0) = "01" then i_trn_td(3 downto 0) <= "1110";
-                elsif i_mem_adr_byte(1 downto 0) = "10" then i_trn_td(3 downto 0) <= "1100";
-                else                                         i_trn_td(3 downto 0) <= "1000";
-                end if;
+                case i_mem_adr_byte(1 downto 0) is
+                when "00" => i_trn_td(3 downto 0) <= "1111";
+                when "01" => i_trn_td(3 downto 0) <= "1110";
+                when "10" => i_trn_td(3 downto 0) <= "1100";
+                when "11" => i_trn_td(3 downto 0) <= "1000";
+                when others => null;
+                end case;
 
                 i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
 

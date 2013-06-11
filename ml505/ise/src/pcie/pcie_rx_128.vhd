@@ -129,7 +129,7 @@ signal i_usr_wr            : std_logic;
 signal i_usr_rd            : std_logic;
 
 signal i_trn_dw_skip       : std_logic;
-signal i_trn_dw_sel        : std_logic_vector(trn_rd'length/64-1 downto 0);
+signal i_trn_dw_sel        : std_logic_vector(trn_rd'length/64 - 1 downto 0);
 
 --//MAIN
 begin
@@ -147,8 +147,8 @@ tst_o(11 downto 8) <= EXT(i_trn_dw_sel, 4);
 --//--------------------------------------
 --//
 --//--------------------------------------
-i_bar_exprom <=not trn_rbar_hit_n(6);
-i_bar_usr <=not trn_rbar_hit_n(0) or not trn_rbar_hit_n(1);
+i_bar_exprom <= not trn_rbar_hit_n(6);
+i_bar_usr <= not trn_rbar_hit_n(0) or not trn_rbar_hit_n(1);
 
 usr_reg_adr_o <= (i_req_addr(5 downto 0) & "00");
 usr_reg_din_o <= i_usr_di_swap;
@@ -166,7 +166,6 @@ gen_swap_usr_di : for i in 0 to i_usr_di'length/8 - 1 generate
 i_usr_di_swap((i_usr_di_swap'length - 8*i) - 1 downto
               (i_usr_di_swap'length - 8*(i+1))) <= i_usr_di(8*(i+1) - 1 downto 8*i);
 end generate gen_swap_usr_di;
-
 
 req_compl_o   <= i_req_compl;
 req_exprom_o  <= i_req_exprom;
@@ -197,7 +196,8 @@ begin
       i_cpld_malformed <= '0';
 
     else
-        if (i_fsm_cs = S_RX_IDLE) and trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+        if (i_fsm_cs = S_RX_IDLE)
+            and trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
 
             if trn_rrem_n(1) = '1' then
               if trn_rd(62 downto 56) = C_PCIE_PKT_TYPE_CPLD_3DW_WD then
@@ -211,8 +211,11 @@ begin
 
         else
 
-            if (i_fsm_cs = S_RX_CPLD_WT) and (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
+            if (i_fsm_cs = S_RX_CPLD_WT)
+                and (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
+
               i_cpld_malformed <= '1';
+
             end if;
 
         end if;
@@ -643,12 +646,12 @@ begin
                 end if;
 
                 if trn_reof_n = '0' then --EOF
-                    i_trn_dw_sel <= i_trn_dw_sel - '1';
+                    i_trn_dw_sel <= i_trn_dw_sel - 1;
                     i_trn_dw_skip <= '0';
 
                     if i_trn_dw_skip = '0' then
                       i_usr_wr <= '1';
-                      i_cpld_tlp_cnt <= i_cpld_tlp_cnt + '1';
+                      i_cpld_tlp_cnt <= i_cpld_tlp_cnt + 1;
                     else
                       i_usr_wr <= '0';
                     end if;
@@ -657,18 +660,20 @@ begin
                        ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#01#,trn_rrem_n'length)) and (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,i_trn_dw_sel'length))) or
                        ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#02#,trn_rrem_n'length)) and (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#02#,i_trn_dw_sel'length))) or
                        ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#03#,trn_rrem_n'length)) and (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#03#,i_trn_dw_sel'length))) then
+
                       i_cpld_tlp_dlast <= '1';
                       i_trn_rdst_rdy_n <= '1';
                       i_fsm_cs <= S_RX_CPLD_WT;
+
                     end if;
                 else
                   if trn_rsof_n = '1' then
-                      i_trn_dw_sel <= i_trn_dw_sel - '1';
+                      i_trn_dw_sel <= i_trn_dw_sel - 1;
                       i_trn_dw_skip <= '0';
 
                       if i_trn_dw_skip = '0' then
                         i_usr_wr <= '1';
-                        i_cpld_tlp_cnt <= i_cpld_tlp_cnt + '1';
+                        i_cpld_tlp_cnt <= i_cpld_tlp_cnt + 1;
                       else
                         i_usr_wr <= '0';
                       end if;
