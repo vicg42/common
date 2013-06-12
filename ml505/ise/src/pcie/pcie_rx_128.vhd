@@ -131,22 +131,22 @@ signal i_usr_rd            : std_logic;
 signal i_trn_dw_skip       : std_logic;
 signal i_trn_dw_sel        : std_logic_vector(trn_rd'length/64 - 1 downto 0);
 
---//MAIN
+--MAIN
 begin
 
 
---//--------------------------------------
---//Технологические
---//--------------------------------------
+----------------------------------------
+--Технологические
+----------------------------------------
 tst_o(5 downto 0) <= i_cpld_tlp_cnt(5 downto 0);
 tst_o(6) <= i_trn_rdst_rdy_n;
 tst_o(7) <= usr_txbuf_full_i;
 tst_o(11 downto 8) <= EXT(i_trn_dw_sel, 4);
 
 
---//--------------------------------------
---//
---//--------------------------------------
+----------------------------------------
+--
+----------------------------------------
 i_bar_exprom <= not trn_rbar_hit_n(6);
 i_bar_usr <= not trn_rbar_hit_n(0) or not trn_rbar_hit_n(1);
 
@@ -196,34 +196,21 @@ begin
       i_cpld_malformed <= '0';
 
     else
-        if (i_fsm_cs = S_RX_IDLE)
-            and trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+      if (i_fsm_cs = S_RX_CPLD_WT) then
 
-            if trn_rrem_n(1) = '1' then
-              if trn_rd(62 downto 56) = C_PCIE_PKT_TYPE_CPLD_3DW_WD then
-                i_cpld_total_size <= i_cpld_total_size + trn_rd(41 downto 32);
-              end if;
-            else
-              if trn_rd(62+64 downto 56+64) = C_PCIE_PKT_TYPE_CPLD_3DW_WD then
-                i_cpld_total_size <= i_cpld_total_size + trn_rd(41+64 downto 32+64);
-              end if;
-            end if;
-
-        else
-
-            if (i_fsm_cs = S_RX_CPLD_WT)
-                and (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
-
-              i_cpld_malformed <= '1';
-
-            end if;
-
+        if  (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
+        i_cpld_malformed <= '1';
         end if;
+
+        i_cpld_total_size <= i_cpld_total_size + EXT(i_cpld_tlp_len, i_cpld_total_size'length);
+      end if;
+
     end if;
   end if;
 end process;
 
---//Rx State Machine
+
+--Rx State Machine
 process(rst_n, clk)
 begin
   if rst_n = '0' then

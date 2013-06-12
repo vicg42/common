@@ -378,7 +378,7 @@ begin
 --//Технологические
 --//--------------------------------------
 i_rd_throttle_tst_out(0) <= i_mrd_en_throttle;
-i_rd_throttle_tst_out(1) <= tmp_cfg_msi_enable;
+i_rd_throttle_tst_out(1) <= '0';--tmp_cfg_msi_enable;
 
 
 --//--------------------------------------

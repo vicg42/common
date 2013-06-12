@@ -120,7 +120,7 @@ S_TX_MWR_QWN ,
 S_TX_MRD_QW1 ,
 S_TX_CPLD_WT0,
 S_TX_MRD_QW0 ,
-S_TX_MWR_QW0,
+S_TX_MWR_QW0 ,
 S_TX_MWR_QW00,
 S_TX_MRD_QW00
 );
@@ -162,15 +162,15 @@ signal i_usr_rxbuf_rd       : std_logic;
 signal i_usr_rxbuf_do_swap  : std_logic_vector(usr_rxbuf_dout_i'range);
 signal i_usr_reg_do_swap    : std_logic_vector(usr_reg_dout_i'range);
 
---//MAIN
+--MAIN
 begin
 
 tst_o <= (others=>'0');
 
 
---//--------------------------------------
---//
---//--------------------------------------
+----------------------------------------
+--
+----------------------------------------
 mrd_pkt_count_o <= i_mem_tpl_tag + 1;
 mrd_pkt_len_o <= EXT(i_mem_tpl_dw, mrd_pkt_len_o'length);
 
@@ -201,7 +201,7 @@ i_usr_reg_do_swap((i_usr_reg_do_swap'length - 8*i) - 1 downto
                   (i_usr_reg_do_swap'length - 8*(i+1))) <= usr_reg_dout_i(8*(i+1) - 1 downto 8*i);
 end generate gen_swap_reg;
 
--- Calculate byte count based on byte enable
+--Calculate byte count based on byte enable
 process (req_be_i)
 begin
   case req_be_i(3 downto 0) is
@@ -232,7 +232,7 @@ begin
   end case;
 end process;
 
--- Calculate lower address based on  byte enable
+--Calculate lower address based on  byte enable
 process (req_be_i, req_addr_i)
 begin
   case req_be_i(3 downto 0) is
@@ -378,7 +378,7 @@ begin
             -------------------------------------------------------
             elsif i_usr_rxbuf_rd = '1' and trn_tbuf_av(C_PCIE_BUF_POSTED_QUEUE) = '1'
               and sr_req_compl = '0' and i_compl_done = '0'
-                and mwr_en_i = '1' and i_mwr_done = '0' and master_en_i='1' then
+                and mwr_en_i = '1' and i_mwr_done = '0' and master_en_i = '1' then
 
                 if i_dma_init = '1' then
                   i_mem_tpl_byte <= i_mwr_tpl_max_byte;
@@ -398,7 +398,7 @@ begin
             -------------------------------------------------------
             --MRd - 3DW, no data (PC<-FPGA) FPGA is PCIe master
             -------------------------------------------------------
-            elsif trn_tdst_rdy_n = '0' and trn_tdst_dsc_n ='1'
+            elsif trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1'
               and trn_tbuf_av(C_PCIE_BUF_NON_POSTED_QUEUE) = '1'
                 and sr_req_compl = '0' and i_compl_done = '0'
                   and mrd_en_i = '1' and i_mrd_done = '0' and master_en_i = '1' then
@@ -519,12 +519,11 @@ begin
             if i_usr_rxbuf_rd = '1' then
 
                 i_trn_tsof_n <= '0';
-                i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= (others=>'0');
+                i_trn_teof_n <= '1';
 
                 i_trn_td(63) <= '0';
-
                 -- if G_USR_DBUS = 32 then
                 i_mwr_work <= '1';
                 i_trn_td(62 downto 56) <= C_PCIE_PKT_TYPE_MWR_3DW_WD;

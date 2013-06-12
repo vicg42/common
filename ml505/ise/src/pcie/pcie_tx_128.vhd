@@ -115,13 +115,13 @@ architecture behavioral of pcie_tx is
 type TFsm_state is (
 S_TX_IDLE    ,
 S_TX_CPLD_WT1,
-S_TX_MWR_QW00 ,
-S_TX_MWR_QW1 ,
 S_TX_MWR_QWN ,
-S_TX_MRD_QW00 ,
-S_TX_MRD_QW1
+S_TX_MRD_QW0 ,
+S_TX_MWR_QW0 ,
+S_TX_MWR_QW00,
+S_TX_MRD_QW00
 );
-signal i_fsm_cs              : TFsm_state;
+signal i_fsm_cs             : TFsm_state;
 
 signal i_trn_trem_n         : std_logic_vector(trn_td'length/64-1 downto 0);
 signal i_trn_td             : std_logic_vector(trn_td'range);
@@ -158,14 +158,18 @@ signal i_mrd_tpl_max_byte   : std_logic_vector(12 downto 0);
 signal i_usr_rxbuf_rd       : std_logic;
 signal i_usr_rxbuf_do_swap  : std_logic_vector(usr_rxbuf_dout_i'range);
 signal i_usr_reg_do_swap    : std_logic_vector(usr_reg_dout_i'range);
+signal tst_mrd_en_i         : std_logic;
 
 
---//MAIN
+--MAIN
 begin
 
---//--------------------------------------
---//
---//--------------------------------------
+tst_o <= (others=>'0');
+
+
+----------------------------------------
+--
+----------------------------------------
 mrd_pkt_count_o <= i_mem_tpl_tag + 1;
 mrd_pkt_len_o <= EXT(i_mem_tpl_dw, mrd_pkt_len_o'length);
 
@@ -196,7 +200,7 @@ i_usr_reg_do_swap((i_usr_reg_do_swap'length - 8*i) - 1 downto
                   (i_usr_reg_do_swap'length - 8*(i+1))) <= usr_reg_dout_i(8*(i+1) - 1 downto 8*i);
 end generate gen_swap_reg;
 
--- Calculate byte count based on byte enable
+--Calculate byte count based on byte enable
 process (req_be_i)
 begin
   case req_be_i(3 downto 0) is
@@ -227,7 +231,7 @@ begin
   end case;
 end process;
 
--- Calculate lower address based on  byte enable
+--Calculate lower address based on  byte enable
 process (req_be_i, req_addr_i)
 begin
   case req_be_i(3 downto 0) is
@@ -330,6 +334,8 @@ begin
         --#######################################################################
         when S_TX_IDLE =>
 
+            i_mem_tpl_last <= '0';
+
             -------------------------------------------------------
             --CplD - 3DW, +data;  Cpl - 3DW
             -------------------------------------------------------
@@ -428,7 +434,8 @@ begin
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
                 i_trn_trem_n <= (others=>'0');
-                i_fsm_cs <= S_TX_MRD_QW1;
+
+                i_fsm_cs <= S_TX_MRD_QW00;
 
             else
                 if trn_tdst_rdy_n = '0' then
@@ -463,7 +470,7 @@ begin
 
 
         --#######################################################################
-        --MWr - 3DW, +data (PC<-FPGA) FPGA is PCIe master
+        --MWr , +data (PC<-FPGA) FPGA is PCIe master
         --#######################################################################
         when S_TX_MWR_QW00 =>
 
@@ -488,10 +495,10 @@ begin
           end if;
 
           i_mwr_work <= '1';
-          i_fsm_cs <= S_TX_MWR_QW1;
+          i_fsm_cs <= S_TX_MWR_QW0;
         --end S_TX_MWR_QW00 :
 
-        when S_TX_MWR_QW1 =>
+        when S_TX_MWR_QW0 =>
 
             if i_usr_rxbuf_rd = '1' then
 
@@ -500,11 +507,11 @@ begin
                 i_trn_trem_n <= (others=>'0');
 
                 i_trn_td(127) <= '0';
---                if G_USR_DBUS = 32 then
+               -- if G_USR_DBUS = 32 then
                 i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_3DW_WD;
---                else
---                i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
---                end if;--if G_USR_DBUS = 32 then
+               -- else
+               -- i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
+               -- end if;--if G_USR_DBUS = 32 then
 
                 i_trn_td(119 downto 80) <= (
                            '0' &
@@ -544,6 +551,7 @@ begin
                 i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
                 i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap;
 
+                --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 --—четчик отправленых данных (текущей транзакции)
@@ -564,6 +572,8 @@ begin
                 else
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
+                    i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
                     i_trn_teof_n <= '1';
 
                     i_fsm_cs <= S_TX_MWR_QWN;
@@ -580,7 +590,7 @@ begin
 
               end if;
             end if;
-        --end S_TX_MWR_QW1 :
+        --end S_TX_MWR_QW0 :
 
         when S_TX_MWR_QWN =>
 
@@ -588,15 +598,13 @@ begin
 
                 i_trn_tsof_n <= '1';
 
-                if    i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                  i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
-                elsif i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, i_trn_trem_n'length) then
-                  i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
-                elsif i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#03#, i_trn_trem_n'length) then
-                  i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
-                elsif i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#00#, i_trn_trem_n'length) then
-                  i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap;
-                end if;
+                case i_trn_trem_n is
+                when "00" => i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap;
+                when "01" => i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
+                when "10" => i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
+                when "11" => i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
+                when others => null;
+                end case;
 
                 i_trn_trem_n <= i_trn_trem_n - 1;
 
@@ -651,7 +659,7 @@ begin
               end if;
             end if;
         --end S_TX_MWR_QWN :
-        --END: MWr - 3DW, +data
+        --END: MWr , +data
 
 
         --#######################################################################
@@ -672,10 +680,10 @@ begin
                               + OR_reduce(i_mem_remain_byte(log2(32/8) - 1 downto 0));
           end if;
 
-          i_fsm_cs <= S_TX_MRD_QW1;
+          i_fsm_cs <= S_TX_MRD_QW0;
         --end S_TX_MWR_QW00 :
 
-        when S_TX_MRD_QW1 =>
+        when S_TX_MRD_QW0 =>
 
             if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1' then
 
@@ -684,8 +692,9 @@ begin
                 i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
 
-                i_trn_td(127 downto 80) <= ('0' &
-                           C_PCIE_PKT_TYPE_MRD_3DW_ND &
+                i_trn_td(127) <= '0';
+                i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MRD_3DW_ND;
+                i_trn_td(119 downto 80) <= (
                            '0' &
                            mrd_tlp_tc_i &
                            "0000" &
@@ -723,6 +732,9 @@ begin
                 i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
                 i_trn_td(31 downto 0)  <= (others=>'0');
 
+                --—четчик адреса (byte)
+                i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
+
                 if i_mem_tpl_last = '1' then
                   i_mem_tx_byte <= (others=>'0');
                   i_mem_tpl_tag <= (others=>'0');
@@ -743,7 +755,7 @@ begin
 
               end if;
             end if;
-        --end S_TX_MRD_QW1 :
+        --end S_TX_MRD_QW0 :
         --END: MRd - 3DW, no data
 
     end case; --case i_fsm_cs is

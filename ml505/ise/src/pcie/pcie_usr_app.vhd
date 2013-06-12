@@ -595,7 +595,7 @@ begin
     i_mwr_done <= p_in_mwr_done and not sr_mwr_done;
 
     --DMATRN <-> MEM завершена
-    if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
+    if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) and i_pce_testing /= '1' then
 
       if AND_reduce(i_dmatrn_mem_done) = '1' or i_dma_start = '1' then
         i_dmatrn_mem_done <= (others=>'0');
@@ -826,23 +826,23 @@ begin
 end process;
 end generate gen_usrd_x64;
 
---process(p_in_rst_n,i_usr_grst,p_in_clk)
---begin
---  if p_in_rst_n='0' or i_usr_grst='1' then
+-- process(p_in_rst_n,i_usr_grst,p_in_clk)
+-- begin
+-- if p_in_rst_n='0' or i_usr_grst='1' then
+--    for i in 0 to tst_mem_dcnt'length/8 - 1 loop
+--    tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
+--    end loop;
+-- elsif p_in_clk'event and p_in_clk='1' then
+--    if p_in_rxbuf_rd = '1' and i_hdev_adr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
 --      for i in 0 to tst_mem_dcnt'length/8 - 1 loop
---      tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
+--      tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i+1) - 1 downto 8*i) + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
 --      end loop;
---  elsif p_in_clk'event and p_in_clk='1' then
---      if p_in_rxbuf_rd = '1' and i_hdev_adr=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
---        for i in 0 to tst_mem_dcnt'length/8 - 1 loop
---        tst_mem_dcnt(8*(i+1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i+1) - 1 downto 8*i) + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
---        end loop;
---      end if;
---  end if;
---end process;
---gen_swap : for i in 0 to tst_mem_dcnt'length/8 - 1 generate
---tst_mem_dcnt_swap(8*(((tst_mem_dcnt'length/8 - 1) - i) + 1) - 1 downto 8*((tst_mem_dcnt'length/8 - 1) - i)) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i);
---end generate gen_swap;
+--    end if;
+-- end if;
+-- end process;
+-- gen_swap : for i in 0 to tst_mem_dcnt'length/8 - 1 generate
+-- tst_mem_dcnt_swap(8*(((tst_mem_dcnt'length/8 - 1) - i) + 1) - 1 downto 8*((tst_mem_dcnt'length/8 - 1) - i)) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i);
+-- end generate gen_swap;
 
 --Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)<=i_dmatrn_mrd_done when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
