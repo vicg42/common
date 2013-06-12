@@ -581,8 +581,10 @@ begin
 
             if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' and usr_txbuf_full_i = '0' then
 
-                if    i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, i_trn_dw_sel'length) then i_usr_di <= trn_rd(31 downto 0);
-                elsif i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_dw_sel'length) then i_usr_di <= trn_rd(63 downto 32);
+                if    i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, i_trn_dw_sel'length) then
+                  i_usr_di <= trn_rd(31 downto 0);
+                elsif i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_dw_sel'length) then
+                  i_usr_di <= trn_rd(63 downto 32);
                 end if;
 
                 if trn_reof_n = '0' then --EOF
@@ -596,8 +598,11 @@ begin
                       i_usr_wr <= '0';
                     end if;
 
-                    if ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length)) and (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#, i_trn_dw_sel'length))) or
-                       ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length)) and (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_dw_sel'length))) then
+                    if   ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#00#,trn_rrem_n'length)) and
+                        (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#00#,i_trn_dw_sel'length)))
+                      or
+                         ((trn_rrem_n = CONV_STD_LOGIC_VECTOR(16#01#,trn_rrem_n'length)) and
+                        (i_trn_dw_sel = CONV_STD_LOGIC_VECTOR(16#01#,i_trn_dw_sel'length))) then
 
                       i_cpld_tlp_dlast <= '1';
                       i_trn_rdst_rdy_n <= '1';
