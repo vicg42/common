@@ -92,7 +92,7 @@ mrd_addr_up_i          : in   std_logic_vector(7 downto 0);
 mrd_relaxed_order_i    : in   std_logic;
 mrd_nosnoop_i          : in   std_logic;
 mrd_pkt_len_o          : out  std_logic_vector(31 downto 0);
-mrd_pkt_count_o        : out  std_logic_vector(15 downto 0);--Кол-во отправленых пакетов MRr
+mrd_pkt_count_o        : out  std_logic_vector(15 downto 0);
 
 completer_id_i         : in   std_logic_vector(15 downto 0);
 tag_ext_en_i           : in   std_logic;
@@ -164,6 +164,9 @@ signal tst_mrd_en_i         : std_logic;
 --MAIN
 begin
 
+----------------------------------------
+--Технологические
+----------------------------------------
 tst_o <= (others=>'0');
 
 
@@ -251,7 +254,7 @@ begin
 end process;
 
 --Инициализация перед началом DMA транзакции
-process(rst_n, clk)
+init : process(rst_n, clk)
 begin
   if rst_n = '0' then
     sr_req_compl <= '0';
@@ -294,11 +297,11 @@ begin
         end if;
     end if;
   end if;
-end process;
+end process;--init
 
 
 --Tx State Machine
-process(rst_n, clk)
+fsm : process(rst_n, clk)
 begin
   if rst_n = '0' then
 
@@ -760,7 +763,7 @@ begin
 
     end case; --case i_fsm_cs is
   end if;
-end process;
+end process;--fsm
 
 
 --END MAIN

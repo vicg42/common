@@ -67,7 +67,7 @@ req_exprom_o        : out   std_logic;
 --dma trn
 dma_init_i          : in    std_logic;
 
-cpld_total_size_o   : out   std_logic_vector(31 downto 0); --Общее кол-во данных(DW) от всех принятых пакетов CplD (m_pcie_usr_app/p_in_mrd_rcv_size)
+cpld_total_size_o   : out   std_logic_vector(31 downto 0); --Общее кол-во данных(DW) от всех принятых пакетов CplD
 cpld_malformed_o    : out   std_logic;                     --Результат сравнение (i_cpld_tlp_len != i_cpld_tlp_cnt)
 
 --Технологический порт
@@ -131,6 +131,7 @@ signal i_usr_rd            : std_logic;
 signal i_trn_dw_skip       : std_logic;
 signal i_trn_dw_sel        : std_logic_vector(trn_rd'length/64 - 1 downto 0);
 
+
 --MAIN
 begin
 
@@ -138,10 +139,7 @@ begin
 ----------------------------------------
 --Технологические
 ----------------------------------------
-tst_o(5 downto 0) <= i_cpld_tlp_cnt(5 downto 0);
-tst_o(6) <= i_trn_rdst_rdy_n;
-tst_o(7) <= usr_txbuf_full_i;
-tst_o(11 downto 8) <= EXT(i_trn_dw_sel, 4);
+tst_o <= (others=>'0');
 
 
 ----------------------------------------
@@ -183,7 +181,7 @@ req_addr_o    <= i_req_addr;
 cpld_total_size_o <= i_cpld_total_size;
 cpld_malformed_o <= i_cpld_malformed;
 
-process(rst_n, clk)
+init : process(rst_n, clk)
 begin
   if rst_n = '0' then
     i_cpld_total_size <= (others=>'0');
@@ -207,11 +205,11 @@ begin
 
     end if;
   end if;
-end process;
+end process;--init
 
 
 --Rx State Machine
-process(rst_n, clk)
+fsm : process(rst_n, clk)
 begin
   if rst_n = '0' then
 
@@ -705,7 +703,7 @@ begin
 
     end case; --case i_fsm_cs is
   end if;
-end process;
+end process;--fsm
 
 
 --END MAIN

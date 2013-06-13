@@ -33,13 +33,13 @@ port(
 -------------------------------------------------------
 --Связь с Пользовательским проектом
 -------------------------------------------------------
-p_out_hclk      : out   std_logic;                                      --//Тактовый сигнал для пользовательского проекта
-p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--//Вывод регистра C_HREG_CTRL
+p_out_hclk      : out   std_logic;                                      --Тактовый сигнал для пользовательского проекта
+p_out_gctrl     : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);--Вывод регистра C_HREG_CTRL
 
 --Управление внешними устройствами
-p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);--//Вывод регистра C_HREG_DEV_CTRL
-p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);--//DEV<-HOST
-p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);--//DEV->HOST
+p_out_dev_ctrl  : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);--Вывод регистра C_HREG_DEV_CTRL
+p_out_dev_din   : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);--DEV<-HOST
+p_in_dev_dout   : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);--DEV->HOST
 p_out_dev_wr    : out   std_logic;
 p_out_dev_rd    : out   std_logic;
 p_in_dev_status : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
@@ -123,11 +123,11 @@ p_out_rd_metering              : out   std_logic;
 --p_out_usr_max_rd_req_size      : out   std_logic_vector(2 downto 0);
 
 --Инф. ядра PCI-Express
-p_in_cfg_neg_max_lnk_width     : in    std_logic_vector(5 downto 0);--//Разрешонное кол-во link линий системой
-p_in_cfg_prg_max_payload_size  : in    std_logic_vector(2 downto 0);--//Разрешонный max_payload_size пакета системой
-p_in_cfg_prg_max_rd_req_size   : in    std_logic_vector(2 downto 0);--//Max read request size for the device when acting as the Requester
+p_in_cfg_neg_max_lnk_width     : in    std_logic_vector(5 downto 0);--Разрешонное кол-во link линий системой
+p_in_cfg_prg_max_payload_size  : in    std_logic_vector(2 downto 0);--Разрешонный max_payload_size пакета системой
+p_in_cfg_prg_max_rd_req_size   : in    std_logic_vector(2 downto 0);--Max read request size for the device when acting as the Requester
 
---//Тестирование
+--Тестирование
 p_in_rx_engine_tst      : in    std_logic_vector(1 downto 0);
 p_in_throttle_tst       : in    std_logic_vector(1 downto 0);
 p_in_mrd_pkt_len_tst    : in    std_logic_vector(31 downto 0);
@@ -162,7 +162,7 @@ signal i_mrd_rcv_size_ok           : std_logic;
 
 signal i_reg_rd                    : std_logic;
 signal vrsk_reg_bar                : std_logic;
-signal vrsk_reg_adr                : std_logic_vector(6 downto 0); --//Адреса регистров проекта VERESK-M
+signal vrsk_reg_adr                : std_logic_vector(6 downto 0); --Адреса регистров проекта VERESK-M
 
 signal v_reg_firmware              : std_logic_vector(C_HREG_FRMWARE_LAST_BIT downto 0);
 signal v_reg_ctrl                  : std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
@@ -181,9 +181,9 @@ signal i_dmabuf_num                : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_M_B
 signal i_dmabuf_count              : std_logic_vector(C_HREG_DEV_CTRL_DMABUF_COUNT_M_BIT - C_HREG_DEV_CTRL_DMABUF_COUNT_L_BIT downto 0);
 signal i_usr_grst                  : std_logic;
 
-signal i_dma_start                 : std_logic;--//Регистр DEV_CTRL(DMA_START) - передний фронт
+signal i_dma_start                 : std_logic;--Регистр DEV_CTRL(DMA_START) - передний фронт
 signal sr_dma_start                : std_logic;
-signal i_dmatrn_len                : std_logic_vector(31 downto 0);--//Размер транзакции в Byte
+signal i_dmatrn_len                : std_logic_vector(31 downto 0);--Размер транзакции в Byte
 signal i_dmatrn_adr                : std_logic_vector(31 downto 0);
 signal i_dmatrn_init               : std_logic;
 signal i_dmatrn_start              : std_logic;
@@ -246,6 +246,7 @@ signal i_txbuf_wr_sel              : std_logic;
 signal i_pce_testing               : std_logic;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 
+
 --MAIN
 begin
 
@@ -254,28 +255,28 @@ p_out_hclk <= p_in_clk;
 
 p_out_dmatrn_init <= i_dmatrn_init;
 
---//Управление DMATRN_WR (PC<-FPGA) (MEMORY WRITE)
-p_out_mwr_en            <=i_dmatrn_work and     v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC<-FPGA
+--Управление DMATRN_WR (PC<-FPGA) (MEMORY WRITE)
+p_out_mwr_en            <=i_dmatrn_work and     v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--TRN: PC<-FPGA
 p_out_mwr_addr_up       <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mwr_addr_up'length);
-p_out_mwr_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --//Адрес системной памяти ХОСТА
+p_out_mwr_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --Адрес системной памяти ХОСТА
 p_out_mwr_len           <=i_dmatrn_len;
 p_out_mwr_count         <=(others=>'0');
 p_out_mwr_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mwr_tlp_tc'length);
-p_out_mwr_64b           <='0';--//1/0 - 64b/32b
+p_out_mwr_64b           <='0';--1/0 - 64b/32b
 p_out_mwr_phant_func_en1<='0';
 p_out_mwr_relaxed_order <='0';
 p_out_mwr_nosnoop       <='0';
 p_out_mwr_fbe           <=(others=>'0');
 p_out_mwr_lbe           <=(others=>'0');
 
---//Управление DMATRN_RD (PC->FPGA) (MEMORY READ)
-p_out_mrd_en          <=i_dmatrn_work and not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--//TRN: PC->FPGA
+--Управление DMATRN_RD (PC->FPGA) (MEMORY READ)
+p_out_mrd_en          <=i_dmatrn_work and not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--TRN: PC->FPGA
 p_out_mrd_addr_up       <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_addr_up'length);
-p_out_mrd_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --//Адрес системной памяти ХОСТА
+p_out_mrd_addr          <=i_dmatrn_adr(31 downto 2)&"00";                    --Адрес системной памяти ХОСТА
 p_out_mrd_len           <=i_dmatrn_len;
 p_out_mrd_count         <=(others=>'0');
 p_out_mrd_tlp_tc        <=CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_tlp_tc'length);
-p_out_mrd_64b           <='0';--//1/0 - 64b/32b
+p_out_mrd_64b           <='0';--1/0 - 64b/32b
 p_out_mrd_phant_func_en1<='0';
 p_out_mrd_relaxed_order <='0';
 p_out_mrd_nosnoop       <='0';
@@ -289,9 +290,9 @@ p_out_rd_metering       <='1';
 
 
 
---//--------------------------------------------------------------------------------------------
---//Запись/Чтение пользовательских регистров:
---//--------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+--Запись/Чтение пользовательских регистров:
+----------------------------------------------------------------------------------------------
 --Декодируем BAR для регистров управления контроллером памяти и регистров проекта VERESK-M
 vrsk_reg_bar <= p_in_reg_adr(7);--x80 - Register Space: Veresk-M
 vrsk_reg_adr(6 downto 0) <= p_in_reg_adr(6 downto 0);
@@ -306,7 +307,7 @@ i_irq_num      <= v_reg_irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
 v_reg_firmware<=CONV_STD_LOGIC_VECTOR(C_FPGA_FIRMWARE_VERSION, v_reg_firmware'length);
 
 --Запись:
-process(p_in_rst_n,p_in_clk)
+wr : process(p_in_rst_n,p_in_clk)
   variable dma_start : std_logic;
   variable irq_clr : std_logic;
   variable dev_drdy : std_logic;
@@ -427,10 +428,10 @@ begin
     sr_dma_start<=i_dma_start;
 
   end if;
-end process;
+end process;--wr
 
 --Чтение:
-process(p_in_rst_n,p_in_clk)
+rd : process(p_in_rst_n,p_in_clk)
   variable txd : std_logic_vector(p_out_reg_dout'range);
 begin
   if p_in_rst_n='0' then
@@ -543,13 +544,13 @@ begin
     end if;--if i_reg_rd='1' then
 --    i_tst_rd<=tst_rd;
   end if;
-end process;
+end process;--rd
 
 i_pce_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 
---//--------------------------------------------------------------------------------------------
---//Управление DMA транзакцией (режим Master)
---//--------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
+--Управление DMA транзакцией (режим Master)
+----------------------------------------------------------------------------------------------
 --TRN DONE: PC->FPGA
 i_dmatrn_mrd_done <= i_mrd_done
                       when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) or i_pce_testing='1'
@@ -561,7 +562,7 @@ i_dmatrn_mwr_done <= i_mwr_done
 
 i_dmatrn_done <= i_dmatrn_mwr_done or i_dmatrn_mrd_done;
 
-process(p_in_rst_n, i_usr_grst, p_in_clk)
+dma_end : process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
   if p_in_rst_n = '0' or i_usr_grst = '1' then
     i_mrd_rcv_size_ok <='0';
@@ -616,10 +617,10 @@ begin
     i_memtrn_done <= sr_memtrn_done(1) and not sr_memtrn_done(2);
 
   end if;
-end process;
+end process;--dma_end
 
 
-process(p_in_rst_n, i_usr_grst, p_in_clk)
+dma : process(p_in_rst_n, i_usr_grst, p_in_clk)
 begin
   if p_in_rst_n = '0' or i_usr_grst = '1' then
 
@@ -722,7 +723,7 @@ begin
     end if;
 
   end if;
-end process;
+end process;--dma
 
 
 --BRAM параметров DMATRN: Адрес буфера в памяти PC; Размер буфера
@@ -752,9 +753,9 @@ clkb  => p_in_clk
 );
 
 
---//-------------------------------------------------------
---//Связь с модулем управления прерываниями
---//-------------------------------------------------------
+---------------------------------------------------------
+--Связь с модулем управления прерываниями
+---------------------------------------------------------
 p_out_irq_clr<=i_irq_clr;
 p_out_irq_num<=EXT(i_irq_num, p_out_irq_num'length);
 p_out_irq_set<=EXT(i_irq_set, p_out_irq_set'length);
@@ -779,9 +780,9 @@ end process;
 end generate gen_irq;
 
 
---//-------------------------------------------------------------------
---//Сигналы для модулей TX/RX PCI-Express
---//-------------------------------------------------------------------
+---------------------------------------------------------------------
+--Сигналы для модулей TX/RX PCI-Express
+---------------------------------------------------------------------
 p_out_rxbuf_dout <=p_in_dev_dout;-- when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else tst_mem_dcnt_swap;
 p_out_txbuf_full <=p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) when i_hdev_adr/=CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
                    p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not i_pce_testing;
@@ -789,9 +790,9 @@ p_out_rxbuf_empty<=p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) when i_hdev_adr/=
                    p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pce_testing;
 
 
---//-------------------------------------------------------------------
---//Связь с внешним устройствам
---//-------------------------------------------------------------------
+---------------------------------------------------------------------
+--Связь с внешним устройствам
+---------------------------------------------------------------------
 --Выбор доступа к внешним устройствам. Через DMA транзакцию или через регистр C_HREG_DEV_DATA
 p_out_dev_wr  <= i_txbuf_wr     when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)='1' else
                  p_in_reg_wr    when vrsk_reg_bar='1' and vrsk_reg_adr(6 downto 2)=CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
@@ -881,9 +882,9 @@ p_out_dev_opt(C_HDEV_OPTOUT_TIME_M_BIT downto C_HDEV_OPTOUT_TIME_L_BIT)<=v_reg_t
 p_out_dev_opt(C_HDEV_OPTOUT_TIME_SET_BIT)<=i_time_set;
 
 
---//-------------------------------------------------------------------
---//DBG
---//-------------------------------------------------------------------
+---------------------------------------------------------------------
+--DBG
+---------------------------------------------------------------------
 p_out_tst(31 downto 0)  <=v_reg_tst0;
 p_out_tst(47 downto 32) <=EXT(p_in_rx_engine_tst2, 16);
 p_out_tst(55 downto 48) <=i_dmabuf_count;
@@ -896,14 +897,14 @@ p_out_tst(96)           <=i_irq_clr;
 p_out_tst(100 downto 97)<=i_irq_num(3 downto 0);
 p_out_tst(108 downto 101)<=p_in_irq_status(7 downto 0);
 p_out_tst(116 downto 109)<=EXT(i_irq_set(C_HIRQ_COUNT - 1 downto 0), 8);
-p_out_tst(117)           <=i_dma_irq;
-p_out_tst(118)           <=i_dma_irq;
-p_out_tst(119)           <=i_dmatrn_mwr_done;
-p_out_tst(120)           <=OR_reduce(p_in_throttle_tst); --//mrd_work_throttle
-p_out_tst(121)           <=i_mrd_rcv_size_ok;
-p_out_tst(122)           <=i_dmatrn_mrd_done;
-p_out_tst(123)           <=i_dmatrn_init;
-p_out_tst(124)           <=i_dma_start;
+p_out_tst(117)           <='0';
+p_out_tst(118)           <='0';
+p_out_tst(119)           <='0';
+p_out_tst(120)           <='0';--OR_reduce(p_in_throttle_tst); --mrd_work_throttle
+p_out_tst(121)           <='0';
+p_out_tst(122)           <='0';
+p_out_tst(123)           <='0';
+p_out_tst(124)           <='0';
 p_out_tst(125)           <=i_txbuf_wr or p_in_rxbuf_rd;
 p_out_tst(126)           <=p_in_rxbuf_rd_last;
 p_out_tst(127)           <=p_in_txbuf_wr_last;

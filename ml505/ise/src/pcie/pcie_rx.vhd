@@ -67,7 +67,7 @@ req_exprom_o        : out   std_logic;
 --dma trn
 dma_init_i          : in    std_logic;
 
-cpld_total_size_o   : out   std_logic_vector(31 downto 0); --ќбщее кол-во данных(DW) от всех прин€тых пакетов CplD (m_pcie_usr_app/p_in_mrd_rcv_size)
+cpld_total_size_o   : out   std_logic_vector(31 downto 0); --ќбщее кол-во данных(DW) от всех прин€тых пакетов CplD
 cpld_malformed_o    : out   std_logic;                     --–езультат сравнение (i_cpld_tlp_len != i_cpld_tlp_cnt)
 
 --“ехнологический порт
@@ -87,12 +87,12 @@ S_RX_IDLE    ,
 S_RX_IOWR_QW1,
 S_RX_IOWR_WT ,
 S_RX_MWR_QW1 ,
-S_RX_MWR_QW41,
-S_RX_MWR_QW42,
+-- S_RX_MWR_QW41,
+-- S_RX_MWR_QW42,
 S_RX_MWR_WT  ,
 S_RX_MRD_QW1 ,
-S_RX_MRD_QW41,
-S_RX_MRD_QW42,
+-- S_RX_MRD_QW41,
+-- S_RX_MRD_QW42,
 S_RX_MRD_WT  ,
 S_RX_CPL_QW1 ,
 S_RX_CPLD_QWN,
@@ -143,10 +143,7 @@ begin
 ----------------------------------------
 --“ехнологические
 ----------------------------------------
-tst_o(5 downto 0) <= i_cpld_tlp_cnt(5 downto 0);
-tst_o(6) <= i_trn_rdst_rdy_n;
-tst_o(7) <= usr_txbuf_full_i;
-tst_o(11 downto 8) <= EXT(i_trn_dw_sel, 4);
+tst_o <= (others=>'0');
 
 
 ----------------------------------------
@@ -188,7 +185,7 @@ req_addr_o    <= i_req_addr;
 cpld_total_size_o <= i_cpld_total_size;
 cpld_malformed_o <= i_cpld_malformed;
 
-process(rst_n, clk)
+init : process(rst_n, clk)
 begin
   if rst_n = '0' then
     i_cpld_total_size <= (others=>'0');
@@ -212,10 +209,10 @@ begin
 
     end if;
   end if;
-end process;
+end process;--init
 
 --Rx State Machine
-process(rst_n, clk)
+fsm : process(rst_n, clk)
 begin
   if rst_n = '0' then
 
@@ -305,14 +302,14 @@ begin
                         i_fsm_cs <= S_RX_MWR_QW1;
                      end if;
 
-                    -------------------------------------------------------------------------
-                    --MWr - 4DW, +data (PC->FPGA)
-                    -------------------------------------------------------------------------
-                   when C_PCIE_PKT_TYPE_MWR_4DW_WD =>
+                   --  -------------------------------------------------------------------------
+                   --  --MWr - 4DW, +data (PC->FPGA)
+                   --  -------------------------------------------------------------------------
+                   -- when C_PCIE_PKT_TYPE_MWR_4DW_WD =>
 
-                     if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
-                        i_fsm_cs <= S_RX_MWR_QW41;
-                     end if;
+                   --   if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                   --      i_fsm_cs <= S_RX_MWR_QW41;
+                   --   end if;
 
                     -------------------------------------------------------------------------
                     --MRd - 3DW, no data (PC<-FPGA)
@@ -337,28 +334,28 @@ begin
                         i_fsm_cs <= S_RX_MRD_QW1;
                       end if;
 
-                    -------------------------------------------------------------------------
-                    --MRd - 4DW, no data (PC<-FPGA)
-                    -------------------------------------------------------------------------
-                    when C_PCIE_PKT_TYPE_MRD_4DW_ND =>
+                    -- -------------------------------------------------------------------------
+                    -- --MRd - 4DW, no data (PC<-FPGA)
+                    -- -------------------------------------------------------------------------
+                    -- when C_PCIE_PKT_TYPE_MRD_4DW_ND =>
 
-                      if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
-                        i_req_pkt_type <= trn_rd(62 downto 56);
-                        i_req_tc       <= trn_rd(54 downto 52);
-                        i_req_td       <= trn_rd(47);
-                        i_req_ep       <= trn_rd(46);
-                        i_req_attr     <= trn_rd(45 downto 44);
-                        i_req_len      <= trn_rd(41 downto 32);
-                        i_req_rid      <= trn_rd(31 downto 16);
-                        i_req_tag      <= trn_rd(15 downto  8);
-                        i_req_be       <= trn_rd( 7 downto  0);
+                    --   if trn_rd(41 downto 32) = CONV_STD_LOGIC_VECTOR(16#01#, 10) then --Length data payload (DW)
+                    --     i_req_pkt_type <= trn_rd(62 downto 56);
+                    --     i_req_tc       <= trn_rd(54 downto 52);
+                    --     i_req_td       <= trn_rd(47);
+                    --     i_req_ep       <= trn_rd(46);
+                    --     i_req_attr     <= trn_rd(45 downto 44);
+                    --     i_req_len      <= trn_rd(41 downto 32);
+                    --     i_req_rid      <= trn_rd(31 downto 16);
+                    --     i_req_tag      <= trn_rd(15 downto  8);
+                    --     i_req_be       <= trn_rd( 7 downto  0);
 
-                        if i_bar_exprom = '1' then
-                          i_req_exprom <= '1';
-                        end if;
+                    --     if i_bar_exprom = '1' then
+                    --       i_req_exprom <= '1';
+                    --     end if;
 
-                        i_fsm_cs <= S_RX_MRD_QW41;
-                      end if;
+                    --     i_fsm_cs <= S_RX_MRD_QW41;
+                    --   end if;
 
                     -------------------------------------------------------------------------
                     --Cpl - 3DW, no data
@@ -462,38 +459,38 @@ begin
         --END: MRd - 3DW, no data
 
 
-        --#######################################################################
-        --MRd - 4DW, no data (PC<-FPGA)
-        --#######################################################################
-        when S_RX_MRD_QW41 =>
+        -- --#######################################################################
+        -- --MRd - 4DW, no data (PC<-FPGA)
+        -- --#######################################################################
+        -- when S_RX_MRD_QW41 =>
 
-            if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_req_addr <= trn_rd(31 downto 2);
-              i_trn_rdst_rdy_n <= '1';
+        --     if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+        --       i_req_addr <= trn_rd(31 downto 2);
+        --       i_trn_rdst_rdy_n <= '1';
 
-              if i_req_exprom = '0' then
-                if i_bar_usr = '1' then
-                  i_usr_rd <= '1';
-                end if;
-              end if;
+        --       if i_req_exprom = '0' then
+        --         if i_bar_usr = '1' then
+        --           i_usr_rd <= '1';
+        --         end if;
+        --       end if;
 
-              i_fsm_cs <= S_RX_MRD_WT1;
-            else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
-                i_req_exprom <= '0';
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
+        --       i_fsm_cs <= S_RX_MRD_WT1;
+        --     else
+        --       if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+        --         i_req_exprom <= '0';
+        --         i_fsm_cs <= S_RX_IDLE;
+        --       end if;
+        --     end if;
 
-        when S_RX_MRD_QW42 =>
+        -- when S_RX_MRD_QW42 =>
 
-            i_usr_rd <= '0';
+        --     i_usr_rd <= '0';
 
-            if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-            i_req_compl <= '1';--«апрос передачи пакета CplD
-            i_fsm_cs <= S_RX_MRD_WT;
-            end if;
-        --END: MRd - 4DW, no data
+        --     if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+        --     i_req_compl <= '1';--«апрос передачи пакета CplD
+        --     i_fsm_cs <= S_RX_MRD_WT;
+        --     end if;
+        -- --END: MRd - 4DW, no data
 
 
         --#######################################################################
@@ -524,39 +521,39 @@ begin
         --END: MWr - 3DW, +data
 
 
-        --#######################################################################
-        --MWr - 4DW, +data (PC->FPGA)
-        --#######################################################################
-        when S_RX_MWR_QW41 =>
+        -- --#######################################################################
+        -- --MWr - 4DW, +data (PC->FPGA)
+        -- --#######################################################################
+        -- when S_RX_MWR_QW41 =>
 
-            if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_usr_di <= trn_rd(63 downto 32);
+        --     if trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+        --       i_usr_di <= trn_rd(63 downto 32);
 
-              i_trn_rdst_rdy_n <= '1';
-              i_fsm_cs <= S_RX_MWR_WT;
-            else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
+        --       i_trn_rdst_rdy_n <= '1';
+        --       i_fsm_cs <= S_RX_MWR_WT;
+        --     else
+        --       if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+        --         i_fsm_cs <= S_RX_IDLE;
+        --       end if;
+        --     end if;
 
-        when S_RX_MWR_QW42 =>
+        -- when S_RX_MWR_QW42 =>
 
-            if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
-              i_req_addr <= trn_rd(31 downto 2);
+        --     if trn_reof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+        --       i_req_addr <= trn_rd(31 downto 2);
 
-              if i_bar_usr = '1' then
-                i_usr_wr <= '1';
-              end if;
+        --       if i_bar_usr = '1' then
+        --         i_usr_wr <= '1';
+        --       end if;
 
-              i_trn_rdst_rdy_n <= '1';
-              i_fsm_cs <= S_RX_MWR_WT;
-            else
-              if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
-                i_fsm_cs <= S_RX_IDLE;
-              end if;
-            end if;
-        --END: MWr - 4DW, +data (PC->FPGA)
+        --       i_trn_rdst_rdy_n <= '1';
+        --       i_fsm_cs <= S_RX_MWR_WT;
+        --     else
+        --       if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
+        --         i_fsm_cs <= S_RX_IDLE;
+        --       end if;
+        --     end if;
+        -- --END: MWr - 4DW, +data (PC->FPGA)
 
 
         --#######################################################################
@@ -652,7 +649,7 @@ begin
 
     end case; --case i_fsm_cs is
   end if;
-end process;
+end process; --fsm
 
 
 --END MAIN
