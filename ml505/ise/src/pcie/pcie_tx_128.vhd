@@ -140,7 +140,6 @@ signal i_dma_init           : std_logic;
 signal i_mem_adr_byte       : std_logic_vector(31 downto 0);
 signal i_mem_tx_byte        : std_logic_vector(31 downto 0);
 signal i_mem_remain_byte    : std_logic_vector(31 downto 0);
-signal i_mem_len_rq_byte    : std_logic_vector(31 downto 0);
 signal i_mem_tpl_cnt        : std_logic_vector(12 downto 0);
 signal i_mem_tpl_byte       : std_logic_vector(12 downto 0);
 signal i_mem_tpl_dw         : std_logic_vector(12 downto 0);
@@ -259,9 +258,6 @@ begin
   if rst_n = '0' then
     sr_req_compl <= '0';
     i_dma_init <= '0';
-    i_mem_len_rq_byte <= (others=>'0');
-    i_mwr_tpl_max_byte <= (others=>'0');
-    i_mrd_tpl_max_byte <= (others=>'0');
 
   elsif rising_edge(clk) then
 
@@ -269,28 +265,6 @@ begin
 
     if dma_init_i = '1' then
         i_dma_init <= '1';
-        i_mem_len_rq_byte <= mwr_len_i;
-
-        case max_payload_size_i is
-        when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mwr_tpl_max_byte'length);
-        when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mwr_tpl_max_byte'length);
-        when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mwr_tpl_max_byte'length);
-        when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mwr_tpl_max_byte'length);
-        when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mwr_tpl_max_byte'length);
-        when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mwr_tpl_max_byte'length);
-        when others => null;
-        end case;
-
-        case max_rd_req_size_i is
-        when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mrd_tpl_max_byte'length);
-        when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mrd_tpl_max_byte'length);
-        when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mrd_tpl_max_byte'length);
-        when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mrd_tpl_max_byte'length);
-        when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mrd_tpl_max_byte'length);
-        when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mrd_tpl_max_byte'length);
-        when others => null;
-        end case;
-
     else
         if (i_fsm_cs = S_TX_MWR_QW00) or (i_fsm_cs = S_TX_MRD_QW00) then
           i_dma_init <= '0';
@@ -316,8 +290,8 @@ begin
     i_mem_adr_byte <= (others=>'0');
     i_mem_remain_byte <= (others=>'0');
     i_mem_tx_byte <= (others=>'0');
-    i_mem_tpl_byte <= CONV_STD_LOGIC_VECTOR(128, i_mem_tpl_byte'length);
-    i_mem_tpl_dw <= (others=>'0');
+    i_mem_tpl_byte <= (others=>'0');
+    i_mem_tpl_dw <= CONV_STD_LOGIC_VECTOR(128, i_mem_tpl_dw'length);
     i_mem_tpl_len <= (others=>'0');
     i_mem_tpl_tag <= (others=>'0');
     i_mem_tpl_cnt <= (others=>'0');
@@ -326,6 +300,8 @@ begin
     i_mrd_done <= '0';
     i_mwr_done <= '0';
     i_mwr_work <= '0';
+    i_mwr_tpl_max_byte <= (others=>'0');
+    i_mrd_tpl_max_byte <= (others=>'0');
 
     i_compl_done <= '0';
 
@@ -403,11 +379,22 @@ begin
                 and mwr_en_i = '1' and i_mwr_done = '0' and master_en_i = '1' then
 
                 if i_dma_init = '1' then
-                  i_mem_tpl_byte <= i_mwr_tpl_max_byte;
+
+                  case max_payload_size_i is
+                  when C_PCIE_MAX_PAYLOAD_4096_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_2048_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_1024_BYTE => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_512_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_256_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mwr_tpl_max_byte'length);
+                  when C_PCIE_MAX_PAYLOAD_128_BYTE  => i_mwr_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mwr_tpl_max_byte'length);
+                  when others => null;
+                  end case;
+
                   i_mem_adr_byte <= mwr_addr_i;
-                  i_mem_remain_byte <= i_mem_len_rq_byte;
+                  i_mem_remain_byte <= mwr_len_i;
+
                 else
-                  i_mem_remain_byte <= i_mem_len_rq_byte - i_mem_tx_byte;
+                  i_mem_remain_byte <= mwr_len_i - i_mem_tx_byte;
                 end if;
 
                 i_trn_tsof_n <= '1';
@@ -426,11 +413,22 @@ begin
                   and mrd_en_i = '1' and i_mrd_done = '0' and master_en_i = '1' then
 
                 if i_dma_init = '1' then
-                  i_mem_tpl_byte <= i_mrd_tpl_max_byte;
-                  i_mem_adr_byte <= mrd_addr_i;
-                  i_mem_remain_byte <= i_mem_len_rq_byte;
+
+                  case max_rd_req_size_i is
+                  when C_PCIE_MAX_RD_REQ_4096_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(4096, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_2048_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(2048, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_1024_BYTE => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(1024, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_512_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(512, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_256_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(256, i_mrd_tpl_max_byte'length);
+                  when C_PCIE_MAX_RD_REQ_128_BYTE  => i_mrd_tpl_max_byte <= CONV_STD_LOGIC_VECTOR(128, i_mrd_tpl_max_byte'length);
+                  when others => null;
+                  end case;
+
+                  i_mem_adr_byte <= mwr_addr_i;
+                  i_mem_remain_byte <= mwr_len_i;
+
                 else
-                  i_mem_remain_byte <= i_mem_len_rq_byte - i_mem_tx_byte;
+                  i_mem_remain_byte <= mwr_len_i - i_mem_tx_byte;
                 end if;
 
                 i_trn_tsof_n <= '1';
