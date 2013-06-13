@@ -520,7 +520,7 @@ p_out_tst(16)<=cfg_command(2);--cfg_bus_mstr_enable
 p_out_tst(18 downto 17)<=EXT(trn_rrem_n, 18-17+1);
 p_out_tst(146 downto 19)<=trn_rd(63 downto 0) & trn_rd(127 downto 64);
 --p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
-p_out_tst(162 downto 147)<=EXT(trn_rrem_n, 162-147+1);--(others=>'0');
+p_out_tst(162 downto 147)<=EXT(trn_rrem_n, 162-147+1);
 p_out_tst(168 downto 163)<=trn_tbuf_av;
 p_out_tst(170 downto 169)<=EXT(trn_trem_n_core, 170-169+1);
 p_out_tst(171)<=s_axis_tx_tready;
