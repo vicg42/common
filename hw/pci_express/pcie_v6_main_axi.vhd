@@ -26,7 +26,7 @@ entity pcie_main is
 generic(
 G_PCIE_LINK_WIDTH : integer:=1;
 G_PCIE_RST_SEL    : integer:=1;
-G_DBG : string :="OFF"  --//¬ боевом проекте об€зательно должно быть "OFF" - отладка с ChipScoupe
+G_DBG : string :="OFF"  --¬ боевом проекте об€зательно должно быть "OFF" - отладка с ChipScoupe
 );
 port(
 --------------------------------------------------------
@@ -383,7 +383,7 @@ signal trn_tsrc_rdy_n                 : std_logic;
 signal trn_tdst_rdy_n                 : std_logic;
 signal trn_tsrc_dsc_n                 : std_logic;
 signal trn_terrfwd_n                  : std_logic;
---signal trn_tdst_dsc_n                 : std_logic;--//in rev 1.7. dont
+--signal trn_tdst_dsc_n                 : std_logic;--in rev 1.7. dont
 signal trn_td                         : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
 signal trn_trem_n_core                : std_logic_vector(CI_PCIEXP_TRN_REMBUS_NEW-1 downto 0);
 signal trn_trem_n                     : std_logic_vector(3 downto 0);
@@ -452,7 +452,7 @@ signal cfg_lcommand                   : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1
 
 signal user_trn_tbuf_av               : std_logic_vector(5 downto 0);--(15 downto 0);
 
---//New Signal
+--New Signal
 signal trn_tcfg_req,trn_tcfg_req_n                 : std_logic;
 signal trn_terr_drop,trn_terr_drop_n               : std_logic;
 
@@ -491,13 +491,12 @@ signal pl_directed_link_width         : std_logic_vector(1 downto 0);
 signal pl_upstream_prefer_deemph      : std_logic;
 
 
-
---//MAIN
+--MAIN
 begin
 
---//#############################################
---//DBG
---//#############################################
+--#############################################
+--DBG
+--#############################################
 p_out_tst(0)<=cfg_interrupt_n;
 p_out_tst(1)<=cfg_interrupt_rdy_n;
 p_out_tst(2)<=cfg_interrupt_assert_n;
@@ -514,7 +513,7 @@ p_out_tst(12)<=trn_rsrc_dsc_n;
 p_out_tst(13)<=trn_rdst_rdy_n;
 p_out_tst(14)<=trn_rbar_hit_n(0);
 p_out_tst(15)<=trn_rbar_hit_n(1);
-p_out_tst(16)<=cfg_command(2);--//cfg_bus_mstr_enable
+p_out_tst(16)<=cfg_command(2);--cfg_bus_mstr_enable
 p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18-17+1);
 p_out_tst(146 downto 19)<=EXT(trn_rd, 128);
 --p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
@@ -537,9 +536,9 @@ p_out_tst(249 downto 248)<=(others=>'0');
 p_out_tst(255 downto 250)<=(others=>'0');
 
 
---//#############################################
---//ћодуль €дра PCI-Express
---//#############################################
+--#############################################
+--ћодуль €дра PCI-Express
+--#############################################
 m_core : core_pciexp_ep_blk_plus_axi
 generic map(
 PL_FAST_TRAIN => FALSE,
@@ -670,9 +669,9 @@ rx_np_ok                       => trn_rnp_ok                     --: in std_logi
 );
 
 
---//#############################################
---//ћодуль приложени€ PCI-Express(упраление €дром PCI-Express+ упр. пользовательским портом)
---//#############################################
+--#############################################
+--ћодуль приложени€ PCI-Express(упраление €дром PCI-Express+ упр. пользовательским портом)
+--#############################################
 m_ctrl : pcie_ctrl
 generic map(
 G_PCIEXP_TRN_DBUS => CI_PCIEXP_TRN_DBUS,
@@ -879,15 +878,6 @@ s_axis_tx_tkeep <= CONV_STD_LOGIC_VECTOR(16#0F#, s_axis_tx_tkeep'length)
 --Rx
 m_axis_rx_tready <=not trn_rdst_rdy_n;
 
-trn_rrem_n <= CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length)
-              when m_axis_rx_tlast = '1' and m_axis_rx_tkeep = CONV_STD_LOGIC_VECTOR(16#0F#, m_axis_rx_tkeep'length) else
-                CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length);
-
-trn_rsrc_dsc_n <='1';
-trn_reof_n     <=not m_axis_rx_tlast;
-trn_rsrc_rdy_n <=not m_axis_rx_tvalid;
-trn_rerrfwd_n  <=not m_axis_rx_tuser(1);
-
 gen_trn_rbar_hit : for i in 0 to trn_rbar_hit_n'length -1 generate
 trn_rbar_hit_n(i) <=not m_axis_rx_tuser(2+i);
 end generate gen_trn_rbar_hit;
@@ -902,12 +892,22 @@ begin
     end if;
   end if;
 end process;
-trn_rsof_n <= not(m_axis_rx_tvalid and not in_pkt_reg);
+
+trn_rsof_n     <= not(m_axis_rx_tvalid and not in_pkt_reg);
+trn_reof_n     <=not m_axis_rx_tlast;
+trn_rsrc_rdy_n <=not m_axis_rx_tvalid;
+trn_rerrfwd_n  <=not m_axis_rx_tuser(1);
+trn_rsrc_dsc_n <='1';
+
+trn_rrem_n <= CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length)
+              when m_axis_rx_tlast = '1' and m_axis_rx_tkeep = CONV_STD_LOGIC_VECTOR(16#0F#, m_axis_rx_tkeep'length) else
+                CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length);
 
 gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 - 1 generate
 trn_rd((trn_rd'length - 32*i) - 1 downto (trn_rd'length - 32*(i+1))) <= m_axis_rx_tdata(32*(i+1) - 1 downto 32*i);
 s_axis_tx_tdata(32*(i+1) - 1 downto 32*i) <= trn_td((trn_td'length - 32*i) - 1 downto (trn_td'length - 32*(i+1)));
 end generate gen_trn_d;
+
 
 --END MAIN
 end behavioral;
