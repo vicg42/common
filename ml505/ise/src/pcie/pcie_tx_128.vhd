@@ -684,7 +684,7 @@ begin
           end if;
 
           i_fsm_cs <= S_TX_MRD_QW0;
-        --end S_TX_MWR_QW00 :
+        --end S_TX_MRD_QW00 :
 
         when S_TX_MRD_QW0 =>
 
