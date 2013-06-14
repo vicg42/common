@@ -495,7 +495,10 @@ begin
                               + OR_reduce(i_mem_remain_byte(log2(G_USR_DBUS/8) - 1 downto 0));
           end if;
 
+          if G_USR_DBUS = 32 then
           i_mwr_work <= '1';
+          end if;
+
           i_fsm_cs <= S_TX_MWR_QW0;
         --end S_TX_MWR_QW00 :
 
@@ -508,11 +511,11 @@ begin
                 i_trn_trem_n <= (others=>'0');
 
                 i_trn_td(127) <= '0';
-               -- if G_USR_DBUS = 32 then
+                if G_USR_DBUS = 32 then
                 i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_3DW_WD;
-               -- else
-               -- i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
-               -- end if;--if G_USR_DBUS = 32 then
+                else
+                i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
+                end if;--if G_USR_DBUS = 32 then
 
                 i_trn_td(119 downto 80) <= (
                            '0' &
@@ -549,36 +552,52 @@ begin
                 when others => null;
                 end case;
 
-                i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
-                i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap;
-
                 --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                --—четчик отправленых данных (текущей транзакции)
-                if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
+                if G_USR_DBUS = 32 then
 
-                    i_mem_tpl_cnt <= (others=>'0');
-                    i_mwr_work <= '0';
+                    i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
+                    i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap;
 
-                    if i_mem_tpl_last = '1' then
-                      i_mem_tx_byte <= (others=>'0');
-                      i_mem_tpl_tag <= (others=>'0');
-                      i_mwr_done <= '1';
+                    --—четчик отправленых данных (текущей транзакции)
+                    if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
+
+                        i_mem_tpl_cnt <= (others=>'0');
+                        i_mwr_work <= '0';
+
+                        if i_mem_tpl_last = '1' then
+                          i_mem_tx_byte <= (others=>'0');
+                          i_mem_tpl_tag <= (others=>'0');
+                          i_mwr_done <= '1';
+                        end if;
+
+                        i_trn_teof_n <= '0';
+
+                        i_fsm_cs <= S_TX_IDLE;
+                    else
+                        i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
+
+                        i_mem_tpl_tag <= i_mem_tpl_tag + 1;
+
+                        i_trn_teof_n <= '1';
+
+                        i_fsm_cs <= S_TX_MWR_QWN;
                     end if;
 
-                    i_trn_teof_n <= '0';
-
-                    i_fsm_cs <= S_TX_IDLE;
                 else
-                    i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
+                    i_trn_td(63 downto 32) <= (others=>'1');
+                    i_trn_td(31 downto 0)  <= (i_mem_adr_byte(31 downto 2) & "00");
+                    i_mwr_work <= '1';
 
                     i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                     i_trn_teof_n <= '1';
 
                     i_fsm_cs <= S_TX_MWR_QWN;
-                end if;
+
+                end if;--if G_USR_DBUS = 32 then
+
             else
               if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
 
@@ -599,15 +618,27 @@ begin
 
                 i_trn_tsof_n <= '1';
 
-                case i_trn_trem_n is
-                when "00" => i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap;
-                when "01" => i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
-                when "10" => i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
-                when "11" => i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
-                when others => null;
-                end case;
+                if G_USR_DBUS = 32 then
+                    case i_trn_trem_n is
+                    when "00" => i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap;
+                    when "01" => i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
+                    when "10" => i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
+                    when "11" => i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
+                    when others => null;
+                    end case;
 
-                i_trn_trem_n <= i_trn_trem_n - 1;
+                    i_trn_trem_n <= i_trn_trem_n - 1;
+
+                else
+                    if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, i_trn_trem_n'length) then
+                      i_trn_td(32*4 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
+                    else
+                      i_trn_td(32*2 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
+                    end if;
+
+                    i_trn_trem_n <= i_trn_trem_n - 2;
+
+                end if;--if G_USR_DBUS = 32 then
 
                 --—четчик отправленых данных (текущей транзакции)
                 if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
@@ -630,11 +661,21 @@ begin
                 else
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                      i_trn_tsrc_rdy_n <= '0';
+                    if G_USR_DBUS = 32 then
+                        if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
+                          i_trn_tsrc_rdy_n <= '0';
+                        else
+                          i_trn_tsrc_rdy_n <= '1';
+                        end if;
+
                     else
-                      i_trn_tsrc_rdy_n <= '1';
-                    end if;
+                        if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, i_trn_trem_n'length) then
+                          i_trn_tsrc_rdy_n <= '0';
+                        else
+                          i_trn_tsrc_rdy_n <= '1';
+                        end if;
+
+                    end if;--if G_USR_DBUS = 32 then
 
                     i_trn_teof_n <= '1';
 
