@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//HOST
-constant C_PCFG_HDEV_DWIDTH           : integer:=32;
+constant C_PCFG_HDEV_DWIDTH           : integer:=64;
 
 --//Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM";

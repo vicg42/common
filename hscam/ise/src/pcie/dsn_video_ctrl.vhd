@@ -307,6 +307,9 @@ signal tst_vbuf_wr_end                   : TVfrBufs;
 signal tst_dbg_pictire                   : std_logic;
 signal tst_dbg_rd_hold                   : std_logic;
 signal tst_vfrskip_decr                  : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
+signal i_mem_wr_trn_len                  : std_logic_vector(7 downto 0);
+signal i_mem_rd_trn_len                  : std_logic_vector(7 downto 0);
+
 
 --MAIN
 begin
@@ -636,24 +639,26 @@ end process;
 --//Готовим параметры для модуля записи
 gen_vwrprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_wrprm_vch(i).mem_adr <= i_vprm.ch(i).mem_addr_wr;
-i_wrprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
---i_wrprm_vch(i).fr_size.activ.pix <= CONV_STD_LOGIC_VECTOR(1280, i_wrprm_vch(i).fr_size.activ.pix'length);
---i_wrprm_vch(i).fr_size.activ.row <= CONV_STD_LOGIC_VECTOR(1024, i_wrprm_vch(i).fr_size.activ.row'length);
---i_wrprm_vch(i).fr_size.skip.pix <= (others=>'0');
---i_wrprm_vch(i).fr_size.skip.row <= (others=>'0');
+-- i_wrprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
+i_wrprm_vch(i).fr_size.activ.pix <= CONV_STD_LOGIC_VECTOR(1280, i_wrprm_vch(i).fr_size.activ.pix'length);
+i_wrprm_vch(i).fr_size.activ.row <= CONV_STD_LOGIC_VECTOR(1024, i_wrprm_vch(i).fr_size.activ.row'length);
+i_wrprm_vch(i).fr_size.skip.pix <= (others=>'0');
+i_wrprm_vch(i).fr_size.skip.row <= (others=>'0');
 end generate gen_vwrprm;
 
 --//Готовим параметры для модуля чтения
 gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_rdprm_vch(i).mem_adr <= i_vprm.ch(i).mem_addr_rd;
-i_rdprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
---i_rdprm_vch(i).fr_size.activ.pix <= CONV_STD_LOGIC_VECTOR(1280, i_wrprm_vch(i).fr_size.activ.pix'length);
---i_rdprm_vch(i).fr_size.activ.row <= CONV_STD_LOGIC_VECTOR(1024, i_wrprm_vch(i).fr_size.activ.row'length);
---i_rdprm_vch(i).fr_size.skip.pix <= (others=>'0');
---i_rdprm_vch(i).fr_size.skip.row <= (others=>'0');
+-- i_rdprm_vch(i).fr_size <= i_vprm.ch(i).fr_size;
+i_rdprm_vch(i).fr_size.activ.pix <= CONV_STD_LOGIC_VECTOR(1280, i_wrprm_vch(i).fr_size.activ.pix'length);
+i_rdprm_vch(i).fr_size.activ.row <= CONV_STD_LOGIC_VECTOR(1024, i_wrprm_vch(i).fr_size.activ.row'length);
+i_rdprm_vch(i).fr_size.skip.pix <= (others=>'0');
+i_rdprm_vch(i).fr_size.skip.row <= (others=>'0');
 i_rdprm_vch(i).fr_mirror <= i_vprm.ch(i).fr_mirror;
 end generate gen_vrdprm;
 
+i_mem_wr_trn_len <= CONV_STD_LOGIC_VECTOR(64, i_mem_wr_trn_len'length);
+i_mem_rd_trn_len <= CONV_STD_LOGIC_VECTOR(64, i_mem_rd_trn_len'length);
 
 p_out_vbuf_clk <= p_in_clk;
 
@@ -850,7 +855,7 @@ port map(
 -- Конфигурирование
 -------------------------------
 p_in_cfg_load         => vclk_vprm_set,
-p_in_cfg_mem_trn_len  => i_vprm.mem_wd_trn_len,
+p_in_cfg_mem_trn_len  => i_mem_wr_trn_len,--i_vprm.mem_wd_trn_len,
 p_in_cfg_prm_vch      => i_wrprm_vch,
 p_in_cfg_set_idle_vch => vclk_set_idle_vch,
 
@@ -913,7 +918,7 @@ port map(
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
+p_in_cfg_mem_trn_len  => i_mem_rd_trn_len,--i_vprm.mem_rd_trn_len,
 p_in_cfg_prm_vch      => i_rdprm_vch,
 
 p_in_hrd_chsel        => p_in_vctrl_hrdchsel,
