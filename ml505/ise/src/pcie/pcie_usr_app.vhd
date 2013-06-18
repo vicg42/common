@@ -234,7 +234,7 @@ signal i_time_set                  : std_logic;
 signal i_dev_drdy                  : std_logic;
 signal i_dev_drdy_out              : std_logic;
 
-signal i_mem_adr_byte              : std_logic_vector(31 downto 0) := (others=>'0');
+signal i_mem_adr                   : std_logic_vector(31 - (C_HDEV_DWIDTH/32 + 1) downto 0) := (others=>'0');
 
 signal sr_rxbuf_rd_last            : std_logic;
 signal sr_txbuf_din                : std_logic_vector(31 downto 0);
@@ -243,7 +243,6 @@ signal i_txbuf_wr                  : std_logic;
 signal i_txbuf_wr_sel              : std_logic;
 signal i_pcie_testing              : std_logic;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-signal tst_dcnt                     : std_logic_vector(31 downto 0);
 
 
 --MAIN
@@ -271,7 +270,7 @@ p_out_mwr_lbe           <= (others=>'0');
 --Управление DMATRN_RD (PC->FPGA) (MEMORY READ)
 p_out_mrd_en            <= i_dmatrn_work and not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);--TRN: PC->FPGA
 p_out_mrd_addr_up       <= CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_addr_up'length);
-p_out_mrd_addr          <= i_dmatrn_adr(31 downto 2)&"00";                    --Адрес системной памяти ХОСТА
+p_out_mrd_addr          <= i_dmatrn_adr(31 downto 0);                    --Адрес системной памяти ХОСТА
 p_out_mrd_len           <= i_dmatrn_len;
 p_out_mrd_count         <= (others=>'0');
 p_out_mrd_tlp_tc        <= CONV_STD_LOGIC_VECTOR(10#00#, p_out_mrd_tlp_tc'length);
@@ -525,7 +524,7 @@ begin
           txd(2) := p_in_tst(74);
           txd(3) := p_in_tst(75);
           txd(4) := p_in_tst(76);
-          txd(5) := p_in_tst(77) or OR_reduce(p_in_rx_engine_tst) or OR_reduce(tst_dcnt);
+          txd(5) := p_in_tst(77) or OR_reduce(p_in_rx_engine_tst);
           txd(31 downto 6) := p_in_tst(103 downto 78);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_TST2, 5) then
@@ -901,21 +900,21 @@ process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
     if i_dma_irq = '1' then
-      i_mem_adr_byte <= (others=>'0');
+      i_mem_adr <= (others=>'0');
     elsif i_dma_start = '1' then
-      i_mem_adr_byte <= EXT(v_reg_mem_adr, i_mem_adr_byte'length);
+      i_mem_adr <= EXT(v_reg_mem_adr(v_reg_mem_adr'high downto C_HDEV_DWIDTH/32 + 1), i_mem_adr'length);
     else
       if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
         and (p_in_rxbuf_rd = '1' or i_txbuf_wr = '1') then
 
-        i_mem_adr_byte <= i_mem_adr_byte + (C_HDEV_DWIDTH / 8);
+        i_mem_adr <= i_mem_adr + 1;
 
       end if;
     end if;
   end if;
 end process;
 
-p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT) <= i_mem_adr_byte; --Cnt BYTE
+p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT) <= i_mem_adr & v_reg_mem_adr(C_HDEV_DWIDTH/32 downto 0); --Cnt BYTE
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT) <= i_dmatrn_len(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT - C_HDEV_OPTOUT_MEM_RQLEN_L_BIT downto 0);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT) <= v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT) <= v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT);
@@ -949,20 +948,6 @@ p_out_tst(124)            <= '0';
 p_out_tst(125)            <= i_txbuf_wr or p_in_rxbuf_rd;
 p_out_tst(126)            <= p_in_rxbuf_rd_last;
 p_out_tst(127)            <= p_in_txbuf_wr_last;
-
-
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-    if v_reg_tst0(0) = '1' then
-      tst_dcnt <= (others=>'0');
-    else
-      if i_txbuf_wr = '1' or p_in_rxbuf_rd = '1' then
-        tst_dcnt <= tst_dcnt + 1;
-      end if;
-    end if;
-  end if;
-end process;
 
 
 --END MAIN
