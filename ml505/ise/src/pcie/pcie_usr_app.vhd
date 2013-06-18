@@ -191,7 +191,6 @@ signal i_dmatrn_work               : std_logic;
 signal i_dmatrn_done               : std_logic;
 signal i_dmatrn_mrd_done           : std_logic;
 signal i_dmatrn_mwr_done           : std_logic;
-signal sr_mrd_done                 : std_logic;
 signal i_mrd_done                  : std_logic;
 signal sr_mwr_done                 : std_logic;
 signal i_mwr_done                  : std_logic;
@@ -586,7 +585,6 @@ begin
     sr_memtrn_done <= (others=>'0');
     i_memtrn_done <= '0';
 
-    sr_mrd_done <= '0';
     i_mrd_done <= '0';
 
     sr_mwr_done <= '0';
@@ -605,8 +603,7 @@ begin
       end if;
     end if ;
 
-    sr_mrd_done <= i_mrd_rcv_size_ok;
-    i_mrd_done <= i_mrd_rcv_size_ok and not sr_mrd_done;
+    i_mrd_done <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last;
 
     sr_mwr_done <= p_in_mwr_done;
     i_mwr_done <= p_in_mwr_done and not sr_mwr_done;

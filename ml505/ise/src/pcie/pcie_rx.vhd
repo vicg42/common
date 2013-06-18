@@ -198,13 +198,17 @@ begin
       i_cpld_malformed <= '0';
 
     else
-      if (i_fsm_cs = S_RX_CPLD_WT) then
-
-        if  (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
+      if (i_fsm_cs = S_RX_CPLD_WT) and (i_cpld_tlp_len /= i_cpld_tlp_cnt) then
         i_cpld_malformed <= '1';
-        end if;
+      end if;
 
-        i_cpld_total_size <= i_cpld_total_size + EXT(i_cpld_tlp_len, i_cpld_total_size'length);
+      if (i_fsm_cs = S_RX_IDLE)
+        and trn_rsof_n = '0' and trn_rsrc_rdy_n = '0' and trn_rsrc_dsc_n = '1' then
+
+          if trn_rd(62 downto 56) = C_PCIE_PKT_TYPE_CPLD_3DW_WD then
+            i_cpld_total_size <= i_cpld_total_size + trn_rd(41 downto 32);
+          end if;
+
       end if;
 
     end if;
