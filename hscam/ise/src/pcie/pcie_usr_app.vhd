@@ -835,7 +835,11 @@ end generate gen_usrd_x32;
 
 --usr_buf data width x64
 gen_usrd_x64 : if C_HDEV_DWIDTH = 64 generate
-i_txbuf_din <= p_in_txbuf_din & sr_txbuf_din;
+i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din;
+i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when i_mrd_rcv_size_ok = '1'
+                                                     and p_in_txbuf_wr_last = '1'
+                                                       and (i_txbuf_wr_sel = '0' and p_in_txbuf_wr = '1')
+                                                        else sr_txbuf_din;
 i_txbuf_wr <= (i_txbuf_wr_sel and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
 process(p_in_clk)
 begin
