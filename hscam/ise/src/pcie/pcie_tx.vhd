@@ -43,7 +43,7 @@ trn_teof_n             : out  std_logic;
 trn_tsrc_rdy_n_o       : out  std_logic;             --usr_app - rdy
 trn_tsrc_dsc_n         : out  std_logic;
 trn_tdst_rdy_n         : in   std_logic;             --pci_core - rdy
-trn_tdst_dsc_n         : in   std_logic;             --'0' - Ядро прерывало передачу данных
+trn_tdst_dsc_n         : in   std_logic;
 trn_tbuf_av            : in   std_logic_vector(5 downto 0);
 
 --Handshake with Rx engine
@@ -180,7 +180,7 @@ tst_o <= (others=>'0');
 mrd_pkt_count_o <= i_mem_tpl_tag + 1;
 mrd_pkt_len_o <= EXT(i_mem_tpl_dw, mrd_pkt_len_o'length);
 
-i_usr_rxbuf_rd <= (not trn_tdst_rdy_n and trn_tdst_dsc_n and not usr_rxbuf_empty_i);
+i_usr_rxbuf_rd <= (not trn_tdst_rdy_n and not usr_rxbuf_empty_i);
 usr_rxbuf_rd_o <= i_usr_rxbuf_rd and i_mwr_work;
 usr_rxbuf_rd_last_o <= i_usr_rxbuf_rd when i_mwr_work = '1'
                                         and i_mem_tpl_last = '1'
@@ -324,7 +324,7 @@ begin
             -------------------------------------------------------
             --CplD - 3DW, +data;  Cpl - 3DW
             -------------------------------------------------------
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1'
+            if trn_tdst_rdy_n = '0'
               and trn_tbuf_av(C_PCIE_BUF_COMPLETION_QUEUE) = '1'
                 and sr_req_compl = '1' and i_compl_done = '0' then
 
@@ -393,7 +393,7 @@ begin
             -------------------------------------------------------
             --MRd - 3DW, no data (PC<-FPGA) FPGA is PCIe master
             -------------------------------------------------------
-            elsif trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1'
+            elsif trn_tdst_rdy_n = '0'
               and trn_tbuf_av(C_PCIE_BUF_NON_POSTED_QUEUE) = '1'
                 and sr_req_compl = '0' and i_compl_done = '0'
                   and mrd_en_i = '1' and i_mrd_done = '0' and master_en_i = '1' then
@@ -447,7 +447,7 @@ begin
         --#######################################################################
         when S_TX_CPLD_WT0 =>
 
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1' then
+            if trn_tdst_rdy_n = '0' then
 
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '0';
@@ -474,16 +474,13 @@ begin
 
                 i_compl_done <= '1';
                 i_fsm_cs <= S_TX_CPLD_WT1;
-            else
-              if trn_tdst_dsc_n = '0' then
-                i_fsm_cs <= S_TX_CPLD_WT1;
-              end if;
+
             end if;
         --end S_TX_CPLD_WT0 :
 
         when S_TX_CPLD_WT1 =>
 
-            if trn_tdst_rdy_n = '0' or trn_tdst_dsc_n = '0' then
+            if trn_tdst_rdy_n = '0' then
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
@@ -568,16 +565,7 @@ begin
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                 i_fsm_cs <= S_TX_MWR_QW1;
-            else
-              if trn_tdst_dsc_n = '0' then
 
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
-                  i_mwr_work <= '0';
-
-                  i_fsm_cs <= S_TX_IDLE;
-
-              end if;
             end if;
         --end S_TX_MWR_QW0 :
 
@@ -599,63 +587,53 @@ begin
                 --Счетчик отправленых данных (текущей транзакции)
                 if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
 
-                  if G_USR_DBUS = 64 then
-                    i_mwr_work <= '0';
+                    if G_USR_DBUS = 64 then
+                        i_mwr_work <= '0';
 
-                    if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#02#, i_mem_tpl_dw'length) then
-                      i_fsm_cs <= S_TX_MWR_QWN2;
+                        if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#02#, i_mem_tpl_dw'length) then
+                          i_fsm_cs <= S_TX_MWR_QWN2;
 
-                    else --if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length) then
-                      i_mem_tpl_cnt <= (others=>'0');
+                        else --if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length) then
+                          i_mem_tpl_cnt <= (others=>'0');
 
-                      if i_mem_tpl_last = '1' then
-                        i_mem_tx_byte <= (others=>'0');
-                        i_mem_tpl_tag <= (others=>'0');
-                        i_mwr_done <= '1';
-                      end if;
+                          if i_mem_tpl_last = '1' then
+                            i_mem_tx_byte <= (others=>'0');
+                            i_mem_tpl_tag <= (others=>'0');
+                            i_mwr_done <= '1';
+                          end if;
 
-                      i_trn_teof_n <= '0';
+                          i_trn_teof_n <= '0';
 
-                      i_fsm_cs <= S_TX_IDLE;
+                          i_fsm_cs <= S_TX_IDLE;
+                        end if;
+
+                    else --if G_USR_DBUS = 32 then
+
+                        i_mem_tpl_cnt <= (others=>'0');
+                        i_mwr_work <= '0';
+
+                        if i_mem_tpl_last = '1' then
+                          i_mem_tx_byte <= (others=>'0');
+                          i_mem_tpl_tag <= (others=>'0');
+                          i_mwr_done <= '1';
+                        end if;
+
+                        i_trn_teof_n <= '0';
+
+                        i_fsm_cs <= S_TX_IDLE;
+
                     end if;
 
-                  else --if G_USR_DBUS = 32 then
+                else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
 
-                    i_mem_tpl_cnt <= (others=>'0');
-                    i_mwr_work <= '0';
-
-                    if i_mem_tpl_last = '1' then
-                      i_mem_tx_byte <= (others=>'0');
-                      i_mem_tpl_tag <= (others=>'0');
-                      i_mwr_done <= '1';
-                    end if;
-
-                    i_trn_teof_n <= '0';
-
-                    i_fsm_cs <= S_TX_IDLE;
-                  end if;
-
-                else
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
                     i_trn_teof_n <= '1';
 
                     i_fsm_cs <= S_TX_MWR_QWN;
+
                 end if;
 
-            else
-              if trn_tdst_dsc_n = '0' then
-
-                  i_trn_teof_n <= '0';
-
-                  i_mem_tpl_cnt <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mwr_work <= '0';
-
-                  i_fsm_cs <= S_TX_IDLE;
-
-              end if;
             end if;
         --end S_TX_MWR_QW1 :
 
@@ -667,21 +645,21 @@ begin
 
                 if G_USR_DBUS = 64 then
 
-                i_trn_td(32*2 - 1 downto 32*1) <= sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
-                i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*2 - 1 downto 32*1);
-                i_trn_trem_n <= (others=>'0');
+                    i_trn_td(32*2 - 1 downto 32*1) <= sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                    i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*2 - 1 downto 32*1);
+                    i_trn_trem_n <= (others=>'0');
 
-                sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                    sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
 
                 else --if G_USR_DBUS = 32 then
 
-                  if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                    i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
-                  else
-                    i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
-                  end if;
+                    if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
+                      i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
+                    else
+                      i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
+                    end if;
 
-                  i_trn_trem_n <= i_trn_trem_n - 1;
+                    i_trn_trem_n <= i_trn_trem_n - 1;
 
                 end if;
 
@@ -692,46 +670,48 @@ begin
 
                     i_trn_tsrc_rdy_n <= '0';
 
-                  if G_USR_DBUS = 64 then
+                    if G_USR_DBUS = 64 then
 
-                    if i_mem_tpl_dw(0) = '0' then
-                    --Четное кол-во usr data(DW) в текущей TPL
-                      i_trn_teof_n <= '1';
-                      i_fsm_cs <= S_TX_MWR_QWN2;
+                        if i_mem_tpl_dw(0) = '0' then
+                        --Четное кол-во usr data(DW) в текущей TPL
+                          i_trn_teof_n <= '1';
+                          i_fsm_cs <= S_TX_MWR_QWN2;
 
-                    else
-                    --НЕ Четное кол-во usr data(DW) в текущей TPL
+                        else
+                        --НЕ Четное кол-во usr data(DW) в текущей TPL
+                            if i_mem_tpl_last = '1' then
+                              i_mem_tx_byte <= (others=>'0');
+                              i_mem_tpl_tag <= (others=>'0');
+                              i_mwr_done <= '1';
+                            end if;
+
+                            i_mem_tpl_cnt <= (others=>'0');
+
+                            i_trn_teof_n <= '0';
+                            i_fsm_cs <= S_TX_IDLE;
+
+                        end if;
+
+                    else --if G_USR_DBUS = 32 then
+
+                        i_mem_tpl_cnt <= (others=>'0');
+
                         if i_mem_tpl_last = '1' then
                           i_mem_tx_byte <= (others=>'0');
                           i_mem_tpl_tag <= (others=>'0');
                           i_mwr_done <= '1';
+                        else
+                          i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
                         end if;
 
-                        i_mem_tpl_cnt <= (others=>'0');
-
                         i_trn_teof_n <= '0';
-                        i_fsm_cs <= S_TX_IDLE;
+
+                        i_fsm_cs <= S_TX_MWR_QWN2;
 
                     end if;
 
-                  else --if G_USR_DBUS = 32 then
+                else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
 
-                    i_mem_tpl_cnt <= (others=>'0');
-
-                    if i_mem_tpl_last = '1' then
-                      i_mem_tx_byte <= (others=>'0');
-                      i_mem_tpl_tag <= (others=>'0');
-                      i_mwr_done <= '1';
-                    else
-                      i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
-                    end if;
-
-                    i_trn_teof_n <= '0';
-
-                    i_fsm_cs <= S_TX_MWR_QWN2;
-                  end if;
-
-                else
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
                     if G_USR_DBUS = 64 then
@@ -743,55 +723,43 @@ begin
                     i_trn_teof_n <= '1';
 
                     i_fsm_cs <= S_TX_MWR_QWN;
+
                 end if;
 
-            else
-              if trn_tdst_dsc_n = '0' then
-
-                  i_trn_tsof_n <= '1';
-                  i_trn_teof_n <= '0';
-                  i_trn_trem_n <= (others=>'0');
-
-                  i_mem_tpl_cnt <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mwr_work <= '0';
-
-                  i_fsm_cs <= S_TX_IDLE;
-              else
+            else --if i_usr_rxbuf_rd /= '1' then
 
                 i_trn_tsrc_rdy_n <= '1';
 
-              end if;
             end if;
         --end S_TX_MWR_QWN :
 
         when S_TX_MWR_QWN2 =>
 
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1' then
+            if trn_tdst_rdy_n = '0' then
 
               if G_USR_DBUS = 64 then
 
-                i_mem_tpl_cnt <= (others=>'0');
+                  i_mem_tpl_cnt <= (others=>'0');
 
-                if i_mem_tpl_last = '1' then
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
-                  i_mwr_done <= '1';
-                else
-                  i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
-                end if;
+                  if i_mem_tpl_last = '1' then
+                    i_mem_tx_byte <= (others=>'0');
+                    i_mem_tpl_tag <= (others=>'0');
+                    i_mwr_done <= '1';
+                  else
+                    i_mem_tx_byte <= i_mem_tx_byte + EXT(i_mem_tpl_byte, i_mem_tx_byte'length);
+                  end if;
 
-                i_trn_td(32*2 - 1 downto 32*1) <= sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
-                i_trn_td(32*1 - 1 downto 32*0) <= sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                  i_trn_td(32*2 - 1 downto 32*1) <= sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                  i_trn_td(32*1 - 1 downto 32*0) <= sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
 
-                i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
-                i_trn_teof_n <= '0';
-                i_trn_tsrc_rdy_n <= '0';
+                  i_trn_trem_n <= CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length);
+                  i_trn_teof_n <= '0';
+                  i_trn_tsrc_rdy_n <= '0';
 
-                i_fsm_cs <= S_TX_IDLE;
+                  i_fsm_cs <= S_TX_IDLE;
 
               else --if G_USR_DBUS = 32 then
+
                   i_trn_tsof_n <= '1';
                   i_trn_teof_n <= '1';
                   i_trn_tsrc_rdy_n <= '1';
@@ -800,18 +768,9 @@ begin
                   i_mem_tpl_last <= '0';
 
                   i_fsm_cs <= S_TX_IDLE;
-              end if;
-
-            else
-              if trn_tdst_dsc_n = '0' then
-
-                  i_trn_tsof_n <= '1';
-                  i_trn_teof_n <= '0';
-                  i_trn_trem_n <= (others=>'0');
-
-                  i_fsm_cs <= S_TX_IDLE;
 
               end if;
+
             end if;
         --end S_TX_MWR_QWN2 :
         --END: MWr , +data
@@ -839,7 +798,7 @@ begin
 
         when S_TX_MRD_QW0 =>
 
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1' then
+            if trn_tdst_rdy_n = '0' then
 
                 i_trn_tsof_n <= '0';
                 i_trn_teof_n <= '1';
@@ -887,21 +846,13 @@ begin
                 i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
                 i_fsm_cs <= S_TX_MRD_QW1;
-            else
-              if trn_tdst_dsc_n = '0' then
 
-                i_mem_tx_byte <= (others=>'0');
-                i_mem_tpl_tag <= (others=>'0');
-
-                i_fsm_cs <= S_TX_IDLE;
-
-              end if;
             end if;
         --end S_TX_MRD_QW0 :
 
         when S_TX_MRD_QW1 =>
 
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1' then
+            if trn_tdst_rdy_n = '0' then
 
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '0';
@@ -920,16 +871,7 @@ begin
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 i_fsm_cs <= S_TX_IDLE;
-            else
-              if trn_tdst_dsc_n = '0' then
 
-                i_trn_teof_n <= '0';
-                i_mem_tx_byte <= (others=>'0');
-                i_mem_tpl_tag <= (others=>'0');
-
-                i_fsm_cs <= S_TX_IDLE;
-
-              end if;
             end if;
         --end S_TX_MRD_QW1 :
         --END: MRd - 3DW, no data

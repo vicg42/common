@@ -163,7 +163,6 @@ usr_txbuf_wr_last_o <= i_cpld_tlp_dlast;
 
 trn_rdst_rdy_n_o <= i_trn_rdst_rdy_n or OR_reduce(i_trn_dw_sel) or (usr_txbuf_full_i and i_cpld_tlp_work);
 
---swap BYTE
 gen_swap_usr_di : for i in 0 to i_usr_di'length/8 - 1 generate
 i_usr_di_swap((i_usr_di_swap'length - 8*i) - 1 downto
               (i_usr_di_swap'length - 8*(i+1))) <= i_usr_di(8*(i+1) - 1 downto 8*i);
@@ -588,7 +587,7 @@ begin
                   i_usr_di <= trn_rd(63 downto 32);
                 end if;
 
-                if trn_reof_n = '0' then --EOF
+                if trn_reof_n = '0' then
                     i_trn_dw_sel <= i_trn_dw_sel - 1;
                     i_trn_dw_skip <= '0';
 
@@ -610,23 +609,26 @@ begin
                       i_fsm_cs <= S_RX_CPLD_WT;
 
                     end if;
-                else
-                  if trn_rsof_n = '1' then
-                      i_trn_dw_sel <= i_trn_dw_sel - 1;
-                      i_trn_dw_skip <= '0';
 
-                      if i_trn_dw_skip = '0' then
-                        i_usr_wr <= '1';
-                        i_cpld_tlp_cnt <= i_cpld_tlp_cnt + 1;
-                      else
+                else --if trn_reof_n = '1' then
+
+                    if trn_rsof_n = '1' then
+                        i_trn_dw_sel <= i_trn_dw_sel - 1;
+                        i_trn_dw_skip <= '0';
+
+                        if i_trn_dw_skip = '0' then
+                          i_usr_wr <= '1';
+                          i_cpld_tlp_cnt <= i_cpld_tlp_cnt + 1;
+                        else
+                          i_usr_wr <= '0';
+                        end if;
+
+                        i_fsm_cs <= S_RX_CPLD_QWN;
+                    else
                         i_usr_wr <= '0';
-                      end if;
+                        i_fsm_cs <= S_RX_CPLD_QWN;
+                    end if;
 
-                      i_fsm_cs <= S_RX_CPLD_QWN;
-                  else
-                      i_usr_wr <= '0';
-                      i_fsm_cs <= S_RX_CPLD_QWN;
-                  end if;
                 end if;
             else
               if trn_rsrc_dsc_n = '0' then --ядро прерывало прием данных
