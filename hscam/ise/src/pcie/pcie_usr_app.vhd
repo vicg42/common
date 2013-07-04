@@ -900,9 +900,7 @@ p_out_gctrl(C_HREG_CTRL_LAST_BIT downto C_HREG_CTRL_RDDONE_VCTRL_BIT + 1) <= v_r
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
-    if i_dma_irq = '1' then
-      i_mem_adr <= (others=>'0');
-    elsif i_dma_start = '1' then
+    if i_dma_start = '1' then
       i_mem_adr <= EXT(v_reg_mem_adr(v_reg_mem_adr'high downto C_HDEV_DWIDTH/32 + 1), i_mem_adr'length);
     else
       if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
