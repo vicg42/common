@@ -103,15 +103,13 @@ constant CI_CFGPKT_H_DLEN_IDX : integer:=3;
 
 constant CI_CFGPKT_HEADER_DCOUNT : integer:=C_CFGPKT_HEADER_DCOUNT + 1;
 
-constant CI_CFG_BUF_DWIDTH  : integer:=G_HOST_DWIDTH;
-
 component cfgdev_2txfifo
 port(
-din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+din         : IN  std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
-dout        : OUT std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+dout        : OUT std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 rd_en       : IN  std_logic;
 rd_clk      : IN  std_logic;
 
@@ -125,11 +123,11 @@ end component;
 
 component cfgdev_rxfifo
 port(
-din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+din         : IN  std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 wr_en       : IN  std_logic;
 wr_clk      : IN  std_logic;
 
-dout        : OUT std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+dout        : OUT std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 rd_en       : IN  std_logic;
 rd_clk      : IN  std_logic;
 
@@ -156,7 +154,7 @@ S_CFG_RXD
 );
 signal fsm_state_cs                     : fsm_state;
 
-signal i_dv_din                         : std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+signal i_dv_din                         : std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 signal i_dv_din_r                       : std_logic_vector(i_dv_din'range);
 signal i_dv_dout                        : std_logic_vector(i_dv_din'range);
 signal i_dv_rd                          : std_logic;
