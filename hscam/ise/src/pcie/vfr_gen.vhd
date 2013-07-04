@@ -7,7 +7,7 @@
 --
 -- Назначение/Описание :
 --
---7..4 -  --0/1/2/    - Test picture Vertical Counter/ Horizontal Counter/ V+H Counter
+--7..4 -  --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
 --
 --------------------------------------------------------------------------
 library ieee;

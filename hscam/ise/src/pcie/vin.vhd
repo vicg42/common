@@ -135,7 +135,7 @@ signal i_skip_line          : std_logic;
 signal i_buf2i_dout         : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 signal i_buf2i_rd           : std_logic;
 signal i_buf2i_empty        : std_logic;
-
+signal i_vbufi_do           : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 
 --MAIN
 begin
@@ -307,7 +307,7 @@ port map(
 din    => i_buf2i_dout,
 wr_en  => i_buf2i_rd,
 
-dout   => p_out_vbufi_d,
+dout   => i_vbufi_do,
 rd_en  => p_in_vbufi_rd,
 
 empty  => p_out_vbufi_empty,
@@ -316,6 +316,11 @@ full   => p_out_vbufi_full,
 clk    => p_in_vbufi_rdclk,
 rst    => p_in_rst
 );
+
+gen_swap_dw : for i in 0 to G_VBUF_OWIDTH/32 - 1 generate
+p_out_vbufi_d((p_out_vbufi_d'length - 32*i) - 1 downto
+              (p_out_vbufi_d'length - 32*(i + 1))) <= i_vbufi_do(32*(i + 1) - 1 downto 32*i);
+end generate gen_swap_dw;
 
 
 --END MAIN

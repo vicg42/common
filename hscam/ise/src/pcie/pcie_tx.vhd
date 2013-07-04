@@ -43,7 +43,7 @@ trn_teof_n             : out  std_logic;
 trn_tsrc_rdy_n_o       : out  std_logic;             --usr_app - rdy
 trn_tsrc_dsc_n         : out  std_logic;
 trn_tdst_rdy_n         : in   std_logic;             --pci_core - rdy
-trn_tdst_dsc_n         : in   std_logic;
+trn_tdst_dsc_n         : in   std_logic;             --'0' - ядро прерывало передачу данных
 trn_tbuf_av            : in   std_logic_vector(5 downto 0);
 
 --Handshake with Rx engine
@@ -196,7 +196,6 @@ trn_td <= i_trn_td;
 mwr_done_o <= i_mwr_done;
 compl_done_o <= i_compl_done;
 
---swap BYTE
 gen_swap_rxbuf : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
 i_usr_rxbuf_do_swap((i_usr_rxbuf_do_swap'length - 8*i) - 1 downto
                     (i_usr_rxbuf_do_swap'length - 8*(i+1))) <= usr_rxbuf_dout_i(8*(i+1) - 1 downto 8*i);
@@ -476,7 +475,7 @@ begin
                 i_compl_done <= '1';
                 i_fsm_cs <= S_TX_CPLD_WT1;
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
                 i_fsm_cs <= S_TX_CPLD_WT1;
               end if;
             end if;
@@ -570,7 +569,7 @@ begin
 
                 i_fsm_cs <= S_TX_MWR_QW1;
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
 
                   i_mem_tx_byte <= (others=>'0');
                   i_mem_tpl_tag <= (others=>'0');
@@ -590,7 +589,6 @@ begin
                 i_trn_tsrc_rdy_n <= '0';
                 i_trn_trem_n <= (others=>'0');
 
-                --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 i_trn_td(32*2 - 1 downto 32*1) <= (i_mem_adr_byte(31 downto 2) & "00");
@@ -646,7 +644,7 @@ begin
                 end if;
 
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
 
                   i_trn_teof_n <= '0';
 
@@ -748,7 +746,7 @@ begin
                 end if;
 
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
 
                   i_trn_tsof_n <= '1';
                   i_trn_teof_n <= '0';
@@ -805,7 +803,7 @@ begin
               end if;
 
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
 
                   i_trn_tsof_n <= '1';
                   i_trn_teof_n <= '0';
@@ -890,7 +888,7 @@ begin
 
                 i_fsm_cs <= S_TX_MRD_QW1;
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
 
                 i_mem_tx_byte <= (others=>'0');
                 i_mem_tpl_tag <= (others=>'0');
@@ -919,12 +917,11 @@ begin
                   i_mrd_done <= '1';
                 end if;
 
-                --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 i_fsm_cs <= S_TX_IDLE;
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
+              if trn_tdst_dsc_n = '0' then
 
                 i_trn_teof_n <= '0';
                 i_mem_tx_byte <= (others=>'0');

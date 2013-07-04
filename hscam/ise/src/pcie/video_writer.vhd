@@ -213,7 +213,7 @@ begin
         if i_mem_done = '1' then
           if (i_vfr_rowcnt = p_in_cfg_prm_vch(0).fr_size.activ.row(i_vfr_rowcnt'range) - 1) then
             i_vfr_rdy(0) <= '1';
-            i_vfr_row_mrk(0) <= i_vfr_row_mrk(0) + 1;
+            i_vfr_row_mrk(0) <= i_vfr_row_mrk(0) + 1; --¬место TimeStamp подстовл€ю счетчик!!!!
             fsm_state_cs <= S_IDLE;
           else
             i_vfr_rowcnt <= i_vfr_rowcnt + 1;
