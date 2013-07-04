@@ -302,8 +302,6 @@ type TVfrSkipTst is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(C_VCTRL
 signal i_vfrskip                         : TVfrSkipTst;
 signal tst_vfrskip_out                   : std_logic_vector(i_vfrskip(0)'range);
 signal tst_vfrskip_err                   : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal tst_vbuf_overflow                 : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-signal tst_vbuf_wr_end                   : TVfrBufs;
 signal tst_dbg_pictire                   : std_logic;
 signal tst_dbg_rd_hold                   : std_logic;
 
@@ -326,7 +324,7 @@ p_out_tst(31 downto 27)<=tst_vwriter_out(31 downto 27);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(0) <=OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out) or OR_reduce(tst_vbuf_overflow);
+p_out_tst(0) <=OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out);
 p_out_tst(4 downto 1) <=tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <=tst_vreader_out(3 downto 0);
 p_out_tst(9)          <=tst_vwriter_out(4);
@@ -337,70 +335,6 @@ p_out_tst(19 downto 16)<=EXT(tst_vfrskip_out, 4);
 p_out_tst(25 downto 20)<=(others=>'0');
 p_out_tst(31 downto 26)<=tst_vwriter_out(31 downto 26);
 end generate gen_dbgcs_on;
-
-
---//Выдаем статистику ошибок текущего видеоканала:
-process(p_in_rst, p_in_clk)
-begin
-  if p_in_rst = '1' then
-    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
-      tst_vbuf_overflow(ch) <= '0';
-      tst_vbuf_wr_end(ch) <= (others=>'0');
-      tst_vfrskip_err(ch) <= '0';
-    end loop;
-    tst_vfrskip_out <= (others=>'0');
-
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
-        --//-----------------------------------
-        --//Детектор переполнения видеобуфера
-        --//-----------------------------------
-        if vclk_set_idle_vch(ch) = '1' then
-          tst_vbuf_wr_end(ch) <= (others=>'1');
-          tst_vbuf_overflow(ch) <= '0';
-
-        --чтение кадра хостом завершено
-        elsif i_vfrskip(ch) = (i_vfrskip(ch)'range => '0') and
-            i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' then
-          tst_vbuf_wr_end(ch) <= i_vbuf_rd(ch);
-
-        --запись видео
-        else
-            if i_vbuf_hold(ch) = '1' then
-            --Запись видео в течении чтения готового кадра
-                if i_vbuf_wr(ch) = i_vbuf_rd(ch) then
-                --Переполнение!!! Указатель записи догнал указатель чтения
-                  tst_vbuf_overflow(ch) <= '1';
-                else
-                  tst_vbuf_overflow(ch) <= '0';
-                end if;
-            else
-              --Переполнение!!!
-              if i_vbuf_wr(ch) = tst_vbuf_wr_end(ch) then
-                tst_vbuf_overflow(ch) <= '1';
-              else
-                tst_vbuf_overflow(ch) <= '0';
-              end if;
-            end if;
-        end if;
-
-
-        --//-----------------------------------
-        --//
-        --//-----------------------------------
-        if vclk_set_idle_vch(ch) = '1' then
-          tst_vfrskip_out <= (others=>'0');
-        elsif i_vreader_vch_num_out = ch and i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0') then
-          tst_vfrskip_out <= i_vfrskip(ch);
-        end if;
-        tst_vfrskip_err(ch) <= OR_reduce(i_vfrskip(ch));
-
-    end loop;--//for
-
-  end if;
-end process;
-
 
 
 --//--------------------------------------------------
@@ -695,6 +629,7 @@ begin
     i_vfrmrk(ch)(buf) <= (others=>'0');
     end loop;
     i_vfrskip(ch) <= (others=>'0');
+    tst_vfrskip_err(ch) <= '0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -730,16 +665,28 @@ begin
 
             i_vfrskip(ch) <= i_vfrskip(ch);
 
+            if i_vfrskip(ch) = (i_vfrskip(ch)'range => '1') then
+              tst_vfrskip_err(ch) <= '1';
+            else
+              tst_vfrskip_err(ch) <= '0';
+            end if;
+
           elsif i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' and
                 i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0') then
 
             i_vfrskip(ch) <= i_vfrskip(ch) - 1;
 
+            if i_vfrskip(ch) = (i_vfrskip(ch)'range => '1') then
+              tst_vfrskip_err(ch) <= '1';
+            else
+              tst_vfrskip_err(ch) <= '0';
+            end if;
+
           elsif i_vwrite_vfr_rdy_out(ch) = '1' and
                 i_vfrskip(ch) /= (i_vfrskip(ch)'range => '1') then
 
             i_vfrskip(ch) <= i_vfrskip(ch) + 1;
-          else
+
           end if;
         end if;
 

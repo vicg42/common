@@ -37,9 +37,9 @@ constant C_PCGF_PCIE_LINK_WIDTH        : integer:=4;--При изменении кол-ва линий
 constant C_PCFG_VCTRL_MEM_VLINE_L_BIT  : integer:=11;--//Строки видеокадра (MSB...LSB)
 constant C_PCFG_VCTRL_MEM_VLINE_M_BIT  : integer:=21;
 constant C_PCFG_VCTRL_MEM_VFR_L_BIT    : integer:=22;--//Номер кадра (MSB...LSB) - Видеобуфера
-constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=23;
-constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=24;--//Номер видео канала (MSB...LSB)
-constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=25;
+constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=24;
+constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=25;--//Номер видео канала (MSB...LSB)
+constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=26;
 
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 4
 constant C_PCFG_VCTRL_DBGCS            : string:="ON";
