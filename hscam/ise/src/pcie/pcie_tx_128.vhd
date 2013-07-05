@@ -116,6 +116,7 @@ type TFsm_state is (
 S_TX_IDLE    ,
 S_TX_CPLD_WT1,
 S_TX_MWR_QWN ,
+--S_TX_MWR_QWN2,
 S_TX_MRD_QW0 ,
 S_TX_MWR_QW0 ,
 S_TX_MWR_QW00,
@@ -175,7 +176,7 @@ tst_o <= (others=>'0');
 mrd_pkt_count_o <= i_mem_tpl_tag + 1;
 mrd_pkt_len_o <= EXT(i_mem_tpl_dw, mrd_pkt_len_o'length);
 
-i_usr_rxbuf_rd <= (not trn_tdst_rdy_n and trn_tdst_dsc_n and not usr_rxbuf_empty_i);
+i_usr_rxbuf_rd <= (not trn_tdst_rdy_n and not usr_rxbuf_empty_i);
 usr_rxbuf_rd_o <= i_usr_rxbuf_rd and i_mwr_work;
 usr_rxbuf_rd_last_o <= i_usr_rxbuf_rd when i_mwr_work = '1'
                                         and i_mem_tpl_last = '1'
@@ -191,7 +192,6 @@ trn_td <= i_trn_td;
 mwr_done_o <= i_mwr_done;
 compl_done_o <= i_compl_done;
 
---swap BYTE
 gen_swap_rxbuf : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
 i_usr_rxbuf_do_swap((i_usr_rxbuf_do_swap'length - 8*i) - 1 downto
                     (i_usr_rxbuf_do_swap'length - 8*(i+1))) <= usr_rxbuf_dout_i(8*(i+1) - 1 downto 8*i);
@@ -318,7 +318,7 @@ begin
             -------------------------------------------------------
             --CplD - 3DW, +data;  Cpl - 3DW
             -------------------------------------------------------
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1'
+            if trn_tdst_rdy_n = '0'
               and trn_tbuf_av(C_PCIE_BUF_COMPLETION_QUEUE) = '1'
                 and sr_req_compl = '1' and i_compl_done = '0' then
 
@@ -407,7 +407,7 @@ begin
             -------------------------------------------------------
             --MRd - 3DW, no data (PC<-FPGA) FPGA is PCIe master
             -------------------------------------------------------
-            elsif trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1'
+            elsif trn_tdst_rdy_n = '0'
               and trn_tbuf_av(C_PCIE_BUF_NON_POSTED_QUEUE) = '1'
                 and sr_req_compl = '0' and i_compl_done = '0'
                   and mrd_en_i = '1' and i_mrd_done = '0' and master_en_i = '1' then
@@ -461,7 +461,7 @@ begin
         --#######################################################################
         when S_TX_CPLD_WT1 =>
 
-            if trn_tdst_rdy_n = '0' or trn_tdst_dsc_n = '0' then
+            if trn_tdst_rdy_n = '0' then
                 i_trn_tsof_n <= '1';
                 i_trn_teof_n <= '1';
                 i_trn_tsrc_rdy_n <= '1';
@@ -495,9 +495,7 @@ begin
                               + OR_reduce(i_mem_remain_byte(log2(G_USR_DBUS/8) - 1 downto 0));
           end if;
 
-          if G_USR_DBUS = 32 then
           i_mwr_work <= '1';
-          end if;
 
           i_fsm_cs <= S_TX_MWR_QW0;
         --end S_TX_MWR_QW00 :
@@ -511,12 +509,7 @@ begin
                 i_trn_trem_n <= (others=>'0');
 
                 i_trn_td(127) <= '0';
-                if G_USR_DBUS = 32 then
                 i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_3DW_WD;
-                else
-                i_trn_td(126 downto 120) <= C_PCIE_PKT_TYPE_MWR_4DW_WD;
-                end if;--if G_USR_DBUS = 32 then
-
                 i_trn_td(119 downto 80) <= (
                            '0' &
                            mwr_tlp_tc_i &
@@ -552,43 +545,30 @@ begin
                 when others => null;
                 end case;
 
-                --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
-                if G_USR_DBUS = 32 then
+                i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
+                i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap;
 
-                    i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
-                    i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap;
+                --—четчик отправленых данных (текущей транзакции)
+                if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
 
-                    --—четчик отправленых данных (текущей транзакции)
-                    if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
+                    i_mem_tpl_cnt <= (others=>'0');
+                    i_mwr_work <= '0';
 
-                        i_mem_tpl_cnt <= (others=>'0');
-                        i_mwr_work <= '0';
-
-                        if i_mem_tpl_last = '1' then
-                          i_mem_tx_byte <= (others=>'0');
-                          i_mem_tpl_tag <= (others=>'0');
-                          i_mwr_done <= '1';
-                        end if;
-
-                        i_trn_teof_n <= '0';
-
-                        i_fsm_cs <= S_TX_IDLE;
-                    else
-                        i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
-
-                        i_mem_tpl_tag <= i_mem_tpl_tag + 1;
-
-                        i_trn_teof_n <= '1';
-
-                        i_fsm_cs <= S_TX_MWR_QWN;
+                    if i_mem_tpl_last = '1' then
+                      i_mem_tx_byte <= (others=>'0');
+                      i_mem_tpl_tag <= (others=>'0');
+                      i_mwr_done <= '1';
                     end if;
 
-                else
-                    i_trn_td(63 downto 32) <= (others=>'1');
-                    i_trn_td(31 downto 0)  <= (i_mem_adr_byte(31 downto 2) & "00");
-                    i_mwr_work <= '1';
+                    i_trn_teof_n <= '0';
+
+                    i_fsm_cs <= S_TX_IDLE;
+
+                else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
+
+                    i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
                     i_mem_tpl_tag <= i_mem_tpl_tag + 1;
 
@@ -596,19 +576,8 @@ begin
 
                     i_fsm_cs <= S_TX_MWR_QWN;
 
-                end if;--if G_USR_DBUS = 32 then
+                end if;
 
-            else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
-
-                  i_mem_tpl_cnt <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mwr_work <= '0';
-
-                  i_fsm_cs <= S_TX_IDLE;
-
-              end if;
             end if;
         --end S_TX_MWR_QW0 :
 
@@ -618,27 +587,15 @@ begin
 
                 i_trn_tsof_n <= '1';
 
-                if G_USR_DBUS = 32 then
-                    case i_trn_trem_n is
-                    when "00" => i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap;
-                    when "01" => i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
-                    when "10" => i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
-                    when "11" => i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
-                    when others => null;
-                    end case;
+                case i_trn_trem_n is
+                when "00" => i_trn_td(32*4 - 1 downto 32*3) <= i_usr_rxbuf_do_swap;
+                when "01" => i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
+                when "10" => i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
+                when "11" => i_trn_td(32*3 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
+                when others => null;
+                end case;
 
-                    i_trn_trem_n <= i_trn_trem_n - 1;
-
-                else
-                    if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, i_trn_trem_n'length) then
-                      i_trn_td(32*4 - 1 downto 32*2) <= i_usr_rxbuf_do_swap;
-                    else
-                      i_trn_td(32*2 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
-                    end if;
-
-                    i_trn_trem_n <= i_trn_trem_n - 2;
-
-                end if;--if G_USR_DBUS = 32 then
+                i_trn_trem_n <= i_trn_trem_n - 1;
 
                 --—четчик отправленых данных (текущей транзакции)
                 if i_mem_tpl_cnt = (i_mem_tpl_len - 1) then
@@ -658,47 +615,26 @@ begin
                     i_trn_tsrc_rdy_n <= '0';
 
                     i_fsm_cs <= S_TX_IDLE;
-                else
+
+                else --if i_mem_tpl_cnt /= (i_mem_tpl_len - 1) then
+
                     i_mem_tpl_cnt <= i_mem_tpl_cnt + 1;
 
-                    if G_USR_DBUS = 32 then
-                        if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                          i_trn_tsrc_rdy_n <= '0';
-                        else
-                          i_trn_tsrc_rdy_n <= '1';
-                        end if;
-
+                    if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
+                      i_trn_tsrc_rdy_n <= '0';
                     else
-                        if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#02#, i_trn_trem_n'length) then
-                          i_trn_tsrc_rdy_n <= '0';
-                        else
-                          i_trn_tsrc_rdy_n <= '1';
-                        end if;
-
-                    end if;--if G_USR_DBUS = 32 then
+                      i_trn_tsrc_rdy_n <= '1';
+                    end if;
 
                     i_trn_teof_n <= '1';
 
                     i_fsm_cs <= S_TX_MWR_QWN;
+
                 end if;
             else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
-
-                  i_trn_tsof_n <= '1';
-                  i_trn_teof_n <= '0';
-                  i_trn_tsrc_rdy_n <= '0';
-
-                  i_mem_tpl_cnt <= (others=>'0');
-                  i_mem_tpl_tag <= (others=>'0');
-                  i_mem_tx_byte <= (others=>'0');
-                  i_mwr_work <= '0';
-
-                  i_fsm_cs <= S_TX_IDLE;
-              else
 
                 i_trn_tsrc_rdy_n <= '1';
 
-              end if;
             end if;
         --end S_TX_MWR_QWN :
         --END: MWr , +data
@@ -727,7 +663,7 @@ begin
 
         when S_TX_MRD_QW0 =>
 
-            if trn_tdst_rdy_n = '0' and trn_tdst_dsc_n = '1' then
+            if trn_tdst_rdy_n = '0' then
 
                 i_trn_tsof_n <= '0';
                 i_trn_teof_n <= '0';
@@ -774,7 +710,6 @@ begin
                 i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
                 i_trn_td(31 downto 0)  <= (others=>'0');
 
-                --—четчик адреса (byte)
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 if i_mem_tpl_last = '1' then
@@ -787,15 +722,7 @@ begin
                 end if;
 
                 i_fsm_cs <= S_TX_IDLE;
-            else
-              if trn_tdst_dsc_n = '0' then --ядро прерывало передачу данных
 
-                i_mem_tx_byte <= (others=>'0');
-                i_mem_tpl_tag <= (others=>'0');
-
-                i_fsm_cs <= S_TX_IDLE;
-
-              end if;
             end if;
         --end S_TX_MRD_QW0 :
         --END: MRd - 3DW, no data
