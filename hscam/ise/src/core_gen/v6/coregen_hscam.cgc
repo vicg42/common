@@ -562,7 +562,7 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.D2_POWER_CONSUMED">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PCIE_DEBUG_PORTS">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.SUBSYSTEM_ID">8005</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.MAXIMUM_LINK_WIDTH">X4</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.MAXIMUM_LINK_WIDTH">X8</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BAR1_ENABLED">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BAR0_SIZE">256</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.D1_SUPPORT">false</spirit:configurableElementValue>
@@ -618,7 +618,7 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BAR4_SCALE">Kilobytes</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.PREFETCHABLE_MEMORY_BASE_LIMIT_REGISTERS">Disabled</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.ROOT_CAP_CRS">false</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TRANS_BUF_PIPELINE">None</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.TRANS_BUF_PIPELINE">Buffer_Write_and_Read</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.EXT_PCI_CFG_SPACE">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.SLOT_CAP_NO_CMD_COMP_SUP">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BAR3_SCALE">Kilobytes</spirit:configurableElementValue>
@@ -646,7 +646,7 @@
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.CLASS_CODE_SUB">00</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.EN_ROUTE_ERR_COR">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.CPL_TIMEOUT_DISABLE_SUP">false</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.MAX_PAYLOAD_SIZE">512_bytes</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.MAX_PAYLOAD_SIZE">256_bytes</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.SLOT_CAP_PWR_IND">false</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.BAR0_SCALE">Bytes</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="PARAM_VALUE.EXPANSION_ROM_SCALE">Kilobytes</spirit:configurableElementValue>
@@ -703,7 +703,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_ENABLE_MSG_ROUTE">00000000000</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DSN_BASE_PTR">100</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_VC_NEXT_PTR">000</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FC_CPLD">308</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FC_CPLD">154</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.DIS_SCL_FCTR_D2_STATE">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.CON_SCL_FCTR_D2_STATE">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HW_AUTON_SPD_DISABLE">FALSE</spirit:configurableElementValue>
@@ -721,7 +721,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LL_REPLAY_TIMEOUT_ENABLE">TRUE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_VC_BASE_PTR">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DSI_BOOL">FALSE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.BRAM_LAT">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.BRAM_LAT">2</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.EXT_TAG_FLD_SUP">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SLOT_CAP_HOTPLUG_SURPRISE">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.CAP_VER">2</spirit:configurableElementValue>
@@ -738,13 +738,13 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_D1_SUPPORT">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.BAR4">00000000</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.BAR5">00000000</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FC_PD">308</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FC_PD">154</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FC_NP">12</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SLOT_CAP_ATTN_BUTN">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_CPL_TIMEOUT_RANGE">0010</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PME_SUPPORT">0F</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_FC_PH">32</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_RADDR_LAT">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_RADDR_LAT">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SUBSYS_VEN_ID">0777</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_VSEC_NEXT_PTR">000</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSI_MULT_MSG_EXTN">0</spirit:configurableElementValue>
@@ -754,14 +754,14 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_CPL_INF">TRUE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.DEV_PORT_TYPE">0000</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_UPCONFIG_CAPABLE">TRUE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_WRITE_LAT">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_WRITE_LAT">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SLOT_CAP_PWR_CTRL">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PME_SUP">0F</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_RADDR_LAT">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_RADDR_LAT">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SLOT_CAP_ATTN_IND">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PCIE_BLK_LOCN">0</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_RAM_LIMIT">7FF</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_WRITE_LAT">0</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_RAM_LIMIT">3FF</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_WRITE_LAT">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.SUBSYS_ID">8005</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_XLNX_REF_BOARD">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_VSEC_BASE_PTR">0</spirit:configurableElementValue>
@@ -779,7 +779,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DEV_PORT_TYPE">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SLOT_CAP_NO_CMD_COMP_SUP">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LL_ACK_TIMEOUT_ENABLE">FALSE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MPS">010</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MPS">001</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LL_ACK_TIMEOUT">0000</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LL_REPLAY_TIMEOUT_FUNC">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_EP_L0S_ACCPT_LAT">0</spirit:configurableElementValue>
@@ -794,7 +794,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PCI_CFG_SPACE_ADDR">3F</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PHANTM_FUNC_SUP">00</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_BUF_OPT_BMA">TRUE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.CMPS">2</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.CMPS">1</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PWR_CON_D1_STATE">00</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PWR_DIS_D1_STATE">00</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TRGT_LNK_SPD">2</spirit:configurableElementValue>
@@ -806,14 +806,14 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PERF_LEVEL_HIGH">TRUE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSI">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSI_CAP_ON">TRUE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MAX_LNK_WDT">000100</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.MAX_LNK_WDT">001000</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_EP_L1_ACCPT_LAT">7</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PWR_CON_D0_STATE">00</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PWR_DIS_D0_STATE">00</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_SLOT_CAP_PHYSICAL_SLOT_NUM">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_CPL_TIMEOUT_RANGES_SUP">2</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_HEADER_TYPE">00</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_RDATA_LAT">2</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_RDATA_LAT">3</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.EP_L1_ACCPT_LAT">111</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PCIE_DBG_PORTS">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_COMPONENT_NAME">core_pciexp_ep_blk_plus</spirit:configurableElementValue>
@@ -823,14 +823,14 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DISABLE_TX_ASPM_L0S">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.TRM_TLP_DGST_ECRC">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_UPSTREAM_FACING">TRUE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_RDATA_LAT">2</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RX_RDATA_LAT">3</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.INTX">TRUE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.D1_SUP">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_VC_CAP_REJECT_SNOOP">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.REV_ID">01</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSI_PER_VCTR_MASK_CAP">FALSE</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DSN_NEXT_PTR">000</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MAX_LNK_WDT">04</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MAX_LNK_WDT">08</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSIX_TABLE_BIR">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_MSIX_PBA_BIR">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PHANTOM_FUNCTIONS">0</spirit:configurableElementValue>
@@ -838,7 +838,7 @@
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_PIPE_PIPELINE">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.PCI_EXP_INT_FREQ">3</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_DSN_CAP_ENABLED">TRUE</spirit:configurableElementValue>
-            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_LAST_TLP">29</spirit:configurableElementValue>
+            <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_TX_LAST_TLP">28</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_RCB">0</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.C_LAST_CFG_DW">42</spirit:configurableElementValue>
             <spirit:configurableElementValue spirit:referenceId="MODELPARAM_VALUE.XROM_BAR">00000000</spirit:configurableElementValue>
@@ -889,8 +889,8 @@
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus.xco</xilinx:name>
                      <xilinx:userFileType>xco</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:53:59 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x41848A9D</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:45 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x007E325E</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -900,7 +900,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/doc/v6_pcie_ds715.pdf</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>pdf</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:04 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xEF4D124B</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -908,7 +908,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/doc/v6_pcie_ug517.pdf</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>pdf</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:04 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x984EF007</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -916,7 +916,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/EP_MEM.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x163F502D</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -924,23 +924,23 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/PIO.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x740BDB8E</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xBFBC957A</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/PIO_EP.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x1C9B5756</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x5DC14A12</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/PIO_EP_MEM_ACCESS.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x38C8B849</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -948,15 +948,15 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/PIO_RX_ENGINE.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x3E7501B4</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x98BA18A8</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/PIO_TO_CTRL.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x65572FEB</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -964,62 +964,62 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/PIO_TX_ENGINE.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x688AE245</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x5ECA9163</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
-                     <xilinx:name>./core_pciexp_ep_blk_plus/example_design/pci_exp_4_lane_64b_ep.v</xilinx:name>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/example_design/pci_exp_8_lane_128b_ep.v</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>verilogSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:05 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xA7EEE149</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x876D0CA4</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/pcie_app_v6.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x40E683BA</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x88D45DC1</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/example_design/xilinx_pcie_2_0_ep_v6.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x1985C841</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:52 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x74D15F61</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
-                     <xilinx:name>./core_pciexp_ep_blk_plus/example_design/xilinx_pcie_2_0_ep_v6_04_lane_gen2_xc6vlx240t-ff1759-2-PCIE_X0Y0.ucf</xilinx:name>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/example_design/xilinx_pcie_2_0_ep_v6_08_lane_gen2_xc6vlx240t-ff1759-2-PCIE_X0Y0.ucf</xilinx:name>
                      <xilinx:userFileType>ucf</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:08 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xEE3D9F03</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x266A6117</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/implement/implement.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:04 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x6F4D43B3</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x1A7C44A3</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/implement/implement.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:04 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x8E923212</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x6FBEAE2E</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/implement/xilinx_pcie_2_0_ep_v6.cmd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:04 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x9098C859</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1027,23 +1027,23 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/implement/xilinx_pcie_2_0_ep_v6.prj</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x3036C898</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:52 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xF3933050</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/implement/xilinx_pcie_2_0_ep_v6.xcf</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:05 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x75AFBDCE</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x72315B29</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/pci_exp_usrapp_cfg.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xCC47E220</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1051,7 +1051,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/pci_exp_usrapp_pl.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x5B45D43D</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1059,7 +1059,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/pci_exp_usrapp_rx.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xC2CFFF31</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1067,7 +1067,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/pci_exp_usrapp_tx.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:13 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x64113C9D</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1075,15 +1075,15 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/pcie_2_0_rport_v6.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:12 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xF6DA279A</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x8838A7C3</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/pcie_2_0_v6_rp.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:11 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x42DE8E75</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1091,7 +1091,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/test_interface.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x62E643B9</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1099,7 +1099,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/dsport/xilinx_pcie_2_0_rport_v6.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x2F417689</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1107,23 +1107,23 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/board.f</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x42092E39</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xFC4BC6C6</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/board.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xE4CC2BFD</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xF6479840</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/isim_cmd.tcl</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:06 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x31029C51</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1131,7 +1131,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/simulate_isim.bat</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:06 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x7EA19B23</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1139,7 +1139,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/simulate_isim.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:05 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x5A6F0B3A</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1147,7 +1147,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/simulate_mti.do</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x35A83905</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1155,7 +1155,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/simulate_ncsim.sh</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:52 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x7055C75B</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1163,7 +1163,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/sys_clk_gen.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xD0B0362A</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1171,7 +1171,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/sys_clk_gen_ds.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x944C235B</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1179,15 +1179,15 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/functional/wave.wcfg</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:06 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x2AD07F5B</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x350EB546</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/simulation/tests/tests.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:14 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:51 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xE0986AC0</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1195,15 +1195,15 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/core_pciexp_ep_blk_plus.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:12 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xFAD2ECEC</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xD6BCDB65</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/gtx_drp_chanalign_fix_3752_v6.vhd</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:09 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x6670175D</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1211,7 +1211,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/gtx_rx_valid_filter_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:09 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x74D0BF8E</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1219,7 +1219,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/gtx_tx_sync_rate_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:09 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xD1430885</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1227,23 +1227,31 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/gtx_wrapper_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x316ADB7A</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
+                  </xilinx:file>
+                  <xilinx:file>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_128_if.vhd</xilinx:name>
+                     <xilinx:userFileType>vhdl</xilinx:userFileType>
+                     <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x0408AD0A</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_2_0_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:11 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x5B8FE799</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xD5DB28C5</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_bram_top_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x983DD264</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1251,7 +1259,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_bram_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:09 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x8CB33FD8</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1259,15 +1267,23 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_brams_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x524D9F78</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
+                  </xilinx:file>
+                  <xilinx:file>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_cfg_128.vhd</xilinx:name>
+                     <xilinx:userFileType>vhdl</xilinx:userFileType>
+                     <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x3B0BA8E5</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_clocking_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:11 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xBE2E5A53</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1275,7 +1291,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_gtx_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xA4C1F114</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1283,7 +1299,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_pipe_lane_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xFDF9B587</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1291,7 +1307,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_pipe_misc_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xE84EDF6A</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1299,7 +1315,7 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_pipe_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:10 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xB1A0DA16</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1307,38 +1323,70 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_reset_delay_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:11 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xC8D95076</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
+                  </xilinx:file>
+                  <xilinx:file>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_trn_128.vhd</xilinx:name>
+                     <xilinx:userFileType>vhdl</xilinx:userFileType>
+                     <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x168EF4E5</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/source/pcie_upconfig_fix_3451_v6.vhd</xilinx:name>
                      <xilinx:userFileType>vhdl</xilinx:userFileType>
                      <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:11 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:50 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0xA4427C1C</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
+                  </xilinx:file>
+                  <xilinx:file>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/source/sync_fifo.vhd</xilinx:name>
+                     <xilinx:userFileType>vhdl</xilinx:userFileType>
+                     <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x1C85B1CD</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
+                  </xilinx:file>
+                  <xilinx:file>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/source/trn_rx_128.vhd</xilinx:name>
+                     <xilinx:userFileType>vhdl</xilinx:userFileType>
+                     <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xBB0CEFB0</xilinx:checkSum>
+                     <xilinx:generationId>generationID_1879581046</xilinx:generationId>
+                  </xilinx:file>
+                  <xilinx:file>
+                     <xilinx:name>./core_pciexp_ep_blk_plus/source/trn_tx_128.vhd</xilinx:name>
+                     <xilinx:userFileType>vhdl</xilinx:userFileType>
+                     <xilinx:userFileType>vhdlSynthesis</xilinx:userFileType>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:49 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x0E65F1DE</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus/v6_pcie_readme.txt</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>txt</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:04 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x218F1C40</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus.vho</xilinx:name>
                      <xilinx:userFileType>vho</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:15 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x970FF40F</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:52 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xDA8F85D3</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus_xmdf.tcl</xilinx:name>
                      <xilinx:userFileType>tcl</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:05 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xE9173C16</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:48 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xDD13FEDD</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -1347,8 +1395,8 @@
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus.vho</xilinx:name>
                      <xilinx:userFileType>vho</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:22 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x970FF40F</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:17:56 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xDA8F85D3</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -1364,15 +1412,15 @@
                      <xilinx:name>./_xmsgs/pn_parser.xmsgs</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>unknown</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:33 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0xDF67869F</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:18:05 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x2BC5CD5C</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                   <xilinx:file>
                      <xilinx:name>./core_pciexp_ep_blk_plus.gise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>gise</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:33 GMT 2013</xilinx:timeStamp>
+                     <xilinx:timeStamp>Sun Jul 07 14:18:05 GMT 2013</xilinx:timeStamp>
                      <xilinx:checkSum>0x5EDA190B</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
@@ -1380,8 +1428,8 @@
                      <xilinx:name>./core_pciexp_ep_blk_plus.xise</xilinx:name>
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>xise</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:33 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x56EBF825</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:18:05 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0xB50F6321</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
@@ -1395,8 +1443,8 @@
                      <xilinx:userFileType>ignore</xilinx:userFileType>
                      <xilinx:userFileType>txtFlist</xilinx:userFileType>
                      <xilinx:userFileType>txt</xilinx:userFileType>
-                     <xilinx:timeStamp>Sun Jul 07 12:54:34 GMT 2013</xilinx:timeStamp>
-                     <xilinx:checkSum>0x4E2D1031</xilinx:checkSum>
+                     <xilinx:timeStamp>Sun Jul 07 14:18:05 GMT 2013</xilinx:timeStamp>
+                     <xilinx:checkSum>0x2A687D8D</xilinx:checkSum>
                      <xilinx:generationId>generationID_1879581046</xilinx:generationId>
                   </xilinx:file>
                </xilinx:fileSet>
