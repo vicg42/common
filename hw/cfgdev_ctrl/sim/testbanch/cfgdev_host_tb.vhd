@@ -88,11 +88,11 @@ type TUsrPkts is array (0 to 10) of TUsrPkt;
 signal i_pkts     : TUsrPkts;
 
 signal i_host_rxrdy : std_logic;
-signal i_host_rxd   : std_logic_vector(63 downto 0);
+signal i_host_rxd   : std_logic_vector(256 downto 0);
 signal i_host_rd    : std_logic;
 
 signal i_host_txrdy : std_logic;
-signal i_host_txd   : std_logic_vector(63 downto 0);
+signal i_host_txd   : std_logic_vector(256 downto 0);
 signal i_host_wr    : std_logic;
 
 signal i_host_clk   : std_logic;
@@ -456,6 +456,32 @@ wait until rising_edge(i_host_clk);
 i_host_wr <= '0';
 
 end if; --if C_HOST_DWIDTH = 64 then
+
+
+
+--------------------------------------
+--DWIDTH 128Bit
+--------------------------------------
+if C_HOST_DWIDTH = 128 then
+--//PKT(Write)
+wait until rising_edge(i_host_clk);
+i_host_txd(127 downto 0) <= i_pkts(0)(7) & i_pkts(0)(6) & i_pkts(0)(5) & i_pkts(0)(4) & i_pkts(0)(3) & i_pkts(0)(2) & i_pkts(0)(1) & i_pkts(0)(0);
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
+
+
+
+wait until rising_edge(i_host_clk) and i_cfg_done = '1';
+wait for 1 us;
+
+wait until rising_edge(i_host_clk);
+i_host_txd(127 downto 0) <= i_pkts(1)(7) & i_pkts(1)(6) & i_pkts(1)(5) & i_pkts(1)(4) & i_pkts(1)(3) & i_pkts(1)(2) & i_pkts(1)(1) & i_pkts(1)(0);
+i_host_wr <= '1';
+wait until rising_edge(i_host_clk);
+i_host_wr <= '0';
+
+end if; --if C_HOST_DWIDTH = 128 then
 
 wait;
 
