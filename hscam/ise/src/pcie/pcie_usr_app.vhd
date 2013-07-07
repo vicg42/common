@@ -159,6 +159,7 @@ clkb  : in   std_logic
 end component;
 
 signal i_mrd_rcv_size_ok           : std_logic;
+signal i_mrd_rcv_last_dw           : std_logic;
 
 signal i_reg_rd                    : std_logic;
 signal vrsk_reg_bar                : std_logic;
@@ -233,13 +234,14 @@ signal i_time_set                  : std_logic;
 signal i_dev_drdy                  : std_logic;
 signal i_dev_drdy_out              : std_logic;
 
-signal i_mem_adr                   : std_logic_vector(31 - (C_HDEV_DWIDTH/32 + 1) downto 0) := (others=>'0');
+signal i_mem_adr                   : std_logic_vector(31 - log2(C_HDEV_DWIDTH/8) downto 0) := (others=>'0');
 
 signal sr_rxbuf_rd_last            : std_logic;
-signal sr_txbuf_din                : std_logic_vector(31 downto 0);
-signal i_txbuf_din                 : std_logic_vector(63 downto 0);
+Type TSR_txbuf_di is array (0 to 2) of std_logic_vector(31 downto 0);
+signal sr_txbuf_din                : TSR_txbuf_di;
+signal i_txbuf_din                 : std_logic_vector(127 downto 0);
 signal i_txbuf_wr                  : std_logic;
-signal i_txbuf_wr_sel              : std_logic;
+signal i_txbuf_wr_sel              : std_logic_vector(1 downto 0);
 signal i_pcie_testing              : std_logic;
 signal tst_mem_dcnt,tst_mem_dcnt_swap : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 
@@ -801,7 +803,7 @@ end generate gen_irq;
 --Сигналы для модулей TX/RX PCI-Express
 ---------------------------------------------------------------------
 p_out_rxbuf_dout <= p_in_dev_dout;
-                      --when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else tst_mem_dcnt_swap;
+--                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else tst_mem_dcnt_swap;
 
 p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)
                       when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
@@ -827,54 +829,111 @@ p_out_dev_rd <= p_in_rxbuf_rd when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
 p_out_dev_din <= i_txbuf_din(p_out_dev_din'range) when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1' else
                 EXT(p_in_reg_din, p_out_dev_din'length);
 
---usr_buf data width x32
+
 gen_usrd_x32 : if C_HDEV_DWIDTH = 32 generate
 i_txbuf_din <= EXT(p_in_txbuf_din, i_txbuf_din'length);
 i_txbuf_wr <= p_in_txbuf_wr;
-end generate gen_usrd_x32;
+end generate; --gen_usrd_x32
 
---usr_buf data width x64
+
 gen_usrd_x64 : if C_HDEV_DWIDTH = 64 generate
+i_mrd_rcv_last_dw <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last and p_in_txbuf_wr;
+
 i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din;
-i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when i_mrd_rcv_size_ok = '1'
-                                                     and p_in_txbuf_wr_last = '1'
-                                                       and (i_txbuf_wr_sel = '0' and p_in_txbuf_wr = '1')
-                                                        else sr_txbuf_din;
-i_txbuf_wr <= (i_txbuf_wr_sel and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
+i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1' and i_txbuf_wr_sel(0) = '0')
+                                                    else sr_txbuf_din(0);
+i_txbuf_wr <= (i_txbuf_wr_sel(0) and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
     if i_dma_start = '1' then
-      i_txbuf_wr_sel <= '0';
+      i_txbuf_wr_sel(0) <= '0';
     else
       if p_in_txbuf_wr = '1' then
-        i_txbuf_wr_sel <= not i_txbuf_wr_sel;
-        sr_txbuf_din <= p_in_txbuf_din;
+        i_txbuf_wr_sel(0) <= not i_txbuf_wr_sel(0);
+        sr_txbuf_din(0) <= p_in_txbuf_din;
       end if;
     end if;
   end if;
 end process;
-end generate gen_usrd_x64;
+end generate;--gen_usrd_x64
 
--- process(p_in_rst_n, i_usr_grst, p_in_clk)
--- begin
--- if p_in_rst_n = '0' or i_usr_grst = '1' then
+
+gen_usrd_x128 : if C_HDEV_DWIDTH = 128 generate
+i_mrd_rcv_last_dw <= i_mrd_rcv_size_ok and p_in_txbuf_wr_last and p_in_txbuf_wr;
+
+i_txbuf_din(32*4 - 1 downto 32*3) <= p_in_txbuf_din;
+i_txbuf_din(32*3 - 1 downto 32*2) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1'
+                                                      and ((i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(0, 2))
+                                                        or (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(1, 2))
+                                                        or (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(2, 2))) )
+
+                                                    else sr_txbuf_din(0);
+
+i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1'
+                                                      and ((i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(0, 2))
+                                                        or (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(1, 2))) )
+
+                                                    else sr_txbuf_din(0)
+                                                    when (i_mrd_rcv_last_dw = '1'
+                                                      and (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(2, 2)) )
+
+                                                    else sr_txbuf_din(1);
+
+i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_last_dw = '1'
+                                                      and (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(0, 2)) )
+
+                                                    else sr_txbuf_din(0)
+                                                    when (i_mrd_rcv_last_dw = '1'
+                                                      and (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(1, 2)) )
+
+                                                    else sr_txbuf_din(1)
+                                                    when (i_mrd_rcv_last_dw = '1'
+                                                      and (i_txbuf_wr_sel(1 downto 0) = CONV_STD_LOGIC_VECTOR(2, 2)) )
+
+                                                    else sr_txbuf_din(2);
+
+i_txbuf_wr <= (AND_reduce(i_txbuf_wr_sel(1 downto 0)) and p_in_txbuf_wr) or (i_mrd_rcv_size_ok and p_in_txbuf_wr_last);
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    if i_dma_start = '1' then
+      i_txbuf_wr_sel <= (others=>'0');
+    else
+      if p_in_txbuf_wr = '1' then
+        if i_txbuf_wr_sel = CONV_STD_LOGIC_VECTOR(3, i_txbuf_wr_sel'length) then
+        i_txbuf_wr_sel <= (others=>'0');
+        else
+        i_txbuf_wr_sel <= i_txbuf_wr_sel + 1;
+        end if;
+        sr_txbuf_din <= p_in_txbuf_din & sr_txbuf_din(0 to 1);
+      end if;
+    end if;
+  end if;
+end process;
+end generate;--gen_usrd_x128
+
+
+--process(p_in_rst_n, i_usr_grst, p_in_clk)
+--begin
+--if p_in_rst_n = '0' or i_usr_grst = '1' then
+--  for i in 0 to tst_mem_dcnt'length/8 - 1 loop
+--  tst_mem_dcnt(8*(i + 1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
+--  end loop;
+--elsif rising_edge(p_in_clk) then
+--  if p_in_rxbuf_rd = '1' and i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
 --    for i in 0 to tst_mem_dcnt'length/8 - 1 loop
---    tst_mem_dcnt(8*(i + 1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
+--    tst_mem_dcnt(8*(i + 1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i)
+--                                               + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
 --    end loop;
--- elsif rising_edge(p_in_clk) then
---    if p_in_rxbuf_rd = '1' and i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
---      for i in 0 to tst_mem_dcnt'length/8 - 1 loop
---      tst_mem_dcnt(8*(i + 1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i)
---                                                 + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
---      end loop;
---    end if;
--- end if;
--- end process;
--- gen_swap : for i in 0 to tst_mem_dcnt'length/8 - 1 generate
--- tst_mem_dcnt_swap(8*(((tst_mem_dcnt'length/8 - 1) - i) + 1) - 1
---                       downto 8*((tst_mem_dcnt'length/8 - 1) - i)) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i);
--- end generate gen_swap;
+--  end if;
+--end if;
+--end process;
+----gen_swap : for i in 0 to tst_mem_dcnt'length/8 - 1 generate
+----tst_mem_dcnt_swap(8*(((tst_mem_dcnt'length/8 - 1) - i) + 1) - 1
+----                     downto 8*((tst_mem_dcnt'length/8 - 1) - i)) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i);
+----end generate gen_swap;
+--tst_mem_dcnt_swap <= tst_mem_dcnt;
 
 --Вывод регистра управления устройствами
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= i_dmatrn_mrd_done
@@ -901,7 +960,7 @@ process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
     if i_dma_start = '1' then
-      i_mem_adr <= EXT(v_reg_mem_adr(v_reg_mem_adr'high downto C_HDEV_DWIDTH/32 + 1), i_mem_adr'length);
+      i_mem_adr <= EXT(v_reg_mem_adr(v_reg_mem_adr'high downto log2(C_HDEV_DWIDTH/8)), i_mem_adr'length);
     else
       if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
         and (p_in_rxbuf_rd = '1' or i_txbuf_wr = '1') then
@@ -913,7 +972,7 @@ begin
   end if;
 end process;
 
-p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT) <= i_mem_adr & v_reg_mem_adr(C_HDEV_DWIDTH/32 downto 0); --Cnt BYTE
+p_out_dev_opt(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT) <= i_mem_adr & v_reg_mem_adr(log2(C_HDEV_DWIDTH/8) - 1 downto 0); --Cnt BYTE
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT) <= i_dmatrn_len(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT - C_HDEV_OPTOUT_MEM_RQLEN_L_BIT downto 0);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT) <= v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNWR_M_BIT downto C_HREG_MEM_CTRL_TRNWR_L_BIT);
 p_out_dev_opt(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT) <= v_reg_mem_ctrl(C_HREG_MEM_CTRL_TRNRD_M_BIT downto C_HREG_MEM_CTRL_TRNRD_L_BIT);
@@ -953,3 +1012,24 @@ p_out_tst(127)            <= p_in_txbuf_wr_last;
 end behavioral;
 
 
+--i_txbuf_din(32*4 - 1 downto 32*3) <= p_in_txbuf_din;
+--i_txbuf_din(32*3 - 1 downto 32*2) <= p_in_txbuf_din when (i_mrd_rcv_size_ok = '1'
+--                                                      and p_in_txbuf_wr_last = '1'
+--                                                        and p_in_txbuf_wr = '1'
+--                                                          and (  (i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '0')
+--                                                              or (i_txbuf_wr_sel(0) = '1' and i_txbuf_wr_sel(1) = '0')
+--                                                              or (i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '1') ))
+--                                                            else sr_txbuf_din(0);
+--
+--i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din when (i_mrd_rcv_size_ok = '1'
+--                                                      and p_in_txbuf_wr_last = '1'
+--                                                        and p_in_txbuf_wr = '1'
+--                                                          and (  (i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '0')
+--                                                              or (i_txbuf_wr_sel(0) = '1' and i_txbuf_wr_sel(1) = '0') ))
+--                                                            else sr_txbuf_din(1);
+--
+--i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_size_ok = '1'
+--                                                      and p_in_txbuf_wr_last = '1'
+--                                                        and p_in_txbuf_wr = '1'
+--                                                          and i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '0')
+--                                                            else sr_txbuf_din(2);
