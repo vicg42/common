@@ -196,8 +196,8 @@ begin
           i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_rowcnt;
           i_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0) <= (others=>'0');
 
-          i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto G_MEM_DWIDTH/32 + 1), i_mem_dlen_rq'length)
-                           + OR_reduce(i_pix_count_byte(G_MEM_DWIDTH/32 downto 0));
+          i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
+                           + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
           i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
           i_mem_dir <= C_MEMWR_WRITE;
 
