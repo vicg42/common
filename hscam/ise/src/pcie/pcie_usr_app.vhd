@@ -1011,25 +1011,3 @@ p_out_tst(127)            <= p_in_txbuf_wr_last;
 --END MAIN
 end behavioral;
 
-
---i_txbuf_din(32*4 - 1 downto 32*3) <= p_in_txbuf_din;
---i_txbuf_din(32*3 - 1 downto 32*2) <= p_in_txbuf_din when (i_mrd_rcv_size_ok = '1'
---                                                      and p_in_txbuf_wr_last = '1'
---                                                        and p_in_txbuf_wr = '1'
---                                                          and (  (i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '0')
---                                                              or (i_txbuf_wr_sel(0) = '1' and i_txbuf_wr_sel(1) = '0')
---                                                              or (i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '1') ))
---                                                            else sr_txbuf_din(0);
---
---i_txbuf_din(32*2 - 1 downto 32*1) <= p_in_txbuf_din when (i_mrd_rcv_size_ok = '1'
---                                                      and p_in_txbuf_wr_last = '1'
---                                                        and p_in_txbuf_wr = '1'
---                                                          and (  (i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '0')
---                                                              or (i_txbuf_wr_sel(0) = '1' and i_txbuf_wr_sel(1) = '0') ))
---                                                            else sr_txbuf_din(1);
---
---i_txbuf_din(32*1 - 1 downto 32*0) <= p_in_txbuf_din when (i_mrd_rcv_size_ok = '1'
---                                                      and p_in_txbuf_wr_last = '1'
---                                                        and p_in_txbuf_wr = '1'
---                                                          and i_txbuf_wr_sel(0) = '0' and i_txbuf_wr_sel(1) = '0')
---                                                            else sr_txbuf_din(2);
