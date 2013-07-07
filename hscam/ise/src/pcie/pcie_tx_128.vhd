@@ -563,7 +563,7 @@ begin
                 i_trn_td(63 downto 32) <= (i_mem_adr_byte(31 downto 2) & "00");
                 if G_USR_DBUS = 128 then
                 i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap(32*4 - 1 downto 32*3);
-                else
+                else --if G_USR_DBUS = 32 then
                 i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
                 end if;
 
