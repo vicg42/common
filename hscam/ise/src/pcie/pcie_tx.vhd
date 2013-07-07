@@ -159,7 +159,8 @@ signal i_mrd_done           : std_logic;
 signal i_mrd_tpl_max_byte   : std_logic_vector(12 downto 0);
 
 signal i_usr_rxbuf_rd       : std_logic;
-signal i_usr_rxbuf_do_swap  : std_logic_vector(usr_rxbuf_dout_i'range);
+signal i_usr_rxbuf_do_swap_tmp  : std_logic_vector(usr_rxbuf_dout_i'range);
+signal i_usr_rxbuf_do_swap  : std_logic_vector(63 downto 0);
 signal i_usr_reg_do_swap    : std_logic_vector(usr_reg_dout_i'range);
 signal sr_usr_rxbuf_do_swap : std_logic_vector(32*1 - 1 downto 32*0);
 
@@ -197,9 +198,10 @@ mwr_done_o <= i_mwr_done;
 compl_done_o <= i_compl_done;
 
 gen_swap_rxbuf : for i in 0 to usr_rxbuf_dout_i'length/8 - 1 generate
-i_usr_rxbuf_do_swap((i_usr_rxbuf_do_swap'length - 8*i) - 1 downto
-                    (i_usr_rxbuf_do_swap'length - 8*(i+1))) <= usr_rxbuf_dout_i(8*(i+1) - 1 downto 8*i);
+i_usr_rxbuf_do_swap_tmp((i_usr_rxbuf_do_swap_tmp'length - 8*i) - 1 downto
+                        (i_usr_rxbuf_do_swap_tmp'length - 8*(i+1))) <= usr_rxbuf_dout_i(8*(i+1) - 1 downto 8*i);
 end generate gen_swap_rxbuf;
+i_usr_rxbuf_do_swap <= EXT(i_usr_rxbuf_do_swap_tmp, i_usr_rxbuf_do_swap'length);
 
 gen_swap_reg : for i in 0 to usr_reg_dout_i'length/8 - 1 generate
 i_usr_reg_do_swap((i_usr_reg_do_swap'length - 8*i) - 1 downto
@@ -497,20 +499,16 @@ begin
           if i_mem_remain_byte > EXT(i_mwr_tpl_max_byte, i_mem_remain_byte'length) then
               i_mem_tpl_last <= '0';
               i_mem_tpl_byte <= i_mwr_tpl_max_byte;
-              i_mem_tpl_dw <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
-                              i_mwr_tpl_max_byte(i_mem_tpl_dw'high downto log2(32/8)));
+              i_mem_tpl_dw <= EXT(i_mwr_tpl_max_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length);
 
-              i_mem_tpl_len <= (CONV_STD_LOGIC_VECTOR(0, log2(G_USR_DBUS/8)) &
-                              i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS/8)));
+              i_mem_tpl_len <= EXT(i_mwr_tpl_max_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS/8)), i_mem_tpl_len'length);
           else
               i_mem_tpl_last <= '1';
               i_mem_tpl_byte <= i_mem_remain_byte(i_mem_tpl_byte'range);
-              i_mem_tpl_dw <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
-                              i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32/8)))
+              i_mem_tpl_dw <= EXT(i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length)
                               + OR_reduce(i_mem_remain_byte(log2(32/8) - 1 downto 0));
 
-              i_mem_tpl_len <= (CONV_STD_LOGIC_VECTOR(0, log2(G_USR_DBUS/8)) &
-                              i_mem_remain_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS/8)))
+              i_mem_tpl_len <= EXT(i_mem_remain_byte(i_mem_tpl_len'high downto log2(G_USR_DBUS/8)), i_mem_tpl_len'length)
                               + OR_reduce(i_mem_remain_byte(log2(G_USR_DBUS/8) - 1 downto 0));
           end if;
 
@@ -580,7 +578,11 @@ begin
                 i_mem_adr_byte <= i_mem_adr_byte + EXT(i_mem_tpl_byte, i_mem_adr_byte'length);
 
                 i_trn_td(32*2 - 1 downto 32*1) <= (i_mem_adr_byte(31 downto 2) & "00");
+                if G_USR_DBUS = 64 then
                 i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*2 - 1 downto 32*1);
+                else --if G_USR_DBUS = 32 then
+                i_trn_td(31 downto 0)  <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
+                end if;
 
                 sr_usr_rxbuf_do_swap(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
 
@@ -654,9 +656,9 @@ begin
                 else --if G_USR_DBUS = 32 then
 
                     if i_trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, i_trn_trem_n'length) then
-                      i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap;
+                      i_trn_td(32*1 - 1 downto 32*0) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
                     else
-                      i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap;
+                      i_trn_td(32*2 - 1 downto 32*1) <= i_usr_rxbuf_do_swap(32*1 - 1 downto 32*0);
                     end if;
 
                     i_trn_trem_n <= i_trn_trem_n - 1;
@@ -783,13 +785,11 @@ begin
           if i_mem_remain_byte > EXT(i_mrd_tpl_max_byte, i_mem_remain_byte'length) then
               i_mem_tpl_last <= '0';
               i_mem_tpl_byte <= i_mrd_tpl_max_byte;
-              i_mem_tpl_dw <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
-                              i_mrd_tpl_max_byte(i_mem_tpl_dw'high downto log2(32/8)));
+              i_mem_tpl_dw <= EXT(i_mrd_tpl_max_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length);
           else
               i_mem_tpl_last <= '1';
               i_mem_tpl_byte <= i_mem_remain_byte(i_mem_tpl_byte'range);
-              i_mem_tpl_dw <= (CONV_STD_LOGIC_VECTOR(0, log2(32/8)) &
-                              i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32/8)))
+              i_mem_tpl_dw <= EXT(i_mem_remain_byte(i_mem_tpl_dw'high downto log2(32/8)), i_mem_tpl_dw'length)
                               + OR_reduce(i_mem_remain_byte(log2(32/8) - 1 downto 0));
           end if;
 
