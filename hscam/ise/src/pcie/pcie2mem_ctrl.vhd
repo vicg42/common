@@ -31,7 +31,7 @@ G_MEM_AWIDTH     : integer:=32;
 G_MEM_DWIDTH     : integer:=32;
 G_MEM_BANK_M_BIT : integer:=29;
 G_MEM_BANK_L_BIT : integer:=28;
-G_DBG            : string :="OFF"  --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
+G_DBG            : string :="OFF"  --В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
 );
 port(
 -------------------------------
@@ -102,9 +102,9 @@ signal i_rxbuf_din_wr                  : std_logic;
 signal i_rxbuf_full                    : std_logic;
 signal i_rxbuf_empty                   : std_logic;
 
-signal i_mem_adr                       : std_logic_vector(31 downto 0):=(others=>'0');--//(BYTE)
-signal i_mem_lenreq                    : std_logic_vector(15 downto 0):=(others=>'0');--//Размер запрашиваемых данных (DWORD)
-signal i_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');--//Размер одиночной транзакции
+signal i_mem_adr                       : std_logic_vector(31 downto 0):=(others=>'0');--(BYTE)
+signal i_mem_lenreq                    : std_logic_vector(15 downto 0):=(others=>'0');--Размер запрашиваемых данных
+signal i_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');--Размер одиночной транзакции
 signal i_mem_dir                       : std_logic:='0';
 signal i_mem_start                     : std_logic:='0';
 signal i_mem_done                      : std_logic;
@@ -120,10 +120,10 @@ signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
 begin
 
 
---//--------------------------------------------------
---//Согласующие буфера
---//--------------------------------------------------
---//RAM<-PCIE
+----------------------------------------------------
+--Согласующие буфера
+----------------------------------------------------
+--RAM<-PCIE
 m_txbuf : pcie2mem_fifo
 port map(
 din         => p_in_txd,
@@ -143,7 +143,7 @@ empty       => i_txbuf_empty,
 rst         => p_in_rst
 );
 
---//RAM->PCIE
+--RAM->PCIE
 m_rxbuf : pcie2mem_fifo
 port map(
 din         => i_rxbuf_din,
@@ -166,9 +166,9 @@ rst         => p_in_rst
 p_out_rxbuf_empty <= i_rxbuf_empty;
 p_out_txbuf_full <= i_txbuf_full;
 
---//--------------------------------------------------
---//Контроллер записи/чтения ОЗУ
---//--------------------------------------------------
+----------------------------------------------------
+--Контроллер записи/чтения ОЗУ
+----------------------------------------------------
 m_mem_wr : mem_wr
 generic map(
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
@@ -218,10 +218,10 @@ p_in_rst             => p_in_rst
 );
 
 
---//----------------------------------------------
---//Инициализация
---//----------------------------------------------
---//Растягиваем импульс
+------------------------------------------------
+--Инициализация
+------------------------------------------------
+--Растягиваем импульс
 process(p_in_rst,p_in_hclk)
 begin
   if p_in_rst='1' then
@@ -245,7 +245,7 @@ begin
   end if;
 end process;
 
---//Пересинхронизация на частоту mem_ctrl
+--Пересинхронизация на частоту mem_ctrl
 process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
@@ -274,9 +274,9 @@ end process;
 p_out_status.done <= i_mem_done_out;--Пересихр не нужна, т.к. она делается в host модуле
 
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 p_out_tst(0) <= i_mem_start;
 p_out_tst(1) <= i_mem_done;
 p_out_tst(5 downto 2) <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
