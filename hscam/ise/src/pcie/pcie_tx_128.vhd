@@ -503,7 +503,10 @@ begin
 
         when S_TX_MWR_QW01 =>
 
-          i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - 2 downto 0) & "00") - i_mem_tpl_dw;
+          if G_USR_DBUS > 32 then
+          i_mem_tpl_dw_rem <= (i_mem_tpl_len(i_mem_tpl_len'high - (log2(G_USR_DBUS/8) - 2) downto 0)
+                               & CONV_STD_LOGIC_VECTOR(0, (log2(G_USR_DBUS/8) - 2))) - i_mem_tpl_dw;
+          end if;
 
           i_mwr_work <= '1';
 
