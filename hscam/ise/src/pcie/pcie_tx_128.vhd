@@ -177,7 +177,17 @@ tst_o <= (others=>'0');
 --
 ----------------------------------------
 mrd_pkt_count_o <= i_mem_tpl_tag + 1;
-mrd_pkt_len_o <= EXT(i_mem_tpl_dw, mrd_pkt_len_o'length);
+mrd_pkt_len_o <= CONV_STD_LOGIC_VECTOR(4096/4, mrd_pkt_len_o'length)
+                  when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_4096_BYTE else
+                 CONV_STD_LOGIC_VECTOR(2048/4, mrd_pkt_len_o'length)
+                  when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_2048_BYTE else
+                 CONV_STD_LOGIC_VECTOR(1024/4, mrd_pkt_len_o'length)
+                  when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_1024_BYTE else
+                 CONV_STD_LOGIC_VECTOR(512/4, mrd_pkt_len_o'length)
+                  when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_512_BYTE else
+                 CONV_STD_LOGIC_VECTOR(256/4, mrd_pkt_len_o'length)
+                  when max_rd_req_size_i = C_PCIE_MAX_RD_REQ_256_BYTE else
+                 CONV_STD_LOGIC_VECTOR(128/4, mrd_pkt_len_o'length);
 
 i_usr_rxbuf_rd <= (not trn_tdst_rdy_n and not usr_rxbuf_empty_i);
 usr_rxbuf_rd_o <= i_usr_rxbuf_rd and i_mwr_work;
