@@ -114,20 +114,20 @@ set _projects [ list \
       [ list "../src/pcie/v5/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v5/prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v5_main.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/pcie_tx.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_rx.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_usr_app.vhd" $_VHDMod ] \
-      [ list "../src/pcie/pcie_v5_main.vhd" $_VHDMod ] \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \

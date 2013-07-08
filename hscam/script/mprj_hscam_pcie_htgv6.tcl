@@ -28,18 +28,24 @@ set _projects [ list \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/bram_dma_params.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/sync_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/trn_tx_128.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/trn_rx_128.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_bram_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/gtx_tx_sync_rate_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/gtx_rx_valid_filter_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/gtx_drp_chanalign_fix_3752_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_trn_128.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_pipe_misc_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_pipe_lane_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_cfg_128.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_brams_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/gtx_wrapper_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_upconfig_fix_3451_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_pipe_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_gtx_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_bram_top_v6.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_128_if.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_reset_delay_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_clocking_v6.vhd" $_VHDMod ] \
       [ list "../src/core_gen/v6/core_pciexp_ep_blk_plus/source/pcie_2_0_v6.vhd" $_VHDMod ] \
@@ -139,20 +145,20 @@ set _projects [ list \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v6_main_128.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/pcie/pcie_tx.vhd" $_VHDMod ] \
-      [ list "../src/pcie/pcie_rx.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_tx_128.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie_rx_128.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_ctrl.vhd" $_VHDMod ] \
       [ list "../src/pcie/pcie_usr_app.vhd" $_VHDMod ] \
-      [ list "../src/pcie/pcie_v6_main.vhd" $_VHDMod ] \
+      [ list "../src/pcie/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
