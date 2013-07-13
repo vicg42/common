@@ -82,6 +82,9 @@ function itoa (int : integer) return string;
 function toLowerCaseChar( char : character ) return character;
 function strcmp( str1, str2 : string ) return boolean;
 function strcmp2( str1, str2 : string ) return std_logic;
+
+function bool2std_logic( arg : boolean ) return std_logic;
+
 -------------------------------------------------------------------------------
 -- Constant Declarations
 -------------------------------------------------------------------------------
@@ -863,6 +866,17 @@ begin
     read(l, s(1 to len));
     return s(1 to len);
 end;
+
+
+function bool2std_logic( arg : boolean ) return std_logic is
+begin
+  if(arg = true) then
+      return('1');
+  else
+      return('0');
+  end if;
+end;
+
 
 end package body vicg_common_pkg;
 
