@@ -542,6 +542,7 @@ begin
 
           txd(C_HREG_FUNC_PROM_BIT) := strcmp2(C_PCFG_BOARD, "ML505")
                                      or strcmp2(C_PCFG_BOARD, "VERESK21")
+                                     or strcmp2(C_PCFG_BOARD, "HSCAM_PCIE")
                                      or strcmp2(C_PCFG_BOARD, "HTGV6");
 
           txd(C_HREG_FUNC_PULT_BIT) := strcmp2(C_PCFG_BOARD, "VERESK21");

@@ -20,7 +20,7 @@ package prj_cfg is
 constant C_PCFG_HDEV_DWIDTH           : integer:=32;
 
 --//Тип используемой платы
-constant C_PCFG_BOARD                  : string:="HSCAM_ML505";
+constant C_PCFG_BOARD                  : string:="HSCAM_PCIE";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller
