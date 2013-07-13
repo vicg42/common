@@ -273,6 +273,15 @@ attribute keep of g_usrclk : signal is "true";
 
 signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
+signal tst_prom_out     : std_logic_vector(31 downto 0);
+signal tst_prom_rxbuf_empty: std_logic;
+
+--signal tst_trn_rsof_n      : std_logic;
+--signal tst_trn_reof_n      : std_logic;
+--signal tst_trn_rsrc_rdy_n  : std_logic;
+--signal tst_trn_rdst_rdy_n  : std_logic;
+--signal tst_trn_rrem_n      : std_logic_vector(1 downto 0);
+--signal tst_trn_rd          : std_logic_vector(127 downto 0);
 
 
 --//MAIN
@@ -755,6 +764,7 @@ begin
     sr_vctrl_hrd_done(0)<=hclk_hrddone_vctrl;
     sr_vctrl_hrd_done(1)<=sr_vctrl_hrd_done(0);
     i_vctrl_hrd_done<=sr_vctrl_hrd_done(0) and not sr_vctrl_hrd_done(1);
+    tst_prom_rxbuf_empty <= i_host_rxbuf_empty(C_HDEV_PROM);
 
   end if;
 end process;
@@ -923,7 +933,7 @@ p_inout_phy      => pin_inout_prom,
 --Технологический
 -------------------------------
 p_in_tst         => (others=>'0'),
-p_out_tst        => open,--tst_prom_out,
+p_out_tst        => tst_prom_out,
 
 -------------------------------
 --System
@@ -985,8 +995,14 @@ pin_out_TP(2) <= i_ccd_hs;
 pin_out_TP(3) <= '0';
 pin_out_TP(4) <= '0';
 pin_out_TP(5) <= '0';
-pin_out_TP(6) <= '0';
-pin_out_TP(7) <=  tst_row_half;
+pin_out_TP(6) <= tst_row_half or tst_prom_out(0) or tst_prom_rxbuf_empty;
+pin_out_TP(7) <= '0';
+--tst_trn_rsof_n
+--or tst_trn_reof_n
+--or tst_trn_rsrc_rdy_n
+--or tst_trn_rdst_rdy_n
+--or OR_reduce(tst_trn_rrem_n)
+--or OR_reduce(tst_trn_rd);
 
 
 process(i_ccd_vclk)
@@ -1002,7 +1018,8 @@ begin
 end process;
 
 i_vctrl_tst_in(0) <= i_ccd_vs;
-i_vctrl_tst_in(31 downto 1) <= (others=>'0');
+i_vctrl_tst_in(1) <= i_host_tst_out(8);
+i_vctrl_tst_in(31 downto 2) <= (others=>'0');
 
 
 --//#########################################
@@ -1060,5 +1077,22 @@ p_out_tst     => i_ccd_tst_out,
 p_in_clk      => i_ccd_vclk,
 p_in_rst      => i_host_rst_all
 );
+
+
+--process(g_host_clk)
+--begin
+--  if rising_edge(g_host_clk) then
+--tst_trn_rsof_n                   <=i_host_tst2_out(9)             ;--p_out_tst(9)             <=trn_rsof_n;
+--tst_trn_reof_n                   <=i_host_tst2_out(10)            ;--p_out_tst(10)            <=trn_reof_n;
+--tst_trn_rsrc_rdy_n               <=i_host_tst2_out(11)            ;--p_out_tst(11)            <=trn_rsrc_rdy_n;
+--tst_trn_rdst_rdy_n               <=i_host_tst2_out(13)            ;--p_out_tst(13)            <=trn_rdst_rdy_n;
+--
+--tst_trn_rrem_n(0)                <=i_host_tst2_out(17)            ;--p_out_tst(17)            <=trn_rrem_n(0);
+--tst_trn_rrem_n(1)                <=i_host_tst2_out(18)            ;--p_out_tst(18)            <=trn_rrem_n(1);
+--tst_trn_rd                       <=i_host_tst2_out(146 downto 19) ;--p_out_tst(146 downto 83) <=trn_rd(127 downto 64);
+--
+--  end if;
+--end process;
+
 
 end architecture;
