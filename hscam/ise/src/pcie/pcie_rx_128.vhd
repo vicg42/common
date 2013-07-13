@@ -93,6 +93,7 @@ S_RX_MRD_WT  ,
 S_RX_CPL_QW1 ,
 S_RX_CPLD_QWN,
 S_RX_CPLD_WT ,
+S_RX_CPLD_WT1,
 S_RX_MRD_WT1
 );
 signal i_fsm_cs            : TFsm_state;
@@ -154,7 +155,7 @@ usr_reg_rd_o <= i_usr_rd;
 usr_reg_wr_o <= i_usr_wr and not i_cpld_tlp_work;
 
 usr_txbuf_din_o <= i_usr_di_swap;
-usr_txbuf_wr_o <= i_usr_wr and i_cpld_tlp_work;
+usr_txbuf_wr_o <= (i_usr_wr and i_cpld_tlp_work) or (i_cpld_tlp_dlast and not i_cpld_tlp_work);
 usr_txbuf_wr_last_o <= i_cpld_tlp_dlast;
 
 trn_rdst_rdy_n_o <= i_trn_rdst_rdy_n or OR_reduce(i_trn_dw_sel) or (usr_txbuf_full_i and i_cpld_tlp_work);
@@ -488,14 +489,13 @@ begin
                         i_cpld_tlp_work <= '1';
                         i_trn_dw_sel <= (others=>'1');
                         i_trn_dw_skip <= '0';
-                        i_usr_wr <= '1';
                         i_usr_di <= trn_rd(31 downto 0);
 
                         if trn_reof_n = '0' and (trn_rd(41+64 downto 32+64) = CONV_STD_LOGIC_VECTOR(16#01#, 10)) then
-                          i_cpld_tlp_dlast <= '1';
                           i_trn_rdst_rdy_n <= '1';
-                          i_fsm_cs <= S_RX_CPLD_WT;
+                          i_fsm_cs <= S_RX_CPLD_WT1;
                         else
+                          i_usr_wr <= '1';
                           i_fsm_cs <= S_RX_CPLD_QWN;
                         end if;
 
@@ -711,6 +711,12 @@ begin
             i_trn_dw_sel <= (others=>'0');
             i_usr_wr <= '0';
             i_fsm_cs <= S_RX_IDLE;
+
+        when S_RX_CPLD_WT1 =>
+
+            i_cpld_tlp_dlast <= '1';
+            i_cpld_tlp_work <= '0';
+            i_fsm_cs <= S_RX_CPLD_WT;
         --END: CplD - 3DW, +data
 
     end case; --case i_fsm_cs is

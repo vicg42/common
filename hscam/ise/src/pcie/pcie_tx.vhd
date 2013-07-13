@@ -553,6 +553,10 @@ begin
                 end if;
 
                 --Last DW Byte Enable
+                if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length)
+                  and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
+                    i_trn_td(7 downto 4) <= "0000";
+                else
                 case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_trn_td(7 downto 4) <= "1111";
                 when "01" => i_trn_td(7 downto 4) <= "0001";
@@ -560,6 +564,7 @@ begin
                 when "11" => i_trn_td(7 downto 4) <= "0111";
                 when others => null;
                 end case;
+                end if;
 
                 --1st DW Byte Enable
                 case i_mem_adr_byte(1 downto 0) is
@@ -834,6 +839,10 @@ begin
                 end if;
 
                 --Last DW Byte Enable
+                if i_mem_tpl_dw = CONV_STD_LOGIC_VECTOR(16#01#, i_mem_tpl_dw'length)
+                  and OR_reduce(i_mem_adr_byte(1 downto 0)) = '0' then
+                    i_trn_td(7 downto 4) <= "0000";
+                else
                 case i_mem_tpl_byte(1 downto 0) is
                 when "00" => i_trn_td(7 downto 4) <= "1111";
                 when "01" => i_trn_td(7 downto 4) <= "0001";
@@ -841,6 +850,7 @@ begin
                 when "11" => i_trn_td(7 downto 4) <= "0111";
                 when others => null;
                 end case;
+                end if;
 
                 --1st DW Byte Enable
                 case i_mem_adr_byte(1 downto 0) is
