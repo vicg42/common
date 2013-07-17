@@ -275,6 +275,7 @@ signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
 signal tst_prom_out     : std_logic_vector(31 downto 0);
 signal tst_prom_rxbuf_empty: std_logic;
+signal tst_prom_txbuf_full : std_logic;
 
 --signal tst_trn_rsof_n      : std_logic;
 --signal tst_trn_reof_n      : std_logic;
@@ -765,6 +766,7 @@ begin
     sr_vctrl_hrd_done(1)<=sr_vctrl_hrd_done(0);
     i_vctrl_hrd_done<=sr_vctrl_hrd_done(0) and not sr_vctrl_hrd_done(1);
     tst_prom_rxbuf_empty <= i_host_rxbuf_empty(C_HDEV_PROM);
+    tst_prom_txbuf_full <= i_host_txbuf_full(C_HDEV_PROM);
 
   end if;
 end process;
@@ -995,7 +997,7 @@ pin_out_TP(2) <= i_ccd_hs;
 pin_out_TP(3) <= '0';
 pin_out_TP(4) <= '0';
 pin_out_TP(5) <= '0';
-pin_out_TP(6) <= tst_row_half or tst_prom_out(0) or tst_prom_rxbuf_empty;
+pin_out_TP(6) <= tst_row_half or tst_prom_out(0) or tst_prom_rxbuf_empty or tst_prom_txbuf_full;
 pin_out_TP(7) <= '0';
 --tst_trn_rsof_n
 --or tst_trn_reof_n

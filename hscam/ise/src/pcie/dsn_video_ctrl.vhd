@@ -301,9 +301,12 @@ signal tst_ctrl                          : std_logic_vector(31 downto 0);
 type TVfrSkipTst is array (0 to C_VCTRL_VCH_COUNT-1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
 signal i_vfrskip                         : TVfrSkipTst;
 signal tst_vfrskip_out                   : std_logic_vector(i_vfrskip(0)'range);
-signal tst_vfrskip_err                   : std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 signal tst_dbg_pictire                   : std_logic;
 signal tst_dbg_rd_hold                   : std_logic;
+signal sr_vrd_irq       : std_logic_vector(0 to 2);
+signal sr_vfrmrk_out1   : std_logic_vector(31 downto 0);
+signal sr_vfrmrk_out2   : std_logic_vector(31 downto 0);
+signal tst_analiz_en    : std_logic_vector(1 downto 0);
 
 
 --MAIN
@@ -314,7 +317,7 @@ begin
 --//Технологические сигналы
 --//----------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
-p_out_tst(0)<='0';--OR_reduce(tst_vfrskip_err);
+p_out_tst(0)<='0';
 p_out_tst(4 downto 1)  <=tst_vwriter_out(4 downto 1);
 p_out_tst(8 downto 5)  <=tst_vreader_out(3 downto 0);
 p_out_tst(15 downto 9) <=(others=>'0');
@@ -329,7 +332,7 @@ p_out_tst(4 downto 1) <=tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <=tst_vreader_out(3 downto 0);
 p_out_tst(9)          <=tst_vwriter_out(4);
 p_out_tst(10)         <=tst_vreader_out(4);
-p_out_tst(11)         <=OR_reduce(tst_vfrskip_err);
+p_out_tst(11)         <='0';
 p_out_tst(15 downto 12)<=(others=>'0');
 p_out_tst(19 downto 16)<=EXT(tst_vfrskip_out, 4);
 p_out_tst(25 downto 20)<=(others=>'0');
@@ -629,7 +632,6 @@ begin
     i_vfrmrk(ch)(buf) <= (others=>'0');
     end loop;
     i_vfrskip(ch) <= (others=>'0');
-    tst_vfrskip_err(ch) <= '0';
 
   elsif p_in_clk'event and p_in_clk='1' then
 
@@ -665,22 +667,10 @@ begin
 
             i_vfrskip(ch) <= i_vfrskip(ch);
 
-            if i_vfrskip(ch) = (i_vfrskip(ch)'range => '1') then
-              tst_vfrskip_err(ch) <= '1';
-            else
-              tst_vfrskip_err(ch) <= '0';
-            end if;
-
           elsif i_vreader_vch_num_out = ch and i_vreader_rd_done = '1' and
                 i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0') then
 
             i_vfrskip(ch) <= i_vfrskip(ch) - 1;
-
-            if i_vfrskip(ch) = (i_vfrskip(ch)'range => '1') then
-              tst_vfrskip_err(ch) <= '1';
-            else
-              tst_vfrskip_err(ch) <= '0';
-            end if;
 
           elsif i_vwrite_vfr_rdy_out(ch) = '1' and
                 i_vfrskip(ch) /= (i_vfrskip(ch)'range => '1') then
