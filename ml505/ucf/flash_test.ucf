@@ -67,8 +67,8 @@ NET  "pin_out_prom_a<18>"       LOC="L20";   # Bank 1, Vcco=3.3V
 NET  "pin_out_prom_a<19>"       LOC="L21";   # Bank 1, Vcco=3.3V
 NET  "pin_out_prom_a<20>"       LOC="AE23";  # Bank 2, Vcco=3.3V
 NET  "pin_out_prom_a<21>"       LOC="AE22";  # Bank 2, Vcco=3.3V
-NET  "pin_out_prom_a<22>"       LOC="N34";   #no used!!! NET pin_out_TP<6>    LOC="N34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_24  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
-NET  "pin_out_prom_a<23>"       LOC="AA34";  #no used!!! NET pin_out_TP<7>    LOC="AA34" | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_26  # Bank 13, Vcco=2.5V or 3.3V user selectable by J20 (SYSMON External Input: VAUXP[5]) J6-26
+NET  "pin_out_prom_a<22>"       LOC="AE12";  #RS0  "AN32" | IOSTANDARD=LVCMOS25;
+NET  "pin_out_prom_a<23>"       LOC="AE13";  #RS1  "AP32" | IOSTANDARD=LVCMOS25;  # Bank 4, Vcco=3.3V, No DCI
 
 NET  "pin_inout_prom_d<0>"      LOC="AD19";  # Bank 2, Vcco=3.3V
 NET  "pin_inout_prom_d<1>"      LOC="AE19";  # Bank 2, Vcco=3.3V
