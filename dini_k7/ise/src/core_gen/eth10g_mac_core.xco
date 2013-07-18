@@ -1,0 +1,52 @@
+##############################################################
+#
+# Xilinx Core Generator version 14.5
+# Date: Thu Jul 11 07:44:58 2013
+#
+##############################################################
+#
+#  This file contains the customisation parameters for a
+#  Xilinx CORE Generator IP GUI. It is strongly recommended
+#  that you do not manually alter this file as it may cause
+#  unexpected and unsupported behavior.
+#
+##############################################################
+#
+#  Generated from component: xilinx.com:ip:ten_gig_eth_mac:11.6
+#
+##############################################################
+#
+# BEGIN Project Options
+SET addpads = false
+SET asysymbol = true
+SET busformat = BusFormatAngleBracketNotRipped
+SET createndf = false
+SET designentry = VHDL
+SET device = xc7k325t
+SET devicefamily = kintex7
+SET flowvendor = Other
+SET formalverification = false
+SET foundationsym = false
+SET implementationfiletype = Ngc
+SET package = ffg676
+SET removerpms = false
+SET simulationfiles = Behavioral
+SET speedgrade = -2
+SET verilogsim = false
+SET vhdlsim = true
+# END Project Options
+# BEGIN Select
+SELECT Ten_Gigabit_Ethernet_MAC xilinx.com:ip:ten_gig_eth_mac:11.6
+# END Select
+# BEGIN Parameters
+CSET component_name=eth10g_mac_core
+CSET management_interface=false
+CSET physical_interface=Internal
+CSET statistics_gathering=false
+CSET wan_support=false
+# END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2012-12-14T13:48:57Z
+# END Extra information
+GENERATE
+# CRC: 510094b8
