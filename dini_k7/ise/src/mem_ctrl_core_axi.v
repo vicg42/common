@@ -164,11 +164,11 @@ module mem_ctrl_core_axi #
                                      // DDR2 SDRAM: Burst Type (Mode Register).
                                      // # = "SEQ" - (Sequential),
                                      //   = "INT" - (Interleaved).
-   parameter CL                    = 6,
+   parameter CL                    = 9,
                                      // in number of clock cycles
                                      // DDR3 SDRAM: CAS Latency (Mode Register 0).
                                      // DDR2 SDRAM: CAS Latency (Mode Register).
-   parameter CWL                   = 5,
+   parameter CWL                   = 7,
                                      // in number of clock cycles
                                      // DDR3 SDRAM: CAS Write Latency (Mode Register 2).
                                      // DDR2 SDRAM: Can be ignored
@@ -202,9 +202,9 @@ module mem_ctrl_core_axi #
    //***************************************************************************
    parameter CLKIN_PERIOD          = 2500,
                                      // Input Clock Period
-   parameter CLKFBOUT_MULT         = 2,
+   parameter CLKFBOUT_MULT         = 10,
                                      // write PLL VCO multiplier
-   parameter DIVCLK_DIVIDE         = 1,
+   parameter DIVCLK_DIVIDE         = 3,
                                      // write PLL VCO divisor
    parameter CLKOUT0_DIVIDE        = 2,
                                      // VCO output divisor for PLL output clock (CLKOUT0)
@@ -409,7 +409,7 @@ module mem_ctrl_core_axi #
    //***************************************************************************
    // System clock frequency parameters
    //***************************************************************************
-   parameter tCK                   = 2500,
+   parameter tCK                   = 1500,
                                      // memory tCK paramter.
                                      // # = Clock Period in pS.
    parameter nCK_PER_CLK           = 4,
