@@ -69,13 +69,9 @@ set _projects [ list \
       [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_switch.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/pult_buf.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk21/pult_core/mup_io.v" $_VMod ] \
-      [ list "../../../common/veresk21/pult_core/pult_io.v" $_VMod ] \
-      [ list "../../../common/veresk21/sync_u.v" $_VMod ] \
-      [ list "../../../common/veresk21/master485n.v" $_VMod ] \
-      [ list "../../../common/veresk21/edev.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/edev_buf.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk21/pult_core/pult_io_null.v" $_VMod ] \
+      [ list "../../../common/veresk21/sync_u_null.v" $_VMod ] \
+      [ list "../../../common/veresk21/edev_null.vhd" $_VHDMod ] \
       [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
       [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
       [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
@@ -116,7 +112,6 @@ set _projects [ list \
       [ list "../src/clocks.vhd" $_VHDMod ] \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/src/eth_mdio.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prom_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prom_ld_main.vhd" $_VHDMod ] \
