@@ -204,13 +204,13 @@ begin
 
 p_out_tst(7 downto 0) <= i_pma_core_status(7 downto 0);
 
-p_out_phy.link <= not p_in_phy.pin.fiber.sfp_sd;
+p_out_phy.link <= not i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_dcm_locked;
 p_out_phy.clk <= g_clk125M;
 p_out_phy.rst <= p_in_rst;
 
-p_out_phy.pin.fiber.sfp_txdis <= '0';
-i_pma_sfp_signal_detect <= p_in_phy.pin.fiber.sfp_sd;
+p_out_phy.opt(C_ETHPHY_OPTOUT_SFP_TXDIS_BIT) <= '0';
+i_pma_sfp_signal_detect <= p_in_phy.opt(C_ETHPHY_OPTIN_SFP_SD_BIT);
 --i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
 g_refclk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
@@ -218,6 +218,10 @@ g_refclk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
 i_reset <= p_in_rst;
 
 --configureatin
+--p_out_phy.pin.fiber.rs <= "00";--Rate select
+p_out_phy.pin.fiber.refclk_sel <= "01";--0/1/2/3 - 100/125/150/156.25MHz
+p_out_phy.pin.fiber.refclk_oe_n <= '0';
+
 i_mac_speed <= CONV_STD_LOGIC_VECTOR(2, i_mac_speed'length);--0/1/2 - 10/100/1000(Mb/s)
 i_mac_speed_update <= '0';
 

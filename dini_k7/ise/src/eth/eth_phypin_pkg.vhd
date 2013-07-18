@@ -28,14 +28,15 @@ constant C_GTCH_COUNT_MAX    : integer:=C_PCFG_ETH_GTCH_COUNT_MAX;
 type TEthPhyFiberPinOUT is record
 txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
-sfp_txdis : std_logic;
+refclk_sel : std_logic_vector(1 downto 0);
+refclk_oe_n : std_logic;
+rs : std_logic_vector(1 downto 0);
 end record;
 type TEthPhyFiberPinIN is record
 rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 refclk_p : std_logic;
 refclk_n : std_logic;
-sfp_sd : std_logic;
 sfp_txfault : std_logic;
 end record;
 
