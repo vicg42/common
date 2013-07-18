@@ -71,7 +71,7 @@
 
 `timescale 1ps/1ps
 
-module mig_7series_v1_6_axi_udimm_mod #
+module mem_ctrl_core_axi #
   (
 
    //***************************************************************************
@@ -108,7 +108,7 @@ module mig_7series_v1_6_axi_udimm_mod #
    parameter PAYLOAD_WIDTH         = (ECC_TEST == "OFF") ? DATA_WIDTH : DQ_WIDTH,
    parameter ECC_WIDTH             = 8,
    parameter MC_ERR_ADDR_WIDTH     = 31,
-      
+
    parameter nBANK_MACHS           = 4,
    parameter RANKS                 = 1,
                                      // # of Ranks.
@@ -195,7 +195,7 @@ module mig_7series_v1_6_axi_udimm_mod #
                                      //   = "OFF" - Components, SODIMMs, UDIMMs.
    parameter CA_MIRROR             = "OFF",
                                      // C/A mirror opt for DDR3 dual rank
-   
+
    //***************************************************************************
    // The following parameters are multiplier and divisor factors for PLLE2.
    // Based on the selected design frequency these parameters vary.
@@ -390,7 +390,7 @@ module mig_7series_v1_6_axi_udimm_mod #
    parameter REFCLK_TYPE           = "DIFFERENTIAL",
                                      // Reference clock type DIFFERENTIAL, SINGLE_ENDED,
                                      // NO_BUFFER, USE_SYSTEM_CLOCK
-      
+
    parameter CMD_PIPE_PLUS1        = "ON",
                                      // add pipeline stage between MC and PHY
    parameter DRAM_TYPE             = "DDR3",
@@ -418,7 +418,7 @@ module mig_7series_v1_6_axi_udimm_mod #
                                      // Differential Termination for System
                                      // clock input pins
 
-   
+
    //***************************************************************************
    // AXI4 Shim parameters
    //***************************************************************************
@@ -486,7 +486,7 @@ module mig_7series_v1_6_axi_udimm_mod #
    parameter DEBUG_PORT            = "OFF",
                                      // # = "ON" Enable debug signals/controls.
                                      //   = "OFF" Disable debug signals/controls.
-      
+
    parameter RST_ACT_LOW           = 1
                                      // =1 for active low reset,
                                      // =0 for active high.
@@ -523,11 +523,11 @@ module mig_7series_v1_6_axi_udimm_mod #
    //JACK:  added
    input mmcm_clk,
    input iodelay_ctrl_rdy,
-   
+
    // user interface signals
    output                                       ui_clk,
    output                                       ui_clk_sync_rst,
-   
+
    input                                        aresetn,
    input                                        app_sr_req,
    output                                       app_sr_active,
@@ -579,11 +579,11 @@ module mig_7series_v1_6_axi_udimm_mod #
    output                                       s_axi_rlast,
    output                                       s_axi_rvalid,
 
-   
-   
-   
+
+
+
    output                                       init_calib_complete,
-      
+
 
    // System reset
    input                                        sys_rst
@@ -603,10 +603,10 @@ module mig_7series_v1_6_axi_udimm_mod #
 
   localparam APP_DATA_WIDTH        = 2 * nCK_PER_CLK * PAYLOAD_WIDTH;
   localparam APP_MASK_WIDTH        = APP_DATA_WIDTH / 8;
-      
+
 
   // Wire declarations
-      
+
   wire [BM_CNT_WIDTH-1:0]           bank_mach_next;
   wire                              clk;
   wire                              clk_ref;
@@ -620,7 +620,7 @@ module mig_7series_v1_6_axi_udimm_mod #
   wire                              rst_phaser_ref;
 
   wire                              rst;
-  
+
   wire [2*nCK_PER_CLK-1:0]            app_ecc_multiple_err;
   wire                                ddr3_parity;
       // AXI CTRL port
@@ -719,7 +719,7 @@ module mig_7series_v1_6_axi_udimm_mod #
   wire [5:0]                        dbg_data_offset;
   wire [5:0]                        dbg_data_offset_1;
   wire [5:0]                        dbg_data_offset_2;
-      
+
 
 //***************************************************************************
 
@@ -727,7 +727,7 @@ module mig_7series_v1_6_axi_udimm_mod #
 
   assign ui_clk = clk;
   assign ui_clk_sync_rst = rst;
-  
+
   assign sys_clk_i = 1'b0;
   assign clk_ref_i = 1'b0;
 
@@ -1042,7 +1042,7 @@ module mig_7series_v1_6_axi_udimm_mod #
        .dbg_oclkdelay_rd_data            (dbg_oclkdelay_rd_data),
        .dbg_oclkdelay_calib_start        (dbg_oclkdelay_calib_start),
        .dbg_oclkdelay_calib_done         (dbg_oclkdelay_calib_done),
-       .dbg_dqs_found_cal                (dbg_dqs_found_cal),  
+       .dbg_dqs_found_cal                (dbg_dqs_found_cal),
        .aresetn                          (aresetn),
        .app_sr_req                       (app_sr_req),
        .app_sr_active                    (app_sr_active),
@@ -1119,7 +1119,7 @@ module mig_7series_v1_6_axi_udimm_mod #
        .init_calib_complete              (init_calib_complete)
        );
 
-      
+
 
 
 
@@ -1137,6 +1137,6 @@ module mig_7series_v1_6_axi_udimm_mod #
    assign dbg_sel_pi_incdec    = 1'b0;
    assign dbg_pi_f_inc         = 1'b0;
    assign dbg_pi_f_dec         = 1'b0;
-      
+
 
 endmodule
