@@ -46,7 +46,7 @@ end eth_phy;
 
 architecture behavioral of eth_phy is
 
-component eth_phy_fiber
+component ethg_fiber_core
 generic (
 G_ETH : TEthGeneric
 );
@@ -69,7 +69,7 @@ p_in_rst      : in    std_logic
 );
 end component;
 
-component eth_phy_copper
+component eth10g_fiber_core
 generic (
 G_ETH : TEthGeneric
 );
@@ -97,36 +97,9 @@ end component;
 begin
 
 
-gen_fiber : if cmpval(G_ETH.phy_select, C_ETH_PHY_FIBER) generate
-
-m_if : eth_phy_fiber_10g
-generic map(
-G_ETH => G_ETH
-)
-port map(
---EthPhy<->EthApp
-p_out_phy2app => p_out_phy2app,
-p_in_phy2app  => p_in_phy2app,
-
---EthPHY
-p_out_phy     => p_out_phy,
-p_in_phy      => p_in_phy,
-
---Технологический
-p_out_dbg     => p_out_dbg,
-p_in_tst      => p_in_tst,
-p_out_tst     => p_out_tst,
-
---System
-p_in_rst      => p_in_rst
-);
-
-end generate gen_fiber;
-
-
---gen_copper : if cmpval(G_ETH.phy_select, C_ETH_PHY_GMII) generate
+--gen_fiber_10g : if cmpval(G_ETH.phy_select, C_ETH_PHY_FIBER) generate
 --
---m_if : eth_phy_fiber_1g
+--m_if : eth10g_fiber_core
 --generic map(
 --G_ETH => G_ETH
 --)
@@ -148,7 +121,34 @@ end generate gen_fiber;
 --p_in_rst      => p_in_rst
 --);
 --
---end generate gen_copper;
+--end generate; --gen_fiber_10g
+
+
+--gen_fiber_1g : if cmpval(G_ETH.phy_select, C_ETH_PHY_GMII) generate
+
+m_if : ethg_fiber_core
+generic map(
+G_ETH => G_ETH
+)
+port map(
+--EthPhy<->EthApp
+p_out_phy2app => p_out_phy2app,
+p_in_phy2app  => p_in_phy2app,
+
+--EthPHY
+p_out_phy     => p_out_phy,
+p_in_phy      => p_in_phy,
+
+--Технологический
+p_out_dbg     => p_out_dbg,
+p_in_tst      => p_in_tst,
+p_out_tst     => p_out_tst,
+
+--System
+p_in_rst      => p_in_rst
+);
+
+--end generate; --gen_fiber_1g
 
 
 --END MAIN

@@ -10,6 +10,9 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.eth_pkg.all;
 
+library unisim;
+use unisim.vcomponents.all;
+
 -------------------------------------------------------------------------------
 -- Entity declaration for the example design
 -------------------------------------------------------------------------------
@@ -88,6 +91,10 @@ end component;
 
 component ethg_mac
 port (
+p_in_clk125M                : in std_logic;
+p_in_refclk                 : in std_logic;
+p_in_dcm_locked             : in std_logic;
+
 --FPGA <- ETH
 rx_axis_tdata                : out std_logic_vector(7 downto 0);
 rx_axis_tvalid               : out std_logic;
@@ -102,13 +109,7 @@ tx_axis_tlast                : in  std_logic;
 
 -- asynchronous reset
 glbl_rst                      : in  std_logic;
-
--- 200MHz clock input from board
-clk_in_p                      : in  std_logic;
-clk_in_n                      : in  std_logic;
-
 phy_resetn                    : out std_logic;
-
 
 -- GMII Interface
 gmii_txd                      : out std_logic_vector(7 downto 0);
@@ -131,26 +132,30 @@ tx_statistics_s               : out std_logic;
 rx_statistics_s               : out std_logic;
 
 -- Serialised Pause interface controls
-pause_req_s                   : in  std_logic;
+--pause_req_s                   : in  std_logic;
+pause_req                  : in  std_logic;
+pause_val                  : in  std_logic_vector(15 downto 0);
 
 -- Main example design controls
 mac_speed                     : in  std_logic_vector(1 downto 0);
 update_speed                  : in  std_logic;
-config_board                  : in  std_logic;
---serial_command                : in  std_logic;
-serial_response               : out std_logic;
-gen_tx_data                   : in  std_logic;
-chk_tx_data                   : in  std_logic;
-reset_error                   : in  std_logic;
-frame_error                   : out std_logic;
-frame_errorn                  : out std_logic;
-activity_flash                : out std_logic;
-activity_flashn               : out std_logic
+--config_board                  : in  std_logic;
+----serial_command                : in  std_logic;
+--serial_response               : out std_logic;
+--gen_tx_data                   : in  std_logic;
+--chk_tx_data                   : in  std_logic;
+reset_error                   : in  std_logic
+--frame_error                   : out std_logic;
+--frame_errorn                  : out std_logic;
+--activity_flash                : out std_logic;
+--activity_flashn               : out std_logic
 
 );
 end component;
 
-signal g_ref_clk               : std_logic;
+signal i_reset                 : std_logic;
+
+signal g_refclk                : std_logic;
 signal g_clk62_5M              : std_logic;
 signal g_clk125M               : std_logic;
 
@@ -158,6 +163,21 @@ signal i_dcm_clkout            : std_logic_vector(1 downto 0);
 signal i_dcm_clkfbout          : std_logic;
 signal i_dcm_locked            : std_logic;
 signal i_dcm_rst               : std_logic;
+
+signal i_rx_axis_tdata         : std_logic_vector(7 downto 0);
+signal i_rx_axis_tvalid        : std_logic;
+signal i_rx_axis_tready        : std_logic;
+signal i_rx_axis_tlast         : std_logic;
+
+signal i_tx_axis_tdata         : std_logic_vector(7 downto 0);
+signal i_tx_axis_tvalid        : std_logic;
+signal i_tx_axis_tready        : std_logic;
+signal i_tx_axis_tlast         : std_logic;
+
+signal i_mac_speed             : std_logic_vector(1 downto 0);
+signal i_mac_speed_update      : std_logic;
+signal i_mac_pause_val         : std_logic_vector(15 downto 0);
+signal i_mac_pause_req         : std_logic;
 
 signal i_pma_gt_txoutclk_bufg  : std_logic;
 
@@ -183,33 +203,181 @@ signal i_pma_core_clk156_out   : std_logic;
 begin
 
 p_out_tst(7 downto 0) <= i_pma_core_status(7 downto 0);
---p_out_tst(8) <= i_pma_resetdone;
---p_out_tst(9) <= i_pma_core_clk156_out;
 
 p_out_phy.link <= not p_in_phy.pin.fiber.sfp_sd;
-p_out_phy.rdy <= i_pma_resetdone;
-p_out_phy.clk <= i_pma_core_clk156_out;
+p_out_phy.rdy <= i_dcm_locked;
+p_out_phy.clk <= g_clk125M;
 p_out_phy.rst <= p_in_rst;
 
-p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'1';
+p_out_phy.pin.fiber.sfp_txdis <= '0';
 i_pma_sfp_signal_detect <= p_in_phy.pin.fiber.sfp_sd;
-i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
+--i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
-g_ref_clk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
+g_refclk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
+
+i_reset <= p_in_rst;
+
+--configureatin
+i_mac_speed <= CONV_STD_LOGIC_VECTOR(2, i_mac_speed'length);--0/1/2 - 10/100/1000(Mb/s)
+i_mac_speed_update <= '0';
+
+i_mac_pause_val <= CONV_STD_LOGIC_VECTOR(16#00#, i_mac_pause_val'length);
+i_mac_pause_req <= '0';
+
+i_pma_cfg_vector(0) <= '0';--0/1 - Normal operation / Enable Transmit irrespective of state of RX (802.3ah)/
+i_pma_cfg_vector(1) <= '0';--Loopback Control
+i_pma_cfg_vector(2) <= '0';--Power Down
+i_pma_cfg_vector(3) <= '0';--Isolate
+i_pma_cfg_vector(4) <= '0';--Auto-Negotiation Enable
 
 
-pause_val <= CONV_STD_LOGIC_VECTOR(16#00#, pause_val'length);
-pause_req <= '0';
 
-tx_ifg_delay <= CONV_STD_LOGIC_VECTOR(16#00#, tx_ifg_delay'length);
---tx_configuration_vector <= X"00000016";
---rx_configuration_vector <= X"00000016";
+--####################################################
+--AXI convertor
+--####################################################
+--FPGA <- ETH  (p_out_phy2app : out   TEthPhy2AppOUTs;)
+--p_out_phy2app(0).axirx_tdata(7 downto 0) <= i_rx_axis_tdata ;
+--p_out_phy2app(0).axirx_tvalid            <= i_rx_axis_tvalid;
+--p_out_phy2app(0).axirx_tlast             <= i_rx_axis_tlast;
+--i_rx_axis_tready <= p_in_phy2app(0).axirx_tready;
+
+p_out_phy2app(0).rxd(7 downto 0) <= i_rx_axis_tdata;      --RX_LL_DATA        : out std_logic_vector(7 downto 0);
+p_out_phy2app(0).rxsof_n         <= not i_rx_axis_tvalid; --RX_LL_SOF_N       : out std_logic;
+p_out_phy2app(0).rxeof_n         <= not i_rx_axis_tlast;  --RX_LL_EOF_N       : out std_logic;
+p_out_phy2app(0).rxsrc_rdy_n     <= not i_rx_axis_tvalid; --RX_LL_SRC_RDY_N   : out std_logic;
+p_out_phy2app(0).rxrem           <= (others=>'0');      --RX_LL_REM         : out std_logic;
+p_out_phy2app(0).rxbuf_status    <= (others=>'0');      --RX_LL_FIFO_STATUS : out std_logic_vector(3 downto 0);
+
+p_out_phy2app(0).txdst_rdy_n <= not i_tx_axis_tready;    --TX_LL_DST_RDY_N   : out std_logic;
+
+
+--FPGA -> ETH  (p_in_phy2app  : in    TEthPhy2AppINs;)
+--i_tx_axis_tdata  <= p_in_phy2app(0).axitx_tdata(7 downto 0);
+--i_tx_axis_tvalid <= p_in_phy2app(0).axitx_tvalid;
+--i_tx_axis_tlast  <= p_in_phy2app(0).axitx_tlast;
+--p_out_phy2app(0).axitx_tready <= i_tx_axis_tready;
+
+i_rx_axis_tready <= not p_in_phy2app(0).rxdst_rdy_n; --RX_LL_DST_RDY_N : in  std_logic;
+
+i_tx_axis_tdata <= p_in_phy2app(0).txd(7 downto 0);  --TX_LL_DATA
+i_tx_axis_tvalid <= not p_in_phy2app(0).txsof_n or not p_in_phy2app(0).txsrc_rdy_n;
+i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;      --TX_LL_EOF_N     : in  std_logic;
+
+
+--####################################################
+--MAC CORE
+--####################################################
+m_mac : ethg_mac
+port map(
+p_in_refclk     => g_refclk,
+p_in_clk125M    => g_clk125M,
+p_in_dcm_locked => i_dcm_locked,
+
+--FPGA <- ETH
+rx_axis_tdata   => i_rx_axis_tdata ,--p_out_phy2app(0).axirx_tdata(7 downto 0), --: out std_logic_vector(7 downto 0);
+rx_axis_tvalid  => i_rx_axis_tvalid,--p_out_phy2app(0).axirx_tvalid,            --: out std_logic;
+rx_axis_tready  => i_rx_axis_tready,--p_in_phy2app(0).axirx_tready ,            --: in  std_logic;
+rx_axis_tlast   => i_rx_axis_tlast ,--p_out_phy2app(0).axirx_tlast ,            --: out std_logic;
+
+--FPGA -> ETH
+tx_axis_tdata   => i_tx_axis_tdata ,--p_in_phy2app(0).axitx_tdata(7 downto 0), --: in  std_logic_vector(7 downto 0);
+tx_axis_tvalid  => i_tx_axis_tvalid,--p_in_phy2app(0).axitx_tvalid ,           --: in  std_logic;
+tx_axis_tready  => i_tx_axis_tready,--p_out_phy2app(0).axitx_tready,           --: out std_logic;
+tx_axis_tlast   => i_tx_axis_tlast ,--p_in_phy2app(0).axitx_tlast  ,           --: in  std_logic;
+
+
+-- asynchronous reset
+glbl_rst        => i_reset,
+phy_resetn      => open,
+
+-- GMII Interface
+gmii_txd                      => i_pma_gmii_txd    , --: out std_logic_vector(7 downto 0);
+gmii_tx_en                    => i_pma_gmii_tx_en  , --: out std_logic;
+gmii_tx_er                    => i_pma_gmii_tx_er  , --: out std_logic;
+gmii_tx_clk                   => i_pma_gmii_tx_clk , --: out std_logic;
+
+gmii_rxd                      => i_pma_gmii_rxd    , --: in  std_logic_vector(7 downto 0);
+gmii_rx_dv                    => i_pma_gmii_rx_dv  , --: in  std_logic;
+gmii_rx_er                    => i_pma_gmii_rx_er  , --: in  std_logic;
+gmii_rx_clk                   => i_pma_gmii_rx_clk , --: in  std_logic;
+
+gmii_col                      => '0',--: in  std_logic;
+gmii_crs                      => '0',--: in  std_logic;
+mii_tx_clk                    => i_pma_gmii_rx_clk ,--: in  std_logic;
+
+-- Serialised statistics vectors
+tx_statistics_s               => open,--: out std_logic;
+rx_statistics_s               => open,--: out std_logic;
+
+-- Serialised Pause interface controls
+--pause_req_s                   => '0',
+pause_req                     => i_mac_pause_req,
+pause_val                     => i_mac_pause_val,
+
+-- Main example design controls
+mac_speed                     => i_mac_speed,
+update_speed                  => i_mac_speed_update,
+--config_board                  : in  std_logic;
+----serial_command                : in  std_logic;
+--serial_response               : out std_logic;
+--gen_tx_data                   : in  std_logic;
+--chk_tx_data                   : in  std_logic;
+reset_error                   => '0'
+--frame_error                   : out std_logic;
+--frame_errorn                  : out std_logic;
+--activity_flash                : out std_logic;
+--activity_flashn               : out std_logic
+);
 
 
 
+--####################################################
+--PMA CORE
+--####################################################
+m_pma : ethg_pma
+generic map(
+G_SIM => 0
+)
+port map(
+gt_txoutclk_bufg    => i_pma_gt_txoutclk_bufg,
+gt_userclk_bufg     => g_clk62_5M,
+gt_userclk2_bufg    => g_clk125M,
+gt_resetdone        => i_pma_resetdone,
+dcm_locked          => i_dcm_locked,
 
-reset <= p_in_rst;
-aresetn <= not reset;
+-- An independent clock source used as the reference clock for an
+-- IDELAYCTRL (if present) and for the main GT transceiver reset logic.
+-- This example design assumes that this is of frequency 200MHz.
+independent_clock    => g_refclk, --: in std_logic;
+
+-- Tranceiver Interface
+gtrefclk_p           => p_in_phy.pin.fiber.refclk_p,--125MHz, very high quality
+gtrefclk_n           => p_in_phy.pin.fiber.refclk_n,--125MHz, very high quality
+txp                  => p_out_phy.pin.fiber.txp(0) ,
+txn                  => p_out_phy.pin.fiber.txn(0) ,
+rxp                  => p_in_phy.pin.fiber.rxp(0)  ,
+rxn                  => p_in_phy.pin.fiber.rxn(0)  ,
+
+-- GMII Interface (client MAC <=> PCS)
+gmii_tx_clk          => i_pma_gmii_tx_clk, --: in std_logic;
+gmii_txd             => i_pma_gmii_txd   , --: in std_logic_vector(7 downto 0);
+gmii_tx_en           => i_pma_gmii_tx_en , --: in std_logic;
+gmii_tx_er           => i_pma_gmii_tx_er , --: in std_logic;
+
+gmii_rx_clk          => i_pma_gmii_rx_clk, --: out std_logic;
+gmii_rxd             => i_pma_gmii_rxd   , --: out std_logic_vector(7 downto 0);
+gmii_rx_dv           => i_pma_gmii_rx_dv , --: out std_logic;
+gmii_rx_er           => i_pma_gmii_rx_er , --: out std_logic;
+
+-- Management: Alternative to MDIO Interface
+configuration_vector => i_pma_cfg_vector,       --: in std_logic_vector(4 downto 0);
+
+-- General IO's
+status_vector        => i_pma_core_status,      --: out std_logic_vector(15 downto 0); -- Core status.
+reset                => i_reset,                --: in std_logic;                     -- Asynchronous reset for entire core.
+signal_detect        => i_pma_sfp_signal_detect --: in std_logic                      -- Input from PMD to indicate presence of optical input.
+);
+
 
 
 --####################################################
@@ -288,7 +456,7 @@ PWRDWN               => '0',
 RST                  => i_dcm_rst
 );
 
-i_dcm_rst <= reset or (not i_pma_resetdone);
+i_dcm_rst <= i_reset or (not i_pma_resetdone);
 
 -- This 62.5MHz clock is placed onto global clock routing and is then used
 -- for tranceiver TXUSRCLK/RXUSRCLK.
@@ -297,125 +465,6 @@ m_bufg_62_5M: BUFG port map (I => i_dcm_clkout(1), O  => g_clk62_5M);
 -- This 125MHz clock is placed onto global clock routing and is then used
 -- to clock all Ethernet core logic.
 m_bufg_125M : BUFG port map (I => i_dcm_clkout(0), O  => g_clk125M);
-
-
-
---####################################################
---MAC CORE
---####################################################
-m_mac : ethg_mac
-port map(
---FPGA <- ETH
-rx_axis_tdata   => p_out_phy2app(0).axirx_tdata(7 downto 0), --: out std_logic_vector(7 downto 0);
-rx_axis_tvalid  => p_out_phy2app(0).axirx_tvalid,            --: out std_logic;
-rx_axis_tready  => p_in_phy2app(0).axirx_tready ,            --: in  std_logic;
-rx_axis_tlast   => p_out_phy2app(0).axirx_tlast ,            --: out std_logic;
-
---FPGA -> ETH
-tx_axis_tdata   => p_in_phy2app(0).axitx_tdata(7 downto 0), --: in  std_logic_vector(7 downto 0);
-tx_axis_tvalid  => p_in_phy2app(0).axitx_tvalid ,           --: in  std_logic;
-tx_axis_tready  => p_out_phy2app(0).axitx_tready,           --: out std_logic;
-tx_axis_tlast   => p_in_phy2app(0).axitx_tlast  ,           --: in  std_logic;
-
-
--- asynchronous reset
-glbl_rst                      : in  std_logic;
-
--- 200MHz clock input from board
-clk_in_p                      : in  std_logic;
-clk_in_n                      : in  std_logic;
-
-phy_resetn                    : out std_logic;
-
--- GMII Interface
-gmii_txd                      => i_pma_gmii_txd    , --: out std_logic_vector(7 downto 0);
-gmii_tx_en                    => i_pma_gmii_tx_en  , --: out std_logic;
-gmii_tx_er                    => i_pma_gmii_tx_er  , --: out std_logic;
-gmii_tx_clk                   => i_pma_gmii_tx_clk , --: out std_logic;
-gmii_rxd                      => i_pma_gmii_rxd    , --: in  std_logic_vector(7 downto 0);
-gmii_rx_dv                    => i_pma_gmii_rx_dv  , --: in  std_logic;
-gmii_rx_er                    => i_pma_gmii_rx_er  , --: in  std_logic;
-gmii_rx_clk                   => i_pma_gmii_rx_clk , --: in  std_logic;
-gmii_col                      => '0',--: in  std_logic;
-gmii_crs                      => '0',--: in  std_logic;
-mii_tx_clk                    => i_pma_gmii_rx_clk ,--: in  std_logic;
-
--- Serialised statistics vectors
-tx_statistics_s               => open,--: out std_logic;
-rx_statistics_s               => open,--: out std_logic;
-
--- Serialised Pause interface controls
-pause_req_s                   => '0',--: in  std_logic;
-
--- Main example design controls
-mac_speed                     : in  std_logic_vector(1 downto 0);
-update_speed                  : in  std_logic;
-config_board                  : in  std_logic;
---serial_command                : in  std_logic;
-serial_response               : out std_logic;
-gen_tx_data                   : in  std_logic;
-chk_tx_data                   : in  std_logic;
-reset_error                   : in  std_logic;
-frame_error                   : out std_logic;
-frame_errorn                  : out std_logic;
-activity_flash                : out std_logic;
-activity_flashn               : out std_logic
-);
-
-
-
---####################################################
---PMA CORE
---####################################################
-i_pma_cfg_vector(0) <= '0';--0/1 - Normal operation / Enable Transmit irrespective of state of RX (802.3ah)/
-i_pma_cfg_vector(1) <= '0';--Loopback Control
-i_pma_cfg_vector(2) <= '0';--Power Down
-i_pma_cfg_vector(3) <= '0';--Isolate
-i_pma_cfg_vector(4) <= '0';--Auto-Negotiation Enable
-
-pma : ethg_pma
-generic(
-G_SIM => '0'
-)
-port map(
-gt_txoutclk_bufg    => i_pma_gt_txoutclk_bufg,
-gt_userclk_bufg     => g_clk62_5M,
-gt_userclk2_bufg    => g_clk125M,
-gt_resetdone        => i_pma_resetdone,
-dcm_locked          => i_dcm_locked,
-
--- An independent clock source used as the reference clock for an
--- IDELAYCTRL (if present) and for the main GT transceiver reset logic.
--- This example design assumes that this is of frequency 200MHz.
-independent_clock    => g_ref_clk, --: in std_logic;
-
--- Tranceiver Interface
-gtrefclk_p           => p_in_phy.pin.fiber.refclk_p,--125MHz, very high quality
-gtrefclk_n           => p_in_phy.pin.fiber.refclk_n,--125MHz, very high quality
-txp                  => p_out_phy.pin.fiber.txp(0) ,
-txn                  => p_out_phy.pin.fiber.txn(0) ,
-rxp                  => p_in_phy.pin.fiber.rxp(0)  ,
-rxn                  => p_in_phy.pin.fiber.rxn(0)  ,
-
--- GMII Interface (client MAC <=> PCS)
-gmii_tx_clk          => i_pma_gmii_tx_clk, --: in std_logic;
-gmii_txd             => i_pma_gmii_txd   , --: in std_logic_vector(7 downto 0);
-gmii_tx_en           => i_pma_gmii_tx_en , --: in std_logic;
-gmii_tx_er           => i_pma_gmii_tx_er , --: in std_logic;
-
-gmii_rx_clk          => i_pma_gmii_rx_clk, --: out std_logic;
-gmii_rxd             => i_pma_gmii_rxd   , --: out std_logic_vector(7 downto 0);
-gmii_rx_dv           => i_pma_gmii_rx_dv , --: out std_logic;
-gmii_rx_er           => i_pma_gmii_rx_er , --: out std_logic;
-
--- Management: Alternative to MDIO Interface
-configuration_vector => i_pma_cfg_vector,       --: in std_logic_vector(4 downto 0);
-
--- General IO's
-status_vector        => i_pma_core_status,      --: out std_logic_vector(15 downto 0); -- Core status.
-reset                => reset            ,      --: in std_logic;                     -- Asynchronous reset for entire core.
-signal_detect        => i_pma_sfp_signal_detect --: in std_logic                      -- Input from PMD to indicate presence of optical input.
-);
 
 
 end top_level;

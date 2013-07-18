@@ -117,24 +117,45 @@ end record;
 -------------------------------------
 --EthPHY<->EthApp
 -------------------------------------
-type TEthPhy2AppIN is record
-axirx_tready : std_logic;
-
-axitx_tdata  : std_logic_vector(63 downto 0);
-axitx_tkeep  : std_logic_vector(7 downto 0);
-axitx_tvalid : std_logic;
-axitx_tlast  : std_logic;
-
-axitx_tuser  : std_logic;
-end record;
+--type TEthPhy2AppIN is record
+--axirx_tready : std_logic;
+--
+--axitx_tdata  : std_logic_vector(63 downto 0);
+--axitx_tkeep  : std_logic_vector(7 downto 0);
+--axitx_tvalid : std_logic;
+--axitx_tlast  : std_logic;
+--
+--axitx_tuser  : std_logic;
+--end record;
+--
+--type TEthPhy2AppOUT is record
+--axirx_tdata  : std_logic_vector(63 downto 0);
+--axirx_tkeep  : std_logic_vector(7 downto 0);
+--axirx_tvalid : std_logic;
+--axirx_tlast  : std_logic;
+--
+--axitx_tready : std_logic;
+--end record;
 
 type TEthPhy2AppOUT is record
-axirx_tdata  : std_logic_vector(63 downto 0);
-axirx_tkeep  : std_logic_vector(7 downto 0);
-axirx_tvalid : std_logic;
-axirx_tlast  : std_logic;
+rxd         : std_logic_vector(15 downto 0);--RX_LL_DATA        : out std_logic_vector(7 downto 0);
+rxsof_n     : std_logic;                    --RX_LL_SOF_N       : out std_logic;
+rxeof_n     : std_logic;                    --RX_LL_EOF_N       : out std_logic;
+rxsrc_rdy_n : std_logic;                    --RX_LL_SRC_RDY_N   : out std_logic;
+rxrem       : std_logic_vector(0 downto 0); --RX_LL_REM         : out std_logic;
+rxbuf_status: std_logic_vector(3 downto 0); --RX_LL_FIFO_STATUS : out std_logic_vector(3 downto 0);
 
-axitx_tready : std_logic;
+txdst_rdy_n : std_logic;                    --TX_LL_DST_RDY_N   : out std_logic;
+end record;
+
+type TEthPhy2AppIN is record
+rxdst_rdy_n : std_logic;                    --RX_LL_DST_RDY_N : in  std_logic;
+
+txd         : std_logic_vector(15 downto 0);--TX_LL_DATA      : in  std_logic_vector(7 downto 0);
+txsof_n     : std_logic;                    --TX_LL_SOF_N     : in  std_logic;
+txeof_n     : std_logic;                    --TX_LL_EOF_N     : in  std_logic;
+txsrc_rdy_n : std_logic;                    --TX_LL_SRC_RDY_N : in  std_logic;
+txrem       : std_logic_vector(0 downto 0); --TX_LL_REM       : in  std_logic;
 end record;
 
 type TEthPhy2AppOUTs is array (0 to 0) of TEthPhy2AppOUT;

@@ -48,12 +48,12 @@ signal i_eth_clk     : std_logic;
 
 begin
 
---m_buf : IBUFDS port map(I  => p_in_clk.clk_p, IB => p_in_clk.clk_n, O => i_pll_clkin);--200MHz
---bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
+m_buf : IBUFDS port map(I  => p_in_clk.clk_p(0), IB => p_in_clk.clk_n(0), O => i_pll_clkin);--200MHz
+bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
 
-process(p_in_clk.clk)
+process(g_pll_clkin)
 begin
-  if rising_edge(p_in_clk.clk) then
+  if rising_edge(g_pll_clkin) then
     if i_pll_rst_cnt = "00000" then
       i_pll_rst <= '0';
     else
@@ -63,21 +63,21 @@ begin
   end if;
 end process;
 
--- Reference clock MMCM (CLKFBOUT range 600 MHz to 1200 MHz)
+-- Reference clock MMCM (CLKFBOUT range 600.00 MHz to 1440.00 MHz)
 -- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F
 -- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F/CLKOUTn_DIVIDE
--- CLKFBOUT = (100 MHz/2) * 16.000       = 800 MHz
--- CLKOUT0  = (100 MHz/2) * 16.000/6.400 = 125 MHz
--- CLKOUT1  = (100 MHz/2) * 16.000/4     = 200 MHz
--- CLKOUT2  = (100 MHz/2) * 16.000/2     = 400 MHz
--- CLKOUT3  = (100 MHz/2) * 16.000/8     = 100 MHz
--- CLKOUT4  = (100 MHz/2) * 16.000/25    = 32 MHz
+-- CLKFBOUT = (200 MHz/4) * 16.000       = 800 MHz
+-- CLKOUT0  = (200 MHz/4) * 16.000/6.400 = 125 MHz
+-- CLKOUT1  = (200 MHz/4) * 16.000/4     = 200 MHz
+-- CLKOUT2  = (200 MHz/4) * 16.000/2     = 400 MHz
+-- CLKOUT3  = (200 MHz/4) * 16.000/8     = 100 MHz
+-- CLKOUT4  = (200 MHz/4) * 16.000/25    = 32 MHz
 
-mmcm_ref_clk_i : MMCM_BASE
+mmcm_ref_clk_i : MMCME2_BASE
 generic map(
 BANDWIDTH          => "OPTIMIZED", -- string := "OPTIMIZED"
-CLKIN1_PERIOD      => 10.000,       -- real := 0.0
-DIVCLK_DIVIDE      => 2,           -- integer := 1 (1 to 128)
+CLKIN1_PERIOD      => 5.000,       -- real := 0.0
+DIVCLK_DIVIDE      => 4,           -- integer := 1 (1 to 128)
 CLKFBOUT_MULT_F    => 16.000,      -- real := 1.0  (5.0 to 64.0)
 CLKOUT0_DIVIDE_F   => 6.400,       -- real := 1.0  (1.0 to 128.0)
 CLKOUT1_DIVIDE     => 4,           -- integer := 1
@@ -131,12 +131,11 @@ g_clk_fb(0) <= i_clk_fb(0);
 -- Generate asynchronous reset
 p_out_rst <= not(AND_reduce(i_pll_locked));
 
---p_out_gclk(0)<=p_in_clk.clk;
-bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
+p_out_gclk(0)<=g_pll_clkin;--200MHz
 bufg_clk1: BUFG port map(I => i_clk_out(2), O => p_out_gclk(1)); --400MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
-                                                 p_out_gclk(4)<=i_eth_clk; --125MHz
+                                                 p_out_gclk(4)<='0'; --125MHz
 bufg_clk5: BUFG port map(I => i_clk_out(5), O => p_out_gclk(5));--32MHz
 --                                               p_out_gclk(6));--зарезервировано!!!
 p_out_gclk(7) <= p_in_clk.clk;--100MHz
@@ -149,19 +148,7 @@ O     => i_clk_out(4),
 ODIV2 => open
 );
 
-gen_eth_fiber : if C_PCFG_ETH_PHY_SEL=C_ETH_PHY_FIBER generate
-m_buf_fiber : IBUFDS_GTXE1 port map (
-I     => p_in_clk.fiber_clk_p,
-IB    => p_in_clk.fiber_clk_n,
-CEB   => '0',
-O     => i_eth_clk,
-ODIV2 => open
-);
-end generate gen_eth_fiber;
 
-gen_eth_copper : if C_PCFG_ETH_PHY_SEL/=C_ETH_PHY_FIBER generate
-i_eth_clk <= i_clk_out(0);
-end generate gen_eth_copper;
 
 
 end;

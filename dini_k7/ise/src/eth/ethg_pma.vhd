@@ -601,7 +601,7 @@ gmii_tx_clk_bufr <= gmii_tx_clk;
 --         INC          => '0',
 --         RST          => '0'
 --      );
-gmii_txd_delay(I) <= gmii_txd(I)
+gmii_txd_delay(I) <= gmii_txd(I);
    end generate;
 
 

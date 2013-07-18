@@ -90,6 +90,29 @@ set _projects [ list \
       [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/eth/ethg_fiber_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/fifo/ethg_mac_core_tx_client_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/fifo/ethg_mac_core_rx_client_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/fifo/ethg_mac_core_ten_100_1g_eth_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/common/ethg_mac_core_reset_sync.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/common/ethg_mac_core_sync_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/ethg_mac_core_gmii_if.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/ethg_mac_core_tx_clk_gen.vhd" $_VHDMod ] \
+      [ list "../src/eth/ethg_mac_core_config_vector_sm.vhd" $_VHDMod ] \
+      [ list "../src/eth/ethg_mac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_mac_core/example_design/ethg_mac_core_fifo_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/ethg_mac.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_sync_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_reset_sync.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard_gt.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_tx_startup_fsm.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_rx_startup_fsm.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard_init.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_transceiver.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_tx_elastic_buffer.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/ethg_pma.vhd" $_VHDMod ] \
       [ list "../src/clocks.vhd" $_VHDMod ] \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi.vhd" $_VHDMod ] \

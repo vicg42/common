@@ -17,11 +17,10 @@ use ieee.std_logic_1164.all;
 package clocks_pkg is
 
 type TRefClkPinIN is record
-clk   : std_logic;
+clk_p : std_logic_vector(0 downto 0);
+clk_n : std_logic_vector(0 downto 0);
 pciexp_clk_p : std_logic;
 pciexp_clk_n : std_logic;
-fiber_clk_p  : std_logic;
-fiber_clk_n  : std_logic;
 end record;
 
 end clocks_pkg;

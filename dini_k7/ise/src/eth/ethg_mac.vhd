@@ -135,6 +135,10 @@ use ieee.numeric_std.all;
 
 entity ethg_mac is
     port (
+      p_in_clk125M                : in std_logic;
+      p_in_refclk                 : in std_logic;
+      p_in_dcm_locked             : in std_logic;
+
       --FPGA <- ETH
       rx_axis_tdata                : out std_logic_vector(7 downto 0);
       rx_axis_tvalid               : out std_logic;
@@ -151,9 +155,9 @@ entity ethg_mac is
       -- asynchronous reset
       glbl_rst                      : in  std_logic;
 
-      -- 200MHz clock input from board
-      clk_in_p                      : in  std_logic;
-      clk_in_n                      : in  std_logic;
+--      -- 200MHz clock input from board
+--      clk_in_p                      : in  std_logic;
+--      clk_in_n                      : in  std_logic;
 
       phy_resetn                    : out std_logic;
 
@@ -195,7 +199,7 @@ entity ethg_mac is
 --      serial_response               : out std_logic;
 --      gen_tx_data                   : in  std_logic;
 --      chk_tx_data                   : in  std_logic;
-      reset_error                   : in  std_logic;
+      reset_error                   : in  std_logic
 --      frame_error                   : out std_logic;
 --      frame_errorn                  : out std_logic;
 --      activity_flash                : out std_logic;
@@ -452,9 +456,9 @@ architecture wrapper of ethg_mac is
    signal tx_stats_shift                    : std_logic_vector(33 downto 0);
 
    -- Pause interface DESerialisation
---   signal pause_shift                       : std_logic_vector(17 downto 0);
-   signal pause_req                         : std_logic;
-   signal pause_val                         : std_logic_vector(15 downto 0);
+----   signal pause_shift                       : std_logic_vector(17 downto 0);
+--   signal pause_req                         : std_logic;
+--   signal pause_val                         : std_logic_vector(15 downto 0);
 
    signal rx_configuration_vector           : std_logic_vector(79 downto 0);
    signal tx_configuration_vector           : std_logic_vector(79 downto 0);
@@ -511,23 +515,26 @@ begin
 --
 --   serial_response <= '0';
 
-   ------------------------------------------------------------------------------
-   -- Clock logic to generate required clocks from the 200MHz on board
-   -- if 125MHz is available directly this can be removed
-   ------------------------------------------------------------------------------
-   clock_generator : ethg_mac_core_clk_wiz
-   port map (
-      -- Clock in ports
-      CLK_IN1_P         => clk_in_p,
-      CLK_IN1_N         => clk_in_n,
-      -- Clock out ports
-      CLK_OUT1          => gtx_clk_bufg,
-      CLK_OUT2          => s_axi_aclk,
-      CLK_OUT3          => refclk_bufg,
-      -- Status and control signals
-      RESET             => glbl_rst,
-      LOCKED            => dcm_locked
-   );
+--   ------------------------------------------------------------------------------
+--   -- Clock logic to generate required clocks from the 200MHz on board
+--   -- if 125MHz is available directly this can be removed
+--   ------------------------------------------------------------------------------
+--   clock_generator : ethg_mac_core_clk_wiz
+--   port map (
+--      -- Clock in ports
+--      CLK_IN1_P         => clk_in_p,
+--      CLK_IN1_N         => clk_in_n,
+--      -- Clock out ports
+--      CLK_OUT1          => gtx_clk_bufg,
+--      CLK_OUT2          => s_axi_aclk,
+--      CLK_OUT3          => refclk_bufg,
+--      -- Status and control signals
+--      RESET             => glbl_rst,
+--      LOCKED            => dcm_locked
+--   );
+dcm_locked <= p_in_dcm_locked;
+gtx_clk_bufg <= p_in_clk125M;
+refclk_bufg <= p_in_refclk;
 
    -----------------
    -- global reset
