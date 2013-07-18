@@ -513,16 +513,10 @@ module mem_ctrl_core_axi #
    output [ODT_WIDTH-1:0]                       ddr3_odt,
 
    // Inputs
-   // Differential system clocks
-   input                                        sys_clk_p,
-   input                                        sys_clk_n,
-   // differential iodelayctrl clk (reference clock)
-   input                                        clk_ref_p,
-   input                                        clk_ref_n,
-
-   //JACK:  added
-   input mmcm_clk,
-   input iodelay_ctrl_rdy,
+   // Single-ended system clock
+   input                                        sys_clk_i,
+   // Single-ended iodelayctrl clk (reference clock)
+   input                                        clk_ref_i,
 
    // user interface signals
    output                                       ui_clk,
@@ -648,9 +642,9 @@ module mem_ctrl_core_axi #
   // Interrupt output
   wire                              interrupt;
 
-  wire                              sys_clk_i;
-//  wire                              mmcm_clk;
-  wire                              clk_ref_i;
+//  wire                              sys_clk_i;
+  wire                              mmcm_clk;
+//  wire                              clk_ref_i;
 
   // Debug port signals
   wire                              dbg_idel_down_all;
@@ -728,11 +722,15 @@ module mem_ctrl_core_axi #
   assign ui_clk = clk;
   assign ui_clk_sync_rst = rst;
 
-  assign sys_clk_i = 1'b0;
-  assign clk_ref_i = 1'b0;
+//  assign sys_clk_i = 1'b0;
+//  assign clk_ref_i = 1'b0;
+  assign sys_clk_p = 1'b0;
+  assign sys_clk_n = 1'b0;
+  assign clk_ref_p = 1'b0;
+  assign clk_ref_n = 1'b0;
 
    //JACK:  commented out
-/*
+
   generate
     if (REFCLK_TYPE == "USE_SYSTEM_CLOCK")
       assign clk_ref_in = mmcm_clk;
@@ -772,7 +770,7 @@ module mem_ctrl_core_axi #
        .sys_clk_i        (sys_clk_i),
        .mmcm_clk         (mmcm_clk)
        );
-*/
+
   infrastructure #
     (
      .TCQ                (TCQ),
