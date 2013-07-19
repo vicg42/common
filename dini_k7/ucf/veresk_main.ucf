@@ -391,10 +391,7 @@ INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_i
 INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y8;
 INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y7;
 
-
 INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/rclk_buf" LOC=BUFIO_X1Y5;
-
-
 
 INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y3;
 INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y2;
@@ -427,7 +424,6 @@ INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y0;
 INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y1;
 INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y2;
 
-
 INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y43;
 INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y31;
 INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y19;
@@ -437,7 +433,6 @@ INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte
 INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y119;
 INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y107;
 INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y93;
-
 
 INST "udimm_inst/u_infrastructure/mmcm_i" LOC=MMCME2_ADV_X1Y1;
 
