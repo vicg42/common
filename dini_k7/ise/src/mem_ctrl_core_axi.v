@@ -1,5 +1,5 @@
 //*****************************************************************************
-// (c) Copyright 2009 - 2010 Xilinx, Inc. All rights reserved.
+// (c) Copyright 2009 - 2013 Xilinx, Inc. All rights reserved.
 //
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -49,10 +49,10 @@
 //   ____  ____
 //  /   /\/   /
 // /___/  \  /    Vendor             : Xilinx
-// \   \   \/     Version            : 1.6
+// \   \   \/     Version            : 1.9
 //  \   \         Application        : MIG
-//  /   /         Filename           : mig_7series_v1_6_axi_udimm.v
-// /___/   /\     Date Last Modified : $Date: 2012/09/14 00:18:50 $
+//  /   /         Filename           : mem_ctrl_core_axi.v
+// /___/   /\     Date Last Modified : $Date: 2011/06/02 08:35:03 $
 // \   \  /  \    Date Created       : Tue Sept 21 2010
 //  \___\/\___\
 //
@@ -74,6 +74,7 @@
 module mem_ctrl_core_axi #
   (
 
+
    //***************************************************************************
    // The following parameters refer to width of various ports
    //***************************************************************************
@@ -90,11 +91,9 @@ module mem_ctrl_core_axi #
    parameter CKE_WIDTH             = 1,
                                      // # of CKE outputs to memory.
    parameter DATA_BUF_ADDR_WIDTH   = 5,
-   parameter DQ_CNT_WIDTH          = 6,
+   parameter DQ_CNT_WIDTH          = 7,
                                      // = ceil(log2(DQ_WIDTH))
    parameter DQ_PER_DM             = 8,
-   parameter DM_WIDTH              = 9,
-                                     // # of DM (data mask)
    parameter DQ_WIDTH              = 72,
                                      // # of DQ (data)
    parameter DQS_WIDTH             = 9,
@@ -102,13 +101,15 @@ module mem_ctrl_core_axi #
                                      // = ceil(log2(DQS_WIDTH))
    parameter DRAM_WIDTH            = 8,
                                      // # of DQ per DQS
-   parameter ECC                   = "OFF",
+   parameter ECC                   = "ON",
    parameter DATA_WIDTH            = 64,
    parameter ECC_TEST              = "OFF",
    parameter PAYLOAD_WIDTH         = (ECC_TEST == "OFF") ? DATA_WIDTH : DQ_WIDTH,
    parameter ECC_WIDTH             = 8,
    parameter MC_ERR_ADDR_WIDTH     = 31,
-
+   parameter MEM_ADDR_ORDER
+     = "BANK_ROW_COLUMN",
+      
    parameter nBANK_MACHS           = 4,
    parameter RANKS                 = 1,
                                      // # of Ranks.
@@ -116,7 +117,7 @@ module mem_ctrl_core_axi #
                                      // # of ODT outputs to memory.
    parameter ROW_WIDTH             = 15,
                                      // # of memory Row Address bits.
-   parameter ADDR_WIDTH            = 30,
+   parameter ADDR_WIDTH            = 29,
                                      // # = RANK_WIDTH + BANK_WIDTH
                                      //     + ROW_WIDTH + COL_WIDTH;
                                      // Chip Select is always tied to low for
@@ -126,7 +127,7 @@ module mem_ctrl_core_axi #
                                      //   = 0, When Chip Select (CS#) output is disabled
                                      // If CS_N disabled, user must connect
                                      // DRAM CS_N input(s) to ground
-   parameter USE_DM_PORT           = 1,
+   parameter USE_DM_PORT           = 0,
                                      // # = 1, When Data Mask option is enabled
                                      //   = 0, When Data Mask option is disbaled
                                      // When Data Mask option is disabled in
@@ -136,9 +137,22 @@ module mem_ctrl_core_axi #
    parameter USE_ODT_PORT          = 1,
                                      // # = 1, When ODT output is enabled
                                      //   = 0, When ODT output is disabled
+                                     // Parameter configuration for Dynamic ODT support:
+                                     // USE_ODT_PORT = 0, RTT_NOM = "DISABLED", RTT_WR = "60/120".
+                                     // This configuration allows to save ODT pin mapping from FPGA.
+                                     // The user can tie the ODT input of DRAM to HIGH.
    parameter PHY_CONTROL_MASTER_BANK = 1,
                                      // The bank index where master PHY_CONTROL resides,
                                      // equal to the PLL residing bank
+   parameter MEM_DENSITY           = "2Gb",
+                                     // Indicates the density of the Memory part
+                                     // Added for the sake of Vivado simulations
+   parameter MEM_SPEEDGRADE        = "125",
+                                     // Indicates the Speed grade of Memory Part
+                                     // Added for the sake of Vivado simulations
+   parameter MEM_DEVICE_WIDTH      = 8,
+                                     // Indicates the device width of the Memory Part
+                                     // Added for the sake of Vivado simulations
 
    //***************************************************************************
    // The following parameters are mode register settings
@@ -172,8 +186,6 @@ module mem_ctrl_core_axi #
                                      // in number of clock cycles
                                      // DDR3 SDRAM: CAS Write Latency (Mode Register 2).
                                      // DDR2 SDRAM: Can be ignored
-   parameter DDR2_DQSN_ENABLE      = "YES",
-                                     // Enable differential DQS for DDR2
    parameter OUTPUT_DRV            = "HIGH",
                                      // Output Driver Impedance Control (Mode Register 1).
                                      // # = "HIGH" - RZQ/7,
@@ -195,7 +207,7 @@ module mem_ctrl_core_axi #
                                      //   = "OFF" - Components, SODIMMs, UDIMMs.
    parameter CA_MIRROR             = "OFF",
                                      // C/A mirror opt for DDR3 dual rank
-
+   
    //***************************************************************************
    // The following parameters are multiplier and divisor factors for PLLE2.
    // Based on the selected design frequency these parameters vary.
@@ -206,6 +218,8 @@ module mem_ctrl_core_axi #
                                      // write PLL VCO multiplier
    parameter DIVCLK_DIVIDE         = 3,
                                      // write PLL VCO divisor
+   parameter CLKOUT0_PHASE         = 337.5,
+                                     // Phase for PLL output clock (CLKOUT0)
    parameter CLKOUT0_DIVIDE        = 2,
                                      // VCO output divisor for PLL output clock (CLKOUT0)
    parameter CLKOUT1_DIVIDE        = 2,
@@ -219,27 +233,27 @@ module mem_ctrl_core_axi #
    // Memory Timing Parameters. These parameters varies based on the selected
    // memory part.
    //***************************************************************************
-   parameter tCKE                  = 15000,
+   parameter tCKE                  = 5000,
                                      // memory tCKE paramter in pS
-   parameter tFAW                  = 50000,
+   parameter tFAW                  = 30000,
                                      // memory tRAW paramter in pS.
    parameter tPRDI                 = 1_000_000,
                                      // memory tPRDI paramter in pS.
-   parameter tRAS                  = 36000,
+   parameter tRAS                  = 35000,
                                      // memory tRAS paramter in pS.
-   parameter tRCD                  = 14000,
+   parameter tRCD                  = 13125,
                                      // memory tRCD paramter in pS.
    parameter tREFI                 = 7800000,
                                      // memory tREFI paramter in pS.
-   parameter tRFC                  = 300000,
+   parameter tRFC                  = 160000,
                                      // memory tRFC paramter in pS.
-   parameter tRP                   = 14000,
+   parameter tRP                   = 13125,
                                      // memory tRP paramter in pS.
-   parameter tRRD                  = 18000,
+   parameter tRRD                  = 6000,
                                      // memory tRRD paramter in pS.
-   parameter tRTP                  = 18000,
+   parameter tRTP                  = 7500,
                                      // memory tRTP paramter in pS.
-   parameter tWTR                  = 18000,
+   parameter tWTR                  = 7500,
                                      // memory tWTR paramter in pS.
    parameter tZQI                  = 128_000_000,
                                      // memory tZQI paramter in nS.
@@ -300,15 +314,15 @@ module mem_ctrl_core_axi #
                                      // or control Byte lane. '1' in a bit
                                      // position indicates a data byte lane and
                                      // a '0' indicates a control byte lane
-   parameter PHY_0_BITLANES        = 48'h3FE_3FE_3FE_2FF,
-   parameter PHY_1_BITLANES        = 48'h3FE_FFF_FDD_EFF,
-   parameter PHY_2_BITLANES        = 48'h3FE_3FE_3FE_2FF,
+   parameter PHY_0_BITLANES        = 48'h1FE_1FB_3EE_2BF,
+   parameter PHY_1_BITLANES        = 48'h37E_FFF_0CD_2BE,
+   parameter PHY_2_BITLANES        = 48'h3EE_37E_3F6_27F,
 
    // control/address/data pin mapping parameters
    parameter CK_BYTE_MAP
      = 144'h00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_10,
    parameter ADDR_MAP
-     = 192'h114_12B_126_12A_123_120_128_129_121_124_127_122_125_113_116_117,
+     = 192'h000_12B_126_12A_123_120_128_129_121_124_127_122_125_113_116_117,
    parameter BANK_MAP   = 36'h112_110_103,
    parameter CAS_MAP    = 12'h101,
    parameter CKE_ODT_BYTE_MAP = 8'h00,
@@ -325,10 +339,10 @@ module mem_ctrl_core_axi #
    parameter DATA2_MAP  = 96'h215_217_216_219_218_212_214_211,
    parameter DATA3_MAP  = 96'h200_201_204_205_206_209_202_203,
    parameter DATA4_MAP  = 96'h033_036_035_034_032_031_037_038,
-   parameter DATA5_MAP  = 96'h025_021_026_028_022_023_027_024,
+   parameter DATA5_MAP  = 96'h025_021_026_028_020_023_027_024,
    parameter DATA6_MAP  = 96'h012_011_017_016_015_013_018_019,
    parameter DATA7_MAP  = 96'h004_001_000_007_002_003_009_005,
-   parameter DATA8_MAP  = 96'h134_136_135_139_137_138_132_131,
+   parameter DATA8_MAP  = 96'h136_134_135_131_133_132_138_139,
    parameter DATA9_MAP  = 96'h000_000_000_000_000_000_000_000,
    parameter DATA10_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA11_MAP = 96'h000_000_000_000_000_000_000_000,
@@ -338,15 +352,13 @@ module mem_ctrl_core_axi #
    parameter DATA15_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA16_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA17_MAP = 96'h000_000_000_000_000_000_000_000,
-   parameter MASK0_MAP  = 108'h133_006_014_029_039_207_213_227_234,
+   parameter MASK0_MAP  = 108'h000_000_000_000_000_000_000_000_000,
    parameter MASK1_MAP  = 108'h000_000_000_000_000_000_000_000_000,
 
    parameter SLOT_0_CONFIG         = 8'b0000_0001,
                                      // Mapping of Ranks.
    parameter SLOT_1_CONFIG         = 8'b0000_0000,
                                      // Mapping of Ranks.
-   parameter MEM_ADDR_ORDER
-     = "BANK_ROW_COLUMN",
 
    //***************************************************************************
    // IODELAY and PHY related parameters
@@ -355,14 +367,12 @@ module mem_ctrl_core_axi #
                                      // to phy_top
    parameter IBUF_LPWR_MODE        = "OFF",
                                      // to phy_top
-   parameter DATA_IO_IDLE_PWRDWN   = "OFF",
+   parameter DATA_IO_IDLE_PWRDWN   = "ON",
                                      // # = "ON", "OFF"
-   parameter DATA_IO_PRIM_TYPE     = "DEFAULT",
+   parameter BANK_TYPE             = "HP_IO",
+                                     // # = "HP_IO", "HPL_IO", "HR_IO", "HRL_IO"
+   parameter DATA_IO_PRIM_TYPE     = "HP_LP",
                                      // # = "HP_LP", "HR_LP", "DEFAULT"
-   parameter XC7K325T_REV_1X       = "FALSE",
-                                     // Set to "TRUE" for XC7K325T REV1.x Si
-   parameter PART_REV              = "STANDARD",
-                                     // Set to "325t.1" for XC7K325T REV1.x Si
    parameter CKE_ODT_AUX           = "FALSE",
    parameter USER_REFRESH          = "OFF",
    parameter WRLVL                 = "ON",
@@ -384,13 +394,17 @@ module mem_ctrl_core_axi #
                                      // It is associated to a set of IODELAYs with
                                      // an IDELAYCTRL that have same IODELAY CONTROLLER
                                      // clock frequency.
-   parameter SYSCLK_TYPE           = "DIFFERENTIAL",
+   parameter SYSCLK_TYPE           = "NO_BUFFER",
                                      // System clock type DIFFERENTIAL, SINGLE_ENDED,
                                      // NO_BUFFER
-   parameter REFCLK_TYPE           = "DIFFERENTIAL",
+   parameter REFCLK_TYPE           = "NO_BUFFER",
                                      // Reference clock type DIFFERENTIAL, SINGLE_ENDED,
                                      // NO_BUFFER, USE_SYSTEM_CLOCK
-
+   parameter SYS_RST_PORT          = "FALSE",
+                                     // "TRUE" - if pin is selected for sys_rst
+                                     //          and IBUF will be instantiated.
+                                     // "FALSE" - if pin is not selected for sys_rst
+      
    parameter CMD_PIPE_PLUS1        = "ON",
                                      // add pipeline stage between MC and PHY
    parameter DRAM_TYPE             = "DDR3",
@@ -414,17 +428,25 @@ module mem_ctrl_core_axi #
                                      // # = Clock Period in pS.
    parameter nCK_PER_CLK           = 4,
                                      // # of memory CKs per fabric CLK
-   parameter DIFF_TERM_SYSCLK      = "FALSE",
+   parameter DIFF_TERM_SYSCLK      = "TRUE",
                                      // Differential Termination for System
                                      // clock input pins
 
-
+   
    //***************************************************************************
    // AXI4 Shim parameters
    //***************************************************************************
-   parameter C_S_AXI_ID_WIDTH              = 1,
+   
+   parameter UI_EXTRA_CLOCKS = "FALSE",
+                                     // Generates extra clocks as
+                                     // 1/2, 1/4 and 1/8 of fabrick clock.
+                                     // Valid for DDR2/DDR3 AXI interfaces
+                                     // based on GUI selection
+   parameter C_S_AXI_ID_WIDTH              = 8,
                                              // Width of all master and slave ID signals.
                                              // # = >= 1.
+   parameter C_S_AXI_MEM_SIZE              = "2147483648",
+                                     // Address Space required for this component
    parameter C_S_AXI_ADDR_WIDTH            = 32,
                                              // Width of S_AXI_AWADDR, S_AXI_ARADDR, M_AXI_AWADDR and
                                              // M_AXI_ARADDR for all SI/MI slots.
@@ -439,19 +461,30 @@ module mem_ctrl_core_axi #
    parameter C_S_AXI_SUPPORTS_NARROW_BURST = 1,
                                              // Indicates whether to instatiate upsizer
                                              // Range: 0, 1
-   parameter C_RD_WR_ARB_ALGORITHM          = "TDM",
-                                       // Indicates the Arbitration
-                                       // Allowed values - "TDM", "ROUND_ROBIN",
-                                       // "RD_PRI_REG", "RD_PRI_REG_STARVE_LIMIT"
+   parameter C_RD_WR_ARB_ALGORITHM          = "ROUND_ROBIN",
+                                             // Indicates the Arbitration
+                                             // Allowed values - "TDM", "ROUND_ROBIN",
+                                             // "RD_PRI_REG", "RD_PRI_REG_STARVE_LIMIT"
+                                             // "WRITE_PRIORITY", "WRITE_PRIORITY_REG"
    parameter C_S_AXI_REG_EN0               = 20'h00000,
-                                             // Instatiates register slices before upsizer.
+                                             // C_S_AXI_REG_EN0[00] = Reserved
+                                             // C_S_AXI_REG_EN0[04] = AW CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[05] =  W CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[06] =  B CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[07] =  R CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[08] = AW CHANNEL UPSIZER REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[09] =  W CHANNEL UPSIZER REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[10] = AR CHANNEL UPSIZER REGISTER SLICE
+                                             // C_S_AXI_REG_EN0[11] =  R CHANNEL UPSIZER REGISTER SLICE
+   parameter C_S_AXI_REG_EN1               = 20'h00000,
+                                             // Instatiates register slices after the upsizer.
                                              // The type of register is specified for each channel
                                              // in a vector. 4 bits per channel are used.
-                                             // C_S_AXI_REG_EN0[03:00] = AW CHANNEL REGISTER SLICE
-                                             // C_S_AXI_REG_EN0[07:04] =  W CHANNEL REGISTER SLICE
-                                             // C_S_AXI_REG_EN0[11:08] =  B CHANNEL REGISTER SLICE
-                                             // C_S_AXI_REG_EN0[15:12] = AR CHANNEL REGISTER SLICE
-                                             // C_S_AXI_REG_EN0[20:16] =  R CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN1[03:00] = AW CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN1[07:04] =  W CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN1[11:08] =  B CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN1[15:12] = AR CHANNEL REGISTER SLICE
+                                             // C_S_AXI_REG_EN1[20:16] =  R CHANNEL REGISTER SLICE
                                              // Possible values for each channel are:
                                              //
                                              //   0 => BYPASS    = The channel is just wired through the
@@ -466,9 +499,7 @@ module mem_ctrl_core_axi #
                                              //                    READY are registrated.
                                              //   6 => INPUTS    = Slave and Master side inputs are
                                              //                    registrated.
-   parameter C_S_AXI_REG_EN1               = 20'h00000,
-                                             // Same as C_S_AXI_REG_EN0, but this register is after
-                                             // the upsizer
+                                             //   7 => ADDRESS   = Optimized for address channel
    parameter C_S_AXI_CTRL_ADDR_WIDTH       = 32,
                                              // Width of AXI-4-Lite address bus
    parameter C_S_AXI_CTRL_DATA_WIDTH       = 32,
@@ -487,6 +518,12 @@ module mem_ctrl_core_axi #
                                      // # = "ON" Enable debug signals/controls.
                                      //   = "OFF" Disable debug signals/controls.
 
+   //***************************************************************************
+   // Temparature monitor parameter
+   //***************************************************************************
+   parameter TEMP_MON_CONTROL                          = "EXTERNAL",
+                                     // # = "INTERNAL", "EXTERNAL"
+      
    parameter RST_ACT_LOW           = 0
                                      // =1 for active low reset,
                                      // =0 for active high.
@@ -509,7 +546,6 @@ module mem_ctrl_core_axi #
    output [CK_WIDTH-1:0]                        ddr3_ck_n,
    output [CKE_WIDTH-1:0]                       ddr3_cke,
    output [CS_WIDTH*nCS_PER_RANK-1:0]           ddr3_cs_n,
-   output [DM_WIDTH-1:0]                        ddr3_dm,
    output [ODT_WIDTH-1:0]                       ddr3_odt,
 
    // Inputs
@@ -517,11 +553,12 @@ module mem_ctrl_core_axi #
    input                                        sys_clk_i,
    // Single-ended iodelayctrl clk (reference clock)
    input                                        clk_ref_i,
-
    // user interface signals
    output                                       ui_clk,
    output                                       ui_clk_sync_rst,
-
+   
+   output                                       mmcm_locked,
+   output [2*nCK_PER_CLK-1:0]                   app_ecc_multiple_err,
    input                                        aresetn,
    input                                        app_sr_req,
    output                                       app_sr_active,
@@ -573,13 +610,42 @@ module mem_ctrl_core_axi #
    output                                       s_axi_rlast,
    output                                       s_axi_rvalid,
 
+   // AXI CTRL port
+   input                                        s_axi_ctrl_awvalid,
+   output                                       s_axi_ctrl_awready,
+   input  [C_S_AXI_CTRL_ADDR_WIDTH-1:0]         s_axi_ctrl_awaddr,
+   // Slave Interface Write Data Ports
+   input                                        s_axi_ctrl_wvalid,
+   output                                       s_axi_ctrl_wready,
+   input  [C_S_AXI_CTRL_DATA_WIDTH-1:0]         s_axi_ctrl_wdata,
+   // Slave Interface Write Response Ports
+   output                                       s_axi_ctrl_bvalid,
+   input                                        s_axi_ctrl_bready,
+   output [1:0]                                 s_axi_ctrl_bresp,
+   // Slave Interface Read Address Ports
+   input                                        s_axi_ctrl_arvalid,
+   output                                       s_axi_ctrl_arready,
+   input  [C_S_AXI_CTRL_ADDR_WIDTH-1:0]         s_axi_ctrl_araddr,
+   // Slave Interface Read Data Ports
+   output                                       s_axi_ctrl_rvalid,
+   input                                        s_axi_ctrl_rready,
+   output [C_S_AXI_CTRL_DATA_WIDTH-1:0]         s_axi_ctrl_rdata,
+   output [1:0]                                 s_axi_ctrl_rresp,
 
-
-
+   // Interrupt output
+   output                                       interrupt,
+   
+   
    output                                       init_calib_complete,
+   input  [11:0]                                device_temp_i,
+                      // The 12 MSB bits of the temperature sensor transfer
+                      // function need to be connected to this port. This port
+                      // will be synchronized w.r.t. to fabric clock internally.
+      
 
-
-   // System reset
+   // System reset - Default polarity of sys_rst pin is Active Low.
+   // System reset polarity will change based on the option 
+   // selected in GUI.
    input                                        sys_rst
    );
 
@@ -597,54 +663,40 @@ module mem_ctrl_core_axi #
 
   localparam APP_DATA_WIDTH        = 2 * nCK_PER_CLK * PAYLOAD_WIDTH;
   localparam APP_MASK_WIDTH        = APP_DATA_WIDTH / 8;
-
+  localparam TEMP_MON_EN           = (SIMULATION == "FALSE") ? "ON" : "OFF";
+                                                 // Enable or disable the temp monitor module
+  localparam tTEMPSAMPLE           = 10000000;   // sample every 10 us
+  localparam XADC_CLK_PERIOD       = 5000;       // Use 200 MHz IODELAYCTRL clock
+      
+      
 
   // Wire declarations
-
+      
   wire [BM_CNT_WIDTH-1:0]           bank_mach_next;
   wire                              clk;
   wire                              clk_ref;
   wire                              idelay_ctrl_rdy;
   wire                              clk_ref_in;
+  wire                              sys_rst_o;
   wire                              freq_refclk ;
   wire                              mem_refclk ;
   wire                              pll_lock ;
   wire                              sync_pulse;
   wire                              ref_dll_lock;
   wire                              rst_phaser_ref;
+  wire                              pll_locked;
 
   wire                              rst;
-
-  wire [2*nCK_PER_CLK-1:0]            app_ecc_multiple_err;
+  
   wire                                ddr3_parity;
-      // AXI CTRL port
-  wire                              s_axi_ctrl_awvalid;
-  wire                              s_axi_ctrl_awready;
-  wire  [C_S_AXI_CTRL_ADDR_WIDTH-1:0] s_axi_ctrl_awaddr;
-  // Slave Interface Write Data Ports
-  wire                              s_axi_ctrl_wvalid;
-  wire                              s_axi_ctrl_wready;
-  wire  [C_S_AXI_CTRL_DATA_WIDTH-1:0] s_axi_ctrl_wdata;
-  // Slave Interface Write Response Ports
-  wire                              s_axi_ctrl_bvalid;
-  wire                              s_axi_ctrl_bready;
-  wire [1:0]                        s_axi_ctrl_bresp;
-  // Slave Interface Read Address Ports
-  wire                              s_axi_ctrl_arvalid;
-  wire                              s_axi_ctrl_arready;
-  wire  [C_S_AXI_CTRL_ADDR_WIDTH-1:0]  s_axi_ctrl_araddr;
-  // Slave Interface Read Data Ports
-  wire                              s_axi_ctrl_rvalid;
-  wire                              s_axi_ctrl_rready;
-  wire [C_S_AXI_CTRL_DATA_WIDTH-1:0]   s_axi_ctrl_rdata;
-  wire [1:0]                        s_axi_ctrl_rresp;
+      
 
-  // Interrupt output
-  wire                              interrupt;
-
-//  wire                              sys_clk_i;
+  wire                              sys_clk_p;
+  wire                              sys_clk_n;
   wire                              mmcm_clk;
-//  wire                              clk_ref_i;
+  wire                              clk_ref_p;
+  wire                              clk_ref_n;
+  wire [11:0]                       device_temp;
 
   // Debug port signals
   wire                              dbg_idel_down_all;
@@ -657,6 +709,8 @@ module mem_ctrl_core_axi #
   wire [DQS_CNT_WIDTH:0]            dbg_byte_sel;
   wire                              dbg_pi_f_inc;
   wire                              dbg_pi_f_dec;
+  wire [5:0]                        dbg_pi_counter_read_val;
+  wire [8:0]                        dbg_po_counter_read_val;
   wire [6*DQS_WIDTH*RANKS-1:0]      dbg_cpt_tap_cnt;
   wire [5*DQS_WIDTH*RANKS-1:0]      dbg_dq_idelay_tap_cnt;
   wire [255:0]                      dbg_calib_top;
@@ -669,9 +723,8 @@ module mem_ctrl_core_axi #
   wire [3*DQS_WIDTH-1:0]            dbg_final_po_coarse_tap_cnt;
   wire [255:0]                      dbg_phy_wrlvl;
   wire [255:0]                      dbg_phy_init;
+  wire [255:0]                      dbg_prbs_rdlvl;
   wire [255:0]                      dbg_dqs_found_cal;
-  wire [5:0]                        dbg_pi_counter_read_val;
-  wire [8:0]                        dbg_po_counter_read_val;
   wire                              dbg_pi_phaselock_start;
   wire                              dbg_pi_phaselocked_done;
   wire                              dbg_pi_phaselock_err;
@@ -703,7 +756,7 @@ module mem_ctrl_core_axi #
   reg [63:0]                        dbg_rddata_r;
   reg                               dbg_rddata_valid_r;
   wire [53:0]                       ocal_tap_cnt;
-  wire [3:0]                        dbg_dqs;
+  wire [4:0]                        dbg_dqs;
   wire [8:0]                        dbg_bit;
   wire [8:0]                        rd_data_edge_detect_r;
   wire [53:0]                       wl_po_fine_cnt;
@@ -713,7 +766,7 @@ module mem_ctrl_core_axi #
   wire [5:0]                        dbg_data_offset;
   wire [5:0]                        dbg_data_offset_1;
   wire [5:0]                        dbg_data_offset_2;
-
+      
 
 //***************************************************************************
 
@@ -721,15 +774,12 @@ module mem_ctrl_core_axi #
 
   assign ui_clk = clk;
   assign ui_clk_sync_rst = rst;
-
-//  assign sys_clk_i = 1'b0;
-//  assign clk_ref_i = 1'b0;
+  
   assign sys_clk_p = 1'b0;
   assign sys_clk_n = 1'b0;
   assign clk_ref_p = 1'b0;
   assign clk_ref_n = 1'b0;
-
-   //JACK:  commented out
+      
 
   generate
     if (REFCLK_TYPE == "USE_SYSTEM_CLOCK")
@@ -738,12 +788,13 @@ module mem_ctrl_core_axi #
       assign clk_ref_in = clk_ref_i;
   endgenerate
 
-  iodelay_ctrl #
+  mig_7series_v1_9_iodelay_ctrl #
     (
      .TCQ              (TCQ),
      .IODELAY_GRP      (IODELAY_GRP),
      .REFCLK_TYPE      (REFCLK_TYPE),
      .SYSCLK_TYPE      (SYSCLK_TYPE),
+     .SYS_RST_PORT     (SYS_RST_PORT),
      .RST_ACT_LOW      (RST_ACT_LOW),
      .DIFF_TERM_REFCLK (DIFF_TERM_REFCLK)
      )
@@ -751,6 +802,7 @@ module mem_ctrl_core_axi #
       (
        // Outputs
        .iodelay_ctrl_rdy (iodelay_ctrl_rdy),
+       .sys_rst_o        (sys_rst_o),
        .clk_ref          (clk_ref),
        // Inputs
        .clk_ref_p        (clk_ref_p),
@@ -758,7 +810,7 @@ module mem_ctrl_core_axi #
        .clk_ref_i        (clk_ref_in),
        .sys_rst          (sys_rst)
        );
-  clk_ibuf#
+  mig_7series_v1_9_clk_ibuf #
     (
      .SYSCLK_TYPE      (SYSCLK_TYPE),
      .DIFF_TERM_SYSCLK (DIFF_TERM_SYSCLK)
@@ -770,8 +822,34 @@ module mem_ctrl_core_axi #
        .sys_clk_i        (sys_clk_i),
        .mmcm_clk         (mmcm_clk)
        );
+  // Temperature monitoring logic
 
-  infrastructure #
+  generate
+    if (TEMP_MON_EN == "ON") begin: temp_mon_enabled
+
+      mig_7series_v1_9_tempmon #
+        (
+         .TCQ              (TCQ),
+         .TEMP_MON_CONTROL (TEMP_MON_CONTROL),
+         .XADC_CLK_PERIOD  (XADC_CLK_PERIOD),
+         .tTEMPSAMPLE      (tTEMPSAMPLE)
+         )
+        u_tempmon
+          (
+           .clk            (clk),
+           .xadc_clk       (clk_ref),
+           .rst            (rst),
+           .device_temp_i  (device_temp_i),
+           .device_temp    (device_temp)
+          );
+    end else begin: temp_mon_disabled
+
+      assign device_temp = 'b0;
+
+    end
+  endgenerate
+         
+  mig_7series_v1_9_infrastructure #
     (
      .TCQ                (TCQ),
      .nCK_PER_CLK        (nCK_PER_CLK),
@@ -779,6 +857,7 @@ module mem_ctrl_core_axi #
      .SYSCLK_TYPE        (SYSCLK_TYPE),
      .CLKFBOUT_MULT      (CLKFBOUT_MULT),
      .DIVCLK_DIVIDE      (DIVCLK_DIVIDE),
+     .CLKOUT0_PHASE      (CLKOUT0_PHASE),
      .CLKOUT0_DIVIDE     (CLKOUT0_DIVIDE),
      .CLKOUT1_DIVIDE     (CLKOUT1_DIVIDE),
      .CLKOUT2_DIVIDE     (CLKOUT2_DIVIDE),
@@ -794,16 +873,23 @@ module mem_ctrl_core_axi #
        .freq_refclk      (freq_refclk),
        .sync_pulse       (sync_pulse),
        .auxout_clk       (),
+       .ui_addn_clk_0    (),
+       .ui_addn_clk_1    (),
+       .ui_addn_clk_2    (),
+       .ui_addn_clk_3    (),
+       .ui_addn_clk_4    (),
        .pll_locked       (pll_locked),
+       .mmcm_locked      (mmcm_locked),
        .rst_phaser_ref   (rst_phaser_ref),
        // Inputs
        .mmcm_clk         (mmcm_clk),
-       .sys_rst          (sys_rst),
+       .sys_rst          (sys_rst_o),
        .iodelay_ctrl_rdy (iodelay_ctrl_rdy),
        .ref_dll_lock     (ref_dll_lock)
        );
+      
 
-  memc_ui_top_axi #
+  mig_7series_v1_9_memc_ui_top_axi #
     (
      .TCQ                              (TCQ),
      .ADDR_CMD_MODE                    (ADDR_CMD_MODE),
@@ -822,8 +908,7 @@ module mem_ctrl_core_axi #
      .CKE_WIDTH                        (CKE_WIDTH),
      .DATA_WIDTH                       (DATA_WIDTH),
      .DATA_BUF_ADDR_WIDTH              (DATA_BUF_ADDR_WIDTH),
-     .DDR2_DQSN_ENABLE                 (DDR2_DQSN_ENABLE),
-     .DM_WIDTH                         (DM_WIDTH),
+     .DM_WIDTH                         (9),
      .DQ_CNT_WIDTH                     (DQ_CNT_WIDTH),
      .DQ_WIDTH                         (DQ_WIDTH),
      .DQS_CNT_WIDTH                    (DQS_CNT_WIDTH),
@@ -837,8 +922,6 @@ module mem_ctrl_core_axi #
      .REFCLK_FREQ                      (REFCLK_FREQ),
      .nAL                              (nAL),
      .nBANK_MACHS                      (nBANK_MACHS),
-     .XC7K325T_REV_1X                  (XC7K325T_REV_1X),
-     .PART_REV                         (PART_REV),
      .CKE_ODT_AUX                      (CKE_ODT_AUX),
      .nCK_PER_CLK                      (nCK_PER_CLK),
      .ORDERING                         (ORDERING),
@@ -846,6 +929,7 @@ module mem_ctrl_core_axi #
      .IBUF_LPWR_MODE                   (IBUF_LPWR_MODE),
      .IODELAY_HP_MODE                  (IODELAY_HP_MODE),
      .DATA_IO_IDLE_PWRDWN              (DATA_IO_IDLE_PWRDWN),
+     .BANK_TYPE                        (BANK_TYPE),
      .DATA_IO_PRIM_TYPE                (DATA_IO_PRIM_TYPE),
      .IODELAY_GRP                      (IODELAY_GRP),
      .REG_CTRL                         (REG_CTRL),
@@ -868,6 +952,7 @@ module mem_ctrl_core_axi #
      .tZQI                             (tZQI),
      .tZQCS                            (tZQCS),
      .USER_REFRESH                     (USER_REFRESH),
+     .TEMP_MON_EN                      (TEMP_MON_EN),
      .WRLVL                            (WRLVL),
      .DEBUG_PORT                       (DEBUG_PORT),
      .CAL_WIDTH                        (CAL_WIDTH),
@@ -971,7 +1056,7 @@ module mem_ctrl_core_axi #
        .ddr_ck                           (ddr3_ck_p),
        .ddr_cke                          (ddr3_cke),
        .ddr_cs_n                         (ddr3_cs_n),
-       .ddr_dm                           (ddr3_dm),
+       .ddr_dm                           (),
        .ddr_odt                          (ddr3_odt),
        .ddr_ras_n                        (ddr3_ras_n),
        .ddr_reset_n                      (ddr3_reset_n),
@@ -980,7 +1065,9 @@ module mem_ctrl_core_axi #
        .bank_mach_next                   (bank_mach_next),
 
 // Application interface ports
-       .app_ecc_multiple_err_o           (),
+       .app_ecc_multiple_err_o           (app_ecc_multiple_err),
+
+       .device_temp                      (device_temp),
 
 // Debug logic ports
        .dbg_idel_up_all                  (dbg_idel_up_all),
@@ -990,9 +1077,13 @@ module mem_ctrl_core_axi #
        .dbg_sel_idel_cpt                 (dbg_sel_idel_cpt),
        .dbg_sel_all_idel_cpt             (dbg_sel_all_idel_cpt),
        .dbg_sel_pi_incdec                (dbg_sel_pi_incdec),
+       .dbg_sel_po_incdec                (dbg_sel_po_incdec),
        .dbg_byte_sel                     (dbg_byte_sel),
        .dbg_pi_f_inc                     (dbg_pi_f_inc),
        .dbg_pi_f_dec                     (dbg_pi_f_dec),
+       .dbg_po_f_inc                     (dbg_po_f_inc),
+       .dbg_po_f_stg23_sel               (dbg_po_f_stg23_sel),
+       .dbg_po_f_dec                     (dbg_po_f_dec),
        .dbg_cpt_tap_cnt                  (dbg_cpt_tap_cnt),
        .dbg_dq_idelay_tap_cnt            (dbg_dq_idelay_tap_cnt),
        .dbg_calib_top                    (dbg_calib_top),
@@ -1018,6 +1109,7 @@ module mem_ctrl_core_axi #
        .dbg_wrlvl_start                  (dbg_wrlvl_start),
        .dbg_phy_wrlvl                    (dbg_phy_wrlvl),
        .dbg_phy_init                     (dbg_phy_init),
+       .dbg_prbs_rdlvl                   (dbg_prbs_rdlvl),
        .dbg_pi_counter_read_val          (dbg_pi_counter_read_val),
        .dbg_po_counter_read_val          (dbg_po_counter_read_val),
        .dbg_pi_phaselock_start           (dbg_pi_phaselock_start),
@@ -1040,7 +1132,7 @@ module mem_ctrl_core_axi #
        .dbg_oclkdelay_rd_data            (dbg_oclkdelay_rd_data),
        .dbg_oclkdelay_calib_start        (dbg_oclkdelay_calib_start),
        .dbg_oclkdelay_calib_done         (dbg_oclkdelay_calib_done),
-       .dbg_dqs_found_cal                (dbg_dqs_found_cal),
+       .dbg_dqs_found_cal                (dbg_dqs_found_cal),  
        .aresetn                          (aresetn),
        .app_sr_req                       (app_sr_req),
        .app_sr_active                    (app_sr_active),
@@ -1117,7 +1209,7 @@ module mem_ctrl_core_axi #
        .init_calib_complete              (init_calib_complete)
        );
 
-
+      
 
 
 
@@ -1135,6 +1227,11 @@ module mem_ctrl_core_axi #
    assign dbg_sel_pi_incdec    = 1'b0;
    assign dbg_pi_f_inc         = 1'b0;
    assign dbg_pi_f_dec         = 1'b0;
+   assign dbg_po_f_inc         = 'b0;
+   assign dbg_po_f_dec         = 'b0;
+   assign dbg_po_f_stg23_sel   = 'b0;
+   assign dbg_sel_po_incdec    = 'b0;
 
+      
 
 endmodule
