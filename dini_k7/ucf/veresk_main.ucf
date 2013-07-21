@@ -86,8 +86,8 @@ NET "pin_out_ethphy_mdc"    LOC = "D10" | IOSTANDARD = LVCMOS25;
 NET "pin_out_ethphy_fiber_clk_sel<0>" LOC = "E11" | IOSTANDARD = LVCMOS25;
 NET "pin_out_ethphy_fiber_clk_sel<1>" LOC = "C11" | IOSTANDARD = LVCMOS25;
 NET "pin_out_ethphy_fiber_clk_oe"     LOC = "D11" | IOSTANDARD = LVCMOS25;
-NET "pin_in_ethphy_fiber_clk_p" LOC = "D6";#
-NET "pin_in_ethphy_fiber_clk_n" LOC = "D5";#
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/m_pma/ibufds_gtrefclk"  LOC = "IBUFDS_GTE2_X0Y2";
 
 #--------------------------
 #-- FIBER - SFP0
