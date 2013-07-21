@@ -3,176 +3,281 @@
 ###############################################################################
 CONFIG PART = XC7K325T-FFG676-2;
 
-NET "pin_in_pult_rx"    LOC = "R26"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_pult_tx"   LOC = "P26"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_pult_dir"  LOC = "M25"; # | IOSTANDARD = LVCMOS15;
+NET "pin_in_pult_rx"    LOC = "R26" | IOSTANDARD = LVCMOS15;
+NET "pin_out_pult_tx"   LOC = "P26" | IOSTANDARD = LVCMOS15;
+NET "pin_out_pult_dir"  LOC = "M25" | IOSTANDARD = LVCMOS15;
 
-NET "pin_in_edev_rx"    LOC = "L25"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_edev_tx"   LOC = "P24"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_edev_dir"  LOC = "N24"; # | IOSTANDARD = LVCMOS15;
+NET "pin_in_edev_rx"    LOC = "L25" | IOSTANDARD = LVCMOS15;
+NET "pin_out_edev_tx"   LOC = "P24" | IOSTANDARD = LVCMOS15;
+NET "pin_out_edev_dir"  LOC = "N24" | IOSTANDARD = LVCMOS15;
 
-NET "pin_in_vizir_rx"   LOC = "N26"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_vizir_tx"  LOC = "M26"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_vizir_dir" LOC = "R25"; # | IOSTANDARD = LVCMOS15;
+NET "pin_in_vizir_rx"   LOC = "N26" | IOSTANDARD = LVCMOS15;
+NET "pin_out_vizir_tx"  LOC = "M26" | IOSTANDARD = LVCMOS15;
+NET "pin_out_vizir_dir" LOC = "R25" | IOSTANDARD = LVCMOS15;
 
-NET "pin_in_bup_rx"     LOC = "U20"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_bup_tx"    LOC = "T18"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_bup_dir"   LOC = "P16"; # | IOSTANDARD = LVCMOS15;
+NET "pin_in_bup_rx"     LOC = "U20" | IOSTANDARD = LVCMOS15;
+NET "pin_out_bup_tx"    LOC = "T18" | IOSTANDARD = LVCMOS15;
+NET "pin_out_bup_dir"   LOC = "P16" | IOSTANDARD = LVCMOS15;
 
 #SYNC
-NET "pin_in_pps"        LOC = "N17"; # | IOSTANDARD = LVCMOS15;
-NET "pin_in_1s"         LOC = "R16"; # | IOSTANDARD = LVCMOS15;
-NET "pin_in_1m"         LOC = "R17"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_1s"        LOC = "N18"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_1m"        LOC = "M19"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_s120Hz"    LOC = "U17"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_s120SAU"   LOC = "T17"; # | IOSTANDARD = LVCMOS15;
+NET "pin_in_pps"        LOC = "N17" | IOSTANDARD = LVCMOS15;
+NET "pin_in_1s"         LOC = "R16" | IOSTANDARD = LVCMOS15;
+NET "pin_in_1m"         LOC = "R17" | IOSTANDARD = LVCMOS15;
+NET "pin_out_1s"        LOC = "N18" | IOSTANDARD = LVCMOS15;
+NET "pin_out_1m"        LOC = "M19" | IOSTANDARD = LVCMOS15;
+NET "pin_out_s120Hz"    LOC = "U17" | IOSTANDARD = LVCMOS15;
+NET "pin_out_s120SAU"   LOC = "T17" | IOSTANDARD = LVCMOS15;
 
-NET "pin_out_TP<0>"   LOC = "R18"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_TP<1>"   LOC = "P18"; # | IOSTANDARD = LVCMOS15;
-NET "pin_out_TP<2>"   LOC = "U16"; # | IOSTANDARD = LVCMOS15;
+NET "pin_out_TP<0>"   LOC = "R18" | IOSTANDARD = LVCMOS15;
+NET "pin_out_TP<1>"   LOC = "P18" | IOSTANDARD = LVCMOS15;
+NET "pin_out_TP<2>"   LOC = "U16" | IOSTANDARD = LVCMOS15;
 
 ###############################################################################
 #
 ###############################################################################
-NET "pin_out_led<0>" LOC = "B14" ;
-NET "pin_out_led<1>" LOC = "A14" ;
-NET "pin_out_led<2>" LOC = "B10" ;
-NET "pin_out_led<3>" LOC = "A10" ;
-NET "pin_out_led<4>" LOC = "B15" ;
-NET "pin_out_led<5>" LOC = "A15" ;
-NET "pin_out_led<6>" LOC = "A13" ;
-NET "pin_out_led<7>" LOC = "A12" ;
+NET "pin_out_led<7>" LOC = "B14" ;
+NET "pin_out_led<6>" LOC = "A14" ;
+NET "pin_out_led<5>" LOC = "B10" ;
+NET "pin_out_led<4>" LOC = "A10" ;
+NET "pin_out_led<3>" LOC = "B15" ;
+NET "pin_out_led<2>" LOC = "A15" ;
+NET "pin_out_led<1>" LOC = "A13" ;
+NET "pin_out_led<0>" LOC = "A12" ;
 NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 
 
 ###############################################################################
 #
 ###############################################################################
-NET "pin_in_refclk_clk_p<0>" LOC = "P23" | IOSTANDARD = LVDS_25; #Oscillator 400MHz for QDR2+ (at sch X2)
-NET "pin_in_refclk_clk_n<0>" LOC = "N23" | IOSTANDARD = LVDS_25;
-#NET "pin_in_refclk_clk_p<1>" LOC = "AB11" | IOSTANDARD = LVDS; #Oscillator 400MHz for DDR3 MINIDIMM (at sch X3)
-#NET "pin_in_refclk_clk_n<1>" LOC = "AC11" | IOSTANDARD = LVDS;
+#Oscillator (default 400MHz) for DDR3 MINIDIMM
+NET "pin_in_refclk_clk_p<0>" LOC = "AB11" | IOSTANDARD = LVDS;
+NET "pin_in_refclk_clk_n<0>" LOC = "AC11" | IOSTANDARD = LVDS;
+NET "pin_out_refclk_oe<0>"   LOC = "C12"  | IOSTANDARD = LVCMOS25;
+#NET "pin_out_refclk_sda<0>"  LOC = "C9"  | IOSTANDARD = LVCMOS25;
+#NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
 
+##Oscillator (default 400MHz) for QDR2+
+#NET "pin_in_refclk_clk_p<0>" LOC = "P23" | IOSTANDARD = LVDS_25;
+#NET "pin_in_refclk_clk_n<0>" LOC = "N23" | IOSTANDARD = LVDS_25;
+#NET "pin_out_refclk_oe<0>"   LOC = "A8"  | IOSTANDARD = LVCMOS25;
+##NET "pin_out_refclk_sda<0>"  LOC = "D8"  | IOSTANDARD = LVCMOS25;
+##NET "pin_out_refclk_scl<0>"  LOC = "A9"  | IOSTANDARD = LVCMOS25;
+
+NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
 NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
 NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
-TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5  ns HIGH 50%; # 400MHz clock to DDR3 memory infrastructure
-TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
+TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5  ns  HIGH 50%; # 400MHz clock to DDR3 memory infrastructure
+TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns  HIGH 50%; # 100MHz
+TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0  ns  HIGH 50%; # 200MHz
 
 # Create TIMEGRP for mig_ddr3_if_clk0
 NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0; ###NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
-#TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
+##TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
 TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 3.33  ns HIGH 50%; # 300MHz
 
 
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
+#NET "pin_out_ethphy_rst"    LOC = "E10" | IOSTANDARD = LVCMOS25;
+NET "pin_inout_ethphy_mdio" LOC = "E10" | IOSTANDARD = LVCMOS25;
+NET "pin_out_ethphy_mdc"    LOC = "D10" | IOSTANDARD = LVCMOS25;
+
+NET "pin_out_ethphy_fiber_clk_sel<0>" LOC = "E11" | IOSTANDARD = LVCMOS25;
+NET "pin_out_ethphy_fiber_clk_sel<1>" LOC = "C11" | IOSTANDARD = LVCMOS25;
+NET "pin_out_ethphy_fiber_clk_oe"     LOC = "D11" | IOSTANDARD = LVCMOS25;
+NET "pin_in_ethphy_fiber_clk_p" LOC = "D6";#
+NET "pin_in_ethphy_fiber_clk_n" LOC = "D5";#
+
 #--------------------------
 #-- FIBER - SFP0
 #--------------------------
-#NET "pin_out_ethphy_rst"    LOC = ;
-#NET "pin_out_ethphy_mdc"    LOC = ;
+NET "pin_in_ethphy_fiber_sfp_txfault" LOC = "J8"  | IOSTANDARD = LVCMOS25;
+NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "H13" | IOSTANDARD = LVCMOS25;#signal detect
+NET "pin_out_ethphy_fiber_sfp_txdis"  LOC = "H9"  | IOSTANDARD = LVCMOS25;
+NET "pin_out_ethphy_fiber_sfp_rs<0>"  LOC = "F14" | IOSTANDARD = LVCMOS25;#"J13";
+NET "pin_out_ethphy_fiber_sfp_rs<1>"  LOC = "F13" | IOSTANDARD = LVCMOS25;#"J11";
 
-NET "pin_out_sfp_tx_dis"  LOC = "H9";
-NET "pin_in_sfp_sd"       LOC = "H13";
+############################################################
+#ETHG_PMA0
+############################################################
+#-----------------------------------------------------------
+# Transceiver I/O placement:                               -
+#-----------------------------------------------------------
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/core_wrapper/transceiver_inst/gtwizard_inst/gtwizard_i/gt0_gtwizard_i/gtxe2_i" LOC = "GTXE2_CHANNEL_X0Y6";
 
-NET "pin_in_ethphy_fiber_sfp_txfault" LOC = "J8";#
+#-----------------------------------------------------------
+# Setting TIG constraints for rx and tx sync sms           -
+#-----------------------------------------------------------
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/mmcm_lock_int*" TNM = tx_mmcm_lock_delay_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*mmcm_lock_reclocke*" TNM = tx_mmcm_lock_reclocked_delay_grp;
+TIMESPEC TS_TX_MMCM_LOCK = FROM tx_mmcm_lock_delay_grp TO tx_mmcm_lock_reclocked_delay_grp TIG;
 
-NET "pin_out_ethphy_fiber_refclk_sel<0>" LOC = "E11" | IOSTANDARD=LVCMOS25;
-NET "pin_out_ethphy_fiber_refclk_sel<1>" LOC = "C11" | IOSTANDARD=LVCMOS25;
-NET "pin_out_ethphy_fiber_refclk_oe_n"   LOC = "D11" | IOSTANDARD=LVCMOS25;
-#NET "pin_out_ethphy_fiber_rs<0>" LOC = "J13";
-#NET "pin_out_ethphy_fiber_rs<1>" LOC = "J11";
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/time_out_wait_bypass" TNM = tx_time_out_wait_bypass_delay_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/time_out_wait_bypass_*" TNM = tx_time_out_wait_bypass_delay_sync_grp;
+TIMESPEC TS_TX_TIME_OUT_WAIT_SYNC = FROM tx_time_out_wait_bypass_delay_grp TO tx_time_out_wait_bypass_delay_sync_grp TIG;
 
-NET "pin_in_ethphy_fiber_refclk_p" LOC = "D6";#
-NET "pin_in_ethphy_fiber_refclk_n" LOC = "D5";#
-#NET "SFP0_RXN"        loc =C3;
-#NET "SFP0_RXP"        loc =C4;
-#NET "SFP0_TXN"        loc =B1;
-#NET "SFP0_TXP"        loc =B2;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*run_phase_alignment_int" TNM = tx_run_phase_alignment_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*run_phase_alignment_int_*" TNM = tx_phase_alignment_grp;
+TIMESPEC TS_TX_PHASE_ALIGNMENT = FROM tx_run_phase_alignment_grp TO tx_phase_alignment_grp TIG;
 
-#NET "SFP1_RXN"        loc =B5;
-#NET "SFP1_RXP"        loc =B6;
-#NET "SFP1_TXN"        loc =A3;
-#NET "SFP1_TXP"        loc =A4;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*tx_fsm_reset_done_int" TNM = tx_fsm_reset_done_int_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*tx_fsm_reset_done_int_*" TNM = tx_fsm_reset_done_grp;
+TIMESPEC TS_TX_FSM_RESET_DONE = FROM tx_fsm_reset_done_int_grp TO tx_fsm_reset_done_grp TIG;
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/TXRESETDONE*" TNM = tx_reset_done_int_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*txresetdone_*" TNM = tx_reset_done_grp;
+TIMESPEC TS_TX_RESET_DONE = FROM tx_reset_done_int_grp TO tx_reset_done_grp TIG;
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/time_out_wait_bypass" TNM = rx_time_out_wait_bypass_delay_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/time_out_wait_bypass_*" TNM = rx_time_out_wait_bypass_delay_sync_grp;
+TIMESPEC TS_RX_TIME_OUT_WAIT_SYNC = FROM rx_time_out_wait_bypass_delay_grp TO rx_time_out_wait_bypass_delay_sync_grp TIG;
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*run_phase_alignment_int" TNM = rx_run_phase_alignment_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*run_phase_alignment_int_*" TNM = rx_phase_alignment_grp;
+TIMESPEC TS_RX_PHASE_ALIGNMENT = FROM rx_run_phase_alignment_grp TO rx_phase_alignment_grp TIG;
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*rx_fsm_reset_done_int" TNM = rx_fsm_reset_done_int_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*rx_fsm_reset_done_int_*" TNM = rx_fsm_reset_done_grp;
+TIMESPEC TS_RX_FSM_RESET_DONE = FROM rx_fsm_reset_done_int_grp TO rx_fsm_reset_done_grp TIG;
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/RXRESETDONE*" TNM = rx_reset_done_int_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*rxresetdone_*" TNM = rx_reset_done_grp;
+TIMESPEC TS_RX_RESET_DONE = FROM rx_reset_done_int_grp TO rx_reset_done_grp TIG;
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/sync_block_data_valid/data_sync" TNM = data_valid_reg_delay_grp;
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/*ata_valid*" TNM = data_valid_delay_grp_2;
+TIMESPEC TS_TX_DATA_VALID_opt = FROM data_valid_delay_grp_2 TO data_valid_reg_delay_grp TIG;
+
+
+############################################################
+#ETHG_MAC0
+############################################################
+NET "i_ethphy_out_clk" TNM_NET = "clk_gtx";
+TIMESPEC "TS_gtx_clk" = PERIOD "clk_gtx" 8000 ps HIGH 50 %;
+
+NET "m_eth/gen_use_on.m_main/m_phy/m_if/*tx_mac_aclk*" TNM_NET  = "clk_tx_mac";
+TIMESPEC "TS_tx_clk_gmii" = PERIOD "clk_tx_mac" 8000 ps HIGH 50 %;
+
+NET "i_ethphy_out_clk" TNM_NET  = "clk_rx";
+TIMESPEC "TS_rx_clk" = PERIOD "clk_rx" 8000 ps HIGH 50 %;
+
+############################################################
+# FIFO Clock Crossing Constraints                          #
+############################################################
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_tran_frame_tog"     TNM = "tx_fifo_rd_to_wr";
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_addr_txfer*"        TNM = "tx_fifo_rd_to_wr";
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_txfer_tog"          TNM = "tx_fifo_rd_to_wr";
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_retran_frame*"      TNM = "tx_fifo_rd_to_wr";
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i*rd_col_window_pipe?1*" TNM = "tx_fifo_rd_to_wr";
+
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/wr_frame_in_fifo"      TNM = "tx_fifo_wr_to_rd";
+
+TIMESPEC "TS_tx_fifo_rd_to_wr"   = FROM "tx_fifo_rd_to_wr" TO "clk_gtx" 7800 ps DATAPATHONLY;
+TIMESPEC "TS_tx_fifo_wr_to_rd"   = FROM "tx_fifo_wr_to_rd" TO "clk_tx_mac" 7800 ps DATAPATHONLY;
+
+# Reduce clock period to allow for metastability settling time
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i*wr_col_window_pipe?0*" TNM = "tx_metastable";
+TIMESPEC "ts_tx_meta_protect"    = FROM "tx_metastable" 5 ns;
+
+# constrain the input to this register - this is a multicycle path due to the
+# resync of the control
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_addr_txfer*"        TNM = "tx_addr_rd";
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/wr_rd_addr*"           TNM = "tx_addr_wr";
+
+TIMESPEC "TS_tx_fifo_addr"       = FROM "tx_addr_rd" TO "tx_addr_wr" 10ns;
+
+## RX Client FIFO
+# Group the clock crossing signals into timing groups
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/rx_fifo_i/wr_store_frame_tog"    TNM = "rx_fifo_wr_to_rd";
+INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/rx_fifo_i/rd_addr*"              TNM = "rx_fifo_rd_to_wr";
+
+TIMESPEC "TS_rx_fifo_wr_to_rd"   = FROM "rx_fifo_wr_to_rd" TO "clk_gtx" 7800 ps DATAPATHONLY;
+TIMESPEC "TS_rx_fifo_rd_to_wr"   = FROM "rx_fifo_rd_to_wr" TO "clk_rx" 7800 ps DATAPATHONLY;
+
+
+#--------------------------
+#-- FIBER - SFP1
+#--------------------------
+#NET "pin_in_ethphy_fiber_sfp_txfault" LOC = "J10"  | IOSTANDARD = LVCMOS25;
+#NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "F8"   | IOSTANDARD = LVCMOS25;
+#NET "pin_out_ethphy_fiber_sfp_tx_dis" LOC = "H14"  | IOSTANDARD = LVCMOS25;
+#
+##NET "pin_in_ethphy_fiber_rxp<1>"  LOC = "B6";
+##NET "pin_in_ethphy_fiber_rxn<1>"  LOC = "B5";
+##NET "pin_out_ethphy_fiber_txp<1>" LOC = "A4";
+##NET "pin_out_ethphy_fiber_txn<1>" LOC = "A3";
+#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/core_wrapper/transceiver_inst/gtwizard_inst/gtwizard_i/gt0_gtwizard_i/gtxe2_i" LOC = "GTXE2_CHANNEL_X0Y7";
+
 
 
 #############################################################################
 ###############       Проект PCI-Express     ################################
 #############################################################################
-NET "pin_in_refclk_pciexp_clk_p" LOC = "H6";
-NET "pin_in_refclk_pciexp_clk_n" LOC = "H5";
-
-#Functional reset to the card
 NET "pin_in_pciexp_rstn" TIG;
-NET "pin_in_pciexp_rstn" LOC = "H18" |IOSTANDARD = LVCMOS18 | PULLUP | NODELAY ;
+NET "pin_in_pciexp_rstn" LOC = "H18" | IOSTANDARD = LVCMOS18 | PULLUP | NODELAY ;
 
-#NET "PCIE_RX_N[0]" loc =P1;
-#NET "PCIE_RX_P[0]" loc =P2;
-#NET "PCIE_RX_N[1]" loc =M1;
-#NET "PCIE_RX_P[1]" loc =M2;
-#NET "PCIE_RX_N[2]" loc =K1;
-#NET "PCIE_RX_P[2]" loc =K2;
-#NET "PCIE_RX_N[3]" loc =H1;
-#NET "PCIE_RX_P[3]" loc =H2;
-#NET "PCIE_TX_N[0]" loc =R3;
-#NET "PCIE_TX_P[0]" loc =R4;
-#NET "PCIE_TX_N[1]" loc =N3;
-#NET "PCIE_TX_P[1]" loc =N4;
-#NET "PCIE_TX_N[2]" loc =L3;
-#NET "PCIE_TX_P[2]" loc =L4;
-#NET "PCIE_TX_N[3]" loc =J3;
-#NET "PCIE_TX_P[3]" loc =J4;
+INST "m_clocks/m_buf_pciexp" LOC = IBUFDS_GTE2_X0Y0;
+#NET "pin_in_refclk_pciexp_clk_p" LOC = "H6";
+#NET "pin_in_refclk_pciexp_clk_n" LOC = "H5";
 
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[0].GTX" LOC = ; # PCIe Lane 0
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[1].GTX" LOC = ; # PCIe Lane 1
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[2].GTX" LOC = ; # PCIe Lane 2
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[3].GTX" LOC = ; # PCIe Lane 3
-#
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_block_i" LOC = PCIE;
-#
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_rx/brams[1].ram/use_ramb36*.ramb36*" LOC = ;
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_rx/brams[0].ram/use_ramb36*.ramb36*" LOC = ;
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/brams[0].ram/use_ramb36*.ramb36*" LOC = ;
-#INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/brams[1].ram/use_ramb36*.ramb36*" LOC = ;
+INST "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[0].gt_wrapper_i/gtx_channel.gtxe2_channel_i" LOC = GTXE2_CHANNEL_X0Y0; # PCIe Lane 0
+INST "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[1].gt_wrapper_i/gtx_channel.gtxe2_channel_i" LOC = GTXE2_CHANNEL_X0Y1; # PCIe Lane 1
+INST "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[2].gt_wrapper_i/gtx_channel.gtxe2_channel_i" LOC = GTXE2_CHANNEL_X0Y2; # PCIe Lane 2
+INST "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[3].gt_wrapper_i/gtx_channel.gtxe2_channel_i" LOC = GTXE2_CHANNEL_X0Y3; # PCIe Lane 3
 
-###----------  For PCIE-Express (x4) - 2.5G (pcie refclk - 250MHz) ----------
-#NET "g_usrclk<3>" TNM_NET = "PCIEXP_SYSCLK" ;
-#NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_125" TNM_NET = "PCIEXP_CLK_125" ;
-#NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
-#
-#TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 1 ;
-#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
-#
-#PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
-#PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
-#PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
-#
-#NET "g_host_clk" TNM_NET = "HOST_CLK";
-#TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 125 MHz HIGH 50 % ;
+# PCI Express Block placement. This constraint selects the PCI Express Block to be used.
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_block_i" LOC = PCIE_X0Y0;
 
-###----------  For PCIE-Express (x4) - 5G (pcie refclk - 250MHz) ----------
-#NET "g_usrclk<3>" TNM_NET = "PCIEXP_SYSCLK" ;
-#NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_125" TNM_NET = "PCIEXP_CLK_125" ;
-#NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
-#NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_250" TNM_NET = "PCIEXP_CLK_250" ;
-#
-#TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % ;
-#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_SYSCLK*1 HIGH 50 % PRIORITY 1;
-#
-#NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/sel_lnk_rate_d" TIG ;
-#PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
-#PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
-#PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
-#
-#NET "g_host_clk" TNM_NET = "HOST_CLK";
-#TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
-#
-##TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
+# BlockRAM placement
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[7].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X5Y35 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[6].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X5Y36 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[5].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X5Y27 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[6].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X5Y28 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[7].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X5Y24 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[5].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y37 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[4].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y36 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[3].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y35 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[2].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y34 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[1].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y33 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_rx/brams[0].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y32 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[0].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y31 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[1].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y30 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[2].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y29 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[3].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y28 ;
+INST "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_bram_top/pcie_brams_tx/brams[4].ram/use_tdp.ramb36/ramb_bl.ramb36_dp_bl.ram36_bl" LOC = RAMB36_X4Y27 ;
+
+###############################################################################
+# Timing Constraints
+###############################################################################
+NET "g_usrclk<3>" TNM_NET = "SYSCLK";
+NET "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/clk_125mhz" TNM_NET = "CLK_125" ;
+NET "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/clk_250mhz" TNM_NET = "CLK_250" ;
+NET "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/userclk1" TNM_NET = "CLK_USERCLK" ;
+NET "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/userclk2" TNM_NET = "CLK_USERCLK2" ;
+
+TIMESPEC "TS_SYSCLK"  = PERIOD "SYSCLK" 250 MHz HIGH 50 % ;
+TIMESPEC "TS_CLK_250" = PERIOD "CLK_250" TS_SYSCLK*1 HIGH 50 % PRIORITY 1;
+TIMESPEC "TS_CLK_125" = PERIOD "CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 2;
+TIMESPEC "TS_CLK_USERCLK" = PERIOD "CLK_USERCLK" TS_SYSCLK*1 HIGH 50 %;
+TIMESPEC "TS_CLK_USERCLK2" = PERIOD "CLK_USERCLK2" TS_SYSCLK*1 HIGH 50 %;
+
+INST "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/mmcm_i"  LOC = MMCME2_ADV_X0Y2;
+
+PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_block_i.PLPHYLNKUPN" TIG;
+PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_top_i/pcie_7x_i/pcie_block_i.PLRECEIVEDHOTRST" TIG;
+
+PIN "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/mmcm_i.RST" TIG ;
+NET "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/user_resetdone*" TIG;
+NET "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/pclk_sel" TIG;
+NET "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[0].pipe_rate.pipe_rate_i/*" TNM_NET = FFS "MC_PIPE";
+NET "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[1].pipe_rate.pipe_rate_i/*" TNM_NET = FFS "MC_PIPE";
+NET "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[2].pipe_rate.pipe_rate_i/*" TNM_NET = FFS "MC_PIPE";
+NET "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[3].pipe_rate.pipe_rate_i/*" TNM_NET = FFS "MC_PIPE";
+
+TIMESPEC "TS_PIPE_RATE" = FROM "MC_PIPE" TS_CLK_USERCLK*0.5;
+
+NET "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_reset.pipe_reset_i/cpllreset" TIG;
 
 
 
@@ -193,248 +298,203 @@ TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arb
 ##################################################################################
 # Location Constraints
 ##################################################################################
-NET  "pin_inout_phymem[0]_dq<0>"      LOC = "AF20" ;
-NET  "pin_inout_phymem[0]_dq<1>"      LOC = "AF19" ;
-NET  "pin_inout_phymem[0]_dq<2>"      LOC = "AF17" ;
-NET  "pin_inout_phymem[0]_dq<3>"      LOC = "AE17" ;
-NET  "pin_inout_phymem[0]_dq<4>"      LOC = "AD16" ;
-NET  "pin_inout_phymem[0]_dq<5>"      LOC = "AF15" ;
-NET  "pin_inout_phymem[0]_dq<6>"      LOC = "AF14" ;
-NET  "pin_inout_phymem[0]_dq<7>"      LOC = "AD15" ;
-NET  "pin_inout_phymem[0]_dq<8>"      LOC = "AA18" ;
-NET  "pin_inout_phymem[0]_dq<9>"      LOC = "AA17" ;
-NET  "pin_inout_phymem[0]_dq<10>"     LOC = "AB15" ;
-NET  "pin_inout_phymem[0]_dq<11>"     LOC = "AB16" ;
-NET  "pin_inout_phymem[0]_dq<12>"     LOC = "AD14" ;
-NET  "pin_inout_phymem[0]_dq<13>"     LOC = "AA15" ;
-NET  "pin_inout_phymem[0]_dq<14>"     LOC = "AB14" ;
-NET  "pin_inout_phymem[0]_dq<15>"     LOC = "AA14" ;
-NET  "pin_inout_phymem[0]_dq<16>"     LOC = "AB19" ;
-NET  "pin_inout_phymem[0]_dq<17>"     LOC = "AA20" ;
-NET  "pin_inout_phymem[0]_dq<18>"     LOC = "AD19" ;
-NET  "pin_inout_phymem[0]_dq<19>"     LOC = "AD18" ;
-NET  "pin_inout_phymem[0]_dq<20>"     LOC = "AC18" ;
-NET  "pin_inout_phymem[0]_dq<21>"     LOC = "AC17" ;
-NET  "pin_inout_phymem[0]_dq<22>"     LOC = "AB17" ;
-NET  "pin_inout_phymem[0]_dq<23>"     LOC = "AA19" ;
-NET  "pin_inout_phymem[0]_dq<24>"     LOC = "V18"  ;
-NET  "pin_inout_phymem[0]_dq<25>"     LOC = "V19"  ;
-NET  "pin_inout_phymem[0]_dq<26>"     LOC = "Y17"  ;
-NET  "pin_inout_phymem[0]_dq<27>"     LOC = "V17"  ;
-NET  "pin_inout_phymem[0]_dq<28>"     LOC = "W15"  ;
-NET  "pin_inout_phymem[0]_dq<29>"     LOC = "W16"  ;
-NET  "pin_inout_phymem[0]_dq<30>"     LOC = "V14"  ;
-NET  "pin_inout_phymem[0]_dq<31>"     LOC = "W14"  ;
-NET  "pin_inout_phymem[0]_dq<32>"     LOC = "U5"   ;
-NET  "pin_inout_phymem[0]_dq<33>"     LOC = "U2"   ;
-NET  "pin_inout_phymem[0]_dq<34>"     LOC = "V4"   ;
-NET  "pin_inout_phymem[0]_dq<35>"     LOC = "V6"   ;
-NET  "pin_inout_phymem[0]_dq<36>"     LOC = "W3"   ;
-NET  "pin_inout_phymem[0]_dq<37>"     LOC = "V3"   ;
-NET  "pin_inout_phymem[0]_dq<38>"     LOC = "U1"   ;
-NET  "pin_inout_phymem[0]_dq<39>"     LOC = "U7"   ;
-NET  "pin_inout_phymem[0]_dq<40>"     LOC = "Y1"   ;
-NET  "pin_inout_phymem[0]_dq<41>"     LOC = "V2"   ;
-NET  "pin_inout_phymem[0]_dq<42>"     LOC = "AB2"  ;
-NET  "pin_inout_phymem[0]_dq<43>"     LOC = "AA2"  ;
-NET  "pin_inout_phymem[0]_dq<44>"     LOC = "Y2"   ;
-NET  "pin_inout_phymem[0]_dq<45>"     LOC = "V1"   ;
-NET  "pin_inout_phymem[0]_dq<46>"     LOC = "AA3"  ;
-NET  "pin_inout_phymem[0]_dq<47>"     LOC = "W1"   ;
-NET  "pin_inout_phymem[0]_dq<48>"     LOC = "AA4"  ;
-NET  "pin_inout_phymem[0]_dq<49>"     LOC = "AB4"  ;
-NET  "pin_inout_phymem[0]_dq<50>"     LOC = "Y6"   ;
-NET  "pin_inout_phymem[0]_dq<51>"     LOC = "AB6"  ;
-NET  "pin_inout_phymem[0]_dq<52>"     LOC = "AC3"  ;
-NET  "pin_inout_phymem[0]_dq<53>"     LOC = "AC4"  ;
-NET  "pin_inout_phymem[0]_dq<54>"     LOC = "AD6"  ;
-NET  "pin_inout_phymem[0]_dq<55>"     LOC = "Y5"   ;
-NET  "pin_inout_phymem[0]_dq<56>"     LOC = "AE3"  ;
-NET  "pin_inout_phymem[0]_dq<57>"     LOC = "AD4"  ;
-NET  "pin_inout_phymem[0]_dq<58>"     LOC = "AE6"  ;
-NET  "pin_inout_phymem[0]_dq<59>"     LOC = "AE5"  ;
-NET  "pin_inout_phymem[0]_dq<60>"     LOC = "AD1"  ;
-NET  "pin_inout_phymem[0]_dq<61>"     LOC = "AF2"  ;
-NET  "pin_inout_phymem[0]_dq<62>"     LOC = "AF3"  ;
-NET  "pin_inout_phymem[0]_dq<63>"     LOC = "AE2"  ;
-#NET  "pin_out_phymem[0]_a<15>"        LOC = "AA12" ;
-NET  "pin_out_phymem[0]_a<14>"        LOC = "AC8"  ;
-NET  "pin_out_phymem[0]_a<13>"        LOC = "AA7"  ;
-NET  "pin_out_phymem[0]_a<12>"        LOC = "AD8"  ;
-NET  "pin_out_phymem[0]_a<11>"        LOC = "AA9"  ;
-NET  "pin_out_phymem[0]_a<10>"        LOC = "AD9"  ;
-NET  "pin_out_phymem[0]_a<9>"         LOC = "AF7"  ;
-NET  "pin_out_phymem[0]_a<8>"         LOC = "AE7"  ;
-NET  "pin_out_phymem[0]_a<7>"         LOC = "AC9"  ;
-NET  "pin_out_phymem[0]_a<6>"         LOC = "AC7"  ;
-NET  "pin_out_phymem[0]_a<5>"         LOC = "AA8"  ;
-NET  "pin_out_phymem[0]_a<4>"         LOC = "AB9"  ;
-NET  "pin_out_phymem[0]_a<3>"         LOC = "AB7"  ;
-NET  "pin_out_phymem[0]_a<2>"         LOC = "AC13" ;
-NET  "pin_out_phymem[0]_a<1>"         LOC = "AB10" ;
-NET  "pin_out_phymem[0]_a<0>"         LOC = "AA10" ;
-
-NET  "pin_out_phymem[0]_ba<2>"        LOC = "AD13" ;
-NET  "pin_out_phymem[0]_ba<1>"        LOC = "Y12"  ;
-NET  "pin_out_phymem[0]_ba<0>"        LOC = "AE13" ;
-NET  "pin_out_phymem[0]_ras_n"        LOC = "AD10" ;
-NET  "pin_out_phymem[0]_cas_n"        LOC = "AF10" ;
-NET  "pin_out_phymem[0]_we_n"         LOC = "AF13" ;
-NET  "pin_out_phymem[0]_rst_n"        LOC = "AB20" ;
-NET  "pin_out_phymem[0]_cke<0>"       LOC = "AD11" ;
-NET  "pin_out_phymem[0]_cke<1>"       LOC = "AA13" ;
-NET  "pin_out_phymem[0]_odt<0>"       LOC = "AE8"  ;
-NET  "pin_out_phymem[0]_odt<1>"       LOC = "AE10" ;
-NET  "pin_out_phymem[0]_cs_n<0>"      LOC = "AF8"  ;
-NET  "pin_out_phymem[0]_cs_n<1>"      LOC = "AF9"  ;
-NET  "pin_out_phymem[0]_dm<0>"        LOC = "AE15" ;
-NET  "pin_out_phymem[0]_dm<1>"        LOC = "AC14" ;
-NET  "pin_out_phymem[0]_dm<2>"        LOC = "AC19" ;
-NET  "pin_out_phymem[0]_dm<3>"        LOC = "V16"  ;
-NET  "pin_out_phymem[0]_dm<4>"        LOC = "U6"   ;
-NET  "pin_out_phymem[0]_dm<5>"        LOC = "Y3"   ;
-NET  "pin_out_phymem[0]_dm<6>"        LOC = "AC6"  ;
-NET  "pin_out_phymem[0]_dm<7>"        LOC = "AE1"  ;
-NET  "pin_out_phymem[0]_dm<8>"        LOC = "V8"   ;
-
-NET  "pin_inout_phymem[0]_dqs_p<0>"   LOC = "AE18" ;
-NET  "pin_inout_phymem[0]_dqs_n<0>"   LOC = "AF18" ;
-NET  "pin_inout_phymem[0]_dqs_p<1>"   LOC = "Y15"  ;
-NET  "pin_inout_phymem[0]_dqs_n<1>"   LOC = "Y16"  ;
-NET  "pin_inout_phymem[0]_dqs_p<2>"   LOC = "AD20" ;
-NET  "pin_inout_phymem[0]_dqs_n<2>"   LOC = "AE20" ;
-NET  "pin_inout_phymem[0]_dqs_p<3>"   LOC = "W18"  ;
-NET  "pin_inout_phymem[0]_dqs_n<3>"   LOC = "W19"  ;
-NET  "pin_inout_phymem[0]_dqs_p<4>"   LOC = "W6"   ;
-NET  "pin_inout_phymem[0]_dqs_n<4>"   LOC = "W5"   ;
-NET  "pin_inout_phymem[0]_dqs_p<5>"   LOC = "AB1"  ;
-NET  "pin_inout_phymem[0]_dqs_n<5>"   LOC = "AC1"  ;
-NET  "pin_inout_phymem[0]_dqs_p<6>"   LOC = "AA5"  ;
-NET  "pin_inout_phymem[0]_dqs_n<6>"   LOC = "AB5"  ;
-NET  "pin_inout_phymem[0]_dqs_p<7>"   LOC = "AF5"  ;
-NET  "pin_inout_phymem[0]_dqs_n<7>"   LOC = "AF4"  ;
-NET  "pin_inout_phymem[0]_dqs_p<8>"   LOC = "W10"  ;
-NET  "pin_inout_phymem[0]_dqs_n<8>"   LOC = "W9"   ;
-
-NET  "pin_out_phymem[0]_ck_p<0>"      LOC = "AE12" ;
-NET  "pin_out_phymem[0]_ck_n<0>"      LOC = "AF12" ;
-NET  "pin_out_phymem[0]_ck_p<1>"      LOC = "AB12" ;
-NET  "pin_out_phymem[0]_ck_n<1>"      LOC = "AC12" ;
-
-#NET "DIMM_CB[0]" loc =V11;
-#NET "DIMM_CB[1]" loc =W11;
-#NET "DIMM_CB[2]" loc =Y10;
-#NET "DIMM_CB[3]" loc =Y11;
-#NET "DIMM_CB[4]" loc =V9;
-#NET "DIMM_CB[5]" loc =Y8;
-#NET "DIMM_CB[6]" loc =Y7;
-#NET "DIMM_CB[7]" loc =V7;
-#NET "DIMM_SCL" loc =E12;
-#NET "DIMM_SDA" loc =C14;
-#NET "DIMM_EVENTN" loc =AC16;
-#NET "DIMM_NC[1]" loc =AC2;
-#NET "DIMM_NC[2]" loc =AD5;
-#NET "DIMM_NC[3]" loc =U9;
-#NET "DIMM_NC[4]" loc =Y13;
-#NET "DIMM_NC[5]" loc =V12;
-#NET "DIMM_NC[6]" loc =V13;
-#NET "DIMM_NC[7]" loc =W13;
-
-NET "pin_inout_phymem[0]_dq<*>"    IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_DQ[*]"
-NET "pin_out_phymem[0]_a<*>"       IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_A[*]"
-NET "pin_out_phymem[0]_ba<*>"      IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_BA[*]"
-NET "pin_out_phymem[0]_ras_n"      IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_RASN"
-NET "pin_out_phymem[0]_cas_n"      IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_CASN"
-NET "pin_out_phymem[0]_we_n"       IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_WEN"
-NET "pin_out_phymem[0]_rst_n"      IOSTANDARD = LVCMOS15           |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_RESETN"
-NET "pin_out_phymem[0]_cke<*>"     IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_CKE[*]"
-NET "pin_out_phymem[0]_odt<*>"     IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_ODT[*]"
-NET "pin_out_phymem[0]_cs_n<*>"    IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_CS?N"
-NET "pin_out_phymem[0]_dm<*>"      IOSTANDARD = SSTL15             |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_DM[*]"
-NET "pin_inout_phymem[0]_dqs_p<*>" IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_DQSP[*]"
-NET "pin_inout_phymem[0]_dqs_n<*>" IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_DQSN[*]"
-NET "pin_out_phymem[0]_ck_p<0>"    IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_CK0P"
-NET "pin_out_phymem[0]_ck_n<0>"    IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = HIGH  | SLEW = FAST ; #"DIMM_CK0N"
-#NET "DIMM_CK1P"    IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = HIGH  | SLEW = FAST  ;#"DIMM_CK1P"
-#NET "DIMM_CK1N"    IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = HIGH  | SLEW = FAST  ;#"DIMM_CK1N"
-NET "pin_out_phymem[0]_ck_p<1>"    IOSTANDARD = LVCMOS15; #"DIMM_CK1P"
-NET "pin_out_phymem[0]_ck_n<1>"    IOSTANDARD = LVCMOS15; #"DIMM_CK1N"
-#NET "DIMM_CB<*>"   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = HIGH  | SLEW = FAST  ;#"DIMM_CB[*]"
-#NET "DIMM_EVENTN"  IOSTANDARD = LVCMOS15; #"DIMM_EVENTN"
-#NET "DIMM_NC[*]"   IOSTANDARD = LVCMOS15; #"DIMM_NC[*]"
-#NET "DIMM_SCL"     IOSTANDARD = LVCMOS25; #"DIMM_SCL"
-#NET "DIMM_SDA"     IOSTANDARD = LVCMOS25; #"DIMM_SDA"
+NET  "pin_inout_phymem[0]_dq<0>"      LOC = "AF20"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<1>"      LOC = "AF19"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<2>"      LOC = "AF17"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<3>"      LOC = "AE17"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<4>"      LOC = "AD16"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<5>"      LOC = "AF15"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<6>"      LOC = "AF14"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<7>"      LOC = "AD15"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<8>"      LOC = "AA18"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<9>"      LOC = "AA17"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<10>"     LOC = "AB15"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<11>"     LOC = "AB16"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<12>"     LOC = "AD14"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<13>"     LOC = "AA15"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<14>"     LOC = "AB14"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<15>"     LOC = "AA14"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<16>"     LOC = "AB19"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<17>"     LOC = "AA20"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<18>"     LOC = "AD19"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<19>"     LOC = "AD18"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<20>"     LOC = "AC18"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<21>"     LOC = "AC17"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<22>"     LOC = "AB17"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<23>"     LOC = "AA19"    |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<24>"     LOC = "V18"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<25>"     LOC = "V19"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<26>"     LOC = "Y17"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<27>"     LOC = "V17"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<28>"     LOC = "W15"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<29>"     LOC = "W16"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<30>"     LOC = "V14"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<31>"     LOC = "W14"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<32>"     LOC = "U5"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<33>"     LOC = "U2"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<34>"     LOC = "V4"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<35>"     LOC = "V6"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<36>"     LOC = "W3"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<37>"     LOC = "V3"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<38>"     LOC = "U1"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<39>"     LOC = "U7"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<40>"     LOC = "Y1"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<41>"     LOC = "V2"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<42>"     LOC = "AB2"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<43>"     LOC = "AA2"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<44>"     LOC = "Y2"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<45>"     LOC = "V1"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<46>"     LOC = "AA3"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<47>"     LOC = "W1"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<48>"     LOC = "AA4"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<49>"     LOC = "AB4"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<50>"     LOC = "Y6"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<51>"     LOC = "AB6"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<52>"     LOC = "AC3"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<53>"     LOC = "AC4"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<54>"     LOC = "AD6"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<55>"     LOC = "Y5"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<56>"     LOC = "AE3"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<57>"     LOC = "AD4"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<58>"     LOC = "AE6"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<59>"     LOC = "AE5"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<60>"     LOC = "AD1"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<61>"     LOC = "AF2"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<62>"     LOC = "AF3"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<63>"     LOC = "AE2"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<64>"     LOC = "V11"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<65>"     LOC = "W11"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<66>"     LOC = "Y10"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<67>"     LOC = "Y11"     |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<68>"     LOC = "V9"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<69>"     LOC = "Y8"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<70>"     LOC = "Y7"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dq<71>"     LOC = "V7"      |   IOSTANDARD = SSTL15_T_DCI       |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<14>"        LOC = "AC8"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<13>"        LOC = "AA7"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<12>"        LOC = "AD8"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<11>"        LOC = "AA9"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<10>"        LOC = "AD9"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<9>"         LOC = "AF7"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<8>"         LOC = "AE7"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<7>"         LOC = "AC9"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<6>"         LOC = "AC7"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<5>"         LOC = "AA8"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<4>"         LOC = "AB9"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<3>"         LOC = "AB7"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<2>"         LOC = "AC13"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<1>"         LOC = "AB10"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_a<0>"         LOC = "AA10"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_ba<2>"        LOC = "AD13"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_ba<1>"        LOC = "Y12"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_ba<0>"        LOC = "AE13"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_ras_n"        LOC = "AD10"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_cas_n"        LOC = "AF10"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_we_n"         LOC = "AF13"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_rst_n"        LOC = "AB20"    |   IOSTANDARD = LVCMOS15           |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_cke<0>"       LOC = "AD11"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_odt<0>"       LOC = "AE8"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_cs_n<0>"      LOC = "AF8"     |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<0>"   LOC = "AE18"    |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<0>"   LOC = "AF18"    |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<1>"   LOC = "Y15"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<1>"   LOC = "Y16"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<2>"   LOC = "AD20"    |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<2>"   LOC = "AE20"    |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<3>"   LOC = "W18"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<3>"   LOC = "W19"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<4>"   LOC = "W6"      |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<4>"   LOC = "W5"      |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<5>"   LOC = "AB1"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<5>"   LOC = "AC1"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<6>"   LOC = "AA5"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<6>"   LOC = "AB5"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<7>"   LOC = "AF5"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<7>"   LOC = "AF4"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_p<8>"   LOC = "W10"     |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_inout_phymem[0]_dqs_n<8>"   LOC = "W9"      |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_ck_p<0>"      LOC = "AE12"    |   IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_ck_n<0>"      LOC = "AF12"    |   IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
 
 
-CONFIG DCI_CASCADE = "34 33 32";  # master slave
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y3;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y2;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y1;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y0;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y6;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y5;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y4;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y7;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y11;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y10;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y9;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y3;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y2;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y1;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y0;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y11;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y10;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y9;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y8;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y7;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y6;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y5;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y4;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y3;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y2;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y1;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y0;
+## INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y6;
+## INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y5;
+## INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y4;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y7;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y11;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y10;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y9;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y3;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y2;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y1;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y0;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y11;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y10;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y9;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y8;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y7;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y3;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y2;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y1;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y0;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y6;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y5;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y4;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y7;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y11;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y10;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y9;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y8;
 
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/rclk_buf" LOC=BUFIO_X1Y5;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y3;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y2;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y1;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y0;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y7;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y11;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y10;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y9;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y3;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y2;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y1;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y0;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y11;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y10;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y9;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y8;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y7;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y5;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y6;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y4;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y0;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y1;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y2;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y3;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y2;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y1;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y0;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y11;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y10;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y9;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y8;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y7;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y0;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y1;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y2;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y0;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y1;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y2;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y43;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y31;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y19;
+INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y7;
+INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y93;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y143;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y131;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y119;
+INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y107;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y0;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y1;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y2;
+INST "*/u_ddr3_infrastructure/plle2_i" LOC=PLLE2_ADV_X1Y1;
+INST "*/u_ddr3_infrastructure/gen_mmcm.mmcm_i" LOC=MMCME2_ADV_X1Y1;
 
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y43;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y31;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y19;
-INST "*/ddr_phy_4lanes_2.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y7;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y143;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y131;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y119;
-INST "*/ddr_phy_4lanes_0.ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y107;
-INST "*/ddr_phy_4lanes_1.ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y93;
+NET "*/iserdes_clk" TNM_NET = "TNM_ISERDES_CLK";
+INST "*/mc0/mc_read_idle_r" TNM = "TNM_SOURCE_IDLE";
+INST "*/input_[?].iserdes_dq_.iserdesdq" TNM = "TNM_DEST_ISERDES";
+TIMESPEC "TS_ISERDES_CLOCK" = PERIOD "TNM_ISERDES_CLK" 1500 ps;
+TIMESPEC TS_MULTICYCLEPATH = FROM "TNM_SOURCE_IDLE" TO "TNM_DEST_ISERDES" TS_ISERDES_CLOCK*6;
 
-INST "udimm_inst/u_infrastructure/mmcm_i" LOC=MMCME2_ADV_X1Y1;
+INST "*/device_temp_sync_r1*" TNM="TNM_MULTICYCLEPATH_DEVICE_TEMP_SYNC";
+TIMESPEC "TS_MULTICYCLEPATH_DEVICE_TEMP_SYNC" = TO "TNM_MULTICYCLEPATH_DEVICE_TEMP_SYNC" 20 ns DATAPATHONLY;
 
 
 #############################################################################
@@ -466,6 +526,7 @@ NET  "pin_out_prom_a<22>"       LOC="K20";
 NET  "pin_out_prom_a<23>"       LOC="G20";
 NET  "pin_out_prom_a<24>"       LOC="H19";
 NET  "pin_out_prom_a<25>"       LOC="E20";
+NET "pin_out_prom_a<*>" IOSTANDARD = LVCMOS18;
 
 NET  "pin_inout_prom_d<0>"      LOC="B24";
 NET  "pin_inout_prom_d<1>"      LOC="A25";
@@ -483,10 +544,11 @@ NET  "pin_inout_prom_d<12>"     LOC="A20";
 NET  "pin_inout_prom_d<13>"     LOC="E22";
 NET  "pin_inout_prom_d<14>"     LOC="C21";
 NET  "pin_inout_prom_d<15>"     LOC="B21";
+NET "pin_inout_prom_d<*>" IOSTANDARD = LVCMOS18;
 
-NET  "pin_out_prom_we_n"        LOC="L18";
-NET  "pin_out_prom_cs_n"        LOC="C23";
-NET  "pin_out_prom_oe_n"        LOC="M17";
+NET  "pin_out_prom_we_n"        LOC="L18"  |  IOSTANDARD = LVCMOS18;
+NET  "pin_out_prom_cs_n"        LOC="C23"  |  IOSTANDARD = LVCMOS18;
+NET  "pin_out_prom_oe_n"        LOC="M17"  |  IOSTANDARD = LVCMOS18;
 #NET  "pin_out_prom_av_n"        LOC="D20";
 
 

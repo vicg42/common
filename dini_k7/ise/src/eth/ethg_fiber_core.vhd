@@ -209,8 +209,8 @@ p_out_phy.rdy <= i_dcm_locked;
 p_out_phy.clk <= g_clk125M;
 p_out_phy.rst <= p_in_rst;
 
-p_out_phy.opt(C_ETHPHY_OPTOUT_SFP_TXDIS_BIT) <= '0';
-i_pma_sfp_signal_detect <= p_in_phy.opt(C_ETHPHY_OPTIN_SFP_SD_BIT);
+p_out_phy.pin.fiber.sfp_txdis <= '0';
+i_pma_sfp_signal_detect <= p_in_phy.pin.fiber.sfp_sd;
 --i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
 g_refclk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
@@ -218,9 +218,9 @@ g_refclk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
 i_reset <= p_in_rst;
 
 --configureatin
---p_out_phy.pin.fiber.rs <= "00";--Rate select
-p_out_phy.pin.fiber.refclk_sel <= "01";--0/1/2/3 - 100/125/150/156.25MHz
-p_out_phy.pin.fiber.refclk_oe_n <= '0';
+--p_out_phy.pin.fiber.sfp_rs <= "00";--Rate select
+p_out_phy.pin.fiber.clk_sel <= "01";--0/1/2/3 - 100/125/150/156.25MHz
+p_out_phy.pin.fiber.clk_oe <= '0';
 
 i_mac_speed <= CONV_STD_LOGIC_VECTOR(2, i_mac_speed'length);--0/1/2 - 10/100/1000(Mb/s)
 i_mac_speed_update <= '0';
@@ -355,8 +355,8 @@ dcm_locked          => i_dcm_locked,
 independent_clock    => g_refclk, --: in std_logic;
 
 -- Tranceiver Interface
-gtrefclk_p           => p_in_phy.pin.fiber.refclk_p,--125MHz, very high quality
-gtrefclk_n           => p_in_phy.pin.fiber.refclk_n,--125MHz, very high quality
+gtrefclk_p           => p_in_phy.pin.fiber.clk_p,--125MHz, very high quality
+gtrefclk_n           => p_in_phy.pin.fiber.clk_n,--125MHz, very high quality
 txp                  => p_out_phy.pin.fiber.txp(0) ,
 txn                  => p_out_phy.pin.fiber.txn(0) ,
 rxp                  => p_in_phy.pin.fiber.rxp(0)  ,
