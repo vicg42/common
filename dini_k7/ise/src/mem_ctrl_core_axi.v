@@ -233,27 +233,27 @@ module mem_ctrl_core_axi #
    // Memory Timing Parameters. These parameters varies based on the selected
    // memory part.
    //***************************************************************************
-   parameter tCKE                  = 5000,
+   parameter tCKE                  = 15000,
                                      // memory tCKE paramter in pS
-   parameter tFAW                  = 30000,
+   parameter tFAW                  = 50000,
                                      // memory tRAW paramter in pS.
    parameter tPRDI                 = 1_000_000,
                                      // memory tPRDI paramter in pS.
-   parameter tRAS                  = 35000,
+   parameter tRAS                  = 36000,
                                      // memory tRAS paramter in pS.
-   parameter tRCD                  = 13125,
+   parameter tRCD                  = 14000,
                                      // memory tRCD paramter in pS.
    parameter tREFI                 = 7800000,
                                      // memory tREFI paramter in pS.
-   parameter tRFC                  = 160000,
+   parameter tRFC                  = 300000,
                                      // memory tRFC paramter in pS.
-   parameter tRP                   = 13125,
+   parameter tRP                   = 14000,
                                      // memory tRP paramter in pS.
-   parameter tRRD                  = 6000,
+   parameter tRRD                  = 18000,
                                      // memory tRRD paramter in pS.
-   parameter tRTP                  = 7500,
+   parameter tRTP                  = 18000,
                                      // memory tRTP paramter in pS.
-   parameter tWTR                  = 7500,
+   parameter tWTR                  = 18000,
                                      // memory tWTR paramter in pS.
    parameter tZQI                  = 128_000_000,
                                      // memory tZQI paramter in nS.
