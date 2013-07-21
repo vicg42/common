@@ -23,5 +23,11 @@ pciexp_clk_p : std_logic;
 pciexp_clk_n : std_logic;
 end record;
 
+type TRefClkPinOUT is record
+oe : std_logic_vector(0 downto 0);
+--sda : std_logic_vector(0 downto 0);
+--scl : std_logic_vector(0 downto 0);
+end record;
+
 end clocks_pkg;
 

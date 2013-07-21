@@ -22,7 +22,7 @@ use unisim.vcomponents.all;
 
 library work;
 use work.clocks_pkg.all;
-use work.eth_pkg.all;
+--use work.eth_pkg.all;
 use work.prj_cfg.all;
 
 entity clocks is
@@ -31,6 +31,7 @@ p_out_rst  : out   std_logic;
 p_out_gclk : out   std_logic_vector(7 downto 0);
 
 p_in_clkopt: in    std_logic_vector(3 downto 0);
+p_out_clk  : out   TRefClkPinOUT;
 p_in_clk   : in    TRefClkPinIN
 );
 end;
@@ -49,7 +50,10 @@ signal i_eth_clk     : std_logic;
 
 begin
 
-m_buf : IBUFDS port map(I  => p_in_clk.clk_p(0), IB => p_in_clk.clk_n(0), O => i_pll_clkin);--200MHz
+
+p_out_clk.oe(0) <= '1';-- Oscillator Output Enable
+
+m_buf : IBUFDS port map(I  => p_in_clk.clk_p(0), IB => p_in_clk.clk_n(0), O => i_pll_clkin);--400MHz
 bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
 
 process(g_pll_clkin)
@@ -67,23 +71,22 @@ end process;
 -- Reference clock MMCM (CLKFBOUT range 600.00 MHz to 1440.00 MHz)
 -- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F
 -- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT_F/CLKOUTn_DIVIDE
--- CLKFBOUT = (400 MHz/8) * 16.000       = 800 MHz
--- CLKOUT0  = (400 MHz/8) * 16.000/6.400 = 125 MHz
--- CLKOUT1  = (400 MHz/8) * 16.000/4     = 200 MHz
--- CLKOUT2  = (400 MHz/8) * 16.000/2     = 400 MHz
--- CLKOUT3  = (400 MHz/8) * 16.000/8     = 100 MHz
--- CLKOUT4  = (400 MHz/8) * 16.000/25    = 32 MHz
+-- CLKFBOUT = (400 MHz/4) * 10.000      = 1000 MHz
+-- CLKOUT0  = (400 MHz/4) * 10.000/2.5  = 400 MHz
+-- CLKOUT1  = (400 MHz/4) * 10.000/5    = 200 MHz
+-- CLKOUT2  = (400 MHz/4) * 10.000/8    = 125 MHz
+-- CLKOUT3  = (400 MHz/4) * 10.000/10   = 100 MHz
 
 mmcm_ref_clk_i : MMCME2_BASE
 generic map(
 BANDWIDTH          => "OPTIMIZED", -- string := "OPTIMIZED"
 CLKIN1_PERIOD      => 2.500,       -- real := 0.0
-DIVCLK_DIVIDE      => 8,           -- integer := 1 (1 to 128)
-CLKFBOUT_MULT_F    => 16.000,      -- real := 1.0  (5.0 to 64.0)
-CLKOUT0_DIVIDE_F   => 6.400,       -- real := 1.0  (1.0 to 128.0)
-CLKOUT1_DIVIDE     => 4,           -- integer := 1
-CLKOUT2_DIVIDE     => 2,           -- integer := 1
-CLKOUT3_DIVIDE     => 8,           -- integer := 1
+DIVCLK_DIVIDE      => 4,           -- integer := 1 (1 to 128)
+CLKFBOUT_MULT_F    => 10.000,      -- real := 1.0  (5.0 to 64.0)
+CLKOUT0_DIVIDE_F   => 2.500,       -- real := 1.0  (1.0 to 128.0)
+CLKOUT1_DIVIDE     => 5,           -- integer := 1
+CLKOUT2_DIVIDE     => 8,           -- integer := 1
+CLKOUT3_DIVIDE     => 10,          -- integer := 1
 CLKOUT4_DIVIDE     => 25,          -- integer := 1
 CLKOUT5_DIVIDE     => 1,           -- integer := 1
 CLKOUT6_DIVIDE     => 1,           -- integer := 1
@@ -131,16 +134,13 @@ g_clk_fb(0) <= i_clk_fb(0);
 -- Generate asynchronous reset
 p_out_rst <= not(AND_reduce(i_pll_locked));
 
-p_out_gclk(0)<=g_pll_clkin;--200MHz
-bufg_clk1: BUFG port map(I => i_clk_out(2), O => p_out_gclk(1)); --400MHz
+bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
+bufg_clk1: BUFG port map(I => i_clk_out(0), O => p_out_gclk(1)); --400MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
-                                                 p_out_gclk(4)<='0'; --125MHz
-bufg_clk5: BUFG port map(I => i_clk_out(5), O => p_out_gclk(5));--32MHz
---                                               p_out_gclk(6));--зарезервировано!!!
-p_out_gclk(7) <= '0';--100MHz
 
-m_buf_pciexp : IBUFDS_GTXE1 port map (
+
+m_buf_pciexp : IBUFDS_GTE2 port map (
 I     => p_in_clk.pciexp_clk_p,
 IB    => p_in_clk.pciexp_clk_n,
 CEB   => '0',
