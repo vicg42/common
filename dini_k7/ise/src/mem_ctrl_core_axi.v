@@ -109,7 +109,7 @@ module mem_ctrl_core_axi #
    parameter MC_ERR_ADDR_WIDTH     = 31,
    parameter MEM_ADDR_ORDER
      = "BANK_ROW_COLUMN",
-      
+
    parameter nBANK_MACHS           = 4,
    parameter RANKS                 = 1,
                                      // # of Ranks.
@@ -207,7 +207,7 @@ module mem_ctrl_core_axi #
                                      //   = "OFF" - Components, SODIMMs, UDIMMs.
    parameter CA_MIRROR             = "OFF",
                                      // C/A mirror opt for DDR3 dual rank
-   
+
    //***************************************************************************
    // The following parameters are multiplier and divisor factors for PLLE2.
    // Based on the selected design frequency these parameters vary.
@@ -404,7 +404,7 @@ module mem_ctrl_core_axi #
                                      // "TRUE" - if pin is selected for sys_rst
                                      //          and IBUF will be instantiated.
                                      // "FALSE" - if pin is not selected for sys_rst
-      
+
    parameter CMD_PIPE_PLUS1        = "ON",
                                      // add pipeline stage between MC and PHY
    parameter DRAM_TYPE             = "DDR3",
@@ -432,11 +432,11 @@ module mem_ctrl_core_axi #
                                      // Differential Termination for System
                                      // clock input pins
 
-   
+
    //***************************************************************************
    // AXI4 Shim parameters
    //***************************************************************************
-   
+
    parameter UI_EXTRA_CLOCKS = "FALSE",
                                      // Generates extra clocks as
                                      // 1/2, 1/4 and 1/8 of fabrick clock.
@@ -523,7 +523,7 @@ module mem_ctrl_core_axi #
    //***************************************************************************
    parameter TEMP_MON_CONTROL                          = "EXTERNAL",
                                      // # = "INTERNAL", "EXTERNAL"
-      
+
    parameter RST_ACT_LOW           = 0
                                      // =1 for active low reset,
                                      // =0 for active high.
@@ -556,7 +556,7 @@ module mem_ctrl_core_axi #
    // user interface signals
    output                                       ui_clk,
    output                                       ui_clk_sync_rst,
-   
+
    output                                       mmcm_locked,
    output [2*nCK_PER_CLK-1:0]                   app_ecc_multiple_err,
    input                                        aresetn,
@@ -634,17 +634,17 @@ module mem_ctrl_core_axi #
 
    // Interrupt output
    output                                       interrupt,
-   
-   
+
+
    output                                       init_calib_complete,
    input  [11:0]                                device_temp_i,
                       // The 12 MSB bits of the temperature sensor transfer
                       // function need to be connected to this port. This port
                       // will be synchronized w.r.t. to fabric clock internally.
-      
+
 
    // System reset - Default polarity of sys_rst pin is Active Low.
-   // System reset polarity will change based on the option 
+   // System reset polarity will change based on the option
    // selected in GUI.
    input                                        sys_rst
    );
@@ -667,11 +667,11 @@ module mem_ctrl_core_axi #
                                                  // Enable or disable the temp monitor module
   localparam tTEMPSAMPLE           = 10000000;   // sample every 10 us
   localparam XADC_CLK_PERIOD       = 5000;       // Use 200 MHz IODELAYCTRL clock
-      
-      
+
+
 
   // Wire declarations
-      
+
   wire [BM_CNT_WIDTH-1:0]           bank_mach_next;
   wire                              clk;
   wire                              clk_ref;
@@ -687,9 +687,9 @@ module mem_ctrl_core_axi #
   wire                              pll_locked;
 
   wire                              rst;
-  
+
   wire                                ddr3_parity;
-      
+
 
   wire                              sys_clk_p;
   wire                              sys_clk_n;
@@ -766,7 +766,7 @@ module mem_ctrl_core_axi #
   wire [5:0]                        dbg_data_offset;
   wire [5:0]                        dbg_data_offset_1;
   wire [5:0]                        dbg_data_offset_2;
-      
+
 
 //***************************************************************************
 
@@ -774,12 +774,12 @@ module mem_ctrl_core_axi #
 
   assign ui_clk = clk;
   assign ui_clk_sync_rst = rst;
-  
+
   assign sys_clk_p = 1'b0;
   assign sys_clk_n = 1'b0;
   assign clk_ref_p = 1'b0;
   assign clk_ref_n = 1'b0;
-      
+
 
   generate
     if (REFCLK_TYPE == "USE_SYSTEM_CLOCK")
@@ -848,7 +848,7 @@ module mem_ctrl_core_axi #
 
     end
   endgenerate
-         
+
   mig_7series_v1_9_infrastructure #
     (
      .TCQ                (TCQ),
@@ -887,7 +887,7 @@ module mem_ctrl_core_axi #
        .iodelay_ctrl_rdy (iodelay_ctrl_rdy),
        .ref_dll_lock     (ref_dll_lock)
        );
-      
+
 
   mig_7series_v1_9_memc_ui_top_axi #
     (
@@ -1132,7 +1132,7 @@ module mem_ctrl_core_axi #
        .dbg_oclkdelay_rd_data            (dbg_oclkdelay_rd_data),
        .dbg_oclkdelay_calib_start        (dbg_oclkdelay_calib_start),
        .dbg_oclkdelay_calib_done         (dbg_oclkdelay_calib_done),
-       .dbg_dqs_found_cal                (dbg_dqs_found_cal),  
+       .dbg_dqs_found_cal                (dbg_dqs_found_cal),
        .aresetn                          (aresetn),
        .app_sr_req                       (app_sr_req),
        .app_sr_active                    (app_sr_active),
@@ -1209,7 +1209,7 @@ module mem_ctrl_core_axi #
        .init_calib_complete              (init_calib_complete)
        );
 
-      
+
 
 
 
@@ -1232,6 +1232,6 @@ module mem_ctrl_core_axi #
    assign dbg_po_f_stg23_sel   = 'b0;
    assign dbg_sel_po_incdec    = 'b0;
 
-      
+
 
 endmodule
