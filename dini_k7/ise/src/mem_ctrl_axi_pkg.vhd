@@ -25,8 +25,8 @@ use work.mem_wr_pkg.all;
 
 package mem_ctrl_pkg is
 
-constant C_AXIS_IDWIDTH    : integer:=8;
-constant C_AXIM_IDWIDTH    : integer:=12;
+constant C_AXIS_IDWIDTH    : integer:=4;
+constant C_AXIM_IDWIDTH    : integer:=8;
 
 constant C_AXI_AWIDTH      : integer:=32;
 constant C_AXI_DWIDTH      : integer:=32;
@@ -39,10 +39,10 @@ constant CI_BANK_WIDTH    : integer:=3 ;--// # of memory Bank Address bits.
 constant CI_CK_WIDTH      : integer:=1 ;--// # of CK/CK# outputs to memory.
 constant CI_CKE_WIDTH     : integer:=1 ;--// # of CKE outputs to memory.
 constant CI_CS_WIDTH      : integer:=1 ;--// # of unique CS outputs to memory.
-constant CI_DM_WIDTH      : integer:=2 ;--// # of Data Mask bits.
-constant CI_DQ_WIDTH      : integer:=16;--// # of Data (DQ) bits.
-constant CI_DQS_WIDTH     : integer:=2 ;--// # of DQS/DQS# bits.
-constant CI_ROW_WIDTH     : integer:=14;--// # of memory Row Address bits.
+constant CI_DM_WIDTH      : integer:=9 ;--// # of Data Mask bits.
+constant CI_DQ_WIDTH      : integer:=72;--// # of Data (DQ) bits.
+constant CI_DQS_WIDTH     : integer:=9 ;--// # of DQS/DQS# bits.
+constant CI_ROW_WIDTH     : integer:=15;--// # of memory Row Address bits.
 
 --Memory interface types
 type TMEMCTRL_phy_out is record
@@ -79,7 +79,6 @@ ref_clk: std_logic;
 end record;
 
 type TMEMCTRL_sysout is record
-gusrclk: std_logic_vector(0 downto 0);
 clk   : std_logic;
 end record;
 
@@ -216,13 +215,41 @@ s_axi_rlast         : out    std_logic;
 s_axi_rvalid        : out    std_logic;
 s_axi_rready        : in     std_logic;
 
+
+--AXI CTRL port
+s_axi_ctrl_awvalid  : in     std_logic;
+s_axi_ctrl_awready  : out    std_logic;
+s_axi_ctrl_awaddr   : in     std_logic_vector(32-1 downto 0);
+--Slave Interface Write Data Ports
+s_axi_ctrl_wvalid   : in     std_logic;
+s_axi_ctrl_wready   : out    std_logic;
+s_axi_ctrl_wdata    : in     std_logic_vector(32-1 downto 0);
+--Slave Interface Write Response Ports
+s_axi_ctrl_bvalid   : out    std_logic;
+s_axi_ctrl_bready   : in     std_logic;
+s_axi_ctrl_bresp    : out    std_logic_vector(1 downto 0);
+--Slave Interface Read Address Ports
+s_axi_ctrl_arvalid  : in     std_logic;
+s_axi_ctrl_arready  : out    std_logic;
+s_axi_ctrl_araddr   : in     std_logic_vector(32-1 downto 0);
+--Slave Interface Read Data Ports
+s_axi_ctrl_rvalid   : out    std_logic;
+s_axi_ctrl_rready   : in     std_logic;
+s_axi_ctrl_rdata    : out    std_logic_vector(32-1 downto 0);
+s_axi_ctrl_rresp    : out    std_logic_vector(1 downto 0);
+
+--Interrupt output
+interrupt           : out    std_logic;
+
 ui_clk              : out    std_logic;
 ui_clk_sync_rst     : out    std_logic;
 
 --phy_init_done       : out    std_logic;
 init_calib_complete : out    std_logic;
 
---mmcm_locked         : out    std_logic;
+app_ecc_multiple_err: out    std_logic_vector(7 downto 0);
+
+mmcm_locked         : out    std_logic;
 
 aresetn             : in     std_logic;
 app_sr_req          : in     std_logic;
@@ -231,7 +258,7 @@ app_ref_req         : in     std_logic;
 app_ref_ack         : out    std_logic;
 app_zq_req          : in     std_logic;
 app_zq_ack          : out    std_logic;
---device_temp_i       : in     std_logic_vector(11 downto 0);
+device_temp_i       : in     std_logic_vector(11 downto 0);
 
 --sys_clkout          : out    std_logic;
 clk_ref_i           : in     std_logic;

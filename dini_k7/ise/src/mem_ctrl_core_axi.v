@@ -94,6 +94,8 @@ module mem_ctrl_core_axi #
    parameter DQ_CNT_WIDTH          = 7,
                                      // = ceil(log2(DQ_WIDTH))
    parameter DQ_PER_DM             = 8,
+   parameter DM_WIDTH              = 9,
+                                     // # of DM (data mask)
    parameter DQ_WIDTH              = 72,
                                      // # of DQ (data)
    parameter DQS_WIDTH             = 9,
@@ -101,8 +103,8 @@ module mem_ctrl_core_axi #
                                      // = ceil(log2(DQS_WIDTH))
    parameter DRAM_WIDTH            = 8,
                                      // # of DQ per DQS
-   parameter ECC                   = "ON",
-   parameter DATA_WIDTH            = 64,
+   parameter ECC                   = "OFF",
+   parameter DATA_WIDTH            = 72,
    parameter ECC_TEST              = "OFF",
    parameter PAYLOAD_WIDTH         = (ECC_TEST == "OFF") ? DATA_WIDTH : DQ_WIDTH,
    parameter ECC_WIDTH             = 8,
@@ -127,7 +129,7 @@ module mem_ctrl_core_axi #
                                      //   = 0, When Chip Select (CS#) output is disabled
                                      // If CS_N disabled, user must connect
                                      // DRAM CS_N input(s) to ground
-   parameter USE_DM_PORT           = 0,
+   parameter USE_DM_PORT           = 1,
                                      // # = 1, When Data Mask option is enabled
                                      //   = 0, When Data Mask option is disbaled
                                      // When Data Mask option is disabled in
@@ -314,9 +316,9 @@ module mem_ctrl_core_axi #
                                      // or control Byte lane. '1' in a bit
                                      // position indicates a data byte lane and
                                      // a '0' indicates a control byte lane
-   parameter PHY_0_BITLANES        = 48'h1FE_1FB_3EE_2BF,
-   parameter PHY_1_BITLANES        = 48'h37E_FFF_0CD_2BE,
-   parameter PHY_2_BITLANES        = 48'h3EE_37E_3F6_27F,
+   parameter PHY_0_BITLANES        = 48'h3FE_3FB_3FE_2FF,
+   parameter PHY_1_BITLANES        = 48'h3FE_FFF_0CD_2BE,
+   parameter PHY_2_BITLANES        = 48'h3FE_3FE_3FE_2FF,
 
    // control/address/data pin mapping parameters
    parameter CK_BYTE_MAP
@@ -352,7 +354,7 @@ module mem_ctrl_core_axi #
    parameter DATA15_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA16_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA17_MAP = 96'h000_000_000_000_000_000_000_000,
-   parameter MASK0_MAP  = 108'h000_000_000_000_000_000_000_000_000,
+   parameter MASK0_MAP  = 108'h137_006_014_029_039_207_213_227_234,
    parameter MASK1_MAP  = 108'h000_000_000_000_000_000_000_000_000,
 
    parameter SLOT_0_CONFIG         = 8'b0000_0001,
@@ -546,6 +548,7 @@ module mem_ctrl_core_axi #
    output [CK_WIDTH-1:0]                        ddr3_ck_n,
    output [CKE_WIDTH-1:0]                       ddr3_cke,
    output [CS_WIDTH*nCS_PER_RANK-1:0]           ddr3_cs_n,
+   output [DM_WIDTH-1:0]                        ddr3_dm,
    output [ODT_WIDTH-1:0]                       ddr3_odt,
 
    // Inputs
@@ -908,7 +911,7 @@ module mem_ctrl_core_axi #
      .CKE_WIDTH                        (CKE_WIDTH),
      .DATA_WIDTH                       (DATA_WIDTH),
      .DATA_BUF_ADDR_WIDTH              (DATA_BUF_ADDR_WIDTH),
-     .DM_WIDTH                         (9),
+     .DM_WIDTH                         (DM_WIDTH),
      .DQ_CNT_WIDTH                     (DQ_CNT_WIDTH),
      .DQ_WIDTH                         (DQ_WIDTH),
      .DQS_CNT_WIDTH                    (DQS_CNT_WIDTH),
@@ -1056,7 +1059,7 @@ module mem_ctrl_core_axi #
        .ddr_ck                           (ddr3_ck_p),
        .ddr_cke                          (ddr3_cke),
        .ddr_cs_n                         (ddr3_cs_n),
-       .ddr_dm                           (),
+       .ddr_dm                           (ddr3_dm),
        .ddr_odt                          (ddr3_odt),
        .ddr_ras_n                        (ddr3_ras_n),
        .ddr_reset_n                      (ddr3_reset_n),

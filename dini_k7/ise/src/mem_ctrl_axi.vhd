@@ -63,15 +63,21 @@ signal i_saxi_rid : TSAXI_ID_t;
 signal i_clk      : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
 signal g_sys_clkout: std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
 signal i_rst_n : std_logic;
+signal ui_clk_sync_rst: std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal i_aresetn      : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal i_mmcm_locked   : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+signal i_calib_complete: std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
 
+signal tst_mmcm_locked    : std_logic;
+signal tst_calib_complete : std_logic;
+signal tst_ui_clk_sync_rst : std_logic;
+signal tst_in_sys_rst      : std_logic;
+signal tst_status_rdy      : std_logic;
 
 --MAIN
 begin
 
-i_rst_n <= p_in_sys.rst;
-
-p_out_sys.clk<=g_sys_clkout(0);--i_clk(0);
-p_out_sys.gusrclk(0)<=g_sys_clkout(0);
+p_out_sys.clk<=g_sys_clkout(0);
 
 gen_bank : for i in 0 to C_MEM_BANK_COUNT-1 generate
 
@@ -79,12 +85,14 @@ p_out_mem(i).axiw.rid<=EXT(i_saxi_bid(i), p_out_mem(i).axiw.rid'length); --p_out
 p_out_mem(i).axir.rid<=EXT(i_saxi_rid(i), p_out_mem(i).axir.rid'length); --p_out_saxi_rid(i)<=EXT(i_saxi_rid(i), p_out_saxi_rid(i)'length);
 p_out_mem(i).clk<=i_clk(i);
 
+p_out_mem(i).rstn <= ui_clk_sync_rst(i);
+i_aresetn(i) <= not ui_clk_sync_rst(i);
+
 m_mem_core : mem_ctrl_core_axi
 port map(
---aresetn       => p_out_mem(i).rstn,
---s_axi_clk     => i_clk(i),
-ui_clk         => g_sys_clkout(i),--i_clk(i),
-ui_clk_sync_rst=> p_out_mem(i).rstn,
+ui_clk_sync_rst=> ui_clk_sync_rst(i),--p_out_mem(i).rstn,--aresetn       => p_out_mem(i).rstn,
+ui_clk         => g_sys_clkout(i),  --s_axi_clk     => i_clk(i),
+
 
 --// AXI Slave Interface:
 --s_axi_clk     => p_out_mem(i).clk, --p_out_saxi_clk(i),
@@ -152,13 +160,33 @@ ddr3_ck_n       => p_out_phymem  (i).ck_n ,--output [CK_WIDTH-1:0]
 --sda             => open,--p_inout_phymem(i).sda  ,--inout
 --scl             => open,--p_out_phymem  (i).scl  ,--out
 
+--AXI CTRL port
+s_axi_ctrl_awvalid => '0',
+s_axi_ctrl_awready => open,
+s_axi_ctrl_awaddr  => (others=>'0'),
+s_axi_ctrl_wvalid  => '0',
+s_axi_ctrl_wready  => open,
+s_axi_ctrl_wdata   => (others=>'0'),
+s_axi_ctrl_bvalid  => open,
+s_axi_ctrl_bready  => '1',
+s_axi_ctrl_bresp   => open,
+s_axi_ctrl_arvalid => '0',
+s_axi_ctrl_arready => open,
+s_axi_ctrl_araddr  => (others=>'0'),
+s_axi_ctrl_rvalid  => open,
+s_axi_ctrl_rready  => '1',
+s_axi_ctrl_rdata   => open,
+s_axi_ctrl_rresp   => open,
+
+interrupt          => open,
+
 --Status
---phy_init_done   => p_out_status.rdy(i)    ,--output
-init_calib_complete=> p_out_status.rdy(i),--output
+init_calib_complete=> i_calib_complete(i),--p_out_status.rdy(i),--phy_init_done   => p_out_status.rdy(i)    ,--output
+app_ecc_multiple_err => open,
 
---mmcm_locked         => open,
+mmcm_locked         => i_mmcm_locked(i),
 
-aresetn             => i_rst_n,
+aresetn             => i_aresetn(i),
 app_sr_req          => '0',
 app_sr_active       => open,
 app_ref_req         => '0',
@@ -166,7 +194,7 @@ app_ref_ack         => open,
 app_zq_req          => '0',
 app_zq_ack          => open,
 
---device_temp_i       => (others=>'0'),
+device_temp_i       => (others=>'0'),
 
 --System
 --sys_clkout      => open,--g_sys_clkout(i),
@@ -176,6 +204,22 @@ sys_rst         => p_in_sys.rst     --input
 );
 
 end generate gen_bank;
+
+process(g_sys_clkout)
+begin
+  if rising_edge(g_sys_clkout(0)) then
+    tst_mmcm_locked <= i_mmcm_locked(0);
+    tst_calib_complete <= i_calib_complete(0);
+    tst_ui_clk_sync_rst <= ui_clk_sync_rst(0);
+    tst_in_sys_rst <= p_in_sys.rst;
+
+tst_status_rdy <= tst_calib_complete and (tst_mmcm_locked)
+                    and (not tst_ui_clk_sync_rst) and (not tst_in_sys_rst);
+  end if;
+end process;
+
+p_out_status.rdy(0) <= tst_status_rdy;
+
 
 --END MAIN
 end;
