@@ -46,12 +46,13 @@ signal i_clk_fb      : std_logic_vector(0 downto 0);
 signal g_clk_fb      : std_logic_vector(0 downto 0);
 signal i_pll_locked  : std_logic_vector(0 downto 0);
 signal i_clk_out     : std_logic_vector(7 downto 0);
-signal i_eth_clk     : std_logic;
+signal i_mem_clkin   : std_logic;
 
 begin
 
 
-p_out_clk.oe(0) <= '1';-- Oscillator Output Enable
+p_out_clk.oe <= (others=>'1');-- Oscillator Output Enable
+
 
 m_buf : IBUFDS port map(I  => p_in_clk.clk_p(0), IB => p_in_clk.clk_n(0), O => i_pll_clkin);--400MHz
 bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
@@ -135,7 +136,7 @@ g_clk_fb(0) <= i_clk_fb(0);
 p_out_rst <= not(AND_reduce(i_pll_locked));
 
 bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
-bufg_clk1: BUFG port map(I => i_clk_out(0), O => p_out_gclk(1)); --400MHz
+                                                 p_out_gclk(1) <= g_pll_clkin; --400MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
 

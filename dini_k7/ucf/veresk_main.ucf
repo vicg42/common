@@ -218,8 +218,6 @@ NET "pin_in_pciexp_rstn" TIG;
 NET "pin_in_pciexp_rstn" LOC = "H18" | IOSTANDARD = LVCMOS18 | PULLUP | NODELAY ;
 
 INST "m_clocks/m_buf_pciexp" LOC = IBUFDS_GTE2_X0Y0;
-#NET "pin_in_refclk_pciexp_clk_p" LOC = "H6";
-#NET "pin_in_refclk_pciexp_clk_n" LOC = "H5";
 
 INST "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[0].gt_wrapper_i/gtx_channel.gtxe2_channel_i" LOC = GTXE2_CHANNEL_X0Y0; # PCIe Lane 0
 INST "m_host/gen_sim_off.m_pcie/m_core/gt_top_i/pipe_wrapper_i/pipe_lane[1].gt_wrapper_i/gtx_channel.gtxe2_channel_i" LOC = GTXE2_CHANNEL_X0Y1; # PCIe Lane 1
@@ -415,94 +413,94 @@ NET  "pin_inout_phymem[0]_dqs_p<8>"   LOC = "W10 "   |   IOSTANDARD = DIFF_SSTL1
 NET  "pin_inout_phymem[0]_dqs_n<8>"   LOC = "W9  "   |   IOSTANDARD = DIFF_SSTL15_T_DCI  |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
 NET  "pin_out_phymem[0]_ck_p<0>"      LOC = "AE12"   |   IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
 NET  "pin_out_phymem[0]_ck_n<0>"      LOC = "AF12"   |   IOSTANDARD = DIFF_SSTL15        |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[0]"       LOC ="AE15"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[1]"       LOC ="AC14"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[2]"       LOC ="AC19"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[3]"       LOC ="V16 "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[4]"       LOC ="U6  "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[5]"       LOC ="Y3  "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[6]"       LOC ="AC6 "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[7]"       LOC ="AE1 "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
-#NET  "pin_out_phymem[0]_dqm[8]"       LOC ="V8  "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[0]"        LOC ="AE15"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[1]"        LOC ="AC14"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[2]"        LOC ="AC19"    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[3]"        LOC ="V16 "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[4]"        LOC ="U6  "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[5]"        LOC ="Y3  "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[6]"        LOC ="AC6 "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[7]"        LOC ="AE1 "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
+NET  "pin_out_phymem[0]_dm[8]"        LOC ="V8  "    |   IOSTANDARD = SSTL15             |  VCCAUX_IO = NORMAL  |  SLEW = FAST ;
 
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y3;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y2;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y1;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y0;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y6;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y5;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y4;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y7;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y11;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y10;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y9;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y8;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y3;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y2;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y1;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y0;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y6;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y5;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y4;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y7;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_out" LOC=PHASER_OUT_PHY_X1Y11;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_out" LOC=PHASER_OUT_PHY_X1Y10;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_out" LOC=PHASER_OUT_PHY_X1Y9;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_out" LOC=PHASER_OUT_PHY_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y3;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y2;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y1;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y0;
-## INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y6;
-## INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y5;
-## INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y4;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y7;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y11;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y10;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y9;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y8;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y3;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y2;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y1;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y0;
+## INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y6;
+## INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y5;
+## INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y4;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y7;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y11;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y10;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y9;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/phaser_in_gen.phaser_in" LOC=PHASER_IN_PHY_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y3;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y2;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y1;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y0;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y6;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y5;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y4;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y7;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y11;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y10;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y9;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y8;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y3;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y2;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y1;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y0;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y6;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y5;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y4;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y7;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/out_fifo" LOC=OUT_FIFO_X1Y11;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/out_fifo" LOC=OUT_FIFO_X1Y10;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/out_fifo" LOC=OUT_FIFO_X1Y9;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/out_fifo" LOC=OUT_FIFO_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y3;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y2;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y1;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y0;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y7;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y11;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y10;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y9;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y8;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y3;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y2;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y1;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y0;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y7;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y11;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y10;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y9;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/in_fifo_gen.in_fifo" LOC=IN_FIFO_X1Y8;
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y0;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y1;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y2;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y0;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y1;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/phy_control_i" LOC=PHY_CONTROL_X1Y2;
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y0;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y1;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y2;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y0;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y1;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/phaser_ref_i" LOC=PHASER_REF_X1Y2;
 
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y43;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y31;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y19;
-INST "*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y7;
-INST "*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y93;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y143;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y131;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y119;
-INST "*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y107;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y43;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y31;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y19;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_2.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y7;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_1.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y93;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_D.ddr_byte_lane_D/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y143;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_C.ddr_byte_lane_C/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y131;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_B.ddr_byte_lane_B/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y119;
+INST "m_mem_ctrl/*/ddr_phy_4lanes_0.u_ddr_phy_4lanes/ddr_byte_lane_A.ddr_byte_lane_A/ddr_byte_group_io/*slave_ts" LOC=OLOGIC_X1Y107;
 
-INST "*/u_ddr3_infrastructure/plle2_i" LOC=PLLE2_ADV_X1Y1;
-INST "*/u_ddr3_infrastructure/gen_mmcm.mmcm_i" LOC=MMCME2_ADV_X1Y1;
+INST "m_mem_ctrl/*/u_ddr3_infrastructure/plle2_i" LOC=PLLE2_ADV_X1Y1;
+INST "m_mem_ctrl/*/u_ddr3_infrastructure/gen_mmcm.mmcm_i" LOC=MMCME2_ADV_X1Y1;
 
-NET "*/iserdes_clk" TNM_NET = "TNM_ISERDES_CLK";
-INST "*/mc0/mc_read_idle_r" TNM = "TNM_SOURCE_IDLE";
-INST "*/input_[?].iserdes_dq_.iserdesdq" TNM = "TNM_DEST_ISERDES";
+NET "m_mem_ctrl/*/iserdes_clk" TNM_NET = "TNM_ISERDES_CLK";
+INST "m_mem_ctrl/*/mc0/mc_read_idle_r" TNM = "TNM_SOURCE_IDLE";
+INST "m_mem_ctrl/*/input_[?].iserdes_dq_.iserdesdq" TNM = "TNM_DEST_ISERDES";
 TIMESPEC "TS_ISERDES_CLOCK" = PERIOD "TNM_ISERDES_CLK" 1500 ps;
 TIMESPEC TS_MULTICYCLEPATH = FROM "TNM_SOURCE_IDLE" TO "TNM_DEST_ISERDES" TS_ISERDES_CLOCK*6;
 
-INST "*/device_temp_sync_r1*" TNM="TNM_MULTICYCLEPATH_DEVICE_TEMP_SYNC";
+INST "m_mem_ctrl/*/device_temp_sync_r1*" TNM="TNM_MULTICYCLEPATH_DEVICE_TEMP_SYNC";
 TIMESPEC "TS_MULTICYCLEPATH_DEVICE_TEMP_SYNC" = TO "TNM_MULTICYCLEPATH_DEVICE_TEMP_SYNC" 20 ns DATAPATHONLY;
 
 

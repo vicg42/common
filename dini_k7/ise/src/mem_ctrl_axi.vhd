@@ -181,7 +181,7 @@ s_axi_ctrl_rresp   => open,
 interrupt          => open,
 
 --Status
-init_calib_complete=> i_calib_complete(i),--p_out_status.rdy(i),--phy_init_done   => p_out_status.rdy(i)    ,--output
+init_calib_complete=> p_out_status.rdy(i),--i_calib_complete(i),--
 app_ecc_multiple_err => open,
 
 mmcm_locked         => i_mmcm_locked(i),
@@ -205,20 +205,20 @@ sys_rst         => p_in_sys.rst     --input
 
 end generate gen_bank;
 
-process(g_sys_clkout)
-begin
-  if rising_edge(g_sys_clkout(0)) then
-    tst_mmcm_locked <= i_mmcm_locked(0);
-    tst_calib_complete <= i_calib_complete(0);
-    tst_ui_clk_sync_rst <= ui_clk_sync_rst(0);
-    tst_in_sys_rst <= p_in_sys.rst;
-
-tst_status_rdy <= tst_calib_complete and (tst_mmcm_locked)
-                    and (not tst_ui_clk_sync_rst) and (not tst_in_sys_rst);
-  end if;
-end process;
-
-p_out_status.rdy(0) <= tst_status_rdy;
+--process(g_sys_clkout)
+--begin
+--  if rising_edge(g_sys_clkout(0)) then
+--    tst_mmcm_locked <= i_mmcm_locked(0);
+--    tst_calib_complete <= i_calib_complete(0);
+--    tst_ui_clk_sync_rst <= ui_clk_sync_rst(0);
+--    tst_in_sys_rst <= p_in_sys.rst;
+--
+--tst_status_rdy <= tst_calib_complete and (tst_mmcm_locked)
+--                    and (not tst_ui_clk_sync_rst) and (not tst_in_sys_rst);
+--  end if;
+--end process;
+--
+--p_out_status.rdy(0) <= tst_status_rdy;
 
 
 --END MAIN
