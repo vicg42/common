@@ -689,6 +689,36 @@ signal PIPE_GEN3_OUT                  : std_logic;
 signal PIPE_MMCM_RST_N                : std_logic := '1';
 
 
+signal tst_s_axis_tx_tready           : std_logic;
+signal tst_s_axis_tx_tlast            : std_logic;
+signal tst_s_axis_tx_tvalid           : std_logic;
+signal tst_s_axis_tx_tkeep: std_logic_vector(7 downto 0);
+signal tst_s_axis_tx_tuser: std_logic_vector(3 downto 0);
+signal tst_m_axis_rx_tready           : std_logic;
+signal tst_m_axis_rx_tvalid           : std_logic;
+signal tst_m_axis_rx_tlast            : std_logic;
+signal tst_m_axis_rx_tkeep: std_logic_vector(7 downto 0);
+signal tst_m_axis_rx_tuser: std_logic_vector(3 downto 0);
+
+signal tst_trn_tsof_n     : std_logic;
+signal tst_trn_teof_n     : std_logic;
+signal tst_trn_tsrc_rdy_n : std_logic;
+signal tst_trn_tdst_rdy_n : std_logic;
+signal tst_trn_tsrc_dsc_n : std_logic;
+signal tst_trn_trem_n     : std_logic_vector(0 downto 0);
+
+signal tst_trn_rsof_n     : std_logic;
+signal tst_trn_reof_n     : std_logic;
+signal tst_trn_rsrc_rdy_n : std_logic;
+signal tst_trn_rdst_rdy_n : std_logic;
+
+signal tst_trn_rrem_n  : std_logic_vector(0 downto 0);
+signal tst_trn_rd         : std_logic_vector(63 downto 0);
+
+signal tst_cfg_interrupt_n        : std_logic;
+signal tst_cfg_interrupt_rdy_n    : std_logic;
+signal tst_cfg_interrupt_assert_n : std_logic;
+signal tst_trn_rbar_hit_n : std_logic_vector(1 downto 0);
 
 --MAIN
 begin
@@ -696,44 +726,81 @@ begin
 --#############################################
 --DBG
 --#############################################
-p_out_tst(0)<=cfg_interrupt_n;
-p_out_tst(1)<=cfg_interrupt_rdy_n;
-p_out_tst(2)<=cfg_interrupt_assert_n;
+p_out_tst(0)<=tst_cfg_interrupt_n;
+p_out_tst(1)<=tst_cfg_interrupt_rdy_n;
+p_out_tst(2)<=tst_cfg_interrupt_assert_n;
 p_out_tst(3)<=cfg_interrupt_msienable;
-p_out_tst(4)<=trn_tsof_n;
-p_out_tst(5)<=trn_teof_n;
-p_out_tst(6)<=trn_tsrc_rdy_n;
-p_out_tst(7)<=trn_tdst_rdy_n;
-p_out_tst(8)<=trn_tsrc_dsc_n;
-p_out_tst(9)<=trn_rsof_n;
-p_out_tst(10)<=trn_reof_n;
-p_out_tst(11)<=trn_rsrc_rdy_n;
-p_out_tst(12)<=trn_rsrc_dsc_n;
-p_out_tst(13)<=trn_rdst_rdy_n;
-p_out_tst(14)<=trn_rbar_hit_n(0);
-p_out_tst(15)<=trn_rbar_hit_n(1);
+p_out_tst(4)<=tst_trn_tsof_n;
+p_out_tst(5)<=tst_trn_teof_n;
+p_out_tst(6)<=tst_trn_tsrc_rdy_n;
+p_out_tst(7)<=tst_trn_tdst_rdy_n;
+p_out_tst(8)<=tst_trn_tsrc_dsc_n;
+p_out_tst(9)<=tst_trn_rsof_n;
+p_out_tst(10)<=tst_trn_reof_n;
+p_out_tst(11)<=tst_trn_rsrc_rdy_n;
+p_out_tst(12)<='0';--tst_trn_rsrc_dsc_n;
+p_out_tst(13)<=tst_trn_rdst_rdy_n;
+p_out_tst(14)<=tst_trn_rbar_hit_n(0);
+p_out_tst(15)<=tst_trn_rbar_hit_n(1);
 p_out_tst(16)<=cfg_command(2);--cfg_bus_mstr_enable
 p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18-17+1);
-p_out_tst(146 downto 19)<=EXT(trn_rd, 128);
+p_out_tst(146 downto 19)<=EXT(tst_trn_rd, 128);
 --p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
-p_out_tst(162 downto 147)<=EXT(trn_rrem_n, 162-147+1);
+p_out_tst(162 downto 147)<=EXT(tst_trn_rrem_n, 162-147+1);
 p_out_tst(168 downto 163)<=trn_tbuf_av;
-p_out_tst(170 downto 169)<=EXT(trn_trem_n, 170-169+1);
-p_out_tst(171)<=s_axis_tx_tready;
-p_out_tst(172)<=s_axis_tx_tlast ;
-p_out_tst(173)<=s_axis_tx_tvalid;
-p_out_tst(181 downto 174)<=s_axis_tx_tkeep(7 downto 0);
-p_out_tst(185 downto 182)<=s_axis_tx_tuser(3 downto 0);
-p_out_tst(186)<=m_axis_rx_tready;
-p_out_tst(187)<=m_axis_rx_tvalid;
-p_out_tst(188)<=m_axis_rx_tlast;
-p_out_tst(196 downto 189)<=m_axis_rx_tkeep(7 downto 0);
-p_out_tst(200 downto 197)<=m_axis_rx_tuser(3 downto 0);
+p_out_tst(170 downto 169)<=EXT(tst_trn_trem_n, 170-169+1);
+p_out_tst(171)<=tst_s_axis_tx_tready;--s_axis_tx_tready;
+p_out_tst(172)<=tst_s_axis_tx_tlast ;--s_axis_tx_tlast ;
+p_out_tst(173)<=tst_s_axis_tx_tvalid;--s_axis_tx_tvalid;
+p_out_tst(181 downto 174)<=tst_s_axis_tx_tkeep(7 downto 0);--s_axis_tx_tkeep(7 downto 0);
+p_out_tst(185 downto 182)<=tst_s_axis_tx_tuser(3 downto 0);--s_axis_tx_tuser(3 downto 0);
+p_out_tst(186)<=tst_m_axis_rx_tready;--m_axis_rx_tready;
+p_out_tst(187)<=tst_m_axis_rx_tvalid;--m_axis_rx_tvalid;
+p_out_tst(188)<=tst_m_axis_rx_tlast; --m_axis_rx_tlast;
+p_out_tst(196 downto 189)<=tst_m_axis_rx_tkeep(7 downto 0);--m_axis_rx_tkeep(7 downto 0);
+p_out_tst(200 downto 197)<=tst_m_axis_rx_tuser(3 downto 0);--m_axis_rx_tuser(3 downto 0);
 p_out_tst(215 downto 201)<=(others=>'0');
 p_out_tst(231 downto 216)<=(others=>'0');
 p_out_tst(249 downto 248)<=(others=>'0');
 p_out_tst(255 downto 250)<=(others=>'0');
 
+process(trn_clk)
+begin
+if rising_edge(trn_clk) then
+tst_s_axis_tx_tready            <= s_axis_tx_tready;
+tst_s_axis_tx_tlast             <= s_axis_tx_tlast ;
+tst_s_axis_tx_tvalid            <= s_axis_tx_tvalid;
+tst_s_axis_tx_tkeep(7 downto 0) <= s_axis_tx_tkeep(7 downto 0);
+tst_s_axis_tx_tuser(3 downto 0) <= s_axis_tx_tuser(3 downto 0);
+tst_m_axis_rx_tready            <= m_axis_rx_tready;
+tst_m_axis_rx_tvalid            <= m_axis_rx_tvalid;
+tst_m_axis_rx_tlast             <= m_axis_rx_tlast;
+tst_m_axis_rx_tkeep(7 downto 0) <= m_axis_rx_tkeep(7 downto 0);
+tst_m_axis_rx_tuser(3 downto 0) <= m_axis_rx_tuser(3 downto 0);
+
+tst_trn_tsof_n     <= trn_tsof_n;
+tst_trn_teof_n     <= trn_teof_n;
+tst_trn_tsrc_rdy_n <= trn_tsrc_rdy_n;
+tst_trn_tdst_rdy_n <= trn_tdst_rdy_n;
+tst_trn_tsrc_dsc_n <= trn_tsrc_dsc_n;
+tst_trn_trem_n(0) <= trn_trem_n(0);
+
+tst_trn_rsof_n      <= trn_rsof_n;
+tst_trn_reof_n      <= trn_reof_n;
+tst_trn_rsrc_rdy_n  <= trn_rsrc_rdy_n;
+tst_trn_rdst_rdy_n  <= trn_rdst_rdy_n;
+
+tst_trn_rrem_n(0)   <= trn_rrem_n(0);
+tst_trn_rd          <= trn_rd(63 downto 0);
+
+tst_cfg_interrupt_n        <= cfg_interrupt_n;
+tst_cfg_interrupt_rdy_n    <= cfg_interrupt_rdy_n;
+tst_cfg_interrupt_assert_n <= cfg_interrupt_assert_n;
+
+tst_trn_rbar_hit_n <= trn_rbar_hit_n(1 downto 0);
+
+end if;
+end process;
 
 --#############################################
 --Модуль ядра PCI-Express
@@ -1174,7 +1241,7 @@ pl_upstream_prefer_deemph <= '1';
 sys_reset <=not sys_reset_n;
 
 trn_reset_n <= not trn_reset;
-trn_lnk_up_n <= trn_lnk_up;
+trn_lnk_up_n <= not trn_lnk_up;
 
 trn_rnp_ok <=not trn_rnp_ok_n;
 trn_tcfg_gnt <=not trn_tcfg_gnt_n;
@@ -1261,247 +1328,3 @@ end generate gen_trn_d;
 
 --END MAIN
 end behavioral;
-
-
----------------------------------------------------------------------------------------------------------------------
----- 1. PCI Express (pci_exp) Interface                                                                            --
----------------------------------------------------------------------------------------------------------------------
----- TX
---pci_exp_txp                               => p_out_pciexp_txp, --pci_exp_txp,
---pci_exp_txn                               => p_out_pciexp_txn, --pci_exp_txn,
----- RX
---pci_exp_rxp                               => p_in_pciexp_rxp, --pci_exp_rxp,
---pci_exp_rxn                               => p_in_pciexp_rxn, --pci_exp_rxn,
---
----------------------------------------------------------------------------------------------------------------------
----- 2. Clocking Interface - For Partial Reconfig Support                                                          --
----------------------------------------------------------------------------------------------------------------------
---PIPE_PCLK_IN                               => PIPE_PCLK_IN,
---PIPE_RXUSRCLK_IN                           => PIPE_RXUSRCLK_IN,
---PIPE_RXOUTCLK_IN                           => PIPE_RXOUTCLK_IN,
---PIPE_DCLK_IN                               => PIPE_DCLK_IN,
---PIPE_USERCLK1_IN                           => PIPE_USERCLK1_IN,
---PIPE_USERCLK2_IN                           => PIPE_USERCLK2_IN,
---PIPE_OOBCLK_IN                             => PIPE_OOBCLK_IN,
---PIPE_MMCM_LOCK_IN                          => PIPE_MMCM_LOCK_IN,
---PIPE_TXOUTCLK_OUT                          => PIPE_TXOUTCLK_OUT,
---PIPE_RXOUTCLK_OUT                          => PIPE_RXOUTCLK_OUT,
---PIPE_PCLK_SEL_OUT                          => PIPE_PCLK_SEL_OUT,
---PIPE_GEN3_OUT                              => PIPE_GEN3_OUT,
---
----------------------------------------------------------------------------------------------------------------------
----- 3. AXI-S Interface                                                                                            --
----------------------------------------------------------------------------------------------------------------------
----- Common
---user_clk_out                               => user_clk ,
---user_reset_out                             => user_reset,
---user_lnk_up                                => user_lnk_up,
---
----- TX
---tx_buf_av                                  => tx_buf_av ,
---tx_cfg_req                                 => tx_cfg_req ,
---tx_err_drop                                => tx_err_drop ,
---s_axis_tx_tready                           => s_axis_tx_tready ,
---s_axis_tx_tdata                            => s_axis_tx_tdata ,
---s_axis_tx_tkeep                            => s_axis_tx_tkeep ,
---s_axis_tx_tlast                            => s_axis_tx_tlast ,
---s_axis_tx_tvalid                           => s_axis_tx_tvalid ,
---s_axis_tx_tuser                            => s_axis_tx_tuser,
---tx_cfg_gnt                                 => tx_cfg_gnt ,
---
----- RX
---m_axis_rx_tdata                            => m_axis_rx_tdata ,
---m_axis_rx_tkeep                            => m_axis_rx_tkeep ,
---m_axis_rx_tlast                            => m_axis_rx_tlast ,
---m_axis_rx_tvalid                           => m_axis_rx_tvalid ,
---m_axis_rx_tready                           => m_axis_rx_tready ,
---m_axis_rx_tuser                            => m_axis_rx_tuser,
---rx_np_ok                                   => rx_np_ok ,
---rx_np_req                                  => rx_np_req ,
---
----- Flow Control
---fc_cpld                                    => fc_cpld ,
---fc_cplh                                    => fc_cplh ,
---fc_npd                                     => fc_npd ,
---fc_nph                                     => fc_nph ,
---fc_pd                                      => fc_pd ,
---fc_ph                                      => fc_ph ,
---fc_sel                                     => fc_sel ,
---
----------------------------------------------------------------------------------------------------------------------
----- 4. Configuration (CFG) Interface                                                                              --
----------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------
--- -- EP and RP                                                      --
------------------------------------------------------------------------
---
---cfg_mgmt_do                                => open ,
---cfg_mgmt_rd_wr_done                        => open ,
---
---cfg_status                                 => cfg_status ,
---cfg_command                                => cfg_command ,
---cfg_dstatus                                => cfg_dstatus ,
---cfg_dcommand                               => cfg_dcommand ,
---cfg_lstatus                                => cfg_lstatus ,
---cfg_lcommand                               => cfg_lcommand ,
---cfg_dcommand2                              => cfg_dcommand2 ,
---cfg_pcie_link_state                        => cfg_pcie_link_state ,
---
---cfg_pmcsr_pme_en                           => open ,
---cfg_pmcsr_pme_status                       => open ,
---cfg_pmcsr_powerstate                       => open ,
---cfg_received_func_lvl_rst                  => open ,
---
---cfg_mgmt_di                                => cfg_mgmt_di ,
---cfg_mgmt_byte_en                           => cfg_mgmt_byte_en ,
---cfg_mgmt_dwaddr                            => cfg_mgmt_dwaddr ,
---cfg_mgmt_wr_en                             => cfg_mgmt_wr_en ,
---cfg_mgmt_rd_en                             => cfg_mgmt_rd_en ,
---cfg_mgmt_wr_readonly                       => cfg_mgmt_wr_readonly ,
---
---cfg_err_ecrc                               => cfg_err_ecrc ,
---cfg_err_ur                                 => cfg_err_ur ,
---cfg_err_cpl_timeout                        => cfg_err_cpl_timeout ,
---cfg_err_cpl_unexpect                       => cfg_err_cpl_unexpect ,
---cfg_err_cpl_abort                          => cfg_err_cpl_abort ,
---cfg_err_posted                             => cfg_err_posted ,
---cfg_err_cor                                => cfg_err_cor ,
---cfg_err_atomic_egress_blocked              => cfg_err_atomic_egress_blocked ,
---cfg_err_internal_cor                       => cfg_err_internal_cor ,
---cfg_err_malformed                          => cfg_err_malformed ,
---cfg_err_mc_blocked                         => cfg_err_mc_blocked ,
---cfg_err_poisoned                           => cfg_err_poisoned ,
---cfg_err_norecovery                         => cfg_err_norecovery ,
---cfg_err_tlp_cpl_header                     => cfg_err_tlp_cpl_header,
---cfg_err_cpl_rdy                            => cfg_err_cpl_rdy ,
---cfg_err_locked                             => cfg_err_locked ,
---cfg_err_acs                                => cfg_err_acs ,
---cfg_err_internal_uncor                     => cfg_err_internal_uncor ,
---
---cfg_trn_pending                            => cfg_trn_pending ,
---cfg_pm_halt_aspm_l0s                       => cfg_pm_halt_aspm_l0s ,
---cfg_pm_halt_aspm_l1                        => cfg_pm_halt_aspm_l1 ,
---cfg_pm_force_state_en                      => cfg_pm_force_state_en ,
---cfg_pm_force_state                         => cfg_pm_force_state ,
---
------------------------------------------------------------------------
--- -- EP Only                                                        --
------------------------------------------------------------------------
---
---cfg_interrupt                              => cfg_interrupt ,
---cfg_interrupt_rdy                          => cfg_interrupt_rdy ,
---cfg_interrupt_assert                       => cfg_interrupt_assert ,
---cfg_interrupt_di                           => cfg_interrupt_di ,
---cfg_interrupt_do                           => cfg_interrupt_do ,
---cfg_interrupt_mmenable                     => cfg_interrupt_mmenable ,
---cfg_interrupt_msienable                    => cfg_interrupt_msienable ,
---cfg_interrupt_msixenable                   => cfg_interrupt_msixenable ,
---cfg_interrupt_msixfm                       => cfg_interrupt_msixfm ,
---cfg_interrupt_stat                         => cfg_interrupt_stat ,
---cfg_pciecap_interrupt_msgnum               => cfg_pciecap_interrupt_msgnum ,
---cfg_to_turnoff                             => cfg_to_turnoff ,
---cfg_turnoff_ok                             => cfg_turnoff_ok ,
---cfg_bus_number                             => cfg_bus_number ,
---cfg_device_number                          => cfg_device_number ,
---cfg_function_number                        => cfg_function_number ,
---cfg_pm_wake                                => cfg_pm_wake ,
---
------------------------------------------------------------------------
--- -- RP Only                                                        --
------------------------------------------------------------------------
---cfg_pm_send_pme_to                         => '0' ,
---cfg_ds_bus_number                          => x"00" ,
---cfg_ds_device_number                       => "00000" ,
---cfg_ds_function_number                     => "000" ,
---cfg_mgmt_wr_rw1c_as_rw                     => '0' ,
---cfg_msg_received                           => open ,
---cfg_msg_data                               => open ,
---
---cfg_bridge_serr_en                         => open ,
---cfg_slot_control_electromech_il_ctl_pulse  => open ,
---cfg_root_control_syserr_corr_err_en        => open ,
---cfg_root_control_syserr_non_fatal_err_en   => open ,
---cfg_root_control_syserr_fatal_err_en       => open ,
---cfg_root_control_pme_int_en                => open ,
---cfg_aer_rooterr_corr_err_reporting_en      => open ,
---cfg_aer_rooterr_non_fatal_err_reporting_en => open ,
---cfg_aer_rooterr_fatal_err_reporting_en     => open ,
---cfg_aer_rooterr_corr_err_received          => open ,
---cfg_aer_rooterr_non_fatal_err_received     => open ,
---cfg_aer_rooterr_fatal_err_received         => open ,
---
---cfg_msg_received_err_cor                   => open ,
---cfg_msg_received_err_non_fatal             => open ,
---cfg_msg_received_err_fatal                 => open ,
---cfg_msg_received_pm_as_nak                 => open ,
---cfg_msg_received_pm_pme                    => open ,
---cfg_msg_received_pme_to_ack                => open ,
---cfg_msg_received_assert_int_a              => open ,
---cfg_msg_received_assert_int_b              => open ,
---cfg_msg_received_assert_int_c              => open ,
---cfg_msg_received_assert_int_d              => open ,
---cfg_msg_received_deassert_int_a            => open ,
---cfg_msg_received_deassert_int_b            => open ,
---cfg_msg_received_deassert_int_c            => open ,
---cfg_msg_received_deassert_int_d            => open ,
---
----------------------------------------------------------------------------------------------------------------------
----- 5. Physical Layer Control and Status (PL) Interface                                                           --
----------------------------------------------------------------------------------------------------------------------
---pl_directed_link_auton                     => pl_directed_link_auton ,
---pl_directed_link_change                    => pl_directed_link_change ,
---pl_directed_link_speed                     => pl_directed_link_speed ,
---pl_directed_link_width                     => pl_directed_link_width ,
---pl_upstream_prefer_deemph                  => pl_upstream_prefer_deemph ,
---
---pl_sel_lnk_rate                            => pl_sel_lnk_rate ,
---pl_sel_lnk_width                           => pl_sel_lnk_width ,
---pl_ltssm_state                             => pl_ltssm_state ,
---pl_lane_reversal_mode                      => pl_lane_reversal_mode ,
---
---pl_phy_lnk_up                              => open ,
---pl_tx_pm_state                             => open ,
---pl_rx_pm_state                             => open ,
---
---cfg_dsn                                    => cfg_dsn ,
---
---pl_link_upcfg_cap                          => pl_link_upcfg_cap ,
---pl_link_gen2_cap                           => pl_link_gen2_cap ,
---pl_link_partner_gen2_supported             => pl_link_partner_gen2_supported ,
---pl_initial_link_width                      => pl_initial_link_width ,
---
---pl_directed_change_done                    => open ,
---
------------------------------------------------------------------------
--- -- EP Only                                                        --
------------------------------------------------------------------------
---pl_received_hot_rst                        => pl_received_hot_rst ,
---
------------------------------------------------------------------------
--- -- RP Only                                                        --
------------------------------------------------------------------------
---pl_transmit_hot_rst                        => '0' ,
---pl_downstream_deemph_source                => '0' ,
---
----------------------------------------------------------------------------------------------------------------------
----- 6. AER interface                                                                                              --
----------------------------------------------------------------------------------------------------------------------
---cfg_err_aer_headerlog                      => cfg_err_aer_headerlog ,
---cfg_aer_interrupt_msgnum                   => cfg_aer_interrupt_msgnum ,
---cfg_err_aer_headerlog_set                  => cfg_err_aer_headerlog_set ,
---cfg_aer_ecrc_check_en                      => cfg_aer_ecrc_check_en ,
---cfg_aer_ecrc_gen_en                        => cfg_aer_ecrc_gen_en ,
---
----------------------------------------------------------------------------------------------------------------------
----- 7. VC interface                                                                                               --
----------------------------------------------------------------------------------------------------------------------
---cfg_vc_tcvc_map                            => open ,
---
---
----------------------------------------------------------------------------------------------------------------------
----- 8. System(SYS) Interface                                                                                      --
----------------------------------------------------------------------------------------------------------------------
---PIPE_MMCM_RST_N                            => PIPE_MMCM_RST_N ,        -- Async      | Async
---sys_clk                                    => sys_clk ,
---sys_rst_n                                  => sys_rst_n_c
---);
