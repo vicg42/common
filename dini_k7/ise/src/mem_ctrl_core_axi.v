@@ -104,7 +104,7 @@ module mem_ctrl_core_axi #
    parameter DRAM_WIDTH            = 8,
                                      // # of DQ per DQS
    parameter ECC                   = "OFF",
-   parameter DATA_WIDTH            = 72,
+   parameter DATA_WIDTH            = 64,
    parameter ECC_TEST              = "OFF",
    parameter PAYLOAD_WIDTH         = (ECC_TEST == "OFF") ? DATA_WIDTH : DQ_WIDTH,
    parameter ECC_WIDTH             = 8,
@@ -230,6 +230,7 @@ module mem_ctrl_core_axi #
                                      // VCO output divisor for PLL output clock (CLKOUT2)
    parameter CLKOUT3_DIVIDE        = 8,
                                      // VCO output divisor for PLL output clock (CLKOUT3)
+
 
    //***************************************************************************
    // Memory Timing Parameters. These parameters varies based on the selected
@@ -439,6 +440,7 @@ module mem_ctrl_core_axi #
    // AXI4 Shim parameters
    //***************************************************************************
 
+   parameter MMCM_CLKOUT0_DIVIDE   = 2,  // VCO output divisor for MMCM clkout0
    parameter UI_EXTRA_CLOCKS = "FALSE",
                                      // Generates extra clocks as
                                      // 1/2, 1/4 and 1/8 of fabrick clock.
@@ -557,12 +559,12 @@ module mem_ctrl_core_axi #
    // Single-ended iodelayctrl clk (reference clock)
    input                                        clk_ref_i,
    // user interface signals
-   output                                       ui_clk,
-   output                                       ui_clk_sync_rst,
+   output                                       s_axi_clk    ,//ui_clk,
+   output                                       s_axi_aresetn,//ui_clk_sync_rst,
 
    output                                       mmcm_locked,
    output [2*nCK_PER_CLK-1:0]                   app_ecc_multiple_err,
-   input                                        aresetn,
+//   input                                        aresetn,
    input                                        app_sr_req,
    output                                       app_sr_active,
    input                                        app_ref_req,
@@ -773,10 +775,16 @@ module mem_ctrl_core_axi #
 
 //***************************************************************************
 
+reg                 aresetn; //vicg
 
+assign s_axi_clk = clk;      //vicg
+assign s_axi_aresetn = ~rst; //vicg
+always @(posedge clk) begin  //vicg
+  aresetn <= ~rst;
+end
 
-  assign ui_clk = clk;
-  assign ui_clk_sync_rst = rst;
+//  assign ui_clk = clk;
+//  assign ui_clk_sync_rst = rst;
 
   assign sys_clk_p = 1'b0;
   assign sys_clk_n = 1'b0;
@@ -855,6 +863,9 @@ module mem_ctrl_core_axi #
   mig_7series_v1_9_infrastructure #
     (
      .TCQ                (TCQ),
+     .UI_EXTRA_CLOCKS    (UI_EXTRA_CLOCKS),
+     .MMCM_CLKOUT0_EN     (UI_EXTRA_CLOCKS),
+     .MMCM_CLKOUT0_DIVIDE (MMCM_CLKOUT0_DIVIDE),
      .nCK_PER_CLK        (nCK_PER_CLK),
      .CLKIN_PERIOD       (CLKIN_PERIOD),
      .SYSCLK_TYPE        (SYSCLK_TYPE),

@@ -17,7 +17,7 @@ use ieee.std_logic_1164.all;
 package prj_cfg is
 
 --//Тип используемой платы
-constant C_PCFG_BOARD                  : string:="DNK7";
+constant C_PCFG_BOARD                  : string:="HTGV6";
 
 --//Конфигурирование модулей:
 --//cfg Memory Controller

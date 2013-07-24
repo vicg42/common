@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.5
-# Date: Wed Jul 17 12:10:40 2013
+# Date: Sun Jul 21 08:09:24 2013
 #
 ##############################################################
 #
@@ -178,7 +178,7 @@ CSET expansion_rom_size=2
 CSET ext_pci_cfg_space=false
 CSET ext_pci_cfg_space_addr=3FF
 CSET extended_tag_default=false
-CSET extended_tag_field=false
+CSET extended_tag_field=true
 CSET force_no_scrambling=false
 CSET hw_auton_spd_disable=false
 CSET interface_width=64_bit
@@ -208,7 +208,7 @@ CSET pcie_cap_slot_implemented=false
 CSET pcie_debug_ports=false
 CSET pcie_fast_config=None
 CSET perf_level=High
-CSET phantom_functions=No_function_number_bits_used
+CSET phantom_functions=First_MSB_of_function_number_used
 CSET pipe_sim=false
 CSET prefetchable_memory_base_limit_registers=Disabled
 CSET rbar_enabled=false
@@ -263,4 +263,4 @@ CSET xlnx_ref_board=None
 MISC pkg_timestamp=2012-11-30T13:01:13Z
 # END Extra information
 GENERATE
-# CRC: ce2971c8
+# CRC: 53b71578
