@@ -464,8 +464,8 @@ begin
         CPLL_INIT_CFG                           =>     (x"00001E"),
         CPLL_LOCK_CFG                           =>     (x"01E8"),
         CPLL_REFCLK_DIV                         =>     (1),
-        RXOUT_DIV                               =>     (4),
-        TXOUT_DIV                               =>     (4),
+        RXOUT_DIV                               =>     (2),
+        TXOUT_DIV                               =>     (2),
         SATA_CPLL_CFG                           =>     ("VCO_3000MHZ"),
 
        --------------RX Initialization and Reset Attributes-------------
