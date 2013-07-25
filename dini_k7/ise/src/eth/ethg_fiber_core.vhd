@@ -462,9 +462,17 @@ RST                  => i_dcm_rst
 
 i_dcm_rst <= i_reset or (not i_pma_resetdone);
 
+--########################
+--ETH_1G
+--########################
 -- This 62.5MHz clock is placed onto global clock routing and is then used
 -- for tranceiver TXUSRCLK/RXUSRCLK.
 m_bufg_62_5M: BUFG port map (I => i_dcm_clkout(1), O  => g_clk62_5M);
+
+----########################
+----ETH_2G
+----########################
+--g_clk62_5M <= g_clk125M;
 
 -- This 125MHz clock is placed onto global clock routing and is then used
 -- to clock all Ethernet core logic.
