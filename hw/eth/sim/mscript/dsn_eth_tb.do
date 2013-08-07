@@ -3,9 +3,57 @@
 ##
 vlib work
 
-do update_comp.do
+#do update_comp.do
 
-vsim -t 1ps   -lib work dsn_ethg_tb
+vcom -93 "../../../lib/vicg/vicg_common_pkg.vhd"
+
+vcom -93 "../../../../../../ml505/ise/veresk_prj_cfg.vhd"
+vcom -93 "../../../../../prj_def.vhd"
+
+vcom -93 "../../../../../../ml505/ise/src/eth/eth_phypin_pkg_n.vhd"
+vcom -93 "../../src/eth_pkg.vhd"
+vcom -93 "../../src/eth_unit_pkg.vhd"
+
+vcom -93 "../../src/eth_mac_rx.vhd"
+vcom -93 "../../src/eth_mac_tx.vhd"
+vcom -93 "../../src/eth_app.vhd"
+vcom -93 "../../src/eth_main.vhd"
+vcom -93 "../../dsn_eth_pkg.vhd"
+vcom -93 "../../dsn_eth.vhd"
+
+vcom -93 "../../../../../../ml505/ise/src/eth/eth_bram_prm.vhd"
+vcom -93 "../../../../../../ml505/ise/src/eth/ethg_fiber_core.vhd"
+
+vcom -93 "../../../../../../ml505/ise/src/eth/ethg_fiber_core.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/fifo/tx_client_fifo.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/fifo/rx_client_fifo.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/fifo/ten_100_1g_eth_fifo.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/reset_sync.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/sync_block.vhd"
+vcom -93 "../../../../../../ml505/ise/src/eth/ethg_mac_gmii_if.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/clk_pack.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/clk_half.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/tx_clk_gen.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core/example_design/ethg_mac_core_locallink.vhd"
+vcom -93 "../../../../../../ml505/ise/src/eth/ethg_mac_core_block.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_mac_core.vhd"
+vcom -93 "../../../../../../ml505/ise/src/eth/ethg_mac.vhd"
+
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/ethg_pma_core_sync_block.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/ethg_pma_core_reset_sync.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard_gtrxreset_seq.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_transceiver_A.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_v5_gtpwizard.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_v5_gtpwizard_tile.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/ethg_pma_core_tx_elastic_buffer.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core/example_design/ethg_pma_core_block.vhd"
+vcom -93 "../../../../../../ml505/ise/src/core_gen/ethg_pma_core.vhd"
+vcom -93 "../../../../../../ml505/ise/src/eth/ethg_pma.vhd"
+
+
+vcom -93 "../testbanch/dsn_eth_tb.vhd"
+
+vsim -t 1ps   -lib work dsn_eth_tb
 #do vereskm_hdd_tb_wave.do
 view wave
 view structure
