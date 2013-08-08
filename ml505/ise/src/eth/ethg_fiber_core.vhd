@@ -178,7 +178,6 @@ signal g_refclk                : std_logic;
 signal g_clk62_5M              : std_logic;
 signal g_clk125M               : std_logic;
 
-signal i_dcm_clkout            : std_logic_vector(1 downto 0);
 signal i_dcm_clkfbout          : std_logic;
 signal g_dcm_clkfbout          : std_logic;
 signal i_userclk2_bufg         : std_logic;
@@ -226,19 +225,10 @@ signal tst_pma_core_status     : std_logic_vector(15 downto 0);
 
 begin
 
---p_out_tst(0) <= OR_reduce(tst_pma_core_status);
-
-p_out_dbg(0).d <= EXT(tst_pma_core_status, p_out_dbg(0).d'length);
-process(g_userclk2_bufg)
-begin
-  if rising_edge(g_userclk2_bufg) then
-    tst_pma_core_status <= i_pma_core_status;
-  end if;
-end process;
 
 p_out_phy.link <= i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_dcm_locked;
-p_out_phy.clk <= g_userclk2_bufg;--g_clk125M;--
+p_out_phy.clk <= g_userclk2_bufg;
 p_out_phy.rst <= p_in_rst;
 
 p_out_phy.pin.fiber.sfp_txdis <= '0';
@@ -330,7 +320,7 @@ pause_req            => i_mac_pause_req,
 pause_val            => i_mac_pause_val,
 
 -- GMII Interface
-gtx_clk              => g_userclk2_bufg,--g_clk125M,
+gtx_clk              => g_userclk2_bufg,
 
 gmii_txd             => i_pma_gmii_txd    , --: out std_logic_vector(7 downto 0);
 gmii_tx_en           => i_pma_gmii_tx_en  , --: out std_logic;
@@ -360,7 +350,7 @@ G_SIM => 0
 port map(
 gt_txoutclk_bufg    => i_pma_gt_txoutclk_bufg,
 gt_userclk_bufg     => '0',
-gt_userclk2_bufg    => g_userclk2_bufg,--g_clk125M,
+gt_userclk2_bufg    => g_userclk2_bufg,
 gt_resetdone        => i_pma_resetdone,
 dcm_locked          => i_dcm_locked,
 
@@ -416,47 +406,8 @@ rxn1                 => p_in_phy.pin.fiber.rxn(1)
 ----########################
 ----ETH_1G
 ----########################
-----g_userclk2_bufg <= i_pma_gt_txoutclk_bufg;--g_clk125M <= i_pma_gt_txoutclk_bufg;
+----g_userclk2_bufg <= i_pma_gt_txoutclk_bufg;
 ----i_dcm_locked <= '1';
---client_dcm_1G : DCM_BASE
---generic map(
---CLKIN_PERIOD      => 8.0, -- Specify period of input clock in ns from 1.25 to 1000.00
---CLKFX_MULTIPLY    => 2,   -- Can be any integer from 2 to 32
---CLKFX_DIVIDE      => 2,   -- Can be any integer from 1 to 32
---CLKIN_DIVIDE_BY_2 => FALSE,
---CLKDV_DIVIDE      => 2.0, --
---CLKOUT_PHASE_SHIFT    => "NONE",
---CLK_FEEDBACK          => "1X",
---DCM_PERFORMANCE_MODE  => "MAX_SPEED",
---DCM_AUTOCALIBRATION   => TRUE,
---DESKEW_ADJUST         => "SYSTEM_SYNCHRONOUS",
---DFS_FREQUENCY_MODE    => "LOW",
---DLL_FREQUENCY_MODE    => "HIGH",
---DUTY_CYCLE_CORRECTION => TRUE,
---FACTORY_JF   => X"F0F0",
---PHASE_SHIFT  => 0,
---STARTUP_WAIT => FALSE
---)
---port map (
---CLKIN    => i_pma_gt_txoutclk_bufg,
---CLKFB    => g_dcm_clkfbout     ,
---RST      => i_dcm_rst          ,
---CLK0     => i_dcm_clkfbout,
---CLK90    => open               ,
---CLK180   => open               ,
---CLK270   => open               ,
---CLK2X    => open               ,
---CLK2X180 => open               ,
---CLKDV    => open               ,
---CLKFX    => i_userclk2_bufg    ,
---CLKFX180 => open               ,
---LOCKED   => i_dcm_locked
---);
---
---i_dcm_rst <= i_reset;-- or (not i_pma_resetdone);
---
---bufg_dcm_fb : BUFG port map (I => i_dcm_clkfbout, O => g_dcm_clkfbout);
---bufg_gt_usrclk2 : BUFG port map (I => i_userclk2_bufg, O => g_userclk2_bufg);
 
 --########################
 --ETH_2G
@@ -499,7 +450,7 @@ LOCKED   => i_dcm_locked
 i_dcm_rst <= i_reset;-- or (not i_pma_resetdone);
 
 bufg_dcm_fb : BUFG port map (I => i_dcm_clkfbout, O => g_dcm_clkfbout);
-bufg_gt_usrclk2 : BUFG port map (I => i_userclk2_bufg, O => g_userclk2_bufg);--g_clk125M);
+bufg_gt_usrclk2 : BUFG port map (I => i_userclk2_bufg, O => g_userclk2_bufg);
 
 
 
