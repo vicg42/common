@@ -6,6 +6,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_misc.all;
 
 library work;
 use work.eth_pkg.all;
@@ -220,11 +221,20 @@ signal i_pma_sfp_tx_fault      : std_logic;
 signal i_pma_sfp_tx_disable    : std_logic;
 signal i_pma_core_clk156_out   : std_logic;
 
+signal tst_pma_core_status     : std_logic_vector(15 downto 0);
 
 
 begin
 
-p_out_tst(7 downto 0) <= i_pma_core_status(7 downto 0);
+--p_out_tst(0) <= OR_reduce(tst_pma_core_status);
+
+p_out_dbg(0).d <= EXT(tst_pma_core_status, p_out_dbg(0).d'length);
+process(g_userclk2_bufg)
+begin
+  if rising_edge(g_userclk2_bufg) then
+    tst_pma_core_status <= i_pma_core_status;
+  end if;
+end process;
 
 p_out_phy.link <= i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_dcm_locked;
@@ -406,16 +416,69 @@ rxn1                 => p_in_phy.pin.fiber.rxn(1)
 ----########################
 ----ETH_1G
 ----########################
---g_userclk2_bufg <= i_pma_gt_txoutclk_bufg;--g_clk125M <= i_pma_gt_txoutclk_bufg;
---i_dcm_locked <= '0';
+----g_userclk2_bufg <= i_pma_gt_txoutclk_bufg;--g_clk125M <= i_pma_gt_txoutclk_bufg;
+----i_dcm_locked <= '1';
+--client_dcm_1G : DCM_BASE
+--generic map(
+--CLKIN_PERIOD      => 8.0, -- Specify period of input clock in ns from 1.25 to 1000.00
+--CLKFX_MULTIPLY    => 2,   -- Can be any integer from 2 to 32
+--CLKFX_DIVIDE      => 2,   -- Can be any integer from 1 to 32
+--CLKIN_DIVIDE_BY_2 => FALSE,
+--CLKDV_DIVIDE      => 2.0, --
+--CLKOUT_PHASE_SHIFT    => "NONE",
+--CLK_FEEDBACK          => "1X",
+--DCM_PERFORMANCE_MODE  => "MAX_SPEED",
+--DCM_AUTOCALIBRATION   => TRUE,
+--DESKEW_ADJUST         => "SYSTEM_SYNCHRONOUS",
+--DFS_FREQUENCY_MODE    => "LOW",
+--DLL_FREQUENCY_MODE    => "HIGH",
+--DUTY_CYCLE_CORRECTION => TRUE,
+--FACTORY_JF   => X"F0F0",
+--PHASE_SHIFT  => 0,
+--STARTUP_WAIT => FALSE
+--)
+--port map (
+--CLKIN    => i_pma_gt_txoutclk_bufg,
+--CLKFB    => g_dcm_clkfbout     ,
+--RST      => i_dcm_rst          ,
+--CLK0     => i_dcm_clkfbout,
+--CLK90    => open               ,
+--CLK180   => open               ,
+--CLK270   => open               ,
+--CLK2X    => open               ,
+--CLK2X180 => open               ,
+--CLKDV    => open               ,
+--CLKFX    => i_userclk2_bufg    ,
+--CLKFX180 => open               ,
+--LOCKED   => i_dcm_locked
+--);
+--
+--i_dcm_rst <= i_reset;-- or (not i_pma_resetdone);
+--
+--bufg_dcm_fb : BUFG port map (I => i_dcm_clkfbout, O => g_dcm_clkfbout);
+--bufg_gt_usrclk2 : BUFG port map (I => i_userclk2_bufg, O => g_userclk2_bufg);
 
 --########################
 --ETH_2G
 --########################
 client_dcm_2G : DCM_BASE
 generic map(
-CLKFX_MULTIPLY => 2,
-CLKFX_DIVIDE   => 1
+CLKIN_PERIOD      => 8.0, -- Specify period of input clock in ns from 1.25 to 1000.00
+CLKFX_MULTIPLY    => 2,   -- Can be any integer from 2 to 32
+CLKFX_DIVIDE      => 1,   -- Can be any integer from 1 to 32
+CLKIN_DIVIDE_BY_2 => FALSE,
+CLKDV_DIVIDE      => 2.0, --
+CLKOUT_PHASE_SHIFT    => "NONE",
+CLK_FEEDBACK          => "1X",
+DCM_PERFORMANCE_MODE  => "MAX_SPEED",
+DCM_AUTOCALIBRATION   => TRUE,
+DESKEW_ADJUST         => "SYSTEM_SYNCHRONOUS",
+DFS_FREQUENCY_MODE    => "HIGH",
+DLL_FREQUENCY_MODE    => "HIGH",
+DUTY_CYCLE_CORRECTION => TRUE,
+FACTORY_JF   => X"F0F0",
+PHASE_SHIFT  => 0,
+STARTUP_WAIT => FALSE
 )
 port map (
 CLKIN    => i_pma_gt_txoutclk_bufg,

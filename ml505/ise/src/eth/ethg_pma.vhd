@@ -618,9 +618,15 @@ begin
 --      gmii_tx_en_rd    => gmii_tx_en_fifo0,
 --      gmii_tx_er_rd    => gmii_tx_er_fifo0
 --   );
-   gmii_txd_fifo0   <= gmii_txd_delay0  ;
-   gmii_tx_en_fifo0 <= gmii_tx_en_delay0;
-   gmii_tx_er_fifo0 <= gmii_tx_er_delay0;
+   process (userclk2)
+   begin
+      if userclk2'event and userclk2 = '1' then
+       gmii_txd_fifo0   <= gmii_txd_delay0  ;
+       gmii_tx_en_fifo0 <= gmii_tx_en_delay0;
+       gmii_tx_er_fifo0 <= gmii_tx_er_delay0;
+
+      end if;
+   end process;
 
 
 

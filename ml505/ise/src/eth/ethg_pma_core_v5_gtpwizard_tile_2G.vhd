@@ -360,10 +360,10 @@ begin
 
         --------------------- RX Serial Line Rate Attributes ------------------
 
-        PLL_RXDIVSEL_OUT_0          =>       2,
+        PLL_RXDIVSEL_OUT_0          =>       1,
         PLL_SATA_0                  =>       FALSE,
 
-        PLL_RXDIVSEL_OUT_1          =>       2,
+        PLL_RXDIVSEL_OUT_1          =>       1,
         PLL_SATA_1                  =>       FALSE,
 
         ----------------------- PRBS Detection Attributes ---------------------
