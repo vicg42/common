@@ -83,11 +83,11 @@ signal fsm_eth_tx_cs: TEth_fsm_tx;
 signal i_bcnt                 : std_logic_vector(selval(0, 1, (p_out_txll_data'length=16)) downto 0);
 signal i_dcnt                 : std_logic_vector(15 downto 0);
 signal i_dcnt_len             : std_logic_vector(15 downto 0);
-signal i_pkt_lentotal_byte    : std_logic_vector(15 downto 0);--//кол-во передоваемых байт
+signal i_pkt_lentotal_byte    : std_logic_vector(15 downto 0);--кол-во передоваемых байт
 signal i_pkt_len              : std_logic_vector(15 downto 0);
 
-signal i_usr_txd_rd           : std_logic;--//строб дополнительного чтения
-signal i_usr_txd_rden         : std_logic;--//разрешение чтения данных из usr_txbuf
+signal i_usr_txd_rd           : std_logic;--строб дополнительного чтения
+signal i_usr_txd_rden         : std_logic;--разрешение чтения данных из usr_txbuf
 
 signal i_ll_data_swp          : std_logic_vector(15 downto 0);
 signal i_ll_data              : std_logic_vector(p_out_txll_data'range);
@@ -105,9 +105,9 @@ signal tst_ll_dst_rdy_n       : std_logic;
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
@@ -149,9 +149,9 @@ gen_ll_d16 : if i_ll_data'length/8=2 generate
 i_pkt_len<=EXT(i_pkt_lentotal_byte(15 downto 1), i_dcnt_len'length) + i_pkt_lentotal_byte(0);
 end generate gen_ll_d16;
 
---//-------------------------------------------
---//Автомат загрузки данных в ядро ETH
---//-------------------------------------------
+---------------------------------------------
+--Автомат загрузки данных в ядро ETH
+---------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -176,9 +176,9 @@ begin
 
       case fsm_eth_tx_cs is
 
-        --//------------------------------------
-        --//Ждем входных данных
-        --//------------------------------------
+        --------------------------------------
+        --Ждем входных данных
+        --------------------------------------
         when S_IDLE =>
 
           i_ll_sof_n<='1';
@@ -186,15 +186,15 @@ begin
           i_ll_src_rdy_n<='1';
 
           if p_in_txbuf_empty='0' then
-            --//кол-во передоваемых байт данных
+            --кол-во передоваемых байт данных
             i_dcnt_len<=i_pkt_len;
             fsm_eth_tx_cs<=S_TX_MACA_DST0;
           end if;
 
 
-        --//------------------------------------
-        --//MACFRAME: отправка mac_dst
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: отправка mac_dst
+        --------------------------------------
         when S_TX_MACA_DST0 =>
 
           i_ll_src_rdy_n<='0';
@@ -232,9 +232,9 @@ begin
             i_dcnt<=i_dcnt + 1;
           end if;
 
-        --//------------------------------------
-        --//MACFRAME: отправка mac_src
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: отправка mac_src
+        --------------------------------------
         when S_TX_MACA_SRC =>
 
           i_ll_src_rdy_n<='0';
@@ -257,9 +257,9 @@ begin
             i_dcnt<=i_dcnt + 1;
           end if;
 
-        --//------------------------------------
-        --//MACFRAME: отправка данных
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: отправка данных
+        --------------------------------------
         when S_TX_MACD =>
 
           i_usr_txd_rd<='0';
@@ -280,12 +280,12 @@ begin
 
                 fsm_eth_tx_cs<=S_TX_DONE;
               else
-                i_dcnt<=i_dcnt + 1;--//счетчик байт передоваемых данных
+                i_dcnt<=i_dcnt + 1;--счетчик байт передоваемых данных
                 i_ll_eof_n<='1';
               end if;
 
               if i_data_en='0' then
-              --//поле Type/Length
+              --поле Type/Length
                 for i in 0 to 1 loop
                   if i_bcnt=i then
                     if G_ETH.mac_length_swap=0 then
@@ -307,7 +307,7 @@ begin
                 end loop;
                 i_data_en<=OR_reduce(i_bcnt);
               else
-              --//Данные
+              --Данные
                 for i in 0 to p_in_txbuf_dout'length/i_ll_data'length - 1 loop
                   if i_bcnt=i then
                     i_ll_data<=p_in_txbuf_dout(8*(i_ll_data'length/8)*(i+1)-1 downto 8*(i_ll_data'length/8)*i);
@@ -315,9 +315,9 @@ begin
                 end loop;
               end if;
 
-              i_bcnt<=i_bcnt + 1;--//счетчик байт порта входных данных p_in_txbuf_dout
+              i_bcnt<=i_bcnt + 1;--счетчик байт порта входных данных p_in_txbuf_dout
 
-          end if;--//if p_in_txbuf_empty='0' then
+          end if;--if p_in_txbuf_empty='0' then
 
         when S_TX_DONE =>
 
@@ -336,7 +336,7 @@ begin
 
       end case;
 
-    end if;--//if p_in_txll_dst_rdy_n='0'
+    end if;--if p_in_txll_dst_rdy_n='0'
   end if;
 end process;
 

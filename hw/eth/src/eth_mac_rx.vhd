@@ -73,9 +73,9 @@ p_out_pause_val       : out   std_logic_vector(15 downto 0);
 p_in_tst              : in    std_logic_vector(31 downto 0);
 p_out_tst             : out   std_logic_vector(31 downto 0);
 
---//------------------------------------
---//SYSTEM
---//------------------------------------
+--------------------------------------
+--SYSTEM
+--------------------------------------
 p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
 );
@@ -95,8 +95,8 @@ S_RXBUF_WDATA
 signal fsm_eth_rx_cs: TEth_fsm_rx;
 
 signal sr_bcnt                : std_logic_vector(selval(0, 1, (p_in_rxll_data'length=16)) downto 0);
-signal i_bcnt                 : std_logic_vector(selval(0, 1, (p_in_rxll_data'length=16)) downto 0); --//счетчик вайт в выходного порта p_out_usr_rxdata
-signal i_dcnt                 : std_logic_vector(15 downto 0);--//счетчик входных данных
+signal i_bcnt                 : std_logic_vector(selval(0, 1, (p_in_rxll_data'length=16)) downto 0); --счетчик вайт в выходного порта p_out_usr_rxdata
+signal i_dcnt                 : std_logic_vector(15 downto 0);--счетчик входных данных
 signal i_dcnt_len             : std_logic_vector(15 downto 0);
 
 signal i_rx_mac               : TEthMAC;
@@ -124,9 +124,9 @@ signal tst_rxll_rem           : std_logic_vector(p_in_rxll_rem'range);
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
@@ -188,9 +188,9 @@ gen_rx_mac_check : for i in 0 to p_in_cfg.mac.src'length-1 generate
 i_rx_mac_valid(i)<='1' when i_rx_mac.dst(i)=p_in_cfg.mac.src(i) else '0';
 end generate gen_rx_mac_check;
 
---//-------------------------------------------
---//Автомат приема данных из ядра ETH
---//-------------------------------------------
+---------------------------------------------
+--Автомат приема данных из ядра ETH
+---------------------------------------------
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -221,9 +221,9 @@ begin
 
       case fsm_eth_rx_cs is
 
-        --//------------------------------------
-        --//Ждем входных данных
-        --//------------------------------------
+        --------------------------------------
+        --Ждем входных данных
+        --------------------------------------
         when S_IDLE =>
 
           i_ll_dst_rdy_n<='0';
@@ -241,9 +241,9 @@ begin
             fsm_eth_rx_cs<=S_RX_MAC_DST;
           end if;
 
-        --//------------------------------------
-        --//MACFRAME: прием mac_dst
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: прием mac_dst
+        --------------------------------------
         when S_RX_MAC_DST =>
 
           for i in 1 to (p_in_cfg.mac.dst'length/(p_in_rxll_data'length/8))-1 loop
@@ -261,9 +261,9 @@ begin
             i_dcnt<=i_dcnt + 1;
           end if;
 
-        --//------------------------------------
-        --//MACFRAME: прием mac_src
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: прием mac_src
+        --------------------------------------
         when S_RX_MAC_SRC =>
 
           for i in 0 to (p_in_cfg.mac.src'length/(p_in_rxll_data'length/8))-1 loop
@@ -281,9 +281,9 @@ begin
             i_dcnt<=i_dcnt + 1;
           end if;
 
-        --//------------------------------------
-        --//MACFRAME: прием mac_len/type
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: прием mac_len/type
+        --------------------------------------
         when S_RX_MAC_LENTYPE =>
 
           for i in 0 to (p_in_cfg.mac.lentype'length/p_in_rxll_data'length)-1 loop
@@ -300,18 +300,18 @@ begin
             i_dcnt<=i_dcnt + 1;
           end if;
 
-        --//------------------------------------
-        --//MACFRAME: проверка
-        --//------------------------------------
+        --------------------------------------
+        --MACFRAME: проверка
+        --------------------------------------
         when S_LENTYPE_CHECK =>
 
 --          if i_rx_mac.lentype<CONV_STD_LOGIC_VECTOR(16#0800#, i_rx_mac.lentype'length) then
 
             if AND_reduce(i_rx_mac_valid)='1' then
-            --//пакет наш:
+            --пакет наш:
               fsm_eth_rx_cs<=S_RXBUF_WDLEN;
             else
-            --//пакет НЕ наш:
+            --пакет НЕ наш:
               i_ll_dst_rdy_n<='0';
               fsm_eth_rx_cs<=S_IDLE;
             end if;
@@ -322,10 +322,10 @@ begin
 --
 --          end if;
 
-        --//------------------------------------
-        --//MACFRAME: запись данных mac frame в usr_rxbuf
-        --//------------------------------------
-        --//Запись pkt_len
+        --------------------------------------
+        --MACFRAME: запись данных mac frame в usr_rxbuf
+        --------------------------------------
+        --Запись pkt_len
         when S_RXBUF_WDLEN =>
 
           if p_in_rxbuf_full='0' then
@@ -338,17 +338,17 @@ begin
                 end if;
               end loop;
 
-              i_dcnt<=i_dcnt + 1;--//счетчик байт передоваемых данных
-              i_bcnt<=i_bcnt + 1;--//счетчик байт порта входных данных p_in_usr_txdata
+              i_dcnt<=i_dcnt + 1;--счетчик байт передоваемых данных
+              i_bcnt<=i_bcnt + 1;--счетчик байт порта входных данных p_in_usr_txdata
 
               if i_dcnt=CONV_STD_LOGIC_VECTOR((i_rx_mac.lentype'length/p_in_rxll_data'length)-1, i_dcnt'length) then
                 i_ll_dst_rdy_n<='0';
                 fsm_eth_rx_cs<=S_RXBUF_WDATA;
               end if;
 
-          end if;--//if p_in_rxbuf_full='0' then
+          end if;--if p_in_rxbuf_full='0' then
 
-        --//Запись pkt_data
+        --Запись pkt_data
         when S_RXBUF_WDATA =>
 
           if p_in_rxbuf_full='0' then
@@ -363,7 +363,7 @@ begin
                 fsm_eth_rx_cs<=S_IDLE;
 
               else
-                i_dcnt<=i_dcnt + 1;--//счетчик байт mac frame
+                i_dcnt<=i_dcnt + 1;--счетчик байт mac frame
               end if;
 
               if AND_reduce(i_bcnt)='1' then
@@ -376,18 +376,18 @@ begin
                 end if;
               end loop;
 
-              i_bcnt<=i_bcnt + 1;--//счетчик байт порта выходных данных p_out_usr_rxdata
+              i_bcnt<=i_bcnt + 1;--счетчик байт порта выходных данных p_out_usr_rxdata
 
-          end if;--//if p_in_rxbuf_full='0' then
+          end if;--if p_in_rxbuf_full='0' then
 
       end case;
 
-    end if;--//if p_in_rxbuf_full='0' and p_in_rxll_src_rdy_n='0' then
+    end if;--if p_in_rxbuf_full='0' and p_in_rxll_src_rdy_n='0' then
   end if;
 end process;
 
 
---//Линия задержек
+--Линия задержек
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -412,9 +412,9 @@ p_out_rxll_dst_rdy_n<=i_ll_dst_rdy_n;
 
 
 
---//------------------------------------
---//Управление передачей Pause Frame
---//------------------------------------
+--------------------------------------
+--Управление передачей Pause Frame
+--------------------------------------
 p_out_pause_req<='0';
 p_out_pause_val<=(others=>'0');
 
