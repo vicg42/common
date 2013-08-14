@@ -51,20 +51,20 @@ port(
 -------------------------------
 -- Конфигурирование
 -------------------------------
-p_in_cfg_load         : in    std_logic;                   --//Загрузка параметров записи
-p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);--//Размер одиночной транзакции MEM_WR
-p_in_cfg_prm_vch      : in    TWriterVCHParams;            --//Параметры записи видео каналов
+p_in_cfg_load         : in    std_logic;                   --Загрузка параметров записи
+p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);--Размер одиночной транзакции MEM_WR
+p_in_cfg_prm_vch      : in    TWriterVCHParams;            --Параметры записи видео каналов
 p_in_cfg_set_idle_vch : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
-p_in_vfr_buf          : in    TVfrBufs;                    --//Номер буфера где будет формироваться текущий кадр
+p_in_vfr_buf          : in    TVfrBufs;                    --Номер буфера где будет формироваться текущий кадр
 
---//Статусы
-p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Кадр готов для соответствующего видеоканала
-p_out_vrow_mrk        : out   TVMrks;                      --//Маркер строки
+--Статусы
+p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--Кадр готов для соответствующего видеоканала
+p_out_vrow_mrk        : out   TVMrks;                      --Маркер строки
 
---//--------------------------
---//Upstream Port (Связь с буфером видеопакетов)
---//--------------------------
+----------------------------
+--Upstream Port (Связь с буфером видеопакетов)
+----------------------------
 p_in_upp_data         : in    std_logic_vector(31 downto 0);
 p_out_upp_data_rd     : out   std_logic;
 p_in_upp_data_rdy     : in    std_logic;
@@ -157,9 +157,9 @@ signal tst_upp_buf_full            : std_logic;
 begin
 
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(26 downto 0)<=(others=>'0');
 p_out_tst(31 downto 27)<='0' & i_pkt_type_err(3 downto 0);
@@ -190,21 +190,21 @@ tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_c
               CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START       else
               CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_MEM_WR          else
               CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_PKT_SKIP        else
-              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs=S_IDLE              else
+              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --fsm_state_cs=S_IDLE              else
 end generate gen_dbgcs_on;
 
 
---//----------------------------------------------
---//Статусы
---//----------------------------------------------
-p_out_vfr_rdy<=i_vfr_rdy;--//Прерывание: кадр записан в ОЗУ
-p_out_vrow_mrk<=i_vfr_row_mrk;--//Маркер строки видеокадра
+------------------------------------------------
+--Статусы
+------------------------------------------------
+p_out_vfr_rdy<=i_vfr_rdy;--Прерывание: кадр записан в ОЗУ
+p_out_vrow_mrk<=i_vfr_row_mrk;--Маркер строки видеокадра
 
 
---//----------------------------------------------
---//Связь с буфером видео пакетов
---//Вычитка пакета видео информации
---//----------------------------------------------
+------------------------------------------------
+--Связь с буфером видео пакетов
+--Вычитка пакета видео информации
+------------------------------------------------
 p_out_upp_data_rd<=i_upp_hd_data_rd_out or (i_vpkt_payload_rd and i_upp_data_rd) or i_upp_pkt_skip_rd_out;
 
 i_upp_hd_data_rd_out <=(i_vpkt_header_rd  and not p_in_upp_buf_empty);
@@ -212,9 +212,9 @@ i_upp_hd_data_rd_out <=(i_vpkt_header_rd  and not p_in_upp_buf_empty);
 i_upp_pkt_skip_rd_out <=(i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 
 
---//----------------------------------------------
---//Вычисления
---//----------------------------------------------
+------------------------------------------------
+--Вычисления
+------------------------------------------------
 --вычисляем сколько DW нужно пробросить чтобы перейти к новому pkt, если обнаружил ошибки в принятом пакете
 i_pkt_skip_byte<=EXT(i_pkt_size_byte, i_pkt_skip_byte'length) + 2;--кол-во байт пакета + кол-во байт поля length
 i_pkt_skip_dw<=EXT(i_pkt_skip_byte(i_pkt_skip_byte'length-1 downto 2), i_pkt_skip_dw'length) + OR_reduce(i_pkt_skip_byte(1 downto 0));--(целая часть от деления на 4) + (остаток от деления на 4)
@@ -226,9 +226,9 @@ i_pix_count_dw<=EXT(i_pix_count_byte(i_pix_count_byte'high downto 2), i_pix_coun
 i_vfr_pix_count_calc<=i_pix_count_byte(i_vfr_pix_count_calc'range) + i_pix_num;
 
 
---//----------------------------------------------
---//Автомат записи видео информации
---//----------------------------------------------
+------------------------------------------------
+--Автомат записи видео информации
+------------------------------------------------
 process(p_in_rst,p_in_clk)
   variable vfr_rdy : std_logic_vector(p_out_vfr_rdy'range);
 begin
@@ -277,26 +277,26 @@ begin
 
     case fsm_state_cs is
 
-      --//------------------------------------
-      --//Исходное состояние
-      --//------------------------------------
+      --------------------------------------
+      --Исходное состояние
+      --------------------------------------
       when S_IDLE =>
 
         i_pkt_skip_dw_dcnt<=(others=>'0');
 
-        --//Загрузка праметров Видео канала
+        --Загрузка праметров Видео канала
         if p_in_cfg_load='1' then
           for i in 0 to C_VCTRL_VCH_COUNT-1 loop
             i_mem_wrbase<=p_in_cfg_prm_vch(i).mem_adr;
           end loop;
         end if;
 
-        --//Ждем когда появятся данные в буфере
+        --Ждем когда появятся данные в буфере
         if i_upp_buf_pfull='1' then
-        --//Ждем когда в входном буфере накопится нужное кол-во данных (0x40 DWORD)
+        --Ждем когда в входном буфере накопится нужное кол-во данных (0x40 DWORD)
 
           i_vpkt_header_rd<='1';
-          --//Загружаем в счетчик размер Заголовка пакета видео данных (в DWORD)
+          --Загружаем в счетчик размер Заголовка пакета видео данных (в DWORD)
           i_vpkt_cnt<=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-1, i_vpkt_cnt'length);
 
           i_pkt_type_err(3 downto 0)<=(others=>'0');
@@ -304,9 +304,9 @@ begin
           fsm_state_cs <= S_PKT_HEADER_READ;
         end if;
 
-      --//------------------------------------
-      --//Чтение и анализ заголовка пакета видеоданных
-      --//------------------------------------
+      --------------------------------------
+      --Чтение и анализ заголовка пакета видеоданных
+      --------------------------------------
       when S_PKT_HEADER_READ =>
 
         if i_upp_hd_data_rd_out='1' then
@@ -314,26 +314,26 @@ begin
           i_pkt_skip_dw_dcnt<=i_pkt_skip_dw_dcnt + 1;
 
           if i_vpkt_cnt=(i_vpkt_cnt'range =>'0') then
-          --//----------------------------------------
-          --//----- Прочитал весь заголовок ----------
-          --//----------------------------------------
+          ------------------------------------------
+          ------- Прочитал весь заголовок ----------
+          ------------------------------------------
 
             i_vpkt_header_rd<='0';
 
-            --//Установка параметров для текущего кадра видеоканала:
+            --Установка параметров для текущего кадра видеоканала:
             for i in 0 to C_VCTRL_VCH_COUNT-1 loop
               if i_vch_num=i then
 
-                --//сохраняем маркер текущей строки кадра :
-                i_vfr_row_mrk(i)(31 downto 16)<=p_in_upp_data(15 downto 0);--//(старшая часть)
-                i_vfr_row_mrk(i)(15 downto 0)<=i_vfr_row_mrk_l;            --//(младшая часть)
+                --сохраняем маркер текущей строки кадра :
+                i_vfr_row_mrk(i)(31 downto 16)<=p_in_upp_data(15 downto 0);--(старшая часть)
+                i_vfr_row_mrk(i)(15 downto 0)<=i_vfr_row_mrk_l;            --(младшая часть)
 
-                --//адрес ОЗУ:
+                --адрес ОЗУ:
                 i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=p_in_vfr_buf(i);
               end if;
             end loop;
 
-            --//адрес ОЗУ:
+            --адрес ОЗУ:
             i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
             i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row((G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT)+0 downto 0);
             i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_pix_num(G_MEM_VLINE_L_BIT-1 downto 0);
@@ -341,21 +341,21 @@ begin
             fsm_state_cs <= S_MEM_START;
 
           else
-          --//-------------------------
-          --//Чтение заголовка:
-          --//-------------------------
-            --//Header DWORD-0:
+          ---------------------------
+          --Чтение заголовка:
+          ---------------------------
+            --Header DWORD-0:
             if i_vpkt_cnt=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-1, i_vpkt_cnt'length) then
 
               i_pkt_size_byte<=p_in_upp_data(15 downto 0);--Length (byte)
 
               if p_in_upp_data(19 downto 16)="0001" and p_in_upp_data(27 downto 24)="0011" and p_in_upp_data(23 downto 20)<="0011" then
-              --//Тип пакета - Видео Данные + проверка намера источника пакета
+              --Тип пакета - Видео Данные + проверка намера источника пакета
 
-                --//Сохраняем номер текущего видео канала:
+                --Сохраняем номер текущего видео канала:
                 i_vch_num<=p_in_upp_data(23 downto 20);
               else
-                --//Не наш пакет
+                --Не наш пакет
                 i_vpkt_header_rd<='0';
                 i_vpkt_skip_rd<='1';
 
@@ -372,41 +372,41 @@ begin
                 fsm_state_cs <= S_PKT_SKIP;
               end if;
 
-            --//Header DWORD-1:
+            --Header DWORD-1:
             elsif i_vpkt_cnt=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-2, i_vpkt_cnt'length) then
 
               for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i_vch_num=i then
                   if i_vfr_num(i)/=p_in_upp_data(3 downto 0) then
-                    --//Обнаружил начало нового кадра!!!!!!!!!
-                    --//Перезагрузка параметров канала
+                    --Обнаружил начало нового кадра!!!!!!!!!
+                    --Перезагрузка параметров канала
                     i_mem_wrbase<=p_in_cfg_prm_vch(i).mem_adr;
                   end if;
 
-                  --//Сохраняем номер текущего кадра:
+                  --Сохраняем номер текущего кадра:
                   i_vfr_num(i)<= p_in_upp_data(3 downto 0);
 
                  end if;
               end loop;
 
-              --//Сохраняем размер кадра: кол-во пикселей
+              --Сохраняем размер кадра: кол-во пикселей
               i_vfr_pix_count<=p_in_upp_data(31 downto 16);
 
-            --//Header DWORD-2:
+            --Header DWORD-2:
             elsif i_vpkt_cnt=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-3, i_vpkt_cnt'length) then
 
-              --//Сохраняем размер кадра: кол-во строк
+              --Сохраняем размер кадра: кол-во строк
               i_vfr_row_count <= p_in_upp_data(15 downto 0);
 
-              --//Сохраняем номер текущей строки:
+              --Сохраняем номер текущей строки:
               i_vfr_row <= p_in_upp_data(31 downto 16);
 
-            --//Header DWORD-3:
+            --Header DWORD-3:
             elsif i_vpkt_cnt=CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE-4, i_vpkt_cnt'length) then
 
-              --//Сохраняем маркер строки (младшая часть)
+              --Сохраняем маркер строки (младшая часть)
               i_vfr_row_mrk_l(15 downto 0)<=p_in_upp_data(31 downto 16);
-              --//Номер начального пикселя в строке
+              --Номер начального пикселя в строке
               i_pix_num(15 downto 0)<=p_in_upp_data(15 downto 0);
 
             end if;
@@ -418,9 +418,9 @@ begin
         end if;
 
 
-      --//------------------------------------
-      --//Запускаем операцию записи ОЗУ
-      --//------------------------------------
+      --------------------------------------
+      --Запускаем операцию записи ОЗУ
+      --------------------------------------
       when S_MEM_START =>
 
         i_vpkt_payload_rd<='1';
@@ -431,20 +431,20 @@ begin
         i_mem_start<='1';
         fsm_state_cs <= S_MEM_WR;
 
-      --//----------------------------------------------
-      --//Запись данных
-      --//----------------------------------------------
+      ------------------------------------------------
+      --Запись данных
+      ------------------------------------------------
       when S_MEM_WR =>
 
         i_mem_start<='0';
 
         if i_mem_done='1' then
-        --//Операция выполнена
+        --Операция выполнена
           i_vpkt_payload_rd<='0';
 
           if i_vfr_row=(i_vfr_row_count - 1) then
-          --//Обработал последнюю строку кадра.
-          --//Выдаем прерывание:
+          --Обработал последнюю строку кадра.
+          --Выдаем прерывание:
             if i_vfr_pix_count=i_vfr_pix_count_calc then
               for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i_vch_num=i then
@@ -458,9 +458,9 @@ begin
         end if;
 
 
-      --//------------------------------------
-      --//Пропуск текущего пакета
-      --//------------------------------------
+      --------------------------------------
+      --Пропуск текущего пакета
+      --------------------------------------
       when S_PKT_SKIP =>
 
         if i_upp_pkt_skip_rd_out='1' then

@@ -29,7 +29,7 @@ generic(
 G_DBGCS  : string:="OFF";
 G_ROTATE : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
-G_SIMPLE : string:="OFF"; --//ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
+G_SIMPLE : string:="OFF"; --ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
 G_SIM    : string:="OFF";
 G_MEM_AWIDTH : integer:=32;
 G_MEM_DWIDTH : integer:=32
@@ -38,71 +38,71 @@ port(
 -------------------------------
 -- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
 -------------------------------
-p_in_host_clk         : in   std_logic;                      --//
+p_in_host_clk         : in   std_logic;
 
-p_in_cfg_adr          : in   std_logic_vector(7 downto 0);   --//
-p_in_cfg_adr_ld       : in   std_logic;                      --//
-p_in_cfg_adr_fifo     : in   std_logic;                      --//
+p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
+p_in_cfg_adr_ld       : in   std_logic;
+p_in_cfg_adr_fifo     : in   std_logic;
 
-p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);  --//
-p_in_cfg_wd           : in   std_logic;                      --//
+p_in_cfg_txdata       : in   std_logic_vector(15 downto 0);
+p_in_cfg_wd           : in   std_logic;
 
-p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);  --//
-p_in_cfg_rd           : in   std_logic;                      --//
+p_out_cfg_rxdata      : out  std_logic_vector(15 downto 0);
+p_in_cfg_rd           : in   std_logic;
 
-p_in_cfg_done         : in   std_logic;                      --//
+p_in_cfg_done         : in   std_logic;
 
 -------------------------------
 -- Связь с ХОСТ
 -------------------------------
-p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --//Номер видео канала который будет читать ХОСТ
-p_in_vctrl_hrdstart   : in    std_logic;                      --//Начало чтенения видеоканала
-p_in_vctrl_hrddone    : in    std_logic;                      --//Подтверждение вычетки данных видеоканала
-p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Готовность кадра соответствующего видеоканала
-p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Прерываение соответствующего видеоканала(Кадр готов)
-p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);  --//
+p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --Номер видео канала который будет читать ХОСТ
+p_in_vctrl_hrdstart   : in    std_logic;                      --Начало чтенения видеоканала
+p_in_vctrl_hrddone    : in    std_logic;                      --Подтверждение вычетки данных видеоканала
+p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--Готовность кадра соответствующего видеоканала
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--Прерываение соответствующего видеоканала(Кадр готов)
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
 
 -------------------------------
 -- STATUS модуля dsn_video_ctrl.vhd
 -------------------------------
-p_out_vctrl_modrdy    : out   std_logic;                      --//
-p_out_vctrl_moderr    : out   std_logic;                      --//
-p_out_vctrl_rd_done   : out   std_logic;                      --//
+p_out_vctrl_modrdy    : out   std_logic;
+p_out_vctrl_moderr    : out   std_logic;
+p_out_vctrl_rd_done   : out   std_logic;
 
-p_out_vctrl_vrdprm    : out   TReaderVCHParams;               --//Параметры видеоканалов
-p_out_vctrl_vfrrdy    : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--//Кадра готов для соответствующего видеоканала
-p_out_vctrl_vrowmrk   : out   TVMrks;                         --//Маркер времени принятой строки
+p_out_vctrl_vrdprm    : out   TReaderVCHParams;               --Параметры видеоканалов
+p_out_vctrl_vfrrdy    : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--Кадра готов для соответствующего видеоканала
+p_out_vctrl_vrowmrk   : out   TVMrks;                         --Маркер времени принятой строки
 
---//--------------------------
---//Связь с модулем слежения
---//--------------------------
+----------------------------
+--Связь с модулем слежения
+----------------------------
 p_in_trc_busy         : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);--Захват бидеобуфера модулем слежения
-p_out_trc_vbuf        : out   TVfrBufs;                       --//Номера видео буферов с готовыми кадрами
+p_out_trc_vbuf        : out   TVfrBufs;                       --Номера видео буферов с готовыми кадрами
 
 -------------------------------
 -- Связь с буферами модуля dsn_switch.vhd
 -------------------------------
-p_out_vbuf_clk        : out   std_logic;                      --//
+p_out_vbuf_clk        : out   std_logic;
 
-p_in_vbufin_rdy       : in    std_logic;                      --//Связь в буфером входной видеоинформации
-p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);  --//
-p_out_vbufin_dout_rd  : out   std_logic;                      --//
-p_in_vbufin_empty     : in    std_logic;                      --//
-p_in_vbufin_full      : in    std_logic;                      --//
-p_in_vbufin_pfull     : in    std_logic;                      --//
+p_in_vbufin_rdy       : in    std_logic;                      --Связь в буфером входной видеоинформации
+p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);
+p_out_vbufin_dout_rd  : out   std_logic;
+p_in_vbufin_empty     : in    std_logic;
+p_in_vbufin_full      : in    std_logic;
+p_in_vbufin_pfull     : in    std_logic;
 
-p_out_vbufout_din     : out   std_logic_vector(31 downto 0);  --//Связь с буферов видео данных для ХОСТА
-p_out_vbufout_din_wd  : out   std_logic;                      --//
-p_in_vbufout_empty    : in    std_logic;                      --//
-p_in_vbufout_full     : in    std_logic;                      --//
+p_out_vbufout_din     : out   std_logic_vector(31 downto 0);  --Связь с буферов видео данных для ХОСТА
+p_out_vbufout_din_wd  : out   std_logic;
+p_in_vbufout_empty    : in    std_logic;
+p_in_vbufout_full     : in    std_logic;
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
---//CH WRITE
+--CH WRITE
 p_out_memwr           : out   TMemIN;
 p_in_memwr            : in    TMemOUT;
---//CH READ
+--CH READ
 p_out_memrd           : out   TMemIN;
 p_in_memrd            : in    TMemOUT;
 
@@ -149,13 +149,13 @@ p_in_cfg_set_idle_vch : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 
 p_in_vfr_buf          : in    TVfrBufs;
 
---//Статусы
+--Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vrow_mrk        : out   TVMrks;
 
---//--------------------------
---//Upstream Port
---//--------------------------
+----------------------------
+--Upstream Port
+----------------------------
 p_in_upp_data         : in    std_logic_vector(31 downto 0);
 p_out_upp_data_rd     : out   std_logic;
 p_in_upp_data_rdy     : in    std_logic;
@@ -215,7 +215,7 @@ p_in_hrd_done        : in    std_logic;
 p_in_vfr_buf         : in    TVfrBufs;
 p_in_vfr_nrow        : in    std_logic;
 
---//Статусы
+--Статусы
 p_out_vch_fr_new     : out   std_logic;
 p_out_vch_rd_done    : out   std_logic;
 p_out_vch            : out   std_logic_vector(3 downto 0);
@@ -223,9 +223,9 @@ p_out_vch_active_pix : out   std_logic_vector(15 downto 0);
 p_out_vch_active_row : out   std_logic_vector(15 downto 0);
 p_out_vch_mirx       : out   std_logic;
 
---//--------------------------
---//Upstream Port
---//--------------------------
+----------------------------
+--Upstream Port
+----------------------------
 p_out_upp_data       : out   std_logic_vector(31 downto 0);
 p_out_upp_data_wd    : out   std_logic;
 p_in_upp_buf_empty   : in    std_logic;
@@ -261,17 +261,17 @@ p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);
 
 p_out_cfg_mirx_done : out   std_logic;
 
---//--------------------------
---//Upstream Port
---//--------------------------
+----------------------------
+--Upstream Port
+----------------------------
 --p_in_upp_clk        : in    std_logic;
 p_in_upp_data       : in    std_logic_vector(31 downto 0);
 p_in_upp_wd         : in    std_logic;
 p_out_upp_rdy_n     : out   std_logic;
 
---//--------------------------
---//Downstream Port
---//--------------------------
+----------------------------
+--Downstream Port
+----------------------------
 --p_in_dwnp_clk       : in    std_logic;
 p_out_dwnp_data     : out   std_logic_vector(31 downto 0);
 p_out_dwnp_wd       : out   std_logic;
@@ -367,9 +367,9 @@ signal tst_dbg_rd_hold                   : std_logic;
 begin
 
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(0)<=OR_reduce(tst_vfrskip_err);
 p_out_tst(4 downto 1)  <=tst_vwriter_out(4 downto 1);
@@ -390,7 +390,7 @@ p_out_tst(25 downto 11)<=(others=>'0');
 p_out_tst(31 downto 26)<=tst_vwriter_out(31 downto 26);
 end generate gen_dbgcs_on;
 
---//Выдаем статистику ошибок текущего видеоканала:
+--Выдаем статистику ошибок текущего видеоканала:
 process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
@@ -402,9 +402,9 @@ begin
   elsif p_in_clk'event and p_in_clk='1' then
 
     for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
-        --//-----------------------------------
-        --//
-        --//-----------------------------------
+        -------------------------------------
+        --
+        -------------------------------------
         if vclk_set_idle_vch(ch) = '1' then
           tst_vfrskip_out <= (others=>'0');
         elsif i_vreader_vch_num_out = ch then
@@ -412,15 +412,15 @@ begin
         end if;
         tst_vfrskip_err(ch) <= OR_reduce(i_vfrskip(ch));
 
-    end loop;--//for
+    end loop;--for
 
   end if;
 end process;
 
---//--------------------------------------------------
---//Конфигурирование модуля
---//--------------------------------------------------
---//Счетчик адреса регистров
+----------------------------------------------------
+--Конфигурирование модуля
+----------------------------------------------------
+--Счетчик адреса регистров
 process(p_in_rst,p_in_host_clk)
 begin
   if p_in_rst='1' then
@@ -436,7 +436,7 @@ begin
   end if;
 end process;
 
---//Запись регистров
+--Запись регистров
 h_ramcoe_num<=h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_M_BIT downto C_VCTRL_REG_CTRL_RAMCOE_L_BIT);
 
 process(p_in_rst,p_in_host_clk)
@@ -492,7 +492,7 @@ begin
 
             for i in 0 to C_VCTRL_VCH_COUNT-1 loop
               if i=var_vch then
-                --//Ищем индекс папаметра
+                --Ищем индекс папаметра
                 if var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, var_vprm'length) then
                   i_vprm.ch(i).mem_addr_wr<=h_reg_prm_data(31 downto 0);
 
@@ -536,7 +536,7 @@ begin
   end if;
 end process;
 
---//Чтение регистров
+--Чтение регистров
 process(p_in_rst,p_in_host_clk)
   variable var_vch  : std_logic_vector(C_VCTRL_REG_CTRL_VCH_M_BIT-C_VCTRL_REG_CTRL_VCH_L_BIT downto 0);
   variable var_vprm : std_logic_vector(C_VCTRL_REG_CTRL_PRM_M_BIT-C_VCTRL_REG_CTRL_PRM_L_BIT downto 0);
@@ -558,7 +558,7 @@ begin
           if h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='0' and h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
               for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i=var_vch then
-                  --//Ищем индекс папаметра
+                  --Ищем индекс папаметра
                   if var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_wr(15 downto 0);
 
@@ -593,7 +593,7 @@ begin
           if h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_ADR_BIT)='0' and h_reg_ctrl(C_VCTRL_REG_CTRL_RAMCOE_DATA_BIT)='0' then
               for i in 0 to C_VCTRL_VCH_COUNT-1 loop
                 if i=var_vch then
-                  --//Ищем индекс папаметра
+                  --Ищем индекс папаметра
                   if var_vprm=CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_MEM_ADR_WR, var_vprm'length) then
                     p_out_cfg_rxdata<=i_vprm.ch(i).mem_addr_wr(31 downto 16);
 
@@ -631,7 +631,7 @@ tst_dbg_pictire<=tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 tst_dbg_rd_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
 
 
---//Пересинхронизация
+--Пересинхронизация
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -647,13 +647,13 @@ begin
 end process;
 
 
---//Готовим параметры для модуля записи
+--Готовим параметры для модуля записи
 gen_vwrprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_wrprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_wr;
 i_wrprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
 end generate gen_vwrprm;
 
---//Готовим параметры для модуля чтения
+--Готовим параметры для модуля чтения
 gen_vrdprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_rdprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_rd;--i_vprm.ch(i).mem_addr_wr;--
 i_rdprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
@@ -664,10 +664,10 @@ end generate gen_vrdprm;
 p_out_vbuf_clk     <= p_in_clk;
 
 
---//--------------------------
---//Связь с модулем слежения
---//--------------------------
---//Готовим параметры видео каналов для модуля слежения
+----------------------------
+--Связь с модулем слежения
+----------------------------
+--Готовим параметры видео каналов для модуля слежения
 gen_trcprm : for i in 0 to C_VCTRL_VCH_COUNT-1 generate
 i_trcprm_vch(i).mem_adr     <=i_vprm.ch(i).mem_addr_wr;
 i_trcprm_vch(i).fr_size     <=i_vprm.ch(i).fr_size;
@@ -680,9 +680,9 @@ p_out_vctrl_vrowmrk <= i_vwrite_vrow_mrk;
 
 p_out_trc_vbuf <= i_vbuf_trc;
 
---//--------------------------------------------------
---//Статусы модуля
---//--------------------------------------------------
+----------------------------------------------------
+--Статусы модуля
+----------------------------------------------------
 p_out_vctrl_modrdy <= not p_in_rst;
 p_out_vctrl_moderr <= '0';
 p_out_vctrl_hirq <= i_vrd_irq_width(C_VCTRL_VCH_COUNT-1 downto 0);
@@ -691,7 +691,7 @@ p_out_vctrl_hfrmrk <= i_vfrmrk_out;
 
 p_out_vctrl_rd_done <= i_vreader_rd_done;
 
---//Растягиваем импульcы генерации прерываний чтения видеоканалов
+--Растягиваем импульcы генерации прерываний чтения видеоканалов
 process(p_in_rst,p_in_clk)
 begin
   if p_in_rst='1' then
@@ -717,10 +717,10 @@ begin
 end process;
 
 
---//--------------------------------------------------
---//Управление видео буферами
---//--------------------------------------------------
---//Запись Видео
+----------------------------------------------------
+--Управление видео буферами
+----------------------------------------------------
+--Запись Видео
 gen_ctrl_vbuf : for ch in 0 to C_VCTRL_VCH_COUNT - 1 generate
 process(p_in_rst, p_in_clk)
 begin
@@ -747,7 +747,7 @@ begin
             end if;
         end if;
 
-        --//Защелкиваем маркер текущего кадра для выдачи ХОСТУ
+        --Защелкиваем маркер текущего кадра для выдачи ХОСТУ
         if i_vwrite_vfr_rdy_out(ch) = '1' then
           for buf in 0 to CI_VBUF_COUNT - 1 loop
             if i_vbuf_wr(ch) = buf then
@@ -756,7 +756,7 @@ begin
           end loop;
         end if;
 
-        --//Подсчет записаных кадров в течении чтения данных ХОСТОМ
+        --Подсчет записаных кадров в течении чтения данных ХОСТОМ
         if i_vbuf_hold(ch) = '0' then
           i_vfrskip(ch) <= (others=>'0');
         else
@@ -781,7 +781,7 @@ begin
   end if;
 end process;
 
---//Чтение Видео
+--Чтение Видео
 process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
@@ -806,7 +806,7 @@ begin
 
         end if;
 
-        --//Захват видеобуфера для Чтения ХОСТОМ
+        --Захват видеобуфера для Чтения ХОСТОМ
         if i_vwrite_vfr_rdy_out(ch) = '1' then
           i_vbuf_hold(ch) <= '1';
 
@@ -817,7 +817,7 @@ begin
           i_vbuf_hold(ch) <= '0';
         end if;
 
-        --//Прерываение - Можно вычитывать кадр
+        --Прерываение - Можно вычитывать кадр
         if i_vfrskip(ch) = (i_vfrskip(ch)'range => '0') then
           i_vrd_irq(ch) <= i_vwrite_vfr_rdy_out(ch) and not i_vbuf_hold(ch);
 
@@ -830,7 +830,7 @@ begin
 end process;
 end generate gen_ctrl_vbuf;
 
---//Выдаем ХОСТУ маркер вычитываемого кадра:
+--Выдаем ХОСТУ маркер вычитываемого кадра:
 process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
@@ -846,10 +846,128 @@ begin
             end if;
           end loop;
         end if;
-    end loop;--//for
+    end loop;--for
 
   end if;
 end process;
+
+
+-------------------------------
+--Модуль чтение видео информации из ОЗУ
+-------------------------------
+m_video_reader : video_reader
+generic map(
+G_DBGCS           => G_DBGCS,
+G_ROTATE          => G_ROTATE,
+G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+
+G_MEM_AWIDTH      => G_MEM_AWIDTH,
+G_MEM_DWIDTH      => G_MEM_DWIDTH
+)
+port map(
+-------------------------------
+-- Конфигурирование
+-------------------------------
+p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
+p_in_cfg_prm_vch      => i_rdprm_vch,
+
+p_in_hrd_chsel        => p_in_vctrl_hrdchsel,
+p_in_hrd_start        => p_in_vctrl_hrdstart,
+p_in_hrd_done         => p_in_vctrl_hrddone,
+
+p_in_vfr_buf          => i_vbuf_rd,
+p_in_vfr_nrow         => i_vreader_rq_next_line,
+
+--Статусы
+p_out_vch_fr_new      => i_vreader_fr_new,
+p_out_vch_rd_done     => i_vreader_rd_done,
+p_out_vch             => i_vreader_vch_num_out,
+p_out_vch_active_pix  => i_vreader_active_pix_out,
+p_out_vch_active_row  => i_vreader_active_row_out,
+p_out_vch_mirx        => i_vreader_mirx_out,
+
+----------------------------
+--Upstream Port
+----------------------------
+p_out_upp_data        => i_vreader_dout,
+p_out_upp_data_wd     => i_vreader_dout_en,
+p_in_upp_buf_empty    => '0',
+p_in_upp_buf_full     => i_vmir_rdy_n,
+
+---------------------------------
+-- Связь с mem_ctrl.vhd
+---------------------------------
+p_out_mem             => p_out_memrd,
+p_in_mem              => p_in_memrd,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
+p_out_tst             => tst_vreader_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk              => p_in_clk,
+p_in_rst              => p_in_rst
+);
+
+
+
+-------------------------------
+--Модуль отзеркаливания по Х
+-------------------------------
+m_vmirx : vmirx_main
+port map(
+-------------------------------
+-- Управление
+-------------------------------
+p_in_cfg_mirx       => i_vreader_mirx_out,
+p_in_cfg_pix_count  => i_vreader_active_pix_out,
+
+p_out_cfg_mirx_done => i_vreader_rq_next_line,
+
+----------------------------
+--Upstream Port
+----------------------------
+p_in_upp_data       => i_vreader_dout,
+p_in_upp_wd         => i_vreader_dout_en,
+p_out_upp_rdy_n     => i_vmir_rdy_n,
+
+----------------------------
+--Downstream Port
+----------------------------
+p_out_dwnp_data     => i_vmir_dout,
+p_out_dwnp_wd       => i_vmir_dout_en,
+p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst            => (others=>'0'),
+p_out_tst           => open,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk            => p_in_clk,
+p_in_rst            => p_in_rst
+);
+
+
+p_out_vbufout_din   <=i_vmir_dout;
+p_out_vbufout_din_wd<=i_vmir_dout_en;
+i_vcoldemasc_rdy_n  <=p_in_vbufout_full;
 
 
 
@@ -883,13 +1001,13 @@ p_in_cfg_set_idle_vch => vclk_set_idle_vch,
 
 p_in_vfr_buf          => i_vbuf_wr,
 
---//Статусы
+--Статусы
 p_out_vfr_rdy         => i_vwrite_vfr_rdy_out,
 p_out_vrow_mrk        => i_vwrite_vrow_mrk,
 
---//--------------------------
---//Upstream Port
---//--------------------------
+----------------------------
+--Upstream Port
+----------------------------
 p_in_upp_data         => p_in_vbufin_dout,
 p_out_upp_data_rd     => p_out_vbufin_dout_rd,
 p_in_upp_data_rdy     => p_in_vbufin_rdy,
@@ -915,125 +1033,6 @@ p_out_tst             => tst_vwriter_out,
 p_in_clk              => p_in_clk,
 p_in_rst              => p_in_rst
 );
-
-
---//-----------------------------
---//Модуль чтение видео информации из ОЗУ
---//-----------------------------
-m_video_reader : video_reader
-generic map(
-G_DBGCS           => G_DBGCS,
-G_ROTATE          => G_ROTATE,
-G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
-G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
-
-G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
-G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
-G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
-G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
-G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
-G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
-
-G_MEM_AWIDTH      => G_MEM_AWIDTH,
-G_MEM_DWIDTH      => G_MEM_DWIDTH
-)
-port map(
--------------------------------
--- Конфигурирование
--------------------------------
-p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
-p_in_cfg_prm_vch      => i_rdprm_vch,
-
-p_in_hrd_chsel        => p_in_vctrl_hrdchsel,
-p_in_hrd_start        => p_in_vctrl_hrdstart,
-p_in_hrd_done         => p_in_vctrl_hrddone,
-
-p_in_vfr_buf          => i_vbuf_rd,
-p_in_vfr_nrow         => i_vreader_rq_next_line,
-
---//Статусы
-p_out_vch_fr_new      => i_vreader_fr_new,
-p_out_vch_rd_done     => i_vreader_rd_done,
-p_out_vch             => i_vreader_vch_num_out,
-p_out_vch_active_pix  => i_vreader_active_pix_out,
-p_out_vch_active_row  => i_vreader_active_row_out,
-p_out_vch_mirx        => i_vreader_mirx_out,
-
---//--------------------------
---//Upstream Port
---//--------------------------
-p_out_upp_data        => i_vreader_dout,
-p_out_upp_data_wd     => i_vreader_dout_en,
-p_in_upp_buf_empty    => '0',
-p_in_upp_buf_full     => i_vmir_rdy_n,
-
----------------------------------
--- Связь с mem_ctrl.vhd
----------------------------------
-p_out_mem             => p_out_memrd,
-p_in_mem              => p_in_memrd,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
-p_out_tst             => tst_vreader_out,
-
--------------------------------
---System
--------------------------------
-p_in_clk              => p_in_clk,
-p_in_rst              => p_in_rst
-);
-
-
-
---//-----------------------------
---//Модуль отзеркаливания по Х
---//-----------------------------
-m_vmirx : vmirx_main
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_mirx       => i_vreader_mirx_out,
-p_in_cfg_pix_count  => i_vreader_active_pix_out,
-
-p_out_cfg_mirx_done => i_vreader_rq_next_line,
-
---//--------------------------
---//Upstream Port
---//--------------------------
-p_in_upp_data       => i_vreader_dout,
-p_in_upp_wd         => i_vreader_dout_en,
-p_out_upp_rdy_n     => i_vmir_rdy_n,
-
---//--------------------------
---//Downstream Port
---//--------------------------
-p_out_dwnp_data     => i_vmir_dout,
-p_out_dwnp_wd       => i_vmir_dout_en,
-p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-
-p_out_vbufout_din   <=i_vmir_dout;
-p_out_vbufout_din_wd<=i_vmir_dout_en;
-i_vcoldemasc_rdy_n  <=p_in_vbufout_full;
-
 
 --END MAIN
 end behavioral;

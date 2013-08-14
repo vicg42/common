@@ -30,44 +30,44 @@ pix : std_logic;
 row : std_logic;
 end record;
 
---//координаты
+--координаты
 type TFrXY is record
 pix : std_logic_vector(15 downto 0);
 row : std_logic_vector(15 downto 0);
 end record;
 
---//skip -- начало зоны
---//activ - размер зоны
+--skip -- начало зоны
+--activ - размер зоны
 type TFrXYParam is record
 skip  : TFrXY;
 activ : TFrXY;
 end record;
 Type TFrXYParams is array (0 to C_VCTRL_VCH_COUNT-1) of TFrXYParam;
 
---//Параметры Видеоканала
+--Параметры Видеоканала
 type TVctrlChParam is record
-mem_addr_wr    : std_logic_vector(31 downto 0);--//Базовый Адрес где будет формироваться кадр
-mem_addr_rd    : std_logic_vector(31 downto 0);--//Базовый Адрес откуда будет вычитываться кадр
+mem_addr_wr    : std_logic_vector(31 downto 0);--Базовый Адрес где будет формироваться кадр
+mem_addr_rd    : std_logic_vector(31 downto 0);--Базовый Адрес откуда будет вычитываться кадр
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
 end record;
 type TVctrlChParams is array (0 to C_VCTRL_VCH_COUNT-1) of TVctrlChParam;
 
---//Параметры VCTRL
+--Параметры VCTRL
 type TVctrlParam is record
 mem_wd_trn_len  : std_logic_vector(7 downto 0);
 mem_rd_trn_len  : std_logic_vector(7 downto 0);
 ch              : TVctrlChParams;
 end record;
 
---//Параметры модуля записи
+--Параметры модуля записи
 type TWriterVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
 end record;
 Type TWriterVCHParams is array (0 to C_VCTRL_VCH_COUNT-1) of TWriterVCHParam;
 
---//Параметры модуля чтения
+--Параметры модуля чтения
 type TReaderVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
