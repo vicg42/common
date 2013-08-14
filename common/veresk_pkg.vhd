@@ -267,9 +267,9 @@ p_out_vctrl_vrdprm    : out   TReaderVCHParams;
 p_out_vctrl_vfrrdy    : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_vrowmrk   : out   TVMrks;
 
---//--------------------------
---//Связь с модулем слежения
---//--------------------------
+----------------------------
+--Связь с модулем слежения
+----------------------------
 p_in_trc_busy         : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_trc_vbuf        : out   TVfrBufs;
 
@@ -293,10 +293,10 @@ p_in_vbufout_full     : in    std_logic;
 ---------------------------------
 -- Связь с mem_ctrl.vhd
 ---------------------------------
---//CH WRITE
+--CH WRITE
 p_out_memwr           : out TMemIN;
 p_in_memwr            : in  TMemOUT;
---//CH READ
+--CH READ
 p_out_memrd           : out TMemIN;
 p_in_memrd            : in  TMemOUT;
 
