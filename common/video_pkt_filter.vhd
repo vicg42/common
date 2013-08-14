@@ -36,22 +36,22 @@ generic(
 G_FRR_COUNT : integer := 3
 );
 port(
---//------------------------------------
---//Управление
---//------------------------------------
+--------------------------------------
+--Управление
+--------------------------------------
 p_in_frr        : in    TEthFRR;
 
---//------------------------------------
---//Upstream Port
---//------------------------------------
+--------------------------------------
+--Upstream Port
+--------------------------------------
 p_in_upp_data   : in    std_logic_vector(31 downto 0);
 p_in_upp_wr     : in    std_logic;
 p_in_upp_eof    : in    std_logic;
 p_in_upp_sof    : in    std_logic;
 
---//------------------------------------
---//Downstream Port
---//------------------------------------
+--------------------------------------
+--Downstream Port
+--------------------------------------
 p_out_dwnp_data : out   std_logic_vector(31 downto 0):=(others=>'0');
 p_out_dwnp_wr   : out   std_logic:='0';
 p_out_dwnp_eof  : out   std_logic:='0';
@@ -63,9 +63,9 @@ p_out_dwnp_sof  : out   std_logic:='0';
 p_in_tst        : in    std_logic_vector(31 downto 0);
 p_out_tst       : out   std_logic_vector(31 downto 0);
 
---//------------------------------------
---//SYSTEM
---//------------------------------------
+--------------------------------------
+--SYSTEM
+--------------------------------------
 p_in_clk        : in    std_logic;
 p_in_rst        : in    std_logic
 );
@@ -86,14 +86,14 @@ signal i_pkt_en      : std_logic;
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 p_out_tst(31 downto 0)<=(others=>'0');
 
 
 
---//Линия задержки
+--Линия задержки
 process(p_in_clk)
 begin
   if p_in_clk'event and p_in_clk='1' then
@@ -113,7 +113,7 @@ begin
   end if;
 end process;
 
---//Разрешение пропуска пакета
+--Разрешение пропуска пакета
 i_pkt_type(3 downto 0)<=p_in_upp_data(19 downto 16);
 i_pkt_subtype(3 downto 0)<=p_in_upp_data(23 downto 20);
 
@@ -130,7 +130,7 @@ begin
 
     if p_in_upp_sof='1' and p_in_upp_wr='1' then
 
-        --//Ищем правило машрутизации для текущего пакета
+        --Ищем правило машрутизации для текущего пакета
         for i in 0 to G_FRR_COUNT-1 loop
           if p_in_frr(i)/=(p_in_frr(i)'range => '0') then
             if p_in_frr(i)=(i_pkt_subtype & i_pkt_type) then
