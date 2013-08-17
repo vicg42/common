@@ -32,6 +32,11 @@ NET "pin_out_TP<0>"   LOC = "AM14";
 NET "pin_out_TP<1>"   LOC = "AL17";
 NET "pin_out_TP<2>"   LOC = "AL16";
 
+NET "pin_in_usr_swt<0>" LOC="AA34" | IOSTANDARD = LVCMOS15; #GPIO_DIP_SW1 - устанавливает Register C_HREG_FUNC / C_HREG_FUNC_VRESEK21_BIT
+NET "pin_in_usr_swt<1>" LOC="W41"  | IOSTANDARD = LVCMOS15; #GPIO_DIP_SW2 - устанавливает Register C_HREG_FUNC / C_HREG_FUNC_PULT_BIT
+
+NET "pin_out_refclk_oe<0>"  LOC="AR18";
+
 ###############################################################################
 #
 ###############################################################################
@@ -79,11 +84,11 @@ NET "pin_out_ethphy_gmii[0]_txd<5>" LOC = "B24" ;#NET  PHYA_TXD5
 NET "pin_out_ethphy_gmii[0]_txd<6>" LOC = "H23" ;#NET  PHYA_TXD6
 NET "pin_out_ethphy_gmii[0]_txd<7>" LOC = "G23" ;#NET  PHYA_TXD7
 NET "pin_out_ethphy_gmii[0]_tx_er"  LOC = "E22" ;#NET  PHYA_TXER
-NET "pin_out_ethphy_rst"    LOC = "AK35"; #NET LA06_P
+NET "pin_out_ethphy_gmii[0]_rst"    LOC = "AK35"; #NET LA06_P
 NET "pin_out_ethphy_mdc"    LOC = "AL36"; #NET LA06_N
 
-NET "pin_out_sfp_tx_dis"  LOC = "AV16"; #HTG: SFP_A_TX_DIS  ## 3   on U14
-NET "pin_in_sfp_sd"       LOC = "AM12"; #HTG: SFP_A_LOS     ## 8   on U14
+NET "pin_out_ethphy_fiber_sfp_txdis"  LOC = "AV16"; #HTG: SFP_A_TX_DIS  ## 3   on U14
+NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "AM12"; #HTG: SFP_A_LOS     ## 8   on U14
 
 NET "pin_in_refclk_fiber_clk_p" LOC =  "Y8" | DIFF_TERM = TRUE;# | IOSTANDARD = "LVDS_25"; ## 7    on U31 ETHERNET CLOCK, 625MHZ SGMII, PHY A & B
 NET "pin_in_refclk_fiber_clk_n" LOC =  "Y7" | DIFF_TERM = TRUE;# | IOSTANDARD = "LVDS_25"; ## 16   on U31 ETHERNET CLOCK, 625MHZ SGMII, PHY A & B
@@ -267,8 +272,8 @@ TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 ###############################################################################
 ### AXI: MEMEORY ARBITER BANK0
 ###############################################################################
-NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
-NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_7.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_7.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
 TIMEGRP "mem_arbch_reset_source" = FFS PADS;
 TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
 

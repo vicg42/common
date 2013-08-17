@@ -28,6 +28,11 @@ NET "pin_out_1m"        LOC = "AN19";
 NET "pin_out_s120Hz"    LOC = "AU17";
 NET "pin_out_s120SAU"   LOC = "AT16";
 
+NET "pin_in_usr_swt<0>" LOC="AA34"; #GPIO_DIP_SW1 - устанавливает Register C_HREG_FUNC / C_HREG_FUNC_VRESEK21_BIT
+NET "pin_in_usr_swt<1>" LOC="W41" ; #GPIO_DIP_SW2 - устанавливает Register C_HREG_FUNC / C_HREG_FUNC_PULT_BIT
+
+NET "pin_out_refclk_oe<0>"  LOC="AR18";
+
 ###############################################################################
 #
 ###############################################################################
@@ -64,8 +69,8 @@ TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
 #------------------------
 #-- Eth Copper
 #------------------------
-NET "pin_out_sfp_tx_dis"  LOC = "AV16"; #HTG: SFP_A_TX_DIS  ## 3   on U14
-NET "pin_in_sfp_sd"       LOC = "AM12"; #HTG: SFP_A_LOS     ## 8   on U14
+NET "pin_out_ethphy_fiber_sfp_txdis"  LOC = "AV16"; #HTG: SFP_A_TX_DIS  ## 3   on U14
+NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "AM12"; #HTG: SFP_A_LOS     ## 8   on U14
 
 NET "pin_out_ethphy_fiber_txn<0>" LOC = "BA40"; #NET LA10_P
 NET "pin_out_ethphy_fiber_txp<0>" LOC = "AY40"; #NET LA10_N
@@ -76,9 +81,10 @@ NET "pin_out_ethphy_fiber_txp<0>" LOC = "AY40"; #NET LA10_N
 #NET "pin_in_ethphy_crs"     LOC = "B22" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_CRS
 #NET "pin_in_ethphy_col"     LOC = "B23" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_COL
 #NET "pin_in_ethphy_actn"    LOC = "E23" | IOSTANDARD = "LVCMOS25"; #NET  PHYA_INIT_B
-NET "pin_out_ethphy_rst"    LOC = "J21" | PULLUP ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_RESET
 NET "pin_inout_ethphy_mdio" LOC = "D20" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDIO
 NET "pin_out_ethphy_mdc"    LOC = "C20" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDC
+
+NET "pin_out_ethphy_gmii[0]_rst"    LOC = "J21" | PULLUP ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_RESET
 
 #-- GMII
 NET "pin_out_ethphy_gmii[0]_tx_en"  LOC = "F21" ;#| IOSTANDARD = "LVCMOS25" ; #NET  PHYA_TXEN

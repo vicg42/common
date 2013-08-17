@@ -389,6 +389,8 @@ p_out_phy.clk<=ll_clk_i;
 p_out_phy.rst<=i_phy_rst;
 p_out_phy.opt(C_ETHPHY_OPTOUT_RST_BIT)<=idelayctrl_reset_i or i_tst_out(0);
 
+p_out_phy.pin.gmii(0).rst <= i_phy_rst;
+
 reset_i<=p_in_rst;
 gtx_clk_i<=p_in_phy.clk; --GTX_CLK_0
 refclk_ibufg_i<=p_in_phy.clk; --REFCLK

@@ -42,7 +42,7 @@ type TFrXYParam is record
 skip  : TFrXY;
 activ : TFrXY;
 end record;
-Type TFrXYParams is array (0 to C_VCTRL_VCH_COUNT-1) of TFrXYParam;
+Type TFrXYParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TFrXYParam;
 
 --Параметры Видеоканала
 type TVctrlChParam is record
@@ -51,7 +51,7 @@ mem_addr_rd    : std_logic_vector(31 downto 0);--Базовый Адрес откуда будет вычи
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
 end record;
-type TVctrlChParams is array (0 to C_VCTRL_VCH_COUNT-1) of TVctrlChParam;
+type TVctrlChParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TVctrlChParam;
 
 --Параметры VCTRL
 type TVctrlParam is record
@@ -65,7 +65,7 @@ type TWriterVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
 end record;
-Type TWriterVCHParams is array (0 to C_VCTRL_VCH_COUNT-1) of TWriterVCHParam;
+Type TWriterVCHParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TWriterVCHParam;
 
 --Параметры модуля чтения
 type TReaderVCHParam is record
@@ -73,12 +73,16 @@ mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
 end record;
-Type TReaderVCHParams is array (0 to C_VCTRL_VCH_COUNT-1) of TReaderVCHParam;
+Type TReaderVCHParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TReaderVCHParam;
 
 
-Type TVfrBufs is array (0 to C_VCTRL_VCH_COUNT_MAX-1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
+Type TVfrBufs is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
 
-Type TVMrks is array (0 to C_VCTRL_VCH_COUNT_MAX-1) of std_logic_vector(31 downto 0);
+Type TVMrks is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(31 downto 0);
+
+
+Type TVCH_bufo_d is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(127 downto 0);
+
 
 end dsn_video_ctrl_pkg;
 

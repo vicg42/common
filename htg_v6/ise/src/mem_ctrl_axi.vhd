@@ -97,8 +97,8 @@ s_axi_awqos    => p_in_mem (i).axiw.qos                           ,--p_in_saxi_a
 s_axi_awvalid  => p_in_mem (i).axiw.avalid                        ,--p_in_saxi_awvalid(i),
 s_axi_awready  => p_out_mem(i).axiw.aready                        ,--p_out_saxi_awready(i),
 --// Write Data Ports
-s_axi_wdata    => p_in_mem (i).axiw.data(C_AXI_DWIDTH-1 downto 0) ,--p_in_saxi_wdata(i)(G_AXI_DWIDTH-1 downto 0),
-s_axi_wstrb    => p_in_mem (i).axiw.dbe(C_AXI_DWIDTH/8-1 downto 0),--p_in_saxi_wstrb(i)(G_AXI_DWIDTH/8-1 downto 0),
+s_axi_wdata    => p_in_mem (i).axiw.data(C_AXIM_DWIDTH-1 downto 0) ,--p_in_saxi_wdata(i)(G_AXI_DWIDTH-1 downto 0),
+s_axi_wstrb    => p_in_mem (i).axiw.dbe(C_AXIM_DWIDTH/8-1 downto 0),--p_in_saxi_wstrb(i)(G_AXI_DWIDTH/8-1 downto 0),
 s_axi_wlast    => p_in_mem (i).axiw.dlast                         ,--p_in_saxi_wlast(i),
 s_axi_wvalid   => p_in_mem (i).axiw.dvalid                        ,--p_in_saxi_wvalid(i),
 s_axi_wready   => p_out_mem(i).axiw.wready                        ,--p_out_saxi_wready(i),
@@ -121,7 +121,7 @@ s_axi_arvalid  => p_in_mem (i).axir.avalid                        ,--p_in_saxi_a
 s_axi_arready  => p_out_mem(i).axir.aready                        ,--p_out_saxi_arready(i),
 --// Read Data Ports
 s_axi_rid      => i_saxi_rid(i)(C_AXIM_IDWIDTH-1 downto 0)        ,
-s_axi_rdata    => p_out_mem(i).axir.data(C_AXI_DWIDTH-1 downto 0) ,--p_out_saxi_rdata(i)(G_AXI_DWIDTH-1 downto 0),
+s_axi_rdata    => p_out_mem(i).axir.data(C_AXIM_DWIDTH-1 downto 0) ,--p_out_saxi_rdata(i)(G_AXI_DWIDTH-1 downto 0),
 s_axi_rresp    => p_out_mem(i).axir.resp                          ,--p_out_saxi_rresp(i),
 s_axi_rlast    => p_out_mem(i).axir.dlast                         ,--p_out_saxi_rlast(i),
 s_axi_rvalid   => p_out_mem(i).axir.dvalid                        ,--p_out_saxi_rvalid(i),

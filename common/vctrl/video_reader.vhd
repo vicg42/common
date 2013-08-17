@@ -8,9 +8,6 @@
 -- Назначение/Описание :
 --  Чтение кадра видеоканала из ОЗУ
 --
---  s_video_reader.vhd - префикс (s) указывает на реализацию с
---  минимальным набором функций видео обработки, только отзеркаливание по X,Y
---
 -- Revision:
 -- Revision 0.01 - File Created
 --
@@ -51,13 +48,13 @@ port(
 -- Конфигурирование
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
-p_in_cfg_prm_vch     : in    TReaderVCHParams;
+p_in_cfg_prm_vch     : in    TReaderVCHParam;
 
 p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);--Хост: номер видеоканала выбраного для чтения
 p_in_hrd_start       : in    std_logic;                   --Хост: Запуск чтения кадра
 p_in_hrd_done        : in    std_logic;                   --Хост: Подтверждение вычитки кадра
 
-p_in_vfr_buf         : in    TVfrBufs;                    --Номер видеобувера с готовым кадром для соответствующего видеоканала
+p_in_vfr_buf         : in    std_logic_vector(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
 p_in_vfr_nrow        : in    std_logic;                   --Разрешение чтения следующей строки
 
 --Статусы
@@ -71,7 +68,7 @@ p_out_vch_mirx       : out   std_logic;
 ----------------------------
 --Upstream Port
 ----------------------------
-p_out_upp_data       : out   std_logic_vector(31 downto 0);
+p_out_upp_data       : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_upp_data_wd    : out   std_logic;
 p_in_upp_buf_empty   : in    std_logic;
 p_in_upp_buf_full    : in    std_logic;
@@ -103,14 +100,12 @@ constant dly : time := 1 ps;
 
 type fsm_state is (
 S_IDLE,
-S_LD_PRMS,
 S_ROW_FINED0,
 S_ROW_FINED1,
 S_MEM_SET_ADR,
 S_MEM_START,
 S_MEM_RD,
-S_ROW_NXT,
-S_WAIT_HOST_ACK
+S_ROW_NXT
 );
 signal fsm_state_cs: fsm_state;
 
@@ -132,6 +127,10 @@ signal i_vfr_done                    : std_logic;
 signal i_vfr_new                     : std_logic;
 signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
 signal i_vfr_skip_pix                : std_logic_vector(i_vfr_row_cnt'range);
+signal i_skip_pix_byte               : std_logic_vector(G_MEM_VLINE_L_BIT - 1 downto 0);
+signal i_pix_count_byte              : std_logic_vector(15 downto 0);
+
+signal i_gnd                         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
 signal tst_fsmstate                  : std_logic_vector(3 downto 0);
 signal tst_fsmstate_out              : std_logic_vector(3 downto 0);
@@ -145,81 +144,84 @@ begin
 --Технологические сигналы
 ------------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(3  downto 0)<=tst_fsmstate_out;
-p_out_tst(4)          <=i_mem_start;
-p_out_tst(31 downto 5)<=(others=>'0');
+p_out_tst(3  downto 0) <= tst_fsmstate_out;
+p_out_tst(4)           <= i_mem_start;
+p_out_tst(31 downto 5) <= (others=>'0');
 
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
-    tst_fsmstate_out<=tst_fsmstate;
+  if rising_edge(p_in_clk) then
+    tst_fsmstate_out <= tst_fsmstate;
   end if;
 end process;
 
-tst_fsmstate<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs=S_LD_PRMS else
-              CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED0 else
-              CONV_STD_LOGIC_VECTOR(16#03#,tst_fsmstate'length) when fsm_state_cs=S_ROW_FINED1 else
-              CONV_STD_LOGIC_VECTOR(16#04#,tst_fsmstate'length) when fsm_state_cs=S_MEM_SET_ADR else
-              CONV_STD_LOGIC_VECTOR(16#05#,tst_fsmstate'length) when fsm_state_cs=S_MEM_START else
-              CONV_STD_LOGIC_VECTOR(16#06#,tst_fsmstate'length) when fsm_state_cs=S_MEM_RD else
-              CONV_STD_LOGIC_VECTOR(16#07#,tst_fsmstate'length) when fsm_state_cs=S_ROW_NXT else
-              CONV_STD_LOGIC_VECTOR(16#08#,tst_fsmstate'length) when fsm_state_cs=S_WAIT_HOST_ACK else
-              CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --fsm_state_cs=S_IDLE else
+tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmstate'length) when fsm_state_cs = S_ROW_FINED0    else
+                CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_ROW_FINED1    else
+                CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmstate'length) when fsm_state_cs = S_MEM_SET_ADR   else
+                CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_MEM_START     else
+                CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmstate'length) when fsm_state_cs = S_MEM_RD        else
+                CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmstate'length) when fsm_state_cs = S_ROW_NXT       else
+                CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_IDLE else
 end generate gen_dbgcs_on;
+
+i_gnd <= (others=>'0');
 
 
 ------------------------------------------------
 --Статусы
 ------------------------------------------------
-p_out_vch_rd_done<=i_vfr_done;
-p_out_vch_fr_new<=i_vfr_new;
+p_out_vch_rd_done <= i_vfr_done;
+p_out_vch_fr_new <= i_vfr_new;
 
 --параметры чтения текущего кадра
 p_out_vch <= i_vch_num;
 
-p_out_vch_active_pix<=i_mem_dlen_rq;
-p_out_vch_active_row<=EXT(i_vfr_active_row, p_out_vch_active_row'length);
-p_out_vch_mirx      <=i_vfr_mirror.pix;
+p_out_vch_active_pix <= i_pix_count_byte;
+p_out_vch_active_row <= EXT(i_vfr_active_row, p_out_vch_active_row'length);
+p_out_vch_mirx       <= i_vfr_mirror.pix;
 
 
+i_vch_num <= p_in_hrd_chsel;
 
 ------------------------------------------------
 --Автомат Чтения видео кадра
 ------------------------------------------------
+i_pix_count_byte <= p_in_cfg_prm_vch.fr_size.activ.pix(p_in_cfg_prm_vch.fr_size.activ.pix'high - 2 downto 0) & "00";
+i_skip_pix_byte <= i_vfr_skip_pix(G_MEM_VLINE_L_BIT - 1 - 2 downto 0) & "00";
+
 --Логика работы автомата
 process(p_in_rst,p_in_clk)
   variable vfr_active_row_end : std_logic_vector(i_vfr_row_cnt'range);
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
 
     fsm_state_cs <= S_IDLE;
 
-    i_mem_rdbase<=(others=>'0');
-    i_mem_ptr<=(others=>'0');
-    i_mem_adr<=(others=>'0');
-    i_mem_trn_len<=(others=>'0');
-    i_mem_dlen_rq<=(others=>'0');
-    i_mem_dir<='0';
-    i_mem_start<='0';
+    i_mem_rdbase <= (others=>'0');
+    i_mem_ptr <= (others=>'0');
+    i_mem_adr <= (others=>'0');
+    i_mem_trn_len <= (others=>'0');
+    i_mem_dlen_rq <= (others=>'0');
+    i_mem_dir <= '0';
+    i_mem_start <= '0';
 
-    i_vfr_buf<=(others=>'0');
-    i_vfr_mirror.pix<='0';
-    i_vfr_mirror.row<='0';
-    i_vfr_row_cnt<=(others=>'0');
-    i_vfr_active_row<=(others=>'0');
-      vfr_active_row_end:=(others=>'0');
-    i_vfr_skip_row<=(others=>'0');
-    i_vfr_skip_pix<=(others=>'0');
+    i_vfr_buf <= (others=>'0');
+    i_vfr_mirror.pix <= '0';
+    i_vfr_mirror.row <= '0';
+    i_vfr_row_cnt <= (others=>'0');
+    i_vfr_active_row <= (others=>'0');
+      vfr_active_row_end := (others=>'0');
+    i_vfr_skip_row <= (others=>'0');
+    i_vfr_skip_pix <= (others=>'0');
 
-    i_vfr_done<='0';
-    i_vch_num<=(others=>'0');
-    i_vfr_new<='0';
+    i_vfr_done <= '0';
+    i_vfr_new <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  elsif rising_edge(p_in_clk) then
 
     case fsm_state_cs is
 
@@ -228,84 +230,72 @@ begin
       --------------------------------------
       when S_IDLE =>
 
-        i_vfr_done<='0';
+        i_vfr_done <= '0';
 
         --Загрузка праметров Видео канала
-        if p_in_hrd_start='1' then
-          i_mem_trn_len<=EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
-          i_vch_num<=p_in_hrd_chsel;
+        if p_in_hrd_start = '1' then
+          i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
 
-          fsm_state_cs <= S_LD_PRMS;
-        end if;
+          ----------------------------
+          --
+          ----------------------------
+          i_vfr_buf <= p_in_vfr_buf;
 
-      --------------------------------------
-      --Загрузка параметров
-      --------------------------------------
-      when S_LD_PRMS =>
+          ----------------------------
+          --Банк ОЗУ:
+          ----------------------------
+          i_mem_rdbase <= p_in_cfg_prm_vch.mem_adr;
 
-        --Загрузка праметров Видео канала
-        for i in 0 to C_VCTRL_VCH_COUNT-1 loop
-          if i_vch_num=i then
+          ----------------------------
+          --Отзеркаливание:
+          ----------------------------
+          i_vfr_mirror.pix <= p_in_cfg_prm_vch.fr_mirror.pix;
+          i_vfr_mirror.row <= p_in_cfg_prm_vch.fr_mirror.row;
 
-            ----------------------------
-            --
-            ----------------------------
-            i_vfr_buf<=p_in_vfr_buf(i);
+          ----------------------------
+          --Пиксели:
+          ----------------------------
+          --Инициализируем размер транзакции чтения
+          --(Должен быть равен размеру одной строки)
+          i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
+                           + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
 
-            ----------------------------
-            --Банк ОЗУ:
-            ----------------------------
-            i_mem_rdbase<=p_in_cfg_prm_vch(i).mem_adr;
+          i_vfr_skip_pix <= p_in_cfg_prm_vch.fr_size.skip.pix(i_vfr_skip_pix'high downto 0);
 
-            ----------------------------
-            --Отзеркаливание:
-            ----------------------------
-            i_vfr_mirror.pix<=p_in_cfg_prm_vch(i).fr_mirror.pix;
-            i_vfr_mirror.row<=p_in_cfg_prm_vch(i).fr_mirror.row;
+          ----------------------------
+          --Строки:
+          ----------------------------
+          i_vfr_active_row <= p_in_cfg_prm_vch.fr_size.activ.row(i_vfr_active_row'high downto 0);
+          i_vfr_skip_row <= p_in_cfg_prm_vch.fr_size.skip.row(i_vfr_skip_row'high downto 0);
 
-            ----------------------------
-            --Пиксели:
-            ----------------------------
-            --Инициализируем размер транзакции чтения
-            --(Должен быть равен размеру одной строки)
-            i_mem_dlen_rq<=p_in_cfg_prm_vch(i).fr_size.activ.pix;
-            i_vfr_skip_pix<=p_in_cfg_prm_vch(i).fr_size.skip.pix(i_vfr_skip_pix'high downto 0);
-
-            ----------------------------
-            --Строки:
-            ----------------------------
-            i_vfr_active_row<=p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_active_row'high downto 0);
-            i_vfr_skip_row<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_skip_row'high downto 0);
-
-            --Инициализируем счетчик строк
-            if p_in_cfg_prm_vch(i).fr_mirror.row='0' then
-              i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0);
-            else
-              i_vfr_row_cnt<=p_in_cfg_prm_vch(i).fr_size.skip.row(i_vfr_row_cnt'high downto 0) + p_in_cfg_prm_vch(i).fr_size.activ.row(i_vfr_row_cnt'high downto 0);
-            end if;
-
+          --Инициализируем счетчик строк
+          if p_in_cfg_prm_vch.fr_mirror.row = '0' then
+            i_vfr_row_cnt <= p_in_cfg_prm_vch.fr_size.skip.row(i_vfr_row_cnt'high downto 0);
+          else
+            i_vfr_row_cnt <= p_in_cfg_prm_vch.fr_size.skip.row(i_vfr_row_cnt'high downto 0)
+                             + p_in_cfg_prm_vch.fr_size.activ.row(i_vfr_row_cnt'high downto 0);
           end if;
-        end loop;
 
-        i_mem_ptr<=(others=>'0');
-        i_vfr_new<='1';
+          i_mem_ptr <= (others=>'0');
+          i_vfr_new <= '1';
 
-        fsm_state_cs <= S_ROW_FINED0;
+          fsm_state_cs <= S_ROW_FINED0;
+        end if;
 
       --------------------------------------
       --
       --------------------------------------
       when S_ROW_FINED0 =>
 
-        i_vfr_new<='0';
+        i_vfr_new <= '0';
 
-        if i_vfr_mirror.row='1' then
+        if i_vfr_mirror.row = '1' then
           --Отзеркаливание по Y - РАЗРЕШЕНО
           --Инициализируем счетчик строк
-          i_vfr_row_cnt<=i_vfr_row_cnt-1;
+          i_vfr_row_cnt <= i_vfr_row_cnt-1;
         end if;
 
-        vfr_active_row_end:=i_vfr_active_row - 1;
+        vfr_active_row_end := i_vfr_active_row - 1;
 
         fsm_state_cs <= S_ROW_FINED1;
 
@@ -321,11 +311,11 @@ begin
       --------------------------------------
       when S_MEM_SET_ADR =>
 
-        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT+1)<=(others=>'0');
-        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT)<=i_vch_num(G_MEM_VCH_M_BIT-G_MEM_VCH_L_BIT downto 0);
-        i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT)<=i_vfr_buf;
-        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT)<=i_vfr_row_cnt(G_MEM_VLINE_M_BIT-G_MEM_VLINE_L_BIT downto 0);
-        i_mem_ptr(G_MEM_VLINE_L_BIT-1 downto 0)<=i_vfr_skip_pix(G_MEM_VLINE_L_BIT-1-2 downto 0)&"00";--т.к. значение i_vfr_skip_pix в DW
+        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
+        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
+        i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_vfr_buf;
+        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row_cnt(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
+        i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_skip_pix_byte;
 
         fsm_state_cs <= S_MEM_START;
 
@@ -334,9 +324,9 @@ begin
       --------------------------------------
       when S_MEM_START =>
 
-        i_mem_adr<=i_mem_rdbase + i_mem_ptr;
-        i_mem_dir<=C_MEMWR_READ;
-        i_mem_start<='1';
+        i_mem_adr <= i_mem_rdbase + i_mem_ptr;
+        i_mem_dir <= C_MEMWR_READ;
+        i_mem_start <= '1';
         fsm_state_cs <= S_MEM_RD;
 
       ------------------------------------------------
@@ -356,32 +346,25 @@ begin
       ------------------------------------------------
       when S_ROW_NXT =>
 
-        if p_in_vfr_nrow='1' then
+        if p_in_vfr_nrow = '1' then
 
-          if (i_vfr_mirror.row='0' and i_vfr_row_cnt=(i_vfr_skip_row + vfr_active_row_end)) or
-             (i_vfr_mirror.row='1' and i_vfr_row_cnt=i_vfr_skip_row)then
-              fsm_state_cs <= S_WAIT_HOST_ACK;
+          if (i_vfr_mirror.row = '0' and i_vfr_row_cnt = (i_vfr_skip_row + vfr_active_row_end)) or
+             (i_vfr_mirror.row = '1' and i_vfr_row_cnt = i_vfr_skip_row) then
+
+              i_vfr_done <= '1';
+              fsm_state_cs <= S_IDLE;
+
           else
 
-            if i_vfr_mirror.row='1' then
-              i_vfr_row_cnt<=i_vfr_row_cnt-1;
+            if i_vfr_mirror.row = '1' then
+              i_vfr_row_cnt <= i_vfr_row_cnt - 1;
             else
-              i_vfr_row_cnt<=i_vfr_row_cnt+1;
+              i_vfr_row_cnt <= i_vfr_row_cnt + 1;
             end if;
 
             fsm_state_cs <= S_ROW_FINED1;
           end if;
 
-        end if;
-
-      ------------------------------------------------
-      --Ждем ответ от ХОСТА - данные принял
-      ------------------------------------------------
-      when S_WAIT_HOST_ACK =>
-
-        if p_in_hrd_done='1' then
-          i_vfr_done<='1';
-          fsm_state_cs <= S_IDLE;
         end if;
 
     end case;
@@ -414,7 +397,7 @@ p_out_cfg_mem_done   => i_mem_done,
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
-p_in_usr_txbuf_dout  => "00000000000000000000000000000000",
+p_in_usr_txbuf_dout  => i_gnd,
 p_out_usr_txbuf_rd   => open,
 p_in_usr_txbuf_empty => '0',
 
