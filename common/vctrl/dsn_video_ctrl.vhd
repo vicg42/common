@@ -119,7 +119,6 @@ rst         : IN  std_logic
 );
 end component;
 
-
 component video_writer
 generic(
 G_DBGCS           : string :="OFF";

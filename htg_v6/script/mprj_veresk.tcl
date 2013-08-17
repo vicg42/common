@@ -196,6 +196,7 @@ set _projects [ list \
       [ list "../src/mem_arb.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/mem_achcount7_synth.vhd" $_VHDMod ] \
       [ list "../src/eth/coregen_emac_core_d16.vhd" $_VHDMod ] \
       [ list "../src/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
       [ list "../src/eth/v6_gtxwizard_gtx_2G.vhd" $_VHDMod ] \
