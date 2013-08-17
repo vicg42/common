@@ -31,7 +31,7 @@ G_MEM_AWIDTH     : integer:=32;
 G_MEM_DWIDTH     : integer:=32;
 G_MEM_BANK_M_BIT : integer:=29;
 G_MEM_BANK_L_BIT : integer:=28;
-G_DBG            : string :="OFF"  --//В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
+G_DBG            : string :="OFF"  --В боевом проекте обязательно должно быть "OFF" - отладка с ChipScoupe
 );
 port(
 -------------------------------
@@ -40,11 +40,11 @@ port(
 p_in_ctrl         : in    TPce2Mem_Ctrl;
 p_out_status      : out   TPce2Mem_Status;
 
-p_in_txd          : in    std_logic_vector(31 downto 0);
+p_in_txd          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_txd_wr       : in    std_logic;
 p_out_txbuf_full  : out   std_logic;
 
-p_out_rxd         : out   std_logic_vector(31 downto 0);
+p_out_rxd         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_in_rxd_rd       : in    std_logic;
 p_out_rxbuf_empty : out   std_logic;
 
@@ -74,11 +74,11 @@ architecture behavioral of pcie2mem_ctrl is
 
 component pcie2mem_fifo
 port(
-din         : in std_logic_vector(31 downto 0);
+din         : in std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(31 downto 0);
+dout        : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 
@@ -93,23 +93,22 @@ rst         : in std_logic
 end component;
 
 
-signal i_txbuf_dout                    : std_logic_vector(31 downto 0);
+signal i_txbuf_dout                    : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_txbuf_dout_rd                 : std_logic;
 signal i_txbuf_full                    : std_logic;
 signal i_txbuf_empty                   : std_logic;
-signal i_rxbuf_din                     : std_logic_vector(31 downto 0);
+signal i_rxbuf_din                     : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 signal i_rxbuf_din_wr                  : std_logic;
 signal i_rxbuf_full                    : std_logic;
 signal i_rxbuf_empty                   : std_logic;
 
-signal i_mem_adr                       : std_logic_vector(31 downto 0):=(others=>'0');--//(BYTE)
-signal i_mem_lenreq                    : std_logic_vector(15 downto 0):=(others=>'0');--//Размер запрашиваемых данных (DWORD)
-signal i_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');--//Размер одиночной транзакции
+signal i_mem_adr                       : std_logic_vector(31 downto 0):=(others=>'0');--(BYTE)
+signal i_mem_lenreq                    : std_logic_vector(15 downto 0):=(others=>'0');--Размер запрашиваемых данных
+signal i_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');--Размер одиночной транзакции
 signal i_mem_dir                       : std_logic:='0';
 signal i_mem_start                     : std_logic:='0';
 signal i_mem_done                      : std_logic;
 
-signal h_mem_lentrn                    : std_logic_vector(15 downto 0):=(others=>'0');
 signal h_mem_start_wcnt                : std_logic_vector(2 downto 0):=(others=>'0');
 signal h_mem_start_w                   : std_logic:='0';
 signal sr_mem_start                    : std_logic_vector(0 to 2):=(others=>'0');
@@ -121,10 +120,10 @@ signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
 begin
 
 
---//--------------------------------------------------
---//Согласующие буфера
---//--------------------------------------------------
---//RAM<-PCIE
+----------------------------------------------------
+--Согласующие буфера
+----------------------------------------------------
+--RAM<-PCIE
 m_txbuf : pcie2mem_fifo
 port map(
 din         => p_in_txd,
@@ -144,7 +143,7 @@ empty       => i_txbuf_empty,
 rst         => p_in_rst
 );
 
---//RAM->PCIE
+--RAM->PCIE
 m_rxbuf : pcie2mem_fifo
 port map(
 din         => i_rxbuf_din,
@@ -164,12 +163,12 @@ empty       => i_rxbuf_empty,
 rst         => p_in_rst
 );
 
-p_out_rxbuf_empty<=i_rxbuf_empty;
-p_out_txbuf_full<=i_txbuf_full;
+p_out_rxbuf_empty <= i_rxbuf_empty;
+p_out_txbuf_full <= i_txbuf_full;
 
---//--------------------------------------------------
---//Контроллер записи/чтения ОЗУ
---//--------------------------------------------------
+----------------------------------------------------
+--Контроллер записи/чтения ОЗУ
+----------------------------------------------------
 m_mem_wr : mem_wr
 generic map(
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
@@ -219,79 +218,74 @@ p_in_rst             => p_in_rst
 );
 
 
---//----------------------------------------------
---//Инициализация
---//----------------------------------------------
-process(p_in_hclk)
-begin
-  if p_in_hclk'event and p_in_hclk='1' then
-    if p_in_ctrl.dir=C_MEMWR_WRITE then
-    h_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, h_mem_lentrn'length);
-    else
-    h_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, h_mem_lentrn'length);
-    end if;
-  end if;
-end process;
-
---//Растягиваем импульс
+------------------------------------------------
+--Инициализация
+------------------------------------------------
+--Растягиваем импульс
 process(p_in_rst,p_in_hclk)
 begin
   if p_in_rst='1' then
     h_mem_start_wcnt<=(others=>'0');
     h_mem_start_w<='0';
 
-  elsif p_in_hclk'event and p_in_hclk='1' then
+  elsif rising_edge(p_in_hclk) then
 
-    if p_in_ctrl.start='1' then
-      h_mem_start_w<='1';
+    if p_in_ctrl.start = '1' then
+      h_mem_start_w <= '1';
     elsif h_mem_start_wcnt(2)='1' then
-      h_mem_start_w<='0';
+      h_mem_start_w <= '0';
     end if;
 
-    if h_mem_start_w='0' then
-      h_mem_start_wcnt<=(others=>'0');
+    if h_mem_start_w = '0' then
+      h_mem_start_wcnt <= (others=>'0');
     else
-      h_mem_start_wcnt<=h_mem_start_wcnt+1;
+      h_mem_start_wcnt <= h_mem_start_wcnt+1;
     end if;
+
   end if;
 end process;
 
---//Пересинхронизация на частоту mem_ctrl
+--Пересинхронизация на частоту mem_ctrl
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
-    i_mem_adr <= p_in_ctrl.adr;
-    i_mem_lenreq <= p_in_ctrl.req_len(p_in_ctrl.req_len'high downto 2);
-    i_mem_lentrn <= h_mem_lentrn;
+  if rising_edge(p_in_clk) then
     i_mem_dir <= p_in_ctrl.dir;
+    i_mem_adr <= p_in_ctrl.adr;
+    i_mem_lenreq <= EXT(p_in_ctrl.req_len(p_in_ctrl.req_len'high downto log2(G_MEM_DWIDTH/8)), i_mem_lenreq'length)
+                    + OR_reduce(p_in_ctrl.req_len(log2(G_MEM_DWIDTH/8) - 1 downto 0));
 
-    sr_mem_start<=h_mem_start_w & sr_mem_start(0 to 1);
-    i_mem_start<=sr_mem_start(1) and not sr_mem_start(2);
+    if i_mem_dir = C_MEMWR_WRITE then
+    i_mem_lentrn <= EXT(p_in_ctrl.trnwr_len, i_mem_lentrn'length);
+    else
+    i_mem_lentrn <= EXT(p_in_ctrl.trnrd_len, i_mem_lentrn'length);
+    end if;
 
-    if i_mem_start='1' then
-      i_mem_done_out<='0';
-    elsif i_mem_done='1' then
-      i_mem_done_out<='1';
+    sr_mem_start <= h_mem_start_w & sr_mem_start(0 to 1);
+    i_mem_start <= sr_mem_start(1) and not sr_mem_start(2);
+
+    if i_mem_start = '1' then
+      i_mem_done_out <= '0';
+    elsif i_mem_done = '1' then
+      i_mem_done_out <= '1';
     end if;
   end if;
 end process;
 
+p_out_status.done <= i_mem_done_out;--Пересихр не нужна, т.к. она делается в host модуле
 
-p_out_status.done<=i_mem_done_out;
 
-
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
-p_out_tst(0)<=i_mem_start;
-p_out_tst(1)<=i_mem_done;
-p_out_tst(5 downto 2)<=tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
-p_out_tst(6)<=i_rxbuf_empty;
-p_out_tst(7)<=i_rxbuf_full;
-p_out_tst(8)<=i_txbuf_empty;
-p_out_tst(9)<=i_txbuf_full;
-p_out_tst(25 downto 10)<=i_mem_lenreq;
-p_out_tst(31 downto 26)<=tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
+------------------------------------
+--Технологические сигналы
+------------------------------------
+p_out_tst(0) <= i_mem_start;
+p_out_tst(1) <= i_mem_done;
+p_out_tst(5 downto 2) <= tst_mem_ctrl_out(5 downto 2);--m_mem_wr/tst_fsm_cs;
+p_out_tst(6) <= i_rxbuf_empty;
+p_out_tst(7) <= i_rxbuf_full;
+p_out_tst(8) <= i_txbuf_empty;
+p_out_tst(9) <= i_txbuf_full;
+p_out_tst(25 downto 10)<= i_mem_lenreq;
+p_out_tst(31 downto 26)<= tst_mem_ctrl_out(21 downto 16);--m_mem_wr/i_mem_trn_len;
 
 
 

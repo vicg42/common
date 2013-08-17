@@ -64,6 +64,21 @@ p_in_rst  : in  std_logic
 );
 end component;
 
+component host_vbuf
+  PORT (
+    rst : IN STD_LOGIC;
+    wr_clk : IN STD_LOGIC;
+    rd_clk : IN STD_LOGIC;
+    din : IN STD_LOGIC_VECTOR(64 - 1 DOWNTO 0);
+    wr_en : IN STD_LOGIC;
+    rd_en : IN STD_LOGIC;
+    dout : OUT STD_LOGIC_VECTOR(64 - 1 DOWNTO 0);
+    full : OUT STD_LOGIC;
+    empty : OUT STD_LOGIC;
+    prog_full : OUT STD_LOGIC
+  );
+END component;
+
 constant C_ETH_GT_REFCLK_PERIOD : TIME := 6.6 ns; --150MHz
 constant C_ETH_GT_DRPCLK_PERIOD : TIME := 6.6*8 ns;
 constant C_CFG_PERIOD           : TIME := 6.6*5 ns;
@@ -97,6 +112,9 @@ signal dbg_eth_out                      : TEthDBG;
 
 signal i_eth_tst_out              : std_logic_vector(31 downto 0);
 
+signal i_data                : std_logic_vector(63 downto 0);
+signal i_data_wr             : std_logic;
+
 
 --MAIN
 begin
@@ -120,8 +138,8 @@ p_in_rst  => i_eth_rst
 m_eth : dsn_eth
 generic map(
 G_ETH.gtch_count_max  => C_PCFG_ETH_GTCH_COUNT_MAX,
-G_ETH.usrbuf_dwidth   => 32,
-G_ETH.phy_dwidth      => 8,
+G_ETH.usrbuf_dwidth   => 64,--32,
+G_ETH.phy_dwidth      => 64,--8,
 G_ETH.phy_select      => C_PCFG_ETH_PHY_SEL,
 G_ETH.mac_length_swap => 1, --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_MODULE_USE => "ON",--C_PCFG_ETH_USE,
@@ -198,7 +216,7 @@ i_eth_rst <= '1','0' after 1 us;
 
 i_ethphy_in.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT) <= '0';--g_usrclk(0);
 i_ethphy_in.opt(32) <= '0';--g_usrclk(6);
-i_ethphy_in.opt(33) <= '0';--i_usrclk_rst;--rst
+i_ethphy_in.opt(33) <= '0';
 i_ethphy_in.opt(34) <= '0';--g_usrclk(2);--clkdrp
 
 
@@ -211,65 +229,206 @@ i_ethphy_in.pin.fiber.rxn <= i_ethphy_out.pin.fiber.txn;
 i_ethphy_in.pin.fiber.clk_p <= i_eth_refclk125;
 i_ethphy_in.pin.fiber.clk_n <= not i_eth_refclk125;
 
-i_ethphy_in.pin.fiber.sfp_sd <= '1';
+i_ethphy_in.pin.fiber.sfp_sd <= '0';
+i_ethphy_in.pin.fiber.sfp_txfault <= '0';
 
 i_ethphy_in.clk <= i_eth_refclk125;
+
+----//########################################
+----//Main Ctrl
+----//########################################
+--gen_eth_ch : for i in 0 to 1 generate
+--
+--process
+--begin
+--
+--i_eth_in(i).txbuf.dout(31 downto 0) <= (others=>'0');
+--i_eth_in(i).txbuf.rd <= '0';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait for 2 us;
+--
+--wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout(15 downto 0) <= CONV_STD_LOGIC_VECTOR(14, 16);
+--i_eth_in(i).txbuf.dout(31 downto 16) <= CONV_STD_LOGIC_VECTOR(16#0201#, 16);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#06050403#, 32);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0A090807#, 32);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0E0D0C0B#, 32);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0302010F#, 32);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait;
+--
+--end process;
+--
+--end generate;--gen_eth_ch
+
+
 
 --//########################################
 --//Main Ctrl
 --//########################################
-gen_eth_ch : for i in 0 to 1 generate
+--gen_eth_ch : for i in 0 to C_PCFG_ETH_GTCH_COUNT_MAX - 1 generate
+--
+--process
+--begin
+--
+--i_eth_in(i).txbuf.dout <= (others=>'0');
+--i_eth_in(i).txbuf.rd <= '0';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+--wait for 12 us;
+--
+--wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout((8 * 2) - 1 downto 8 * 0) <= CONV_STD_LOGIC_VECTOR(16#0E#, 16);
+--i_eth_in(i).txbuf.dout((8 * 4) - 1 downto 8 * 2) <= CONV_STD_LOGIC_VECTOR(16#0201#, 16);
+--i_eth_in(i).txbuf.dout((8 * 6) - 1 downto 8 * 4) <= CONV_STD_LOGIC_VECTOR(16#0403#, 16);
+--i_eth_in(i).txbuf.dout((8 * 8) - 1 downto 8 * 6) <= CONV_STD_LOGIC_VECTOR(16#0605#, 16);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+----i_eth_in(i).txbuf.empty <= '0';
+--
+----wait until rising_edge(i_ethphy_in.clk);
+--i_eth_in(i).txbuf.dout((8 * 2) - 1 downto 8 * 0) <= CONV_STD_LOGIC_VECTOR(16#0807#, 16);
+--i_eth_in(i).txbuf.dout((8 * 4) - 1 downto 8 * 2) <= CONV_STD_LOGIC_VECTOR(16#0A09#, 16);
+--i_eth_in(i).txbuf.dout((8 * 6) - 1 downto 8 * 4) <= CONV_STD_LOGIC_VECTOR(16#0C0B#, 16);
+--i_eth_in(i).txbuf.dout((8 * 8) - 1 downto 8 * 6) <= CONV_STD_LOGIC_VECTOR(16#0E0D#, 16);
+--i_eth_in(i).txbuf.empty <= '0';
+--
+--wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+--i_eth_in(i).txbuf.empty <= '1';
+--
+----wait until rising_edge(i_ethphy_in.clk);
+----i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0A090807#, 32);
+----i_eth_in(i).txbuf.empty <= '0';
+----
+----wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+----i_eth_in(i).txbuf.empty <= '1';
+----
+----wait until rising_edge(i_ethphy_in.clk);
+----i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0E0D0C0B#, 32);
+----i_eth_in(i).txbuf.empty <= '0';
+----
+----wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+----i_eth_in(i).txbuf.empty <= '1';
+----
+----wait until rising_edge(i_ethphy_in.clk);
+----i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0302010F#, 32);
+----i_eth_in(i).txbuf.empty <= '0';
+----
+----wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
+----i_eth_in(i).txbuf.empty <= '1';
+--
+--wait;
+--
+--end process;
+--
+--end generate;--gen_eth_ch
+
 
 process
 begin
+  i_data <= (others=>'0');
+  i_data_wr <= '0';
 
-i_eth_in(i).txbuf.dout(31 downto 0) <= (others=>'0');
-i_eth_in(i).txbuf.rd <= '0';
-i_eth_in(i).txbuf.empty <= '1';
+  wait for 12 us;
 
-wait for 2 us;
+  wait until i_ethphy_in.clk'event and i_ethphy_in.clk = '1';
+  i_data_wr <= '1';
+  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#0201#, 16) & CONV_STD_LOGIC_VECTOR(16#02#, 16);
+  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#0605#, 16) & CONV_STD_LOGIC_VECTOR(16#0403#, 16);
 
-wait until rising_edge(i_ethphy_in.clk);
-i_eth_in(i).txbuf.dout(15 downto 0) <= CONV_STD_LOGIC_VECTOR(14, 16);
-i_eth_in(i).txbuf.dout(31 downto 16) <= CONV_STD_LOGIC_VECTOR(16#0201#, 16);
-i_eth_in(i).txbuf.empty <= '0';
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait for 200 ns;
+--
+--  wait until i_ethphy_in.clk'event and i_ethphy_in.clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#0A09#, 16) & CONV_STD_LOGIC_VECTOR(16#0807#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#0E0D#, 16) & CONV_STD_LOGIC_VECTOR(16#0C0B#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#1211#, 16) & CONV_STD_LOGIC_VECTOR(16#100F#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#1615#, 16) & CONV_STD_LOGIC_VECTOR(16#1413#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait for 200 ns;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#1A19#, 16) & CONV_STD_LOGIC_VECTOR(16#1817#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#1E1D#, 16) & CONV_STD_LOGIC_VECTOR(16#1C1B#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#2221#, 16) & CONV_STD_LOGIC_VECTOR(16#201F#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#2625#, 16) & CONV_STD_LOGIC_VECTOR(16#2423#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait for 200 ns;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#2A29#, 16) & CONV_STD_LOGIC_VECTOR(16#2827#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#2E2D#, 16) & CONV_STD_LOGIC_VECTOR(16#2C2B#, 16);
 
-wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
-i_eth_in(i).txbuf.empty <= '1';
+  wait until i_ethphy_in.clk'event and i_ethphy_in.clk = '1';
+  i_data_wr <= '0';
 
-wait until rising_edge(i_ethphy_in.clk);
-i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#06050403#, 32);
-i_eth_in(i).txbuf.empty <= '0';
-
-wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
-i_eth_in(i).txbuf.empty <= '1';
-
-wait until rising_edge(i_ethphy_in.clk);
-i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0A090807#, 32);
-i_eth_in(i).txbuf.empty <= '0';
-
-wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
-i_eth_in(i).txbuf.empty <= '1';
-
-wait until rising_edge(i_ethphy_in.clk);
-i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0E0D0C0B#, 32);
-i_eth_in(i).txbuf.empty <= '0';
-
-wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
-i_eth_in(i).txbuf.empty <= '1';
-
-wait until rising_edge(i_ethphy_in.clk);
-i_eth_in(i).txbuf.dout(31 downto 0) <= CONV_STD_LOGIC_VECTOR(16#0302010F#, 32);
-i_eth_in(i).txbuf.empty <= '0';
-
-wait until rising_edge(i_ethphy_in.clk) and i_eth_out(i).txbuf.rd = '1';
-i_eth_in(i).txbuf.empty <= '1';
-
-wait;
-
+  wait;
 end process;
 
-end generate;--gen_eth_ch
+
+m_buf : host_vbuf
+port map(
+din => i_data,
+wr_en => i_data_wr,
+wr_clk => i_ethphy_in.clk,
+
+rd_en => i_eth_out(0).txbuf.rd,
+dout => i_eth_in(0).txbuf.dout,
+rd_clk => i_ethphy_out.clk,
+
+full => open,
+empty => i_eth_in(0).txbuf.empty,
+prog_full => open,
+
+rst => i_eth_rst
+);
 
 --END MAIN
 end;

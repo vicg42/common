@@ -30,8 +30,8 @@ use work.prj_cfg.all;
 
 entity eth_mac_tb is
 generic(
-G_USR_DBUS: integer:=32;
-G_ETH_CORE_DBUS: integer:=16;
+G_USR_DBUS: integer:=64;
+G_ETH_CORE_DBUS: integer:=64;
 G_ETH_CORE_DBUS_SWP: integer:=1; --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 G_DBG : string:="ON";
 G_SIM : string:="ON"
@@ -63,10 +63,10 @@ component host_vbuf
     rst : IN STD_LOGIC;
     wr_clk : IN STD_LOGIC;
     rd_clk : IN STD_LOGIC;
-    din : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    din : IN STD_LOGIC_VECTOR(G_USR_DBUS - 1 DOWNTO 0);
     wr_en : IN STD_LOGIC;
     rd_en : IN STD_LOGIC;
-    dout : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+    dout : OUT STD_LOGIC_VECTOR(G_USR_DBUS - 1 DOWNTO 0);
     full : OUT STD_LOGIC;
     empty : OUT STD_LOGIC;
     prog_full : OUT STD_LOGIC
@@ -88,7 +88,7 @@ p_in_cfg              : in    TEthCfg;
 --------------------------------------
 --Связь с пользовательским RXBUF
 --------------------------------------
-p_out_rxbuf_din       : out   std_logic_vector(G_ETH.usrbuf_dwidth-1 downto 0);
+p_out_rxbuf_din       : out   std_logic_vector(G_ETH.usrbuf_dwidth - 1 downto 0);
 p_out_rxbuf_wr        : out   std_logic;
 p_in_rxbuf_full       : in    std_logic;
 p_out_rxd_sof         : out   std_logic;
@@ -97,13 +97,13 @@ p_out_rxd_eof         : out   std_logic;
 --------------------------------------
 --Связь с Local link RxFIFO
 --------------------------------------
-p_in_rxll_data        : in    std_logic_vector(G_ETH.phy_dwidth-1 downto 0);
+p_in_rxll_data        : in    std_logic_vector(G_ETH.phy_dwidth - 1 downto 0);
 p_in_rxll_sof_n       : in    std_logic;
 p_in_rxll_eof_n       : in    std_logic;
 p_in_rxll_src_rdy_n   : in    std_logic;
 p_out_rxll_dst_rdy_n  : out   std_logic;
 p_in_rxll_fifo_status : in    std_logic_vector(3 downto 0);
-p_in_rxll_rem         : in    std_logic_vector(0 downto 0);
+p_in_rxll_rem         : in    std_logic_vector((G_ETH.phy_dwidth / 8) - 1 downto 0);
 
 --------------------------------------
 --Управление передачей PAUSE Control Frame
@@ -118,9 +118,9 @@ p_out_pause_val       : out   std_logic_vector(15 downto 0);
 p_in_tst              : in    std_logic_vector(31 downto 0);
 p_out_tst             : out   std_logic_vector(31 downto 0);
 
---//------------------------------------
---//SYSTEM
---//------------------------------------
+--------------------------------------
+--SYSTEM
+--------------------------------------
 p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
 );
@@ -142,7 +142,7 @@ p_in_cfg             : in    TEthCfg;
 --------------------------------------
 --Связь с пользовательским TXBUF
 --------------------------------------
-p_in_txbuf_dout      : in    std_logic_vector(G_ETH.usrbuf_dwidth-1 downto 0);
+p_in_txbuf_dout      : in    std_logic_vector(G_ETH.usrbuf_dwidth - 1 downto 0);
 p_out_txbuf_rd       : out   std_logic;
 p_in_txbuf_empty     : in    std_logic;
 --p_in_txd_rdy         : in    std_logic;
@@ -150,12 +150,12 @@ p_in_txbuf_empty     : in    std_logic;
 --------------------------------------
 --Связь с Local link TxFIFO
 --------------------------------------
-p_out_txll_data      : out   std_logic_vector(G_ETH.phy_dwidth-1 downto 0);
+p_out_txll_data      : out   std_logic_vector(G_ETH.phy_dwidth - 1 downto 0);
 p_out_txll_sof_n     : out   std_logic;
 p_out_txll_eof_n     : out   std_logic;
 p_out_txll_src_rdy_n : out   std_logic;
 p_in_txll_dst_rdy_n  : in    std_logic;
-p_out_txll_rem       : out   std_logic_vector(0 downto 0);
+p_out_txll_rem       : out   std_logic_vector((G_ETH.phy_dwidth / 8) - 1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -189,18 +189,19 @@ signal p_out_txll_sof_n           : std_logic;
 signal p_out_txll_eof_n           : std_logic;
 signal p_out_txll_src_rdy_n       : std_logic;
 signal p_in_txll_dst_rdy_n        : std_logic;
-signal p_out_txll_rem             : std_logic_vector(0 downto 0);
+signal p_out_txll_rem             : std_logic_vector((G_ETH_CORE_DBUS / 8) - 1 downto 0);
 
-signal p_in_rxbuf_full            :  std_logic;
+signal p_in_rxbuf_full            : std_logic:='0';
+signal i_rxbuf_full               : std_logic:='0';
+
+signal i_txll_eof_n     : std_logic;
+signal i_txll_src_rdy_n : std_logic;
+
+signal sr_dly      : std_logic_vector(0 to 7);
+signal tst_src_rdy : std_logic;
 
 --MAIN
 begin
-
-
---
---pin_in_eth_gtp_rxn<=(others=>'0');
---pin_in_eth_gtp_rxp<=(others=>'1');
-
 
 
 m_rx : eth_mac_rx
@@ -289,8 +290,8 @@ p_in_txbuf_empty     => i_txbuf_empty,
 --------------------------------------
 p_out_txll_data      => p_out_txll_data     ,
 p_out_txll_sof_n     => p_out_txll_sof_n    ,
-p_out_txll_eof_n     => p_out_txll_eof_n    ,
-p_out_txll_src_rdy_n => p_out_txll_src_rdy_n,
+p_out_txll_eof_n     => i_txll_eof_n    ,--p_out_txll_eof_n    ,
+p_out_txll_src_rdy_n => i_txll_src_rdy_n,--p_out_txll_src_rdy_n,
 p_in_txll_dst_rdy_n  => p_in_txll_dst_rdy_n ,
 p_out_txll_rem       => p_out_txll_rem      ,
 
@@ -308,6 +309,29 @@ p_in_rst             => i_rst
 );
 
 
+--p_out_txll_eof_n     => i_txll_eof_n    ;
+--p_out_txll_src_rdy_n => i_txll_src_rdy_n;
+
+p_out_txll_eof_n     <= sr_dly(7);
+p_out_txll_src_rdy_n <= i_txll_src_rdy_n and not tst_src_rdy;
+
+process(i_rst, i_clk)
+begin
+  if i_rst = '1' then
+    sr_dly <= (others=>'1');
+    tst_src_rdy <= '0';
+  elsif rising_edge(i_clk) then
+    sr_dly <= i_txll_eof_n & sr_dly(0 to 6);
+
+    if p_out_txll_sof_n = '0' then
+      tst_src_rdy <= '1';
+    elsif sr_dly(7) = '0' then
+      tst_src_rdy <= '0';
+    end if;
+
+  end if;
+end process;
+
 
 gen_clk : process
 begin
@@ -321,45 +345,145 @@ i_rst<='1','0' after 1 us;
 
 
 
---//########################################
---//Main Ctrl
---//########################################
-gen_mac_a : for i in 0 to i_eth_tx_cfg.mac.dst'length-1 generate
-i_eth_tx_cfg.mac.dst(i)<=CONV_STD_LOGIC_VECTOR(i+10, i_eth_tx_cfg.mac.dst(i)'length) ;
-i_eth_tx_cfg.mac.src(i)<=CONV_STD_LOGIC_VECTOR(i+10+i_eth_tx_cfg.mac.dst'length, i_eth_tx_cfg.mac.src(i)'length) ;
-end generate gen_mac_a;
-i_eth_tx_cfg.mac.lentype<=CONV_STD_LOGIC_VECTOR(16#000A#, i_eth_tx_cfg.mac.lentype'length);
-i_eth_tx_cfg.usrctrl<=(others=>'0');
+----########################################
+----Main Ctrl (G_USR_DBUS - 32bit)
+----########################################
+--gen_mac_a : for i in 0 to i_eth_tx_cfg.mac.dst'length - 1 generate
+--i_eth_tx_cfg.mac.dst(i) <= CONV_STD_LOGIC_VECTOR(i + 10, i_eth_tx_cfg.mac.dst(i)'length) ;
+--i_eth_tx_cfg.mac.src(i) <= CONV_STD_LOGIC_VECTOR(i + 10 + i_eth_tx_cfg.mac.dst'length, i_eth_tx_cfg.mac.src(i)'length) ;
+--end generate gen_mac_a;
+--i_eth_tx_cfg.mac.lentype <= CONV_STD_LOGIC_VECTOR(16#000A#, i_eth_tx_cfg.mac.lentype'length);
+--i_eth_tx_cfg.usrctrl <= (others=>'0');
+--
+--i_eth_rx_cfg.mac.dst <= i_eth_tx_cfg.mac.src;
+--i_eth_rx_cfg.mac.src <= i_eth_tx_cfg.mac.dst;
+--i_eth_rx_cfg.mac.lentype <= i_eth_tx_cfg.mac.lentype;
+--i_eth_rx_cfg.usrctrl <= i_eth_tx_cfg.usrctrl;
+--
+--process
+--begin
+----  p_in_txll_dst_rdy_n<='0';
+--  p_in_rxbuf_full <= '0';
+--  i_data <= (others=>'0');
+--  i_data_wr <= '0';
+--
+--  wait for 2 us;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data <= CONV_STD_LOGIC_VECTOR(16#A1A0#, G_USR_DBUS/2) & i_eth_tx_cfg.mac.lentype;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data <= CONV_STD_LOGIC_VECTOR(16#A5A4#, G_USR_DBUS/2) & CONV_STD_LOGIC_VECTOR(16#A3A2#, G_USR_DBUS/2);
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data <= CONV_STD_LOGIC_VECTOR(16#A9A8#, G_USR_DBUS/2) & CONV_STD_LOGIC_VECTOR(16#A7A6#, G_USR_DBUS/2);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait;
+--end process;
+--
+--
+--m_buf : host_vbuf
+--port map(
+--rst => i_rst,
+--wr_clk => i_clk,
+--rd_clk => i_clk,
+--din => i_data,
+--wr_en => i_data_wr,
+--rd_en => i_txbuf_rd,
+--dout => i_txbuf_dout,
+--full => open,
+--empty => i_txbuf_empty,
+--prog_full => open
+--);
 
-i_eth_rx_cfg.mac.dst<=i_eth_tx_cfg.mac.src;
-i_eth_rx_cfg.mac.src<=i_eth_tx_cfg.mac.dst;
-i_eth_rx_cfg.mac.lentype<=i_eth_tx_cfg.mac.lentype;
-i_eth_rx_cfg.usrctrl<=i_eth_tx_cfg.usrctrl;
+
+
+--########################################
+--Main Ctrl (G_USR_DBUS - 64bit)
+--########################################
+gen_mac_a : for i in 0 to i_eth_tx_cfg.mac.dst'length - 1 generate
+i_eth_tx_cfg.mac.dst(i) <= CONV_STD_LOGIC_VECTOR(i + 16#E0#, i_eth_tx_cfg.mac.dst(i)'length) ;
+i_eth_tx_cfg.mac.src(i) <= CONV_STD_LOGIC_VECTOR(i + 16#F0#, i_eth_tx_cfg.mac.src(i)'length) ;
+end generate gen_mac_a;
+i_eth_tx_cfg.mac.lentype <= CONV_STD_LOGIC_VECTOR(16#03#, i_eth_tx_cfg.mac.lentype'length);
+i_eth_tx_cfg.usrctrl <= (others=>'0');
+
+i_eth_rx_cfg.mac.dst <= i_eth_tx_cfg.mac.src;
+i_eth_rx_cfg.mac.src <= i_eth_tx_cfg.mac.dst;
+i_eth_rx_cfg.mac.lentype <= i_eth_tx_cfg.mac.lentype;
+i_eth_rx_cfg.usrctrl <= i_eth_tx_cfg.usrctrl;
 
 process
 begin
---  p_in_txll_dst_rdy_n<='0';
-  p_in_rxbuf_full<='0';
-  i_data<=(others=>'0');
-  i_data_wr<='0';
+  i_data <= (others=>'0');
+  i_data_wr <= '0';
 
   wait for 2 us;
 
-  wait until i_clk'event and i_clk='1';
-  i_data_wr<='1';
-  i_data<=CONV_STD_LOGIC_VECTOR(16#A1A0#, G_USR_DBUS/2) & i_eth_tx_cfg.mac.lentype;
+  wait until i_clk'event and i_clk = '1';
+  i_data_wr <= '1';
+  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#0201#, 16) & i_eth_tx_cfg.mac.lentype;
+  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#0605#, 16) & CONV_STD_LOGIC_VECTOR(16#0403#, 16);
 
-  wait until i_clk'event and i_clk='1';
-  i_data_wr<='1';
-  i_data<=CONV_STD_LOGIC_VECTOR(16#A5A4#, G_USR_DBUS/2)&CONV_STD_LOGIC_VECTOR(16#A3A2#, G_USR_DBUS/2);
-  wait until i_clk'event and i_clk='1';
-  i_data_wr<='1';
-  i_data<=CONV_STD_LOGIC_VECTOR(16#A9A8#, G_USR_DBUS/2)&CONV_STD_LOGIC_VECTOR(16#A7A6#, G_USR_DBUS/2);
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait for 200 ns;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#0A09#, 16) & CONV_STD_LOGIC_VECTOR(16#0807#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#0E0D#, 16) & CONV_STD_LOGIC_VECTOR(16#0C0B#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#1211#, 16) & CONV_STD_LOGIC_VECTOR(16#100F#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#1615#, 16) & CONV_STD_LOGIC_VECTOR(16#1413#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait for 200 ns;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#1A19#, 16) & CONV_STD_LOGIC_VECTOR(16#1817#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#1E1D#, 16) & CONV_STD_LOGIC_VECTOR(16#1C1B#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#2221#, 16) & CONV_STD_LOGIC_VECTOR(16#201F#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#2625#, 16) & CONV_STD_LOGIC_VECTOR(16#2423#, 16);
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '0';
+--
+--  wait for 200 ns;
+--
+--  wait until i_clk'event and i_clk = '1';
+--  i_data_wr <= '1';
+--  i_data(31 downto 0)  <= CONV_STD_LOGIC_VECTOR(16#2A29#, 16) & CONV_STD_LOGIC_VECTOR(16#2827#, 16);
+--  i_data(63 downto 32) <= CONV_STD_LOGIC_VECTOR(16#2E2D#, 16) & CONV_STD_LOGIC_VECTOR(16#2C2B#, 16);
 
-  wait until i_clk'event and i_clk='1';
-  i_data_wr<='0';
+  wait until i_clk'event and i_clk = '1';
+  i_data_wr <= '0';
 
   wait;
+end process;
+
+
+i_rxbuf_full <= '0';--, '1' after 2950000 ps, '0' after 3000000 ps;
+
+process(i_clk)
+begin
+  if rising_edge(i_clk) then
+    p_in_rxbuf_full <= i_rxbuf_full;
+  end if;
 end process;
 
 
@@ -376,6 +500,7 @@ full => open,
 empty => i_txbuf_empty,
 prog_full => open
 );
+
 
 --END MAIN
 end;

@@ -58,7 +58,7 @@ p_in_rxll_eof_n       : in    std_logic;
 p_in_rxll_src_rdy_n   : in    std_logic;
 p_out_rxll_dst_rdy_n  : out   std_logic;
 p_in_rxll_fifo_status : in    std_logic_vector(3 downto 0);
-p_in_rxll_rem         : in    std_logic_vector(0 downto 0);
+p_in_rxll_rem         : in    std_logic_vector(G_ETH.phy_dwidth/8 - 1 downto 0);
 
 --------------------------------------
 --Управление передачей PAUSE Control Frame

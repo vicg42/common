@@ -122,7 +122,7 @@ rxd         : std_logic_vector(15 downto 0);--RX_LL_DATA        : out std_logic_
 rxsof_n     : std_logic;                    --RX_LL_SOF_N       : out std_logic;
 rxeof_n     : std_logic;                    --RX_LL_EOF_N       : out std_logic;
 rxsrc_rdy_n : std_logic;                    --RX_LL_SRC_RDY_N   : out std_logic;
-rxrem       : std_logic_vector(0 downto 0); --RX_LL_REM         : out std_logic;
+rxrem       : std_logic_vector(1 downto 0); --RX_LL_REM         : out std_logic;
 rxbuf_status: std_logic_vector(3 downto 0); --RX_LL_FIFO_STATUS : out std_logic_vector(3 downto 0);
 
 txdst_rdy_n : std_logic;                    --TX_LL_DST_RDY_N   : out std_logic;
@@ -135,7 +135,7 @@ txd         : std_logic_vector(15 downto 0);--TX_LL_DATA      : in  std_logic_ve
 txsof_n     : std_logic;                    --TX_LL_SOF_N     : in  std_logic;
 txeof_n     : std_logic;                    --TX_LL_EOF_N     : in  std_logic;
 txsrc_rdy_n : std_logic;                    --TX_LL_SRC_RDY_N : in  std_logic;
-txrem       : std_logic_vector(0 downto 0); --TX_LL_REM       : in  std_logic;
+txrem       : std_logic_vector(1 downto 0); --TX_LL_REM       : in  std_logic;
 end record;
 
 type TEthPhy2AppOUTs is array (0 to 1) of TEthPhy2AppOUT;

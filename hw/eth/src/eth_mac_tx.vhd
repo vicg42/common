@@ -52,7 +52,7 @@ p_out_txll_sof_n     : out   std_logic;
 p_out_txll_eof_n     : out   std_logic;
 p_out_txll_src_rdy_n : out   std_logic;
 p_in_txll_dst_rdy_n  : in    std_logic;
-p_out_txll_rem       : out   std_logic_vector(0 downto 0);
+p_out_txll_rem       : out   std_logic_vector(G_ETH.phy_dwidth/8 - 1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -270,7 +270,7 @@ begin
           if p_in_txbuf_empty='0' then
 
               if i_dcnt=i_dcnt_len - 1 then
-                i_ll_rem<=not i_dcnt(0 downto 0);
+                i_ll_rem(0)<=not i_dcnt(0);
                 i_dcnt<=(others=>'0');
                 i_ll_eof_n<='0';
 

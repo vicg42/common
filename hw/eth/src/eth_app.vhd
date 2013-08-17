@@ -95,7 +95,7 @@ p_in_rxll_eof_n       : in    std_logic;
 p_in_rxll_src_rdy_n   : in    std_logic;
 p_out_rxll_dst_rdy_n  : out   std_logic;
 p_in_rxll_fifo_status : in    std_logic_vector(3 downto 0);
-p_in_rxll_rem         : in    std_logic_vector(0 downto 0);
+p_in_rxll_rem         : in    std_logic_vector(G_ETH.phy_dwidth/8 - 1 downto 0);
 
 --------------------------------------
 --Управление передачей PAUSE Control Frame
@@ -147,7 +147,7 @@ p_out_txll_sof_n     : out   std_logic;
 p_out_txll_eof_n     : out   std_logic;
 p_out_txll_src_rdy_n : out   std_logic;
 p_in_txll_dst_rdy_n  : in    std_logic;
-p_out_txll_rem       : out   std_logic_vector(0 downto 0);
+p_out_txll_rem       : out   std_logic_vector(G_ETH.phy_dwidth/8 - 1 downto 0);
 
 --------------------------------------------------
 --Технологические сигналы
@@ -220,7 +220,7 @@ p_in_rxll_eof_n       => p_in_phy2app(i).rxeof_n,
 p_in_rxll_src_rdy_n   => p_in_phy2app(i).rxsrc_rdy_n,
 p_out_rxll_dst_rdy_n  => p_out_phy2app (i).rxdst_rdy_n,
 p_in_rxll_fifo_status => p_in_phy2app(i).rxbuf_status,
-p_in_rxll_rem         => p_in_phy2app(i).rxrem,
+p_in_rxll_rem         => p_in_phy2app(i).rxrem(G_ETH.phy_dwidth/8-1 downto 0),
 
 --------------------------------------
 --Управление передачей PAUSE Control Frame
@@ -271,7 +271,7 @@ p_out_txll_sof_n     => p_out_phy2app (i).txsof_n,
 p_out_txll_eof_n     => p_out_phy2app (i).txeof_n,
 p_out_txll_src_rdy_n => p_out_phy2app (i).txsrc_rdy_n,
 p_in_txll_dst_rdy_n  => p_in_phy2app(i).txdst_rdy_n,
-p_out_txll_rem       => p_out_phy2app(i).txrem,
+p_out_txll_rem       => p_out_phy2app(i).txrem(G_ETH.phy_dwidth/8-1 downto 0),
 
 --------------------------------------
 --Технологические сигналы

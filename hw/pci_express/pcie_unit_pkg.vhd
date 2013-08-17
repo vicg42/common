@@ -63,7 +63,7 @@ p_out_txbuf_full               : out   std_logic;
 --p_in_txbuf_din_be              : in    std_logic_vector(3 downto 0);
 
 --(PC<-FPGA)
-p_out_rxbuf_dout               : out   std_logic_vector(31 downto 0);
+p_out_rxbuf_dout               : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 p_in_rxbuf_rd                  : in    std_logic;
 p_in_rxbuf_rd_last             : in    std_logic;
 p_out_rxbuf_empty              : out   std_logic;

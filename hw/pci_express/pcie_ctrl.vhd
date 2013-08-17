@@ -192,11 +192,14 @@ rst_n               : in  std_logic
 end component;
 
 component pcie_tx
+generic(
+G_USR_DBUS : integer:=64
+);
 port(
 usr_reg_dout_i       : in  std_logic_vector(31 downto 0);
 
 --usr_rxbuf_dbe        : out std_logic_vector(3 downto 0);
-usr_rxbuf_dout_i     : in  std_logic_vector(31 downto 0);
+usr_rxbuf_dout_i     : in  std_logic_vector(G_USR_DBUS-1 downto 0);
 usr_rxbuf_rd_o       : out std_logic;
 usr_rxbuf_rd_last_o  : out std_logic;
 usr_rxbuf_empty_i    : in  std_logic;
@@ -285,7 +288,7 @@ signal i_usr_txbuf_wr             : std_logic;
 signal i_usr_txbuf_wr_last        : std_logic;
 signal i_usr_txbuf_full           : std_logic;
 
-signal i_usr_rxbuf_dout           : std_logic_vector(31 downto 0);
+signal i_usr_rxbuf_dout           : std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
 signal i_usr_rxbuf_rd             : std_logic;
 signal i_usr_rxbuf_rd_last        : std_logic;
 signal i_usr_rxbuf_empty          : std_logic;
@@ -365,22 +368,23 @@ signal i_cfg_intrrupt_disable     : std_logic;
 
 signal i_rx_engine_tst_out        : std_logic_vector(31 downto 0);
 signal i_rd_throttle_tst_out      : std_logic_vector(1 downto 0);
+signal tst_pcie_tx_out            : std_logic_vector(31 downto 0);
+signal tmp_cfg_msi_enable         : std_logic;
 
 
---//MAIN
+--MAIN
 begin
 
 
---//--------------------------------------
---//Технологические
---//--------------------------------------
-i_rd_throttle_tst_out(0) <= i_mrd_en_throttle;
-i_rd_throttle_tst_out(1) <='0';
+----------------------------------------
+--Технологические
+----------------------------------------
 
 
---//--------------------------------------
---//Выходные сигналы
---//--------------------------------------
+
+----------------------------------------
+--Выходные сигналы
+----------------------------------------
 trn_rnp_ok_n_o <= '0';
 trn_rcpl_streaming_n_o <= '1';
 
@@ -395,58 +399,58 @@ cfg_err_cpl_timeout_n_o<='1';
 cfg_err_cpl_unexpect_n_o<='1';
 cfg_err_cor_n_o        <='1';
 cfg_err_posted_n_o     <='1';
-cfg_err_cpl_abort_n_o  <='1';--//Configuration Error Completion Aborted: The
-                             --//user can assert this signal to report that a completion
-                             --//was aborted.
-cfg_err_tlp_cpl_header_o <=(others=>'0'); --//Configuration Error TLP Completion Header:
-                                          --//Accepts the header information from the user when
-                                          --//an error is signaled. This information is required so
-                                          --//that the core can issue a correct completion, if
-                                          --//required.
-                                          --//The following information should be extracted from
-                                          --//the received error TLP and presented in the format
-                                          --//below:
-                                          --//[47:41]     Lower Address
-                                          --//[40:29]     Byte Count
-                                          --//[28:26]     TC
-                                          --//[25:24]     Attr
-                                          --//[23:8]      Requester ID
-                                          --//[7:0]       Tag
+cfg_err_cpl_abort_n_o  <='1';--Configuration Error Completion Aborted: The
+                             --user can assert this signal to report that a completion
+                             --was aborted.
+cfg_err_tlp_cpl_header_o <=(others=>'0'); --Configuration Error TLP Completion Header:
+                                          --Accepts the header information from the user when
+                                          --an error is signaled. This information is required so
+                                          --that the core can issue a correct completion, if
+                                          --required.
+                                          --The following information should be extracted from
+                                          --the received error TLP and presented in the format
+                                          --below:
+                                          --[47:41]     Lower Address
+                                          --[40:29]     Byte Count
+                                          --[28:26]     TC
+                                          --[25:24]     Attr
+                                          --[23:8]      Requester ID
+                                          --[7:0]       Tag
 
 cfg_dsn_o <=CONV_STD_LOGIC_VECTOR(16#123#, cfg_dsn_o'length);
 
 
---//--------------------------------------
---//
---//--------------------------------------
+----------------------------------------
+--
+----------------------------------------
 i_rst_n <= trn_reset_n_i and not trn_lnk_up_n_i;
 
 
 i_cfg_completer_id <= cfg_bus_number_i & cfg_device_number_i & cfg_function_number_i;
 
---//Link Status register in the PCI Express Capabilities Structure
-i_cfg_neg_max_lnk_width <= cfg_lstatus_i(9 downto 4);--//Negotiated Link Width
+--Link Status register in the PCI Express Capabilities Structure
+i_cfg_neg_max_lnk_width <= cfg_lstatus_i(9 downto 4);--Negotiated Link Width
 
---//Link Control register in the PCI Express Capabilities Structure
-i_cfg_rcb <= cfg_lcommand_i(3);--//Read Completion Boundary.(RCB) 0=64B or 1=128B
+--Link Control register in the PCI Express Capabilities Structure
+i_cfg_rcb <= cfg_lcommand_i(3);--Read Completion Boundary.(RCB) 0=64B or 1=128B
 
---//Device Control register in the PCI Express Capabilities Structure
+--Device Control register in the PCI Express Capabilities Structure
 i_cfg_prg_max_payload_size <= cfg_dcommand_i(7 downto 5);
 i_cfg_prg_max_rd_req_size <= cfg_dcommand_i(14 downto 12);
 i_cfg_ext_tag_en    <= cfg_dcommand_i(8);
 i_cfg_phant_func_en <= cfg_dcommand_i(9);
 --i_cfg_no_snoop_en   <= cfg_dcommand_i(11);
 
---//Command register in the PCI Configuration Space Header
+--Command register in the PCI Configuration Space Header
 i_cfg_bus_master_en <= cfg_command_i(2);
 i_cfg_intrrupt_disable <= cfg_command_i(10);
 
 i_cfg_msi_enable <= cfg_interrupt_msienable_i;
 
 
---//###########################################
---//Usr Application :
---//###########################################
+--###########################################
+--Usr Application :
+--###########################################
 m_usr_app : pcie_usr_app
 generic map(
 G_DBG => G_DBG
@@ -533,7 +537,7 @@ p_in_cfg_neg_max_lnk_width    => i_cfg_neg_max_lnk_width,
 p_in_cfg_prg_max_payload_size => i_cfg_prg_max_payload_size,
 p_in_cfg_prg_max_rd_req_size  => i_cfg_prg_max_rd_req_size,
 
-p_in_rx_engine_tst            => i_rx_engine_tst_out(11 downto 10),
+p_in_rx_engine_tst            => tst_pcie_tx_out(1 downto 0),
 p_in_rx_engine_tst2           => i_rx_engine_tst_out(9 downto 0),
 p_in_throttle_tst             => i_rd_throttle_tst_out,
 p_in_mrd_pkt_len_tst          => i_mrd_pkt_len,
@@ -543,12 +547,12 @@ p_in_rst_n                    => i_rst_n
 );
 
 
---//###########################################
---//Управление ядром PCI-Express
---//###########################################
---//----------------------------------
---//Rx/Tx Ctrl
---//----------------------------------
+--###########################################
+--Управление ядром PCI-Express
+--###########################################
+------------------------------------
+--Rx/Tx Ctrl
+------------------------------------
 m_rx : pcie_rx
 port map(
 --режим Target
@@ -607,6 +611,9 @@ rst_n               => i_rst_n
 
 
 m_tx : pcie_tx
+generic map(
+G_USR_DBUS => C_HDEV_DWIDTH
+)
 port map(
 --Режим Target
 usr_reg_dout_i       => i_usr_reg_dout,
@@ -618,74 +625,74 @@ usr_rxbuf_rd_last_o  => i_usr_rxbuf_rd_last,
 usr_rxbuf_empty_i    => i_usr_rxbuf_empty,
 
 --Связь с LocalLink Tx ядра PCI-EXPRESS
-trn_td               => trn_td_o,              --// O [63/31:0]
-trn_trem_n           => trn_trem_n_o,          --// O [7:0]
-trn_tsof_n           => trn_tsof_n_o,          --// O
-trn_teof_n           => trn_teof_n_o,          --// O
-trn_tsrc_dsc_n       => trn_tsrc_dsc_n_o,      --// O
-trn_tsrc_rdy_n_o     => trn_tsrc_rdy_n_o,      --// O
-trn_tdst_dsc_n       => trn_tdst_dsc_n_i,      --// I
-trn_tdst_rdy_n       => trn_tdst_rdy_n_i,      --// I
-trn_tbuf_av          => trn_tbuf_av_i,         --// I [5:0]
+trn_td               => trn_td_o,              -- O [63/31:0]
+trn_trem_n           => trn_trem_n_o,          -- O [7:0]
+trn_tsof_n           => trn_tsof_n_o,          -- O
+trn_teof_n           => trn_teof_n_o,          -- O
+trn_tsrc_dsc_n       => trn_tsrc_dsc_n_o,      -- O
+trn_tsrc_rdy_n_o     => trn_tsrc_rdy_n_o,      -- O
+trn_tdst_dsc_n       => trn_tdst_dsc_n_i,      -- I
+trn_tdst_rdy_n       => trn_tdst_rdy_n_i,      -- I
+trn_tbuf_av          => trn_tbuf_av_i,         -- I [5:0]
 
 --Handshake with Rx egine
-req_compl_i          => i_req_compl,           --// I
-compl_done_o         => i_compl_done,          --// 0
+req_compl_i          => i_req_compl,           -- I
+compl_done_o         => i_compl_done,          -- 0
 
-req_addr_i           => i_req_addr,            --// I [29:0]
+req_addr_i           => i_req_addr,            -- I [29:0]
 req_pkt_type_i       => i_req_pkt_type,        --
-req_tc_i             => i_req_tc,              --// I [2:0]
-req_td_i             => i_req_td,              --// I
-req_ep_i             => i_req_ep,              --// I
-req_attr_i           => i_req_attr,            --// I [1:0]
-req_len_i            => i_req_len,             --// I [9:0]
-req_rid_i            => i_req_rid,             --// I [15:0]
-req_tag_i            => i_req_tag,             --// I [7:0]
-req_be_i             => i_req_be,              --// I [7:0]
-req_exprom_i         => i_req_exprom,          --// I
+req_tc_i             => i_req_tc,              -- I [2:0]
+req_td_i             => i_req_td,              -- I
+req_ep_i             => i_req_ep,              -- I
+req_attr_i           => i_req_attr,            -- I [1:0]
+req_len_i            => i_req_len,             -- I [9:0]
+req_rid_i            => i_req_rid,             -- I [15:0]
+req_tag_i            => i_req_tag,             -- I [7:0]
+req_be_i             => i_req_be,              -- I [7:0]
+req_exprom_i         => i_req_exprom,          -- I
 
 --Initiator Controls
-dma_init_i           => i_dmatrn_init,         --// I
+dma_init_i           => i_dmatrn_init,         -- I
 
 --Write Initiator
-mwr_en_i             => i_mwr_en,              --// I
-mwr_done_o           => i_mwr_done,            --// O
-mwr_addr_up_i        => i_mwr_addr_up,         --// I [7:0]
-mwr_addr_i           => i_mwr_addr,            --// I [31:0]
-mwr_len_i            => i_mwr_len,             --// I [31:0]
-mwr_count_i          => i_mwr_count,           --// I [31:0]
-mwr_tlp_tc_i         => i_mwr_tlp_tc,          --// I [2:0]
-mwr_64b_en_i         => i_mwr_64b_en,          --// I
-mwr_phant_func_en1_i => i_mwr_phant_func_en1,  --// I
-mwr_lbe_i            => i_mwr_lbe,             --// I [3:0]
-mwr_fbe_i            => i_mwr_fbe,             --// I [3:0]
-mwr_relaxed_order_i  => i_mwr_relaxed_order,   --// I
-mwr_nosnoop_i        => i_mwr_nosnoop,         --// I
+mwr_en_i             => i_mwr_en,              -- I
+mwr_done_o           => i_mwr_done,            -- O
+mwr_addr_up_i        => i_mwr_addr_up,         -- I [7:0]
+mwr_addr_i           => i_mwr_addr,            -- I [31:0]
+mwr_len_i            => i_mwr_len,             -- I [31:0]
+mwr_count_i          => i_mwr_count,           -- I [31:0]
+mwr_tlp_tc_i         => i_mwr_tlp_tc,          -- I [2:0]
+mwr_64b_en_i         => i_mwr_64b_en,          -- I
+mwr_phant_func_en1_i => i_cfg_phant_func_en,   -- I --i_mwr_phant_func_en1,
+mwr_lbe_i            => i_mwr_lbe,             -- I [3:0]
+mwr_fbe_i            => i_mwr_fbe,             -- I [3:0]
+mwr_relaxed_order_i  => i_mwr_relaxed_order,   -- I
+mwr_nosnoop_i        => i_mwr_nosnoop,         -- I
 
 --Read Initiator
-mrd_en_i             => i_mrd_en_throttle,     --// I
-mrd_addr_up_i        => i_mrd_addr_up,         --// I [7:0]
-mrd_addr_i           => i_mrd_addr,            --// I [31:0]
-mrd_len_i            => i_mrd_len,             --// I [31:0]
-mrd_count_i          => i_mrd_count,           --// I [31:0]
-mrd_tlp_tc_i         => i_mrd_tlp_tc,          --// I [2:0]
-mrd_64b_en_i         => i_mrd_64b_en,          --// I
-mrd_phant_func_en1_i => i_mrd_phant_func_en1,  --// I
-mrd_lbe_i            => i_mrd_lbe,             --// I [3:0]
-mrd_fbe_i            => i_mrd_fbe,             --// I [3:0]
-mrd_relaxed_order_i  => i_mrd_relaxed_order,   --// I
-mrd_nosnoop_i        => i_mrd_nosnoop,         --// I
-mrd_pkt_len_o        => i_mrd_pkt_len,         --// O[31:0]
-mrd_pkt_count_o      => i_mrd_pkt_count,       --// O[15:0]
+mrd_en_i             => i_mrd_en_throttle,     -- I
+mrd_addr_up_i        => i_mrd_addr_up,         -- I [7:0]
+mrd_addr_i           => i_mrd_addr,            -- I [31:0]
+mrd_len_i            => i_mrd_len,             -- I [31:0]
+mrd_count_i          => i_mrd_count,           -- I [31:0]
+mrd_tlp_tc_i         => i_mrd_tlp_tc,          -- I [2:0]
+mrd_64b_en_i         => i_mrd_64b_en,          -- I
+mrd_phant_func_en1_i => i_cfg_phant_func_en,   -- I --i_mrd_phant_func_en1,
+mrd_lbe_i            => i_mrd_lbe,             -- I [3:0]
+mrd_fbe_i            => i_mrd_fbe,             -- I [3:0]
+mrd_relaxed_order_i  => i_mrd_relaxed_order,   -- I
+mrd_nosnoop_i        => i_mrd_nosnoop,         -- I
+mrd_pkt_len_o        => i_mrd_pkt_len,         -- O[31:0]
+mrd_pkt_count_o      => i_mrd_pkt_count,       -- O[15:0]
 
-completer_id_i       => i_cfg_completer_id,    --// I [15:0]
-tag_ext_en_i         => i_cfg_ext_tag_en,      --// I
-master_en_i          => i_cfg_bus_master_en,   --// I
-max_payload_size_i   => i_cfg_prg_max_payload_size, --// I [2:0]  i_usr_max_payload_size,--
-max_rd_req_size_i    => i_cfg_prg_max_rd_req_size,  --// I [2:0]  i_usr_max_rd_req_size, --
+completer_id_i       => i_cfg_completer_id,    -- I [15:0]
+tag_ext_en_i         => i_cfg_ext_tag_en,      -- I
+master_en_i          => i_cfg_bus_master_en,   -- I
+max_payload_size_i   => i_cfg_prg_max_payload_size, -- I [2:0]  i_usr_max_payload_size,--
+max_rd_req_size_i    => i_cfg_prg_max_rd_req_size,  -- I [2:0]  i_usr_max_rd_req_size, --
 
 --Технологический
-tst_o                => open,
+tst_o                => tst_pcie_tx_out,
 tst_i                => (others=>'0'),
 
 clk                  => trn_clk_i,
@@ -693,34 +700,34 @@ rst_n                => i_rst_n
 );
 
 
---//----------------------------------
---//Read Transmit Throttle Unit :
---//----------------------------------
+------------------------------------
+--Read Transmit Throttle Unit :
+------------------------------------
 m_mrd_throttle : pcie_mrd_throttle
 port map(
-init_rst_i          => i_dmatrn_init,       --// I
+init_rst_i          => i_dmatrn_init,       -- I
 
-mrd_work_i          => i_mrd_en,            --// I
-mrd_len_i           => i_mrd_pkt_len,       --// I [31:0]
-mrd_pkt_count_i     => i_mrd_pkt_count,     --// I [15:0]
+mrd_work_i          => i_mrd_en,            -- I
+mrd_len_i           => i_mrd_pkt_len,       -- I [31:0]
+mrd_pkt_count_i     => i_mrd_pkt_count,     -- I [15:0]
 
-cpld_data_size_i    => i_mrd_rcv_size,      --// I [31:0]
-cpld_malformed_i    => i_mrd_rcv_err,       --// I
-cpld_data_err_i     => '0',                 --// I
+cpld_data_size_i    => i_mrd_rcv_size,      -- I [31:0]
+cpld_malformed_i    => i_mrd_rcv_err,       -- I
+cpld_data_err_i     => '0',                 -- I
 
-cfg_rd_comp_bound_i => i_cfg_rcb,           --// I
-rd_metering_i       => i_rd_metering,       --// I
+cfg_rd_comp_bound_i => i_cfg_rcb,           -- I
+rd_metering_i       => i_rd_metering,       -- I
 
-mrd_work_o          => i_mrd_en_throttle,   --// O
+mrd_work_o          => i_mrd_en_throttle,   -- O
 
 clk                 =>  trn_clk_i ,
 rst_n               =>  i_rst_n
 );
 
 
---//----------------------------------
---//Interrupt Controller
---//----------------------------------
+------------------------------------
+--Interrupt Controller
+------------------------------------
 i_irq_ctrl_rst <= not i_rst_n;
 
 m_irq : pcie_irq
@@ -741,16 +748,16 @@ p_in_tst               => (others=>'0'),
 p_out_tst              => open,
 
 p_in_clk               => trn_clk_i,
-p_in_rst               => i_irq_ctrl_rst --i_rst_n
+p_in_rst               => i_irq_ctrl_rst
 );
 
 
---//----------------------------------
---//Configuration Controller
---//----------------------------------
+------------------------------------
+--Configuration Controller
+------------------------------------
 m_cfg : pcie_cfg
 port map(
-cfg_bus_master_en   => i_cfg_bus_master_en, --// I
+cfg_bus_master_en   => i_cfg_bus_master_en, -- I
 
 cfg_do              => cfg_do_i,
 cfg_di              => cfg_di_o,
@@ -760,25 +767,25 @@ cfg_wr_en_n         => cfg_wr_en_n_o,
 cfg_rd_en_n         => cfg_rd_en_n_o,
 cfg_rd_wr_done_n    => cfg_rd_wr_done_n_i,
 
-cfg_cap_max_lnk_width    => open, --// O [5:0]
-cfg_cap_max_payload_size => open, --// O [2:0]
-cfg_msi_enable           => open, --// O
+cfg_cap_max_lnk_width    => open, -- O [5:0]
+cfg_cap_max_payload_size => open, -- O [2:0]
+cfg_msi_enable           => tmp_cfg_msi_enable, -- O
 
 rst_n               => i_rst_n,
 clk                 => trn_clk_i
 );
 
 
---//----------------------------------
---//Turn-off Control Unit
---//----------------------------------
+------------------------------------
+--Turn-off Control Unit
+------------------------------------
 m_off_on : pcie_off_on
 port map(
-req_compl_i        => i_req_compl,       --// I
-compl_done_i       => i_compl_done,      --// I
+req_compl_i        => i_req_compl,       -- I
+compl_done_i       => i_compl_done,      -- I
 
-cfg_to_turnoff_n_i => cfg_to_turnoff_n_i,--// I
-cfg_turnoff_ok_n_o => cfg_turnoff_ok_n_o,--// O
+cfg_to_turnoff_n_i => cfg_to_turnoff_n_i,-- I
+cfg_turnoff_ok_n_o => cfg_turnoff_ok_n_o,-- O
 
 rst_n => i_rst_n,
 clk   => trn_clk_i

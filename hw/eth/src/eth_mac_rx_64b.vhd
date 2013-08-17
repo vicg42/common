@@ -167,7 +167,8 @@ end generate gen_dbg_on;
 
 
 gen_rx_mac_check : for i in 0 to p_in_cfg.mac.src'length - 1 generate
-i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.src(i) else '0';
+--i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.src(i) else '0';
+i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.dst(i) else '0';--for TEST
 end generate gen_rx_mac_check;
 
 i_usrpkt_len_byte <= i_mac_dlen_byte + 6;--6 = 2 + 4;  2 is Len byte count

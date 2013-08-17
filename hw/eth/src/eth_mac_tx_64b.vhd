@@ -102,7 +102,8 @@ signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
 signal tst_txbuf_empty        : std_logic;
 signal tst_ll_dst_rdy_n       : std_logic;
-
+signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range);
+signal tst_txbuf_rd           : std_logic;
 
 
 --MAIN
@@ -116,18 +117,25 @@ p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst,p_in_clk)
+ltstout:process(p_in_clk) --p_in_rst,
 begin
-  if p_in_rst = '1' then
-    tst_txbuf_empty<= '0'; tst_ll_dst_rdy_n <= '0';
-    tst_fms_cs_dly <= (others=>'0');
-    p_out_tst(31 downto 1) <= (others=>'0');
+--  if p_in_rst = '1' then
+--    tst_txbuf_empty<= '0'; tst_ll_dst_rdy_n <= '0';
+--    tst_fms_cs_dly <= (others=>'0');
+--    p_out_tst(31 downto 1) <= (others=>'0');
+--
+--    tst_txbuf_d <= (others=>'0');
+--    tst_txbuf_rd <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  if rising_edge(p_in_clk) then
+
+    tst_txbuf_d <= p_in_txbuf_dout;
+    tst_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n;
 
     tst_txbuf_empty <= p_in_txbuf_empty; tst_ll_dst_rdy_n <= p_in_txll_dst_rdy_n;
     tst_fms_cs_dly <= tst_fms_cs;
     p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n;
+    p_out_tst(1) <= OR_reduce(tst_txbuf_d) or tst_txbuf_rd;
   end if;
 end process ltstout;
 
@@ -162,7 +170,7 @@ begin
     i_ll_sof_n <= '1';
     i_ll_eof_n <= '1';
     i_ll_src_rdy_n <= '1';
-    i_ll_rem <= (others=>'0');
+    i_ll_rem <= (others=>'1');
     i_ll_dlast <= '0';
 
     sr_txbuf_dout <= (others=>'0');
@@ -171,7 +179,7 @@ begin
 
   elsif rising_edge(p_in_clk) then
 
-    if p_in_txll_dst_rdy_n = '0' then
+--    if p_in_txll_dst_rdy_n = '0' then
 
       case fsm_eth_tx_cs is
 
@@ -180,24 +188,15 @@ begin
         --------------------------------------
         when S_IDLE =>
 
-          i_ll_sof_n <= '1';
+--        if p_in_txll_dst_rdy_n = '0' then
+--          i_ll_sof_n <= '1';
           i_ll_eof_n <= '1';
           i_ll_src_rdy_n <= '1';
+          i_ll_rem <= (others=>'1');
           i_ll_dlast <= '0';
           i_dcnt <= (others=>'0');
 
           if p_in_txbuf_empty = '0' then
-
-            i_mac_dlen_byte((8 * 2) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 0);
-            fsm_eth_tx_cs <= S_TX_MAC_A0;
-          end if;
-
-
-        --------------------------------------
-        --MACFRAME: отправка mac_dst
-        --------------------------------------
-        when S_TX_MAC_A0 =>
-
 
             i_ll_data((8 * 8) - 1 downto 8 * 7) <= p_in_cfg.mac.src(1);
             i_ll_data((8 * 7) - 1 downto 8 * 6) <= p_in_cfg.mac.src(0);
@@ -209,6 +208,23 @@ begin
             i_ll_data((8 * 6) - 1 downto 8 * 5) <= p_in_cfg.mac.dst(5);
             i_ll_data((8 * 1) - 1 downto 8 * 0) <= p_in_cfg.mac.dst(0);
 
+            i_mac_dlen_byte((8 * 2) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 0);
+
+            if p_in_txbuf_dout((8 * 2) - 1 downto 8 * 0) /= CONV_STD_LOGIC_VECTOR(0, 16) then
+              i_ll_sof_n <= '0';
+              fsm_eth_tx_cs <= S_TX_MAC_A0;
+            end if;
+          end if;
+--        end if;
+
+
+        --------------------------------------
+        --MACFRAME: отправка mac_dst
+        --------------------------------------
+        when S_TX_MAC_A0 =>
+
+          if p_in_txll_dst_rdy_n = '0' then
+
             i_ll_rem <= (others=>'1');
             i_ll_src_rdy_n <= '0';
             i_ll_sof_n <= '0';
@@ -216,8 +232,11 @@ begin
 
             fsm_eth_tx_cs <= S_TX_MAC_A1;
 
+          end if;
 
         when S_TX_MAC_A1 =>
+
+          if p_in_txll_dst_rdy_n = '0' then
 
             sr_txbuf_dout((8 * 4) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 8) - 1 downto 8 * 4);
 
@@ -284,13 +303,14 @@ begin
                 fsm_eth_tx_cs <= S_IDLE;
 
             end if;
-
+          end if;
 
         --------------------------------------
         --MACFRAME: отправка данных
         --------------------------------------
         when S_TX_MAC_D =>
 
+          if p_in_txll_dst_rdy_n = '0' then
           if p_in_txbuf_empty = '0' then
 
               sr_txbuf_dout((8 * 4) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 8) - 1 downto 8 * 4);
@@ -370,6 +390,7 @@ begin
               end if;
 
           end if;--if p_in_txbuf_empty = '0' then
+          end if;
 
         when S_TX_END =>
 
@@ -421,7 +442,7 @@ begin
 
       end case;
 
-    end if;--if p_in_txll_dst_rdy_n = '0' then
+--    end if;--if p_in_txll_dst_rdy_n = '0' then
   end if;
 end process;
 
@@ -430,7 +451,7 @@ p_out_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_
 p_out_txll_data <= i_ll_data;
 p_out_txll_sof_n <= i_ll_sof_n;
 p_out_txll_eof_n <= i_ll_eof_n;
-p_out_txll_src_rdy_n <= (i_ll_src_rdy_n or p_in_txbuf_empty) and not i_ll_dlast;
+p_out_txll_src_rdy_n <= ((i_ll_sof_n and i_ll_src_rdy_n) or p_in_txbuf_empty) and not i_ll_dlast;--(i_ll_src_rdy_n or p_in_txbuf_empty) and not i_ll_dlast;--p_in_txbuf_empty and not i_ll_dlast;--
 p_out_txll_rem <= i_ll_rem;
 
 
