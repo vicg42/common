@@ -75,7 +75,7 @@ G_USRBUF_DWIDTH : integer := 32;
 G_FLASH_AWIDTH : integer := 24;
 G_FLASH_DWIDTH : integer := 16;
 G_FLASH_BUFSIZE_DEFAULT : integer := 32;
-G_FLASH_OPT : std_logic_vector(3 downto 0) := (others=>'0')
+G_FLASH_OPT : std_logic_vector(7 downto 0) := (others=>'0')
 );
 port(
 --
@@ -121,10 +121,12 @@ dout   : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 rd_en  : in  std_logic;
 rd_clk : in  std_logic;
 
+prog_full : out std_logic;
 almost_full : out std_logic;
 full   : out std_logic;
 empty  : out std_logic;
 
+--clk         : in std_logic;
 rst    : in  std_logic
 );
 end component;
@@ -148,6 +150,8 @@ signal i_core_status    : std_logic_vector(7 downto 0);
 signal i_divcnt         : std_logic_vector(3 downto 0);
 signal i_clk_en         : std_logic;
 signal i_tst_out        : std_logic_vector(31 downto 0);
+
+signal i_phy_oe_out     : std_logic;
 
 
 --MAIN
@@ -182,10 +186,12 @@ dout   => i_txbuf_do,
 rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
-almost_full => i_txbuf_full,
 full   => open,
+almost_full => open,--i_txbuf_full,
+prog_full => i_txbuf_full,
 empty  => i_txbuf_empty,
 
+--clk         => p_in_clk,
 rst    => p_in_rst
 );
 
@@ -200,10 +206,12 @@ dout   => p_out_host_rxd,
 rd_en  => p_in_host_rd,
 rd_clk => p_in_host_clk,
 
-almost_full => i_rxbuf_full,
 full   => open,
+almost_full => i_rxbuf_full,
+prog_full => open,
 empty  => i_rxbuf_empty,
 
+--clk         => p_in_clk,
 rst    => p_in_rst
 );
 
@@ -211,8 +219,13 @@ rst    => p_in_rst
 ------------------------------------
 --
 ------------------------------------
-p_out_phy.oe_n <= i_phy_oe_n;
-p_inout_phy.d <= i_phy_do when i_phy_oe_n = '1' else (others => 'Z');
+--p_out_phy.oe_n <= i_phy_oe_n;
+--p_inout_phy.d <= i_phy_do when i_phy_oe_n = '1' else (others => 'Z');
+--i_phy_di <= p_inout_phy.d;
+i_phy_oe_out <= not i_phy_oe_n;
+
+p_out_phy.oe_n <= i_phy_oe_out;
+p_inout_phy.d <= i_phy_do when i_phy_oe_out = '1' else (others => 'Z');
 i_phy_di <= p_inout_phy.d;
 
 m_core : prog_flash
@@ -222,7 +235,7 @@ G_USRBUF_DWIDTH => G_HOST_DWIDTH,
 G_FLASH_AWIDTH => C_PROG_PHY_AWIDTH,
 G_FLASH_DWIDTH => C_PROG_PHY_DWIDTH,
 G_FLASH_BUFSIZE_DEFAULT => C_PROG_PHY_BUFSIZE_DEFAULT,
-G_FLASH_OPT => (others=>'0')
+G_FLASH_OPT => X"00"
 )
 port map(
 p_in_txbuf_d      => i_txbuf_do,
