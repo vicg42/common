@@ -36,7 +36,7 @@ G_MEM_DWIDTH : integer:=32
 );
 port(
 -------------------------------
--- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
+--CFG
 -------------------------------
 p_in_host_clk         : in   std_logic;
 
@@ -53,7 +53,7 @@ p_in_cfg_rd           : in   std_logic;
 p_in_cfg_done         : in   std_logic;
 
 -------------------------------
--- Связь с ХОСТ
+--HOST
 -------------------------------
 p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);   --Номер видео канала который будет читать ХОСТ
 p_in_vctrl_hrdstart   : in    std_logic;                      --Начало чтенения видеоканала
@@ -62,20 +62,20 @@ p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);-
 p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Прерываение соответствующего видеоканала(Кадр готов)
 p_out_vctrl_hfrmrk    : out   TVMrks;
 
-p_out_vbufout_do      : out   TVCH_bufo_d;  --Связь с буферов видео данных для ХОСТА
-p_in_vbufout_rd       : in    std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
-p_out_vbufout_empty   : out   std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+p_out_vbufo_do        : out   TVCH_bufo_d;  --Связь с буферов видео данных для ХОСТА
+p_in_vbufo_rd         : in    std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+p_out_vbufo_empty     : out   std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
 
 -------------------------------
--- Связь с буферами модуля dsn_switch.vhd
+--VBUFI
 -------------------------------
-p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);
-p_out_vbufin_dout_rd  : out   std_logic;
-p_in_vbufin_empty     : in    std_logic;
-p_in_vbufin_full      : in    std_logic;
+p_in_vbufi_do         : in    std_logic_vector(31 downto 0);
+p_out_vbufi_rd        : out   std_logic;
+p_in_vbufi_empty      : in    std_logic;
+p_in_vbufi_full       : in    std_logic;
 
 ---------------------------------
--- Связь с mem_ctrl.vhd
+--MEM
 ---------------------------------
 --CH WRITE
 p_out_memwr           : out   TMemIN;
@@ -348,7 +348,7 @@ signal i_vcoldemasc_rdy_n                : std_logic_vector(C_VCTRL_VCH_COUNT - 
 signal i_mem_null_dout                   : std_logic_vector(G_MEM_DWIDTH - 1 downto 0):=(others=>'0');
 
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
-signal tst_vreader_out                   : TWIDTH_32_vch;
+signal tst_vreader_out,tst_vmir_out      : TWIDTH_32_vch;
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
 
 type TVfrSkip is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
@@ -376,7 +376,7 @@ p_out_tst(31 downto 27) <= tst_vwriter_out(31 downto 27);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out(0));
+p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out(0)) or OR_reduce(tst_vmir_out(0));
 p_out_tst(4 downto 1) <= tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <= tst_vreader_out(0)(3 downto 0);
 p_out_tst(9)          <= tst_vwriter_out(4);
@@ -882,7 +882,7 @@ p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n(ch),
 --Технологический
 -------------------------------
 p_in_tst            => (others=>'0'),
-p_out_tst           => open,
+p_out_tst           => tst_vmir_out(ch),
 
 -------------------------------
 --System
@@ -899,11 +899,11 @@ din         => i_vmir_dout(ch),
 wr_en       => i_vmir_dout_en(ch),
 wr_clk      => p_in_clk,
 
-dout        => p_out_vbufout_do(ch)(G_MEM_DWIDTH - 1 downto 0),
-rd_en       => p_in_vbufout_rd(ch),
+dout        => p_out_vbufo_do(ch)(G_MEM_DWIDTH - 1 downto 0),
+rd_en       => p_in_vbufo_rd(ch),
 rd_clk      => p_in_host_clk,
 
-empty       => p_out_vbufout_empty(ch),
+empty       => p_out_vbufo_empty(ch),
 full        => open,
 prog_full   => i_vcoldemasc_rdy_n(ch),
 
@@ -951,10 +951,10 @@ p_out_vrow_mrk        => i_vwrite_vrow_mrk,
 ----------------------------
 --Upstream Port
 ----------------------------
-p_in_upp_data         => p_in_vbufin_dout,
-p_out_upp_data_rd     => p_out_vbufin_dout_rd,
-p_in_upp_buf_empty    => p_in_vbufin_empty,
-p_in_upp_buf_full     => p_in_vbufin_full,
+p_in_upp_data         => p_in_vbufi_do,
+p_out_upp_data_rd     => p_out_vbufi_rd,
+p_in_upp_buf_empty    => p_in_vbufi_empty,
+p_in_upp_buf_full     => p_in_vbufi_full,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd

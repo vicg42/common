@@ -69,7 +69,7 @@ end vmirx_main;
 architecture behavioral of vmirx_main is
 
 constant dly : time := 1 ps;
-constant CI_BRAM_AWIDTH : integer := 12;
+constant CI_BRAM_AWIDTH : integer := log2(4096 / (p_in_upp_data'length/ 32));
 
 component vmirx_bram
 port(
@@ -117,6 +117,10 @@ signal i_read_en         : std_logic;
 
 signal i_gnd             : std_logic_vector(G_DWIDTH - 1 downto 0);
 
+signal tst_fsmstate,tst_fsmstate_out : std_logic_vector(1 downto 0);
+signal tst_buf_enb : std_logic;
+signal tst_hbufo_pfull : std_logic;
+
 
 --MAIN
 begin
@@ -132,7 +136,22 @@ i_gnd <= (others=>'0');
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(0) <= OR_reduce(tst_fsmstate_out) or tst_buf_enb or tst_hbufo_pfull;
+p_out_tst(31 downto 1) <= (others=>'0');
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    tst_fsmstate_out <= tst_fsmstate;
+    tst_buf_enb <= i_buf_enb;
+    tst_hbufo_pfull <= p_in_dwnp_rdy_n;
+  end if;
+end process;
+
+tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmstate'length) when fsm_state_cs = S_BUF_RD_SOF  else
+                CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmstate'length) when fsm_state_cs = S_BUF_RD      else
+                CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_BUF_RD_EOF  else
+                CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_BUF_WR          else
 
 
 ------------------------------------------------

@@ -272,8 +272,8 @@ TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 ###############################################################################
 ### AXI: MEMEORY ARBITER BANK0
 ###############################################################################
-NET "m_mem_arb/gen_chcount_7.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
-NET "m_mem_arb/gen_chcount_7.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
 TIMEGRP "mem_arbch_reset_source" = FFS PADS;
 TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
 

@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0404#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0405#;
 
 --VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--DWORD
@@ -54,6 +54,7 @@ constant C_HREG_VCTRL_FRMRK1                  : integer:=16#10#;
 constant C_HREG_VCTRL_FRMRK2                  : integer:=16#11#;
 constant C_HREG_VCTRL_FRMRK3                  : integer:=16#12#;
 constant C_HREG_VCTRL_FRMRK4                  : integer:=16#13#;
+constant C_HREG_ETH_HEADER                    : integer:=16#14#;
 --constant C_HREG_RESERV                        : integer:=...
 constant C_HREG_TST0                          : integer:=16#1C#;--Тестовые регистры
 constant C_HREG_TST1                          : integer:=16#1D#;
@@ -219,8 +220,7 @@ constant C_HREG_FUNC_HDD_BIT                  : integer:=4;
 constant C_HREG_FUNC_VRESEK21_BIT             : integer:=5;
 constant C_HREG_FUNC_PROM_BIT                 : integer:=6;
 constant C_HREG_FUNC_PULT_BIT                 : integer:=7;
-constant C_HREG_VCTRL_REV_BIT                 : integer:=8;
-constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_VCTRL_REV_BIT;
+constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_PULT_BIT;
 
 
 --Register C_HREG_FUNCPRM / Bit Map:
@@ -229,7 +229,9 @@ constant C_HREG_FUNCPRM_MEMBANK_SIZE_M_BIT    : integer:=2;
 constant C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT : integer:=3;
 constant C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT : integer:=5;
 constant C_HREG_FUNCPRM_VCTRL_MIR_BIT         : integer:=6;
-constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_VCTRL_MIR_BIT;
+constant C_HREG_FUNCPRM_VCTRL_REV_BIT         : integer:=7;
+constant C_HREG_FUNCPRM_ETH_REV_BIT           : integer:=8;
+constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_ETH_REV_BIT;
 
 
 --Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
@@ -244,7 +246,9 @@ constant C_HDEV_OPTIN_TIME_L_BIT              : integer:=43 + (32 * (5 - 1));
 constant C_HDEV_OPTIN_TIME_M_BIT              : integer:=74 + (32 * (5 - 1));
 constant C_HDEV_OPTIN_USR_SWT_L_BIT           : integer:=75 + (32 * (5 - 1));
 constant C_HDEV_OPTIN_USR_SWT_M_BIT           : integer:=76 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_LAST_BIT                : integer:=C_HDEV_OPTIN_USR_SWT_M_BIT;
+constant C_HDEV_OPTIN_ETH_HEADER_L_BIT        : integer:=77 + (32 * (5 - 1));
+constant C_HDEV_OPTIN_ETH_HEADER_M_BIT        : integer:=108 + (32 * (5 - 1));
+constant C_HDEV_OPTIN_LAST_BIT                : integer:=C_HDEV_OPTIN_ETH_HEADER_M_BIT;
 
 --Порт модуля dsn_host.vhd /p_out_dev_option/ Bit Map:
 constant C_HDEV_OPTOUT_MEM_ADR_L_BIT          : integer:=0;

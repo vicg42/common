@@ -23,6 +23,7 @@ use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
 use work.mem_wr_pkg.all;
 use work.prom_phypin_pkg.all;
+use work.eth_pkg.all;
 
 package veresk_pkg is
 
@@ -119,12 +120,13 @@ end component;
 
 component dsn_switch
 generic(
+G_ETH_CH_COUNT : integer:=1;
 G_ETH_DWIDTH : integer:=32;
 G_HOST_DWIDTH : integer:=32
 );
 port(
 -------------------------------
--- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
+--CFG
 -------------------------------
 p_in_cfg_clk              : in   std_logic;
 
@@ -141,11 +143,11 @@ p_in_cfg_rd               : in   std_logic;
 p_in_cfg_done             : in   std_logic;
 
 -------------------------------
--- Связь с Хостом (host_clk domain)
+--HOST
 -------------------------------
 p_in_host_clk             : in   std_logic;
 
--- Связь Хост <-> ETH(dsn_eth.vhd)
+--Host <-> ETH
 p_out_host_eth_rxd_irq    : out  std_logic;
 p_out_host_eth_rxd_rdy    : out  std_logic;
 p_out_host_eth_rxd        : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
@@ -156,31 +158,20 @@ p_in_host_eth_txd         : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_host_eth_wr          : in   std_logic;
 
 -------------------------------
--- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
+--ETH
 -------------------------------
-p_in_eth_clk              : in   std_logic;
-
-p_in_eth_rxd_sof          : in   std_logic;
-p_in_eth_rxd_eof          : in   std_logic;
-p_in_eth_rxbuf_din        : in   std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-p_in_eth_rxbuf_wr         : in   std_logic;
-p_out_eth_rxbuf_empty     : out  std_logic;
-p_out_eth_rxbuf_full      : out  std_logic;
-
-p_out_eth_txbuf_dout      : out  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-p_in_eth_txbuf_rd         : in   std_logic;
-p_out_eth_txbuf_empty     : out  std_logic;
-p_out_eth_txbuf_full      : out  std_logic;
+p_in_eth                  : in   TEthOUTs;
+p_out_eth                 : out  TEthINs;
 
 -------------------------------
--- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)
+--VCTRL
 -------------------------------
 p_in_vctrl_clk            : in   std_logic;
 
-p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);
-p_in_vctrl_vbufin_rd      : in   std_logic;
-p_out_vctrl_vbufin_empty  : out  std_logic;
-p_out_vctrl_vbufin_full   : out  std_logic;
+p_out_vctrl_vbufi_do      : out  std_logic_vector(31 downto 0);
+p_in_vctrl_vbufi_rd       : in   std_logic;
+p_out_vctrl_vbufi_empty   : out  std_logic;
+p_out_vctrl_vbufi_full    : out  std_logic;
 
 -------------------------------
 --Технологический
@@ -208,7 +199,7 @@ G_MEM_DWIDTH : integer:=32
 );
 port(
 -------------------------------
--- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
+--CFG
 -------------------------------
 p_in_host_clk         : in   std_logic;
 
@@ -225,7 +216,7 @@ p_in_cfg_rd           : in   std_logic;
 p_in_cfg_done         : in   std_logic;
 
 -------------------------------
--- Связь с ХОСТ
+--HOST
 -------------------------------
 p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);
 p_in_vctrl_hrdstart   : in    std_logic;
@@ -234,20 +225,20 @@ p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
 p_out_vctrl_hfrmrk    : out   TVMrks;
 
-p_out_vbufout_do      : out   TVCH_bufo_d;
-p_in_vbufout_rd       : in    std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
-p_out_vbufout_empty   : out   std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+p_out_vbufo_do        : out   TVCH_bufo_d;  --Связь с буферов видео данных для ХОСТА
+p_in_vbufo_rd         : in    std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+p_out_vbufo_empty     : out   std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
 
 -------------------------------
--- Связь с буферами модуля dsn_switch.vhd
+--VBUFI
 -------------------------------
-p_in_vbufin_dout      : in    std_logic_vector(31 downto 0);
-p_out_vbufin_dout_rd  : out   std_logic;
-p_in_vbufin_empty     : in    std_logic;
-p_in_vbufin_full      : in    std_logic;
+p_in_vbufi_do         : in    std_logic_vector(31 downto 0);
+p_out_vbufi_rd        : out   std_logic;
+p_in_vbufi_empty      : in    std_logic;
+p_in_vbufi_full       : in    std_logic;
 
 ---------------------------------
--- Связь с mem_ctrl.vhd
+--MEM
 ---------------------------------
 --CH WRITE
 p_out_memwr           : out   TMemIN;
@@ -285,11 +276,11 @@ port(
 p_in_ctrl         : in    TPce2Mem_Ctrl;
 p_out_status      : out   TPce2Mem_Status;
 
-p_in_txd          : in    std_logic_vector(31 downto 0);
+p_in_txd          : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_in_txd_wr       : in    std_logic;
 p_out_txbuf_full  : out   std_logic;
 
-p_out_rxd         : out   std_logic_vector(31 downto 0);
+p_out_rxd         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_in_rxd_rd       : in    std_logic;
 p_out_rxbuf_empty : out   std_logic;
 
@@ -316,6 +307,9 @@ p_in_rst          : in    std_logic
 end component;
 
 component pult_io
+generic(
+G_HOST_DWIDTH : integer:=32
+);
 port(
 trans_ack      : in  std_logic;
 
@@ -325,11 +319,11 @@ dir_485        : out std_logic;
 
 host_clk_wr    : in  std_logic;
 wr_en          : in  std_logic;
-data_from_host : in  std_logic_vector(31 downto 0);
+data_from_host : in  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 
 host_clk_rd    : in  std_logic;
 rd_en          : in  std_logic;
-data_to_host   : out std_logic_vector(31 downto 0);
+data_to_host   : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 
 busy           : out std_logic;
 ready          : out std_logic;
@@ -379,6 +373,7 @@ end component;
 
 component edev
 generic(
+G_HOST_DWIDTH : integer:=32;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
@@ -390,11 +385,11 @@ p_in_tmr_stb      : in   std_logic;
 --Связь с HOST
 -------------------------------
 p_out_host_rxrdy  : out  std_logic;
-p_out_host_rxd    : out  std_logic_vector(31 downto 0);
+p_out_host_rxd    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_host_rd      : in   std_logic;
 
 p_out_host_txrdy  : out  std_logic;
-p_in_host_txd     : in   std_logic_vector(31 downto 0);
+p_in_host_txd     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_host_wr      : in   std_logic;
 
 p_in_host_clk     : in   std_logic;

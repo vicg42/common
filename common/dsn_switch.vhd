@@ -20,15 +20,17 @@ use ieee.std_logic_unsigned.all;
 
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
+use work.eth_pkg.all;
 
 entity dsn_switch is
 generic(
+G_ETH_CH_COUNT : integer:=1;
 G_ETH_DWIDTH : integer:=32;
 G_HOST_DWIDTH : integer:=32
 );
 port(
 -------------------------------
--- Конфигурирование модуля DSN_SWITCH.VHD (host_clk domain)
+--CFG
 -------------------------------
 p_in_cfg_clk              : in   std_logic;
 
@@ -45,11 +47,11 @@ p_in_cfg_rd               : in   std_logic;
 p_in_cfg_done             : in   std_logic;
 
 -------------------------------
--- Связь с Хостом (host_clk domain)
+--HOST
 -------------------------------
 p_in_host_clk             : in   std_logic;
 
--- Связь Хост <-> ETH(dsn_eth.vhd)
+--Host <-> Eth
 p_out_host_eth_rxd_irq    : out  std_logic;
 p_out_host_eth_rxd_rdy    : out  std_logic;
 p_out_host_eth_rxd        : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
@@ -60,31 +62,20 @@ p_in_host_eth_txd         : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 p_in_host_eth_wr          : in   std_logic;
 
 -------------------------------
--- Связь с EthG(Оптика)(dsn_optic.vhd) (ethg_clk domain)
+--Eth
 -------------------------------
-p_in_eth_clk              : in   std_logic;
-
-p_in_eth_rxd_sof          : in   std_logic;
-p_in_eth_rxd_eof          : in   std_logic;
-p_in_eth_rxbuf_din        : in   std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-p_in_eth_rxbuf_wr         : in   std_logic;
-p_out_eth_rxbuf_empty     : out  std_logic;
-p_out_eth_rxbuf_full      : out  std_logic;
-
-p_out_eth_txbuf_dout      : out  std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-p_in_eth_txbuf_rd         : in   std_logic;
-p_out_eth_txbuf_empty     : out  std_logic;
-p_out_eth_txbuf_full      : out  std_logic;
+p_in_eth                  : in   TEthOUTs;
+p_out_eth                 : out  TEthINs;
 
 -------------------------------
--- Связь с Модулем Видео контроллера(dsn_video_ctrl.vhd) (trc_clk domain)
+--VCTRL
 -------------------------------
 p_in_vctrl_clk            : in   std_logic;
 
-p_out_vctrl_vbufin_dout   : out  std_logic_vector(31 downto 0);
-p_in_vctrl_vbufin_rd      : in   std_logic;
-p_out_vctrl_vbufin_empty  : out  std_logic;
-p_out_vctrl_vbufin_full   : out  std_logic;
+p_out_vctrl_vbufi_do      : out  std_logic_vector(31 downto 0);
+p_in_vctrl_vbufi_rd       : in   std_logic;
+p_out_vctrl_vbufi_empty   : out  std_logic;
+p_out_vctrl_vbufi_full    : out  std_logic;
 
 -------------------------------
 --Технологический
@@ -114,8 +105,6 @@ rd_clk      : IN  std_logic;
 
 empty       : OUT std_logic;
 full        : OUT std_logic;
---almost_full : OUT std_logic;
-almost_empty: OUT std_logic;
 
 rst         : IN  std_logic
 );
@@ -224,8 +213,9 @@ signal eclk_eth_rxd_rdy_w            : std_logic;
 signal eclk_eth_rxd_rdy_wcnt         : std_logic_vector(2 downto 0);
 signal hclk_eth_rxd_rdy              : std_logic;
 
-signal i_vctrl_vbufin_fltr_dout      : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
-signal i_vctrl_vbufin_fltr_den       : std_logic;
+signal i_vctrl_vbufi_fltr_dout      : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+signal i_vctrl_vbufi_fltr_dout_swap : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
+signal i_vctrl_vbufi_fltr_den       : std_logic;
 
 signal i_vctrl_vbufout_empty         : std_logic;
 
@@ -365,7 +355,7 @@ hclk_tmr_en <= p_in_tst(1);
 --########################################################################
 
 --Синхронизируем управление ветвлением данных с началом прининятого пакета Ethernet
-process(p_in_rst, p_in_eth_clk)
+process(p_in_rst, p_in_eth(0).rxbuf.wrclk)
 begin
   if p_in_rst = '1' then
 
@@ -384,9 +374,9 @@ begin
     syn_eth_rxd_sof <= '0';
     syn_eth_rxd_eof <= '0';
 
-  elsif rising_edge(p_in_eth_clk) then
+  elsif rising_edge(p_in_eth(0).rxbuf.wrclk) then
 
-    if p_in_eth_rxd_sof = '1' then
+    if p_in_eth(0).rxbuf.sof = '1' then
 
       for i in 0 to C_SWT_GET_FMASK_REG_COUNT(C_SWT_ETH_HOST_FRR_COUNT) - 1 loop
         syn_eth_host_frr(2 * i) <= h_reg_eth_host_frr(2 * i);
@@ -400,10 +390,10 @@ begin
 
     end if;
 
-    syn_eth_rxd <= p_in_eth_rxbuf_din;
-    syn_eth_rxd_wr <= p_in_eth_rxbuf_wr;
-    syn_eth_rxd_sof <= p_in_eth_rxd_sof;
-    syn_eth_rxd_eof <= p_in_eth_rxd_eof;
+    syn_eth_rxd <= p_in_eth(0).rxbuf.din(G_ETH_DWIDTH - 1 downto 0);
+    syn_eth_rxd_wr <= p_in_eth(0).rxbuf.wr;
+    syn_eth_rxd_sof <= p_in_eth(0).rxbuf.sof;
+    syn_eth_rxd_eof <= p_in_eth(0).rxbuf.eof;
 
   end if;
 end process;
@@ -416,12 +406,12 @@ end process;
 --Сигнал хосту EthG TxBUF - готов принять данные
 p_out_host_eth_txbuf_rdy <= i_eth_txbuf_empty;
 --Связь с модулем dsn_eth.vhd
-p_out_eth_txbuf_empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en) when i_tmr_en = '1' else
+p_out_eth(0).txbuf.empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en) when i_tmr_en = '1' else
                          i_eth_txbuf_empty;
 
-process(p_in_eth_clk)
+process(p_in_eth(0).txbuf.rdclk)
 begin
-  if rising_edge(p_in_eth_clk) then
+  if rising_edge(p_in_eth(0).txbuf.rdclk) then
     i_tmr_en <= hclk_tmr_en;
     sr_eth_tx_start <= hclk_eth_tx_start & sr_eth_tx_start(0 to 1);
 
@@ -439,13 +429,12 @@ din     => p_in_host_eth_txd,
 wr_en   => p_in_host_eth_wr,
 wr_clk  => p_in_host_clk,
 
-dout    => p_out_eth_txbuf_dout,
-rd_en   => p_in_eth_txbuf_rd,
-rd_clk  => p_in_eth_clk,
+dout    => p_out_eth(0).txbuf.dout(G_ETH_DWIDTH - 1 downto 0),
+rd_en   => p_in_eth(0).txbuf.rd,
+rd_clk  => p_in_eth(0).txbuf.rdclk,
 
 empty   => i_eth_txbuf_empty,
-full    => p_out_eth_txbuf_full,
-almost_empty=> open,
+full    => p_out_eth(0).txbuf.full,
 
 rst     => b_rst_eth_bufs
 );
@@ -490,7 +479,7 @@ p_out_tst       => open,
 --------------------------------------
 --SYSTEM
 --------------------------------------
-p_in_clk        => p_in_eth_clk,
+p_in_clk        => p_in_eth(0).rxbuf.wrclk,
 p_in_rst        => b_rst_eth_bufs
 );
 
@@ -498,33 +487,33 @@ m_eth_rxbuf : host_ethg_rxfifo
 port map(
 din     => i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
-wr_clk  => p_in_eth_clk,
+wr_clk  => p_in_eth(0).rxbuf.wrclk,
 
 dout    => p_out_host_eth_rxd,
 rd_en   => p_in_host_eth_rd,
 rd_clk  => p_in_host_clk,
 
 empty   => i_eth_rxbuf_empty,
-full    => p_out_eth_rxbuf_full,
+full    => p_out_eth(0).rxbuf.full,
 
 rst     => b_rst_eth_bufs
 );
 
 --Связь с модулем хоста dsn_host.vhd
-p_out_eth_rxbuf_empty <= i_eth_rxbuf_empty;
+p_out_eth(0).rxbuf.empty <= i_eth_rxbuf_empty;
 
 --Сигнал Хосту: в RxBUF есть новые данные от ETH
 p_out_host_eth_rxd_rdy <= not i_eth_rxbuf_empty;
 
 --Формируем прерываение ETH_RXBUF
-process(p_in_rst, p_in_eth_clk)
+process(p_in_rst, p_in_eth(0).rxbuf.wrclk)
 begin
   if p_in_rst = '1' then
     i_eth_rxd_rdy_dly <= (others=>'0');
     eclk_eth_rxd_rdy_wcnt <= (others=>'0');
     eclk_eth_rxd_rdy_w <= '0';
 
-  elsif rising_edge(p_in_eth_clk) then
+  elsif rising_edge(p_in_eth(0).rxbuf.wrclk) then
     i_eth_rxd_rdy_dly <= i_eth_rxbuf_fltr_eof & i_eth_rxd_rdy_dly(0 to 1);
 
     --Растягиваем импульс готовности данных от модуля dsn_eth.vhd
@@ -580,8 +569,8 @@ p_in_upp_sof    => syn_eth_rxd_sof,
 --------------------------------------
 --Downstream Port
 --------------------------------------
-p_out_dwnp_data => i_vctrl_vbufin_fltr_dout,
-p_out_dwnp_wr   => i_vctrl_vbufin_fltr_den,
+p_out_dwnp_data => i_vctrl_vbufi_fltr_dout,
+p_out_dwnp_wr   => i_vctrl_vbufi_fltr_den,
 p_out_dwnp_eof  => open,
 p_out_dwnp_sof  => open,
 
@@ -594,23 +583,28 @@ p_out_tst       => open,
 --------------------------------------
 --SYSTEM
 --------------------------------------
-p_in_clk        => p_in_eth_clk,
+p_in_clk        => p_in_eth(0).rxbuf.wrclk,
 p_in_rst        => b_rst_vctrl_bufs
 );
 
+gen_swap_d : for i in 0 to (i_vctrl_vbufi_fltr_dout'length / 32) - 1 generate
+i_vctrl_vbufi_fltr_dout_swap((i_vctrl_vbufi_fltr_dout_swap'length - (32 * i)) - 1 downto
+                              (i_vctrl_vbufi_fltr_dout_swap'length - (32 * (i + 1)) ))
+                          <= i_vctrl_vbufi_fltr_dout((32 * (i + 1)) - 1 downto (32 * i));
+end generate;-- gen_swap_d;
 
 m_vctrl_bufi : ethg_vctrl_rxfifo
 port map(
-din         => i_vctrl_vbufin_fltr_dout,
-wr_en       => i_vctrl_vbufin_fltr_den,
-wr_clk      => p_in_eth_clk,
+din         => i_vctrl_vbufi_fltr_dout_swap,
+wr_en       => i_vctrl_vbufi_fltr_den,
+wr_clk      => p_in_eth(0).rxbuf.wrclk,
 
-dout        => p_out_vctrl_vbufin_dout,
-rd_en       => p_in_vctrl_vbufin_rd,
+dout        => p_out_vctrl_vbufi_do,
+rd_en       => p_in_vctrl_vbufi_rd,
 rd_clk      => p_in_vctrl_clk,
 
-empty       => p_out_vctrl_vbufin_empty,
-full        => p_out_vctrl_vbufin_full,
+empty       => p_out_vctrl_vbufi_empty,
+full        => p_out_vctrl_vbufi_full,
 prog_full   => open,
 
 rst         => b_rst_vctrl_bufs

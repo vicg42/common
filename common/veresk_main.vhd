@@ -205,9 +205,9 @@ signal i_host_rst_edev                  : std_logic;
 signal i_host_rst_vizir                 : std_logic;
 signal i_host_rst_bup                   : std_logic;
 signal i_host_rst_prom                  : std_logic;
-Type THDevWidthCnt is array (0 to C_HDEV_COUNT - 1) of std_logic_vector(2 downto 0);
-signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_COUNT - 1 downto 0);
-signal hclk_hdev_dma_start              : std_logic_vector(C_HDEV_COUNT - 1 downto 0);
+signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_VCH_DBUF downto C_HDEV_VCH_DBUF);--(C_HDEV_COUNT - 1 downto 0);
+signal hclk_hdev_dma_start              : std_logic_vector(C_HDEV_VCH_DBUF downto C_HDEV_VCH_DBUF);--(C_HDEV_COUNT - 1 downto 0);
+Type THDevWidthCnt is array (C_HDEV_VCH_DBUF to C_HDEV_VCH_DBUF) of std_logic_vector(2 downto 0);--(0 to C_HDEV_COUNT - 1) of std_logic_vector(2 downto 0);
 signal hclk_hdev_dma_start_cnt          : THDevWidthCnt;
 
 signal i_host_tst_in                    : std_logic_vector(127 downto 0);
@@ -248,13 +248,13 @@ signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT - 1 downt
 signal i_tmr_en                         : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 
 signal i_vctrl_rst                      : std_logic;
-signal i_vctrl_vbufin_dout              : std_logic_vector(31 downto 0);
-signal i_vctrl_vbufin_rd                : std_logic;
-signal i_vctrl_vbufin_empty             : std_logic;
-signal i_vctrl_vbufin_full              : std_logic;
-signal i_vctrl_vbufout_do               : TVCH_bufo_d;
-signal i_vctrl_vbufout_rd               : std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
-signal i_vctrl_vbufout_empty            : std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+signal i_vctrl_vbufi_do                 : std_logic_vector(31 downto 0);
+signal i_vctrl_vbufi_rd                 : std_logic;
+signal i_vctrl_vbufi_empty              : std_logic;
+signal i_vctrl_vbufi_full               : std_logic;
+signal i_vctrl_vbufo_do                 : TVCH_bufo_d;
+signal i_vctrl_vbufo_rd                 : std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+signal i_vctrl_vbufo_empty              : std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
 
 signal i_vctrl_hrd_start                : std_logic;
 signal i_vctrl_hirq                     : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
@@ -315,6 +315,13 @@ attribute keep of i_ethphy_out : signal is "true";
 signal i_test01_led     : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
 --signal tst_prom_out     : std_logic_vector(31 downto 0);
+signal tst_vctrl_vbufin_dout  : std_logic_vector(31 downto 0);
+signal tst_vctrl_vbufin_rd    : std_logic;
+signal tst_vctrl_vbufin_empty : std_logic;
+signal tst_vctrl_hbufo_empty  : std_logic;
+signal tst_vctrl_hbufo_pfull  : std_logic;
+signal tst_vctrl_hbufo_rd     : std_logic;
+
 
 --MAIN
 begin
@@ -480,12 +487,13 @@ p_in_rst => i_tmr_rst
 --***********************************************************
 m_swt : dsn_switch
 generic map(
+G_ETH_CH_COUNT => 1,
 G_ETH_DWIDTH => C_PCFG_ETH_USR_DWIDTH,
 G_HOST_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
 -------------------------------
--- Конфигурирование модуля dsn_switch.vhd (p_in_cfg_clk domain)
+--CFG
 -------------------------------
 p_in_cfg_clk              => g_host_clk,
 
@@ -502,11 +510,11 @@ p_in_cfg_rd               => i_cfg_rd_dev(C_CFGDEV_SWT),
 p_in_cfg_done             => i_cfg_done_dev(C_CFGDEV_SWT),
 
 -------------------------------
--- Связь с Хостом (host_clk domain)
+--HOST
 -------------------------------
 p_in_host_clk             => g_host_clk,
 
--- Связь Хост <-> ETH(dsn_eth.vhd)
+--Host <-> Eth
 p_out_host_eth_rxd_irq    => i_host_irq(C_HIRQ_ETH_RX),
 p_out_host_eth_rxd_rdy    => i_host_rxrdy(C_HDEV_ETH_DBUF),
 p_out_host_eth_rxd        => i_host_rxd(C_HDEV_ETH_DBUF),
@@ -517,31 +525,20 @@ p_in_host_eth_txd         => i_host_txd(C_HDEV_ETH_DBUF),
 p_in_host_eth_wr          => i_host_wr(C_HDEV_ETH_DBUF),
 
 -------------------------------
--- Связь с Eth(dsn_eth.vhd) (ethg_clk domain)
+--ETH
 -------------------------------
-p_in_eth_clk              => i_ethphy_out.clk,
-
-p_in_eth_rxd_sof          => i_eth_out(0).rxbuf.sof,
-p_in_eth_rxd_eof          => i_eth_out(0).rxbuf.eof,
-p_in_eth_rxbuf_din        => i_eth_out(0).rxbuf.din(C_PCFG_ETH_USR_DWIDTH - 1 downto 0),
-p_in_eth_rxbuf_wr         => i_eth_out(0).rxbuf.wr,
-p_out_eth_rxbuf_empty     => i_eth_in(0).rxbuf.empty,
-p_out_eth_rxbuf_full      => i_eth_in(0).rxbuf.full,
-
-p_out_eth_txbuf_dout      => i_eth_in(0).txbuf.dout(C_PCFG_ETH_USR_DWIDTH - 1 downto 0),
-p_in_eth_txbuf_rd         => i_eth_out(0).txbuf.rd,
-p_out_eth_txbuf_empty     => i_eth_in(0).txbuf.empty,
-p_out_eth_txbuf_full      => i_eth_in(0).txbuf.full,
+p_in_eth                  => i_eth_out,
+p_out_eth                 => i_eth_in,
 
 -------------------------------
--- Связь с VCTRL(dsn_video_ctrl.vhd) (vctrl_clk domain)
+--VCTRL
 -------------------------------
 p_in_vctrl_clk            => g_usr_highclk,
 
-p_out_vctrl_vbufin_dout   => i_vctrl_vbufin_dout,
-p_in_vctrl_vbufin_rd      => i_vctrl_vbufin_rd,
-p_out_vctrl_vbufin_empty  => i_vctrl_vbufin_empty,
-p_out_vctrl_vbufin_full   => i_vctrl_vbufin_full,
+p_out_vctrl_vbufi_do      => i_vctrl_vbufi_do,
+p_in_vctrl_vbufi_rd       => i_vctrl_vbufi_rd,
+p_out_vctrl_vbufi_empty   => i_vctrl_vbufi_empty,
+p_out_vctrl_vbufi_full    => i_vctrl_vbufi_full,
 
 -------------------------------
 --Технологический
@@ -639,86 +636,87 @@ i_vctrl_hirq_out <= EXT(i_vctrl_hirq, i_vctrl_hirq_out'length);
 i_vctrl_hrdy_out <= EXT(i_vctrl_hrdy, i_vctrl_hrdy_out'length);
 
 gen_vch : for ch in 0 to C_VCTRL_VCH_COUNT_MAX - 1 generate
-i_vctrl_vbufout_rd(ch) <= i_host_rd(C_HDEV_VCH_DBUF) when i_host_vchsel = ch  else '0';
+i_vctrl_vbufo_rd(ch) <= i_host_rd(C_HDEV_VCH_DBUF) when i_host_vchsel = ch  else '0';
 end generate;--gen_vch
 
 gen_vch_count1 : if C_VCTRL_VCH_COUNT = 1 generate
-i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_do(0)(C_HDEV_DWIDTH - 1 downto 0);
-i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_empty(0);
+i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_do(0)(C_HDEV_DWIDTH - 1 downto 0);
+i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_empty(0);
 end generate;--gen_vch_count1
 
 gen_vch_count2 : if C_VCTRL_VCH_COUNT = 2 generate
-i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_do(1)(C_HDEV_DWIDTH - 1 downto 0)
+i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_do(1)(C_HDEV_DWIDTH - 1 downto 0)
                                 when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                  i_vctrl_vbufout_do(0)(C_HDEV_DWIDTH - 1 downto 0);
+                                  i_vctrl_vbufo_do(0)(C_HDEV_DWIDTH - 1 downto 0);
 
-i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_empty(1)
+i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_empty(1)
                                         when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                          i_vctrl_vbufout_empty(0);
+                                          i_vctrl_vbufo_empty(0);
 end generate;--gen_vch_count2
 
 gen_vch_count3 : if C_VCTRL_VCH_COUNT = 3 generate
-i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_do(2)(C_HDEV_DWIDTH - 1 downto 0)
+i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_do(2)(C_HDEV_DWIDTH - 1 downto 0)
                                  when i_host_vchsel = CONV_STD_LOGIC_VECTOR(2, i_host_vchsel'length) else
-                                   i_vctrl_vbufout_do(1)(C_HDEV_DWIDTH - 1 downto 0)
+                                   i_vctrl_vbufo_do(1)(C_HDEV_DWIDTH - 1 downto 0)
                                      when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                       i_vctrl_vbufout_do(0)(C_HDEV_DWIDTH - 1 downto 0);
+                                       i_vctrl_vbufo_do(0)(C_HDEV_DWIDTH - 1 downto 0);
 
-i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_empty(2)
+i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_empty(2)
                                         when i_host_vchsel = CONV_STD_LOGIC_VECTOR(2, i_host_vchsel'length) else
-                                          i_vctrl_vbufout_empty(1)
+                                          i_vctrl_vbufo_empty(1)
                                             when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                              i_vctrl_vbufout_empty(0);
+                                              i_vctrl_vbufo_empty(0);
 end generate;--gen_vch_count3
 
 gen_vch_count4 : if C_VCTRL_VCH_COUNT = 4 generate
-i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_do(3)(C_HDEV_DWIDTH - 1 downto 0)
+i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_do(3)(C_HDEV_DWIDTH - 1 downto 0)
                                 when i_host_vchsel = CONV_STD_LOGIC_VECTOR(3, i_host_vchsel'length) else
-                                  i_vctrl_vbufout_do(2)(C_HDEV_DWIDTH - 1 downto 0)
+                                  i_vctrl_vbufo_do(2)(C_HDEV_DWIDTH - 1 downto 0)
                                     when i_host_vchsel = CONV_STD_LOGIC_VECTOR(2, i_host_vchsel'length) else
-                                      i_vctrl_vbufout_do(1)(C_HDEV_DWIDTH - 1 downto 0)
+                                      i_vctrl_vbufo_do(1)(C_HDEV_DWIDTH - 1 downto 0)
                                         when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                          i_vctrl_vbufout_do(0)(C_HDEV_DWIDTH - 1 downto 0);
+                                          i_vctrl_vbufo_do(0)(C_HDEV_DWIDTH - 1 downto 0);
 
-i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_empty(3)
+i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_empty(3)
                                         when i_host_vchsel = CONV_STD_LOGIC_VECTOR(3, i_host_vchsel'length) else
-                                          i_vctrl_vbufout_empty(2)
+                                          i_vctrl_vbufo_empty(2)
                                             when i_host_vchsel = CONV_STD_LOGIC_VECTOR(2, i_host_vchsel'length) else
-                                              i_vctrl_vbufout_empty(1)
+                                              i_vctrl_vbufo_empty(1)
                                                 when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                                  i_vctrl_vbufout_empty(0);
+                                                  i_vctrl_vbufo_empty(0);
 end generate;--gen_vch_count4
 
 gen_vch_count5 : if C_VCTRL_VCH_COUNT = 5 generate
-i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_do(4)(C_HDEV_DWIDTH - 1 downto 0)
+i_host_rxd(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_do(4)(C_HDEV_DWIDTH - 1 downto 0)
                                 when i_host_vchsel = CONV_STD_LOGIC_VECTOR(4, i_host_vchsel'length) else
-                                  i_vctrl_vbufout_do(3)(C_HDEV_DWIDTH - 1 downto 0)
+                                  i_vctrl_vbufo_do(3)(C_HDEV_DWIDTH - 1 downto 0)
                                     when i_host_vchsel = CONV_STD_LOGIC_VECTOR(3, i_host_vchsel'length) else
-                                      i_vctrl_vbufout_do(2)(C_HDEV_DWIDTH - 1 downto 0)
+                                      i_vctrl_vbufo_do(2)(C_HDEV_DWIDTH - 1 downto 0)
                                         when i_host_vchsel = CONV_STD_LOGIC_VECTOR(2, i_host_vchsel'length) else
-                                          i_vctrl_vbufout_do(1)(C_HDEV_DWIDTH - 1 downto 0)
+                                          i_vctrl_vbufo_do(1)(C_HDEV_DWIDTH - 1 downto 0)
                                             when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                              i_vctrl_vbufout_do(0)(C_HDEV_DWIDTH - 1 downto 0);
+                                              i_vctrl_vbufo_do(0)(C_HDEV_DWIDTH - 1 downto 0);
 
-i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufout_empty(4)
+i_host_rxbuf_empty(C_HDEV_VCH_DBUF) <= i_vctrl_vbufo_empty(4)
                                         when i_host_vchsel = CONV_STD_LOGIC_VECTOR(4, i_host_vchsel'length) else
-                                          i_vctrl_vbufout_empty(3)
+                                          i_vctrl_vbufo_empty(3)
                                             when i_host_vchsel = CONV_STD_LOGIC_VECTOR(3, i_host_vchsel'length) else
-                                              i_vctrl_vbufout_empty(2)
+                                              i_vctrl_vbufo_empty(2)
                                                 when i_host_vchsel = CONV_STD_LOGIC_VECTOR(2, i_host_vchsel'length) else
-                                                  i_vctrl_vbufout_empty(1)
+                                                  i_vctrl_vbufo_empty(1)
                                                     when i_host_vchsel = CONV_STD_LOGIC_VECTOR(1, i_host_vchsel'length) else
-                                                      i_vctrl_vbufout_empty(0);
+                                                      i_vctrl_vbufo_empty(0);
 end generate;--gen_vch_count5
 
 m_vctrl : dsn_video_ctrl
 generic map(
+G_DBGCS => "ON",
 G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
 G_MEM_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
 -------------------------------
--- Конфигурирование модуля dsn_video_ctrl.vhd (host_clk domain)
+--CFG
 -------------------------------
 p_in_host_clk        => g_host_clk,
 
@@ -735,7 +733,7 @@ p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_VCTRL),
 p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
 
 -------------------------------
--- Связь с ХОСТ
+--Host
 -------------------------------
 p_in_vctrl_hrdchsel  => i_host_vchsel,
 p_in_vctrl_hrdstart  => i_vctrl_hrd_start,
@@ -744,20 +742,20 @@ p_out_vctrl_hirq     => i_vctrl_hirq,
 p_out_vctrl_hdrdy    => i_vctrl_hrdy,
 p_out_vctrl_hfrmrk   => i_vctrl_hfrmrk,
 
-p_out_vbufout_do     => i_vctrl_vbufout_do,
-p_in_vbufout_rd      => i_vctrl_vbufout_rd,
-p_out_vbufout_empty  => i_vctrl_vbufout_empty,
+p_out_vbufo_do       => i_vctrl_vbufo_do,
+p_in_vbufo_rd        => i_vctrl_vbufo_rd,
+p_out_vbufo_empty    => i_vctrl_vbufo_empty,
 
 -------------------------------
--- Связь с буферами модуля dsn_switch.vhd
+--VBUFI
 -------------------------------
-p_in_vbufin_dout     => i_vctrl_vbufin_dout,
-p_out_vbufin_dout_rd => i_vctrl_vbufin_rd,
-p_in_vbufin_empty    => i_vctrl_vbufin_empty,
-p_in_vbufin_full     => i_vctrl_vbufin_full,
+p_in_vbufi_do        => i_vctrl_vbufi_do,
+p_out_vbufi_rd       => i_vctrl_vbufi_rd,
+p_in_vbufi_empty     => i_vctrl_vbufi_empty,
+p_in_vbufi_full      => i_vctrl_vbufi_full,
 
 ---------------------------------
--- Связь с mem_ctrl.vhd
+--MEM
 ---------------------------------
 --CH WRITE
 p_out_memwr          => i_vctrlwr_memin,
@@ -926,6 +924,7 @@ end generate;--gen_vch_mrk
 
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT) <= i_vctrl_tst_out(23 downto 16);
 i_host_dev_opt_in(C_HDEV_OPTIN_USR_SWT_M_BIT downto C_HDEV_OPTIN_USR_SWT_L_BIT) <= pin_in_usr_swt;
+i_host_dev_opt_in(C_HDEV_OPTIN_ETH_HEADER_M_BIT downto C_HDEV_OPTIN_ETH_HEADER_L_BIT) <= i_host_rxd(C_HDEV_ETH_DBUF)(31 downto 0);
 
 
 --Прерывания
@@ -964,7 +963,7 @@ i_host_devadr <= i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTR
 i_host_vchsel <= EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
 
 
-gen_dma_start : for i in 0 to C_HDEV_COUNT - 1 generate
+gen_dma_start : for i in C_HDEV_VCH_DBUF to C_HDEV_VCH_DBUF generate
 process(i_host_rst_n, g_host_clk)
 begin
   if i_host_rst_n = '0' then
@@ -986,7 +985,7 @@ begin
     --Растягиваем импульс начала DMA транзакции
     if i_hdev_dma_start(i) = '1' then
       hclk_hdev_dma_start(i) <= '1';
-    elsif hclk_hdev_dma_start_cnt(i) = "100" then
+    elsif hclk_hdev_dma_start_cnt(i)(hclk_hdev_dma_start_cnt(i)'high) = '1' then
       hclk_hdev_dma_start(i) <= '0';
     end if;
 
@@ -1150,7 +1149,8 @@ pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 pin_out_led(5) <= '0';
 pin_out_led(6) <= '0';
-pin_out_led(7) <= '0';
+pin_out_led(7) <= OR_reduce(tst_vctrl_vbufin_dout) or tst_vctrl_vbufin_rd or tst_vctrl_vbufin_empty
+or tst_vctrl_hbufo_empty or tst_vctrl_hbufo_rd;
 
 
 m_led_tst: fpga_test_01
@@ -1238,6 +1238,9 @@ begin
 end process;
 
 m_pult : pult_io
+generic map(
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
 port map(
 trans_ack      => '1',
 
@@ -1268,6 +1271,9 @@ rst            => i_pult_rst
 --RS485 (связь с уст-вами в теодалите)
 --***********************************************************
 m_edev : edev
+generic map(
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
 port map(
 p_in_tmr_en       => i_tmr_en(C_TMR_EDEV),
 p_in_tmr_stb      => i_tmr_hirq(C_TMR_EDEV),
@@ -1318,6 +1324,9 @@ i_bup_syn    <= i_tmr_hirq(C_TMR_BUP) or
                 (i_bup_en_sync120 and i_sync_out(0)); --120Hz из модуля m_sync
 
 m_bup : edev
+generic map(
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
 port map(
 p_in_tmr_en       => i_bup_syn_en,
 p_in_tmr_stb      => i_bup_syn,
@@ -1364,6 +1373,9 @@ p_in_rst          => i_bup_rst
 --Визир
 --***********************************************************
 m_vizir : edev
+generic map(
+G_HOST_DWIDTH => C_HDEV_DWIDTH
+)
 port map(
 p_in_tmr_en       => i_tmr_en(C_TMR_VIZIR),
 p_in_tmr_stb      => i_tmr_hirq(C_TMR_VIZIR),
@@ -1452,5 +1464,18 @@ p_in_clk         => i_tmr_clk,
 p_in_rst         => i_prom_rst
 );
 
+
+process(g_usr_highclk)
+begin
+  if rising_edge(g_usr_highclk) then
+    tst_vctrl_vbufin_dout  <= i_vctrl_vbufi_do ;
+    tst_vctrl_vbufin_rd    <= i_vctrl_vbufi_rd   ;
+    tst_vctrl_vbufin_empty <= i_vctrl_vbufi_empty;
+
+    tst_vctrl_hbufo_empty <= i_host_rxbuf_empty(C_HDEV_VCH_DBUF);
+    tst_vctrl_hbufo_rd <= i_host_rd(C_HDEV_VCH_DBUF);
+
+  end if;
+end process;
 
 end architecture;

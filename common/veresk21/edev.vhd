@@ -33,6 +33,7 @@ use work.vicg_common_pkg.all;
 
 entity edev is
 generic(
+G_HOST_DWIDTH : integer:=32;
 G_DBG : string:="OFF";
 G_SIM : string:="OFF"
 );
@@ -43,17 +44,17 @@ p_in_tmr_stb      : in   std_logic;
 -------------------------------
 --Связь с HOST
 -------------------------------
-p_out_host_rxrdy  : out  std_logic;                      --//1 - rdy to used
-p_out_host_rxd    : out  std_logic_vector(31 downto 0);  --//cfgdev -> host
-p_in_host_rd      : in   std_logic;                      --//
+p_out_host_rxrdy  : out  std_logic;                      --1 - rdy to used
+p_out_host_rxd    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);  --cfgdev -> host
+p_in_host_rd      : in   std_logic;
 
-p_out_host_txrdy  : out  std_logic;                      --//1 - rdy to used
-p_in_host_txd     : in   std_logic_vector(31 downto 0);  --//cfgdev <- host
-p_in_host_wr      : in   std_logic;                      --//
+p_out_host_txrdy  : out  std_logic;                      --1 - rdy to used
+p_in_host_txd     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);  --cfgdev <- host
+p_in_host_wr      : in   std_logic;
 
 p_in_host_clk     : in   std_logic;
 
-p_out_hirq        : out  std_logic;                      --//прерывание
+p_out_hirq        : out  std_logic;                      --прерывание
 p_out_herr        : out  std_logic;
 
 --------------------------------------
@@ -109,11 +110,11 @@ end component;
 
 component edev_buf
 port (
-din    : in  std_logic_vector(31 downto 0);
+din    : in  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 wr_en  : in  std_logic;
 wr_clk : in  std_logic;
 
-dout   : out std_logic_vector(31 downto 0);
+dout   : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 rd_en  : in  std_logic;
 rd_clk : in  std_logic;
 
@@ -136,16 +137,16 @@ S_RX_DONE
 signal i_fsm_edev_cs     : TFsmEdev;
 
 signal i_lencnt          : std_logic_vector(7 downto 0);--Tx/Rx byte count
-signal i_bcnt            : std_logic_vector(1 downto 0);--byte counter for Host Buffer data bus
+signal i_bcnt            : std_logic_vector(log2(G_HOST_DWIDTH / 8) - 1 downto 0);--byte counter for Host Buffer data bus
 
 --Host BUFs
 signal i_host_rxd_en     : std_logic;
-signal i_host_rxd        : std_logic_vector(31 downto 0);
-signal i_txbuf_do        : std_logic_vector(31 downto 0);
+signal i_host_rxd        : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+signal i_txbuf_do        : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_txbuf_rd        : std_logic;
 signal i_txbuf_empty     : std_logic;
 signal i_rxbuf_wr        : std_logic;
-signal i_rxbuf_di        : std_logic_vector(31 downto 0);
+signal i_rxbuf_di        : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_rxbuf_empty     : std_logic;
 signal i_rxbuf_rst       : std_logic;
 
@@ -220,9 +221,9 @@ tst_fms_core <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(
                 CONV_STD_LOGIC_VECTOR(16#09#, tst_fms_core'length) when tst_out(3 downto 0) = CONV_STD_LOGIC_VECTOR(9 , 4) else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_core'length);-- when i_fsm_state = CONV_STD_LOGIC_VECTOR(0 , i_fsm_state'length);
 
---//----------------------------------
---//Связь с Host
---//----------------------------------
+------------------------------------
+--Связь с Host
+------------------------------------
 p_out_host_txrdy <= i_txbuf_empty;
 p_out_host_rxrdy <= not i_rxbuf_empty and i_rcv_irq;--ВАЖНО!!! Взводим флаг готовности RXD
                                                     --одновременно с выдачей прерывания
@@ -267,8 +268,10 @@ rst    => i_rxbuf_rst
 i_rxbuf_rst <= p_in_rst or i_rcv_err;
 
 --Встраивание в выходные данные Rx byte count
-p_out_host_rxd( 7 downto 0) <= i_host_rxd( 7 downto 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
-p_out_host_rxd(31 downto 8) <= i_host_rxd(31 downto 8);
+p_out_host_rxd((8 * 1) - 1 downto 8 * 0) <= i_host_rxd((8 * 1) - 1 downto 8 * 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
+gen_rxd : for i in 1 to G_HOST_DWIDTH/8 - 1 generate
+p_out_host_rxd((8 * (i + 1)) - 1 downto (8 * i)) <= i_host_rxd((8 * (i + 1)) - 1 downto (8 * i));
+end generate;--gen_rxd
 
 process(p_in_rst, p_in_host_clk)
 begin
@@ -285,9 +288,9 @@ begin
   end if;
 end process;
 
---//----------------------------------
---//Управнение приемом/передачей
---//----------------------------------
+------------------------------------
+--Управнение приемом/передачей
+------------------------------------
 process(p_in_rst, p_in_clk)
 variable i_rxbuf_wr_last : std_logic;
 begin
@@ -434,9 +437,9 @@ begin
 end process;
 
 
---//----------------------------------
---//
---//----------------------------------
+------------------------------------
+--
+------------------------------------
 m_core : master485n
 port map(
 p_in_phy_rx   => p_in_phy_rx,
