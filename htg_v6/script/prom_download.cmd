@@ -24,5 +24,6 @@ setCable -port auto
 identify
 attachflash -position 1 -bpi "28F256P30"
 assignfiletoattachedflash -position 1 -file "D:/Work/Linkos/veresk_m/htg_v6/firmware/veresk_main.mcs"
-program -p 1 -dataWidth 16 -rs1 NONE -rs0 NONE -bpionly -e -v -loadfpga
+erase -p 1 -o -bpionly
+program -p 1 -dataWidth 16 -rs1 NONE -rs0 NONE -bpionly -v -loadfpga
 quit
