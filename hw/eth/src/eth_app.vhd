@@ -190,6 +190,9 @@ gen_ch : for i in 0 to G_ETH.gtch_count_max-1 generate
 
 i_rst(i) <= p_in_rst or p_in_phy.rst;
 
+p_out_eth(i).rxbuf.wrclk <= p_in_phy.clk;
+p_out_eth(i).txbuf.rdclk <= p_in_phy.clk;
+
 m_mac_rx : eth_mac_rx
 generic map(
 G_ETH => G_ETH,

@@ -122,7 +122,7 @@ rd_en  : in  std_logic;
 rd_clk : in  std_logic;
 
 prog_full : out std_logic;
-almost_full : out std_logic;
+--almost_full : out std_logic;
 full   : out std_logic;
 empty  : out std_logic;
 
@@ -187,7 +187,7 @@ rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
 full   => open,
-almost_full => open,--i_txbuf_full,
+--almost_full => open,--i_txbuf_full,
 prog_full => i_txbuf_full,
 empty  => i_txbuf_empty,
 
@@ -207,8 +207,8 @@ rd_en  => p_in_host_rd,
 rd_clk => p_in_host_clk,
 
 full   => open,
-almost_full => i_rxbuf_full,
-prog_full => open,
+--almost_full => i_rxbuf_full,
+prog_full => i_rxbuf_full,
 empty  => i_rxbuf_empty,
 
 --clk         => p_in_clk,

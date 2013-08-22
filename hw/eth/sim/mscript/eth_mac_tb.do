@@ -8,12 +8,16 @@ vcom -93 "../../../lib/vicg/vicg_common_pkg.vhd"
 vcom -93 "../testbanch/prj_cfg_sim.vhd"
 
 #vcom "../../../../../../ml505/ise/src/core_gen/host_vbuf.vhd"
-vcom "../../../../../../ust/ise/src/core_gen/host_vbuf.vhd"
+#vcom "../../../../../../ust/ise/src/core_gen/host_vbuf.vhd"
+vcom -93 "../testbanch/host_vbuf.vhd"
+vcom -93 "../../../../../../htg_v6/ise/src/core_gen/ethg_vctrl_rxfifo.vhd"
 
 vcom -93 "../../src/eth_phypin_pkg.vhd"
 vcom -93 "../../src/eth_pkg.vhd"
-vcom -93 "../../src/eth_mac_tx_64b.vhd"
-vcom -93 "../../src/eth_mac_rx_64b.vhd"
+#vcom -93 "../../src/eth_mac_tx_64b.vhd"
+#vcom -93 "../../src/eth_mac_rx_64b.vhd"
+vcom -93 "../../src/eth_mac_tx.vhd"
+vcom -93 "../../src/eth_mac_rx.vhd"
 
 vcom -93 "../testbanch/eth_mac_tb.vhd"
 

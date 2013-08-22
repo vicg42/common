@@ -9,10 +9,6 @@
 --
 --
 -- Revision:
--- Revision 1.00 - Прием MAC FRAME если пакет адресовн нашему устройсту (mac_dst=наш),
---                 если mac.lentype поле является длинной mac frame (Если mac.lentype<0x05DC , то это Length, иначе Type!!!)
---                 При приеме удаляем pad(пустые) байты, если таковые есть
---                 (Pading длеается передатчико в случае если отправляемый пакет меньше чем 46 byte)
 --
 -------------------------------------------------------------------------
 library ieee;
@@ -85,32 +81,31 @@ architecture behavioral of eth_mac_rx is
 
 type TEth_fsm_rx is (
 S_IDLE,
-S_RX_MAC_DST,
-S_RX_MAC_SRC,
-S_RX_MAC_LENTYPE,
-S_LENTYPE_CHECK,
-S_RXBUF_WDLEN,
-S_RXBUF_WDATA
+S_RX_DST,
+S_RX_SRC,
+S_RX_LEN,
+S_RX_LEN_CHK,
+S_RX_D
 );
 signal fsm_eth_rx_cs: TEth_fsm_rx;
 
-signal sr_bcnt                : std_logic_vector(selval(0, 1, (p_in_rxll_data'length=16)) downto 0);
-signal i_bcnt                 : std_logic_vector(selval(0, 1, (p_in_rxll_data'length=16)) downto 0); --счетчик вайт в выходного порта p_out_usr_rxdata
-signal i_dcnt                 : std_logic_vector(15 downto 0);--счетчик входных данных
-signal i_dcnt_len             : std_logic_vector(15 downto 0);
+signal i_bcnt                 : std_logic_vector(log2(p_out_rxbuf_din'length / p_in_rxll_data'length) - 1 downto 0);
+signal i_dcnt                 : std_logic_vector(15 downto 0);
 
-signal i_rx_mac               : TEthMAC;
-signal i_rx_mac_valid         : std_logic_vector(p_in_cfg.mac.src'length-1 downto 0);
+signal i_rx_mac_dst           : TEthMacAdr;
+signal i_rx_mac_valid         : std_logic_vector(i_rx_mac_dst'length-1 downto 0);
 
-signal i_usr_rxd              : std_logic_vector(31 downto 0);
-signal i_usr_rxd_sof          : std_logic;
-signal sr_usr_rxd_sof         : std_logic;
-signal i_usr_rxd_eof          : std_logic;
+signal i_rx_mac_lentype       : std_logic_vector(15 downto 0);
+signal i_rx_lentype           : std_logic_vector(15 downto 0);
 
-signal i_ll_dst_rdy_n         : std_logic;
-signal sr_rxll_src_rdy_n      : std_logic;
-signal i_pkt_len              : std_logic_vector(15 downto 0);
-signal i_pkt_lentotal_byte    : std_logic_vector(15 downto 0);
+signal i_usrpkt_len           : std_logic_vector(15 downto 0);
+
+signal i_usr_wr               : std_logic;
+signal i_usr_rxd              : std_logic_vector(p_out_rxbuf_din'range);
+signal i_usr_sof_en           : std_logic;
+signal i_usr_eof              : std_logic;
+
+signal i_ll_dst_rdy           : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
@@ -118,7 +113,6 @@ signal tst_rxll_sof_n         : std_logic;
 signal tst_rxll_eof_n         : std_logic;
 signal tst_rxll_src_rdy_n     : std_logic;
 signal tst_rxbuf_full         : std_logic;
-signal tst_rxll_rem           : std_logic_vector(p_in_rxll_rem'range);
 
 
 --MAIN
@@ -128,96 +122,96 @@ begin
 --Технологические сигналы
 ------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
-p_out_tst(31 downto 0)<=(others=>'0');
+p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst,p_in_clk)
+ltstout:process(p_in_rst, p_in_clk)
 begin
-  if p_in_rst='1' then
-    tst_rxll_rem<=(others=>'0');
-    tst_rxll_sof_n<='0';
-    tst_rxll_eof_n<='0';
-    tst_rxll_src_rdy_n<='0';
-    tst_rxbuf_full<='0';
-    tst_fms_cs_dly<=(others=>'0');
-    p_out_tst(31 downto 1)<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
+  if p_in_rst = '1' then
+    tst_rxll_sof_n <= '0';
+    tst_rxll_eof_n <= '0';
+    tst_rxll_src_rdy_n <= '0';
+    tst_rxbuf_full <= '0';
+    tst_fms_cs_dly <= (others=>'0');
+    p_out_tst(31 downto 1) <= (others=>'0');
+  elsif rising_edge(p_in_clk) then
 
-    tst_rxll_rem<=p_in_rxll_rem;
-    tst_rxll_sof_n<=p_in_rxll_sof_n;
-    tst_rxll_eof_n<=p_in_rxll_eof_n;
-    tst_rxll_src_rdy_n<=p_in_rxll_src_rdy_n;
-    tst_rxbuf_full<=p_in_rxbuf_full;
-    tst_fms_cs_dly<=tst_fms_cs;
+    tst_rxll_sof_n <= p_in_rxll_sof_n;
+    tst_rxll_eof_n <= p_in_rxll_eof_n;
+    tst_rxll_src_rdy_n <= p_in_rxll_src_rdy_n;
+    tst_rxbuf_full <= p_in_rxbuf_full;
+    tst_fms_cs_dly <= tst_fms_cs;
 
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or tst_rxll_src_rdy_n or tst_rxll_eof_n or tst_rxll_sof_n or tst_rxbuf_full or OR_reduce(tst_rxll_rem);
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_rxll_src_rdy_n
+                  or tst_rxll_eof_n or tst_rxll_sof_n or tst_rxbuf_full or i_ll_dst_rdy;
   end if;
 end process ltstout;
 
-tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_DST     else
-            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_SRC     else
-            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RX_MAC_LENTYPE else
-            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_rx_cs=S_LENTYPE_CHECK  else
-            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RXBUF_WDLEN    else
-            CONV_STD_LOGIC_VECTOR(16#06#, tst_fms_cs'length) when fsm_eth_rx_cs=S_RXBUF_WDATA    else
-            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_rx_cs=S_IDLE           else
-
+tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_DST      else
+            CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_SRC      else
+            CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_LEN      else
+            CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_LEN_CHK  else
+            CONV_STD_LOGIC_VECTOR(16#05#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_D        else
+            CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);--when fsm_eth_rx_cs = S_IDLE        else
 end generate gen_dbg_on;
 
 
-gen_swp_off : if G_ETH.mac_length_swap=0 generate
-i_pkt_len<=i_rx_mac.lentype(7 downto 0) & i_rx_mac.lentype(15 downto 8);--Прием: первый ст. байт
+gen_swp_off : if G_ETH.mac_length_swap = 0 generate
+i_rx_lentype((8 * 2) - 1 downto 8 * 1) <= i_rx_mac_lentype((8 * 1) - 1 downto 8 * 0);
+i_rx_lentype((8 * 1) - 1 downto 8 * 0) <= i_rx_mac_lentype((8 * 2) - 1 downto 8 * 1);--первый ст. байт
 end generate gen_swp_off;
 
-gen_swp_on : if G_ETH.mac_length_swap=1 generate
-i_pkt_len<=i_rx_mac.lentype;--Прием: первый мл. байт
+gen_swp_on : if G_ETH.mac_length_swap = 1 generate
+i_rx_lentype((8 * 2) - 1 downto 8 * 1) <= i_rx_mac_lentype((8 * 2) - 1 downto 8 * 1);
+i_rx_lentype((8 * 1) - 1 downto 8 * 0) <= i_rx_mac_lentype((8 * 1) - 1 downto 8 * 0);--первый мл. байт
 end generate gen_swp_on;
 
-i_pkt_lentotal_byte<=i_pkt_len + CONV_STD_LOGIC_VECTOR(p_in_cfg.mac.lentype'length/8, i_pkt_lentotal_byte'length);
 
-gen_ll_d8 : if p_in_rxll_data'length/8=1 generate
-i_dcnt_len<=i_pkt_lentotal_byte;
-end generate gen_ll_d8;
-
-gen_ll_d16 : if p_in_rxll_data'length/8=2 generate
-i_dcnt_len<=EXT(i_pkt_lentotal_byte(15 downto 1), i_dcnt_len'length) + i_pkt_lentotal_byte(0);
-end generate gen_ll_d16;
-
-gen_rx_mac_check : for i in 0 to p_in_cfg.mac.src'length-1 generate
-i_rx_mac_valid(i)<='1' when i_rx_mac.dst(i)=p_in_cfg.mac.src(i) else '0';
+gen_rx_mac_check : for i in 0 to p_in_cfg.mac.src'length - 1 generate
+i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.src(i) else '0';
+--i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.dst(i) else '0';--for TEST
 end generate gen_rx_mac_check;
+
+
+gen_ll_dwith8 : if (p_in_rxll_data'length / 8) = 1 generate
+i_usrpkt_len <= i_rx_lentype;
+end generate;--gen_ll_dwith8
+
+gen_ll_dwith : if (p_in_rxll_data'length / 8) /= 1 generate
+i_usrpkt_len <= EXT(i_rx_lentype(i_rx_lentype'high
+                              downto log2(p_in_rxll_data'length / 8)), i_rx_lentype'length)
+                  + OR_reduce(i_rx_lentype(log2(p_in_rxll_data'length / 8) - 1 downto 0));
+end generate;--gen_ll_dwith
+
+
 
 ---------------------------------------------
 --Автомат приема данных из ядра ETH
 ---------------------------------------------
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
 begin
-  if p_in_rst='1' then
+  if p_in_rst = '1' then
 
-    fsm_eth_rx_cs<=S_IDLE;
+    fsm_eth_rx_cs <= S_IDLE;
 
-    for i in 0 to 5 loop
-    i_rx_mac.dst(i)<=(others=>'0');
-    i_rx_mac.src(i)<=(others=>'0');
+    i_bcnt <= (others=>'0');
+    i_dcnt <= (others=>'0');
+
+    for i in 0 to i_rx_mac_dst'length - 1 loop
+    i_rx_mac_dst(i) <= (others=>'0');
     end loop;
-    i_rx_mac.lentype<=(others=>'0');
 
-    i_ll_dst_rdy_n<='0';
+    i_rx_mac_lentype <= (others=>'0');
 
-    i_usr_rxd<=(others=>'0');
-    i_usr_rxd_sof<='0';
-    i_usr_rxd_eof<='0';
-    sr_usr_rxd_sof<='0';
+    i_ll_dst_rdy <= '0';
 
-    i_dcnt<=(others=>'0');
-    i_bcnt<=(others=>'0');
+    i_usr_rxd <= (others=>'0');
+    i_usr_sof_en <= '0';
+    i_usr_eof <= '0';
+    i_usr_wr <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
-
-    if p_in_rxbuf_full='0' and p_in_rxll_src_rdy_n='0' then
-
-      sr_usr_rxd_sof<=i_usr_rxd_sof;
+  elsif rising_edge(p_in_clk) then
 
       case fsm_eth_rx_cs is
 
@@ -226,190 +220,173 @@ begin
         --------------------------------------
         when S_IDLE =>
 
-          i_ll_dst_rdy_n<='0';
-          i_usr_rxd_sof<='0';
-          i_usr_rxd_eof<='0';
-          i_bcnt<=(others=>'0');
+          if p_in_rxbuf_full = '0' then
+            i_bcnt <= (others=>'0');
 
-          if p_in_rxll_sof_n='0' then
-            for i in 0 to 0 loop
-              for y in 0 to (p_in_rxll_data'length/8)-1 loop
-              i_rx_mac.dst(i+y)<=p_in_rxll_data(8*(y+1)-1 downto 8*y);
+            i_ll_dst_rdy <= '0';
+            i_usr_sof_en <= '0';
+            i_usr_eof <= '0';
+
+            if p_in_rxll_sof_n = '0' and p_in_rxll_src_rdy_n = '0' then
+              for i in 0 to 0 loop
+                for y in 0 to (p_in_rxll_data'length / 8) - 1 loop
+                i_rx_mac_dst(i + y) <= p_in_rxll_data((8 * (y + 1)) - 1 downto (8 * y));
+                end loop;
               end loop;
+              i_dcnt <= CONV_STD_LOGIC_VECTOR(1, i_dcnt'length);
+              fsm_eth_rx_cs <= S_RX_DST;
+            end if;
+          end if;
+
+        --------------------------------------
+        --MAC_DST
+        --------------------------------------
+        when S_RX_DST =>
+
+          if p_in_rxbuf_full = '0' and p_in_rxll_src_rdy_n = '0' then
+
+            for i in 1 to (i_rx_mac_dst'length / (p_in_rxll_data'length / 8)) - 1 loop
+              if i_dcnt(2 downto 0) = i then
+                for y in 0 to (p_in_rxll_data'length / 8) - 1 loop
+                i_rx_mac_dst((p_in_rxll_data'length / 8 * i) + y) <= p_in_rxll_data((8 * (y + 1)) - 1
+                                                                              downto (8 * y));
+                end loop;
+              end if;
             end loop;
-            i_dcnt<=i_dcnt + 1;
-            fsm_eth_rx_cs<=S_RX_MAC_DST;
-          end if;
 
-        --------------------------------------
-        --MACFRAME: прием mac_dst
-        --------------------------------------
-        when S_RX_MAC_DST =>
-
-          for i in 1 to (p_in_cfg.mac.dst'length/(p_in_rxll_data'length/8))-1 loop
-            if i_dcnt(2 downto 0)=i then
-              for y in 0 to (p_in_rxll_data'length/8)-1 loop
-              i_rx_mac.dst(p_in_rxll_data'length/8*i+y)<=p_in_rxll_data(8*(y+1)-1 downto 8*y);
-              end loop;
+            if i_dcnt = CONV_STD_LOGIC_VECTOR((i_rx_mac_dst'length / (p_in_rxll_data'length / 8)) - 1
+                                                                                      , i_dcnt'length) then
+              i_dcnt <= (others=>'0');
+              fsm_eth_rx_cs <= S_RX_SRC;
+            else
+              i_dcnt <= i_dcnt + 1;
             end if;
-          end loop;
 
-          if i_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.dst'length/(p_in_rxll_data'length/8))-1, i_dcnt'length) then
-            i_dcnt<=(others=>'0');
-            fsm_eth_rx_cs<=S_RX_MAC_SRC;
-          else
-            i_dcnt<=i_dcnt + 1;
           end if;
 
-        --------------------------------------
-        --MACFRAME: прием mac_src
-        --------------------------------------
-        when S_RX_MAC_SRC =>
 
-          for i in 0 to (p_in_cfg.mac.src'length/(p_in_rxll_data'length/8))-1 loop
-            if i_dcnt(2 downto 0)=i then
-              for y in 0 to (p_in_rxll_data'length/8)-1 loop
-              i_rx_mac.src(p_in_rxll_data'length/8*i+y)<=p_in_rxll_data(8*(y+1)-1 downto 8*y);
-              end loop;
+        --------------------------------------
+        --MAC_SRC
+        --------------------------------------
+        when S_RX_SRC =>
+
+          if p_in_rxbuf_full = '0' and p_in_rxll_src_rdy_n = '0' then
+
+            if i_dcnt = CONV_STD_LOGIC_VECTOR((i_rx_mac_dst'length / (p_in_rxll_data'length / 8)) - 1
+                                                                                    , i_dcnt'length) then
+              i_dcnt <= (others=>'0');
+              fsm_eth_rx_cs <= S_RX_LEN;
+            else
+              i_dcnt <= i_dcnt + 1;
             end if;
-          end loop;
 
-          if i_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.src'length/(p_in_rxll_data'length/8))-1, i_dcnt'length) then
-            i_dcnt<=(others=>'0');
-            fsm_eth_rx_cs<=S_RX_MAC_LENTYPE;
-          else
-            i_dcnt<=i_dcnt + 1;
           end if;
 
         --------------------------------------
-        --MACFRAME: прием mac_len/type
+        --MAC_LEN
         --------------------------------------
-        when S_RX_MAC_LENTYPE =>
+        when S_RX_LEN =>
 
-          for i in 0 to (p_in_cfg.mac.lentype'length/p_in_rxll_data'length)-1 loop
-            if i_dcnt(1 downto 0)=i then
-              i_rx_mac.lentype(8*(p_in_rxll_data'length/8)*(i+1)-1 downto 8*(p_in_rxll_data'length/8)*i)<=p_in_rxll_data;
+          if p_in_rxbuf_full = '0' and p_in_rxll_src_rdy_n = '0' then
+
+            for i in 0 to (i_rx_lentype'length / p_in_rxll_data'length) - 1 loop
+              if i_dcnt(1 downto 0) = i then
+                i_rx_mac_lentype(8 * (p_in_rxll_data'length / 8) * (i + 1) - 1
+                          downto 8 * (p_in_rxll_data'length / 8) * i) <= p_in_rxll_data;
+              end if;
+            end loop;
+
+            if i_dcnt = CONV_STD_LOGIC_VECTOR((i_rx_lentype'length / p_in_rxll_data'length) - 1
+                                                                                , i_dcnt'length) then
+              i_dcnt <= (others=>'0');
+              i_ll_dst_rdy <= '1';
+              fsm_eth_rx_cs <= S_RX_LEN_CHK;
+            else
+              i_dcnt <= i_dcnt + 1;
             end if;
-          end loop;
 
-          if i_dcnt=CONV_STD_LOGIC_VECTOR((p_in_cfg.mac.lentype'length/p_in_rxll_data'length)-1, i_dcnt'length) then
-            i_dcnt<=(others=>'0');
-            i_ll_dst_rdy_n<='1';
-            fsm_eth_rx_cs<=S_LENTYPE_CHECK;
-          else
-            i_dcnt<=i_dcnt + 1;
           end if;
 
-        --------------------------------------
-        --MACFRAME: проверка
-        --------------------------------------
-        when S_LENTYPE_CHECK =>
+        when S_RX_LEN_CHK =>
 
---          if i_rx_mac.lentype<CONV_STD_LOGIC_VECTOR(16#0800#, i_rx_mac.lentype'length) then
+          if p_in_rxbuf_full = '0' and p_in_rxll_src_rdy_n = '0' then
 
-            if AND_reduce(i_rx_mac_valid)='1' then
+            i_ll_dst_rdy <= '0';
+
+            if AND_reduce(i_rx_mac_valid) = '1' then
             --пакет наш:
-              fsm_eth_rx_cs<=S_RXBUF_WDLEN;
+              i_usr_rxd((8 * 2) - 1 downto 8 * 0) <= i_rx_lentype((8 * 2) - 1 downto 8 * 0);
+              i_usr_sof_en <= '1';
+              i_bcnt <= CONV_STD_LOGIC_VECTOR(i_rx_lentype'length / p_in_rxll_data'length, i_bcnt'length);
+              fsm_eth_rx_cs <= S_RX_D;
             else
             --пакет НЕ наш:
-              i_ll_dst_rdy_n<='0';
-              fsm_eth_rx_cs<=S_IDLE;
+              fsm_eth_rx_cs <= S_IDLE;
             end if;
 
---          else
---            i_ll_dst_rdy_n<='0';
---            fsm_eth_rx_cs<=S_IDLE;
---
---          end if;
+          end if;
 
         --------------------------------------
-        --MACFRAME: запись данных mac frame в usr_rxbuf
+        --MAC_DATA
         --------------------------------------
-        --Запись pkt_len
-        when S_RXBUF_WDLEN =>
+        when S_RX_D =>
 
-          if p_in_rxbuf_full='0' then
+          if p_in_rxbuf_full = '0' and p_in_rxll_src_rdy_n = '0' then
 
-              for i in 0 to (i_pkt_len'length/p_in_rxll_data'length)-1 loop
-                if i_bcnt=i then
-                  for y in 0 to (p_in_rxll_data'length/8)-1 loop
-                  i_usr_rxd(8*(y+i+1)-1 downto 8*(y+i))<=i_pkt_len(8*(y+i+1)-1 downto 8*(y+i));
+              if i_dcnt = i_usrpkt_len - 1 then
+
+                  i_usr_eof <= '1';
+                  i_usr_wr <= '0';
+
+                  for i in 0 to (i_usr_rxd'length / p_in_rxll_data'length) - 1 loop
+                    if (i > i_bcnt) and AND_reduce(i_bcnt) = '0'  then
+                      i_usr_rxd(8 * (p_in_rxll_data'length / 8) * (i + 1) - 1
+                          downto 8 * (p_in_rxll_data'length / 8) * i) <= (others=>'0');
+                    elsif i_bcnt = i then
+                      i_usr_rxd(8 * (p_in_rxll_data'length / 8) * (i + 1) - 1
+                          downto 8 * (p_in_rxll_data'length / 8) * i) <= p_in_rxll_data;
+                    end if;
                   end loop;
-                end if;
-              end loop;
 
-              i_dcnt<=i_dcnt + 1;--счетчик байт передоваемых данных
-              i_bcnt<=i_bcnt + 1;--счетчик байт порта входных данных p_in_usr_txdata
-
-              if i_dcnt=CONV_STD_LOGIC_VECTOR((i_rx_mac.lentype'length/p_in_rxll_data'length)-1, i_dcnt'length) then
-                i_ll_dst_rdy_n<='0';
-                fsm_eth_rx_cs<=S_RXBUF_WDATA;
-              end if;
-
-          end if;--if p_in_rxbuf_full='0' then
-
-        --Запись pkt_data
-        when S_RXBUF_WDATA =>
-
-          if p_in_rxbuf_full='0' then
-
-              if i_dcnt=i_dcnt_len-1 then
-                i_dcnt<=(others=>'0');
-
---                if AND_reduce(i_bcnt)='0' then
-                  i_usr_rxd_eof<='1';
---                end if;
-
-                fsm_eth_rx_cs<=S_IDLE;
+                  fsm_eth_rx_cs <= S_IDLE;
 
               else
-                i_dcnt<=i_dcnt + 1;--счетчик байт mac frame
+
+                  for i in 0 to (i_usr_rxd'length / p_in_rxll_data'length) - 1 loop
+                    if i_bcnt = i then
+                      i_usr_rxd(8 * (p_in_rxll_data'length / 8) * (i + 1) - 1
+                          downto 8 * (p_in_rxll_data'length / 8) * i) <= p_in_rxll_data;
+                    end if;
+                  end loop;
+
+                  i_bcnt <= i_bcnt + 1;--счетчик байт для p_out_rxbuf_din
+                  i_usr_wr <= AND_reduce(i_bcnt);
+
+                  i_dcnt <= i_dcnt + 1;
+
               end if;
 
-              if AND_reduce(i_bcnt)='1' then
-                i_usr_rxd_sof<='1';
+              if OR_reduce(i_bcnt) = '0' then
+              i_usr_sof_en <= '0';
               end if;
 
-              for i in 0 to i_usr_rxd'length/p_in_rxll_data'length - 1 loop
-                if i_bcnt=i then
-                  i_usr_rxd(8*(p_in_rxll_data'length/8)*(i+1)-1 downto 8*(p_in_rxll_data'length/8)*i)<=p_in_rxll_data;
-                end if;
-              end loop;
-
-              i_bcnt<=i_bcnt + 1;--счетчик байт порта выходных данных p_out_usr_rxdata
-
-          end if;--if p_in_rxbuf_full='0' then
+          end if;
 
       end case;
 
-    end if;--if p_in_rxbuf_full='0' and p_in_rxll_src_rdy_n='0' then
   end if;
 end process;
 
 
---Линия задержек
-process(p_in_rst,p_in_clk)
-begin
-  if p_in_rst='1' then
-    sr_bcnt<=(others=>'0');
-    sr_rxll_src_rdy_n<='1';
+p_out_rxbuf_din <= i_usr_rxd;
+p_out_rxbuf_wr <= not p_in_rxbuf_full and ((not p_in_rxll_src_rdy_n and i_usr_wr) or i_usr_eof);
 
-  elsif p_in_clk'event and p_in_clk='1' then
-    sr_rxll_src_rdy_n<=p_in_rxll_src_rdy_n;
-    sr_bcnt<=i_bcnt;
+p_out_rxd_sof <= not p_in_rxbuf_full and ( (not p_in_rxll_src_rdy_n and (i_usr_wr and i_usr_sof_en))
+                                            or (i_usr_eof and i_usr_sof_en) );
 
-  end if;
-end process;
+p_out_rxd_eof <= not p_in_rxbuf_full and i_usr_eof;
 
-p_out_rxbuf_din<=i_usr_rxd;
-p_out_rxbuf_wr<=not p_in_rxbuf_full and not sr_rxll_src_rdy_n and (i_usr_rxd_eof or AND_reduce(sr_bcnt)) and not i_ll_dst_rdy_n;
-p_out_rxd_sof <=not p_in_rxbuf_full and not sr_rxll_src_rdy_n and (not sr_usr_rxd_sof and i_usr_rxd_sof);
-p_out_rxd_eof <=not p_in_rxbuf_full and not sr_rxll_src_rdy_n and  i_usr_rxd_eof;
-
-
-p_out_rxll_dst_rdy_n<=i_ll_dst_rdy_n;
-
-
+p_out_rxll_dst_rdy_n <= p_in_rxbuf_full or i_ll_dst_rdy;
 
 
 --------------------------------------

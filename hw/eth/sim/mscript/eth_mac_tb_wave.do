@@ -10,8 +10,9 @@ add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/i_pkt_len
 add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/i_bcnt
 add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/i_dcnt
 add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/p_out_txll_data
-add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/p_out_txll_eof_n
+add wave -noupdate /eth_mac_tb/m_tx/p_out_txll_rem
 add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/p_out_txll_sof_n
+add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/p_out_txll_eof_n
 add wave -noupdate -radix hexadecimal /eth_mac_tb/m_tx/p_out_txll_src_rdy_n
 add wave -noupdate /eth_mac_tb/m_tx/p_in_txll_dst_rdy_n
 add wave -noupdate -divider ET_RX
@@ -33,6 +34,7 @@ add wave -noupdate /eth_mac_tb/m_rx/p_out_rxd_sof
 add wave -noupdate /eth_mac_tb/m_rx/p_out_rxd_eof
 add wave -noupdate /eth_mac_tb/m_rx/p_in_rxbuf_full
 TreeUpdate [SetDefaultTree]
+WaveRestoreCursors {{Cursor 1} {0 ps} 0}
 configure wave -namecolwidth 150
 configure wave -valuecolwidth 100
 configure wave -justifyvalue left
@@ -47,4 +49,4 @@ configure wave -griddelta 40
 configure wave -timeline 0
 configure wave -timelineunits ps
 update
-WaveRestoreZoom {2656366 ps} {2900734 ps}
+WaveRestoreZoom {2191836 ps} {3260304 ps}
