@@ -49,7 +49,7 @@
 //   ____  ____
 //  /   /\/   /
 // /___/  \  /    Vendor             : Xilinx
-// \   \   \/     Version            : 3.91
+// \   \   \/     Version            : 3.92
 //  \   \         Application        : MIG
 //  /   /         Filename           : mem_ctrl_core_axi.v
 // /___/   /\     Date Last Modified : $Date: 2011/06/02 07:18:00 $
@@ -89,16 +89,16 @@ module mem_ctrl_core_axi #
                                        // clock frequency.
    parameter MMCM_ADV_BANDWIDTH      = "OPTIMIZED",
                                        // MMCM programming algorithm
-   parameter CLKFBOUT_MULT_F         = 8,
+   parameter CLKFBOUT_MULT_F         = 6,
                                        // write PLL VCO multiplier.
    parameter DIVCLK_DIVIDE           = 2,
                                        // write PLL VCO divisor.
-   parameter CLKOUT_DIVIDE           = 4,
+   parameter CLKOUT_DIVIDE           = 3,
                                        // VCO output divisor for fast (memory) clocks.
    parameter nCK_PER_CLK             = 2,
                                        // # of memory CKs per fabric clock.
                                        // # = 2, 1.
-   parameter tCK                     = 3300,
+   parameter tCK                     = 2500,
                                        // memory tCK paramter.
                                        // # = Clock Period.
    parameter DEBUG_PORT              = "OFF",
@@ -120,9 +120,9 @@ module mem_ctrl_core_axi #
                                        // # = ceil(log2(RANKS)).
    parameter BANK_WIDTH              = 3,
                                        // # of memory Bank Address bits.
-   parameter CK_WIDTH                = 1,
+   parameter CK_WIDTH                = 2,
                                        // # of CK/CK# outputs to memory.
-   parameter CKE_WIDTH               = 2,
+   parameter CKE_WIDTH               = 1,
                                        // # of CKE outputs to memory.
    parameter COL_WIDTH               = 10,
                                        // # of memory Column Address bits.
@@ -134,7 +134,7 @@ module mem_ctrl_core_axi #
                                        // # of Data (DQ) bits.
    parameter DQS_WIDTH               = 8,
                                        // # of DQS/DQS# bits.
-   parameter ROW_WIDTH               = 13,
+   parameter ROW_WIDTH               = 14,
                                        // # of memory Row Address bits.
    parameter BURST_MODE              = "8",
                                        // Burst Length (Mode Register 0).
@@ -168,19 +168,19 @@ module mem_ctrl_core_axi #
    parameter REG_CTRL                = "OFF",
                                        // # = "ON" - RDIMMs,
                                        //   = "OFF" - Components, SODIMMs, UDIMMs.
-   parameter nDQS_COL0               = 0,
+   parameter nDQS_COL0               = 3,
                                        // Number of DQS groups in I/O column #1.
-   parameter nDQS_COL1               = 0,
+   parameter nDQS_COL1               = 5,
                                        // Number of DQS groups in I/O column #2.
-   parameter nDQS_COL2               = 8,
+   parameter nDQS_COL2               = 0,
                                        // Number of DQS groups in I/O column #3.
    parameter nDQS_COL3               = 0,
                                        // Number of DQS groups in I/O column #4.
-   parameter DQS_LOC_COL0            = 0,
+   parameter DQS_LOC_COL0            = 24'h020100,
                                        // DQS groups in column #1.
-   parameter DQS_LOC_COL1            = 0,
+   parameter DQS_LOC_COL1            = 40'h0706050403,
                                        // DQS groups in column #2.
-   parameter DQS_LOC_COL2            = 64'h0706050403020100,
+   parameter DQS_LOC_COL2            = 0,
                                        // DQS groups in column #3.
    parameter DQS_LOC_COL3            = 0,
                                        // DQS groups in column #4.
@@ -190,7 +190,7 @@ module mem_ctrl_core_axi #
                                        // memory tREFI paramter.
    parameter tZQI                    = 128_000_000,
                                        // memory tZQI paramter.
-   parameter ADDR_WIDTH              = 27,
+   parameter ADDR_WIDTH              = 29,
                                        // # = RANK_WIDTH + BANK_WIDTH
                                        //     + ROW_WIDTH + COL_WIDTH;
    parameter ECC                     = "OFF",
@@ -204,7 +204,7 @@ module mem_ctrl_core_axi #
                                        // Port Interface.
                                        // # = UI - User Interface,
                                        //   = AXI4 - AXI4 Interface.
-   parameter C_S_AXI_ID_WIDTH          = 4,
+   parameter C_S_AXI_ID_WIDTH          = 8,
                                        // Width of all master and slave ID signals.
                                        // # = >= 1.
    parameter C_S_AXI_ADDR_WIDTH        = 32,
@@ -237,11 +237,14 @@ module mem_ctrl_core_axi #
    parameter CALIB_ROW_ADD             = 16'h0000,// Calibration row address
    parameter CALIB_COL_ADD             = 12'h000, // Calibration column address
    parameter CALIB_BA_ADD              = 3'h0,    // Calibration bank address
-   parameter RST_ACT_LOW             = 1,
+   parameter RST_ACT_LOW             = 0,
                                        // =1 for active low reset,
                                        // =0 for active high.
    parameter INPUT_CLK_TYPE          = "SINGLE_ENDED",
                                        // input clock type DIFFERENTIAL or SINGLE_ENDED
+   parameter SYSCLK_TYPE           = "NO_BUFFER",
+                                     // System clock type DIFFERENTIAL, SINGLE_ENDED,
+                                     // NO_BUFFER
    parameter STARVE_LIMIT            = 2
                                        // # = 2,3,4.
    )
@@ -375,7 +378,7 @@ module mem_ctrl_core_axi #
   wire                                sys_clk_n;
   wire                                mmcm_clk;
   wire                                iodelay_ctrl_rdy;
-      
+
   (* KEEP = "TRUE" *) wire            sda_i;
   (* KEEP = "TRUE" *) wire            scl_i;
   wire                                rst;
@@ -505,26 +508,28 @@ module mem_ctrl_core_axi #
     (
      .TCQ            (TCQ),
      .IODELAY_GRP    (IODELAY_GRP),
-     .INPUT_CLK_TYPE (INPUT_CLK_TYPE),
-     .RST_ACT_LOW    (RST_ACT_LOW)
+     .REFCLK_TYPE    (SYSCLK_TYPE),
+     .RST_ACT_LOW    (RST_ACT_LOW),
+     .SYSCLK_TYPE    (SYSCLK_TYPE)
      )
     u_iodelay_ctrl
       (
        .clk_ref_p        (clk_ref_p),
        .clk_ref_n        (clk_ref_n),
-       .clk_ref          (clk_ref),
+       .clk_ref_i        (clk_ref),
        .sys_rst          (sys_rst),
+       .sys_rst_o        (),
        .iodelay_ctrl_rdy (iodelay_ctrl_rdy)
        );
   clk_ibuf #
     (
-     .INPUT_CLK_TYPE (INPUT_CLK_TYPE)
+     .SYSCLK_TYPE (SYSCLK_TYPE)
      )
     u_clk_ibuf
       (
        .sys_clk_p         (sys_clk_p),
        .sys_clk_n         (sys_clk_n),
-       .sys_clk           (sys_clk),
+       .sys_clk_i         (sys_clk),
        .mmcm_clk          (mmcm_clk)
        );
   infrastructure #
@@ -765,8 +770,8 @@ module mem_ctrl_core_axi #
   generate
     if (DEBUG_PORT == "ON") begin: gen_dbg_enable
 
-      // Connect these to VIO if changing output (write) 
-      // IODELAY taps desired 
+      // Connect these to VIO if changing output (write)
+      // IODELAY taps desired
       assign dbg_wr_dqs_tap_set     = 'b0;
       assign dbg_wr_dq_tap_set      = 'b0;
       assign dbg_wr_tap_set_en      = 1'b0;
@@ -775,7 +780,7 @@ module mem_ctrl_core_axi #
       // phase required
       assign dbg_inc_rd_fps         = 1'b0;
       assign dbg_dec_rd_fps         = 1'b0;
-      
+
       //*******************************************************
       // CS0 - ILA for monitoring PHY status, testbench error,
       //       and synchronized read data

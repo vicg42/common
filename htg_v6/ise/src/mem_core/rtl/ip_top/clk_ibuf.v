@@ -1,5 +1,5 @@
 //*****************************************************************************
-// (c) Copyright 2009 - 2010 Xilinx, Inc. All rights reserved.
+// (c) Copyright 2009 - 2013 Xilinx, Inc. All rights reserved.
 //
 // This file contains confidential and proprietary information
 // of Xilinx, Inc. and is protected under U.S. and
@@ -49,11 +49,11 @@
 //   ____  ____
 //  /   /\/   /
 // /___/  \  /    Vendor: Xilinx
-// \   \   \/     Version:3.91
+// \   \   \/     Version:%version
 //  \   \         Application: MIG
-//  /   /         Filename: clk_ibuf.v 
-// /___/   /\     Date Last Modified: $Date: 2011/06/02 07:18:00 $
-// \   \  /  \    Date Created:Mon Aug 3 2009 
+//  /   /         Filename: clk_ibuf.v
+// /___/   /\     Date Last Modified: $Date: 2011/06/02 08:34:56 $
+// \   \  /  \    Date Created:Mon Aug 3 2009
 //  \___\/\___\
 //
 //Device: Virtex-6
@@ -67,20 +67,23 @@
 
 module clk_ibuf #
   (
-   parameter INPUT_CLK_TYPE  = "DIFFERENTIAL" // input clock type
+   parameter SYSCLK_TYPE      = "DIFFERENTIAL",
+                                // input clock type
+   parameter DIFF_TERM_SYSCLK = "TRUE"
+                                // Differential Termination
    )
   (
    // Clock inputs
    input  sys_clk_p,          // System clock diff input
    input  sys_clk_n,
-   input  sys_clk,
+   input  sys_clk_i,
    output mmcm_clk
    );
 
-   (* KEEP = "TRUE" *) wire sys_clk_ibufg;
+   (* KEEP = "TRUE" *) wire sys_clk_ibufg /* synthesis syn_keep = 1 */;
 
   generate
-    if (INPUT_CLK_TYPE == "DIFFERENTIAL") begin: diff_input_clk
+    if (SYSCLK_TYPE == "DIFFERENTIAL") begin: diff_input_clk
 
       //***********************************************************************
       // Differential input clock input buffers
@@ -88,7 +91,7 @@ module clk_ibuf #
 
       IBUFGDS #
         (
-         .DIFF_TERM    ("TRUE"),
+         .DIFF_TERM    (DIFF_TERM_SYSCLK),
          .IBUF_LOW_PWR ("FALSE")
          )
         u_ibufg_sys_clk
@@ -98,7 +101,7 @@ module clk_ibuf #
            .O  (sys_clk_ibufg)
            );
 
-    end else if (INPUT_CLK_TYPE == "SINGLE_ENDED") begin: se_input_clk
+    end else if (SYSCLK_TYPE == "SINGLE_ENDED") begin: se_input_clk
 
       //***********************************************************************
       // SINGLE_ENDED input clock input buffers
@@ -110,9 +113,15 @@ module clk_ibuf #
          )
         u_ibufg_sys_clk
           (
-           .I  (sys_clk),
+           .I  (sys_clk_i),
            .O  (sys_clk_ibufg)
            );
+    end else if (SYSCLK_TYPE == "NO_BUFFER") begin: internal_clk
+
+      //***********************************************************************
+      // System clock is driven from FPGA internal clock (clock from fabric)
+      //***********************************************************************
+      assign sys_clk_ibufg = sys_clk_i;
    end
   endgenerate
 
