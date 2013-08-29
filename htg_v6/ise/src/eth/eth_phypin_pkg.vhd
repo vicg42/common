@@ -20,7 +20,7 @@ use work.prj_cfg.all;
 
 package eth_phypin_pkg is
 
-constant C_GTCH_COUNT_MAX    : integer:=C_PCFG_ETH_GTCH_COUNT_MAX;
+constant C_GTCH_COUNT_MAX    : integer:=1;
 
 ----------------------------
 --FIBER:
@@ -43,7 +43,7 @@ type TEthPhyGMIIPinOUT is record
 txd    : std_logic_vector(7 downto 0);
 tx_en  : std_logic;
 tx_er  : std_logic;
-txc    : std_logic;--//txclk
+txc    : std_logic;--txclk
 rst    : std_logic;
 end record;
 
@@ -51,7 +51,7 @@ type TEthPhyGMIIPinIN is record
 rxd    : std_logic_vector(7 downto 0);
 rx_dv  : std_logic;
 rx_er  : std_logic;
-rxc    : std_logic;--//rxclk
+rxc    : std_logic;--rxclk
 end record;
 
 type TEthPhyGMIIPinOUTs is array (0 to 0) of TEthPhyGMIIPinOUT;
@@ -62,12 +62,12 @@ type TEthPhyGMIIPinINs is array (0 to 0) of TEthPhyGMIIPinIN;
 ----------------------------
 type TEthPhyPinOUT is record
 fiber : TEthPhyFiberPinOUT;
-gmii : TEthPhyGMIIPinOUTs;
+--gmii : TEthPhyGMIIPinOUTs;
 end record;
 
 type TEthPhyPinIN is record
 fiber : TEthPhyFiberPinIN;
-gmii : TEthPhyGMIIPinINs;
+--gmii : TEthPhyGMIIPinINs;
 end record;
 
 end eth_phypin_pkg;

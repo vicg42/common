@@ -7,7 +7,10 @@
 // V2.0   31.8.5
 // V3.0   22.9.6
 //-------------------------------------------------------------
-module pult_io(
+module pult_io #(
+parameter G_HOST_DWIDTH = 32
+)
+(
    input clk_io_en,tmr_en,tmr_stb,             //add vicg
    input rst,clk_io,            //сброс и тактовая для обмена с пультом
    input trans_ack,             //контроллер PCI совершил обмен с кем-то
@@ -18,11 +21,11 @@ module pult_io(
 
    input host_clk_wr,           //тактовая от хоста для записи
    input wr_en,                 //разрешение записи в память светодиодов
-   input [31:0] data_from_host, //данные из хоста для записи
+   input [G_HOST_DWIDTH - 1:0] data_from_host, //данные из хоста для записи
 
    input host_clk_rd,           //тактовая от хоста для чтения
    input rd_en,                 //разрешение записи в память светодиодов
-   output [31:0] data_to_host,  //данные в хост
+   output [G_HOST_DWIDTH - 1:0] data_to_host,  //данные в хост
 
    output busy,ready           //состояние обмена с пультом
 

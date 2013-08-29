@@ -7,9 +7,6 @@
 --
 -- Description :
 --
---  s_dsn_video_ctrl_pkg.vhd - префикс (s) указывает на реализацию с
---  минимальным набором функций видео обработки, только отзеркаливание по X,Y
---
 -- Revision:
 -- Revision 0.01 - File Created
 --
@@ -20,7 +17,7 @@ use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
 
 library work;
-use work.prj_cfg.all;
+--use work.prj_cfg.all;
 use work.prj_def.all;
 
 package dsn_video_ctrl_pkg is
@@ -50,6 +47,7 @@ mem_addr_wr    : std_logic_vector(31 downto 0);--Базовый Адрес где будет формиро
 mem_addr_rd    : std_logic_vector(31 downto 0);--Базовый Адрес откуда будет вычитываться кадр
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
+step_rd        : std_logic_vector(15 downto 0);
 end record;
 type TVctrlChParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TVctrlChParam;
 
@@ -63,7 +61,7 @@ end record;
 --Параметры модуля записи
 type TWriterVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
-fr_size        : TFrXYParam;
+--fr_size        : TFrXYParam;
 end record;
 Type TWriterVCHParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TWriterVCHParam;
 
@@ -72,20 +70,18 @@ type TReaderVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
 fr_size        : TFrXYParam;
 fr_mirror      : TFrXYMirror;
+step_rd        : std_logic_vector(15 downto 0);
 end record;
 Type TReaderVCHParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TReaderVCHParam;
 
 
-Type TVfrBufs is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
+Type TVfrBufs is array (0 to C_VCTRL_VCH_COUNT - 1)
+  of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
 
-Type TVMrks is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(31 downto 0);
-
-
-Type TVCH_bufo_d is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(127 downto 0);
+Type TVMrks is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(31 downto 0);
 
 
 end dsn_video_ctrl_pkg;
-
 
 package body dsn_video_ctrl_pkg is
 

@@ -61,19 +61,22 @@ type TSAXI_ID_t is array (0 to C_MEM_BANK_COUNT - 1) of std_logic_vector(C_AXIM_
 signal i_saxi_bid : TSAXI_ID_t;
 signal i_saxi_rid : TSAXI_ID_t;
 signal i_clk      : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
-signal g_sys_clkout: std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
+signal i_rst      : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
+signal i_aresetn  : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0):=(others=>'1');
+
 
 --MAIN
 begin
 
 p_out_sys.clk <= i_clk(0);
-p_out_sys.gusrclk(0) <= g_sys_clkout(0);
+
 
 gen_bank : for i in 0 to C_MEM_BANK_COUNT - 1 generate
 
-p_out_mem(i).axiw.rid <= EXT(i_saxi_bid(i), p_out_mem(i).axiw.rid'length); --p_out_saxi_bid(i)<=EXT(i_saxi_bid(i), p_out_saxi_bid(i)'length);
-p_out_mem(i).axir.rid <= EXT(i_saxi_rid(i), p_out_mem(i).axir.rid'length); --p_out_saxi_rid(i)<=EXT(i_saxi_rid(i), p_out_saxi_rid(i)'length);
+p_out_mem(i).axiw.rid <= EXT(i_saxi_bid(i), p_out_mem(i).axiw.rid'length);
+p_out_mem(i).axir.rid <= EXT(i_saxi_rid(i), p_out_mem(i).axir.rid'length);
 p_out_mem(i).clk <= i_clk(i);
+p_out_mem(i).rstn <= i_aresetn(i);
 
 m_mem_core : mem_ctrl_core_axi
 generic map (
@@ -82,86 +85,113 @@ C_S_AXI_ADDR_WIDTH => C_AXI_AWIDTH,
 C_S_AXI_DATA_WIDTH => C_AXIM_DWIDTH
 )
 port map(
-s_axi_aresetn => p_out_mem(i).rstn,
-s_axi_clk     => i_clk(i),
+--AXI Slave Interface:
+--Write Address Ports
+s_axi_awid     => p_in_mem (i).axiw.aid(C_AXIM_IDWIDTH - 1 downto 0) ,
+s_axi_awaddr   => p_in_mem (i).axiw.adr(C_AXI_AWIDTH - 1 downto 0)   ,
+s_axi_awlen    => p_in_mem (i).axiw.trnlen                           ,
+s_axi_awsize   => p_in_mem (i).axiw.dbus                             ,
+s_axi_awburst  => p_in_mem (i).axiw.burst                            ,
+s_axi_awlock   => p_in_mem (i).axiw.lock                             ,
+s_axi_awcache  => p_in_mem (i).axiw.cache                            ,
+s_axi_awprot   => p_in_mem (i).axiw.prot                             ,
+s_axi_awqos    => p_in_mem (i).axiw.qos                              ,
+s_axi_awvalid  => p_in_mem (i).axiw.avalid                           ,
+s_axi_awready  => p_out_mem(i).axiw.aready                           ,
+--Write Data Ports
+s_axi_wdata    => p_in_mem (i).axiw.data(C_AXIM_DWIDTH - 1 downto 0) ,
+s_axi_wstrb    => p_in_mem (i).axiw.dbe(C_AXIM_DWIDTH/8 - 1 downto 0),
+s_axi_wlast    => p_in_mem (i).axiw.dlast                            ,
+s_axi_wvalid   => p_in_mem (i).axiw.dvalid                           ,
+s_axi_wready   => p_out_mem(i).axiw.wready                           ,
+--Write Response Ports
+s_axi_bid      => i_saxi_bid(i)(C_AXIM_IDWIDTH - 1 downto 0)         ,
+s_axi_bresp    => p_out_mem(i).axiw.resp                             ,
+s_axi_bvalid   => p_out_mem(i).axiw.rvalid                           ,
+s_axi_bready   => p_in_mem (i).axiw.rready                           ,
+--Read Address Ports
+s_axi_arid     => p_in_mem (i).axir.aid(C_AXIM_IDWIDTH - 1 downto 0) ,
+s_axi_araddr   => p_in_mem (i).axir.adr(C_AXI_AWIDTH - 1 downto 0)   ,
+s_axi_arlen    => p_in_mem (i).axir.trnlen                           ,
+s_axi_arsize   => p_in_mem (i).axir.dbus                             ,
+s_axi_arburst  => p_in_mem (i).axir.burst                            ,
+s_axi_arlock   => p_in_mem (i).axir.lock                             ,
+s_axi_arcache  => p_in_mem (i).axir.cache                            ,
+s_axi_arprot   => p_in_mem (i).axir.prot                             ,
+s_axi_arqos    => p_in_mem (i).axir.qos                              ,
+s_axi_arvalid  => p_in_mem (i).axir.avalid                           ,
+s_axi_arready  => p_out_mem(i).axir.aready                           ,
+--Read Data Ports
+s_axi_rid      => i_saxi_rid(i)(C_AXIM_IDWIDTH - 1 downto 0)         ,
+s_axi_rdata    => p_out_mem(i).axir.data(C_AXIM_DWIDTH - 1 downto 0) ,
+s_axi_rresp    => p_out_mem(i).axir.resp                             ,
+s_axi_rlast    => p_out_mem(i).axir.dlast                            ,
+s_axi_rvalid   => p_out_mem(i).axir.dvalid                           ,
+s_axi_rready   => p_in_mem (i).axir.rready                           ,
 
---// AXI Slave Interface:
---s_axi_clk     => p_out_mem(i).clk, --p_out_saxi_clk(i),
---s_axi_rstn    => p_out_mem(i).rstn,--p_out_saxi_rstn(i),
+--AXI CTRL port
+s_axi_ctrl_awvalid  => '0',
+s_axi_ctrl_awready  => open,
+s_axi_ctrl_awaddr   => (others=>'0'),
 
---// Write Address Ports
-s_axi_awid     => p_in_mem (i).axiw.aid(C_AXIM_IDWIDTH - 1 downto 0),--p_in_saxi_awid(i)(G_AXI_IDWIDTH - 1 downto 0),
-s_axi_awaddr   => p_in_mem (i).axiw.adr(C_AXI_AWIDTH - 1 downto 0)  ,--p_in_saxi_awaddr(i)(G_AXI_AWIDTH - 1 downto 0),
-s_axi_awlen    => p_in_mem (i).axiw.trnlen                        ,--p_in_saxi_awlen(i),
-s_axi_awsize   => p_in_mem (i).axiw.dbus                          ,--p_in_saxi_awsize(i),
-s_axi_awburst  => p_in_mem (i).axiw.burst                         ,--p_in_saxi_awburst(i),
-s_axi_awlock   => p_in_mem (i).axiw.lock                          ,--p_in_saxi_awlock(i),--(0 downto 0),
-s_axi_awcache  => p_in_mem (i).axiw.cache                         ,--p_in_saxi_awcache(i),
-s_axi_awprot   => p_in_mem (i).axiw.prot                          ,--p_in_saxi_awprot(i),
-s_axi_awqos    => p_in_mem (i).axiw.qos                           ,--p_in_saxi_awqos(i),
-s_axi_awvalid  => p_in_mem (i).axiw.avalid                        ,--p_in_saxi_awvalid(i),
-s_axi_awready  => p_out_mem(i).axiw.aready                        ,--p_out_saxi_awready(i),
---// Write Data Ports
-s_axi_wdata    => p_in_mem (i).axiw.data(C_AXIM_DWIDTH - 1 downto 0) ,--p_in_saxi_wdata(i)(G_AXI_DWIDTH - 1 downto 0),
-s_axi_wstrb    => p_in_mem (i).axiw.dbe(C_AXIM_DWIDTH/8 - 1 downto 0),--p_in_saxi_wstrb(i)(G_AXI_DWIDTH/8 - 1 downto 0),
-s_axi_wlast    => p_in_mem (i).axiw.dlast                         ,--p_in_saxi_wlast(i),
-s_axi_wvalid   => p_in_mem (i).axiw.dvalid                        ,--p_in_saxi_wvalid(i),
-s_axi_wready   => p_out_mem(i).axiw.wready                        ,--p_out_saxi_wready(i),
---// Write Response Ports
-s_axi_bid      => i_saxi_bid(i)(C_AXIM_IDWIDTH - 1 downto 0)        ,
-s_axi_bresp    => p_out_mem(i).axiw.resp                          ,--p_out_saxi_bresp(i),
-s_axi_bvalid   => p_out_mem(i).axiw.rvalid                        ,--p_out_saxi_bvalid(i),
-s_axi_bready   => p_in_mem (i).axiw.rready                        ,--p_in_saxi_bready(i),
---// Read Address Ports
-s_axi_arid     => p_in_mem (i).axir.aid(C_AXIM_IDWIDTH - 1 downto 0),--p_in_saxi_arid(i)(G_AXI_IDWIDTH - 1 downto 0),
-s_axi_araddr   => p_in_mem (i).axir.adr(C_AXI_AWIDTH - 1 downto 0)  ,--p_in_saxi_araddr(i)(G_AXI_AWIDTH - 1 downto 0),
-s_axi_arlen    => p_in_mem (i).axir.trnlen                        ,--p_in_saxi_arlen(i),
-s_axi_arsize   => p_in_mem (i).axir.dbus                          ,--p_in_saxi_arsize(i),
-s_axi_arburst  => p_in_mem (i).axir.burst                         ,--p_in_saxi_arburst(i),
-s_axi_arlock   => p_in_mem (i).axir.lock                          ,--p_in_saxi_arlock(i),--(0 downto 0),
-s_axi_arcache  => p_in_mem (i).axir.cache                         ,--p_in_saxi_arcache(i),
-s_axi_arprot   => p_in_mem (i).axir.prot                          ,--p_in_saxi_arprot(i),
-s_axi_arqos    => p_in_mem (i).axir.qos                           ,--p_in_saxi_arqos(i),
-s_axi_arvalid  => p_in_mem (i).axir.avalid                        ,--p_in_saxi_arvalid(i),
-s_axi_arready  => p_out_mem(i).axir.aready                        ,--p_out_saxi_arready(i),
---// Read Data Ports
-s_axi_rid      => i_saxi_rid(i)(C_AXIM_IDWIDTH - 1 downto 0)        ,
-s_axi_rdata    => p_out_mem(i).axir.data(C_AXIM_DWIDTH - 1 downto 0) ,--p_out_saxi_rdata(i)(G_AXI_DWIDTH - 1 downto 0),
-s_axi_rresp    => p_out_mem(i).axir.resp                          ,--p_out_saxi_rresp(i),
-s_axi_rlast    => p_out_mem(i).axir.dlast                         ,--p_out_saxi_rlast(i),
-s_axi_rvalid   => p_out_mem(i).axir.dvalid                        ,--p_out_saxi_rvalid(i),
-s_axi_rready   => p_in_mem (i).axir.rready                        ,--p_in_saxi_rready(i),
+s_axi_ctrl_wvalid   => '0',
+s_axi_ctrl_wready   => open,
+s_axi_ctrl_wdata    => (others=>'0'),
 
--- DDR3 Physical Interface
-ddr3_dq         => p_inout_phymem(i).dq   ,--inout  [DQ_WIDTH - 1:0]
-ddr3_addr       => p_out_phymem  (i).a    ,--output [ROW_WIDTH - 1:0]
-ddr3_ba         => p_out_phymem  (i).ba   ,--output [BANK_WIDTH - 1:0]
-ddr3_ras_n      => p_out_phymem  (i).ras_n,--output
-ddr3_cas_n      => p_out_phymem  (i).cas_n,--output
-ddr3_we_n       => p_out_phymem  (i).we_n ,--output
-ddr3_reset_n    => p_out_phymem  (i).rst_n,--output
-ddr3_cs_n       => p_out_phymem  (i).cs_n ,--output [(CS_WIDTH*nCS_PER_RANK) - 1:0]
-ddr3_odt        => p_out_phymem  (i).odt  ,--output [(CS_WIDTH*nCS_PER_RANK) - 1:0]
-ddr3_cke        => p_out_phymem  (i).cke  ,--output [CKE_WIDTH - 1:0]
-ddr3_dm         => p_out_phymem  (i).dm   ,--output [DM_WIDTH - 1:0]
-ddr3_dqs_p      => p_inout_phymem(i).dqs_p,--inout  [DQS_WIDTH - 1:0]
-ddr3_dqs_n      => p_inout_phymem(i).dqs_n,--inout  [DQS_WIDTH - 1:0]
-ddr3_ck_p       => p_out_phymem  (i).ck_p ,--output [CK_WIDTH - 1:0]
-ddr3_ck_n       => p_out_phymem  (i).ck_n ,--output [CK_WIDTH - 1:0]
-sda             => open,--p_inout_phymem(i).sda  ,--inout
-scl             => open,--p_out_phymem  (i).scl  ,--out
+s_axi_ctrl_bvalid   => open,
+s_axi_ctrl_bready   => '0',
+s_axi_ctrl_bresp    => open,
 
---Status
-phy_init_done   => p_out_status.rdy(i)    ,--output
+s_axi_ctrl_arvalid  => '0',
+s_axi_ctrl_arready  => open,
+s_axi_ctrl_araddr   => (others=>'0'),
+
+s_axi_ctrl_rvalid   => open,
+s_axi_ctrl_rready   => '1',
+s_axi_ctrl_rdata    => open,
+s_axi_ctrl_rresp    => open,
+
+--DDR3 Physical Interface
+ddr3_dq         => p_inout_phymem(i).dq   ,
+ddr3_addr       => p_out_phymem  (i).a    ,
+ddr3_ba         => p_out_phymem  (i).ba   ,
+ddr3_ras_n      => p_out_phymem  (i).ras_n,
+ddr3_cas_n      => p_out_phymem  (i).cas_n,
+ddr3_we_n       => p_out_phymem  (i).we_n ,
+ddr3_reset_n    => p_out_phymem  (i).rst_n,
+ddr3_cs_n       => p_out_phymem  (i).cs_n ,
+ddr3_odt        => p_out_phymem  (i).odt  ,
+ddr3_cke        => p_out_phymem  (i).cke  ,
+ddr3_dm         => p_out_phymem  (i).dm   ,
+ddr3_dqs_p      => p_inout_phymem(i).dqs_p,
+ddr3_dqs_n      => p_inout_phymem(i).dqs_n,
+ddr3_ck_p       => p_out_phymem  (i).ck_p ,
+ddr3_ck_n       => p_out_phymem  (i).ck_n ,
+sda             => open                   ,
+scl             => open                   ,
 
 --System
-sys_clkout      => g_sys_clkout(i),
-sys_clk         => p_in_sys.clk           ,--input   ,    //single ended system clocks
-clk_ref         => p_in_sys.ref_clk       ,--input   ,     //single ended iodelayctrl clk
-sys_rst         => p_in_sys.rst            --input
+interrupt       => open,
+phy_init_done   => p_out_status.rdy(i)    ,
+
+aresetn         => i_aresetn(i)           ,--input
+ui_clk_sync_rst => i_rst(i)               ,--output
+ui_clk          => i_clk(i)               ,--output
+
+sys_clk         => p_in_sys.clk           ,
+clk_ref         => p_in_sys.ref_clk       ,
+sys_rst         => p_in_sys.rst
 );
 
+process(i_clk(i))
+begin
+  if rising_edge(i_clk(i)) then
+    i_aresetn(i) <= not i_rst(i);
+  end if;
+end process;
+
 end generate gen_bank;
+
 
 --END MAIN
 end;

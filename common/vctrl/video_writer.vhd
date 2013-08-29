@@ -26,7 +26,7 @@ use unisim.vcomponents.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_cfg.all;
+--use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
@@ -60,7 +60,7 @@ p_in_vfr_buf          : in    TVfrBufs;                    --Номер буфера где бу
 
 --Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Кадр готов для соответствующего видеоканала
-p_out_vrow_mrk        : out   TVMrks;                      --Маркер строки
+p_out_vrow_mrk        : out   std_logic_vector(31 downto 0);--Маркер строки
 
 ----------------------------
 --Upstream Port (Связь с буфером видеопакетов)
@@ -109,7 +109,7 @@ signal i_vpkt_cnt                  : std_logic_vector(3 downto 0);
 signal i_vpkt_header_rd            : std_logic;
 signal i_vpkt_payload_rd           : std_logic;
 
-signal i_vfr_row_mrk               : TVMrks;
+signal i_vfr_row_mrk               : std_logic_vector(31 downto 0);
 signal i_vfr_row_mrk_l             : std_logic_vector(15 downto 0);
 signal i_vfr_pix_count             : std_logic_vector(15 downto 0);
 signal i_vfr_row_count             : std_logic_vector(15 downto 0);
@@ -217,12 +217,13 @@ i_upp_pkt_skip_rd_out <= (i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 ------------------------------------------------
 --вычисляем сколько данных нужно пробросить чтобы перейти к новому pkt, если обнаружил ошибки в принятом пакете
 i_pkt_skip_byte <= EXT(i_pkt_size_byte, i_pkt_skip_byte'length) + 2;--кол-во байт пакета + кол-во байт поля length
-i_pkt_skip_data <= EXT(i_pkt_skip_byte(i_pkt_skip_byte'high downto log2(G_MEM_DWIDTH/8)), i_pkt_skip_data'length)
+i_pkt_skip_data <= EXT(i_pkt_skip_byte(i_pkt_skip_byte'high downto log2(G_MEM_DWIDTH/8))
+                                                                      , i_pkt_skip_data'length)
                  + OR_reduce(i_pkt_skip_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
 
 --вычисляем кол-во пикселей которое надо записать в ОЗУ
-i_pix_count_byte <= i_pkt_skip_byte - CONV_STD_LOGIC_VECTOR((C_VIDEO_PKT_HEADER_SIZE * 4), i_pix_count_byte'length);
-
+i_pix_count_byte <= i_pkt_skip_byte
+                    - CONV_STD_LOGIC_VECTOR((C_VIDEO_PKT_HEADER_SIZE * 4), i_pix_count_byte'length);
 
 i_vfr_pix_count_calc <= i_pix_count_byte(i_vfr_pix_count_calc'range) + i_pix_num;
 
@@ -230,7 +231,7 @@ i_vfr_pix_count_calc <= i_pix_count_byte(i_vfr_pix_count_calc'range) + i_pix_num
 ------------------------------------------------
 --Автомат записи видео информации
 ------------------------------------------------
-process(p_in_rst,p_in_clk)
+process(p_in_rst, p_in_clk)
   variable vfr_rdy : std_logic_vector(p_out_vfr_rdy'range);
 begin
   if p_in_rst = '1' then
@@ -244,8 +245,8 @@ begin
     i_vch_num <= (others=>'0');
     for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
       i_vfr_num(i) <= (others=>'0');
-      i_vfr_row_mrk(i) <= (others=>'0');
     end loop;
+    i_vfr_row_mrk <= (others=>'0');
 
     i_vfr_row <= (others=>'0');
     i_vfr_pix_count <= (others=>'0');
@@ -330,19 +331,20 @@ begin
             --Установка параметров для текущего кадра видеоканала:
             for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
               if i_vch_num = i then
-
-                --сохраняем маркер текущей строки кадра :
-                i_vfr_row_mrk(i)(31 downto 16)<= p_in_upp_data(15 downto 0);--(старшая часть)
-                i_vfr_row_mrk(i)(15 downto 0) <= i_vfr_row_mrk_l;           --(младшая часть)
-
                 --адрес ОЗУ:
                 i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(i);
               end if;
             end loop;
 
+            --сохраняем маркер текущей строки кадра :
+            i_vfr_row_mrk(31 downto 16)<= p_in_upp_data(15 downto 0);--(старшая часть)
+            i_vfr_row_mrk(15 downto 0) <= i_vfr_row_mrk_l;           --(младшая часть)
+
             --адрес ОЗУ:
-            i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
-            i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row((G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT) + 0 downto 0);
+            i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT
+                                                                            - G_MEM_VCH_L_BIT downto 0);
+            i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row((G_MEM_VLINE_M_BIT
+                                                                                  - G_MEM_VLINE_L_BIT) + 0 downto 0);
             i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_pix_num(G_MEM_VLINE_L_BIT - 1 downto 0);
 
             fsm_state_cs <= S_MEM_START;
@@ -433,7 +435,8 @@ begin
       when S_MEM_START =>
 
         i_vpkt_payload_rd <= '1';
-        i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high - 1 downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
+        i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high - 1 downto log2(G_MEM_DWIDTH/8))
+                                                                                  , i_mem_dlen_rq'length)
                         + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
 
         i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);

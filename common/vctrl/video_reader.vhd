@@ -20,7 +20,7 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_cfg.all;
+--use work.prj_cfg.all;
 use work.prj_def.all;
 use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
@@ -48,13 +48,14 @@ port(
 -- Конфигурирование
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
-p_in_cfg_prm_vch     : in    TReaderVCHParam;
+p_in_cfg_prm_vch     : in    TReaderVCHParams;
+p_in_cfg_set_idle_vch: in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
 p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);--Хост: номер видеоканала выбраного для чтения
 p_in_hrd_start       : in    std_logic;                   --Хост: Запуск чтения кадра
 p_in_hrd_done        : in    std_logic;                   --Хост: Подтверждение вычитки кадра
 
-p_in_vfr_buf         : in    std_logic_vector(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
+p_in_vfr_buf         : in    TVfrBufs;
 p_in_vfr_nrow        : in    std_logic;                   --Разрешение чтения следующей строки
 
 --Статусы
@@ -100,8 +101,7 @@ constant dly : time := 1 ps;
 
 type fsm_state is (
 S_IDLE,
-S_ROW_FINED0,
-S_ROW_FINED1,
+S_LD_PRMS,
 S_MEM_SET_ADR,
 S_MEM_START,
 S_MEM_RD,
@@ -120,15 +120,19 @@ signal i_mem_done                    : std_logic;
 
 signal i_vch_num                     : std_logic_vector(p_in_hrd_chsel'high downto 0);
 signal i_vfr_mirror                  : TFrXYMirror;
-signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VFR_L_BIT-G_MEM_VLINE_L_BIT downto 0);
+signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
 signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_active_row              : std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_done                    : std_logic;
-signal i_vfr_new                     : std_logic;
-signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT-C_VCTRL_MEM_VFR_L_BIT downto 0);
-signal i_vfr_skip_pix                : std_logic_vector(i_vfr_row_cnt'range);
-signal i_skip_pix_byte               : std_logic_vector(G_MEM_VLINE_L_BIT - 1 downto 0);
-signal i_pix_count_byte              : std_logic_vector(15 downto 0);
+signal i_vfr_new                     : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0):=(others=>'1');
+signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
+signal i_vfr_skip_pix_byte           : std_logic_vector(G_MEM_VLINE_L_BIT - 1 downto 0);
+signal i_vfr_active_pix_byte         : std_logic_vector(15 downto 0);
+
+Type TVCH_row_cnt is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(i_vfr_row_cnt'range);
+signal i_vfr_row_cnt_sv              : TVCH_row_cnt;
+signal i_step_count                  : std_logic_vector(15 downto 0);
+signal i_step_cnt                    : std_logic_vector(15 downto 0);
 
 signal i_gnd                         : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 
@@ -159,12 +163,11 @@ begin
   end if;
 end process;
 
-tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmstate'length) when fsm_state_cs = S_ROW_FINED0    else
-                CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_ROW_FINED1    else
-                CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmstate'length) when fsm_state_cs = S_MEM_SET_ADR   else
-                CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_MEM_START     else
-                CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmstate'length) when fsm_state_cs = S_MEM_RD        else
-                CONV_STD_LOGIC_VECTOR(16#07#, tst_fsmstate'length) when fsm_state_cs = S_ROW_NXT       else
+tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmstate'length) when fsm_state_cs = S_MEM_SET_ADR   else
+                CONV_STD_LOGIC_VECTOR(16#02#, tst_fsmstate'length) when fsm_state_cs = S_MEM_START     else
+                CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_MEM_RD        else
+                CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmstate'length) when fsm_state_cs = S_ROW_NXT       else
+                CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_LD_PRMS       else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_IDLE else
 end generate gen_dbgcs_on;
 
@@ -175,27 +178,21 @@ i_gnd <= (others=>'0');
 --Статусы
 ------------------------------------------------
 p_out_vch_rd_done <= i_vfr_done;
-p_out_vch_fr_new <= i_vfr_new;
+p_out_vch_fr_new <= '0';
 
 --параметры чтения текущего кадра
 p_out_vch <= i_vch_num;
 
-p_out_vch_active_pix <= i_pix_count_byte;
+p_out_vch_active_pix <= i_vfr_active_pix_byte;
 p_out_vch_active_row <= EXT(i_vfr_active_row, p_out_vch_active_row'length);
 p_out_vch_mirx       <= i_vfr_mirror.pix;
 
 
-i_vch_num <= p_in_hrd_chsel;
-
 ------------------------------------------------
 --Автомат Чтения видео кадра
 ------------------------------------------------
-i_pix_count_byte <= p_in_cfg_prm_vch.fr_size.activ.pix(p_in_cfg_prm_vch.fr_size.activ.pix'high - 2 downto 0) & "00";
-i_skip_pix_byte <= i_vfr_skip_pix(G_MEM_VLINE_L_BIT - 1 - 2 downto 0) & "00";
-
 --Логика работы автомата
-process(p_in_rst,p_in_clk)
-  variable vfr_active_row_end : std_logic_vector(i_vfr_row_cnt'range);
+process(p_in_rst, p_in_clk)
 begin
   if p_in_rst = '1' then
 
@@ -214,12 +211,19 @@ begin
     i_vfr_mirror.row <= '0';
     i_vfr_row_cnt <= (others=>'0');
     i_vfr_active_row <= (others=>'0');
-      vfr_active_row_end := (others=>'0');
     i_vfr_skip_row <= (others=>'0');
-    i_vfr_skip_pix <= (others=>'0');
+    i_vfr_skip_pix_byte <= (others=>'0');
+    i_vfr_active_pix_byte <= (others=>'0');
 
+    i_vch_num <= (others=>'0');
     i_vfr_done <= '0';
-    i_vfr_new <= '0';
+    i_vfr_new <= (others=>'1');
+
+    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+    i_vfr_row_cnt_sv(ch) <= (others=>'0');
+    end loop;
+    i_step_count <= (others=>'0');
+    i_step_cnt <= (others=>'0');
 
   elsif rising_edge(p_in_clk) then
 
@@ -231,78 +235,82 @@ begin
       when S_IDLE =>
 
         i_vfr_done <= '0';
+        i_step_cnt <= (others=>'0');
+        i_mem_ptr <= (others=>'0');
+
+        if p_in_hrd_start = '1' then
+
+          i_vch_num <= p_in_hrd_chsel;
+          fsm_state_cs <= S_LD_PRMS;
+
+        end if;
+
+      --------------------------------------
+      --Загрузка параметров
+      --------------------------------------
+      when S_LD_PRMS =>
 
         --Загрузка праметров Видео канала
-        if p_in_hrd_start = '1' then
-          i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
+        for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+          if p_in_hrd_chsel = ch then
 
-          ----------------------------
-          --
-          ----------------------------
-          i_vfr_buf <= p_in_vfr_buf;
+              if p_in_cfg_prm_vch(ch).step_rd = (p_in_cfg_prm_vch(ch).step_rd'range => '0') then
+              i_step_count <= p_in_cfg_prm_vch(ch).fr_size.activ.row;
+              else
+              i_step_count <= p_in_cfg_prm_vch(ch).step_rd;
+              end if;
 
-          ----------------------------
-          --Банк ОЗУ:
-          ----------------------------
-          i_mem_rdbase <= p_in_cfg_prm_vch.mem_adr;
+              ----------------------------
+              --
+              ----------------------------
+              i_vfr_buf <= p_in_vfr_buf(ch);
 
-          ----------------------------
-          --Отзеркаливание:
-          ----------------------------
-          i_vfr_mirror.pix <= p_in_cfg_prm_vch.fr_mirror.pix;
-          i_vfr_mirror.row <= p_in_cfg_prm_vch.fr_mirror.row;
+              ----------------------------
+              --Банк ОЗУ:
+              ----------------------------
+              i_mem_rdbase <= p_in_cfg_prm_vch(ch).mem_adr;
 
-          ----------------------------
-          --Пиксели:
-          ----------------------------
-          --Инициализируем размер транзакции чтения
-          --(Должен быть равен размеру одной строки)
-          i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
-                           + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
+              ----------------------------
+              --Отзеркаливание:
+              ----------------------------
+              i_vfr_mirror.pix <= p_in_cfg_prm_vch(ch).fr_mirror.pix;
+              i_vfr_mirror.row <= p_in_cfg_prm_vch(ch).fr_mirror.row;
 
-          i_vfr_skip_pix <= p_in_cfg_prm_vch.fr_size.skip.pix(i_vfr_skip_pix'high downto 0);
+              ----------------------------
+              --Пиксели:
+              ----------------------------
+              i_vfr_active_pix_byte <= p_in_cfg_prm_vch(ch)
+                                  .fr_size.activ.pix(p_in_cfg_prm_vch(ch)
+                                                      .fr_size.activ.pix'high - 2 downto 0) & "00";
 
-          ----------------------------
-          --Строки:
-          ----------------------------
-          i_vfr_active_row <= p_in_cfg_prm_vch.fr_size.activ.row(i_vfr_active_row'high downto 0);
-          i_vfr_skip_row <= p_in_cfg_prm_vch.fr_size.skip.row(i_vfr_skip_row'high downto 0);
+              i_vfr_skip_pix_byte <= p_in_cfg_prm_vch(ch)
+                                  .fr_size.skip.pix(G_MEM_VLINE_L_BIT - 1 - 2 downto 0) & "00";
 
-          --Инициализируем счетчик строк
-          if p_in_cfg_prm_vch.fr_mirror.row = '0' then
-            i_vfr_row_cnt <= p_in_cfg_prm_vch.fr_size.skip.row(i_vfr_row_cnt'high downto 0);
-          else
-            i_vfr_row_cnt <= p_in_cfg_prm_vch.fr_size.skip.row(i_vfr_row_cnt'high downto 0)
-                             + p_in_cfg_prm_vch.fr_size.activ.row(i_vfr_row_cnt'high downto 0);
+              ----------------------------
+              --Строки:
+              ----------------------------
+              i_vfr_active_row <= p_in_cfg_prm_vch(ch).fr_size.activ.row(i_vfr_active_row'range);
+              i_vfr_skip_row <= p_in_cfg_prm_vch(ch).fr_size.skip.row(i_vfr_skip_row'range);
+
+              --Инициализируем счетчик строк
+              if i_vfr_new(ch) = '1' then
+
+                  i_vfr_new(ch) <= '0';
+
+                  if p_in_cfg_prm_vch(ch).fr_mirror.row = '0' then
+                    i_vfr_row_cnt <= (others=>'0');
+                  else
+                    i_vfr_row_cnt <= p_in_cfg_prm_vch(ch).fr_size.activ.row(i_vfr_row_cnt'range) - 1;
+                  end if;
+
+              else
+
+                i_vfr_row_cnt <= i_vfr_row_cnt_sv(ch);
+
+              end if;
+
           end if;
-
-          i_mem_ptr <= (others=>'0');
-          i_vfr_new <= '1';
-
-          fsm_state_cs <= S_ROW_FINED0;
-        end if;
-
-      --------------------------------------
-      --
-      --------------------------------------
-      when S_ROW_FINED0 =>
-
-        i_vfr_new <= '0';
-
-        if i_vfr_mirror.row = '1' then
-          --Отзеркаливание по Y - РАЗРЕШЕНО
-          --Инициализируем счетчик строк
-          i_vfr_row_cnt <= i_vfr_row_cnt-1;
-        end if;
-
-        vfr_active_row_end := i_vfr_active_row - 1;
-
-        fsm_state_cs <= S_ROW_FINED1;
-
-      --------------------------------------
-      --Ищем строку видео кадра
-      --------------------------------------
-      when S_ROW_FINED1 =>
+        end loop;
 
         fsm_state_cs <= S_MEM_SET_ADR;
 
@@ -311,11 +319,11 @@ begin
       --------------------------------------
       when S_MEM_SET_ADR =>
 
-        i_mem_ptr(i_mem_ptr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
-        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
+        i_mem_ptr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= i_vch_num(G_MEM_VCH_M_BIT
+                                                                        - G_MEM_VCH_L_BIT downto 0);
         i_mem_ptr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= i_vfr_buf;
-        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_row_cnt(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
-        i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_skip_pix_byte;
+        i_mem_ptr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_skip_row + i_vfr_row_cnt;
+        i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_vfr_skip_pix_byte;
 
         fsm_state_cs <= S_MEM_START;
 
@@ -324,6 +332,12 @@ begin
       --------------------------------------
       when S_MEM_START =>
 
+        --(Кол-во запрашиваемых данных должен быть равен размеру одной строки)
+        i_mem_dlen_rq <= EXT(i_vfr_active_pix_byte(i_vfr_active_pix_byte'high downto log2(G_MEM_DWIDTH/8))
+                                                                                , i_mem_dlen_rq'length)
+                         + OR_reduce(i_vfr_active_pix_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
+
+        i_mem_trn_len <= EXT(p_in_cfg_mem_trn_len, i_mem_trn_len'length);
         i_mem_adr <= i_mem_rdbase + i_mem_ptr;
         i_mem_dir <= C_MEMWR_READ;
         i_mem_start <= '1';
@@ -334,9 +348,9 @@ begin
       ------------------------------------------------
       when S_MEM_RD =>
 
-        i_mem_start<='0';
+        i_mem_start <= '0';
 
-        if i_mem_done='1' then
+        if i_mem_done = '1' then
         --Операция выполнена
           fsm_state_cs <= S_ROW_NXT;
         end if;
@@ -348,23 +362,48 @@ begin
 
         if p_in_vfr_nrow = '1' then
 
-          if (i_vfr_mirror.row = '0' and i_vfr_row_cnt = (i_vfr_skip_row + vfr_active_row_end)) or
-             (i_vfr_mirror.row = '1' and i_vfr_row_cnt = i_vfr_skip_row) then
+          if (i_vfr_mirror.row = '0' and i_vfr_row_cnt = (i_vfr_active_row - 1)) or
+             (i_vfr_mirror.row = '1' and i_vfr_row_cnt = (i_vfr_row_cnt'range => '0')) then
 
               i_vfr_done <= '1';
+
+              for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+                if i_vch_num = ch then
+                  i_vfr_new(ch) <= '1';
+                end if;
+              end loop;
+
               fsm_state_cs <= S_IDLE;
 
           else
 
-            if i_vfr_mirror.row = '1' then
-              i_vfr_row_cnt <= i_vfr_row_cnt - 1;
-            else
-              i_vfr_row_cnt <= i_vfr_row_cnt + 1;
-            end if;
+              if i_step_cnt = i_step_count - 1 then
 
-            fsm_state_cs <= S_ROW_FINED1;
+                  for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+                    if i_vch_num = ch then
+                      if i_vfr_mirror.row = '1' then
+                        i_vfr_row_cnt_sv(ch) <= i_vfr_row_cnt - 1;
+                      else
+                        i_vfr_row_cnt_sv(ch) <= i_vfr_row_cnt + 1;
+                      end if;
+                    end if;
+                  end loop;
+
+                  fsm_state_cs <= S_IDLE;
+
+              else
+                  if i_vfr_mirror.row = '1' then
+                    i_vfr_row_cnt <= i_vfr_row_cnt - 1;
+                  else
+                    i_vfr_row_cnt <= i_vfr_row_cnt + 1;
+                  end if;
+
+                  i_step_cnt <= i_step_cnt + 1;
+
+                  fsm_state_cs <= S_MEM_SET_ADR;
+              end if;
+
           end if;
-
         end if;
 
     end case;

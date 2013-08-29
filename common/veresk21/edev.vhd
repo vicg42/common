@@ -42,20 +42,24 @@ p_in_tmr_en       : in   std_logic;
 p_in_tmr_stb      : in   std_logic;
 
 -------------------------------
---Связь с HOST
+--HOST
 -------------------------------
-p_out_host_rxrdy  : out  std_logic;                      --1 - rdy to used
-p_out_host_rxd    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);  --cfgdev -> host
-p_in_host_rd      : in   std_logic;
+--host -> dev
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_htxbuf_wr       : in   std_logic;
+p_out_htxbuf_full    : out  std_logic;
+p_out_htxbuf_empty   : out  std_logic;
 
-p_out_host_txrdy  : out  std_logic;                      --1 - rdy to used
-p_in_host_txd     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);  --cfgdev <- host
-p_in_host_wr      : in   std_logic;
+--host <- dev
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_hrxbuf_rd       : in   std_logic;
+p_out_hrxbuf_full    : out  std_logic;
+p_out_hrxbuf_empty   : out  std_logic;
 
-p_in_host_clk     : in   std_logic;
+p_out_hirq           : out  std_logic;
+p_out_herr           : out  std_logic;
 
-p_out_hirq        : out  std_logic;                      --прерывание
-p_out_herr        : out  std_logic;
+p_in_hclk            : in   std_logic;
 
 --------------------------------------
 --PHY (half-duplex)
@@ -118,8 +122,9 @@ dout   : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 rd_en  : in  std_logic;
 rd_clk : in  std_logic;
 
-full   : out std_logic;
 empty  : out std_logic;
+full   : out std_logic;
+prog_full: out std_logic;
 
 rst    : in  std_logic
 );
@@ -224,9 +229,9 @@ tst_fms_core <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(
 ------------------------------------
 --Связь с Host
 ------------------------------------
-p_out_host_txrdy <= i_txbuf_empty;
-p_out_host_rxrdy <= not i_rxbuf_empty and i_rcv_irq;--ВАЖНО!!! Взводим флаг готовности RXD
-                                                    --одновременно с выдачей прерывания
+--p_out_host_txrdy <= i_txbuf_empty;
+--p_out_host_rxrdy <= not i_rxbuf_empty and i_rcv_irq;--ВАЖНО!!! Взводим флаг готовности RXD
+--                                                    --одновременно с выдачей прерывания
 p_out_herr <= i_rcv_err;
 p_out_hirq <= i_rcv_irq;
 i_rcv_err <= '1' when i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) else '0';
@@ -234,19 +239,22 @@ i_rcv_err <= '1' when i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_
 --host->edev
 m_txbuf : edev_buf
 port map(
-din    => p_in_host_txd,
-wr_en  => p_in_host_wr,
-wr_clk => p_in_host_clk,
+din    => p_in_htxbuf_di,
+wr_en  => p_in_htxbuf_wr,
+wr_clk => p_in_hclk,
 
 dout   => i_txbuf_do,
 rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
-full   => open,
 empty  => i_txbuf_empty,
+full   => open,
+prog_full => p_out_htxbuf_full,
 
 rst    => p_in_rst
 );
+
+p_out_htxbuf_empty <= i_txbuf_empty;
 
 --host<-edev
 m_rxbuf : edev_buf
@@ -256,33 +264,35 @@ wr_en  => i_rxbuf_wr,
 wr_clk => p_in_clk,
 
 dout   => i_host_rxd,
-rd_en  => p_in_host_rd,
-rd_clk => p_in_host_clk,
+rd_en  => p_in_hrxbuf_rd,
+rd_clk => p_in_hclk,
 
-full   => open,
 empty  => i_rxbuf_empty,
+full   => open,
+prog_full => p_out_hrxbuf_full,
 
 rst    => i_rxbuf_rst
 );
+p_out_hrxbuf_empty <= i_rxbuf_empty;
 
 i_rxbuf_rst <= p_in_rst or i_rcv_err;
 
 --Встраивание в выходные данные Rx byte count
-p_out_host_rxd((8 * 1) - 1 downto 8 * 0) <= i_host_rxd((8 * 1) - 1 downto 8 * 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
+p_out_hrxbuf_do((8 * 1) - 1 downto 8 * 0) <= i_host_rxd((8 * 1) - 1 downto 8 * 0) when i_host_rxd_en = '1' else i_lencnt(7 downto 0);
 gen_rxd : for i in 1 to G_HOST_DWIDTH/8 - 1 generate
-p_out_host_rxd((8 * (i + 1)) - 1 downto (8 * i)) <= i_host_rxd((8 * (i + 1)) - 1 downto (8 * i));
+p_out_hrxbuf_do((8 * (i + 1)) - 1 downto (8 * i)) <= i_host_rxd((8 * (i + 1)) - 1 downto (8 * i));
 end generate;--gen_rxd
 
-process(p_in_rst, p_in_host_clk)
+process(p_in_rst, p_in_hclk)
 begin
   if p_in_rst = '1' then
     i_host_rxd_en <= '0';
 
-  elsif rising_edge(p_in_host_clk) then
-    if p_in_host_wr = '1' then
+  elsif rising_edge(p_in_hclk) then
+    if p_in_htxbuf_wr = '1' then
       i_host_rxd_en <= '0';
 
-    elsif p_in_host_rd = '1' then
+    elsif p_in_hrxbuf_rd = '1' then
       i_host_rxd_en <= '1';
     end if;
   end if;

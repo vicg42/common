@@ -19,7 +19,7 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
-use work.prj_cfg.all;
+--use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
@@ -60,11 +60,11 @@ p_in_vctrl_hrdstart   : in    std_logic;                      --Начало чтенения 
 p_in_vctrl_hrddone    : in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Подтверждение вычетки данных видеоканала
 p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Готовность кадра соответствующего видеоканала
 p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Прерываение соответствующего видеоканала(Кадр готов)
-p_out_vctrl_hfrmrk    : out   TVMrks;
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
 
-p_out_vbufo_do        : out   TVCH_bufo_d;  --Связь с буферов видео данных для ХОСТА
-p_in_vbufo_rd         : in    std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
-p_out_vbufo_empty     : out   std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+p_out_vbufo_do        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);--Видео данные для ХОСТА
+p_in_vbufo_rd         : in    std_logic;
+p_out_vbufo_empty     : out   std_logic;
 
 -------------------------------
 --VBUFI
@@ -81,8 +81,8 @@ p_in_vbufi_full       : in    std_logic;
 p_out_memwr           : out   TMemIN;
 p_in_memwr            : in    TMemOUT;
 --CH READ
-p_out_memrd           : out   TMemINCh;
-p_in_memrd            : in    TMemOUTCh;
+p_out_memrd           : out   TMemIN;
+p_in_memrd            : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -148,7 +148,7 @@ p_in_vfr_buf          : in    TVfrBufs;
 
 --Статусы
 p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-p_out_vrow_mrk        : out   TVMrks;
+p_out_vrow_mrk        : out   std_logic_vector(31 downto 0);
 
 ----------------------------
 --Upstream Port
@@ -201,13 +201,14 @@ port(
 -- Конфигурирование
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
-p_in_cfg_prm_vch     : in    TReaderVCHParam;
+p_in_cfg_prm_vch     : in    TReaderVCHParams;
+p_in_cfg_set_idle_vch: in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
 p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);
 p_in_hrd_start       : in    std_logic;
 p_in_hrd_done        : in    std_logic;
 
-p_in_vfr_buf         : in    std_logic_vector(G_MEM_VFR_M_BIT - G_MEM_VFR_L_BIT downto 0);
+p_in_vfr_buf         : in    TVfrBufs;
 p_in_vfr_nrow        : in    std_logic;
 
 --Статусы
@@ -311,44 +312,38 @@ constant CI_VBUF_COUNT                   : integer := pwr(2, (C_VCTRL_MEM_VFR_M_
 Type TVMrks_vbuf is array (0 to CI_VBUF_COUNT - 1) of std_logic_vector(31 downto 0);
 Type TVMrks_vbufs is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of TVMrks_vbuf;
 
-type TWIDTH_4_vch is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(3 downto 0);
-type TWIDTH_16_vch is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(15 downto 0);
-type TWIDTH_32_vch is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(31 downto 0);
-type TWIDTH_MEM_DWIDTH_vch is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-
 type TArrayCntWidth is array (0 to C_VCTRL_VCH_COUNT_MAX - 1) of std_logic_vector(3 downto 0);
 signal i_vrd_irq_width_cnt               : TArrayCntWidth;
 signal i_vrd_irq_width                   : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vrd_irq                         : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vbuf_hold                       : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vfrmrk                          : TVMrks_vbufs;
-signal i_vfrmrk_out                      : TVMrks;
+signal i_vfrmrk_out                      : std_logic_vector(31 downto 0);
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
 
 signal i_vwrite_vfr_rdy_out              : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vwrite_vrow_mrk                 : TVMrks;
+signal i_vwrite_vrow_mrk                 : std_logic_vector(31 downto 0);
 
-signal i_vreader_chnum                   : TWIDTH_4_vch;
-signal i_vreader_start                   : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vreader_rd_done                 : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vreader_rq_next_line            : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vreader_active_pix_out          : TWIDTH_16_vch;
-signal i_vreader_mirx_out                : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vreader_dout                    : TWIDTH_MEM_DWIDTH_vch;
-signal i_vreader_dout_en                 : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_vreader_vch_out                 : std_logic_vector(p_in_vctrl_hrdchsel'range);
+signal i_vreader_rd_done                 : std_logic;
+signal i_vreader_rq_next_line            : std_logic;
+signal i_vreader_active_pix_out          : std_logic_vector(15 downto 0);
+signal i_vreader_mirx_out                : std_logic;
+signal i_vreader_dout                    : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_vreader_dout_en                 : std_logic;
 
-signal i_vmir_rdy_n                      : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vmir_dout                       : TWIDTH_MEM_DWIDTH_vch;
-signal i_vmir_dout_en                    : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_vmir_rdy_n                      : std_logic;
+signal i_vmir_dout                       : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+signal i_vmir_dout_en                    : std_logic;
 
-signal i_vcoldemasc_rdy_n                : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_vcoldemasc_rdy_n                : std_logic;
 
 signal i_mem_null_dout                   : std_logic_vector(G_MEM_DWIDTH - 1 downto 0):=(others=>'0');
 
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
-signal tst_vreader_out,tst_vmir_out      : TWIDTH_32_vch;
+signal tst_vreader_out,tst_vmir_out      : std_logic_vector(31 downto 0);
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
 
 type TVfrSkip is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
@@ -368,7 +363,7 @@ begin
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(0) <= '0';
 p_out_tst(4 downto 1) <= tst_vwriter_out(4 downto 1);
-p_out_tst(8 downto 5) <= tst_vreader_out(0)(3 downto 0);
+p_out_tst(8 downto 5) <= tst_vreader_out(3 downto 0);
 p_out_tst(15 downto 9) <= (others=>'0');
 p_out_tst(19 downto 16) <= (others=>'0');
 p_out_tst(26 downto 20) <= (others=>'0');
@@ -376,11 +371,11 @@ p_out_tst(31 downto 27) <= tst_vwriter_out(31 downto 27);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out(0)) or OR_reduce(tst_vmir_out(0));
+p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out) or OR_reduce(tst_vmir_out);
 p_out_tst(4 downto 1) <= tst_vwriter_out(3 downto 0);
-p_out_tst(8 downto 5) <= tst_vreader_out(0)(3 downto 0);
+p_out_tst(8 downto 5) <= tst_vreader_out(3 downto 0);
 p_out_tst(9)          <= tst_vwriter_out(4);
-p_out_tst(10)         <= tst_vreader_out(0)(4);
+p_out_tst(10)         <= tst_vreader_out(4);
 p_out_tst(25 downto 11) <= (others=>'0');
 p_out_tst(31 downto 26) <= tst_vwriter_out(31 downto 26);
 end generate gen_dbgcs_on;
@@ -431,6 +426,7 @@ begin
         i_vprm.ch(i).fr_size.activ.row <= (others=>'0');
         i_vprm.ch(i).fr_mirror.pix <= '0';
         i_vprm.ch(i).fr_mirror.row <= '0';
+        i_vprm.ch(i).step_rd <= (others=>'0');
     end loop;
     i_vprm.mem_wd_trn_len <= (others=>'0');
     i_vprm.mem_rd_trn_len <= (others=>'0');
@@ -479,6 +475,9 @@ begin
                 elsif var_vprm = CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_OPTIONS, var_vprm'length) then
                   i_vprm.ch(i).fr_mirror.pix <= h_reg_prm_data(4);
                   i_vprm.ch(i).fr_mirror.row <= h_reg_prm_data(5);
+
+                elsif var_vprm = CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_STEP_RD, var_vprm'length) then
+                  i_vprm.ch(i).step_rd <= h_reg_prm_data(15 downto 0);
 
                 end if;
               end if;
@@ -545,6 +544,9 @@ begin
                     p_out_cfg_rxdata(5)           <= i_vprm.ch(i).fr_mirror.row;
                     p_out_cfg_rxdata(15 downto 6)  <= (others=>'0');
 
+                  elsif var_vprm = CONV_STD_LOGIC_VECTOR(C_VCTRL_PRM_FR_STEP_RD, var_vprm'length) then
+                    p_out_cfg_rxdata <= i_vprm.ch(i).step_rd;
+
                   end if;
                 end if;
               end loop;
@@ -609,310 +611,6 @@ begin
 end process;
 
 
-----------------------------------------------------
---
-----------------------------------------------------
-gen_vch : for ch in 0 to C_VCTRL_VCH_COUNT - 1 generate
-
-p_out_vctrl_hirq(ch) <= i_vrd_irq_width(ch);
-p_out_vctrl_hdrdy(ch) <= i_vbuf_hold(ch);
-p_out_vctrl_hfrmrk(ch) <= i_vfrmrk_out(ch);
-
---Готовим параметры для модуля чтения
-i_rdprm_vch(ch).mem_adr   <= i_vprm.ch(ch).mem_addr_rd;
-i_rdprm_vch(ch).fr_size   <= i_vprm.ch(ch).fr_size;
-i_rdprm_vch(ch).fr_mirror <= i_vprm.ch(ch).fr_mirror;
-
---Готовим параметры для модуля записи
-i_wrprm_vch(ch).mem_adr <= i_vprm.ch(ch).mem_addr_wr;
-i_wrprm_vch(ch).fr_size <= i_vprm.ch(ch).fr_size;
-
-
---Растягиваем импульcы генерации прерываний чтения видеоканалов
-process(p_in_rst, p_in_clk)
-begin
-  if p_in_rst = '1' then
-   i_vrd_irq_width_cnt(ch) <= (others=>'0');
-    i_vrd_irq_width(ch) <= '0';
-
-  elsif rising_edge(p_in_clk) then
-
-    if i_vrd_irq(ch) = '1' then
-      i_vrd_irq_width(ch) <= '1';
-    elsif i_vrd_irq_width_cnt(ch)(3) = '1' then
-      i_vrd_irq_width(ch) <= '0';
-    end if;
-
-    if i_vrd_irq_width(ch) = '0' then
-      i_vrd_irq_width_cnt(ch) <= (others=>'0');
-    else
-      i_vrd_irq_width_cnt(ch) <= i_vrd_irq_width_cnt(ch) + 1;
-    end if;
-
-  end if;
-end process;
-
-
-----------------------------------------------------
---Управление видео буферами
-----------------------------------------------------
---Запись Видео
-process(p_in_rst, p_in_clk)
-begin
-  if p_in_rst = '1' then
-    i_vbuf_wr(ch) <= (others=>'0');
-    for buf in 0 to CI_VBUF_COUNT - 1 loop
-    i_vfrmrk(ch)(buf) <= (others=>'0');
-    end loop;
-    i_vfrskip(ch) <= (others=>'0');
-
-  elsif rising_edge(p_in_clk) then
-
-        --Выбираем видеобуфер для записи:
-        if vclk_set_idle_vch(ch) = '1' then
-          i_vbuf_wr(ch) <= (others=>'0');
-
-        elsif i_vwrite_vfr_rdy_out(ch) = '1' then
-            if i_vbuf_hold(ch) = '1' then
-              if i_vbuf_wr(ch) /= i_vbuf_rd(ch) then
-                i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
-              end if;
-            else
-              i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
-            end if;
-        end if;
-
-        --Защелкиваем маркер текущего кадра для выдачи ХОСТУ
-        if i_vwrite_vfr_rdy_out(ch) = '1' then
-          for buf in 0 to CI_VBUF_COUNT - 1 loop
-            if i_vbuf_wr(ch) = buf then
-              i_vfrmrk(ch)(buf) <= i_vwrite_vrow_mrk(ch);
-            end if;
-          end loop;
-        end if;
-
-        --Подсчет записаных кадров в течении чтения данных ХОСТОМ
-        if i_vbuf_hold(ch) = '0' then
-          i_vfrskip(ch) <= (others=>'0');
-        else
-          if i_vwrite_vfr_rdy_out(ch) = '1' and i_vreader_rd_done(ch) = '1' then
-            i_vfrskip(ch) <= i_vfrskip(ch);
-
-          elsif i_vreader_rd_done(ch) = '1' and i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0') then
-            i_vfrskip(ch) <= i_vfrskip(ch) - 1;
-
-          elsif i_vwrite_vfr_rdy_out(ch) = '1' and i_vfrskip(ch) /= (i_vfrskip(ch)'range => '1') then
-            i_vfrskip(ch) <= i_vfrskip(ch) + 1;
-
-          end if;
-        end if;
-
-  end if;
-end process;
-
---Чтение Видео
-process(p_in_rst, p_in_clk)
-begin
-  if p_in_rst = '1' then
-
-    i_vbuf_rd(ch) <= (others=>'0');
-    i_vbuf_hold(ch) <= '0';
-    i_vrd_irq(ch) <= '0';
-
-  elsif rising_edge(p_in_clk) then
-
-        --Выбираем видеобуфер для чтения
-        if vclk_set_idle_vch(ch) = '1' then
-          i_vbuf_rd(ch) <= (others=>'0');
-
-        elsif i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0') and i_vreader_rd_done(ch) = '1' then
-          i_vbuf_rd(ch) <= i_vbuf_rd(ch) + 1;
-
-        elsif i_vwrite_vfr_rdy_out(ch) = '1' and i_vbuf_hold(ch) = '0' then
-          i_vbuf_rd(ch) <= i_vbuf_wr(ch);
-
-        end if;
-
-        --Захват видеобуфера для Чтения ХОСТОМ
-        if i_vwrite_vfr_rdy_out(ch) = '1' then
-          i_vbuf_hold(ch) <= '1';
-
-        elsif (i_vfrskip(ch) = (i_vfrskip(ch)'range => '0') and i_vreader_rd_done(ch) = '1')
-          or vclk_set_idle_vch(ch) = '1' then
-
-          i_vbuf_hold(ch) <= '0';
-        end if;
-
-        --Прерываение - Можно вычитывать кадр
-        if i_vfrskip(ch) = (i_vfrskip(ch)'range => '0') then
-          i_vrd_irq(ch) <= i_vwrite_vfr_rdy_out(ch) and not i_vbuf_hold(ch);
-
-        else
-          i_vrd_irq(ch) <= i_vreader_rd_done(ch);
-
-        end if;
-
-  end if;
-end process;
-
-
---Выдаем ХОСТУ маркер вычитываемого кадра:
-process(p_in_rst, p_in_clk)
-begin
-  if p_in_rst = '1' then
-    i_vfrmrk_out(ch) <= (others=>'0');
-
-  elsif rising_edge(p_in_clk) then
-
-    for buf in 0 to CI_VBUF_COUNT - 1 loop
-      if i_vbuf_rd(ch) = buf then
-        i_vfrmrk_out(ch) <= i_vfrmrk(ch)(buf);
-      end if;
-    end loop;
-
-  end if;
-end process;
-
-
--------------------------------
---Модуль чтение видео информации из ОЗУ
--------------------------------
-i_vreader_start(ch) <= p_in_vctrl_hrdstart when p_in_vctrl_hrdchsel = ch else '0';
-i_vreader_chnum(ch) <= CONV_STD_LOGIC_VECTOR(ch, i_vreader_chnum(ch)'length);
-
-m_video_reader : video_reader
-generic map(
-G_DBGCS           => G_DBGCS,
-G_ROTATE          => G_ROTATE,
-G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
-G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
-G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
-
-G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
-G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
-G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
-G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
-G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
-G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
-
-G_MEM_AWIDTH      => G_MEM_AWIDTH,
-G_MEM_DWIDTH      => G_MEM_DWIDTH
-)
-port map(
--------------------------------
--- Конфигурирование
--------------------------------
-p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
-p_in_cfg_prm_vch      => i_rdprm_vch(ch),
-
-p_in_hrd_chsel        => i_vreader_chnum(ch),
-p_in_hrd_start        => i_vreader_start(ch),
-p_in_hrd_done         => p_in_vctrl_hrddone(ch),
-
-p_in_vfr_buf          => i_vbuf_rd(ch),
-p_in_vfr_nrow         => i_vreader_rq_next_line(ch),
-
---Статусы
-p_out_vch_fr_new      => open,
-p_out_vch_rd_done     => i_vreader_rd_done(ch),
-p_out_vch             => open,
-p_out_vch_active_pix  => i_vreader_active_pix_out(ch),
-p_out_vch_active_row  => open,
-p_out_vch_mirx        => i_vreader_mirx_out(ch),
-
-----------------------------
---Upstream Port
-----------------------------
-p_out_upp_data        => i_vreader_dout(ch),
-p_out_upp_data_wd     => i_vreader_dout_en(ch),
-p_in_upp_buf_empty    => '0',
-p_in_upp_buf_full     => i_vmir_rdy_n(ch),
-
----------------------------------
--- Связь с mem_ctrl.vhd
----------------------------------
-p_out_mem             => p_out_memrd(ch),
-p_in_mem              => p_in_memrd(ch),
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
-p_out_tst             => tst_vreader_out(ch),
-
--------------------------------
---System
--------------------------------
-p_in_clk              => p_in_clk,
-p_in_rst              => p_in_rst
-);
-
-
--------------------------------
---Модуль отзеркаливания по Х
--------------------------------
-m_vmirx : vmirx_main
-generic map(
-G_DWIDTH => G_MEM_DWIDTH
-)
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_mirx       => i_vreader_mirx_out(ch),
-p_in_cfg_pix_count  => i_vreader_active_pix_out(ch),
-
-p_out_cfg_mirx_done => i_vreader_rq_next_line(ch),
-
-----------------------------
---Upstream Port
-----------------------------
-p_in_upp_data       => i_vreader_dout(ch),
-p_in_upp_wd         => i_vreader_dout_en(ch),
-p_out_upp_rdy_n     => i_vmir_rdy_n(ch),
-
-----------------------------
---Downstream Port
-----------------------------
-p_out_dwnp_data     => i_vmir_dout(ch),
-p_out_dwnp_wd       => i_vmir_dout_en(ch),
-p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n(ch),
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => tst_vmir_out(ch),
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-
---Выходной видеобуфер
-m_vbufo : host_vbuf
-port map(
-din         => i_vmir_dout(ch),
-wr_en       => i_vmir_dout_en(ch),
-wr_clk      => p_in_clk,
-
-dout        => p_out_vbufo_do(ch)(G_MEM_DWIDTH - 1 downto 0),
-rd_en       => p_in_vbufo_rd(ch),
-rd_clk      => p_in_host_clk,
-
-empty       => p_out_vbufo_empty(ch),
-full        => open,
-prog_full   => i_vcoldemasc_rdy_n(ch),
-
-rst         => vclk_set_idle_vch(ch)
-);
-
-end generate gen_vch;
-
-
 
 -------------------------------
 -- Запись видео информации в ОЗУ
@@ -974,6 +672,322 @@ p_out_tst             => tst_vwriter_out,
 p_in_clk              => p_in_clk,
 p_in_rst              => p_in_rst
 );
+
+
+
+----------------------------------------------------
+--
+----------------------------------------------------
+gen_vch : for ch in 0 to C_VCTRL_VCH_COUNT - 1 generate
+
+--Готовим параметры для модуля чтения
+i_rdprm_vch(ch).mem_adr   <= i_vprm.ch(ch).mem_addr_rd;
+i_rdprm_vch(ch).fr_size   <= i_vprm.ch(ch).fr_size;
+i_rdprm_vch(ch).fr_mirror <= i_vprm.ch(ch).fr_mirror;
+i_rdprm_vch(ch).step_rd   <= i_vprm.ch(ch).step_rd;
+
+--Готовим параметры для модуля записи
+i_wrprm_vch(ch).mem_adr <= i_vprm.ch(ch).mem_addr_wr;
+
+
+--Растягиваем импульcы генерации прерываний чтения видеоканалов
+process(p_in_rst, p_in_clk)
+begin
+  if p_in_rst = '1' then
+   i_vrd_irq_width_cnt(ch) <= (others=>'0');
+    i_vrd_irq_width(ch) <= '0';
+
+  elsif rising_edge(p_in_clk) then
+
+    if i_vrd_irq(ch) = '1' then
+      i_vrd_irq_width(ch) <= '1';
+    elsif i_vrd_irq_width_cnt(ch)(3) = '1' then
+      i_vrd_irq_width(ch) <= '0';
+    end if;
+
+    if i_vrd_irq_width(ch) = '0' then
+      i_vrd_irq_width_cnt(ch) <= (others=>'0');
+    else
+      i_vrd_irq_width_cnt(ch) <= i_vrd_irq_width_cnt(ch) + 1;
+    end if;
+
+  end if;
+end process;
+
+
+--Управление записью видео
+process(p_in_rst, p_in_clk)
+begin
+  if p_in_rst = '1' then
+    i_vbuf_wr(ch) <= (others=>'0');
+    for buf in 0 to CI_VBUF_COUNT - 1 loop
+    i_vfrmrk(ch)(buf) <= (others=>'0');
+    end loop;
+    i_vfrskip(ch) <= (others=>'0');
+
+  elsif rising_edge(p_in_clk) then
+
+        --Выбираем видеобуфер для записи:
+        if vclk_set_idle_vch(ch) = '1' then
+          i_vbuf_wr(ch) <= (others=>'0');
+
+        elsif i_vwrite_vfr_rdy_out(ch) = '1' then
+            if i_vbuf_hold(ch) = '1' then
+              if i_vbuf_wr(ch) /= i_vbuf_rd(ch) then
+                i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
+              end if;
+            else
+              i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
+            end if;
+        end if;
+
+        --Защелкиваем маркер текущего кадра для выдачи ХОСТУ
+        if i_vwrite_vfr_rdy_out(ch) = '1' then
+          for buf in 0 to CI_VBUF_COUNT - 1 loop
+            if i_vbuf_wr(ch) = buf then
+              i_vfrmrk(ch)(buf) <= i_vwrite_vrow_mrk;
+            end if;
+          end loop;
+        end if;
+
+        --Подсчет записаных кадров в течении чтения данных ХОСТОМ
+        if i_vbuf_hold(ch) = '0' then
+          i_vfrskip(ch) <= (others=>'0');
+        else
+          if i_vwrite_vfr_rdy_out(ch) = '1'
+            and i_vreader_rd_done = '1' and i_vreader_vch_out = ch then
+
+            i_vfrskip(ch) <= i_vfrskip(ch);
+
+          elsif i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0')
+            and i_vreader_rd_done = '1' and i_vreader_vch_out = ch then
+
+            i_vfrskip(ch) <= i_vfrskip(ch) - 1;
+
+          elsif i_vwrite_vfr_rdy_out(ch) = '1'
+            and i_vfrskip(ch) /= (i_vfrskip(ch)'range => '1') then
+
+            i_vfrskip(ch) <= i_vfrskip(ch) + 1;
+
+          end if;
+        end if;
+
+  end if;
+end process;
+
+--Управление чтеним Видео
+process(p_in_rst, p_in_clk)
+begin
+  if p_in_rst = '1' then
+
+    i_vbuf_rd(ch) <= (others=>'0');
+    i_vbuf_hold(ch) <= '0';
+    i_vrd_irq(ch) <= '0';
+
+  elsif rising_edge(p_in_clk) then
+
+      --Выбираем видеобуфер для чтения
+      if vclk_set_idle_vch(ch) = '1' then
+        i_vbuf_rd(ch) <= (others=>'0');
+
+      elsif i_vfrskip(ch) /= (i_vfrskip(ch)'range => '0')
+        and i_vreader_rd_done = '1' and i_vreader_vch_out = ch  then
+
+        i_vbuf_rd(ch) <= i_vbuf_rd(ch) + 1;
+
+      elsif i_vwrite_vfr_rdy_out(ch) = '1' and i_vbuf_hold(ch) = '0' then
+        i_vbuf_rd(ch) <= i_vbuf_wr(ch);
+
+      end if;
+
+      --Захват видеобуфера для Чтения ХОСТОМ
+      if i_vwrite_vfr_rdy_out(ch) = '1' then
+        i_vbuf_hold(ch) <= '1';
+
+      elsif (i_vfrskip(ch) = (i_vfrskip(ch)'range => '0')
+        and i_vreader_rd_done = '1' and i_vreader_vch_out = ch) or vclk_set_idle_vch(ch) = '1' then
+
+        i_vbuf_hold(ch) <= '0';
+      end if;
+
+      --Прерываение - Можно вычитывать кадр
+      if i_vfrskip(ch) = (i_vfrskip(ch)'range => '0') then
+        i_vrd_irq(ch) <= i_vwrite_vfr_rdy_out(ch) and not i_vbuf_hold(ch);
+
+      elsif i_vreader_vch_out = ch then
+        i_vrd_irq(ch) <= i_vreader_rd_done;
+
+      end if;
+
+  end if;
+end process;
+
+end generate gen_vch;
+
+
+-------------------------------
+--Модуль чтение видео информации из ОЗУ
+-------------------------------
+m_video_reader : video_reader
+generic map(
+G_DBGCS           => G_DBGCS,
+G_ROTATE          => G_ROTATE,
+G_ROTATE_BUF_COUNT=> G_ROTATE_BUF_COUNT,
+G_MEM_BANK_M_BIT  => C_VCTRL_REG_MEM_ADR_BANK_M_BIT,
+G_MEM_BANK_L_BIT  => C_VCTRL_REG_MEM_ADR_BANK_L_BIT,
+
+G_MEM_VCH_M_BIT   => C_VCTRL_MEM_VCH_M_BIT,
+G_MEM_VCH_L_BIT   => C_VCTRL_MEM_VCH_L_BIT,
+G_MEM_VFR_M_BIT   => C_VCTRL_MEM_VFR_M_BIT,
+G_MEM_VFR_L_BIT   => C_VCTRL_MEM_VFR_L_BIT,
+G_MEM_VLINE_M_BIT => C_VCTRL_MEM_VLINE_M_BIT,
+G_MEM_VLINE_L_BIT => C_VCTRL_MEM_VLINE_L_BIT,
+
+G_MEM_AWIDTH      => G_MEM_AWIDTH,
+G_MEM_DWIDTH      => G_MEM_DWIDTH
+)
+port map(
+-------------------------------
+-- Конфигурирование
+-------------------------------
+p_in_cfg_mem_trn_len  => i_vprm.mem_rd_trn_len,
+p_in_cfg_prm_vch      => i_rdprm_vch,
+p_in_cfg_set_idle_vch => vclk_set_idle_vch,
+
+p_in_hrd_chsel        => p_in_vctrl_hrdchsel,
+p_in_hrd_start        => p_in_vctrl_hrdstart,
+p_in_hrd_done         => '0',--p_in_vctrl_hrddone(ch),
+
+p_in_vfr_buf          => i_vbuf_rd,
+p_in_vfr_nrow         => i_vreader_rq_next_line,
+
+--Статусы
+p_out_vch_fr_new      => open,
+p_out_vch_rd_done     => i_vreader_rd_done,
+p_out_vch             => i_vreader_vch_out,
+p_out_vch_active_pix  => i_vreader_active_pix_out,
+p_out_vch_active_row  => open,
+p_out_vch_mirx        => i_vreader_mirx_out,
+
+----------------------------
+--Upstream Port
+----------------------------
+p_out_upp_data        => i_vreader_dout,
+p_out_upp_data_wd     => i_vreader_dout_en,
+p_in_upp_buf_empty    => '0',
+p_in_upp_buf_full     => i_vmir_rdy_n,
+
+---------------------------------
+-- Связь с mem_ctrl.vhd
+---------------------------------
+p_out_mem             => p_out_memrd,
+p_in_mem              => p_in_memrd,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst              => tst_ctrl(31 downto 0),--(others=>'0'),
+p_out_tst             => tst_vreader_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk              => p_in_clk,
+p_in_rst              => p_in_rst
+);
+
+
+-------------------------------
+--Модуль отзеркаливания по Х
+-------------------------------
+m_vmirx : vmirx_main
+generic map(
+G_DWIDTH => G_MEM_DWIDTH
+)
+port map(
+-------------------------------
+-- Управление
+-------------------------------
+p_in_cfg_mirx       => i_vreader_mirx_out,
+p_in_cfg_pix_count  => i_vreader_active_pix_out,
+
+p_out_cfg_mirx_done => i_vreader_rq_next_line,
+
+----------------------------
+--Upstream Port
+----------------------------
+p_in_upp_data       => i_vreader_dout,
+p_in_upp_wd         => i_vreader_dout_en,
+p_out_upp_rdy_n     => i_vmir_rdy_n,
+
+----------------------------
+--Downstream Port
+----------------------------
+p_out_dwnp_data     => i_vmir_dout,
+p_out_dwnp_wd       => i_vmir_dout_en,
+p_in_dwnp_rdy_n     => i_vcoldemasc_rdy_n,
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst            => (others=>'0'),
+p_out_tst           => tst_vmir_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk            => p_in_clk,
+p_in_rst            => p_in_rst
+);
+
+
+
+----------------------------------------------------
+--Связь с HOST
+----------------------------------------------------
+--Выходной видеобуфер
+m_vbufo : host_vbuf
+port map(
+din         => i_vmir_dout,
+wr_en       => i_vmir_dout_en,
+wr_clk      => p_in_clk,
+
+dout        => p_out_vbufo_do,
+rd_en       => p_in_vbufo_rd,
+rd_clk      => p_in_host_clk,
+
+empty       => p_out_vbufo_empty,
+full        => open,
+prog_full   => i_vcoldemasc_rdy_n,
+
+rst         => p_in_rst
+);
+
+
+--маркер вычитываемого кадра:
+process(p_in_rst, p_in_clk)
+begin
+  if p_in_rst = '1' then
+    i_vfrmrk_out <= (others=>'0');
+
+  elsif rising_edge(p_in_clk) then
+
+    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+        if p_in_vctrl_hrdchsel = ch then
+          for buf in 0 to CI_VBUF_COUNT - 1 loop
+            if i_vbuf_rd(ch) = buf then
+              i_vfrmrk_out <= i_vfrmrk(ch)(buf);
+            end if;
+          end loop;
+        end if;
+    end loop;
+
+  end if;
+end process;
+
+p_out_vctrl_hirq <= EXT(i_vrd_irq_width, p_out_vctrl_hirq'length);
+p_out_vctrl_hdrdy <= EXT(i_vbuf_hold, p_out_vctrl_hdrdy'length);
+p_out_vctrl_hfrmrk <= i_vfrmrk_out;
 
 
 --END MAIN

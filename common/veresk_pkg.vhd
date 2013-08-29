@@ -40,10 +40,10 @@ port(
 -------------------------------
 --PCI-Express
 -------------------------------
-p_out_pciexp_txp  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp  : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_out_pciexp_txn  : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxp   : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxn   : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 
 p_in_pciexp_gt_clkin   : in    std_logic;
 p_out_pciexp_gt_clkout : out   std_logic;
@@ -56,12 +56,12 @@ p_out_gctrl       : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --Управление внешними устройствами
 p_out_dev_ctrl    : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr      : out   std_logic;
 p_out_dev_rd      : out   std_logic;
 p_in_dev_status   : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt      : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt     : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -108,8 +108,8 @@ p_in_tmr_clk          : in   std_logic;
 p_out_tmr_rdy         : out  std_logic;
 p_out_tmr_error       : out  std_logic;
 
-p_out_tmr_irq         : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
-p_out_tmr_en          : out  std_logic_vector(C_TMR_COUNT-1 downto 0);
+p_out_tmr_irq         : out  std_logic_vector(C_TMR_COUNT - 1 downto 0);
+p_out_tmr_en          : out  std_logic_vector(C_TMR_COUNT - 1 downto 0);
 
 -------------------------------
 --System
@@ -145,17 +145,21 @@ p_in_cfg_done             : in   std_logic;
 -------------------------------
 --HOST
 -------------------------------
-p_in_host_clk             : in   std_logic;
+--host -> dev
+p_in_eth_htxbuf_di        : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_htxbuf_wr        : in   std_logic;
+p_out_eth_htxbuf_full     : out  std_logic;
+p_out_eth_htxbuf_empty    : out  std_logic;
 
---Host <-> ETH
-p_out_host_eth_rxd_irq    : out  std_logic;
-p_out_host_eth_rxd_rdy    : out  std_logic;
-p_out_host_eth_rxd        : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_eth_rd          : in   std_logic;
+--host <- dev
+p_out_eth_hrxbuf_do       : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_hrxbuf_rd        : in   std_logic;
+p_out_eth_hrxbuf_full     : out  std_logic;
+p_out_eth_hrxbuf_empty    : out  std_logic;
 
-p_out_host_eth_txbuf_rdy  : out  std_logic;
-p_in_host_eth_txd         : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_eth_wr          : in   std_logic;
+p_out_eth_hirq            : out  std_logic;
+
+p_in_hclk                 : in   std_logic;
 
 -------------------------------
 --ETH
@@ -220,14 +224,14 @@ p_in_cfg_done         : in   std_logic;
 -------------------------------
 p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);
 p_in_vctrl_hrdstart   : in    std_logic;
-p_in_vctrl_hrddone    : in    std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT-1 downto 0);
-p_out_vctrl_hfrmrk    : out   TVMrks;
+p_in_vctrl_hrddone    : in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
 
-p_out_vbufo_do        : out   TVCH_bufo_d;  --Связь с буферов видео данных для ХОСТА
-p_in_vbufo_rd         : in    std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
-p_out_vbufo_empty     : out   std_logic_vector(C_VCTRL_VCH_COUNT_MAX - 1 downto 0);
+p_out_vbufo_do        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_vbufo_rd         : in    std_logic;
+p_out_vbufo_empty     : out   std_logic;
 
 -------------------------------
 --VBUFI
@@ -244,8 +248,8 @@ p_in_vbufi_full       : in    std_logic;
 p_out_memwr           : out   TMemIN;
 p_in_memwr            : in    TMemOUT;
 --CH READ
-p_out_memrd           : out   TMemINCh;
-p_in_memrd            : in    TMemOUTCh;
+p_out_memrd           : out   TMemIN;
+p_in_memrd            : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -276,13 +280,17 @@ port(
 p_in_ctrl         : in    TPce2Mem_Ctrl;
 p_out_status      : out   TPce2Mem_Status;
 
-p_in_txd          : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_txd_wr       : in    std_logic;
-p_out_txbuf_full  : out   std_logic;
+--host -> dev
+p_in_htxbuf_di    : in   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_htxbuf_wr    : in   std_logic;
+p_out_htxbuf_full : out  std_logic;
+p_out_htxbuf_empty: out  std_logic;
 
-p_out_rxd         : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
-p_in_rxd_rd       : in    std_logic;
-p_out_rxbuf_empty : out   std_logic;
+--host <- dev
+p_out_hrxbuf_do   : out  std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_hrxbuf_rd    : in   std_logic;
+p_out_hrxbuf_full : out  std_logic;
+p_out_hrxbuf_empty: out  std_logic;
 
 p_in_hclk         : in    std_logic;
 
@@ -382,20 +390,24 @@ p_in_tmr_en       : in   std_logic;
 p_in_tmr_stb      : in   std_logic;
 
 -------------------------------
---Связь с HOST
+--HOST
 -------------------------------
-p_out_host_rxrdy  : out  std_logic;
-p_out_host_rxd    : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_rd      : in   std_logic;
+--host -> dev
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_htxbuf_wr       : in   std_logic;
+p_out_htxbuf_full    : out  std_logic;
+p_out_htxbuf_empty   : out  std_logic;
 
-p_out_host_txrdy  : out  std_logic;
-p_in_host_txd     : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_wr      : in   std_logic;
+--host <- dev
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_hrxbuf_rd       : in   std_logic;
+p_out_hrxbuf_full    : out  std_logic;
+p_out_hrxbuf_empty   : out  std_logic;
 
-p_in_host_clk     : in   std_logic;
+p_out_hirq           : out  std_logic;
+p_out_herr           : out  std_logic;
 
-p_out_hirq        : out  std_logic;
-p_out_herr        : out  std_logic;
+p_in_hclk            : in   std_logic;
 
 --------------------------------------
 --PHY (half-duplex)
@@ -425,22 +437,24 @@ G_HOST_DWIDTH : integer:=32
 );
 port(
 -------------------------------
---Связь с HOST
+--HOST
 -------------------------------
-p_out_host_rxd   : out   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_rd     : in    std_logic;
-p_out_rxbuf_full : out   std_logic;
-p_out_rxbuf_empty: out   std_logic;
+--host -> dev
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_htxbuf_wr       : in   std_logic;
+p_out_htxbuf_full    : out  std_logic;
+p_out_htxbuf_empty   : out  std_logic;
 
-p_in_host_txd    : in    std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_wr     : in    std_logic;
-p_out_txbuf_full : out   std_logic;
-p_out_txbuf_empty: out   std_logic;
+--host <- dev
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_hrxbuf_rd       : in   std_logic;
+p_out_hrxbuf_full    : out  std_logic;
+p_out_hrxbuf_empty   : out  std_logic;
 
-p_in_host_clk    : in    std_logic;
+p_out_hirq           : out  std_logic;
+p_out_herr           : out  std_logic;
 
-p_out_hirq       : out   std_logic;
-p_out_herr       : out   std_logic;
+p_in_hclk            : in   std_logic;
 
 -------------------------------
 --PHY

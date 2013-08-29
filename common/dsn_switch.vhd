@@ -49,17 +49,21 @@ p_in_cfg_done             : in   std_logic;
 -------------------------------
 --HOST
 -------------------------------
-p_in_host_clk             : in   std_logic;
+--host -> dev
+p_in_eth_htxbuf_di        : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_htxbuf_wr        : in   std_logic;
+p_out_eth_htxbuf_full     : out  std_logic;
+p_out_eth_htxbuf_empty    : out  std_logic;
 
---Host <-> Eth
-p_out_host_eth_rxd_irq    : out  std_logic;
-p_out_host_eth_rxd_rdy    : out  std_logic;
-p_out_host_eth_rxd        : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_eth_rd          : in   std_logic;
+--host <- dev
+p_out_eth_hrxbuf_do       : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_eth_hrxbuf_rd        : in   std_logic;
+p_out_eth_hrxbuf_full     : out  std_logic;
+p_out_eth_hrxbuf_empty    : out  std_logic;
 
-p_out_host_eth_txbuf_rdy  : out  std_logic;
-p_in_host_eth_txd         : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_eth_wr          : in   std_logic;
+p_out_eth_hirq            : out  std_logic;
+
+p_in_hclk                 : in   std_logic;
 
 -------------------------------
 --Eth
@@ -105,6 +109,7 @@ rd_clk      : IN  std_logic;
 
 empty       : OUT std_logic;
 full        : OUT std_logic;
+prog_full   : OUT std_logic;
 
 rst         : IN  std_logic
 );
@@ -122,6 +127,7 @@ rd_clk      : IN  std_logic;
 
 empty       : OUT std_logic;
 full        : OUT std_logic;
+prog_full   : OUT std_logic;
 
 rst         : IN  std_logic
 );
@@ -203,7 +209,8 @@ signal syn_eth_host_frr              : TEthFRR;
 signal syn_eth_vctrl_frr             : TEthFRR;
 
 signal i_eth_txbuf_empty             : std_logic;
-
+signal i_eth_txbuf_full              : std_logic;
+signal i_eth_rxbuf_full              : std_logic;
 signal i_eth_rxbuf_empty             : std_logic;
 signal i_eth_rxd_rdy_dly             : std_logic_vector(0 to 2);
 signal i_eth_rxbuf_fltr_dout         : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
@@ -403,9 +410,10 @@ end process;
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 --Хост -> ETHG
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---Сигнал хосту EthG TxBUF - готов принять данные
-p_out_host_eth_txbuf_rdy <= i_eth_txbuf_empty;
---Связь с модулем dsn_eth.vhd
+p_out_eth_htxbuf_full <= i_eth_txbuf_full;
+p_out_eth_htxbuf_empty <= i_eth_txbuf_empty;
+
+p_out_eth(0).txbuf.full <= i_eth_txbuf_full;
 p_out_eth(0).txbuf.empty <= not (not i_eth_txbuf_empty and i_eth_txbuf_empty_en) when i_tmr_en = '1' else
                          i_eth_txbuf_empty;
 
@@ -425,16 +433,17 @@ end process;
 
 m_eth_txbuf : host_ethg_txfifo
 port map(
-din     => p_in_host_eth_txd,
-wr_en   => p_in_host_eth_wr,
-wr_clk  => p_in_host_clk,
+din     => p_in_eth_htxbuf_di,
+wr_en   => p_in_eth_htxbuf_wr,
+wr_clk  => p_in_hclk,
 
 dout    => p_out_eth(0).txbuf.dout(G_ETH_DWIDTH - 1 downto 0),
 rd_en   => p_in_eth(0).txbuf.rd,
 rd_clk  => p_in_eth(0).txbuf.rdclk,
 
 empty   => i_eth_txbuf_empty,
-full    => p_out_eth(0).txbuf.full,
+full    => open,
+prog_full => i_eth_txbuf_full,
 
 rst     => b_rst_eth_bufs
 );
@@ -489,21 +498,22 @@ din     => i_eth_rxbuf_fltr_dout,
 wr_en   => i_eth_rxbuf_fltr_den,
 wr_clk  => p_in_eth(0).rxbuf.wrclk,
 
-dout    => p_out_host_eth_rxd,
-rd_en   => p_in_host_eth_rd,
-rd_clk  => p_in_host_clk,
+dout    => p_out_eth_hrxbuf_do,
+rd_en   => p_in_eth_hrxbuf_rd,
+rd_clk  => p_in_hclk,
 
 empty   => i_eth_rxbuf_empty,
-full    => p_out_eth(0).rxbuf.full,
+full    => open,
+prog_full => i_eth_rxbuf_full,
 
 rst     => b_rst_eth_bufs
 );
 
---Связь с модулем хоста dsn_host.vhd
-p_out_eth(0).rxbuf.empty <= i_eth_rxbuf_empty;
+p_out_eth_hrxbuf_empty <= i_eth_rxbuf_empty;
+p_out_eth_hrxbuf_full <= i_eth_rxbuf_full;
 
---Сигнал Хосту: в RxBUF есть новые данные от ETH
-p_out_host_eth_rxd_rdy <= not i_eth_rxbuf_empty;
+p_out_eth(0).rxbuf.empty <= i_eth_rxbuf_empty;
+p_out_eth(0).rxbuf.full <= i_eth_rxbuf_full;
 
 --Формируем прерываение ETH_RXBUF
 process(p_in_rst, p_in_eth(0).rxbuf.wrclk)
@@ -531,17 +541,17 @@ begin
   end if;
 end process;
 
---Пересинхронизация на частоту p_in_host_clk
-process(p_in_rst, p_in_host_clk)
+--Пересинхронизация на частоту p_in_hclk
+process(p_in_rst, p_in_hclk)
 begin
   if p_in_rst = '1' then
     hclk_eth_rxd_rdy <= '0';
-  elsif rising_edge(p_in_host_clk) then
+  elsif rising_edge(p_in_hclk) then
     hclk_eth_rxd_rdy <= eclk_eth_rxd_rdy_w;
   end if;
 end process;
 
-p_out_host_eth_rxd_irq <= hclk_eth_rxd_rdy;
+p_out_eth_hirq <= hclk_eth_rxd_rdy;
 
 
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

@@ -7,7 +7,10 @@
 // V2.0   31.8.5
 // V3.0   22.9.6
 //-------------------------------------------------------------
-module pult_io(rst,clk_io,trans_ack,
+module pult_io #(
+parameter G_HOST_DWIDTH = 32
+)
+              (rst,clk_io,trans_ack,
                data_i,data_o,dir_485,
                host_clk_wr,wr_en,data_from_host,
                host_clk_rd,rd_en,data_to_host,
@@ -24,11 +27,11 @@ module pult_io(rst,clk_io,trans_ack,
 
    input host_clk_wr;           //тактовая от хоста для записи
    input wr_en;                 //разрешение записи в память светодиодов
-   input [31:0] data_from_host; //данные из хоста для записи
+   input [G_HOST_DWIDTH - 1:0] data_from_host; //данные из хоста для записи
 
    input host_clk_rd;           //тактовая от хоста для чтения
    input rd_en;                 //разрешение записи в память светодиодов
-   output [31:0] data_to_host;  //данные в хост
+   output [G_HOST_DWIDTH - 1:0] data_to_host;  //данные в хост
 
    output busy,ready;           //состояние обмена с пультом
 
@@ -55,8 +58,8 @@ module pult_io(rst,clk_io,trans_ack,
    wire empty_i;            //пустота фифо данных для пульта
    wire empty_o;            //пустота фифо данных от пульта
 
-   wire [31:0] data_from_host;
-   wire [31:0] data_to_host;
+   wire [G_HOST_DWIDTH - 1:0] data_from_host,data_from_host_tmp;
+   wire [G_HOST_DWIDTH - 1:0] data_to_host,data_to_host_tmp;
 
    reg busy;                  //мы заняты обменом
    wire ready;                //готовность данных от пульта
@@ -87,9 +90,20 @@ begin
      end
 end //always @
 
+genvar i;
+generate
+for(i = 0; i <= ((G_HOST_DWIDTH / 32) - 1); i = i + 1) begin : swap
+assign data_from_host_tmp[(G_HOST_DWIDTH - (32 * i) - 1) :
+                          (G_HOST_DWIDTH - (32 * (i + 1)))] = data_from_host[(32 * (i + 1)) - 1 : (32 * i)];
+
+assign data_to_host[(G_HOST_DWIDTH - (32 * i) - 1) :
+                    (G_HOST_DWIDTH - (32 * (i + 1)))] = data_to_host_tmp[(32 * (i + 1)) - 1 : (32 * i)];
+end
+endgenerate
+
 // Данные от PCI для светодиодов
 pult_buf m_txbuf (
-    .din(data_from_host),
+    .din(data_from_host_tmp),
     .rd_clk(clk_io),
     .rd_en(rd_en_m && clk_io_en),
     .rst(rst | rst_ififo),
@@ -100,14 +114,14 @@ pult_buf m_txbuf (
     .full());
 
 // Данные для PCI (кнопки, АЦП и признаки об обменах с МУПами)
-pult_buf m_rxbuf (
+pult_buf_rx m_rxbuf (
     .din(din),
     .rd_clk(host_clk_rd),
     .rd_en(rd_en),
     .rst(rst),
     .wr_clk(clk_io),
     .wr_en(wr_en_m && clk_io_en),
-    .dout(data_to_host),
+    .dout(data_to_host_tmp),
     .empty(empty_o),
     .full());
 

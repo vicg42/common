@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 14.2
-# Date: Fri Sep 14 13:09:26 2012
+# Xilinx Core Generator version 14.5
+# Date: Wed Aug 28 09:14:01 2013
 #
 ##############################################################
 #
@@ -140,14 +140,14 @@ CSET expansion_rom_scale=Kilobytes
 CSET expansion_rom_size=2
 CSET ext_pci_cfg_space=false
 CSET ext_pci_cfg_space_addr=3FF
-CSET extended_tag_field=false
+CSET extended_tag_field=true
 CSET force_no_scrambling=false
 CSET hw_auton_spd_disable=false
 CSET intx_generation=true
 CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
-CSET link_speed=2.5_GT/s
-CSET max_payload_size=512_bytes
+CSET link_speed=5.0_GT/s
+CSET max_payload_size=256_bytes
 CSET maximum_link_width=X8
 CSET msi_64b=true
 CSET msi_enabled=true
@@ -190,8 +190,8 @@ CSET slot_cap_pwr_limit_value=0
 CSET sub_class_interface_menu=Generic_XT_compatible_serial_controller
 CSET subsystem_id=8005
 CSET subsystem_vendor_id=0777
-CSET trans_buf_pipeline=None
-CSET trgt_link_speed=4'h1
+CSET trans_buf_pipeline=Buffer_Write_and_Read
+CSET trgt_link_speed=4'h2
 CSET trim_tlp_digest=false
 CSET upconfigure_capable=true
 CSET user_clk_freq=250_default
@@ -202,7 +202,7 @@ CSET vsec_enabled=false
 CSET xlnx_ref_board=None
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2012-07-21T06:31:03Z
+MISC pkg_timestamp=2013-03-27T03:45:13Z
 # END Extra information
 GENERATE
-# CRC: f287e19f
+# CRC: c236ab8b

@@ -23,7 +23,7 @@ use work.prj_cfg.all;
 package prj_def is
 
 --Версия прошивки FPGA
-constant C_FPGA_FIRMWARE_VERSION : integer:=16#0405#;
+constant C_FPGA_FIRMWARE_VERSION : integer:=16#0403#;
 
 --VCTRL
 constant C_VIDEO_PKT_HEADER_SIZE : integer:=5;--DWORD
@@ -44,17 +44,13 @@ constant C_HREG_DEV_DATA                      : integer:=16#06#;--Регистр чтения
 constant C_HREG_IRQ                           : integer:=16#07#;--Прерывания: управление + статусы
 constant C_HREG_MEM_ADR                       : integer:=16#08#;--Адрес ОЗУ подключенного к FPGA
 constant C_HREG_MEM_CTRL                      : integer:=16#09#;
-constant C_HREG_VCTRL_FRMRK0                  : integer:=16#0A#;--Маркер вычитаного видеокадра
+constant C_HREG_VCTRL_FRMRK                   : integer:=16#0A#;--Маркер вычитаного видеокадра
 constant C_HREG_VCTRL_FRERR                   : integer:=16#0B#;
 constant C_HREG_TIME                          : integer:=16#0C#;--[31]-overday, [30:26]-часы, [25:20]-минуты, [19:14]-секунды, [13:4]-мс, [3:0]-сотни мкс.
 constant C_HREG_PCIE                          : integer:=16#0D#;--Инф + Тюнинг("тонкая" настройка) PCI-Express
 constant C_HREG_FUNC                          : integer:=16#0E#;--Используемые модули проекта FPGA
 constant C_HREG_FUNCPRM                       : integer:=16#0F#;--Информация о модулях
-constant C_HREG_VCTRL_FRMRK1                  : integer:=16#10#;
-constant C_HREG_VCTRL_FRMRK2                  : integer:=16#11#;
-constant C_HREG_VCTRL_FRMRK3                  : integer:=16#12#;
-constant C_HREG_VCTRL_FRMRK4                  : integer:=16#13#;
-constant C_HREG_ETH_HEADER                    : integer:=16#14#;
+constant C_HREG_ETH_HEADER                    : integer:=16#10#;
 --constant C_HREG_RESERV                        : integer:=...
 constant C_HREG_TST0                          : integer:=16#1C#;--Тестовые регистры
 constant C_HREG_TST1                          : integer:=16#1D#;
@@ -75,7 +71,7 @@ constant C_HREG_CTRL_RST_EDEV_BIT             : integer:=5;
 constant C_HREG_CTRL_ESYNC_IEDGE_BIT          : integer:=6; --управляющие фронты входов внешней синхронизации (0-rise)
 constant C_HREG_CTRL_ESYNC_OEDGE_BIT          : integer:=7; --управляющие фронты выходов на внешнюю синхронизацию (0-rise)
 constant C_HREG_CTRL_ESYNC_MODE_L_BIT         : integer:=8; --'10'-внешняя, '01'-PPS, '11','00'-внутренняя синхронизация
-constant C_HREG_CTRL_ESYNC_MODE_M_BIT         : integer:=9; --
+constant C_HREG_CTRL_ESYNC_MODE_M_BIT         : integer:=9;
 constant C_HREG_CTRL_TIME_MODE_BIT            : integer:=10;--установка часов (0-сразу и поехали, 1-по сигналу минутки)
 constant C_HREG_CTRL_TIME_EN_BIT              : integer:=11;--разрешение работы часов (1-разрешить)
 constant C_HREG_CTRL_RST_BUP_BIT              : integer:=12;
@@ -107,14 +103,14 @@ constant C_HREG_DEV_CTRL_VCH_M_BIT            : integer:=25;
 constant C_HREG_DEV_CTRL_LAST_BIT             : integer:=C_HREG_DEV_CTRL_VCH_M_BIT;--Max 31
 
 --Поле C_HREG_DEV_CTRL_ADR - Номера пользовательских устройств:
-constant C_HDEV_CFG_DBUF                      : integer:=0;--Буфера RX/TX CFG
-constant C_HDEV_ETH_DBUF                      : integer:=1;--Буфера RX/TX ETH
-constant C_HDEV_MEM_DBUF                      : integer:=2;--ОЗУ
-constant C_HDEV_VCH_DBUF                      : integer:=3;--Буфер Видеоинформации
-constant C_HDEV_EDEV_DBUF                     : integer:=4;--External Device (камеры, объективы...)
-constant C_HDEV_PULT_DBUF                     : integer:=5;--
-constant C_HDEV_VIZIR_DBUF                    : integer:=6;--
-constant C_HDEV_BUP_DBUF                      : integer:=7;--Блок управления приводами
+constant C_HDEV_CFG                           : integer:=0;--Буфера RX/TX CFG
+constant C_HDEV_ETH                           : integer:=1;--Буфера RX/TX ETH
+constant C_HDEV_MEM                           : integer:=2;--ОЗУ
+constant C_HDEV_VCH                           : integer:=3;--Буфер Видеоинформации
+constant C_HDEV_EDEV                          : integer:=4;--External Device (камеры, объективы...)
+constant C_HDEV_PULT                          : integer:=5;
+constant C_HDEV_VIZIR                         : integer:=6;
+constant C_HDEV_BUP                           : integer:=7;--Блок управления приводами
 constant C_HDEV_PROM                          : integer:=8;--Bootloader FPGA firmware
 constant C_HDEV_COUNT                         : integer:=C_HDEV_PROM + 1;
 constant C_HDEV_COUNT_MAX                     : integer:=pwr(2, (C_HREG_DEV_CTRL_ADR_M_BIT - C_HREG_DEV_CTRL_ADR_L_BIT + 1));
@@ -235,20 +231,19 @@ constant C_HREG_FUNCPRM_LAST_BIT              : integer:=C_HREG_FUNCPRM_ETH_REV_
 
 
 --Порт модуля dsn_host.vhd /p_in_dev_option/ Bit Map:
-constant C_HDEV_OPTIN_TXFIFO_PFULL_BIT        : integer:=0;
+constant C_HDEV_OPTIN_TXFIFO_FULL_BIT         : integer:=0;
 constant C_HDEV_OPTIN_RXFIFO_EMPTY_BIT        : integer:=1;
 constant C_HDEV_OPTIN_MEMTRN_DONE_BIT         : integer:=2;
 constant C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT       : integer:=3;
-constant C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT       : integer:=34 + (32 * (5 - 1));--C_VCTRL_VCH_COUNT_MAX = 5
-constant C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT      : integer:=35 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT      : integer:=42 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_TIME_L_BIT              : integer:=43 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_TIME_M_BIT              : integer:=74 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_USR_SWT_L_BIT           : integer:=75 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_USR_SWT_M_BIT           : integer:=76 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_ETH_HEADER_L_BIT        : integer:=77 + (32 * (5 - 1));
-constant C_HDEV_OPTIN_ETH_HEADER_M_BIT        : integer:=108 + (32 * (5 - 1));
+constant C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT       : integer:=34;
+constant C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT      : integer:=35;
+constant C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT      : integer:=42;
+constant C_HDEV_OPTIN_TIME_L_BIT              : integer:=43;
+constant C_HDEV_OPTIN_TIME_M_BIT              : integer:=74;
+constant C_HDEV_OPTIN_ETH_HEADER_L_BIT        : integer:=75;
+constant C_HDEV_OPTIN_ETH_HEADER_M_BIT        : integer:=106;
 constant C_HDEV_OPTIN_LAST_BIT                : integer:=C_HDEV_OPTIN_ETH_HEADER_M_BIT;
+
 
 --Порт модуля dsn_host.vhd /p_out_dev_option/ Bit Map:
 constant C_HDEV_OPTOUT_MEM_ADR_L_BIT          : integer:=0;
@@ -405,6 +400,7 @@ constant C_VCTRL_PRM_MEM_ADR_RD               : integer:=1;--Базовый адрес буфер
 constant C_VCTRL_PRM_FR_ZONE_SKIP             : integer:=2;
 constant C_VCTRL_PRM_FR_ZONE_ACTIVE           : integer:=3;
 constant C_VCTRL_PRM_FR_OPTIONS               : integer:=4;
+constant C_VCTRL_PRM_FR_STEP_RD               : integer:=5;
 --Мах кол-во режимов установок параметров:
 constant C_VCTRL_PRM_COUNT_MAX                : integer:=pwr(2, (C_VCTRL_REG_CTRL_PRM_M_BIT - C_VCTRL_REG_CTRL_PRM_L_BIT + 1));
 
@@ -425,7 +421,7 @@ constant C_VCTRL_MEM_VCH_M_BIT                : integer:=C_PCFG_VCTRL_MEM_VCH_M_
 
 --Мах кол-во видео каналов:
 constant C_VCTRL_VCH_COUNT                    : integer:=C_PCFG_VCTRL_VCH_COUNT;
-constant C_VCTRL_VCH_COUNT_MAX                : integer:=5;--pwr(2, (C_VCTRL_MEM_VCH_M_BIT - C_VCTRL_MEM_VCH_L_BIT + 1));
+constant C_VCTRL_VCH_COUNT_MAX                : integer:=6;--pwr(2, (C_VCTRL_MEM_VCH_M_BIT - C_VCTRL_MEM_VCH_L_BIT + 1));
 
 
 --Register C_VCTRL_REG_TST0 / Bit Map:
