@@ -27,8 +27,8 @@ constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=7; --max 7: 0-8MB, 1-16MB, 2-3
 
 --cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
-constant C_PCGF_PCIE_LINK_WIDTH        : integer:=8;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer:=128;
+constant C_PCGF_PCIE_LINK_WIDTH        : integer:=4;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
+constant C_PCGF_PCIE_DWIDTH            : integer:=64;
 
 --cfg VCTRL
 --Memory map for video: (max frame size: 8192x8192)

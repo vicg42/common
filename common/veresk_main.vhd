@@ -305,16 +305,6 @@ attribute keep of i_ethphy_out : signal is "true";
 signal i_test01_led     : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
 --signal tst_prom_out     : std_logic_vector(31 downto 0);
---signal tst_vctrl_vbufin_dout  : std_logic_vector(31 downto 0);
---signal tst_vctrl_vbufin_rd    : std_logic;
---signal tst_vctrl_vbufin_empty : std_logic;
---signal tst_vctrl_hbufo_empty  : std_logic;
---signal tst_vctrl_hbufo_rd     : std_logic;
---signal tst_h2m_txbuf_empty : std_logic;
---signal tst_h2m_txbuf_full  : std_logic;
---signal tst_h2m_rxbuf_empty : std_logic;
---signal tst_h2m_rxbuf_full  : std_logic;
-
 
 
 --MAIN
@@ -1060,9 +1050,7 @@ pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 pin_out_led(5) <= '0';
 pin_out_led(6) <= '0';
-pin_out_led(7) <= '0';--tst_h2m_txbuf_full or tst_h2m_txbuf_empty or tst_h2m_rxbuf_full or tst_h2m_rxbuf_empty;
---pin_out_led(7) <= OR_reduce(tst_vctrl_vbufin_dout) or tst_vctrl_vbufin_rd or tst_vctrl_vbufin_empty
---or tst_vctrl_hbufo_empty or tst_vctrl_hbufo_rd;
+pin_out_led(7) <= '0';
 
 
 m_led_tst: fpga_test_01
@@ -1389,30 +1377,6 @@ p_out_tst        => open,--tst_prom_out,
 p_in_clk         => i_tmr_clk,
 p_in_rst         => i_prom_rst
 );
-
-
---process(g_usr_highclk)
---begin
---  if rising_edge(g_usr_highclk) then
---    tst_vctrl_vbufin_dout  <= i_vctrl_vbufi_do ;
---    tst_vctrl_vbufin_rd    <= i_vctrl_vbufi_rd   ;
---    tst_vctrl_vbufin_empty <= i_vctrl_vbufi_empty;
---
---    tst_vctrl_hbufo_empty <= i_host_rxbuf_empty(C_HDEV_VCH);
---    tst_vctrl_hbufo_rd <= i_host_rd(C_HDEV_VCH);
---
---  end if;
---end process;
-
---process(g_host_clk)
---begin
---  if rising_edge(g_host_clk) then
---  tst_h2m_txbuf_empty <= i_host_mem_tst_out(8);
---  tst_h2m_txbuf_full  <= i_host_mem_tst_out(9);
---  tst_h2m_rxbuf_empty <= i_host_mem_tst_out(6);
---  tst_h2m_rxbuf_full  <= i_host_mem_tst_out(7);
---  end if;
---end process;
 
 
 end architecture;
