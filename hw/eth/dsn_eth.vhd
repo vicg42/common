@@ -205,7 +205,7 @@ p_out_dbg<=i_dbg_out;
 end generate gen_dbg_on;
 
 
-gen_cfg_eth : for i in 0 to G_ETH.gtch_count_max-1 generate
+gen_cfg_eth : for i in 0 to G_ETH.ch_count-1 generate
 process(i_ethphy_out.clk)
 begin
   if i_ethphy_out.clk'event and i_ethphy_out.clk='1' then
@@ -265,7 +265,7 @@ gen_use_off : if strcmp(G_MODULE_USE,"OFF") generate
 
 p_out_tst<=(others=>'0');
 
-gen_ch : for i in 0 to G_ETH.gtch_count_max-1 generate
+gen_ch : for i in 0 to G_ETH.ch_count-1 generate
 p_out_eth(i).rxbuf.din<=(others=>'0');
 p_out_eth(i).rxbuf.wr<='0';
 p_out_eth(i).rxbuf.sof<='0';

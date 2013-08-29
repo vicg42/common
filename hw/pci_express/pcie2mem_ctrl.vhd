@@ -40,13 +40,17 @@ port(
 p_in_ctrl         : in    TPce2Mem_Ctrl;
 p_out_status      : out   TPce2Mem_Status;
 
-p_in_txd          : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_in_txd_wr       : in    std_logic;
-p_out_txbuf_full  : out   std_logic;
+--host -> dev
+p_in_htxbuf_di    : in   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_htxbuf_wr    : in   std_logic;
+p_out_htxbuf_full : out  std_logic;
+p_out_htxbuf_empty: out  std_logic;
 
-p_out_rxd         : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
-p_in_rxd_rd       : in    std_logic;
-p_out_rxbuf_empty : out   std_logic;
+--host <- dev
+p_out_hrxbuf_do   : out  std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_hrxbuf_rd    : in   std_logic;
+p_out_hrxbuf_full : out  std_logic;
+p_out_hrxbuf_empty: out  std_logic;
 
 p_in_hclk         : in    std_logic;
 
@@ -74,18 +78,17 @@ architecture behavioral of pcie2mem_ctrl is
 
 component pcie2mem_fifo
 port(
-din         : in std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+din         : in std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 wr_en       : in std_logic;
 wr_clk      : in std_logic;
 
-dout        : out std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+dout        : out std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 rd_en       : in std_logic;
 rd_clk      : in std_logic;
 
-full        : out std_logic;
---almost_full : out std_logic;
-prog_full   : out std_logic;
 empty       : out std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
 
 --clk         : in std_logic;
 rst         : in std_logic
@@ -93,11 +96,11 @@ rst         : in std_logic
 end component;
 
 
-signal i_txbuf_dout                    : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+signal i_txbuf_dout                    : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_txbuf_dout_rd                 : std_logic;
 signal i_txbuf_full                    : std_logic;
 signal i_txbuf_empty                   : std_logic;
-signal i_rxbuf_din                     : std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+signal i_rxbuf_din                     : std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 signal i_rxbuf_din_wr                  : std_logic;
 signal i_rxbuf_full                    : std_logic;
 signal i_rxbuf_empty                   : std_logic;
@@ -116,6 +119,7 @@ signal i_mem_done_out                  : std_logic:='0';
 
 signal tst_mem_ctrl_out                : std_logic_vector(31 downto 0);
 
+
 --MAIN
 begin
 
@@ -126,8 +130,8 @@ begin
 --RAM<-PCIE
 m_txbuf : pcie2mem_fifo
 port map(
-din         => p_in_txd,
-wr_en       => p_in_txd_wr,
+din         => p_in_htxbuf_di,
+wr_en       => p_in_htxbuf_wr,
 wr_clk      => p_in_hclk,
 
 dout        => i_txbuf_dout,
@@ -150,8 +154,8 @@ din         => i_rxbuf_din,
 wr_en       => i_rxbuf_din_wr,
 wr_clk      => p_in_clk,
 
-dout        => p_out_rxd,
-rd_en       => p_in_rxd_rd,
+dout        => p_out_hrxbuf_do,
+rd_en       => p_in_hrxbuf_rd,
 rd_clk      => p_in_hclk,
 
 full        => open,
@@ -163,8 +167,12 @@ empty       => i_rxbuf_empty,
 rst         => p_in_rst
 );
 
-p_out_rxbuf_empty <= i_rxbuf_empty;
-p_out_txbuf_full <= i_txbuf_full;
+p_out_hrxbuf_empty <= i_rxbuf_empty;
+p_out_hrxbuf_full <= i_rxbuf_full;
+
+p_out_htxbuf_empty <= i_txbuf_empty;
+p_out_htxbuf_full <= i_txbuf_full;
+
 
 ----------------------------------------------------
 --Контроллер записи/чтения ОЗУ

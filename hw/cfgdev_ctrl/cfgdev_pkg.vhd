@@ -157,22 +157,22 @@ port(
 -------------------------------
 --Связь с HOST
 -------------------------------
-p_out_host_rxrdy     : out  std_logic;
-p_out_host_rxd       : out  std_logic_vector(G_HOST_DWIDTH-1 downto 0);
-p_in_host_rd         : in   std_logic;
+--host -> dev
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH-1 downto 0);
+p_in_htxbuf_wr       : in   std_logic;
+p_out_htxbuf_full    : out  std_logic;
+p_out_htxbuf_empty   : out  std_logic;
 
-p_out_host_txrdy     : out  std_logic;
-p_in_host_txd        : in   std_logic_vector(G_HOST_DWIDTH-1 downto 0);
-p_in_host_wr         : in   std_logic;
+--host <- dev
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH-1 downto 0);
+p_in_hrxbuf_rd       : in   std_logic;
+p_out_hrxbuf_full    : out  std_logic;
+p_out_hrxbuf_empty   : out  std_logic;
 
-p_out_host_irq       : out  std_logic;
-p_in_host_clk        : in   std_logic;
+p_out_hirq           : out  std_logic;
+p_out_herr           : out  std_logic;
 
--------------------------------
---
--------------------------------
-p_out_module_rdy     : out    std_logic;
-p_out_module_error   : out    std_logic;
+p_in_hclk            : in   std_logic;
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва

@@ -93,8 +93,8 @@ clk     : std_logic;
 rstn    : std_logic;
 end record;
 
-Type TMemINCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemIN;
-Type TMemOUTCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemOUT;
+--Type TMemINCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemIN;
+--Type TMemOUTCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemOUT;
 
 --//Режимы работы - запись/чтение
 constant C_MEMWR_WRITE   : std_logic:='1';

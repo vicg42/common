@@ -525,29 +525,9 @@ begin
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) then
           txd := p_in_dev_dout(txd'range);
 
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK0, 5) then
-          txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*1) - 1
-                              downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*0));
-
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK1, 5) then
-          txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*2) - 1
-                              downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*1));
-
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK2, 5) then
-          txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*3) - 1
-                              downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*2));
-
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK3, 5) then
-          txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*4) - 1
-                              downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*3));
-
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK4, 5) then
-          txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*5) - 1
-                              downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT + (32*4));
-
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRERR, 5) then
-          txd(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT - C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT downto 0)
-                := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT);
+        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK, 5) then
+          txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT
+                              downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_TIME, 5) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_TIME_M_BIT downto C_HDEV_OPTIN_TIME_L_BIT);
@@ -577,17 +557,12 @@ begin
           txd(C_HREG_FUNC_VCTRL_BIT) := '1';
           txd(C_HREG_FUNC_ETH_BIT) := strcmp2(C_PCFG_ETH_USE, "ON");
 --          txd(C_HREG_FUNC_HDD_BIT) := strcmp2(C_PCFG_HDD_USE, "ON");
-          if strcmp(C_PCFG_BOARD, "HTGV6") or strcmp(C_PCFG_BOARD, "ML505") then
-          txd(C_HREG_FUNC_VRESEK21_BIT) := p_in_dev_opt(C_HDEV_OPTIN_USR_SWT_L_BIT);
-          end if;
+          txd(C_HREG_FUNC_VRESEK21_BIT) := strcmp2(C_PCFG_BOARD, "HTGV6");
+          txd(C_HREG_FUNC_PULT_BIT) := strcmp2(C_PCFG_BOARD, "HTGV6");
 
           txd(C_HREG_FUNC_PROM_BIT) := strcmp2(C_PCFG_BOARD, "ML505")
-                                     or strcmp2(C_PCFG_BOARD, "HSCAM_PCIE")
-                                     or strcmp2(C_PCFG_BOARD, "HTGV6");
-
-          if strcmp(C_PCFG_BOARD, "HTGV6") or strcmp(C_PCFG_BOARD, "ML505") then
-          txd(C_HREG_FUNC_PULT_BIT) := p_in_dev_opt(C_HDEV_OPTIN_USR_SWT_M_BIT);
-          end if;
+                                     or strcmp2(C_PCFG_BOARD, "HTGV6")
+                                     or strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
@@ -600,7 +575,7 @@ begin
                  , C_HREG_FUNCPRM_VCTRL_VCH_COUNT_M_BIT - C_HREG_FUNCPRM_VCTRL_VCH_COUNT_L_BIT + 1);
 
           txd(C_HREG_FUNCPRM_VCTRL_MIR_BIT) := '1';
-          txd(C_HREG_FUNCPRM_VCTRL_REV_BIT) := not strcmp2(C_PCFG_BOARD, "AD5T1");
+          txd(C_HREG_FUNCPRM_VCTRL_REV_BIT) := '1';
           txd(C_HREG_FUNCPRM_ETH_REV_BIT) := '1';
 
         end if;
@@ -620,13 +595,13 @@ i_pcie_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
 ----------------------------------------------------------------------------------------------
 --TRN DONE: PC->FPGA
 i_dmatrn_mrd_done <= i_mrd_done
-                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
+                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length)
                             or i_pcie_testing = '1'
                         else (not v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)
                               and AND_reduce(i_dmatrn_mem_done));
 --TRN DONE: PC<-FPGA
 i_dmatrn_mwr_done <= i_mwr_done
-                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
+                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length)
                             or i_pcie_testing = '1'
                         else ( v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT)
                               and AND_reduce(i_dmatrn_mem_done));
@@ -665,7 +640,7 @@ begin
     i_mwr_done <= p_in_mwr_done and not sr_mwr_done;
 
     --DMATRN <-> MEM завершена
-    if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
+    if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length)
       and i_pcie_testing /= '1' then
 
       if AND_reduce(i_dmatrn_mem_done) = '1' or i_dma_start = '1' then
@@ -852,14 +827,14 @@ end generate gen_irq;
 --Сигналы для модулей TX/RX PCI-Express
 ---------------------------------------------------------------------
 p_out_rxbuf_dout <= p_in_dev_dout;
---                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else tst_mem_dcnt_swap;
+--                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
 
-p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT)
-                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
-                        p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_PFULL_BIT) and not i_pcie_testing;
+p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT)
+                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) else
+                        p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_pcie_testing;
 
 p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)
-                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) else
+                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) else
                         p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pcie_testing;
 
 
@@ -970,7 +945,7 @@ end generate;--gen_usrd_x128
 --  tst_mem_dcnt(8*(i + 1) - 1 downto 8*i) <= CONV_STD_LOGIC_VECTOR(i, 8);
 --  end loop;
 --elsif rising_edge(p_in_clk) then
---  if p_in_rxbuf_rd = '1' and i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length) then
+--  if p_in_rxbuf_rd = '1' and i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) then
 --    for i in 0 to tst_mem_dcnt'length/8 - 1 loop
 --    tst_mem_dcnt(8*(i + 1) - 1 downto 8*i) <= tst_mem_dcnt(8*(i + 1) - 1 downto 8*i)
 --                                               + CONV_STD_LOGIC_VECTOR(tst_mem_dcnt'length/8, 8);
@@ -990,7 +965,7 @@ p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= i_dmatrn_mrd_done
                                             and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
 
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) <= sr_dma_start
-                                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF
+                                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM
                                                                               , i_hdev_adr'length) else
                                         i_dmatrn_init and not i_pcie_testing;
 
@@ -1016,7 +991,7 @@ begin
     if i_dma_start = '1' then
       i_mem_adr <= EXT(v_reg_mem_adr(v_reg_mem_adr'high downto log2(C_HDEV_DWIDTH/8)), i_mem_adr'length);
     else
-      if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM_DBUF, i_hdev_adr'length)
+      if i_hdev_adr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length)
         and (p_in_rxbuf_rd = '1' or i_txbuf_wr = '1') then
 
         i_mem_adr <= i_mem_adr + 1;

@@ -28,22 +28,24 @@ G_HOST_DWIDTH : integer:=32
 );
 port(
 -------------------------------
---Ñâÿçü ñ HOST
+--HOST
 -------------------------------
-p_out_host_rxd   : out   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_rd     : in    std_logic;
-p_out_rxbuf_full : out   std_logic;
-p_out_rxbuf_empty: out   std_logic;
+--host -> dev
+p_in_htxbuf_di       : in   std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_htxbuf_wr       : in   std_logic;
+p_out_htxbuf_full    : out  std_logic;
+p_out_htxbuf_empty   : out  std_logic;
 
-p_in_host_txd    : in    std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-p_in_host_wr     : in    std_logic;
-p_out_txbuf_full : out   std_logic;
-p_out_txbuf_empty: out   std_logic;
+--host <- dev
+p_out_hrxbuf_do      : out  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
+p_in_hrxbuf_rd       : in   std_logic;
+p_out_hrxbuf_full    : out  std_logic;
+p_out_hrxbuf_empty   : out  std_logic;
 
-p_in_host_clk    : in    std_logic;
+p_out_hirq           : out  std_logic;
+p_out_herr           : out  std_logic;
 
-p_out_hirq       : out   std_logic;
-p_out_herr       : out   std_logic;
+p_in_hclk            : in   std_logic;
 
 -------------------------------
 --PHY
@@ -121,10 +123,9 @@ dout   : out std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 rd_en  : in  std_logic;
 rd_clk : in  std_logic;
 
-prog_full : out std_logic;
---almost_full : out std_logic;
-full   : out std_logic;
 empty  : out std_logic;
+full   : out std_logic;
+prog_full : out std_logic;
 
 --clk         : in std_logic;
 rst    : in  std_logic
@@ -169,27 +170,26 @@ p_out_tst(31 downto 0) <= i_tst_out;
 p_out_hirq <= i_core_irq;
 p_out_herr <= OR_reduce(i_core_status);
 
-p_out_rxbuf_full  <= i_rxbuf_full;
-p_out_rxbuf_empty <= i_rxbuf_empty;
+p_out_hrxbuf_full  <= i_rxbuf_full;
+p_out_hrxbuf_empty <= i_rxbuf_empty;
 
-p_out_txbuf_full  <= i_txbuf_full;
-p_out_txbuf_empty <= i_txbuf_empty;
+p_out_htxbuf_full  <= i_txbuf_full;
+p_out_htxbuf_empty <= i_txbuf_empty;
 
 --fpga -> flash
 m_txbuf : prom_buf
 port map(
-din    => p_in_host_txd,
-wr_en  => p_in_host_wr,
-wr_clk => p_in_host_clk,
+din    => p_in_htxbuf_di,
+wr_en  => p_in_htxbuf_wr,
+wr_clk => p_in_hclk,
 
 dout   => i_txbuf_do,
 rd_en  => i_txbuf_rd,
 rd_clk => p_in_clk,
 
-full   => open,
---almost_full => open,--i_txbuf_full,
-prog_full => i_txbuf_full,
 empty  => i_txbuf_empty,
+full   => open,
+prog_full => i_txbuf_full,
 
 --clk         => p_in_clk,
 rst    => p_in_rst
@@ -202,14 +202,13 @@ din    => i_rxbuf_di,
 wr_en  => i_rxbuf_wr,
 wr_clk => p_in_clk,
 
-dout   => p_out_host_rxd,
-rd_en  => p_in_host_rd,
-rd_clk => p_in_host_clk,
+dout   => p_out_hrxbuf_do,
+rd_en  => p_in_hrxbuf_rd,
+rd_clk => p_in_hclk,
 
-full   => open,
---almost_full => i_rxbuf_full,
-prog_full => i_rxbuf_full,
 empty  => i_rxbuf_empty,
+full   => open,
+prog_full => i_rxbuf_full,
 
 --clk         => p_in_clk,
 rst    => p_in_rst
