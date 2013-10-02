@@ -57,15 +57,17 @@ NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 ###############################################################################
 NET "pin_in_refclk_clk" LOC = "E14" | IOSTANDARD = LVCMOS25; ##ref_clk (100 MHz Oscillator)
 
-NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
-#NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
-TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5  ns HIGH 50%; # 400MHz clock to DDR3 memory infrastructure
-#TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
+NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
+TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
 
-# Create TIMEGRP for mig_ddr3_if_clk0
-NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0; ###NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
-#TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
-TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 3.33  ns HIGH 50%; # 300MHz
+NET "g_usrclk<1>" TNM_NET = TNM_sys_clk;
+TIMESPEC "TS_sys_clk" = PERIOD "TNM_sys_clk" 2.5 ns; # 400MHz clock to DDR3 memory infrastructure
+
+NET "g_usrclk<0>" TNM_NET = TNM_clk_ref;
+TIMESPEC "TS_clk_ref" = PERIOD "TNM_clk_ref" 5 ns ; # 200MHz
+
+NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0;
+TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 5 ns HIGH 50%; # 200MHz
 
 
 #############################################################################
@@ -101,7 +103,7 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/bram
 #NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
 #
 #TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 1 ;
+#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 1 ;
 #TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
 #
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
@@ -118,9 +120,9 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/bram
 #NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_250" TNM_NET = "PCIEXP_CLK_250" ;
 #
 #TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % ;
-#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
+#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
 #TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_SYSCLK*1 HIGH 50 % PRIORITY 1;
+#TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_PCIEXP_SYSCLK*1 HIGH 50 % PRIORITY 1;
 #
 #NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/sel_lnk_rate_d" TIG ;
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
@@ -132,7 +134,7 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/bram
 #
 ##TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
 
-###-----------  For PCIE-Express (x8) - 2.5G (pcie refclk - 250MHz) -----------
+##-----------  For PCIE-Express (x8) - 2.5G (pcie refclk - 250MHz) -----------
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[4].GTX" LOC = GTXE1_X0Y0; # PCIe Lane 4
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[5].GTX" LOC = GTXE1_X0Y1; # PCIe Lane 5
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[6].GTX" LOC = GTXE1_X0Y2; # PCIe Lane 6
@@ -145,14 +147,14 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/bram
 #
 #TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % ;
 #TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "TPCIEXP_XOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
+#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
 #TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_PCIEXP_SYSCLK*1 HIGH 50 % PRIORITY 1;
 #
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
 #PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
 #
-##TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
+#TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
 #
 #NET "g_host_clk" TNM_NET = "HOST_CLK";
 #TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
@@ -186,47 +188,30 @@ NET "g_host_clk" TNM_NET = "HOST_CLK";
 TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 
 
-################################################################################
-#### AXI: MEMEORY ARBITER BANK0
-################################################################################
-#NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
-#NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
-#TIMEGRP "mem_arbch_reset_source" = FFS PADS;
-#TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
+###############################################################################
+### AXI: MEMEORY ARBITER BANK0
+###############################################################################
+NET "m_mem_arb/gen_chcount_3.m_arb/*_resync*" TNM = FFS "mem_arbch_reset_resync";
+NET "m_mem_arb/gen_chcount_3.m_arb/*INTERCONNECT_ARESETN" TNM = FFS "mem_arbch_reset_resync";
+TIMEGRP "mem_arbch_reset_source" = FFS PADS;
+TIMESPEC "TS_mem_arbch_reset_resync" = FROM "mem_arbch_reset_source" TO "mem_arbch_reset_resync" TIG;
 
 
-################################################################################
-## Clock distribution constraints
-##
-## We don't care about absolute delays on these clock pads,
-## so they are flagged TIG (timing ignore).
-################################################################################
-#TIMEGRP "CLK_TIG_PADS" = "REF_CLK_PADS":"PCIEXP_CLK_PADS":"ETHPHY_CLK_PADS";
-#TIMESPEC "TS_CLK_DIST_TIG" = FROM "CLK_TIG_PADS" TIG;
-
-
-## Flag paths between MIG user clock and read synchronisation clock that are not timing-critical with TIG
-#NET "m_mem_ctrl/gen_bank[0].m_mem_core/u_memc_ui_top/u_mem_intfc/phy_top0/clk_rsync<*>" TNM_NET = TNM_CLK_RSYNC0;
-#TIMESPEC TS_CLK_RSYNC0_TO_MIG_CLK0 = FROM TNM_CLK_RSYNC0 to TNM_MIG_CLK0    TIG;
-#TIMESPEC TS_MIG_CLK0_TO_CLK_RSYNC0 = FROM TNM_MIG_CLK0   to TNM_CLK_RSYNC0  TIG;
 
 ########################################################################
 # Controller 0
-# Memory Device: DDR3_SDRAM->SODIMMs->MT4JSF6464HY-1G1
+# Memory Device: DDR3_SDRAM->SODIMMs->MT8JSF25664HZ-1G4
 # Data Width:     64
 # Frequency:      400
 # Time Period:      2500
 # Data Mask:     1
 ########################################################################
 
-#NET "lclk" TNM_NET = TNM_sys_clk;
-#TIMESPEC "TS_sys_clk" = PERIOD "TNM_sys_clk" 5 ns;##10 ns; #// OD 100 MHz
-
 # Constrain BUFR clocks used to synchronize data from IOB to fabric logic
 # Note that ISE cannot infer this from other PERIOD constraints because
 # of the use of OSERDES blocks in the BUFR clock generation path
-NET "m_mem_ctrl/gen_bank[0].m_mem_core/u_memc_ui_top/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = "TNM_clk_rsync";
-TIMESPEC "TS_clk_rsync" = PERIOD "TNM_clk_rsync" 5 ns; #// OD 7_19 Checked with sims
+NET "m_mem_ctrl/gen_bank[0].m_mem_core/u_memc_ui_top/u_mem_intfc/phy_top0/clk_rsync[?]" TNM_NET = TNM_clk_rsync;
+TIMESPEC "TS_clk_rsync" = PERIOD "TNM_clk_rsync" 5 ns;
 
 # Paths between DQ/DQS ISERDES.Q outputs and CLB flops clocked by falling
 # edge of BUFR will by design only be used if DYNCLKDIVSEL is asserted for
@@ -239,13 +224,14 @@ TIMESPEC "TS_clk_rsync" = PERIOD "TNM_clk_rsync" 5 ns; #// OD 7_19 Checked with 
 # matching to specific affect only the DQ/DQS ISERDES.Q outputs
 TIMEGRP "TG_clk_rsync_rise" = RISING  "TNM_clk_rsync";
 TIMEGRP "TG_clk_rsync_fall" = FALLING "TNM_clk_rsync";
-TIMESPEC "TS_clk_rsync_rise_to_fall" = FROM "TG_clk_rsync_rise" TO "TG_clk_rsync_fall" "TS_PLL_MEM_CLK" * 2;
+TIMESPEC "TS_clk_rsync_rise_to_fall" =
+  FROM "TG_clk_rsync_rise" TO "TG_clk_rsync_fall" "TS_sys_clk" * 2;
 
 # Signal to select between controller and physical layer signals. Four divided by two clock
-# cycles (8 memory clock cycles) are provided by design for the signal to settle down.
+# cycles (4 memory clock cycles) are provided by design for the signal to settle down.
 # Used only by the phy modules.
 INST "m_mem_ctrl/gen_bank[0].m_mem_core/u_memc_ui_top/u_mem_intfc/phy_top0/u_phy_init/u_ff_phy_init_data_sel" TNM = "TNM_PHY_INIT_SEL";
-TIMESPEC "TS_MC_PHY_INIT_SEL" = FROM "TNM_PHY_INIT_SEL" TO FFS = "TS_PLL_MEM_CLK"*4; #"TS_sys_clk"*4;
+TIMESPEC "TS_MC_PHY_INIT_SEL" = FROM "TNM_PHY_INIT_SEL" TO FFS = "TS_sys_clk"*4;
 
 ################################################################################
 # I/O STANDARDS
@@ -365,7 +351,7 @@ NET  "pin_out_phymem[0]_cas_n"        LOC = "H40" ;    #Bank 25 +
 NET  "pin_out_phymem[0]_we_n"         LOC = "H41" ;    #Bank 25 +
 NET  "pin_out_phymem[0]_rst_n"        LOC = "M34" ;    #Bank 25 +
 NET  "pin_out_phymem[0]_cke<0>"       LOC = "K39" ;    #Bank 25 +
-NET  "pin_out_phymem[0]_cke<1>"       LOC = "K40" ;    #Bank 25 +
+#NET  "pin_out_phymem[0]_cke<1>"       LOC = "K40" ;    #Bank 25 +
 NET  "pin_out_phymem[0]_odt<0>"       LOC = "M31" ;    #Bank 25 +
 #NET  "pin_out_phymem[0]_odt<1>"       LOC = "N31" ;    #Bank 25 +
 NET  "pin_out_phymem[0]_cs_n<0>"      LOC = "M33" ;    #Bank 25 +
@@ -397,8 +383,8 @@ NET  "pin_inout_phymem[0]_dqs_p<7>"   LOC = "V38" ;     #Bank 16 +
 NET  "pin_inout_phymem[0]_dqs_n<7>"   LOC = "W38" ;     #Bank 16 +
 NET  "pin_out_phymem[0]_ck_p<0>"      LOC = "P27" ;     #Bank 25 +
 NET  "pin_out_phymem[0]_ck_n<0>"      LOC = "R27" ;     #Bank 25 +
-#NET  "pin_out_phymem[0]_ck_p<1>"      LOC = "R28" ;     #Bank 25 +
-#NET  "pin_out_phymem[0]_ck_n<1>"      LOC = "R29" ;     #Bank 25 +
+NET  "pin_out_phymem[0]_ck_p<1>"      LOC = "R28" ;     #Bank 25 +
+NET  "pin_out_phymem[0]_ck_n<1>"      LOC = "R29" ;     #Bank 25 +
 
 ##################################################################################################
 ##The following locations must be reserved and cannot be used for external I/O because          ##
