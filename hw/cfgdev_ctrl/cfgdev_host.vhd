@@ -29,9 +29,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.cfgdev_pkg.all;
@@ -95,44 +92,26 @@ end cfgdev_host;
 
 architecture behavioral of cfgdev_host is
 
-component cfgdev_2txfifo
+component cfgdev_buf
+generic(
+G_DWIDTH : integer:=32
+);
 port(
-din         : IN  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
+din         : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+wr_en       : in  std_logic;
+wr_clk      : in  std_logic;
 
-dout        : OUT std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
+dout        : out std_logic_vector(G_DWIDTH - 1 downto 0);
+rd_en       : in  std_logic;
+rd_clk      : in  std_logic;
 
-empty       : OUT std_logic;
-full        : OUT std_logic;
-prog_full   : OUT std_logic;
+empty       : out std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
 
---clk         : IN  std_logic;
-rst         : IN  std_logic
+rst         : in  std_logic
 );
 end component;
-
-component cfgdev_rxfifo
-port(
-din         : IN  std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
-
-dout        : OUT std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
-
-empty       : OUT std_logic;
-full        : OUT std_logic;
-prog_full   : OUT std_logic;
-
---clk         : IN  std_logic;
-rst         : IN  std_logic
-);
-end component;
-
 
 type fsm_state is (
 S_DEV_WAIT_RXRDY,
@@ -252,12 +231,13 @@ p_out_herr <= '0';
 p_out_hirq <= i_irq_out;
 
 --Растягиваем импульcы перывания
-process(p_in_rst, p_in_cfg_clk)
+process(p_in_cfg_clk)
 begin
+if rising_edge(p_in_cfg_clk) then
   if p_in_rst = '1' then
     i_irq_width <= '0';
     i_irq_width_cnt <= (others=>'0');
-  elsif rising_edge(p_in_cfg_clk) then
+  else
 
       if i_cfg_done = '1' and i_pkt_dheader(0)(C_CFGPKT_WR_BIT) = C_CFGPKT_RD then
       --Генерация прерывания/READ
@@ -273,6 +253,7 @@ begin
       end if;
 
   end if;
+end if;
 end process;
 
 --пересинхронизация
@@ -293,7 +274,10 @@ p_out_htxbuf_empty <= i_rxbuf_empty;
 
 i_dv_rxrdy <= not i_rxbuf_empty;--Готовность RxBUF
 
-m_rxbuf : cfgdev_rxfifo
+m_rxbuf : cfgdev_buf
+generic map(
+G_DWIDTH => G_HOST_DWIDTH
+)
 port map(
 din         => p_in_htxbuf_di,
 wr_en       => p_in_htxbuf_wr,
@@ -307,7 +291,6 @@ empty       => i_rxbuf_empty,
 full        => open,
 prog_full   => i_rxbuf_full,
 
---clk         : IN  std_logic;
 rst         => p_in_rst
 );
 
@@ -317,7 +300,10 @@ p_out_hrxbuf_empty <= i_txbuf_empty;
 
 i_dv_txrdy <= not i_txbuf_full;--Готовность TxBUF
 
-m_txbuf : cfgdev_2txfifo
+m_txbuf : cfgdev_buf
+generic map(
+G_DWIDTH => G_HOST_DWIDTH
+)
 port map(
 din         => i_dv_dout,
 wr_en       => i_dv_wr,
@@ -331,7 +317,6 @@ empty       => i_txbuf_empty,
 full        => open,
 prog_full   => i_txbuf_full,
 
---clk         : IN  std_logic;
 rst         => p_in_rst
 );
 
@@ -353,11 +338,11 @@ p_out_cfg_done      <= i_cfg_done;--Операция завершена
 --------------------------------------------------
 --Автомат управления
 --------------------------------------------------
-process(p_in_rst, p_in_cfg_clk)
+process(p_in_cfg_clk)
   variable pkt_type : std_logic;
   variable pkt_dlen : std_logic_vector(i_pkt_cntd'range);
 begin
-
+if rising_edge(p_in_cfg_clk) then
 if p_in_rst = '1' then
 
   fsm_state_cs <= S_DEV_WAIT_RXRDY;
@@ -381,7 +366,7 @@ if p_in_rst = '1' then
   i_pkt_dheader(i) <= (others=>'0');
   end loop;
 
-elsif rising_edge(p_in_cfg_clk) then
+else
 --  if p_in_clken = '1' then
 
   case fsm_state_cs is
@@ -637,6 +622,7 @@ elsif rising_edge(p_in_cfg_clk) then
 
   end case;
 --  end if;--if p_in_clken = '1' then
+end if;
 end if;
 end process;
 

@@ -30,49 +30,47 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.cfgdev_pkg.all;
 
 entity cfgdev_uart is
 generic(
+G_HOST_DWIDTH : integer:=32
 G_DBG : string:="OFF";
-G_BAUDCNT_VAL: integer:=64 --//G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
-                           --//Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
-                           --//
-                           --// 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
+G_BAUDCNT_VAL: integer:=64 --G_BAUDCNT_VAL = Fuart_refclk/(16 * UART_BAUDRATE)
+                           --Например: Fuart_refclk=40MHz, UART_BAUDRATE=115200
+                           --
+                           -- 40000000/(16 *115200)=21,701 - округляем до ближайшего цеого, т.е = 22
 );
 port(
 -------------------------------
 --Связь с UART
 -------------------------------
-p_out_uart_tx        : out    std_logic;                    --//
-p_in_uart_rx         : in     std_logic;                    --//
-p_in_uart_refclk     : in     std_logic;                    --//
+p_out_uart_tx        : out    std_logic;
+p_in_uart_rx         : in     std_logic;
+p_in_uart_refclk     : in     std_logic;
 
 -------------------------------
 --
 -------------------------------
-p_out_module_rdy     : out    std_logic;                    --//
-p_out_module_error   : out    std_logic;                    --//
+p_out_module_rdy     : out    std_logic;
+p_out_module_error   : out    std_logic;
 
 -------------------------------
 --Запись/Чтение конфигурационных параметров уст-ва
 -------------------------------
-p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0); --//Адрес модуля
-p_out_cfg_radr       : out    std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0); --//Адрес стартового регистра
-p_out_cfg_radr_ld    : out    std_logic;                    --//Загрузка адреса регистра
-p_out_cfg_radr_fifo  : out    std_logic;                    --//Тип адресации:1-FIFO(инкрементация адреса запрещена/0-Register(инкрементация адреса разрешена)
-p_out_cfg_wr         : out    std_logic;                    --//Строб записи
-p_out_cfg_rd         : out    std_logic;                    --//Строб чтения
-p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);--//
-p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);--//
-p_in_cfg_txrdy       : in     std_logic;                    --//1 - rdy to used
-p_in_cfg_rxrdy       : in     std_logic;                    --//1 - rdy to used
-p_out_cfg_done       : out    std_logic;                    --//операция завершена
+p_out_cfg_dadr       : out    std_logic_vector(C_CFGPKT_DADR_M_BIT - C_CFGPKT_DADR_L_BIT downto 0); --Адрес модуля
+p_out_cfg_radr       : out    std_logic_vector(C_CFGPKT_RADR_M_BIT - C_CFGPKT_RADR_L_BIT downto 0); --Адрес стартового регистра
+p_out_cfg_radr_ld    : out    std_logic;                    --Загрузка адреса регистра
+p_out_cfg_radr_fifo  : out    std_logic;                    --Тип адресации:1-FIFO(инкрементация адреса запрещена/0-Register(инкрементация адреса разрешена)
+p_out_cfg_wr         : out    std_logic;                    --Строб записи
+p_out_cfg_rd         : out    std_logic;                    --Строб чтения
+p_out_cfg_txdata     : out    std_logic_vector(15 downto 0);
+p_in_cfg_rxdata      : in     std_logic_vector(15 downto 0);
+p_in_cfg_txrdy       : in     std_logic;                    --1 - rdy to used
+p_in_cfg_rxrdy       : in     std_logic;                    --1 - rdy to used
+p_out_cfg_done       : out    std_logic;                    --операция завершена
 --p_in_cfg_irq         : in     std_logic;
 
 p_in_cfg_clk         : in     std_logic;
@@ -100,19 +98,19 @@ port(
 -------------------------------
 --Связь с UART
 -------------------------------
-p_out_uart_tx    : out    std_logic;                    --//
-p_in_uart_rx     : in     std_logic;                    --//
+p_out_uart_tx    : out    std_logic;                    --
+p_in_uart_rx     : in     std_logic;                    --
 
 -------------------------------
 --USR IF
 -------------------------------
-p_out_usr_rxd    : out    std_logic_vector(7 downto 0); --//
-p_out_usr_rxrdy  : out    std_logic;                    --//
-p_in_usr_rd      : in     std_logic;                    --//
+p_out_usr_rxd    : out    std_logic_vector(7 downto 0); --
+p_out_usr_rxrdy  : out    std_logic;                    --
+p_in_usr_rd      : in     std_logic;                    --
 
-p_in_usr_txd     : in     std_logic_vector(7 downto 0); --//
-p_out_usr_txrdy  : out    std_logic;                    --//
-p_in_usr_wr      : in     std_logic;                    --//
+p_in_usr_txd     : in     std_logic_vector(7 downto 0); --
+p_out_usr_txrdy  : out    std_logic;                    --
+p_in_usr_wr      : in     std_logic;                    --
 
 -------------------------------
 --Технологический
@@ -128,41 +126,25 @@ p_in_rst         : in    std_logic
 );
 end component;
 
-constant CI_CFG_BUF_DWIDTH  : integer:=32;
 
-component cfgdev_2txfifo
-port(
-din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
-
-dout        : OUT std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
-
-empty       : OUT std_logic;
-full        : OUT std_logic;
-
---clk         : IN  std_logic;
-rst         : IN  std_logic
+component cfgdev_buf
+generic(
+G_DWIDTH : integer:=32
 );
-end component;
-
-component cfgdev_rxfifo
 port(
-din         : IN  std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
+din         : in  std_logic_vector(G_DWIDTH - 1 downto 0);
+wr_en       : in  std_logic;
+wr_clk      : in  std_logic;
 
-dout        : OUT std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
+dout        : out std_logic_vector(G_DWIDTH - 1 downto 0);
+rd_en       : in  std_logic;
+rd_clk      : in  std_logic;
 
-empty       : OUT std_logic;
-full        : OUT std_logic;
+empty       : out std_logic;
+full        : out std_logic;
+prog_full   : out std_logic;
 
---clk         : IN  std_logic;
-rst         : IN  std_logic
+rst         : in  std_logic
 );
 end component;
 
@@ -198,7 +180,7 @@ signal i_cfg_done                       : std_logic;
 
 type TDevCfg_PktHeader is array (0 to C_CFGPKT_HEADER_DCOUNT-1) of std_logic_vector(i_cfg_d'range);
 signal i_pkt_dheader                    : TDevCfg_PktHeader;
-signal i_pkt_field_data                 : std_logic;--//Структура пакета: поле данных
+signal i_pkt_field_data                 : std_logic;--Структура пакета: поле данных
 signal i_pkt_cntd                       : std_logic_vector(C_CFGPKT_DLEN_M_BIT-C_CFGPKT_DLEN_L_BIT downto 0);
 
 signal i_rxbuf_empty                    : std_logic;
@@ -212,12 +194,12 @@ signal i_uart_dout                      : std_logic_vector(7 downto 0);
 signal i_uart_txrdy                     : std_logic;
 signal i_uart_wr                        : std_logic;
 
-signal i_rxbuf_dout                     : std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
-signal i_rxbuf_din                      : std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+signal i_rxbuf_dout                     : std_logic_vector(G_HOST_DWIDTH-1 downto 0);
+signal i_rxbuf_din                      : std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 
 signal i_rxbuf_full                     : std_logic;
-signal i_txbuf_din                      : std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
-signal i_txbuf_dout                     : std_logic_vector(CI_CFG_BUF_DWIDTH-1 downto 0);
+signal i_txbuf_din                      : std_logic_vector(G_HOST_DWIDTH-1 downto 0);
+signal i_txbuf_dout                     : std_logic_vector(G_HOST_DWIDTH-1 downto 0);
 signal i_txbuf_rd                       : std_logic;
 
 
@@ -229,9 +211,9 @@ signal tst_fsm_cs                       : std_logic_vector(3 downto 0);
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
@@ -316,31 +298,34 @@ p_in_rst         => p_in_rst
 --------------------------------------------------
 --Развязка частот(p_in_uart_refclk/p_in_cfg_clk), через согласующие буфера
 --------------------------------------------------
---//UART->FPGA
+--UART->FPGA
 i_rxbuf_din<=EXT(i_uart_dout, i_rxbuf_din'length);
 i_uart_rd<=i_uart_rxrdy and not i_rxbuf_full;
 
 i_dv_din<=i_rxbuf_dout(i_dv_din'range);
-i_dv_rxrdy<=not i_rxbuf_empty;--//Готовность RxBUF
+i_dv_rxrdy<=not i_rxbuf_empty;--Готовность RxBUF
 
-m_rxbuf : cfgdev_rxfifo
+m_rxbuf : cfgdev_buf
+generic map(
+G_DWIDTH => G_HOST_DWIDTH
+)
 port map(
-din         => i_rxbuf_din, --//<-UART
+din         => i_rxbuf_din, --<-UART
 wr_en       => i_uart_rd,
 wr_clk      => p_in_uart_refclk,
 
-dout        => i_rxbuf_dout, --//->USR
+dout        => i_rxbuf_dout, --->USR
 rd_en       => i_dv_rd,
 rd_clk      => p_in_cfg_clk,
 
 empty       => i_rxbuf_empty,
 full        => i_rxbuf_full,
+prog_full   => open,
 
---clk         : IN  std_logic;
 rst         => p_in_rst
 );
 
---//UART<-FPGA
+--UART<-FPGA
 i_txbuf_din<=EXT(i_dv_dout, i_txbuf_din'length);
 
 i_uart_din<=i_txbuf_dout(i_uart_din'range);
@@ -348,22 +333,25 @@ i_uart_wr<=i_txbuf_rd;
 
 i_txbuf_rd<=i_uart_txrdy and not i_txbuf_empty;
 
-i_dv_txrdy<=not i_txbuf_full;--//Готовность TxBUF
+i_dv_txrdy<=not i_txbuf_full;--Готовность TxBUF
 
-m_txbuf : cfgdev_2txfifo
+m_txbuf : cfgdev_buf
+generic map(
+G_DWIDTH => G_HOST_DWIDTH
+)
 port map(
-din         => i_txbuf_din, --//<-USR
+din         => i_txbuf_din, --<-USR
 wr_en       => i_dv_wr,
 wr_clk      => p_in_cfg_clk,
 
-dout        => i_txbuf_dout,--//->UART
+dout        => i_txbuf_dout,--->UART
 rd_en       => i_txbuf_rd,
 rd_clk      => p_in_uart_refclk,
 
 empty       => i_txbuf_empty,
 full        => i_txbuf_full,
+prog_full   => open,
 
---clk         : IN  std_logic;
 rst         => p_in_rst
 );
 
@@ -380,12 +368,12 @@ p_out_cfg_rd       <=i_cfg_rd;
 p_out_cfg_wr       <=i_cfg_wr;
 p_out_cfg_txdata   <=i_cfg_d;
 
-p_out_cfg_done     <=i_cfg_done;--//Операция завершена
+p_out_cfg_done     <=i_cfg_done;--Операция завершена
 
 
 
 --------------------------------------------------
---//Автомат управления
+--Автомат управления
 --------------------------------------------------
 process(p_in_rst,p_in_cfg_clk)
   variable pkt_type : std_logic;
@@ -420,12 +408,12 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 
   case fsm_state_cs is
 
-    --//################################
-    --//Прием данных
-    --//################################
-    --//--------------------------------
-    --//Ждем когда в уст-ве связи с SW появятся данные
-    --//--------------------------------
+    --################################
+    --Прием данных
+    --################################
+    ----------------------------------
+    --Ждем когда в уст-ве связи с SW появятся данные
+    ----------------------------------
     when S_DEV_WAIT_RXRDY =>
 
       i_cfg_rgadr_ld<='0';
@@ -443,9 +431,9 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         fsm_state_cs <= S_DEV_RXD;
       end if;
 
-    --//--------------------------------
-    --//Прием данных из уст-ва связи с SW
-    --//--------------------------------
+    ----------------------------------
+    --Прием данных из уст-ва связи с SW
+    ----------------------------------
     when S_DEV_RXD =>
 
       i_dv_rd<='0';
@@ -454,11 +442,11 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         i_cfg_dbyte<=0;
 
         if i_pkt_field_data='1' then
-            --//переходим к записи занных в модуль FPGA
+            --переходим к записи занных в модуль FPGA
             fsm_state_cs <= S_CFG_WAIT_TXRDY;
 
         else
-          --//Собираем данные USR_PKT/HEADER
+          --Собираем данные USR_PKT/HEADER
           for i in 0 to C_CFGPKT_HEADER_DCOUNT-1 loop
             if i_pkt_cntd(2 downto 0)=i then
               i_pkt_dheader(i)<=i_cfg_d;
@@ -475,9 +463,9 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 
 
 
-    --//--------------------------------
-    --//Проверка завершения приема USR_PKT/HEADER
-    --//--------------------------------
+    ----------------------------------
+    --Проверка завершения приема USR_PKT/HEADER
+    ----------------------------------
     when S_PKTH_RXCHK =>
 
       if i_pkt_cntd(1 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DCOUNT-1, 2) then
@@ -506,9 +494,9 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
       end if;
 
 
-    --//--------------------------------
-    --//Запись данных в FPGA модуля
-    --//--------------------------------
+    ----------------------------------
+    --Запись данных в FPGA модуля
+    ----------------------------------
     when S_CFG_WAIT_TXRDY =>
 
       if p_in_cfg_txrdy='1' then
@@ -532,18 +520,18 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
 
 
 
-    --//################################
-    --//Передача данных
-    --//################################
-    --//--------------------------------
-    --//Проверка завершения прередачи USR_PKT/HEADER
-    --//--------------------------------
+    --################################
+    --Передача данных
+    --################################
+    ----------------------------------
+    --Проверка завершения прередачи USR_PKT/HEADER
+    ----------------------------------
     when S_PKTH_TXCHK =>
 
       i_cfg_rgadr_ld<='0';
 
       if i_pkt_cntd(2 downto 0)=CONV_STD_LOGIC_VECTOR(C_CFGPKT_HEADER_DCOUNT, 3) then
-      --//Заголовок отправлен, переходим к чтению данных из модуля FPGA
+      --Заголовок отправлен, переходим к чтению данных из модуля FPGA
         i_pkt_cntd<=pkt_dlen;
         i_pkt_field_data<='1';
         fsm_state_cs <= S_CFG_WAIT_RXRDY;
@@ -558,9 +546,9 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         end if;
       end loop;
 
-    --//--------------------------------
-    --//Ждем когда уст-во связи с SW будет доступно для записи
-    --//--------------------------------
+    ----------------------------------
+    --Ждем когда уст-во связи с SW будет доступно для записи
+    ----------------------------------
     when S_DEV_WAIT_TXRDY =>
 
       if i_dv_txrdy='1' then
@@ -575,9 +563,9 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         fsm_state_cs <= S_DEV_TXD;
       end if;
 
-    --//--------------------------------
-    --//Передача данных в уст-во связи с SW
-    --//--------------------------------
+    ----------------------------------
+    --Передача данных в уст-во связи с SW
+    ----------------------------------
     when S_DEV_TXD =>
 
         i_dv_wr<='0';
@@ -607,9 +595,9 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
         end if;
 
 
-    --//--------------------------------
-    --//Чтение данных из FPGA модуля
-    --//--------------------------------
+    ----------------------------------
+    --Чтение данных из FPGA модуля
+    ----------------------------------
     when S_CFG_WAIT_RXRDY =>
 
       if p_in_cfg_rxrdy='1' then
@@ -627,7 +615,7 @@ elsif p_in_cfg_clk'event and p_in_cfg_clk='1' then
       end if;
 
   end case;
---  end if;--//if p_in_clken='1' then
+--  end if;--if p_in_clken='1' then
 end if;
 end process;
 

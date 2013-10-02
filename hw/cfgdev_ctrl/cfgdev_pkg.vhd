@@ -12,34 +12,33 @@
 --
 -------------------------------------------------------------------------
 library ieee;
-use ieee.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
-library work;
 
 package cfgdev_pkg is
 
---//Кол-во элементов в заголовке пакета:
+--Кол-во элементов в заголовке пакета:
 constant C_CFGPKT_HEADER_DCOUNT     : integer:=3;
 
---//HEADER(0)/ Bit map:
+--HEADER(0)/ Bit map:
 --constant C_CFGPKT_RESERV_BIT        : integer:=0 .. 5;
-constant C_CFGPKT_FIFO_BIT          : integer:=6; --//Тип адресации 1 - FIFO/0 - Регистр(авто инкрементация адреса)
-constant C_CFGPKT_WR_BIT            : integer:=7; --//Тип пакета - запись/чтение
-constant C_CFGPKT_DADR_L_BIT        : integer:=8; --//Адрес модуля в проекте FPGA
+constant C_CFGPKT_FIFO_BIT          : integer:=6; --Тип адресации 1 - FIFO/0 - Регистр(авто инкрементация адреса)
+constant C_CFGPKT_WR_BIT            : integer:=7; --Тип пакета - запись/чтение
+constant C_CFGPKT_DADR_L_BIT        : integer:=8; --Адрес модуля в проекте FPGA
 constant C_CFGPKT_DADR_M_BIT        : integer:=15;
 
---//HEADER(1)/ Bit map:
-constant C_CFGPKT_RADR_L_BIT        : integer:=0; --//Адрес начального регистра
+--HEADER(1)/ Bit map:
+constant C_CFGPKT_RADR_L_BIT        : integer:=0; --Адрес начального регистра
 constant C_CFGPKT_RADR_M_BIT        : integer:=15;
 
---//HEADER(2)/ Bit map:
-constant C_CFGPKT_DLEN_L_BIT        : integer:=0; --//Кол-во данных для записи/чтения
+--HEADER(2)/ Bit map:
+constant C_CFGPKT_DLEN_L_BIT        : integer:=0; --Кол-во данных для записи/чтения
 constant C_CFGPKT_DLEN_M_BIT        : integer:=15;
 
 
---//C_CFGPKT_WR_BIT/ Bit Map:
+--C_CFGPKT_WR_BIT/ Bit Map:
 constant C_CFGPKT_WR                : std_logic:='0';
 constant C_CFGPKT_RD                : std_logic:='1';
 
