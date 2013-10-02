@@ -21,19 +21,17 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
---use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
 
 entity video_writer is
 generic(
+G_USR_OPT         : std_logic_vector(3 downto 0):=(others=>'0');
 G_DBGCS           : string :="OFF";
+
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -59,7 +57,7 @@ p_in_cfg_set_idle_vch : in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 p_in_vfr_buf          : in    TVfrBufs;                    --Номер буфера где будет формироваться текущий кадр
 
 --Статусы
-p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Кадр готов для соответствующего видеоканала
+p_out_vfr_rdy         : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Кадр готов
 p_out_vrow_mrk        : out   std_logic_vector(31 downto 0);--Маркер строки
 
 ----------------------------
@@ -69,6 +67,7 @@ p_in_upp_data         : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_upp_data_rd     : out   std_logic;
 p_in_upp_buf_empty    : in    std_logic;
 p_in_upp_buf_full     : in    std_logic;
+p_in_upp_buf_pfull    : in    std_logic;
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
@@ -101,6 +100,7 @@ S_PKT_HEADER_READ,
 S_MEM_START,
 S_MEM_WR,
 S_PKT_SKIP,
+S_PKT_SKIP1,
 S_PKT_SKIP2
 );
 signal fsm_state_cs: fsm_state;
@@ -133,14 +133,11 @@ signal i_upp_hd_data_rd_out        : std_logic;
 
 signal i_upp_pkt_skip_rd_out       : std_logic;
 signal i_pkt_type_err              : std_logic_vector(3 downto 0);
-signal i_pkt_size_byte             : std_logic_vector(15 downto 0);
 
-signal i_pkt_skip_byte             : std_logic_vector(15+1 downto 0);
+signal i_pkt_size_byte             : std_logic_vector(15+1 downto 0);
 signal i_pkt_skip_data             : std_logic_vector(15 downto 0);
 signal i_pkt_skip_dcnt             : std_logic_vector(15 downto 0);
 signal i_vpkt_skip_rd              : std_logic;
-signal i_vfr_pix_count_dw          : std_logic_vector(15 downto 0);
-signal i_vfr_pix_count_calc        : std_logic_vector(15 downto 0);
 signal i_pix_num                   : std_logic_vector(15 downto 0);
 signal i_pix_count_byte            : std_logic_vector(15+1 downto 0);
 
@@ -167,7 +164,7 @@ gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(3  downto 0) <= tst_fsmstate_out;
 p_out_tst(4) <= i_mem_start or tst_err_det or tst_upp_buf_empty;
 p_out_tst(25 downto 5) <= (others=>'0');
-p_out_tst(31 downto 26) <= '0' & i_pkt_type_err(3 downto 0) & '0';
+p_out_tst(31 downto 26) <= "00" & i_pkt_type_err(3 downto 0);
 
 process(p_in_clk)
 begin
@@ -213,27 +210,11 @@ i_upp_pkt_skip_rd_out <= (i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 
 
 ------------------------------------------------
---Вычисления
-------------------------------------------------
---вычисляем сколько данных нужно пробросить чтобы перейти к новому pkt, если обнаружил ошибки в принятом пакете
-i_pkt_skip_byte <= EXT(i_pkt_size_byte, i_pkt_skip_byte'length) + 2;--кол-во байт пакета + кол-во байт поля length
-i_pkt_skip_data <= EXT(i_pkt_skip_byte(i_pkt_skip_byte'high downto log2(G_MEM_DWIDTH/8))
-                                                                      , i_pkt_skip_data'length)
-                 + OR_reduce(i_pkt_skip_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
-
---вычисляем кол-во пикселей которое надо записать в ОЗУ
-i_pix_count_byte <= i_pkt_skip_byte
-                    - CONV_STD_LOGIC_VECTOR((C_VIDEO_PKT_HEADER_SIZE * 4), i_pix_count_byte'length);
-
-i_vfr_pix_count_calc <= i_pix_count_byte(i_vfr_pix_count_calc'range) + i_pix_num;
-
-
-------------------------------------------------
 --Автомат записи видео информации
 ------------------------------------------------
-process(p_in_rst, p_in_clk)
-  variable vfr_rdy : std_logic_vector(p_out_vfr_rdy'range);
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     fsm_state_cs <= S_IDLE;
@@ -254,8 +235,6 @@ begin
     i_vfr_row_mrk_l <= (others=>'0');
     i_vfr_rdy <= (others=>'0');
 
-    vfr_rdy := (others=>'0');
-
     i_mem_ptr <= (others=>'0');
     i_mem_wrbase <= (others=>'0');
     i_mem_adr <= (others=>'0');
@@ -269,9 +248,10 @@ begin
     i_pkt_skip_dcnt <= (others=>'0'); i_pkt_type_err(3 downto 0) <= (others=>'0');
     i_pix_num <= (others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+    i_pkt_skip_data <= (others=>'0');
+    i_pix_count_byte <= (others=>'0');
 
-    vfr_rdy := (others=>'0');
+  else
 
     case fsm_state_cs is
 
@@ -281,13 +261,7 @@ begin
       when S_IDLE =>
 
         i_pkt_skip_dcnt <= (others=>'0');
-
-        --Загрузка праметров Видео канала
-        if p_in_cfg_load = '1' then
-          for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
-            i_mem_wrbase <= p_in_cfg_prm_vch(i).mem_adr;
-          end loop;
-        end if;
+        i_vfr_rdy <= (others=>'0');
 
         --Ждем когда появятся данные в буфере
         if p_in_upp_buf_empty = '0' then
@@ -347,6 +321,10 @@ begin
                                                                                   - G_MEM_VLINE_L_BIT) + 0 downto 0);
             i_mem_ptr(G_MEM_VLINE_L_BIT - 1 downto 0) <= i_pix_num(G_MEM_VLINE_L_BIT - 1 downto 0);
 
+            --вычисляем кол-во пикселей которое надо записать в ОЗУ
+            i_pix_count_byte <= i_pkt_size_byte
+                                - CONV_STD_LOGIC_VECTOR((C_VIDEO_PKT_HEADER_SIZE * 4), i_pix_count_byte'length);
+
             fsm_state_cs <= S_MEM_START;
 
           else
@@ -356,7 +334,7 @@ begin
             --Header DWORD-0:
             if i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE - 1, i_vpkt_cnt'length) then
 
-              i_pkt_size_byte <= p_in_upp_data(15 downto 0);--Length (byte)
+              i_pkt_size_byte <= ('0' & p_in_upp_data(15 downto 0)) + 2;--кол-во байт пакета + кол-во байт поля length
 
               if p_in_upp_data(19 downto 16) = "0001"
                 and p_in_upp_data(27 downto 24) = "0011"
@@ -459,10 +437,10 @@ begin
           if i_vfr_row = (i_vfr_row_count - 1) then
           --Обработал последнюю строку кадра.
           --Сигнализируем о готовности кадра:
-            if i_vfr_pix_count = i_vfr_pix_count_calc then
+            if i_vfr_pix_count = (i_pix_count_byte(i_vfr_pix_count'range) + i_pix_num) then
               for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
                 if i_vch_num = i then
-                  vfr_rdy(i) := '1';
+                  i_vfr_rdy(i) <= '1';
                 end if;
               end loop;
             end if;
@@ -476,6 +454,15 @@ begin
       --Пропуск текущего пакета
       --------------------------------------
       when S_PKT_SKIP =>
+        --вычисляем сколько данных нужно пробросить чтобы перейти к новому pkt,
+        --если обнаружил ошибки в принятом пакете
+        i_pkt_skip_data <= EXT(i_pkt_size_byte(i_pkt_size_byte'high downto log2(G_MEM_DWIDTH/8))
+                                                                              , i_pkt_skip_data'length)
+                         + OR_reduce(i_pkt_size_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
+
+        fsm_state_cs <= S_PKT_SKIP1;
+
+      when S_PKT_SKIP1 =>
 
         if i_upp_pkt_skip_rd_out = '1' then
           if i_pkt_skip_dcnt = (i_pkt_skip_data - 1) then
@@ -496,13 +483,14 @@ begin
 
     end case;
 
-    i_vfr_rdy <= vfr_rdy;
   end if;
+end if;
 end process;
 
 
 m_mem_wr : mem_wr
 generic map(
+G_USR_OPT        => G_USR_OPT,
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
 G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
 G_MEM_AWIDTH     => G_MEM_AWIDTH,

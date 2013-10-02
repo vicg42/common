@@ -20,14 +20,14 @@ use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
---use work.prj_cfg.all;
 use work.prj_def.all;
 use work.mem_wr_pkg.all;
 use work.dsn_video_ctrl_pkg.all;
 
 entity video_reader is
 generic(
-G_DBGCS           : string :="OFF";
+G_USR_OPT         : std_logic_vector(3 downto 0):=(others=>'0');
+G_DBGCS           : string:="OFF";
 G_ROTATE          : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16; --min/max - 4/32
 G_MEM_BANK_M_BIT  : integer:=29;
@@ -102,10 +102,12 @@ constant dly : time := 1 ps;
 type fsm_state is (
 S_IDLE,
 S_LD_PRMS,
+S_SET_PRMS,
 S_MEM_SET_ADR,
 S_MEM_START,
 S_MEM_RD,
-S_ROW_NXT
+S_ROW_NXT,
+S_WAIT_HOST_ACK
 );
 signal fsm_state_cs: fsm_state;
 
@@ -118,7 +120,8 @@ signal i_mem_start                   : std_logic;
 signal i_mem_dir                     : std_logic;
 signal i_mem_done                    : std_logic;
 
-signal i_vch_num                     : std_logic_vector(p_in_hrd_chsel'high downto 0);
+signal i_vch_prm                     : TReaderVCHParam;
+signal i_vch_num                     : std_logic_vector(p_in_hrd_chsel'range);
 signal i_vfr_mirror                  : TFrXYMirror;
 signal i_vfr_row_cnt                 : std_logic_vector(G_MEM_VLINE_M_BIT - G_MEM_VLINE_L_BIT downto 0);
 signal i_vfr_skip_row                : std_logic_vector(i_vfr_row_cnt'range);
@@ -129,6 +132,8 @@ signal i_vfr_buf                     : std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - 
 signal i_vfr_skip_pix_byte           : std_logic_vector(G_MEM_VLINE_L_BIT - 1 downto 0);
 signal i_vfr_active_pix_byte         : std_logic_vector(15 downto 0);
 
+signal i_vfr_new_cur                 : std_logic;
+signal i_vfr_row_cnt_sv_cur          : std_logic_vector(i_vfr_row_cnt'range);
 Type TVCH_row_cnt is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(i_vfr_row_cnt'range);
 signal i_vfr_row_cnt_sv              : TVCH_row_cnt;
 signal i_step_count                  : std_logic_vector(15 downto 0);
@@ -168,6 +173,7 @@ tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmstate'length) when fsm_stat
                 CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_MEM_RD        else
                 CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmstate'length) when fsm_state_cs = S_ROW_NXT       else
                 CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_LD_PRMS       else
+                CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmstate'length) when fsm_state_cs = S_SET_PRMS      else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_IDLE else
 end generate gen_dbgcs_on;
 
@@ -192,8 +198,9 @@ p_out_vch_mirx       <= i_vfr_mirror.pix;
 --Автомат Чтения видео кадра
 ------------------------------------------------
 --Логика работы автомата
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     fsm_state_cs <= S_IDLE;
@@ -224,8 +231,19 @@ begin
     end loop;
     i_step_count <= (others=>'0');
     i_step_cnt <= (others=>'0');
+    i_vfr_new_cur <= '0';
+    i_vfr_row_cnt_sv_cur <= (others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+    i_vch_prm.mem_adr <= (others=>'0');
+    i_vch_prm.fr_size.skip.pix <= (others=>'0');
+    i_vch_prm.fr_size.skip.row <= (others=>'0');
+    i_vch_prm.fr_size.activ.pix <= (others=>'0');
+    i_vch_prm.fr_size.activ.row <= (others=>'0');
+    i_vch_prm.fr_mirror.pix <= '0';
+    i_vch_prm.fr_mirror.row <= '0';
+    i_vch_prm.step_rd <= (others=>'0');
+
+  else
 
     case fsm_state_cs is
 
@@ -252,65 +270,73 @@ begin
 
         --Загрузка праметров Видео канала
         for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
-          if p_in_hrd_chsel = ch then
+          if i_vch_num = ch then
+            i_vch_prm <= p_in_cfg_prm_vch(ch);
+            i_vfr_buf <= p_in_vfr_buf(ch);
 
-              if p_in_cfg_prm_vch(ch).step_rd = (p_in_cfg_prm_vch(ch).step_rd'range => '0') then
-              i_step_count <= p_in_cfg_prm_vch(ch).fr_size.activ.row;
-              else
-              i_step_count <= p_in_cfg_prm_vch(ch).step_rd;
-              end if;
+            if i_vfr_new(ch) = '1' then
+              i_vfr_new(ch) <= '0';
+            end if;
 
-              ----------------------------
-              --
-              ----------------------------
-              i_vfr_buf <= p_in_vfr_buf(ch);
-
-              ----------------------------
-              --Банк ОЗУ:
-              ----------------------------
-              i_mem_rdbase <= p_in_cfg_prm_vch(ch).mem_adr;
-
-              ----------------------------
-              --Отзеркаливание:
-              ----------------------------
-              i_vfr_mirror.pix <= p_in_cfg_prm_vch(ch).fr_mirror.pix;
-              i_vfr_mirror.row <= p_in_cfg_prm_vch(ch).fr_mirror.row;
-
-              ----------------------------
-              --Пиксели:
-              ----------------------------
-              i_vfr_active_pix_byte <= p_in_cfg_prm_vch(ch)
-                                  .fr_size.activ.pix(p_in_cfg_prm_vch(ch)
-                                                      .fr_size.activ.pix'high - 2 downto 0) & "00";
-
-              i_vfr_skip_pix_byte <= p_in_cfg_prm_vch(ch)
-                                  .fr_size.skip.pix(G_MEM_VLINE_L_BIT - 1 - 2 downto 0) & "00";
-
-              ----------------------------
-              --Строки:
-              ----------------------------
-              i_vfr_active_row <= p_in_cfg_prm_vch(ch).fr_size.activ.row(i_vfr_active_row'range);
-              i_vfr_skip_row <= p_in_cfg_prm_vch(ch).fr_size.skip.row(i_vfr_skip_row'range);
-
-              --Инициализируем счетчик строк
-              if i_vfr_new(ch) = '1' then
-
-                  i_vfr_new(ch) <= '0';
-
-                  if p_in_cfg_prm_vch(ch).fr_mirror.row = '0' then
-                    i_vfr_row_cnt <= (others=>'0');
-                  else
-                    i_vfr_row_cnt <= p_in_cfg_prm_vch(ch).fr_size.activ.row(i_vfr_row_cnt'range) - 1;
-                  end if;
-
-              else
-
-                i_vfr_row_cnt <= i_vfr_row_cnt_sv(ch);
-
-              end if;
-
+            i_vfr_new_cur <= i_vfr_new(ch);
+            i_vfr_row_cnt_sv_cur <= i_vfr_row_cnt_sv(ch);
           end if;
         end loop;
+
+        fsm_state_cs <= S_SET_PRMS;
+
+      --------------------------------------
+      --Загрузка параметров
+      --------------------------------------
+      when S_SET_PRMS =>
+
+          if i_vch_prm.step_rd = (i_vch_prm.step_rd'range => '0') then
+          i_step_count <= i_vch_prm.fr_size.activ.row;
+          else
+          i_step_count <= i_vch_prm.step_rd;
+          end if;
+
+          ----------------------------
+          --Банк ОЗУ:
+          ----------------------------
+          i_mem_rdbase <= i_vch_prm.mem_adr;
+
+          ----------------------------
+          --Отзеркаливание:
+          ----------------------------
+          i_vfr_mirror.pix <= i_vch_prm.fr_mirror.pix;
+          i_vfr_mirror.row <= i_vch_prm.fr_mirror.row;
+
+          ----------------------------
+          --Пиксели:
+          ----------------------------
+          i_vfr_active_pix_byte <= i_vch_prm
+                              .fr_size.activ.pix(i_vch_prm
+                                                  .fr_size.activ.pix'high - 2 downto 0) & "00";
+
+          i_vfr_skip_pix_byte <= i_vch_prm
+                              .fr_size.skip.pix(G_MEM_VLINE_L_BIT - 1 - 2 downto 0) & "00";
+
+          ----------------------------
+          --Строки:
+          ----------------------------
+          i_vfr_active_row <= i_vch_prm.fr_size.activ.row(i_vfr_active_row'range);
+          i_vfr_skip_row <= i_vch_prm.fr_size.skip.row(i_vfr_skip_row'range);
+
+          --Инициализируем счетчик строк
+          if i_vfr_new_cur = '1' then
+
+              if i_vch_prm.fr_mirror.row = '0' then
+                i_vfr_row_cnt <= (others=>'0');
+              else
+                i_vfr_row_cnt <= i_vch_prm.fr_size.activ.row(i_vfr_row_cnt'range) - 1;
+              end if;
+
+          else
+
+            i_vfr_row_cnt <= i_vfr_row_cnt_sv_cur;
+
+          end if;
 
         fsm_state_cs <= S_MEM_SET_ADR;
 
@@ -365,15 +391,13 @@ begin
           if (i_vfr_mirror.row = '0' and i_vfr_row_cnt = (i_vfr_active_row - 1)) or
              (i_vfr_mirror.row = '1' and i_vfr_row_cnt = (i_vfr_row_cnt'range => '0')) then
 
-              i_vfr_done <= '1';
-
               for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
                 if i_vch_num = ch then
                   i_vfr_new(ch) <= '1';
                 end if;
               end loop;
 
-              fsm_state_cs <= S_IDLE;
+              fsm_state_cs <= S_WAIT_HOST_ACK;
 
           else
 
@@ -406,8 +430,19 @@ begin
           end if;
         end if;
 
+      ------------------------------------------------
+      --Ждем ответ от ХОСТА - vframe принял
+      ------------------------------------------------
+      when S_WAIT_HOST_ACK =>
+
+        if p_in_hrd_done = '1' then
+          i_vfr_done <= '1';
+          fsm_state_cs <= S_IDLE;
+        end if;
+
     end case;
   end if;
+end if;
 end process;
 
 
@@ -416,6 +451,7 @@ end process;
 --------------------------------------------------------
 m_mem_wr : mem_wr
 generic map(
+G_USR_OPT        => G_USR_OPT,
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
 G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
 G_MEM_AWIDTH     => G_MEM_AWIDTH,

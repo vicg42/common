@@ -12,12 +12,11 @@
 --
 -------------------------------------------------------------------------
 library ieee;
-use ieee.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library work;
---use work.prj_cfg.all;
 use work.prj_def.all;
 
 package dsn_video_ctrl_pkg is
@@ -33,8 +32,8 @@ pix : std_logic_vector(15 downto 0);
 row : std_logic_vector(15 downto 0);
 end record;
 
---skip -- начало зоны
---activ - размер зоны
+--skip -- начало активной зоны кадра
+--activ - размер активной зоны кадра
 type TFrXYParam is record
 skip  : TFrXY;
 activ : TFrXY;
@@ -61,7 +60,7 @@ end record;
 --Параметры модуля записи
 type TWriterVCHParam is record
 mem_adr        : std_logic_vector(31 downto 0);
---fr_size        : TFrXYParam;
+fr_size        : TFrXYParam;
 end record;
 Type TWriterVCHParams is array (0 to C_VCTRL_VCH_COUNT - 1) of TWriterVCHParam;
 
@@ -79,7 +78,6 @@ Type TVfrBufs is array (0 to C_VCTRL_VCH_COUNT - 1)
   of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
 
 Type TVMrks is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(31 downto 0);
-
 
 end dsn_video_ctrl_pkg;
 
