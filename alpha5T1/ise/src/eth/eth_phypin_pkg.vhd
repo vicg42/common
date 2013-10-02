@@ -20,7 +20,7 @@ use work.prj_cfg.all;
 
 package eth_phypin_pkg is
 
-constant C_GTCH_COUNT_MAX    : integer:=C_PCFG_ETH_GTCH_COUNT_MAX;
+constant C_GTCH_COUNT_MAX    : integer:=2;
 
 ----------------------------
 --FIBER:
@@ -30,12 +30,14 @@ txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 tx2p : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 tx2n : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+sfp_txdis : std_logic;
 end record;
 type TEthPhyFiberPinIN is record
 rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rx2p  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rx2n  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+sfp_sd : std_logic;
 end record;
 
 ----------------------------
