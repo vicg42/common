@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.4
-# Date: Sun Aug 12 14:08:56 2012
+# Xilinx Core Generator version 14.5
+# Date: Tue Oct 01 05:23:47 2013
 #
 ##############################################################
 #
@@ -12,7 +12,7 @@
 #
 ##############################################################
 #
-#  Generated from component: xilinx.com:ip:v6_emac:1.5
+#  Generated from component: xilinx.com:ip:v6_emac:1.6
 #
 ##############################################################
 #
@@ -36,7 +36,7 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT Virtex-6_Embedded_Tri-Mode_Ethernet_MAC_Wrapper xilinx.com:ip:v6_emac:1.5
+SELECT Virtex-6_Embedded_Tri-Mode_Ethernet_MAC_Wrapper xilinx.com:ip:v6_emac:1.6
 # END Select
 # BEGIN Parameters
 CSET address_filter_enable=false
@@ -86,7 +86,7 @@ CSET unicast_pause_mac_address_5=EE
 CSET unicast_pause_mac_address_6=FF
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2012-01-07T13:55:09Z
+MISC pkg_timestamp=2013-03-27T03:18:11Z
 # END Extra information
 GENERATE
-# CRC: 1ef18340
+# CRC: 6b9ae361

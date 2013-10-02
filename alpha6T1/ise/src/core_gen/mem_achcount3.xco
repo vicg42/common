@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.3
-# Date: Sun Nov 27 07:25:07 2011
+# Xilinx Core Generator version 14.5
+# Date: Tue Oct 01 05:31:02 2013
 #
 ##############################################################
 #
@@ -12,7 +12,7 @@
 #
 ##############################################################
 #
-#  Generated from component: xilinx.com:ip:axi_interconnect:1.04.a
+#  Generated from component: xilinx.com:ip:axi_interconnect:1.06.a
 #
 ##############################################################
 #
@@ -36,15 +36,15 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT AXI_Interconnect xilinx.com:ip:axi_interconnect:1.04.a
+SELECT AXI_Interconnect xilinx.com:ip:axi_interconnect:1.06.a
 # END Select
 # BEGIN Parameters
 CSET aclk_period=250
 CSET axi_addr_width=32
 CSET component_name=mem_achcount3
-CSET interconnect_data_width=32
+CSET interconnect_data_width=64
 CSET m00_axi_aclk_ratio=1:1
-CSET m00_axi_data_width=32
+CSET m00_axi_data_width=64
 CSET m00_axi_is_aclk_async=false
 CSET m00_axi_read_fifo_delay=false
 CSET m00_axi_read_fifo_depth=512_(BRAM)
@@ -55,8 +55,8 @@ CSET m00_axi_write_fifo_depth=512_(BRAM)
 CSET m00_axi_write_issuing=32
 CSET num_slave_ports=3
 CSET s00_axi_aclk_ratio=1:1
-CSET s00_axi_arb_priority=1
-CSET s00_axi_data_width=32
+CSET s00_axi_arb_priority=0_(Round-Robin)
+CSET s00_axi_data_width=64
 CSET s00_axi_is_aclk_async=false
 CSET s00_axi_read_acceptance=32
 CSET s00_axi_read_fifo_delay=false
@@ -67,7 +67,7 @@ CSET s00_axi_write_acceptance=32
 CSET s00_axi_write_fifo_delay=false
 CSET s00_axi_write_fifo_depth=512_(BRAM)
 CSET s01_axi_aclk_ratio=1:1
-CSET s01_axi_arb_priority=2
+CSET s01_axi_arb_priority=0_(Round-Robin)
 CSET s01_axi_data_width=32
 CSET s01_axi_is_aclk_async=false
 CSET s01_axi_read_acceptance=32
@@ -79,8 +79,8 @@ CSET s01_axi_write_acceptance=32
 CSET s01_axi_write_fifo_delay=false
 CSET s01_axi_write_fifo_depth=512_(BRAM)
 CSET s02_axi_aclk_ratio=1:1
-CSET s02_axi_arb_priority=3
-CSET s02_axi_data_width=32
+CSET s02_axi_arb_priority=0_(Round-Robin)
+CSET s02_axi_data_width=64
 CSET s02_axi_is_aclk_async=false
 CSET s02_axi_read_acceptance=32
 CSET s02_axi_read_fifo_delay=false
@@ -249,7 +249,7 @@ CSET s15_axi_write_fifo_depth=0_(none)
 CSET thread_id_width=4
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2011-09-10T01:01:17.000Z
+MISC pkg_timestamp=2013-03-15T16:49:59Z
 # END Extra information
 GENERATE
-# CRC: fa1f8b0c
+# CRC: 4d180c51

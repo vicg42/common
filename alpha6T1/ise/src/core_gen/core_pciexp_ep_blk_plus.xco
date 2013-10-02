@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 13.3
-# Date: Wed Nov 23 08:39:25 2011
+# Xilinx Core Generator version 14.5
+# Date: Tue Oct 01 05:53:43 2013
 #
 ##############################################################
 #
@@ -146,7 +146,7 @@ CSET hw_auton_spd_disable=false
 CSET intx_generation=true
 CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
-CSET link_speed=2.5_GT/s
+CSET link_speed=5.0_GT/s
 CSET max_payload_size=512_bytes
 CSET maximum_link_width=X4
 CSET msi_64b=true
@@ -191,15 +191,18 @@ CSET sub_class_interface_menu=Generic_XT_compatible_serial_controller
 CSET subsystem_id=8005
 CSET subsystem_vendor_id=0777
 CSET trans_buf_pipeline=None
-CSET trgt_link_speed=4'h1
+CSET trgt_link_speed=4'h2
 CSET trim_tlp_digest=false
 CSET upconfigure_capable=true
-CSET user_clk_freq=125_default
+CSET user_clk_freq=250_default
 CSET vc_cap_enabled=false
 CSET vc_cap_reject_snoop=false
 CSET vendor_id=0777
 CSET vsec_enabled=false
 CSET xlnx_ref_board=None
 # END Parameters
+# BEGIN Extra information
+MISC pkg_timestamp=2013-03-27T03:45:13Z
+# END Extra information
 GENERATE
-# CRC: 66de2433
+# CRC: ffee55d4
