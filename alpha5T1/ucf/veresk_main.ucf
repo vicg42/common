@@ -36,6 +36,8 @@ NET "pin_out_TP<0>"   LOC = "AJ11";
 NET "pin_out_TP<1>"   LOC = "AJ10";
 NET "pin_out_TP<2>"   LOC = "AJ9";
 
+NET "pin_out_refclk_oe<0>"  LOC="AH9";
+
 #######################################################################
 ##
 #######################################################################
@@ -53,7 +55,7 @@ NET "pin_out_led<7>"        LOC="J10";
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
-NET "pin_out_ethphy_rst"    LOC = "AB5"; #XRM Interface - part 2
+NET "pin_inout_ethphy_mdio"    LOC = "AB5"; #XRM Interface - part 2
 NET "pin_out_ethphy_mdc"    LOC = "AA5"; #XRM Interface - part 2
 
 NET "pin_in_refclk_fiber_clk_p<1>" LOC = "E4";##"GTP_DUAL_X0Y6";
@@ -64,8 +66,8 @@ INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/m_gt_refclkout/m_gt"  LOC = "
 #--------------------------------------------------------------------------
 #Назначение пинов
 #--------------------------------------------------------------------------
-NET "pin_out_sfp_tx_dis" LOC = "AB6";##//SFP - TX DISABLE
-NET "pin_in_sfp_sd"      LOC = "AB7";##//SFP - SD signal detect
+NET "pin_out_ethphy_fiber_sfp_txdis" LOC = "AB6";##//SFP - TX DISABLE
+NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "AB7";##//SFP - SD signal detect
 
 NET "pin_in_refclk_fiber_clk_p<0>" LOC = "D8";##"GTP_DUAL_X0Y7";
 NET "pin_in_refclk_fiber_clk_n<0>" LOC = "C8";
