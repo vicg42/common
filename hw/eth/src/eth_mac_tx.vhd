@@ -119,18 +119,20 @@ p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst, p_in_clk)
+ltstout:process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     tst_txbuf_empty <= '0'; tst_ll_dst_rdy_n <= '0';
     tst_fms_cs_dly <= (others=>'0');
     p_out_tst(31 downto 1) <= (others=>'0');
-  elsif rising_edge(p_in_clk) then
+  else
 
     tst_txbuf_empty <= p_in_txbuf_empty; tst_ll_dst_rdy_n <= p_in_txll_dst_rdy_n;
     tst_fms_cs_dly <= tst_fms_cs;
     p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or OR_reduce(i_ll_rem) or tst_ll_dst_rdy_n;
   end if;
+end if;
 end process ltstout;
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_tx_cs = S_TX_DST   else
@@ -163,8 +165,9 @@ end generate;--gen_ll_dwith
 ---------------------------------------------
 --Автомат загрузки данных в ядро ETH
 ---------------------------------------------
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     fsm_eth_tx_cs <= S_IDLE;
 
@@ -185,7 +188,7 @@ begin
 
     i_tx_maclen_byte <= (others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     if p_in_txll_dst_rdy_n = '0' then
 
@@ -353,6 +356,7 @@ begin
 
     end if;--if p_in_txll_dst_rdy_n = '0' then
   end if;
+end if;
 end process;
 
 p_out_txbuf_rd <= not p_in_txbuf_empty and (i_txbuf_rden and (AND_reduce(i_bcnt) or i_ll_dlast))

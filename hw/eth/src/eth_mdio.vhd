@@ -109,20 +109,21 @@ signal tst_txd_en      : std_logic;
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst,p_in_clk)
+ltstout:process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst='1' then
     tst_fms_cs_dly<=(others=>'0');
     p_out_tst<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
+  else
 
     tst_fms_cs_dly<=tst_fms_cs;
     p_out_tst(0)<=i_rxd_en;
@@ -130,6 +131,7 @@ begin
     p_out_tst(2)<=tst_txd_en;
 
   end if;
+end if;
 end process ltstout;
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ethmdio_cs=S_LD_PREAMBULE  else
@@ -143,11 +145,12 @@ tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_ethmdio_cs
 end generate gen_dbg_on;
 
 
---//-------------------------------------------
---//Автомат управления
---//-------------------------------------------
-process(p_in_rst,p_in_clk)
+---------------------------------------------
+--Автомат управления
+---------------------------------------------
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst='1' then
     fsm_ethmdio_cs<=S_IDLE;
 
@@ -162,7 +165,7 @@ begin
     i_txd_ld<='0';
     i_txd<=(others=>'0');
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  else
 
       case fsm_ethmdio_cs is
 
@@ -201,8 +204,8 @@ begin
             if i_bitcnt=CONV_STD_LOGIC_VECTOR(CI_PREAMBULE-1, i_bitcnt'length) then
               i_txd_ld<='1';
               i_txd(15 downto 14)<="01";          --Start
-              i_txd(13)          <=not i_mdio_dir;--opcode(1);--//"10" -Read
-              i_txd(12)          <=    i_mdio_dir;--opcode(0);--//"01" -Write
+              i_txd(13)          <=not i_mdio_dir;--opcode(1);--"10" -Read
+              i_txd(12)          <=    i_mdio_dir;--opcode(0);--"01" -Write
               i_txd(11 downto 7) <=i_mdio_aphy;
               i_txd(6 downto 2)  <=i_mdio_areg;
               i_txd(1 downto 0)  <="10";          --TA
@@ -271,15 +274,17 @@ begin
       end case;
 
   end if;
+end if;
 end process;
 
---//Делитель для генерации MDC
-process(p_in_rst,p_in_clk)
+--Делитель для генерации MDC
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst='1' then
     i_tmr_cnt<=0;
     sr_en<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
+  else
     if i_tmr_cnt=G_DIV-1 then
       i_tmr_cnt<=0;
       sr_en<='1';
@@ -292,14 +297,16 @@ begin
       i_mdc<=not i_mdc;
     end if;
   end if;
+end if;
 end process;
 
---//BIT counter            (fsm_ethmdio_cs=S_TX_LD_DONE and i_bitcnt=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length)) or
-process(p_in_rst,p_in_clk)
+--BIT counter            (fsm_ethmdio_cs=S_TX_LD_DONE and i_bitcnt=CONV_STD_LOGIC_VECTOR(0, i_bitcnt'length)) or
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst='1' then
     i_bitcnt<=(others=>'0');
-  elsif p_in_clk'event and p_in_clk='1' then
+  else
     if i_fsm_en='1' then
       if (fsm_ethmdio_cs=S_TX_PREAMBULE and i_bitcnt=CONV_STD_LOGIC_VECTOR(CI_PREAMBULE-1, i_bitcnt'length)) or
          ((fsm_ethmdio_cs=S_TX_CTRL or fsm_ethmdio_cs=S_DATA or fsm_ethmdio_cs=S_EXIT) and i_bitcnt=CONV_STD_LOGIC_VECTOR(15, i_bitcnt'length)) then
@@ -311,14 +318,15 @@ begin
       end if;
     end if;
   end if;
+end if;
 end process;
 
---//Отправка данных
+--Отправка данных
 i_fsm_en <= sr_en and i_mdc;
 
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
+  if rising_edge(p_in_clk) then
     if i_fsm_en='1' then
       if i_txd_ld='1' then
         sr_txd<=i_txd;
@@ -329,12 +337,12 @@ begin
   end if;
 end process;
 
---//Прием данных
+--Прием данных
 sr_rxd_en <= i_rxd_en and sr_en and not i_mdc;
 
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
+  if rising_edge(p_in_clk) then
     if sr_rxd_en='1' then
       sr_rxd<=sr_rxd(sr_rxd'length-2 downto 0)&i_mdio_in;
     end if;
@@ -343,7 +351,7 @@ end process;
 
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
+  if rising_edge(p_in_clk) then
     if fsm_ethmdio_cs=S_EXIT and i_fsm_en='1' and i_mdio_dir='0' then
       i_mdio_rxd<=sr_rxd;
     end if;
@@ -354,7 +362,7 @@ p_out_cfg_rxd<=i_mdio_rxd;
 p_out_cfg_done<=i_mdio_done;
 
 
---//Managment Interface
+--Managment Interface
 --p_inout_mdio<=sr_txd(15) when i_txd_en='1' else 'Z';
 --p_out_mdc<=i_mdc;
 --i_mdio_in<=p_inout_mdio;

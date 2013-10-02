@@ -17,9 +17,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.eth_pkg.all;
@@ -39,7 +36,7 @@ p_in_cfg              : in    TEthCfg;
 --------------------------------------
 --Связь с пользовательским RXBUF
 --------------------------------------
-p_out_rxbuf_din       : out   std_logic_vector(G_ETH.usrbuf_dwidth-1 downto 0);
+p_out_rxbuf_din       : out   std_logic_vector(G_ETH.usrbuf_dwidth - 1 downto 0);
 p_out_rxbuf_wr        : out   std_logic;
 p_in_rxbuf_full       : in    std_logic;
 p_out_rxd_sof         : out   std_logic;
@@ -48,7 +45,7 @@ p_out_rxd_eof         : out   std_logic;
 --------------------------------------
 --Связь с Local link RxFIFO
 --------------------------------------
-p_in_rxll_data        : in    std_logic_vector(G_ETH.phy_dwidth-1 downto 0);
+p_in_rxll_data        : in    std_logic_vector(G_ETH.phy_dwidth - 1 downto 0);
 p_in_rxll_sof_n       : in    std_logic;
 p_in_rxll_eof_n       : in    std_logic;
 p_in_rxll_src_rdy_n   : in    std_logic;
@@ -93,7 +90,7 @@ signal i_bcnt                 : std_logic_vector(log2(p_out_rxbuf_din'length / p
 signal i_dcnt                 : std_logic_vector(15 downto 0);
 
 signal i_rx_mac_dst           : TEthMacAdr;
-signal i_rx_mac_valid         : std_logic_vector(i_rx_mac_dst'length-1 downto 0);
+signal i_rx_mac_valid         : std_logic_vector(i_rx_mac_dst'length - 1 downto 0);
 
 signal i_rx_mac_lentype       : std_logic_vector(15 downto 0);
 signal i_rx_lentype           : std_logic_vector(15 downto 0);
@@ -126,8 +123,9 @@ p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst, p_in_clk)
+ltstout:process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     tst_rxll_sof_n <= '0';
     tst_rxll_eof_n <= '0';
@@ -135,7 +133,7 @@ begin
     tst_rxbuf_full <= '0';
     tst_fms_cs_dly <= (others=>'0');
     p_out_tst(31 downto 1) <= (others=>'0');
-  elsif rising_edge(p_in_clk) then
+  else
 
     tst_rxll_sof_n <= p_in_rxll_sof_n;
     tst_rxll_eof_n <= p_in_rxll_eof_n;
@@ -146,6 +144,7 @@ begin
     p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_rxll_src_rdy_n
                   or tst_rxll_eof_n or tst_rxll_sof_n or tst_rxbuf_full or i_ll_dst_rdy;
   end if;
+end if;
 end process ltstout;
 
 tst_fms_cs<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_DST      else
@@ -189,8 +188,9 @@ end generate;--gen_ll_dwith
 ---------------------------------------------
 --Автомат приема данных из ядра ETH
 ---------------------------------------------
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     fsm_eth_rx_cs <= S_IDLE;
@@ -211,7 +211,7 @@ begin
     i_usr_eof <= '0';
     i_usr_wr <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
       case fsm_eth_rx_cs is
 
@@ -375,6 +375,7 @@ begin
       end case;
 
   end if;
+end if;
 end process;
 
 

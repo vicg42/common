@@ -99,11 +99,11 @@ signal i_ll_rem               : std_logic_vector(p_out_txll_rem'range);
 signal i_ll_dlast             : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
-signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
-signal tst_txbuf_empty        : std_logic;
-signal tst_ll_dst_rdy_n       : std_logic;
-signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range);
-signal tst_txbuf_rd           : std_logic;
+signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
+signal tst_txbuf_empty        : std_logic := '0';
+signal tst_ll_dst_rdy_n       : std_logic := '0';
+signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
+signal tst_txbuf_rd           : std_logic := '0';
 
 
 --MAIN
@@ -117,16 +117,8 @@ p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_clk) --p_in_rst,
+ltstout:process(p_in_clk)
 begin
---  if p_in_rst = '1' then
---    tst_txbuf_empty<= '0'; tst_ll_dst_rdy_n <= '0';
---    tst_fms_cs_dly <= (others=>'0');
---    p_out_tst(31 downto 1) <= (others=>'0');
---
---    tst_txbuf_d <= (others=>'0');
---    tst_txbuf_rd <= '0';
-
   if rising_edge(p_in_clk) then
 
     tst_txbuf_d <= p_in_txbuf_dout;
@@ -161,8 +153,9 @@ i_remain <= i_mac_pkt_len_byte - i_mac_dlen_byte;
 ---------------------------------------------
 --Автомат загрузки данных в ядро ETH
 ---------------------------------------------
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     fsm_eth_tx_cs <= S_IDLE;
 
@@ -177,7 +170,7 @@ begin
     i_mac_dlen_byte <= (others=>'0');
     i_dcnt <= (others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+  else
 
 --    if p_in_txll_dst_rdy_n = '0' then
 
@@ -444,6 +437,7 @@ begin
 
 --    end if;--if p_in_txll_dst_rdy_n = '0' then
   end if;
+end if;
 end process;
 
 p_out_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n;

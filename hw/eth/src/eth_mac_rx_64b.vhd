@@ -21,9 +21,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.eth_pkg.all;
@@ -103,7 +100,7 @@ signal i_remain               : std_logic_vector(15 downto 0);
 signal i_dcnt                 : std_logic_vector(15 downto 0);
 
 signal i_rx_mac_dst           : TEthMacAdr;
-signal i_rx_mac_valid         : std_logic_vector(p_in_cfg.mac.src'length-1 downto 0);
+signal i_rx_mac_valid         : std_logic_vector(p_in_cfg.mac.src'length - 1 downto 0);
 
 signal i_usr_wr               : std_logic;
 signal i_usr_rxd              : std_logic_vector(p_out_rxbuf_din'range);
@@ -116,12 +113,12 @@ signal i_ll_dst_rdy           : std_logic;
 signal sr_rxll_data           : std_logic_vector(31 downto 0);
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
-signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range);
-signal tst_rxll_sof_n         : std_logic;
-signal tst_rxll_eof_n         : std_logic;
-signal tst_rxll_src_rdy_n     : std_logic;
-signal tst_rxbuf_full         : std_logic;
-signal tst_rxll_rem           : std_logic_vector(p_in_rxll_rem'range);
+signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
+signal tst_rxll_sof_n         : std_logic := '0';
+signal tst_rxll_eof_n         : std_logic := '0';
+signal tst_rxll_src_rdy_n     : std_logic := '0';
+signal tst_rxbuf_full         : std_logic := '0';
+signal tst_rxll_rem           : std_logic_vector(p_in_rxll_rem'range) := (others => '0');
 
 
 --MAIN
@@ -135,18 +132,9 @@ p_out_tst(31 downto 0) <= (others=>'0');
 end generate gen_dbg_off;
 
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
-ltstout:process(p_in_rst,p_in_clk)
+ltstout:process(p_in_clk)
 begin
-  if p_in_rst='1' then
-    tst_rxll_rem <= (others=>'0');
-    tst_rxll_sof_n <= '0';
-    tst_rxll_eof_n <= '0';
-    tst_rxll_src_rdy_n <= '0';
-    tst_rxbuf_full <= '0';
-    tst_fms_cs_dly <= (others=>'0');
-    p_out_tst(31 downto 1) <= (others=>'0');
-  elsif rising_edge(p_in_clk) then
-
+  if rising_edge(p_in_clk) then
     tst_rxll_rem<=p_in_rxll_rem;
     tst_rxll_sof_n<=p_in_rxll_sof_n;
     tst_rxll_eof_n<=p_in_rxll_eof_n;
@@ -184,9 +172,10 @@ i_remain <= i_mac_pkt_byte - i_mac_dlen_byte;
 ---------------------------------------------
 --Автомат приема данных из ядра ETH
 ---------------------------------------------
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 variable mac_dlen_byte : std_logic_vector(15 downto 0);
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     fsm_eth_rx_cs <= S_IDLE;
@@ -210,7 +199,7 @@ begin
 
     sr_rxll_data <= (others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     if p_in_rxbuf_full = '0' then
 
@@ -481,6 +470,7 @@ begin
 
     end if;--if p_in_rxbuf_full = '0' then
   end if;
+end if;
 end process;
 
 

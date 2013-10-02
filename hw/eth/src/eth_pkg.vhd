@@ -100,17 +100,17 @@ rdy : std_logic; --Готов к работе
 link: std_logic; --Есть соедитение с другой стороной
 clk : std_logic;
 rst : std_logic;
---mdc : std_logic;
---mdio: std_logic;
---mdio_t: std_logic;
+mdc : std_logic;
+mdio: std_logic;
+mdio_t: std_logic;
 end record;
 
 type TEthPhyIN is record
 pin : TEthPhyPinIN;
 opt : std_logic_vector(127 downto 0);
 clk : std_logic;
---mdio :std_logic;
-----rst : std_logic;
+mdio :std_logic;
+--rst : std_logic;
 end record;
 
 
@@ -118,24 +118,24 @@ end record;
 --EthPHY<->EthApp
 -------------------------------------
 type TEthPhy2AppOUT is record
-rxd         : std_logic_vector(127 downto 0);--RX_LL_DATA        : out std_logic_vector(7 downto 0);
-rxsof_n     : std_logic;                    --RX_LL_SOF_N       : out std_logic;
-rxeof_n     : std_logic;                    --RX_LL_EOF_N       : out std_logic;
-rxsrc_rdy_n : std_logic;                    --RX_LL_SRC_RDY_N   : out std_logic;
-rxrem       : std_logic_vector(15 downto 0); --RX_LL_REM         : out std_logic;
-rxbuf_status: std_logic_vector(3 downto 0); --RX_LL_FIFO_STATUS : out std_logic_vector(3 downto 0);
+rxd         : std_logic_vector(C_PCFG_ETH_PHY_DWIDTH - 1 downto 0);
+rxsof_n     : std_logic;
+rxeof_n     : std_logic;
+rxsrc_rdy_n : std_logic;
+rxrem       : std_logic_vector((C_PCFG_ETH_PHY_DWIDTH / 8) - 1 downto 0);
+rxbuf_status: std_logic_vector(3 downto 0);
 
-txdst_rdy_n : std_logic;                    --TX_LL_DST_RDY_N   : out std_logic;
+txdst_rdy_n : std_logic;
 end record;
 
 type TEthPhy2AppIN is record
-rxdst_rdy_n : std_logic;                    --RX_LL_DST_RDY_N : in  std_logic;
+rxdst_rdy_n : std_logic;
 
-txd         : std_logic_vector(127 downto 0);--TX_LL_DATA      : in  std_logic_vector(7 downto 0);
-txsof_n     : std_logic;                    --TX_LL_SOF_N     : in  std_logic;
-txeof_n     : std_logic;                    --TX_LL_EOF_N     : in  std_logic;
-txsrc_rdy_n : std_logic;                    --TX_LL_SRC_RDY_N : in  std_logic;
-txrem       : std_logic_vector(15 downto 0); --TX_LL_REM       : in  std_logic;
+txd         : std_logic_vector(C_PCFG_ETH_PHY_DWIDTH - 1 downto 0);
+txsof_n     : std_logic;
+txeof_n     : std_logic;
+txsrc_rdy_n : std_logic;
+txrem       : std_logic_vector((C_PCFG_ETH_PHY_DWIDTH / 8) - 1 downto 0);
 end record;
 
 type TEthPhy2AppOUTs is array (0 to C_PCFG_ETH_COUNT - 1) of TEthPhy2AppOUT;
@@ -145,26 +145,26 @@ type TEthPhy2AppINs is array (0 to C_PCFG_ETH_COUNT - 1) of TEthPhy2AppIN;
 -------------------------------------
 --EthApp<->USR
 -------------------------------------
-type TEthUsrBuf is record
-sof  : std_logic;
-eof  : std_logic;
-din  : std_logic_vector(127 downto 0);
-dout : std_logic_vector(127 downto 0);
-wr   : std_logic;
-rd   : std_logic;
-empty: std_logic;
-full : std_logic;
-wrclk: std_logic;
-rdclk: std_logic;
+type TEthOUT is record
+rxsof    : std_logic;
+rxeof    : std_logic;
+rxbuf_di : std_logic_vector(C_PCFG_ETH_USR_DWIDTH - 1 downto 0);
+rxbuf_wr : std_logic;
+
+txbuf_rd : std_logic;
 end record;
 
-type TEthUsrBufs is record
-rxbuf : TEthUsrBuf;
-txbuf : TEthUsrBuf;
+type TEthIN is record
+txbuf_do   : std_logic_vector(C_PCFG_ETH_USR_DWIDTH - 1 downto 0);
+txbuf_full : std_logic;
+txbuf_empty: std_logic;
+
+rxbuf_full : std_logic;
+rxbuf_empty: std_logic;
 end record;
 
-type TEthOUTs is array (0 to C_PCFG_ETH_COUNT - 1) of TEthUsrBufs;
-type TEthINs is array (0 to C_PCFG_ETH_COUNT - 1) of TEthUsrBufs;
+type TEthOUTs is array (0 to C_PCFG_ETH_COUNT - 1) of TEthOUT;
+type TEthINs is array (0 to C_PCFG_ETH_COUNT - 1) of TEthIN;
 
 
 -------------------------------------

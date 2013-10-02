@@ -19,7 +19,6 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.vicg_common_pkg.all;
 use work.eth_pkg.all;
---use work.eth_unit_pkg.all;
 
 entity eth_app is
 generic(
@@ -110,9 +109,9 @@ p_out_pause_val       : out   std_logic_vector(15 downto 0);
 p_in_tst              : in    std_logic_vector(31 downto 0);
 p_out_tst             : out   std_logic_vector(31 downto 0);
 
---//------------------------------------
---//SYSTEM
---//------------------------------------
+--------------------------------------
+--SYSTEM
+--------------------------------------
 p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
 );
@@ -169,9 +168,9 @@ signal i_rst   : std_logic_vector(p_in_ethcfg'length-1 downto 0);
 begin
 
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 gen_dbg_off : if strcmp(G_DBG,"OFF") generate
 p_out_tst(31 downto 0)<=(others=>'0');
 end generate gen_dbg_off;
@@ -183,15 +182,12 @@ end generate gen_dbg_on;
 
 
 
---//----------------------------------
---//Модули приема/передачи данных
---//----------------------------------
+------------------------------------
+--Модули приема/передачи данных
+------------------------------------
 gen_ch : for i in 0 to G_ETH.ch_count-1 generate
 
 i_rst(i) <= p_in_rst or p_in_phy.rst;
-
-p_out_eth(i).rxbuf.wrclk <= p_in_phy.clk;
-p_out_eth(i).txbuf.rdclk <= p_in_phy.clk;
 
 m_mac_rx : eth_mac_rx
 generic map(
@@ -208,22 +204,22 @@ p_in_cfg              => p_in_ethcfg(i),
 --------------------------------------
 --Связь с пользовательским RXBUF
 --------------------------------------
-p_out_rxbuf_din       => p_out_eth(i).rxbuf.din(G_ETH.usrbuf_dwidth-1 downto 0),
-p_out_rxbuf_wr        => p_out_eth(i).rxbuf.wr,
-p_in_rxbuf_full       => p_in_eth (i).rxbuf.full,
-p_out_rxd_sof         => p_out_eth(i).rxbuf.sof,
-p_out_rxd_eof         => p_out_eth(i).rxbuf.eof,
+p_out_rxbuf_din       => p_out_eth(i).rxbuf_di,
+p_out_rxbuf_wr        => p_out_eth(i).rxbuf_wr,
+p_in_rxbuf_full       => p_in_eth (i).rxbuf_full,
+p_out_rxd_sof         => p_out_eth(i).rxsof,
+p_out_rxd_eof         => p_out_eth(i).rxeof,
 
 --------------------------------------
 --Связь с Local link RxFIFO
 --------------------------------------
-p_in_rxll_data        => p_in_phy2app(i).rxd(G_ETH.phy_dwidth-1 downto 0),
+p_in_rxll_data        => p_in_phy2app(i).rxd,
 p_in_rxll_sof_n       => p_in_phy2app(i).rxsof_n,
 p_in_rxll_eof_n       => p_in_phy2app(i).rxeof_n,
 p_in_rxll_src_rdy_n   => p_in_phy2app(i).rxsrc_rdy_n,
 p_out_rxll_dst_rdy_n  => p_out_phy2app (i).rxdst_rdy_n,
 p_in_rxll_fifo_status => p_in_phy2app(i).rxbuf_status,
-p_in_rxll_rem         => p_in_phy2app(i).rxrem(G_ETH.phy_dwidth/8-1 downto 0),
+p_in_rxll_rem         => p_in_phy2app(i).rxrem,
 
 --------------------------------------
 --Управление передачей PAUSE Control Frame
@@ -261,20 +257,20 @@ p_in_cfg             => p_in_ethcfg(i),
 --------------------------------------
 --Связь с пользовательским TXBUF
 --------------------------------------
-p_in_txbuf_dout      => p_in_eth (i).txbuf.dout(G_ETH.usrbuf_dwidth-1 downto 0),
-p_out_txbuf_rd       => p_out_eth(i).txbuf.rd,
-p_in_txbuf_empty     => p_in_eth (i).txbuf.empty,
+p_in_txbuf_dout      => p_in_eth (i).txbuf_do,
+p_out_txbuf_rd       => p_out_eth(i).txbuf_rd,
+p_in_txbuf_empty     => p_in_eth (i).txbuf_empty,
 --p_in_txd_rdy         => p_in_eth_txd_rdy(0),
 
 --------------------------------------
 --Связь с Local link TxFIFO
 --------------------------------------
-p_out_txll_data      => p_out_phy2app (i).txd(G_ETH.phy_dwidth-1 downto 0),
+p_out_txll_data      => p_out_phy2app (i).txd,
 p_out_txll_sof_n     => p_out_phy2app (i).txsof_n,
 p_out_txll_eof_n     => p_out_phy2app (i).txeof_n,
 p_out_txll_src_rdy_n => p_out_phy2app (i).txsrc_rdy_n,
 p_in_txll_dst_rdy_n  => p_in_phy2app(i).txdst_rdy_n,
-p_out_txll_rem       => p_out_phy2app(i).txrem(G_ETH.phy_dwidth/8-1 downto 0),
+p_out_txll_rem       => p_out_phy2app(i).txrem,
 
 --------------------------------------
 --Технологические сигналы
