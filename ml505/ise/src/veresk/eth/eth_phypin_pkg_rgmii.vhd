@@ -50,14 +50,14 @@ type TEthPhyGMIIPinOUT is record
 txd    : std_logic_vector(7 downto 0);
 tx_en  : std_logic;
 tx_er  : std_logic;
-txc    : std_logic;--//txclk
+txc    : std_logic;--txclk
 end record;
 
 type TEthPhyGMIIPinIN is record
 rxd    : std_logic_vector(7 downto 0);
 rx_dv  : std_logic;
 rx_er  : std_logic;
-rxc    : std_logic;--//rxclk
+rxc    : std_logic;--rxclk
 end record;
 
 type TEthPhyGMIIPinOUTs is array (0 to 0) of TEthPhyGMIIPinOUT;
@@ -69,13 +69,14 @@ type TEthPhyGMIIPinINs is array (0 to 0) of TEthPhyGMIIPinIN;
 type TEthPhyRGMIIPinOUT is record
 txd    : std_logic_vector(3 downto 0);
 tx_ctl : std_logic;
-txc    : std_logic;--//txclk
+txc    : std_logic;--txclk
+rst    : std_logic;
 end record;
 
 type TEthPhyRGMIIPinIN is record
 rxd    : std_logic_vector(3 downto 0);
 rx_ctl : std_logic;
-rxc    : std_logic;--//rxclk
+rxc    : std_logic;--rxclk
 end record;
 
 type TEthPhyRGMIIPinOUTs is array (0 to 0) of TEthPhyRGMIIPinOUT;
@@ -86,13 +87,13 @@ type TEthPhyRGMIIPinINs is array (0 to 0) of TEthPhyRGMIIPinIN;
 ----------------------------
 type TEthPhyPinOUT is record
 fiber : TEthPhyFiberPinOUT;
-gmii : TEthPhyGMIIPinOUTs;
+--gmii : TEthPhyGMIIPinOUTs;
 --rgmii : TEthPhyRGMIIPinOUTs;
 end record;
 
 type TEthPhyPinIN is record
 fiber : TEthPhyFiberPinIN;
-gmii : TEthPhyGMIIPinINs;
+--gmii : TEthPhyGMIIPinINs;
 --rgmii : TEthPhyRGMIIPinINs;
 end record;
 

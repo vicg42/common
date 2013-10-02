@@ -20,7 +20,7 @@ use work.prj_cfg.all;
 
 package eth_phypin_pkg is
 
-constant C_GTCH_COUNT_MAX    : integer:=C_PCFG_ETH_GTCH_COUNT_MAX;
+constant C_GTCH_COUNT_MAX    : integer:=2;
 
 ----------------------------
 --FIBER:
@@ -30,12 +30,14 @@ txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 tx2p : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 tx2n : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+sfp_txdis : std_logic;
 end record;
 type TEthPhyFiberPinIN is record
 rxp  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rxn  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rx2p  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 rx2n  : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+sfp_sd : std_logic;
 end record;
 
 ----------------------------
@@ -45,14 +47,14 @@ type TEthPhyGMIIPinOUT is record
 txd    : std_logic_vector(7 downto 0);
 tx_en  : std_logic;
 tx_er  : std_logic;
-txc    : std_logic;--//txclk
+txc    : std_logic;--txclk
 end record;
 
 type TEthPhyGMIIPinIN is record
 rxd    : std_logic_vector(7 downto 0);
 rx_dv  : std_logic;
 rx_er  : std_logic;
-rxc    : std_logic;--//rxclk
+rxc    : std_logic;--rxclk
 end record;
 
 type TEthPhyGMIIPinOUTs is array (0 to 0) of TEthPhyGMIIPinOUT;
@@ -64,13 +66,13 @@ type TEthPhyGMIIPinINs is array (0 to 0) of TEthPhyGMIIPinIN;
 type TEthPhyRGMIIPinOUT is record
 txd    : std_logic_vector(3 downto 0);
 tx_ctl : std_logic;
-txc    : std_logic;--//txclk
+txc    : std_logic;--txclk
 end record;
 
 type TEthPhyRGMIIPinIN is record
 rxd    : std_logic_vector(3 downto 0);
 rx_ctl : std_logic;
-rxc    : std_logic;--//rxclk
+rxc    : std_logic;--rxclk
 end record;
 
 type TEthPhyRGMIIPinOUTs is array (0 to 0) of TEthPhyRGMIIPinOUT;
@@ -82,6 +84,7 @@ type TEthPhyRGMIIPinINs is array (0 to 0) of TEthPhyRGMIIPinIN;
 type TEthPhySGMIIPinOUT is record
 txp : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
 txn : std_logic_vector(C_GTCH_COUNT_MAX-1 downto 0);
+rst : std_logic;
 end record;
 
 type TEthPhySGMIIPinIN is record
@@ -95,14 +98,14 @@ end record;
 type TEthPhyPinOUT is record
 fiber : TEthPhyFiberPinOUT;
 --gmii : TEthPhyGMIIPinOUTs;
-rgmii : TEthPhyRGMIIPinOUTs;
+--rgmii : TEthPhyRGMIIPinOUTs;
 --sgmii : TEthPhySGMIIPinOUT;
 end record;
 
 type TEthPhyPinIN is record
 fiber : TEthPhyFiberPinIN;
 --gmii : TEthPhyGMIIPinINs;
-rgmii : TEthPhyRGMIIPinINs;
+--rgmii : TEthPhyRGMIIPinINs;
 --sgmii : TEthPhySGMIIPinIN;
 end record;
 

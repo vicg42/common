@@ -25,5 +25,9 @@ fiber_clk_p  : std_logic_vector(1 downto 0);
 fiber_clk_n  : std_logic_vector(1 downto 0);
 end record;
 
+type TRefClkPinOUT is record
+oe : std_logic_vector(0 downto 0);
+end record;
+
 end clocks_pkg;
 

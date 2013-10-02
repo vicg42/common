@@ -32,6 +32,7 @@ p_out_rst  : out   std_logic;
 p_out_gclk : out   std_logic_vector(7 downto 0);
 
 p_in_clkopt: in    std_logic_vector(3 downto 0);
+p_out_clk  : out   TRefClkPinOUT;
 p_in_clk   : in    TRefClkPinIN
 );
 end;
@@ -49,6 +50,8 @@ signal i_clk_out     : std_logic_vector(7 downto 0);
 signal i_eth_clk     : std_logic;
 
 begin
+
+p_out_clk.oe <= (others=>'0');
 
 m_buf : IBUFDS port map(I  => p_in_clk.clk_p, IB => p_in_clk.clk_n, O => i_pll_clkin);--200MHz
 bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
