@@ -17,7 +17,7 @@ setAttribute -configdevice -attr flashDataWidth -value "16"
 setCurrentDesign -version 0
 addPromDevice -p 1 -size 32768 -name 32M
 setAttribute -design -attr RSPin -value "00"
-addDevice -p 1 -file "D:/Work/Linkos/veresk_m/htg_v6/firmware/veresk_main_0403_64b.bit"
+addDevice -p 1 -file "D:/Work/Linkos/veresk_m/htg_v6/firmware/veresk_main.bit"
 generate -format mcs -fillvalue FF -output D:\Work\Linkos\veresk_m\htg_v6\firmware\veresk_main.mcs
 setMode -bs
 setCable -port auto
