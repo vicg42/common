@@ -143,8 +143,8 @@ signal i_fsm_cs           : TFsm_state;
 signal i_fsm_return       : std_logic_vector(0 downto 0);
 
 --signal i_flash_wait       : std_logic;
-signal i_flash_we_n       : std_logic;
-signal i_flash_ce_n       : std_logic;
+signal i_flash_we_n       : std_logic:='1';
+signal i_flash_ce_n       : std_logic:='1';
 signal i_flash_oe_n       : std_logic;
 signal i_flash_do         : std_logic_vector(p_out_phy_d'range);
 signal i_flash_di         : std_logic_vector(p_in_phy_d'range);
@@ -195,8 +195,9 @@ begin
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-process(p_in_rst,p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     tst_txbuf_rd <= '0';
     tst_fms_out <= (others=>'0');
@@ -205,7 +206,7 @@ begin
     tst_timeout_cnt <= (others=>'0');
     tst_timeout <= '0';
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  else
     tst_fms_out <= tst_fms;
     tst_txbuf_empty <= p_in_txbuf_empty;
     tst_txbuf_rd <= i_txbuf_rd and p_in_clk_en;
@@ -232,6 +233,7 @@ begin
     end if;
 
   end if;
+end if;
 end process;
 
 tst_fms<=CONV_STD_LOGIC_VECTOR(16#01#, tst_fms'length) when i_fsm_cs = S_UNLOCK_SETUP         else
@@ -386,9 +388,10 @@ end generate;--gen_type2
 --###########################################
 --FSM
 --###########################################
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
-  if p_in_rst='1' then
+if rising_edge(p_in_clk) then
+  if p_in_rst = '1' then
 
     i_fsm_cs <= S_IDLE;
     i_fsm_return <= (others=>'0');
@@ -421,7 +424,7 @@ begin
     i_err <= (others=>'0');
     i_cmd_nxt <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
   if p_in_clk_en = '1' then
     case i_fsm_cs is
 
@@ -1045,6 +1048,7 @@ begin
     end case;
   end if;--if p_in_clk_en = '1' then
   end if;
+end if;
 end process;
 
 

@@ -148,8 +148,8 @@ signal i_core_rdy       : std_logic;
 signal i_core_irq       : std_logic;
 signal i_core_status    : std_logic_vector(7 downto 0);
 
-signal i_divcnt         : std_logic_vector(3 downto 0);
-signal i_clk_en         : std_logic;
+signal i_divcnt         : std_logic_vector(3 downto 0):=(others=>'0');
+signal i_clk_en         : std_logic:='0';
 signal i_tst_out        : std_logic_vector(31 downto 0);
 
 signal i_phy_oe_out     : std_logic;
@@ -158,15 +158,15 @@ signal i_phy_oe_out     : std_logic;
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 p_out_tst(31 downto 0) <= i_tst_out;
 
 
---//----------------------------------
---//
---//----------------------------------
+------------------------------------
+--
+------------------------------------
 p_out_hirq <= i_core_irq;
 p_out_herr <= OR_reduce(i_core_status);
 
@@ -218,9 +218,6 @@ rst    => p_in_rst
 ------------------------------------
 --
 ------------------------------------
---p_out_phy.oe_n <= i_phy_oe_n;
---p_inout_phy.d <= i_phy_do when i_phy_oe_n = '1' else (others => 'Z');
---i_phy_di <= p_inout_phy.d;
 i_phy_oe_out <= not i_phy_oe_n;
 
 p_out_phy.oe_n <= i_phy_oe_out;
@@ -269,13 +266,9 @@ p_in_rst          => p_in_rst
 );
 
 
-process(p_in_rst,p_in_clk)
+process(p_in_clk)
 begin
-  if p_in_rst = '1' then
-    i_divcnt <= (others=>'0');
-    i_clk_en <= '0';
-
-  elsif rising_edge(p_in_clk) then
+  if rising_edge(p_in_clk) then
     i_divcnt <= i_divcnt + 1;
 
     --p_in_clk=100MHz
