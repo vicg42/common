@@ -13,41 +13,44 @@
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use work.vicg_common_pkg.all;
 
 package prj_cfg is
 
---//HOST
-constant C_PCFG_HDEV_DWIDTH           : integer:=128;
-
---//Тип используемой платы
+--Тип используемой платы
 constant C_PCFG_BOARD                  : string:="HSCAM_PCIE";
 
---//Конфигурирование модулей:
---//cfg Memory Controller
-constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --//max 1
-constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=7; --//max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
+--Конфигурирование модулей:
+--cfg Memory Controller
+constant C_PCFG_MEMCTRL_BANK_COUNT     : integer:=1; --max 1
+constant C_PCFG_MEMCTRL_BANK_SIZE      : integer:=7; --max 7: 0-8MB, 1-16MB, 2-32MB, 3-64MB, 4-128MB, ...
+constant C_PCFG_MEMARB_CH_COUNT        : integer:=3; --HOST + VCTRL_WR + VCTRL_RD
 
---//cfg PCI-Express
+--cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=8;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
+constant C_PCGF_PCIE_DWIDTH            : integer:=128;
 
---//cfg VCTRL
---//Memory map for video: (max frame size: 2048x2048)
---//                                                 --//Пиксели видеокадра(VLINE_LSB-1...0)
-constant C_PCFG_VCTRL_MEM_VLINE_L_BIT  : integer:=11;--//Строки видеокадра (MSB...LSB)
-constant C_PCFG_VCTRL_MEM_VLINE_M_BIT  : integer:=21;
-constant C_PCFG_VCTRL_MEM_VFR_L_BIT    : integer:=22;--//Номер кадра (MSB...LSB) - Видеобуфера
-constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=24;
-constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=25;--//Номер видео канала (MSB...LSB)
-constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=26;
+--cfg VCTRL
+constant C_PCFG_VCTRL_USR_OPT          : std_logic_vector(7 downto 0):="0000"&"0000";
+constant C_PCFG_VCTRL_DBG              : string:="OFF";
+constant C_PCFG_VCTRL_VBUFI_OWIDTH     : integer:=C_PCGF_PCIE_DWIDTH;
+--Memory map for video: (max frame size: 8192x8192)
+--                                                   --Пиксели видеокадра(VLINE_LSB-1...0)
+constant C_PCFG_VCTRL_MEM_VLINE_L_BIT  : integer:=13;--Строки видеокадра (MSB...LSB)
+constant C_PCFG_VCTRL_MEM_VLINE_M_BIT  : integer:=25;
+constant C_PCFG_VCTRL_MEM_VFR_L_BIT    : integer:=26;--Номер кадра (MSB...LSB) - Видеобуфера
+constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=27;
+constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=28;--Номер видео канала (MSB...LSB)
+constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=30;
 
-constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --//max 4
-constant C_PCFG_VCTRL_DBGCS            : string:="ON";
+constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --max 6
 
---//cfg ETH
+--cfg ETH
 constant C_PCFG_ETH_USE                : string:="ON";
 
---//Bitmap порта p_in_cam_ctrl
+--#######
+--Bitmap порта p_in_cam_ctrl
 constant C_CAM_CTRL_MODE_FPS_L_BIT     : integer:=0; --Управление входным потоком видео данных
 constant C_CAM_CTRL_MODE_FPS_M_BIT     : integer:=1;
 constant C_CAM_CTRL_TST_PATTERN_BIT    : integer:=7; --Тестовый кадр
@@ -72,6 +75,6 @@ constant C_CAM_CTRL_VCH_OFF            : integer:=5;
 constant C_CAM_CTRL_VCH_ON             : integer:=6;
 constant C_CAM_CTRL_CFGFTDI            : integer:=7;
 
-constant C_PCFG_VBUF_IWIDTH : integer := 80;
+constant C_PCFG_CCD_DWIDTH             : integer:=80;
 
 end prj_cfg;

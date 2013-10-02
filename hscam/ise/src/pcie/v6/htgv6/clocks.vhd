@@ -30,6 +30,7 @@ p_out_rst  : out   std_logic;
 p_out_gclk : out   std_logic_vector(7 downto 0);
 
 p_in_clkopt: in    std_logic_vector(3 downto 0);
+p_out_clk  : out   TRefClkPinOUT;
 p_in_clk   : in    TRefClkPinIN
 );
 end;
@@ -46,6 +47,8 @@ signal i_clk_out     : std_logic_vector(7 downto 0);
 signal gclk          : std_logic_vector(7 downto 0);
 
 begin
+
+p_out_clk.oe <= (others=>'0');
 
 --m_buf : IBUFDS port map(I  => p_in_clk.clk_p, IB => p_in_clk.clk_n, O => i_pll_clkin);--200MHz
 --bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
@@ -130,13 +133,13 @@ g_clk_fb(0) <= i_clk_fb(0);
 p_out_rst <= not(AND_reduce(i_pll_locked));
 
 --p_out_gclk(0)<=p_in_clk.clk;
-bufg_clk0: BUFG port map(I => i_clk_out(1), O => gclk(1)); p_out_gclk(0) <= gclk(1);--200MHz
+bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
 bufg_clk1: BUFG port map(I => i_clk_out(2), O => p_out_gclk(1)); --400MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
                                                  p_out_gclk(4)<='0';
 bufg_clk5: BUFG port map(I => i_clk_out(7), O => p_out_gclk(5));--65,625MHz
-                             p_out_gclk(6) <= gclk(1);
+                             p_out_gclk(6) <= '0';
 p_out_gclk(7) <= '0';
 
 m_buf_pciexp : IBUFDS_GTXE1 port map (
