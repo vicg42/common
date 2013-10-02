@@ -12,9 +12,9 @@
 --
 -------------------------------------------------------------------------
 library ieee;
-use ieee.STD_LOGIC_1164.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library work;
 use work.vicg_common_pkg.all;
@@ -162,18 +162,18 @@ constant C_HREG_IRQ_STATUS_M_RBIT             : integer:=31;
 
 --Поле C_HREG_IRQ_NUM - Номера источников прерываний:
 constant C_HIRQ_PCIE_DMA                      : integer:=0;
-constant C_HIRQ_CFG_RX                        : integer:=1;
-constant C_HIRQ_ETH_RX                        : integer:=2;
-constant C_HIRQ_EDEV_RX                       : integer:=3;
-constant C_HIRQ_PULT_RX                       : integer:=4;
+constant C_HIRQ_CFG                           : integer:=1;--RxData
+constant C_HIRQ_ETH                           : integer:=2;--RxData
+constant C_HIRQ_EDEV                          : integer:=3;--RxData
+constant C_HIRQ_PULT                          : integer:=4;--RxData
 constant C_HIRQ_VCH0                          : integer:=5;
 constant C_HIRQ_VCH1                          : integer:=6;
 constant C_HIRQ_VCH2                          : integer:=7;
 constant C_HIRQ_VCH3                          : integer:=8;
 constant C_HIRQ_VCH4                          : integer:=9;
 constant C_HIRQ_VCH5                          : integer:=10;
-constant C_HIRQ_VIZIR_RX                      : integer:=11;
-constant C_HIRQ_BUP_RX                        : integer:=12;
+constant C_HIRQ_VIZIR                         : integer:=11;--RxData
+constant C_HIRQ_BUP                           : integer:=12;--RxData
 constant C_HIRQ_PROM                          : integer:=13;
 constant C_HIRQ_COUNT                         : integer:=C_HIRQ_PROM + 1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
@@ -216,7 +216,8 @@ constant C_HREG_FUNC_HDD_BIT                  : integer:=4;
 constant C_HREG_FUNC_VRESEK21_BIT             : integer:=5;
 constant C_HREG_FUNC_PROM_BIT                 : integer:=6;
 constant C_HREG_FUNC_PULT_BIT                 : integer:=7;
-constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_PULT_BIT;
+constant C_HREG_FUNC_HSCAM_BIT                : integer:=8;
+constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_HSCAM_BIT;
 
 
 --Register C_HREG_FUNCPRM / Bit Map:
@@ -236,12 +237,10 @@ constant C_HDEV_OPTIN_RXFIFO_EMPTY_BIT        : integer:=1;
 constant C_HDEV_OPTIN_MEMTRN_DONE_BIT         : integer:=2;
 constant C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT       : integer:=3;
 constant C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT       : integer:=34;
-constant C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT      : integer:=35;
-constant C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT      : integer:=42;
-constant C_HDEV_OPTIN_TIME_L_BIT              : integer:=43;
-constant C_HDEV_OPTIN_TIME_M_BIT              : integer:=74;
-constant C_HDEV_OPTIN_ETH_HEADER_L_BIT        : integer:=75;
-constant C_HDEV_OPTIN_ETH_HEADER_M_BIT        : integer:=106;
+constant C_HDEV_OPTIN_TIME_L_BIT              : integer:=35;
+constant C_HDEV_OPTIN_TIME_M_BIT              : integer:=66;
+constant C_HDEV_OPTIN_ETH_HEADER_L_BIT        : integer:=67;
+constant C_HDEV_OPTIN_ETH_HEADER_M_BIT        : integer:=98;
 constant C_HDEV_OPTIN_LAST_BIT                : integer:=C_HDEV_OPTIN_ETH_HEADER_M_BIT;
 
 
