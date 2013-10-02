@@ -70,6 +70,7 @@ set _projects [ list \
       [ list "../../../common/dsn_switch.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
       [ list "../src/core_gen/pult_buf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/pult_buf_rx.vhd" $_VHDMod ] \
       [ list "../../../common/veresk21/pult_core/mup_io.v" $_VMod ] \
       [ list "../../../common/veresk21/pult_core/pult_io.v" $_VMod ] \
       [ list "../../../common/veresk21/sync_u.v" $_VMod ] \
@@ -182,12 +183,12 @@ set _projects [ list \
       [ list "../src/mem_core/rtl/ui/ui_cmd.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ui/ui_top.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ip_top/mem_intfc.v" $_VMod ] \
-      [ list "../src/iodelay_ctrl.v" $_VMod ] \
-      [ list "../src/infrastructure.v" $_VMod ] \
+      [ list "../src/mem_core/rtl/ip_top/iodelay_ctrl.v" $_VMod ] \
+      [ list "../src/mem_core/rtl/ip_top/infrastructure.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ip_top/memc_ui_top.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ip_top/ddr2_ddr3_chipscope.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ip_top/clk_ibuf.v" $_VMod ] \
-      [ list "../src/mem_ctrl_core_axi.v" $_VMod ] \
+      [ list "../src/mem_core/rtl/ip_top/mem_ctrl_core_axi.v" $_VMod ] \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
@@ -195,8 +196,6 @@ set _projects [ list \
       [ list "../src/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../src/mem_arb.vhd" $_VHDMod ] \
       [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/mem_achcount7_synth.vhd" $_VHDMod ] \
       [ list "../src/eth/coregen_emac_core_d16.vhd" $_VHDMod ] \
       [ list "../src/eth/coregen_eth_phy_fiber_d16.vhd" $_VHDMod ] \
       [ list "../src/eth/v6_gtxwizard_gtx_2G.vhd" $_VHDMod ] \
