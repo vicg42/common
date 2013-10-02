@@ -27,8 +27,7 @@ set _projects [ list \
       [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/cfgdev_fifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
       [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
@@ -64,6 +63,7 @@ set _projects [ list \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_vbuf.vhd" $_VHDMod ] \
+      [ list "../../../common/cfgdev_buf.vhd" $_VHDMod ] \
       [ list "../../../common/veresk_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/video_pkt_filter.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
@@ -177,7 +177,6 @@ set _projects [ list \
       [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
       [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
@@ -193,7 +192,7 @@ set _projects [ list \
       [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_v6_main.vhd" $_VHDMod ] \
       [ list "../src/prom_phypin_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/prom_ld_main.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/prom_loader/prom_ld_main_null.vhd" $_VHDMod ] \
     ] \
   ] \
 ]
