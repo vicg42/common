@@ -56,6 +56,7 @@ p_in_hrxbuf_rd       : in   std_logic;
 p_out_hrxbuf_full    : out  std_logic;
 p_out_hrxbuf_empty   : out  std_logic;
 
+p_in_htxrdy          : in   std_logic;
 p_out_hirq           : out  std_logic;
 p_out_herr           : out  std_logic;
 
@@ -130,7 +131,6 @@ rst    : in  std_logic
 );
 end component;
 
-
 type TFsmEdev is (
 S_TX_IDLE     ,
 S_TX_D_WAIT   ,
@@ -150,6 +150,7 @@ signal i_host_rxd        : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_txbuf_do        : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_txbuf_rd        : std_logic;
 signal i_txbuf_empty     : std_logic;
+signal i_txbuf_rst       : std_logic_vector(1 downto 0);
 signal i_rxbuf_wr        : std_logic;
 signal i_rxbuf_di        : std_logic_vector(G_HOST_DWIDTH - 1 downto 0);
 signal i_rxbuf_empty     : std_logic;
@@ -167,6 +168,9 @@ signal i_rcv_irq         : std_logic;
 
 signal i_tmr_en          : std_logic;
 signal sr_tx_start       : std_logic_vector(0 to 2);
+
+signal i_tx_drdy         : std_logic;
+signal sr_tx_drdy        : std_logic;
 
 signal tst_out           : std_logic_vector(31 downto 0);
 signal tst_fsm_edev,tst_fsm_edev_dly: std_logic_vector(3 downto 0);
@@ -186,8 +190,9 @@ begin
 p_out_tst(0) <= OR_reduce(tst_fms_core_dly) or OR_reduce(tst_fsm_edev_dly) or
 tst_rxbufh_empty or tst_txbufh_empty or tst_rcv_irq;
 
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     tst_fsm_edev_dly <= (others=>'0');
     tst_fms_core_dly <= (others=>'0');
@@ -196,7 +201,7 @@ begin
     sr_rcv_irq <= (others=>'0');
     tst_rcv_irq <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
     tst_fsm_edev_dly <= tst_fsm_edev;
     tst_fms_core_dly <= tst_fms_core;
     tst_txbufh_empty <= i_txbuf_empty;
@@ -206,6 +211,7 @@ begin
     tst_rcv_irq <= i_rcv_irq and not sr_rcv_irq(0);
 
   end if;
+end if;
 end process;
 
 tst_fsm_edev <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsm_edev'length) when i_fsm_edev_cs = S_TX_D     else
@@ -229,9 +235,6 @@ tst_fms_core <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_core'length) when tst_out(
 ------------------------------------
 --Связь с Host
 ------------------------------------
---p_out_host_txrdy <= i_txbuf_empty;
---p_out_host_rxrdy <= not i_rxbuf_empty and i_rcv_irq;--ВАЖНО!!! Взводим флаг готовности RXD
---                                                    --одновременно с выдачей прерывания
 p_out_herr <= i_rcv_err;
 p_out_hirq <= i_rcv_irq;
 i_rcv_err <= '1' when i_core_status = CONV_STD_LOGIC_VECTOR(CI_STATUS_RX_ERR, i_core_status'length) else '0';
@@ -251,8 +254,9 @@ empty  => i_txbuf_empty,
 full   => open,
 prog_full => p_out_htxbuf_full,
 
-rst    => p_in_rst
+rst    => i_txbuf_rst(1)
 );
+i_txbuf_rst(1) <= p_in_rst or i_txbuf_rst(0);
 
 p_out_htxbuf_empty <= i_txbuf_empty;
 
@@ -283,17 +287,31 @@ gen_rxd : for i in 1 to G_HOST_DWIDTH/8 - 1 generate
 p_out_hrxbuf_do((8 * (i + 1)) - 1 downto (8 * i)) <= i_host_rxd((8 * (i + 1)) - 1 downto (8 * i));
 end generate;--gen_rxd
 
-process(p_in_rst, p_in_hclk)
+process(p_in_hclk)
 begin
+if rising_edge(p_in_hclk) then
   if p_in_rst = '1' then
     i_host_rxd_en <= '0';
 
-  elsif rising_edge(p_in_hclk) then
+  else
     if p_in_htxbuf_wr = '1' then
       i_host_rxd_en <= '0';
 
     elsif p_in_hrxbuf_rd = '1' then
       i_host_rxd_en <= '1';
+    end if;
+
+  end if;
+end if;
+end process;
+
+process(p_in_rst, p_in_hclk, i_txbuf_rst(0))
+begin
+  if p_in_rst = '1' or i_txbuf_rst(0) = '1' then
+    i_tx_drdy <= '0';
+  elsif rising_edge(p_in_hclk) then
+    if p_in_htxrdy = '1' then
+      i_tx_drdy <= '1';
     end if;
   end if;
 end process;
@@ -301,9 +319,10 @@ end process;
 ------------------------------------
 --Управнение приемом/передачей
 ------------------------------------
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 variable i_rxbuf_wr_last : std_logic;
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     i_fsm_edev_cs <= S_TX_IDLE;
 
@@ -321,13 +340,16 @@ begin
     i_txbuf_rd <= '0';
 
     i_rcv_irq <= '0';
+    i_txbuf_rst(0) <= '0';
+    sr_tx_drdy <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
       i_tmr_en <= p_in_tmr_en;
       sr_tx_start <= p_in_tmr_stb & sr_tx_start(0 to 1);
 
       i_rxbuf_wr_last := '0';
+      sr_tx_drdy <= i_tx_drdy;
 
       case i_fsm_edev_cs is
 
@@ -338,8 +360,9 @@ begin
 
               i_rxbuf_wr <= '0';
 
-              if (i_tmr_en = '0' and i_txbuf_empty = '0') or
-                 (i_tmr_en = '1' and sr_tx_start(1) = '1' and sr_tx_start(2) = '0') then
+              if ((i_tmr_en = '0' ) or
+                 (i_tmr_en = '1' and sr_tx_start(1) = '1' and sr_tx_start(2) = '0'))
+                 and (i_txbuf_empty = '0' and sr_tx_drdy = '1') then
                 --Отправка данных сразу как данные появились в TXBUF хоста или
                 --по сигналу от внешнего таймера
                 i_fsm_edev_cs <= S_TX_D_WAIT;
@@ -390,7 +413,8 @@ begin
           when S_TX_DONE =>
 
               i_txbuf_rd <= '0';
-              if i_txbuf_empty = '1' then
+              if i_txbuf_empty = '1' and sr_tx_drdy = '0' then
+                i_txbuf_rst(0) <= '0';
                 i_lencnt <= (others=>'0');
                 i_bcnt <= CONV_STD_LOGIC_VECTOR(1, i_bcnt'length);--индекс байта шины i_rxbuf_di
                                                                   --с которого начинаются данные,
@@ -398,6 +422,8 @@ begin
                                                                   --данных в byte
                 --i_rxbuf_di(7 downto 0) - зарезервировано для Rx byte count!!!
                 i_fsm_edev_cs <= S_RX_D;
+              else
+                i_txbuf_rst(0) <= '1';
               end if;
 
           ------------------------------------
@@ -444,6 +470,7 @@ begin
 
       end case;
   end if;
+end if;
 end process;
 
 

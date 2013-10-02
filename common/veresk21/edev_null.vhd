@@ -45,6 +45,7 @@ p_in_hrxbuf_rd       : in   std_logic;
 p_out_hrxbuf_full    : out  std_logic;
 p_out_hrxbuf_empty   : out  std_logic;
 
+p_in_htxrdy          : in   std_logic;
 p_out_hirq           : out  std_logic;
 p_out_herr           : out  std_logic;
 

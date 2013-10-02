@@ -61,7 +61,7 @@ parameter S_RX_DONE2=9;
 
 reg [3:0] i_fsm_cs;
 reg [5:0] i_clkx4_cnt;
-
+reg [2:0] i_rx_stop_chk;
 reg [0:1] sr_phy_rx;
 reg i_rxd_wr;
 reg i_txd_rd;
@@ -81,7 +81,7 @@ assign p_out_rxd_wr = i_rxd_wr && i_clk4x_en;
 assign p_out_txd_rd = i_txd_rd && i_clk4x_en;
 
 //входной сдвиговый регистр + детектор приема данных
-always @(posedge p_in_rst, posedge p_in_clk)
+always @(posedge p_in_clk)
 begin
   if (p_in_rst) begin
     sr_phy_rx <= 0;
@@ -102,7 +102,7 @@ end //always @
 
 
 //Делитель частоты
-always @(posedge p_in_rst, posedge p_in_clk)
+always @(posedge p_in_clk)
 begin
   if (p_in_rst) begin
     i_clkdiv_cnt <= 0;
@@ -138,7 +138,7 @@ end //always @
 
 
 //FSM обмена данными
-always @(posedge p_in_rst, posedge p_in_clk)
+always @(posedge p_in_clk)
 begin
   if (p_in_rst) begin
     i_fsm_cs <= S_TX_WAIT;
@@ -151,6 +151,7 @@ begin
     p_out_phy_dir <= CI_PHY_DIR_RX;
     p_out_status <= 0;
     i_clkdiv_rst <= 0;
+    i_rx_stop_chk <= 0;
   end
   else begin
       case (i_fsm_cs)
@@ -295,14 +296,14 @@ begin
                   //Старт бит - пропускаем
 //                  0,1,2:   p_out_rxd[7] <= sr_phy_rx[0];
                   //Данные
-                  3:  begin p_out_rxd[7] <= sr_phy_rx[0]; end //4,5,6
-                  7:  begin p_out_rxd[6] <= sr_phy_rx[0]; end //8,9,10
-                  11: begin p_out_rxd[5] <= sr_phy_rx[0]; end //12,13,14
-                  15: begin p_out_rxd[4] <= sr_phy_rx[0]; end //16,17,18
-                  19: begin p_out_rxd[3] <= sr_phy_rx[0]; end //20,21,22
-                  23: begin p_out_rxd[2] <= sr_phy_rx[0]; end //24,25,26
-                  27: begin p_out_rxd[1] <= sr_phy_rx[0]; end //28,29,30
-                  31: begin p_out_rxd[0] <= sr_phy_rx[0]; end //32,33,34
+                  3:  begin p_out_rxd[7] <= sr_phy_rx[0]; end
+                  7:  begin p_out_rxd[6] <= sr_phy_rx[0]; end
+                  11: begin p_out_rxd[5] <= sr_phy_rx[0]; end
+                  15: begin p_out_rxd[4] <= sr_phy_rx[0]; end
+                  19: begin p_out_rxd[3] <= sr_phy_rx[0]; end
+                  23: begin p_out_rxd[2] <= sr_phy_rx[0]; end
+                  27: begin p_out_rxd[1] <= sr_phy_rx[0]; end
+                  31: begin p_out_rxd[0] <= sr_phy_rx[0]; end
                   //Бит четности
                   35: begin
                         if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
@@ -331,15 +332,13 @@ begin
                 case (i_clkx4_cnt)
                   //Старт бит - Нету!!!
                   //Данные
-                  0:  begin p_out_rxd[7] <= sr_phy_rx[0]; end //сохраняем уровень линии для проверки
-                                                              //наличия следующего байта
-                  2:  begin
-                        if (p_out_rxd[7] && sr_phy_rx[0]) begin
+                  3:  begin p_out_rxd[7] <= sr_phy_rx[0]; i_rx_stop_chk[0] <= sr_phy_rx[0]; end
+                  5:  begin                               i_rx_stop_chk[1] <= sr_phy_rx[0]; end
+                  7:  begin p_out_rxd[6] <= sr_phy_rx[0]; i_rx_stop_chk[2] <= sr_phy_rx[0]; end
+                  9:  begin
+                        if ( &i_rx_stop_chk[2:0] )
                           i_fsm_cs <= S_RX_DONE;
-                        end
                       end
-                  3:  begin p_out_rxd[7] <= sr_phy_rx[0]; end
-                  7:  begin p_out_rxd[6] <= sr_phy_rx[0]; end
                   11: begin p_out_rxd[5] <= sr_phy_rx[0]; end
                   15: begin p_out_rxd[4] <= sr_phy_rx[0]; end
                   19: begin p_out_rxd[3] <= sr_phy_rx[0]; end
@@ -348,17 +347,15 @@ begin
                   31: begin p_out_rxd[0] <= sr_phy_rx[0]; end
                   //Бит четности
                   35: begin
-                      if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
-                        i_rcv_err <= 1;
-                        i_fsm_cs <= S_RX_DONE;
-                      end
-                      else
-                        i_rxd_wr <= 1;
-                     end
+                        if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
+                          i_rcv_err <= 1;
+                          i_fsm_cs <= S_RX_DONE;
+                        end
+                        else
+                          i_rxd_wr <= 1;
+                       end
                   36: begin
                         i_rxd_wr <= 0;
-                        p_out_rxd[7] <= sr_phy_rx[0]; //сохраняем уровень линии для проверки
-                                                      //наличия следующего байта
                         i_fsm_cs <= S_RX_2;
                       end
                 endcase
@@ -376,14 +373,13 @@ begin
                 case (i_clkx4_cnt)
                   //Старт бит - Нету!!!
                   //Данные
-                  1:  begin
-                        if (p_out_rxd[7] != sr_phy_rx[0])
-                          p_out_rxd[7] <= sr_phy_rx[0];
-                        else begin
+                  1:  begin p_out_rxd[7] <= sr_phy_rx[0]; i_rx_stop_chk[0] <= sr_phy_rx[0]; end
+                  3:  begin                               i_rx_stop_chk[1] <= sr_phy_rx[0]; end
+                  5:  begin p_out_rxd[6] <= sr_phy_rx[0]; i_rx_stop_chk[2] <= sr_phy_rx[0]; end
+                  7:  begin
+                        if ( &i_rx_stop_chk[2:0] )
                           i_fsm_cs <= S_RX_DONE;
-                        end
                       end
-                  5:  begin p_out_rxd[6] <= sr_phy_rx[0]; end
                   9:  begin p_out_rxd[5] <= sr_phy_rx[0]; end
                   13: begin p_out_rxd[4] <= sr_phy_rx[0]; end
                   17: begin p_out_rxd[3] <= sr_phy_rx[0]; end
@@ -392,17 +388,15 @@ begin
                   29: begin p_out_rxd[0] <= sr_phy_rx[0]; end
                   //Бит четности
                   33: begin
-                      if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
-                        i_rcv_err <= 1;
-                        i_fsm_cs <= S_RX_DONE;
-                      end
-                      else
-                        i_rxd_wr <= 1;
+                        if (^p_out_rxd[7:0] != sr_phy_rx[0]) begin
+                          i_rcv_err <= 1;
+                          i_fsm_cs <= S_RX_DONE;
+                        end
+                        else
+                          i_rxd_wr <= 1;
                       end
                   34: begin
                         i_rxd_wr <= 0;
-                        p_out_rxd[7] <= sr_phy_rx[0]; //сохраняем уровень линии для проверки
-                                                      //наличия следующего байта
                         i_fsm_cs <= S_RX_1;
                       end
                 endcase
