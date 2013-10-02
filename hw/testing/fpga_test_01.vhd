@@ -17,9 +17,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
+library work;
 use work.vicg_common_pkg.all;
 
 entity fpga_test_01 is
@@ -30,8 +28,8 @@ G_CLK_T05us   : integer:=10#1000# -- кол-во периодов частоты порта p_in_clk
 );
 port
 (
-p_out_test_led : out   std_logic;--//мигание сведодиода
-p_out_test_done: out   std_logic;--//сигнал переходи в '1' через 3 сек.
+p_out_test_led : out   std_logic;--мигание сведодиода
+p_out_test_done: out   std_logic;--сигнал переходи в '1' через 3 сек.
 
 p_out_1us      : out   std_logic;
 p_out_1ms      : out   std_logic;
@@ -104,17 +102,18 @@ p_in_clk     => p_in_clk,
 p_in_rst     => p_in_rst
 );
 
-process(p_in_rst,p_in_clk)
+process(p_in_clk)
   variable a :std_logic;
 begin
+if p_in_clk'event and p_in_clk='1' then
   if p_in_rst='1' then
     i_count_ms<=(others=>'0');
     i_count_sec<=(others=>'0');
     a:='0';
     i_test_led<='0';
     i_test_done<='0';
-  elsif p_in_clk'event and p_in_clk='1' then
-    --//Blink
+  else
+    --Blink
     if i_discret_1ms='1' then
       if i_count_ms=CONV_STD_LOGIC_VECTOR(G_BLINK_T05, i_count_ms'length) then
         i_count_ms<=(others=>'0');
@@ -125,7 +124,7 @@ begin
     end if;
     i_test_led<=a;
 
-    --//STOP
+    --STOP
     if i_discret_1sec='1' and i_test_done='0' then
       if i_count_sec=CONV_STD_LOGIC_VECTOR(10#002#, i_count_sec'length) then
         i_count_sec<=(others=>'0');
@@ -135,6 +134,7 @@ begin
       end if;
     end if;
   end if;
+end if;
 end process;
 
 --END MAIN
