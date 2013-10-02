@@ -30,13 +30,23 @@ constant C_AXIS_IDWIDTH    : integer:=4;
 constant C_AXIM_IDWIDTH    : integer:=8;
 
 constant C_AXI_AWIDTH      : integer:=32;
-constant C_AXIM_DWIDTH     : integer:=32;
+constant C_AXIM_DWIDTH     : integer:=C_PCGF_PCIE_DWIDTH;
 
 type TAXIS_DWIDTH is array (0 to C_MEMCH_COUNT_MAX - 1) of integer;
 ------------------------------------------------------------------------------------------------------------
 --                              slave num   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11| 12| 13| 14| 15|
 ------------------------------------------------------------------------------------------------------------
-constant C_AXIS_DWIDTH     : TAXIS_DWIDTH := (32, 32, 32, 32, 32, 32, 32, 32);
+constant C_AXIS_DWIDTH     : TAXIS_DWIDTH := (
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH,
+C_PCGF_PCIE_DWIDTH);
+
+constant C_MEM_ARB_CH_COUNT  : integer := C_PCFG_MEMARB_CH_COUNT;
 
 constant C_MEM_BANK_COUNT    : integer := C_PCFG_MEMCTRL_BANK_COUNT;
 constant C_MEM_BANK_COUNT_MAX: integer := C_MEM_BANK_COUNT;
@@ -53,28 +63,30 @@ constant CI_ROW_WIDTH     : integer:=15;-- # of memory Row Address bits.
 
 --Memory interface types
 type TMEMCTRL_phy_out is record
-a     : std_logic_vector(CI_ROW_WIDTH-1 downto 0);
-ba    : std_logic_vector(CI_BANK_WIDTH-1 downto 0);
+a     : std_logic_vector(CI_ROW_WIDTH - 1 downto 0);
+ba    : std_logic_vector(CI_BANK_WIDTH - 1 downto 0);
 ras_n : std_logic;
 cas_n : std_logic;
 we_n  : std_logic;
 rst_n : std_logic;
-cs_n  : std_logic_vector((CI_CS_WIDTH*CI_nCS_PER_RANK)-1 downto 0);--SODIMM - pin Sx#
-odt   : std_logic_vector((CI_CS_WIDTH*CI_nCS_PER_RANK)-1 downto 0);
-cke   : std_logic_vector(CI_CKE_WIDTH-1 downto 0);
-dm    : std_logic_vector(CI_DM_WIDTH-1 downto 0);
-ck_p  : std_logic_vector(CI_CK_WIDTH-1 downto 0);
-ck_n  : std_logic_vector(CI_CK_WIDTH-1 downto 0);
+cs_n  : std_logic_vector((CI_CS_WIDTH * CI_nCS_PER_RANK) - 1 downto 0);--SODIMM - pin Sx#
+odt   : std_logic_vector((CI_CS_WIDTH * CI_nCS_PER_RANK) - 1 downto 0);
+cke   : std_logic_vector(CI_CKE_WIDTH - 1 downto 0);
+dm    : std_logic_vector(CI_DM_WIDTH - 1 downto 0);
+ck_p  : std_logic_vector(CI_CK_WIDTH - 1 downto 0);
+ck_n  : std_logic_vector(CI_CK_WIDTH - 1 downto 0);
 end record;
 
 type TMEMCTRL_phy_inout is record
-dq    : std_logic_vector(CI_DQ_WIDTH-1 downto 0);
-dqs_p : std_logic_vector(CI_DQS_WIDTH-1 downto 0);
-dqs_n : std_logic_vector(CI_DQS_WIDTH-1 downto 0);
+dq    : std_logic_vector(CI_DQ_WIDTH - 1 downto 0);
+dqs_p : std_logic_vector(CI_DQS_WIDTH - 1 downto 0);
+dqs_n : std_logic_vector(CI_DQS_WIDTH - 1 downto 0);
+--sda   : std_logic;
+--event_n : std_logic;--SODIMM - pin EVENT# is asserted by the temperature sensor when crit-ical temperature thresholds have been exceeded.
 end record;
 
 type TMEMCTRL_status is record
-rdy   : std_logic_vector(C_MEM_BANK_COUNT-1 downto 0);
+rdy   : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
 end record;
 
 type TMEMCTRL_sysin is record
@@ -84,15 +96,19 @@ ref_clk: std_logic;
 end record;
 
 type TMEMCTRL_sysout is record
+--gusrclk: std_logic_vector(0 downto 0);
 clk   : std_logic;
 end record;
 
 -- Types for memory interface
-type TMEMCTRL_phy_outs   is array(0 to C_MEM_BANK_COUNT_MAX-1) of TMEMCTRL_phy_out  ;
-type TMEMCTRL_phy_inouts is array(0 to C_MEM_BANK_COUNT_MAX-1) of TMEMCTRL_phy_inout;
+type TMEMCTRL_phy_outs   is array(0 to C_MEM_BANK_COUNT_MAX - 1) of TMEMCTRL_phy_out  ;
+type TMEMCTRL_phy_inouts is array(0 to C_MEM_BANK_COUNT_MAX - 1) of TMEMCTRL_phy_inout;
 
-Type TMemINBank  is array (0 to C_MEM_BANK_COUNT-1) of TMemIN; --TMemINCh;
-Type TMemOUTBank is array (0 to C_MEM_BANK_COUNT-1) of TMemOUT;--TMemOUTCh;
+Type TMemINCh is array (0 to C_MEM_ARB_CH_COUNT - 1) of TMemIN;
+Type TMemOUTCh is array (0 to C_MEM_ARB_CH_COUNT - 1) of TMemOUT;
+
+Type TMemINBank  is array (0 to C_MEM_BANK_COUNT - 1) of TMemIN; --TMemINCh;
+Type TMemOUTBank is array (0 to C_MEM_BANK_COUNT - 1) of TMemOUT;--TMemOUTCh;
 
 
 component mem_ctrl
@@ -159,6 +175,11 @@ p_in_rst    : in    std_logic
 end component;
 
 component mem_ctrl_core_axi
+generic(
+C_S_AXI_ID_WIDTH   : integer := 8;
+C_S_AXI_ADDR_WIDTH : integer := 32;
+C_S_AXI_DATA_WIDTH : integer := 32
+);
 port(
 ddr3_dq             : inout  std_logic_vector(CI_DQ_WIDTH - 1 downto 0);
 ddr3_addr           : out    std_logic_vector(CI_ROW_WIDTH - 1 downto 0);
@@ -222,11 +243,11 @@ s_axi_rready        : in     std_logic;
 --AXI CTRL port
 s_axi_ctrl_awvalid  : in     std_logic;
 s_axi_ctrl_awready  : out    std_logic;
-s_axi_ctrl_awaddr   : in     std_logic_vector(32-1 downto 0);
+s_axi_ctrl_awaddr   : in     std_logic_vector(31 downto 0);
 --Slave Interface Write Data Ports
 s_axi_ctrl_wvalid   : in     std_logic;
 s_axi_ctrl_wready   : out    std_logic;
-s_axi_ctrl_wdata    : in     std_logic_vector(32-1 downto 0);
+s_axi_ctrl_wdata    : in     std_logic_vector(31 downto 0);
 --Slave Interface Write Response Ports
 s_axi_ctrl_bvalid   : out    std_logic;
 s_axi_ctrl_bready   : in     std_logic;
@@ -234,25 +255,28 @@ s_axi_ctrl_bresp    : out    std_logic_vector(1 downto 0);
 --Slave Interface Read Address Ports
 s_axi_ctrl_arvalid  : in     std_logic;
 s_axi_ctrl_arready  : out    std_logic;
-s_axi_ctrl_araddr   : in     std_logic_vector(32-1 downto 0);
+s_axi_ctrl_araddr   : in     std_logic_vector(31 downto 0);
 --Slave Interface Read Data Ports
 s_axi_ctrl_rvalid   : out    std_logic;
 s_axi_ctrl_rready   : in     std_logic;
-s_axi_ctrl_rdata    : out    std_logic_vector(32-1 downto 0);
+s_axi_ctrl_rdata    : out    std_logic_vector(31 downto 0);
 s_axi_ctrl_rresp    : out    std_logic_vector(1 downto 0);
 
---Interrupt output
+--Status
 interrupt           : out    std_logic;
-
-s_axi_aresetn       : out    std_logic;
-s_axi_clk           : out    std_logic;
-
---phy_init_done       : out    std_logic;
 init_calib_complete : out    std_logic;
-
-app_ecc_multiple_err: out    std_logic_vector(7 downto 0);
-
 mmcm_locked         : out    std_logic;
+
+aresetn             : in     std_logic;
+ui_clk_sync_rst     : out    std_logic;
+ui_clk              : out    std_logic;
+
+--System
+clk_ref_i           : in     std_logic;
+sys_clk_i           : in     std_logic;
+sys_rst             : in     std_logic;
+
+device_temp_i       : in     std_logic_vector(11 downto 0);
 
 app_sr_req          : in     std_logic;
 app_sr_active       : out    std_logic;
@@ -260,11 +284,7 @@ app_ref_req         : in     std_logic;
 app_ref_ack         : out    std_logic;
 app_zq_req          : in     std_logic;
 app_zq_ack          : out    std_logic;
-device_temp_i       : in     std_logic_vector(11 downto 0);
-
-clk_ref_i           : in     std_logic;
-sys_clk_i           : in     std_logic;
-sys_rst             : in     std_logic
+app_ecc_multiple_err: out    std_logic_vector(7 downto 0)
 );
 end component;
 
@@ -393,214 +413,6 @@ COMPONENT mem_achcount3
     S02_AXI_RLAST : OUT STD_LOGIC;
     S02_AXI_RVALID : OUT STD_LOGIC;
     S02_AXI_RREADY : IN STD_LOGIC;
-
-    M00_AXI_ARESET_OUT_N : OUT STD_LOGIC;
-    M00_AXI_ACLK : IN STD_LOGIC;
-    M00_AXI_AWID : OUT STD_LOGIC_VECTOR(C_AXIM_IDWIDTH - 1 DOWNTO 0);
-    M00_AXI_AWADDR : OUT STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    M00_AXI_AWLEN : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-    M00_AXI_AWSIZE : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-    M00_AXI_AWBURST : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    M00_AXI_AWLOCK : OUT STD_LOGIC;
-    M00_AXI_AWCACHE : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    M00_AXI_AWPROT : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-    M00_AXI_AWQOS : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    M00_AXI_AWVALID : OUT STD_LOGIC;
-    M00_AXI_AWREADY : IN STD_LOGIC;
-    M00_AXI_WDATA : OUT STD_LOGIC_VECTOR(C_AXIM_DWIDTH - 1 DOWNTO 0);
-    M00_AXI_WSTRB : OUT STD_LOGIC_VECTOR(C_AXIM_DWIDTH/8 - 1 DOWNTO 0);
-    M00_AXI_WLAST : OUT STD_LOGIC;
-    M00_AXI_WVALID : OUT STD_LOGIC;
-    M00_AXI_WREADY : IN STD_LOGIC;
-    M00_AXI_BID : IN STD_LOGIC_VECTOR(C_AXIM_IDWIDTH - 1 DOWNTO 0);
-    M00_AXI_BRESP : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    M00_AXI_BVALID : IN STD_LOGIC;
-    M00_AXI_BREADY : OUT STD_LOGIC;
-    M00_AXI_ARID : OUT STD_LOGIC_VECTOR(C_AXIM_IDWIDTH - 1 DOWNTO 0);
-    M00_AXI_ARADDR : OUT STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    M00_AXI_ARLEN : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
-    M00_AXI_ARSIZE : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-    M00_AXI_ARBURST : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    M00_AXI_ARLOCK : OUT STD_LOGIC;
-    M00_AXI_ARCACHE : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    M00_AXI_ARPROT : OUT STD_LOGIC_VECTOR(2 DOWNTO 0);
-    M00_AXI_ARQOS : OUT STD_LOGIC_VECTOR(3 DOWNTO 0);
-    M00_AXI_ARVALID : OUT STD_LOGIC;
-    M00_AXI_ARREADY : IN STD_LOGIC;
-    M00_AXI_RID : IN STD_LOGIC_VECTOR(C_AXIM_IDWIDTH - 1 DOWNTO 0);
-    M00_AXI_RDATA : IN STD_LOGIC_VECTOR(C_AXIM_DWIDTH - 1 DOWNTO 0);
-    M00_AXI_RRESP : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    M00_AXI_RLAST : IN STD_LOGIC;
-    M00_AXI_RVALID : IN STD_LOGIC;
-    M00_AXI_RREADY : OUT STD_LOGIC
-  );
-END COMPONENT;
-
-
-COMPONENT mem_achcount4
-  PORT (
-    INTERCONNECT_ACLK : IN STD_LOGIC;
-    INTERCONNECT_ARESETN : IN STD_LOGIC;
-
-    S00_AXI_ARESET_OUT_N : OUT STD_LOGIC;
-    S00_AXI_ACLK : IN STD_LOGIC;
-    S00_AXI_AWID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S00_AXI_AWADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S00_AXI_AWLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S00_AXI_AWSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S00_AXI_AWBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S00_AXI_AWLOCK : IN STD_LOGIC;
-    S00_AXI_AWCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S00_AXI_AWPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S00_AXI_AWQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S00_AXI_AWVALID : IN STD_LOGIC;
-    S00_AXI_AWREADY : OUT STD_LOGIC;
-    S00_AXI_WDATA : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(0) - 1 DOWNTO 0);
-    S00_AXI_WSTRB : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(0)/8 - 1 DOWNTO 0);
-    S00_AXI_WLAST : IN STD_LOGIC;
-    S00_AXI_WVALID : IN STD_LOGIC;
-    S00_AXI_WREADY : OUT STD_LOGIC;
-    S00_AXI_BID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S00_AXI_BRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S00_AXI_BVALID : OUT STD_LOGIC;
-    S00_AXI_BREADY : IN STD_LOGIC;
-    S00_AXI_ARID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S00_AXI_ARADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S00_AXI_ARLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S00_AXI_ARSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S00_AXI_ARBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S00_AXI_ARLOCK : IN STD_LOGIC;
-    S00_AXI_ARCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S00_AXI_ARPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S00_AXI_ARQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S00_AXI_ARVALID : IN STD_LOGIC;
-    S00_AXI_ARREADY : OUT STD_LOGIC;
-    S00_AXI_RID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S00_AXI_RDATA : OUT STD_LOGIC_VECTOR(C_AXIS_DWIDTH(0) - 1 DOWNTO 0);
-    S00_AXI_RRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S00_AXI_RLAST : OUT STD_LOGIC;
-    S00_AXI_RVALID : OUT STD_LOGIC;
-    S00_AXI_RREADY : IN STD_LOGIC;
-
-    S01_AXI_ARESET_OUT_N : OUT STD_LOGIC;
-    S01_AXI_ACLK : IN STD_LOGIC;
-    S01_AXI_AWID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S01_AXI_AWADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S01_AXI_AWLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S01_AXI_AWSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S01_AXI_AWBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S01_AXI_AWLOCK : IN STD_LOGIC;
-    S01_AXI_AWCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S01_AXI_AWPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S01_AXI_AWQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S01_AXI_AWVALID : IN STD_LOGIC;
-    S01_AXI_AWREADY : OUT STD_LOGIC;
-    S01_AXI_WDATA : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(1) - 1 DOWNTO 0);
-    S01_AXI_WSTRB : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(1)/8 - 1 DOWNTO 0);
-    S01_AXI_WLAST : IN STD_LOGIC;
-    S01_AXI_WVALID : IN STD_LOGIC;
-    S01_AXI_WREADY : OUT STD_LOGIC;
-    S01_AXI_BID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S01_AXI_BRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S01_AXI_BVALID : OUT STD_LOGIC;
-    S01_AXI_BREADY : IN STD_LOGIC;
-    S01_AXI_ARID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S01_AXI_ARADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S01_AXI_ARLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S01_AXI_ARSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S01_AXI_ARBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S01_AXI_ARLOCK : IN STD_LOGIC;
-    S01_AXI_ARCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S01_AXI_ARPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S01_AXI_ARQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S01_AXI_ARVALID : IN STD_LOGIC;
-    S01_AXI_ARREADY : OUT STD_LOGIC;
-    S01_AXI_RID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S01_AXI_RDATA : OUT STD_LOGIC_VECTOR(C_AXIS_DWIDTH(1) - 1 DOWNTO 0);
-    S01_AXI_RRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S01_AXI_RLAST : OUT STD_LOGIC;
-    S01_AXI_RVALID : OUT STD_LOGIC;
-    S01_AXI_RREADY : IN STD_LOGIC;
-
-    S02_AXI_ARESET_OUT_N : OUT STD_LOGIC;
-    S02_AXI_ACLK : IN STD_LOGIC;
-    S02_AXI_AWID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S02_AXI_AWADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S02_AXI_AWLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S02_AXI_AWSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S02_AXI_AWBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S02_AXI_AWLOCK : IN STD_LOGIC;
-    S02_AXI_AWCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S02_AXI_AWPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S02_AXI_AWQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S02_AXI_AWVALID : IN STD_LOGIC;
-    S02_AXI_AWREADY : OUT STD_LOGIC;
-    S02_AXI_WDATA : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(2) - 1 DOWNTO 0);
-    S02_AXI_WSTRB : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(2)/8 - 1 DOWNTO 0);
-    S02_AXI_WLAST : IN STD_LOGIC;
-    S02_AXI_WVALID : IN STD_LOGIC;
-    S02_AXI_WREADY : OUT STD_LOGIC;
-    S02_AXI_BID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S02_AXI_BRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S02_AXI_BVALID : OUT STD_LOGIC;
-    S02_AXI_BREADY : IN STD_LOGIC;
-    S02_AXI_ARID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S02_AXI_ARADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S02_AXI_ARLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S02_AXI_ARSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S02_AXI_ARBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S02_AXI_ARLOCK : IN STD_LOGIC;
-    S02_AXI_ARCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S02_AXI_ARPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S02_AXI_ARQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S02_AXI_ARVALID : IN STD_LOGIC;
-    S02_AXI_ARREADY : OUT STD_LOGIC;
-    S02_AXI_RID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S02_AXI_RDATA : OUT STD_LOGIC_VECTOR(C_AXIS_DWIDTH(2) - 1 DOWNTO 0);
-    S02_AXI_RRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S02_AXI_RLAST : OUT STD_LOGIC;
-    S02_AXI_RVALID : OUT STD_LOGIC;
-    S02_AXI_RREADY : IN STD_LOGIC;
-
-    S03_AXI_ARESET_OUT_N : OUT STD_LOGIC;
-    S03_AXI_ACLK : IN STD_LOGIC;
-    S03_AXI_AWID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S03_AXI_AWADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S03_AXI_AWLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S03_AXI_AWSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S03_AXI_AWBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S03_AXI_AWLOCK : IN STD_LOGIC;
-    S03_AXI_AWCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S03_AXI_AWPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S03_AXI_AWQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S03_AXI_AWVALID : IN STD_LOGIC;
-    S03_AXI_AWREADY : OUT STD_LOGIC;
-    S03_AXI_WDATA : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(3) - 1 DOWNTO 0);
-    S03_AXI_WSTRB : IN STD_LOGIC_VECTOR(C_AXIS_DWIDTH(3)/8 - 1 DOWNTO 0);
-    S03_AXI_WLAST : IN STD_LOGIC;
-    S03_AXI_WVALID : IN STD_LOGIC;
-    S03_AXI_WREADY : OUT STD_LOGIC;
-    S03_AXI_BID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S03_AXI_BRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S03_AXI_BVALID : OUT STD_LOGIC;
-    S03_AXI_BREADY : IN STD_LOGIC;
-    S03_AXI_ARID : IN STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S03_AXI_ARADDR : IN STD_LOGIC_VECTOR(C_AXI_AWIDTH - 1 DOWNTO 0);
-    S03_AXI_ARLEN : IN STD_LOGIC_VECTOR(7 DOWNTO 0);
-    S03_AXI_ARSIZE : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S03_AXI_ARBURST : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S03_AXI_ARLOCK : IN STD_LOGIC;
-    S03_AXI_ARCACHE : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S03_AXI_ARPROT : IN STD_LOGIC_VECTOR(2 DOWNTO 0);
-    S03_AXI_ARQOS : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
-    S03_AXI_ARVALID : IN STD_LOGIC;
-    S03_AXI_ARREADY : OUT STD_LOGIC;
-    S03_AXI_RID : OUT STD_LOGIC_VECTOR(C_AXIS_IDWIDTH - 1 DOWNTO 0);
-    S03_AXI_RDATA : OUT STD_LOGIC_VECTOR(C_AXIS_DWIDTH(3) - 1 DOWNTO 0);
-    S03_AXI_RRESP : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
-    S03_AXI_RLAST : OUT STD_LOGIC;
-    S03_AXI_RVALID : OUT STD_LOGIC;
-    S03_AXI_RREADY : IN STD_LOGIC;
 
     M00_AXI_ARESET_OUT_N : OUT STD_LOGIC;
     M00_AXI_ACLK : IN STD_LOGIC;

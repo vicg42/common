@@ -175,7 +175,7 @@ module mig_7series_v1_9_infrastructure #
   localparam real CLKOUT3_PERIOD_NS = CLKOUT3_PERIOD / 1000.0;
   localparam real CLKOUT4_PERIOD_NS = CLKOUT4_PERIOD / 1000.0;
 
-//  //synthesis translate_off
+  //synthesis translate_off
   initial begin
     $display("############# Write Clocks PLLE2_ADV Parameters #############\n");
     $display("nCK_PER_CLK      = %7d",   nCK_PER_CLK     );
@@ -195,7 +195,7 @@ module mig_7series_v1_9_infrastructure #
     $display("CLKOUT4_PERIOD   = %7d",   CLKOUT4_PERIOD  );
     $display("############################################################\n");
   end
-//  //synthesis translate_on
+  //synthesis translate_on
 
   wire                       clk_bufg;
   wire                       clk_pll;
@@ -324,7 +324,7 @@ module mig_7series_v1_9_infrastructure #
   localparam  real    MMCM_VCO_FREQ         = MMCM_MULT_F / (1 * CLKOUT3_PERIOD_NS);
   localparam  real    MMCM_VCO_PERIOD       = (CLKOUT3_PERIOD_NS * 1000) / MMCM_MULT_F;
 
-//  //synthesis translate_off
+  //synthesis translate_off
   initial begin
     $display("############# MMCME2_ADV Parameters #############\n");
     $display("MMCM_VCO_MIN_PERIOD   = %7.3f", MMCM_VCO_MIN_PERIOD);
@@ -337,7 +337,7 @@ module mig_7series_v1_9_infrastructure #
     $display("MMCM_VCO_PERIOD       = %7.3f", MMCM_VCO_PERIOD);
     $display("#################################################\n");
   end
-//  //synthesis translate_on
+  //synthesis translate_on
 
   generate
     if (UI_EXTRA_CLOCKS == "TRUE") begin: gen_ui_extra_clocks

@@ -101,7 +101,7 @@ module mem_ctrl_core_axi #
                                      // = ceil(log2(DQS_WIDTH))
    parameter DRAM_WIDTH            = 8,
                                      // # of DQ per DQS
-   parameter ECC                   = "ON",
+   parameter ECC                   = "OFF",
    parameter DATA_WIDTH            = 64,
    parameter ECC_TEST              = "OFF",
    parameter PAYLOAD_WIDTH         = (ECC_TEST == "OFF") ? DATA_WIDTH : DQ_WIDTH,
@@ -109,7 +109,7 @@ module mem_ctrl_core_axi #
    parameter MC_ERR_ADDR_WIDTH     = 31,
    parameter MEM_ADDR_ORDER
      = "BANK_ROW_COLUMN",
-      
+   parameter DM_WIDTH              = 9,// # of DM (data mask)
    parameter nBANK_MACHS           = 4,
    parameter RANKS                 = 1,
                                      // # of Ranks.
@@ -127,7 +127,7 @@ module mem_ctrl_core_axi #
                                      //   = 0, When Chip Select (CS#) output is disabled
                                      // If CS_N disabled, user must connect
                                      // DRAM CS_N input(s) to ground
-   parameter USE_DM_PORT           = 0,
+   parameter USE_DM_PORT           = 1,
                                      // # = 1, When Data Mask option is enabled
                                      //   = 0, When Data Mask option is disbaled
                                      // When Data Mask option is disabled in
@@ -207,7 +207,7 @@ module mem_ctrl_core_axi #
                                      //   = "OFF" - Components, SODIMMs, UDIMMs.
    parameter CA_MIRROR             = "OFF",
                                      // C/A mirror opt for DDR3 dual rank
-   
+
    //***************************************************************************
    // The following parameters are multiplier and divisor factors for PLLE2.
    // Based on the selected design frequency these parameters vary.
@@ -233,27 +233,27 @@ module mem_ctrl_core_axi #
    // Memory Timing Parameters. These parameters varies based on the selected
    // memory part.
    //***************************************************************************
-   parameter tCKE                  = 5000,
+   parameter tCKE                  = 15000,
                                      // memory tCKE paramter in pS
-   parameter tFAW                  = 30000,
+   parameter tFAW                  = 50000,
                                      // memory tRAW paramter in pS.
    parameter tPRDI                 = 1_000_000,
                                      // memory tPRDI paramter in pS.
-   parameter tRAS                  = 35000,
+   parameter tRAS                  = 36000,
                                      // memory tRAS paramter in pS.
-   parameter tRCD                  = 13125,
+   parameter tRCD                  = 14000,
                                      // memory tRCD paramter in pS.
    parameter tREFI                 = 7800000,
                                      // memory tREFI paramter in pS.
-   parameter tRFC                  = 160000,
+   parameter tRFC                  = 300000,
                                      // memory tRFC paramter in pS.
-   parameter tRP                   = 13125,
+   parameter tRP                   = 14000,
                                      // memory tRP paramter in pS.
-   parameter tRRD                  = 6000,
+   parameter tRRD                  = 18000,
                                      // memory tRRD paramter in pS.
-   parameter tRTP                  = 7500,
+   parameter tRTP                  = 18000,
                                      // memory tRTP paramter in pS.
-   parameter tWTR                  = 7500,
+   parameter tWTR                  = 18000,
                                      // memory tWTR paramter in pS.
    parameter tZQI                  = 128_000_000,
                                      // memory tZQI paramter in nS.
@@ -314,9 +314,9 @@ module mem_ctrl_core_axi #
                                      // or control Byte lane. '1' in a bit
                                      // position indicates a data byte lane and
                                      // a '0' indicates a control byte lane
-   parameter PHY_0_BITLANES        = 48'h1FE_1FB_3EE_2BF,
-   parameter PHY_1_BITLANES        = 48'h37E_FFF_0CD_2BE,
-   parameter PHY_2_BITLANES        = 48'h3EE_37E_3F6_27F,
+   parameter PHY_0_BITLANES        = 48'h3FE_3FB_3FE_2FF,
+   parameter PHY_1_BITLANES        = 48'h3FE_FFF_0CD_2BE,
+   parameter PHY_2_BITLANES        = 48'h3FE_3FE_3FE_2FF,
 
    // control/address/data pin mapping parameters
    parameter CK_BYTE_MAP
@@ -352,7 +352,7 @@ module mem_ctrl_core_axi #
    parameter DATA15_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA16_MAP = 96'h000_000_000_000_000_000_000_000,
    parameter DATA17_MAP = 96'h000_000_000_000_000_000_000_000,
-   parameter MASK0_MAP  = 108'h000_000_000_000_000_000_000_000_000,
+   parameter MASK0_MAP  = 108'h137_006_014_029_039_207_213_227_234,
    parameter MASK1_MAP  = 108'h000_000_000_000_000_000_000_000_000,
 
    parameter SLOT_0_CONFIG         = 8'b0000_0001,
@@ -404,7 +404,7 @@ module mem_ctrl_core_axi #
                                      // "TRUE" - if pin is selected for sys_rst
                                      //          and IBUF will be instantiated.
                                      // "FALSE" - if pin is not selected for sys_rst
-      
+
    parameter CMD_PIPE_PLUS1        = "ON",
                                      // add pipeline stage between MC and PHY
    parameter DRAM_TYPE             = "DDR3",
@@ -432,11 +432,11 @@ module mem_ctrl_core_axi #
                                      // Differential Termination for System
                                      // clock input pins
 
-   
+
    //***************************************************************************
    // AXI4 Shim parameters
    //***************************************************************************
-   
+   parameter MMCM_CLKOUT0_DIVIDE   = 2,  // VCO output divisor for MMCM clkout0
    parameter UI_EXTRA_CLOCKS = "FALSE",
                                      // Generates extra clocks as
                                      // 1/2, 1/4 and 1/8 of fabrick clock.
@@ -523,7 +523,7 @@ module mem_ctrl_core_axi #
    //***************************************************************************
    parameter TEMP_MON_CONTROL                          = "EXTERNAL",
                                      // # = "INTERNAL", "EXTERNAL"
-      
+
    parameter RST_ACT_LOW           = 0
                                      // =1 for active low reset,
                                      // =0 for active high.
@@ -547,7 +547,7 @@ module mem_ctrl_core_axi #
    output [CKE_WIDTH-1:0]                       ddr3_cke,
    output [CS_WIDTH*nCS_PER_RANK-1:0]           ddr3_cs_n,
    output [ODT_WIDTH-1:0]                       ddr3_odt,
-
+   output [DM_WIDTH-1:0]                        ddr3_dm,
    // Inputs
    // Single-ended system clock
    input                                        sys_clk_i,
@@ -556,7 +556,7 @@ module mem_ctrl_core_axi #
    // user interface signals
    output                                       ui_clk,
    output                                       ui_clk_sync_rst,
-   
+
    output                                       mmcm_locked,
    output [2*nCK_PER_CLK-1:0]                   app_ecc_multiple_err,
    input                                        aresetn,
@@ -634,17 +634,17 @@ module mem_ctrl_core_axi #
 
    // Interrupt output
    output                                       interrupt,
-   
-   
+
+
    output                                       init_calib_complete,
    input  [11:0]                                device_temp_i,
                       // The 12 MSB bits of the temperature sensor transfer
                       // function need to be connected to this port. This port
                       // will be synchronized w.r.t. to fabric clock internally.
-      
+
 
    // System reset - Default polarity of sys_rst pin is Active Low.
-   // System reset polarity will change based on the option 
+   // System reset polarity will change based on the option
    // selected in GUI.
    input                                        sys_rst
    );
@@ -667,11 +667,11 @@ module mem_ctrl_core_axi #
                                                  // Enable or disable the temp monitor module
   localparam tTEMPSAMPLE           = 10000000;   // sample every 10 us
   localparam XADC_CLK_PERIOD       = 5000;       // Use 200 MHz IODELAYCTRL clock
-      
-      
+
+
 
   // Wire declarations
-      
+
   wire [BM_CNT_WIDTH-1:0]           bank_mach_next;
   wire                              clk;
   wire                              clk_ref;
@@ -687,9 +687,9 @@ module mem_ctrl_core_axi #
   wire                              pll_locked;
 
   wire                              rst;
-  
+
   wire                                ddr3_parity;
-      
+
 
   wire                              sys_clk_p;
   wire                              sys_clk_n;
@@ -766,7 +766,7 @@ module mem_ctrl_core_axi #
   wire [5:0]                        dbg_data_offset;
   wire [5:0]                        dbg_data_offset_1;
   wire [5:0]                        dbg_data_offset_2;
-      
+
 
 //***************************************************************************
 
@@ -774,12 +774,12 @@ module mem_ctrl_core_axi #
 
   assign ui_clk = clk;
   assign ui_clk_sync_rst = rst;
-  
+
   assign sys_clk_p = 1'b0;
   assign sys_clk_n = 1'b0;
   assign clk_ref_p = 1'b0;
   assign clk_ref_n = 1'b0;
-      
+
 
   generate
     if (REFCLK_TYPE == "USE_SYSTEM_CLOCK")
@@ -848,10 +848,13 @@ module mem_ctrl_core_axi #
 
     end
   endgenerate
-         
+
   mig_7series_v1_9_infrastructure #
     (
      .TCQ                (TCQ),
+     .UI_EXTRA_CLOCKS    (UI_EXTRA_CLOCKS),
+     .MMCM_CLKOUT0_EN     (UI_EXTRA_CLOCKS),
+     .MMCM_CLKOUT0_DIVIDE (MMCM_CLKOUT0_DIVIDE),
      .nCK_PER_CLK        (nCK_PER_CLK),
      .CLKIN_PERIOD       (CLKIN_PERIOD),
      .SYSCLK_TYPE        (SYSCLK_TYPE),
@@ -887,7 +890,7 @@ module mem_ctrl_core_axi #
        .iodelay_ctrl_rdy (iodelay_ctrl_rdy),
        .ref_dll_lock     (ref_dll_lock)
        );
-      
+
 
   mig_7series_v1_9_memc_ui_top_axi #
     (
@@ -908,7 +911,7 @@ module mem_ctrl_core_axi #
      .CKE_WIDTH                        (CKE_WIDTH),
      .DATA_WIDTH                       (DATA_WIDTH),
      .DATA_BUF_ADDR_WIDTH              (DATA_BUF_ADDR_WIDTH),
-     .DM_WIDTH                         (9),
+     .DM_WIDTH                         (DM_WIDTH),
      .DQ_CNT_WIDTH                     (DQ_CNT_WIDTH),
      .DQ_WIDTH                         (DQ_WIDTH),
      .DQS_CNT_WIDTH                    (DQS_CNT_WIDTH),
@@ -1056,7 +1059,7 @@ module mem_ctrl_core_axi #
        .ddr_ck                           (ddr3_ck_p),
        .ddr_cke                          (ddr3_cke),
        .ddr_cs_n                         (ddr3_cs_n),
-       .ddr_dm                           (),
+       .ddr_dm                           (ddr3_dm),
        .ddr_odt                          (ddr3_odt),
        .ddr_ras_n                        (ddr3_ras_n),
        .ddr_reset_n                      (ddr3_reset_n),
@@ -1132,7 +1135,7 @@ module mem_ctrl_core_axi #
        .dbg_oclkdelay_rd_data            (dbg_oclkdelay_rd_data),
        .dbg_oclkdelay_calib_start        (dbg_oclkdelay_calib_start),
        .dbg_oclkdelay_calib_done         (dbg_oclkdelay_calib_done),
-       .dbg_dqs_found_cal                (dbg_dqs_found_cal),  
+       .dbg_dqs_found_cal                (dbg_dqs_found_cal),
        .aresetn                          (aresetn),
        .app_sr_req                       (app_sr_req),
        .app_sr_active                    (app_sr_active),
@@ -1209,7 +1212,7 @@ module mem_ctrl_core_axi #
        .init_calib_complete              (init_calib_complete)
        );
 
-      
+
 
 
 
@@ -1232,6 +1235,6 @@ module mem_ctrl_core_axi #
    assign dbg_po_f_stg23_sel   = 'b0;
    assign dbg_sel_po_incdec    = 'b0;
 
-      
+
 
 endmodule
