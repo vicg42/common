@@ -13,10 +13,9 @@
 -- Revision 2.00 - add 2010.11.26  для vsobel_main.vhd (rev 2.00)
 -------------------------------------------------------------------------
 library ieee;
-use ieee.std_logic_1164.ALL;
-use ieee.std_logic_unsigned.all;
-use ieee.numeric_std.all;
+use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 use ieee.std_logic_textio.all;
 
 use work.vicg_common_pkg.all;
