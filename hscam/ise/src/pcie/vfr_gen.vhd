@@ -70,19 +70,24 @@ signal i_row_half           : std_logic;
 signal i_vrow_half_count    : std_logic_vector(i_row_cnt'range);
 signal tst_fsm_cs,tst_fsm_cs_dly: std_logic_vector(1 downto 0);
 
+signal sr_div               : std_logic;
+signal sr_hs                : std_logic;
+signal sr_vs                : std_logic;
+signal sr_vd_out            : std_logic_vector(G_VD_WIDTH - 1 downto 0);
+
 
 --MAIN
 begin
 
---//----------------------------------
---//“ехнологические сигналы
---//----------------------------------
+------------------------------------
+--“ехнологические сигналы
+------------------------------------
 p_out_tst(1 downto 0) <= tst_fsm_cs_dly;
 p_out_tst(2) <= i_row_half;
 p_out_tst(31 downto 3) <= (others=>'0');
 process(p_in_clk)
 begin
-  if p_in_clk'event and p_in_clk='1' then
+  if rising_edge(p_in_clk) then
     tst_fsm_cs_dly <= tst_fsm_cs;
   end if;
 end process;
@@ -91,37 +96,50 @@ tst_fsm_cs <= CONV_STD_LOGIC_VECTOR(16#02#,tst_fsm_cs'length) when fsm_cs = S_SY
               CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length);   --fsm_cs = S_PIX       else
 
 
---//----------------------------------
---//CFG
---//----------------------------------
+------------------------------------
+--CFG
+------------------------------------
 i_div <= '1';
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     i_cfg <= (others=>'0');
-  elsif rising_edge(p_in_clk) then
+  else
   if i_div = '1' then
       if i_vs = '1' then
       i_cfg <= p_in_cfg;
       end if;
   end if;
   end if;
+end if;--p_in_rst,
 end process;
 
---//----------------------------------
---//Video
---//----------------------------------
-p_out_vd <= i_vd_out;
-p_out_vs <= i_vs when G_VSYN_ACTIVE = '1' else not i_vs;
-p_out_hs <= i_hs when G_VSYN_ACTIVE = '1' else not i_hs;
+------------------------------------
+--Video
+------------------------------------
+p_out_vd <= sr_vd_out;
+p_out_vs <= sr_vs when G_VSYN_ACTIVE = '1' else not sr_vs;
+p_out_hs <= sr_hs when G_VSYN_ACTIVE = '1' else not sr_hs;
 p_out_vclk <= p_in_clk;
-p_out_vclk_en <= i_div;
+p_out_vclk_en <= sr_div;
 
 i_vrow_half_count <= '0' & p_in_vrow(p_in_vrow'length - 1 downto 1);
 
---vsync
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+  if rising_edge(p_in_clk) then
+    sr_hs <= i_hs;
+    sr_vs <= i_vs;
+    sr_vd_out <= i_vd_out;
+    sr_div <= i_div;
+  end if;
+end process;
+
+--vsync
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     i_hs <= '0';
     i_vs <= '0';
@@ -130,7 +148,7 @@ begin
     i_row_cnt <= (others=>'0');
     fsm_cs <= S_PIX;
 
-  elsif rising_edge(p_in_clk) then
+  else
   if i_div = '1' then
 
     case fsm_cs is
@@ -189,16 +207,18 @@ begin
 
   end if;
   end if;
+end if;--p_in_rst,
 end process;
 
 --gen test data (вертикальные полоски)
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     for i in 0 to G_VD_WIDTH/8 - 1 loop
     i_vd(i) <= CONV_STD_LOGIC_VECTOR(i, i_vd(i)'length);
     end loop;
-  elsif rising_edge(p_in_clk) then
+  else
   if i_div = '1' then
 
       if i_cfg(5 downto 4) = "01" then
@@ -252,6 +272,7 @@ begin
 
   end if;
   end if;
+end if;--p_in_rst,
 end process;
 
 gen_vd : for i in 0 to G_VD_WIDTH/8 - 1 generate
