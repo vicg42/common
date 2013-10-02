@@ -81,21 +81,21 @@ TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 5 ns HIGH 50%; # 200MHz
 #NET "pin_in_ethphy_gmii[0]_rxd<6>"  LOC = "A20" ;# | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXD6
 #NET "pin_in_ethphy_gmii[0]_rxd<7>"  LOC = "B21" ;# | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXD7
 #NET "pin_in_ethphy_gmii[0]_rx_er"   LOC = "J20" ;# | IOSTANDARD = "LVCMOS25" ; #NET  PHYA_RXER
-#
-#NET "pin_out_ethphy_gmii[0]_tx_en"  LOC = "F21" ;#NET  PHYA_TXEN
-#NET "pin_out_ethphy_gmii[0]_txc"    LOC = "J22" ;#NET  PHYA_GTXCLK
-#NET "pin_out_ethphy_gmii[0]_txd<0>" LOC = "C23" ;#NET  PHYA_TXD0
-#NET "pin_out_ethphy_gmii[0]_txd<1>" LOC = "C24" ;#NET  PHYA_TXD1
-#NET "pin_out_ethphy_gmii[0]_txd<2>" LOC = "F22" ;#NET  PHYA_TXD2
-#NET "pin_out_ethphy_gmii[0]_txd<3>" LOC = "G22" ;#NET  PHYA_TXD3
-#NET "pin_out_ethphy_gmii[0]_txd<4>" LOC = "A24" ;#NET  PHYA_TXD4
-#NET "pin_out_ethphy_gmii[0]_txd<5>" LOC = "B24" ;#NET  PHYA_TXD5
-#NET "pin_out_ethphy_gmii[0]_txd<6>" LOC = "H23" ;#NET  PHYA_TXD6
-#NET "pin_out_ethphy_gmii[0]_txd<7>" LOC = "G23" ;#NET  PHYA_TXD7
-#NET "pin_out_ethphy_gmii[0]_tx_er"  LOC = "E22" ;#NET  PHYA_TXER
-#NET "pin_out_ethphy_gmii[0]_rst"    LOC = "J21" | PULLUP ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_RESET
-#NET "pin_inout_ethphy_mdio" LOC = "D20" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDIO
-#NET "pin_out_ethphy_mdc"    LOC = "C20" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDC
+
+NET "pin_out_ethphy_gmii[0]_tx_en"  LOC = "F21" ;#NET  PHYA_TXEN
+NET "pin_out_ethphy_gmii[0]_txc"    LOC = "J22" ;#NET  PHYA_GTXCLK
+NET "pin_out_ethphy_gmii[0]_txd<0>" LOC = "C23" ;#NET  PHYA_TXD0
+NET "pin_out_ethphy_gmii[0]_txd<1>" LOC = "C24" ;#NET  PHYA_TXD1
+NET "pin_out_ethphy_gmii[0]_txd<2>" LOC = "F22" ;#NET  PHYA_TXD2
+NET "pin_out_ethphy_gmii[0]_txd<3>" LOC = "G22" ;#NET  PHYA_TXD3
+NET "pin_out_ethphy_gmii[0]_txd<4>" LOC = "A24" ;#NET  PHYA_TXD4
+NET "pin_out_ethphy_gmii[0]_txd<5>" LOC = "B24" ;#NET  PHYA_TXD5
+NET "pin_out_ethphy_gmii[0]_txd<6>" LOC = "H23" ;#NET  PHYA_TXD6
+NET "pin_out_ethphy_gmii[0]_txd<7>" LOC = "G23" ;#NET  PHYA_TXD7
+NET "pin_out_ethphy_gmii[0]_tx_er"  LOC = "E22" ;#NET  PHYA_TXER
+NET "pin_out_ethphy_gmii[0]_rst"    LOC = "J21" | PULLUP ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_RESET
+NET "pin_inout_ethphy_mdio" LOC = "D20" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDIO
+NET "pin_out_ethphy_mdc"    LOC = "C20" ;#| IOSTANDARD = "LVCMOS25"; #NET  PHYA_MDC
 
 #--------------------------
 #-- FIBER - SFP-A
@@ -198,7 +198,7 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/bram
 #NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKBUFG";
 #
 #TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 1 ;
+#TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 1 ;
 #TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
 #
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
@@ -215,9 +215,9 @@ NET "m_host/gen_sim_off.m_pcie/m_core/TxOutClk_bufg" TNM_NET = "PCIEXP_TXOUTCLKB
 NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/clk_250" TNM_NET = "PCIEXP_CLK_250" ;
 
 TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % ;
-TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
+TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
 TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
-TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_SYSCLK*1 HIGH 50 % PRIORITY 1;
+TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_PCIEXP_SYSCLK*1 HIGH 50 % PRIORITY 1;
 
 NET "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/sel_lnk_rate_d" TIG ;
 PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
@@ -229,7 +229,7 @@ TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 
 #TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
 
-###-----------  For PCIE-Express (x8) - 2.5G (pcie refclk - 250MHz) -----------
+##-----------  For PCIE-Express (x8) - 2.5G (pcie refclk - 250MHz) -----------
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[4].GTX" LOC = GTXE1_X0Y0; # PCIe Lane 4
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[5].GTX" LOC = GTXE1_X0Y1; # PCIe Lane 5
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[6].GTX" LOC = GTXE1_X0Y2; # PCIe Lane 6
@@ -242,14 +242,14 @@ TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 #
 #TIMESPEC "TS_PCIEXP_SYSCLK"  = PERIOD "PCIEXP_SYSCLK" 250 MHz HIGH 50 % ;
 #TIMESPEC "TS_PCIEXP_CLK_125"  = PERIOD "PCIEXP_CLK_125" TS_PCIEXP_SYSCLK/2 HIGH 50 % PRIORITY 100 ;
-#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "TPCIEXP_XOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
+#TIMESPEC "TS_PCIEXP_TXOUTCLKBUFG"  = PERIOD "PCIEXP_TXOUTCLKBUFG" 250 MHz HIGH 50 % PRIORITY 100 ;
 #TIMESPEC "TS_PCIEXP_CLK_250" = PERIOD "PCIEXP_CLK_250" TS_PCIEXP_SYSCLK*1 HIGH 50 % PRIORITY 1;
 #
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
 #PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
 #
-##TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
+#TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
 #
 #NET "g_host_clk" TNM_NET = "HOST_CLK";
 #TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
