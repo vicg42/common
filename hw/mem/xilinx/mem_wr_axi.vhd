@@ -24,6 +24,7 @@ use work.vicg_common_pkg.all;
 
 entity mem_wr is
 generic(
+G_USR_OPT        : std_logic_vector(3 downto 0):=(others=>'0');
 G_MEM_IDW_NUM    : integer:=0;
 G_MEM_IDR_NUM    : integer:=1;
 G_MEM_BANK_M_BIT : integer:=29;
@@ -46,12 +47,12 @@ p_out_cfg_mem_done   : out   std_logic;                    --Строб: Операции зав
 --Связь с пользовательскими буферами
 -------------------------------
 --usr_buf->mem
-p_in_usr_txbuf_dout  : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_in_usr_txbuf_dout  : in    std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_usr_txbuf_rd   : out   std_logic;
 p_in_usr_txbuf_empty : in    std_logic;
 
 --usr_buf<-mem
-p_out_usr_rxbuf_din  : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
+p_out_usr_rxbuf_din  : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
 p_out_usr_rxbuf_wd   : out   std_logic;
 p_in_usr_rxbuf_full  : in    std_logic;
 
@@ -90,7 +91,7 @@ S_EXIT
 );
 signal fsm_state_cs        : fsm_state;
 
-signal i_mem_adr           : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
+signal i_mem_adr           : std_logic_vector(G_MEM_BANK_L_BIT - 1 downto 0);
 signal i_mem_dir           : std_logic;
 signal i_mem_wr            : std_logic;
 signal i_mem_rd            : std_logic;
@@ -155,13 +156,13 @@ p_out_mem.axiw.trnlen <= i_axi_trnlen(p_out_mem.axiw.trnlen'range);
 p_out_mem.axiw.dbus   <= CONV_STD_LOGIC_VECTOR(log2(G_MEM_DWIDTH/8), p_out_mem.axiw.dbus'length); --2/3/... - BusData=32bit/64bit/...
 p_out_mem.axiw.burst  <= CONV_STD_LOGIC_VECTOR(1, p_out_mem.axiw.burst'length);--0/1 - Fixed( FIFO-type)/INCR (Normal sequential memory)
 p_out_mem.axiw.lock   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.lock'length);
-p_out_mem.axiw.cache  <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.cache'length);
+p_out_mem.axiw.cache  <= "00" & G_USR_OPT(0) & '0';
 p_out_mem.axiw.prot   <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.prot'length);
 p_out_mem.axiw.qos    <= CONV_STD_LOGIC_VECTOR(0, p_out_mem.axiw.qos'length);
 p_out_mem.axiw.avalid <= i_axiw_avalid;
 --WData Port
 p_out_mem.axiw.data  <= EXT(p_in_usr_txbuf_dout, p_out_mem.axiw.data'length);
-gen_wbe : for i in 0 to p_out_mem.axiw.dbe'length-1 generate
+gen_wbe : for i in 0 to p_out_mem.axiw.dbe'length - 1 generate
 p_out_mem.axiw.dbe(i) <= i_mem_wr;
 end generate gen_wbe;
 p_out_mem.axiw.dlast  <= i_mem_term and i_mem_wr;
@@ -212,9 +213,10 @@ i_mem_rd <= i_mem_trn_work and p_in_mem.axir.dvalid and not p_in_usr_rxbuf_full 
 i_mem_wr <= i_mem_trn_work and p_in_mem.axiw.wready and not p_in_usr_txbuf_empty when i_mem_dir = C_MEMWR_WRITE else '0';
 
 --Логика работы автомата
-process(p_in_rst,p_in_clk)
+process(p_in_clk)
   variable update_addr: std_logic_vector(i_mem_trn_len'length + log2(G_MEM_DWIDTH/8) - 1 downto 0);
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst='1' then
 
     fsm_state_cs <= S_IDLE;
@@ -236,7 +238,7 @@ begin
     i_cfg_mem_dlen_rq <= (others=>'0');
     i_cfg_mem_trn_len <= (others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     case fsm_state_cs is
 
@@ -247,7 +249,7 @@ begin
       --Ждем сигнала запуска операции
       --------------------------------------
         if p_in_cfg_mem_start = '1' then
-          i_mem_adr <= p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
+          i_mem_adr <= p_in_cfg_mem_adr(G_MEM_BANK_L_BIT - 1 downto 0);
           i_mem_dir <= p_in_cfg_mem_wr;
           i_cfg_mem_dlen_rq <= p_in_cfg_mem_dlen_rq;
           i_cfg_mem_trn_len <= p_in_cfg_mem_trn_len;
@@ -379,6 +381,7 @@ begin
 
     end case;
   end if;
+end if;
 end process;
 
 --END MAIN

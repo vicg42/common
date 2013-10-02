@@ -24,7 +24,8 @@ use work.mem_wr_pkg.all;
 
 entity mem_wr is
 generic(
-G_MEM_BANK_M_BIT : integer:=29;--//биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
+G_USR_OPT        : std_logic_vector(3 downto 0):=(others=>'0');
+G_MEM_BANK_M_BIT : integer:=29;--биты(мл. ст.) определяющие банк ОЗУ. Относится в порту p_in_cfg_mem_adr
 G_MEM_BANK_L_BIT : integer:=28;
 G_MEM_AWIDTH     : integer:=32;
 G_MEM_DWIDTH     : integer:=32
@@ -33,12 +34,12 @@ port(
 -------------------------------
 --Конфигурирование
 -------------------------------
-p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--//Адрес ОЗУ (в BYTE)
-p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--//Размер одиночной MEM_TRN (в DWORD)
-p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--//Размер запрашиваемых данных записи/чтения (в DWORD)
-p_in_cfg_mem_wr      : in    std_logic;                    --//Тип операции
-p_in_cfg_mem_start   : in    std_logic;                    --//Строб: Пуск операции
-p_out_cfg_mem_done   : out   std_logic;                    --//Строб: Операции завершена
+p_in_cfg_mem_adr     : in    std_logic_vector(31 downto 0);--Адрес ОЗУ (в BYTE)
+p_in_cfg_mem_trn_len : in    std_logic_vector(15 downto 0);--Размер одиночной MEM_TRN (в DWORD)
+p_in_cfg_mem_dlen_rq : in    std_logic_vector(15 downto 0);--Размер запрашиваемых данных записи/чтения (в DWORD)
+p_in_cfg_mem_wr      : in    std_logic;                    --Тип операции
+p_in_cfg_mem_start   : in    std_logic;                    --Строб: Пуск операции
+p_out_cfg_mem_done   : out   std_logic;                    --Строб: Операции завершена
 
 -------------------------------
 --Связь с пользовательскими буферами
@@ -89,7 +90,7 @@ S_EXIT
 );
 signal fsm_state_cs        : fsm_state;
 
-signal i_mem_req           : std_logic;--//Запрос на захват ОЗУ
+signal i_mem_req           : std_logic;--Запрос на захват ОЗУ
 signal i_mem_bank          : std_logic_vector(p_out_mem.bank'range);
 signal i_mem_adr           : std_logic_vector(G_MEM_BANK_L_BIT-1 downto 0);
 signal i_mem_dir           : std_logic;
@@ -114,9 +115,9 @@ signal tst_fsm_cs          : std_logic_vector(3 downto 0);
 --MAIN
 begin
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 --p_out_tst<=(others=>'0');
 p_out_tst(0)<=i_mem_term;
 p_out_tst(1)<=sr_mem_term;
@@ -133,12 +134,12 @@ tst_fsm_cs<=CONV_STD_LOGIC_VECTOR(16#01#,tst_fsm_cs'length) when fsm_state_cs=S_
             CONV_STD_LOGIC_VECTOR(16#07#,tst_fsm_cs'length) when fsm_state_cs=S_MEM_TRN_END           else
             CONV_STD_LOGIC_VECTOR(16#08#,tst_fsm_cs'length) when fsm_state_cs=S_WAIT                  else
             CONV_STD_LOGIC_VECTOR(16#09#,tst_fsm_cs'length) when fsm_state_cs=S_EXIT                  else
-            CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --//when fsm_state_cs=S_IDLE               else
+            CONV_STD_LOGIC_VECTOR(16#00#,tst_fsm_cs'length); --when fsm_state_cs=S_IDLE               else
 
 
---//-----------------------------
---//Связь с пользовательскими буферами
---//-----------------------------
+-------------------------------
+--Связь с пользовательскими буферами
+-------------------------------
 p_out_usr_txbuf_rd <= i_mem_wr;
 
 process(p_in_rst,p_in_clk)
@@ -153,9 +154,9 @@ begin
 end process;
 
 
---//----------------------------------------------
---//Связь с контроллером памяти
---//----------------------------------------------
+------------------------------------------------
+--Связь с контроллером памяти
+------------------------------------------------
 p_out_mem.clk <=p_in_clk;
 p_out_mem.req <=i_mem_req;
 p_out_mem.ce  <=i_mem_ce when i_mem_dir=C_MEMWR_READ else sr_mem_ce;
@@ -205,9 +206,9 @@ begin
 end process;
 
 
---//----------------------------------------------
---//Автомат записи/чтения данных ОЗУ
---//----------------------------------------------
+------------------------------------------------
+--Автомат записи/чтения данных ОЗУ
+------------------------------------------------
 --Текущая операция выполнена
 p_out_cfg_mem_done<=i_mem_done;
 
@@ -249,7 +250,7 @@ begin
           i_mem_adr<=p_in_cfg_mem_adr(G_MEM_BANK_L_BIT-1 downto 0);
           i_mem_dir <=p_in_cfg_mem_wr;
 
-          --//Назначаем банк ОЗУ
+          --Назначаем банк ОЗУ
           for i in 0 to i_mem_bank'high loop
             if p_in_cfg_mem_adr(G_MEM_BANK_M_BIT downto G_MEM_BANK_L_BIT)= i then
               i_mem_bank(i) <= '1';
@@ -280,7 +281,7 @@ begin
           i_mem_trn_len <= i_mem_dlen_remain(i_mem_trn_len'high downto 0);
         end if;
 
-        i_mem_req<='1';--//Запрос на захват ОЗУ
+        i_mem_req<='1';--Запрос на захват ОЗУ
         fsm_state_cs <= S_MEM_WAIT_RQ_EN;--S_MEM_TRN_START;
 
       --------------------------------------
@@ -339,14 +340,14 @@ begin
       ------------------------------------------------
       when S_MEM_TRN_END =>
 
-        --//Вычисляем значение для обнавления адреса ОЗУ
-        update_addr(1 downto 0):=(others=>'0');--//Если p_in_cfg_mem_trn_len в DW
+        --Вычисляем значение для обнавления адреса ОЗУ
+        update_addr(1 downto 0):=(others=>'0');--Если p_in_cfg_mem_trn_len в DW
         update_addr(i_mem_trn_len'length+1 downto 2):=p_in_cfg_mem_trn_len;
 
         if p_in_cfg_mem_dlen_rq=i_mem_dlen_used then
           fsm_state_cs <= S_EXIT;
         else
-          --//Вычисляем следующий адрес ОЗУ
+          --Вычисляем следующий адрес ОЗУ
           i_mem_adr<=i_mem_adr + EXT(update_addr, i_mem_adr'length);
 
           fsm_state_cs <= S_WAIT;--S_MEM_REMAIN_SIZE_CALC;

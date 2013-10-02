@@ -49,12 +49,13 @@ end record;
 Type TMemINCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemIN;
 Type TMemOUTCh is array (0 to C_MEMCH_COUNT_MAX-1) of TMemOUT;
 
---//Режимы работы - запись/чтение
+--Режимы работы - запись/чтение
 constant C_MEMWR_WRITE   : std_logic:='1';
 constant C_MEMWR_READ    : std_logic:='0';
 
 component mem_wr
 generic(
+G_USR_OPT        : std_logic_vector(3 downto 0):=(others=>'0');
 G_MEM_BANK_M_BIT : integer:=29;
 G_MEM_BANK_L_BIT : integer:=28;
 G_MEM_AWIDTH     : integer:=32;
@@ -74,12 +75,12 @@ p_out_cfg_mem_done   : out   std_logic;
 -------------------------------
 -- Связь с пользовательскими буферами
 -------------------------------
---//usr_buf->mem
+--usr_buf->mem
 p_in_usr_txbuf_dout  : in    std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_usr_txbuf_rd   : out   std_logic;
 p_in_usr_txbuf_empty : in    std_logic;
 
---//usr_buf<-mem
+--usr_buf<-mem
 p_out_usr_rxbuf_din  : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_usr_rxbuf_wd   : out   std_logic;
 p_in_usr_rxbuf_full  : in    std_logic;
