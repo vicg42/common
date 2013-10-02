@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.5
-# Date: Thu Aug 29 12:56:25 2013
+# Date: Thu Sep 26 08:34:08 2013
 #
 ##############################################################
 #
@@ -12,7 +12,7 @@
 #
 ##############################################################
 #
-#  Generated from component: xilinx.com:ip:axi_interconnect:1.04.a
+#  Generated from component: xilinx.com:ip:axi_interconnect:1.06.a
 #
 ##############################################################
 #
@@ -36,7 +36,7 @@ SET verilogsim = false
 SET vhdlsim = true
 # END Project Options
 # BEGIN Select
-SELECT AXI_Interconnect xilinx.com:ip:axi_interconnect:1.04.a
+SELECT AXI_Interconnect xilinx.com:ip:axi_interconnect:1.06.a
 # END Select
 # BEGIN Parameters
 CSET aclk_period=250
@@ -249,7 +249,7 @@ CSET s15_axi_write_fifo_depth=0_(none)
 CSET thread_id_width=4
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2011-09-10T01:01:17Z
+MISC pkg_timestamp=2013-03-15T16:49:59Z
 # END Extra information
 GENERATE
-# CRC: 1d8bc9d2
+# CRC: 4209010f

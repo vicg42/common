@@ -1,7 +1,7 @@
 ##############################################################
 #
-# Xilinx Core Generator version 14.2
-# Date: Mon Oct 08 10:25:04 2012
+# Xilinx Core Generator version 14.5
+# Date: Thu Sep 26 08:17:12 2013
 #
 ##############################################################
 #
@@ -86,7 +86,7 @@ CSET unicast_pause_mac_address_5=EE
 CSET unicast_pause_mac_address_6=FF
 # END Parameters
 # BEGIN Extra information
-MISC pkg_timestamp=2012-07-21T06:13:46Z
+MISC pkg_timestamp=2013-03-27T03:18:11Z
 # END Extra information
 GENERATE
-# CRC: 8cdf92b6
+# CRC: e6324f25

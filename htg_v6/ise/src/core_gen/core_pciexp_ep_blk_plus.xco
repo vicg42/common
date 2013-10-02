@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.5
-# Date: Thu Aug 29 10:31:47 2013
+# Date: Fri Sep 27 12:50:00 2013
 #
 ##############################################################
 #
@@ -79,7 +79,7 @@ CSET bar5_scale=Kilobytes
 CSET bar5_size=2
 CSET bar5_type=N/A
 CSET base_class_menu=Simple_communication_controllers
-CSET buf_opt_bma=false
+CSET buf_opt_bma=true
 CSET cardbus_cis_pointer=00000000
 CSET class_code_base=FF
 CSET class_code_interface=00
@@ -147,7 +147,7 @@ CSET intx_generation=true
 CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
 CSET link_speed=5.0_GT/s
-CSET max_payload_size=512_bytes
+CSET max_payload_size=1024_bytes
 CSET maximum_link_width=X4
 CSET msi_64b=true
 CSET msi_enabled=true
@@ -205,4 +205,4 @@ CSET xlnx_ref_board=None
 MISC pkg_timestamp=2013-03-27T03:45:13Z
 # END Extra information
 GENERATE
-# CRC:  7d2724b
+# CRC: 77136b56
