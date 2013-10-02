@@ -17,9 +17,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
+library work;
 use work.vicg_common_pkg.all;
 
 entity time_gen is
