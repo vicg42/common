@@ -15,11 +15,9 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.std_logic_arith.ext;
-
-library unisim;
-use unisim.vcomponents.all;
+use ieee.std_logic_arith.all;
+use ieee.std_logic_misc.all;
+use ieee.std_logic_unsigned.all;
 
 library work;
 use work.mem_ctrl_pkg.all;

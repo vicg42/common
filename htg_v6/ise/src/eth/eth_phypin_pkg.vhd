@@ -62,12 +62,12 @@ type TEthPhyGMIIPinINs is array (0 to 0) of TEthPhyGMIIPinIN;
 ----------------------------
 type TEthPhyPinOUT is record
 fiber : TEthPhyFiberPinOUT;
---gmii : TEthPhyGMIIPinOUTs;
+gmii : TEthPhyGMIIPinOUTs;
 end record;
 
 type TEthPhyPinIN is record
 fiber : TEthPhyFiberPinIN;
---gmii : TEthPhyGMIIPinINs;
+gmii : TEthPhyGMIIPinINs;
 end record;
 
 end eth_phypin_pkg;
