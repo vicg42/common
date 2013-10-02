@@ -66,7 +66,7 @@ begin
 end //always @
 
 // FSM для обмена с МУП
-always @(posedge rst or posedge clk)
+always @(posedge clk)
 begin
    if(rst) begin
          state <= S_W;

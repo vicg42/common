@@ -67,11 +67,12 @@ parameter G_HOST_DWIDTH = 32
    wire empty_i_tmp;
    reg [0:2] sr_tx_start;
    reg empty_i_en,sr_tmr_en;
+   reg i_trans_ack;
 
 //Отправка данных по таймеру или програмно
 assign empty_i = !( (!empty_i_tmp && empty_i_en && sr_tmr_en) || (!empty_i_tmp && !sr_tmr_en) );
 
-always @(posedge rst or posedge clk_io)
+always @(posedge clk_io)
 begin
    if (rst)
    begin
@@ -90,9 +91,22 @@ begin
      end
 end //always @
 
+always @(posedge rst or posedge host_clk_wr or posedge busy)
+begin
+   if (rst || busy)
+   begin
+     i_trans_ack <= 1'b0;
+   end
+   else
+     begin
+        if (trans_ack)
+          i_trans_ack <= 1'b1;
+     end
+end //always @
+
 genvar i;
 generate
-for(i = 0; i <= ((G_HOST_DWIDTH / 32) - 1); i = i + 1) begin : swap
+for(i = 0; i < (G_HOST_DWIDTH / 32); i = i + 1) begin : swap
 assign data_from_host_tmp[(G_HOST_DWIDTH - (32 * i) - 1) :
                           (G_HOST_DWIDTH - (32 * (i + 1)))] = data_from_host[(32 * (i + 1)) - 1 : (32 * i)];
 
@@ -129,7 +143,7 @@ assign ready = ~empty_o & ~busy;
 
 // Поочередное общение со всеми МУПами пульта
 // Первое данное из фифо не читаем (fall-through) !!
-always @(posedge rst or posedge clk_io)
+always @(posedge clk_io)
 begin
    if(rst) begin
          state <= S_W;
@@ -141,7 +155,7 @@ begin
          busy <= 0;
       end
    else if (clk_io_en) case(state)
-      S_W: if (trans_ack && ~empty_i) begin
+      S_W: if (i_trans_ack && ~empty_i) begin
             state <= S_1;
             start_mup <= 1;
             n_mup <= 0;
