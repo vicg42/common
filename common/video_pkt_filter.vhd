@@ -28,9 +28,6 @@ use ieee.std_logic_unsigned.all;
 library work;
 use work.prj_def.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 entity video_pkt_filter is
 generic(
 G_DWIDTH : integer := 32;
@@ -53,10 +50,10 @@ p_in_upp_sof    : in    std_logic;
 --------------------------------------
 --Downstream Port
 --------------------------------------
-p_out_dwnp_data : out   std_logic_vector(G_DWIDTH - 1 downto 0):=(others=>'0');
-p_out_dwnp_wr   : out   std_logic:='0';
-p_out_dwnp_eof  : out   std_logic:='0';
-p_out_dwnp_sof  : out   std_logic:='0';
+p_out_dwnp_data : out   std_logic_vector(G_DWIDTH - 1 downto 0);
+p_out_dwnp_wr   : out   std_logic;
+p_out_dwnp_eof  : out   std_logic;
+p_out_dwnp_sof  : out   std_logic;
 
 -------------------------------
 --Технологический
@@ -74,10 +71,15 @@ end video_pkt_filter;
 
 architecture behavioral of video_pkt_filter is
 
-signal sr_upp_data   : std_logic_vector(G_DWIDTH - 1 downto 0):=(others=>'0');
-signal sr_upp_sof    : std_logic:='0';
-signal sr_upp_wr     : std_logic:='0';
-signal sr_upp_eof    : std_logic:='0';
+signal i_dwnp_data   : std_logic_vector(G_DWIDTH - 1 downto 0) := (others=>'0');
+signal i_dwnp_wr     : std_logic := '0';
+signal i_dwnp_eof    : std_logic := '0';
+signal i_dwnp_sof    : std_logic := '0';
+
+signal sr_upp_data   : std_logic_vector(G_DWIDTH - 1 downto 0) := (others=>'0');
+signal sr_upp_sof    : std_logic := '0';
+signal sr_upp_wr     : std_logic := '0';
+signal sr_upp_eof    : std_logic := '0';
 
 signal i_pkt_type    : std_logic_vector(3 downto 0);
 signal i_pkt_subtype : std_logic_vector(3 downto 0);
@@ -106,26 +108,32 @@ begin
       sr_upp_data <= p_in_upp_data;
     end if;
 
-    p_out_dwnp_sof  <= sr_upp_sof and i_pkt_en;
-    p_out_dwnp_eof  <= sr_upp_eof and i_pkt_en;
-    p_out_dwnp_wr   <= sr_upp_wr  and i_pkt_en;
-    p_out_dwnp_data <= sr_upp_data;
+    i_dwnp_sof  <= sr_upp_sof and i_pkt_en;
+    i_dwnp_eof  <= sr_upp_eof and i_pkt_en;
+    i_dwnp_wr   <= sr_upp_wr  and i_pkt_en;
+    i_dwnp_data <= sr_upp_data;
 
   end if;
 end process;
+
+p_out_dwnp_sof  <= i_dwnp_sof ;
+p_out_dwnp_eof  <= i_dwnp_eof ;
+p_out_dwnp_wr   <= i_dwnp_wr  ;
+p_out_dwnp_data <= i_dwnp_data;
 
 --Разрешение пропуска пакета
 i_pkt_type(3 downto 0) <= p_in_upp_data(19 downto 16);
 i_pkt_subtype(3 downto 0) <= p_in_upp_data(23 downto 20);
 
-process(p_in_rst,p_in_clk)
+process(p_in_clk)
 variable pkt_valid : std_logic;
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst='1' then
     i_pkt_en <= '0';
       pkt_valid := '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
       pkt_valid := '0';
 
@@ -147,6 +155,7 @@ begin
     end if;
 
   end if;
+end if;
 end process;
 
 
