@@ -17,9 +17,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 
@@ -32,7 +29,7 @@ port(
 -- Управление
 -------------------------------
 p_in_cfg_mirx       : in    std_logic;                    --1/0 - Вкл./Выкл отзеркаливание строки видеоданных
-p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0):=(others=>'0');--Кол-во пиксел в byte
+p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);--Кол-во пиксел в byte
 
 p_out_cfg_mirx_done : out   std_logic;                    --Обработка завершена.
 
@@ -104,10 +101,10 @@ S_BUF_RD_EOF
 );
 signal fsm_state_cs: fsm_state;
 
-signal i_pix_count       : std_logic_vector(p_in_cfg_pix_count'high downto 0);
+signal i_pix_count       : std_logic_vector(p_in_cfg_pix_count'range);
 signal i_mirx_done       : std_logic;
 
-signal i_buf_adr         : std_logic_vector(i_pix_count'range);
+signal i_buf_adr         : std_logic_vector(p_in_cfg_pix_count'range);
 signal i_buf_di          : std_logic_vector(G_DWIDTH - 1 downto 0);
 signal i_buf_do          : std_logic_vector(G_DWIDTH - 1 downto 0);
 signal i_buf_dir         : std_logic;
@@ -185,8 +182,9 @@ p_out_cfg_mirx_done <= i_mirx_done;
 --------------------------------------
 --Запись/Чтение Буфера строки
 --------------------------------------
-process(p_in_rst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
 
     fsm_state_cs <= S_BUF_WR;
@@ -196,7 +194,7 @@ begin
     i_mirx_done <= '1';
     i_read_en <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     case fsm_state_cs is
 
@@ -270,6 +268,7 @@ begin
     end case;
 
   end if;
+end if;
 end process;
 
 
