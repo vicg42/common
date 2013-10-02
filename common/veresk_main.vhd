@@ -59,6 +59,8 @@ pin_inout_phymem    : inout TMEMCTRL_phy_inouts;
 --------------------------------------------------
 pin_out_ethphy      : out   TEthPhyPinOUT;
 pin_in_ethphy       : in    TEthPhyPinIN;
+pin_inout_ethphy_mdio  : inout std_logic;
+pin_out_ethphy_mdc     : out   std_logic;
 
 --------------------------------------------------
 --PCI-EXPRESS
@@ -177,11 +179,12 @@ signal i_host_dev_irq                   : std_logic_vector(C_HIRQ_COUNT_MAX - 1 
 signal i_host_dev_opt_in                : std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 signal i_host_dev_opt_out               : std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
-signal i_host_devadr                    : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
+signal i_host_devadr                    : std_logic_vector(C_HREG_DEV_CTRL_ADR_M_BIT
+                                                              - C_HREG_DEV_CTRL_ADR_L_BIT downto 0);
 signal i_host_vchsel                    : std_logic_vector(3 downto 0);
 
 Type THostDCtrl is array (0 to C_HDEV_COUNT - 1) of std_logic;
-Type THostDWR is array (0 to C_HDEV_COUNT - 1) of std_logic_vector(i_host_dev_txd'range);
+Type THostDWR is array (0 to C_HDEV_COUNT - 1) of std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 signal i_host_wr                        : THostDCtrl;
 signal i_host_rd                        : THostDCtrl;
 signal i_host_txd                       : THostDWR;
@@ -190,17 +193,9 @@ signal i_host_rxbuf_full                : THostDCtrl;
 signal i_host_rxbuf_empty               : THostDCtrl;
 signal i_host_txbuf_full                : THostDCtrl;
 signal i_host_txbuf_empty               : THostDCtrl;
-signal i_host_irq                       : std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
---signal i_host_txd_rdy                   : THostDCtrl;
+signal i_host_txd_rdy                   : THostDCtrl;
 signal i_host_err                       : THostDCtrl;
 
-signal i_host_rst_all                   : std_logic;
-signal i_host_rst_eth                   : std_logic;
-signal i_host_rst_pult                  : std_logic;
-signal i_host_rst_edev                  : std_logic;
-signal i_host_rst_vizir                 : std_logic;
-signal i_host_rst_bup                   : std_logic;
-signal i_host_rst_prom                  : std_logic;
 signal i_hdev_dma_start                 : std_logic_vector(C_HDEV_VCH downto C_HDEV_VCH);
 signal hclk_hdev_dma_start              : std_logic_vector(C_HDEV_VCH downto C_HDEV_VCH);
 Type THDevWidthCnt is array (C_HDEV_VCH to C_HDEV_VCH) of std_logic_vector(2 downto 0);
@@ -228,7 +223,8 @@ signal i_cfg_done_dev                   : std_logic_vector(C_CFGDEV_COUNT - 1 do
 --signal i_cfg_tst_out                    : std_logic_vector(31 downto 0);
 
 signal i_swt_rst                        : std_logic;
-signal i_swt_tst_out,i_swt_tst_in       : std_logic_vector(31 downto 0);
+signal i_swt_tst_out                    : std_logic_vector(31 downto 0);
+signal i_swt_tst_in                     : std_logic_vector(31 downto 0);
 signal i_eth_rst                        : std_logic;
 signal i_eth_out                        : TEthOUTs;
 signal i_eth_in                         : TEthINs;
@@ -243,26 +239,25 @@ signal i_tmr_hirq                       : std_logic_vector(C_TMR_COUNT - 1 downt
 signal i_tmr_en                         : std_logic_vector(C_TMR_COUNT - 1 downto 0);
 
 signal i_vctrl_rst                      : std_logic;
-signal i_vctrl_vbufi_do                 : std_logic_vector(31 downto 0);
+signal hclk_hrddone_vctrl_cnt           : std_logic_vector(2 downto 0);
+signal hclk_hrddone_vctrl               : std_logic;
+signal i_vctrl_vbufi_do                 : std_logic_vector(C_PCFG_VCTRL_VBUFI_OWIDTH - 1 downto 0);
 signal i_vctrl_vbufi_rd                 : std_logic;
 signal i_vctrl_vbufi_empty              : std_logic;
+signal i_vctrl_vbufi_pfull              : std_logic;
 signal i_vctrl_vbufi_full               : std_logic;
 
 signal i_vctrl_hrd_start                : std_logic;
-signal i_vctrl_hirq_out                 : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vctrl_hrdy_out                 : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_vctrl_hrd_done                 : std_logic;
+signal sr_vctrl_hrd_done                : std_logic_vector(1 downto 0);
+signal i_vctrl_hrdy                     : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vctrl_hfrmrk                   : std_logic_vector(31 downto 0);
 signal i_vctrl_tst_out                  : std_logic_vector(31 downto 0);
-signal i_vctrlwr_memin                  : TMemIN;
-signal i_vctrlwr_memout                 : TMemOUT;
-signal i_vctrlrd_memin                  : TMemIN;
-signal i_vctrlrd_memout                 : TMemOUT;
+signal i_vctrl_tst_in                   : std_logic_vector(31 downto 0);
 
 signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
 signal i_host_mem_status                : TPce2Mem_Status;
-signal i_host_memin                     : TMemIN;
-signal i_host_memout                    : TMemOUT;
 signal i_host_mem_tst_out               : std_logic_vector(31 downto 0);
 
 signal i_memin_ch                       : TMemINCh;
@@ -287,9 +282,7 @@ signal i_edev_rst                       : std_logic;
 signal i_bup_rst                        : std_logic;
 signal i_bup_syn_en                     : std_logic;
 signal i_bup_syn                        : std_logic;
-signal i_bup_en_sync120                 : std_logic;
 signal i_vizir_rst                      : std_logic;
-signal i_vizir_bitclk                   : std_logic;
 
 signal i_out_1s                         : std_logic;
 signal i_pps                            : std_logic;
@@ -303,8 +296,11 @@ attribute keep of g_usrclk : signal is "true";
 attribute keep of i_ethphy_out : signal is "true";
 
 signal i_test01_led     : std_logic;
+signal tst_clr          : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
 --signal tst_prom_out     : std_logic_vector(31 downto 0);
+--signal tst_vctrl_vbufi_empty : std_logic;
+--signal tst_vctrl_vbufo_empty : std_logic;
 
 
 --MAIN
@@ -316,19 +312,31 @@ begin
 --***********************************************************
 i_host_rst_n <= pin_in_pciexp_rstn;
 
-i_tmr_rst <= not i_host_rst_n or i_host_rst_all;
-i_cfg_rst <= not i_host_rst_n or i_host_rst_all;
-i_eth_rst <= not i_host_rst_n or i_host_rst_all or i_host_rst_eth or i_usrclk_rst;
+i_tmr_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+i_cfg_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+
+i_eth_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
+                              or i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
+
 i_vctrl_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
-i_swt_rst <= not i_host_rst_n or i_host_rst_all;
+i_swt_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 i_host_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
-i_mem_ctrl_sysin.rst <= not i_host_rst_n or i_host_rst_all or i_usrclk_rst;
+i_mem_ctrl_sysin.rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
-i_pult_rst <= i_usrclk_rst or i_host_rst_pult or i_host_rst_all;
-i_edev_rst <= i_usrclk_rst or i_host_rst_edev or i_host_rst_all;
-i_vizir_rst <= i_usrclk_rst or i_host_rst_vizir or i_host_rst_all;
-i_bup_rst <= i_usrclk_rst or i_host_rst_bup or i_host_rst_all;
-i_prom_rst <= i_usrclk_rst or i_host_rst_prom;
+
+i_pult_rst <= i_usrclk_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
+                            or i_host_gctrl(C_HREG_CTRL_RST_PULT_BIT);
+
+i_edev_rst <= i_usrclk_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
+                            or i_host_gctrl(C_HREG_CTRL_RST_EDEV_BIT);
+
+i_vizir_rst <= i_usrclk_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
+                            or i_host_gctrl(C_HREG_CTRL_RST_VIZIR_BIT);
+
+i_bup_rst <= i_usrclk_rst or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
+                          or i_host_gctrl(C_HREG_CTRL_RST_BUP_BIT);
+
+i_prom_rst <= i_usrclk_rst or i_host_gctrl(C_HREG_CTRL_RST_PROM_BIT);
 
 
 --***********************************************************
@@ -380,7 +388,7 @@ p_in_hrxbuf_rd       => i_host_rd(C_HDEV_CFG),
 p_out_hrxbuf_full    => open,
 p_out_hrxbuf_empty   => i_host_rxbuf_empty(C_HDEV_CFG),
 
-p_out_hirq           => i_host_irq(C_HIRQ_CFG_RX),
+p_out_hirq           => i_host_dev_irq(C_HIRQ_CFG),
 p_out_herr           => open,
 
 p_in_hclk            => g_host_clk,
@@ -418,8 +426,7 @@ p_in_rst => i_cfg_rst
 i_cfg_rxd <= i_cfg_rxd_dev(C_CFGDEV_ETH)   when i_cfg_dadr(3 downto 0) = CONV_STD_LOGIC_VECTOR(C_CFGDEV_ETH, 4)   else
              i_cfg_rxd_dev(C_CFGDEV_VCTRL) when i_cfg_dadr(3 downto 0) = CONV_STD_LOGIC_VECTOR(C_CFGDEV_VCTRL, 4) else
              i_cfg_rxd_dev(C_CFGDEV_SWT)   when i_cfg_dadr(3 downto 0) = CONV_STD_LOGIC_VECTOR(C_CFGDEV_SWT, 4)   else
-             i_cfg_rxd_dev(C_CFGDEV_TMR)   when i_cfg_dadr(3 downto 0) = CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4)   else
-             (others=>'0');
+             i_cfg_rxd_dev(C_CFGDEV_TMR);--   when i_cfg_dadr(3 downto 0) = CONV_STD_LOGIC_VECTOR(C_CFGDEV_TMR, 4)   else
 
 gen_cfg_dev : for i in 0 to C_CFGDEV_COUNT - 1 generate
 i_cfg_wr_dev(i)   <= i_cfg_wr   when i_cfg_dadr = i else '0';
@@ -434,7 +441,7 @@ end generate gen_cfg_dev;
 m_tmr : dsn_timer
 port map(
 -------------------------------
--- Конфигурирование модуля dsn_timer.vhd (host_clk domain)
+--CFG
 -------------------------------
 p_in_host_clk     => g_host_clk,
 
@@ -451,7 +458,7 @@ p_in_cfg_rd       => i_cfg_rd_dev(C_CFGDEV_TMR),
 p_in_cfg_done     => i_cfg_wr_dev(C_CFGDEV_TMR),
 
 -------------------------------
--- STATUS модуля dsn_timer.vhd
+--
 -------------------------------
 p_in_tmr_clk      => i_tmr_clk,
 p_out_tmr_rdy     => open,
@@ -466,6 +473,7 @@ p_out_tmr_en      => i_tmr_en,
 p_in_rst => i_tmr_rst
 );
 
+
 --***********************************************************
 --Проект модуля Комутатор
 --***********************************************************
@@ -473,6 +481,7 @@ m_swt : dsn_switch
 generic map(
 G_ETH_CH_COUNT => C_PCFG_ETH_COUNT,
 G_ETH_DWIDTH => C_PCFG_ETH_USR_DWIDTH,
+G_VBUFI_OWIDTH => C_PCFG_VCTRL_VBUFI_OWIDTH,
 G_HOST_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
@@ -496,42 +505,45 @@ p_in_cfg_done             => i_cfg_done_dev(C_CFGDEV_SWT),
 -------------------------------
 --HOST
 -------------------------------
---host -> eth
+--host -> dev
 p_in_eth_htxbuf_di        => i_host_txd(C_HDEV_ETH),
 p_in_eth_htxbuf_wr        => i_host_wr(C_HDEV_ETH),
 p_out_eth_htxbuf_full     => i_host_txbuf_full(C_HDEV_ETH),
 p_out_eth_htxbuf_empty    => i_host_txbuf_empty(C_HDEV_ETH),
 
---host <- eth
+--host <- dev
 p_out_eth_hrxbuf_do       => i_host_rxd(C_HDEV_ETH),
 p_in_eth_hrxbuf_rd        => i_host_rd(C_HDEV_ETH),
-p_out_eth_hrxbuf_full     => open,
+p_out_eth_hrxbuf_full     => i_host_rxbuf_full(C_HDEV_ETH),
 p_out_eth_hrxbuf_empty    => i_host_rxbuf_empty(C_HDEV_ETH),
 
-p_out_eth_hirq            => i_host_irq(C_HIRQ_ETH_RX),
+p_out_eth_hirq            => i_host_dev_irq(C_HIRQ_ETH),
 
 p_in_hclk                 => g_host_clk,
 
 -------------------------------
 --ETH
 -------------------------------
+p_in_eth_tmr_irq          => i_tmr_hirq(C_TMR_ETH),
+p_in_eth_tmr_en           => i_tmr_en(C_TMR_ETH),
+p_in_eth_clk              => i_ethphy_out.clk,
 p_in_eth                  => i_eth_out,
 p_out_eth                 => i_eth_in,
 
 -------------------------------
---VCTRL
+--VBUFI
 -------------------------------
-p_in_vctrl_clk            => g_usr_highclk,
-
-p_out_vctrl_vbufi_do      => i_vctrl_vbufi_do,
-p_in_vctrl_vbufi_rd       => i_vctrl_vbufi_rd,
-p_out_vctrl_vbufi_empty   => i_vctrl_vbufi_empty,
-p_out_vctrl_vbufi_full    => i_vctrl_vbufi_full,
+p_in_vbufi_rdclk          => g_usr_highclk,
+p_out_vbufi_do            => i_vctrl_vbufi_do,
+p_in_vbufi_rd             => i_vctrl_vbufi_rd,
+p_out_vbufi_empty         => i_vctrl_vbufi_empty,
+p_out_vbufi_full          => i_vctrl_vbufi_full,
+p_out_vbufi_pfull         => i_vctrl_vbufi_pfull,
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                  => i_swt_tst_in,
+p_in_tst                  => (others=>'0'),--i_swt_tst_in,
 p_out_tst                 => i_swt_tst_out,
 
 -------------------------------
@@ -539,10 +551,6 @@ p_out_tst                 => i_swt_tst_out,
 -------------------------------
 p_in_rst => i_swt_rst
 );
-
-i_swt_tst_in(0) <= i_tmr_hirq(C_TMR_ETH);
-i_swt_tst_in(1) <= i_tmr_en(C_TMR_ETH);
-i_swt_tst_in(31 downto 2) <= (others=>'0');
 
 
 --***********************************************************
@@ -555,6 +563,10 @@ i_ethphy_in.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT) <= g_usrclk(0);
 i_ethphy_in.opt(32) <= g_usrclk(6);
 i_ethphy_in.opt(33) <= i_usrclk_rst;--rst
 i_ethphy_in.opt(34) <= g_usrclk(2);--clkdrp
+
+pin_inout_ethphy_mdio <= i_ethphy_out.mdio when i_ethphy_out.mdio_t = '1' else 'Z';
+pin_out_ethphy_mdc <= i_ethphy_out.mdc;
+i_ethphy_in.mdio <= pin_inout_ethphy_mdio;
 
 m_eth : dsn_eth
 generic map(
@@ -587,7 +599,7 @@ p_in_cfg_done         => i_cfg_done_dev(C_CFGDEV_ETH),
 p_in_cfg_rst          => i_cfg_rst,
 
 -------------------------------
---usr port
+--USR
 -------------------------------
 p_out_eth             => i_eth_out,
 p_in_eth              => i_eth_in,
@@ -612,21 +624,22 @@ p_in_rst              => i_eth_rst
 );
 
 
-
 --***********************************************************
 --Проект модуля видео контролера - dsn_video_ctrl.vhd
 --***********************************************************
 m_vctrl : dsn_video_ctrl
 generic map(
-G_DBGCS => "ON",
+G_USR_OPT => C_PCFG_VCTRL_USR_OPT,
+G_DBGCS => C_PCFG_VCTRL_DBG,
 G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
-G_MEM_DWIDTH => C_HDEV_DWIDTH
+G_MEMWR_DWIDTH => C_PCFG_VCTRL_VBUFI_OWIDTH,
+G_MEMRD_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
 -------------------------------
 --CFG
 -------------------------------
-p_in_host_clk        => g_host_clk,
+p_in_cfg_clk         => g_host_clk,
 
 p_in_cfg_adr         => i_cfg_radr(7 downto 0),
 p_in_cfg_adr_ld      => i_cfg_radr_ld,
@@ -641,15 +654,16 @@ p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_VCTRL),
 p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
 
 -------------------------------
---Host
+--HOST
 -------------------------------
-p_in_vctrl_hrdchsel  => i_host_vchsel,
-p_in_vctrl_hrdstart  => i_vctrl_hrd_start,
-p_in_vctrl_hrddone   => (others=>'0'),
-p_out_vctrl_hirq     => i_vctrl_hirq_out,
-p_out_vctrl_hdrdy    => i_vctrl_hrdy_out,
-p_out_vctrl_hfrmrk   => i_vctrl_hfrmrk,
+p_in_hrdchsel        => i_host_vchsel,
+p_in_hrdstart        => i_vctrl_hrd_start,
+p_in_hrddone         => i_vctrl_hrd_done,
+p_out_hirq           => i_host_dev_irq((C_HIRQ_VCH0 + C_VCTRL_VCH_COUNT) - 1 downto C_HIRQ_VCH0),
+p_out_hdrdy          => i_vctrl_hrdy,
+p_out_hfrmrk         => i_vctrl_hfrmrk,
 
+p_in_vbufo_rdclk     => g_host_clk,
 p_out_vbufo_do       => i_host_rxd(C_HDEV_VCH),
 p_in_vbufo_rd        => i_host_rd(C_HDEV_VCH),
 p_out_vbufo_empty    => i_host_rxbuf_empty(C_HDEV_VCH),
@@ -661,21 +675,22 @@ p_in_vbufi_do        => i_vctrl_vbufi_do,
 p_out_vbufi_rd       => i_vctrl_vbufi_rd,
 p_in_vbufi_empty     => i_vctrl_vbufi_empty,
 p_in_vbufi_full      => i_vctrl_vbufi_full,
+p_in_vbufi_pfull     => i_vctrl_vbufi_pfull,
 
 ---------------------------------
 --MEM
 ---------------------------------
 --CH WRITE
-p_out_memwr          => i_vctrlwr_memin,
-p_in_memwr           => i_vctrlwr_memout,
+p_out_memwr          => i_memin_ch(1),  --DEV -> MEM
+p_in_memwr           => i_memout_ch(1), --DEV <- MEM
 --CH READ
-p_out_memrd          => i_vctrlrd_memin,
-p_in_memrd           => i_vctrlrd_memout,
+p_out_memrd          => i_memin_ch(2),  --DEV -> MEM
+p_in_memrd           => i_memout_ch(2), --DEV <- MEM
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst             => (others=>'0'),
+p_in_tst             => i_vctrl_tst_in,
 p_out_tst            => i_vctrl_tst_out,
 
 -------------------------------
@@ -684,6 +699,9 @@ p_out_tst            => i_vctrl_tst_out,
 p_in_clk => g_usr_highclk,
 p_in_rst => i_vctrl_rst
 );
+
+i_vctrl_tst_in(0) <= i_swt_tst_out(0);
+i_vctrl_tst_in(31 downto 1) <= (others=>'0');
 
 
 --***********************************************************
@@ -740,16 +758,12 @@ p_out_module_rdy   => open,
 p_in_rst_n         => i_host_rst_n
 );
 
-i_host_tst_in(63 downto 0) <= (others=>'0');
-i_host_tst_in(71 downto 64) <= (others=>'0');
-i_host_tst_in(72) <= '0';
-i_host_tst_in(73) <= '0';
-i_host_tst_in(74) <= '0';
-i_host_tst_in(75) <= '0';
-i_host_tst_in(76) <= '0';
-i_host_tst_in(126 downto 77) <= (others=>'0');
-i_host_tst_in(127) <= i_vctrl_tst_out(0) or
-                      OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx);
+i_host_tst_in(31 downto 0) <= (others=>'0');
+i_host_tst_in(63 downto 32) <= (others=>'0');
+i_host_tst_in(64) <= i_vctrl_tst_out(0) or
+                    OR_reduce(dbg_eth_out.app(0).mac_rx) or OR_reduce(dbg_eth_out.app(0).mac_tx);
+
+i_host_tst_in(127 downto 66) <= (others=>'0');
 
 
 --Статусы устройств
@@ -763,21 +777,29 @@ i_host_dev_status(C_HREG_DEV_STATUS_ETH_RXRDY_BIT) <= not i_host_rxbuf_empty(C_H
 i_host_dev_status(C_HREG_DEV_STATUS_ETH_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_ETH);
 
 gen_status_vch : for i in 0 to C_VCTRL_VCH_COUNT - 1 generate
-i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i) <= i_vctrl_hrdy_out(i);
+i_host_dev_status(C_HREG_DEV_STATUS_VCH0_FRRDY_BIT + i) <= i_vctrl_hrdy(i);
 end generate gen_status_vch;
 
 i_host_dev_status(C_HREG_DEV_STATUS_MEMCTRL_RDY_BIT) <= OR_reduce(i_mem_ctrl_status.rdy);
+
 i_host_dev_status(C_HREG_DEV_STATUS_PULT_TXRDY_BIT) <= not i_host_txbuf_empty(C_HDEV_PULT);
-i_host_dev_status(C_HREG_DEV_STATUS_PULT_RXRDY_BIT) <= i_host_rxbuf_empty(C_HDEV_PULT);
-i_host_dev_status(C_HREG_DEV_STATUS_EDEV_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_EDEV);
-i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_EDEV) and i_host_irq(C_HIRQ_EDEV_RX);
+i_host_dev_status(C_HREG_DEV_STATUS_PULT_RXRDY_BIT) <= i_host_dev_irq(C_HIRQ_PULT);
+
 i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXERR_BIT) <= i_host_err(C_HDEV_EDEV);
-i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_VIZIR);
-i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_VIZIR) and i_host_irq(C_HDEV_VIZIR);
+i_host_dev_status(C_HREG_DEV_STATUS_EDEV_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_EDEV);
+i_host_dev_status(C_HREG_DEV_STATUS_EDEV_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_EDEV)
+                                                          and i_host_dev_irq(C_HIRQ_EDEV);
+
 i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXERR_BIT) <= i_host_err(C_HDEV_VIZIR);
-i_host_dev_status(C_HREG_DEV_STATUS_BUP_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_BUP);
-i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_BUP) and i_host_irq(C_HDEV_BUP);
+i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_VIZIR);
+i_host_dev_status(C_HREG_DEV_STATUS_VIZIR_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_VIZIR)
+                                                          and i_host_dev_irq(C_HIRQ_VIZIR);
+
 i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXERR_BIT) <= i_host_err(C_HDEV_BUP);
+i_host_dev_status(C_HREG_DEV_STATUS_BUP_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_BUP);
+i_host_dev_status(C_HREG_DEV_STATUS_BUP_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_BUP)
+                                                        and i_host_dev_irq(C_HIRQ_BUP);
+
 i_host_dev_status(C_HREG_DEV_STATUS_PROM_TXRDY_BIT) <= i_host_txbuf_empty(C_HDEV_PROM);
 i_host_dev_status(C_HREG_DEV_STATUS_PROM_RXRDY_BIT) <= not i_host_rxbuf_empty(C_HDEV_PROM);
 i_host_dev_status(C_HREG_DEV_STATUS_PROM_ERR_BIT) <= i_host_err(C_HDEV_PROM);
@@ -787,126 +809,139 @@ gen_dev_dbuf : for i in 0 to i_host_wr'length - 1 generate
 i_host_wr(i)  <= i_host_dev_wr when i_host_devadr = CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
 i_host_rd(i)  <= i_host_dev_rd when i_host_devadr = CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
 i_host_txd(i) <= i_host_dev_txd;
---i_host_txd_rdy(i) <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) when i_host_devadr = CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
+i_host_txd_rdy(i) <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT)
+                      when i_host_devadr = CONV_STD_LOGIC_VECTOR(i, i_host_devadr'length) else '0';
 end generate gen_dev_dbuf;
 
 i_host_dev_rxd
-<= i_host_rxd(C_HDEV_CFG)    when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_CFG  , i_host_devadr'length) else
+<= i_host_rxd(C_HDEV_CFG)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_CFG  , i_host_devadr'length) else
     i_host_rxd(C_HDEV_ETH)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_ETH  , i_host_devadr'length) else
-    i_host_rxd(C_HDEV_VCH)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_VCH  , i_host_devadr'length) else
     i_host_rxd(C_HDEV_MEM)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM  , i_host_devadr'length) else
-    i_host_rxd(C_HDEV_PULT)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PULT , i_host_devadr'length) else
+    i_host_rxd(C_HDEV_VCH)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_VCH  , i_host_devadr'length) else
     i_host_rxd(C_HDEV_EDEV)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_EDEV , i_host_devadr'length) else
+    i_host_rxd(C_HDEV_PULT)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PULT , i_host_devadr'length) else
     i_host_rxd(C_HDEV_VIZIR) when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_VIZIR, i_host_devadr'length) else
     i_host_rxd(C_HDEV_BUP)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_BUP  , i_host_devadr'length) else
-    i_host_rxd(C_HDEV_PROM)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM , i_host_devadr'length) else
-    (others=>'0');
+    i_host_rxd(C_HDEV_PROM);--  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM , i_host_devadr'length) else
 
 --Флаги (Host<-dev)
 i_host_dev_opt_in(C_HDEV_OPTIN_TXFIFO_FULL_BIT)
-<= i_host_txbuf_full(C_HDEV_CFG)    when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_CFG  , i_host_devadr'length) else
-    i_host_txbuf_full(C_HDEV_ETH)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_ETH  , i_host_devadr'length) else
-    i_host_txbuf_full(C_HDEV_MEM)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM  , i_host_devadr'length) else
-    i_host_txbuf_full(C_HDEV_PROM)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM , i_host_devadr'length) else
+<= i_host_txbuf_full(C_HDEV_MEM)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM , i_host_devadr'length) else
+    i_host_txbuf_full(C_HDEV_PROM) when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
     '0';
 
 i_host_dev_opt_in(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)
-<= i_host_rxbuf_empty(C_HDEV_CFG)    when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_CFG  , i_host_devadr'length) else
-    i_host_rxbuf_empty(C_HDEV_ETH)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_ETH  , i_host_devadr'length) else
-    i_host_rxbuf_empty(C_HDEV_MEM)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM  , i_host_devadr'length) else
-    i_host_rxbuf_empty(C_HDEV_PROM)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM , i_host_devadr'length) else
-    i_host_rxbuf_empty(C_HDEV_VCH)   when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_VCH  , i_host_devadr'length) else
+<= i_host_rxbuf_empty(C_HDEV_MEM)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM , i_host_devadr'length) else
+    i_host_rxbuf_empty(C_HDEV_VCH)  when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_VCH , i_host_devadr'length) else
+    i_host_rxbuf_empty(C_HDEV_PROM) when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_PROM, i_host_devadr'length) else
     '0';
-
 
 i_host_dev_opt_in(C_HDEV_OPTIN_MEMTRN_DONE_BIT) <= i_host_mem_status.done;
 
 i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT) <= i_vctrl_hfrmrk;
-i_host_dev_opt_in(C_HDEV_OPTIN_VCTRL_FRSKIP_M_BIT downto C_HDEV_OPTIN_VCTRL_FRSKIP_L_BIT) <= i_vctrl_tst_out(23 downto 16);
-i_host_dev_opt_in(C_HDEV_OPTIN_ETH_HEADER_M_BIT downto C_HDEV_OPTIN_ETH_HEADER_L_BIT) <= i_host_rxd(C_HDEV_ETH)(31 downto 0);
+i_host_dev_opt_in(C_HDEV_OPTIN_ETH_HEADER_M_BIT
+                    downto C_HDEV_OPTIN_ETH_HEADER_L_BIT) <= i_host_rxd(C_HDEV_ETH)(31 downto 0);
 
-
---Прерывания
-i_host_dev_irq(C_HIRQ_CFG_RX) <= i_host_irq(C_HIRQ_CFG_RX);
-i_host_dev_irq(C_HIRQ_ETH_RX) <= i_host_irq(C_HIRQ_ETH_RX);
-gen_irq_vch : for i in 0 to C_VCTRL_VCH_COUNT - 1 generate
-i_host_dev_irq(C_HIRQ_VCH0 + i) <= i_vctrl_hirq_out(i);
-end generate gen_irq_vch;
-i_host_dev_irq(C_HIRQ_PULT_RX) <= i_host_rxbuf_empty(C_HDEV_PULT);
-i_host_dev_irq(C_HIRQ_EDEV_RX) <= i_host_irq(C_HIRQ_EDEV_RX);
-i_host_dev_irq(C_HIRQ_VIZIR_RX) <= i_host_irq(C_HIRQ_VIZIR_RX);
-i_host_dev_irq(C_HIRQ_BUP_RX) <= i_host_irq(C_HIRQ_BUP_RX);
-i_host_dev_irq(C_HIRQ_PROM) <= i_host_irq(C_HIRQ_PROM);
 
 --Обработка управляющих сигналов Хоста
 i_host_mem_ctrl.dir <= not i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_DIR_BIT);
 i_host_mem_ctrl.start <= i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT)
-                          when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_host_devadr'length) else '0';
+                          when i_host_devadr = CONV_STD_LOGIC_VECTOR(C_HDEV_MEM,
+                                                                        i_host_devadr'length) else '0';
 
 i_host_mem_ctrl.adr <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_ADR_M_BIT downto C_HDEV_OPTOUT_MEM_ADR_L_BIT);
-i_host_mem_ctrl.req_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT);
-i_host_mem_ctrl.trnwr_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT);
-i_host_mem_ctrl.trnrd_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT);
 
-i_host_rst_all <= i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
-i_host_rst_eth <= i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
-i_host_rst_pult <= i_host_gctrl(C_HREG_CTRL_RST_PULT_BIT);
-i_host_rst_edev <= i_host_gctrl(C_HREG_CTRL_RST_EDEV_BIT);
-i_host_rst_vizir <= i_host_gctrl(C_HREG_CTRL_RST_VIZIR_BIT);
-i_host_rst_bup <= i_host_gctrl(C_HREG_CTRL_RST_BUP_BIT);
-i_vizir_bitclk <= i_host_gctrl(C_HREG_CTRL_BITCLK_VIZIR_BIT);
-i_host_rst_prom <= i_host_gctrl(C_HREG_CTRL_RST_PROM_BIT);
-i_bup_en_sync120 <= i_host_gctrl(C_HREG_CTRL_EN_SYN120_BUP_BIT);
+i_host_mem_ctrl.req_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_RQLEN_M_BIT
+                                                  downto C_HDEV_OPTOUT_MEM_RQLEN_L_BIT);
+
+i_host_mem_ctrl.trnwr_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNWR_LEN_M_BIT
+                                                    downto C_HDEV_OPTOUT_MEM_TRNWR_LEN_L_BIT);
+
+i_host_mem_ctrl.trnrd_len <= i_host_dev_opt_out(C_HDEV_OPTOUT_MEM_TRNRD_LEN_M_BIT
+                                                  downto C_HDEV_OPTOUT_MEM_TRNRD_LEN_L_BIT);
+
 
 i_host_devadr <= i_host_dev_ctrl(C_HREG_DEV_CTRL_ADR_M_BIT downto C_HREG_DEV_CTRL_ADR_L_BIT);
-i_host_vchsel <= EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
 
+i_host_vchsel <= EXT(i_host_dev_ctrl(C_HREG_DEV_CTRL_VCH_M_BIT
+                                      downto C_HREG_DEV_CTRL_VCH_L_BIT), i_host_vchsel'length);
 
 gen_dma_start : for i in C_HDEV_VCH to C_HDEV_VCH generate
-process(i_host_rst_n, g_host_clk)
+process(g_host_clk)
 begin
-  if i_host_rst_n = '0' then
-    i_hdev_dma_start(i) <= '0';
-    hclk_hdev_dma_start(i) <= '0';
-    hclk_hdev_dma_start_cnt(i) <= (others=>'0');
-
-  elsif rising_edge(g_host_clk) then
-
-    --импульс начала DMA транзакции
-    if i_host_devadr = i then
-      if i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1' then
-        i_hdev_dma_start(i) <= '1';
-      else
-        i_hdev_dma_start(i) <= '0';
-      end if;
-    end if;
-
-    --Растягиваем импульс начала DMA транзакции
-    if i_hdev_dma_start(i) = '1' then
-      hclk_hdev_dma_start(i) <= '1';
-    elsif hclk_hdev_dma_start_cnt(i)(hclk_hdev_dma_start_cnt(i)'high) = '1' then
+  if rising_edge(g_host_clk) then
+    if i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) = '1' then
+      i_hdev_dma_start(i) <= '0';
       hclk_hdev_dma_start(i) <= '0';
-    end if;
-
-    if hclk_hdev_dma_start(i) = '0' then
       hclk_hdev_dma_start_cnt(i) <= (others=>'0');
-    else
-      hclk_hdev_dma_start_cnt(i) <= hclk_hdev_dma_start_cnt(i) + 1;
-    end if;
 
+    else
+      --импульс начала DMA транзакции
+      if i_host_devadr = i then
+        if i_host_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1' then
+          i_hdev_dma_start(i) <= '1';
+        else
+          i_hdev_dma_start(i) <= '0';
+        end if;
+      end if;
+
+      --Растягиваем импульс начала DMA транзакции
+      if i_hdev_dma_start(i) = '1' then
+        hclk_hdev_dma_start(i) <= '1';
+      elsif hclk_hdev_dma_start_cnt(i)(hclk_hdev_dma_start_cnt(i)'high) = '1' then
+        hclk_hdev_dma_start(i) <= '0';
+      end if;
+
+      if hclk_hdev_dma_start(i) = '0' then
+        hclk_hdev_dma_start_cnt(i) <= (others=>'0');
+      else
+        hclk_hdev_dma_start_cnt(i) <= hclk_hdev_dma_start_cnt(i) + 1;
+      end if;
+
+    end if;
   end if;
 end process;
 
-end generate;--gen_dma_start
+end generate gen_dma_start;
 
 --Пересинхронизация управляющих сигналов Хоста
 process(g_usr_highclk)
 begin
   if rising_edge(g_usr_highclk) then
     i_vctrl_hrd_start <= hclk_hdev_dma_start(C_HDEV_VCH);
+
+    sr_vctrl_hrd_done(0) <= hclk_hrddone_vctrl;
+    sr_vctrl_hrd_done(1) <= sr_vctrl_hrd_done(0);
+    i_vctrl_hrd_done <= sr_vctrl_hrd_done(0) and not sr_vctrl_hrd_done(1);
+
   end if;
 end process;
 
+--Растягиваем импульс подтверждения вычетки кадра
+process(g_host_clk)
+begin
+  if rising_edge(g_host_clk) then
+    if i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT) = '1' then
+      hclk_hrddone_vctrl <= '0';
+      hclk_hrddone_vctrl_cnt <= (others=>'0');
+
+    else
+
+      if i_host_gctrl(C_HREG_CTRL_RDDONE_VCTRL_BIT) = '1' then
+        hclk_hrddone_vctrl <= '1';
+      elsif hclk_hrddone_vctrl_cnt(hclk_hrddone_vctrl_cnt'high) = '1' then
+        hclk_hrddone_vctrl <= '0';
+      end if;
+
+      if hclk_hrddone_vctrl = '0' then
+        hclk_hrddone_vctrl_cnt <= (others=>'0');
+      else
+        hclk_hrddone_vctrl_cnt <= hclk_hrddone_vctrl_cnt + 1;
+      end if;
+
+    end if;
+  end if;
+end process;
 
 
 --***********************************************************
@@ -923,7 +958,7 @@ G_DBG            => G_SIM
 )
 port map(
 -------------------------------
---Управление
+--HOST
 -------------------------------
 p_in_ctrl         => i_host_mem_ctrl,
 p_out_status      => i_host_mem_status,
@@ -943,10 +978,10 @@ p_out_hrxbuf_empty => i_host_rxbuf_empty(C_HDEV_MEM),
 p_in_hclk          => g_host_clk,
 
 -------------------------------
---Связь с mem_ctrl
+--MEM
 -------------------------------
-p_out_mem         => i_host_memin,
-p_in_mem          => i_host_memout,
+p_out_mem         => i_memin_ch(0), --DEV -> MEM
+p_in_mem          => i_memout_ch(0),--DEV <- MEM
 
 -------------------------------
 --Технологический
@@ -961,22 +996,13 @@ p_in_clk         => g_usr_highclk,
 p_in_rst         => i_host_mem_rst
 );
 
---Подключаем устройства к арбитру ОЗУ
-i_memin_ch(0) <= i_host_memin;
-i_host_memout <= i_memout_ch(0);
-
-i_memin_ch(1)    <= i_vctrlwr_memin;
-i_vctrlwr_memout <= i_memout_ch(1);
-
-i_memin_ch(2)   <= i_vctrlrd_memin;
-i_vctrlrd_memout <= i_memout_ch(2);
 
 --Арбитр контроллера памяти
 m_mem_arb : mem_arb
 generic map(
 G_CH_COUNT   => C_MEM_ARB_CH_COUNT,
 G_MEM_AWIDTH => C_AXI_AWIDTH,
-G_MEM_DWIDTH => C_HDEV_DWIDTH
+G_MEM_DWIDTH => C_AXIM_DWIDTH
 )
 port map(
 -------------------------------
@@ -1039,18 +1065,17 @@ p_in_sys        => i_mem_ctrl_sysin
 );
 
 
-
 --#########################################
 --DBG
 --#########################################
 pin_out_led(0) <= i_test01_led;
 pin_out_led(1) <= '0';
 pin_out_led(2) <= '0';
-pin_out_led(3) <= '0';
-pin_out_led(4) <= '0';
-pin_out_led(5) <= '0';
-pin_out_led(6) <= '0';
-pin_out_led(7) <= '0';
+pin_out_led(3) <= i_vctrl_tst_out(30);
+pin_out_led(4) <= i_vctrl_tst_out(29);
+pin_out_led(5) <= i_vctrl_tst_out(28);
+pin_out_led(6) <= i_vctrl_tst_out(27);
+pin_out_led(7) <= '0';--tst_vctrl_vbufi_empty or tst_vctrl_vbufo_empty;
 
 
 m_led_tst: fpga_test_01
@@ -1071,6 +1096,13 @@ p_in_clk       => g_host_clk,
 p_in_rst       => i_cfg_rst
 );
 
+--process(g_usr_highclk)
+--begin
+--  if rising_edge(g_usr_highclk) then
+--  tst_vctrl_vbufi_empty <= i_vctrl_vbufi_empty;
+--  tst_vctrl_vbufo_empty <= i_host_rxbuf_empty(C_HDEV_VCH);
+--  end if;
+--end process;
 
 --***********************************************************
 --Модуль управления синхронизацией
@@ -1123,7 +1155,7 @@ pin_out_TP(2) <= pin_in_pps;
 --***********************************************************
 --Модуль управления пультом
 --***********************************************************
-process(g_usrclk(5))
+process(g_usrclk)
 begin
   if rising_edge(g_usrclk(5)) then
     i_usrclk5_div <= i_usrclk5_div + 1;
@@ -1142,7 +1174,7 @@ generic map(
 G_HOST_DWIDTH => C_HDEV_DWIDTH
 )
 port map(
-trans_ack      => '1',
+trans_ack      => i_host_txd_rdy(C_HDEV_PULT),
 
 data_i         => pin_in_pult_rx  ,
 data_o         => pin_out_pult_tx ,
@@ -1157,7 +1189,7 @@ rd_en          => i_host_rd(C_HDEV_PULT),
 data_to_host   => i_host_rxd(C_HDEV_PULT),
 
 busy           => i_host_txbuf_empty(C_HDEV_PULT),
-ready          => i_host_rxbuf_empty(C_HDEV_PULT),
+ready          => i_host_dev_irq(C_HIRQ_PULT),
 
 tmr_en         => i_tmr_en(C_TMR_PULT),
 tmr_stb        => i_tmr_hirq(C_TMR_PULT),
@@ -1193,7 +1225,8 @@ p_in_hrxbuf_rd      => i_host_rd(C_HDEV_EDEV),
 p_out_hrxbuf_full   => open,
 p_out_hrxbuf_empty  => i_host_rxbuf_empty(C_HDEV_EDEV),
 
-p_out_hirq          => i_host_irq(C_HIRQ_EDEV_RX),
+p_in_htxrdy         => i_host_txd_rdy(C_HDEV_EDEV),
+p_out_hirq          => i_host_dev_irq(C_HIRQ_EDEV),
 p_out_herr          => i_host_err(C_HDEV_EDEV),
 
 p_in_hclk           => g_host_clk,
@@ -1223,9 +1256,9 @@ p_in_rst          => i_edev_rst
 --***********************************************************
 --БУП (Блок управления приводами)
 --***********************************************************
-i_bup_syn_en <= i_tmr_en(C_TMR_BUP) or i_bup_en_sync120;
+i_bup_syn_en <= i_tmr_en(C_TMR_BUP) or i_host_gctrl(C_HREG_CTRL_EN_SYN120_BUP_BIT);
 i_bup_syn    <= i_tmr_hirq(C_TMR_BUP) or
-                (i_bup_en_sync120 and i_sync_out(0)); --120Hz из модуля m_sync
+                (i_host_gctrl(C_HREG_CTRL_EN_SYN120_BUP_BIT) and i_sync_out(0)); --120Hz из модуля m_sync
 
 m_bup : edev
 generic map(
@@ -1250,7 +1283,8 @@ p_in_hrxbuf_rd      => i_host_rd(C_HDEV_BUP),
 p_out_hrxbuf_full   => open,
 p_out_hrxbuf_empty  => i_host_rxbuf_empty(C_HDEV_BUP),
 
-p_out_hirq          => i_host_irq(C_HIRQ_BUP_RX),
+p_in_htxrdy         => i_host_txd_rdy(C_HDEV_BUP),
+p_out_hirq          => i_host_dev_irq(C_HIRQ_BUP),
 p_out_herr          => i_host_err(C_HDEV_BUP),
 
 p_in_hclk           => g_host_clk,
@@ -1303,7 +1337,8 @@ p_in_hrxbuf_rd      => i_host_rd(C_HDEV_VIZIR),
 p_out_hrxbuf_full   => open,
 p_out_hrxbuf_empty  => i_host_rxbuf_empty(C_HDEV_VIZIR),
 
-p_out_hirq          => i_host_irq(C_HIRQ_VIZIR_RX),
+p_in_htxrdy         => i_host_txd_rdy(C_HDEV_VIZIR),
+p_out_hirq          => i_host_dev_irq(C_HIRQ_VIZIR),
 p_out_herr          => i_host_err(C_HDEV_VIZIR),
 
 p_in_hclk           => g_host_clk,
@@ -1324,7 +1359,7 @@ p_out_tst         => open,
 --------------------------------------
 --System
 --------------------------------------
-p_in_bitclk       => i_vizir_bitclk,
+p_in_bitclk       => i_host_gctrl(C_HREG_CTRL_BITCLK_VIZIR_BIT),
 p_in_clk          => g_usrclk(5),
 p_in_rst          => i_vizir_rst
 );
@@ -1353,7 +1388,7 @@ p_in_hrxbuf_rd      => i_host_rd(C_HDEV_PROM),
 p_out_hrxbuf_full   => open,
 p_out_hrxbuf_empty  => i_host_rxbuf_empty(C_HDEV_PROM),
 
-p_out_hirq          => i_host_irq(C_HIRQ_PROM),
+p_out_hirq          => i_host_dev_irq(C_HIRQ_PROM),
 p_out_herr          => i_host_err(C_HDEV_PROM),
 
 p_in_hclk           => g_host_clk,

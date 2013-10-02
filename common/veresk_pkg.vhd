@@ -13,11 +13,10 @@
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 use ieee.std_logic_arith.all;
+use ieee.std_logic_unsigned.all;
 
 library work;
-use work.prj_cfg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.pcie_pkg.all;
@@ -26,7 +25,6 @@ use work.prom_phypin_pkg.all;
 use work.eth_pkg.all;
 
 package veresk_pkg is
-
 
 component dsn_host
 generic(
@@ -122,6 +120,7 @@ component dsn_switch
 generic(
 G_ETH_CH_COUNT : integer:=1;
 G_ETH_DWIDTH : integer:=32;
+G_VBUFI_OWIDTH : integer:=32;
 G_HOST_DWIDTH : integer:=32
 );
 port(
@@ -164,24 +163,27 @@ p_in_hclk                 : in   std_logic;
 -------------------------------
 --ETH
 -------------------------------
+p_in_eth_tmr_irq          : in   std_logic;
+p_in_eth_tmr_en           : in   std_logic;
+p_in_eth_clk              : in   std_logic;
 p_in_eth                  : in   TEthOUTs;
 p_out_eth                 : out  TEthINs;
 
 -------------------------------
---VCTRL
+--VBUFI
 -------------------------------
-p_in_vctrl_clk            : in   std_logic;
-
-p_out_vctrl_vbufi_do      : out  std_logic_vector(31 downto 0);
-p_in_vctrl_vbufi_rd       : in   std_logic;
-p_out_vctrl_vbufi_empty   : out  std_logic;
-p_out_vctrl_vbufi_full    : out  std_logic;
+p_in_vbufi_rdclk          : in   std_logic;
+p_out_vbufi_do            : out  std_logic_vector(G_VBUFI_OWIDTH - 1 downto 0);
+p_in_vbufi_rd             : in   std_logic;
+p_out_vbufi_empty         : out  std_logic;
+p_out_vbufi_full          : out  std_logic;
+p_out_vbufi_pfull         : out  std_logic;
 
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                  : in    std_logic_vector(31 downto 0);
-p_out_tst                 : out   std_logic_vector(31 downto 0);
+p_in_tst                  : in   std_logic_vector(31 downto 0);
+p_out_tst                 : out  std_logic_vector(31 downto 0);
 
 -------------------------------
 --System
@@ -192,6 +194,7 @@ end component;
 
 component dsn_video_ctrl
 generic(
+G_USR_OPT : std_logic_vector(7 downto 0):=(others=>'0');
 G_DBGCS  : string:="OFF";
 G_ROTATE : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
@@ -199,13 +202,14 @@ G_SIMPLE : string:="OFF";
 G_SIM    : string:="OFF";
 
 G_MEM_AWIDTH : integer:=32;
-G_MEM_DWIDTH : integer:=32
+G_MEMWR_DWIDTH : integer:=32;
+G_MEMRD_DWIDTH : integer:=32
 );
 port(
 -------------------------------
 --CFG
 -------------------------------
-p_in_host_clk         : in   std_logic;
+p_in_cfg_clk          : in   std_logic;
 
 p_in_cfg_adr          : in   std_logic_vector(7 downto 0);
 p_in_cfg_adr_ld       : in   std_logic;
@@ -222,24 +226,26 @@ p_in_cfg_done         : in   std_logic;
 -------------------------------
 --HOST
 -------------------------------
-p_in_vctrl_hrdchsel   : in    std_logic_vector(3 downto 0);
-p_in_vctrl_hrdstart   : in    std_logic;
-p_in_vctrl_hrddone    : in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-p_out_vctrl_hirq      : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-p_out_vctrl_hdrdy     : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-p_out_vctrl_hfrmrk    : out   std_logic_vector(31 downto 0);
+p_in_hrdchsel         : in    std_logic_vector(3 downto 0);
+p_in_hrdstart         : in    std_logic;
+p_in_hrddone          : in    std_logic;
+p_out_hirq            : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+p_out_hdrdy           : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+p_out_hfrmrk          : out   std_logic_vector(31 downto 0);
 
-p_out_vbufo_do        : out   std_logic_vector(G_MEM_DWIDTH - 1 downto 0);
+p_in_vbufo_rdclk      : in    std_logic;
+p_out_vbufo_do        : out   std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 p_in_vbufo_rd         : in    std_logic;
 p_out_vbufo_empty     : out   std_logic;
 
 -------------------------------
 --VBUFI
 -------------------------------
-p_in_vbufi_do         : in    std_logic_vector(31 downto 0);
+p_in_vbufi_do         : in    std_logic_vector(G_MEMWR_DWIDTH - 1 downto 0);
 p_out_vbufi_rd        : out   std_logic;
 p_in_vbufi_empty      : in    std_logic;
 p_in_vbufi_full       : in    std_logic;
+p_in_vbufi_pfull      : in    std_logic;
 
 ---------------------------------
 --MEM
@@ -404,6 +410,7 @@ p_in_hrxbuf_rd       : in   std_logic;
 p_out_hrxbuf_full    : out  std_logic;
 p_out_hrxbuf_empty   : out  std_logic;
 
+p_in_htxrdy          : in   std_logic;
 p_out_hirq           : out  std_logic;
 p_out_herr           : out  std_logic;
 
