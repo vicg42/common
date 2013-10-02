@@ -44,6 +44,8 @@ NET "pin_out_TP<0>"         LOC="H33"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:H
 NET "pin_out_TP<1>"         LOC="H34"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_6   # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 NET "pin_out_TP<2>"         LOC="G32"  | IOSTANDARD=LVCMOS25; #Сигнал на схеме:HDR1_10  # Bank 11, Vcco=2.5V or 3.3V user selectable by J20
 
+NET "pin_out_refclk_oe<0>"  LOC="AN33";
+
 ####################################################################
 ##
 ####################################################################
@@ -209,14 +211,15 @@ TIMESPEC "TS_FFS_MEM_PADS" = FROM "MEMCLK_FFS" TO "MEM_PADS" 3.5 ns;
 #############################################################################
 ###############       Проект Ethernet        ################################
 #############################################################################
-NET "pin_out_ethphy_rst"    LOC = "J14" ;#NET  PHY_RESET
+#NET "pin_out_ethphy_rst"    LOC = "J14" ;#NET  PHY_RESET
 NET "pin_out_ethphy_mdc"    LOC = "H19" ;#NET  PHY_MDC
-NET "pin_out_ethphy_rgmii<0>_tx_ctl" LOC = "AJ10" ;#NET  PHY_TXCTL_TXEN
-NET "pin_out_ethphy_rgmii<0>_txc"    LOC = "J16"  ;#NET  PHY_TXC_GTXCLK
-NET "pin_out_ethphy_rgmii<0>_txd<0>" LOC = "AF11" ;#NET  PHY_TXD0
-NET "pin_out_ethphy_rgmii<0>_txd<1>" LOC = "AE11" ;#NET  PHY_TXD1
-NET "pin_out_ethphy_rgmii<0>_txd<2>" LOC = "AH9"  ;#NET  PHY_TXD2
-NET "pin_out_ethphy_rgmii<0>_txd<3>" LOC = "AH10" ;#NET  PHY_TXD3
+NET "pin_inout_ethphy_mdio" LOC = "H13"  ;#NET  PHY_MDIO
+#NET "pin_out_ethphy_rgmii<0>_tx_ctl" LOC = "AJ10" ;#NET  PHY_TXCTL_TXEN
+#NET "pin_out_ethphy_rgmii<0>_txc"    LOC = "J16"  ;#NET  PHY_TXC_GTXCLK
+#NET "pin_out_ethphy_rgmii<0>_txd<0>" LOC = "AF11" ;#NET  PHY_TXD0
+#NET "pin_out_ethphy_rgmii<0>_txd<1>" LOC = "AE11" ;#NET  PHY_TXD1
+#NET "pin_out_ethphy_rgmii<0>_txd<2>" LOC = "AH9"  ;#NET  PHY_TXD2
+#NET "pin_out_ethphy_rgmii<0>_txd<3>" LOC = "AH10" ;#NET  PHY_TXD3
 
 NET "pin_in_refclk_fiber_clk_p<1>" LOC = "P4";#"GTP_DUAL_X0Y3" - SGMII : 125MHz
 NET "pin_in_refclk_fiber_clk_n<1>" LOC = "P3";
@@ -226,8 +229,8 @@ INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/m_gt_refclkout/m_gt"  LOC = "
 #--------------------------
 #(FIBER)
 #--------------------------
-NET "pin_out_sfp_tx_dis" LOC = "K24" | IOSTANDARD=SSTL18_II; #;##//SFP - TX DISABLE
-NET "pin_in_sfp_sd"      LOC = "E7";##//SFP - SD signal detect #NET  CPU_TDO              LOC="E7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
+NET "pin_out_ethphy_fiber_sfp_txdis" LOC = "K24" | IOSTANDARD=SSTL18_II; #;##//SFP - TX DISABLE
+NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "E7";##//SFP - SD signal detect #NET  CPU_TDO              LOC="E7";    # Bank 12, Vcco=3.3V, DCI using 49.9 ohm resistors
 
 NET "pin_in_refclk_fiber_clk_p<0>" LOC = "H4";#"GTP_DUAL_X0Y4" - SFP : частоту задает SW6
 NET "pin_in_refclk_fiber_clk_n<0>" LOC = "H3";
