@@ -17,9 +17,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
@@ -310,7 +307,7 @@ i_irq_num      <= v_reg_irq(C_HREG_IRQ_NUM_M_WBIT downto C_HREG_IRQ_NUM_L_WBIT);
 v_reg_firmware <= CONV_STD_LOGIC_VECTOR(C_FPGA_FIRMWARE_VERSION, v_reg_firmware'length);
 
 --Запись:
-wr : process(p_in_rst_n,p_in_clk)
+wr : process(p_in_clk)
   variable dma_start : std_logic;
   variable irq_clr : std_logic;
   variable dev_drdy : std_logic;
@@ -320,6 +317,7 @@ wr : process(p_in_rst_n,p_in_clk)
   variable time_set : std_logic;
   variable usr_grst : std_logic;
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' then
     v_reg_ctrl <= (others=>'0');
     v_reg_dev_ctrl <= (others=>'0');
@@ -352,7 +350,7 @@ begin
       usr_grst := '0';
     i_usr_grst <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
       dmaprm_wr := '0';
       dev_drdy := '0';
@@ -441,18 +439,20 @@ begin
     sr_dma_start <= i_dma_start;
 
   end if;
+end if;--p_in_rst_n,
 end process;--wr
 
 --Чтение:
-rd : process(p_in_rst_n,p_in_clk)
+rd : process(p_in_clk)
   variable txd : std_logic_vector(p_out_reg_dout'range);
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' then
     txd := (others => '0');
     p_out_reg_dout <= (others=>'0');
     i_reg_rd <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     txd := (others => '0');
 
@@ -522,12 +522,15 @@ begin
             txd(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT)
                   := p_in_dev_status(C_HREG_DEV_STATUS_LAST_BIT downto C_HREG_DEV_STATUS_CFG_RDY_BIT);
 
-        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) then
-          txd := p_in_dev_dout(txd'range);
+--        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) then
+--          txd := p_in_dev_dout(txd'range);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRMRK, 5) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_VCTRL_FRMRK_M_BIT
                               downto C_HDEV_OPTIN_VCTRL_FRMRK_L_BIT);
+
+        elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_VCTRL_FRERR, 5) then
+          txd := p_in_tst(31 downto 0);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_TIME, 5) then
           txd := p_in_dev_opt(C_HDEV_OPTIN_TIME_M_BIT downto C_HDEV_OPTIN_TIME_L_BIT);
@@ -539,17 +542,11 @@ begin
           txd := EXT(v_reg_tst0, txd'length);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_TST1, 5) then
-          txd(0) := p_in_tst(72);
-          txd(1) := p_in_tst(73);
-          txd(2) := p_in_tst(74);
-          txd(3) := p_in_tst(75);
-          txd(4) := p_in_tst(76);
-          txd(5) := p_in_tst(77) or OR_reduce(p_in_rx_engine_tst);
-          txd(31 downto 6) := p_in_tst(103 downto 78);
+          txd(30 downto 0) := v_reg_tst1(30 downto 0);
+          txd(31) := p_in_tst(64) or OR_reduce(p_in_rx_engine_tst);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_TST2, 5) then
-          txd(30 downto 0) := v_reg_tst1(30 downto 0);
-          txd(31) := p_in_tst(127);
+          txd := p_in_tst(63 downto 32);
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_FUNC, 5) then
           txd(C_HREG_FUNC_MEM_BIT) := '1';
@@ -563,6 +560,8 @@ begin
           txd(C_HREG_FUNC_PROM_BIT) := strcmp2(C_PCFG_BOARD, "ML505")
                                      or strcmp2(C_PCFG_BOARD, "HTGV6")
                                      or strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
+
+          txd(C_HREG_FUNC_HSCAM_BIT) := strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
@@ -586,6 +585,7 @@ begin
 
     end if;--if i_reg_rd = '1' then
   end if;
+end if;--p_in_rst_n,
 end process;--rd
 
 i_pcie_testing <= v_reg_pcie(C_HREG_PCIE_SPEED_TESTING_BIT);
@@ -608,8 +608,9 @@ i_dmatrn_mwr_done <= i_mwr_done
 
 i_dmatrn_done <= i_dmatrn_mwr_done or i_dmatrn_mrd_done;
 
-dma_end : process(p_in_rst_n, i_usr_grst, p_in_clk)
+dma_end : process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' or i_usr_grst = '1' then
     i_mrd_rcv_size_ok <= '0';
     i_dmatrn_mem_done <= (others=>'0');
@@ -621,7 +622,7 @@ begin
     sr_mwr_done <= '0';
     i_mwr_done <= '0';
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     --Анализ размера принятых данных DMATRN_RD
     if i_dmatrn_init = '1' then
@@ -662,11 +663,13 @@ begin
     i_memtrn_done <= sr_memtrn_done(1) and not sr_memtrn_done(2);
 
   end if;
+end if;--p_in_rst_n,
 end process;--dma_end
 
 
-dma : process(p_in_rst_n, i_usr_grst, p_in_clk)
+dma : process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if p_in_rst_n = '0' or i_usr_grst = '1' then
 
     i_dmatrn_init <= '0';
@@ -690,7 +693,7 @@ begin
     sr_hw_dmaprm_cnt <= (others=>'0');
     sr_hw_dmaprm_rd <=( others=>'0');
 
-  elsif rising_edge(p_in_clk) then
+  else
 
     ---------------------------------------------
     --Инициализация и запуск DMATRN
@@ -764,6 +767,7 @@ begin
     end if;
 
   end if;
+end if;--p_in_rst_n,
 end process;--dma
 
 
@@ -809,15 +813,17 @@ i_irq_set(C_HIRQ_PCIE_DMA) <= i_irq_en(C_HIRQ_PCIE_DMA) and i_dma_irq;
 gen_irq: for i in C_HIRQ_PCIE_DMA + 1 to C_HIRQ_COUNT - 1 generate
 
 --Выделяю передний фронт
-process(i_irq_en(i), i_usr_grst, p_in_clk)
+process(p_in_clk)
 begin
+if rising_edge(p_in_clk) then
   if i_irq_en(i) = '0' or i_usr_grst = '1' then
       sr_irq_set(i) <= (others=>'0');
       i_irq_set(i) <= '0';
-  elsif rising_edge(p_in_clk) then
-      sr_irq_set(i) <= p_in_dev_irq(i)& sr_irq_set(i)(0 to 1);
+  else
+      sr_irq_set(i) <= p_in_dev_irq(i) & sr_irq_set(i)(0 to 1);
       i_irq_set(i) <= sr_irq_set(i)(1) and not sr_irq_set(i)(2);
   end if;
+end if;
 end process;
 
 end generate gen_irq;
@@ -829,29 +835,15 @@ end generate gen_irq;
 p_out_rxbuf_dout <= p_in_dev_dout;
 --                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) else tst_mem_dcnt_swap;
 
-p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT)
-                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) else
-                        p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_pcie_testing;
-
-p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT)
-                      when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM, i_hdev_adr'length) else
-                        p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pcie_testing;
-
+p_out_txbuf_full <= p_in_dev_opt(C_HDEV_OPTIN_TXFIFO_FULL_BIT) and not i_pcie_testing;
+p_out_rxbuf_empty <= p_in_dev_opt(C_HDEV_OPTIN_RXFIFO_EMPTY_BIT) and not i_pcie_testing;
 
 ---------------------------------------------------------------------
 --Связь с внешним устройствам
 ---------------------------------------------------------------------
---Выбор доступа к внешним устройствам. Через DMA транзакцию или через регистр C_HREG_DEV_DATA
-p_out_dev_wr <= i_txbuf_wr when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1' else
-                p_in_reg_wr when vrsk_reg_bar = '1'
-                                  and vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
-
-p_out_dev_rd <= p_in_rxbuf_rd when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1' else
-                i_reg_rd      when vrsk_reg_bar = '1'
-                                  and vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_DEV_DATA, 5) else '0';
-
-p_out_dev_din <= i_txbuf_din(p_out_dev_din'range) when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1' else
-                EXT(p_in_reg_din, p_out_dev_din'length);
+p_out_dev_wr <= i_txbuf_wr;
+p_out_dev_rd <= p_in_rxbuf_rd;
+p_out_dev_din <= i_txbuf_din(p_out_dev_din'range);
 
 
 gen_usrd_x32 : if C_HDEV_DWIDTH = 32 generate
@@ -960,9 +952,7 @@ end generate;--gen_usrd_x128
 --tst_mem_dcnt_swap <= tst_mem_dcnt;
 
 --Вывод регистра управления устройствами
-p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= i_dmatrn_mrd_done
-                                          when v_reg_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) = '1'
-                                            and i_dmabuf_count=i_dmabuf_done_cnt else i_dev_drdy;
+p_out_dev_ctrl(C_HREG_DEV_CTRL_DRDY_BIT) <= (i_dmatrn_mrd_done and sr_dma_work) or i_dev_drdy;
 
 p_out_dev_ctrl(C_HREG_DEV_CTRL_DMA_START_BIT) <= sr_dma_start
                                       when i_hdev_adr /= CONV_STD_LOGIC_VECTOR(C_HDEV_MEM

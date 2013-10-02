@@ -137,7 +137,7 @@ reg [2:0]           cfg_cap_max_payload_size;
 //Чтение регистров конфигурационного пространства:
 assign cfg_msi_enable = cfg_msi_control[0];
 
-always @(posedge clk or negedge rst_n) begin
+always @(posedge clk) begin
 
   if ( !rst_n ) begin
 

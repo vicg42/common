@@ -37,12 +37,12 @@ p_out_gctrl          : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --Управление внешними устройствами
 p_out_dev_ctrl       : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_din        : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout        : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr         : out   std_logic;
 p_out_dev_rd         : out   std_logic;
 p_in_dev_status      : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_irq         : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt         : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt        : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -60,12 +60,12 @@ p_out_tst            : out   std_logic_vector(255 downto 0);
 ---------------------------------------------------------
 p_in_fast_simulation : in    std_logic;
 
-p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 
-p_in_pciexp_rst      : in    std_logic;
+p_in_pciexp_rst      : in    std_logic;--Active level - 0!!!
 
 p_out_module_rdy     : out   std_logic;
 p_in_gtp_refclkin    : in    std_logic;
@@ -206,16 +206,16 @@ tx_buf_av                                  : out std_logic_vector(5 downto 0);
 tx_cfg_req                                 : out std_logic;
 tx_err_drop                                : out std_logic;
 s_axis_tx_tready                           : out std_logic;
-s_axis_tx_tdata                            : in std_logic_vector((CI_PCIEXP_TRN_DBUS - 1) downto 0);
-s_axis_tx_tkeep                            : in std_logic_vector((CI_PCIEXP_TRN_DBUS / 8 - 1) downto 0);
+s_axis_tx_tdata                            : in std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
+s_axis_tx_tkeep                            : in std_logic_vector((CI_PCIEXP_TRN_DBUS / 8) - 1 downto 0);
 s_axis_tx_tlast                            : in std_logic;
 s_axis_tx_tvalid                           : in std_logic;
 s_axis_tx_tuser                            : in std_logic_vector(3 downto 0);
 tx_cfg_gnt                                 : in std_logic;
 
 -- RX
-m_axis_rx_tdata                            : out std_logic_vector((CI_PCIEXP_TRN_DBUS - 1) downto 0);
-m_axis_rx_tkeep                            : out std_logic_vector((CI_PCIEXP_TRN_DBUS / 8 - 1) downto 0);
+m_axis_rx_tdata                            : out std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
+m_axis_rx_tkeep                            : out std_logic_vector((CI_PCIEXP_TRN_DBUS / 8) - 1 downto 0);
 m_axis_rx_tlast                            : out std_logic;
 m_axis_rx_tvalid                           : out std_logic;
 m_axis_rx_tready                           : in std_logic;
@@ -420,12 +420,12 @@ p_out_gctrl               : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0
 
 --Управление внешними устройствами
 p_out_dev_ctrl            : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din             : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout             : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_din             : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout             : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr              : out   std_logic;
 p_out_dev_rd              : out   std_logic;
 p_in_dev_status           : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq              : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_irq              : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt              : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt             : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -435,7 +435,7 @@ p_in_tst                  : in    std_logic_vector(127 downto 0);
 --------------------------------------
 --Tx
 --------------------------------------
-trn_td_o                  : out   std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
+trn_td_o                  : out   std_logic_vector(G_PCIEXP_TRN_DBUS - 1 downto 0)  ;
 trn_trem_n_o              : out   std_logic_vector(3 downto 0);
 trn_tsof_n_o              : out   std_logic;
 trn_teof_n_o              : out   std_logic;
@@ -449,7 +449,7 @@ trn_tbuf_av_i             : in    std_logic_vector(5 downto 0);
 --------------------------------------
 --Rx
 --------------------------------------
-trn_rd_i                  : in    std_logic_vector(G_PCIEXP_TRN_DBUS-1 downto 0)  ;
+trn_rd_i                  : in    std_logic_vector(G_PCIEXP_TRN_DBUS - 1 downto 0)  ;
 trn_rrem_n_i              : in    std_logic_vector(3 downto 0);
 trn_rsof_n_i              : in    std_logic;
 trn_reof_n_i              : in    std_logic;
@@ -539,20 +539,18 @@ signal refclkout                      : std_logic;
 
 signal user_reset                     : std_logic;
 signal user_lnk_up                    : std_logic;
-signal sys_clk                        : std_logic;
-signal sys_reset,sys_reset_n                       : std_logic;
 signal trn_clk                        : std_logic;-- //synthesis attribute max_fanout of trn_clk is "100000"
-signal trn_reset,trn_reset_n                       : std_logic;
-signal trn_lnk_up,trn_lnk_up_n                     : std_logic;
+signal trn_reset,trn_reset_n          : std_logic;
+signal trn_lnk_up,trn_lnk_up_n        : std_logic;
 
 signal s_axis_tx_tready               : std_logic;
-signal s_axis_tx_tdata                : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+signal s_axis_tx_tdata                : std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
 signal s_axis_tx_tkeep                : std_logic_vector(7 downto 0);
 signal s_axis_tx_tuser                : std_logic_vector(3 downto 0);
 signal s_axis_tx_tlast                : std_logic;
 signal s_axis_tx_tvalid               : std_logic;
 
-signal m_axis_rx_tdata                : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+signal m_axis_rx_tdata                : std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
 signal m_axis_rx_tkeep                : std_logic_vector(7 downto 0);
 signal m_axis_rx_tlast                : std_logic;
 signal m_axis_rx_tvalid               : std_logic;
@@ -566,10 +564,10 @@ signal trn_tdst_rdy_n                 : std_logic;
 signal trn_tsrc_dsc_n                 : std_logic;
 signal trn_terrfwd_n                  : std_logic;
 --signal trn_tdst_dsc_n                 : std_logic;--in rev 1.7. dont
-signal trn_td                         : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
-signal trn_trem_n_core                : std_logic_vector(CI_PCIEXP_TRN_REMBUS_NEW-1 downto 0);
+signal trn_td                         : std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
+signal trn_trem_n_core                : std_logic_vector(CI_PCIEXP_TRN_REMBUS_NEW - 1 downto 0);
 signal trn_trem_n                     : std_logic_vector(3 downto 0);
-signal trn_tbuf_av                    : std_logic_vector(CI_PCIEXP_TRN_BUFAV_BUS-1 downto 0);
+signal trn_tbuf_av                    : std_logic_vector(CI_PCIEXP_TRN_BUFAV_BUS - 1 downto 0);
 
 signal trn_rsof_n                     : std_logic;
 signal trn_reof_n                     : std_logic;
@@ -578,25 +576,25 @@ signal trn_rsrc_dsc_n                 : std_logic;
 signal trn_rdst_rdy_n                 : std_logic;
 signal trn_rerrfwd_n                  : std_logic;
 signal trn_rnp_ok,trn_rnp_ok_n                   : std_logic;
-signal trn_rd                         : std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
-signal trn_rrem_n_core                : std_logic_vector(CI_PCIEXP_TRN_REMBUS_NEW-1 downto 0);
+signal trn_rd                         : std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
+signal trn_rrem_n_core                : std_logic_vector(CI_PCIEXP_TRN_REMBUS_NEW - 1 downto 0);
 signal trn_rrem_n                     : std_logic_vector(3 downto 0);
-signal trn_rbar_hit_n                 : std_logic_vector(CI_PCIEXP_BARHIT_BUS-1 downto 0);
---signal trn_rfc_nph_av                 : std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
---signal trn_rfc_npd_av                 : std_logic_vector(CI_PCIEXP_FCDAT_BUS-1 downto 0);
---signal trn_rfc_ph_av                  : std_logic_vector(CI_PCIEXP_FC_HDR_BUS-1 downto 0);
---signal trn_rfc_pd_av                  : std_logic_vector(CI_PCIEXP_FCDAT_BUS-1 downto 0);
+signal trn_rbar_hit_n                 : std_logic_vector(CI_PCIEXP_BARHIT_BUS - 1 downto 0);
+--signal trn_rfc_nph_av                 : std_logic_vector(CI_PCIEXP_FC_HDR_BUS - 1 downto 0);
+--signal trn_rfc_npd_av                 : std_logic_vector(CI_PCIEXP_FCDAT_BUS - 1 downto 0);
+--signal trn_rfc_ph_av                  : std_logic_vector(CI_PCIEXP_FC_HDR_BUS - 1 downto 0);
+--signal trn_rfc_pd_av                  : std_logic_vector(CI_PCIEXP_FCDAT_BUS - 1 downto 0);
 signal trn_rcpl_streaming_n           : std_logic;
 
-signal cfg_do                         : std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
-signal cfg_di                         : std_logic_vector(CI_PCIEXP_CFG_DBUS-1 downto 0);
-signal cfg_dwaddr                     : std_logic_vector(CI_PCIEXP_CFG_ABUS-1 downto 0);
-signal cfg_byte_en,cfg_byte_en_n                   : std_logic_vector(CI_PCIEXP_CFG_DBUS/8-1 downto 0);
+signal cfg_do                         : std_logic_vector(CI_PCIEXP_CFG_DBUS - 1 downto 0);
+signal cfg_di                         : std_logic_vector(CI_PCIEXP_CFG_DBUS - 1 downto 0);
+signal cfg_dwaddr                     : std_logic_vector(CI_PCIEXP_CFG_ABUS - 1 downto 0);
+signal cfg_byte_en,cfg_byte_en_n                   : std_logic_vector(CI_PCIEXP_CFG_DBUS/8 - 1 downto 0);
 signal cfg_wr_en,cfg_wr_en_n                       : std_logic;
 signal cfg_rd_en,cfg_rd_en_n                       : std_logic;
 signal cfg_rd_wr_done,cfg_rd_wr_done_n             : std_logic;
 
-signal cfg_err_tlp_cpl_header                      : std_logic_vector(CI_PCIEXP_CFG_CPLHDR_BUS-1 downto 0);--47 downto 0);
+signal cfg_err_tlp_cpl_header                      : std_logic_vector(CI_PCIEXP_CFG_CPLHDR_BUS - 1 downto 0);--47 downto 0);
 signal cfg_err_cor,cfg_err_cor_n                   : std_logic;
 signal cfg_err_ur,cfg_err_ur_n                     : std_logic;
 signal cfg_err_cpl_rdy,cfg_err_cpl_rdy_n           : std_logic;
@@ -610,35 +608,35 @@ signal cfg_err_locked,cfg_err_locked_n             : std_logic;
 signal cfg_interrupt,cfg_interrupt_n               : std_logic;
 signal cfg_interrupt_rdy,cfg_interrupt_rdy_n       : std_logic;
 signal cfg_interrupt_assert,cfg_interrupt_assert_n : std_logic;
-signal cfg_interrupt_di               : std_logic_vector(7 downto 0);
-signal cfg_interrupt_do               : std_logic_vector(7 downto 0);
-signal cfg_interrupt_mmenable         : std_logic_vector(2 downto 0);
-signal cfg_interrupt_msienable        : std_logic;
+signal cfg_interrupt_di                            : std_logic_vector(7 downto 0);
+signal cfg_interrupt_do                            : std_logic_vector(7 downto 0);
+signal cfg_interrupt_mmenable                      : std_logic_vector(2 downto 0);
+signal cfg_interrupt_msienable                     : std_logic;
 
 signal cfg_turnoff_ok,cfg_turnoff_ok_n             : std_logic;
 signal cfg_to_turnoff,cfg_to_turnoff_n             : std_logic;
 signal cfg_pm_wake,cfg_pm_wake_n                   : std_logic;
 signal cfg_trn_pending,cfg_trn_pending_n           : std_logic;
-signal cfg_dsn                        : std_logic_vector(63 downto 0);
+signal cfg_dsn                                     : std_logic_vector(63 downto 0);
 
 signal cfg_pcie_link_state,cfg_pcie_link_state_n   : std_logic_vector(2 downto 0);
-signal cfg_bus_number                 : std_logic_vector(CI_PCIEXP_CFG_BUSNUM_BUS-1 downto 0);
-signal cfg_device_number              : std_logic_vector(CI_PCIEXP_CFG_DEVNUM_BUS-1 downto 0);
-signal cfg_function_number            : std_logic_vector(CI_PCIEXP_CFG_FUNNUM_BUS-1 downto 0);
-signal cfg_status                     : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
-signal cfg_command                    : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
-signal cfg_dstatus                    : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
-signal cfg_dcommand                   : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
-signal cfg_lstatus                    : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
-signal cfg_lcommand                   : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS-1 downto 0);
+signal cfg_bus_number                 : std_logic_vector(CI_PCIEXP_CFG_BUSNUM_BUS - 1 downto 0);
+signal cfg_device_number              : std_logic_vector(CI_PCIEXP_CFG_DEVNUM_BUS - 1 downto 0);
+signal cfg_function_number            : std_logic_vector(CI_PCIEXP_CFG_FUNNUM_BUS - 1 downto 0);
+signal cfg_status                     : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS - 1 downto 0);
+signal cfg_command                    : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS - 1 downto 0);
+signal cfg_dstatus                    : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS - 1 downto 0);
+signal cfg_dcommand                   : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS - 1 downto 0);
+signal cfg_lstatus                    : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS - 1 downto 0);
+signal cfg_lcommand                   : std_logic_vector(CI_PCIEXP_CFG_CAP_BUS - 1 downto 0);
 
 signal user_trn_tbuf_av               : std_logic_vector(5 downto 0);--(15 downto 0);
 
 --New Signal
-signal trn_tcfg_req,trn_tcfg_req_n                 : std_logic;
-signal trn_terr_drop,trn_terr_drop_n               : std_logic;
+signal trn_tcfg_req,trn_tcfg_req_n    : std_logic;
+signal trn_terr_drop,trn_terr_drop_n  : std_logic;
 
-signal trn_tcfg_gnt,trn_tcfg_gnt_n                 : std_logic;
+signal trn_tcfg_gnt,trn_tcfg_gnt_n    : std_logic;
 signal trn_tstr_n                     : std_logic;
 
 signal trn_fc_cpld                    : std_logic_vector(11 downto 0);
@@ -692,33 +690,33 @@ signal PIPE_MMCM_RST_N                : std_logic := '1';
 signal tst_s_axis_tx_tready           : std_logic;
 signal tst_s_axis_tx_tlast            : std_logic;
 signal tst_s_axis_tx_tvalid           : std_logic;
-signal tst_s_axis_tx_tkeep: std_logic_vector(7 downto 0);
-signal tst_s_axis_tx_tuser: std_logic_vector(3 downto 0);
+signal tst_s_axis_tx_tkeep            : std_logic_vector(7 downto 0);
+signal tst_s_axis_tx_tuser            : std_logic_vector(3 downto 0);
 signal tst_m_axis_rx_tready           : std_logic;
 signal tst_m_axis_rx_tvalid           : std_logic;
 signal tst_m_axis_rx_tlast            : std_logic;
-signal tst_m_axis_rx_tkeep: std_logic_vector(7 downto 0);
-signal tst_m_axis_rx_tuser: std_logic_vector(3 downto 0);
+signal tst_m_axis_rx_tkeep            : std_logic_vector(7 downto 0);
+signal tst_m_axis_rx_tuser            : std_logic_vector(3 downto 0);
 
-signal tst_trn_tsof_n     : std_logic;
-signal tst_trn_teof_n     : std_logic;
-signal tst_trn_tsrc_rdy_n : std_logic;
-signal tst_trn_tdst_rdy_n : std_logic;
-signal tst_trn_tsrc_dsc_n : std_logic;
-signal tst_trn_trem_n     : std_logic_vector(0 downto 0);
+signal tst_trn_tsof_n                 : std_logic;
+signal tst_trn_teof_n                 : std_logic;
+signal tst_trn_tsrc_rdy_n             : std_logic;
+signal tst_trn_tdst_rdy_n             : std_logic;
+signal tst_trn_tsrc_dsc_n             : std_logic;
+signal tst_trn_trem_n                 : std_logic_vector(0 downto 0);
 
-signal tst_trn_rsof_n     : std_logic;
-signal tst_trn_reof_n     : std_logic;
-signal tst_trn_rsrc_rdy_n : std_logic;
-signal tst_trn_rdst_rdy_n : std_logic;
+signal tst_trn_rsof_n                 : std_logic;
+signal tst_trn_reof_n                 : std_logic;
+signal tst_trn_rsrc_rdy_n             : std_logic;
+signal tst_trn_rdst_rdy_n             : std_logic;
 
-signal tst_trn_rrem_n  : std_logic_vector(0 downto 0);
-signal tst_trn_rd         : std_logic_vector(63 downto 0);
+signal tst_trn_rrem_n                 : std_logic_vector(0 downto 0);
+signal tst_trn_rd                     : std_logic_vector(63 downto 0);
 
-signal tst_cfg_interrupt_n        : std_logic;
-signal tst_cfg_interrupt_rdy_n    : std_logic;
-signal tst_cfg_interrupt_assert_n : std_logic;
-signal tst_trn_rbar_hit_n : std_logic_vector(1 downto 0);
+signal tst_cfg_interrupt_n            : std_logic;
+signal tst_cfg_interrupt_rdy_n        : std_logic;
+signal tst_cfg_interrupt_assert_n     : std_logic;
+signal tst_trn_rbar_hit_n             : std_logic_vector(1 downto 0);
 
 --MAIN
 begin
@@ -743,12 +741,12 @@ p_out_tst(13)<=tst_trn_rdst_rdy_n;
 p_out_tst(14)<=tst_trn_rbar_hit_n(0);
 p_out_tst(15)<=tst_trn_rbar_hit_n(1);
 p_out_tst(16)<=cfg_command(2);--cfg_bus_mstr_enable
-p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18-17+1);
+p_out_tst(18 downto 17)<=EXT(trn_rrem_n_core, 18 - 17 + 1);
 p_out_tst(146 downto 19)<=EXT(tst_trn_rd, 128);
 --p_out_tst(146 downto 19)<=trn_rd(127 downto 0);
-p_out_tst(162 downto 147)<=EXT(tst_trn_rrem_n, 162-147+1);
+p_out_tst(162 downto 147)<=EXT(tst_trn_rrem_n, 162 - 147 + 1);
 p_out_tst(168 downto 163)<=trn_tbuf_av;
-p_out_tst(170 downto 169)<=EXT(tst_trn_trem_n, 170-169+1);
+p_out_tst(170 downto 169)<=EXT(tst_trn_trem_n, 170 - 169 + 1);
 p_out_tst(171)<=tst_s_axis_tx_tready;--s_axis_tx_tready;
 p_out_tst(172)<=tst_s_axis_tx_tlast ;--s_axis_tx_tlast ;
 p_out_tst(173)<=tst_s_axis_tx_tvalid;--s_axis_tx_tvalid;
@@ -813,13 +811,13 @@ PCIE_TXBUF_EN                  => "FALSE",                    -- PCIe TX buffer 
 PCIE_LANE                      => C_PCGF_PCIE_LINK_WIDTH,     -- PCIe number of lanes
 PCIE_LINK_SPEED                => CI_PCIE_LNK_SPD ,           -- PCIe link speed
 PCIE_REFCLK_FREQ               => 2,                          -- PCIe reference clock frequency
-PCIE_USERCLK1_FREQ             => (CI_PCIE_USERCLK_FREQ +1),  -- PCIe user clock 1 frequency
-PCIE_USERCLK2_FREQ             => (CI_PCIE_USERCLK2_FREQ +1), -- PCIe user clock 2 frequency
+PCIE_USERCLK1_FREQ             => (CI_PCIE_USERCLK_FREQ + 1), -- PCIe user clock 1 frequency
+PCIE_USERCLK2_FREQ             => (CI_PCIE_USERCLK2_FREQ + 1),-- PCIe user clock 2 frequency
 PCIE_DEBUG_MODE                => 0                           -- PCIe Debug Mode
 )
 port map(
 ------------ Input -------------------------------------
-CLK_CLK                        => sys_clk,
+CLK_CLK                        => p_in_gtp_refclkin,
 CLK_TXOUTCLK                   => PIPE_TXOUTCLK_OUT,       -- Reference clock from lane 0
 CLK_RXOUTCLK_IN                => PIPE_RXOUTCLK_OUT,
 -- CLK_RST_N                      => '1',
@@ -870,7 +868,7 @@ pci_exp_rxn             => p_in_pciexp_rxn,
 --Tx
 --------------------------------------
 s_axis_tx_tready        => s_axis_tx_tready   ,--: out std_logic;
-s_axis_tx_tdata         => s_axis_tx_tdata    ,--: in std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+s_axis_tx_tdata         => s_axis_tx_tdata    ,--: in std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
 s_axis_tx_tkeep         => s_axis_tx_tkeep    ,--: in std_logic_vector(7 downto 0);
 s_axis_tx_tuser         => s_axis_tx_tuser    ,--: in std_logic_vector(3 downto 0);
 s_axis_tx_tlast         => s_axis_tx_tlast    ,--: in std_logic;
@@ -879,7 +877,7 @@ s_axis_tx_tvalid        => s_axis_tx_tvalid   ,--: in std_logic;
 --------------------------------------
 --Rx
 --------------------------------------
-m_axis_rx_tdata         => m_axis_rx_tdata    ,--: out std_logic_vector(CI_PCIEXP_TRN_DBUS-1 downto 0);
+m_axis_rx_tdata         => m_axis_rx_tdata    ,--: out std_logic_vector(CI_PCIEXP_TRN_DBUS - 1 downto 0);
 m_axis_rx_tkeep         => m_axis_rx_tkeep    ,--: out std_logic_vector(7 downto 0);
 m_axis_rx_tlast         => m_axis_rx_tlast    ,--: out std_logic;
 m_axis_rx_tvalid        => m_axis_rx_tvalid   ,--: out std_logic;
@@ -893,19 +891,19 @@ user_clk_out                   => trn_clk ,
 user_reset_out                 => user_reset,
 user_lnk_up                    => user_lnk_up,
 
-sys_clk                        => sys_clk,
+sys_clk                        => p_in_gtp_refclkin,
 --sys_reset                      => sys_reset,--: in std_logic;
 
 --------------------------------------
 --CFG Interface
 --------------------------------------
-cfg_mgmt_do                      => cfg_do                        ,--: out std_logic_vector (31 downto 0);
-cfg_mgmt_rd_wr_done              => cfg_rd_wr_done                ,--: out std_logic;
-cfg_mgmt_di                      => cfg_di                        ,--: in std_logic_vector (31 downto 0);
-cfg_mgmt_byte_en                 => cfg_byte_en                   ,--: in std_logic_vector (3 downto 0);
-cfg_mgmt_dwaddr                  => cfg_dwaddr                    ,--: in std_logic_vector (9 downto 0);
-cfg_mgmt_wr_en                   => cfg_wr_en                     ,--: in std_logic;
-cfg_mgmt_rd_en                   => cfg_rd_en                     ,--: in std_logic;
+cfg_mgmt_do                    => cfg_do                        ,--: out std_logic_vector (31 downto 0);
+cfg_mgmt_rd_wr_done            => cfg_rd_wr_done                ,--: out std_logic;
+cfg_mgmt_di                    => cfg_di                        ,--: in std_logic_vector (31 downto 0);
+cfg_mgmt_byte_en               => cfg_byte_en                   ,--: in std_logic_vector (3 downto 0);
+cfg_mgmt_dwaddr                => cfg_dwaddr                    ,--: in std_logic_vector (9 downto 0);
+cfg_mgmt_wr_en                 => cfg_wr_en                     ,--: in std_logic;
+cfg_mgmt_rd_en                 => cfg_rd_en                     ,--: in std_logic;
 
 cfg_err_cor                    => cfg_err_cor                   ,--: in std_logic;
 cfg_err_ur                     => cfg_err_ur                    ,--: in std_logic;
@@ -1084,7 +1082,7 @@ cfg_vc_tcvc_map                            => open,--: out std_logic_vector(6 do
 
 PIPE_MMCM_RST_N                            => PIPE_MMCM_RST_N,--: in std_logic;   --     // Async      | Async
 
-sys_rst_n                                  => sys_reset_n --: in std_logic
+sys_rst_n                                  => p_in_pciexp_rst --: in std_logic
 );
 
 
@@ -1207,12 +1205,9 @@ trn_reset_n_i             => trn_reset_n
 );
 
 
-sys_clk <= p_in_gtp_refclkin;
-sys_reset_n <= p_in_pciexp_rst;
-
 process(trn_clk)
 begin
-  if (trn_clk'event and trn_clk='1') then
+  if rising_edge(trn_clk) then
    if (user_reset = '1') then
      trn_reset  <= '1' after TCQ;
      trn_lnk_up <= '0' after TCQ;
@@ -1223,8 +1218,8 @@ begin
   end if;
 end process;
 
-p_out_gtp_refclkout<='0';
-user_trn_tbuf_av<=(others=>'1') when trn_tbuf_av/=(trn_tbuf_av'range =>'0') else (others=>'0');
+p_out_gtp_refclkout <= '0';
+user_trn_tbuf_av <= (others => '1') when trn_tbuf_av /= (trn_tbuf_av'range =>'0') else (others=>'0');
 
 trn_fc_sel                <= "000";
 trn_tstr_n                <= trn_rcpl_streaming_n;
@@ -1238,90 +1233,95 @@ pl_upstream_prefer_deemph <= '1';
 --------------------------------------
 --convert to axi
 --------------------------------------
-sys_reset <=not sys_reset_n;
-
 trn_reset_n <= not trn_reset;
 trn_lnk_up_n <= not trn_lnk_up;
 
-trn_rnp_ok <=not trn_rnp_ok_n;
-trn_tcfg_gnt <=not trn_tcfg_gnt_n;
+trn_rnp_ok <= not trn_rnp_ok_n;
+trn_tcfg_gnt <= not trn_tcfg_gnt_n;
 
-gen_cfg_byte_en : for i in 0 to cfg_byte_en_n'length -1 generate
-cfg_byte_en(i) <=not cfg_byte_en_n(i);
+gen_cfg_byte_en : for i in 0 to cfg_byte_en_n'length - 1 generate
+cfg_byte_en(i) <= not cfg_byte_en_n(i);
 end generate gen_cfg_byte_en;
-cfg_wr_en <=not cfg_wr_en_n;
-cfg_rd_en <=not cfg_rd_en_n;
-cfg_rd_wr_done_n <=not cfg_rd_wr_done;
+cfg_wr_en        <= not cfg_wr_en_n;
+cfg_rd_en        <= not cfg_rd_en_n;
+cfg_rd_wr_done_n <= not cfg_rd_wr_done;
 
-cfg_to_turnoff_n   <=not cfg_to_turnoff;
-cfg_err_cpl_rdy_n  <=not cfg_err_cpl_rdy;
+cfg_to_turnoff_n   <= not cfg_to_turnoff;
+cfg_err_cpl_rdy_n  <= not cfg_err_cpl_rdy;
 
-cfg_pcie_link_state_n<=  cfg_pcie_link_state;
+cfg_pcie_link_state_n <= cfg_pcie_link_state;
 
-cfg_turnoff_ok  <=not cfg_turnoff_ok_n;
-cfg_pm_wake     <=not cfg_pm_wake_n;
-cfg_trn_pending <=not cfg_trn_pending_n;
+cfg_turnoff_ok  <= not cfg_turnoff_ok_n;
+cfg_pm_wake     <= not cfg_pm_wake_n;
+cfg_trn_pending <= not cfg_trn_pending_n;
 
-cfg_err_locked      <=not cfg_err_locked_n;
-cfg_err_posted      <=not cfg_err_posted_n;
-cfg_err_cpl_unexpect<=not cfg_err_cpl_unexpect_n;
-cfg_err_cpl_abort   <=not cfg_err_cpl_abort_n;
-cfg_err_cpl_timeout <=not cfg_err_cpl_timeout_n;
-cfg_err_ecrc        <=not cfg_err_ecrc_n;
-cfg_err_ur          <=not cfg_err_ur_n;
-cfg_err_cor         <=not cfg_err_cor_n;
+cfg_err_locked       <= not cfg_err_locked_n;
+cfg_err_posted       <= not cfg_err_posted_n;
+cfg_err_cpl_unexpect <= not cfg_err_cpl_unexpect_n;
+cfg_err_cpl_abort    <= not cfg_err_cpl_abort_n;
+cfg_err_cpl_timeout  <= not cfg_err_cpl_timeout_n;
+cfg_err_ecrc         <= not cfg_err_ecrc_n;
+cfg_err_ur           <= not cfg_err_ur_n;
+cfg_err_cor          <= not cfg_err_cor_n;
 
-cfg_interrupt       <=not cfg_interrupt_n;
-cfg_interrupt_rdy_n <=not cfg_interrupt_rdy;
-cfg_interrupt_assert<=not cfg_interrupt_assert_n;
+cfg_interrupt        <= not cfg_interrupt_n;
+cfg_interrupt_rdy_n  <= not cfg_interrupt_rdy;
+cfg_interrupt_assert <= not cfg_interrupt_assert_n;
 
 --Tx
-trn_tcfg_req_n  <=not trn_tcfg_req;
-trn_terr_drop_n <=not trn_terr_drop;
+trn_tcfg_req_n     <= not trn_tcfg_req;
+trn_terr_drop_n    <= not trn_terr_drop;
 
-trn_tdst_rdy_n    <=not s_axis_tx_tready;
-s_axis_tx_tlast   <=not trn_teof_n;
-s_axis_tx_tvalid  <=not trn_tsrc_rdy_n;
-s_axis_tx_tuser(3)<=not trn_tsrc_dsc_n;
-s_axis_tx_tuser(2)<=not trn_tstr_n;
-s_axis_tx_tuser(1)<=not trn_terrfwd_n;
-s_axis_tx_tuser(0)<='0';
+trn_tdst_rdy_n     <= not s_axis_tx_tready;
+s_axis_tx_tlast    <= not trn_teof_n;
+s_axis_tx_tvalid   <= not trn_tsrc_rdy_n;
+s_axis_tx_tuser(3) <= not trn_tsrc_dsc_n;
+s_axis_tx_tuser(2) <= not trn_tstr_n;
+s_axis_tx_tuser(1) <= not trn_terrfwd_n;
+s_axis_tx_tuser(0) <= '0';
 
 s_axis_tx_tkeep <= CONV_STD_LOGIC_VECTOR(16#0F#, s_axis_tx_tkeep'length)
-                    when trn_teof_n = '0' and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, trn_trem_n'length) else
+                    when trn_teof_n = '0'
+                          and trn_trem_n = CONV_STD_LOGIC_VECTOR(16#01#, trn_trem_n'length) else
                       CONV_STD_LOGIC_VECTOR(16#FF#, s_axis_tx_tkeep'length);
 
 --Rx
-m_axis_rx_tready <=not trn_rdst_rdy_n;
+m_axis_rx_tready <= not trn_rdst_rdy_n;
 
-gen_trn_rbar_hit : for i in 0 to trn_rbar_hit_n'length -1 generate
-trn_rbar_hit_n(i) <=not m_axis_rx_tuser(2+i);
+gen_trn_rbar_hit : for i in 0 to trn_rbar_hit_n'length - 1 generate
+trn_rbar_hit_n(i) <= not m_axis_rx_tuser(2 + i);
 end generate gen_trn_rbar_hit;
 
-process(sys_reset,trn_clk)
+process(p_in_pciexp_rst, trn_clk)
 begin
-  if sys_reset='1' then
-    in_pkt_reg<='1';
-  elsif trn_clk'event and trn_clk='1' then
-    if m_axis_rx_tvalid='1' and m_axis_rx_tready='1' then
-      in_pkt_reg <=not m_axis_rx_tlast;
+  if p_in_pciexp_rst = '0' then
+    in_pkt_reg <= '1';
+  elsif rising_edge(trn_clk) then
+    if m_axis_rx_tvalid = '1' and m_axis_rx_tready = '1' then
+      in_pkt_reg <= not m_axis_rx_tlast;
     end if;
   end if;
 end process;
 
 trn_rsof_n     <= not(m_axis_rx_tvalid and not in_pkt_reg);
-trn_reof_n     <=not m_axis_rx_tlast;
-trn_rsrc_rdy_n <=not m_axis_rx_tvalid;
-trn_rerrfwd_n  <=not m_axis_rx_tuser(1);
-trn_rsrc_dsc_n <='1';
+trn_reof_n     <= not m_axis_rx_tlast;
+trn_rsrc_rdy_n <= not m_axis_rx_tvalid;
+trn_rerrfwd_n  <= not m_axis_rx_tuser(1);
+trn_rsrc_dsc_n <= '1';
 
 trn_rrem_n <= CONV_STD_LOGIC_VECTOR(16#01#, trn_rrem_n'length)
-              when m_axis_rx_tlast = '1' and m_axis_rx_tkeep = CONV_STD_LOGIC_VECTOR(16#0F#, m_axis_rx_tkeep'length) else
+              when m_axis_rx_tlast = '1'
+                    and m_axis_rx_tkeep = CONV_STD_LOGIC_VECTOR(16#0F#, m_axis_rx_tkeep'length) else
                 CONV_STD_LOGIC_VECTOR(16#00#, trn_rrem_n'length);
 
-gen_trn_d : for i in 0 to CI_PCIEXP_TRN_DBUS/32 - 1 generate
-trn_rd((trn_rd'length - 32*i) - 1 downto (trn_rd'length - 32*(i+1))) <= m_axis_rx_tdata(32*(i+1) - 1 downto 32*i);
-s_axis_tx_tdata(32*(i+1) - 1 downto 32*i) <= trn_td((trn_td'length - 32*i) - 1 downto (trn_td'length - 32*(i+1)));
+gen_trn_d : for i in 0 to (CI_PCIEXP_TRN_DBUS / 32) - 1 generate
+trn_rd((trn_rd'length - (32 * i)) - 1
+          downto (trn_rd'length - (32 * (i + 1)))) <= m_axis_rx_tdata((32 * (i + 1)) - 1
+                                                                        downto (32 * i));
+
+s_axis_tx_tdata((32 * (i + 1)) - 1
+                  downto (32 * i)) <= trn_td((trn_td'length - (32 * i)) - 1
+                                              downto (trn_td'length - (32 * (i + 1))));
 end generate gen_trn_d;
 
 

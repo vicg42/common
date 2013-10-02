@@ -347,7 +347,6 @@ signal i_mrd_pkt_len              : std_logic_vector(31 downto 0);
 
 signal i_rd_metering              : std_logic;
 
-signal i_irq_ctrl_rst             : std_logic;
 signal i_irq_clr                  : std_logic;
 signal i_irq_num                  : std_logic_vector(4 downto 0);
 signal i_irq_set                  : std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
@@ -366,10 +365,10 @@ signal i_cfg_bus_master_en        : std_logic;
 signal i_cfg_intrrupt_disable     : std_logic;
 
 
-signal i_rx_engine_tst_out        : std_logic_vector(31 downto 0);
-signal i_rd_throttle_tst_out      : std_logic_vector(1 downto 0);
-signal tst_pcie_tx_out            : std_logic_vector(31 downto 0);
-signal tmp_cfg_msi_enable         : std_logic;
+--signal i_rx_engine_tst_out        : std_logic_vector(31 downto 0);
+--signal i_rd_throttle_tst_out      : std_logic_vector(1 downto 0);
+--signal tst_pcie_tx_out            : std_logic_vector(31 downto 0);
+--signal tmp_cfg_msi_enable         : std_logic;
 
 
 --MAIN
@@ -537,9 +536,9 @@ p_in_cfg_neg_max_lnk_width    => i_cfg_neg_max_lnk_width,
 p_in_cfg_prg_max_payload_size => i_cfg_prg_max_payload_size,
 p_in_cfg_prg_max_rd_req_size  => i_cfg_prg_max_rd_req_size,
 
-p_in_rx_engine_tst            => tst_pcie_tx_out(1 downto 0),
-p_in_rx_engine_tst2           => i_rx_engine_tst_out(9 downto 0),
-p_in_throttle_tst             => i_rd_throttle_tst_out,
+p_in_rx_engine_tst            => "00",--tst_pcie_tx_out(1 downto 0),
+p_in_rx_engine_tst2           => "0000000000",--i_rx_engine_tst_out(9 downto 0),
+p_in_throttle_tst             => "00",--i_rd_throttle_tst_out,
 p_in_mrd_pkt_len_tst          => i_mrd_pkt_len,
 
 p_in_clk                      => trn_clk_i,
@@ -602,7 +601,7 @@ cpld_malformed_o    => i_mrd_rcv_err,
 dma_init_i          => i_dmatrn_init,
 
 --Технологический
-tst_o               => i_rx_engine_tst_out,
+tst_o               => open,--i_rx_engine_tst_out,
 tst_i               => (others=>'0'),
 
 clk                 => trn_clk_i,
@@ -692,7 +691,7 @@ max_payload_size_i   => i_cfg_prg_max_payload_size, -- I [2:0]  i_usr_max_payloa
 max_rd_req_size_i    => i_cfg_prg_max_rd_req_size,  -- I [2:0]  i_usr_max_rd_req_size, --
 
 --Технологический
-tst_o                => tst_pcie_tx_out,
+tst_o                => open,--tst_pcie_tx_out,
 tst_i                => (others=>'0'),
 
 clk                  => trn_clk_i,
@@ -728,8 +727,6 @@ rst_n               =>  i_rst_n
 ------------------------------------
 --Interrupt Controller
 ------------------------------------
-i_irq_ctrl_rst <= not i_rst_n;
-
 m_irq : pcie_irq
 port map(
 p_in_irq_clr           => i_irq_clr,
@@ -748,7 +745,7 @@ p_in_tst               => (others=>'0'),
 p_out_tst              => open,
 
 p_in_clk               => trn_clk_i,
-p_in_rst               => i_irq_ctrl_rst
+p_in_rst_n             => i_rst_n
 );
 
 
@@ -769,7 +766,7 @@ cfg_rd_wr_done_n    => cfg_rd_wr_done_n_i,
 
 cfg_cap_max_lnk_width    => open, -- O [5:0]
 cfg_cap_max_payload_size => open, -- O [2:0]
-cfg_msi_enable           => tmp_cfg_msi_enable, -- O
+cfg_msi_enable           => open, --tmp_cfg_msi_enable, -- O
 
 rst_n               => i_rst_n,
 clk                 => trn_clk_i

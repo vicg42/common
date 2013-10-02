@@ -129,9 +129,9 @@ signal i_fsm_cs             : TFsm_state;
 
 signal i_trn_trem_n         : std_logic_vector(trn_td'length/64-1 downto 0);
 signal i_trn_td             : std_logic_vector(trn_td'range);
-signal i_trn_tsof_n         : std_logic;
-signal i_trn_teof_n         : std_logic;
-signal i_trn_tsrc_rdy_n     : std_logic;
+signal i_trn_tsof_n         : std_logic := '1';
+signal i_trn_teof_n         : std_logic := '1';
+signal i_trn_tsrc_rdy_n     : std_logic := '1';
 
 signal i_byte_count         : std_logic_vector(11 downto 0);
 signal i_lower_addr         : std_logic_vector(6 downto 0);
@@ -146,7 +146,8 @@ signal i_mem_tx_byte        : std_logic_vector(31 downto 0);
 signal i_mem_remain_byte    : std_logic_vector(31 downto 0);
 signal i_mem_tpl_cnt        : std_logic_vector(12 downto 0);
 signal i_mem_tpl_byte       : std_logic_vector(12 downto 0);
-signal i_mem_tpl_dw         : std_logic_vector(12 downto 0);
+signal i_mem_tpl_dw         : std_logic_vector(12 downto 0)
+                                      := CONV_STD_LOGIC_VECTOR(128, 13);
 signal i_mem_tpl_len        : std_logic_vector(12 downto 0);
 signal i_mem_tpl_tag        : std_logic_vector(15 downto 0);
 signal i_mem_tpl_last       : std_logic;
@@ -269,13 +270,14 @@ begin
 end process;
 
 --Инициализация перед началом DMA транзакции
-init : process(rst_n, clk)
+init : process(clk)
 begin
+if rising_edge(clk) then
   if rst_n = '0' then
     sr_req_compl <= '0';
     i_dma_init <= '0';
 
-  elsif rising_edge(clk) then
+  else
 
     sr_req_compl <= req_compl_i;
 
@@ -287,12 +289,14 @@ begin
         end if;
     end if;
   end if;
+end if;--rst_n,
 end process;--init
 
 
 --Tx State Machine
-fsm : process(rst_n, clk)
+fsm : process(clk)
 begin
+if rising_edge(clk) then
   if rst_n = '0' then
 
     i_fsm_cs <= S_TX_IDLE;
@@ -323,7 +327,7 @@ begin
 
     sr_usr_rxbuf_do_swap <= (others=>'0');
 
-  elsif rising_edge(clk) then
+  else
 
     case i_fsm_cs is
         --#######################################################################
@@ -898,6 +902,7 @@ begin
 
     end case; --case i_fsm_cs is
   end if;
+end if;--rst_n,
 end process;--fsm
 
 

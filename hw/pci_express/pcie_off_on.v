@@ -51,7 +51,7 @@ reg                 cfg_turnoff_ok_n_o;
   /*
    *  Check if completion is pending
    */
-  always @ ( posedge clk or negedge rst_n )
+  always @ ( posedge clk )
   begin
     if (!rst_n )
     begin
@@ -70,7 +70,7 @@ reg                 cfg_turnoff_ok_n_o;
   /*
    *  Turn-off OK if requested and no transaction is pending
    */
-  always @ ( posedge clk or negedge rst_n )
+  always @ ( posedge clk )
   begin
     if (!rst_n )
     begin

@@ -26,14 +26,14 @@ port(
 -----------------------------
 --Usr Ctrl
 -----------------------------
-p_in_irq_set           : in   std_logic;--//Установка прерывания
-p_in_irq_clr           : in   std_logic;--//Сброс прерывания
-p_out_irq_status       : out  std_logic;--//1/0 - перрывание активно/не активно
+p_in_irq_set           : in   std_logic;--Установка прерывания
+p_in_irq_clr           : in   std_logic;--Сброс прерывания
+p_out_irq_status       : out  std_logic;--1/0 - перрывание активно/не активно
 
 -----------------------------
 --Связь с ядром PCI-EXPRESS
 -----------------------------
-p_in_cfg_msi           : in   std_logic;--//1/0 - Interrupt mode MSI/Legacy
+p_in_cfg_msi           : in   std_logic;--1/0 - Interrupt mode MSI/Legacy
 p_in_cfg_irq_rdy_n     : in   std_logic;
 p_out_cfg_irq_n        : out  std_logic;
 p_out_cfg_irq_assert_n : out  std_logic;
@@ -49,7 +49,7 @@ p_out_tst              : out std_logic_vector(31 downto 0);
 --SYSTEM
 -----------------------------
 p_in_clk               : in   std_logic;
-p_in_rst               : in   std_logic
+p_in_rst_n             : in   std_logic
 );
 end pcie_irq_dev;
 
@@ -68,24 +68,25 @@ signal i_irq_assert_n  : std_logic:='1';
 signal i_irq_n         : std_logic:='1';
 
 
---//MAIN
+--MAIN
 begin
 
 
 p_out_tst<=(others=>'0');
 
---//Связь с ядром PCI-EXPRESS
+--Связь с ядром PCI-EXPRESS
 p_out_cfg_irq_di       <= CONV_STD_LOGIC_VECTOR(16#00#, p_out_cfg_irq_di'length);
 p_out_cfg_irq_assert_n <= i_irq_assert_n;
 p_out_cfg_irq_n        <= i_irq_n;
 
---//Статус активности перывания
+--Статус активности перывания
 p_out_irq_status <= i_irq_status;
 
---//Логика управления ядром PCI-EXPRESS
-process(p_in_rst,p_in_clk)
+--Логика управления ядром PCI-EXPRESS
+process(p_in_clk)
 begin
-  if p_in_rst='1' then
+if rising_edge(p_in_clk) then
+  if p_in_rst_n = '0' then
 
     i_irq_status <= '0';
 
@@ -93,13 +94,13 @@ begin
     i_irq_n        <= '1';
     fsm_cs <= S_IRQ_IDLE;
 
-  elsif p_in_clk'event and p_in_clk='1' then
+  else
 
     case fsm_cs is
 
-      --//--------------------------------
-      --//
-      --//--------------------------------
+      ----------------------------------
+      --
+      ----------------------------------
       when S_IRQ_IDLE =>
 
         if p_in_irq_set='1' then
@@ -111,12 +112,12 @@ begin
           i_irq_n        <= '1';
         end if;
 
-      --//--------------------------------
-      --//
-      --//--------------------------------
+      ----------------------------------
+      --
+      ----------------------------------
       when S_IRQ_ASSERT_DONE =>
 
-        --//Ждем подтверждения от CORE
+        --Ждем подтверждения от CORE
         if p_in_cfg_irq_rdy_n='0' then
           i_irq_status   <= '1';
           i_irq_n        <= '1';
@@ -124,29 +125,29 @@ begin
           fsm_cs <= S_IRQ_WAIT_CLR;
         end if;
 
-      --//--------------------------------
-      --//
-      --//--------------------------------
+      ----------------------------------
+      --
+      ----------------------------------
       when S_IRQ_WAIT_CLR =>
 
         if p_in_irq_clr='1' then
           if p_in_cfg_msi='1' then
-          --//Interrupt mode MSI
+          --Interrupt mode MSI
             i_irq_status   <= '0';
             i_irq_n        <= '1';
             i_irq_assert_n <= '1';
             fsm_cs <= S_IRQ_IDLE;
           else
-          --//Interrupt mode Legacy
+          --Interrupt mode Legacy
             i_irq_n        <= '0';
             i_irq_assert_n <= '1';
             fsm_cs <= S_IRQ_DEASSERT_DONE;
           end if;
         end if;
 
-      --//--------------------------------
-      --//
-      --//--------------------------------
+      ----------------------------------
+      --
+      ----------------------------------
       when S_IRQ_DEASSERT_DONE =>
 
         if p_in_cfg_irq_rdy_n='0' then
@@ -158,6 +159,7 @@ begin
 
     end case;
   end if;
+end if;--p_in_rst_n,
 end process;
 
 

@@ -17,9 +17,6 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_misc.all;
 use ieee.std_logic_unsigned.all;
 
-library unisim;
-use unisim.vcomponents.all;
-
 library work;
 use work.vicg_common_pkg.all;
 use work.mem_wr_pkg.all;
@@ -230,13 +227,14 @@ p_in_rst             => p_in_rst
 --Инициализация
 ------------------------------------------------
 --Растягиваем импульс
-process(p_in_rst,p_in_hclk)
+process(p_in_hclk)
 begin
+if rising_edge(p_in_hclk) then
   if p_in_rst='1' then
     h_mem_start_wcnt<=(others=>'0');
     h_mem_start_w<='0';
 
-  elsif rising_edge(p_in_hclk) then
+  else
 
     if p_in_ctrl.start = '1' then
       h_mem_start_w <= '1';
@@ -251,6 +249,7 @@ begin
     end if;
 
   end if;
+end if;
 end process;
 
 --Пересинхронизация на частоту mem_ctrl

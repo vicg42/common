@@ -181,15 +181,16 @@ req_addr_o    <= i_req_addr;
 cpld_total_size_o <= i_cpld_total_size;
 cpld_malformed_o <= i_cpld_malformed;
 
-init : process(rst_n, clk)
+init : process(clk)
 begin
+if rising_edge(clk) then
   if rst_n = '0' then
     i_cpld_total_size <= (others=>'0');
     i_cpld_malformed <= '0';
 
-  elsif rising_edge(clk) then
+  else
 
-    if dma_init_i='1' then --Инициализация перед началом DMA транзакции
+    if dma_init_i = '1' then --Инициализация перед началом DMA транзакции
       i_cpld_total_size <= (others=>'0');
       i_cpld_malformed <= '0';
 
@@ -215,12 +216,14 @@ begin
 
     end if;
   end if;
+end if;--rst_n,
 end process;--init
 
 
 --Rx State Machine
-fsm : process(rst_n, clk)
+fsm : process(clk)
 begin
+if rising_edge(clk) then
   if rst_n = '0' then
 
     i_fsm_cs <= S_RX_IDLE;
@@ -252,7 +255,7 @@ begin
     i_usr_wr <= '0';
     i_usr_rd <= '0';
 
-  elsif rising_edge(clk) then
+  else
 
     case i_fsm_cs is
         --#######################################################################
@@ -721,6 +724,7 @@ begin
 
     end case; --case i_fsm_cs is
   end if;
+end if;--rst_n,
 end process;--fsm
 
 
