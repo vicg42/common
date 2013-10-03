@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.5
-# Date: Sun Sep 29 13:16:42 2013
+# Date: Thu Oct 03 13:52:19 2013
 #
 ##############################################################
 #
@@ -114,7 +114,7 @@ CSET bar_index_value3=0
 CSET bar_index_value4=0
 CSET bar_index_value5=0
 CSET base_class_menu=Simple_communication_controllers
-CSET buf_opt_bma=false
+CSET buf_opt_bma=true
 CSET cardbus_cis_pointer=00000000
 CSET cas128_completer_supported=false
 CSET class_code_base=00
@@ -263,4 +263,4 @@ CSET xlnx_ref_board=None
 MISC pkg_timestamp=2012-11-30T13:01:13Z
 # END Extra information
 GENERATE
-# CRC: 53b71578
+# CRC: 79e94226
