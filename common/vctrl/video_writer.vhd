@@ -146,7 +146,7 @@ signal tst_fsmstate_out            : std_logic_vector(3 downto 0);
 signal tst_err_det                 : std_logic;
 signal tst_upp_buf_full            : std_logic;
 signal tst_upp_buf_empty           : std_logic;
-
+signal tst_timestump_cnt           : std_logic_vector(31 downto 0);
 
 --MAIN
 begin
@@ -195,7 +195,8 @@ end generate gen_dbgcs_on;
 --Статусы
 ------------------------------------------------
 p_out_vfr_rdy <= i_vfr_rdy;--Прерывание: кадр записан в ОЗУ
-p_out_vrow_mrk <= i_vfr_row_mrk;--Маркер строки видеокадра
+p_out_vrow_mrk <= i_vfr_row_mrk when p_in_tst(C_VCTRL_REG_TST0_DBG_TIMESTUMP_BIT) = '0'
+                    else tst_timestump_cnt;--Маркер строки видеокадра
 
 
 ------------------------------------------------
@@ -213,6 +214,8 @@ i_upp_pkt_skip_rd_out <= (i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 --Автомат записи видео информации
 ------------------------------------------------
 process(p_in_clk)
+Type TTimestump_test is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(31 downto 0);
+variable timestump_cnt : TTimestump_test;
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -226,6 +229,7 @@ if rising_edge(p_in_clk) then
     i_vch_num <= (others=>'0');
     for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
       i_vfr_num(i) <= (others=>'0');
+      timestump_cnt(i) := (others=>'0');
     end loop;
     i_vfr_row_mrk <= (others=>'0');
 
@@ -250,6 +254,7 @@ if rising_edge(p_in_clk) then
 
     i_pkt_skip_data <= (others=>'0');
     i_pix_count_byte <= (others=>'0');
+    tst_timestump_cnt <= (others=>'0');
 
   else
 
@@ -441,6 +446,8 @@ if rising_edge(p_in_clk) then
               for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
                 if i_vch_num = i then
                   i_vfr_rdy(i) <= '1';
+                  timestump_cnt(i) := timestump_cnt(i) + 1;
+                  tst_timestump_cnt <= timestump_cnt(i);
                 end if;
               end loop;
             end if;

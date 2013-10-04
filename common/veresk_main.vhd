@@ -299,8 +299,6 @@ signal i_test01_led     : std_logic;
 signal tst_clr          : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
 --signal tst_prom_out     : std_logic_vector(31 downto 0);
---signal tst_vctrl_vbufi_empty : std_logic;
---signal tst_vctrl_vbufo_empty : std_logic;
 
 
 --MAIN
@@ -318,8 +316,8 @@ i_cfg_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_eth_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT)
                               or i_host_gctrl(C_HREG_CTRL_RST_ETH_BIT);
 
-i_vctrl_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
-i_swt_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
+i_vctrl_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
+i_swt_rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_host_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
 i_mem_ctrl_sysin.rst <= not i_host_rst_n or i_host_gctrl(C_HREG_CTRL_RST_ALL_BIT);
 i_arb_mem_rst <= not OR_reduce(i_mem_ctrl_status.rdy);
@@ -1075,7 +1073,7 @@ pin_out_led(3) <= i_vctrl_tst_out(30);
 pin_out_led(4) <= i_vctrl_tst_out(29);
 pin_out_led(5) <= i_vctrl_tst_out(28);
 pin_out_led(6) <= i_vctrl_tst_out(27);
-pin_out_led(7) <= '0';--tst_vctrl_vbufi_empty or tst_vctrl_vbufo_empty;
+pin_out_led(7) <= '0';
 
 
 m_led_tst: fpga_test_01
@@ -1096,13 +1094,6 @@ p_in_clk       => g_host_clk,
 p_in_rst       => i_cfg_rst
 );
 
---process(g_usr_highclk)
---begin
---  if rising_edge(g_usr_highclk) then
---  tst_vctrl_vbufi_empty <= i_vctrl_vbufi_empty;
---  tst_vctrl_vbufo_empty <= i_host_rxbuf_empty(C_HDEV_VCH);
---  end if;
---end process;
 
 --***********************************************************
 --Модуль управления синхронизацией

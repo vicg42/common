@@ -21,7 +21,6 @@ library unisim;
 use unisim.vcomponents.all;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
-use work.prj_cfg.all;
 
 entity dsn_host is
 generic(
@@ -35,28 +34,28 @@ port(
 -------------------------------
 --PCI-Express
 -------------------------------
-p_out_pciexp_txp  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn  : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn   : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp  : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_out_pciexp_txn  : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxp   : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxn   : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 
 p_in_pciexp_gt_clkin   : in    std_logic;
 p_out_pciexp_gt_clkout : out   std_logic;
 
 -------------------------------
---Пользовательский порт
+--USR
 -------------------------------
 p_out_hclk        : out   std_logic;
 p_out_gctrl       : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --Управление внешними устройствами
 p_out_dev_ctrl    : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr      : out   std_logic;
 p_out_dev_rd      : out   std_logic;
 p_in_dev_status   : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt      : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt     : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
@@ -86,41 +85,41 @@ G_PCIE_RST_SEL    : integer:=1;
 G_DBG : string:="OFF"
 );
 port(
---//-------------------------------------------------------
---// User Port
---//-------------------------------------------------------
+---------------------------------------------------------
+-- User Port
+---------------------------------------------------------
 p_out_hclk        : out   std_logic;
 p_out_gctrl       : out   std_logic_vector(C_HREG_CTRL_LAST_BIT downto 0);
 
 --Управление внешними устройствами
 p_out_dev_ctrl    : out   std_logic_vector(C_HREG_DEV_CTRL_LAST_BIT downto 0);
-p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
-p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH-1 downto 0);
+p_out_dev_din     : out   std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
+p_in_dev_dout     : in    std_logic_vector(C_HDEV_DWIDTH - 1 downto 0);
 p_out_dev_wr      : out   std_logic;
 p_out_dev_rd      : out   std_logic;
 p_in_dev_status   : in    std_logic_vector(C_HREG_DEV_STATUS_LAST_BIT downto 0);
-p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX-1 downto 0);
+p_in_dev_irq      : in    std_logic_vector(C_HIRQ_COUNT_MAX - 1 downto 0);
 p_in_dev_opt      : in    std_logic_vector(C_HDEV_OPTIN_LAST_BIT downto 0);
 p_out_dev_opt     : out   std_logic_vector(C_HDEV_OPTOUT_LAST_BIT downto 0);
 
 p_out_usr_tst     : out   std_logic_vector(127 downto 0);
 p_in_usr_tst      : in    std_logic_vector(127 downto 0);
 
---//-------------------------------------------------------
---// Технологический
---//-------------------------------------------------------
+---------------------------------------------------------
+-- Технологический
+---------------------------------------------------------
 p_in_tst             : in    std_logic_vector(31 downto 0);
 p_out_tst            : out   std_logic_vector(255 downto 0);
 
---//-------------------------------------------------------
---// System Port
---//-------------------------------------------------------
+---------------------------------------------------------
+-- System Port
+---------------------------------------------------------
 p_in_fast_simulation : in    std_logic;
 
-p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
-p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH-1 downto 0);
+p_out_pciexp_txp     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_out_pciexp_txn     : out   std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxp      : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
+p_in_pciexp_rxn      : in    std_logic_vector(G_PCIE_LINK_WIDTH - 1 downto 0);
 
 p_in_pciexp_rst      : in    std_logic;
 
@@ -129,9 +128,6 @@ p_in_gtp_refclkin    : in    std_logic;
 p_out_gtp_refclkout  : out   std_logic
 );
 end component;
-
-signal scl                         : std_logic;
-signal sda                         : std_logic;
 
 
 --MAIN
@@ -146,9 +142,9 @@ G_PCIE_RST_SEL    => G_PCIE_RST_SEL,
 G_DBG => G_DBG
 )
 port map(
---//-------------------------------------------------------
---// User Port
---//-------------------------------------------------------
+---------------------------------------------------------
+-- User Port
+---------------------------------------------------------
 p_out_hclk      => p_out_hclk     ,
 p_out_gctrl     => p_out_gctrl    ,
 
@@ -166,15 +162,15 @@ p_out_dev_opt   => p_out_dev_opt  ,
 p_out_usr_tst   => p_out_usr_tst  ,
 p_in_usr_tst    => p_in_usr_tst   ,
 
---//-------------------------------------------------------
---// Технологический
---//-------------------------------------------------------
+---------------------------------------------------------
+-- Технологический
+---------------------------------------------------------
 p_in_tst        => p_in_tst,
 p_out_tst       => p_out_tst,
 
---//-------------------------------------------------------
---// System Port
---//-------------------------------------------------------
+---------------------------------------------------------
+-- System Port
+---------------------------------------------------------
 p_in_fast_simulation => G_SIM_PCIE,
 
 p_out_pciexp_txp     => p_out_pciexp_txp,
