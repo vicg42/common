@@ -246,6 +246,8 @@ signal tst_buf2i_rd       : std_logic := '0';
 signal tst_ext_syn        : std_logic := '0';
 signal tst_vbufi_empty    : std_logic := '0';
 signal tst_vbufi_full     : std_logic := '0';
+signal tst_vbufi_err      : std_logic := '0';
+signal tst_buf2i_full     : std_logic := '0';
 
 
 --MAIN
@@ -292,7 +294,7 @@ i_mem_ctrl_sysin.clk <= g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
 
 i_ccd_vclk <= g_usrclk(5);--pixclk
-i_ccd_d80_d32_clk <= g_usr_highclk;--g_usrclk(1);--частота конвертирования данных 80bit -> 32bit
+i_ccd_d80_d32_clk <= g_usrclk(6);--частота конвертирования данных 80bit -> 32bit
 
 
 --***********************************************************
@@ -888,8 +890,8 @@ p_in_sys        => i_mem_ctrl_sysin
 --DBG
 --#########################################
 pin_out_led(0) <= i_test01_led;
-pin_out_led(1) <= '0';
-pin_out_led(2) <= '0';
+pin_out_led(1) <= tst_vbufi_err;
+pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
 pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 pin_out_led(5) <= '0';
@@ -1031,7 +1033,9 @@ or tst_bufi_full_all
 or tst_buf2i_rd
 or tst_ext_syn
 or tst_vbufi_empty
-or tst_vbufi_full;
+or tst_vbufi_full
+or tst_buf2i_full
+or tst_vbufi_err;
 
 process(g_usr_highclk)
 begin
@@ -1042,9 +1046,12 @@ begin
     tst_bufi_full_all <= i_swt_tst_out(19);-- <= OR_reduce(i_bufi_full);
     tst_buf2i_rd      <= i_swt_tst_out(20);-- <= i_buf2i_rd;
     tst_ext_syn       <= i_swt_tst_out(21);-- <= p_in_ext_syn;
+    tst_buf2i_full    <= i_swt_tst_out(22);-- <= tst_buf2i_full;
 
     tst_vbufi_empty   <= i_vctrl_vbufi_empty;
     tst_vbufi_full    <= i_vctrl_vbufi_full;
+
+    tst_vbufi_err <= tst_bufi_full_all or tst_vbufi_full or tst_buf2i_full;
   end if;
 end process;
 
