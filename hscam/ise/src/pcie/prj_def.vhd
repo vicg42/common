@@ -437,7 +437,7 @@ constant C_VCTRL_REG_TST0_DBG_PICTURE_BIT     : integer:=7;--«апрещаю запись вид
                                                            --при бит(7)=1 - vbuf=0
 constant C_VCTRL_REG_TST0_SKIPFR_CNT_CLR_BIT  : integer:=8;--ѕри 1 - происходит сброс счетчиков пропущеных кадров tst_vfrskip,
                                                            --ѕри 0 - нет
---constant RESERV                               : integer:=9;
+constant C_VCTRL_REG_TST0_DBG_TIMESTUMP_BIT   : integer:=9;
 constant C_VCTRL_REG_TST0_DBG_RDHOLD_BIT      : integer:=10;--Ёмул€ци€ захвата видеобуфера модулем чтени€
 constant C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT     : integer:=11;--Ёмул€ци€ захвата видеобуфера модулем слежени€
 constant C_VCTRL_REG_TST0_LAST_BIT            : integer:=C_VCTRL_REG_TST0_DBG_TRCHOLD_BIT;
