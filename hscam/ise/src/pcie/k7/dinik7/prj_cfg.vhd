@@ -29,7 +29,7 @@ constant C_PCFG_MEMARB_CH_COUNT        : integer:=3; --HOST + VCTRL_WR + VCTRL_R
 --cfg PCI-Express
 constant C_PCGF_PCIE_RST_SEL           : integer:=1;--0/1 - Использовать сброс сгенеренный в проекте/с стота PCI-Express
 constant C_PCGF_PCIE_LINK_WIDTH        : integer:=4;--При изменении кол-ва линий необходимо перегенерить ядро PCI-Express
-constant C_PCGF_PCIE_DWIDTH            : integer:=64;
+constant C_PCGF_PCIE_DWIDTH            : integer:=128;
 
 --cfg VCTRL
 constant C_PCFG_VCTRL_USR_OPT          : std_logic_vector(7 downto 0):="0000"&"0000";
@@ -40,8 +40,8 @@ constant C_PCFG_VCTRL_VBUFI_OWIDTH     : integer:=C_PCGF_PCIE_DWIDTH;
 constant C_PCFG_VCTRL_MEM_VLINE_L_BIT  : integer:=13;--Строки видеокадра (MSB...LSB)
 constant C_PCFG_VCTRL_MEM_VLINE_M_BIT  : integer:=25;
 constant C_PCFG_VCTRL_MEM_VFR_L_BIT    : integer:=26;--Номер кадра (MSB...LSB) - Видеобуфера
-constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=27;
-constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=28;--Номер видео канала (MSB...LSB)
+constant C_PCFG_VCTRL_MEM_VFR_M_BIT    : integer:=28;
+constant C_PCFG_VCTRL_MEM_VCH_L_BIT    : integer:=29;--Номер видео канала (MSB...LSB)
 constant C_PCFG_VCTRL_MEM_VCH_M_BIT    : integer:=30;
 
 constant C_PCFG_VCTRL_VCH_COUNT        : integer:=1; --max 6

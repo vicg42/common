@@ -141,7 +141,6 @@ bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
 bufg_clk5: BUFG port map(I => i_clk_out(7), O => p_out_gclk(5));--65,625MHz
-bufg_clk6: BUFG port map(I => i_clk_out(5), O => p_out_gclk(6));--250MHz
 
 
 m_buf_pciexp : IBUFDS_GTE2 port map (
