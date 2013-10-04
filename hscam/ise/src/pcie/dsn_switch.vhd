@@ -138,7 +138,8 @@ p_out_tst(18) <= tst_vin_out(2);-- <= i_bufi_wr_en;
 p_out_tst(19) <= tst_vin_out(3);-- <= OR_reduce(i_bufi_full);
 p_out_tst(20) <= tst_vin_out(4);-- <= i_buf2i_rd;
 p_out_tst(21) <= tst_vin_out(5);-- <= p_in_ext_syn;
-p_out_tst(31 downto 22) <= (others=>'0');
+p_out_tst(22) <= tst_vin_out(6);-- <= tst_buf2i_full;
+p_out_tst(31 downto 23) <= (others=>'0');
 
 
 ----------------------------------------------------

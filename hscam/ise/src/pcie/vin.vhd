@@ -137,9 +137,7 @@ signal i_buf2i_dout         : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 signal i_buf2i_rd           : std_logic;
 signal i_buf2i_empty        : std_logic;
 signal i_vbufi_do           : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
-
-signal i_buf2i_full         : std_logic;
-signal i_vbufi_full         : std_logic;
+signal tst_buf2i_full       : std_logic;
 
 --MAIN
 begin
@@ -153,7 +151,8 @@ p_out_tst(2) <= i_bufi_wr_en;
 p_out_tst(3) <= OR_reduce(i_bufi_full);
 p_out_tst(4) <= i_buf2i_rd;
 p_out_tst(5) <= p_in_ext_syn;
-p_out_tst(31 downto 6) <= (others=>'0');
+p_out_tst(6) <= tst_buf2i_full;
+p_out_tst(31 downto 7) <= (others=>'0');
 
 
 --BUFI - Запись:
@@ -254,7 +253,7 @@ if rising_edge(p_in_vbufi_wrclk) then
       --
       --------------------------------------
       when S_IDLE =>
-          if OR_reduce(i_bufi_empty) = '0' and i_buf2i_full = '0' then
+          if OR_reduce(i_bufi_empty) = '0' then
             i_bufi_cnt <= (others=>'0');
             fsm_cs <= S_RD;
           end if;
@@ -304,13 +303,13 @@ rd_en  => i_buf2i_rd,
 rd_clk => p_in_vbufi_rdclk,
 
 empty  => i_buf2i_empty,
-full   => open,
-prog_full => i_buf2i_full,
+full   => tst_buf2i_full,
+prog_full => open,
 
 rst    => p_in_rst
 );
 
-i_buf2i_rd <= not i_buf2i_empty and not i_vbufi_full;
+i_buf2i_rd <= not i_buf2i_empty;
 
 --Выходной буфер
 m_bufo : vin_bufo
@@ -322,7 +321,7 @@ dout   => i_vbufi_do,
 rd_en  => p_in_vbufi_rd,
 
 empty  => p_out_vbufi_empty,
-full   => i_vbufi_full,
+full   => p_out_vbufi_full,
 
 clk    => p_in_vbufi_rdclk,
 rst    => p_in_rst
@@ -333,7 +332,6 @@ p_out_vbufi_d((p_out_vbufi_d'length - 32*i) - 1 downto
               (p_out_vbufi_d'length - 32*(i + 1))) <= i_vbufi_do(32*(i + 1) - 1 downto 32*i);
 end generate gen_swap_dw;
 
-p_out_vbufi_full <= i_vbufi_full;
 
 --END MAIN
 end behavioral;
