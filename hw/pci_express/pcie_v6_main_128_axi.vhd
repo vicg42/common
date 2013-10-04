@@ -89,7 +89,6 @@ constant CI_PCIEXP_CFG_DEVNUM_BUS : integer:= 5  ;
 constant CI_PCIEXP_CFG_FUNNUM_BUS : integer:= 3  ;
 constant CI_PCIEXP_CFG_CAP_BUS    : integer:= 16 ;
 
-signal in_pkt_reg : std_logic;
 signal is_sof     : std_logic_vector(4 downto 0);
 signal is_eof     : std_logic_vector(4 downto 0);
 
