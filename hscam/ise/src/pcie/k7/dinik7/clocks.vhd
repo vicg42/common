@@ -50,6 +50,8 @@ begin
 
 
 p_out_clk.oe <= (others=>'1');-- Oscillator Output Enable
+p_out_clk.sda <= (others=>'0');
+p_out_clk.scl <= (others=>'0');
 
 
 m_buf : IBUFDS port map(I  => p_in_clk.clk_p(0), IB => p_in_clk.clk_n(0), O => i_pll_clkin);--400MHz
@@ -75,6 +77,7 @@ end process;
 -- CLKOUT1  = (400 MHz/4) * 10.000/5    = 200 MHz
 -- CLKOUT2  = (400 MHz/4) * 10.000/8    = 125 MHz
 -- CLKOUT3  = (400 MHz/4) * 10.000/10   = 100 MHz
+-- CLKOUT4  = (400 MHz/4) * 10.000/4    = 250 MHz
 
 mmcm_ref_clk_i : MMCME2_BASE
 generic map(
@@ -86,7 +89,7 @@ CLKOUT0_DIVIDE_F   => 2.500,       -- real := 1.0  (1.0 to 128.0)
 CLKOUT1_DIVIDE     => 5,           -- integer := 1
 CLKOUT2_DIVIDE     => 8,           -- integer := 1
 CLKOUT3_DIVIDE     => 10,          -- integer := 1
-CLKOUT4_DIVIDE     => 25,          -- integer := 1
+CLKOUT4_DIVIDE     => 4,           -- integer := 1
 CLKOUT5_DIVIDE     => 1,           -- integer := 1
 CLKOUT6_DIVIDE     => 1,           -- integer := 1
 CLKFBOUT_PHASE     => 0.000,       -- real := 0.0
@@ -138,6 +141,7 @@ bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
 bufg_clk5: BUFG port map(I => i_clk_out(7), O => p_out_gclk(5));--65,625MHz
+bufg_clk6: BUFG port map(I => i_clk_out(5), O => p_out_gclk(6));--250MHz
 
 
 m_buf_pciexp : IBUFDS_GTE2 port map (
@@ -162,7 +166,7 @@ BANDWIDTH          => "OPTIMIZED", -- string := "OPTIMIZED"
 CLKIN1_PERIOD      => 8.00,  --125MHz
 DIVCLK_DIVIDE      => 4,           -- integer := 1 (1 to 128)
 CLKFBOUT_MULT_F    => 21.000,      -- real := 1.0  (5.0 to 64.0)
-CLKOUT0_DIVIDE_F   => 55.55,       -- real := 1.0  (1.0 to 128.0)
+CLKOUT0_DIVIDE_F   => 1.00,       -- real := 1.0  (1.0 to 128.0)
 CLKOUT1_DIVIDE     => 10,           -- integer := 1
 CLKOUT2_DIVIDE     => 2,           -- integer := 1
 CLKOUT3_DIVIDE     => 8,           -- integer := 1
