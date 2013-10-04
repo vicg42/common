@@ -34,8 +34,8 @@ NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 NET "pin_in_refclk_clk_p<0>" LOC = "AB11" | IOSTANDARD = LVDS;
 NET "pin_in_refclk_clk_n<0>" LOC = "AC11" | IOSTANDARD = LVDS;
 NET "pin_out_refclk_oe<0>"   LOC = "C12"  | IOSTANDARD = LVCMOS25;
-#NET "pin_out_refclk_sda<0>"  LOC = "C9"  | IOSTANDARD = LVCMOS25;
-#NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
+NET "pin_out_refclk_sda<0>"  LOC = "C9"  | IOSTANDARD = LVCMOS25;
+NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
 
 ##Oscillator (default 400MHz) for QDR2+
 #NET "pin_in_refclk_clk_p<1>" LOC = "P23" | IOSTANDARD = LVDS_25;
@@ -103,7 +103,8 @@ TIMESPEC "TS_SYSCLK"  = PERIOD "SYSCLK" 250 MHz HIGH 50 % ;
 TIMESPEC "TS_CLK_250" = PERIOD "CLK_250" TS_SYSCLK*1 HIGH 50 % PRIORITY 1;
 TIMESPEC "TS_CLK_125" = PERIOD "CLK_125" TS_SYSCLK/2 HIGH 50 % PRIORITY 2;
 TIMESPEC "TS_CLK_USERCLK" = PERIOD "CLK_USERCLK" TS_SYSCLK*1 HIGH 50 %;
-TIMESPEC "TS_CLK_USERCLK2" = PERIOD "CLK_USERCLK2" TS_SYSCLK*1 HIGH 50 %;
+#TIMESPEC "TS_CLK_USERCLK2" = PERIOD "CLK_USERCLK2" TS_SYSCLK*1 HIGH 50 %;##USR_DBUS - 64bit
+TIMESPEC "TS_CLK_USERCLK2" = PERIOD "CLK_USERCLK2" TS_SYSCLK/2 HIGH 50 %;##USR_DBUS - 128bit
 
 INST "m_host/gen_sim_off.m_pcie/gen_ext_clk.m_core_pipe_clock/mmcm_i"  LOC = MMCME2_ADV_X0Y2;
 
