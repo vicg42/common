@@ -61,12 +61,17 @@ signal i_saxi_rid : TSAXI_ID_t;
 signal i_clk      : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
 signal i_rst      : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
 signal i_aresetn  : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0) := (others => '1');
-
+type Tclk_opt is array (0 to C_MEM_BANK_COUNT - 1)
+                            of std_logic_vector(4 downto 0);
+signal i_clk_opt  : Tclk_opt;
+signal i_mmcm_locked : std_logic_vector(C_MEM_BANK_COUNT - 1 downto 0);
 
 --MAIN
 begin
 
 p_out_sys.clk <= i_clk(0);
+p_out_sys.gusrclk <= i_clk_opt(0);
+p_out_sys.gusrclk_locked <= i_mmcm_locked(0);
 
 gen_bank : for i in 0 to C_MEM_BANK_COUNT - 1 generate
 
@@ -77,6 +82,17 @@ p_out_mem(i).rstn <= i_aresetn(i);
 
 m_mem_core : mem_ctrl_core_axi
 generic map (
+UI_EXTRA_CLOCKS     => C_MEM_CTRL_OPT_CLK_ON,
+MMCM_CLKOUT0_EN     => C_MEM_CTRL_OPT_CLK0_DIV_EN,
+MMCM_CLKOUT0_DIVIDE => C_MEM_CTRL_OPT_CLK0_DIV,
+MMCM_CLKOUT1_EN     => C_MEM_CTRL_OPT_CLK1_DIV_EN,
+MMCM_CLKOUT1_DIVIDE => C_MEM_CTRL_OPT_CLK1_DIV,
+MMCM_CLKOUT2_EN     => C_MEM_CTRL_OPT_CLK2_DIV_EN,
+MMCM_CLKOUT2_DIVIDE => C_MEM_CTRL_OPT_CLK2_DIV,
+MMCM_CLKOUT3_EN     => C_MEM_CTRL_OPT_CLK3_DIV_EN,
+MMCM_CLKOUT3_DIVIDE => C_MEM_CTRL_OPT_CLK3_DIV,
+MMCM_CLKOUT4_EN     => C_MEM_CTRL_OPT_CLK4_DIV_EN,
+MMCM_CLKOUT4_DIVIDE => C_MEM_CTRL_OPT_CLK4_DIV,
 C_S_AXI_ID_WIDTH => C_AXIM_IDWIDTH,
 C_S_AXI_ADDR_WIDTH => C_AXI_AWIDTH,
 C_S_AXI_DATA_WIDTH => C_AXIM_DWIDTH
@@ -164,12 +180,12 @@ ddr3_ck_n       => p_out_phymem  (i).ck_n ,
 --Status
 interrupt       => open,
 init_calib_complete => p_out_status.rdy(i),
-mmcm_locked     => open,
+mmcm_locked     => i_mmcm_locked(i),
 
 aresetn         => i_aresetn(i)           ,--input
 ui_clk_sync_rst => i_rst(i)               ,--output
 ui_clk          => i_clk(i)               ,--output
-
+ui_clk_opt      => i_clk_opt(i)           ,--output
 --System
 sys_clk_i       => p_in_sys.clk    ,
 clk_ref_i       => p_in_sys.ref_clk,

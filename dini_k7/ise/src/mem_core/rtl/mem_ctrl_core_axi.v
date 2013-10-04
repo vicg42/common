@@ -436,12 +436,27 @@ module mem_ctrl_core_axi #
    //***************************************************************************
    // AXI4 Shim parameters
    //***************************************************************************
-   parameter MMCM_CLKOUT0_DIVIDE   = 2,  // VCO output divisor for MMCM clkout0
    parameter UI_EXTRA_CLOCKS = "FALSE",
                                      // Generates extra clocks as
                                      // 1/2, 1/4 and 1/8 of fabrick clock.
                                      // Valid for DDR2/DDR3 AXI interfaces
                                      // based on GUI selection
+
+   parameter MMCM_CLKOUT0_EN = "FALSE",
+   parameter MMCM_CLKOUT0_DIVIDE   = 2,  // VCO output divisor for MMCM clkout0
+
+   parameter MMCM_CLKOUT1_EN = "FALSE",
+   parameter MMCM_CLKOUT1_DIVIDE   = 1,  // VCO output divisor for MMCM clkout1
+
+   parameter MMCM_CLKOUT2_EN = "FALSE",
+   parameter MMCM_CLKOUT2_DIVIDE   = 1,  // VCO output divisor for MMCM clkout2
+
+   parameter MMCM_CLKOUT3_EN = "FALSE",
+   parameter MMCM_CLKOUT3_DIVIDE   = 1,  // VCO output divisor for MMCM clkout3
+
+   parameter MMCM_CLKOUT4_EN = "FALSE",
+   parameter MMCM_CLKOUT4_DIVIDE   = 1,  // VCO output divisor for MMCM clkout4
+
    parameter C_S_AXI_ID_WIDTH              = 8,
                                              // Width of all master and slave ID signals.
                                              // # = >= 1.
@@ -556,7 +571,7 @@ module mem_ctrl_core_axi #
    // user interface signals
    output                                       ui_clk,
    output                                       ui_clk_sync_rst,
-
+   output [4:0]                                 ui_clk_opt,
    output                                       mmcm_locked,
    output [2*nCK_PER_CLK-1:0]                   app_ecc_multiple_err,
    input                                        aresetn,
@@ -853,8 +868,16 @@ module mem_ctrl_core_axi #
     (
      .TCQ                (TCQ),
      .UI_EXTRA_CLOCKS    (UI_EXTRA_CLOCKS),
-     .MMCM_CLKOUT0_EN     (UI_EXTRA_CLOCKS),
+     .MMCM_CLKOUT0_EN     (MMCM_CLKOUT0_EN),
      .MMCM_CLKOUT0_DIVIDE (MMCM_CLKOUT0_DIVIDE),
+     .MMCM_CLKOUT1_EN     (MMCM_CLKOUT1_EN),
+     .MMCM_CLKOUT1_DIVIDE (MMCM_CLKOUT1_DIVIDE),
+     .MMCM_CLKOUT2_EN     (MMCM_CLKOUT2_EN),
+     .MMCM_CLKOUT2_DIVIDE (MMCM_CLKOUT2_DIVIDE),
+     .MMCM_CLKOUT3_EN     (MMCM_CLKOUT3_EN),
+     .MMCM_CLKOUT3_DIVIDE (MMCM_CLKOUT3_DIVIDE),
+     .MMCM_CLKOUT4_EN     (MMCM_CLKOUT4_EN),
+     .MMCM_CLKOUT4_DIVIDE (MMCM_CLKOUT4_DIVIDE),
      .nCK_PER_CLK        (nCK_PER_CLK),
      .CLKIN_PERIOD       (CLKIN_PERIOD),
      .SYSCLK_TYPE        (SYSCLK_TYPE),
@@ -876,11 +899,11 @@ module mem_ctrl_core_axi #
        .freq_refclk      (freq_refclk),
        .sync_pulse       (sync_pulse),
        .auxout_clk       (),
-       .ui_addn_clk_0    (),
-       .ui_addn_clk_1    (),
-       .ui_addn_clk_2    (),
-       .ui_addn_clk_3    (),
-       .ui_addn_clk_4    (),
+       .ui_addn_clk_0    (ui_clk_opt[0]),
+       .ui_addn_clk_1    (ui_clk_opt[1]),
+       .ui_addn_clk_2    (ui_clk_opt[2]),
+       .ui_addn_clk_3    (ui_clk_opt[3]),
+       .ui_addn_clk_4    (ui_clk_opt[4]),
        .pll_locked       (pll_locked),
        .mmcm_locked      (mmcm_locked),
        .rst_phaser_ref   (rst_phaser_ref),

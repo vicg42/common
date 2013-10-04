@@ -26,6 +26,25 @@ use work.mem_glob_pkg.all;
 
 package mem_ctrl_pkg is
 
+--Общее вкл/выкл дополнительных частот.
+constant C_MEM_CTRL_OPT_CLK_ON   : string := "FALSE";
+
+--Настойка дополнительных частот:
+constant C_MEM_CTRL_OPT_CLK0_DIV_EN : string := "FALSE";
+constant C_MEM_CTRL_OPT_CLK0_DIV    : real := 1.50;
+
+constant C_MEM_CTRL_OPT_CLK1_DIV_EN : string := "FALSE";
+constant C_MEM_CTRL_OPT_CLK1_DIV    : integer := 1;
+
+constant C_MEM_CTRL_OPT_CLK2_DIV_EN : string := "FALSE";
+constant C_MEM_CTRL_OPT_CLK2_DIV    : integer := 1;
+
+constant C_MEM_CTRL_OPT_CLK3_DIV_EN : string := "FALSE";
+constant C_MEM_CTRL_OPT_CLK3_DIV    : integer := 1;
+
+constant C_MEM_CTRL_OPT_CLK4_DIV_EN : string := "FALSE";
+constant C_MEM_CTRL_OPT_CLK4_DIV    : integer := 1;
+
 constant C_AXIS_IDWIDTH    : integer:=4;
 constant C_AXIM_IDWIDTH    : integer:=8;
 
@@ -96,7 +115,8 @@ ref_clk: std_logic;
 end record;
 
 type TMEMCTRL_sysout is record
---gusrclk: std_logic_vector(0 downto 0);
+gusrclk_locked: std_logic;
+gusrclk: std_logic_vector(4 downto 0);
 clk   : std_logic;
 end record;
 
@@ -176,6 +196,17 @@ end component;
 
 component mem_ctrl_core_axi
 generic(
+UI_EXTRA_CLOCKS : string := "FALSE";
+MMCM_CLKOUT0_EN     : string := "FALSE";
+MMCM_CLKOUT0_DIVIDE : real:= 2.00;
+MMCM_CLKOUT1_EN     : string := "FALSE";
+MMCM_CLKOUT1_DIVIDE : integer:= 1;
+MMCM_CLKOUT2_EN     : string := "FALSE";
+MMCM_CLKOUT2_DIVIDE : integer:= 1;
+MMCM_CLKOUT3_EN     : string := "FALSE";
+MMCM_CLKOUT3_DIVIDE : integer:= 1;
+MMCM_CLKOUT4_EN     : string := "FALSE";
+MMCM_CLKOUT4_DIVIDE : integer:= 1;
 C_S_AXI_ID_WIDTH   : integer := 8;
 C_S_AXI_ADDR_WIDTH : integer := 32;
 C_S_AXI_DATA_WIDTH : integer := 32
@@ -270,7 +301,7 @@ mmcm_locked         : out    std_logic;
 aresetn             : in     std_logic;
 ui_clk_sync_rst     : out    std_logic;
 ui_clk              : out    std_logic;
-
+ui_clk_opt          : out    std_logic_vector(4 downto 0);
 --System
 clk_ref_i           : in     std_logic;
 sys_clk_i           : in     std_logic;
