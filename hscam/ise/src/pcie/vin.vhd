@@ -137,7 +137,6 @@ signal i_buf2i_dout         : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
 signal i_buf2i_rd           : std_logic;
 signal i_buf2i_empty        : std_logic;
 signal i_vbufi_do           : std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
-signal tst_buf2i_full       : std_logic;
 
 --MAIN
 begin
@@ -145,13 +144,13 @@ begin
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-p_out_tst(0) <= i_bufo_wr;
-p_out_tst(1) <= i_bufi_wr(1);
-p_out_tst(2) <= i_bufi_wr_en;
-p_out_tst(3) <= OR_reduce(i_bufi_full);
-p_out_tst(4) <= i_buf2i_rd;
-p_out_tst(5) <= p_in_ext_syn;
-p_out_tst(6) <= tst_buf2i_full;
+p_out_tst(0) <= '0';
+p_out_tst(1) <= '0';
+p_out_tst(2) <= '0';
+p_out_tst(3) <= '0';
+p_out_tst(4) <= '0';
+p_out_tst(5) <= '0';
+p_out_tst(6) <= '0';
 p_out_tst(31 downto 7) <= (others=>'0');
 
 
@@ -303,7 +302,7 @@ rd_en  => i_buf2i_rd,
 rd_clk => p_in_vbufi_rdclk,
 
 empty  => i_buf2i_empty,
-full   => tst_buf2i_full,
+full   => open,
 prog_full => open,
 
 rst    => p_in_rst

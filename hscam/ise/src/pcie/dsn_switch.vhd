@@ -120,7 +120,7 @@ signal b_rst_vctrl_bufs              : std_logic;
 signal i_en_video                    : std_logic;
 
 signal i_vctrl_vbufout_empty         : std_logic;
-signal tst_vin_out                   : std_logic_vector(31 downto 0);
+
 
 
 --MAIN
@@ -131,15 +131,7 @@ begin
 --Технологические сигналы
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
-p_out_tst(15 downto 1) <= (others=>'0');
-p_out_tst(16) <= tst_vin_out(0);-- <= i_bufo_wr;
-p_out_tst(17) <= tst_vin_out(1);-- <= i_bufi_wr(1);
-p_out_tst(18) <= tst_vin_out(2);-- <= i_bufi_wr_en;
-p_out_tst(19) <= tst_vin_out(3);-- <= OR_reduce(i_bufi_full);
-p_out_tst(20) <= tst_vin_out(4);-- <= i_buf2i_rd;
-p_out_tst(21) <= tst_vin_out(5);-- <= p_in_ext_syn;
-p_out_tst(22) <= tst_vin_out(6);-- <= tst_buf2i_full;
-p_out_tst(31 downto 23) <= (others=>'0');
+p_out_tst(31 downto 1) <= (others=>'0');
 
 
 ----------------------------------------------------
@@ -272,7 +264,7 @@ p_in_vbufi_rdclk   => p_in_vbufi_rdclk,
 
 --Технологический
 p_in_tst           => (others => '0'),
-p_out_tst          => tst_vin_out,
+p_out_tst          => open,
 
 --System
 p_in_rst           => b_rst_vctrl_bufs
