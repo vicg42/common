@@ -63,9 +63,9 @@ set _projects [ list \
       [ list "../src/pcie/k7/dinik7/prj_cfg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/k7/dinik7/clocks.vhd" $_VHDMod ] \
       [ list "../src/pcie/k7/dinik7/clocks_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/k7/dinik7/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
       [ list "../../ucf/hscam_pcie_dinik7.ucf" "test_hscam_pcie_main" ] \
       [ list "../../../dini_k7/ise/src/prom_phypin_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../dini_k7/ise/src/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
       [ list "../../../dini_k7/ise/src/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../../../dini_k7/ise/src/mem_arb.vhd" $_VHDMod ] \
       [ list "../../../dini_k7/ise/src/mem_core/rtl/mem_ctrl_core_axi.v" $_VMod ] \
