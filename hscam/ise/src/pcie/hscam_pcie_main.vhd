@@ -238,18 +238,6 @@ signal i_ccd_tst_out                    : std_logic_vector(31 downto 0);
 signal i_ccd_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
 
 
-signal tst_bufo_wr        : std_logic := '0';
-signal tst_bufi_wr        : std_logic := '0';
-signal tst_bufi_wr_en     : std_logic := '0';
-signal tst_bufi_full_all  : std_logic := '0';
-signal tst_buf2i_rd       : std_logic := '0';
-signal tst_ext_syn        : std_logic := '0';
-signal tst_vbufi_empty    : std_logic := '0';
-signal tst_vbufi_full     : std_logic := '0';
-signal tst_vbufi_err      : std_logic := '0';
-signal tst_buf2i_full     : std_logic := '0';
-
-
 --MAIN
 begin
 
@@ -294,7 +282,7 @@ i_mem_ctrl_sysin.clk <= g_usrclk(1);
 i_pciexp_gt_refclk <= g_usrclk(3);
 
 i_ccd_vclk <= g_usrclk(5);--pixclk
-i_ccd_d80_d32_clk <= g_usrclk(6);--частота конвертирования данных 80bit -> 32bit
+i_ccd_d80_d32_clk <= g_usrclk(0);--частота конвертирования данных 80bit -> 32bit
 
 
 --***********************************************************
@@ -890,8 +878,8 @@ p_in_sys        => i_mem_ctrl_sysin
 --DBG
 --#########################################
 pin_out_led(0) <= i_test01_led;
-pin_out_led(1) <= tst_vbufi_err;
-pin_out_led(2) <= OR_reduce(i_mem_ctrl_status.rdy);
+pin_out_led(1) <= '0';
+pin_out_led(2) <= '0';
 pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 pin_out_led(5) <= '0';
@@ -1025,34 +1013,7 @@ p_in_rst      => i_swt_rst
 );
 
 pin_out_TP(7 downto 1) <= (others=>'0');
-pin_out_TP(0) <= OR_reduce(i_tmr_hirq) or OR_reduce(i_tmr_en)
-or tst_bufo_wr
-or tst_bufi_wr
-or tst_bufi_wr_en
-or tst_bufi_full_all
-or tst_buf2i_rd
-or tst_ext_syn
-or tst_vbufi_empty
-or tst_vbufi_full
-or tst_buf2i_full
-or tst_vbufi_err;
+pin_out_TP(0) <= OR_reduce(i_tmr_hirq) or OR_reduce(i_tmr_en);
 
-process(g_usr_highclk)
-begin
-  if rising_edge(g_usr_highclk) then
-    tst_bufo_wr       <= i_swt_tst_out(16);-- <= i_bufo_wr;
-    tst_bufi_wr       <= i_swt_tst_out(17);-- <= i_bufi_wr(1);
-    tst_bufi_wr_en    <= i_swt_tst_out(18);-- <= i_bufi_wr_en;
-    tst_bufi_full_all <= i_swt_tst_out(19);-- <= OR_reduce(i_bufi_full);
-    tst_buf2i_rd      <= i_swt_tst_out(20);-- <= i_buf2i_rd;
-    tst_ext_syn       <= i_swt_tst_out(21);-- <= p_in_ext_syn;
-    tst_buf2i_full    <= i_swt_tst_out(22);-- <= tst_buf2i_full;
-
-    tst_vbufi_empty   <= i_vctrl_vbufi_empty;
-    tst_vbufi_full    <= i_vctrl_vbufi_full;
-
-    tst_vbufi_err <= tst_bufi_full_all or tst_vbufi_full or tst_buf2i_full;
-  end if;
-end process;
 
 end architecture;
