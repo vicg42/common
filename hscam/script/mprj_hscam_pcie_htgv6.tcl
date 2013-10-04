@@ -6,7 +6,7 @@ set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
 set _usrdef_design "hscam_pcie_htgv6"
-set _usrdef_entity "hscam_pcie_main"
+set _usrdef_entity "test_hscam_pcie_main"
 set _usrdef_xilinx_family "virtex6"
 set _usrdef_chip_family "v6lxt"
 set _usrdef_device "6vlx240t"
@@ -58,14 +58,14 @@ set _projects [ list \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
-      [ list "../src/pcie/hscam_pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/pcie/hscam_pcie_main.vhd" $_VHDMod ] \
+      [ list "../src/pcie/test_hscam_pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/test_hscam_pcie_main.vhd" $_VHDMod ] \
       [ list "../src/pcie/prj_def.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v6/htgv6/prj_cfg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v6/htgv6/clocks.vhd" $_VHDMod ] \
       [ list "../src/pcie/v6/htgv6/clocks_pkg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/v6/htgv6/mem_ctrl_axi_pkg.vhd" $_VHDPkg ] \
-      [ list "../../ucf/hscam_pcie_htgv6.ucf" "hscam_pcie_main" ] \
+      [ list "../../ucf/hscam_pcie_htgv6.ucf" "test_hscam_pcie_main" ] \
       [ list "../../../htg_v6/ise/src/mem_arb.vhd" $_VHDMod ] \
       [ list "../../../htg_v6/ise/src/mem_ctrl_axi.vhd" $_VHDMod ] \
       [ list "../../../htg_v6/ise/src/mem_core/rtl/axi/ddr_carry_latch_or.v" $_VMod ] \

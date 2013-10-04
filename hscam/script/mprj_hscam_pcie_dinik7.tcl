@@ -6,7 +6,7 @@ set _cwd [pwd]
 puts "Currunt PATH ${_cwd}"
 
 set _usrdef_design "hscam_pcie_dinik7"
-set _usrdef_entity "hscam_pcie_main"
+set _usrdef_entity "test_hscam_pcie_main"
 set _usrdef_xilinx_family "kintex7"
 set _usrdef_chip_family "k7t"
 set _usrdef_device "7k325t"
@@ -57,13 +57,13 @@ set _projects [ list \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
-      [ list "../src/pcie/hscam_pcie_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/pcie/hscam_pcie_main.vhd" $_VHDMod ] \
+      [ list "../src/pcie/test_hscam_pcie_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/pcie/test_hscam_pcie_main.vhd" $_VHDMod ] \
       [ list "../src/pcie/prj_def.vhd" $_VHDPkg ] \
       [ list "../src/pcie/k7/dinik7/prj_cfg.vhd" $_VHDPkg ] \
       [ list "../src/pcie/k7/dinik7/clocks.vhd" $_VHDMod ] \
       [ list "../src/pcie/k7/dinik7/clocks_pkg.vhd" $_VHDPkg ] \
-      [ list "../../ucf/hscam_pcie_dinik7.ucf" "hscam_pcie_main" ] \
+      [ list "../../ucf/hscam_pcie_dinik7.ucf" "test_hscam_pcie_main" ] \
       [ list "../../../dini_k7/ise/src/prom_phypin_pkg.vhd" $_VHDPkg ] \
       [ list "../../../dini_k7/ise/src/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
       [ list "../../../dini_k7/ise/src/mem_ctrl_axi.vhd" $_VHDMod ] \
