@@ -1,7 +1,7 @@
 ##############################################################
 #
 # Xilinx Core Generator version 14.5
-# Date: Thu Oct 03 13:52:19 2013
+# Date: Thu Oct 03 13:57:35 2013
 #
 ##############################################################
 #
@@ -181,7 +181,7 @@ CSET extended_tag_default=false
 CSET extended_tag_field=true
 CSET force_no_scrambling=false
 CSET hw_auton_spd_disable=false
-CSET interface_width=64_bit
+CSET interface_width=128_bit
 CSET intx_generation=true
 CSET io_base_limit_registers=Disabled
 CSET legacy_interrupt=INTA
@@ -252,7 +252,7 @@ CSET ur_atomic=false
 CSET ur_inv_req=true
 CSET ur_prs_response=true
 CSET use_class_code_lookup_assistant=false
-CSET user_clk_freq=250
+CSET user_clk_freq=125
 CSET vc_cap_enabled=false
 CSET vc_cap_reject_snoop=false
 CSET vendor_id=0777
@@ -263,4 +263,4 @@ CSET xlnx_ref_board=None
 MISC pkg_timestamp=2012-11-30T13:01:13Z
 # END Extra information
 GENERATE
-# CRC: 79e94226
+# CRC: 34b5b598
