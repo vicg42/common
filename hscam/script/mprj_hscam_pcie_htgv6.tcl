@@ -31,7 +31,6 @@ set _projects [ list \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/video_reader.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/video_writer.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
@@ -55,6 +54,7 @@ set _projects [ list \
       [ list "../../../common/cfgdev_buf.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
       [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
+      [ list "../src/pcie/video_writer.vhd" $_VHDMod ] \
       [ list "../src/pcie/vfr_gen.vhd" $_VHDMod ] \
       [ list "../src/pcie/vin.vhd" $_VHDMod ] \
       [ list "../src/pcie/dsn_switch.vhd" $_VHDMod ] \
