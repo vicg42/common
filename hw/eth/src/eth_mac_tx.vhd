@@ -310,7 +310,7 @@ if rising_edge(p_in_clk) then
               if i_dcnt = i_usrpkt_len - 1 then
 
                   if i_mac_dlen_cnt = (i_mac_dlen_cnt'range =>'0') then
-                    i_ll_rem(0) <= not i_mac_dlen_byte(0);
+                    i_ll_rem(0) <= i_mac_dlen_byte(0);
                     i_ll_eof_n <= '0';
                     i_ll_dlast <= '1';
                     fsm_eth_tx_cs <= S_TX_DONE;
