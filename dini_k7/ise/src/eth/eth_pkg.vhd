@@ -16,7 +16,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 
 library work;
---use work.prj_cfg.all;
 use work.eth_phypin_pkg.all;
 
 package eth_pkg is
@@ -24,13 +23,13 @@ package eth_pkg is
 -------------------------------------
 --EthCFG
 -------------------------------------
---//Константы для выбора интерфейса EthPHY:
+--Константы для выбора интерфейса EthPHY:
 constant C_ETH_PHY_FIBER : integer:=0;
 constant C_ETH_PHY_RGMII : integer:=1;
 constant C_ETH_PHY_SGMII : integer:=2;
 constant C_ETH_PHY_GMII  : integer:=3;
 
---//Структура параметров настройки модуля ETH (Generic)
+--Структура параметров настройки модуля ETH (Generic)
 type TEthGeneric is record
 gtch_count_max : integer;--Кол-во каналов в модуле GT(RocketIO)
 usrbuf_dwidth  : integer;--Шина данных пользовательских буферов RXBUF/TXBUF
@@ -40,12 +39,12 @@ mac_length_swap: integer;--1/0 Поле Length/Type первый мл./ст. байт (0 - по стан
 end record;
 
 
---//для модуля eth_mdio.vhd
-constant C_ETH_MDIO_WR  : std_logic:='1'; --//Не менять!!!!
-constant C_ETH_MDIO_RD  : std_logic:='0'; --//Не менять!!!!
+--для модуля eth_mdio.vhd
+constant C_ETH_MDIO_WR  : std_logic:='1'; --Не менять!!!!
+constant C_ETH_MDIO_RD  : std_logic:='0'; --Не менять!!!!
 
 
---//EthConfiguration
+--EthConfiguration
 type TEthMacAdr is array (0 to 5) of std_logic_vector(7 downto 0);
 type TEthMAC is record
 dst     : TEthMacAdr;
@@ -72,7 +71,7 @@ prt      : TEthPort;
 end record;
 type TEthCfgs is array (0 to 1) of TEthCfg;
 
---//Константы для TEthCfg/usrctrl:
+--Константы для TEthCfg/usrctrl:
 constant C_ETH_CTRL_DHCP_EN_BIT : integer:=0;
 
 
@@ -96,8 +95,8 @@ constant C_ETHPHY_OPTOUT_SFP_TXDIS_BIT           : integer:=1;
 type TEthPhyOUT is record
 pin : TEthPhyPinOUT;
 opt : std_logic_vector(127 downto 0);
-rdy : std_logic; --//Готов к работе
-link: std_logic; --//Есть соедитение с другой стороной
+rdy : std_logic; --Готов к работе
+link: std_logic; --Есть соедитение с другой стороной
 clk : std_logic;
 rst : std_logic;
 --mdc : std_logic;

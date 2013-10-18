@@ -22,7 +22,6 @@ use unisim.vcomponents.all;
 
 library work;
 use work.clocks_pkg.all;
---use work.eth_pkg.all;
 use work.prj_cfg.all;
 
 entity clocks is
@@ -52,7 +51,8 @@ begin
 
 
 p_out_clk.oe <= (others=>'1');-- Oscillator Output Enable
-
+p_out_clk.sda <= (others=>'0');
+p_out_clk.scl <= (others=>'0');
 
 m_buf : IBUFDS port map(I  => p_in_clk.clk_p(0), IB => p_in_clk.clk_n(0), O => i_pll_clkin);--400MHz
 bufg_pll_clkin : BUFG port map(I  => i_pll_clkin, O  => g_pll_clkin);
