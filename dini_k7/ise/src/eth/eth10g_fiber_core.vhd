@@ -1,11 +1,8 @@
-
-library unisim;
-use unisim.vcomponents.all;
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_misc.all;
 
 library work;
 use work.eth_pkg.all;
@@ -41,6 +38,18 @@ end eth10g_fiber_core;
 
 architecture TOP_LEVEL of eth10g_fiber_core is
 
+signal i_rx_axis_tdata   : std_logic_vector(63 downto 0);
+signal i_rx_axis_tkeep   : std_logic_vector(7 downto 0);
+signal i_rx_axis_tvalid  : std_logic;
+signal i_rx_axis_tlast   : std_logic;
+signal i_rx_axis_tready  : std_logic;
+
+signal i_tx_axis_tdata   : std_logic_vector(63 downto 0);
+signal i_tx_axis_tkeep   : std_logic_vector(7 downto 0);
+signal i_tx_axis_tvalid  : std_logic;
+signal i_tx_axis_tlast   : std_logic;
+signal i_tx_axis_tready  : std_logic;
+signal i_tx_axis_tuser   : std_logic;
 
 component eth10g_mac
 port(
@@ -98,7 +107,7 @@ signal reset   : std_logic := '1';    -- start in
 signal aresetn  : std_logic;
 
 signal tx_ifg_delay         : std_logic_vector(7 downto 0);
-signal tx_axis_tuser        : std_logic;
+--signal tx_axis_tuser        : std_logic;
 signal tx_statistics_vector : std_logic_vector(25 downto 0);
 signal tx_statistics_valid  : std_logic;
 
@@ -145,16 +154,37 @@ signal i_pma_core_clk156_out : std_logic;
 
 
 
+signal tst_rx_axis_tdata   : std_logic_vector(63 downto 0);
+signal tst_rx_axis_tkeep   : std_logic_vector(7 downto 0);
+signal tst_rx_axis_tvalid  : std_logic;
+signal tst_rx_axis_tlast   : std_logic;
+signal tst_rx_axis_tready  : std_logic;
+
+signal tst_tx_axis_tdata   : std_logic_vector(63 downto 0);
+signal tst_tx_axis_tkeep   : std_logic_vector(7 downto 0);
+signal tst_tx_axis_tvalid  : std_logic;
+signal tst_tx_axis_tlast   : std_logic;
+signal tst_tx_axis_tready  : std_logic;
+signal tst_tx_axis_tuser   : std_logic;
+
+signal tst_out   : std_logic;
+
 begin
 
 p_out_tst(7 downto 0) <= i_pma_core_status;
 --p_out_tst(8) <= i_pma_resetdone;
 --p_out_tst(9) <= i_pma_core_clk156_out;
+p_out_tst(10) <= tst_out or i_pma_resetdone or OR_reduce(i_pma_core_status);
 
 p_out_phy.link <= not p_in_phy.pin.fiber.sfp_sd;
 p_out_phy.rdy <= i_pma_resetdone;
 p_out_phy.clk <= i_pma_core_clk156_out;
 p_out_phy.rst <= p_in_rst;
+
+p_out_phy.pin.fiber.clk_oe <= '1';-- Oscillator Output Enable
+p_out_phy.pin.fiber.clk_sel(0) <= '0';--clk_sda
+p_out_phy.pin.fiber.clk_sel(1) <= '0';--clk_scl
+--p_out_phy.pin.fiber.sfp_rs <= (others=>'0');
 
 p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'1';
 i_pma_sfp_signal_detect <= p_in_phy.pin.fiber.sfp_sd;
@@ -172,7 +202,7 @@ tx_configuration_vector(0) <= '0';--Transmitter Reset.
 tx_configuration_vector(1) <= '1';--Transmitter Enable.
 tx_configuration_vector(2) <= '0';--Transmitter VLAN Enable.
 tx_configuration_vector(3) <= '0';--Transmitter In-Band FCS Enable.
-tx_configuration_vector(4) <= '0';--Transmitter Jumbo Frame Enable.
+tx_configuration_vector(4) <= '1';--Transmitter Jumbo Frame Enable.
 tx_configuration_vector(5) <= '0';--Transmit Flow Control Enable.
 tx_configuration_vector(6) <= '0';--Reserved
 tx_configuration_vector(7) <= '0';--Transmitter Preserve Preamble Enable.
@@ -188,7 +218,7 @@ rx_configuration_vector(0) <= '0';--Receiver Reset.
 rx_configuration_vector(1) <= '1';--Receiver Enable.
 rx_configuration_vector(2) <= '0';--Receiver VLAN Enable.
 rx_configuration_vector(3) <= '0';--Receiver In-Band FCS Enable.
-rx_configuration_vector(4) <= '0';--Receiver Jumbo Frame Enable.
+rx_configuration_vector(4) <= '1';--Receiver Jumbo Frame Enable.
 rx_configuration_vector(5) <= '0';--Receive Flow Control Enable.
 rx_configuration_vector(6) <= '0';--Reserved
 rx_configuration_vector(7) <= '0';--Receiver Preserve Preamble Enable.
@@ -207,18 +237,18 @@ aresetn <= not reset;
 
 m_mac: eth10g_mac
 port map (
-rx_axis_tdata   => p_out_phy2app(0).axirx_tdata ,--rx_axis_tdata_int,
-rx_axis_tkeep   => p_out_phy2app(0).axirx_tkeep ,--rx_axis_tkeep_int,
-rx_axis_tvalid  => p_out_phy2app(0).axirx_tvalid,--rx_axis_tvalid_int,
-rx_axis_tlast   => p_out_phy2app(0).axirx_tlast ,--rx_axis_tlast_int,
-rx_axis_tready  => p_in_phy2app(0).axirx_tready ,--rx_axis_tready_int,
+rx_axis_tdata   => i_rx_axis_tdata,  --p_out_phy2app(0).axirx_tdata ,--
+rx_axis_tkeep   => i_rx_axis_tkeep,  --p_out_phy2app(0).axirx_tkeep ,--
+rx_axis_tvalid  => i_rx_axis_tvalid, --p_out_phy2app(0).axirx_tvalid,--
+rx_axis_tlast   => i_rx_axis_tlast,  --p_out_phy2app(0).axirx_tlast ,--
+rx_axis_tready  => i_rx_axis_tready, --p_in_phy2app(0).axirx_tready ,--
 
-tx_axis_tdata   => p_in_phy2app(0).axitx_tdata  ,--tx_axis_tdata_int,
-tx_axis_tkeep   => p_in_phy2app(0).axitx_tkeep  ,--tx_axis_tkeep_int,
-tx_axis_tvalid  => p_in_phy2app(0).axitx_tvalid ,--tx_axis_tvalid_int,
-tx_axis_tlast   => p_in_phy2app(0).axitx_tlast  ,--tx_axis_tlast_int,
-tx_axis_tready  => p_out_phy2app(0).axitx_tready,--tx_axis_ready,
-tx_axis_tuser   => p_in_phy2app(0).axitx_tuser  ,--tx_axis_tuser,
+tx_axis_tdata   => i_tx_axis_tdata,  --p_in_phy2app(0).axitx_tdata  ,--
+tx_axis_tkeep   => i_tx_axis_tkeep,  --p_in_phy2app(0).axitx_tkeep  ,--
+tx_axis_tvalid  => i_tx_axis_tvalid, --p_in_phy2app(0).axitx_tvalid ,--
+tx_axis_tlast   => i_tx_axis_tlast,  --p_in_phy2app(0).axitx_tlast  ,--
+tx_axis_tready  => i_tx_axis_tready, --p_out_phy2app(0).axitx_tready,--
+tx_axis_tuser   => i_tx_axis_tuser,  --p_in_phy2app(0).axitx_tuser  ,--
 
 reset                   => reset,
 tx_axis_aresetn         => aresetn,
@@ -255,8 +285,8 @@ xgmii_txc       => xgmii_txc,
 xgmii_rx_clk    => xgmii_rx_clk,
 xgmii_rxd       => xgmii_rxd,
 xgmii_rxc       => xgmii_rxc,
-refclk_p        => p_in_phy.pin.fiber.refclk_p,
-refclk_n        => p_in_phy.pin.fiber.refclk_n,
+refclk_p        => p_in_phy.pin.fiber.clk_p,
+refclk_n        => p_in_phy.pin.fiber.clk_n,
 
 txp             => p_out_phy.pin.fiber.txp(0),
 txn             => p_out_phy.pin.fiber.txn(0),
@@ -268,5 +298,56 @@ tx_fault        => i_pma_sfp_tx_fault,
 tx_disable      => i_pma_sfp_tx_disable,
 core_status     => i_pma_core_status
 );
+
+
+--####################################################
+--AXI convertor
+--####################################################
+--FPGA <- ETH
+p_out_phy2app(0).rxd          <= i_rx_axis_tdata;
+p_out_phy2app(0).rxsof_n      <= not i_rx_axis_tvalid;
+p_out_phy2app(0).rxeof_n      <= not (i_rx_axis_tlast and i_rx_axis_tvalid);
+p_out_phy2app(0).rxsrc_rdy_n  <= not i_rx_axis_tvalid;
+p_out_phy2app(0).rxrem        <= i_rx_axis_tkeep;
+p_out_phy2app(0).rxbuf_status <= (others=>'0');
+
+i_rx_axis_tready <= not p_in_phy2app(0).rxdst_rdy_n;
+
+
+--FPGA -> ETH
+p_out_phy2app(0).txdst_rdy_n <= not i_tx_axis_tready;
+
+i_tx_axis_tdata <= p_in_phy2app(0).txd;
+i_tx_axis_tkeep <= p_in_phy2app(0).txrem;
+i_tx_axis_tvalid <= not p_in_phy2app(0).txsof_n or not p_in_phy2app(0).txsrc_rdy_n;
+i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;
+
+
+process(i_pma_core_clk156_out)
+begin
+  if rising_edge(i_pma_core_clk156_out) then
+
+    tst_rx_axis_tdata  <= i_rx_axis_tdata ; --p_out_phy2app(0).axirx_tdata ,--
+    tst_rx_axis_tkeep  <= i_rx_axis_tkeep ; --p_out_phy2app(0).axirx_tkeep ,--
+    tst_rx_axis_tvalid <= i_rx_axis_tvalid; --p_out_phy2app(0).axirx_tvalid,--
+    tst_rx_axis_tlast  <= i_rx_axis_tlast ; --p_out_phy2app(0).axirx_tlast ,--
+    tst_rx_axis_tready <= i_rx_axis_tready; --p_in_phy2app(0).axirx_tready ,--
+
+    tst_tx_axis_tdata  <= i_tx_axis_tdata ; --p_in_phy2app(0).axitx_tdata  ,--
+    tst_tx_axis_tkeep  <= i_tx_axis_tkeep ; --p_in_phy2app(0).axitx_tkeep  ,--
+    tst_tx_axis_tvalid <= i_tx_axis_tvalid; --p_in_phy2app(0).axitx_tvalid ,--
+    tst_tx_axis_tlast  <= i_tx_axis_tlast ; --p_in_phy2app(0).axitx_tlast  ,--
+    tst_tx_axis_tready <= i_tx_axis_tready; --p_out_phy2app(0).axitx_tready,--
+    tst_tx_axis_tuser  <= i_tx_axis_tuser ; --p_in_phy2app(0).axitx_tuser  ,--
+
+    tst_out <= tst_tx_axis_tuser or
+               tst_tx_axis_tready or tst_tx_axis_tlast or tst_tx_axis_tvalid or
+               OR_reduce(i_tx_axis_tdata) or OR_reduce(i_rx_axis_tkeep) or
+
+               tst_rx_axis_tready or tst_rx_axis_tlast or tst_rx_axis_tvalid or
+               OR_reduce(i_tx_axis_tdata) or OR_reduce(i_rx_axis_tkeep);
+
+  end if;
+end process;
 
 end TOP_LEVEL;
