@@ -205,7 +205,7 @@ p_out_phy.clk <= i_pma_core_clk156_out;
 p_out_phy.rst <= p_in_rst;
 
 p_out_phy.pin.fiber.clk_oe_n <= '0';-- Oscillator Output Enable
-p_out_phy.pin.fiber.clk_sel <= "11";--00/01/10/11 - 100MHz/125Mhz/150Mhz/156Mhz
+p_out_phy.pin.fiber.clk_sel <= "11";--00/01/10/11 - 100MHz/125Mhz/150Mhz/156.25Mhz
 p_out_phy.pin.fiber.sfp_rs <= (others => '1');
 
 p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'1';
