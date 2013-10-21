@@ -85,10 +85,8 @@ end eth10g_mac_core_physical_if;
 
 architecture wrapper of eth10g_mac_core_physical_if is
 
---  constant D_LOCAL_FAULT : bit_vector(63 downto 0) := X"0100009C0100009C";
---  constant C_LOCAL_FAULT : bit_vector(7 downto 0) := "00010001";
-  constant D_LOCAL_FAULT : std_logic_vector(63 downto 0) := X"0100009C0100009C";
-  constant C_LOCAL_FAULT : std_logic_vector(7 downto 0) := "00010001";
+  constant D_LOCAL_FAULT : bit_vector(63 downto 0) := X"0100009C0100009C";
+  constant C_LOCAL_FAULT : bit_vector(7 downto 0) := "00010001";
   -----------------------------------------------------------------------------
   -- Internal Signal Declaration for XGMAC (the 10Gb/E MAC core).
   -----------------------------------------------------------------------------
@@ -186,40 +184,24 @@ begin
 
   G_OUTPUT_FF_D : for I in 0 to 63 generate
   begin
---    txd_oreg : FD
---      generic map (
---        INIT => D_LOCAL_FAULT(I))
---      port map (
---        Q  => xgmii_txd(I),
---        C  => tx_clk0,
---        D  => xgmii_txd_core(I));
-    process(tx_clk0, tx_dcm_locked)
-    begin
-      if tx_dcm_locked = '0' then
-        xgmii_txd(I) <= D_LOCAL_FAULT(I);
-      elsif rising_edge(tx_clk0) then
-        xgmii_txd(I) <= xgmii_txd_core(I);
-      end if;
-    end process;
+    txd_oreg : FD
+      generic map (
+        INIT => D_LOCAL_FAULT(I))
+      port map (
+        Q  => xgmii_txd(I),
+        C  => tx_clk0,
+        D  => xgmii_txd_core(I));
   end generate;
 
   G_OUTPUT_FF_C : for I in 0 to 7 generate
   begin
---    txc_oreg : FD
---      generic map (
---        INIT => C_LOCAL_FAULT(I))
---      port map (
---        Q  => xgmii_txc(I),
---        C  => tx_clk0,
---        D  => xgmii_txc_core(I));
-    process(tx_clk0, tx_dcm_locked)
-    begin
-      if tx_dcm_locked = '0' then
-        xgmii_txc(I) <= C_LOCAL_FAULT(I);
-      elsif rising_edge(tx_clk0) then
-        xgmii_txc(I) <= xgmii_txc_core(I);
-      end if;
-    end process;
+    txc_oreg : FD
+      generic map (
+        INIT => C_LOCAL_FAULT(I))
+      port map (
+        Q  => xgmii_txc(I),
+        C  => tx_clk0,
+        D  => xgmii_txc_core(I));
   end generate;
 --  tx_dcm_locked_n <= (not tx_dcm_locked);
 --

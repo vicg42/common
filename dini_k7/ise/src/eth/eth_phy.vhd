@@ -22,7 +22,9 @@ use work.eth_pkg.all;
 
 entity eth_phy is
 generic(
-G_ETH : TEthGeneric
+G_ETH : TEthGeneric;
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port(
 --EthPhy<->EthApp
@@ -48,7 +50,9 @@ architecture behavioral of eth_phy is
 
 component ethg_fiber_core
 generic (
-G_ETH : TEthGeneric
+G_ETH : TEthGeneric;
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port(
 --EthPhy<->EthApp
@@ -71,7 +75,9 @@ end component;
 
 component eth10g_fiber_core
 generic (
-G_ETH : TEthGeneric
+G_ETH : TEthGeneric;
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port(
 --EthPhy<->EthApp
@@ -101,7 +107,9 @@ begin
 
 m_if : eth10g_fiber_core
 generic map(
-G_ETH => G_ETH
+G_ETH => G_ETH,
+G_DBG => G_DBG,
+G_SIM => G_SIM
 )
 port map(
 --EthPhy<->EthApp

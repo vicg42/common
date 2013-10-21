@@ -29,9 +29,9 @@ type TEthPhyFiberPinOUT is record
 txp     : std_logic_vector(C_GTCH_COUNT_MAX - 1 downto 0);
 txn     : std_logic_vector(C_GTCH_COUNT_MAX - 1 downto 0);
 clk_sel : std_logic_vector(1 downto 0);
-clk_oe  : std_logic;
+clk_oe_n : std_logic;
 sfp_txdis : std_logic;
---sfp_rs    : std_logic_vector(1 downto 0);
+sfp_rs    : std_logic_vector(1 downto 0);
 end record;
 type TEthPhyFiberPinIN is record
 rxp   : std_logic_vector(C_GTCH_COUNT_MAX - 1 downto 0);

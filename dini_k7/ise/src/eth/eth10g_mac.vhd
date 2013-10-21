@@ -76,7 +76,10 @@ entity eth10g_mac is
     tx_axis_tvalid        : in  std_logic;
     tx_axis_tlast         : in  std_logic;
     tx_axis_tready        : out std_logic;
-    tx_axis_tuser         : in  std_logic;
+
+    axis_clk_out : out std_logic;
+
+--    tx_dcm_locked : in std_logic;
 
     ---------------------------------------------------------------------------
     -- Interface to the management block.
@@ -84,7 +87,7 @@ entity eth10g_mac is
     reset          : in  std_logic;       -- Resets the MAC.
     tx_axis_aresetn      : in  std_logic;
     tx_ifg_delay : in std_logic_vector(7 downto 0);
---    tx_axis_tuser : in std_logic;
+    tx_axis_tuser : in std_logic;
     tx_statistics_vector : out std_logic_vector(25 downto 0); -- Statistics information on the last frame.
     tx_statistics_valid  : out std_logic;                     -- High when stats are valid.
     pause_val      : in  std_logic_vector(15 downto 0); -- Indicates the length of the pause that should be transmitted.
@@ -96,7 +99,6 @@ entity eth10g_mac is
     rx_configuration_vector : in std_logic_vector(31 downto 0);
     pause_addr_vector       : in std_logic_vector(47 downto 0);
     status_vector  : out std_logic_vector(1 downto 0);
-    tx_dcm_locked  : in std_logic;
     gtx_clk        : in  std_logic;                     -- The global transmit clock from the outside world.
     xgmii_tx_clk   : out std_logic;                -- the TX clock from the reconcilliation sublayer.
     xgmii_txd      : out std_logic_vector(63 downto 0); -- Transmitted data
@@ -162,24 +164,24 @@ architecture wrapper of eth10g_mac is
   );
   end component;
 
---   component eth10g_mac_core_address_swap
---    port (
---      rx_clk              : in  std_logic;
---      reset               : in  std_logic;
---      rx_axis_tdata       : in  std_logic_vector(63 downto 0);
---      rx_axis_tkeep       : in  std_logic_vector(7 downto 0);
---      rx_axis_tvalid      : in  std_logic;
---      rx_axis_tlast       : in  std_logic;
---      rx_axis_tready      : out std_logic;
---
---      tx_axis_tdata       : out std_logic_vector(63 downto 0);
---      tx_axis_tkeep       : out std_logic_vector(7 downto 0);
---      tx_axis_tvalid      : out std_logic;
---      tx_axis_tlast       : out std_logic;
---      tx_axis_tready      : in  std_logic
---
---      );
---   end component;
+   component eth10g_mac_core_address_swap
+    port (
+      rx_clk              : in  std_logic;
+      reset               : in  std_logic;
+      rx_axis_tdata       : in  std_logic_vector(63 downto 0);
+      rx_axis_tkeep       : in  std_logic_vector(7 downto 0);
+      rx_axis_tvalid      : in  std_logic;
+      rx_axis_tlast       : in  std_logic;
+      rx_axis_tready      : out std_logic;
+
+      tx_axis_tdata       : out std_logic_vector(63 downto 0);
+      tx_axis_tkeep       : out std_logic_vector(7 downto 0);
+      tx_axis_tvalid      : out std_logic;
+      tx_axis_tlast       : out std_logic;
+      tx_axis_tready      : in  std_logic
+
+      );
+   end component;
   -----------------------------------------------------------------------------
   -- Internal Signal Declaration for XGMAC (the 10Gb/E MAC core).
   -----------------------------------------------------------------------------
@@ -187,7 +189,7 @@ architecture wrapper of eth10g_mac is
   attribute keep : string;
   signal gtx_clk_dcm        : std_logic;
   signal tx_dcm_clk0        : std_logic;
---  signal tx_dcm_locked      : std_logic;
+  signal tx_dcm_locked      : std_logic;
   signal tx_dcm_locked_reg  : std_logic;  -- Registered version (TX_CLK0)
 
   signal tx_clk0  : std_logic;  -- transmit clock on global routing
@@ -200,24 +202,24 @@ architecture wrapper of eth10g_mac is
   signal rx_configuration_vector_core : std_logic_vector(79 downto 0);
 
 
---  signal rx_axis_tdata_int  : std_logic_vector(63 downto 0);
---  signal rx_axis_tkeep_int  : std_logic_vector(7 downto 0);
---  signal rx_axis_tvalid_int : std_logic;
---  signal rx_axis_tlast_int  : std_logic;
---  signal rx_axis_tready_int : std_logic;
+  signal rx_axis_tdata_int  : std_logic_vector(63 downto 0);
+  signal rx_axis_tkeep_int  : std_logic_vector(7 downto 0);
+  signal rx_axis_tvalid_int : std_logic;
+  signal rx_axis_tlast_int  : std_logic;
+  signal rx_axis_tready_int : std_logic;
   signal rx_statistics_vector_int : std_logic_vector(29 downto 0) := (others => '0');
   signal rx_statistics_valid_int  : std_logic := '0';
 
   signal tx_statistics_vector_int : std_logic_vector(25 downto 0)
     := (others => '0');
   signal tx_statistics_valid_int  : std_logic := '0';
---  signal tx_axis_tdata_int  : std_logic_vector(63 downto 0);
---  signal tx_axis_tkeep_int  : std_logic_vector(7 downto 0);
---  signal tx_axis_tvalid_int : std_logic;
---  signal tx_axis_tlast_int  : std_logic;
---  signal tx_axis_ready      : std_logic;
---  signal tx_reset           :std_logic;
---  signal rx_reset           :std_logic;
+  signal tx_axis_tdata_int  : std_logic_vector(63 downto 0);
+  signal tx_axis_tkeep_int  : std_logic_vector(7 downto 0);
+  signal tx_axis_tvalid_int : std_logic;
+  signal tx_axis_tlast_int  : std_logic;
+  signal tx_axis_ready      : std_logic;
+  signal tx_reset           :std_logic;
+  signal rx_reset           :std_logic;
   signal clkfbout           : std_logic;
   signal clkfbout_buf       : std_logic;
   signal tx_mmcm_locked     : std_logic;
@@ -225,8 +227,8 @@ architecture wrapper of eth10g_mac is
 begin
 --  vcc <= '1';
 --  gnd <= '0';
---  tx_reset   <= reset or not tx_axis_aresetn;
---  rx_reset   <= reset or not rx_axis_aresetn;
+  tx_reset   <= reset or not tx_axis_aresetn;
+  rx_reset   <= reset or not rx_axis_aresetn;
 
 
   --Wire the same pause address vector to both TX & RX config vectors
@@ -242,24 +244,23 @@ begin
       reset                => reset,
       rx_axis_mac_aresetn  => rx_axis_aresetn,
       rx_axis_fifo_aresetn => rx_axis_aresetn,
-      rx_axis_tdata        => rx_axis_tdata ,--rx_axis_tdata_int,  --: out std_logic_vector(63 downto 0);
-      rx_axis_tkeep        => rx_axis_tkeep ,--rx_axis_tkeep_int,  --: out std_logic_vector(7 downto 0);
-      rx_axis_tvalid       => rx_axis_tvalid,--rx_axis_tvalid_int, --: out std_logic;
-      rx_axis_tlast        => rx_axis_tlast ,--rx_axis_tlast_int,  --: out std_logic;
-      rx_axis_tready       => rx_axis_tready,--rx_axis_tready_int, --: in  std_logic;
+      rx_axis_tdata        => rx_axis_tdata_int,  --rx_axis_tdata ,--: out std_logic_vector(63 downto 0);
+      rx_axis_tkeep        => rx_axis_tkeep_int,  --rx_axis_tkeep ,--: out std_logic_vector(7 downto 0);
+      rx_axis_tvalid       => rx_axis_tvalid_int, --rx_axis_tvalid,--: out std_logic;
+      rx_axis_tlast        => rx_axis_tlast_int,  --rx_axis_tlast ,--: out std_logic;
+      rx_axis_tready       => rx_axis_tready_int, --rx_axis_tready,--: in  std_logic;
 
       tx_axis_mac_aresetn  => tx_axis_aresetn,
       tx_axis_fifo_aresetn => tx_axis_aresetn,
-      tx_axis_tdata        => tx_axis_tdata  ,--tx_axis_tdata_int, --: in  std_logic_vector(63 downto 0);
-      tx_axis_tkeep        => tx_axis_tkeep  ,--tx_axis_tkeep_int, --: in  std_logic_vector(7 downto 0);
-      tx_axis_tvalid       => tx_axis_tvalid ,--tx_axis_tvalid_int,--: in  std_logic;
-      tx_axis_tlast        => tx_axis_tlast  ,--tx_axis_tlast_int, --: in  std_logic;
-      tx_axis_tready       => tx_axis_tready ,--tx_axis_ready,     --: out std_logic;
-      tx_axis_tuser        => tx_axis_tuser,
+      tx_axis_tdata        => tx_axis_tdata_int, --tx_axis_tdata  ,--: in  std_logic_vector(63 downto 0);
+      tx_axis_tkeep        => tx_axis_tkeep_int, --tx_axis_tkeep  ,--: in  std_logic_vector(7 downto 0);
+      tx_axis_tvalid       => tx_axis_tvalid_int,--tx_axis_tvalid ,--: in  std_logic;
+      tx_axis_tlast        => tx_axis_tlast_int, --tx_axis_tlast  ,--: in  std_logic;
+      tx_axis_tready       => tx_axis_ready,     --tx_axis_tready ,--: out std_logic;
 
       pause_val            => pause_val,
       pause_req            => pause_req,
---      tx_axis_tuser        => tx_axis_tuser,
+      tx_axis_tuser        => tx_axis_tuser,
       tx_ifg_delay         => tx_ifg_delay,
       tx_statistics_vector => tx_statistics_vector_int,
       tx_statistics_valid  => tx_statistics_valid_int,
@@ -296,6 +297,20 @@ begin
 --      tx_axis_tready    =>  tx_axis_ready
 --   );
 
+  rx_axis_tdata        <= rx_axis_tdata_int ; --rx_axis_tdata ,--: out std_logic_vector(63 downto 0);
+  rx_axis_tkeep        <= rx_axis_tkeep_int ; --rx_axis_tkeep ,--: out std_logic_vector(7 downto 0);
+  rx_axis_tvalid       <= rx_axis_tvalid_int; --rx_axis_tvalid,--: out std_logic;
+  rx_axis_tlast        <= rx_axis_tlast_int ; --rx_axis_tlast ,--: out std_logic;
+  rx_axis_tready_int   <= rx_axis_tready    ; --rx_axis_tready,--: in  std_logic;
+
+  tx_axis_tdata_int    <= tx_axis_tdata ;--tx_axis_tdata  ,--: in  std_logic_vector(63 downto 0);
+  tx_axis_tkeep_int    <= tx_axis_tkeep ;--tx_axis_tkeep  ,--: in  std_logic_vector(7 downto 0);
+  tx_axis_tvalid_int   <= tx_axis_tvalid;--tx_axis_tvalid ,--: in  std_logic;
+  tx_axis_tlast_int    <= tx_axis_tlast ;--tx_axis_tlast  ,--: in  std_logic;
+  tx_axis_tready       <= tx_axis_ready ;--tx_axis_tready ,--: out std_logic;
+
+  axis_clk_out <= rx_clk_int;
+
 --  -- Transmit clock management
 --  gtx_clk_ibufg : IBUFG
 --    port map (
@@ -329,6 +344,7 @@ begin
 --     PWRDWN      => '0');
 --
 --  tx_dcm_locked <= tx_mmcm_locked;
+  tx_dcm_locked <= '1';
 --
 --  clkf_buf : BUFG
 --    port map

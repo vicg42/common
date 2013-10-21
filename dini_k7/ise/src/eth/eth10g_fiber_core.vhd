@@ -6,6 +6,7 @@ use ieee.std_logic_misc.all;
 
 library work;
 use work.eth_pkg.all;
+use work.vicg_common_pkg.all;
 
 -------------------------------------------------------------------------------
 -- Entity declaration for the example design
@@ -13,7 +14,9 @@ use work.eth_pkg.all;
 
 entity eth10g_fiber_core is
   generic (
-  G_ETH : TEthGeneric
+  G_ETH : TEthGeneric;
+  G_DBG : string:="OFF";
+  G_SIM : string:="OFF"
   );
    port(
       --EthPhy<->EthApp
@@ -51,6 +54,8 @@ signal i_tx_axis_tlast   : std_logic;
 signal i_tx_axis_tready  : std_logic;
 signal i_tx_axis_tuser   : std_logic;
 
+signal axis_clk_out      : std_logic;
+
 component eth10g_mac
 port(
 rx_axis_tdata   : out std_logic_vector(63 downto 0);
@@ -64,7 +69,10 @@ tx_axis_tkeep   : in  std_logic_vector(7 downto 0);
 tx_axis_tvalid  : in  std_logic;
 tx_axis_tlast   : in  std_logic;
 tx_axis_tready  : out std_logic;
-tx_axis_tuser   : in  std_logic;
+
+axis_clk_out : out std_logic;
+
+--tx_dcm_locked  : in std_logic;
 
 ---------------------------------------------------------------------------
 -- Interface to the host.
@@ -72,7 +80,7 @@ tx_axis_tuser   : in  std_logic;
 reset          : in  std_logic;       -- Resets the MAC.
 tx_axis_aresetn      : in  std_logic;
 tx_ifg_delay : in std_logic_vector(7 downto 0);
---    tx_axis_tuser : in std_logic;
+tx_axis_tuser : in std_logic;
 tx_statistics_vector : out std_logic_vector(25 downto 0); -- Statistics information on the last frame.
 tx_statistics_valid  : out std_logic;                     -- High when stats are valid.
 pause_val      : in  std_logic_vector(15 downto 0); -- Indicates the length of the pause that should be transmitted.
@@ -84,7 +92,7 @@ tx_configuration_vector : in std_logic_vector(31 downto 0);
 rx_configuration_vector : in std_logic_vector(31 downto 0);
 pause_addr_vector       : in std_logic_vector(47 downto 0);
 status_vector  : out std_logic_vector(1 downto 0);
-tx_dcm_locked  : in std_logic;
+
 gtx_clk        : in  std_logic;                     -- The global transmit clock from the outside world.
 xgmii_tx_clk   : out std_logic;                -- the TX clock from the reconcilliation sublayer.
 xgmii_txd      : out std_logic_vector(63 downto 0); -- Transmitted data
@@ -99,8 +107,8 @@ signal xgmii_tx_clk : std_logic;
 signal xgmii_txd    : std_logic_vector(63 downto 0);
 signal xgmii_txc    : std_logic_vector(7 downto 0);
 signal xgmii_rx_clk : std_logic := '0';
-signal xgmii_rxd    : std_logic_vector(63 downto 0) := X"0707070707070707";
-signal xgmii_rxc    : std_logic_vector(7 downto 0) := "11111111";
+signal xgmii_rxd    : std_logic_vector(63 downto 0);
+signal xgmii_rxc    : std_logic_vector(7 downto 0);
 
 signal reset   : std_logic := '1';    -- start in
                                       -- reset
@@ -122,6 +130,9 @@ signal pause_addr_vector       : std_logic_vector(47 downto 0):= X"000000000000"
 signal status_vector : std_logic_vector(1 downto 0);
 
 component eth10g_pma
+generic (
+  EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
+);
 port (
 refclk_p         : in  std_logic;
 refclk_n         : in  std_logic;
@@ -136,7 +147,7 @@ txp              : out std_logic;
 txn              : out std_logic;
 rxp              : in  std_logic;
 rxn              : in  std_logic;
-
+--mmcm_locked      : out std_logic;
 core_status      : out std_logic_vector(7 downto 0);
 resetdone        : out std_logic;
 signal_detect    : in  std_logic;
@@ -151,7 +162,7 @@ signal i_pma_sfp_signal_detect : std_logic;
 signal i_pma_sfp_tx_fault : std_logic;
 signal i_pma_sfp_tx_disable : std_logic;
 signal i_pma_core_clk156_out : std_logic;
-
+signal i_pma_clk156_mmcm_locked : std_logic;
 
 
 signal tst_rx_axis_tdata   : std_logic_vector(63 downto 0);
@@ -167,27 +178,38 @@ signal tst_tx_axis_tlast   : std_logic;
 signal tst_tx_axis_tready  : std_logic;
 signal tst_tx_axis_tuser   : std_logic;
 
-signal tst_out   : std_logic;
+signal tst_out             : std_logic_vector(3 downto 0);
+signal tst_sfp_txdis       : std_logic;
+signal tst_sfp_sd          : std_logic;
+signal tst_sfp_tx_fault    : std_logic;
+signal tst_pma_core_status : std_logic_vector(i_pma_core_status'range);
+signal tst_pma_resetdone   : std_logic;
+signal tst_rx_idle         : std_logic := '0';
+signal tst_rx_err          : std_logic := '0';
+signal tst_rx              : std_logic := '0';
 
 begin
 
 p_out_tst(7 downto 0) <= i_pma_core_status;
 --p_out_tst(8) <= i_pma_resetdone;
 --p_out_tst(9) <= i_pma_core_clk156_out;
-p_out_tst(10) <= tst_out or i_pma_resetdone or OR_reduce(i_pma_core_status);
+p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) or tst_rx_idle or tst_rx_err or tst_rx
+                    or tst_sfp_tx_fault or tst_sfp_sd or tst_sfp_txdis;
+p_out_dbg(0).d(1) <= tst_out(0);
+p_out_dbg(0).d(2) <= tst_out(1);
+p_out_dbg(0).d(3) <= tst_out(2);
 
-p_out_phy.link <= not p_in_phy.pin.fiber.sfp_sd;
+p_out_phy.link <= i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_pma_resetdone;
 p_out_phy.clk <= i_pma_core_clk156_out;
 p_out_phy.rst <= p_in_rst;
 
-p_out_phy.pin.fiber.clk_oe <= '1';-- Oscillator Output Enable
-p_out_phy.pin.fiber.clk_sel(0) <= '0';--clk_sda
-p_out_phy.pin.fiber.clk_sel(1) <= '0';--clk_scl
---p_out_phy.pin.fiber.sfp_rs <= (others=>'0');
+p_out_phy.pin.fiber.clk_oe_n <= '0';-- Oscillator Output Enable
+p_out_phy.pin.fiber.clk_sel <= "11";--00/01/10/11 - 100MHz/125Mhz/150Mhz/156Mhz
+p_out_phy.pin.fiber.sfp_rs <= (others => '1');
 
 p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'1';
-i_pma_sfp_signal_detect <= p_in_phy.pin.fiber.sfp_sd;
+i_pma_sfp_signal_detect <= not p_in_phy.pin.fiber.sfp_sd;
 i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
 
@@ -248,11 +270,14 @@ tx_axis_tkeep   => i_tx_axis_tkeep,  --p_in_phy2app(0).axitx_tkeep  ,--
 tx_axis_tvalid  => i_tx_axis_tvalid, --p_in_phy2app(0).axitx_tvalid ,--
 tx_axis_tlast   => i_tx_axis_tlast,  --p_in_phy2app(0).axitx_tlast  ,--
 tx_axis_tready  => i_tx_axis_tready, --p_out_phy2app(0).axitx_tready,--
-tx_axis_tuser   => i_tx_axis_tuser,  --p_in_phy2app(0).axitx_tuser  ,--
+
+axis_clk_out     => axis_clk_out,
+
+--tx_dcm_locked           => i_pma_clk156_mmcm_locked,--tx_dcm_locked,--: in std_logic;
 
 reset                   => reset,
 tx_axis_aresetn         => aresetn,
---      tx_axis_tuser           => tx_axis_tuser,
+tx_axis_tuser           => i_tx_axis_tuser,
 tx_ifg_delay            => tx_ifg_delay,
 tx_statistics_vector    => tx_statistics_vector,
 tx_statistics_valid     => tx_statistics_valid,
@@ -265,20 +290,23 @@ tx_configuration_vector => tx_configuration_vector,
 rx_configuration_vector => rx_configuration_vector,
 pause_addr_vector       => pause_addr_vector,
 status_vector           => status_vector,
-tx_dcm_locked           => i_pma_resetdone,--tx_dcm_locked,--: in std_logic;
-gtx_clk                 => i_pma_core_clk156_out,--tx_clk0,--gtx_clk,
-xgmii_tx_clk            => open,--xgmii_tx_clk,
-xgmii_txd               => xgmii_txd,
-xgmii_txc               => xgmii_txc,
-xgmii_rx_clk            => xgmii_rx_clk,
-xgmii_rxd               => xgmii_rxd,
-xgmii_rxc               => xgmii_rxc
+gtx_clk                 => i_pma_core_clk156_out,--: in  std_logic;                     -- The global transmit clock from the outside world.  tx_clk0,--gtx_clk,
+xgmii_tx_clk            => xgmii_tx_clk,         --: out std_logic;                     -- the TX clock from the reconcilliation sublayer.
+xgmii_txd               => xgmii_txd,            --: out std_logic_vector(63 downto 0); -- Transmitted data
+xgmii_txc               => xgmii_txc,            --: out std_logic_vector(7 downto 0);  -- Transmitted control
+xgmii_rx_clk            => xgmii_rx_clk,         --: in  std_logic;                     -- The rx clock from the PHY layer.
+xgmii_rxd               => xgmii_rxd,            --: in  std_logic_vector(63 downto 0); -- Received data
+xgmii_rxc               => xgmii_rxc             --: in  std_logic_vector(7 downto 0)   -- received control
 );
 
 
 m_pma : eth10g_pma
+generic map(
+EXAMPLE_SIM_GTRESET_SPEEDUP => selstring ("TRUE", "FALSE", strcmp(G_SIM, "ON"))
+)
 port map (
 reset           => reset,
+--mmcm_locked     => i_pma_clk156_mmcm_locked,
 core_clk156_out => i_pma_core_clk156_out,
 xgmii_txd       => xgmii_txd,
 xgmii_txc       => xgmii_txc,
@@ -321,6 +349,7 @@ i_tx_axis_tdata <= p_in_phy2app(0).txd;
 i_tx_axis_tkeep <= p_in_phy2app(0).txrem;
 i_tx_axis_tvalid <= not p_in_phy2app(0).txsof_n or not p_in_phy2app(0).txsrc_rdy_n;
 i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;
+i_tx_axis_tuser <= '0';
 
 
 process(i_pma_core_clk156_out)
@@ -338,14 +367,35 @@ begin
     tst_tx_axis_tvalid <= i_tx_axis_tvalid; --p_in_phy2app(0).axitx_tvalid ,--
     tst_tx_axis_tlast  <= i_tx_axis_tlast ; --p_in_phy2app(0).axitx_tlast  ,--
     tst_tx_axis_tready <= i_tx_axis_tready; --p_out_phy2app(0).axitx_tready,--
-    tst_tx_axis_tuser  <= i_tx_axis_tuser ; --p_in_phy2app(0).axitx_tuser  ,--
+--    tst_tx_axis_tuser  <= i_tx_axis_tuser ; --p_in_phy2app(0).axitx_tuser  ,--
 
-    tst_out <= tst_tx_axis_tuser or
-               tst_tx_axis_tready or tst_tx_axis_tlast or tst_tx_axis_tvalid or
-               OR_reduce(i_tx_axis_tdata) or OR_reduce(i_rx_axis_tkeep) or
+    tst_out(0) <= tst_tx_axis_tready or tst_tx_axis_tlast or tst_tx_axis_tvalid
+                  or tst_rx_axis_tready or tst_rx_axis_tlast or tst_rx_axis_tvalid;
+--                  or tst_tx_axis_tuser;
 
-               tst_rx_axis_tready or tst_rx_axis_tlast or tst_rx_axis_tvalid or
-               OR_reduce(i_tx_axis_tdata) or OR_reduce(i_rx_axis_tkeep);
+    tst_out(1) <= OR_reduce(tst_tx_axis_tdata) or OR_reduce(tst_tx_axis_tkeep);
+    tst_out(2) <= OR_reduce(tst_rx_axis_tdata) or OR_reduce(tst_rx_axis_tkeep);
+
+    tst_sfp_txdis <= i_pma_sfp_tx_disable;--'1';
+    tst_sfp_sd <= i_pma_sfp_signal_detect;
+    tst_sfp_tx_fault <= i_pma_sfp_tx_fault;
+    tst_pma_core_status <= i_pma_core_status;
+    tst_pma_resetdone <= i_pma_resetdone;
+
+
+    if xgmii_rxd(63 downto 0) = X"0707070707070707" then
+    tst_rx_idle <= '1';
+    else
+    tst_rx_idle <= '0';
+    end if;
+
+    if xgmii_rxd(63 downto 0) = X"FEFEFEFEFEFEFEFE" then
+    tst_rx_err <= '1';
+    else
+    tst_rx_err <= '0';
+    end if;
+
+    tst_rx <= tst_rx_idle or tst_rx_err;
 
   end if;
 end process;

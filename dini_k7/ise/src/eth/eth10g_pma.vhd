@@ -57,6 +57,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity eth10g_pma is
+    generic (
+      EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
+      );
     port (
       refclk_p         : in  std_logic;
       refclk_n         : in  std_logic;
@@ -71,7 +74,7 @@ entity eth10g_pma is
       txn              : out std_logic;
       rxp              : in  std_logic;
       rxn              : in  std_logic;
-
+--      mmcm_locked      : out std_logic;
       core_status      : out std_logic_vector(7 downto 0);
       resetdone        : out std_logic;
       signal_detect    : in  std_logic;
@@ -97,6 +100,7 @@ architecture wrapper of eth10g_pma is
       EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
       );
     port (
+--      mmcm_locked_out  : out std_logic;
       refclk_n         : in  std_logic;
       refclk_p         : in  std_logic;
       clk156           : out std_logic;
@@ -284,9 +288,10 @@ begin
 
   ten_gig_eth_pcs_pma_block : eth10g_pma_core_block
     generic map (
-      EXAMPLE_SIM_GTRESET_SPEEDUP => "TRUE"
+      EXAMPLE_SIM_GTRESET_SPEEDUP => EXAMPLE_SIM_GTRESET_SPEEDUP
       )
     port map (
+--      mmcm_locked_out  => mmcm_locked,
       refclk_n         => refclk_n,
       refclk_p         => refclk_p,
       clk156           => clk156,
