@@ -137,7 +137,9 @@ p_in_rst      => p_in_rst
 --#############################################
 m_phy : eth_phy
 generic map(
-G_ETH => G_ETH
+G_ETH => G_ETH,
+G_DBG => G_DBG,
+G_SIM => G_SIM
 )
 port map(
 --------------------------------------

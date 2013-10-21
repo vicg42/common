@@ -66,7 +66,9 @@ end component;
 
 component eth_phy
 generic (
-G_ETH : TEthGeneric
+G_ETH : TEthGeneric;
+G_DBG : string:="OFF";
+G_SIM : string:="OFF"
 );
 port(
 --EthPhy<->EthApp

@@ -73,6 +73,8 @@ architecture behavioral of eth_mac_tx is
 type TEth_fsm_tx is (
 S_IDLE,
 S_TX_MAC_A0,
+S_TX_MAC_A00,
+S_TX_MAC_A000,
 S_TX_MAC_A1,
 S_TX_MAC_D,
 S_TX_END
@@ -102,7 +104,7 @@ signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
 signal tst_txbuf_empty        : std_logic := '0';
 signal tst_ll_dst_rdy_n       : std_logic := '0';
-signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
+--signal tst_txbuf_d            : std_logic_vector(p_in_txbuf_dout'range) := (others => '1');
 signal tst_txbuf_rd           : std_logic := '0';
 
 
@@ -121,13 +123,13 @@ ltstout:process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
 
-    tst_txbuf_d <= p_in_txbuf_dout;
+--    tst_txbuf_d <= p_in_txbuf_dout;
     tst_txbuf_rd <= not p_in_txbuf_empty and not p_in_txll_dst_rdy_n and not i_ll_src_rdy_n;
 
     tst_txbuf_empty <= p_in_txbuf_empty; tst_ll_dst_rdy_n <= p_in_txll_dst_rdy_n;
     tst_fms_cs_dly <= tst_fms_cs;
-    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n;
-    p_out_tst(1) <= OR_reduce(tst_txbuf_d) or tst_txbuf_rd;
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly) or tst_txbuf_empty or tst_ll_dst_rdy_n or tst_txbuf_rd;
+--    p_out_tst(1) <= OR_reduce(tst_txbuf_d) or tst_txbuf_rd;
   end if;
 end process ltstout;
 
@@ -204,7 +206,7 @@ if rising_edge(p_in_clk) then
             i_mac_dlen_byte((8 * 2) - 1 downto 8 * 0) <= p_in_txbuf_dout((8 * 2) - 1 downto 8 * 0);
 
             if p_in_txbuf_dout((8 * 2) - 1 downto 8 * 0) /= CONV_STD_LOGIC_VECTOR(0, 16) then
-              i_ll_sof_n <= '0';
+--              i_ll_sof_n <= '0';
               fsm_eth_tx_cs <= S_TX_MAC_A0;
             end if;
           end if;
@@ -219,13 +221,23 @@ if rising_edge(p_in_clk) then
           if p_in_txll_dst_rdy_n = '0' then
 
             i_ll_rem <= (others=>'1');
-            i_ll_src_rdy_n <= '0';
-            i_ll_sof_n <= '0';
-            i_ll_eof_n <= '1';
+--            i_ll_src_rdy_n <= '0';
+--            i_ll_sof_n <= '0';
+--            i_ll_eof_n <= '1';
 
-            fsm_eth_tx_cs <= S_TX_MAC_A1;
+            fsm_eth_tx_cs <= S_TX_MAC_A00;
 
           end if;
+
+        when S_TX_MAC_A00 =>
+
+            fsm_eth_tx_cs <= S_TX_MAC_A000;
+
+        when S_TX_MAC_A000 =>
+
+            i_ll_src_rdy_n <= '0';
+            i_ll_sof_n <= '0';
+            fsm_eth_tx_cs <= S_TX_MAC_A1;
 
         when S_TX_MAC_A1 =>
 

@@ -114,12 +114,12 @@ signal sr_rxll_data           : std_logic_vector(31 downto 0);
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
-signal tst_rxll_sof_n         : std_logic := '0';
-signal tst_rxll_eof_n         : std_logic := '0';
-signal tst_rxll_src_rdy_n     : std_logic := '0';
-signal tst_rxbuf_full         : std_logic := '0';
-signal tst_rxll_rem           : std_logic_vector(p_in_rxll_rem'range) := (others => '0');
-signal tst_rxll_data           : std_logic_vector(p_in_rxll_data'range) := (others => '0');
+--signal tst_rxll_sof_n         : std_logic := '0';
+--signal tst_rxll_eof_n         : std_logic := '0';
+--signal tst_rxll_src_rdy_n     : std_logic := '0';
+--signal tst_rxbuf_full         : std_logic := '0';
+--signal tst_rxll_rem           : std_logic_vector(p_in_rxll_rem'range) := (others => '0');
+--signal tst_rxll_data           : std_logic_vector(p_in_rxll_data'range) := (others => '0');
 
 --MAIN
 begin
@@ -135,17 +135,17 @@ gen_dbg_on : if strcmp(G_DBG,"ON") generate
 ltstout:process(p_in_clk)
 begin
   if rising_edge(p_in_clk) then
-    tst_rxll_data <= p_in_rxll_data;
-    tst_rxll_rem <= p_in_rxll_rem;
-    tst_rxll_sof_n <= p_in_rxll_sof_n;
-    tst_rxll_eof_n <= p_in_rxll_eof_n;
-    tst_rxll_src_rdy_n <= p_in_rxll_src_rdy_n;
-    tst_rxbuf_full <= p_in_rxbuf_full;
+--    tst_rxll_data <= p_in_rxll_data;
+--    tst_rxll_rem <= p_in_rxll_rem;
+--    tst_rxll_sof_n <= p_in_rxll_sof_n;
+--    tst_rxll_eof_n <= p_in_rxll_eof_n;
+--    tst_rxll_src_rdy_n <= p_in_rxll_src_rdy_n;
+--    tst_rxbuf_full <= p_in_rxbuf_full;
     tst_fms_cs_dly <= tst_fms_cs;
 
-    p_out_tst(0)<=OR_reduce(tst_fms_cs_dly) or
-                  tst_rxll_src_rdy_n or tst_rxll_eof_n or tst_rxll_sof_n or tst_rxbuf_full or
-                  OR_reduce(tst_rxll_rem) or OR_reduce(tst_rxll_data);
+    p_out_tst(0) <= OR_reduce(tst_fms_cs_dly);
+--                    or tst_rxll_src_rdy_n or tst_rxll_eof_n or tst_rxll_sof_n or tst_rxbuf_full
+--                    or OR_reduce(tst_rxll_rem) or OR_reduce(tst_rxll_data);
   end if;
 end process ltstout;
 
