@@ -220,11 +220,32 @@ signal i_pma_sfp_tx_fault      : std_logic;
 signal i_pma_sfp_tx_disable    : std_logic;
 signal i_pma_core_clk156_out   : std_logic;
 
-signal tst_pma_core_status     : std_logic_vector(15 downto 0);
+signal rx_ll_data_0_i          : std_logic_vector(7 downto 0);
+signal rx_ll_sof_n_0_i         : std_logic;
+signal rx_ll_eof_n_0_i         : std_logic;
+signal rx_ll_src_rdy_n_0_i     : std_logic;
+signal rx_ll_dst_rdy_n_0_i     : std_logic;
+
+signal tx_ll_data_0_i          : std_logic_vector(7 downto 0);
+signal tx_ll_sof_n_0_i         : std_logic;
+signal tx_ll_eof_n_0_i         : std_logic;
+signal tx_ll_src_rdy_n_0_i     : std_logic;
+signal tx_ll_dst_rdy_n_0_i     : std_logic;
+
+signal tst_rx_ll_data_0_i      : std_logic_vector(7 downto 0);
+signal tst_rx_ll_sof_n_0_i     : std_logic;
+signal tst_rx_ll_eof_n_0_i     : std_logic;
+signal tst_rx_ll_src_rdy_n_0_i : std_logic;
+signal tst_rx_ll_dst_rdy_n_0_i : std_logic;
+signal tst_tx_ll_data_0_i      : std_logic_vector(7 downto 0);
+signal tst_tx_ll_sof_n_0_i     : std_logic;
+signal tst_tx_ll_eof_n_0_i     : std_logic;
+signal tst_tx_ll_src_rdy_n_0_i : std_logic;
+signal tst_tx_ll_dst_rdy_n_0_i : std_logic;
+signal tst_out                 : std_logic_vector(2 downto 0);
 
 
 begin
-
 
 p_out_phy.link <= i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_dcm_locked;
@@ -282,23 +303,37 @@ i_pma_cfg_vector(4) <= '0';--Auto-Negotiation Enable
 --####################################################
 --MAC CORE
 --####################################################
+--FPGA <- ETH
+p_out_phy2app(0).rxd(G_ETH.phy_dwidth - 1 downto 0) <= rx_ll_data_0_i;
+p_out_phy2app(0).rxsof_n <= rx_ll_sof_n_0_i;
+p_out_phy2app(0).rxeof_n <= rx_ll_eof_n_0_i;
+p_out_phy2app(0).rxsrc_rdy_n <= rx_ll_src_rdy_n_0_i;
+rx_ll_dst_rdy_n_0_i <= p_in_phy2app (0).rxdst_rdy_n;
+
+--FPGA -> ETH
+tx_ll_data_0_i <= p_in_phy2app (0).txd(G_ETH.phy_dwidth - 1 downto 0);
+tx_ll_sof_n_0_i <= p_in_phy2app (0).txsof_n;
+tx_ll_eof_n_0_i <= p_in_phy2app (0).txeof_n;
+tx_ll_src_rdy_n_0_i <= p_in_phy2app (0).txsrc_rdy_n;
+p_out_phy2app(0).txdst_rdy_n <= tx_ll_dst_rdy_n_0_i;
+
 m_mac : ethg_mac
 port map(
 --FPGA <- ETH
 --rx_ll_clock          => rx_ll_clock        ,
-rx_ll_data_out       => p_out_phy2app(0).rxd(G_ETH.phy_dwidth-1 downto 0),--rx_ll_data_0_i,      --: out std_logic_vector(7 downto 0);
-rx_ll_sof_out_n      => p_out_phy2app(0).rxsof_n,                         --rx_ll_sof_n_0_i,     --: out std_logic;
-rx_ll_eof_out_n      => p_out_phy2app(0).rxeof_n,                         --rx_ll_eof_n_0_i,     --: out std_logic;
-rx_ll_src_rdy_out_n  => p_out_phy2app(0).rxsrc_rdy_n,                     --rx_ll_src_rdy_n_0_i, --: out std_logic;
-rx_ll_dst_rdy_in_n   => p_in_phy2app (0).rxdst_rdy_n,                     --rx_ll_dst_rdy_n_0_i, --: in  std_logic;
+rx_ll_data_out       => rx_ll_data_0_i,      --p_out_phy2app(0).rxd(G_ETH.phy_dwidth - 1 downto 0),--
+rx_ll_sof_out_n      => rx_ll_sof_n_0_i,     --p_out_phy2app(0).rxsof_n,                           --
+rx_ll_eof_out_n      => rx_ll_eof_n_0_i,     --p_out_phy2app(0).rxeof_n,                           --
+rx_ll_src_rdy_out_n  => rx_ll_src_rdy_n_0_i, --p_out_phy2app(0).rxsrc_rdy_n,                       --
+rx_ll_dst_rdy_in_n   => rx_ll_dst_rdy_n_0_i, --p_in_phy2app (0).rxdst_rdy_n,                       --
 
 --FPGA -> ETH
 --tx_ll_clock          => tx_ll_clock        ,
-tx_ll_data_in        => p_in_phy2app (0).txd(G_ETH.phy_dwidth-1 downto 0),--tx_ll_data_0_i,
-tx_ll_sof_in_n       => p_in_phy2app (0).txsof_n,                         --tx_ll_sof_n_0_i,
-tx_ll_eof_in_n       => p_in_phy2app (0).txeof_n,                         --tx_ll_eof_n_0_i,
-tx_ll_src_rdy_in_n   => p_in_phy2app (0).txsrc_rdy_n,                     --tx_ll_src_rdy_n_0_i,
-tx_ll_dst_rdy_out_n  => p_out_phy2app(0).txdst_rdy_n,                     --tx_ll_dst_rdy_n_0_i,
+tx_ll_data_in        => tx_ll_data_0_i,      --p_in_phy2app (0).txd(G_ETH.phy_dwidth - 1 downto 0),--
+tx_ll_sof_in_n       => tx_ll_sof_n_0_i,     --p_in_phy2app (0).txsof_n,                           --
+tx_ll_eof_in_n       => tx_ll_eof_n_0_i,     --p_in_phy2app (0).txeof_n,                           --
+tx_ll_src_rdy_in_n   => tx_ll_src_rdy_n_0_i, --p_in_phy2app (0).txsrc_rdy_n,                       --
+tx_ll_dst_rdy_out_n  => tx_ll_dst_rdy_n_0_i, --p_out_phy2app(0).txdst_rdy_n,                       --
 
 -- asynchronous reset
 reset                => i_reset,
@@ -447,11 +482,38 @@ CLKFX180 => open               ,
 LOCKED   => i_dcm_locked
 );
 
-i_dcm_rst <= i_reset;-- or (not i_pma_resetdone);
+i_dcm_rst <= i_reset or (not i_pma_resetdone);
 
 bufg_dcm_fb : BUFG port map (I => i_dcm_clkfbout, O => g_dcm_clkfbout);
 bufg_gt_usrclk2 : BUFG port map (I => i_userclk2_bufg, O => g_userclk2_bufg);
 
+
+--###################################
+--DBG
+--###################################
+process(g_userclk2_bufg)
+begin
+  if rising_edge(g_userclk2_bufg) then
+    tst_rx_ll_data_0_i      <= rx_ll_data_0_i     ;
+    tst_rx_ll_sof_n_0_i     <= rx_ll_sof_n_0_i    ;
+    tst_rx_ll_eof_n_0_i     <= rx_ll_eof_n_0_i    ;
+    tst_rx_ll_src_rdy_n_0_i <= rx_ll_src_rdy_n_0_i;
+    tst_rx_ll_dst_rdy_n_0_i <= rx_ll_dst_rdy_n_0_i;
+
+    tst_tx_ll_data_0_i      <= tx_ll_data_0_i     ;
+    tst_tx_ll_sof_n_0_i     <= tx_ll_sof_n_0_i    ;
+    tst_tx_ll_eof_n_0_i     <= tx_ll_eof_n_0_i    ;
+    tst_tx_ll_src_rdy_n_0_i <= tx_ll_src_rdy_n_0_i;
+    tst_tx_ll_dst_rdy_n_0_i <= tx_ll_dst_rdy_n_0_i;
+
+    tst_out(0) <= tst_rx_ll_sof_n_0_i or tst_rx_ll_eof_n_0_i or tst_rx_ll_src_rdy_n_0_i or tst_rx_ll_dst_rdy_n_0_i;
+    tst_out(1) <= tst_tx_ll_sof_n_0_i or tst_tx_ll_eof_n_0_i or tst_tx_ll_src_rdy_n_0_i or tst_tx_ll_dst_rdy_n_0_i;
+    tst_out(2) <= OR_reduce(tst_rx_ll_data_0_i) or OR_reduce(tst_tx_ll_data_0_i);
+
+  end if;
+end process;
+
+p_out_phy.pin.fiber.test <= OR_reduce(tst_out);
 
 
 end top_level;
