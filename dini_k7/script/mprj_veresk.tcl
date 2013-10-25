@@ -24,34 +24,25 @@ set _projects [ list \
   [ list \
     $_usrdef_xilinx_family $_usrdef_device $_usrdef_pkg $_usrdef_speed xrc5t1 [ list \
       [ list "../../../common/lib/hw/lib/vicg/vicg_common_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/timer/time_gen.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/testing/fpga_test_01.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/cfgdev_rxfifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/cfgdev_2txfifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
-      [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/video_reader.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/video_writer.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/eth/src/eth_unit_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/eth/src/eth_mac_rx.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/eth/src/eth_mac_tx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mac_rx_64b.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/eth/src/eth_mac_tx_64b.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_app.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/src/eth_main.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/eth/dsn_eth_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/eth/dsn_eth.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/pcie2mem_fifo.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie_unit_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/pci_express/pcie2mem_ctrl.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_tx.vhd" $_VHDMod ] \
@@ -60,62 +51,71 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_usr_app.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/prom_loader/prom_ld_main.vhd" $_VHDMod ] \
+      [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
+      [ list "../../../common/vctrl/video_reader.vhd" $_VHDMod ] \
+      [ list "../../../common/vctrl/video_writer.vhd" $_VHDMod ] \
+      [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk21/pult_core/pult_io_null.v" $_VMod ] \
+      [ list "../../../common/veresk21/sync_u_null.v" $_VMod ] \
+      [ list "../../../common/veresk21/edev_null.vhd" $_VHDMod ] \
+      [ list "../../../common/cfgdev_buf.vhd" $_VHDMod ] \
+      [ list "../../../common/video_pkt_filter.vhd" $_VHDMod ] \
+      [ list "../../../common/dsn_switch.vhd" $_VHDMod ] \
+      [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
+      [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
+      [ list "../../../common/veresk_pkg.vhd" $_VHDPkg ] \
+      [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
+      [ list "../../../common/prj_def.vhd" $_VHDPkg ] \
+      [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
+      [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
+      [ list "../src/core_gen/cfgdev_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/bram_dma_params.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/pcie2mem_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
       [ list "../src/core_gen/ethg_vctrl_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_rxfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_ethg_txfifo.vhd" $_VHDMod ] \
       [ list "../src/core_gen/host_vbuf.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/video_pkt_filter.vhd" $_VHDMod ] \
-      [ list "../../../common/dsn_timer.vhd" $_VHDMod ] \
-      [ list "../../../common/dsn_switch.vhd" $_VHDMod ] \
-      [ list "../../../common/dsn_host.vhd" $_VHDMod ] \
-      [ list "../../../common/veresk21/pult_core/pult_io_null.v" $_VMod ] \
-      [ list "../../../common/veresk21/sync_u_null.v" $_VMod ] \
-      [ list "../../../common/veresk21/edev_null.vhd" $_VHDMod ] \
-      [ list "../veresk_prj_cfg.vhd" $_VHDPkg ] \
-      [ list "../../../common/veresk_main.vhd" $_VHDMod ] \
-      [ list "../../ucf/veresk_main.ucf" "veresk_main" ] \
-      [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
-      [ list "../src/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
-      [ list "../src/mem_ctrl_axi.vhd" $_VHDMod ] \
-      [ list "../src/mem_ctrl_core_axi.v" $_VMod ] \
-      [ list "../src/mem_arb.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/mem_achcount3_synth.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/mem_achcount4_synth.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_phy.vhd" $_VHDMod ] \
-      [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
-      [ list "../src/eth/ethg_fiber_core.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/fifo/ethg_mac_core_tx_client_fifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/fifo/ethg_mac_core_rx_client_fifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/fifo/ethg_mac_core_ten_100_1g_eth_fifo.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/common/ethg_mac_core_reset_sync.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/common/ethg_mac_core_sync_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/ethg_mac_core_gmii_if.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/ethg_mac_core_tx_clk_gen.vhd" $_VHDMod ] \
-      [ list "../src/eth/ethg_mac_core_config_vector_sm.vhd" $_VHDMod ] \
-      [ list "../src/eth/ethg_mac_core_block.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_mac_core/example_design/ethg_mac_core_fifo_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/ethg_mac.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_sync_block.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_reset_sync.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard_gt.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_tx_startup_fsm.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_rx_startup_fsm.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_gtwizard_init.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/transceiver/ethg_pma_core_transceiver.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_tx_elastic_buffer.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/ethg_pma_core/example_design/ethg_pma_core_block.vhd" $_VHDMod ] \
-      [ list "../src/eth/ethg_pma.vhd" $_VHDMod ] \
-      [ list "../src/clocks.vhd" $_VHDMod ] \
-      [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi.vhd" $_VHDMod ] \
-      [ list "../src/prom_phypin_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
-      [ list "../src/prom_ld_main.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/vmirx_bram.vhd" $_VHDMod ] \
       [ list "../src/core_gen/prom_buf.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_rx_valid_filter_7x.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_top.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_bram_top_7x.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_brams_7x.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_bram_7x.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_7x.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_pipe_pipeline.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_pipe_lane.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_pipe_misc.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_tx_thrtl_ctl.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_rx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_rx_null_gen.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_rx_pipeline.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_tx_pipeline.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_tx.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_top.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_top.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_wrapper.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gtp_pipe_reset.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gtp_pipe_rate.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gtp_pipe_drp.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_qpll_wrapper.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_qpll_drp.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_qpll_reset.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_rxeq_scan.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_eq.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_clock.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_drp.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_rate.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_reset.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_user.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_sync.v" $_VMod ] \
+      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_wrapper.v" $_VMod ] \
       [ list "../src/mem_core/rtl/axi/mig_7series_v1_9_axi_ctrl_addr_decode.v" $_VMod ] \
       [ list "../src/mem_core/rtl/axi/mig_7series_v1_9_axi_ctrl_read.v" $_VMod ] \
       [ list "../src/mem_core/rtl/axi/mig_7series_v1_9_axi_ctrl_reg.v" $_VMod ] \
@@ -199,40 +199,30 @@ set _projects [ list \
       [ list "../src/mem_core/rtl/ui/mig_7series_v1_9_ui_rd_data.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ui/mig_7series_v1_9_ui_top.v" $_VMod ] \
       [ list "../src/mem_core/rtl/ui/mig_7series_v1_9_ui_wr_data.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_rx_valid_filter_7x.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_top.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_bram_top_7x.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_brams_7x.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_bram_7x.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_7x.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_pipe_pipeline.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_pipe_lane.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_pipe_misc.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_tx_thrtl_ctl.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_rx.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_rx_null_gen.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_rx_pipeline.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_tx_pipeline.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_tx.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_axi_basic_top.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pcie_top.vhd" $_VHDMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gt_wrapper.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gtp_pipe_reset.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gtp_pipe_rate.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_gtp_pipe_drp.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_qpll_wrapper.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_qpll_drp.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_qpll_reset.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_rxeq_scan.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_eq.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_clock.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_drp.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_rate.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_reset.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_user.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_sync.v" $_VMod ] \
-      [ list "../src/core_gen/core_pciexp_ep_blk_plus_axi/source/core_pciexp_ep_blk_plus_axi_pipe_wrapper.v" $_VMod ] \
+      [ list "../src/mem_core/rtl/mem_ctrl_core_axi.v" $_VMod ] \
+      [ list "../src/mem_ctrl_axi_pkg.vhd" $_VHDMod ] \
+      [ list "../src/mem_ctrl_axi.vhd" $_VHDMod ] \
+      [ list "../src/mem_arb.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth_phypin_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/eth/eth10g_fiber_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_mac_core_synth.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_mac_core/example_design/fifo/xgmac_fifo_pack.vhd" $_VHDPkg ] \
+      [ list "../src/core_gen/eth10g_mac_core/example_design/fifo/eth10g_mac_core_fifo_ram.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_mac_core/example_design/fifo/eth10g_mac_core_axi_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_mac_core/example_design/fifo/eth10g_mac_core_xgmac_fifo.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_mac_core/example_design/eth10g_mac_core_block.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_mac_core/example_design/eth10g_mac_core_fifo_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth10g_mac_core_physical_if.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth10g_mac.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_pma_core.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_pma_core/example_design/gtx/eth10g_pma_core_gt_usrclk_source.vhd" $_VHDMod ] \
+      [ list "../src/core_gen/eth10g_pma_core/example_design/gtx/eth10g_pma_core_gtwizard_10gbaser.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth10g_pma_core_gtwizard_10gbaser_gt.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth10g_pma_core_block.vhd" $_VHDMod ] \
+      [ list "../src/eth/eth10g_pma.vhd" $_VHDMod ] \
+      [ list "../src/clocks.vhd" $_VHDMod ] \
+      [ list "../src/clocks_pkg.vhd" $_VHDPkg ] \
+      [ list "../src/prom_phypin_pkg.vhd" $_VHDPkg ] \
     ] \
   ] \
 ]

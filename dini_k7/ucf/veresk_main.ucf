@@ -53,8 +53,8 @@ NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 NET "pin_in_refclk_clk_p<0>" LOC = "AB11" | IOSTANDARD = LVDS;
 NET "pin_in_refclk_clk_n<0>" LOC = "AC11" | IOSTANDARD = LVDS;
 NET "pin_out_refclk_oe<0>"   LOC = "C12"  | IOSTANDARD = LVCMOS25;
-#NET "pin_out_refclk_sda<0>"  LOC = "C9"  | IOSTANDARD = LVCMOS25;
-#NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
+NET "pin_out_refclk_sda<0>"  LOC = "C9"  | IOSTANDARD = LVCMOS25;
+NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
 
 ##Oscillator (default 400MHz) for QDR2+
 #NET "pin_in_refclk_clk_p<1>" LOC = "P23" | IOSTANDARD = LVDS_25;
@@ -85,9 +85,7 @@ NET "pin_out_ethphy_mdc"    LOC = "D10" | IOSTANDARD = LVCMOS25;
 
 NET "pin_out_ethphy_fiber_clk_sel<0>" LOC = "E11" | IOSTANDARD = LVCMOS25;
 NET "pin_out_ethphy_fiber_clk_sel<1>" LOC = "C11" | IOSTANDARD = LVCMOS25;
-NET "pin_out_ethphy_fiber_clk_oe"     LOC = "D11" | IOSTANDARD = LVCMOS25;
-
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/m_pma/ibufds_gtrefclk"  LOC = "IBUFDS_GTE2_X0Y2";
+NET "pin_out_ethphy_fiber_clk_oe_n"   LOC = "D11" | IOSTANDARD = LVCMOS25;
 
 #--------------------------
 #-- FIBER - SFP0
@@ -95,105 +93,69 @@ INST "m_eth/gen_use_on.m_main/m_phy/m_if/m_pma/ibufds_gtrefclk"  LOC = "IBUFDS_G
 NET "pin_in_ethphy_fiber_sfp_txfault" LOC = "J8"  | IOSTANDARD = LVCMOS25;
 NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "H13" | IOSTANDARD = LVCMOS25;#signal detect
 NET "pin_out_ethphy_fiber_sfp_txdis"  LOC = "H9"  | IOSTANDARD = LVCMOS25;
-NET "pin_out_ethphy_fiber_sfp_rs<0>"  LOC = "F14" | IOSTANDARD = LVCMOS25;#"J13";
-NET "pin_out_ethphy_fiber_sfp_rs<1>"  LOC = "F13" | IOSTANDARD = LVCMOS25;#"J11";
+NET "pin_out_ethphy_fiber_sfp_rs<0>"  LOC = "J13" | IOSTANDARD = LVCMOS25;
+NET "pin_out_ethphy_fiber_sfp_rs<1>"  LOC = "J11" | IOSTANDARD = LVCMOS25;
 
-############################################################
-#ETHG_PMA0
-############################################################
+
+#############################################################
+##ETHG_PMA0 (10G)
+#############################################################
+#######################################################################
+# Clock frequencies/periods and clock management                      #
+#                                                                     #
+#######################################################################
+NET "m_eth/gen_use_on.m_main/m_phy/*q1_clk0_refclk_i" TNM_NET="refclk";
+
+TIMESPEC "TS_refclk" = PERIOD "refclk" 6400 ps;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*clk156_buf*" TNM_NET="clk156";
+
+TIMESPEC "TS_clk156" = PERIOD "clk156" 6400 ps;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*gt0_rxoutclk_i" TNM_NET="rxoutclk";
+
+TIMESPEC "TS_rxoutclk" = PERIOD "rxoutclk" 3103 ps;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*gt0_txoutclk_i" TNM_NET="txoutclk";
+
+TIMESPEC "TS_txoutclk" = PERIOD "txoutclk" 3103 ps;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*txclk322" TNM_NET="txclk322";
+
+TIMESPEC "TS_txclk322" = PERIOD "txclk322" 3103 ps;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*rxclk322" TNM_NET="rxusrclk2";
+
+TIMESPEC "TS_rxusrclk2" = PERIOD "rxusrclk2" 3103 ps;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*rxusrclk2_en156*" TNM_NET = FFS "rxusrclk_en_grp";
+
+TIMESPEC "TS_rx_multiclk" = FROM "rxusrclk_en_grp" to "rxusrclk_en_grp" TS_rxusrclk2*2;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*dclk_buf" TNM_NET="dclk";
+
+TIMESPEC "TS_dclk" = PERIOD "dclk" TS_clk156*2;
+
+NET "m_eth/gen_use_on.m_main/m_phy/*cable_pull_reset" MAXDELAY = 2.0 ns;
+NET "m_eth/gen_use_on.m_main/m_phy/*cable_unpull_reset" MAXDELAY = 2.0 ns;
+
 #-----------------------------------------------------------
 # Transceiver I/O placement:                               -
 #-----------------------------------------------------------
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/core_wrapper/transceiver_inst/gtwizard_inst/gtwizard_i/gt0_gtwizard_i/gtxe2_i" LOC = "GTXE2_CHANNEL_X0Y6";
+INST "m_eth/gen_use_on.m_main/m_phy/*gtxe2_i" LOC = "GTXE2_CHANNEL_X0Y6";
+INST "m_eth/gen_use_on.m_main/m_phy/*gtxe2_common_0_i" LOC = "GTXE2_COMMON_X0Y1";
 
-#-----------------------------------------------------------
-# Setting TIG constraints for rx and tx sync sms           -
-#-----------------------------------------------------------
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/mmcm_lock_int*" TNM = tx_mmcm_lock_delay_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*mmcm_lock_reclocke*" TNM = tx_mmcm_lock_reclocked_delay_grp;
-TIMESPEC TS_TX_MMCM_LOCK = FROM tx_mmcm_lock_delay_grp TO tx_mmcm_lock_reclocked_delay_grp TIG;
+TIMESPEC "TS_rxusrclk2_to_clk156" = FROM rxusrclk2 TO clk156 TIG;
 
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/time_out_wait_bypass" TNM = tx_time_out_wait_bypass_delay_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/time_out_wait_bypass_*" TNM = tx_time_out_wait_bypass_delay_sync_grp;
-TIMESPEC TS_TX_TIME_OUT_WAIT_SYNC = FROM tx_time_out_wait_bypass_delay_grp TO tx_time_out_wait_bypass_delay_sync_grp TIG;
+TIMESPEC "TS_rxusrclk2_to_txclk322" = FROM rxusrclk2 TO txclk322 TIG;
 
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*run_phase_alignment_int" TNM = tx_run_phase_alignment_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*run_phase_alignment_int_*" TNM = tx_phase_alignment_grp;
-TIMESPEC TS_TX_PHASE_ALIGNMENT = FROM tx_run_phase_alignment_grp TO tx_phase_alignment_grp TIG;
+TIMESPEC "TS_clk156_to_txclk322" = FROM clk156 TO txclk322 TIG;
 
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*tx_fsm_reset_done_int" TNM = tx_fsm_reset_done_int_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*tx_fsm_reset_done_int_*" TNM = tx_fsm_reset_done_grp;
-TIMESPEC TS_TX_FSM_RESET_DONE = FROM tx_fsm_reset_done_int_grp TO tx_fsm_reset_done_grp TIG;
+TIMESPEC "TS_clk156_to_refclk" = FROM clk156 TO refclk TIG;
 
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/TXRESETDONE*" TNM = tx_reset_done_int_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_txresetfsm_i/*txresetdone_*" TNM = tx_reset_done_grp;
-TIMESPEC TS_TX_RESET_DONE = FROM tx_reset_done_int_grp TO tx_reset_done_grp TIG;
+TIMESPEC "TS_txclk322_to_clk156" = FROM txclk322 TO clk156 TIG;
 
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/time_out_wait_bypass" TNM = rx_time_out_wait_bypass_delay_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/time_out_wait_bypass_*" TNM = rx_time_out_wait_bypass_delay_sync_grp;
-TIMESPEC TS_RX_TIME_OUT_WAIT_SYNC = FROM rx_time_out_wait_bypass_delay_grp TO rx_time_out_wait_bypass_delay_sync_grp TIG;
-
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*run_phase_alignment_int" TNM = rx_run_phase_alignment_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*run_phase_alignment_int_*" TNM = rx_phase_alignment_grp;
-TIMESPEC TS_RX_PHASE_ALIGNMENT = FROM rx_run_phase_alignment_grp TO rx_phase_alignment_grp TIG;
-
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*rx_fsm_reset_done_int" TNM = rx_fsm_reset_done_int_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*rx_fsm_reset_done_int_*" TNM = rx_fsm_reset_done_grp;
-TIMESPEC TS_RX_FSM_RESET_DONE = FROM rx_fsm_reset_done_int_grp TO rx_fsm_reset_done_grp TIG;
-
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/RXRESETDONE*" TNM = rx_reset_done_int_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/gt0_rxresetfsm_i/*rxresetdone_*" TNM = rx_reset_done_grp;
-TIMESPEC TS_RX_RESET_DONE = FROM rx_reset_done_int_grp TO rx_reset_done_grp TIG;
-
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/sync_block_data_valid/data_sync" TNM = data_valid_reg_delay_grp;
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/*ata_valid*" TNM = data_valid_delay_grp_2;
-TIMESPEC TS_TX_DATA_VALID_opt = FROM data_valid_delay_grp_2 TO data_valid_reg_delay_grp TIG;
-
-
-############################################################
-#ETHG_MAC0
-############################################################
-NET "i_ethphy_out_clk" TNM_NET = "clk_gtx";
-TIMESPEC "TS_gtx_clk" = PERIOD "clk_gtx" 8000 ps HIGH 50 %;
-
-NET "m_eth/gen_use_on.m_main/m_phy/m_if/*tx_mac_aclk*" TNM_NET  = "clk_tx_mac";
-TIMESPEC "TS_tx_clk_gmii" = PERIOD "clk_tx_mac" 8000 ps HIGH 50 %;
-
-NET "i_ethphy_out_clk" TNM_NET  = "clk_rx";
-TIMESPEC "TS_rx_clk" = PERIOD "clk_rx" 8000 ps HIGH 50 %;
-
-############################################################
-# FIFO Clock Crossing Constraints                          #
-############################################################
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_tran_frame_tog"     TNM = "tx_fifo_rd_to_wr";
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_addr_txfer*"        TNM = "tx_fifo_rd_to_wr";
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_txfer_tog"          TNM = "tx_fifo_rd_to_wr";
-#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_retran_frame*"      TNM = "tx_fifo_rd_to_wr";
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i*rd_col_window_pipe?1*" TNM = "tx_fifo_rd_to_wr";
-
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/wr_frame_in_fifo"      TNM = "tx_fifo_wr_to_rd";
-
-TIMESPEC "TS_tx_fifo_rd_to_wr"   = FROM "tx_fifo_rd_to_wr" TO "clk_gtx" 7800 ps DATAPATHONLY;
-TIMESPEC "TS_tx_fifo_wr_to_rd"   = FROM "tx_fifo_wr_to_rd" TO "clk_tx_mac" 7800 ps DATAPATHONLY;
-
-# Reduce clock period to allow for metastability settling time
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i*wr_col_window_pipe?0*" TNM = "tx_metastable";
-TIMESPEC "ts_tx_meta_protect"    = FROM "tx_metastable" 5 ns;
-
-# constrain the input to this register - this is a multicycle path due to the
-# resync of the control
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/rd_addr_txfer*"        TNM = "tx_addr_rd";
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/tx_fifo_i/wr_rd_addr*"           TNM = "tx_addr_wr";
-
-TIMESPEC "TS_tx_fifo_addr"       = FROM "tx_addr_rd" TO "tx_addr_wr" 10ns;
-
-## RX Client FIFO
-# Group the clock crossing signals into timing groups
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/rx_fifo_i/wr_store_frame_tog"    TNM = "rx_fifo_wr_to_rd";
-INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/user_side_FIFO/rx_fifo_i/rd_addr*"              TNM = "rx_fifo_rd_to_wr";
-
-TIMESPEC "TS_rx_fifo_wr_to_rd"   = FROM "rx_fifo_wr_to_rd" TO "clk_gtx" 7800 ps DATAPATHONLY;
-TIMESPEC "TS_rx_fifo_rd_to_wr"   = FROM "rx_fifo_rd_to_wr" TO "clk_rx" 7800 ps DATAPATHONLY;
+TIMESPEC "TS_rxusrclk2_to_refclk" = FROM rxusrclk2 TO refclk TIG;
 
 
 #--------------------------
@@ -202,12 +164,7 @@ TIMESPEC "TS_rx_fifo_rd_to_wr"   = FROM "rx_fifo_rd_to_wr" TO "clk_rx" 7800 ps D
 #NET "pin_in_ethphy_fiber_sfp_txfault" LOC = "J10"  | IOSTANDARD = LVCMOS25;
 #NET "pin_in_ethphy_fiber_sfp_sd"      LOC = "F8"   | IOSTANDARD = LVCMOS25;
 #NET "pin_out_ethphy_fiber_sfp_tx_dis" LOC = "H14"  | IOSTANDARD = LVCMOS25;
-#
-##NET "pin_in_ethphy_fiber_rxp<1>"  LOC = "B6";
-##NET "pin_in_ethphy_fiber_rxn<1>"  LOC = "B5";
-##NET "pin_out_ethphy_fiber_txp<1>" LOC = "A4";
-##NET "pin_out_ethphy_fiber_txn<1>" LOC = "A3";
-#INST "m_eth/gen_use_on.m_main/m_phy/m_if/*/core_wrapper/transceiver_inst/gtwizard_inst/gtwizard_i/gt0_gtwizard_i/gtxe2_i" LOC = "GTXE2_CHANNEL_X0Y7";
+#INST "m_eth/gen_use_on.m_main/m_phy/*/core_wrapper/transceiver_inst/gtwizard_inst/gtwizard_i/gt0_gtwizard_i/gtxe2_i" LOC = "GTXE2_CHANNEL_X0Y7";
 
 
 
