@@ -57,7 +57,7 @@ type TAXIS_DWIDTH is array (0 to C_MEMCH_COUNT_MAX - 1) of integer;
 ------------------------------------------------------------------------------------------------------------
 constant C_AXIS_DWIDTH     : TAXIS_DWIDTH := (
 C_PCGF_PCIE_DWIDTH,
-C_PCGF_PCIE_DWIDTH,
+32,
 C_PCGF_PCIE_DWIDTH,
 C_PCGF_PCIE_DWIDTH,
 C_PCGF_PCIE_DWIDTH,

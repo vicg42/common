@@ -235,19 +235,9 @@ signal tst_rx              : std_logic := '0';
 
 begin
 
-p_out_tst(7 downto 0) <= i_pma_core_status;
---p_out_tst(8) <= i_pma_resetdone;
---p_out_tst(9) <= i_pma_core_clk156_out;
-p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) --or tst_rx_idle or tst_rx_err or tst_rx
-                    or tst_sfp_tx_fault or tst_sfp_sd or tst_sfp_txdis;
-p_out_dbg(0).d(1) <= tst_out(0);
-p_out_dbg(0).d(2) <= tst_out(1);
-p_out_dbg(0).d(3) <= tst_out(2);
-p_out_dbg(0).d(4) <= tst_out(3);
-
 p_out_phy.link <= i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_pma_resetdone;
-p_out_phy.clk <= axis_clk_out;--i_pma_core_clk156_out;
+p_out_phy.clk <= i_pma_core_clk156_out;
 p_out_phy.rst <= p_in_rst;
 
 p_out_phy.pin.fiber.clk_oe_n <= '0';-- Oscillator Output Enable
@@ -317,7 +307,7 @@ tx_axis_tvalid  => i_tx_axis_tvalid, --p_in_phy2app(0).axitx_tvalid ,--
 tx_axis_tlast   => i_tx_axis_tlast,  --p_in_phy2app(0).axitx_tlast  ,--
 tx_axis_tready  => i_tx_axis_tready, --p_out_phy2app(0).axitx_tready,--
 
-axis_clk_out     => axis_clk_out,
+axis_clk_out     => open,
 
 --tx_dcm_locked           => i_pma_clk156_mmcm_locked,--tx_dcm_locked,--: in std_logic;
 
@@ -444,9 +434,21 @@ i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;
 i_tx_axis_tuser <= '0';
 
 
-process(axis_clk_out)
+--####################################################
+--DBG
+--####################################################
+gen_dbg_on : if strcmp(G_DBG,"ON") generate
+
+p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) --or tst_rx_idle or tst_rx_err or tst_rx
+                    or tst_sfp_tx_fault or tst_sfp_sd or tst_sfp_txdis;
+p_out_dbg(0).d(1) <= tst_out(0);
+p_out_dbg(0).d(2) <= tst_out(1);
+p_out_dbg(0).d(3) <= tst_out(2);
+p_out_dbg(0).d(4) <= tst_out(3);
+
+process(i_pma_core_clk156_out)
 begin
-  if rising_edge(axis_clk_out) then
+  if rising_edge(i_pma_core_clk156_out) then
 
     tst_rx_axis_tdata  <= i_rx_axis_tdata ; --p_out_phy2app(0).axirx_tdata ,--
     tst_rx_axis_tkeep  <= i_rx_axis_tkeep ; --p_out_phy2app(0).axirx_tkeep ,--
@@ -459,37 +461,22 @@ begin
     tst_tx_axis_tvalid <= i_tx_axis_tvalid; --p_in_phy2app(0).axitx_tvalid ,--
     tst_tx_axis_tlast  <= i_tx_axis_tlast ; --p_in_phy2app(0).axitx_tlast  ,--
     tst_tx_axis_tready <= i_tx_axis_tready; --p_out_phy2app(0).axitx_tready,--
---    tst_tx_axis_tuser  <= i_tx_axis_tuser ; --p_in_phy2app(0).axitx_tuser  ,--
 
     tst_out(0) <= tst_tx_axis_tready or tst_tx_axis_tlast or tst_tx_axis_tvalid
                   or tst_rx_axis_tready or tst_rx_axis_tlast or tst_rx_axis_tvalid;
---                  or tst_tx_axis_tuser;
+
     tst_out(2) <= OR_reduce(tst_tx_axis_tdata) or OR_reduce(tst_tx_axis_tkeep);
 
     tst_out(3) <= OR_reduce(tst_rx_axis_tdata) or OR_reduce(tst_rx_axis_tkeep);
 
-    tst_sfp_txdis <= i_pma_sfp_tx_disable;--'1';
+    tst_sfp_txdis <= i_pma_sfp_tx_disable;
     tst_sfp_sd <= i_pma_sfp_signal_detect;
     tst_sfp_tx_fault <= i_pma_sfp_tx_fault;
     tst_pma_core_status <= i_pma_core_status;
     tst_pma_resetdone <= i_pma_resetdone;
 
-
---    if xgmii_rxd(63 downto 0) = X"0707070707070707" then
---    tst_rx_idle <= '1';
---    else
---    tst_rx_idle <= '0';
---    end if;
---
---    if xgmii_rxd(63 downto 0) = X"FEFEFEFEFEFEFEFE" then
---    tst_rx_err <= '1';
---    else
---    tst_rx_err <= '0';
---    end if;
---
---    tst_rx <= tst_rx_idle or tst_rx_err;
-
   end if;
 end process;
+end generate gen_dbg_on;
 
 end TOP_LEVEL;
