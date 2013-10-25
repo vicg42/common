@@ -58,6 +58,7 @@ use ieee.std_logic_1164.all;
 
 entity eth10g_pma is
     generic (
+      QPLL_FBDIV_TOP : integer := 66;
       EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
       );
     port (
@@ -74,12 +75,56 @@ entity eth10g_pma is
       txn              : out std_logic;
       rxp              : in  std_logic;
       rxn              : in  std_logic;
---      mmcm_locked      : out std_logic;
+      pma_loopback     : in std_logic;
+      pma_reset        : in std_logic;
+      global_tx_disable: in std_logic;
+      pma_vs_loopback  : in std_logic_vector(3 downto 0);
+      pcs_loopback     : in std_logic;
+      pcs_reset        : in std_logic;
+      test_patt_a      : in std_logic_vector(57 downto 0);
+      test_patt_b      : in std_logic_vector(57 downto 0);
+      data_patt_sel    : in std_logic;
+      test_patt_sel    : in std_logic;
+      rx_test_patt_en  : in std_logic;
+      tx_test_patt_en  : in std_logic;
+      prbs31_tx_en     : in std_logic;
+      prbs31_rx_en     : in std_logic;
+      pcs_vs_loopback  : in std_logic_vector(1 downto 0);
+      set_pma_link_status      : in std_logic;
+      set_pcs_link_status      : in std_logic;
+      clear_pcs_status2        : in std_logic;
+      clear_test_patt_err_count: in std_logic;
+
+      pma_link_status         : out std_logic;
+      rx_sig_det              : out std_logic;
+      pcs_rx_link_status      : out std_logic;
+      pcs_rx_locked           : out std_logic;
+      pcs_hiber               : out std_logic;
+      teng_pcs_rx_link_status : out std_logic;
+      pcs_err_block_count     : out std_logic_vector(7 downto 0);
+      pcs_ber_count           : out std_logic_vector(5 downto 0);
+      pcs_rx_hiber_lh         : out std_logic;
+      pcs_rx_locked_ll        : out std_logic;
+      pcs_test_patt_err_count : out std_logic_vector(15 downto 0);
+      status_vector_preserve  : out std_logic;
       core_status      : out std_logic_vector(7 downto 0);
       resetdone        : out std_logic;
       signal_detect    : in  std_logic;
       tx_fault         : in  std_logic;
-      tx_disable       : out std_logic
+      tx_disable       : out std_logic;
+
+      configuration_vector_preserve : in std_logic;
+      is_eval          : out std_logic;
+      an_enable        : in  std_logic;
+      training_enable  : in  std_logic;
+      training_addr    : in  std_logic_vector(20 downto 0);
+      training_rnw     : in  std_logic;
+      training_wrdata  : in  std_logic_vector(15 downto 0);
+      training_ipif_cs : in  std_logic;
+      training_drp_cs  : in  std_logic;
+      training_rddata  : out std_logic_vector(15 downto 0);
+      training_rdack   : out std_logic;
+      training_wrack   : out std_logic
       );
 end eth10g_pma;
 
@@ -97,6 +142,7 @@ architecture wrapper of eth10g_pma is
 
   component eth10g_pma_core_block is
     generic (
+      QPLL_FBDIV_TOP : integer := 66;
       EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
       );
     port (
@@ -180,38 +226,37 @@ architecture wrapper of eth10g_pma is
   attribute async_reg of dclk_reset : signal is "true";
 begin
 
-   configuration_vector <= (others=>'0');
---   configuration_vector(0)   <= pma_loopback;
---   configuration_vector(15)  <= pma_reset;
---   configuration_vector(16)  <= global_tx_disable;
---   configuration_vector(83 downto 80) <= pma_vs_loopback;
---   configuration_vector(110) <= pcs_loopback;
---   configuration_vector(111) <= pcs_reset;
---   configuration_vector(169 downto 112) <= test_patt_a;
---   configuration_vector(233 downto 176) <= test_patt_b;
---   configuration_vector(240) <= data_patt_sel;
---   configuration_vector(241) <= test_patt_sel;
---   configuration_vector(242) <= rx_test_patt_en;
---   configuration_vector(243) <= tx_test_patt_en;
---   configuration_vector(244) <= prbs31_tx_en;
---   configuration_vector(245) <= prbs31_rx_en;
---   configuration_vector(271 downto 270) <= pcs_vs_loopback;
---   configuration_vector(512) <= set_pma_link_status;
---   configuration_vector(516) <= set_pcs_link_status;
---   configuration_vector(518) <= clear_pcs_status2;
---   configuration_vector(519) <= clear_test_patt_err_count;
+   configuration_vector(0)   <= pma_loopback;
+   configuration_vector(15)  <= pma_reset;
+   configuration_vector(16)  <= global_tx_disable;
+   configuration_vector(83 downto 80) <= pma_vs_loopback;
+   configuration_vector(110) <= pcs_loopback;
+   configuration_vector(111) <= pcs_reset;
+   configuration_vector(169 downto 112) <= test_patt_a;
+   configuration_vector(233 downto 176) <= test_patt_b;
+   configuration_vector(240) <= data_patt_sel;
+   configuration_vector(241) <= test_patt_sel;
+   configuration_vector(242) <= rx_test_patt_en;
+   configuration_vector(243) <= tx_test_patt_en;
+   configuration_vector(244) <= prbs31_tx_en;
+   configuration_vector(245) <= prbs31_rx_en;
+   configuration_vector(271 downto 270) <= pcs_vs_loopback;
+   configuration_vector(512) <= set_pma_link_status;
+   configuration_vector(516) <= set_pcs_link_status;
+   configuration_vector(518) <= clear_pcs_status2;
+   configuration_vector(519) <= clear_test_patt_err_count;
 
---   pma_link_status <= status_vector(18);
---   rx_sig_det <= status_vector(48);
---   pcs_rx_link_status <= status_vector(226);
---   pcs_rx_locked <= status_vector(256);
---   pcs_hiber <= status_vector(257);
---   teng_pcs_rx_link_status <= status_vector(268);
---   pcs_err_block_count <= status_vector(279 downto 272);
---   pcs_ber_count <= status_vector(285 downto 280);
---   pcs_rx_hiber_lh <= status_vector(286);
---   pcs_rx_locked_ll <= status_vector(287);
---   pcs_test_patt_err_count <= status_vector(303 downto 288);
+   pma_link_status <= status_vector(18);
+   rx_sig_det <= status_vector(48);
+   pcs_rx_link_status <= status_vector(226);
+   pcs_rx_locked <= status_vector(256);
+   pcs_hiber <= status_vector(257);
+   teng_pcs_rx_link_status <= status_vector(268);
+   pcs_err_block_count <= status_vector(279 downto 272);
+   pcs_ber_count <= status_vector(285 downto 280);
+   pcs_rx_hiber_lh <= status_vector(286);
+   pcs_rx_locked_ll <= status_vector(287);
+   pcs_test_patt_err_count <= status_vector(303 downto 288);
 
   resetdone <= tx_resetdone_int and rx_resetdone_int;
 
@@ -288,6 +333,7 @@ begin
 
   ten_gig_eth_pcs_pma_block : eth10g_pma_core_block
     generic map (
+      QPLL_FBDIV_TOP => QPLL_FBDIV_TOP,
       EXAMPLE_SIM_GTRESET_SPEEDUP => EXAMPLE_SIM_GTRESET_SPEEDUP
       )
     port map (
@@ -338,5 +384,9 @@ begin
 --      S  => '0');
 
   xgmii_rx_clk <= clk156;
+
+  training_rddata <= (others => '0');
+  training_rdack <= '0';
+  training_wrack <= '0';
 
 end wrapper;

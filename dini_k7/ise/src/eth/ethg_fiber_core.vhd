@@ -1,14 +1,12 @@
-
-library unisim;
-use unisim.vcomponents.all;
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
+use ieee.std_logic_misc.all;
 
 library work;
 use work.eth_pkg.all;
+use work.vicg_common_pkg.all;
 
 library unisim;
 use unisim.vcomponents.all;
@@ -17,7 +15,7 @@ use unisim.vcomponents.all;
 -- Entity declaration for the example design
 -------------------------------------------------------------------------------
 
-entity ethg_fiber_core is
+entity eth_phy is
   generic (
   G_ETH : TEthGeneric
   );
@@ -39,10 +37,10 @@ entity ethg_fiber_core is
       p_in_rst      : in    std_logic
    );
 
-end ethg_fiber_core;
+end eth_phy;
 
 
-architecture top_level of ethg_fiber_core is
+architecture top_level of eth_phy is
 
 component ethg_pma
 generic(
@@ -156,23 +154,27 @@ end component;
 signal i_reset                 : std_logic;
 
 signal g_refclk                : std_logic;
-signal g_clk62_5M              : std_logic;
-signal g_clk125M               : std_logic;
+signal gt_userclk              : std_logic;
+signal gt_userclk2             : std_logic;
 
 signal i_dcm_clkout            : std_logic_vector(1 downto 0);
 signal i_dcm_clkfbout          : std_logic;
+signal g_dcm_clkfbout          : std_logic;
 signal i_dcm_locked            : std_logic;
 signal i_dcm_rst               : std_logic;
 
+signal i_rx_axis_tkeep         : std_logic_vector(0 downto 0);
 signal i_rx_axis_tdata         : std_logic_vector(7 downto 0);
 signal i_rx_axis_tvalid        : std_logic;
 signal i_rx_axis_tready        : std_logic;
 signal i_rx_axis_tlast         : std_logic;
 
+signal i_tx_axis_tkeep         : std_logic_vector(0 downto 0);
 signal i_tx_axis_tdata         : std_logic_vector(7 downto 0);
 signal i_tx_axis_tvalid        : std_logic;
 signal i_tx_axis_tready        : std_logic;
 signal i_tx_axis_tlast         : std_logic;
+signal i_tx_axis_tuser         : std_logic;
 
 signal i_mac_speed             : std_logic_vector(1 downto 0);
 signal i_mac_speed_update      : std_logic;
@@ -199,29 +201,60 @@ signal i_pma_sfp_tx_disable    : std_logic;
 signal i_pma_core_clk156_out   : std_logic;
 
 
+signal tst_rx_axis_tdata   : std_logic_vector(7 downto 0);
+signal tst_rx_axis_tkeep   : std_logic_vector(0 downto 0);
+signal tst_rx_axis_tvalid  : std_logic;
+signal tst_rx_axis_tlast   : std_logic;
+signal tst_rx_axis_tready  : std_logic;
+
+signal tst_tx_axis_tdata   : std_logic_vector(7 downto 0);
+signal tst_tx_axis_tkeep   : std_logic_vector(0 downto 0);
+signal tst_tx_axis_tvalid  : std_logic;
+signal tst_tx_axis_tlast   : std_logic;
+signal tst_tx_axis_tready  : std_logic;
+signal tst_tx_axis_tuser   : std_logic;
+
+signal tst_out             : std_logic_vector(3 downto 0) := (others => '0');
+signal tst_sfp_txdis       : std_logic;
+signal tst_sfp_sd          : std_logic;
+signal tst_sfp_tx_fault    : std_logic;
+signal tst_pma_core_status : std_logic_vector(i_pma_core_status'range);
+signal tst_pma_resetdone   : std_logic;
+signal tst_rx_idle         : std_logic := '0';
+signal tst_rx_err          : std_logic := '0';
+signal tst_rx              : std_logic := '0';
+
 
 begin
 
 p_out_tst(7 downto 0) <= i_pma_core_status(7 downto 0);
+--p_out_tst(8) <= i_pma_resetdone;
+--p_out_tst(9) <= i_pma_core_clk156_out;
+p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) --or tst_rx_idle or tst_rx_err or tst_rx
+                    or tst_sfp_tx_fault or tst_sfp_sd or tst_sfp_txdis;
+p_out_dbg(0).d(1) <= tst_out(0);
+p_out_dbg(0).d(2) <= tst_out(1);
+p_out_dbg(0).d(3) <= tst_out(2);
+p_out_dbg(0).d(4) <= tst_out(3);
 
 p_out_phy.link <= not i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_dcm_locked;
-p_out_phy.clk <= g_clk125M;
+p_out_phy.clk <= gt_userclk2;
 p_out_phy.rst <= p_in_rst;
 
-p_out_phy.pin.fiber.sfp_txdis <= '0';
+p_out_phy.pin.fiber.clk_oe_n <= '0';-- Oscillator Output Enable
+p_out_phy.pin.fiber.clk_sel <= "01";--00/01/10/11 - 100MHz/125Mhz/150Mhz/156.25Mhz
+p_out_phy.pin.fiber.sfp_rs <= (others => '1');
+
+p_out_phy.pin.fiber.sfp_txdis <= '0';--i_pma_sfp_tx_disable
 i_pma_sfp_signal_detect <= p_in_phy.pin.fiber.sfp_sd;
---i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
+i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
 g_refclk <= p_in_phy.opt(C_ETHPHY_OPTIN_REFCLK_IODELAY_BIT);
 
 i_reset <= p_in_rst;
 
 --configureatin
---p_out_phy.pin.fiber.sfp_rs <= "00";--Rate select
-p_out_phy.pin.fiber.clk_sel <= "01";--0/1/2/3 - 100/125/150/156.25MHz
-p_out_phy.pin.fiber.clk_oe <= '0';
-
 i_mac_speed <= CONV_STD_LOGIC_VECTOR(2, i_mac_speed'length);--0/1/2 - 10/100/1000(Mb/s)
 i_mac_speed_update <= '0';
 
@@ -235,46 +268,13 @@ i_pma_cfg_vector(3) <= '0';--Isolate
 i_pma_cfg_vector(4) <= '0';--Auto-Negotiation Enable
 
 
-
---####################################################
---AXI convertor
---####################################################
---FPGA <- ETH  (p_out_phy2app : out   TEthPhy2AppOUTs;)
---p_out_phy2app(0).axirx_tdata(7 downto 0) <= i_rx_axis_tdata ;
---p_out_phy2app(0).axirx_tvalid            <= i_rx_axis_tvalid;
---p_out_phy2app(0).axirx_tlast             <= i_rx_axis_tlast;
---i_rx_axis_tready <= p_in_phy2app(0).axirx_tready;
-
-p_out_phy2app(0).rxd(7 downto 0) <= i_rx_axis_tdata;      --RX_LL_DATA        : out std_logic_vector(7 downto 0);
-p_out_phy2app(0).rxsof_n         <= not i_rx_axis_tvalid; --RX_LL_SOF_N       : out std_logic;
-p_out_phy2app(0).rxeof_n         <= not i_rx_axis_tlast;  --RX_LL_EOF_N       : out std_logic;
-p_out_phy2app(0).rxsrc_rdy_n     <= not i_rx_axis_tvalid; --RX_LL_SRC_RDY_N   : out std_logic;
-p_out_phy2app(0).rxrem           <= (others=>'0');      --RX_LL_REM         : out std_logic;
-p_out_phy2app(0).rxbuf_status    <= (others=>'0');      --RX_LL_FIFO_STATUS : out std_logic_vector(3 downto 0);
-
-p_out_phy2app(0).txdst_rdy_n <= not i_tx_axis_tready;    --TX_LL_DST_RDY_N   : out std_logic;
-
-
---FPGA -> ETH  (p_in_phy2app  : in    TEthPhy2AppINs;)
---i_tx_axis_tdata  <= p_in_phy2app(0).axitx_tdata(7 downto 0);
---i_tx_axis_tvalid <= p_in_phy2app(0).axitx_tvalid;
---i_tx_axis_tlast  <= p_in_phy2app(0).axitx_tlast;
---p_out_phy2app(0).axitx_tready <= i_tx_axis_tready;
-
-i_rx_axis_tready <= not p_in_phy2app(0).rxdst_rdy_n; --RX_LL_DST_RDY_N : in  std_logic;
-
-i_tx_axis_tdata <= p_in_phy2app(0).txd(7 downto 0);  --TX_LL_DATA
-i_tx_axis_tvalid <= not p_in_phy2app(0).txsof_n or not p_in_phy2app(0).txsrc_rdy_n;
-i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;      --TX_LL_EOF_N     : in  std_logic;
-
-
 --####################################################
 --MAC CORE
 --####################################################
 m_mac : ethg_mac
 port map(
 p_in_refclk     => g_refclk,
-p_in_clk125M    => g_clk125M,
+p_in_clk125M    => gt_userclk2,
 p_in_dcm_locked => i_dcm_locked,
 
 --FPGA <- ETH
@@ -344,8 +344,8 @@ G_SIM => 0
 )
 port map(
 gt_txoutclk_bufg    => i_pma_gt_txoutclk_bufg,
-gt_userclk_bufg     => g_clk62_5M,
-gt_userclk2_bufg    => g_clk125M,
+gt_userclk_bufg     => gt_userclk,
+gt_userclk2_bufg    => gt_userclk2,
 gt_resetdone        => i_pma_resetdone,
 dcm_locked          => i_dcm_locked,
 
@@ -434,7 +434,7 @@ CLKOUT4              => open,
 CLKOUT5              => open,
 CLKOUT6              => open,
 -- Input clock control
-CLKFBIN              => i_dcm_clkfbout,
+CLKFBIN              => g_dcm_clkfbout,
 CLKIN1               => i_pma_gt_txoutclk_bufg,
 CLKIN2               => '0',
 -- Tied to always select the primary input clock
@@ -462,21 +462,75 @@ RST                  => i_dcm_rst
 
 i_dcm_rst <= i_reset or (not i_pma_resetdone);
 
+m_bufg_fb: BUFG port map (I => i_dcm_clkfbout, O  => g_dcm_clkfbout);
+
 --########################
 --ETH_1G
 --########################
 -- This 62.5MHz clock is placed onto global clock routing and is then used
 -- for tranceiver TXUSRCLK/RXUSRCLK.
-m_bufg_62_5M: BUFG port map (I => i_dcm_clkout(1), O  => g_clk62_5M);
-
-----########################
-----ETH_2G
-----########################
---g_clk62_5M <= g_clk125M;
-
+m_bufg_gt_userclk: BUFG port map (I => i_dcm_clkout(1), O  => gt_userclk);--62.5MHz
 -- This 125MHz clock is placed onto global clock routing and is then used
 -- to clock all Ethernet core logic.
-m_bufg_125M : BUFG port map (I => i_dcm_clkout(0), O  => g_clk125M);
+m_bufg_gt_userclk2 : BUFG port map (I => i_dcm_clkout(0), O  => gt_userclk2);--125MHz
 
+
+
+--####################################################
+--AXI convertor
+--####################################################
+--FPGA <- ETH
+p_out_phy2app(0).rxd          <= i_rx_axis_tdata;
+p_out_phy2app(0).rxsof_n      <= not i_rx_axis_tvalid;
+p_out_phy2app(0).rxeof_n      <= not (i_rx_axis_tlast and i_rx_axis_tvalid);
+p_out_phy2app(0).rxsrc_rdy_n  <= not i_rx_axis_tvalid;
+p_out_phy2app(0).rxrem        <= i_rx_axis_tkeep;
+p_out_phy2app(0).rxbuf_status <= (others=>'0');
+
+i_rx_axis_tready <= not p_in_phy2app(0).rxdst_rdy_n;
+
+
+--FPGA -> ETH
+p_out_phy2app(0).txdst_rdy_n <= not i_tx_axis_tready;
+
+i_tx_axis_tdata <= p_in_phy2app(0).txd;
+i_tx_axis_tkeep <= p_in_phy2app(0).txrem;
+i_tx_axis_tvalid <= not p_in_phy2app(0).txsof_n or not p_in_phy2app(0).txsrc_rdy_n;
+i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;
+i_tx_axis_tuser <= '0';
+
+
+process(gt_userclk2)
+begin
+  if rising_edge(gt_userclk2) then
+
+    tst_rx_axis_tdata  <= i_rx_axis_tdata ; --p_out_phy2app(0).axirx_tdata ,--
+    tst_rx_axis_tkeep  <= i_rx_axis_tkeep ; --p_out_phy2app(0).axirx_tkeep ,--
+    tst_rx_axis_tvalid <= i_rx_axis_tvalid; --p_out_phy2app(0).axirx_tvalid,--
+    tst_rx_axis_tlast  <= i_rx_axis_tlast ; --p_out_phy2app(0).axirx_tlast ,--
+    tst_rx_axis_tready <= i_rx_axis_tready; --p_in_phy2app(0).axirx_tready ,--
+
+    tst_tx_axis_tdata  <= i_tx_axis_tdata ; --p_in_phy2app(0).axitx_tdata  ,--
+    tst_tx_axis_tkeep  <= i_tx_axis_tkeep ; --p_in_phy2app(0).axitx_tkeep  ,--
+    tst_tx_axis_tvalid <= i_tx_axis_tvalid; --p_in_phy2app(0).axitx_tvalid ,--
+    tst_tx_axis_tlast  <= i_tx_axis_tlast ; --p_in_phy2app(0).axitx_tlast  ,--
+    tst_tx_axis_tready <= i_tx_axis_tready; --p_out_phy2app(0).axitx_tready,--
+--    tst_tx_axis_tuser  <= i_tx_axis_tuser ; --p_in_phy2app(0).axitx_tuser  ,--
+
+    tst_out(0) <= tst_tx_axis_tready or tst_tx_axis_tlast or tst_tx_axis_tvalid
+                  or tst_rx_axis_tready or tst_rx_axis_tlast or tst_rx_axis_tvalid;
+--                  or tst_tx_axis_tuser;
+    tst_out(2) <= OR_reduce(tst_tx_axis_tdata) or OR_reduce(tst_tx_axis_tkeep);
+
+    tst_out(3) <= OR_reduce(tst_rx_axis_tdata) or OR_reduce(tst_rx_axis_tkeep);
+
+    tst_sfp_txdis <= i_pma_sfp_tx_disable;--'1';
+    tst_sfp_sd <= i_pma_sfp_signal_detect;
+    tst_sfp_tx_fault <= i_pma_sfp_tx_fault;
+    tst_pma_core_status <= i_pma_core_status;
+    tst_pma_resetdone <= i_pma_resetdone;
+
+  end if;
+end process;
 
 end top_level;

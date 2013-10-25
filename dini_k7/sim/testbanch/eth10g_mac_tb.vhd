@@ -79,6 +79,8 @@ use ieee.numeric_std.all;
 library work;
 architecture behav of eth10g_mac_tb is
 
+  signal axis_clk_out       : std_logic;
+
   signal tx_axis_tdata_int  : std_logic_vector(63 downto 0);
   signal tx_axis_tkeep_int  : std_logic_vector(7 downto 0);
   signal tx_axis_tvalid_int : std_logic;
@@ -128,7 +130,8 @@ architecture behav of eth10g_mac_tb is
     tx_axis_tready        : out std_logic;
     tx_axis_tuser         : in  std_logic;
 
-    tx_dcm_locked  : in std_logic;
+    axis_clk_out : out std_logic;
+--    tx_dcm_locked  : in std_logic;
 
     ---------------------------------------------------------------------------
     -- Interface to the host.
@@ -356,7 +359,8 @@ begin  -- behav
     tx_axis_tready        =>  tx_axis_ready,
     tx_axis_tuser         => '0',
 
-    tx_dcm_locked => '1',
+    axis_clk_out => axis_clk_out,
+--    tx_dcm_locked => '1',
 
       reset                   => reset,
       tx_axis_aresetn         => aresetn,
@@ -755,7 +759,7 @@ begin  -- behav
 
   address_swap_i : eth10g_mac_core_address_swap
     port map (
-      rx_clk            =>  gtx_clk,
+      rx_clk            =>  axis_clk_out,--gtx_clk,
       reset             =>  reset,
       rx_axis_tdata     =>  rx_axis_tdata_int,
       rx_axis_tkeep     =>  rx_axis_tkeep_int,

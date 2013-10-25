@@ -12,7 +12,7 @@ use work.vicg_common_pkg.all;
 -- Entity declaration for the example design
 -------------------------------------------------------------------------------
 
-entity eth10g_fiber_core is
+entity eth_phy is
   generic (
   G_ETH : TEthGeneric;
   G_DBG : string:="OFF";
@@ -36,10 +36,10 @@ entity eth10g_fiber_core is
       p_in_rst      : in    std_logic
    );
 
-end eth10g_fiber_core;
+end eth_phy;
 
 
-architecture TOP_LEVEL of eth10g_fiber_core is
+architecture TOP_LEVEL of eth_phy is
 
 signal i_rx_axis_tdata   : std_logic_vector(63 downto 0);
 signal i_rx_axis_tkeep   : std_logic_vector(7 downto 0);
@@ -131,28 +131,73 @@ signal status_vector : std_logic_vector(1 downto 0);
 
 component eth10g_pma
 generic (
-  EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
+QPLL_FBDIV_TOP : integer := 66;
+EXAMPLE_SIM_GTRESET_SPEEDUP : string := "FALSE"
 );
 port (
-refclk_p         : in  std_logic;
-refclk_n         : in  std_logic;
-core_clk156_out  : out std_logic;
-reset            : in  std_logic;
-xgmii_txd        : in  std_logic_vector(63 downto 0);
-xgmii_txc        : in  std_logic_vector(7 downto 0);
-xgmii_rxd        : out std_logic_vector(63 downto 0);
-xgmii_rxc        : out std_logic_vector(7 downto 0);
-xgmii_rx_clk     : out std_logic;
-txp              : out std_logic;
-txn              : out std_logic;
-rxp              : in  std_logic;
-rxn              : in  std_logic;
---mmcm_locked      : out std_logic;
-core_status      : out std_logic_vector(7 downto 0);
-resetdone        : out std_logic;
-signal_detect    : in  std_logic;
-tx_fault         : in  std_logic;
-tx_disable       : out std_logic
+  refclk_p         : in  std_logic;
+  refclk_n         : in  std_logic;
+  core_clk156_out  : out std_logic;
+  reset            : in  std_logic;
+  xgmii_txd        : in  std_logic_vector(63 downto 0);
+  xgmii_txc        : in  std_logic_vector(7 downto 0);
+  xgmii_rxd        : out std_logic_vector(63 downto 0);
+  xgmii_rxc        : out std_logic_vector(7 downto 0);
+  xgmii_rx_clk     : out std_logic;
+  txp              : out std_logic;
+  txn              : out std_logic;
+  rxp              : in  std_logic;
+  rxn              : in  std_logic;
+  pma_loopback     : in std_logic;
+  pma_reset        : in std_logic;
+  global_tx_disable: in std_logic;
+  pma_vs_loopback  : in std_logic_vector(3 downto 0);
+  pcs_loopback     : in std_logic;
+  pcs_reset        : in std_logic;
+  test_patt_a      : in std_logic_vector(57 downto 0);
+  test_patt_b      : in std_logic_vector(57 downto 0);
+  data_patt_sel    : in std_logic;
+  test_patt_sel    : in std_logic;
+  rx_test_patt_en  : in std_logic;
+  tx_test_patt_en  : in std_logic;
+  prbs31_tx_en     : in std_logic;
+  prbs31_rx_en     : in std_logic;
+  pcs_vs_loopback  : in std_logic_vector(1 downto 0);
+  set_pma_link_status      : in std_logic;
+  set_pcs_link_status      : in std_logic;
+  clear_pcs_status2        : in std_logic;
+  clear_test_patt_err_count: in std_logic;
+
+  pma_link_status         : out std_logic;
+  rx_sig_det              : out std_logic;
+  pcs_rx_link_status      : out std_logic;
+  pcs_rx_locked           : out std_logic;
+  pcs_hiber               : out std_logic;
+  teng_pcs_rx_link_status : out std_logic;
+  pcs_err_block_count     : out std_logic_vector(7 downto 0);
+  pcs_ber_count           : out std_logic_vector(5 downto 0);
+  pcs_rx_hiber_lh         : out std_logic;
+  pcs_rx_locked_ll        : out std_logic;
+  pcs_test_patt_err_count : out std_logic_vector(15 downto 0);
+  status_vector_preserve  : out std_logic;
+  core_status      : out std_logic_vector(7 downto 0);
+  resetdone        : out std_logic;
+  signal_detect    : in  std_logic;
+  tx_fault         : in  std_logic;
+  tx_disable       : out std_logic;
+
+  configuration_vector_preserve : in std_logic;
+  is_eval          : out std_logic;
+  an_enable        : in  std_logic;
+  training_enable  : in  std_logic;
+  training_addr    : in  std_logic_vector(20 downto 0);
+  training_rnw     : in  std_logic;
+  training_wrdata  : in  std_logic_vector(15 downto 0);
+  training_ipif_cs : in  std_logic;
+  training_drp_cs  : in  std_logic;
+  training_rddata  : out std_logic_vector(15 downto 0);
+  training_rdack   : out std_logic;
+  training_wrack   : out std_logic
 );
 end component;
 
@@ -178,7 +223,7 @@ signal tst_tx_axis_tlast   : std_logic;
 signal tst_tx_axis_tready  : std_logic;
 signal tst_tx_axis_tuser   : std_logic;
 
-signal tst_out             : std_logic_vector(3 downto 0);
+signal tst_out             : std_logic_vector(3 downto 0) := (others => '0');
 signal tst_sfp_txdis       : std_logic;
 signal tst_sfp_sd          : std_logic;
 signal tst_sfp_tx_fault    : std_logic;
@@ -193,22 +238,23 @@ begin
 p_out_tst(7 downto 0) <= i_pma_core_status;
 --p_out_tst(8) <= i_pma_resetdone;
 --p_out_tst(9) <= i_pma_core_clk156_out;
-p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) or tst_rx_idle or tst_rx_err or tst_rx
+p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) --or tst_rx_idle or tst_rx_err or tst_rx
                     or tst_sfp_tx_fault or tst_sfp_sd or tst_sfp_txdis;
 p_out_dbg(0).d(1) <= tst_out(0);
 p_out_dbg(0).d(2) <= tst_out(1);
 p_out_dbg(0).d(3) <= tst_out(2);
+p_out_dbg(0).d(4) <= tst_out(3);
 
 p_out_phy.link <= i_pma_sfp_signal_detect;
 p_out_phy.rdy <= i_pma_resetdone;
-p_out_phy.clk <= i_pma_core_clk156_out;
+p_out_phy.clk <= axis_clk_out;--i_pma_core_clk156_out;
 p_out_phy.rst <= p_in_rst;
 
 p_out_phy.pin.fiber.clk_oe_n <= '0';-- Oscillator Output Enable
 p_out_phy.pin.fiber.clk_sel <= "11";--00/01/10/11 - 100MHz/125Mhz/150Mhz/156.25Mhz
 p_out_phy.pin.fiber.sfp_rs <= (others => '1');
 
-p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'1';
+p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'0';
 i_pma_sfp_signal_detect <= not p_in_phy.pin.fiber.sfp_sd;
 i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
@@ -302,29 +348,75 @@ xgmii_rxc               => xgmii_rxc             --: in  std_logic_vector(7 down
 
 m_pma : eth10g_pma
 generic map(
+QPLL_FBDIV_TOP => 66,
 EXAMPLE_SIM_GTRESET_SPEEDUP => selstring ("TRUE", "FALSE", strcmp(G_SIM, "ON"))
 )
 port map (
-reset           => reset,
+reset            => reset,
 --mmcm_locked     => i_pma_clk156_mmcm_locked,
-core_clk156_out => i_pma_core_clk156_out,
-xgmii_txd       => xgmii_txd,
-xgmii_txc       => xgmii_txc,
-xgmii_rx_clk    => xgmii_rx_clk,
-xgmii_rxd       => xgmii_rxd,
-xgmii_rxc       => xgmii_rxc,
-refclk_p        => p_in_phy.pin.fiber.clk_p,
-refclk_n        => p_in_phy.pin.fiber.clk_n,
+core_clk156_out  => i_pma_core_clk156_out,
+xgmii_txd        => xgmii_txd,
+xgmii_txc        => xgmii_txc,
+xgmii_rx_clk     => xgmii_rx_clk,
+xgmii_rxd        => xgmii_rxd,
+xgmii_rxc        => xgmii_rxc,
+refclk_p         => p_in_phy.pin.fiber.clk_p,
+refclk_n         => p_in_phy.pin.fiber.clk_n,
+txp              => p_out_phy.pin.fiber.txp(0),
+txn              => p_out_phy.pin.fiber.txn(0),
+rxp              => p_in_phy.pin.fiber.rxp(0),
+rxn              => p_in_phy.pin.fiber.rxn(0),
+resetdone        => i_pma_resetdone,
+signal_detect    => i_pma_sfp_signal_detect,
+tx_fault         => i_pma_sfp_tx_fault,
+tx_disable       => i_pma_sfp_tx_disable,
+core_status      => i_pma_core_status,
 
-txp             => p_out_phy.pin.fiber.txp(0),
-txn             => p_out_phy.pin.fiber.txn(0),
-rxp             => p_in_phy.pin.fiber.rxp(0),
-rxn             => p_in_phy.pin.fiber.rxn(0),
-resetdone       => i_pma_resetdone,
-signal_detect   => i_pma_sfp_signal_detect,
-tx_fault        => i_pma_sfp_tx_fault,
-tx_disable      => i_pma_sfp_tx_disable,
-core_status     => i_pma_core_status
+pma_loopback      => '0',          --: in std_logic;
+pma_reset         => '0',          --: in std_logic;
+global_tx_disable => '0',          --: in std_logic;
+pma_vs_loopback   => (others=>'0'),--: in std_logic_vector(3 downto 0);
+pcs_loopback      => '0',          --: in std_logic;
+pcs_reset         => '0',          --: in std_logic;
+test_patt_a       => (others=>'0'),--: in std_logic_vector(57 downto 0);
+test_patt_b       => (others=>'0'),--: in std_logic_vector(57 downto 0);
+data_patt_sel     => '0',          --: in std_logic;
+test_patt_sel     => '0',          --: in std_logic;
+rx_test_patt_en   => '0',          --: in std_logic;
+tx_test_patt_en   => '0',          --: in std_logic;
+prbs31_tx_en      => '0',          --: in std_logic;
+prbs31_rx_en      => '0',          --: in std_logic;
+pcs_vs_loopback   => (others=>'0'),--: in std_logic_vector(1 downto 0);
+set_pma_link_status       => '0',  --: in std_logic;
+set_pcs_link_status       => '0',  --: in std_logic;
+clear_pcs_status2         => '0',  --: in std_logic;
+clear_test_patt_err_count => '0',  --: in std_logic;
+
+pma_link_status         => open,   --: out std_logic;
+rx_sig_det              => open,   --: out std_logic;
+pcs_rx_link_status      => open,   --: out std_logic;
+pcs_rx_locked           => open,   --: out std_logic;
+pcs_hiber               => open,   --: out std_logic;
+teng_pcs_rx_link_status => open,   --: out std_logic;
+pcs_err_block_count     => open,   --: out std_logic_vector(7 downto 0);
+pcs_ber_count           => open,   --: out std_logic_vector(5 downto 0);
+pcs_rx_hiber_lh         => open,   --: out std_logic;
+pcs_rx_locked_ll        => open,   --: out std_logic;
+pcs_test_patt_err_count => open,   --: out std_logic_vector(15 downto 0);
+status_vector_preserve  => open,   --: out std_logic;
+
+configuration_vector_preserve => '0',--: in std_logic;
+is_eval          => open,          --: out std_logic;
+an_enable        => '0',           --: in  std_logic;
+training_enable  => '0',           --: in  std_logic;
+training_addr    => (others=>'0'), --: in  std_logic_vector(20 downto 0);
+training_rnw     => '0',           --: in  std_logic;
+training_wrdata  => (others=>'0'), --: in  std_logic_vector(15 downto 0);
+training_ipif_cs => '0',           --: in  std_logic;
+training_drp_cs  => '0',           --: in  std_logic;
+training_rddata  => open,          --: out std_logic_vector(15 downto 0);
+training_rdack   => open,          --: out std_logic;
+training_wrack   => open           --: out std_logic
 );
 
 
@@ -352,9 +444,9 @@ i_tx_axis_tlast <= not p_in_phy2app(0).txeof_n;
 i_tx_axis_tuser <= '0';
 
 
-process(i_pma_core_clk156_out)
+process(axis_clk_out)
 begin
-  if rising_edge(i_pma_core_clk156_out) then
+  if rising_edge(axis_clk_out) then
 
     tst_rx_axis_tdata  <= i_rx_axis_tdata ; --p_out_phy2app(0).axirx_tdata ,--
     tst_rx_axis_tkeep  <= i_rx_axis_tkeep ; --p_out_phy2app(0).axirx_tkeep ,--
@@ -372,9 +464,9 @@ begin
     tst_out(0) <= tst_tx_axis_tready or tst_tx_axis_tlast or tst_tx_axis_tvalid
                   or tst_rx_axis_tready or tst_rx_axis_tlast or tst_rx_axis_tvalid;
 --                  or tst_tx_axis_tuser;
+    tst_out(2) <= OR_reduce(tst_tx_axis_tdata) or OR_reduce(tst_tx_axis_tkeep);
 
-    tst_out(1) <= OR_reduce(tst_tx_axis_tdata) or OR_reduce(tst_tx_axis_tkeep);
-    tst_out(2) <= OR_reduce(tst_rx_axis_tdata) or OR_reduce(tst_rx_axis_tkeep);
+    tst_out(3) <= OR_reduce(tst_rx_axis_tdata) or OR_reduce(tst_rx_axis_tkeep);
 
     tst_sfp_txdis <= i_pma_sfp_tx_disable;--'1';
     tst_sfp_sd <= i_pma_sfp_signal_detect;
@@ -383,19 +475,19 @@ begin
     tst_pma_resetdone <= i_pma_resetdone;
 
 
-    if xgmii_rxd(63 downto 0) = X"0707070707070707" then
-    tst_rx_idle <= '1';
-    else
-    tst_rx_idle <= '0';
-    end if;
-
-    if xgmii_rxd(63 downto 0) = X"FEFEFEFEFEFEFEFE" then
-    tst_rx_err <= '1';
-    else
-    tst_rx_err <= '0';
-    end if;
-
-    tst_rx <= tst_rx_idle or tst_rx_err;
+--    if xgmii_rxd(63 downto 0) = X"0707070707070707" then
+--    tst_rx_idle <= '1';
+--    else
+--    tst_rx_idle <= '0';
+--    end if;
+--
+--    if xgmii_rxd(63 downto 0) = X"FEFEFEFEFEFEFEFE" then
+--    tst_rx_err <= '1';
+--    else
+--    tst_rx_err <= '0';
+--    end if;
+--
+--    tst_rx <= tst_rx_idle or tst_rx_err;
 
   end if;
 end process;

@@ -651,44 +651,55 @@ gmii_tx_en_delay <= gmii_tx_en;
 --   );
 gmii_tx_er_delay <= gmii_tx_er;
 
-   -- Drive input GMII signals through IOB input flip-flops (inferred).
-   process (gmii_tx_clk_bufio)
-   begin
-      if gmii_tx_clk_bufio'event and gmii_tx_clk_bufio = '1' then
-         gmii_txd_iff    <= gmii_txd_delay;
-         gmii_tx_en_iff  <= gmii_tx_en_delay;
-         gmii_tx_er_iff  <= gmii_tx_er_delay;
+--   -- Drive input GMII signals through IOB input flip-flops (inferred).
+--   process (gmii_tx_clk_bufio)
+--   begin
+--      if gmii_tx_clk_bufio'event and gmii_tx_clk_bufio = '1' then
+--         gmii_txd_iff    <= gmii_txd_delay;
+--         gmii_tx_en_iff  <= gmii_tx_en_delay;
+--         gmii_tx_er_iff  <= gmii_tx_er_delay;
+--
+--      end if;
+--   end process;
+gmii_txd_iff    <= gmii_txd_delay;
+gmii_tx_en_iff  <= gmii_tx_en_delay;
+gmii_tx_er_iff  <= gmii_tx_er_delay;
 
-      end if;
-   end process;
+--   -- Reclock onto regional clock routing.
+--   process (gmii_tx_clk_bufr)
+--   begin
+--      if gmii_tx_clk_bufr'event and gmii_tx_clk_bufr = '1' then
+--         gmii_txd_reg    <= gmii_txd_iff;
+--         gmii_tx_en_reg  <= gmii_tx_en_iff;
+--         gmii_tx_er_reg  <= gmii_tx_er_iff;
+--
+--      end if;
+--   end process;
+--
+--
+--   -- Component Instantiation for the Transmitter Elastic Buffer
+--   tx_elastic_buffer_inst : ethg_pma_core_tx_elastic_buffer
+--   port map (
+--      reset            => reset,
+--      gmii_tx_clk_wr   => gmii_tx_clk_bufr,
+--      gmii_txd_wr      => gmii_txd_reg,
+--      gmii_tx_en_wr    => gmii_tx_en_reg,
+--      gmii_tx_er_wr    => gmii_tx_er_reg,
+--      gmii_tx_clk_rd   => userclk2,
+--      gmii_txd_rd      => gmii_txd_fifo,
+--      gmii_tx_en_rd    => gmii_tx_en_fifo,
+--      gmii_tx_er_rd    => gmii_tx_er_fifo
+--   );
 
+process (gmii_tx_clk_bufr)
+begin
+  if gmii_tx_clk_bufr'event and gmii_tx_clk_bufr = '1' then
+     gmii_txd_fifo    <= gmii_txd_iff;
+     gmii_tx_en_fifo  <= gmii_tx_en_iff;
+     gmii_tx_er_fifo  <= gmii_tx_er_iff;
 
-   -- Reclock onto regional clock routing.
-   process (gmii_tx_clk_bufr)
-   begin
-      if gmii_tx_clk_bufr'event and gmii_tx_clk_bufr = '1' then
-         gmii_txd_reg    <= gmii_txd_iff;
-         gmii_tx_en_reg  <= gmii_tx_en_iff;
-         gmii_tx_er_reg  <= gmii_tx_er_iff;
-
-      end if;
-   end process;
-
-
-   -- Component Instantiation for the Transmitter Elastic Buffer
-   tx_elastic_buffer_inst : ethg_pma_core_tx_elastic_buffer
-   port map (
-      reset            => reset,
-      gmii_tx_clk_wr   => gmii_tx_clk_bufr,
-      gmii_txd_wr      => gmii_txd_reg,
-      gmii_tx_en_wr    => gmii_tx_en_reg,
-      gmii_tx_er_wr    => gmii_tx_er_reg,
-      gmii_tx_clk_rd   => userclk2,
-      gmii_txd_rd      => gmii_txd_fifo,
-      gmii_tx_en_rd    => gmii_tx_en_fifo,
-      gmii_tx_er_rd    => gmii_tx_er_fifo
-   );
-
+  end if;
+end process;
 
 
    -----------------------------------------------------------------------------

@@ -93,7 +93,6 @@ architecture behav of eth10g_pma_tb is
       EXAMPLE_SIM_GTRESET_SPEEDUP : string    := "FALSE"
       );
     port (
---      mmcm_locked      : out std_logic;
       refclk_p         : in  std_logic;
       refclk_n         : in  std_logic;
       core_clk156_out  : out std_logic;
@@ -107,38 +106,52 @@ architecture behav of eth10g_pma_tb is
       txn              : out std_logic;
       rxp              : in  std_logic;
       rxn              : in  std_logic;
---      pma_loopback     : in std_logic;
---      pma_reset        : in std_logic;
---      global_tx_disable: in std_logic;
---      pma_vs_loopback  : in std_logic_vector(3 downto 0);
---      pcs_loopback     : in std_logic;
---      pcs_reset        : in std_logic;
---      test_patt_a      : in std_logic_vector(57 downto 0);
---      test_patt_b      : in std_logic_vector(57 downto 0);
---      data_patt_sel    : in std_logic;
---      test_patt_sel    : in std_logic;
---      rx_test_patt_en  : in std_logic;
---      tx_test_patt_en  : in std_logic;
---      prbs31_tx_en     : in std_logic;
---      prbs31_rx_en     : in std_logic;
---      pcs_vs_loopback  : in std_logic_vector(1 downto 0);
---      set_pma_link_status      : in std_logic;
---      set_pcs_link_status      : in std_logic;
---      clear_pcs_status2        : in std_logic;
---      clear_test_patt_err_count: in std_logic;
+      pma_loopback     : in std_logic;
+      pma_reset        : in std_logic;
+      global_tx_disable: in std_logic;
+      pma_vs_loopback  : in std_logic_vector(3 downto 0);
+      pcs_loopback     : in std_logic;
+      pcs_reset        : in std_logic;
+      test_patt_a      : in std_logic_vector(57 downto 0);
+      test_patt_b      : in std_logic_vector(57 downto 0);
+      data_patt_sel    : in std_logic;
+      test_patt_sel    : in std_logic;
+      rx_test_patt_en  : in std_logic;
+      tx_test_patt_en  : in std_logic;
+      prbs31_tx_en     : in std_logic;
+      prbs31_rx_en     : in std_logic;
+      pcs_vs_loopback  : in std_logic_vector(1 downto 0);
+      set_pma_link_status      : in std_logic;
+      set_pcs_link_status      : in std_logic;
+      clear_pcs_status2        : in std_logic;
+      clear_test_patt_err_count: in std_logic;
 
---      pma_link_status         : out std_logic;
---      rx_sig_det              : out std_logic;
---      pcs_rx_link_status      : out std_logic;
---      pcs_rx_locked           : out std_logic;
---      pcs_hiber               : out std_logic;
---      teng_pcs_rx_link_status : out std_logic;
---      pcs_err_block_count     : out std_logic_vector(7 downto 0);
---      pcs_ber_count           : out std_logic_vector(5 downto 0);
---      pcs_rx_hiber_lh         : out std_logic;
---      pcs_rx_locked_ll        : out std_logic;
---      pcs_test_patt_err_count : out std_logic_vector(15 downto 0);
+      configuration_vector_preserve : in std_logic;
+
+      pma_link_status         : out std_logic;
+      rx_sig_det              : out std_logic;
+      pcs_rx_link_status      : out std_logic;
+      pcs_rx_locked           : out std_logic;
+      pcs_hiber               : out std_logic;
+      teng_pcs_rx_link_status : out std_logic;
+      pcs_err_block_count     : out std_logic_vector(7 downto 0);
+      pcs_ber_count           : out std_logic_vector(5 downto 0);
+      pcs_rx_hiber_lh         : out std_logic;
+      pcs_rx_locked_ll        : out std_logic;
+      pcs_test_patt_err_count : out std_logic_vector(15 downto 0);
+      status_vector_preserve  : out std_logic;
       core_status      : out std_logic_vector(7 downto 0);
+      an_enable        : in  std_logic;
+      training_enable  : in  std_logic;
+      training_addr    : in  std_logic_vector(20 downto 0);
+      training_rnw     : in  std_logic;
+      training_wrdata  : in  std_logic_vector(15 downto 0);
+      training_ipif_cs : in  std_logic;
+      training_drp_cs  : in  std_logic;
+      training_rddata  : out std_logic_vector(15 downto 0);
+      training_rdack   : out std_logic;
+      training_wrack   : out std_logic;
+      is_eval          : out std_logic;
       resetdone        : out std_logic;
       signal_detect    : in  std_logic;
       tx_fault         : in  std_logic;
@@ -405,7 +418,6 @@ begin  -- behav
       EXAMPLE_SIM_GTRESET_SPEEDUP => EXAMPLE_SIM_GTRESET_SPEEDUP
       )
     port map (
---      mmcm_locked => open,
       reset           => reset,
       core_clk156_out => core_clk156_out,
       xgmii_txd       => xgmii_txd,
@@ -422,41 +434,54 @@ begin  -- behav
       txn             => txn,
       rxp             => rxp,
       rxn             => rxn,
+      is_eval         => open,
       resetdone       => resetdone,
       signal_detect   => signal_detect,
       tx_fault        => tx_fault,
       tx_disable      => tx_disable,
-      core_status     => core_status
---      pma_loopback              => '0',
---      pma_reset                 => '0',
---      global_tx_disable         => '0',
---      pma_vs_loopback           => "0000",
---      pcs_loopback              => '0',
---      pcs_reset                 => '0',
---      test_patt_a               => (others => '0'),
---      test_patt_b               => (others => '0'),
---      data_patt_sel             => '0',
---      test_patt_sel             => '0',
---      rx_test_patt_en           => '0',
---      tx_test_patt_en           => '0',
---      prbs31_tx_en              => '0',
---      prbs31_rx_en              => '0',
---      pcs_vs_loopback           => "00",
---      set_pma_link_status       => '0',
---      set_pcs_link_status       => '0',
---      clear_pcs_status2         => '0',
---      clear_test_patt_err_count => '0',
---      pma_link_status           => open,
---      rx_sig_det                => open,
---      pcs_rx_link_status        => open,
---      pcs_rx_locked             => open,
---      pcs_hiber                 => open,
---      teng_pcs_rx_link_status   => open,
---      pcs_err_block_count       => open,
---      pcs_ber_count             => open,
---      pcs_rx_hiber_lh           => open,
---      pcs_rx_locked_ll          => open,
---      pcs_test_patt_err_count   => open
+      core_status     => core_status,
+      an_enable       => '0', -- disable AN to allow simulation to run faster
+      training_enable => '0',
+      training_addr   => "000000000000000000000",
+      training_rnw    => '0',
+      training_wrdata => x"0000",
+      training_ipif_cs => '0',
+      training_drp_cs => '0',
+      training_rddata => open,
+      training_rdack  => open,
+      training_wrack  => open,
+      pma_loopback              => '0',
+      pma_reset                 => '0',
+      global_tx_disable         => '0',
+      pma_vs_loopback           => "0000",
+      pcs_loopback              => '0',
+      pcs_reset                 => '0',
+      test_patt_a               => (others => '0'),
+      test_patt_b               => (others => '0'),
+      data_patt_sel             => '0',
+      test_patt_sel             => '0',
+      rx_test_patt_en           => '0',
+      tx_test_patt_en           => '0',
+      prbs31_tx_en              => '0',
+      prbs31_rx_en              => '0',
+      pcs_vs_loopback           => "00",
+      set_pma_link_status       => '0',
+      set_pcs_link_status       => '0',
+      clear_pcs_status2         => '0',
+      clear_test_patt_err_count => '0',
+      configuration_vector_preserve => '0',
+      pma_link_status           => open,
+      rx_sig_det                => open,
+      pcs_rx_link_status        => open,
+      pcs_rx_locked             => open,
+      pcs_hiber                 => open,
+      teng_pcs_rx_link_status   => open,
+      pcs_err_block_count       => open,
+      pcs_ber_count             => open,
+      pcs_rx_hiber_lh           => open,
+      pcs_rx_locked_ll          => open,
+      pcs_test_patt_err_count   => open,
+      status_vector_preserve    => open
     );
 
 -------------------------------------------------------------------------------
