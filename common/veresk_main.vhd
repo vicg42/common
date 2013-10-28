@@ -541,7 +541,7 @@ p_out_vbufi_pfull         => i_vctrl_vbufi_pfull,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst                  => (others=>'0'),--i_swt_tst_in,
+p_in_tst                  => i_swt_tst_in,
 p_out_tst                 => i_swt_tst_out,
 
 -------------------------------
@@ -549,6 +549,9 @@ p_out_tst                 => i_swt_tst_out,
 -------------------------------
 p_in_rst => i_swt_rst
 );
+
+i_swt_tst_in(0) <= g_usrclk(4);
+i_swt_tst_in(31 downto 1) <= (others=>'0');
 
 
 --***********************************************************
@@ -699,7 +702,8 @@ p_in_rst => i_vctrl_rst
 );
 
 i_vctrl_tst_in(0) <= i_swt_tst_out(0);
-i_vctrl_tst_in(31 downto 1) <= (others=>'0');
+i_vctrl_tst_in(1) <= g_usrclk(4);
+i_vctrl_tst_in(31 downto 2) <= (others=>'0');
 
 
 --***********************************************************

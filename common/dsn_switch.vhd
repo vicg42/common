@@ -22,6 +22,7 @@ library work;
 use work.vicg_common_pkg.all;
 use work.prj_def.all;
 use work.eth_pkg.all;
+use work.prj_cfg.all;
 
 entity dsn_switch is
 generic(
@@ -229,6 +230,7 @@ signal i_vbufi_fltr_dout             : std_logic_vector(G_ETH_DWIDTH - 1 downto 
 signal i_vbufi_fltr_dout_swap        : std_logic_vector(G_ETH_DWIDTH - 1 downto 0);
 signal i_vbufi_fltr_den              : std_logic;
 signal i_vbufi_pfull                 : std_logic;
+signal i_vbufi_rdclk                 : std_logic;
 
 signal hclk_tmr_en,i_tmr_en          : std_logic;
 signal hclk_eth_tx_start             : std_logic;
@@ -621,7 +623,7 @@ wr_clk      => p_in_eth_clk,
 
 dout        => p_out_vbufi_do,
 rd_en       => p_in_vbufi_rd,
-rd_clk      => p_in_vbufi_rdclk,
+rd_clk      => i_vbufi_rdclk,
 
 empty       => p_out_vbufi_empty,
 full        => p_out_vbufi_full,
@@ -632,6 +634,13 @@ rst         => b_rst_vctrl_bufs
 
 p_out_vbufi_pfull <= i_vbufi_pfull;
 
+gen_clk_sel0 : if strcmp(C_PCFG_BOARD,"DINIK7") generate
+i_vbufi_rdclk <= p_in_tst(0);
+end generate gen_clk_sel0;
+
+gen_clk_sel1 : if (not strcmp(C_PCFG_BOARD,"DINIK7")) generate
+i_vbufi_rdclk <= p_in_vbufi_rdclk;
+end generate gen_clk_sel1;
 
 --END MAIN
 end behavioral;

@@ -26,6 +26,7 @@ use work.vicg_common_pkg.all;
 use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
+use work.prj_cfg.all;
 
 entity video_writer is
 generic(
@@ -91,6 +92,8 @@ end video_writer;
 
 architecture behavioral of video_writer is
 
+constant CI_BOARD_DINIK7 : std_logic := strcmp2(C_PCFG_BOARD,"DINIK7");
+
 -- Small delay for simulation purposes.
 constant dly : time := 1 ps;
 
@@ -99,6 +102,7 @@ S_IDLE,
 S_PKT_HEADER_READ,
 S_MEM_START,
 S_MEM_WR,
+S_MEM_WR_DONE,
 S_PKT_SKIP,
 S_PKT_SKIP1,
 S_PKT_SKIP2
@@ -148,8 +152,51 @@ signal tst_upp_buf_full            : std_logic;
 signal tst_upp_buf_empty           : std_logic;
 signal tst_timestump_cnt           : std_logic_vector(31 downto 0);
 
+signal i_clk                       : std_logic;
+signal i_vfr_rdy_out               : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_vfr_rdy_out2              : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+signal i_vfr_rdy_tmp               : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+Type TSr0 is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(0 to 2);
+Type TSr1 is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(0 to 1);
+signal sr_vfr_rdy                  : TSr0;
+signal sr_vfr_rdy_tmp              : TSr1;
+
+signal tst_upp_data                : std_logic_vector(p_in_upp_data'range);
+signal tst_upp_data_rd             : std_logic;
+
+
 --MAIN
 begin
+
+gen_clk_sel0 : if CI_BOARD_DINIK7 = '1' generate
+i_clk <= p_in_tst(31);
+
+gen_vch : for i in 0 to C_VCTRL_VCH_COUNT - 1 generate
+process(i_clk)
+begin
+  if rising_edge(i_clk) then
+    sr_vfr_rdy(i) <= i_vfr_rdy(i) & sr_vfr_rdy(i)(0 to 1);
+    i_vfr_rdy_tmp(i) <= OR_reduce(sr_vfr_rdy(i));
+    i_vfr_rdy_out2(i) <= i_vfr_rdy_out(i);
+  end if;
+end process;
+
+process(p_in_clk)
+begin
+  if rising_edge(p_in_clk) then
+    sr_vfr_rdy_tmp(i) <= i_vfr_rdy_tmp(i) & sr_vfr_rdy_tmp(i)(0 to 0);
+    i_vfr_rdy_out(i) <= sr_vfr_rdy_tmp(i)(0) and not sr_vfr_rdy_tmp(i)(1);
+  end if;
+end process;
+
+end generate gen_vch;
+
+end generate gen_clk_sel0;
+
+gen_clk_sel1 : if CI_BOARD_DINIK7 = '0' generate
+i_clk <= p_in_clk;
+i_vfr_rdy_out <= i_vfr_rdy;
+end generate gen_clk_sel1;
 
 
 ------------------------------------
@@ -162,13 +209,13 @@ end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(3  downto 0) <= tst_fsmstate_out;
-p_out_tst(4) <= i_mem_start or tst_err_det or tst_upp_buf_empty;
+p_out_tst(4) <= i_mem_start or tst_err_det or tst_upp_buf_empty or OR_reduce(tst_upp_data) or tst_upp_data_rd;
 p_out_tst(25 downto 5) <= (others=>'0');
 p_out_tst(31 downto 26) <= "00" & i_pkt_type_err(3 downto 0);
 
-process(p_in_clk)
+process(i_clk)
 begin
-  if rising_edge(p_in_clk) then
+  if rising_edge(i_clk) then
     tst_fsmstate_out <= tst_fsmstate;
     tst_upp_buf_empty <= p_in_upp_buf_empty;
 
@@ -179,6 +226,9 @@ begin
     end if;
     tst_err_det <= OR_reduce(i_pkt_type_err) or tst_upp_buf_full;
 
+    tst_upp_data <= p_in_upp_data;
+    tst_upp_data_rd <= i_upp_data_rd;
+
   end if;
 end process;
 
@@ -187,6 +237,7 @@ tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmstate'length) when fsm_stat
                 CONV_STD_LOGIC_VECTOR(16#03#, tst_fsmstate'length) when fsm_state_cs = S_MEM_WR          else
                 CONV_STD_LOGIC_VECTOR(16#04#, tst_fsmstate'length) when fsm_state_cs = S_PKT_SKIP        else
                 CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_PKT_SKIP2       else
+                CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmstate'length) when fsm_state_cs = S_MEM_WR_DONE     else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_IDLE              else
 end generate gen_dbgcs_on;
 
@@ -194,7 +245,7 @@ end generate gen_dbgcs_on;
 ------------------------------------------------
 --Статусы
 ------------------------------------------------
-p_out_vfr_rdy <= i_vfr_rdy;--Прерывание: кадр записан в ОЗУ
+p_out_vfr_rdy <= i_vfr_rdy_out;--Прерывание: кадр записан в ОЗУ
 p_out_vrow_mrk <= i_vfr_row_mrk when p_in_tst(C_VCTRL_REG_TST0_DBG_TIMESTUMP_BIT) = '0'
                     else tst_timestump_cnt;--Маркер строки видеокадра
 
@@ -213,11 +264,11 @@ i_upp_pkt_skip_rd_out <= (i_vpkt_skip_rd  and not p_in_upp_buf_empty);
 ------------------------------------------------
 --Автомат записи видео информации
 ------------------------------------------------
-process(p_in_clk)
+process(i_clk)
 Type TTimestump_test is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(31 downto 0);
 variable timestump_cnt : TTimestump_test;
 begin
-if rising_edge(p_in_clk) then
+if rising_edge(i_clk) then
   if p_in_rst = '1' then
 
     fsm_state_cs <= S_IDLE;
@@ -453,9 +504,20 @@ if rising_edge(p_in_clk) then
             end if;
           end if;
 
-          fsm_state_cs <= S_IDLE;
+          fsm_state_cs <= S_MEM_WR_DONE;
         end if;
 
+      when S_MEM_WR_DONE =>
+
+        i_vfr_rdy <= (others=>'0');
+
+        if CI_BOARD_DINIK7 = '1' and (i_vfr_row = (i_vfr_row_count - 1)) then
+          if i_vfr_rdy_out2 /= (i_vfr_rdy_out2'range =>'0') then
+            fsm_state_cs <= S_IDLE;
+          end if;
+        else
+          fsm_state_cs <= S_IDLE;
+        end if;
 
       --------------------------------------
       --Пропуск текущего пакета
@@ -537,7 +599,7 @@ p_in_mem             => p_in_mem,
 p_in_tst             => p_in_tst,
 p_out_tst            => open,
 
-p_in_clk             => p_in_clk,
+p_in_clk             => i_clk,
 p_in_rst             => p_in_rst
 );
 

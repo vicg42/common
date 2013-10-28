@@ -618,7 +618,8 @@ end if;
 end process;
 
 
-tst_ctrl <= EXT(h_reg_tst0, tst_ctrl'length);
+tst_ctrl(30 downto 0) <= EXT(h_reg_tst0, 31);
+tst_ctrl(31) <= p_in_tst(1);
 --tst_dbg_pictire<=tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 --tst_dbg_rd_hold<=tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
 
