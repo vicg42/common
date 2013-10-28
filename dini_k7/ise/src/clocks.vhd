@@ -75,7 +75,7 @@ end process;
 -- CLKFBOUT = (400 MHz/4) * 10.000      = 1000 MHz
 -- CLKOUT0  = (400 MHz/4) * 10.000/2.5  = 400 MHz
 -- CLKOUT1  = (400 MHz/4) * 10.000/5    = 200 MHz
--- CLKOUT2  = (400 MHz/4) * 10.000/8    = 125 MHz
+-- CLKOUT2  = (400 MHz/4) * 10.000/3    = 333 MHz
 -- CLKOUT3  = (400 MHz/4) * 10.000/10   = 100 MHz
 
 mmcm_ref_clk_i : MMCME2_BASE
@@ -86,7 +86,7 @@ DIVCLK_DIVIDE      => 4,           -- integer := 1 (1 to 128)
 CLKFBOUT_MULT_F    => 10.000,      -- real := 1.0  (5.0 to 64.0)
 CLKOUT0_DIVIDE_F   => 2.500,       -- real := 1.0  (1.0 to 128.0)
 CLKOUT1_DIVIDE     => 5,           -- integer := 1
-CLKOUT2_DIVIDE     => 8,           -- integer := 1
+CLKOUT2_DIVIDE     => 3,           -- integer := 1
 CLKOUT3_DIVIDE     => 10,          -- integer := 1
 CLKOUT4_DIVIDE     => 25,          -- integer := 1
 CLKOUT5_DIVIDE     => 1,           -- integer := 1
@@ -139,6 +139,7 @@ bufg_clk0: BUFG port map(I => i_clk_out(1), O => p_out_gclk(0)); --200MHz
                                                  p_out_gclk(1) <= g_pll_clkin; --400MHz
 bufg_clk2: BUFG port map(I => i_clk_out(3), O => p_out_gclk(2)); --100MHz
                                                  p_out_gclk(3)<=i_clk_out(4);
+bufg_clk4: BUFG port map(I => i_clk_out(2), O => p_out_gclk(4)); --333MHz
 
 
 m_buf_pciexp : IBUFDS_GTE2 port map (

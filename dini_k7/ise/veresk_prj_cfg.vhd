@@ -50,7 +50,7 @@ constant C_PCFG_VCTRL_VCH_COUNT        : integer:=6; --max 6
 
 --cfg ETH
 constant C_PCFG_ETH_USE                : string:="ON";
-constant C_PCFG_ETH_DBG                : string:="ON";
+constant C_PCFG_ETH_DBG                : string:="OFF";
 constant C_PCFG_ETH_COUNT              : integer:=1;--Кол-во каналов
 constant C_PCFG_ETH_PHY_SEL            : integer:=0;--0/3 - FIBER/COPPER_GMII
 constant C_PCFG_ETH_USR_DWIDTH         : integer:=C_PCGF_PCIE_DWIDTH;
