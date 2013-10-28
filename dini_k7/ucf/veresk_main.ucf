@@ -66,15 +66,38 @@ NET "pin_out_refclk_scl<0>"  LOC = "B9"  | IOSTANDARD = LVCMOS25;
 NET "g_usrclk<0>" TNM_NET = TNM_PLL_REF_CLK;
 NET "g_usrclk<1>" TNM_NET = TNM_PLL_MEM_CLK;
 NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
+NET "g_host_clk"  TNM_NET = TNM_HOST_CLK;
+NET "i_ethphy_out_clk"  TNM_NET = TNM_ETH_CLK;
+NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0;
+NET "g_usrclk<4>" TNM_NET = TNM_MIG_CLK1;
+#NET "m_prom/i_clk_en" TNM_NET = TNM_PROM_EN;
+
 TIMESPEC TS_PLL_MEM_CLK = PERIOD TNM_PLL_MEM_CLK  2.5  ns  HIGH 50%; # 400MHz clock to DDR3 memory infrastructure
 TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns  HIGH 50%; # 100MHz
 TIMESPEC TS_PLL_REF_CLK = PERIOD TNM_PLL_REF_CLK  5.0  ns  HIGH 50%; # 200MHz
+TIMESPEC TS_HOST_CLK    = PERIOD TNM_HOST_CLK     4.0  ns  HIGH 50%; # 250MHz
+TIMESPEC TS_ETH_CLK     = PERIOD TNM_ETH_CLK      6.4  ns  HIGH 50%; # 156.25MHz
+TIMESPEC TS_MIG_CLK0    = PERIOD TNM_MIG_CLK0     6.0  ns  HIGH 50%; # 166MHz #3.33  ns  HIGH 50%; # 300MHz
+TIMESPEC TS_MIG_CLK1    = PERIOD TNM_MIG_CLK1     3.0  ns  HIGH 50%; # 333MHz # 2.5  ns  HIGH 50%; #
 
-# Create TIMEGRP for mig_ddr3_if_clk0
-NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0; ###NET "*mig_ddr3_if_clk0" TNM_NET = TNM_MIG_CLK0;
-##TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 2.5  ns HIGH 50%; # 400MHz
-TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 3.33  ns HIGH 50%; # 300MHz
+TIMEGRP "MEM_grp" = TNM_PLL_MEM_CLK;
+TIMEGRP "TMR_grp" = TNM_PLL_TMR_CLK;
+TIMEGRP "HOST_grp" = TNM_HOST_CLK;
+TIMEGRP "ETH_grp" = TNM_ETH_CLK;
+TIMEGRP "MEM2_grp" = TNM_MIG_CLK1;
 
+TIMESPEC "TS_host2eth" = FROM "HOST_grp" TO "ETH_grp" TS_ETH_CLK / 2 DATAPATHONLY;
+TIMESPEC "TS_eth2host" = FROM "ETH_grp" TO "HOST_grp" TS_HOST_CLK / 2 DATAPATHONLY;
+
+TIMESPEC "TS_host2prom" = FROM "HOST_grp" TO "TMR_grp" TS_PLL_TMR_CLK / 2 DATAPATHONLY;
+TIMESPEC "TS_prom2host" = FROM "TMR_grp" TO "HOST_grp" TS_HOST_CLK / 2 DATAPATHONLY;
+
+TIMESPEC "TS_host2mem" = FROM "HOST_grp" TO "TNM_MIG_CLK0" TS_MIG_CLK0 / 2 DATAPATHONLY;
+TIMESPEC "TS_mem2host" = FROM "TNM_MIG_CLK0" TO "HOST_grp" TS_HOST_CLK / 2 DATAPATHONLY;
+
+TIMESPEC "TS_eth2vctrl" = FROM "ETH_grp" TO "MEM2_grp" TS_MIG_CLK1 / 2 DATAPATHONLY;
+
+#TIMESPEC "TS_prom_en" = FROM "TNM_PROM_EN" TO "TNM_PROM_EN" TS_PLL_TMR_CLK * 16 DATAPATHONLY;
 
 #############################################################################
 ###############       Проект Ethernet        ################################
