@@ -81,7 +81,6 @@ S_TX_END
 );
 signal fsm_eth_tx_cs: TEth_fsm_tx;
 
-signal i_usrpkt_len_byte      : std_logic_vector(15 downto 0);
 signal i_usrpkt_len_2dw       : std_logic_vector(15 downto 0);
 
 signal i_mac_dlen_byte        : std_logic_vector(15 downto 0);
@@ -142,10 +141,6 @@ tst_fms_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_tx_c
 end generate gen_dbg_on;
 
 
-i_usrpkt_len_byte <= i_mac_dlen_byte + 2;--2 is Len byte count
-i_usrpkt_len_2dw <= EXT(i_usrpkt_len_byte(i_usrpkt_len_byte'high downto log2(p_in_txbuf_dout'length / 8)), i_usrpkt_len_byte'length)
-                  + OR_reduce(i_usrpkt_len_byte(log2(p_in_txbuf_dout'length / 8) - 1 downto 0));
-
 i_mac_pkt_len_2dw <= i_dcnt + 1;--2DW
 i_mac_pkt_len_byte <= (i_mac_pkt_len_2dw(i_mac_pkt_len_2dw'high - 3 downto 0) & "000") - 2;--2 is Len byte count
 
@@ -156,6 +151,7 @@ i_remain <= i_mac_pkt_len_byte - i_mac_dlen_byte;
 --Автомат загрузки данных в ядро ETH
 ---------------------------------------------
 process(p_in_clk)
+variable usrpkt_len_byte : std_logic_vector(15 downto 0);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -171,6 +167,9 @@ if rising_edge(p_in_clk) then
     sr_txbuf_dout <= (others=>'0');
     i_mac_dlen_byte <= (others=>'0');
     i_dcnt <= (others=>'0');
+
+      usrpkt_len_byte := (others=>'0');
+    i_usrpkt_len_2dw <= (others=>'0');
 
   else
 
@@ -217,6 +216,11 @@ if rising_edge(p_in_clk) then
         --MACFRAME: отправка mac_dst
         --------------------------------------
         when S_TX_MAC_A0 =>
+
+          usrpkt_len_byte := i_mac_dlen_byte + 2;--2 is Len byte count
+          i_usrpkt_len_2dw <= EXT(usrpkt_len_byte(usrpkt_len_byte'high
+                                    downto log2(p_in_txbuf_dout'length / 8)), usrpkt_len_byte'length)
+                            + OR_reduce(usrpkt_len_byte(log2(p_in_txbuf_dout'length / 8) - 1 downto 0));
 
           if p_in_txll_dst_rdy_n = '0' then
 

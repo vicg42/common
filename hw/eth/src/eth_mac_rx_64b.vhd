@@ -89,7 +89,6 @@ S_RX_WAIT_EOF
 );
 signal fsm_eth_rx_cs: TEth_fsm_rx;
 
-signal i_usrpkt_len_byte      : std_logic_vector(15 downto 0);
 signal i_usrpkt_len_2dw       : std_logic_vector(15 downto 0);
 
 signal i_mac_dlen_byte        : std_logic_vector(15 downto 0);
@@ -111,6 +110,11 @@ signal i_usr_rxd_sof_en       : std_logic;
 signal i_rxll_eof_det         : std_logic;
 signal i_ll_dst_rdy           : std_logic;
 signal sr_rxll_data           : std_logic_vector(31 downto 0);
+
+signal i_rxbuf_din            : std_logic_vector(p_out_rxbuf_din'range);
+signal i_rxbuf_wr             : std_logic;
+signal i_rxd_sof              : std_logic;
+signal i_rxd_eof              : std_logic;
 
 signal tst_fms_cs             : std_logic_vector(2 downto 0);
 signal tst_fms_cs_dly         : std_logic_vector(tst_fms_cs'range) := (others => '0');
@@ -150,9 +154,6 @@ i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.src(i) else '0';
 --i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.dst(i) else '0';--for TEST
 end generate gen_rx_mac_check;
 
-i_usrpkt_len_byte <= i_mac_dlen_byte + 6;--6 = 2 + 4;  2 is Len byte count
-i_usrpkt_len_2dw <= EXT(i_usrpkt_len_byte(i_usrpkt_len_byte'high downto log2(p_out_rxbuf_din'length / 8)), i_usrpkt_len_byte'length)
-                  + OR_reduce(i_usrpkt_len_byte(log2(p_out_rxbuf_din'length / 8) - 1 downto 0));
 
 i_mac_pkt_2dw <= i_dcnt + 1;--2DW
 i_mac_pkt_byte <= (i_mac_pkt_2dw(i_mac_pkt_2dw'high - 3 downto 0) & "000") - 10;
@@ -165,6 +166,7 @@ i_remain <= i_mac_pkt_byte - i_mac_dlen_byte;
 ---------------------------------------------
 process(p_in_clk)
 variable mac_dlen_byte : std_logic_vector(15 downto 0);
+variable usrpkt_len_byte : std_logic_vector(15 downto 0);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -189,6 +191,9 @@ if rising_edge(p_in_clk) then
     i_dcnt <= (others=>'0');
 
     sr_rxll_data <= (others=>'0');
+
+      usrpkt_len_byte := (others=>'0');
+    i_usrpkt_len_2dw <= (others=>'0');
 
   else
 
@@ -267,7 +272,13 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-                i_mac_dlen_byte <= mac_dlen_byte;
+                i_mac_dlen_byte <= mac_dlen_byte + 6;--6 = 2 + 4;  2 is Len byte count
+
+                usrpkt_len_byte := mac_dlen_byte + 6;
+                i_usrpkt_len_2dw <= EXT(usrpkt_len_byte(usrpkt_len_byte'high
+                                          downto log2(p_out_rxbuf_din'length / 8)), usrpkt_len_byte'length)
+                                  + OR_reduce(usrpkt_len_byte(log2(p_out_rxbuf_din'length / 8) - 1 downto 0));
+
 
                 if mac_dlen_byte > CONV_STD_LOGIC_VECTOR(16#02#, mac_dlen_byte'length) then
                   i_dcnt <= i_dcnt + 1;
@@ -466,10 +477,20 @@ end if;
 end process;
 
 
-p_out_rxbuf_din <= i_usr_rxd;
-p_out_rxbuf_wr <= not p_in_rxbuf_full and ((not p_in_rxll_src_rdy_n and i_usr_wr) or i_ll_dst_rdy or i_usr_rxd_eof);
-p_out_rxd_sof <= not p_in_rxbuf_full and (not p_in_rxll_src_rdy_n or i_ll_dst_rdy) and i_usr_wr and i_usr_rxd_sof;
-p_out_rxd_eof <= not p_in_rxbuf_full and i_usr_rxd_eof;
+process(p_in_clk)
+begin
+if rising_edge(p_in_clk) then
+i_rxbuf_din <= i_usr_rxd;
+i_rxbuf_wr <= not p_in_rxbuf_full and ((not p_in_rxll_src_rdy_n and i_usr_wr) or i_ll_dst_rdy or i_usr_rxd_eof);
+i_rxd_sof <= not p_in_rxbuf_full and (not p_in_rxll_src_rdy_n or i_ll_dst_rdy) and i_usr_wr and i_usr_rxd_sof;
+i_rxd_eof <= not p_in_rxbuf_full and i_usr_rxd_eof;
+end if;
+end process;
+
+p_out_rxbuf_din <= i_rxbuf_din;
+p_out_rxbuf_wr <= i_rxbuf_wr;
+p_out_rxd_sof <= i_rxd_sof;
+p_out_rxd_eof <= i_rxd_eof;
 
 p_out_rxll_dst_rdy_n <= i_ll_dst_rdy or p_in_rxbuf_full;
 
