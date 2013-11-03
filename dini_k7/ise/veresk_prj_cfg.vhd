@@ -55,7 +55,7 @@ constant C_PCFG_ETH_COUNT              : integer:=1;--Кол-во каналов
 constant C_PCFG_ETH_PHY_SEL            : integer:=0;--0/3 - FIBER/COPPER_GMII
 constant C_PCFG_ETH_USR_DWIDTH         : integer:=C_PCGF_PCIE_DWIDTH;
 constant C_PCFG_ETH_PHY_DWIDTH         : integer:=64;
-constant C_PCFG_ETH_MAC_LEN_SWAP       : integer:=0; --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
+constant C_PCFG_ETH_MAC_LEN_SWAP       : integer:=1; --1/0 Поле Length/Type первый мл./ст. байт (0 - по стандарту!!! 1 - как в проекте Вереск)
 
 end prj_cfg;
 

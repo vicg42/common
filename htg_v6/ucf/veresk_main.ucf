@@ -53,17 +53,41 @@ NET "pin_out_led<*>" IOSTANDARD = LVCMOS25;
 ###############################################################################
 NET "pin_in_refclk_clk" LOC = "E14" | IOSTANDARD = LVCMOS25; ##ref_clk (100 MHz Oscillator)
 
-NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
-TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
-
-NET "g_usrclk<1>" TNM_NET = TNM_sys_clk;
-TIMESPEC "TS_sys_clk" = PERIOD "TNM_sys_clk" 2.5 ns; # 400MHz clock to DDR3 memory infrastructure
-
 NET "g_usrclk<0>" TNM_NET = TNM_clk_ref;
-TIMESPEC "TS_clk_ref" = PERIOD "TNM_clk_ref" 5 ns ; # 200MHz
-
+NET "g_usrclk<1>" TNM_NET = TNM_sys_clk;
+NET "g_usrclk<2>" TNM_NET = TNM_PLL_TMR_CLK;
+NET "i_ethphy_out_clk"  TNM_NET = TNM_ETH_CLK; #NET "clk125_o" TNM_NET = TNM_ETH_CLK;
 NET "g_usr_highclk" TNM_NET = TNM_MIG_CLK0;
+NET "g_host_clk" TNM_NET = TNM_HOST_CLK;
+NET "m_prom/i_clk_en" TNM_NET = TNM_PROM_EN;
+
+TIMESPEC TS_ETH_CLK = PERIOD TNM_ETH_CLK 8 ns HIGH 50 %;
+TIMESPEC TS_HOST_CLK = PERIOD TNM_HOST_CLK 250 MHz HIGH 50 % ;
+TIMESPEC TS_PLL_TMR_CLK = PERIOD TNM_PLL_TMR_CLK  10.0 ns HIGH 50%; # 100MHz
+TIMESPEC "TS_sys_clk" = PERIOD "TNM_sys_clk" 2.5 ns; # 400MHz clock to DDR3 memory infrastructure
+TIMESPEC "TS_clk_ref" = PERIOD "TNM_clk_ref" 5 ns ; # 200MHz
 TIMESPEC TS_MIG_CLK0= PERIOD TNM_MIG_CLK0 5 ns HIGH 50%; # 200MHz
+
+TIMEGRP "MEM_grp" = "TNM_sys_clk";
+TIMEGRP "TMR_grp" = TNM_PLL_TMR_CLK;
+TIMEGRP "HOST_grp" = TNM_HOST_CLK;
+TIMEGRP "ETH_grp" = TNM_ETH_CLK;
+
+TIMESPEC "TS_host2eth" = FROM "HOST_grp" TO "ETH_grp" TS_ETH_CLK / 2 DATAPATHONLY;
+TIMESPEC "TS_eth2host" = FROM "ETH_grp" TO "HOST_grp" TS_HOST_CLK / 2 DATAPATHONLY;
+
+TIMESPEC "TS_host2prom" = FROM "HOST_grp" TO "TMR_grp" TS_PLL_TMR_CLK / 2 DATAPATHONLY;
+TIMESPEC "TS_prom2host" = FROM "TMR_grp" TO "HOST_grp" TS_HOST_CLK / 2 DATAPATHONLY;
+
+TIMESPEC "TS_host2mem" = FROM "HOST_grp" TO "TNM_MIG_CLK0" TS_MIG_CLK0 / 2 DATAPATHONLY;
+TIMESPEC "TS_mem2host" = FROM "TNM_MIG_CLK0" TO "HOST_grp" TS_HOST_CLK / 2 DATAPATHONLY;
+
+TIMESPEC "TS_eth2vctrl" = FROM "ETH_grp" TO "MEM_grp" TS_MIG_CLK0 / 2 DATAPATHONLY;
+
+TIMESPEC "TS_prom_en" = FROM "TNM_PROM_EN" TO "TNM_PROM_EN" TS_PLL_TMR_CLK / 16 DATAPATHONLY;
+
+
+
 
 
 #############################################################################
@@ -117,11 +141,9 @@ INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*gtx0_v6_gtxwizard_i?gtxe1_i"
 # match your design.
 
 # Ethernet MAC reference clock driven by transceiver
-NET "i_ethphy_out_clk"  TNM_NET = "clk_gt_clk"; #NET "clk125_o" TNM_NET = "clk_gt_clk";
 NET "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/clk125_pre_bufg" TNM_NET = "clk125_clk";
 NET "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/clk2x_pre_bufg"  TNM_NET = "clk2x_clk";
 TIMEGRP "emac_core_gt_clk" = "clk125_clk" "clk2x_clk";
-TIMESPEC "TS_emac_core_gt_clk" = PERIOD "clk_gt_clk" 8 ns HIGH 50 %;
 
 # Ensure that reset and MMCM lock signals at TEMAC input are timed to clk125
 INST "m_eth/gen_use_on.m_main/m_phy/gen_fiber.m_if/*v6_emac" TNM = "temac_inst";
@@ -205,8 +227,8 @@ INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_bram_i/pcie_brams_tx/bram
 #PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
 #PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
 #
-#NET "g_host_clk" TNM_NET = "HOST_CLK";
-#TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 125 MHz HIGH 50 % ;
+#NET "g_host_clk" TNM_NET = TNM_HOST_CLK;
+#TIMESPEC TS_HOST_CLK = PERIOD TNM_HOST_CLK 125 MHz HIGH 50 % ;
 
 ##----------  For PCIE-Express (x4) - 5G (pcie refclk - 250MHz) ----------
 NET "g_usrclk<3>" TNM_NET = "PCIEXP_SYSCLK" ;
@@ -224,8 +246,6 @@ PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_int_i.CLR" TIG ;
 PIN "m_host/gen_sim_off.m_pcie/m_core/trn_reset_n_i.CLR" TIG ;
 PIN "m_host/gen_sim_off.m_pcie/m_core/pcie_clocking_i/mmcm_adv_i.RST" TIG ;
 
-NET "g_host_clk" TNM_NET = "HOST_CLK";
-TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 
 #TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
 
@@ -251,8 +271,8 @@ TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 #
 #TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 8 ns;
 #
-#NET "g_host_clk" TNM_NET = "HOST_CLK";
-#TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
+#NET "g_host_clk" TNM_NET = TNM_HOST_CLK;
+#TIMESPEC TS_HOST_CLK = PERIOD TNM_HOST_CLK 250 MHz HIGH 50 % ;
 
 ###-----------  For PCIE-Express (x8) - 5G (pcie refclk - 250MHz) -----------
 #INST "m_host/gen_sim_off.m_pcie/m_core/pcie_2_0_i/pcie_gt_i/gtx_v6_i/GTXD[4].GTX" LOC = GTXE1_X0Y0; # PCIe Lane 4
@@ -279,8 +299,8 @@ TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
 #
 ##TIMESPEC "TS_RESETN" = FROM FFS(*) TO FFS(trn_reset_n_i) 4 ns;
 #
-#NET "g_host_clk" TNM_NET = "HOST_CLK";
-#TIMESPEC "TS_HOST_CLK" = PERIOD "HOST_CLK" 250 MHz HIGH 50 % ;
+#NET "g_host_clk" TNM_NET = TNM_HOST_CLK;
+#TIMESPEC TS_HOST_CLK = PERIOD TNM_HOST_CLK 250 MHz HIGH 50 % ;
 
 
 

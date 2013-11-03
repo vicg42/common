@@ -156,7 +156,7 @@ signal i_clk                       : std_logic;
 signal i_vfr_rdy_out               : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vfr_rdy_out2              : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vfr_rdy_tmp               : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-Type TSr0 is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(0 to 2);
+Type TSr0 is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(0 to 3);
 Type TSr1 is array (0 to C_VCTRL_VCH_COUNT - 1) of std_logic_vector(0 to 1);
 signal sr_vfr_rdy                  : TSr0;
 signal sr_vfr_rdy_tmp              : TSr1;
@@ -175,7 +175,7 @@ gen_vch : for i in 0 to C_VCTRL_VCH_COUNT - 1 generate
 process(i_clk)
 begin
   if rising_edge(i_clk) then
-    sr_vfr_rdy(i) <= i_vfr_rdy(i) & sr_vfr_rdy(i)(0 to 1);
+    sr_vfr_rdy(i) <= i_vfr_rdy(i) & sr_vfr_rdy(i)(0 to 2);
     i_vfr_rdy_tmp(i) <= OR_reduce(sr_vfr_rdy(i));
     i_vfr_rdy_out2(i) <= i_vfr_rdy_out(i);
   end if;
