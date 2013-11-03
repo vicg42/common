@@ -558,7 +558,7 @@ if rising_edge(p_in_clk) then
           txd(C_HREG_FUNC_PULT_BIT) := strcmp2(C_PCFG_BOARD, "HTGV6");
 
           txd(C_HREG_FUNC_PROM_BIT) := strcmp2(C_PCFG_BOARD, "ML505")
-                                     or strcmp2(C_PCFG_BOARD, "HTGV6")
+                                     or strcmp2(C_PCFG_BOARD, "HTGV6") or strcmp2(C_PCFG_BOARD, "DINIK7")
                                      or strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
 
           txd(C_HREG_FUNC_HSCAM_BIT) := strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
