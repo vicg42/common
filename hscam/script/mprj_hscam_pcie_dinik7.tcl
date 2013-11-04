@@ -37,13 +37,13 @@ set _projects [ list \
       [ list "../../../common/lib/hw/pci_express/pcie_reset.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_off_on.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_mrd_throttle.v" $_VMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_tx.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_rx.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_tx_128.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_rx_128.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_cfg.v" $_VMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_irq_dev.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/pci_express/pcie_usr_app.vhd" $_VHDMod ] \
-      [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi.vhd" $_VHDMod ] \
+      [ list "../../../common/lib/hw/pci_express/pcie_v7_main_axi_128.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prog_flash.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/prom_loader/prom_ld_main.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
