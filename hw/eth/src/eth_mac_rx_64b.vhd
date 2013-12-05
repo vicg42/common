@@ -89,13 +89,13 @@ S_RX_WAIT_EOF
 );
 signal fsm_eth_rx_cs: TEth_fsm_rx;
 
+signal i_usrpkt_len_byte      : std_logic_vector(15 downto 0);
 signal i_usrpkt_len_2dw       : std_logic_vector(15 downto 0);
 
+signal i_mac_dlen_byte_swap   : std_logic_vector(15 downto 0);
 signal i_mac_dlen_byte        : std_logic_vector(15 downto 0);
-signal i_mac_pkt_2dw          : std_logic_vector(15 downto 0);
-signal i_mac_pkt_byte         : std_logic_vector(15 downto 0);
-signal i_remain               : std_logic_vector(15 downto 0);
-
+signal i_remain_byte          : std_logic_vector(15 downto 0);
+signal i_remain_byte_tmp      : std_logic_vector(15 downto 0);
 signal i_dcnt                 : std_logic_vector(15 downto 0);
 
 signal i_rx_mac_dst           : TEthMacAdr;
@@ -144,6 +144,7 @@ end process ltstout;
 tst_fms_cs <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_MAC_A  else
               CONV_STD_LOGIC_VECTOR(16#02#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_MAC_D  else
               CONV_STD_LOGIC_VECTOR(16#03#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_END    else
+              CONV_STD_LOGIC_VECTOR(16#04#, tst_fms_cs'length) when fsm_eth_rx_cs = S_RX_WAIT_EOF    else
               CONV_STD_LOGIC_VECTOR(16#00#, tst_fms_cs'length);-- when fsm_eth_rx_cs = S_IDLE     else
 
 end generate gen_dbg_on;
@@ -154,19 +155,32 @@ i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.src(i) else '0';
 --i_rx_mac_valid(i) <= '1' when i_rx_mac_dst(i) = p_in_cfg.mac.dst(i) else '0';--for TEST
 end generate gen_rx_mac_check;
 
+i_usrpkt_len_byte <= i_mac_dlen_byte + 6;
+i_usrpkt_len_2dw <= EXT(i_usrpkt_len_byte(i_usrpkt_len_byte'high
+                          downto log2(p_out_rxbuf_din'length / 8)), i_usrpkt_len_byte'length)
+                  + OR_reduce(i_usrpkt_len_byte(log2(p_out_rxbuf_din'length / 8) - 1 downto 0));
 
-i_mac_pkt_2dw <= i_dcnt + 1;--2DW
-i_mac_pkt_byte <= (i_mac_pkt_2dw(i_mac_pkt_2dw'high - 3 downto 0) & "000") - 10;
+i_remain_byte_tmp <= 10 + i_mac_dlen_byte;
 
-i_remain <= i_mac_pkt_byte - i_mac_dlen_byte;
+i_remain_byte <= (i_dcnt(i_dcnt'high - 3 downto 0) & "000") - i_remain_byte_tmp;
 
+
+--Прием: первый ст. байт
+gen_length_swap_0 : if G_ETH.mac_length_swap = 0 generate
+i_mac_dlen_byte_swap((8 * 1) - 1 downto 8 * 0) <= p_in_rxll_data((8 * 6) - 1 downto 8 * 5);
+i_mac_dlen_byte_swap((8 * 2) - 1 downto 8 * 1) <= p_in_rxll_data((8 * 5) - 1 downto 8 * 4);
+end generate gen_length_swap_0;
+
+--Прием: первый мл. байт
+gen_length_swap_1 : if G_ETH.mac_length_swap = 1 generate
+i_mac_dlen_byte_swap((8 * 2) - 1 downto 8 * 1) <= p_in_rxll_data((8 * 6) - 1 downto 8 * 5);
+i_mac_dlen_byte_swap((8 * 1) - 1 downto 8 * 0) <= p_in_rxll_data((8 * 5) - 1 downto 8 * 4);
+end generate gen_length_swap_1;
 
 ---------------------------------------------
 --Автомат приема данных из ядра ETH
 ---------------------------------------------
 process(p_in_clk)
-variable mac_dlen_byte : std_logic_vector(15 downto 0);
-variable usrpkt_len_byte : std_logic_vector(15 downto 0);
 begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
@@ -177,7 +191,6 @@ if rising_edge(p_in_clk) then
     i_rx_mac_dst(i) <= (others=>'0');
     end loop;
     i_mac_dlen_byte <= (others=>'0');
-      mac_dlen_byte := (others=>'0');
 
     i_ll_dst_rdy <= '0';
 
@@ -191,9 +204,6 @@ if rising_edge(p_in_clk) then
     i_dcnt <= (others=>'0');
 
     sr_rxll_data <= (others=>'0');
-
-      usrpkt_len_byte := (others=>'0');
-    i_usrpkt_len_2dw <= (others=>'0');
 
   else
 
@@ -250,9 +260,6 @@ if rising_edge(p_in_clk) then
 
                 if G_ETH.mac_length_swap = 0 then
                 --Прием: первый ст. байт
-                mac_dlen_byte((8 * 1) - 1 downto 8 * 0) := p_in_rxll_data((8 * 6) - 1 downto 8 * 5);
-                mac_dlen_byte((8 * 2) - 1 downto 8 * 1) := p_in_rxll_data((8 * 5) - 1 downto 8 * 4);
-
                 sr_rxll_data((8 * 1) - 1 downto 8 * 0) <= p_in_rxll_data((8 * 6) - 1 downto 8 * 5);
                 sr_rxll_data((8 * 2) - 1 downto 8 * 1) <= p_in_rxll_data((8 * 5) - 1 downto 8 * 4);
 
@@ -261,9 +268,6 @@ if rising_edge(p_in_clk) then
 
                 else
                 --Прием: первый мл. байт
-                mac_dlen_byte((8 * 2) - 1 downto 8 * 1) := p_in_rxll_data((8 * 6) - 1 downto 8 * 5);
-                mac_dlen_byte((8 * 1) - 1 downto 8 * 0) := p_in_rxll_data((8 * 5) - 1 downto 8 * 4);
-
                 sr_rxll_data((8 * 2) - 1 downto 8 * 1) <= p_in_rxll_data((8 * 6) - 1 downto 8 * 5);
                 sr_rxll_data((8 * 1) - 1 downto 8 * 0) <= p_in_rxll_data((8 * 5) - 1 downto 8 * 4);
 
@@ -272,21 +276,15 @@ if rising_edge(p_in_clk) then
 
                 end if;
 
-                i_mac_dlen_byte <= mac_dlen_byte + 6;--6 = 2 + 4;  2 is Len byte count
+                i_mac_dlen_byte <= i_mac_dlen_byte_swap;
 
-                usrpkt_len_byte := mac_dlen_byte + 6;
-                i_usrpkt_len_2dw <= EXT(usrpkt_len_byte(usrpkt_len_byte'high
-                                          downto log2(p_out_rxbuf_din'length / 8)), usrpkt_len_byte'length)
-                                  + OR_reduce(usrpkt_len_byte(log2(p_out_rxbuf_din'length / 8) - 1 downto 0));
-
-
-                if mac_dlen_byte > CONV_STD_LOGIC_VECTOR(16#02#, mac_dlen_byte'length) then
-                  i_dcnt <= i_dcnt + 1;
+                if i_mac_dlen_byte_swap > CONV_STD_LOGIC_VECTOR(16#02#, i_mac_dlen_byte_swap'length) then
+                  i_dcnt <= i_dcnt + 2;
                   fsm_eth_rx_cs <= S_RX_MAC_D;
 
                 else
 
-                  if mac_dlen_byte = CONV_STD_LOGIC_VECTOR(16#02#, mac_dlen_byte'length) then
+                  if i_mac_dlen_byte_swap = CONV_STD_LOGIC_VECTOR(16#02#, i_mac_dlen_byte_swap'length) then
                   i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= p_in_rxll_data((8 * 8) - 1 downto 8 * 7);
                   else
                   i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= (others=>'0');
@@ -331,15 +329,15 @@ if rising_edge(p_in_clk) then
                 i_usr_rxd_sof <= '0';
               end if;
 
-              if i_dcnt = i_usrpkt_len_2dw - 1 then
+              if i_dcnt = i_usrpkt_len_2dw then
 
                   --USRDATA:LSB
                   i_usr_rxd((8 * 4) - 1 downto 8 * 0) <= sr_rxll_data;
 
-                  if i_remain(3 downto 0) < CONV_STD_LOGIC_VECTOR(16#04#, 4) then
+                  if i_remain_byte(3 downto 0) < CONV_STD_LOGIC_VECTOR(16#04#, 4) then
 
                       --USRDATA:MSB
-                      case i_remain(1 downto 0) is
+                      case i_remain_byte(1 downto 0) is
                       when "00" =>
                         i_usr_rxd((8 * 8) - 1 downto 8 * 7) <= p_in_rxll_data((8 * 4) - 1 downto 8 * 3);
                         i_usr_rxd((8 * 7) - 1 downto 8 * 6) <= p_in_rxll_data((8 * 3) - 1 downto 8 * 2);
@@ -367,7 +365,7 @@ if rising_edge(p_in_clk) then
                       when others => null;
                       end case;
 
-                      if i_dcnt = CONV_STD_LOGIC_VECTOR(16#01#, i_dcnt'length) then
+                      if i_dcnt = CONV_STD_LOGIC_VECTOR(16#02#, i_dcnt'length) then
                       i_ll_dst_rdy <= '1';
                       end if;
                       i_usr_rxd_eof <= '1';
@@ -401,7 +399,7 @@ if rising_edge(p_in_clk) then
 
                 i_dcnt <= i_dcnt + 1;
 
-              end if;--if i_dcnt = i_usrpkt_len_2dw - 1 then
+              end if;--if i_dcnt = i_usrpkt_len_2dw then
 
           end if;
 
@@ -413,7 +411,7 @@ if rising_edge(p_in_clk) then
               i_usr_rxd((8 * 8) - 1 downto 8 * 4) <= (others=>'0');
 
               --USRDATA:LSB
-              case i_remain(1 downto 0) is
+              case i_remain_byte(1 downto 0) is
               when "00" =>
                 i_usr_rxd((8 * 4) - 1 downto 8 * 3) <= sr_rxll_data((8 * 4) - 1 downto 8 * 3);
                 i_usr_rxd((8 * 3) - 1 downto 8 * 2) <= sr_rxll_data((8 * 3) - 1 downto 8 * 2);
