@@ -511,7 +511,8 @@ if rising_edge(i_clk) then
 
         i_vfr_rdy <= (others=>'0');
 
-        if CI_BOARD_DINIK7 = '1' and (i_vfr_row = (i_vfr_row_count - 1)) then
+        if CI_BOARD_DINIK7 = '1' and (i_vfr_row = (i_vfr_row_count - 1)) and
+          i_vfr_pix_count = (i_pix_count_byte(i_vfr_pix_count'range) + i_pix_num) then
           if i_vfr_rdy_out2 /= (i_vfr_rdy_out2'range =>'0') then
             fsm_state_cs <= S_IDLE;
           end if;
