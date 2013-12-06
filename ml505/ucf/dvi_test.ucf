@@ -66,3 +66,11 @@ NET  pin_out_dvi_de       LOC="AE8" ;# | IOSTANDARD=LVCMOS33;  # Bank 22, Vcco=3
 
 NET  pin_inout_dvi_scl    LOC="U27";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
 NET  pin_inout_dvi_sda    LOC="T29";   # Bank 15, Vcco=1.8V, DCI using 49.9 ohm resistors
+
+NET pin_out_dvi_d<*>   IOSTANDARD = LVDCI_33;
+NET pin_out_dvi_clk<*> IOSTANDARD = LVCMOS33 | DRIVE = 24 | SLEW =FAST;
+NET pin_out_dvi_hs     IOSTANDARD = LVDCI_33;
+NET pin_out_dvi_vs     IOSTANDARD = LVDCI_33;
+NET pin_out_dvi_de     IOSTANDARD = LVDCI_33;
+NET pin_inout_dvi_scl  IOSTANDARD = LVCMOS18 | DRIVE = 6 | SLEW = SLOW | TIG; #ff LVCMOS33;
+NET pin_inout_dvi_sda  IOSTANDARD = LVCMOS18 | DRIVE = 6 | SLEW = SLOW | TIG;
