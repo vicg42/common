@@ -31,54 +31,90 @@ architecture v5_only of dvi_ctrl_dcm is
 
 signal i_locked              : std_logic;
 signal i_clk_fb,g_clk_fb     : std_logic;
-signal i_clk_out             : std_logic_vector(0 downto 0);
+signal i_clk_out             : std_logic_vector(2 downto 0);
+signal i_gnd                 : std_logic_vector(15 downto 0);
 
 --MAIN
 begin
 
 
--- Reference clock PLL (CLKFBOUT range 400 MHz to 1000 MHz)
--- CLKFBOUT = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT
--- CLKOUTn  = (CLKIN1/DIVCLK_DIVIDE) * CLKFBOUT_MULT/CLKOUTn_DIVIDE
--- CLKFBOUT = (100 MHz/5) * 30.000       = 600 MHz
--- CLKOUT0  = (100 MHz/5) * 30.000/8     = 75 MHz
--- CLKOUT1  = (100 MHz/5) * 30.000/4     = 150 MHz
--- CLKOUT2  = (100 MHz/5) * 30.000/12    = 50 MHz
--- CLKOUT3  = (100 MHz/5) * 30.000/24    = 25 MHz
 
-m_pll : PLL_BASE
-generic map(
-CLKIN_PERIOD   => 10.00,
-DIVCLK_DIVIDE  => 5,     --integer : 1 to 52
-CLKFBOUT_MULT  => 30,    --integer : 1 to 64
-CLKOUT0_DIVIDE => 8,     --integer : 1 to 128
-CLKOUT1_DIVIDE => 4,     --integer : 1 to 128
-CLKOUT2_DIVIDE => 12,    --integer : 1 to 128
-CLKOUT3_DIVIDE => 24,    --integer : 1 to 128
-CLKOUT0_PHASE  => 0.000,
-CLKOUT1_PHASE  => 0.000,
-CLKOUT2_PHASE  => 0.000,
-CLKOUT3_PHASE  => 0.000
-)
-port map(
-CLKFBOUT => i_clk_fb,
-CLKOUT0  => i_clk_out(0),
-CLKOUT1  => open,--i_clk_out(1),
-CLKOUT2  => open,--i_clk_out(2),
-CLKOUT3  => open,--i_clk_out(3),
-CLKOUT4  => open,
-CLKOUT5  => open,
-LOCKED   => i_locked,
-CLKFBIN  => g_clk_fb,
-CLKIN    => p_in_clk,
-RST      => p_in_rst
-);
-
-g_clk_fb <= i_clk_fb;
+bufg_clk_fb: BUFG port map(I => i_clk_fb, O => g_clk_fb);--g_clk_fb <= i_clk_fb;
 p_out_rst <= not i_locked;
 
 bufg_clk_pix: BUFG port map(I => i_clk_out(0), O => p_out_gclk(0));
 
+
+m_dcm : DCM_ADV
+generic map(
+--CLKIN = 100MHz
+CLKIN_PERIOD   => 10.000,
+
+----CLKFX = 50MHz
+--CLKFX_MULTIPLY => 2,
+--CLKFX_DIVIDE   => 4,
+
+--CLKFX = 75MHz
+CLKFX_MULTIPLY => 3,
+CLKFX_DIVIDE   => 4,
+
+----CLKFX = 135MHz
+--CLKFX_MULTIPLY => 27,
+--CLKFX_DIVIDE   => 20,
+
+----CLKFX = 175MHz
+--CLKFX_MULTIPLY => 7,
+--CLKFX_DIVIDE   => 4,
+
+--CLKDV = 25MHz
+CLKDV_DIVIDE          => 4.0,
+
+CLKIN_DIVIDE_BY_2     => FALSE,
+CLK_FEEDBACK          => "1X",
+CLKOUT_PHASE_SHIFT    => "NONE",
+DCM_AUTOCALIBRATION   => TRUE,
+DCM_PERFORMANCE_MODE  => "MAX_SPEED",
+DESKEW_ADJUST         => "SYSTEM_SYNCHRONOUS",
+DFS_FREQUENCY_MODE    => "LOW",
+DLL_FREQUENCY_MODE    => "LOW",
+DUTY_CYCLE_CORRECTION => TRUE,
+FACTORY_JF            => x"F0F0",
+PHASE_SHIFT           => 0,
+STARTUP_WAIT          => FALSE,
+SIM_DEVICE            => "VIRTEX5"
+)
+port map (
+CLKFB    => g_clk_fb,
+CLK0     => i_clk_fb,
+CLKDV    => i_clk_out(1),
+CLKFX    => i_clk_out(0),
+CLKFX180 => open,
+CLK2X    => open,
+CLK2X180 => open,
+CLK90    => open,
+CLK180   => open,
+CLK270   => open,
+DRDY     => open,
+
+LOCKED   => i_locked,
+
+DADDR(6 downto 0)=> i_gnd(6 downto 0),
+DI(15 downto 0)  => i_gnd(15 downto 0),
+DO       => open,
+DEN      => '0',
+DWE      => '0',
+DCLK     => '0',
+
+PSCLK    => '0',
+PSEN     => '0',
+PSINCDEC => '0',
+PSDONE   => open,
+
+CLKIN    => p_in_clk,
+RST      => p_in_rst
+);
+
+i_gnd <= (others=>'0');
 
 --END MAIN
 end v5_only;

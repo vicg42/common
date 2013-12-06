@@ -7,8 +7,12 @@
 --
 -- Назначение/Описание :
 --
--- DVI OUT: 1024x768@70MHz (PixClk=75MHz)
---
+-- DVI OUT:
+-- 640x480@60MHz (PixClk=25MHz)
+-- 800x600@72MHz (PixClk=50MHz)
+-- 1024x768@70MHz (PixClk=75MHz)
+-- 1280x1024@75MHz (PixClk=135MHz)
+-- 1600x1200@65MHz (PixClk=175MHz)
 -------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
@@ -67,10 +71,67 @@ constant CI_VID : std_logic_vector(7 downto 0):="10010101";
 constant CI_DID : std_logic_vector(7 downto 0):="00010111";
 
 --Register Map:
-constant CI_REG_VID    : std_logic_vector(7 downto 0):='1'&CONV_STD_LOGIC_VECTOR(16#4A#, 7);
-constant CI_REG_DID    : std_logic_vector(7 downto 0):='1'&CONV_STD_LOGIC_VECTOR(16#4B#, 7);
+constant CI_REG_VID    : std_logic_vector(7 downto 0) := '1' & CONV_STD_LOGIC_VECTOR(16#4A#, 7);
+constant CI_REG_DID    : std_logic_vector(7 downto 0) := '1' & CONV_STD_LOGIC_VECTOR(16#4B#, 7);
 
+----Test Pattern Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#48#, 7) & CONV_STD_LOGIC_VECTOR(16#19#, 8)) --(Color Bars)
+--('1' & CONV_STD_LOGIC_VECTOR(16#48#, 7) & CONV_STD_LOGIC_VECTOR(16#1C#, 8)) --(Horizontal Luminance Ramp)
+--('1' & CONV_STD_LOGIC_VECTOR(16#48#, 7) & CONV_STD_LOGIC_VECTOR(16#18#, 8)) --(No test pattern – Input data is used)
+
+----##########################################
+----640x480@60MHz (PixClk=25MHz)
+----##########################################
+--Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
+--constant CI_REG_ARRAY : TReg := (
+----            REG ADR                    |             REG DATA
+--('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register (IDF)
+--('1' & CONV_STD_LOGIC_VECTOR(16#49#, 7) & CONV_STD_LOGIC_VECTOR(16#C0#, 8)), --Power Management Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#21#, 7) & CONV_STD_LOGIC_VECTOR(16#09#, 8)), --DAC Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#33#, 7) & CONV_STD_LOGIC_VECTOR(16#08#, 8)), --DVI PLL Charge Pump Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#34#, 7) & CONV_STD_LOGIC_VECTOR(16#16#, 8)), --DVI PLL Divider Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#36#, 7) & CONV_STD_LOGIC_VECTOR(16#60#, 8))  --DVI PLL Supply Control Register
+--);
+----Наcтройка TIMING_GEN:
+----HS: значения в пикселях
+--constant CI_HS_SYN_W        : integer := 96;
+--constant CI_HS_BACKPORCH_W  : integer := 48;
+--constant CI_HS_ACTIV_W      : integer := 640;
+--constant CI_HS_FRONTPORCH_W : integer := 16;
+----VS: значения в строках
+--constant CI_VS_SYN_W        : integer := 2;
+--constant CI_VS_BACKPORCH_W  : integer := 31;
+--constant CI_VS_ACTIV_W      : integer := 480;
+--constant CI_VS_FRONTPORCH_W : integer := 12;
+
+----##########################################
+----800x600@72MHz (PixClk=50MHz)
+----##########################################
+--Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
+--constant CI_REG_ARRAY : TReg := (
+----            REG ADR                    |             REG DATA
+--('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register (IDF)
+--('1' & CONV_STD_LOGIC_VECTOR(16#49#, 7) & CONV_STD_LOGIC_VECTOR(16#C0#, 8)), --Power Management Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#21#, 7) & CONV_STD_LOGIC_VECTOR(16#09#, 8)), --DAC Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#33#, 7) & CONV_STD_LOGIC_VECTOR(16#08#, 8)), --DVI PLL Charge Pump Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#34#, 7) & CONV_STD_LOGIC_VECTOR(16#16#, 8)), --DVI PLL Divider Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#36#, 7) & CONV_STD_LOGIC_VECTOR(16#60#, 8))  --DVI PLL Supply Control Register
+--);
+----Наcтройка TIMING_GEN:
+----HS: значения в пикселях
+--constant CI_HS_SYN_W        : integer := 120;
+--constant CI_HS_BACKPORCH_W  : integer := 64;
+--constant CI_HS_ACTIV_W      : integer := 800;
+--constant CI_HS_FRONTPORCH_W : integer := 56;
+----VS: значения в строках
+--constant CI_VS_SYN_W        : integer := 6;
+--constant CI_VS_BACKPORCH_W  : integer := 23;
+--constant CI_VS_ACTIV_W      : integer := 600;
+--constant CI_VS_FRONTPORCH_W : integer := 37;
+
+--##########################################
 --1024x768@70MHz (PixClk=75MHz)
+--##########################################
 Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
 constant CI_REG_ARRAY : TReg := (
 --            REG ADR                    |             REG DATA
@@ -81,13 +142,74 @@ constant CI_REG_ARRAY : TReg := (
 ('1' & CONV_STD_LOGIC_VECTOR(16#34#, 7) & CONV_STD_LOGIC_VECTOR(16#26#, 8)), --DVI PLL Divider Register
 ('1' & CONV_STD_LOGIC_VECTOR(16#36#, 7) & CONV_STD_LOGIC_VECTOR(16#A0#, 8))  --DVI PLL Supply Control Register
 );
+--Наcтройка TIMING_GEN:
+--HS: значения в пикселях
+constant CI_HS_SYN_W        : integer := 136;
+constant CI_HS_BACKPORCH_W  : integer := 144;
+constant CI_HS_ACTIV_W      : integer := 1024;
+constant CI_HS_FRONTPORCH_W : integer := 24;
+--VS: значения в строках
+constant CI_VS_SYN_W        : integer := 6;
+constant CI_VS_BACKPORCH_W  : integer := 29;
+constant CI_VS_ACTIV_W      : integer := 768;
+constant CI_VS_FRONTPORCH_W : integer := 3;
+
+----##########################################
+----1280x1024@75MHz (PixClk=135MHz)
+----##########################################
+--Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
+--constant CI_REG_ARRAY : TReg := (
+----            REG ADR                    |             REG DATA
+--('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register (IDF)
+--('1' & CONV_STD_LOGIC_VECTOR(16#49#, 7) & CONV_STD_LOGIC_VECTOR(16#C0#, 8)), --Power Management Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#21#, 7) & CONV_STD_LOGIC_VECTOR(16#09#, 8)), --DAC Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#33#, 7) & CONV_STD_LOGIC_VECTOR(16#06#, 8)), --DVI PLL Charge Pump Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#34#, 7) & CONV_STD_LOGIC_VECTOR(16#26#, 8)), --DVI PLL Divider Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#36#, 7) & CONV_STD_LOGIC_VECTOR(16#A0#, 8))  --DVI PLL Supply Control Register
+--);
+----Наcтройка TIMING_GEN:
+----HS: значения в пикселях
+--constant CI_HS_SYN_W        : integer := 144;
+--constant CI_HS_BACKPORCH_W  : integer := 248;
+--constant CI_HS_ACTIV_W      : integer := 1280;
+--constant CI_HS_FRONTPORCH_W : integer := 16;
+----VS: значения в строках
+--constant CI_VS_SYN_W        : integer := 3;
+--constant CI_VS_BACKPORCH_W  : integer := 38;
+--constant CI_VS_ACTIV_W      : integer := 1024;
+--constant CI_VS_FRONTPORCH_W : integer := 1;
+
+----##########################################
+----1600x1200@65MHz (PixClk=175MHz)
+----##########################################
+--Type TReg is array (0 to 5) of std_logic_vector(15 downto 0);
+--constant CI_REG_ARRAY : TReg := (
+----            REG ADR                    |             REG DATA
+--('1' & CONV_STD_LOGIC_VECTOR(16#1F#, 7) & CONV_STD_LOGIC_VECTOR(16#80#, 8)), --Input Data Format Register (IDF)
+--('1' & CONV_STD_LOGIC_VECTOR(16#49#, 7) & CONV_STD_LOGIC_VECTOR(16#C0#, 8)), --Power Management Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#21#, 7) & CONV_STD_LOGIC_VECTOR(16#09#, 8)), --DAC Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#33#, 7) & CONV_STD_LOGIC_VECTOR(16#08#, 8)), --DVI PLL Charge Pump Control Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#34#, 7) & CONV_STD_LOGIC_VECTOR(16#16#, 8)), --DVI PLL Divider Register
+--('1' & CONV_STD_LOGIC_VECTOR(16#36#, 7) & CONV_STD_LOGIC_VECTOR(16#60#, 8))  --DVI PLL Supply Control Register
+--);
+----Наcтройка TIMING_GEN:
+----HS: значения в пикселях
+--constant CI_HS_SYN_W        : integer := 191; --192;
+--constant CI_HS_BACKPORCH_W  : integer := 302; --304;
+--constant CI_HS_ACTIV_W      : integer := 1600;--1600;
+--constant CI_HS_FRONTPORCH_W : integer := 64;  --64;
+----VS: значения в строках
+--constant CI_VS_SYN_W        : integer := 3;
+--constant CI_VS_BACKPORCH_W  : integer := 46;
+--constant CI_VS_ACTIV_W      : integer := 1200;
+--constant CI_VS_FRONTPORCH_W : integer := 1;
 
 component i2c_core_master
 generic(
 G_CLK_FREQ : natural := 25000000;
 G_BAUD     : natural := 100000;
-G_DBG      : string:="OFF";
-G_SIM      : string:="OFF"
+G_DBG      : string := "OFF";
+G_SIM      : string := "OFF"
 );
 port(
 p_in_cmd    : in    std_logic_vector(2 downto 0);
@@ -180,15 +302,16 @@ signal i_core_rxd            : std_logic_vector(7 downto 0);
 
 signal i_dvi_rst             : std_logic;
 signal i_dvi_de              : std_logic;
-signal i_dvi_hs             : std_logic;
+signal i_dvi_hs
+             : std_logic;
 signal i_dvi_vs              : std_logic;
 signal i_dvi_ha              : std_logic;
 signal i_dvi_va              : std_logic;
 signal i_dvi_d0              : std_logic_vector(11 downto 0);
 signal i_dvi_d1              : std_logic_vector(11 downto 0);
 
-signal i_vga_xcnt            : std_logic_vector(15 downto 0);
-signal i_vga_ycnt            : std_logic_vector(15 downto 0);
+signal i_vga_xcnt            : std_logic_vector(12 downto 0);
+signal i_vga_ycnt            : std_logic_vector(12 downto 0);
 signal i_vga_hs_e            : std_logic_vector(i_vga_xcnt'range);--sync end
 signal i_vga_ha_b            : std_logic_vector(i_vga_xcnt'range);--active begin
 signal i_vga_ha_e            : std_logic_vector(i_vga_xcnt'range);--active end
@@ -587,26 +710,26 @@ p_in_clk   => p_in_clk,
 p_in_rst   => p_in_rst
 );
 
-
---1024x768@70MHz (PixClk=75MHz)
 g_clk_pix <= i_clk_out(0);
 
-i_vga_hs_e <= CONV_STD_LOGIC_VECTOR(136 - 1, i_vga_hs_e'length);
-i_vga_ha_b <= CONV_STD_LOGIC_VECTOR(136 + 144 - 1, i_vga_ha_b'length);
-i_vga_ha_e <= CONV_STD_LOGIC_VECTOR(136 + 144 + 1024 - 1, i_vga_ha_e'length);
-i_vga_hend <= CONV_STD_LOGIC_VECTOR(136 + 144 + 1024 + 24 - 1, i_vga_hend'length);
+i_vga_hs_e <= CONV_STD_LOGIC_VECTOR(CI_HS_SYN_W - 1, i_vga_hs_e'length);
+i_vga_ha_b <= CONV_STD_LOGIC_VECTOR(CI_HS_SYN_W + CI_HS_BACKPORCH_W - 1, i_vga_ha_b'length);
 
-i_vga_vs_e <= CONV_STD_LOGIC_VECTOR(6 - 1, i_vga_vs_e'length);
-i_vga_va_b <= CONV_STD_LOGIC_VECTOR(6 + 29 - 1, i_vga_va_b'length);
-i_vga_va_e <= CONV_STD_LOGIC_VECTOR(6 + 29 + 768 - 1, i_vga_va_e'length);
-i_vga_vend <= CONV_STD_LOGIC_VECTOR(6 + 29 + 768 + 3 - 1, i_vga_vend'length);
+i_vga_ha_e <= CONV_STD_LOGIC_VECTOR(CI_HS_SYN_W + CI_HS_BACKPORCH_W + CI_HS_ACTIV_W - 1, i_vga_ha_e'length);
+i_vga_hend <= CONV_STD_LOGIC_VECTOR(CI_HS_SYN_W + CI_HS_BACKPORCH_W + CI_HS_ACTIV_W + CI_HS_FRONTPORCH_W - 1, i_vga_hend'length);
+
+i_vga_vs_e <= CONV_STD_LOGIC_VECTOR(CI_VS_SYN_W - 1, i_vga_vs_e'length);
+i_vga_va_b <= CONV_STD_LOGIC_VECTOR(CI_VS_SYN_W + CI_VS_BACKPORCH_W - 1, i_vga_va_b'length);
+i_vga_va_e <= CONV_STD_LOGIC_VECTOR(CI_VS_SYN_W + CI_VS_BACKPORCH_W + CI_VS_ACTIV_W - 1, i_vga_va_e'length);
+i_vga_vend <= CONV_STD_LOGIC_VECTOR(CI_VS_SYN_W + CI_VS_BACKPORCH_W + CI_VS_ACTIV_W + CI_VS_FRONTPORCH_W - 1, i_vga_vend'length);
+
 
 process(i_dvi_rst, g_clk_pix)
 begin
   if i_dvi_rst = '1' then
     i_vga_xcnt <= (others=>'0');
     i_vga_ycnt <= (others=>'0');
-    i_dvi_hs<= '0';
+    i_dvi_hs <= '0';
     i_dvi_vs <= '0';
     i_dvi_ha <= '0';
     i_dvi_va <= '0';
