@@ -14,6 +14,7 @@ CONFIG PART = XC5VLX50T-FF1136-1;
 #                                                        #
 ##########################################################
 CONFIG STEPPING = ES;
+NET "pin_in_ext<0>"     LOC = "K34";#¬нешн€€ синхронизаци€
 
 NET "pin_in_pult_rx"    LOC = "M32";
 NET "pin_out_pult_tx"   LOC = "P34";
