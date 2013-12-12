@@ -562,6 +562,7 @@ if rising_edge(p_in_clk) then
                                      or strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
 
           txd(C_HREG_FUNC_HSCAM_BIT) := strcmp2(C_PCFG_BOARD, "HSCAM_PCIE");
+          txd(C_HREG_FUNC_EXTSYNC_BIT) := strcmp2(C_PCFG_BOARD, "HTGV6");
 
         elsif vrsk_reg_adr(6 downto 2) = CONV_STD_LOGIC_VECTOR(C_HREG_FUNCPRM, 5) then
 
