@@ -3,6 +3,8 @@
 ###############################################################################
 CONFIG PART = XC6VLX240T-FF1759-2;
 
+NET "pin_in_ext<0>"     LOC = "AY18";#¬нешн€€ синхронизаци€
+
 NET "pin_in_pult_rx"    LOC = "AL14";
 NET "pin_out_pult_tx"   LOC = "AR17";
 NET "pin_out_pult_dir"  LOC = "AL15";

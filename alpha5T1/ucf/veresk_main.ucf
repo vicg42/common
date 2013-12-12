@@ -6,6 +6,7 @@ CONFIG PART = XC5VLX110T-FF1136-1;
 #Set stepping level to ES, so that bitstream is
 #compatible with devices of all steppings.
 CONFIG STEPPING = ES;
+NET "pin_in_ext<0>"     LOC = "AH10";#¬нешн€€ синхронизаци€
 
 NET "pin_in_pult_rx"    LOC = "AP14";
 NET "pin_out_pult_tx"   LOC = "AN14";

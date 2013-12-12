@@ -80,12 +80,8 @@ constant C_HREG_CTRL_BITCLK_VIZIR_BIT         : integer:=14;--1/0  = bitclk 1MHz
 constant C_HREG_CTRL_RST_PROM_BIT             : integer:=15;
 constant C_HREG_CTRL_EN_SYN120_BUP_BIT        : integer:=16;--Разрешение обмена с BUP по сигналу 120 Гц
                                                             --привязанного к PPS GPS (сигнал 120Гц берется из модуля m_sync)
-
-constant C_HREG_CTRL_RDDONE_VCH0_BIT          : integer:=17;
-constant C_HREG_CTRL_RDDONE_VCH1_BIT          : integer:=18;
-constant C_HREG_CTRL_RDDONE_VCH2_BIT          : integer:=19;
-constant C_HREG_CTRL_RDDONE_VCH3_BIT          : integer:=20;
-constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_RDDONE_VCH3_BIT;
+constant C_HREG_CTRL_EXTSYNC_INV_BIT          : integer:=17;
+constant C_HREG_CTRL_LAST_BIT                 : integer:=C_HREG_CTRL_EXTSYNC_INV_BIT;
 
 
 --Register C_HREG_DEV_CTRL / Bit Map:
@@ -175,7 +171,8 @@ constant C_HIRQ_VCH5                          : integer:=10;
 constant C_HIRQ_VIZIR                         : integer:=11;--RxData
 constant C_HIRQ_BUP                           : integer:=12;--RxData
 constant C_HIRQ_PROM                          : integer:=13;
-constant C_HIRQ_COUNT                         : integer:=C_HIRQ_PROM + 1;
+constant C_HIRQ_EXTSYNC                       : integer:=14;
+constant C_HIRQ_COUNT                         : integer:=C_HIRQ_EXTSYNC + 1;
 constant C_HIRQ_COUNT_MAX                     : integer:=pwr(2, (C_HREG_IRQ_NUM_M_WBIT - C_HREG_IRQ_NUM_L_WBIT + 1));
 
 
@@ -216,7 +213,8 @@ constant C_HREG_FUNC_HDD_BIT                  : integer:=4;
 constant C_HREG_FUNC_VRESEK21_BIT             : integer:=5;
 constant C_HREG_FUNC_PROM_BIT                 : integer:=6;
 constant C_HREG_FUNC_PULT_BIT                 : integer:=7;
-constant C_HREG_FUNC_HSCAM_BIT                : integer:=8;
+constant C_HREG_FUNC_EXTSYNC_BIT              : integer:=8;
+constant C_HREG_FUNC_HSCAM_BIT                : integer:=9;
 constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_HSCAM_BIT;
 
 

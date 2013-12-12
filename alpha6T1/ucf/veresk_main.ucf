@@ -5,6 +5,7 @@ CONFIG PART = XC6VLX240T-FF1759-1;
 
 ## Target silicon stepping level 0 and later
 #CONFIG STEPPING = 0;
+NET "pin_in_ext<0>"     LOC = "N40";#¬нешн€€ синхронизаци€
 
 NET "pin_in_pult_rx"    LOC = "N39";
 NET "pin_out_pult_tx"   LOC = "N38";

@@ -3,6 +3,8 @@
 ###############################################################################
 CONFIG PART = XC7K325T-FFG676-2;
 
+NET "pin_in_ext<0>"     LOC = "Y20" | IOSTANDARD = LVCMOS15;
+
 NET "pin_in_pult_rx"    LOC = "R26" | IOSTANDARD = LVCMOS15;
 NET "pin_out_pult_tx"   LOC = "P26" | IOSTANDARD = LVCMOS15;
 NET "pin_out_pult_dir"  LOC = "M25" | IOSTANDARD = LVCMOS15;

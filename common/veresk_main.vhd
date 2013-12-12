@@ -118,6 +118,11 @@ pin_out_prom        : out   TPromPhyOUT;
 pin_inout_prom      : inout TPromPhyINOUT;
 
 --------------------------------------------------
+--EXT
+--------------------------------------------------
+pin_in_ext          : in    std_logic_vector(0 downto 0);
+
+--------------------------------------------------
 --Reference clock
 --------------------------------------------------
 pin_out_refclk      : out   TRefClkPinOUT;
@@ -288,6 +293,9 @@ signal i_out_1s                         : std_logic;
 signal i_pps                            : std_logic;
 
 signal i_prom_rst                       : std_logic;
+signal i_1ms                            : std_logic;
+signal i_extsign                        : std_logic_vector(0 downto 0);
+signal sr_extsyn                        : std_logic_vector(0 to 2);
 
 attribute keep : string;
 attribute keep of g_host_clk : signal is "true";
@@ -1090,7 +1098,7 @@ p_out_test_led => i_test01_led,
 p_out_test_done=> open,
 
 p_out_1us      => open,
-p_out_1ms      => open,
+p_out_1ms      => i_1ms,
 -------------------------------
 --System
 -------------------------------
@@ -1408,5 +1416,22 @@ p_in_clk         => i_tmr_clk,
 p_in_rst         => i_prom_rst
 );
 
+
+--***********************************************************
+--EXT
+--***********************************************************
+i_extsign(0) <= pin_in_ext(0) when i_host_gctrl(C_HREG_CTRL_EXTSYNC_INV_BIT) = '0' else
+                  not pin_in_ext(0);
+
+process(g_host_clk)
+begin
+if rising_edge(g_host_clk) then
+  if i_1ms = '1' then
+    sr_extsyn <= i_extsign(0) & sr_extsyn(0 to 1);
+  end if;
+end if;
+end process;
+
+i_host_dev_irq(C_HIRQ_EXTSYNC) <= AND_reduce(sr_extsyn);
 
 end architecture;
