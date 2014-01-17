@@ -48,7 +48,7 @@ scripts/eth_prm_update.bat -- обновляет значения ETH_BRAM_PRM
 scripts/eth_prm_dump.bat   -- можно проверить (через поиск) правильно ли обновились значения ETH_BRAM_PRM
 
 
-5. DHCP server :
+5. DHCP server:
 --- windows ---
 http://sourceforge.net/projects/dhcp-dns-server/
 в config файле DualServer.ini прописать:
