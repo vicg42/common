@@ -1,0 +1,25 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+NULL=0\h
+ALIGN=1\h
+SYNC=2\h
+SOF=4\h
+EOF=8\h
+HOLDA=10\h
+HOLD=20\h
+CONT=40\h
+DMAT=80\h
+X_RDY=100\h
+R_RDY=200\h
+R_IP=400\h
+R_OK=800\h
+R_ERR=1000\h
+WTRM=2000\h
+PMREQ_P=4000\h
+PMREQ_S=8000\h
+PMACK=10000\h
+PMNAK=20000\h
+DATA=40000\h

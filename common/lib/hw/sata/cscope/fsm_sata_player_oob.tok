@@ -1,0 +1,19 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+HR_IDLE=00\h
+HR_COMRESET_DONE=01\h
+HR_AwaitCOMINIT=02\h
+HR_COMWAKE=03\h
+HR_COMWAKE_DONE=04\h
+HR_AwaitCOMWAKE=05\h
+HR_AwaitNoCOMWAKE=06\h
+HR_AwaitAlign=07\h
+HR_SendAlign=08\h
+HR_Connect=09\h
+HR_COMRESET=0A\h
+HR_AwaitNoCOMINIT=0B\h
+HR_Calibrate=0C\h
+HR_Disconnect=0D\h
