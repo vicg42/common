@@ -1,0 +1,27 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+L_RESET=00\h
+L_IDLE=01\h
+L_SyncEscape=02\h
+L_NoCommErr=03\h
+L_NoComm=04\h
+LT_RcvRdy=05\h
+LT_SendSOF=06\h
+LT_SendData=07\h
+LT_SendCRC=08\h
+LT_SendEOF=09\h
+LT_Wait=0A\h
+LT_RcvHold=0B\h
+LT_SendHold=0C\h
+LR_RcvChkRdy=0D\h
+LR_RcvWaitFifo=0E\h
+LR_RcvData=0F\h
+LR_SendHold=10\h
+LR_RcvHold=11\h
+LR_RcvEOF=12\h
+LR_GoodCRC=13\h
+LR_GoodEnd=14\h
+LR_BadEnd=15\h

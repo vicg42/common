@@ -1,0 +1,11 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+IDLE=00\h
+TX_MACA_DST0=01\h
+TX_MACA_DST1=02\h
+TX_MACA_SRC=03\h
+TX_MACD=04\h
+TX_DONE=05\h
