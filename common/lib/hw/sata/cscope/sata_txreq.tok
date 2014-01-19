@@ -1,0 +1,26 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+C_TALIGN=0\u
+C_TSYNC=1\u
+C_TSOF=2\u
+C_TEOF=3\u
+C_THOLDA=4\u
+C_THOLD=5\u
+C_TCONT=6\u
+C_TDMAT=7\u
+C_TX_RDY=8\u
+C_TR_RDY=9\u
+C_TR_IP=10\u
+C_TR_OK=11\u
+C_TR_ERR=12\u
+C_TWTRM=13\u
+C_TPMREQ_P=14\u
+C_TPMREQ_S=15\u
+C_TPMACK=16\u
+C_TPMNAK=17\u
+C_TDATA_EN=18\u
+C_TD10_2=19\u
+C_TNONE=20\u

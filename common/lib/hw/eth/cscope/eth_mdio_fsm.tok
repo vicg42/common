@@ -1,0 +1,12 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+MDIO_IDLE=00\h
+MDIO_LD_PREAMBULE=01\h
+MDIO_TX_PREAMBULE=02\h
+MDIO_TX_LD_DONE=03\h
+MDIO_TX_CTRL=04\h
+MDIO_DATA=05\h
+MDIO_EXIT=06\h

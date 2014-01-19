@@ -1,0 +1,31 @@
+#File version
+@FILE_VERSION=1.0.0
+# Default token value
+@DEFAULT_TOKEN=ERROR
+# Explicit token values
+S_IDLE=00\h
+HT_ChkTyp=01\h
+HT_CmdFIS=02\h
+HT_CmdTransStatus=03\h
+HT_RegFIS=04\h
+HT_RegTransStatus=05\h
+HT_PS_FIS=06\h
+HT_PIOOTrans1=07\h
+HT_PIOOTrans2=08\h
+HT_PIOEnd=09\h
+HT_PIOITrans1=0A\h
+HT_PIOITrans2=0B\h
+HT_DMA_FIS=0C\h
+HT_DMAOTrans1=0D\h
+HT_DMAOTrans2=0E\h
+HT_DMAEnd=0F\h
+HT_DMAITrans =10\h
+HT_DmaSetupFIS =11\h
+HT_DmaSetupTransStatus=12\h
+HT_DS_FIS=13\h
+HT_CtrlFIS=14\h
+HT_CtrlTransStatus=15\h
+HT_DB_FIS=16\h
+HT_Dev_Bits=17\h
+HT_RcvBIST=18\h
+HT_BISTTrans1=19\h
