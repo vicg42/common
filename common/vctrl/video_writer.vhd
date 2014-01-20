@@ -136,7 +136,7 @@ signal i_upp_data_rd               : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
 
 signal i_upp_pkt_skip_rd_out       : std_logic;
-signal i_pkt_type_err              : std_logic_vector(4 downto 0);
+signal i_pkt_type_err              : std_logic_vector(3 downto 0);
 signal i_pkt_type_err_out          : std_logic_vector(i_pkt_type_err'range);
 signal i_pkt_size_byte             : std_logic_vector(15 downto 0);
 signal i_pkt_skip_data             : std_logic_vector(15 downto 0);
@@ -209,14 +209,14 @@ end generate gen_clk_sel1;
 ------------------------------------
 gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
 p_out_tst(26 downto 0) <= (others=>'0');
-p_out_tst(31 downto 26) <= '0' & i_pkt_type_err_out(4) & i_pkt_type_err_out(2 downto 0) & '0';
+p_out_tst(31 downto 26) <= "00" & i_pkt_type_err_out(2 downto 0) & '0';
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(3  downto 0) <= tst_fsmstate_out;
 p_out_tst(4) <= i_mem_start or tst_err_det or tst_upp_buf_empty or OR_reduce(tst_upp_data) or tst_upp_data_rd;
 p_out_tst(25 downto 5) <= (others=>'0');
-p_out_tst(31 downto 26) <= '0' & i_pkt_type_err_out(4) & i_pkt_type_err_out(2 downto 0) & '0';
+p_out_tst(31 downto 26) <= "00" & i_pkt_type_err_out(2 downto 0) & '0';
 
 process(i_clk)
 begin
@@ -481,10 +481,6 @@ if rising_edge(i_clk) then
         i_mem_dir <= C_MEMWR_WRITE;
         i_mem_start <= '1';
         fsm_state_cs <= S_MEM_WR;
-
-        if i_vfr_pix_count /= i_pix_count_byte then
-        i_pkt_type_err(1) <= '1';
-        end if;
 
       ------------------------------------------------
       --Запись данных
