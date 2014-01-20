@@ -136,14 +136,14 @@ signal i_upp_data_rd               : std_logic;
 signal i_upp_hd_data_rd_out        : std_logic;
 
 signal i_upp_pkt_skip_rd_out       : std_logic;
-signal i_pkt_type_err              : std_logic_vector(3 downto 0);
+signal i_pkt_type_err              : std_logic_vector(4 downto 0);
 
-signal i_pkt_size_byte             : std_logic_vector(15+1 downto 0);
+signal i_pkt_size_byte             : std_logic_vector(15 downto 0);
 signal i_pkt_skip_data             : std_logic_vector(15 downto 0);
 signal i_pkt_skip_dcnt             : std_logic_vector(15 downto 0);
 signal i_vpkt_skip_rd              : std_logic;
 signal i_pix_num                   : std_logic_vector(15 downto 0);
-signal i_pix_count_byte            : std_logic_vector(15+1 downto 0);
+signal i_pix_count_byte            : std_logic_vector(15 downto 0);
 
 signal tst_fsmstate                : std_logic_vector(3 downto 0);
 signal tst_fsmstate_out            : std_logic_vector(3 downto 0);
@@ -202,16 +202,21 @@ end generate gen_clk_sel1;
 ------------------------------------
 --Технологические сигналы
 ------------------------------------
-gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
-p_out_tst(26 downto 0) <= (others=>'0');
-p_out_tst(31 downto 27) <= '0' & i_pkt_type_err(3 downto 0);
-end generate gen_dbgcs_off;
-
-gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
+--gen_dbgcs_off : if strcmp(G_DBGCS,"OFF") generate
+--p_out_tst(26 downto 0) <= (others=>'0');
+--p_out_tst(31 downto 27) <= '0' & i_pkt_type_err(3 downto 0);
+--end generate gen_dbgcs_off;
+--
+--gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
 p_out_tst(3  downto 0) <= tst_fsmstate_out;
 p_out_tst(4) <= i_mem_start or tst_err_det or tst_upp_buf_empty or OR_reduce(tst_upp_data) or tst_upp_data_rd;
 p_out_tst(25 downto 5) <= (others=>'0');
-p_out_tst(31 downto 26) <= "00" & i_pkt_type_err(3 downto 0);
+p_out_tst(26) <= '0';
+p_out_tst(27) <= not i_pkt_type_err(0);
+p_out_tst(28) <= not i_pkt_type_err(1);
+p_out_tst(29) <= not i_pkt_type_err(2);
+p_out_tst(30) <= not i_pkt_type_err(4);
+p_out_tst(31) <= '0';
 
 process(i_clk)
 begin
@@ -239,7 +244,7 @@ tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#, tst_fsmstate'length) when fsm_stat
                 CONV_STD_LOGIC_VECTOR(16#05#, tst_fsmstate'length) when fsm_state_cs = S_PKT_SKIP2       else
                 CONV_STD_LOGIC_VECTOR(16#06#, tst_fsmstate'length) when fsm_state_cs = S_MEM_WR_DONE     else
                 CONV_STD_LOGIC_VECTOR(16#00#, tst_fsmstate'length); --fsm_state_cs = S_IDLE              else
-end generate gen_dbgcs_on;
+--end generate gen_dbgcs_on;
 
 
 ------------------------------------------------
@@ -300,7 +305,7 @@ if rising_edge(i_clk) then
 
     i_vpkt_skip_rd <= '0';
     i_pkt_size_byte <= (others=>'0');
-    i_pkt_skip_dcnt <= (others=>'0'); i_pkt_type_err(3 downto 0) <= (others=>'0');
+    i_pkt_skip_dcnt <= (others=>'0'); i_pkt_type_err <= (others=>'0');
     i_pix_num <= (others=>'0');
 
     i_pkt_skip_data <= (others=>'0');
@@ -322,7 +327,7 @@ if rising_edge(i_clk) then
         --Ждем когда появятся данные в буфере
         if p_in_upp_buf_empty = '0' then
 
-          i_pkt_type_err(2 downto 0) <= (others=>'0');
+--          i_pkt_type_err(2 downto 0) <= (others=>'0');
 
           if p_in_upp_data(15 downto 0) /= CONV_STD_LOGIC_VECTOR(0, 16) then
           --PktLen /= 0
@@ -336,7 +341,7 @@ if rising_edge(i_clk) then
 
           else
             i_vpkt_skip_rd <= '1';
-            i_pkt_type_err(3) <= '1';
+--            i_pkt_type_err(3) <= '1';
             fsm_state_cs <= S_PKT_SKIP2;
 
           end if;
@@ -390,7 +395,7 @@ if rising_edge(i_clk) then
             --Header DWORD-0:
             if i_vpkt_cnt = CONV_STD_LOGIC_VECTOR(C_VIDEO_PKT_HEADER_SIZE - 1, i_vpkt_cnt'length) then
 
-              i_pkt_size_byte <= ('0' & p_in_upp_data(15 downto 0)) + 2;--кол-во байт пакета + кол-во байт поля length
+              i_pkt_size_byte <= p_in_upp_data(15 downto 0) + 2;--кол-во байт пакета + кол-во байт поля length
 
               if p_in_upp_data(19 downto 16) = "0001"
                 and p_in_upp_data(27 downto 24) = "0011"
@@ -479,6 +484,10 @@ if rising_edge(i_clk) then
         i_mem_start <= '1';
         fsm_state_cs <= S_MEM_WR;
 
+        if i_vfr_pix_count /= i_pix_count_byte then
+        i_pkt_type_err(1) <= '1';
+        end if;
+
       ------------------------------------------------
       --Запись данных
       ------------------------------------------------
@@ -493,7 +502,7 @@ if rising_edge(i_clk) then
           if i_vfr_row = (i_vfr_row_count - 1) then
           --Обработал последнюю строку кадра.
           --Сигнализируем о готовности кадра:
-            if i_vfr_pix_count = (i_pix_count_byte(i_vfr_pix_count'range) + i_pix_num) then
+            if i_vfr_pix_count = (i_pix_count_byte + i_pix_num) then
               for i in 0 to C_VCTRL_VCH_COUNT - 1 loop
                 if i_vch_num = i then
                   i_vfr_rdy(i) <= '1';
@@ -512,7 +521,7 @@ if rising_edge(i_clk) then
         i_vfr_rdy <= (others=>'0');
 
         if CI_BOARD_DINIK7 = '1' and (i_vfr_row = (i_vfr_row_count - 1)) and
-          i_vfr_pix_count = (i_pix_count_byte(i_vfr_pix_count'range) + i_pix_num) then
+          i_vfr_pix_count = (i_pix_count_byte + i_pix_num) then
           if i_vfr_rdy_out2 /= (i_vfr_rdy_out2'range =>'0') then
             fsm_state_cs <= S_IDLE;
           end if;
