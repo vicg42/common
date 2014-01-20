@@ -224,7 +224,7 @@ if rising_edge(p_in_clk) then
           i_dcnt <= (others=>'0');
           i_rxll_eof_det <= '0';
 
-          if p_in_rxll_src_rdy_n = '0' and p_in_rxll_sof_n = '0' then
+          if p_in_rxll_src_rdy_n = '0' then
 
             i_rx_mac_dst(0) <= p_in_rxll_data((8 * 1) - 1 downto 8 * 0);
             i_rx_mac_dst(1) <= p_in_rxll_data((8 * 2) - 1 downto 8 * 1);
