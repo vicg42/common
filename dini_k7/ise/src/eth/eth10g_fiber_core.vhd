@@ -410,7 +410,7 @@ training_wrack   => open           --: out std_logic
 --####################################################
 --FPGA <- ETH
 p_out_phy2app(0).rxd          <= i_rx_axis_tdata;
-p_out_phy2app(0).rxsof_n      <= not (i_rx_axis_tvalid);
+p_out_phy2app(0).rxsof_n      <= not (i_rx_axis_tvalid and not i_rx_axis_tlast);
 p_out_phy2app(0).rxeof_n      <= not (i_rx_axis_tlast and i_rx_axis_tvalid);
 p_out_phy2app(0).rxsrc_rdy_n  <= not i_rx_axis_tvalid;
 p_out_phy2app(0).rxrem        <= i_rx_axis_tkeep;
