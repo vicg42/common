@@ -2,8 +2,8 @@
 -- Company     : Linkos
 -- Engineer    : Golovachenko Victor
 --
--- Create Date : 05.06.2012 10:17:52
--- Module Name : dsn_video_ctrl
+-- Create Date : 21.01.2014 16:16:45
+-- Module Name : dsn_video_ctrl2
 --
 -- Назначение/Описание :
 --  Формирование/Запись/Чтение кадров видеоканалов
@@ -23,7 +23,7 @@ use work.prj_def.all;
 use work.dsn_video_ctrl_pkg.all;
 use work.mem_wr_pkg.all;
 
-entity dsn_video_ctrl is
+entity dsn_video_ctrl2 is
 generic(
 G_USR_OPT : std_logic_vector(7 downto 0):=(others=>'0');
 G_DBGCS  : string:="OFF";
@@ -31,6 +31,9 @@ G_ROTATE : string:="OFF";
 G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF"; --ON/OFF - из обработки видео отавлено только отзеркаливание/ включен полный функционал видеообработки
 G_SIM    : string:="OFF";
+
+G_VBUF_OWIDTH: integer:=16;
+G_VSYN_ACTIVE : std_logic:='1';
 
 G_MEM_AWIDTH : integer:=32;
 G_MEMWR_DWIDTH : integer:=32;
@@ -64,10 +67,14 @@ p_out_hirq            : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);-
 p_out_hdrdy           : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);--Прерываение соответствующего видеоканала(Кадр готов)
 p_out_hfrmrk          : out   std_logic_vector(31 downto 0);
 
-p_in_vbufo_rdclk      : in    std_logic;
-p_out_vbufo_do        : out   std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);--Видео данные для ХОСТА
-p_in_vbufo_rd         : in    std_logic;
-p_out_vbufo_empty     : out   std_logic;
+-------------------------------
+--VideoOUT
+-------------------------------
+p_out_vd              : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vs               : in   std_logic;
+p_in_hs               : in   std_logic;
+p_in_vclk             : in   std_logic;
+p_in_vclk_en          : in   std_logic;
 
 -------------------------------
 --VBUFI
@@ -100,25 +107,36 @@ p_out_tst             : out   std_logic_vector(31 downto 0);
 p_in_clk              : in    std_logic;
 p_in_rst              : in    std_logic
 );
-end dsn_video_ctrl;
+end dsn_video_ctrl2;
 
-architecture behavioral of dsn_video_ctrl is
+architecture behavioral of dsn_video_ctrl2 is
 
-component host_vbuf
+component vout
+generic(
+G_VBUF_IWIDTH : integer:=32;
+G_VBUF_OWIDTH : integer:=32;
+G_VSYN_ACTIVE : std_logic:='1'
+);
 port(
-din         : IN  std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
-wr_en       : IN  std_logic;
-wr_clk      : IN  std_logic;
+--Вых. видеопоток
+p_out_vd         : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vs          : in   std_logic;
+p_in_hs          : in   std_logic;
+p_in_vclk        : in   std_logic;
 
-dout        : OUT std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
-rd_en       : IN  std_logic;
-rd_clk      : IN  std_logic;
+--Вх. видеопоток
+p_in_vbufo_di    : in   std_logic_vector(G_VBUF_IWIDTH - 1 downto 0);
+p_in_vbufo_wr    : in   std_logic;
+p_in_vbufo_wrclk : in   std_logic;
+p_out_vbufo_full : out  std_logic;
+p_out_vbufo_empty: out  std_logic;
 
-empty       : OUT std_logic;
-full        : OUT std_logic;
-prog_full   : OUT std_logic;
+--Технологический
+p_in_tst         : in   std_logic_vector(31 downto 0);
+p_out_tst        : out  std_logic_vector(31 downto 0);
 
-rst         : IN  std_logic
+--System
+p_in_rst         : in   std_logic
 );
 end component;
 
@@ -281,8 +299,8 @@ signal i_vrd_irq_width_cnt               : TArrayCntWidth;
 signal i_vrd_irq_width                   : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vrd_irq                         : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 signal i_vbuf_hold                       : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
-signal i_vfrmrk                          : TVMrks_vbufs;
-signal i_vfrmrk_out                      : std_logic_vector(31 downto 0);
+--signal i_vfrmrk                          : TVMrks_vbufs;
+--signal i_vfrmrk_out                      : std_logic_vector(31 downto 0);
 
 signal i_vbuf_wr                         : TVfrBufs;
 signal i_vbuf_rd                         : TVfrBufs;
@@ -294,10 +312,6 @@ signal i_vreader_rd_done                 : std_logic;
 signal i_vreader_vch                     : std_logic_vector(3 downto 0);
 signal i_vreader_dout                    : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 signal i_vreader_dout_en                 : std_logic;
-
-signal i_vmir_rdy_n                      : std_logic;
-signal i_vmir_dout                       : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
-signal i_vmir_dout_en                    : std_logic;
 
 signal i_vbufo_full                      : std_logic;
 signal i_vbufout_rst                     : std_logic;
@@ -702,9 +716,9 @@ begin
 if rising_edge(p_in_clk) then
   if p_in_rst = '1' then
     i_vbuf_wr(ch) <= (others=>'0');
-    for buf in 0 to CI_VBUF_COUNT - 1 loop
-    i_vfrmrk(ch)(buf) <= (others=>'0');
-    end loop;
+--    for buf in 0 to CI_VBUF_COUNT - 1 loop
+--    i_vfrmrk(ch)(buf) <= (others=>'0');
+--    end loop;
     i_vfrskip(ch) <= (others=>'0');
 
   else
@@ -721,16 +735,17 @@ if rising_edge(p_in_clk) then
             else
               i_vbuf_wr(ch) <= i_vbuf_wr(ch) + 1;
             end if;
+
         end if;
 
-        --Защелкиваем маркер текущего кадра для выдачи ХОСТУ
-        if i_vwrite_vfr_rdy(ch) = '1' then
-          for buf in 0 to CI_VBUF_COUNT - 1 loop
-            if i_vbuf_wr(ch) = buf then
-              i_vfrmrk(ch)(buf) <= i_vwrite_vrow_mrk;
-            end if;
-          end loop;
-        end if;
+--        --Защелкиваем маркер текущего кадра для выдачи ХОСТУ
+--        if i_vwrite_vfr_rdy(ch) = '1' then
+--          for buf in 0 to CI_VBUF_COUNT - 1 loop
+--            if i_vbuf_wr(ch) = buf then
+--              i_vfrmrk(ch)(buf) <= i_vwrite_vrow_mrk;
+--            end if;
+--          end loop;
+--        end if;
 
         --Подсчет записаных кадров в течении чтения данных ХОСТОМ
         if i_vbuf_hold(ch) = '0' then
@@ -884,45 +899,56 @@ p_in_rst              => p_in_rst
 
 
 ----------------------------------------------------
---Связь с HOST
-----------------------------------------------------
 --Выходной видеобуфер
-m_vbufo : host_vbuf
+----------------------------------------------------
+m_vout : vout
+generic map(
+G_VBUF_IWIDTH => G_MEMRD_DWIDTH,
+G_VBUF_OWIDTH => G_VBUF_OWIDTH,
+G_VSYN_ACTIVE => G_VSYN_ACTIVE
+)
 port map(
-din         => i_vreader_dout,
-wr_en       => i_vreader_dout_en,
-wr_clk      => p_in_clk,
+--Вых. видеопоток
+p_out_vd         => p_out_vd,
+p_in_vs          => p_in_vs,
+p_in_hs          => p_in_hs,
+p_in_vclk        => p_in_vclk,
+p_in_vclk_en     => p_in_vclk_en,
 
-dout        => p_out_vbufo_do,
-rd_en       => p_in_vbufo_rd,
-rd_clk      => p_in_vbufo_rdclk,
+--Вх. видеопоток
+p_in_vbufo_di    => i_vreader_dout,
+p_in_vbufo_wr    => i_vreader_dout_en,
+p_in_vbufo_wrclk => p_in_clk,
+p_out_vbufo_full => i_vbufo_full,
+p_out_vbufo_empty=> open,
 
-empty       => p_out_vbufo_empty,
-full        => open,
-prog_full   => i_vbufo_full,
+--Технологический
+p_in_tst         => (others=>'0'),
+p_out_tst        => open,
 
-rst         => i_vbufout_rst
+--System
+p_in_rst         => i_vbufout_rst
 );
 
 i_vbufout_rst <= p_in_rst or p_in_tst(0);
 
---маркер вычитываемого кадра:
-process(p_in_clk)
-begin
-  if rising_edge(p_in_clk) then
-
-    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
-        if i_vreader_vch = ch then
-          for buf in 0 to CI_VBUF_COUNT - 1 loop
-            if i_vbuf_rd(ch) = buf then
-              i_vfrmrk_out <= i_vfrmrk(ch)(buf);
-            end if;
-          end loop;
-        end if;
-    end loop;--for
-
-  end if;
-end process;
+----маркер вычитываемого кадра:
+--process(p_in_clk)
+--begin
+--  if rising_edge(p_in_clk) then
+--
+--    for ch in 0 to C_VCTRL_VCH_COUNT - 1 loop
+--        if i_vreader_vch = ch then
+--          for buf in 0 to CI_VBUF_COUNT - 1 loop
+--            if i_vbuf_rd(ch) = buf then
+--              i_vfrmrk_out <= i_vfrmrk(ch)(buf);
+--            end if;
+--          end loop;
+--        end if;
+--    end loop;--for
+--
+--  end if;
+--end process;
 
 p_out_hirq <= i_vrd_irq_width;
 p_out_hdrdy <= i_vbuf_hold;

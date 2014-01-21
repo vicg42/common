@@ -49,6 +49,7 @@ p_in_cfg_mem_trn_len  : in    std_logic_vector(7 downto 0);--Размер одиночной тр
 p_in_cfg_prm_vch      : in    TWriterVCHParams;            --Параметры записи видео каналов
 p_in_cfg_set_idle_vch : in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
+p_in_hwr_chsel        : in    std_logic_vector(3 downto 0);--Хост: номер видеоканала выбраного для записи
 p_in_vfr_buf          : in    TVfrBufs;                    --Номер буфера где будет формироваться текущий кадр
 
 --Статусы
@@ -189,7 +190,7 @@ if rising_edge(p_in_clk) then
 
         if p_in_upp_buf_empty = '0' then
           i_mem_adr(i_mem_adr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
-          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= (others=>'0');
+          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= p_in_hwr_chsel(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
           i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(0);
 
           i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH / 8))

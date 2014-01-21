@@ -202,7 +202,7 @@ begin
       when S_MEM_START =>
 
           i_mem_adr(i_mem_adr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
-          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= (others=>'0');
+          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= p_in_hrd_chsel(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
           i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(0);
 
           i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
