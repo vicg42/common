@@ -29,8 +29,8 @@ set _projects [ list \
       [ list "../../../common/lib/hw/cfgdev_ctrl/cfgdev_host.vhd" $_VHDMod ] \
       [ list "../../../common/mirror/vmirx_main.vhd" $_VHDMod ] \
       [ list "../../../common/vctrl/dsn_video_ctrl_pkg.vhd" $_VHDPkg ] \
-      [ list "../../../common/vctrl/dsn_video_ctrl.vhd" $_VHDMod ] \
-      [ list "../../../common/vctrl/video_reader.vhd" $_VHDMod ] \
+      [ list "../src/pcie/dsn_video_ctrl.vhd" $_VHDMod ] \
+      [ list "../src/pcie/video_reader.vhd" $_VHDMod ] \
       [ list "../../../common/lib/hw/mem/mem_glob_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi_pkg.vhd" $_VHDPkg ] \
       [ list "../../../common/lib/hw/mem/xilinx/mem_wr_axi.vhd" $_VHDMod ] \
