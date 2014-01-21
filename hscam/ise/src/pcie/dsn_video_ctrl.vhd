@@ -253,49 +253,6 @@ p_in_rst             : in    std_logic
 );
 end component;
 
-component vmirx_main
-generic(
-G_DWIDTH : integer:=8
-);
-port(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_mirx       : in    std_logic;
-p_in_cfg_pix_count  : in    std_logic_vector(15 downto 0);
-
-p_out_cfg_mirx_done : out   std_logic;
-
-----------------------------
---Upstream Port (входные данные)
-----------------------------
---p_in_upp_clk        : in    std_logic;
-p_in_upp_data       : in    std_logic_vector(G_DWIDTH - 1 downto 0);
-p_in_upp_wd         : in    std_logic;
-p_out_upp_rdy_n     : out   std_logic;
-
-----------------------------
---Downstream Port (результат)
-----------------------------
---p_in_dwnp_clk       : in    std_logic;
-p_out_dwnp_data     : out   std_logic_vector(G_DWIDTH - 1 downto 0);
-p_out_dwnp_wd       : out   std_logic;
-p_in_dwnp_rdy_n     : in    std_logic;
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            : in    std_logic_vector(31 downto 0);
-p_out_tst           : out   std_logic_vector(31 downto 0);
-
--------------------------------
---System
--------------------------------
-p_in_clk            : in    std_logic;
-p_in_rst            : in    std_logic
-);
-end component;
-
 
 signal i_cfg_adr_cnt                     : std_logic_vector(7 downto 0);
 
@@ -333,10 +290,7 @@ signal i_vwrite_vfr_rdy                  : std_logic_vector(C_VCTRL_VCH_COUNT - 
 signal i_vwrite_vrow_mrk                 : std_logic_vector(31 downto 0);
 
 signal i_vreader_rd_done                 : std_logic;
-signal i_vreader_rq_next_line            : std_logic;
 signal i_vreader_vch                     : std_logic_vector(3 downto 0);
-signal i_vreader_active_pix              : std_logic_vector(15 downto 0);
-signal i_vreader_mirx                    : std_logic;
 signal i_vreader_dout                    : std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 signal i_vreader_dout_en                 : std_logic;
 
@@ -889,15 +843,15 @@ p_in_hrd_start        => p_in_hrdstart,
 p_in_hrd_done         => p_in_hrddone,
 
 p_in_vfr_buf          => i_vbuf_rd,
-p_in_vfr_nrow         => i_vreader_rq_next_line,
+p_in_vfr_nrow         => '0',
 
 --Статусы
 p_out_vch_fr_new      => open,
 p_out_vch_rd_done     => i_vreader_rd_done,
 p_out_vch             => i_vreader_vch,
-p_out_vch_active_pix  => i_vreader_active_pix,
+p_out_vch_active_pix  => open,
 p_out_vch_active_row  => open,
-p_out_vch_mirx        => i_vreader_mirx,
+p_out_vch_mirx        => open,
 
 ----------------------------
 --Upstream Port
@@ -905,7 +859,7 @@ p_out_vch_mirx        => i_vreader_mirx,
 p_out_upp_data        => i_vreader_dout,
 p_out_upp_data_wd     => i_vreader_dout_en,
 p_in_upp_buf_empty    => '0',
-p_in_upp_buf_full     => i_vmir_rdy_n,
+p_in_upp_buf_full     => i_vbufo_full,
 
 ---------------------------------
 -- Связь с mem_ctrl.vhd
@@ -927,58 +881,14 @@ p_in_rst              => p_in_rst
 );
 
 
--------------------------------
---Отзеркаливания по Х
--------------------------------
-m_vmirx : vmirx_main
-generic map(
-G_DWIDTH => G_MEMRD_DWIDTH
-)
-port map(
--------------------------------
--- Управление
--------------------------------
-p_in_cfg_mirx       => i_vreader_mirx,
-p_in_cfg_pix_count  => i_vreader_active_pix,
-
-p_out_cfg_mirx_done => i_vreader_rq_next_line,
-
-----------------------------
---Upstream Port
-----------------------------
-p_in_upp_data       => i_vreader_dout,
-p_in_upp_wd         => i_vreader_dout_en,
-p_out_upp_rdy_n     => i_vmir_rdy_n,
-
-----------------------------
---Downstream Port
-----------------------------
-p_out_dwnp_data     => i_vmir_dout,
-p_out_dwnp_wd       => i_vmir_dout_en,
-p_in_dwnp_rdy_n     => i_vbufo_full,
-
--------------------------------
---Технологический
--------------------------------
-p_in_tst            => (others=>'0'),
-p_out_tst           => open,
-
--------------------------------
---System
--------------------------------
-p_in_clk            => p_in_clk,
-p_in_rst            => p_in_rst
-);
-
-
 ----------------------------------------------------
 --Связь с HOST
 ----------------------------------------------------
 --Выходной видеобуфер
 m_vbufo : host_vbuf
 port map(
-din         => i_vmir_dout,
-wr_en       => i_vmir_dout_en,
+din         => i_vreader_dout,
+wr_en       => i_vreader_dout_en,
 wr_clk      => p_in_clk,
 
 dout        => p_out_vbufo_do,
