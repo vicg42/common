@@ -256,7 +256,6 @@ signal i_vout_hs                        : std_logic;
 signal i_vout_clk                       : std_logic;
 signal i_vout_clk_en                    : std_logic;
 signal i_video_out_vs                   : std_logic;
-signal sr_vout_vs                       : std_logic_vector(0 to 1);
 
 signal i_ccd2_cfg                       : std_logic_vector(15 downto 0);
 signal i_ccd2_vpix                      : std_logic_vector(15 downto 0);
@@ -586,28 +585,6 @@ i_vctrl_tst_in(31 downto 1) <= (others=>'0');
 --***********************************************************
 i_host_dev_irq(C_HIRQ_VCH1) <= i_vctrl_irq(1);
 
-process(g_usr_highclk)
-begin
-  if rising_edge(g_usr_highclk) then
-    if i_vout_vs = G_VSYN_ACTIVE then
-      i_video_out_vs <= '1';
-    else
-      i_video_out_vs <= '0';
-    end if;
-
-    sr_vout_vs <= i_vout_vs & sr_vout_vs(0 to 0);
-
---Выдаем видео при записи на HDD
---    if then
-    i_vctrl2_hrd_start <= sr_vout_vs(0) and not sr_vout_vs(1);
---    else
---Выдаем видео при чтении из HDD
---    i_vctrl2_hrd_start <= ;
---    end if;
-
-  end if;
-end process;
-
 m_vctrl2 : dsn_video_ctrl2
 generic map(
 G_VBUF_OWIDTH => C_PCFG_VOUT_DWIDTH,
@@ -632,7 +609,7 @@ p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
 p_in_cfg_txdata      => i_cfg_txd,
 p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_VCTRL),
 
-p_out_cfg_rxdata     => i_cfg_rxd_dev(C_CFGDEV_VCTRL),
+p_out_cfg_rxdata     => open,
 p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_VCTRL),
 
 p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
@@ -641,7 +618,7 @@ p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
 --HOST
 -------------------------------
 p_in_hrdchsel        => "0001",
-p_in_hrdstart        => i_vctrl2_hrd_start,
+p_in_hrdstart        => i_host_tst_out(16),
 p_in_hrddone         => '1',
 p_out_hirq           => i_vctrl2_irq,
 p_out_hdrdy          => open,

@@ -137,16 +137,16 @@ end process;
 i_pix_en <= '1' when p_in_hs /= G_VSYN_ACTIVE and p_in_vs /= G_VSYN_ACTIVE else '0';
 i_buf_rd <= p_in_vclk_en and i_pix_en and i_buf_rd_en and i_hd_vden;
 
-i_buf_wr <= p_in_vbufo_di_wr;
-i_buf_din(64 + (64 * 0) - 1 downto 48 + (64 * 0)) <= p_in_vbufo_di(48 + (64 * 0) - 1 downto 32 + (64 * 0));--(15 downto  0)
-i_buf_din(48 + (64 * 0) - 1 downto 32 + (64 * 0)) <= p_in_vbufo_di(64 + (64 * 0) - 1 downto 48 + (64 * 0));--(31 downto 16)
-i_buf_din(32 + (64 * 0) - 1 downto 16 + (64 * 0)) <= p_in_vbufo_di(16 + (64 * 0) - 1 downto  0 + (64 * 0));--(47 downto 32)
-i_buf_din(16 + (64 * 0) - 1 downto  0 + (64 * 0)) <= p_in_vbufo_di(32 + (64 * 0) - 1 downto 16 + (64 * 0));--(63 downto 48)
-
---i_buf_din(64 + (64 * 1) - 1 downto 48 + (64 * 1)) <= p_in_vbufo_di(48 + (64 * 1) - 1 downto 32 + (64 * 1));--(15 downto  0)
---i_buf_din(48 + (64 * 1) - 1 downto 32 + (64 * 1)) <= p_in_vbufo_di(64 + (64 * 1) - 1 downto 48 + (64 * 1));--(31 downto 16)
---i_buf_din(32 + (64 * 1) - 1 downto 16 + (64 * 1)) <= p_in_vbufo_di(16 + (64 * 1) - 1 downto  0 + (64 * 1));--(47 downto 32)
---i_buf_din(16 + (64 * 1) - 1 downto  0 + (64 * 1)) <= p_in_vbufo_di(32 + (64 * 1) - 1 downto 16 + (64 * 1));--(63 downto 48)
+i_buf_wr <= p_in_vbufo_wr;
+--128bit
+i_buf_din((16 * 8) - 1 downto (16 * 7)) <= p_in_vbufo_di((16 * 7) - 1 downto (16 * 6));
+i_buf_din((16 * 7) - 1 downto (16 * 6)) <= p_in_vbufo_di((16 * 8) - 1 downto (16 * 7));
+i_buf_din((16 * 6) - 1 downto (16 * 5)) <= p_in_vbufo_di((16 * 5) - 1 downto (16 * 4));
+i_buf_din((16 * 5) - 1 downto (16 * 4)) <= p_in_vbufo_di((16 * 6) - 1 downto (16 * 5));
+i_buf_din((16 * 4) - 1 downto (16 * 3)) <= p_in_vbufo_di((16 * 3) - 1 downto (16 * 2));
+i_buf_din((16 * 3) - 1 downto (16 * 2)) <= p_in_vbufo_di((16 * 4) - 1 downto (16 * 3));
+i_buf_din((16 * 2) - 1 downto (16 * 1)) <= p_in_vbufo_di((16 * 1) - 1 downto (16 * 0));
+i_buf_din((16 * 1) - 1 downto (16 * 0)) <= p_in_vbufo_di((16 * 2) - 1 downto (16 * 1));
 
 m_bufi : vout_bufi
 port map(
