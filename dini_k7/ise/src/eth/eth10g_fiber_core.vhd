@@ -224,11 +224,6 @@ signal tst_tx_axis_tready  : std_logic;
 signal tst_tx_axis_tuser   : std_logic;
 
 signal tst_out             : std_logic_vector(3 downto 0) := (others => '0');
-signal tst_sfp_txdis       : std_logic;
-signal tst_sfp_sd          : std_logic;
-signal tst_sfp_tx_fault    : std_logic;
-signal tst_pma_core_status : std_logic_vector(i_pma_core_status'range);
-signal tst_pma_resetdone   : std_logic;
 signal tst_rx_idle         : std_logic := '0';
 signal tst_rx_err          : std_logic := '0';
 signal tst_rx              : std_logic := '0';
@@ -244,7 +239,7 @@ p_out_phy.pin.fiber.clk_oe_n <= '0';-- Oscillator Output Enable
 p_out_phy.pin.fiber.clk_sel <= "11";--00/01/10/11 - 100MHz/125Mhz/150Mhz/156.25Mhz
 p_out_phy.pin.fiber.sfp_rs <= (others => '1');
 
-p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;--'0';
+p_out_phy.pin.fiber.sfp_txdis <= i_pma_sfp_tx_disable;
 i_pma_sfp_signal_detect <= not p_in_phy.pin.fiber.sfp_sd;
 i_pma_sfp_tx_fault <= p_in_phy.pin.fiber.sfp_txfault;
 
@@ -439,8 +434,7 @@ i_tx_axis_tuser <= '0';
 --####################################################
 gen_dbg_on : if strcmp(G_DBG,"ON") generate
 
-p_out_dbg(0).d(0) <= tst_pma_resetdone or OR_reduce(tst_pma_core_status) --or tst_rx_idle or tst_rx_err or tst_rx
-                    or tst_sfp_tx_fault or tst_sfp_sd or tst_sfp_txdis;
+p_out_dbg(0).d(0) <= '0';
 p_out_dbg(0).d(1) <= tst_out(0);
 p_out_dbg(0).d(2) <= tst_out(1);
 p_out_dbg(0).d(3) <= tst_out(2);
@@ -468,12 +462,6 @@ begin
     tst_out(2) <= OR_reduce(tst_tx_axis_tdata) or OR_reduce(tst_tx_axis_tkeep);
 
     tst_out(3) <= OR_reduce(tst_rx_axis_tdata) or OR_reduce(tst_rx_axis_tkeep);
-
-    tst_sfp_txdis <= i_pma_sfp_tx_disable;
-    tst_sfp_sd <= i_pma_sfp_signal_detect;
-    tst_sfp_tx_fault <= i_pma_sfp_tx_fault;
-    tst_pma_core_status <= i_pma_core_status;
-    tst_pma_resetdone <= i_pma_resetdone;
 
   end if;
 end process;
