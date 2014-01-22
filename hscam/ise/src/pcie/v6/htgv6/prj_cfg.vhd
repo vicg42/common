@@ -77,4 +77,6 @@ constant C_CAM_CTRL_CFGFTDI            : integer:=7;
 
 constant C_PCFG_CCD_DWIDTH             : integer:=80;
 
+constant C_PCFG_VOUT_DWIDTH            : integer:=16;--Шина данных для модуля Толи Кукла
+
 end prj_cfg;

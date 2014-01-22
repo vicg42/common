@@ -184,6 +184,12 @@ signal i_vctrl_vbufi_empty              : std_logic;
 signal i_vctrl_vbufi_pfull              : std_logic;
 signal i_vctrl_vbufi_full               : std_logic;
 
+signal i_vctrl_vbufi2_do                : std_logic_vector(C_PCFG_VCTRL_VBUFI_OWIDTH - 1 downto 0);
+signal i_vctrl_vbufi2_rd                : std_logic;
+signal i_vctrl_vbufi2_empty             : std_logic;
+signal i_vctrl_vbufi2_pfull             : std_logic;
+signal i_vctrl_vbufi2_full              : std_logic;
+
 signal i_vctrl_hrd_start                : std_logic;
 signal i_vctrl_hrd_done                 : std_logic;
 signal sr_vctrl_hrd_done                : std_logic_vector(1 downto 0);
@@ -191,6 +197,13 @@ signal i_vctrl_hrdy                     : std_logic_vector(C_VCTRL_VCH_COUNT - 1
 signal i_vctrl_hfrmrk                   : std_logic_vector(31 downto 0);
 signal i_vctrl_tst_out                  : std_logic_vector(31 downto 0);
 signal i_vctrl_tst_in                   : std_logic_vector(31 downto 0);
+
+signal i_vctrl_irq                      : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
+
+signal i_vctrl2_hrd_start               : std_logic;
+signal i_vctrl2_tst_out                 : std_logic_vector(31 downto 0);
+signal i_vctrl2_tst_in                  : std_logic_vector(31 downto 0);
+signal i_vctrl2_irq                     : std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
 signal i_host_mem_rst                   : std_logic;
 signal i_host_mem_ctrl                  : TPce2Mem_Ctrl;
@@ -223,7 +236,7 @@ signal tst_clr          : std_logic;
 --signal tst_edev_out     : std_logic_vector(31 downto 0);
 --signal tst_prom_out     : std_logic_vector(31 downto 0);
 
-signal i_ccd_vd                         : std_logic_vector(C_PCFG_CCD_DWIDTH - 1 downto 0);
+signal i_ccd_vdi                        : std_logic_vector(C_PCFG_CCD_DWIDTH - 1 downto 0);
 signal i_ccd_vs                         : std_logic;
 signal i_ccd_hs                         : std_logic;
 signal i_ccd_vclk                       : std_logic;
@@ -236,6 +249,22 @@ signal i_ccd_syn_v                      : std_logic_vector(15 downto 0);
 signal i_ccd_d80_d32_clk                : std_logic;
 signal i_ccd_tst_out                    : std_logic_vector(31 downto 0);
 signal i_ccd_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
+
+signal i_vout_d                         : std_logic_vector(C_PCFG_VOUT_DWIDTH - 1 downto 0);
+signal i_vout_vs                        : std_logic;
+signal i_vout_hs                        : std_logic;
+signal i_vout_clk                       : std_logic;
+signal i_vout_clk_en                    : std_logic;
+signal i_video_out_vs                   : std_logic;
+signal sr_vout_vs                       : std_logic_vector(0 to 1);
+
+signal i_ccd2_cfg                       : std_logic_vector(15 downto 0);
+signal i_ccd2_vpix                      : std_logic_vector(15 downto 0);
+signal i_ccd2_vrow                      : std_logic_vector(15 downto 0);
+signal i_ccd2_syn_h                     : std_logic_vector(15 downto 0);
+signal i_ccd2_syn_v                     : std_logic_vector(15 downto 0);
+signal i_ccd2_tst_out                   : std_logic_vector(31 downto 0);
+signal i_ccd2_fps                       : std_logic_vector(3 downto 0) := (others=>'0');
 
 
 --MAIN
@@ -424,7 +453,7 @@ p_in_cfg_done             => i_cfg_done_dev(C_CFGDEV_SWT),
 -------------------------------
 --Связь с ImageSensor
 -------------------------------
-p_in_vd                   => i_ccd_vd,
+p_in_vd                   => i_ccd_vdi,
 p_in_vs                   => i_ccd_vs,
 p_in_hs                   => i_ccd_hs,
 p_in_vclk                 => i_ccd_vclk,
@@ -444,6 +473,16 @@ p_out_vbufi_full          => i_vctrl_vbufi_full,
 p_out_vbufi_pfull         => i_vctrl_vbufi_pfull,
 
 -------------------------------
+--VBUFI2
+-------------------------------
+p_in_vbufi2_rdclk         => g_usr_highclk,
+p_out_vbufi2_do           => i_vctrl_vbufi2_do,
+p_in_vbufi2_rd            => i_vctrl_vbufi2_rd,
+p_out_vbufi2_empty        => i_vctrl_vbufi2_empty,
+p_out_vbufi2_full         => i_vctrl_vbufi2_full,
+p_out_vbufi2_pfull        => i_vctrl_vbufi2_pfull,
+
+-------------------------------
 --Технологический
 -------------------------------
 p_in_tst                  => i_swt_tst_in,
@@ -461,8 +500,10 @@ i_swt_tst_in(31 downto 2) <= (others=>'0');
 
 
 --***********************************************************
---Проект модуля видео контролера - dsn_video_ctrl.vhd
+--ImageSensor -> PCIE
 --***********************************************************
+i_host_dev_irq(C_HIRQ_VCH0) <= i_vctrl_irq(0);
+
 m_vctrl : dsn_video_ctrl
 generic map(
 G_USR_OPT => C_PCFG_VCTRL_USR_OPT,
@@ -492,10 +533,10 @@ p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
 -------------------------------
 --HOST
 -------------------------------
-p_in_hrdchsel        => i_host_vchsel,
+p_in_hrdchsel        => "0000",
 p_in_hrdstart        => i_vctrl_hrd_start,
 p_in_hrddone         => i_vctrl_hrd_done,
-p_out_hirq           => i_host_dev_irq((C_HIRQ_VCH0 + C_VCTRL_VCH_COUNT) - 1 downto C_HIRQ_VCH0),
+p_out_hirq           => i_vctrl_irq,
 p_out_hdrdy          => i_vctrl_hrdy,
 p_out_hfrmrk         => i_vctrl_hfrmrk,
 
@@ -538,6 +579,117 @@ p_in_rst => i_vctrl_rst
 
 i_vctrl_tst_in(0) <= i_swt_tst_out(0);--Сброс выходного видеобуфера !!!
 i_vctrl_tst_in(31 downto 1) <= (others=>'0');
+
+
+--***********************************************************
+--ImageSensor/PCIE -> VBUFO
+--***********************************************************
+i_host_dev_irq(C_HIRQ_VCH1) <= i_vctrl_irq(1);
+
+process(g_usr_highclk)
+begin
+  if rising_edge(g_usr_highclk) then
+    if i_vout_vs = G_VSYN_ACTIVE then
+      i_video_out_vs <= '1';
+    else
+      i_video_out_vs <= '0';
+    end if;
+
+    sr_vout_vs <= i_vout_vs & sr_vout_vs(0 to 0);
+
+--Выдаем видео при записи на HDD
+--    if then
+    i_vctrl2_hrd_start <= sr_vout_vs(0) and not sr_vout_vs(1);
+--    else
+--Выдаем видео при чтении из HDD
+--    i_vctrl2_hrd_start <= ;
+--    end if;
+
+  end if;
+end process;
+
+m_vctrl2 : dsn_video_ctrl2
+generic map(
+G_VBUF_OWIDTH => C_PCFG_VOUT_DWIDTH,
+G_VSYN_ACTIVE => '1',
+
+G_USR_OPT => C_PCFG_VCTRL_USR_OPT,
+G_DBGCS => C_PCFG_VCTRL_DBG,
+G_MEM_AWIDTH => C_HREG_MEM_ADR_LAST_BIT,
+G_MEMWR_DWIDTH => C_PCFG_VCTRL_VBUFI_OWIDTH,
+G_MEMRD_DWIDTH => C_HDEV_DWIDTH
+)
+port map(
+-------------------------------
+--CFG
+-------------------------------
+p_in_cfg_clk         => g_host_clk,
+
+p_in_cfg_adr         => i_cfg_radr(7 downto 0),
+p_in_cfg_adr_ld      => i_cfg_radr_ld,
+p_in_cfg_adr_fifo    => i_cfg_radr_fifo,
+
+p_in_cfg_txdata      => i_cfg_txd,
+p_in_cfg_wd          => i_cfg_wr_dev(C_CFGDEV_VCTRL),
+
+p_out_cfg_rxdata     => i_cfg_rxd_dev(C_CFGDEV_VCTRL),
+p_in_cfg_rd          => i_cfg_rd_dev(C_CFGDEV_VCTRL),
+
+p_in_cfg_done        => i_cfg_done_dev(C_CFGDEV_VCTRL),
+
+-------------------------------
+--HOST
+-------------------------------
+p_in_hrdchsel        => "0001",
+p_in_hrdstart        => i_vctrl2_hrd_start,
+p_in_hrddone         => '1',
+p_out_hirq           => i_vctrl2_irq,
+p_out_hdrdy          => open,
+p_out_hfrmrk         => open,--номер вычитаного кадра
+
+-------------------------------
+--VideoOUT
+-------------------------------
+p_out_vd             => i_vout_d,
+p_in_vs              => i_vout_vs,
+p_in_hs              => i_vout_hs,
+p_in_vclk            => i_vout_clk,
+p_in_vclk_en         => i_vout_clk_en,
+
+-------------------------------
+--VBUFI
+-------------------------------
+p_in_vbufi_do        => i_vctrl_vbufi2_do,
+p_out_vbufi_rd       => i_vctrl_vbufi2_rd,
+p_in_vbufi_empty     => i_vctrl_vbufi2_empty,
+p_in_vbufi_full      => i_vctrl_vbufi2_full,
+p_in_vbufi_pfull     => i_vctrl_vbufi2_pfull,
+
+---------------------------------
+--MEM
+---------------------------------
+--CH WRITE
+p_out_memwr          => i_memin_ch(3),  --DEV -> MEM
+p_in_memwr           => i_memout_ch(3), --DEV <- MEM
+--CH READ
+p_out_memrd          => i_memin_ch(4),  --DEV -> MEM
+p_in_memrd           => i_memout_ch(4), --DEV <- MEM
+
+-------------------------------
+--Технологический
+-------------------------------
+p_in_tst             => i_vctrl2_tst_in,
+p_out_tst            => i_vctrl2_tst_out,
+
+-------------------------------
+--System
+-------------------------------
+p_in_clk => g_usr_highclk,
+p_in_rst => i_vctrl_rst
+);
+
+i_vctrl2_tst_in(0) <= i_swt_tst_out(0);--Сброс выходного видеобуфера !!!
+i_vctrl2_tst_in(31 downto 1) <= (others=>'0');
 
 
 --***********************************************************
@@ -878,7 +1030,7 @@ p_in_sys        => i_mem_ctrl_sysin
 --DBG
 --#########################################
 pin_out_led(0) <= i_test01_led;
-pin_out_led(1) <= '0';
+pin_out_led(1) <= OR_reduce(i_vout_d);
 pin_out_led(2) <= '0';
 pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
@@ -955,9 +1107,8 @@ p_in_rst         => i_prom_rst
 );
 
 
-
 --#########################################
---Генератор видеопотока
+--Генератор видеопотока (Записываемого)
 --#########################################
 i_ccd_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_CCD_DWIDTH/8), i_ccd_vpix'length);
 i_ccd_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd_vrow'length);
@@ -983,7 +1134,7 @@ i_ccd_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd_syn_h'length) when i_ccd_fps = 
                CONV_STD_LOGIC_VECTOR( 5, i_ccd_syn_h'length);-- when i_ccd_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd_fps'length) else
 i_ccd_syn_v <= i_ccd_syn_h;
 
-m_vfr_gen : vfr_gen
+m_gen_video_in : vfr_gen
 generic map(
 G_VD_WIDTH => C_PCFG_CCD_DWIDTH,
 G_VSYN_ACTIVE => '1'
@@ -997,7 +1148,7 @@ p_in_syn_h    => i_ccd_syn_h,
 p_in_syn_v    => i_ccd_syn_v,
 
 --Test Video
-p_out_vd      => i_ccd_vd,
+p_out_vd      => i_ccd_vdi,
 p_out_vs      => i_ccd_vs,
 p_out_hs      => i_ccd_hs,
 p_out_vclk    => open,
@@ -1015,5 +1166,63 @@ p_in_rst      => i_swt_rst
 pin_out_TP(7 downto 1) <= (others=>'0');
 pin_out_TP(0) <= OR_reduce(i_tmr_hirq) or OR_reduce(i_tmr_en);
 
+
+--#########################################
+--Генератор видеопотока (Вычитываемого)
+--#########################################
+i_ccd2_vpix <= CONV_STD_LOGIC_VECTOR(1280/(C_PCFG_CCD_DWIDTH/8), i_ccd2_vpix'length);
+i_ccd2_vrow <= CONV_STD_LOGIC_VECTOR(1024, i_ccd2_vrow'length);
+
+--Управление через рег. C_HREG_TST0
+--3..0 -  --0/1/2/3/4 - 30fps/60fps/120fps/240fps/480fps/
+--7..4 -  --0/1/2/    - Test picture: V+H Counter/ V Counter/ H Counter/
+i_ccd2_cfg(7 downto 0) <= i_host_tst_out(15 downto 8);
+i_ccd2_cfg(i_ccd2_cfg'length - 1 downto 8) <= (others=>'0');
+process(i_vout_clk)
+begin
+  if rising_edge(i_vout_clk) then
+    if i_vout_vs = '1' then
+      i_ccd2_fps <= i_ccd2_cfg(3 downto 0);
+    end if;
+  end if;
+end process;
+
+i_ccd2_syn_h <= CONV_STD_LOGIC_VECTOR(1969, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(0, i_ccd2_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 919, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(1, i_ccd2_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 394, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(2, i_ccd2_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 132, i_ccd2_syn_h'length) when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(3, i_ccd2_fps'length) else
+                CONV_STD_LOGIC_VECTOR( 5, i_ccd2_syn_h'length);-- when i_ccd2_fps = CONV_STD_LOGIC_VECTOR(4, i_ccd2_fps'length) else
+i_ccd2_syn_v <= i_ccd2_syn_h;
+
+m_gen_video_out : vfr_gen
+generic map(
+G_VD_WIDTH => C_PCFG_CCD_DWIDTH,
+G_VSYN_ACTIVE => '1'
+)
+port map(
+--CFG
+p_in_cfg      => i_ccd2_cfg,
+p_in_vpix     => i_ccd2_vpix,
+p_in_vrow     => i_ccd2_vrow,
+p_in_syn_h    => i_ccd2_syn_h,
+p_in_syn_v    => i_ccd2_syn_v,
+
+--Test Video
+p_out_vd      => open,
+p_out_vs      => i_vout_vs,
+p_out_hs      => i_vout_hs,
+p_out_vclk    => open,
+p_out_vclk_en => i_vout_clk_en,
+
+--Технологический
+p_in_tst      => (others=>'0'),
+p_out_tst     => i_ccd2_tst_out,
+
+--System
+p_in_clk      => i_vout_clk,
+p_in_rst      => i_swt_rst
+);
+
+i_vout_clk <= i_ccd_vclk;
 
 end architecture;

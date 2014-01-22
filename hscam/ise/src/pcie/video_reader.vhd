@@ -24,7 +24,10 @@ use work.dsn_video_ctrl_pkg.all;
 
 entity video_reader is
 generic(
-G_DBGCS           : string :="OFF";
+G_USR_OPT         : std_logic_vector(3 downto 0):=(others=>'0');
+G_DBGCS           : string:="OFF";
+G_ROTATE          : string:="OFF";
+G_ROTATE_BUF_COUNT: integer:=16;
 G_MEM_BANK_M_BIT  : integer:=29;
 G_MEM_BANK_L_BIT  : integer:=28;
 
@@ -44,15 +47,16 @@ port(
 -------------------------------
 p_in_cfg_mem_trn_len : in    std_logic_vector(7 downto 0);
 p_in_cfg_prm_vch     : in    TReaderVCHParams;
+p_in_cfg_set_idle_vch: in    std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
-p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);--//Хост: номер видеоканала выбраного для чтения
-p_in_hrd_start       : in    std_logic;                   --//Хост: Запуск чтения кадра
-p_in_hrd_done        : in    std_logic;                   --//Хост: Подтверждение вычитки кадра
+p_in_hrd_chsel       : in    std_logic_vector(3 downto 0);--Хост: номер видеоканала выбраного для чтения
+p_in_hrd_start       : in    std_logic;                   --Хост: Запуск чтения кадра
+p_in_hrd_done        : in    std_logic;                   --Хост: Подтверждение вычитки кадра
 
-p_in_vfr_buf         : in    TVfrBufs;                    --//Номер видеобувера с готовым кадром для соответствующего видеоканала
-p_in_vfr_nrow        : in    std_logic;                   --//Разрешение чтения следующей строки
+p_in_vfr_buf         : in    TVfrBufs;                    --Номер видеобувера с готовым кадром для соответствующего видеоканала
+p_in_vfr_nrow        : in    std_logic;                   --Разрешение чтения следующей строки
 
---//Статусы
+--Статусы
 p_out_vch_fr_new     : out   std_logic;
 p_out_vch_rd_done    : out   std_logic;
 p_out_vch            : out   std_logic_vector(3 downto 0);
@@ -60,9 +64,9 @@ p_out_vch_active_pix : out   std_logic_vector(15 downto 0);
 p_out_vch_active_row : out   std_logic_vector(15 downto 0);
 p_out_vch_mirx       : out   std_logic;
 
---//--------------------------
---//Upstream Port
---//--------------------------
+----------------------------
+--Upstream Port
+----------------------------
 p_out_upp_data       : out   std_logic_vector(G_MEM_DWIDTH-1 downto 0);
 p_out_upp_data_wd    : out   std_logic;
 p_in_upp_buf_empty   : in    std_logic;
@@ -123,9 +127,9 @@ begin
 
 i_data_null <= (others=>'0');
 
---//----------------------------------
---//Технологические сигналы
---//----------------------------------
+------------------------------------
+--Технологические сигналы
+------------------------------------
 --p_out_tst(31 downto 0) <= (others=>'0');
 p_out_tst(5 downto 0) <= tst_mem_wr_out(5 downto 0);
 p_out_tst(7 downto 6) <= (others=>'0');
@@ -142,12 +146,12 @@ begin
 end process;
 tst_fsmstate <= CONV_STD_LOGIC_VECTOR(16#01#,tst_fsmstate'length) when fsm_state_cs = S_MEM_START       else
                 CONV_STD_LOGIC_VECTOR(16#02#,tst_fsmstate'length) when fsm_state_cs = S_MEM_RD          else
-                CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --//fsm_state_cs = S_IDLE              else
+                CONV_STD_LOGIC_VECTOR(16#00#,tst_fsmstate'length); --fsm_state_cs = S_IDLE              else
 
 
---//----------------------------------------------
---//Статусы
---//----------------------------------------------
+------------------------------------------------
+--Статусы
+------------------------------------------------
 p_out_vch_fr_new <= '0';
 p_out_vch_rd_done <= i_vfr_done;
 p_out_vch <= (others=>'0');
@@ -156,10 +160,12 @@ p_out_vch_active_row <= (others=>'0');
 p_out_vch_mirx  <= '0';
 
 
---//----------------------------------------------
---//Автомат Чтения видео кадра
---//----------------------------------------------
-i_pix_count_byte <= p_in_cfg_prm_vch(0).fr_size.activ.pix(p_in_cfg_prm_vch(0).fr_size.activ.pix'high - 2 downto 0) & "00";
+------------------------------------------------
+--Автомат Чтения видео кадра
+------------------------------------------------
+i_pix_count_byte <= p_in_cfg_prm_vch(0)
+                    .fr_size.activ
+                    .pix(p_in_cfg_prm_vch(0).fr_size.activ.pix'high - 2 downto 0) & "00";
 
 process(p_in_rst,p_in_clk)
 begin
@@ -196,10 +202,8 @@ begin
       when S_MEM_START =>
 
           i_mem_adr(i_mem_adr'high downto G_MEM_VCH_M_BIT + 1) <= (others=>'0');
-          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= (others=>'0');
+          i_mem_adr(G_MEM_VCH_M_BIT downto G_MEM_VCH_L_BIT) <= p_in_hrd_chsel(G_MEM_VCH_M_BIT - G_MEM_VCH_L_BIT downto 0);
           i_mem_adr(G_MEM_VFR_M_BIT downto G_MEM_VFR_L_BIT) <= p_in_vfr_buf(0);
-          i_mem_adr(G_MEM_VLINE_M_BIT downto G_MEM_VLINE_L_BIT) <= i_vfr_rowcnt;
-          i_mem_adr(G_MEM_VLINE_L_BIT-1 downto 0) <= (others=>'0');
 
           i_mem_dlen_rq <= EXT(i_pix_count_byte(i_pix_count_byte'high downto log2(G_MEM_DWIDTH/8)), i_mem_dlen_rq'length)
                            + OR_reduce(i_pix_count_byte(log2(G_MEM_DWIDTH/8) - 1 downto 0));
@@ -217,16 +221,19 @@ begin
         i_mem_start <= '0';
         if i_mem_done = '1' then
           if (i_vfr_rowcnt = p_in_cfg_prm_vch(0).fr_size.activ.row(i_vfr_rowcnt'range) - 1) then
+            i_mem_adr(G_MEM_VLINE_M_BIT - 1 downto 0) <= (others=>'0');
             fsm_state_cs <= S_WAIT_HOST_ACK;
           else
             i_vfr_rowcnt <= i_vfr_rowcnt + 1;
+            i_mem_adr(G_MEM_VLINE_M_BIT - 1 downto 0) <= i_mem_adr(G_MEM_VLINE_M_BIT - 1 downto 0)
+                                                          + i_pix_count_byte;
             fsm_state_cs <= S_MEM_START;
           end if;
         end if;
 
-      --//----------------------------------------------
-      --//Ждем ответ от ХОСТА - данные принял
-      --//----------------------------------------------
+      ------------------------------------------------
+      --Ждем ответ от ХОСТА - данные принял
+      ------------------------------------------------
       when S_WAIT_HOST_ACK =>
 
         if p_in_hrd_done = '1' then
@@ -240,11 +247,12 @@ begin
 end process;
 
 
---//------------------------------------------------------
---//Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
---//------------------------------------------------------
+--------------------------------------------------------
+--Модуль записи/чтения данных ОЗУ (mem_ctrl.vhd)
+--------------------------------------------------------
 m_mem_wr : mem_wr
 generic map(
+G_USR_OPT        => G_USR_OPT,
 G_MEM_BANK_M_BIT => G_MEM_BANK_M_BIT,
 G_MEM_BANK_L_BIT => G_MEM_BANK_L_BIT,
 G_MEM_AWIDTH     => G_MEM_AWIDTH,

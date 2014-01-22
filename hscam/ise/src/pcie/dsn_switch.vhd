@@ -65,6 +65,16 @@ p_out_vbufi_full          : out  std_logic;
 p_out_vbufi_pfull         : out  std_logic;
 
 -------------------------------
+--VBUFI2
+-------------------------------
+p_in_vbufi2_rdclk         : in   std_logic;
+p_out_vbufi2_do           : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vbufi2_rd            : in   std_logic;
+p_out_vbufi2_empty        : out  std_logic;
+p_out_vbufi2_full         : out  std_logic;
+p_out_vbufi2_pfull        : out  std_logic;
+
+-------------------------------
 --Технологический
 -------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
@@ -131,7 +141,8 @@ begin
 --Технологические сигналы
 ------------------------------------
 p_out_tst(0) <= b_rst_vctrl_bufs;
-p_out_tst(31 downto 1) <= (others=>'0');
+p_out_tst(1) <= i_en_video;
+p_out_tst(31 downto 2) <= (others=>'0');
 
 
 ----------------------------------------------------
@@ -237,7 +248,7 @@ end process;
 
 
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
---ImageSensor->VCTRL
+--ImageSensor -> PCIE
 --XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 m_vbufi : vin
 generic map(
@@ -272,6 +283,41 @@ p_in_rst           => b_rst_vctrl_bufs
 
 p_out_vbufi_pfull <= '0';
 
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+--ImageSensor -> VOUT
+--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+m_vbufi2 : vin
+generic map(
+G_VBUF_IWIDTH => G_VBUF_IWIDTH,
+G_VBUF_OWIDTH => G_VBUF_OWIDTH,
+G_VSYN_ACTIVE => '1'
+)
+port map(
+--Вх. видеопоток
+p_in_vd            => p_in_vd,
+p_in_vs            => p_in_vs,
+p_in_hs            => p_in_hs,
+p_in_vclk          => p_in_vclk,
+p_in_vclk_en       => p_in_vclk_en,
+p_in_ext_syn       => i_en_video, -- разрешение записи в вх. буфер (подсинхривается сигналом p_in_vs)
+
+--Вых. видеопоток
+p_out_vbufi_d      => p_out_vbufi2_do,
+p_in_vbufi_rd      => p_in_vbufi2_rd,
+p_out_vbufi_empty  => p_out_vbufi2_empty,
+p_out_vbufi_full   => p_out_vbufi2_full,
+p_in_vbufi_wrclk   => p_in_convert_clk,
+p_in_vbufi_rdclk   => p_in_vbufi2_rdclk,
+
+--Технологический
+p_in_tst           => (others => '0'),
+p_out_tst          => open,
+
+--System
+p_in_rst           => b_rst_vctrl_bufs
+);
+
+p_out_vbufi2_pfull <= '0';
 
 --END MAIN
 end behavioral;

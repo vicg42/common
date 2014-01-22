@@ -216,7 +216,8 @@ constant C_HREG_FUNC_HDD_BIT                  : integer:=4;
 constant C_HREG_FUNC_VRESEK21_BIT             : integer:=5;
 constant C_HREG_FUNC_PROM_BIT                 : integer:=6;
 constant C_HREG_FUNC_PULT_BIT                 : integer:=7;
-constant C_HREG_FUNC_HSCAM_BIT                : integer:=8;
+constant C_HREG_FUNC_EXTSYNC_BIT              : integer:=8;
+constant C_HREG_FUNC_HSCAM_BIT                : integer:=9;
 constant C_HREG_FUNC_LAST_BIT                 : integer:=C_HREG_FUNC_HSCAM_BIT;
 
 

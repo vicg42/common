@@ -290,6 +290,16 @@ p_out_vbufi_full          : out  std_logic;
 p_out_vbufi_pfull         : out  std_logic;
 
 -------------------------------
+--VBUFI2
+-------------------------------
+p_in_vbufi2_rdclk         : in   std_logic;
+p_out_vbufi2_do           : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vbufi2_rd            : in   std_logic;
+p_out_vbufi2_empty        : out  std_logic;
+p_out_vbufi2_full         : out  std_logic;
+p_out_vbufi2_pfull        : out  std_logic;
+
+-------------------------------
 --Технологический
 -------------------------------
 p_in_tst                  : in    std_logic_vector(31 downto 0);
