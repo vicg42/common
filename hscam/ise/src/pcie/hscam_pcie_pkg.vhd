@@ -125,6 +125,9 @@ G_ROTATE_BUF_COUNT: integer:=16;
 G_SIMPLE : string:="OFF";
 G_SIM    : string:="OFF";
 
+G_VBUF_OWIDTH: integer:=16;
+G_VSYN_ACTIVE : std_logic:='1';
+
 G_MEM_AWIDTH : integer:=32;
 G_MEMWR_DWIDTH : integer:=32;
 G_MEMRD_DWIDTH : integer:=32
@@ -156,11 +159,21 @@ p_in_hrddone          : in    std_logic;
 p_out_hirq            : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 p_out_hdrdy           : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 p_out_hfrmrk          : out   std_logic_vector(31 downto 0);
+p_out_hirq2           : out   std_logic_vector(C_VCTRL_VCH_COUNT - 1 downto 0);
 
 p_in_vbufo_rdclk      : in    std_logic;
 p_out_vbufo_do        : out   std_logic_vector(G_MEMRD_DWIDTH - 1 downto 0);
 p_in_vbufo_rd         : in    std_logic;
 p_out_vbufo_empty     : out   std_logic;
+
+-------------------------------
+--VideoOUT
+-------------------------------
+p_out_vd              : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
+p_in_vs               : in   std_logic;
+p_in_hs               : in   std_logic;
+p_in_vclk             : in   std_logic;
+p_in_vclk_en          : in   std_logic;
 
 -------------------------------
 --VBUFI
@@ -180,6 +193,9 @@ p_in_memwr            : in    TMemOUT;
 --CH READ
 p_out_memrd           : out   TMemIN;
 p_in_memrd            : in    TMemOUT;
+--CH READ
+p_out_memrd2          : out   TMemIN;
+p_in_memrd2           : in    TMemOUT;
 
 -------------------------------
 --Технологический
@@ -288,16 +304,6 @@ p_in_vbufi_rd             : in   std_logic;
 p_out_vbufi_empty         : out  std_logic;
 p_out_vbufi_full          : out  std_logic;
 p_out_vbufi_pfull         : out  std_logic;
-
--------------------------------
---VBUFI2
--------------------------------
-p_in_vbufi2_rdclk         : in   std_logic;
-p_out_vbufi2_do           : out  std_logic_vector(G_VBUF_OWIDTH - 1 downto 0);
-p_in_vbufi2_rd            : in   std_logic;
-p_out_vbufi2_empty        : out  std_logic;
-p_out_vbufi2_full         : out  std_logic;
-p_out_vbufi2_pfull        : out  std_logic;
 
 -------------------------------
 --Технологический
@@ -459,6 +465,9 @@ p_in_memwr            : in    TMemOUT;
 --CH READ
 p_out_memrd           : out   TMemIN;
 p_in_memrd            : in    TMemOUT;
+--CH READ
+p_out_memrd2          : out   TMemIN;
+p_in_memrd2           : in    TMemOUT;
 
 -------------------------------
 --Технологический
