@@ -35,6 +35,37 @@ G_DBG_PCIE : string:="OFF";
 G_SIM      : string:="OFF"
 );
 port(
+----------------------------------------------------
+----VideoIN
+----------------------------------------------------
+--p_in_vd             : in   std_logic_vector(C_PCFG_VIN_DWIDTH-1 downto 0);
+--p_in_vin_vs         : in   std_logic;--Строб кадровой синхронизации (КСИ)
+--p_in_vin_hs         : in   std_logic;--Строб строчной синхронизации (ССИ)
+--p_in_vin_clk        : in   std_logic;--Пиксельная частота
+--p_in_ext_syn        : in   std_logic;--Внешняя синхронизация записи
+--
+----------------------------------------------------
+----VideoOUT
+----------------------------------------------------
+--p_out_vd            : out  std_logic_vector(C_PCFG_VOUT_DWIDTH-1 downto 0);
+--p_in_vout_vs        : in   std_logic;--Строб кадровой синхронизации (КСИ)
+--p_in_vout_hs        : in   std_logic;--Строб строчной синхронизации (ССИ)
+--p_in_vout_clk       : in   std_logic;--Пиксельная частота
+
+---------------------------------------------------
+----Порт управления модулем + Статусы
+---------------------------------------------------
+----Интерфейс управления модулем
+--p_in_usr_clk        : in    std_logic; --частота тактирования p_in_usr_txd/rxd/tx_wr/rx_rd
+--p_in_usr_tx_wr      : in    std_logic;
+--p_in_usr_rx_rd      : in    std_logic;
+--p_in_usr_txd        : in    std_logic_vector(15 downto 0);--HOST->HDD
+--p_out_usr_rxd       : out   std_logic_vector(15 downto 0);--HOST<-HDD
+--p_out_usr_status    : out   std_logic_vector(7  downto 0);
+--
+----Управление от модуля camemra.v
+--p_in_cam_ctrl       : in    std_logic_vector(15 downto 0);
+
 --------------------------------------------------
 --Технологический порт
 --------------------------------------------------
@@ -218,6 +249,9 @@ signal i_mem_ctrl_status                : TMEMCTRL_status;
 signal i_mem_ctrl_sysin                 : TMEMCTRL_sysin;
 signal i_mem_ctrl_sysout                : TMEMCTRL_sysout;
 
+signal i_hddwr_mode                     : std_logic;
+signal i_hddrd_mode                     : std_logic;
+
 signal i_prom_rst                       : std_logic;
 
 attribute keep : string;
@@ -244,7 +278,7 @@ signal i_vin_d80_d32_clk                : std_logic;
 signal i_vin_tst_out                    : std_logic_vector(31 downto 0);
 signal i_vin_fps                        : std_logic_vector(3 downto 0) := (others=>'0');
 
-signal i_vout_d                         : std_logic_vector(C_PCFG_VOUT_DWIDTH - 1 downto 0);
+signal i_vout_d,tst_vout_d                          : std_logic_vector(C_PCFG_VOUT_DWIDTH - 1 downto 0);
 signal i_vout_vs,tmp_vout_vs                        : std_logic;
 signal i_vout_hs,tmp_vout_hs                        : std_logic;
 signal i_vout_clk                       : std_logic;
@@ -574,8 +608,9 @@ p_in_rst => i_vctrl_rst
 );
 
 i_vctrl_tst_in(0) <= i_swt_tst_out(0);--Сброс выходного видеобуфера !!!
-i_vctrl_tst_in(1) <= i_swt_tst_out(1);--i_en_video !!!
-i_vctrl_tst_in(31 downto 2) <= (others=>'0');
+i_vctrl_tst_in(1) <= i_hddwr_mode;
+i_vctrl_tst_in(2) <= i_hddrd_mode;
+i_vctrl_tst_in(31 downto 3) <= (others=>'0');
 
 
 --***********************************************************
@@ -916,8 +951,8 @@ p_in_sys        => i_mem_ctrl_sysin
 --DBG
 --#########################################
 pin_out_led(0) <= i_test01_led;
-pin_out_led(1) <= OR_reduce(i_vout_d);
-pin_out_led(2) <= '0';
+pin_out_led(1) <= OR_reduce(tst_vout_d);
+pin_out_led(2) <= i_vctrl_tst_out(9);
 pin_out_led(3) <= '0';
 pin_out_led(4) <= '0';
 pin_out_led(5) <= '0';
@@ -1113,5 +1148,15 @@ i_vout_clk <= i_vin_clk;
 
 i_vout_vs <= tmp_vout_vs and i_host_tst_out(16);
 i_vout_hs <= tmp_vout_hs and i_host_tst_out(16);
+
+process(i_vout_clk)
+begin
+  if rising_edge(i_vout_clk) then
+    tst_vout_d <= i_vout_d;
+  end if;
+end process;
+
+i_hddwr_mode <= i_swt_tst_out(1);--i_en_video !!!
+i_hddrd_mode <= i_host_tst_out(17);
 
 end architecture;

@@ -96,18 +96,28 @@ signal i_buf_rd           : std_logic;
 signal i_buf_empty        : std_logic;
 signal i_bufo_full        : std_logic;
 signal i_pix_en           : std_logic;
-
+signal tst_vbufo_full     : std_logic;
+signal tst_buf_empty      : std_logic;
+signal tst_bufo_empty, i_bufo_empty     : std_logic;
 
 --MAIN
 begin
 
 --Технологические сигналы
-p_out_tst(0) <= '0';
+p_out_tst(0) <= tst_vbufo_full or tst_buf_empty or tst_bufo_empty;
 p_out_tst(1) <= '0';
 p_out_tst(2) <= '0';
 p_out_tst(3) <= '0';
 p_out_tst(4) <= '0';
 p_out_tst(31 downto 5) <= (others=>'0');
+
+process(p_in_vbufo_wr)
+begin
+  if rising_edge(p_in_vbufo_wr) then
+    tst_buf_empty <= i_buf_empty;
+    tst_bufo_empty <= i_bufo_empty;
+  end if;
+end process;
 
 
 --128bit
@@ -128,7 +138,7 @@ wr_en  => p_in_vbufo_wr,
 dout   => i_bufi_dout,
 rd_en  => i_bufi_rd,
 
-full      => open,
+full      => tst_vbufo_full,
 empty     => i_buf_empty,
 prog_full => p_out_vbufo_full,
 
@@ -149,7 +159,7 @@ rd_en  => i_buf_rd,
 rd_clk => p_in_vclk,
 
 full   => i_bufo_full,
-empty  => open,
+empty  => i_bufo_empty,
 
 rst    => p_in_rst
 );

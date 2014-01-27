@@ -359,14 +359,19 @@ signal i_v2reader_dout                   : std_logic_vector(G_MEMRD_DWIDTH - 1 d
 signal i_v2reader_dout_en                : std_logic;
 signal i_v2bufo_full                     : std_logic;
 signal tst_v2reader_out                  : std_logic_vector(31 downto 0);
-signal tst_v2reader_in                   : std_logic_vector(31 downto 0);
 signal i_v2bufo_en                       : std_logic;
 
-signal tst_mem_rd_mode                   : std_logic;
+signal i_hddwr_mode                      : std_logic;
+signal i_hddrd_mode                      : std_logic;
+signal sr_hdd_mode                       : std_logic_vector(0 to 1);
+signal i_v2bufout_rst                    : std_logic_vector(0 to 1);
 
 signal tst_vwriter_out                   : std_logic_vector(31 downto 0);
 signal tst_vreader_out                   : std_logic_vector(31 downto 0);
 signal tst_ctrl                          : std_logic_vector(31 downto 0);
+signal tst_v2bufo_out                    : std_logic_vector(31 downto 0);
+signal tst_v2bufo_full                   : std_logic;
+signal tst_v2bufo_empty                  : std_logic;
 
 type TVfrSkip is array (0 to C_VCTRL_VCH_COUNT - 1)
   of std_logic_vector(C_VCTRL_MEM_VFR_M_BIT - C_VCTRL_MEM_VFR_L_BIT downto 0);
@@ -394,10 +399,10 @@ p_out_tst(31 downto 26) <= tst_vwriter_out(31 downto 26);
 end generate gen_dbgcs_off;
 
 gen_dbgcs_on : if strcmp(G_DBGCS,"ON") generate
-p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out) or OR_reduce(tst_v2reader_out);
+p_out_tst(0) <= OR_reduce(tst_vwriter_out) or OR_reduce(tst_vreader_out) or OR_reduce(tst_v2reader_out) or tst_v2bufo_full;
 p_out_tst(4 downto 1) <= tst_vwriter_out(3 downto 0);
 p_out_tst(8 downto 5) <= tst_vreader_out(3 downto 0);
-p_out_tst(9)          <= tst_vwriter_out(4);
+p_out_tst(9)          <= tst_v2bufo_empty;
 p_out_tst(10)         <= tst_vreader_out(4);
 p_out_tst(25 downto 11) <= (others=>'0');
 p_out_tst(31 downto 26) <= tst_vwriter_out(31 downto 26);
@@ -636,8 +641,8 @@ end process;
 
 
 tst_ctrl <= EXT(h_reg_tst0, tst_ctrl'length);
-tst_mem_rd_mode <=  p_in_tst(1);--tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
---tst_mem_rd_mode<=tst_ctrl(C_VCTRL_REG_TST0_DBG_RDHOLD_BIT);
+i_hddwr_mode <=  p_in_tst(1);--tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
+i_hddrd_mode <=  p_in_tst(2);--tst_ctrl(C_VCTRL_REG_TST0_DBG_PICTURE_BIT);
 
 
 --Пересинхронизация
@@ -894,12 +899,12 @@ if rising_edge(p_in_clk) then
         --(MEM -> VOUT)
         --##############################
         --Выдача видео при записи данных на HDD
-        if i_hrd_start2 = '1' then
-          if tst_mem_rd_mode = '1' then
+        if i_hddwr_mode = '1' or i_hddrd_mode = '1' then
+          if i_hrd_start2 = '1' then
             i_v2bufo_en <= '1';
-          else
-            i_v2bufo_en <= '0';
           end if;
+        else
+          i_v2bufo_en <= '0';
         end if;
 
         --Выбираем видеобуфер для чтения
@@ -908,21 +913,21 @@ if rising_edge(p_in_clk) then
           i_v2buf_rd_incr <= '0';
 
         --Выдача видео при записи данных на HDD
-        elsif i_hrd_start2 = '1' and tst_mem_rd_mode = '1' then
+        elsif i_hrd_start2 = '1' and i_hddwr_mode = '1' then
           i_v2buf_rd(ch) <= i_vbuf_wr(ch);
 
---        --Выдача видео при чтении данных из HDD
---        elsif i_hrd_start2 = '1' and tst_mem_rd_mode = '1' then
---          if i_v2buf_rd_incr = '0' then
---            i_v2buf_rd_incr <= '1';
---          else
---            i_v2buf_rd(ch) <= i_v2buf_rd(ch) + 1;
---          end if;
---
+        --Выдача видео при чтении данных из HDD
+        elsif i_hrd_start2 = '1' and i_hddrd_mode = '1' then
+          if i_v2buf_rd_incr = '0' then
+            i_v2buf_rd_incr <= '1';
+          else
+            i_v2buf_rd(ch) <= i_v2buf_rd(ch) + 1;
+          end if;
+
         end if;
 
         --Прерывание - вычетка кадра (MEM -> VOUT)
-        if tst_mem_rd_mode = '0' then
+        if i_hddwr_mode = '0' then
           i_v2rd_irq(ch) <= i_v2reader_rd_done;
 
         end if;
@@ -1070,7 +1075,7 @@ p_in_mem              => p_in_memrd2,
 -------------------------------
 --Технологический
 -------------------------------
-p_in_tst              => tst_v2reader_in,--(others=>'0'),
+p_in_tst              => (others=>'0'),
 p_out_tst             => tst_v2reader_out,
 
 -------------------------------
@@ -1102,7 +1107,7 @@ prog_full   => i_vbufo_full,
 rst         => i_vbufout_rst
 );
 
-i_vbufout_rst <= p_in_rst or p_in_tst(0);
+i_vbufout_rst <= p_in_rst or p_in_tst(0) or vclk_set_idle_vch(0);
 
 --MEM -> VOUT
 m_vbufo_vout : vout
@@ -1124,17 +1129,18 @@ p_in_vbufo_di    => i_v2reader_dout,
 p_in_vbufo_wr    => i_v2reader_dout_en,
 p_in_vbufo_wrclk => p_in_clk,
 p_out_vbufo_full => i_v2bufo_full,
-p_out_vbufo_empty=> open,
+p_out_vbufo_empty=> tst_v2bufo_empty,
 p_in_vbufo_en    => i_v2bufo_en,
 
 --Технологический
 p_in_tst         => (others=>'0'),
-p_out_tst        => open,
+p_out_tst        => tst_v2bufo_out,
 
 --System
-p_in_rst         => i_vbufout_rst
+p_in_rst         => i_v2bufout_rst(0)
 );
 
+i_v2bufout_rst(0) <= p_in_rst or i_v2bufout_rst(1);
 
 --маркер вычитываемого кадра:
 process(p_in_clk)
@@ -1171,12 +1177,18 @@ begin
 
     sr_vs <= i_vs & sr_vs(0 to 0);
 
-    i_hrd_start2 <= (sr_vs(0) and not sr_vs(1)) and tst_mem_rd_mode;
+    i_hrd_start2 <= (sr_vs(0) and not sr_vs(1)) and (i_hddwr_mode or i_hddrd_mode);
 
+    --Сброс буфера VOUT перед началом работы в новом режиме
+    i_v2bufout_rst(1) <= sr_hdd_mode(0) and not sr_hdd_mode(1);
+    sr_hdd_mode <= (i_hddwr_mode or i_hddrd_mode) & sr_hdd_mode(0 to 0);
+
+    tst_v2bufo_full <= tst_v2bufo_out(0);
   end if;
 end process;
 
-tst_v2reader_in <= i_v2bufo_full & tst_ctrl(30 downto 0);
+
+
 
 --END MAIN
 end behavioral;
